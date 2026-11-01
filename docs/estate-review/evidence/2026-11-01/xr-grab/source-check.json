@@ -1,0 +1,5 @@
+{
+  "verified_exports": 22,
+  "verified_exact_functions": 14,
+  "result": "All exports match pinned Git bytes; all extracted bodies match source ranges and recorded hashes."
+}

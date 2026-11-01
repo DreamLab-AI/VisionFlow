@@ -1,0 +1,6 @@
+    Checking once_cell v1.21.4
+    Checking pin-project-lite v0.2.17
+    Checking tracing-core v0.1.36
+    Checking tracing v0.1.44
+    Checking xr-grab-audit-probe v0.0.0 (/home/devuser/workspace/wt/VisionFlow-xr-grab-boundaries/docs/estate-review/evidence/2026-11-01/xr-grab/rust-probe)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.62s

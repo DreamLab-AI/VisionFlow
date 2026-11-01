@@ -11,12 +11,12 @@ sources:
   - ../project/xr-client/scripts/spatial_volume.gd
   - ../project/xr-client/scripts/graph_scene.gd
   - ../project/xr-client/scripts/frame_budget_pass.gd
-verified_commit: {visionclaw: 75b72416bac176ca8fde715cac3bd7c77657b3e7}
+verified_commit: {visionclaw: 531df5ef74453a2ed320bff968c203a9b91faed7}
 ---
 
 ## For developers
 
-The [portal audit](../../estate-review/2026-10-31-portals-and-federation.md) executes 41 existing logic tests and seven adversarial/control cases on isolated Godot 4.6.1. Seven native scene tests and headset acceptance remain outside that run.
+The [portal audit](../../estate-review/2026-10-31-portals-and-federation.md) records 41 existing logic tests and seven adversarial/control cases on isolated Godot 4.6.1. Those runs remain historical. The [grab and portal refresh](../../estate-review/2026-11-01-xr-grab-boundaries.md) checks the current source delta; seven native scene tests and headset acceptance remain outside the portal fixture.
 
 ## For the business
 
@@ -39,7 +39,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    HAND["Two-hand gesture scales the whole arrangement<br/>graph_scene.gd:2961,2996"] --> INV["Inverse global transform maps head into portal coordinates<br/>space_portals.gd:596,597"]
+    HAND["Two-hand gesture scales the whole arrangement<br/>graph_scene.gd:3062,3097"] --> INV["Inverse global transform maps head into portal coordinates<br/>space_portals.gd:596,597"]
     INV --> DIST["Return local excess-vector length<br/>space_portals.gd:598,599"]
     DIST --> LIMIT["Compare directly with REARM_DISTANCE 0.3<br/>space_portals.gd:51,617"]
     LIMIT --> ARM["Re-arm when clear of every portal<br/>space_portals.gd:620,621"]
@@ -58,9 +58,9 @@ flowchart TD
     SIG --> DIM["Reduced motion starts a dim for ring repositioning<br/>space_portals.gd:553,554"]
     ADD["Arrangement accepts unique volume ids<br/>volume_arrangement.gd:75,79,80"] --> IDS["List every visible open non-room volume<br/>space_portals.gd:395"]
     IDS --> MM["Draw at most eight membrane instances<br/>space_portals.gd:64,566,567"]
-    MM --> GAP["Scene budget collector has no portal-layer count<br/>graph_scene.gd:3048,3079,3082"]
+    MM --> GAP["Scene budget collector has no portal-layer count<br/>graph_scene.gd:3149,3180,3183"]
 ```
 
 **What it shows.** The API probe changes bounds before the dim begins; nine admitted portal boxes get eight membranes. **Why it is this way.** Detection follows mutation, and the documented eight-portal capacity is enforced only for membrane instances. The present scene has three volumes; the ninth-box case tests an extension boundary.
 
-**Debt:** Portal membranes and fade meshes are absent from the scene's explicit draw-call sum; primitive totals are measured separately (`graph_scene.gd:3079,3080`).
+**Debt:** Portal membranes and fade meshes are absent from the scene's explicit draw-call sum; primitive totals are measured separately (`graph_scene.gd:3180,3181`).

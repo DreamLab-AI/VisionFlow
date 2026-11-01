@@ -1,0 +1,14 @@
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+GraphScene DEBUG: node_grabbed hand=0 volume=knowledge id=11
+GraphScene DEBUG: node_grabbed hand=1 volume=ontology id=22
+GraphScene DEBUG: node_grabbed hand=0 volume=knowledge id=11
+GraphScene DEBUG: node_grabbed hand=0 volume=knowledge id=11
+GraphScene DEBUG: node_grabbed hand=0 volume=knowledge id=11
+GraphScene DEBUG: node_grabbed hand=0 volume=knowledge id=11
+GraphScene DEBUG: node_grabbed hand=0 volume=knowledge id=11
+GraphScene DEBUG: node_grabbed hand=0 volume=knowledge id=11
+GraphScene DEBUG: node_grabbed hand=0 volume=knowledge id=11
+GraphScene DEBUG: node_grabbed hand=0 volume=knowledge id=11
+GraphScene DEBUG: node_grabbed hand=0 volume=knowledge id=11
+AUDIT_RESULT {"checks":25,"failures":0,"results":[{"boundary":"new mapping is modelled, no server","case":"generation","held_id":11,"sent_id":11,"sent_position":"(0.0, 0.0, -1.0)"},{"case":"double_click_continued_trigger","held_after_next_callback":11,"opened":[11]},{"case":"depth","first_drive_metres":0.200000002980232,"initial_metres":0.1,"jump_metres":0.100000002980232},{"case":"depth","first_drive_metres":1.0,"initial_metres":1.0,"jump_metres":0.0},{"case":"depth","first_drive_metres":6.0,"initial_metres":6.0,"jump_metres":0.0},{"case":"depth","first_drive_metres":6.0,"initial_metres":10.0,"jump_metres":4.0},{"case":"box_first","node_admitted":true},{"case":"send_refused","local_held_id":11,"send_return":false}]}

@@ -7,7 +7,7 @@ type: reference
 
 # Estate audit completion ledger
 
-This ledger makes the review backlog explicit. It currently reconciles **85 current ADR assessments and 304 diagram panels** with named reports. There are 87 whole-document claims in total; two VisionClaw assessments remain stale after incoming work changed ADR-2143 and ADR-2166. ADR-2167 has a scoped refresh with its open findings preserved. The earlier Obsidian refresh remains recorded. These are counted evidence records, not a percentage of the whole audit. Earlier reports still need reconciliation, candidate decisions still need classification, and substantial source review remains.
+This ledger makes the review backlog explicit. It currently reconciles **87 current ADR assessments and 312 diagram panels** with named reports. There are 88 whole-document claims in total; ADR-2143 remains stale after incoming VisionClaw changes. ADR-2166 and ADR-2167 now have scoped refreshes with open findings preserved. These are counted evidence records, not a percentage of the whole audit. Earlier reports still need reconciliation, candidate decisions still need classification, and substantial source review remains.
 
 [Scope](scope.json), [review claims](claims.json), the [dated snapshot](snapshot-2026-11-01.json) and [validation](validation-2026-11-01.json) are separate files. The [Rust collector](../../../scripts/estate-review-ledger/README.md) can rebuild the snapshot without scanning unrelated workspace repositories. This replaces the old census's undifferentiated pending list as a working queue; earlier audit findings remain valid to their stated evidence boundaries.
 
@@ -17,18 +17,18 @@ This ledger makes the review backlog explicit. It currently reconciles **85 curr
 | --- | ---: | --- |
 | Explicit checkout targets | 25 | The existing roster/map scope, including separate standalone/consumed Codescape observations |
 | Available checkouts | 24 | Missing RuVector remains visible; it is not silently removed from the denominator |
-| ADR-like candidate files | 1,176 | Includes support, imported copies, history and retained audit evidence |
+| ADR-like candidate files | 1,178 | Includes support, imported copies, history and retained audit evidence |
 | Numbered decision candidates | 1,061 | A naming-based queue, not a count of operative or unique adopted decisions |
-| Parsed heading units | 15,352 | Excludes headings in fenced examples; a heading is not an exhaustive requirement decomposition |
-| ADR assessments reconciled | 85 | Explicit whole-document assessments linked to unchanged source-document and report bytes |
-| Heading units with those assessments | 594 | Inherit the bounded whole-document report; implementation claims still need its evidence |
-| Diagram topics / panels | 204 / 1,725 | Exact panel-ID set matches the existing generated coverage index |
-| Panel assessments reconciled | 304 | Selected panels only; 55 topics have all panels recorded and twelve have partial coverage |
-| Stale claim records | 2 | Incoming VisionClaw changes need a new assessment before their prior claims count again |
+| Parsed heading units | 15,365 | Excludes headings in fenced examples; a heading is not an exhaustive requirement decomposition |
+| ADR assessments reconciled | 87 | Explicit whole-document assessments linked to unchanged source-document and report bytes |
+| Heading units with those assessments | 607 | Inherit the bounded whole-document report; implementation claims still need its evidence |
+| Diagram topics / panels | 205 / 1,730 | Exact panel-ID set matches the existing generated coverage index |
+| Panel assessments reconciled | 312 | Selected panels only; 57 topics have all panels recorded and twelve have partial coverage |
+| Stale claim records | 1 | Incoming VisionClaw changes need a new assessment before their prior claims count again |
 
-This snapshot retains the preceding 1,173 candidate paths and adds three retained source copies: ADR-2140, ADR-2167 and ADR-2169. Copies are classified separately and acquire no review credit merely by entering the inventory.
+This snapshot retains the preceding 1,176 candidate paths and adds retained source copies of ADR-2166 and ADR-2172. Copies are classified separately and acquire no review credit merely by entering the inventory.
 
-This update assesses ADR-2169 section by section and adds five VC-52 panels, including a reproduced false acceptance in the drag-release script. A scoped source-delta review restores ADR-2167's document binding while preserving its open findings and historical performance limits. ADR-2143 and ADR-2166 remain stale. The prior Ontomark owner release and VisionClaw crate-feature integration remain recorded; this batch changes no product implementation.
+This update assesses ADR-2172 section by section, refreshes ADR-2166 after its grab amendments, rechecks VC-47's three panels and adds five VC-53 panels. Exact-method headless probes expose generation, continued-trigger, attachment-depth and admission gaps; native Rust policy tests establish the capture boundary. Historical portal/GUT/headset limits remain explicit. ADR-2143 stays stale. This batch changes no product implementation.
 
 ## What completion must prove
 
@@ -36,8 +36,8 @@ This update assesses ADR-2169 section by section and adds five VC-52 panels, inc
 | --- | --- | --- |
 | Limit work to the linked VisionFlow estate | Explicit repository identity, link/ownership basis, nested-owner handling and unavailable-source record | Scope is enumerated; further dependencies found through in-scope references require a recorded inclusion decision |
 | Check the systems against implementation | Per-repository component and cross-repository contract assessments, exact source revisions, relevant adversarial checks and clearly bounded runtime observations | Many reports exist; whole-system path coverage remains open and cannot be inferred from ADR counts |
-| Inspect and update every diagram | A source-backed disposition for every existing panel, corrections where needed, revision citations and rendering/visual evidence | 304 panel assessments reconciled; 1,421 remain unreconciled, some already reviewed in earlier reports |
-| Examine every ADR section | Classify each candidate; reconcile operative, historical, imported and support obligations; link every material section/requirement to a disposition | 85 current complete-document assessments reconciled; partial/earlier assessments still need explicit mapping |
+| Inspect and update every diagram | A source-backed disposition for every existing panel, corrections where needed, revision citations and rendering/visual evidence | 312 panel assessments reconciled; 1,418 remain unreconciled, some already reviewed in earlier reports |
+| Examine every ADR section | Classify each candidate; reconcile operative, historical, imported and support obligations; link every material section/requirement to a disposition | 87 current complete-document assessments reconciled; partial/earlier assessments still need explicit mapping |
 | Gap analysis, adversarial review and sense checks | Findings with triggers, consequences, evidence strength, counterexamples or bounded non-reproduction, and acceptance criteria | Available throughout dated reports; repo-by-repo completeness and cross-system synthesis remain open |
 | Compare alternatives and develop user utility | Primary-source comparisons tied to product paths, distinct recommendations and measurable user outcomes | Bounded comparisons exist; remaining product areas and final estate positioning still need review |
 
@@ -57,12 +57,12 @@ Component/path coverage and a final cross-repository comparison/recommendation i
 
 ## Repository and diagram queues
 
-Counts below come from the dated snapshot. The diagram-area table now derives its assessment column from individual panel states; its previous values were inconsistent with the 299-panel total. This correction adds no review credit. Zero means no qualifying claim entered in this reconciliation, not zero previous audit work.
+Counts below come from the dated snapshot. Diagram-area counts derive from individual panel states; the preceding batch corrected an inconsistent assessment column. Zero means no qualifying claim entered in this reconciliation, not zero previous audit work.
 
 | Checkout | Candidate files | Numbered decision candidates | ADR assessments reconciled |
 | --- | ---: | ---: | ---: |
-| VisionFlow | 75 | 30 | 1 |
-| VisionClaw | 292 | 278 | 9 |
+| VisionFlow | 77 | 30 | 1 |
+| VisionClaw | 292 | 278 | 11 |
 | agentbox | 239 | 227 | 8 |
 | solid-pod-rs | 19 | 15 | 0 |
 | nostr-rust-forum | 64 | 58 | 24 |
@@ -98,7 +98,7 @@ Counts below come from the dated snapshot. The diagram-area table now derives it
 | ontomark | 64 | 23 |
 | sidestr-rs | 20 | 0 |
 | solid-pod-rs | 133 | 0 |
-| visionclaw | 472 | 5 |
+| visionclaw | 477 | 13 |
 | visionflow | 87 | 0 |
 | visiongraph | 27 | 27 |
 | visiontouch-rs | 39 | 39 |

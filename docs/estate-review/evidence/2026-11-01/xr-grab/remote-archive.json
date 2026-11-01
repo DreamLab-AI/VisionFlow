@@ -1,0 +1,21 @@
+{
+  "path": "/tmp/vf-xr-grab-audit/remote-fixture.tar.gz",
+  "sha256": "101f69e3b7c6ab869af51fca9e60ed0b26142ffe699ea59a271dab176bd91edc",
+  "verified_files": {
+    "project.godot": "a12d287bde0012b029715ea11fbab6f1c950e7ea6d6d95bd9989c9fec3f40dd1",
+    "backend_caps.gd": "de334b8f0423d5dedaad529f5bfad4ee76c2f0f55270d5e24583a6efdb960eb4",
+    "graph_methods.gd": "64393a9f1090755c92214358a7d252993ec59fe530bf6ec73368738a84a616d0",
+    "spy_base.gd": "ec3d38e88a97d45846b0de81c937a76443ecd6a7b33a82b82e24451545ff2879",
+    "probe.gd": "bc9c0d97ba1f04e879cffa13596a7fad2bc65d7594687b13c64ccc15fc22c3e6"
+  },
+  "result": "All five remote inputs byte-verified in archive before remote fixture cleanup.",
+  "userdata_archive": {
+    "path": "/tmp/vf-xr-grab-audit/remote-userdata.tar.gz",
+    "sha256": "bdc386d57df599ae666a5028aafb3d108f954a7e80c4f0cda5bfa8d0d53d03f4",
+    "verified_files": {
+      "godot/app_userdata/XR grab audit \u2014 extracted methods/logs/godot.log": "50a413da67643361b69a77a1c40f37e589de05f540bba5d47ae3fc19c96e8312",
+      "godot/app_userdata/XR grab audit \u2014 extracted methods/logs/godot2026-11-01T13.17.36.log": "50a413da67643361b69a77a1c40f37e589de05f540bba5d47ae3fc19c96e8312"
+    }
+  },
+  "cleanup": "Removed owned remote fixture and private XDG directory after byte-verifying both archives."
+}

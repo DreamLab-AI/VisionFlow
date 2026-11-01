@@ -1,0 +1,190 @@
+{
+  "scans": [
+    {
+      "tool": "inspect-text",
+      "file": "docs/estate-review/2026-11-01-xr-grab-boundaries.md",
+      "exit": 0
+    },
+    {
+      "tool": "inspect-text",
+      "file": "docs/estate-review/evidence/2026-11-01/xr-grab/README.md",
+      "exit": 0
+    },
+    {
+      "tool": "inspect-text",
+      "file": "docs/estate-review/completion/README.md",
+      "exit": 0
+    },
+    {
+      "tool": "inspect-text",
+      "file": "docs/estate-review/2026-10-31-portals-and-federation.md",
+      "exit": 0
+    },
+    {
+      "tool": "inspect-text",
+      "file": "docs/diagrams/visionclaw/47-portal-entry-and-scaled-walkthrough.md",
+      "exit": 0
+    },
+    {
+      "tool": "inspect-text",
+      "file": "docs/diagrams/visionclaw/53-xr-grab-lifetimes-and-input.md",
+      "exit": 0
+    },
+    {
+      "tool": "slop-scan",
+      "file": "docs/estate-review/2026-11-01-xr-grab-boundaries.md",
+      "exit": 1
+    },
+    {
+      "tool": "slop-scan",
+      "file": "docs/estate-review/evidence/2026-11-01/xr-grab/README.md",
+      "exit": 1
+    },
+    {
+      "tool": "slop-scan",
+      "file": "docs/estate-review/completion/README.md",
+      "exit": 0
+    },
+    {
+      "tool": "slop-scan",
+      "file": "docs/estate-review/2026-10-31-portals-and-federation.md",
+      "exit": 1
+    },
+    {
+      "tool": "slop-scan",
+      "file": "docs/diagrams/visionclaw/47-portal-entry-and-scaled-walkthrough.md",
+      "exit": 0
+    },
+    {
+      "tool": "slop-scan",
+      "file": "docs/diagrams/visionclaw/53-xr-grab-lifetimes-and-input.md",
+      "exit": 0
+    }
+  ],
+  "links": [
+    {
+      "file": "docs/estate-review/2026-11-01-xr-grab-boundaries.md",
+      "target": "2026-10-31-portals-and-federation.md"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-xr-grab-boundaries.md",
+      "target": "evidence/2026-11-01/xr-grab/README.md"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-xr-grab-boundaries.md",
+      "target": "2026-11-01-drag-holds-and-acceptance.md"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-xr-grab-boundaries.md",
+      "target": "2026-10-31-portals-and-federation.md#adr-2166-section-by-section"
+    },
+    {
+      "file": "docs/estate-review/evidence/2026-11-01/xr-grab/README.md",
+      "target": "../../../2026-11-01-xr-grab-boundaries.md"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "scope.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "claims.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "snapshot-2026-11-01.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "validation-2026-11-01.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../../../scripts/estate-review-ledger/README.md"
+    },
+    {
+      "file": "docs/estate-review/2026-10-31-portals-and-federation.md",
+      "target": "2026-10-31-xr-volumes-and-code-links.md"
+    },
+    {
+      "file": "docs/estate-review/2026-10-31-portals-and-federation.md",
+      "target": "evidence/2026-10-31/portal-federation-sources.json"
+    },
+    {
+      "file": "docs/estate-review/2026-10-31-portals-and-federation.md",
+      "target": "evidence/2026-10-31/portal-remote-hashes.json"
+    },
+    {
+      "file": "docs/estate-review/2026-10-31-portals-and-federation.md",
+      "target": "evidence/2026-10-31/portal-fixture-manifest.json"
+    },
+    {
+      "file": "docs/estate-review/2026-10-31-portals-and-federation.md",
+      "target": "evidence/2026-10-31/portal-isolated-tests.gd"
+    },
+    {
+      "file": "docs/estate-review/2026-10-31-portals-and-federation.md",
+      "target": "evidence/2026-10-31/portal-gut-suite.txt"
+    },
+    {
+      "file": "docs/estate-review/2026-10-31-portals-and-federation.md",
+      "target": "evidence/2026-10-31/portal-gut-suite-plain.txt"
+    },
+    {
+      "file": "docs/estate-review/2026-10-31-portals-and-federation.md",
+      "target": "evidence/2026-10-31/portal-gut-guard.txt"
+    },
+    {
+      "file": "docs/estate-review/2026-10-31-portals-and-federation.md",
+      "target": "evidence/2026-10-31/portal-boundary-probe.gd"
+    },
+    {
+      "file": "docs/estate-review/2026-10-31-portals-and-federation.md",
+      "target": "evidence/2026-10-31/portal-boundary-probe.json"
+    },
+    {
+      "file": "docs/estate-review/2026-10-31-portals-and-federation.md",
+      "target": "evidence/2026-10-31/federation-visibility-unit.txt"
+    },
+    {
+      "file": "docs/estate-review/2026-10-31-portals-and-federation.md",
+      "target": "evidence/2026-10-31/federation-prerequisite-probe.cjs"
+    },
+    {
+      "file": "docs/estate-review/2026-10-31-portals-and-federation.md",
+      "target": "evidence/2026-10-31/federation-prerequisite-probe.json"
+    },
+    {
+      "file": "docs/estate-review/2026-10-31-portals-and-federation.md",
+      "target": "evidence/2026-10-31/federation-source-search.json"
+    },
+    {
+      "file": "docs/estate-review/2026-10-31-portals-and-federation.md",
+      "target": "evidence/2026-10-31/portal-execution-receipt.json"
+    },
+    {
+      "file": "docs/estate-review/2026-10-31-portals-and-federation.md",
+      "target": "evidence/2026-10-31/portal-citations.txt"
+    },
+    {
+      "file": "docs/estate-review/2026-10-31-portals-and-federation.md",
+      "target": "evidence/2026-10-31/portal-verification.txt"
+    },
+    {
+      "file": "docs/estate-review/2026-10-31-portals-and-federation.md",
+      "target": "2026-11-01-xr-grab-boundaries.md"
+    },
+    {
+      "file": "docs/diagrams/visionclaw/47-portal-entry-and-scaled-walkthrough.md",
+      "target": "../../estate-review/2026-10-31-portals-and-federation.md"
+    },
+    {
+      "file": "docs/diagrams/visionclaw/47-portal-entry-and-scaled-walkthrough.md",
+      "target": "../../estate-review/2026-11-01-xr-grab-boundaries.md"
+    },
+    {
+      "file": "docs/diagrams/visionclaw/53-xr-grab-lifetimes-and-input.md",
+      "target": "../../estate-review/2026-11-01-xr-grab-boundaries.md"
+    }
+  ]
+}

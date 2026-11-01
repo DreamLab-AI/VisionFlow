@@ -1,0 +1,15 @@
+
+  prose-sanitiser slop scan: /home/devuser/workspace/wt/VisionFlow-xr-grab-boundaries/docs/estate-review/evidence/2026-11-01/xr-grab/README.md
+  files scanned: 1   findings: 4   slop score: 12
+  verdict: Some AI tells present
+  high: 4   medium: 0   low: 0
+
+  [HIGH] "The X" sentence/paragraph opener  (4 hits)
+        fix: Don't open with 'The <lowercase noun>'. Recast so the subject leads, or name the thing directly ('The production-node paired study lifts...' -> 'Holding the model constant and varying only the serving path lifts...'). Proper nouns (The Loom) are fine. See SKILL.md B2.
+        /home/devuser/workspace/wt/VisionFlow-xr-grab-boundaries/docs/estate-review/evidence/2026-11-01/xr-grab/README.md:11  The double-click constant matches production at 0.45 s.
+        /home/devuser/workspace/wt/VisionFlow-xr-grab-boundaries/docs/estate-review/evidence/2026-11-01/xr-grab/README.md:25  The generation test models id reuse; the double-click case replays callbacks;
+        /home/devuser/workspace/wt/VisionFlow-xr-grab-boundaries/docs/estate-review/evidence/2026-11-01/xr-grab/README.md:40  The two official Unity documentation pages were opened on 2026-11-01. They inform
+        /home/devuser/workspace/wt/VisionFlow-xr-grab-boundaries/docs/estate-review/evidence/2026-11-01/xr-grab/README.md:48  The full index contains 205 topics and 1,730 panels. Its citation gate verifies
+
+  Top things to change: "The X" sentence/paragraph opener
+  Narrative and voice tells need eyes too. See Section C of SKILL.md.

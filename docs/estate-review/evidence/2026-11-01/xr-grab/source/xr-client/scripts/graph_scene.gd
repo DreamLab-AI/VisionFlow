@@ -1,0 +1,5243 @@
+extends Node3D
+const BackendCaps := preload("res://scripts/backend_caps.gd")
+# XR phase 1 (ADR-2158/2159): one connection per content source, three volumes.
+const BackendConnection := preload("res://scripts/backend_connection.gd")
+const ConnectionVolumeSource := preload("res://scripts/connection_volume_source.gd")
+const VolumeArrangementScript := preload("res://scripts/volume_arrangement.gd")
+const EmulatedVolumeScene := preload("res://scenes/EmulatedVolume.tscn")
+const NativeContainerShim := preload("res://scripts/native_container_shim.gd")
+const LinkLayerScript := preload("res://scripts/link_layer.gd")
+const BridgeLinkSource := preload("res://scripts/bridge_link_source.gd")
+const XrPrefs := preload("res://scripts/xr_prefs.gd")
+const SpacePortalsScript := preload("res://scripts/space_portals.gd")
+const VolumePicker := preload("res://scripts/volume_picker.gd")
+const FramePicker := preload("res://scripts/frame_picker.gd")
+const LinkPicker := preload("res://scripts/link_picker.gd")
+
+const AVATAR_TEMPLATE_PATH := "res://scenes/Avatar.tscn"
+const AGENT_TEMPLATE_PATH := "res://scenes/AgentAvatar.tscn"
+
+# Radius the selection arbiter uses for an agent core (mesh radius + a small
+# acquisition margin). The Rust dwell resolver applies its own target-size floor.
+const AGENT_SELECT_RADIUS: float = 0.2
+
+# The dot(camera_forward, dir_to_agent) above which the user is deemed to be
+# gazing at an agent — a ~25° head-gaze cone (cos 25° ≈ 0.906), feeding the
+# agent's mutual-gaze model.
+const MUTUAL_GAZE_DOT: float = 0.9
+
+# HTTP origin for the intervention decide POST, derived from the ws:// backend
+# base by scheme swap (ws→http, wss→https) unless XR_BACKEND_HTTP overrides.
+
+# Reconnect with exponential backoff, unbounded: a headset that goes to sleep
+# (SteamVR standby on the Vive today; a Quest in its case once the standalone
+# build ships) must rejoin when it wakes, however long that takes.
+const RECONNECT_BASE_DELAY_SEC: float = 2.0
+const RECONNECT_MAX_DELAY_SEC: float = 60.0
+
+# Render budgets, sized for the lowest-spec headset we intend to support
+# (Quest 3 standalone, a planned target) and therefore comfortably safe on the
+# currently deployed Vive/SteamVR desktop rig.
+# When the graph exceeds these, the most important nodes (by server-computed
+# centrality) and the heaviest edges (by weight) are kept — same importance
+# language as the desktop client.
+# Instance budgets are now RUNTIME-DERIVED from the received topology (the backend
+# serves a settings-driven initial load that can exceed any fixed constant), not
+# hardcoded quality gates. Node budget = topology node count, edge budget =
+# topology edge count, each bounded by an absolute safety ceiling so a runaway
+# payload can't blow the MultiMesh instance buffers. See _recompute_instance_budgets.
+const NODE_SAFETY_CEILING: int = 20000
+const EDGE_SAFETY_CEILING: int = 20000
+
+# XR fit-to-view: the server streams graph coordinates spanning hundreds of
+# metres centred nowhere near the user. A flat client frames its camera to the
+# graph AABB; XR cannot move the user's physical floor, so instead we scale and
+# recentre the whole graph (GraphRoot) into a room-sized volume anchored in
+# front of the standing user. Recomputed while the layout is still settling,
+# then latched so it does not jitter once stable.
+const GRAPH_TARGET_SPAN: float = 2.4          # metres — longest AABB axis maps to this
+const GRAPH_ANCHOR := Vector3(0.0, 1.3, -1.6) # in front of XROrigin, ~chest height
+const GRAPH_REFIT_SETTLE_SEC: float = 6.0     # keep refitting for this long after first nodes
+
+# GraphRoot's fit-scale shrinks node/edge geometry along with positions, so a
+# raw 0.5 m node sphere becomes sub-pixel. Nodes and edges compensate by the
+# inverse of the fit scale to hold a fixed apparent world size. Mesh radii come
+# from GraphScene.tscn (SphereMesh r=0.5, CylinderMesh r=0.03).
+const NODE_MESH_RADIUS: float = 0.5
+const NODE_WORLD_RADIUS: float = 0.03         # ~3 cm node in the room
+const EDGE_MESH_RADIUS: float = 0.03
+const EDGE_WORLD_RADIUS: float = 0.0015       # ~1.5 mm edge tube
+const BEAM_MESH_RADIUS: float = 0.02          # agent_beam CylinderMesh authoring radius
+
+# Grab hysteresis: engagement is decided Rust-side (XrInteraction
+# ACTIVATION_THRESHOLD = 0.7); release happens here when the trigger falls
+# below this lower bound, so a half-pulled trigger can't flicker drag
+# start/end at the boundary.
+const GRAB_RELEASE: float = 0.4
+
+# Controller locomotion: trackpad/stick slides the XR rig through the graph
+# volume in the head-facing horizontal plane.
+const LOCOMOTION_SPEED: float = 1.5   # metres/second at full deflection
+const LOCOMOTION_DEADZONE: float = 0.15
+
+# Backend endpoint resolution (env-overridable). The Rust hot-path crate owns the
+# wire; GDScript only supplies URLs/credentials and pumps the inbox each frame.
+const DEFAULT_BACKEND_WS := "ws://localhost:4000"
+const GRAPH_STREAM_PATH := "/wss"
+const PRESENCE_PATH := "/ws/presence"
+# What each connection serves (BackendCaps, ADR-2143 A6) is held by the
+# connection; every request helper asks _gate_for_volume() before dispatching.
+#
+# E3 bindings (phase-1 contract §1): volume → (connection, class mask, ring yaw).
+const VOLUME_BINDINGS := {
+	&"knowledge": {"conn": &"visionclaw", "mask": 0b0001, "yaw": -60.0, "name": "Knowledge"},
+	&"ontology": {"conn": &"visionclaw", "mask": 0b0010, "yaw": 60.0, "name": "Ontology"},
+	&"codescape": {"conn": &"codescape", "mask": 0b1000, "yaw": 0.0, "name": "Codescape"},
+}
+const VOLUME_ORDER: Array[StringName] = [&"knowledge", &"ontology", &"codescape"]
+# The VisionClaw overlays (agents, beams, hulls, labels, ray picking, drag, query
+# planes) live under GraphRoot, which follows this volume's Content transform.
+const OVERLAY_VOLUME := &"knowledge"
+var _conns: Dictionary = {}            # conn_id → BackendConnection
+var _vc_conn: Node = null
+var _cs_conn: Node = null
+var _arrangement: Node3D = null
+var _volumes: Dictionary = {}          # volume_id → EmulatedVolume
+var _sources: Dictionary = {}          # volume_id → ConnectionVolumeSource
+var _offline_labels: Dictionary = {}   # volume_id → Label3D
+var _focused_volume: StringName = &"knowledge"
+var _shim: Node = null
+var _portals: Node3D = null            # SpacePortals (ADR-2166): enter a volume, the rest become portals
+var _shim_pending_start: bool = false
+# One status line every VOLUME_LOG_SEC: per volume shown/online, drawn nodes
+# and edges, and the fit scale, so a live run's log shows what each volume does.
+const VOLUME_LOG_SEC: float = 5.0
+var _volume_log_accum: float = 0.0
+
+
+func _log_volumes(delta: float) -> void:
+	_volume_log_accum += delta
+	if _volume_log_accum < VOLUME_LOG_SEC:
+		return
+	_volume_log_accum = 0.0
+	var parts: PackedStringArray = []
+	for vid: StringName in VOLUME_ORDER:
+		var v: Node3D = _volumes.get(vid, null)
+		var src = _sources.get(vid, null)
+		var conn: Node = _conn_for_volume(vid)
+		if v == null or src == null:
+			continue
+		var d: Dictionary = src.demand()
+		parts.append("%s[%s%s gen=%d ids=%d n=%d e=%d s=%.5f]" % [vid,
+			"shown" if v.visible_state else "hidden",
+			"" if conn != null and conn.is_connected_now() else " offline",
+			int(conn.generation) if conn != null else -1,
+			src.content_ids().size(), int(d["nodes"]), int(d["edges"]), float(v.current_scale())])
+	if _link_layer != null:
+		parts.append("links[%s drawn=%d unresolved=%d overflow=%d records=%d]" % [
+			"on" if _link_layer.is_enabled() else "off", _link_layer.drawn_count(),
+			_link_layer.unresolved_count(), _link_layer.overflow_count(), _link_layer.record_count()])
+	print("GraphScene volumes: %s" % " ".join(parts))
+
+
+# True while the overlay volume is drawn: shown and its connection up. The ray,
+# labels, drag, beams and hulls all live in its frame and read its pack slot.
+func _overlay_live() -> bool:
+	var v: Node3D = _volumes.get(OVERLAY_VOLUME, null)
+	var conn: Node = _conn_for_volume(OVERLAY_VOLUME)
+	return v != null and bool(v.visible_state) and conn != null and conn.is_connected_now()
+
+
+# A hidden or offline overlay volume must leave nothing pickable: select its
+# slot and empty it, so the ray, beams and hulls (which read the active slot's
+# render ids) find no node the user cannot see.
+func _empty_overlay_slot(src) -> void:
+	if _binary_client == null or not _binary_client.has_method("drop_pack_slot"):
+		return
+	_binary_client.set_pack_slot(src.slot)
+	_binary_client.drop_pack_slot(src.slot)
+
+
+# Release the node grabs in flight: every hand's, or only those held in `vid`
+# (its volume went away, hid, or turned into a portal mid-drag).
+func _release_grab(vid: StringName = &"") -> void:
+	for hand: int in 2:
+		if _grab_id[hand] != -1 and (vid == &"" or _grab_vol[hand] == vid):
+			_end_grab(hand, false)
+
+
+# The node id held by any hand (the left first), or -1 when both are free. Reads
+# that only need "is a node held" (fold, two-hand eligibility) use this.
+func _any_grab_id() -> int:
+	return _grab_id[0] if _grab_id[0] != -1 else _grab_id[1]
+
+
+func _is_held(node_id: int) -> bool:
+	return node_id >= 0 and (_grab_id[0] == node_id or _grab_id[1] == node_id)
+
+
+# Held node ids, left hand first; with `only_vol`, only those held in that volume
+# (overlays placed through GraphRoot, the knowledge frame, take only its own).
+func _held_ids(only_vol: StringName = &"") -> Array[int]:
+	var out: Array[int] = []
+	for hand: int in 2:
+		if _grab_id[hand] != -1 and (only_vol == &"" or _grab_vol[hand] == only_vol):
+			out.append(_grab_id[hand])
+	return out
+
+
+# Writes volume `vid`'s refit exclusion set from the nodes held in it (E7): a node the
+# hand drags is pinned to the hand, so letting it into the fit chases the hand outward
+# (the box refits around the held node, the hand maps to a farther server point, the
+# node moves, and so on). Called wherever a grab begins or ends.
+func _sync_grab_exclusion(vid: StringName) -> void:
+	var src = _sources.get(vid, null)
+	if src == null or not ("grabbed_ids" in src):
+		return
+	src.grabbed_ids = PackedInt32Array(_held_ids(vid))
+
+
+## The world frame (graph units → world) that places node `node_id` for overlays
+## such as the focus marker: the Content transform of the volume holding it, or
+## of the volume the ray last targeted it in, else GraphRoot's (knowledge).
+func focus_frame_for(node_id: int) -> Transform3D:
+	for hand: int in 2:
+		if node_id >= 0 and _grab_id[hand] == node_id:
+			return _content_xf(_grab_vol[hand])
+	if node_id >= 0 and node_id == _last_targeted_id and _last_targeted_vol != &"":
+		return _content_xf(_last_targeted_vol)
+	return graph_root.global_transform if graph_root != null else Transform3D.IDENTITY
+
+# --- Spatial-volume UX (UX contract features 1-5) ------------------------------
+#
+# Trigger, resolved once per press at TRIGGER_PICK (the Rust policy's own grab
+# threshold) and held as that hand's claim until the trigger falls below
+# GRAB_RELEASE: HUD/menu > link (when nearer than the node) > node > frame >
+# nothing. A node selects and focuses its box; a link follows to its far end
+# (focus, select, bring to front); a frame focuses its box. While a hand's claim
+# is a link, or a frame or node outside the overlay volume, the Rust node drag
+# does not run for that hand, so a press never both selects one thing and drags
+# another. Drag stays knowledge-only (E9).
+#
+# Grip: HUD grab (proximity, _update_hud_grab) > corner handle (resize) > frame
+# (move) > two-hand arrangement gesture. A one-hand box grip waits
+# BOX_GRIP_GRACE_SEC before it claims the hand: the ring fills most of the view,
+# so without the grace a two-hand squeeze that lands one grip a frame early would
+# always grab a box instead.
+
+const TRIGGER_PICK: float = 0.7          # == interaction.rs ACTIVATION_THRESHOLD
+const GRIP_BOX_ENGAGE: float = 0.7
+const GRIP_BOX_RELEASE: float = 0.5
+const BOX_GRIP_GRACE_SEC: float = 0.15
+## Ray-to-corner reach for a handle pick, metres (frame_picker's default).
+const BOX_HANDLE_RADIUS_M: float = 0.04
+## Markers drawn on the selection and its linked counterparts.
+const HIGHLIGHT_MAX: int = 16
+const HIGHLIGHT_RADIUS_M: float = 0.022
+const HIGHLIGHT_COLOUR := Color(1.0, 0.85, 0.35)
+const SELECTION_LABEL_LIFT_M: float = 0.06
+
+# Per hand (0 left, 1 right): the press's claim kind ("" = no press held) and,
+# for a node claim, its volume.
+var _trigger_claim: Array[String] = ["", ""]
+var _trigger_claim_vol: Array[StringName] = [&"", &""]
+var _grip_down: Array[bool] = [false, false]
+var _box_grab_ctrl: Node3D = null
+var _box_grab_vid: StringName = &""
+var _box_grab_resize: bool = false
+var _box_grab_g0: Transform3D = Transform3D.IDENTITY   # volume global at grab start
+var _box_grab_p0: Vector3 = Vector3.ZERO               # world hit point at grab start
+var _box_grab_dist: float = 0.0                        # hit distance along the ray
+var _box_pending_ctrl: XRController3D = null
+var _box_pending_t: float = 0.0
+var _box_pending_hit: Dictionary = {}
+# The selection: one node in one volume, plus the highlight list (selection
+# first, then link ends and counterparts), preallocated to HIGHLIGHT_MAX.
+var _sel_volume: StringName = &""
+var _sel_conn: StringName = &""
+var _sel_node: int = -1
+var _hl_count: int = 0
+var _hl_vol: Array[StringName] = []
+var _hl_conn: Array[StringName] = []
+var _hl_node := PackedInt32Array()
+var _highlight_marks: MultiMeshInstance3D = null
+var _selection_label: Label3D = null
+
+
+## Trigger precedence (contract): "hud" > "link" when its distance is below the
+## node's > "node" > "frame" > "none". Hits use the pickers' shapes ({} = miss).
+static func resolve_trigger(hud_hit: bool, link: Dictionary, node: Dictionary, frame: Dictionary) -> String:
+	if hud_hit:
+		return "hud"
+	var node_d: float = float(node.get("distance", INF)) if not node.is_empty() else INF
+	if not link.is_empty() and float(link.get("distance", INF)) < node_d:
+		return "link"
+	if not node.is_empty():
+		return "node"
+	if not frame.is_empty():
+		return "frame"
+	return "none"
+
+
+## Grip precedence (contract): "hud" > "handle" > "frame" > "two_hand" > "none".
+## `frame` is a frame_picker hit ({} = miss).
+static func resolve_grip(hud_grab: bool, frame: Dictionary, two_hand: bool) -> String:
+	if hud_grab:
+		return "hud"
+	if not frame.is_empty():
+		if str(frame.get("part", "")) == "handle" and int(frame.get("handle", -1)) >= 0:
+			return "handle"
+		return "frame"
+	if two_hand:
+		return "two_hand"
+	return "none"
+
+
+## True when a volume's connection serves node drag (BackendCaps.DRAG): the two
+## VisionClaw volumes (knowledge, ontology) do; codescape does not (ADR-2158 E9).
+static func volume_serves_drag(volume_id: StringName) -> bool:
+	var b: Dictionary = VOLUME_BINDINGS.get(volume_id, {})
+	if b.is_empty():
+		return false
+	return BackendCaps.supports(BackendCaps.for_mode(String(b["conn"])), BackendCaps.DRAG)
+
+
+## True when a hand's trigger claim keeps the Rust node drag off that hand: a
+## link, or a node or frame in a volume whose connection does not serve DRAG
+## (codescape). A node or frame claim in a VisionClaw volume leaves the drag
+## alone: the Rust policy's 5 cm tube may catch a node the picker's cone missed.
+## (`_overlay` is kept for the old call shape; every VisionClaw volume drags.)
+static func claim_blocks_drag(kind: String, volume_id: StringName, _overlay: StringName = &"") -> bool:
+	if kind == "link":
+		return true
+	if kind == "node" or kind == "frame":
+		return not volume_serves_drag(volume_id)
+	return false
+
+
+## ADR-2166: a node is grabbed in the entered space, or in ring view when no
+## space is entered. `entered` is the entered volume's id (&"" in ring view);
+## pointing into a portal from inside a room never grabs.
+static func grab_volume_allowed(volume_id: StringName, entered: StringName) -> bool:
+	return entered == &"" or volume_id == entered
+
+
+## World transform of a box moved by a ray grab: the box translates with the
+## point the ray grabbed (`p0` at the start, `p` now) and keeps its rotation.
+static func box_drag_global(g0: Transform3D, p0: Vector3, p: Vector3) -> Transform3D:
+	return Transform3D(g0.basis, g0.origin + (p - p0))
+
+
+func _hand_of(controller: Node3D) -> int:
+	return 0 if controller == left_controller else 1
+
+
+func _ctrl_at(hand: int) -> XRController3D:
+	return left_controller if hand == 0 else right_controller
+
+
+func _ctrl_float(controller: Node3D, action: StringName) -> float:
+	var xc := controller as XRController3D
+	if xc == null or not xc.get_is_active():
+		return 0.0
+	return xc.get_float(action)
+
+
+func _focus_volume(vid: StringName) -> void:
+	if vid != _focused_volume and _volumes.has(vid):
+		_on_volume_action("volume_focus:%s" % vid)
+
+
+# Ray against every visible volume's box. Handles win over faces.
+func _pick_frame(origin: Vector3, dir: Vector3) -> Dictionary:
+	return FramePicker.pick(origin, dir, _volumes, BOX_HANDLE_RADIUS_M)
+
+
+# Nearest node under the ray in any visible, online volume.
+func _pick_volume_node(origin: Vector3, dir: Vector3) -> Dictionary:
+	return VolumePicker.pick(origin, dir, _volumes, _sources)
+
+
+# A drawn cross-volume link under the ray ({} when links are off).
+func _pick_link(origin: Vector3, dir: Vector3) -> Dictionary:
+	if _link_layer == null or not _link_layer.is_enabled():
+		return {}
+	return LinkPicker.pick(origin, dir, _link_layer)
+
+
+func _update_volume_trigger() -> void:
+	for hand: int in 2:
+		var controller: XRController3D = _ctrl_at(hand)
+		if controller == null:
+			continue
+		var trig: float = _controller_trigger(controller)
+		if _trigger_claim[hand] != "":
+			if trig < GRAB_RELEASE:
+				_trigger_claim[hand] = ""
+				_trigger_claim_vol[hand] = &""
+			continue
+		if trig < TRIGGER_PICK or _two_hand_active or _grab_id[hand] != -1:
+			continue
+		var hud_hit: bool = controller == _hud_pointer_controller or controller == _radial_pointer_controller
+		trigger_pick(controller.global_position, -controller.global_transform.basis.z, hud_hit, hand)
+
+
+## Resolves and applies one trigger press along a world ray (UX features 1-3),
+## and records it as `hand`'s claim. Returns the claim kind.
+func trigger_pick(origin: Vector3, dir: Vector3, hud_hit: bool, hand: int) -> String:
+	var node: Dictionary = {}
+	var link: Dictionary = {}
+	var frame: Dictionary = {}
+	if not hud_hit:
+		node = _pick_volume_node(origin, dir)
+		link = _pick_link(origin, dir)
+		if node.is_empty():
+			frame = _pick_frame(origin, dir)
+	var kind: String = resolve_trigger(hud_hit, link, node, frame)
+	_trigger_claim[hand] = kind
+	if kind == "node":
+		_trigger_claim_vol[hand] = node.get("volume", &"")
+	elif kind == "frame":
+		_trigger_claim_vol[hand] = frame.get("volume", &"")
+	else:
+		_trigger_claim_vol[hand] = &""
+	apply_trigger(kind, node, link, frame)
+	return kind
+
+
+## Applies a resolved trigger press. Split from `trigger_pick` so tests can
+## drive it with picker-shaped results.
+func apply_trigger(kind: String, node: Dictionary, link: Dictionary, frame: Dictionary) -> void:
+	match kind:
+		"node":
+			select_volume_node(StringName(node["volume"]), StringName(node["conn"]), int(node["node_id"]))
+		"link":
+			var far: Dictionary = LinkPicker.far_end(link)
+			if far.is_empty():
+				return
+			var ends: Array = [link.get("from", {}), link.get("to", {})]
+			select_volume_node(StringName(far["volume"]), StringName(far["conn"]), int(far["node_id"]), ends)
+			# Never while a node is in hand: the ease moves the held node's volume under
+			# it and the node slides across server space (ADR-2172 F8).
+			if _arrangement != null and _any_grab_id() == -1:
+				_arrangement.bring_to_front(StringName(far["volume"]))
+		"frame":
+			_focus_volume(StringName(frame["volume"]))
+
+
+## Selects wire id `node_id` of connection `conn_id` in volume `vid`: focuses
+## the box, clears every other box's selection, highlights the node, its links
+## and their far ends (plus `extra` {volume, conn, node_id} ends), and shows its
+## label from that volume's own connection.
+func select_volume_node(vid: StringName, conn_id: StringName, node_id: int, extra: Array = []) -> void:
+	var v: Node3D = _volumes.get(vid, null)
+	if v == null or node_id < 0:
+		return
+	_focus_volume(vid)
+	for id: StringName in _volumes:
+		if id != vid and int(_volumes[id].selected_node) >= 0:
+			_volumes[id].select(&"", -1)
+	v.select(conn_id, node_id)
+	_sel_volume = vid
+	_sel_conn = conn_id
+	_sel_node = node_id
+	_ensure_highlight_nodes()
+	_hl_count = 0
+	_add_highlight(vid, conn_id, node_id)
+	var keys: Array = [{"conn": conn_id, "node_id": node_id}]
+	for e: Variant in extra:
+		var d: Dictionary = e
+		if d.is_empty():
+			continue
+		_add_highlight(StringName(d["volume"]), StringName(d["conn"]), int(d["node_id"]))
+		keys.append({"conn": StringName(d["conn"]), "node_id": int(d["node_id"])})
+	if _link_layer != null:
+		_link_layer.set_highlight(keys)
+		for c: Variant in _link_layer.highlighted_counterparts(keys[0]):
+			var cd: Dictionary = c
+			_add_highlight(StringName(cd["volume"]), StringName(cd["conn"]), int(cd["node_id"]))
+	var conn: Node = _conns.get(conn_id, null)
+	var label: String = ""
+	if conn != null and conn.client != null and conn.client.has_method("label_of"):
+		label = str(conn.client.label_of(node_id))
+	if label.is_empty():
+		label = "#%d" % node_id
+	var vname: String = str(VOLUME_BINDINGS.get(vid, {}).get("name", String(vid)))
+	if _selection_label != null:
+		_selection_label.text = "%s · %s" % [vname, label]
+	if hud != null and hud.has_method("set_selection_info"):
+		hud.set_selection_info(vname, label)
+	_update_highlight_marks()
+
+
+## Drops the selection, the link highlight and the markers.
+func clear_volume_selection() -> void:
+	for id: StringName in _volumes:
+		if int(_volumes[id].selected_node) >= 0:
+			_volumes[id].select(&"", -1)
+	_sel_volume = &""
+	_sel_conn = &""
+	_sel_node = -1
+	_hl_count = 0
+	if _link_layer != null:
+		_link_layer.set_highlight([])
+	if _highlight_marks != null:
+		_highlight_marks.multimesh.visible_instance_count = 0
+	if _selection_label != null:
+		_selection_label.visible = false
+	if hud != null and hud.has_method("set_selection_info"):
+		hud.set_selection_info("", "")
+
+
+func _add_highlight(vid: StringName, conn_id: StringName, node_id: int) -> void:
+	if _hl_count >= HIGHLIGHT_MAX:
+		return
+	for i: int in _hl_count:
+		if _hl_conn[i] == conn_id and _hl_node[i] == node_id and _hl_vol[i] == vid:
+			return
+	_hl_vol[_hl_count] = vid
+	_hl_conn[_hl_count] = conn_id
+	_hl_node[_hl_count] = node_id
+	_hl_count += 1
+
+
+func _ensure_highlight_nodes() -> void:
+	if _highlight_marks != null:
+		return
+	_hl_vol.resize(HIGHLIGHT_MAX)
+	_hl_conn.resize(HIGHLIGHT_MAX)
+	_hl_node.resize(HIGHLIGHT_MAX)
+	var mesh := SphereMesh.new()
+	mesh.radius = HIGHLIGHT_RADIUS_M
+	mesh.height = HIGHLIGHT_RADIUS_M * 2.0
+	mesh.radial_segments = 12
+	mesh.rings = 6
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.albedo_color = Color(HIGHLIGHT_COLOUR, 0.55)
+	mat.render_priority = HELD_RENDER_PRIORITY
+	mesh.material = mat
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.mesh = mesh
+	mm.instance_count = HIGHLIGHT_MAX
+	mm.visible_instance_count = 0
+	_highlight_marks = MultiMeshInstance3D.new()
+	_highlight_marks.name = "SelectionMarks"
+	_highlight_marks.multimesh = mm
+	_highlight_marks.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(_highlight_marks)
+	_selection_label = Label3D.new()
+	_selection_label.name = "SelectionLabel"
+	_selection_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_selection_label.pixel_size = 0.0015
+	_selection_label.font_size = 40
+	_selection_label.outline_size = 8
+	_selection_label.modulate = HIGHLIGHT_COLOUR
+	_selection_label.no_depth_test = true
+	_selection_label.visible = false
+	add_child(_selection_label)
+
+
+# Every frame while something is selected: markers follow their nodes through
+# each volume's drawn Content transform. A marker whose volume is hidden is
+# collapsed. Writes HIGHLIGHT_MAX transforms at most; allocates nothing.
+func _update_highlight_marks() -> void:
+	if _highlight_marks == null:
+		return
+	var mm: MultiMesh = _highlight_marks.multimesh
+	mm.visible_instance_count = _hl_count
+	if _hl_count == 0:
+		_selection_label.visible = false
+		return
+	for i: int in _hl_count:
+		var v: Node3D = _volumes.get(_hl_vol[i], null)
+		var conn: Node = _conns.get(_hl_conn[i], null)
+		if v == null or conn == null or not v.visible_state:
+			mm.set_instance_transform(i, Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * 1.0e-4), Vector3.ZERO))
+			if i == 0:
+				_selection_label.visible = false
+			continue
+		var p: Vector3 = v.world_from_content(conn.node_position(_hl_node[i]))
+		mm.set_instance_transform(i, Transform3D(Basis.IDENTITY, p))
+		if i == 0:
+			_selection_label.position = p + Vector3.UP * SELECTION_LABEL_LIFT_M
+			_selection_label.visible = true
+
+
+# A connection's wire ids are only valid within one generation: a new topology
+# or a disconnect on the selection's connection clears it.
+func _clear_selection_for_conn(conn_id: StringName) -> void:
+	if _sel_node >= 0 and _sel_conn == conn_id:
+		clear_volume_selection()
+		return
+	for i: int in _hl_count:
+		if _hl_conn[i] == conn_id:
+			clear_volume_selection()
+			return
+
+
+# --- box grip: move and resize (feature 4) --------------------------------------
+
+func _update_box_grip(delta: float) -> void:
+	# Grip edges for both hands, every frame, so an early return never misses one.
+	var rise_mask: int = 0
+	for hand: int in 2:
+		var down: bool = _ctrl_float(_ctrl_at(hand), &"grip") >= GRIP_BOX_ENGAGE
+		if down and not _grip_down[hand]:
+			rise_mask |= 1 << hand
+		_grip_down[hand] = down
+	if _box_grab_ctrl != null:
+		if _ctrl_float(_box_grab_ctrl, &"grip") < GRIP_BOX_RELEASE:
+			_end_box_grip()
+		else:
+			drive_box_grip()
+		return
+	if _two_hand_active or _hud_grab_controller != null:
+		_box_pending_ctrl = null
+		return
+	if _box_pending_ctrl != null:
+		var other: XRController3D = right_controller if _box_pending_ctrl == left_controller else left_controller
+		if other != null and _ctrl_float(other, &"grip") >= GRIP_MANIP_ENGAGE:
+			_box_pending_ctrl = null  # both grips: the two-hand gesture's
+		elif _ctrl_float(_box_pending_ctrl, &"grip") < GRIP_BOX_RELEASE:
+			_box_pending_ctrl = null
+		else:
+			_box_pending_t += delta
+			if _box_pending_t >= BOX_GRIP_GRACE_SEC:
+				var ctrl: XRController3D = _box_pending_ctrl
+				_box_pending_ctrl = null
+				begin_box_grip(ctrl, _box_pending_hit)
+		return
+	for hand: int in 2:
+		var controller: XRController3D = _ctrl_at(hand)
+		if controller == null or not (rise_mask & (1 << hand)):
+			continue
+		var hit: Dictionary = _pick_frame(controller.global_position, -controller.global_transform.basis.z)
+		var kind: String = resolve_grip(false, hit, false)
+		if kind == "handle" or kind == "frame":
+			_box_pending_ctrl = controller
+			_box_pending_t = 0.0
+			_box_pending_hit = hit
+			return
+
+
+## Starts a box grip from a frame_picker hit: a handle begins a resize, a frame
+## a move. Focuses the box either way (the handles draw on the focused box).
+func begin_box_grip(ctrl: Node3D, hit: Dictionary) -> void:
+	if ctrl == null or hit.is_empty() or _arrangement == null:
+		return
+	# While a space is entered the portal ring is laid out by SpacePortals; boxes
+	# are not moved or resized until the user leaves, and that includes the dim
+	# back, when the space is already marked left but the ring is not yet restored.
+	if _portals != null and (_portals.is_entered() or _portals.arrangement_locked() \
+			or _portals.is_transitioning()):
+		return
+	var vid := StringName(hit["volume"])
+	var v: Node3D = _volumes.get(vid, null)
+	if v == null or not v.visible_state:
+		return
+	# A box that holds a node does not move or resize under it (ADR-2172 F8).
+	if not _held_ids(vid).is_empty():
+		return
+	_focus_volume(vid)
+	if resolve_grip(false, hit, false) == "handle":
+		v.begin_resize(int(hit["handle"]), ctrl)
+		if not v.is_resizing():
+			return
+		_box_grab_resize = true
+	else:
+		_box_grab_resize = false
+		# Distance from the press-time hit; the grabbed point from the pose at
+		# engage, so the wand's travel during the grace (and the squeeze jolt)
+		# never jumps the box on the first drive.
+		var hit_p: Vector3 = hit.get("world_pos", v.global_position)
+		_box_grab_dist = float(hit.get("distance", ctrl.global_position.distance_to(hit_p)))
+		_box_grab_g0 = v.global_transform
+		_box_grab_p0 = ctrl.global_position - ctrl.global_transform.basis.z * _box_grab_dist
+		_arrangement.mark_moved(vid)
+	_box_grab_ctrl = ctrl
+	_box_grab_vid = vid
+	if ctrl is XRController3D:
+		_pulse(ctrl, 0.4, 0.05)
+
+
+## One frame of a held box grip: a resize follows the hand, a move carries the
+## box with the grabbed point on the ray. The move is applied in the
+## arrangement's frame, so the arrangement scale never leaks into the box.
+func drive_box_grip() -> void:
+	var v: Node3D = _volumes.get(_box_grab_vid, null)
+	if v == null or not v.visible_state or _box_grab_ctrl == null:
+		_end_box_grip()
+		return
+	if _box_grab_resize:
+		v.update_resize(_box_grab_ctrl)
+		return
+	var origin: Vector3 = _box_grab_ctrl.global_position
+	var dir: Vector3 = -_box_grab_ctrl.global_transform.basis.z
+	var g: Transform3D = box_drag_global(_box_grab_g0, _box_grab_p0, origin + dir * _box_grab_dist)
+	_arrangement.move_volume(_box_grab_vid, _arrangement.global_transform.affine_inverse() * g)
+
+
+func _end_box_grip() -> void:
+	if _box_grab_resize:
+		var v: Node3D = _volumes.get(_box_grab_vid, null)
+		if v != null:
+			v.end_resize()
+	_box_grab_ctrl = null
+	_box_grab_vid = &""
+	_box_grab_resize = false
+	_box_pending_ctrl = null
+
+
+## "Reset layout" (and the arrangement half of it): every box back on its ring
+## slot at its default size.
+func reset_volume_layout() -> void:
+	_end_box_grip()
+	if _portals != null:
+		_portals.force_leave()
+	if _arrangement != null:
+		_arrangement.reset_default(true)
+
+
+
+# The cross-volume link layer (ADR-2164): one MultiMesh in world space whose
+# endpoints the volumes map from graph units. On/off is the per-build-type
+# preference (xr_prefs.gd); the HUD shows its counts.
+func _build_link_layer() -> void:
+	_link_layer = LinkLayerScript.new()
+	_link_layer.name = "LinkLayer"
+	add_child(_link_layer)
+	_link_layer.counts_changed.connect(_on_link_counts)
+	_set_cross_links(XrPrefs.cross_volume_links(), false)
+
+
+func _set_cross_links(on: bool, persist: bool = true) -> void:
+	if persist:
+		XrPrefs.set_cross_volume_links(on)
+	if _link_layer != null:
+		_link_layer.set_enabled(on)
+	if hud != null and hud.has_method("set_cross_links"):
+		hud.set_cross_links(on)
+
+
+func _on_link_counts(drawn: int, unresolved: int, overflow: int) -> void:
+	if hud != null and hud.has_method("set_link_counts"):
+		hud.set_link_counts(drawn, unresolved, overflow)
+
+
+# §7.4/§7.5: refresh endpoints every frame (the layer throttles itself to
+# REFRESH_HZ) and rebuild the records when their inputs moved.
+func _tick_links(delta: float) -> void:
+	if _link_layer == null:
+		return
+	_link_join_accum += delta
+	if _link_join_accum >= LINK_JOIN_SEC:
+		_link_join_accum = 0.0
+		_rebuild_links()
+	_link_layer.tick(delta, _volumes, _conns)
+
+
+func _rebuild_links() -> void:
+	if _vc_conn == null or not _vc_conn.is_connected_now():
+		return
+	var ids_by_volume := {}
+	for vid: StringName in [&"knowledge", &"ontology"]:
+		var src = _sources.get(vid, null)
+		ids_by_volume[vid] = src.content_ids() if src != null else PackedInt32Array()
+	var cs_up: bool = _cs_conn != null and _cs_conn.is_connected_now()
+	var sig: Array = [_vc_conn.generation, _cs_conn.generation if cs_up else -1,
+		(ids_by_volume[&"knowledge"] as PackedInt32Array).size(), (ids_by_volume[&"ontology"] as PackedInt32Array).size()]
+	if sig == _link_sig:
+		return
+	_link_sig = sig
+	_link_layer.set_records("bridge", BridgeLinkSource.records(_vc_conn, ids_by_volume))
+	# Annotations need both connections up and in their current generations (ADR-2159).
+	if cs_up and _binary_client != null and _binary_client.has_method("join_code_links"):
+		var res: Dictionary = _binary_client.join_code_links(_cs_conn.client, _cs_conn.generation, _vc_conn.generation)
+		_link_layer.set_records("annotates", res.get("records", []))
+		_link_layer.set_unresolved("annotates", int(res.get("unresolved", 0)))
+	else:
+		_link_layer.set_records("annotates", [])
+		_link_layer.set_unresolved("annotates", 0)
+
+
+# The memory cloud stays world furniture (ADR-2158 D4): it hangs off its own
+# root, placed once per VisionClaw topology, not off a volume.
+var _cloud_root: Node3D = null
+var _cloud_placed: bool = false
+# Cross-volume links (ADR-2164; §7.4-§7.8). Records are rebuilt at LINK_JOIN_SEC
+# while their inputs (generations, drawn ids) change: class codes ride position
+# frames, so a join at topology time alone would find nothing resolved.
+const LINK_JOIN_SEC: float = 1.0
+var _link_layer: Node3D = null
+var _link_join_accum: float = 0.0
+var _link_sig: Array = []
+const DEFAULT_ROOM_URN := "urn:visionclaw:room:sha256-12-deadbeefcafe"
+const DEFAULT_DISPLAY_NAME := "XR User"
+
+# RES-a / ADR-130 D3 liveness canary the on-device selection loop fires once,
+# the first time the selection arbiter resolves a non-origin agent-node
+# selection. Recorded via POST /api/canary/observe/{id} (unauthenticated JSON).
+const CANARY_M4_RAY := "CANARY-VC-M4-RAY"
+
+# The VisionClaw connection's client: every VisionClaw-only feature (fold, query,
+# hulls, agents, labels, memory cloud framing) reads it. Codescape has its own
+# client inside _cs_conn and never shares this one.
+var _binary_client: RefCounted = null
+var _presence_client: RefCounted = null
+var _interaction: RefCounted = null
+var _lod_policy: RefCounted = null
+var _voice_router: RefCounted = null
+var _proxemics: RefCounted = null
+var _selection: RefCounted = null
+var _gaze_tracker: RefCounted = null
+var _nostr_auth: RefCounted = null
+# True when a real XR_NOSTR_SECRET was supplied — gates NIP-98 auth on the physics
+# HTTP writes (the dev bearer 401s in release builds where the token literal is
+# stripped from the binary).
+var _nostr_secret_present: bool = false
+
+# Agent embodiments (M3), keyed by agent id, distinct from human peer _avatars.
+var _agents: Dictionary = {}
+var _agent_order: PackedStringArray = PackedStringArray()
+var _agent_cases: Dictionary = {}  # agent_id -> {case_id, summary}
+# Integer handles bridge String agent ids to the Rust arbiter's u32 candidate
+# ids. Handles start at 1 so 0 stays reserved for "no selection".
+var _agent_by_handle: Dictionary = {}  # int handle -> agent_id
+var _next_handle: int = 1
+# Proxemics re-solve memo: last user pose + agent count the arc was solved for.
+var _last_solve_pos: Vector3 = Vector3.ZERO
+var _last_solve_forward: Vector3 = Vector3.FORWARD
+var _last_solve_count: int = -1
+var _eye_gaze_supported: bool = false
+# Once-per-frame LOD recompute decision, set by _update_lod, read by _update_agents.
+var _lod_recompute: bool = false
+
+var _avatars: Dictionary = {}
+# Node positions/targets now live in the Rust render store (BinaryProtocolClient):
+# it owns the hunt and packs the MultiMesh buffers, so the per-frame 13k-entry
+# GDScript loops are gone (PRD-008 perf). GDScript keeps only centrality (for the
+# LOD/edge selection domain) mirrored from the throttled node_visuals signal.
+var _node_centrality: Dictionary = {}
+# Running max centrality, used to normalise per-node size/halo tells. Monotonic
+# (never shrinks while a graph is loaded) so a settled top node keeps a stable
+# reference; updated only when visuals arrive, never per frame. Seeded > 0 to
+# avoid a divide-by-zero before the first analytics frame.
+var _centrality_max: float = 0.0001
+# Edge topology from initialGraphLoad, pre-capped by weight:
+# flat [src0, tgt0, src1, tgt1, ...].
+var _edge_pairs: PackedInt32Array = PackedInt32Array()
+
+# LOD-selected drawn node ids (topology-biased, budget-capped). Cached and only
+# recomputed when the selection domain changes (visuals/topology/budget) — the
+# per-frame buffer build reuses it. Passed straight to build_node_buffer.
+var _selection_dirty: bool = true
+# Per-hand node grab (index 0 = left, 1 = right; two nodes can be held at once,
+# one per hand, each in its own volume). A hand's id is -1 when it holds nothing;
+# `_grab_target` is the server-space point the Rust hunt pins that node to each
+# frame so it tracks the wand. Written by _begin_grab / _drive_grab / _end_grab.
+var _grab_id: Array[int] = [-1, -1]
+var _grab_vol: Array[StringName] = [&"", &""]
+var _grab_dist: Array[float] = [1.0, 1.0]
+# The node's offset from the hand's aim axis, in the hand's own frame (x, y; z is the
+# depth, kept in _grab_dist). The Rust tube catches a node up to 5 cm off the axis;
+# without this the first drive would pull it onto the axis (a snap of up to 5 cm).
+var _grab_lateral: Array[Vector3] = [Vector3.ZERO, Vector3.ZERO]
+var _grab_target: Array[Vector3] = [Vector3.ZERO, Vector3.ZERO]
+# The hand and volume whose candidates the Rust interaction is evaluating right
+# now. node_grabbed carries no hand, so _update_interaction sets these just before
+# each evaluate_ray (which emits synchronously) and _on_node_grabbed reads them.
+var _grab_eval_hand: int = -1
+var _grab_eval_vol: StringName = &""
+# The merged candidate array being evaluated is one run per volume: run k covers
+# [end of run k-1, _grab_eval_ends[k]) and belongs to _grab_eval_vols[k]. A node's
+# volume is resolved from its index afterwards (_grab_volume_of), so the merge itself
+# writes no per-node map (ADR-2172 F2).
+var _grab_eval_ids: PackedInt32Array = PackedInt32Array()
+var _grab_eval_vols: Array[StringName] = []
+var _grab_eval_ends: PackedInt32Array = PackedInt32Array()
+
+# --- Proximity node-label overlay -------------------------------------------
+# A small pool of world-space Label3D anchors shown only for the nodes closest to
+# the camera, so text stays sparse. World-space (positioned at graph_root xform ×
+# server_pos) so text size is constant in metres regardless of the fit scale.
+const LABEL_POOL_SIZE: int = 12
+const LABEL_UPDATE_SEC: float = 0.25          # 4 Hz refresh, not per frame
+const LABEL_PROXIMITY_M: float = 0.5          # world-metre radius (outer fade edge)
+const LABEL_INNER_M: float = 0.25             # full-opacity radius
+const LABEL_TITLE_PX: float = 0.0006          # pixel_size → ~1.9 cm title text
+const LABEL_TITLE_FONT: int = 32
+const LABEL_DETAIL_FONT: int = 20
+const LABEL_DETAIL_OFFSET_M: float = 0.028
+# Label overlays with a distance-fade alpha at or below this are treated as not
+# showing: the node's own fade (Rust LABEL_FADE_ALPHA, 30 %) tracks exactly the
+# labels the user can actually read.
+const LABEL_VISIBLE_MIN_A: float = 0.05
+var _label_pool: Array = []                   # Array[Node3D] anchors, each Title+Detail
+var _label_accum: float = 0.0
+
+var _presence_ws_url: String = ""
+var _room_urn: String = ""
+var _display_name: String = ""
+var _nostr_secret_hex: String = ""
+# Presence (/ws/presence) reconnect state. Each graph connection owns its own
+# backoff inside BackendConnection, so no socket's retry can disturb another's.
+var _presence_reconnect_attempts: int = 0
+var _presence_reconnect_timer: float = -1.0
+
+# One-shot latch for the M4-RAY canary (fires on the first resolved agent
+# selection). The HTTPRequest is created in _ready so the POST never blocks the
+# scene-tree thread.
+var _m4_ray_observed: bool = false
+var _observe_http: HTTPRequest = null
+
+var _last_targeted_id: int = -1
+var _last_targeted_vol: StringName = &""   # volume the ray last targeted a node in
+
+# Double-click (node-open) detection: two grabs of the same node within the window.
+const DOUBLE_CLICK_SEC: float = 0.45
+# Per hand (indexed like _grab_id): interleaved presses of the two hands must not
+# defeat each other's double-click, and handing a node over is not one (ADR-2172 F6).
+var _dc_last_id: Array[int] = [-1, -1]
+var _dc_last_time: Array[float] = [0.0, 0.0]
+
+# Movable world-anchored HUD state.
+var _hud_grab_controller: XRController3D = null
+var _hud_grab_offset: Transform3D = Transform3D.IDENTITY
+
+# --- HUD control-panel state (M2+ operator controls) -------------------------
+# Physics params tracked locally (server is authoritative but has no read-back on
+# this path); seeded to the server's defaults (repelK 120, restLength 50) and then
+# overwritten by GraphParity's boot read-back of GET /api/settings/physics, so the HUD
+# never shows numbers the GPU is not running. Mutated by Spread+/- presses.
+var _repel_k: float = 120.0
+var _rest_length: float = 50.0
+var _physics_http: HTTPRequest = null
+# One physics write in flight at a time: _physics_http is single-request, so gate
+# presses until request_completed and only commit local repelK/restLength on a
+# successful dispatch (a dropped ERR_BUSY press must not drift the tracked values).
+var _physics_pending: bool = false
+var _last_known_nodes: int = -1
+# Server physics state label (settling / settled / paused / GPU not reporting / unavailable),
+# set by GraphParity from GET /api/graph/settlement. Empty until the first answer.
+var _physics_state_text: String = ""
+# Runtime visual factors (client-side only, no HTTP).
+var _node_size_factor: float = 1.0
+# Hierarchy / view physics state (server-routed via _physics_http, same one-in-flight
+# gate as Spread). Seeded to the backend defaults: DAG rank-bias off, 60-unit shell
+# spacing, full 3D (axisCompressionZ 1.0). Committed only on a successful PUT dispatch.
+var _dag_bias_on: bool = false
+var _dag_level_distance: float = 60.0
+var _z_compression: float = 1.0
+var _plane_bias_k := 0.0
+var _plane_spacing := 60.0
+const DAG_BIAS_ON_K: float = 0.6
+const DAG_LEVEL_DISTANCE_MIN: float = 20.0
+const DAG_LEVEL_DISTANCE_MAX: float = 200.0
+const DAG_LEVEL_DISTANCE_STEP: float = 20.0
+const PLANE_BIAS_ON_K: float = 1.0
+const PLANE_SPACING_MIN: float = 0.0
+const PLANE_SPACING_STEP: float = 20.0
+const Z_COMPRESSION_FLAT: float = 0.3
+const Z_COMPRESSION_FULL_3D: float = 1.0
+# ADR-141 Phase 1 — constrained-layout engine. Cycling picker over the backend
+# LayoutMode enum (serde camelCase); POSTed to /api/layout/mode via the same
+# single-in-flight + auth-header path as the physics writes.
+const LAYOUT_MODES: Array = ["forceDirected", "hierarchical", "radial", "spectral", "temporal", "clustered"]
+const LAYOUT_MODE_LABELS: Array = ["Force", "Hierarchical", "Radial", "Spectral", "Temporal", "Clustered"]
+var _layout_mode_idx: int = 0
+# Node ids this session's operator has pinned via a drag (drag-end adds; Unpin All
+# releases them but only removes each on its nodeUnpinAck so unacked ids can be
+# retried). Dictionary used as a set (id → true) for O(1) add/dedupe.
+var _pinned_ids: Dictionary = {}
+# Physics values staged at PUT-dispatch time, keyed by the script member var name
+# → intended value. They are committed (applied to the member vars) ONLY when the
+# PUT returns 2xx in _on_physics_completed; a 401/timeout/500 discards them so the
+# tracked state (and the HUD it drives) never diverges from the backend.
+var _physics_staged: Dictionary = {}
+# Operator-readable reason for the LAST failed server write ("" after a success).
+# Shown on the Graph-tab status line and flashed in the HUD's bottom strip, so a
+# rejected write (the dev-headset 401/403 trap) is visible in-HMD, not just in
+# the log.
+var _last_write_error: String = ""
+
+# --- Fold-level ladder (Wave 3, Phase 2) ------------------------------------
+# Per-view density level: 0 = ∅ (everything), 1 = hide low-signal, 2 = fold
+# subclass chains, 3 = community fold. Local view state — NOT server-routed, so
+# two viewers of the same session can hold different fold levels (same posture
+# as _node_size_factor / _edge_show_count). Stepped via the HUD [Fold +]/[Fold -]
+# buttons; each step GETs /api/graph/fold and applies the plan to the Rust store.
+const FOLD_LEVEL_MIN: int = 0
+const FOLD_LEVEL_MAX: int = 3
+var _fold_level: int = 0
+var _fold_http: HTTPRequest = null
+# Directed-cycle overlay (GET /api/analytics/cycles). Own request + gate so a cycle
+# fetch never blocks or is blocked by the physics write path.
+var _cycles_http: HTTPRequest = null
+var _cycles_pending: bool = false
+var _cycles_count: int = 0
+# One fold fetch in flight at a time; the requested level is staged and committed
+# to _fold_level only on a 2xx, mirroring the physics one-in-flight discipline.
+var _fold_pending: bool = false
+var _fold_staged_level: int = 0
+# Full topology kept verbatim so the edge ranking can be recomputed once centrality
+# analytics arrive (topology often precedes them, which would otherwise pin the
+# ranking to the global-weight fallback forever).
+var _edge_pairs_full: PackedInt32Array = PackedInt32Array()
+var _edge_weights_full: PackedFloat32Array = PackedFloat32Array()
+# Latches true after the one-shot re-rank fires (once centrality is populated) so
+# the O(E log E) rank runs at most twice: once at topology, once when analytics land.
+var _edge_rerank_done: bool = false
+# Full weight-ranked edge list; Edges+/- re-slice the rendered subset from this
+# without re-sorting or re-fetching. _edge_pairs is a prefix of it.
+var _edge_pairs_ranked: PackedInt32Array = PackedInt32Array()
+var _edge_show_count: int = 0
+# Runtime instance budgets derived from the received topology (see
+# _recompute_instance_budgets). Seeded to the safety ceilings so that before any
+# topology arrives the client draws everything the position stream gives it (up to
+# the ceiling) rather than an arbitrary constant.
+var _node_budget: int = NODE_SAFETY_CEILING
+var _edge_budget: int = EDGE_SAFETY_CEILING
+# Set of node ids that appear as an edge endpoint (built from _edge_pairs_full on
+# topology arrival). The LOD draw domain and the edge-ranking domain are both
+# restricted to these, so drawn nodes and drawable edges stay coherent.
+var _topo_ids: Dictionary = {}
+# Centrality bias added to topo (edge-endpoint) nodes so the LOD cap fills with
+# them first. Far above any real centrality (0..1) so ordering among topo nodes is
+# still by their true centrality, and non-topo nodes only take leftover slots.
+const TOPO_SELECT_BIAS: float = 1.0e6
+
+# HUD pointer (controller-ray → SubViewport) state. Edge-detect the trigger so one
+# pull = one click; track the last hovered controller for haptic feedback.
+var _hud_trigger_was_down: bool = false
+# Last valid viewport pixel the pointer sat at, so a click held while the ray
+# leaves the panel (or the HUD is grabbed) can be released at the right spot
+# instead of latching the SubViewport button-down state.
+var _hud_last_px: Vector2 = Vector2.ZERO
+# The controller whose aim ray is currently on the HUD panel (else null). Set each
+# frame by _update_hud_pointer and read by _update_interaction to suppress node-grab
+# engagement for that controller — a trigger pull aimed at the HUD is a button click,
+# not a node grab.
+var _hud_pointer_controller: XRController3D = null
+# QuadMesh_hud size (HUD.tscn HudPanel) — the ray→UV mapping needs the panel extent.
+const HUD_QUAD_W: float = 1.4
+# HUD.tscn QuadMesh_hud height. 0.875 gives aspect 1.6, matching the 1280×800
+# SubViewport exactly so the ray→UV mapping below is undistorted (task #20 redesign;
+# was 0.9 against a 1024×640 viewport — a latent aspect mismatch).
+const HUD_QUAD_H: float = 0.875
+# Physics param clamps. REPEL_K_MAX must not exceed the server's validator bound
+# (physics_bounds::REPEL_K, 0..500): a Spread press that clamps above it is rejected
+# with HTTP 400 and the whole PUT is discarded.
+const REPEL_K_MIN: float = 20.0
+const REPEL_K_MAX: float = 500.0
+const REST_LENGTH_MIN: float = 10.0
+const REST_LENGTH_MAX: float = 400.0
+const NODE_SIZE_FACTOR_MIN: float = 0.3
+const NODE_SIZE_FACTOR_MAX: float = 3.0
+const EDGE_SHOW_MIN: int = 200
+# Dev bearer the codebase uses for physics settings writes.
+const PHYSICS_BEARER: String = "Bearer dev-session-token"
+
+# Radial node context menu (flagship visual query builder). Shared node menu:
+# the A/X face button opens it on the wand-targeted node; its items combine the
+# query-builder "Mark as ?vN / Clear variable" actions with future Wave-2 expand
+# items. Instanced at runtime from RadialMenu.tscn so the scene file stays as-is.
+const RADIAL_SCENE_PATH := "res://scenes/RadialMenu.tscn"
+const RADIAL_QUAD: float = 0.6              # MenuPanel QuadMesh size (RadialMenu.tscn)
+## Radial→mark chain instrumentation (retained, silenced). Flip true to trace the
+## whole wand-click → item_selected → mark path in the HP log when diagnosing the
+## marking flow; RadialMenu mirrors this via set_debug().
+const QB_DEBUG: bool = false
+var _radial: Node3D = null
+const QueryBuilderScript := preload("res://scripts/query_builder.gd")
+var _query := QueryBuilderScript.new()
+var _radial_ax_was_down: bool = false       # A/X edge-detect (open/close toggle)
+var _radial_pointer_controller: XRController3D = null  # controller aiming at the menu
+var _radial_trigger_was_down: bool = false  # menu-click edge-detect for a clean release
+var _radial_last_px: Vector2 = Vector2.ZERO
+var _radial_pick_capture: int = -1          # node id captured during an on-demand hover pick
+var _radial_picking: bool = false           # gate so _on_node_targeted routes to the pick
+
+# Live count preview (Phase C). A debounced countOnly POST to
+# /api/graph/query/pattern on every pattern change; mirrors the fold work's
+# staged-request discipline (single in-flight superseded by cancel_request, finite
+# timeout, staged commit on 2xx). -1 count = unknown/pending.
+const QUERY_DEBOUNCE_SEC: float = 0.4
+const QUERY_PREVIEW_LIMIT: int = 24
+var _query_http: HTTPRequest = null
+var _query_dirty: bool = false
+var _query_debounce: float = 0.0
+var _query_count: int = -1
+var _query_truncated: bool = false
+var _query_pending: bool = false
+# Monotonic pattern revision: bumped on every pattern change, captured at POST
+# time, and compared on completion so a stale in-flight count can't overwrite a
+# newer pattern's result.
+var _query_revision: int = 0
+var _query_sent_revision: int = -1
+# Per-frame pointer arbitration: a controller whose ray is nearer the radial menu
+# owns the radial (and yields the HUD); nearer the HUD owns the HUD. One trigger
+# pull can therefore never drive both overlapping panels.
+var _hud_owner: XRController3D = null
+var _radial_owner: XRController3D = null
+
+# Semantic planes (Phase D). Execute POSTs the full pattern; each binding spawns a
+# result subgraph on a +Y-stacked plane via PlaneManager. Separate HTTPRequest so a
+# heavy execute never blocks the debounced count preview.
+const PLANE_LIMIT: int = 24
+const PLANE_GAP_M: float = 0.5   # target world-metre gap between layers (pre-fit-scaled)
+const PlaneManagerScript := preload("res://scripts/plane_manager.gd")
+# WP1/WP2/WP4 desktop-parity wiring (domain colour, settings/filter sync, hulls).
+const GraphParityScript := preload("res://scripts/graph_parity.gd")
+var _parity: Node = null
+## Memory search from the HUD Query page (POST /api/memory-cloud/query, the
+## route through its sampled top hits). Created with the memory cloud.
+const MemorySearchScript := preload("res://scripts/memory_search.gd")
+var _memory_search: Node = null
+# Node-mesh LOD (PRD-008 triangle budget): far-tier impostor MultiMesh.
+const NodeLod := preload("res://scripts/node_lod.gd")
+var _impostors: MultiMeshInstance3D = null
+var _ribbons: MultiMeshInstance3D = null       # far-tier edge ribbons (edge LOD)
+# One FrameBudget pass (xr-cloud's frame_budget.rs) shared by the graph's near
+# tiers, hulls, memory cloud and route; caps applied each frame below.
+const FrameBudgetPass := preload("res://scripts/frame_budget_pass.gd")
+var _budget = FrameBudgetPass.new()
+# Live memory cloud + relayed query route (XR WP6/WP7, ADR-2133): all of it in
+# scripts/memory_cloud_layer.gd; the scene only wires it.
+const MemoryCloudLayerScript := preload("res://scripts/memory_cloud_layer.gd")
+var _memory_cloud = null  # MemoryCloudLayerScript instance (under GraphRoot)
+var _planes = null  # PlaneManagerScript instance
+var _exec_http: HTTPRequest = null
+var _exec_pending: bool = false
+
+# Wave 2, Feature 1 — predicate expansion in the node radial. When the radial opens
+# on a node we GET its relations and repopulate the ring with "→ label (N)" /
+# "← label (N)" items (action grammar "expand:<direction>:<edgeType>"). Selecting
+# one POSTs /expand and additively merges the returned edges (no re-fit).
+const EXPAND_LIMIT: int = 25
+var _relations_http: HTTPRequest = null
+var _expand_http: HTTPRequest = null
+var _radial_node_id: int = -1              # node the radial is currently open on
+var _radial_world_pos: Vector3 = Vector3.ZERO
+var _relations_cache: Dictionary = {}      # node_id -> Array[extra_item dict]
+
+# Wave 2, Feature 2 — search-and-teleport. A menu-button press on empty space opens
+# a "top labels" radial (top centrality); selecting glides the XROrigin so the node
+# sits TELEPORT_FRONT_M in front of the user, then pulse-highlights it.
+const TOP_LABELS_COUNT: int = 10
+const TELEPORT_FRONT_M: float = 1.0
+const TELEPORT_GLIDE_SEC: float = 0.5
+const TELEPORT_PULSE_SEC: float = 1.2
+var _teleport_active: bool = false
+var _teleport_from: Transform3D = Transform3D.IDENTITY
+var _teleport_to: Transform3D = Transform3D.IDENTITY
+var _teleport_t: float = 0.0
+var _teleport_pulse_id: int = -1
+var _teleport_pulse_t: float = 0.0
+var _teleport_pulse_applied: bool = false
+
+@onready var graph_root: Node3D = $GraphRoot
+@onready var nodes_multi: MultiMeshInstance3D = $GraphRoot/NodesMulti
+# Transparent twin of NodesMulti (gem_faded.tres): the nodes whose proximity/grab
+# label is showing are packed here by Rust at 30 % alpha so the co-located text
+# reads through the sphere. Optional — the scene works without it (no fade).
+@onready var nodes_faded_multi: MultiMeshInstance3D = get_node_or_null("GraphRoot/NodesFadedMulti")
+@onready var edges_multi: MultiMeshInstance3D = $GraphRoot/EdgesMulti
+# Node halo as camera-facing quads (replaces gem.tres's sphere next_pass).
+@onready var nodes_halo_multi: MultiMeshInstance3D = get_node_or_null("GraphRoot/NodesHaloMulti")
+# Work-beam layer (ADR-140, Pillar 2 / P3): the reserved AgentMulti MultiMesh, now
+# carrying one cylinder per active agent→target-node beam (agent_beam material).
+@onready var agent_multi: MultiMeshInstance3D = $GraphRoot/AgentMulti
+@onready var avatar_spawner: Node3D = $GraphRoot/AvatarSpawner
+# Embodiments live under unit-scale roots, never under GraphRoot: an avatar must
+# keep its physical size while the graph is fitted/zoomed (the old GraphRoot
+# parenting shrank the 0.15 m orb to ~5 mm).
+@onready var agents_root: Node3D = $AgentsRoot
+@onready var agent_spawner: Node3D = $AgentsRoot/AgentSpawner
+@onready var agent_effects_root: Node3D = $AgentEffectsRoot
+@onready var left_controller: XRController3D = $XROrigin3D/LeftController
+@onready var right_controller: XRController3D = $XROrigin3D/RightController
+@onready var hud: Node3D = get_node_or_null("XROrigin3D/XRCamera3D/HUD")
+
+signal node_targeted_in_scene(node_id: int)
+signal avatar_count_changed(count: int)
+signal agent_selected(agent_id: String, did_nostr: String)
+signal connection_status_changed(connected: bool)
+
+
+func _ready() -> void:
+	# The flat fallback camera is only for non-XR (desktop diagnostic / no-HMD
+	# fallback). In an XR session the XRCamera3D must drive both eyes, so release
+	# the flat camera's `current` flag to avoid it stealing the viewport.
+	var flat_cam: Camera3D = get_node_or_null("FlatFallbackCamera")
+	if flat_cam != null:
+		# XR session drives both eyes via XRCamera3D — the flat camera must NOT be
+		# current or it steals the viewport and the HMD layer goes empty (SteamVR
+		# falls back to its home environment). Only make it current for a non-XR
+		# desktop/diagnostic run.
+		flat_cam.current = not get_viewport().use_xr
+	# Godot 4.8: a use_xr viewport whose current camera is not an XRCamera3D logs
+	# "current camera is not an XRCamera3D" and a GLES3 view-count mismatch at the
+	# XRBoot→GraphScene switch. The scene file makes XRCamera3D current from the
+	# moment it enters the tree; this keeps it so if anything above changed it.
+	var xr_cam: XRCamera3D = get_node_or_null("XROrigin3D/XRCamera3D") as XRCamera3D
+	if xr_cam != null and get_viewport().use_xr:
+		xr_cam.current = true
+	# Detach the HUD from the camera so it stops following the gaze; re-anchor it
+	# in the play space as a world-fixed panel the user can grab and reposition
+	# with a wand (see _update_hud_grab). Deferred so we don't reparent while the
+	# XR node tree is still being built.
+	if hud != null:
+		_reparent_hud_to_world.call_deferred()
+	# gdext classes are #[class(no_init)] in Rust — construct via their static create() factory, not ClassDB.instantiate() (which cannot build a no_init class).
+	_build_connections()
+	_presence_client = PresenceClientNode.create()
+	_interaction = XrInteraction.create()
+	_lod_policy = LodPolicy.create()
+	_voice_router = SpatialVoiceRouter.create()
+	_proxemics = ProxemicsSolver.create()
+	_selection = SelectionArbiterNode.create()
+	_gaze_tracker = GazeTracker.create()
+	# One signing identity for both the graph socket and the intervention POST.
+	# NostrAuth.create always returns a signer (ephemeral if the secret is empty),
+	# so track whether a REAL secret was supplied: only then can NIP-98 authenticate
+	# as a power user; otherwise we fall back to the dev bearer (dev flow).
+	var _nostr_secret := OS.get_environment("XR_NOSTR_SECRET").strip_edges()
+	_nostr_secret_present = not _nostr_secret.is_empty()
+	_nostr_auth = NostrAuth.create(_nostr_secret)
+
+	if _selection != null and _selection.has_signal("selection_made"):
+		_selection.connect("selection_made", Callable(self, "_on_selection_made"))
+
+	if _binary_client != null:
+		# position_updated is intentionally NOT connected: positions live in the Rust
+		# render store now (no per-node signal storm). Only the throttled
+		# node_visuals_updated crosses the boundary, for the centrality mirror.
+		_binary_client.connect("node_visuals_updated", Callable(self, "_on_node_visuals_updated"))
+		_binary_client.connect("topology_updated", Callable(self, "_on_topology_updated"))
+		if _binary_client.has_signal("text_message"):
+			_binary_client.connect("text_message", Callable(self, "_on_graph_text"))
+	if _presence_client != null:
+		_presence_client.connect("avatar_joined", Callable(self, "_on_avatar_joined"))
+		_presence_client.connect("avatar_left", Callable(self, "_on_avatar_left"))
+		_presence_client.connect("avatar_pose_updated", Callable(self, "_on_avatar_pose_updated"))
+		if _presence_client.has_signal("connection_changed"):
+			_presence_client.connect("connection_changed", Callable(self, "_on_presence_connection_changed"))
+		if _presence_client.has_signal("presence_kicked"):
+			_presence_client.connect("presence_kicked", Callable(self, "_on_presence_kicked"))
+	if _voice_router != null and _voice_router.has_signal("voice_activity"):
+		_voice_router.connect("voice_activity", Callable(self, "_on_voice_activity"))
+	if _interaction != null:
+		_interaction.connect("node_targeted", Callable(self, "_on_node_targeted"))
+		_interaction.connect("node_grabbed", Callable(self, "_on_node_grabbed"))
+
+	# Instance the shared radial node menu (visual query builder + future expand).
+	var radial_scene: PackedScene = load(RADIAL_SCENE_PATH)
+	if radial_scene != null:
+		_radial = radial_scene.instantiate()
+		add_child(_radial)
+		if _radial.has_signal("item_selected"):
+			_radial.item_selected.connect(_on_radial_item_selected)
+		if _radial.has_method("set_debug"):
+			_radial.set_debug(QB_DEBUG)
+
+	# Dedicated request for the live query-count preview (separate gate from the
+	# fold/physics/observe requests so none can block the others).
+	_query_http = HTTPRequest.new()
+	add_child(_query_http)
+	_query_http.request_completed.connect(_on_query_count_completed)
+	_query_http.timeout = 10.0
+
+	# Wave 2, Feature 1 — node-radial predicate expansion. Two dedicated requests so
+	# neither the relations fetch nor the expand POST can block the query/fold gates.
+	_relations_http = HTTPRequest.new()
+	add_child(_relations_http)
+	_relations_http.request_completed.connect(_on_relations_completed)
+	_relations_http.timeout = 8.0
+	_expand_http = HTTPRequest.new()
+	add_child(_expand_http)
+	_expand_http.request_completed.connect(_on_expand_completed)
+	_expand_http.timeout = 12.0
+
+	# Execute request + the semantic-plane manager (parented under GraphRoot so plane
+	# +Y offsets ride the same fit transform as the graph).
+	_exec_http = HTTPRequest.new()
+	add_child(_exec_http)
+	_exec_http.request_completed.connect(_on_execute_completed)
+	_exec_http.timeout = 15.0
+	_planes = PlaneManagerScript.new()
+	_planes.name = "SemanticPlanes"
+	if graph_root != null:
+		graph_root.add_child(_planes)
+		var node_mesh: Mesh = nodes_multi.multimesh.mesh if nodes_multi != null and nodes_multi.multimesh != null else null
+		var edge_mesh: Mesh = edges_multi.multimesh.mesh if edges_multi != null and edges_multi.multimesh != null else null
+		var node_mat: Material = nodes_multi.material_override if nodes_multi != null else null
+		var edge_mat: Material = edges_multi.material_override if edges_multi != null else null
+		_planes.configure(_binary_client, node_mesh, edge_mesh, node_mat, edge_mat)
+	_memory_cloud = MemoryCloudLayerScript.new()
+	_memory_cloud.name = "MemoryCloud"
+	_cloud_root = Node3D.new()
+	_cloud_root.name = "MemoryCloudRoot"
+	add_child(_cloud_root)
+	if graph_root != null:
+		_cloud_root.add_child(_memory_cloud)
+		_memory_cloud.configure(_http_base(), Callable(self, "_auth_headers"))
+		_memory_cloud.pointer = right_controller
+		# frame the cloud on the graph (desktop cloudFrame.ts): robust bounds of every
+		# node, with the always-separated layout folded out (ADR-2135)
+		if _binary_client != null and _binary_client.has_method("graph_robust_bounds"):
+			var client: RefCounted = _binary_client
+			_memory_cloud.graph_bounds_source = func() -> PackedFloat32Array:
+				return client.graph_robust_bounds()
+		_memory_cloud.status_changed.connect(func(_s: String, _d: String) -> void: _refresh_memory_cloud_hud())
+		_memory_cloud.route_stats_changed.connect(func(line: String) -> void:
+			if hud != null and hud.has_method("set_memory_route_line"):
+				hud.set_memory_route_line(line))
+		_memory_search = MemorySearchScript.new()
+		_memory_search.name = "MemorySearch"
+		add_child(_memory_search)
+		_memory_search.setup(_http_base(), Callable(self, "_auth_headers"), _memory_cloud, hud)
+	if hud != null:
+		if hud.has_signal("query_execute_pressed"):
+			hud.query_execute_pressed.connect(_execute_query)
+		if hud.has_signal("query_clear_pressed"):
+			hud.query_clear_pressed.connect(_clear_query)
+
+	# HTTPRequest for the M4-RAY liveness observe POST (created at runtime so the
+	# scene file stays script-only; the request is async and non-blocking).
+	_observe_http = HTTPRequest.new()
+	add_child(_observe_http)
+
+	# Dedicated request for the HUD physics controls (separate from the observe
+	# POST and the HUD decide POST so none of them can block the others).
+	_physics_http = HTTPRequest.new()
+	add_child(_physics_http)
+	# Bound + gated: request_completed reopens the in-flight gate; a finite timeout
+	# guarantees it fires even on a stalled connection so the gate never latches.
+	_physics_http.request_completed.connect(_on_physics_completed)
+	_physics_http.timeout = 10.0
+
+	# Dedicated request for the shared agents demo POST (ADR-2142): its own gate, so the demo
+	# button can never block, or be blocked by, the physics writes.
+	_demo_http = HTTPRequest.new()
+	add_child(_demo_http)
+	_demo_http.request_completed.connect(_on_demo_completed)
+	_demo_http.timeout = 10.0
+
+	# Dedicated request for the fold-ladder GET (own gate, so a fold fetch never
+	# blocks or is blocked by the physics PUT path).
+	_fold_http = HTTPRequest.new()
+	add_child(_fold_http)
+	_fold_http.request_completed.connect(_on_fold_completed)
+	_fold_http.timeout = 10.0
+
+	_cycles_http = HTTPRequest.new()
+	add_child(_cycles_http)
+	_cycles_http.request_completed.connect(_on_cycles_completed)
+	_cycles_http.timeout = 10.0
+
+	_init_label_pool()
+	_probe_eye_gaze()
+	_wire_hud()
+	_parity = GraphParityScript.new()
+	_parity.name = "GraphParity"
+	add_child(_parity)
+	if _binary_client != null and _nostr_auth != null and _binary_client.has_method("set_own_pubkey") and _nostr_auth.has_method("pubkey_hex"):
+		_binary_client.set_own_pubkey(str(_nostr_auth.pubkey_hex()))
+	_parity.setup(self, _binary_client, graph_root, hud)
+	_parity.apply_backend_palette("visionclaw")
+	if graph_root != null:
+		# Template only now: the volumes' sources copy its mesh and material.
+		_impostors = NodeLod.make_impostor_instance()
+		graph_root.add_child(_impostors)
+		_ribbons = NodeLod.make_ribbon_instance()
+		graph_root.add_child(_ribbons)
+	_build_volumes()
+	_build_link_layer()
+	_start_native_shim()
+	_ensure_beat()
+	_connect_from_env()
+
+
+# One BackendConnection per content source (ADR-2159): each owns its client,
+# caps, reconnect backoff, pins and generation. `_binary_client` is the
+# VisionClaw connection's client for the VisionClaw-only features.
+func _build_connections() -> void:
+	var secret: String = OS.get_environment("XR_NOSTR_SECRET")
+	_vc_conn = BackendConnection.make(&"visionclaw", "visionclaw", _vc_base(), secret)
+	_cs_conn = BackendConnection.make(&"codescape", "codescape", _cs_base(), "")
+	for conn: Node in [_vc_conn, _cs_conn]:
+		add_child(conn)
+		_conns[conn.conn_id] = conn
+		conn.connected_changed.connect(_on_conn_connected_changed)
+		conn.topology_changed.connect(_on_conn_topology_changed)
+		conn.refused.connect(_on_conn_refused)
+	_binary_client = _vc_conn.client
+
+
+# The E3 arrangement (§7.2): three emulated volumes on the §1 ring, each fed by
+# a ConnectionVolumeSource for its (connection, class mask) binding. The source
+# copies the scene's own MultiMesh meshes and materials, so nodes and edges look
+# as they always have.
+func _build_volumes() -> void:
+	_arrangement = VolumeArrangementScript.new()
+	_arrangement.name = "VolumeArrangement"
+	add_child(_arrangement)
+	var templates := {
+		"nodes": nodes_multi, "faded": nodes_faded_multi, "halos": nodes_halo_multi,
+		"impostors": _impostors, "edges": edges_multi, "ribbons": _ribbons,
+	}
+	for vid: StringName in VOLUME_ORDER:
+		var b: Dictionary = VOLUME_BINDINGS[vid]
+		var v: Node3D = EmulatedVolumeScene.instantiate()
+		v.name = "Volume_%s" % vid
+		v.volume_id = vid
+		_arrangement.add_volume(v, float(b["yaw"]))
+		var conn: Node = _conns.get(b["conn"], null)
+		var src = ConnectionVolumeSource.new(conn, int(b["mask"]))
+		src.set_templates(templates)
+		v.attach(src)
+		_volumes[vid] = v
+		_sources[vid] = src
+		var label := Label3D.new()
+		label.name = "OfflineLabel"
+		label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		label.pixel_size = 0.002
+		label.font_size = 48
+		label.outline_size = 8
+		label.modulate = Color(1.0, 0.75, 0.45)
+		label.text = "%s offline" % str(b["name"])
+		v.add_child(label)
+		_offline_labels[vid] = label
+		v.set_focused(vid == _focused_volume)
+	# The old single-graph MultiMeshes under GraphRoot are templates now; keep them
+	# empty so nothing is drawn twice.
+	for mmi: MultiMeshInstance3D in [nodes_multi, nodes_faded_multi, nodes_halo_multi, edges_multi, _impostors, _ribbons]:
+		if mmi != null and mmi.multimesh != null:
+			mmi.multimesh.instance_count = 0
+			mmi.visible = false
+	_update_offline_labels()
+	_build_portals()
+
+
+# ADR-2166: the opt-in "entered" state over the ring. Native container arm,
+# offline and reduced-motion state are read live through callables.
+func _build_portals() -> void:
+	_portals = SpacePortalsScript.new()
+	_portals.name = "SpacePortals"
+	_portals.bind(_arrangement)
+	_portals.native_check = _native_arm_owns_layout
+	_portals.offline_check = _volume_offline
+	_portals.reduced_motion = _reduced_motion
+	_portals.walkthrough_enabled = XrPrefs.portal_walkthrough()
+	_portals.entered_changed.connect(_on_portal_entered_changed)
+	_portals.attach_fade(_portal_camera())
+
+
+# The scene's own XRCamera3D (the dim quad rides on it); the viewport lookup
+# is the fallback when the node path is not there.
+func _portal_camera() -> XRCamera3D:
+	var cam := get_node_or_null("XROrigin3D/XRCamera3D") as XRCamera3D
+	return cam if cam != null else _find_xr_camera()
+
+
+# True while the native container owns the arrangement fit, or it has been
+# chosen and not yet started: Enter is refused in both.
+func _native_arm_owns_layout() -> bool:
+	return _shim_pending_start or (_shim != null and _shim.is_native())
+
+
+func _volume_offline(vid: StringName) -> bool:
+	var conn: Node = _conn_for_volume(vid)
+	return conn == null or not conn.is_connected_now()
+
+
+# Budget hook (stream XE): favour the entered space in the near-cap split. The
+# method is guarded so this works before and after FrameBudgetPass has it.
+func _on_portal_entered_changed(_entered_id: StringName) -> void:
+	# Entering, swapping or leaving a space snaps every volume's Content transform
+	# (and turns a held volume into a portal): no node stays held through it.
+	_release_grab()
+	if _budget != null and _budget.has_method("set_volume_weights"):
+		_budget.set_volume_weights(_portals.budget_weights())
+	_sync_hud_backend()
+
+
+## Enters volume `vid` (or swaps to it). False and no change when refused.
+func enter_volume_space(vid: StringName) -> bool:
+	if _portals == null:
+		return false
+	_end_box_grip()
+	_portals.walkthrough_enabled = XrPrefs.portal_walkthrough()
+	var cam: XRCamera3D = _portal_camera()
+	_portals.attach_fade(cam)  # no-op once attached
+	var pos := Vector3.ZERO if cam == null else cam.global_position
+	var heading := Vector3(0.0, 0.0, -1.0) if cam == null else -cam.global_transform.basis.z
+	# The floor is the XR origin's height (locomotion can fly it off zero).
+	var origin: XROrigin3D = _find_xr_origin()
+	var floor_y := 0.0 if origin == null else origin.global_position.y
+	return _portals.enter(vid, pos, heading, floor_y)
+
+
+func leave_volume_space() -> bool:
+	return _portals != null and _portals.leave()
+
+
+func _tick_portals(delta: float) -> void:
+	if _portals == null:
+		return
+	_portals.tick(delta)
+	var cam: XRCamera3D = _find_xr_camera()
+	if cam != null and _portals.walkthrough_enabled:
+		# The same floor as a HUD Enter: the XR origin's height, not world zero.
+		var origin: XROrigin3D = _find_xr_origin()
+		var floor_y := 0.0 if origin == null else origin.global_position.y
+		_portals.update_walkthrough(cam.global_position, -cam.global_transform.basis.z, delta, floor_y)
+
+
+func _update_offline_labels() -> void:
+	for vid: StringName in _offline_labels:
+		var conn: Node = _conn_for_volume(vid)
+		var up: bool = conn != null and conn.is_connected_now()
+		_offline_labels[vid].visible = not up
+
+
+# {volume_id: {shown, online, name}} for the HUD's volume row.
+func _volume_states() -> Dictionary:
+	var out: Dictionary = {}
+	for vid: StringName in VOLUME_ORDER:
+		var v: Node3D = _volumes.get(vid, null)
+		var conn: Node = _conn_for_volume(vid)
+		out[vid] = {
+			"shown": v != null and bool(v.visible_state),
+			"online": conn != null and conn.is_connected_now(),
+			"name": str(VOLUME_BINDINGS[vid]["name"]),
+			"entered": _portals != null and _portals.entered_id() == vid,
+		}
+	return out
+
+
+# §7.3: decide native vs emulated once at boot and log it. A native decision
+# starts only once OpenXR is up (C's note: never from XRBoot); see _physics_process.
+func _start_native_shim() -> void:
+	_shim = NativeContainerShim.new()
+	_shim.name = "NativeContainerShim"
+	add_child(_shim)
+	var d: Dictionary = _shim.evaluate()
+	print("GraphScene: spatial container mode=%s reason=%s" % [d.get("mode", ""), d.get("reason", "")])
+	if _shim.has_signal("fallback"):
+		_shim.fallback.connect(_on_shim_fallback)
+	_shim_pending_start = str(d.get("mode", "")) == "native"
+	# A closed native container ends the XR session (C's finding 2). The backend
+	# connections are left alone (§4): a session may stop and begin again (headset
+	# off/on, runtime dashboard) and the volumes must still be live when it does.
+	var xr: XRInterface = XRServer.find_interface("OpenXR")
+	if xr != null and xr.has_signal("session_stopping"):
+		xr.session_stopping.connect(_on_xr_session_stopping)
+
+
+func _openxr_ready() -> bool:
+	var xr: XRInterface = XRServer.find_interface("OpenXR")
+	return xr != null and xr.is_initialized()
+
+
+func _on_shim_fallback(reason: String) -> void:
+	print("GraphScene: spatial container fell back to emulated (%s)" % reason)
+	if OS.is_debug_build() and hud != null and hud.has_method("flash_notice"):
+		hud.flash_notice("Spatial container: emulated (%s)" % reason, 4.0)
+
+
+func _on_xr_session_stopping() -> void:
+	print("GraphScene: XR session stopping; backend connections kept")
+
+
+# §7.4: each visible volume ticks (its fit re-reads the source extent every
+# FIT_RECOMPUTE ticks, B's note); GraphRoot follows the overlay volume's Content
+# so the VisionClaw overlays share its frame.
+func _tick_volumes(delta: float) -> void:
+	if _shim_pending_start and _openxr_ready():
+		_shim_pending_start = false
+		_shim.start(_arrangement)
+	for vid: StringName in _volumes:
+		var v: Node3D = _volumes[vid]
+		if v.visible_state:
+			v.tick(delta)
+	var ov: Node3D = _volumes.get(OVERLAY_VOLUME, null)
+	if ov != null and graph_root != null and ov.content != null and ov.content.is_inside_tree():
+		graph_root.global_transform = ov.content.global_transform
+		_graph_scale = maxf(_uniform_scale(graph_root.global_transform), 1.0e-6)
+	_place_cloud_root()
+
+
+# The memory cloud stays world furniture (ADR-2158 D4): once per VisionClaw
+# topology it is framed the way the single graph used to be, in front of the
+# user at GRAPH_TARGET_SPAN, and then left alone.
+func _place_cloud_root() -> void:
+	if _cloud_placed or _cloud_root == null or _binary_client == null:
+		return
+	if not _binary_client.has_method("graph_robust_bounds"):
+		return
+	var b: PackedFloat32Array = _binary_client.graph_robust_bounds()
+	if b.size() < 4 or b[3] <= 0.001:
+		return
+	var s: float = GRAPH_TARGET_SPAN / (2.0 * b[3])
+	var c := Vector3(b[0], b[1], b[2])
+	_cloud_root.transform = Transform3D(Basis.IDENTITY.scaled(Vector3(s, s, s)), GRAPH_ANCHOR - c * s)
+	_cloud_placed = true
+
+
+# §7.4/§7.7: pack each visible, connected volume with its share of the frame
+# budget's near caps; a hidden or offline volume draws nothing. The overlay
+# volume packs last so its pack slot stays active for the ray, beams and hulls.
+func _pack_volumes() -> void:
+	var cam: Camera3D = get_viewport().get_camera_3d()
+	if cam == null:
+		return
+	var cam_world: Vector3 = cam.global_position
+	var node_ratio: float = NODE_WORLD_RADIUS * _node_size_factor / NODE_MESH_RADIUS
+	var edge_ratio: float = EDGE_WORLD_RADIUS / EDGE_MESH_RADIUS
+	var order: Array[StringName] = []
+	for vid: StringName in VOLUME_ORDER:
+		if vid != OVERLAY_VOLUME:
+			order.append(vid)
+	order.append(OVERLAY_VOLUME)
+	for vid: StringName in order:
+		var v: Node3D = _volumes.get(vid, null)
+		var src = _sources.get(vid, null)
+		if v == null or src == null:
+			continue
+		var conn: Node = _conn_for_volume(vid)
+		if not v.visible_state or conn == null or not conn.is_connected_now():
+			src.clear_instances()
+			if vid == OVERLAY_VOLUME:
+				_empty_overlay_slot(src)
+			continue
+		var share: Dictionary = _budget.volume_caps.get(vid, {})
+		var gem_cap: int = int(share.get("gem_nodes", _budget.caps["gem_nodes"]))
+		var cyl_cap: int = int(share.get("cylinder_edges", _budget.caps["cylinder_edges"]))
+		src.pack(cam_world, node_ratio, edge_ratio, gem_cap, cyl_cap, NodeLod.NEAR_RADIUS_M, NodeLod.NEAR_EDGE_RADIUS_M)
+
+
+# Build the reusable Label3D pool once. Anchors live in world space (siblings of
+# GraphRoot) so their metre-sized text is unaffected by the graph fit scale.
+func _init_label_pool() -> void:
+	for i: int in range(LABEL_POOL_SIZE):
+		var anchor := Node3D.new()
+		anchor.name = "NodeLabel%d" % i
+		anchor.visible = false
+		var title := Label3D.new()
+		title.name = "Title"
+		title.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		title.pixel_size = LABEL_TITLE_PX
+		title.font_size = LABEL_TITLE_FONT
+		title.outline_size = 8
+		title.modulate = Color(1.0, 1.0, 1.0, 1.0)
+		anchor.add_child(title)
+		var detail := Label3D.new()
+		detail.name = "Detail"
+		detail.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		detail.pixel_size = LABEL_TITLE_PX
+		detail.font_size = LABEL_DETAIL_FONT
+		detail.outline_size = 6
+		detail.position = Vector3(0.0, -LABEL_DETAIL_OFFSET_M, 0.0)
+		detail.modulate = Color(0.8, 0.85, 0.95, 1.0)
+		anchor.add_child(detail)
+		add_child(anchor)
+		_label_pool.append(anchor)
+
+
+# Show labels for the nodes nearest the camera (plus the grabbed node), fading with
+# distance. Runs at LABEL_UPDATE_SEC cadence; reuses the pool (no allocation churn
+# beyond the one nodes_near query array).
+func _update_proximity_labels() -> void:
+	if _label_pool.is_empty():
+		return
+	if _binary_client == null or graph_root == null or not _binary_client.has_method("nodes_near") or not _overlay_live():
+		_hide_all_labels()
+		return
+	var cam: XRCamera3D = _find_xr_camera()
+	if cam == null:
+		_hide_all_labels()
+		return
+	var cam_world: Vector3 = cam.global_position
+	var gxf: Transform3D = graph_root.global_transform
+	var cam_server: Vector3 = gxf.affine_inverse() * cam_world
+	# Radius tracks the fit scale: a fixed world-metre reach maps to a larger
+	# server-space radius when the graph is scaled down.
+	var radius_server: float = LABEL_PROXIMITY_M / maxf(_graph_scale, 0.0001)
+	# Query more than the pool so unlabelled near-nodes don't starve labelled ones.
+	var near: PackedInt32Array = _binary_client.nodes_near(cam_server, radius_server, LABEL_POOL_SIZE * 2)
+	# Build the shown list: grabbed node first (always labelled), then nearest
+	# labelled nodes up to the pool size.
+	var shown: Array = []
+	# Labels are placed through GraphRoot (the knowledge frame): only nodes held in
+	# the knowledge volume belong in this pool.
+	for held: int in _held_ids(OVERLAY_VOLUME):
+		shown.append(held)
+	# Query variables are always labelled (with their ?vN badge), regardless of
+	# proximity, so the assembled pattern stays legible while the user works.
+	for mid: int in _query.marked_ids():
+		if shown.size() >= LABEL_POOL_SIZE:
+			break
+		if not shown.has(mid):
+			shown.append(mid)
+	var overlay_mask: int = int(VOLUME_BINDINGS[OVERLAY_VOLUME]["mask"])
+	for id: int in near:
+		if shown.size() >= LABEL_POOL_SIZE:
+			break
+		if shown.has(id):
+			continue
+		# Labels sit in GraphRoot's frame, which is the overlay volume's: a node
+		# drawn in another volume would be labelled in the wrong place.
+		var cls: int = _vc_conn.class_of(id) if _vc_conn != null else -1
+		if cls >= 0 and not (overlay_mask & (1 << cls)):
+			continue
+		if _binary_client.label_of(id) != "":
+			shown.append(id)
+	var labelled: PackedInt32Array = PackedInt32Array()
+	for i: int in range(LABEL_POOL_SIZE):
+		var anchor: Node3D = _label_pool[i]
+		if i >= shown.size():
+			anchor.visible = false
+			continue
+		var node_id: int = shown[i]
+		var server_pos: Vector3 = _binary_client.node_position(node_id)
+		var world_pos: Vector3 = gxf * server_pos
+		anchor.global_position = world_pos
+		anchor.visible = true
+		var title: Label3D = anchor.get_node("Title")
+		var detail: Label3D = anchor.get_node("Detail")
+		# Prefix a query variable's label with its ?vN badge so a marked node reads
+		# as the variable it stands for.
+		var vlabel: String = _query.var_name(node_id)
+		if vlabel != "":
+			title.text = "%s  %s" % [vlabel, _binary_client.label_of(node_id)]
+		else:
+			title.text = _binary_client.label_of(node_id)
+		# Fold badge: a representative shows "(+N)" for the members collapsed into
+		# it — the label path is the primary consumer of the fold badge count (the
+		# halo shader also rings it via INSTANCE_CUSTOM.g).
+		if _binary_client.has_method("fold_badge_of"):
+			var badge: int = _binary_client.fold_badge_of(node_id)
+			if badge > 0:
+				title.text += "  (+%d)" % badge
+		var d: String = _binary_client.detail_of(node_id)
+		# Agent task line (ADR-140, Pillar 3 / P4): if this node is an agent with a
+		# current task, surface it in the proximity Detail line so the swarm's work
+		# reads at a glance up close — takes precedence over the generic node detail.
+		if _binary_client.has_method("agent_task"):
+			var task: String = _binary_client.agent_task(node_id)
+			if task != "":
+				d = "⚙ %s" % task
+		detail.text = d
+		detail.visible = d != ""
+		# Fade: full opacity within LABEL_INNER_M, linear to 0 at the radius edge.
+		# The grabbed node and every query variable are always fully shown.
+		var a: float = 1.0
+		if not _held_ids(OVERLAY_VOLUME).has(node_id) and not _query.is_marked(node_id):
+			var dist: float = cam_world.distance_to(world_pos)
+			a = clampf(
+				1.0 - (dist - LABEL_INNER_M) / maxf(LABEL_PROXIMITY_M - LABEL_INNER_M, 0.001),
+				0.0, 1.0
+			)
+		title.modulate = Color(1.0, 1.0, 1.0, a)
+		detail.modulate = Color(0.8, 0.85, 0.95, a)
+		if a > LABEL_VISIBLE_MIN_A:
+			labelled.append(node_id)
+	_set_labelled_nodes(labelled)
+
+
+func _hide_all_labels() -> void:
+	for anchor: Node3D in _label_pool:
+		anchor.visible = false
+	_set_labelled_nodes(PackedInt32Array())
+
+
+# Co-proximate label fade: the nodes whose label overlay is showing drop to 30 %
+# alpha (Rust LABEL_FADE_ALPHA) for exactly the duration of the display, so the
+# text sitting inside the sphere reads through it. Rust eases the alpha and routes
+# those nodes to the transparent NodesFadedMulti pass (see _update_multimesh); the
+# opaque NodesMulti material never changes.
+func _set_labelled_nodes(ids: PackedInt32Array) -> void:
+	if _binary_client == null or not _binary_client.has_method("set_labelled"):
+		return
+	_binary_client.set_labelled(ids)
+
+
+# Eye-gaze capability probe (copresence brief §Godot API availability; the
+# godot #113717 hazard). Query support ONLY here — after OpenXR init in
+# XRBoot — and feed the flag to the Rust gaze resolver, which keeps head-gaze
+# primary and degrades eye-gaze to head unless supported. We never enable the
+# XR_EXT_eye_gaze_interaction action-map binding blindly: the extension stays
+# off on runtimes that report no support (SteamVR on the Vive, Quest 3), so the
+# action-map error can never fire.
+func _probe_eye_gaze() -> void:
+	var xr: XRInterface = XRServer.find_interface("OpenXR")
+	if xr != null and xr.has_method("is_eye_gaze_interaction_supported"):
+		_eye_gaze_supported = xr.is_eye_gaze_interaction_supported()
+	else:
+		_eye_gaze_supported = false
+	if _gaze_tracker != null and _gaze_tracker.has_method("set_eye_gaze_supported"):
+		_gaze_tracker.set_eye_gaze_supported(_eye_gaze_supported)
+	if not _eye_gaze_supported:
+		print("GraphScene: eye-gaze unsupported by this OpenXR runtime -- head-gaze primary")
+
+
+func _ensure_beat() -> void:
+	if _beat != null:
+		return
+	_beat = BeatPulseScript.new()
+	_beat.name = "BeatPulse"
+	add_child(_beat)
+	_beat.setup(self, _binary_client, hud, left_controller, right_controller, agent_effects_root, _graph_centre_world)
+	# The memory cloud's route pulses on the same beat (is_locked/beat_phase/beat_pulse).
+	if _memory_cloud != null:
+		_memory_cloud.beat_source = _beat
+
+
+func _wire_hud() -> void:
+	if hud == null:
+		return
+	connection_status_changed.connect(hud._on_connection_status)
+	avatar_count_changed.connect(hud.set_avatar_count)
+	if hud.has_signal("join_requested"):
+		hud.join_requested.connect(_on_hud_join_requested)
+	if hud.has_method("configure_intervention"):
+		hud.configure_intervention(_http_base(), _nostr_auth)
+	if hud.has_signal("control_pressed"):
+		hud.control_pressed.connect(_on_hud_control)
+	if hud.has_signal("reconnect_pressed"):
+		hud.reconnect_pressed.connect(_on_hud_reconnect)
+	_sync_hud_backend()
+	_refresh_controls_status()
+
+
+# Push the focused volume's connection to the HUD: volume row, status line and
+# the capability table its controls grey against. VisionClaw-bound requests
+# (intervention, memory) always go to the VisionClaw connection.
+func _sync_hud_backend() -> void:
+	var conn: Node = _conn_for_volume(_focused_volume)
+	if hud != null:
+		if hud.has_method("set_volume_state"):
+			hud.set_volume_state(_focused_volume, _volume_states())
+		if hud.has_method("configure_intervention"):
+			hud.configure_intervention(_http_base(), _nostr_auth)
+		if hud.has_method("set_backend_capabilities") and conn != null:
+			hud.set_backend_capabilities(conn.caps)
+	# The memory layers were configured once in _ready; follow the live base so a
+	# switch never leaves them posting to the previous origin, and fold the cloud
+	# away where the route does not exist.
+	if _memory_cloud != null:
+		_memory_cloud.configure(_http_base(), Callable(self, "_auth_headers"))
+		if not backend_supports(BackendCaps.MEMORY_CLOUD) and _memory_cloud.is_enabled():
+			_memory_cloud.set_enabled(false)
+			_refresh_memory_cloud_hud()
+	if _memory_search != null and _memory_search.has_method("set_http_base"):
+		_memory_search.set_http_base(_http_base())
+
+
+## Whether the focused volume's connection serves `cap` (a BackendCaps key).
+## Read by graph_parity.gd before its own polls and writes, and by the HUD.
+func backend_supports(cap: String) -> bool:
+	var conn: Node = _conn_for_volume(_focused_volume)
+	if conn == null:
+		return BackendCaps.supports(BackendCaps.for_mode(_volume_mode(_focused_volume)), cap)
+	return conn.supports(cap)
+
+
+# One gate for every server-bound request, per volume (ADR-2159 D2): true when
+# the volume's connection serves `cap`; otherwise the connection emits
+# `refused` (unless `quiet`), which the HUD shows, and nothing is sent.
+func _gate_for_volume(volume_id: StringName, cap: String, label: String, quiet: bool = false) -> bool:
+	var conn: Node = _conn_for_volume(volume_id)
+	if conn == null:
+		# Before _ready builds the connections (a scene driven without the tree),
+		# answer from the binding's capability table; nothing can be refused aloud.
+		return BackendCaps.supports(BackendCaps.for_mode(_volume_mode(volume_id)), cap)
+	return conn.gate(cap, label, quiet)
+
+
+# Backend mode of a volume's connection; connection ids are the mode names.
+func _volume_mode(volume_id: StringName) -> String:
+	return String(VOLUME_BINDINGS.get(volume_id, {}).get("conn", &"visionclaw"))
+
+
+func _conn_for_volume(volume_id: StringName) -> Node:
+	var b: Dictionary = VOLUME_BINDINGS.get(volume_id, {})
+	if b.is_empty():
+		return null
+	return _conns.get(b["conn"], null)
+
+
+func _on_conn_refused(conn_id: StringName, _cap: String, label: String) -> void:
+	var conn: Node = _conns.get(conn_id, null)
+	var who: String = conn.display_name() if conn != null else String(conn_id)
+	if hud != null and hud.has_method("flash_notice"):
+		hud.flash_notice("Not on %s: %s" % [who, label], 4.0)
+
+
+# Operator pressed Reconnect on the Session tab: force-reconnect both sockets now.
+func _on_hud_reconnect() -> void:
+	_reset_reconnect_state()
+	_attempt_connect()
+
+
+# HUD volume row: "volume_toggle:<id>" shows/hides a volume (a hidden volume
+# stops packing, ADR-2159 D4); "volume_focus:<id>" focuses it, which picks the
+# connection the HUD's global controls gate against.
+func _on_volume_action(action: String) -> void:
+	if action.begins_with("volume_toggle:"):
+		var vid := StringName(action.substr(14))
+		var v: Node3D = _volumes.get(vid, null)
+		if v != null:
+			v.request_visible(not v.visible_state)
+			if not v.visible_state and _box_grab_vid == vid:
+				_end_box_grip()
+			if not v.visible_state and _sel_volume == vid:
+				clear_volume_selection()
+			if not v.visible_state and _sources.has(vid):
+				_sources[vid].clear_instances()
+				_release_grab(vid)
+				if vid == OVERLAY_VOLUME:
+					_empty_overlay_slot(_sources[vid])
+					_hide_all_labels()
+	elif action.begins_with("volume_focus:"):
+		var fid := StringName(action.substr(13))
+		if _volumes.has(fid):
+			_focused_volume = fid
+			for id: StringName in _volumes:
+				_volumes[id].set_focused(id == fid)
+	elif action.begins_with("volume_enter:"):
+		enter_volume_space(StringName(action.substr(13)))
+	elif action == "volume_leave":
+		leave_volume_space()
+	elif action.begins_with("volume_front:"):
+		# Feature 5: the box eases to the 0° slot; the one there takes its slot.
+		var front := StringName(action.substr(13))
+		if _arrangement != null and _volumes.has(front) and _any_grab_id() == -1:
+			if _box_grab_vid == front:
+				_end_box_grip()
+			_arrangement.bring_to_front(front)
+	_sync_hud_backend()
+	_refresh_controls_status()
+
+
+# HUD control-panel actions. Physics actions POST/PUT to the backend on the
+# dedicated _physics_http; visual actions mutate a runtime factor and re-slice /
+# re-scale on the spot (no HTTP, work only on press). Status label refreshed after
+# every press.
+func _on_hud_control(action: String) -> void:
+	# Feature 3 — type show/hide filter. "type_toggle:<class>:<1|0>" (1 = visible).
+	if action.begins_with("type_toggle:"):
+		_apply_type_toggle(action.substr(12))
+		return
+	if action.begins_with("volume_"):
+		_on_volume_action(action)
+		return
+	if action == "cross_links_toggle":
+		_set_cross_links(not (_link_layer != null and _link_layer.is_enabled()))
+		return
+	# The arrangement half of Reset Layout is local and runs for every focused
+	# volume; the physics half below is gated on the focused connection.
+	if action == "reset_layout":
+		reset_volume_layout()
+	var needed: String = BackendCaps.cap_for_action(action)
+	if not needed.is_empty() and not _gate_for_volume(_focused_volume, needed, action.get_slice(":", 0).replace("_", " ")):
+		return
+	if _parity != null and _parity.handle_control(action):
+		return
+	if action.begins_with("beat_") or action.begins_with("memory_bursts:"):
+		if _beat != null:
+			_beat.on_hud_action(action)
+		return
+	# Swarm roster rows emit "teleport:<wire id>" (hud.gd _mk_swarm_row); only the
+	# radial-menu path used to handle it, so a roster tap did nothing.
+	if action.begins_with("teleport:"):
+		_teleport_to_node(int(action.substr(9)))
+		return
+	if action.begins_with("memory_preset:") or action.begins_with("memory_hit:") or action.begins_with("memory_typed:"):
+		if _memory_search != null and _memory_search.handle_control(action):
+			_refresh_memory_cloud_hud()
+		return
+	# Comfort toggles are owned by spatial_environment.gd (its own connection to
+	# control_pressed); not unknown, so no warning.
+	if action.begins_with("visual_motion:") or action.begins_with("visual_quality:"):
+		_refresh_reduced_motion.call_deferred()
+		return
+	match action:
+		"reset_layout":
+			_request_physics_reset()
+		"spread_plus":
+			_request_spread(1.2, 1.15)
+		"spread_minus":
+			_request_spread(0.8, 0.85)
+		"edges_plus":
+			_edge_show_count = int(round(float(_edge_show_count) * 1.4))
+			_apply_edge_slice()
+		"edges_minus":
+			_edge_show_count = int(round(float(_edge_show_count) * 0.7))
+			_apply_edge_slice()
+		"node_size_plus":
+			_node_size_factor = clampf(_node_size_factor * 1.25, NODE_SIZE_FACTOR_MIN, NODE_SIZE_FACTOR_MAX)
+		"node_size_minus":
+			_node_size_factor = clampf(_node_size_factor * 0.8, NODE_SIZE_FACTOR_MIN, NODE_SIZE_FACTOR_MAX)
+		"hierarchy_toggle":
+			_request_hierarchy_toggle()
+		"shells_plus":
+			_request_shells(DAG_LEVEL_DISTANCE_STEP)
+		"shells_minus":
+			_request_shells(-DAG_LEVEL_DISTANCE_STEP)
+		"planes_toggle":
+			_request_planes_toggle()
+		"plane_gap_plus":
+			_request_plane_gap(PLANE_SPACING_STEP)
+		"plane_gap_minus":
+			_request_plane_gap(-PLANE_SPACING_STEP)
+		"radial_dag":
+			_post_radial({"mode": "dagRank", "transitionMs": 800})
+		"radial_type":
+			_post_radial({"mode": "typeTier", "transitionMs": 800})
+		"radial_ego":
+			if _radial_node_id < 0:
+				push_warning("GraphScene: Ego Focus needs a selected node — open a node's radial first")
+			else:
+				_post_radial({"mode": "ego", "focusNode": _radial_node_id, "transitionMs": 800})
+		"radial_off":
+			if _put_physics_body({"dagBiasK": 0.0}):
+				_physics_staged = {"_dag_bias_on": false}
+		"flat_toggle":
+			_request_flat_toggle()
+		"layout_mode_cycle":
+			_request_layout_mode_cycle()
+		"cycles_toggle":
+			_request_cycles_toggle()
+		"cycles_refresh":
+			if _cycles_active():
+				_fetch_cycles()
+		"fold_plus":
+			_request_fold(1)
+		"fold_minus":
+			_request_fold(-1)
+		"unpin_all":
+			_unpin_all()
+		"memory_cloud_toggle":
+			if _memory_cloud != null:
+				_memory_cloud.set_enabled(not _memory_cloud.is_enabled())
+				_refresh_memory_cloud_hud()
+		"memory_cloud_colour":
+			if _memory_cloud != null:
+				_memory_cloud.cycle_colour_mode()
+				_refresh_memory_cloud_hud()
+		_:
+			push_warning("GraphScene: unknown HUD control '%s'" % action)
+	_refresh_controls_status()
+
+
+# Push the memory-cloud button labels (state, colour mode) to the HUD.
+func _refresh_memory_cloud_hud() -> void:
+	if hud != null and _memory_cloud != null and hud.has_method("set_memory_cloud_state"):
+		hud.set_memory_cloud_state(_memory_cloud.is_enabled(), _memory_cloud.status_label(), _memory_cloud.colour_mode_label())
+
+
+# Apply a type show/hide toggle "<class>:<1|0>" to the render store. Class codes
+# mirror render_store::KIND_* (0 knowledge / 1 ontology / 2 agent). A rebuild of
+# the draw list happens on the next frame (the volume sources re-read their ids).
+func _apply_type_toggle(spec: String) -> void:
+	if _binary_client == null or not _binary_client.has_method("set_type_visible"):
+		return
+	var parts := spec.split(":")
+	if parts.size() < 2:
+		return
+	var class_code: int = int({"knowledge": 0, "ontology": 1, "agent": 2}.get(parts[0], -1))
+	if class_code < 0:
+		return
+	var visible: bool = parts[1] == "1"
+	_binary_client.set_type_visible(class_code, visible)
+	# Agent type (2): also toggle the embodiments and their work-cue effects so
+	# they hide alongside the Rust render store's MultiMesh spheres. Visual only:
+	# the choreography, registry and selection handles keep running untouched.
+	if class_code == 2:
+		if agents_root != null:
+			agents_root.visible = visible
+		if agent_effects_root != null:
+			agent_effects_root.visible = visible
+	# Force the draw domain to rebuild so hidden-class nodes drop immediately.
+	_selection_dirty = true
+
+
+# Every node the server has sent a position for (0 before the first frame).
+func _known_nodes() -> int:
+	return _binary_client.node_count() if _binary_client != null else 0
+
+
+func _refresh_controls_status() -> void:
+	if hud == null:
+		return
+	if hud.has_method("set_controls_status"):
+		var busy: String = "  [busy]" if _physics_pending else ""
+		var dag: String = "on" if _dag_bias_on else "off"
+		var fold: String = "  [fold busy]" if _fold_pending else ""
+		var err: String = "" if _last_write_error.is_empty() else "\n⚠ " + _last_write_error
+		# "nodes drawn/known": the draw budget against every node the server sent, so a
+		# graph shown partially (only edge-endpoint nodes are drawn) is never mistaken
+		# for the whole graph.
+		hud.set_controls_status("repelK %.0f  restLen %.0f  edges %d/%d  nodes drawn<=%d of %d  node×%.2f  dag %s/%.0f  z%.2f  fold L%d  pin %d  physics %s%s%s%s" % [
+			_repel_k, _rest_length, _edge_show_count, _edge_budget, _node_budget, _known_nodes(), _node_size_factor,
+			dag, _dag_level_distance, _z_compression, _fold_level, _pinned_ids.size(),
+			_physics_state_text if not _physics_state_text.is_empty() else "…", busy, fold, err])
+	# Reflect the toggle/pin state on the button faces (press-only, no per-frame cost).
+	if hud.has_method("set_control_states"):
+		hud.set_control_states(_dag_bias_on, _z_compression < Z_COMPRESSION_FULL_3D, _pinned_ids.size(), not is_zero_approx(_plane_bias_k))
+	if hud.has_method("set_layout_mode_label"):
+		hud.set_layout_mode_label(LAYOUT_MODE_LABELS[_layout_mode_idx])
+	if hud.has_method("set_fold_state"):
+		hud.set_fold_state(_fold_level)
+	if hud.has_method("set_cycles_state"):
+		hud.set_cycles_state(_cycles_active(), _cycles_pending, _cycles_count)
+	# Populate the Pins tab list (cheap; press/ack-only, no per-frame cost).
+	if hud.has_method("set_pinned_ids"):
+		hud.set_pinned_ids(_pinned_ids.keys())
+
+
+# Fold ±: step the density ladder by `delta`, clamped [0,3]. GETs the server fold
+# plan for the target level (passing the current pinned ids so pinned nodes are
+# promoted to representatives) and commits _fold_level only on a 2xx, mirroring the
+# physics one-in-flight discipline. Level 0 short-circuits: clear the plan locally,
+# no HTTP needed.
+func _request_fold(delta: int) -> void:
+	if not _gate_for_volume(_focused_volume, BackendCaps.FOLD, "fold levels"):
+		return
+	if _fold_pending:
+		push_warning("GraphScene: fold change already in flight; ignoring")
+		return
+	# Suppress ladder steps while a node grab or a two-hand graph manipulation owns
+	# the hands: a fold transition re-seeds/animates positions, which would fight the
+	# grab's optimistic pin and the manip's reference-frame lock (Phase-0 design).
+	if _any_grab_id() != -1 or _two_hand_active:
+		push_warning("GraphScene: fold suppressed during grab / two-hand manip")
+		return
+	var target: int = clampi(_fold_level + delta, FOLD_LEVEL_MIN, FOLD_LEVEL_MAX)
+	if target == _fold_level:
+		return  # already at a ladder rail — no redundant fetch
+	if target == 0:
+		# ∅: no groups to fetch — clear the plan directly and force one rebuild.
+		if _binary_client != null and _binary_client.has_method("clear_fold_plan"):
+			_binary_client.clear_fold_plan()
+		_fold_level = 0
+		_selection_dirty = true
+		return
+	if _fold_http == null:
+		return
+	var pinned_csv := _pinned_ids_csv()
+	var url := "%s/api/graph/fold?level=%d" % [_http_base(), target]
+	if pinned_csv != "":
+		url += "&pinned=" + pinned_csv
+	var headers := _auth_headers(url, "GET")
+	var err := _fold_http.request(url, headers, HTTPClient.METHOD_GET)
+	if err != OK:
+		push_warning("GraphScene: fold GET failed to start (%d)" % err)
+		return
+	_fold_pending = true
+	_fold_staged_level = target
+
+
+# Comma-separated list of this session's pinned node ids (empty when none), for
+# the fold endpoint's ?pinned= param so pinned nodes are promoted, never folded.
+func _pinned_ids_csv() -> String:
+	if _pinned_ids.is_empty():
+		return ""
+	var parts := PackedStringArray()
+	for id: int in _pinned_ids.keys():
+		parts.push_back(str(id))
+	return ",".join(parts)
+
+
+# Fold GET resolved. On 2xx, parse {hidden, groups:[{representativeId, memberIds,
+# ...}]} into flat (hidden, members, reps) arrays and hand them to the Rust store,
+# then commit _fold_level. Snap transition this phase (members vanish / appear
+# instantly); animation is Phase 3. A failed/timed-out fetch discards the staged
+# level so the tracked state never diverges from what was applied.
+func _on_fold_completed(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	_fold_pending = false
+	var ok := result == HTTPRequest.RESULT_SUCCESS and response_code >= 200 and response_code < 300
+	if not ok:
+		push_warning("GraphScene: fold request failed (result=%d code=%d)" % [result, response_code])
+		_refresh_controls_status()
+		return
+	var parsed: Variant = JSON.parse_string(body.get_string_from_utf8())
+	if typeof(parsed) != TYPE_DICTIONARY:
+		push_warning("GraphScene: fold response was not a JSON object")
+		_refresh_controls_status()
+		return
+	var hidden := PackedInt32Array()
+	for h: Variant in parsed.get("hidden", []):
+		hidden.push_back(int(h))
+	var members := PackedInt32Array()
+	var reps := PackedInt32Array()
+	for g: Variant in parsed.get("groups", []):
+		if typeof(g) != TYPE_DICTIONARY:
+			continue
+		var rep: int = int(g.get("representativeId", 0))
+		for m: Variant in g.get("memberIds", []):
+			members.push_back(int(m))
+			reps.push_back(rep)
+	if _binary_client != null and _binary_client.has_method("set_fold_plan"):
+		_binary_client.set_fold_plan(hidden, members, reps)
+	_fold_level = _fold_staged_level
+	_selection_dirty = true  # force one node/edge buffer rebuild with the new plan
+	_refresh_controls_status()
+
+
+# Cycles toggle: off -> fetch the server's cycle report and light the overlay;
+# on -> clear it. The overlay is committed only on a 2xx, so the button face never
+# claims a state the renderer is not showing.
+func _request_cycles_toggle() -> void:
+	if _cycles_active():
+		_cycles_count = 0
+		if _binary_client != null and _binary_client.has_method("clear_cycle_overlay"):
+			_binary_client.clear_cycle_overlay()
+		_selection_dirty = true
+		_refresh_controls_status()
+		return
+	_fetch_cycles()
+
+
+# The Rust store owns whether the overlay is on (a full store reset clears it), so
+# read it from there rather than shadowing it in a flag that could go stale.
+func _cycles_active() -> bool:
+	return _binary_client != null and _binary_client.has_method("cycle_overlay_active") and _binary_client.cycle_overlay_active()
+
+
+# GET {base}/api/analytics/cycles (subsumption edges by default; the server owns the analysis).
+func _fetch_cycles() -> void:
+	if _cycles_http == null or _cycles_pending:
+		return
+	if not _gate_for_volume(_focused_volume, BackendCaps.CYCLES, "cycle analysis"):
+		return
+	var url := "%s/api/analytics/cycles" % _http_base()
+	var headers := _auth_headers(url, "GET")
+	var err := _cycles_http.request(url, headers, HTTPClient.METHOD_GET)
+	if err != OK:
+		push_warning("GraphScene: cycles GET failed to start (%d)" % err)
+		return
+	_cycles_pending = true
+	_refresh_controls_status()
+
+
+# The endpoint answers the standard envelope: {"success":true,"data":{"cyclicNodeIds":[...],...}}.
+func _on_cycles_completed(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	_cycles_pending = false
+	var ok := result == HTTPRequest.RESULT_SUCCESS and response_code >= 200 and response_code < 300
+	var parsed: Variant = JSON.parse_string(body.get_string_from_utf8()) if ok else null
+	if typeof(parsed) != TYPE_DICTIONARY or typeof(parsed.get("data")) != TYPE_DICTIONARY:
+		push_warning("GraphScene: cycles request failed (result=%d code=%d)" % [result, response_code])
+		_refresh_controls_status()
+		return
+	var ids := PackedInt32Array()
+	for v: Variant in parsed["data"].get("cyclicNodeIds", []):
+		ids.push_back(int(v))
+	if _binary_client != null and _binary_client.has_method("set_cycle_overlay"):
+		_binary_client.set_cycle_overlay(ids)
+		_cycles_count = ids.size()
+	else:
+		push_warning("GraphScene: native library lacks set_cycle_overlay — rebuild the gdext library to use Cycles")
+	_selection_dirty = true  # force one node-buffer rebuild with the overlay
+	_refresh_controls_status()
+
+
+# Hierarchy toggle: PUT dagBiasK (0.6 on / 0.0 off). Same one-in-flight gate and
+# commit-only-on-dispatch discipline as Spread, so a busy/failed PUT never drifts
+# the tracked toggle state away from what the server last received.
+func _request_hierarchy_toggle() -> void:
+	if _physics_pending:
+		push_warning("GraphScene: physics change already in flight; ignoring")
+		return
+	var want_on := not _dag_bias_on
+	var k: float = DAG_BIAS_ON_K if want_on else 0.0
+	if _put_physics_body({"dagBiasK": k}):
+		_physics_staged = {"_dag_bias_on": want_on}
+
+
+# Shells ±: nudge dagLevelDistance by ±20, clamped [20, 200]; commit only on dispatch.
+func _request_shells(delta: float) -> void:
+	if _physics_pending:
+		push_warning("GraphScene: physics change already in flight; ignoring")
+		return
+	var d := clampf(_dag_level_distance + delta, DAG_LEVEL_DISTANCE_MIN, DAG_LEVEL_DISTANCE_MAX)
+	if is_equal_approx(d, _dag_level_distance):
+		return  # already at the clamp rail — no redundant PUT
+	if _put_physics_body({"dagLevelDistance": d}):
+		_physics_staged = {"_dag_level_distance": d}
+
+
+# Planes toggle: PUT planeBiasK (1.0 on / 0.0 off). Same one-in-flight gate and
+# commit-only-on-dispatch discipline as Hierarchy, so a busy/failed PUT never drifts
+# the tracked toggle state away from what the server last received.
+func _request_planes_toggle() -> void:
+	if _physics_pending:
+		push_warning("GraphScene: physics change already in flight; ignoring")
+		return
+	var k: float = PLANE_BIAS_ON_K if is_zero_approx(_plane_bias_k) else 0.0
+	if _put_physics_body({"planeBiasK": k}):
+		_physics_staged = {"_plane_bias_k": k}
+
+
+# Plane Gap ±: nudge planeSpacing by ±20, clamped ≥ 0; commit only on dispatch.
+func _request_plane_gap(delta: float) -> void:
+	if _physics_pending:
+		push_warning("GraphScene: physics change already in flight; ignoring")
+		return
+	var s := maxf(_plane_spacing + delta, PLANE_SPACING_MIN)
+	if is_equal_approx(s, _plane_spacing):
+		return  # already at the clamp rail — no redundant PUT
+	if _put_physics_body({"planeSpacing": s}):
+		_physics_staged = {"_plane_spacing": s}
+
+
+# 3D ↔ Flat: toggle axisCompressionZ between full 3D (1.0) and flat discs (0.3).
+func _request_flat_toggle() -> void:
+	if _physics_pending:
+		push_warning("GraphScene: physics change already in flight; ignoring")
+		return
+	var z: float = Z_COMPRESSION_FLAT if _z_compression >= Z_COMPRESSION_FULL_3D else Z_COMPRESSION_FULL_3D
+	if _put_physics_body({"axisCompressionZ": z}):
+		_physics_staged = {"_z_compression": z}
+
+
+# Layout Mode cycle: step to the next backend LayoutMode and POST it. Uses the same
+# single-in-flight gate + staging discipline as the physics writes — the tracked
+# index flips only on a 2xx ack (see _on_physics_completed), so a busy/failed POST
+# never drifts the HUD label away from what the server last accepted.
+func _request_layout_mode_cycle() -> void:
+	if _physics_pending:
+		push_warning("GraphScene: physics change already in flight; ignoring")
+		return
+	var next_idx := (_layout_mode_idx + 1) % LAYOUT_MODES.size()
+	if _post_layout_mode(LAYOUT_MODES[next_idx]):
+		_physics_staged = {"_layout_mode_idx": next_idx}
+
+
+# POST {base}/api/layout/mode {"mode":<value>,"transitionMs":800}. Returns true only
+# if the request was dispatched (gate held until _on_physics_completed). Same
+# HTTPRequest + auth-header path as the physics PUT/POST helpers.
+func _post_layout_mode(mode: String) -> bool:
+	if _physics_http == null:
+		return false
+	if _physics_pending or not _gate_for_volume(_focused_volume, BackendCaps.LAYOUT_MODE, "layout modes"):
+		return false
+	var url := "%s/api/layout/mode" % _http_base()
+	var headers := _auth_headers(url, "POST")
+	var body := {"mode": mode, "transitionMs": 800}
+	var err := _physics_http.request(url, headers, HTTPClient.METHOD_POST, JSON.stringify(body))
+	if err != OK:
+		push_warning("GraphScene: layout mode POST failed to start (%d)" % err)
+		return false
+	_physics_pending = true
+	return true
+
+
+# ADR-141 Phase 3 — POST {base}/api/layout/radial with a radial-shell body
+# ({"mode":<dagRank|typeTier|ego>, "focusNode":<u32?>, "transitionMs":<u64>}).
+# Same single-in-flight gate, auth-header path, and commit-on-2xx discipline as
+# _post_layout_mode. Returns true only if the request was dispatched.
+func _post_radial(body: Dictionary) -> bool:
+	if _physics_http == null:
+		return false
+	if _physics_pending:
+		push_warning("GraphScene: physics change already in flight; ignoring")
+		return false
+	if not _gate_for_volume(_focused_volume, BackendCaps.RADIAL, "radial shells"):
+		return false
+	var url := "%s/api/layout/radial" % _http_base()
+	var headers := _auth_headers(url, "POST")
+	var err := _physics_http.request(url, headers, HTTPClient.METHOD_POST, JSON.stringify(body))
+	if err != OK:
+		push_warning("GraphScene: radial POST failed to start (%d)" % err)
+		return false
+	_physics_pending = true
+	return true
+
+
+# Unpin every node this session pinned via a drag. No HTTP: each unpin rides the
+# existing outbound graph socket through the Rust client's send_node_unpin, which
+# sends {"type":"nodeUnpin",...} to hand the node back to physics. A drag release
+# is not recorded here: the server unpins on release, so Unpin All only covers
+# explicit pins.
+func _unpin_all() -> void:
+	if _binary_client == null or not _binary_client.has_method("send_node_unpin"):
+		return
+	if not _gate_for_volume(_focused_volume, BackendCaps.PIN, "pins"):
+		_pinned_ids.clear()
+		_refresh_controls_status()
+		return
+	# Send an unpin for every tracked id but do NOT clear the set here: an id is
+	# removed only when its nodeUnpinAck arrives (see _on_graph_text). A
+	# disconnected/dropped send therefore keeps the id, so pressing Unpin All again
+	# retries the still-unacked ones.
+	for id: int in _pinned_ids.keys():
+		_binary_client.send_node_unpin(id)
+
+
+# Spread ±: compute the candidate params, and only COMMIT the tracked values if the
+# PUT actually dispatched — a busy/failed request must not drift repelK/restLength
+# away from what the server last received.
+func _request_spread(repel_mul: float, rest_mul: float) -> void:
+	if _physics_pending:
+		push_warning("GraphScene: physics change already in flight; ignoring")
+		return
+	var rk := clampf(_repel_k * repel_mul, REPEL_K_MIN, REPEL_K_MAX)
+	var rl := clampf(_rest_length * rest_mul, REST_LENGTH_MIN, REST_LENGTH_MAX)
+	# Stage, don't commit: the tracked values flip only on a 2xx ack (see
+	# _on_physics_completed) so a failed PUT can't drift them off the server state.
+	if _put_physics_params(rk, rl):
+		_physics_staged = {"_repel_k": rk, "_rest_length": rl}
+
+
+func _request_physics_reset() -> void:
+	if _physics_pending:
+		push_warning("GraphScene: physics change already in flight; ignoring")
+		return
+	_post_physics_reset()
+
+
+# Fired when any physics request resolves (success, timeout, or failure) — reopens
+# the gate so the next press can dispatch.
+func _on_physics_completed(result: int, response_code: int, _headers: PackedStringArray, _body: PackedByteArray) -> void:
+	_physics_pending = false
+	var ok := result == HTTPRequest.RESULT_SUCCESS and response_code >= 200 and response_code < 300
+	if ok:
+		# Commit the staged values only now that the server has accepted them, so the
+		# tracked state matches the backend exactly.
+		for field: String in _physics_staged:
+			set(field, _physics_staged[field])
+		_last_write_error = ""
+	else:
+		_last_write_error = _describe_write_failure(result, response_code)
+		push_warning("GraphScene: physics request failed (result=%d code=%d) — staged change discarded: %s" % [result, response_code, _last_write_error])
+		if hud != null and hud.has_method("flash_notice"):
+			hud.flash_notice(_last_write_error)
+	# Discard staged on either outcome: on failure the member vars were never
+	# touched, so the HUD stays in sync with the backend (no divergence).
+	_physics_staged = {}
+	_refresh_controls_status()
+
+
+# Authorization headers for a physics write to `url` with `method` (upper-case).
+# Primary: NIP-98 (`Nostr <b64>`) minted per request via the shared NostrAuth —
+# the URL must be the exact request URL incl. query so the server's tag check
+# passes. This is the same signing path hud.gd's decide POST uses. Falls back to
+# the legacy dev bearer (+ X-Nostr-Pubkey, which the server's Bearer path requires)
+# only when no real secret was supplied — the dev flow. In release builds the dev
+# bearer 401s, so a real secret is mandatory there.
+func _auth_headers(url: String, method: String) -> PackedStringArray:
+	var headers := PackedStringArray()
+	if _nostr_auth != null and _nostr_secret_present and _nostr_auth.has_method("nip98_header"):
+		headers.push_back("Authorization: %s" % str(_nostr_auth.nip98_header(url, method)))
+	else:
+		headers.push_back("Authorization: %s" % PHYSICS_BEARER)
+		if _nostr_auth != null and _nostr_auth.has_method("pubkey_hex"):
+			headers.push_back("X-Nostr-Pubkey: %s" % str(_nostr_auth.pubkey_hex()))
+	headers.push_back("Content-Type: application/json")
+	return headers
+
+
+# POST {base}/api/settings/physics/reset-layout. Returns true if the request was
+# dispatched (gate then held until _on_physics_completed).
+func _post_physics_reset() -> bool:
+	if _physics_http == null or not _gate_for_volume(_focused_volume, BackendCaps.PHYSICS_WRITE, "layout reset"):
+		return false
+	var url := "%s/api/settings/physics/reset-layout" % _http_base()
+	var headers := _auth_headers(url, "POST")
+	var err := _physics_http.request(url, headers, HTTPClient.METHOD_POST, "{}")
+	if err != OK:
+		push_warning("GraphScene: reset-layout POST failed to start (%d)" % err)
+		return false
+	_physics_pending = true
+	return true
+
+
+# PUT {base}/api/settings/physics?graph=knowledge with the given params. Returns true
+# only if the request was dispatched. Thin wrapper over _put_physics_body.
+func _put_physics_params(repel_k: float, rest_length: float) -> bool:
+	return _put_physics_body({"repelK": repel_k, "restLength": rest_length})
+
+
+# Operator-readable reason (with the remedy) for a failed server write. 401/403
+# means the credential did not carry: the headset is not a loopback peer, so the
+# dev bearer is always refused. A NIP-98 identity (XR_NOSTR_SECRET) whose key holds
+# the Owner or Admin role unlocks the server-routed HUD buttons (View 3D/Flat,
+# Hierarchy, Shells, Spread, Planes, Radial, Layout Mode, Reset) on every profile;
+# physics writes need WriteSettings, which an editor lacks. VISIONCLAW_DEV_MODE=1
+# (ADR-2039 / ADR-2108) exists on a dev-build backend only: the prod profile that
+# client hardware runs refuses it (owner decision 2026-10-02, Q1 and Q3).
+func _describe_write_failure(result: int, response_code: int) -> String:
+	if result != HTTPRequest.RESULT_SUCCESS:
+		return "Backend unreachable (result %d) — layout write dropped" % result
+	match response_code:
+		401, 403:
+			var cred: String = "NIP-98 identity" if _nostr_secret_present else "dev bearer"
+			return "Layout write denied (HTTP %d via %s): set XR_NOSTR_SECRET to an Owner/Admin key, or VISIONCLAW_DEV_MODE=1 on a dev backend only" % [response_code, cred]
+		_:
+			return "Layout write failed (HTTP %d) — change discarded" % response_code
+
+
+# PUT {base}/api/settings/physics?graph=knowledge with an arbitrary physics body.
+# Returns true only if the request was dispatched (gate then held until
+# _on_physics_completed). Shared by Spread and the Hierarchy/View controls so they
+# all honour the single-in-flight gate identically.
+func _put_physics_body(body: Dictionary) -> bool:
+	if _physics_http == null:
+		return false
+	if _physics_pending or not _gate_for_volume(_focused_volume, BackendCaps.PHYSICS_WRITE, "physics settings"):
+		return false
+	var url := "%s/api/settings/physics?graph=knowledge" % _http_base()
+	var headers := _auth_headers(url, "PUT")
+	var err := _physics_http.request(url, headers, HTTPClient.METHOD_PUT, JSON.stringify(body))
+	if err != OK:
+		push_warning("GraphScene: physics PUT failed to start (%d)" % err)
+		return false
+	_physics_pending = true
+	return true
+
+
+func _on_hud_join_requested(room_urn: String) -> void:
+	_room_urn = room_urn
+	_reset_reconnect_state()
+	_attempt_connect()
+
+
+# Resolve graph/presence endpoints and credentials from the environment and open
+# both sockets. `XR_BACKEND_WS` is the base (scheme+host+port); the two well-known
+# paths are appended. Empty secret => anonymous graph stream / ephemeral Nostr
+# identity.
+func _connect_from_env() -> void:
+	var base: String = _vc_base()
+	connect_to_server(
+		base + GRAPH_STREAM_PATH,
+		base + PRESENCE_PATH,
+		_env_or("XR_ROOM_URN", DEFAULT_ROOM_URN),
+		_env_or("XR_DISPLAY_NAME", DEFAULT_DISPLAY_NAME),
+		OS.get_environment("XR_NOSTR_SECRET")
+	)
+
+
+func _env_or(name: String, fallback: String) -> String:
+	var value: String = OS.get_environment(name)
+	return value if value != "" else fallback
+
+
+# VisionClaw ws base: XR_BACKEND_WS (scheme+host+port).
+func _vc_base() -> String:
+	return BackendConnection.with_backend_prefix(_env_or("XR_BACKEND_WS", DEFAULT_BACKEND_WS), "visionclaw")
+
+
+# Codescape ws base: XR_CODESCAPE_WS, else XR_BACKEND_WS + CODESCAPE_PATH (once).
+func _cs_base() -> String:
+	var explicit: String = OS.get_environment("XR_CODESCAPE_WS")
+	if explicit != "":
+		return BackendConnection.with_backend_prefix(explicit, "codescape")
+	return BackendConnection.with_backend_prefix(_env_or("XR_BACKEND_WS", DEFAULT_BACKEND_WS), "codescape")
+
+
+# HTTP origin for every VisionClaw request (intervention, memory, physics, fold,
+# query, …): the VisionClaw connection's base. Codescape serves none of them.
+func _http_base() -> String:
+	if _vc_conn != null:
+		return _vc_conn.http_base()
+	return BackendConnection.ws_to_http(_vc_base())
+
+
+func connect_to_server(
+	graph_ws_url: String,
+	presence_ws_url: String,
+	room_urn: String,
+	display_name: String,
+	nostr_secret_hex: String = ""
+) -> void:
+	# The graph URLs belong to the connections (BackendConnection.graph_ws_url);
+	# `graph_ws_url` is kept in the signature for callers and logged once.
+	print("GraphScene: graph %s, codescape %s" % [graph_ws_url, _cs_conn.graph_ws_url() if _cs_conn != null else "-"])
+	_presence_ws_url = presence_ws_url
+	_room_urn = room_urn
+	_display_name = display_name
+	_nostr_secret_hex = nostr_secret_hex
+	_reset_reconnect_state()
+	_attempt_connect()
+
+
+func _reset_reconnect_state() -> void:
+	_presence_reconnect_attempts = 0
+	_presence_reconnect_timer = -1.0
+
+
+func _attempt_connect() -> void:
+	# Initial connect (and full re-join): bring up both sockets. Reconnects are
+	# per-socket via _connect_graph / _connect_presence so one socket's backoff
+	# never disturbs the other.
+	_connect_graph()
+	_connect_presence()
+
+
+func _connect_graph() -> void:
+	# (Re)open both graph connections. Each tears down its own prior socket and
+	# owns its own backoff from here on (BackendConnection).
+	_clear_graph_mirror()
+	for conn: Node in _conns.values():
+		conn.open()
+
+
+# Drop the scene's VisionClaw graph mirror (centrality, drawn ids, edge ranking,
+# selection) so a reconnect never mixes stale ids with a fresh snapshot.
+func _clear_graph_mirror() -> void:
+	# A reconnect may land on a restarted server with a different id space:
+	# stale positions/topology would mix with the fresh snapshot as orphan
+	# gems and phantom edges, so drop all graph state before re-dialling. The
+	# Rust store is cleared inside connect_to_url (below); clear the GDScript
+	# mirror + selection here.
+	_node_centrality.clear()
+	_centrality_max = 0.0001
+	_selection_dirty = true
+	_edge_pairs = PackedInt32Array()
+	_edge_pairs_ranked = PackedInt32Array()
+	_edge_pairs_full = PackedInt32Array()
+	_edge_weights_full = PackedFloat32Array()
+	_edge_rerank_done = false
+	_topo_ids = {}
+	_edge_show_count = 0
+	# Back to "draw everything up to the ceiling" until the next topology sets the
+	# real budgets.
+	_node_budget = NODE_SAFETY_CEILING
+	_edge_budget = EDGE_SAFETY_CEILING
+	# Graph-state clear: drop any two-hand manual latch so the fresh snapshot is
+	# re-fitted from scratch rather than inheriting a stale manual transform.
+	_manual_transform = false
+	_two_hand_active = false
+	_manip_session_base_scale = -1.0
+
+
+func _connect_presence() -> void:
+	if _presence_client == null:
+		return
+	if _presence_client.has_method("close"):
+		_presence_client.close()
+	if _presence_client.has_method("join"):
+		_presence_client.join(_presence_ws_url, _room_urn, _display_name, _nostr_secret_hex)
+
+
+func _physics_process(delta: float) -> void:
+	# Keep the "drawn of known" readout honest as the position stream grows.
+	var known_now: int = _known_nodes()
+	if known_now != _last_known_nodes:
+		_last_known_nodes = known_now
+		_refresh_controls_status()
+	# Drain network inboxes on the scene-tree thread; both clients emit their
+	# signals from inside poll().
+	for conn: Node in _conns.values():
+		conn.poll(delta)
+	if _presence_client != null and _presence_client.has_method("poll"):
+		_presence_client.poll()
+	_update_lod()
+	_update_locomotion(delta)
+	_update_hud_grab()
+	# A one-hand grip on a box frame moves it, on a corner handle resizes it;
+	# before the two-hand gesture (which it blocks) and before the volumes tick.
+	_update_box_grip(delta)
+	_arbitrate_pointers()
+	_update_hud_pointer()
+	_update_radial_menu()
+	_update_query_count(delta)
+	_update_teleport(delta)
+	# Two-hand pinch moves/turns/scales the volume arrangement; it runs before the
+	# volumes tick so GraphRoot follows the overlay volume in the same frame.
+	_update_two_hand_manip(delta)
+	# Bring-to-front eases (feature 5) land before the volumes tick.
+	if _arrangement != null:
+		_arrangement.tick(delta)
+		_tick_portals(delta)
+	# Rust owns the hunt now: one call eases all render positions toward their
+	# targets and pins the grabbed node to the wand — replaces the old GDScript
+	# per-node lerp over a 13k Dictionary.
+	if _binary_client != null and _binary_client.has_method("hunt_grabs"):
+		var hunt_ids := PackedInt32Array()
+		var hunt_pos := PackedVector3Array()
+		for hand: int in 2:
+			if _grab_id[hand] != -1:
+				hunt_ids.append(_grab_id[hand])
+				hunt_pos.append(_grab_target[hand])
+		_binary_client.hunt_grabs(chase_ease(delta), hunt_ids, hunt_pos)
+	elif _binary_client != null and _binary_client.has_method("hunt"):
+		# An older gdext without hunt_grabs echoes the first held node only.
+		var first: int = 0 if _grab_id[0] != -1 else 1
+		_binary_client.hunt(chase_ease(delta), _grab_id[first], _grab_target[first])
+	if _cs_conn != null and _cs_conn.client != null and _cs_conn.client.has_method("hunt"):
+		_cs_conn.client.hunt(chase_ease(delta), -1, Vector3.ZERO)
+	# Each visible volume refits from its source's full extent (E7); this
+	# replaces the old whole-graph fit. GraphRoot then follows the overlay volume.
+	_tick_volumes(delta)
+	# Both packs run every frame: the Rust pack plans (render_store_pack.rs) cost
+	# ~1 ms for 13k nodes + 20k edges together, so the old 45 Hz alternation (from
+	# when GDScript looped over the instances) is gone — it also left edge ends a
+	# frame behind their nodes. The far ribbon tier refreshes half per frame.
+	_pack_volumes()
+	_tick_frame_budget(delta)
+	_log_volumes(delta)
+	# Work beams (ADR-140, Pillar 2 / P3) refresh every frame: the buffer is a short
+	# walk of the agent registry (tens of instances), not the node/edge domain, so
+	# the flowing stream stays crisp at 90 Hz.
+	# Embodiment poses (and their beam anchors) are settled BEFORE the beam
+	# buffer is built, so a beam always starts at the body the user sees.
+	_update_agents(delta)
+	_update_beam_multimesh()
+	# Trigger picks across every box (features 1-3) claim the hand before the
+	# Rust node drag looks at it.
+	_update_volume_trigger()
+	_update_interaction()
+	if _hl_count > 0:
+		_update_highlight_marks()
+	_update_selection(delta)
+	_update_voice_listener()
+	_tick_reconnect(delta)
+	if _shim != null:
+		_shim.tick(delta)
+	_tick_links(delta)
+	# Proximity labels refresh at ~4 Hz (not per frame) — the query + text/fade
+	# assignment is the only work and it reuses the pool, so zero per-frame cost.
+	_label_accum += delta
+	if _label_accum >= LABEL_UPDATE_SEC:
+		_label_accum -= LABEL_UPDATE_SEC
+		_update_proximity_labels()
+		_reconcile_embodiment()
+		_update_swarm_roster()
+
+
+# Trackpad/stick locomotion: slide the XR rig through the graph. Either wand's
+# primary axis drives movement in the camera's horizontal facing plane (push
+# up = move the way you look, sideways = strafe). Vertical fly is on the same
+# stick's push when the trigger is not held, kept simple and comfortable.
+func _update_locomotion(delta: float) -> void:
+	var origin: XROrigin3D = get_node_or_null("XROrigin3D")
+	var camera: XRCamera3D = _find_xr_camera()
+	if origin == null or camera == null:
+		return
+	var move := Vector2.ZERO
+	for controller: XRController3D in [left_controller, right_controller]:
+		if controller == null or not controller.get_is_active():
+			continue
+		var v: Vector2 = controller.get_vector2("primary")
+		if v.length() > move.length():
+			move = v
+	if move.length() < LOCOMOTION_DEADZONE:
+		return
+	var fwd: Vector3 = -camera.global_transform.basis.z
+	fwd.y = 0.0
+	fwd = fwd.normalized()
+	var right: Vector3 = camera.global_transform.basis.x
+	right.y = 0.0
+	right = right.normalized()
+	var step: Vector3 = (fwd * move.y + right * move.x) * LOCOMOTION_SPEED * delta
+	origin.global_position += step
+
+
+# Move the HUD out of the camera (gaze-locked) and anchor it in the play space
+# as a world-fixed, wand-movable panel.
+func _reparent_hud_to_world() -> void:
+	if hud == null:
+		return
+	var origin: XROrigin3D = get_node_or_null("XROrigin3D")
+	if origin == null:
+		return
+	var old_parent: Node = hud.get_parent()
+	if old_parent != null and old_parent != origin:
+		old_parent.remove_child(hud)
+		origin.add_child(hud)
+	# Default: behind and to the right of the viewer (the old front-left placement
+	# rotated 180 deg about the origin's vertical axis), yawed so the panel still
+	# faces the play-space centre. Turn round to use it; the wand can relocate it.
+	hud.transform = Transform3D(Basis(Vector3.UP, deg_to_rad(205.0)), Vector3(0.6, 1.0, 0.9))
+	hud.visible = true
+
+
+# Grab the HUD with a wand: hold the grip button while the wand is near the panel
+# to pick it up; it then rides the controller until grip releases.
+func _update_hud_grab() -> void:
+	if hud == null:
+		return
+	if _hud_grab_controller != null:
+		var grip_now: float = _hud_grab_controller.get_float("grip")
+		if grip_now < 0.5:
+			_hud_grab_controller = null
+		else:
+			hud.global_transform = _hud_grab_controller.global_transform * _hud_grab_offset
+		return
+	# While a two-hand graph gesture owns both grips, don't let a hand that drifts
+	# near the panel start a HUD grab (which would abort the gesture next frame).
+	if _two_hand_active:
+		return
+	# Measure to the VISIBLE panel, not the HUD root: HudPanel sits ~0.7 m out on
+	# the root's local -Z, so a wand touching the panel is well beyond 0.4 m from
+	# the root origin (grip-move was dead). Fall back to the root if the panel is
+	# missing.
+	var panel := hud.get_node_or_null("HudPanel") as Node3D
+	var panel_pos: Vector3 = panel.global_position if panel != null else hud.global_position
+	for controller: XRController3D in [left_controller, right_controller]:
+		if controller == null or not controller.get_is_active():
+			continue
+		if controller.get_float("grip") < 0.7:
+			continue
+		if controller.global_position.distance_to(panel_pos) < 0.4:
+			_hud_grab_controller = controller
+			_hud_grab_offset = controller.global_transform.affine_inverse() * hud.global_transform
+			_pulse(controller, 0.4, 0.05)
+			break
+
+
+# Wand-ray → HUD SubViewport input forwarding. The HUD is a SubViewport rendered
+# onto a quad (HudPanel), so Godot's GUI (Buttons/LineEdit) never sees VR input by
+# itself. Each frame we intersect the active controller's aim ray with the panel
+# quad, convert the hit to viewport pixels, and push a mouse-motion event; the
+# trigger is edge-detected into a single left click. This is THE activation path
+# for every HUD button — Approve/Deny and the new control grid alike.
+func _update_hud_pointer() -> void:
+	# Cleared each frame; set below only if a ray is actually on the panel, so
+	# _update_interaction sees a fresh answer every frame.
+	_hud_pointer_controller = null
+	if hud == null:
+		return
+	var vp := hud.get_node_or_null("HudViewport") as SubViewport
+	var panel := hud.get_node_or_null("HudPanel") as Node3D
+	if vp == null or panel == null:
+		return
+	# While the panel is being physically grabbed (grip), don't also drive the
+	# cursor — moving it would spray clicks. Release any held click FIRST (at the
+	# last valid spot) so the SubViewport button doesn't latch pressed.
+	if _hud_grab_controller != null:
+		if _hud_trigger_was_down:
+			_push_hud_mouse(vp, _hud_last_px, false)
+			_hud_trigger_was_down = false
+		return
+	# Prefer the right controller; fall back to the left. First one whose ray hits
+	# the panel wins. Skip the hand that is mid node-drag — its trigger is held for
+	# the drag, so crossing the panel must not fire button clicks.
+	var hit_uv := Vector2(-1.0, -1.0)
+	var hit_ctrl: XRController3D = null
+	for controller: XRController3D in [right_controller, left_controller]:
+		if controller == null or not controller.get_is_active():
+			continue
+		if _grab_id[_hand_of(controller)] != -1:
+			continue
+		# Arbitration: this controller's ray is nearer the radial menu — it owns the
+		# radial, so the HUD yields it this frame.
+		if controller == _radial_owner:
+			continue
+		var uv := _ray_hit_hud_uv(controller, panel)
+		if uv.x >= 0.0:
+			hit_uv = uv
+			hit_ctrl = controller
+			break
+	if hit_ctrl == null:
+		# Ray left the panel: release a held click at the last valid position so a
+		# button can't latch pressed.
+		if _hud_trigger_was_down:
+			_push_hud_mouse(vp, _hud_last_px, false)
+			_hud_trigger_was_down = false
+		return
+	# Ray is on the panel: claim this controller so node-grab engagement skips it.
+	_hud_pointer_controller = hit_ctrl
+	var px := Vector2(hit_uv.x * float(vp.size.x), hit_uv.y * float(vp.size.y))
+	_hud_last_px = px
+	var motion := InputEventMouseMotion.new()
+	motion.position = px
+	motion.global_position = px
+	vp.push_input(motion)
+	var down: bool = _controller_trigger(hit_ctrl) > 0.6
+	if down and not _hud_trigger_was_down:
+		_push_hud_mouse(vp, px, true)
+	elif not down and _hud_trigger_was_down:
+		_push_hud_mouse(vp, px, false)
+		_pulse(hit_ctrl, 0.3, 0.03)
+	_hud_trigger_was_down = down
+
+
+func _push_hud_mouse(vp: SubViewport, px: Vector2, pressed: bool) -> void:
+	var click := InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_LEFT
+	click.pressed = pressed
+	click.position = px
+	click.global_position = px
+	vp.push_input(click)
+
+
+# Intersect a controller aim ray with the HUD quad; returns viewport UV (0..1,
+# y-down) or (-1,-1) on a miss. Works in the panel's local space so the maths is
+# independent of where the movable HUD currently sits.
+func _ray_hit_hud_uv(controller: XRController3D, panel: Node3D) -> Vector2:
+	var to_local: Transform3D = panel.global_transform.affine_inverse()
+	var o: Vector3 = to_local * controller.global_position
+	var d: Vector3 = (to_local.basis * (-controller.global_transform.basis.z)).normalized()
+	# QuadMesh lies in the panel's local XY plane (z = 0), facing +Z.
+	if absf(d.z) < 0.00001:
+		return Vector2(-1.0, -1.0)
+	var t: float = -o.z / d.z
+	if t < 0.0:
+		return Vector2(-1.0, -1.0)
+	var hit: Vector3 = o + d * t
+	var half_w: float = HUD_QUAD_W * 0.5
+	var half_h: float = HUD_QUAD_H * 0.5
+	if absf(hit.x) > half_w or absf(hit.y) > half_h:
+		return Vector2(-1.0, -1.0)
+	# Reach is a WORLD distance: the local param t scales with HUD scale, so compare
+	# the world-space hit distance from the wand instead (scale-invariant reach).
+	var hit_world: Vector3 = panel.global_transform * hit
+	if controller.global_position.distance_to(hit_world) > RAY_LENGTH:
+		return Vector2(-1.0, -1.0)
+	# Local +x → right (u 0→1); local +y is up, viewport v is down → invert.
+	var u: float = (hit.x + half_w) / HUD_QUAD_W
+	var v: float = 1.0 - (hit.y + half_h) / HUD_QUAD_H
+	return Vector2(u, v)
+
+
+func _update_lod() -> void:
+	# should_recompute() ticks a frame counter, so it must be called EXACTLY once
+	# per frame. Cache the decision here for _update_agents to reuse — a second
+	# call would double-tick and desynchronise both LOD passes.
+	_lod_recompute = false
+	if _lod_policy == null or not _lod_policy.has_method("should_recompute"):
+		return
+	if not _lod_policy.should_recompute():
+		return
+	_lod_recompute = true
+	var camera: XRCamera3D = _find_xr_camera()
+	if camera == null:
+		return
+	var cam_pos: Vector3 = camera.global_position
+	for avatar_id: String in _avatars:
+		var av: Node3D = _avatars[avatar_id]
+		var dist: float = cam_pos.distance_to(av.global_position)
+		var level: int = _lod_policy.classify_distance(dist)
+		if av.has_method("set_lod_level"):
+			av.set_lod_level(level)
+
+
+# World metres per graph unit in GraphRoot (the overlay volume's Content scale);
+# label reach, beam radius and query planes compensate for it.
+var _graph_scale: float = 1.0
+
+
+# Linear-interpolated percentile (q in [0,1]) of an unsorted float array. Used to
+# derive robust AABB bounds for the fit so a single outlier node can't drive the
+# whole-graph rescale. Copies before sorting so caller data is untouched.
+func _percentile(values: PackedFloat32Array, q: float) -> float:
+	var n: int = values.size()
+	if n == 0:
+		return 0.0
+	if n == 1:
+		return values[0]
+	var sorted: PackedFloat32Array = values.duplicate()
+	sorted.sort()
+	var rank: float = clampf(q, 0.0, 1.0) * float(n - 1)
+	var lo: int = int(floor(rank))
+	var hi: int = int(ceil(rank))
+	if lo == hi:
+		return sorted[lo]
+	var frac: float = rank - float(lo)
+	return lerpf(sorted[lo], sorted[hi], frac)
+
+
+# --- Two-hand pinch: whole-graph scale / rotate / move -----------------------
+# Ported conceptually from Graph2VR's SphereInteraction.cs. When BOTH grips are
+# held — and neither hand is grabbing a node (_grab_id) nor the HUD panel
+# (_hud_grab_controller) — the graph locks into a manipulation session. At
+# gesture start we capture: the left→right controller vector, the hand midpoint,
+# graph_root's current world transform, and a world-space pivot at the render
+# AABB centre (server-space centre mapped through graph_root.global_transform).
+# Each frame the graph is:
+#   • scaled by (current inter-hand distance / initial), clamped to a sane band;
+#   • rotated by the full-3D shortest-arc rotation between the initial and
+#     current inter-hand vectors;
+#   • translated by the hand-midpoint delta,
+# all composed about the fixed world pivot onto the captured start transform:
+#   world = T(midDelta) · T(pivot) · R · S · T(-pivot) · startXform
+# The first engage latches `_manual_transform`, permanently disabling the
+# adaptive auto-fit easing until a new topology / graph-state clear re-enables
+# it. Accumulated rotation past ~90° re-baselines the reference frame — the same
+# drift guard Graph2VR applies — so quaternion error can't build up over a long
+# twist. Single-grip behaviour (HUD grab) is untouched: this only engages when
+# BOTH grips are past the engage threshold and no HUD/node grab is active.
+const GRIP_MANIP_ENGAGE: float = 0.7
+const GRIP_MANIP_RELEASE: float = 0.5
+const MANIP_DRIFT_RESET_RAD: float = 1.5707963   # ~90°
+# ABSOLUTE scale band, measured against the SESSION baseline (the auto-fit scale
+# captured the moment the manual latch first engages, held until the latch
+# clears). Clamping the absolute scale — not a per-gesture factor — stops
+# repeated 0.1× gestures from compounding the graph toward zero while auto-fit is
+# off, which would leave it unreachable with no way to grow it back.
+const MANIP_ABS_SCALE_MIN: float = 0.05          # ×session (fitted) baseline
+const MANIP_ABS_SCALE_MAX: float = 50.0          # ×session (fitted) baseline
+const MANIP_MIN_SPAN: float = 0.02               # hands too coincident → no axis
+
+var _two_hand_active: bool = false
+# Permanent authority latch: while true the adaptive fit is disabled and the
+# graph transform is whatever the last manual gesture left it at.
+var _manual_transform: bool = false
+# Reference frame captured at gesture start (re-baselined on drift reset).
+var _manip_start_xform: Transform3D = Transform3D.IDENTITY
+var _manip_pivot_world: Vector3 = Vector3.ZERO
+var _manip_init_vec: Vector3 = Vector3.ZERO
+var _manip_init_dist: float = 1.0
+var _manip_init_mid: Vector3 = Vector3.ZERO
+# graph_root's uniform scale at the moment the latch FIRST engaged (i.e. the
+# auto-fit scale). Persists across every gesture in the session until the latch
+# clears (new topology / graph-state clear); the absolute scale clamp is measured
+# against this so gestures can't ratchet the graph past the reachable band.
+# -1 => not yet captured this session.
+var _manip_session_base_scale: float = -1.0
+
+
+## The two-hand gesture may run only with both wands tracking and no node,
+## HUD or box grab holding a hand.
+static func two_hand_eligible(left_active: bool, right_active: bool, grabbed_id: int, hud_grab: bool, box_grab: bool) -> bool:
+	return left_active and right_active and grabbed_id == -1 and not hud_grab and not box_grab
+
+
+func _update_two_hand_manip(_delta: float) -> void:
+	var lc := left_controller
+	var rc := right_controller
+	# Eligible only when both wands are tracking and no competing grab owns a hand.
+	# A node grab uses the trigger and the HUD grab uses a single grip; either one
+	# taking a hand blocks the two-hand gesture (and vice versa).
+	var eligible: bool = lc != null and rc != null and two_hand_eligible(
+		lc.get_is_active(), rc.get_is_active(), _any_grab_id(),
+		_hud_grab_controller != null, _box_grab_ctrl != null)
+	if _two_hand_active:
+		# End when either grip relaxes below the release threshold, a wand drops
+		# out, or a grab claims a hand. Hysteresis: release < engage so a grip held
+		# near the threshold can't flicker the session on and off.
+		if not eligible \
+				or lc.get_float("grip") < GRIP_MANIP_RELEASE \
+				or rc.get_float("grip") < GRIP_MANIP_RELEASE:
+			_two_hand_active = false
+			return
+		_apply_two_hand_manip()
+		return
+	if not eligible:
+		return
+	if lc.get_float("grip") < GRIP_MANIP_ENGAGE or rc.get_float("grip") < GRIP_MANIP_ENGAGE:
+		return
+	_begin_two_hand_manip()
+
+
+# Lock the reference frame for a new manipulation session and take fit authority.
+func _begin_two_hand_manip() -> void:
+	if _arrangement == null:
+		return
+	var lp: Vector3 = left_controller.global_position
+	var rp: Vector3 = right_controller.global_position
+	var vec: Vector3 = rp - lp
+	if vec.length() < MANIP_MIN_SPAN:
+		return  # hands coincident: no stable axis yet, wait a frame to engage
+	var start_xform: Transform3D = _arrangement.global_transform
+	# Pivot = render AABB centre in server space → world through the live graph
+	# transform. -1 includes every node (nothing is grabbed during a manip).
+	var pivot: Vector3 = _manip_aabb_centre_world(start_xform)
+	_manip_start_xform = start_xform
+	_manip_pivot_world = pivot
+	_manip_init_vec = vec
+	_manip_init_dist = vec.length()
+	_manip_init_mid = (lp + rp) * 0.5
+	# Capture the session baseline ONCE, on the transition into the latched state —
+	# this is the auto-fit scale. Subsequent gestures within the same session reuse
+	# it, so the absolute clamp band is fixed relative to the fitted size and can't
+	# drift with gesture count.
+	if not _manual_transform or _manip_session_base_scale <= 0.0:
+		_manip_session_base_scale = _uniform_scale(start_xform)
+	_two_hand_active = true
+	_manual_transform = true  # permanently disable auto-fit until new topology
+	_pulse(left_controller, 0.4, 0.05)
+	_pulse(right_controller, 0.4, 0.05)
+
+
+# Recompute + apply the graph transform for the current controller poses.
+func _apply_two_hand_manip() -> void:
+	if _arrangement == null:
+		return
+	var lp: Vector3 = left_controller.global_position
+	var rp: Vector3 = right_controller.global_position
+	var vec: Vector3 = rp - lp
+	var dist: float = vec.length()
+	if dist < MANIP_MIN_SPAN or _manip_init_dist < 0.001:
+		return
+	# Scale: change in inter-hand distance, then clamp the ABSOLUTE resulting scale
+	# to [MIN,MAX] × the SESSION baseline (not a per-gesture factor). start_scale
+	# folds in any prior drift-reset bake; the resulting absolute scale is
+	# start_scale × scale_factor, which we clamp and back-convert to a factor.
+	var start_scale: float = _uniform_scale(_manip_start_xform)
+	var scale_factor: float = dist / _manip_init_dist
+	if start_scale > 0.0001 and _manip_session_base_scale > 0.0:
+		var abs_target: float = start_scale * scale_factor
+		var abs_lo: float = MANIP_ABS_SCALE_MIN * _manip_session_base_scale
+		var abs_hi: float = MANIP_ABS_SCALE_MAX * _manip_session_base_scale
+		abs_target = clampf(abs_target, abs_lo, abs_hi)
+		scale_factor = abs_target / start_scale
+	# Full-3D shortest-arc rotation between the initial and current hand vectors.
+	var rot: Quaternion = Quaternion(_manip_init_vec.normalized(), vec.normalized())
+	# Translation from the hand-midpoint delta.
+	var mid: Vector3 = (lp + rp) * 0.5
+	var translate: Vector3 = mid - _manip_init_mid
+	# Compose about the world pivot: T(translate) · T(p) · R · S · T(-p) · start.
+	var p: Vector3 = _manip_pivot_world
+	var rs: Basis = Basis(rot) * Basis.IDENTITY.scaled(
+		Vector3(scale_factor, scale_factor, scale_factor))
+	var anchored := Transform3D(rs, p - rs * p)                 # T(p)·R·S·T(-p)
+	var manip := Transform3D(Basis.IDENTITY, translate) * anchored
+	# Apply THIS frame's full delta first (no dropped frame). The gesture moves,
+	# turns and scales the whole volume arrangement (ADR-2158); each volume's
+	# own fit and the node size compensation follow from its world transform.
+	_arrangement.global_transform = manip * _manip_start_xform
+	# Drift guard: once the accumulated twist passes ~90°, re-baseline from the
+	# JUST-APPLIED transform (not the previous frame's) so no delta is lost — the
+	# graph doesn't pop. init_vec := current vector, so next frame's rotation
+	# starts from identity again. Graph2VR resets its frame the same way.
+	if rot.get_angle() > MANIP_DRIFT_RESET_RAD:
+		_manip_start_xform = _arrangement.global_transform
+		_manip_init_vec = vec
+		_manip_init_dist = dist
+		_manip_init_mid = mid
+		_manip_pivot_world = _manip_aabb_centre_world(_arrangement.global_transform)
+
+
+# Centre of the volume arrangement's boxes mapped to world through `xform`
+# (arrangement_aabb is in the arrangement's own unscaled frame).
+func _manip_aabb_centre_world(xform: Transform3D) -> Vector3:
+	if _arrangement != null and _arrangement.has_method("arrangement_aabb"):
+		var box: AABB = _arrangement.arrangement_aabb()
+		if box.has_volume():
+			var unscaled := Transform3D(xform.basis.orthonormalized(), xform.origin)
+			return unscaled * box.get_center()
+	return xform.origin
+
+
+# Uniform scale magnitude of a transform's basis. The graph is only ever scaled
+# uniformly, so the x-axis length is representative (get_scale is always +ve).
+func _uniform_scale(xform: Transform3D) -> float:
+	return xform.basis.get_scale().x
+
+
+# Client-side optimistic position hunting: the server streams authoritative
+# positions as targets; each frame the rendered position eases toward its target
+# so motion stays smooth between (and independent of) update ticks — the same
+# pattern the desktop client uses. The grabbed node is exempt (it tracks the
+# hand locally and the server echoes it back).
+# Chase time constant in milliseconds: a node covers 63% of the way to its server target in this
+# long, at any frame rate (lower = faster). 120 is the measured knee for the ~16 Hz per-node update
+# rate of the acknowledged stream: it halves frame-to-frame jerk against 60 ms for ~0.26 units of
+# lag on a ~1,400-unit graph; beyond ~160 the gain is small and the graph feels sluggish. Identical to the desktop client's default
+# `tweening.responseMs`; a cross-client test pins the two values together. This replaced a fixed
+# 6% per frame, which was ~180 ms at 90 FPS but ~360 ms at 45 FPS, and slower than it looked.
+const CHASE_MS: float = 120.0
+
+
+## The per-frame ease for `delta` seconds: 1 - exp(-dt / tau).
+static func chase_ease(delta: float) -> float:
+	return 1.0 - exp(-(delta * 1000.0) / CHASE_MS)
+
+
+# FrameBudget pass (frame_budget_pass.gd) from what was actually drawn this frame:
+# instance counts per layer, the hull mesh, the memory layer's demand, and the
+# renderer's frame total for everything outside the budgeted layers.
+func _tick_frame_budget(delta: float) -> void:
+	if _binary_client == null:
+		return
+	var sum := {"gems": 0, "faded": 0, "halos": 0, "impostors": 0, "cylinders": 0, "ribbons": 0}
+	var role_key := {"nodes": "gems", "faded": "faded", "halos": "halos", "impostors": "impostors", "edges": "cylinders", "ribbons": "ribbons"}
+	var calls: int = 0
+	var volumes := {}
+	for vid: StringName in _sources:
+		var src = _sources[vid]
+		for role: String in role_key:
+			var c: int = int(src.counts.get(role, 0))
+			sum[role_key[role]] += c
+			if c > 0:
+				calls += 1
+		var v: Node3D = _volumes.get(vid, null)
+		# The volume's own frame (and handle markers) are draw calls outside the
+		# node and edge instances; the extras' tier 2 ribbons reuse that call.
+		if v != null and v.has_method("overhead_draw_calls"):
+			calls += int(v.overhead_draw_calls())
+		volumes[vid] = src.demand() if v != null and v.visible_state else {"nodes": 0, "edges": 0}
+	var layers := sum.duplicate()
+	layers["hulls"] = _parity.hull_count if _parity != null else 0
+	layers["hull_tris"] = _parity.hull_triangles if _parity != null else 0
+	if agent_multi != null and agent_multi.multimesh != null and agent_multi.visible and agent_multi.multimesh.instance_count > 0:
+		calls += 1
+	# §7.7: the link layer's call is charged here; its triangles are inside the
+	# renderer's measured total, which the pass charges as outside-layer triangles.
+	if _link_layer != null:
+		calls += int(_link_layer.draw_calls())
+	if int(layers["hulls"]) > 0:
+		calls += 1
+	layers["draw_calls"] = calls
+	var measured: int = int(RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_PRIMITIVES_IN_FRAME))
+	var bursts_on: bool = _beat != null and bool(_beat.get("bursts_enabled"))
+	if _budget.tick(delta, _binary_client, layers, _memory_cloud, measured, bursts_on, volumes) and _parity != null:
+		_parity.max_hulls = int(_budget.caps["max_hulls"])
+
+
+# Work-beam MultiMesh (ADR-140, Pillar 2 / P3): Rust packs one cylinder per active
+# agent→target-node link (16 floats/instance, status code in INSTANCE_CUSTOM.a);
+# GDScript does a single buffer assignment. Beam count = live working/blocked agents
+# (tens, not thousands), so this runs every frame — the flowing stream stays crisp
+# and the build is a short walk of the agent registry, not the node domain.
+func _update_beam_multimesh() -> void:
+	if agent_multi == null or agent_multi.multimesh == null or _binary_client == null:
+		return
+	if not _binary_client.has_method("build_beam_buffer"):
+		return
+	# Beam cylinder mesh radius is 0.02; fold the GraphRoot fit-scale in so the beam
+	# keeps a constant world thickness as the graph is scaled by the two-hand gesture.
+	var br: float = EDGE_WORLD_RADIUS / (BEAM_MESH_RADIUS * _graph_scale)
+	var buf: PackedFloat32Array = _binary_client.build_beam_buffer(br)
+	var mm: MultiMesh = agent_multi.multimesh
+	var count: int = buf.size() / 16
+	if mm.instance_count != count:
+		mm.instance_count = count
+	if count > 0:
+		mm.buffer = buf
+
+
+# Feed controller rays into the Rust interaction policy and drive the
+# server-authoritative drag protocol. Idle cost is two trigger reads; the
+# candidate arrays are only consulted while a trigger is live or a grab is
+# in flight.
+func _update_interaction() -> void:
+	_ensure_controller_rays()
+	if _interaction == null or _binary_client == null:
+		return
+
+	# A two-hand graph gesture owns both hands: don't let a same-frame grip+trigger
+	# combination start a node grab underneath it. (An already-in-flight grab
+	# blocks the gesture from engaging, so this only suppresses NEW grabs.)
+	if _two_hand_active:
+		return
+
+	# Held nodes first: each hand's grab rides that hand's aim point, or is released
+	# when its trigger falls. The other hand is unaffected either way.
+	for hand: int in 2:
+		if _grab_id[hand] == -1:
+			continue
+		var held_ctrl: XRController3D = _ctrl_at(hand)
+		if held_ctrl == null or _controller_trigger(held_ctrl) < GRAB_RELEASE:
+			_end_grab(hand)
+		else:
+			_drive_grab(hand, held_ctrl.global_position, -held_ctrl.global_transform.basis.z, held_ctrl.global_transform.basis)
+
+	for controller: XRController3D in [left_controller, right_controller]:
+		if controller == null or not controller.get_is_active():
+			continue
+		var hand: int = _hand_of(controller)
+		# One node per hand: a hand that holds one does not evaluate a second.
+		if _grab_id[hand] != -1:
+			continue
+		# Don't start a node grab with a controller that's pointing at the HUD —
+		# that trigger pull is a button click. (Release of an already-held grab is
+		# handled above and is unaffected.)
+		if controller == _hud_pointer_controller:
+			continue
+		# Likewise a trigger pull aimed at the open radial menu is a menu click,
+		# not a node grab.
+		if controller == _radial_pointer_controller:
+			continue
+		var pinch: float = _controller_trigger(controller)
+		if pinch < 0.05:
+			continue
+		# The volumes this press may grab in: none when it picked a link, a frame
+		# or a node in a volume without DRAG, or pointed into a portal.
+		var cand_vols: Array[StringName] = _grab_candidate_volumes(hand)
+		if cand_vols.is_empty():
+			continue
+		# Candidate ids + render positions come from each volume's own pack slot
+		# (graph units); its drawn Content transform takes them to world, so the
+		# world-space wand ray and the interaction's metre-space thresholds
+		# intersect the nodes whatever the volume's scale (ring box or room).
+		var merged: Array = _merge_grab_candidates(cand_vols, _grab_id[0], _grab_id[1])
+		var ids: PackedInt32Array = merged[0]
+		var world_positions: PackedVector3Array = merged[1]
+		_grab_eval_hand = hand
+		_grab_eval_vol = cand_vols[0]
+		_interaction.evaluate_ray(
+			controller.global_position,
+			-controller.global_transform.basis.z,
+			pinch,
+			ids,
+			world_positions
+		)
+		_grab_eval_hand = -1
+		_grab_eval_vol = &""
+		_grab_eval_ids = PackedInt32Array()
+		_grab_eval_vols = []
+		_grab_eval_ends = PackedInt32Array()
+
+
+# The entered volume's id, or &"" in ring view.
+func _entered_volume() -> StringName:
+	return _portals.entered_id() if _portals != null else &""
+
+
+# A room transition dims and snaps the content, and an arrangement ease (the first
+# entry from the ring eases the boxes over EASE_SEC with no dim, a bring-to-front
+# eases two) scales or moves a Content transform under the hand: no grab starts
+# through either, because the grab depth is measured at the old transform and each
+# drive would slide the node across server space (ADR-2172 F4).
+func _grab_locked() -> bool:
+	if _portals != null and _portals.is_transitioning():
+		return true
+	return _arrangement != null and _arrangement.is_easing()
+
+
+# The volumes the hand's current trigger press may start a grab in. A press
+# that claimed a node or frame grabs in that volume only; a link, HUD or a
+# volume without DRAG grabs nowhere; an unclaimed press (the Rust tube decides)
+# may catch a node in any draggable volume of the entered space, or of the ring.
+func _grab_candidate_volumes(hand: int) -> Array[StringName]:
+	var out: Array[StringName] = []
+	var kind: String = _trigger_claim[hand]
+	var cv: StringName = _trigger_claim_vol[hand]
+	if claim_blocks_drag(kind, cv, OVERLAY_VOLUME) or _grab_locked():
+		return out
+	var entered: StringName = _entered_volume()
+	if (kind == "node" or kind == "frame") and cv != &"":
+		if grab_volume_allowed(cv, entered) and volume_serves_drag(cv):
+			out.append(cv)
+		return out
+	for vid: StringName in VOLUME_ORDER:
+		if grab_volume_allowed(vid, entered) and volume_serves_drag(vid):
+			out.append(vid)
+	return out
+
+
+# Every candidate the hand's press may catch, merged across `vols`: [ids, world
+# positions]. Each volume's drawn ids and graph-unit positions come from its own pack
+# slot (empty when it is hidden, closed or offline: its slot would be stale), and its
+# Content transform, hoisted once per volume, takes them to world so the world-space
+# wand ray and the interaction's metre-space thresholds intersect the nodes whatever
+# the volume's scale (ring box or room). `held_a` / `held_b` (the ids the hands hold,
+# -1 for none) are dropped by id: the other hand's node must never shadow a free
+# neighbour in the Rust tube. Runs every physics frame per pressed hand at up to ~13k
+# candidates, so nothing here loops over nodes in script: the transform is one native
+# `Transform3D * PackedVector3Array`, a held id is found and removed natively, and the
+# runs are appended whole. The volume of each run is kept as an end offset for
+# _grab_volume_of (no per-node map). ADR-2172 F2: 8 ms -> ~0.2 ms per hand at 13k.
+func _merge_grab_candidates(vols: Array[StringName], held_a: int, held_b: int) -> Array:
+	var ids := PackedInt32Array()
+	var world := PackedVector3Array()
+	_grab_eval_vols = []
+	_grab_eval_ends = PackedInt32Array()
+	for vid: StringName in vols:
+		var v: Node3D = _volumes.get(vid, null)
+		var src = _sources.get(vid, null)
+		if v == null or src == null or not VolumePicker.pickable(v, src):
+			continue
+		var cand: Array = VolumePicker.candidates(src)
+		var rids: PackedInt32Array = cand[0]
+		var rpos: PackedVector3Array = cand[1]
+		if rids.size() != rpos.size():
+			var n: int = mini(rids.size(), rpos.size())
+			rids = rids.slice(0, n)
+			rpos = rpos.slice(0, n)
+		if rids.is_empty():
+			continue
+		v.world_from_content(Vector3.ZERO)  # builds the volume (and its Content) if it has not yet
+		rpos = _content_xf(vid) * rpos
+		for held: int in [held_a, held_b]:
+			var at: int = rids.find(held) if held >= 0 else -1
+			if at >= 0:
+				rids.remove_at(at)  # the other hand holds it
+				rpos.remove_at(at)
+		ids.append_array(rids)
+		world.append_array(rpos)
+		_grab_eval_vols.append(vid)
+		_grab_eval_ends.append(ids.size())
+	_grab_eval_ids = ids
+	return [ids, world]
+
+
+# The volume the merged candidate `node_id` was drawn in, or the evaluating volume
+# when it is not in the merged array (a direct call, or an id the tube caught alone).
+func _grab_volume_of(node_id: int) -> StringName:
+	var idx: int = _grab_eval_ids.find(node_id)
+	if idx >= 0:
+		for k: int in _grab_eval_ends.size():
+			if idx < _grab_eval_ends[k]:
+				return _grab_eval_vols[k]
+	return _grab_eval_vol if _grab_eval_vol != &"" else OVERLAY_VOLUME
+
+
+# The drawn Content transform of a volume (graph units → world); the hand-to-server
+# conversion of a drag inverts it. Mirrors SpatialVolume._content_world.
+func _content_xf(vid: StringName) -> Transform3D:
+	var v: Node3D = _volumes.get(vid, null)
+	if v == null:
+		return Transform3D.IDENTITY
+	var c: Node3D = v.content
+	if c == null:
+		return v.global_transform if v.is_inside_tree() else v.transform
+	return c.global_transform if c.is_inside_tree() else v.transform * c.transform
+
+
+## Starts `hand`'s grab of node `node_id` in volume `vid`: records the hand's
+## state, selects the node, and sends nodeDragStart on that volume's connection.
+## `hand_pos` is the controller's world position (grab depth is measured from
+## it); `hand_basis` (the controller's global basis) lets the drive hold the node
+## at the same hand-local offset it was caught at, so an off-axis catch does not snap
+## it onto the ray. False and no state change when the grab is refused: the hand already
+## holds a node, the other hand holds this one, the volume's connection has no
+## DRAG (codescape), the volume is a portal of the entered space, or a room
+## transition is in flight.
+func _begin_grab(hand: int, vid: StringName, node_id: int, hand_pos: Vector3, hand_basis: Variant = null) -> bool:
+	if hand < 0 or hand > 1 or node_id < 0 or _grab_id[hand] != -1 or _is_held(node_id):
+		return false
+	if not volume_serves_drag(vid) or not grab_volume_allowed(vid, _entered_volume()) or _grab_locked():
+		return false
+	var conn: Node = _conn_for_volume(vid)
+	if conn == null:
+		return false
+	_grab_id[hand] = node_id
+	_grab_vol[hand] = vid
+	_sync_grab_exclusion(vid)
+	print("GraphScene DEBUG: node_grabbed hand=%d volume=%s id=%d" % [hand, vid, node_id])
+	# The held node is the selection (UX feature 2): the Rust tube may catch a
+	# node the volume picker's cone missed, or a different one.
+	select_volume_node(vid, StringName(VOLUME_BINDINGS[vid]["conn"]), node_id)
+	# Node render position lives in the connection's Rust store.
+	var pos: Vector3 = Vector3.ZERO
+	if conn.client != null and conn.client.has_method("node_position"):
+		pos = conn.client.node_position(node_id)
+	_grab_target[hand] = pos
+	# Remember how far along the ray the node was so the drag preserves depth.
+	var node_world: Vector3 = _content_xf(vid) * pos
+	_grab_dist[hand] = clampf(hand_pos.distance_to(node_world), 0.2, 6.0)
+	_grab_lateral[hand] = Vector3.ZERO
+	if hand_basis is Basis:
+		# The catch offset in the hand's own frame: depth along -Z, lateral in x / y.
+		var local: Vector3 = (hand_basis as Basis).orthonormalized().inverse() * (node_world - hand_pos)
+		_grab_lateral[hand] = Vector3(local.x, local.y, 0.0)
+		_grab_dist[hand] = clampf(-local.z, 0.2, 6.0)
+	conn.send_drag_start(node_id, pos)
+	_pulse(_ctrl_at(hand), 0.6, 0.08)
+	return true
+
+
+## One frame of `hand`'s held node: keeps it at the depth it was grabbed at (rides
+## the ray) rather than snapping it in front of the wand. World → server through
+## the inverse of the held volume's Content transform, because the store works in
+## content-local space. The Rust hunt pins the node to `_grab_target[hand]` each
+## frame (optimistic echo); the update goes to that volume's connection.
+func _drive_grab(hand: int, ray_origin: Vector3, ray_dir: Vector3, hand_basis: Variant = null) -> void:
+	var node_id: int = _grab_id[hand]
+	if node_id == -1:
+		return
+	var vid: StringName = _grab_vol[hand]
+	var hand_world: Vector3 = ray_origin + ray_dir * float(_grab_dist[hand])
+	if hand_basis is Basis:
+		hand_world += (hand_basis as Basis).orthonormalized() * (_grab_lateral[hand] as Vector3)
+	var hand_server: Vector3 = _content_xf(vid).affine_inverse() * hand_world
+	_grab_target[hand] = hand_server
+	var conn: Node = _conn_for_volume(vid)
+	if conn != null:
+		conn.send_drag_update(node_id, hand_server)
+
+
+## Ends `hand`'s grab: nodeDragEnd on the held volume's connection, a release
+## pulse, and the hand's state cleared. Nothing is recorded in `_pinned_ids`: the
+## server unpins on release, so the node rejoins the simulation (explicit Pin and
+## Unpin All are unchanged). The other hand's grab is untouched.
+func _end_grab(hand: int, pulse: bool = true) -> void:
+	var node_id: int = _grab_id[hand]
+	if node_id == -1:
+		return
+	var vid: StringName = _grab_vol[hand]
+	var conn: Node = _conn_for_volume(vid)
+	if conn != null:
+		conn.send_drag_end(node_id)
+	if pulse:
+		_pulse(_ctrl_at(hand), 0.3, 0.05)
+	_grab_id[hand] = -1
+	_grab_vol[hand] = &""
+	_grab_dist[hand] = 1.0
+	_grab_lateral[hand] = Vector3.ZERO
+	_grab_target[hand] = Vector3.ZERO
+	# After the state is cleared, so the other hand's node (if it is in the same
+	# volume) stays excluded and this one rejoins the fit.
+	_sync_grab_exclusion(vid)
+
+
+func _controller_trigger(controller: XRController3D) -> float:
+	if controller == null or not controller.get_is_active():
+		return 0.0
+	return controller.get_float("trigger")
+
+
+# Desktop-parity laser pointers. A thin emissive beam is parented to each wand,
+# extending down the aim pose's -Z (the same ray fed to the Rust interaction
+# policy). Created once, then shown only while the controller is tracking and
+# tinted green as the trigger engages so the user sees the selection ray.
+const RAY_LENGTH: float = 5.0
+const RAY_IDLE_COLOR := Color(0.35, 0.7, 1.0)   # cyan when tracking, idle
+const RAY_ACTIVE_COLOR := Color(0.3, 1.0, 0.4)  # green as the trigger pulls
+
+
+## Render priority of held things (aim rays): above the depth-ignoring memory
+## route (10), below the HUD and menus (20). Mirrors memory_route.rs
+## HELD_RENDER_PRIORITY (pinned by a Rust test).
+const HELD_RENDER_PRIORITY := 15
+
+
+## One wand aim ray. Transparent-pass (alpha 1.0) so `render_priority` orders it
+## after the route, which writes no depth; the depth test stays on so the far
+## end of the 5 m beam is still hidden by nodes in front of it.
+static func make_aim_ray(length: float) -> MeshInstance3D:
+	var mesh := BoxMesh.new()
+	# Thin beam down -Z; the box is centred so offset it forward by half.
+	mesh.size = Vector3(0.006, 0.006, length)
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.render_priority = HELD_RENDER_PRIORITY
+	mat.emission_enabled = true
+	mat.emission = RAY_IDLE_COLOR
+	mat.albedo_color = RAY_IDLE_COLOR
+	var ray := MeshInstance3D.new()
+	ray.name = "AimRay"
+	ray.mesh = mesh
+	ray.material_override = mat
+	ray.position = Vector3(0.0, 0.0, -length * 0.5)
+	return ray
+
+
+func _ensure_controller_rays() -> void:
+	for controller: XRController3D in [left_controller, right_controller]:
+		if controller == null:
+			continue
+		var ray: MeshInstance3D = controller.get_node_or_null("AimRay") as MeshInstance3D
+		if ray == null:
+			ray = make_aim_ray(RAY_LENGTH)
+			controller.add_child(ray)
+		var active: bool = controller.get_is_active()
+		ray.visible = active
+		if active:
+			var cur_mat := ray.material_override as StandardMaterial3D
+			if cur_mat != null:
+				var col: Color = RAY_ACTIVE_COLOR if _controller_trigger(controller) > 0.05 else RAY_IDLE_COLOR
+				cur_mat.emission = col
+				cur_mat.albedo_color = col
+
+
+func _pulse(controller: XRController3D, amplitude: float, duration_sec: float) -> void:
+	if controller != null and controller.get_is_active():
+		controller.trigger_haptic_pulse("haptic", 0.0, amplitude, duration_sec, 0.0)
+
+
+func _update_voice_listener() -> void:
+	if _voice_router == null or not _voice_router.has_method("update_listener"):
+		return
+	var camera: XRCamera3D = _find_xr_camera()
+	if camera == null:
+		return
+	var cam_pos: Vector3 = camera.global_position
+	var cam_fwd: Vector3 = -camera.global_transform.basis.z
+	var cam_up: Vector3 = camera.global_transform.basis.y
+	_voice_router.update_listener(cam_pos, cam_fwd, cam_up)
+
+
+# --- Agent embodiment (M3) + selection (M4) ---------------------------------
+
+## Spawn a geometric agent embodiment. Distinct from a human presence peer: an
+## agent is a utility actor placed on the proxemics arc, keyed by did:nostr.
+func spawn_agent(agent_id: String, display_name: String, did: String, verified: bool) -> void:
+	if _agents.has(agent_id):
+		return
+	var template: PackedScene = load(AGENT_TEMPLATE_PATH)
+	if template == null:
+		push_warning("AgentAvatar template missing")
+		return
+	var agent: Node3D = template.instantiate()
+	agent_spawner.add_child(agent)
+	var handle: int = _next_handle
+	_next_handle += 1
+	agent.set_meta("agent_id", agent_id)
+	agent.set_meta("handle", handle)
+	agent.set_meta("did", did)
+	agent.set_meta("display_name", display_name)
+	agent.set_meta("layer", CONVERSATION_LAYER)
+	if agent.has_method("set_avatar_identity"):
+		agent.set_avatar_identity(display_name, did, verified)
+	_agents[agent_id] = agent
+	_agent_by_handle[handle] = agent_id
+	_agent_order.append(agent_id)
+	if _selection != null and _selection.has_method("register_identity"):
+		_selection.register_identity(handle, did)
+	_last_solve_count = -1  # force an arc re-solve on the next frame
+	_resolve_agent_arc()
+
+
+func despawn_agent(agent_id: String) -> void:
+	if not _agents.has(agent_id):
+		return
+	var agent: Node3D = _agents[agent_id]
+	var handle: int = agent.get_meta("handle", 0)
+	_agent_by_handle.erase(handle)
+	_agents.erase(agent_id)
+	_agent_cases.erase(agent_id)
+	var idx: int = _agent_order.find(agent_id)
+	if idx != -1:
+		_agent_order.remove_at(idx)
+	_choreo.remove_agent(agent_id)
+	agent.queue_free()
+	_last_solve_count = -1
+	_resolve_agent_arc()
+	_publish_case_count()
+
+
+## An agent raised a broker case awaiting the operator's approval. Drives the
+## agent's own state (saturated colour + attention motion) and, if selected,
+## the HUD intervention panel.
+func set_agent_case(agent_id: String, case_id: String, summary: String) -> void:
+	if not _agents.has(agent_id):
+		return
+	_agent_cases[agent_id] = {"case_id": case_id, "summary": summary}
+	var agent: Node3D = _agents[agent_id]
+	if agent.has_method("apply_signal"):
+		agent.apply_signal(agent_avatar_signal_approval_requested())
+	_publish_case_count()
+
+
+func clear_agent_case(agent_id: String) -> void:
+	if not _agent_cases.has(agent_id):
+		return
+	_agent_cases.erase(agent_id)
+	if _agents.has(agent_id):
+		var agent: Node3D = _agents[agent_id]
+		if agent.has_method("apply_signal"):
+			agent.apply_signal(agent_avatar_signal_approval_granted())
+	_publish_case_count()
+
+
+static func agent_avatar_signal_approval_requested() -> int:
+	return 2  # AgentSignal::ApprovalRequested (avatar_state.rs:418)
+
+
+static func agent_avatar_signal_approval_granted() -> int:
+	return 3  # AgentSignal::ApprovalGranted
+
+
+func _publish_case_count() -> void:
+	if hud != null and hud.has_method("set_case_count"):
+		hud.set_case_count(_agent_cases.size())
+
+
+# Place agents on a forward arc in the social band via the Rust proxemics solver
+# (Hall's zones, ±60°, 1.5–2.5 m). Re-solve only on a membership or user-pose
+# change (the solver's own gate keeps it off the per-frame path).
+func _resolve_agent_arc() -> void:
+	if _proxemics == null or _agent_order.is_empty():
+		return
+	var camera: XRCamera3D = _find_xr_camera()
+	var user_pos: Vector3 = camera.global_position if camera != null else Vector3.ZERO
+	var user_fwd: Vector3 = -camera.global_transform.basis.z if camera != null else Vector3.FORWARD
+	var count: int = _agent_order.size()
+
+	if count == _last_solve_count and _proxemics.has_method("should_resolve"):
+		if not _proxemics.should_resolve(
+			_last_solve_pos, _last_solve_forward, _last_solve_count,
+			user_pos, user_fwd, count
+		):
+			return
+
+	var positions: PackedVector3Array = _proxemics.solve(user_pos, user_fwd, count)
+	for i: int in range(mini(positions.size(), count)):
+		var agent_id: String = _agent_order[i]
+		if _agents.has(agent_id):
+			(_agents[agent_id] as Node3D).global_position = positions[i]
+	_last_solve_pos = user_pos
+	_last_solve_forward = user_fwd
+	_last_solve_count = count
+
+
+# Swarm tab roster (ADR-140, Pillar 4 / P5). Built from the Rust agent registry
+# (#[func]s agent_ids/agent_status/agent_target_node/agent_task) and pushed to the
+# HUD at the ~4 Hz label cadence, but only when the roster actually changed (a cheap
+# signature diff avoids rebuilding the row UI every tick). Agent wire ids ARE node
+# ids, so each row's tap → "teleport:<id>" reuses the existing node-teleport glide.
+var _swarm_sig: String = ""
+
+# ── Work-layer embodiment (ADR-140 work layer; embodiment plan §2.6) ──────────
+# Every agent in the Rust registry (fed by 0x23 AGENT_ACTION frames — live or
+# synthetic) is embodied with the AgentAvatar template, keyed by its wire id.
+# Exactly ONE writer owns an embodiment's position and alpha: _choreo (the
+# presentation state machine in agent_choreography.gd). The proxemics arc only
+# ever places conversation-layer avatars (spawn_agent, keyed by did:nostr).
+# Server owns WHICH node / status / task; the client owns WHERE in the room.
+const AgentChoreography := preload("res://scripts/agent_choreography.gd")
+const AgentEffects := preload("res://scripts/agent_effects.gd")
+# WP3/WP5/WP8: beat clock, memory_flash bursts and attention heat (beat_pulse.gd
+# owns the behaviour; the hooks here only create it and route frames/intents).
+const BeatPulseScript := preload("res://scripts/beat_pulse.gd")
+const AgentRole := preload("res://scripts/agent_role.gd")
+const WORK_LAYER := "work"
+const CONVERSATION_LAYER := "conversation"
+const RIM_SLOTS: int = 8             # rest slots on the drift ring around the centroid
+## ADR-2135: the layout is always separated, so work agents rest at the
+## triangle's centroid plus their activity drift, spread on a small ring so they
+## do not stack.
+const DRIFT_REST_SPREAD_M: float = 0.18
+
+var _choreo: RefCounted = AgentChoreography.new()
+var _effects: Node3D = null
+var _beat: Node = null
+var _demo_http: HTTPRequest = null   # POST /api/agents/demo (the shared demo; ADR-2142)
+var _demo_pending: bool = false      # one demo request in flight at a time
+var _embodied: Dictionary = {}       # wire id (int) -> scene id (String)
+var _selected_agent_id: String = ""  # last agent the arbiter resolved (caption stays up)
+var _rim_slot_cursor: int = 0
+var _anchor_ids := PackedInt32Array()
+var _anchor_pos := PackedVector3Array()
+var _reduced_motion: bool = true     # comfort default (matches agent_avatar.gd)
+
+
+func _update_swarm_roster() -> void:
+	if hud == null or not hud.has_method("set_swarm_roster"):
+		return
+	if _binary_client == null or not _binary_client.has_method("agent_ids"):
+		return
+	var ids: PackedInt32Array = _binary_client.agent_ids()
+	var rows: Array = []
+	var sig := PackedStringArray()
+	for id: int in ids:
+		var target_id: int = _binary_client.agent_target_node(id)
+		var target_label: String = ""
+		if target_id >= 0:
+			target_label = _binary_client.label_of(target_id)
+		var status: int = _binary_client.agent_status(id)
+		var task: String = _binary_client.agent_task(id)
+		var name_s: String = _work_agent_name(id)
+		rows.append({
+			"id": id,
+			"name": name_s,
+			"status": status,
+			"target": target_label,
+			"task": task,
+		})
+		# Name is in the signature so a late-arriving label refreshes its row.
+		sig.append("%d:%s:%d:%s:%s" % [id, name_s, status, target_label, task])
+	var joined := "|".join(sig)
+	if joined == _swarm_sig:
+		return
+	_swarm_sig = joined
+	hud.set_swarm_roster(rows)
+
+
+# Role names of the shared demo's six agents (reserved ids 0xD001..0xD006), the same labels the
+# server's director uses. The registry has no label for them, so the scene names them here.
+const DEMO_ROLE_NAMES: Dictionary = {
+	0xD001: "Architect", 0xD002: "Analyst", 0xD003: "Coder",
+	0xD004: "Reviewer", 0xD005: "Tester", 0xD006: "Optimizer",
+}
+
+
+## The role name for a shared-demo agent id (class and agent flag bits ignored), else "".
+static func demo_role_name(wire_id: int) -> String:
+	return String(DEMO_ROLE_NAMES.get(wire_id & 0x03FFFFFF, ""))
+
+
+# Display name for a registry agent: its wire label, else the shared demo's role name for a
+# reserved id (which the registry has no label for), else a plain id.
+func _work_agent_name(wire_id: int) -> String:
+	if _binary_client != null and _binary_client.has_method("label_of"):
+		var s: String = String(_binary_client.label_of(wire_id))
+		if s.length() > 0:
+			return s
+	var role_name: String = demo_role_name(wire_id)
+	if role_name.length() > 0:
+		return role_name
+	return "agent %d" % wire_id
+
+
+func _scene_id_for(wire_id: int) -> String:
+	return "agent_%d" % wire_id
+
+
+func _server_to_world(p: Vector3) -> Vector3:
+	return graph_root.to_global(p) if graph_root != null else p
+
+
+func _graph_centre_world() -> Vector3:
+	var v: Node3D = _volumes.get(OVERLAY_VOLUME, null)
+	return v.global_position if v != null and v.is_inside_tree() else GRAPH_ANCHOR
+
+
+# ~4 Hz: mirror the registry into embodiments. New ids materialise at a rim
+# slot, vanished ids (retired demo agents, or a cleared store) despawn, and
+# every embodied agent's registry view is handed to the choreography.
+func _reconcile_embodiment() -> void:
+	if _binary_client == null or not _binary_client.has_method("agent_ids") or graph_root == null:
+		return
+	_refresh_reduced_motion()
+	var ids: PackedInt32Array = _binary_client.agent_ids()
+	var seen: Dictionary = {}
+	for id: int in ids:
+		var sid: String = _scene_id_for(id)
+		seen[id] = true
+		if not _embodied.has(id):
+			_spawn_work_agent(id, sid)
+		if not _agents.has(sid):
+			continue
+		var status: int = _binary_client.agent_status(id)
+		var target: int = _binary_client.agent_target_node(id)
+		var has_target: bool = target >= 0
+		var target_world: Vector3 = _server_to_world(_binary_client.node_position(target)) if has_target else Vector3.ZERO
+		_choreo.update_registry(sid, status, has_target, target, target_world)
+		var agent: Node3D = _agents[sid]
+		var task: String = String(_binary_client.agent_task(id))
+		if agent.has_method("set_task_caption"):
+			agent.set_task_caption(task)
+		# A live agent whose name carried no role may reveal it in its task line.
+		if agent.has_method("role") and agent.role() == "generic" and agent.has_method("set_role"):
+			var inferred: String = AgentRole.infer(String(agent.get_meta("display_name", "")), task)
+			if inferred != "generic":
+				agent.set_role(inferred)
+	for id: int in _embodied.keys():
+		if not seen.has(id):
+			_despawn_work_agent(id)
+	_apply_drift_rest_slots()
+
+
+# ADR-2135: the agents' domain is the centre of the always-separated knowledge /
+# ontology / memory triangle. Each work agent's rest slot is the centroid (server
+# origin) plus its activity drift, which leans it towards the graphs it has been
+# working on and decays home when it is idle. The choreography stays the only
+# pose writer (Invariant 8): this only moves the slot it parks at.
+func _apply_drift_rest_slots() -> void:
+	if _choreo == null or _binary_client == null or not _binary_client.has_method("agent_drift_offset"):
+		return
+	_binary_client.step_agent_drift()
+	for id: int in _embodied.keys():
+		var sid: String = _embodied[id]
+		if not _agents.has(sid):
+			continue
+		_choreo.set_rim_slot(sid, _drift_rest_slot(id, int(_agents[sid].get_meta("rim_index", 0))))
+
+
+## Rest slot of agent `wire_id` in the separated layout: the centroid (server
+## origin) plus its drift, on a small ring by slot index `k`.
+func _drift_rest_slot(wire_id: int, k: int) -> Vector3:
+	var offset: Vector3 = Vector3.ZERO
+	if _binary_client != null and _binary_client.has_method("agent_drift_offset"):
+		offset = _binary_client.agent_drift_offset(wire_id)
+	var spread: Vector3 = Vector3.FORWARD.rotated(Vector3.UP, TAU * float(k % RIM_SLOTS) / float(RIM_SLOTS)) * DRIFT_REST_SPREAD_M
+	return _server_to_world(offset) + spread
+
+
+func _spawn_work_agent(wire_id: int, sid: String) -> void:
+	if _agents.has(sid):
+		_embodied[wire_id] = sid
+		return
+	var template: PackedScene = load(AGENT_TEMPLATE_PATH)
+	if template == null:
+		push_warning("AgentAvatar template missing")
+		return
+	var agent: Node3D = template.instantiate()
+	agent_spawner.add_child(agent)
+	var handle: int = _next_handle
+	_next_handle += 1
+	var name_s: String = _work_agent_name(wire_id)
+	agent.set_meta("agent_id", sid)
+	agent.set_meta("handle", handle)
+	agent.set_meta("did", "")
+	agent.set_meta("display_name", name_s)
+	agent.set_meta("layer", WORK_LAYER)
+	agent.set_meta("wire_id", wire_id)
+	if agent.has_method("set_work_identity"):
+		agent.set_work_identity(name_s)
+	if agent.has_method("set_role"):
+		agent.set_role(AgentRole.infer(name_s, ""))
+	agent.set_meta("rim_index", _rim_slot_cursor)
+	# ADR-2135: a new agent materialises at the triangle's centroid
+	var rim: Vector3 = _drift_rest_slot(wire_id, _rim_slot_cursor)
+	_rim_slot_cursor += 1
+	agent.global_position = rim
+	if agent.has_method("set_alpha"):
+		agent.set_alpha(0.0)
+	_agents[sid] = agent
+	_agent_by_handle[handle] = sid
+	_embodied[wire_id] = sid
+	if _selection != null and _selection.has_method("register_identity"):
+		_selection.register_identity(handle, "wire:%d" % wire_id)
+	_choreo.add_agent(sid, rim, 0.0, rim)
+
+
+func _despawn_work_agent(wire_id: int) -> void:
+	var sid: String = _embodied.get(wire_id, "")
+	_embodied.erase(wire_id)
+	_choreo.remove_agent(sid)
+	if _effects != null:
+		_effects.clear_ring(sid)
+	if not _agents.has(sid):
+		return
+	var agent: Node3D = _agents[sid]
+	var handle: int = agent.get_meta("handle", 0)
+	_agent_by_handle.erase(handle)
+	_agents.erase(sid)
+	_agent_cases.erase(sid)
+	agent.queue_free()
+	_publish_case_count()
+
+
+func _refresh_reduced_motion() -> void:
+	var comfort := get_tree().get_first_node_in_group("xr_visual_environment")
+	if comfort != null and comfort.has_method("get_visual_comfort"):
+		var state: Dictionary = comfort.call("get_visual_comfort")
+		_reduced_motion = bool(state.get("reduced_motion", true))
+	_choreo.reduced_motion = _reduced_motion
+	if _portals != null:
+		_portals.reduced_motion = _reduced_motion
+	if _memory_cloud != null:
+		_memory_cloud.reduced_motion = _reduced_motion
+	if _effects != null:
+		_effects.reduced_motion = _reduced_motion
+	if _beat != null:
+		_beat.reduced_motion = _reduced_motion
+
+
+func _ensure_effects() -> void:
+	if _effects != null or agent_effects_root == null:
+		return
+	_effects = AgentEffects.new()
+	_effects.name = "AgentEffects"
+	agent_effects_root.add_child(_effects)
+
+
+func _update_agents(delta: float) -> void:
+	if _agents.is_empty():
+		return
+	# Conversation-layer avatars (did:nostr) sit on the proxemics arc.
+	_resolve_agent_arc()
+	var camera: XRCamera3D = _find_xr_camera()
+	if camera == null:
+		return
+	var cam_pos: Vector3 = camera.global_position
+	var cam_fwd: Vector3 = -camera.global_transform.basis.z
+	var dt_us: int = int(delta * 1_000_000.0)
+	# Reuse _update_lod's once-per-frame recompute decision (never re-tick here).
+	var recompute_lod: bool = _lod_recompute and _lod_policy != null \
+		and _lod_policy.has_method("agent_feature_mask")
+
+	# Work-layer poses: one tick of the single pose owner.
+	_ensure_effects()
+	_choreo.set_head(cam_pos)
+	_choreo.set_graph_centre(_graph_centre_world())
+	_choreo.tick(delta)
+	if _effects != null:
+		_effects.set_head(cam_pos)
+	_anchor_ids.clear()
+	_anchor_pos.clear()
+	var to_server: Transform3D = graph_root.global_transform.affine_inverse() if graph_root != null else Transform3D.IDENTITY
+
+	for agent_id: String in _agents:
+		var agent: Node3D = _agents[agent_id]
+		if String(agent.get_meta("layer", CONVERSATION_LAYER)) == WORK_LAYER:
+			var p: Dictionary = _choreo.pose(agent_id)
+			if not p.is_empty():
+				agent.global_position = p["pos"]
+				if agent.has_method("set_alpha"):
+					agent.set_alpha(float(p["alpha"]))
+				if agent.has_method("set_aim"):
+					agent.set_aim(p["aim"])
+				var phase: int = p["phase"]
+				if agent.has_method("set_display_state"):
+					var engaged: bool = bool(p["working"]) or (phase == AgentChoreography.PH_TRAVEL and bool(p["has_target"]))
+					agent.set_display_state(1 if engaged else (4 if bool(p["done"]) else 0))
+				# Caption only while a task is being announced (travel/arrive) or
+				# while this agent is the one you selected.
+				if agent.has_method("set_caption_visible"):
+					var announcing: bool = phase == AgentChoreography.PH_TRAVEL or phase == AgentChoreography.PH_ARRIVE
+					agent.set_caption_visible(announcing or agent_id == _selected_agent_id)
+				if _effects != null:
+					if bool(p["working"]) and bool(p["has_target"]):
+						_effects.set_ring(agent_id, p["target_world"])
+					else:
+						_effects.clear_ring(agent_id)
+				_anchor_ids.append(int(agent.get_meta("wire_id", 0)))
+				_anchor_pos.append(to_server * (p["pos"] as Vector3))
+		var to_agent: Vector3 = agent.global_position - cam_pos
+		var dist: float = to_agent.length()
+		# Mutual-gaze test: is the user's head-gaze pointed at this agent?
+		var gazing: bool = dist > 0.001 and cam_fwd.dot(to_agent / dist) > MUTUAL_GAZE_DOT
+		if agent.has_method("tick_attention"):
+			agent.tick_attention(gazing, cam_pos - agent.global_position, false, 0, Vector3.ZERO, dt_us)
+		# LOD feature mask (badge drops first, then cone, core billboards).
+		if recompute_lod and agent.has_method("set_feature_mask"):
+			var level: int = _lod_policy.classify_distance(dist)
+			agent.set_feature_mask(_lod_policy.agent_feature_mask(level))
+
+	for ev: Dictionary in _choreo.take_events():
+		var kind: String = String(ev["type"])
+		if kind == "complete" and _effects != null:
+			_effects.burst(ev["pos"])
+		elif kind == "handoff" and _effects != null:
+			# Work travels the real edge from the node being left to the next one.
+			var sid: String = ev["id"]
+			var color: Color = AgentEffects.COLOR_PACKET
+			if _agents.has(sid) and (_agents[sid] as Node).has_method("role"):
+				color = AgentRole.color_of((_agents[sid] as Node).role())
+			_effects.send_packets(ev["from"], ev["to"], color)
+		elif kind == "arrive":
+			var sid2: String = ev["id"]
+			if _agents.has(sid2) and (_agents[sid2] as Node).has_method("flash"):
+				(_agents[sid2] as Node).flash()
+	# Beam origins follow the bodies (visual-only; physics untouched).
+	if _anchor_ids.size() > 0 and _binary_client != null and _binary_client.has_method("set_agent_anchors"):
+		_binary_client.set_agent_anchors(_anchor_ids, _anchor_pos)
+
+
+# Feed the three-resolver arbiter this frame's controller rays, smoothed gaze,
+# and agent candidates; drive the dwell reticle from the charge ratio.
+func _update_selection(delta: float) -> void:
+	if _selection == null or _agents.is_empty():
+		return
+	var camera: XRCamera3D = _find_xr_camera()
+	if camera == null:
+		return
+
+	_selection.begin_frame()
+	var any_controller: bool = false
+	var hand: int = 0
+	for controller: XRController3D in [left_controller, right_controller]:
+		if controller != null and controller.get_is_active():
+			any_controller = true
+			var trig: float = controller.get_float("trigger")
+			_selection.push_controller(
+				hand,
+				controller.global_position,
+				-controller.global_transform.basis.z,
+				trig,
+				true,
+				trig > 0.7
+			)
+		hand += 1
+
+	# Smoothed head-gaze ray (eye-gaze only if the probe found hardware support).
+	var cam_pos: Vector3 = camera.global_position
+	var cam_fwd: Vector3 = -camera.global_transform.basis.z
+	if _gaze_tracker != null and _gaze_tracker.has_method("resolve"):
+		var gdir: Vector3 = _gaze_tracker.resolve(cam_pos, cam_fwd, delta, _eye_gaze_supported)
+		_selection.set_gaze(cam_pos, gdir)
+	else:
+		_selection.set_gaze(cam_pos, cam_fwd)
+
+	# Candidates = the agents (handles), with the core radius + margin.
+	var ids := PackedInt32Array()
+	var positions := PackedVector3Array()
+	var radii := PackedFloat32Array()
+	for agent_id: String in _agents:
+		var agent: Node3D = _agents[agent_id]
+		ids.append(agent.get_meta("handle", 0))
+		positions.append(agent.global_position)
+		radii.append(AGENT_SELECT_RADIUS)
+	_selection.set_candidates(ids, positions, radii)
+
+	_selection.tick(not any_controller, Time.get_ticks_usec(), int(delta * 1_000_000.0))
+
+	if hud != null and hud.has_method("set_dwell_charge") and _selection.has_method("charge_ratio"):
+		hud.set_dwell_charge(_selection.charge_ratio())
+
+
+func _on_selection_made(handle: int, did_nostr: String, _resolver: int) -> void:
+	if not _agent_by_handle.has(handle):
+		return
+	var agent_id: String = _agent_by_handle[handle]
+	_selected_agent_id = agent_id
+	emit_signal("agent_selected", agent_id, did_nostr)
+	# M4-RAY: the arbiter resolved a non-origin agent-node selection — fire the
+	# liveness canary once (RES-a / ADR-130 D3).
+	_fire_m4_ray_canary(agent_id, did_nostr)
+	# If the selected agent is awaiting approval, open the intervention panel.
+	if _agent_cases.has(agent_id) and hud != null and hud.has_method("show_case"):
+		var c: Dictionary = _agent_cases[agent_id]
+		hud.show_case(c.get("case_id", ""), c.get("summary", ""))
+
+
+# One-shot POST /api/canary/observe/CANARY-VC-M4-RAY, latched so it fires exactly
+# once per session — on the first resolved agent selection. The route is
+# unauthenticated (a thin JSON adapter over the LivenessHarness), so no NIP-98
+# header is needed. Fail-open: a failed dispatch un-latches so a later selection
+# can retry, and never blocks the scene.
+func _fire_m4_ray_canary(agent_id: String, did_nostr: String) -> void:
+	if _m4_ray_observed or _observe_http == null:
+		return
+	if not _gate_for_volume(_focused_volume, BackendCaps.CANARY, "liveness canary", true):
+		return
+	_m4_ray_observed = true
+	var url: String = "%s/api/canary/observe/%s" % [_http_base(), CANARY_M4_RAY]
+	var body: Dictionary = {
+		"evidence": "xr-client selection arbiter resolved agent %s (%s)" % [agent_id, did_nostr],
+	}
+	var headers := PackedStringArray(["Content-Type: application/json"])
+	var err: int = _observe_http.request(url, headers, HTTPClient.METHOD_POST, JSON.stringify(body))
+	if err != OK:
+		push_warning("GraphScene: M4-RAY observe POST failed to start (%d)" % err)
+		_m4_ray_observed = false
+
+
+# Inbound non-topology JSON on the multiplexed /wss graph socket (M2). The Rust
+# BinaryProtocolClient forwards these verbatim via text_message; we parse the
+# envelope and route broker:new_case to the HUD intervention panel's entry point.
+func _on_graph_text(json: String) -> void:
+	var parsed: Variant = JSON.parse_string(json)
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return
+	var msg: Dictionary = parsed
+	# settingsUpdated / filter_update_success / graphUpdated (WP2, ADR-2047).
+	if _parity != null and _parity.route_text(json, str(msg.get("type", ""))):
+		return
+	var msg_type: String = str(msg.get("type", ""))
+	# beatClock / pong / memory_flash: the beat clock and memory bursts (ADR-2134).
+	if _beat != null and _beat.on_text(json, msg_type):
+		return
+	match msg_type:
+		"broker:new_case":
+			# A malformed frame can carry a non-Dictionary payload (string, null,
+			# array); passing that to a Dictionary-typed param crashes
+			# _physics_process. Guard the type before routing.
+			var p: Variant = msg.get("payload", {})
+			if typeof(p) == TYPE_DICTIONARY:
+				_handle_broker_new_case(p)
+		"memoryRoute":
+			# Desktop query route relayed per session (WP7); the layer gates it.
+			if _memory_cloud != null:
+				_memory_cloud.apply_route_json(json)
+		"nodeUnpinAck":
+			# Server confirmed the release (position_updates.rs handle_node_unpin →
+			# {"type":"nodeUnpinAck","data":{"nodeId":N}}). Drop the id from the
+			# retry set only now; unacked ids stay so Unpin All can retry them.
+			var d: Variant = msg.get("data", {})
+			if typeof(d) == TYPE_DICTIONARY and d.has("nodeId"):
+				var nid: int = int(d["nodeId"])
+				if _pinned_ids.erase(nid):
+					_refresh_controls_status()
+
+
+func _handle_broker_new_case(payload: Dictionary) -> void:
+	var case_id: String = str(payload.get("caseId", ""))
+	if case_id.is_empty():
+		return
+	var summary: String = str(payload.get("title", ""))
+	# Surface the case through the HUD's existing intervention entry point.
+	if hud != null and hud.has_method("show_case"):
+		hud.show_case(case_id, summary)
+
+
+func _tick_reconnect(delta: float) -> void:
+	# Each socket owns its own countdown; firing one reconnects only that socket
+	# so a pending graph reconnect can't tear down a live presence socket.
+	if _presence_reconnect_timer >= 0.0:
+		_presence_reconnect_timer -= delta
+		if _presence_reconnect_timer <= 0.0:
+			_presence_reconnect_timer = -1.0
+			_connect_presence()
+
+
+func _backoff_delay(attempts: int) -> float:
+	return minf(
+		RECONNECT_BASE_DELAY_SEC * pow(2.0, float(attempts - 1)),
+		RECONNECT_MAX_DELAY_SEC
+	)
+
+
+func _schedule_presence_reconnect() -> void:
+	_presence_reconnect_attempts += 1
+	_presence_reconnect_timer = _backoff_delay(_presence_reconnect_attempts)
+	push_warning("GraphScene: presence reconnect attempt %d in %.1fs" % [
+		_presence_reconnect_attempts, _presence_reconnect_timer])
+
+
+func _find_xr_camera() -> XRCamera3D:
+	# During an active OpenXR session the XRCamera3D is the viewport's current
+	# camera — that is the canonical lookup.
+	var viewport_cam: Camera3D = get_viewport().get_camera_3d()
+	if viewport_cam is XRCamera3D:
+		return viewport_cam as XRCamera3D
+	# Fallback before the session is current: locate the XROrigin3D in the tree
+	# and return its XRCamera3D child.
+	var origin: Node = get_tree().current_scene.find_child("XROrigin3D", true, false) if get_tree().current_scene != null else null
+	if origin != null:
+		for child: Node in origin.get_children():
+			if child is XRCamera3D:
+				return child as XRCamera3D
+	return null
+
+
+# Graph (/wss) socket state. `connected` is emitted only once the topology request is on
+# the wire (transport.rs), so a live signal always means a usable stream; positions then
+# arrive in chunks the client acknowledges (ADR-2141). Clear any pending graph reconnect timer on connect, else a queued
+# _tick_reconnect would tear the fresh socket back down.
+func _on_conn_connected_changed(conn_id: StringName, connected: bool) -> void:
+	if conn_id == &"visionclaw":
+		emit_signal("connection_status_changed", connected)
+		if not connected:
+			_release_grab()
+			_clear_graph_mirror()
+	for vid: StringName in _sources:
+		if VOLUME_BINDINGS[vid]["conn"] == conn_id:
+			_sources[vid].invalidate()
+			if not connected:
+				_sources[vid].clear_instances()
+	if not connected:
+		_clear_selection_for_conn(conn_id)
+	# §7.6: a dropped connection's links go with it.
+	if not connected and _link_layer != null:
+		_link_layer.drop_connection(conn_id)
+		_link_sig = []
+	_update_offline_labels()
+	_sync_hud_backend()
+
+
+func _on_conn_topology_changed(conn_id: StringName, _generation: int) -> void:
+	for vid: StringName in _sources:
+		if VOLUME_BINDINGS[vid]["conn"] == conn_id:
+			_sources[vid].invalidate()
+	if conn_id == &"visionclaw":
+		_cloud_placed = false
+	# Wire ids are per generation: a selection on this connection is void.
+	_clear_selection_for_conn(conn_id)
+	# §7.5: the old generation's links are void; the join reruns on the next
+	# link tick against the new tables.
+	if _link_layer != null:
+		_link_layer.drop_connection(conn_id)
+	_link_sig = []
+	_link_join_accum = LINK_JOIN_SEC
+
+
+# Presence (/ws/presence) socket state, on its own independent backoff.
+func _on_presence_connection_changed(connected: bool) -> void:
+	if connected:
+		_presence_reconnect_attempts = 0
+		_presence_reconnect_timer = -1.0
+	else:
+		_schedule_presence_reconnect()
+
+
+# position_updated is no longer emitted by the Rust client (the store owns
+# positions), so there is no _on_position_updated handler. Colours + centrality
+# arrive via the throttled node_visuals_updated below; positions never touch
+# GDScript.
+func _on_node_visuals_updated(node_id: int, community_id: int, centrality: float, anomaly: float) -> void:
+	# Colour is now computed Rust-side inside build_node_buffer; GDScript keeps only
+	# centrality (for the LOD/edge selection domain) and marks the selection dirty
+	# so a new/changed node re-enters the drawn set.
+	_node_centrality[node_id] = centrality
+	_centrality_max = maxf(_centrality_max, centrality)
+	_selection_dirty = true
+	# Topology often arrives before centrality analytics, forcing the edge ranking
+	# onto its global-weight fallback. Re-rank ONCE — not per-frame — the moment
+	# centrality covers the nodes the cap will actually draw, so the rendered edge
+	# subset finally reflects the visible subgraph.
+	if not _edge_rerank_done and not _edge_pairs_full.is_empty():
+		var node_total: int = _binary_client.node_count() if _binary_client != null else 0
+		var need: int = mini(_node_budget, maxi(1, node_total))
+		if _node_centrality.size() >= need:
+			_rerank_edges(true)
+			_edge_rerank_done = true
+
+
+# Deterministic community palette: golden-ratio hue walk gives well-separated
+# colours for any community count (same approach as the desktop renderer).
+# When the server has not computed communities (all community_id == 0, which
+# collapses every node to hue 0 / red), fall back to a per-node golden-ratio hue
+# so the graph still reads as varied rather than a uniform mass. Anomalous nodes
+# blend toward warning red regardless.
+func _community_color(community_id: int, anomaly: float, node_id: int = 0) -> Color:
+	var key: int = community_id if community_id != 0 else node_id
+	var hue: float = fmod(float(key) * 0.61803398875, 1.0)
+	var base: Color = Color.from_hsv(hue, 0.6, 0.95)
+	if anomaly > 0.5:
+		return base.lerp(Color(1.0, 0.15, 0.1), clampf((anomaly - 0.5) * 2.0, 0.0, 0.85))
+	return base
+
+
+func _on_topology_updated(_edge_count: int) -> void:
+	# Keep the full topology verbatim so the ranking can be recomputed once
+	# centrality analytics arrive (see _on_node_visuals_updated).
+	_edge_pairs_full = _binary_client.get_edges()
+	_edge_weights_full = _binary_client.get_edge_weights()
+	_edge_rerank_done = false
+	# A fresh topology is a new layout: release any two-hand manual latch so the
+	# adaptive fit re-frames the new graph automatically.
+	_manual_transform = false
+	_two_hand_active = false
+	_manip_session_base_scale = -1.0
+	# Endpoint-id set (built once here, not per frame): the LOD draw domain and the
+	# edge ranking domain are both restricted to these so they stay coherent.
+	_topo_ids = {}
+	for i: int in range(_edge_pairs_full.size()):
+		_topo_ids[_edge_pairs_full[i]] = true
+	_recompute_instance_budgets()
+	_selection_dirty = true
+	var known: int = _binary_client.node_count() if _binary_client != null else 0
+	print("GraphScene DEBUG: topology arrived edges=%d nodes=%d positions_known=%d budgets=%d/%d" % [
+		_edge_weights_full.size(), _topo_ids.size(), known, _node_budget, _edge_budget])
+	# preserve_show=false: a fresh topology defaults to showing all ranked edges.
+	_rerank_edges(false)
+
+
+# Derive the runtime instance budgets from the received topology, each bounded by
+# its absolute safety ceiling so a runaway settings-driven load can't overrun the
+# MultiMesh instance buffers. Node budget follows the count of topology (edge-endpoint)
+# nodes; edge budget follows the topology edge count. When topology carries no
+# edges the node budget stays at the ceiling so the position stream still draws.
+func _recompute_instance_budgets() -> void:
+	var topo_nodes: int = _topo_ids.size()
+	_node_budget = NODE_SAFETY_CEILING if topo_nodes <= 0 else mini(NODE_SAFETY_CEILING, topo_nodes)
+	_edge_budget = mini(EDGE_SAFETY_CEILING, _edge_weights_full.size())
+	_selection_dirty = true
+	if hud != null:
+		_refresh_controls_status()
+
+
+# The node ids the LOD cap will actually draw: all edge-endpoint (topo) nodes when
+# they fit the cap, else the top-cap of them by centrality. Mirrors the TOPO bias
+# in _update_multimesh so the edge ranking domain equals the drawn domain. Empty
+# when no topology has arrived. Event-driven (topology / analytics), not per frame.
+func _topo_top_ids() -> Dictionary:
+	var out := {}
+	if _topo_ids.is_empty():
+		return out
+	var domain: Array = _topo_ids.keys()
+	if domain.size() <= _node_budget:
+		for id: int in domain:
+			out[id] = true
+		return out
+	domain.sort_custom(func(a: int, b: int) -> bool:
+		return _node_centrality.get(a, 0.0) > _node_centrality.get(b, 0.0))
+	for i: int in range(_node_budget):
+		out[domain[i]] = true
+	return out
+
+
+# (Re)compute the weight-ranked edge list from the kept full topology. When over
+# budget, an edge earns budget only if BOTH endpoints are in the top-centrality
+# node set the node cap will actually draw (visible-subgraph ranking); it falls
+# back to global-weight ranking only when no draw domain exists yet. Runs on
+# topology and once more when centrality lands — never per frame.
+func _rerank_edges(preserve_show: bool) -> void:
+	var pairs: PackedInt32Array = _edge_pairs_full
+	var weights: PackedFloat32Array = _edge_weights_full
+	var total: int = weights.size()
+	if total <= 0:
+		_edge_pairs_ranked = PackedInt32Array()
+		_edge_show_count = 0
+		_apply_edge_slice()
+		return
+	if total <= _edge_budget:
+		_edge_pairs_ranked = pairs
+		if not preserve_show:
+			_edge_show_count = total
+		_apply_edge_slice()
+		return
+	# Rank over the SAME domain the LOD path draws: the top-cap topo (edge-endpoint)
+	# nodes by centrality. This keeps the ranking domain and the drawn domain equal,
+	# so both-endpoints-drawn edges actually render instead of being ranked in but
+	# never shown.
+	var eligible: Array = []
+	var top_ids: Dictionary = _topo_top_ids()
+	if not top_ids.is_empty():
+		for e: int in range(total):
+			if top_ids.has(pairs[e * 2]) and top_ids.has(pairs[e * 2 + 1]):
+				eligible.append(e)
+	# Fallback to global-weight ranking only when there is no usable draw domain yet
+	# (no topology endpoints) — a genuinely sparse-but-real subgraph is kept as-is
+	# rather than padded with edges whose endpoints will never be drawn.
+	if eligible.is_empty():
+		eligible = range(total)
+	eligible.sort_custom(func(a: int, b: int) -> bool: return weights[a] > weights[b])
+	var kept: int = mini(_edge_budget, eligible.size())
+	var capped := PackedInt32Array()
+	capped.resize(kept * 2)
+	for i: int in range(kept):
+		var e: int = eligible[i]
+		capped[i * 2] = pairs[e * 2]
+		capped[i * 2 + 1] = pairs[e * 2 + 1]
+	_edge_pairs_ranked = capped
+	if not preserve_show:
+		_edge_show_count = kept
+	_apply_edge_slice()
+	push_warning("GraphScene: %d edges exceed budget; rendering %d (visible-subgraph ranked)" % [total, kept])
+
+
+# Render the first _edge_show_count pairs of the ranked edge list (heaviest-first),
+# clamped to [EDGE_SHOW_MIN, ranked size]. Zero-copy when showing all.
+func _apply_edge_slice() -> void:
+	var ranked_pairs: int = _edge_pairs_ranked.size() / 2
+	if ranked_pairs <= 0:
+		_edge_pairs = PackedInt32Array()
+		_edge_show_count = 0
+		return
+	_edge_show_count = clampi(_edge_show_count, mini(EDGE_SHOW_MIN, ranked_pairs), ranked_pairs)
+	if _edge_show_count >= ranked_pairs:
+		_edge_pairs = _edge_pairs_ranked
+	else:
+		_edge_pairs = _edge_pairs_ranked.slice(0, _edge_show_count * 2)
+
+
+func _on_avatar_joined(did: String, display_name: String, avatar_id: String) -> void:
+	var template: PackedScene = load(AVATAR_TEMPLATE_PATH)
+	if template == null:
+		push_warning("Avatar template missing")
+		return
+	var avatar: Node = template.instantiate()
+	avatar_spawner.add_child(avatar)
+	avatar.set_meta("avatar_id", avatar_id)
+	avatar.set_meta("did", did)
+	# M1 (PRD-023 WP-9): render the did:nostr the presence join carried. The
+	# badge reads unverified until the client runs the Schnorr-challenge check
+	# (ADR-130 Decision 6) — the server-vouched roster DID is not client-trusted
+	# on presentation (invariant 2).
+	if avatar.has_method("set_avatar_identity"):
+		avatar.set_avatar_identity(display_name, did, false)
+	elif avatar.has_method("set_display_name"):
+		avatar.set_display_name(display_name)
+	_avatars[avatar_id] = avatar
+
+	if _voice_router != null and _voice_router.has_method("attach_track"):
+		_voice_router.attach_track(did, avatar.global_position)
+
+	emit_signal("avatar_count_changed", _avatars.size())
+
+
+func _on_avatar_left(avatar_id: String) -> void:
+	if not _avatars.has(avatar_id):
+		return
+	var av: Node = _avatars[avatar_id]
+	var did: String = av.get_meta("did", "")
+	if _voice_router != null and _voice_router.has_method("detach_track") and did != "":
+		_voice_router.detach_track(did)
+	_avatars.erase(avatar_id)
+	av.queue_free()
+	emit_signal("avatar_count_changed", _avatars.size())
+
+
+func _on_avatar_pose_updated(
+	avatar_id: String,
+	head_pos: Vector3,
+	head_rot: Quaternion,
+	has_left: bool,
+	has_right: bool,
+	left_pos: Vector3,
+	left_rot: Quaternion,
+	right_pos: Vector3,
+	right_rot: Quaternion
+) -> void:
+	if not _avatars.has(avatar_id):
+		return
+	var av: Node3D = _avatars[avatar_id]
+	if av.has_method("apply_pose"):
+		# Forward articulated hand transforms so remote avatars get real hands;
+		# has_left/has_right gate whether the pos/rot are meaningful.
+		av.apply_pose(
+			head_pos, head_rot, has_left, has_right,
+			left_pos, left_rot, right_pos, right_rot
+		)
+
+
+func _on_voice_activity(avatar_id: String, active: bool) -> void:
+	if not _avatars.has(avatar_id):
+		return
+	var av: Node3D = _avatars[avatar_id]
+	if av.has_method("set_speaking"):
+		av.set_speaking(active)
+
+
+func _on_node_targeted(node_id: int, _distance: float) -> void:
+	# During an on-demand radial pick (A/X pressed), route the hit to the capture
+	# and skip the normal target side effects (haptic/print) — this is a query, not
+	# a hover.
+	if _radial_picking:
+		_radial_pick_capture = node_id
+		return
+	_last_targeted_vol = _grab_volume_of(node_id)
+	emit_signal("node_targeted_in_scene", node_id)
+	if node_id != _last_targeted_id:
+		print("GraphScene DEBUG: node_targeted id=%d dist=%.2f" % [node_id, _distance])
+		_last_targeted_id = node_id
+		_pulse(_ctrl_at(_grab_eval_hand) if _grab_eval_hand in [0, 1] else null, 0.15, 0.02)
+
+
+func _on_node_grabbed(node_id: int, _position: Vector3) -> void:
+	# node_grabbed fires synchronously inside evaluate_ray, which names no hand:
+	# _update_interaction records the evaluating hand and its volumes first.
+	var hand: int = _grab_eval_hand
+	if hand < 0 or hand > 1 or _grab_id[hand] == node_id or _is_held(node_id):
+		return
+	# Double-click = two grabs of the SAME node within the window → open the node's
+	# linked page in the HUD instead of grabbing. The grab this second press would
+	# start is suppressed cleanly (we return before the grab begins).
+	var now: float = float(Time.get_ticks_msec()) / 1000.0
+	if node_id == _dc_last_id[hand] and (now - _dc_last_time[hand]) <= DOUBLE_CLICK_SEC:
+		_dc_last_id[hand] = -1
+		_open_node_document(node_id)
+		return
+	_dc_last_id[hand] = node_id
+	_dc_last_time[hand] = now
+	var vid: StringName = _grab_volume_of(node_id)
+	var ctrl: XRController3D = _ctrl_at(hand)
+	var ctrl_basis: Variant = ctrl.global_transform.basis if ctrl != null else null
+	_begin_grab(hand, vid, node_id, ctrl.global_position if ctrl != null else Vector3.ZERO, ctrl_basis)
+
+
+# Resolve a node to its narrativegoldmine slug and hand it to the HUD document
+# view. Slug = slugify(metadata_id if present else label). Slugify is idempotent,
+# so slugifying a real slug is a no-op and a title-shaped metadata_id is fixed.
+func _open_node_document(node_id: int) -> void:
+	if hud == null or not hud.has_method("show_document") or _binary_client == null:
+		return
+	var meta_id: String = _binary_client.meta_id_of(node_id) if _binary_client.has_method("meta_id_of") else ""
+	var label: String = _binary_client.label_of(node_id) if _binary_client.has_method("label_of") else ""
+	var raw: String = meta_id if meta_id != "" else label
+	var slug: String = _slugify(raw)
+	if slug == "":
+		return
+	var title: String = label if label != "" else slug
+	hud.show_document(title, slug)
+
+
+# Port of client/src/features/graph/utils/pageLinks.ts slugifyLabel: lowercase,
+# collapse every run of non [a-z0-9] to a single '-', trim leading/trailing '-'.
+func _slugify(s: String) -> String:
+	var lower: String = s.to_lower()
+	var out: String = ""
+	var prev_dash: bool = true  # start true so a leading run doesn't emit a dash
+	for i: int in range(lower.length()):
+		var ch: String = lower[i]
+		if (ch >= "a" and ch <= "z") or (ch >= "0" and ch <= "9"):
+			out += ch
+			prev_dash = false
+		elif not prev_dash:
+			out += "-"
+			prev_dash = true
+	if out.ends_with("-"):
+		out = out.substr(0, out.length() - 1)
+	return out
+
+
+func _on_presence_kicked(reason: String) -> void:
+	push_warning("GraphScene: kicked from presence -- %s" % reason)
+	_schedule_presence_reconnect()
+
+
+# --- Radial node context menu (visual query builder, flagship) --------------
+#
+# The MENU button (or A/X on Index/Touch-class wands — Vive has no A/X) opens a
+# wand-operated radial menu ON the currently targeted node; the menu items combine
+# the query-builder mark/clear/execute actions with any extra (future Wave-2
+# expand) items. While open, the wand ray drives the menu's SubViewport via its
+# pointer_input API (trigger = click), exactly the way the HUD pointer works. The
+# same button toggles the menu closed.
+func _update_radial_menu() -> void:
+	if _radial == null:
+		return
+	# Edge-detect A/X on either controller.
+	var ax_down := false
+	var ax_ctrl: XRController3D = null
+	for controller: XRController3D in [right_controller, left_controller]:
+		if controller == null or not controller.get_is_active():
+			continue
+		# Vive wands have no A/X — their menu button (above the trackpad) opens
+		# the node radial; A/X kept for Index/Touch-class controllers.
+		if controller.is_button_pressed("menu_button") or controller.is_button_pressed("ax_button"):
+			ax_down = true
+			ax_ctrl = controller
+			break
+	if ax_down and not _radial_ax_was_down:
+		if _radial.visible:
+			_radial.close()
+		else:
+			_open_radial_on_target(ax_ctrl)
+	_radial_ax_was_down = ax_down
+
+	# Drive the menu with the wand ray while it is open.
+	_radial_pointer_controller = null
+	if not _radial.visible:
+		return
+	var panel := _radial.get_node_or_null("MenuPanel") as Node3D
+	if panel == null:
+		return
+	var hit_uv := Vector2(-1.0, -1.0)
+	var hit_ctrl: XRController3D = null
+	for controller: XRController3D in [right_controller, left_controller]:
+		if controller == null or not controller.get_is_active():
+			continue
+		# Arbitration: this controller's ray is nearer the HUD — it owns the HUD, so
+		# the radial yields it this frame.
+		if controller == _hud_owner:
+			continue
+		var uv := _ray_hit_menu_uv(controller, panel)
+		if uv.x >= 0.0:
+			hit_uv = uv
+			hit_ctrl = controller
+			break
+	if hit_ctrl == null:
+		# Ray left the panel: release any held click at the last spot so the
+		# SubViewport button doesn't latch pressed.
+		if _radial_trigger_was_down:
+			_radial.pointer_input(_radial_last_px, false)
+			_radial_trigger_was_down = false
+		return
+	_radial_pointer_controller = hit_ctrl
+	_radial_last_px = hit_uv
+	var click := _controller_trigger(hit_ctrl) >= 0.6
+	if QB_DEBUG and click != _radial_trigger_was_down:
+		print("[QB] radial pointer %s at uv=(%.2f,%.2f)" % ["PRESS" if click else "RELEASE", hit_uv.x, hit_uv.y])
+	_radial.pointer_input(hit_uv, click)
+	_radial_trigger_was_down = click
+
+
+# Open the radial on the node the given controller's ray is aimed at. No-op when
+# the ray isn't on a node.
+func _open_radial_on_target(controller: XRController3D) -> void:
+	if controller == null or _binary_client == null or graph_root == null:
+		return
+	var node_id := _pick_node_under_ray(controller)
+	if node_id < 0:
+		# Empty space: open the search-and-teleport "top labels" radial instead
+		# (Feature 2 — the wand-friendly, keyboardless search path).
+		_open_top_labels_radial(controller)
+		return
+	_radial_node_id = node_id
+	# Include any cached predicate-expansion items via the query builder's
+	# extra_items seam; a fresh relations fetch (below) repopulates when it lands.
+	var extra: Array = _relations_cache.get(node_id, [])
+	var items: Array = _query.build_node_menu_items(node_id, extra)
+	var world_pos: Vector3 = graph_root.global_transform * _binary_client.node_position(node_id)
+	var cam: XRCamera3D = _find_xr_camera()
+	if cam != null:
+		# Float the panel slightly toward the user so it isn't buried in the node.
+		var to_cam: Vector3 = (cam.global_position - world_pos)
+		if to_cam.length() > 0.001:
+			world_pos += to_cam.normalized() * 0.15
+	_radial_world_pos = world_pos
+	_radial.open(items, world_pos)
+	# Face the user: the QuadMesh faces +Z, so aim -Z at the camera then flip.
+	if cam != null:
+		_radial.look_at(cam.global_position, Vector3.UP)
+		_radial.rotate_object_local(Vector3.UP, PI)
+	_pulse(controller, 0.3, 0.04)
+	# Kick a relations fetch so the ring gains "→ label (N)" expansion items.
+	_request_node_relations(node_id)
+
+
+# Feature 2 — open a "top labels" radial (top TOP_LABELS_COUNT nodes by centrality)
+# on empty space; selecting an item teleports to that node. Wand-friendly: no
+# keyboard needed. The panel floats 1.5 m in front of the controller.
+func _open_top_labels_radial(controller: XRController3D) -> void:
+	if _binary_client == null or not _binary_client.has_method("top_labels"):
+		return
+	var ids: PackedInt32Array = _binary_client.top_labels(TOP_LABELS_COUNT)
+	if ids.is_empty():
+		return
+	var items: Array = []
+	for i: int in range(ids.size()):
+		var nid: int = ids[i]
+		var label: String = str(_binary_client.label_of(nid))
+		if label.is_empty():
+			label = "Node %d" % nid
+		items.append({"label": "⌖ %s" % label, "action": "teleport:%d" % nid})
+	_radial_node_id = -1
+	var cam: XRCamera3D = _find_xr_camera()
+	var world_pos: Vector3 = controller.global_position - controller.global_transform.basis.z * 1.5
+	_radial_world_pos = world_pos
+	_radial.open(items, world_pos)
+	if cam != null:
+		_radial.look_at(cam.global_position, Vector3.UP)
+		_radial.rotate_object_local(Vector3.UP, PI)
+	_pulse(controller, 0.3, 0.04)
+
+
+# --- Feature 1: predicate expansion in the node radial ----------------------
+
+# GET {base}/api/graph/node/{id}/relations. On success the ring is repopulated with
+# "→ label (N)" outgoing / "← label (N)" incoming items via the extra_items seam.
+func _request_node_relations(node_id: int) -> void:
+	if _relations_http == null:
+		return
+	if not _gate_for_volume(_focused_volume, BackendCaps.NODE_RELATIONS, "node relations", true):
+		return
+	var url := "%s/api/graph/node/%d/relations" % [_http_base(), node_id]
+	var headers := _auth_headers(url, "GET")
+	_relations_http.cancel_request()  # supersede any in-flight fetch for a prior node
+	var err := _relations_http.request(url, headers, HTTPClient.METHOD_GET)
+	if err != OK:
+		push_warning("GraphScene: relations GET failed to start (%d)" % err)
+
+
+func _on_relations_completed(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	if result != HTTPRequest.RESULT_SUCCESS or code < 200 or code >= 300:
+		return
+	var parsed: Variant = JSON.parse_string(body.get_string_from_utf8())
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return
+	var node_id: int = int(parsed.get("nodeId", parsed.get("node_id", _radial_node_id)))
+	var extra: Array = _build_expansion_items(parsed)
+	_relations_cache[node_id] = extra
+	# If the radial is still open on this node, repopulate the ring in place.
+	# BUGFIX (live): do NOT repopulate while a wand click is in progress on the
+	# menu. `_radial.open()` frees + rebuilds every Button; if that lands between the
+	# synthesized press and release of a trigger-click, the pressed button is
+	# destroyed and `item_selected` never fires — the "first mark doesn't persist"
+	# bug. Deferring the async relations repopulate until the trigger is released
+	# keeps the click intact. The items are cached, so the next open shows them.
+	if _radial != null and _radial.visible and _radial_node_id == node_id and not _radial_trigger_was_down:
+		var items: Array = _query.build_node_menu_items(node_id, extra)
+		_radial.open(items, _radial_world_pos)
+		var cam: XRCamera3D = _find_xr_camera()
+		if cam != null:
+			_radial.look_at(cam.global_position, Vector3.UP)
+			_radial.rotate_object_local(Vector3.UP, PI)
+
+
+# Build the radial expansion items from a relations response. Expected shape:
+# {"outgoing":[{"edgeType":str,"count":int,"label":str?}], "incoming":[...]}. Falls
+# back to the edgeType as the label. Action grammar "expand:<direction>:<edgeType>".
+func _build_expansion_items(data: Dictionary) -> Array:
+	var items: Array = []
+	for dir_key: String in ["outgoing", "incoming"]:
+		var arrow: String = "→" if dir_key == "outgoing" else "←"
+		var rels: Variant = data.get(dir_key, [])
+		if typeof(rels) != TYPE_ARRAY:
+			continue
+		for rel: Variant in rels:
+			if typeof(rel) != TYPE_DICTIONARY:
+				continue
+			var edge_type: String = str(rel.get("edgeType", rel.get("edge_type", "")))
+			if edge_type.is_empty():
+				continue
+			var count: int = int(rel.get("count", 0))
+			var label: String = str(rel.get("label", edge_type))
+			items.append({
+				"label": "%s %s (%d)" % [arrow, label, count],
+				"action": "expand:%s:%s" % [dir_key, edge_type],
+			})
+	return items
+
+
+# POST {base}/api/graph/node/{id}/expand {edgeType,direction,limit}. The returned
+# nodes are already in the position stream; the response's edges are additively
+# merged into the topology (no re-fit) on completion.
+func _expand_node(node_id: int, direction: String, edge_type: String) -> void:
+	if _expand_http == null or node_id < 0:
+		return
+	if not _gate_for_volume(_focused_volume, BackendCaps.NODE_RELATIONS, "node expansion"):
+		return
+	var url := "%s/api/graph/node/%d/expand" % [_http_base(), node_id]
+	var headers := _auth_headers(url, "POST")
+	var payload := {"edgeType": edge_type, "direction": direction, "limit": EXPAND_LIMIT}
+	_expand_http.cancel_request()
+	var err := _expand_http.request(url, headers, HTTPClient.METHOD_POST, JSON.stringify(payload))
+	if err != OK:
+		push_warning("GraphScene: expand POST failed to start (%d)" % err)
+
+
+func _on_expand_completed(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	if result != HTTPRequest.RESULT_SUCCESS or code < 200 or code >= 300:
+		return
+	var parsed: Variant = JSON.parse_string(body.get_string_from_utf8())
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return
+	# Collect the returned edges into a flat [s0,t0,…] pair list + parallel types.
+	var edges: Variant = parsed.get("edges", [])
+	if typeof(edges) != TYPE_ARRAY:
+		return
+	var pairs := PackedInt32Array()
+	var types := PackedStringArray()
+	for e: Variant in edges:
+		if typeof(e) != TYPE_DICTIONARY:
+			continue
+		var s: int = int(e.get("source", e.get("source_id", -1)))
+		var t: int = int(e.get("target", e.get("target_id", -1)))
+		if s < 0 or t < 0:
+			continue
+		pairs.push_back(s)
+		pairs.push_back(t)
+		types.push_back(str(e.get("edgeType", e.get("edge_type", ""))))
+	if pairs.is_empty() or _binary_client == null or not _binary_client.has_method("merge_expansion"):
+		return
+	var added: int = _binary_client.merge_expansion(pairs, types)
+	if added > 0:
+		_refresh_topology_additive()
+
+
+# Additively fold newly merged edges into the draw pipeline: re-pull the edge list,
+# extend the endpoint-id domain, recompute budgets and re-rank — WITHOUT re-fitting
+# the view (GraphDBViewerWeb additive-merge principle: no rebuild, no re-fit).
+func _refresh_topology_additive() -> void:
+	if _binary_client == null:
+		return
+	_edge_pairs_full = _binary_client.get_edges()
+	_edge_weights_full = _binary_client.get_edge_weights()
+	for i: int in range(_edge_pairs_full.size()):
+		_topo_ids[_edge_pairs_full[i]] = true
+	_recompute_instance_budgets()
+	_selection_dirty = true
+	_edge_rerank_done = false
+	# preserve_show=true: keep the user's current density; do not reset the fit.
+	_rerank_edges(true)
+
+
+# --- Feature 2: teleport to a node ------------------------------------------
+
+# Glide the XROrigin so `node_id` sits TELEPORT_FRONT_M in front of the user's gaze,
+# then pulse-highlight it. Reuses the locomotion frame (origin translation only; no
+# rotation) so it composes with the existing manual transform.
+func _teleport_to_node(node_id: int) -> void:
+	if _binary_client == null or graph_root == null:
+		return
+	var cam: XRCamera3D = _find_xr_camera()
+	var origin: XROrigin3D = _find_xr_origin()
+	if cam == null or origin == null:
+		return
+	# World position of the target node under the current fit transform.
+	var target_world: Vector3 = graph_root.global_transform * _binary_client.node_position(node_id)
+	# Desired camera position: TELEPORT_FRONT_M back along the camera's forward from
+	# the node, keeping the camera height. Forward is -Z of the camera basis.
+	var fwd: Vector3 = -cam.global_transform.basis.z
+	fwd.y = 0.0
+	if fwd.length() < 0.001:
+		fwd = Vector3.FORWARD
+	fwd = fwd.normalized()
+	var desired_cam: Vector3 = target_world - fwd * TELEPORT_FRONT_M
+	# Move the origin by the delta between where the camera should be and where it is
+	# (origin-space translation = world delta; camera offset within origin is fixed).
+	var delta: Vector3 = desired_cam - cam.global_position
+	_teleport_from = origin.transform
+	_teleport_to = origin.transform.translated(delta)
+	_teleport_t = 0.0
+	_teleport_active = true
+	# Pulse-highlight the target briefly by borrowing the query-var overlay channel
+	# (recolour + rim-flag). Guarded: skip if the node is already a genuine query
+	# var so the transient highlight never clobbers a user's mark.
+	_teleport_pulse_id = node_id
+	_teleport_pulse_t = 0.0
+	_teleport_pulse_applied = false
+	if _binary_client.has_method("is_query_var") and not _binary_client.is_query_var(node_id):
+		if _binary_client.has_method("set_query_var"):
+			_binary_client.set_query_var(node_id, 0)
+			_teleport_pulse_applied = true
+
+
+# Advance the teleport glide + pulse each frame; call from _process.
+func _update_teleport(delta: float) -> void:
+	if _teleport_active:
+		var origin: XROrigin3D = _find_xr_origin()
+		if origin == null:
+			_teleport_active = false
+		else:
+			_teleport_t += delta / maxf(TELEPORT_GLIDE_SEC, 0.0001)
+			var a: float = clampf(_teleport_t, 0.0, 1.0)
+			# Smoothstep ease for a comfortable (nausea-safe) glide.
+			var e: float = a * a * (3.0 - 2.0 * a)
+			origin.transform = _teleport_from.interpolate_with(_teleport_to, e)
+			if a >= 1.0:
+				_teleport_active = false
+	if _teleport_pulse_id >= 0:
+		_teleport_pulse_t += delta
+		if _teleport_pulse_t >= TELEPORT_PULSE_SEC:
+			# Retire the transient highlight (only if we applied it, never a real mark).
+			if _teleport_pulse_applied and _binary_client != null and _binary_client.has_method("clear_query_var"):
+				_binary_client.clear_query_var(_teleport_pulse_id)
+			_teleport_pulse_applied = false
+			_teleport_pulse_id = -1
+
+
+func _find_xr_origin() -> XROrigin3D:
+	var cam: XRCamera3D = _find_xr_camera()
+	var n: Node = cam
+	while n != null:
+		if n is XROrigin3D:
+			return n as XROrigin3D
+		n = n.get_parent()
+	return null
+
+
+# Ray-pick the node under a controller without engaging a grab: evaluate the
+# interaction ray at zero pinch (emits node_targeted on a hit, never node_grabbed)
+# and capture the hit via _on_node_targeted. Returns the node id or -1 on a miss.
+func _pick_node_under_ray(controller: XRController3D) -> int:
+	if _interaction == null or _binary_client == null or graph_root == null:
+		return -1
+	var render_ids: PackedInt32Array = _binary_client.get_render_ids()
+	var render_positions: PackedVector3Array = _binary_client.get_render_positions()
+	var gxf: Transform3D = graph_root.global_transform
+	var world_positions := PackedVector3Array()
+	world_positions.resize(render_positions.size())
+	for i: int in range(render_positions.size()):
+		world_positions[i] = gxf * render_positions[i]
+	_radial_pick_capture = -1
+	_radial_picking = true
+	_interaction.evaluate_ray(
+		controller.global_position,
+		-controller.global_transform.basis.z,
+		0.0,
+		render_ids,
+		world_positions
+	)
+	_radial_picking = false
+	return _radial_pick_capture
+
+
+# Intersect a controller aim ray with the radial MenuPanel quad; returns viewport
+# UV (0..1, y-down) or (-1,-1) on a miss. Mirrors _ray_hit_hud_uv for the smaller
+# square panel.
+func _ray_hit_menu_uv(controller: XRController3D, panel: Node3D) -> Vector2:
+	var to_local: Transform3D = panel.global_transform.affine_inverse()
+	var o: Vector3 = to_local * controller.global_position
+	var d: Vector3 = (to_local.basis * (-controller.global_transform.basis.z)).normalized()
+	if absf(d.z) < 0.00001:
+		return Vector2(-1.0, -1.0)
+	var t: float = -o.z / d.z
+	if t < 0.0:
+		return Vector2(-1.0, -1.0)
+	var hit: Vector3 = o + d * t
+	var half: float = RADIAL_QUAD * 0.5
+	if absf(hit.x) > half or absf(hit.y) > half:
+		return Vector2(-1.0, -1.0)
+	var hit_world: Vector3 = panel.global_transform * hit
+	if controller.global_position.distance_to(hit_world) > RAY_LENGTH:
+		return Vector2(-1.0, -1.0)
+	var u: float = (hit.x + half) / RADIAL_QUAD
+	var v: float = 1.0 - (hit.y + half) / RADIAL_QUAD
+	return Vector2(u, v)
+
+
+# Route a chosen radial action. Action grammar: "qb_mark:<id>", "qb_unmark:<id>",
+# "qb_execute", "qb_clear" (query builder); other prefixes belong to future
+# Wave-2 providers. The menu closes itself after emitting (radial_menu.gd).
+func _on_radial_item_selected(action: String) -> void:
+	if QB_DEBUG:
+		print("[QB] item_selected action='%s'" % action)
+	if action.begins_with("qb_mark:"):
+		_mark_query_var(int(action.substr(8)))
+	elif action.begins_with("qb_unmark:"):
+		_unmark_query_var(int(action.substr(10)))
+	elif action == "qb_toggle_edges":
+		_query.use_concrete_edges = not _query.use_concrete_edges
+		_mark_query_dirty()  # pattern predicates changed → re-count
+	elif action == "qb_clear":
+		_clear_query()
+	elif action == "qb_execute":
+		_execute_query()
+	elif action.begins_with("expand:"):
+		# "expand:<direction>:<edgeType>" — Feature 1 predicate expansion.
+		var rest := action.substr(7)
+		var sep := rest.find(":")
+		if sep > 0:
+			_expand_node(_radial_node_id, rest.substr(0, sep), rest.substr(sep + 1))
+	elif action.begins_with("teleport:"):
+		_teleport_to_node(int(action.substr(9)))
+
+
+func _mark_query_var(node_id: int) -> void:
+	if _binary_client == null:
+		return
+	var assigned := _query.mark(node_id)
+	var has_fn: bool = _binary_client.has_method("set_query_var")
+	if QB_DEBUG:
+		print("[QB] mark node=%d -> %s (var_count=%d) set_query_var_bound=%s" % [
+			node_id, assigned, _query.var_count(), str(has_fn)
+		])
+	if has_fn:
+		_binary_client.set_query_var(node_id, _query.palette_index(node_id))
+	_update_proximity_labels()
+	_mark_query_dirty()
+
+
+func _unmark_query_var(node_id: int) -> void:
+	if not _query.unmark(node_id):
+		return
+	if _binary_client != null and _binary_client.has_method("clear_query_var"):
+		_binary_client.clear_query_var(node_id)
+	_update_proximity_labels()
+	_mark_query_dirty()
+
+
+func _clear_query() -> void:
+	_query.clear()
+	if _binary_client != null and _binary_client.has_method("clear_query_vars"):
+		_binary_client.clear_query_vars()
+	if _planes != null:
+		_planes.clear()  # discard any result planes
+	_update_proximity_labels()
+	# Reset the preview and hide the HUD panel (no active query).
+	_query_dirty = false
+	_query_count = -1
+	_query_pending = false
+	_query_truncated = false
+	_refresh_query_hud()
+
+
+# --- Live count preview (Phase C) -------------------------------------------
+#
+# The active pattern is the set of visible-graph edges connecting marked nodes,
+# with marked nodes as query variables. On every pattern change we debounce ~400ms
+# then POST it countOnly to /api/graph/query/pattern; the returned bindingCount is
+# staged onto the HUD query panel. Edges carry their concrete predicate (from the
+# edge-type wire) unless the "Edges: any" toggle is on — see
+# query_builder.gd::derive_triples.
+# Decide, once per frame, which panel each active controller's ray owns (nearer
+# panel wins), so the HUD and radial pointer handlers never both consume the same
+# trigger. Each controller is assigned to at most one panel; a full miss leaves it
+# unassigned. Right controller is considered first for a stable tie.
+func _arbitrate_pointers() -> void:
+	_hud_owner = null
+	_radial_owner = null
+	var hud_panel: Node3D = null
+	if hud != null:
+		hud_panel = hud.get_node_or_null("HudPanel") as Node3D
+	var radial_panel: Node3D = null
+	if _radial != null and _radial.visible:
+		radial_panel = _radial.get_node_or_null("MenuPanel") as Node3D
+	if hud_panel == null and radial_panel == null:
+		return
+	for controller: XRController3D in [right_controller, left_controller]:
+		if controller == null or not controller.get_is_active():
+			continue
+		var hud_d := _panel_ray_distance(controller, hud_panel, HUD_QUAD_W, HUD_QUAD_H)
+		var rad_d := _panel_ray_distance(controller, radial_panel, RADIAL_QUAD, RADIAL_QUAD)
+		if hud_d == INF and rad_d == INF:
+			continue
+		# The radial is a MODAL the user explicitly summoned at a node, so any ray
+		# that hits it wins outright — even if the HUD happens to sit nearer along
+		# that ray. Without this, a node summoned roughly toward the parked HUD lets
+		# the HUD claim the controller and STARVES the radial of all wand input
+		# (the "clicks never land / first mark never registers" bug). When the ray
+		# misses the radial, fall back to nearer-panel between HUD and (closed)
+		# radial. Assign _hud_owner explicitly in the else so both panels can't
+		# consume one trigger.
+		if rad_d != INF:
+			if _radial_owner == null:
+				_radial_owner = controller
+		elif hud_d != INF:
+			if _hud_owner == null:
+				_hud_owner = controller
+
+
+# World distance from `controller` to where its aim ray hits the quad `panel`
+# (full sizes quad_w/quad_h), or INF on a miss / beyond reach. Shared by the
+# pointer arbitration; the per-panel UV helpers keep their own hit maths.
+func _panel_ray_distance(controller: XRController3D, panel: Node3D, quad_w: float, quad_h: float) -> float:
+	if controller == null or panel == null:
+		return INF
+	var to_local: Transform3D = panel.global_transform.affine_inverse()
+	var o: Vector3 = to_local * controller.global_position
+	var d: Vector3 = (to_local.basis * (-controller.global_transform.basis.z)).normalized()
+	if absf(d.z) < 0.00001:
+		return INF
+	var t: float = -o.z / d.z
+	if t < 0.0:
+		return INF
+	var hit: Vector3 = o + d * t
+	if absf(hit.x) > quad_w * 0.5 or absf(hit.y) > quad_h * 0.5:
+		return INF
+	var hit_world: Vector3 = panel.global_transform * hit
+	var dist: float = controller.global_position.distance_to(hit_world)
+	if dist > RAY_LENGTH:
+		return INF
+	return dist
+
+
+func _update_query_count(delta: float) -> void:
+	if not _query_dirty:
+		return
+	_query_debounce += delta
+	if _query_debounce < QUERY_DEBOUNCE_SEC:
+		return
+	_query_dirty = false
+	_send_query_count()
+
+
+# Mark the pattern changed: invalidate the shown count, bump the revision (so any
+# in-flight count is now stale), and restart the debounce.
+func _mark_query_dirty() -> void:
+	_query_dirty = true
+	_query_debounce = 0.0
+	_query_count = -1
+	_query_pending = true
+	_query_revision += 1
+	_refresh_query_hud()
+
+
+func _send_query_count() -> void:
+	if _query_http == null or _binary_client == null or not _query.is_active():
+		return
+	var payload: Dictionary = _query.build_pattern_payload(
+		_binary_client.get_edges(), _binary_client.get_edge_types(), true, QUERY_PREVIEW_LIMIT
+	)
+	var triples: Array = payload["triples"]
+	if triples.is_empty():
+		# Variables marked but none connected by a visible edge yet: 0 matches, no
+		# round-trip needed.
+		_query_count = 0
+		_query_truncated = false
+		_query_pending = false
+		_refresh_query_hud()
+		return
+	if not _gate_for_volume(_focused_volume, BackendCaps.PATTERN_QUERY, "pattern queries", true):
+		_query_count = 0
+		_query_pending = false
+		_refresh_query_hud()
+		return
+	var url := "%s/api/graph/query/pattern" % _http_base()
+	var headers := _auth_headers(url, "POST")
+	_query_http.cancel_request()  # supersede any in-flight preview
+	var err := _query_http.request(url, headers, HTTPClient.METHOD_POST, JSON.stringify(payload))
+	if err != OK:
+		push_warning("GraphScene: query count POST failed to start (%d)" % err)
+		return
+	_query_sent_revision = _query_revision
+	_query_pending = true
+	_refresh_query_hud()
+
+
+func _on_query_count_completed(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	# Drop a stale completion: the pattern changed after this request was sent, so a
+	# newer count is pending/in-flight and owns the display.
+	if _query_sent_revision != _query_revision:
+		return
+	_query_pending = false
+	var ok := result == HTTPRequest.RESULT_SUCCESS and response_code >= 200 and response_code < 300
+	if ok:
+		var parsed: Variant = JSON.parse_string(body.get_string_from_utf8())
+		if typeof(parsed) == TYPE_DICTIONARY:
+			_query_count = int(parsed.get("bindingCount", 0))
+			_query_truncated = bool(parsed.get("truncated", false))
+	else:
+		push_warning("GraphScene: query count failed (result=%d code=%d)" % [result, response_code])
+	_refresh_query_hud()
+
+
+# Push the current summary + count to the HUD query panel (or hide it when no
+# query is active). Recomputes triples so the edge count in the summary is fresh.
+func _refresh_query_hud() -> void:
+	if hud == null or not hud.has_method("set_query_preview"):
+		return
+	if not _query.is_active():
+		if hud.has_method("hide_query_preview"):
+			hud.hide_query_preview()
+		if hud.has_method("set_marked_vars"):
+			hud.set_marked_vars([])
+		return
+	if _binary_client != null:
+		_query.derive_triples(_binary_client.get_edges(), _binary_client.get_edge_types())
+	hud.set_query_preview(_query.pattern_summary(), _query_count, _query_pending, _query_truncated)
+	# Populate the marked-variable chip list (var name without the leading '?', +label).
+	if hud.has_method("set_marked_vars"):
+		var rows: Array = []
+		for mid: int in _query.marked_ids():
+			var vname: String = _query.var_name(mid)
+			rows.append({
+				"var": vname.substr(1) if vname.begins_with("?") else vname,
+				"label": _binary_client.label_of(mid) if _binary_client != null else "",
+			})
+		hud.set_marked_vars(rows)
+
+
+func _execute_query() -> void:
+	if _exec_http == null or _binary_client == null or not _query.is_active():
+		return
+	if _exec_pending:
+		return
+	var payload: Dictionary = _query.build_pattern_payload(
+		_binary_client.get_edges(), _binary_client.get_edge_types(), false, PLANE_LIMIT
+	)
+	if (payload["triples"] as Array).is_empty():
+		return
+	if not _gate_for_volume(_focused_volume, BackendCaps.PATTERN_QUERY, "pattern queries"):
+		return
+	var url := "%s/api/graph/query/pattern" % _http_base()
+	var headers := _auth_headers(url, "POST")
+	var err := _exec_http.request(url, headers, HTTPClient.METHOD_POST, JSON.stringify(payload))
+	if err != OK:
+		push_warning("GraphScene: query execute POST failed to start (%d)" % err)
+		return
+	_exec_pending = true
+
+
+func _on_execute_completed(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	_exec_pending = false
+	var ok := result == HTTPRequest.RESULT_SUCCESS and response_code >= 200 and response_code < 300
+	if not ok:
+		push_warning("GraphScene: query execute failed (result=%d code=%d)" % [result, response_code])
+		return
+	var parsed: Variant = JSON.parse_string(body.get_string_from_utf8())
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return
+	var bindings: Array = (parsed as Dictionary).get("bindings", [])
+	if _planes == null:
+		return
+	# Server-space gap so layers land ~PLANE_GAP_M apart after the fit scale.
+	var gap_server: float = PLANE_GAP_M / maxf(_graph_scale, 0.0001)
+	var node_comp: float = NODE_WORLD_RADIUS * _node_size_factor / (NODE_MESH_RADIUS * maxf(_graph_scale, 0.0001))
+	var edge_comp: float = EDGE_WORLD_RADIUS / (EDGE_MESH_RADIUS * maxf(_graph_scale, 0.0001))
+	# size_lo/size_hi match the main node buffer build (graph_scene.gd:_update_multimesh).
+	var spawned: int = _planes.build(
+		bindings, _query.triples, gap_server, node_comp,
+		0.7, 1.9, edge_comp,
+		Callable(self, "_plane_binding_label")
+	)
+	print("GraphScene: query executed → %d planes" % spawned)
+
+
+# Header label for a result plane: the first variable's node label.
+func _plane_binding_label(binding: Dictionary) -> String:
+	for k in binding.keys():
+		var id := int(binding[k])
+		var lbl: String = _binary_client.label_of(id) if _binary_client != null else ""
+		return lbl if lbl != "" else str(id)
+	return ""
+
+
+# ── Shared agents demo (ADR-2142) ─────────────────────────────────────────────
+# The demo is produced ONCE, on the server: a director sends ordinary 0x23 frames to every
+# client, which this client ingests like any agent action (embodied, beamed and listed exactly as
+# live agents are; the scene has no demo branch). The HUD button only asks the server to start or
+# stop it. graph_parity.gd decides which, polls the server's state and retires the six reserved
+# agents when it stops; this is the HTTP half.
+
+func _post_demo(running: bool) -> bool:
+	if _demo_http == null or _demo_pending:
+		return false
+	if not _gate_for_volume(_focused_volume, BackendCaps.DEMO, "agent demo"):
+		return false
+	var url := "%s/api/agents/demo" % _http_base()
+	var headers := _auth_headers(url, "POST")
+	headers.append("Content-Type: application/json")
+	var err := _demo_http.request(url, headers, HTTPClient.METHOD_POST, JSON.stringify({"running": running}))
+	if err != OK:
+		push_warning("GraphScene: demo POST failed to start (%d)" % err)
+		return false
+	_demo_pending = true
+	return true
+
+
+func _on_demo_completed(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	_demo_pending = false
+	if result == HTTPRequest.RESULT_SUCCESS and response_code >= 200 and response_code < 300:
+		if _parity != null and _parity.has_method("apply_demo_body"):
+			_parity.apply_demo_body(body.get_string_from_utf8())
+	else:
+		# The server refused (for example an empty graph) or was unreachable: say so.
+		var why: String = "Demo failed (HTTP %d)" % response_code
+		var parsed: Variant = JSON.parse_string(body.get_string_from_utf8())
+		if typeof(parsed) == TYPE_DICTIONARY and (parsed as Dictionary).has("error"):
+			why = "Demo: %s" % String((parsed as Dictionary)["error"])
+		if hud != null and hud.has_method("flash_notice"):
+			hud.flash_notice(why, 4.0)
+	_reconcile_embodiment()

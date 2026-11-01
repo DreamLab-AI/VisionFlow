@@ -1,0 +1,116 @@
+{
+  "repo": "VisionClaw",
+  "revision": "531df5ef74453a2ed320bff968c203a9b91faed7",
+  "sources": [
+    {
+      "path": "docs/XR-client.md",
+      "sha256": "19bd590688d6030a129dbfc089e99ea5b5014ee58e6bf8182758651afcc16e9e",
+      "export": "source/docs/XR-client.md"
+    },
+    {
+      "path": "docs/adr/ADR-2166-spatial-volumes-can-be-entered-the-others-become-portals.md",
+      "sha256": "c2756c3a15fe6560eb05b612b737dadb70933cc5a0cb15341b913ecbfbe92528",
+      "export": "source/docs/adr/ADR-2166-spatial-volumes-can-be-entered-the-others-become-portals.md"
+    },
+    {
+      "path": "docs/adr/ADR-2172-a-node-is-grabbed-with-either-hand-in-any-visionclaw-volume.md",
+      "sha256": "9c53d920de82b832f1978e7c4d6cbd954b58fc9ac3ea869759140b1cc9b75a84",
+      "export": "source/docs/adr/ADR-2172-a-node-is-grabbed-with-either-hand-in-any-visionclaw-volume.md"
+    },
+    {
+      "path": "xr-client/scripts/graph_scene.gd",
+      "sha256": "1053bbbdfda3cb32bd4f72ba95b8e5f6a564c6433bd598d12a5be8211a10c7d0",
+      "export": "source/xr-client/scripts/graph_scene.gd"
+    },
+    {
+      "path": "xr-client/scripts/backend_connection.gd",
+      "sha256": "656f0fa0180135ad52886df3307ba5a85b40f13cc0019b6cc8661548ff6db0e9",
+      "export": "source/xr-client/scripts/backend_connection.gd"
+    },
+    {
+      "path": "xr-client/scripts/backend_caps.gd",
+      "sha256": "de334b8f0423d5dedaad529f5bfad4ee76c2f0f55270d5e24583a6efdb960eb4",
+      "export": "source/xr-client/scripts/backend_caps.gd"
+    },
+    {
+      "path": "xr-client/scripts/space_portals.gd",
+      "sha256": "c3a62f7e79035fec803e649a0df1509b3d3f2c9b95d12946a2fdb7694868d6c1",
+      "export": "source/xr-client/scripts/space_portals.gd"
+    },
+    {
+      "path": "xr-client/scripts/spatial_volume.gd",
+      "sha256": "784ee4b5e7804514bbc4dbf061cfd865130200248fa1122857346b561250f059",
+      "export": "source/xr-client/scripts/spatial_volume.gd"
+    },
+    {
+      "path": "xr-client/scripts/emulated_volume.gd",
+      "sha256": "7b4058761a0103c7d541fca7c5313bb3cf82101257b0647c0b7af4676ac28cee",
+      "export": "source/xr-client/scripts/emulated_volume.gd"
+    },
+    {
+      "path": "xr-client/scripts/volume_arrangement.gd",
+      "sha256": "37f34fd321a7d0e70fb11d92a1b86c509a6c893dcde97f8969a9a4ab0dd76fab",
+      "export": "source/xr-client/scripts/volume_arrangement.gd"
+    },
+    {
+      "path": "xr-client/scripts/hud.gd",
+      "sha256": "fcaab26f6adf0bf0f8f2b6405e96dcac140c801cff819a8cd7cef25e9d09fec7",
+      "export": "source/xr-client/scripts/hud.gd"
+    },
+    {
+      "path": "xr-client/scripts/xr_prefs.gd",
+      "sha256": "d3f452be58813533c7b496be213a539760410c8782ccc26c86c9fa0c452aa3dd",
+      "export": "source/xr-client/scripts/xr_prefs.gd"
+    },
+    {
+      "path": "xr-client/scripts/spatial_environment.gd",
+      "sha256": "7e71c89073c36e728b6a248840e09e8b811511d43a3930051d1ad971b65b5685",
+      "export": "source/xr-client/scripts/spatial_environment.gd"
+    },
+    {
+      "path": "xr-client/scripts/connection_volume_source.gd",
+      "sha256": "589cca445b04204a8c9caa76474db47fd2b087e4b2e24e9b3968408790ea9afb",
+      "export": "source/xr-client/scripts/connection_volume_source.gd"
+    },
+    {
+      "path": "xr-client/materials/portal_membrane.gdshader",
+      "sha256": "3e12d63a61d7046f27eead9cb37d4738b177d0120ec4f85448b671f3bad06e93",
+      "export": "source/xr-client/materials/portal_membrane.gdshader"
+    },
+    {
+      "path": "xr-client/materials/edge_flow_common.gdshaderinc",
+      "sha256": "9adafddecd9b7f6991ca5f73f6eb1daea5d1dabdb1ff13609942d6681a51ca80",
+      "export": "source/xr-client/materials/edge_flow_common.gdshaderinc"
+    },
+    {
+      "path": "xr-client/materials/edge_flow.tres",
+      "sha256": "83bd1ac23756374f3f118cbf741bbc5aae9269366c2596f792817d21507a7e36",
+      "export": "source/xr-client/materials/edge_flow.tres"
+    },
+    {
+      "path": "xr-client/scripts/node_lod.gd",
+      "sha256": "a904647a11f009950ee9b6307fd7f74ce1781ca7f939f7cf1f2dc70f3ac1b68a",
+      "export": "source/xr-client/scripts/node_lod.gd"
+    },
+    {
+      "path": "xr-client/rust/src/interaction.rs",
+      "sha256": "12cfd7d68635889ca9b3662578777457e80d71cf23215ada99072bf2a18b3edd",
+      "export": "source/xr-client/rust/src/interaction.rs"
+    },
+    {
+      "path": "xr-client/rust/src/render_store.rs",
+      "sha256": "c2b5803d1453b3f5bb50a75e6f8838aaa4943a00b31bba9b91e83e0beedaa77d",
+      "export": "source/xr-client/rust/src/render_store.rs"
+    },
+    {
+      "path": "xr-client/rust/src/binary_protocol.rs",
+      "sha256": "95ca913b974463028250f1b5c975c186cc82cab915941bcf5fdb410204451b06",
+      "export": "source/xr-client/rust/src/binary_protocol.rs"
+    },
+    {
+      "path": "xr-client/tests/unit/test_grab_client.gd",
+      "sha256": "6b5268303cbe8f82345882c530ea110abaea39ea746ffbd74db37fcc323641e8",
+      "export": "source/xr-client/tests/unit/test_grab_client.gd"
+    }
+  ]
+}

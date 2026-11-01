@@ -1,0 +1,91 @@
+{
+  "source": "xr-client/scripts/graph_scene.gd",
+  "source_sha256": "1053bbbdfda3cb32bd4f72ba95b8e5f6a564c6433bd598d12a5be8211a10c7d0",
+  "methods": [
+    {
+      "symbol": "_is_held",
+      "start_line": 175,
+      "end_line": 178,
+      "sha256": "57ef819a32d4941e6fccef48621613c9d84c6aa650e12ce6c4edb640a03ffbf1"
+    },
+    {
+      "symbol": "_held_ids",
+      "start_line": 181,
+      "end_line": 188,
+      "sha256": "f0ca0d54b6a0230c25c7138d51db315dde433403779e48b85c401b2b5c8dabd0"
+    },
+    {
+      "symbol": "_sync_grab_exclusion",
+      "start_line": 193,
+      "end_line": 199,
+      "sha256": "50f334f857a7deb23405ff1725474486b10d44b4ed00fabf93c495ff91a09b5f"
+    },
+    {
+      "symbol": "_release_grab",
+      "start_line": 163,
+      "end_line": 168,
+      "sha256": "36fb40ee0b1dd3f665f04d5353f43d20cb7618d7a4fc4f2fd793accdcf4c7596"
+    },
+    {
+      "symbol": "_any_grab_id",
+      "start_line": 171,
+      "end_line": 174,
+      "sha256": "f8427021ace922ea9726a01abc9f8e6b1e09831ec39f753c22b5b2311b6158d0"
+    },
+    {
+      "symbol": "volume_serves_drag",
+      "start_line": 298,
+      "end_line": 304,
+      "sha256": "097740fafacb21285f3da272b92fe02aa572c42eebe35d8097fb68d9c182044e"
+    },
+    {
+      "symbol": "grab_volume_allowed",
+      "start_line": 321,
+      "end_line": 324,
+      "sha256": "27dad69eacc4ea2d0a7384c56c8e5b83e6d269c72336d37de587da2e78b06ca8"
+    },
+    {
+      "symbol": "_grab_locked",
+      "start_line": 3292,
+      "end_line": 3297,
+      "sha256": "3374f1ca7ffffddde8ea62c390b0dc3c2fb02f2d65558c28d62fe5dcaa333f55"
+    },
+    {
+      "symbol": "_grab_volume_of",
+      "start_line": 3367,
+      "end_line": 3375,
+      "sha256": "ee96973fe0ef43bdef2e797ce2ae7ef0a795724bb02a0fb4d79fa8d8b4d83160"
+    },
+    {
+      "symbol": "_begin_grab",
+      "start_line": 3397,
+      "end_line": 3430,
+      "sha256": "6728805b4fa83f7e47c0ba531b0b9f63102555ce5065909b1e3453ef8957336c"
+    },
+    {
+      "symbol": "_drive_grab",
+      "start_line": 3436,
+      "end_line": 3450,
+      "sha256": "ef77c2e470ea1176fe2fdb9febb7aea2dedfee8111256495172786ca45ded37c"
+    },
+    {
+      "symbol": "_end_grab",
+      "start_line": 3455,
+      "end_line": 3474,
+      "sha256": "0053c12b51304e3a8cccbf53e53b74b990ff75d30dd55c86f75e9d03370a00ee"
+    },
+    {
+      "symbol": "_on_node_grabbed",
+      "start_line": 4475,
+      "end_line": 4496,
+      "sha256": "c51e51d4a2d91ea7dc93ec39a0e293a1a3e1b7d855eb1f5175487be70cde29ae"
+    },
+    {
+      "symbol": "_on_conn_topology_changed",
+      "start_line": 4205,
+      "end_line": 4220,
+      "sha256": "67032aebc392cc8aa3635889902294f97400f5538df63f23bd0587daaca6f891"
+    }
+  ],
+  "boundary": "Exact production function bodies on a purpose-built spy base. UI, transport, controllers, renderer and full scene are not instantiated."
+}

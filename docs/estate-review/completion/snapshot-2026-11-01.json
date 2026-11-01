@@ -4653,6 +4653,117 @@
       "sha256": "5563e0ae92df90fe4e09680c67136dcdb5212ed7991deccaf326712866788bab"
     },
     {
+      "category": "audit-evidence-or-support",
+      "claims": [],
+      "path": "docs/estate-review/evidence/2026-11-01/xr-grab/source/docs/adr/ADR-2166-spatial-volumes-can-be-entered-the-others-become-portals.md",
+      "repo": "VisionFlow",
+      "review": "unreconciled",
+      "sections": [
+        {
+          "line": 23,
+          "ordinal": 1,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "ADR-2166 — Spatial volumes can be entered; the others become portals"
+        },
+        {
+          "line": 25,
+          "ordinal": 2,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Context"
+        },
+        {
+          "line": 31,
+          "ordinal": 3,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Decision"
+        },
+        {
+          "line": 42,
+          "ordinal": 4,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Consequences"
+        },
+        {
+          "line": 49,
+          "ordinal": 5,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Verification"
+        },
+        {
+          "line": 60,
+          "ordinal": 6,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Re-verification — 2026-10-31 (ecd78b6cb)"
+        },
+        {
+          "line": 68,
+          "ordinal": 7,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Re-verification — 2026-10-31 (f1fa1862c)"
+        }
+      ],
+      "sha256": "c2756c3a15fe6560eb05b612b737dadb70933cc5a0cb15341b913ecbfbe92528"
+    },
+    {
+      "category": "audit-evidence-or-support",
+      "claims": [],
+      "path": "docs/estate-review/evidence/2026-11-01/xr-grab/source/docs/adr/ADR-2172-a-node-is-grabbed-with-either-hand-in-any-visionclaw-volume.md",
+      "repo": "VisionFlow",
+      "review": "unreconciled",
+      "sections": [
+        {
+          "line": 23,
+          "ordinal": 1,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "ADR-2172 — A node is grabbed with either hand, up to two at once, in any VisionClaw volume"
+        },
+        {
+          "line": 25,
+          "ordinal": 2,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Context"
+        },
+        {
+          "line": 33,
+          "ordinal": 3,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Decision"
+        },
+        {
+          "line": 48,
+          "ordinal": 4,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Consequences"
+        },
+        {
+          "line": 55,
+          "ordinal": 5,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Verification"
+        },
+        {
+          "line": 60,
+          "ordinal": 6,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Re-verification — 2026-10-31 (f1fa1862c)"
+        }
+      ],
+      "sha256": "9c53d920de82b832f1978e7c4d6cbd954b58fc9ac3ea869759140b1cc9b75a84"
+    },
+    {
       "category": "support-or-unclassified",
       "claims": [],
       "path": "archive/visionclaw-docs/audits/2026-04-20-sovereign-mesh-qe-sprint2/05-phase2-and-adr054.md",
@@ -17926,64 +18037,78 @@
       "category": "decision-candidate",
       "claims": [
         {
-          "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash.",
+          "basis": "Prior whole-section assessment plus scoped grab-amendment refresh at 531df5ef7; six of eight governed files unchanged, scene delta traced. Open findings preserved; old portal executions and headset limits remain historical.",
           "coverage": "whole-document",
           "panels": null,
           "report": "docs/estate-review/2026-10-31-portals-and-federation.md",
-          "state": "stale-source"
+          "state": "assessment-recorded"
         }
       ],
       "path": "docs/adr/ADR-2166-spatial-volumes-can-be-entered-the-others-become-portals.md",
       "repo": "VisionClaw",
-      "review": "stale-evidence",
+      "review": "assessment-recorded",
       "sections": [
         {
           "line": 23,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-10-31-portals-and-federation.md"
+          ],
+          "review": "assessment-recorded",
           "title": "ADR-2166 — Spatial volumes can be entered; the others become portals"
         },
         {
           "line": 25,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-10-31-portals-and-federation.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Context"
         },
         {
           "line": 31,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-10-31-portals-and-federation.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Decision"
         },
         {
           "line": 42,
           "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-10-31-portals-and-federation.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Consequences"
         },
         {
           "line": 49,
           "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-10-31-portals-and-federation.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Verification"
         },
         {
           "line": 60,
           "ordinal": 6,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-10-31-portals-and-federation.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Re-verification — 2026-10-31 (ecd78b6cb)"
         },
         {
           "line": 68,
           "ordinal": 7,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-10-31-portals-and-federation.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Re-verification — 2026-10-31 (f1fa1862c)"
         }
       ],
@@ -18311,51 +18436,71 @@
     },
     {
       "category": "decision-candidate",
-      "claims": [],
+      "claims": [
+        {
+          "basis": "All ADR-2172 sections assessed with source trace, exact-method headless counterexamples and native Rust interaction tests; full GUT scene, controllers, GPU, shader and headset are not freshly qualified.",
+          "coverage": "whole-document",
+          "panels": null,
+          "report": "docs/estate-review/2026-11-01-xr-grab-boundaries.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "path": "docs/adr/ADR-2172-a-node-is-grabbed-with-either-hand-in-any-visionclaw-volume.md",
       "repo": "VisionClaw",
-      "review": "unreconciled",
+      "review": "assessment-recorded",
       "sections": [
         {
           "line": 23,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-xr-grab-boundaries.md"
+          ],
+          "review": "assessment-recorded",
           "title": "ADR-2172 — A node is grabbed with either hand, up to two at once, in any VisionClaw volume"
         },
         {
           "line": 25,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-xr-grab-boundaries.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Context"
         },
         {
           "line": 33,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-xr-grab-boundaries.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Decision"
         },
         {
           "line": 48,
           "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-xr-grab-boundaries.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Consequences"
         },
         {
           "line": 55,
           "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-xr-grab-boundaries.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Verification"
         },
         {
           "line": 60,
           "ordinal": 6,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-xr-grab-boundaries.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Re-verification — 2026-10-31 (f1fa1862c)"
         }
       ],
@@ -121100,22 +121245,22 @@
   ],
   "counts": {
     "available_checkouts": 24,
-    "candidate_files": 1176,
-    "numbered_candidates_with_recorded_assessment": 85,
+    "candidate_files": 1178,
+    "numbered_candidates_with_recorded_assessment": 87,
     "numbered_decision_candidates": 1061,
-    "panels": 1725,
-    "panels_with_recorded_assessment": 304,
+    "panels": 1730,
+    "panels_with_recorded_assessment": 312,
     "scope_targets": 25,
-    "stale_claim_records": 2,
-    "topics": 204
+    "stale_claim_records": 1,
+    "topics": 205
   },
   "method": "Explicit scope; Git-owned Markdown; parsed headings exclude fenced examples; explicit human review claims require exact source/report hashes. Unreconciled is not unreviewed. Candidate counts are not a complete obligation denominator or overall task percentage.",
   "repositories": [
     {
       "available": true,
-      "candidate_files": 75,
+      "candidate_files": 77,
       "dirty": true,
-      "head": "3e3ae7a1f664869345e1ab3f30ab2c23be473a9d",
+      "head": "6398f8f243b73e1bbf668a33593ea37cbe3d58b2",
       "local": "VisionFlow",
       "name": "VisionFlow"
     },
@@ -137657,7 +137802,19 @@
       "sha256": "733c937ec4afbd40471db5000ccb740cb28a6f77b33181b51e0e0ff4420f3263"
     },
     {
-      "claims": [],
+      "claims": [
+        {
+          "basis": "Source rechecked at 531df5ef7, strict citations and rendered visual inspection. VC-47 historical test limits retained; VC-53 method and native-policy evidence boundaries explicit.",
+          "coverage": "selected-panels",
+          "panels": [
+            "VC-47.1",
+            "VC-47.2",
+            "VC-47.3"
+          ],
+          "report": "docs/estate-review/2026-11-01-xr-grab-boundaries.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "panels": [
         {
           "body_sha256": "1c30605ba8e9b7d68a70c0b352ebe324bff05079fca6032047672b908bc554c4",
@@ -137665,32 +137822,38 @@
           "id": "VC-47.1",
           "line": 27,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-xr-grab-boundaries.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
-          "body_sha256": "4ee1ea2f893287a3005c1630dfd5e049c9412d746f1590a0d6995ce53b9ba9f5",
+          "body_sha256": "43be9072081852a72f0c34d72ac6709bd3eb9e5e92acd21360959c974a151a08",
           "heading": "VC-47.2 World points become local distances before a metre-labelled threshold",
           "id": "VC-47.2",
           "line": 40,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-xr-grab-boundaries.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
-          "body_sha256": "d9e58a3a23bd31604bc1d48f5b33ac4503bdcf3d1eecc30ba2d04c5b0c7568e6",
+          "body_sha256": "61b69f37dec8f16458a5aa60187dcb08dbca854a31548482c785742667bb5392",
           "heading": "VC-47.3 Resize detection and membrane capacity have explicit boundaries",
           "id": "VC-47.3",
           "line": 55,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-xr-grab-boundaries.md"
+          ],
+          "review": "assessment-recorded"
         }
       ],
       "path": "docs/diagrams/visionclaw/47-portal-entry-and-scaled-walkthrough.md",
       "repo": "VisionFlow",
-      "review": "unreconciled",
-      "sha256": "aa7933b05af35f22ed299b0d39a9067c95addf8c20e64d85b367558360c85c02"
+      "review": "assessment-recorded",
+      "sha256": "2ad00b1e5bd4f1b383946d7d26831c171cb9a3d010480aedf00427ef14020aad"
     },
     {
       "claims": [],
@@ -137922,6 +138085,84 @@
       "repo": "VisionFlow",
       "review": "assessment-recorded",
       "sha256": "ec3eb93d09ed5aaefbe3e868e69ebc5b89e6997eb13342553c0fc6d6aaf33856"
+    },
+    {
+      "claims": [
+        {
+          "basis": "Source rechecked at 531df5ef7, strict citations and rendered visual inspection. VC-47 historical test limits retained; VC-53 method and native-policy evidence boundaries explicit.",
+          "coverage": "selected-panels",
+          "panels": [
+            "VC-53.1",
+            "VC-53.2",
+            "VC-53.3",
+            "VC-53.4",
+            "VC-53.5"
+          ],
+          "report": "docs/estate-review/2026-11-01-xr-grab-boundaries.md",
+          "state": "assessment-recorded"
+        }
+      ],
+      "panels": [
+        {
+          "body_sha256": "cf20f969bb1bdbf13be25ef43f6a3cff16872da90d674ec1259b2f36fefa41a8",
+          "heading": "VC-53.1 Per-hand holds route through their volume and share one id domain",
+          "id": "VC-53.1",
+          "line": 27,
+          "ordinal": 1,
+          "reports": [
+            "docs/estate-review/2026-11-01-xr-grab-boundaries.md"
+          ],
+          "review": "assessment-recorded"
+        },
+        {
+          "body_sha256": "bd8b7be4bc72bc70eb250648d8901128b11c0c7a449883ffd43dcfd7f89ce96c",
+          "heading": "VC-53.2 Topology invalidates selections but leaves held ids alive",
+          "id": "VC-53.2",
+          "line": 40,
+          "ordinal": 2,
+          "reports": [
+            "docs/estate-review/2026-11-01-xr-grab-boundaries.md"
+          ],
+          "review": "assessment-recorded"
+        },
+        {
+          "body_sha256": "ca51700f0d6095d39ad75afce913ea80a10b330c84e645ab62cce0412dd03e40",
+          "heading": "VC-53.3 Double-click consumes one callback rather than the held press",
+          "id": "VC-53.3",
+          "line": 54,
+          "ordinal": 3,
+          "reports": [
+            "docs/estate-review/2026-11-01-xr-grab-boundaries.md"
+          ],
+          "review": "assessment-recorded"
+        },
+        {
+          "body_sha256": "f21cf8f4a5ac2091cef9d50d2d46f1ea6b1351c323c5d97755357287483917e4",
+          "heading": "VC-53.4 Capture reach exceeds the retained hold depth",
+          "id": "VC-53.4",
+          "line": 66,
+          "ordinal": 4,
+          "reports": [
+            "docs/estate-review/2026-11-01-xr-grab-boundaries.md"
+          ],
+          "review": "assessment-recorded"
+        },
+        {
+          "body_sha256": "bba90e86990630168b87bbb53e47c63b47373d72178b74204c2596fbcd769baa",
+          "heading": "VC-53.5 Hold admission and containment have distinct exceptions",
+          "id": "VC-53.5",
+          "line": 77,
+          "ordinal": 5,
+          "reports": [
+            "docs/estate-review/2026-11-01-xr-grab-boundaries.md"
+          ],
+          "review": "assessment-recorded"
+        }
+      ],
+      "path": "docs/diagrams/visionclaw/53-xr-grab-lifetimes-and-input.md",
+      "repo": "VisionFlow",
+      "review": "assessment-recorded",
+      "sha256": "34e393d5986b64feafab40f56dcd216459074fc91e43094b5e3098d256cdb37d"
     },
     {
       "claims": [],

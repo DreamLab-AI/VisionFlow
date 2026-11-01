@@ -122,3 +122,13 @@ Later in this batch, incoming grab/client work moved VisionClaw main to `434afb6
 and changed ADR-2166 again. The narrow metadata annex above does not reverify
 those later changes. The completion ledger deliberately leaves that assessment
 stale until the new obligations and runtime evidence receive their own review.
+
+## Grab-amendment refresh — 2026-11-01
+
+The [grab lifetime assessment](2026-11-01-xr-grab-boundaries.md) now reviews those
+annexes at `531df5ef7`. Only `graph_scene.gd` and the HUD swatch changed among
+ADR-2166's eight governed paths. The new review traces per-hand admission,
+release on portal transitions and the added locks, including their remaining
+boundary gaps. This restores the ADR-2166 document binding. All prior portal
+findings and headset limits remain; no historical portal test is presented as
+a fresh run. The new held-node fit exclusion also needs an explicit E7 exception.

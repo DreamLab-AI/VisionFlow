@@ -1,0 +1,54 @@
+{
+  "baseline": "75b72416bac176ca8fde715cac3bd7c77657b3e7",
+  "revision": "531df5ef74453a2ed320bff968c203a9b91faed7",
+  "paths": [
+    {
+      "path": "xr-client/scripts/space_portals.gd",
+      "before_sha256": "c3a62f7e79035fec803e649a0df1509b3d3f2c9b95d12946a2fdb7694868d6c1",
+      "after_sha256": "c3a62f7e79035fec803e649a0df1509b3d3f2c9b95d12946a2fdb7694868d6c1",
+      "unchanged": true
+    },
+    {
+      "path": "xr-client/scripts/spatial_volume.gd",
+      "before_sha256": "784ee4b5e7804514bbc4dbf061cfd865130200248fa1122857346b561250f059",
+      "after_sha256": "784ee4b5e7804514bbc4dbf061cfd865130200248fa1122857346b561250f059",
+      "unchanged": true
+    },
+    {
+      "path": "xr-client/scripts/emulated_volume.gd",
+      "before_sha256": "7b4058761a0103c7d541fca7c5313bb3cf82101257b0647c0b7af4676ac28cee",
+      "after_sha256": "7b4058761a0103c7d541fca7c5313bb3cf82101257b0647c0b7af4676ac28cee",
+      "unchanged": true
+    },
+    {
+      "path": "xr-client/scripts/volume_arrangement.gd",
+      "before_sha256": "37f34fd321a7d0e70fb11d92a1b86c509a6c893dcde97f8969a9a4ab0dd76fab",
+      "after_sha256": "37f34fd321a7d0e70fb11d92a1b86c509a6c893dcde97f8969a9a4ab0dd76fab",
+      "unchanged": true
+    },
+    {
+      "path": "xr-client/scripts/graph_scene.gd",
+      "before_sha256": "58b95160c2e8bd19c93dca329522f0539481509b98452af6b9a4e96b2986fec6",
+      "after_sha256": "1053bbbdfda3cb32bd4f72ba95b8e5f6a564c6433bd598d12a5be8211a10c7d0",
+      "unchanged": false
+    },
+    {
+      "path": "xr-client/scripts/hud.gd",
+      "before_sha256": "00e38f6ff47f6a79232db597f0f1b3f46dc65a314e61f96c211dfbfcfd0d20c4",
+      "after_sha256": "fcaab26f6adf0bf0f8f2b6405e96dcac140c801cff819a8cd7cef25e9d09fec7",
+      "unchanged": false
+    },
+    {
+      "path": "xr-client/scripts/xr_prefs.gd",
+      "before_sha256": "d3f452be58813533c7b496be213a539760410c8782ccc26c86c9fa0c452aa3dd",
+      "after_sha256": "d3f452be58813533c7b496be213a539760410c8782ccc26c86c9fa0c452aa3dd",
+      "unchanged": true
+    },
+    {
+      "path": "xr-client/materials/portal_membrane.gdshader",
+      "before_sha256": "3e12d63a61d7046f27eead9cb37d4738b177d0120ec4f85448b671f3bad06e93",
+      "after_sha256": "3e12d63a61d7046f27eead9cb37d4738b177d0120ec4f85448b671f3bad06e93",
+      "unchanged": true
+    }
+  ]
+}

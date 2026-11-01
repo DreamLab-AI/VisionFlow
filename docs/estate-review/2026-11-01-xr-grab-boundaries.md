@@ -1,0 +1,74 @@
+---
+title: XR grab lifetimes, input arbitration and portal refresh
+date: 2026-11-01
+status: assessed
+type: explanation
+---
+
+# XR grab lifetimes, input arbitration and portal refresh
+
+Two-hand grabbing is implemented, but its lifetime and input boundaries need work. Headless probes reproduce a held id surviving a topology-generation change, a grab following a double-click without another release, and a four-metre first-update jump for a node caught ten metres away. These are method-level counterexamples, not observations from a headset or live backend.
+
+This assessment covers all sections of ADR-2172 at VisionClaw `531df5ef74453a2ed320bff968c203a9b91faed7` and refreshes ADR-2166 against the [earlier whole-document review](2026-10-31-portals-and-federation.md). [Evidence and reproduction instructions](evidence/2026-11-01/xr-grab/README.md) retain the source, exact extracted functions, spy boundaries and results. The [server drag review](2026-11-01-drag-holds-and-acceptance.md) remains the separate account of server ownership, release and acceptance-gate defects.
+
+## Findings and acceptance requirements
+
+| ID | Evidence and trigger | Consequence and required evidence |
+| --- | --- | --- |
+| XG1 — held ids outlive their generation | `BackendConnection` says ids are generation-scoped and increments its generation on topology updates (`backend_connection.gd:18–19,328–330,359–361`). `GraphScene._on_conn_topology_changed` invalidates sources and selections but leaves both hand holds intact (`graph_scene.gd:4205–4218`). The extracted callback retains held id 11; the subsequent real drive body sends an update for 11. | A reused id could receive an old gesture. The fixture models a changed mapping; it does not demonstrate actual server reuse. Bind holds, catch offsets and double-click state to connection generation. Exercise topology replacement during each hand's hold, reuse and deletion of the id, and both hand release orders. Cancellation must not send an old generation's release into a new id domain. |
+| XG2 — double-click suppression lasts one callback | `evaluate_ray` emits `node_grabbed` on every evaluation with an active trigger (`interaction.rs:144–185`). After opening a document, the scene clears `_dc_last_id` and returns without a press-consumed latch (`graph_scene.gd:4475–4495`). Replaying the next callback for the still-held trigger starts another grab. | The method probe opens once and then holds the node. The actual controller loop and HUD interception were not run. Test consecutive physics frames, including opening a document that does not lie under the current ray; require release before a consumed press can start a drag. Existing tests call the second press and stop before the next active frame. |
+| XG3 — capture and hold depth disagree | The production Rust ray policy admits forward hits up to 30 m, including 0.1 m and 10 m in a fresh unit test. `_begin_grab` clamps depth to 0.2–6 m, and `_drive_grab` uses that clamped value (`graph_scene.gd:3418–3425,3441–3447`). With an identity transform and unchanged controller pose, 10 m becomes 6 m; 0.1 m becomes 0.2 m. Controls at 1 m and 6 m do not jump. | The documented no-snap behaviour is limited by an undisclosed depth policy. Either constrain capture to the hold range or make near/far attachment an explicit interaction choice. Test the same world-space boundaries in ring, entered and scaled arrangements, with off-axis catches too. This is no measurement of tracking accuracy. |
+| XG4 — box/node exclusion is one-way | `begin_box_grip` refuses a box already holding a node (`graph_scene.gd:627–644`). Node admission checks transition/easing state, but not an existing `_box_grab_ctrl` (`:3292–3295,3397–3404`). The method probe starts a node hold with same-volume box-grip state already present. | A continuing box drive can change the held node's transform. Only node-start admission was executed; the full controller gesture is source-derived. Test both acquisition orders and pending grip grace. The ownership rule should cover a box already being moved or resized, not only a node held first. |
+| XG5 — local hold ignores a refused send | `_begin_grab` writes local hold/exclusion state and ignores `send_drag_start`'s Boolean result (`graph_scene.gd:3405–3428`). The real connection returns false when the capability or client method is unavailable (`backend_connection.gd:249–255`). A spy returning false leaves the local node held. | Optimistic feedback can imply a server hold that was never sent. This is an API-level counterexample; candidate filtering may prevent some ordinary offline entries. Define pending, accepted and cancelled state, and test a missing client, refusal and disconnect between candidate collection and dispatch. A successful local send also does not prove server acceptance. |
+| XG6 — universal containment conflicts with drag exclusions | The governing E7 says no node centre lies outside its box (`XR-client.md:940`). The new fit explicitly excludes held nodes (`connection_volume_source.gd:47–50,185–186`), and the committed regression deliberately holds a node beyond the box face (`test_grab_client.gd:445–478`). | Excluding held outliers prevents the documented fit-feedback runaway, but means E7 needs an explicit held-node exception or an enforced hand boundary. Do not restore the runaway by blindly including held nodes. Record the intended rule and test containment of unheld nodes plus recovery after release. This is a contract tension, not a fresh rendered escape test. |
+
+The earlier focus-marker concern remains conditional: its transform follows the chosen volume while coordinates come from the primary connection. Knowledge and ontology currently share that connection, so this is chiefly a differentiated-stream qualification requirement, not a demonstrated bug in the present two-volume arrangement. The same id namespace assumption makes the held-id filter valid for today's draggable volumes; adding another draggable connection requires compound identity.
+
+## ADR-2172, section by section
+
+| Section | Assessment |
+| --- | --- |
+| Metadata and acceptance boundary | Accepted/partial/inactive matches the outstanding headset, stereo and live-server gates. Its dependency trigger has occurred: server holds and release are merged. The merged-tree annex acknowledges that, but older body statements still describe a server that pins at drag-end. |
+| Context: ontology refusal and shared simulation | The gate now permits knowledge and ontology and refuses Codescape. Both draggable volumes bind to one VisionClaw connection with distinct class masks. The context's server cap of five is stale: the current server uses two, as traced in the prior drag review. |
+| Context: single hold, release bookkeeping and breathe | Per-hand arrays replace the single hold. Drag-end no longer populates pin bookkeeping. The deeper 36 s breathe is encoded in the material and shader. Historical perceptual claims are not re-measured. |
+| D1: draggable volumes | Capability-based admission is present. This is a static binding/capability decision, not proof of connection liveness or server authorisation. XG5 qualifies admission success. |
+| D2: one node per hand | Independent hand state, duplicate-id refusal, per-volume exclusion and separate release are present. Fresh method controls pass. The inspected Rust `hunt_grabs` applies held targets by id; the single-node fallback remains explicit. Its native store tests were read, not re-run in this batch. |
+| D3: routing and transforms | Candidate runs use each source's pack slot and Content transform; drive applies the inverse transform and dispatches through that volume's connection. XG1 and XG3 qualify lifetime and no-jump claims. Existing scaled-room GUT tests remain historical. |
+| D4: portals and transitions | Only the entered volume is eligible inside a room; transition/easing guards refuse new grabs. `entered_changed` calls `_release_grab` for both hands (`graph_scene.gd:1459–1466`), and the portal implementation emits on enter/leave. No fresh full-scene or physical walk-through run is claimed. |
+| D5: unchanged actions | Haptic calls and HUD/radial pointer checks exist; both-grip manipulation requires no node hold. Double-click is per hand, but XG2 shows its callback-level suppression is incomplete. XG4 identifies the reverse box-grip acquisition order missing from the stated lock. |
+| D6: release and pins | Local and connection drag-end paths no longer record pins. The record correctly discloses an empty Pins page, zero Unpin All count and no client Pin sender. Explicit server pins are distinct; “release rejoins physics” must not promise removal of another explicit pin or verified settling. The server audit's false acceptance remains open. |
+| D7 F1: fit runaway | Exclusion is a set, passed through `render_aabb_ids`; both held ids are excluded. The existing 90-frame fixture asserts bounded target and stable scale. That receipt is historical here; XG6 requires narrowing universal E7 wording. |
+| D7 F2: merge cost | Native packed-array transforms, native id removal and run-end lookup replace per-node script bookkeeping. The 13k-node timing figures are historical HP measurements, not a fresh frame-time claim. |
+| D7 F3, F5: release bookkeeping and HUD | No drag-created pin remains to undo on connection close. The record's UI limitation is explicit; making empty controls useful remains product work. |
+| D7 F4, F8: locks | Transition/ease checks and held-first guards exist. XG4 qualifies the reverse acquisition order. The link and Front guards were traced; they do not establish every possible transform mutation is excluded. |
+| D7 F6: double-click | Per-hand arrays preserve interleaved presses and hand-off. The tests end after the second callback; XG2 adds the missing subsequent-frame question. |
+| D7 F7: catch offset and trough | Lateral catch offset is retained in the hand frame. XG3 finds the independent depth clamp. Scaling both albedo and alpha by 0.2 gives a 0.04 edge contribution over black; it is not a universal claim about perceived scene brightness. |
+| D8: visible breathe | Period 36 and depth 0.8 are set, and far ribbons copy both parameters. The shader leaves it enabled under reduced motion by the recorded owner choice. Source configuration does not establish VIVE visibility, comfort or real shader compilation. |
+| Consequences | Two local holds are supported at the scoped fixture level. The “server pins today / until GS lands” paragraph is obsolete after the merged server change. The focus marker remains single-node, and the old-extension fallback is partial rather than equivalent behaviour. Live two-hand GPU response remains unverified. |
+| Verification and merged-tree annex | The historical full server, Vitest and GUT receipts remain bounded to their stated sources and runtimes. This batch runs 25 headless checks around 14 extracted functions and 13 existing Rust interaction tests plus one capture-boundary test. It does not re-run the full 28-test GUT scene suite or certify 90 Hz, stereo, native-extension deployment or controller comfort. |
+
+## ADR-2166 refresh
+
+Across its eight governed paths, `75b72416b` to `531df5ef7` changes only `graph_scene.gd` and `hud.gd`. The portal state machine, volume fitting, emulated frame, arrangement, preferences and membrane shader are byte-identical. The retained source delta records this; earlier 41-test portal results and seven boundary probes remain historical runs.
+
+The [prior section table](2026-10-31-portals-and-federation.md#adr-2166-section-by-section) still governs D1–D9 and consequences, with these dispositions for the new annexes:
+
+| Added or affected obligation | Current disposition |
+| --- | --- |
+| Ontology/ring grabs and portal refusal | New source admits the entered volume and both draggable ring volumes, with Codescape still refused. Candidate slots and transforms are now per volume. |
+| Release during enter, swap or leave | The scene's portal signal handler releases all hands before updating budget weights. Portal core behaviour is unchanged; this is a source wiring assessment. |
+| First-entry ease lock and held-first Front/link/box guards | Present in the new scene. XG4 records the unguarded reverse box acquisition order. |
+| HUD swatch | Two changed lines make the edge key gold and name its breathe. They change no portal state or transition. |
+| Earlier open findings | Scaled walk-through hysteresis, bounds mutation before the dim, the eight-membrane extension boundary, dynamic-extent containment and missing portal/fade call accounting remain. The latter is re-traced at `graph_scene.gd:3149–3184`. |
+| E7 after the grab amendment | XG6 adds the explicit held-node exception question to the previous dynamic-extent finding. |
+| Merged-tree verification | Historical merged receipts do not substitute for headset, shader, fill-rate or comfort evidence. No activation upgrade follows. |
+
+This restores ADR-2166's ledger binding with its open findings intact. VC-47's three panels are rechecked and re-stamped; their execution language now identifies historical tests. ADR-2143 remains stale and is outside this batch.
+
+## Comparison and user utility
+
+Unity's XR Interaction Toolkit distinguishes a continuously active trigger from a press-edge selection that stays engaged until release. Its documentation explicitly describes repeated interaction events under state-based selection. That is a useful design comparison for XG2: choose and test the input semantics, then consume a document-opening press until release. It is not evidence that Unity implements VisionClaw's graph-generation rules. [XR Ray Interactor 3.0](https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@3.0/manual/xr-ray-interactor.html).
+
+Unity also exposes far attachment and dynamic attachment as explicit choices, including whether a distant object stays at the hit point or comes to the hand. VisionClaw can make the equivalent policy clear without changing engines. Its distinct application is manipulating a shared semantic graph across filtered views; that value depends on stable identity and predictable input, not just two available hands. [XR Grab Interactable 3.0](https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@3.0/manual/xr-grab-interactable.html).
+
+For the industrial walkthrough, qualify a journey in which one hand holds an asset and the other inspects a linked concept, then the data refreshes and the user opens a document. Measure unintended moves, first-update displacement, cancellation clarity and task completion. Keep wire ids, view transforms and connection state out of the operator's workflow; show a clear cancelled/retry state when the underlying identity changes. Full controller replay should precede claims of reliable two-hand operation in a demonstration.

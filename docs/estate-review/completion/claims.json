@@ -293,11 +293,11 @@
     "kind": "adr",
     "repo": "VisionClaw",
     "path": "docs/adr/ADR-2166-spatial-volumes-can-be-entered-the-others-become-portals.md",
-    "source_sha256": "7e45c9c83eaf253c5670c8866396592d1268b22ff5de96a4a63d4ba06168adbe",
+    "source_sha256": "c2756c3a15fe6560eb05b612b737dadb70933cc5a0cb15341b913ecbfbe92528",
     "report": "docs/estate-review/2026-10-31-portals-and-federation.md",
-    "report_sha256": "4213221e3f16facea20c5d2c9a2b6842d60e68cb14a5623db535c23a1c15c8f6",
+    "report_sha256": "378f6e5911fa5745caab5d5b8f772d5a3c21e39dc5891228959b9837bfddf16a",
     "coverage": "whole-document",
-    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+    "basis": "Prior whole-section assessment plus scoped grab-amendment refresh at 531df5ef7; six of eight governed files unchanged, scene delta traced. Open findings preserved; old portal executions and headset limits remain historical."
   },
   {
     "kind": "adr",
@@ -305,7 +305,7 @@
     "path": "docs/adr/ADR-2161-a-node-publishes-data-spaces-that-peer-nodes-render-as-linked-volumes.md",
     "source_sha256": "c77769bb7b236d8370f5e15b7045d27a8a22657813bd43112e44bf436b73c05d",
     "report": "docs/estate-review/2026-10-31-portals-and-federation.md",
-    "report_sha256": "4213221e3f16facea20c5d2c9a2b6842d60e68cb14a5623db535c23a1c15c8f6",
+    "report_sha256": "378f6e5911fa5745caab5d5b8f772d5a3c21e39dc5891228959b9837bfddf16a",
     "coverage": "whole-document",
     "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
   },
@@ -2169,5 +2169,47 @@
       "VC-52.5"
     ],
     "basis": "Five new source-traced, rendered and visually inspected panels. Historical VC-16 notice gives no additional panel credit."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2172-a-node-is-grabbed-with-either-hand-in-any-visionclaw-volume.md",
+    "source_sha256": "9c53d920de82b832f1978e7c4d6cbd954b58fc9ac3ea869759140b1cc9b75a84",
+    "report": "docs/estate-review/2026-11-01-xr-grab-boundaries.md",
+    "report_sha256": "3b6a10787e6d4774b364b3a77abd86626d307608863e01cd434e76f60da8416e",
+    "coverage": "whole-document",
+    "basis": "All ADR-2172 sections assessed with source trace, exact-method headless counterexamples and native Rust interaction tests; full GUT scene, controllers, GPU, shader and headset are not freshly qualified."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/47-portal-entry-and-scaled-walkthrough.md",
+    "source_sha256": "2ad00b1e5bd4f1b383946d7d26831c171cb9a3d010480aedf00427ef14020aad",
+    "report": "docs/estate-review/2026-11-01-xr-grab-boundaries.md",
+    "report_sha256": "3b6a10787e6d4774b364b3a77abd86626d307608863e01cd434e76f60da8416e",
+    "coverage": "selected-panels",
+    "panels": [
+      "VC-47.1",
+      "VC-47.2",
+      "VC-47.3"
+    ],
+    "basis": "Source rechecked at 531df5ef7, strict citations and rendered visual inspection. VC-47 historical test limits retained; VC-53 method and native-policy evidence boundaries explicit."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/53-xr-grab-lifetimes-and-input.md",
+    "source_sha256": "34e393d5986b64feafab40f56dcd216459074fc91e43094b5e3098d256cdb37d",
+    "report": "docs/estate-review/2026-11-01-xr-grab-boundaries.md",
+    "report_sha256": "3b6a10787e6d4774b364b3a77abd86626d307608863e01cd434e76f60da8416e",
+    "coverage": "selected-panels",
+    "panels": [
+      "VC-53.1",
+      "VC-53.2",
+      "VC-53.3",
+      "VC-53.4",
+      "VC-53.5"
+    ],
+    "basis": "Source rechecked at 531df5ef7, strict citations and rendered visual inspection. VC-47 historical test limits retained; VC-53 method and native-policy evidence boundaries explicit."
   }
 ]

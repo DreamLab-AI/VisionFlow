@@ -1,0 +1,17 @@
+{
+  "engine": "4.6.1.stable.official.14d19694e",
+  "mode": "headless dummy renderer; no gdextension; extracted functions with spies",
+  "command": "XDG_DATA_HOME=/tmp/vf-xr-grab-audit-20261101-data /home/john/.local/bin/godot --headless --path /tmp/vf-xr-grab-audit-20261101 --script res://probe.gd",
+  "remote_inputs_verified": {
+    "project.godot": "a12d287bde0012b029715ea11fbab6f1c950e7ea6d6d95bd9989c9fec3f40dd1",
+    "backend_caps.gd": "de334b8f0423d5dedaad529f5bfad4ee76c2f0f55270d5e24583a6efdb960eb4",
+    "graph_methods.gd": "64393a9f1090755c92214358a7d252993ec59fe530bf6ec73368738a84a616d0",
+    "spy_base.gd": "ec3d38e88a97d45846b0de81c937a76443ecd6a7b33a82b82e24451545ff2879",
+    "probe.gd": "bc9c0d97ba1f04e879cffa13596a7fad2bc65d7594687b13c64ccc15fc22c3e6"
+  },
+  "checks": 25,
+  "failures": 0,
+  "rust_native_tests": 13,
+  "rust_added_boundary_tests": 1,
+  "clippy": "passed -D warnings"
+}

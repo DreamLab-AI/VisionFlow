@@ -1,0 +1,21 @@
+   Compiling xr-grab-audit-probe v0.0.0 (/home/devuser/workspace/wt/VisionFlow-xr-grab-boundaries/docs/estate-review/evidence/2026-11-01/xr-grab/rust-probe)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.27s
+     Running unittests lib.rs (/home/devuser/workspace/.tmp/vf-xr-grab-audit-target/debug/deps/xr_grab_audit_probe-0c7d891b2a5127b5)
+
+running 14 tests
+test boundary::capture_accepts_both_sides_of_the_gdscript_depth_clamp ... ok
+test production::tests::diagonal_ray_finds_offset_target ... ok
+test production::tests::empty_candidates_returns_none ... ok
+test production::tests::ignores_node_behind_origin ... ok
+test production::tests::finds_node_directly_in_front ... ok
+test production::tests::ignores_node_outside_max_distance ... ok
+test production::tests::ignores_node_outside_radius ... ok
+test production::tests::picks_nearest_when_two_in_corridor ... ok
+test production::tests::pinch_at_threshold_is_grab ... ok
+test production::tests::pinch_below_threshold_not_grab ... ok
+test production::tests::radius_boundary_inclusive ... ok
+test production::tests::untracked_hand_returns_none ... ok
+test production::tests::zero_direction_ray_degenerates_safely ... ok
+test production::tests::very_large_candidate_count ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

@@ -1,0 +1,86 @@
+slop-scan docs/estate-review/2026-11-01-xr-grab-boundaries.md
+exit=1
+
+  prose-sanitiser slop scan: docs/estate-review/2026-11-01-xr-grab-boundaries.md
+  files scanned: 1   findings: 1   slop score: 3
+  verdict: Some AI tells present
+  high: 1   medium: 0   low: 0
+
+  [HIGH] "The X" sentence/paragraph opener  (1 hit)
+        fix: Don't open with 'The <lowercase noun>'. Recast so the subject leads, or name the thing directly ('The production-node paired study lifts...' -> 'Holding the model constant and varying only the serving path lifts...'). Proper nouns (The Loom) are fine. See SKILL.md B2.
+        docs/estate-review/2026-11-01-xr-grab-boundaries.md:25  The earlier focus-marker concern remains conditional: its transform follows the chosen volume while coordinates come from the primary connection. Knowledge and ...
+
+  Top things to change: "The X" sentence/paragraph opener
+  Narrative and voice tells need eyes too. See Section C of SKILL.md.
+
+
+slop-scan docs/estate-review/evidence/2026-11-01/xr-grab/README.md
+exit=1
+
+  prose-sanitiser slop scan: docs/estate-review/evidence/2026-11-01/xr-grab/README.md
+  files scanned: 1   findings: 3   slop score: 9
+  verdict: Some AI tells present
+  high: 3   medium: 0   low: 0
+
+  [HIGH] "The X" sentence/paragraph opener  (3 hits)
+        fix: Don't open with 'The <lowercase noun>'. Recast so the subject leads, or name the thing directly ('The production-node paired study lifts...' -> 'Holding the model constant and varying only the serving path lifts...'). Proper nouns (The Loom) are fine. See SKILL.md B2.
+        docs/estate-review/evidence/2026-11-01/xr-grab/README.md:11  The double-click constant matches production at 0.45 s.
+        docs/estate-review/evidence/2026-11-01/xr-grab/README.md:25  The generation test models id reuse; the double-click case replays callbacks;
+        docs/estate-review/evidence/2026-11-01/xr-grab/README.md:40  The two official Unity documentation pages were opened on 2026-11-01. They inform
+
+  Top things to change: "The X" sentence/paragraph opener
+  Narrative and voice tells need eyes too. See Section C of SKILL.md.
+
+
+slop-scan docs/estate-review/completion/README.md
+exit=0
+
+  prose-sanitiser slop scan: docs/estate-review/completion/README.md
+  files scanned: 1   findings: 0   slop score: 0
+  verdict: Clean, no mechanical tells detected
+  high: 0   medium: 0   low: 0
+
+  Nothing flagged. Either it is clean or the tells are narrative/voice ones a
+  regex cannot see. Read it against Section C of SKILL.md.
+
+
+slop-scan docs/estate-review/2026-10-31-portals-and-federation.md
+exit=1
+
+  prose-sanitiser slop scan: docs/estate-review/2026-10-31-portals-and-federation.md
+  files scanned: 1   findings: 3   slop score: 9
+  verdict: Some AI tells present
+  high: 3   medium: 0   low: 0
+
+  [HIGH] "The X" sentence/paragraph opener  (3 hits)
+        fix: Don't open with 'The <lowercase noun>'. Recast so the subject leads, or name the thing directly ('The production-node paired study lifts...' -> 'Holding the model constant and varying only the serving path lifts...'). Proper nouns (The Loom) are fine. See SKILL.md B2.
+        docs/estate-review/2026-10-31-portals-and-federation.md:18  The portal suite has 48 tests. **41 unmodified test bodies passed, with 19,288 assertions**. Seven tests instantiate GraphScene and require native-extension cla...
+        docs/estate-review/2026-10-31-portals-and-federation.md:109  The index now contains 169 topics and 1,560 diagrams. The [strict citation pass](evidence/2026-10-31/portal-citations.txt) and [revision verification](evidence/...
+        docs/estate-review/2026-10-31-portals-and-federation.md:115  The annex was read and its cited `hud.gd` diff checked: the two changed lines
+
+  Top things to change: "The X" sentence/paragraph opener
+  Narrative and voice tells need eyes too. See Section C of SKILL.md.
+
+
+slop-scan docs/diagrams/visionclaw/47-portal-entry-and-scaled-walkthrough.md
+exit=0
+
+  prose-sanitiser slop scan: docs/diagrams/visionclaw/47-portal-entry-and-scaled-walkthrough.md
+  files scanned: 1   findings: 0   slop score: 0
+  verdict: Clean, no mechanical tells detected
+  high: 0   medium: 0   low: 0
+
+  Nothing flagged. Either it is clean or the tells are narrative/voice ones a
+  regex cannot see. Read it against Section C of SKILL.md.
+
+
+slop-scan docs/diagrams/visionclaw/53-xr-grab-lifetimes-and-input.md
+exit=0
+
+  prose-sanitiser slop scan: docs/diagrams/visionclaw/53-xr-grab-lifetimes-and-input.md
+  files scanned: 1   findings: 0   slop score: 0
+  verdict: Clean, no mechanical tells detected
+  high: 0   medium: 0   low: 0
+
+  Nothing flagged. Either it is clean or the tells are narrative/voice ones a
+  regex cannot see. Read it against Section C of SKILL.md.
