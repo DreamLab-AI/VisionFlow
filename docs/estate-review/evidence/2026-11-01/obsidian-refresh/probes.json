@@ -1,0 +1,41 @@
+{
+  "method": "actual source modules with bounded host doubles; assertions describe reproduced defects",
+  "cases": [
+    {
+      "case": "same-note simultaneous blocks",
+      "first": "error: superseded",
+      "second": {
+        "form": "ask",
+        "boolean": true
+      }
+    },
+    {
+      "case": "API replaced while blocks loaded",
+      "old_subscribers": 2,
+      "new_subscribers": 0
+    },
+    {
+      "case": "query completes after block unload",
+      "writes_after_unload": [
+        "true"
+      ]
+    },
+    {
+      "case": "variable containing placeholder",
+      "result": {
+        "ok": true,
+        "sparql": "SELECT ?<urn:note> WHERE { ?<urn:note> ?p ?o }",
+        "dataset": "asserted"
+      }
+    },
+    {
+      "case": "non-leading dataset directive",
+      "dataset": "inferred"
+    },
+    {
+      "case": "index fails after vault persistence",
+      "persisted_text": "changed",
+      "error": "injected index failure"
+    }
+  ]
+}

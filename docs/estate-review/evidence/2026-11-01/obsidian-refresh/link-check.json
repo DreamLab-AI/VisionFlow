@@ -1,0 +1,46 @@
+[
+  {
+    "file": "docs/estate-review/2026-11-01-obsidian-refresh.md",
+    "target": "../diagrams/ontomark/09-obsidian-host-lifecycle.md"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-obsidian-refresh.md",
+    "target": "evidence/2026-11-01/obsidian-refresh/verification.json"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-obsidian-refresh.md",
+    "target": "evidence/2026-11-01/obsidian-refresh/probes.mjs"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-obsidian-refresh.md",
+    "target": "evidence/2026-11-01/obsidian-refresh/probes.json"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-obsidian-refresh.md",
+    "target": "evidence/2026-11-01/obsidian-refresh/offline-docker-report.json"
+  },
+  {
+    "file": "docs/diagrams/ontomark/09-obsidian-host-lifecycle.md",
+    "target": "../../estate-review/2026-11-01-obsidian-refresh.md"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "scope.json"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "claims.json"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "snapshot-2026-11-01.json"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "validation-2026-11-01.json"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "../../../scripts/estate-review-ledger/README.md"
+  }
+]

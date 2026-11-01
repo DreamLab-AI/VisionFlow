@@ -1,0 +1,17 @@
+
+> ontomark-obsidian@0.4.2 test
+> vitest run
+
+
+ RUN  v5.0.3 /home/devuser/workspace/wt/VisionFlow-obsidian-refresh/.audit-plugin
+
+
+ Test Files  6 passed (6)
+      Tests  66 passed (66)
+   Start at  10:31:08
+   Duration  8.56s (transform 42%, tests 35%, import 21%, setup 1%, worker 1%)
+
+  Transform  transforming modules took 8.06s · 42% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
+

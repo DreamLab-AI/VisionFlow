@@ -1,0 +1,26 @@
+
+## Relicensing grant (2026-10-11)
+
+Code in this repository ported from the following DreamLab-AI repositories was
+originally published under AGPL-3.0 (VisionClaw crates `vault`, `vault-core`,
+`visionclaw-domain::vault`) or AGPL-3.0-or-later (knowledgeGraph `pipeline/`).
+Those works were authored solely by DreamLab-AI and its agents under the
+direction of Dr John O'Hare, who holds the copyright and grants their reuse here
+under MIT OR Apache-2.0. The grant does not cover, and this repository must not
+contain, code derived from the solid-pod or sidestr lineages or from
+`vault/src/nostr.rs` and its governance posting, which remain AGPL-3.0-only in
+VisionClaw.
+
+## Runtime components
+
+This distribution bundles Ontomark’s WASM engine and shared graph renderer.
+Whelk/Whelk-rs and Oxigraph attribution and complete dependency licence texts
+are preserved in THIRD-PARTY-NOTICES.md. The shared graph adapts Narrative
+Goldmine behaviour: https://github.com/jjohare/visionGraph .
+Sources: https://github.com/DreamLab-AI/ontomark
+
+## Method attribution
+
+The `ontomark-sparql` in-note query block follows the `dot-sparql` block of
+Cristian Vasquez's Dot Triples plugin (MIT), https://github.com/cristianvasquez/dot-triples-plugin .
+No source was copied; see THIRD-PARTY-NOTICES.md and docs/adr/ADR-OBS-004.

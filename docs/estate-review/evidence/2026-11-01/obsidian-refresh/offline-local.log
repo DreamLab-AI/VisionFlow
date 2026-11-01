@@ -1,0 +1,552 @@
+{
+  "started": "2026-11-01T10:31:18.625Z",
+  "node": "v22.23.3",
+  "checks": [
+    {
+      "name": "installed plugin consists of main.js, manifest.json, styles.css only",
+      "ok": true,
+      "detail": [
+        "main.js",
+        "manifest.json",
+        "styles.css"
+      ]
+    },
+    {
+      "name": "manifest: id ontomark, desktop only",
+      "ok": true,
+      "detail": {
+        "id": "ontomark",
+        "name": "Ontomark",
+        "version": "0.4.2",
+        "minAppVersion": "1.7.2",
+        "description": "Ontologies in Markdown: index typed notes, run local OWL 2 EL reasoning and SPARQL, apply reviewed frontmatter edits, and optionally extract facts, or get Jev typed decisions, from an endpoint you choose. Offline by default.",
+        "author": "DreamLab AI",
+        "authorUrl": "https://dreamlab-ai.com",
+        "isDesktopOnly": true
+      }
+    },
+    {
+      "name": "no vault listeners before layout-ready (startup create storm ignored)",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "name": "vault listeners registered after layout-ready",
+      "ok": true,
+      "detail": 4
+    },
+    {
+      "name": "loading and indexing wrote nothing to the vault",
+      "ok": true
+    },
+    {
+      "name": "index: generic profile by default",
+      "ok": true,
+      "detail": "generic"
+    },
+    {
+      "name": "index: 10 fixture entities + chain",
+      "ok": true,
+      "detail": {
+        "entities": 3010,
+        "chain": 3000
+      }
+    },
+    {
+      "name": "index: plain notes are not entities",
+      "ok": true
+    },
+    {
+      "name": "index: malformed frontmatter reported, indexing continued",
+      "ok": true
+    },
+    {
+      "name": "panel lists classes, individuals and properties",
+      "ok": true,
+      "detail": "Generation 1 · profile generic · reasoner ontomark-reason/whelk-el 0.7.0Reasoner is not OWL 2 EL complete: Partial OWL 2 EL: named classes, intersections, existentials, disjointness, subproperties and domains. Ranges, built-in properties, nominals, individual assertions and data properties are unsup"
+    },
+    {
+      "name": "panel names the EL reasoner",
+      "ok": true,
+      "detail": "Generation 1 · profile generic · reasoner ontomark-reason/whelk-el 0.7.0Reasoner is not OWL 2 EL complete: Partial OWL 2 EL: named classes, intersections, existentials, disjointness, subproperties and"
+    },
+    {
+      "name": "panel item carries its IRI",
+      "ok": true
+    },
+    {
+      "name": "classify: unsatisfiable class found",
+      "ok": true,
+      "detail": [
+        "urn:ontomark:page:Ontology/Catdog"
+      ]
+    },
+    {
+      "name": "classify: EL fragment reasoner, full-input policy",
+      "ok": true,
+      "detail": {
+        "el_complete": false,
+        "id": "ontomark-reason/whelk-el",
+        "note": "Partial OWL 2 EL: named classes, intersections, existentials, disjointness, subproperties and domains. Ranges, built-in properties, nominals, individual assertions and data properties are unsupported; individual type expansion uses the class hierarchy only.",
+        "version": "0.7.0"
+      }
+    },
+    {
+      "name": "classify: refused range axiom reported, result marked incomplete",
+      "ok": true,
+      "detail": [
+        {
+          "axiom": {
+            "class": {
+              "iri": "urn:ontomark:page:People/Person",
+              "t": "named"
+            },
+            "property": "urn:ontomark:page:Ontology/has%20owner",
+            "t": "range"
+          },
+          "reason": "EL_NOT_IMPLEMENTED: ranges are OWL 2 EL but whelk-el does not implement them; the range is not used for classification (ObjectPropertyRange)"
+        }
+      ]
+    },
+    {
+      "name": "panel shows inferred superclasses after classification",
+      "ok": true
+    },
+    {
+      "name": "panel explains why the classification is incomplete",
+      "ok": true,
+      "detail": "Classification is incomplete: 1 axiom(s) not used.EL_NOT_IMPLEMENTED: ranges are OWL 2 EL but whelk-el does not implement them; the range is not used for classification (ObjectPropertyRange)"
+    },
+    {
+      "name": "edit during classify: old result discarded (stale/cancelled)",
+      "ok": true,
+      "detail": "cancelled"
+    },
+    {
+      "name": "edit during classify: new generation reflects the edit",
+      "ok": true,
+      "detail": [
+        {
+          "q": {
+            "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+            "type": "literal",
+            "value": "0.65"
+          }
+        }
+      ]
+    },
+    {
+      "name": "query view: inferred types of Rex over the combined dataset",
+      "ok": true,
+      "detail": {
+        "rows": 5,
+        "error": null
+      }
+    },
+    {
+      "name": "query view renders a results table",
+      "ok": true
+    },
+    {
+      "name": "SPARQL UPDATE / SERVICE / FROM refused with codes",
+      "ok": true,
+      "detail": {
+        "update": "update_forbidden",
+        "service": "service_forbidden",
+        "from": "dataset_clause"
+      }
+    },
+    {
+      "name": "queries changed no file",
+      "ok": true
+    },
+    {
+      "name": "an ontomark-sparql code block processor is registered",
+      "ok": true
+    },
+    {
+      "name": "block: __THIS__ is the note's entity and the directive picks the dataset",
+      "ok": true,
+      "detail": {
+        "rows": 5,
+        "error": null
+      }
+    },
+    {
+      "name": "block renders a results table in place",
+      "ok": true,
+      "detail": {
+        "table": true,
+        "classes": [
+          "ontomark-block"
+        ]
+      }
+    },
+    {
+      "name": "block: [[links]] resolve across folders to entity IRIs",
+      "ok": true,
+      "detail": {
+        "rows": [
+          {
+            "p": {
+              "type": "iri",
+              "value": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+            }
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "name": "block: __THIS__ in a plain note is refused with a reason, not run",
+      "ok": true,
+      "detail": "Unresolved: __THIS__ (this note is not an ontology entity: it needs `type: class`, `individual` or `property`)"
+    },
+    {
+      "name": "block: an unresolved [[link]] is named in the error",
+      "ok": true,
+      "detail": "Unresolved: [[Nobody]] (no such entity note)"
+    },
+    {
+      "name": "block: references inside string literals are left alone",
+      "ok": true,
+      "detail": {
+        "rows": [
+          {
+            "x": {
+              "datatype": "http://www.w3.org/2001/XMLSchema#string",
+              "type": "literal",
+              "value": "[[Nobody]] and __THIS__"
+            }
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "name": "blocks changed no file",
+      "ok": true
+    },
+    {
+      "name": "patch: diff preview shown before writing",
+      "ok": true,
+      "detail": "--- a/Welcome.md\n+++ b/Welcome.md\n@@ -1,2 +1,5 @@\n+---\n+type: class\n+---\n Welcome to a plain vault. It mentions [[Animal]], [[Dog]] and [[Rex]] in prose,\n which must never become ontology axioms.\n"
+    },
+    {
+      "name": "patch: applied after approval",
+      "ok": true,
+      "detail": {
+        "status": "applied",
+        "path": "Welcome.md",
+        "digest": "sha256:dfbd97597568541bd655078f7a77cbc5170334b45cdc1416da2fc7e07c6c8c13"
+      }
+    },
+    {
+      "name": "patch: prose bytes preserved, frontmatter added",
+      "ok": true,
+      "detail": "---\ntype: class\n---\nWelcome to a plain vault. It mentions [[Animal]], [[Dog]] and [[Rex]] in prose,\nwhich must never become ontology axioms.\n"
+    },
+    {
+      "name": "patch: the note is now a class in the index",
+      "ok": true
+    },
+    {
+      "name": "patch refused when the source changed after preview",
+      "ok": true,
+      "detail": {
+        "status": "refused",
+        "path": "Ontology/Dog.md",
+        "code": "source_changed",
+        "message": "Ontology/Dog.md changed after the patch was planned; nothing was written"
+      }
+    },
+    {
+      "name": "refused patch wrote nothing (external edit intact)",
+      "ok": true
+    },
+    {
+      "name": "declined patch writes nothing",
+      "ok": true,
+      "detail": {
+        "status": "declined",
+        "path": "Ontology/Cat.md"
+      }
+    },
+    {
+      "name": "delete: entity gone from the index",
+      "ok": true
+    },
+    {
+      "name": "rename: entity follows the file",
+      "ok": true
+    },
+    {
+      "name": "excluded: default `templates` folder and Obsidian's Excluded files are not indexed",
+      "ok": true,
+      "detail": {
+        "paths": [
+          "Broken.md",
+          "Notes/Daily idea.md",
+          "Ontology/Animal.md",
+          "Ontology/Cat.md",
+          "Ontology/Catdog.md",
+          "Ontology/Chien.md",
+          "Ontology/Dog.md",
+          "Ontology/Mammals/Mammal.md",
+          "Ontology/has owner.md",
+          "People/Alice.md",
+          "People/Person.md",
+          "Welcome.md",
+          "templates.md"
+        ],
+        "settings": [
+          "templates"
+        ]
+      }
+    },
+    {
+      "name": "excluded: entityForPath is undefined for the template and the private note",
+      "ok": true
+    },
+    {
+      "name": "excluded: a note merely named like the folder is indexed",
+      "ok": true
+    },
+    {
+      "name": "excluded: create in templates/ and modify under Excluded files leave the engine untouched",
+      "ok": true,
+      "detail": {
+        "generation": 5,
+        "before": 5
+      }
+    },
+    {
+      "name": "excluded: a changed app.json is honoured at the next settings save (People/ gone)",
+      "ok": true,
+      "detail": [
+        "Broken.md",
+        "Notes/Daily idea.md",
+        "Ontology/Animal.md",
+        "Ontology/Cat.md",
+        "Ontology/Catdog.md",
+        "Ontology/Chien.md",
+        "Ontology/Dog.md",
+        "Ontology/Mammals/Mammal.md",
+        "Ontology/has owner.md",
+        "Welcome.md",
+        "templates.md"
+      ]
+    },
+    {
+      "name": "excluded: unreadable app.json fails open (People/ back, Notes/Private/ now indexed)",
+      "ok": true,
+      "detail": [
+        "Broken.md",
+        "Notes/Daily idea.md",
+        "Notes/Private/Secret.md",
+        "Ontology/Animal.md",
+        "Ontology/Cat.md",
+        "Ontology/Catdog.md",
+        "Ontology/Chien.md",
+        "Ontology/Dog.md",
+        "Ontology/Mammals/Mammal.md",
+        "Ontology/has owner.md",
+        "People/Alice.md",
+        "People/Person.md",
+        "Welcome.md",
+        "templates.md"
+      ]
+    },
+    {
+      "name": "excluded: restoring app.json restores the filters",
+      "ok": true
+    },
+    {
+      "name": "excluded: moving a page into templates/ removes it from the engine",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "excluded: moving it back out indexes it again",
+      "ok": true
+    },
+    {
+      "name": "settings: excluded folders is a text control whose validate rejects paths and `..`",
+      "ok": true,
+      "detail": {
+        "path": "\"Ontology/sub\": give a top-level folder name, not a path",
+        "backslash": "\"a\\b\": give a top-level folder name, not a path",
+        "parent": "\"..\": folder names cannot contain \"..\""
+      }
+    },
+    {
+      "name": "settings: excluding Ontology reindexes; its pages are gone, others remain",
+      "ok": true,
+      "detail": {
+        "entities": [
+          "People/Alice.md",
+          "People/Person.md",
+          "Welcome.md"
+        ],
+        "persistedFolders": [
+          "templates",
+          "Ontology"
+        ]
+      }
+    },
+    {
+      "name": "settings: restoring the default brings the Ontology pages back",
+      "ok": true,
+      "detail": {
+        "before": 3003,
+        "after": 3010
+      }
+    },
+    {
+      "name": "settings: profile selector offers generic (default) and estate",
+      "ok": true,
+      "detail": [
+        "generic",
+        "estate"
+      ]
+    },
+    {
+      "name": "estate profile: pages without `resource` refused",
+      "ok": true,
+      "detail": {
+        "entities": 0
+      }
+    },
+    {
+      "name": "ingest: command is registered",
+      "ok": true
+    },
+    {
+      "name": "ingest: no endpoint -> refusing Notice naming the setting, nothing sent",
+      "ok": true,
+      "detail": {
+        "ingestNotices": [
+          "Ontomark: set an ingest endpoint in settings first."
+        ],
+        "attempts": []
+      }
+    },
+    {
+      "name": "ingest: endpoint default is empty and the key is not persisted",
+      "ok": true
+    },
+    {
+      "name": "settings: declarative definitions cover every persisted setting and nothing else",
+      "ok": true,
+      "detail": {
+        "controlKeys": [
+          "autoClassify",
+          "excludedFolders",
+          "ingestEndpoint",
+          "ingestModel",
+          "jevEnabled",
+          "jevEndpoint",
+          "jevMinConfidence",
+          "jevModel",
+          "jevWithholdAtOrBelow",
+          "profile",
+          "queryLimit"
+        ],
+        "settings": [
+          "profile",
+          "autoClassify",
+          "queryLimit",
+          "excludedFolders",
+          "ingestEndpoint",
+          "ingestModel",
+          "jevEnabled",
+          "jevEndpoint",
+          "jevModel",
+          "jevWithholdAtOrBelow",
+          "jevMinConfidence"
+        ]
+      }
+    },
+    {
+      "name": "settings: the session API key is a render item, not a persisted control",
+      "ok": true
+    },
+    {
+      "name": "settings: endpoint validate rejects credentials and fragments, accepts a clean URL and empty",
+      "ok": true,
+      "detail": {
+        "credentials": "the endpoint must not embed credentials",
+        "fragment": "the endpoint must not have a #fragment"
+      }
+    },
+    {
+      "name": "settings: row limit is a bounded dropdown and is stored as a number",
+      "ok": true,
+      "detail": {
+        "stored": 100
+      }
+    },
+    {
+      "name": "settings: setControlValue persists through the plugin's own store",
+      "ok": true,
+      "detail": {
+        "persistedOff": false
+      }
+    },
+    {
+      "name": "settings: setControlValue trims text and ignores unknown keys",
+      "ok": true
+    },
+    {
+      "name": "unload: worker terminated",
+      "ok": true,
+      "detail": {
+        "before": 1,
+        "after": 0
+      }
+    },
+    {
+      "name": "unload: vault listeners removed",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "name": "unload: commands and views unregistered",
+      "ok": true,
+      "detail": {
+        "commands": 0,
+        "views": 0
+      }
+    },
+    {
+      "name": "unload: later calls reject with disposed",
+      "ok": true
+    },
+    {
+      "name": "reload: plugin indexes again (persisted estate profile honoured)",
+      "ok": true,
+      "detail": "estate"
+    },
+    {
+      "name": "no network attempt from any thread",
+      "ok": true,
+      "detail": []
+    }
+  ],
+  "network": {
+    "interfaces": [
+      "lo",
+      "eth0",
+      "eth1"
+    ],
+    "outbound": "connected",
+    "attempts": []
+  },
+  "notices": [
+    "Ontomark: set an ingest endpoint in settings first."
+  ],
+  "finished": "2026-11-01T10:31:24.094Z",
+  "failed": 0,
+  "passed": 69
+}
+{"mode":"local (not an offline proof)","invocation":"/nix/store/y11g9g1pmig70hhb4ryfl0j0w0q1q35q-nodejs-slim-22.23.3/bin/node /home/devuser/workspace/wt/VisionFlow-obsidian-refresh/.audit-plugin/.offline/stage/e2e/offline.e2e.cjs /home/devuser/workspace/wt/VisionFlow-obsidian-refresh/.audit-plugin/.offline/stage/vault","image":null,"exit":0}

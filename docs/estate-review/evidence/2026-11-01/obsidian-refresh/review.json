@@ -1,0 +1,45 @@
+{
+  "date": "2026-11-01",
+  "visual_review": {
+    "OM-09.1": "Read all labels, edges and citations; release path coherent.",
+    "OM-09.2": "Corrected rename alternatives to yes/no branches; final render inspected.",
+    "OM-09.3": "Added direct successful query-to-render path; final render inspected.",
+    "OM-09.4": "Read request, review, persistence and failure sequence; no clipping."
+  },
+  "unicode_findings": 0,
+  "prose_disposition": "Nine heuristic flags reviewed: harness is a literal test-tool term; generation guard marks a request superseded describes an action, not a copula substitution; definite-article sentence openings are clear in context. No automatic rewrite of technical evidence.",
+  "generator_validation": {
+    "new_panel_citations": 80,
+    "new_panels_rendered": 4,
+    "whole_corpus_topics": 200,
+    "whole_corpus_panels": 1709,
+    "verified_citations": 25298,
+    "fallback": 0,
+    "unresolvable": 0,
+    "warnings": 0,
+    "existing_allowlisted": 9,
+    "declared_revisions": 49
+  },
+  "initial_full_gate": "Failed on two absent ignored baseline artefacts, website/build-receipt.json and texput.log; copied exact existing primary-checkout bytes, preserving the existing nine unverifiable allowlist entries. Full gate and check then passed.",
+  "build_override_presence": {
+    "ONTOMARK_ENGINE_BUNDLE": false,
+    "ONTOMARK_ENGINE_SHA256": false,
+    "ONTOMARK_BLESS": false
+  },
+  "web_sources": [
+    {
+      "url": "https://docs.obsidian.md/Plugins/Releasing/Submit%20your%20plugin",
+      "use": "Three runtime release assets and matching manifest version"
+    },
+    {
+      "url": "https://github.com/cristianvasquez/dot-triples-plugin",
+      "use": "Current documented Markdown/Canvas RDF, SPARQL, embedded/shared triplestore; current README no longer lists quoted-string replacement defect"
+    },
+    {
+      "url": "https://blacksmithgu.github.io/obsidian-dataview/",
+      "use": "Metadata, inline-field and query/display product comparison"
+    }
+  ],
+  "source_export_count": 36,
+  "format_check": "Whole staged diff passes after retaining the large unchanged upstream notice catalogue by hash only; its original trailing whitespace remains intact in the source archive."
+}

@@ -1,0 +1,9 @@
+
+> ontomark-obsidian@0.4.2 build
+> node scripts/build-wasm.mjs && tsc --noEmit -p . && node esbuild.config.mjs production
+
+Verified Ontomark engine 0caae5d4b695cb720942b9b9212017c00a80ad41 (2cf9e88278c6ea4a9c6c5099551e27a9216af9f3f36c0a7e9233443988f94bf4)
+
+  dist/main.js  3.8mb ⚠️
+
+⚡ Done in 466ms

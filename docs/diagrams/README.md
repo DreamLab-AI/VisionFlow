@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_199 topic files, 1705 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_200 topic files, 1709 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -397,6 +397,7 @@ _199 topic files, 1705 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | OM-06 | [Machine scope, the records emitter and the ingest plan/accept contract](ontomark/06-machine-scope-and-ingest-contract.md) | 5 | flowchart, sequenceDiagram | [sovereign-corpus-contracts.md](../../docs/engineering/sovereign-corpus-contracts.md) | ADR-OM-003, ADR-OM-005, ADR-OM-008, ADR-2136, ADR-2137 |
 | OM-07 | [Governed creation and amendment — proposal, file and receipt identity](ontomark/07-governed-create-and-amend.md) | 3 | flowchart | [ADR-2109-governance-decisions-apply-through-vault-edit.md](../../../project/agentbox/docs/adr/ADR-2109-governance-decisions-apply-through-vault-edit.md) | ADR-2109, ADR-OM-007 |
 | OM-08 | [External-source ingest — acquisition, acceptance and bundle identity](ontomark/08-external-source-ingest.md) | 3 | flowchart | [ADR-OM-010-external-source-ingest-lands-as-proposals.md](../../../ontomark/docs/adr/ADR-OM-010-external-source-ingest-lands-as-proposals.md) | ADR-OM-010 |
+| OM-09 | [Obsidian host — release, indexing, query lifecycle and guarded edits](ontomark/09-obsidian-host-lifecycle.md) | 4 | flowchart | [ADR-OBS-001-shared-graph.md](../../../ontomark-obsidian/docs/adr/ADR-OBS-001-shared-graph.md), [ADR-OBS-002-assisted-ingest-boundary-and-estate-notes.md](../../../ontomark-obsidian/docs/adr/ADR-OBS-002-assisted-ingest-boundary-and-estate-notes.md), [ADR-OBS-003-ingest-action-and-offline-contract.md](../../../ontomark-obsidian/docs/adr/ADR-OBS-003-ingest-action-and-offline-contract.md), [ADR-OBS-004-in-note-sparql-after-dot-triples.md](../../../ontomark-obsidian/docs/adr/ADR-OBS-004-in-note-sparql-after-dot-triples.md), [ADR-OBS-005-excluded-folders.md](../../../ontomark-obsidian/docs/adr/ADR-OBS-005-excluded-folders.md) | ADR-OBS-001, ADR-OBS-002, ADR-OBS-003, ADR-OBS-004, ADR-OBS-005 |
 
 ### dream-engine
 

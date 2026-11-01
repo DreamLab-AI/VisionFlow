@@ -1,0 +1,93 @@
+{
+  "path": "docs/estate-review/2026-11-01-obsidian-refresh.md",
+  "files_scanned": 1,
+  "counts": {
+    "high": 8,
+    "medium": 1
+  },
+  "slop_score": 26,
+  "verdict": "STRONG AI writing fingerprint",
+  "findings": [
+    {
+      "rule": "tier1-vocab",
+      "label": "Tier-1 banned vocabulary",
+      "sev": "high",
+      "fix": "Replace with a plain word (delve->look at, leverage->use, robust->solid, seamless->smooth, utilise->use). See SKILL.md B4.",
+      "file": "docs/estate-review/2026-11-01-obsidian-refresh.md",
+      "line": 12,
+      "snippet": "...b720942b9b9212017c00a80ad41`. Six unit files passed 66 tests; all four WASM harness tests passed; the bundle check reported no findings; the built plugin passed..."
+    },
+    {
+      "rule": "the-opener",
+      "label": "\"The X\" sentence/paragraph opener",
+      "sev": "high",
+      "fix": "Don't open with 'The <lowercase noun>'. Recast so the subject leads, or name the thing directly ('The production-node paired study lifts...' -> 'Holding the model constant and varying only the serving path lifts...'). Proper nouns (The Loom) are fine. See SKILL.md B2.",
+      "file": "docs/estate-review/2026-11-01-obsidian-refresh.md",
+      "line": 12,
+      "snippet": "The fresh production build verified engine v0.7.0's archive SHA-256 and source receipt `0caae5d4b695cb720942b9b9212017c00a80ad41`. Six unit files passed 66 test..."
+    },
+    {
+      "rule": "tier1-vocab",
+      "label": "Tier-1 banned vocabulary",
+      "sev": "high",
+      "fix": "Replace with a plain word (delve->look at, leverage->use, robust->solid, seamless->smooth, utilise->use). See SKILL.md B4.",
+      "file": "docs/estate-review/2026-11-01-obsidian-refresh.md",
+      "line": 14,
+      "snippet": "...byte-exact, including the five ADRs and relevant implementation, fixtures' harnesses and release tooling. The source checkout was clean and remained unchanged; ..."
+    },
+    {
+      "rule": "the-opener",
+      "label": "\"The X\" sentence/paragraph opener",
+      "sev": "high",
+      "fix": "Don't open with 'The <lowercase noun>'. Recast so the subject leads, or name the thing directly ('The production-node paired study lifts...' -> 'Holding the model constant and varying only the serving path lifts...'). Proper nouns (The Loom) are fine. See SKILL.md B2.",
+      "file": "docs/estate-review/2026-11-01-obsidian-refresh.md",
+      "line": 18,
+      "snippet": "The comparison baseline is `272259edcda1fbc2fc5856ffa633f1a9a01a670b`. The new estate-ledger frontmatter records decisions without proving implementation: all f..."
+    },
+    {
+      "rule": "the-opener",
+      "label": "\"The X\" sentence/paragraph opener",
+      "sev": "high",
+      "fix": "Don't open with 'The <lowercase noun>'. Recast so the subject leads, or name the thing directly ('The production-node paired study lifts...' -> 'Holding the model constant and varying only the serving path lifts...'). Proper nouns (The Loom) are fine. See SKILL.md B2.",
+      "file": "docs/estate-review/2026-11-01-obsidian-refresh.md",
+      "line": 22,
+      "snippet": "The only production TypeScript diffs are a lint-comment clarification in `query-templates.ts` and wrapping an asynchronous settings event handler in a `void` as..."
+    },
+    {
+      "rule": "tier1-vocab",
+      "label": "Tier-1 banned vocabulary",
+      "sev": "high",
+      "fix": "Replace with a plain word (delve->look at, leverage->use, robust->solid, seamless->smooth, utilise->use). See SKILL.md B4.",
+      "file": "docs/estate-review/2026-11-01-obsidian-refresh.md",
+      "line": 71,
+      "snippet": "...efusals | The block uses the shared API, dataset and limit. The pinned WASM harness exercised inferred queries and a SERVICE refusal; the shim exercises broader..."
+    },
+    {
+      "rule": "copula-substitution",
+      "label": "Copula substitution (serves as / marks the)",
+      "sev": "medium",
+      "fix": "Use 'is'. 'serves as a' -> 'is'; 'marks the' -> 'is'. See SKILL.md B9.",
+      "file": "docs/estate-review/2026-11-01-obsidian-refresh.md",
+      "line": 74,
+      "snippet": "...he same note also share `sparql-block:<path>`. The actual generation guard marks the first request superseded when the second issues. Per-block independence is ..."
+    },
+    {
+      "rule": "the-opener",
+      "label": "\"The X\" sentence/paragraph opener",
+      "sev": "high",
+      "fix": "Don't open with 'The <lowercase noun>'. Recast so the subject leads, or name the thing directly ('The production-node paired study lifts...' -> 'Holding the model constant and varying only the serving path lifts...'). Proper nouns (The Loom) are fine. See SKILL.md B2.",
+      "file": "docs/estate-review/2026-11-01-obsidian-refresh.md",
+      "line": 101,
+      "snippet": "The three-file release layout follows [Obsidian's documented installation contract](https://docs.obsidian.md/Plugins/Releasing/Submit%20your%20plugin), which do..."
+    },
+    {
+      "rule": "the-opener",
+      "label": "\"The X\" sentence/paragraph opener",
+      "sev": "high",
+      "fix": "Don't open with 'The <lowercase noun>'. Recast so the subject leads, or name the thing directly ('The production-node paired study lifts...' -> 'Holding the model constant and varying only the serving path lifts...'). Proper nouns (The Loom) are fine. See SKILL.md B2.",
+      "file": "docs/estate-review/2026-11-01-obsidian-refresh.md",
+      "line": 111,
+      "snippet": "The first clean dependency install failed because `/tmp` is mounted `noexec`; its log is retained. Repeating the install in the owned workspace archive succeede..."
+    }
+  ]
+}

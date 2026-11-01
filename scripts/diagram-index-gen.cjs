@@ -306,6 +306,7 @@ const REPO_PREFIXES = [
   { key: 'knowledgegraph', prefix: '../knowledgeGraph/' },
   { key: 'visiongraph', prefix: '../visionGraph/' },
   { key: 'ontomark', prefix: '../ontomark/' },
+  { key: 'ontomark-obsidian', prefix: '../ontomark-obsidian/' }, // separate host repository and engine consumer
   { key: 'visiontouch-rs', prefix: '../visiontouch-rs/' },
   { key: 'ruview', prefix: '../RuView/' },
   { key: 'wasmvowl', prefix: '../WasmVOWL/' },

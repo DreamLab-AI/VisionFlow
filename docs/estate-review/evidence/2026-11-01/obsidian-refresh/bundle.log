@@ -1,0 +1,23 @@
+
+> ontomark-obsidian@0.4.2 check:bundle
+> node scripts/check-bundle.mjs dist/main.js
+
+{
+  "file": "dist/main.js",
+  "bytes": 3976412,
+  "urls": [
+    "http://www.w3.org/2000/01/rdf-schema#",
+    "http://www.w3.org/2002/07/owl#"
+  ],
+  "request_url": {
+    "in_bundle": 1,
+    "module": "src/ingest-transport.ts",
+    "offsets": [
+      3997575
+    ],
+    "inside": true
+  },
+  "embedded_wasm": true,
+  "embedded_worker": true,
+  "findings": []
+}

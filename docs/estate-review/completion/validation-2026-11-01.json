@@ -1,14 +1,14 @@
 {
   "date": "2026-11-01",
-  "baseline": "586c39a4538c8757929794ece0f011a7f52c2473",
+  "baseline": "d87b610005943210f588481568a637d4734b1bcd",
   "panel_id_parity": {
-    "ledger": 1705,
-    "existing_coverage_index": 1705,
+    "ledger": 1709,
+    "existing_coverage_index": 1709,
     "equal": true
   },
   "census_delta": {
     "previous_candidates": 1129,
-    "current_candidates": 1151,
+    "current_candidates": 1157,
     "removed": [],
     "added": [
       {
@@ -98,11 +98,35 @@
       {
         "repo": "ontomark-obsidian",
         "path": "docs/adr/README.md"
+      },
+      {
+        "repo": "VisionFlow",
+        "path": "docs/estate-review/evidence/2026-11-01/obsidian-refresh/source/docs/adr/ADR-OBS-001-shared-graph.md"
+      },
+      {
+        "repo": "VisionFlow",
+        "path": "docs/estate-review/evidence/2026-11-01/obsidian-refresh/source/docs/adr/ADR-OBS-002-assisted-ingest-boundary-and-estate-notes.md"
+      },
+      {
+        "repo": "VisionFlow",
+        "path": "docs/estate-review/evidence/2026-11-01/obsidian-refresh/source/docs/adr/ADR-OBS-003-ingest-action-and-offline-contract.md"
+      },
+      {
+        "repo": "VisionFlow",
+        "path": "docs/estate-review/evidence/2026-11-01/obsidian-refresh/source/docs/adr/ADR-OBS-004-in-note-sparql-after-dot-triples.md"
+      },
+      {
+        "repo": "VisionFlow",
+        "path": "docs/estate-review/evidence/2026-11-01/obsidian-refresh/source/docs/adr/ADR-OBS-005-excluded-folders.md"
+      },
+      {
+        "repo": "VisionFlow",
+        "path": "docs/estate-review/evidence/2026-11-01/obsidian-refresh/source/docs/adr/README.md"
       }
     ]
   },
-  "heading_units": 15173,
-  "heading_units_with_recorded_assessment": 559,
+  "heading_units": 15197,
+  "heading_units_with_recorded_assessment": 582,
   "native_tests": 9,
   "clippy": "passed -D warnings",
   "limits": "Counters track evidence reconciliation, not audit completion; document/report hashes do not revalidate implementation code or deployed state.",
@@ -132,7 +156,7 @@
       "target": "../../docs/estate-review/completion/claims.json"
     }
   ],
-  "exact_claim_bindings_rechecked": 155,
+  "exact_claim_bindings_rechecked": 156,
   "tool_hashes": {
     "scripts/estate-review-ledger/src/main.rs": "6a13475db77573e460ab9ba8a99b7aa1e7c306ca33c14ea3cf5188b690ce12b3",
     "scripts/estate-review-ledger/Cargo.toml": "8109eeff493be24031c394cce1d81a059ca1612f967e5b032f37bf9e8f1e50d6",
@@ -145,8 +169,8 @@
     "prose_flags": 0,
     "format_check": "passed"
   },
-  "tool_validation_basis": "Nine collector tests and clippy receipts retained from the original ledger batch at 610b57b; unchanged collector source/dependency hashes checked, not rerun. Fresh collection rechecked all 155 claim records: 150 source/report bindings match and five are explicitly stale-source.",
-  "concurrent_source_refresh": {
+  "tool_validation_basis": "Nine collector tests and clippy receipts retained from the original ledger batch at 610b57b; unchanged collector source/dependency hashes checked, not rerun. Fresh collection rechecked all 156 claim records with zero stale bindings.",
+  "prior_concurrent_source_refresh": {
     "changed_adrs": 5,
     "stale_claims": 5,
     "new_review_credit": 0,
@@ -187,6 +211,22 @@
         "review": "stale-evidence"
       }
     ],
-    "next_action": "Reassess ADR-OBS-001 through ADR-OBS-005 at ontomark-obsidian 2a6c44e024121ec055329d37915e0ce5a05f75f2; do not rebind old reports without semantic review."
+    "next_action": "Reassess ADR-OBS-001 through ADR-OBS-005 at ontomark-obsidian 2a6c44e024121ec055329d37915e0ce5a05f75f2; do not rebind old reports without semantic review.",
+    "disposition": "Historical stale state; all five reassessed in docs/estate-review/2026-11-01-obsidian-refresh.md. See current snapshot for dispositions."
+  },
+  "current_batch": {
+    "report": "docs/estate-review/2026-11-01-obsidian-refresh.md",
+    "refreshed_whole_adrs": 5,
+    "new_panels": [
+      "OM-09.1",
+      "OM-09.2",
+      "OM-09.3",
+      "OM-09.4"
+    ],
+    "current_stale_records": 0,
+    "unit_tests": 66,
+    "wasm_tests": 4,
+    "network_isolated_shim_checks": 69,
+    "host_defect_probes": 6
   }
 }

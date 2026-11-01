@@ -1,0 +1,6 @@
+{
+  "mode": "docker --network none",
+  "invocation": "docker run --rm -i --network none node:24-bookworm-slim sh -c mkdir -p /w && tar -x -C /w && node /w/e2e/offline.e2e.cjs /w/vault",
+  "image": "node:24-bookworm-slim",
+  "exit": 0
+}

@@ -1,0 +1,16 @@
+parsed 1 topic files, 4 mermaid diagrams
+cite-check: 5 warning(s)
+citations: 79 verified at the declared revision, 0 unverified (working-tree fallback), 0 unresolvable, 0 allowlisted (unverifiable)
+  ! ontomark/09-obsidian-host-lifecycle.md:OM-09.1 — ../ontomark-obsidian/scripts/build-wasm.mjs:20 is punctuation only ('}')
+  ! ontomark/09-obsidian-host-lifecycle.md:OM-09.1 — ../ontomark-obsidian/scripts/build-wasm.mjs:43 is punctuation only ('}')
+  ! ontomark/09-obsidian-host-lifecycle.md:OM-09.1 — ../ontomark-obsidian/package.json:26 is punctuation only ('}')
+  ! ontomark/09-obsidian-host-lifecycle.md:OM-09.1 — ../ontomark-obsidian/.github/workflows/release.yml:25 is blank
+  ! ontomark/09-obsidian-host-lifecycle.md:OM-09.3 — ../ontomark-obsidian/src/guard.ts:42 is punctuation only ('}')
+rendered 4/4 diagrams via pele
+
+5 error(s):
+  - citation: ontomark/09-obsidian-host-lifecycle.md:OM-09.1 — ../ontomark-obsidian/scripts/build-wasm.mjs:20 is punctuation only ('}')
+  - citation: ontomark/09-obsidian-host-lifecycle.md:OM-09.1 — ../ontomark-obsidian/scripts/build-wasm.mjs:43 is punctuation only ('}')
+  - citation: ontomark/09-obsidian-host-lifecycle.md:OM-09.1 — ../ontomark-obsidian/package.json:26 is punctuation only ('}')
+  - citation: ontomark/09-obsidian-host-lifecycle.md:OM-09.1 — ../ontomark-obsidian/.github/workflows/release.yml:25 is blank
+  - citation: ontomark/09-obsidian-host-lifecycle.md:OM-09.3 — ../ontomark-obsidian/src/guard.ts:42 is punctuation only ('}')

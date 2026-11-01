@@ -3665,6 +3665,234 @@
       "sha256": "e7b66d823345645a76641003aae74e040d802b1c0cd3522fc317bd880fad9833"
     },
     {
+      "category": "audit-evidence-or-support",
+      "claims": [],
+      "path": "docs/estate-review/evidence/2026-11-01/obsidian-refresh/source/docs/adr/ADR-OBS-001-shared-graph.md",
+      "repo": "VisionFlow",
+      "review": "unreconciled",
+      "sections": [
+        {
+          "line": 17,
+          "ordinal": 1,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "ADR-OBS-001: consume the Ontomark graph"
+        }
+      ],
+      "sha256": "15c8c5dbb6b770ec7dd6507f72fc4830ee39d2435d18e658544d00c959703902"
+    },
+    {
+      "category": "audit-evidence-or-support",
+      "claims": [],
+      "path": "docs/estate-review/evidence/2026-11-01/obsidian-refresh/source/docs/adr/ADR-OBS-002-assisted-ingest-boundary-and-estate-notes.md",
+      "repo": "VisionFlow",
+      "review": "unreconciled",
+      "sections": [
+        {
+          "line": 17,
+          "ordinal": 1,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "ADR-OBS-002: a small Obsidian surface for shared assisted ingest"
+        },
+        {
+          "line": 22,
+          "ordinal": 2,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Product decision"
+        },
+        {
+          "line": 30,
+          "ordinal": 3,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Where the work belongs"
+        },
+        {
+          "line": 40,
+          "ordinal": 4,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Findings from the reorganisation ADR fleet"
+        },
+        {
+          "line": 55,
+          "ordinal": 5,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Drafts to carry into the higher-level ADR set"
+        }
+      ],
+      "sha256": "ca191093f7d1153bb1ac7c6d1e9fa6089e08006c2e8529c9fa6c7b059adcc22e"
+    },
+    {
+      "category": "audit-evidence-or-support",
+      "claims": [],
+      "path": "docs/estate-review/evidence/2026-11-01/obsidian-refresh/source/docs/adr/ADR-OBS-003-ingest-action-and-offline-contract.md",
+      "repo": "VisionFlow",
+      "review": "unreconciled",
+      "sections": [
+        {
+          "line": 17,
+          "ordinal": 1,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "ADR-OBS-003: one ingest action, and what it does to the offline contract"
+        },
+        {
+          "line": 22,
+          "ordinal": 2,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Context"
+        },
+        {
+          "line": 26,
+          "ordinal": 3,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Decision"
+        },
+        {
+          "line": 35,
+          "ordinal": 4,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Gates before the command ships"
+        },
+        {
+          "line": 42,
+          "ordinal": 5,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Consequences"
+        },
+        {
+          "line": 46,
+          "ordinal": 6,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Amendment (2026-10-12): redirects and the one-destination promise"
+        },
+        {
+          "line": 59,
+          "ordinal": 7,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Source clarification (2026-10-21)"
+        }
+      ],
+      "sha256": "03cd69d6134ecb5782b76288d29fcaa9a905cd63bd2664f574076b8cefa813e6"
+    },
+    {
+      "category": "audit-evidence-or-support",
+      "claims": [],
+      "path": "docs/estate-review/evidence/2026-11-01/obsidian-refresh/source/docs/adr/ADR-OBS-004-in-note-sparql-after-dot-triples.md",
+      "repo": "VisionFlow",
+      "review": "unreconciled",
+      "sections": [
+        {
+          "line": 17,
+          "ordinal": 1,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "ADR-OBS-004: SPARQL in a note, after Dot Triples"
+        },
+        {
+          "line": 27,
+          "ordinal": 2,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Context"
+        },
+        {
+          "line": 31,
+          "ordinal": 3,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Decision"
+        },
+        {
+          "line": 40,
+          "ordinal": 4,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Not adopted"
+        },
+        {
+          "line": 44,
+          "ordinal": 5,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Attribution"
+        }
+      ],
+      "sha256": "8a6f8814c3ab4e440482cb475f28b9623914b7368524982c43a9d32b83b564aa"
+    },
+    {
+      "category": "audit-evidence-or-support",
+      "claims": [],
+      "path": "docs/estate-review/evidence/2026-11-01/obsidian-refresh/source/docs/adr/ADR-OBS-005-excluded-folders.md",
+      "repo": "VisionFlow",
+      "review": "unreconciled",
+      "sections": [
+        {
+          "line": 17,
+          "ordinal": 1,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "ADR-OBS-005: Excluded folders are the host's job"
+        },
+        {
+          "line": 27,
+          "ordinal": 2,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Context"
+        },
+        {
+          "line": 31,
+          "ordinal": 3,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Decision"
+        },
+        {
+          "line": 38,
+          "ordinal": 4,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Why host-side"
+        },
+        {
+          "line": 42,
+          "ordinal": 5,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Not adopted"
+        }
+      ],
+      "sha256": "d1569998df402c5243a3150d827f0bdb083a643d6b4ca95c6cc7ab45340c1a75"
+    },
+    {
+      "category": "audit-evidence-or-support",
+      "claims": [],
+      "path": "docs/estate-review/evidence/2026-11-01/obsidian-refresh/source/docs/adr/README.md",
+      "repo": "VisionFlow",
+      "review": "unreconciled",
+      "sections": [
+        {
+          "line": 3,
+          "ordinal": 1,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Architecture Decision Records"
+        }
+      ],
+      "sha256": "11875442d559c2acbac3747184628f7ab4ce19d17169aeac8b990a7e27f3ff8f"
+    },
+    {
       "category": "support-or-unclassified",
       "claims": [],
       "path": "archive/visionclaw-docs/audits/2026-04-20-sovereign-mesh-qe-sprint2/05-phase2-and-adr054.md",
@@ -71096,22 +71324,24 @@
       "category": "decision-candidate",
       "claims": [
         {
-          "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash.",
+          "basis": "All five current ADRs reread section by section at plugin 2a6c44e; current build, pinned-engine WASM, network-isolated shim and six actual-module probes assessed with explicit limits. Replaces stale prior binding after substantive re-review; not implementation or activation certification.",
           "coverage": "whole-document",
           "panels": null,
-          "report": "docs/estate-review/2026-10-31-obsidian-decisions.md",
-          "state": "stale-source"
+          "report": "docs/estate-review/2026-11-01-obsidian-refresh.md",
+          "state": "assessment-recorded"
         }
       ],
       "path": "docs/adr/ADR-OBS-001-shared-graph.md",
       "repo": "ontomark-obsidian",
-      "review": "stale-evidence",
+      "review": "assessment-recorded",
       "sections": [
         {
           "line": 17,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-obsidian-refresh.md"
+          ],
+          "review": "assessment-recorded",
           "title": "ADR-OBS-001: consume the Ontomark graph"
         }
       ],
@@ -71121,50 +71351,60 @@
       "category": "decision-candidate",
       "claims": [
         {
-          "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash.",
+          "basis": "All five current ADRs reread section by section at plugin 2a6c44e; current build, pinned-engine WASM, network-isolated shim and six actual-module probes assessed with explicit limits. Replaces stale prior binding after substantive re-review; not implementation or activation certification.",
           "coverage": "whole-document",
           "panels": null,
-          "report": "docs/estate-review/2026-10-31-obsidian-decisions.md",
-          "state": "stale-source"
+          "report": "docs/estate-review/2026-11-01-obsidian-refresh.md",
+          "state": "assessment-recorded"
         }
       ],
       "path": "docs/adr/ADR-OBS-002-assisted-ingest-boundary-and-estate-notes.md",
       "repo": "ontomark-obsidian",
-      "review": "stale-evidence",
+      "review": "assessment-recorded",
       "sections": [
         {
           "line": 17,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-obsidian-refresh.md"
+          ],
+          "review": "assessment-recorded",
           "title": "ADR-OBS-002: a small Obsidian surface for shared assisted ingest"
         },
         {
           "line": 22,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-obsidian-refresh.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Product decision"
         },
         {
           "line": 30,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-obsidian-refresh.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Where the work belongs"
         },
         {
           "line": 40,
           "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-obsidian-refresh.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Findings from the reorganisation ADR fleet"
         },
         {
           "line": 55,
           "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-obsidian-refresh.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Drafts to carry into the higher-level ADR set"
         }
       ],
@@ -71174,64 +71414,78 @@
       "category": "decision-candidate",
       "claims": [
         {
-          "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash.",
+          "basis": "All five current ADRs reread section by section at plugin 2a6c44e; current build, pinned-engine WASM, network-isolated shim and six actual-module probes assessed with explicit limits. Replaces stale prior binding after substantive re-review; not implementation or activation certification.",
           "coverage": "whole-document",
           "panels": null,
-          "report": "docs/estate-review/2026-10-31-obsidian-decisions.md",
-          "state": "stale-source"
+          "report": "docs/estate-review/2026-11-01-obsidian-refresh.md",
+          "state": "assessment-recorded"
         }
       ],
       "path": "docs/adr/ADR-OBS-003-ingest-action-and-offline-contract.md",
       "repo": "ontomark-obsidian",
-      "review": "stale-evidence",
+      "review": "assessment-recorded",
       "sections": [
         {
           "line": 17,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-obsidian-refresh.md"
+          ],
+          "review": "assessment-recorded",
           "title": "ADR-OBS-003: one ingest action, and what it does to the offline contract"
         },
         {
           "line": 22,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-obsidian-refresh.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Context"
         },
         {
           "line": 26,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-obsidian-refresh.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Decision"
         },
         {
           "line": 35,
           "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-obsidian-refresh.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Gates before the command ships"
         },
         {
           "line": 42,
           "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-obsidian-refresh.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Consequences"
         },
         {
           "line": 46,
           "ordinal": 6,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-obsidian-refresh.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Amendment (2026-10-12): redirects and the one-destination promise"
         },
         {
           "line": 59,
           "ordinal": 7,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-obsidian-refresh.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Source clarification (2026-10-21)"
         }
       ],
@@ -71241,50 +71495,60 @@
       "category": "decision-candidate",
       "claims": [
         {
-          "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash.",
+          "basis": "All five current ADRs reread section by section at plugin 2a6c44e; current build, pinned-engine WASM, network-isolated shim and six actual-module probes assessed with explicit limits. Replaces stale prior binding after substantive re-review; not implementation or activation certification.",
           "coverage": "whole-document",
           "panels": null,
-          "report": "docs/estate-review/2026-10-31-obsidian-decisions.md",
-          "state": "stale-source"
+          "report": "docs/estate-review/2026-11-01-obsidian-refresh.md",
+          "state": "assessment-recorded"
         }
       ],
       "path": "docs/adr/ADR-OBS-004-in-note-sparql-after-dot-triples.md",
       "repo": "ontomark-obsidian",
-      "review": "stale-evidence",
+      "review": "assessment-recorded",
       "sections": [
         {
           "line": 17,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-obsidian-refresh.md"
+          ],
+          "review": "assessment-recorded",
           "title": "ADR-OBS-004: SPARQL in a note, after Dot Triples"
         },
         {
           "line": 27,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-obsidian-refresh.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Context"
         },
         {
           "line": 31,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-obsidian-refresh.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Decision"
         },
         {
           "line": 40,
           "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-obsidian-refresh.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Not adopted"
         },
         {
           "line": 44,
           "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-obsidian-refresh.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Attribution"
         }
       ],
@@ -71294,50 +71558,60 @@
       "category": "decision-candidate",
       "claims": [
         {
-          "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash.",
+          "basis": "All five current ADRs reread section by section at plugin 2a6c44e; current build, pinned-engine WASM, network-isolated shim and six actual-module probes assessed with explicit limits. Replaces stale prior binding after substantive re-review; not implementation or activation certification.",
           "coverage": "whole-document",
           "panels": null,
-          "report": "docs/estate-review/2026-10-31-obsidian-boundaries.md",
-          "state": "stale-source"
+          "report": "docs/estate-review/2026-11-01-obsidian-refresh.md",
+          "state": "assessment-recorded"
         }
       ],
       "path": "docs/adr/ADR-OBS-005-excluded-folders.md",
       "repo": "ontomark-obsidian",
-      "review": "stale-evidence",
+      "review": "assessment-recorded",
       "sections": [
         {
           "line": 17,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-obsidian-refresh.md"
+          ],
+          "review": "assessment-recorded",
           "title": "ADR-OBS-005: Excluded folders are the host's job"
         },
         {
           "line": 27,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-obsidian-refresh.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Context"
         },
         {
           "line": 31,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-obsidian-refresh.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Decision"
         },
         {
           "line": 38,
           "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-obsidian-refresh.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Why host-side"
         },
         {
           "line": 42,
           "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-obsidian-refresh.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Not adopted"
         }
       ],
@@ -119487,22 +119761,22 @@
   ],
   "counts": {
     "available_checkouts": 24,
-    "candidate_files": 1151,
-    "numbered_candidates_with_recorded_assessment": 77,
+    "candidate_files": 1157,
+    "numbered_candidates_with_recorded_assessment": 82,
     "numbered_decision_candidates": 1055,
-    "panels": 1705,
-    "panels_with_recorded_assessment": 276,
+    "panels": 1709,
+    "panels_with_recorded_assessment": 280,
     "scope_targets": 25,
-    "stale_claim_records": 5,
-    "topics": 199
+    "stale_claim_records": 0,
+    "topics": 200
   },
   "method": "Explicit scope; Git-owned Markdown; parsed headings exclude fenced examples; explicit human review claims require exact source/report hashes. Unreconciled is not unreviewed. Candidate counts are not a complete obligation denominator or overall task percentage.",
   "repositories": [
     {
       "available": true,
-      "candidate_files": 56,
+      "candidate_files": 62,
       "dirty": true,
-      "head": "586c39a4538c8757929794ece0f011a7f52c2473",
+      "head": "d87b610005943210f588481568a637d4734b1bcd",
       "local": "VisionFlow",
       "name": "VisionFlow"
     },
@@ -129754,6 +130028,72 @@
       "repo": "VisionFlow",
       "review": "unreconciled",
       "sha256": "6d68b054c4ccf878975130902cfa72cc831bc8b3c73db13234c92265dbb3d6a2"
+    },
+    {
+      "claims": [
+        {
+          "basis": "Four new plugin host panels checked against separately pinned repository source, rendered and visually inspected; no credit for sibling Ontomark topics.",
+          "coverage": "selected-panels",
+          "panels": [
+            "OM-09.1",
+            "OM-09.2",
+            "OM-09.3",
+            "OM-09.4"
+          ],
+          "report": "docs/estate-review/2026-11-01-obsidian-refresh.md",
+          "state": "assessment-recorded"
+        }
+      ],
+      "panels": [
+        {
+          "body_sha256": "e8b9887487f7594eb437202f65387a6516e3f78e8c88f37c53633e1ddda14bfd",
+          "heading": "OM-09.1 Verified inputs and three release files",
+          "id": "OM-09.1",
+          "line": 38,
+          "ordinal": 1,
+          "reports": [
+            "docs/estate-review/2026-11-01-obsidian-refresh.md"
+          ],
+          "review": "assessment-recorded"
+        },
+        {
+          "body_sha256": "ebc69b969d65953b97b5dd5e8aa79827c4948a306a7978e9c17c51cc64cb7b4a",
+          "heading": "OM-09.2 Host filters and replacement of the API",
+          "id": "OM-09.2",
+          "line": 55,
+          "ordinal": 2,
+          "reports": [
+            "docs/estate-review/2026-11-01-obsidian-refresh.md"
+          ],
+          "review": "assessment-recorded"
+        },
+        {
+          "body_sha256": "57e139de77e2e3bc4589b68a0bf043e2e59e8554616ff3572da4cee41b712a75",
+          "heading": "OM-09.3 Saved queries have a lifetime as well as a generation",
+          "id": "OM-09.3",
+          "line": 75,
+          "ordinal": 3,
+          "reports": [
+            "docs/estate-review/2026-11-01-obsidian-refresh.md"
+          ],
+          "review": "assessment-recorded"
+        },
+        {
+          "body_sha256": "051e19892538a836cb97c1da006a6f142c0b5a0fb006161c617883cbfea9c809",
+          "heading": "OM-09.4 Model waiting, review, persistence and indexing",
+          "id": "OM-09.4",
+          "line": 95,
+          "ordinal": 4,
+          "reports": [
+            "docs/estate-review/2026-11-01-obsidian-refresh.md"
+          ],
+          "review": "assessment-recorded"
+        }
+      ],
+      "path": "docs/diagrams/ontomark/09-obsidian-host-lifecycle.md",
+      "repo": "VisionFlow",
+      "review": "assessment-recorded",
+      "sha256": "ae8e4fdeb1d118a91a08247adeaf2dd1e5f94636aa3ae811023b2aca254d4b7e"
     },
     {
       "claims": [],
