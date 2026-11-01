@@ -34,6 +34,41 @@ It will distinguish ordinary routing, a correctly rooted transport control and
 a nested repository. No runtime disclosure claim is made until its terminal
 result and decoded pack assertions have been checked.
 
+## Mirror refs: configuration contradicts the withholding claim
+
+The shared Git service forces `uploadpack.allowTipSHA1InWant=true` in its CGI
+environment (`solid-pod-rs-git/src/service.rs:421`). The forge passes smart-HTTP
+requests to that service (`solid-pod-rs-forge/src/lib.rs:627`). Meanwhile,
+`mirror.rs:1211` hides `refs/mirror` from upload and transfer, and `fetch` places
+remote branches in that namespace before the engine decides which branches may
+move (`mirror.rs:1418`, `1442`, `2042`). A held verdict leaves the fetched
+objects in the same repository. These settings compose differently from the
+withholding claim in ADR-2009 and ADR-2010.
+
+A completed local Git subprocess probe uses two synthetic commits: one public
+tip and one held tip reachable only through `refs/mirror/held`. Discovery omits
+the held tip. With the service's `allowTipSHA1InWant=true` setting, a request
+naming that tip returns a pack which an empty receiver decodes to the held
+file's exact contents. The same request with the setting false fails with
+`not our ref`. Both outcomes are retained in
+[the raw probe output](evidence/2026-11-01/solid-git-disclosure/hidden-ref-probe.txt)
+alongside [the executed fixture](evidence/2026-11-01/solid-git-disclosure/hidden-ref-probe.sh).
+This proves the configuration interaction; an integration regression through
+the Rust HTTP service is queued. No live forge or relay was exercised.
+
+Git documents that this option explicitly permits requests for hidden tips.
+It also warns that disabling it does not provide general read isolation within
+a repository. A targeted repair must retain ordinary advertised-tip fetches
+and resist permissive repository-local overrides. A complete withholding
+boundary needs rejected objects separated from the repository being served,
+including during fetch and validation; hiding their refs alone is insufficient.
+[Git upload-pack configuration](https://git-scm.com/docs/git-config#Documentation/git-config.txt-uploadpackallowTipSHA1InWant)
+
+The mirror's branch-integrity decision and object-export decision need separate
+acceptance tests. This checkpoint does not reclassify all of ADR-2009 or
+ADR-2010 as assessed, and does not infer deployed exposure from their historical
+consumer observations.
+
 ## ADR-2001 section assessment
 
 | Section | Disposition |

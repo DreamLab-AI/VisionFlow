@@ -1,0 +1,4 @@
+allowTipSHA1InWant=false exit=128 hidden_tip_advertised=false
+error: git upload-pack: not our ref f4407ae98bb72733e008fc0ce098f7a539f07ec4
+allowTipSHA1InWant=true exit=0 hidden_tip_advertised=false
+Decoded held-back synthetic bytes from received pack.

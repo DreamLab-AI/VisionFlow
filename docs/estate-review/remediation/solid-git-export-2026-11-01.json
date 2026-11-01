@@ -1,0 +1,22 @@
+{
+  "source_revision": "b644e55c76d6e89b0e41ec1c7aa44510b20ccf68",
+  "source_report": "2026-11-01-solid-git-export-and-baseline.md",
+  "counting": "SP-GIT-01 qualifies existing SP-ACL-REVIEW-01; do not count it as another disclosure. SP-GIT-02 is a separate shared-service configuration finding, pending reconciliation with the estate register.",
+  "records": [
+    {
+      "id": "SP-GIT-01",
+      "related": ["SP-ACL-REVIEW-01"],
+      "title": "Pod Git applies the pod component twice and authorises only the root",
+      "status": "source-confirmed-runtime-pending",
+      "disposition": "The adapter passes data_root/pod as the service root and retains /pod in the request path. Normal repositories are missed; a nested repository can be selected under root-only Read. The native normal/nested repository probe is still running. Correcting the root alone would expose normal history to the same insufficient authority decision.",
+      "acceptance": "Repair selection and whole-history export authority together. Exercise normal and nested repositories, private children, historic versions, permitted and denied callers, Git discovery and object delivery. Verify the feature and policy in actual consumers."
+    },
+    {
+      "id": "SP-GIT-02",
+      "title": "Git CGI permits known hidden-tip requests despite mirror ref hiding",
+      "status": "subprocess-reproduced-http-pending",
+      "disposition": "The shared service forces uploadpack.allowTipSHA1InWant=true. A fresh synthetic local Git fixture confirms hidden-tip pack delivery, with denied delivery when false and discovery hiding in both cases. Forge uses this service; the Rust HTTP regression is queued. No live forge or mirror relay was exercised.",
+      "acceptance": "Deny direct hidden-object requests despite permissive repository-local settings while keeping advertised-tip fetches working. Test the shared HTTP service and forge adapter. Establish a separate object-publication boundary for held mirror objects, including fetch and validation races; ref hiding and a single configuration switch do not establish complete repository read isolation. Verify consumer adoption separately."
+    }
+  ]
+}

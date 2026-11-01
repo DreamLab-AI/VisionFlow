@@ -1,0 +1,12 @@
+{
+  "scope": "Local Git upload-pack configuration interaction; not a Rust HTTP or deployed Forge acceptance receipt",
+  "source_revision": "b644e55c76d6e89b0e41ec1c7aa44510b20ccf68",
+  "git_version": "git version 2.56.0",
+  "command": "bash /tmp/vf-solid-git-disclosure/hidden-ref-probe.sh > /tmp/vf-solid-git-disclosure/hidden-ref-probe.txt 2>&1",
+  "exit_code": 0,
+  "outcome": "Held tip absent from discovery; true returns a decoded pack containing synthetic-held-back; false refuses not our ref.",
+  "files": {
+    "hidden-ref-probe.sh": "a0bd573174b53137b76a257f3841aee8778da4aa67337e72569ad1b6f3324365",
+    "hidden-ref-probe.txt": "8afbf9089ca85aeb3648ef062396507b02e80b2b41c6065fe96edd721abedf28"
+  }
+}
