@@ -1,0 +1,32 @@
+[
+  {
+    "id": "NF-15.1",
+    "matches": true,
+    "sha256": "7a6d9dfa7561db1ec1ee788a075347c3d67918114490264c0ea2c12b7094491c"
+  },
+  {
+    "id": "NF-15.2",
+    "matches": true,
+    "sha256": "6151f1529976436d9cda908ad00b0c93d59f7fd59f5c4df3b64e7d9fea72999a"
+  },
+  {
+    "id": "NF-15.3",
+    "matches": true,
+    "sha256": "ef75c8d991f569090542718a3d9c44eaddc3b5157d570549286a01504ffaf900"
+  },
+  {
+    "id": "NF-15.4",
+    "matches": true,
+    "sha256": "3b19013fb2f4889bcfce3faf842454a1392ed7c0ae5422eb454cbbda8af4adc4"
+  },
+  {
+    "id": "NF-15.5",
+    "matches": true,
+    "sha256": "4807a905ced90a6e5668fe35bd685cb6b6f73a9b54f7348acb271af256843197"
+  },
+  {
+    "id": "NF-15.6",
+    "matches": true,
+    "sha256": "05d4f0eaad6d0e61a917d171a806786d3ea41d42eaff20dcc47796ae1939090b"
+  }
+]

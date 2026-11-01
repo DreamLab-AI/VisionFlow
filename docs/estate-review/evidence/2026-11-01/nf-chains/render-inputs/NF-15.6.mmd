@@ -1,0 +1,15 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/tip_button.rs:126
+    A["Offer one token row per asset profile<br/>default highlight follows wallet selection"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/tip_button.rs:156
+    B["Load each asset chain for tip totals<br/>selection can differ from wallet page"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/tip_button.rs:97
+    C["Keep totals separate by asset<br/>display configured tickers"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/thread_view.rs:185
+    D["Tip control sits at right of reply row<br/>or reply footer"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/tip_button.rs:421
+    E["Hide own-post tip button<br/>send via selected token wallet"]
+    A --> B
+    B --> C
+    C --> D
+    D --> E

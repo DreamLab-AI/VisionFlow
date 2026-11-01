@@ -1,0 +1,27 @@
+{
+  "existing_native_tests": 725,
+  "audit_native_tests": 6,
+  "source_exports": 28,
+  "topics": 185,
+  "panels": 1628,
+  "verified_citations": 24777,
+  "citation_warnings": 0,
+  "allowlisted_citations": 9,
+  "fresh_declared_revisions": 46,
+  "rendered_panels": 6,
+  "visually_reviewed_panels": [
+    "NF-15.1",
+    "NF-15.2",
+    "NF-15.3",
+    "NF-15.4",
+    "NF-15.5",
+    "NF-15.6"
+  ],
+  "browser_tests": false,
+  "product_mutations": false,
+  "setup_corrections": [
+    "Initial relative harness path failed before adding tests; corrected archive path executed six tests.",
+    "Initial --only NF-15 matched no filename; corrected filename selector rendered and checked six panels."
+  ],
+  "prose_review": "Invisible scan clean; manual review retains technical terminology and factual qualifiers. Style heuristic is advisory."
+}

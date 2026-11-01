@@ -1,0 +1,15 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/poker/mod.rs:189
+    A["House key priority: chain map<br/>then profile then DREAM scalar"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/poker/mod.rs:265
+    B["Asset and house key create a table<br/>bound to that chain wallet"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-poker-citizen/src/chain.rs:176
+    C["House verifies producer document equality<br/>and replays the compiled pin"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/poker_schedule.rs:160
+    D["Calendar event adds the chain tag<br/>events link to its table fragment"]
+    %% Source: ../nostr-rust-forum/docs/adr/ADR-2021-two-pinned-sidestr-chains-dreamlab-and-dreamlab-txbt4.md:70
+    E["Protocol 1 still names the asset dream<br/>chain and asset binding depend on the seat"]
+    A --> B
+    B --> C
+    B --> D
+    B --> E

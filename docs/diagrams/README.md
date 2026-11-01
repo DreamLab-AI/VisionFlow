@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_184 topic files, 1622 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_185 topic files, 1628 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -312,6 +312,7 @@ _184 topic files, 1622 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | NF-12 | [nostr-bbs-core wire and crypto primitives, and the nostr-bbs-mesh federation envelope](nostr-rust-forum/12-core-wire-crypto-and-federation-envelope.md) | 10 | flowchart, sequenceDiagram, classDiagram | [IDENTITY-keys-and-trust.md](../../../nostr-rust-forum/docs/IDENTITY-keys-and-trust.md), [BASELINE-architecture.md](../../../nostr-rust-forum/docs/BASELINE-architecture.md) | ADR-2002, ADR-2003, ADR-2005, ADR-2023, ADR-2025 |
 | NF-13 | [Current group admission and replacement gaps](nostr-rust-forum/13-group-admission-and-replacement.md) | 3 | flowchart | [BASELINE-architecture.md](../../../nostr-rust-forum/docs/BASELINE-architecture.md) | ADR-2030, ADR-2031, ADR-2032 |
 | NF-14 | [Proposed group authority, replication and spatial descriptors](nostr-rust-forum/14-proposed-group-replication-and-spaces.md) | 3 | flowchart | [BASELINE-architecture.md](../../../nostr-rust-forum/docs/BASELINE-architecture.md) | ADR-2030, ADR-2031, ADR-2032 |
+| NF-15 | [Two-chain wallets — identity, freshness and delivery](nostr-rust-forum/15-multichain-wallet-receipts.md) | 6 | flowchart | [ADR-2021-two-pinned-sidestr-chains-dreamlab-and-dreamlab-txbt4.md](../../../nostr-rust-forum/docs/adr/ADR-2021-two-pinned-sidestr-chains-dreamlab-and-dreamlab-txbt4.md) | ADR-2021 |
 
 ### dreamlab-ai-website
 

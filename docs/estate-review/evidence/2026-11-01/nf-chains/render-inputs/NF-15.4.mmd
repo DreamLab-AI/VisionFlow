@@ -1,0 +1,15 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/mod.rs:632
+    A["Extension signs the selected chain<br/>returned transaction and signatures checked"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/mod.rs:734
+    B["Build from snapshot and held coins<br/>then await signing and relay delivery"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/relays.rs:135
+    C["Publish kind 23500 to configured relays<br/>count matching accepted event IDs"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/mod.rs:661
+    D["DEBT: zero ACKs says nothing was sent<br/>timeout cannot establish non-delivery"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/mod.rs:673
+    E["Only after ACK insert pending and persist<br/>no account epoch or early coin reservation"]
+    B --> A
+    A --> C
+    C -->|No accepted ACK| D
+    C -->|Accepted ACK| E

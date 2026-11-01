@@ -1,0 +1,171 @@
+[
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/wallet/relays.rs",
+    "sha256": "ba728df16fe581966f50939eccae43d9358d06eaeca9a770932fb412e83d3f27"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/wallet/chain.rs",
+    "sha256": "6e740676c71a4b8a91231cd64ed42b3e52b8ea2eaf23a3bc8cb6da0606b485c5"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/wallet/sidestr-dreamlab-txbt4.chain.json",
+    "sha256": "a90a48603a7e2da3306dfb41af67f8831d5d5104aa8e8f8f8c6b5fbb0a2a49cb"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/wallet/parent.rs",
+    "sha256": "d7088f16a952c2e43951a9a4d9e422f0d4fcbd1d4dd17185f1142042caf188e6"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/wallet/mod.rs",
+    "sha256": "c50f1e689c275b3256911c1309d88bf1fbcc86db36e87950d81b9a38d577150c"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/wallet/poker.rs",
+    "sha256": "0f72c571cf2a91a48cddaa0981b7764c8698dfaee3d97bb3abbff3b771134699"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/wallet/extension.rs",
+    "sha256": "f93b23def5f81d1714dab3958a760cf03edd6ac81315721e3309ee1ab1d7dbfd"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/wallet/sidestr-dreamlab.chain.json",
+    "sha256": "12612d7b93d48d11c4d531a975c5443b8aded747b588c4ff11df511c14ec8db8"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/wallet/profile.rs",
+    "sha256": "9a7b45e2514262b3b0400dfaa829888d65aab94be80781177d960c167b04d11a"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/wallet/testdata/blocks.dat",
+    "sha256": "8a1ebdb940728d4720b82c1bf75539116eaef4ab8fbd2d97b2af9e70f8078143"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/wallet/testdata/txbt4-blocks.dat",
+    "sha256": "14e80480d81928c599c890cb110f83fc25e02d59ef960c023fc418f06813dc34"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/components/tip_button.rs",
+    "sha256": "52133564aa3dae4251b92e76d80a2b6ec1ff0aab26ff9ec2f524c70f75d99372"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/pages/wallet.rs",
+    "sha256": "3fdea8173e52b704c89e439d88e5771aa460cf7f3c9500e87f95e927fabf3a64"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/poker/mod.rs",
+    "sha256": "e9bcda7430743c9a198749ecf328399c2756715f3e5198e415ba9de73813b72e"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/poker/live.rs",
+    "sha256": "53ddc3fba60391d8858bf080e75d90e6b63419bb884732490560d78c36422e51"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/components/poker_schedule.rs",
+    "sha256": "c017c655facc29d77766bc91c841ead4d5a3b9ad8e9a9676879ab73b040139ab"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-poker-citizen/src/chain.rs",
+    "sha256": "45ee717241eb8f70c72f7e7e2d5b12b76d9f4fcfea36f800f63c1ff1d7f46742"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "Cargo.lock",
+    "sha256": "1f74bfff80b633037b6a650e1ff944d0b3a6e90399b1b14e30325004fb0debf3"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "docs/adr/ADR-2021-two-pinned-sidestr-chains-dreamlab-and-dreamlab-txbt4.md",
+    "sha256": "e4e8ff22fb6cd2bd4b6ab29502ae265d8a5db7035c3206d64f71d72004f4a9db"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "forum-config/dreamlab.toml",
+    "sha256": "f20ce99fbab50bb23af6f4994026d32d76f08516e78671c66eb8b91f6d50dab6"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": ".github/workflows/deploy.yml",
+    "sha256": "e415a74cbc559fbba1c0a32daea34072aa020e011ed1ceb478388d905ef512d9"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "agentbox.toml",
+    "sha256": "c9c7016e6649c118f69ccbbab8d25e35e26c1dc3f449dab61b5ea2493b61203d"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "lib/poker-citizen.nix",
+    "sha256": "84e42b5349667018e7b5bc2eecb45506b3308df22ed63e6b8aa943775b15f958"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-config/src/schema.rs",
+    "sha256": "38e3a45d8d3f9d9b48993432cddb2ce0663a80601e600782604a5dae0cd79935"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/components/thread_view.rs",
+    "sha256": "0fae3199009a48fb3c8dac6aed96858bbf95ce7e3c2f0b03d98ce5af9ea6606d"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/pages/thread.rs",
+    "sha256": "3f912f3fc9451a379f241f1031219c0e507a5e0bf88130474ebf6db3c166cb37"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/pages/events.rs",
+    "sha256": "eeb68bdb4b47130a76d71ce5e46558b71efe443cc50f07530a6da5713612da6c"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "path": "docs/adr/ADR-2021-two-pinned-sidestr-chains-dreamlab-and-dreamlab-txbt4.md",
+    "export_path": "sources/current-head/docs/adr/ADR-2021-two-pinned-sidestr-chains-dreamlab-and-dreamlab-txbt4.md",
+    "sha256": "464b40df6d85f62103ed1c1dedbcbf81b7a16c470cb32f55225421fbd9bf11be"
+  }
+]

@@ -1,0 +1,16 @@
+   Compiling nostr-bbs-forum-client v1.0.0-beta.10 (/home/devuser/workspace/wt/VisionFlow-nf-chains/.audit-chains/kit/crates/nostr-bbs-forum-client)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.21s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src/main.rs (target/debug/deps/nostr_bbs_forum_client-2d1ddc202d1caf82)
+
+running 6 tests
+test wallet::profile::estate_audit::unpinned_chain_still_cannot_be_added ... ok
+test wallet::profile::estate_audit::wrong_typed_mirror_drops_txbt4_and_falls_back_to_dream ... ok
+test wallet::profile::estate_audit::slash_only_https_is_accepted_then_becomes_non_url ... ok
+test wallet::profile::estate_audit::bare_wss_is_accepted ... ok
+test wallet::profile::estate_audit::dream_asset_can_be_replaced_without_warning ... ok
+test wallet::chain::estate_audit::valid_old_prefix_replays_after_the_full_snapshot ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 725 filtered out; finished in 0.03s
+

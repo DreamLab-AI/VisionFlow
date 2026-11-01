@@ -1,0 +1,15 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/mod.rs:379
+    A["Load mirror blocks with cache disabled<br/>and a time-bucket query"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/chain.rs:342
+    B["Replay against the compiled document<br/>dispatch Stock or Blake2bV2"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/mod.rs:397
+    C["Successful replay replaces snapshot<br/>loaded_at records download time"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/mod.rs:680
+    D["Ready requires snapshot and signer<br/>no maximum snapshot age"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/mod.rs:397
+    E["DEBT: no prior-tip rollback check<br/>a valid older prefix can replace newer state"]
+    A --> B
+    B --> C
+    C --> D
+    D --> E

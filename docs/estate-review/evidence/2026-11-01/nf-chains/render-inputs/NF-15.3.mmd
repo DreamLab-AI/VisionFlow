@@ -1,0 +1,15 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/mod.rs:239
+    A["Create one wallet store per profile<br/>bind all stores to the current account"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/mod.rs:308
+    B["Pending storage key contains<br/>chain ID and account pubkey"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/mod.rs:454
+    C["DREAM may restore the legacy key<br/>then save under the new key"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/mod.rs:475
+    D["DEBT: remove legacy key after save attempt<br/>write errors are ignored"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/mod.rs:431
+    E["Reconcile inclusion or old unspent inputs<br/>conflicting inputs have no terminal state"]
+    A --> B
+    B --> C
+    C --> D
+    D --> E

@@ -1,0 +1,17 @@
+{
+  "accessed": "2026-11-01",
+  "sources": [
+    {
+      "url": "https://eips.ethereum.org/EIPS/eip-1193",
+      "use": "Explicit account/chain changes and connectivity errors; comparison only, no compatibility claim."
+    },
+    {
+      "url": "https://docs.rs/sidestr-nostr/0.6.0/sidestr_nostr/tip/index.html",
+      "use": "Current documentation of authenticated tip versus mirror comparison; consumed integration not established."
+    },
+    {
+      "url": "https://github.com/nostr-protocol/nips/blob/master/01.md",
+      "use": "Event-ID acceptance ACK differs from chain inclusion."
+    }
+  ]
+}
