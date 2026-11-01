@@ -1,0 +1,14 @@
+  PASS harness-generated turn gets no pointer
+  PASS skipping a machine turn does not burn the window
+  PASS pointer uses the hookSpecificOutput shape
+  PASS no top-level additionalContext (Claude Code ignores it)
+  PASS first turn injects a pointer
+  PASS pointer counts open items only
+  PASS pointer names the panel URL
+  PASS no item body is relayed
+  PASS inbox file is not modified
+  PASS rate-limited within the window
+  PASS nothing open → no injection
+  PASS corrupt inbox fails open
+
+12 passed, 0 failed

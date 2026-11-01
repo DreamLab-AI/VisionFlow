@@ -6,6 +6,8 @@ governing:
   - ../project/agentbox/docs/GOVERNANCE-capabilities.md
 adrs: [ADR-2024, ADR-2053, ADR-2071, ADR-2081, ADR-2084, ADR-2087, ADR-2114, ADR-2115, ADR-2122, ADR-2141, ADR-2143, ADR-DE-008, ADR-DE-009]
 sources:
+  - ../project/agentbox/services/dream-engine/src/zone_crypto.rs
+  - ../project/agentbox/docs/adr/ADR-2115-dream-decisions-surface-on-the-forum-governance-panel.md
   - ../project/agentbox/scripts/activation/adr-2087-check.sh
   - ../project/agentbox/management-api/lib/action-plane.js
   - ../project/agentbox/management-api/lib/execution-journal.js
@@ -446,40 +448,24 @@ classDiagram
 
 **Why it is this way.** The `Unusable` readiness variants and `ExperimentManifest` are omitted here: they are drawn in the core corpus. The `Persisted` phase and `NightLock` are new since the previous stamp, and `CandidateState` gained `Protected` for a guard refusal.
 
-## AB-23.9 Dream-inbox surfacing hook
+## AB-23.9 Reminder counts local open items, not confirmed forum cases
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    participant U as Operator turn<br/>any Claude session
-    participant CC as Claude Code UserPromptSubmit
-    participant HK as dream-inbox-surface.cjs<br/>agentbox/config/hooks/dream-inbox-surface.cjs:1
-    participant INBOX as dream-inbox.json<br/>/home/devuser/workspace/.agentbox/dream-inbox.json
-    participant STAMP as dream-inbox.json.surfaced
-    participant EP as entrypoint registration<br/>agentbox/config/entrypoint-unified.sh:2208
-
-    Note over EP: the entrypoint prefers /opt/agentbox/config/hooks/dream-inbox-surface.cjs and falls back<br/>to the repo path (:2208-2209), then dedupes on the command substring (:2221)
-    U->>CC: submits a prompt
-    CC->>HK: UserPromptSubmit with stdin JSON
-    alt prompt matches a harness-generated turn (task-notification, agent-message, system-reminder)
-        HK-->>CC: exit — no injection, waits for a turn the operator actually typed
-    else
-        HK->>INBOX: readFileSync
-        alt file missing, unparseable, not an array, or zero status=="open" items
-            HK-->>CC: exit — fail-open, no injection
-        else at least one open item
-            HK->>STAMP: read last stamp, skip unless now - last > RESURFACE_HOURS 4 * 3600
-            alt too soon
-                HK-->>CC: exit — no injection
-            else due
-                HK-->>CC: inject ONE pointer line — count of open decisions and the forum governance panel URL<br/>(no item bodies, no /dream answer instruction)
-                HK->>STAMP: write now, only after the pointer was actually written out
-            end
-        end
-    end
-    Note over HK: ADR-2115: the engine no longer relays item bodies into sessions — every open question and<br/>alert is a case on the forum governance panel, which is where the operator now decides —<br/>this hook only says how many are waiting and where
-    Note over HK: rate limiting is now GLOBAL (one stamp file, not per item) and fail-open on any error
+flowchart TB
+    BOOT["Boot prefers baked hook, then checkout; dedupes command substring<br/>entrypoint-unified.sh:2208-2221"] --> INPUT["UserPromptSubmit stdin<br/>dream-inbox-surface.cjs:35-39"]
+    INPUT --> MACHINE{"Prompt starts with a known machine-turn tag?<br/>dream-inbox-surface.cjs:31-41"}
+    MACHINE -->|yes| EXIT["No context injection<br/>dream-inbox-surface.cjs:68-70"]
+    MACHINE -->|no| READ["Read JSON array; count status=open<br/>No published_event_id or relay check<br/>dream-inbox-surface.cjs:42-45"]
+    READ -->|"missing, malformed, empty"| EXIT
+    READ -->|"open items"| TIME{"More than 4 hours since shared stamp?<br/>dream-inbox-surface.cjs:48-51"}
+    TIME -->|no| EXIT
+    TIME -->|yes| OUT["Emit additionalContext under<br/>hookSpecificOutput<br/>One count and panel URL, no item bodies<br/>dream-inbox-surface.cjs:51-56"]
+    OUT --> STAMP["Write stamp in stdout callback; inbox untouched<br/>Stamp write failure is ignored<br/>dream-inbox-surface.cjs:59-61"]
 ```
+
+**Meaning.** The pointer says decisions await on the panel even when all open items lack a publication receipt. It measures local backlog; publication success and panel visibility need separate evidence. Existing fixture tests use unpublished items and still receive that wording.
+**Limits.** The timestamp is shared by sessions but read and written without locking, so four hours is a sequential suppression policy, not a concurrent delivery guarantee. Failed stamp writes permit another reminder. See the [governance audit](../../estate-review/2026-11-01-dream-governance-and-delivery.md).
+**Source pin.** Boot citations use the existing topic revision. The selected registration block is unchanged at the current checkout but moved to lines 2171–2196; the audit manifest records that comparison.
 
 ## AB-23.10 Control and reporting surfaces
 
@@ -631,73 +617,31 @@ flowchart TB
 
 **Limit.** Existing tests cover the original simple-placeholder failures, not a universal ban on unresolved placeholders. The isolated controls probe confirms nested values survive and empty-host scp_from launches a fake executable.
 
-## AB-23.17 ADR-2115 — the forum governance round trip
+## AB-23.17 Forum decisions — local application and delivery boundaries
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    participant ENG as Engine::run_night<br/>agentbox/services/dream-engine/src/engine.rs:154
-    participant GOV as governance<br/>agentbox/services/dream-engine/src/governance.rs:1
-    participant INBOX as inbox::InboxItem<br/>agentbox/services/dream-engine/src/inbox.rs:1
-    participant REL as RelaySession<br/>agentbox/services/dream-engine/src/relay.rs
-    participant PANEL as forum panel #40;31400, d=dream-machine#41;<br/>governance.rs:108-139
-    participant ADMIN as forum admin decision #40;31403#41;
-
-    Note over GOV: three wire kinds, all nostr-bbs-core::governance types so the engine cannot drift from<br/>the relay/forum's own wire format — 31400 panel #40;JunkieJarvis#41;, 31402 case per open item<br/>#40;JunkieJarvis#41;, 31403 reply #40;forum admin#41;
-    rect rgb(235,245,235)
-        Note over ENG,GOV: start of night — ingest(inbox_path, false) governance.rs:1058
-        ENG->>GOV: ingest(inbox_path, dry_run)
-        GOV->>INBOX: load_from(inbox_path) — filter status=="open" AND published_event_id non-empty
-        alt no published open items
-            GOV-->>ENG: Report::default#40;#41; — nothing to do
-        else published items exist
-            GOV->>REL: RelaySession::connect(relay_url, key)
-            alt relay unreachable or key missing
-                GOV-->>ENG: fail-open, warn, return Report::default#40;#41; (governance.rs:1068-1076)
-            else connected
-                REL->>ADMIN: query KIND_ACTION_RESPONSE #35;d in #91;case ids, PANEL_D#93;
-                ADMIN-->>REL: 31403 events, newest per case wins
-                GOV->>GOV: resolution_for(item_kind, content) — DecisionOutcome::from_response_content<br/>(governance.rs:783)
-                Note over GOV: approve on a question becomes answered "approve: reason", approve on an alert<br/>becomes dismissed "acknowledged: reason", reject becomes answered "reject: reason", amend<br/>#123;diff#125; becomes answered "amend: diff — reason" #40;empty diff refused#41;, delegate or other<br/>stays open
-                GOV->>INBOX: resolve the matched inbox item — write status/answer back
-                opt any item resolved tonight
-                    GOV->>REL: send_withdrawals for the just-resolved cases only (governance.rs:1140-1146)
-                    Note over GOV,REL: each is a NIP-09 kind-5 signed by the SAME agent key — e = the case's request id,<br/>a = its kind:pubkey:d coordinate, k = the request kind (withdrawal_event governance.rs:579-606)
-                    GOV->>INBOX: mark_withdrawn_in records the deletion id as withdrawn_event_id (inbox.rs:134)
-                end
-            end
-        end
-    end
-    rect rgb(235,245,235)
-        Note over ENG,GOV: end of night — publish(inbox_path, paths, false) governance.rs:945
-        ENG->>GOV: publish(inbox_path, CasePaths, dry_run) — CasePaths{workspace, artefact_dir} is built from the Engine (governance.rs:220, engine.rs:395-398)
-        GOV->>INBOX: load_from(inbox_path) — filter status=="open"
-        GOV->>REL: query current 31400 for #40;pubkey, d=dream-machine, governance.rs:989-995#41;
-        alt panel content or tags differ from the target definition
-            GOV->>PANEL: sign and publish the 31400 panel_event (governance.rs:996,1001-1013)
-            alt relay rejects the panel
-                GOV-->>ENG: stop — a case with no panel would not render (governance.rs:1004-1008)
-            end
-        end
-        GOV->>REL: the sweep — send_withdrawals over plan_withdrawals(all items), BEFORE any new case<br/>(governance.rs:1015-1017). It catches items settled outside ingest, by dream-inbox.mjs or by hand
-        Note over GOV: plan_withdrawals takes every item that is not open, was published and has no withdrawn_event_id.<br/>It withholds the a coordinate when an OPEN item reuses the same id, because the relay deletes every<br/>version at a coordinate and would take the live case too (governance.rs:620-633, governance.rs:575-578)
-        loop each open item with no published_event_id
-            GOV->>GOV: case_context(paths, item) (governance.rs:253) — reads the night's manifest.json (deep) and<br/>gate.json (verdict, modelVerdict, first veto) under artefact_dir/night_id and the newest matching LEDGER.md row<br/>under workspace/repo (finding, PR url), every field optional, a missing file leaves it empty (governance.rs:241,253)
-            Note over GOV: the 31402 now says in words what the night produced — outcome_line fills the new panel columns<br/>"outcome" and "pr" (panel version 1.1.0, governance.rs:108-139), reasoning_for writes What happened /<br/>What you are being asked / How to answer, the title carries date and PR number, and a PR url becomes<br/>context_url (request_event governance.rs:494, outcome_line :327, reasoning_for :419, title_for :398).<br/>A gate veto is explained in plain English (explain_veto), and a vetoed night says there is nothing to merge.<br/>A question in the four-field shape renders as labelled lines (Decision, Why, If you approve, If you do not) and titles the case by its Decision, with the closing line that approving merges nothing (title_for governance.rs:398, reasoning_for governance.rs:419, ADR-2143)
-            GOV->>PANEL: sign and publish a 31402 case, d=`dream-#123;id#125;` #40;case_d, governance.rs:87,<br/>publish loop :1019-1044#41;
-            alt accepted
-                PANEL-->>GOV: event id
-                GOV->>INBOX: mark_published_in#40;inbox_path, item.id, event.id#41;
-            else rejected or publish failed
-                GOV-->>GOV: warn and continue #40;or stop the run on a hard publish error#41;
-            end
-        end
-    end
-    Note over GOV: MAX_PENDING_HOURS 168 escalates an undecided case #40;governance.rs:66, wired into<br/>PanelPolicy inside panel_event#41; — the single panel-level action ACK_ALERTS_ACTION<br/>"acknowledge-alerts" #40;governance.rs:62#41; dismisses every open alert published before it<br/>was pressed
-    Note over GOV: INVARIANT: a withdrawal is sent at most once — an accepted kind-5 is recorded as withdrawn_event_id<br/>and the planner skips any item that carries one (governance.rs:626, inbox.rs:142). A relay rejection<br/>is left unrecorded so the next sweep retries it (governance.rs:697-700). `dream-engine governance withdraw`<br/>runs the sweep on its own (main.rs:129-130)
-    Note over GOV,REL: OPEN: the card leaving the panel rests on the relay hard-deleting an author's own events on a<br/>kind-5 and the forum reading cases by subscription (governance.rs:29-32). The relay and forum code are<br/>outside this topic's sources, so that half of the round trip is asserted, not verified here
-    Note over ENG,GOV: both calls are FAIL-OPEN and switch-gated separately — DREAM_GOVERNANCE=0<br/>#40;governance::enabled, governance.rs:82#41; disables the whole round trip — forum trouble<br/>never blocks or taints the night's evaluation, see AB-23.2
+flowchart TB
+    ING["Start of night: ingest published open items<br/>governance.rs:1058-1069"] --> FETCH["Fetch request times and responses<br/>Query errors become empty results<br/>governance.rs:1086-1114"]
+    FETCH --> VALID["Keep kind 31403, valid signature, signer not this agent<br/>No local admin or delegated-role lookup<br/>governance.rs:857-862"]
+    VALID --> NEW["Choose newest timestamp and event ID per d tag FIRST<br/>governance.rs:864-875"]
+    NEW --> BIND{"Request e tag absent, or equals stored request?<br/>governance.rs:879-883"}
+    BIND -->|yes| MAP["Approve, reject or nonempty amend maps to resolution<br/>Delegate and unsupported responses stay open<br/>governance.rs:783-813"]
+    BIND -->|no| NONE["No older valid decision is reconsidered"]
+    NONE -->|"alert only"| ACK["Alert fallback: panel action plus publication time<br/>No outcome or local authority check<br/>governance.rs:895-914"]
+    MAP -->|"supported resolution"| SAVE["Resolve OPEN local item; later decisions do not revise it<br/>inbox.rs:157-170"]
+    MAP -->|"delegate or unsupported"| NONE
+    ACK --> SAVE
+    SAVE --> WITHDRAW["Sign kind-5 request; ACK increments withdrawn<br/>Local receipt write can fail, allowing resend<br/>governance.rs:661-707"]
+    PUB["End of night: publish panel if content or tags differ<br/>Comparison does not verify returned event signature<br/>governance.rs:989-1012"] --> SWEEP["Sweep settled items, then publish unmarked open items<br/>governance.rs:1015-1044"]
+    SWEEP --> WITHDRAW
+    SWEEP --> CASE["Sign case 31402; relay ACK triggers local mark<br/>No request read-back here<br/>governance.rs:1021-1035"]
+    CASE --> REOPEN["mark_published selects FIRST item with matching ID<br/>A reopened duplicate can update its closed predecessor<br/>inbox.rs:114-130"]
+    REOPEN --> RISK["Old record can then target the new request for deletion<br/>Coordinate suppression alone does not protect its e tag<br/>governance.rs:587-601; governance.rs:620-633"]
 ```
+
+**Authority.** Signature validity and rejection of this agent's key do not establish a human decision. The configured relay supplies admission policy; current relay source allows admins and case-delegated reviewers. The adapter also accepts missing request binding and ignores supersession after local resolution; these boundaries are tested in the [governance audit](../../estate-review/2026-11-01-dream-governance-and-delivery.md).
+**Delivery.** An accepted deletion is a request acknowledgement, not proof of remote removal, local persistence or live card removal. The relay deletes rows but ignores database errors; the current panel subscription excludes kind 5 and its registry ignores it. Those cross-repository source findings are recorded separately in the audit, without a live UI claim.
+**Compatibility.** Shared wire types reduce duplication but do not prevent version drift: the adapter consumes core beta.16 while the inspected forum checkout is beta.19. Missing keys, transport failures and local write errors remain fail-open; a zero-count report is not proof that no work was pending.
 
 ## AB-23.18 Annexe preflight — the write-then-measure health probe
 
@@ -792,48 +736,31 @@ flowchart TB
 **Current boundary.** The retained tick can consume a fresh marker using old done state, restart before the window from matching date text, mask an interruption and retire after a failed start. C3 trusts aggregate files rather than binding an outage to a specific completed run; see the [journal audit](../../estate-review/2026-11-01-dream-journal-and-api-down.md).
 **Recovery limit.** The EXIT trap is removed after writing stopped state; later recovery depends on another tick and a successful supervisor start. It is not an unconditional guarantee that the API returns (`../project/agentbox/scripts/activation/adr-2071-api-down-night.sh:106-111`, `../project/agentbox/scripts/activation/adr-2071-api-down-night.sh:145-148`).
 
-## AB-23.20 Which key signs the forum round trip — role isolation off and on
+## AB-23.20 Signing keys — current loader and the unfinished port cutover
 
 ```mermaid
 flowchart TB
-    GOVN["governance load_key, before any panel, case or withdrawal<br/>services/dream-engine/src/governance.rs:920-928"]
-    LSK["relay::load_signing_key on JUNKIEJARVIS_PRIVKEY_HEX<br/>services/dream-engine/src/relay.rs:76-78, governance.rs:64"]
-    FV{"JUNKIEJARVIS_PRIVKEY_HEX_FILE set?<br/>relay.rs:95"}
-    GOVN --> LSK --> FV
-    subgraph off["[security].role_isolation off - how it ships"]
-        O1["the bare variable from the environment, inherited from PID 1<br/>relay.rs:102-103"]
-        O2["else the KEY= line of the repo .env on the workspace bind<br/>relay.rs:104-118, default path governance.rs:75-79"]
-        O3["dream-engine signs 31400, 31402 and kind 5 with the key in its<br/>own memory - AB-23.17"]
-        O1 --> O2 --> O3
-    end
-    subgraph on["[security].role_isolation on"]
-        E1["boot writes the key to /run/secrets/ab-identity/JUNKIEJARVIS_PRIVKEY_HEX,<br/>0400, owned by ab-identity uid 960, dir 0500<br/>config/entrypoint-unified.sh:460-461, config/entrypoint-unified.sh:470"]
-        E2["exports the _FILE path to every program and unsets the variable<br/>config/entrypoint-unified.sh:462-463"]
-        E3["dream-engine stays devuser - ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:87-88"]
-        E4["the _FILE wins and an unreadable file is an error, never a fallback<br/>relay.rs:70-71, relay.rs:96"]
-        E5["the bare variable and the repo .env are refused, a set variable<br/>is reported as ROLE-ISOLATION-LEAK - relay.rs:97-101, relay.rs:89-94"]
-        E6["devuser cannot open an ab-identity 0400 file, so load_key warns<br/>agent key unavailable and the round trip is SKIPPED, fail-open<br/>governance.rs:922-926"]
-        E1 --> E2 --> E3 --> E4 --> E6
-        E4 --> E5
-    end
-    FV -->|"no, flag off"| off
-    FV -->|"yes, flag on"| on
-    subgraph port["The identity port, the intended signer"]
-        P1["devuser may ask forum_event for the junkiejarvis key,<br/>kinds 1, 42 and 31923 only - config/custody/identity-port-acl.json:40"]
-        P2["31400 to 31405 may NEVER be granted: governance kinds record a<br/>human decision and must not carry a container key<br/>services/nostr-pod-bridge/src/identity_port/acl.rs:65-73"]
-        P3["the dream-engine cutover to the port is owed, W3b<br/>ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:244-245"]
-        P1 --> P2
-        P3 --> P2
-    end
-    E6 -.->|"no client for it at this revision"| port
-    P2 -.-> T["TENSION: the 31400 panel and 31402 cases this engine signs are<br/>exactly the kinds the port refuses to grant - governance.rs:9-10"]
+    FILE{"Nonempty key FILE variable?<br/>relay.rs:95"}
+    FILE -->|yes| READ["Read bounded regular file; error never falls back<br/>Applies with isolation on OR off<br/>relay.rs:133-147"]
+    FILE -->|no| ISO{"AGENTBOX_ROLE_ISOLATION equals 1?<br/>relay.rs:87-101"}
+    ISO -->|yes| ERR["Key unavailable; ignore bare variable and repo env file<br/>Log bare-variable leak when present<br/>relay.rs:89-101"]
+    ISO -->|no| ENV["Nonempty bare variable, else repo env line<br/>relay.rs:102-118"]
+    READ -->|success| KEY["Parse key and sign in engine memory<br/>relay.rs:122-126; relay.rs:152-154"]
+    READ -->|error| SKIP
+    ENV --> KEY
+    ERR --> SKIP["Governance skips fail-open<br/>governance.rs:920-928"]
+    BOOT["Flag-on boot delivers role-owned 0400 file in 0500 dir<br/>devuser engine cannot read intended identity-owned key<br/>entrypoint-unified.sh:460-470"] -.-> READ
+    KEY --> SIGN["Current client signs panels, cases, withdrawals and NIP-42<br/>governance.rs:150-169; governance.rs:579-606; relay.rs:205-222"]
+    PORT["ACL supports marked agent_governance keys<br/>forum_event may grant 31400 and 31402<br/>identity_port/acl.rs:75-84; identity_port/acl.rs:294-307"] --> HUMAN["Human-decision kinds remain forbidden<br/>identity_port/acl.rs:70-73"]
+    PORT --> CONFIG["Shipped ACL has no marked key or panel/case grant<br/>identity-port-acl.json:28-40"]
+    PORT --> AUTH["Marked key may use forum_event only<br/>NIP-42 operation requires a separate design decision<br/>identity_port/acl.rs:300-302"]
+    CONFIG --> PENDING["Client/key/relay-registration cutover remains pending<br/>ADR-2122 ER-6 decided; source support exists"]
+    SIGN -.-> PENDING
 ```
 
-**Invariant (under role_isolation):** dream-engine never reads the JunkieJarvis key from its environment or from the repo `.env` on the workspace bind: with the flag on only `JUNKIEJARVIS_PRIVKEY_HEX_FILE` is consulted, and its absence is an error (`../project/agentbox/services/dream-engine/src/relay.rs:95-101`). With the flag off, which is how it ships, the pre-W2 order stands: the bare variable, then the `.env` line (`../project/agentbox/services/dream-engine/src/relay.rs:102-118`), the same loader contract as `scripts/dream-forum-suggestions.mjs`, which reads it through `role-secret.js` (`../project/agentbox/scripts/dream-forum-suggestions.mjs:215-221`, `../project/agentbox/management-api/lib/role-secret.js:120`).
-
-**Tension (identity port ACL vs the forum governance round trip):** the port's loader refuses to grant kinds 31400-31405 to anyone, because a governance event records a human decision and must not carry a container key (`../project/agentbox/services/nostr-pod-bridge/src/identity_port/acl.rs:65-73`). Yet the dream engine publishes the 31400 panel and 31402 cases signed with the JunkieJarvis key (`../project/agentbox/services/dream-engine/src/governance.rs:9-10`), and ADR-2122 still plans to move dream-engine onto the port in W3b (`../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:244-245`). As written, the port can never sign what AB-23.17 sends.
-
-**Open:** under `[security].role_isolation` the forum governance round trip stops without an error. The delivered key file belongs to `ab-identity`, dream-engine runs as devuser, and `load_key` treats the refusal as fail-open and skips (`../project/agentbox/config/entrypoint-unified.sh:460-462`, `../project/agentbox/services/dream-engine/src/governance.rs:920-928`). Nothing at this revision says whether that is the intended state until W3b, or a gap the boot rehearsal must catch.
+**Correction.** The former diagram said governance signing could never be granted. The loader already has the agent-key exception; its test also permits kind 5 in that grant (`../project/agentbox/services/nostr-pod-bridge/src/identity_port/acl.rs:423-430`). Human decision kinds remain forbidden. The shipped ACL and direct-key client still require cutover.
+**Activation.** Flag-on behaviour depends on effective boot configuration, ownership and running identity. This pass reads those contracts but does not enable isolation, inspect keys or certify a running image. Key-file precedence alone does not imply the flag is on.
+**Scope.** ADR-2122's ER-6 decision is assessed here, not its entire custody programme. Complete the signing, authentication and withdrawal design together, including old-key cases; see the [governance audit](../../estate-review/2026-11-01-dream-governance-and-delivery.md).
 
 ## AB-23.21 ADR-2143 — source supply is plumbing, not a decision
 
@@ -930,3 +857,30 @@ flowchart TB
 **Evidence.** Loopback probes reproduce unmatched remote records with unpaired=0; route probes reproduce changed-payload deduplication, restart sequence reuse and concurrent duplicate sequence numbers while the on-disk hash chain verifies. These are separate integrity properties, detailed in the [journal audit](../../estate-review/2026-11-01-dream-journal-and-api-down.md).
 **Coverage.** Several inbox writes have no tool pair, including shared-remote warnings, annexe-health failure and damaged-run alerts; inbox::add does not journal internally (`../project/agentbox/services/dream-engine/src/engine.rs:244`, `../project/agentbox/services/dream-engine/src/engine.rs:838`, `../project/agentbox/services/dream-engine/src/engine.rs:2061`, `../project/agentbox/services/dream-engine/src/inbox.rs:174-215`).
 **Skip semantics.** The repo wrapper posts turn.started before calling the body and turn.completed afterwards, including locked or already-finished returns. No tool effect is required for those lifecycle events (`../project/agentbox/services/dream-engine/src/engine.rs:508-529`).
+
+
+## AB-23.24 Digest — evidence limits and encryption configuration
+
+```mermaid
+flowchart TB
+    DISK["Read health, configured ledgers and open-item count<br/>digest.rs:386-399"] --> DATE{"Matching health date?<br/>digest.rs:186"}
+    DATE -->|no| ABSENT["Text says nothing was tested<br/>Missing evidence does not establish that conclusion<br/>digest.rs:187-191"]
+    DATE -->|yes| ANY{"Any scheduled outcomes?<br/>digest.rs:193-217"}
+    ANY -->|no| ZERO["No-eligible text and available standby reasons<br/>digest.rs:193-215"]
+    ZERO --> LOCAL
+    ANY -->|yes| WORDS["Compose from outcome labels and last ledger row<br/>ACCEPT says confirmed; REJECT says disproved<br/>digest.rs:242-275"]
+    WORDS --> LOCAL["Append local open count as panel backlog<br/>digest.rs:220-227"]
+    ABSENT --> LOCAL
+    LOCAL --> ZONE["Resolve section and zone metadata; select encryption plan<br/>digest.rs:417-426"]
+    ZONE --> PLAIN["Malformed or absent zones become empty;<br/>unknown section can select first configured zone<br/>zone_crypto.rs:86-105"]
+    ZONE --> SECRET["Known encrypted zone with gate on: latest held epoch or refuse<br/>zone_crypto.rs:109-115; zone_crypto.rs:221-233"]
+    PLAIN --> FALL["No encrypted match means plaintext plan<br/>zone_crypto.rs:222-224"]
+    SECRET -->|"no held key"| STOP["Withhold digest<br/>digest.rs:427-428"]
+    SECRET -->|"held key"| POST["Sign and publish; retry once after missing read-back<br/>digest.rs:454-480"]
+    FALL --> POST
+    POST --> VERIFY["Read-back match checks ID only<br/>Relay query does not verify signature or filter membership<br/>digest.rs:468-477; relay.rs:317-323"]
+```
+
+**Presentation.** A missing health file, REJECT label or unpublished inbox count is insufficient for the digest's stronger claims. Standby repositories disappear from the ordinary outcomes branch. Case context separately hard-codes the default ledger path, despite configurable ledgerPath (`../project/agentbox/services/dream-engine/src/governance.rs:274-278`).
+**Privacy.** The no-key refusal applies only after zone policy identifies an encrypted zone. Malformed metadata produces plaintext selection even with the gate on; the probe does not publish plaintext or claim the live relay would admit it. No current zone-key epoch is fetched, so latest means latest locally held.
+**Evidence.** The [governance audit](../../estate-review/2026-11-01-dream-governance-and-delivery.md) records isolated probes and the source boundary. Neither a publish ACK nor an ID-only read-back establishes delivery to the operator or a verified current deployment.

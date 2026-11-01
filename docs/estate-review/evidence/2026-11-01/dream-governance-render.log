@@ -1,0 +1,16 @@
+parsed 1 topic files, 24 mermaid diagrams
+cite-check: 5 warning(s)
+citations: 351 verified at the declared revision, 0 unverified (working-tree fallback), 0 unresolvable, 0 allowlisted (unverifiable)
+  ! agentbox/23-dream-engine.md:AB-23.9 — ../project/agentbox/config/hooks/dream-inbox-surface.cjs:47 is blank
+  ! agentbox/23-dream-engine.md:AB-23.20 — ../project/agentbox/services/dream-engine/src/relay.rs:121 is punctuation only ('};')
+  ! agentbox/23-dream-engine.md:AB-23.24 — ../project/agentbox/services/dream-engine/src/digest.rs:219 is blank
+  ! agentbox/23-dream-engine.md:AB-23.24 — ../project/agentbox/services/dream-engine/src/digest.rs:465 is punctuation only ('}')
+  ! agentbox/23-dream-engine.md:AB-23.24 — ../project/agentbox/services/dream-engine/src/digest.rs:478 is punctuation only ('}')
+rendered 24/24 diagrams via pele
+
+5 error(s):
+  - citation: agentbox/23-dream-engine.md:AB-23.9 — ../project/agentbox/config/hooks/dream-inbox-surface.cjs:47 is blank
+  - citation: agentbox/23-dream-engine.md:AB-23.20 — ../project/agentbox/services/dream-engine/src/relay.rs:121 is punctuation only ('};')
+  - citation: agentbox/23-dream-engine.md:AB-23.24 — ../project/agentbox/services/dream-engine/src/digest.rs:219 is blank
+  - citation: agentbox/23-dream-engine.md:AB-23.24 — ../project/agentbox/services/dream-engine/src/digest.rs:465 is punctuation only ('}')
+  - citation: agentbox/23-dream-engine.md:AB-23.24 — ../project/agentbox/services/dream-engine/src/digest.rs:478 is punctuation only ('}')

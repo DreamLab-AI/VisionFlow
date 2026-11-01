@@ -1,0 +1,138 @@
+{
+  "agentbox": {
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "old_topic_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+    "files": [
+      {
+        "path": "services/dream-engine/src/governance.rs",
+        "sha256": "dbf0a95cab00fe6b65c5bcc715fb09ad95e44dff74fc87b6ca61a55dda2af8b4",
+        "matches_old_topic_pin": true
+      },
+      {
+        "path": "services/dream-engine/src/relay.rs",
+        "sha256": "065eeb1b80e5c28808e9dd4e159e7a9ec4a298ea15b6b7b484742142f9d526bc",
+        "matches_old_topic_pin": true
+      },
+      {
+        "path": "services/dream-engine/src/inbox.rs",
+        "sha256": "2a79d6a6c20fa8916b20feede995df15002dd16906a71638a6372eea3ab3bbd4",
+        "matches_old_topic_pin": true
+      },
+      {
+        "path": "services/dream-engine/src/digest.rs",
+        "sha256": "bbac8d4472c9fbc5412aa55618c7485358c2309385119959d6eba67016d46943",
+        "matches_old_topic_pin": true
+      },
+      {
+        "path": "services/dream-engine/src/zone_crypto.rs",
+        "sha256": "eba8dbec7cce7a3425558c672c40f58db4956ea78413a77fc1effc82c8afd980",
+        "matches_old_topic_pin": true
+      },
+      {
+        "path": "services/dream-engine/src/engine.rs",
+        "sha256": "c15b31074c173b6409744daa87f1a1f0367d6e917b514e20dab25b006cf2af06",
+        "matches_old_topic_pin": true
+      },
+      {
+        "path": "services/dream-engine/src/config.rs",
+        "sha256": "6ee1506e0d8cade9e867a4bd099ea556df86bcb4420f88af475a245fc5660345",
+        "matches_old_topic_pin": true
+      },
+      {
+        "path": "services/dream-engine/Cargo.toml",
+        "sha256": "051ace1c8d144fe0b2b11b82ee7cc5c940fae0c3cce2afdf4d4fd14615107288",
+        "matches_old_topic_pin": true
+      },
+      {
+        "path": "services/dream-engine/Cargo.lock",
+        "sha256": "85dd2ec34d16c81ffa7710ad9f985a563cecc33332593a789d1d283198d2e248",
+        "matches_old_topic_pin": true
+      },
+      {
+        "path": "config/hooks/dream-inbox-surface.cjs",
+        "sha256": "17837722f943f1b21a0248ab40156d5e330a3ee9c1bb9345a6d0d82077415988",
+        "matches_old_topic_pin": true
+      },
+      {
+        "path": "tests/config/dream-inbox-surface.test.mjs",
+        "sha256": "f34a2579b9f913edd18a03430685b4ed8a1ed90725d1e1272d2743b47f94bf04",
+        "matches_old_topic_pin": true
+      },
+      {
+        "path": "config/entrypoint-unified.sh",
+        "sha256": "6f745c0e311cd699c7cf5ddb990857967d891be5634b15c74270e01255b3abde",
+        "matches_old_topic_pin": false
+      },
+      {
+        "path": "config/custody/identity-port-acl.json",
+        "sha256": "0c88a4cfe1c7b1124f5cb97da80ab5e11a296da3d85998a0784e76cd0b976fb4",
+        "matches_old_topic_pin": true
+      },
+      {
+        "path": "config/custody/env-classes.json",
+        "sha256": "c480439ec2b61d6ea612fc79efd17c944333fd9f01ca91a60d771469b8b88ead",
+        "matches_old_topic_pin": false
+      },
+      {
+        "path": "services/nostr-pod-bridge/src/identity_port/acl.rs",
+        "sha256": "b99a133987fd1e8927fd77d599417ec8dfb8c1978364d8f1f241b9c5ce9e7c9b",
+        "matches_old_topic_pin": true
+      },
+      {
+        "path": "docs/adr/ADR-2115-dream-decisions-surface-on-the-forum-governance-panel.md",
+        "sha256": "7d4dc0345f5e3b89951426ae11d17bfe8948be848206d61659a97c3b1ee77294",
+        "matches_old_topic_pin": true
+      },
+      {
+        "path": "docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md",
+        "sha256": "1a77532a61fb9cfd1769b5e2a4af42443421c890e93148c99596282407e0285b",
+        "matches_old_topic_pin": false
+      }
+    ],
+    "selected_unchanged_blocks": [
+      {
+        "path": "config/entrypoint-unified.sh",
+        "starts_at": "_ab_role_env_capture()",
+        "ends_before": "_ab_role_env_scrub()",
+        "identical_at_both_revisions": true,
+        "sha256": "559418753cd885f9a34d1a8a73f482b6e5510f71fac5803a490483affcd015e8"
+      },
+      {
+        "path": "config/entrypoint-unified.sh",
+        "starts_at": "_DREAM_INBOX_HOOK=",
+        "ends_before": "# (The auto-memory-hook",
+        "identical_at_both_revisions": true,
+        "sha256": "c218f78e65571f9127ba3fabe66645c1701d2224eeb459e959d73a0ebd836c58"
+      },
+      {
+        "path": "docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md",
+        "starts_at": "### ER-6 decided:",
+        "ends_before": "next section heading",
+        "identical_at_both_revisions": true,
+        "sha256": "ac230ab6dc747b6cd2d67f064c1b75a2356a3242d0ddf23682f69842dc408980"
+      }
+    ]
+  },
+  "forum": {
+    "revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "files": [
+      {
+        "path": "crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs",
+        "sha256": "52c7bd80243276f6f4109f1dc4180b485352141aac70d68fab626d5e1f6c0afd"
+      },
+      {
+        "path": "crates/nostr-bbs-forum-client/src/app.rs",
+        "sha256": "356bf2da3b51466abeed614a45562a56d8bb766955183436d90b9e3198e1074f"
+      },
+      {
+        "path": "crates/nostr-bbs-forum-client/src/stores/panel_registry.rs",
+        "sha256": "9d02cbf774751d1d98ea226c54dd349fe64a3d61ca574d3c89d9b1ccb717c3e2"
+      },
+      {
+        "path": "crates/nostr-bbs-core/Cargo.toml",
+        "sha256": "0596a274e0ad76a94bb5bdea70f225f3ef4223d52e9a2437f5dd684fbf921f93"
+      }
+    ]
+  },
+  "limit": "Selected source inspection only; no live relay, key, identity-port, browser or daemon qualification."
+}

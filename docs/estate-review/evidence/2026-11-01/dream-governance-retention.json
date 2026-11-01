@@ -1,0 +1,474 @@
+{
+  "retained_at": "/tmp/vf-dream-governance-artifacts",
+  "files": [
+    {
+      "path": ".audit-adapter/config/hooks/dream-inbox-surface.cjs",
+      "bytes": 3206,
+      "sha256": "17837722f943f1b21a0248ab40156d5e330a3ee9c1bb9345a6d0d82077415988"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/Cargo.lock",
+      "bytes": 81766,
+      "sha256": "85dd2ec34d16c81ffa7710ad9f985a563cecc33332593a789d1d283198d2e248"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/Cargo.toml",
+      "bytes": 1811,
+      "sha256": "051ace1c8d144fe0b2b11b82ee7cc5c940fae0c3cce2afdf4d4fd14615107288"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/LICENSE",
+      "bytes": 34523,
+      "sha256": "0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/README.md",
+      "bytes": 7288,
+      "sha256": "6001f8de97834591ca23f86be33ca51a0fc3f60072fd1260f14e73364d53645f"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/baseline.rs",
+      "bytes": 2225,
+      "sha256": "2f57c4dc872ebc016ea828d03649ab0e5f182546ca8c4f40b597acc5ba70f3c2"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/candidate_flow.rs",
+      "bytes": 26407,
+      "sha256": "2be2e22e4003a2a7619a938c6dd3294f63bcb849f8d8e227711cbfd244873bea"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/config.rs",
+      "bytes": 19045,
+      "sha256": "6ee1506e0d8cade9e867a4bd099ea556df86bcb4420f88af475a245fc5660345"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/digest.rs",
+      "bytes": 24861,
+      "sha256": "bbac8d4472c9fbc5412aa55618c7485358c2309385119959d6eba67016d46943"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/dispatch.rs",
+      "bytes": 18374,
+      "sha256": "b1bfb1f56f73339840b404c570335938996a424b05192f33e16c48a62829012a"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/engine.rs",
+      "bytes": 97914,
+      "sha256": "c15b31074c173b6409744daa87f1a1f0367d6e917b514e20dab25b006cf2af06"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/estate.rs",
+      "bytes": 12834,
+      "sha256": "0c3a45d122f9b0e431c9b5fa754e1b52ee96b5438f04bed16d3c578a8876b1d8"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/governance.rs",
+      "bytes": 67390,
+      "sha256": "dbf0a95cab00fe6b65c5bcc715fb09ad95e44dff74fc87b6ca61a55dda2af8b4"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/inbox.rs",
+      "bytes": 19734,
+      "sha256": "2a79d6a6c20fa8916b20feede995df15002dd16906a71638a6372eea3ab3bbd4"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/jev_triage.rs",
+      "bytes": 44708,
+      "sha256": "78907ae677486ef7dda4be4d19ac2a3a3b228e0daa601e804c7bed58194a3256"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/journal.rs",
+      "bytes": 18065,
+      "sha256": "57a22901acc3d3288d1dfaf30f46a8bdb4ff579295909f14f2866e974c834357"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/judge.rs",
+      "bytes": 12636,
+      "sha256": "520432607474ca4ae7ea5594b9e50a0d2e9fecad41c99ed57124da9b0bc97c7f"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/lib.rs",
+      "bytes": 2443,
+      "sha256": "7f9ce4b8e0d1df4890833bb95bcccf98057d82050ed356fc4cb49651dddb3876"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/llm.rs",
+      "bytes": 11344,
+      "sha256": "ba736cbcc08798cb8141696a076f61b1d62daddaa1425d63831e2c1772c74dc5"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/main.rs",
+      "bytes": 11962,
+      "sha256": "3cfc6c7be3a349fbb0aa15320802964ea24c90435a7c42aa321f97724460c2bc"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/notify.rs",
+      "bytes": 6818,
+      "sha256": "b472c304aff5a73a3e7c58c781edb0107a85da494b25a475410d5bad578640fc"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/policy.rs",
+      "bytes": 10733,
+      "sha256": "f977367133c3950f80e3239248b401bf3dcce27d39df74c6a1daf611aa05de80"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/present.rs",
+      "bytes": 10742,
+      "sha256": "6124eae44c72f9fd2844bbdc5fa3cdbf86d6ce5fb11c1ff4dd094426c0bc13d0"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/prompt/nightly.tmpl",
+      "bytes": 7112,
+      "sha256": "ccccb464fa055ce1636f540a6930035326dd1cc3252a5599bb9b651b6d2754bc"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/prompt.rs",
+      "bytes": 6279,
+      "sha256": "1a7cf1de2c4456d463a6ab542fe6898daf6ef74fe08e1f544564cc9818047aaa"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/records.rs",
+      "bytes": 16379,
+      "sha256": "1afe0a58a2b4b3e48aefa1791b5694ae10499b9306e39c1ad8b2a64ad143b2b6"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/relay.rs",
+      "bytes": 18860,
+      "sha256": "065eeb1b80e5c28808e9dd4e159e7a9ec4a298ea15b6b7b484742142f9d526bc"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/runner.rs",
+      "bytes": 2885,
+      "sha256": "fb17c83b2adce1302acd111215ffb952f998e80fd5854ef4fcd9ca3b5b6c604d"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/ruvector.rs",
+      "bytes": 17332,
+      "sha256": "ad36df458c9dd8359e9b0583f62eebc036d25b9e5ed5bc76c3fd1cee398fdd3c"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/wanted.rs",
+      "bytes": 19543,
+      "sha256": "46e0b65ea27b1fa9510b43d0d3ef209b80326829cc6ccbce318e1fc16d4b7c10"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/zone_crypto.rs",
+      "bytes": 15680,
+      "sha256": "eba8dbec7cce7a3425558c672c40f58db4956ea78413a77fc1effc82c8afd980"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/tests/audit_governance.rs",
+      "bytes": 14182,
+      "sha256": "92d9e6c142da9f721c63fc9669a460fbb74228f522e276b1842a4d75df380802"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/tests/fixtures/prompt-golden.txt",
+      "bytes": 7688,
+      "sha256": "d1b248a6ace2fdfbe246329a9173a34835a16358c7bbcedc4865f94cccbf28cd"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/tests/fixtures/zone-grant-wrap.json",
+      "bytes": 2270,
+      "sha256": "214923bf99926050ff19d4a922e1b70a4566d7e7887e2e82f2e7613539045c30"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/tests/fixtures/zone-js-ciphertext.txt",
+      "bytes": 133,
+      "sha256": "903a049e53b8eb77c3e4f6f1ff3bba288409ad559b4dd93c717b3701886181e9"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/tests/fixtures/zone-rust-ciphertext.txt",
+      "bytes": 133,
+      "sha256": "1f2b8d2356fd699fd4a6deb5d0417605b306fa62183de930141568a5ec2f3582"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/tests/night_e2e.rs",
+      "bytes": 34037,
+      "sha256": "0b7c11e76200dfce6257a38f1cd6c6947baf47edb560a5936a24acd5881e70d9"
+    },
+    {
+      "path": ".audit-adapter/tests/config/dream-inbox-surface.test.mjs",
+      "bytes": 3493,
+      "sha256": "f34a2579b9f913edd18a03430685b4ed8a1ed90725d1e1272d2743b47f94bf04"
+    },
+    {
+      "path": ".audit-previews/AB-23.17.png",
+      "bytes": 1904673,
+      "sha256": "0f6be1108c921d8acd2dbcf1dceb641efd838523e25d446393c5655b536ba86b"
+    },
+    {
+      "path": ".audit-previews/AB-23.20.png",
+      "bytes": 423105,
+      "sha256": "b766a76bec0f57c09d3acd96cb997cdec051cbd0d760c4484ead4f22c379b2ac"
+    },
+    {
+      "path": ".audit-previews/AB-23.24.png",
+      "bytes": 1557004,
+      "sha256": "e20d381a60ccbcd06372d9e57b4c0ff758f2e0dce3026fd599ab3af0fb5445f2"
+    },
+    {
+      "path": ".audit-previews/AB-23.9.png",
+      "bytes": 1175862,
+      "sha256": "8eb5b0516eb96d0305120b683e57e035d6c7fa39b4eadc1b273805cb42687661"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.1.mmd",
+      "bytes": 2714,
+      "sha256": "2585cf777046ee456cbf017fb44f05747faa25ae6386c5270db6cb64c49ea1f5"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.1.svg",
+      "bytes": 16516,
+      "sha256": "90eeb293aa19f2f99a35bb684863044c5e6df8cab407ff4cd2a5d2af71b62bb0"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.10.mmd",
+      "bytes": 1642,
+      "sha256": "2f0f6d06c10d60490c99c2171cd64752f3cd67945556e0008ce60727946da00f"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.10.svg",
+      "bytes": 11471,
+      "sha256": "759659a35d28668468929dd7c8ef8066591ae05068e9d68c1d7b1442a30b401e"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.11.mmd",
+      "bytes": 1262,
+      "sha256": "d7a42a5e0ee6723a9ffb339a1c28a5cb793ee08e8bc92a2659c5d3e4df134595"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.11.svg",
+      "bytes": 8927,
+      "sha256": "0c49a877a42f859ce92e5fe9c08545767a9c5d69d1b3b8c4d24a4bb353a6b2df"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.12.mmd",
+      "bytes": 1382,
+      "sha256": "cdfbd883fe80b3ac0fdd9d4764c497b75e1cb37eabb5cdd5b56255db34c4144a"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.12.svg",
+      "bytes": 8235,
+      "sha256": "0836ac2b43e47a9080b47536bf8e88699e1d9a6770e76cce5415c7f500df871a"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.13.mmd",
+      "bytes": 1139,
+      "sha256": "9cfae70e2fe5626f31a0b5ae595e350466f12253a5a09843f4405e0487e5c01d"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.13.svg",
+      "bytes": 8722,
+      "sha256": "887670a46a4c06485becc5af0459ebe1976250aa3de06f9de6d6cb430979a612"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.14.mmd",
+      "bytes": 1286,
+      "sha256": "e9202ab1e79584d0cf69f80697395e3d1ca9803e496b5001e44df72a596912da"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.14.svg",
+      "bytes": 8486,
+      "sha256": "546f6276495908c34ecb4ef3ff62dcb6c45ed1545a29b1a9d167875885296b8d"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.15.mmd",
+      "bytes": 1246,
+      "sha256": "78708206935b0587e45b057182679e2593378e937552fbba4de680918a1e99a9"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.15.svg",
+      "bytes": 9715,
+      "sha256": "668f19e02c9c85a8181b5ca0561e15a120b071c8773330e74f3f89a54083f49f"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.16.mmd",
+      "bytes": 1321,
+      "sha256": "c37b15bfa6726455c90f026f7f719af3c7f28a876d7607f5eee6b2bd36d4b3d4"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.16.svg",
+      "bytes": 8296,
+      "sha256": "4b951d1e2afc7f9cea98ff90735ee6a8e20be2ea530f3235bab3ac37556adce6"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.17.mmd",
+      "bytes": 1987,
+      "sha256": "0718ba9f6b5422763aaac01fa153a2e52e7fe409adf3937e94e6f7cf6c5e28dc"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.17.svg",
+      "bytes": 12288,
+      "sha256": "68ed36dcb97a8fe515cc1a9e1c78281d3a8ec9b2521d3249ef2f9bbd95fe9dc4"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.18.mmd",
+      "bytes": 2370,
+      "sha256": "f314dd29c6b1692cdf4edd62fc5da4f8e9cd6ed15fe20fe511a38a7604543124"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.18.svg",
+      "bytes": 17665,
+      "sha256": "75cd5b9c80b23480f474acd3ef54962ea3f09e68bc883b1dd578c30f28479d0a"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.19.mmd",
+      "bytes": 2825,
+      "sha256": "cc8b615c11cdc5c63978426d3a8751b224ecdf92b5c0543c7ce27a7c43b0df73"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.19.svg",
+      "bytes": 16029,
+      "sha256": "d0f6e183e29acb86894038d4953b003f966d2582cc48fa3a6f0631186f5e3771"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.2.mmd",
+      "bytes": 1743,
+      "sha256": "b9ec7f247d3730259e2a84e39f7398d31431bda6ed065643db387298c4c58f80"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.2.svg",
+      "bytes": 14276,
+      "sha256": "7eec0101b02eb463ee09d27e94200aee701e21e1533e5b57738da7eeb8481804"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.20.mmd",
+      "bytes": 1685,
+      "sha256": "5b5499d4c19366f4eea6142ee3d2ec265bb056740effacbfa20a9b3f5d9f8a87"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.20.svg",
+      "bytes": 11954,
+      "sha256": "8825c550ede41cd1fa9e20f623af0351334029f8337ac6030ec3d29d156e6993"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.21.mmd",
+      "bytes": 791,
+      "sha256": "8f60bae4163286f5a1735393ae8f66b54bd6aa3609b9ef6f12c3879ed44cf807"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.21.svg",
+      "bytes": 5915,
+      "sha256": "e5c6a45755e34b78ba5fd175eccf0914e9aa5ac328b6fbb42c8b3e4a2ea85ac9"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.22.mmd",
+      "bytes": 2373,
+      "sha256": "50a55f3ef6ea4e046bc7597a7f77a3310f8ff8b061ee9e3dda7679c596c7800f"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.22.svg",
+      "bytes": 14512,
+      "sha256": "2bfb1d1f979107f34b9ca4443723a20546d1126a40214e75a55683a4a63d778b"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.23.mmd",
+      "bytes": 1927,
+      "sha256": "9bb3d8464d52021a8a74122c5f70f53f32780dde13bbcf7dbb14b13dc1192422"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.23.svg",
+      "bytes": 12227,
+      "sha256": "f9dbfe660bea00bfb0259176249f0c4d8356e5a7e64a8b60146e72d2c824cb5f"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.24.mmd",
+      "bytes": 1550,
+      "sha256": "4a49758eafbc64dca183aee231d849357060c25de12e6007b0a5990fbb072379"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.24.svg",
+      "bytes": 11725,
+      "sha256": "98ae5403b60854ef3a635725d5886f3d1f4d8203f56636fc5dd74f544fb510d6"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.3.mmd",
+      "bytes": 1070,
+      "sha256": "c2d463ac07131c6de72f323d10a3fcbd293e4161a83f6e4f914fcc8ec812ce86"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.3.svg",
+      "bytes": 7586,
+      "sha256": "6165854f5cf7a455d0f8e829975114433eef0e74a86de879c4e11177d39cd09f"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.4.mmd",
+      "bytes": 2575,
+      "sha256": "e4bedf1767d50faaed653b78cca4dfb8a243021761f62c61db58f9bae2b88269"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.4.svg",
+      "bytes": 19123,
+      "sha256": "d8c23c045b333b4f61e5bcdc21a454ec0311c78c969324d3afed4fe34735fda6"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.5.mmd",
+      "bytes": 1954,
+      "sha256": "a7a8ed5c48ebd192194d605af8bf7ea024de77576fb572bc15f50fc2a69ce8d4"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.5.svg",
+      "bytes": 15067,
+      "sha256": "49d3f3c335c650f03c4bf4e1a154db3ef5f59efe245036041bc09808605fc0a5"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.6.mmd",
+      "bytes": 1078,
+      "sha256": "99156b86b63cd555d9516698eabb501abb1d537519cb58fafbb4f2a4805cd790"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.6.svg",
+      "bytes": 9063,
+      "sha256": "7fc6c1cde4f6baa9ae7586eab65d68c43102b6eb40de448082056f20ec7bf325"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.7.mmd",
+      "bytes": 1093,
+      "sha256": "a81bba2513e3c6ff0f3033d3d346cf15b7adac81801febaa5651170cefe3f5d8"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.7.svg",
+      "bytes": 9266,
+      "sha256": "84ed4a1d4c16fe0bb2cf13b678b0f1ef66a6e5b063ba9b643c0605f38de2e6a3"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.8.mmd",
+      "bytes": 2056,
+      "sha256": "14062003f15d1f022898de36f2668a4acccefda138d5848967b000ac054fd3ec"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.8.svg",
+      "bytes": 13307,
+      "sha256": "b4298260a412cdd6b857d2f20d7b1391c6c9e2d4bc64109b798ba966a8bbdf4d"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.9.mmd",
+      "bytes": 992,
+      "sha256": "e2c9993390b7cf83f463c606425523dc7b466f5c883c490162b05e57f8379bf6"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.9.svg",
+      "bytes": 7440,
+      "sha256": "65bb12f213cd06042025498d9a83ca4fba20ab1d43f7f8fc163ab8a2c4d7884f"
+    },
+    {
+      "path": "texput.log",
+      "bytes": 714,
+      "sha256": "0de8dad445a514ae3bc13874d2a354c230d5395982c23ea702c3e573c3d9d304"
+    },
+    {
+      "path": "website/build-receipt.json",
+      "bytes": 4363,
+      "sha256": "fae85100258804d3344673265a4fcc88781ea92f6e2c4a137bd27b48f3460711"
+    },
+    {
+      "path": "worktree-status-before-cleanup.txt",
+      "bytes": 333743,
+      "sha256": "705114d2252b0b036584f718b72d37b9a42224b8bb38753c6fbc73575f60f1a7"
+    }
+  ],
+  "excluded": [
+    "compiled .audit-target cache"
+  ],
+  "note": "Temporary fixture directories self-clean after assertions. Source export, render SVGs, preview PNGs and copied ignored corpus inputs retained. No live keys, inbox, daemon or relay used."
+}

@@ -1,0 +1,14 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.17s
+     Running unittests src/lib.rs (.audit-target/debug/deps/dream_engine-289969c465f16849)
+
+running 7 tests
+test digest::tests::harness_failures_are_named_not_swallowed ... ok
+test digest::tests::legacy_zero_eligible_record_still_says_why ... ok
+test digest::tests::missing_or_stale_health_is_stated ... ok
+test digest::tests::normal_night_reports_verdicts_and_decisions ... ok
+test digest::tests::parses_ledger_rows_for_the_date ... ok
+test digest::tests::truncated_findings_are_marked ... ok
+test digest::tests::zero_eligible_night_lists_the_parked_roster ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 182 filtered out; finished in 0.00s
+

@@ -1,0 +1,22 @@
+   Compiling dream-engine v0.1.0 (/home/devuser/workspace/wt/VisionFlow-dream-governance/.audit-adapter/services/dream-engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.22s
+     Running tests/audit_governance.rs (.audit-target/debug/deps/audit_governance-16d916580e561001)
+
+running 11 tests
+test accepted_withdrawal_is_resent_after_local_recording_failure ... accepted deletion sent twice; local recording failure leaves it pending
+ok
+test any_other_valid_signer_and_missing_request_binding_are_accepted ... arbitrary second fixture key accepted with or without request e tag; no role data supplied
+ok
+test case_context_reads_default_ledger_not_configured_alternative ... ok
+test digest_claims_exceed_health_and_ledger_inputs ... ok
+test later_supersession_does_not_revisit_resolved_local_item ... ok
+test malformed_zone_metadata_selects_plaintext_despite_enabled_gate ... ok
+test newest_stale_or_delegate_event_suppresses_older_bound_decision ... ok
+test panel_ack_checks_action_and_time_but_not_outcome_or_role ... ok
+test query_accepts_unverified_out_of_filter_events_and_closed_as_success ... ok
+test republished_reopened_id_updates_closed_record_instead_of_open_record ... withdrawal now directly targets new-request on the closed row; open row remains unpublished
+ok
+test stale_snapshot_overwrites_a_durable_resolution ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s
+

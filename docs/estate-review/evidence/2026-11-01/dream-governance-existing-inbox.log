@@ -1,0 +1,19 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.21s
+     Running unittests src/lib.rs (.audit-target/debug/deps/dream_engine-289969c465f16849)
+
+running 12 tests
+test inbox::tests::decision_fields_parse_any_separator_and_case ... ok
+test inbox::tests::decision_fields_survive_characters_that_grow_when_lowercased ... ok
+test inbox::tests::extracts_bullet_list_form ... ok
+test inbox::tests::extracts_numbered_recommendations ... ok
+test inbox::tests::inbox_written_before_withdrawals_still_loads ... ok
+test inbox::tests::legacy_items_without_new_fields_still_load ... ok
+test inbox::tests::mark_published_is_idempotent ... ok
+test inbox::tests::mark_withdrawn_records_once_and_only_for_the_named_request ... ok
+test inbox::tests::no_marker_no_questions ... ok
+test inbox::tests::plain_decision_never_promises_a_merge ... ok
+test inbox::tests::resolve_only_touches_open_items ... ok
+test inbox::tests::short_hash_is_stable ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 177 filtered out; finished in 0.00s
+

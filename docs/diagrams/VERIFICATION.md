@@ -8,7 +8,7 @@ means it was judged against whatever happens to be checked out, not against a
 commit. That distinction is invisible in a warning count, which is why it is
 stated here: a green run reports what it checked, not merely that nothing objected.
 
-- **24557** verified at the declared revision
+- **24549** verified at the declared revision
 - **0** unverified (read from the working tree)
 - **0** unresolvable (never checked at all)
 - **9** allowlisted (unverifiable), waived by [citation-allowlist.json](citation-allowlist.json)

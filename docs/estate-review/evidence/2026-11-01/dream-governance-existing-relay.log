@@ -1,0 +1,15 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.20s
+     Running unittests src/lib.rs (.audit-target/debug/deps/dream_engine-289969c465f16849)
+
+running 8 tests
+test relay::tests::flag_off_keeps_env_then_env_file ... ok
+test relay::tests::key_loads_from_env_file_and_signs_verifiably ... ok
+test relay::tests::missing_or_malformed_key_is_an_error_not_a_panic ... ok
+test relay::tests::role_isolation_reads_the_file ... ok
+test relay::tests::role_isolation_refuses_the_env_var_and_the_env_file ... ok
+test relay::tests::role_key_file_wins_over_env_and_env_file ... ok
+test relay::tests::signing_refuses_a_mismatched_pubkey ... ok
+test relay::tests::unreadable_key_file_names_the_path_and_does_not_fall_back ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 181 filtered out; finished in 0.03s
+

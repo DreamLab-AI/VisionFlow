@@ -1,0 +1,16 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.20s
+     Running unittests src/lib.rs (.audit-target/debug/deps/dream_engine-289969c465f16849)
+
+running 9 tests
+test zone_crypto::tests::cross_checks_with_the_js_implementation ... ok
+test zone_crypto::tests::debug_never_prints_the_secret ... ok
+test zone_crypto::tests::digest_section_maps_to_zone4_and_public_is_never_encrypted ... ok
+test zone_crypto::tests::encrypts_to_latest_epoch_and_round_trips ... ok
+test zone_crypto::tests::gate_is_exact_true ... ok
+test zone_crypto::tests::gate_off_leaves_the_digest_plaintext ... ok
+test zone_crypto::tests::key_file_owner_and_shape_are_enforced ... ok
+test zone_crypto::tests::no_key_refuses_never_plaintext ... ok
+test zone_crypto::tests::settings_read_from_env_file_text ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 180 filtered out; finished in 0.04s
+

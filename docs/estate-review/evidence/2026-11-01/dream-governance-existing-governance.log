@@ -1,0 +1,27 @@
+   Compiling dream-engine v0.1.0 (/home/devuser/workspace/wt/VisionFlow-dream-governance/.audit-adapter/services/dream-engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.86s
+     Running unittests src/lib.rs (.audit-target/debug/deps/dream_engine-289969c465f16849)
+
+running 19 tests
+test governance::tests::a_case_with_a_pr_links_it_and_says_nothing_is_merged ... ok
+test governance::tests::a_case_without_artefacts_still_renders ... ok
+test governance::tests::a_four_field_question_renders_as_labelled_lines_and_titles_by_its_decision ... ok
+test governance::tests::a_vetoed_night_says_there_is_nothing_to_merge ... ok
+test governance::tests::alerts_are_low_tier_and_low_priority ... ok
+test governance::tests::decisions_serialised_by_the_forum_resolve ... ok
+test governance::tests::panel_acknowledgement_dismisses_only_alerts_published_before_it ... ok
+test governance::tests::panel_round_trips_through_core_and_carries_policy_tags ... ok
+test governance::tests::planner_applies_newest_valid_admin_decision_bound_to_the_request ... ok
+test governance::tests::planner_rejects_self_review_forgery_and_stale_request_binding ... ok
+test governance::tests::request_addresses_the_panel_and_round_trips ... ok
+test governance::tests::resolution_mapping ... ok
+test governance::tests::resolved_items_are_never_replanned ... ok
+test governance::tests::sweep_selects_only_resolved_published_unwithdrawn_items ... ok
+test governance::tests::sweep_withholds_the_coordinate_when_a_reopened_item_shares_it ... ok
+test governance::tests::table_fences_are_stripped_and_roster_evidence_is_real ... ok
+test governance::tests::withdraw_dry_run_sends_and_writes_nothing ... ok
+test governance::tests::withdrawal_names_the_request_its_coordinate_and_kind ... ok
+test governance::tests::withdrawal_reason_quotes_at_most_80_chars_of_a_flattened_answer ... ok
+
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 170 filtered out; finished in 0.14s
+
