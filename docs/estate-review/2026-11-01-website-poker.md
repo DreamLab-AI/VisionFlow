@@ -1,0 +1,113 @@
+# Website poker: credit, recovery and receipts
+
+The website has two configured house seats, and both service processes were running when inspected. Its poker implementation has useful deterministic replay and chain checks, but those do not establish that every accepted hand can recover, every claimed payment exists, or every success message represents settlement. Ten targeted scenarios below separate those boundaries. This is a documentation audit; product behaviour was not changed.
+
+## Scope and evidence
+
+| Component | Inspected revision and limits |
+|---|---|
+| Website overlay | `b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5`; full ADR-2009, configuration, provisioning and hand probe. |
+| Consumed forum kit | `9c36b6032640c89879ae52fe25da99493979a0b6`, the website's `KIT_REF`; full ADR-2020 section assessment, poker state machine, ledger, runner, replay and browser settlement/scheduling paths. Checkout HEAD `c39f41f` was not substituted for the consumed release. |
+| Agentbox | `9dfc27b16e82e9786535a55e790710493dd51fdf`; service derivation, configuration and launcher. This does not close the agentbox ADR corpus. |
+| Service build source | Nix pins kit `dd454474295510fac1d643f911b3817a3a292c0f`. All 42 files under the two poker crates, client poker module and table page are byte-identical to the website pin. This comparison excludes other crates and lockfile dependencies. |
+| Diagrams | New DW-10.1–6; corrected DREAM-only labels in DW-01.1–2. All 12 DW-01 declared source entries are byte-identical between its retained `a67cb2a` stamp and current website HEAD. Other DW-01 mechanisms were not given a fresh semantic assessment. |
+| Runtime | At `2026-11-01T05:50:45Z`, supervisor reported DREAM house PID 981, BLAKES7 house PID 992 and coach PID 999 running. Process existence proves neither deployed source provenance, current balances nor a working hand. |
+
+Evidence is in [the retained batch directory](evidence/2026-11-01/dw-poker/). The source manifest records 62 exported files and their hashes; full source exports remain under `/tmp/vf-dw-poker-artifacts/sources`. Tests used an archive of the consumed kit and copied, unmodified website entry points. One unrelated absolute fixture symlink in the kit archive was omitted and recorded. No live hand, provisioning, invitation, payment or key inspection was performed.
+
+## ADR-2009, section by section
+
+Source: website `docs/adr/ADR-2009-dream-poker-table-house-seat.md`, read in full. Historical verification claims remain historical; the audit does not rewrite its accepted decision or certify its current `complete/live` status.
+
+| Section | Assessment against current evidence |
+|---|---|
+| Front matter: status and verified commit | Accepted/complete/live at historical `2ef7ead`. Services exist now, but replay, credit and receipt findings below prevent treating that stamp as end-to-end assurance. |
+| Front matter: review triggers | The second house seat already exists (`forum-config/dreamlab.toml:320,400` and agentbox `agentbox.toml:2034`). The record's single-seat account needs reconciliation. A protocol-version change is not the only reason to review deployment compatibility. |
+| Context: why a separate house | Supported: the service owns full hands and sends seat views (`table.rs:339,560`); the browser practice table holds its game locally. This is a trusted house, not secret dealing against a malicious operator. |
+| Context: kit now supplies hands and invitations | Implemented paths exist. Calendar acceptance and invitation delivery are asynchronous and separate; a queued invitation is not proof of delivery. |
+| D1: registered house identity and profile | The configured DREAM key and agent row exist (`dreamlab.toml:314,386`). Actual registration, whitelist contents, profile publication and exclusive key custody were not read or re-established. The profile provisioner's receipt is unsound (P1). |
+| D2: agentbox process and local producer | Baked service and launcher are present (`lib/poker-citizen.nix:43`, `config/poker/run-citizen.sh:60`). Both configured processes run. This replaces the consequence's temporary tmux description. |
+| D2: same kit commit for service and client | Contradicted literally: `dd454474` versus `9c36b603`. The 42-file equality result avoids falsely calling this a poker protocol regression. A compatibility receipt covering relevant dependencies would be stronger than either an equal VERSION or an obsolete exact-pin assertion. |
+| D3: scalar house key mirrored into client | The scalar remains a DREAM fallback, while per-chain `citizens` now takes precedence (`poker/mod.rs:189–211,265–281`). BLAKES7 is a second configured asset table. Removing the scalar alone no longer guarantees practice-only mode. |
+| D4: treasury funding | The first 50,000 DREAM and 4,000 sats are dated provisions, not a current balance check. No financial state was probed. Code uses balance checks and debt, without an active-hand reservation (P4). |
+| D4: daily cap | DREAM remains 20,000; BLAKES7 is configured at 200,000 base units (`agentbox.toml:2027,2042`). Native tests cover payout selection; the cap is not a guarantee that all accepted hand exposure is covered. |
+| D5: admins or moderators schedule, invitees get DMs | The button tests `zone_access.is_admin` (`pages/table.rs:146`), not a separate moderator permission. Publication returns before ACK and invitations begin immediately (`poker_schedule.rs:188–212`). The statement is stronger than the current client flow. |
+| Consequences: members can play now | Source and running processes support availability in part; this batch did not execute a browser game. Hand and payment recovery limitations remain. |
+| Consequences: fee economics and producer recycling | The ~200-sat cost and ~30,000 chain balance are historical estimates. No fresh capacity, fee recycling or treasury observation supports carrying them forward as current economics. |
+| Consequences: reseed and profile recovery | The house keys are not the website's config-only ingress identities. Whitelist recovery remains a separate operation; the profile script cannot prove its own publication (P1). No database reset was performed. |
+| Consequences: temporary tmux build | Stale as an operational instruction: the launcher executes a baked binary and supervisor currently runs both seats. Actual binary derivation provenance remains unchecked. |
+| Verification: four pin locations | The listed `2ef7ead` is obsolete historical evidence. Current website pin is `9c36b603`; exact service equality fails as described above. |
+| Verification: public key parity | DREAM scalar and per-chain map match the configured overlay identities; the new diagrams show the two-table configuration. No live browser `window.__ENV__` inspection was performed. |
+| Verification: whitelist and holdings | Not rerun. A read receipt from October is not a current membership or balance certificate. |
+| Verification: one live hand verifies and settles | The supplied probe never compares Done's commitment with its saved offer commitment, never replays the game and never verifies a transfer. A synthetic substituted commitment passes (P2). Its header admits the wallet is excluded; its success message does not. |
+
+## Kit ADR-2020, section by section
+
+Source: kit `docs/adr/ADR-2020-dream-poker-table-house-seat-and-dealt-member-hands.md`, read in full at the consumed pin. The table assesses its claims without converting this into a full review of ADR-2021, the wallet, the coach or the rendering stack.
+
+| Section | Assessment |
+|---|---|
+| Front matter | Accepted/complete/staged at historical `d673708`. Staged describes kit activation, while website ADR-2009 says live; these are different scopes, not necessarily contradictory statuses. |
+| Review triggers | The operator has added another seat and chain. Relevant scope belongs partly to ADR-2021, whose full section review remains open. |
+| Context | The trust distinction between browser practice and a separately keyed house is reflected in the two implementations. The former single-asset context is historical. |
+| D1: shared crate, JS/Rust engines and differential fixtures | Existing native tests pass: 45 unit, five differential and one doc test for the poker crate. Differential tests consume recorded JSON; this run did not regenerate fixtures against a fresh upstream engine. |
+| D2: committed deal, own nonce, replayed house actions | Implemented in `fair.rs`, `verify.rs:151–281` and client `live.rs:911–932`. It validates the supplied game transcript; payment fields have additional unverified bindings (P7). It does not prevent selective abort or dealer knowledge of cards. |
+| D3: two members with house dealing | Existing state-machine tests pass. Accept checks the accepting member, not the challenger's newly changed debt or balance (P5). |
+| D4: one transfer, no additional value ledger | Chain transfer construction exists, but the JSON book is operationally necessary for obligations and payout accounting. Restart safety cannot be inferred merely from the chain being the value ledger (P6). A zero-net hand has no transfer. |
+| D4: debt refusal, grace and daily cap | Refusal and cap tests pass; unlimited claim renewal defeats eventual debt refusal (P3). Concurrent active exposure is not reserved (P4). |
+| D5: kind-20779 gift-wrapped transport | `run.rs:483–508` unwraps the expected rumor kind and obtains the authenticated sender before dispatch. This batch did not re-audit all gift-wrap cryptography or live admission. |
+| D6: calendar, participants and invitations | Source paths exist, but client permission wording and asynchronous receipt claims lag reality (P8). Current NIP-52 has an additional required day tag absent from this builder (P10). |
+| D7: feature, wallet, preference and house gates | Triple client gate remains (`poker/mod.rs:89–115`); the scalar-house gate has expanded to per-chain asset/key selection. It does not perform a live service readiness check. |
+| Consequences: cap bounds cheating exposure, unseen payment restores refusal | Too strong: the false claim can be renewed indefinitely; accepted concurrent stakes are not deducted from cap availability. The payout selector still enforces its daily budget. |
+| Consequences: trusted dealer and fee limits | Trusted dealer is accurate. Fee and chain-capacity figures are historical; no current economic validation was run. |
+| Consequences: pins and practice fallback | Exact pin lockstep has diverged without changes to the compared poker source. A missing asset/key removes that asset table; practice also requires the original feature/wallet/preference gates. |
+| Verification: native counts | This run has 51 poker tests and 23 citizen library tests, rather than the historic 50 and 11. Ten new audit scenarios are separate. |
+| Verification: client tests, clippy, fmt, WASM | Historical receipts only. No full client test run, WASM build, workspace lint or browser acceptance test was performed here. |
+| Verification: constant and gate searches | Searches establish declarations and consumers, not complete routing or user utility. The additional per-chain map means the old single-key account is incomplete. |
+
+## Findings and adversarial checks
+
+Abbreviations below use kit paths `crates/nostr-bbs-poker-citizen/src/` for `table.rs`, `ledger.rs`, `run.rs`, and `crates/nostr-bbs-forum-client/src/` for client files. The evidence manifest resolves full paths and revisions.
+
+| ID | Finding, evidence and practical limit |
+|---|---|
+| **P1 — provisioning receipt** | Website `provision-poker-citizen.mjs:59–66` accepts the first OK regardless of ID and resolves on rejection. The actual script prints ACCEPTED after a synthetic AUTH OK, closes, then attempts its scheduled kind-0 send. The fake socket records that attempt on a closed connection; a real socket may throw instead. A separate kind-0 rejection exits zero. Match the publication ID, reject on refusal and read back the profile. |
+| **P2 — live probe overclaims** | `test-poker-citizen.mjs:43,84–86,103–113` stores `commitInPlay` but does not use it. A fully encrypted mocked reply substitutes a different committed secret, invents a root and settlement, omits a replay record and sends the next Offer. The unmodified probe exits zero with “played and settled”. No funds moved. Bind the offered commitment, replay the hand and independently verify the required transfer; otherwise rename the receipt. |
+| **P3 — renewable credit** | `table.rs:399–405`, `ledger.rs:187–203` and `table.rs:260–276`: a 64-character non-hex ID is accepted and resets the grace timestamp. Native requests at times 1,000, 5,000 and 50,000 permit a new hand while the original debt remains unpaid. Validate transaction identity and cap grace from an immutable first claim or confirm the chain before extending credit. |
+| **P4 — no active-hand reservation** | `table.rs:521–540` subtracts settled obligations from the house balance but not active stakes; `cap_left` only subtracts paid amounts. Two distinct members each receive a 200-unit hand against a supplied 200-unit balance and 200-unit cap. This does not demonstrate overpayment: settlement and retry cap checks can defer obligations. Reserve exposure at admission and show pending payouts honestly. |
+| **P5 — challenge snapshot** | `table.rs:650–665` checks the challenger when issuing a challenge; `table.rs:740–756` checks only the accepter later. Injecting a new challenger debt between those calls still produces a dealt hand. This fixture isolates the state transition; it does not simulate an actual chain withdrawal or claim a live exploitation. Revalidate both members at acceptance. |
+| **P6 — incomplete restart and crash recovery** | Active maps are recreated empty (`table.rs:189–193`), while tick retains a live session without a hand deadline (`1029–1049`). A month-later tick preserves an unfinished hand; saving/reloading only the ledger loses it. Done and optional Pay precede Persist (`846–968`), and persistence failure merely logs (`run.rs:276–283`). Source-only extensions: held inputs and dedup IDs are memory-only; producer acceptance clears owing before chain inclusion (`run.rs:417–451`). Crash injection and ambiguous producer-response recovery remain untested. Persist game/payment intent before side effects, make failure visible, and reconcile transaction identity before retrying. |
+| **P7 — replay/payment binding** | Browser `poker/live.rs:911–932` verifies the nonce and replay. `968–1040` independently trusts the reply's settlement amount, root and recipient/script for payment; `verify::Claim` does not contain those fields. A verified transcript alone therefore does not establish that its payment instruction is correct. This is source evidence, not an executed browser exploit. Derive the delta and root from the replay, bind both players and agreed stakes, compare against the local action transcript, and reject mismatches before wallet signing. |
+| **P8 — event/invitation acknowledgement** | `pages/table.rs:146` exposes scheduling only through `is_admin`; no separate moderator check is made. `poker_schedule.rs:188–212` starts invitations immediately after enqueueing the calendar event and counts synchronous DM calls as sent. `relay.rs:640–655` and `dm/mod.rs:472–479` confirm the asynchronous boundary. A rejected calendar event can coexist with issued invitations. This was not tested in a browser. Wait for event acceptance and track each invitation's eventual delivery status. |
+| **P9 — stale chain facts** | `run.rs:306–350` retains prior Facts when refresh fails; `balances_for:353–363` has no freshness deadline. Chain validation protects accepted data but does not make old balances current during an outage. Source-only finding. Bound stale admission and label degraded operation; test a member spending elsewhere during a producer outage. |
+| **P10 — current calendar protocol drift** | Current NIP-52 requires day-granularity `D` tags on time-based events. The inspected `core/calendar.rs:499–576` builder supplies none, and the poker caller's extra tags contain only `chain`. This is a source-to-current-spec gap, not proof that this relay rejects such events. Update the builder and verify range coverage, including multi-day events. [NIP-52](https://github.com/nostr-protocol/nips/blob/master/52.md). |
+| **P11 — deployment/record drift** | Exact pins differ, a second asset/seat exists and the current launcher is baked/supervised. All 42 compared poker files match, so a change to compatibility policy should preserve that evidence instead of inventing a binary incompatibility. The scope note still contains old “no ADR yet” and planned JS-only engine language below its dated update; the current Rust engine and ADRs have overtaken those sections. |
+| **P12 — ledger shape** | `Ledger::parse` checks the version but defaults all other fields. `{"version":1}` parses as an empty ledger in the native fixture. This is not malformed JSON recovery and does not prove spontaneous data loss; it shows why atomic replacement alone is insufficient to detect a semantically truncated valid document. Consider integrity checks and backups against known chain state and obligation counts. |
+
+The initial funding, testnet restriction and trusted-dealer disclosure remain useful boundaries. No evidence here justifies increasing stakes, adding a valuable asset, claiming trustless settlement or treating process uptime as game health.
+
+## Comparative position and user utility
+
+The closest public reference is Libre Poker, whose engine repository describes a pure hold'em state machine, CFR training, solved-preflop grafting and a river solver. Its croupier repository describes game-blind dealing with sealed envelopes and consent-gated opening; its schema repository presents a shared JSON-LD vocabulary. These are upstream descriptions, not independent deployment verification. DreamLab uses a Rust port plus browser engine and integrates identity, invitations and chain wallets. This batch found no evidence establishing completion of the scope note's proposed Libre Poker lobby/document federation. [Engine](https://github.com/libre-poker/engine), [croupier](https://github.com/libre-poker/croupier), [schema](https://github.com/libre-poker/schema).
+
+Poker Now's current product page offers browser room links without accounts, up to ten players, video/voice, time controls and session downloads. Those vendor claims provide a practical usability comparison: DreamLab's heads-up table has an existing-community identity advantage, but adds wallet, preference, funding and house-service dependencies. Do not infer demand from implementing a transport. Measure whether a member can invite a friend, start a first hand, recover a disconnect and understand a pending payment. [Poker Now](https://www.pokernow.com/).
+
+PokerKit is a library for simulation, evaluation and analysis with multiple variants and configurable states. It is a useful candidate for an independent rule oracle, rather than a substitute for this forum's user experience. Current differential fixtures compare the Rust port with its JS ancestor; an independently implemented oracle would reduce common-mode blind spots. This is a recommendation, not an integration result. [PokerKit documentation](https://pokerkit.readthedocs.io/en/stable/).
+
+The strongest evidenced position is a community poker and verifiable-hand experiment integrated with existing forum identity and test-chain assets. Useful next increments are:
+
+1. **Make receipts exact.** Separate authenticated, published, hand verified, transfer accepted and transfer confirmed. Acceptance: both mocked false-success cases fail and a rejected calendar event produces no invitations.
+2. **Make a session recoverable.** Restore an active hand after service restart, preserve client nonce/transcript across reload, and reconcile pending transfers by deterministic identity. Acceptance: restart/crash tests across every send/pay/save boundary produce neither lost obligations nor duplicate payouts.
+3. **Make credit finite.** Reserve concurrent exposure, prevent grace renewal without evidence and recheck both challengers. Acceptance: bounded obligations under concurrent users and stale chain responses, with an understandable “pending payout” state.
+4. **Make participation easy to assess.** Show table readiness, required balance and fee balance before seating; give organisers per-recipient invitation outcomes. Measure invitation-to-first-hand completion, reconnect success and unresolved payment age before adding more chains or visual features.
+5. **Make federation a separately provable deliverable.** A compatible Hand document, a published Table heartbeat, a working external listing and another operator's replay are different receipts. Preserve the scope note's open rail/federation work until each has evidence.
+
+The constitution URL could not be fetched and attempted raw `main/README.md` URLs returned 404. No comparison above depends on their unavailable content. No claim about market size, adoption or legal status is made.
+
+## Verification and remaining work
+
+`cargo test --locked --offline -p nostr-bbs-poker -p nostr-bbs-poker-citizen` passed 74 existing tests: 45 poker unit, five recorded differential, one doc and 23 citizen library tests. Six separate native boundary tests passed. Three mocked provisioner cases include an accepted-publication control; one further mocked hand-probe case passed its counterexample assertion. The tests exercise actual source, not a rewritten implementation. Script fixtures use synthetic keys, real NIP-59 wrapping and mocked WebSocket transport.
+
+Six new DW-10 panels and all seven DW-01 panels rendered; eight new/changed panels were visually inspected. Structural/citation checks are a gate on the documentation, not proof of every depicted mechanism. The full strict gate passed: 184 topics, 1,622 panels, 24,747 citations verified at declared revisions, zero warnings and nine explicitly allowlisted generated-artifact citations. Freshness covers all 46 declared revisions. The final receipts and retention manifest accompany this report.
+
+Still open: ADR-2021's full assessment, browser/WASM and current production hand acceptance, service binary provenance, current balances and fee capacity, crash and outage integration tests, coach/model/privacy review, accessible 3D interaction, independent engine validation, Libre Poker federation and the rest of the website/kit/estate audit. Product repairs remain recommendations. The wider objective remains active.

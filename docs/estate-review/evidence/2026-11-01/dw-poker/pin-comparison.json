@@ -1,0 +1,258 @@
+{
+  "service": "dd454474295510fac1d643f911b3817a3a292c0f",
+  "client": "9c36b6032640c89879ae52fe25da99493979a0b6",
+  "files": [
+    {
+      "path": "crates/nostr-bbs-poker/Cargo.toml",
+      "service_sha256": "c25762e5d54925fae98c2c413906e848acbe44de3ece702d2510d2daa124565d",
+      "client_sha256": "c25762e5d54925fae98c2c413906e848acbe44de3ece702d2510d2daa124565d",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-poker/README.md",
+      "service_sha256": "263b152c8455a8d389b1839e635bb5c3769f715ea76471dec2ca9c036190e155",
+      "client_sha256": "263b152c8455a8d389b1839e635bb5c3769f715ea76471dec2ca9c036190e155",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-poker/src/rules.rs",
+      "service_sha256": "991c1b68bc4b87fd275e3828bcef9c40d01058273241ab7312806ccdf0e0a91b",
+      "client_sha256": "991c1b68bc4b87fd275e3828bcef9c40d01058273241ab7312806ccdf0e0a91b",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-poker/src/fair.rs",
+      "service_sha256": "e6f348ff9b68f77f0b914e493679de1e6ff55a1baa5871c36c2bf9e42f6ac8f7",
+      "client_sha256": "e6f348ff9b68f77f0b914e493679de1e6ff55a1baa5871c36c2bf9e42f6ac8f7",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-poker/src/record.rs",
+      "service_sha256": "e1363ec6680c16808231b7b0785a827fbb0bbe520d7e171b33e6f78754fedf4f",
+      "client_sha256": "e1363ec6680c16808231b7b0785a827fbb0bbe520d7e171b33e6f78754fedf4f",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-poker/src/lib.rs",
+      "service_sha256": "15f9ff563b6c2ef16555eed00b949b30bb2602433fc93c24c56f5857dc8687a5",
+      "client_sha256": "15f9ff563b6c2ef16555eed00b949b30bb2602433fc93c24c56f5857dc8687a5",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-poker/src/protocol.rs",
+      "service_sha256": "c24e5d3270a12608c10905ed0a071ee943ee497d87f1782b42e8ad4b86ffe400",
+      "client_sha256": "c24e5d3270a12608c10905ed0a071ee943ee497d87f1782b42e8ad4b86ffe400",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-poker/src/verify.rs",
+      "service_sha256": "615a244f03bfa9a2ac87eb8f8ff4f4d6680989b69e75253292e162aedb7a8f39",
+      "client_sha256": "615a244f03bfa9a2ac87eb8f8ff4f4d6680989b69e75253292e162aedb7a8f39",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-poker/src/engine.rs",
+      "service_sha256": "e422777402866a761269f710f9fc41cbfe2bdf4bcc17d5e710dd70b6847f22cf",
+      "client_sha256": "e422777402866a761269f710f9fc41cbfe2bdf4bcc17d5e710dd70b6847f22cf",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-poker/src/bots.rs",
+      "service_sha256": "c15aaa0afb57c7ae0d98227030031741458b761b790363b0c6ca07cbc2348b50",
+      "client_sha256": "c15aaa0afb57c7ae0d98227030031741458b761b790363b0c6ca07cbc2348b50",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-poker/tools/gen-fixtures.mjs",
+      "service_sha256": "9821576dcc5a9454c872207e04c1386a1df947c0bf87431355ba66a9e1b28281",
+      "client_sha256": "9821576dcc5a9454c872207e04c1386a1df947c0bf87431355ba66a9e1b28281",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-poker/tests/differential.rs",
+      "service_sha256": "cfd3130aca4833a7a790beae17f9033ff3083bd050e26ee45a18ebd4b2fc42b3",
+      "client_sha256": "cfd3130aca4833a7a790beae17f9033ff3083bd050e26ee45a18ebd4b2fc42b3",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-poker/tests/fixtures/hands.json",
+      "service_sha256": "ef7e082eb961c0d936156e14c2e9bf54b62f8f645fce7908f9833ed4badecb75",
+      "client_sha256": "ef7e082eb961c0d936156e14c2e9bf54b62f8f645fce7908f9833ed4badecb75",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-poker-citizen/Cargo.toml",
+      "service_sha256": "03e40eff1c5bd326a7337b8c4d954ccdb57b192ccac82db40bcd438cfb6539e9",
+      "client_sha256": "03e40eff1c5bd326a7337b8c4d954ccdb57b192ccac82db40bcd438cfb6539e9",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-poker-citizen/README.md",
+      "service_sha256": "e29c7c3dbac0ead37abb7e3f19855c0d98c1725bd9484ac9dfbbdea966782e7f",
+      "client_sha256": "e29c7c3dbac0ead37abb7e3f19855c0d98c1725bd9484ac9dfbbdea966782e7f",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-poker-citizen/src/chain.rs",
+      "service_sha256": "45ee717241eb8f70c72f7e7e2d5b12b76d9f4fcfea36f800f63c1ff1d7f46742",
+      "client_sha256": "45ee717241eb8f70c72f7e7e2d5b12b76d9f4fcfea36f800f63c1ff1d7f46742",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-poker-citizen/src/coach_main.rs",
+      "service_sha256": "a45ccf34a60e31ab1202d6e5221b58f0f1ce236e68f57cea1794a9fa5fb2a037",
+      "client_sha256": "a45ccf34a60e31ab1202d6e5221b58f0f1ce236e68f57cea1794a9fa5fb2a037",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-poker-citizen/src/ledger.rs",
+      "service_sha256": "073e226d7d8b50d1afdad89bf223f1cac1f2a1ca31226adda73529ca5a7bac6b",
+      "client_sha256": "073e226d7d8b50d1afdad89bf223f1cac1f2a1ca31226adda73529ca5a7bac6b",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-poker-citizen/src/lib.rs",
+      "service_sha256": "36d47e1e69b9c519e1f4ac799e596659adecc067647d8c712e6cb526c494c8cb",
+      "client_sha256": "36d47e1e69b9c519e1f4ac799e596659adecc067647d8c712e6cb526c494c8cb",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-poker-citizen/src/net.rs",
+      "service_sha256": "1651bf4f475c4edc36163614c3131cfa72df23715cdaf9d4bdae58e0ba39d9d3",
+      "client_sha256": "1651bf4f475c4edc36163614c3131cfa72df23715cdaf9d4bdae58e0ba39d9d3",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-poker-citizen/src/run.rs",
+      "service_sha256": "cc714bb0685392c81c79ac2c6802a11e0813bf7f919df083e181442d24f71abe",
+      "client_sha256": "cc714bb0685392c81c79ac2c6802a11e0813bf7f919df083e181442d24f71abe",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-poker-citizen/src/sidestr-dreamlab-txbt4.chain.json",
+      "service_sha256": "a90a48603a7e2da3306dfb41af67f8831d5d5104aa8e8f8f8c6b5fbb0a2a49cb",
+      "client_sha256": "a90a48603a7e2da3306dfb41af67f8831d5d5104aa8e8f8f8c6b5fbb0a2a49cb",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-poker-citizen/src/table.rs",
+      "service_sha256": "2c4cca18b7eef1d69ca07251935a2f0c44d9a5aa4ae448b2fb3b913b245daf54",
+      "client_sha256": "2c4cca18b7eef1d69ca07251935a2f0c44d9a5aa4ae448b2fb3b913b245daf54",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-poker-citizen/src/main.rs",
+      "service_sha256": "f7aeb68d4971c88790877bc1c02710d869718bfa2da9f0bf8a939fa2eb435665",
+      "client_sha256": "f7aeb68d4971c88790877bc1c02710d869718bfa2da9f0bf8a939fa2eb435665",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-poker-citizen/src/coach_run.rs",
+      "service_sha256": "f35f717344c3315732fb41fa885271f266423c09da70c4fe57268ea71a13f82e",
+      "client_sha256": "f35f717344c3315732fb41fa885271f266423c09da70c4fe57268ea71a13f82e",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-poker-citizen/src/sidestr-dreamlab.chain.json",
+      "service_sha256": "12612d7b93d48d11c4d531a975c5443b8aded747b588c4ff11df511c14ec8db8",
+      "client_sha256": "12612d7b93d48d11c4d531a975c5443b8aded747b588c4ff11df511c14ec8db8",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-poker-citizen/src/coach.rs",
+      "service_sha256": "5fbba30a0dc5bbb68e455a0c3d68fbd04164414ee7554a322b109ae053539984",
+      "client_sha256": "5fbba30a0dc5bbb68e455a0c3d68fbd04164414ee7554a322b109ae053539984",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-poker-citizen/src/testdata/txbt4-blocks.dat",
+      "service_sha256": "14e80480d81928c599c890cb110f83fc25e02d59ef960c023fc418f06813dc34",
+      "client_sha256": "14e80480d81928c599c890cb110f83fc25e02d59ef960c023fc418f06813dc34",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-poker-citizen/src/testdata/dreamlab-blocks.dat",
+      "service_sha256": "8a1ebdb940728d4720b82c1bf75539116eaef4ab8fbd2d97b2af9e70f8078143",
+      "client_sha256": "8a1ebdb940728d4720b82c1bf75539116eaef4ab8fbd2d97b2af9e70f8078143",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/poker/live.rs",
+      "service_sha256": "53ddc3fba60391d8858bf080e75d90e6b63419bb884732490560d78c36422e51",
+      "client_sha256": "53ddc3fba60391d8858bf080e75d90e6b63419bb884732490560d78c36422e51",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/poker/mod.rs",
+      "service_sha256": "e9bcda7430743c9a198749ecf328399c2756715f3e5198e415ba9de73813b72e",
+      "client_sha256": "e9bcda7430743c9a198749ecf328399c2756715f3e5198e415ba9de73813b72e",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/poker/coach.rs",
+      "service_sha256": "a75d5e87adcb9188a110970488bec53161e6a839d56ea72152b52b520ded7f21",
+      "client_sha256": "a75d5e87adcb9188a110970488bec53161e6a839d56ea72152b52b520ded7f21",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/poker/testdata/legal_new.json",
+      "service_sha256": "3e7041a47b92fdf9a5ccbeac5ee39be0ed1ffbca01daaf8289687fa1051cd47d",
+      "client_sha256": "3e7041a47b92fdf9a5ccbeac5ee39be0ed1ffbca01daaf8289687fa1051cd47d",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/poker/testdata/hand_new.json",
+      "service_sha256": "e2fcd8a07f60209de127d1b546937735a231519398b4be79d5c570a5547b8994",
+      "client_sha256": "e2fcd8a07f60209de127d1b546937735a231519398b4be79d5c570a5547b8994",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/poker/testdata/error.json",
+      "service_sha256": "1525cbbcdabe9162fcf8f54b2e2d98e091041dea1afc750a940d20a961f28248",
+      "client_sha256": "1525cbbcdabe9162fcf8f54b2e2d98e091041dea1afc750a940d20a961f28248",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/poker/testdata/hand_fold.json",
+      "service_sha256": "4d9c3ec562e517527fb59e43b90a0e29f4f9ad87ca8492ae419b4bd65017a9cc",
+      "client_sha256": "4d9c3ec562e517527fb59e43b90a0e29f4f9ad87ca8492ae419b4bd65017a9cc",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/poker/testdata/legal_done.json",
+      "service_sha256": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed",
+      "client_sha256": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/poker/testdata/roster.json",
+      "service_sha256": "9f60975dec71a41604cee86790e6e9a625ffdb0b56756bcb34e6a3f305b35484",
+      "client_sha256": "9f60975dec71a41604cee86790e6e9a625ffdb0b56756bcb34e6a3f305b35484",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/poker/testdata/view_showdown.json",
+      "service_sha256": "a25cc48a7b23247b6740afcdada96064c2f2a0a95bfd4e84bbb22ad8d6a9b52a",
+      "client_sha256": "a25cc48a7b23247b6740afcdada96064c2f2a0a95bfd4e84bbb22ad8d6a9b52a",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/poker/testdata/view_new.json",
+      "service_sha256": "11181b818ad97694afe1c7b395980e479ffe98d7e7b067be7dbc3134a8d8cd95",
+      "client_sha256": "11181b818ad97694afe1c7b395980e479ffe98d7e7b067be7dbc3134a8d8cd95",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/poker/testdata/hand_showdown.json",
+      "service_sha256": "0b940912ae25fd0cb4697dfca460d8c81e9e4dd2314fadbde229a916dcd2304d",
+      "client_sha256": "0b940912ae25fd0cb4697dfca460d8c81e9e4dd2314fadbde229a916dcd2304d",
+      "equal": true
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/pages/table.rs",
+      "service_sha256": "65af383a316f7c5b1d66c55f585ca04e1cf8c63655c03e04c5a16b723eb0a433",
+      "client_sha256": "65af383a316f7c5b1d66c55f585ca04e1cf8c63655c03e04c5a16b723eb0a433",
+      "equal": true
+    }
+  ]
+}

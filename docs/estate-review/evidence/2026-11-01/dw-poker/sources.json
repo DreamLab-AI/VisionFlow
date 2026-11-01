@@ -1,0 +1,374 @@
+[
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "docs/adr/ADR-2009-dream-poker-table-house-seat.md",
+    "sha256": "9e218d7f33f3c350eefd1b0037a33a5d2316bc59eb57fa7bac9f569e8d9c0cbb"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "scripts/seed/provision-poker-citizen.mjs",
+    "sha256": "8bca4f24cc760158b6cae05ef9d1d83f852b5c7ae55e4bbae77e09627e642f77"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "scripts/seed/test-poker-citizen.mjs",
+    "sha256": "3c5d005af60a21864cc5f6c47fb72cf5d7f5dd2ff97eb583bbfd809110aa24f9"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "scripts/seed/test-poker-coach-roundtrip.mjs",
+    "sha256": "82c763e80f32d6c4463dc5d7afdf5c8bd2bd2bb08f12486510cb6b2c4668e1e4"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "forum-config/dreamlab.toml",
+    "sha256": "f20ce99fbab50bb23af6f4994026d32d76f08516e78671c66eb8b91f6d50dab6"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": ".github/workflows/deploy.yml",
+    "sha256": "e415a74cbc559fbba1c0a32daea34072aa020e011ed1ceb478388d905ef512d9"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "docs/sprint/librepoker-forum-table-scope.md",
+    "sha256": "a8d4812f1a94a32d52c0ba95282f658e067d9aae697bc131cd04d54f36ef1c5e"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "lib/poker-citizen.nix",
+    "sha256": "84e42b5349667018e7b5bc2eecb45506b3308df22ed63e6b8aa943775b15f958"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "agentbox.toml",
+    "sha256": "c9c7016e6649c118f69ccbbab8d25e35e26c1dc3f449dab61b5ea2493b61203d"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "Cargo.lock",
+    "sha256": "1f74bfff80b633037b6a650e1ff944d0b3a6e90399b1b14e30325004fb0debf3"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "Cargo.toml",
+    "sha256": "b894649645bc4d41cc3456f95d21d035cb950f9bde92642bfc9255081ce99038"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/pages/table.rs",
+    "sha256": "65af383a316f7c5b1d66c55f585ca04e1cf8c63655c03e04c5a16b723eb0a433"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/poker/coach.rs",
+    "sha256": "a75d5e87adcb9188a110970488bec53161e6a839d56ea72152b52b520ded7f21"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/poker/live.rs",
+    "sha256": "53ddc3fba60391d8858bf080e75d90e6b63419bb884732490560d78c36422e51"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/poker/mod.rs",
+    "sha256": "e9bcda7430743c9a198749ecf328399c2756715f3e5198e415ba9de73813b72e"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/poker/testdata/error.json",
+    "sha256": "1525cbbcdabe9162fcf8f54b2e2d98e091041dea1afc750a940d20a961f28248"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/poker/testdata/hand_fold.json",
+    "sha256": "4d9c3ec562e517527fb59e43b90a0e29f4f9ad87ca8492ae419b4bd65017a9cc"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/poker/testdata/hand_new.json",
+    "sha256": "e2fcd8a07f60209de127d1b546937735a231519398b4be79d5c570a5547b8994"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/poker/testdata/hand_showdown.json",
+    "sha256": "0b940912ae25fd0cb4697dfca460d8c81e9e4dd2314fadbde229a916dcd2304d"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/poker/testdata/legal_done.json",
+    "sha256": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/poker/testdata/legal_new.json",
+    "sha256": "3e7041a47b92fdf9a5ccbeac5ee39be0ed1ffbca01daaf8289687fa1051cd47d"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/poker/testdata/roster.json",
+    "sha256": "9f60975dec71a41604cee86790e6e9a625ffdb0b56756bcb34e6a3f305b35484"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/poker/testdata/view_new.json",
+    "sha256": "11181b818ad97694afe1c7b395980e479ffe98d7e7b067be7dbc3134a8d8cd95"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/poker/testdata/view_showdown.json",
+    "sha256": "a25cc48a7b23247b6740afcdada96064c2f2a0a95bfd4e84bbb22ad8d6a9b52a"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-poker-citizen/Cargo.toml",
+    "sha256": "03e40eff1c5bd326a7337b8c4d954ccdb57b192ccac82db40bcd438cfb6539e9"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-poker-citizen/README.md",
+    "sha256": "e29c7c3dbac0ead37abb7e3f19855c0d98c1725bd9484ac9dfbbdea966782e7f"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-poker-citizen/src/chain.rs",
+    "sha256": "45ee717241eb8f70c72f7e7e2d5b12b76d9f4fcfea36f800f63c1ff1d7f46742"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-poker-citizen/src/coach.rs",
+    "sha256": "5fbba30a0dc5bbb68e455a0c3d68fbd04164414ee7554a322b109ae053539984"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-poker-citizen/src/coach_main.rs",
+    "sha256": "a45ccf34a60e31ab1202d6e5221b58f0f1ce236e68f57cea1794a9fa5fb2a037"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-poker-citizen/src/coach_run.rs",
+    "sha256": "f35f717344c3315732fb41fa885271f266423c09da70c4fe57268ea71a13f82e"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-poker-citizen/src/ledger.rs",
+    "sha256": "073e226d7d8b50d1afdad89bf223f1cac1f2a1ca31226adda73529ca5a7bac6b"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-poker-citizen/src/lib.rs",
+    "sha256": "36d47e1e69b9c519e1f4ac799e596659adecc067647d8c712e6cb526c494c8cb"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-poker-citizen/src/main.rs",
+    "sha256": "f7aeb68d4971c88790877bc1c02710d869718bfa2da9f0bf8a939fa2eb435665"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-poker-citizen/src/net.rs",
+    "sha256": "1651bf4f475c4edc36163614c3131cfa72df23715cdaf9d4bdae58e0ba39d9d3"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-poker-citizen/src/run.rs",
+    "sha256": "cc714bb0685392c81c79ac2c6802a11e0813bf7f919df083e181442d24f71abe"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-poker-citizen/src/sidestr-dreamlab-txbt4.chain.json",
+    "sha256": "a90a48603a7e2da3306dfb41af67f8831d5d5104aa8e8f8f8c6b5fbb0a2a49cb"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-poker-citizen/src/sidestr-dreamlab.chain.json",
+    "sha256": "12612d7b93d48d11c4d531a975c5443b8aded747b588c4ff11df511c14ec8db8"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-poker-citizen/src/table.rs",
+    "sha256": "2c4cca18b7eef1d69ca07251935a2f0c44d9a5aa4ae448b2fb3b913b245daf54"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-poker-citizen/src/testdata/dreamlab-blocks.dat",
+    "sha256": "8a1ebdb940728d4720b82c1bf75539116eaef4ab8fbd2d97b2af9e70f8078143"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-poker-citizen/src/testdata/txbt4-blocks.dat",
+    "sha256": "14e80480d81928c599c890cb110f83fc25e02d59ef960c023fc418f06813dc34"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-poker/Cargo.toml",
+    "sha256": "c25762e5d54925fae98c2c413906e848acbe44de3ece702d2510d2daa124565d"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-poker/README.md",
+    "sha256": "263b152c8455a8d389b1839e635bb5c3769f715ea76471dec2ca9c036190e155"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-poker/src/bots.rs",
+    "sha256": "c15aaa0afb57c7ae0d98227030031741458b761b790363b0c6ca07cbc2348b50"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-poker/src/engine.rs",
+    "sha256": "e422777402866a761269f710f9fc41cbfe2bdf4bcc17d5e710dd70b6847f22cf"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-poker/src/fair.rs",
+    "sha256": "e6f348ff9b68f77f0b914e493679de1e6ff55a1baa5871c36c2bf9e42f6ac8f7"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-poker/src/lib.rs",
+    "sha256": "15f9ff563b6c2ef16555eed00b949b30bb2602433fc93c24c56f5857dc8687a5"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-poker/src/protocol.rs",
+    "sha256": "c24e5d3270a12608c10905ed0a071ee943ee497d87f1782b42e8ad4b86ffe400"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-poker/src/record.rs",
+    "sha256": "e1363ec6680c16808231b7b0785a827fbb0bbe520d7e171b33e6f78754fedf4f"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-poker/src/rules.rs",
+    "sha256": "991c1b68bc4b87fd275e3828bcef9c40d01058273241ab7312806ccdf0e0a91b"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-poker/src/verify.rs",
+    "sha256": "615a244f03bfa9a2ac87eb8f8ff4f4d6680989b69e75253292e162aedb7a8f39"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-poker/tests/differential.rs",
+    "sha256": "cfd3130aca4833a7a790beae17f9033ff3083bd050e26ee45a18ebd4b2fc42b3"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-poker/tests/fixtures/hands.json",
+    "sha256": "ef7e082eb961c0d936156e14c2e9bf54b62f8f645fce7908f9833ed4badecb75"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-poker/tools/gen-fixtures.mjs",
+    "sha256": "9821576dcc5a9454c872207e04c1386a1df947c0bf87431355ba66a9e1b28281"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "docs/adr/ADR-2020-dream-poker-table-house-seat-and-dealt-member-hands.md",
+    "sha256": "c471543c8c4b43b74b85da7cfe42408690fea191b1e966c80b86b12b7f2e1948"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "docs/adr/ADR-2021-two-pinned-sidestr-chains-dreamlab-and-dreamlab-txbt4.md",
+    "sha256": "e4e8ff22fb6cd2bd4b6ab29502ae265d8a5db7035c3206d64f71d72004f4a9db"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "config/poker/run-citizen.sh",
+    "sha256": "2fff8d83008ae292d22731b100fd7676d539f29ab675a6484637706bc2761eab"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/components/poker_schedule.rs",
+    "sha256": "c017c655facc29d77766bc91c841ead4d5a3b9ad8e9a9676879ab73b040139ab"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/relay.rs",
+    "sha256": "63ec7fb8896e1e54d2d73a957d6389e92563f1753bcfa47876037eb26b72d60f"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/dm/mod.rs",
+    "sha256": "022e1a42fbf77d94bcdf01994be30ab2b63f5c505156c29cca3087ae46f6df57"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-forum-client/src/stores/zone_access.rs",
+    "sha256": "da36932b2a75a05e87c0b27a3cf0e60baec24abb5e19a99cf372afb7eb816bbb"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-core/src/calendar.rs",
+    "sha256": "0c3287400c829f748262cf11385f794acd1fb7fd1d6a57c0c9d4fcf8dc524b35"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs",
+    "sha256": "52c7bd80243276f6f4109f1dc4180b485352141aac70d68fab626d5e1f6c0afd"
+  }
+]

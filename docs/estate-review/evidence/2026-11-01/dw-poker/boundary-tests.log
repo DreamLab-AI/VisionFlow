@@ -1,0 +1,14 @@
+   Compiling nostr-bbs-poker-citizen v1.0.0-beta.15 (/home/devuser/workspace/wt/VisionFlow-dw-poker/.audit-poker/kit/crates/nostr-bbs-poker-citizen)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.06s
+     Running tests/estate_boundaries.rs (target/debug/deps/estate_boundaries-c81a568119b83d8e)
+
+running 6 tests
+test version_only_ledger_is_accepted_as_empty_book ... ok
+test acceptance_does_not_recheck_challenger_debt ... ok
+test arbitrary_payment_claim_can_be_renewed_after_grace_expires ... ok
+test live_hand_has_no_timeout_and_is_lost_by_ledger_restart ... ok
+test parallel_hands_do_not_reserve_house_balance_or_daily_cap ... ok
+test finished_hand_is_sent_before_first_persist_effect ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

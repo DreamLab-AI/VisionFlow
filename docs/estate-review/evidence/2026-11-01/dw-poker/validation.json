@@ -1,0 +1,24 @@
+{
+  "existing_tests": 74,
+  "native_counterexample_tests": 6,
+  "mocked_provisioner_scenarios": 3,
+  "mocked_hand_probe_scenarios": 1,
+  "rendered_panels": 13,
+  "visually_reviewed_panels": [
+    "DW-01.1",
+    "DW-01.2",
+    "DW-10.1",
+    "DW-10.2",
+    "DW-10.3",
+    "DW-10.4",
+    "DW-10.5",
+    "DW-10.6"
+  ],
+  "topics": 184,
+  "panels": 1622,
+  "verified_citations": 24747,
+  "citation_warnings": 0,
+  "allowlisted_citations": 9,
+  "fresh_declared_revisions": 46,
+  "source_exports": 62
+}

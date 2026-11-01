@@ -1,0 +1,50 @@
+[
+  {
+    "path": "CLAUDE.md",
+    "equal": true
+  },
+  {
+    "path": "README.md",
+    "equal": true
+  },
+  {
+    "path": "CNAME",
+    "equal": true
+  },
+  {
+    "path": ".github/workflows/deploy.yml",
+    "equal": true
+  },
+  {
+    "path": ".github/workflows/workers-deploy.yml",
+    "equal": true
+  },
+  {
+    "path": ".github/workflows/rust-ci.yml",
+    "equal": true
+  },
+  {
+    "path": "docs/BASELINE-architecture.md",
+    "equal": true
+  },
+  {
+    "path": "docs/architecture/kit-compatibility-record.md",
+    "equal": true
+  },
+  {
+    "path": "forum-config/Cargo.toml",
+    "equal": true
+  },
+  {
+    "path": "forum-config/dreamlab.toml",
+    "equal": true
+  },
+  {
+    "path": "forum-config/src/workers.rs",
+    "equal": true
+  },
+  {
+    "path": "src/App.tsx",
+    "equal": true
+  }
+]

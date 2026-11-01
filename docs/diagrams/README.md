@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_183 topic files, 1616 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_184 topic files, 1622 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -326,6 +326,7 @@ _183 topic files, 1616 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | DW-07 | [Forum provisioning, seeding, embeddings, backup and migration tooling](dreamlab-ai-website/07-forum-provisioning-and-seeding.md) | 6 | flowchart, sequenceDiagram | [BASELINE-architecture.md](../../../dreamlab-ai-website/docs/BASELINE-architecture.md) | ADR-2005 |
 | DW-08 | [Nightly SEO watch — receipts, advice and proposal boundaries](dreamlab-ai-website/08-nightly-seo-watch.md) | 6 | flowchart | [ADR-2010-seo-watch-nightly.md](../../../dreamlab-ai-website/docs/adr/ADR-2010-seo-watch-nightly.md) | ADR-2010 |
 | DW-09 | [Website information identity — disclosure, monitoring and digest delivery](dreamlab-ai-website/09-information-identity-and-inbox.md) | 5 | flowchart | [ADR-2011-website-information-identity.md](../../../dreamlab-ai-website/docs/adr/ADR-2011-website-information-identity.md) | ADR-2011 |
+| DW-10 | [Poker tables — deployment, credit, recovery and verification](dreamlab-ai-website/10-poker-tables-credit-and-recovery.md) | 6 | flowchart | [ADR-2009-dream-poker-table-house-seat.md](../../../dreamlab-ai-website/docs/adr/ADR-2009-dream-poker-table-house-seat.md), [ADR-2020-dream-poker-table-house-seat-and-dealt-member-hands.md](../../../nostr-rust-forum/docs/adr/ADR-2020-dream-poker-table-house-seat-and-dealt-member-hands.md) | ADR-2009, nostr-rust-forum:ADR-2020 |
 
 ### vowl-wasm
 

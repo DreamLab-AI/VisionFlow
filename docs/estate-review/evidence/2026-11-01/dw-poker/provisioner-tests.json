@@ -1,0 +1,53 @@
+[
+  {
+    "scenario": "auth-ack",
+    "exit": 0,
+    "stdout": "kind-0 poker-citizen: ACCEPTED",
+    "frames": [
+      {
+        "type": "AUTH",
+        "kind": 22242,
+        "closed": false
+      },
+      {
+        "type": "EVENT",
+        "kind": 0,
+        "closed": true
+      }
+    ]
+  },
+  {
+    "scenario": "rejected",
+    "exit": 0,
+    "stdout": "kind-0 poker-citizen: REJECTED fixture rejection",
+    "frames": [
+      {
+        "type": "AUTH",
+        "kind": 22242,
+        "closed": false
+      },
+      {
+        "type": "EVENT",
+        "kind": 0,
+        "closed": false
+      }
+    ]
+  },
+  {
+    "scenario": "accepted",
+    "exit": 0,
+    "stdout": "kind-0 poker-citizen: ACCEPTED",
+    "frames": [
+      {
+        "type": "AUTH",
+        "kind": 22242,
+        "closed": false
+      },
+      {
+        "type": "EVENT",
+        "kind": 0,
+        "closed": false
+      }
+    ]
+  }
+]

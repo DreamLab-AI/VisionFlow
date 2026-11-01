@@ -1,0 +1,311 @@
+   Compiling unicode-ident v1.0.27
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling libc v0.2.191
+   Compiling cfg-if v1.0.5
+   Compiling version_check v0.9.5
+   Compiling typenum v1.20.1
+   Compiling subtle v2.6.1
+   Compiling const-oid v0.9.6
+   Compiling shlex v2.0.1
+   Compiling serde_core v1.0.229
+   Compiling find-msvc-tools v0.1.15
+   Compiling serde v1.0.229
+   Compiling itoa v1.0.18
+   Compiling cpufeatures v0.2.17
+   Compiling zerocopy v0.8.63
+   Compiling stable_deref_trait v1.2.1
+   Compiling bitcoin-io v0.1.101
+   Compiling zmij v1.0.23
+   Compiling serde_json v1.0.154
+   Compiling arrayvec v0.7.8
+   Compiling hashbrown v0.17.1
+   Compiling equivalent v1.0.3
+   Compiling bytes v1.12.1
+   Compiling memchr v2.8.3
+   Compiling foldhash v0.2.0
+   Compiling thiserror v2.0.21
+   Compiling once_cell v1.21.4
+   Compiling pin-project-lite v0.2.17
+   Compiling hex v0.4.3
+   Compiling writeable v0.6.4
+   Compiling futures-core v0.3.34
+   Compiling litemap v0.8.3
+   Compiling smallvec v1.16.3
+   Compiling icu_properties_data v2.3.0
+   Compiling icu_normalizer_data v2.3.0
+   Compiling utf8_iter v1.0.4
+   Compiling hex_lit v0.1.1
+   Compiling bech32 v0.11.1
+   Compiling percent-encoding v2.3.2
+   Compiling bitcoin v0.32.102
+   Compiling httparse v1.10.1
+   Compiling untrusted v0.9.0
+   Compiling rustls v0.23.46
+   Compiling wasm-bindgen-shared v0.2.128
+   Compiling slab v0.4.12
+   Compiling futures-sink v0.3.34
+   Compiling futures-task v0.3.34
+   Compiling rustversion v1.0.23
+   Compiling base16ct v0.2.0
+   Compiling try-lock v0.2.5
+   Compiling tower-service v0.3.3
+   Compiling bumpalo v3.20.3
+   Compiling atomic-waker v1.1.2
+   Compiling thiserror v1.0.69
+   Compiling utf8parse v0.2.2
+   Compiling cc v1.9.0
+   Compiling futures-channel v0.3.34
+   Compiling sync_wrapper v1.0.2
+   Compiling anstyle-query v1.1.5
+   Compiling tower-layer v0.3.3
+   Compiling ipnet v2.12.2
+   Compiling is_terminal_polyfill v1.70.2
+   Compiling opaque-debug v0.3.1
+   Compiling hex-conservative v0.2.3
+   Compiling form_urlencoded v1.2.2
+   Compiling want v0.3.2
+   Compiling tracing-core v0.1.36
+   Compiling colorchoice v1.0.5
+   Compiling base64 v0.22.1
+   Compiling anstyle-parse v1.0.0
+   Compiling base64 v0.23.1
+   Compiling anstyle v1.0.14
+   Compiling log v0.4.34
+   Compiling clap_lex v1.1.1
+   Compiling generic-array v0.14.7
+   Compiling heck v0.5.0
+   Compiling utf-8 v0.7.6
+   Compiling bitflags v2.13.2
+   Compiling ryu v1.0.23
+   Compiling data-encoding v2.11.1
+   Compiling byteorder v1.5.0
+   Compiling strsim v0.11.1
+   Compiling anstream v1.0.0
+   Compiling indexmap v2.14.2
+   Compiling http v1.5.0
+   Compiling clap_builder v4.6.7
+   Compiling tracing v0.1.44
+   Compiling wasm-bindgen v0.2.128
+   Compiling syn v3.0.9
+   Compiling syn v2.0.119
+   Compiling http-body v1.1.0
+   Compiling http-body-util v0.1.5
+   Compiling secp256k1-sys v0.10.1
+   Compiling ring v0.17.14
+   Compiling getrandom v0.2.17
+   Compiling mio v1.2.4
+   Compiling socket2 v0.6.5
+   Compiling rand_core v0.6.4
+   Compiling ff v0.13.1
+   Compiling group v0.13.0
+   Compiling ppv-lite86 v0.2.21
+   Compiling rand_chacha v0.3.1
+   Compiling zeroize_derive v1.5.0
+   Compiling thiserror-impl v1.0.69
+   Compiling synstructure v0.14.0
+   Compiling wasm-bindgen-macro-support v0.2.128
+   Compiling rand v0.8.8
+   Compiling serde_derive v1.0.229
+   Compiling zerofrom-derive v0.1.8
+   Compiling yoke-derive v0.8.4
+   Compiling zerovec-derive v0.11.6
+   Compiling displaydoc v0.2.7
+   Compiling thiserror-impl v2.0.21
+   Compiling tokio-macros v2.7.2
+   Compiling futures-macro v0.3.34
+   Compiling async-trait v0.1.92
+   Compiling clap_derive v4.6.7
+   Compiling zeroize v1.9.1
+   Compiling rustls-pki-types v1.15.1
+   Compiling der v0.7.10
+   Compiling tokio v1.53.3
+   Compiling webpki-roots v1.0.10
+   Compiling futures-util v0.3.34
+   Compiling webpki-roots v0.26.11
+   Compiling crypto-common v0.1.7
+   Compiling block-buffer v0.10.4
+   Compiling block-padding v0.3.3
+   Compiling crypto-bigint v0.5.5
+   Compiling universal-hash v0.5.1
+   Compiling aead v0.5.2
+   Compiling inout v0.1.4
+   Compiling digest v0.10.7
+   Compiling zerofrom v0.1.8
+   Compiling poly1305 v0.8.0
+   Compiling yoke v0.8.3
+   Compiling cipher v0.4.4
+   Compiling sha2 v0.10.9
+   Compiling hmac v0.12.1
+   Compiling signature v2.2.0
+   Compiling blake2 v0.10.6
+   Compiling sha1 v0.10.7
+   Compiling zerovec v0.11.8
+   Compiling zerotrie v0.2.5
+   Compiling hkdf v0.12.4
+   Compiling rfc6979 v0.4.0
+   Compiling spki v0.7.3
+   Compiling sec1 v0.7.3
+   Compiling chacha20 v0.9.1
+   Compiling cbc v0.1.2
+   Compiling aes v0.8.4
+   Compiling pkcs8 v0.10.2
+   Compiling chacha20poly1305 v0.10.1
+   Compiling clap v4.6.7
+   Compiling tinystr v0.8.4
+   Compiling potential_utf v0.1.6
+   Compiling icu_collections v2.3.0
+   Compiling icu_locale_core v2.3.0
+   Compiling elliptic-curve v0.13.8
+   Compiling ecdsa v0.16.9
+   Compiling rustls-webpki v0.103.16
+   Compiling k256 v0.13.4
+   Compiling icu_provider v2.3.1
+   Compiling bitcoin_hashes v0.14.101
+   Compiling bitcoin-units v0.1.101
+   Compiling nostr-bbs-poker v1.0.0-beta.15 (/home/devuser/workspace/wt/VisionFlow-dw-poker/.audit-poker/kit/crates/nostr-bbs-poker)
+   Compiling serde_urlencoded v0.7.1
+   Compiling icu_properties v2.3.0
+   Compiling icu_normalizer v2.3.0
+   Compiling wasm-bindgen-macro v0.2.128
+   Compiling secp256k1 v0.29.1
+   Compiling base58ck v0.1.101
+   Compiling idna_adapter v1.2.2
+   Compiling idna v1.1.0
+   Compiling hyper v1.12.0
+   Compiling tower v0.5.3
+   Compiling url v2.5.8
+   Compiling nostr v0.44.8
+   Compiling tower-http v0.6.11
+   Compiling hyper-util v0.1.21
+   Compiling tokio-rustls v0.26.6
+   Compiling tungstenite v0.24.0
+   Compiling hyper-rustls v0.27.10
+   Compiling reqwest v0.12.28
+   Compiling tokio-tungstenite v0.24.0
+   Compiling sidestr-core v0.4.2
+   Compiling miniscript v12.3.7
+   Compiling nostr-bbs-core v1.0.0-beta.18 (/home/devuser/workspace/wt/VisionFlow-dw-poker/.audit-poker/kit/crates/nostr-bbs-core)
+   Compiling sidestr-hitch v0.2.1
+   Compiling sidestr-nostr v0.6.0
+   Compiling sidestr-header v0.3.1
+   Compiling sidestr-wallet v0.5.3
+   Compiling sidestr-agent v0.6.0
+   Compiling nostr-bbs-poker-citizen v1.0.0-beta.15 (/home/devuser/workspace/wt/VisionFlow-dw-poker/.audit-poker/kit/crates/nostr-bbs-poker-citizen)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 17.07s
+     Running unittests src/lib.rs (target/debug/deps/nostr_bbs_poker-6b3b09084989b83a)
+
+running 45 tests
+test bots::tests::chen_anchors ... ok
+test engine::tests::a_bad_seed_is_refused ... ok
+test bots::tests::js_round_halves_up ... ok
+test engine::tests::a_fold_ends_the_hand_without_showdown ... ok
+test bots::tests::unknown_profile_is_tag_and_roster_picks_by_profile ... ok
+test engine::tests::card_codes_round_trip ... ok
+test engine::tests::acting_out_of_turn_or_illegally_is_refused ... ok
+test engine::tests::evaluator_categories ... ok
+test engine::tests::heads_up_the_button_posts_the_small_blind_and_acts_first ... ok
+test engine::tests::limit_raise_is_one_fixed_number_and_caps_at_four ... ok
+test engine::tests::the_zero_seed_falls_back_to_the_golden_ratio_lane ... ok
+test engine::tests::the_view_hides_the_other_hole_cards_until_a_showdown ... ok
+test fair::tests::commitment_is_sha256_of_the_text ... ok
+test fair::tests::hex64_is_strict ... ok
+test fair::tests::a_match_seed_takes_every_nonce_in_order ... ok
+test fair::tests::bot_seed_matches_the_practice_table_derivation ... ok
+test fair::tests::seed_binds_both_contributions ... ok
+test rules::tests::a_hand_still_being_played_has_no_settlement ... ok
+test record::tests::no_record_while_in_play ... ok
+test protocol::tests::messages_are_tagged_and_round_trip ... ok
+test rules::tests::a_non_json_record_is_refused ... ok
+test rules::tests::a_split_pot_moves_nothing ... ok
+test rules::tests::a_zero_buy_in_is_bad_stakes ... ok
+test rules::tests::at_100_200_the_folded_small_blind_owes_100 ... ok
+test rules::tests::beyond_the_buy_in_is_refused ... ok
+test rules::tests::bogus_sizes_are_refused ... ok
+test rules::tests::citizen_folds_to_a_three_bet_and_pays_the_hero ... ok
+test rules::tests::a_memo_round_trips ... ok
+test rules::tests::errors_read_as_sentences ... ok
+test rules::tests::every_listed_size_is_half_and_a_hundred_big_blinds ... ok
+test rules::tests::exactly_the_buy_in_either_way_is_allowed ... ok
+test rules::tests::hero_calls_then_folds_to_a_raise_and_owes_the_big_blind ... ok
+test rules::tests::hero_folds_the_small_blind_and_owes_it ... ok
+test rules::tests::malformed_memos_are_refused ... ok
+test record::tests::a_folded_hand_records_the_fold_and_the_pot ... ok
+test rules::tests::rfc8785_escapes_controls_in_lowercase_and_leaves_the_rest ... ok
+test rules::tests::rfc8785_section_3_2_3_sorting ... ok
+test rules::tests::the_table_keeps_order_and_drops_bad_and_repeated_sizes ... ok
+test rules::tests::rfc8785_section_3_2_2_sample ... ok
+test rules::tests::the_root_is_deterministic_and_ignores_key_order_and_whitespace ... ok
+test rules::tests::the_typed_record_roots_the_same_as_the_document ... ok
+test rules::tests::annotations_do_not_move_the_root_but_every_field_does ... ok
+test rules::tests::rfc8785_appendix_b_numbers ... ok
+test verify::tests::a_house_that_deviates_from_the_book_is_caught ... ok
+test verify::tests::an_honest_hand_verifies_and_a_tampered_one_does_not ... ok
+
+test result: ok. 45 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/differential.rs (target/debug/deps/differential-346839b43cb83d24)
+
+running 5 tests
+test rng_draws_match ... ok
+test roster_and_profiles_match ... ok
+test evaluator_matches_on_400_random_sets ... ok
+test chen_and_equity_match ... ok
+test every_recorded_hand_replays_identically ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.38s
+
+     Running unittests src/lib.rs (target/debug/deps/nostr_bbs_poker_citizen-de60906901c5af3b)
+
+running 23 tests
+test coach::tests::a_request_is_known_by_its_tag ... ok
+test coach::tests::a_non_object_extra_is_ignored ... ok
+test chain::tests::the_flags_choose_a_pinned_chain_and_its_asset ... ok
+test coach::tests::an_empty_or_malformed_answer_is_none ... ok
+test chain::tests::a_producer_document_that_is_not_the_sealed_one_is_refused ... ok
+test net::tests::a_dead_socket_is_noticed_within_two_minutes ... ok
+test ledger::tests::claims_clear_on_chain_and_payouts_count_against_the_day ... ok
+test net::tests::a_quiet_socket_is_probed_after_the_idle_spell ... ok
+test coach::tests::the_answer_is_the_first_choice_without_thinking_or_tag ... ok
+test coach::tests::the_reply_is_tagged_and_capped ... ok
+test ledger::tests::round_trips_and_refuses_another_version ... ok
+test coach::tests::the_request_carries_both_turns_and_the_extras_win ... ok
+test net::tests::an_unanswered_probe_means_the_relay_is_gone ... ok
+test table::tests::a_challenge_can_be_declined_or_lapse ... ok
+test chain::tests::scripts_and_the_locks ... ok
+test table::tests::acting_out_of_turn_or_for_the_house_is_refused ... ok
+test table::tests::payouts_respect_the_daily_cap_and_retry ... ok
+test table::tests::hello_offers_tables_a_commitment_and_who_is_present ... ok
+test table::tests::sit_is_refused_without_funds_or_with_a_stale_offer ... ok
+test table::tests::a_debtor_is_refused_until_the_chain_shows_the_payment ... ok
+test table::tests::two_members_play_a_dealt_hand_and_the_loser_owes_the_winner ... ok
+test table::tests::a_house_hand_plays_to_a_verifiable_record_and_settles ... ok
+test chain::tests::each_chain_scans_under_its_own_family ... ok
+
+test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.30s
+
+     Running unittests src/main.rs (target/debug/deps/nostr_bbs_poker_citizen-e5f90a68384baec6)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/coach_main.rs (target/debug/deps/nostr_bbs_poker_coach-e0fbed9a75e02bed)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests nostr_bbs_poker
+
+running 1 test
+test crates/nostr-bbs-poker/src/lib.rs - (line 44) ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.22s
+
+   Doc-tests nostr_bbs_poker_citizen
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

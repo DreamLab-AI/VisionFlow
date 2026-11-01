@@ -1,0 +1,12 @@
+{
+  "date": "2026-11-01",
+  "sources": [
+    "https://github.com/libre-poker/engine",
+    "https://github.com/libre-poker/croupier",
+    "https://github.com/libre-poker/schema",
+    "https://www.pokernow.com/",
+    "https://pokerkit.readthedocs.io/en/stable/",
+    "https://github.com/nostr-protocol/nips/blob/master/52.md"
+  ],
+  "limitations": "Public documentation and vendor descriptions, not product trials. Constitution inaccessible, main/README raw guesses 404."
+}

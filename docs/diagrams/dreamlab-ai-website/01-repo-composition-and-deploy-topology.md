@@ -27,9 +27,9 @@ flowchart TB
     REPO["dreamlab-ai-website"] --> REACT["React 18 marketing SPA<br/>src/, this repo<br/>BASELINE-architecture.md:50"]
     REPO --> FCFG["forum-config/ overlay<br/>branding, zones, CF resource ids, kit pin<br/>CLAUDE.md:5-11"]
     REPO --> DOCS["docs/ — BASELINE, IDENTITY-zones,<br/>adr, api, security, deployment"]
-    FCFG -. "EXTERNAL, cloned at KIT_REF" .-> KIT["nostr-rust-forum kit<br/>forum client, BBS client, 5 Workers<br/>see NF-*"]
-    REPO -. "config crates, crates.io" .-> CRATES["nostr-bbs-core/config/mesh/rate-limit<br/>=1.0.0-beta.16<br/>forum-config/Cargo.toml:50-53"]
-    REPO -. "poker table, kit crate route" .-> POKER["/community/table — practice + DREAM<br/>house seat dealt, ADR-2009<br/>BASELINE-architecture.md:54-58"]
+    FCFG -. "cloned at KIT_REF" .-> KIT["nostr-rust-forum kit<br/>forum client, BBS client, 5 Workers<br/>see NF-*"]
+    REPO -. "published crates" .-> CRATES["Published kit crates<br/>core, config, mesh, rate-limit<br/>=1.0.0-beta.16<br/>forum-config/Cargo.toml:50-53"]
+    REPO -. "poker route" .-> POKER["/community/table<br/>practice + two asset tables<br/>DREAM and BLAKES7 house seats<br/>dreamlab.toml:320"]
 ```
 - "What this repo is" (BASELINE-architecture.md:35-41): a thin operator overlay — the forum source, Nostr crates, and five Workers all live upstream; this repo carries only the React site, `forum-config/`, and docs.
 - INVARIANT: `forum-config/Cargo.toml` license is `AGPL-3.0-only` (Cargo.toml:9) because it statically links the AGPL kit crates — the package comment (Cargo.toml:6-8) explicitly corrects an earlier "Proprietary" framing as "legally incoherent".
@@ -40,11 +40,11 @@ flowchart LR
     ORIGIN["dreamlab-ai.com<br/>CNAME:1"] --> ROOT["/  React 18 marketing SPA<br/>src/App.tsx, Vite+React Router<br/>BASELINE-architecture.md:50"]
     ORIGIN --> COMM["/community/  Leptos 0.7 CSR-WASM forum<br/>kit crate nostr-bbs-forum-client, Trunk-built<br/>deploy.yml:244 'Build Leptos forum with Trunk'"]
     ORIGIN --> BBS["/community/bbs/  retro ASCII/BBS terminal<br/>kit crate nostr-bbs-bbs-client, Trunk-built<br/>deploy.yml:335 'Build retro ASCII/BBS client with Trunk'"]
-    ORIGIN --> TBL["/community/table  poker table, kit crate route<br/>practice table + DREAM house-seat table<br/>BASELINE-architecture.md:54-58"]
-    LEGACY["/bbs"] -. "301-style client redirect" .-> BBS
+    ORIGIN --> TBL["/community/table  poker route<br/>practice + DREAM and BLAKES7 tables<br/>dreamlab.toml:320"]
+    LEGACY["/bbs"] -. "legacy client redirect" .-> BBS
 ```
 - **Drift:** `BASELINE-architecture.md:140-142` records that the README says "Two SPAs, one origin" while the deploy ships a third client at `/community/bbs/` (`deploy.yml:335`); the README has since been rewritten and now states "three independently built frontends" (`README.md:54`), so that divergence entry describes a README that no longer exists, and `CLAUDE.md:14` still reads "static dual-SPA".
-- The forum client also carries the poker table at `/community/table` (ADR-2009, kit ADR-2020): a practice table plus a DREAM table dealt by the `nostr-bbs-poker-citizen` house seat in the agentbox (BASELINE-architecture.md:54-58).
+- The forum client also carries the poker table at `/community/table` (ADR-2009, kit ADR-2020): a practice table plus DREAM and BLAKES7 tables with separate configured house seats (`dreamlab.toml:320`). The baseline paragraph names only DREAM (`BASELINE-architecture.md:54-58`); DW-10 covers current credit, recovery and receipt boundaries.
 - All three are static assets after build; React gets Vite build variables, forum/BBS get a `window.__ENV__` block injected by `sed` at deploy time (BASELINE-architecture.md:66-70).
 
 ## DW-01.3 Deploy topology — GitHub Pages primary, Cloudflare Pages gated off

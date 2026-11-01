@@ -1,0 +1,6 @@
+{
+  "scenario": "changed-commit-no-replay-no-settlement",
+  "exit": 0,
+  "stdout": "→ hello\n← offer from mock house (tag); tables fixture; present 0; owed 0; cap left 200\n→ sit 2\n← done: commit verified; root 3333333333333333…; settlement {\"from\":\"Hero\",\"amount\":200}; winners []\n(the hero owes 200 DREAM for hand:3333333333333333333333333333333333333333333333333333333333333333; the forum client pays this from the wallet)\n← offer from mock house (tag); tables fixture; present 0; owed 0; cap left 200\nPASS: one hand played and settled\n",
+  "stderr": ""
+}

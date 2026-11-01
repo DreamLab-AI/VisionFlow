@@ -1,0 +1,5 @@
+{
+  "observed_at": "2026-11-01T05:50:45.196941+00:00",
+  "status": "poker-citizen                    RUNNING   pid 981, uptime 13:48:58\npoker-citizen-dreamlab-txbt4     RUNNING   pid 992, uptime 13:48:58\npoker-coach                      RUNNING   pid 999, uptime 13:48:58\n",
+  "scope": "process status only; no hand, balance, key, or live publish probe"
+}

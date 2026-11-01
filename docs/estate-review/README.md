@@ -7,7 +7,9 @@ type: explanation
 
 # VisionFlow estate review
 
-Website information/inbox continuation: [ADR-2011 section assessment, five new DW-09 panels, three corrected panels, 47 existing tests and nine counterexamples](2026-11-01-website-information-and-inbox.md). Public disclosure masks registry loss, nightly admission checks miss monitor privilege, and capped digests retire undisplayed messages. Other website topics and ADR-2009 still need current review.
+Website poker continuation: [ADR-2009 and kit ADR-2020 section assessments, six new DW-10 panels and ten targeted scenarios](2026-11-01-website-poker.md). Renewable payment claims, unreserved concurrent exposure, incomplete restart recovery and misleading receipts remain product gaps. Both configured house services are running, which does not establish a successful game.
+
+Website information/inbox continuation: [ADR-2011 section assessment, five new DW-09 panels, three corrected panels, 47 existing tests and nine counterexamples](2026-11-01-website-information-and-inbox.md). Public disclosure masks registry loss, nightly admission checks miss monitor privilege, and capped digests retire undisplayed messages. Other website topics still need current review; ADR-2009 is assessed in the poker continuation above.
 
 Website SEO continuation: [six new DW-08 panels, full ADR-2010 assessment, 33 existing tests and fifteen boundary scenarios](2026-11-01-website-seo-watch.md). The scheduler is live, but proposal publishing rejects after commit; secret-error sinks, cost accounting and receipt coverage have reproduced gaps. Other website topics and decisions remain open.
 
