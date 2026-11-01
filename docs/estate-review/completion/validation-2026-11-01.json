@@ -210,7 +210,7 @@
     ]
   },
   "heading_units": 15365,
-  "heading_units_with_recorded_assessment": 607,
+  "heading_units_with_recorded_assessment": 625,
   "native_tests": 9,
   "clippy": "passed -D warnings",
   "limits": "Counters track evidence reconciliation, not audit completion; document/report hashes do not revalidate implementation code or deployed state.",
@@ -310,36 +310,18 @@
     "disposition": "Historical stale state; all five reassessed in docs/estate-review/2026-11-01-obsidian-refresh.md. See current snapshot for dispositions."
   },
   "current_batch": {
-    "report": "docs/estate-review/2026-11-01-xr-grab-boundaries.md",
-    "baseline": "6398f8f243b73e1bbf668a33593ea37cbe3d58b2",
-    "new_whole_adrs": 1,
+    "report": "docs/estate-review/2026-11-01-codescape-runtime-boundary.md",
+    "baseline": "98bd1db0b9c57023750fd0fbc9de2e1659b244b8",
+    "new_whole_adrs": 0,
     "refreshed_whole_adrs": [
-      "ADR-2166"
+      "ADR-2143"
     ],
-    "new_panels": [
-      "VC-47.1",
-      "VC-47.2",
-      "VC-47.3",
-      "VC-53.1",
-      "VC-53.2",
-      "VC-53.3",
-      "VC-53.4",
-      "VC-53.5"
-    ],
-    "current_stale_records": 1,
-    "previous_batch_candidates": 1176,
-    "added_candidates": [
-      {
-        "repo": "VisionFlow",
-        "path": "docs/estate-review/evidence/2026-11-01/xr-grab/source/docs/adr/ADR-2166-spatial-volumes-can-be-entered-the-others-become-portals.md"
-      },
-      {
-        "repo": "VisionFlow",
-        "path": "docs/estate-review/evidence/2026-11-01/xr-grab/source/docs/adr/ADR-2172-a-node-is-grabbed-with-either-hand-in-any-visionclaw-volume.md"
-      }
-    ],
+    "new_panels": [],
+    "current_stale_records": 0,
+    "previous_batch_candidates": 1178,
+    "added_candidates": [],
     "removed_candidates": [],
-    "limits": "Audit only. Exact extracted production methods with spies: 25 checks; complete native interaction module: 13 existing tests plus 1 added boundary test. Full scene/controller/backend/GPU/shader/headset not freshly run. Prior portal tests remain historical."
+    "limits": "Live Docker metadata only, not process/network/secret-content tests. 36 source files match pinned commits; 77 explicit bind destinations plus ingest token match. Previous product tests remain dated, no rerun. User springs work untouched."
   },
   "corpus_gate": {
     "topics": 205,
@@ -357,6 +339,7 @@
         "agentbox/01-nix-flake-composition.md:AB-01.5"
       ],
       "limits": "Advisory sample, not whole-corpus semantic acceptance."
-    }
+    },
+    "evidence": "docs/estate-review/evidence/2026-11-01/codescape-runtime/citations.txt"
   }
 }

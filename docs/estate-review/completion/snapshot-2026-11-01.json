@@ -17205,141 +17205,177 @@
       "category": "decision-candidate",
       "claims": [
         {
-          "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash.",
+          "basis": "Whole-document refresh incorporates the prior explicit section table, assesses the appended re-verification and changed governed paths, and adds bounded live Docker metadata. Historical tests and open presence, isolation, publication and XR acceptance gaps remain explicit; no product tests rerun.",
           "coverage": "whole-document",
           "panels": null,
-          "report": "docs/estate-review/2026-10-31-codescape-presence-and-xr.md",
-          "state": "stale-source"
+          "report": "docs/estate-review/2026-11-01-codescape-runtime-boundary.md",
+          "state": "assessment-recorded"
         }
       ],
       "path": "docs/adr/ADR-2143-codescape-section-separate-workspace-and-port.md",
       "repo": "VisionClaw",
-      "review": "stale-evidence",
+      "review": "assessment-recorded",
       "sections": [
         {
           "line": 21,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-codescape-runtime-boundary.md"
+          ],
+          "review": "assessment-recorded",
           "title": "ADR-2143: Codescape is a separate section with its own Cargo workspace, its own port and a tested isolation boundary"
         },
         {
           "line": 23,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-codescape-runtime-boundary.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Context"
         },
         {
           "line": 30,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-codescape-runtime-boundary.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Decision"
         },
         {
           "line": 67,
           "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-codescape-runtime-boundary.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Invariants"
         },
         {
           "line": 86,
           "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-codescape-runtime-boundary.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Consequences"
         },
         {
           "line": 99,
           "ordinal": 6,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-codescape-runtime-boundary.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Alternatives rejected"
         },
         {
           "line": 105,
           "ordinal": 7,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-codescape-runtime-boundary.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Phase plan"
         },
         {
           "line": 118,
           "ordinal": 8,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-codescape-runtime-boundary.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Amendment A1 (2026-10-17): layout conformance threshold and ABI guard"
         },
         {
           "line": 138,
           "ordinal": 9,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-codescape-runtime-boundary.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Amendment A2 (2026-10-17): cross-vendor evidence audit"
         },
         {
           "line": 173,
           "ordinal": 10,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-codescape-runtime-boundary.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Amendment A3 (2026-10-18): token readability; default-on reverted"
         },
         {
           "line": 181,
           "ordinal": 11,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-codescape-runtime-boundary.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Amendment A4 (2026-10-18): shared-port access through the dev nginx"
         },
         {
           "line": 220,
           "ordinal": 12,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-codescape-runtime-boundary.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Amendment A5 (2026-10-18): Extraction to a standalone repository (in progress)"
         },
         {
           "line": 284,
           "ordinal": 13,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-codescape-runtime-boundary.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Verification"
         },
         {
           "line": 298,
           "ordinal": 14,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-codescape-runtime-boundary.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Re-verification — 2026-10-19 (submodule pointer)"
         },
         {
           "line": 306,
           "ordinal": 15,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-codescape-runtime-boundary.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Re-checked at 8e380aad3 (2026-10-20)"
         },
         {
           "line": 310,
           "ordinal": 16,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-codescape-runtime-boundary.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Amendment A6 (2026-10-21): the XR client's Codescape mode is a capability table, not a hope"
         },
         {
           "line": 382,
           "ordinal": 17,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-codescape-runtime-boundary.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Close-out 2026-10-31"
         },
         {
           "line": 403,
           "ordinal": 18,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-codescape-runtime-boundary.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Re-verification — 2026-10-31 (f1fa1862c)"
         }
       ],
@@ -121246,12 +121282,12 @@
   "counts": {
     "available_checkouts": 24,
     "candidate_files": 1178,
-    "numbered_candidates_with_recorded_assessment": 87,
+    "numbered_candidates_with_recorded_assessment": 88,
     "numbered_decision_candidates": 1061,
     "panels": 1730,
     "panels_with_recorded_assessment": 312,
     "scope_targets": 25,
-    "stale_claim_records": 1,
+    "stale_claim_records": 0,
     "topics": 205
   },
   "method": "Explicit scope; Git-owned Markdown; parsed headings exclude fenced examples; explicit human review claims require exact source/report hashes. Unreconciled is not unreviewed. Candidate counts are not a complete obligation denominator or overall task percentage.",
@@ -121260,7 +121296,7 @@
       "available": true,
       "candidate_files": 77,
       "dirty": true,
-      "head": "6398f8f243b73e1bbf668a33593ea37cbe3d58b2",
+      "head": "98bd1db0b9c57023750fd0fbc9de2e1659b244b8",
       "local": "VisionFlow",
       "name": "VisionFlow"
     },
@@ -137529,7 +137565,7 @@
       "path": "docs/diagrams/visionclaw/39-codescape.md",
       "repo": "VisionFlow",
       "review": "unreconciled",
-      "sha256": "547fb24a22433957cf0e69b1725ca2b8984bbd29a8ca93f8e35bf1c171bd7855"
+      "sha256": "c5056179fc5cbc1479e2917b977efc9838c9a93f3d9a9a508e1e2180e1574de8"
     },
     {
       "claims": [],

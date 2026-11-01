@@ -1,0 +1,638 @@
+{
+  "observed_from": "2026-11-01T13:35:57.527Z",
+  "observed_until": "2026-11-01T13:35:58.291Z",
+  "container_id": "516bc2804facc95d6c66f35c9331abb869e1e7ebaf87c2b03142f0d707d3b18b",
+  "image": "sha256:eb72a3e823013c1f4bc6ad48f9bddbb8d99f895f1a035ddfa2269b63c39d20d3",
+  "status": "running",
+  "started_at": "2026-11-01T12:48:35.002384619Z",
+  "health": "healthy",
+  "ports": {
+    "4100/tcp": [
+      {
+        "HostIp": "127.0.0.1",
+        "HostPort": "4100"
+      }
+    ]
+  },
+  "cap_drop": [
+    "ALL"
+  ],
+  "cap_add": [
+    "CAP_DAC_READ_SEARCH"
+  ],
+  "security_opt": [
+    "no-new-privileges:true"
+  ],
+  "privileged": false,
+  "read_only_rootfs": false,
+  "configured_user": "",
+  "mounts": [
+    {
+      "type": "bind",
+      "destination": "/app/codescape",
+      "rw": false,
+      "propagation": "rprivate",
+      "source_sha256": "75939e916ee55d4ac92a389152de615606f4f59ea4960b3c9e79fc6bfbaa8f51"
+    },
+    {
+      "type": "bind",
+      "destination": "/app/crates",
+      "rw": false,
+      "propagation": "rprivate",
+      "source_sha256": "1884d5e7beb772f8285c43aed2101873c3a550f109363c5faa4dcf3b5e164922"
+    },
+    {
+      "type": "volume",
+      "destination": "/codescape-target",
+      "rw": true,
+      "propagation": "",
+      "source_sha256": "70d87fe74817870d396a84f95a16f5d1101f73433f92da899c2a03eb1774a164",
+      "volume": "codescape-target"
+    },
+    {
+      "type": "volume",
+      "destination": "/data/codescape",
+      "rw": true,
+      "propagation": "",
+      "source_sha256": "e96c7c1c70077b831d46ae73adedf52580db2ae4f9eac9a2723a646fa0cba5c8",
+      "volume": "codescape-data"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/agentbox/.gitignore",
+      "rw": false,
+      "propagation": "rprivate",
+      "source_sha256": "1804a133a35655608e2d298a6e4eb5b97a5fdfef30ada621f22afe43fc070693"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/agentbox/config",
+      "rw": false,
+      "propagation": "rprivate",
+      "source_sha256": "9b376be2441bb138e2313aed8de11d71f3f24f1ddda24565242b4940612fb072"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/agentbox/crates",
+      "rw": false,
+      "propagation": "rprivate",
+      "source_sha256": "45502df9c7613c83d1048b1e34ccf5dbe60e83d3d747aff4380d7698dcaa505a"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/agentbox/docs",
+      "rw": false,
+      "propagation": "rprivate",
+      "source_sha256": "af82c88c8258de17970866ba66d4e1bc5ef73472364074745d314e01c78a5fbd"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/agentbox/lib",
+      "rw": false,
+      "propagation": "rprivate",
+      "source_sha256": "fe36293285c7c1a66f25cca70ff53813af1e7b6c7f996088cd454cf6d8288288"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/agentbox/management-api",
+      "rw": false,
+      "propagation": "rprivate",
+      "source_sha256": "756ed1babce0778e6c64059572d066327ee7d5c25d915a50c9572711483eb082"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/agentbox/scripts",
+      "rw": false,
+      "propagation": "rprivate",
+      "source_sha256": "a2b05933266e0079b99c2a9543cf4ec1c41b5d172959a244f4a3f1079b02f994"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/agentbox/services",
+      "rw": false,
+      "propagation": "rprivate",
+      "source_sha256": "95b6d0a6a7d828f63454df4e03f4334fb475f5867ca750006e788b4e73fe5630"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/agentbox/skills",
+      "rw": false,
+      "propagation": "rprivate",
+      "source_sha256": "ecc078ca3694b62252d30cc2a7a8b91db6ae43b62d05e63dd01646e3335fe49f"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/agentbox/tests",
+      "rw": false,
+      "propagation": "rprivate",
+      "source_sha256": "9522700381eaf2995c5cd3cc8851e5f3e7b62573d514efdffc74ac20b9da087c"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/agentbox/voice",
+      "rw": false,
+      "propagation": "rprivate",
+      "source_sha256": "1e31cf6d6487c895387ed601093d99d567b1e86acb5d9d399b46216932ec6638"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/codescape/.gitignore",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "4532ac6e1194d389f21673b0143d3e4d1a1f3937f3a8d04f05623638a552733a"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/codescape/client",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "44933fcd75d7dbc6ebd149e52666e0a7fa579c83556de5a0bb9fde9eaae8a3ba"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/codescape/crates",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "d184ce43108787780dcbbb9c314e903fb6d645c0cf83108e04dba34df2306a39"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/codescape/deploy",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "723b0202c798f4c55c6c310c8aa461a138c9d27eb787ca307504872628f28236"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/codescape/docs",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "22fac3cdcdc93eb2a9241461bc3e7074900d52d4a5415cc05f2fef642e4904b4"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/dreamlab-ai-website/.gitignore",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "60f433ffd4ff0356eed5de4017a0d46c52f93e20ede6b26bd1160d3071fbb3e8"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/dreamlab-ai-website/content",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "ba8102c556d5907a83b19dd644146e1d4dc731823e89562b945182783c0ec6c5"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/dreamlab-ai-website/docs",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "146c5f316d0199fc0623326f9c36037ded5e634237600ee3b572d7b1a92a29c4"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/dreamlab-ai-website/forum-config",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "29c1c1d5c64f2e4934da659e894be050bf3fcc79d2f9e8f23fa0a2775abea3c0"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/dreamlab-ai-website/marketing",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "1ad7d505704318244441c17cf598b88c4b4b292460a0150b850e40c61079ede0"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/dreamlab-ai-website/scripts",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "29336547b0a80780b4bc70f99edd76da2c67a59a41de4acf373a2d86fe084595"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/dreamlab-ai-website/src",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "0edf51060e0b441e3fc19866ea2480123d5855c5794d6be6a63bac4be648d163"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/dreamlab-ai-website/tests",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "c7908e3676075ef7a8257f20a3b7d91980fd1b95e337e81f5fb36bcb15b71401"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/knowledgeGraph/.gitignore",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "6eb222e2c1ca67d56ecbd85301d77134a108cfbf5a72ba6af21e1b23666984c4"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/knowledgeGraph/docs",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "aa354a543d2438734b84827b31bdf832254740c993f3d62fc43561ab79ecbc7b"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/knowledgeGraph/explorer",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "e27364e9e1655ae7d9edb05bf46f0b9115f305e7b5a5290778d87bfa93a58455"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/knowledgeGraph/scripts",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "99313a28c366448a988b624a638335922579608fc7520d4a784abf31124e7415"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/knowledgeGraph/static",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "2aef1251e4b74c2c880c1ecb68afc9588a1c83a8d1899f1b12564c0486a14380"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/loom/.gitignore",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "ce566f4e8ec0b66bcab7629d56e225b1d968fada023af17d7c8c7f64abe1a35c"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/loom/bench",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "299e77b9a8b3d866c3c13b40c6b89daf473ab8925ae7f238ca35fb851867f8fa"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/loom/crates",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "acdbe093773aaacd2fad6e4b99bf481c0bfdb9f38749966e194458e3e5118564"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/loom/deploy",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "5fe9a1232531255dce3c7d96e40827196a56c965fa4c64fdcfd2decdde0cad0f"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/loom/docs",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "e39fd9ce06cacb6ee7dc7e0aeb9b8e09ea2c67c3b2651b667bdb1904f8b11fdf"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/loom/model",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "13505a15e7583767cbd6e3bdb308f8df518be8db9b9825494ed452faa364cd66"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/loom/scripts",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "f58ce708cd71213a92c975eff4bae028b9d97d9e04af2852d83527c2b0f7fa53"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/loom/tests",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "179142f01d3f6db62a407a6feeaef6821ed0af840d6c32feb2b231a2f21fff83"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/loom/tools",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "a10f46393d69b20c878f1b4888e2931246e0cfc47b8b177d7e08426fb99e7f5e"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/nostr-rust-forum/.gitignore",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "2aac5d1fab0f48dda5311949c71ea618b5d058d023379986b341484f0057124d"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/nostr-rust-forum/benchmarks",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "1770e8d259b672a30df0257d0eaca99d270ee46614d6f83257f56db9b64640ff"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/nostr-rust-forum/crates",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "57bc917352f75938368a3481cddd0ae0705b97c92575780a7cc4e3686d6644c6"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/nostr-rust-forum/docs",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "c394e4b7c984b0802c21228e0336a0808aa32ffefa12bce3f066480d0a8e79cc"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/nostr-rust-forum/scripts",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "7768ac28b63fa8ac5d333a8609acf2ea25b8db3bd08af7227b4a01df357a34fb"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/nostr-rust-forum/tests",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "5c68bae81cbaea05961c5b51ef96afe2415b0923377b18463c0c2f69a1a5d7c7"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/sidestr-rs/.gitignore",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "b4643559fadbdc323fd8d608c1b53c92ba9a5a6502c5af648c270e693230cab1"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/sidestr-rs/docs",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "332de8b0ab6b0bd9d1a68d419183ad1851d63b706887b3b0ce204506523391f8"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/sidestr-rs/sidestr-agent",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "7fe8107ae26bf45db08577754d951e5a2e352535005b458f3dfc2ec7892d047a"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/sidestr-rs/sidestr-bridge-liquid",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "80cea18c66867691d9e45332c3c4ff2fd652c417663476c4ea4f3c4dc54e39e4"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/sidestr-rs/sidestr-core",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "22dea4490f9cc83623fa47bfb6631dd23bf699f56cff4309a3bbfef100228ba7"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/sidestr-rs/sidestr-evm",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "6ee3083afe398277cedd73bf8fca5bd6166703f14661df7d7c0bd501118148b9"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/sidestr-rs/sidestr-header",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "875fa4f401d41cb4cf013df5f6e7418b357ad87e1eaef09f8d12ecf6a957fb54"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/sidestr-rs/sidestr-hitch",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "331c27e4a7190b0a5d611c7f5d5e8cff42f66d9f7a374d61c869028c0734cafe"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/sidestr-rs/sidestr-nostr",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "4dedd2383d2f7901465431f79ce1ceba3c8225a099078e60cba9f87b66bdee09"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/sidestr-rs/sidestr-reserve",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "1b0393cd77ab240eb9270afeb95cef489328e016d6aa5b28c11d0049fce72818"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/sidestr-rs/sidestr-round",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "68f8a76bc0a588fb20e0ad07dc65595e426d7de2903da05e68c48fd95adbcbac"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/sidestr-rs/sidestr-wallet",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "c461a47aa1924c61bd3780494504aac82204f9f553447de4fc477bb893b7b0af"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/sidestr-rs/webledgers-teller",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "f5aa837f68736b094113cb71d4068e9ea0f93cf76d8bc65095e9a9575a4055da"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/solid-pod-rs/.gitignore",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "57bd3fe6be8609d76a81421e79fc51b29b7367847cb98f4881c99fe9450ed2bc"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/solid-pod-rs/crates",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "f429a7ec4c034ceb2456b1d14e95d0458eef59ea37438f26a5118055a92e1fbc"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/solid-pod-rs/docs",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "7bd1f8da6d0f1306704bb7cf45c77d186d508684a9a01643e9aa24fe59cdca2d"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/solid-pod-rs/scripts",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "c574cc38629a5cf97a535604a3e693cb8f7b2659f56db3dd9256788fc6b37cfd"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/visionclaw/.gitignore",
+      "rw": false,
+      "propagation": "rprivate",
+      "source_sha256": "c2e2f8d522b34cf52cc4dc29989be56e74885213eb4662fca733d2ff53f2b7fb"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/visionclaw/client/src",
+      "rw": false,
+      "propagation": "rprivate",
+      "source_sha256": "f2f419a89958d1238326808576e8e0540ef249d8ad2df74e91952ce5a9fdc50c"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/visionclaw/crates",
+      "rw": false,
+      "propagation": "rprivate",
+      "source_sha256": "1884d5e7beb772f8285c43aed2101873c3a550f109363c5faa4dcf3b5e164922"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/visionclaw/docs",
+      "rw": false,
+      "propagation": "rprivate",
+      "source_sha256": "33a207e411dd9b512245c7645d2932a92fbac1977cceb0a578cbc31952a9d5cb"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/visionclaw/scripts",
+      "rw": false,
+      "propagation": "rprivate",
+      "source_sha256": "766467163da65f0bbc60df704f8345772ba0eb0f15f77a6dd2d2f71c142df3e7"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/visionclaw/src",
+      "rw": false,
+      "propagation": "rprivate",
+      "source_sha256": "62d3019b43876e94edc13cab48ca47c683ffe3c654b109de9be10c1807b35762"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/visionclaw/tests",
+      "rw": false,
+      "propagation": "rprivate",
+      "source_sha256": "32ec33728641a0796efaff4a4403b8aa55e2b6fe966a60f04ff3a144ab224c31"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/visionclaw/xr-client",
+      "rw": false,
+      "propagation": "rprivate",
+      "source_sha256": "1eb8a95f961fb661d8cd31ea877b7d5311a1166ef5ad79e517a6fba8c4bec427"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/visiontouch-rs/.gitignore",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "d1b1436aa662a560edd9c9ea356cf177023949254e801c36df38bcf72ec2e6a7"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/visiontouch-rs/apps",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "dc416f79f8cb44e23aec66af8e7eaa3377827d55f3bd7e1d96fd6673c8a7b7a0"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/visiontouch-rs/crates",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "f4c9c265fd3e3c3a8aebd8ef8069d2f7f346f912b424bb73cb9cabe68159b8c9"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/visiontouch-rs/docs",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "e4318512e1ada8d81e561669ecb0eff067680f1f69348abfb1ecea475de18fb6"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/visiontouch-rs/scripts",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "b63be11cfac28712d7b80dc7c7eb6b0649a288115ca042370f29db49ef643b50"
+    },
+    {
+      "type": "bind",
+      "destination": "/repos/estate/visiontouch-rs/tools",
+      "rw": false,
+      "propagation": "rslave",
+      "source_sha256": "b2f57a7065ae15f822240926ab4224bcf4d0d37ed6ed5a0af93194610c245503"
+    },
+    {
+      "type": "volume",
+      "destination": "/root/.cargo/git",
+      "rw": true,
+      "propagation": "",
+      "source_sha256": "d229dbebd99e8f571f565607267a37a4ec61f6ec3de3b24b12f7432a8a4b66d0",
+      "volume": "codescape-cargo-git"
+    },
+    {
+      "type": "volume",
+      "destination": "/root/.cargo/registry",
+      "rw": true,
+      "propagation": "",
+      "source_sha256": "eb7479b5c6867e46dbf3bc38edef916cf8b2814649ae8c5d91a23b10469b6326",
+      "volume": "codescape-cargo-cache"
+    },
+    {
+      "type": "bind",
+      "destination": "/run/secrets/codescape-ingest-token",
+      "rw": false,
+      "propagation": "rprivate",
+      "source_sha256": "c3a4fb8f34bdfbda8e69ab7413cb8d0fa8bd8e988ba7ed740ffeaed4a8fc17d2"
+    }
+  ],
+  "networks": [
+    {
+      "name": "visionclaw_network",
+      "id": "e2cd4d6647e3a6392dbf35201051322faf8d11bb25f77b3cc885e6df34a4f7b6",
+      "driver": "bridge",
+      "internal": false,
+      "options": {}
+    }
+  ],
+  "summary": {
+    "mounts": 82,
+    "binds": 78,
+    "writable_binds": 0,
+    "volumes": 4,
+    "estate_binds": 75,
+    "estate_labels": [
+      "agentbox",
+      "codescape",
+      "dreamlab-ai-website",
+      "knowledgeGraph",
+      "loom",
+      "nostr-rust-forum",
+      "sidestr-rs",
+      "solid-pod-rs",
+      "visionclaw",
+      "visiontouch-rs"
+    ]
+  },
+  "limits": "Docker metadata only; no exec, connection attempt, environment read, token read, file-content scan, mountinfo, image-layer attestation or firewall inspection. Host source paths replaced with hashes. Same container id before/after, not an atomic snapshot."
+}

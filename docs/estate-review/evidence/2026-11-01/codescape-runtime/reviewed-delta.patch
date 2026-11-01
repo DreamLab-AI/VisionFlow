@@ -1,0 +1,135 @@
+diff --git a/docs/PROTOCOL-registry.md b/docs/PROTOCOL-registry.md
+index c8b8c482a..ce857b1eb 100644
+--- a/docs/PROTOCOL-registry.md
++++ b/docs/PROTOCOL-registry.md
+@@ -1,10 +1,11 @@
+ ---
+ title: Protocol Registry — Wire Frames, Endpoints & Version Policy
+ doc_id: VC-PROTOCOL
+-version: 0.1.13
++version: 0.1.14
+ status: draft-for-ratification
+ verified_commit: 
+ changelog:
++  - "0.1.14 (2026-11-01): ADR-2169 — /wss node hold and pin text frames: nodeDragStart/Update/End are holds owned by the connection (the released node rejoins the simulation; two holds per connection; last write wins across connections), new nodePin frame with nodePinAck, nodeUnpin unchanged; drag timeout 2 s; no binary frame change"
+   - "0.1.13 (2026-10-30): PROPOSED only, nothing implemented. ADR-2157 and ADR-2161 add a Proposed section: presence text-frame table (room_meta, room_kicked) a pointer for Nostr kinds, and the initial-load `urn` field with the server-side federated-read connection mode (audit round 2: `rev`/`proj` tag conventions, D = 90 s kick bound, selector ∩ visibility ∩ acl). No binary opcode is allocated. Current-state tables and Invariants untouched. Drafted against e74bcddc7."
+   - "0.1.12 (2026-10-19): ADR-2133 re-verified at b4a175412 — the /api/memory-cloud rows now state that every endpoint, health included, is PowerUser in the handler (the health row wrongly said the central read policy), that VISIONCLAW_DEV_MODE admits every caller as a power user in debug/dev-auth builds only, and that rows past metadata.expires_at are hidden from counts, samples, searches and the recall probe (estate ER-11); citation refresh to memory_cloud_handler.rs:65"
+   - "0.1.11 (2026-10-17): ADR-2143: Codescape recorded as a second producer of V3/V5 on :4100 (no new tags or flag bits, field mapping, 0x23 mapping, 404 list); citation refresh: routes main.rs:1093-1123, 0x23 :1792/:1561/:1571/:1534-1541, batch framing stated"
+@@ -188,6 +189,26 @@ Relay rules:
+ 
+ A session authenticated at the upgrade now reports its pubkey to the coordinator on `SetClientId`, so pubkey scoping covers it.
+ 
++### `/wss` JSON text frames — node hold and pin (ADR-2169)
++
++Client→server frames from an **authenticated** session (an unauthenticated one is ignored with a warning).
++`nodeId` is a `u32`; `position` is `{x,y,z}` in display space, finite and within ±10,000, else the frame is
++rejected. Handlers: `position_updates.rs` (`handle_node_drag_*`, `handle_node_pin`, `handle_node_unpin`).
++
++| `type` | Fields | Effect | Reply |
++|--------|--------|--------|-------|
++| `nodeDragStart` | `nodeId`, `position` | the connection takes **hold** of the node at `position`; the GPU keeps it there and the graph springs around it | `nodeDragStartAck` |
++| `nodeDragUpdate` | `nodeId`, `position`, `timestamp` (ignored) | moves the hold; more than one per 16 ms per node is coalesced (newest kept, applied by a trailing timer), not dropped; an update with no start is an implicit start | none |
++| `nodeDragEnd` | `nodeId` | applies the newest coalesced position, then **releases** the hold: the node rejoins the simulation and the graph settles | `nodeDragEndAck` |
++| `nodePin` | `nodeId`, `position` | **explicit pin**: anchors the node until `nodeUnpin`; survives any drag before, during or after it | `nodePinAck` |
++| `nodeUnpin` | `nodeId` | clears the explicit pin; a node still held stays held until its hand lets go | `nodeUnpinAck` |
++
++Rules:
++- a connection holds at most **2** nodes at once (one per hand); a third `nodeDragStart` is refused with a warning;
++- any number of connections may hold different nodes at once; if two hold the **same** node the last write wins, and a release counts only from the node's current owner;
++- a hold ends on `nodeDragEnd`, after 2 s without an update (drag timeout), or when the connection closes; the node then rejoins the simulation. An explicit pin on it is untouched;
++- while any node is held, by any connection, the GPU steps every tick (no stability skip, no equilibrium pause) and the stored `globalSpeed` is floored at 2.0 (ADR-2169 decision 6, owner-accepted 2026-11-01); the same holds for 2 s after the last release. Damping is always the stored value. Every client receives the result in the ordinary position stream (V3/V5, paced per client by the ack protocol, ADR-2141); the drag path broadcasts nothing itself.
++
+ ### Second producer: Codescape (`:4100`, ADR-2143)
+ 
+ Codescape is a second, independent producer of the frozen contract above, in its own Cargo
+@@ -366,6 +387,7 @@ This registry tabulates binary tags, not Nostr kinds. Kinds used by the estate a
+ - `NODE_ID_MASK = 0x03FF_FFFF`; flag bits 26-31 are stripped before analytics/SSSP map lookups.
+ - All multi-byte fields are little-endian.
+ - Tag allocation happens only in this registry, scoped per socket.
++- A drag is a hold owned by the connection and ends with it: only an explicit `nodePin` outlives a `nodeDragEnd`, the timeout or a disconnect (ADR-2169).
+ - `beatClock` / `memoryRoute` are delivered only to other sessions holding the sender's exact
+   authenticated pubkey, and only as re-serialised validated fields (ADR-2134).
+ - The visibility filter default is fail-closed (ON).
+diff --git a/docs/adr/ADR-2143-codescape-section-separate-workspace-and-port.md b/docs/adr/ADR-2143-codescape-section-separate-workspace-and-port.md
+index d41897507..45e6b0efd 100644
+--- a/docs/adr/ADR-2143-codescape-section-separate-workspace-and-port.md
++++ b/docs/adr/ADR-2143-codescape-section-separate-workspace-and-port.md
+@@ -7,7 +7,7 @@ implementation_status: partial
+ activation_status: inactive
+ supersedes: []
+ superseded_by: []
+-verified_commit: 1c1ac674bc5e819924d4ac57b5130d7887f5af46
++verified_commit: f1fa1862c00ad627af8f45249d51b94c3a1c238f
+ verified_paths: [codescape, docs/PROTOCOL-registry.md]
+ owner: jjohare
+ review_trigger: a graphicle rev bump; any change to the V3 record, the V5 envelope or 0x23; Codescape gaining a compose service, a published port or a new egress target; a proposal to merge the workspace into the root
+@@ -399,3 +399,7 @@ The park trigger "P2 gate output committed" is met in the Codescape repository (
+ - P3 (partly), P5 and P6 (TLS/NIP-98 on every route, published `:4100`) are not shown done.
+ 
+ Activation is not promoted: this is a desk run in the container, not a receipt of the published deployment. The Codescape repository's own ADR-0001 records its activation separately. The submodule gitlink is deliberately not moved here; it should go to the Codescape commit above at merge time.
++
++## Re-verification — 2026-10-31 (`f1fa1862c`)
++
++Re-verified 2026-11-01 after merging xr/grab-server (ADR-2169), xr/grab-client (ADR-2172), client/three-0187 and docs/splat-adr, each Opus-reviewed (R15/R16/R17). The governed-path changes are those merges: drag holds and release in the GPU actor and socket handler, the held-only global_speed floor, two-hand grab and the edge breathe in the XR client, and the ADR 2168->2172 comment renames. This record's own claims are unchanged. Evidence on the merged tree: `cargo test --lib` 1768 passed, 0 failed (GPU 1); vitest 142 files / 1468 (installed three 0.183; the 0.187 run is on client/three-0187); XR GUT 522 passing on 4.6.1 and 4.8 at the grab-client head. Re-run: `git diff 2257ee7fa..f1fa1862c -- <governed path>`.
+diff --git a/xr-client/scripts/backend_connection.gd b/xr-client/scripts/backend_connection.gd
+index bee384235..6a043d381 100644
+--- a/xr-client/scripts/backend_connection.gd
++++ b/xr-client/scripts/backend_connection.gd
+@@ -46,7 +46,9 @@ var _connected: bool = false
+ var _open: bool = false
+ var _reconnect_attempts: int = 0
+ var _reconnect_timer: float = -1.0
+-## Node ids this connection pinned on its server (A6 hygiene: released on close).
++## Node ids this connection pinned explicitly on its server (A6 hygiene: released on
++## close). Nothing writes it until a client-side Pin sender exists (ADR-2172 F5):
++## a drag end no longer records a pin.
+ var _pinned: Dictionary = {}
+ var _http: Array[HTTPRequest] = []
+ 
+@@ -218,12 +220,12 @@ func class_of(id: int) -> int:
+ 	return -1
+ 
+ 
+-## Full-extent AABB of `ids` in graph units, excluding `exclude_id` (< 0 = none).
+-## An empty AABB when none of the ids is known.
+-func render_aabb_for_ids(ids: PackedInt32Array, exclude_id: int) -> AABB:
++## Full-extent AABB of `ids` in graph units, excluding every id in `exclude` (the
++## nodes a hand holds; empty = none). An empty AABB when none of the ids is known.
++func render_aabb_for_ids(ids: PackedInt32Array, exclude: PackedInt32Array = PackedInt32Array()) -> AABB:
+ 	if client == null or not client.has_method("render_aabb_ids"):
+ 		return AABB()
+-	return aabb_from_flat(client.render_aabb_ids(ids, exclude_id))
++	return aabb_from_flat(client.render_aabb_ids(ids, exclude))
+ 
+ 
+ ## Pure: `[minx, miny, minz, maxx, maxy, maxz]` → AABB; empty AABB otherwise.
+@@ -268,9 +270,9 @@ func send_drag_end(id: int) -> bool:
+ 	if client == null or not client.has_method("send_drag_end"):
+ 		return false
+ 	client.send_drag_end(id)
+-	# The server pins a node at drag end (fx/fy/fz); remember it for release.
+-	if supports(BackendCaps.PIN):
+-		_pinned[id] = true
++	# ADR-2172 F3: a drag end records nothing. The server releases the node into the
++	# simulation (it does not pin it), so there is no pin for close() to undo; a
++	# recorded id made every teardown send a nodeUnpin (and a reheat) per node ever dragged.
+ 	return true
+ 
+ 
+diff --git a/xr-client/tests/unit/test_backend_switch.gd b/xr-client/tests/unit/test_backend_switch.gd
+index 6a140cf94..0a3dda60b 100644
+--- a/xr-client/tests/unit/test_backend_switch.gd
++++ b/xr-client/tests/unit/test_backend_switch.gd
+@@ -79,9 +79,10 @@ func test_hidden_overlay_volume_leaves_nothing_pickable() -> void:
+ 	client.ingest(_frame([1 | 0x40000000, 2 | 0x40000000]))
+ 	client.build_node_buffer_lod(PackedInt32Array([1, 2]), 1.0, 0.7, 1.9, Vector3.ZERO, 8, 100.0)
+ 	assert_eq(client.get_render_ids().size(), 2, "precondition: the slot has pickable ids")
+-	scene._grabbed_id = 1
++	scene._grab_id[0] = 1
++	scene._grab_vol[0] = &"knowledge"
+ 	scene._on_hud_control("volume_toggle:knowledge")
+-	assert_eq(scene._grabbed_id, -1, "a grab in flight is released")
++	assert_eq(scene._grab_id[0], -1, "a grab in flight is released")
+ 	assert_eq(client.pack_slot(), src.slot)
+ 	assert_eq(client.get_render_ids().size(), 0, "no invisible node left for the ray")
+ 	await get_tree().physics_frame

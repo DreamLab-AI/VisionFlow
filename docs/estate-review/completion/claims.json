@@ -273,11 +273,11 @@
     "kind": "adr",
     "repo": "VisionClaw",
     "path": "docs/adr/ADR-2143-codescape-section-separate-workspace-and-port.md",
-    "source_sha256": "c4924fc6404df8e83308b9aeb5f2951e44d76832dc075b42cf57aa6a866d04f7",
-    "report": "docs/estate-review/2026-10-31-codescape-presence-and-xr.md",
-    "report_sha256": "1e6caf276c12cb5e6c40a9ba202d194cdee48b16376bc6d2d1f3118e937cd0fb",
+    "source_sha256": "e0642f79c5aa4f50d96384f37ffe5242a2371d8f4f2dc5cf8f4a89eb70cbf3eb",
+    "report": "docs/estate-review/2026-11-01-codescape-runtime-boundary.md",
+    "report_sha256": "a6c170cabfeaebb7bcc59b51f56f59473afe35321be0ee8b8202e6623c3a3b5f",
     "coverage": "whole-document",
-    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+    "basis": "Whole-document refresh incorporates the prior explicit section table, assesses the appended re-verification and changed governed paths, and adds bounded live Docker metadata. Historical tests and open presence, isolation, publication and XR acceptance gaps remain explicit; no product tests rerun."
   },
   {
     "kind": "adr",

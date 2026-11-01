@@ -1,0 +1,381 @@
+{
+  "observed_at": "2026-11-01T13:36:58.960Z",
+  "prior_receipt": "docs/estate-review/evidence/2026-10-31/codescape-presence-sources.json",
+  "repos": {
+    "standalone": {
+      "root": "/home/devuser/workspace/codescape",
+      "head": "58108c0357bd0dbf6588f8b6adf6e044f4c04556",
+      "files": [
+        {
+          "path": "crates/codescape-server/src/auth.rs",
+          "sha256": "dfebc91681dbd80143e20a09089da1cd34ac776e3d2619b0a66d6b5e30956475",
+          "git_blob": "b6919a014a1f4195d2e67a760b9269ceb3b0f6d7",
+          "matches_head": true,
+          "prior_sha256": "dfebc91681dbd80143e20a09089da1cd34ac776e3d2619b0a66d6b5e30956475",
+          "unchanged_since_prior": true
+        },
+        {
+          "path": "crates/codescape-server/src/config.rs",
+          "sha256": "c4b51f8b18275d4f8f1646e41792f231e536a7540d20dc8379d917c8453287f5",
+          "git_blob": "03d7d6a66cd7f927db1b6915d1ecdefb39657387",
+          "matches_head": true
+        },
+        {
+          "path": "crates/codescape-server/src/egress.rs",
+          "sha256": "a7c9bc138b9f7e06157e65672d95bdf4c87723f44e33a30ca9015e000d1be7ad",
+          "git_blob": "72d168e0937ab8ecb560de53bac21f528a5631be",
+          "matches_head": true
+        },
+        {
+          "path": "crates/codescape-server/src/origin.rs",
+          "sha256": "627bb5b43e302a4ce33c953895042063df60784879dee0d3ba0d320ae1306764",
+          "git_blob": "43e8b92ea84bba0405ed10eb18acd1ac1e8767de",
+          "matches_head": true,
+          "prior_sha256": "627bb5b43e302a4ce33c953895042063df60784879dee0d3ba0d320ae1306764",
+          "unchanged_since_prior": true
+        },
+        {
+          "path": "crates/codescape-server/src/proxy.rs",
+          "sha256": "b772490574f9aee53f40e1e9de2df52488431aaf9f1164157b039c8fd4765d5e",
+          "git_blob": "438b9b9f8d579699286ba5c5971c12adefd0e095",
+          "matches_head": true,
+          "prior_sha256": "b772490574f9aee53f40e1e9de2df52488431aaf9f1164157b039c8fd4765d5e",
+          "unchanged_since_prior": true
+        },
+        {
+          "path": "crates/codescape-server/src/routes/presence.rs",
+          "sha256": "85ae9c8b2a7b34e6296c195a2e8f120621e9f9068e59ea9f0b20f4038198fb3a",
+          "git_blob": "2593b02b9ae1b076cbfe8c4d6bed4763c3cc6f4e",
+          "matches_head": true,
+          "prior_sha256": "85ae9c8b2a7b34e6296c195a2e8f120621e9f9068e59ea9f0b20f4038198fb3a",
+          "unchanged_since_prior": true
+        },
+        {
+          "path": "crates/codescape-server/src/routes/ws.rs",
+          "sha256": "5b49a5c88f1ceac4581ca0f269282f0031f67824ddfe110fceeeb9e9faa61b22",
+          "git_blob": "e70f97335ec7aa2c7ed9e39117aa16e4ca669361",
+          "matches_head": true,
+          "prior_sha256": "5b49a5c88f1ceac4581ca0f269282f0031f67824ddfe110fceeeb9e9faa61b22",
+          "unchanged_since_prior": true
+        },
+        {
+          "path": "crates/codescape-server/src/xr_presence.rs",
+          "sha256": "357a19749b8cbf68c6f9441b5ef6e7bfab685b1d56bfcb23c79bee790aadf0bf",
+          "git_blob": "1d8b5939ac63c2fe11356801430fad67dbdf6d09",
+          "matches_head": true,
+          "prior_sha256": "357a19749b8cbf68c6f9441b5ef6e7bfab685b1d56bfcb23c79bee790aadf0bf",
+          "unchanged_since_prior": true
+        },
+        {
+          "path": "deploy/README.md",
+          "sha256": "79edf2cf31e1925723ccd97826a38836ef819f40e9cf82ff2e5ea251822d5164",
+          "git_blob": "e586fe13360299408fee6e25d852ecb67704aca5",
+          "matches_head": true
+        },
+        {
+          "path": "deploy/codescape-entrypoint.sh",
+          "sha256": "8e92435611cf93f7e6af2366b54572fc4b79ae23f0dac184b0ec7b5d8edb75b9",
+          "git_blob": "549900ca695ed76fc1b48702fc46658ccd956f9a",
+          "matches_head": true
+        },
+        {
+          "path": "docs/BASELINE-codescape.md",
+          "sha256": "ef4036f6904d99c7fced7a7d7227286927695a1a8665991bd7c2f5f68240975e",
+          "git_blob": "d75547049ac4121ebaa7feff6a8f6154f7ec240a",
+          "matches_head": true,
+          "prior_sha256": "ef4036f6904d99c7fced7a7d7227286927695a1a8665991bd7c2f5f68240975e",
+          "unchanged_since_prior": true
+        }
+      ]
+    },
+    "consumed": {
+      "root": "/home/devuser/workspace/project/codescape",
+      "head": "e3b76f63e801c6a8460110b93e88a0b420e9b0b4",
+      "files": [
+        {
+          "path": "crates/codescape-server/src/auth.rs",
+          "sha256": "dfebc91681dbd80143e20a09089da1cd34ac776e3d2619b0a66d6b5e30956475",
+          "git_blob": "b6919a014a1f4195d2e67a760b9269ceb3b0f6d7",
+          "matches_head": true,
+          "prior_sha256": "dfebc91681dbd80143e20a09089da1cd34ac776e3d2619b0a66d6b5e30956475",
+          "unchanged_since_prior": true
+        },
+        {
+          "path": "crates/codescape-server/src/config.rs",
+          "sha256": "c4b51f8b18275d4f8f1646e41792f231e536a7540d20dc8379d917c8453287f5",
+          "git_blob": "03d7d6a66cd7f927db1b6915d1ecdefb39657387",
+          "matches_head": true
+        },
+        {
+          "path": "crates/codescape-server/src/egress.rs",
+          "sha256": "a7c9bc138b9f7e06157e65672d95bdf4c87723f44e33a30ca9015e000d1be7ad",
+          "git_blob": "72d168e0937ab8ecb560de53bac21f528a5631be",
+          "matches_head": true
+        },
+        {
+          "path": "crates/codescape-server/src/origin.rs",
+          "sha256": "627bb5b43e302a4ce33c953895042063df60784879dee0d3ba0d320ae1306764",
+          "git_blob": "43e8b92ea84bba0405ed10eb18acd1ac1e8767de",
+          "matches_head": true,
+          "prior_sha256": "627bb5b43e302a4ce33c953895042063df60784879dee0d3ba0d320ae1306764",
+          "unchanged_since_prior": true
+        },
+        {
+          "path": "crates/codescape-server/src/proxy.rs",
+          "sha256": "b772490574f9aee53f40e1e9de2df52488431aaf9f1164157b039c8fd4765d5e",
+          "git_blob": "438b9b9f8d579699286ba5c5971c12adefd0e095",
+          "matches_head": true,
+          "prior_sha256": "b772490574f9aee53f40e1e9de2df52488431aaf9f1164157b039c8fd4765d5e",
+          "unchanged_since_prior": true
+        },
+        {
+          "path": "crates/codescape-server/src/routes/presence.rs",
+          "sha256": "85ae9c8b2a7b34e6296c195a2e8f120621e9f9068e59ea9f0b20f4038198fb3a",
+          "git_blob": "2593b02b9ae1b076cbfe8c4d6bed4763c3cc6f4e",
+          "matches_head": true,
+          "prior_sha256": "85ae9c8b2a7b34e6296c195a2e8f120621e9f9068e59ea9f0b20f4038198fb3a",
+          "unchanged_since_prior": true
+        },
+        {
+          "path": "crates/codescape-server/src/routes/ws.rs",
+          "sha256": "5b49a5c88f1ceac4581ca0f269282f0031f67824ddfe110fceeeb9e9faa61b22",
+          "git_blob": "e70f97335ec7aa2c7ed9e39117aa16e4ca669361",
+          "matches_head": true,
+          "prior_sha256": "5b49a5c88f1ceac4581ca0f269282f0031f67824ddfe110fceeeb9e9faa61b22",
+          "unchanged_since_prior": true
+        },
+        {
+          "path": "crates/codescape-server/src/xr_presence.rs",
+          "sha256": "357a19749b8cbf68c6f9441b5ef6e7bfab685b1d56bfcb23c79bee790aadf0bf",
+          "git_blob": "1d8b5939ac63c2fe11356801430fad67dbdf6d09",
+          "matches_head": true,
+          "prior_sha256": "357a19749b8cbf68c6f9441b5ef6e7bfab685b1d56bfcb23c79bee790aadf0bf",
+          "unchanged_since_prior": true
+        },
+        {
+          "path": "deploy/README.md",
+          "sha256": "79edf2cf31e1925723ccd97826a38836ef819f40e9cf82ff2e5ea251822d5164",
+          "git_blob": "e586fe13360299408fee6e25d852ecb67704aca5",
+          "matches_head": true
+        },
+        {
+          "path": "deploy/codescape-entrypoint.sh",
+          "sha256": "8e92435611cf93f7e6af2366b54572fc4b79ae23f0dac184b0ec7b5d8edb75b9",
+          "git_blob": "549900ca695ed76fc1b48702fc46658ccd956f9a",
+          "matches_head": true
+        },
+        {
+          "path": "docs/BASELINE-codescape.md",
+          "sha256": "ef4036f6904d99c7fced7a7d7227286927695a1a8665991bd7c2f5f68240975e",
+          "git_blob": "d75547049ac4121ebaa7feff6a8f6154f7ec240a",
+          "matches_head": true,
+          "prior_sha256": "ef4036f6904d99c7fced7a7d7227286927695a1a8665991bd7c2f5f68240975e",
+          "unchanged_since_prior": true
+        }
+      ]
+    },
+    "visionclaw": {
+      "root": "/home/devuser/workspace/project",
+      "head": "531df5ef74453a2ed320bff968c203a9b91faed7",
+      "files": [
+        {
+          "path": ".dockerignore",
+          "sha256": "68f3e27a06a702ea630820f9d81d573f045ff9091c88b96e2628f9196c4bf97a",
+          "git_blob": "6d6252afb5088cfefdeeef5a7b3a84f65c36bc60",
+          "matches_head": true
+        },
+        {
+          "path": "Dockerfile.unified",
+          "sha256": "143af15aa3fa931aa70a306b4813590441108782c5e038e4dcd668fbc008992a",
+          "git_blob": "ec18c82e18d609819fc9ca18375d972a5e5e3951",
+          "matches_head": true
+        },
+        {
+          "path": "docker-compose.unified.yml",
+          "sha256": "54805ba50f340f447baf281bae5c655e4eaf501cf9812577cb843d477566f618",
+          "git_blob": "8e2f8d36352003c82e3b80c4bb520af88ff57e25",
+          "matches_head": true,
+          "prior_sha256": "54805ba50f340f447baf281bae5c655e4eaf501cf9812577cb843d477566f618",
+          "unchanged_since_prior": true
+        },
+        {
+          "path": "docs/PROTOCOL-registry.md",
+          "sha256": "91c64dbea97101f0a757a60ce008d27f59fcb0c4abc511a840bdb041df37a1d7",
+          "git_blob": "ce857b1eb143987b8bc6b6eaa2ee25e9458046fe",
+          "matches_head": true
+        },
+        {
+          "path": "docs/adr/ADR-2143-codescape-section-separate-workspace-and-port.md",
+          "sha256": "e0642f79c5aa4f50d96384f37ffe5242a2371d8f4f2dc5cf8f4a89eb70cbf3eb",
+          "git_blob": "45e6b0efdfdba69d840f8acc2f64ff5966242f0a",
+          "matches_head": true,
+          "prior_sha256": "c4924fc6404df8e83308b9aeb5f2951e44d76832dc075b42cf57aa6a866d04f7",
+          "unchanged_since_prior": false
+        },
+        {
+          "path": "docs/adr/ADR-2159-the-xr-client-holds-one-backend-connection-per-content-source.md",
+          "sha256": "5654dbb59c873779be653cd04622c515b6bba66e2d73f31867fcca1c8dfae1a2",
+          "git_blob": "7ece21b0982fbd22bea94eea4fea37e55b81ee5a",
+          "matches_head": true,
+          "prior_sha256": "5654dbb59c873779be653cd04622c515b6bba66e2d73f31867fcca1c8dfae1a2",
+          "unchanged_since_prior": true
+        },
+        {
+          "path": "nginx.dev.conf",
+          "sha256": "73eec921da8a18164f0cd1bd2449d68abbccc6cb25094ae05117c005cb33ccb1",
+          "git_blob": "a225a8ff01a28e27b2e5e6eec42fa03069e7f07f",
+          "matches_head": true,
+          "prior_sha256": "73eec921da8a18164f0cd1bd2449d68abbccc6cb25094ae05117c005cb33ccb1",
+          "unchanged_since_prior": true
+        },
+        {
+          "path": "xr-client/rust/src/presence.rs",
+          "sha256": "72482f9bbdf1e87b8ed2449fae966bc91e635794e0db03879abffd8a25724d18",
+          "git_blob": "4fd7db116fad6212a390e0b43eb35ad027130200",
+          "matches_head": true,
+          "prior_sha256": "72482f9bbdf1e87b8ed2449fae966bc91e635794e0db03879abffd8a25724d18",
+          "unchanged_since_prior": true
+        },
+        {
+          "path": "xr-client/rust/tests/two_clients.rs",
+          "sha256": "0316624540a5ef3018336934d80530db73468404a70a9b1a8b68bb40c083528b",
+          "git_blob": "c724258f089409b6cc947d41e7fc06587fbcbece",
+          "matches_head": true,
+          "prior_sha256": "0316624540a5ef3018336934d80530db73468404a70a9b1a8b68bb40c083528b",
+          "unchanged_since_prior": true
+        },
+        {
+          "path": "xr-client/scripts/backend_caps.gd",
+          "sha256": "de334b8f0423d5dedaad529f5bfad4ee76c2f0f55270d5e24583a6efdb960eb4",
+          "git_blob": "70e1d1365b171655f0e24bb65236be8d17973c29",
+          "matches_head": true,
+          "prior_sha256": "de334b8f0423d5dedaad529f5bfad4ee76c2f0f55270d5e24583a6efdb960eb4",
+          "unchanged_since_prior": true
+        },
+        {
+          "path": "xr-client/scripts/backend_connection.gd",
+          "sha256": "656f0fa0180135ad52886df3307ba5a85b40f13cc0019b6cc8661548ff6db0e9",
+          "git_blob": "6a043d381221d6b009bb62a337c90c270b514717",
+          "matches_head": true,
+          "prior_sha256": "e59cce6ee517a016937ebfb8c852e9062e2630adef022c5d915419f27ed850d3",
+          "unchanged_since_prior": false
+        },
+        {
+          "path": "xr-client/scripts/frame_budget_pass.gd",
+          "sha256": "4c6d2423a44c84eea65957214508722ec9bde70a2e3543360adf503d48c97a6f",
+          "git_blob": "f517c345ea8a42f88214507f8e303df22f7added",
+          "matches_head": true,
+          "prior_sha256": "4c6d2423a44c84eea65957214508722ec9bde70a2e3543360adf503d48c97a6f",
+          "unchanged_since_prior": true
+        },
+        {
+          "path": "xr-client/scripts/graph_scene.gd",
+          "sha256": "1053bbbdfda3cb32bd4f72ba95b8e5f6a564c6433bd598d12a5be8211a10c7d0",
+          "git_blob": "591ca98e4a9c6ca0734799e4d93aba1c018640c3",
+          "matches_head": true,
+          "prior_sha256": "58b95160c2e8bd19c93dca329522f0539481509b98452af6b9a4e96b2986fec6",
+          "unchanged_since_prior": false
+        },
+        {
+          "path": "xr-client/tests/unit/test_backend_switch.gd",
+          "sha256": "3a975fbdfc4035f95f13c188820024c2d3215727d96df0746da22c5c9ed78844",
+          "git_blob": "0a3dda60b17b8bb35318125597c046446bc71f0b",
+          "matches_head": true,
+          "prior_sha256": "991af381ba4978cb2c27c0d727017defdedbe8f068cfe7934e82e748365557c9",
+          "unchanged_since_prior": false
+        }
+      ]
+    }
+  },
+  "codescape_gitlink": {
+    "before": "160000 commit e3b76f63e801c6a8460110b93e88a0b420e9b0b4\tcodescape",
+    "after": "160000 commit e3b76f63e801c6a8460110b93e88a0b420e9b0b4\tcodescape"
+  },
+  "delta_sha256": "09ecc73db669cd71f67118fc2cbcebd29cd15b2d50b0ee94d901c4704600a6cb",
+  "mount_comparison": {
+    "expected_explicit_read_only_bind_destinations": [
+      "/app/codescape",
+      "/app/crates",
+      "/repos/estate/agentbox/.gitignore",
+      "/repos/estate/agentbox/config",
+      "/repos/estate/agentbox/crates",
+      "/repos/estate/agentbox/docs",
+      "/repos/estate/agentbox/lib",
+      "/repos/estate/agentbox/management-api",
+      "/repos/estate/agentbox/scripts",
+      "/repos/estate/agentbox/services",
+      "/repos/estate/agentbox/skills",
+      "/repos/estate/agentbox/tests",
+      "/repos/estate/agentbox/voice",
+      "/repos/estate/codescape/.gitignore",
+      "/repos/estate/codescape/client",
+      "/repos/estate/codescape/crates",
+      "/repos/estate/codescape/deploy",
+      "/repos/estate/codescape/docs",
+      "/repos/estate/dreamlab-ai-website/.gitignore",
+      "/repos/estate/dreamlab-ai-website/content",
+      "/repos/estate/dreamlab-ai-website/docs",
+      "/repos/estate/dreamlab-ai-website/forum-config",
+      "/repos/estate/dreamlab-ai-website/marketing",
+      "/repos/estate/dreamlab-ai-website/scripts",
+      "/repos/estate/dreamlab-ai-website/src",
+      "/repos/estate/dreamlab-ai-website/tests",
+      "/repos/estate/knowledgeGraph/.gitignore",
+      "/repos/estate/knowledgeGraph/docs",
+      "/repos/estate/knowledgeGraph/explorer",
+      "/repos/estate/knowledgeGraph/scripts",
+      "/repos/estate/knowledgeGraph/static",
+      "/repos/estate/loom/.gitignore",
+      "/repos/estate/loom/bench",
+      "/repos/estate/loom/crates",
+      "/repos/estate/loom/deploy",
+      "/repos/estate/loom/docs",
+      "/repos/estate/loom/model",
+      "/repos/estate/loom/scripts",
+      "/repos/estate/loom/tests",
+      "/repos/estate/loom/tools",
+      "/repos/estate/nostr-rust-forum/.gitignore",
+      "/repos/estate/nostr-rust-forum/benchmarks",
+      "/repos/estate/nostr-rust-forum/crates",
+      "/repos/estate/nostr-rust-forum/docs",
+      "/repos/estate/nostr-rust-forum/scripts",
+      "/repos/estate/nostr-rust-forum/tests",
+      "/repos/estate/sidestr-rs/.gitignore",
+      "/repos/estate/sidestr-rs/docs",
+      "/repos/estate/sidestr-rs/sidestr-agent",
+      "/repos/estate/sidestr-rs/sidestr-bridge-liquid",
+      "/repos/estate/sidestr-rs/sidestr-core",
+      "/repos/estate/sidestr-rs/sidestr-evm",
+      "/repos/estate/sidestr-rs/sidestr-header",
+      "/repos/estate/sidestr-rs/sidestr-hitch",
+      "/repos/estate/sidestr-rs/sidestr-nostr",
+      "/repos/estate/sidestr-rs/sidestr-reserve",
+      "/repos/estate/sidestr-rs/sidestr-round",
+      "/repos/estate/sidestr-rs/sidestr-wallet",
+      "/repos/estate/sidestr-rs/webledgers-teller",
+      "/repos/estate/solid-pod-rs/.gitignore",
+      "/repos/estate/solid-pod-rs/crates",
+      "/repos/estate/solid-pod-rs/docs",
+      "/repos/estate/solid-pod-rs/scripts",
+      "/repos/estate/visionclaw/.gitignore",
+      "/repos/estate/visionclaw/client/src",
+      "/repos/estate/visionclaw/crates",
+      "/repos/estate/visionclaw/docs",
+      "/repos/estate/visionclaw/scripts",
+      "/repos/estate/visionclaw/src",
+      "/repos/estate/visionclaw/tests",
+      "/repos/estate/visionclaw/xr-client",
+      "/repos/estate/visiontouch-rs/.gitignore",
+      "/repos/estate/visiontouch-rs/apps",
+      "/repos/estate/visiontouch-rs/crates",
+      "/repos/estate/visiontouch-rs/docs",
+      "/repos/estate/visiontouch-rs/scripts",
+      "/repos/estate/visiontouch-rs/tools"
+    ],
+    "missing": [],
+    "extra": [
+      "/run/secrets/codescape-ingest-token"
+    ],
+    "limits": "Destination-only short-syntax extraction for this pinned service, not a general Compose parser. The separate ingest secret is expected as the sole extra. Host source-path equality and environment interpolation are not asserted."
+  }
+}
