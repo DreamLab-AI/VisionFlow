@@ -1,0 +1,12 @@
+{
+  "archive": "/tmp/vf-om-layout-artifacts/consumer-scratch.tar.gz",
+  "files_verified": 29,
+  "build_caches": "/home/devuser/workspace/.tmp/vf-om-layout-caches",
+  "preserved_scratch": [
+    ".audit-local",
+    ".claude-flow",
+    ".deepsec-gate",
+    "src/utils/ptx",
+    "agentbox/schema"
+  ]
+}

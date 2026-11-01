@@ -1,0 +1,28 @@
+{
+  "mode": "diff-working",
+  "diff_ref": "",
+  "files_from": "",
+  "root": "/home/devuser/workspace/wt/VisionClaw-vault-layout",
+  "project_id": "VisionClaw-vault-layout",
+  "workspace": "/home/devuser/workspace/wt/VisionClaw-vault-layout/.deepsec-gate",
+  "report_dir": "/home/devuser/workspace/wt/VisionClaw-vault-layout/.deepsec-gate/reports/20261101T115651Z",
+  "revision": "5e1bd90a434818b066f9c0d769940e5f61640804",
+  "dirty": "true",
+  "deepsec_version": "2.3.10",
+  "policy_source": "/etc/agentbox.toml",
+  "agent": "claude",
+  "model_auth": "local",
+  "model": "",
+  "thinking_level": "minimal",
+  "fail_on": "HIGH",
+  "max_duration": "20m",
+  "batch_size": "5",
+  "concurrency": "2",
+  "ai_provider": "",
+  "ai_api_key_env": "",
+  "ai_base_url": "",
+  "route": {
+    "mode": "local",
+    "provider": "local"
+  }
+}

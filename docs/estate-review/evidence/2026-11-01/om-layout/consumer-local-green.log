@@ -1,0 +1,131 @@
+    Blocking waiting for file lock on package cache
+   Compiling local-corpus-contract-probe v0.0.0 (/home/devuser/workspace/wt/VisionClaw-vault-layout/.audit-local)
+warning: constant `VAULT_ROOT_ENV` is never used
+  --> ../src/services/corpus_source/local.rs:14:11
+   |
+14 | pub const VAULT_ROOT_ENV: &str = "VAULT_ROOT";
+   |           ^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: constant `VAULT_BASE_PATHS_ENV` is never used
+  --> ../src/services/corpus_source/local.rs:17:11
+   |
+17 | pub const VAULT_BASE_PATHS_ENV: &str = "VAULT_BASE_PATHS";
+   |           ^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `DEFAULT_VAULT_BASE_PATHS` is never used
+  --> ../src/services/corpus_source/local.rs:21:11
+   |
+21 | pub const DEFAULT_VAULT_BASE_PATHS: &str = "knowledge,working";
+   |           ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `VOCABULARY_PATH` is never used
+  --> ../src/services/corpus_source/local.rs:23:11
+   |
+23 | pub const VOCABULARY_PATH: &str = "ontology/vocabulary.yaml";
+   |           ^^^^^^^^^^^^^^^
+
+warning: constant `SKIP_DIRS` is never used
+  --> ../src/services/corpus_source/local.rs:31:7
+   |
+31 | const SKIP_DIRS: &[&str] = &[
+   |       ^^^^^^^^^
+
+warning: struct `LocalDirectorySource` is never constructed
+  --> ../src/services/corpus_source/local.rs:48:12
+   |
+48 | pub struct LocalDirectorySource {
+   |            ^^^^^^^^^^^^^^^^^^^^
+
+warning: associated items `new`, `from_env`, `base_paths_from_env`, `collect_under`, and `checked_roots` are never used
+   --> ../src/services/corpus_source/local.rs:60:12
+    |
+ 58 | impl LocalDirectorySource {
+    | ------------------------- associated items in this implementation
+ 59 |     /// Construct from an explicit root and base paths.
+ 60 |     pub fn new(root: impl Into<PathBuf>, base_paths: Vec<PathBuf>) -> Self {
+    |            ^^^
+...
+ 74 |     pub fn from_env() -> Result<Self, String> {
+    |            ^^^^^^^^
+...
+ 91 |     pub fn base_paths_from_env() -> Result<Vec<PathBuf>, String> {
+    |            ^^^^^^^^^^^^^^^^^^^
+...
+109 |     fn collect_under(&self, prefix: &str) -> Result<Vec<CorpusPage>, String> {
+    |        ^^^^^^^^^^^^^
+...
+135 |     fn checked_roots(&self) -> Result<Vec<PathBuf>, String> {
+    |        ^^^^^^^^^^^^^
+
+warning: function `parse_base_paths` is never used
+   --> ../src/services/corpus_source/local.rs:142:4
+    |
+142 | fn parse_base_paths(raw: &str) -> Vec<PathBuf> {
+    |    ^^^^^^^^^^^^^^^^
+
+warning: function `path_to_slash` is never used
+   --> ../src/services/corpus_source/local.rs:151:4
+    |
+151 | fn path_to_slash(path: &Path) -> String {
+    |    ^^^^^^^^^^^^^
+
+warning: function `is_skipped_dir` is never used
+   --> ../src/services/corpus_source/local.rs:159:4
+    |
+159 | fn is_skipped_dir(name: &str) -> bool {
+    |    ^^^^^^^^^^^^^^
+
+warning: function `change_marker` is never used
+   --> ../src/services/corpus_source/local.rs:165:4
+    |
+165 | fn change_marker(meta: &std::fs::Metadata) -> String {
+    |    ^^^^^^^^^^^^^
+
+warning: function `walk` is never used
+   --> ../src/services/corpus_source/local.rs:177:4
+    |
+177 | fn walk(dir: &Path, rel_prefix: &str, out: &mut Vec<CorpusPage>) -> Result<(), String> {
+    |    ^^^^
+
+warning: associated functions `from_env` and `base_paths_from_env` are never used
+  --> ../src/services/corpus_source/local.rs:74:12
+   |
+58 | impl LocalDirectorySource {
+   | ------------------------- associated functions in this implementation
+...
+74 |     pub fn from_env() -> Result<Self, String> {
+   |            ^^^^^^^^
+...
+91 |     pub fn base_paths_from_env() -> Result<Vec<PathBuf>, String> {
+   |            ^^^^^^^^^^^^^^^^^^^
+
+warning: `local-corpus-contract-probe` (lib) generated 12 warnings
+warning: `local-corpus-contract-probe` (lib test) generated 4 warnings (3 duplicates)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.20s
+     Running unittests lib.rs (.audit-local/target/debug/deps/local_corpus_contract_probe-61c0e89efd01539c)
+
+running 13 tests
+test local::tests::base_paths_parse_from_a_comma_separated_list ... ok
+test local::tests::an_empty_vault_is_an_error ... ok
+test local::tests::the_descriptor_names_the_root_and_the_sources ... ok
+test local::tests::a_missing_half_is_skipped_not_fatal ... ok
+test local::tests::shared_layout_rejects_aliases_nested_roots_and_parent_escapes ... ok
+test local::tests::each_furniture_folder_is_skipped ... ok
+test local::tests::listing_is_ordered_and_scoped_by_prefix ... ok
+test local::tests::lists_both_base_paths_and_skips_non_content ... ok
+test local::tests::shared_layout_rejects_unconfigured_prefixes_and_fetches ... ok
+test local::tests::pages_carry_name_size_and_a_readable_fetch_ref ... ok
+test local::tests::shared_layout_rejects_linked_root_aliases_and_escapes ... ok
+test local::tests::shared_layout_skips_child_symlinks_like_the_owner_walk ... ok
+test local::tests::the_change_marker_is_stable_across_runs_and_moves_on_edit ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+   Doc-tests local_corpus_contract_probe
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

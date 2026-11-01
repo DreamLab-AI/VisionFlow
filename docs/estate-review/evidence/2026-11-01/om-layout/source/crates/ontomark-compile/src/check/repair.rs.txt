@@ -1,0 +1,26 @@
+380: /// Repair every unmatched fence opener under `options.scopes`.
+381: ///
+382: /// # Errors
+383: /// Any read or write failure.
+384: pub fn run(options: &Options) -> anyhow::Result<Report> {
+385:     let mut report = Report::default();
+386:     for scope in &options.scopes {
+387:         if !scope.dir.is_dir() {
+388:             continue;
+389:         }
+390:         for path in crate::input::page::walk_pages(&scope.dir, &scope.excluded_dirs())?.files {
+391:             report.pages_examined += 1;
+392:             let before = std::fs::read_to_string(&path)?;
+393:             let rel = path.strip_prefix(&scope.dir).unwrap_or(&path);
+394:             let id = rel.with_extension("").to_string_lossy().replace('\\', "/");
+395:             let action = match classify(&before) {
+396:                 Verdict::Clean => continue,
+397:                 Verdict::Ambiguous { line, reason } => {
+398:                     report.ambiguous.push(Ambiguity {
+399:                         id,
+400:                         vault: scope.vault.clone(),
+401:                         line,
+402:                         reason: reason.to_owned(),
+403:                     });
+404:                     continue;
+405:                 }

@@ -1,0 +1,132 @@
+[
+  {
+    "title": "[MEDIUM] A symlinked journals/ directory escapes the vault, reading arbitrary .md files into the corpus",
+    "description": "**File:** [`crates/ontomark-compile/src/input/page.rs`](https://github.com/DreamLab-AI/ontomark/blob/HEAD/crates/ontomark-compile/src/input/page.rs#L508-L594) (lines 508, 511, 518, 594)\n**Project:** ontomark-layout-receipt\n**Severity:** MEDIUM  •  **Confidence:** high  •  **Slug:** `path-traversal`\n\n## Owners\n\n**Suggested assignee:** `devuser@narrativegoldmine.com` _(via last-committer)_\n\n## Finding\n\nload_with_walk walks `journals/` as its own tree: `let journals_dir = root.join(\"journals\"); if journals_dir.is_dir() { ... walk_pages(&journals_dir, &[]) }` (lines 508-518). `is_dir()` follows symlinks, and walk_pages uses `WalkDir::new(dir).follow_links(false)` (line 594). In walkdir 2.5.0 (confirmed in Cargo.lock) `follow_links(false)` only prevents descent into symlinks encountered *below* the walk root; the separate `follow_root_links` option defaults to true, so a symlink supplied as the walk root (here `journals/`) is still followed. The first (vault-root) walk sees `journals` as a non-.md symlink entry and skips it without reporting (it is not a regular file but also not reported because the extension is not `md`). Result: a vault containing `journals -> /home/victim/notes` (or `-> /`) silently loads every `.md` under the link target into `Vault::journals`; `all_pages()` then exposes them to link-integrity checks, secret scans and published artefacts. This breaks the invariant the module documents at SkipReason::NotARegularFile (\"the walk never follows links, so a page cannot alias another or escape the vault\", lines 89-91). Vaults are frequently untrusted input (shared Obsidian vaults, cloned repositories), making arbitrary-file disclosure the concrete impact. The vault root itself has the same exposure via `Vault::load` -> `root.is_dir()` -> walk root follow, though that root is operator-chosen and so lower risk.\n\n## Recommendation\n\nBefore walking, reject a symlinked walk root: call `std::fs::symlink_metadata(&journals_dir)` (and the vault root) and refuse / report when `file_type().is_symlink()`, or build the WalkDir with `.follow_root_links(false)`. Report the skipped symlink rather than dropping it silently.\n\n## Recent committers (`git log`)\n\n- DevUser <devuser@narrativegoldmine.com> (2026-11-01)",
+    "severity": "MEDIUM",
+    "labels": [
+      "security",
+      "project:ontomark-layout-receipt",
+      "severity:MEDIUM",
+      "slug:path-traversal",
+      "confidence:high"
+    ],
+    "assignee": "devuser@narrativegoldmine.com",
+    "metadata": {
+      "projectId": "ontomark-layout-receipt",
+      "filePath": "crates/ontomark-compile/src/input/page.rs",
+      "lineNumbers": [
+        508,
+        511,
+        518,
+        594
+      ],
+      "severity": "MEDIUM",
+      "vulnSlug": "path-traversal",
+      "confidence": "high",
+      "discoveredAt": "2026-11-01T12:18:38.271Z",
+      "runId": "20261101121443-8e74a9338a467b24",
+      "githubUrl": "https://github.com/DreamLab-AI/ontomark/blob/HEAD/crates/ontomark-compile/src/input/page.rs#L508-L594",
+      "owners": {
+        "assignee": "devuser@narrativegoldmine.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "DevUser",
+            "email": "devuser@narrativegoldmine.com",
+            "date": "2026-11-01T12:11:24Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[MEDIUM] read_considered follows a symlinked journals/ root, and apply writes back through it, escaping the repository",
+    "description": "**File:** [`crates/ontomark-compile/src/migrate/plan.rs`](https://github.com/DreamLab-AI/ontomark/blob/HEAD/crates/ontomark-compile/src/migrate/plan.rs#L343-L359) (lines 343, 347, 351, 359)\n**Project:** ontomark-layout-receipt\n**Severity:** MEDIUM  •  **Confidence:** high  •  **Slug:** `path-traversal`\n\n## Owners\n\n**Suggested assignee:** `devuser@narrativegoldmine.com` _(via last-committer)_\n\n## Finding\n\nread_considered (lines 343-351) walks the same two trees as Vault::load, including `vault_dir.join(\"journals\")` as its own walk root via `walk_pages(&dir, excluded)`. As in page.rs, `dir.is_dir()` follows symlinks and walkdir 2.5's follow_root_links default follows a symlinked root even with follow_links(false). Unlike the declared vault roots — which plan() validates through `profile.layout.validate(repo_root)` -> resolve_roots/role_root, rejecting `..`, absolute paths and escaping symlinks (profile/layout.rs:91-116) — the `journals/` subtree is never validated. So a vault with `journals -> /external/dir` is read into the plan's considered pages (read escape), and those external files appear in the compiled before/after deltas. The escape escalates to a WRITE escape on apply: apply_with (migrate/apply.rs:148-181) guards each page with `safe_rel` (rejects non-Normal path components) and an lstat that refuses the *final* component if it is a symlink — but it never checks intermediate directory components. For a planned change to `journals/x.md`, `safe_rel` passes (all Normal components), the leaf `x.md` is not itself a symlink, so the check passes, and `journal::write_atomic(repo_root.join(\"journals/x.md\"))` (apply.rs:234) resolves the `journals` directory symlink at the OS level and writes the transformed bytes into `/external/dir/x.md`, outside the repository. A migration run over an untrusted vault can therefore tamper with files anywhere the process can write.\n\n## Recommendation\n\nValidate the journals subtree the same way as vault roots (reject a symlinked journals/ via symlink_metadata or follow_root_links(false)) in both read_considered and Vault::load_with_walk. In apply, additionally reject any planned path whose resolved parent escapes repo_root (canonicalize the parent dir and assert starts_with(repo_root)) rather than lstat-ing only the leaf component.\n\n## Recent committers (`git log`)\n\n- DevUser <devuser@narrativegoldmine.com> (2026-11-01)",
+    "severity": "MEDIUM",
+    "labels": [
+      "security",
+      "project:ontomark-layout-receipt",
+      "severity:MEDIUM",
+      "slug:path-traversal",
+      "confidence:high"
+    ],
+    "assignee": "devuser@narrativegoldmine.com",
+    "metadata": {
+      "projectId": "ontomark-layout-receipt",
+      "filePath": "crates/ontomark-compile/src/migrate/plan.rs",
+      "lineNumbers": [
+        343,
+        347,
+        351,
+        359
+      ],
+      "severity": "MEDIUM",
+      "vulnSlug": "path-traversal",
+      "confidence": "high",
+      "discoveredAt": "2026-11-01T12:18:38.349Z",
+      "runId": "20261101121443-8e74a9338a467b24",
+      "githubUrl": "https://github.com/DreamLab-AI/ontomark/blob/HEAD/crates/ontomark-compile/src/migrate/plan.rs#L343-L359",
+      "owners": {
+        "assignee": "devuser@narrativegoldmine.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "DevUser",
+            "email": "devuser@narrativegoldmine.com",
+            "date": "2026-11-01T12:11:24Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[BUG] Configurable public_gate is never honoured; publication gate is hardcoded to \"public\"",
+    "description": "**File:** [`crates/ontomark-compile/src/profile.rs`](https://github.com/DreamLab-AI/ontomark/blob/HEAD/crates/ontomark-compile/src/profile.rs#L386-L402) (lines 386, 402)\n**Project:** ontomark-layout-receipt\n**Severity:** BUG  •  **Confidence:** medium  •  **Slug:** `other-dead-config`\n\n## Owners\n\n**Suggested assignee:** `devuser@narrativegoldmine.com` _(via last-committer)_\n\n## Finding\n\nFrontmatterGrammar::public_gate is documented as \"The fail-closed publication key: only a literal boolean `true` publishes\" (lines 386, 402) and is presented as the single source of truth for what makes a page public. However, a repository-wide grep shows `public_gate` is referenced only at its own definition and default — no build, redaction, migration or validation code reads it. The actual gate, Page::is_public (page.rs:269-274), hardcodes `self.frontmatter.get(\"public\")`. A profile that sets a custom `public_gate` (e.g. `visible`) would be silently ignored: pages would be gated on `public` regardless, so the profile's declared publication semantics are wrong. This is latent rather than exploitable today because the estate profile uses `public`, but it is a correctness trap — a future profile relying on a custom gate key would mis-gate every page (fail-open if it expected a stricter custom key, or simply ignore the author's chosen key).\n\n## Recommendation\n\nEither thread profile.frontmatter.public_gate through to the publication/visibility checks (replacing the hardcoded \"public\" in Page::is_public and plan.rs identity_of), or remove the field and document that the gate is fixed at \"public\". Add a test that a custom gate key is honoured.\n\n## Recent committers (`git log`)\n\n- DevUser <devuser@narrativegoldmine.com> (2026-11-01)",
+    "severity": "BUG",
+    "labels": [
+      "security",
+      "project:ontomark-layout-receipt",
+      "severity:BUG",
+      "slug:other-dead-config",
+      "confidence:medium"
+    ],
+    "assignee": "devuser@narrativegoldmine.com",
+    "metadata": {
+      "projectId": "ontomark-layout-receipt",
+      "filePath": "crates/ontomark-compile/src/profile.rs",
+      "lineNumbers": [
+        386,
+        402
+      ],
+      "severity": "BUG",
+      "vulnSlug": "other-dead-config",
+      "confidence": "medium",
+      "discoveredAt": "2026-11-01T12:18:38.332Z",
+      "runId": "20261101121443-8e74a9338a467b24",
+      "githubUrl": "https://github.com/DreamLab-AI/ontomark/blob/HEAD/crates/ontomark-compile/src/profile.rs#L386-L402",
+      "owners": {
+        "assignee": "devuser@narrativegoldmine.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "DevUser",
+            "email": "devuser@narrativegoldmine.com",
+            "date": "2026-11-01T12:11:24Z"
+          }
+        ]
+      }
+    }
+  }
+]

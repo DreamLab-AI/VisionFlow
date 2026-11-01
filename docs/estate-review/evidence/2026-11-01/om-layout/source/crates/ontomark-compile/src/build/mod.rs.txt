@@ -1,0 +1,112 @@
+545: pub fn run_with(
+546:     options: &Options,
+547:     profile: &Profile,
+548:     vocab: &Vocabulary,
+549:     classifier: &dyn reason::Classifier,
+550:     embedder: Option<&dyn records::Embedder>,
+551: ) -> anyhow::Result<Report> {
+552:     // The machine bundle's inputs are fixed, so what cannot be honoured is
+553:     // refused before a page is read.
+554:     let machine = options.scope == Scope::Machine;
+555:     if machine {
+556:         ensure_machine_scope(options, profile)?;
+557:     }
+558:
+559:     // One walk of the vault root feeds the census, the load and the held-page
+560:     // identities (OM-00 step 1): three filters over one listing rather than
+561:     // three listings with three filters that drifted apart. The profile's
+562:     // `layout.excluded` names the root folders that are not pages.
+563:     let excluded = profile.layout.excluded_dirs();
+564:     anyhow::ensure!(
+565:         options.vault_root.is_dir(),
+566:         "{} is not a directory",
+567:         options.vault_root.display()
+568:     );
+569:     let walk = walk_pages(&options.vault_root, &excluded)?;
+570:     let census = projection::inspect_walk(&options.vault_root, &walk)?;
+571:     let vault = Vault::load_with_walk(
+572:         &options.vault_root,
+573:         profile.layout.kind_of(&options.vault_root),
+574:         walk,
+575:     )?;
+576:     let aliases = alias_map(&vault);
+577:     let raw = Corpus::build(&vault, vocab);
+578:
+579:     // --- the credential gate, before validation -------------------------------
+580:     //
+581:     // The union of both vaults' `public: true` pages, and the last gate before
+582:     // bytes leave the machine. It runs *before* validation on purpose. A
+583:     // credential on a page selected for publication is a specific, actionable
+584:     // refusal with its own exit code (2), and running it second would let the
+585:     // general "validation rejected N errors" message (exit 1) swallow it — the
+586:     // reader would be told the corpus is invalid rather than that it was about
+587:     // to publish a key. It is also the cheapest check, so failing here skips
+588:     // the reasoner entirely. (The census runs earlier still: it is the input
+589:     // accounting every later step relies on.)
+590:     //
+591:     // The machine bundle reads `working/` as well, and under the same census:
+592:     // a `public` flag that is not a boolean refuses the build there too. Its
+593:     // census is not published (`api/census.json` stays `knowledge/`'s), so the
+594:     // result is dropped once it has passed. Loaded once, here, so the digest
+595:     // lists each of its pages once.
+596:     let working = if machine {
+597:         // `ensure_machine_scope` has already refused a layout without one.
+598:         let root = profile
+599:             .layout
+600:             .root_of(&options.repo_root, VaultKind::Working)?;
+601:         let walk = walk_pages(&root, &excluded)?;
+602:         projection::inspect_walk(&root, &walk)?;
+603:         Some(Vault::load_with_walk(&root, VaultKind::Working, walk)?)
+604:     } else if options.with_working_publish {
+605:         publish::sibling_vault(&options.repo_root, &profile.layout, VaultKind::Working)?
+606:     } else {
+607:         None
+608:     };
+609:     let mut publish_vaults: Vec<&Vault> = vec![&vault];
+610:     publish_vaults.extend(working.as_ref());
+611:
+612:     // EXP-04: links to pages that are not public are named in clear text by the
+613:     // raw-Markdown surfaces. Resolution needs both vaults, so the one not
+614:     // already loaded is read here whether or not its pages are published.
+615:     let redact_links = options
+616:         .redact_private_links
+617:         .unwrap_or(profile.publication.redact_private_links);
+618:     let other_vault = if redact_links && working.is_none() {
+619:         let other = match vault.kind {
+620:             VaultKind::Knowledge => VaultKind::Working,
+621:             VaultKind::Working => VaultKind::Knowledge,
+622:         };
+623:         publish::sibling_vault(&options.repo_root, &profile.layout, other)?
+624:     } else {
+625:         None
+626:     };
+627:     let private_links = redact_links.then(|| {
+628:         let mut all: Vec<&Vault> = vec![&vault];
+629:         all.extend(working.as_ref());
+630:         all.extend(other_vault.as_ref());
+631:         redact::PrivateLinks::new(&all)
+632:     });
+633:     let staging = publish::stage_redacted(&publish_vaults, private_links.as_ref())?;
+925:     let (commit, dirty) = if let Some((commit, dirty)) = &options.source {
+926:         (commit.clone(), *dirty)
+927:     } else {
+928:         let commit = generation::git_sha(&options.repo_root);
+929:         // The paths a build reads: the vault, the vocabulary beside it, and the
+930:         // sibling vault whenever it was loaded (for publication, for machine
+931:         // scope, or for link redaction), so a dirty sibling never stamps a
+932:         // clean generation while `content_digest` covers its bytes.
+933:         let vocabulary_dir = options.repo_root.join("ontology");
+934:         let working_root = working_root(options, profile);
+935:         let mut read_paths: Vec<&Path> =
+936:             vec![options.vault_root.as_path(), vocabulary_dir.as_path()];
+937:         if working.is_some() || other_vault.is_some() {
+938:             read_paths.extend(working_root.as_deref());
+939:         }
+940:         let dirty = generation::git_dirty(&options.repo_root, &read_paths);
+941:         (commit, dirty)
+942:     };
+943:     let prefix = profile.generation.prefix_for(&options.repo_root);
+944:     let generation_id = generation::generation_id(&prefix, &commit, dirty);
+945:     for file in okf::bundle(profile, &corpus, vocab, &generation_id) {
+946:         staged.add(format!("okf/{}", file.path), file.content);
+947:     }

@@ -1,0 +1,90 @@
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+   Compiling unicode-ident v1.0.26
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling wasm-bindgen-shared v0.2.127
+   Compiling cfg-if v1.0.5
+   Compiling rustversion v1.0.23
+   Compiling typenum v1.20.1
+   Compiling bumpalo v3.20.3
+   Compiling once_cell v1.21.4
+   Compiling thiserror v2.0.21
+   Compiling getrandom v0.3.4
+   Compiling zerocopy v0.8.62
+   Compiling serde_core v1.0.229
+   Compiling const-oid v0.10.2
+   Compiling memchr v2.8.3
+   Compiling slab v0.4.12
+   Compiling futures-core v0.3.34
+   Compiling pin-project-lite v0.2.17
+   Compiling syn v3.0.8
+   Compiling syn v2.0.119
+   Compiling wasm-bindgen v0.2.127
+   Compiling futures-task v0.3.34
+   Compiling futures-util v0.3.34
+   Compiling foldhash v0.2.0
+   Compiling serde v1.0.229
+   Compiling hashbrown v0.17.1
+   Compiling hybrid-array v0.4.15
+   Compiling block-buffer v0.12.1
+   Compiling crypto-common v0.2.2
+   Compiling oxiri v0.2.11
+   Compiling oxilangtag v0.1.6
+   Compiling wasm-bindgen-macro-support v0.2.127
+   Compiling digest v0.11.3
+   Compiling version_check v0.9.5
+   Compiling peg-runtime v0.8.6
+   Compiling im v15.1.0
+   Compiling sha2 v0.11.0
+   Compiling thiserror-impl v2.0.21
+   Compiling serde_derive v1.0.229
+   Compiling peg-macros v0.8.6
+   Compiling ppv-lite86 v0.2.21
+   Compiling hashlink v0.12.2
+   Compiling bitmaps v2.1.0
+   Compiling equivalent v1.0.2
+   Compiling zmij v1.0.23
+   Compiling rand_core v0.6.4
+   Compiling arraydeque v0.5.1
+   Compiling rand_xoshiro v0.6.0
+   Compiling sized-chunks v0.6.5
+   Compiling yaml-rust2 v0.13.0
+   Compiling indexmap v2.14.2
+   Compiling peg v0.8.6
+   Compiling aho-corasick v1.1.5
+   Compiling serde_json v1.0.154
+   Compiling regex-syntax v0.8.11
+   Compiling unicode-general-category v1.1.0
+   Compiling quick-xml v0.37.5
+   Compiling itoa v1.0.18
+   Compiling tinyvec v1.13.3
+   Compiling json-event-parser v0.2.3
+   Compiling regex-automata v0.4.18
+   Compiling wasm-bindgen-macro v0.2.127
+   Compiling ontomark-parse v0.1.3 (/home/devuser/workspace/wt/ontomark-layout-receipt/crates/ontomark-parse)
+   Compiling whelk-el v0.1.1 (/home/devuser/workspace/wt/ontomark-layout-receipt/crates/whelk-el)
+   Compiling unicode-normalization v0.1.25
+   Compiling md-5 v0.11.0
+   Compiling rand_core v0.9.5
+   Compiling js-sys v0.3.104
+   Compiling rand_chacha v0.9.0
+   Compiling regex v1.13.1
+   Compiling rand v0.9.5
+   Compiling ontomark-model v0.1.2 (/home/devuser/workspace/wt/ontomark-layout-receipt/crates/ontomark-model)
+   Compiling sha1 v0.11.0
+   Compiling hex v0.4.3
+   Compiling strsim v0.11.1
+   Compiling rustc-hash v2.1.3
+   Compiling ontomark-reason v0.1.2 (/home/devuser/workspace/wt/ontomark-layout-receipt/crates/ontomark-reason)
+   Compiling similar v2.7.0
+   Compiling ontomark-ingest v0.2.0 (/home/devuser/workspace/wt/ontomark-layout-receipt/crates/ontomark-ingest)
+   Compiling oxsdatatypes v0.2.3
+   Compiling oxrdf v0.3.4
+   Compiling spargebra v0.4.7
+   Compiling sparesults v0.3.4
+   Compiling sparopt v0.3.7
+   Compiling spareval v0.2.7
+   Compiling ontomark-wasm v0.7.0 (/home/devuser/workspace/wt/ontomark-layout-receipt/crates/ontomark-wasm)
+    Finished `release` profile [optimized] target(s) in 51.85s

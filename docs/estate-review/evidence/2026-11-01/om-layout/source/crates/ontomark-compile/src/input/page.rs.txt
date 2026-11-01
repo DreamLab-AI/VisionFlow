@@ -1,0 +1,370 @@
+1: //! Pages and vaults: the shared reader `VisionClaw`'s ingest and the `vault` CLI
+2: //! both call, so the corpus is parsed by exactly one implementation (Q11).
+3: //!
+4: //! Identity rule (contract C2): a page's id is its path relative to the vault
+5: //! root with the `.md` suffix removed. `knowledge/Knowledge Graph.md` has the
+6: //! id `Knowledge Graph`; `knowledge/ETSI/Domain.md` has the id `ETSI/Domain`.
+7: //!
+8: //! A vault is an ordinary Obsidian vault: its pages sit at the vault root
+9: //! (owner decision 2026-10-16, retiring the Logseq-era `pages/` folder; there
+10: //! is no `pages/` detection and git is the rollback). The root also holds
+11: //! furniture that is not corpus — `templates/`, `bases/`, `assets/` and the
+12: //! sibling `journals/` tree — which the walk skips by top-level folder name
+13: //! ([`EXCLUDED_DIRS`]) and reports, never silently drops. Where a vault root
+14: //! sits under the repository (`knowledge/`, `working/`, or the repository root
+15: //! itself) is the profile's [`crate::profile::Layout`]; nothing here assumes a
+16: //! folder name.
+17: //!
+18: //! Three fields are *data*, not derivations, and the reader never invents them:
+19: //!
+20: //! * `title` — 313 pages in the corpus have a title that is not the file stem;
+21: //! * `slug` — 343 have a slug that is not `slugify(title)`;
+22: //! * `resource` — 96 classes have an IRI whose tail is not the page slug.
+23: //!
+24: //! When a page omits one, the reader falls back (stem, `slugify(title)`,
+25: //! `namespace + slug`), which is what a newly authored page relies on.
+26:
+27: use serde::{Deserialize, Serialize};
+28: use std::collections::BTreeMap;
+29: use std::ffi::OsString;
+30: use std::path::{Path, PathBuf};
+31:
+32: use crate::input::error::{Result, VaultError};
+33: use crate::input::frontmatter::{self, Frontmatter, Wikilink};
+34: use crate::input::okf::OkfBlock;
+35: use crate::input::slug::slugify;
+36: use ontomark_parse::Fence;
+37:
+38: /// Namespace folders that are **not published**. These pages stay in the
+39: /// vault, are loaded by [`Vault::load`] and are ingested by `VisionClaw` —
+40: /// only the publish scope ignores them (owner decision 2026-09-02, carried
+41: /// over from `jsonld_parser.UNPUBLISHED_DIRS`).
+42: ///
+43: /// This list is a *publication* rule and belongs to the projection, not to
+44: /// enumeration. Applying it in the page walk meant `vault validate` never
+45: /// saw a `_misc` page, `vault find` could not retrieve one, and `vault
+46: /// migrate` left them unconverted — a publication decision silently became an
+47: /// existence decision.
+48: pub const UNPUBLISHED_DIRS: &[&str] = &["_misc"];
+49:
+50: /// Top-level vault folders that are **not pages**: Obsidian furniture a flat
+51: /// vault carries at its root. `templates/` and `bases/` hold editor scaffolding,
+52: /// `assets/` holds binaries, and `journals/` is the daily-note tree that
+53: /// [`Vault::journals`] loads separately. A `.md` under one of these is reported
+54: /// as [`SkipReason::ExcludedDirectory`], never loaded as a page.
+55: ///
+56: /// This is the built-in list; a profile overrides it through
+57: /// `layout.excluded` ([`crate::profile::Layout`]). Dot-folders (`.obsidian/`,
+58: /// `.trash/`) are skipped as [`SkipReason::HiddenDirectory`] regardless.
+59: pub const EXCLUDED_DIRS: &[&str] = &["templates", "bases", "assets", "journals"];
+60:
+61: /// The OKF type a `journals/` page carries. Declared in
+62: /// `vocabulary.working_types`.
+63: pub const JOURNAL_TYPE: &str = "Journal";
+64:
+65: /// The journal date in a file stem, when the stem is one.
+66: ///
+67: /// A journal's identity is its date — `2026-09-22` — not a slugified title, and
+68: /// not a path. Obsidian's daily-note format and Logseq's exported format agree
+69: /// on `YYYY-MM-DD`, so a stem that is not one is not a journal page and is
+70: /// loaded as an ordinary page of the `journals/` tree.
+71: #[must_use]
+72: pub fn journal_date(stem: &str) -> Option<&str> {
+73:     let b = stem.as_bytes();
+74:     if b.len() != 10 || b[4] != b'-' || b[7] != b'-' {
+75:         return None;
+76:     }
+77:     let digits = |r: std::ops::Range<usize>| b[r].iter().all(u8::is_ascii_digit);
+78:     (digits(0..4) && digits(5..7) && digits(8..10)).then_some(stem)
+79: }
+80:
+81: /// Why the vault walk did not load a markdown file it found.
+82: #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+83: #[serde(rename_all = "snake_case")]
+84: pub enum SkipReason {
+85:     /// A path component starts with `.` — `.obsidian/`, `.trash/`,
+86:     /// `.deleted/`. Editor and tombstone state, not corpus.
+87:     HiddenDirectory,
+88:     /// A `.md` entry that is not a regular file: a symlink (the walk never
+89:     /// follows links, so a page cannot alias another or escape the vault) or a
+90:     /// device. Reported rather than dropped, so an absent page is never
+91:     /// mistaken for a page that does not exist (S3.2).
+92:     NotARegularFile,
+93:     /// The first path component names a folder the walk was told to exclude
+94:     /// ([`EXCLUDED_DIRS`] or a profile's `layout.excluded`): Obsidian
+95:     /// furniture such as `templates/`, not corpus.
+96:     ExcludedDirectory,
+97: }
+98:
+99: impl std::fmt::Display for SkipReason {
+100:     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+101:         match self {
+102:             Self::HiddenDirectory => f.write_str("hidden directory"),
+103:             Self::NotARegularFile => f.write_str("not a regular file (symlink or device)"),
+104:             Self::ExcludedDirectory => f.write_str("excluded directory"),
+105:         }
+106:     }
+107: }
+108:
+109: /// A markdown file the walk found and did not load.
+110: ///
+111: /// Every skip is reported. A page that is silently absent cannot be
+112: /// distinguished from a page that does not exist, and the two have very
+113: /// different consequences for a link that points at it.
+114: #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+115: pub struct Skip {
+116:     /// The path, relative to the directory that was walked.
+117:     pub path: PathBuf,
+118:     /// Why it was skipped.
+119:     pub reason: SkipReason,
+120: }
+121:
+122: /// The result of walking a page tree: what was loaded, and what was not.
+123: #[derive(Debug, Clone, Default)]
+124: pub struct PageWalk {
+125:     /// Page files in corpus order.
+126:     pub files: Vec<PathBuf>,
+127:     /// Markdown files the walk declined to load, with the reason.
+128:     pub skipped: Vec<Skip>,
+129: }
+130:
+131: /// Which of the two vault **roles** a page belongs to.
+132: ///
+133: /// A role is not a folder. Where each role's vault sits on disk is the
+134: /// profile's [`crate::profile::Layout`] (`knowledge/` and `working/` by
+135: /// default; `"."` for a plain Obsidian vault opened directly); the role's
+136: /// name, [`VaultKind::role_name`], is the key every published artefact and
+137: /// report uses for it and never moves with the folder.
+138: #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+139: pub enum VaultKind {
+140:     /// The governed, public-gated OKF bundle. Unknown frontmatter keys are a
+141:     /// validation error under the estate grammar.
+142:     Knowledge,
+143:     /// The curator's space. Unknown keys are tolerated (OKF §4.1).
+144:     Working,
+145: }
+146:
+147: impl VaultKind {
+148:     /// The role's name, `knowledge` or `working`: the **output key** under
+149:     /// which this vault appears in the staging counts (`per_vault`), the
+150:     /// validation, gate and conflicts reports, the content-digest paths and
+151:     /// the migration plans. It is part of the published contract and is the
+152:     /// same whatever folder the vault was read from. To find the folder, ask
+153:     /// the layout: [`crate::profile::Layout::dir_of`].
+154:     #[must_use]
+155:     pub fn role_name(self) -> &'static str {
+156:         match self {
+157:             Self::Knowledge => "knowledge",
+158:             Self::Working => "working",
+159:         }
+160:     }
+161:
+162:     /// `true` when unknown frontmatter keys fail validation.
+163:     #[must_use]
+164:     pub fn rejects_unknown_keys(self) -> bool {
+165:         self == Self::Knowledge
+422:
+423: /// A loaded vault: a root directory and every page in it.
+424: #[derive(Debug, Clone)]
+425: pub struct Vault {
+426:     /// The vault root, e.g. `<repo>/knowledge`.
+427:     pub root: PathBuf,
+428:     /// Which vault this is.
+429:     pub kind: VaultKind,
+430:     /// Pages in corpus order (see [`walk_pages`]).
+431:     pub pages: Vec<Page>,
+432:     /// The `journals/` tree, in date order. Kept separate from
+433:     /// [`Vault::pages`] deliberately: a journal's identity is its date, its
+434:     /// type is [`JOURNAL_TYPE`], and it is not an ontology page. Mixing the
+435:     /// two would silently enlarge every projection keyed on `pages`.
+436:     pub journals: Vec<Page>,
+437:     /// Markdown files under the root and `journals/` the walk declined to
+438:     /// load, with the reason for each (paths vault-root-relative). Never
+439:     /// silently empty: an absent page is reported.
+440:     pub skipped: Vec<Skip>,
+441: }
+442:
+443: impl Vault {
+444:     /// Load every page under `root`, skipping [`EXCLUDED_DIRS`].
+445:     ///
+446:     /// # Errors
+447:     /// [`VaultError::NotAVault`] when `root` is not a directory;
+448:     /// [`VaultError::Io`] or [`VaultError::Frontmatter`] on a bad page.
+449:     pub fn load(root: impl AsRef<Path>, kind: VaultKind) -> Result<Self> {
+450:         Self::load_excluding(root, kind, EXCLUDED_DIRS)
+451:     }
+452:
+453:     /// [`Vault::load`] with the caller's list of excluded top-level folders
+454:     /// (a profile's `layout.excluded`) in place of [`EXCLUDED_DIRS`].
+455:     ///
+456:     /// # Errors
+457:     /// As [`Vault::load`].
+458:     pub fn load_excluding(
+459:         root: impl AsRef<Path>,
+460:         kind: VaultKind,
+461:         excluded: &[&str],
+462:     ) -> Result<Self> {
+463:         let root = root.as_ref();
+464:         if !root.is_dir() {
+465:             return Err(VaultError::NotAVault {
+466:                 root: root.to_path_buf(),
+467:                 message: "not a directory".into(),
+468:             });
+469:         }
+470:         let walk = walk_pages(root, excluded)?;
+471:         Self::load_with_walk(root, kind, walk)
+472:     }
+473:
+474:     /// [`Vault::load`] from a [`PageWalk`] the caller already made of `root`,
+475:     /// so a build that also runs the input census over the same listing walks
+476:     /// the tree once (OM-00 step 1).
+477:     ///
+478:     /// # Errors
+479:     /// [`VaultError::Io`] or [`VaultError::Frontmatter`] on a bad page.
+480:     ///
+481:     /// # Panics
+482:     /// Never in practice: `walk` was made of `root`, and the `strip_prefix`
+483:     /// calls assert that invariant rather than hide it.
+484:     pub fn load_with_walk(root: impl AsRef<Path>, kind: VaultKind, walk: PageWalk) -> Result<Self> {
+485:         let root = root.as_ref().to_path_buf();
+486:         let mut pages = Vec::new();
+487:         for path in walk.files {
+488:             let rel_path = path
+489:                 .strip_prefix(&root)
+490:                 .expect("walk yields paths under root")
+491:                 .to_path_buf();
+492:             let id = rel_path
+493:                 .with_extension("")
+494:                 .to_string_lossy()
+495:                 .replace('\\', "/");
+496:             let text = std::fs::read_to_string(&path).map_err(|e| VaultError::io(&path, e))?;
+497:             pages.push(Page::parse(&path, rel_path, id, &text)?);
+498:         }
+499:         // `journals/` is excluded from the page walk and loaded as its own
+500:         // tree: a journal's identity is its date, not a path. A vault without
+501:         // one is normal.
+502:         let journals_dir = root.join("journals");
+503:         let mut skipped = walk.skipped;
+504:         let mut journals = Vec::new();
+505:         if journals_dir.is_dir() {
+506:             // The root walk reported every `journals/*.md` as an excluded
+507:             // folder; this walk loads them, so those entries are not skips.
+508:             // (The census still counts them: it accounts for files, not pages.)
+509:             skipped.retain(|s| {
+510:                 !(s.reason == SkipReason::ExcludedDirectory && s.path.starts_with("journals"))
+511:             });
+512:             let jwalk = walk_pages(&journals_dir, &[])?;
+513:             for path in jwalk.files {
+514:                 let rel_to_journals = path
+515:                     .strip_prefix(&journals_dir)
+516:                     .expect("walk yields paths under journals_dir");
+517:                 let stem = rel_to_journals
+518:                     .with_extension("")
+519:                     .to_string_lossy()
+520:                     .replace('\\', "/");
+521:                 let rel_path = path
+522:                     .strip_prefix(&root)
+523:                     .expect("walk yields paths under root")
+524:                     .to_path_buf();
+525:                 let text = std::fs::read_to_string(&path).map_err(|e| VaultError::io(&path, e))?;
+526:                 journals.push(Page::parse(&path, rel_path, stem, &text)?);
+527:             }
+528:             skipped.extend(jwalk.skipped.into_iter().map(|s| Skip {
+529:                 path: PathBuf::from("journals").join(s.path),
+530:                 reason: s.reason,
+531:             }));
+532:         }
+533:         Ok(Self {
+534:             root,
+535:             kind,
+536:             pages,
+537:             journals,
+538:             skipped,
+539:         })
+540:     }
+541:
+542:     /// Look a page up by id.
+543:     #[must_use]
+567:
+568: /// Every page file under `dir`, in the corpus order the Python pipeline used.
+569: ///
+570: /// Ordering is a **component-wise** sort of the `dir`-relative path, which is
+571: /// what `sorted(dir.rglob("*.md"))` does in `CPython` (`PurePath.__lt__`
+572: /// compares part tuples). A plain string sort differs whenever a file name
+573: /// contains a byte below `/`, so it is not interchangeable.
+574: ///
+575: /// `excluded` names top-level folders (first path component) whose `.md` files
+576: /// are not pages: [`EXCLUDED_DIRS`] for a vault root, `&[]` for a `journals/`
+577: /// tree. Those, dot-directories and non-regular `.md` entries (symlinks, which
+578: /// the walk never follows) are skipped, and each skip is reported.
+579: /// [`UNPUBLISHED_DIRS`] is **not** applied here: it is a publication rule, and
+580: /// the publish scope in `vault`'s projection is where it belongs.
+581: ///
+582: /// # Errors
+583: /// [`VaultError::Io`] when the tree cannot be walked.
+584: pub fn walk_pages(dir: impl AsRef<Path>, excluded: &[&str]) -> Result<PageWalk> {
+585:     let dir = dir.as_ref();
+586:     let mut rels: Vec<Vec<OsString>> = Vec::new();
+587:     let mut skipped: Vec<Skip> = Vec::new();
+588:     for entry in walkdir::WalkDir::new(dir).follow_links(false) {
+589:         let entry = entry.map_err(|e| {
+590:             let path = e.path().unwrap_or(dir).to_path_buf();
+591:             VaultError::io(path, e.into())
+592:         })?;
+593:         let path = entry.path();
+594:         if path.extension().and_then(|e| e.to_str()) != Some("md") {
+595:             continue;
+596:         }
+597:         let Ok(rel) = path.strip_prefix(dir) else {
+598:             continue;
+599:         };
+600:         if !entry.file_type().is_file() {
+601:             // A `.md` symlink or device: never read, always reported (S3.2).
+602:             // A directory named `*.md` is not a page and is not reported.
+603:             if !entry.file_type().is_dir() {
+604:                 skipped.push(Skip {
+605:                     path: rel.to_path_buf(),
+606:                     reason: SkipReason::NotARegularFile,
+607:                 });
+608:             }
+609:             continue;
+610:         }
+611:         let parts: Vec<OsString> = rel.iter().map(std::ffi::OsStr::to_os_string).collect();
+612:         if parts.iter().any(|p| p.to_string_lossy().starts_with('.')) {
+613:             skipped.push(Skip {
+614:                 path: rel.to_path_buf(),
+615:                 reason: SkipReason::HiddenDirectory,
+616:             });
+617:             continue;
+618:         }
+619:         // Only a folder (`parts.len() > 1`) excludes: a root file that happens
+620:         // to be called `templates.md` is a page.
+621:         if parts.len() > 1 && excluded.contains(&parts[0].to_string_lossy().as_ref()) {
+622:             skipped.push(Skip {
+623:                 path: rel.to_path_buf(),
+624:                 reason: SkipReason::ExcludedDirectory,
+625:             });
+626:             continue;
+627:         }
+628:         rels.push(parts);
+629:     }
+630:     rels.sort();
+631:     skipped.sort_by(|a, b| a.path.cmp(&b.path));
+632:     Ok(PageWalk {
+633:         files: rels
+634:             .into_iter()
+635:             .map(|parts| parts.iter().fold(dir.to_path_buf(), |a, p| a.join(p)))
+636:             .collect(),
+637:         skipped,
+638:     })
+639: }
+640:
+641: /// `true` when the first path component of `rel` is an [`UNPUBLISHED_DIRS`]
+642: /// folder — the pages that are loaded but never published.
+643: #[must_use]
+644: pub fn is_unpublished(rel: impl AsRef<Path>) -> bool {
+645:     rel.as_ref()
+646:         .iter()
+647:         .next()
+648:         .is_some_and(|p| UNPUBLISHED_DIRS.contains(&p.to_string_lossy().as_ref()))
+649: }

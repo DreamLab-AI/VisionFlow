@@ -1,0 +1,66 @@
+
+  prose-sanitiser slop scan: docs/estate-review/2026-11-01-ontomark-layout-and-shared-checks.md
+  files scanned: 1   findings: 13   slop score: 39
+  verdict: STRONG AI writing fingerprint
+  high: 13   medium: 0   low: 0
+
+  [HIGH] "The X" sentence/paragraph opener  (10 hits)
+        fix: Don't open with 'The <lowercase noun>'. Recast so the subject leads, or name the thing directly ('The production-node paired study lifts...' -> 'Holding the model constant and varying only the serving path lifts...'). Proper nouns (The Loom) are fine. See SKILL.md B2.
+        docs/estate-review/2026-11-01-ontomark-layout-and-shared-checks.md:10  The audit reproduced disagreement between validation and publication for custom vault layouts. It also found aliases, nested roles and escaping roots that could...
+        docs/estate-review/2026-11-01-ontomark-layout-and-shared-checks.md:16  The baseline is Ontomark `0caae5d4b695cb720942b9b9212017c00a80ad41` and VisionClaw `ecd78b6cb25d6e702e6c2459c209ccdd2c5c6b4b`. The [evidence directory](evidence...
+        docs/estate-review/2026-11-01-ontomark-layout-and-shared-checks.md:33  The fresh post-release review exposed three further boundaries:
+        docs/estate-review/2026-11-01-ontomark-layout-and-shared-checks.md:41  The nine baseline probes assert actual loader or CLI output. The eight layout repairs have permanent CLI regressions; the required-key probe remains audit evide...
+        docs/estate-review/2026-11-01-ontomark-layout-and-shared-checks.md:72  The security gates reported no high-severity finding. The first owner medium finding led to OM-L10; the fresh review led to OM-L11–L13. Its consumer findings de...
+        docs/estate-review/2026-11-01-ontomark-layout-and-shared-checks.md:74  The focused local-reader harness compiles the actual production module and the actual port definitions, exercising the same unit tests without the server's GPU ...
+        docs/estate-review/2026-11-01-ontomark-layout-and-shared-checks.md:88  The practical improvement is consistent feedback before work: the same invalid layout is refused by validation, publication and consuming applications, with the...
+        docs/estate-review/2026-11-01-ontomark-layout-and-shared-checks.md:92  The first owner worktree was removed before an asynchronous scratch-preservation
+        docs/estate-review/2026-11-01-ontomark-layout-and-shared-checks.md:104  The owner releases are **ontomark-compile 0.6.3** and **ontomark 0.7.2**, published
+        docs/estate-review/2026-11-01-ontomark-layout-and-shared-checks.md:111  The actual consumer branch parent was `5e1bd90a434818b066f9c0d769940e5f61640804`:
+
+  [HIGH] Tier-1 banned vocabulary  (3 hits)
+        fix: Replace with a plain word (delve->look at, leverage->use, robust->solid, seamless->smooth, utilise->use). See SKILL.md B4.
+        docs/estate-review/2026-11-01-ontomark-layout-and-shared-checks.md:72  ...the feature-enabled path is affected. The review inspected an ephemeral CPU harness as well as production source, so its file labels are not a substitute for so...
+        docs/estate-review/2026-11-01-ontomark-layout-and-shared-checks.md:74  The focused local-reader harness compiles the actual production module and the actual port definitions, exercising the same unit tests without the server's GPU ...
+        docs/estate-review/2026-11-01-ontomark-layout-and-shared-checks.md:126  | Consumer strict Clippy | Vault and actual-module harness passed against 0.6.3 |
+
+  Top things to change: "The X" sentence/paragraph opener; Tier-1 banned vocabulary
+  Narrative and voice tells need eyes too. See Section C of SKILL.md.
+
+
+  prose-sanitiser slop scan: docs/estate-review/completion/README.md
+  files scanned: 1   findings: 0   slop score: 0
+  verdict: Clean, no mechanical tells detected
+  high: 0   medium: 0   low: 0
+
+  Nothing flagged. Either it is clean or the tells are narrative/voice ones a
+  regex cannot see. Read it against Section C of SKILL.md.
+
+
+  prose-sanitiser slop scan: docs/estate-review/evidence/2026-11-01/om-layout/README.md
+  files scanned: 1   findings: 5   slop score: 15
+  verdict: STRONG AI writing fingerprint
+  high: 5   medium: 0   low: 0
+
+  [HIGH] "The X" sentence/paragraph opener  (3 hits)
+        fix: Don't open with 'The <lowercase noun>'. Recast so the subject leads, or name the thing directly ('The production-node paired study lifts...' -> 'Holding the model constant and varying only the serving path lifts...'). Proper nouns (The Loom) are fine. See SKILL.md B2.
+        docs/estate-review/evidence/2026-11-01/om-layout/README.md:19  The final baseline also passed five native plain-vault CLI tests, ten profile
+        docs/estate-review/evidence/2026-11-01/om-layout/README.md:22  The implementation evidence records a separate red/green suite. Generic
+        docs/estate-review/evidence/2026-11-01/om-layout/README.md:53  The original owner security scratch was lost during the cleanup incident described
+
+  [HIGH] Tier-1 banned vocabulary  (2 hits)
+        fix: Replace with a plain word (delve->look at, leverage->use, robust->solid, seamless->smooth, utilise->use). See SKILL.md B4.
+        docs/estate-review/evidence/2026-11-01/om-layout/README.md:32  The CPU local-reader harness includes the actual production module and the port
+        docs/estate-review/evidence/2026-11-01/om-layout/README.md:66  exported implementation receipt with `--locked`. The retained `local-harness/`
+
+  Top things to change: "The X" sentence/paragraph opener; Tier-1 banned vocabulary
+  Narrative and voice tells need eyes too. See Section C of SKILL.md.
+
+
+  prose-sanitiser slop scan: docs/diagrams/ontomark/12-shared-layout-checks.md
+  files scanned: 1   findings: 0   slop score: 0
+  verdict: Clean, no mechanical tells detected
+  high: 0   medium: 0   low: 0
+
+  Nothing flagged. Either it is clean or the tells are narrative/voice ones a
+  regex cannot see. Read it against Section C of SKILL.md.
+

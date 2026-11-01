@@ -1,0 +1,6 @@
+{
+  "archive": "/tmp/vf-om-layout-artifacts/audit-scratch.tar.gz",
+  "files_verified": 41,
+  "cache": "/home/devuser/workspace/.tmp/vf-om-layout-caches/ledger",
+  "result": "all files byte-verified before worktree removal"
+}

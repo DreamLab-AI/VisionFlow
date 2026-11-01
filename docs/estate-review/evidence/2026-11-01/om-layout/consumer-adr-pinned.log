@@ -1,0 +1,10 @@
+error: ADR-2004-oxigraph-sqlite-persistence.md: STALE — governed paths changed since verified_commit 93302275ecab90dfa73284405d331d56a3cd9840: Cargo.toml (re-verify and bump verified_commit)
+error: ADR-2005-hexagonal-crate-split.md: STALE — governed paths changed since verified_commit 93302275ecab90dfa73284405d331d56a3cd9840: Cargo.toml (re-verify and bump verified_commit)
+error: ADR-2040-obsidian-vault-frontmatter-gate.md: STALE — governed paths changed since verified_commit 8775359e37a394d1558bb8b5317d37a92973288e: docs/VAULT-corpus-format.md (re-verify and bump verified_commit)
+error: ADR-2042-vault-migrate-converter.md: STALE — governed paths changed since verified_commit 17e3cdda0c51ad84d942c469c77814d915753313: Cargo.toml, docs/VAULT-corpus-format.md (re-verify and bump verified_commit)
+error: ADR-2114-corpus-ingest-is-a-corpussource.md: STALE — governed paths changed since verified_commit 772039bd172027af034d64befacca1ebcf0bbc04: src/services/corpus_source/local.rs (re-verify and bump verified_commit)
+error: ADR-2116-ontology-proposals-are-forum-action-requests-not-prs.md: STALE — governed paths changed since verified_commit 772039bd172027af034d64befacca1ebcf0bbc04: crates/vault/src/main.rs (re-verify and bump verified_commit)
+error: ADR-2117-retire-corpus-format-migration.md: STALE — governed paths changed since verified_commit 772039bd172027af034d64befacca1ebcf0bbc04: crates/vault/src/main.rs (re-verify and bump verified_commit)
+error: ADR-2147-inferences-carry-a-re-checkable-certificate-and-proposals-carry-a-consequence-delta.md: STALE — governed paths changed since verified_commit c750046962749715a4efb1b6056c7f40d9865110: crates/vault/Cargo.toml, crates/vault/src/main.rs (re-verify and bump verified_commit)
+error: ADR-2156-dev-runtime-profile-builds-incrementally-without-lto.md: STALE — governed paths changed since verified_commit 772039bd172027af034d64befacca1ebcf0bbc04: Cargo.toml (re-verify and bump verified_commit)
+error: 9 validation error(s); README not generated

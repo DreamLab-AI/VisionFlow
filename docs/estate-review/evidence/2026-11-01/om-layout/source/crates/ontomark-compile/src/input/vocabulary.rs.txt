@@ -1,0 +1,58 @@
+451: impl Vocabulary {
+452:     /// The vocabulary a repository without `ontology/vocabulary.yaml` compiles
+453:     /// under (a plain Obsidian vault, ADR-OM-008): schema version 1, the
+454:     /// built-in prefixes (`owl`, `rdf`, `rdfs`, `xsd`, `skos`, `dc`,
+455:     /// `dcterms`, `prov`), the `urn:ontomark:` namespaces, and no types,
+456:     /// relations, scalars or validation rules. Every key is therefore
+457:     /// undeclared, which the generic profile's role grammar permits.
+458:     ///
+459:     /// ```
+460:     /// use ontomark_compile::input::vocabulary::Vocabulary;
+461:     ///
+462:     /// let v = Vocabulary::generic();
+463:     /// assert_eq!(v.version, 1);
+464:     /// assert_eq!(v.namespace, "urn:ontomark:class:");
+465:     /// assert!(v.types.is_empty() && v.relations.is_empty());
+466:     /// assert_eq!(v.expand("owl:Class"), "http://www.w3.org/2002/07/owl#Class");
+467:     /// ```
+468:     #[must_use]
+469:     pub fn generic() -> Self {
+470:         Self::from_yaml_str("version: 1\n").expect("the built-in generic vocabulary is valid")
+471:     }
+472:
+473:     /// Load from a path.
+474:     ///
+475:     /// # Errors
+476:     /// [`VaultError::Io`] if the file cannot be read, [`VaultError::Vocabulary`]
+477:     /// if it does not parse or is internally inconsistent.
+478:     pub fn load(path: impl AsRef<Path>) -> Result<Self> {
+479:         let path = path.as_ref();
+480:         let text = std::fs::read_to_string(path).map_err(|e| VaultError::io(path, e))?;
+481:         Self::from_yaml_str(&text).map_err(|message| VaultError::Vocabulary {
+482:             path: path.to_path_buf(),
+483:             message,
+484:         })
+485:     }
+486:
+487:     /// Find and load `ontology/vocabulary.yaml` by walking up from `start`.
+488:     ///
+489:     /// # Errors
+490:     /// [`VaultError::NotAVault`] when no vocabulary is found in any ancestor.
+491:     pub fn discover(start: impl AsRef<Path>) -> Result<(PathBuf, Self)> {
+492:         let start = start.as_ref();
+493:         let mut dir = Some(start);
+494:         while let Some(d) = dir {
+495:             let candidate = d.join("ontology").join("vocabulary.yaml");
+496:             if candidate.is_file() {
+497:                 let vocab = Self::load(&candidate)?;
+498:                 return Ok((candidate, vocab));
+499:             }
+500:             dir = d.parent();
+501:         }
+502:         Err(VaultError::NotAVault {
+503:             root: start.to_path_buf(),
+504:             message: "no ontology/vocabulary.yaml in this directory or any ancestor".into(),
+505:         })
+506:     }
+507:
+508:     /// Parse from a YAML string and check internal consistency.

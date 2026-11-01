@@ -1,0 +1,23 @@
+798:             // Trailing whitespace is not a body change: an outliner writes a
+799:             // closing `- ` and editors differ on the final blank line. A page
+800:             // that differs only there is left exactly as its author saved it.
+801:             if same_but_trailing_whitespace(&after, &before) {
+802:                 continue;
+803:             }
+804:             let rel = path.strip_prefix(&scope.dir).unwrap_or(&path);
+805:             let id = rel.with_extension("").to_string_lossy().replace('\\', "/");
+806:             report.pages_converted += 1;
+807:             report.changes.push(Change {
+808:                 id,
+809:                 vault: scope.vault.clone(),
+810:                 path: path.clone(),
+811:                 after,
+812:             });
+813:         }
+814:     }
+815:     if !options.dry_run {
+816:         for change in &report.changes {
+817:             std::fs::write(&change.path, &change.after)?;
+818:         }
+819:     }
+820:     Ok(report)

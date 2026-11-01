@@ -1,0 +1,130 @@
+15: use clap::Subcommand;
+16: use ontomark_compile::input::page::VaultKind;
+17: use ontomark_compile::migrate::{self, ApplyOptions, Plan, PlanStatus};
+18: use ontomark_compile::profile::Profile;
+19:
+20: /// `ontomark migrate` subcommands.
+21: #[derive(Debug, Subcommand)]
+22: pub enum MigrateCommand {
+23:     /// List the registered migrations.
+24:     List,
+25:     /// Dry run: read the vaults, compute per-page dispositions and the
+26:     /// before/after semantic deltas. Writes nothing but `--out`.
+27:     Plan {
+28:         /// Migration id, for example `m0001-obsidian-bodies`.
+29:         migration: String,
+30:         /// Vaults to consider: `knowledge`, `working` or `all`.
+31:         #[arg(long, default_value = "all", value_parser = VAULT_VALUES)]
+32:         vault: String,
+33:         /// Write the plan JSON here (needed to apply it).
+34:         #[arg(long)]
+35:         out: Option<PathBuf>,
+36:     },
+37:     /// Apply a plan file. Pages edited since the plan was made are conflicts
+38:     /// and are left alone; an interrupted run is finished by running it again.
+39:     Apply {
+40:         /// The plan JSON written by `plan --out`.
+41:         #[arg(long)]
+42:         plan: PathBuf,
+43:         /// Allow a semantic migration after reviewing the plan's deltas.
+44:         #[arg(long)]
+45:         accept_semantic: bool,
+46:     },
+47:     /// Restore the originals a journal saved, where the page still has the
+48:     /// bytes the migration wrote.
+49:     Rollback {
+50:         /// Migration id.
+51:         migration: String,
+52:         /// The plan's input digest (see `status`).
+53:         digest: String,
+54:     },
+55:     /// Show every journal and where it stands.
+56:     Status,
+57: }
+58:
+59: /// The three legal `--vault` values. Used as clap's `value_parser` on every
+60: /// subcommand, so an unknown value is rejected by the parser (exit 2) rather
+61: /// than silently falling through to `knowledge`.
+62: pub(crate) const VAULT_VALUES: [&str; 3] = ["knowledge", "working", "all"];
+63:
+64: /// The vaults a `--vault` value names.
+65: ///
+66: /// `all` means BOTH, everywhere — earlier commands accepted the
+67: /// word and quietly run `knowledge/` only, which is the worst of the three
+68: /// possible behaviours: it looks like it did what you asked.
+69: ///
+70: /// The `_` arm is `knowledge` because the parser has already rejected anything
+71: /// that is not one of [`VAULT_VALUES`]; it is not a silent default.
+72: pub(crate) fn vault_kinds(value: &str) -> Vec<VaultKind> {
+73:     match value.trim().to_ascii_lowercase().as_str() {
+74:         "working" => vec![VaultKind::Working],
+75:         "all" => vec![VaultKind::Knowledge, VaultKind::Working],
+76:         _ => vec![VaultKind::Knowledge],
+77:     }
+78: }
+79:
+80: fn kinds(value: &str) -> Vec<VaultKind> {
+81:     // One reading of `--vault` for every verb (OM-05 #3).
+82:     vault_kinds(value)
+83: }
+84:
+85: fn emit(json: bool, value: &serde_json::Value, prose: impl FnOnce()) -> anyhow::Result<()> {
+104: pub fn run(
+105:     cmd: &MigrateCommand,
+106:     repo_root: &Path,
+107:     profile: &Profile,
+108:     json: bool,
+109: ) -> anyhow::Result<ExitCode> {
+110:     match cmd {
+111:         MigrateCommand::List => {
+112:             let all = migrate::registry();
+113:             let value = serde_json::Value::Array(
+114:                 all.iter()
+115:                     .map(|m| {
+116:                         serde_json::json!({
+117:                             "id": m.id(), "version": m.version(),
+118:                             "kind": m.kind().as_str(), "description": m.description(),
+119:                         })
+120:                     })
+121:                     .collect(),
+122:             );
+123:             emit(json, &value, || {
+124:                 for m in &all {
+125:                     println!(
+126:                         "{}@{} ({}): {}",
+127:                         m.id(),
+128:                         m.version(),
+129:                         m.kind().as_str(),
+130:                         m.description()
+131:                     );
+132:                 }
+133:             })?;
+134:             Ok(ExitCode::SUCCESS)
+135:         }
+136:
+137:         MigrateCommand::Plan {
+138:             migration,
+139:             vault,
+140:             out,
+141:         } => {
+142:             let m = migrate::lookup(migration)
+143:                 .with_context(|| format!("no migration `{migration}` (see `migrate list`)"))?;
+144:             let plan = migrate::plan(repo_root, &kinds(vault), m.as_ref(), profile)?;
+145:             if let Some(path) = out {
+146:                 std::fs::write(path, plan.to_json()?)
+147:                     .with_context(|| format!("writing {}", path.display()))?;
+148:             }
+149:             emit(json, &serde_json::to_value(&plan)?, || {
+150:                 print!("{}", plan.report());
+151:             })?;
+152:             Ok(ExitCode::from(if plan.status == PlanStatus::Ready {
+153:                 0
+154:             } else {
+155:                 2
+156:             }))
+157:         }
+158:
+159:         MigrateCommand::Apply {
+160:             plan,
+161:             accept_semantic,
+162:         } => {

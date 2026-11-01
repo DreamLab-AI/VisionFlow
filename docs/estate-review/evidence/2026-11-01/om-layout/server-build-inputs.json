@@ -1,0 +1,23 @@
+[
+  {
+    "path": "src/utils/ptx/sssp_compact.ptx",
+    "source": "target/debug/build/visionclaw-gpu-b68604ff4f289200/out/sssp_compact.ptx",
+    "sha256": "02cba92624e3b472e457ae52f27fe30a1d746557e5bebc16d3102ffd9b515400"
+  },
+  {
+    "path": "src/utils/ptx/gpu_landmark_apsp.ptx",
+    "source": "target/debug/build/visionclaw-gpu-b68604ff4f289200/out/gpu_landmark_apsp.ptx",
+    "sha256": "36bfdbfd24bc236c080f879ac2ac059825eb4e77eec805de151b0027153cf966"
+  },
+  {
+    "path": "src/utils/ptx/gpu_clustering_kernels.ptx",
+    "source": "target/debug/build/visionclaw-gpu-b68604ff4f289200/out/gpu_clustering_kernels.ptx",
+    "sha256": "3917d209f1d3eb15d99cc07603534557e8db93686d1e36c7a6be413ef5242e76"
+  },
+  {
+    "path": "agentbox/schema/federation-kinds.json",
+    "revision": "c3746299e92318fd3eeb59212372ab5bf0fad99c",
+    "source": "schema/federation-kinds.json",
+    "sha256": "beb954700b8d3e9b8e67275a883c74f8d7ccff01219c937f89c1ec4b5425886c"
+  }
+]

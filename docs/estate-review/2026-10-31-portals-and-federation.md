@@ -107,3 +107,18 @@ Remaining work includes the seven native scene tests, real shader/stereo/headset
 ## Documentation checks
 
 The index now contains 169 topics and 1,560 diagrams. The [strict citation pass](evidence/2026-10-31/portal-citations.txt) and [revision verification](evidence/2026-10-31/portal-verification.txt) pass. All twelve diagrams in touched topics VC-44, VC-46, VC-47 and VC-48 render; the six new diagrams were visually inspected. This structural corpus check does not substitute for semantic review of the remaining topics.
+
+## Ledger follow-up — 2026-11-01
+
+VisionClaw commit `5e1bd90a434818b066f9c0d769940e5f61640804` adds a scoped
+re-verification annex to ADR-2166 and advances its metadata pin to `ecd78b6cb`.
+The annex was read and its cited `hud.gd` diff checked: the two changed lines
+make the flow-edge key swatch gold and label its slow breathing. This does not
+change portal admission, weighting or entry behaviour, and supplies no new
+headset acceptance. The section assessment and open findings above remain;
+only this added annex and metadata are reconciled here.
+
+Later in this batch, incoming grab/client work moved VisionClaw main to `434afb6b7`
+and changed ADR-2166 again. The narrow metadata annex above does not reverify
+those later changes. The completion ledger deliberately leaves that assessment
+stale until the new obligations and runtime evidence receive their own review.

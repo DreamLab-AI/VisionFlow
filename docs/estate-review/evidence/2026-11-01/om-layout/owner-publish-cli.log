@@ -1,0 +1,28 @@
+    Updating crates.io index
+   Packaging ontomark v0.7.1 (/home/devuser/workspace/wt/ontomark-vault-layout/crates/ontomark-cli)
+    Updating crates.io index
+    Blocking waiting for file lock on package cache
+    Packaged 27 files, 276.1KiB (73.8KiB compressed)
+   Verifying ontomark v0.7.1 (/home/devuser/workspace/wt/ontomark-vault-layout/crates/ontomark-cli)
+ Downloading crates ...
+  Downloaded ontomark-jev v0.7.0
+  Downloaded ontomark-source v0.1.0
+  Downloaded ontomark-ingest v0.2.0
+  Downloaded ontomark-profile-estate v0.7.0
+  Downloaded ontomark-compile v0.6.2
+   Compiling ontomark-parse v0.1.3
+   Compiling ontomark-reason v0.1.2
+   Compiling rdfs-certificate v0.1.0
+   Compiling ontomark-source v0.1.0
+   Compiling ontomark-model v0.1.2
+   Compiling ontomark-compile v0.6.2
+   Compiling ontomark-ingest v0.2.0
+   Compiling ontomark-jev v0.7.0
+   Compiling ontomark-profile-estate v0.7.0
+   Compiling ontomark v0.7.1 (/home/devuser/workspace/wt/ontomark-vault-layout/target/package/ontomark-0.7.1)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 15.02s
+   Uploading ontomark v0.7.1 (/home/devuser/workspace/wt/ontomark-vault-layout/crates/ontomark-cli)
+    Uploaded ontomark v0.7.1 to registry `crates-io`
+note: waiting for ontomark v0.7.1 to be available at registry `crates-io`
+help: you may press ctrl-c to skip waiting; the crate should be available shortly
+   Published ontomark v0.7.1 at registry `crates-io`

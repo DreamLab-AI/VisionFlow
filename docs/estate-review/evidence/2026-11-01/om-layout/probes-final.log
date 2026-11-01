@@ -1,0 +1,26 @@
+   Compiling ontomark v0.7.0 (/home/devuser/workspace/wt/VisionFlow-om-layout/.audit-ontomark/crates/ontomark-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.68s
+     Running tests/audit_layout.rs (target/debug/deps/audit_layout-dda07b50b6955427)
+
+running 9 tests
+AUDIT exclusions: empty override admits templates and puts the same journal in pages and journals
+test caller_exclusions_replace_builtins_and_duplicate_journal_loading ... ok
+AUDIT missing role: migrate plan --vault working returns success and empty plan on flat vault: {"schema":1,"migration":{"id":"m0001-obsidian-bodies","version":1,"kind":"syntax","description":"Rewrite Logseq outliner page bodies as Obsidian markdown; frontmatter untouched"},"vaults":["working"],"input_digest":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","pages_considered":0,"unchanged":0,"changes":0,"refused":0,"status":"ready","reasons":[],"pages":[],"deltas":{"compiled":true,"notes":["no page changes: nothing to compile"],"asserted":{"added":0,"removed":0,"added_examples":[],"removed_examples":[]},"inferred":{"added":0,"removed":0,"added_examples":[],"removed_examples":[]},"visibility":[],"newly_unsatisfiable":[],"identity":[],"resources_added":[],"resources_removed":[]}}
+test migration_plan_silently_skips_an_undeclared_working_role ... ok
+AUDIT grammar: required_keys owner is accepted in profile but missing owner is not rejected
+test arbitrary_required_keys_are_not_a_general_schema_validator ... ok
+AUDIT root symlink: two role roots resolve to same folder and both are loaded
+test symlink_role_aliases_are_admitted_without_following_child_symlinks ... ok
+AUDIT boundary: caller-supplied layout reads sibling directory outside declared repository
+test profile_can_select_a_sibling_outside_the_repository ... ok
+AUDIT relative start: implicit cwd finds malformed ancestor vocabulary; --repo . falls back to generic
+test explicit_relative_start_misses_an_absolute_ancestor_vocabulary ... ok
+AUDIT aliases: lexical inequality admits two roles over the same canonical folder
+test equivalent_folder_spellings_are_admitted_as_two_roles ... ok
+AUDIT suffix: validate refuses knowledge missing status; build succeeds and publishes it as working
+test suffix_role_inference_skips_the_knowledge_required_status_rule ... ok
+AUDIT nested roles: working class is also loaded as knowledge and reaches ontology in both scopes
+test root_knowledge_layout_includes_nested_working_class_in_ontology ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+

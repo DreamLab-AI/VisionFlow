@@ -1,0 +1,19 @@
+   Compiling ontomark-compile v0.6.1 (/home/devuser/workspace/wt/ontomark-vault-layout/crates/ontomark-compile)
+   Compiling ontomark-profile-estate v0.7.0 (/home/devuser/workspace/wt/ontomark-vault-layout/profiles/estate)
+   Compiling ontomark v0.7.0 (/home/devuser/workspace/wt/ontomark-vault-layout/crates/ontomark-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 8.75s
+     Running tests/layout_contract.rs (target/debug/deps/layout_contract-9bd0c43430008a9b)
+
+running 9 tests
+test caller_exclusions_preserve_furniture_and_journal_separation ... ok
+test migration_plan_refuses_an_undeclared_working_role ... ok
+test layout_cannot_select_a_sibling_outside_the_repository ... ok
+test symlink_role_aliases_are_refused ... ok
+test equivalent_folder_spellings_cannot_create_two_roles ... ok
+test relative_and_implicit_starts_find_the_same_ancestor ... ok
+test overlapping_knowledge_and_working_roots_are_refused ... ok
+test declared_required_keys_are_enforced ... ok
+test build_preserves_the_explicit_knowledge_role ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.58s
+

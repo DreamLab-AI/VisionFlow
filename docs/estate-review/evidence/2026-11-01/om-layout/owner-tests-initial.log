@@ -1,0 +1,82 @@
+   Compiling getrandom v0.3.4
+   Compiling ontomark-parse v0.1.3 (/home/devuser/workspace/wt/ontomark-vault-layout/crates/ontomark-parse)
+   Compiling rdfs-certificate v0.1.0 (/home/devuser/workspace/wt/ontomark-vault-layout/crates/rdfs-certificate)
+   Compiling ureq v2.12.1
+   Compiling tempfile v3.27.0
+   Compiling rand_core v0.9.5
+   Compiling rand_chacha v0.9.0
+   Compiling rand v0.9.5
+   Compiling ontomark-source v0.1.0 (/home/devuser/workspace/wt/ontomark-vault-layout/crates/ontomark-source)
+   Compiling oxrdf v0.3.4
+   Compiling ontomark-compile v0.6.1 (/home/devuser/workspace/wt/ontomark-vault-layout/crates/ontomark-compile)
+   Compiling ontomark-model v0.1.2 (/home/devuser/workspace/wt/ontomark-vault-layout/crates/ontomark-model)
+   Compiling oxttl v0.2.4
+   Compiling oxrdfxml v0.2.4
+   Compiling oxjsonld v0.2.6
+   Compiling ontomark-ingest v0.2.0 (/home/devuser/workspace/wt/ontomark-vault-layout/crates/ontomark-ingest)
+   Compiling ontomark-jev v0.7.0 (/home/devuser/workspace/wt/ontomark-vault-layout/crates/ontomark-jev)
+   Compiling ontomark-profile-estate v0.7.0 (/home/devuser/workspace/wt/ontomark-vault-layout/profiles/estate)
+   Compiling ontomark v0.7.0 (/home/devuser/workspace/wt/ontomark-vault-layout/crates/ontomark-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 29.16s
+     Running unittests src/main.rs (target/debug/deps/ontomark-1db6499ffddab9f4)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/apply_cli.rs (target/debug/deps/apply_cli-fd7d589ff4c00f77)
+
+running 10 tests
+test an_absent_page_is_no_page ... ok
+test a_page_holding_another_iri_is_an_iri_mismatch ... ok
+test a_creation_is_not_amend ... ok
+test a_tampered_proposal_is_a_digest_mismatch ... ok
+test a_malformed_file_and_a_bad_set_are_refused_by_code ... ok
+test a_result_failing_validation_is_invalid ... ok
+test an_undeclared_or_wrong_blast_radius_is_refused ... ok
+test a_page_changed_around_the_hunk_is_stale ... ok
+test the_signed_event_itself_is_accepted_as_the_proposal ... ok
+test an_approved_amendment_is_applied_once_with_its_verification ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.58s
+
+     Running tests/build_cli.rs (target/debug/deps/build_cli-02fff346e632acd1)
+
+running 1 test
+test a_path_claimed_twice_exits_2_and_promotes_nothing ... FAILED
+
+failures:
+
+---- a_path_claimed_twice_exits_2_and_promotes_nothing stdout ----
+
+thread 'a_path_claimed_twice_exits_2_and_promotes_nothing' (3597952) panicked at crates/ontomark-cli/tests/build_cli.rs:56:5:
+assertion `left == right` failed: stderr: ontomark: validation rejected 6 error(s); no bundle written. First: [error] MISSING_REQUIRED_KEY Bar: knowledge role requires `title`
+
+  left: Some(1)
+ right: Some(2)
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::panicking::assert_failed_inner
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:447:23
+   3: core::panicking::assert_failed::<core::option::Option<i32>, core::option::Option<i32>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/panicking.rs:407:5
+   4: build_cli::a_path_claimed_twice_exits_2_and_promotes_nothing
+             at ./tests/build_cli.rs:56:5
+   5: build_cli::a_path_claimed_twice_exits_2_and_promotes_nothing::{closure#0}
+             at ./tests/build_cli.rs:27:55
+   6: <build_cli::a_path_claimed_twice_exits_2_and_promotes_nothing::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   7: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+
+failures:
+    a_path_claimed_twice_exits_2_and_promotes_nothing
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+error: test failed, to rerun pass `-p ontomark --test build_cli`

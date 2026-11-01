@@ -295,7 +295,7 @@
     "path": "docs/adr/ADR-2166-spatial-volumes-can-be-entered-the-others-become-portals.md",
     "source_sha256": "7e45c9c83eaf253c5670c8866396592d1268b22ff5de96a4a63d4ba06168adbe",
     "report": "docs/estate-review/2026-10-31-portals-and-federation.md",
-    "report_sha256": "6611d61beb121d87c47f0c1b9942e2717f02042941f43cd6fde8a733f24e20f1",
+    "report_sha256": "4213221e3f16facea20c5d2c9a2b6842d60e68cb14a5623db535c23a1c15c8f6",
     "coverage": "whole-document",
     "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
   },
@@ -305,7 +305,7 @@
     "path": "docs/adr/ADR-2161-a-node-publishes-data-spaces-that-peer-nodes-render-as-linked-volumes.md",
     "source_sha256": "c77769bb7b236d8370f5e15b7045d27a8a22657813bd43112e44bf436b73c05d",
     "report": "docs/estate-review/2026-10-31-portals-and-federation.md",
-    "report_sha256": "6611d61beb121d87c47f0c1b9942e2717f02042941f43cd6fde8a733f24e20f1",
+    "report_sha256": "4213221e3f16facea20c5d2c9a2b6842d60e68cb14a5623db535c23a1c15c8f6",
     "coverage": "whole-document",
     "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
   },
@@ -2089,5 +2089,58 @@
       "OM-11.3"
     ],
     "basis": "Selected panels source-reviewed, strict-citation checked, rendered and visually inspected. Old topic pins retained with reviewed runtime diff; no coverage credit for rendered sibling panels."
+  },
+  {
+    "kind": "adr",
+    "repo": "ontomark",
+    "path": "docs/adr/ADR-OM-008-any-obsidian-vault-is-a-repository.md",
+    "source_sha256": "cbc109c1a6773d7f5ec59d47d128e9f0ff699d631c82fc116d247283a34937dc",
+    "report": "docs/estate-review/2026-11-01-ontomark-layout-and-shared-checks.md",
+    "report_sha256": "34afea99d6fa1c0ed192d597205af15d7ee6a985365343f2c53a7dcaa6c64ab4",
+    "coverage": "whole-document",
+    "basis": "Whole ADR-OM-008 section assessment with baseline counterexamples, owner repairs and explicit open policy/runtime limits. ADR-OM-007, OM-011 and ADR-2168 are context, not additional whole-document credit."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/ontomark/01-input-layer-vault-pages-and-gates.md",
+    "source_sha256": "f81a34ea31ef383822a8e8d85b45a92b5ab9e33736dc93ce518af2ccab0e71d2",
+    "report": "docs/estate-review/2026-11-01-ontomark-layout-and-shared-checks.md",
+    "report_sha256": "34afea99d6fa1c0ed192d597205af15d7ee6a985365343f2c53a7dcaa6c64ab4",
+    "coverage": "selected-panels",
+    "panels": [
+      "OM-01.1",
+      "OM-01.2"
+    ],
+    "basis": "Selected source-backed panels assessed and visually inspected; historical pins retained where labelled. Sibling renders confer no review credit."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/ontomark/05-cli-commands-vault-selector-and-exit-codes.md",
+    "source_sha256": "dd9092fd0850414892730136461e5757a671ca5c889badf1c365a98f244cbc4a",
+    "report": "docs/estate-review/2026-11-01-ontomark-layout-and-shared-checks.md",
+    "report_sha256": "34afea99d6fa1c0ed192d597205af15d7ee6a985365343f2c53a7dcaa6c64ab4",
+    "coverage": "selected-panels",
+    "panels": [
+      "OM-05.4"
+    ],
+    "basis": "Selected source-backed panels assessed and visually inspected; historical pins retained where labelled. Sibling renders confer no review credit."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/ontomark/12-shared-layout-checks.md",
+    "source_sha256": "754e024e2917809b8bdf5091aa659abe4cde345abe919bc75603a628100ba654",
+    "report": "docs/estate-review/2026-11-01-ontomark-layout-and-shared-checks.md",
+    "report_sha256": "34afea99d6fa1c0ed192d597205af15d7ee6a985365343f2c53a7dcaa6c64ab4",
+    "coverage": "selected-panels",
+    "panels": [
+      "OM-12.1",
+      "OM-12.2",
+      "OM-12.3",
+      "OM-12.4"
+    ],
+    "basis": "Selected source-backed panels assessed and visually inspected; historical pins retained where labelled. Sibling renders confer no review credit."
   }
 ]

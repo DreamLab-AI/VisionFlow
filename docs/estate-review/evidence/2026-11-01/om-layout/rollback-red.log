@@ -1,0 +1,40 @@
+   Compiling ontomark-compile v0.6.2 (/home/devuser/workspace/wt/ontomark-vault-layout/crates/ontomark-compile)
+   Compiling ontomark-profile-estate v0.7.0 (/home/devuser/workspace/wt/ontomark-vault-layout/profiles/estate)
+   Compiling ontomark v0.7.1 (/home/devuser/workspace/wt/ontomark-vault-layout/crates/ontomark-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 56.28s
+     Running tests/layout_contract.rs (target/debug/deps/layout_contract-58f2e57ac5b7e5fd)
+
+running 1 test
+test rollback_refuses_a_parent_component_as_the_migration_name ... FAILED
+
+failures:
+
+---- rollback_refuses_a_parent_component_as_the_migration_name stdout ----
+
+thread 'rollback_refuses_a_parent_component_as_the_migration_name' (3852274) panicked at crates/ontomark-cli/tests/layout_contract.rs:202:5:
+ontomark: journal: /home/devuser/workspace/.tmp/.tmpKWcO1x/.ontomark/migrations/../abc/journal.jsonl: No such file or directory (os error 2)
+
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::panicking::panic_display::<alloc::borrow::Cow<str>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/panicking.rs:259:5
+   3: layout_contract::rollback_refuses_a_parent_component_as_the_migration_name
+             at ./tests/layout_contract.rs:202:5
+   4: layout_contract::rollback_refuses_a_parent_component_as_the_migration_name::{closure#0}
+             at ./tests/layout_contract.rs:195:63
+   5: <layout_contract::rollback_refuses_a_parent_component_as_the_migration_name::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   6: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+
+failures:
+    rollback_refuses_a_parent_component_as_the_migration_name
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.42s
+
+error: test failed, to rerun pass `-p ontomark --test layout_contract`

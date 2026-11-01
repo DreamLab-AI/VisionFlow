@@ -1,0 +1,8 @@
+{
+  "operation": "owner scratch preservation before worktree removal",
+  "result": "failed",
+  "cause": "cross-filesystem cache move copied into limited tmpfs; dependent removal ran before copy completion",
+  "lost": "original owner .deepsec-gate/.claude-flow scratch and regenerable target cache; consumer verification log incomplete during brief tmpfs exhaustion",
+  "retained": "committed/pushed source a55033c, published compile0.6.2 and CLI0.7.1, prior complete test logs",
+  "recovery": "removed only the partial copied cache; fresh final-source security review and consumer registry test run required; original receipt not claimed preserved"
+}

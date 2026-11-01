@@ -1,0 +1,198 @@
+[
+  {
+    "repo": "ontomark",
+    "revision": "4b9d15df48056971321a62b8c4e905f4536c74db",
+    "path": "Cargo.lock",
+    "export": "implementation/ontomark/Cargo.lock",
+    "sha256": "84571a626d60113f679a48a1fff7300767d939a425bbf9e098658ce0aa2430d4"
+  },
+  {
+    "repo": "ontomark",
+    "revision": "4b9d15df48056971321a62b8c4e905f4536c74db",
+    "path": "crates/ontomark-cli/Cargo.toml",
+    "export": "implementation/ontomark/crates/ontomark-cli/Cargo.toml",
+    "sha256": "5ba26bb3f7b14124e075695eae7ba69202b5c4da7df5cb77cda0520a8ea4df55"
+  },
+  {
+    "repo": "ontomark",
+    "revision": "4b9d15df48056971321a62b8c4e905f4536c74db",
+    "path": "crates/ontomark-compile/Cargo.toml",
+    "export": "implementation/ontomark/crates/ontomark-compile/Cargo.toml",
+    "sha256": "065c35fc84c5b0d0f23ad024d6486588d012058e2de0ab9574c1a3e9dd2c1f18"
+  },
+  {
+    "repo": "ontomark",
+    "revision": "4b9d15df48056971321a62b8c4e905f4536c74db",
+    "path": "crates/ontomark-compile/src/profile/layout.rs",
+    "export": "implementation/ontomark/crates/ontomark-compile/src/profile/layout.rs",
+    "sha256": "04965aff10fc66e4820633f278b9d3aa97f281c4072d1d20cb0b884a357c14a3"
+  },
+  {
+    "repo": "ontomark",
+    "revision": "4b9d15df48056971321a62b8c4e905f4536c74db",
+    "path": "crates/ontomark-compile/src/profile.rs",
+    "export": "implementation/ontomark/crates/ontomark-compile/src/profile.rs",
+    "sha256": "e68a02bb4b251d51bd399ee3d0f0c58b3697245aa1fb6bcbab77a3a77801a4e7"
+  },
+  {
+    "repo": "ontomark",
+    "revision": "4b9d15df48056971321a62b8c4e905f4536c74db",
+    "path": "crates/ontomark-compile/src/input/vocabulary.rs",
+    "export": "implementation/ontomark/crates/ontomark-compile/src/input/vocabulary.rs",
+    "sha256": "0b68039a661e05e4831b04ded7dc1545577cb64413bf547e2ee4d5808c1f71ba"
+  },
+  {
+    "repo": "ontomark",
+    "revision": "4b9d15df48056971321a62b8c4e905f4536c74db",
+    "path": "crates/ontomark-compile/src/input/page.rs",
+    "export": "implementation/ontomark/crates/ontomark-compile/src/input/page.rs",
+    "sha256": "1f6b11172f13ac2b5c7808fe7058b820884d970ff216f3db73e43baa82832470"
+  },
+  {
+    "repo": "ontomark",
+    "revision": "4b9d15df48056971321a62b8c4e905f4536c74db",
+    "path": "crates/ontomark-compile/src/build/mod.rs",
+    "export": "implementation/ontomark/crates/ontomark-compile/src/build/mod.rs",
+    "sha256": "1f023bd01f030d5a0de0311d365aeec59226f2d2ee20542bac6668a9ae5e3173"
+  },
+  {
+    "repo": "ontomark",
+    "revision": "4b9d15df48056971321a62b8c4e905f4536c74db",
+    "path": "crates/ontomark-compile/src/migrate/apply.rs",
+    "export": "implementation/ontomark/crates/ontomark-compile/src/migrate/apply.rs",
+    "sha256": "a1d5ea113d72c0d4e9944c1fab7e209629ef827ec2aa8498b0db94985c9d528b"
+  },
+  {
+    "repo": "ontomark",
+    "revision": "4b9d15df48056971321a62b8c4e905f4536c74db",
+    "path": "crates/ontomark-compile/src/migrate/plan.rs",
+    "export": "implementation/ontomark/crates/ontomark-compile/src/migrate/plan.rs",
+    "sha256": "bc17d692dea36285597484d87651661bc0b6c977db13ce124eef53deaa15c403"
+  },
+  {
+    "repo": "ontomark",
+    "revision": "4b9d15df48056971321a62b8c4e905f4536c74db",
+    "path": "crates/ontomark-compile/src/check/bodies.rs",
+    "export": "implementation/ontomark/crates/ontomark-compile/src/check/bodies.rs",
+    "sha256": "0ca9fc86d88bb11cd5029270de68ba3324cdcd606ce940714c1f8b7674803987"
+  },
+  {
+    "repo": "ontomark",
+    "revision": "4b9d15df48056971321a62b8c4e905f4536c74db",
+    "path": "crates/ontomark-compile/src/check/repair.rs",
+    "export": "implementation/ontomark/crates/ontomark-compile/src/check/repair.rs",
+    "sha256": "b9602f86676fbf27398e4405a011979358c55693ed3b29cb9b127d1a57023c10"
+  },
+  {
+    "repo": "ontomark",
+    "revision": "4b9d15df48056971321a62b8c4e905f4536c74db",
+    "path": "crates/ontomark-compile/tests/migrate.rs",
+    "export": "implementation/ontomark/crates/ontomark-compile/tests/migrate.rs",
+    "sha256": "25d7bdaddb2935bf80eadc4d552e941c6063b036a0c416035ecef949f459e46c"
+  },
+  {
+    "repo": "ontomark",
+    "revision": "4b9d15df48056971321a62b8c4e905f4536c74db",
+    "path": "crates/ontomark-cli/src/main.rs",
+    "export": "implementation/ontomark/crates/ontomark-cli/src/main.rs",
+    "sha256": "28322038e3632b1270b2046db6993a14b522c651ea85db64a60fb03af644638c"
+  },
+  {
+    "repo": "ontomark",
+    "revision": "4b9d15df48056971321a62b8c4e905f4536c74db",
+    "path": "crates/ontomark-cli/src/migrate_cmd.rs",
+    "export": "implementation/ontomark/crates/ontomark-cli/src/migrate_cmd.rs",
+    "sha256": "bfc93e2d3efd9b4ddb49721c03020c67556df4f33b2ffd981d074c83483b2567"
+  },
+  {
+    "repo": "ontomark",
+    "revision": "4b9d15df48056971321a62b8c4e905f4536c74db",
+    "path": "crates/ontomark-cli/tests/layout_contract.rs",
+    "export": "implementation/ontomark/crates/ontomark-cli/tests/layout_contract.rs",
+    "sha256": "59171d502ec251b7ae5e70c30556f3dc01c4ef1436d9994d0ee90dea4ddaf4d3"
+  },
+  {
+    "repo": "ontomark",
+    "revision": "4b9d15df48056971321a62b8c4e905f4536c74db",
+    "path": "docs/adr/ADR-OM-011-shared-filesystem-layout-checks.md",
+    "export": "implementation/ontomark/docs/adr/ADR-OM-011-shared-filesystem-layout-checks.md",
+    "sha256": "3c42086bd8eff4b36d9e17585c6f139367e69128be2672fd524c0e3e39bd7405"
+  },
+  {
+    "repo": "ontomark",
+    "revision": "4b9d15df48056971321a62b8c4e905f4536c74db",
+    "path": "docs/evidence/2026-11-01-layout-checks.md",
+    "export": "implementation/ontomark/docs/evidence/2026-11-01-layout-checks.md",
+    "sha256": "0ef0d67e9f6a1dbecc15210e2e3e49726ff177ca79c62583b69b7428557289a4"
+  },
+  {
+    "repo": "visionclaw",
+    "revision": "efbd7f6f080df06ecb580254bddabcee59d4fbf8",
+    "path": "Cargo.toml",
+    "export": "implementation/visionclaw/Cargo.toml",
+    "sha256": "8fb26d3b60096e034d24e6f5cd1f1e160be8adeb9f34b5390dffc65e0680c0e1"
+  },
+  {
+    "repo": "visionclaw",
+    "revision": "efbd7f6f080df06ecb580254bddabcee59d4fbf8",
+    "path": "Cargo.lock",
+    "export": "implementation/visionclaw/Cargo.lock",
+    "sha256": "531c0b53d66cb25271ff40fee59d2fe1d02ff300a3fdc372fc9ffb9f83893b80"
+  },
+  {
+    "repo": "visionclaw",
+    "revision": "efbd7f6f080df06ecb580254bddabcee59d4fbf8",
+    "path": "crates/vault/Cargo.toml",
+    "export": "implementation/visionclaw/crates/vault/Cargo.toml",
+    "sha256": "b06814dca234556733590579ff5b637cd80f56fb9b4d6c986099298ba35d9a8f"
+  },
+  {
+    "repo": "visionclaw",
+    "revision": "efbd7f6f080df06ecb580254bddabcee59d4fbf8",
+    "path": "crates/vault/src/main.rs",
+    "export": "implementation/visionclaw/crates/vault/src/main.rs",
+    "sha256": "506ad2b5e0e44fe7378306c2e304da2d1f077098c1382e2e219d64ed64a7857c"
+  },
+  {
+    "repo": "visionclaw",
+    "revision": "efbd7f6f080df06ecb580254bddabcee59d4fbf8",
+    "path": "crates/vault/tests/shared_layout.rs",
+    "export": "implementation/visionclaw/crates/vault/tests/shared_layout.rs",
+    "sha256": "f3bb220878e10c09d62f6f6bf50695c2f3fd10f15fb7d12ece3ece57536e3894"
+  },
+  {
+    "repo": "visionclaw",
+    "revision": "efbd7f6f080df06ecb580254bddabcee59d4fbf8",
+    "path": "src/services/corpus_source/local.rs",
+    "export": "implementation/visionclaw/src/services/corpus_source/local.rs",
+    "sha256": "0be6e5d656ca995548ed5277cf4f2221d4e39fa287b9ca515adff69f9b59e142"
+  },
+  {
+    "repo": "visionclaw",
+    "revision": "efbd7f6f080df06ecb580254bddabcee59d4fbf8",
+    "path": "docs/VAULT-corpus-format.md",
+    "export": "implementation/visionclaw/docs/VAULT-corpus-format.md",
+    "sha256": "881706eac1d39fb5eecadf87eefea5428c40bd2696b9a4b466c804b2bc9479c6"
+  },
+  {
+    "repo": "visionclaw",
+    "revision": "efbd7f6f080df06ecb580254bddabcee59d4fbf8",
+    "path": "docs/adr/ADR-2168-consume-ontomark-filesystem-layout-checks.md",
+    "export": "implementation/visionclaw/docs/adr/ADR-2168-consume-ontomark-filesystem-layout-checks.md",
+    "sha256": "d730f250f9505dc0f7e2ae0c584c7250b4309e67aaf440cd136117c6d396ae53"
+  },
+  {
+    "repo": "visionclaw",
+    "revision": "efbd7f6f080df06ecb580254bddabcee59d4fbf8",
+    "path": "docs/evidence/2026-11-01-shared-layout-consumption.md",
+    "export": "implementation/visionclaw/docs/evidence/2026-11-01-shared-layout-consumption.md",
+    "sha256": "5228e3dfedbed0dbd0108a0528865989bf4c81550d2d6fb692d9e8814212fe57"
+  },
+  {
+    "repo": "visionclaw",
+    "revision": "531df5ef74453a2ed320bff968c203a9b91faed7",
+    "path": "docs/evidence/2026-11-01-shared-layout-consumption.md",
+    "export": "consumer-integration-receipt.md",
+    "sha256": "712948ce6296adeb05800165718c75faf482b9e954725059c9fc7c0883c3c285"
+  }
+]

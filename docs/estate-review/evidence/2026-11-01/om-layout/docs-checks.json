@@ -1,0 +1,46 @@
+{
+  "checks": [
+    {
+      "tool": "inspect-text",
+      "path": "docs/estate-review/2026-11-01-ontomark-layout-and-shared-checks.md",
+      "exit": 0
+    },
+    {
+      "tool": "inspect-text",
+      "path": "docs/estate-review/completion/README.md",
+      "exit": 0
+    },
+    {
+      "tool": "inspect-text",
+      "path": "docs/estate-review/evidence/2026-11-01/om-layout/README.md",
+      "exit": 0
+    },
+    {
+      "tool": "inspect-text",
+      "path": "docs/diagrams/ontomark/12-shared-layout-checks.md",
+      "exit": 0
+    },
+    {
+      "tool": "slop-scan",
+      "path": "docs/estate-review/2026-11-01-ontomark-layout-and-shared-checks.md",
+      "exit": 1
+    },
+    {
+      "tool": "slop-scan",
+      "path": "docs/estate-review/completion/README.md",
+      "exit": 0
+    },
+    {
+      "tool": "slop-scan",
+      "path": "docs/estate-review/evidence/2026-11-01/om-layout/README.md",
+      "exit": 1
+    },
+    {
+      "tool": "slop-scan",
+      "path": "docs/diagrams/ontomark/12-shared-layout-checks.md",
+      "exit": 0
+    }
+  ],
+  "missing_local_links": [],
+  "prose_disposition": "Read the flagged sentences. Warnings are the sentence-opener heuristic and the technical noun test harness; retained precise wording. This is not a clean scanner claim."
+}

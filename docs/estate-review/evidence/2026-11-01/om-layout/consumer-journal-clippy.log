@@ -1,0 +1,5 @@
+    Checking ontomark-compile v0.6.3
+    Checking vault-core v0.1.0 (/home/devuser/workspace/wt/VisionClaw-vault-layout/crates/vault-core)
+    Checking visionclaw-jev v0.1.0 (/home/devuser/workspace/wt/VisionClaw-vault-layout/crates/visionclaw-jev)
+    Checking vault v0.1.0 (/home/devuser/workspace/wt/VisionClaw-vault-layout/crates/vault)
+    Finished `dev` profile [optimized + debuginfo] target(s) in 10.46s

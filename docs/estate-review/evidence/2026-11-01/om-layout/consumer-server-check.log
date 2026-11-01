@@ -1,0 +1,533 @@
+    Blocking waiting for file lock on build directory
+   Compiling serde_core v1.0.228
+   Compiling serde v1.0.228
+    Checking subtle v2.6.1
+    Checking foldhash v0.1.5
+    Checking allocator-api2 v0.2.21
+    Checking futures-io v0.3.31
+   Compiling libm v0.2.15
+   Compiling cfg-if v1.0.3
+   Compiling getrandom v0.3.3
+   Compiling libc v0.2.175
+    Checking futures-channel v0.3.31
+   Compiling num-traits v0.2.19
+    Checking tracing-core v0.1.34
+   Compiling strsim v0.11.1
+   Compiling ident_case v1.0.1
+   Compiling semver v1.0.26
+    Checking base64ct v1.8.0
+    Checking httpdate v1.0.3
+   Compiling glob v0.3.3
+    Checking regex-automata v0.4.9
+   Compiling once_cell v1.21.3
+   Compiling stable_deref_trait v1.2.0
+    Checking base64 v0.21.7
+    Checking either v1.15.0
+    Checking tinyvec_macros v0.1.1
+   Compiling aho-corasick v1.1.3
+   Compiling regex-syntax v0.8.5
+    Checking cmov v0.5.4
+   Compiling syn v1.0.109
+   Compiling ahash v0.8.12
+    Checking mio v1.0.4
+    Checking bitflags v1.3.2
+   Compiling fnv v1.0.7
+    Checking const-oid v0.10.2
+    Checking unicode-bidi v0.3.18
+    Checking spin v0.9.9
+    Checking tinyvec v1.10.0
+    Checking crossbeam-channel v0.5.15
+   Compiling proc-macro-error-attr v1.0.4
+    Checking futures-util v0.3.31
+    Checking ff v0.13.1
+   Compiling darling_core v0.20.11
+   Compiling io-lifetimes v2.0.4
+   Compiling typenum v1.18.0
+   Compiling bitflags v2.13.0
+    Checking winnow v0.7.12
+   Compiling rustix v1.0.8
+   Compiling darling_core v0.23.0
+   Compiling proc-macro-error v1.0.4
+   Compiling generic-array v0.14.7
+    Checking hashbrown v0.15.5
+    Checking oxsdatatypes v0.2.2
+   Compiling zerofrom v0.1.6
+    Checking hashbrown v0.17.1
+    Checking alloc-no-stdlib v2.0.4
+    Checking linux-raw-sys v0.9.4
+   Compiling zstd-safe v7.2.4
+   Compiling litemap v0.8.0
+   Compiling writeable v0.6.1
+    Checking local-waker v0.1.4
+   Compiling prettyplease v0.2.37
+   Compiling Inflector v0.11.4
+    Checking tracing v0.1.41
+    Checking lazy_static v1.5.0
+    Checking pem-rfc7468 v0.7.0
+    Checking ctutils v0.4.3
+    Checking group v0.13.0
+    Checking crypto-bigint v0.5.5
+   Compiling clang-sys v1.8.1
+    Checking itertools v0.10.5
+   Compiling bytemuck_derive v1.10.1
+   Compiling actix-macros v0.2.4
+    Checking digest v0.10.7
+    Checking tokio v1.47.1
+   Compiling yoke v0.8.0
+   Compiling ctor v0.2.9
+    Checking http v0.2.12
+   Compiling crunchy v0.2.4
+   Compiling io-extras v0.18.4
+   Compiling minimal-lexical v0.2.1
+   Compiling pin-project-lite v0.2.16
+    Checking alloc-stdlib v0.2.2
+   Compiling unicode-xid v0.2.6
+   Compiling num-bigint-dig v0.8.6
+    Checking unicode-normalization v0.1.24
+   Compiling jobserver v0.1.33
+   Compiling rustc_version v0.4.1
+    Checking der v0.7.10
+    Checking oxrdf v0.2.4
+   Compiling zerovec v0.11.4
+   Compiling zerotrie v0.2.2
+   Compiling bytes v1.12.1
+   Compiling nom v7.1.3
+    Checking rand_core v0.9.3
+    Checking digest v0.11.3
+   Compiling specta-macros v2.0.0-rc.18
+    Checking brotli-decompressor v5.0.0
+    Checking actix-utils v3.0.1
+   Compiling curve25519-dalek-derive v0.1.1
+   Compiling libloading v0.8.8
+   Compiling icu_normalizer_data v2.0.0
+   Compiling icu_properties_data v2.0.1
+   Compiling cookie v0.16.2
+    Checking actix-service v2.0.3
+    Checking bytestring v1.4.0
+    Checking sha1 v0.10.6
+    Checking sha2 v0.10.9
+    Checking hmac v0.12.1
+    Checking signature v2.2.0
+   Compiling derive_more-impl v2.0.1
+   Compiling bindgen v0.71.1
+   Compiling cc v1.2.33
+    Checking rand_chacha v0.9.0
+    Checking hashbrown v0.14.5
+    Checking sha2 v0.11.0
+   Compiling curve25519-dalek v4.1.3
+   Compiling hex_lit v0.1.1
+   Compiling tiny-keccak v2.0.2
+    Checking hkdf v0.12.4
+    Checking rfc6979 v0.4.0
+   Compiling regex-lite v0.1.6
+   Compiling cap-primitives v3.4.6
+    Checking idna v0.5.0
+    Checking blowfish v0.9.1
+    Checking local-channel v0.1.5
+    Checking spargebra v0.3.5
+    Checking oxttl v0.1.8
+   Compiling find_cuda_helper v0.2.0
+    Checking socket2 v0.5.10
+    Checking inotify-sys v0.1.5
+    Checking rand v0.9.2
+   Compiling itertools v0.13.0
+   Compiling crc32fast v1.5.0
+    Checking quick-xml v0.37.5
+   Compiling smallvec v1.15.1
+   Compiling getrandom v0.4.3
+    Checking siphasher v1.0.1
+    Checking ambient-authority v0.0.2
+    Checking toml_write v0.1.2
+   Compiling bitcoin v0.32.102
+    Checking maybe-owned v0.3.4
+   Compiling rustc-hash v2.1.1
+    Checking json-event-parser v0.2.3
+    Checking language-tags v0.3.2
+    Checking rand_core v0.10.1
+   Compiling cap-std v3.4.6
+    Checking inotify v0.9.6
+    Checking bcrypt v0.15.1
+    Checking tungstenite v0.24.0
+    Checking enum_meta v0.6.0
+   Compiling getrandom v0.2.16
+    Checking filetime v0.2.26
+    Checking mio v0.8.11
+   Compiling include_dir_macros v0.7.4
+    Checking pem v3.0.6
+    Checking unsafe-libyaml-norway v0.2.15
+    Checking dyn-clone v1.0.20
+   Compiling zlib-rs v0.5.5
+    Checking impl-more v0.1.9
+    Checking bitcoin-units v0.1.101
+    Checking chacha20 v0.10.2
+   Compiling vek v0.15.10
+    Checking lru v0.18.5
+    Checking rio_api v0.6.2
+    Checking unicode-properties v0.1.4
+   Compiling percent-encoding v2.3.1
+    Checking notify v6.1.1
+   Compiling cpufeatures v0.2.17
+   Compiling same-file v1.0.6
+   Compiling typeid v1.0.3
+   Compiling utf8_iter v1.0.4
+   Compiling simd-adler32 v0.3.8
+   Compiling paste v1.0.15
+   Compiling equivalent v1.0.2
+    Checking unicode-width v0.1.14
+   Compiling walkdir v2.5.0
+   Compiling form_urlencoded v1.2.1
+   Compiling cust_raw v0.11.3
+    Checking oxjsonld v0.1.0
+    Checking md-5 v0.11.0
+    Checking hmac v0.13.0
+    Checking brotli v8.0.2
+    Checking md-5 v0.10.6
+   Compiling actix_derive v0.6.2
+    Checking sparopt v0.2.1
+    Checking stringprep v0.1.5
+    Checking sparesults v0.2.5
+    Checking oxrdfxml v0.1.7
+   Compiling zopfli v0.8.3
+    Checking atty v0.2.14
+   Compiling tinystr v0.8.1
+   Compiling potential_utf v0.1.2
+    Checking spki v0.7.3
+   Compiling indexmap v2.10.0
+    Checking include_dir v0.7.4
+   Compiling matrixmultiply v0.3.10
+    Checking quick-xml v0.22.0
+    Checking quick-xml v0.21.0
+    Checking fallible-iterator v0.2.0
+    Checking strsim v0.8.0
+    Checking num-integer v0.1.46
+    Checking deranged v0.5.8
+    Checking serde_path_to_error v0.1.20
+    Checking approx v0.5.1
+    Checking regex v1.11.2
+    Checking ordered-float v2.10.1
+    Checking vec_map v0.8.2
+    Checking ansi_term v0.12.1
+    Checking textwrap v0.11.0
+    Checking matchers v0.2.0
+    Checking num-complex v0.4.6
+    Checking glam v0.20.5
+    Checking dashmap v6.1.0
+   Compiling icu_collections v2.0.0
+    Checking rayon v1.11.0
+   Compiling cust v0.3.2
+    Checking rand v0.10.3
+    Checking clap v2.34.0
+    Checking pkcs8 v0.10.2
+    Checking oxrdfio v0.1.8
+   Compiling const-random-macro v0.1.16
+    Checking sec1 v0.7.3
+    Checking pkcs1 v0.7.5
+    Checking ed25519 v2.2.3
+    Checking rio_xml v0.6.2
+    Checking phf_shared v0.13.1
+    Checking toml_parser v1.0.2
+   Compiling heapless v0.7.17
+    Checking blake2 v0.10.6
+   Compiling icu_locale_core v2.0.0
+    Checking num-iter v0.1.45
+    Checking num-bigint v0.4.6
+    Checking elliptic-curve v0.13.8
+    Checking hashlink v0.12.2
+    Checking sharded-slab v0.1.7
+    Checking universal-hash v0.5.1
+    Checking password-hash v0.5.0
+    Checking tracing-log v0.2.0
+    Checking thread_local v1.1.9
+    Checking rawpointer v0.2.1
+   Compiling v_htmlescape v0.15.8
+    Checking toml_writer v1.0.6+spec-1.1.0
+    Checking mint v0.5.9
+    Checking nu-ansi-term v0.50.1
+    Checking pretty_rdf v0.1.2
+    Checking lru v0.16.0
+    Checking slurp v1.0.1
+   Compiling fastrand v2.3.0
+   Compiling cudarc v0.12.1
+    Checking futures-executor v0.3.31
+    Checking argon2 v0.5.3
+    Checking poly1305 v0.8.0
+    Checking phf v0.13.1
+    Checking num-rational v0.4.2
+    Checking ecdsa v0.16.9
+    Checking primeorder v0.13.6
+    Checking spareval v0.1.4
+    Checking env_logger v0.10.2
+    Checking url v2.5.4
+    Checking chrono v0.4.42
+    Checking serde_urlencoded v0.7.1
+    Checking bitcoin_hashes v0.14.101
+    Checking uuid v1.18.0
+    Checking toml_datetime v0.6.11
+    Checking serde_spanned v0.6.9
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.6
+    Checking serde_plain v1.0.2
+    Checking serde-value v0.7.0
+    Checking actix-router v0.5.3
+    Checking p256 v0.13.2
+    Checking p384 v0.13.1
+    Checking k256 v0.13.4
+    Checking bytemuck v1.23.2
+   Compiling libz-rs-sys v0.5.5
+    Checking postgres-protocol v0.6.12
+    Checking tracing-serde v0.2.0
+   Compiling flate2 v1.1.2
+    Checking serde_spanned v1.0.0
+    Checking ed25519-dalek v2.2.0
+    Checking toml_datetime v0.7.0
+    Checking yaml-rust2 v0.13.0
+    Checking erased-serde v0.4.6
+    Checking toml v0.9.5
+    Checking hashlink v0.9.1
+    Checking safe_arch v0.7.4
+    Checking rust-embed-utils v8.9.0
+    Checking hashlink v0.10.0
+    Checking serde_json v1.0.149
+    Checking serde_yaml v0.9.34+deprecated
+    Checking toml_edit v0.22.27
+    Checking curie v0.1.4
+    Checking serde_norway v0.9.42
+   Compiling icu_provider v2.0.0
+   Compiling nalgebra-macros v0.3.0
+   Compiling pin-project-internal v1.1.10
+    Checking hash32 v0.2.1
+    Checking specta v2.0.0-rc.22
+    Checking const-random v0.1.18
+    Checking rsa v0.9.10
+   Compiling convert_case v0.4.0
+    Checking horned-owl v0.11.0
+   Compiling zip v3.0.0
+   Compiling darling_macro v0.20.11
+    Checking dlv-list v0.5.2
+   Compiling visionclaw-gpu v0.1.0 (/home/devuser/workspace/wt/VisionClaw-vault-layout/crates/visionclaw-gpu)
+    Checking negentropy v0.5.0
+    Checking fallible-streaming-iterator v0.1.9
+    Checking constant_time_eq v0.3.1
+    Checking atomic-destructor v0.3.0
+    Checking fallible-iterator v0.3.0
+    Checking whoami v2.1.0
+    Checking arrayref v0.3.9
+    Checking unicode-segmentation v1.12.0
+   Compiling cexpr v0.6.0
+   Compiling icu_normalizer v2.0.0
+   Compiling icu_properties v2.0.1
+    Checking yaml-rust2 v0.10.3
+    Checking base58ck v0.1.101
+    Checking serde-untagged v0.1.8
+    Checking chacha20poly1305 v0.10.1
+    Checking ordered-multimap v0.7.3
+   Compiling rust-embed-impl v8.9.0
+    Checking ontomark-parse v0.1.3 (/home/devuser/workspace/wt/ontomark-vault-layout/crates/ontomark-parse)
+    Checking ron v0.8.1
+    Checking postgres-types v0.2.14
+    Checking specta-serde v0.0.9
+    Checking rdfs-certificate v0.1.0
+    Checking rdfs-certificate v0.1.0 (/home/devuser/workspace/wt/ontomark-vault-layout/crates/rdfs-certificate)
+    Checking json5 v0.4.1
+    Checking env_filter v0.1.3
+    Checking futures v0.3.31
+    Checking lru v0.12.5
+    Checking cobs v0.3.0
+    Checking simdutf8 v0.1.5
+    Checking time v0.3.47
+    Checking tracing-subscriber v0.3.20
+    Checking http-range v0.1.5
+    Checking similar v2.7.0
+    Checking visionclaw-wire v0.1.0 (/home/devuser/workspace/wt/VisionClaw-vault-layout/crates/visionclaw-wire)
+    Checking static_assertions v1.1.0
+    Checking jiff v0.2.15
+    Checking pathdiff v0.2.3
+    Checking inventory v0.3.21
+    Checking xml-rs v0.8.27
+    Checking rust-ini v0.21.3
+    Checking specta-typescript v0.0.9
+    Checking visionclaw-memory-cloud v0.1.0 (/home/devuser/workspace/wt/VisionClaw-vault-layout/crates/visionclaw-memory-cloud)
+    Checking ordered-float v4.6.0
+    Checking sysinfo v0.37.0
+    Checking dotenvy v0.15.7
+    Checking pollster v0.4.0
+    Checking glam v0.30.5
+    Checking urlencoding v2.1.3
+    Checking visionclaw-tri-layout v0.1.0 (/home/devuser/workspace/wt/VisionClaw-vault-layout/crates/visionclaw-tri-layout)
+   Compiling derive_more v0.99.20
+    Checking tokio-util v0.7.16
+    Checking actix-rt v2.11.0
+    Checking tower v0.5.2
+    Checking tokio-tungstenite v0.24.0
+    Checking tokio-socks v0.5.2
+    Checking async-utility v0.3.1
+    Checking deadpool-runtime v0.3.1
+    Checking tokio-stream v0.1.17
+    Checking convert_case v0.6.0
+    Checking deadpool v0.13.1
+    Checking actix-server v2.6.0
+    Checking xml v0.8.20
+   Compiling ring v0.17.14
+   Compiling openssl-sys v0.9.109
+   Compiling secp256k1-sys v0.10.1
+   Compiling zstd-sys v2.0.15+zstd.1.5.7
+   Compiling libsqlite3-sys v0.28.0
+   Compiling blake3 v1.8.2
+    Checking toml v0.8.23
+    Checking postcard v1.1.3
+    Checking config v0.15.15
+    Checking wide v0.7.33
+    Checking h2 v0.4.12
+    Checking h2 v0.3.27
+    Checking actix-codec v0.5.2
+    Checking actix v0.13.5
+    Checking tokio-postgres v0.7.18
+    Checking tower-http v0.6.6
+   Compiling darling v0.20.11
+    Checking horned-functional v0.4.0
+   Compiling hexser_macros v0.4.7
+    Checking rust-embed v8.9.0
+   Compiling idna_adapter v1.2.1
+   Compiling idna v1.0.3
+    Checking pin-project v1.1.10
+    Checking derive_more v2.0.1
+    Checking simba v0.9.0
+   Compiling actix-web-codegen v4.3.0
+    Checking fs-set-times v0.20.3
+    Checking rustix-linux-procfs v0.1.1
+    Checking simple_asn1 v0.6.4
+   Compiling openssl v0.10.73
+   Compiling native-tls v0.2.14
+    Checking ontomark-compile v0.6.2 (/home/devuser/workspace/wt/ontomark-vault-layout/crates/ontomark-compile)
+   Compiling tempfile v3.20.0
+    Checking tracing-appender v0.2.3
+    Checking vault-core v0.1.0 (/home/devuser/workspace/wt/VisionClaw-vault-layout/crates/vault-core)
+   Compiling utoipa-gen v5.4.0
+   Compiling darling_macro v0.23.0
+   Compiling validator_derive v0.18.2
+   Compiling cust_derive v0.2.0
+    Checking hexser v0.4.7
+    Checking deadpool-postgres v0.14.2
+    Checking hyper v1.7.0
+    Checking env_logger v0.11.8
+   Compiling visionclaw-server v0.1.0 (/home/devuser/workspace/wt/VisionClaw-vault-layout)
+   Compiling utoipa-swagger-ui v9.0.2
+    Checking cust_core v0.1.1
+   Compiling darling v0.23.0
+    Checking hyper-util v0.1.16
+   Compiling serde_with_macros v3.20.0
+warning: visionclaw-server@0.1.0: webxr build.rs: GPU feature enabled — CUDA compilation delegated to visionclaw-gpu crate
+    Checking validator v0.18.1
+    Checking serde_with v3.20.0
+    Checking fastwebsockets v0.8.0
+    Checking nalgebra v0.34.0
+    Checking utoipa v5.4.0
+   Compiling oxrocksdb-sys v0.4.11
+   Compiling rustls v0.23.31
+    Checking tokio-native-tls v0.3.1
+    Checking tungstenite v0.21.0
+    Checking hyper-tls v0.6.0
+    Checking rustls-webpki v0.103.4
+    Checking jsonwebtoken v9.3.1
+    Checking visionclaw-domain v0.1.0 (/home/devuser/workspace/wt/VisionClaw-vault-layout/crates/visionclaw-domain)
+    Checking tokio-tungstenite v0.21.0
+    Checking visionclaw-xr-presence v0.2.1 (/home/devuser/workspace/wt/VisionClaw-vault-layout/crates/visionclaw-xr-presence)
+    Checking secp256k1 v0.29.1
+    Checking nostr v0.43.1
+    Checking nostr v0.44.8
+    Checking tokio-rustls v0.26.2
+    Checking ureq v2.12.1
+    Checking tungstenite v0.26.2
+    Checking hyper-rustls v0.27.7
+    Checking reqwest v0.12.23
+    Checking horned-owl v1.2.0
+    Checking tokio-tungstenite v0.26.2
+    Checking nostr-database v0.43.0
+    Checking async-wsocket v0.13.1
+    Checking nostr-relay-pool v0.43.0
+    Checking oauth2 v5.0.0
+    Checking visionclaw-jev v0.1.0 (/home/devuser/workspace/wt/VisionClaw-vault-layout/crates/visionclaw-jev)
+    Checking openidconnect v4.0.1
+    Checking nostr-sdk v0.43.0
+    Checking whelk v0.1.0 (https://github.com/jjohare/whelk-rs?rev=79a1ee21789add5a66faa0ec1a830c32dba9b539#79a1ee21)
+    Checking solid-pod-rs v0.5.0-alpha.17
+    Checking solid-pod-rs-idp v0.5.0-alpha.17
+    Checking nostr-bbs-core v1.0.0-beta.17
+    Checking solid-pod-rs-nostr v0.5.0-alpha.17
+    Checking visionclaw-actors v0.1.0 (/home/devuser/workspace/wt/VisionClaw-vault-layout/crates/visionclaw-actors)
+    Checking visionclaw-protocol v0.1.0 (/home/devuser/workspace/wt/VisionClaw-vault-layout/crates/visionclaw-protocol)
+    Checking zstd v0.13.3
+    Checking actix-http v3.11.0
+    Checking actix-web v4.11.0
+    Checking actix-files v0.6.6
+    Checking actix-web-actors v4.3.1+deprecated
+    Checking actix-cors v0.7.1
+    Checking solid-pod-rs-server v0.5.0-alpha.17
+    Checking rusqlite v0.31.0
+    Checking tokio-rusqlite v0.5.1
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Auto-detected GPU sm_86
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Building for sm_86
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Using CUDA host compiler: /nix/store/fliwi0hjfdjb1wgg4cncxlv58a14ndah-gcc-wrapper-14.4.0/bin/gcc (NvccCcbin)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Adding CUDA include dir: /nix/store/7p90h8wfwmda4xq5bsqzx231w1inx1cm-cuda-compat/include
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Compiling 8 CUDA kernels to PTX
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: visionclaw_unified — declared ISA 9.4 rewritten to 9.0 (declared-version change only; instruction support is not proven)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_clustering_kernels — declared ISA 9.4 rewritten to 9.0 (declared-version change only; instruction support is not proven)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_aabb_reduction — declared ISA 9.4 rewritten to 9.0 (declared-version change only; instruction support is not proven)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_landmark_apsp — declared ISA 9.4 rewritten to 9.0 (declared-version change only; instruction support is not proven)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: sssp_compact — declared ISA 9.4 rewritten to 9.0 (declared-version change only; instruction support is not proven)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: semantic_forces — declared ISA 9.4 rewritten to 9.0 (declared-version change only; instruction support is not proven)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: pagerank — declared ISA 9.4 rewritten to 9.0 (declared-version change only; instruction support is not proven)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_connected_components — declared ISA 9.4 rewritten to 9.0 (declared-version change only; instruction support is not proven)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: visionclaw_unified source=src/cuda_sources/visionclaw_unified.cu provenance=compiled isa=9.0 original=513f67c34918c5ee rewritten=0cd218845aacfeaa
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_clustering_kernels source=src/cuda_sources/gpu_clustering_kernels.cu provenance=compiled isa=9.0 original=327cacff8990ba31 rewritten=0fe7ef58cdaa74c5
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_aabb_reduction source=src/cuda_sources/gpu_aabb_reduction.cu provenance=compiled isa=9.0 original=b440f0136832f890 rewritten=4cff7eb8bd62b89c
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_landmark_apsp source=src/cuda_sources/gpu_landmark_apsp.cu provenance=compiled isa=9.0 original=80bd76fd03a5be10 rewritten=25cf34b53c6f6ecc
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: sssp_compact source=src/cuda_sources/sssp_compact.cu provenance=compiled isa=9.0 original=6dd4a4bac953da8f rewritten=ae2316cff19ceb1b
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: semantic_forces source=src/cuda_sources/semantic_forces.cu provenance=compiled isa=9.0 original=ceb14377cb2ccf1f rewritten=7dd8070af693051b
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: pagerank source=src/cuda_sources/pagerank.cu provenance=compiled isa=9.0 original=86c13d2c2c9ae56c rewritten=85e8e9356f683518
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_connected_components source=src/cuda_sources/gpu_connected_components.cu provenance=compiled isa=9.0 original=8be60e1c3bbee7ee rewritten=ae0f662370878aea
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: All PTX compilation done (8 modules)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Native CUDA linking complete
+    Checking oxigraph v0.4.11
+    Checking visionclaw-adapters v0.1.0 (/home/devuser/workspace/wt/VisionClaw-vault-layout/crates/visionclaw-adapters)
+    Checking visionclaw-ontology v0.1.0 (/home/devuser/workspace/wt/VisionClaw-vault-layout/crates/visionclaw-ontology)
+error: couldn't read `src/adapters/../utils/ptx/sssp_compact.ptx`: No such file or directory (os error 2)
+  --> src/adapters/gpu_semantic_analyzer.rs:53:13
+   |
+53 |             include_str!("../utils/ptx/sssp_compact.ptx"),
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: couldn't read `src/adapters/../utils/ptx/gpu_landmark_apsp.ptx`: No such file or directory (os error 2)
+  --> src/adapters/gpu_semantic_analyzer.rs:54:13
+   |
+54 |             include_str!("../utils/ptx/gpu_landmark_apsp.ptx"),
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: couldn't read `src/adapters/../utils/ptx/gpu_clustering_kernels.ptx`: No such file or directory (os error 2)
+  --> src/adapters/gpu_semantic_analyzer.rs:55:13
+   |
+55 |             include_str!("../utils/ptx/gpu_clustering_kernels.ptx"),
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: couldn't read `src/uri/../../agentbox/schema/federation-kinds.json`: No such file or directory (os error 2)
+   --> src/uri/mod.rs:665:37
+    |
+665 | const FEDERATION_KINDS_JSON: &str = include_str!("../../agentbox/schema/federation-kinds.json");
+    |                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+help: there is a file with the same name in a different directory
+    |
+665 | const FEDERATION_KINDS_JSON: &str = include_str!("../../../../agentbox/schema/federation-kinds.json");
+    |                                                         ++++++
+
+warning: unused import: `bad_request`
+  --> src/handlers/api_handler/semantic_forces.rs:23:13
+   |
+23 | use crate::{bad_request, error_json, ok_json};
+   |             ^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `visionclaw-server` (lib) generated 1 warning
+warning: visionclaw-server@0.1.0: webxr build.rs: GPU feature enabled — CUDA compilation delegated to visionclaw-gpu crate
+error: could not compile `visionclaw-server` (lib) due to 4 previous errors; 1 warning emitted

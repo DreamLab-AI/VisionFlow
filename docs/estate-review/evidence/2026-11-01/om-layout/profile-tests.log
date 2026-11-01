@@ -1,0 +1,18 @@
+   Compiling ontomark-compile v0.6.1 (/home/devuser/workspace/wt/VisionFlow-om-layout/.audit-ontomark/crates/ontomark-compile)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 11.24s
+     Running unittests src/lib.rs (target/debug/deps/ontomark_compile-669634bc25f34b46)
+
+running 10 tests
+test profile::tests::page_identities_project_only_when_a_public_page_base_exists ... ok
+test profile::tests::projection_breaks_prefix_ties_in_the_documented_order ... ok
+test profile::tests::custom_folders_are_looked_up_not_assumed ... ok
+test profile::tests::a_dot_knowledge_folder_is_the_repository_root ... ok
+test profile::tests::root_of_refuses_by_name ... ok
+test profile::tests::a_working_folder_that_is_the_knowledge_folder_is_absent ... ok
+test profile::tests::short_names_keep_their_domain_class_ids ... ok
+test profile::tests::the_generation_prefix_is_pinned_or_the_root_name ... ok
+test profile::tests::projection_prefers_class_then_individual_then_legacy_then_page ... ok
+test profile::tests::the_default_layout_is_the_estate_shape ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 494 filtered out; finished in 0.01s
+

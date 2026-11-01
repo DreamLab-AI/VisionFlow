@@ -1,0 +1,17 @@
+[package]
+name = "local-corpus-contract-probe"
+version = "0.0.0"
+edition = "2021"
+[workspace]
+[lib]
+path = "lib.rs"
+[features]
+default = ["shared-corpus-layout"]
+shared-corpus-layout = ["dep:ontomark-compile"]
+[dependencies]
+async-trait = "0.1"
+log = "0.4"
+tokio = { version = "1", features = ["full"] }
+tempfile = "3"
+vault-core = { path = "../crates/vault-core" }
+ontomark-compile = { version = "=0.6.3", default-features = false, optional = true }

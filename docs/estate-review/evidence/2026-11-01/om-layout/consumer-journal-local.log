@@ -1,0 +1,28 @@
+   Compiling ontomark-compile v0.6.3
+   Compiling local-corpus-contract-probe v0.0.0 (/home/devuser/workspace/wt/VisionClaw-vault-layout/.audit-local)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 11.28s
+     Running unittests lib.rs (.audit-local/target/debug/deps/local_corpus_contract_probe-159e5e46c1eef861)
+
+running 13 tests
+test local::tests::base_paths_parse_from_a_comma_separated_list ... ok
+test local::tests::an_empty_vault_is_an_error ... ok
+test local::tests::a_missing_half_is_skipped_not_fatal ... ok
+test local::tests::listing_is_ordered_and_scoped_by_prefix ... ok
+test local::tests::lists_both_base_paths_and_skips_non_content ... ok
+test local::tests::each_furniture_folder_is_skipped ... ok
+test local::tests::shared_layout_rejects_aliases_nested_roots_and_parent_escapes ... ok
+test local::tests::pages_carry_name_size_and_a_readable_fetch_ref ... ok
+test local::tests::shared_layout_rejects_linked_root_aliases_and_escapes ... ok
+test local::tests::the_descriptor_names_the_root_and_the_sources ... ok
+test local::tests::shared_layout_rejects_unconfigured_prefixes_and_fetches ... ok
+test local::tests::shared_layout_skips_child_symlinks_like_the_owner_walk ... ok
+test local::tests::the_change_marker_is_stable_across_runs_and_moves_on_edit ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.61s
+
+   Doc-tests local_corpus_contract_probe
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

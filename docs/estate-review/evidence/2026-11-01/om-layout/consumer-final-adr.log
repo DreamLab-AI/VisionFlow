@@ -1,0 +1,5 @@
+error: ADR-2035-dag-rank-accepts-hierarchical-label.md: STALE — governed paths changed since verified_commit f1fa1862c00ad627af8f45249d51b94c3a1c238f: src/actors/gpu/force_compute_actor.rs (re-verify and bump verified_commit)
+error: ADR-2140-physics-forces-have-one-stored-definition-and-no-scale-factors.md: STALE — governed paths changed since verified_commit f1fa1862c00ad627af8f45249d51b94c3a1c238f: src/actors/gpu/force_compute_actor.rs (re-verify and bump verified_commit)
+error: ADR-2143-codescape-section-separate-workspace-and-port.md: STALE — governed paths changed since verified_commit f1fa1862c00ad627af8f45249d51b94c3a1c238f: docs/PROTOCOL-registry.md (re-verify and bump verified_commit)
+error: ADR-2169-a-drag-is-a-hold-the-released-node-rejoins-the-simulation-and-the-graph-settles.md: STALE — governed paths changed since verified_commit f1fa1862c00ad627af8f45249d51b94c3a1c238f: src/actors/gpu/force_compute_actor.rs (re-verify and bump verified_commit)
+error: 4 validation error(s); README not generated

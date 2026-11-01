@@ -68,7 +68,7 @@ flowchart TD
     JDIR -- yes --> JRETAIN --> JWALK --> JID --> JPARSE --> JSKIP --> VAULT
     JDIR -- no --> VAULT
     VAULT -.-> JDATE
-    note1["INVARIANT: journals are kept out of Vault.pages so projections keyed on pages cannot silently grow,<br/>input/page.rs:429-433"]
+    note1["TENSION at this pin: journal separation depends on caller exclusions;<br/>an empty list can load journals as both pages and journals<br/>input/page.rs:467,499-509"]
     note2["INVARIANT: the first malformed frontmatter or unreadable file aborts the whole load — Page::parse errors propagate,<br/>input/page.rs:494"]
     note3["INVARIANT: one listing feeds the census, the load and the held-page identities — the PageWalk made at build/mod.rs:569 is passed on,<br/>ir/projection.rs:96, ir/projection.rs:228 — see OM-01.2"]
     VAULT --- note1
@@ -83,7 +83,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    W["walk_pages dir, excluded — WalkDir, follow_links false<br/>input/page.rs:581-585"]
+    W["walk_pages dir, excluded — WalkDir, child follow_links false;<br/>this does not reject a symlinked root<br/>input/page.rs:581-585"]
     ISMD{"extension is md?<br/>input/page.rs:591-593"}
     DROPNONMD["non-md → continue, not reported<br/>input/page.rs:591-593"]
     ISFILE{"entry is a regular file?<br/>input/page.rs:597"}
@@ -125,6 +125,8 @@ flowchart TD
 ```
 - **INVARIANT:** `UNPUBLISHED_DIRS = ["_misc"]` (`input/page.rs:47`) is applied twice: `is_unpublished` at the top level (`input/page.rs:641-646`) and, since this stamp, at any depth by `held_back`, which also holds back `misc` (`build/publish.rs:134`, `build/publish.rs:138-148`). `HELD_BACK_DIRS` lists only the site-only `misc`, so the two lists no longer restate each other (`build/publish.rs:131-133`).
 - **INVARIANT:** hidden-directory, excluded-folder and non-regular-file skips are reported on `Vault.skipped` (`input/page.rs:434-437`) and travel into the validation report (`check/validate.rs:378`).
+
+**2026-11-01 reconciliation.** These panels retain their historical source pin. The [layout audit](../../estate-review/2026-11-01-ontomark-layout-and-shared-checks.md) reproduced journal duplication with empty exclusions and role aliasing through a root symlink. [OM-12](12-shared-layout-checks.md) documents the owner fix and crate adoption. Low-level `walk_pages` still accepts an explicit list so the journal tree can be walked separately.
 
 ## OM-01.3 Frontmatter parse and the public, type and resource gates
 

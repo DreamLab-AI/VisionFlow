@@ -1,0 +1,90 @@
+80:     let root = root.as_ref();
+81:     let walk = crate::input::page::walk_pages(root, crate::input::page::EXCLUDED_DIRS)
+82:         .map_err(|e| PublicationBlocked::Census(format!("cannot walk {}: {e}", root.display())))?;
+83:     inspect_walk(root, &walk)
+84: }
+85:
+86: /// [`inspect_inputs`] over a walk the caller already made, so a build walks
+87: /// the vault root once for the census and the load (OM-00 step 1).
+88: ///
+89: /// The census and the vault load share one listing and one skip rule: a
+90: /// hidden-directory or excluded-folder skip counts as `excluded_directory`, a
+91: /// non-regular `.md` entry as `excluded_not_regular_file`, and both are
+92: /// visible in the counts.
+93: ///
+94: /// # Errors
+95: /// As [`inspect_inputs`].
+96: pub fn inspect_walk(
+97:     root: &Path,
+98:     walk: &crate::input::page::PageWalk,
+99: ) -> Result<Census, PublicationBlocked> {
+100:     use crate::input::page::SkipReason;
+101:     let mut counts: BTreeMap<String, usize> = BTreeMap::new();
+102:     let mut bump = |k: &str| *counts.entry(k.to_owned()).or_insert(0) += 1;
+103:
+104:     for skip in &walk.skipped {
+105:         bump("input_files");
+106:         bump(match skip.reason {
+107:             SkipReason::HiddenDirectory | SkipReason::ExcludedDirectory => "excluded_directory",
+108:             SkipReason::NotARegularFile => "excluded_not_regular_file",
+109:         });
+110:     }
+111:     for path in &walk.files {
+112:         bump("input_files");
+113:         let rel = path.strip_prefix(root).unwrap_or(path);
+114:         if is_unpublished(rel) {
+115:             bump("excluded_directory");
+116:             continue;
+117:         }
+118:         let Ok(text) = std::fs::read_to_string(path) else {
+119:             bump("invalid_input");
+120:             continue;
+121:         };
+122:         let split = frontmatter::split(&text);
+123:         if split.unterminated {
+124:             // An opening fence with no close is a malformed page, not a
+125:             // private one (S3.3).
+126:             bump("invalid_input");
+127:             continue;
+128:         }
+129:         let Some(yaml) = split.yaml else {
+130:             bump("excluded_no_frontmatter");
+131:             continue;
+132:         };
+133:         let Ok(fm) = frontmatter::Frontmatter::parse(yaml) else {
+134:             bump("invalid_input");
+135:             continue;
+136:         };
+137:         // Never coerce a string or a number into publication permission: only a
+138:         // real YAML boolean counts, and anything else refuses the build.
+139:         match fm.get("public") {
+140:             Some(serde_yaml::Value::Bool(true)) => bump("included_public"),
+141:             None | Some(serde_yaml::Value::Bool(false)) => bump("included_private"),
+142:             Some(_) => bump("invalid_publication_flag"),
+143:         }
+144:     }
+145:
+146:     let invalid: usize = counts
+147:         .iter()
+220:     }
+221:     Ok(out)
+222: }
+223:
+224: /// [`excluded_identities`] from a vault that is already loaded: the held pages
+225: /// are in [`Vault::pages`] (the walk does not apply the publication rule), so
+226: /// no second walk or parse is needed.
+227: #[must_use]
+228: pub fn excluded_identities_of(vault: &Vault) -> HashSet<String> {
+229:     let mut out = HashSet::new();
+230:     for page in &vault.pages {
+231:         if is_unpublished(&page.rel_path) {
+232:             held_identities(page, &page.id, &mut out);
+233:         }
+234:     }
+235:     out
+236: }
+237:
+238: fn held_identities(page: &crate::input::page::Page, id: &str, out: &mut HashSet<String>) {
+239:     out.insert(id.to_owned());
+240:     out.insert(page.slug());
+241:     if let Some(r) = page.frontmatter.text("resource") {

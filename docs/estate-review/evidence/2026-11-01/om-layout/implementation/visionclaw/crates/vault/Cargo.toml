@@ -1,0 +1,64 @@
+[package]
+name = "vault"
+version = "0.1.0"
+edition = "2021"
+description = "The single door onto the sovereign corpus: validate, propose, gate, conflicts, build, repair (PRD-sovereign-corpus, ADR-2113); find/retrieve/tree/edit/create/apply live in ontomark"
+authors = ["jjohare <github@thedreamlab.uk>"]
+license = "AGPL-3.0-only"
+repository = "https://github.com/jjohare/VisionClaw"
+publish = false
+
+[[bin]]
+name = "vault"
+path = "src/main.rs"
+
+[lib]
+name = "vault"
+path = "src/lib.rs"
+
+[features]
+default = ["shared-layout"]
+# Consume the released Ontomark root checks without its reasoner feature.
+shared-layout = ["dep:ontomark-compile"]
+# VC-20-S1-01: the opt-in Jev option (`vault rank`). Off by default, so the
+# default build carries no HTTP client and no network code path.
+jev = ["dep:visionclaw-jev", "dep:tokio"]
+
+[dependencies]
+ontomark-compile = { version = "0.6.3", default-features = false, optional = true }
+visionclaw-jev = { path = "../visionclaw-jev", optional = true }
+tokio = { version = "1.47.1", features = ["rt", "time"], optional = true }
+# RDFS derivation certificates in the oo-cert/1 format (ADR-2147).
+rdfs-certificate = "0.1.0"
+vault-core = { path = "../vault-core" }
+clap = { version = "4.5", features = ["derive", "env"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+serde_yaml = "0.9"
+indexmap = { version = "2", features = ["serde"] }
+anyhow = "1"
+thiserror = "2"
+regex = "1"
+walkdir = "2"
+sha2 = "0.10"
+hex = "0.4"
+time = { version = "0.3", features = ["formatting", "parsing", "macros"] }
+similar = "2"
+rayon = "1"
+# EL++ reasoning — the SAME reasoner VisionClaw's ontology service uses, pinned
+# to the same revision so the corpus is reasoned by one implementation (Q11).
+whelk = { git = "https://github.com/jjohare/whelk-rs", rev = "79a1ee21789add5a66faa0ec1a830c32dba9b539" }
+horned-owl = { version = "1.2.0" }
+# Turtle parsing for the golden triple-set comparison and for `--verify`.
+oxttl = "0.1"
+oxrdf = "0.2"
+# Nostr 31402 ActionRequest construction + BIP-340 signing. Never hand-rolled:
+# nostr-bbs-core owns the event id/signature and the governance kind constants.
+nostr-bbs-core = "1.0.0-beta.16"
+ureq = { version = "2", features = ["json"] }
+tungstenite = { version = "0.21", features = ["native-tls"] }
+
+[dev-dependencies]
+tempfile = "3"
+visionclaw-jev = { path = "../visionclaw-jev", features = ["test-util"] }
+tokio = { version = "1.47.1", features = ["full"] }

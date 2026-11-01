@@ -1,0 +1,240 @@
+   Compiling typenum v1.20.1
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.26
+   Compiling quote v1.0.47
+   Compiling cfg-if v1.0.5
+   Compiling version_check v0.9.5
+   Compiling serde_core v1.0.229
+   Compiling libc v0.2.190
+   Compiling getrandom v0.3.4
+   Compiling zerocopy v0.8.62
+   Compiling const-oid v0.10.2
+   Compiling memchr v2.8.3
+   Compiling cpufeatures v0.3.1
+   Compiling foldhash v0.2.0
+   Compiling thiserror v2.0.21
+   Compiling hashbrown v0.17.1
+   Compiling generic-array v0.14.7
+   Compiling hybrid-array v0.4.15
+   Compiling serde v1.0.229
+   Compiling syn v3.0.8
+   Compiling bitmaps v2.1.0
+   Compiling im v15.1.0
+   Compiling crypto-common v0.2.2
+   Compiling block-buffer v0.12.1
+   Compiling hex v0.4.3
+   Compiling equivalent v1.0.2
+   Compiling rand_core v0.6.4
+   Compiling sized-chunks v0.6.5
+   Compiling rand_xoshiro v0.6.0
+   Compiling zmij v1.0.23
+   Compiling rand_core v0.9.5
+   Compiling oxiri v0.2.11
+   Compiling oxilangtag v0.1.6
+   Compiling crypto-common v0.1.7
+   Compiling block-buffer v0.10.4
+   Compiling hashlink v0.12.2
+   Compiling digest v0.11.3
+   Compiling aho-corasick v1.1.5
+   Compiling sha2 v0.11.0
+   Compiling indexmap v2.14.2
+   Compiling arraydeque v0.5.1
+   Compiling serde_json v1.0.154
+   Compiling anyhow v1.0.104
+   Compiling time-core v0.1.9
+   Compiling num-conv v0.2.2
+   Compiling rustix v1.1.5
+   Compiling itoa v1.0.18
+   Compiling regex-syntax v0.8.11
+   Compiling time-macros v0.2.32
+   Compiling whelk-el v0.1.1 (/home/devuser/workspace/wt/ontomark-layout-receipt/crates/whelk-el)
+   Compiling yaml-rust2 v0.13.0
+   Compiling deranged v0.5.8
+   Compiling thiserror-impl v2.0.21
+   Compiling ppv-lite86 v0.2.21
+   Compiling rand_chacha v0.9.0
+   Compiling serde_derive v1.0.229
+   Compiling rand v0.9.5
+   Compiling digest v0.10.7
+   Compiling regex-automata v0.4.18
+   Compiling ryu v1.0.23
+   Compiling linux-raw-sys v0.12.1
+   Compiling cpufeatures v0.2.17
+   Compiling unsafe-libyaml v0.2.11
+   Compiling bitflags v2.13.2
+   Compiling oxrdf v0.3.4
+   Compiling same-file v1.0.6
+   Compiling powerfmt v0.2.1
+   Compiling walkdir v2.5.0
+   Compiling time v0.3.55
+   Compiling sha2 v0.10.9
+   Compiling ontomark-parse v0.1.3 (/home/devuser/workspace/wt/ontomark-layout-receipt/crates/ontomark-parse)
+   Compiling regex v1.13.1
+   Compiling quick-xml v0.37.5
+   Compiling fastrand v2.5.0
+   Compiling ryu-js v1.0.3
+   Compiling similar v2.7.0
+   Compiling once_cell v1.21.4
+   Compiling json-event-parser v0.2.3
+   Compiling ontomark-reason v0.1.2 (/home/devuser/workspace/wt/ontomark-layout-receipt/crates/ontomark-reason)
+   Compiling serde_yaml v0.9.34+deprecated
+   Compiling rdfs-certificate v0.1.0 (/home/devuser/workspace/wt/ontomark-layout-receipt/crates/rdfs-certificate)
+   Compiling ontomark-ngg1 v0.1.0 (/home/devuser/workspace/wt/ontomark-layout-receipt/crates/ontomark-ngg1)
+   Compiling oxjsonld v0.2.6
+   Compiling oxrdfxml v0.2.4
+   Compiling tempfile v3.27.0
+   Compiling oxttl v0.2.4
+   Compiling oxiri v0.3.1
+   Compiling ontomark-compile v0.6.2 (/home/devuser/workspace/wt/ontomark-layout-receipt/crates/ontomark-compile)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 20.76s
+     Running tests/migrate.rs (target/debug/deps/migrate-12d055e498bdf899)
+
+running 6 tests
+test journal_boundary_loader_refuses_a_linked_journal_root ... FAILED
+test journal_boundary_body_repair_refuses_a_linked_scope ... FAILED
+test journal_boundary_planner_refuses_a_linked_journal_root ... FAILED
+test journal_boundary_migration_log_cannot_be_redirected_outside ... FAILED
+test journal_boundary_apply_refuses_a_redirected_parent ... FAILED
+test journal_boundary_rollback_refuses_a_redirected_parent ... FAILED
+
+failures:
+
+---- journal_boundary_loader_refuses_a_linked_journal_root stdout ----
+
+thread 'journal_boundary_loader_refuses_a_linked_journal_root' (4123469) panicked at crates/ontomark-compile/tests/migrate.rs:632:5:
+assertion failed: ontomark_compile::input::page::Vault::load(root.join("working"),
+        VaultKind::Working).is_err()
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::panicking::panic
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:150:5
+   3: migrate::journal_boundary_loader_refuses_a_linked_journal_root
+             at ./tests/migrate.rs:632:5
+   4: migrate::journal_boundary_loader_refuses_a_linked_journal_root::{closure#0}
+             at ./tests/migrate.rs:628:59
+   5: <migrate::journal_boundary_loader_refuses_a_linked_journal_root::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   6: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+---- journal_boundary_body_repair_refuses_a_linked_scope stdout ----
+
+thread 'journal_boundary_body_repair_refuses_a_linked_scope' (4123468) panicked at crates/ontomark-compile/tests/migrate.rs:683:5:
+assertion failed: bodies::run(&options).is_err()
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::panicking::panic
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:150:5
+   3: migrate::journal_boundary_body_repair_refuses_a_linked_scope
+             at ./tests/migrate.rs:683:5
+   4: migrate::journal_boundary_body_repair_refuses_a_linked_scope::{closure#0}
+             at ./tests/migrate.rs:673:57
+   5: <migrate::journal_boundary_body_repair_refuses_a_linked_scope::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   6: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+---- journal_boundary_planner_refuses_a_linked_journal_root stdout ----
+
+thread 'journal_boundary_planner_refuses_a_linked_journal_root' (4123516) panicked at crates/ontomark-compile/tests/migrate.rs:641:5:
+assertion failed: plan(&root, &BOTH, &ObsidianBodies, &profile()).is_err()
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::panicking::panic
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:150:5
+   3: migrate::journal_boundary_planner_refuses_a_linked_journal_root
+             at ./tests/migrate.rs:641:5
+   4: migrate::journal_boundary_planner_refuses_a_linked_journal_root::{closure#0}
+             at ./tests/migrate.rs:637:60
+   5: <migrate::journal_boundary_planner_refuses_a_linked_journal_root::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   6: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+---- journal_boundary_migration_log_cannot_be_redirected_outside stdout ----
+
+thread 'journal_boundary_migration_log_cannot_be_redirected_outside' (4123470) panicked at crates/ontomark-compile/tests/migrate.rs:694:5:
+assertion failed: apply(&root, &p).is_err()
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::panicking::panic
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:150:5
+   3: migrate::journal_boundary_migration_log_cannot_be_redirected_outside
+             at ./tests/migrate.rs:694:5
+   4: migrate::journal_boundary_migration_log_cannot_be_redirected_outside::{closure#0}
+             at ./tests/migrate.rs:689:65
+   5: <migrate::journal_boundary_migration_log_cannot_be_redirected_outside::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   6: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+---- journal_boundary_apply_refuses_a_redirected_parent stdout ----
+
+thread 'journal_boundary_apply_refuses_a_redirected_parent' (4123467) panicked at crates/ontomark-compile/tests/migrate.rs:653:5:
+assertion failed: report.conflicts.iter().any(|c| c.path == "working/journals/2026-10-12.md")
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::panicking::panic
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:150:5
+   3: migrate::journal_boundary_apply_refuses_a_redirected_parent
+             at ./tests/migrate.rs:653:5
+   4: migrate::journal_boundary_apply_refuses_a_redirected_parent::{closure#0}
+             at ./tests/migrate.rs:646:56
+   5: <migrate::journal_boundary_apply_refuses_a_redirected_parent::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   6: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+---- journal_boundary_rollback_refuses_a_redirected_parent stdout ----
+
+thread 'journal_boundary_rollback_refuses_a_redirected_parent' (4123663) panicked at crates/ontomark-compile/tests/migrate.rs:667:5:
+assertion failed: report.conflicts.iter().any(|c| c.path == "working/journals/2026-10-12.md")
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::panicking::panic
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:150:5
+   3: migrate::journal_boundary_rollback_refuses_a_redirected_parent
+             at ./tests/migrate.rs:667:5
+   4: migrate::journal_boundary_rollback_refuses_a_redirected_parent::{closure#0}
+             at ./tests/migrate.rs:659:59
+   5: <migrate::journal_boundary_rollback_refuses_a_redirected_parent::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   6: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+
+failures:
+    journal_boundary_apply_refuses_a_redirected_parent
+    journal_boundary_body_repair_refuses_a_linked_scope
+    journal_boundary_loader_refuses_a_linked_journal_root
+    journal_boundary_migration_log_cannot_be_redirected_outside
+    journal_boundary_planner_refuses_a_linked_journal_root
+    journal_boundary_rollback_refuses_a_redirected_parent
+
+test result: FAILED. 0 passed; 6 failed; 0 ignored; 0 measured; 21 filtered out; finished in 3.31s
+
+error: test failed, to rerun pass `-p ontomark-compile --test migrate`

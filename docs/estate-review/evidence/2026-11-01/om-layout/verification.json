@@ -1,0 +1,285 @@
+{
+  "repo": "ontomark",
+  "revision": "0caae5d4b695cb720942b9b9212017c00a80ad41",
+  "sources": [
+    {
+      "path": "docs/adr/ADR-OM-008-any-obsidian-vault-is-a-repository.md",
+      "sha256": "cbc109c1a6773d7f5ec59d47d128e9f0ff699d631c82fc116d247283a34937dc",
+      "export": "source/docs/adr/ADR-OM-008-any-obsidian-vault-is-a-repository.md",
+      "ranges": null
+    },
+    {
+      "path": "docs/adr/ADR-OM-007-vault-root-is-the-content-root.md",
+      "sha256": "35619bfa78de4d20c459a03727a7955839abaab01212cfac682540e829a4f542",
+      "export": "source/docs/adr/ADR-OM-007-vault-root-is-the-content-root.md",
+      "ranges": null
+    },
+    {
+      "path": "crates/ontomark-cli/src/main.rs",
+      "sha256": "780cff6abf0500ebd4fd74871a43be041afd462ff33d0bd85922afffdb25ad8e",
+      "export": "source/crates/ontomark-cli/src/main.rs.txt",
+      "ranges": [
+        [
+          450,
+          580
+        ],
+        [
+          647,
+          686
+        ],
+        [
+          790,
+          833
+        ]
+      ]
+    },
+    {
+      "path": "crates/ontomark-cli/src/migrate_cmd.rs",
+      "sha256": "d7a4d06698ebc474bad91671b2864d9e76ec90aa4a16523b8a793bd0e1d2ad79",
+      "export": "source/crates/ontomark-cli/src/migrate_cmd.rs.txt",
+      "ranges": [
+        [
+          15,
+          85
+        ],
+        [
+          104,
+          162
+        ]
+      ]
+    },
+    {
+      "path": "crates/ontomark-compile/src/profile.rs",
+      "sha256": "f7541a90123d73521c120b79c13dbe2a3c0bfdf02e74a90f1ddefdee132fee5e",
+      "export": "source/crates/ontomark-compile/src/profile.rs.txt",
+      "ranges": [
+        [
+          37,
+          115
+        ],
+        [
+          348,
+          404
+        ],
+        [
+          480,
+          706
+        ],
+        [
+          824,
+          957
+        ]
+      ]
+    },
+    {
+      "path": "crates/ontomark-compile/src/input/page.rs",
+      "sha256": "12730315dd242aa32e50a88e9681730f64689eca244fb6343169d540052133d1",
+      "export": "source/crates/ontomark-compile/src/input/page.rs.txt",
+      "ranges": [
+        [
+          1,
+          165
+        ],
+        [
+          422,
+          543
+        ],
+        [
+          567,
+          649
+        ]
+      ]
+    },
+    {
+      "path": "crates/ontomark-compile/src/input/vocabulary.rs",
+      "sha256": "ceefa47438eec7755500af8bbabf9cfcd3403b144d58ff3de27468d0a7b06f51",
+      "export": "source/crates/ontomark-compile/src/input/vocabulary.rs.txt",
+      "ranges": [
+        [
+          451,
+          508
+        ]
+      ]
+    },
+    {
+      "path": "crates/ontomark-compile/src/check/validate.rs",
+      "sha256": "81c21b0e6b517593e55bd52c523dcc23ca48e16b7aa46043f1c394712136d005",
+      "export": "source/crates/ontomark-compile/src/check/validate.rs.txt",
+      "ranges": [
+        [
+          374,
+          404
+        ],
+        [
+          650,
+          670
+        ]
+      ]
+    },
+    {
+      "path": "crates/ontomark-compile/src/check/repair.rs",
+      "sha256": "babcd1979ca95ecb6c6eb77ece4e0d96ed764742eb37901e86a0cb56ee5f5d1d",
+      "export": "source/crates/ontomark-compile/src/check/repair.rs.txt",
+      "ranges": [
+        [
+          380,
+          405
+        ]
+      ]
+    },
+    {
+      "path": "crates/ontomark-compile/src/check/bodies.rs",
+      "sha256": "ef13bc306b3068092399e8d2db41fb6fe587fb17a0eb1f8266e50415cc1cf073",
+      "export": "source/crates/ontomark-compile/src/check/bodies.rs.txt",
+      "ranges": [
+        [
+          798,
+          820
+        ]
+      ]
+    },
+    {
+      "path": "crates/ontomark-compile/src/ir/projection.rs",
+      "sha256": "9bbff6af778c954bc6d0413030395accf59b61d001abc2094881e598ba2f7437",
+      "export": "source/crates/ontomark-compile/src/ir/projection.rs.txt",
+      "ranges": [
+        [
+          80,
+          147
+        ],
+        [
+          220,
+          241
+        ]
+      ]
+    },
+    {
+      "path": "crates/ontomark-compile/src/build/mod.rs",
+      "sha256": "cfc0a84ba4802325de5821e827a949ab206665497e9b23f8ee842ff9019809ea",
+      "export": "source/crates/ontomark-compile/src/build/mod.rs.txt",
+      "ranges": [
+        [
+          545,
+          633
+        ],
+        [
+          925,
+          947
+        ]
+      ]
+    },
+    {
+      "path": "crates/ontomark-compile/src/build/publish.rs",
+      "sha256": "794d8fefa9e0980f22081ddc4a8d6b3506f2fb92a463829ae098715811bdf967",
+      "export": "source/crates/ontomark-compile/src/build/publish.rs.txt",
+      "ranges": [
+        [
+          125,
+          150
+        ],
+        [
+          350,
+          378
+        ]
+      ]
+    },
+    {
+      "path": "crates/ontomark-compile/src/build/generation.rs",
+      "sha256": "47972a0f41105ed743e78f8a2ee1a8fb754f744f492208ca49ed68b82d6377e5",
+      "export": "source/crates/ontomark-compile/src/build/generation.rs.txt",
+      "ranges": [
+        [
+          151,
+          173
+        ]
+      ]
+    },
+    {
+      "path": "crates/ontomark-compile/src/bundle.rs",
+      "sha256": "3efb2b5df2816ca8c863d2f520dfa44b249cf36970ab28b84fdbe181e789e2d6",
+      "export": "source/crates/ontomark-compile/src/bundle.rs.txt",
+      "ranges": [
+        [
+          1,
+          135
+        ]
+      ]
+    },
+    {
+      "path": "crates/ontomark-compile/src/migrate/plan.rs",
+      "sha256": "6d4954e89f9badf388411e8b8c36daeca71fbc45670008becf7fa989f86600ec",
+      "export": "source/crates/ontomark-compile/src/migrate/plan.rs.txt",
+      "ranges": [
+        [
+          326,
+          365
+        ],
+        [
+          454,
+          472
+        ]
+      ]
+    },
+    {
+      "path": "crates/ontomark-cli/tests/plain_vault_cli.rs",
+      "sha256": "a5fb0a4dd7a6febcb92077bdd61da3f467ab6079010660676359197a0cc7dee5",
+      "export": "source/crates/ontomark-cli/tests/plain_vault_cli.rs",
+      "ranges": null
+    },
+    {
+      "path": "crates/ontomark-compile/tests/bundle_contract.rs",
+      "sha256": "68f0c01b1d0b47403c744e0accea4fbeb2d310cd131295c816a011da9ef209aa",
+      "export": "source/crates/ontomark-compile/tests/bundle_contract.rs",
+      "ranges": null
+    },
+    {
+      "path": "profiles/estate/profile.yaml",
+      "sha256": "ce91574ce91265ff07bd04ae6823a49f3fe2dd3d567710ea11f19c54678d4681",
+      "export": "source/profiles/estate/profile.yaml",
+      "ranges": null
+    },
+    {
+      "path": "profiles/estate/Cargo.toml",
+      "sha256": "09183d53bbe474c808171e131f0feb0b4d255c0c467517ce59653b4e7b84914c",
+      "export": "source/profiles/estate/Cargo.toml",
+      "ranges": null
+    },
+    {
+      "path": "crates/ontomark-cli/Cargo.toml",
+      "sha256": "c57cc0fccc326314aa0bbe5a3f6cc2453436581564f41584feed13e99c358533",
+      "export": "source/crates/ontomark-cli/Cargo.toml",
+      "ranges": null
+    }
+  ],
+  "old_pin": "560e50c1a35bb9486b9f43ebf074b816c1e01349",
+  "old_pin_identity": {
+    "docs/adr/ADR-OM-008-any-obsidian-vault-is-a-repository.md": false,
+    "docs/adr/ADR-OM-007-vault-root-is-the-content-root.md": false,
+    "crates/ontomark-cli/src/main.rs": false,
+    "crates/ontomark-cli/src/migrate_cmd.rs": true,
+    "crates/ontomark-compile/src/profile.rs": true,
+    "crates/ontomark-compile/src/input/page.rs": false,
+    "crates/ontomark-compile/src/input/vocabulary.rs": true,
+    "crates/ontomark-compile/src/check/validate.rs": true,
+    "crates/ontomark-compile/src/check/repair.rs": true,
+    "crates/ontomark-compile/src/check/bodies.rs": false,
+    "crates/ontomark-compile/src/ir/projection.rs": true,
+    "crates/ontomark-compile/src/build/mod.rs": false,
+    "crates/ontomark-compile/src/build/publish.rs": true,
+    "crates/ontomark-compile/src/build/generation.rs": true,
+    "crates/ontomark-compile/src/bundle.rs": true,
+    "crates/ontomark-compile/src/migrate/plan.rs": true,
+    "crates/ontomark-cli/tests/plain_vault_cli.rs": true,
+    "crates/ontomark-compile/tests/bundle_contract.rs": true,
+    "profiles/estate/profile.yaml": true,
+    "profiles/estate/Cargo.toml": true,
+    "crates/ontomark-cli/Cargo.toml": false
+  },
+  "tests": {
+    "profile_unit": 10,
+    "bundle_contract": 6,
+    "plain_vault_cli": 5,
+    "adversarial_cli": 9
+  },
+  "limits": "Synthetic fixtures; only ADR-OM-008 whole-assessed. ADR-OM-007 retained as related layout context, not whole-document credit. No product edits, current corpus parity, installed release or deployment claimed."
+}

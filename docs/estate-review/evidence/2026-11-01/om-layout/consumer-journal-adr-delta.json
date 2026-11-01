@@ -1,0 +1,78 @@
+[
+  {
+    "adr": "2004",
+    "prior": "974daf5d22d2d0ea709140777eae58d60ddb2c36",
+    "revision": "efbd7f6f080df06ecb580254bddabcee59d4fbf8",
+    "paths": [
+      "Cargo.toml",
+      "src/app_state.rs"
+    ],
+    "diff": "diff --git a/Cargo.toml b/Cargo.toml\nindex 191a6f75d..4dcc24eb2 100644\n--- a/Cargo.toml\n+++ b/Cargo.toml\n@@ -40,7 +40,7 @@ license = \"AGPL-3.0-only\"\n crate-type = [\"cdylib\", \"rlib\"]\n \n [dependencies]\n-ontomark-compile = { version = \"0.6.2\", default-features = false, optional = true }\n+ontomark-compile = { version = \"0.6.3\", default-features = false, optional = true }\n # Workspace crates \u2014 ADR-090 hexagonal modularisation. Each `pub use`\n # re-export shim in src/{models,types,config,layout} reaches into these\n # crates so a one-line change in a domain type no longer triggers a full\n"
+  },
+  {
+    "adr": "2005",
+    "prior": "974daf5d22d2d0ea709140777eae58d60ddb2c36",
+    "revision": "efbd7f6f080df06ecb580254bddabcee59d4fbf8",
+    "paths": [
+      "Cargo.toml",
+      "src/actors",
+      "crates/visionclaw-actors/src",
+      "crates/visionclaw-integration-tests/tests/layer_direction.rs",
+      ".github/workflows/ci.yml"
+    ],
+    "diff": "diff --git a/Cargo.toml b/Cargo.toml\nindex 191a6f75d..4dcc24eb2 100644\n--- a/Cargo.toml\n+++ b/Cargo.toml\n@@ -40,7 +40,7 @@ license = \"AGPL-3.0-only\"\n crate-type = [\"cdylib\", \"rlib\"]\n \n [dependencies]\n-ontomark-compile = { version = \"0.6.2\", default-features = false, optional = true }\n+ontomark-compile = { version = \"0.6.3\", default-features = false, optional = true }\n # Workspace crates \u2014 ADR-090 hexagonal modularisation. Each `pub use`\n # re-export shim in src/{models,types,config,layout} reaches into these\n # crates so a one-line change in a domain type no longer triggers a full\n"
+  },
+  {
+    "adr": "2042",
+    "prior": "974daf5d22d2d0ea709140777eae58d60ddb2c36",
+    "revision": "efbd7f6f080df06ecb580254bddabcee59d4fbf8",
+    "paths": [
+      "crates/vault-migrate",
+      "Cargo.toml",
+      "docs/VAULT-corpus-format.md"
+    ],
+    "diff": "diff --git a/Cargo.toml b/Cargo.toml\nindex 191a6f75d..4dcc24eb2 100644\n--- a/Cargo.toml\n+++ b/Cargo.toml\n@@ -40,7 +40,7 @@ license = \"AGPL-3.0-only\"\n crate-type = [\"cdylib\", \"rlib\"]\n \n [dependencies]\n-ontomark-compile = { version = \"0.6.2\", default-features = false, optional = true }\n+ontomark-compile = { version = \"0.6.3\", default-features = false, optional = true }\n # Workspace crates \u2014 ADR-090 hexagonal modularisation. Each `pub use`\n # re-export shim in src/{models,types,config,layout} reaches into these\n # crates so a one-line change in a domain type no longer triggers a full\n"
+  },
+  {
+    "adr": "2147",
+    "prior": "974daf5d22d2d0ea709140777eae58d60ddb2c36",
+    "revision": "efbd7f6f080df06ecb580254bddabcee59d4fbf8",
+    "paths": [
+      "crates/vault/Cargo.toml",
+      "crates/vault-core/Cargo.toml",
+      "crates/vault/src/certificate.rs",
+      "crates/vault/src/propose.rs",
+      "crates/vault/src/main.rs",
+      "crates/vault-core/src/proposal.rs",
+      "crates/vault/tests/certificate_oo_cert.rs",
+      "crates/visionclaw-ontology/shapes/ontology-class.shacl.ttl",
+      "crates/visionclaw-ontology/src/services/jsonld_validator/shacl.rs"
+    ],
+    "diff": "diff --git a/crates/vault/Cargo.toml b/crates/vault/Cargo.toml\nindex 162251282..a5d55cee0 100644\n--- a/crates/vault/Cargo.toml\n+++ b/crates/vault/Cargo.toml\n@@ -25,7 +25,7 @@ shared-layout = [\"dep:ontomark-compile\"]\n jev = [\"dep:visionclaw-jev\", \"dep:tokio\"]\n \n [dependencies]\n-ontomark-compile = { version = \"0.6.2\", default-features = false, optional = true }\n+ontomark-compile = { version = \"0.6.3\", default-features = false, optional = true }\n visionclaw-jev = { path = \"../visionclaw-jev\", optional = true }\n tokio = { version = \"1.47.1\", features = [\"rt\", \"time\"], optional = true }\n # RDFS derivation certificates in the oo-cert/1 format (ADR-2147).\n"
+  },
+  {
+    "adr": "2156",
+    "prior": "974daf5d22d2d0ea709140777eae58d60ddb2c36",
+    "revision": "efbd7f6f080df06ecb580254bddabcee59d4fbf8",
+    "paths": [
+      "Cargo.toml",
+      "scripts/rust-backend-wrapper.sh",
+      "build.rs"
+    ],
+    "diff": "diff --git a/Cargo.toml b/Cargo.toml\nindex 191a6f75d..4dcc24eb2 100644\n--- a/Cargo.toml\n+++ b/Cargo.toml\n@@ -40,7 +40,7 @@ license = \"AGPL-3.0-only\"\n crate-type = [\"cdylib\", \"rlib\"]\n \n [dependencies]\n-ontomark-compile = { version = \"0.6.2\", default-features = false, optional = true }\n+ontomark-compile = { version = \"0.6.3\", default-features = false, optional = true }\n # Workspace crates \u2014 ADR-090 hexagonal modularisation. Each `pub use`\n # re-export shim in src/{models,types,config,layout} reaches into these\n # crates so a one-line change in a domain type no longer triggers a full\n"
+  },
+  {
+    "adr": "2168",
+    "prior": "974daf5d22d2d0ea709140777eae58d60ddb2c36",
+    "revision": "efbd7f6f080df06ecb580254bddabcee59d4fbf8",
+    "paths": [
+      "Cargo.toml",
+      "Cargo.lock",
+      "crates/vault/Cargo.toml",
+      "crates/vault/src/main.rs",
+      "crates/vault/tests/shared_layout.rs",
+      "src/services/corpus_source/local.rs"
+    ],
+    "diff": "diff --git a/Cargo.lock b/Cargo.lock\nindex 296466cf0..9c3dc707c 100644\n--- a/Cargo.lock\n+++ b/Cargo.lock\n@@ -4052,9 +4052,9 @@ checksum = \"a4895175b425cb1f87721b59f0f286c2092bd4af812243672510e1ac53e2e0ad\"\n \n [[package]]\n name = \"ontomark-compile\"\n-version = \"0.6.2\"\n+version = \"0.6.3\"\n source = \"registry+https://github.com/rust-lang/crates.io-index\"\n-checksum = \"2dacb0cbcd55ffa07d47462c4b5e06fba311eb6f98f3d40a2f2717c287abb841\"\n+checksum = \"72cf2bc78aebf9430941cc5525900383b325b79be7eb67ca0a4283185631ffbc\"\n dependencies = [\n  \"anyhow\",\n  \"hex\",\ndiff --git a/Cargo.toml b/Cargo.toml\nindex 191a6f75d..4dcc24eb2 100644\n--- a/Cargo.toml\n+++ b/Cargo.toml\n@@ -40,7 +40,7 @@ license = \"AGPL-3.0-only\"\n crate-type = [\"cdylib\", \"rlib\"]\n \n [dependencies]\n-ontomark-compile = { version = \"0.6.2\", default-features = false, optional = true }\n+ontomark-compile = { version = \"0.6.3\", default-features = false, optional = true }\n # Workspace crates \u2014 ADR-090 hexagonal modularisation. Each `pub use`\n # re-export shim in src/{models,types,config,layout} reaches into these\n # crates so a one-line change in a domain type no longer triggers a full\ndiff --git a/crates/vault/Cargo.toml b/crates/vault/Cargo.toml\nindex 162251282..a5d55cee0 100644\n--- a/crates/vault/Cargo.toml\n+++ b/crates/vault/Cargo.toml\n@@ -25,7 +25,7 @@ shared-layout = [\"dep:ontomark-compile\"]\n jev = [\"dep:visionclaw-jev\", \"dep:tokio\"]\n \n [dependencies]\n-ontomark-compile = { version = \"0.6.2\", default-features = false, optional = true }\n+ontomark-compile = { version = \"0.6.3\", default-features = false, optional = true }\n visionclaw-jev = { path = \"../visionclaw-jev\", optional = true }\n tokio = { version = \"1.47.1\", features = [\"rt\", \"time\"], optional = true }\n # RDFS derivation certificates in the oo-cert/1 format (ADR-2147).\n"
+  }
+]

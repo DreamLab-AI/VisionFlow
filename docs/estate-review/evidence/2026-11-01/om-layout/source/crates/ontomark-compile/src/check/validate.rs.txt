@@ -1,0 +1,52 @@
+374: pub fn validate(profile: &Profile, vault: &Vault, corpus: &Corpus, vocab: &Vocabulary) -> Report {
+375:     let mut report = Report {
+376:         total_pages: vault.pages.len(),
+377:         total_journals: vault.journals.len(),
+378:         skipped: vault.skipped.clone(),
+379:         ..Report::default()
+380:     };
+381:     // The role grammar comes from the profile's `frontmatter.roles` entry for
+382:     // this vault's role: whether an undeclared key is an error, and whether
+383:     // `type` and `status` are required. A profile that does not name the role
+384:     // falls back to the built-in estate rule (unknown keys fail in knowledge,
+385:     // pass in working). The generic profile's knowledge role allows unknown
+386:     // keys and requires nothing, which is what lets a plain Obsidian vault
+387:     // validate (ADR-OM-008). Required keys are enforced on the knowledge role
+388:     // only; the working role is tolerant by definition (OKF §4.1).
+389:     let role = profile.frontmatter.roles.get(vault.kind.role_name());
+390:     let strict_keys = role.map_or_else(
+391:         || vault.kind.rejects_unknown_keys(),
+392:         |r| r.unknown_keys == crate::profile::UnknownKeys::Fail,
+393:     );
+394:     let knowledge = vault.kind == VaultKind::Knowledge;
+395:     let requires =
+396:         |key: &str| knowledge && role.is_some_and(|r| r.required_keys.iter().any(|k| k == key));
+397:     let rules = RoleRules {
+398:         knowledge,
+399:         requires_type: requires("type"),
+400:         requires_status: requires("status"),
+401:     };
+402:
+403:     // `domain` is free text with a documented `observed:` census and six
+404:     // `roots:`, so the check is "did the census ever see this value?" rather
+650:     // A journal has no ontology identity, so none of the projection checks
+651:     // apply to it; the page-level ones all do, and the secret scan especially:
+652:     // a daily note is exactly where a pasted API key ends up.
+653:     for journal in &vault.journals {
+654:         page_level_checks(&mut report, &journal.id, journal, vocab, false);
+655:         // The identity of a journal page is its date. A stem that is not one is
+656:         // a page misfiled into `journals/`, which is worth saying out loud.
+657:         if crate::input::page::journal_date(&journal.id).is_none() {
+658:             report.push(
+659:                 &journal.id,
+660:                 Severity::Warning,
+661:                 "JOURNAL_NOT_DATED",
+662:                 "a `journals/` page's identity is its date, `YYYY-MM-DD`",
+663:             );
+664:         }
+665:         let declared = journal.frontmatter.text("type");
+666:         if let Some(declared) = declared {
+667:             if declared != crate::input::page::JOURNAL_TYPE
+668:                 && !vocab.working_types.contains(&declared)
+669:                 && !vocab.types.contains_key(&declared)
+670:             {

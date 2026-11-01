@@ -1,0 +1,90 @@
+[1mDirect process[0m project [1mVisionClaw-vault-layout[0m
+  Source: git-diff:working
+  Files: 7
+  Agent: claude-agent-sdk (claude-opus-4-8)
+  Root: /home/devuser/workspace/wt/VisionClaw-vault-layout
+
+[1mScanning 7 file(s)…[0m
+  [2m0 candidate(s) across 7 file(s)[0m
+
+[1mBatch 1/2[0m: Processing batch 1/2 (5 files, 1 in flight)
+[1mBatch 2/2[0m: Processing batch 2/2 (2 files, 2 in flight)
+  [32m>[0m Investigating 5 file(s) with Claude Agent SDK (claude-opus-4-8)
+  [32m>[0m Investigating 2 file(s) with Claude Agent SDK (claude-opus-4-8)
+  [2m  Turn 1 (10s, 0 tool calls)[0m
+  [2m  Turn 1 (11s, 0 tool calls)[0m
+  [2m  Turn 2 (11s, 0 tool calls)[0m
+  [2m  Turn 2 (11s, 0 tool calls)[0m
+  [36m  tool:[0m Read: VisionClaw-vault-layout/.audit-local/lib.rs
+  [36m  tool:[0m Read: services/corpus_source/local.rs
+  [36m  tool:[0m Read: VisionClaw-vault-layout/.audit-local/Cargo.toml
+  [2m  Turn 5 (14s, 2 tool calls)[0m
+  [2m  Turn 6 (15s, 2 tool calls)[0m
+  [36m  tool:[0m Read: services/corpus_source/local.rs
+  [2m  Turn 4 (16s, 1 tool calls)[0m
+  [2m  Turn 5 (16s, 1 tool calls)[0m
+  [36m  tool:[0m Read: vault/src/main.rs
+  [2m  Turn 7 (20s, 2 tool calls)[0m
+  [2m  Turn 8 (20s, 2 tool calls)[0m
+  [36m  tool:[0m Read: crates/vault/Cargo.toml
+  [2m  Turn 10 (24s, 3 tool calls)[0m
+  [36m  tool:[0m Read: wt/VisionClaw-vault-layout/Cargo.toml
+  [2m  Turn 12 (41s, 4 tool calls)[0m
+  [2m  Turn 13 (41s, 4 tool calls)[0m
+  [36m  tool:[0m Grep: list_pages_under|fetch_page|LocalDirectorySource|from_env
+  [2m  Turn 15 (44s, 5 tool calls)[0m
+  [36m  tool:[0m Grep: list_pages_under|\.fetch_page\(|corpus_source::|CorpusSource
+  [2m  Turn 8 (46s, 3 tool calls)[0m
+  [36m  tool:[0m Grep: list_pages_under
+  [2m  Turn 18 (56s, 7 tool calls)[0m
+  [2m  Turn 19 (57s, 7 tool calls)[0m
+  [2m  Turn 20 (57s, 7 tool calls)[0m
+  [2m  Turn 9 (68s, 3 tool calls)[0m
+  [32m  Investigation complete (71.3s, 9 turns, 3 tool calls $0.786 4227 tokens)[0m
+  Batch 2/2 complete: 2 analyses, 2 findings (1 in flight, 1/2 done)
+
+  [2m  Turn 21 (105s, 7 tool calls)[0m
+  [2m  Turn 22 (105s, 7 tool calls)[0m
+  [2m  Turn 23 (105s, 7 tool calls)[0m
+  [36m  tool:[0m Bash: dev/null | head -40
+echo "=== cfg debug_assertions auth guard ==="
+grep -rnE "cfg\(any\(debug_assertions" src/ | head -20
+  [36m  tool:[0m Grep: dev-runtime|--profile|--release
+  [2m  Turn 26 (119s, 9 tool calls)[0m
+  [2m  Turn 27 (120s, 9 tool calls)[0m
+  [36m  tool:[0m Grep: imports|IRIMapped|resolve_imports|remote|import_closure|owl:imports
+  [2m  Turn 29 (124s, 10 tool calls)[0m
+  [36m  tool:[0m Read: src/inference/owl_parser.rs
+  [2m  Turn 31 (129s, 11 tool calls)[0m
+  [2m  Turn 32 (130s, 11 tool calls)[0m
+  [36m  tool:[0m Bash
+  [36m  tool:[0m Bash: cargo audit --version 2>&1 | head -3; echo "---"; cargo audit 2>&1 | tail -45
+  [2m  Turn 35 (141s, 13 tool calls)[0m
+  [2m  Turn 36 (142s, 13 tool calls)[0m
+  [36m  tool:[0m Bash: (cargo audit --version 2>&1 | head -3); echo "---"; (cargo audit 2>&1 | tail -45)
+  [2m  Turn 38 (150s, 14 tool calls)[0m
+  [2m  Turn 39 (151s, 14 tool calls)[0m
+  [36m  tool:[0m Grep: Command::new|process::Command|\.arg\(
+  [2m  Turn 41 (161s, 15 tool calls)[0m
+  [2m  Turn 42 (176s, 15 tool calls)[0m
+  [32m  Investigation complete (179.2s, 42 turns, 15 tool calls $2.404 7845 tokens)[0m
+  Batch 1/2 complete: 5 analyses, 0 findings (0 in flight, 2/2 done)
+
+  [2mProcessing complete: 7 analyses, 2 findings[0m
+[32mProcessing complete.[0m Run: [1m20261101115656-9c24cebe5f65f227[0m
+  Analyses: 7
+  Findings: 2
+  [2mWrote PR comment to /home/devuser/workspace/wt/VisionClaw-vault-layout/.deepsec-gate/reports/20261101T115651Z/comment.md[0m
+
+[31m2 new finding(s) — exiting 1[0m
+[1mExporting findings (json)[0m
+  Projects: VisionClaw-vault-layout
+  Min severity: LOW
+  Filter: hiding resolved verdicts (fixed/false-positive/accepted-risk)
+  [VisionClaw-vault-layout] 2 finding(s)
+
+[32mExported 2 finding(s)[0m → [1m/home/devuser/workspace/wt/VisionClaw-vault-layout/.deepsec-gate/reports/20261101T115651Z/findings.json[0m
+
+[1mOwnership coverage:[0m
+  with assignee:    0/2 (0%)
+  with owning team: 0/2 (0%)

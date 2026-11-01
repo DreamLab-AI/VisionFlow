@@ -1,0 +1,12 @@
+[
+  {
+    "path": "website/build-receipt.json",
+    "sha256": "fae85100258804d3344673265a4fcc88781ea92f6e2c4a137bd27b48f3460711",
+    "purpose": "Existing allowlisted ignored artefact; source-path presence only, not pinned source evidence"
+  },
+  {
+    "path": "texput.log",
+    "sha256": "0de8dad445a514ae3bc13874d2a354c230d5395982c23ea702c3e573c3d9d304",
+    "purpose": "Existing allowlisted ignored artefact; source-path presence only, not pinned source evidence"
+  }
+]

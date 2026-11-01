@@ -1,0 +1,52 @@
+   Compiling ontomark v0.7.0 (/home/devuser/workspace/wt/VisionFlow-om-layout/.audit-ontomark/crates/ontomark-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.69s
+     Running tests/audit_layout.rs (target/debug/deps/audit_layout-dda07b50b6955427)
+
+running 8 tests
+AUDIT exclusions: empty override admits templates and puts the same journal in pages and journals
+test caller_exclusions_replace_builtins_and_duplicate_journal_loading ... ok
+AUDIT boundary: caller-supplied layout reads sibling directory outside declared repository
+AUDIT root symlink: two role roots resolve to same folder and both are loaded
+test profile_can_select_a_sibling_outside_the_repository ... ok
+test symlink_role_aliases_are_admitted_without_following_child_symlinks ... ok
+AUDIT relative start: implicit cwd finds malformed ancestor vocabulary; --repo . falls back to generic
+test explicit_relative_start_misses_an_absolute_ancestor_vocabulary ... ok
+AUDIT grammar: required_keys owner is accepted in profile but missing owner is not rejected
+
+thread 'suffix_role_inference_skips_the_knowledge_required_status_rule' (3458758) panicked at crates/ontomark-cli/tests/audit_layout.rs:41:5:
+assertion `left == right` failed
+  left: Some(1)
+ right: Some(2)
+stack backtrace:
+test arbitrary_required_keys_are_not_a_general_schema_validator ... ok
+AUDIT aliases: lexical inequality admits two roles over the same canonical folder
+test equivalent_folder_spellings_are_admitted_as_two_roles ... ok
+AUDIT nested roles: working class is also loaded as knowledge and reaches ontology in both scopes
+test root_knowledge_layout_includes_nested_working_class_in_ontology ... ok
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::panicking::assert_failed_inner
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:452:17
+   3: core::panicking::assert_failed::<core::option::Option<i32>, core::option::Option<i32>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/panicking.rs:407:5
+   4: audit_layout::suffix_role_inference_skips_the_knowledge_required_status_rule
+             at ./tests/audit_layout.rs:41:5
+   5: audit_layout::suffix_role_inference_skips_the_knowledge_required_status_rule::{closure#0}
+             at ./tests/audit_layout.rs:34:68
+   6: <audit_layout::suffix_role_inference_skips_the_knowledge_required_status_rule::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   7: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+test suffix_role_inference_skips_the_knowledge_required_status_rule ... FAILED
+
+failures:
+
+failures:
+    suffix_role_inference_skips_the_knowledge_required_status_rule
+
+test result: FAILED. 7 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s
+
+error: test failed, to rerun pass `-p ontomark --test audit_layout`

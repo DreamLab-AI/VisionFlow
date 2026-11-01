@@ -1,0 +1,4 @@
+    Checking ontomark-compile v0.6.2 (/home/devuser/workspace/wt/ontomark-vault-layout/crates/ontomark-compile)
+    Checking ontomark-profile-estate v0.7.0 (/home/devuser/workspace/wt/ontomark-vault-layout/profiles/estate)
+    Checking ontomark v0.7.1 (/home/devuser/workspace/wt/ontomark-vault-layout/crates/ontomark-cli)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.55s

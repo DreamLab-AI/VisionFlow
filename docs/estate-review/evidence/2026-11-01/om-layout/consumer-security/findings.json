@@ -1,0 +1,69 @@
+[
+  {
+    "title": "[MEDIUM] Path containment only present when shared-corpus-layout feature is enabled; legacy build path is unguarded",
+    "description": "**File:** `.audit-local/lib.rs` (lines 103, 104)\n**Project:** VisionClaw-vault-layout\n**Severity:** MEDIUM  •  **Confidence:** low  •  **Slug:** `path-traversal`\n\n## Finding\n\nlib.rs mounts src/services/corpus_source/local.rs, whose path-containment and symlink defences are entirely gated behind #[cfg(feature = \"shared-corpus-layout\")]. In the feature-ON build (the default declared in .audit-local/Cargo.toml), collect_under() validates the resolved prefix against resolve_roots() and fetch_page() canonicalizes and enforces starts_with() against the configured roots — this is safe and the shared_layout_rejects_* tests prove it. In the feature-OFF build, collect_under() does a bare self.root.join(prefix) (local.rs:111) and fetch_page() reads PathBuf::from(&page.fetch_ref) directly (local.rs:280) with no containment check at all. If a caller passes an attacker-influenced namespace prefix to list_pages_under (e.g. '../../etc' or an absolute path) or a crafted fetch_ref, the legacy build would walk/read files outside the vault root — arbitrary local .md (and via fetch_page, arbitrary file) disclosure. Exploitability is conditional: it requires a consumer to compile with default-features disabled, so it is not reachable in this probe crate's configuration.\n\n## Recommendation\n\nMake the containment checks unconditional rather than feature-gated: validate the resolved prefix is under the configured roots in collect_under(), and canonicalize + starts_with-check fetch_ref in fetch_page(), regardless of the shared-corpus-layout feature. Treat the feature as an implementation choice (which owner performs resolution) rather than a security toggle.",
+    "severity": "MEDIUM",
+    "labels": [
+      "security",
+      "project:VisionClaw-vault-layout",
+      "severity:MEDIUM",
+      "slug:path-traversal",
+      "confidence:low",
+      "missing-owner"
+    ],
+    "metadata": {
+      "projectId": "VisionClaw-vault-layout",
+      "filePath": ".audit-local/lib.rs",
+      "lineNumbers": [
+        103,
+        104
+      ],
+      "severity": "MEDIUM",
+      "vulnSlug": "path-traversal",
+      "confidence": "low",
+      "discoveredAt": "2026-11-01T11:58:19.603Z",
+      "runId": "20261101115656-9c24cebe5f65f227",
+      "owners": {
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": []
+      }
+    }
+  },
+  {
+    "title": "[BUG] Legacy (feature-off) walk follows symlinks and can recurse into a cycle",
+    "description": "**File:** `.audit-local/lib.rs` (lines 192, 201, 216)\n**Project:** VisionClaw-vault-layout\n**Severity:** BUG  •  **Confidence:** low  •  **Slug:** `other-symlink-recursion`\n\n## Finding\n\nIn the feature-OFF build, walk() uses std::fs::metadata (which follows symlinks) and the child-symlink skip at local.rs:192-199 is compiled out. A symlink cycle under a base path (e.g. 'knowledge/cycle -> .') causes unbounded recursion and stack exhaustion / DoS. The test shared_layout_skips_child_symlinks_like_the_owner_walk only runs under the feature and its own comment notes 'the legacy walker recurses through symlinks', acknowledging the legacy path is unprotected. Not reachable in the default build.\n\n## Recommendation\n\nSkip child symlinks (or use symlink_metadata and track visited inodes) in the walk unconditionally, not only under shared-corpus-layout.",
+    "severity": "BUG",
+    "labels": [
+      "security",
+      "project:VisionClaw-vault-layout",
+      "severity:BUG",
+      "slug:other-symlink-recursion",
+      "confidence:low",
+      "missing-owner"
+    ],
+    "metadata": {
+      "projectId": "VisionClaw-vault-layout",
+      "filePath": ".audit-local/lib.rs",
+      "lineNumbers": [
+        192,
+        201,
+        216
+      ],
+      "severity": "BUG",
+      "vulnSlug": "other-symlink-recursion",
+      "confidence": "low",
+      "discoveredAt": "2026-11-01T11:58:19.603Z",
+      "runId": "20261101115656-9c24cebe5f65f227",
+      "owners": {
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": []
+      }
+    }
+  }
+]

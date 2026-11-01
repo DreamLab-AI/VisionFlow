@@ -1,0 +1,367 @@
+[workspace]
+members = [
+    ".",
+    "crates/visionclaw-contracts",
+    "crates/visionclaw-domain",
+    "crates/visionclaw-protocol",
+    "crates/visionclaw-wire",
+    "crates/visionclaw-adapters",
+    "crates/visionclaw-gpu",
+    "crates/visionclaw-ontology",
+    "crates/visionclaw-actors",
+    "crates/visionclaw-xr-presence",
+    "crates/visionclaw-analytics-oracle",
+    "crates/vault-core",
+    "crates/vault",
+    "crates/visionclaw-integration-tests",
+    "crates/visionclaw-memory-cloud",
+    "crates/visionclaw-tri-layout",
+    "crates/visionclaw-jev",
+]
+# PRD-008: the Godot gdext client (xr-client/rust) is its own workspace context
+# (cdylib for the Quest APK, separate target). Exclude it from the server
+# workspace so a server `cargo build` does not try to compile the gdext bindings.
+exclude = ["xr-client/rust", "agentbox/crates/headroom-napi"]
+# Note: visionclaw-contracts is independently buildable, e.g.:
+#   cargo build --manifest-path crates/visionclaw-contracts/Cargo.toml
+# The former `solid-pod-rs { rev = "main" }` git-rev resolution error no longer
+# applies: solid-pod-rs is now a published crates.io version pin (see below), so
+# Cargo resolves it from the registry, not a git branch/commit SHA.
+
+[package]
+name = "visionclaw-server"
+version = "0.1.0"
+edition = "2021"
+description = "A WebXR graph visualisation server with GPU-accelerated physics"
+authors = ["jjohare <github@thedreamlab.uk>"]
+license = "AGPL-3.0-only"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+ontomark-compile = { version = "0.6.3", default-features = false, optional = true }
+# Workspace crates — ADR-090 hexagonal modularisation. Each `pub use`
+# re-export shim in src/{models,types,config,layout} reaches into these
+# crates so a one-line change in a domain type no longer triggers a full
+# 12-minute rebuild of visionclaw-server; only the touched crate + linker run.
+visionclaw-domain = { path = "crates/visionclaw-domain" }
+visionclaw-actors = { path = "crates/visionclaw-actors" }
+visionclaw-protocol = { path = "crates/visionclaw-protocol" }
+visionclaw-adapters = { path = "crates/visionclaw-adapters" }
+visionclaw-gpu = { path = "crates/visionclaw-gpu" }
+visionclaw-ontology = { path = "crates/visionclaw-ontology" }
+# ADR-2113 — the one corpus parser. Ingest reads pages and the relation
+# vocabulary through the same implementation `vault` builds from.
+vault-core = { path = "crates/vault-core" }
+# PRD-008 §5.3 — XR presence protocol crate (room registry, wire codec,
+# delta compression). Consumed by src/handlers/presence_handler.rs and
+# src/actors/presence_actor.rs for the `/ws/presence` WebSocket.
+visionclaw-xr-presence = { path = "crates/visionclaw-xr-presence" }
+# ADR-2135: the separated-layout triangle and agent drift, shared with xr-client.
+visionclaw-tri-layout = { path = "crates/visionclaw-tri-layout" }
+
+# Web framework and WebSocket
+actix-web = { version = "4.11.0", features = ["compress-zstd", "macros"] }
+actix-cors = "0.7.1"
+actix-files = "0.6"
+actix = "0.13"
+crossbeam-channel = "0.5"
+actix-web-actors = "4.3"
+tungstenite = "0.21.0"
+tokio-tungstenite = { version = "0.21.0", features = ["native-tls"] }
+
+# Async runtime
+tokio = { version = "1.47.1", features = ["full"] }
+tokio-util = { version = "0.7", features = ["codec"] }
+tokio-stream = "0.1"
+futures = "0.3"
+futures-util = "0.3"
+async-trait = "0.1"
+
+# For TCP buffered I/O and advanced socket operations
+bytes = "1.10.1"
+socket2 = { version = "0.5", features = ["all"] }
+
+# Serialization
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0"
+serde_yaml = "0.9"
+validator = { version = "0.18", features = ["derive"] }
+
+# Database - Oxigraph + SQLite (ADR-11 canonical persistence)
+oxigraph = { version = "0.4" }
+rusqlite = { version = "0.31", features = ["bundled"] }
+tokio-rusqlite = { version = "0.5" }
+
+# Redis (optional distributed caching)
+redis = { version = "0.27", features = ["aio", "tokio-comp", "connection-manager"], optional = true }
+
+# TypeScript type generation
+specta = { version = "2.0.0-rc.22", features = ["derive", "export"] }
+specta-typescript = "0.0.9"
+
+# Configuration
+config = { version = "0.15.15", features = ["toml"] }
+dotenvy = "0.15.7"
+toml = "0.9.5"
+
+# Logging and Telemetry
+log = "0.4"
+env_logger = "0.11.8"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["json", "chrono", "env-filter"] }
+tracing-appender = "0.2"
+
+# Error handling
+thiserror = "2.0.16"
+anyhow = "1.0.99"
+
+# Graph serialization
+xml = "0.8"
+blake3 = "1.5"
+bcrypt = "0.15"
+
+# GPU/Compute (always enabled)
+bytemuck = { version = "1.21", features = ["derive"] }
+pollster = "0.4"
+cudarc = { version = "0.12.1", features = ["driver", "cuda-12040"] }
+cust = { version = "0.3.2" }
+cust_core = { version = "0.1.1" }
+
+# HTTP client and API
+reqwest = { version = "0.12.23", features = ["json", "stream", "multipart"] }
+nostr-sdk = "0.43.0"
+# The forum core owns the governance tiers the decide gate orders (ER-7). In-
+# family crates take caret ranges, not `=` pins (ER-35, owner decision
+# 2026-10-18): Cargo.lock fixes the build, and a security release reaches us on
+# `cargo update` instead of through a republish chain.
+nostr-bbs-core = "1.0.0-beta.16"
+
+# Live memory cloud (ADR in docs/adr): read-only client for the RuVector
+# sidecar. Plain TCP on the internal network; the connection string comes
+# from RUVECTOR_PG_CONNINFO only.
+tokio-postgres = { version = "0.7.18", features = ["with-serde_json-1"] }
+deadpool-postgres = { version = "0.14.2", features = ["rt_tokio_1"] }
+visionclaw-memory-cloud = { path = "crates/visionclaw-memory-cloud" }
+# The opt-in Jev option (TypeSafe System One typed decisions); every integration is off by default.
+visionclaw-jev = { path = "crates/visionclaw-jev" }
+
+# OpenAPI/Swagger documentation
+utoipa = { version = "5", features = ["actix_extras", "chrono", "uuid"] }
+utoipa-swagger-ui = { version = "9", features = ["actix-web"] }
+
+# High-Performance Networking (fastwebsockets). quinn/rustls/rcgen were pulled
+# in solely for the dead QuicTransportServer (removed under ADR-2066, see
+# src/handlers/quic_transport_handler.rs) and are no longer direct deps.
+fastwebsockets = { version = "0.8", features = ["upgrade"] }
+postcard = { version = "1.1", features = ["alloc", "use-std"] }
+http = "1.2"
+hyper = { version = "1.6", features = ["http1", "http2", "server"] }
+hyper-util = { version = "0.1", features = ["tokio", "server-auto"] }
+http-body-util = "0.1"
+
+# Utilities
+uuid = { version = "1.18.0", features = ["v4", "serde"] }
+chrono = { version = "0.4.41", features = ["serde"] }
+static_assertions = "1.1"
+base64 = "0.22.1"
+rand = "0.8"
+fastrand = "2.3"
+regex = "1.11.2"
+lazy_static = "1.5"
+once_cell = "1.20"
+sha1 = "0.10"
+sha2 = "0.10"
+subtle = "2.6.1"  # constant-time X-Agent-Key comparison (utils::agent_key)
+# PRD-008 §5.3 / docs/xr-godot-threat-model.md §T-WS-1 — Schnorr verification of
+# the XR presence handshake (NostrIdentityVerifier). Already resolved transitively
+# (0.29.1); promoted to a direct dep for src/services/nostr_identity_verifier.rs.
+secp256k1 = { version = "0.29", features = ["rand", "global-context"] }
+hex = "0.4"
+# Advisory flock(2) for the HTTP 402 payment ledger/exchange stores (pay_handler).
+libc = "0.2"
+# scopeguard = "1.2"  # Unused - removed during cleanup
+url = "2.5"
+flate2 = "1.0"
+byteorder = "1.5"
+urlencoding = "2.1"
+dashmap = "6.1"
+# heck = "0.5"  # Unused - removed during cleanup
+lru = "0.12"
+# path_abs = "0.5"  # Unused - removed during cleanup
+ordered-float = "4.5.0"
+notify = "6.1"  # File system watching for hot-reload
+
+# Math/Linear Algebra (needed for GPU compute)
+nalgebra = "0.34.0"
+
+# Added from the code block
+glam = "0.30.5"
+sysinfo = "0.37.0"
+
+# Parallel processing
+rayon = "1.11.0"
+
+# Hexagonal Architecture
+hexser = { version = "0.4.7", features = ["full"] }
+
+# Ontology Reasoning — git dep on jjohare/whelk-rs fork (always enabled).
+# Pinned to commit 79a1ee2 ("Made compatible with latest horned-owl"). The
+# fork carries horned-owl 1.x compatibility patches that INCATools/whelk-rs
+# upstream may not yet have merged.
+# TODO: switch to git = "https://github.com/INCATools/whelk-rs" once upstream
+# lands the horned-owl 1.x compat (track via PR from the jjohare fork).
+whelk = { git = "https://github.com/jjohare/whelk-rs", rev = "79a1ee21789add5a66faa0ec1a830c32dba9b539" }
+
+# Ontology dependencies (always enabled)
+# Note: Using 1.2.0 for ArcStr support (thread-safe string type)
+horned-owl = { version = "1.2.0", features = ["remote"] }
+horned-functional = { version = "0.4.0" }
+# walkdir = { version = "2.4" }  # Unused - removed during cleanup
+clap = { version = "4.5", features = ["derive"] }
+
+# --- Solid Pod (ADR-032 M3) — embed solid-pod-rs as in-process library ---
+# Published crates.io dependency at =0.5.0-alpha.17, in lockstep with
+# nostr-rust-forum (b73ec8c), superseding the former 0.4.0-alpha.15 pin. M3 (JSS sidecar removal) is COMPLETE: the JSS sidecar has been
+# removed and Solid Pod runs in-process (ADR-032 Implemented, default-on).
+# AGPL-3.0-only — see ADR-032 §"Licence implications".
+#
+# Crates pulled in (per ADR-032 §"Dependency surface"):
+#   - solid-pod-rs        (core LDP/WAC/NIP-98/fs-backend/Notifications)
+#   - solid-pod-rs-nostr  (did:nostr resolver, NIP-05 endpoint, Schnorr verify)
+#   - solid-pod-rs-idp    (pod + key provisioning — JSS Phase 1)
+#   - solid-pod-rs-server (AppState + handler patterns for embedded HTTP surface)
+#
+# Deferred (NOT added; tracked separately):
+#   - solid-pod-rs-activitypub — follow-up ADR (only if VisionClaw federates via AP)
+#   - solid-pod-rs-git         — graph-as-git workstream (see ADR-033 proposal — git bead provenance)
+#   - solid-pod-rs-didkey      — not in scope for VisionClaw (Nostr-first)
+#
+# All four deps are `optional = true` and only pulled in when the
+# solid-pod-rs 0.5.0-alpha — embedded Solid Pod (LDP, WAC, NIP-98, fs-backend).
+# `mrc20` brings the Blocktrails walker (`solid_pod_rs::blocktrail`) that
+# `src/web_contract` verifies trails with (rust-bitcoin's libsecp256k1).
+# JSS sidecar fully removed; all storage is in-process via FsBackend.
+solid-pod-rs = { version = "0.5.0-alpha.17", default-features = false, optional = true, features = ["fs-backend", "memory-backend", "nip98-schnorr", "notifications", "legacy-notifications", "config-loader", "did-nostr", "did-nostr-types", "quota", "security-primitives", "rate-limit", "mrc20"] }
+solid-pod-rs-nostr = { version = "0.5.0-alpha.17", default-features = false, optional = true }
+solid-pod-rs-idp = { version = "0.5.0-alpha.17", default-features = false, optional = true }
+solid-pod-rs-server = { version = "0.5.0-alpha.17", default-features = false, optional = true }
+
+
+[dev-dependencies]
+visionclaw-jev = { path = "crates/visionclaw-jev", features = ["test-util"] }
+tokio-test = "0.4"
+mockall = "0.13"
+pretty_assertions = "1.4"
+tempfile = "3.14"
+actix-rt = "2.11.0"
+# ADR-031 D7: CUDA-free CPU-reference oracle + graph fixtures. The correctness
+# known-answer gate lives (and runs in CI) inside this crate; here it is a
+# dev-dependency only so the root crate's GPU-gated `#[ignore]` tests and the
+# wire-snapshot / endpoint / sssp tests can share the same fixtures via the
+# `tests/analytics_fixtures.rs` re-export shim. Pure std, no CUDA linkage.
+visionclaw-analytics-oracle = { path = "crates/visionclaw-analytics-oracle" }
+
+# WASM Support for hybrid CPU-WASM/GPU SSSP
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+web-sys = "0.3"
+js-sys = "0.3"
+
+[build-dependencies]
+tempfile = "3.14"
+
+[features]
+# GPU and ontology features for conditional compilation
+# Enable by default for full system capabilities
+default = ["gpu", "ontology", "persistence-oxigraph", "solid-pod-embed", "shared-corpus-layout"]
+# Shared filesystem checks; this does not switch the ontology producer.
+shared-corpus-layout = ["dep:ontomark-compile"]
+gpu = []  # GPU acceleration with CUDA kernels
+ontology = []  # Ontology validation and reasoning
+redis = ["dep:redis"]  # Enable Redis distributed caching
+
+# Phase 5 GPU Physics rewrite (ADR-01) `physics-v2` feature retired 2026-09-05:
+# the `LayoutEngine` trait + 5 engine implementations (`src/physics/engines/`,
+# D5) were deleted — their `step()` bodies were stubs, never on the production
+# path, and closed out 2026-07-03. The `src/gpu/buffers.rs` `PhysicsGpuBuffers`
+# consolidation (D1) and `PhysicsEvent` emission surface (D9) remain
+# feature-gated behind the same now-undeclared flag pending disposition. The
+# legacy `UnifiedGPUCompute` buffer path remains the sole production code path.
+
+# Phase 11 persistence migration (ADR-11): Oxigraph (SPARQL 1.1 triple/quad
+# store) and SQLite via tokio-rusqlite are now always-on deps (ADR-11 canonical
+# persistence). Feature flag retained for conditional compilation guards only.
+persistence-oxigraph = []
+
+# `dev-auth` — Compile-time gate for development auth bypass surface.
+# Per ADR-06 §D1+D2 and resolution T2 (docs/migration-sprint/_resolutions/T2-auth-gating.md),
+# every auth-bypass branch is wrapped in
+#     #[cfg(any(debug_assertions, feature = "dev-auth"))]
+# so release binaries built WITHOUT this feature physically cannot honour
+# `SETTINGS_AUTH_BYPASS`, `ALLOW_INSECURE_DEFAULTS`, `--allow-skip-auth`, or
+# `Bearer dev-session-token`. The bypass code is absent from the binary — no
+# env-var path exists to re-enable it. `scripts/launch.sh up dev` enables this
+# feature; `up prod` and `cargo build --release` do not.
+dev-auth = []
+
+# `solid-pod-embed` — ADR-032 M3 — pull in solid-pod-rs as a Rust library
+# (replaces JSS sidecar). Default-on as of M3.
+solid-pod-embed = [
+    "dep:solid-pod-rs",
+    "dep:solid-pod-rs-nostr",
+    "dep:solid-pod-rs-idp",
+    "dep:solid-pod-rs-server",
+]
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "unwind"
+strip = true
+
+# Optimised local runtime with an explicit development security identity.
+# Release artefacts with dev-auth are rejected by ADR-2038.
+# ADR-2156: the dev loop rebuilds only the root crate, so release's fat LTO and
+# single codegen unit turned every edit into a 10+ minute single-core link.
+# Keep opt-level 3, drop cross-crate LTO, split codegen and build incrementally.
+[profile.dev-runtime]
+inherits = "release"
+debug-assertions = true
+overflow-checks = true
+lto = "off"
+codegen-units = 256
+incremental = true
+
+[profile.dev]
+opt-level = 1
+
+# The memory-cloud PCA is a dense 384x384 covariance plus power iteration;
+# unoptimised it takes seconds per snapshot. The crate is small, so optimise
+# it fully even in dev builds.
+[profile.dev.package.visionclaw-memory-cloud]
+opt-level = 3
+
+[package.metadata.rust-version]
+min = "1.75.0"
+
+[[bin]]
+name = "generate_types"
+path = "src/bin/generate_types.rs"
+
+[[bin]]
+name = "sync_corpus"
+path = "src/bin/sync_corpus.rs"
+
+# Data Sprint Phase D-2: JSON-LD validator CLI. Pre-commit hook
+# (`scripts/pre-commit-validate.sh`) invokes this binary against
+# staged markdown files. Exits 0 if no Error-severity issues, 1
+# otherwise.
+[[bin]]
+name = "validate-md"
+path = "src/bin/validate_md.rs"
+
+

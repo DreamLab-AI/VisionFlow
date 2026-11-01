@@ -158,7 +158,7 @@ flowchart TD
     EXPL{"--repo given?<br/>ontomark-cli/src/main.rs:474-478"}
     P1["start = the explicit path"]
     P2["start = current_dir"]
-    DISC["Vocabulary::discover start<br/>walk start and every ancestor for<br/>ontology/vocabulary.yaml<br/>vocabulary.rs:491-501"]
+    DISC["Vocabulary::discover start<br/>walk lexical start and ancestors for<br/>ontology/vocabulary.yaml; relative . misses parents<br/>vocabulary.rs:491-501"]
     ESTATE["found: root = vocabulary path .parent().parent()<br/>the directory ABOVE ontology/, estate_shape true<br/>ontomark-cli/src/main.rs:480-491"]
     PLAIN["NotAVault: start is a plain Obsidian vault and is the root,<br/>built-in vocabulary, estate_shape false; a start that is not a directory is an error<br/>ontomark-cli/src/main.rs:492-503, vocabulary.rs:502-505"]
     BADV["a vocabulary file that exists but does not parse is still an error, exit 1<br/>ontomark-cli/src/main.rs:504-511"]
@@ -186,12 +186,12 @@ flowchart TD
     PLAIN --> FLAT
     ESTATE --> LOAD
     FLAT --> LOAD
-    n1["INVARIANT: discovery no longer needs a vocabulary file: a directory with none above it is a plain<br/>Obsidian vault (ADR-OM-008), and vault working or all, or scope machine, are then refused with exit 2 naming the layout —<br/>ontomark-cli/src/main.rs:492-503,451-452, profile.rs:561-576"]
+    n1["INTENDED: no discovered vocabulary means a plain vault;<br/>selected absent roles should refuse, but migrate plan bypasses root_of at this pin —<br/>migrate_cmd.rs:142-144<br/>profile.rs:561-576"]
     n2["INVARIANT: the generic profile is reachable by auto-detection, because only a plain vault<br/>lacks the vocabulary file; an explicit --profile estate on a plain vault still gets the flat layout —<br/>ontomark-cli/src/main.rs:528-536"]
     PLAIN --- n1
     AUTO --- n2
 ```
-- The `--repo` argument is the START of an upward search, not necessarily the root, so `--repo a/b/c` can resolve to an ancestor holding `ontology/vocabulary.yaml` (`ontomark-cli/src/main.rs:474-503`).
+- The `--repo` argument starts an upward search (`ontomark-cli/src/main.rs:474-503`). At this pin the search is lexical: implicit absolute cwd and explicit `--repo .` can disagree. The [layout audit](../../estate-review/2026-11-01-ontomark-layout-and-shared-checks.md) also reproduces an empty ready migration plan for an absent working role. [OM-12](12-shared-layout-checks.md) records canonical discovery and explicit migration role checks in the owner fix.
 
 ## OM-05.5 Two consumers — visionGraph publishes both vaults from a pinned release, VisionClaw builds knowledge in-tree
 

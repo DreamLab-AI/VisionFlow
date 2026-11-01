@@ -1,0 +1,126 @@
+[
+  {
+    "adr": "2004",
+    "prior": "93302275ecab90dfa73284405d331d56a3cd9840",
+    "paths": [
+      "Cargo.toml",
+      "src/app_state.rs"
+    ],
+    "changed": [
+      "Cargo.toml"
+    ]
+  },
+  {
+    "adr": "2005",
+    "prior": "93302275ecab90dfa73284405d331d56a3cd9840",
+    "paths": [
+      "Cargo.toml",
+      "src/actors",
+      "crates/visionclaw-actors/src",
+      "crates/visionclaw-integration-tests/tests/layer_direction.rs",
+      ".github/workflows/ci.yml"
+    ],
+    "changed": [
+      "Cargo.toml"
+    ]
+  },
+  {
+    "adr": "2040",
+    "prior": "8775359e37a394d1558bb8b5317d37a92973288e",
+    "paths": [
+      "crates/visionclaw-domain/src/vault/mod.rs",
+      "crates/visionclaw-domain/src/vault/link.rs",
+      "src/services/file_service.rs",
+      "src/services/github_sync_service.rs",
+      "src/services/parsers/knowledge_graph_parser.rs",
+      "src/services/github/content_enhanced.rs",
+      "src/services/ontology_mutation_service.rs",
+      "src/services/decision_elevation.rs",
+      "docs/VAULT-corpus-format.md"
+    ],
+    "changed": [
+      "docs/VAULT-corpus-format.md"
+    ]
+  },
+  {
+    "adr": "2042",
+    "prior": "17e3cdda0c51ad84d942c469c77814d915753313",
+    "paths": [
+      "crates/vault-migrate",
+      "Cargo.toml",
+      "docs/VAULT-corpus-format.md"
+    ],
+    "changed": [
+      "Cargo.toml",
+      "docs/VAULT-corpus-format.md"
+    ]
+  },
+  {
+    "adr": "2114",
+    "prior": "772039bd172027af034d64befacca1ebcf0bbc04",
+    "paths": [
+      "src/services/page_parser.rs",
+      "src/services/corpus_source/mod.rs",
+      "src/services/corpus_source/local.rs",
+      "crates/visionclaw-domain/src/vault/mod.rs"
+    ],
+    "changed": [
+      "src/services/corpus_source/local.rs"
+    ]
+  },
+  {
+    "adr": "2116",
+    "prior": "772039bd172027af034d64befacca1ebcf0bbc04",
+    "paths": [
+      "src/handlers/ontology_agent_handler.rs",
+      "tests/rec1_route_guard.rs",
+      "crates/vault/src/main.rs",
+      "crates/vault/src/propose.rs"
+    ],
+    "changed": [
+      "crates/vault/src/main.rs"
+    ]
+  },
+  {
+    "adr": "2117",
+    "prior": "772039bd172027af034d64befacca1ebcf0bbc04",
+    "paths": [
+      "crates/vault/src/main.rs",
+      "crates/vault-core/Cargo.toml"
+    ],
+    "changed": [
+      "crates/vault/src/main.rs"
+    ]
+  },
+  {
+    "adr": "2147",
+    "prior": "c750046962749715a4efb1b6056c7f40d9865110",
+    "paths": [
+      "crates/vault/Cargo.toml",
+      "crates/vault-core/Cargo.toml",
+      "crates/vault/src/certificate.rs",
+      "crates/vault/src/propose.rs",
+      "crates/vault/src/main.rs",
+      "crates/vault-core/src/proposal.rs",
+      "crates/vault/tests/certificate_oo_cert.rs",
+      "crates/visionclaw-ontology/shapes/ontology-class.shacl.ttl",
+      "crates/visionclaw-ontology/src/services/jsonld_validator/shacl.rs"
+    ],
+    "changed": [
+      "crates/vault/Cargo.toml",
+      "crates/vault/src/main.rs"
+    ]
+  },
+  {
+    "adr": "2156",
+    "prior": "772039bd172027af034d64befacca1ebcf0bbc04",
+    "paths": [
+      "Cargo.toml",
+      "scripts/rust-backend-wrapper.sh",
+      "build.rs"
+    ],
+    "changed": [
+      "Cargo.toml"
+    ]
+  }
+]

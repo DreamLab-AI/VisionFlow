@@ -1,0 +1,43 @@
+{
+  "panels_inspected": [
+    "OM-01.1",
+    "OM-01.2",
+    "OM-05.4",
+    "OM-12.1",
+    "OM-12.2",
+    "OM-12.3",
+    "OM-12.4"
+  ],
+  "images": [
+    {
+      "path": "OM-01.1.png",
+      "sha256": "814ce62559c451520eac2ca9bf195d577ec025fe44f199f7c6bf67dba8811252"
+    },
+    {
+      "path": "OM-01.2.png",
+      "sha256": "688dad740d135fd0ae13c772d4ab540c33df3ce129b43155b1f88a8e2e13b3bc"
+    },
+    {
+      "path": "OM-05.4.png",
+      "sha256": "923b2277cfe40db30a52c3b61a5899214fb8e00217c2059dcd8e9c9aa42e554a"
+    },
+    {
+      "path": "OM-12.1.png",
+      "sha256": "e8d65bcf1f3cc58722aad9067d32fa774adbf83bd6c5d99a61e3c416df0da67d"
+    },
+    {
+      "path": "OM-12.2.png",
+      "sha256": "54723415c21dfda8467c350f257c86abdf4d831f57dcc7448735d868f47493b9"
+    },
+    {
+      "path": "OM-12.3.png",
+      "sha256": "b8f78c3afee9c8275b3dc40cb6060f212a945b73816e5db58d2d3eda73ec4681"
+    },
+    {
+      "path": "OM-12.4.png",
+      "sha256": "71676b05dfb1ac63497ed1ce6c8d2807ff13c1d139a12a4778c93d7bf60c72f3"
+    }
+  ],
+  "archive": "/tmp/vf-om-layout-artifacts/audit-scratch.tar.gz",
+  "limits": "Selected panels only; no review credit for sibling renders. New labels inspected for clipping."
+}

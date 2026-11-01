@@ -1,0 +1,57 @@
+   Compiling ontomark-ngg1 v0.1.0
+   Compiling ontomark-parse v0.1.3
+   Compiling ontomark-compile v0.6.2
+   Compiling vault v0.1.0 (/home/devuser/workspace/wt/VisionClaw-vault-layout/crates/vault)
+    Finished `test` profile [optimized + debuginfo] target(s) in 1m 05s
+     Running unittests src/lib.rs (target/debug/deps/vault-650415b152d49dd2)
+
+running 340 tests
+test bodies::tests::a_fence_in_a_bullet_keeps_its_content_and_sits_under_its_item ... ok
+test bodies::tests::a_closed_fence_keeps_code_that_is_less_indented_than_its_bullet ... ok
+test bodies::tests::a_dash_rule_bullet_is_a_thematic_break ... ok
+test bodies::tests::a_blank_line_after_frontmatter_is_kept_once ... ok
+test bodies::tests::a_heading_bullet_whose_text_starts_after_a_blank_line_gets_one_blank ... ok
+test bodies::tests::a_heading_bullet_with_text_below_becomes_heading_and_paragraph ... ok
+test bodies::tests::a_leading_definition_paragraph_is_untouched ... ok
+test bodies::tests::a_plain_markdown_page_is_left_alone ... ok
+test bodies::tests::a_quote_under_a_parent_item_stays_with_the_parent ... ok
+test bodies::tests::a_repeated_quote_line_inside_a_list_item_is_dropped ... ok
+test bodies::tests::a_table_under_a_list_item_is_indented_under_it ... ok
+test bodies::tests::an_outliners_closing_bare_bullet_is_kept ... ok
+test bodies::tests::a_top_level_fence_is_flush ... ok
+test bodies::tests::an_unclosed_fence_in_a_bullet_ends_with_its_block ... ok
+test bodies::tests::continuation_lines_follow_their_item ... ok
+test bodies::tests::blank_runs_inside_code_survive ... ok
+test bodies::tests::empty_bullets_vanish_and_their_children_move_up ... ok
+test bodies::tests::frontmatter_is_carried_verbatim ... ok
+test bodies::tests::inlined_blockquotes_lose_their_repeated_line ... ok
+test bodies::tests::items_after_a_heading_never_nest_under_items_before_it ... ok
+test bodies::tests::logseq_task_markers_become_tasks ... ok
+test bodies::tests::macros_inside_code_are_left_alone ... ok
+test bodies::tests::tab_indented_headings_flatten_and_lists_restart_under_them ... ok
+test build::attribution::tests::resolves_each_actor_spelling ... ok
+test build::generation::tests::a_content_change_changes_the_digest ... ok
+test bodies::tests::a_renderer_as_the_first_line_of_a_fenced_block_leaves_the_fence ... ok
+test bodies::tests::image_only_bullets_become_paragraphs_with_obsidian_sizing ... ok
+test build::generation::tests::a_dirty_build_says_so_in_its_id ... ok
+test build::generation::tests::artifacts_record_hash_and_size ... ok
+test bodies::tests::a_video_bullet_becomes_an_embed_and_a_renderer_line_vanishes ... ok
+test build::generation::tests::scoping_keeps_identity_and_rebases_the_artefacts ... ok
+test build::generation::tests::sha256_12_is_the_adr_2023_content_address ... ok
+test build::generation::tests::stale_after_is_omitted_when_absent ... ok
+test build::generation::tests::the_digest_is_order_independent_but_path_sensitive ... ok
+test build::generation::tests::the_digest_resists_boundary_ambiguity ... ok
+test build::generation::tests::the_id_carries_the_sha ... ok
+test build::generation::tests::the_ontology_digest_sits_beside_the_content_digest ... ok
+test build::graph_tiers::tests::a_bridges_to_edge_sets_the_bridge_flag ... ok
+test build::graph_tiers::tests::a_category_is_inherited_through_the_whole_ancestry ... ok
+test build::graph_tiers::tests::a_cycle_in_the_ancestry_terminates ... ok
+test build::generation::tests::git_sha_is_unknown_outside_a_checkout ... ok
+test build::graph_tiers::tests::a_single_parent_class_is_not_a_bridge ... ok
+test build::generation::tests::nothing_is_dirty_outside_a_checkout ... ok
+test build::graph_tiers::tests::an_individual_is_flagged_and_uses_instance_of_as_its_backbone ... ok
+test build::graph_tiers::tests::backbone_edges_precede_relations_within_a_source ... ok
+test build::graph_tiers::tests::bridges_record_multi_category_membership ... ok
+test build::graph_tiers::tests::category_order_matches_the_consistency_slugs ... ok
+test build::graph_tiers::tests::domain_aliases_fold_onto_the_canonical_six ... ok
+test build::graph_tiers::tests::a_domain_wi

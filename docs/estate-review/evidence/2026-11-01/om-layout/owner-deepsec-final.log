@@ -1,0 +1,1 @@
+deepsec-gate: PASS — 3 finding(s) {'CRITICAL': 0, 'HIGH': 0, 'MEDIUM': 2, 'HIGH_BUG': 0, 'BUG': 1, 'LOW': 0}, 0 at/above HIGH; candidates=0; receipt /home/devuser/workspace/wt/ontomark-layout-receipt/.deepsec-gate/reports/20261101T121439Z/receipt.json

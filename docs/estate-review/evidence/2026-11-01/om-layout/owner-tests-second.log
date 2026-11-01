@@ -1,0 +1,690 @@
+   Compiling ontomark-compile v0.6.2 (/home/devuser/workspace/wt/ontomark-vault-layout/crates/ontomark-compile)
+   Compiling ontomark-profile-estate v0.7.0 (/home/devuser/workspace/wt/ontomark-vault-layout/profiles/estate)
+   Compiling ontomark v0.7.1 (/home/devuser/workspace/wt/ontomark-vault-layout/crates/ontomark-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 27.19s
+     Running unittests src/main.rs (target/debug/deps/ontomark-af85879d65362c87)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/apply_cli.rs (target/debug/deps/apply_cli-ad17ef7d93ceace2)
+
+running 10 tests
+test a_tampered_proposal_is_a_digest_mismatch ... ok
+test an_absent_page_is_no_page ... ok
+test a_page_holding_another_iri_is_an_iri_mismatch ... ok
+test a_creation_is_not_amend ... ok
+test a_malformed_file_and_a_bad_set_are_refused_by_code ... ok
+test a_result_failing_validation_is_invalid ... ok
+test an_undeclared_or_wrong_blast_radius_is_refused ... ok
+test a_page_changed_around_the_hunk_is_stale ... ok
+test the_signed_event_itself_is_accepted_as_the_proposal ... ok
+test an_approved_amendment_is_applied_once_with_its_verification ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.79s
+
+     Running tests/build_cli.rs (target/debug/deps/build_cli-3bbeb99eae4db4ae)
+
+running 1 test
+test a_path_claimed_twice_exits_2_and_promotes_nothing ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running tests/conformance.rs (target/debug/deps/conformance-01f7ea249dbe1ec2)
+
+running 3 tests
+test layout_tolerance_admits_last_digit_drift_and_nothing_else ... ok
+test build_is_byte_identical_to_the_legacy_golden ... ok
+test verbs_print_the_same_bytes_and_exit_codes ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.31s
+
+     Running tests/create_cli.rs (target/debug/deps/create_cli-6f2fa28ae5858dbb)
+
+running 2 tests
+test create_refuses_an_invalid_page_or_an_undeclared_radius_with_exit_2 ... ok
+test create_a_page_exactly_once ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+     Running tests/create_jev.rs (target/debug/deps/create_jev-14748ccc5eb2acc3)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/exp04_private_canary.rs (target/debug/deps/exp04_private_canary-7579be20d4eae8dc)
+
+running 10 tests
+test the_fixture_has_the_private_pages_the_canary_relies_on ... ok
+test the_canary_fires_without_redaction ... ok
+test staged_pages_are_rewritten_by_the_rules ... ok
+test relations_to_private_working_pages_do_not_reach_machine_artefacts ... ok
+test private_curated_targets_and_definition_conjuncts_are_withheld ... ok
+test an_explicit_private_curated_set_stays_empty_after_projection ... ok
+test machine_wikilinks_do_not_name_private_aliases_and_headings ... ok
+test no_published_file_names_a_non_public_page ... ok
+test the_report_counts_what_was_changed ... ok
+test machine_records_use_the_same_public_link_boundary_as_markdown ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.63s
+
+     Running tests/ingest_cli.rs (target/debug/deps/ingest_cli-c103e80a8bd58ecd)
+
+running 9 tests
+test values_extend_what_the_page_holds_and_a_repeat_is_not_proposed_twice ... ok
+test a_cloud_endpoint_is_refused_without_the_opt_in ... ok
+test discover_finds_exact_mentions_in_order_and_honours_the_cap ... ok
+test bad_requests_exit_two ... ok
+test the_budget_stops_cleanly_and_records_what_was_skipped ... ok
+test an_unchanged_rerun_makes_no_model_call ... ok
+test a_changed_source_replans_only_that_source ... ok
+test bundle_validates_and_quotes_sit_at_their_spans ... ok
+test vault_propose_dry_run_accepts_the_manifest ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+     Running tests/layout_contract.rs (target/debug/deps/layout_contract-4fdd5666169a72f3)
+
+running 8 tests
+test caller_exclusions_preserve_furniture_and_journal_separation ... ok
+test layout_cannot_select_a_sibling_outside_the_repository ... ok
+test symlink_role_aliases_are_refused ... ok
+test migration_plan_refuses_an_undeclared_working_role ... ok
+test relative_and_implicit_starts_find_the_same_ancestor ... ok
+test equivalent_folder_spellings_cannot_create_two_roles ... ok
+test overlapping_knowledge_and_working_roots_are_refused ... ok
+test build_preserves_the_explicit_knowledge_role ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/machine_scope_cli.rs (target/debug/deps/machine_scope_cli-8a213f3e85f2aab3)
+
+running 4 tests
+test an_unknown_scope_is_an_invalid_argument ... ok
+test scope_machine_refuses_what_it_cannot_honour_with_exit_2 ... ok
+test scope_public_is_the_default_and_writes_no_scope_field ... ok
+test scope_machine_writes_the_bundle_and_stamps_it ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.90s
+
+     Running tests/migrate_cli.rs (target/debug/deps/migrate_cli-e155d96f453e6816)
+
+running 3 tests
+test a_stale_plan_exits_one_and_leaves_the_edited_page ... ok
+test the_binary_runs_migrate_end_to_end ... ok
+test plan_apply_status_rollback_through_the_command_layer ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.32s
+
+     Running tests/plain_vault_cli.rs (target/debug/deps/plain_vault_cli-bdcb97e8aaa10406)
+
+running 5 tests
+test find_queries_the_root_vault ... ok
+test a_profile_yaml_keeps_its_own_layout_on_a_plain_vault ... ok
+test roles_the_flat_layout_lacks_are_refused_with_exit_2 ... ok
+test validate_passes_and_reports_the_template_as_an_excluded_skip ... ok
+test build_succeeds_and_stamps_the_vault_name_into_the_generation ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+     Running tests/register_sev1_cli.rs (target/debug/deps/register_sev1_cli-da30bcd9c767b329)
+
+running 3 tests
+test s1_5_conflicts_all_reports_a_working_only_conflict ... ok
+test s1_5_gate_all_reports_a_working_only_page ... ok
+test control_working_only_findings_are_reported_for_vault_working ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/register_sev2_cli.rs (target/debug/deps/register_sev2_cli-b7d5247468675da0)
+
+running 2 tests
+test s2_4b_conflicts_refuses_an_unknown_severity ... ok
+test s2_4a_gate_refuses_an_unknown_tier ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running unittests src/lib.rs (target/debug/deps/ontomark_compile-f7d49f5569c7cae5)
+
+running 504 tests
+test build::generation::tests::artifacts_record_hash_and_size ... ok
+test build::generation::tests::a_content_change_changes_the_digest ... ok
+test build::generation::tests::a_dirty_build_says_so_in_its_id ... ok
+test build::attribution::tests::resolves_each_actor_spelling ... ok
+test build::generation::tests::sha256_12_is_the_adr_2023_content_address ... ok
+test build::generation::tests::scoping_keeps_identity_and_rebases_the_artefacts ... ok
+test build::generation::tests::the_digest_is_order_independent_but_path_sensitive ... ok
+test build::generation::tests::stale_after_is_omitted_when_absent ... ok
+test build::generation::tests::the_id_carries_the_sha ... ok
+test build::generation::tests::the_digest_resists_boundary_ambiguity ... ok
+test build::generation::tests::the_ontology_digest_sits_beside_the_content_digest ... ok
+test build::graph_tiers::tests::backbone_edges_precede_relations_within_a_source ... ok
+test build::graph_tiers::tests::slug_of_splits_on_colon_or_slash ... ok
+test build::indexes::tests::a_page_never_backlinks_to_itself ... ok
+test build::indexes::tests::a_non_ontology_page_gets_only_id_title_labels ... ok
+test build::indexes::tests::a_zero_quality_score_becomes_null ... ok
+test build::indexes::tests::classes_are_ordered_by_class_slug ... ok
+test build::indexes::tests::scaffold_omits_empty_relation_lists ... ok
+test build::indexes::tests::definitions_truncate_by_character_not_byte ... ok
+test build::indexes::tests::scaffold_uses_the_frozen_rel_order ... ok
+test build::indexes::tests::search_index_carries_aliases_as_labels ... ok
+test build::indexes::tests::search_index_title_cases_the_domain_name ... ok
+test build::ngg1::tests::bake_positions_puts_a_lone_domain_at_the_origin ... ok
+test build::ngg1::tests::bake_positions_rings_leaves_around_their_category ... ok
+test build::ngg1::tests::csr_groups_by_source_and_preserves_arrival_order ... ok
+test build::generation::tests::git_sha_is_unknown_outside_a_checkout ... ok
+test build::ngg1::tests::degenerate_layouts_are_handled ... ok
+test build::ngg1::tests::edge_types_are_padded_to_a_four_byte_boundary ... ok
+test build::ngg1::tests::rounding_matches_cpython_round_to_three_places ... ok
+test build::ngg1::tests::the_header_is_the_frozen_shape ... ok
+test build::ngg1::tests::the_node_stride_is_twenty_four_bytes ... ok
+test build::ngg1::tests::hypot_is_the_platform_function ... ok
+test build::ngg1::tests::the_python_rng_stream_matches_cpython ... ok
+test build::ngg1::tests::the_string_table_pairs_label_and_iri_per_node ... ok
+test build::ngg1::tests::force_layout_matches_the_python_reference ... ok
+test build::ngg1::tests::packing_is_byte_stable ... ok
+test build::ngg1::tests::the_uncategorised_bucket_sorts_last ... ok
+test build::ngg1::tests::uniform_matches_cpython ... ok
+test build::okf::tests::ambiguous_scalars_are_quoted ... ok
+test build::page_api::tests::a_plain_note_gets_identity_and_links_only ... ok
+test build::indexes::tests::backlinks_are_capped_and_keyed_by_page_slug ... ok
+test build::page_api::tests::private_pages_get_no_document ... ok
+test build::publish::tests::held_back_covers_unpublished_and_site_only_dirs_at_any_depth ... ok
+test build::page_api::tests::every_relationship_key_is_present_even_when_empty ... ok
+test build::page_api::tests::closure_enrichment_lands_on_the_document ... ok
+test build::publish::tests::a_credential_on_a_private_page_does_not_refuse_the_build ... ok
+test build::page_api::tests::backlinks_resolve_titles_and_fall_back_to_the_slug ... ok
+test build::publish::tests::an_unpublished_dir_never_publishes_however_it_is_flagged ... ok
+test build::records::tests::zero_vector_is_left_alone ... ok
+test build::page_api::tests::the_domain_index_groups_by_domain ... ok
+test build::records::tests::records_carry_key_text_and_metadata ... ok
+test build::records::tests::jsonl_is_one_record_per_line ... ok
+test build::records::tests::embedding_normalises_and_checks_width ... ok
+test build::redact::tests::a_held_back_folder_and_a_journal_are_non_public ... ok
+test build::redact::tests::a_plain_link_to_a_private_page_becomes_the_marker ... ok
+test build::redact::tests::a_link_inside_longer_frontmatter_text_is_rewritten_in_place ... ok
+test build::graph_tiers::tests::domain_aliases_fold_onto_the_canonical_six ... ok
+test build::graph_tiers::tests::the_taxonomy_preserves_legacy_ids_and_appends_space_domains ... ok
+test build::redact::tests::a_scalar_link_to_a_private_page_removes_the_key ... ok
+test build::graph_tiers::tests::a_bridges_to_edge_sets_the_bridge_flag ... ok
+test build::redact::tests::public_and_unresolved_targets_are_untouched ... ok
+test build::graph_tiers::tests::an_individual_is_flagged_and_uses_instance_of_as_its_backbone ... ok
+test build::graph_tiers::tests::only_edges_to_declared_nodes_are_resolvable ... ok
+test build::graph_tiers::tests::a_category_is_inherited_through_the_whole_ancestry ... ok
+test build::graph_tiers::tests::the_nearest_category_ancestor_wins ... ok
+test build::graph_tiers::tests::a_cycle_in_the_ancestry_terminates ... ok
+test build::graph_tiers::tests::a_single_parent_class_is_not_a_bridge ... ok
+test build::graph_tiers::tests::bridges_record_multi_category_membership ... ok
+test build::graph_tiers::tests::gids_follow_canonical_iri_order ... ok
+test build::tests::a_second_claim_on_a_path_is_recorded_not_applied ... ok
+test build::okf::tests::private_classes_never_reach_the_bundle ... ok
+test build::indexes::tests::prose_index_omits_pages_with_nothing_to_add ... ok
+test build::redact::tests::a_working_page_resolves_into_the_knowledge_vault ... ok
+test build::okf::tests::a_concept_file_carries_the_okf_block_and_relations ... ok
+test build::graph_tiers::tests::roots_carry_their_structural_flags ... ok
+test build::redact::tests::a_heading_link_becomes_the_marker ... ok
+test build::okf::tests::the_context_maps_every_declared_relation ... ok
+test build::okf::tests::the_bundle_has_an_index_and_one_file_per_class ... ok
+test build::redact::tests::an_embed_of_a_private_page_is_removed ... ok
+test build::graph_tiers::tests::relations_are_capped_by_descending_target_degree ... ok
+test build::redact::tests::crlf_and_missing_final_newline_are_preserved ... ok
+test build::indexes::tests::the_newest_landscape_section_wins ... ok
+test build::redact::tests::crlf_frontmatter_is_edited_without_changing_other_line_endings ... ok
+test build::indexes::tests::a_page_without_a_landscape_section_yields_nothing ... ok
+test build::redact::tests::unicode_prose_is_byte_identical_around_a_rewrite ... ok
+test build::indexes::tests::current_landscape_flattens_bullets_and_stops_at_the_next_heading ... ok
+test build::indexes::tests::current_landscape_reads_markdown_headings_not_outline_bullets ... ok
+test build::redact::tests::private_definition_is_withheld_whole_with_quoted_keys ... ok
+test build::redact::tests::code_is_authored_text_not_a_link ... ok
+test build::indexes::tests::current_landscape_keeps_its_own_sub_headings ... ok
+test build::redact::tests::resolution_follows_the_builds_name_rules ... ok
+test build::redact::tests::a_private_title_is_never_emitted ... ok
+test build::tests::the_timestamp_has_python_isoformat_shape ... ok
+test build::redact::tests::an_escaped_pipe_in_a_table_is_a_pipe ... ok
+test build::redact::tests::an_untouched_frontmatter_is_byte_identical ... ok
+test build::redact::tests::frontmatter_list_entries_are_removed_losslessly ... ok
+test build::redact::tests::a_safe_display_text_survives_and_an_unsafe_one_does_not ... ok
+test build::generation::tests::nothing_is_dirty_outside_a_checkout ... ok
+test build::redact::tests::nested_mappings_and_odd_quoting_do_not_confuse_the_editor ... ok
+test build::turtle::tests::a_taxonomic_parent_also_gets_skos_broader ... ok
+test build::turtle::tests::an_absent_restriction_flag_means_no_restriction ... ok
+test build::turtle::tests::an_existential_restriction_needs_both_endpoints_declared ... ok
+test build::turtle::tests::an_undeclared_disjoint_target_emits_nothing ... ok
+test build::turtle::tests::a_signature_on_any_emitted_relation_is_emitted ... ok
+test build::turtle::tests::float_formatting_always_carries_a_decimal_point ... ok
+test build::turtle::tests::an_individual_is_never_defined ... ok
+test build::turtle::tests::a_lone_conjunct_is_the_equivalent_class_itself ... ok
+test build::turtle::tests::a_non_taxonomic_parent_gets_only_subclassof ... ok
+test build::turtle::tests::disjoint_with_between_declared_classes_is_emitted ... ok
+test build::turtle::tests::private_records_contribute_nothing_when_public_only ... ok
+test build::turtle::tests::an_unregistered_disjoint_with_key_emits_nothing ... ok
+test build::turtle::tests::a_definition_is_emitted_as_an_equivalent_intersection ... ok
+test build::turtle::tests::emits_a_class_with_its_annotations ... ok
+test build::turtle::tests::a_page_change_changes_the_version_iri ... ok
+test build::turtle::tests::an_undeclared_relation_target_becomes_a_skos_concept_stub ... ok
+test build::turtle::tests::maps_urns_onto_the_http_projection ... ok
+test build::turtle::tests::rebuilds_labels_with_acronyms ... ok
+test build::turtle::tests::a_vocabulary_only_change_changes_the_version_iri ... ok
+test build::webvowl::tests::an_individual_is_coloured_and_typed_differently ... ok
+test build::webvowl::tests::a_dangling_edge_is_not_drawn ... ok
+test build::webvowl::tests::a_declared_parent_becomes_a_subclass_property ... ok
+test build::webvowl::tests::remaps_every_urn_namespace_and_passes_others_through ... ok
+test build::webvowl::tests::an_unknown_domain_takes_the_default_colour ... ok
+test build::webvowl::tests::emits_a_class_node_with_its_colour_and_comment ... ok
+test build::webvowl::tests::private_pages_contribute_nothing ... ok
+test build::webvowl::tests::the_legacy_term_id_is_carried_into_the_node_attributes ... ok
+test build::webvowl::tests::the_header_counts_nodes_and_domains ... ok
+test build::webvowl::tests::related_to_is_labelled_skos_related_not_vc_relatedto ... ok
+test check::bodies::tests::a_closed_fence_keeps_code_that_is_less_indented_than_its_bullet ... ok
+test check::bodies::tests::a_blank_line_after_frontmatter_is_kept_once ... ok
+test check::bodies::tests::a_dash_rule_bullet_is_a_thematic_break ... ok
+test check::bodies::tests::a_heading_bullet_whose_text_starts_after_a_blank_line_gets_one_blank ... ok
+test build::webvowl::tests::the_property_counter_is_shared_across_kinds_and_page_ordered ... ok
+test check::bodies::tests::a_heading_bullet_with_text_below_becomes_heading_and_paragraph ... ok
+test check::bodies::tests::a_fence_in_a_bullet_keeps_its_content_and_sits_under_its_item ... ok
+test build::turtle::tests::an_identical_rebuild_keeps_the_version_iri ... ok
+test build::turtle::tests::an_unregistered_defines_as_key_emits_nothing ... ok
+test build::turtle::tests::a_declared_domain_and_range_emit_scoped_signatures ... ok
+test check::bodies::tests::a_leading_definition_paragraph_is_untouched ... ok
+test check::bodies::tests::a_plain_markdown_page_is_left_alone ... ok
+test build::turtle::tests::version_info_stays_a_semver_string ... ok
+test check::bodies::tests::a_quote_under_a_parent_item_stays_with_the_parent ... ok
+test check::bodies::tests::a_top_level_fence_is_flush ... ok
+test certificate::tests::spelling_escapes_literals_and_keeps_blank_nodes ... ok
+test check::bodies::tests::an_outliners_closing_bare_bullet_is_kept ... ok
+test check::bodies::tests::a_repeated_quote_line_inside_a_list_item_is_dropped ... ok
+test build::turtle::tests::restrictions_follow_the_vocabulary_flag ... ok
+test check::bodies::tests::a_table_under_a_list_item_is_indented_under_it ... ok
+test certificate::tests::whelk_and_the_certificate_agree_on_the_named_closure ... ok
+test build::turtle::tests::no_owl_thing_domain_or_range_is_emitted_by_default ... ok
+test build::turtle::tests::requires_and_dependson_are_transitive ... ok
+test check::bodies::tests::blank_runs_inside_code_survive ... ok
+test build::publish::tests::a_misc_dir_at_any_depth_is_held_back_and_subdirectories_survive ... ok
+test check::bodies::tests::empty_bullets_vanish_and_their_children_move_up ... ok
+test check::bodies::tests::continuation_lines_follow_their_item ... ok
+test check::bodies::tests::frontmatter_is_carried_verbatim ... ok
+test check::bodies::tests::an_unclosed_fence_in_a_bullet_ends_with_its_block ... ok
+test check::bodies::tests::inlined_blockquotes_lose_their_repeated_line ... ok
+test check::bodies::tests::macros_inside_code_are_left_alone ... ok
+test check::bodies::tests::items_after_a_heading_never_nest_under_items_before_it ... ok
+test check::bodies::tests::tab_indented_headings_flatten_and_lists_restart_under_them ... ok
+test check::bodies::tests::logseq_task_markers_become_tasks ... ok
+test check::conflicts::tests::a_relation_contradiction_is_medium ... ok
+test check::conflicts::tests::conflicts_become_blockers ... ok
+test check::conflicts::tests::a_subclass_cycle_is_detected_once ... ok
+test check::conflicts::tests::a_class_under_an_individual_is_a_type_conflict ... ok
+test build::turtle::tests::the_header_carries_a_content_addressed_version_iri ... ok
+test check::conflicts::tests::label_normalisation_ignores_punctuation_and_case ... ok
+test check::gate::tests::tier_parsing_defaults_to_quick ... ok
+test check::conflicts::tests::a_clean_corpus_has_no_conflicts ... ok
+test build::publish::tests::the_staging_is_the_union_of_both_vaults_public_pages ... ok
+test check::repair::tests::a_balanced_page_is_not_touched ... ok
+test check::repair::tests::a_logseq_bullet_is_prose_not_code ... ok
+test build::turtle::tests::serialisation_is_deterministic ... ok
+test check::conflicts::tests::non_ontology_records_are_ignored ... ok
+test check::repair::tests::a_lone_orphaned_closer_is_removed_not_paired_with_another_marker ... ok
+test check::conflicts::tests::differing_definitions_are_called_out_as_a_contradiction ... ok
+test check::repair::tests::a_closer_is_never_inserted_around_nothing ... ok
+test check::repair::tests::a_real_opener_gains_a_closer_at_the_paragraph_boundary ... ok
+test check::conflicts::tests::two_iris_with_the_same_label_are_a_high_duplicate ... ok
+test check::conflicts::tests::the_gate_can_be_lowered_to_catch_medium_conflicts ... ok
+test check::repair::tests::a_spurious_opener_is_removed ... ok
+test check::repair::tests::a_real_opener_with_no_boundary_is_closed_at_the_end ... ok
+test check::repair::tests::code_far_below_the_marker_does_not_justify_a_closer_next_to_it ... ok
+test check::repair::tests::the_repair_is_idempotent ... ok
+test build::publish::tests::one_credential_on_one_published_page_refuses_the_whole_staging ... ok
+test check::repair::tests::a_stray_marker_with_prose_on_both_sides_is_removed_even_in_a_multi_fence_file ... ok
+test check::repair::tests::an_ambiguous_page_is_reported_and_left_byte_identical ... ok
+test check::repair::tests::owl_and_turtle_are_code ... ok
+test check::repair::tests::an_orphaned_closer_in_a_multi_fence_file_is_reported_not_guessed ... ok
+test build::publish::tests::the_index_states_the_extent_per_vault ... ok
+test check::repair::tests::a_run_reports_every_change_and_writes_only_when_asked ... ok
+test build::turtle::tests::the_digest_excludes_the_header_itself ... ok
+test check::repair::tests::the_closer_copies_the_openers_marker_and_indentation ... ok
+test build::turtle::tests::a_definition_with_an_undeclared_or_unusable_term_is_dropped_whole ... ok
+test check::bodies::tests::image_only_bullets_become_paragraphs_with_obsidian_sizing ... ok
+test build::tests::a_validation_error_writes_nothing ... ok
+test check::bodies::tests::a_video_bullet_becomes_an_embed_and_a_renderer_line_vanishes ... ok
+test check::bodies::tests::a_renderer_as_the_first_line_of_a_fenced_block_leaves_the_fence ... ok
+test check::gate::tests::a_clean_corpus_passes_the_quick_tier ... ok
+test check::gate::tests::the_full_tier_runs_conflicts_and_skips_whelk_without_a_graph ... ok
+test check::validate::tests::a_disjoint_target_that_is_not_a_page_is_an_error ... ok
+test check::gate::tests::a_validation_error_fails_the_gate ... ok
+test check::validate::tests::a_self_referential_parent_is_an_error ... ok
+test check::gate::tests::a_blocking_conflict_fails_the_full_tier ... ok
+test check::validate::tests::a_duplicate_iri_is_an_error ... ok
+test check::gate::tests::the_full_tier_short_circuits_on_a_broken_corpus ... ok
+test check::validate::tests::an_out_of_range_scalar_is_a_warning_not_an_error ... ok
+test check::gate::tests::every_verdict_carries_the_caveat ... ok
+test check::validate::tests::a_page_documenting_logseq_syntax_is_not_residue ... ok
+test check::validate::tests::a_conformant_page_produces_no_errors ... ok
+test check::validate::tests::a_credential_is_an_error_naming_the_line_and_the_type_but_never_the_value ... ok
+test check::validate::tests::a_block_reference_outside_code_is_residue ... ok
+test input::code::tests::a_fence_with_an_info_string_does_not_close_one ... ok
+test input::code::tests::a_page_with_no_code_scans_clean ... ok
+test input::code::tests::a_backtick_inside_a_fence_does_not_open_a_span ... ok
+test input::code::tests::an_inline_span_is_code ... ok
+test check::validate::tests::a_public_page_linking_to_a_private_one_is_flagged ... ok
+test input::code::tests::an_unclosed_inline_span_is_not_code ... ok
+test input::code::tests::a_paired_fence_is_code ... ok
+test input::code::tests::an_unterminated_fence_is_not_a_fence ... ok
+test input::code::tests::double_backticks_pair_with_double_backticks ... ok
+test check::validate::tests::an_individual_cannot_be_defined ... ok
+test input::code::tests::inline_and_fenced_regions_are_distinguishable ... ok
+test input::code::tests::overlaps_reports_partial_intersection ... ok
+test input::code::tests::an_inline_span_does_not_cross_a_line ... ok
+test input::code::tests::three_markers_pair_the_first_two_and_report_the_third ... ok
+test input::code::tests::prose_wrapped_in_triple_backticks_is_not_a_fence ... ok
+test input::code::tests::tilde_fences_are_recognised ... ok
+test check::validate::tests::an_environment_variable_reference_is_not_a_credential ... ok
+test check::validate::tests::a_dangling_link_is_a_warning ... ok
+test input::definition::tests::a_lone_wikilink_scalar_is_a_one_item_definition ... ok
+test input::definition::tests::a_plain_emitted_property_is_refused_as_not_an_existential ... ok
+test check::validate::tests::disjoint_siblings_validate_cleanly ... ok
+test input::definition::tests::an_existential_over_a_transitive_hierarchy_is_refused ... ok
+test check::validate::tests::a_missing_status_or_type_is_an_error ... ok
+test input::definition::tests::every_other_refusal_carries_the_generic_code ... ok
+test input::frontmatter::tests::a_horizontal_rule_in_the_body_is_not_a_fence ... ok
+test check::validate::tests::an_undeclared_type_is_an_error ... ok
+test check::validate::tests::multi_parent_is_info_not_a_warning ... ok
+test input::definition::tests::names_and_existentials_parse_in_author_order ... ok
+test input::frontmatter::tests::splits_frontmatter_from_body ... ok
+test input::frontmatter::tests::handles_a_closing_fence_with_no_trailing_newline ... ok
+test input::frontmatter::tests::wikilink_display_round_trips ... ok
+test input::okf::tests::a_bare_actor_is_rejected ... ok
+test input::frontmatter::tests::round_trips_key_order ... ok
+test check::validate::tests::the_published_summary_withholds_issue_detail ... ok
+test input::frontmatter::tests::a_scalar_reads_as_a_one_element_list ... ok
+test input::frontmatter::tests::numbers_coerce_logseq_spellings_but_booleans_do_not ... ok
+test input::okf::tests::only_human_actors_satisfy_the_gate ... ok
+test input::frontmatter::tests::a_non_mapping_frontmatter_is_rejected ... ok
+test input::okf::tests::stamp_yaml_round_trips ... ok
+test input::okf::tests::an_unparseable_status_is_kept_raw_for_reporting ... ok
+test input::page::tests::a_page_with_no_frontmatter_is_private ... ok
+test input::page::tests::a_missing_root_is_not_a_vault ... ok
+test input::page::tests::an_empty_body_has_no_leading_paragraph ... ok
+test input::page::tests::a_body_opening_with_structure_has_no_leading_paragraph ... ok
+test input::page::tests::blank_lines_before_the_paragraph_are_skipped ... ok
+test check::validate::tests::stable_without_a_human_signature_is_a_warning ... ok
+test input::page::tests::body_wikilinks_dedupe_and_skip_code_fences ... ok
+test input::page::tests::an_unpublished_dir_is_loaded_but_outside_the_publish_scope ... ok
+test input::page::tests::an_empty_directory_is_an_empty_vault ... ok
+test check::gate::tests::whelk_runs_when_a_graph_is_supplied ... ok
+test input::page::tests::declared_slug_and_resource_win_over_derivation ... ok
+test check::validate::tests::disjointness_without_a_shared_parent_is_an_error_on_the_declaring_page ... ok
+test input::page::tests::corpus_order_is_component_wise ... ok
+test check::validate::tests::an_unterminated_fence_does_not_hide_residue_after_it ... ok
+test input::page::tests::declared_links_override_the_body_scan ... ok
+test input::definition::tests::disjunction_and_negation_inside_a_string_are_not_names ... ok
+test check::validate::tests::residue_from_the_old_format_is_an_error ... ok
+test input::okf::tests::actor_round_trips_every_prefix ... ok
+test check::validate::tests::residue_inside_a_fenced_block_or_an_inline_span_is_not_residue ... ok
+test check::validate::tests::a_domain_root_or_category_is_never_a_disjointness_member ... ok
+test input::definition::tests::malformed_existentials_are_refused_with_a_reason ... ok
+test input::page::tests::falls_back_to_the_stem_and_derived_slug ... ok
+test input::page::tests::render_round_trips ... ok
+test input::promotion::tests::a_draft_cannot_be_approved_directly ... ok
+test input::page::tests::the_leading_paragraph_joins_wrapped_lines ... ok
+test input::okf::tests::projects_the_okf_block_out_of_frontmatter ... ok
+test build::tests::an_unsatisfiable_class_fails_the_build_naming_only_the_root_cause ... ok
+test input::promotion::tests::a_process_cannot_approve ... ok
+test input::page::tests::parse_page_paths_are_root_relative ... ok
+test input::consistency::tests::a_parentless_pair_is_refused ... ok
+test input::page::tests::ids_are_vault_relative_paths_without_the_suffix ... ok
+test input::promotion::tests::a_deprecated_page_can_be_reinstated_by_a_human ... ok
+test input::promotion::tests::blockers_refuse_every_transition ... ok
+test build::turtle::tests::domain_roots_never_receive_owl_disjoint_with ... ok
+test input::promotion::tests::demote_requires_a_human_and_reaches_deprecated ... ok
+test input::slug::tests::ref_slug_takes_the_last_colon_segment_verbatim ... ok
+test input::promotion::tests::deprecated_wins_over_any_attestation ... ok
+test input::page::tests::obsidian_furniture_at_the_root_is_skipped_and_reported ... ok
+test input::slug::tests::slugify_matches_python_regex ... ok
+test input::vocabulary::tests::a_dangling_inverse_fails_the_load ... ok
+test input::slug::tests::thing_detection_is_case_insensitive ... ok
+test input::promotion::tests::expiry_returns_a_proposal_to_draft ... ok
+test input::promotion::tests::propose_moves_draft_to_machine_confirmed ... ok
+test input::vocabulary::tests::a_relation_mapped_to_all_values_from_fails_the_load ... ok
+test input::consistency::tests::self_disjointness_is_refused ... ok
+test input::consistency::tests::siblings_across_iri_forms_share_a_parent ... ok
+test input::consistency::tests::one_shared_parent_among_several_is_enough ... ok
+test input::vocabulary::tests::a_relation_domain_or_range_is_el_checked ... ok
+test input::promotion::tests::state_is_read_from_attestations_not_from_the_label ... ok
+test build::ngg1::tests::force_layout_is_stable_for_the_overview_sized_graph ... ok
+test input::consistency::tests::non_siblings_are_refused ... ok
+test input::slug::tests::target_slug_takes_a_kebab_target_verbatim ... ok
+test input::secrets::tests::ordinary_prose_does_not_match ... ok
+test input::vocabulary::tests::a_signature_on_a_logical_relation_fails_the_load ... ok
+test input::vocabulary::tests::a_symmetric_characteristic_fails_the_load ... ok
+test input::secrets::tests::an_environment_reference_is_never_a_secret ... ok
+test input::vocabulary::tests::sub_property_of_is_an_owl_iri_not_a_relation_key ... ok
+test input::vocabulary::tests::a_transitive_property_in_the_closure_is_found ... ok
+test input::vocabulary::tests::informational_census_keys_are_ignored_not_rejected ... ok
+test input::vocabulary::tests::expansion_covers_the_declared_and_builtin_prefixes ... ok
+test input::vocabulary::tests::json_keys_are_derived_by_camel_casing ... ok
+test input::vocabulary::tests::emitted_defaults_to_true_and_false_is_honoured ... ok
+test input::vocabulary::tests::an_inverse_hint_and_el_constructs_still_load ... ok
+test input::vocabulary::tests::emitted_relations_exclude_the_taxonomy_key_and_the_unemitted ... ok
+test input::vocabulary::tests::the_has_value_refusal_names_nominals_not_the_el_profile ... ok
+test input::vocabulary::tests::one_of_and_property_disjoint_with_are_refused ... ok
+test input::secrets::tests::the_line_number_is_one_based_and_the_value_is_never_carried ... ok
+test input::definition::tests::every_non_el_keyword_is_named_as_such ... ok
+test input::vocabulary::tests::only_emitted_object_properties_can_be_existentials ... ok
+test input::vocabulary::tests::only_restriction_relations_can_be_existentials ... ok
+test input::vocabulary::tests::list_scalars_are_recognised_by_either_spelling ... ok
+test input::vocabulary::tests::validation_rules_are_readable ... ok
+test ir::graph::tests::fuzzy_matches_on_token_overlap_only_when_asked ... ok
+test ir::graph::tests::find_ranks_exact_then_alias_then_prefix ... ok
+test ir::graph::tests::aliases_resolve_to_ids ... ok
+test input::vocabulary::tests::restriction_relations_are_listed ... ok
+test ir::graph::tests::hit_json_uses_type_as_the_key ... ok
+test ir::graph::tests::find_filters_by_type ... ok
+test input::secrets::tests::two_credentials_on_two_lines_are_both_reported ... ok
+test ir::model::tests::maturity_defaults_to_draft_and_quality_to_zero ... ok
+test ir::model::tests::a_wikilink_alias_becomes_the_ref_label ... ok
+test ir::model::tests::a_declared_slug_keeps_its_url_and_the_derived_claimant_moves_to_its_resource ... ok
+test ir::model::tests::falls_back_to_a_tail_iri_then_to_slugification ... ok
+test ir::model::tests::curated_links_keep_their_own_slug ... ok
+test ir::model::tests::private_and_non_ontology_pages_are_excluded_from_the_class_set ... ok
+test ir::graph::tests::tree_walks_children_not_parents ... ok
+test ir::graph::tests::tree_survives_a_cycle ... ok
+test ir::graph::tests::retrieve_respects_max_documents ... ok
+test ir::projection::tests::an_empty_marker_set_compiles_to_no_pattern ... ok
+test ir::graph::tests::retrieve_only_follows_declared_predicates ... ok
+test ir::graph::tests::retrieve_reports_missing_seeds ... ok
+test ir::model::tests::relations_keep_the_frozen_artefact_order ... ok
+test ir::graph::tests::builds_typed_edges_and_backlinks ... ok
+test input::vocabulary::tests::the_taxonomy_key_is_found_by_iri ... ok
+test ir::projection::tests::a_string_public_flag_refuses_the_build ... ok
+test input::vocabulary::tests::working_extensions_are_known_only_in_working ... ok
+test check::validate::tests::an_unknown_key_fails_knowledge_but_not_working ... ok
+test ir::model::tests::the_class_slug_comes_from_the_iri_not_the_page_slug ... ok
+test ir::model::tests::resolves_through_an_alias ... ok
+test ir::model::tests::resolves_a_ref_through_the_target_pages_resource ... ok
+test ir::closure::tests::a_class_with_no_inheritance_has_no_entry ... ok
+test input::vocabulary::tests::every_non_el_construct_is_refused_wherever_an_iri_is_declared ... ok
+test ir::closure::tests::a_cycle_terminates_and_excludes_self ... ok
+test ir::closure::tests::direct_parents_keep_assertion_order_and_dedupe ... ok
+test ir::closure::tests::ancestors_outside_the_corpus_still_appear ... ok
+test ir::projection::tests::a_working_slug_keeps_its_folders_and_slugifies_each_segment ... ok
+test json::tests::compact_has_no_spaces_and_preserves_insertion_order ... ok
+test build::generation::tests::dirtiness_is_scoped_to_the_vault_paths ... ok
+test json::tests::escapes_non_ascii_as_lowercase_utf16 ... ok
+test json::tests::indented_matches_python_indent_two ... ok
+test ir::projection::tests::census_counts_and_balances ... ok
+test jsonld::tests::a_cell_with_extra_properties_is_not_a_list ... ok
+test jsonld::tests::rdf_type_with_an_iri_object_is_at_type_and_with_a_literal_is_not ... ok
+test jsonld::tests::a_well_formed_chain_becomes_a_list ... ok
+test ir::closure::tests::relations_are_inherited_in_proximity_order_and_deduped ... ok
+test json::tests::control_characters_use_the_python_table ... ok
+test jsonld::tests::the_context_may_be_bare_or_wrapped ... ok
+test jsonld::tests::typed_literals_keep_their_lexical_form ... ok
+test profile::tests::a_dot_knowledge_folder_is_the_repository_root ... ok
+test check::validate::tests::transitive_and_non_restriction_existentials_are_refused_under_their_own_codes ... ok
+test ir::projection::tests::an_identity_collision_blocks_the_build ... ok
+test ir::closure::tests::owl_thing_and_self_references_are_dropped ... ok
+test profile::tests::projection_breaks_prefix_ties_in_the_documented_order ... ok
+test profile::tests::a_working_folder_that_is_the_knowledge_folder_is_absent ... ok
+test json::tests::default_separators_put_a_space_after_comma_and_colon ... ok
+test profile::tests::custom_folders_are_looked_up_not_assumed ... ok
+test ir::closure::tests::inheritance_is_capped ... ok
+test jsonld::tests::a_shared_or_cyclic_chain_stays_nodes ... ok
+test profile::tests::page_identities_project_only_when_a_public_page_base_exists ... ok
+test json::tests::default_separators_keep_non_ascii_raw ... ok
+test ir::closure::tests::later_levels_are_alphabetical ... ok
+test profile::tests::root_of_refuses_by_name ... ok
+test ir::projection::tests::a_definition_naming_a_private_page_is_withheld_whole ... ok
+test reason::tests::a_graph_without_definitions_still_uses_skip ... ok
+test reason::tests::a_refused_profile_never_saturates_or_reports_consistency ... ok
+test reason::tests::an_empty_graph_classifies_cleanly ... ok
+test reason::tests::classifies_through_an_existential_restriction ... ok
+test reason::tests::derives_the_transitive_subclass_closure ... ok
+test ir::projection::tests::machine_projection_masks_private_working_names_in_plain_prose ... ok
+test reason::tests::a_definition_yields_a_named_subsumption_nobody_asserted ... ok
+test reason::tests::a_single_existential_definition_is_extracted ... ok
+test reason::tests::owl_thing_never_appears_in_the_inferred_set ... ok
+test ir::projection::tests::drops_edges_that_point_at_a_private_page ... ok
+test reason::tests::a_named_only_definition_keeps_no_restriction_and_still_classifies ... ok
+test ir::projection::tests::redactor_refuses_when_the_alternation_exceeds_the_size_limit ... ok
+test reason::tests::disjoint_parents_make_their_common_subclass_unsatisfiable ... ok
+test reason::tests::reasoning_is_deterministic ... ok
+test ir::projection::tests::a_name_that_is_also_public_is_not_redacted ... ok
+test profile::tests::projection_prefers_class_then_individual_then_legacy_then_page ... ok
+test ir::projection::tests::keeps_only_public_pages ... ok
+test reason::tests::non_transitive_existentials_do_not_count_toward_the_cap ... ok
+test reason::tests::skip_is_never_capped ... ok
+test profile::tests::the_generation_prefix_is_pinned_or_the_root_name ... ok
+test profile::tests::short_names_keep_their_domain_class_ids ... ok
+test reason::tests::restrictions_change_no_named_subsumption ... ok
+test reason::tests::two_independent_clashes_are_two_root_causes ... ok
+test ir::projection::tests::redacts_a_private_name_out_of_prose ... ok
+test write::apply::tests::the_proposal_reads_bare_or_inside_its_event ... ok
+test reason::tests::without_the_disjointness_the_probe_is_consistent ... ok
+test ir::projection::tests::excluded_identities_are_treated_as_private ... ok
+test reason::tests::root_causes_exclude_classes_derived_from_an_unsatisfiable_parent ... ok
+test write::apply::tests::a_creation_is_not_applied_here ... ok
+test write::apply::tests::a_grouped_proposal_is_more_than_one_document ... ok
+test write::apply::tests::a_tampered_field_breaks_the_digest ... ok
+test whelk::tests::shared_classifier_retains_definition_entailments_and_bottom_results ... ok
+test profile::tests::the_default_layout_is_the_estate_shape ... ok
+test write::apply::tests::a_page_whose_iri_moved_is_refused ... ok
+test reason::tests::relevant_and_include_give_the_same_closure_and_skip_loses_the_entailment ... ok
+test reason::tests::relevant_over_the_transitive_cap_is_refused_before_reasoning ... ok
+test write::apply::tests::a_page_that_drifted_is_stale_and_nothing_is_written ... ok
+test write::create::tests::filename_rule ... ok
+test write::diff::tests::a_hunk_disagreeing_with_its_own_counts_is_malformed ... ok
+test write::diff::tests::a_context_mismatch_is_stale ... ok
+test write::diff::tests::a_missing_trailing_newline_round_trips_both_ways ... ok
+test write::diff::tests::a_multi_file_diff_parses_into_one_patch_per_file ... ok
+test write::diff::tests::a_removed_line_that_looks_like_a_header_is_still_a_body_line ... ok
+test reason::tests::relevant_keeps_restrictions_over_sub_and_super_properties_only ... ok
+test ir::projection::tests::the_http_projection_of_a_private_urn_is_redacted_too ... ok
+test write::diff::tests::a_single_insertion_round_trips ... ok
+test write::diff::tests::a_shifted_base_is_stale_not_relocated ... ok
+test write::diff::tests::whole_file_replacement_and_deletion_round_trip ... ok
+test write::diff::tests::line_splitting_matches_similar ... ok
+test write::diff::tests::wrong_line_numbers_are_stale ... ok
+test write::diff::tests::garbage_is_malformed ... ok
+test write::diff::tests::additions_at_the_end_of_the_file_round_trip ... ok
+test write::edit::tests::a_correct_expectation_applies_the_edit ... ok
+test write::edit::tests::a_no_op_edit_touches_zero_documents ... ok
+test input::secrets::tests::every_declared_form_is_detected ... ok
+test write::diff::tests::crlf_and_lone_cr_line_endings_round_trip ... ok
+test write::diff::tests::multiple_hunks_round_trip ... ok
+test write::diff::tests::additions_at_the_start_of_the_file_round_trip ... ok
+test write::edit::tests::expectation_parsing_rejects_unknown_guards ... ok
+test write::edit::tests::a_partial_expect_names_only_what_is_missing ... ok
+test write::edit::tests::an_edit_without_expect_is_refused_and_names_the_guards ... ok
+test write::edit::tests::set_parsing_distinguishes_append_from_replace ... ok
+test write::edit::tests::a_wrong_block_count_refuses_and_names_the_guard ... ok
+test write::edit::tests::values_are_typed_by_yaml_where_they_can_be ... ok
+test write::edit::tests::unset_removes_a_key ... ok
+test write::proposal::tests::a_grouped_proposal_is_its_own_subject ... ok
+test write::edit::tests::append_creates_the_list_and_keeps_existing_entries ... ok
+test write::proposal::tests::any_blocker_stops_the_post ... ok
+test write::proposal::tests::an_amendment_digest_is_the_pre_kind_digest ... ok
+test write::proposal::tests::digest_hex_strips_the_algorithm_prefix ... ok
+test write::proposal::tests::levels_parse_and_schema_floors_the_tier ... ok
+test write::proposal::tests::a_creation_hashes_apart_from_an_amendment ... ok
+test write::proposal::tests::a_clean_proposal_is_postable ... ok
+test write::proposal::tests::preexisting_findings_never_block ... ok
+test write::proposal::tests::the_digest_ignores_proposer_and_expiry ... ok
+test write::proposal::tests::the_c4_json_shape_is_stable ... ok
+test write::proposal::tests::the_digest_tracks_the_diff ... ok
+test write::proposal::tests::with_pages_keeps_the_subject_and_rekeys_the_digest ... ok
+test reason::tests::the_inferred_turtle_carries_the_method_and_the_pairs ... ok
+test check::validate::tests::a_conjunction_of_named_classes_and_existentials_validates_cleanly ... ok
+test build::graph_tiers::tests::the_overview_uses_domain_count_for_category_array_indices ... ok
+test build::graph_tiers::tests::stats_separates_declared_from_resolvable ... ok
+test build::graph_tiers::tests::emit_produces_every_contract_c3_graph_file ... ok
+test build::graph_tiers::tests::an_authored_root_page_supplies_the_overview_label_and_iri ... ok
+test build::graph_tiers::tests::a_domain_with_no_authored_root_gets_a_synthetic_iri ... ok
+test build::graph_tiers::tests::the_bin_tiers_carry_the_ngg1_magic ... ok
+test check::validate::tests::every_non_el_definition_is_refused_on_the_declaring_page ... ok
+test build::graph_tiers::tests::emission_is_byte_stable ... ok
+test input::consistency::tests::every_domain_root_and_category_is_refused_even_as_siblings ... ok
+test write::apply::tests::the_blast_radius_must_be_declared_and_one_document ... ok
+test write::create::tests::a_case_variant_of_an_existing_id_is_a_filename_collision ... ok
+test write::apply::tests::a_result_that_breaks_validation_is_invalid ... ok
+test write::apply::tests::without_set_the_approved_text_lands_verbatim ... ok
+test input::page::tests::load_excluding_honours_the_callers_list ... FAILED
+test write::create::tests::an_invalid_result_is_refused ... ok
+test write::apply::tests::an_absent_page_is_no_page ... ok
+test write::create::tests::the_blast_radius_must_be_one_document ... ok
+test write::create::tests::an_iri_collision_is_refused ... ok
+test build::tests::an_unresolvable_collision_refuses_the_build_and_names_both_pages ... ok
+test build::tests::a_corpus_without_definitions_reasons_with_skip ... ok
+test build::tests::the_markdown_mirror_states_a_leading_paragraph_definition_once ... ok
+test build::tests::the_closure_and_the_reasoner_agree_on_the_taxonomy ... ok
+test build::tests::a_defined_class_is_classified_into_by_the_build ... ok
+test build::tests::private_pages_reach_no_artefact ... ok
+test write::create::tests::a_creation_writes_once_and_refuses_the_second_time ... ok
+test build::tests::a_title_that_is_another_pages_name_is_not_an_alias ... ok
+test build::tests::the_markdown_mirror_is_written_under_the_title_the_explorer_requests ... ok
+test build::tests::the_scaffold_index_is_compact_and_ascii_only ... ok
+test build::tests::emits_every_contract_c3_artefact ... ok
+test build::tests::the_prose_index_captures_the_current_landscape ... ok
+test build::tests::a_satisfiable_disjointness_builds_and_emits_the_axiom ... ok
+test build::tests::the_generation_stamps_every_artefact ... ok
+test build::tests::the_data_marker_verifies_every_data_artefact_relative_to_data ... ok
+test build::tests::a_title_slug_colliding_with_a_declared_slug_gets_its_own_file ... ok
+test write::apply::tests::an_approved_amendment_lands_with_its_set_keys_in_one_write ... ok
+test write::apply::tests::a_change_between_prepare_and_write_is_stale ... ok
+test build::tests::promotion_replaces_the_previous_bundle_wholesale ... ok
+test build::tests::the_generation_records_the_ontology_version_iri_digest ... ok
+
+failures:
+
+---- input::page::tests::load_excluding_honours_the_callers_list stdout ----
+
+thread 'input::page::tests::load_excluding_honours_the_callers_list' (3630395) panicked at crates/ontomark-compile/src/input/page.rs:923:9:
+assertion `left == right` failed
+  left: []
+ right: ["templates/T"]
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::panicking::assert_failed_inner
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:452:17
+   3: core::panicking::assert_failed::<alloc::vec::Vec<&str>, [&str; 1]>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/panicking.rs:407:5
+   4: ontomark_compile::input::page::tests::load_excluding_honours_the_callers_list
+             at ./src/input/page.rs:923:9
+   5: ontomark_compile::input::page::tests::load_excluding_honours_the_callers_list::{closure#0}
+             at ./src/input/page.rs:914:49
+   6: <ontomark_compile::input::page::tests::load_excluding_honours_the_callers_list::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   7: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+
+failures:
+    input::page::tests::load_excluding_honours_the_callers_list
+
+test result: FAILED. 503 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.27s
+
+error: test failed, to rerun pass `-p ontomark-compile --lib`

@@ -1,0 +1,12 @@
+    Updating crates.io index
+   Packaging ontomark-compile v0.6.3 (/home/devuser/workspace/wt/ontomark-layout-receipt/crates/ontomark-compile)
+    Updating crates.io index
+    Packaged 87 files, 1.4MiB (369.7KiB compressed)
+   Verifying ontomark-compile v0.6.3 (/home/devuser/workspace/wt/ontomark-layout-receipt/crates/ontomark-compile)
+   Compiling ontomark-compile v0.6.3 (/home/devuser/workspace/wt/ontomark-layout-receipt/target/package/ontomark-compile-0.6.3)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.00s
+   Uploading ontomark-compile v0.6.3 (/home/devuser/workspace/wt/ontomark-layout-receipt/crates/ontomark-compile)
+    Uploaded ontomark-compile v0.6.3 to registry `crates-io`
+note: waiting for ontomark-compile v0.6.3 to be available at registry `crates-io`
+help: you may press ctrl-c to skip waiting; the crate should be available shortly
+   Published ontomark-compile v0.6.3 at registry `crates-io`

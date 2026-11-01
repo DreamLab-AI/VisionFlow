@@ -1,0 +1,28 @@
+{
+  "mode": "diff",
+  "diff_ref": "0caae5d4b695cb720942b9b9212017c00a80ad41",
+  "files_from": "",
+  "root": "/home/devuser/workspace/wt/ontomark-layout-receipt",
+  "project_id": "ontomark-layout-receipt",
+  "workspace": "/home/devuser/workspace/wt/ontomark-layout-receipt/.deepsec-gate",
+  "report_dir": "/home/devuser/workspace/wt/ontomark-layout-receipt/.deepsec-gate/reports/20261101T121439Z",
+  "revision": "a55033cfc0ce906d9230ffc62dfe6ea8de1e0219",
+  "dirty": "false",
+  "deepsec_version": "2.3.10",
+  "policy_source": "/etc/agentbox.toml",
+  "agent": "claude",
+  "model_auth": "local",
+  "model": "",
+  "thinking_level": "minimal",
+  "fail_on": "HIGH",
+  "max_duration": "20m",
+  "batch_size": "5",
+  "concurrency": "2",
+  "ai_provider": "",
+  "ai_api_key_env": "",
+  "ai_base_url": "",
+  "route": {
+    "mode": "local",
+    "provider": "local"
+  }
+}

@@ -1,0 +1,59 @@
+326:     repo_root: &Path,
+327:     layout: &Layout,
+328:     kinds: &[VaultKind],
+329: ) -> Result<Vec<Considered>, MigrateError> {
+330:     let mut out = Vec::new();
+331:     let mut kinds: Vec<VaultKind> = kinds.to_vec();
+332:     kinds.sort_by_key(|k| k.role_name());
+333:     kinds.dedup();
+334:     let excluded = layout.excluded_dirs();
+335:     for kind in kinds {
+336:         // A role the layout does not place is simply not considered: the
+337:         // command line has already refused `--vault working` by name.
+338:         let Some(vault_dir) = layout.path_of(repo_root, kind) else {
+339:             continue;
+340:         };
+341:         // The vault root (its furniture folders excluded) and then `journals/`:
+342:         // the same two trees `Vault::load` reads.
+343:         let trees: [(std::path::PathBuf, &[&str]); 2] = [
+344:             (vault_dir.clone(), &excluded),
+345:             (vault_dir.join("journals"), &[]),
+346:         ];
+347:         for (dir, excluded) in trees {
+348:             if !dir.is_dir() {
+349:                 continue;
+350:             }
+351:             let walk =
+352:                 walk_pages(&dir, excluded).map_err(|e| MigrateError::Input(e.to_string()))?;
+353:             for path in walk.files {
+354:                 let rel = path
+355:                     .strip_prefix(repo_root)
+356:                     .unwrap_or(&path)
+357:                     .to_string_lossy()
+358:                     .replace('\\', "/");
+359:                 let bytes = std::fs::read(&path).map_err(|e| MigrateError::io(&path, e))?;
+360:                 out.push(Considered { rel, bytes });
+361:             }
+362:         }
+363:     }
+364:     out.sort_by(|a, b| a.rel.cmp(&b.rel));
+365:     Ok(out)
+454: pub fn plan(
+455:     repo_root: &Path,
+456:     vaults: &[VaultKind],
+457:     migration: &dyn Migration,
+458:     profile: &Profile,
+459: ) -> Result<Plan, MigrateError> {
+460:     // A plain vault has no vocabulary file and compiles under the generic one.
+461:     let vocab_path = repo_root.join("ontology/vocabulary.yaml");
+462:     let vocab = if vocab_path.is_file() {
+463:         Vocabulary::load(&vocab_path)
+464:             .map_err(|e| MigrateError::Input(format!("ontology/vocabulary.yaml: {e}")))?
+465:     } else {
+466:         Vocabulary::generic()
+467:     };
+468:     let roster = Roster::discover(repo_root);
+469:     let considered = read_considered(repo_root, &profile.layout, vaults)?;
+470:
+471:     let mut digest_input = String::new();
+472:     let mut pages: Vec<PagePlan> = Vec::new();

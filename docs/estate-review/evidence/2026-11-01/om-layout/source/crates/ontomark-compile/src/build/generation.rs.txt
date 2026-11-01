@@ -1,0 +1,23 @@
+151: /// `+dirty` when the build read uncommitted changes.
+152: ///
+153: /// `prefix` is [`crate::profile::GenerationNaming::prefix_for`] the repository
+154: /// root — `visionGraph` for the estate, the root's directory name otherwise.
+155: ///
+156: /// ```
+157: /// use ontomark_compile::build::generation::generation_id;
+158: ///
+159: /// assert_eq!(generation_id("visionGraph", "ae913f93", false), "visionGraph@ae913f93");
+160: /// assert_eq!(generation_id("notes", "ae913f93", true), "notes@ae913f93+dirty");
+161: /// ```
+162: #[must_use]
+163: pub fn generation_id(prefix: &str, commit: &str, dirty: bool) -> String {
+164:     if dirty {
+165:         format!("{prefix}@{commit}+dirty")
+166:     } else {
+167:         format!("{prefix}@{commit}")
+168:     }
+169: }
+170:
+171: /// `true` when `git status --porcelain` reports any change (tracked or
+172: /// untracked) under `paths` in `repo`. Outside a git checkout, or when git is
+173: /// unavailable, there is no commit to masquerade as, so the answer is `false`.

@@ -1,0 +1,7 @@
+error: ADR-2004-oxigraph-sqlite-persistence.md: STALE — governed paths changed since verified_commit 974daf5d22d2d0ea709140777eae58d60ddb2c36: Cargo.toml (re-verify and bump verified_commit)
+error: ADR-2005-hexagonal-crate-split.md: STALE — governed paths changed since verified_commit 974daf5d22d2d0ea709140777eae58d60ddb2c36: Cargo.toml (re-verify and bump verified_commit)
+error: ADR-2042-vault-migrate-converter.md: STALE — governed paths changed since verified_commit 974daf5d22d2d0ea709140777eae58d60ddb2c36: Cargo.toml (re-verify and bump verified_commit)
+error: ADR-2147-inferences-carry-a-re-checkable-certificate-and-proposals-carry-a-consequence-delta.md: STALE — governed paths changed since verified_commit 974daf5d22d2d0ea709140777eae58d60ddb2c36: crates/vault/Cargo.toml (re-verify and bump verified_commit)
+error: ADR-2156-dev-runtime-profile-builds-incrementally-without-lto.md: STALE — governed paths changed since verified_commit 974daf5d22d2d0ea709140777eae58d60ddb2c36: Cargo.toml (re-verify and bump verified_commit)
+error: ADR-2168-consume-ontomark-filesystem-layout-checks.md: STALE — governed paths changed since verified_commit 974daf5d22d2d0ea709140777eae58d60ddb2c36: Cargo.lock, Cargo.toml, crates/vault/Cargo.toml (re-verify and bump verified_commit)
+error: 6 validation error(s); README not generated

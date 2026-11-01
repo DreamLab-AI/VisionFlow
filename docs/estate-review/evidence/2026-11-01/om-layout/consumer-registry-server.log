@@ -1,0 +1,39 @@
+    Checking ontomark-parse v0.1.3
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Auto-detected GPU sm_86
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Building for sm_86
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Using CUDA host compiler: /nix/store/fliwi0hjfdjb1wgg4cncxlv58a14ndah-gcc-wrapper-14.4.0/bin/gcc (NvccCcbin)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Adding CUDA include dir: /nix/store/7p90h8wfwmda4xq5bsqzx231w1inx1cm-cuda-compat/include
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Compiling 8 CUDA kernels to PTX
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: visionclaw_unified — declared ISA 9.4 rewritten to 9.0 (declared-version change only; instruction support is not proven)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_clustering_kernels — declared ISA 9.4 rewritten to 9.0 (declared-version change only; instruction support is not proven)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_aabb_reduction — declared ISA 9.4 rewritten to 9.0 (declared-version change only; instruction support is not proven)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_landmark_apsp — declared ISA 9.4 rewritten to 9.0 (declared-version change only; instruction support is not proven)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: sssp_compact — declared ISA 9.4 rewritten to 9.0 (declared-version change only; instruction support is not proven)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: semantic_forces — declared ISA 9.4 rewritten to 9.0 (declared-version change only; instruction support is not proven)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: pagerank — declared ISA 9.4 rewritten to 9.0 (declared-version change only; instruction support is not proven)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_connected_components — declared ISA 9.4 rewritten to 9.0 (declared-version change only; instruction support is not proven)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: visionclaw_unified source=src/cuda_sources/visionclaw_unified.cu provenance=compiled isa=9.0 original=513f67c34918c5ee rewritten=0cd218845aacfeaa
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_clustering_kernels source=src/cuda_sources/gpu_clustering_kernels.cu provenance=compiled isa=9.0 original=327cacff8990ba31 rewritten=0fe7ef58cdaa74c5
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_aabb_reduction source=src/cuda_sources/gpu_aabb_reduction.cu provenance=compiled isa=9.0 original=b440f0136832f890 rewritten=4cff7eb8bd62b89c
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_landmark_apsp source=src/cuda_sources/gpu_landmark_apsp.cu provenance=compiled isa=9.0 original=80bd76fd03a5be10 rewritten=25cf34b53c6f6ecc
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: sssp_compact source=src/cuda_sources/sssp_compact.cu provenance=compiled isa=9.0 original=6dd4a4bac953da8f rewritten=ae2316cff19ceb1b
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: semantic_forces source=src/cuda_sources/semantic_forces.cu provenance=compiled isa=9.0 original=ceb14377cb2ccf1f rewritten=7dd8070af693051b
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: pagerank source=src/cuda_sources/pagerank.cu provenance=compiled isa=9.0 original=86c13d2c2c9ae56c rewritten=85e8e9356f683518
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_connected_components source=src/cuda_sources/gpu_connected_components.cu provenance=compiled isa=9.0 original=8be60e1c3bbee7ee rewritten=ae0f662370878aea
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: All PTX compilation done (8 modules)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Native CUDA linking complete
+warning: visionclaw-server@0.1.0: webxr build.rs: GPU feature enabled — CUDA compilation delegated to visionclaw-gpu crate
+    Checking ontomark-compile v0.6.2
+    Checking visionclaw-server v0.1.0 (/home/devuser/workspace/wt/VisionClaw-vault-layout)
+warning: unused import: `bad_request`
+  --> src/handlers/api_handler/semantic_forces.rs:23:13
+   |
+23 | use crate::{bad_request, error_json, ok_json};
+   |             ^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `visionclaw-server` (lib) generated 1 warning (run `cargo fix --lib -p visionclaw-server` to apply 1 suggestion)
+    Finished `dev` profile [optimized + debuginfo] target(s) in 1m 08s
+warning: the following packages contain code that will be rejected by a future version of Rust: quick-xml v0.21.0, quick-xml v0.22.0
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`

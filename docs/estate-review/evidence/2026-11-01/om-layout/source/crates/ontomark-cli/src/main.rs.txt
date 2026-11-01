@@ -1,0 +1,215 @@
+450:     no_redact_private_links: bool,
+451: }
+452:
+453: fn main() -> ExitCode {
+454:     match run() {
+455:         Ok(code) => code,
+456:         Err(e) => {
+457:             eprintln!("ontomark: {e:#}");
+458:             // A vault role the layout does not place (`--vault working` on a
+459:             // plain vault) is a refused request, not a failure: exit 2.
+460:             if e.downcast_ref::<MissingVault>().is_some() {
+461:                 return ExitCode::from(2);
+462:             }
+463:             ExitCode::from(1)
+464:         }
+465:     }
+466: }
+467:
+468: /// What `--repo` (or the current directory) turned out to be.
+469: struct Repo {
+470:     /// The repository root: the directory holding `ontology/` for an estate
+471:     /// repository, or the vault itself for a plain one.
+472:     root: PathBuf,
+473:     /// The vocabulary found there, or the built-in one for a plain vault.
+474:     vocab: Vocabulary,
+475:     /// `true` when `ontology/vocabulary.yaml` was found: the estate shape.
+476:     estate_shape: bool,
+477: }
+478:
+479: /// Find the repository root: the nearest ancestor with
+480: /// `ontology/vocabulary.yaml`. Without one, the start directory is a plain
+481: /// Obsidian vault and is the root itself (ADR-OM-008). A vocabulary file that
+482: /// exists but does not parse is still an error.
+483: fn resolve_repo(explicit: Option<&Path>) -> anyhow::Result<Repo> {
+484:     let start = match explicit {
+485:         Some(p) => p.to_path_buf(),
+486:         None => std::env::current_dir()?,
+487:     };
+488:     match Vocabulary::discover(&start) {
+489:         Ok((path, vocab)) => {
+490:             let root = path
+491:                 .parent()
+492:                 .and_then(Path::parent)
+493:                 .map(Path::to_path_buf)
+494:                 .unwrap_or(start);
+495:             Ok(Repo {
+496:                 root,
+497:                 vocab,
+498:                 estate_shape: true,
+499:             })
+500:         }
+501:         Err(VaultError::NotAVault { .. }) => {
+502:             anyhow::ensure!(
+503:                 start.is_dir(),
+504:                 "{} is not a directory (no ontology/vocabulary.yaml above it either)",
+505:                 start.display()
+506:             );
+507:             Ok(Repo {
+508:                 root: start,
+509:                 vocab: Vocabulary::generic(),
+510:                 estate_shape: false,
+511:             })
+512:         }
+513:         Err(e) => Err(e).with_context(|| {
+514:             format!(
+515:                 "looking for ontology/vocabulary.yaml from {}",
+516:                 start.display()
+517:             )
+518:         }),
+519:     }
+520: }
+521:
+522: /// Resolve `--profile`: a built-in name or a YAML path.
+523: ///
+524: /// On a plain vault a built-in profile takes [`Layout::flat`]: the root is the
+525: /// knowledge vault and there is no working vault. A profile YAML is taken as
+526: /// written, `layout` included.
+527: fn resolve_profile(spec: Option<&str>, repo: &Repo) -> anyhow::Result<Profile> {
+528:     let mut profile = match spec {
+529:         Some("estate") => ontomark_profile_estate::profile(),
+530:         Some("generic") => Profile::generic(),
+531:         Some(path) => {
+532:             let text =
+533:                 std::fs::read_to_string(path).with_context(|| format!("reading profile {path}"))?;
+534:             return Profile::from_yaml(&text).with_context(|| format!("parsing profile {path}"));
+535:         }
+536:         None if repo.estate_shape => ontomark_profile_estate::profile(),
+537:         None => Profile::generic(),
+538:     };
+539:     if !repo.estate_shape {
+540:         profile.layout = Layout {
+541:             excluded: profile.layout.excluded,
+542:             ..Layout::flat()
+543:         };
+544:     }
+545:     Ok(profile)
+546: }
+547:
+548: /// Where the vault of `kind` sits, by the profile's layout.
+549: ///
+550: /// # Errors
+551: /// [`MissingVault`] (exit 2) when the layout declares no such vault or its
+552: /// folder is absent.
+553: fn vault_root(root: &Path, profile: &Profile, kind: VaultKind) -> anyhow::Result<PathBuf> {
+554:     Ok(profile.layout.root_of(root, kind)?)
+555: }
+556:
+557: fn load(root: &Path, profile: &Profile, kinds: &[VaultKind]) -> anyhow::Result<Vec<Vault>> {
+558:     let excluded = profile.layout.excluded_dirs();
+559:     kinds
+560:         .iter()
+561:         .map(|kind| {
+562:             let dir = vault_root(root, profile, *kind)?;
+563:             Vault::load_excluding(&dir, *kind, &excluded)
+564:                 .with_context(|| format!("loading {}", dir.display()))
+565:         })
+566:         .collect()
+567: }
+568:
+569: /// The repair scopes for the selected vault roles, each placed by the layout.
+570: fn repair_scopes(
+571:     root: &Path,
+572:     profile: &Profile,
+573:     kinds: &[VaultKind],
+574: ) -> anyhow::Result<Vec<repair::Scope>> {
+575:     let roots: Vec<(VaultKind, PathBuf)> = kinds
+576:         .iter()
+577:         .map(|kind| Ok((*kind, vault_root(root, profile, *kind)?)))
+578:         .collect::<anyhow::Result<_>>()?;
+579:     let borrowed: Vec<(VaultKind, &Path)> = roots.iter().map(|(k, p)| (*k, p.as_path())).collect();
+580:     Ok(repair::scopes_for(
+647: #[allow(clippy::too_many_lines)]
+648: fn run() -> anyhow::Result<ExitCode> {
+649:     let cli = Cli::parse();
+650:     let repo = resolve_repo(cli.repo.as_deref())?;
+651:     let profile = resolve_profile(cli.profile.as_deref(), &repo)?;
+652:     let Repo { root, vocab, .. } = repo;
+653:
+654:     match &cli.command {
+655:         Command::Migrate { command } => migrate_cmd::run(command, &root, &profile, cli.json),
+656:         Command::Ingest(args) => ingest_cmd::run(args, &root, &vocab, &profile, cli.json),
+657:         Command::Validate(args) => {
+658:             let mut failed = false;
+659:             let mut reports = serde_json::Map::new();
+660:             for vault in load(&root, &profile, &args.selector.kinds())? {
+661:                 let corpus = Corpus::build(&vault, &vocab);
+662:                 let report = validate::validate(&profile, &vault, &corpus, &vocab);
+663:                 failed |=
+664:                     !report.errors().is_empty() || (args.strict && !report.warnings().is_empty());
+665:                 if !cli.json {
+666:                     println!(
+667:                         "[{}] {} pages, {} with ontology, {} public — {} errors, {} warnings",
+668:                         vault.kind.role_name(),
+669:                         report.total_pages,
+670:                         report.pages_with_ontology,
+671:                         report.public_pages,
+672:                         report.errors().len(),
+673:                         report.warnings().len()
+674:                     );
+675:                     for issue in report.errors().iter().take(30) {
+676:                         println!("  {issue}");
+677:                     }
+678:                 }
+679:                 reports.insert(
+680:                     vault.kind.role_name().to_owned(),
+681:                     serde_json::to_value(report.detailed())?,
+682:                 );
+683:             }
+684:             emit(cli.json, &serde_json::Value::Object(reports), || {})?;
+685:             Ok(ExitCode::from(u8::from(failed)))
+686:         }
+790:                 }
+791:             })?;
+792:             Ok(ExitCode::from(u8::try_from(worst).unwrap_or(1)))
+793:         }
+794:
+795:         Command::Build(args) => {
+796:             // The ontology projections are always built from ONE vault: OWL,
+797:             // the indexes and the graph tiers are `knowledge/`'s by definition.
+798:             // `--vault all` widens the `publish/` staging to `working/`'s
+799:             // `public: true` pages, which is the only thing "both vaults" can
+800:             // mean for a build.
+801:             let kinds = vault_kinds(&args.vault);
+802:             // A machine bundle always reads both vaults from the knowledge
+803:             // root, so `--vault working|all` is left for the build to refuse
+804:             // by name rather than quietly moving the root.
+805:             let machine = args.scope == ScopeArg::Machine;
+806:             let kind = if kinds == [VaultKind::Working] && !machine {
+807:                 VaultKind::Working
+808:             } else {
+809:                 VaultKind::Knowledge
+810:             };
+811:             let options = build::Options {
+812:                 with_working_publish: kinds.contains(&VaultKind::Working)
+813:                     && kind == VaultKind::Knowledge,
+814:                 publish_out: args.publish_out.clone(),
+815:                 vault_root: vault_root(&root, &profile, kind)?,
+816:                 out: args.out.clone(),
+817:                 repo_root: root.clone(),
+818:                 with_markdown_mirror: args.with_markdown_mirror,
+819:                 generated_at: args.generated_at.clone(),
+820:                 source: args
+821:                     .source_commit
+822:                     .clone()
+823:                     .map(|commit| (commit, args.source_dirty)),
+824:                 stale_after: args.stale_after.clone(),
+825:                 redact_private_links: args.no_redact_private_links.then_some(false),
+826:                 scope: args.scope.into(),
+827:                 certificate_out: args.certificate_out.clone(),
+828:             };
+829:             // `--with-rvdb` is the only network the build ever touches, and the
+830:             // transport lives here, not in the compile crate.
+831:             let embedder: Option<Box<dyn build::records::Embedder>> = args.with_rvdb.then(|| {
+832:                 Box::new(embed::Xinference::new(args.embed_endpoint.clone()))
+833:                     as Box<dyn build::records::Embedder>
