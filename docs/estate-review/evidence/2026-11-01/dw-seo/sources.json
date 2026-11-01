@@ -1,0 +1,134 @@
+[
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "agentbox.toml",
+    "sha256": "c9c7016e6649c118f69ccbbab8d25e35e26c1dc3f449dab61b5ea2493b61203d"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "flake.nix",
+    "sha256": "71f7e45f6089843882273e1b29fd5ef361ae8ecc03e24ab38507c78921139c29"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": ".github/workflows/deploy.yml",
+    "sha256": "e415a74cbc559fbba1c0a32daea34072aa020e011ed1ceb478388d905ef512d9"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "docs/adr/ADR-2010-seo-watch-nightly.md",
+    "sha256": "1269661e3de9acc4a75903d1345f9dc841bdb5328fbc413fcb949a9b15847031"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "package-lock.json",
+    "sha256": "412d1dc72c8a6aa20183249465f8362e2e03229134711ef38c95d36666f2507c"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "package.json",
+    "sha256": "4287e66e143dd8156e5aea3cb324112b9b87c5f90ff256957e217ddb2a282a6e"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "public/llms.txt",
+    "sha256": "6536316a80df1b988ffe5151359caaffa626a52b95d0af190ab63188d2af1780"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "public/robots.txt",
+    "sha256": "b542cb30c77f56e5ed09746c2d3a1d026d1bc0ab2c80c0ab98c1ac0949f0bf54"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "scripts/__tests__/seo-watch.test.mjs",
+    "sha256": "66f468eebb37eabf26cc2ab24eb3a96734e56a476bd82e4a22cfe219454f50ea"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "scripts/check-discovery.mjs",
+    "sha256": "29ae72b6f491b910f725775a59624a094bdfb4b7e95bc7b0111036ae5c9fbf10"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "scripts/seo-watch/config.json",
+    "sha256": "4880e7298c738de9e5e248da3d8921770f001ff8a78472191a1397a8c01ac466"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "scripts/seo-watch/crontab",
+    "sha256": "6674022132d05ec8bf9a0f86992dd4d5578f0ce9a78c027bc4e30e934e6a7b51"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "scripts/seo-watch/lib/advise.mjs",
+    "sha256": "7be9387b91ab3002cdc77679bada168580b6f1c120091ee24a0a0f0755a1eed6"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "scripts/seo-watch/lib/audit.mjs",
+    "sha256": "ad61c630ab32c24a9b705b5c90d64cce9ca9de8a79d0ac0dc41dbcf07c4bcd30"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "scripts/seo-watch/lib/checks.mjs",
+    "sha256": "722d93075c750f25a2f8514f5eacd52462879bf6cad52e263be69876ecc28116"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "scripts/seo-watch/lib/glm.mjs",
+    "sha256": "8d342d65bb6b6541481f0e0b2a218967ec0dec0f52d2244b2ee84c119ce85bb9"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "scripts/seo-watch/lib/mcp-sse.mjs",
+    "sha256": "227b23a6a235b9cbaa61ed7915084a32d3ab3275094d25bd456cb1b81ce14f7d"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "scripts/seo-watch/lib/presence.mjs",
+    "sha256": "e69b947dd856072f06a4bd472b8eafd9a6171b1d3dfea61e36bad288ee521c3d"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "scripts/seo-watch/lib/propose.mjs",
+    "sha256": "3a71dbdbb7a78855a29fdc89d99efc5ac562ce33134d29468586cb97474c8bc8"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "scripts/seo-watch/lib/safety.mjs",
+    "sha256": "c351e39012d795ff995aaf7ea23960acee81ed2a381c3c5db81f06d06488fd85"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "scripts/seo-watch/run.mjs",
+    "sha256": "d55356aec47df11542a31cedb1099bfce05c47bfccbe6e4f595cbbb70f2f23cd"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "vitest.config.ts",
+    "sha256": "e02bc45a34744a9cea5a0931aa67d516143105449a6f8c3047407485d59b0d7c"
+  }
+]

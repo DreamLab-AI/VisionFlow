@@ -1,0 +1,29 @@
+[
+  {
+    "name": "provider error canary reaches raw ledger and stderr; report scrubs it",
+    "pass": true,
+    "ledgerContainsCanary": true,
+    "stderrContainsCanary": true,
+    "reportContainsCanary": false
+  },
+  {
+    "name": "empty reply retries but ledger counts only second response",
+    "pass": true,
+    "requests": 2,
+    "providerFixtureTokens": 349,
+    "ledgerTokens": 16
+  },
+  {
+    "name": "same-day weekly rerun makes another request without force",
+    "pass": true,
+    "requests": 2,
+    "lastReason": "weekly digest"
+  },
+  {
+    "name": "one malformed ledger line discards prior budget history",
+    "pass": true,
+    "priorTokens": 6000000,
+    "requests": 1,
+    "reason": "first run"
+  }
+]

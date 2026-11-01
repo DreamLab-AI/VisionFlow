@@ -1,0 +1,140 @@
+[
+  {
+    "name": "duplicate robots groups are not combined",
+    "pass": true,
+    "details": {
+      "observed": "allowed",
+      "rfc9309Expected": "disallowed"
+    }
+  },
+  {
+    "name": "prefix lookalike origin passes both classifiers",
+    "pass": true,
+    "details": {
+      "url": "https://dreamlab-ai.com.audit.invalid/"
+    }
+  },
+  {
+    "name": "equal length replacement and missing headings evade render comparison",
+    "pass": true,
+    "details": {
+      "findings": 0
+    }
+  },
+  {
+    "name": "Lighthouse gaps and exactly five points count as two nights",
+    "pass": true,
+    "details": [
+      {
+        "check": "lighthouse-seo-regression",
+        "severity": "medium",
+        "page": "https://dreamlab-ai.com",
+        "detail": "seo fell from 100 to 95 over 2 nights"
+      }
+    ]
+  },
+  {
+    "name": "one token below budget still permits advice",
+    "pass": true,
+    "details": {
+      "call": true,
+      "reason": "finding set changed"
+    }
+  },
+  {
+    "name": "response body read failure propagates",
+    "pass": true,
+    "details": {
+      "fetchPageRejected": true,
+      "wholeAuditRejected": true
+    }
+  },
+  {
+    "name": "failed baselines retain planned parity coverage with no agent requests",
+    "pass": true,
+    "details": {
+      "parity": {
+        "pages": 4,
+        "agents": [
+          "Googlebot",
+          "Bingbot",
+          "GPTBot",
+          "OAI-SearchBot",
+          "ChatGPT-User",
+          "ClaudeBot",
+          "Claude-SearchBot",
+          "PerplexityBot"
+        ],
+        "findings": 0
+      },
+      "agentRequests": 0,
+      "highPageStatusPresent": true
+    }
+  },
+  {
+    "name": "lookalike llms origin is actually fetched by audit",
+    "pass": true,
+    "details": {
+      "target": "https://dreamlab-ai.com.audit.invalid/",
+      "fetchWasMocked": true
+    }
+  },
+  {
+    "name": "presence denominator includes failed provider calls",
+    "pass": true,
+    "details": {
+      "results": [
+        {
+          "query": "fixture",
+          "citations": [],
+          "cited": false,
+          "error": "HTTP 503: \"offline fixture\""
+        }
+      ],
+      "cited": 0,
+      "total": 1
+    }
+  },
+  {
+    "name": "crawler policy change passes validator and git application",
+    "pass": true,
+    "details": {
+      "validation": {
+        "ok": true,
+        "files": [
+          "public/robots.txt"
+        ],
+        "changed": 2
+      },
+      "applied": true,
+      "fullBuildOrPublish": false
+    }
+  },
+  {
+    "name": "publisher commits then rejects its empty staged set",
+    "pass": true,
+    "details": {
+      "error": "staged set  differs from docs/seo/nightly/2026-11-01.md, public/llms.txt",
+      "committed": [
+        "docs/seo/nightly/2026-11-01.md",
+        "public/llms.txt"
+      ],
+      "githubCalls": [
+        [
+          "pr",
+          "list",
+          "--head",
+          "seo/nightly-2026-11-01",
+          "--state",
+          "open",
+          "--limit",
+          "1",
+          "--json",
+          "url"
+        ]
+      ],
+      "noRemoteConfigured": true,
+      "worktrees": "/home/devuser/workspace/wt/VisionFlow-dw-seo/.audit-seo/local-fixture e633239 [seo/nightly-2026-11-01]"
+    }
+  }
+]

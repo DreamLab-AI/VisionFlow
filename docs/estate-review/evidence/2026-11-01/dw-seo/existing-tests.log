@@ -1,0 +1,10 @@
+
+ RUN  v2.1.9 /home/devuser/workspace/wt/VisionFlow-dw-seo/.audit-seo
+
+ ✓ scripts/__tests__/seo-watch.test.mjs (33 tests) 174ms
+
+ Test Files  1 passed (1)
+      Tests  33 passed (33)
+   Start at  05:25:31
+   Duration  1.17s (transform 116ms, setup 0ms, collect 582ms, tests 174ms, environment 1ms, prepare 155ms)
+

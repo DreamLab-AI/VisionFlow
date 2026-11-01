@@ -1,0 +1,25 @@
+{
+  "retrieved": "2026-11-01",
+  "sources": [
+    {
+      "url": "https://www.rfc-editor.org/rfc/rfc9309.html#section-2.2.1",
+      "claim": "Matching user-agent groups must be combined."
+    },
+    {
+      "url": "https://googlechrome.github.io/lighthouse-ci/docs/configuration.html",
+      "claim": "Collection/assertion/upload; repeated runs; production cron options."
+    },
+    {
+      "url": "https://github.com/GoogleChrome/lighthouse-ci",
+      "claim": "Commit-oriented Lighthouse automation."
+    },
+    {
+      "url": "https://www.screamingfrog.co.uk/seo-spider/",
+      "claim": "Scheduled crawls, Chromium rendering, crawl comparison and search-console integrations."
+    },
+    {
+      "url": "https://developers.google.com/webmaster-tools/v1/urlInspection.index/inspect",
+      "claim": "Authenticated inspection of indexed version, not a live indexability test."
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "node": "v22.23.3",
+  "git": "git version 2.56.0",
+  "vitest": "2.1.9",
+  "jsdom": "25.0.1",
+  "dependency_preparation": "Reused existing website node_modules; no fresh install or lock attestation."
+}

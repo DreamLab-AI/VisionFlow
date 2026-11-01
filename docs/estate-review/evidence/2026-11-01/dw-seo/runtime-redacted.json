@@ -1,0 +1,152 @@
+{
+  "observed_at": "2026-11-01T05:26:58.122180+00:00",
+  "supervisor": "seo-watch-cron                   RUNNING   pid 919, uptime 13:25:11",
+  "ledger_sha256": "493b7a911952ac4d0d11b8a5d3946bcc2dea28e031fcd954881a5f97712d34d8",
+  "rows": 18,
+  "invalid_rows": 0,
+  "first_date": "2026-10-13",
+  "last_date": "2026-10-31",
+  "tail": [
+    {
+      "ts": "2026-10-29T05:40:48.469Z",
+      "date": "2026-10-29",
+      "pages": 30,
+      "findings": {
+        "high": 0,
+        "medium": 0,
+        "low": 23,
+        "info": 0
+      },
+      "lighthouse": {
+        "https://dreamlab-ai.com/": {
+          "accessibility": 100,
+          "best-practices": 100,
+          "seo": 100,
+          "agentic-browsing": 100
+        },
+        "https://dreamlab-ai.com/programmes/": {
+          "accessibility": 98,
+          "best-practices": 100,
+          "seo": 100,
+          "agentic-browsing": 100
+        },
+        "https://dreamlab-ai.com/research/": {
+          "accessibility": 97,
+          "best-practices": 100,
+          "seo": 100,
+          "agentic-browsing": 100
+        }
+      },
+      "parity": {
+        "pages": 4,
+        "agents": [
+          "Googlebot",
+          "Bingbot",
+          "GPTBot",
+          "OAI-SearchBot",
+          "ChatGPT-User",
+          "ClaudeBot",
+          "Claude-SearchBot",
+          "PerplexityBot"
+        ],
+        "findings": 0
+      },
+      "advise_called": false,
+      "propose_status": "none"
+    },
+    {
+      "ts": "2026-10-30T05:40:57.817Z",
+      "date": "2026-10-30",
+      "pages": 30,
+      "findings": {
+        "high": 0,
+        "medium": 0,
+        "low": 18,
+        "info": 0
+      },
+      "lighthouse": {
+        "https://dreamlab-ai.com/": {
+          "accessibility": 100,
+          "best-practices": 100,
+          "seo": 100,
+          "agentic-browsing": 100
+        },
+        "https://dreamlab-ai.com/programmes/": {
+          "accessibility": 98,
+          "best-practices": 100,
+          "seo": 100,
+          "agentic-browsing": 100
+        },
+        "https://dreamlab-ai.com/co-create/": {
+          "accessibility": 98,
+          "best-practices": 100,
+          "seo": 100,
+          "agentic-browsing": 100
+        }
+      },
+      "parity": {
+        "pages": 4,
+        "agents": [
+          "Googlebot",
+          "Bingbot",
+          "GPTBot",
+          "OAI-SearchBot",
+          "ChatGPT-User",
+          "ClaudeBot",
+          "Claude-SearchBot",
+          "PerplexityBot"
+        ],
+        "findings": 0
+      },
+      "advise_called": false,
+      "propose_status": "none"
+    },
+    {
+      "ts": "2026-10-31T05:40:50.473Z",
+      "date": "2026-10-31",
+      "pages": 30,
+      "findings": {
+        "high": 0,
+        "medium": 0,
+        "low": 23,
+        "info": 0
+      },
+      "lighthouse": {
+        "https://dreamlab-ai.com/": {
+          "accessibility": 100,
+          "best-practices": 100,
+          "seo": 100,
+          "agentic-browsing": 100
+        },
+        "https://dreamlab-ai.com/programmes/": {
+          "accessibility": 98,
+          "best-practices": 100,
+          "seo": 100,
+          "agentic-browsing": 100
+        },
+        "https://dreamlab-ai.com/research/": {
+          "accessibility": 97,
+          "best-practices": 100,
+          "seo": 100,
+          "agentic-browsing": 100
+        }
+      },
+      "parity": {
+        "pages": 4,
+        "agents": [
+          "Googlebot",
+          "Bingbot",
+          "GPTBot",
+          "OAI-SearchBot",
+          "ChatGPT-User",
+          "ClaudeBot",
+          "Claude-SearchBot",
+          "PerplexityBot"
+        ],
+        "findings": 0
+      },
+      "advise_called": false,
+      "propose_status": "none"
+    }
+  ]
+}

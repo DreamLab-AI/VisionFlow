@@ -7,6 +7,8 @@ type: explanation
 
 # VisionFlow estate review
 
+Website SEO continuation: [six new DW-08 panels, full ADR-2010 assessment, 33 existing tests and fifteen boundary scenarios](2026-11-01-website-seo-watch.md). The scheduler is live, but proposal publishing rejects after commit; secret-error sinks, cost accounting and receipt coverage have reproduced gaps. Other website topics and decisions remain open.
+
 VisionGraph explorer/profile continuation: [six VG-06 panels, ADR-VG-007 section review, 111 existing tests and sixteen boundary scenarios](2026-11-01-visiongraph-explorer-and-profile.md). All six current visionGraph topics and eight operative ADRs now have source/section assessments; implementation findings, intake programmes and runtime acceptance remain open.
 
 VisionGraph publication continuation: [ten corrected panels, ADR-VG-001/002 section assessments and eight pull/storage tests](2026-11-01-visiongraph-publication-and-identity.md). A corpus-only refresh can be skipped when the consumer build SHA is unchanged. ADR-VG-007, VG-06 and full runtime acceptance remain open.
@@ -155,7 +157,7 @@ XR volumes and concept links: [annotation provenance, fit cadence and highlight 
 | agentbox | Grounding/authority, proxy, memory, learning and configuration traces; profile, egress, projector, privacy and lint fixtures; paired federation helpers | Nix/image activation, full tool authority and custody, historical obligation reconciliation, real recall and lifecycle recovery |
 | solid-pod-rs | Native verifier/resolver/storage/provenance, consumer version map; 46 tests and resolver/replay probes | Full delegated revocation, OIDC, forge/payments, federation and recovery |
 | nostr-rust-forum | Signing/relay/projection trace; 47 governance and 22 key tests; trust pagination fixture; ten operative records and 24 historical routes | End-to-end applied receipts, projection recovery, cross-tier pod journey and pinned deployed consumer |
-| dreamlab-ai-website | Three-client release/config/chat trace; 97 tests; pin parity; all eight operative ADRs extended | Real browser-to-agent journey, tier authority, release failure gates, rotations and archive lineage |
+| dreamlab-ai-website | Three-client release/config/chat trace; 97 tests; pin parity; eight operative ADRs extended in the earlier pass; current inventory has eleven, with ADR-2010 assessed in the SEO continuation | Real browser-to-agent journey, tier authority, release failure gates, rotations and archive lineage |
 | Loom | Composition/fusion/chat/generation trace, passing library/generation tests, actual RuVector artefact configuration probes; all four ADRs extended | Runtime rejection/reload probes, model adapters, research evaluation and agent consumers |
 | knowledgeGraph | Full fresh build, parser/converters/validation, import staging, existing tests and publication-boundary probes | Content-quality assessment and complete explorer/runtime integration |
 | Logseq (`project4` alias) | Historical authoring pipeline, closure/scaffold exports, publishing workflow, corpus census and existing tests | Six design records routed in a history companion; detailed historical claim verification and legacy publisher disposition remain |
