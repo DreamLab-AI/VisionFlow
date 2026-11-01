@@ -257,14 +257,16 @@ flowchart TB
     S1 & S2 & S3 --> AUTHIS
     S1 & S2 --> RELIS
 
-    N1["INVARIANT: the pubkey is lower-cased before every lookup - a mixed-case NIP-98 pubkey would<br/>otherwise miss every store and be silently denied nostr-bbs-auth-worker/src/admin.rs:62"]
-    N2["INVARIANT fail-closed: any D1 error or missing row returns false, never ambient authority<br/>nostr-bbs-auth-worker/src/admin.rs:103"]
+    N1["Auth lower-cases at resolver entry nostr-bbs-auth-worker/src/admin.rs:62<br/>Relay query binds its supplied pubkey nostr-bbs-relay-worker/src/auth.rs:196"]
+    N2["A failed or missing relay lookup can fall through to auth members nostr-bbs-auth-worker/src/admin.rs:90<br/>False only after no source grants authority nostr-bbs-auth-worker/src/admin.rs:103"]
     N3["CLOSED at 66ca8d8: the relay used to query members in its OWN D1 where no migration or bootstrap creates<br/>that table, so the branch failed on every call and the error was swallowed. The query is removed, and relay<br/>authority is ADMIN_PUBKEYS union whitelist.is_admin only nostr-bbs-relay-worker/src/auth.rs:185 nostr-bbs-relay-worker/src/auth.rs:194"]
     N3B["DRIFT: the doc comment on query_is_admin still names members - its Task #7 paragraph says the relay<br/>whitelist/members tables may carry no is_admin row, below a paragraph saying the relay no longer queries it<br/>nostr-bbs-relay-worker/src/auth.rs:174 nostr-bbs-relay-worker/src/auth.rs:164"]
-    N3C["INVARIANT: the two workers differ by design - the auth worker unions three sources, the relay two,<br/>because members lives only in the auth D1 nostr-bbs-auth-worker/src/admin.rs:90 nostr-bbs-relay-worker/src/auth.rs:194"]
+    N3C["REVOCATION GAP: relay set-admin changes only whitelist nostr-bbs-relay-worker/src/whitelist.rs:451<br/>Auth members can retain its grant nostr-bbs-auth-worker/src/admin.rs:90"]
     N4["DOC-DRIFT: ADMIN_PUBKEYS is DECLARED in exactly one wrangler template - the search worker,<br/>nostr-bbs-search-worker/wrangler.toml:41 - yet is read by the auth worker (admin.rs:71) and the relay<br/>(auth.rs:185). The relay template asserts the opposite: there is no ADMIN_PUBKEYS reader in src/<br/>nostr-bbs-relay-worker/wrangler.toml:18-21. SETUP.md:147-151 never lists it either."]
     N5["Consequence of N4: a by-the-book deployment has NO static admin bootstrap on relay or auth,<br/>and the search worker ships a REAL non-placeholder pubkey as its default admin<br/>nostr-bbs-search-worker/wrangler.toml:41 - the only non-generic value in any template."]
 ```
+
+The [1 November membership review](../../estate-review/2026-11-01-forum-membership-lifecycle.md) corrects only the normalisation, error-fallback and revocation claims in NF-08.7. Its inspected resolver files match this topic's declared revision. The template/bootstrap notes above retain their earlier review scope.
 
 ## NF-08.8 Cross-worker feature gates that must be set in lockstep
 

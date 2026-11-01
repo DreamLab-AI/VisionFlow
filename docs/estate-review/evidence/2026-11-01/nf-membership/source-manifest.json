@@ -1,0 +1,177 @@
+[
+  {
+    "path": "docs/adr/ADR-2014-member-lifecycle-one-source-of-truth.md",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "d3bbf2c182faec2902c490f8dfb244f1865093b39f5a46d343922c50973bd188",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-core/src/whitelist_sql.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "1c56b1352b8c406da64028a7e0b7007c9ab30c07c160083ffe209838c61d6383",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-core/src/admin_shared.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "6a7896fcaba57215e0c12f4e8ea9a3f6407daeeed1bb9f5c99f059afd1e91294",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/migrations/0008_whitelist.sql",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "9378b51a1183c66ab78ec63ecc78cd391e3335de1c1f2e681076d8af6392db73",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/tests/whitelist_cohort_writers.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "1dfa96f49bbbf7fc949254f7805b2d10b1fe2439fabb316cb9023af57c293228",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/whitelist.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "fcfa572a5000eda940e551c05c381bdce4b01873f8e10f949f8057fc727c1c42",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/user_admin.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "c92f0bb7633c7db48f17e14fe2c79063d51cc58a66e8ebf6477d5573319af777",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/auth.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "b97401f0831bea21d5ff0fddd902e07e235c6a5b947501f9ef864c42b1eef2fb",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/lib.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "eeb662b0353919441077af3081e063252eab7da4c6ca952f5e80f9dfca8ab57d",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/relay_do/storage.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "4048b61f9bd43bc24eb36af6edb3e84a5207e1b01bbecf0639b0a224a9440351",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-auth-worker/src/admin.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "e8d8a4d9229a30564c983adff12a9d6c890c65fc0c0d812ac5d3fa6f71f5e529",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-auth-worker/src/admins.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "4832d088c3800cc6c463df54473dc3862be20ef4288a8bed9c5a57c4774f2d36",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-auth-worker/src/invites.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "38dd758d68185a6902e7eccfe3bb32362fc08a5461cb4e467d36f228b393b84d",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-auth-worker/src/username.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "05ce4f0877cc708601a967c6626d1ec7f4662d00ad1b36fcf72d18d192dc6198",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-auth-worker/src/schema.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "328b3e587b20bd2e8a0fab2093d2d028820cee1d2deb58c1223dc84c23e5d93f",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-auth-worker/src/governance_api.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "3a7de134fa5ae4728a4315d764f1e3cbdd5d612fb8e51f9bc6ce77e0c0c75333",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-auth-worker/src/lib.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "ada4f43572d49eb75963381a866f33e780f27fcd0845ddd18c0cc8ccaef6c404",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-forum-client/src/admin/membership.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "ae06d5e5fc2cf6da605ae0aeaeda467a2d54844a1243016c0df4b779bbef2aa2",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-forum-client/src/admin/mod.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "66e91a68b98acc5d49691d87fa79cfbf57b655c66841d25b830262cb0dba0ec6",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-forum-client/src/admin/invites.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "26e13cb207b8a854c4bc794336770a5bef14660d31b43fbc7e369d91349a37c1",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-forum-client/src/admin/user_table.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "e0226fe1f089dfb75d2fde484c7f9f93873260c888f971d7231e493a1aac0509",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-forum-client/src/admin/registrations.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "f387f79316467ec67f5de9da557b10d0ddc8e87d5667790f5cc4113185144aa0",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-forum-client/src/admin/section_requests.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "2b8970804d34318cdcf95ad7040745eaadfdf5724135a28cda531d32e2864adc",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-forum-client/src/stores/admin_alerts.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "34b4dbefbc91b065ccd38ee516236c88424f6273a70d8ae36ff188fc1007fd51",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/trust.rs",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "sha256": "ee3b2f92ff5e7c2387f36fe2e8931c4a5b29b50fd69236a6f989d47032951082",
+    "equals_old_diagram": true,
+    "equals_consumed": true
+  }
+]

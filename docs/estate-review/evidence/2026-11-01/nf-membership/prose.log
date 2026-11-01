@@ -1,0 +1,27 @@
+
+  prose-sanitiser slop scan: docs/estate-review/2026-11-01-forum-membership-lifecycle.md
+  files scanned: 1   findings: 9   slop score: 25
+  verdict: STRONG AI writing fingerprint
+  high: 7   medium: 2   low: 0
+
+  [HIGH] "The X" sentence/paragraph opener  (7 hits)
+        fix: Don't open with 'The <lowercase noun>'. Recast so the subject leads, or name the thing directly ('The production-node paired study lifts...' -> 'Holding the model constant and varying only the serving path lifts...'). Proper nouns (The Loom) are fine. See SKILL.md B2.
+        docs/estate-review/2026-11-01-forum-membership-lifecycle.md:10  The shared cohort SQL repairs four destructive writers, but the forum still has separate definitions of membership and administrator authority. The client can c...
+        docs/estate-review/2026-11-01-forum-membership-lifecycle.md:61  The actual shared SQL retains duplicate values on a new row and duplicate newly granted values on an existing row. With a legacy `["home", null]` array, `NOT IN...
+        docs/estate-review/2026-11-01-forum-membership-lifecycle.md:63  The invite schedule is more immediately actionable. After invite code reads `[members]`, a shared-SQL grant adds `zoneB`; the invite's later replacement writes ...
+        docs/estate-review/2026-11-01-forum-membership-lifecycle.md:73  The client embeds `row.code` in the revoke URL (`admin/invites.rs:175`); the handler queries `WHERE id = ?1` (`invites.rs:733`). Creation generates distinct eig...
+        docs/estate-review/2026-11-01-forum-membership-lifecycle.md:77  The list response emits pubkey, cohorts, time, display name and admin flag (`whitelist.rs:315–321`). `WhitelistUser` omits trust/suspension/silence. The table s...
+        docs/estate-review/2026-11-01-forum-membership-lifecycle.md:89  The forum's potential advantage is one understandable path from a Nostr identity to community, zone and agent participation. Operators should be able to answer ...
+        docs/estate-review/2026-11-01-forum-membership-lifecycle.md:91  The wider estate audit remains active. This review completes the bounded ADR-2014 section assessment, while implementation, deployment acceptance and remaining ...
+
+  [MEDIUM] Copula substitution (serves as / marks the)  (1 hit)
+        fix: Use 'is'. 'serves as a' -> 'is'; 'marks the' -> 'is'. See SKILL.md B9.
+        docs/estate-review/2026-11-01-forum-membership-lifecycle.md:29  ...ative requested/active/declined/suspended/removed state machine. Dismissal marks the reservation and retains its uniqueness slots; it does not transition the re...
+
+  [MEDIUM] Sense-dependent spelling (UK)  (1 hit)
+        fix: Use UK spelling: -ize->-ise, -or->-our, -er->-re, etc. See SKILL.md B12.
+        docs/estate-review/2026-11-01-forum-membership-lifecycle.md:47  ...scribe a future boundary. Turn them into executable write-path and state-derivation checks when accepting it, with an explicit migration exception and expiry. |
+
+  Top things to change: "The X" sentence/paragraph opener; Copula substitution (serves as / marks the); Sense-dependent spelling (UK)
+  Narrative and voice tells need eyes too. See Section C of SKILL.md.
+

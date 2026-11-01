@@ -1,0 +1,12 @@
+   Compiling nostr-bbs-relay-worker v1.0.0-beta.10 (/home/devuser/workspace/wt/VisionFlow-nf-membership/.audit-membership/forum/crates/nostr-bbs-relay-worker)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.70s
+     Running tests/whitelist_cohort_writers.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/whitelist_cohort_writers-f52dc4dcd7b82c1b)
+
+running 4 tests
+test ensure_schema_creates_the_table_before_altering_it ... ok
+test migration_0008_matches_the_ddl_ensure_schema_runs ... ok
+test every_set_cohorts_update_is_accounted_for ... ok
+test no_writer_replaces_a_members_cohorts ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+

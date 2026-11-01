@@ -1,0 +1,12 @@
+parsed 1 topic files, 6 mermaid diagrams
+cite-check: 3 warning(s)
+citations: 28 verified at the declared revision, 0 unverified (working-tree fallback), 0 unresolvable, 0 allowlisted (unverifiable)
+  ! nostr-rust-forum/25-membership-lifecycle-and-admin-consistency.md:NF-25.1 — ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/admin/membership.rs:94 is blank
+  ! nostr-rust-forum/25-membership-lifecycle-and-admin-consistency.md:NF-25.1 — ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/admin/membership.rs:99 is blank
+  ! nostr-rust-forum/25-membership-lifecycle-and-admin-consistency.md:NF-25.5 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/user_admin.rs:197 is blank
+rendered 6/6 diagrams via pele
+
+3 error(s):
+  - citation: nostr-rust-forum/25-membership-lifecycle-and-admin-consistency.md:NF-25.1 — ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/admin/membership.rs:94 is blank
+  - citation: nostr-rust-forum/25-membership-lifecycle-and-admin-consistency.md:NF-25.1 — ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/admin/membership.rs:99 is blank
+  - citation: nostr-rust-forum/25-membership-lifecycle-and-admin-consistency.md:NF-25.5 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/user_admin.rs:197 is blank

@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_194 topic files, 1677 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_195 topic files, 1683 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -322,6 +322,7 @@ _194 topic files, 1677 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | NF-22 | [Recovery export, phone import and device attribution boundaries](nostr-rust-forum/22-recovery-sheet-and-phone-import.md) | 5 | flowchart | [ADR-095-recovery-device-onboarding-sheet.md](../../../nostr-rust-forum/docs/archive/adr/ADR-095-recovery-device-onboarding-sheet.md), [ADR-098-connect-magic-link-onboarding.md](../../../nostr-rust-forum/docs/archive/adr/ADR-098-connect-magic-link-onboarding.md), [ADR-099-revocable-device-keys.md](../../../nostr-rust-forum/docs/archive/adr/ADR-099-revocable-device-keys.md) | ADR-095, ADR-098, ADR-099, ADR-2004 |
 | NF-23 | [Passkey client-worker contracts, PRF inputs and validation limits](nostr-rust-forum/23-passkey-client-worker-contracts.md) | 6 | flowchart | [IDENTITY-keys-and-trust.md](../../../nostr-rust-forum/docs/IDENTITY-keys-and-trust.md), [ADR-2003-derive-subkey-raw-hmac-js-parity.md](../../../nostr-rust-forum/docs/adr/ADR-2003-derive-subkey-raw-hmac-js-parity.md) | ADR-2003 |
 | NF-24 | [Trust transitions, sweep fairness and audit consistency](nostr-rust-forum/24-trust-transition-and-sweep-contracts.md) | 4 | flowchart, sequenceDiagram | [ADR-2006-trust-demotion-cron-tl3-never.md](../../../nostr-rust-forum/docs/adr/ADR-2006-trust-demotion-cron-tl3-never.md), [ADR-102-trust-demotion-inactivity-sweep.md](../../../nostr-rust-forum/docs/archive/adr/ADR-102-trust-demotion-inactivity-sweep.md) | ADR-2006 |
+| NF-25 | [Membership lifecycle, cohort grants and admin consistency](nostr-rust-forum/25-membership-lifecycle-and-admin-consistency.md) | 6 | flowchart | [ADR-2014-member-lifecycle-one-source-of-truth.md](../../../nostr-rust-forum/docs/adr/ADR-2014-member-lifecycle-one-source-of-truth.md) | ADR-2014 |
 
 ### dreamlab-ai-website
 

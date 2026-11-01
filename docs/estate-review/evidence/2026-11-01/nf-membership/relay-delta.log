@@ -1,0 +1,13 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.19s
+     Running unittests src/lib.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/nostr_bbs_relay_worker-4e24e725587f94f0)
+
+running 6 tests
+test whitelist::tests::a_cohort_in_both_add_and_remove_is_refused ... ok
+test whitelist::tests::delta_carries_add_and_remove ... ok
+test whitelist::tests::add_and_legacy_cohorts_are_unioned_without_duplicates ... ok
+test whitelist::tests::empty_change_is_refused ... ok
+test whitelist::tests::remove_only_is_allowed ... ok
+test whitelist::tests::legacy_cohorts_field_is_a_grant_not_a_replacement ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 486 filtered out; finished in 0.00s
+

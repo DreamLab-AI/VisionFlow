@@ -1,0 +1,47 @@
+[
+  {
+    "command": [
+      "rg",
+      "--files",
+      "crates/nostr-bbs-relay-worker/migrations"
+    ],
+    "exit_code": 0,
+    "stdout": "crates/nostr-bbs-relay-worker/migrations/0007_ontology_governance.sql\ncrates/nostr-bbs-relay-worker/migrations/0005_governance_receipts.sql\ncrates/nostr-bbs-relay-worker/migrations/0008_whitelist.sql\ncrates/nostr-bbs-relay-worker/migrations/0001_profiles.sql\ncrates/nostr-bbs-relay-worker/migrations/0011_jev_triage.sql\ncrates/nostr-bbs-relay-worker/migrations/0002_governance.sql\ncrates/nostr-bbs-relay-worker/migrations/0009_events.sql\ncrates/nostr-bbs-relay-worker/migrations/0010_push.sql\ncrates/nostr-bbs-relay-worker/migrations/0006_augmentation_conditions.sql\ncrates/nostr-bbs-relay-worker/migrations/0004_event_tags.sql\ncrates/nostr-bbs-relay-worker/migrations/0003_pubkey_aliases.sql\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "rg",
+      "--files",
+      "crates/nostr-bbs-relay-worker/src"
+    ],
+    "exit_code": 0,
+    "stdout": "crates/nostr-bbs-relay-worker/src/moderation.rs\ncrates/nostr-bbs-relay-worker/src/agent_disclosure.rs\ncrates/nostr-bbs-relay-worker/src/cron.rs\ncrates/nostr-bbs-relay-worker/src/trust.rs\ncrates/nostr-bbs-relay-worker/src/relay_do/filter.rs\ncrates/nostr-bbs-relay-worker/src/relay_do/receipts.rs\ncrates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs\ncrates/nostr-bbs-relay-worker/src/relay_do/storage.rs\ncrates/nostr-bbs-relay-worker/src/relay_do/nip42.rs\ncrates/nostr-bbs-relay-worker/src/relay_do/mod.rs\ncrates/nostr-bbs-relay-worker/src/relay_do/mod_cache.rs\ncrates/nostr-bbs-relay-worker/src/relay_do/push_fanout.rs\ncrates/nostr-bbs-relay-worker/src/relay_do/calendar_projection.rs\ncrates/nostr-bbs-relay-worker/src/relay_do/session.rs\ncrates/nostr-bbs-relay-worker/src/relay_do/broadcast.rs\ncrates/nostr-bbs-relay-worker/src/relay_do/read_cache.rs\ncrates/nostr-bbs-relay-worker/src/profiles.rs\ncrates/nostr-bbs-relay-worker/src/push.rs\ncrates/nostr-bbs-relay-worker/src/zone_config.rs\ncrates/nostr-bbs-relay-worker/src/nip11.rs\ncrates/nostr-bbs-relay-worker/src/user_admin.rs\ncrates/nostr-bbs-relay-worker/src/admin_events.rs\ncrates/nostr-bbs-relay-worker/src/ingress.rs\ncrates/nostr-bbs-relay-worker/src/auth.rs\ncrates/nostr-bbs-relay-worker/src/whitelist.rs\ncrates/nostr-bbs-relay-worker/src/lib.rs\ncrates/nostr-bbs-relay-worker/src/trust_sweep.rs\ncrates/nostr-bbs-relay-worker/src/profile_stats.rs\ncrates/nostr-bbs-relay-worker/src/triage.rs\ncrates/nostr-bbs-relay-worker/src/audit.rs\ncrates/nostr-bbs-relay-worker/src/mesh.rs\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "rg",
+      "-n",
+      "/api/admin/members|CREATE TABLE[^\\n]*members|mod membership|reconcil",
+      "crates/nostr-bbs-relay-worker/src",
+      "crates/nostr-bbs-relay-worker/migrations",
+      "crates/nostr-bbs-auth-worker/src"
+    ],
+    "exit_code": 0,
+    "stdout": "crates/nostr-bbs-auth-worker/src/schema.rs:116:        \"CREATE TABLE IF NOT EXISTS members (\\\ncrates/nostr-bbs-relay-worker/src/trust_sweep.rs:1070:    fn rerunning_the_sweep_reconciles_and_converges() {\ncrates/nostr-bbs-relay-worker/src/trust_sweep.rs:1071:        // Restart reconciliation. `faller` drops to TL0 and leaves the eligible\ncrates/nostr-bbs-relay-worker/src/relay_do/receipts.rs:36://! *\"retain a durable replay record with idempotent reconciliation\"*. The\ncrates/nostr-bbs-relay-worker/src/relay_do/receipts.rs:51://!   *reconciliation* opportunity and the projection is retried. That retry is\ncrates/nostr-bbs-relay-worker/src/relay_do/receipts.rs:481:            // `projection-committed`: this delivery is a reconciliation.\ncrates/nostr-bbs-relay-worker/src/relay_do/receipts.rs:1375:    fn redelivery_after_a_failed_projection_reconciles_exactly_once() {\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "rg",
+      "-n",
+      "WHITELIST_GRANT_COHORTS_SQL|WHITELIST_REVOKE_COHORTS_SQL",
+      "crates/nostr-bbs-relay-worker/src",
+      "crates/nostr-bbs-auth-worker/src"
+    ],
+    "exit_code": 0,
+    "stdout": "crates/nostr-bbs-auth-worker/src/governance_api.rs:18:use nostr_bbs_core::whitelist_sql::WHITELIST_GRANT_COHORTS_SQL;\ncrates/nostr-bbs-auth-worker/src/governance_api.rs:415:///    `/api/whitelist/add` ([`WHITELIST_GRANT_COHORTS_SQL`]), so the two paths\ncrates/nostr-bbs-auth-worker/src/governance_api.rs:466:    let whitelist_stmt = db.prepare(WHITELIST_GRANT_COHORTS_SQL).bind(&[\ncrates/nostr-bbs-relay-worker/src/whitelist.rs:7:use nostr_bbs_core::whitelist_sql::{WHITELIST_GRANT_COHORTS_SQL, WHITELIST_REVOKE_COHORTS_SQL};\ncrates/nostr-bbs-relay-worker/src/whitelist.rs:373:    db.prepare(WHITELIST_GRANT_COHORTS_SQL)\ncrates/nostr-bbs-relay-worker/src/whitelist.rs:590:        stmts.push(db.prepare(WHITELIST_GRANT_COHORTS_SQL).bind(&[\ncrates/nostr-bbs-relay-worker/src/whitelist.rs:599:            db.prepare(WHITELIST_REVOKE_COHORTS_SQL)\ncrates/nostr-bbs-relay-worker/src/user_admin.rs:30:use nostr_bbs_core::whitelist_sql::WHITELIST_GRANT_COHORTS_SQL;\ncrates/nostr-bbs-relay-worker/src/user_admin.rs:612:            db.prepare(WHITELIST_GRANT_COHORTS_SQL)\n",
+    "stderr": ""
+  }
+]

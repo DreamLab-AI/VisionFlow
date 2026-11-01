@@ -1,0 +1,37 @@
+{
+  "date": "2026-11-01",
+  "forum_revision": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+  "source_exports": 25,
+  "source_parity_old_and_consumed": true,
+  "native_unique": 37,
+  "native_existing": 31,
+  "native_added": 6,
+  "sql_scenarios": 7,
+  "full_worker_or_live_d1": false,
+  "corpus": {
+    "topics": 195,
+    "panels": 1683,
+    "verified_citations": 25078,
+    "warnings": 0,
+    "working_tree_fallbacks": 0,
+    "unresolvable": 0,
+    "allowlisted": 9,
+    "revision_labels": 47
+  },
+  "rendered_panels": 15,
+  "visually_inspected": [
+    "NF-25.1",
+    "NF-25.2",
+    "NF-25.3",
+    "NF-25.4",
+    "NF-25.5",
+    "NF-25.6",
+    "NF-08.7"
+  ],
+  "scope_of_nf08": "Only normalisation, error fallback and revocation notes in panel 7; other notes/panels retain prior scope",
+  "report_unicode_findings": 0,
+  "report_prose_flags": 1,
+  "prose_disposition": "Sense-dependent spelling flag reviewed; migration-acceptance sentence retains UK wording",
+  "local_file_targets_checked": 4,
+  "estate_goal_complete": false
+}

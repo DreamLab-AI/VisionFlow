@@ -1,0 +1,20 @@
+   Compiling nostr-bbs-core v1.0.0-beta.19 (/home/devuser/workspace/wt/VisionFlow-nf-membership/.audit-membership/forum/crates/nostr-bbs-core)
+   Compiling nostr-bbs-forum-client v1.0.0-beta.10 (/home/devuser/workspace/wt/VisionFlow-nf-membership/.audit-membership/forum/crates/nostr-bbs-forum-client)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 51.67s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src/main.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/nostr_bbs_forum_client-5ec1ffda0703b362)
+
+running 9 tests
+test admin::membership::tests::unchanged_editor_yields_an_empty_delta ... ok
+test admin::membership::tests::cohort_delta_reports_only_what_the_editor_changed ... ok
+test admin::membership::tests::unticking_a_zone_group_removes_every_equivalent_name ... ok
+test admin::membership::tests::pager_handles_an_empty_whitelist ... ok
+test admin::membership::tests::approve_merges_into_cohorts_already_held ... ok
+test admin::membership::tests::pending_comparison_ignores_hex_case ... ok
+test admin::membership::tests::unwhitelisted_registration_is_pending ... ok
+test admin::membership::tests::approving_pending_members_removes_them_from_pending ... ok
+test admin::membership::tests::pager_reads_every_row_past_the_relay_page_cap ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 716 filtered out; finished in 0.01s
+

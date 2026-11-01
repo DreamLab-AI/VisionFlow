@@ -1,0 +1,19 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.22s
+     Running unittests src/lib.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/nostr_bbs_core-e9b10af8afafc0ec)
+
+running 12 tests
+test whitelist_sql::tests::create_is_idempotent_and_defaults_match_the_legacy_table ... ok
+test whitelist_sql::tests::revoke_never_creates_a_row ... ok
+test whitelist_sql::tests::revoke_leaves_a_non_array_value_untouched ... ok
+test whitelist_sql::tests::revoke_removes_only_the_named_cohorts ... ok
+test whitelist_sql::tests::grant_creates_a_row_with_exactly_the_granted_cohorts ... ok
+test whitelist_sql::tests::grant_over_a_non_array_value_writes_the_grant ... ok
+test whitelist_sql::tests::revoke_of_every_cohort_leaves_an_empty_array ... ok
+test whitelist_sql::tests::grant_does_not_duplicate_a_held_cohort ... ok
+test whitelist_sql::tests::grant_leaves_other_columns_alone ... ok
+test whitelist_sql::tests::grant_keeps_added_at_and_records_the_latest_granter ... ok
+test whitelist_sql::tests::empty_grant_leaves_cohorts_unchanged ... ok
+test whitelist_sql::tests::grant_never_removes_an_existing_cohort ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 432 filtered out; finished in 0.01s
+

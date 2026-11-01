@@ -1,0 +1,14 @@
+[
+  {
+    "path": "crates/nostr-bbs-core/src/whitelist_sql.rs",
+    "original_sha256": "1c56b1352b8c406da64028a7e0b7007c9ab30c07c160083ffe209838c61d6383",
+    "addition_sha256": "771da9806c10aed518b2c9d6adfe2280225b59ecefc03a1e1b1b219b7864a578",
+    "insertion": "before final brace of existing test module"
+  },
+  {
+    "path": "crates/nostr-bbs-forum-client/src/admin/membership.rs",
+    "original_sha256": "ae06d5e5fc2cf6da605ae0aeaeda467a2d54844a1243016c0df4b779bbef2aa2",
+    "addition_sha256": "86b3812351262bb259291bffc3b000a853b04189367eeaf871cbec6fe38cf4c6",
+    "insertion": "before final brace of existing test module"
+  }
+]

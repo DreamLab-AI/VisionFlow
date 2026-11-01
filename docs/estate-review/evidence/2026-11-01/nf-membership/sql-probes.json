@@ -1,0 +1,99 @@
+{
+  "sqlite_version": "3.53.3",
+  "scope": "Exact extracted SQL, synthetic inputs and selected schedules; not live D1 or handlers",
+  "cases": [
+    {
+      "name": "approval_keeps_expiry",
+      "expired_admitted": false,
+      "null_expiry_control_admitted": true
+    },
+    {
+      "name": "invite_interleaved",
+      "cohorts": [
+        "members",
+        "zoneA"
+      ]
+    },
+    {
+      "name": "invite_serial_control",
+      "cohorts": [
+        "members",
+        "zoneB",
+        "zoneA"
+      ]
+    },
+    {
+      "name": "relay_demotion_leaves_auth_flag",
+      "relay_flag": 0,
+      "auth_flag": 1
+    },
+    {
+      "name": "case_sensitive_row",
+      "lowercase_match": false,
+      "uppercase_control_match": true
+    },
+    {
+      "name": "revoke_code_id_mismatch",
+      "code_found": false,
+      "id_control_found": true
+    },
+    {
+      "name": "delete_has_no_tombstone",
+      "regrant_creates_row": true
+    }
+  ],
+  "statements": {
+    "create": {
+      "path": "crates/nostr-bbs-core/src/whitelist_sql.rs",
+      "sql": "CREATE TABLE IF NOT EXISTS whitelist (pubkey TEXT PRIMARY KEY, cohorts TEXT NOT NULL DEFAULT '[\"members\"]', added_at INTEGER NOT NULL, added_by TEXT NOT NULL DEFAULT 'auto-registration', is_admin INTEGER NOT NULL DEFAULT 0, trust_level INTEGER NOT NULL DEFAULT 0, days_active INTEGER NOT NULL DEFAULT 0, posts_read INTEGER NOT NULL DEFAULT 0, posts_created INTEGER NOT NULL DEFAULT 0, mod_actions_against INTEGER NOT NULL DEFAULT 0, last_active_at INTEGER, trust_level_updated_at INTEGER, suspended_until INTEGER, silenced INTEGER NOT NULL DEFAULT 0, user_notes TEXT, expires_at INTEGER)"
+    },
+    "grant": {
+      "path": "crates/nostr-bbs-core/src/whitelist_sql.rs",
+      "sql": "INSERT INTO whitelist (pubkey, cohorts, added_at, added_by) VALUES (?1, ?2, ?3, ?4) ON CONFLICT (pubkey) DO UPDATE SET cohorts = CASE WHEN json_valid(whitelist.cohorts) AND json_type(whitelist.cohorts) = 'array' THEN (SELECT json_group_array(value) FROM ( SELECT value FROM json_each(whitelist.cohorts) UNION ALL SELECT value FROM json_each(excluded.cohorts) WHERE value NOT IN (SELECT value FROM json_each(whitelist.cohorts)))) ELSE excluded.cohorts END, added_by = excluded.added_by"
+    },
+    "admission": {
+      "path": "crates/nostr-bbs-relay-worker/src/relay_do/storage.rs",
+      "sql": "SELECT 1 as found FROM whitelist WHERE pubkey = ?1 AND (expires_at IS NULL OR expires_at > ?2)"
+    },
+    "invite_read": {
+      "path": "crates/nostr-bbs-auth-worker/src/invites.rs",
+      "sql": "SELECT cohorts FROM whitelist WHERE pubkey = ?1"
+    },
+    "invite_write": {
+      "path": "crates/nostr-bbs-auth-worker/src/invites.rs",
+      "sql": "UPDATE whitelist SET cohorts = ?1 WHERE pubkey = ?2"
+    },
+    "relay_set_admin": {
+      "path": "crates/nostr-bbs-relay-worker/src/whitelist.rs",
+      "sql": "UPDATE whitelist SET is_admin = ?1 WHERE pubkey = ?2"
+    },
+    "auth_members": {
+      "path": "crates/nostr-bbs-auth-worker/src/schema.rs",
+      "sql": "CREATE TABLE IF NOT EXISTS members (pubkey TEXT PRIMARY KEY, is_admin INTEGER NOT NULL DEFAULT 0, joined_via_invite_id TEXT, first_seen_at INTEGER, created_at INTEGER NOT NULL)"
+    },
+    "relay_admin": {
+      "path": "crates/nostr-bbs-core/src/admin_shared.rs",
+      "sql": "SELECT is_admin FROM whitelist WHERE pubkey = ?1"
+    },
+    "auth_admin": {
+      "path": "crates/nostr-bbs-core/src/admin_shared.rs",
+      "sql": "SELECT is_admin FROM members WHERE pubkey = ?1"
+    },
+    "invitations": {
+      "path": "crates/nostr-bbs-auth-worker/src/schema.rs",
+      "sql": "CREATE TABLE IF NOT EXISTS invitations (id TEXT PRIMARY KEY, code TEXT UNIQUE NOT NULL, issued_by TEXT NOT NULL, max_uses INTEGER NOT NULL DEFAULT 1, uses INTEGER NOT NULL DEFAULT 0, expires_at INTEGER NOT NULL, revoked_at INTEGER, revoked_by TEXT, created_at INTEGER NOT NULL)"
+    },
+    "invite_zone": {
+      "path": "crates/nostr-bbs-auth-worker/src/schema.rs",
+      "sql": "ALTER TABLE invitations ADD COLUMN zone_id TEXT"
+    },
+    "invite_revoke_lookup": {
+      "path": "crates/nostr-bbs-auth-worker/src/invites.rs",
+      "sql": "SELECT id, code, issued_by, max_uses, uses, expires_at, revoked_at, revoked_by, created_at, zone_id FROM invitations WHERE id = ?1"
+    },
+    "delete_member": {
+      "path": "crates/nostr-bbs-relay-worker/src/user_admin.rs",
+      "sql": "DELETE FROM whitelist WHERE pubkey = ?1"
+    }
+  }
+}

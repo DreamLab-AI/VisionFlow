@@ -1,0 +1,22 @@
+[
+  {
+    "file": "docs/estate-review/2026-11-01-forum-membership-lifecycle.md",
+    "target": "evidence/2026-11-01/nf-membership/source-manifest.json",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-membership-lifecycle.md",
+    "target": "evidence/2026-11-01/nf-membership/README.md",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-membership-lifecycle.md",
+    "target": "2026-11-01-forum-trust-transitions.md",
+    "exists": true
+  },
+  {
+    "file": "docs/diagrams/nostr-rust-forum/25-membership-lifecycle-and-admin-consistency.md",
+    "target": "../../estate-review/2026-11-01-forum-membership-lifecycle.md",
+    "exists": true
+  }
+]

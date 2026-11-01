@@ -1,0 +1,21 @@
+[
+  {
+    "url": "https://www.rfc-editor.org/rfc/rfc7644.html",
+    "accessed": "2026-11-01",
+    "sections": [
+      "3.4.2.4",
+      "3.5.2.1",
+      "3.5.2.2"
+    ],
+    "use": "Filtering, stateless pagination caveat and targeted membership changes; design comparison, no SCIM compatibility claim"
+  },
+  {
+    "url": "https://www.keycloak.org/docs-api/26.4.7/rest-api/",
+    "accessed": "2026-11-01",
+    "sections": [
+      "POST /admin/realms/{realm}/users/{user-id}/logout",
+      "PUT /admin/realms/{realm}/users/{user-id}"
+    ],
+    "use": "Separate user update and session invalidation with client notification; no universal revocation guarantee"
+  }
+]
