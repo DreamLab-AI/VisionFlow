@@ -17,9 +17,9 @@ This ledger makes the review backlog explicit. It currently reconciles **98 curr
 | --- | ---: | --- |
 | Explicit checkout targets | 20 | Owner narrowed the roster; standalone Codescape remains |
 | Available checkouts | 20 | All remaining targets are locally available |
-| ADR-like candidate files | 828 | Includes support, imported copies, history and retained audit evidence |
-| Numbered decision candidates | 720 | A naming-based queue, not a count of operative or unique adopted decisions |
-| Parsed heading units | 9,364 | Excludes headings in fenced examples; a heading is not an exhaustive requirement decomposition |
+| ADR-like candidate files | 829 | Includes support, imported copies, history and retained audit evidence |
+| Numbered decision candidates | 721 | A naming-based queue, not a count of operative or unique adopted decisions |
+| Parsed heading units | 9,369 | Excludes headings in fenced examples; a heading is not an exhaustive requirement decomposition |
 | ADR assessments reconciled | 98 | Explicit whole-document assessments linked to unchanged source-document and report bytes |
 | Heading units with those assessments | 700 | Inherit the bounded whole-document report; implementation claims still need its evidence |
 | Diagram topics / panels | 210 / 1,744 | Exact panel-ID set matches the existing generated coverage index |
@@ -28,7 +28,9 @@ This ledger makes the review backlog explicit. It currently reconciles **98 curr
 
 RuView, Logseq history, RuVector, the Codescape copy within VisionClaw and the Unmute copy within VisionClaw are excluded at the owner's direction. Standalone Codescape remains in scope. This removes fourteen candidate files and one previously counted assessment from the active totals; it adds no review credit. Historical evidence is retained in the [exclusion receipt](exclusions-2026-11-01.json). Owned-repository integration references do not re-admit excluded checkouts. No repositories were deleted.
 
-This batch assesses all ADR-2003 sections and five OIDC panels. The [OIDC admission and fetching report](../2026-11-01-solid-oidc-boundaries.md) records the merged redirect-policy repair, 102 passing native tests and five bounded observations. Resource-route integration, URI matching, replay eviction, profile authority and token-policy findings remain open. No OIDC profile adoption or deployment is claimed. Solid now has seven numbered ADR assessments and 37 of 136 panel assessments.
+The latest [JSS parity intake](../2026-11-01-solid-parity-intake.md) adds proposed ADR-2011 to the queue and re-observes six access-control/provisioning probe groups at concurrent Solid head `fe4f2ec`. It imports 35 classified parity rows and three additional PATCH defects, without treating them as 38 new distinct issues. Existing OIDC source hashes are unchanged. No whole-ADR or panel credit is added; Solid has seven of sixteen numbered ADR assessments.
+
+The preceding batch assesses all ADR-2003 sections and five OIDC panels. The [OIDC admission and fetching report](../2026-11-01-solid-oidc-boundaries.md) records the merged redirect-policy repair, 102 passing native tests and five bounded observations. Resource-route integration, URI matching, replay eviction, profile authority and token-policy findings remain open. No OIDC profile adoption or deployment is claimed. Solid now has seven numbered ADR assessments and 37 of 136 panel assessments.
 
 The preceding batch merges the [empty-body repair](../2026-11-01-solid-empty-body-repair.md) into the Solid Pod producer and assesses new SP-11.1. The default workspace suite passes 2,170 test executions; core doctests separately pass 30. One panel is added, with no additional whole-ADR credit. Publication, consumer upgrades and deployment remain open. At that checkpoint, Solid had six numbered ADR assessments and 32 of 134 panel assessments.
 
@@ -76,7 +78,7 @@ Counts below come from the dated snapshot. Diagram-area counts derive from indiv
 | VisionFlow | 77 | 30 | 1 |
 | VisionClaw | 292 | 278 | 13 |
 | agentbox | 239 | 227 | 8 |
-| solid-pod-rs | 19 | 15 | 7 |
+| solid-pod-rs | 20 | 16 | 7 |
 | nostr-rust-forum | 64 | 58 | 24 |
 | dreamlab-ai-website | 47 | 43 | 3 |
 | loom | 10 | 8 | 0 |

@@ -1,0 +1,14 @@
+{
+  "operator_files_unchanged": {
+    "docs/diagrams/review-ledger.jsonl": true,
+    ".dream-standby": true,
+    "docs/review/2026-10-31-glm.json": true,
+    "docs/review/2026-10-31-glm.md": true,
+    "docs/review/2026-10-31-triage.md": true,
+    "docs/review/2026-11-01-glm.json": true,
+    "docs/review/2026-11-01-glm.md": true,
+    "docs/review/2026-11-01-triage.md": true
+  },
+  "solid_product_worktree": "Temporary probe removed after byte-identical archive; clean worktree and branch removed.",
+  "production_source_edited": false
+}

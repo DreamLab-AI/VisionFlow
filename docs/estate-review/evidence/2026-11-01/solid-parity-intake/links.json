@@ -1,0 +1,14 @@
+[
+  {
+    "target": "remediation/solid-parity-intake-2026-11-01.json",
+    "exists": true
+  },
+  {
+    "target": "evidence/2026-11-01/solid-parity-intake/manifest.json",
+    "exists": true
+  },
+  {
+    "target": "2026-11-01-solid-http-delivery.md",
+    "exists": true
+  }
+]

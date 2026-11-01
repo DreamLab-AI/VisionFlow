@@ -1,0 +1,78 @@
+   Compiling solid-pod-rs v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-parity-recheck/crates/solid-pod-rs)
+   Compiling solid-pod-rs-idp v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-parity-recheck/crates/solid-pod-rs-idp)
+   Compiling solid-pod-rs-server v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-parity-recheck/crates/solid-pod-rs-server)
+warning: unused imports: `AccessMode`, `evaluate_access`, `parse_jsonld_acl`, and `parse_turtle_acl`
+  --> crates/solid-pod-rs-server/tests/estate_parity_intake.rs:12:25
+   |
+12 | use solid_pod_rs::wac::{evaluate_access, parse_jsonld_acl, parse_turtle_acl, AccessMode};
+   |                         ^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^  ^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `fresh` is never used
+  --> crates/solid-pod-rs-server/tests/estate_parity_intake.rs:42:10
+   |
+42 | async fn fresh() -> Arc<dyn Storage> {
+   |          ^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `solid-pod-rs-server` (test "estate_parity_intake") generated 2 warnings (run `cargo fix --test "estate_parity_intake" -p solid-pod-rs-server` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 15.00s
+     Running tests/estate_parity_intake.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/estate_parity_intake-0e95c1cc1d310005)
+
+running 6 tests
+test v1_absolute_put_lockout_turtle ... V1 PUT turtle abs accessTo: PUT=201 "" -> owner GET=403 repair PUT=403
+ok
+test v1_absolute_vs_relative_seeded ... V1 seeded accessTo </me/public/doc.ttl>: owner GET res=200 acl=200
+V1 seeded accessTo <http://localhost:8080/me/public/doc.ttl>: owner GET res=403 acl=403
+V1 seeded accessTo <http://127.0.0.1:8080/me/public/doc.ttl>: owner GET res=403 acl=403
+V1 seeded accessTo <https://pod.example/me/public/doc.ttl>: owner GET res=403 acl=403
+V1 seeded accessTo <./doc.ttl>: owner GET res=403 acl=403
+V1 seeded accessTo <doc.ttl>: owner GET res=403 acl=403
+V1 seeded accessTo <>: owner GET res=403 acl=403
+V1 root .acl accessTo+default </>: owner GET /me/public/doc.ttl=200 GET /=200
+V1 root .acl accessTo+default <./>: owner GET /me/public/doc.ttl=200 GET /=200
+V1 root .acl accessTo+default <http://localhost:8080/>: owner GET /me/public/doc.ttl=403 GET /=403
+V1 root .acl accessTo+default <>: owner GET /me/public/doc.ttl=200 GET /=200
+ok
+test v1_m4_container_acl_location ... V1 M4 GET /c/ owner: 200 Link: <http://www.w3.org/ns/ldp#BasicContainer>; rel="type", <http://www.w3.org/ns/ldp#Container>; rel="type", <http://www.w3.org/ns/ldp#Resource>; rel="type", </c/.acl>; rel="acl", </c/.meta>; rel="describedby"
+V1 M4 GET /nope/ (404) owner: 200 Link: <http://www.w3.org/ns/ldp#BasicContainer>; rel="type", <http://www.w3.org/ns/ldp#Container>; rel="type", <http://www.w3.org/ns/ldp#Resource>; rel="type", </nope/.acl>; rel="acl", </nope/.meta>; rel="describedby"
+V1 M4 baseline anon GET /c/x.ttl: 200
+V1 M4 after PUT /c/.acl (owner-only) = 201: anon GET /c/x.ttl=200 anon GET /c/=200 owner GET /c/x.ttl=200
+V1 M4 stored: GET /c/.acl=200 GET /c.acl=404
+V1 M4 after PUT /c.acl (owner-only) = 201: anon GET /c/x.ttl=401 anon GET /c/=401 owner GET /c/x.ttl=200
+ok
+test v1_named_pod_create ... V1 named-pod POST /.pods: 201 {"name":"alice","podUri":"http://localhost:8080/alice/","webId":"http://localhost:8080/alice/profile/card#me"}
+V1 named-pod storage root list: ["alice.meta", "alice/"]
+V1 named-pod PUT /alice/public/x.ttl as owner: 403
+V1 named-pod GET /alice/ as owner: 403
+V1 named-pod GET /alice/profile/card as anon: 401
+V1 named-pod PUT /alice/public/y.ttl as anon: 401
+ok
+test v1_provisioned_type_index ... V1 provision webid=http://localhost:8080/pods/abc123/profile/card#me pod_root=http://localhost:8080/pods/abc123/
+--acl--
+@prefix acl: <http://www.w3.org/ns/auth/acl#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+<#rule-0> a acl:Authorization ;
+    acl:agent <http://localhost:8080/pods/abc123/profile/card#me> ;
+    acl:accessTo <http://localhost:8080/pods/abc123/settings/publicTypeIndex.jsonld> ;
+    acl:mode acl:Read, acl:Write, acl:Control .
+
+<#rule-1> a acl:Authorization ;
+    acl:agentClass foaf:Agent ;
+    acl:accessTo <http://localhost:8080/pods/abc123/settings/publicTypeIndex.jsonld> ;
+    acl:mode acl:Read .
+
+
+V1 provisioned publicTypeIndex: anon GET=401 owner GET=403
+ok
+test v1_unparseable_lockout ... V1 unparseable application/ld+json "{not json": PUT=201 "" -> owner GET res=403 acl=403 repair=403
+V1 unparseable application/ld+json "[]": PUT=201 "" -> owner GET res=403 acl=403 repair=403
+V1 unparseable text/plain "hello": PUT=201 "" -> owner GET res=403 acl=403 repair=403
+V1 unparseable text/turtle "this is @@ not turtle <<": PUT=409 "refused: the proposed ACL would not grant Control to the caller (use an absolute WebID, foaf:Agent, or acl:AuthenticatedAgent)" -> owner GET res=200 acl=200 repair=201
+ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+

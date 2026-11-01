@@ -1,0 +1,17 @@
+{
+  "source_revision": "fe4f2ec338f0c4de75c9769b08d54bbb12e779b2",
+  "scope": "Concurrent parity intake and six re-executed observation groups; no additional ADR or panel credit",
+  "files": {
+    "commands.json": "5df42892a00bccda224e1d4f13519d325d468903e28bcf4c7ea3802c1723fd64",
+    "editorial.json": "46704bb379893ff4f381c6650ad210b75b7cea920550a4e2bb9937485d211029",
+    "inventory-delta.json": "00e6e18e0d90d889cc5d3cf2699b1458a753b18adf627823f1c94e421b6269cf",
+    "ledger.txt": "7d5c806c5b1a46d6c8ea2fab3c2d3162930db89a5639af2b9f4c58284caaf2ab",
+    "links.json": "a49775854ebf15c31d83419c3d90125621d8158bba5595d68f3dbb564e993e0d",
+    "preservation.json": "33705a76ed1e4be22b773152d3dc8f482c286a198a8c24508aab33c938079713",
+    "prose.txt": "cc3fd8408b9a43585670805ba6be20787590b62e310ceac1c2599eb3c7fe567f",
+    "sources.json": "c4ccf3148536a27b748c16fcd542f7155be5b17f50b825e44ec66b4041702d14",
+    "unicode.txt": "a904c717adeddd4fd82233bcb02b381b1637b8dff3bbe98c05a6d22354870f65",
+    "wac-probe-verify.rs": "fce7f96b397b00384d81e15a390fd69b047896ac8b480715b3eb54310b347cb2",
+    "wac-rerun.txt": "cf1ff79c24102dbf5bcf2df009187c6eda20b2d82952fe4344f756a13d108fa1"
+  }
+}

@@ -60146,6 +60146,51 @@
       "sha256": "d76186a545b186dfbc997a8cc6f0e59799b3a8bf34ff098d6d77969c703fae7b"
     },
     {
+      "category": "decision-candidate",
+      "claims": [],
+      "path": "crates/solid-pod-rs/docs/adr/ADR-2011-extensions-are-compile-time-crates-route-ownership-is-the-exemption.md",
+      "repo": "solid-pod-rs",
+      "review": "unreconciled",
+      "sections": [
+        {
+          "line": 21,
+          "ordinal": 1,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "ADR-2011 — Extensions are workspace crates composed at compile time; route ownership is the WAC exemption"
+        },
+        {
+          "line": 23,
+          "ordinal": 2,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Context"
+        },
+        {
+          "line": 32,
+          "ordinal": 3,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Decision"
+        },
+        {
+          "line": 50,
+          "ordinal": 4,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Consequences"
+        },
+        {
+          "line": 63,
+          "ordinal": 5,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Verification"
+        }
+      ],
+      "sha256": "6e0f435813ce328163c3e1d076b303846b3e92764a38fbd33509ef5ad4a1302f"
+    },
+    {
       "category": "support-or-unclassified",
       "claims": [],
       "path": "crates/solid-pod-rs/docs/adr/PREAMBLE.md",
@@ -60169,7 +60214,7 @@
           "title": "Architecture Decision Records"
         }
       ],
-      "sha256": "7d81cbfb9fe28e47f86878f7c59e82d320521585aac7d6b966c3a6a9eaa957e8"
+      "sha256": "9ad0237821b6947f01b1805edbb55ab50c031c7c805f3bae4e70caa75a16a9da"
     },
     {
       "category": "support-or-unclassified",
@@ -76005,9 +76050,9 @@
   ],
   "counts": {
     "available_checkouts": 20,
-    "candidate_files": 828,
+    "candidate_files": 829,
     "numbered_candidates_with_recorded_assessment": 98,
-    "numbered_decision_candidates": 720,
+    "numbered_decision_candidates": 721,
     "panels": 1744,
     "panels_with_recorded_assessment": 372,
     "scope_targets": 20,
@@ -76020,7 +76065,7 @@
       "available": true,
       "candidate_files": 77,
       "dirty": true,
-      "head": "79843f42bd7ccad8a5fbcbe576f4b61c136c0f30",
+      "head": "6e26fadb7ab5340269043480a0287eab4544ffb7",
       "local": "VisionFlow",
       "name": "VisionFlow"
     },
@@ -76042,9 +76087,9 @@
     },
     {
       "available": true,
-      "candidate_files": 19,
+      "candidate_files": 20,
       "dirty": false,
-      "head": "fcc624a3e952e05923d93d7ea038294bcddb25ae",
+      "head": "fe4f2ec338f0c4de75c9769b08d54bbb12e779b2",
       "local": "solid-pod-rs",
       "name": "solid-pod-rs"
     },

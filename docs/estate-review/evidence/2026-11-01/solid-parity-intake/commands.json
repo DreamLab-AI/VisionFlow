@@ -1,0 +1,8 @@
+{
+  "cwd": "/home/devuser/workspace/wt/solid-pod-parity-recheck",
+  "setup": "Copy the archived wac-probe-verify.rs unchanged to crates/solid-pod-rs-server/tests/estate_parity_intake.rs in an isolated checkout.",
+  "command": "CARGO_BUILD_JOBS=4 CARGO_TARGET_DIR=/home/devuser/workspace/solid-pod-rs/target cargo test --locked --offline -p solid-pod-rs-server --features dev-bearer --test estate_parity_intake -- --nocapture --test-threads=1",
+  "exit": 0,
+  "completed_test_functions": 6,
+  "limits": "Probe functions print observations rather than asserting desired outcomes. They are not regression acceptance tests. Development bearer and in-memory storage; no production authentication or deployment conclusion."
+}

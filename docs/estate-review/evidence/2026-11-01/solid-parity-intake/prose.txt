@@ -1,0 +1,14 @@
+
+  prose-sanitiser slop scan: docs/estate-review/2026-11-01-solid-parity-intake.md
+  files scanned: 1   findings: 2   slop score: 6
+  verdict: Some AI tells present
+  high: 2   medium: 0   low: 0
+
+  [HIGH] "The X" sentence/paragraph opener  (2 hits)
+        fix: Don't open with 'The <lowercase noun>'. Recast so the subject leads, or name the thing directly ('The production-node paired study lifts...' -> 'Holding the model constant and varying only the serving path lifts...'). Proper nouns (The Loom) are fine. See SKILL.md B2.
+        docs/estate-review/2026-11-01-solid-parity-intake.md:16  The source audit is `crates/solid-pod-rs/docs/reference/jss-parity-audit-2026-11-01.md`
+        docs/estate-review/2026-11-01-solid-parity-intake.md:27  The imported verifier probe ran unchanged in an isolated checkout at `fe4f2ec`,
+
+  Top things to change: "The X" sentence/paragraph opener
+  Narrative and voice tells need eyes too. See Section C of SKILL.md.
+

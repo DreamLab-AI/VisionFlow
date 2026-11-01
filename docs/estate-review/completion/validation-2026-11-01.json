@@ -8,7 +8,7 @@
   },
   "census_delta": {
     "previous_candidates": 1129,
-    "current_candidates": 828,
+    "current_candidates": 829,
     "removed": [
       {
         "repo": "RuView",
@@ -1960,7 +1960,7 @@
       }
     ]
   },
-  "heading_units": 9364,
+  "heading_units": 9369,
   "heading_units_with_recorded_assessment": 700,
   "native_tests": 9,
   "clippy": "passed -D warnings",
@@ -2127,56 +2127,27 @@
     "limits": "Scope correction only. Previous product tests and diagram gates are historical receipts; neither was rerun for this edit. No RuView source was scanned by the refreshed collector."
   },
   "current_batch": {
-    "report": "docs/estate-review/2026-11-01-solid-oidc-boundaries.md",
-    "baseline": "79843f42bd7ccad8a5fbcbe576f4b61c136c0f30",
-    "source_revision": "fcc624a3e952e05923d93d7ea038294bcddb25ae",
-    "new_whole_adrs": 1,
-    "newly_assessed_existing_panels": [
-      "SP-05.7",
-      "SP-05.8",
-      "SP-05.10"
-    ],
-    "new_topic_panels": [
-      "SP-12.1",
-      "SP-12.2"
-    ],
-    "native_tests_passed": 102,
-    "observation_tests_passed": 5,
+    "report": "docs/estate-review/2026-11-01-solid-parity-intake.md",
+    "baseline": "6e26fad",
+    "source_revision": "fe4f2ec338f0c4de75c9769b08d54bbb12e779b2",
+    "new_whole_adrs": 0,
+    "newly_assessed_existing_panels": [],
+    "new_topic_panels": [],
+    "completed_observation_groups": 6,
     "counts": {
       "available_checkouts": 20,
-      "candidate_files": 828,
+      "candidate_files": 829,
       "numbered_candidates_with_recorded_assessment": 98,
-      "numbered_decision_candidates": 720,
+      "numbered_decision_candidates": 721,
       "panels": 1744,
       "panels_with_recorded_assessment": 372,
       "scope_targets": 20,
       "stale_claim_records": 0,
       "topics": 210
     },
-    "evidence_manifest": "docs/estate-review/evidence/2026-11-01/solid-oidc/manifest.json",
-    "limits": "Producer source merged; external resource admission, remaining findings, package/consumer/deployment adoption open. 28 matrix reruns are not extra coverage.",
-    "candidate_paths_unchanged": true,
-    "candidate_hash_changes": [
-      {
-        "repo": "solid-pod-rs",
-        "path": "crates/solid-pod-rs/docs/adr/ADR-2003-solid-oidc-01-defer-lws10.md",
-        "before": "88d18379d059283b1a67c5e5d46566785e2818eb567c0067a5dcca5edcc25500",
-        "after": "cbb2f3e2bb785eceec146d682c6b7fffd4a4d7dcb4cf04a8a0fec6be9c033795"
-      }
-    ],
-    "local_links_checked": [
-      {
-        "file": "docs/estate-review/2026-11-01-solid-oidc-boundaries.md",
-        "target": "evidence/2026-11-01/solid-oidc/manifest.json",
-        "exists": true
-      },
-      {
-        "file": "docs/diagrams/solid-pod-rs/12-oidc-admission-and-fetching.md",
-        "target": "../../estate-review/2026-11-01-solid-oidc-boundaries.md",
-        "exists": true
-      }
-    ],
-    "editorial_receipt": "docs/estate-review/evidence/2026-11-01/solid-oidc/editorial.json"
+    "candidate_delta_receipt": "docs/estate-review/evidence/2026-11-01/solid-parity-intake/inventory-delta.json",
+    "evidence_manifest": "docs/estate-review/evidence/2026-11-01/solid-parity-intake/manifest.json",
+    "limits": "Imports 35 parity rows and three additional PATCH defect reports; six print-oriented observation functions rerun, not six regression acceptance tests. No production fix, source-wide review or deployment claimed."
   },
   "prior_full_corpus_gate": {
     "topics": 206,
@@ -2395,5 +2366,57 @@
     ],
     "evidence_manifest": "docs/estate-review/evidence/2026-11-01/solid-empty-body/manifest.json",
     "format_check": "Default git diff --check flags only three raw-log EOF blank lines; all other whitespace checks pass with blank-at-eof disabled."
+  },
+  "previous_oidc_batch": {
+    "report": "docs/estate-review/2026-11-01-solid-oidc-boundaries.md",
+    "baseline": "79843f42bd7ccad8a5fbcbe576f4b61c136c0f30",
+    "source_revision": "fcc624a3e952e05923d93d7ea038294bcddb25ae",
+    "new_whole_adrs": 1,
+    "newly_assessed_existing_panels": [
+      "SP-05.7",
+      "SP-05.8",
+      "SP-05.10"
+    ],
+    "new_topic_panels": [
+      "SP-12.1",
+      "SP-12.2"
+    ],
+    "native_tests_passed": 102,
+    "observation_tests_passed": 5,
+    "counts": {
+      "available_checkouts": 20,
+      "candidate_files": 828,
+      "numbered_candidates_with_recorded_assessment": 98,
+      "numbered_decision_candidates": 720,
+      "panels": 1744,
+      "panels_with_recorded_assessment": 372,
+      "scope_targets": 20,
+      "stale_claim_records": 0,
+      "topics": 210
+    },
+    "evidence_manifest": "docs/estate-review/evidence/2026-11-01/solid-oidc/manifest.json",
+    "limits": "Producer source merged; external resource admission, remaining findings, package/consumer/deployment adoption open. 28 matrix reruns are not extra coverage.",
+    "candidate_paths_unchanged": true,
+    "candidate_hash_changes": [
+      {
+        "repo": "solid-pod-rs",
+        "path": "crates/solid-pod-rs/docs/adr/ADR-2003-solid-oidc-01-defer-lws10.md",
+        "before": "88d18379d059283b1a67c5e5d46566785e2818eb567c0067a5dcca5edcc25500",
+        "after": "cbb2f3e2bb785eceec146d682c6b7fffd4a4d7dcb4cf04a8a0fec6be9c033795"
+      }
+    ],
+    "local_links_checked": [
+      {
+        "file": "docs/estate-review/2026-11-01-solid-oidc-boundaries.md",
+        "target": "evidence/2026-11-01/solid-oidc/manifest.json",
+        "exists": true
+      },
+      {
+        "file": "docs/diagrams/solid-pod-rs/12-oidc-admission-and-fetching.md",
+        "target": "../../estate-review/2026-11-01-solid-oidc-boundaries.md",
+        "exists": true
+      }
+    ],
+    "editorial_receipt": "docs/estate-review/evidence/2026-11-01/solid-oidc/editorial.json"
   }
 }

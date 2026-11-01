@@ -7,7 +7,9 @@ type: explanation
 
 # VisionFlow estate review
 
-Latest checkpoint: [Solid Pod OIDC admission and fetching](2026-11-01-solid-oidc-boundaries.md) assesses ADR-2003 and five panels. The redirect-policy repair is merged locally as `fcc624a`; 102 native tests and five bounded observation tests pass. The main resource route still lacks OIDC/DPoP admission, and verifier/cache/profile findings remain open. Publication, consumer adoption and deployment are separate outstanding steps.
+Latest checkpoint: [Solid Pod JSS parity intake](2026-11-01-solid-parity-intake.md) incorporates concurrent `fe4f2ec` and new ADR-2011. Six local observation groups reproduce container ACL location mismatch, malformed-policy lockout, unusable self-service pods and IRI-target failures. The imported queue preserves deferred and deliberate differences; no extra ADR or panel assessment credit is claimed.
+
+Previous checkpoint: [Solid Pod OIDC admission and fetching](2026-11-01-solid-oidc-boundaries.md) assesses ADR-2003 and five panels. The redirect-policy repair is merged locally as `fcc624a`; 102 native tests and five bounded observation tests pass. The main resource route still lacks OIDC/DPoP admission, and verifier/cache/profile findings remain open. Publication, consumer adoption and deployment are separate outstanding steps.
 
 Previous checkpoint: [Solid Pod empty-body repair](2026-11-01-solid-empty-body-repair.md) is merged locally as `8f2df86`. The default workspace suite passes 2,170 tests, with 30 core doctests separately passing. The real private-PUT regression checks stored bytes and replay admission; publication, consumer upgrades and deployment remain open. SP-11.1 records the repaired source. Agentbox review-method guidance received a further merged update at `9dfbf7cec`; baked skills await rebuild.
 

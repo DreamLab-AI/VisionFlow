@@ -1,0 +1,21 @@
+{
+  "baseline": "6e26fad",
+  "source_revision": "fe4f2ec338f0c4de75c9769b08d54bbb12e779b2",
+  "added": [
+    {
+      "repo": "solid-pod-rs",
+      "path": "crates/solid-pod-rs/docs/adr/ADR-2011-extensions-are-compile-time-crates-route-ownership-is-the-exemption.md",
+      "sha256": "6e0f435813ce328163c3e1d076b303846b3e92764a38fbd33509ef5ad4a1302f"
+    }
+  ],
+  "changed": [
+    {
+      "repo": "solid-pod-rs",
+      "path": "crates/solid-pod-rs/docs/adr/README.md",
+      "before": "7d81cbfb9fe28e47f86878f7c59e82d320521585aac7d6b966c3a6a9eaa957e8",
+      "after": "9ad0237821b6947f01b1805edbb55ab50c031c7c805f3bae4e70caa75a16a9da"
+    }
+  ],
+  "removed": [],
+  "new_review_credit": 0
+}

@@ -1,0 +1,30 @@
+{
+  "revision": "fe4f2ec338f0c4de75c9769b08d54bbb12e779b2",
+  "files": {
+    "crates/solid-pod-rs/docs/reference/jss-parity-audit-2026-11-01.md": "8005e3ea5355f547c78ea2c9744ef8662d5bc2502e3d079b305ead6539ec9d9d",
+    "crates/solid-pod-rs/docs/adr/ADR-2011-extensions-are-compile-time-crates-route-ownership-is-the-exemption.md": "6e0f435813ce328163c3e1d076b303846b3e92764a38fbd33509ef5ad4a1302f",
+    "crates/solid-pod-rs/PARITY-CHECKLIST.md": "6c4d5a59b03a6f6d835e8ceb45f739de11014ce47f645c2a5aa82f2b9975b8bd",
+    "crates/solid-pod-rs/docs/reference/jss-parity-audit-2026-11-01/wac-probe-verify.rs": "fce7f96b397b00384d81e15a390fd69b047896ac8b480715b3eb54310b347cb2",
+    "crates/solid-pod-rs-server/src/lib.rs": "6573dc10b392d62743af4cd20da96da7594f7ed755e75b3eedfa8fcd225f26eb",
+    "crates/solid-pod-rs/src/wac/resolver.rs": "6ceb7c39da09067977c78ad19b84f177a2bbc5bc4a273449d98c605f6ad8a622",
+    "crates/solid-pod-rs/src/wac/evaluator.rs": "b026765ac42bfa42c31c713095c82b5558d71eef3cd0b16d339a0be09a9b47a9",
+    "crates/solid-pod-rs/src/provision.rs": "bb18307fa4d2f2171722d45fbfda8d9be0bccdd46431eedefdbc972ba59c85f0",
+    "Cargo.lock": "3d2aa7e07ee46b4ec469c1b91bcfb3eca02267e53e5279f86c6065a7e70fd6e1"
+  },
+  "oidc_checkpoint_sources_unchanged": {
+    "Cargo.lock": true,
+    "crates/solid-pod-rs/src/oidc/mod.rs": true,
+    "crates/solid-pod-rs/src/oidc/jwks.rs": true,
+    "crates/solid-pod-rs/src/oidc/replay.rs": true,
+    "crates/solid-pod-rs/src/webid.rs": true,
+    "crates/solid-pod-rs-server/src/lib.rs": true,
+    "crates/solid-pod-rs/tests/oidc_jwks_ssrf.rs": true,
+    "crates/solid-pod-rs/tests/oidc_compat_matrix.rs": true,
+    "crates/solid-pod-rs/docs/adr/ADR-2003-solid-oidc-01-defer-lws10.md": true,
+    "crates/solid-pod-rs/docs/reference/solid-oidc-compatibility-matrix.md": true,
+    "crates/solid-pod-rs/docs/BASELINE-solid-pod-rs.md": true,
+    "crates/solid-pod-rs-idp/src/provider.rs": true,
+    "crates/solid-pod-rs/src/security/ssrf.rs": true
+  },
+  "concurrent_changes": "Parity report/checklist/README/new ADR and audit probe sources only; production code and manifests unchanged from fcc624a."
+}
