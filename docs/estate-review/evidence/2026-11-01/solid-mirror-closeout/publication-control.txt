@@ -1,0 +1,3 @@
+PASS: staging contains held bytes; fresh approved-only publication does not
+PASS: deleting old hidden refs and adopting approved-only pushes leaves legacy held bytes readable
+Scope: local Git subprocess design control, not a Forge repair or concurrent-read acceptance

@@ -1,0 +1,60 @@
+{
+  "revision": "31fe89856d0cddcf855e3656eb498ddb1df66c9c",
+  "files": [
+    {
+      "path": "crates/solid-pod-rs-forge/src/mirror.rs",
+      "base_sha256": "845de417daa3772c8df8c0b6b43160f911aefac652256f4be3ca5372891a22ce",
+      "worktree_sha256": "5e7bd8c4dea1bd15a0381a186ded5faf89c783c6aac18658b85d63e22955c171",
+      "modified": true
+    },
+    {
+      "path": "crates/solid-pod-rs-forge/src/lib.rs",
+      "base_sha256": "efb5b9677ea7fa947e4ccdb4638012adad1d0fc5c1dbd45e137875230dd62a17",
+      "worktree_sha256": "efb5b9677ea7fa947e4ccdb4638012adad1d0fc5c1dbd45e137875230dd62a17",
+      "modified": false
+    },
+    {
+      "path": "crates/solid-pod-rs-forge/src/repo/browse.rs",
+      "base_sha256": "1f79e5dc92e7f8c6546084d0e70cd079c881eae403dac8146e428daa680dd6ef",
+      "worktree_sha256": "1f79e5dc92e7f8c6546084d0e70cd079c881eae403dac8146e428daa680dd6ef",
+      "modified": false
+    },
+    {
+      "path": "crates/solid-pod-rs-forge/src/api.rs",
+      "base_sha256": "212d7d4c566b373f62267929fa61a5e75d4aae2a0eca1308048eefc835bc90b2",
+      "worktree_sha256": "212d7d4c566b373f62267929fa61a5e75d4aae2a0eca1308048eefc835bc90b2",
+      "modified": false
+    },
+    {
+      "path": "crates/solid-pod-rs-forge/src/releases.rs",
+      "base_sha256": "d75f6a3ac6a5b0d1271ee4471fb8cc0c55ee911e6649f07d2fc79d7b180dc210",
+      "worktree_sha256": "d75f6a3ac6a5b0d1271ee4471fb8cc0c55ee911e6649f07d2fc79d7b180dc210",
+      "modified": false
+    },
+    {
+      "path": "crates/solid-pod-rs-forge/src/config.rs",
+      "base_sha256": "27da1d197afa032ec9db7fe564991b9742c012909b7ef4e27c062cfc14c35503",
+      "worktree_sha256": "27da1d197afa032ec9db7fe564991b9742c012909b7ef4e27c062cfc14c35503",
+      "modified": false
+    },
+    {
+      "path": "crates/solid-pod-rs-server/src/lib.rs",
+      "base_sha256": "f01145a09499ac8f69c9b2d6ee2729e886cdd23079e2bf6dee9f7a40ce21c1ca",
+      "worktree_sha256": "f01145a09499ac8f69c9b2d6ee2729e886cdd23079e2bf6dee9f7a40ce21c1ca",
+      "modified": false
+    },
+    {
+      "path": "crates/solid-pod-rs-server/Cargo.toml",
+      "base_sha256": "a39225158c86d61b6783a18d291f34ef50fb1a961d181f7327802c136df8f212",
+      "worktree_sha256": "a39225158c86d61b6783a18d291f34ef50fb1a961d181f7327802c136df8f212",
+      "modified": false
+    },
+    {
+      "path": "crates/solid-pod-rs-git/src/push_guard.rs",
+      "base_sha256": "bd99fbdb5d27be977cf4b9b1d6da5a088451255aac5a7c431d8037f721776c8d",
+      "worktree_sha256": "bd99fbdb5d27be977cf4b9b1d6da5a088451255aac5a7c431d8037f721776c8d",
+      "modified": false
+    }
+  ],
+  "scope": "Source-traced read and mirror paths; not whole-file or whole-ADR review coverage."
+}

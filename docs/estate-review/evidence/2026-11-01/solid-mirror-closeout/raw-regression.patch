@@ -1,0 +1,105 @@
+diff --git a/crates/solid-pod-rs-forge/src/mirror.rs b/crates/solid-pod-rs-forge/src/mirror.rs
+index 532acf6..12e2894 100644
+--- a/crates/solid-pod-rs-forge/src/mirror.rs
++++ b/crates/solid-pod-rs-forge/src/mirror.rs
+@@ -2842,6 +2842,100 @@ fn engine(tmp: &Path, cfg: MirrorConfig) -> Arc<Mirror> {
+         ))
+     }
+ 
++    #[tokio::test]
++    async fn held_mirror_commit_is_not_published_through_raw_route() {
++        let tmp = tempfile::tempdir().unwrap();
++        let up = tmp.path().join("upstream");
++        std::fs::create_dir(&up).unwrap();
++        git_ok(&up, tmp.path(), &["init", "--quiet", "-b", "main"]);
++        std::fs::write(up.join("public.txt"), "synthetic-approved\n").unwrap();
++        git_ok(&up, tmp.path(), &["add", "-A"]);
++        git_ok(&up, tmp.path(), &["commit", "--quiet", "-m", "approved"]);
++        let approved = git_ok(&up, tmp.path(), &["rev-parse", "HEAD"]);
++        let sk = key(17);
++        let owner = pubhex(&sk);
++        let entry = FollowEntry {
++            pubkey: owner.clone(),
++            name: "sample".into(),
++            clone: Some(format!("file://{}", up.display())),
++        };
++        let mirror = engine(
++            tmp.path(),
++            MirrorConfig {
++                relays: vec![],
++                follow: vec![entry],
++                min_interval_ms: 0,
++            },
++        );
++        let first = mirror
++            .on_event(&state_event(
++                &sk,
++                "sample",
++                &[("refs/heads/main", &approved)],
++                None,
++                1_760_000_001,
++            ))
++            .await
++            .unwrap();
++        assert_eq!(first.last_fetch.unwrap().moved, 1);
++
++        std::fs::write(up.join("held.txt"), "synthetic-held-mirror-content\n").unwrap();
++        git_ok(&up, tmp.path(), &["add", "-A"]);
++        git_ok(&up, tmp.path(), &["commit", "--quiet", "-m", "held"]);
++        let held = git_ok(&up, tmp.path(), &["rev-parse", "HEAD"]);
++        let txo = format!("txo:txbt4:{}:0", "c".repeat(64));
++        let second = mirror
++            .on_event(&state_event(
++                &sk,
++                "sample",
++                &[("refs/heads/main", &held)],
++                Some(("txbt4", &txo, &approved)),
++                1_760_000_002,
++            ))
++            .await
++            .unwrap();
++        assert_eq!(second.last_seen.unwrap().action, SeenAction::Held);
++        let fetched = second.last_fetch.unwrap();
++        assert_eq!(fetched.moved, 0);
++        assert!(fetched.branches["refs/heads/main"]
++            .verdict
++            .contains("no trail file"));
++        let served = tmp.path().join("repos").join(&owner).join("sample.git");
++        assert_eq!(
++            git_ok(&served, tmp.path(), &["rev-parse", "refs/heads/main"]),
++            approved
++        );
++
++        let forge = crate::ForgeService::new(crate::ForgeConfig::default(), tmp.path()).unwrap();
++        let request = |sha: &str, file: &str| crate::ForgeRequest {
++            method: "GET".into(),
++            path: format!("/forge/{owner}/sample/raw/{sha}/{file}"),
++            query: String::new(),
++            headers: vec![],
++            raw_body: bytes::Bytes::new(),
++            host_url: None,
++        };
++        let public = forge
++            .handle(
++                request(&approved, "public.txt"),
++                crate::ForgeAgent::Anonymous,
++            )
++            .await
++            .unwrap();
++        assert_eq!(public.status, 200);
++        assert_eq!(public.body.as_ref(), b"synthetic-approved\n");
++        let hidden = forge
++            .handle(request(&held, "held.txt"), crate::ForgeAgent::Anonymous)
++            .await
++            .unwrap();
++        assert_eq!(
++            hidden.status,
++            404,
++            "held verdict still served bytes: {}",
++            String::from_utf8_lossy(&hidden.body)
++        );
++    }
++
+     #[tokio::test]
+     async fn mirrors_a_repo_on_its_agents_state_through_a_relay() {
+         if Command::new("git").arg("--version").output().is_err() {

@@ -1,0 +1,341 @@
+diff --git a/crates/solid-pod-rs-forge/src/mirror.rs b/crates/solid-pod-rs-forge/src/mirror.rs
+index 532acf6..d366504 100644
+--- a/crates/solid-pod-rs-forge/src/mirror.rs
++++ b/crates/solid-pod-rs-forge/src/mirror.rs
+@@ -113,6 +113,9 @@
+ pub const SUBSCRIPTION_ID: &str = "forge-mirror";
+ /// The trail document a marked commit must list.
+ pub const TRAIL_FILE: &str = "blocktrails.json";
++/// Marker placed only in a served mirror whose object database contains
++/// approved publication roots rather than fetched candidate objects.
++pub const PUBLICATION_MARKER: &str = "solid-mirror-publication-v1";
+ 
+ // ---------------------------------------------------------------------------
+ // Validation helpers (pure)
+@@ -1105,6 +1108,17 @@ pub trait MirrorGit: Send + Sync {
+     ///
+     /// A human-readable reason.
+     async fn materialise(&self, owner: &str, name: &str) -> Result<(), String>;
++    /// Migrate an existing repository to the implementation's publication
++    /// boundary before its refs or objects are inspected. The default keeps
++    /// third-party test adapters source-compatible.
++    ///
++    /// # Errors
++    ///
++    /// A human-readable reason. Callers must leave the repository unavailable
++    /// when preparation fails.
++    async fn prepare_existing(&self, _owner: &str, _name: &str) -> Result<(), String> {
++        Ok(())
++    }
+     /// Fetch every branch of `clone` into `refs/mirror/*`. `operator` is
+     /// `true` when the URL came from operator configuration (and so may be
+     /// `file://`), `false` when a remote event supplied it.
+@@ -1176,6 +1190,8 @@ fn now_ms(&self) -> u64 {
+ #[derive(Debug, Clone)]
+ pub struct GitCli {
+     repo_root: PathBuf,
++    candidate_root: PathBuf,
++    legacy_root: PathBuf,
+ }
+ 
+ impl GitCli {
+@@ -1224,8 +1240,12 @@ async fn hide_mirror_refs(&self, dir: &Path) -> Result<(), String> {
+     /// An adapter over `repo_root` (the forge's `plugin_dir/repos`).
+     #[must_use]
+     pub fn new(repo_root: impl Into<PathBuf>) -> Self {
++        let repo_root = repo_root.into();
++        let parent = repo_root.parent().unwrap_or(&repo_root);
+         Self {
+-            repo_root: repo_root.into(),
++            candidate_root: parent.join("mirror-candidates"),
++            legacy_root: parent.join("mirror-legacy"),
++            repo_root,
+         }
+     }
+ 
+@@ -1236,6 +1256,184 @@ fn dir(&self, owner: &str, name: &str) -> Option<PathBuf> {
+         Some(self.repo_root.join(owner).join(format!("{name}.git")))
+     }
+ 
++    fn candidate_dir(&self, owner: &str, name: &str) -> Option<PathBuf> {
++        if !is_hex64(owner) || !is_repo_name(name) {
++            return None;
++        }
++        Some(
++            self.candidate_root
++                .join(owner)
++                .join(format!("{name}.git")),
++        )
++    }
++
++    fn marker(dir: &Path) -> PathBuf {
++        dir.join(PUBLICATION_MARKER)
++    }
++
++    async fn init_bare(&self, dir: &Path) -> Result<(), String> {
++        tokio::fs::create_dir_all(dir)
++            .await
++            .map_err(|e| e.to_string())?;
++        self.run(
++            dir,
++            &["init", "--bare", "--quiet", "--initial-branch=main", "."],
++            None,
++            Duration::from_secs(15),
++        )
++        .await
++        .map(|_| ())
++    }
++
++    async fn initialise_served(&self, dir: &Path) -> Result<(), String> {
++        self.init_bare(dir).await?;
++        self.hide_mirror_refs(dir).await?;
++        self.run(
++            dir,
++            &["config", "receive.fsckObjects", "true"],
++            None,
++            Duration::from_secs(15),
++        )
++        .await?;
++        let marker = Self::marker(dir);
++        let tmp = marker.with_extension("tmp");
++        tokio::fs::write(&tmp, b"approved roots only\n")
++            .await
++            .map_err(|e| e.to_string())?;
++        tokio::fs::rename(tmp, marker)
++            .await
++            .map_err(|e| e.to_string())
++    }
++
++    async fn ensure_candidate(&self, owner: &str, name: &str) -> Result<PathBuf, String> {
++        let dir = self
++            .candidate_dir(owner, name)
++            .ok_or("unsafe repository key")?;
++        if !tokio::fs::metadata(&dir)
++            .await
++            .is_ok_and(|m| m.is_dir())
++        {
++            self.init_bare(&dir).await?;
++        }
++        Ok(dir)
++    }
++
++    /// Rebuild a pre-boundary served repository from its public refs. The old
++    /// object database is moved outside `repos/` for operator recovery; it is
++    /// never used as an alternate by the rebuilt repository.
++    async fn migrate_legacy(&self, owner: &str, name: &str) -> Result<(), String> {
++        let served = self.dir(owner, name).ok_or("unsafe repository key")?;
++        if tokio::fs::metadata(Self::marker(&served))
++            .await
++            .is_ok_and(|m| m.is_file())
++        {
++            self.ensure_candidate(owner, name).await?;
++            return Ok(());
++        }
++
++        let parent = served.parent().ok_or("repository has no parent")?;
++        tokio::fs::create_dir_all(parent)
++            .await
++            .map_err(|e| e.to_string())?;
++        let migration = parent.join(format!(
++            ".{name}.git.migrate-{}",
++            uuid::Uuid::new_v4().simple()
++        ));
++        self.initialise_served(&migration).await?;
++
++        let refs = self
++            .run(
++                &served,
++                &[
++                    "for-each-ref",
++                    "--format=%(refname)",
++                    "refs/heads",
++                    "refs/tags",
++                    "refs/notes",
++                ],
++                None,
++                Duration::from_secs(15),
++            )
++            .await?;
++        let refs: Vec<String> = String::from_utf8_lossy(&refs)
++            .lines()
++            .filter(|r| {
++                r.starts_with("refs/heads/")
++                    || r.starts_with("refs/tags/")
++                    || r.starts_with("refs/notes/")
++            })
++            .map(str::to_string)
++            .collect();
++        if !refs.is_empty() {
++            let target = migration.to_string_lossy().into_owned();
++            let mut args = vec![
++                "push".to_string(),
++                "--porcelain".to_string(),
++                "--atomic".to_string(),
++                "--".to_string(),
++                target,
++            ];
++            args.extend(refs.iter().map(|r| format!("+{r}:{r}")));
++            let argv: Vec<&str> = args.iter().map(String::as_str).collect();
++            if let Err(e) = self
++                .run(
++                    &served,
++                    &argv,
++                    Some("file"),
++                    Duration::from_secs(120),
++                )
++                .await
++            {
++                let _ = tokio::fs::remove_dir_all(&migration).await;
++                return Err(format!("legacy mirror refs were not copied: {e}"));
++            }
++        }
++
++        if let Ok(head) = self
++            .run(
++                &served,
++                &["symbolic-ref", "HEAD"],
++                None,
++                Duration::from_secs(15),
++            )
++            .await
++        {
++            let head = String::from_utf8_lossy(&head).trim().to_string();
++            if refs.iter().any(|r| r == &head) && is_branch_ref(&head) {
++                self.run(
++                    &migration,
++                    &["symbolic-ref", "HEAD", &head],
++                    None,
++                    Duration::from_secs(15),
++                )
++                .await?;
++            }
++        }
++
++        let recovery = self.legacy_root.join(owner);
++        tokio::fs::create_dir_all(&recovery)
++            .await
++            .map_err(|e| e.to_string())?;
++        let legacy = recovery.join(format!(
++            "{name}.git-{}",
++            uuid::Uuid::new_v4().simple()
++        ));
++        tokio::fs::rename(&served, &legacy)
++            .await
++            .map_err(|e| format!("legacy mirror was not isolated: {e}"))?;
++        if let Err(e) = tokio::fs::rename(&migration, &served).await {
++            let rollback = tokio::fs::rename(&legacy, &served).await;
++            return Err(match rollback {
++                Ok(()) => format!("rebuilt mirror was not installed: {e}"),
++                Err(r) => format!(
++                    "rebuilt mirror was not installed ({e}); rollback also failed ({r})"
++                ),
++            });
++        }
++        self.ensure_candidate(owner, name).await?;
++        Ok(())
++    }
++
+     async fn run(
+         &self,
+         dir: &Path,
+@@ -2842,6 +3040,100 @@ fn engine(tmp: &Path, cfg: MirrorConfig) -> Arc<Mirror> {
+         ))
+     }
+ 
++    #[tokio::test]
++    async fn held_mirror_commit_is_not_published_through_raw_route() {
++        let tmp = tempfile::tempdir().unwrap();
++        let up = tmp.path().join("upstream");
++        std::fs::create_dir(&up).unwrap();
++        git_ok(&up, tmp.path(), &["init", "--quiet", "-b", "main"]);
++        std::fs::write(up.join("public.txt"), "synthetic-approved\n").unwrap();
++        git_ok(&up, tmp.path(), &["add", "-A"]);
++        git_ok(&up, tmp.path(), &["commit", "--quiet", "-m", "approved"]);
++        let approved = git_ok(&up, tmp.path(), &["rev-parse", "HEAD"]);
++        let sk = key(17);
++        let owner = pubhex(&sk);
++        let entry = FollowEntry {
++            pubkey: owner.clone(),
++            name: "sample".into(),
++            clone: Some(format!("file://{}", up.display())),
++        };
++        let mirror = engine(
++            tmp.path(),
++            MirrorConfig {
++                relays: vec![],
++                follow: vec![entry],
++                min_interval_ms: 0,
++            },
++        );
++        let first = mirror
++            .on_event(&state_event(
++                &sk,
++                "sample",
++                &[("refs/heads/main", &approved)],
++                None,
++                1_760_000_001,
++            ))
++            .await
++            .unwrap();
++        assert_eq!(first.last_fetch.unwrap().moved, 1);
++
++        std::fs::write(up.join("held.txt"), "synthetic-held-mirror-content\n").unwrap();
++        git_ok(&up, tmp.path(), &["add", "-A"]);
++        git_ok(&up, tmp.path(), &["commit", "--quiet", "-m", "held"]);
++        let held = git_ok(&up, tmp.path(), &["rev-parse", "HEAD"]);
++        let txo = format!("txo:txbt4:{}:0", "c".repeat(64));
++        let second = mirror
++            .on_event(&state_event(
++                &sk,
++                "sample",
++                &[("refs/heads/main", &held)],
++                Some(("txbt4", &txo, &approved)),
++                1_760_000_002,
++            ))
++            .await
++            .unwrap();
++        assert_eq!(second.last_seen.unwrap().action, SeenAction::Held);
++        let fetched = second.last_fetch.unwrap();
++        assert_eq!(fetched.moved, 0);
++        assert!(fetched.branches["refs/heads/main"]
++            .verdict
++            .contains("no trail file"));
++        let served = tmp.path().join("repos").join(&owner).join("sample.git");
++        assert_eq!(
++            git_ok(&served, tmp.path(), &["rev-parse", "refs/heads/main"]),
++            approved
++        );
++
++        let forge = crate::ForgeService::new(crate::ForgeConfig::default(), tmp.path()).unwrap();
++        let request = |sha: &str, file: &str| crate::ForgeRequest {
++            method: "GET".into(),
++            path: format!("/forge/{owner}/sample/raw/{sha}/{file}"),
++            query: String::new(),
++            headers: vec![],
++            raw_body: bytes::Bytes::new(),
++            host_url: None,
++        };
++        let public = forge
++            .handle(
++                request(&approved, "public.txt"),
++                crate::ForgeAgent::Anonymous,
++            )
++            .await
++            .unwrap();
++        assert_eq!(public.status, 200);
++        assert_eq!(public.body.as_ref(), b"synthetic-approved\n");
++        let hidden = forge
++            .handle(request(&held, "held.txt"), crate::ForgeAgent::Anonymous)
++            .await
++            .unwrap();
++        assert_eq!(
++            hidden.status,
++            404,
++            "held verdict still served bytes: {}",
++            String::from_utf8_lossy(&hidden.body)
++        );
++    }
++
+     #[tokio::test]
+     async fn mirrors_a_repo_on_its_agents_state_through_a_relay() {
+         if Command::new("git").arg("--version").output().is_err() {
