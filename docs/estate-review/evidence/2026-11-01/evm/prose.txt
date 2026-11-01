@@ -1,0 +1,18 @@
+
+  prose-sanitiser slop scan: docs/estate-review/2026-11-01-sidestr-evm-accounting-and-snapshots.md
+  files scanned: 1   findings: 3   slop score: 9
+  verdict: Some AI tells present
+  high: 3   medium: 0   low: 0
+
+  [HIGH] "The X" sentence/paragraph opener  (2 hits)
+        fix: Don't open with 'The <lowercase noun>'. Recast so the subject leads, or name the thing directly ('The production-node paired study lifts...' -> 'Holding the model constant and varying only the serving path lifts...'). Proper nouns (The Loom) are fine. See SKILL.md B2.
+        docs/estate-review/2026-11-01-sidestr-evm-accounting-and-snapshots.md:31  The baked reference `siding/lib/overlays/evm.mjs` has SHA-256 `d526495d008a2f94b2d7060585ce6f7c89810d52b46d14883719fee5161aa58d`, exactly the module pin in the ...
+        docs/estate-review/2026-11-01-sidestr-evm-accounting-and-snapshots.md:41  The selected-height API retains all source histories by design of its copy operation. At height zero, the probe sees zero account balance and the empty root, bu...
+
+  [HIGH] Tier-1 banned vocabulary  (1 hit)
+        fix: Replace with a plain word (delve->look at, leverage->use, robust->solid, seamless->smooth, utilise->use). See SKILL.md B4.
+        docs/estate-review/2026-11-01-sidestr-evm-accounting-and-snapshots.md:18  ... distinct amounts/scripts, missing/extra payments, fee-output collisions and honest payouts. Coordinate the consensus-rule change with the reference and its fix...
+
+  Top things to change: "The X" sentence/paragraph opener; Tier-1 banned vocabulary
+  Narrative and voice tells need eyes too. See Section C of SKILL.md.
+

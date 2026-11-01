@@ -1,0 +1,13 @@
+{
+  "reference": "sidestr/spec fe689e9c723f9bf43393d2dd5b6f924a701c8a18 siding/lib/overlays/evm.mjs (sha256 d526495d008a2f94b2d7060585ce6f7c89810d52b46d14883719fee5161aa58d)",
+  "engine": "10.1.3",
+  "cross_checked_marker": true,
+  "blocks": 35,
+  "accepted": 20,
+  "refused": 15,
+  "kzg_root_comparison_exceptions": [
+    "a carrier calling the KZG point-evaluation precompile (ethereumjs has no KZG)",
+    "an inner CALL reaching the KZG precompile"
+  ],
+  "basis": "Fresh Rust replay of committed fixtures, not fresh fixture regeneration; prior CI receipts remain separately dated."
+}

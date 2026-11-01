@@ -1,0 +1,123 @@
+{
+  "source_commit": "9c6de86c657a25ec2f2a189baf63db7dedad40eb",
+  "files": [
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-evm/Cargo.toml",
+      "sha256": "46a89d110af343cccbef701cadfb2446fed5a7e8978e2e818b3f96d60f459d1c"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-evm/src/lib.rs",
+      "sha256": "26cdbae4c9c15a66c47e6d0dfb5a44a757c87310e807b0bd862a603ca243ef7a"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-evm/src/rule.rs",
+      "sha256": "4cd4353bf5fb4e31ed1fda8657ce77e9f78278cb907e7ead9781fea5347ef0bb"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-evm/src/state.rs",
+      "sha256": "6ae022504e1442eca15cfd376fa47f6e0f03bc5fce17e7cd074b6dcf5beebd63"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-evm/src/world.rs",
+      "sha256": "e86c941cd4054fa6688e5fcfca9f57254e814fb6e43da3e7dd74067a718530b7"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-evm/src/exec.rs",
+      "sha256": "44919960a8c388d84dbabf27e2df3ac9e32db8f78404abd99a4ccd368ade95f8"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-evm/src/config.rs",
+      "sha256": "f9b7e643309ec62d7a33f27a5c5a7dc5eddee93a9a1e842d4256e296dfe74f29"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-evm/src/records.rs",
+      "sha256": "6eeb4dc6e3f249ee97768b680638cc840d8f1bee8eedb3ccaa539a9d349aff12"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-evm/src/tx.rs",
+      "sha256": "8eddb06979485460e842130a3088b1b7fd48613abcedaea5e4cc8a4c3d3a4274"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-evm/tests/chain.rs",
+      "sha256": "c0b8607bb5b7d9b74de8a6dfa8127a81ac777b1db2b89184a4fd98f336dc5e77"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-evm/tests/oracle.rs",
+      "sha256": "0bbd9bb4af32006dc80a5bc975ac9ba706b018a3e0510f89c3517ebb0cbd8703"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-evm/tests/wallet_deposit.rs",
+      "sha256": "579e46cb1ba53598389bf6f8624e659879cfb4697d2033794b42211fee139503"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-evm/tests/oracle/oracle.mjs",
+      "sha256": "5facf0ab743d37ab72c599ccb19402eba5d90442848a64c939909baf6981b291"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-evm/tests/oracle/package-lock.json",
+      "sha256": "03adede27c31031ccd2b8e624ff4754d9c156db7794750868108b9df8c449268"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-evm/tests/fixtures/chain.json",
+      "sha256": "b14bcc9ad4a7e597bb7ba26ec01cdf42f4e46b3fca902c750148f616f7e162ce"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-evm/tests/fixtures/decode.json",
+      "sha256": "68ff1b6475c6b7980e2a3fc8d2e4d25aad219564a7402f805b5550be5427d8f7"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-evm/tests/fixtures/records.json",
+      "sha256": "e06c085cf08e6ae5c9ed6bfca6e650fa482e9413a3349d172912fb04e7d04c3f"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": ".github/workflows/ci.yml",
+      "sha256": "9e42511e2ae577d0c27a1bd389bb1a9cfbfac719be4979f73cb1656eb36d4fe6"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-core/src/rules.rs",
+      "sha256": "c7de9bf256dac688e63abd26e99241d019ab024d1ae4922c5c0ccb282b31434c"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "Cargo.lock",
+      "sha256": "569c20953ae564868b92e55994576114180e115ea16dc0d351ebeb3f9a5d9646"
+    },
+    {
+      "repo": "agentbox",
+      "path": "config/sidechain/dreamlab/chain.json",
+      "sha256": "bddbb25d384785e8b0cb3b52acea83142097becb29acacb580a5ed96c16ed9b8"
+    }
+  ],
+  "reference_module": {
+    "path": "/opt/agentbox/sidestr/upstream/spec/siding/lib/overlays/evm.mjs",
+    "sha256": "d526495d008a2f94b2d7060585ce6f7c89810d52b46d14883719fee5161aa58d",
+    "matches_fixture_generator_pin": true,
+    "reviewed_lines": [
+      102,
+      120,
+      121,
+      122
+    ],
+    "finding": "Reference uses outputs.some for each withdrawal without consuming matches; same multiplicity gap as Rust. Source comparison only, not a fresh reference execution."
+  },
+  "agentbox_commit": "9dfc27b16e82e9786535a55e790710493dd51fdf"
+}

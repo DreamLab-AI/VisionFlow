@@ -1,0 +1,12 @@
+{
+  "panels": [
+    "SR-03.1",
+    "SR-03.2",
+    "SR-03.3",
+    "SR-03.4"
+  ],
+  "renderer": "pele",
+  "review": "All four raster previews inspected: labels readable, directed flow and nested alternatives distinguish actual behaviour from required trust checks. Original SVGs unchanged.",
+  "preview_method": "Temporary copies use Liberation Sans 16 for inherited text defaults; explicit styles retained.",
+  "generated_assets": "Ignored renders archived and byte-verified before worktree teardown; tracked Mermaid regenerates them."
+}

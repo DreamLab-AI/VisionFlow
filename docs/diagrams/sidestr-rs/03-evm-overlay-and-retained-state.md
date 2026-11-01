@@ -1,6 +1,6 @@
 ---
 id: SR-03
-title: In-chain EVM execution, withdrawal accounting, and retained snapshots
+title: In-chain EVM execution, withdrawal matching and snapshot trust boundaries
 area: sidestr-rs
 governing:
   - ../sidestr-rs/docs/adr/ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md
@@ -11,98 +11,106 @@ sources:
   - ../sidestr-rs/sidestr-evm/src/lib.rs
   - ../sidestr-rs/sidestr-evm/src/rule.rs
   - ../sidestr-rs/sidestr-evm/src/state.rs
+  - ../sidestr-rs/sidestr-evm/src/world.rs
+  - ../sidestr-rs/sidestr-evm/src/exec.rs
+  - ../sidestr-rs/sidestr-evm/src/config.rs
+  - ../sidestr-rs/sidestr-evm/Cargo.toml
   - ../sidestr-rs/sidestr-evm/tests/oracle.rs
   - ../sidestr-rs/sidestr-evm/tests/chain.rs
   - ../sidestr-rs/.github/workflows/ci.yml
-  - ../sidestr-rs/README.md
-  - docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md
-  - ../project/agentbox/docs/adr/ADR-2096-sidestr-sidechains-are-the-sole-value-instrument.md
   - ../project/agentbox/config/sidechain/dreamlab/chain.json
-verified_commit: {sidestr-rs: d8ace3aad2f23eb1d11bd72af4ab0b74d599f618, visionflow: 4d361b58ce2b3ee17e1570361eaf78270b630012, agentbox: 6500582dfae23bf8a38a6942916d208154e43625}
+verified_commit: {sidestr-rs: 9c6de86c657a25ec2f2a189baf63db7dedad40eb, visionflow: baae32a, agentbox: 9dfc27b16e82e9786535a55e790710493dd51fdf}
 ---
 
 ## For developers
 
-`sidestr-evm` implements the chain's optional `evm` rule using `revm`. Sidechain transactions carry deposits and Ethereum transactions; the coinbase commits the resulting state root and pays withdrawals. Rule state commits only after the enclosing sidechain block is accepted.
+The optional `evm` rule executes carried Ethereum transactions with revm alongside the UTXO ledger. Applied EVM state moves after the enclosing block passes. Candidate caches, withdrawal multiplicity and snapshot validation have separate limits; the [audit](../../estate-review/2026-11-01-sidestr-evm-accounting-and-snapshots.md) reproduces them through production libraries.
 
 ## For the business
 
-This adds smart-contract execution inside a sidestr chain. It does not create a separate Ethereum settlement rail: value enters and leaves as the same chain's sats, and the chain's signers still order and validate every block. The crate is unpublished and the estate chain has not activated it.
+This is smart-contract execution within a sidestr chain. Value crosses through deposits and withdrawals at one sat per gwei. The source package disables publication and the estate document does not select EVM. Current validation can underpay duplicate withdrawals; snapshot root agreement alone does not establish trustworthy executable state.
 
 ## SR-03.1 One chain, two coordinated state views
 
 ```mermaid
-flowchart LR
-    STX["sidechain transaction<br/>sidestr-evm/src/lib.rs:19"] --> DEP["deposit<br/>1 sat equals 1 gwei"]
-    STX --> CAR["EVM carrier transaction"]
-    DEP --> EVM["revm world state"]
+flowchart TB
+    STX["sidechain transaction"] --> DEP["reserve payment then deposit marker<br/>1 sat = 1 gwei"]
+    STX --> CAR["signed Ethereum carrier"]
+    DEP --> EVM["revm account state"]
     CAR --> EVM
-    EVM --> W["withdrawal obligations"]
     EVM --> ROOT["state root"]
-    W --> CB["sidechain coinbase pays sats"]
-    ROOT --> CB
-    CB --> BLOCK["accepted sidestr block"]
+    EVM --> W["withdrawal obligations"]
+    ROOT --> CB["coinbase validation"]
+    W --> MATCH["find any matching output per withdrawal<br/>sidestr-evm/src/state.rs:511-514"]
+    MATCH --> CB
+    W --> CAP["sum withdrawal allowances"]
+    CAP --> CB
+    MATCH -.-> GAP["same output can satisfy<br/>two equal obligations"]
 ```
 
-**What it shows.** The overlay's record table recognises deposits, carried Ethereum transactions and withdrawals (`../sidestr-rs/sidestr-evm/src/lib.rs:21-25`). One sat maps to one gwei inside the overlay (`../sidestr-rs/sidestr-evm/src/lib.rs:5`).
+**What it shows.** Deposits credit reserve payments; carried transactions execute in order; the coinbase commits the root and must match withdrawal script/amount pairs (`../sidestr-rs/sidestr-evm/src/state.rs:384`, `../sidestr-rs/sidestr-evm/src/state.rs:501`, `../sidestr-rs/sidestr-evm/src/state.rs:511-514`). The allowance sums every obligation (`../sidestr-rs/sidestr-evm/src/state.rs:73`, `../sidestr-rs/sidestr-evm/src/rule.rs:105`).
 
-**Why it is this way.** Deposits and withdrawals remain accountable in the host chain's block. Estate policy therefore treats EVM as in-chain execution rather than a second value rail (`../project/agentbox/docs/adr/ADR-2096-sidestr-sidechains-are-the-sole-value-instrument.md:116`).
+**Why it is this way.** Account execution and UTXO payouts meet in one validated block. The current existence test does not consume an output match, so matching each obligation is weaker than paying their full multiplicity.
 
-**Invariant:** an EVM withdrawal is valid only when the same block's coinbase pays the required sidechain satoshis.
+**Open:** a full-validator probe accepts two 10,000-sat withdrawals with one 10,000-sat recipient output and the remaining allowance paid to the signer. Complete withdrawal payment is a required invariant that the current predicate does not enforce.
 
-## SR-03.2 Check, prepare, then commit
+## SR-03.2 Prepare, retain, then commit
 
 ```mermaid
 sequenceDiagram
     participant R as EvmRule
-    participant S as staged EVM state
-    participant C as sidechain coinbase
-    R->>S: execute deposits and carriers
-    S-->>R: root, receipts, withdrawals
-    R->>C: verify root and withdrawal outputs
-    alt enclosing block applied
-        R->>S: commit by block hash
-    else refused or sequencing-only
-        R->>S: discard staged state
+    participant S as EvmState
+    participant B as enclosing block
+    R->>S: prepare on copied world
+    S->>S: check root and withdrawal matches
+    S-->>R: cache verdict by block hash
+    alt EVM rule passes
+        S->>S: retain pending world and receipts
+        alt enclosing block applied
+            B->>S: commit by block hash
+            S->>S: promote world and clear pending list
+        else another rule refuses
+            S->>S: pending state remains cached
+        end
     end
-    Note over R,S: sidestr-evm/src/rule.rs:62
+    Note over R,S: verdict history also survives commit
 ```
 
-**What it shows.** `EvmRule` exposes validation, coinbase allowance and applied-block commit through the core rule interface (`../sidestr-rs/sidestr-evm/src/rule.rs:62`). Preparation checks both the root and withdrawal payments before state can commit (`../sidestr-rs/sidestr-evm/src/state.rs:468`).
+**What it shows.** Coinbase allowance and rule checking share preparation; a successful EVM verdict stages a world even if another rule later rejects the block (`../sidestr-rs/sidestr-evm/src/rule.rs:100`, `../sidestr-rs/sidestr-evm/src/state.rs:531-541`). Commit clears pending candidates but leaves the verdict map; restore clears both (`../sidestr-rs/sidestr-evm/src/state.rs:561-582`, `../sidestr-rs/sidestr-evm/src/state.rs:347`).
 
-**Why it is this way.** Validation and producer sequencing must not mutate durable state. The crate deliberately commits only an applied block, unlike the reference's `prepare` (`../sidestr-rs/sidestr-evm/src/lib.rs:84`).
+**Why it is this way.** Applied balances and receipts remain separate from speculative execution. The former discard-on-refusal arrow overstated cleanup: the native probe retains 64 rejected outer candidates, then still reads all 64 verdicts after application.
 
 ## SR-03.3 Retained-height snapshots
 
 ```mermaid
 flowchart TB
-    BH["retained block height"] --> SNAP["versioned snapshot<br/>sidestr-evm/src/state.rs:161"]
-    SNAP --> W["accounts and storage worlds"]
-    SNAP --> T["timestamps and block hashes"]
-    SNAP --> RC["receipts"]
-    SNAP --> META["configuration and root"]
-    RESTORE["restore"] --> V{"version, configuration,<br/>root and time agree?"}
-    V -->|yes| LIVE["resume at retained height"]
+    SNAP["snapshot: worlds, times,<br/>block records and receipts"] --> V{"version and config match,<br/>selected world root equals<br/>snapshot block record?"}
     V -->|no| REF["refuse snapshot"]
+    V -->|yes, time exists| LIVE["select height and world<br/>sidestr-evm/src/state.rs:305"]
+    SNAP --> CODE["code bytes keyed by claimed hash"]
+    CODE --> EXEC["execution reads supplied bytes<br/>sidestr-evm/src/world.rs:184-192"]
+    LIVE --> ALL["retain all snapshot histories,<br/>including heights above selection"]
+    LIVE -.-> NEED["caller still needs trusted chain anchor<br/>and verified code / metadata"]
 ```
 
-**What it shows.** A snapshot contains the versioned execution worlds, times, block hashes and receipts (`../sidestr-rs/sidestr-evm/src/state.rs:161`). Restore verifies version, configuration, root and time, then clears transient execution state (`../sidestr-rs/sidestr-evm/src/state.rs:305`).
+**What it shows.** Restore checks schema/configuration, selected world-root equality with the snapshot's own record and time presence. It copies all histories and receipts, then clears transient caches (`../sidestr-rs/sidestr-evm/src/state.rs:305-350`). It does not authenticate that time, receipts or an external chain commitment.
 
-**Why it is this way.** A follower can resume from any retained sidechain height without treating unverified serialised state as consensus truth.
+**Why it is this way.** Account roots contain code hashes; execution looks up code bytes separately without rehashing them (`../sidestr-rs/sidestr-evm/src/world.rs:111`, `../sidestr-rs/sidestr-evm/src/world.rs:184-192`). A probe changes a contract answer from 42 to 43 under the same root. Selecting genesis also leaves future block/receipt records queryable; this is not a pruned active-history view.
 
 ## SR-03.4 Evidence and activation boundary
 
 ```mermaid
-flowchart LR
-    J["ethereumjs reference<br/>fixture generator<br/>.github/workflows/ci.yml:165"] --> F["accepted and refused<br/>block fixtures"]
-    F --> R["Rust replay"]
-    R --> EQ["roots, withdrawals,<br/>receipts and refusals agree"]
-    EQ --> SRC["source capability"]
-    SRC -. "separate release and deployment" .-> LIVE["estate activation"]
+flowchart TB
+    J["pinned ethereumjs reference"] --> F["committed fixtures<br/>CI regeneration checks drift<br/>.github/workflows/ci.yml:186"]
+    F --> R["Rust fixture replay"]
+    R --> EQ["20 accepted and 15 refused blocks<br/>two KZG refusal roots excepted"]
+    EQ --> SRC["bounded compatibility evidence"]
+    SRC --> PROFILE["Cancun-derived profile<br/>block gas cap disabled<br/>KZG abort and zero BLOCKHASH"]
+    SRC -.-> LIVE["publication and chain activation<br/>require separate evidence"]
 ```
 
-**What it shows.** CI regenerates the EVM fixtures against the pinned reference and fails on drift (`../sidestr-rs/.github/workflows/ci.yml:186`). The oracle suite checks roots, withdrawals, hashes, receipts and refused blocks (`../sidestr-rs/sidestr-evm/tests/oracle.rs:1`).
+**What it shows.** Fresh Rust tests replay committed fixtures; CI is configured to regenerate them against the pinned module (`../sidestr-rs/.github/workflows/ci.yml:186`, `../sidestr-rs/sidestr-evm/tests/oracle.rs:155`). Two KZG refusal cases compare the error but deliberately skip intermediate-root equality (`../sidestr-rs/sidestr-evm/tests/oracle.rs:180`).
 
-**Why it is this way.** Byte-level parity supports a source claim. It does not publish the crate or alter a sealed chain document. VisionFlow records both limits explicitly (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:123-126`).
+**Why it is this way.** Reference compatibility is narrower than Ethereum equivalence: the profile disables block-gas enforcement, aborts at KZG and returns zero for BLOCKHASH (`../sidestr-rs/sidestr-evm/src/exec.rs:168-170`, `../sidestr-rs/sidestr-evm/src/exec.rs:78`, `../sidestr-rs/sidestr-evm/src/world.rs:209-210`). The pinned reference also contains the withdrawal-matching gap.
 
-**Open:** `sidestr-evm` is unpublished, and the `sidestr:dreamlab` document reaches `containmentDigest` without an `evm` rule (`../project/agentbox/config/sidechain/dreamlab/chain.json:1`, `../project/agentbox/config/sidechain/dreamlab/chain.json:28`).
+**Scope:** `publish = false` remains in the package configuration and the estate document lacks an EVM rule (`../sidestr-rs/sidestr-evm/Cargo.toml:16`, `../project/agentbox/config/sidechain/dreamlab/chain.json:28`). These checks neither publish the crate nor establish deployed contract use.

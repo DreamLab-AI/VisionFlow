@@ -2313,5 +2313,21 @@
       "SR-02.3",
       "SR-02.4"
     ]
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/sidestr-rs/03-evm-overlay-and-retained-state.md",
+    "source_sha256": "9cbe1a292203e68403b3676c6164860fa3fa40d71125eaf8f85a9e7c0cb2dc72",
+    "report": "docs/estate-review/2026-11-01-sidestr-evm-accounting-and-snapshots.md",
+    "report_sha256": "140b5404eb2b8a0b8e107d4227f243ee6f0f7c5c46a809d12233e664f02838f2",
+    "coverage": "selected-panels",
+    "basis": "All four existing SR-03 panels: withdrawal multiplicity, pending/verdict retention, snapshot code and metadata trust, selected-height history, bounded fixture parity and execution profile. Twenty-one native tests and six offline production-library scenarios; rendered and visually inspected. No whole-ADR, publication or runtime activation credit.",
+    "panels": [
+      "SR-03.1",
+      "SR-03.2",
+      "SR-03.3",
+      "SR-03.4"
+    ]
   }
 ]

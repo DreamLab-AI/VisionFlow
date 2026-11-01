@@ -1,0 +1,47 @@
+   Compiling sidestr-evm v0.1.0 (/home/devuser/workspace/sidestr-rs/sidestr-evm)
+    Finished `test` profile [unoptimized] target(s) in 18.13s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/vf-reserve-audit-target/debug/deps/sidestr_evm-e393e1b21b73813e)
+
+running 10 tests
+test records::tests::reading_follows_the_reference ... ok
+test rpc::js::tests::hex_reads_as_ethereumjs_does ... ok
+test rpc::js::tests::numbers_print_as_javascript_prints_them ... ok
+test records::tests::push_forms ... ok
+test rpc::js::tests::bigint_reads_as_v8_does ... ok
+test rpc::js::tests::strings_as_javascript_makes_them ... ok
+test rpc::tests::hash_keys_are_exact ... ok
+test rpc::tests::tags_read_as_heights ... ok
+test rpc::json::tests::as_javascript_writes_it ... ok
+test world::tests::roots ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/chain.rs (/home/devuser/workspace/.tmp/vf-reserve-audit-target/debug/deps/chain-b3af2ae231347f34)
+
+running 4 tests
+test the_rule_reads_the_documents_evm_section ... ok
+test the_genesis_is_judged_with_the_rules ... ok
+test a_document_naming_evm_needs_the_rule ... ok
+test the_reference_test_on_a_whole_chain ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.50s
+
+     Running tests/oracle.rs (/home/devuser/workspace/.tmp/vf-reserve-audit-target/debug/deps/oracle-bafaa5ca827180a8)
+
+running 4 tests
+test every_record_parses_as_the_reference_parses_it ... ok
+test every_carrier_reads_as_the_reference_reads_it ... ok
+test every_root_and_verdict_of_the_reference_chain ... ok
+test replaying_the_accepted_blocks_reaches_the_same_state ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.40s
+
+     Running tests/wallet_deposit.rs (/home/devuser/workspace/.tmp/vf-reserve-audit-target/debug/deps/wallet_deposit-a61dc9625b4af013)
+
+running 3 tests
+test the_wallet_and_the_rule_agree_on_the_marker_and_the_reserve ... ok
+test a_wallet_deposit_pays_evm_reserve_when_the_document_names_one ... ok
+test a_wallet_deposit_credits_the_address ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s
+

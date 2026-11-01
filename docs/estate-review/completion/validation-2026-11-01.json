@@ -240,7 +240,7 @@
       "target": "../../docs/estate-review/completion/claims.json"
     }
   ],
-  "exact_claim_bindings_rechecked": 181,
+  "exact_claim_bindings_rechecked": 182,
   "tool_hashes": {
     "scripts/estate-review-ledger/src/main.rs": "6a13475db77573e460ab9ba8a99b7aa1e7c306ca33c14ea3cf5188b690ce12b3",
     "scripts/estate-review-ledger/Cargo.toml": "8109eeff493be24031c394cce1d81a059ca1612f967e5b032f37bf9e8f1e50d6",
@@ -250,16 +250,16 @@
   "log_format": "Current batch retains raw native test, probe-build and documentation-check output, including original whitespace. Earlier log receipts retain their recorded formats.",
   "documentation_checks": {
     "unicode_findings": 0,
-    "prose_flags": 0,
-    "prose_disposition": "No high-severity mechanical prose flags; report read for scope and evidence qualifications.",
+    "prose_flags": 3,
+    "prose_disposition": "Two ordinary definite-article openings and one technical acceptance-criterion vocabulary flag retained after manual review; no inferred authorship claim.",
     "scope": [
-      "docs/estate-review/2026-11-01-sidestr-overlays-and-eviction.md"
+      "docs/estate-review/2026-11-01-sidestr-evm-accounting-and-snapshots.md"
     ],
-    "format_check": "Passed staged whitespace check for authored Markdown, JSON, Rust and JavaScript. Native/tool text logs retain original output and are excluded.",
-    "local_links": 16,
-    "scoped_jev_advisory": "No scoped SR-02 JEV advisory. Four rendered panels visually inspected; source review and native probes support stated findings."
+    "format_check": "Passed staged whitespace check for authored Markdown, JSON, Rust and JavaScript; raw native/tool text logs preserve original whitespace.",
+    "local_links": 17,
+    "scoped_jev_advisory": "Final SR-03 check has no advisory. Earlier blank world.rs line citation corrected to the actual code-lookup range before final rendering and corpus verification."
   },
-  "tool_validation_basis": "Nine collector tests and Clippy receipts retained from original ledger batch at 610b57b; unchanged collector/dependency hashes verified. Fresh collection rechecked 181 claims; zero stale records. Product tests are scoped in the current report, not a collector rerun.",
+  "tool_validation_basis": "Nine collector tests and Clippy receipts retained from original ledger batch at 610b57b; unchanged collector/dependency hashes verified. Fresh collection rechecked 182 claims; zero stale records. Product tests are scoped in the current report, not a collector rerun.",
   "prior_concurrent_source_refresh": {
     "changed_adrs": 5,
     "stale_claims": 5,
@@ -305,23 +305,23 @@
     "disposition": "Historical stale state; all five reassessed in docs/estate-review/2026-11-01-obsidian-refresh.md. See current snapshot for dispositions."
   },
   "current_batch": {
-    "report": "docs/estate-review/2026-11-01-sidestr-overlays-and-eviction.md",
-    "baseline": "c146f8b90f698bde23c75c58a40fc1eba57e346d",
+    "report": "docs/estate-review/2026-11-01-sidestr-evm-accounting-and-snapshots.md",
+    "baseline": "baae32a",
     "new_whole_adrs": 0,
     "refreshed_whole_adrs": [],
     "new_panels": [],
     "newly_assessed_existing_panels": [
-      "SR-02.1",
-      "SR-02.2",
-      "SR-02.3",
-      "SR-02.4"
+      "SR-03.1",
+      "SR-03.2",
+      "SR-03.3",
+      "SR-03.4"
     ],
     "refreshed_panels": [],
     "current_stale_records": 0,
     "previous_batch_candidates": 1178,
     "added_candidates": [],
     "removed_candidates": [],
-    "limits": "Ten selected existing native tests and four offline production-library probe scenarios. No fresh reference differential, network attack, heap-byte measurement, live market activation, product remediation or deployment change."
+    "limits": "Twenty-one existing native tests and six offline production-library scenarios. Fixture replay includes20 accepted/15 refused blocks; two KZG refusal roots deliberately excepted. Pinned JavaScript predicate source comparison, not fresh reference execution/regeneration. No runtime activation, operational fund movement, product remediation or deployment change."
   },
   "corpus_gate": {
     "topics": 205,
@@ -339,7 +339,7 @@
       ],
       "limits": "Advisory sample, not whole-corpus semantic acceptance."
     },
-    "evidence": "docs/estate-review/evidence/2026-11-01/overlays/citations.txt",
-    "declared_revisions": 55
+    "evidence": "docs/estate-review/evidence/2026-11-01/evm/citations.txt",
+    "declared_revisions": 56
   }
 }

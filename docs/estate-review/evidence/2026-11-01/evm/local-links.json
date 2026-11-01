@@ -1,0 +1,70 @@
+[
+  {
+    "file": "docs/estate-review/2026-11-01-sidestr-evm-accounting-and-snapshots.md",
+    "target": "evidence/2026-11-01/evm/sources.json"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-sidestr-evm-accounting-and-snapshots.md",
+    "target": "evidence/2026-11-01/evm/probe.json"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-sidestr-evm-accounting-and-snapshots.md",
+    "target": "2026-11-01-sidestr-overlays-and-eviction.md"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-sidestr-evm-accounting-and-snapshots.md",
+    "target": "evidence/2026-11-01/evm/native.txt"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-sidestr-evm-accounting-and-snapshots.md",
+    "target": "evidence/2026-11-01/evm/fixture-scope.json"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-sidestr-evm-accounting-and-snapshots.md",
+    "target": "2026-11-01-sidestr-oracle-contract.md"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-sidestr-evm-accounting-and-snapshots.md",
+    "target": "evidence/2026-11-01/evm/probe.json"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-sidestr-evm-accounting-and-snapshots.md",
+    "target": "evidence/2026-11-01/evm/evm-probe.rs"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-sidestr-evm-accounting-and-snapshots.md",
+    "target": "evidence/2026-11-01/evm/run-probe.cjs"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-sidestr-evm-accounting-and-snapshots.md",
+    "target": "evidence/2026-11-01/evm/probe-build.txt"
+  },
+  {
+    "file": "docs/diagrams/sidestr-rs/03-evm-overlay-and-retained-state.md",
+    "target": "../../estate-review/2026-11-01-sidestr-evm-accounting-and-snapshots.md"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "scope.json"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "claims.json"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "snapshot-2026-11-01.json"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "validation-2026-11-01.json"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "../../../scripts/estate-review-ledger/README.md"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "../2026-11-01-sidestr-evm-accounting-and-snapshots.md"
+  }
+]

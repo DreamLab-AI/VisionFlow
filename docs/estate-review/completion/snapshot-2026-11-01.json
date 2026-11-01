@@ -121343,7 +121343,7 @@
     "numbered_candidates_with_recorded_assessment": 91,
     "numbered_decision_candidates": 1061,
     "panels": 1730,
-    "panels_with_recorded_assessment": 324,
+    "panels_with_recorded_assessment": 328,
     "scope_targets": 25,
     "stale_claim_records": 0,
     "topics": 205
@@ -121354,7 +121354,7 @@
       "available": true,
       "candidate_files": 77,
       "dirty": true,
-      "head": "c146f8b90f698bde23c75c58a40fc1eba57e346d",
+      "head": "baae32a5ba5d2b1c7240dec745387629d3ce512d",
       "local": "VisionFlow",
       "name": "VisionFlow"
     },
@@ -132069,49 +132069,70 @@
       "sha256": "d600e560f7c5a5446e29e63afd88f5dadf492aee2c6b91c5a7e698894ac1fea6"
     },
     {
-      "claims": [],
+      "claims": [
+        {
+          "basis": "All four existing SR-03 panels: withdrawal multiplicity, pending/verdict retention, snapshot code and metadata trust, selected-height history, bounded fixture parity and execution profile. Twenty-one native tests and six offline production-library scenarios; rendered and visually inspected. No whole-ADR, publication or runtime activation credit.",
+          "coverage": "selected-panels",
+          "panels": [
+            "SR-03.1",
+            "SR-03.2",
+            "SR-03.3",
+            "SR-03.4"
+          ],
+          "report": "docs/estate-review/2026-11-01-sidestr-evm-accounting-and-snapshots.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "panels": [
         {
-          "body_sha256": "8955a2cd48a02e43bf60941e8820a9c2f95e3435a167204dbe5cdcdf38412e2c",
+          "body_sha256": "4efb6956bbb3691188797f26106b2f83d48f4849dd2ad98c5cac55797f854c37",
           "heading": "SR-03.1 One chain, two coordinated state views",
           "id": "SR-03.1",
-          "line": 34,
+          "line": 35,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-sidestr-evm-accounting-and-snapshots.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
-          "body_sha256": "011c26391637819f98ee24263db338cdcf9e013c766ba1b9c8bb59b15550c24b",
-          "heading": "SR-03.2 Check, prepare, then commit",
+          "body_sha256": "b29cb718522f89b70b718b24992732b0997cefd07d165edef8835b8d18c345d0",
+          "heading": "SR-03.2 Prepare, retain, then commit",
           "id": "SR-03.2",
-          "line": 55,
+          "line": 59,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-sidestr-evm-accounting-and-snapshots.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
-          "body_sha256": "6453d4e06fb3397e6bf6b1cd76548a4c2c615d624f8b5af3b52beb22044484e4",
+          "body_sha256": "fd67fa363e8acf6186e69a07c5acd1b32acb963aacb17fbb2e234fc036944eb5",
           "heading": "SR-03.3 Retained-height snapshots",
           "id": "SR-03.3",
-          "line": 77,
+          "line": 85,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-sidestr-evm-accounting-and-snapshots.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
-          "body_sha256": "7165fae80b16bc50541dd5e7d785b5612bfc05f70fbb744cc15372e4e032eb53",
+          "body_sha256": "c5e69882b0760d3d72b0b2f8372cf3c99a1d13744340028ca90e1d9a43897ca2",
           "heading": "SR-03.4 Evidence and activation boundary",
           "id": "SR-03.4",
-          "line": 95,
+          "line": 102,
           "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-sidestr-evm-accounting-and-snapshots.md"
+          ],
+          "review": "assessment-recorded"
         }
       ],
       "path": "docs/diagrams/sidestr-rs/03-evm-overlay-and-retained-state.md",
       "repo": "VisionFlow",
-      "review": "unreconciled",
-      "sha256": "966939be7f1e1db138fa7b09d57cb208d3be0edf3481171191f3d6f157bce9d1"
+      "review": "assessment-recorded",
+      "sha256": "9cbe1a292203e68403b3676c6164860fa3fa40d71125eaf8f85a9e7c0cb2dc72"
     },
     {
       "claims": [

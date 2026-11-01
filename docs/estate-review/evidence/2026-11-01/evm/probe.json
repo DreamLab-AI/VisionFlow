@@ -1,0 +1,51 @@
+{
+  "cases": [
+    {
+      "case": "one_coinbase_output_satisfies_two_withdrawals",
+      "obligation_sats": 20000,
+      "recipient_paid_sats": 10000,
+      "signer_paid_sats": 15000,
+      "ordinary_fee_sats": 5000,
+      "missing_payment_rejected": true,
+      "two_separate_payments_accepted": true,
+      "underpaid_block_applied_by_full_follower": true,
+      "successful_withdrawal_receipts": 2
+    },
+    {
+      "case": "snapshot_code_changed_without_root_change",
+      "normal_call_result": 42,
+      "tampered_call_result": 43,
+      "same_root": true,
+      "mismatched_root_control_rejected": true
+    },
+    {
+      "case": "snapshot_receipt_and_time_not_authenticated",
+      "changed_receipt_status": false,
+      "changed_gas_used": 1,
+      "changed_time": 1,
+      "same_root": true
+    },
+    {
+      "case": "restore_genesis_retains_future_history",
+      "restored_height": 0,
+      "balance_at_genesis_zero": true,
+      "future_receipt_height": 103,
+      "future_block_and_receipt_still_exposed": true
+    },
+    {
+      "case": "candidate_verdicts_outlive_rejection_and_commit",
+      "rejected_outer_candidates": 64,
+      "pending_cleared_on_commit": true,
+      "all_verdicts_still_queryable_after_commit": true,
+      "heap_bytes_or_network_exposure_measured": false
+    },
+    {
+      "case": "configured_block_gas_limit_is_not_enforced",
+      "configured_gas_limit": 10000,
+      "transaction_gas_limit": 30000,
+      "actual_gas_used": 21000,
+      "accepted": true,
+      "scope": "Documented compatibility profile; no stress or denial-of-service test"
+    }
+  ]
+}
