@@ -1,0 +1,61 @@
+{
+  "scope": "Two authored reports; local file targets only",
+  "links": [
+    {
+      "from": "docs/estate-review/2026-11-01-review-method-lessons.md",
+      "target": "2026-11-01-visionclaw-payment-auth.md",
+      "exists": true
+    },
+    {
+      "from": "docs/estate-review/2026-11-01-review-method-lessons.md",
+      "target": "completion/README.md",
+      "exists": true
+    },
+    {
+      "from": "docs/estate-review/2026-11-01-review-method-lessons.md",
+      "target": "../../../project/agentbox/skills/build-with-quality/references/review-evidence.md",
+      "exists": true
+    },
+    {
+      "from": "docs/estate-review/2026-11-01-review-method-lessons.md",
+      "target": "../../../project/agentbox/skills/security-testing/SKILL.md",
+      "exists": true
+    },
+    {
+      "from": "docs/estate-review/2026-11-01-review-method-lessons.md",
+      "target": "../../../project/agentbox/skills/diagrams-as-code/references/verification.md",
+      "exists": true
+    },
+    {
+      "from": "docs/estate-review/2026-11-01-review-method-lessons.md",
+      "target": "evidence/2026-11-01/pay-nip98/manifest.json",
+      "exists": true
+    },
+    {
+      "from": "docs/estate-review/2026-11-01-visionclaw-payment-auth.md",
+      "target": "2026-11-01-parallel-implementations.md",
+      "exists": true
+    },
+    {
+      "from": "docs/estate-review/2026-11-01-visionclaw-payment-auth.md",
+      "target": "evidence/2026-11-01/pay-nip98/manifest.json",
+      "exists": true
+    },
+    {
+      "from": "docs/estate-review/2026-11-01-visionclaw-payment-auth.md",
+      "target": "../diagrams/visionclaw/55-payment-authentication.md",
+      "exists": true
+    },
+    {
+      "from": "docs/estate-review/2026-11-01-visionclaw-payment-auth.md",
+      "target": "../diagrams/visionclaw/04-handlers-graph-and-state.md",
+      "exists": true
+    },
+    {
+      "from": "docs/estate-review/2026-11-01-visionclaw-payment-auth.md",
+      "target": "2026-11-01-review-method-lessons.md",
+      "exists": true
+    }
+  ],
+  "missing": []
+}

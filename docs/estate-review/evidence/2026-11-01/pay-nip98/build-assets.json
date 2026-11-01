@@ -1,0 +1,8 @@
+{
+  "source": "existing primary ignored PTX required by default build; payment tests do not execute GPU operations",
+  "hashes": {
+    "sssp_compact.ptx": "3fecc2d83b3a8d096e827234ec93449093f627d6b3740388316aa8cf06faaaed",
+    "gpu_landmark_apsp.ptx": "4cc5e39b89b87efbcbacd66ceeba9274dbb981d4d35a245cf412d667c5fc23e7",
+    "gpu_clustering_kernels.ptx": "cd15d7652ba222801182de6e273d2bf5662df2889d8b4448d10daee48cd756e6"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "mode": "diff-working",
+  "diff_ref": "",
+  "files_from": "",
+  "root": "/home/devuser/workspace/wt/visionclaw-pay-nip98",
+  "project_id": "visionclaw-pay-nip98",
+  "workspace": "/home/devuser/workspace/wt/visionclaw-pay-nip98/.deepsec-gate",
+  "report_dir": "/tmp/vf-pay-nip98/deepsec",
+  "revision": "531df5ef74453a2ed320bff968c203a9b91faed7",
+  "dirty": "true",
+  "deepsec_version": "2.3.10",
+  "policy_source": "/etc/agentbox.toml",
+  "agent": "claude",
+  "model_auth": "local",
+  "model": "",
+  "thinking_level": "minimal",
+  "fail_on": "HIGH",
+  "max_duration": "20m",
+  "batch_size": "5",
+  "concurrency": "2",
+  "ai_provider": "",
+  "ai_api_key_env": "",
+  "ai_base_url": "",
+  "route": {
+    "mode": "local",
+    "provider": "local"
+  }
+}

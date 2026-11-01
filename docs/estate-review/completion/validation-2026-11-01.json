@@ -2,8 +2,8 @@
   "date": "2026-11-01",
   "baseline": "2b2c19c0f19b2616e3890946aba384ec448aec9b",
   "panel_id_parity": {
-    "ledger": 1740,
-    "existing_coverage_index": 1740,
+    "ledger": 1741,
+    "existing_coverage_index": 1741,
     "equal": true
   },
   "census_delta": {
@@ -2127,6 +2127,97 @@
     "limits": "Scope correction only. Previous product tests and diagram gates are historical receipts; neither was rerun for this edit. No RuView source was scanned by the refreshed collector."
   },
   "current_batch": {
+    "report": "docs/estate-review/2026-11-01-visionclaw-payment-auth.md",
+    "baseline": "3fd2833c8f51cb3701fc21ba8cac63814d1ebc44",
+    "new_whole_adrs": 1,
+    "newly_assessed_existing_panels": [
+      "VC-04.27"
+    ],
+    "new_topic_panels": [
+      "VC-55.1"
+    ],
+    "route_tests_passed": 6,
+    "shared_verifier_tests_passed": 46,
+    "whole_workspace_clippy": "failed; unchanged diagnostic paths",
+    "product_commit": "5fa0e1325a2f903c175cfe67bbc6d644fcf38267",
+    "skills_commit": "686db14b1be0825ed9ff683790fb0ac550e30188",
+    "current_stale_records": 0,
+    "counts": {
+      "available_checkouts": 20,
+      "candidate_files": 828,
+      "numbered_candidates_with_recorded_assessment": 96,
+      "numbered_decision_candidates": 720,
+      "panels": 1741,
+      "panels_with_recorded_assessment": 361,
+      "scope_targets": 20,
+      "stale_claim_records": 0,
+      "topics": 208
+    },
+    "candidate_paths_unchanged": true,
+    "vcs10_disposition": "Partial: payment binding/replay fixed; proxy/fixture and deployment open."
+  },
+  "prior_full_corpus_gate": {
+    "topics": 206,
+    "panels": 1739,
+    "verified_citations": 25768,
+    "warnings": 0,
+    "fallback": 0,
+    "allowlisted": 9,
+    "check_verification": "passed",
+    "jev_advisory_sample": {
+      "reviewed_citations": 120,
+      "manual_review_queue": [
+        "agentbox/01-nix-flake-composition.md:AB-01.3",
+        "agentbox/01-nix-flake-composition.md:AB-01.5"
+      ],
+      "limits": "Advisory sample, not whole-corpus semantic acceptance."
+    },
+    "evidence": "docs/estate-review/evidence/2026-11-01/hitch-recovery/citations.txt",
+    "declared_revisions": 57
+  },
+  "corpus_gate": {
+    "topics": 208,
+    "panels": 1741,
+    "check_verification": "passed; no source path access",
+    "scope": "Structure and revision-set parity only; scoped VC-55 receipt added to historical citation report",
+    "evidence": "docs/estate-review/evidence/2026-11-01/pay-nip98/structure.txt",
+    "supplement": "docs/estate-review/evidence/2026-11-01/pay-nip98/verification-supplement.json"
+  },
+  "scoped_topic_gate": {
+    "topics": [
+      "VC-04",
+      "VC-55"
+    ],
+    "rendered_panels": 24,
+    "visually_checked_panels": [
+      "VC-04.27",
+      "VC-55.1"
+    ],
+    "verified_citations": 226,
+    "warnings": 0,
+    "fallback": 0,
+    "evidence": [
+      "docs/estate-review/evidence/2026-11-01/pay-nip98/diagram-new.txt",
+      "docs/estate-review/evidence/2026-11-01/pay-nip98/diagram-historical.txt"
+    ],
+    "limits": "VC-04 has120-citation JEV sample, not complete semantic acceptance. Only two selected panels assessed."
+  },
+  "current_scope_correction": {
+    "excluded": [
+      "Logseq history",
+      "RuVector",
+      "Codescape consumed",
+      "unmute consumed"
+    ],
+    "active_checkouts": 20,
+    "removed_candidate_files": 14,
+    "removed_numbered_candidates": 11,
+    "removed_assessments": 1,
+    "new_review_credit": 0,
+    "receipt": "docs/estate-review/completion/exclusions-2026-11-01.json",
+    "source_scans_of_excluded_checkouts": false
+  },
+  "previous_payment_delivery_batch": {
     "report": "docs/estate-review/2026-11-01-solid-payment-delivery.md",
     "baseline": "bc97713",
     "parallel_intake": "docs/estate-review/2026-11-01-parallel-remediation.md",
@@ -2160,73 +2251,5 @@
       "topics": 207
     },
     "candidate_paths_unchanged": false
-  },
-  "prior_full_corpus_gate": {
-    "topics": 206,
-    "panels": 1739,
-    "verified_citations": 25768,
-    "warnings": 0,
-    "fallback": 0,
-    "allowlisted": 9,
-    "check_verification": "passed",
-    "jev_advisory_sample": {
-      "reviewed_citations": 120,
-      "manual_review_queue": [
-        "agentbox/01-nix-flake-composition.md:AB-01.3",
-        "agentbox/01-nix-flake-composition.md:AB-01.5"
-      ],
-      "limits": "Advisory sample, not whole-corpus semantic acceptance."
-    },
-    "evidence": "docs/estate-review/evidence/2026-11-01/hitch-recovery/citations.txt",
-    "declared_revisions": 57
-  },
-  "corpus_gate": {
-    "topics": 207,
-    "panels": 1740,
-    "check_verification": "passed; no source path access",
-    "scope": "Structure and declared revision set only; historical full-corpus receipt supplemented with verified AB-40 citations. No excluded checkout source access.",
-    "evidence": "docs/estate-review/evidence/2026-11-01/solid-payments/structure.txt",
-    "supplement": "docs/estate-review/evidence/2026-11-01/parallel-intake/verification-supplement.json"
-  },
-  "scoped_topic_gate": {
-    "topics": [
-      "SP-07",
-      "AB-13",
-      "AB-40"
-    ],
-    "rendered_panels": 36,
-    "visually_checked_panels": [
-      "SP-07.6",
-      "SP-07.10",
-      "SP-07.13",
-      "SP-07.15",
-      "SP-07.18",
-      "AB-13.7",
-      "AB-40.1"
-    ],
-    "verified_citations": 603,
-    "warnings": 0,
-    "fallback": 0,
-    "evidence": [
-      "docs/estate-review/evidence/2026-11-01/solid-payments/render.txt",
-      "docs/estate-review/evidence/2026-11-01/parallel-intake/historical-diagram.txt",
-      "docs/estate-review/evidence/2026-11-01/parallel-intake/new-diagram.txt"
-    ],
-    "limits": "Historical AB-13 siblings retain three advisory items and no new assessment credit; source drift remains. Selected Solid and new AB-40 citations have no final advisories."
-  },
-  "current_scope_correction": {
-    "excluded": [
-      "Logseq history",
-      "RuVector",
-      "Codescape consumed",
-      "unmute consumed"
-    ],
-    "active_checkouts": 20,
-    "removed_candidate_files": 14,
-    "removed_numbered_candidates": 11,
-    "removed_assessments": 1,
-    "new_review_credit": 0,
-    "receipt": "docs/estate-review/completion/exclusions-2026-11-01.json",
-    "source_scans_of_excluded_checkouts": false
   }
 }

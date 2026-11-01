@@ -1,0 +1,4 @@
+{
+  "authored_files": "git diff HEAD^ HEAD --check excluding raw evidence: passed",
+  "raw_evidence": "Unmodified fmt diff and test logs contain trailing spaces or blank EOF lines; full diff whitespace check reports these. Evidence bytes retained."
+}

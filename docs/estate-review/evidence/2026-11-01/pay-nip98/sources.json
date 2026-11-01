@@ -1,0 +1,66 @@
+{
+  "project/src/handlers/pay_handler.rs": {
+    "revision": "5fa0e1325a2f903c175cfe67bbc6d644fcf38267",
+    "sha256": "c36b2a6e92c4f23f53b2c83a7cd8765f6823aac165e144fb8ce64db42e6c1ba0"
+  },
+  "project/src/utils/auth.rs": {
+    "revision": "5fa0e1325a2f903c175cfe67bbc6d644fcf38267",
+    "sha256": "1d5520b4f5c96c927ce5c9b61b2f57644b34fe9bea65ea156688775f67b919d6"
+  },
+  "project/src/utils/nip98.rs": {
+    "revision": "5fa0e1325a2f903c175cfe67bbc6d644fcf38267",
+    "sha256": "6037dc4bc2ee02edda18b4946daf63e3803dd244061ebd65fdf614dc420b12da"
+  },
+  "project/src/handlers/solid_proxy_handler.rs": {
+    "revision": "5fa0e1325a2f903c175cfe67bbc6d644fcf38267",
+    "sha256": "7f7ece443ed398ef4d209008fce0bdaf727153de57080d124ef95f8e1d51d767"
+  },
+  "project/src/main.rs": {
+    "revision": "5fa0e1325a2f903c175cfe67bbc6d644fcf38267",
+    "sha256": "ec3ee2d46059a46eebc983f6510d30236efb9bb7fbe05d47d656167b98a56db5"
+  },
+  "project/tests/pay_nip98_test.rs": {
+    "revision": "5fa0e1325a2f903c175cfe67bbc6d644fcf38267",
+    "sha256": "485fd20e3b15c286c8659532423b5b207e4ad5011b868ae1c92e7406593cc8bf"
+  },
+  "project/docs/SECURITY-profiles.md": {
+    "revision": "5fa0e1325a2f903c175cfe67bbc6d644fcf38267",
+    "sha256": "6017a25bc745b917e7233083b93ef1a9d6249705a09ca9da45690450411591cd"
+  },
+  "project/docs/adr/ADR-2002-nip98-single-use-replay-cache.md": {
+    "revision": "5fa0e1325a2f903c175cfe67bbc6d644fcf38267",
+    "sha256": "993d6ca1c46daf5167e98830fedceadc9e643f3db2cc4f3a7f9b09f380e9f9a1"
+  },
+  "project/docs/adr/ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md": {
+    "revision": "5fa0e1325a2f903c175cfe67bbc6d644fcf38267",
+    "sha256": "f51159cd67af3c258cd584abdd89f72d3723741412dcdeb41c1ab15faebec821"
+  },
+  "project/Cargo.lock": {
+    "revision": "5fa0e1325a2f903c175cfe67bbc6d644fcf38267",
+    "sha256": "531c0b53d66cb25271ff40fee59d2fe1d02ff300a3fdc372fc9ffb9f83893b80"
+  },
+  "project/agentbox/skills/build-with-quality/SKILL.md": {
+    "revision": "686db14b1be0825ed9ff683790fb0ac550e30188",
+    "sha256": "0cc5e74c46ff3a44d44efafc82c8a93e1c02661fc0826c69eb47a66467056649"
+  },
+  "project/agentbox/skills/build-with-quality/references/review-evidence.md": {
+    "revision": "686db14b1be0825ed9ff683790fb0ac550e30188",
+    "sha256": "5daa250af501ee37afbe56a8f40b374840ae83278c0362971a41a05bc9cb2bec"
+  },
+  "project/agentbox/skills/build-with-quality/references/quality-gates-and-workflow.md": {
+    "revision": "686db14b1be0825ed9ff683790fb0ac550e30188",
+    "sha256": "f25f34722cd0d180d76c2293cae855ff5aa54a04338f1f226617abd2efa849c9"
+  },
+  "project/agentbox/skills/build-with-quality/references/deepsec-security-gate.md": {
+    "revision": "686db14b1be0825ed9ff683790fb0ac550e30188",
+    "sha256": "efd768c63106f5ed7001ba3dcf412b5e2712509f7c4067aa67e620a040bbc5e3"
+  },
+  "project/agentbox/skills/security-testing/SKILL.md": {
+    "revision": "686db14b1be0825ed9ff683790fb0ac550e30188",
+    "sha256": "5db652dce1a9075680229874e8152314f873ef736f38e03514dcac54b1d0bed1"
+  },
+  "project/agentbox/skills/diagrams-as-code/references/verification.md": {
+    "revision": "686db14b1be0825ed9ff683790fb0ac550e30188",
+    "sha256": "6d2f885673f2a4634c0e44fc64cef0b8bd7042a1f067134ccf4f28dda31257ad"
+  }
+}

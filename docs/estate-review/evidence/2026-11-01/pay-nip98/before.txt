@@ -1,0 +1,418 @@
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Auto-detected GPU sm_86
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Building for sm_86
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Using CUDA host compiler: /nix/store/fliwi0hjfdjb1wgg4cncxlv58a14ndah-gcc-wrapper-14.4.0/bin/gcc (NvccCcbin)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Adding CUDA include dir: /nix/store/7p90h8wfwmda4xq5bsqzx231w1inx1cm-cuda-compat/include
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Compiling 8 CUDA kernels to PTX
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: visionclaw_unified — declared ISA 9.4 rewritten to 9.0 (declared-version change only; instruction support is not proven)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_clustering_kernels — declared ISA 9.4 rewritten to 9.0 (declared-version change only; instruction support is not proven)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_aabb_reduction — declared ISA 9.4 rewritten to 9.0 (declared-version change only; instruction support is not proven)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_landmark_apsp — declared ISA 9.4 rewritten to 9.0 (declared-version change only; instruction support is not proven)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: sssp_compact — declared ISA 9.4 rewritten to 9.0 (declared-version change only; instruction support is not proven)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: semantic_forces — declared ISA 9.4 rewritten to 9.0 (declared-version change only; instruction support is not proven)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: pagerank — declared ISA 9.4 rewritten to 9.0 (declared-version change only; instruction support is not proven)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_connected_components — declared ISA 9.4 rewritten to 9.0 (declared-version change only; instruction support is not proven)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: visionclaw_unified source=src/cuda_sources/visionclaw_unified.cu provenance=compiled isa=9.0 original=1c07162366853f0e rewritten=2edd0343cf4cdeda
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_clustering_kernels source=src/cuda_sources/gpu_clustering_kernels.cu provenance=compiled isa=9.0 original=2425b9dda07e2e20 rewritten=a052f8f163b69f14
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_aabb_reduction source=src/cuda_sources/gpu_aabb_reduction.cu provenance=compiled isa=9.0 original=b440f0136832f890 rewritten=4cff7eb8bd62b89c
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_landmark_apsp source=src/cuda_sources/gpu_landmark_apsp.cu provenance=compiled isa=9.0 original=80bd76fd03a5be10 rewritten=25cf34b53c6f6ecc
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: sssp_compact source=src/cuda_sources/sssp_compact.cu provenance=compiled isa=9.0 original=6dd4a4bac953da8f rewritten=ae2316cff19ceb1b
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: semantic_forces source=src/cuda_sources/semantic_forces.cu provenance=compiled isa=9.0 original=ceb14377cb2ccf1f rewritten=7dd8070af693051b
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: pagerank source=src/cuda_sources/pagerank.cu provenance=compiled isa=9.0 original=86c13d2c2c9ae56c rewritten=85e8e9356f683518
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_connected_components source=src/cuda_sources/gpu_connected_components.cu provenance=compiled isa=9.0 original=8be60e1c3bbee7ee rewritten=ae0f662370878aea
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: All PTX compilation done (8 modules)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Native CUDA linking complete
+warning: visionclaw-server@0.1.0: webxr build.rs: GPU feature enabled — CUDA compilation delegated to visionclaw-gpu crate
+   Compiling visionclaw-server v0.1.0 (/home/devuser/workspace/wt/visionclaw-pay-nip98)
+warning: unused import: `bad_request`
+  --> src/handlers/api_handler/semantic_forces.rs:23:13
+   |
+23 | use crate::{bad_request, error_json, ok_json};
+   |             ^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `visionclaw-server` (lib) generated 1 warning (run `cargo fix --lib -p visionclaw-server` to apply 1 suggestion)
+    Finished `test` profile [optimized + debuginfo] target(s) in 4m 19s
+warning: the following packages contain code that will be rejected by a future version of Rust: quick-xml v0.21.0, quick-xml v0.22.0
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running tests/pay_nip98_test.rs (/home/devuser/workspace/project/target/debug/deps/pay_nip98_test-2a73ecd6023c928d)
+
+running 5 tests
+test request_binding_failures_do_not_consume_a_valid_estimate_token ... ok
+test balance_accepts_external_url_and_rejects_replay ... FAILED
+test all_payment_posts_require_payload_binding ... FAILED
+test replay_cannot_charge_a_resource_twice ... FAILED
+test trading_requires_exact_body_and_single_use_without_burning_rejected_token ... FAILED
+
+failures:
+
+---- balance_accepts_external_url_and_rejects_replay stdout ----
+
+thread 'balance_accepts_external_url_and_rejects_replay' (3895949) panicked at tests/pay_nip98_test.rs:54:9:
+assertion `left == right` failed
+  left: 401
+ right: 200
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::panicking::assert_failed_inner
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:452:17
+   3: core::panicking::assert_failed::<http::status::StatusCode, http::status::StatusCode>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/panicking.rs:407:5
+   4: pay_nip98_test::balance_accepts_external_url_and_rejects_replay::{closure#0}
+             at ./tests/pay_nip98_test.rs:54:9
+   5: <tokio::task::local::RunUntil<pay_nip98_test::balance_accepts_external_url_and_rejects_replay::{closure#0}> as core::future::future::Future>::poll::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/task/local.rs:1049:44
+   6: <tokio::task::local::LocalSet>::with::<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<pay_nip98_test::balance_accepts_external_url_and_rejects_replay::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/task/local.rs:795:13
+   7: <std::thread::local::LocalKey<tokio::task::local::LocalData>>::try_with::<<tokio::task::local::LocalSet>::with<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<pay_nip98_test::balance_accepts_external_url_and_rejects_replay::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}, core::task::poll::Poll<()>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:463:12
+   8: <std::thread::local::LocalKey<tokio::task::local::LocalData>>::with::<<tokio::task::local::LocalSet>::with<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<pay_nip98_test::balance_accepts_external_url_and_rejects_replay::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}, core::task::poll::Poll<()>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:427:20
+   9: <tokio::task::local::LocalSet>::with::<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<pay_nip98_test::balance_accepts_external_url_and_rejects_replay::{closure#0}> as core::future::future::Future>::poll::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/task/local.rs:793:17
+  10: <tokio::task::local::RunUntil<pay_nip98_test::balance_accepts_external_url_and_rejects_replay::{closure#0}> as core::future::future::Future>::poll
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/task/local.rs:1039:22
+  11: <tokio::task::local::LocalSet>::run_until::<pay_nip98_test::balance_accepts_external_url_and_rejects_replay::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/task/local.rs:691:19
+  12: <core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::balance_accepts_external_url_and_rejects_replay::{closure#0}>::{closure#0}> as core::future::future::Future>::poll
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/future/future.rs:133:9
+  13: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::balance_accepts_external_url_and_rejects_replay::{closure#0}>::{closure#0}>>::{closure#0}::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:742:70
+  14: tokio::task::coop::with_budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::balance_accepts_external_url_and_rejects_replay::{closure#0}>::{closure#0}>>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/task/coop/mod.rs:167:5
+  15: tokio::task::coop::budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::balance_accepts_external_url_and_rejects_replay::{closure#0}>::{closure#0}>>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/task/coop/mod.rs:133:5
+  16: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::balance_accepts_external_url_and_rejects_replay::{closure#0}>::{closure#0}>>::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:742:25
+  17: <tokio::runtime::scheduler::current_thread::Context>::enter::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::balance_accepts_external_url_and_rejects_replay::{closure#0}>::{closure#0}>>::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:432:19
+  18: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::balance_accepts_external_url_and_rejects_replay::{closure#0}>::{closure#0}>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:741:44
+  19: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::balance_accepts_external_url_and_rejects_replay::{closure#0}>::{closure#0}>>::{closure#0}, core::option::Option<()>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:829:68
+  20: <tokio::runtime::context::scoped::Scoped<tokio::runtime::scheduler::Context>>::set::<<tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::balance_accepts_external_url_and_rejects_replay::{closure#0}>::{closure#0}>>::{closure#0}, core::option::Option<()>>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/context/scoped.rs:40:9
+  21: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::balance_accepts_external_url_and_rejects_replay::{closure#0}>::{closure#0}>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/context.rs:176:38
+  22: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::try_with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::balance_accepts_external_url_and_rejects_replay::{closure#0}>::{closure#0}>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:463:12
+  23: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::balance_accepts_external_url_and_rejects_replay::{closure#0}>::{closure#0}>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:427:20
+  24: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::balance_accepts_external_url_and_rejects_replay::{closure#0}>::{closure#0}>>::{closure#0}, core::option::Option<()>>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/context.rs:176:17
+  25: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::balance_accepts_external_url_and_rejects_replay::{closure#0}>::{closure#0}>>::{closure#0}, core::option::Option<()>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:829:27
+  26: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::balance_accepts_external_url_and_rejects_replay::{closure#0}>::{closure#0}>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:729:24
+  27: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::balance_accepts_external_url_and_rejects_replay::{closure#0}>::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:200:33
+  28: tokio::runtime::context::runtime::enter_runtime::<<tokio::runtime::scheduler::current_thread::CurrentThread>::block_on<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::balance_accepts_external_url_and_rejects_replay::{closure#0}>::{closure#0}>::{closure#0}, ()>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/context/runtime.rs:65:16
+  29: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::balance_accepts_external_url_and_rejects_replay::{closure#0}>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:188:9
+  30: <tokio::runtime::runtime::Runtime>::block_on_inner::<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::balance_accepts_external_url_and_rejects_replay::{closure#0}>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/runtime.rs:356:52
+  31: <tokio::runtime::runtime::Runtime>::block_on::<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::balance_accepts_external_url_and_rejects_replay::{closure#0}>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/runtime.rs:330:18
+  32: <tokio::task::local::LocalSet>::block_on::<pay_nip98_test::balance_accepts_external_url_and_rejects_replay::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/task/local.rs:648:12
+  33: <actix_rt::runtime::Runtime>::block_on::<pay_nip98_test::balance_accepts_external_url_and_rejects_replay::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-rt-2.11.0/src/runtime.rs:138:20
+  34: <actix_rt::system::SystemRunner>::block_on::<pay_nip98_test::balance_accepts_external_url_and_rejects_replay::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-rt-2.11.0/src/system.rs:240:17
+  35: pay_nip98_test::balance_accepts_external_url_and_rejects_replay
+             at ./tests/pay_nip98_test.rs:25:1
+  36: pay_nip98_test::balance_accepts_external_url_and_rejects_replay::{closure#0}
+             at ./tests/pay_nip98_test.rs:26:59
+  37: <pay_nip98_test::balance_accepts_external_url_and_rejects_replay::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+  38: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+---- all_payment_posts_require_payload_binding stdout ----
+
+thread 'all_payment_posts_require_payload_binding' (3895948) panicked at tests/pay_nip98_test.rs:139:9:
+assertion `left == right` failed: .estimate
+  left: 200
+ right: 401
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::panicking::assert_failed_inner
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:447:23
+   3: core::panicking::assert_failed::<http::status::StatusCode, http::status::StatusCode>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/panicking.rs:407:5
+   4: pay_nip98_test::all_payment_posts_require_payload_binding::{closure#0}
+             at ./tests/pay_nip98_test.rs:139:9
+   5: <tokio::task::local::RunUntil<pay_nip98_test::all_payment_posts_require_payload_binding::{closure#0}> as core::future::future::Future>::poll::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/task/local.rs:1049:44
+   6: <tokio::task::local::LocalSet>::with::<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<pay_nip98_test::all_payment_posts_require_payload_binding::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/task/local.rs:795:13
+   7: <std::thread::local::LocalKey<tokio::task::local::LocalData>>::try_with::<<tokio::task::local::LocalSet>::with<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<pay_nip98_test::all_payment_posts_require_payload_binding::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}, core::task::poll::Poll<()>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:463:12
+   8: <std::thread::local::LocalKey<tokio::task::local::LocalData>>::with::<<tokio::task::local::LocalSet>::with<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<pay_nip98_test::all_payment_posts_require_payload_binding::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}, core::task::poll::Poll<()>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:427:20
+   9: <tokio::task::local::LocalSet>::with::<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<pay_nip98_test::all_payment_posts_require_payload_binding::{closure#0}> as core::future::future::Future>::poll::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/task/local.rs:793:17
+  10: <tokio::task::local::RunUntil<pay_nip98_test::all_payment_posts_require_payload_binding::{closure#0}> as core::future::future::Future>::poll
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/task/local.rs:1039:22
+  11: <tokio::task::local::LocalSet>::run_until::<pay_nip98_test::all_payment_posts_require_payload_binding::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/task/local.rs:691:19
+  12: <core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::all_payment_posts_require_payload_binding::{closure#0}>::{closure#0}> as core::future::future::Future>::poll
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/future/future.rs:133:9
+  13: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::all_payment_posts_require_payload_binding::{closure#0}>::{closure#0}>>::{closure#0}::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:742:70
+  14: tokio::task::coop::with_budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::all_payment_posts_require_payload_binding::{closure#0}>::{closure#0}>>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/task/coop/mod.rs:167:5
+  15: tokio::task::coop::budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::all_payment_posts_require_payload_binding::{closure#0}>::{closure#0}>>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/task/coop/mod.rs:133:5
+  16: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::all_payment_posts_require_payload_binding::{closure#0}>::{closure#0}>>::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:742:25
+  17: <tokio::runtime::scheduler::current_thread::Context>::enter::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::all_payment_posts_require_payload_binding::{closure#0}>::{closure#0}>>::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:432:19
+  18: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::all_payment_posts_require_payload_binding::{closure#0}>::{closure#0}>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:741:44
+  19: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::all_payment_posts_require_payload_binding::{closure#0}>::{closure#0}>>::{closure#0}, core::option::Option<()>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:829:68
+  20: <tokio::runtime::context::scoped::Scoped<tokio::runtime::scheduler::Context>>::set::<<tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::all_payment_posts_require_payload_binding::{closure#0}>::{closure#0}>>::{closure#0}, core::option::Option<()>>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/context/scoped.rs:40:9
+  21: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::all_payment_posts_require_payload_binding::{closure#0}>::{closure#0}>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/context.rs:176:38
+  22: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::try_with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::all_payment_posts_require_payload_binding::{closure#0}>::{closure#0}>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:463:12
+  23: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::all_payment_posts_require_payload_binding::{closure#0}>::{closure#0}>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:427:20
+  24: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::all_payment_posts_require_payload_binding::{closure#0}>::{closure#0}>>::{closure#0}, core::option::Option<()>>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/context.rs:176:17
+  25: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::all_payment_posts_require_payload_binding::{closure#0}>::{closure#0}>>::{closure#0}, core::option::Option<()>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:829:27
+  26: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::all_payment_posts_require_payload_binding::{closure#0}>::{closure#0}>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:729:24
+  27: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::all_payment_posts_require_payload_binding::{closure#0}>::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:200:33
+  28: tokio::runtime::context::runtime::enter_runtime::<<tokio::runtime::scheduler::current_thread::CurrentThread>::block_on<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::all_payment_posts_require_payload_binding::{closure#0}>::{closure#0}>::{closure#0}, ()>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/context/runtime.rs:65:16
+  29: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::all_payment_posts_require_payload_binding::{closure#0}>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:188:9
+  30: <tokio::runtime::runtime::Runtime>::block_on_inner::<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::all_payment_posts_require_payload_binding::{closure#0}>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/runtime.rs:356:52
+  31: <tokio::runtime::runtime::Runtime>::block_on::<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::all_payment_posts_require_payload_binding::{closure#0}>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/runtime.rs:330:18
+  32: <tokio::task::local::LocalSet>::block_on::<pay_nip98_test::all_payment_posts_require_payload_binding::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/task/local.rs:648:12
+  33: <actix_rt::runtime::Runtime>::block_on::<pay_nip98_test::all_payment_posts_require_payload_binding::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-rt-2.11.0/src/runtime.rs:138:20
+  34: <actix_rt::system::SystemRunner>::block_on::<pay_nip98_test::all_payment_posts_require_payload_binding::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-rt-2.11.0/src/system.rs:240:17
+  35: pay_nip98_test::all_payment_posts_require_payload_binding
+             at ./tests/pay_nip98_test.rs:102:1
+  36: pay_nip98_test::all_payment_posts_require_payload_binding::{closure#0}
+             at ./tests/pay_nip98_test.rs:103:53
+  37: <pay_nip98_test::all_payment_posts_require_payload_binding::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+  38: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+---- replay_cannot_charge_a_resource_twice stdout ----
+
+thread 'replay_cannot_charge_a_resource_twice' (3895950) panicked at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/http-0.2.12/src/header/name.rs:1270:13:
+index out of bounds: the len is 0 but the index is 0
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::panicking::panic_bounds_check
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:271:5
+   3: <http::header::name::HeaderName>::from_static
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/http-0.2.12/src/header/name.rs:1270:13
+   4: visionclaw_server::handlers::pay_handler::pay_resource_handler::{closure#0}
+             at ./src/handlers/pay_handler.rs:537:33
+   5: actix_web::handler::handler_service::<visionclaw_server::handlers::pay_handler::pay_resource_handler, (actix_web::request::HttpRequest, actix_web::types::path::Path<alloc::string::String>, actix_web::data::Data<visionclaw_server::handlers::pay_handler::VcPayConfig>, actix_web::data::Data<alloc::sync::Arc<visionclaw_server::handlers::pay_handler::FsPaymentStore>>)>::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-web-4.11.0/src/handler.rs:113:22
+   6: <core::pin::Pin<alloc::boxed::Box<dyn core::future::future::Future<Output = core::result::Result<actix_web::service::ServiceResponse, actix_web::error::error::Error>>>> as core::future::future::Future>::poll
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/future/future.rs:133:9
+   7: <actix_web::resource::Resource as actix_web::service::HttpServiceFactory>::register::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-web-4.11.0/src/resource.rs:451:28
+   8: <actix_web::scope::Scope as actix_web::service::HttpServiceFactory>::register::{closure#3}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-web-4.11.0/src/scope.rs:431:28
+   9: actix_web::test::test_utils::call_service::<actix_web::app_service::AppInitService<actix_web::app_service::AppRouting, actix_http::body::boxed::BoxBody>, actix_http::requests::request::Request<core::pin::Pin<alloc::boxed::Box<dyn futures_core::stream::Stream<Item = core::result::Result<bytes::bytes::Bytes, actix_http::error::PayloadError>>>>>, actix_http::body::boxed::BoxBody, actix_web::error::error::Error>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-web-4.11.0/src/test/test_utils.rs:99:10
+  10: pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0}
+             at ./tests/pay_nip98_test.rs:212:50
+  11: <tokio::task::local::RunUntil<pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0}> as core::future::future::Future>::poll::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/task/local.rs:1049:44
+  12: <tokio::task::local::LocalSet>::with::<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/task/local.rs:795:13
+  13: <std::thread::local::LocalKey<tokio::task::local::LocalData>>::try_with::<<tokio::task::local::LocalSet>::with<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}, core::task::poll::Poll<()>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:463:12
+  14: <std::thread::local::LocalKey<tokio::task::local::LocalData>>::with::<<tokio::task::local::LocalSet>::with<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}, core::task::poll::Poll<()>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:427:20
+  15: <tokio::task::local::LocalSet>::with::<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0}> as core::future::future::Future>::poll::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/task/local.rs:793:17
+  16: <tokio::task::local::RunUntil<pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0}> as core::future::future::Future>::poll
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/task/local.rs:1039:22
+  17: <tokio::task::local::LocalSet>::run_until::<pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/task/local.rs:691:19
+  18: <core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0}>::{closure#0}>> as core::future::future::Future>::poll
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/future/future.rs:133:9
+  19: <core::pin::Pin<&mut core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0}>::{closure#0}>>> as core::future::future::Future>::poll
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/future/future.rs:133:9
+  20: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<&mut core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0}>::{closure#0}>>>>::{closure#0}::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:742:70
+  21: tokio::task::coop::with_budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0}>::{closure#0}>>>>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/task/coop/mod.rs:167:5
+  22: tokio::task::coop::budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0}>::{closure#0}>>>>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/task/coop/mod.rs:133:5
+  23: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<&mut core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0}>::{closure#0}>>>>::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:742:25
+  24: <tokio::runtime::scheduler::current_thread::Context>::enter::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0}>::{closure#0}>>>>::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:432:19
+  25: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<&mut core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0}>::{closure#0}>>>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:741:44
+  26: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0}>::{closure#0}>>>>::{closure#0}, core::option::Option<()>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:829:68
+  27: <tokio::runtime::context::scoped::Scoped<tokio::runtime::scheduler::Context>>::set::<<tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0}>::{closure#0}>>>>::{closure#0}, core::option::Option<()>>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/context/scoped.rs:40:9
+  28: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0}>::{closure#0}>>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/context.rs:176:38
+  29: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::try_with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0}>::{closure#0}>>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:463:12
+  30: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0}>::{closure#0}>>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:427:20
+  31: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0}>::{closure#0}>>>>::{closure#0}, core::option::Option<()>>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/context.rs:176:17
+  32: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0}>::{closure#0}>>>>::{closure#0}, core::option::Option<()>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:829:27
+  33: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<&mut core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0}>::{closure#0}>>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:729:24
+  34: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0}>::{closure#0}>>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:200:33
+  35: tokio::runtime::context::runtime::enter_runtime::<<tokio::runtime::scheduler::current_thread::CurrentThread>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0}>::{closure#0}>>>::{closure#0}, ()>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/context/runtime.rs:65:16
+  36: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0}>::{closure#0}>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:188:9
+  37: <tokio::runtime::runtime::Runtime>::block_on_inner::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0}>::{closure#0}>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/runtime.rs:356:52
+  38: <tokio::runtime::runtime::Runtime>::block_on::<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0}>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/runtime.rs:328:18
+  39: <tokio::task::local::LocalSet>::block_on::<pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/task/local.rs:648:12
+  40: <actix_rt::runtime::Runtime>::block_on::<pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-rt-2.11.0/src/runtime.rs:138:20
+  41: <actix_rt::system::SystemRunner>::block_on::<pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-rt-2.11.0/src/system.rs:240:17
+  42: pay_nip98_test::replay_cannot_charge_a_resource_twice
+             at ./tests/pay_nip98_test.rs:179:1
+  43: pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0}
+             at ./tests/pay_nip98_test.rs:180:49
+  44: <pay_nip98_test::replay_cannot_charge_a_resource_twice::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+  45: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+---- trading_requires_exact_body_and_single_use_without_burning_rejected_token stdout ----
+
+thread 'trading_requires_exact_body_and_single_use_without_burning_rejected_token' (3895952) panicked at tests/pay_nip98_test.rs:94:9:
+assertion `left == right` failed
+  left: 201
+ right: 401
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::panicking::assert_failed_inner
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:452:17
+   3: core::panicking::assert_failed::<http::status::StatusCode, http::status::StatusCode>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/panicking.rs:407:5
+   4: pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token::{closure#0}
+             at ./tests/pay_nip98_test.rs:94:9
+   5: <tokio::task::local::RunUntil<pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token::{closure#0}> as core::future::future::Future>::poll::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/task/local.rs:1049:44
+   6: <tokio::task::local::LocalSet>::with::<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/task/local.rs:795:13
+   7: <std::thread::local::LocalKey<tokio::task::local::LocalData>>::try_with::<<tokio::task::local::LocalSet>::with<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}, core::task::poll::Poll<()>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:463:12
+   8: <std::thread::local::LocalKey<tokio::task::local::LocalData>>::with::<<tokio::task::local::LocalSet>::with<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}, core::task::poll::Poll<()>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:427:20
+   9: <tokio::task::local::LocalSet>::with::<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token::{closure#0}> as core::future::future::Future>::poll::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/task/local.rs:793:17
+  10: <tokio::task::local::RunUntil<pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token::{closure#0}> as core::future::future::Future>::poll
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/task/local.rs:1039:22
+  11: <tokio::task::local::LocalSet>::run_until::<pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/task/local.rs:691:19
+  12: <core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token::{closure#0}>::{closure#0}> as core::future::future::Future>::poll
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/future/future.rs:133:9
+  13: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token::{closure#0}>::{closure#0}>>::{closure#0}::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:742:70
+  14: tokio::task::coop::with_budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token::{closure#0}>::{closure#0}>>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/task/coop/mod.rs:167:5
+  15: tokio::task::coop::budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token::{closure#0}>::{closure#0}>>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/task/coop/mod.rs:133:5
+  16: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token::{closure#0}>::{closure#0}>>::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:742:25
+  17: <tokio::runtime::scheduler::current_thread::Context>::enter::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token::{closure#0}>::{closure#0}>>::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:432:19
+  18: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token::{closure#0}>::{closure#0}>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:741:44
+  19: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token::{closure#0}>::{closure#0}>>::{closure#0}, core::option::Option<()>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:829:68
+  20: <tokio::runtime::context::scoped::Scoped<tokio::runtime::scheduler::Context>>::set::<<tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token::{closure#0}>::{closure#0}>>::{closure#0}, core::option::Option<()>>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/context/scoped.rs:40:9
+  21: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token::{closure#0}>::{closure#0}>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/context.rs:176:38
+  22: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::try_with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token::{closure#0}>::{closure#0}>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:463:12
+  23: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token::{closure#0}>::{closure#0}>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:427:20
+  24: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token::{closure#0}>::{closure#0}>>::{closure#0}, core::option::Option<()>>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/context.rs:176:17
+  25: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token::{closure#0}>::{closure#0}>>::{closure#0}, core::option::Option<()>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:829:27
+  26: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<&mut <tokio::task::local::LocalSet>::run_until<pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token::{closure#0}>::{closure#0}>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:729:24
+  27: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token::{closure#0}>::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:200:33
+  28: tokio::runtime::context::runtime::enter_runtime::<<tokio::runtime::scheduler::current_thread::CurrentThread>::block_on<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token::{closure#0}>::{closure#0}>::{closure#0}, ()>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/context/runtime.rs:65:16
+  29: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token::{closure#0}>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/scheduler/current_thread/mod.rs:188:9
+  30: <tokio::runtime::runtime::Runtime>::block_on_inner::<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token::{closure#0}>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/runtime.rs:356:52
+  31: <tokio::runtime::runtime::Runtime>::block_on::<<tokio::task::local::LocalSet>::run_until<pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token::{closure#0}>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/runtime.rs:330:18
+  32: <tokio::task::local::LocalSet>::block_on::<pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/task/local.rs:648:12
+  33: <actix_rt::runtime::Runtime>::block_on::<pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-rt-2.11.0/src/runtime.rs:138:20
+  34: <actix_rt::system::SystemRunner>::block_on::<pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-rt-2.11.0/src/system.rs:240:17
+  35: pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token
+             at ./tests/pay_nip98_test.rs:58:1
+  36: pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token::{closure#0}
+             at ./tests/pay_nip98_test.rs:59:85
+  37: <pay_nip98_test::trading_requires_exact_body_and_single_use_without_burning_rejected_token::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+  38: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+
+failures:
+    all_payment_posts_require_payload_binding
+    balance_accepts_external_url_and_rejects_replay
+    replay_cannot_charge_a_resource_twice
+    trading_requires_exact_body_and_single_use_without_burning_rejected_token
+
+test result: FAILED. 1 passed; 4 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.92s
+
+error: test failed, to rerun pass `--test pay_nip98_test`

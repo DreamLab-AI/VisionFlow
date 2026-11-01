@@ -1,0 +1,54 @@
+{
+  "gate_result": "PASS at HIGH security threshold; not a clean-system verdict",
+  "review_scope": "Authentication diff before header-name repair; subsequent header repair manually reviewed and covered by route regression.",
+  "rows": [
+    {
+      "title": "[HIGH_BUG] Fail-open ledger/exchange read overwrites all balances on any I/O error",
+      "tool_severity": "HIGH_BUG",
+      "disposition": "confirmed-existing-source",
+      "evidence_boundary": "Read and parse errors collapse to empty state; successful sell writes both documents. No injected I/O failure executed in this batch."
+    },
+    {
+      "title": "[HIGH_BUG] Non-atomic two-file commit can desync pool reserves from ledger balances",
+      "tool_severity": "HIGH_BUG",
+      "disposition": "confirmed-existing-source",
+      "evidence_boundary": "Exchange and ledger commit separately. No crash or second-write-failure scenario executed in this batch."
+    },
+    {
+      "title": "[MEDIUM] \"Authenticated\" == any freshly minted keypair; unbounded orders/pools re-serialised per request",
+      "tool_severity": "MEDIUM",
+      "disposition": "partly-confirmed",
+      "evidence_boundary": "Self-minted signer identities and unbounded order creation are visible. AMM liquidity requires currency balances and non-zero amounts upstream; failed closure is not persisted."
+    },
+    {
+      "title": "[MEDIUM] Process-local NIP-98 replay cache does not span the multi-process ledger it guards",
+      "tool_severity": "MEDIUM",
+      "disposition": "confirmed-design-limit",
+      "evidence_boundary": "Replay cache is process-local; file locking spans processes. No replica experiment run. Single-process deployment or shared replay admission remains required."
+    },
+    {
+      "title": "[MEDIUM] Host-header-derived URL binding + nginx default_server enables cross-service NIP-98 replay",
+      "tool_severity": "MEDIUM",
+      "disposition": "deployment-hypothesis",
+      "evidence_boundary": "Shared URL helper accepts forwarded authority. Cross-service replay and current ingress exposure were not executed. Canonical-origin and trusted-proxy contract need separate validation."
+    },
+    {
+      "title": "[BUG] Unvalidated numeric/currency extractor content (fee_bps, zero amounts, empty query currencies)",
+      "tool_severity": "BUG",
+      "disposition": "partly-confirmed",
+      "evidence_boundary": "Pinned trading.rs rejects zero AMM swap/liquidity inputs. Order creation accepts zero values; fee_bps is stored unchanged and subtracted from10000; empty currency policy remains open."
+    },
+    {
+      "title": "[BUG] Blocking flock held across await points on the tokio worker",
+      "tool_severity": "BUG",
+      "disposition": "confirmed-existing-source",
+      "evidence_boundary": "Blocking flock guard remains live across async reads/writes. Contention impact not measured."
+    },
+    {
+      "title": "[BUG] Trade settlement correctness depends on unreviewable upstream (escrow / currency confusion)",
+      "tool_severity": "BUG",
+      "disposition": "corrected",
+      "evidence_boundary": "Pinned dependency is available locally. execute_swap checks both parties by currency before settlement. Order creation has no escrow; currency-confusion/unfunded-settlement allegation is not established."
+    }
+  ]
+}

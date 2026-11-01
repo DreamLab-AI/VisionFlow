@@ -1,0 +1,13 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.77s
+     Running `scripts/estate-review-ledger/target/debug/estate-review-ledger /home/devuser/workspace /home/devuser/workspace/wt/visionflow-pay-nip98 docs/estate-review/completion/scope.json docs/estate-review/completion/claims.json docs/estate-review/completion/snapshot-2026-11-01.json`
+{
+  "available_checkouts": 20,
+  "candidate_files": 828,
+  "numbered_candidates_with_recorded_assessment": 96,
+  "numbered_decision_candidates": 720,
+  "panels": 1741,
+  "panels_with_recorded_assessment": 361,
+  "scope_targets": 20,
+  "stale_claim_records": 0,
+  "topics": 208
+}

@@ -1,0 +1,14 @@
+{
+  "head": "531df5ef74453a2ed320bff968c203a9b91faed7",
+  "status": " M agentbox\n?? GH\n",
+  "files": {
+    "src/handlers/pay_handler.rs": "3a5300ce5dc885696baa6ce460022e4f7ed68f7d67aadb758ce2ddf81ac4bfd0",
+    "src/utils/nip98.rs": "6037dc4bc2ee02edda18b4946daf63e3803dd244061ebd65fdf614dc420b12da",
+    "src/utils/auth.rs": "1d5520b4f5c96c927ce5c9b61b2f57644b34fe9bea65ea156688775f67b919d6",
+    "docs/SECURITY-profiles.md": "bcaf884ef2ba5f5b1bb8f0e3f9d83e76816eba9917d603f6ff7882920d3f182d",
+    "Cargo.lock": "531c0b53d66cb25271ff40fee59d2fe1d02ff300a3fdc372fc9ffb9f83893b80"
+  },
+  "untracked": {
+    "GH": "9518a72e57dd3455bd2d86066bf918def4a5a91816c685a31efb6eda9f3d4d59"
+  }
+}

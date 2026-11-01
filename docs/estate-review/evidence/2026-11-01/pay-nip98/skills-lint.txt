@@ -1,0 +1,68 @@
+
+-- warnings (29) — advisory, do not fail the gate --
+WARN DESCLEN  bencium-creative/SKILL.md:3: description is 645 chars (> 600 soft budget; move depth to the body or references/)
+WARN DESCLEN  bhil-methodology/SKILL.md:3: description is 729 chars (> 600 soft budget; move depth to the body or references/)
+WARN DESCLEN  blender/SKILL.md:3: description is 852 chars (> 600 soft budget; move depth to the body or references/)
+WARN DESCLEN  codex-companion/SKILL.md:3: description is 686 chars (> 600 soft budget; move depth to the body or references/)
+WARN DESCLEN  deep-research/SKILL.md:3: description is 704 chars (> 600 soft budget; move depth to the body or references/)
+WARN DESCLEN  deepseek-reasoning/SKILL.md:3: description is 625 chars (> 600 soft budget; move depth to the body or references/)
+WARN DESCLEN  diagrams-as-code/SKILL.md:3: description is 1013 chars (> 600 soft budget; move depth to the body or references/)
+WARN DESCLEN  email-search/SKILL.md:3: description is 673 chars (> 600 soft budget; move depth to the body or references/)
+WARN DESCLEN  explainer/SKILL.md:3: description is 1008 chars (> 600 soft budget; move depth to the body or references/)
+WARN DESCLEN  host-webserver-debug/SKILL.md:3: description is 611 chars (> 600 soft budget; move depth to the body or references/)
+WARN DESCLEN  leptos/SKILL.md:3: description is 923 chars (> 600 soft budget; move depth to the body or references/)
+WARN DESCLEN  ontology-augment/SKILL.md:3: description is 645 chars (> 600 soft budget; move depth to the body or references/)
+WARN DESCLEN  paperbanana/SKILL.md:3: description is 746 chars (> 600 soft budget; move depth to the body or references/)
+WARN DESCLEN  pdf-signing/SKILL.md:3: description is 871 chars (> 600 soft budget; move depth to the body or references/)
+WARN DESCLEN  playwright/SKILL.md:5: description is 652 chars (> 600 soft budget; move depth to the body or references/)
+WARN DESCLEN  podcast-knowledge-ingest/SKILL.md:3: description is 798 chars (> 600 soft budget; move depth to the body or references/)
+WARN DESCLEN  prose-sanitiser/SKILL.md:3: description is 770 chars (> 600 soft budget; move depth to the body or references/)
+WARN DESCLEN  pytorch-ml/SKILL.md:3: description is 845 chars (> 600 soft budget; move depth to the body or references/)
+WARN DESCLEN  sealmap-review/SKILL.md:3: description is 673 chars (> 600 soft budget; move depth to the body or references/)
+WARN DESCLEN  skill-builder/SKILL.md:3: description is 806 chars (> 600 soft budget; move depth to the body or references/)
+WARN DESCLEN  sparc-methodology/SKILL.md:3: description is 606 chars (> 600 soft budget; move depth to the body or references/)
+WARN DESCLEN  system-one/SKILL.md:5: description is 1015 chars (> 600 soft budget; move depth to the body or references/)
+WARN DESCLEN  terracraft/SKILL.md:5: description is 831 chars (> 600 soft budget; move depth to the body or references/)
+WARN DESCLEN  tree-search-coder/SKILL.md:3: description is 822 chars (> 600 soft budget; move depth to the body or references/)
+WARN DESCLEN  ui-ux-pro-max-skill/SKILL.md:3: description is 928 chars (> 600 soft budget; move depth to the body or references/)
+WARN DESCLEN  uk-solar-planner/SKILL.md:3: description is 667 chars (> 600 soft budget; move depth to the body or references/)
+WARN DESCLEN  voyager-skill-library/SKILL.md:4: description is 724 chars (> 600 soft budget; move depth to the body or references/)
+WARN DESCLEN  web-researcher/SKILL.md:4: description is 966 chars (> 600 soft budget; move depth to the body or references/)
+WARN DESCLEN  web-summary/SKILL.md:3: description is 803 chars (> 600 soft budget; move depth to the body or references/)
+
+-- suppressed (33) — waved through by marker/context, NOT validated --
+SUPPRESSED STALE  agentdb-vector-search/references/cli-cookbook.md:13:npx agentdb@latest init ./vectors.db --dimension 384  # all-MiniLM-L6-v2 <!-- lint-ok: third-party/meta fact, not a RuVector claim -->
+SUPPRESSED STALE  agentdb-vector-search/references/performance-and-troubleshooting.md:10:4. **Match dimensions**: 1536 (OpenAI), 768 (sentence-transformers), 384 (MiniLM) <!-- lint-ok: third-party/meta fact, not a RuVector claim -->
+SUPPRESSED STALE  agentdb-vector-search/references/performance-and-troubleshooting.md:44:# - all-MiniLM-L6-v2: 384 <!-- lint-ok: third-party/meta fact, not a RuVector claim -->
+SUPPRESSED ABSPATH  art/SKILL.md:129:The skill resolves its own location — set `$ART_SKILL` once so every snippet works whether the skill is installed at `~/.claude/skills/art` or baked into the image at `/opt/agentbox/skills/art`:
+SUPPRESSED ABSPATH  art/SKILL.md:132:ART_SKILL="${ART_SKILL:-$( [ -d /opt/agentbox/skills/art ] && echo /opt/agentbox/skills/art || echo ~/.claude/skills/art )}"
+SUPPRESSED ABSPATH  art/nano-banana-guide.md:311:ART_SKILL="${ART_SKILL:-$( [ -d /opt/agentbox/skills/art ] && echo /opt/agentbox/skills/art || echo ~/.claude/skills/art )}"
+SUPPRESSED ABSPATH  art/nano-banana-guide.md:417:ART_SKILL="${ART_SKILL:-$( [ -d /opt/agentbox/skills/art ] && echo /opt/agentbox/skills/art || echo ~/.claude/skills/art )}"
+SUPPRESSED ABSPATH  art/references/diagram-upcycling.md:36:ART_SKILL="${ART_SKILL:-$( [ -d /opt/agentbox/skills/art ] && echo /opt/agentbox/skills/art || echo ~/.claude/skills/art )}"
+SUPPRESSED STALE  art/references/diagram-upcycling.md:48:Current SDK is `google-genai` (the legacy `google.generativeai` package and
+SUPPRESSED STALE  art/references/diagram-upcycling.md:49:`gemini-2.0-flash-exp` are retired). Use a current Gemini 3.x image model, matching the ids
+SUPPRESSED ABSPATH  art/workflows/annotated-screenshots.md:194:ART_SKILL="${ART_SKILL:-$( [ -d /opt/agentbox/skills/art ] && echo /opt/agentbox/skills/art || echo ~/.claude/skills/art )}"
+SUPPRESSED ABSPATH  art/workflows/aphorisms.md:252:ART_SKILL="${ART_SKILL:-$( [ -d /opt/agentbox/skills/art ] && echo /opt/agentbox/skills/art || echo ~/.claude/skills/art )}"
+SUPPRESSED ABSPATH  art/workflows/comics.md:276:ART_SKILL="${ART_SKILL:-$( [ -d /opt/agentbox/skills/art ] && echo /opt/agentbox/skills/art || echo ~/.claude/skills/art )}"
+SUPPRESSED ABSPATH  art/workflows/comparisons.md:255:ART_SKILL="${ART_SKILL:-$( [ -d /opt/agentbox/skills/art ] && echo /opt/agentbox/skills/art || echo ~/.claude/skills/art )}"
+SUPPRESSED ABSPATH  art/workflows/frameworks.md:285:ART_SKILL="${ART_SKILL:-$( [ -d /opt/agentbox/skills/art ] && echo /opt/agentbox/skills/art || echo ~/.claude/skills/art )}"
+SUPPRESSED ABSPATH  art/workflows/image-editing.md:63:ART_SKILL="${ART_SKILL:-$( [ -d /opt/agentbox/skills/art ] && echo /opt/agentbox/skills/art || echo ~/.claude/skills/art )}"
+SUPPRESSED ABSPATH  art/workflows/maps.md:276:ART_SKILL="${ART_SKILL:-$( [ -d /opt/agentbox/skills/art ] && echo /opt/agentbox/skills/art || echo ~/.claude/skills/art )}"
+SUPPRESSED ABSPATH  art/workflows/mermaid.md:239:ART_SKILL="${ART_SKILL:-$( [ -d /opt/agentbox/skills/art ] && echo /opt/agentbox/skills/art || echo ~/.claude/skills/art )}"
+SUPPRESSED ABSPATH  art/workflows/recipe-cards.md:235:ART_SKILL="${ART_SKILL:-$( [ -d /opt/agentbox/skills/art ] && echo /opt/agentbox/skills/art || echo ~/.claude/skills/art )}"
+SUPPRESSED ABSPATH  art/workflows/sketchnotes.md:298:ART_SKILL="${ART_SKILL:-$( [ -d /opt/agentbox/skills/art ] && echo /opt/agentbox/skills/art || echo ~/.claude/skills/art )}"
+SUPPRESSED ABSPATH  art/workflows/stats.md:248:ART_SKILL="${ART_SKILL:-$( [ -d /opt/agentbox/skills/art ] && echo /opt/agentbox/skills/art || echo ~/.claude/skills/art )}"
+SUPPRESSED ABSPATH  art/workflows/taxonomies.md:222:ART_SKILL="${ART_SKILL:-$( [ -d /opt/agentbox/skills/art ] && echo /opt/agentbox/skills/art || echo ~/.claude/skills/art )}"
+SUPPRESSED ABSPATH  art/workflows/technical-diagrams.md:248:ART_SKILL="${ART_SKILL:-$( [ -d /opt/agentbox/skills/art ] && echo /opt/agentbox/skills/art || echo ~/.claude/skills/art )}"
+SUPPRESSED ABSPATH  art/workflows/timelines.md:255:ART_SKILL="${ART_SKILL:-$( [ -d /opt/agentbox/skills/art ] && echo /opt/agentbox/skills/art || echo ~/.claude/skills/art )}"
+SUPPRESSED ABSPATH  art/workflows/visualize.md:204:ART_SKILL="${ART_SKILL:-$( [ -d /opt/agentbox/skills/art ] && echo /opt/agentbox/skills/art || echo ~/.claude/skills/art )}"
+SUPPRESSED ABSPATH  art/workflows/workflow.md:169:ART_SKILL="${ART_SKILL:-$( [ -d /opt/agentbox/skills/art ] && echo /opt/agentbox/skills/art || echo ~/.claude/skills/art )}"
+SUPPRESSED STALE  codex-companion/SKILL.md:48:`openai-user`/`as-openai`/UID-1002 model is retired). The baked Codex CLI reads its
+SUPPRESSED ABSPATH  diagram-design/references/onboarding.md:200:1. `~/.claude/skills/<skill-name>/` (user install) <!-- lint-ok: third-party/meta fact, not a RuVector claim -->
+SUPPRESSED STALE  ontology-augment/references/REFERENCE.md:364:Never target `192.168.2.48` — that host is dead, and a stale route to it is the
+SUPPRESSED STALE  openai-codex/SKILL.md:49:`openai-user`/UID-1002 model is retired estate-wide)
+SUPPRESSED STALE  ruvector-catalog/docs/adr/ADR-001-cag-primary-architecture.md:72:Replace TF-IDF with ONNX-based neural embeddings (e.g., all-MiniLM-L6-v2) for the HNSW index. <!-- lint-ok: third-party/meta fact, not a RuVector claim -->
+SUPPRESSED STALE  ruvector-catalog/docs/adr/ADR-007-cli-search-engine-fix.md:133:Replace TF-IDF with neural embeddings from a small transformer model (e.g., all-MiniLM-L6-v2 via ONNX). <!-- lint-ok: third-party/meta fact, not a RuVector claim -->
+SUPPRESSED STALE  ruvector-catalog/docs/ddd/DDD-005-discovery-engine-domain.md:188:| Embedding type | Dense 384-dim (all-MiniLM-L6-v2) | Sparse TF-IDF (full vocabulary) | <!-- lint-ok: third-party/meta fact, not a RuVector claim -->
+
+OK — skills estate clean (131 skills, MAX_ENTRY_LINES=250, 33 suppressed, 29 warnings)

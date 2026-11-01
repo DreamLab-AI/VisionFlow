@@ -1,0 +1,13 @@
+{
+  "previous_verification_sha256": "f3ac2bb845309ee5a6cd7dc831ba27a8aed4d554eca9f6ef1a51468fe863ecf3",
+  "current_verification_sha256": "df86ef29e93ce103aba1052e38a31943f4fbf831ca662741d75700e361333d4e",
+  "declared_revision_tokens": 59,
+  "new_revision": "5fa0e1325a2f903c175cfe67bbc6d644fcf38267",
+  "source_access": "Two in-scope topics only; no fresh whole-corpus source run",
+  "files": {
+    "docs/diagrams/visionclaw/55-payment-authentication.md": "0280d093573a1560c9bb0e22442b328f0826e72952f43ac0a64c9c33943e76ff",
+    "docs/diagrams/visionclaw/04-handlers-graph-and-state.md": "b7bac98291ed22cdfc10fca6204bf6b5a7f18cbf862db99d44d74925ff4f56f5",
+    "docs/estate-review/evidence/2026-11-01/pay-nip98/diagram-new.txt": "2a8df31069e3c7266511eb81c1215ba0bc3fb9106cd97586bec5413addb58696",
+    "docs/estate-review/evidence/2026-11-01/pay-nip98/diagram-historical.txt": "990027b2d6edf50640405f6bdd57a680c9de8388a146f5728162207671866e95"
+  }
+}

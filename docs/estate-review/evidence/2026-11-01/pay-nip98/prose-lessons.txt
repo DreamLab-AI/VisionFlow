@@ -1,0 +1,13 @@
+
+  prose-sanitiser slop scan: docs/estate-review/2026-11-01-review-method-lessons.md
+  files scanned: 1   findings: 1   slop score: 2
+  verdict: Mostly clean, minor tells
+  high: 0   medium: 1   low: 0
+
+  [MEDIUM] Sense-dependent spelling (UK)  (1 hit)
+        fix: Use UK spelling: -ize->-ise, -or->-our, -er->-re, etc. See SKILL.md B12.
+        docs/estate-review/2026-11-01-review-method-lessons.md:27  ...ox/skills/security-testing/SKILL.md) adds signed-request and stateful-effect checks. [diagrams-as-code verification](../../../project/agentbox/skills/diagrams-a...
+
+  Top things to change: Sense-dependent spelling (UK)
+  Narrative and voice tells need eyes too. See Section C of SKILL.md.
+

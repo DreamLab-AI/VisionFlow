@@ -7,7 +7,9 @@ type: explanation
 
 # VisionFlow estate review
 
-Latest checkpoint: [Solid payment and provenance delivery](2026-11-01-solid-payment-delivery.md) — 99 native tests and four local probe groups assess ADR-2008 and five panels. Canonical-state fallback, private provenance disclosure, historical sidecar mismatch and duplicate anchor charges remain open. The [parallel audit intake](2026-11-01-parallel-remediation.md) retains all 134 distinct issues; Agentbox's relay signature-rejection fix is merged with 19 passing tests. Consumer consolidation and deployment remain open.
+Latest checkpoint: [VisionClaw payment authentication](2026-11-01-visionclaw-payment-auth.md) is repaired and merged locally, with six route regressions and 46 shared-verifier tests passing. VCS-10 / XR-01 remains partial pending proxy/fixture work and deployment. [Review-method lessons](2026-11-01-review-method-lessons.md) are incorporated into three existing Agentbox skills, with JEV discovery checked. Springs work is untouched.
+
+Previous checkpoint: [Solid payment and provenance delivery](2026-11-01-solid-payment-delivery.md) — 99 native tests and four local probe groups assess ADR-2008 and five panels. Canonical-state fallback, private provenance disclosure, historical sidecar mismatch and duplicate anchor charges remain open. The [parallel audit intake](2026-11-01-parallel-remediation.md) retains all 134 distinct issues; Agentbox's relay signature-rejection fix is merged with 19 passing tests. Consumer consolidation and deployment remain open.
 
 **Scope correction, 1 November 2026:** RuView, Logseq history, RuVector, consumed Codescape and consumed Unmute are excluded at the owner's direction. Standalone Codescape remains in scope. The twenty active checkout targets and exclusion reasons are recorded in the [scope manifest](completion/scope.json). Earlier reports remain historical evidence; no repositories were deleted.
 

@@ -1,0 +1,66 @@
+{
+  "archive": "/tmp/vf-pay-nip98/code-worktree-assets.tar.gz",
+  "sha256": "080e9d03a39da01891a3575f303aa51a277df403dc5bfbd9ca40559dce64728f",
+  "files": [
+    {
+      "path": ".claude-flow/console/.gitignore",
+      "sha256": "b4ff23d1890a234593b3339a2e7d90864a7ca591a8718e3a7638db45bad954c5"
+    },
+    {
+      "path": ".claude-flow/console/events.jsonl",
+      "sha256": "938f7ed39174be43257bc63f5d63397d858fd36f7b42e5188162dab34695a7d9"
+    },
+    {
+      "path": ".claude-flow/console/lanes.jsonl",
+      "sha256": "ccf52d33e1771f3228b7d0549d11282b89134254d29378e60c9c7bef75aec78e"
+    },
+    {
+      "path": ".claude-flow/mods/session.json",
+      "sha256": "b8add04e6ac4ef5a157b8e05bc30767cc60c65473c4f8edd591f8cb7c9313ea3"
+    },
+    {
+      "path": ".deepsec-gate/.gitignore",
+      "sha256": "cdbcae15105d6b781e620813c79c7e868740d4e9cc53ce6f5fcbbc12387adf4b"
+    },
+    {
+      "path": ".deepsec-gate/data/visionclaw-pay-nip98/files/src/handlers/pay_handler.rs.json",
+      "sha256": "9ee433edfe029d8accd7448e0ab2ff2c278bebb701c1dcfd1d8e3a606731fcda"
+    },
+    {
+      "path": ".deepsec-gate/data/visionclaw-pay-nip98/project.json",
+      "sha256": "81c1faf8840818c1005d31551d3d0335a768b53818acb9507cf72fcbea8792a1"
+    },
+    {
+      "path": ".deepsec-gate/data/visionclaw-pay-nip98/runs/20261101185817-72fa6d120d9668ae.json",
+      "sha256": "9b0ec7bd5a2177939235f2f703c17ad99f4b54ff914fa93b0da90bfd04b601c0"
+    },
+    {
+      "path": ".deepsec-gate/data/visionclaw-pay-nip98/runs/20261101185817-9debd89a60e10fc7.json",
+      "sha256": "5ddb4e49189f66f2e77085ac5694396010598483e46af9083a36b5faf3907ed2"
+    },
+    {
+      "path": ".deepsec-gate/data/visionclaw-pay-nip98/tech.json",
+      "sha256": "565b801897a60e3c7dc76c7c3e7d1a8d34730758705a557abd83bfbc369166ac"
+    },
+    {
+      "path": ".deepsec-gate/deepsec.config.mjs",
+      "sha256": "7db270555ea94d509dd233be5b4ac9052cffc929f8a1268632c0f24c4f40c0ff"
+    },
+    {
+      "path": "agentbox/schema/federation-kinds.json",
+      "sha256": "beb954700b8d3e9b8e67275a883c74f8d7ccff01219c937f89c1ec4b5425886c"
+    },
+    {
+      "path": "src/utils/ptx/gpu_clustering_kernels.ptx",
+      "sha256": "cd15d7652ba222801182de6e273d2bf5662df2889d8b4448d10daee48cd756e6"
+    },
+    {
+      "path": "src/utils/ptx/gpu_landmark_apsp.ptx",
+      "sha256": "4cc5e39b89b87efbcbacd66ceeba9274dbb981d4d35a245cf412d667c5fc23e7"
+    },
+    {
+      "path": "src/utils/ptx/sssp_compact.ptx",
+      "sha256": "3fecc2d83b3a8d096e827234ec93449093f627d6b3740388316aa8cf06faaaed"
+    }
+  ]
+}

@@ -7235,111 +7235,156 @@
     },
     {
       "category": "decision-candidate",
-      "claims": [],
+      "claims": [
+        {
+          "basis": "All dated sections assessed, including the payment adoption supplement. Six route and46 shared-verifier tests; deployed, restart/replica and fresh-token idempotency guarantees remain open.",
+          "coverage": "whole-document",
+          "panels": null,
+          "report": "docs/estate-review/2026-11-01-visionclaw-payment-auth.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "path": "docs/adr/ADR-2002-nip98-single-use-replay-cache.md",
       "repo": "VisionClaw",
-      "review": "unreconciled",
+      "review": "assessment-recorded",
       "sections": [
         {
           "line": 17,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-visionclaw-payment-auth.md"
+          ],
+          "review": "assessment-recorded",
           "title": "ADR-2002 — NIP-98 replay protection is a two-layer scheme with a single-use cache"
         },
         {
           "line": 19,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-visionclaw-payment-auth.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Context"
         },
         {
           "line": 27,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-visionclaw-payment-auth.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Decision"
         },
         {
           "line": 38,
           "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-visionclaw-payment-auth.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Consequences"
         },
         {
           "line": 49,
           "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-visionclaw-payment-auth.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Verification"
         },
         {
           "line": 57,
           "ordinal": 6,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-visionclaw-payment-auth.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Closeout extension — 2026-09-04"
         },
         {
           "line": 65,
           "ordinal": 7,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-visionclaw-payment-auth.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Acceptance progress — 2026-09-05"
         },
         {
           "line": 97,
           "ordinal": 8,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-visionclaw-payment-auth.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Re-verification — 2026-09-05 at b0bc275f6501aae7751b85a72ce15fe1e730e7e8"
         },
         {
           "line": 143,
           "ordinal": 9,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-visionclaw-payment-auth.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Landing re-verification — 2026-09-06 (2cf222406)"
         },
         {
           "line": 147,
           "ordinal": 10,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-visionclaw-payment-auth.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Landing re-verification — 2026-09-06 (c9734a524)"
         },
         {
           "line": 152,
           "ordinal": 11,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-visionclaw-payment-auth.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Source closeout verification — 2026-09-07"
         },
         {
           "line": 158,
           "ordinal": 12,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-visionclaw-payment-auth.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Re-verification — 2026-09-21 at 997440cd0717d4c5f9341369571fc69fcf5a38d6"
         },
         {
           "line": 174,
           "ordinal": 13,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-visionclaw-payment-auth.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Re-verification — 2026-10-07 at b43a2a1e6 (memory-cloud security review)"
         },
         {
           "line": 178,
           "ordinal": 14,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-visionclaw-payment-auth.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Re-verification — 2026-10-07 at e48099f28 (401 for missing credentials; dev bypass on the memory cloud)"
+        },
+        {
+          "line": 182,
+          "ordinal": 15,
+          "reports": [
+            "docs/estate-review/2026-11-01-visionclaw-payment-auth.md"
+          ],
+          "review": "assessment-recorded",
+          "title": "Payment route adoption — 2026-11-01"
         }
       ],
-      "sha256": "72e8025ba3417819909d490e17cb1f2d7584d140152b5959f55a82f3c92a7690"
+      "sha256": "993d6ca1c46daf5167e98830fedceadc9e643f3db2cc4f3a7f9b09f380e9f9a1"
     },
     {
       "category": "decision-candidate",
@@ -75908,13 +75953,13 @@
   "counts": {
     "available_checkouts": 20,
     "candidate_files": 828,
-    "numbered_candidates_with_recorded_assessment": 95,
+    "numbered_candidates_with_recorded_assessment": 96,
     "numbered_decision_candidates": 720,
-    "panels": 1740,
-    "panels_with_recorded_assessment": 359,
+    "panels": 1741,
+    "panels_with_recorded_assessment": 361,
     "scope_targets": 20,
     "stale_claim_records": 0,
-    "topics": 207
+    "topics": 208
   },
   "method": "Explicit scope; Git-owned Markdown; parsed headings exclude fenced examples; explicit human review claims require exact source/report hashes. Unreconciled is not unreviewed. Candidate counts are not a complete obligation denominator or overall task percentage.",
   "repositories": [
@@ -75922,7 +75967,7 @@
       "available": true,
       "candidate_files": 77,
       "dirty": true,
-      "head": "9c2ac2c14a7cd26325f157b3a3d4fc028ae03784",
+      "head": "3fd2833c8f51cb3701fc21ba8cac63814d1ebc44",
       "local": "VisionFlow",
       "name": "VisionFlow"
     },
@@ -75930,7 +75975,7 @@
       "available": true,
       "candidate_files": 292,
       "dirty": true,
-      "head": "531df5ef74453a2ed320bff968c203a9b91faed7",
+      "head": "5fa0e1325a2f903c175cfe67bbc6d644fcf38267",
       "local": "project",
       "name": "VisionClaw"
     },
@@ -75938,7 +75983,7 @@
       "available": true,
       "candidate_files": 239,
       "dirty": true,
-      "head": "0ec2956434f9c61eaf40477df58acc40b1b679c3",
+      "head": "686db14b1be0825ed9ff683790fb0ac550e30188",
       "local": "project/agentbox",
       "name": "agentbox"
     },
@@ -88664,7 +88709,17 @@
       "sha256": "8effde4ea9e75329701fa7367ac83d55bf6af4329ba77b20e3633e2c98cbdff0"
     },
     {
-      "claims": [],
+      "claims": [
+        {
+          "basis": "Historical payment route corrected against its declared source: stateless verifier, header panic after debit, proposed migration and undelivered resource. Sibling render credit excluded.",
+          "coverage": "selected-panels",
+          "panels": [
+            "VC-04.27"
+          ],
+          "report": "docs/estate-review/2026-11-01-visionclaw-payment-auth.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "panels": [
         {
           "body_sha256": "19a0beee9e5be7b23840f0bd203540abeff6c95ec2707a3cd49fc428d2a63c8a",
@@ -88856,19 +88911,21 @@
           "review": "unreconciled"
         },
         {
-          "body_sha256": "0198b1174560c80077e0b6875e1019c26c170ccc9e331092c51fe72ba5eda449",
-          "heading": "VC-04.27 pay scope — L402-style balance/debit gate, unconditionally mounted, inert until PAY_ENABLED",
+          "body_sha256": "45e5cd2df0de5ebb1ca03948262aaf182dd07945642635cf6d362926f5fb6f4a",
+          "heading": "VC-04.27 pay scope — HTTP 402 balance/debit gate, mounted with the embedded-Pod feature, inert until PAY_ENABLED",
           "id": "VC-04.27",
           "line": 990,
           "ordinal": 22,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-visionclaw-payment-auth.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
           "body_sha256": "9bb8d468d50c7356a23e0738b580a7f63bd600ce32bc99ef71190670c5aba86c",
           "heading": "VC-04.28 quic_transport_handler — DOC-DRIFT: the QUIC transport was removed under ADR-2066, two Postcard structs survive",
           "id": "VC-04.28",
-          "line": 1037,
+          "line": 1038,
           "ordinal": 23,
           "reports": [],
           "review": "unreconciled"
@@ -88876,8 +88933,8 @@
       ],
       "path": "docs/diagrams/visionclaw/04-handlers-graph-and-state.md",
       "repo": "VisionFlow",
-      "review": "unreconciled",
-      "sha256": "f62b89660920ced47339f7630695c21754ba59917a8159770674c38f02d91001"
+      "review": "partial-assessment-recorded",
+      "sha256": "b7bac98291ed22cdfc10fca6204bf6b5a7f18cbf862db99d44d74925ff4f56f5"
     },
     {
       "claims": [],
@@ -93174,6 +93231,36 @@
       "repo": "VisionFlow",
       "review": "unreconciled",
       "sha256": "4c9a77c8a5b99f8bc10c719526d23a850d3945508dc27a6e008b52a4cee64948"
+    },
+    {
+      "claims": [
+        {
+          "basis": "Merged shared-verifier and response-header repair, six route regressions,46 verifier tests and visual inspection. No runtime deployment claim.",
+          "coverage": "selected-panels",
+          "panels": [
+            "VC-55.1"
+          ],
+          "report": "docs/estate-review/2026-11-01-visionclaw-payment-auth.md",
+          "state": "assessment-recorded"
+        }
+      ],
+      "panels": [
+        {
+          "body_sha256": "a2308b3d51076353881e595de17228006ce3d0d4e26ad148f160802f192dc052",
+          "heading": "VC-55.1 Authenticate the received request before payment effects",
+          "id": "VC-55.1",
+          "line": 25,
+          "ordinal": 1,
+          "reports": [
+            "docs/estate-review/2026-11-01-visionclaw-payment-auth.md"
+          ],
+          "review": "assessment-recorded"
+        }
+      ],
+      "path": "docs/diagrams/visionclaw/55-payment-authentication.md",
+      "repo": "VisionFlow",
+      "review": "assessment-recorded",
+      "sha256": "0280d093573a1560c9bb0e22442b328f0826e72952f43ac0a64c9c33943e76ff"
     },
     {
       "claims": [],

@@ -1,0 +1,1 @@
+Unexpected key(s) in SKILL.md frontmatter: compatibility, related_skills. Allowed properties are: allowed-tools, description, license, metadata, name

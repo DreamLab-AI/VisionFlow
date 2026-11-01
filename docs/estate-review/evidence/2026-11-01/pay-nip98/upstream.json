@@ -1,0 +1,23 @@
+{
+  "crate": "solid-pod-rs",
+  "version": "0.5.0-alpha.17",
+  "files": {
+    "auth/nip98.rs": "abfb1b02644991bc4243a199daba2adc888c4478d72d4115292954f538f7ee1a",
+    "trading.rs": "db4e5f0c877eb942c97c6ab055c97b5e3139b5157af4188c5bf6f496d8b57416",
+    "payments.rs": "71c663d7cffbb848e3dacf5862523a1eb23d8ae2b5bcfe10bd94d2b15b5d1b39"
+  },
+  "lines": {
+    "trading.rs": [
+      183,
+      243,
+      266,
+      275,
+      362,
+      369,
+      462,
+      469,
+      491
+    ]
+  },
+  "source": "Published dependency pinned by VisionClaw Cargo.lock; source available in local Cargo registry."
+}

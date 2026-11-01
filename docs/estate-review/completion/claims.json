@@ -2489,7 +2489,7 @@
     "report": "docs/estate-review/2026-11-01-solid-payment-delivery.md",
     "report_sha256": "333ed29b4207a047bf66d7e02539d68344661032e8a1b0dd11527ceddc8a7563",
     "coverage": "whole-document",
-    "basis": "Every section and D1\u2013D8 assessed against native and bounded consumer source,99 passing tests and four local probe groups. Chain-derived authority, deployment, crash and multiprocess guarantees remain unproved."
+    "basis": "Every section and D1–D8 assessed against native and bounded consumer source,99 passing tests and four local probe groups. Chain-derived authority, deployment, crash and multiprocess guarantees remain unproved."
   },
   {
     "kind": "topic",
@@ -2520,5 +2520,41 @@
       "AB-40.1"
     ],
     "basis": "Merged signature rejection repair,5 regressions and14 existing tests; partial ABI-05 remediation only. No deployment or AB-13 sibling assessment credit."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2002-nip98-single-use-replay-cache.md",
+    "source_sha256": "993d6ca1c46daf5167e98830fedceadc9e643f3db2cc4f3a7f9b09f380e9f9a1",
+    "report": "docs/estate-review/2026-11-01-visionclaw-payment-auth.md",
+    "report_sha256": "22e83d884a35c71991e426fe5e4afa9485a90174912f887a88d48c4af0adfdb4",
+    "coverage": "whole-document",
+    "basis": "All dated sections assessed, including the payment adoption supplement. Six route and46 shared-verifier tests; deployed, restart/replica and fresh-token idempotency guarantees remain open."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/04-handlers-graph-and-state.md",
+    "source_sha256": "b7bac98291ed22cdfc10fca6204bf6b5a7f18cbf862db99d44d74925ff4f56f5",
+    "report": "docs/estate-review/2026-11-01-visionclaw-payment-auth.md",
+    "report_sha256": "22e83d884a35c71991e426fe5e4afa9485a90174912f887a88d48c4af0adfdb4",
+    "coverage": "selected-panels",
+    "basis": "Historical payment route corrected against its declared source: stateless verifier, header panic after debit, proposed migration and undelivered resource. Sibling render credit excluded.",
+    "panels": [
+      "VC-04.27"
+    ]
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/55-payment-authentication.md",
+    "source_sha256": "0280d093573a1560c9bb0e22442b328f0826e72952f43ac0a64c9c33943e76ff",
+    "report": "docs/estate-review/2026-11-01-visionclaw-payment-auth.md",
+    "report_sha256": "22e83d884a35c71991e426fe5e4afa9485a90174912f887a88d48c4af0adfdb4",
+    "coverage": "selected-panels",
+    "basis": "Merged shared-verifier and response-header repair, six route regressions,46 verifier tests and visual inspection. No runtime deployment claim.",
+    "panels": [
+      "VC-55.1"
+    ]
   }
 ]

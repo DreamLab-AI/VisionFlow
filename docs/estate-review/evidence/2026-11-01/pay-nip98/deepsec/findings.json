@@ -1,0 +1,384 @@
+[
+  {
+    "title": "[HIGH_BUG] Fail-open ledger/exchange read overwrites all balances on any I/O error",
+    "description": "**File:** `src/handlers/pay_handler.rs` (lines 260, 269, 344, 350, 383, 388, 615, 628)\n**Project:** visionclaw-pay-nip98\n**Severity:** HIGH_BUG  •  **Confidence:** high  •  **Slug:** `other-fail-open-dataloss`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\n`read_ledger` (L260-271) and `read_exchange` (L344-352) return a brand-new empty `WebLedger`/`Exchange` on ANY `Err(_)` from the read — not only `NotFound`, but also `EIO`, `EACCES`, EMFILE (too many open files), etc. `with_exchange_and_ledger` (L383-389) and `debit` then write the resulting state back unconditionally. In `pay_sell_handler` (L615-632) the mutation closure never touches `_ledger` and always returns `Ok`, so a single `/pay/.sell` request issued while the ledger file is transiently unreadable causes the empty ledger to be persisted via tmp+rename — destroying every identity's balance AND the recorded deposit outpoints. Because balances only move through deposit receipts keyed by outpoint, losing the receipt set also re-enables re-crediting of previously-spent deposits. The same path simultaneously wipes `exchange.json` (all orders and all AMM pool reserves). This is attacker-influenceable: any unauthenticated-to-the-system party can mint a keypair and spam `/pay/.sell`, maximising the chance of hitting a transient read failure, and the write-back makes the loss permanent.\n\n## Recommendation\n\nDistinguish `ErrorKind::NotFound` (legitimately empty → new ledger) from all other I/O/parse errors (propagate as `PaymentError::Store` and abort the mutation without writing). Never write back a state derived from a failed read.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-10-07)\n- jjohare <github@thedreamlab.uk> (2026-06-09)",
+    "severity": "HIGH_BUG",
+    "labels": [
+      "security",
+      "project:visionclaw-pay-nip98",
+      "severity:HIGH_BUG",
+      "slug:other-fail-open-dataloss",
+      "confidence:high"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "visionclaw-pay-nip98",
+      "filePath": "src/handlers/pay_handler.rs",
+      "lineNumbers": [
+        260,
+        269,
+        344,
+        350,
+        383,
+        388,
+        615,
+        628
+      ],
+      "severity": "HIGH_BUG",
+      "vulnSlug": "other-fail-open-dataloss",
+      "confidence": "high",
+      "discoveredAt": "2026-11-01T19:03:39.496Z",
+      "runId": "20261101185817-9debd89a60e10fc7",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-10-07T13:42:19Z"
+          },
+          {
+            "name": "jjohare",
+            "email": "github@thedreamlab.uk",
+            "date": "2026-06-09T21:38:54Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[HIGH_BUG] Non-atomic two-file commit can desync pool reserves from ledger balances",
+    "description": "**File:** `src/handlers/pay_handler.rs` (lines 388, 389)\n**Project:** visionclaw-pay-nip98\n**Severity:** HIGH_BUG  •  **Confidence:** high  •  **Slug:** `other-nonatomic-commit`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\n`with_exchange_and_ledger` (L388-389) persists the exchange file first and the ledger second, as two independent write+rename operations. If the ledger write fails after the exchange write succeeds, the handler returns 400 but the pool reserve changes / order fills are already durably on disk with no corresponding balance movement. A crash between the two renames produces the same divergence. For `.pool/swap`, `.swap` and `.pool/liquidity` this means value can be created or destroyed across the two files (e.g. pool reserves credited while the payer was never debited, or vice versa).\n\n## Recommendation\n\nSerialise both documents into a single file (or a single journaled record) so the commit is one atomic rename; or write a combined temp, fsync, then rename once. At minimum fsync each file before the paired rename and recover/roll back on partial failure.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-10-07)\n- jjohare <github@thedreamlab.uk> (2026-06-09)",
+    "severity": "HIGH_BUG",
+    "labels": [
+      "security",
+      "project:visionclaw-pay-nip98",
+      "severity:HIGH_BUG",
+      "slug:other-nonatomic-commit",
+      "confidence:high"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "visionclaw-pay-nip98",
+      "filePath": "src/handlers/pay_handler.rs",
+      "lineNumbers": [
+        388,
+        389
+      ],
+      "severity": "HIGH_BUG",
+      "vulnSlug": "other-nonatomic-commit",
+      "confidence": "high",
+      "discoveredAt": "2026-11-01T19:03:39.496Z",
+      "runId": "20261101185817-9debd89a60e10fc7",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-10-07T13:42:19Z"
+          },
+          {
+            "name": "jjohare",
+            "email": "github@thedreamlab.uk",
+            "date": "2026-06-09T21:38:54Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[MEDIUM] \"Authenticated\" == any freshly minted keypair; unbounded orders/pools re-serialised per request",
+    "description": "**File:** `src/handlers/pay_handler.rs` (lines 646, 740, 801, 896)\n**Project:** visionclaw-pay-nip98\n**Severity:** MEDIUM  •  **Confidence:** high  •  **Slug:** `expensive-api-abuse`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\nThere is no account registration: a valid NIP-98 token can be produced by any self-generated keypair at zero cost, so every 'authentication required' check on these handlers establishes identity but confers no scarcity or confidentiality. Consequences: (1) the NIP-98 per-pubkey replay cap (1000) is trivially bypassed by rotating keys; (2) `/pay/.sell` and `/pay/.pool/liquidity` let an attacker create unbounded orders and pools, and because every request reads and pretty-print-writes the ENTIRE `exchange.json` under a global lock (L383-389), file size grows without bound and each subsequent request pays O(file) CPU/IO — a cheap amplification DoS; (3) the added auth gate on `/pay/.offers` (L646-651) and `/pay/.pool` (L740-745) is described in comments as protecting 'non-public' order-book/liquidity state, but since anyone can authenticate, it provides no real confidentiality — the comment overstates the control.\n\n## Recommendation\n\nRate-limit and size-cap per authenticated pubkey (and overall): bound orders/pools per identity, cap exchange.json size, and require a funded balance (deposit) before an identity may create orders/liquidity. Correct the comments so they do not claim confidentiality the design does not provide.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-10-07)\n- jjohare <github@thedreamlab.uk> (2026-06-09)",
+    "severity": "MEDIUM",
+    "labels": [
+      "security",
+      "project:visionclaw-pay-nip98",
+      "severity:MEDIUM",
+      "slug:expensive-api-abuse",
+      "confidence:high"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "visionclaw-pay-nip98",
+      "filePath": "src/handlers/pay_handler.rs",
+      "lineNumbers": [
+        646,
+        740,
+        801,
+        896
+      ],
+      "severity": "MEDIUM",
+      "vulnSlug": "expensive-api-abuse",
+      "confidence": "high",
+      "discoveredAt": "2026-11-01T19:03:39.496Z",
+      "runId": "20261101185817-9debd89a60e10fc7",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-10-07T13:42:19Z"
+          },
+          {
+            "name": "jjohare",
+            "email": "github@thedreamlab.uk",
+            "date": "2026-06-09T21:38:54Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[MEDIUM] Process-local NIP-98 replay cache does not span the multi-process ledger it guards",
+    "description": "**File:** `src/handlers/pay_handler.rs` (lines 303, 557)\n**Project:** visionclaw-pay-nip98\n**Severity:** MEDIUM  •  **Confidence:** medium  •  **Slug:** `rate-limit-bypass`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\n`FsPaymentStore` is explicitly designed for multiple processes sharing one ledger dir via `flock` (L193-201, 'blue-green deployments, multiple workers'), but the NIP-98 single-use replay cache (nip98.rs L200-221) is process-local by design (documented as SECURITY-profiles invariant 4). If an operator runs the documented multi-process topology WITHOUT sticky routing, a single signed GET to a gated resource (`pay_resource_handler`) or a signed mutating POST can be replayed against a different worker process within the 60s freshness window, each incurring a separate debit/access. The two components give contradictory deployment signals (one says multi-process-safe, the other single-process-only).\n\n## Recommendation\n\nEither drop the cross-process flock design (commit to single-process + in-memory replay cache) or move the replay cache to shared storage (e.g. Redis) so single-use enforcement spans every process that shares the ledger. Make the deployment requirement fail-closed, not documentation-only.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-10-07)\n- jjohare <github@thedreamlab.uk> (2026-06-09)",
+    "severity": "MEDIUM",
+    "labels": [
+      "security",
+      "project:visionclaw-pay-nip98",
+      "severity:MEDIUM",
+      "slug:rate-limit-bypass",
+      "confidence:medium"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "visionclaw-pay-nip98",
+      "filePath": "src/handlers/pay_handler.rs",
+      "lineNumbers": [
+        303,
+        557
+      ],
+      "severity": "MEDIUM",
+      "vulnSlug": "rate-limit-bypass",
+      "confidence": "medium",
+      "discoveredAt": "2026-11-01T19:03:39.496Z",
+      "runId": "20261101185817-9debd89a60e10fc7",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-10-07T13:42:19Z"
+          },
+          {
+            "name": "jjohare",
+            "email": "github@thedreamlab.uk",
+            "date": "2026-06-09T21:38:54Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[MEDIUM] Host-header-derived URL binding + nginx default_server enables cross-service NIP-98 replay",
+    "description": "**File:** `src/handlers/pay_handler.rs` (lines 404, 418)\n**Project:** visionclaw-pay-nip98\n**Severity:** MEDIUM  •  **Confidence:** low  •  **Slug:** `auth-bypass`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\n`extract_caller_pubkey` binds the token to `nip98_request_url(req)` (utils/auth.rs L170-189), which takes the host from the attacker-controllable `X-Forwarded-Host`/`Host` header; prod nginx forwards `$http_host`, and `nginx.production.conf` L85-86 is `listen 3001 default_server; server_name _;` — i.e. the backend answers for ANY Host. The `/pay/.swap`, `/pay/.pool/swap`, `/pay/{resource}` paths intentionally mirror the JavaScript Solid Server path scheme. A token a victim signed for a same-path resource on another did:nostr service reachable at the same path (or signed with a relative `u` tag, which `urls_match` accepts with no host check at all, nip98.rs L697-701) could validate here under a spoofed Host, and that other service's replay cache does not cover this process. Severity bounded by needing a victim token for an identical path and the 60s window.\n\n## Recommendation\n\nPin the expected host to a server-side allowlist (configured canonical origin) instead of trusting forwarded headers, set nginx `server_name` to the real hostnames rather than `_`, and reject relative `u` tags on these money-moving routes (require an absolute URL whose host matches the pinned origin).\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-10-07)\n- jjohare <github@thedreamlab.uk> (2026-06-09)",
+    "severity": "MEDIUM",
+    "labels": [
+      "security",
+      "project:visionclaw-pay-nip98",
+      "severity:MEDIUM",
+      "slug:auth-bypass",
+      "confidence:low"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "visionclaw-pay-nip98",
+      "filePath": "src/handlers/pay_handler.rs",
+      "lineNumbers": [
+        404,
+        418
+      ],
+      "severity": "MEDIUM",
+      "vulnSlug": "auth-bypass",
+      "confidence": "low",
+      "discoveredAt": "2026-11-01T19:03:39.496Z",
+      "runId": "20261101185817-9debd89a60e10fc7",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-10-07T13:42:19Z"
+          },
+          {
+            "name": "jjohare",
+            "email": "github@thedreamlab.uk",
+            "date": "2026-06-09T21:38:54Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[BUG] Unvalidated numeric/currency extractor content (fee_bps, zero amounts, empty query currencies)",
+    "description": "**File:** `src/handlers/pay_handler.rs` (lines 721, 777, 778, 594, 712)\n**Project:** visionclaw-pay-nip98\n**Severity:** BUG  •  **Confidence:** high  •  **Slug:** `other-input-validation`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\nDeserialised request types validate structure, not content. `AddLiquidityRequest.fee_bps: u64` (L721) is unbounded — the first caller to create a pool fixes its fee permanently and may set 10000 bps (100%) or more. `sell_amount`/`price` (SellRequest) and `amount` (PoolSwapRequest) accept 0, allowing zero-value / degenerate orders and swaps. In `pay_pool_swap_handler` the pool currencies come from the query string with `unwrap_or_default()` (L777-778), so a request missing `?a=&b=` silently creates/operates a pool whose currency names are empty strings, corrupting the pool keyspace.\n\n## Recommendation\n\nValidate before mutating: bound `fee_bps` (e.g. <= 1000), reject zero `amount`/`sell_amount`/`price`, and reject missing/empty `a`/`b` query currencies with 400 rather than defaulting to empty strings.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-10-07)\n- jjohare <github@thedreamlab.uk> (2026-06-09)",
+    "severity": "BUG",
+    "labels": [
+      "security",
+      "project:visionclaw-pay-nip98",
+      "severity:BUG",
+      "slug:other-input-validation",
+      "confidence:high"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "visionclaw-pay-nip98",
+      "filePath": "src/handlers/pay_handler.rs",
+      "lineNumbers": [
+        721,
+        777,
+        778,
+        594,
+        712
+      ],
+      "severity": "BUG",
+      "vulnSlug": "other-input-validation",
+      "confidence": "high",
+      "discoveredAt": "2026-11-01T19:03:39.496Z",
+      "runId": "20261101185817-9debd89a60e10fc7",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-10-07T13:42:19Z"
+          },
+          {
+            "name": "jjohare",
+            "email": "github@thedreamlab.uk",
+            "date": "2026-06-09T21:38:54Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[BUG] Blocking flock held across await points on the tokio worker",
+    "description": "**File:** `src/handlers/pay_handler.rs` (lines 198, 306, 378)\n**Project:** visionclaw-pay-nip98\n**Severity:** BUG  •  **Confidence:** medium  •  **Slug:** `other-blocking-in-async`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\n`debit` and `with_exchange_and_ledger` acquire the synchronous `libc::flock` (via `acquire_file_lock`, L255-258/L338-342) and then perform `.await` on `read_ledger`/`write_ledger`/`read_exchange`/`write_exchange` while the `FileLockGuard` is still live (L303-311, L378-389). This blocks a tokio worker thread on a blocking syscall and holds the OS advisory lock across awaits — directly contradicting the L198-201 doc comment that claims 'The in-process mutex prevents the tokio task from holding the file lock across an await point.' Under contention this serialises and can stall the runtime.\n\n## Recommendation\n\nPerform the locked read-modify-write inside `tokio::task::spawn_blocking` (or use an async advisory-lock strategy), and fix the comment to match actual behaviour.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-10-07)\n- jjohare <github@thedreamlab.uk> (2026-06-09)",
+    "severity": "BUG",
+    "labels": [
+      "security",
+      "project:visionclaw-pay-nip98",
+      "severity:BUG",
+      "slug:other-blocking-in-async",
+      "confidence:medium"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "visionclaw-pay-nip98",
+      "filePath": "src/handlers/pay_handler.rs",
+      "lineNumbers": [
+        198,
+        306,
+        378
+      ],
+      "severity": "BUG",
+      "vulnSlug": "other-blocking-in-async",
+      "confidence": "medium",
+      "discoveredAt": "2026-11-01T19:03:39.496Z",
+      "runId": "20261101185817-9debd89a60e10fc7",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-10-07T13:42:19Z"
+          },
+          {
+            "name": "jjohare",
+            "email": "github@thedreamlab.uk",
+            "date": "2026-06-09T21:38:54Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[BUG] Trade settlement correctness depends on unreviewable upstream (escrow / currency confusion)",
+    "description": "**File:** `src/handlers/pay_handler.rs` (lines 617, 691, 783, 821)\n**Project:** visionclaw-pay-nip98\n**Severity:** BUG  •  **Confidence:** low  •  **Slug:** `other-upstream-dependency`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\n`pay_sell_handler` calls `order_book.create_order` without any local check that the seller holds the sell_currency, and `pay_pool_swap_handler`/`pay_swap_handler` delegate settlement to `solid_pod_rs::trading` (create_order/execute_swap/get_or_create_pool/swap/add_liquidity). That crate (crates.io `solid-pod-rs 0.5.0-alpha.17`) is not vendored in this environment, so two correctness-critical questions cannot be statically confirmed here: (1) whether sell orders / swaps escrow or verify seller funds, and (2) how balances are keyed by currency given `WebLedger::get_balance(did)` takes no currency argument — if currency is not part of the balance key, swapping FROM a fabricated currency could credit real sats. Flagged as a dependency to verify against the upstream source, not a confirmed defect in this file.\n\n## Recommendation\n\nReview the pinned solid-pod-rs trading implementation for fund escrow on order creation and for currency-scoped balances; add an integration test that attempts to sell/swap a currency the account does not hold and asserts rejection.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-10-07)\n- jjohare <github@thedreamlab.uk> (2026-06-09)",
+    "severity": "BUG",
+    "labels": [
+      "security",
+      "project:visionclaw-pay-nip98",
+      "severity:BUG",
+      "slug:other-upstream-dependency",
+      "confidence:low"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "visionclaw-pay-nip98",
+      "filePath": "src/handlers/pay_handler.rs",
+      "lineNumbers": [
+        617,
+        691,
+        783,
+        821
+      ],
+      "severity": "BUG",
+      "vulnSlug": "other-upstream-dependency",
+      "confidence": "low",
+      "discoveredAt": "2026-11-01T19:03:39.496Z",
+      "runId": "20261101185817-9debd89a60e10fc7",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-10-07T13:42:19Z"
+          },
+          {
+            "name": "jjohare",
+            "email": "github@thedreamlab.uk",
+            "date": "2026-06-09T21:38:54Z"
+          }
+        ]
+      }
+    }
+  }
+]

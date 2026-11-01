@@ -17,8 +17,18 @@
       "diagram": "VC-03.5, VC-03.16, VC-04.27, VC-26.3, SP-05, NF-02, AB-10, ES-04",
       "prior_record": "None for the pay divergence. URL canonicalisation has since moved into `nip98_request_url`; only `solid_proxy_handler` keeps inline copies.",
       "canonical_path": "Route `extract_caller_pubkey` through `verify_nip98_auth` / `validate_nip98_token_bound` with `nip98_request_url` and `BodyBinding::Required` for mutating POSTs. Replace the `solid_proxy_handler` URL rebuilds. Load `nip98-tokens.json` in a VisionClaw test. Estate-wide unification is under P1.",
-      "remediation_status": "imported-awaiting-reconciliation",
-      "evidence": []
+      "remediation_status": "partially-remediated",
+      "evidence": [
+        "docs/estate-review/2026-11-01-visionclaw-payment-auth.md",
+        "docs/estate-review/evidence/2026-11-01/pay-nip98/manifest.json"
+      ],
+      "merged_fix": "5fa0e1325a2f903c175cfe67bbc6d644fcf38267",
+      "remaining": [
+        "Solid-proxy forwarded-URI policy and consumer tests",
+        "Shared historical token fixtures with explicit clock",
+        "Runtime deployment and restart/replica acceptance"
+      ],
+      "correction": "Deposit is a public 501 stub, not a replayable deposit mutation. Baseline resource test hit a response-header panic before the replay assertion."
     },
     {
       "id": "VCS-11",

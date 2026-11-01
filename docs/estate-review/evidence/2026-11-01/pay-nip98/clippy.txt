@@ -1,0 +1,228 @@
+    Blocking waiting for file lock on build directory
+    Checking visionclaw-domain v0.1.0 (/home/devuser/workspace/wt/visionclaw-pay-nip98/crates/visionclaw-domain)
+    Checking hashlink v0.12.2
+   Compiling visionclaw-gpu v0.1.0 (/home/devuser/workspace/wt/visionclaw-pay-nip98/crates/visionclaw-gpu)
+    Checking yaml-rust2 v0.13.0
+    Checking ontomark-parse v0.1.3
+   Compiling visionclaw-server v0.1.0 (/home/devuser/workspace/wt/visionclaw-pay-nip98)
+    Checking visionclaw-wire v0.1.0 (/home/devuser/workspace/wt/visionclaw-pay-nip98/crates/visionclaw-wire)
+    Checking ontomark-ngg1 v0.1.0
+    Checking similar v2.7.0
+    Checking ontomark-compile v0.6.3
+warning: visionclaw-server@0.1.0: webxr build.rs: GPU feature enabled — CUDA compilation delegated to visionclaw-gpu crate
+    Checking visionclaw-xr-presence v0.2.1 (/home/devuser/workspace/wt/visionclaw-pay-nip98/crates/visionclaw-xr-presence)
+    Checking vault-core v0.1.0 (/home/devuser/workspace/wt/visionclaw-pay-nip98/crates/vault-core)
+    Checking visionclaw-jev v0.1.0 (/home/devuser/workspace/wt/visionclaw-pay-nip98/crates/visionclaw-jev)
+    Checking visionclaw-protocol v0.1.0 (/home/devuser/workspace/wt/visionclaw-pay-nip98/crates/visionclaw-protocol)
+    Checking visionclaw-ontology v0.1.0 (/home/devuser/workspace/wt/visionclaw-pay-nip98/crates/visionclaw-ontology)
+    Checking visionclaw-actors v0.1.0 (/home/devuser/workspace/wt/visionclaw-pay-nip98/crates/visionclaw-actors)
+    Checking visionclaw-adapters v0.1.0 (/home/devuser/workspace/wt/visionclaw-pay-nip98/crates/visionclaw-adapters)
+    Checking visionclaw-memory-cloud v0.1.0 (/home/devuser/workspace/wt/visionclaw-pay-nip98/crates/visionclaw-memory-cloud)
+    Checking visionclaw-tri-layout v0.1.0 (/home/devuser/workspace/wt/visionclaw-pay-nip98/crates/visionclaw-tri-layout)
+    Checking visionclaw-analytics-oracle v0.1.0 (/home/devuser/workspace/wt/visionclaw-pay-nip98/crates/visionclaw-analytics-oracle)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Auto-detected GPU sm_86
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Building for sm_86
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Using CUDA host compiler: /nix/store/fliwi0hjfdjb1wgg4cncxlv58a14ndah-gcc-wrapper-14.4.0/bin/gcc (NvccCcbin)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Adding CUDA include dir: /nix/store/7p90h8wfwmda4xq5bsqzx231w1inx1cm-cuda-compat/include
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Compiling 8 CUDA kernels to PTX
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: visionclaw_unified — declared ISA 9.4 rewritten to 9.0 (declared-version change only; instruction support is not proven)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_clustering_kernels — declared ISA 9.4 rewritten to 9.0 (declared-version change only; instruction support is not proven)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_aabb_reduction — declared ISA 9.4 rewritten to 9.0 (declared-version change only; instruction support is not proven)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_landmark_apsp — declared ISA 9.4 rewritten to 9.0 (declared-version change only; instruction support is not proven)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: sssp_compact — declared ISA 9.4 rewritten to 9.0 (declared-version change only; instruction support is not proven)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: semantic_forces — declared ISA 9.4 rewritten to 9.0 (declared-version change only; instruction support is not proven)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: pagerank — declared ISA 9.4 rewritten to 9.0 (declared-version change only; instruction support is not proven)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_connected_components — declared ISA 9.4 rewritten to 9.0 (declared-version change only; instruction support is not proven)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: visionclaw_unified source=src/cuda_sources/visionclaw_unified.cu provenance=compiled isa=9.0 original=1c07162366853f0e rewritten=2edd0343cf4cdeda
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_clustering_kernels source=src/cuda_sources/gpu_clustering_kernels.cu provenance=compiled isa=9.0 original=2425b9dda07e2e20 rewritten=a052f8f163b69f14
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_aabb_reduction source=src/cuda_sources/gpu_aabb_reduction.cu provenance=compiled isa=9.0 original=b440f0136832f890 rewritten=4cff7eb8bd62b89c
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_landmark_apsp source=src/cuda_sources/gpu_landmark_apsp.cu provenance=compiled isa=9.0 original=80bd76fd03a5be10 rewritten=25cf34b53c6f6ecc
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: sssp_compact source=src/cuda_sources/sssp_compact.cu provenance=compiled isa=9.0 original=6dd4a4bac953da8f rewritten=ae2316cff19ceb1b
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: semantic_forces source=src/cuda_sources/semantic_forces.cu provenance=compiled isa=9.0 original=ceb14377cb2ccf1f rewritten=7dd8070af693051b
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: pagerank source=src/cuda_sources/pagerank.cu provenance=compiled isa=9.0 original=86c13d2c2c9ae56c rewritten=85e8e9356f683518
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: gpu_connected_components source=src/cuda_sources/gpu_connected_components.cu provenance=compiled isa=9.0 original=8be60e1c3bbee7ee rewritten=ae0f662370878aea
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: All PTX compilation done (8 modules)
+warning: visionclaw-gpu@0.1.0: visionclaw-gpu: Native CUDA linking complete
+error: unused import: `bad_request`
+  --> src/handlers/api_handler/semantic_forces.rs:23:13
+   |
+23 | use crate::{bad_request, error_json, ok_json};
+   |             ^^^^^^^^^^^
+   |
+   = note: `-D unused-imports` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(unused_imports)]`
+
+error: unneeded `return` statement
+   --> src/actors/gpu/physics_supervisor.rs:555:21
+    |
+555 |                     return;
+    |                     ^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#needless_return
+    = note: `-D clippy::needless-return` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::needless_return)]`
+help: remove `return`
+    |
+554 -                     act.handle_actor_failure("OntologyConstraintActor", "Mailbox disconnected (detected by health check)", ctx);
+555 -                     return;
+554 +                     act.handle_actor_failure("OntologyConstraintActor", "Mailbox disconnected (detected by health check)", ctx);
+    |
+
+error: this assertion has a constant value
+   --> src/handlers/jev_handler.rs:107:5
+    |
+107 |     debug_assert!(MAX_PALETTE_CANDIDATES > 0);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: consider moving this into a const block: `const { assert!(..) }`
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#assertions_on_constants
+    = note: `-D clippy::assertions-on-constants` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::assertions_on_constants)]`
+
+error: useless use of `vec!`
+   --> src/utils/unified_gpu_compute/semantic.rs:223:49
+    |
+223 |             centroids: DeviceBuffer::from_slice(&vec![0f32; TYPE_SLOTS * 3])?,
+    |                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: you can use a slice directly: `&[0f32; TYPE_SLOTS * 3]`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#useless_vec
+    = note: `-D clippy::useless-vec` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::useless_vec)]`
+
+error: useless use of `vec!`
+   --> src/utils/unified_gpu_compute/semantic.rs:224:46
+    |
+224 |             counts: DeviceBuffer::from_slice(&vec![0i32; TYPE_SLOTS])?,
+    |                                              ^^^^^^^^^^^^^^^^^^^^^^^ help: you can use a slice directly: `&[0i32; TYPE_SLOTS]`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#useless_vec
+
+warning: visionclaw-server@0.1.0: webxr build.rs: GPU feature enabled — CUDA compilation delegated to visionclaw-gpu crate
+error: could not compile `visionclaw-server` (lib) due to 5 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: using `chunks_exact` with a constant chunk size
+    --> src/actors/client_coordinator_actor.rs:1793:14
+     |
+1793 |             .chunks_exact(52)
+     |              ^^^^^^^^^^^^^^^^ help: consider using `as_chunks` instead: `as_chunks::<52>().0.iter()`
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#chunks_exact_to_as_chunks
+     = note: `-D clippy::chunks-exact-to-as-chunks` implied by `-D warnings`
+     = help: to override `-D warnings` add `#[allow(clippy::chunks_exact_to_as_chunks)]`
+
+error: items after a test module
+   --> src/handlers/api_handler/analytics/sssp_handlers.rs:25:1
+    |
+ 25 |   mod sssp_patch_tests {
+    |   ^^^^^^^^^^^^^^^^^^^^
+...
+112 | / pub async fn toggle_sssp(
+113 | |     auth: crate::settings::auth_extractor::AuthenticatedUser,
+114 | |     app_state: web::Data<AppState>,
+115 | |     settings_repo: web::Data<Arc<SqliteSettingsRepository>>,
+116 | |     request: web::Json<SSSPToggleRequest>,
+117 | | ) -> Result<HttpResponse> {
+    | |_________________________^
+...
+171 |   pub(crate) async fn stored_sssp_enabled(app_state: &AppState) -> bool {
+    |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+182 |   pub async fn get_sssp_status(app_state: web::Data<AppState>) -> Result<HttpResponse> {
+    |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+205 | / pub async fn compute_sssp(
+206 | |     _auth: crate::settings::auth_extractor::AuthenticatedUser,
+207 | |     app_state: web::Data<AppState>,
+208 | |     request: web::Json<serde_json::Value>,
+209 | | ) -> Result<HttpResponse, actix_web::Error> {
+    | |___________________________________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#items_after_test_module
+    = note: `-D clippy::items-after-test-module` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::items_after_test_module)]`
+    = help: move the items to before the test module was defined
+
+error: field assignment outside of initializer for an instance created with Default::default()
+  --> src/handlers/api_handler/analytics/sssp_handlers.rs:33:9
+   |
+33 |         p.repel_k = 321.0;
+   |         ^^^^^^^^^^^^^^^^^^
+   |
+note: consider initializing the variable with `visionclaw_domain::PhysicsSettings { repel_k: 321.0, rest_length: 77.0, damping: 0.42, sssp_alpha: 0.3, ..Default::default() }` and removing relevant reassignments
+  --> src/handlers/api_handler/analytics/sssp_handlers.rs:32:9
+   |
+32 |         let mut p = PhysicsSettings::default();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#field_reassign_with_default
+   = note: `-D clippy::field-reassign-with-default` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::field_reassign_with_default)]`
+
+error: this assertion has a constant value
+   --> src/handlers/physics_handler.rs:540:9
+    |
+540 | /         assert!(
+541 | |             MAX_PHYSICS_ITERATIONS >= 1000,
+542 | |             "the default of 1000 must fit"
+543 | |         );
+    | |_________^
+    |
+    = help: consider moving this into a const block: `const { assert!(..) }`
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#assertions_on_constants
+
+error: `u32::MAX` is never smaller than `MAX_PHYSICS_ITERATIONS` and has therefore no effect
+   --> src/handlers/physics_handler.rs:544:20
+    |
+544 |         assert_eq!(u32::MAX.min(MAX_PHYSICS_ITERATIONS), MAX_PHYSICS_ITERATIONS);
+    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `MAX_PHYSICS_ITERATIONS`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#unnecessary_min_or_max
+    = note: `-D clippy::unnecessary-min-or-max` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::unnecessary_min_or_max)]`
+
+error: you seem to be trying to use `match` for destructuring a single pattern. Consider using `if let`
+    --> src/utils/binary_protocol.rs:2188:9
+     |
+2188 | /         match BinaryProtocol::decode_message(&old) {
+2189 | |             Ok(Message::BroadcastAck { sequence_id, .. }) => {
+2190 | |                 assert_ne!(
+2191 | |                     sequence_id, 48_113,
+...    |
+2195 | |             _ => {}
+2196 | |         }
+     | |_________^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#single_match
+     = note: `-D clippy::single-match` implied by `-D warnings`
+     = help: to override `-D warnings` add `#[allow(clippy::single_match)]`
+help: try
+     |
+2188 ~         if let Ok(Message::BroadcastAck { sequence_id, .. }) = BinaryProtocol::decode_message(&old) {
+2189 +             assert_ne!(
+2190 +                 sequence_id, 48_113,
+2191 +                 "the old layout can never carry the right sequence"
+2192 +             );
+2193 +         }
+     |
+
+error: it looks like you're manually copying between slices
+    --> src/utils/unified_gpu_compute/execution.rs:2192:17
+     |
+2192 | /                 for i in 1..N {
+2193 | |                     x[i] = px[i];
+2194 | |                     y[i] = py[i];
+2195 | |                     z[i] = pz[i];
+2196 | |                 }
+     | |_________________^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#manual_memcpy
+     = note: `-D clippy::manual-memcpy` implied by `-D warnings`
+     = help: to override `-D warnings` add `#[allow(clippy::manual_memcpy)]`
+help: try replacing the loop by
+     |
+2192 ~                 x[1..N].copy_from_slice(&px[1..N]);
+2193 +     y[1..N].copy_from_slice(&py[1..N]);
+2194 +     z[1..N].copy_from_slice(&pz[1..N]);
+     |
+
+warning: visionclaw-server@0.1.0: webxr build.rs: GPU feature enabled — CUDA compilation delegated to visionclaw-gpu crate
+error: could not compile `visionclaw-server` (lib test) due to 12 previous errors

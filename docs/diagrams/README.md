@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_207 topic files, 1740 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_208 topic files, 1741 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -240,6 +240,7 @@ _207 topic files, 1740 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | VC-52 | [Drag holds and observation gates](visionclaw/52-drag-holds-and-observation-gates.md) | 7 | flowchart, sequenceDiagram | [PROTOCOL-registry.md](../../../project/docs/PROTOCOL-registry.md) | ADR-2169, ADR-2140, ADR-2167, ADR-2172, ADR-2141 |
 | VC-53 | [XR grab lifetimes, input arbitration and catch depth](visionclaw/53-xr-grab-lifetimes-and-input.md) | 6 | flowchart | [XR-client.md](../../../project/docs/XR-client.md) | ADR-2172, ADR-2166, ADR-2169 |
 | VC-54 | [Layout mode, step cadence and the three meanings of settle](visionclaw/54-layout-mode-step-cadence-and-settle.md) | 4 | flowchart | [GPU-wire-abi.md](../../../project/docs/GPU-wire-abi.md) | ADR-2140, ADR-2141, ADR-2169 |
+| VC-55 | [Payment request binding and single-use authentication](visionclaw/55-payment-authentication.md) | 1 | flowchart | [SECURITY-profiles.md](../../../project/docs/SECURITY-profiles.md) | ADR-2002, ADR-2111 |
 
 ### agentbox
 

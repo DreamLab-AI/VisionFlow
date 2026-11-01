@@ -986,7 +986,7 @@ sequenceDiagram
     Note over WS: DOC-DRIFT — the in-code comment (client_messages_handler.rs:114-116) says<br/>#quot;Currently allows but logs unauthenticated connections#quot but the code (:131-142)<br/>actually REJECTS an empty token with 401 — the token's CONTENTS are never verified<br/>against NostrService, only its presence, so any non-empty string passes
 ```
 
-## VC-04.27 `pay` scope — L402-style balance/debit gate, unconditionally mounted, inert until PAY_ENABLED
+## VC-04.27 `pay` scope — HTTP 402 balance/debit gate, mounted with the embedded-Pod feature, inert until PAY_ENABLED
 ```mermaid
 sequenceDiagram
     autonumber
@@ -996,11 +996,12 @@ sequenceDiagram
     participant BAL as pay_balance_handler<br/>pay_handler.rs:444
     participant RES as pay_resource_handler<br/>pay_handler.rs:497
     participant DEP as pay_deposit_handler<br/>pay_handler.rs:480
-    participant ST as FsPaymentStore<br/>web::Data~Arc~FsPaymentStore~~ — get_balance/debit
+    participant ST as FsPaymentStore<br/>get_balance and debit
+    Note over BAL,RES: At this topic's declared revision, auth calls the stateless Solid verifier with body=None<br/>and response header construction can panic after a debit<br/>pay_handler.rs:414 pay_handler.rs:537<br/>VC-55 records the later shared-verifier and header repair
 
-    Note over CFG: routes mounted UNCONDITIONALLY at src/main.rs:1105 (VC-01) — inert until<br/>PAY_ENABLED=true, gated handler-by-handler rather than by a scope-level middleware
+    Note over CFG: embedded-Pod routes mount at src/main.rs:1105 (VC-01) — inert until<br/>PAY_ENABLED=true, gated handler-by-handler rather than by a scope-level middleware
     C->>INFO: GET /pay/.info (always reachable, no gate)
-    INFO-->>C: 200 {enabled, methods:[lightning], costTiers} — reports the REAL enabled flag
+    INFO-->>C: 200 {enabled, methods:[lightning], cost_tiers} — reports the REAL enabled flag
     C->>BAL: GET /pay/.balance
     alt !config.enabled
         BAL-->>C: 403 Payment system is disabled
@@ -1021,7 +1022,7 @@ sequenceDiagram
         RES->>RES: cost = config.cost_for_endpoint(#quot;/{resource}#quot) — P2-05 per-endpoint cost tier<br/>(inference=cost*10, image-gen=cost*100, analytics=cost*5, default=cost_sats)
         RES->>ST: store.debit(&did, cost)
         alt Ok(remaining)
-            RES-->>C: 200 {resource,charged,balance:remaining} — headers X-Balance, X-Cost
+            RES-->>C: intended 200 {resource,charged,balance:remaining}<br/>header-name conversion can panic before delivery (pay_handler.rs:537)
         else insufficient balance
             RES-->>C: error response (payment_required_body-shaped)
         end

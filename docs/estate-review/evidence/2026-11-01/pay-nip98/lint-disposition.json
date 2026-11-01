@@ -1,0 +1,18 @@
+{
+  "clippy_exit": 101,
+  "scope": "cargo clippy --locked --offline --all-targets -- -D warnings",
+  "diagnostic_paths_unchanged_from_baseline": [
+    "src/actors/client_coordinator_actor.rs",
+    "src/actors/gpu/physics_supervisor.rs",
+    "src/handlers/api_handler/analytics/sssp_handlers.rs",
+    "src/handlers/api_handler/semantic_forces.rs",
+    "src/handlers/jev_handler.rs",
+    "src/handlers/physics_handler.rs",
+    "src/utils/binary_protocol.rs",
+    "src/utils/unified_gpu_compute/execution.rs",
+    "src/utils/unified_gpu_compute/semantic.rs"
+  ],
+  "changed_files_rustfmt": "passed",
+  "workspace_fmt": "failed on pre-existing untouched files; raw receipt retained",
+  "no_lint_suppression_added": true
+}
