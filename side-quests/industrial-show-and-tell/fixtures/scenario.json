@@ -1,0 +1,210 @@
+{
+  "schema": "visionflow-industrial-story-fixture/1",
+  "classification": "synthetic-preproduction-data",
+  "import_ready": false,
+  "purpose": "Continuity and content for a hypothetical film; requires an explicit mapping before loading into an application.",
+  "organisation": "Northbank Packaging",
+  "site": "Riverside Works",
+  "people": [
+    {
+      "id": "maya",
+      "name": "Maya",
+      "role": "Maintenance technician"
+    },
+    {
+      "id": "sam",
+      "name": "Sam",
+      "role": "Maintenance engineer and knowledge-note reviewer"
+    },
+    {
+      "id": "alex",
+      "name": "Alex",
+      "role": "Maintenance planner"
+    },
+    {
+      "id": "leah",
+      "name": "Leah",
+      "role": "Incoming shift engineer"
+    }
+  ],
+  "asset": {
+    "id": "P-204",
+    "label": "Cooling-loop pump",
+    "system": "CL-2",
+    "serves": "Packaging Line 2"
+  },
+  "records": [
+    {
+      "id": "MAN-P204-B",
+      "kind": "controlled-document-excerpt",
+      "revision": "B",
+      "title": "P-204 maintenance reference",
+      "date": "2026-09-01",
+      "status": "superseded",
+      "text": "Superseded by revision C. Retained to explain the reference used in the earlier work record."
+    },
+    {
+      "id": "WO-1187",
+      "kind": "historical-work-record",
+      "date": "2026-10-20",
+      "asset_id": "P-204",
+      "status": "closed",
+      "references": [
+        "MAN-P204-B"
+      ],
+      "text": "Seal replacement recorded. This record does not establish the cause of the later report."
+    },
+    {
+      "id": "MAN-P204-C",
+      "kind": "controlled-document-excerpt",
+      "revision": "C",
+      "title": "P-204 maintenance reference",
+      "date": "2026-10-28",
+      "status": "current-in-fixture",
+      "supersedes": "MAN-P204-B",
+      "text": "Use the current controlled inspection procedure and obtain the responsible engineer's assessment before deciding further work. This demo excerpt contains no repair instructions."
+    },
+    {
+      "id": "OBS-204-01",
+      "kind": "technician-observation",
+      "date": "2026-11-02T08:10:00Z",
+      "asset_id": "P-204",
+      "author": "maya",
+      "text": "Pump P two-oh-four sounds different again. Can we bring the records together before planning more work?",
+      "status": "reported-not-diagnosed"
+    },
+    {
+      "id": "TREND-204",
+      "kind": "illustrative-trend",
+      "asset_id": "P-204",
+      "source": "synthetic editorial data",
+      "unit": "relative display index; not a physical measurement",
+      "values": [
+        18,
+        19,
+        18,
+        20,
+        23,
+        25
+      ],
+      "text": "Illustrates a changed observation over time. No threshold, alarm policy, diagnosis or live connection is represented."
+    },
+    {
+      "id": "NOTE-204",
+      "kind": "knowledge-note",
+      "asset_id": "P-204",
+      "before": "The previous work record cites maintenance reference B. The new observation requires investigation.",
+      "proposed_after": "The previous work record cites revision B. Revision C supersedes it. The new observation requires investigation using the current controlled procedure. The cause is not established by the available records.",
+      "status": "proposed-amendment"
+    },
+    {
+      "id": "PLAN-204",
+      "kind": "proposed-investigation-plan",
+      "asset_id": "P-204",
+      "owner": "sam",
+      "planner": "alex",
+      "status": "approved-for-planning-in-story",
+      "text": "Prepare an engineer-led investigation using the current controlled procedure. Scheduling, permits and any physical intervention remain in the plant's normal authorised workflow."
+    },
+    {
+      "id": "HANDOVER-204",
+      "kind": "handover-note",
+      "asset_id": "P-204",
+      "author": "sam",
+      "recipient": "leah",
+      "text": "Observation OBS-204-01 remains open. Use revision C; retain B as history. Sam reviewed the note correction. Alex owns planning. The cause remains unconfirmed. No repair completion or restart authorisation is recorded."
+    }
+  ],
+  "relations": [
+    {
+      "from": "P-204",
+      "relation": "part_of",
+      "to": "CL-2"
+    },
+    {
+      "from": "CL-2",
+      "relation": "serves",
+      "to": "Packaging Line 2"
+    },
+    {
+      "from": "OBS-204-01",
+      "relation": "about",
+      "to": "P-204"
+    },
+    {
+      "from": "WO-1187",
+      "relation": "about",
+      "to": "P-204"
+    },
+    {
+      "from": "WO-1187",
+      "relation": "references",
+      "to": "MAN-P204-B"
+    },
+    {
+      "from": "MAN-P204-C",
+      "relation": "supersedes",
+      "to": "MAN-P204-B"
+    },
+    {
+      "from": "TREND-204",
+      "relation": "about",
+      "to": "P-204"
+    },
+    {
+      "from": "NOTE-204",
+      "relation": "about",
+      "to": "P-204"
+    },
+    {
+      "from": "PLAN-204",
+      "relation": "about",
+      "to": "P-204"
+    },
+    {
+      "from": "HANDOVER-204",
+      "relation": "about",
+      "to": "P-204"
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q1",
+      "text": "What changed around P-204, and which records should we review?",
+      "scripted_answer": "There is a new technician observation. WO-1187 records earlier work against revision B; revision C now supersedes that reference. Review the observation, work record and current controlled procedure together. These records do not establish a root cause.",
+      "references": [
+        "OBS-204-01",
+        "WO-1187",
+        "MAN-P204-B",
+        "MAN-P204-C"
+      ]
+    },
+    {
+      "id": "Q2",
+      "text": "Did the last seal replacement cause the new problem?",
+      "scripted_answer": "The available records do not establish that. A maintenance record and a later observation are insufficient to determine cause.",
+      "references": [
+        "WO-1187",
+        "OBS-204-01"
+      ]
+    },
+    {
+      "id": "Q3",
+      "text": "What does the next shift need to know about P-204?",
+      "scripted_answer": "The observation is still open. Revision C is the current reference in this scenario. Sam reviewed the note correction and Alex owns the investigation planning. The cause remains unconfirmed; no completed repair or restart authorisation is recorded.",
+      "references": [
+        "NOTE-204",
+        "PLAN-204",
+        "HANDOVER-204"
+      ]
+    }
+  ],
+  "exclusions": [
+    "No diagnosis",
+    "No physical repair instructions",
+    "No machine control",
+    "No live telemetry",
+    "No customer or real-person data",
+    "No measured business result"
+  ]
+}

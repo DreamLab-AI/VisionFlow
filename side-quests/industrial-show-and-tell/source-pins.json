@@ -1,0 +1,206 @@
+{
+  "recorded_date": "2026-11-01",
+  "evidence_class": "source-inspection-only",
+  "sources": [
+    {
+      "repo": "VisionFlow",
+      "checkout": "/home/devuser/workspace/VisionFlow",
+      "revision": "4d150fe64aab9811d51d00a77ac03028bea06c95",
+      "path": "README.md",
+      "read_line_ranges": [
+        [
+          40,
+          99
+        ]
+      ],
+      "sha256": "910c36acd04ddd7103a03e96578f843010f510ec9df885d5f6965fc74862b525",
+      "claim_ids": [
+        "C01"
+      ]
+    },
+    {
+      "repo": "ontomark",
+      "checkout": "/home/devuser/workspace/ontomark",
+      "revision": "0caae5d4b695cb720942b9b9212017c00a80ad41",
+      "path": "crates/ontomark-cli/src/main.rs",
+      "read_line_ranges": [
+        [
+          83,
+          145
+        ]
+      ],
+      "sha256": "780cff6abf0500ebd4fd74871a43be041afd462ff33d0bd85922afffdb25ad8e",
+      "claim_ids": [
+        "C02"
+      ]
+    },
+    {
+      "repo": "ontomark",
+      "checkout": "/home/devuser/workspace/ontomark",
+      "revision": "0caae5d4b695cb720942b9b9212017c00a80ad41",
+      "path": "crates/ontomark-compile/src/write/apply.rs",
+      "read_line_ranges": [
+        [
+          208,
+          248
+        ],
+        [
+          305,
+          330
+        ]
+      ],
+      "sha256": "d49807e7ad66fb0878e3825bc5f8aeeed8d95d4714f159d68e2eba33bd910279",
+      "claim_ids": [
+        "C06"
+      ]
+    },
+    {
+      "repo": "loom",
+      "checkout": "/home/devuser/workspace/loom",
+      "revision": "ba21a689a57dc67dc68ad22e52b058da34a7fb05",
+      "path": "crates/loom-facade/src/routes/mod.rs",
+      "read_line_ranges": [
+        [
+          50,
+          67
+        ]
+      ],
+      "sha256": "d35ceee6c8038da6a7e6485eb339e2182efac6d71aead929481115af8f134d78",
+      "claim_ids": [
+        "C03"
+      ]
+    },
+    {
+      "repo": "loom",
+      "checkout": "/home/devuser/workspace/loom",
+      "revision": "ba21a689a57dc67dc68ad22e52b058da34a7fb05",
+      "path": "crates/loom-facade/src/routes/grounding.rs",
+      "read_line_ranges": [
+        [
+          85,
+          109
+        ]
+      ],
+      "sha256": "c4576329eb64bbabcf2a857b552c9c4bb3316109f1c231785489b2eebcb10b3a",
+      "claim_ids": [
+        "C03"
+      ]
+    },
+    {
+      "repo": "VisionClaw",
+      "checkout": "/home/devuser/workspace/project",
+      "revision": "ecd78b6cb25d6e702e6c2459c209ccdd2c5c6b4b",
+      "path": "client/src/features/graph/components/GraphCanvas.tsx",
+      "read_line_ranges": [
+        [
+          10,
+          44
+        ],
+        [
+          50,
+          79
+        ]
+      ],
+      "sha256": "e51fd2f5289f5a89cdc4750ef377cafca853520de60a6320d9300a1d08001a7e",
+      "claim_ids": [
+        "C04"
+      ]
+    },
+    {
+      "repo": "VisionClaw",
+      "checkout": "/home/devuser/workspace/project",
+      "revision": "ecd78b6cb25d6e702e6c2459c209ccdd2c5c6b4b",
+      "path": "client/src/features/ontology/components/OntologyBrowser.tsx",
+      "read_line_ranges": [
+        [
+          43,
+          87
+        ]
+      ],
+      "sha256": "72d640012a3b71f85e7c9ba6679beb925db69b8d76785919549d840ad5618ad2",
+      "claim_ids": [
+        "C04"
+      ]
+    },
+    {
+      "repo": "VisionClaw",
+      "checkout": "/home/devuser/workspace/project",
+      "revision": "ecd78b6cb25d6e702e6c2459c209ccdd2c5c6b4b",
+      "path": "client/src/features/ontology/components/OntologyProposalList.tsx",
+      "read_line_ranges": [
+        [
+          25,
+          75
+        ]
+      ],
+      "sha256": "4977b28f20cf75be0445237597db35404fd4f5799f0eb74fa86daa00fbb1c9a0",
+      "claim_ids": [
+        "C05"
+      ]
+    },
+    {
+      "repo": "agentbox",
+      "checkout": "/home/devuser/workspace/project/agentbox",
+      "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+      "path": "services/agentbox-sessions/src/api.rs",
+      "read_line_ranges": [
+        [
+          89,
+          98
+        ]
+      ],
+      "sha256": "4a6a041b6eda892bd3656bbdfd7d0c285d340188c54bd1e395e139dc26d7a5b4",
+      "claim_ids": [
+        "C07"
+      ]
+    },
+    {
+      "repo": "agentbox",
+      "checkout": "/home/devuser/workspace/project/agentbox",
+      "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+      "path": "management-api/lib/ontology-apply.js",
+      "read_line_ranges": [
+        [
+          692,
+          725
+        ]
+      ],
+      "sha256": "db46a136f6cee0906ebba591a01f0418e141b3dbb7b6d8d5a1317f2849dca054",
+      "claim_ids": [
+        "C07"
+      ]
+    },
+    {
+      "repo": "VisionFlow",
+      "checkout": "/home/devuser/workspace/VisionFlow",
+      "revision": "4d150fe64aab9811d51d00a77ac03028bea06c95",
+      "path": "docs/estate-review/2026-10-31-proposal-application.md",
+      "read_line_ranges": [
+        [
+          7,
+          33
+        ]
+      ],
+      "sha256": "6daf93e87a32772200e8b9787d683faa2908c0f7cb420e6fc7b877aea41a7cee",
+      "claim_ids": [
+        "C08"
+      ]
+    },
+    {
+      "repo": "VisionFlow",
+      "checkout": "/home/devuser/workspace/VisionFlow",
+      "revision": "4d150fe64aab9811d51d00a77ac03028bea06c95",
+      "path": "docs/estate-review/2026-10-31-proposal-construction.md",
+      "read_line_ranges": [
+        [
+          7,
+          43
+        ]
+      ],
+      "sha256": "0676ce92cece3cf9f8426d5e3f265a989028041dfd3b0978e0ce262e2e47fb22",
+      "claim_ids": [
+        "C08"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "date": "2026-11-01",
+  "status": "script-reviewed-media-not-started",
+  "shots": 18,
+  "estimated_timeline_seconds": 428,
+  "spoken_words": 811,
+  "script_and_csv_consistency": "passed",
+  "fixture_continuity": "passed",
+  "source_files_hash_checked": 12,
+  "unicode_checked_files": [
+    "production-guide.md",
+    "script.md",
+    "README.md",
+    "research.md"
+  ],
+  "unicode_findings": 0,
+  "prose_flags_reviewed": [
+    {
+      "file": "script.md",
+      "line": 145,
+      "rule": "hedge-words"
+    },
+    {
+      "file": "README.md",
+      "line": 31,
+      "rule": "bold-label-bullet"
+    },
+    {
+      "file": "README.md",
+      "line": 32,
+      "rule": "bold-label-bullet"
+    },
+    {
+      "file": "README.md",
+      "line": 33,
+      "rule": "bold-label-bullet"
+    },
+    {
+      "file": "README.md",
+      "line": 41,
+      "rule": "us-spelling-sense"
+    }
+  ],
+  "prose_disposition": "Retained parallel visual-label bullets; checks is the correct verb, not cheques; actually reviewed emphasises correspondence with the approved wording. These heuristic flags do not show factual or mechanical defects.",
+  "editorial_review": "Read the full script and production directions; corrected the revision-comparison wording, aligned the performed observation with the fixture and retimed every shot for speech plus reading pauses.",
+  "limits": "No media generated or recorded; no new product runtime, industrial integration, audience trial or measured business outcome verified.",
+  "local_links_checked": 16,
+  "format_check": "CSV line endings normalised to LF without changing parsed rows; git diff --check rerun."
+}
