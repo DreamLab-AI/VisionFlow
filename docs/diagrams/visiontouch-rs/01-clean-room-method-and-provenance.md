@@ -22,25 +22,27 @@ verified_commit: 7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d
 
 ## For developers
 
+Source review and qualifications: [1 November audit](../../estate-review/2026-11-01-visiontouch-software-boundaries.md). The source pins are retained; this review changes claims, not device behaviour.
+
 Every protocol fact in visiontouch-rs must arrive through a ladder: an observation class, a `P-NNNN` provenance row, a spec paragraph in our own words, and only then Rust. Decompilation is the one class that needs a separate dated `D-NNNN` entry first, and whatever it yields is DECOMPILE class and never reaches the paper. The method is enforced by convention and commit order, not by CI: only the "no vendor artefact tracked" step is mechanical. This topic does not cover the legal landscape document or the paper itself.
 
 ## For the business
 
-The lab owns one of very few surviving 1990s haptic arms and is studying how to talk to it without copying the maker's software, so the result can be written up as an academic paper and, later, used as an input device for the VisionFlow installation. The method is the product of the study: facts are watched on the wire or learned by using lawfully owned software as a black box, each one is logged with where it came from, and nothing from the maker is stored in the repository. Names such as the arm's trade name are used only to identify the hardware, with no affiliation with the rights holder. If the posture ever changes to release, sale or outside demonstration, the legal review is re-opened first.
+The lab owns one of very few surviving 1990s haptic arms and is studying how to talk to it without copying the maker's software, so the result can be written up as an academic paper and, later, used as an input device for the VisionFlow installation. The method is the product of the study: facts are watched on the wire or learned by using lawfully owned software as a black box, each one is logged with where it came from, and the policy excludes vendor artefacts from the repository. Names such as the arm's trade name are used only to identify the hardware, with no affiliation with the rights holder. If the posture ever changes to release, sale or outside demonstration, the legal review is re-opened first.
 
 ## VT-01.1 Source classes and what may reach the paper
 
 ```mermaid
 flowchart TB
-    PUB["PUBLIC<br/>papers, datasheets, standards, kernel source<br/>docs/clean-room/PROVENANCE.md:16"]
-    OWN["OWNER<br/>inspection of the owned unit<br/>docs/clean-room/PROVENANCE.md:17"]
-    OBS["OBSERVE<br/>passive capture while original software drives the unit<br/>docs/clean-room/PROVENANCE.md:18"]
-    BLK["BLACKBOX<br/>inputs to original software or hardware, outputs recorded<br/>docs/clean-room/PROVENANCE.md:19"]
-    DES["DESIGN<br/>our own derivation, used on 24 rows but absent from the class table<br/>docs/adr/ADR-0001-observation-first-clean-room.md:34"]
-    DEC["DECOMPILE<br/>interoperability only, needs a D-entry<br/>docs/clean-room/PROVENANCE.md:20"]
-    ROW["P-NNNN provenance row<br/>docs/clean-room/POLICY.md:7"]
-    SPEC["docs/spec paragraph in our own words<br/>docs/clean-room/POLICY.md:6"]
-    PAPER["the paper<br/>docs/legal/POSITION.md:33"]
+    PUB["PUBLIC<br/>papers, datasheets, standards, kernel source<br/>PROVENANCE.md:16"]
+    OWN["OWNER<br/>inspection of the owned unit<br/>PROVENANCE.md:17"]
+    OBS["OBSERVE<br/>passive capture while original software drives the unit<br/>PROVENANCE.md:18"]
+    BLK["BLACKBOX<br/>inputs to original software or hardware, outputs recorded<br/>PROVENANCE.md:19"]
+    DES["DESIGN<br/>our own derivation, used on 24 rows but absent from the class table<br/>ADR-0001-observation-first-clean-room.md:34"]
+    DEC["DECOMPILE<br/>interoperability only, needs a D-entry<br/>PROVENANCE.md:20"]
+    ROW["P-NNNN provenance row<br/>POLICY.md:7"]
+    SPEC["docs/spec paragraph in our own words<br/>POLICY.md:6"]
+    PAPER["the paper<br/>POSITION.md:33"]
     PUB --> ROW
     OWN --> ROW
     OBS --> ROW
@@ -52,32 +54,32 @@ flowchart TB
     OWN --> PAPER
     OBS --> PAPER
     BLK --> PAPER
-    DEC -. "excluded, CDPA s50B(3)<br/>docs/clean-room/POLICY.md:8" .-> PAPER
-    N1["INVARIANT: the paper traces only to PUBLIC, OWNER, OBSERVE or BLACKBOX rows<br/>docs/legal/POSITION.md:33"]
-    N2["OPEN: DESIGN is not in the class table nor in the paper-eligible list<br/>docs/clean-room/PROVENANCE.md:14-20 vs docs/legal/POSITION.md:33"]
+    DEC -. "excluded, CDPA s50B(3)<br/>POLICY.md:8" .-> PAPER
+    N1["INVARIANT: the paper traces only to PUBLIC, OWNER, OBSERVE or BLACKBOX rows<br/>POSITION.md:33"]
+    N2["OPEN: DESIGN is not in the class table nor in the paper-eligible list<br/>PROVENANCE.md:14-20 vs POSITION.md:33"]
     DES --- N2
     PAPER --- N1
 ```
 
-Six classes, one ledger. Five of them may feed the paper (DESIGN pending the open question), DECOMPILE may feed only the spec.
+Six classes, one ledger. The policy names four paper-eligible classes; DESIGN remains unresolved and DECOMPILE is excluded. These are repository publication rules, not a fresh legal determination.
 
 ## VT-01.2 Spec before code, provenance before spec
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant OB as observation<br/>docs/clean-room/POLICY.md:5
-    participant PV as PROVENANCE.md<br/>docs/clean-room/PROVENANCE.md:1
-    participant SP as docs/spec/*.md<br/>docs/clean-room/POLICY.md:6
-    participant RS as Rust crate<br/>docs/BASELINE-visiontouch-rs.md:54
-    participant QG as quality-gate.sh<br/>scripts/quality-gate.sh:37
-    OB->>PV: append a row with source class (append-only)
+    participant OB as observation<br/>POLICY.md:5
+    participant PV as PROVENANCE.md<br/>PROVENANCE.md:1
+    participant SP as docs/spec/*.md<br/>POLICY.md:6
+    participant RS as Rust crate<br/>BASELINE-visiontouch-rs.md:54
+    participant QG as quality-gate.sh<br/>quality-gate.sh:37
+    OB->>PV: append a row with source class<br/>(append-only)
     PV->>SP: spec states the behaviour in own words, cites the row
     SP->>RS: code implements the spec, never the reverse
-    RS->>QG: gate runs fmt, clippy, tests, rustdoc (scripts/quality-gate.sh:14-23)
-    QG->>QG: only the vendor-artefact scan polices this ladder (scripts/quality-gate.sh:38)
-    Note over PV,RS: INVARIANT: spec and provenance precede code, evidenced by commit order,<br/>git log --follow docs/spec/10-device-readout.md in docs/adr/ADR-0001-observation-first-clean-room.md:61
-    Note over RS,QG: OPEN: invariant 2 at :54 has no mechanical check, which BASELINE now states itself: invariants 2, 3 and 12 are process rules enforced by review and PROVENANCE ordering<br/>docs/BASELINE-visiontouch-rs.md:49
+    RS->>QG: gate runs fmt, clippy, tests, rustdoc<br/>(quality-gate.sh:14-23)
+    QG->>QG: only the vendor-artefact scan polices this ladder<br/>(quality-gate.sh:38)
+    Note over PV,RS: INVARIANT: spec and provenance precede code, evidenced by commit order,<br/>git log --follow docs/spec/10-device-readout.md in<br/>ADR-0001-observation-first-clean-room.md:61
+    Note over RS,QG: OPEN: invariant 2 at :54 has no mechanical check, which BASELINE now<br/>states itself: invariants 2, 3 and 12 are process rules enforced by<br/>review and PROVENANCE ordering<br/>BASELINE-visiontouch-rs.md:49
 ```
 
 The ladder is ordered by the commit history only. Nothing in the gate fails a Rust change that lacks a spec paragraph or a provenance row.
@@ -88,21 +90,21 @@ The ladder is ordered by the commit history only. Nothing in the gate fails a Ru
 sequenceDiagram
     autonumber
     participant OW as owner request
-    participant DL as DECOMPILATION-LOG.md<br/>docs/clean-room/DECOMPILATION-LOG.md:5
+    participant DL as DECOMPILATION-LOG.md<br/>DECOMPILATION-LOG.md:5
     participant AN as analysis in ignored vendor-original<br/>.gitignore:7
-    participant PV as PROVENANCE.md<br/>docs/clean-room/PROVENANCE.md:20
+    participant PV as PROVENANCE.md<br/>PROVENANCE.md:20
     participant SP as docs/spec
     participant PP as the paper
-    OW->>DL: observation failed for this fact (why recorded, docs/clean-room/DECOMPILATION-LOG.md:31)
-    DL->>DL: entry names date, artefact SHA-256, ONE interoperability question (docs/clean-room/DECOMPILATION-LOG.md:5-9)
-    DL->>AN: analyst examines only the named check and its direct callers (docs/clean-room/DECOMPILATION-LOG.md:39-40)
-    AN->>PV: own-word finding recorded as a DECOMPILE row (docs/clean-room/DECOMPILATION-LOG.md:45)
+    OW->>DL: observation failed for this fact<br/>(why recorded, DECOMPILATION-LOG.md:31)
+    DL->>DL: entry names date, artefact SHA-256, ONE interoperability question<br/>(DECOMPILATION-LOG.md:5-9)
+    DL->>AN: analyst examines only the named check and its direct callers<br/>(DECOMPILATION-LOG.md:39-40)
+    AN->>PV: own-word finding recorded as a DECOMPILE row<br/>(DECOMPILATION-LOG.md:45)
     PV->>SP: finding may shape the spec and conservative policy
-    PV--xPP: blocked, DECOMPILE rows never reach the paper (docs/clean-room/POLICY.md:8)
-    Note over DL: INVARIANT: no native analysis without a prior D-entry<br/>docs/BASELINE-visiontouch-rs.md:56 and docs/clean-room/DECOMPILATION-LOG.md:11
-    Note over DL,PV: DOC-DRIFT: the log header says Initially empty at docs/clean-room/DECOMPILATION-LOG.md:3<br/>yet D-0001 at :11 and D-0002 at :52 follow
-    Note over DL,AN: DIVERGENCE: PROVENANCE requires decompilation by the spec team never the implementer<br/>docs/clean-room/PROVENANCE.md:20 while both entries name a coding agent in the specification role<br/>docs/clean-room/DECOMPILATION-LOG.md:42 and :82
-    Note over PV,SP: INVARIANT (observed by search): no docs/spec file cites P-0036 or P-0041, the exclusion is held by the research notes<br/>docs/research/overload-and-calibration.md:9 and :52
+    PV--xPP: blocked, DECOMPILE rows never reach the paper (POLICY.md:8)
+    Note over DL: INVARIANT: no native analysis without a prior D-entry<br/>BASELINE-visiontouch-rs.md:56 and DECOMPILATION-LOG.md:11
+    Note over DL,PV: DOC-DRIFT: the log header says Initially empty at DECOMPILATION-LOG.md:3<br/>yet D-0001 at :11 and D-0002 at :52 follow
+    Note over DL,AN: DIVERGENCE: PROVENANCE requires decompilation by the spec team never the<br/>implementer<br/>PROVENANCE.md:20 while both entries name a coding agent in the<br/>specification role<br/>DECOMPILATION-LOG.md:42 and :82
+    Note over PV,SP: INVARIANT (observed by search): no docs/spec file cites P-0036 or<br/>P-0041, the exclusion is held by the research notes<br/>overload-and-calibration.md:9 and :52
 ```
 
 Two bounded entries exist, D-0001 and D-0002, both dated 2026-10-16 and both about release and safety behaviour. Their findings are deliberately not summarised here.
@@ -111,17 +113,17 @@ Two bounded entries exist, D-0001 and D-0002, both dated 2026-10-16 and both abo
 
 ```mermaid
 flowchart TB
-    R5["rule 5: no binaries, firmware, headers, manuals<br/>docs/clean-room/POLICY.md:9"]
-    R6["rule 6: no verbatim vendor strings or tables<br/>docs/clean-room/POLICY.md:10"]
-    R7["rule 7: own names, no vendor trademarks<br/>docs/clean-room/POLICY.md:11"]
+    R5["rule 5: no binaries, firmware, headers, manuals<br/>POLICY.md:9"]
+    R6["rule 6: no verbatim vendor strings or tables<br/>POLICY.md:10"]
+    R7["rule 7: own names, no vendor trademarks<br/>POLICY.md:11"]
     GI[".gitignore blocks vendor-original, disasm, sys, vxd, dll, exe, bin<br/>.gitignore:7-13"]
-    SC["quality-gate scan of git ls-files<br/>scripts/quality-gate.sh:38"]
-    TR["trigger points that re-open the review<br/>docs/legal/POSITION.md:42"]
-    T1["release the software, even as source<br/>docs/legal/POSITION.md:44"]
-    T2["sell services or hardware based on it<br/>docs/legal/POSITION.md:45"]
-    T3["any decompilation of a vendor binary<br/>docs/legal/POSITION.md:46"]
-    T4["contact from the rights holder<br/>docs/legal/POSITION.md:47"]
-    POS["posture: private lab evaluation, no economic use<br/>docs/BASELINE-visiontouch-rs.md:91-92"]
+    SC["quality-gate scan of git ls-files<br/>quality-gate.sh:38"]
+    TR["trigger points that re-open the review<br/>POSITION.md:42"]
+    T1["release the software, even as source<br/>POSITION.md:44"]
+    T2["sell services or hardware based on it<br/>POSITION.md:45"]
+    T3["any decompilation of a vendor binary<br/>POSITION.md:46"]
+    T4["contact from the rights holder<br/>POSITION.md:47"]
+    POS["posture: private lab evaluation, no economic use<br/>BASELINE-visiontouch-rs.md:91-92"]
     R5 --> GI
     GI --> SC
     R6 -. "judgement only" .-> SC
@@ -131,8 +133,8 @@ flowchart TB
     TR --> T2
     TR --> T3
     TR --> T4
-    N1["INVARIANT: no vendor artefact tracked, scan fails the gate<br/>docs/BASELINE-visiontouch-rs.md:51 and scripts/quality-gate.sh:38"]
-    N2["DIVERGENCE: T3 has fired twice (D-0001 and D-0002) but the position document is unchanged<br/>docs/legal/POSITION.md:46 vs docs/clean-room/DECOMPILATION-LOG.md:11"]
+    N1["INVARIANT: listed vendor file extensions and paths fail the gate<br/>BASELINE-visiontouch-rs.md:51 and quality-gate.sh:38"]
+    N2["DIVERGENCE: T3 has fired twice (D-0001 and D-0002) but the position document is unchanged<br/>POSITION.md:46 vs DECOMPILATION-LOG.md:11"]
     SC --- N1
     T3 --- N2
 ```

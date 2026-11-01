@@ -1,0 +1,46 @@
+   Compiling profiling v1.0.18
+   Compiling num-traits v0.2.19
+   Compiling visiontouch-effects v0.1.0 (/tmp/visiontouch-audit.l15V1G/crates/effects)
+   Compiling visiontouch-device v0.1.0 (/tmp/visiontouch-audit.l15V1G/crates/device)
+   Compiling epaint v0.31.1
+   Compiling image v0.24.9
+   Compiling egui v0.31.1
+   Compiling macroquad v0.4.16
+   Compiling egui-miniquad v0.16.0
+   Compiling egui-macroquad v0.17.3
+   Compiling visiontouch-studio v0.1.0 (/tmp/visiontouch-audit.l15V1G/apps/calibration)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.82s
+     Running unittests src/lib.rs (/home/devuser/workspace/visiontouch-rs/target/debug/deps/visiontouch_device-a9bbfdac45624603)
+
+running 1 test
+after 12 seconds: Telemetry { demand: Some(Force([0.0, 2.0, 0.0])), applied_force: [0.0, 2.0, 0.0], applied_motor_offsets: [0, 0, -268], force_capped: false, dac_capped: false, slewing: false, expired: false }
+test estate_audit::sdk_accepts_raised_defaults_and_has_no_continuous_dwell_budget ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 14 filtered out; finished in 0.02s
+
+     Running unittests src/lib.rs (/home/devuser/workspace/visiontouch-rs/target/debug/deps/visiontouch_effects-363b297ae56ca327)
+
+running 3 tests
+Cube: k150=[0.19000000000000014, 0.0, 0.0], k300=[0.34000000000000025, 0.0, 0.0]
+Plane: k150=[0.0, 0.19, 0.0], k300=[0.0, 0.33999999999999997, 0.0]
+Balloon: k150=[0.20400000000000018, 0.0, 0.0], k300=[0.3880000000000004, 0.0, 0.0]
+test estate_audit::damping_makes_total_force_affine_in_stiffness ... ok
+finite extreme Water velocity yields [-inf, NaN, NaN]; callers still need guard rejection
+test estate_audit::finite_extreme_inputs_can_produce_nonfinite_effect_output ... ok
+same bodies; pen reaction k150=[0.44074134989664004, 5.711746805879138e-19, 0.0], k300=[0.8814826997932801, 1.1423493611758276e-18, 0.0]
+test estate_audit::spring_body_motion_ignores_stiffness_but_pen_reaction_scales ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (/home/devuser/workspace/visiontouch-rs/target/debug/deps/visiontouch_studio-3a57604b1b038ff2)
+
+running 3 tests
+previous token accepted by evidence writer after simulator armed
+test worker::estate_audit::outputoff_token_is_reusable_after_a_simulator_is_armed ... ok
+fault status despite failed shutdown: Transport fault: audit: shutdown unconfirmed. Output is off; reconnect.
+disconnect discarded an active liveness attempt; no evidence directory created
+test worker::estate_audit::shutdown_failure_still_reports_output_off_and_drops_attempt ... ok
+test worker::estate_audit::disconnect_drops_running_attempt_without_persisting_it ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 90 filtered out; finished in 0.01s
+

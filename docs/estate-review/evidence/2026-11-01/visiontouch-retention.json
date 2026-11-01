@@ -1,0 +1,415 @@
+{
+  "retention": "local audit artefacts, not deployment evidence",
+  "files": [
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/01-clean-room-method-and-provenance/VT-01.1.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/01-clean-room-method-and-provenance/VT-01.1.mmd",
+      "sha256": "7a9f00d1e50004fe6f2b6e5d0061217f90143eb6fe848cc6c5415b748287c258"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/01-clean-room-method-and-provenance/VT-01.1.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/01-clean-room-method-and-provenance/VT-01.1.svg",
+      "sha256": "9c37f517729f6712384a79868296017b7b7062e9632d34e4f4128d4feb25adf9"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/01-clean-room-method-and-provenance/VT-01.2.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/01-clean-room-method-and-provenance/VT-01.2.mmd",
+      "sha256": "e8d0a4f849891e636be85d2195ee5e52ba7033e19697a32ba268759f04152a34"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/01-clean-room-method-and-provenance/VT-01.2.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/01-clean-room-method-and-provenance/VT-01.2.svg",
+      "sha256": "9624744f2a592e2041e5e4bc6ee5d63ff893134262092ead784db14955c8fad7"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/01-clean-room-method-and-provenance/VT-01.3.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/01-clean-room-method-and-provenance/VT-01.3.mmd",
+      "sha256": "9c486d15c31867835e3c09f42282172b351949be83443068ac9e182ef76fd114"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/01-clean-room-method-and-provenance/VT-01.3.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/01-clean-room-method-and-provenance/VT-01.3.svg",
+      "sha256": "1db6fd542a25da211fb8c2696233ec7db75d70ad6b5d8e8260f9d2d74aa7fa76"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/01-clean-room-method-and-provenance/VT-01.4.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/01-clean-room-method-and-provenance/VT-01.4.mmd",
+      "sha256": "e8739009e7e0d25ba0560dc01e46984faaeb7da80b29364711afc29b0635ae56"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/01-clean-room-method-and-provenance/VT-01.4.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/01-clean-room-method-and-provenance/VT-01.4.svg",
+      "sha256": "4ebe85750e7053351cba48a75f3ab89928934412ddec71df7f1564c314e83778"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/02-transport-software-epp-and-force-session/VT-02.1.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/02-transport-software-epp-and-force-session/VT-02.1.mmd",
+      "sha256": "4eb87d6f97a601a69e892d96a6eb62dd0ef3d1514f1f03d364a21d8e8c8884d0"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/02-transport-software-epp-and-force-session/VT-02.1.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/02-transport-software-epp-and-force-session/VT-02.1.svg",
+      "sha256": "f821dc0db4169966520ccb2511131df8a14a27c889a7ba33b3bd739984991a73"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/02-transport-software-epp-and-force-session/VT-02.2.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/02-transport-software-epp-and-force-session/VT-02.2.mmd",
+      "sha256": "764e454e58b9ba84b53bb3b839685d1a13fd72b56eea11a50e36645c44cb7cfe"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/02-transport-software-epp-and-force-session/VT-02.2.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/02-transport-software-epp-and-force-session/VT-02.2.svg",
+      "sha256": "9d93a76fdfc07282a6e9cdffb84fd182edac5cdb31240aca44c9ec11de633d03"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/02-transport-software-epp-and-force-session/VT-02.3.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/02-transport-software-epp-and-force-session/VT-02.3.mmd",
+      "sha256": "e1121cd0c24b16aa12a7b5d8d7419ad7c2dd56786f9aa2bf6dc255c1250ea107"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/02-transport-software-epp-and-force-session/VT-02.3.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/02-transport-software-epp-and-force-session/VT-02.3.svg",
+      "sha256": "66bb41f90e934f99f65948d5f43053d7a35914ea57d554c03d1337fa08a8668b"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/02-transport-software-epp-and-force-session/VT-02.4.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/02-transport-software-epp-and-force-session/VT-02.4.mmd",
+      "sha256": "4c199568dd62d3dd4e28c9c3a229f5ef5f2b3ff4f41355a1ef6c8ad1d8139806"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/02-transport-software-epp-and-force-session/VT-02.4.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/02-transport-software-epp-and-force-session/VT-02.4.svg",
+      "sha256": "b7e625efc825dd9346ec0418a3abc5c66edb7c96629984072fb06536873e1f5e"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/02-transport-software-epp-and-force-session/VT-02.5.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/02-transport-software-epp-and-force-session/VT-02.5.mmd",
+      "sha256": "3c59262d758891cc8c7b23df2be49ee998f95cf4dfa4737472d6d87b486a4856"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/02-transport-software-epp-and-force-session/VT-02.5.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/02-transport-software-epp-and-force-session/VT-02.5.svg",
+      "sha256": "c166b0836043f1789224e2b870b76bb394be63a9e34e78660e53e4326c07253d"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/03-device-sdk-and-force-guard/VT-03.1.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/03-device-sdk-and-force-guard/VT-03.1.mmd",
+      "sha256": "1c6ca1a153635831720c6a750f052ce419ecf626896c4202dd3a0e178ee9c022"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/03-device-sdk-and-force-guard/VT-03.1.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/03-device-sdk-and-force-guard/VT-03.1.svg",
+      "sha256": "2cf5e40e4e7841612890b4f60daedfd128192f1b6563bcff84c13c6190fbc583"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/03-device-sdk-and-force-guard/VT-03.2.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/03-device-sdk-and-force-guard/VT-03.2.mmd",
+      "sha256": "83bd5bf7a88955546751b39f9efb3bbd84278223d02ae0a96a3a1dc9bb2b7adf"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/03-device-sdk-and-force-guard/VT-03.2.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/03-device-sdk-and-force-guard/VT-03.2.svg",
+      "sha256": "7fa99c30789cc5078b7e812d05b013a958d086eb3836097886650ab5dec289c5"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/03-device-sdk-and-force-guard/VT-03.3.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/03-device-sdk-and-force-guard/VT-03.3.mmd",
+      "sha256": "cbbaf1775378f5956f101cbdbe6c4edc5dac8b1715cd7898c391ac58979a0473"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/03-device-sdk-and-force-guard/VT-03.3.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/03-device-sdk-and-force-guard/VT-03.3.svg",
+      "sha256": "0a62e87f819af02446da7bf740e45c2e494cdf16d2052304516cd8b332ca6316"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/03-device-sdk-and-force-guard/VT-03.4.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/03-device-sdk-and-force-guard/VT-03.4.mmd",
+      "sha256": "75da6df6e1371bff5f4b1421eb6a7eedfedaeb883d309b5cf6dd37e8b7153636"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/03-device-sdk-and-force-guard/VT-03.4.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/03-device-sdk-and-force-guard/VT-03.4.svg",
+      "sha256": "cbe11189e004560dac6b2d3eb9666166a6b7e297c5f8ddd4207ffa4b686c3e28"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/03-device-sdk-and-force-guard/VT-03.5.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/03-device-sdk-and-force-guard/VT-03.5.mmd",
+      "sha256": "e73994820b553d95d97e05468cde1ca230604d815317165c3263853242144ded"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/03-device-sdk-and-force-guard/VT-03.5.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/03-device-sdk-and-force-guard/VT-03.5.svg",
+      "sha256": "93b66f332a366cd8ac35025dc601d320d9bc394b0c088199c1d9b75d0d1c310e"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/04-mass-lab-servo-rate-coupling/VT-04.1.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/04-mass-lab-servo-rate-coupling/VT-04.1.mmd",
+      "sha256": "879170dc26cca1897fc8bc5db24913528111d89f8f634fcf464a82cb888be41b"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/04-mass-lab-servo-rate-coupling/VT-04.1.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/04-mass-lab-servo-rate-coupling/VT-04.1.svg",
+      "sha256": "5283367298ec7ee30d4ce288dc3f2347f758ad944d5b4bb8356bc56774b573de"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/04-mass-lab-servo-rate-coupling/VT-04.2.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/04-mass-lab-servo-rate-coupling/VT-04.2.mmd",
+      "sha256": "11861e6072c78640f4cd2932a7a71e039b85555ba20c17ca8d864afb2ebfcc99"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/04-mass-lab-servo-rate-coupling/VT-04.2.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/04-mass-lab-servo-rate-coupling/VT-04.2.svg",
+      "sha256": "3b86a41bdd5b7d946bbce1cbbce2683e064b0dcc097796de3f345424501c0f8d"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/04-mass-lab-servo-rate-coupling/VT-04.3.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/04-mass-lab-servo-rate-coupling/VT-04.3.mmd",
+      "sha256": "7aa958fbcd60ac98f429d1d42cd0b77f6c82177358938a79feebfbc1d4dab676"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/04-mass-lab-servo-rate-coupling/VT-04.3.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/04-mass-lab-servo-rate-coupling/VT-04.3.svg",
+      "sha256": "eb14919045a4811ea28bde33e8aa1a9c75a65462887d1fadb0d6124ee23b3d3d"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/04-mass-lab-servo-rate-coupling/VT-04.4.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/04-mass-lab-servo-rate-coupling/VT-04.4.mmd",
+      "sha256": "eb1d1ff81834a7c8b9cbac84ccc9d130a52c6a87fdbf511b7dc2fb4bc7d4bdc5"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/04-mass-lab-servo-rate-coupling/VT-04.4.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/04-mass-lab-servo-rate-coupling/VT-04.4.svg",
+      "sha256": "650351165c0f1c99616acc81cbf068082e12df7493b1aa1c11a9442b866b5fe9"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/04-mass-lab-servo-rate-coupling/VT-04.5.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/04-mass-lab-servo-rate-coupling/VT-04.5.mmd",
+      "sha256": "e50d40967c94a54ad339e3d27e187b39e90aba62fe77b3da1b7c689e66c61a8e"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/04-mass-lab-servo-rate-coupling/VT-04.5.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/04-mass-lab-servo-rate-coupling/VT-04.5.svg",
+      "sha256": "770d04656e407374ac114d61abcd6c8a0d2335f86030caf9783e3c7f7c00e28e"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/05-effects-and-force-models/VT-05.1.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/05-effects-and-force-models/VT-05.1.mmd",
+      "sha256": "f97264de7eae4b25f7139a2c6dd74ddcdff7ee3ec63fc0d5c790798fb9b8cee6"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/05-effects-and-force-models/VT-05.1.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/05-effects-and-force-models/VT-05.1.svg",
+      "sha256": "81df5e4b15a6c3438b3eb7eaa4156e09f08413ad676505310c4dc45a87f4dd00"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/05-effects-and-force-models/VT-05.2.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/05-effects-and-force-models/VT-05.2.mmd",
+      "sha256": "1c049c8c098579e041e411ac2c7d20a09d20d077f8a10aace1077f4da28bd929"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/05-effects-and-force-models/VT-05.2.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/05-effects-and-force-models/VT-05.2.svg",
+      "sha256": "a6db5b90976abb98d7f2130c2ca0490750619c5007bc2e1ccca5c79701bff8a2"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/05-effects-and-force-models/VT-05.3.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/05-effects-and-force-models/VT-05.3.mmd",
+      "sha256": "6201e5dc3d0456e42c9aa1faebae0cb2590823a026f9a891c6876e90688ad010"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/05-effects-and-force-models/VT-05.3.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/05-effects-and-force-models/VT-05.3.svg",
+      "sha256": "afeea85f9bc08f7629b2d3554963f2df6f7a75757355707994757e0f5ef3cdc9"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/05-effects-and-force-models/VT-05.4.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/05-effects-and-force-models/VT-05.4.mmd",
+      "sha256": "add60a672fd95cba73a8c9c24e059f0e468233cab4ccec1d268fc5c0a87b57f5"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/05-effects-and-force-models/VT-05.4.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/05-effects-and-force-models/VT-05.4.svg",
+      "sha256": "b2e2ec5c7a12ef9e2cf3d1cd31adffe515b5fbf86c33e30936e4e4a5e1b1c710"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/05-effects-and-force-models/VT-05.5.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/05-effects-and-force-models/VT-05.5.mmd",
+      "sha256": "ff035e0ef9dcb552d872a9340fe65f29b70d0190e46824d18b50e0bcf090c1c4"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/05-effects-and-force-models/VT-05.5.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/05-effects-and-force-models/VT-05.5.svg",
+      "sha256": "fc1611518bb3d825bf912b9ada70f03d0960736e66ef7a4f2d7add3311540318"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/06-tools-and-evidence-path/VT-06.1.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/06-tools-and-evidence-path/VT-06.1.mmd",
+      "sha256": "540184f397c2f1a21c8f405b99b4b4591c5f2711f06c50a48a2336dcb8bbf964"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/06-tools-and-evidence-path/VT-06.1.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/06-tools-and-evidence-path/VT-06.1.svg",
+      "sha256": "7c84c3a16383cc2887ec718332d0da23b4da6c6169b847a54f55d8105119feb0"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/06-tools-and-evidence-path/VT-06.2.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/06-tools-and-evidence-path/VT-06.2.mmd",
+      "sha256": "7134669f84ba58c6a2b2e94307ece694b9aa2112747022da5980b038fd75ecc1"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/06-tools-and-evidence-path/VT-06.2.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/06-tools-and-evidence-path/VT-06.2.svg",
+      "sha256": "6e04ae9f8c146e5dec373b91e0182faa0435e31ade2d0523470cc901f462e43c"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/06-tools-and-evidence-path/VT-06.3.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/06-tools-and-evidence-path/VT-06.3.mmd",
+      "sha256": "df741416fe8459d55af8ef21d4116dbfdbb718053c2990ed209062aa4eaf8a4e"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/06-tools-and-evidence-path/VT-06.3.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/06-tools-and-evidence-path/VT-06.3.svg",
+      "sha256": "d4fe43773d1f0f67d4fbc3aa125a3f05f5f5b54da34c2dbc7fae50c954e79312"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/06-tools-and-evidence-path/VT-06.4.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/06-tools-and-evidence-path/VT-06.4.mmd",
+      "sha256": "1308e552962c086ac4003bb5be4a97f2148d982e41d2906f1522917c558063ed"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/06-tools-and-evidence-path/VT-06.4.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/06-tools-and-evidence-path/VT-06.4.svg",
+      "sha256": "d2fa403c2b70ff42a2a3fa70f5d56ffd6375357f5859fb7b363e2f1621e8acc0"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/07-estate-position-and-future-visionclaw-grab-path/VT-07.1.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/07-estate-position-and-future-visionclaw-grab-path/VT-07.1.mmd",
+      "sha256": "b3e7b86edc65bac8c96eafaf45513d8c34a60e6ac8cf5b647caf5b1682397556"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/07-estate-position-and-future-visionclaw-grab-path/VT-07.1.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/07-estate-position-and-future-visionclaw-grab-path/VT-07.1.svg",
+      "sha256": "097c685b02c2e263abbedb7cbd219933fba8d29890110bfd7083269998ed670f"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/07-estate-position-and-future-visionclaw-grab-path/VT-07.2.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/07-estate-position-and-future-visionclaw-grab-path/VT-07.2.mmd",
+      "sha256": "8b4338acbba294ee18255b9a7c86fb29940e7c1f45277ebe7739d8c629ccbc81"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/07-estate-position-and-future-visionclaw-grab-path/VT-07.2.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/07-estate-position-and-future-visionclaw-grab-path/VT-07.2.svg",
+      "sha256": "e12511e6c1638c3e7f4c539d14c3b939f41f17f103f7d9a2aec425bc1c84a4e8"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/07-estate-position-and-future-visionclaw-grab-path/VT-07.3.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/07-estate-position-and-future-visionclaw-grab-path/VT-07.3.mmd",
+      "sha256": "2e98f69c0f518d8e36f2f85831c90bfa68de0d76430c7867c0c5420fa295d11c"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/07-estate-position-and-future-visionclaw-grab-path/VT-07.3.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/07-estate-position-and-future-visionclaw-grab-path/VT-07.3.svg",
+      "sha256": "a4fcdac60b319782fd20a1183170b5d82f7b5859245867304c725b98ef793c16"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/07-estate-position-and-future-visionclaw-grab-path/VT-07.4.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/07-estate-position-and-future-visionclaw-grab-path/VT-07.4.mmd",
+      "sha256": "193f9aa9de3daaebfd190edf21cc55e9311971c8a31f7795239872f83e9671e2"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/07-estate-position-and-future-visionclaw-grab-path/VT-07.4.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/07-estate-position-and-future-visionclaw-grab-path/VT-07.4.svg",
+      "sha256": "de237eae4e2501af204ef221c29e35ddab85b42612116206b1b69de5f2403ad3"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/08-calibration-studio-and-verification-ladder/VT-08.1.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/08-calibration-studio-and-verification-ladder/VT-08.1.mmd",
+      "sha256": "5e0338005f6988b08ca0811dcb9f7200b7178d1f06922a8d2a8fba6738caef9d"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/08-calibration-studio-and-verification-ladder/VT-08.1.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/08-calibration-studio-and-verification-ladder/VT-08.1.svg",
+      "sha256": "a97817b9405fa3371d7f03756481fc36ee04f01d84fdbd9e9a1ae8a19a34148d"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/08-calibration-studio-and-verification-ladder/VT-08.2.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/08-calibration-studio-and-verification-ladder/VT-08.2.mmd",
+      "sha256": "96a942bd6ccfd18427ad36ee8903ae2be93edaf4d52d349ee50f2d141fc47a76"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/08-calibration-studio-and-verification-ladder/VT-08.2.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/08-calibration-studio-and-verification-ladder/VT-08.2.svg",
+      "sha256": "0359553df09926551953b253b9d940b6d57fd5c299fb4418c8351ebd8e97c47b"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/08-calibration-studio-and-verification-ladder/VT-08.3.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/08-calibration-studio-and-verification-ladder/VT-08.3.mmd",
+      "sha256": "366caddb78573a019c006d290a4ecb4b3ffa06a190d32f07206c641675719fe8"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/08-calibration-studio-and-verification-ladder/VT-08.3.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/08-calibration-studio-and-verification-ladder/VT-08.3.svg",
+      "sha256": "442315dadadc07ff93c839010aa3c79adae93749b112d65aa76118170b3b62ed"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/08-calibration-studio-and-verification-ladder/VT-08.4.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/08-calibration-studio-and-verification-ladder/VT-08.4.mmd",
+      "sha256": "954d36a5688403e36bcc26b8d0b6fdae09697ec14dda5f627b9f2b2ea72d03f8"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/08-calibration-studio-and-verification-ladder/VT-08.4.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/08-calibration-studio-and-verification-ladder/VT-08.4.svg",
+      "sha256": "30179ccf7b217cad442621a14235cdbd12f78bb6eaee82232ad65769e15fb731"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/08-calibration-studio-and-verification-ladder/VT-08.5.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/08-calibration-studio-and-verification-ladder/VT-08.5.mmd",
+      "sha256": "2014d42724ae95971e6774055d35679bce1326840b05c7cf1829ff7ac39aaa27"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/08-calibration-studio-and-verification-ladder/VT-08.5.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/08-calibration-studio-and-verification-ladder/VT-08.5.svg",
+      "sha256": "8acc1799a0a68135aa7b14c42c666dd3b4a441bf4493fa84cdc211cb20e52cc5"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/08-calibration-studio-and-verification-ladder/VT-08.6.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/08-calibration-studio-and-verification-ladder/VT-08.6.mmd",
+      "sha256": "6416928aadb8109f3b41e70bb26e8940b767550bb3bfd12d2170d3bbedc77bed"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/08-calibration-studio-and-verification-ladder/VT-08.6.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/08-calibration-studio-and-verification-ladder/VT-08.6.svg",
+      "sha256": "c334d16f8f21d483cbfddd616069666e5601e3af16d34e5bbc2e8a9b178e99ac"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/08-calibration-studio-and-verification-ladder/VT-08.7.mmd",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/08-calibration-studio-and-verification-ladder/VT-08.7.mmd",
+      "sha256": "ee30d6ac6226035f9f548ed1ee328974af066d28e46e78902c2069e428add279"
+    },
+    {
+      "source": "docs/diagrams/rendered/visiontouch-rs/08-calibration-studio-and-verification-ladder/VT-08.7.svg",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/docs/diagrams/rendered/visiontouch-rs/08-calibration-studio-and-verification-ladder/VT-08.7.svg",
+      "sha256": "bff6ac67355036874a70e3291e10aad2cd6c566ad25ab4cf2ace31c40749c35c"
+    },
+    {
+      "source": "texput.log",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/texput.log",
+      "sha256": "0de8dad445a514ae3bc13874d2a354c230d5395982c23ea702c3e573c3d9d304"
+    },
+    {
+      "source": "website/build-receipt.json",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/website/build-receipt.json",
+      "sha256": "fae85100258804d3344673265a4fcc88781ea92f6e2c4a137bd27b48f3460711"
+    },
+    {
+      "source": "/tmp/vt081.png",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/previews/vt081.png",
+      "sha256": "3db0deaf0391c21ee49b40760b83715f70bcd536c1e0bf94f8e33b2860f6e2fe"
+    },
+    {
+      "source": "/tmp/vt073.png",
+      "retained": "/tmp/vf-visiontouch-audit-artifacts/previews/vt073.png",
+      "sha256": "4b7d45dbca76b8ef153c174a30e7a39a925bb3865853ff9be02c849bd0a83f1f"
+    }
+  ]
+}

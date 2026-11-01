@@ -1,0 +1,572 @@
+
+== ADR ledger frontmatter, supersession edges and staleness
+ok: 6 ADR(s) valid (--check, README neither written nor compared — use --check-index to compare)
+
+== cargo fmt --check
+
+== cargo clippy (all targets, warnings are errors)
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.27
+   Compiling quote v1.0.47
+   Compiling libm v0.2.16
+    Checking stable_deref_trait v1.2.1
+   Compiling autocfg v1.5.1
+    Checking smallvec v1.16.3
+   Compiling version_check v0.9.5
+   Compiling serde_core v1.0.229
+    Checking cfg-if v1.0.5
+   Compiling libc v0.2.191
+   Compiling serde v1.0.229
+    Checking litemap v0.8.3
+    Checking writeable v0.6.4
+   Compiling icu_normalizer_data v2.1.1
+   Compiling icu_properties_data v2.1.2
+    Checking typenum v1.20.1
+    Checking byteorder v1.5.0
+    Checking simd-adler32 v0.3.10
+    Checking visiontouch-hal v0.1.0 (/home/devuser/workspace/visiontouch-rs/crates/hal)
+    Checking log v0.4.34
+   Compiling zerocopy v0.8.63
+   Compiling crc32fast v1.5.2
+   Compiling parking_lot_core v0.9.12
+    Checking adler2 v2.0.1
+    Checking percent-encoding v2.3.2
+    Checking utf8_iter v1.0.4
+    Checking scopeguard v1.2.0
+    Checking bitflags v2.13.2
+    Checking ab_glyph_rasterizer v0.1.10
+   Compiling miniquad v0.4.11
+    Checking once_cell v1.21.4
+    Checking epaint_default_fonts v0.31.1
+    Checking foldhash v0.1.5
+    Checking nohash-hasher v0.2.0
+    Checking equivalent v1.0.3
+    Checking bitflags v1.3.2
+    Checking allocator-api2 v0.2.21
+   Compiling zmij v1.0.23
+    Checking color_quant v1.1.0
+   Compiling heapless v0.8.0
+    Checking rawpointer v0.2.1
+   Compiling thiserror v2.0.21
+   Compiling macroquad_macro v0.1.8
+   Compiling serde_json v1.0.154
+    Checking glam v0.27.0
+    Checking quad-rand v0.2.3
+    Checking foldhash v0.2.0
+    Checking memchr v2.8.3
+    Checking itoa v1.0.18
+    Checking arrayvec v0.7.8
+    Checking downcast-rs v2.0.2
+    Checking slab v0.4.12
+    Checking either v1.19.0
+    Checking static_assertions v1.1.0
+    Checking cpufeatures v0.2.17
+    Checking lock_api v0.4.14
+    Checking miniz_oxide v0.9.1
+    Checking form_urlencoded v1.2.2
+    Checking miniz_oxide v0.8.9
+    Checking fdeflate v0.3.7
+    Checking ena v0.14.4
+    Checking port-probe v0.1.0 (/home/devuser/workspace/visiontouch-rs/tools/port-probe)
+    Checking hash32 v0.3.1
+    Checking hashbrown v0.17.1
+   Compiling ahash v0.8.12
+   Compiling generic-array v0.14.7
+   Compiling num-traits v0.2.19
+   Compiling matrixmultiply v0.3.11
+    Checking hashbrown v0.15.5
+    Checking flate2 v1.1.10
+    Checking png v0.17.16
+   Compiling syn v3.0.9
+   Compiling syn v2.0.119
+    Checking block-buffer v0.10.4
+    Checking crypto-common v0.1.7
+    Checking core_maths v0.1.1
+    Checking digest v0.10.7
+    Checking getrandom v0.2.17
+    Checking ttf-parser v0.25.1
+    Checking sha2 v0.10.9
+    Checking parking_lot v0.12.5
+    Checking approx v0.5.1
+    Checking num-integer v0.1.47
+    Checking num-complex v0.4.6
+    Checking ordered-float v5.4.0
+    Checking rstar v0.13.0
+    Checking glam v0.33.12
+    Checking num-rational v0.4.2
+   Compiling synstructure v0.14.0
+   Compiling bytemuck_derive v1.12.1
+   Compiling zerovec-derive v0.11.6
+   Compiling displaydoc v0.2.7
+   Compiling serde_derive v1.0.229
+   Compiling thiserror-impl v2.0.21
+   Compiling num-derive v0.5.1
+   Compiling zerofrom-derive v0.1.8
+   Compiling yoke-derive v0.8.4
+   Compiling profiling-procmacros v1.0.18
+   Compiling nalgebra-macros v0.3.0
+    Checking profiling v1.0.18
+    Checking owned_ttf_parser v0.25.1
+    Checking fontdue v0.9.4
+    Checking zerofrom v0.1.8
+    Checking ab_glyph v0.2.32
+    Checking yoke v0.8.3
+    Checking zerotrie v0.2.5
+    Checking zerovec v0.11.8
+    Checking bytemuck v1.25.2
+    Checking emath v0.31.1
+    Checking safe_arch v1.2.0
+    Checking image v0.24.9
+    Checking tinystr v0.8.4
+    Checking potential_utf v0.1.6
+    Checking icu_collections v2.1.1
+    Checking icu_locale_core v2.1.1
+    Checking ecolor v0.31.1
+    Checking wide v1.7.1
+    Checking epaint v0.31.1
+    Checking icu_provider v2.1.1
+    Checking icu_properties v2.1.2
+    Checking icu_normalizer v2.1.1
+    Checking visiontouch-device v0.1.0 (/home/devuser/workspace/visiontouch-rs/crates/device)
+    Checking visiontouch-effects v0.1.0 (/home/devuser/workspace/visiontouch-rs/crates/effects)
+    Checking port-recorder v0.1.0 (/home/devuser/workspace/visiontouch-rs/tools/port-recorder)
+    Checking macroquad v0.4.16
+    Checking egui v0.31.1
+    Checking device-readout v0.1.0 (/home/devuser/workspace/visiontouch-rs/tools/device-readout)
+    Checking idna_adapter v1.2.1
+    Checking idna v1.1.0
+    Checking url v2.5.8
+    Checking webbrowser v1.2.4
+    Checking quad-url v0.1.3
+    Checking egui-miniquad v0.16.0
+    Checking egui-macroquad v0.17.3
+    Checking visiontouch-studio v0.1.0 (/home/devuser/workspace/visiontouch-rs/apps/calibration)
+    Checking simba v0.10.2
+    Checking nalgebra v0.35.0
+    Checking glamx v0.3.1
+    Checking parry3d v0.31.1
+    Checking rapier3d v0.36.1
+    Checking mass-lab v0.1.0 (/home/devuser/workspace/visiontouch-rs/apps/mass-lab)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 22.03s
+
+== cargo test --workspace
+   Compiling stable_deref_trait v1.2.1
+   Compiling smallvec v1.16.3
+   Compiling cfg-if v1.0.5
+   Compiling libm v0.2.16
+   Compiling writeable v0.6.4
+   Compiling litemap v0.8.3
+   Compiling typenum v1.20.1
+   Compiling byteorder v1.5.0
+   Compiling simd-adler32 v0.3.10
+   Compiling visiontouch-hal v0.1.0 (/home/devuser/workspace/visiontouch-rs/crates/hal)
+   Compiling log v0.4.34
+   Compiling adler2 v2.0.1
+   Compiling scopeguard v1.2.0
+   Compiling percent-encoding v2.3.2
+   Compiling utf8_iter v1.0.4
+   Compiling bitflags v2.13.2
+   Compiling once_cell v1.21.4
+   Compiling ab_glyph_rasterizer v0.1.10
+   Compiling nohash-hasher v0.2.0
+   Compiling bitflags v1.3.2
+   Compiling foldhash v0.1.5
+   Compiling equivalent v1.0.3
+   Compiling epaint_default_fonts v0.31.1
+   Compiling rawpointer v0.2.1
+   Compiling allocator-api2 v0.2.21
+   Compiling color_quant v1.1.0
+   Compiling quad-rand v0.2.3
+   Compiling foldhash v0.2.0
+   Compiling glam v0.27.0
+   Compiling slab v0.4.12
+   Compiling bytemuck v1.25.2
+   Compiling serde_core v1.0.229
+   Compiling libc v0.2.191
+   Compiling either v1.19.0
+   Compiling static_assertions v1.1.0
+   Compiling itoa v1.0.18
+   Compiling memchr v2.8.3
+   Compiling downcast-rs v2.0.2
+   Compiling arrayvec v0.7.8
+   Compiling cpufeatures v0.2.17
+   Compiling zerofrom v0.1.8
+   Compiling icu_normalizer_data v2.1.1
+   Compiling icu_properties_data v2.1.2
+   Compiling zerocopy v0.8.63
+   Compiling lock_api v0.4.14
+   Compiling crc32fast v1.5.2
+   Compiling profiling v1.0.18
+   Compiling matrixmultiply v0.3.11
+   Compiling zmij v1.0.23
+   Compiling thiserror v2.0.21
+   Compiling form_urlencoded v1.2.2
+   Compiling miniz_oxide v0.9.1
+   Compiling miniz_oxide v0.8.9
+   Compiling fdeflate v0.3.7
+   Compiling ena v0.14.4
+   Compiling hashbrown v0.17.1
+   Compiling hash32 v0.3.1
+   Compiling yoke v0.8.3
+   Compiling heapless v0.8.0
+   Compiling port-probe v0.1.0 (/home/devuser/workspace/visiontouch-rs/tools/port-probe)
+   Compiling emath v0.31.1
+   Compiling safe_arch v1.2.0
+   Compiling hashbrown v0.15.5
+   Compiling zerovec v0.11.8
+   Compiling zerotrie v0.2.5
+   Compiling ecolor v0.31.1
+   Compiling flate2 v1.1.10
+   Compiling generic-array v0.14.7
+   Compiling wide v1.7.1
+   Compiling tinystr v0.8.4
+   Compiling potential_utf v0.1.6
+   Compiling num-traits v0.2.19
+   Compiling core_maths v0.1.1
+   Compiling icu_collections v2.1.1
+   Compiling ttf-parser v0.25.1
+   Compiling png v0.17.16
+   Compiling icu_locale_core v2.1.1
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.7
+   Compiling parking_lot_core v0.9.12
+   Compiling miniquad v0.4.11
+   Compiling getrandom v0.2.17
+   Compiling digest v0.10.7
+   Compiling parking_lot v0.12.5
+   Compiling sha2 v0.10.9
+   Compiling approx v0.5.1
+   Compiling num-complex v0.4.6
+   Compiling num-integer v0.1.47
+   Compiling ordered-float v5.4.0
+   Compiling rstar v0.13.0
+   Compiling glam v0.33.12
+   Compiling image v0.24.9
+   Compiling icu_provider v2.1.1
+   Compiling num-rational v0.4.2
+   Compiling icu_properties v2.1.2
+   Compiling icu_normalizer v2.1.1
+   Compiling serde v1.0.229
+   Compiling serde_json v1.0.154
+   Compiling visiontouch-device v0.1.0 (/home/devuser/workspace/visiontouch-rs/crates/device)
+   Compiling visiontouch-effects v0.1.0 (/home/devuser/workspace/visiontouch-rs/crates/effects)
+   Compiling owned_ttf_parser v0.25.1
+   Compiling fontdue v0.9.4
+   Compiling idna_adapter v1.2.1
+   Compiling device-readout v0.1.0 (/home/devuser/workspace/visiontouch-rs/tools/device-readout)
+   Compiling ab_glyph v0.2.32
+   Compiling idna v1.1.0
+   Compiling port-recorder v0.1.0 (/home/devuser/workspace/visiontouch-rs/tools/port-recorder)
+   Compiling macroquad v0.4.16
+   Compiling url v2.5.8
+   Compiling webbrowser v1.2.4
+   Compiling ahash v0.8.12
+   Compiling quad-url v0.1.3
+   Compiling epaint v0.31.1
+   Compiling egui v0.31.1
+   Compiling simba v0.10.2
+   Compiling egui-miniquad v0.16.0
+   Compiling egui-macroquad v0.17.3
+   Compiling visiontouch-studio v0.1.0 (/home/devuser/workspace/visiontouch-rs/apps/calibration)
+   Compiling nalgebra v0.35.0
+   Compiling glamx v0.3.1
+   Compiling parry3d v0.31.1
+   Compiling rapier3d v0.36.1
+   Compiling mass-lab v0.1.0 (/home/devuser/workspace/visiontouch-rs/apps/mass-lab)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 29.43s
+     Running unittests src/main.rs (target/debug/deps/device_readout-8a6b59a9351a7deb)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (target/debug/deps/mass_lab-0a5bdcf6b23bf261)
+
+running 24 tests
+test app_tests::mute_reasons_cover_paused_speed_and_unregistered ... ok
+test app_tests::paused_simulation_does_not_accumulate_time ... ok
+test app_tests::reset_rebuilds_scene_preserves_world_settings_and_pauses ... ok
+test physics::tests::equal_impulses_produce_inverse_mass_velocity ... ok
+test physics::tests::mass_edits_update_inertia_and_impulse_response ... ok
+test physics::tests::gravity_acceleration_does_not_depend_on_mass ... ok
+test pointer::tests::coupling_expires_after_100_ms ... ok
+test pointer::tests::absent_or_stale_samples_are_not_live ... ok
+test pointer::tests::pen_below_the_scene_floor_feels_no_spurious_force ... ok
+test pointer::tests::unregistered_and_feedback_off_send_zero ... ok
+test pointer::tests::reference_model_maps_lift_left_and_away_consistently ... ok
+test physics::tests::only_lightest_is_free_and_both_momenta_persist_without_external_forces ... ok
+test pointer::tests::scene_device_round_trip ... ok
+test app_tests::fixed_steps_are_consistent_across_frame_rates ... ok
+test scene::tests::picking_handles_parallel_and_inside_rays ... ok
+test physics::tests::deletion_removes_body_and_collider_and_spawn_is_bounded ... ok
+test physics::tests::grab_does_not_reach_distant_blocks_and_input_loss_or_deletion_releases ... ok
+test physics::tests::blocks_settle_on_floor_without_falling_through ... ok
+test physics::tests::grab_reaction_changes_with_acceleration_and_release_keeps_motion ... ok
+test physics::tests::held_button_grabs_nearby_block_and_release_restores_free_fall ... ok
+test physics::tests::two_kg_block_feels_about_0_45_n ... ok
+test physics::tests::pointer_passes_under_floor_then_lifts_each_mass_by_collision ... ok
+test pointer::tests::worker_samples_without_message_gaps ... ok
+test physics::tests::held_weight_and_contact_weight_are_reported_as_pen_reaction ... ok
+
+test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running unittests src/main.rs (target/debug/deps/port_probe-4ddc7f1b5de1a69b)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/port_recorder-59daf470628b4528)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/visiontouch_device-a9bbfdac45624603)
+
+running 14 tests
+test tests::channel_demand_bypasses_slew_but_not_expiry_or_96_cap ... ok
+test tests::all_six_axes_wrap_and_stay_registered ... ok
+test tests::default_limits_are_the_p0030_envelope ... ok
+test tests::reference_position_and_force_fixtures ... ok
+test tests::dac_scaling_preserves_direction ... ok
+test tests::set_limits_refused_while_armed ... ok
+test tests::shutdown_failure_outranks_rejection ... ok
+test tests::registered_reset_pose_is_origin_and_reconnect_clears ... ok
+test tests::slew_reaches_half_newton_within_three_ticks_at_2_4_ms ... ok
+test tests::limits_cannot_exceed_ceilings ... ok
+test tests::force_requires_arm_registration_and_expires_to_zero ... ok
+test tests::zero_demand_is_immediate ... ok
+test tests::slewing_flag_settles_when_the_dac_cap_binds ... ok
+test tests::device_force_transform_stays_continuous_at_signed_rollover ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/visiontouch_effects-363b297ae56ca327)
+
+running 6 tests
+test tests::balloon_deforms_pops_and_reset_restores_it ... ok
+test tests::cube_and_plane_push_out_of_surface ... ok
+test tests::invalid_inputs_never_produce_force ... ok
+test tests::fluids_oppose_motion_and_detents_restore_toward_well ... ok
+test tests::tuning_scales_force_linearly ... ok
+test tests::three_body_integration_is_finite_symmetric_and_consistent ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running unittests src/lib.rs (target/debug/deps/visiontouch_hal-73f95564f171f950)
+
+running 8 tests
+test device::tests::a_failed_shutdown_outranks_the_write_error_that_caused_it ... ok
+test device::tests::address_write_preserves_init_and_cleans_up ... ok
+test device::tests::complete_read_handshake ... ok
+test device::tests::data_failure_deasserts_strobe_and_restores_direction ... ok
+test device::tests::observed_button_press_and_release ... ok
+test device::tests::motor_offsets_clamp_at_max_motor_offset ... ok
+test device::tests::observed_encoder_order_and_sign ... ok
+test device::tests::stalled_handshake_is_bounded_and_cleans_up ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (target/debug/deps/visiontouch_studio-f99f4acd96c6e9ff)
+
+running 90 tests
+test arm::tests::counts_zero_matches_geometry_mjs ... ok
+test arm::tests::tip_equals_sdk_position_at_p0028_fixture_pose ... ok
+test arm::tests::segments_end_at_the_tip ... ok
+test control::tests::refuses_holds_raw_demands_and_unknown_fields ... ok
+test controller::tests::excursion_limits_per_class ... ok
+test controller::tests::each_interlock_stops_with_its_named_reason ... ok
+test controller::tests::rejection_is_recorded_as_rejected_not_operator ... ok
+test controller::tests::start_requires_registration_and_hold_and_refuses_double_start ... ok
+test controller::tests::thermal_temperature_stops ... ok
+test controller::tests::velocity_window_interpolates_boundary_at_irregular_cadence ... ok
+test controller::tests::registered_liveness_acceleration_still_trips_speed_with_exact_window ... ok
+test coverage::tests::export_has_the_shape_of_the_shared_viewer_fixture ... ok
+test coverage::tests::export_matches_viewer_schema_one ... ok
+test evidence::tests::recorder_decimates_but_keeps_the_stopping_tick ... ok
+test evidence::tests::csv_header_matches_design_section_four ... ok
+test evidence::tests::sha256_matches_published_vectors ... ok
+test evidence::tests::utc_formatting_matches_known_instants ... ok
+test evidence::tests::every_csv_line_has_one_field_per_column ... ok
+test controller::tests::sign_pulse_outcome_scores_the_displacement ... ok
+test controller::tests::sign_pulse_has_half_a_second_of_margin ... ok
+test evidence::tests::writing_is_refused_while_output_is_armed ... ok
+test onboarding::tests::an_aborted_attempt_cannot_advance_even_with_an_old_channel_pass ... ok
+test controller::tests::wall_oscillation_stops_the_attempt_and_records_k ... ok
+test onboarding::tests::an_old_or_different_channel_result_is_not_this_attempt ... ok
+test onboarding::tests::capture_needs_worker_ack_and_cannot_pass_by_clicking ... ok
+test evidence::tests::session_directory_and_file ... ok
+test onboarding::tests::reference_change_and_disconnect_invalidate_progress ... ok
+test protocol::tests::effects_are_capped_at_the_unlocked_cap ... ok
+test protocol::tests::gradual_drive_is_bounded_signed_and_returns_to_zero ... ok
+test protocol::tests::ladder_profile_is_ramp_dwell_ramp_zero ... ok
+test protocol::tests::lift_gain_from_masses ... ok
+test protocol::tests::any_over_latches_every_force_step_until_reregistration ... ok
+test protocol::tests::lift_ramps_at_005_n_s_to_the_cap ... ok
+test protocol::tests::liveness_is_a_3_hz_square_wave_of_80_counts_for_2_s ... ok
+test protocol::tests::lift_ramp_is_slow_to_one_newton_then_faster_to_the_cap ... ok
+test protocol::tests::nothing_delivered_does_not_clear_but_under_does ... ok
+test protocol::tests::rung_scoring_rule ... ok
+test protocol::tests::refusals_name_the_missing_prerequisite ... ok
+test protocol::tests::sign_pulse_profile ... ok
+test protocol::tests::over_is_sticky_for_the_connection ... ok
+test protocol::tests::over_blocks_the_next_rung_and_reconnect_resets_everything ... ok
+test protocol::tests::sign_scoring_needs_a_visible_difference ... ok
+test protocol::tests::thermal_is_minus_y_one_newton_for_600_s ... ok
+test protocol::tests::over_survives_reregistration_and_only_reconnect_clears_it ... ok
+test protocol::tests::wall_pushes_only_below_the_plane_and_steps_stiffness ... ok
+test protocol::tests::wall_steps_are_tenths_of_a_newton_per_mm_for_three_seconds ... ok
+test registration::tests::a_failed_gravity_drop_is_sticky ... ok
+test registration::tests::captures_need_a_still_pen_and_return_is_within_2_mm ... ok
+test controller::tests::oscillation_fires_on_20_hz_not_on_hand_motion_or_flicker ... ok
+test registration::tests::repeatability_is_the_worst_pairwise_spread ... ok
+test registration::tests::gravity_drop_sign ... ok
+test registration::tests::ruler_marks_are_consumed_and_complete_flag_needs_all ... ok
+test protocol::tests::unlock_ladder_follows_section_two_exactly ... ok
+test registration::tests::ruler_scale_sign_and_off_axis ... ok
+test controller::tests::ladder_completes_not_times_out_at_four_seconds ... ok
+test registration::tests::stillness_needs_250_ms_within_half_a_millimetre ... ok
+test sim::tests::inverse_kinematics_round_trips_the_sdk_model ... ok
+test sim::tests::rejected_requests_shut_output_down ... ok
+test controller::tests::lift_off_is_detected_above_two_millimetres ... ok
+test sim::tests::swapped_drive_map_moves_a_different_motor ... ok
+test control::tests::gradual_prepare_requires_registration_and_a_fresh_local_hold ... ok
+test control::tests::prepare_cannot_arm_and_navigation_cancels_it ... ok
+test control::tests::refuses_locked_force_test_and_reference_replacement ... ok
+test controller::tests::velocity_window_startup_and_constant_speed_at_multiple_cadences ... ok
+test sim::tests::counts_are_quantised_integers_and_hand_off_pen_floats_still ... ok
+test worker::tests::captured_liveness_traces_no_longer_trip_speed_at_any_cadence ... ok
+test controller::tests::k_marginal_is_the_last_stable_level_not_the_oscillating_one ... ok
+test interaction_tests::preparing_while_space_is_down_requires_release_and_a_new_hold ... ok
+test controller::tests::lift_to_one_and_a_half_newtons_completes_inside_the_over_cap_budget ... ok
+test evidence::tests::attempt_json_round_trips_and_hashes_the_csv ... ok
+test evidence::tests::session_ids_are_v4_uuids_and_commit_is_hex_or_unknown ... ok
+test controller::tests::gradual_drive_stops_immediately_and_never_scores_periodic_liveness ... ok
+test controller::tests::liveness_passes_on_a_swapped_channel_map_and_fails_on_a_dead_one ... ok
+test controller::tests::over_continuous_cap_for_10_s_stops ... ok
+test sim::tests::braced_force_is_gain_times_command ... ok
+test controller::tests::thermal_confirm_has_a_ten_second_grace_and_no_hold ... ok
+test control::tests::socket_permissions_roundtrip_and_expiry ... ok
+test coverage::tests::cells_dedupe_and_cap ... ok
+test worker::tests::a_rejected_request_is_recorded_as_rejected ... ok
+test worker::tests::released_ladder_with_a_zero_reading_clears_nothing ... ok
+test worker::tests::felt_or_heard_on_an_aborted_liveness_attempt_cannot_pass_it ... ok
+test controller::tests::time_bound_stops_open_ended_effects ... ok
+test worker::tests::a_failed_gravity_drop_survives_a_later_pass_until_reregistration ... ok
+test sim::tests::stack_holds_the_pen_until_the_lift_exceeds_the_weight ... ok
+test worker::tests::readings_of_the_wrong_unit_are_refused_for_the_attempt_class ... ok
+test worker::tests::entries_change_only_the_attempt_they_name ... ok
+test worker::tests::completed_ladder_with_a_dwell_is_still_scored ... ok
+test worker::tests::gradual_drive_records_response_without_unlocking_force_steps ... ok
+test worker::tests::gravity_drop_is_captured_only_when_armed ... ok
+test smoke::tests::full_ladder_against_the_simulator ... ok
+
+test result: ok. 90 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.09s
+
+   Doc-tests visiontouch_device
+
+running 1 test
+test crates/device/src/lib.rs - (line 23) - compile ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+all doctests ran in 0.26s; merged doctests compilation took 0.25s
+   Doc-tests visiontouch_effects
+
+running 1 test
+test crates/effects/src/lib.rs - (line 9) ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+all doctests ran in 0.26s; merged doctests compilation took 0.25s
+   Doc-tests visiontouch_hal
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+== strict rustdoc for every crate
+    Checking visiontouch-hal v0.1.0 (/home/devuser/workspace/visiontouch-rs/crates/hal)
+ Documenting visiontouch-hal v0.1.0 (/home/devuser/workspace/visiontouch-rs/crates/hal)
+    Checking visiontouch-effects v0.1.0 (/home/devuser/workspace/visiontouch-rs/crates/effects)
+ Documenting visiontouch-effects v0.1.0 (/home/devuser/workspace/visiontouch-rs/crates/effects)
+ Documenting port-recorder v0.1.0 (/home/devuser/workspace/visiontouch-rs/tools/port-recorder)
+    Checking visiontouch-device v0.1.0 (/home/devuser/workspace/visiontouch-rs/crates/device)
+ Documenting visiontouch-device v0.1.0 (/home/devuser/workspace/visiontouch-rs/crates/device)
+ Documenting port-probe v0.1.0 (/home/devuser/workspace/visiontouch-rs/tools/port-probe)
+ Documenting mass-lab v0.1.0 (/home/devuser/workspace/visiontouch-rs/apps/mass-lab)
+ Documenting visiontouch-studio v0.1.0 (/home/devuser/workspace/visiontouch-rs/apps/calibration)
+ Documenting device-readout v0.1.0 (/home/devuser/workspace/visiontouch-rs/tools/device-readout)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.96s
+   Generated /home/devuser/workspace/visiontouch-rs/target/doc/device_readout/index.html and 7 other files
+
+== workspace viewer unit tests and formatting
+
+> test
+> node --test test.mjs
+
+TAP version 13
+# Subtest: arm endpoint matches SDK reference fixture
+ok 1 - arm endpoint matches SDK reference fixture
+  ---
+  duration_ms: 1.383095
+  type: 'test'
+  ...
+# Subtest: voxel mesh preserves unknown concavity instead of filling a box
+ok 2 - voxel mesh preserves unknown concavity instead of filling a box
+  ---
+  duration_ms: 0.761553
+  type: 'test'
+  ...
+# Subtest: shared voxel faces are removed
+ok 3 - shared voxel faces are removed
+  ---
+  duration_ms: 0.344364
+  type: 'test'
+  ...
+# Subtest: reject corrupt imports and oversized geometry parameters
+ok 4 - reject corrupt imports and oversized geometry parameters
+  ---
+  duration_ms: 0.663128
+  type: 'test'
+  ...
+# Subtest: coverage exports validate as plain schema 1 captures
+ok 5 - coverage exports validate as plain schema 1 captures
+  ---
+  duration_ms: 0.351379
+  type: 'test'
+  ...
+# Subtest: the calibration studio coverage fixture validates
+ok 6 - the calibration studio coverage fixture validates
+  ---
+  duration_ms: 0.669483
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 143.08432
+
+> format:check
+> prettier --check *.mjs *.html *.css package.json
+
+Checking formatting...
+All matched files use Prettier code style!
+
+== offline audio analysis tests
+......
+----------------------------------------------------------------------
+Ran 6 tests in 1.028s
+
+OK
+
+== no vendor artefacts tracked
+
+quality gate passed at 7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d

@@ -18,23 +18,25 @@ verified_commit: 7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d
 
 ## For developers
 
+Source review and qualifications: [1 November audit](../../estate-review/2026-11-01-visiontouch-software-boundaries.md). The source pins are retained; this review changes claims, not device behaviour.
+
 `visiontouch-device` turns raw packets into a registered pose and turns an application force request into three bounded DAC offsets. Ceilings derive from one model-independent bound, the transport clamp of 300 counts, and applications may only lower them. Every tick runs the same ordered guard: expiry, cap, slew, uniform DAC scaling, rounding. Cartesian force is refused until the arm has been registered at the reset pose on this connection, and a failed shutdown outranks every other error. All newtons here are model commands, not measured forces. The Calibration Studio's use of the SDK (its verification ladder and higher limits) is outside this topic.
 
 ## For the business
 
-This layer is the safety envelope between any application and the arm. Whatever a game or a graph tool asks for, the arm receives at most half a newton by default, never more than two, and only after the operator has placed it in a known reset pose and explicitly enabled force. A request that is more than a fortieth of a second old is dropped to zero, a fault ends the session rather than carrying on, and the limits can only be tightened by software, never loosened. None of these figures is a measured force on the real arm, and no measurement has yet been made.
+This layer bounds model commands between an application and the transport. Cartesian commands default to a 0.5 N cap and require registration and explicit arming; raw channel diagnostics have a separate 96-count cap and can run unregistered. A disarmed caller can raise defaults up to the 2 N and 300-count SDK ceilings. When serviced, the guard zeros stale requests. The continuous-force policy and dwell budget belong to the application, and none of these command figures measures delivered force.
 
 ## VT-03.1 Where each limit comes from
 
 ```mermaid
 flowchart TB
-    HAL["transport clamp MAX_MOTOR_OFFSET = 300 counts<br/>crates/hal/src/device.rs:19"]
+    HAL["transport clamp MAX_MOTOR_OFFSET = 300 counts<br/>device.rs:19"]
     DACMAX["MAX_DAC_OFFSET equals the clamp<br/>crates/device/src/lib.rs:71"]
     FMAX["MAX_FORCE_N 2.0 model N<br/>crates/device/src/lib.rs:63"]
     SLEW["MAX_SLEW_N_S 100<br/>crates/device/src/lib.rs:78"]
     TO["COMMAND_TIMEOUT 25 ms<br/>crates/device/src/lib.rs:61"]
     DEF["ForceLimits::default 0.5 N, 96 counts, 100 N/s<br/>crates/device/src/lib.rs:99-106"]
-    CONT["CONTINUOUS_FORCE_N 1.0 for content with no fixed dwell<br/>crates/device/src/lib.rs:68"]
+    CONT["CONTINUOUS_FORCE_N 1.0 application policy, not a guard timer<br/>crates/device/src/lib.rs:68"]
     CH["MAX_CHANNEL_TEST_OFFSET 96<br/>crates/device/src/lib.rs:75"]
     VAL["ForceLimits::valid rejects anything above a ceiling, NaN or non-positive<br/>crates/device/src/lib.rs:109-118"]
     SET["set_limits refuses while armed<br/>crates/device/src/lib.rs:327-336"]
@@ -48,16 +50,16 @@ flowchart TB
     DACMAX -. "const assert" .-> CH
     SET --> DER
     N1["INVARIANT: ceilings are compile-time ordered, DAC ceiling cannot exceed the transport clamp<br/>crates/device/src/lib.rs:79-81"]
-    N2["INVARIANT: the 134 counts per newton gain gives 268 counts at 2 N so 300 is the only bound independent of the uncertain gains<br/>docs/spec/12-force-feedback.md:64-66"]
-    N3["DEBT: CONTINUOUS_FORCE_N is documented as the cap for content and ADR-0002 relies on it<br/>docs/adr/ADR-0002-layered-software-force-envelope.md:38 but no code reads the constant, only crates/device/src/lib.rs:50 mentions it"]
-    N4["INVARIANT: ADR-0002 and ADR-0004 are accepted, complete, live, and the code and tests exist<br/>docs/adr/ADR-0002-layered-software-force-envelope.md:5-7 and crates/device/src/lib.rs:625"]
+    N2["INVARIANT: the 134 counts per newton gain gives 268 counts at 2 N so 300 is the only bound independent of the uncertain gains<br/>12-force-feedback.md:64-66"]
+    N3["DEBT: CONTINUOUS_FORCE_N is documented as the cap for content and ADR-0002 relies on it<br/>ADR-0002-layered-software-force-envelope.md:38 but no code reads the constant, only crates/device/src/lib.rs:50 mentions it"]
+    N4["INVARIANT: ADR-0002 and ADR-0004 are accepted, complete, live, and the code and tests exist<br/>ADR-0002-layered-software-force-envelope.md:5-7 and crates/device/src/lib.rs:625"]
     CONT --- N3
     DACMAX --- N1
     HAL --- N2
     DEF --- N4
 ```
 
-Application code can lower every figure here and raise none. The default is exactly the envelope that was armed live on the unit.
+Applications can raise the defaults while disarmed, up to the immutable SDK ceilings. The SDK does not verify a Studio unlock or a fixed dwell. The default is exactly the envelope that was armed live on the unit.
 
 ## VT-03.2 Registration, kinematics and the Jacobian
 
@@ -68,17 +70,17 @@ sequenceDiagram
     participant ES as EncoderState<br/>crates/device/src/lib.rs:186
     participant PS as position_from_counts<br/>crates/device/src/lib.rs:263
     participant JC as jacobian_from_counts<br/>crates/device/src/lib.rs:276
-    DV->>ES: update with each sample, unwrap counter deltas (crates/device/src/lib.rs:198-209)
-    ES->>ES: continuous count adds wrapping_sub of old (crates/device/src/lib.rs:202)
-    DV->>ES: register_reset needs one sample, feedback is switched off first (crates/device/src/lib.rs:474-481)
-    ES->>ES: keep all six continuous counts as the reset pose (crates/device/src/lib.rs:217-224)
-    ES->>PS: position_m uses counts minus reset counts (crates/device/src/lib.rs:234-244)
-    PS-->>ES: metres from reset pose, origin at counts zero (crates/device/src/lib.rs:263-271)
-    ES->>JC: guard evaluates J at the same registered counts (crates/device/src/lib.rs:276-285)
-    Note over ES: INVARIANT: a reconnect builds a new EncoderState so registration never survives it<br/>crates/device/src/lib.rs:460-466 and docs/adr/ADR-0004-reset-pose-registration.md:36-37
-    Note over ES,PS: EXTERNAL: angle gains and the 0.1397 m link length are a black-box fit, physical accuracy is unestablished<br/>docs/spec/12-force-feedback.md:35-41 and docs/adr/ADR-0004-reset-pose-registration.md:55
-    Note over ES: DEBT: unwrapping assumes less than half a counter revolution between samples, nothing checks it<br/>crates/device/src/lib.rs:196-197
-    Note over ES,PS: INVARIANT: unregistered position exists for display only and is never a demand input<br/>crates/device/src/lib.rs:245-249
+    DV->>ES: update with each sample, unwrap counter deltas<br/>(crates/device/src/lib.rs:198-209)
+    ES->>ES: continuous count adds wrapping_sub of old<br/>(crates/device/src/lib.rs:202)
+    DV->>ES: register_reset needs one sample, feedback is switched off first<br/>(crates/device/src/lib.rs:474-481)
+    ES->>ES: keep all six continuous counts as the reset pose<br/>(crates/device/src/lib.rs:217-224)
+    ES->>PS: position_m uses counts minus reset counts<br/>(crates/device/src/lib.rs:234-244)
+    PS-->>ES: metres from reset pose, origin at counts zero<br/>(crates/device/src/lib.rs:263-271)
+    ES->>JC: guard evaluates J at the same registered counts<br/>(crates/device/src/lib.rs:276-285)
+    Note over ES: INVARIANT: a reconnect builds a new EncoderState so registration never<br/>survives it<br/>crates/device/src/lib.rs:460-466 and<br/>ADR-0004-reset-pose-registration.md:36-37
+    Note over ES,PS: EXTERNAL: angle gains and the 0.1397 m link length are a black-box fit,<br/>physical accuracy is unestablished<br/>12-force-feedback.md:35-41 and ADR-0004-reset-pose-registration.md:55
+    Note over ES: DEBT: unwrapping assumes less than half a counter revolution between<br/>samples, nothing checks it<br/>crates/device/src/lib.rs:196-197
+    Note over ES,PS: INVARIANT: unregistered position exists for display only and is never a<br/>demand input<br/>crates/device/src/lib.rs:245-249
 ```
 
 Registration records where the arm was when the operator said it was at the reset pose, then everything is measured from there. Expected error at the tip is centimetres, which is why the Studio adds ruler checks.
@@ -96,7 +98,7 @@ flowchart TB
     G["slew: step from last applied force by slew times dt<br/>crates/device/src/lib.rs:416-422"]
     H["largest channel demand above the DAC limit scales the whole vector<br/>crates/device/src/lib.rs:424-429"]
     I["round, clamp, return offsets<br/>crates/device/src/lib.rs:433-434"]
-    J["transport clamp 300 on every packet<br/>crates/hal/src/device.rs:300"]
+    J["transport clamp 300 on every packet<br/>device.rs:300"]
     A --> B
     B --> C
     B --> D
@@ -126,19 +128,19 @@ sequenceDiagram
     participant RQ as Device::request<br/>crates/device/src/lib.rs:512
     participant GD as ForceGuard<br/>crates/device/src/lib.rs:318
     participant SM as Device::sample<br/>crates/device/src/lib.rs:529
-    participant HL as DeviceReader<br/>crates/hal/src/device.rs:156
+    participant HL as DeviceReader<br/>device.rs:156
     AP->>RQ: Demand and creation time
-    RQ->>RQ: not armed gives reason not armed, Force while unregistered gives unregistered (crates/device/src/lib.rs:513-516)
-    RQ->>GD: request, a non-finite force disarms the guard (crates/device/src/lib.rs:359-365)
-    RQ->>RQ: any rejection calls disable_feedback (crates/device/src/lib.rs:520-523)
-    RQ-->>AP: Rejected, or ShutdownFailed which outranks it (crates/device/src/lib.rs:561-566)
+    RQ->>RQ: not armed gives reason not armed, Force while unregistered gives<br/>unregistered<br/>(crates/device/src/lib.rs:513-516)
+    RQ->>GD: request, a non-finite force disarms the guard<br/>(crates/device/src/lib.rs:359-365)
+    RQ->>RQ: any rejection calls disable_feedback<br/>(crates/device/src/lib.rs:520-523)
+    RQ-->>AP: Rejected, or ShutdownFailed which outranks it<br/>(crates/device/src/lib.rs:561-566)
     AP->>SM: sample every servo loop even with no new demand
-    SM->>HL: read packet, update state (crates/device/src/lib.rs:531-532)
-    SM->>GD: tick with registered counts, then write offsets (crates/device/src/lib.rs:533-537)
-    SM->>HL: any error leads to disable_feedback, shutdown failure is folded into the error text (crates/device/src/lib.rs:543-549)
-    Note over RQ,SM: INVARIANT: no recoverable force fault, every sampling error ends the session and needs a reconnect<br/>crates/device/src/lib.rs:526-528 and docs/adr/ADR-0002-layered-software-force-envelope.md:42-44
-    Note over RQ: INVARIANT: arming is explicit, enable_feedback is the only path to the handshake<br/>crates/device/src/lib.rs:493-499
-    Note over SM,HL: DEBT: expiry is only evaluated when the worker runs, there is no hardware watchdog<br/>crates/device/src/lib.rs:59-60 and docs/spec/12-force-feedback.md:91-92
+    SM->>HL: read packet, update state<br/>(crates/device/src/lib.rs:531-532)
+    SM->>GD: tick with registered counts, then write offsets<br/>(crates/device/src/lib.rs:533-537)
+    SM->>HL: any error leads to disable_feedback, shutdown failure is folded into the<br/>error text<br/>(crates/device/src/lib.rs:543-549)
+    Note over RQ,SM: INVARIANT: no recoverable force fault, every sampling error ends the<br/>session and needs a reconnect<br/>crates/device/src/lib.rs:526-528 and<br/>ADR-0002-layered-software-force-envelope.md:42-44
+    Note over RQ: INVARIANT: arming is explicit, enable_feedback is the only path to the<br/>handshake<br/>crates/device/src/lib.rs:493-499
+    Note over SM,HL: DEBT: expiry is only evaluated when the worker runs, there is no<br/>hardware watchdog<br/>crates/device/src/lib.rs:59-60 and 12-force-feedback.md:91-92
 ```
 
 Rejecting a bad request also shuts output down, so a buggy caller cannot leave the last good force running. The price is that a rejected request leaves the session disarmed and the caller must enable again.

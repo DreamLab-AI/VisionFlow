@@ -1,0 +1,9 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.07s
+/home/devuser/workspace/visiontouch-rs/target/debug/libport_capture.so
+audit initial event: {"schema": 1, "session_ns": 408912047890592, "pid": 3026602, "tid": 3026602, "sequence": 1, "start_ns": 408912047948095, "end_ns": 408912047964404, "fd": 3, "target": "/home/devuser/workspace/.tmp/haptics-recorder-xwr_5xww/target", "operation": "write", "count": 5, "request": null, "request_name": null, "result": 5, "errno": null, "before": {"requested": 5, "copied": 0, "complete": false, "hex": "", "memory_errno": 1}, "after": null}
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/home/devuser/workspace/visiontouch-rs/tools/port-recorder/tests/check.py", line 43, in <module>
+    assert initial["errno"] is None
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

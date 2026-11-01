@@ -1,0 +1,48 @@
+   Compiling visiontouch-device v0.1.0 (/tmp/visiontouch-audit.R62LM2/crates/device)
+   Compiling visiontouch-effects v0.1.0 (/tmp/visiontouch-audit.R62LM2/crates/effects)
+   Compiling visiontouch-studio v0.1.0 (/tmp/visiontouch-audit.R62LM2/apps/calibration)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.34s
+     Running unittests src/lib.rs (/home/devuser/workspace/visiontouch-rs/target/debug/deps/visiontouch_device-a9bbfdac45624603)
+
+running 1 test
+after 12 seconds: Telemetry { demand: Some(Force([0.0, 2.0, 0.0])), applied_force: [0.0, 2.0, 0.0], applied_motor_offsets: [0, 0, -268], force_capped: false, dac_capped: false, slewing: false, expired: false }
+test estate_audit::sdk_accepts_raised_defaults_and_has_no_continuous_dwell_budget ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 14 filtered out; finished in 0.02s
+
+     Running unittests src/lib.rs (/home/devuser/workspace/visiontouch-rs/target/debug/deps/visiontouch_effects-363b297ae56ca327)
+
+running 3 tests
+Cube: k150=[0.19000000000000014, 0.0, 0.0], k300=[0.34000000000000025, 0.0, 0.0]
+Plane: k150=[0.0, 0.19, 0.0], k300=[0.0, 0.33999999999999997, 0.0]
+Balloon: k150=[0.20400000000000018, 0.0, 0.0], k300=[0.3880000000000004, 0.0, 0.0]
+finite extreme Water velocity yields [-inf, NaN, NaN]; callers still need guard rejection
+same bodies; pen reaction k150=[0.44074134989664004, 5.711746805879138e-19, 0.0], k300=[0.8814826997932801, 1.1423493611758276e-18, 0.0]
+test estate_audit::damping_makes_total_force_affine_in_stiffness ... ok
+test estate_audit::finite_extreme_inputs_can_produce_nonfinite_effect_output ... ok
+test estate_audit::spring_body_motion_ignores_stiffness_but_pen_reaction_scales ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (/home/devuser/workspace/visiontouch-rs/target/debug/deps/visiontouch_studio-3a57604b1b038ff2)
+
+running 5 tests
+a single return mark satisfies return_ok without repeated physical returns
+test worker::estate_audit::one_return_mark_satisfies_repeatability_gate ... previous token accepted by evidence writer after simulator armed
+ok
+test worker::estate_audit::outputoff_token_is_reusable_after_a_simulator_is_armed ... ok
+disconnect discarded an active liveness attempt; no evidence directory created
+test worker::estate_audit::disconnect_drops_running_attempt_without_persisting_it ... ok
+fault status despite failed shutdown: Transport fault: audit: shutdown unconfirmed. Output is off; reconnect.
+test worker::estate_audit::shutdown_failure_still_reports_output_off ... ok
+
+running 1 test
+archived visiontouch binary reports foreign checkout commit: 45781a5da9d4eb946894043c67d4409514ae2325
+test worker::estate_audit::evidence_commit_follows_runtime_cwd_not_compiled_sources ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 94 filtered out; finished in 0.00s
+
+test worker::estate_audit::evidence_commit_follows_runtime_cwd_not_compiled_sources ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 90 filtered out; finished in 0.01s
+

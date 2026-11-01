@@ -39,6 +39,8 @@ Codescape continuation: [extraction, command policy and retained runtime artefac
 
 Codescape presence and XR: [membership replacement, queue loss and concurrent connections](2026-10-31-codescape-presence-and-xr.md), with section dispositions for inherited ADR-2143 and ADR-2159.
 
+Visiontouch continuation: [software force boundaries, evidence and six-decision review](2026-11-01-visiontouch-software-boundaries.md), covering all 39 existing VT panels with nine software-only counterexamples and an explicit recorder-test limitation.
+
 ## Reading order
 
 | Document | Question it answers |

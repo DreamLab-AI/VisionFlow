@@ -1,0 +1,668 @@
+{
+  "observed_at": "2026-11-01",
+  "heads": {
+    "visiontouch-rs": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+    "visionclaw": "75b72416bac176ca8fde715cac3bd7c77657b3e7",
+    "visionflow": "45781a5da9d4eb946894043c67d4409514ae2325"
+  },
+  "source_rows": [
+    {
+      "topic": "VT-01",
+      "path": "../visiontouch-rs/.gitignore",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "fe149e49506de72d828f806ac355f01703eecaad306fb453dc1231b132cffdc9",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-01",
+      "path": "../visiontouch-rs/docs/BASELINE-visiontouch-rs.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "0e63e4aba26652f33213ca86432e91df7443150c4e2a98d72c8fb70b6863eb76",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-01",
+      "path": "../visiontouch-rs/docs/adr/ADR-0001-observation-first-clean-room.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "37dea058e2833b096e4d76732f182a8daffe1fd409f1fb568c1e7696eb32bb55",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-01",
+      "path": "../visiontouch-rs/docs/clean-room/DECOMPILATION-LOG.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "6dc1a53ba4ce29b57e59d36c29e6c7344b670b2a69b56292432ad4b7a3bda318",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-01",
+      "path": "../visiontouch-rs/docs/clean-room/POLICY.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "66f85470d11a15fc7815cec6544b5922f5e598f872e110a882a616bbb0cd20af",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-01",
+      "path": "../visiontouch-rs/docs/clean-room/PROVENANCE.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "7ed74448302ca7806bdc78d78bfa8b0ed6450ab733a9a8a842e837e5e6cfd695",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-01",
+      "path": "../visiontouch-rs/docs/legal/POSITION.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "732758e74aa56fb338192b842ab885104749cdb9439652bf99c87da204003730",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-01",
+      "path": "../visiontouch-rs/docs/research/overload-and-calibration.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "579d7acb3f9301291473107320b2db2b9fb6c97a45a70eafa554f4946164544c",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-01",
+      "path": "../visiontouch-rs/scripts/quality-gate.sh",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "15be4d5d0f94dd1ea53b462d542041aa9c1d29a32377188bc8fc8562856f4747",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-02",
+      "path": "../visiontouch-rs/crates/hal/src/device.rs",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "b98af8a0786d75ddd45c894e9fedda94be2f04913888e11b1b8ddf0efbcc701a",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-02",
+      "path": "../visiontouch-rs/docs/BASELINE-visiontouch-rs.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "0e63e4aba26652f33213ca86432e91df7443150c4e2a98d72c8fb70b6863eb76",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-02",
+      "path": "../visiontouch-rs/docs/adr/ADR-0002-layered-software-force-envelope.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "189f19968d86b1670e0829930e3281f6cd1356e4f99730f627473b9d03dacb43",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-02",
+      "path": "../visiontouch-rs/docs/spec/10-device-readout.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "9e4caacdb96525e0c9f61f954c005011e3889b2675e6303c7fcc0accd1361f69",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-02",
+      "path": "../visiontouch-rs/docs/spec/12-force-feedback.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "eae3454f05637eb40c316fe751a23450a65cf5090e313c6d31d2b71d67b0ff25",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-03",
+      "path": "../visiontouch-rs/crates/device/src/lib.rs",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "0624e088c4eaf4cdc27bc807da08bab9447ff41815ed379ea042108fa5b338cf",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-03",
+      "path": "../visiontouch-rs/crates/hal/src/device.rs",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "b98af8a0786d75ddd45c894e9fedda94be2f04913888e11b1b8ddf0efbcc701a",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-03",
+      "path": "../visiontouch-rs/docs/BASELINE-visiontouch-rs.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "0e63e4aba26652f33213ca86432e91df7443150c4e2a98d72c8fb70b6863eb76",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-03",
+      "path": "../visiontouch-rs/docs/adr/ADR-0002-layered-software-force-envelope.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "189f19968d86b1670e0829930e3281f6cd1356e4f99730f627473b9d03dacb43",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-03",
+      "path": "../visiontouch-rs/docs/adr/ADR-0004-reset-pose-registration.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "01c348ed7203ccc13b5825529df8fa34be0e974e8ea1a22b4810ea140ab0a426",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-03",
+      "path": "../visiontouch-rs/docs/spec/12-force-feedback.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "eae3454f05637eb40c316fe751a23450a65cf5090e313c6d31d2b71d67b0ff25",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-04",
+      "path": "../visiontouch-rs/apps/mass-lab/src/main.rs",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "94754db9e6d72e1f269eeaff20270ce89e16027b5d37a7ea7d45d366b9f21479",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-04",
+      "path": "../visiontouch-rs/apps/mass-lab/src/physics.rs",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "40037abaeba0a4ac45159e53471f2497486da0d90bbdb3ea0473487d04c4ba5c",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-04",
+      "path": "../visiontouch-rs/apps/mass-lab/src/pointer.rs",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "a54f4b66de690509e1fc5078fd0696608ea764aee03917096ea00d08bc3d8078",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-04",
+      "path": "../visiontouch-rs/crates/device/src/lib.rs",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "0624e088c4eaf4cdc27bc807da08bab9447ff41815ed379ea042108fa5b338cf",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-04",
+      "path": "../visiontouch-rs/docs/BASELINE-visiontouch-rs.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "0e63e4aba26652f33213ca86432e91df7443150c4e2a98d72c8fb70b6863eb76",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-04",
+      "path": "../visiontouch-rs/docs/adr/ADR-0002-layered-software-force-envelope.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "189f19968d86b1670e0829930e3281f6cd1356e4f99730f627473b9d03dacb43",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-04",
+      "path": "../visiontouch-rs/docs/spec/11-relative-pointer.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "f9fc3c419f81f9b787de96a821bd73c2d9cf60867a82cfc246ae3362a2a1cb0f",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-04",
+      "path": "../visiontouch-rs/docs/spec/12-force-feedback.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "eae3454f05637eb40c316fe751a23450a65cf5090e313c6d31d2b71d67b0ff25",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-05",
+      "path": "../visiontouch-rs/apps/calibration/src/protocol.rs",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "4ae737047aeb84b4aadd9cb38de66ae1d13ec846281a62fbaf34250e38ffef26",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-05",
+      "path": "../visiontouch-rs/crates/device/src/lib.rs",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "0624e088c4eaf4cdc27bc807da08bab9447ff41815ed379ea042108fa5b338cf",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-05",
+      "path": "../visiontouch-rs/crates/effects/src/lib.rs",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "cd27f534352db2398c99754f735097ccb53d409885c1971ba1c4e6fbf3801a48",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-05",
+      "path": "../visiontouch-rs/docs/BASELINE-visiontouch-rs.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "0e63e4aba26652f33213ca86432e91df7443150c4e2a98d72c8fb70b6863eb76",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-05",
+      "path": "../visiontouch-rs/docs/adr/ADR-0004-reset-pose-registration.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "01c348ed7203ccc13b5825529df8fa34be0e974e8ea1a22b4810ea140ab0a426",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-05",
+      "path": "../visiontouch-rs/docs/spec/12-force-feedback.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "eae3454f05637eb40c316fe751a23450a65cf5090e313c6d31d2b71d67b0ff25",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-06",
+      "path": "../visiontouch-rs/.github/workflows/ci.yml",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "0cf443bdfc0c355831f763222ceb8c74f9e7842de9b4436e35122d5110617b97",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-06",
+      "path": "../visiontouch-rs/AGENTS.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "bfb101cf04faa8130d3320bca9430396de743a3213b24354bc983a544a61a5b5",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-06",
+      "path": "../visiontouch-rs/crates/hal/src/lib.rs",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "9b523df9b0a660a375d0aee6c60a573158812d21944194a66ad688579ea201bf",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-06",
+      "path": "../visiontouch-rs/docs/BASELINE-visiontouch-rs.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "0e63e4aba26652f33213ca86432e91df7443150c4e2a98d72c8fb70b6863eb76",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-06",
+      "path": "../visiontouch-rs/docs/adr/ADR-0005-build-with-quality-retrofit.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "1b06fe7928a845f403d02fe8f9bc244c8c8e054ffff5ce733033935e96f4c660",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-06",
+      "path": "../visiontouch-rs/scripts/build-recorder",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "a006b6cd265006166b9a3a2f055a7c7facf381e3b38f526417d9e7f8f49e61f1",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-06",
+      "path": "../visiontouch-rs/scripts/quality-gate.sh",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "15be4d5d0f94dd1ea53b462d542041aa9c1d29a32377188bc8fc8562856f4747",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-06",
+      "path": "../visiontouch-rs/scripts/with-port-access",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "455360e51b1727c8ba0ed9a2565fb3a3590c5ad51099da50c76bdecd2bb2ed5d",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-06",
+      "path": "../visiontouch-rs/tools/device-readout/src/main.rs",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "82d6c146183a116bda7281b88fc43a73a04fc225ff1636ba6624469e7995fff8",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-06",
+      "path": "../visiontouch-rs/tools/port-probe/src/main.rs",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "0d844d617715db875769db0e967fd4c4e9407b882a071fd2cd3d425f634b6a23",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-06",
+      "path": "../visiontouch-rs/tools/port-recorder/README.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "04ff6375dba33e10d460e49c5b6949d8ec5b6a7a5c87f372e7f5bea1527a62d5",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-06",
+      "path": "../visiontouch-rs/tools/port-recorder/ioctl-entry.S",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "e63a338e5a3247d41b20777f4e75f537b360a326e75d9dac6220eddbeb2fab0b",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-06",
+      "path": "../visiontouch-rs/tools/port-recorder/shim.c",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "615e551d9e86777458c2447b4e659fad2486c3e8e3f4364f88ddbc344ae6aebb",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-06",
+      "path": "../visiontouch-rs/tools/port-recorder/src/lib.rs",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "a7a0d7947f1d8a3c4264334a322a87d4dc57df6b9fecb96f877889f4ec280642",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-07",
+      "path": "../project/client/src/features/graph/hooks/useGraphEventHandlers.ts",
+      "revision": "8692b12ba987ecb87165566beb7c320a2446e4b4",
+      "sha256": "5d9bd765365f2b342cf9ed6166dce12e4d964865957d5fda89b02a72656b31db",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-07",
+      "path": "../project/client/src/features/graph/services/interactionModes/vrArMode.ts",
+      "revision": "8692b12ba987ecb87165566beb7c320a2446e4b4",
+      "sha256": "a6b285b83616ba81677d27bc1295ecda31ef60c0c169a889fc69972e9d5799be",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-07",
+      "path": "../project/client/src/features/visualisation/controls/SpacePilotController.ts",
+      "revision": "8692b12ba987ecb87165566beb7c320a2446e4b4",
+      "sha256": "755ab0afb45bd531f98c28c60cad789cf6d97205b7d647da4ed02d077648ba6e",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-07",
+      "path": "../project/src/handlers/socket_flow_handler/message_routing.rs",
+      "revision": "8692b12ba987ecb87165566beb7c320a2446e4b4",
+      "sha256": "0f5a86a950d1efcd319d427c81b0cb9d38d77f504d6d1a90895440feeecab188",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-07",
+      "path": "../project/xr-client/rust/src/selection.rs",
+      "revision": "8692b12ba987ecb87165566beb7c320a2446e4b4",
+      "sha256": "1dbb85f5f01013ecde5a5a9b2deaac296b8f087f4e6b8906e32032878a7ab497",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-07",
+      "path": "../visiontouch-rs/Cargo.toml",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "3194beeba037ef9bb6ac7a2758cd42f032dbc6d37e6b569c80a6f3c2b0284085",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-07",
+      "path": "../visiontouch-rs/crates/device/src/lib.rs",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "0624e088c4eaf4cdc27bc807da08bab9447ff41815ed379ea042108fa5b338cf",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-07",
+      "path": "../visiontouch-rs/docs/adr/ADR-0006-estate-membership-lab-evaluation.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "918f7e92c83b0e79d270b3b50160bb55cd4e89fb2ec7c9ca6f0295ce9327f325",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-07",
+      "path": "../visiontouch-rs/docs/spec/12-force-feedback.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "eae3454f05637eb40c316fe751a23450a65cf5090e313c6d31d2b71d67b0ff25",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-07",
+      "path": "docs/adr/ADR-2017-haptic-input-device-is-a-supporting-study.md",
+      "revision": "4d361b58ce2b3ee17e1570361eaf78270b630012",
+      "sha256": "e6f0161bb5c0a899836a6a8cec288ed9a074e7c8b820e6c046bae7f596c5300f",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-07",
+      "path": "docs/architecture/repository-map.md",
+      "revision": "4d361b58ce2b3ee17e1570361eaf78270b630012",
+      "sha256": "5849daed1fb71db03ce2ab9fd0d7f4c08ebe2612105d4b7c5bd1d35118ca25ec",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-08",
+      "path": "../visiontouch-rs/apps/calibration/README.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "b9759c1e2dc3e314bfcd8668bf36b5b94f0726760892fcde7f02035122b293b6",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-08",
+      "path": "../visiontouch-rs/apps/calibration/src/arm.rs",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "e818bf0e99e11bba8a04f52d78373a0c1c491aef8ccb77000be77c273e66f96e",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-08",
+      "path": "../visiontouch-rs/apps/calibration/src/control.rs",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "3b36f64b469d2081ff5a1a5119763ce696614c61e1c0aa306f301669a42f4957",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-08",
+      "path": "../visiontouch-rs/apps/calibration/src/controller.rs",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "9769989ff62edefa5247da578e0e1b4ed32885f33de3185f15ffdc81ba6b543c",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-08",
+      "path": "../visiontouch-rs/apps/calibration/src/coverage.rs",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "13f89e7416ffb0acf6abe65be7b27ff038c20685beff7ef178f6f77ae146510c",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-08",
+      "path": "../visiontouch-rs/apps/calibration/src/evidence.rs",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "bfad2a8f1a2e38a6ae110de19236b813f9748cf580397b5ba440e466634512db",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-08",
+      "path": "../visiontouch-rs/apps/calibration/src/main.rs",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "113d6eae471adf153c4986a7db51479ed6ce7c597ba31ae2796dee85805280e9",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-08",
+      "path": "../visiontouch-rs/apps/calibration/src/onboarding.rs",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "312e0458ee0e52b64047d6b42120e6722b129dc292298910ea4457e7059c79f5",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-08",
+      "path": "../visiontouch-rs/apps/calibration/src/protocol.rs",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "4ae737047aeb84b4aadd9cb38de66ae1d13ec846281a62fbaf34250e38ffef26",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-08",
+      "path": "../visiontouch-rs/apps/calibration/src/registration.rs",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "2d10bd45d0678a37e3c9434f553dde5705811ced07a35c8ef68cf8131517e5d8",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-08",
+      "path": "../visiontouch-rs/apps/calibration/src/scene.rs",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "aa3802d74ee52ff328c7856742d402a5f56b90772ed01dcb24222cad53fbc5b7",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-08",
+      "path": "../visiontouch-rs/apps/calibration/src/sim.rs",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "1ab9949e197b33defd5398692b81b2ebef66335921c1c46b20a68010cba7914a",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-08",
+      "path": "../visiontouch-rs/apps/calibration/src/smoke.rs",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "58a2c3674ab6d848311fabecde33f80b016ffd9b9aa03767140d0074a7b20bba",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-08",
+      "path": "../visiontouch-rs/apps/calibration/src/ui.rs",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "d473c38dab836338011c616d011c45db488c64359c38b6252b30e5d5a691f4da",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-08",
+      "path": "../visiontouch-rs/apps/calibration/src/worker.rs",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "32a447af19bd31676d3ee2fe17722e98f97a6dc8ddc5d72e76258cbde27e0afa",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-08",
+      "path": "../visiontouch-rs/crates/device/src/lib.rs",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "0624e088c4eaf4cdc27bc807da08bab9447ff41815ed379ea042108fa5b338cf",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-08",
+      "path": "../visiontouch-rs/crates/hal/src/device.rs",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "b98af8a0786d75ddd45c894e9fedda94be2f04913888e11b1b8ddf0efbcc701a",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-08",
+      "path": "../visiontouch-rs/docs/BASELINE-visiontouch-rs.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "0e63e4aba26652f33213ca86432e91df7443150c4e2a98d72c8fb70b6863eb76",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-08",
+      "path": "../visiontouch-rs/docs/adr/ADR-0003-staged-force-verification-ladder.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "3bd6414e89d6aa1c638ba632776c323c3330b963a703f82dbf9bad0fc2ac3040",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-08",
+      "path": "../visiontouch-rs/docs/adr/ADR-0004-reset-pose-registration.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "01c348ed7203ccc13b5825529df8fa34be0e974e8ea1a22b4810ea140ab0a426",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-08",
+      "path": "../visiontouch-rs/docs/spec/14-force-calibration.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "7e24fd2618d5cdad89f15f52163df94ac549a3ff387f1a1a547f2dd6a5c61716",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-08",
+      "path": "../visiontouch-rs/docs/spec/15-servo-cadence.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "aabb28eaf15cc9fd94a563e29e3470ef23900017bdb4b3fec70129122cd758e0",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-08",
+      "path": "../visiontouch-rs/docs/spec/16-guided-onboarding.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "8fe654f5bf8061f0c693866f5f259b1f4bfbf73b72df5ee72bb358ad9532db7a",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-08",
+      "path": "../visiontouch-rs/docs/spec/17-local-control.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "d4bc576db33b76379acc85bc1a67e0bac19df2ee4bf3c81e37a7c8a651cd3ab5",
+      "matches_pin": true
+    },
+    {
+      "topic": "VT-08",
+      "path": "../visiontouch-rs/docs/spec/18-gradual-drive.md",
+      "revision": "7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d",
+      "sha256": "9b2c89388823714ae902c443f604feacb24de63e8cc34a82de6370c699c93bd4",
+      "matches_pin": true
+    }
+  ],
+  "adr_sections": [
+    {
+      "path": "ADR-0001-observation-first-clean-room.md",
+      "sha256": "37dea058e2833b096e4d76732f182a8daffe1fd409f1fb568c1e7696eb32bb55",
+      "sections": [
+        "Context",
+        "Decision",
+        "Consequences",
+        "Verification"
+      ]
+    },
+    {
+      "path": "ADR-0002-layered-software-force-envelope.md",
+      "sha256": "189f19968d86b1670e0829930e3281f6cd1356e4f99730f627473b9d03dacb43",
+      "sections": [
+        "Context",
+        "Decision",
+        "Consequences",
+        "Verification"
+      ]
+    },
+    {
+      "path": "ADR-0003-staged-force-verification-ladder.md",
+      "sha256": "3bd6414e89d6aa1c638ba632776c323c3330b963a703f82dbf9bad0fc2ac3040",
+      "sections": [
+        "Context",
+        "Decision",
+        "Consequences",
+        "Verification"
+      ]
+    },
+    {
+      "path": "ADR-0004-reset-pose-registration.md",
+      "sha256": "01c348ed7203ccc13b5825529df8fa34be0e974e8ea1a22b4810ea140ab0a426",
+      "sections": [
+        "Context",
+        "Decision",
+        "Consequences",
+        "Verification"
+      ]
+    },
+    {
+      "path": "ADR-0005-build-with-quality-retrofit.md",
+      "sha256": "1b06fe7928a845f403d02fe8f9bc244c8c8e054ffff5ce733033935e96f4c660",
+      "sections": [
+        "Context",
+        "Decision",
+        "Consequences",
+        "Verification"
+      ]
+    },
+    {
+      "path": "ADR-0006-estate-membership-lab-evaluation.md",
+      "sha256": "918f7e92c83b0e79d270b3b50160bb55cd4e89fb2ec7c9ca6f0295ce9327f325",
+      "sections": [
+        "Context",
+        "Decision",
+        "Consequences",
+        "Verification"
+      ]
+    }
+  ],
+  "test_counts": {
+    "rust_baseline": 144,
+    "viewer": 6,
+    "audio": 6,
+    "audit_unique_tests": 9,
+    "recorder_integration": "failed: snapshot memory_errno=1 (EPERM)"
+  },
+  "scope": "Software-only. No device commands, deployment, physical force or legal acceptance."
+}

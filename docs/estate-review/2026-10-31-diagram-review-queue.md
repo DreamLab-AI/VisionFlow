@@ -1,5 +1,8 @@
 # Diagram semantic-review queue — 31 October 2026
 
+1 November continuation: [visiontouch source assessment](2026-11-01-visiontouch-software-boundaries.md) reviews VT-01 through VT-08, all 39 panels, with nine audit probes and open implementation/physical-acceptance findings. This dated assessment supersedes their pending semantic-review disposition below; it does not reclassify other topics.
+
+
 Input comparison at VisionFlow `64ef3af`; [method and limits](2026-10-31-diagram-drift-and-health.md). All rows still require semantic review unless a separate dated assessment says otherwise. A byte-identical input can support an incorrect or incomplete diagram. Counts are topic/input relationships, not distinct files.
 
 | Topic | Changed | Identical | Uncompared |

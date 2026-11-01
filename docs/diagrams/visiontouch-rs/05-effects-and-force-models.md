@@ -8,6 +8,7 @@ governing:
 adrs: [visiontouch-rs:ADR-0002]
 sources:
   - ../visiontouch-rs/crates/effects/src/lib.rs
+  - ../visiontouch-rs/apps/calibration/src/protocol.rs
   - ../visiontouch-rs/docs/spec/12-force-feedback.md
   - ../visiontouch-rs/crates/device/src/lib.rs
   - ../visiontouch-rs/docs/adr/ADR-0004-reset-pose-registration.md
@@ -16,7 +17,9 @@ verified_commit: 7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d
 
 ## For developers
 
-`visiontouch-effects` is a hardware-free library of seven force models in model metres, seconds and newtons. A caller owns an `Effect`, feeds it the pen position, velocity and an interval, and gets back an unclamped `Frame` (force, contact proxy, spring-demo bodies, balloon state). Stiffness and damping come from one sanitised `Tuning`, and every fixed constant was written for 150 N/m, so forces scale linearly with stiffness. The crate never limits force: the guard in VT-03 does. Which app drives which effect is not covered here, because the Calibration Studio is being rewritten.
+Source review and qualifications: [1 November audit](../../estate-review/2026-11-01-visiontouch-software-boundaries.md). The source pins are retained; this review changes claims, not device behaviour.
+
+`visiontouch-effects` is a hardware-free library of seven force models in model metres, seconds and newtons. A caller owns an `Effect`, feeds it the pen position, velocity and an interval, and gets back an unclamped `Frame` (force, contact proxy, spring-demo bodies, balloon state). Stiffness and damping come from one sanitised `Tuning`, with 150 N/m as the reference for several gains. Cube, plane and balloon also contain a damping term independent of stiffness, so their total force is not generally proportional to stiffness. The crate never limits force: the guard in VT-03 does. The Studio constructs a fresh effect for each effect attempt (apps/calibration/src/protocol.rs:841-843).
 
 ## For the business
 
@@ -33,15 +36,16 @@ sequenceDiagram
     participant TU as Tuning::sanitised<br/>crates/effects/src/lib.rs:80
     participant GD as ForceGuard<br/>crates/device/src/lib.rs:318
     CL->>NW: kind, radius, tuning
-    NW->>TU: clamp stiffness 20 to 1500 and damping 0 to 100, NaN falls back (crates/effects/src/lib.rs:80-95)
-    NW-->>CL: radius clamped to 0.2 mm to 100 mm, 20 mm default if not finite (crates/effects/src/lib.rs:207-212)
+    NW->>TU: clamp stiffness 20 to 1500 and damping 0 to 100, NaN falls back<br/>(crates/effects/src/lib.rs:80-95)
+    NW-->>CL: radius clamped to 0.2 mm to 100 mm, 20 mm default if not finite<br/>(crates/effects/src/lib.rs:207-212)
     CL->>ST: position, velocity, dt
-    ST->>ST: non-finite input or dt outside 0 to 25 ms gives an all-zero frame and no state change (crates/effects/src/lib.rs:232-234)
-    ST-->>CL: Frame with unclamped force and a contact proxy (crates/effects/src/lib.rs:169-181)
-    CL->>GD: force becomes a Demand, limited there (crates/device/src/lib.rs:359)
+    ST->>ST: non-finite input or dt outside 0 to 25 ms gives an all-zero frame and no<br/>state change<br/>(crates/effects/src/lib.rs:232-234)
+    ST-->>CL: Frame with unclamped force and a contact proxy<br/>(crates/effects/src/lib.rs:169-181)
+    CL->>GD: force becomes a Demand, limited there<br/>(crates/device/src/lib.rs:359)
     Note over ST: INVARIANT: pure simulation, never opens hardware or arms motors<br/>crates/effects/src/lib.rs:3-5
+    Note over ST: DEBT: finite but extreme velocity can overflow the Water force<br/>calculation<br/>crates/effects/src/lib.rs:232 and crates/effects/src/lib.rs:263
     Note over ST,GD: INVARIANT: Frame force is unclamped and the hardware layer must limit it<br/>crates/effects/src/lib.rs:167
-    Note over NW: DOC-DRIFT: positions are said to be relative to the calibrated centre<br/>crates/effects/src/lib.rs:6 but the model frame is the registered reset pose, see docs/adr/ADR-0004-reset-pose-registration.md
+    Note over NW: DOC-DRIFT: positions are said to be relative to the calibrated centre<br/>crates/effects/src/lib.rs:6 but the model frame is the registered reset<br/>pose, see docs/adr/ADR-0004-reset-pose-registration.md
 ```
 
 An invalid step returns a zero frame the caller should treat as a fault, not a quiet success.
@@ -75,13 +79,13 @@ flowchart TB
     VI --> OUT
     DE --> OUT
     SP --> OUT
-    N1["INVARIANT: every force is linear in stiffness<br/>crates/effects/src/lib.rs:63-66"]
+    N1["DRIFT: total cube, plane and balloon force includes damping independent of stiffness<br/>crates/effects/src/lib.rs:252 and crates/effects/src/lib.rs:278"]
     N2["DOC-DRIFT: Tuning docs say the balloon uses k directly<br/>crates/effects/src/lib.rs:64-65 while the code scales it through s at crates/effects/src/lib.rs:277"]
     SC --- N1
     BA --- N2
 ```
 
-Cube and plane use stiffness and damping directly. The other five were tuned at 150 N/m and are scaled by the ratio. The balloon and the doc comment disagree on which group it belongs to, though the result is the same at the default.
+Cube and plane use stiffness and damping directly. Water, viscosity, detents and the spring-demo pen reaction scale by the ratio. Balloon scales its spring term but keeps a separate damping term. The balloon and the doc comment disagree on which group it belongs to, though the result is the same at the default.
 
 ## VT-05.3 Contact proxy for the cube and the plane
 
@@ -112,13 +116,12 @@ stateDiagram-v2
     Popped --> Popped: zero force for any later input (crates/effects/src/lib.rs:272)
     Popped --> [*]: recreate the Effect (crates/effects/src/lib.rs:179-180)
     note right of Popped
-        DIVERGENCE: the operator text says release and hold again to reinflate
-        crates/effects/src/lib.rs:149 yet the latch never clears inside the crate and the test
-        only recreates the effect crates/effects/src/lib.rs:391-405
+        INVARIANT: reinflation requires a new Effect, created for each Studio effect attempt
+        protocol.rs:841-843 and crates/effects/src/lib.rs:391-405
     end note
 ```
 
-Whether the app recreates the effect on release decides if the operator text is true. That sits with the app, so it is an open question for the Studio rewrite.
+A new Studio effect attempt recreates the effect. Releasing ends the current held attempt; a fresh attempt starts with an intact balloon.
 
 ## VT-05.5 Springs demo: sub-stepped three-body integration
 
@@ -128,15 +131,15 @@ sequenceDiagram
     participant ST as Effect::step Springs<br/>crates/effects/src/lib.rs:289
     participant BD as three bodies<br/>crates/effects/src/lib.rs:293
     participant PN as pen contact<br/>crates/effects/src/lib.rs:321
-    ST->>ST: sub-steps of at most 1 ms (crates/effects/src/lib.rs:290-292)
-    ST->>BD: anchor attraction with softened core and light drag (crates/effects/src/lib.rs:294-300)
-    ST->>BD: pair springs toward an equilateral rest length (crates/effects/src/lib.rs:302-318)
-    ST->>PN: contact within 0.28 r, spring 100 and damping 1.5 (crates/effects/src/lib.rs:324-335)
-    PN-->>BD: contact removed from the body, added to the pen reaction (crates/effects/src/lib.rs:336-337)
-    ST->>BD: velocity limited to 0.2 m per s then positions advance (crates/effects/src/lib.rs:339-341)
-    ST-->>ST: reaction summed over sub-steps, scaled by s (crates/effects/src/lib.rs:343)
-    Note over ST: INVARIANT: results are finite, symmetric and independent of dt split (2 ms versus two 1 ms steps)<br/>crates/effects/src/lib.rs:407-415
-    Note over BD: DEBT: body mass is an inline 0.02 and every gain is a literal, no named constants<br/>crates/effects/src/lib.rs:340
+    ST->>ST: sub-steps of at most 1 ms<br/>(crates/effects/src/lib.rs:290-292)
+    ST->>BD: anchor attraction with softened core and light drag<br/>(crates/effects/src/lib.rs:294-300)
+    ST->>BD: pair springs toward an equilateral rest length<br/>(crates/effects/src/lib.rs:302-318)
+    ST->>PN: contact within 0.28 r, spring 100 and damping 1.5<br/>(crates/effects/src/lib.rs:324-335)
+    PN-->>BD: contact removed from the body, added to the pen reaction<br/>(crates/effects/src/lib.rs:336-337)
+    ST->>BD: velocity limited to 0.2 m per s then positions advance<br/>(crates/effects/src/lib.rs:339-341)
+    ST-->>ST: reaction summed over sub-steps, scaled by s<br/>(crates/effects/src/lib.rs:343)
+    Note over ST: INVARIANT: no-contact test checks body positions and symmetry under 2 ms<br/>versus two 1 ms steps<br/>crates/effects/src/lib.rs:407-415
+    Note over BD: DEBT: body mass is an inline 0.02 and every gain is a literal, no named<br/>constants<br/>crates/effects/src/lib.rs:340
 ```
 
-The pen feels momentum exchange with a body, and the body is pushed back by exactly the contact force the pen receives.
+Contact is subtracted from the body, then the pen reaction is averaged over substeps and multiplied by stiffness / 150. Changing stiffness scales the returned pen force without changing body motion; equal returned and body-contact magnitudes therefore hold only at the reference scale, before device limiting.

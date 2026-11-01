@@ -1,0 +1,13 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling syn v3.0.9
+   Compiling serde_derive v1.0.229
+   Compiling serde v1.0.229
+   Compiling port-recorder v0.1.0 (/home/devuser/workspace/visiontouch-rs/tools/port-recorder)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.93s
+/home/devuser/workspace/visiontouch-rs/target/debug/libport_capture.so
+Traceback (most recent call last):
+  File "/home/devuser/workspace/visiontouch-rs/tools/port-recorder/tests/check.py", line 42, in <module>
+    assert initial["before"]["hex"] == "00ff225c0a"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

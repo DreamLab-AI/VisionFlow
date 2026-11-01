@@ -1456,7 +1456,7 @@ Revision labels are author declarations. This index checks structure and referen
 | [VT-08.3 Interlocks per attempt class](visiontouch-rs/08-calibration-studio-and-verification-ladder.md#vt-083-interlocks-per-attempt-class) | flowchart | VT-08 |
 | [VT-08.4 Registration at the reset pose](visiontouch-rs/08-calibration-studio-and-verification-ladder.md#vt-084-registration-at-the-reset-pose) | flowchart | VT-08 |
 | [VT-08.5 Evidence schema 2](visiontouch-rs/08-calibration-studio-and-verification-ladder.md#vt-085-evidence-schema-2) | classDiagram | VT-08 |
-| [VT-08.6 Headless path and CLI modes that never open hardware](visiontouch-rs/08-calibration-studio-and-verification-ladder.md#vt-086-headless-path-and-cli-modes-that-never-open-hardware) | flowchart | VT-08 |
+| [VT-08.6 Headless path and CLI connection modes](visiontouch-rs/08-calibration-studio-and-verification-ladder.md#vt-086-headless-path-and-cli-connection-modes) | flowchart | VT-08 |
 | [VT-08.7 Local control socket, guided onboarding and the gradual channel diagnostic](visiontouch-rs/08-calibration-studio-and-verification-ladder.md#vt-087-local-control-socket-guided-onboarding-and-the-gradual-channel-diagnostic) | flowchart | VT-08 |
 | [ES-01.1 Substrate map — the VisionClaw checkout's neighbourhood, not the whole estate](estate/01-estate-topology.md#es-011-substrate-map-the-visionclaw-checkouts-neighbourhood-not-the-whole-estate) | flowchart | ES-01 |
 | [ES-01.2 Network / compute fabric — gateway host, Loom-only connected node, retired-address trap](estate/01-estate-topology.md#es-012-network-compute-fabric-gateway-host-loom-only-connected-node-retired-address-trap) | flowchart | ES-01 |
@@ -4206,7 +4206,7 @@ Keys are repository-qualified. `estate-unresolved` preserves an unqualified cros
 | `../visiontouch-rs/apps/calibration/src/evidence.rs` | [VT-08](visiontouch-rs/08-calibration-studio-and-verification-ladder.md) |
 | `../visiontouch-rs/apps/calibration/src/main.rs` | [VT-08](visiontouch-rs/08-calibration-studio-and-verification-ladder.md) |
 | `../visiontouch-rs/apps/calibration/src/onboarding.rs` | [VT-08](visiontouch-rs/08-calibration-studio-and-verification-ladder.md) |
-| `../visiontouch-rs/apps/calibration/src/protocol.rs` | [VT-08](visiontouch-rs/08-calibration-studio-and-verification-ladder.md) |
+| `../visiontouch-rs/apps/calibration/src/protocol.rs` | [VT-05](visiontouch-rs/05-effects-and-force-models.md), [VT-08](visiontouch-rs/08-calibration-studio-and-verification-ladder.md) |
 | `../visiontouch-rs/apps/calibration/src/registration.rs` | [VT-08](visiontouch-rs/08-calibration-studio-and-verification-ladder.md) |
 | `../visiontouch-rs/apps/calibration/src/scene.rs` | [VT-08](visiontouch-rs/08-calibration-studio-and-verification-ladder.md) |
 | `../visiontouch-rs/apps/calibration/src/sim.rs` | [VT-08](visiontouch-rs/08-calibration-studio-and-verification-ladder.md) |
@@ -4217,7 +4217,7 @@ Keys are repository-qualified. `estate-unresolved` preserves an unqualified cros
 | `../visiontouch-rs/apps/mass-lab/src/physics.rs` | [VT-04](visiontouch-rs/04-mass-lab-servo-rate-coupling.md) |
 | `../visiontouch-rs/apps/mass-lab/src/pointer.rs` | [VT-04](visiontouch-rs/04-mass-lab-servo-rate-coupling.md) |
 | `../visiontouch-rs/Cargo.toml` | [VT-07](visiontouch-rs/07-estate-position-and-future-visionclaw-grab-path.md) |
-| `../visiontouch-rs/crates/device/src/lib.rs` | [VT-03](visiontouch-rs/03-device-sdk-and-force-guard.md), [VT-04](visiontouch-rs/04-mass-lab-servo-rate-coupling.md), [VT-05](visiontouch-rs/05-effects-and-force-models.md), [VT-07](visiontouch-rs/07-estate-position-and-future-visionclaw-grab-path.md) |
+| `../visiontouch-rs/crates/device/src/lib.rs` | [VT-03](visiontouch-rs/03-device-sdk-and-force-guard.md), [VT-04](visiontouch-rs/04-mass-lab-servo-rate-coupling.md), [VT-05](visiontouch-rs/05-effects-and-force-models.md), [VT-07](visiontouch-rs/07-estate-position-and-future-visionclaw-grab-path.md), [VT-08](visiontouch-rs/08-calibration-studio-and-verification-ladder.md) |
 | `../visiontouch-rs/crates/effects/src/lib.rs` | [VT-05](visiontouch-rs/05-effects-and-force-models.md) |
 | `../visiontouch-rs/crates/hal/src/device.rs` | [VT-02](visiontouch-rs/02-transport-software-epp-and-force-session.md), [VT-03](visiontouch-rs/03-device-sdk-and-force-guard.md), [VT-08](visiontouch-rs/08-calibration-studio-and-verification-ladder.md) |
 | `../visiontouch-rs/crates/hal/src/lib.rs` | [VT-06](visiontouch-rs/06-tools-and-evidence-path.md) |
