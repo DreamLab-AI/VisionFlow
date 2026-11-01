@@ -1,0 +1,72 @@
+{
+  "date": "2026-11-01",
+  "agentbox_revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+  "source_exports_verified": 32,
+  "annotated_slices_verified": 10,
+  "probe_patch_reverse_check": "passed against tested archive",
+  "native_tests": {
+    "passed": 66,
+    "added": 7,
+    "skipped": 0
+  },
+  "node_tests": {
+    "passed": 9,
+    "skipped": 1,
+    "skip_reason": "Live provider launch deliberately disabled"
+  },
+  "initial_failures": "One overly broad directory-move hypothesis corrected with a retained counterexample; two Node archive-environment failures resolved by pinned primary-checkout execution. Initial logs retained.",
+  "diagrams": [
+    {
+      "panel": "AB-12.15",
+      "visually_inspected": true,
+      "mmd_sha256": "4f6bf4a2374dcc061eb5d333d2ca8111b4a1134d57b9bd0df13a302b1cfacf43",
+      "svg_sha256": "0f407e653989cd5a86bf991c66f283e2b9f876382262da2f8eeee968946efcb4"
+    },
+    {
+      "panel": "AB-39.1",
+      "visually_inspected": true,
+      "mmd_sha256": "bb98069477f701226eac6effa8a9544e6c0711cc9c722a6de992597b1cad5fdb",
+      "svg_sha256": "c4da6cee3154dd319946521cb5a5a8e5ea414d3b35834b400ab1b4a0e104034a"
+    },
+    {
+      "panel": "AB-39.2",
+      "visually_inspected": true,
+      "mmd_sha256": "82d775d0f3e52b759520d9275638d32c82f8a1b7083de4e21e59fd32b212986b",
+      "svg_sha256": "bc8445d97aba87072ad31c5bb7a29cbe4ec72db6d5b0949288d241c058ca9030"
+    },
+    {
+      "panel": "AB-39.3",
+      "visually_inspected": true,
+      "mmd_sha256": "04cba7f9b9451f5583d6b3e55a3863580646cd30416c6152d73c345098199c0b",
+      "svg_sha256": "0470cfb249a0f02114338d4967ba75c1a7d179ab5206397cc673fff2b54a05a6"
+    },
+    {
+      "panel": "AB-39.4",
+      "visually_inspected": true,
+      "mmd_sha256": "cd0d7368f4ea11d93a8bd68f9e69af40e4f10fe75edf58f5fba3b335ee46334e",
+      "svg_sha256": "38ebef44f22781d6792d5c15894eef496dc670349f0e3a88ad1a4f9dfc21e1d6"
+    },
+    {
+      "panel": "AB-39.5",
+      "visually_inspected": true,
+      "mmd_sha256": "40ea26ebdb5ebf76ce2797d6188599af68c5d99abfe18f60c76cb1c0f50f190a",
+      "svg_sha256": "28bf81648fd59277977a09ff7a35f389cedb85a622007dfcaa5e377e0faeacaa"
+    }
+  ],
+  "full_corpus_gate": {
+    "topics": 199,
+    "panels": 1705,
+    "revision_verified_citations": 25218,
+    "warnings": 0,
+    "working_tree_fallback": 0,
+    "unresolved": 0,
+    "existing_allowlisted": 9,
+    "revision_stamps": 48
+  },
+  "index_check": "passed",
+  "unicode_findings": 0,
+  "prose_findings": [],
+  "local_links_checked": 7,
+  "limits": "No all-provider roundtrip, cold boot, negative-UID live test, management outage, operator-client switch or product remediation. Only AB12.15 and AB39.1-5 reassessed; whole-corpus mechanical checks do not confer semantic coverage.",
+  "slice_export_format": "Numbered lines use a colon and space before non-empty source; empty source lines use a colon alone, avoiding artificial trailing whitespace. All ten decoded slices rechecked against pinned source."
+}

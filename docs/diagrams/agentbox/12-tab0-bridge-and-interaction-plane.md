@@ -519,55 +519,30 @@ sequenceDiagram
     Note over Sc: nostr-send.cjs is fail-open, exit 0 even on delivery failure — ok true means handed to the relay path, not delivered (server.mjs:466-467)
 ```
 
-## AB-12.15 Session plane — reconcile, ownership and the paths that reach it
+## AB-12.15 Native session plane and its lifecycle boundaries
 ```mermaid
-flowchart TB
-    subgraph DECL["Declared state"]
-        MAN["agentbox.toml session_seeds, 7 seeds, plus the external tab0 coordinator<br/>agentbox.toml:2144,:2191-2196"]
-    end
-    subgraph DAEMON["agentbox-sessions daemon, supervised as devuser"]
-        REC["reconcile_once: plan each seed, decide, start<br/>services/agentbox-sessions/src/plane.rs:292-337"]
-        DEC["decide: Create, Recreate on drift, dead or trust prompt, Keep,<br/>Hold on conflict, dirty worktree, sign-in blocker or backoff<br/>services/agentbox-sessions/src/reconcile.rs:65-92"]
-        DIRTY["dirty gate: git status porcelain, ignored build output excluded<br/>services/agentbox-sessions/src/worktree.rs:29-30"]
-        BACK["backoff: three restarts per hour per slug, in memory<br/>services/agentbox-sessions/src/reconcile.rs:17-18,:88-90"]
-        TRUST["folder trust seeded before launch<br/>services/agentbox-sessions/src/plane.rs:270"]
-        OWN["ownership marker abs_ prefix and @agentbox-sessions=1<br/>services/agentbox-sessions/src/tmux.rs:20-21"]
-        STAT["status: dead, blocked, busy, idle from pane_dead, blocker patterns and hooks<br/>services/agentbox-sessions/src/status.rs:53-73"]
-        SOCK["unix socket 0660, SO_PEERCRED ACL<br/>services/agentbox-sessions/src/api.rs:45-49, :70-76"]
-    end
-    TMUX["tmux server, one abs_ session per seed"]
-    PICK["tab 8 picker, switch-client on its own client only<br/>config/tmux-autostart.sh:382-385<br/>services/agentbox-sessions/src/pick.rs:20-27,:71"]
-    OPS["socket ops: list, send, create, close, mark<br/>services/agentbox-sessions/src/api.rs:89-98"]
-    STORES["claude.json stores, root and per profile, and codex config"]
-    TB["tab0-bridge sessionSend<br/>config/tab0-bridge/server.mjs:133-142"]
-    GW["nostr-gateway sessionCreate<br/>config/nostr-gateway/gateway.cjs:415-421"]
-    FB["tmux send-keys fallback<br/>config/tab0-bridge/server.mjs:162-168"]
-    TS["trust-seed.cjs, boot-time root and profile stores<br/>config/hooks/trust-seed.cjs:78-86"]
-
-    MAN --> REC
-    REC --> DEC
-    DEC -->|Create or Recreate| DIRTY
-    DIRTY --> TRUST
-    TRUST --> OWN
-    OWN --> TMUX
-    DEC -.->|restart count| BACK
-    STAT -.->|classify panes| DEC
-    TB -->|op send| SOCK
-    GW -->|op create and send| SOCK
-    SOCK -->|dispatch| OPS
-    OPS --> TMUX
-    SOCK -.->|op reconcile only| REC
-    TB -.->|socket failure| FB
-    FB -.-> TMUX
-    PICK -->|list, then switch own client| TMUX
-    TRUST -.->|writes| STORES
-    TS -.->|also writes| STORES
+flowchart TD
+    MAN["Loaded manifest seeds and launch contract<br/>plane.rs:184,185"] --> REC["Reconcile stored seeds<br/>plane.rs:309"]
+    REC --> DEC["Owned-pane planner: create, recreate, keep or hold<br/>reconcile.rs:65-92"]
+    DEC -.->|conditional dirty check| GATE["Desired worktree only: inspect plan.dir<br/>Git errors become zero changes<br/>plane.rs:325"]
+    DEC -->|create or recreate| START["Ensure worktree, seed trust, replace pane<br/>plane.rs:268,270,273,277"]
+    BACK["Three starts per hour per slug;<br/>process-local history<br/>reconcile.rs:17-18,97"] -.-> DEC
+    SOCK["Unix socket: peer-credential ACL<br/>api.rs:45-49,70-76"] --> OPS["List, send, create, close, mark, reconcile<br/>api.rs:89-98"]
+    OPS -->|create| START
+    OPS -->|reconcile| REC
+    OPS -->|send| INPUT["Send text before busy-hook write<br/>plane.rs:411,415"]
+    TB["tab0-bridge send<br/>server.mjs:157"] --> SOCK
+    GW["nostr-gateway create<br/>gateway.cjs:415-421"] --> SOCK
+    TB -.->|send error| FALL["tmux fallback; prior submission may be unknown<br/>server.mjs:162-168"]
+    PICK["Picker chooses most active client<br/>in inherited pane's session<br/>pick.rs:17,24-26"] --> TARGET["Switch selected client explicitly<br/>pick.rs:71"]
 ```
-**What it shows.** The live session plane at the verified commit: the daemon compares each manifest seed with what tmux runs, recreates a missing, dead, drifted or trust-blocked pane unless the worktree holds work or the slug has restarted three times in the hour, and touches only sessions carrying its own marker. tab0-bridge and the nostr-gateway reach it over the socket, tab 8 runs the picker (`config/tmux-autostart.sh:382-385`), and the bridge keeps a tmux fallback.
-**Why it is this way.** ADR-2153 replaced the create-only AoE seeder after five of ten AoE sessions were found dead on 2026-10-28, and it records the cut-over as live with the implementation still partial (`docs/adr/ADR-2153-session-plane-replaces-aoe.md:40,:6-7`).
 
-**Open:** the acceptance run left antigravity blocked on sign-in and openrouter on a 401, and session-boundary turn events returned HTTP 500 from the beads redactor, so a successful reply is not proof the session epic is bound (`docs/adr/ADR-2153-session-plane-replaces-aoe.md:169-172,:195-198`).
-**Debt:** the restart counter is a process-local map, so a restart of the daemon itself forgets the hour's history and a command that dies on launch gets three fresh attempts (`services/agentbox-sessions/src/reconcile.rs:96-98`).
-**Drift:** the crate comment says `trust-seed.cjs` only ever wrote the root store (`services/agentbox-sessions/src/trust.rs:10-11`), but it enumerates every existing wrapper profile store, which the ADR's later note records (`config/hooks/trust-seed.cjs:78-86`, `docs/adr/ADR-2153-session-plane-replaces-aoe.md:102`).
-**Invariant:** the daemon, like trust-seed, offers folder trust to a wrapper profile store only when `profiles/<slug>/.claude/.claude.json` already exists, so a missing profile file is never created (`services/agentbox-sessions/src/trust.rs:34-43`, `config/hooks/trust-seed.cjs:78-86`).
+**What it shows.** Native `agentbox-sessions` replaces the retired Agent of Empires service. Ownership, sign-in holds and ordinary dirty-worktree holds exist, but the [lifecycle audit](../../estate-review/2026-11-01-agentbox-session-lifecycle.md) identifies narrower guarantees: the dirty gate uses the desired directory and fails open on Git errors; send can return failure after submission; and the picker chooses a client by activity rather than proving invoking-client identity. The graph's start edge describes create/recreate paths, not every listed socket operation.
+
+**Why it is this way.** ADR-2153 records the replacement as accepted, partial and live. Historical provider and boundary failures remain separate from source implementation and current daemon liveness. An idle status row is not a successful round trip.
+
+**Trust boundary.** Trust seeding visits the root and existing wrapper profile stores. Missing profile files are not created (`services/agentbox-sessions/src/trust.rs:34-43`). The old root-only comment is stale relative to `config/hooks/trust-seed.cjs:78-86`.
+
+**Review scope.** Only AB-12.15 is reassessed here. Its implementation files match the topic's existing verified revision; sibling panels retain their original evidence boundaries. AB-39 details the new probes and lifecycle findings.
+
 **Tension (ADR-2151 vs manifest):** ADR-2151 (its pin commit 11dafbde9 landed after d9477245d held it proposed) records the VoiceLink edge voice slot as proposed, implementation none, inactive (`docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`), while the live manifest sets `[voicelink] enabled = true` and `record_events = true` (`agentbox.toml:2226,2233`); that path reaches the container by `voice-paned --stdio` over ssh and bypasses tab0-bridge and the Unmute loop (`agentbox.toml:2218-2222`).

@@ -1,0 +1,9 @@
+{
+  "cwd": "/home/devuser/workspace/project/agentbox",
+  "live_launch": false,
+  "live_roundtrip": false,
+  "client_sha256": {
+    "/opt/agentbox/config/session-plane/client.cjs": "11d6732b058c128f1bce00cddc26bb15343d76f4852b0ca4c61dbf9156fa98a3",
+    "/home/devuser/workspace/project/agentbox/config/session-plane/client.cjs": "11d6732b058c128f1bce00cddc26bb15343d76f4852b0ca4c61dbf9156fa98a3"
+  }
+}

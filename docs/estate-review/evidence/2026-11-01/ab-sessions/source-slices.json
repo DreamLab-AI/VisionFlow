@@ -1,0 +1,92 @@
+[
+  {
+    "path": "agentbox.toml",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "whole_file_sha256": "c9c7016e6649c118f69ccbbab8d25e35e26c1dc3f449dab61b5ea2493b61203d",
+    "first_line": 2140,
+    "last_line": 2240,
+    "export": "source-slices/agentbox.toml.2140-2240.txt",
+    "sha256": "ce34604e853917cf6131dfa0b4f45882d824fff4de1edf048bcfd5871a91eb92"
+  },
+  {
+    "path": "flake.nix",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "whole_file_sha256": "71f7e45f6089843882273e1b29fd5ef361ae8ecc03e24ab38507c78921139c29",
+    "first_line": 1773,
+    "last_line": 1784,
+    "export": "source-slices/flake.nix.1773-1784.txt",
+    "sha256": "8f44401fee31aea56108f75dcdfd069d70f07ae13bf79aedd78f43d9deeb7d7d"
+  },
+  {
+    "path": "flake.nix",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "whole_file_sha256": "71f7e45f6089843882273e1b29fd5ef361ae8ecc03e24ab38507c78921139c29",
+    "first_line": 2092,
+    "last_line": 2104,
+    "export": "source-slices/flake.nix.2092-2104.txt",
+    "sha256": "e8ab09493a9e91eb3b08d66bf60e21eebe6130415c71b90efd0a30d2e1f318f2"
+  },
+  {
+    "path": "flake.nix",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "whole_file_sha256": "71f7e45f6089843882273e1b29fd5ef361ae8ecc03e24ab38507c78921139c29",
+    "first_line": 2908,
+    "last_line": 2924,
+    "export": "source-slices/flake.nix.2908-2924.txt",
+    "sha256": "9c7d9c0893ed37aac5221da810fd18efef038c809b78fd62821b369559be486e"
+  },
+  {
+    "path": "config/tab0-bridge/server.mjs",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "whole_file_sha256": "8256aa8cfeafb2c9983ed7bb5840b1e8e2545093d3214755a750cdfa7841cad3",
+    "first_line": 118,
+    "last_line": 175,
+    "export": "source-slices/config__tab0-bridge__server.mjs.118-175.txt",
+    "sha256": "2d4a7ab38a09121228369ba2bf30d2c5e6a6d9e5e801eb3276041518cd22baa7"
+  },
+  {
+    "path": "config/tab0-bridge/server.mjs",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "whole_file_sha256": "8256aa8cfeafb2c9983ed7bb5840b1e8e2545093d3214755a750cdfa7841cad3",
+    "first_line": 693,
+    "last_line": 705,
+    "export": "source-slices/config__tab0-bridge__server.mjs.693-705.txt",
+    "sha256": "14fde037347e81e0857500e0c2f387ec0a3b209f72e88ffeee2f2b40ddceb666"
+  },
+  {
+    "path": "config/nostr-gateway/gateway.cjs",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "whole_file_sha256": "0a64b7d3d6d572b25903d0eb91744b9a0ba8e3a34a18c1982117c9e3f1dd040d",
+    "first_line": 410,
+    "last_line": 430,
+    "export": "source-slices/config__nostr-gateway__gateway.cjs.410-430.txt",
+    "sha256": "f1b7a356affa459f9e3db9a745eb78836507f9c1a8ea101d810d14069f71d560"
+  },
+  {
+    "path": "config/tmux-autostart.sh",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "whole_file_sha256": "709b71eb201729c5c2c527f9e4579a1c62c935a492e59fe215656bccb5aac14f",
+    "first_line": 370,
+    "last_line": 392,
+    "export": "source-slices/config__tmux-autostart.sh.370-392.txt",
+    "sha256": "6a338f8d5e74a6eefdf880cbd842dad1fae3a36604f5e300f03e1a719242a454"
+  },
+  {
+    "path": "management-api/lib/system-manifest.js",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "whole_file_sha256": "07d63348d80ff7c13b0e93e384d2c0328b3fd9c5204133d30efd9572a19843ee",
+    "first_line": 70,
+    "last_line": 80,
+    "export": "source-slices/management-api__lib__system-manifest.js.70-80.txt",
+    "sha256": "30b08fa3f8371dfaf38e6d025da3c3fc14adb68a07a3fae7ab3df4f17ac92661"
+  },
+  {
+    "path": "management-api/lib/system-manifest.js",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "whole_file_sha256": "07d63348d80ff7c13b0e93e384d2c0328b3fd9c5204133d30efd9572a19843ee",
+    "first_line": 120,
+    "last_line": 130,
+    "export": "source-slices/management-api__lib__system-manifest.js.120-130.txt",
+    "sha256": "91e9fcceacd086b54094854d4286a22177db3ae59568ff9c1e5c640a3cb8bdc1"
+  }
+]

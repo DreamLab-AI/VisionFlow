@@ -1,0 +1,13 @@
+{
+  "removed_path": "/home/devuser/workspace/agentbox-of-empires",
+  "head": "33e806ad8a3eaeb1937c2f1025dfc303475f25fc",
+  "remote_main": "33e806ad8a3eaeb1937c2f1025dfc303475f25fc",
+  "remote": "https://github.com/DreamLab-AI/agentbox-of-empires.git",
+  "clean_including_ignored": true,
+  "additional_worktrees": 0,
+  "commits_not_on_remote_tracking_refs": 0,
+  "active_process_references": 0,
+  "authorisation": "User requested removal of retired local Agent of Empires repository",
+  "time_utc": "2026-11-01T09:55:10.558883+00:00",
+  "removal_verified": true
+}

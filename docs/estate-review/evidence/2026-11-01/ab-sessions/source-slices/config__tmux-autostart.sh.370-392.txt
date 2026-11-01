@@ -1,0 +1,23 @@
+370: # ============================================================================
+371: # Window 7: Git — project git status
+372: # LEGACY (ADR-042 D1/F6-2): the session-plane dashboard's per-session diff view absorbs
+373: # this later; retained for now as a plain merge-coordinator view.
+374: # ============================================================================
+375: tmux new-window -t "${SESSION}:7" -n "Git" -c "$PROJECT"
+376: tmux send-keys -t "${SESSION}:7" "git status" C-m
+377:
+378: # ============================================================================
+379: # Window 8: Sessions — the agentbox-sessions interaction plane
+380: # ----------------------------------------------------------------------------
+381: # ADR-2153: only the interactive picker may switch its own terminal client.
+382: # The supervisor owns provider provisioning and session reconciliation.
+383: tmux new-window -t "${SESSION}:8" -n "Sessions" -c "$PROJECT"
+384: if command -v agentbox-sessions >/dev/null 2>&1; then
+385:   tmux send-keys -t "${SESSION}:8" "agentbox-sessions pick" C-m
+386: else
+387:   tmux send-keys -t "${SESSION}:8" "echo 'Session plane disabled; enable interaction_plane and rebuild.'" C-m
+388: fi
+389:
+390: # ============================================================================
+391: # Window 9: Notes — Rune, the vault's markdown TUI (ADR-2029).
+392: # The whole decision (gates, binary discovery, recovery home, launch) lives in

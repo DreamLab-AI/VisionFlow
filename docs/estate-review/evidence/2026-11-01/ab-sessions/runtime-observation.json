@@ -1,0 +1,26 @@
+{
+  "recorded_at": "2026-11-01T09:48:21.882496+00:00",
+  "limits": "Read-only service/list observation; no pane transcripts, provider requests or deployed binary/source identity proof.",
+  "commands": [
+    {
+      "command": [
+        "supervisorctl",
+        "status",
+        "agentbox-sessions"
+      ],
+      "exit_code": 0,
+      "stdout": "agentbox-sessions                RUNNING   pid 520, uptime 17:46:34\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "agentbox-sessions",
+        "call",
+        "{\"op\":\"list\"}"
+      ],
+      "exit_code": 0,
+      "stdout": "{\"sessions\":[{\"slug\":\"antigravity\",\"name\":\"abs_antigravity\",\"origin\":\"seed\",\"present\":true,\"state\":{\"state\":\"blocked\",\"detail\":\"You are currently not signed in\"},\"label\":\"blocked: You are currently not signed in\",\"tool\":\"antigravity\",\"model\":\"gemini-3.8-flash\",\"dir\":\"/home/devuser/workspace/wt/aoe-antigravity\",\"worktree\":true},{\"slug\":\"codex\",\"name\":\"abs_codex\",\"origin\":\"seed\",\"present\":true,\"state\":{\"state\":\"idle\"},\"label\":\"idle\",\"tool\":\"codex\",\"model\":null,\"dir\":\"/home/devuser/workspace/wt/aoe-codex\",\"worktree\":true},{\"slug\":\"deepseek\",\"name\":\"abs_deepseek\",\"origin\":\"seed\",\"present\":true,\"state\":{\"state\":\"idle\"},\"label\":\"idle\",\"tool\":\"opencode\",\"model\":\"deepseek-agent/deepseek-flash\",\"dir\":\"/home/devuser/workspace/wt/aoe-deepseek\",\"worktree\":true},{\"slug\":\"loom-raw\",\"name\":\"abs_loom-raw\",\"origin\":\"seed\",\"present\":true,\"state\":{\"state\":\"idle\"},\"label\":\"idle\",\"tool\":\"opencode\",\"model\":\"loom-agent/current\",\"dir\":\"/home/devuser/workspace/wt/aoe-loom-raw\",\"worktree\":true},{\"slug\":\"openrouter\",\"name\":\"abs_openrouter\",\"origin\":\"seed\",\"present\":true,\"state\":{\"state\":\"idle\"},\"label\":\"idle\",\"tool\":\"claude\",\"model\":null,\"dir\":\"/home/devuser/workspace/project\",\"worktree\":false},{\"slug\":\"router\",\"name\":\"abs_router\",\"origin\":\"seed\",\"present\":true,\"state\":{\"state\":\"idle\"},\"label\":\"idle\",\"tool\":\"custom:router\",\"model\":null,\"dir\":\"/home/devuser/workspace/project\",\"worktree\":false},{\"slug\":\"tab0\",\"name\":\"agentbox:0\",\"origin\":\"external\",\"present\":true,\"state\":{\"state\":\"idle\"},\"label\":\"idle\",\"tool\":\"claude\",\"model\":null,\"dir\":\"\",\"worktree\":false},{\"slug\":\"zai\",\"name\":\"abs_zai\",\"origin\":\"seed\",\"present\":true,\"state\":{\"state\":\"idle\"},\"label\":\"idle\",\"tool\":\"claude\",\"model\":null,\"dir\":\"/home/devuser/workspace/project\",\"worktree\":false}],\"ok\":true}\n",
+      "stderr": ""
+    }
+  ]
+}

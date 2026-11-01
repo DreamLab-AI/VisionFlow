@@ -1,0 +1,13 @@
+2092:           # rehashes and the old path is garbage-collected. That is exactly how
+2093:           # the colloquy MCP server came to fail ENOENT against a
+2094:           # g1iqddx…-colloquy-0.1.0 path no longer on disk. Record THIS path in
+2095:           # config instead; the image re-points it at each rebuild.
+2096:           mkdir -p $out/opt/agentbox/bin
+2097:           ln -s ${colloquyPkg}/bin/colloquy-mcp $out/opt/agentbox/bin/colloquy-mcp
+2098:           ${lib.optionalString interactionPlaneEnabled ''
+2099:           ln -s ${agentboxSessionsPkg}/bin/agentbox-sessions $out/opt/agentbox/bin/agentbox-sessions
+2100:           ''}
+2101:           ${lib.optionalString vaultCliActive ''
+2102:           # Same reasoning for `vault`: skills, agent prose and the boot gate all
+2103:           # name a path, and a /nix/store path in prose rots at the next rebuild.
+2104:           ln -s ${vaultPkg}/bin/vault $out/opt/agentbox/bin/vault

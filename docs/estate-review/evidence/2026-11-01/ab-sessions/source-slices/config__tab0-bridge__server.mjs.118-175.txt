@@ -1,0 +1,58 @@
+118: }
+119:
+120: function capturePane(index, lines = 60) {
+121:   const out = tmux(['capture-pane', '-p', '-t', `${TMUX_SESSION}:${index}`, '-S', `-${lines}`]);
+122:   return out.replace(/\s+$/, '');
+123: }
+124:
+125: // ---------------------------------------------------------------- session-plane client
+126:
+127: async function resolveCoordinatorSession() {
+128:   try {
+129:     const r = await SESSION_CLIENT.call({ op: 'list' });
+130:     coordinatorReady = r.sessions.some(s => s.slug === COORDINATOR && s.present);
+131:   } catch { coordinatorReady = false; }
+132: }
+133: async function sessionSend(text) {
+134:   try {
+135:     await SESSION_CLIENT.call({ op: 'send', slug: COORDINATOR, text });
+136:   } catch (err) {
+137:     // The meta prompt stops advertising session-control.cjs (which has no tmux
+138:     // fallback) until the probe sees the coordinator again.
+139:     coordinatorReady = false;
+140:     throw err;
+141:   }
+142: }
+143:
+144: // ---------------------------------------------------------------- injection seam
+145:
+146: /**
+147:  * The single write path for the voice/nostr plane. Repointed onto the session-plane
+148:  * interaction plane (ADR-044 D1) with a fail-open tmux fallback (D3). The
+149:  * `pushTurn` transcript write and the returned clean text are unchanged, so the
+150:  * `/tab0/send` contract is preserved for every caller.
+151:  */
+152: async function sendToTab0(text, source = 'voice') {
+153:   const clean = String(text).replace(/[\x00-\x08\x0b-\x1f\x7f]/g, ' ').trim();
+154:   if (!clean) throw new Error('empty text');
+155:   let via = 'session-plane';
+156:   try {
+157:     await sessionSend(clean);
+158:   } catch (err) {
+159:     // FAIL-OPEN: degrade to the byte-identical legacy send-keys path. This races
+160:     // session-plane's input accounting (the A1 anti-pattern used for one degraded turn),
+161:     // so it is logged, never silent — a wedged daemon must be alarmed upstream.
+162:     via = 'tmux';
+163:     console.error('[sendToTab0] Session plane unreachable, falling back to tmux send-keys:', err.message);
+164:     tmux(['send-keys', '-t', TAB0, '-l', clean]);
+165:     // A TUI may read text and Enter in one burst as a paste and keep the Enter
+166:     // as a newline (Codex does); pause so the Enter submits.
+167:     await new Promise((r) => setTimeout(r, 1500));
+168:     tmux(['send-keys', '-t', TAB0, 'Enter']);
+169:   }
+170:   pushTurn(source === 'nostr' ? 'nostr-inject' : 'voice-inject', clean, { via });
+171:   return clean;
+172: }
+173:
+174: // ---------------------------------------------------------------- claude -p backend
+175:

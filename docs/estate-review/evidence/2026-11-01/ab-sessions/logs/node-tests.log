@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: voice control forwards fleet reads and pins every send to tab0
+ok 1 - voice control forwards fleet reads and pins every send to tab0
+  ---
+  duration_ms: 327.927117
+  type: 'test'
+  ...
+# Subtest: seed extractor agrees with a real TOML parser when one is available
+ok 2 - seed extractor agrees with a real TOML parser when one is available
+  ---
+  duration_ms: 35.676609
+  type: 'test'
+  ...
+# Subtest: every seed resolves to a launch template
+ok 3 - every seed resolves to a launch template
+  ---
+  duration_ms: 0.919535
+  type: 'test'
+  ...
+# Subtest: OpenCode never receives the model on argv (v2 removed the TUI flag)
+ok 4 - OpenCode never receives the model on argv (v2 removed the TUI flag)
+  ---
+  duration_ms: 0.382171
+  type: 'test'
+  ...
+# Subtest: the roster matches ADR-2153: loom-raw is the local Qwen seed, the scaffolded loom seed is gone
+ok 5 - the roster matches ADR-2153: loom-raw is the local Qwen seed, the scaffolded loom seed is gone
+  ---
+  duration_ms: 0.283742
+  type: 'test'
+  ...
+# Subtest: worktrees live under the one worktree root and the contract pins no store paths
+ok 6 - worktrees live under the one worktree root and the contract pins no store paths
+  ---
+  duration_ms: 0.561457
+  type: 'test'
+  ...
+# Subtest: every wrapper the contract resolves exists and is executable
+ok 7 - every wrapper the contract resolves exists and is executable
+  ---
+  duration_ms: 0.394634
+  type: 'test'
+  ...
+# Subtest: the daemon resolves every seed exactly as this test does
+ok 8 - the daemon resolves every seed exactly as this test does
+  ---
+  duration_ms: 36.268813
+  type: 'test'
+  ...
+# Subtest: live: every seed starts into a live, unblocked pane
+ok 9 - live: every seed starts into a live, unblocked pane # SKIP set AGENTBOX_LIVE_LAUNCH=1
+  ---
+  duration_ms: 0.160362
+  type: 'test'
+  ...
+# Subtest: coordinator readiness follows the session-plane daemon both ways
+ok 10 - coordinator readiness follows the session-plane daemon both ways
+  ---
+  duration_ms: 466.049214
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 1
+# todo 0
+# duration_ms 611.529656

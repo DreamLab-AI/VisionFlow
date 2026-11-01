@@ -1,0 +1,9 @@
+693:   // below notices once it is running.
+694:   resolveCoordinatorSession();
+695: });
+696:
+697: // Probe on every tick, ready or not: the daemon may start after the bridge, and it
+698: // may die after it. A failed send also clears readiness at once (sessionSend).
+699: const SESSION_PROBE_MS = Number(process.env.BRIDGE_SESSION_PROBE_MS) || 30_000;
+700: const sessionResolveTimer = setInterval(resolveCoordinatorSession, SESSION_PROBE_MS);
+701: if (sessionResolveTimer.unref) sessionResolveTimer.unref();

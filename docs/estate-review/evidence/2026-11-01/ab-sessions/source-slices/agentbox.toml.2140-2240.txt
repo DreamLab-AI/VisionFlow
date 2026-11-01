@@ -1,0 +1,101 @@
+2140: # trust boundary — the browser NEVER holds BRIDGE_TOKEN).
+2141: [[interaction_plane.proxy.routes]]
+2142: prefix = "/approvals"
+2143: target = "http://127.0.0.1:9090"
+2144: bearer_env = "MANAGEMENT_API_KEY"   # session-cookie reads; signed NIP-98 passes through (governance gates need the signature)
+2145:
+2146: [[interaction_plane.proxy.routes]]
+2147: prefix = "/bridge"
+2148: target = "http://127.0.0.1:8971"
+2149: bearer_env = "BRIDGE_TOKEN"
+2150:
+2151: [[interaction_plane.proxy.routes]]
+2152: prefix = "/dream"
+2153: target = "http://127.0.0.1:9090"
+2154: strip  = false
+2155: bearer_env = "MANAGEMENT_API_KEY"
+2156:
+2157: [[interaction_plane.proxy.routes]]
+2158: prefix = "/mgmt"
+2159: target = "http://127.0.0.1:9090"
+2160: bearer_env = "MANAGEMENT_API_KEY"
+2161:
+2162: [[interaction_plane.proxy.routes]]
+2163: prefix = "/feed"
+2164: target = "http://127.0.0.1:8971"
+2165: strip  = false
+2166: bearer_env = "BRIDGE_TOKEN"
+2167:
+2168: [[interaction_plane.proxy.routes]]
+2169: prefix = "/code"
+2170: target = "http://127.0.0.1:8080"
+2171: preserve_host = true
+2172:
+2173: [[interaction_plane.proxy.routes]]
+2174: prefix = "/jupyter"
+2175: target = "http://127.0.0.1:8888"
+2176: strip = false
+2177: preserve_host = true
+2178:
+2179: # Declarative sessions replacing tmux-autostart harness windows 8–14 (WS2). Each
+2180: # seed becomes an owned abs_<slug> tmux session. eager_mandate defaults
+2181: # false (mandates are lazy, minted on first pod write — ADR-043 D4.5); flip true
+2182: # only for known pod-writers. Perplexity has NO seed — retired to MCP (F2-6).
+2183: [[interaction_plane.session_seeds]]
+2184: slug          = "codex"               # native ACP agent (was tab 14)
+2185: tool          = "codex"
+2186: worktree      = true
+2187: eager_mandate = false
+2188:
+2189: [[interaction_plane.session_seeds]]
+2190: slug          = "antigravity"         # native AoE antigravity agent (was tab 10); model aligned to gemini-3.8-flash (F2-8)
+2191: tool          = "antigravity"         # @google/gemini-cli is SUNSET (2026-06-18); flake pins the Antigravity CLI (binary agy, lib/antigravity-cli.nix — NOT nixpkgs antigravity, which is the IDE); agy state lives in ~/.gemini (tmpfs)
+2192: model         = "gemini-3.8-flash"
+2193: worktree      = true
+2194: eager_mandate = false
+2195:
+2196: [[interaction_plane.session_seeds]]
+2197: slug          = "openrouter"          # claude binary redirected (was tab 8) — env_allowlist is load-bearing (F2-4, N-01)
+2198: tool          = "claude"
+2199: worktree      = false
+2200: env_allowlist = ["ANTHROPIC_BASE_URL", "ANTHROPIC_AUTH_TOKEN"]
+2201: eager_mandate = false
+2202:
+2203: [[interaction_plane.session_seeds]]
+2204: slug          = "zai"                 # claude → api.z.ai/api/anthropic (was tab 9); same allowlist guard
+2205: tool          = "claude"
+2206: worktree      = false
+2207: env_allowlist = ["ANTHROPIC_BASE_URL", "ANTHROPIC_AUTH_TOKEN"]
+2208: eager_mandate = false
+2209:
+2210: [[interaction_plane.session_seeds]]
+2211: slug          = "deepseek"            # AoE first-class OpenCode connector → DeepSeek Responses API
+2212: tool          = "opencode"
+2213: model         = "deepseek-agent/deepseek-flash"
+2214: worktree      = true
+2215: eager_mandate = false
+2216:
+2217: [[interaction_plane.session_seeds]]
+2218: slug          = "loom-raw"            # Model-agnostic Loom passthrough; legacy slug preserves sessions
+2219: tool          = "opencode"
+2220: model         = "loom-agent/current"
+2221: worktree      = true
+2222: eager_mandate = false
+2223:
+2224: [[interaction_plane.session_seeds]]
+2225: slug          = "router"              # ADR-2080: metaharness cost-optimal router console (custom agent via config/harness-wrappers/router.sh)
+2226: tool          = "custom:router"       # resolved by the seeder's WRAPPER_SLUGS → hard-fail wrapper; PUBLIC work only
+2227: worktree      = false
+2228: eager_mandate = false
+2229:
+2230: # External coordinator: listed, bound and sendable, never launched or reconciled.
+2231: [interaction_plane.coordinator]
+2232: slug          = "tab0"
+2233: tool          = "claude"
+2234: target        = "agentbox:0"
+2235: eager_mandate = false
+2236:
+2237: # ── Voice operator console (ADR-044) ───────────────────────────────────
+2238: # Documentation-as-data for the voice plane. This is a SIDECAR with its own
+2239: # lifecycle (./agentbox.sh voice up|down|...), NOT part of ./agentbox.sh up —
+2240: # so `enabled` here is descriptive state for /v1/system, not a boot gate. The

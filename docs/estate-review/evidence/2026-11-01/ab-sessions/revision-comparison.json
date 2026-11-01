@@ -1,0 +1,134 @@
+{
+  "AB12_revision": "6500582dfae23bf8a38a6942916d208154e43625",
+  "current": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+  "files": [
+    {
+      "path": "services/agentbox-sessions/Cargo.lock",
+      "matches_AB12_revision": true
+    },
+    {
+      "path": "services/agentbox-sessions/Cargo.toml",
+      "matches_AB12_revision": true
+    },
+    {
+      "path": "services/agentbox-sessions/LICENSE-APACHE",
+      "matches_AB12_revision": true
+    },
+    {
+      "path": "services/agentbox-sessions/LICENSE-MIT",
+      "matches_AB12_revision": true
+    },
+    {
+      "path": "services/agentbox-sessions/README.md",
+      "matches_AB12_revision": true
+    },
+    {
+      "path": "services/agentbox-sessions/src/api.rs",
+      "matches_AB12_revision": true
+    },
+    {
+      "path": "services/agentbox-sessions/src/boundary.rs",
+      "matches_AB12_revision": true
+    },
+    {
+      "path": "services/agentbox-sessions/src/contract.rs",
+      "matches_AB12_revision": true
+    },
+    {
+      "path": "services/agentbox-sessions/src/lib.rs",
+      "matches_AB12_revision": true
+    },
+    {
+      "path": "services/agentbox-sessions/src/main.rs",
+      "matches_AB12_revision": true
+    },
+    {
+      "path": "services/agentbox-sessions/src/manifest.rs",
+      "matches_AB12_revision": true
+    },
+    {
+      "path": "services/agentbox-sessions/src/pick.rs",
+      "matches_AB12_revision": true
+    },
+    {
+      "path": "services/agentbox-sessions/src/plane.rs",
+      "matches_AB12_revision": true
+    },
+    {
+      "path": "services/agentbox-sessions/src/reconcile.rs",
+      "matches_AB12_revision": true
+    },
+    {
+      "path": "services/agentbox-sessions/src/status.rs",
+      "matches_AB12_revision": true
+    },
+    {
+      "path": "services/agentbox-sessions/src/tmux.rs",
+      "matches_AB12_revision": true
+    },
+    {
+      "path": "services/agentbox-sessions/src/trust.rs",
+      "matches_AB12_revision": true
+    },
+    {
+      "path": "services/agentbox-sessions/src/worktree.rs",
+      "matches_AB12_revision": true
+    },
+    {
+      "path": "services/agentbox-sessions/tests/plane.rs",
+      "matches_AB12_revision": true
+    },
+    {
+      "path": "docs/adr/ADR-2153-session-plane-replaces-aoe.md",
+      "matches_AB12_revision": false
+    },
+    {
+      "path": "config/session-plane/client.cjs",
+      "matches_AB12_revision": true
+    },
+    {
+      "path": "config/session-plane/launch.json",
+      "matches_AB12_revision": true
+    },
+    {
+      "path": "config/hooks/session-state.cjs",
+      "matches_AB12_revision": true
+    },
+    {
+      "path": "config/hooks/trust-seed.cjs",
+      "matches_AB12_revision": true
+    },
+    {
+      "path": "config/custody/session-plane-acl.json",
+      "matches_AB12_revision": true
+    },
+    {
+      "path": "scripts/session-control.cjs",
+      "matches_AB12_revision": true
+    },
+    {
+      "path": "scripts/activation/session-plane-acceptance.mjs",
+      "matches_AB12_revision": true
+    },
+    {
+      "path": "tests/cli/session-launch-contract.test.mjs",
+      "matches_AB12_revision": true
+    },
+    {
+      "path": "tests/cli/session-control.test.cjs",
+      "matches_AB12_revision": true
+    },
+    {
+      "path": "tests/cli/tab0-coordinator-readiness.test.mjs",
+      "matches_AB12_revision": true
+    },
+    {
+      "path": ".github/workflows/tui-tests.yml",
+      "matches_AB12_revision": true
+    },
+    {
+      "path": "lib/agentbox-sessions.nix",
+      "matches_AB12_revision": true
+    }
+  ]
+}

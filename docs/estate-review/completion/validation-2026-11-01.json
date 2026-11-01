@@ -1,14 +1,14 @@
 {
   "date": "2026-11-01",
-  "baseline": "c9237a018346b7cc640d64d5360dc04391e7241e",
+  "baseline": "586c39a4538c8757929794ece0f011a7f52c2473",
   "panel_id_parity": {
-    "ledger": 1700,
-    "existing_coverage_index": 1700,
+    "ledger": 1705,
+    "existing_coverage_index": 1705,
     "equal": true
   },
   "census_delta": {
     "previous_candidates": 1129,
-    "current_candidates": 1149,
+    "current_candidates": 1151,
     "removed": [],
     "added": [
       {
@@ -90,11 +90,19 @@
       {
         "repo": "VisionFlow",
         "path": "docs/estate-review/evidence/2026-11-01/nf-keyplane/source/nostr-rust-forum/docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md"
+      },
+      {
+        "repo": "VisionFlow",
+        "path": "docs/estate-review/evidence/2026-11-01/ab-sessions/source/docs/adr/ADR-2153-session-plane-replaces-aoe.md"
+      },
+      {
+        "repo": "ontomark-obsidian",
+        "path": "docs/adr/README.md"
       }
     ]
   },
-  "heading_units": 15158,
-  "heading_units_with_recorded_assessment": 568,
+  "heading_units": 15173,
+  "heading_units_with_recorded_assessment": 559,
   "native_tests": 9,
   "clippy": "passed -D warnings",
   "limits": "Counters track evidence reconciliation, not audit completion; document/report hashes do not revalidate implementation code or deployed state.",
@@ -124,7 +132,7 @@
       "target": "../../docs/estate-review/completion/claims.json"
     }
   ],
-  "exact_claim_bindings_rechecked": 152,
+  "exact_claim_bindings_rechecked": 155,
   "tool_hashes": {
     "scripts/estate-review-ledger/src/main.rs": "6a13475db77573e460ab9ba8a99b7aa1e7c306ca33c14ea3cf5188b690ce12b3",
     "scripts/estate-review-ledger/Cargo.toml": "8109eeff493be24031c394cce1d81a059ca1612f967e5b032f37bf9e8f1e50d6",
@@ -137,10 +145,48 @@
     "prose_flags": 0,
     "format_check": "passed"
   },
-  "tool_validation_basis": "Nine collector tests and clippy receipts retained from the original ledger batch at 610b57b; unchanged collector source/dependency hashes checked, not rerun. A fresh collection and all 152 claim bindings were verified for this update.",
+  "tool_validation_basis": "Nine collector tests and clippy receipts retained from the original ledger batch at 610b57b; unchanged collector source/dependency hashes checked, not rerun. Fresh collection rechecked all 155 claim records: 150 source/report bindings match and five are explicitly stale-source.",
   "concurrent_source_refresh": {
-    "changed_unreconciled_adrs": 0,
+    "changed_adrs": 5,
+    "stale_claims": 5,
     "new_review_credit": 0,
-    "details": "All previous ADR source hashes unchanged in this collection."
+    "details": [
+      {
+        "repo": "ontomark-obsidian",
+        "path": "docs/adr/ADR-OBS-001-shared-graph.md",
+        "old_sha256": "981b241460e8f0e1ecd7229b9faf8029245c7b2779b79a64bd00311a9554d2d0",
+        "new_sha256": "15c8c5dbb6b770ec7dd6507f72fc4830ee39d2435d18e658544d00c959703902",
+        "review": "stale-evidence"
+      },
+      {
+        "repo": "ontomark-obsidian",
+        "path": "docs/adr/ADR-OBS-002-assisted-ingest-boundary-and-estate-notes.md",
+        "old_sha256": "585a39972bfb6948d20adbedd3486b438c93eab2c3ad5174ace89c1a4b46352e",
+        "new_sha256": "ca191093f7d1153bb1ac7c6d1e9fa6089e08006c2e8529c9fa6c7b059adcc22e",
+        "review": "stale-evidence"
+      },
+      {
+        "repo": "ontomark-obsidian",
+        "path": "docs/adr/ADR-OBS-004-in-note-sparql-after-dot-triples.md",
+        "old_sha256": "09da18c15e4f54209445b828849ed5524d36dd83c98a88eea5ff66d8972b6e1a",
+        "new_sha256": "8a6f8814c3ab4e440482cb475f28b9623914b7368524982c43a9d32b83b564aa",
+        "review": "stale-evidence"
+      },
+      {
+        "repo": "ontomark-obsidian",
+        "path": "docs/adr/ADR-OBS-003-ingest-action-and-offline-contract.md",
+        "old_sha256": "e1bcffe07b933a81fa5b2b3083d028214ae1439c4967c5a0cdef10e2a77b05bd",
+        "new_sha256": "03cd69d6134ecb5782b76288d29fcaa9a905cd63bd2664f574076b8cefa813e6",
+        "review": "stale-evidence"
+      },
+      {
+        "repo": "ontomark-obsidian",
+        "path": "docs/adr/ADR-OBS-005-excluded-folders.md",
+        "old_sha256": "e0e3e47b9119cf95297e0424e4b23f455e5f59f69548dd18c4fcbf817369d13b",
+        "new_sha256": "d1569998df402c5243a3150d827f0bdb083a643d6b4ca95c6cc7ab45340c1a75",
+        "review": "stale-evidence"
+      }
+    ],
+    "next_action": "Reassess ADR-OBS-001 through ADR-OBS-005 at ontomark-obsidian 2a6c44e024121ec055329d37915e0ce5a05f75f2; do not rebind old reports without semantic review."
   }
 }

@@ -1,0 +1,21 @@
+410:   codex:  { launch: 'codex', exit: '/quit', sessionTool: 'codex' },
+411:   zai:    { launch: 'zai',   exit: '/exit', sessionTool: 'claude' },
+412: };
+413:
+414: // ── session-plane interaction-plane client (fail-open) ────────────────────────────────
+415: async function sessionCreate(repoPath, tool, title) {
+416:   // The socket enforces project/worktree roots. Other cwd requests retain the
+417:   // existing confined tmux fallback rather than silently changing directory.
+418:   if (repoPath !== path.join(HOME, 'workspace', 'project')) throw new Error('using tmux for alternate project');
+419:   const slug = title.toLowerCase().replace(/[^a-z0-9-]/g, '-').slice(0, 32);
+420:   await SESSION_CLIENT.call({ op: 'create', slug, tool });
+421:   return { id: slug, status: 'starting' };
+422: }
+423: async function sessionSend(slug, text) {
+424:   await SESSION_CLIENT.call({ op: 'send', slug, text });
+425:   return true;
+426: }
+427: const WORKSPACE = path.join(HOME, 'workspace');
+428:
+429: function workspaceDirs() {
+430:   try {

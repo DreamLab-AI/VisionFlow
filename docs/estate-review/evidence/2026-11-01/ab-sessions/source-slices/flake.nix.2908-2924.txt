@@ -1,0 +1,17 @@
+2908: ${lib.optionalString interactionPlaneEnabled ''
+2909:
+2910: ; ADR-2153: sole session manager. No TCP listener; SO_PEERCRED on its unix socket.
+2911: [program:agentbox-sessions]
+2912: command=${agentboxSessionsPkg}/bin/agentbox-sessions daemon
+2913: directory=/home/devuser/workspace
+2914: user=devuser
+2915: environment=HOME="/home/devuser",WORKSPACE="/home/devuser/workspace",AGENTBOX_ROOT="/opt/agentbox",AGENTBOX_SESSIONS_ACL="/opt/agentbox/config/custody/session-plane-acl.json",AGENTBOX_SESSIONS_GID="${toString sessionsGroupGid}",PATH="${lib.makeBinPath [ pkgs.tmux pkgs.git pkgs.nodejs_22 pkgs.coreutils ]}:%(ENV_PATH)s"
+2916: autostart=true
+2917: autorestart=true
+2918: startsecs=5
+2919: priority=47
+2920: stdout_logfile=/var/log/agentbox-sessions.log
+2921: stderr_logfile=/var/log/agentbox-sessions.error.log
+2922:
+2923: ; NIP-98 ingress for named operator routes; unknown routes return 404.
+2924: [program:nip98-proxy]

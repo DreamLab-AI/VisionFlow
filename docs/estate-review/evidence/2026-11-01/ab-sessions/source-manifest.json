@@ -1,0 +1,226 @@
+[
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "services/agentbox-sessions/Cargo.lock",
+    "export": "source/services/agentbox-sessions/Cargo.lock",
+    "sha256": "3543438f98c90c1308cc21036a9197391d186fa7eafba5fc62f1b654df662a18"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "services/agentbox-sessions/Cargo.toml",
+    "export": "source/services/agentbox-sessions/Cargo.toml",
+    "sha256": "8f6c49a91469b37bf1c527655d5e815bcdf3671d0453ce697a12f4db64c1af1f"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "services/agentbox-sessions/LICENSE-APACHE",
+    "export": "source/services/agentbox-sessions/LICENSE-APACHE",
+    "sha256": "4ced8ecdf115943b1b94e73a0d6be4924e35a3e5597a63be18f96ca382d5341c"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "services/agentbox-sessions/LICENSE-MIT",
+    "export": "source/services/agentbox-sessions/LICENSE-MIT",
+    "sha256": "44b9713959098472bef9593958abf4e3e3086843e6f00970d0e9479a7eb553ac"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "services/agentbox-sessions/README.md",
+    "export": "source/services/agentbox-sessions/README.md",
+    "sha256": "f3ea11fcccc5ceacd9de257b21559bd98c6ba31ce32fca56b19cd6ecd5d6f7c2"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "services/agentbox-sessions/src/api.rs",
+    "export": "source/services/agentbox-sessions/src/api.rs",
+    "sha256": "4a6a041b6eda892bd3656bbdfd7d0c285d340188c54bd1e395e139dc26d7a5b4"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "services/agentbox-sessions/src/boundary.rs",
+    "export": "source/services/agentbox-sessions/src/boundary.rs",
+    "sha256": "5cafdc6dfb09d3481a661966dc05a584bd25540da7603573fc6588fd5c2954b9"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "services/agentbox-sessions/src/contract.rs",
+    "export": "source/services/agentbox-sessions/src/contract.rs",
+    "sha256": "5ff0e416f12da65854d2746ad12b6eac2bd23e43dc68a47aa0be0d8f503ef4f5"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "services/agentbox-sessions/src/lib.rs",
+    "export": "source/services/agentbox-sessions/src/lib.rs",
+    "sha256": "fefc391430503b25f56a784b3a07b7f956f65b453667f7468820b3460cea9bff"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "services/agentbox-sessions/src/main.rs",
+    "export": "source/services/agentbox-sessions/src/main.rs",
+    "sha256": "96d33a9cafdd64abf31b2c6f541b0dde9fe951976328dd72d0603deb74c2609a"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "services/agentbox-sessions/src/manifest.rs",
+    "export": "source/services/agentbox-sessions/src/manifest.rs",
+    "sha256": "30c230ca5f9471f2984813233ac8dcf62470994ebadc9c4fa734b858afa7d6d6"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "services/agentbox-sessions/src/pick.rs",
+    "export": "source/services/agentbox-sessions/src/pick.rs",
+    "sha256": "00b551a86eddb5950ef8d09366c0ec3ea47f6338217b1de62f3dfcf4d3a7db08"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "services/agentbox-sessions/src/plane.rs",
+    "export": "source/services/agentbox-sessions/src/plane.rs",
+    "sha256": "ee635d30851e43a26dadfe532f86e6cbd14677fba4d1344aca411e00081787bc"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "services/agentbox-sessions/src/reconcile.rs",
+    "export": "source/services/agentbox-sessions/src/reconcile.rs",
+    "sha256": "0ee17cdb545fdd4009315fc9143adedb673b32796b463c6159f7beeeb4b66c95"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "services/agentbox-sessions/src/status.rs",
+    "export": "source/services/agentbox-sessions/src/status.rs",
+    "sha256": "24c59508c2f273a40aa62320d7352331ba291412b565b4d699c3fa118538fbb0"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "services/agentbox-sessions/src/tmux.rs",
+    "export": "source/services/agentbox-sessions/src/tmux.rs",
+    "sha256": "0352ad0e83b2635393815b768422a9995df1b7931cc18bd6e7d006835022fe75"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "services/agentbox-sessions/src/trust.rs",
+    "export": "source/services/agentbox-sessions/src/trust.rs",
+    "sha256": "85b60a4883c98d46acac3e3a34087201ee0803637620af48fe7e62b2eb7f3d46"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "services/agentbox-sessions/src/worktree.rs",
+    "export": "source/services/agentbox-sessions/src/worktree.rs",
+    "sha256": "fb1142971d76ade88f9000ee9450acfad78b9eaaae8c925c126d829ff7645df6"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "services/agentbox-sessions/tests/plane.rs",
+    "export": "source/services/agentbox-sessions/tests/plane.rs",
+    "sha256": "2f704b9d528868c626391b8b2bdf1547c0ddde40780cc8351f4846dee949d7cc"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "docs/adr/ADR-2153-session-plane-replaces-aoe.md",
+    "export": "source/docs/adr/ADR-2153-session-plane-replaces-aoe.md",
+    "sha256": "23773e4b516bb9bdbb57d1927d5ca54470834ab7730dcd8448cdfd39ea97eb41"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "config/session-plane/client.cjs",
+    "export": "source/config/session-plane/client.cjs",
+    "sha256": "11d6732b058c128f1bce00cddc26bb15343d76f4852b0ca4c61dbf9156fa98a3"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "config/session-plane/launch.json",
+    "export": "source/config/session-plane/launch.json",
+    "sha256": "983854631580c5bdd9793d3ff8f0a06f1da7b2c9d6434964ae22af486ea18fdb"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "config/hooks/session-state.cjs",
+    "export": "source/config/hooks/session-state.cjs",
+    "sha256": "a3b24d19a540d37de9a7b83d6efde7a720ede84e285810f70bb39a81d7a5fd2a"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "config/hooks/trust-seed.cjs",
+    "export": "source/config/hooks/trust-seed.cjs",
+    "sha256": "212377dfd9451b0ddb1c9a3f47830b1f8b28de007ee6e6fdc728479aed340901"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "config/custody/session-plane-acl.json",
+    "export": "source/config/custody/session-plane-acl.json",
+    "sha256": "39d1ab2348c502e3a20ee923363545538aba32c202bdfc7c931bc959b87d1cc4"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "scripts/session-control.cjs",
+    "export": "source/scripts/session-control.cjs",
+    "sha256": "a4ffad34d91a6337e726c8656c4554ac591b0d71b535cb196c30bdb73b3d7ebd"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "scripts/activation/session-plane-acceptance.mjs",
+    "export": "source/scripts/activation/session-plane-acceptance.mjs",
+    "sha256": "b2e0b8a3b2e991b2d18aebf63232f061853b18a698ad0cb946fce0d1efa2b1bf"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "tests/cli/session-launch-contract.test.mjs",
+    "export": "source/tests/cli/session-launch-contract.test.mjs",
+    "sha256": "1e1fce589a8b081a17d70aea515992d132db97a5bc39e510f11b812959574136"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "tests/cli/session-control.test.cjs",
+    "export": "source/tests/cli/session-control.test.cjs",
+    "sha256": "272fc4ee18ab506f9cadce5c29715cc22e9de8017c1f39f30b4d6680a68788db"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "tests/cli/tab0-coordinator-readiness.test.mjs",
+    "export": "source/tests/cli/tab0-coordinator-readiness.test.mjs",
+    "sha256": "b02fca255576b73f241c3b3091a7f57d683a0097298277709922091c43636a69"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": ".github/workflows/tui-tests.yml",
+    "export": "source/.github/workflows/tui-tests.yml",
+    "sha256": "cbbc4309827189b3fe14bfe419d844ac744cb1266f2f4eb689064de9dbb10d97"
+  },
+  {
+    "repo": "agentbox",
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "lib/agentbox-sessions.nix",
+    "export": "source/lib/agentbox-sessions.nix",
+    "sha256": "472584012efdadedc6193a2092ec67fea3b95d59b1becf2a1b6851c40c0396d9"
+  }
+]

@@ -1,0 +1,91 @@
+   Compiling agentbox-sessions v0.1.0 (/tmp/vf-ab-session-artifacts/agentbox/services/agentbox-sessions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.56s
+     Running unittests src/lib.rs (/home/devuser/workspace/project/agentbox/services/agentbox-sessions/target/debug/deps/agentbox_sessions-fadc992786f3650e)
+
+running 44 tests
+test api::tests::the_acl_decides_not_the_mode ... ok
+test boundary::tests::a_non_2xx_and_an_unreachable_api_are_errors_for_the_caller_to_log ... ok
+test boundary::tests::payloads_match_what_the_status_hook_sent ... ok
+test boundary::tests::posts_with_the_bearer_and_json_body ... ok
+test contract::tests::a_wrapper_file_selects_the_wrapper_template ... ok
+test contract::tests::a_wrapper_never_receives_a_model ... ok
+test contract::tests::native_tools_take_the_model_flag ... ok
+test contract::tests::opencode_model_rides_env_never_argv ... ok
+test contract::tests::session_dirs_sit_under_the_one_worktree_root ... ok
+test contract::tests::unknown_tools_fail_loudly ... ok
+test manifest::tests::absent_table_means_disabled ... ok
+test manifest::tests::reads_seeds_and_defaults ... ok
+test manifest::tests::rejects_unsafe_and_duplicate_slugs ... ok
+test manifest::tests::the_real_manifest_parses ... ok
+test pick::tests::never_falls_back_to_a_client_on_another_session ... ok
+test pick::tests::picks_the_most_active_client_on_the_panes_own_session ... ok
+test pick::tests::switch_client_is_issued_in_exactly_one_place_and_always_names_a_client ... ok
+test reconcile::tests::a_dirty_worktree_stops_the_restart_but_a_worktreeless_seed_ignores_the_gate ... ok
+test reconcile::tests::a_foreign_session_with_our_name_is_never_touched ... ok
+test reconcile::tests::a_sign_in_blocker_is_reported_and_never_looped_on ... ok
+test reconcile::tests::dead_blocked_on_trust_and_drifted_are_recreated ... ok
+test reconcile::tests::drift_is_recreated_even_when_the_pane_is_alive ... ok
+test reconcile::tests::healthy_is_kept_and_costs_no_git_status ... ok
+test reconcile::tests::missing_is_created ... ok
+test reconcile::tests::restart_storms_stop_after_the_cap ... ok
+test reconcile::tests::restarts_are_counted_per_slug ... ok
+test status::tests::a_blocked_session_is_never_idle_even_when_a_hook_says_idle ... ok
+test status::tests::dead_wins_over_everything ... ok
+test status::tests::hook_beats_the_ready_pattern_and_age ... ok
+test status::tests::hook_files_round_trip ... ok
+test status::tests::only_trust_prompts_are_fixable_by_recreating ... ok
+test status::tests::ready_pattern_means_idle_before_the_settle_time ... ok
+test status::tests::without_a_ready_pattern_a_young_pane_is_starting_then_idle ... ok
+test trust::tests::an_unwritable_store_is_reported_and_does_not_stop_the_rest ... ok
+test trust::tests::claude_root_is_seeded_and_other_state_survives ... ok
+test trust::tests::codex_gets_a_trusted_table_appended_once_comments_intact ... ok
+test trust::tests::every_profile_store_is_seeded_and_absent_ones_are_not_invented ... ok
+test worktree::tests::a_dead_directory_is_moved_aside_not_deleted ... ok
+test worktree::tests::a_live_session_path_is_never_reaped ... ok
+test worktree::tests::build_output_does_not_make_a_worktree_dirty_but_work_does ... ok
+test worktree::tests::ensure_cuts_then_reuses_a_worktree ... ok
+test worktree::tests::legacy_reaper_removes_only_clean_unreferenced_exact_matches ... ok
+test worktree::tests::regenerable_paths_are_recognised ... ok
+test worktree::tests::removal_is_stricter_than_recreation ... ok
+
+test result: ok. 44 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.38s
+
+     Running unittests src/main.rs (/home/devuser/workspace/project/agentbox/services/agentbox-sessions/target/debug/deps/agentbox_sessions-009cc93f8cb0bc92)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/plane.rs (/home/devuser/workspace/project/agentbox/services/agentbox-sessions/target/debug/deps/plane-097ef259d619c14e)
+
+running 22 tests
+test a_dying_command_is_restarted_then_backs_off ... ok
+test a_live_session_on_a_stale_model_is_recreated ... ok
+test audit_api_session_is_listed_blocked_but_send_ignores_tool_blocker ... ok
+test audit_api_worktree_is_reported_false_and_left_after_close ... ok
+test audit_directory_drift_hits_branch_guard_before_kill ... ok
+test audit_git_status_error_is_treated_as_clean_for_restart ... ok
+test audit_removed_seed_survives_reload_and_cannot_be_closed ... ok
+test audit_send_reports_failure_after_text_was_submitted ... ok
+test audit_switch_to_shared_directory_bypasses_old_worktree_guard ... ok
+test build_output_does_not_block_a_restart_but_unsaved_work_does ... ok
+test dry_run_changes_nothing ... ok
+test on_request_sessions_can_be_created_listed_and_closed_but_are_never_reconciled ... ok
+test only_a_trust_blocker_is_recreated_a_sign_in_is_reported ... ok
+test redirect_variables_are_scrubbed_unless_allowlisted_and_provider_keys_pass_through ... ok
+test seeds_start_owned_and_foreign_sessions_are_never_touched ... ok
+test send_does_not_latch_busy_for_a_pane_detected_agent_without_completion_hooks ... ok
+test send_types_pauses_then_submits_and_refuses_dead_or_blocked_sessions ... ok
+test socket_hook_marks_are_visible_and_reject_path_traversal ... ok
+test the_coordinator_is_listed_as_external_and_never_reconciled ... ok
+test the_real_manifest_and_contract_resolve_every_seed ... ok
+test the_socket_serves_an_authorised_uid_and_refuses_the_rest ... ok
+test trust_is_seeded_before_the_session_starts ... ok
+
+test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.64s
+
+   Doc-tests agentbox_sessions
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

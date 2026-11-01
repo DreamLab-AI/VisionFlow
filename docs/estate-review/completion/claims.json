@@ -1931,5 +1931,45 @@
       "NF-28.6"
     ],
     "basis": "Six new panels checked against the local upgrade revision and agentbox, rendered and visually inspected. NF05 prose correction receives no additional panel credit."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2153-session-plane-replaces-aoe.md",
+    "source_sha256": "23773e4b516bb9bdbb57d1927d5ca54470834ab7730dcd8448cdfd39ea97eb41",
+    "report": "docs/estate-review/2026-11-01-agentbox-session-lifecycle.md",
+    "report_sha256": "5c238722cb020aea7a98a3967dd3a7bca7fc8eaa06390ea779a000ad8196fad7",
+    "coverage": "whole-document",
+    "basis": "All ADR-2153 sections and dated verification appendices assessed with source, private-tmux probes and explicitly bounded runtime evidence. Superseded ADRs receive no whole-document credit."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/agentbox/12-tab0-bridge-and-interaction-plane.md",
+    "source_sha256": "13c3d29e7cb6ca900fa350dd987b6dc62b65cd81d600399dc76dc61c812f7b3e",
+    "report": "docs/estate-review/2026-11-01-agentbox-session-lifecycle.md",
+    "report_sha256": "5c238722cb020aea7a98a3967dd3a7bca7fc8eaa06390ea779a000ad8196fad7",
+    "coverage": "selected-panels",
+    "basis": "Only the native session-plane panel reassessed and rendered. Existing implementation pin is byte-identical for inspected service code; sibling panels and the unrelated VoiceLink paragraph receive no new credit.",
+    "panels": [
+      "AB-12.15"
+    ]
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/agentbox/39-session-reconciliation-and-delivery.md",
+    "source_sha256": "1e824d3194c79d9b60b5b09a9ee48cf9604a2d0078ddc5ecd3564bb5d3cae91c",
+    "report": "docs/estate-review/2026-11-01-agentbox-session-lifecycle.md",
+    "report_sha256": "5c238722cb020aea7a98a3967dd3a7bca7fc8eaa06390ea779a000ad8196fad7",
+    "coverage": "selected-panels",
+    "basis": "Five new panels checked against pinned source, rendered and visually inspected; defect probes do not certify remediation or provider acceptance.",
+    "panels": [
+      "AB-39.1",
+      "AB-39.2",
+      "AB-39.3",
+      "AB-39.4",
+      "AB-39.5"
+    ]
   }
 ]

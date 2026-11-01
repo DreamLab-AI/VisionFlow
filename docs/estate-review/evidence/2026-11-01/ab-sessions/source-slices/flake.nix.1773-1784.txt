@@ -1,0 +1,12 @@
+1773:         agentboxOpsPkg = import ./lib/agentbox-ops.nix { inherit lib; pkgs = rustPkgs; };
+1774:         agentboxOpsPackages = [ agentboxOpsPkg ];
+1775:         # agentbox-sessions — the session plane (ADR-2153) that replaces Agent of
+1776:         # Empires. Built whenever the interaction plane is enabled (see the package
+1777:         # set and [program:agentbox-sessions] below); the socket group's gid comes
+1778:         # from the one role table so the supervisor block cannot drift from it.
+1779:         agentboxSessionsPkg = import ./lib/agentbox-sessions.nix { inherit lib; pkgs = rustPkgs; };
+1780:         sessionsGroupGid =
+1781:           let
+1782:             g = lib.findFirst (g: g.name == "ab-sessions") null
+1783:               (builtins.fromJSON (builtins.readFile ./config/role-accounts.json)).groups;
+1784:           in

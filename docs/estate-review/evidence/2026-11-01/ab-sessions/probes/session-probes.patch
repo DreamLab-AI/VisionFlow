@@ -1,0 +1,104 @@
+--- a/services/agentbox-sessions/tests/plane.rs
++++ b/services/agentbox-sessions/tests/plane.rs
+@@ -404,3 +404,101 @@
+     assert_eq!(p.status().unwrap().iter().find(|s| s.slug == "oc").unwrap().state, State::Idle);
+     assert!(!p.cfg.hook_dir.join("oc").exists(), "only completion-hook agents get a synthetic busy mark");
+ }
++
++#[test]
++fn audit_directory_drift_hits_branch_guard_before_kill() {
++    let fx = Fx::new(sleeper(), &format!("{A}worktree = true\n"));
++    let p = fx.plane();
++    assert_eq!(decision(&p.reconcile_once(false), "a"), Decision::Create);
++    let old_dir = fx.home.join("workspace/wt/aoe-a");
++    std::fs::write(old_dir.join("work-in-progress.txt"), "synthetic work").unwrap();
++    assert!(!agentbox_sessions::worktree::dirty(&old_dir).unwrap().is_empty());
++    let path = fx.root.join("config/session-plane/launch.json");
++    let mut contract: Value = serde_json::from_str(&std::fs::read_to_string(&path).unwrap()).unwrap();
++    contract["worktree_prefix"] = json!("moved-");
++    std::fs::write(path, contract.to_string()).unwrap();
++    let next = fx.plane();
++    let out = next.reconcile_once(false);
++    assert_eq!(out[0].decision,Some(Decision::Recreate(Reason::Drifted)));
++    assert!(out[0].error.as_deref().unwrap().contains("already used by worktree"));
++    let pane = next.tmux.list().unwrap().into_iter().find(|p| p.name == "abs_a").unwrap();
++    assert!(pane.path.ends_with("/aoe-a"));
++    assert!(old_dir.join("work-in-progress.txt").exists(), "branch registration blocks replacement before the old process is killed");
++}
++
++#[test]
++fn audit_git_status_error_is_treated_as_clean_for_restart() {
++    let fx = Fx::new(sleeper(), &format!("{A}worktree = true\n"));
++    let p = fx.plane();
++    assert_eq!(decision(&p.reconcile_once(false), "a"), Decision::Create);
++    let dir = fx.home.join("workspace/wt/aoe-a");
++    std::fs::write(dir.join("work-in-progress.txt"), "synthetic work").unwrap();
++    std::fs::write(dir.join(".git"), "broken synthetic git pointer\n").unwrap();
++    assert!(agentbox_sessions::worktree::dirty(&dir).is_err());
++    fx.tmux(&["set-option", "-t", "=abs_a:", "@agentbox-fp", "stale"]);
++    assert_eq!(decision(&p.reconcile_once(false), "a"), Decision::Recreate(Reason::Drifted));
++    assert!(dir.join("work-in-progress.txt").exists());
++}
++
++#[test]
++fn audit_api_session_is_listed_blocked_but_send_ignores_tool_blocker() {
++    let fx = Fx::new(json!({"signin":{"argv":["sh","-c","printf 'LOGIN_GATE\\n'; cat"],"blockers":["LOGIN_GATE"]}}), "");
++    let p = fx.plane();
++    p.create(&CreateReq{slug:"scratch".into(),tool:"signin".into(),model:None,worktree:false}).unwrap();
++    wait_for("synthetic prompt",5,||pane_text(&p,"abs_scratch").contains("LOGIN_GATE"));
++    assert!(matches!(p.status().unwrap().into_iter().find(|r|r.slug=="scratch").unwrap().state,State::Blocked(_)));
++    p.send("scratch","audit-input").unwrap();
++    wait_for("input consumed despite blocked status",5,||pane_text(&p,"abs_scratch").matches("audit-input").count()>=2);
++}
++
++#[test]
++fn audit_send_reports_failure_after_text_was_submitted() {
++    let fx = Fx::new(json!({"claude":{"argv":["cat"]}}), "[[interaction_plane.session_seeds]]\nslug=\"a\"\ntool=\"claude\"\n");
++    let p = fx.plane();
++    assert_eq!(decision(&p.reconcile_once(false),"a"),Decision::Create);
++    std::fs::write(fx.root.join("hooks"),"synthetic filesystem obstruction").unwrap();
++    let result=api::dispatch(&p,r#"{"op":"send","slug":"a","text":"audit-submitted"}"#);
++    assert_eq!(result["ok"],false);
++    wait_for("submitted text despite failed reply",5,||pane_text(&p,"abs_a").matches("audit-submitted").count()>=2);
++}
++
++#[test]
++fn audit_removed_seed_survives_reload_and_cannot_be_closed() {
++    let fx=Fx::new(sleeper(),A);
++    let p=fx.plane();
++    assert_eq!(decision(&p.reconcile_once(false),"a"),Decision::Create);
++    std::fs::write(fx.root.join("agentbox.toml"),"[interaction_plane]\nenabled=true\n").unwrap();
++    assert_eq!(decision(&p.reconcile_once(false),"a"),Decision::Keep,"existing instance does not reload manifest");
++    let next=fx.plane();
++    assert!(next.reconcile_once(false).is_empty());
++    let row=next.status().unwrap().into_iter().find(|r|r.slug=="a").unwrap();
++    assert!(row.present && row.origin=="seed");
++    assert!(next.close("a").unwrap_err().to_string().contains("no api-created session"));
++}
++
++#[test]
++fn audit_api_worktree_is_reported_false_and_left_after_close() {
++    let fx=Fx::new(sleeper(),"");
++    let p=fx.plane();
++    p.create(&CreateReq{slug:"scratch".into(),tool:"sleeper".into(),model:None,worktree:true}).unwrap();
++    let dir=fx.home.join("workspace/wt/aoe-scratch");
++    assert!(dir.join(".git").exists());
++    assert!(!p.status().unwrap().into_iter().find(|r|r.slug=="scratch").unwrap().worktree);
++    p.close("scratch").unwrap();
++    assert!(dir.join(".git").exists());
++    assert!(agentbox_sessions::worktree::registered(&fx.home.join("workspace/project")).unwrap().iter().any(|(path,_)|path==&dir));
++}
++
++#[test]
++fn audit_switch_to_shared_directory_bypasses_old_worktree_guard() {
++ let fx=Fx::new(sleeper(),&format!("{A}worktree = true\n"));
++ let p=fx.plane();
++ assert_eq!(decision(&p.reconcile_once(false),"a"),Decision::Create);
++ let old=fx.home.join("workspace/wt/aoe-a");
++ std::fs::write(old.join("work-in-progress.txt"),"synthetic work").unwrap();
++ std::fs::write(fx.root.join("agentbox.toml"),format!("[interaction_plane]\nenabled=true\n{A}worktree=false\n")).unwrap();
++ let next=fx.plane();
++ assert_eq!(decision(&next.reconcile_once(false),"a"),Decision::Recreate(Reason::Drifted));
++ assert!(next.tmux.list().unwrap().into_iter().find(|p|p.name=="abs_a").unwrap().path.ends_with("/workspace/project"));
++ assert!(old.join("work-in-progress.txt").exists());
++}
