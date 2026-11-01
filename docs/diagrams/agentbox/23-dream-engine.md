@@ -27,6 +27,7 @@ sources:
   - ../project/agentbox/services/dream-engine/src/wanted.rs
   - ../project/agentbox/services/dream-engine/src/jev_triage.rs
   - ../project/agentbox/services/agentbox-manifest/src/system_one.rs
+  - ../project/agentbox/docs/adr/ADR-2053-dream-default-provider-is-zai.md
   - ../project/agentbox/docs/adr/ADR-2155-system-one-consumer-activation.md
   - ../project/agentbox/services/dream-engine/Cargo.toml
   - ../project/agentbox/services/dream-engine/src/lib.rs
@@ -153,92 +154,35 @@ stateDiagram-v2
 
 **Open:** admission (`../project/agentbox/services/dream-engine/src/engine.rs:576`) runs before the finished-night check (`../project/agentbox/services/dream-engine/src/engine.rs:641`), and a refusal writes a HANDOFF ledger row (`../project/agentbox/services/dream-engine/src/records.rs:282`). A night that already finished, whose evaluator configuration was then edited into an unusable state, would therefore be re-judged at admission rather than skipped. The record does not say whether that ordering is intended.
 
-## AB-23.2 Nightly cycle — the adapter's night, in order
+## AB-23.2 Scheduling, admission and finished-night boundaries
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    participant SUP as supervisord<br/>agentbox/flake.nix:2896
-    participant ENG as Engine::run_night<br/>agentbox/services/dream-engine/src/engine.rs:154
-    participant GOV as governance<br/>agentbox/services/dream-engine/src/governance.rs:1058
-    participant ROS as roster::select<br/>dream-core/src/roster.rs:67
-    participant LK as NightLock<br/>dream-core/src/runstate.rs:295
-    participant MAN as manifest::freeze<br/>dream-gate/src/manifest.rs:297
-    participant HP as connected-node annexe<br/>agentbox/agentbox.toml:2570
-    participant LLM as call<br/>agentbox/services/dream-engine/src/llm.rs:49
-    participant JUD as judge::judge<br/>agentbox/services/dream-engine/src/judge.rs:36
-    participant FG as GhForge::publish_draft<br/>dream-core/src/seams.rs:425
-    participant LED as ledger::append_row<br/>dream-core/src/ledger.rs:350
-
-    SUP->>ENG: dream-engine --loop --agentbox-toml /etc/agentbox.toml
-    Note over SUP,ENG: autostart=true autorestart=true priority=230 user=devuser (agentbox/flake.nix:2896-2903)
-    alt [dream_machine] enabled = false (agentbox/agentbox.toml:2569)
-        ENG-->>SUP: byte-identical-when-off, no supervisor block is generated at all
-    else enabled
-        loop nightly window, at most one cycle per UTC day (agentbox/services/dream-engine/src/main.rs:284-298)
-            ENG->>ENG: dream-paused flag check, the night is NOT consumed if paused (engine.rs:156-161)
-            ENG->>GOV: ingest(inbox_path, false), carry forum decisions into tonight (engine.rs:180)
-            opt DREAM_SWEEP is not 0
-                ENG->>ENG: sweep_branches, the seven-day rule for dream/* branches (engine.rs:200)
-            end
-            loop each nominated repo (engine.rs:203-232)
-                alt .dream-standby marker present
-                    ENG->>ENG: standby{repo, reason marker, streak 0}
-                else dry streak at or above prune_dry_streak 5 (agentbox.toml:2616)
-                    ENG->>ENG: standby{repo, reason dry-streak} from streak::dry_streak_text (engine.rs:473-478)
-                    Note over ENG: REJECT and INCONCLUSIVE advance the streak, ACCEPT resets it, BLOCKED-ENV and<br/>HANDOFF leave it (dream-core/src/streak.rs:151-157). RESOLVED 2026-10-15: the old engine reset on REJECT
-                else eligible
-                    ENG->>ENG: push to the eligible list
-                end
-            end
-            ENG->>ROS: roster::load then select(eligible, max_repos_per_night), least recently dreamed first (engine.rs:254-263)
-            loop each selected repo (engine.rs:288-297)
-                ENG->>LK: NightLock::acquire_within(night_dir, 250 ms) (engine.rs:563)
-                alt lock held elsewhere
-                    LK-->>ENG: NightLocked, skipped, no outcome recorded (engine.rs:295)
-                else lock taken
-                    ENG->>ENG: readiness::assess then prompt::compile then finished_night (engine.rs:576, 609, 641)
-                    ENG->>MAN: manifest::build (engine.rs:700), policy::resolved_extras and for_night (engine.rs:724, 743), then freeze (engine.rs:763)
-                    Note over MAN: INVARIANT: the manifest is frozen before any model call, and it carries the config digest of the exact<br/>bytes the protected-path policy was built from (engine.rs:700-708, dream-gate/src/manifest.rs:341)
-                    ENG->>HP: annexe_health (engine.rs:823), then runstate::begin (engine.rs:867), see AB-23.18
-                    ENG->>HP: clone via git archive, run the REQUIRED evaluators on the BASELINE tree
-                    ENG->>ENG: tree-read honours the previous night's source requests first, then the slot's path-shaped scan entries (engine.rs:1254, 1266), see AB-23.21
-                    ENG->>LLM: call the model with the report prompt
-                    Note over ENG,LLM: RESOLVED ADR-2053: the default reasoning provider is Z.AI (agentbox.toml:2585), a deliberate operator<br/>choice, and nightly repository content leaves the LAN unless llm_provider = loom
-                    LLM-->>ENG: report text with a VERDICT line and an optional dream-patch
-                    opt an ACCEPT is claimed and AGENTBOX_JEV_DREAM_TRIAGE=1 (off by default)
-                        ENG->>ENG: jev_triage::consider annotates the hypothesis, and defers the candidate build only below an explicit threshold (engine.rs:1439-1463), see AB-23.22
-                    end
-                    ENG->>ENG: candidate_flow::attempt_judged (engine.rs:1499), see AB-23.4 and AB-23.5
-                    ENG->>JUD: judge(night_dir, NightInputs) (engine.rs:1561)
-                    Note over JUD: every night that reaches the gate is judged AND recorded by replay::capture<br/>(dream-core/src/replay.rs:332), so replay verify can recompute the verdict. There is no second<br/>way to judge in the adapter (agentbox/services/dream-engine/src/judge.rs:11-12)
-                    JUD-->>ENG: GateDecision {accepted, verdict, vetoes}
-                    ENG->>ENG: record_streak (engine.rs:1602), inbox alerts for questions and vetoes, source-supply asks routed to the next night's tree-read (engine.rs:1648-1704)
-                    ENG->>LK: runstate::persist, Phase::Persisted (engine.rs:1710)
-                    Note over ENG,LK: ORDER: persist, then the forge request, then the ledger commit. A crash from here on<br/>can lose a publish but never repeat one (engine.rs:1706-1709)
-                    ENG->>FG: publish_draft, only when the GATE accepted and persist_accepts (engine.rs:1734, 1774)
-                    ENG->>LED: append_and_commit_ledger (engine.rs:1857), the append is fatal, the commit is fail-open
-                    ENG->>ENG: RuVectorSink record, fail-open (engine.rs:1891)
-                    ENG->>HP: remove the night's remote directory (fail-open)
-                    ENG->>LK: runstate::complete (engine.rs:1932)
-                end
-                ENG->>ROS: roster.record(name, date, verdict_label) (engine.rs:308)
-            end
-            ENG->>ENG: build NightHealth and write dream-last-night.json (engine.rs:336-361, see AB-23.8)
-            ENG->>GOV: publish(inbox_path, CasePaths, false), see AB-23.17 (engine.rs:395-399)
-            ENG->>ENG: digest::run when DREAM_DIGEST is not 0 (engine.rs:403-405)
-        end
-    end
-    Note over ENG: ADR-2071 Phase 1 LANDED, partial. The night is journalled through POST /v1/exec/record, not policed,<br/>and the policing half stays open. Every journalled side effect fails open (agentbox/services/dream-engine/src/journal.rs:30)
+flowchart TB
+    LOOP["UTC loop: start <= hour < end; tick every 600 seconds<br/>main.rs:284"]
+    TARGET{"target supplied?<br/>main.rs:300"}
+    LOOP --> TARGET
+    TARGET -->|yes| SINGLE["run_cycle: selected repo; bypass pause, standby and roster cap<br/>engine.rs:126"]
+    TARGET -->|no| PAUSE{"pause flag exists?<br/>engine.rs:156"}
+    PAUSE -->|yes| RETRY["Return None: date not consumed; retry next tick<br/>main.rs:315"]
+    PAUSE -->|no| NIGHT["Governance ingest; discover; optional branch sweep<br/>engine.rs:176"]
+    NIGHT --> FILTER["Exclude manual standby and dry streak >= configured threshold<br/>engine.rs:206-216"]
+    FILTER --> ROS["Load roster, select oldest date then fewest runs then name; cap<br/>dream-core/src/roster.rs:67"]
+    ROS --> LOCK["Selected repos run serially; acquire per-night lock<br/>engine.rs:288,563"]
+    SINGLE --> LOCK
+    LOCK --> READY{"readiness admitted?<br/>engine.rs:576"}
+    READY -->|no| HAND["Persist HANDOFF before checking finished state<br/>engine.rs:599"]
+    READY -->|yes| DONE{"finished_night?<br/>engine.rs:641"}
+    DONE -->|yes| OLD["Return stored result<br/>engine.rs:655"]
+    DONE -->|no| CYCLE["Run experiment and delivery; see AB-23.4 to AB-23.7<br/>engine.rs:674"]
+    HAND --> RECORD["Roster mode records returned results or failures; locked repos skipped<br/>engine.rs:295,308"]
+    OLD --> RECORD
+    CYCLE --> RECORD
+    RECORD --> HEALTH["Health, governance publish, digest and optional forum suggestions<br/>engine.rs:336,395,403,413"]
+    HEALTH --> DATE["Loop consumes date even on failure; marker is process-local<br/>main.rs:321"]
+    ROS -.-> LOSS["Unreadable roster resets history; failed save only warns<br/>dream-core/src/roster.rs:111<br/>engine.rs:309"]
 ```
 
-**What it shows.** The adapter's night, with the core's calls named where they happen. The order inside a repo-night is lock, admission, prompt, finished-night check, manifest, policy, freeze, annexe probe, journal begin, baseline, model, candidate, judge, persist, forge, ledger, memory, complete.
-
-**Why it is this way.** Each step that moved into the core is still driven from `engine.rs`, because the composition root is the only place that knows the estate's seams. The judge call replaces the pre-extraction direct call of `gate::decide`, so that capture and verdict cannot diverge. The terminal, persist-before-effect ordering is ADR-2141's restart-safety consequence (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:39`).
-
-**Drift:** `../project/agentbox/docs/GOVERNANCE-capabilities.md:513` (was :520 at the previous stamp) still says ADR-2071 is proposed, not landed, while the journal ships Phase 1 (`../project/agentbox/services/dream-engine/src/journal.rs:1-3`).
-
-**Tension:** the persist-before-effect order trades a lost publish for never publishing twice. Nothing records the forge or ledger outcome after `Persisted`, so a crash between the journal write and the pull request leaves a night marked finished with no draft (`../dream-engine/crates/dream-core/src/runstate.rs:22-28`, `../dream-engine/docs/adr/ADR-DE-007-a-night-is-identified-by-its-directory.md:34`). Recovery is the operator's `dream-engine reset-night <repo> <date>` (`../project/agentbox/services/dream-engine/src/main.rs:142-144`).
+**Limits.** The window controls start time, not a night deadline. Pause is checked only at roster entry, not during a night or targeted execution. Readiness can append HANDOFF to an already finished night; see the 1 November controls audit.
 
 ## AB-23.3 Module map and the licence boundary
 
@@ -534,63 +478,27 @@ sequenceDiagram
 ## AB-23.10 Control and reporting surfaces
 
 ```mermaid
-flowchart TB
-    subgraph skill["/dream control skill — agentbox/skills/dream-machine/commands/dream.md"]
-        S1["/dream status (or no argument) — skills/dream-machine/commands/dream.md:7"]
-        S2["/dream questions · /dream answer id text · /dream dismiss id — skills/dream-machine/commands/dream.md:17"]
-        S3["/dream harvest [--days N] — skills/dream-machine/commands/dream.md:31"]
-        S4["/dream off · /dream on — skills/dream-machine/commands/dream.md:41"]
-        S5["/dream run [repo] — skills/dream-machine/commands/dream.md:46"]
-        S6["/dream standby repo · /dream revive repo — skills/dream-machine/commands/dream.md:61"]
-        S7["/dream digest [date] — skills/dream-machine/commands/dream.md:66"]
-        S8["/dream nominate repo — skills/dream-machine/commands/dream.md:74"]
-    end
-    subgraph scripts["Scripts — agentbox/scripts/"]
-        N1["dream-machine-nightly.mjs"]
-        N2["dream-inbox.mjs — BREAK-GLASS ONLY, the forum panel is canonical"]
-        N3["dream-harvest.mjs"]
-        N4["dream-forum-suggestions.mjs — separate tenant, forum-suggestions triage"]
-        N6["dream-hooks-syntax.sh — an evaluatorEntrypoint, not a control surface"]
-    end
-    subgraph cli["dream-engine subcommands — main.rs"]
-        C1["dream-engine digest #91;--date D#93; #91;--dry-run#93;<br/>Cmd::Digest main.rs:72 -&gt; digest::run main.rs:155-157"]
-        C2["dream-engine governance publish, ingest or withdraw #91;--dry-run#93;<br/>Cmd::Governance main.rs:67 -&gt; governance::publish / ingest / withdraw<br/>main.rs:117-131 — publish builds CasePaths from the CLI workspace and artefact dir, main.rs:120-123, see AB-23.17"]
-        C3["dream-engine reset-night repo date — archives a finished night's run-state and manifest<br/>Cmd::ResetNight main.rs:83 -&gt; dream_core::runstate::reset_night main.rs:142-144, see AB-23.7"]
-    end
-    subgraph api["management-api"]
-        R1["GET /dream/status (fastify)<br/>agentbox/management-api/routes/dream.js:24"]
-        L1["dream-ledger.js parseLedger management-api/lib/dream-ledger.js:102 · verdictStats management-api/lib/dream-ledger.js:135 · latestNights management-api/lib/dream-ledger.js:146<br/>discoverNominatedRepos management-api/lib/dream-ledger.js:248 · pendingMerges management-api/lib/dream-ledger.js:333<br/>readRepoDreamStatus management-api/lib/dream-ledger.js:346 · aggregateDreamStatus management-api/lib/dream-ledger.js:397"]
-    end
-    subgraph out["Outputs"]
-        O1["docs/dream-cycle/LEDGER.md<br/>ledgerPath, agentbox/dream.config.json:74"]
-        O2["docs/dream-cycle/FORUM-SUGGESTIONS.md"]
-        O3["dream-inbox.json — see AB-23.9"]
-        O4["voice/console/site/dream.html"]
-        O5["forum zone4-chat-with-agents digest post<br/>+ Dream machine decisions panel, see AB-23.17"]
-    end
-    S1 --> R1
-    R1 --> L1
-    L1 --> O1
-    S3 --> N3
-    S2 --> N2
-    S2 --> C2
-    N2 --> O3
-    S7 --> C1
-    C1 --> O5
-    C2 --> O5
-    S5 --> N1
-    N4 --> O2
-    L1 --> O4
-    subgraph notes["Invariants and drift"]
-        direction TB
-        ND1["DIVERGENCE: routes/dream.js exposes exactly ONE endpoint, GET /dream/status. There is no<br/>HTTP control surface for run/nominate/answer — those are skill-plus-script paths only"]
-        ND2["RESOLVED ADR-2115: dream-night-digest.mjs is DELETED — /dream digest now calls the<br/>dream-engine binary's own digest subcommand. The 056/058/061-072 legacy governance band<br/>is superseded by the forum panel; dream.html cockpit status is unverified"]
-        ND3["Both repo roots carry a dream.config.json — agentbox/dream.config.json (the agentbox<br/>nomination) and the VisionClaw root dream.config.json. Each nominated repo declares its<br/>own evaluatorEntrypoints and extraDisciplines"]
-        ND1 ~~~ ND2 ~~~ ND3
-    end
+flowchart LR
+    SKILL["Operator /dream commands<br/>commands/dream.md:7"]
+    SKILL --> STATUS["status: supervisor, pause flag, roster, ledgers and last-night health<br/>commands/dream.md:10"]
+    SKILL --> RUN["run: stop loop, invoke baked Rust binary --once, restart loop<br/>commands/dream.md:46"]
+    RUN --> ALL["No target: run_night checks pause and standby<br/>main.rs:253"]
+    RUN --> ONE["--target: run_cycle bypasses pause and standby<br/>main.rs:261"]
+    SKILL --> PAUSE["off/on: create/remove dream-paused flag<br/>commands/dream.md:41"]
+    SKILL --> STAND["standby/revive: create/remove repo marker<br/>commands/dream.md:61"]
+    SKILL --> FORUM["questions/answer/dismiss: forum decisions; local inbox is break-glass<br/>commands/dream.md:17"]
+    SKILL --> DIG["digest and governance use Rust subcommands<br/>main.rs:117"]
+    SKILL --> NOM["nominate: author repo config and verify evaluators<br/>commands/dream.md:74"]
+    SKILL --> HAR["harvest: dream-harvest.mjs<br/>commands/dream.md:31"]
+    API["Separate HTTP surface: GET /dream/status only; no run control<br/>routes/dream.js:24"]
+    API --> JS["aggregateDreamStatus reads nominated repo ledgers<br/>dream-ledger.js:397"]
+    JS --> PATH["Ledger path and realpath containment; 5 MiB limit<br/>dream-ledger.js:346"]
+    JS -.-> DIFF["Status discovery ignores symlink dirs; Rust scheduler follows them<br/>dream-ledger.js:248<br/>dream-engine/src/config.rs:223"]
+    RESET["reset-night joins caller date/repo into artefact path<br/>main.rs:142"]
+    RESET --> ARCH["Acquire night lock then archive state and manifest; see AB-23.7<br/>dream-core/src/runstate.rs:441"]
 ```
 
-**Invariant (2026-10-02, owner decision Q10):** the forum-suggestions tenant asks a member to clarify only when JunkieJarvis may speak; it reads the same `junkiejarvisEnabled(manifest)` that management-api uses, and with it off an unclear post is held — no DM, no ledger row, not parked — so it is asked once JunkieJarvis is on (`../project/agentbox/scripts/dream-forum-suggestions.mjs:246-252`, `../project/agentbox/scripts/dream-forum-suggestions.mjs:421-424`).
+**Scope.** This corrects the stale route from `/dream run` to the legacy JavaScript orchestrator. The skill's fixed window/cap summary is guidance, not effective-config reporting; HTTP status and scheduler discovery can disagree on symlinked nominations.
 
 ## AB-23.11 ADR-2081 — the annexe mirrors real workspace depth
 
@@ -733,71 +641,48 @@ flowchart TB
 
 **Why it is this way.** The extracted crate has exactly one implementation of the finding rules, which the adapter's ledger-row contract (`../dream-engine/crates/dream-core/src/ledger.rs:254`) builds on.
 
-## AB-23.15 ADR-2084 - the Loom call goes through the published loom-client
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant ENG as Engine<br/>agentbox/services/dream-engine/src/engine.rs:95
-    participant CALL as call<br/>agentbox/services/dream-engine/src/llm.rs:49
-    participant LOOM as call_loom<br/>agentbox/services/dream-engine/src/llm.rs:205
-    participant ZAI as call_zai<br/>agentbox/services/dream-engine/src/llm.rs:120
-    participant CRATE as loom-client crate<br/>published, see AB-28.11
-    participant F as Loom facade<br/>agentbox/agentbox.toml:2572
-
-    ENG->>CALL: call(cfg, prompt)
-    alt llm_provider = zai - the DEFAULT (agentbox.toml:2585)
-        CALL->>ZAI: POST the Anthropic Messages body with x-api-key
-        ZAI-->>CALL: text parts joined, or EmptyResponse (llm.rs:168-186)
-        Note over CALL,ZAI: exactly ONE retry, 20s apart, and only on a transient fault -<br/>transport, empty body, or an HTTP 5xx including Cloudflare 52x.<br/>is_transient refuses to retry a 4xx (llm.rs:69)
-    else llm_provider = loom
-        CALL->>LOOM: call_loom(cfg, prompt)
-        LOOM->>CRATE: LoomClient::builder(url), timeout 600s, retry_backoff 20s (llm.rs:206-208)
-        LOOM->>CRATE: ChatRequest temperature 1.0, top_p 0.95, top_k 20, max_tokens from cfg (llm.rs:213-219)
-        LOOM->>CRATE: LoomOptions::declining_verbatim() (llm.rs:220)
-        Note over LOOM,CRATE: INVARIANT ADR-2084: a dream prompt is generative and its subject IS in<br/>the ontology, so the scaffold stays and a retrieval-only serve is REFUSED.<br/>The crate raises Error::ScaffoldOnly, surfaced here as LlmError::Loom (llm.rs:22)
-        CRATE->>F: POST the chat completion
-        F-->>CRATE: answer, or ontology prose with no model call
-        CRATE-->>LOOM: Answer with content, reasoning, served_mode and attempts (llm.rs:222-231)
-        LOOM-->>CALL: answer.content (llm.rs:234)
-        Note over CALL: the client already retried to its own ceiling, so the wrapper adds<br/>NO retry of its own - LlmError::Loom is non-transient here (llm.rs:78)
-    end
-    Note over CRATE: the hand-rolled client that lived in llm.rs knew ONE of the three facade<br/>traps. Two nights of verdicts in 2026-09 were derived from ontology prose that<br/>never reached a model, and truncation on a reasoning model returns EMPTY content<br/>rather than a short answer - the crate owns a token floor and a doubling retry<br/>the wrapper could not do, because it cannot see finish_reason (llm.rs:191-204)
-```
-
-**Debt:** `agentbox/agentbox.toml:2585` keeps `llm_provider = "zai"` as the default, so nightly repository content leaves the LAN on every unattended night; the LAN-only Loom path at `../project/agentbox/services/dream-engine/src/llm.rs:205` is opt-in.
-
-## AB-23.16 Placeholder resolution and the refusal to dispatch to nowhere
+## AB-23.15 Provider selection, retries and cross-provider fallback
 
 ```mermaid
 flowchart TB
-    TOML["agentbox.toml ships PLACEHOLDERS, not addresses<br/>hp_host CONNECTED_NODE_SSH agentbox.toml:2570<br/>hp_annexe_dir composite agentbox.toml:2571<br/>loom_url LOOM_BASE_URL agentbox.toml:2572"]
-    TOML --> RP["RuntimeConfig.resolve_placeholders<br/>agentbox/services/dream-engine/src/config.rs:127"]
-    RP -->|"whole-value form"| W["resolve_env_placeholder<br/>agentbox/services/dream-engine/src/config.rs:112 - a value that IS a placeholder"]
-    RP -->|"composite form"| I["resolve_env_placeholders_infix<br/>agentbox/services/dream-engine/src/config.rs:146 - a value that CONTAINS one"]
-    W -->|"unset or empty"| D1["the struct default applies<br/>default_loom_url agentbox/services/dream-engine/src/config.rs:168"]
-    I -->|"any referenced var unset or empty"| D2["POISON the WHOLE value to None<br/>agentbox/services/dream-engine/src/config.rs:146-165 - half a path is worse<br/>than the caller's default"]
-    D2 --> D3["default_hp_annexe_dir agentbox/services/dream-engine/src/config.rs:97"]
-    I -->|"all set"| OK["the expanded path"]
-    OK --> DISP["dispatch ssh, ssh_capture, scp_to"]
-    D3 --> DISP
-    DISP --> GUARD{"hp_host trimmed is empty<br/>agentbox/services/dream-engine/src/dispatch.rs:65"}
-    GUARD -->|"yes"| NAH["DispatchError::NoAnnexeHost<br/>dispatch.rs:22 - the compose contract says<br/>an empty host means NO annexe"]
-    GUARD -->|"no"| SSH["ssh under BatchMode, the script piped on stdin to a fixed bash -lc eval command<br/>dispatch.rs:35, dispatch.rs:38"]
-    subgraph notes["What this closed"]
-        direction TB
-        N1["INVARIANT: no placeholder survives into the running config -<br/>pinned by an_unresolvable_manifest_placeholder_falls_back_to_the_default<br/>agentbox/services/dream-engine/src/config.rs:412 and the_manifest_placeholder_no_longer_reaches_the_loom_client<br/>agentbox/services/dream-engine/src/config.rs:398"]
-        N2["INVARIANT: an unresolved composite annexe dir can no longer reach a live<br/>ssh command - pinned by<br/>the_annexe_dir_literal_no_longer_reaches_a_live_ssh_command agentbox/services/dream-engine/src/config.rs:376"]
-        N3["scp_to and ssh_capture carry the same guard, so an empty host fails at the FIRST<br/>dispatch rather than part way through a night - dispatch.rs:124, dispatch.rs:92"]
-        N1 ~~~ N2 ~~~ N3
-    end
+    CFG["DREAM_LLM_PROVIDER overrides runtime config; unknown name becomes Zai<br/>estate.rs:78<br/>llm.rs:35"]
+    CFG --> PRIMARY["Primary LlmAdapter; request token budget honoured<br/>llm.rs:278"]
+    PRIMARY --> ZAI["Zai: POST /v1/messages; one transient retry after 20s<br/>llm.rs:49,120"]
+    PRIMARY --> LOOM["Loom: published client, 600s timeout, 20s backoff<br/>declining_verbatim; pinned sampling<br/>llm.rs:205"]
+    ZAI --> RESULT{"primary verdict request succeeds?<br/>engine.rs:1326"}
+    LOOM --> RESULT
+    RESULT -->|yes| REPORT["Use report text<br/>engine.rs:1327"]
+    RESULT -->|no| FB{"fallback configured?<br/>estate.rs:126"}
+    FB -->|no| DEG["Record degraded INCONCLUSIVE report<br/>engine.rs:1372"]
+    FB -->|yes| SEND["Send the same prompt to fallback provider<br/>engine.rs:1344"]
+    SEND --> OUT["Use fallback report, or degraded INCONCLUSIVE if both fail<br/>engine.rs:1355"]
+    CFG -.-> POLICY["Zai primary: Loom fallback; Loom primary: Zai if key exists<br/>DREAM_LLM_FALLBACK=off disables fallback<br/>estate.rs:126-159"]
+    POLICY -.-> FB
+    POLICY -.-> EGRESS["Selecting Loom alone does not establish LAN confinement<br/>ADR-2053's one-setting claim exceeds implementation<br/>estate.rs:126"]
 ```
 
-**Invariant:** every dispatch entry point refuses an empty annexe host with a typed error rather than shelling out (`../project/agentbox/services/dream-engine/src/dispatch.rs:65`, `../project/agentbox/services/dream-engine/src/dispatch.rs:124`).
+**Egress.** Retaining Z.AI as the default is the recorded operator decision. LAN confinement requires the effective primary, fallback and endpoint policy to agree; a provider label alone does not enforce it. Client-level guarantees remain owned by AB-28.11.
 
-**What changed (fish-safe transport):** the remote login shell is fish, which reads a backslash before a quote as an escape even inside single quotes, so a script embedded in the ssh command line broke on nested quoting; the script now travels over stdin and the only text fish parses is a fixed command with no backslash and two single quotes (`../project/agentbox/services/dream-engine/src/dispatch.rs:35`, `../project/agentbox/services/dream-engine/src/dispatch.rs:38`).
+## AB-23.16 Placeholder and dispatch guards have limited coverage
 
-**Drift (diagram corpus vs repo):** `2899b3b7e` generalised estate addressing out of this public repository, so `../project/agentbox/dream.config.json:68` now says "the connected node annexe" where the corpus previously named a host and a rail address.
+```mermaid
+flowchart TB
+    INPUT["Parsed RuntimeConfig<br/>main.rs:162"]
+    INPUT --> WHOLE["hp_host, loom_url, zai_url: whole-value placeholder resolution<br/>dream-engine/src/config.rs:127"]
+    INPUT --> INFIX["hp_annexe_dir: expand embedded placeholders<br/>dream-engine/src/config.rs:146"]
+    WHOLE --> DEFAULT["Unset/empty whole placeholder uses field default<br/>dream-engine/src/config.rs:128"]
+    INFIX --> DEFAULT2["Missing/empty referenced variable uses annexe default<br/>dream-engine/src/config.rs:135"]
+    WHOLE -.-> REMAIN["Embedded host/URL placeholders and nested replacement values survive<br/>dream-engine/src/config.rs:112"]
+    INFIX -.-> NESTED["Replacement values are not expanded recursively<br/>dream-engine/src/config.rs:158"]
+    DEFAULT --> GUARD["ssh, ssh_capture and scp_to reject trimmed-empty host<br/>dispatch.rs:65,92,124"]
+    DEFAULT2 --> GUARD
+    GUARD --> EXEC["Nonempty host: BatchMode and 10s connection timeout<br/>remote command completion has no overall deadline<br/>dispatch.rs:38"]
+    FROM["scp_from: no empty-host guard; invokes scp with host:path<br/>dispatch.rs:147"]
+    BAD["Explicit runtime file unreadable or invalid?<br/>main.rs:162"]
+    BAD --> FALL["Log then use defaults, including enabled=true and provider=Zai<br/>main.rs:174<br/>dream-engine/src/config.rs:52,183"]
+```
+
+**Limit.** Existing tests cover the original simple-placeholder failures, not a universal ban on unresolved placeholders. The isolated controls probe confirms nested values survive and empty-host scp_from launches a fake executable.
 
 ## AB-23.17 ADR-2115 — the forum governance round trip
 
@@ -1045,7 +930,7 @@ sequenceDiagram
 
 ## Audit qualification — 2026-10-29
 
-1 November continuation: AB-23.7 and AB-23.21 were reassessed against matching current source and updated for recovery and source-supply limits. Later forge/seam and migration passes also reassessed AB-23.6 and AB-23.3. The other eighteen panels remain separately queued; rendering this topic does not close their semantic review.
+1 November continuation: AB-23.7 and AB-23.21 were reassessed against matching current source and updated for recovery and source-supply limits. Later forge/seam and migration passes also reassessed AB-23.6 and AB-23.3. The controls pass reassessed AB-23.2, AB-23.10, AB-23.15 and AB-23.16. Fourteen other panels remain separately queued; rendering this topic does not close their semantic review.
 
 This topic describes the extraction as source at the stamped revisions. ADR-2141 records `implementation_status: complete` and `activation_status: live`: the operator rebuilt and activated the registry-pinned image on 2026-10-16 and the supervised daemon was RUNNING with no degradation (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:47`). The later pins (0.2.0, 0.3.0, 0.4.0) are source in `Cargo.toml`; the record carries activation evidence for 0.2.0 only (`../project/agentbox/docs/adr/ADR-2143-source-supply-is-plumbing-and-decisions-are-plain-english.md:35`).
 

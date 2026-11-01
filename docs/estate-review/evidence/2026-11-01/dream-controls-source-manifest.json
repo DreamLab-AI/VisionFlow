@@ -1,0 +1,105 @@
+{
+  "agentbox": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+  "prior_diagram_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+  "files": [
+    {
+      "path": "services/dream-engine/src/config.rs",
+      "sha256": "6ee1506e0d8cade9e867a4bd099ea556df86bcb4420f88af475a245fc5660345",
+      "matches_existing_diagram_pin": true
+    },
+    {
+      "path": "services/dream-engine/src/engine.rs",
+      "sha256": "c15b31074c173b6409744daa87f1a1f0367d6e917b514e20dab25b006cf2af06",
+      "matches_existing_diagram_pin": true
+    },
+    {
+      "path": "services/dream-engine/src/main.rs",
+      "sha256": "3cfc6c7be3a349fbb0aa15320802964ea24c90435a7c42aa321f97724460c2bc",
+      "matches_existing_diagram_pin": true
+    },
+    {
+      "path": "services/dream-engine/src/llm.rs",
+      "sha256": "ba736cbcc08798cb8141696a076f61b1d62daddaa1425d63831e2c1772c74dc5",
+      "matches_existing_diagram_pin": true
+    },
+    {
+      "path": "services/dream-engine/src/estate.rs",
+      "sha256": "0c3a45d122f9b0e431c9b5fa754e1b52ee96b5438f04bed16d3c578a8876b1d8",
+      "matches_existing_diagram_pin": true
+    },
+    {
+      "path": "services/dream-engine/src/dispatch.rs",
+      "sha256": "b1bfb1f56f73339840b404c570335938996a424b05192f33e16c48a62829012a",
+      "matches_existing_diagram_pin": true
+    },
+    {
+      "path": "skills/dream-machine/commands/dream.md",
+      "sha256": "b8fe23bd0c0b906c94adc301fd5b4498807b8394047bc9b31e752e00ef1c6c86",
+      "matches_existing_diagram_pin": true
+    },
+    {
+      "path": "management-api/routes/dream.js",
+      "sha256": "33ac717413b3ac802b89cad7fa79f1a04f46cb9b3f98425b21531be2cc770919",
+      "matches_existing_diagram_pin": true
+    },
+    {
+      "path": "management-api/lib/dream-ledger.js",
+      "sha256": "d3315fbb94852ea4ac89c91435ba979cbfdbe7e0d0ab2c7dcab73f68da01d311",
+      "matches_existing_diagram_pin": true
+    },
+    {
+      "path": "docs/adr/ADR-2053-dream-default-provider-is-zai.md",
+      "sha256": "792ee6d3e69b663870e3d4519eea42e336997868066956b682b84cf64c10ef0e",
+      "matches_existing_diagram_pin": true
+    },
+    {
+      "path": "services/dream-engine/src/records.rs",
+      "sha256": "1afe0a58a2b4b3e48aefa1791b5694ae10499b9306e39c1ad8b2a64ad143b2b6"
+    },
+    {
+      "path": "services/dream-engine/tests/night_e2e.rs",
+      "sha256": "0b7c11e76200dfce6257a38f1cd6c6947baf47edb560a5936a24acd5881e70d9"
+    },
+    {
+      "path": "services/dream-engine/Cargo.toml",
+      "sha256": "051ace1c8d144fe0b2b11b82ee7cc5c940fae0c3cce2afdf4d4fd14615107288"
+    },
+    {
+      "path": "services/dream-engine/Cargo.lock",
+      "sha256": "85dd2ec34d16c81ffa7710ad9f985a563cecc33332593a789d1d283198d2e248"
+    },
+    {
+      "path": "management-api/package.json",
+      "sha256": "78a518a0b123929616519028c844f18ab2548b8b70540dd9d886d6a5dd360995"
+    },
+    {
+      "path": "agentbox.toml",
+      "sha256": "c9c7016e6649c118f69ccbbab8d25e35e26c1dc3f449dab61b5ea2493b61203d"
+    },
+    {
+      "path": "flake.nix",
+      "sha256": "71f7e45f6089843882273e1b29fd5ef361ae8ecc03e24ab38507c78921139c29"
+    },
+    {
+      "path": "docs/GOVERNANCE-capabilities.md",
+      "sha256": "a7594700bc0cf610482320e42af5f867d6a928e91b8a70b1a03c75588ac4bbd1"
+    },
+    {
+      "path": "dream.config.json",
+      "sha256": "5ecff5ca067f13b793038ec3ad1ae520c6158b6467536e9b3e9381112ca3fee1"
+    }
+  ],
+  "dream_engine": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+  "core_files": [
+    {
+      "path": "crates/dream-core/src/roster.rs",
+      "sha256": "1b081942de253496e7ee6fa4f12ba79127444cdf98d254e3c6953ee1493e3ad8",
+      "matches_existing_diagram_pin": true
+    },
+    {
+      "path": "crates/dream-core/src/runstate.rs",
+      "sha256": "049a78cb7d81ef3a2d441617a18bb5bd8352d934f5c46cc958f62402f07b054a",
+      "matches_existing_diagram_pin": true
+    }
+  ]
+}

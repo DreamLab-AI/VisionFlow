@@ -832,7 +832,7 @@ Revision labels are author declarations. This index checks structure and referen
 | [AB-22.13 [skills.*] manifest gate table, plus [claude_code] (ADR-2020/ADR-2116, catalogue parity closed)](agentbox/22-skills-and-routing.md#ab-2213-skills-manifest-gate-table-plus-claudecode-adr-2020adr-2116-catalogue-parity-closed) | flowchart | AB-22 |
 | [AB-22.14 Generated discovery — the table nobody hand-edits (ADR-2083)](agentbox/22-skills-and-routing.md#ab-2214-generated-discovery-the-table-nobody-hand-edits-adr-2083) | flowchart | AB-22 |
 | [AB-23.1 One repo-night — run phases](agentbox/23-dream-engine.md#ab-231-one-repo-night-run-phases) | stateDiagram-v2 | AB-23 |
-| [AB-23.2 Nightly cycle — the adapter's night, in order](agentbox/23-dream-engine.md#ab-232-nightly-cycle-the-adapters-night-in-order) | sequenceDiagram | AB-23 |
+| [AB-23.2 Scheduling, admission and finished-night boundaries](agentbox/23-dream-engine.md#ab-232-scheduling-admission-and-finished-night-boundaries) | flowchart | AB-23 |
 | [AB-23.3 Module map and the licence boundary](agentbox/23-dream-engine.md#ab-233-module-map-and-the-licence-boundary) | flowchart | AB-23 |
 | [AB-23.4 The guard ordering and the deterministic gate](agentbox/23-dream-engine.md#ab-234-the-guard-ordering-and-the-deterministic-gate) | sequenceDiagram | AB-23 |
 | [AB-23.5 Candidate re-evaluation on an isolated worktree](agentbox/23-dream-engine.md#ab-235-candidate-re-evaluation-on-an-isolated-worktree) | sequenceDiagram | AB-23 |
@@ -845,8 +845,8 @@ Revision labels are author declarations. This index checks structure and referen
 | [AB-23.12 ADR-2081 — pipefail closes the tail-masking false positive](agentbox/23-dream-engine.md#ab-2312-adr-2081-pipefail-closes-the-tail-masking-false-positive) | sequenceDiagram | AB-23 |
 | [AB-23.13 ADR-2081 — a no-patch ACCEPT is unproven, not a harness fault](agentbox/23-dream-engine.md#ab-2313-adr-2081-a-no-patch-accept-is-unproven-not-a-harness-fault) | sequenceDiagram | AB-23 |
 | [AB-23.14 ADR-2081 — Step-19 ledger cell provenance](agentbox/23-dream-engine.md#ab-2314-adr-2081-step-19-ledger-cell-provenance) | flowchart | AB-23 |
-| [AB-23.15 ADR-2084 - the Loom call goes through the published loom-client](agentbox/23-dream-engine.md#ab-2315-adr-2084---the-loom-call-goes-through-the-published-loom-client) | sequenceDiagram | AB-23 |
-| [AB-23.16 Placeholder resolution and the refusal to dispatch to nowhere](agentbox/23-dream-engine.md#ab-2316-placeholder-resolution-and-the-refusal-to-dispatch-to-nowhere) | flowchart | AB-23 |
+| [AB-23.15 Provider selection, retries and cross-provider fallback](agentbox/23-dream-engine.md#ab-2315-provider-selection-retries-and-cross-provider-fallback) | flowchart | AB-23 |
+| [AB-23.16 Placeholder and dispatch guards have limited coverage](agentbox/23-dream-engine.md#ab-2316-placeholder-and-dispatch-guards-have-limited-coverage) | flowchart | AB-23 |
 | [AB-23.17 ADR-2115 — the forum governance round trip](agentbox/23-dream-engine.md#ab-2317-adr-2115-the-forum-governance-round-trip) | sequenceDiagram | AB-23 |
 | [AB-23.18 Annexe preflight — the write-then-measure health probe](agentbox/23-dream-engine.md#ab-2318-annexe-preflight-the-write-then-measure-health-probe) | sequenceDiagram | AB-23 |
 | [AB-23.19 ADR-2071 clause (c) — the one-shot night with management-api stopped](agentbox/23-dream-engine.md#ab-2319-adr-2071-clause-c-the-one-shot-night-with-management-api-stopped) | flowchart | AB-23 |
@@ -2743,6 +2743,7 @@ Keys are repository-qualified. `estate-unresolved` preserves an unqualified cros
 | `../project/agentbox/docs/adr/ADR-2031-consultant-model-manifest-projection.md` | [AB-15](agentbox/15-capability-gating-spend-consultants.md) |
 | `../project/agentbox/docs/adr/ADR-2033-deepsec-security-gate.md` | [AB-15](agentbox/15-capability-gating-spend-consultants.md) |
 | `../project/agentbox/docs/adr/ADR-2041-wire-execution-journal-and-action-pipeline.md` | [AB-14](agentbox/14-governance-journal-actions-approvals.md) |
+| `../project/agentbox/docs/adr/ADR-2053-dream-default-provider-is-zai.md` | [AB-23](agentbox/23-dream-engine.md) |
 | `../project/agentbox/docs/adr/ADR-2071-journal-the-nightly-dream-cycle.md` | [AB-14](agentbox/14-governance-journal-actions-approvals.md), [AB-23](agentbox/23-dream-engine.md), [ES-05](estate/05-governance-loop-across-estate.md) |
 | `../project/agentbox/docs/adr/ADR-2079-aoe-is-the-dispatch-plane-of-a-fleet-model-router.md` | [AB-29](agentbox/29-metaharness-router-console.md) |
 | `../project/agentbox/docs/adr/ADR-2080-metaharness-router-console-under-aoe.md` | [AB-15](agentbox/15-capability-gating-spend-consultants.md), [ES-06](estate/06-loom-and-email-privacy-path.md) |

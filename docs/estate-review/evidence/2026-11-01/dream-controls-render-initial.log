@@ -1,0 +1,13 @@
+parsed 1 topic files, 22 mermaid diagrams
+cite-check: 3 warning(s)
+citations: 317 verified at the declared revision, 0 unverified (working-tree fallback), 0 unresolvable, 0 allowlisted (unverifiable)
+  ! agentbox/23-dream-engine.md:AB-23.2 — ../project/agentbox/services/dream-engine/src/engine.rs:212 is punctuation only ('});')
+  ! agentbox/23-dream-engine.md:AB-23.2 — ../project/agentbox/services/dream-engine/src/engine.rs:660 is punctuation only ('));')
+  ! agentbox/23-dream-engine.md:AB-23.10 — ../project/agentbox/services/dream-engine/src/main.rs:246 is punctuation only ('}')
+rendered 21/22 diagrams via pele
+
+4 error(s):
+  - citation: agentbox/23-dream-engine.md:AB-23.2 — ../project/agentbox/services/dream-engine/src/engine.rs:212 is punctuation only ('});')
+  - citation: agentbox/23-dream-engine.md:AB-23.2 — ../project/agentbox/services/dream-engine/src/engine.rs:660 is punctuation only ('));')
+  - citation: agentbox/23-dream-engine.md:AB-23.10 — ../project/agentbox/services/dream-engine/src/main.rs:246 is punctuation only ('}')
+  - agentbox/23-dream-engine.md:AB-23.10 (md line 393) — rendered 4584px wide (max 4500); wrap long Notes with <br/>, cap them at ~90 chars, or split the diagram

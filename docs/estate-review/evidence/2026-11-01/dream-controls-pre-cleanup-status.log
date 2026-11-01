@@ -1,0 +1,29 @@
+ M docs/diagrams/COVERAGE.md
+ M docs/diagrams/README.md
+ M docs/diagrams/VERIFICATION.md
+ M docs/diagrams/agentbox/23-dream-engine.md
+ M docs/estate-review/README.md
+?? .audit-adapter/
+?? .audit-previews/
+?? .audit-target/
+?? .audit-tmp/
+?? docs/estate-review/2026-11-01-dream-adapter-controls-and-egress.md
+?? docs/estate-review/evidence/2026-11-01/dream-controls-build-initial.log
+?? docs/estate-review/evidence/2026-11-01/dream-controls-corpus-initial.log
+?? docs/estate-review/evidence/2026-11-01/dream-controls-corpus-regeneration.log
+?? docs/estate-review/evidence/2026-11-01/dream-controls-final-corpus-check.log
+?? docs/estate-review/evidence/2026-11-01/dream-controls-night-probe.rs
+?? docs/estate-review/evidence/2026-11-01/dream-controls-probe.rs
+?? docs/estate-review/evidence/2026-11-01/dream-controls-probes-initial.log
+?? docs/estate-review/evidence/2026-11-01/dream-controls-probes-module-context.log
+?? docs/estate-review/evidence/2026-11-01/dream-controls-probes.log
+?? docs/estate-review/evidence/2026-11-01/dream-controls-prose-inspection.log
+?? docs/estate-review/evidence/2026-11-01/dream-controls-prose-scan.log
+?? docs/estate-review/evidence/2026-11-01/dream-controls-render-initial.log
+?? docs/estate-review/evidence/2026-11-01/dream-controls-render.log
+?? docs/estate-review/evidence/2026-11-01/dream-controls-reproduction.md
+?? docs/estate-review/evidence/2026-11-01/dream-controls-retention.json
+?? docs/estate-review/evidence/2026-11-01/dream-controls-source-manifest.json
+!! docs/diagrams/rendered/
+!! texput.log
+!! website/build-receipt.json

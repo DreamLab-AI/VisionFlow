@@ -51,6 +51,8 @@ Dream-engine publication continuation: [forge and seam contracts](2026-11-01-dre
 
 Dream-engine migration continuation: [migration and provenance](2026-11-01-dream-migration-and-provenance.md) assesses DE-001/002, AB-23.3 and two new DE-05 panels. All nine local engine decisions now have dated section assessments with open findings. Twenty existing tests pass; a direct seven-case old/new comparison exposes four whitespace differences. Eighteen other AB-23 panels and the nested corpus remain queued.
 
+Dream adapter controls continuation: [scheduling, admission and egress](2026-11-01-dream-adapter-controls-and-egress.md) assesses ADR-2053 and AB-23.2/10/15/16. Three isolated probes expose cloud fallback despite Loom selection, completed-report replacement after changed readiness, and further control/status gaps. Fourteen AB-23 panels remain queued.
+
 ## Reading order
 
 | Document | Question it answers |

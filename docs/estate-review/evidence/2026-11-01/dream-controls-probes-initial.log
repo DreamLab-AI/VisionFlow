@@ -1,0 +1,37 @@
+   Compiling dream-engine v0.1.0 (/home/devuser/workspace/wt/VisionFlow-dream-adapter-controls/.audit-adapter/services/dream-engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.92s
+     Running tests/audit_controls.rs (.audit-target/debug/deps/audit_controls-7ccc50a7910b1bec)
+
+running 1 test
+test audit_controls_configuration_transport_discovery_and_roster_boundaries ... provider: Loom + absent key => no fallback; synthetic key => Zai; off disables; typo => Zai
+config: nested and embedded placeholders survive; unusable window and zero caps deserialize
+transport: empty-host ssh/scp_to blocked; scp_from invokes fake scp with :/remote
+
+thread 'audit_controls_configuration_transport_discovery_and_roster_boundaries' (3677787) panicked at tests/audit_controls.rs:63:5:
+assertion failed: result.status.success()
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::panicking::panic
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:150:5
+   3: audit_controls::audit_controls_configuration_transport_discovery_and_roster_boundaries
+             at ./tests/audit_controls.rs:63:5
+   4: audit_controls::audit_controls_configuration_transport_discovery_and_roster_boundaries::{closure#0}
+             at ./tests/audit_controls.rs:7:76
+   5: <audit_controls::audit_controls_configuration_transport_discovery_and_roster_boundaries::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   6: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+FAILED
+
+failures:
+
+failures:
+    audit_controls_configuration_transport_discovery_and_roster_boundaries
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.30s
+
+error: test failed, to rerun pass `--test audit_controls`

@@ -1,0 +1,24 @@
+   Compiling dream-engine v0.1.0 (/home/devuser/workspace/wt/VisionFlow-dream-adapter-controls/.audit-adapter/services/dream-engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.33s
+     Running tests/audit_controls.rs (.audit-target/debug/deps/audit_controls-7ccc50a7910b1bec)
+
+running 1 test
+test audit_controls_configuration_transport_discovery_and_roster_boundaries ... provider: Loom + absent key => no fallback; synthetic key => Zai; off disables; typo => Zai
+config: nested and embedded placeholders survive; unusable window and zero caps deserialize
+transport: empty-host ssh/scp_to blocked; scp_from invokes fake scp with :/remote
+discovery: Rust includes symlinked nomination; JS status discovery excludes it
+roster: unknown schema accepted; corrupt state resets rotation to alphabetical order
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+     Running tests/night_e2e.rs (.audit-target/debug/deps/night_e2e-fe7afddf165977f9)
+
+running 2 tests
+test audit_controls_finished_night_can_gain_handoff_after_config_change ... same finished night: changed readiness overwrites report and appends HANDOFF without a second model or forge call
+ok
+test audit_controls_target_bypasses_pause_and_standby ... paused roster returns None; targeted dry-run still produces a prompt despite standby
+ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 11 filtered out; finished in 0.72s
+
