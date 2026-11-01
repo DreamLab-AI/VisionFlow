@@ -1,0 +1,14 @@
+[
+  {
+    "label": "reviewed_metadata_strings",
+    "exit_code": 0,
+    "stdout": "Reviewed release inventory verified\n",
+    "stderr": ""
+  },
+  {
+    "label": "actual_local_tool_versions",
+    "exit_code": 1,
+    "stdout": "",
+    "stderr": "Error: \"release profile/toolchain differs from reviewed inventory\"\n"
+  }
+]

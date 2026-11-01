@@ -1,0 +1,19 @@
+   Compiling vowl-wasm v0.2.2 (/home/devuser/workspace/wt/VisionFlow-vowl-ingest-release/.audit-source)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.39s
+     Running tests/estate_ingest_probe.rs (.audit-target/debug/deps/estate_ingest_probe-8c6d775e9b5fae5f)
+
+running 11 tests
+test component_metrics_depend_on_insertion_order ... ok
+test datatype_range_passes_validation_then_fails_build ... ok
+test class_limit_silently_removes_nodes_but_keeps_properties ... ok
+test parsed_equivalences_and_individuals_disappear_in_graph ... ok
+test cardinality_limits_are_lost_or_narrowed ... ok
+test iri_validation_flag_does_not_validate_iris ... ok
+test conventional_subclass_spelling_is_not_mapped ... ok
+test svg_output_does_not_escape_filter_fit_or_draw_edges ... ok
+test explicit_inverse_pair_generates_duplicate_edges ... ok
+test separate_attribute_tables_are_not_joined ... ok
+test zero_debug_log_interval_panics ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+

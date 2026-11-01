@@ -1,0 +1,21 @@
+{
+  "url": "https://github.com/DreamLab-AI/vowl-wasm/releases/tag/v0.2.1",
+  "assets": [
+    {
+      "name": "vowl-wasm-0.2.1-pkg.tgz",
+      "url": "https://github.com/DreamLab-AI/vowl-wasm/releases/download/v0.2.1/vowl-wasm-0.2.1-pkg.tgz"
+    },
+    {
+      "name": "vowl-wasm-0.2.1-pkg.tgz.sha256",
+      "url": "https://github.com/DreamLab-AI/vowl-wasm/releases/download/v0.2.1/vowl-wasm-0.2.1-pkg.tgz.sha256"
+    },
+    {
+      "name": "vowl-wasm-0.2.1-THIRD-PARTY-NOTICES.md",
+      "url": "https://github.com/DreamLab-AI/vowl-wasm/releases/download/v0.2.1/vowl-wasm-0.2.1-THIRD-PARTY-NOTICES.md"
+    },
+    {
+      "name": "vowl-wasm-0.2.1-THIRD-PARTY-NOTICES.md.sha256",
+      "url": "https://github.com/DreamLab-AI/vowl-wasm/releases/download/v0.2.1/vowl-wasm-0.2.1-THIRD-PARTY-NOTICES.md.sha256"
+    }
+  ]
+}

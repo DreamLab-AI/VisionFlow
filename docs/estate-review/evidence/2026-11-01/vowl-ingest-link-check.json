@@ -1,0 +1,97 @@
+[
+  {
+    "source": "docs/estate-review/2026-11-01-vowl-ingest-and-release.md",
+    "link": "2026-11-01-vowl-layout-and-api-boundaries.md",
+    "exists": true
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-vowl-ingest-and-release.md",
+    "link": "evidence/2026-11-01/vowl-ingest-source-manifest.json",
+    "exists": true
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-vowl-ingest-and-release.md",
+    "link": "evidence/2026-11-01/vowl-ingest-probes.log",
+    "exists": true
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-vowl-ingest-and-release.md",
+    "link": "evidence/2026-11-01/vowl-ingest-probes.rs",
+    "exists": true
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-vowl-ingest-and-release.md",
+    "link": "evidence/2026-11-01/vowl-release-guard-baseline.log",
+    "exists": true
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-vowl-ingest-and-release.md",
+    "link": "evidence/2026-11-01/vowl-release-guard-probes.rs",
+    "exists": true
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-vowl-ingest-and-release.md",
+    "link": "evidence/2026-11-01/vowl-release-guard-probes.log",
+    "exists": true
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-vowl-ingest-and-release.md",
+    "link": "evidence/2026-11-01/vowl-inventory-current.json",
+    "exists": true
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-vowl-ingest-and-release.md",
+    "link": "evidence/2026-11-01/vowl-release-flow-probes.json",
+    "exists": true
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-vowl-ingest-and-release.md",
+    "link": "evidence/2026-11-01/vowl-release-flow-probes.py",
+    "exists": true
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-vowl-ingest-and-release.md",
+    "link": "evidence/2026-11-01/vowl-ingest-diagram-gate.log",
+    "exists": true
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-vowl-ingest-and-release.md",
+    "link": "evidence/2026-11-01/vowl-release-run-observation.json",
+    "exists": true
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-vowl-ingest-and-release.md",
+    "link": "evidence/2026-11-01/vowl-npm-observation.json",
+    "exists": true
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-vowl-ingest-and-release.md",
+    "link": "evidence/2026-11-01/vowl-npm-versions.json",
+    "exists": true
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-vowl-ingest-and-release.md",
+    "link": "evidence/2026-11-01/vowl-release-observation.json",
+    "exists": true
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-vowl-ingest-and-release.md",
+    "link": "evidence/2026-11-01/vowl-old-release-links.json",
+    "exists": true
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-vowl-ingest-and-release.md",
+    "link": "evidence/2026-11-01/vowl-ingest-reproduction.md",
+    "exists": true
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-vowl-ingest-and-release.md",
+    "link": "evidence/2026-11-01/vowl-ingest-retention.json",
+    "exists": true
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-vowl-ingest-and-release.md",
+    "link": "evidence/2026-11-01/vowl-ingest-final-corpus-check.log",
+    "exists": true
+  }
+]

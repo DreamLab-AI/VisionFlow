@@ -1,0 +1,46 @@
+[
+  {
+    "path": "docs/estate-review/2026-11-01-vowl-ingest-and-release.md",
+    "tool": [
+      "inspect-text",
+      "--json"
+    ],
+    "exit_code": 0,
+    "stdout": "{\n  \"length\": 15431,\n  \"suspicious_total\": 0,\n  \"hits\": [],\n  \"payloads\": [],\n  \"notes\": [\n    \"Layer A only: invisible/format Unicode, smuggled payloads and homoglyphs (edit-based carriers).\",\n    \"Statistical (token-sampling) watermarks are not detectable here; use Layer B rewrite.\",\n    \"Inspect kinds: strip, bidi, tag_chars, variation_selector, zwj_family, private_use, reserved_ignorable, noncharacter, space, confusable, other_cf.\",\n    \"Load-bearing invisibles are preserved by default: emoji glue (ZWJ/VS after an emoji base), script joiners (ZWNJ/ZWJ inside complex scripts), RGI flag tag sequences, same-script fillers/selectors (Mongolian FVS, Khmer inherent vowels, Hangul jamo and blank fillers), visible-layout format controls next to their own script (Egyptian quadrat, Duployan shorthand, musical beam/tie/slur), orthographic Arabic/Syriac Cf marks, and balanced bidi controls in text that contains RTL script. Use --strip-emoji-glue for paranoid mode (strips them all).\",\n    \"Homoglyphs are judged by UTS #39 skeleton plus mixed-script and Identifier_Status context, not by a hand-written table; see the `confusables` module for the one documented gap.\",\n    \"No deterministic Layer A (invisible Unicode/format) carriers detected; statistical and pixel-domain marks are out of scope here.\"\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "path": "docs/estate-review/2026-11-01-vowl-ingest-and-release.md",
+    "tool": [
+      "slop-scan",
+      "--severity",
+      "high",
+      "--json"
+    ],
+    "exit_code": 0,
+    "stdout": "{\n  \"path\": \"docs/estate-review/2026-11-01-vowl-ingest-and-release.md\",\n  \"files_scanned\": 1,\n  \"counts\": {},\n  \"slop_score\": 0,\n  \"verdict\": \"Clean, no mechanical tells detected\",\n  \"findings\": []\n}\n",
+    "stderr": ""
+  },
+  {
+    "path": "docs/estate-review/evidence/2026-11-01/vowl-ingest-reproduction.md",
+    "tool": [
+      "inspect-text",
+      "--json"
+    ],
+    "exit_code": 0,
+    "stdout": "{\n  \"length\": 3221,\n  \"suspicious_total\": 0,\n  \"hits\": [],\n  \"payloads\": [],\n  \"notes\": [\n    \"Layer A only: invisible/format Unicode, smuggled payloads and homoglyphs (edit-based carriers).\",\n    \"Statistical (token-sampling) watermarks are not detectable here; use Layer B rewrite.\",\n    \"Inspect kinds: strip, bidi, tag_chars, variation_selector, zwj_family, private_use, reserved_ignorable, noncharacter, space, confusable, other_cf.\",\n    \"Load-bearing invisibles are preserved by default: emoji glue (ZWJ/VS after an emoji base), script joiners (ZWNJ/ZWJ inside complex scripts), RGI flag tag sequences, same-script fillers/selectors (Mongolian FVS, Khmer inherent vowels, Hangul jamo and blank fillers), visible-layout format controls next to their own script (Egyptian quadrat, Duployan shorthand, musical beam/tie/slur), orthographic Arabic/Syriac Cf marks, and balanced bidi controls in text that contains RTL script. Use --strip-emoji-glue for paranoid mode (strips them all).\",\n    \"Homoglyphs are judged by UTS #39 skeleton plus mixed-script and Identifier_Status context, not by a hand-written table; see the `confusables` module for the one documented gap.\",\n    \"No deterministic Layer A (invisible Unicode/format) carriers detected; statistical and pixel-domain marks are out of scope here.\"\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "path": "docs/estate-review/evidence/2026-11-01/vowl-ingest-reproduction.md",
+    "tool": [
+      "slop-scan",
+      "--severity",
+      "high",
+      "--json"
+    ],
+    "exit_code": 0,
+    "stdout": "{\n  \"path\": \"docs/estate-review/evidence/2026-11-01/vowl-ingest-reproduction.md\",\n  \"files_scanned\": 1,\n  \"counts\": {},\n  \"slop_score\": 0,\n  \"verdict\": \"Clean, no mechanical tells detected\",\n  \"findings\": []\n}\n",
+    "stderr": ""
+  }
+]

@@ -1,0 +1,58 @@
+{
+  "workflow_sha256": "84575326850bfe5ce6185171e178ff6a7ac113bf624a1c40425e783b4fe0f692",
+  "scope": "control flow only; cargo, gh and npm are local shell doubles",
+  "scenarios": [
+    {
+      "scenario": "publish_failure_then_retry",
+      "runs": [
+        {
+          "step": "Verify reviewed third-party release inventory",
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "step": "Attach the bundle to the release",
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "step": "Publish to npm (OIDC trusted publishing)",
+          "exit_code": 42,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "step": "Verify reviewed third-party release inventory",
+          "exit_code": 1,
+          "stdout": "",
+          "stderr": "Browser release asset already exists; preserve it and publish a separately reviewed companion\n"
+        }
+      ]
+    },
+    {
+      "scenario": "existing_registry_different_bytes",
+      "runs": [
+        {
+          "step": "Verify reviewed third-party release inventory",
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "step": "Attach the bundle to the release",
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "step": "Publish to npm (OIDC trusted publishing)",
+          "exit_code": 0,
+          "stdout": "@dreamlab-ai/vowl-wasm@0.2.2 is already published; skipping\n",
+          "stderr": ""
+        }
+      ]
+    }
+  ]
+}

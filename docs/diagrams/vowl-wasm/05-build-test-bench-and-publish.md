@@ -65,35 +65,24 @@ flowchart LR
 - `Cargo.toml` ties one test to its feature with `required-features`: `ngg1_explorer_test` needs `ngg1` (Cargo.toml:109-111), so a plain `cargo test` without that flag silently skips it; the markdown and OWL 2 validator test targets were deleted with their code, and `ontomark_ngg1_migration` runs as the bundle gate instead (.github/workflows/ci.yml:233-239).
 - `[lib] crate-type = ["cdylib", "rlib"]` (Cargo.toml:24) — the crate ships both as a WASM-loadable `cdylib` for `wasm-pack` and as an `rlib` for native Rust consumers (tests, benches, the `docs.rs` build with `all-features`).
 
-## VW-05.3 Release — tag push to npm, via GitHub OIDC trusted publishing
+## VW-05.3 Release — tag build, GitHub attachment and attempted npm publication
 ```mermaid
-sequenceDiagram
-    autonumber
-    participant GH as GitHub: push tag v*<br/>release.yml:3-5
-    participant CI as release job<br/>release.yml:28
-    participant INV as release-inventory verify<br/>release.yml:79-90
-    participant WP as wasm-pack build<br/>--features ngg1,interaction --locked<br/>release.yml:94-97
-    participant GATE as Rust and bundle contracts<br/>release.yml:99-105
-    participant PIN as pin package metadata<br/>repository.url, publishConfig.access=public<br/>release.yml:110-121
-    participant NTC as include reviewed notices<br/>release.yml:123-126
-    participant PACK as npm pack → vowl-wasm-$VERSION-pkg.tgz<br/>release.yml:128-143
-    participant REL as gh release create and upload<br/>tarball, sha256 and notices<br/>release.yml:145-159
-    participant NPM as npm publish (OIDC, no token)<br/>release.yml:165-173
-    GH->>CI: checkout ref (tag or workflow_dispatch input)
-    CI->>CI: assert tag == Cargo.toml version<br/>release.yml:65-76
-    CI->>INV: verify against docs/release-inventory.json,<br/>refuse an existing browser asset for this version
-    INV->>WP: build the bundle
-    WP->>GATE: cargo test all features, node --test ngg1_wasm.test.mjs
-    GATE->>PIN: fix repository.url + sideEffects=false
-    PIN->>NTC: package THIRD-PARTY-NOTICES.md and docs/UPSTREAMS.md into pkg
-    NTC->>PACK: npm pack, dry run must list both notices
-    PACK->>REL: attach to the GitHub release without clobber
-    PACK->>NPM: npm publish "$tarball" --access public
-    NPM->>NPM: skip if @dreamlab-ai/vowl-wasm@$VERSION already published<br/>release.yml:168-171
+flowchart TB
+    TAG["Tag v* or manual tag input<br/>release.yml:3-12"] --> CHECK["Check Cargo version matches tag<br/>release.yml:65-76"]
+    CHECK --> VERIFY["Verify reviewed inventory and refuse existing browser asset<br/>release.yml:79-90"]
+    VERIFY --> BUILD["wasm-pack: ngg1,interaction, locked<br/>release.yml:94-97"]
+    BUILD --> GATE["Rust and JavaScript bundle contracts<br/>release.yml:99-105"]
+    GATE --> PIN["Pin package metadata; include reviewed notices<br/>release.yml:110-126"]
+    PIN --> PACK["npm pack; dry run checks notices<br/>release.yml:128-143"]
+    PACK --> REL["Attach tarball and companions to GitHub<br/>release.yml:145-159"]
+    REL --> EXISTS{"Registry version exists?<br/>release.yml:168"}
+    EXISTS -->|yes| SKIP["Skip without comparing integrity<br/>release.yml:169-171"]
+    EXISTS -->|no| NPM["Attempt npm publish of same tarball<br/>release.yml:173"]
+    NPM -. failure .-> RETRY["Retry stops at existing browser asset guard<br/>release.yml:86-90"]
 ```
-- INVARIANT: `id-token: write` mints a short-lived OIDC credential; no long-lived npm token is stored anywhere — the npmjs.com trusted-publisher entry names this repo + workflow file (release.yml:14-21).
-- The exact tarball attached to the GitHub release is what `npm publish` ships — "the two artefacts are byte-identical" (release.yml:161-163 comment before the publish step) — so a release asset download and the npm-installed package are provably the same bytes.
-- A re-run against an existing tag (`workflow_dispatch` with `tag` input, release.yml:7-12) stops at the immutable-asset check (release.yml:86-90) once the tarball is attached, although the publish step skips a version already on the registry (release.yml:163-171).
+- `id-token: write` permits the OIDC flow; the workflow supplies no explicit npm token (release.yml:14-21). Matching registry-side trust and permission are external prerequisites, not proved by this YAML.
+- A successful new npm publish uses the same local tarball as the GitHub upload (release.yml:161-173). Existing registry versions are skipped without comparing integrity; the workflow does not establish byte parity on that branch.
+- A re-run against an existing tag (`workflow_dispatch` with `tag` input, release.yml:7-12) stops at the immutable-asset check (release.yml:86-90) once the tarball is attached, including when a prior npm publish failed after attachment. The later registry skip cannot be reached on that retry (release.yml:163-171). The observed v0.2.2 run attached its asset then failed npm publication; the registry listed only 0.1.2 on 1 November 2026 ([dated release assessment](../../estate-review/2026-11-01-vowl-ingest-and-release.md)).
 - Since the earlier stamp the release also installs wasm-pack 0.15.0 from a checksum-verified release tarball and builds on rustc 1.99.0 (release.yml:38, release.yml:45-54).
 
 ## VW-05.4 Benches — what each measures
@@ -102,12 +91,12 @@ flowchart TB
     LB["layout_bench.rs<br/>ForceSimulation over synthetic<br/>class/property ontologies, varying n"]
     PB["parser_bench.rs<br/>StandardParser::parse over<br/>generated JSON, varying class/property count"]
     IB["interaction_bench.rs<br/>ray_sphere_intersection +<br/>find_closest_node_hit (feature interaction)"]
-    P3["phase3_benchmarks.rs<br/>tick() <10ms target, checkNodeClick <1ms/1000 nodes<br/>bundle size <1.5MB — targets stated in the file header"]
+    P3["phase3_benchmarks.rs<br/>native tick setup + execution; pure hit geometry<br/>not JavaScript boundary measurements<br/>bundle size <1.5MB — targets stated in the file header"]
     LB & PB & IB & P3 --> HARNESS["criterion, harness=false<br/>Cargo.toml [[bench]] entries"]
     IB -.-> REQ["required-features = interaction<br/>Cargo.toml"]
     P3 -.-> REQ
 ```
-- `phase3_benchmarks.rs` is the only bench file that states explicit numeric targets in its own header comment (benches/phase3_benchmarks.rs:1-6): tick <10ms (8ms target), `getGraphData()` serialisation <5ms, `checkNodeClick` <1ms for 1,000 nodes, bundle <1.5MB — these are aspirational annotations in the source, not enforced by any CI assertion (contrast with the bundle-symbol check in VW-04.5, which IS enforced).
+- `phase3_benchmarks.rs` is the only bench file that states explicit numeric targets in its own header comment (benches/phase3_benchmarks.rs:1-6): tick <10ms (8ms target), `getGraphData()` serialisation <5ms, `checkNodeClick` <1ms for 1,000 nodes, bundle <1.5MB — these are aspirational annotations in the source, not enforced by any CI assertion (contrast with the bundle-symbol check in VW-04.5, which is enforced). The tick benchmark includes cloning and initialisation, serialisation measures `graph.nodes()` rather than the JS method, and `wasm_tick_operation` reuses a settling instance so later calls are no-ops (benches/phase3_benchmarks.rs:80-87, benches/phase3_benchmarks.rs:110, benches/phase3_benchmarks.rs:240-250).
 
 ## VW-05.5 Release profile — why `wasm-opt` stays off
 ```mermaid
@@ -116,7 +105,7 @@ flowchart LR
     MEASURE --> RAW["raw: 1,114,091 → 1,032,999 bytes (smaller)"]
     MEASURE --> GZIP["gzip: 379,414 → 395,517 bytes (LARGER)"]
     MEASURE --> BROTLI["brotli: 279,066 → 288,007 bytes (LARGER)"]
-    RAW & GZIP & BROTLI --> DECISION["package.metadata.wasm-pack.profile.release<br/>wasm-opt = false — every host serves compressed,<br/>so the smaller raw module is the worse download<br/>Cargo.toml:143-144"]
+    RAW & GZIP & BROTLI --> DECISION["package.metadata.wasm-pack.profile.release<br/>wasm-opt = false — historical compressed-size result;<br/>current host compression not established<br/>Cargo.toml:143-144"]
 ```
 - `strip = true` already removes the ~190 KB `name` section (Cargo.toml:133-142, the comment above `[package.metadata.wasm-pack.profile.release]`); running binaryen on top of that opt-level-z + LTO build is what produced the gzip/brotli regression above.
 - The decision also notes a portability cost: validating rustc's bulk-memory output needs binaryen's `-all` flag, which "ties the build to a binaryen version" — a second reason to leave it off (Cargo.toml:139-141).
@@ -124,8 +113,8 @@ flowchart LR
 ## VW-05.6 Reviewed release inventory — the guard between a source change and a browser tarball
 ```mermaid
 flowchart TB
-    INVJ["docs/release-inventory.json: version, source commit, target, features ngg1 and interaction,<br/>rustc and wasm-pack versions, a SHA-256 per source file<br/>docs/release-inventory.json:2-12"]
-    VER["verify ROOT TAG RUSTC WASM_PACK refuses drift in manifest version, tag, toolchain or any hashed source<br/>tools/release-inventory/src/main.rs:72"]
+    INVJ["docs/release-inventory.json: version, source commit, target, features ngg1 and interaction,<br/>rustc and wasm-pack versions, a SHA-256 per collected source file<br/>docs/release-inventory.json:2-12"]
+    VER["verify ROOT TAG RUSTC WASM_PACK compares supplied toolchain strings,<br/>version/tag and the collected source set<br/>tools/release-inventory/src/main.rs:72"]
     PKG["package copies full notices and source URLs into pkg and its npm files allowlist<br/>tools/release-inventory/src/main.rs:115"]
     REL["release.yml runs verify before the build and package before npm pack<br/>.github/workflows/release.yml:79-90 and .github/workflows/release.yml:123-126"]
     DRY["npm pack dry run must list THIRD-PARTY-NOTICES.md and docs/UPSTREAMS.md<br/>.github/workflows/release.yml:133-134"]
@@ -141,5 +130,5 @@ flowchart TB
     REL --- N2
 ```
 
-**What it shows.** A private Rust tool binds the crate version, tag, features, compilers and every source file to a reviewed inventory, and the release workflow runs it before building and again when packaging, so a browser tarball cannot ship stale licence notices.
-**Why it is this way.** Full third-party notices ship as a separate public asset per release rather than by overwriting an immutable tarball, and existing frozen assets stay tied to their original source and digest (docs/UPSTREAMS.md:3, tools/release-inventory/README.md:18-22). The inventory now binds the 0.2.2 release: tag `v0.2.2`, layout source `567d661b3f5614080fc2c8897ab6091af40feefc`, with a Cargo closure identical to 0.2.0 so only this crate's own version changed (docs/UPSTREAMS.md:3, docs/release-inventory.json:2-3). The earlier statement that the 0.2.0 tarball carried only the project and WebVOWL licences is not restated at this pin and is not confirmed here.
+**What it shows.** A private Rust tool compares version, tag, features, supplied toolchain strings and hashes of collected sources/notices with a reviewed inventory. It checks source-commit syntax, not commit resolution, and excludes the release workflow and guard implementation from its source hash set. Packaging adds the recorded notices; this does not establish the completeness of the dependency review or publication to both destinations.
+**Why it is this way.** New packages include notices and also attach a separate companion asset; historical tarballs are not overwritten, and existing frozen assets stay tied to their original source and digest (docs/UPSTREAMS.md:3, tools/release-inventory/README.md:18-22). The inventory now binds the 0.2.2 release: tag `v0.2.2`, layout source `567d661b3f5614080fc2c8897ab6091af40feefc`, whose reviewed document states that its dependency closure matches 0.2.0 apart from this crate's version (docs/UPSTREAMS.md:3, docs/release-inventory.json:2-3). The earlier statement that the 0.2.0 tarball carried only the project and WebVOWL licences is not restated at this pin and is not confirmed here.

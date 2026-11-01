@@ -1282,14 +1282,14 @@ Revision labels are author declarations. This index checks structure and referen
 | [VW-01.1 Top-level module tree](vowl-wasm/01-crate-composition-and-wasm-boundary.md#vw-011-top-level-module-tree) | flowchart | VW-01 |
 | [VW-01.4 Feature flags and what they gate](vowl-wasm/01-crate-composition-and-wasm-boundary.md#vw-014-feature-flags-and-what-they-gate) | flowchart | VW-01 |
 | [VW-01.5 `init()` and `version()` — module entry, called once by wasm-bindgen](vowl-wasm/01-crate-composition-and-wasm-boundary.md#vw-015-init-and-version-module-entry-called-once-by-wasm-bindgen) | sequenceDiagram | VW-01 |
-| [VW-01.6 `VowlError` to `JsValue` at every fallible binding](vowl-wasm/01-crate-composition-and-wasm-boundary.md#vw-016-vowlerror-to-jsvalue-at-every-fallible-binding) | classDiagram | VW-01 |
+| [VW-01.6 `VowlError` to `JsValue` at every fallible binding](vowl-wasm/01-crate-composition-and-wasm-boundary.md#vw-016-vowlerror-to-jsvalue-at-every-fallible-binding) | flowchart | VW-01 |
 | [VW-01.7 Two entry points: `WebVowl` vs `NggExplorer`](vowl-wasm/01-crate-composition-and-wasm-boundary.md#vw-017-two-entry-points-webvowl-vs-nggexplorer) | flowchart | VW-01 |
-| [VW-01.8 `DebugFlags` — opt-in console tracing](vowl-wasm/01-crate-composition-and-wasm-boundary.md#vw-018-debugflags-opt-in-console-tracing) | classDiagram | VW-01 |
+| [VW-01.8 `DebugFlags` — opt-in console tracing](vowl-wasm/01-crate-composition-and-wasm-boundary.md#vw-018-debugflags-opt-in-console-tracing) | flowchart | VW-01 |
 | [VW-02.1 `loadOntology()` — JSON string to `VowlGraph`](vowl-wasm/02-owl-parse-to-graph-model.md#vw-021-loadontology-json-string-to-vowlgraph) | sequenceDiagram | VW-02 |
 | [VW-02.2 `StandardParser` — classes, properties, metadata](vowl-wasm/02-owl-parse-to-graph-model.md#vw-022-standardparser-classes-properties-metadata) | flowchart | VW-02 |
 | [VW-02.3 `GraphBuilder::from_ontology` — class/property to node/edge](vowl-wasm/02-owl-parse-to-graph-model.md#vw-023-graphbuilderfromontology-classproperty-to-nodeedge) | flowchart | VW-02 |
-| [VW-02.4 `VowlGraph` node/edge model](vowl-wasm/02-owl-parse-to-graph-model.md#vw-024-vowlgraph-nodeedge-model) | classDiagram | VW-02 |
-| [VW-02.8 `PinManager` — node pin lifecycle](vowl-wasm/02-owl-parse-to-graph-model.md#vw-028-pinmanager-node-pin-lifecycle) | stateDiagram-v2 | VW-02 |
+| [VW-02.4 `VowlGraph` node/edge model](vowl-wasm/02-owl-parse-to-graph-model.md#vw-024-vowlgraph-nodeedge-model) | flowchart | VW-02 |
+| [VW-02.8 `PinManager` — node pin lifecycle](vowl-wasm/02-owl-parse-to-graph-model.md#vw-028-pinmanager-node-pin-lifecycle) | flowchart | VW-02 |
 | [VW-03.1 `ForceSimulation` one tick — `LayoutAlgorithm` impl](vowl-wasm/03-force-layout-lifecycle.md#vw-031-forcesimulation-one-tick-layoutalgorithm-impl) | sequenceDiagram | VW-03 |
 | [VW-03.2 `calculate_forces` — repulsion / attraction / centring](vowl-wasm/03-force-layout-lifecycle.md#vw-032-calculateforces-repulsion-attraction-centring) | flowchart | VW-03 |
 | [VW-03.3 `QuadTree` — build, insert/subdivide, Barnes-Hut recursion](vowl-wasm/03-force-layout-lifecycle.md#vw-033-quadtree-build-insertsubdivide-barnes-hut-recursion) | flowchart | VW-03 |
@@ -1308,7 +1308,7 @@ Revision labels are author declarations. This index checks structure and referen
 | [VW-04.8 `ngg1` browser bindings — owned decode and encode beside the zero-copy explorer](vowl-wasm/04-js-api-examples-and-consumers.md#vw-048-ngg1-browser-bindings-owned-decode-and-encode-beside-the-zero-copy-explorer) | flowchart | VW-04 |
 | [VW-05.1 CI — job graph on push/PR/weekly cron](vowl-wasm/05-build-test-bench-and-publish.md#vw-051-ci-job-graph-on-pushprweekly-cron) | flowchart | VW-05 |
 | [VW-05.2 Feature matrix — every optional feature compiles standalone](vowl-wasm/05-build-test-bench-and-publish.md#vw-052-feature-matrix-every-optional-feature-compiles-standalone) | flowchart | VW-05 |
-| [VW-05.3 Release — tag push to npm, via GitHub OIDC trusted publishing](vowl-wasm/05-build-test-bench-and-publish.md#vw-053-release-tag-push-to-npm-via-github-oidc-trusted-publishing) | sequenceDiagram | VW-05 |
+| [VW-05.3 Release — tag build, GitHub attachment and attempted npm publication](vowl-wasm/05-build-test-bench-and-publish.md#vw-053-release-tag-build-github-attachment-and-attempted-npm-publication) | flowchart | VW-05 |
 | [VW-05.4 Benches — what each measures](vowl-wasm/05-build-test-bench-and-publish.md#vw-054-benches-what-each-measures) | flowchart | VW-05 |
 | [VW-05.5 Release profile — why `wasm-opt` stays off](vowl-wasm/05-build-test-bench-and-publish.md#vw-055-release-profile-why-wasm-opt-stays-off) | flowchart | VW-05 |
 | [VW-05.6 Reviewed release inventory — the guard between a source change and a browser tarball](vowl-wasm/05-build-test-bench-and-publish.md#vw-056-reviewed-release-inventory-the-guard-between-a-source-change-and-a-browser-tarball) | flowchart | VW-05 |
@@ -4177,7 +4177,8 @@ Keys are repository-qualified. `estate-unresolved` preserves an unqualified cros
 | `../visionGraph/publishing-tools/WasmVOWL/CAPABILITIES.md` | [VG-06](visiongraph/06-shipping-explorer-duplication.md) |
 | `../visionGraph/publishing-tools/WasmVOWL/CLAUDE.md` | [VG-06](visiongraph/06-shipping-explorer-duplication.md) |
 | `../visionGraph/publishing-tools/WasmVOWL/Dockerfile` | [VG-06](visiongraph/06-shipping-explorer-duplication.md) |
-| `../visionGraph/publishing-tools/WasmVOWL/modern/package.json` | [ES-11](estate/11-publishing-axis.md), [KG-04](knowledgegraph/04-explorer-and-site-build.md), [VG-03](visiongraph/03-publish-pipeline-and-explorer-build.md), [VG-06](visiongraph/06-shipping-explorer-duplication.md) |
+| `../visionGraph/publishing-tools/WasmVOWL/modern/package-lock.json` | [VW-04](vowl-wasm/04-js-api-examples-and-consumers.md) |
+| `../visionGraph/publishing-tools/WasmVOWL/modern/package.json` | [ES-11](estate/11-publishing-axis.md), [KG-04](knowledgegraph/04-explorer-and-site-build.md), [VG-03](visiongraph/03-publish-pipeline-and-explorer-build.md), [VG-06](visiongraph/06-shipping-explorer-duplication.md), [VW-04](vowl-wasm/04-js-api-examples-and-consumers.md) |
 | `../visionGraph/publishing-tools/WasmVOWL/modern/scripts/check-space-domains.mjs` | [VG-01](visiongraph/01-vault-structure-and-contract.md), [VG-03](visiongraph/03-publish-pipeline-and-explorer-build.md) |
 | `../visionGraph/publishing-tools/WasmVOWL/modern/scripts/check-supply-chain-domain.mjs` | [VG-01](visiongraph/01-vault-structure-and-contract.md), [VG-03](visiongraph/03-publish-pipeline-and-explorer-build.md) |
 | `../visionGraph/publishing-tools/WasmVOWL/modern/src/router.tsx` | [VG-06](visiongraph/06-shipping-explorer-duplication.md) |
@@ -4275,10 +4276,10 @@ Keys are repository-qualified. `estate-unresolved` preserves an unqualified cros
 | `../vowl-wasm/src/graph/pinning.rs` | [VW-02](vowl-wasm/02-owl-parse-to-graph-model.md), [VW-04](vowl-wasm/04-js-api-examples-and-consumers.md) |
 | `../vowl-wasm/src/graph/statistics.rs` | [VW-02](vowl-wasm/02-owl-parse-to-graph-model.md) |
 | `../vowl-wasm/src/interaction/mod.rs` | [VW-01](vowl-wasm/01-crate-composition-and-wasm-boundary.md), [VW-04](vowl-wasm/04-js-api-examples-and-consumers.md) |
-| `../vowl-wasm/src/layout/csr_sim.rs` | [VW-03](vowl-wasm/03-force-layout-lifecycle.md), [VW-04](vowl-wasm/04-js-api-examples-and-consumers.md) |
+| `../vowl-wasm/src/layout/csr_sim.rs` | [VW-01](vowl-wasm/01-crate-composition-and-wasm-boundary.md), [VW-03](vowl-wasm/03-force-layout-lifecycle.md), [VW-04](vowl-wasm/04-js-api-examples-and-consumers.md) |
 | `../vowl-wasm/src/layout/mod.rs` | [VW-01](vowl-wasm/01-crate-composition-and-wasm-boundary.md), [VW-03](vowl-wasm/03-force-layout-lifecycle.md) |
 | `../vowl-wasm/src/layout/quadtree.rs` | [VW-03](vowl-wasm/03-force-layout-lifecycle.md) |
-| `../vowl-wasm/src/layout/simd.rs` | [VW-03](vowl-wasm/03-force-layout-lifecycle.md) |
+| `../vowl-wasm/src/layout/simd.rs` | [VW-01](vowl-wasm/01-crate-composition-and-wasm-boundary.md), [VW-03](vowl-wasm/03-force-layout-lifecycle.md) |
 | `../vowl-wasm/src/layout/simulation.rs` | [VW-01](vowl-wasm/01-crate-composition-and-wasm-boundary.md), [VW-03](vowl-wasm/03-force-layout-lifecycle.md) |
 | `../vowl-wasm/src/lib.rs` | [VW-01](vowl-wasm/01-crate-composition-and-wasm-boundary.md) |
 | `../vowl-wasm/src/ngg1.rs` | [VW-01](vowl-wasm/01-crate-composition-and-wasm-boundary.md), [VW-03](vowl-wasm/03-force-layout-lifecycle.md) |

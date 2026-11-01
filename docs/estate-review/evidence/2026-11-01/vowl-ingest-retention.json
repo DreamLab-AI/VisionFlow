@@ -1,0 +1,741 @@
+{
+  "destination": "/tmp/vf-vowl-ingest-audit-artifacts",
+  "files": 146,
+  "all_byte_verified": true,
+  "disposable_excluded": [
+    ".audit-target",
+    ".audit-release-target"
+  ],
+  "artefacts": [
+    {
+      "path": ".audit-previews/VW-01.1.png",
+      "bytes": 80444,
+      "sha256": "49828b9edf096dff0069cc7c01d948c6e03a0a87b30d8bf8e582dcce235b123a"
+    },
+    {
+      "path": ".audit-previews/VW-01.4.png",
+      "bytes": 168510,
+      "sha256": "d8de6e06cddaa35ac8397f3e97dc43a229429fa1af21d20a55fbf1c5e2a07d31"
+    },
+    {
+      "path": ".audit-previews/VW-01.5.png",
+      "bytes": 26693,
+      "sha256": "c167effabccb9b200f63b75f2043c73af37614e9ad2b7b5eab36d7f8d1ee5ab3"
+    },
+    {
+      "path": ".audit-previews/VW-01.6.png",
+      "bytes": 25882,
+      "sha256": "e460771cb0a643835b5d484602e1c1dcd9ef1f3a915bc72b4e5b02cd7707f64b"
+    },
+    {
+      "path": ".audit-previews/VW-01.7.png",
+      "bytes": 97490,
+      "sha256": "6b7899f8cca93e838b4efcbdeb87dcb5fcd9cfc32b3f16c8939b22a0b104135d"
+    },
+    {
+      "path": ".audit-previews/VW-01.8.png",
+      "bytes": 23049,
+      "sha256": "1993cc1ba2cb6faad31fa934bcdedd20519510063888b472d09b1deaa3af2e0e"
+    },
+    {
+      "path": ".audit-previews/VW-02.1.png",
+      "bytes": 122729,
+      "sha256": "95d09daf581c3c64fe8f88d595c641149518723b6faab6694e5efb5f7544c90c"
+    },
+    {
+      "path": ".audit-previews/VW-02.2.png",
+      "bytes": 88977,
+      "sha256": "507df28ee4db137d3d9f6d1c7f5becf4f9a9a8252b52674286a8ec08729a7a75"
+    },
+    {
+      "path": ".audit-previews/VW-02.3.png",
+      "bytes": 111015,
+      "sha256": "02b6756a7c873a318ad0109310c0b46455d41e5a317fa706552ae0fabd25dcf8"
+    },
+    {
+      "path": ".audit-previews/VW-02.4.png",
+      "bytes": 34457,
+      "sha256": "def007158482ec3c414cf7c8738579493b7f0d8603fbbbac0f7480005de4be8e"
+    },
+    {
+      "path": ".audit-previews/VW-02.8.png",
+      "bytes": 32764,
+      "sha256": "27f6b6ca6933199b967e7031c59800455a2cf0e7ca77567d468ed84039119ef1"
+    },
+    {
+      "path": ".audit-previews/VW-04.6.png",
+      "bytes": 42857,
+      "sha256": "6662c3e77f84e15466990e585fa420ddf46a52338fbbd1ea387cc54380bde2aa"
+    },
+    {
+      "path": ".audit-previews/VW-05.1.png",
+      "bytes": 82547,
+      "sha256": "3cf34784d398091f0c5724b22474c82d0c426eb3c0050af6f491b3f1609a2a4a"
+    },
+    {
+      "path": ".audit-previews/VW-05.2.png",
+      "bytes": 94280,
+      "sha256": "f7cc96c1a695466131daacbacc25fd4b173b340e97a293f9d49775f8e5026488"
+    },
+    {
+      "path": ".audit-previews/VW-05.3.png",
+      "bytes": 79664,
+      "sha256": "c99670378dd2e7397a1cf66b071d859831806c6bc9794b5ccb250e0b6ff909f8"
+    },
+    {
+      "path": ".audit-previews/VW-05.4.png",
+      "bytes": 41434,
+      "sha256": "507d8561b5d910739f86f466d0d8bcb9e1b172128623d64618a150771c6f976a"
+    },
+    {
+      "path": ".audit-previews/VW-05.5.png",
+      "bytes": 120459,
+      "sha256": "35d94b28c2a54809b0a34c57037c06bfda73a47e6289dce0252d3469bc3c898d"
+    },
+    {
+      "path": ".audit-previews/VW-05.6.png",
+      "bytes": 281194,
+      "sha256": "fb70cc316c717e799be918861e8c89aa4795d9235a9122e7a93cf8c8903e7d68"
+    },
+    {
+      "path": ".audit-previews/topic01.png",
+      "bytes": 401523,
+      "sha256": "09c30df2372f26e64910c8054521406977870ea0ca77fd1515631d817bca9096"
+    },
+    {
+      "path": ".audit-previews/topic02.png",
+      "bytes": 372660,
+      "sha256": "614e52ac996609f7455acc1485172dff24d39dec116dc488532525b04d0e2e34"
+    },
+    {
+      "path": ".audit-previews/topic05.png",
+      "bytes": 593690,
+      "sha256": "e23db8b07ff5229b60ae49c4f1ed1cec83471e20e941af15a4fc520c24d2d4c9"
+    },
+    {
+      "path": ".audit-source/.github/workflows/ci.yml",
+      "bytes": 10248,
+      "sha256": "1194a73b496439f64f5f8dc3c4f64feaa7a1212aa20b31784abad3524a5bb04a"
+    },
+    {
+      "path": ".audit-source/.github/workflows/release.yml",
+      "bytes": 8323,
+      "sha256": "84575326850bfe5ce6185171e178ff6a7ac113bf624a1c40425e783b4fe0f692"
+    },
+    {
+      "path": ".audit-source/.gitignore",
+      "bytes": 30,
+      "sha256": "9094ed23a1c0ab1bc17e4e451612f9ad9b0a1c372fa2d67bd2b9fe6e03dbf1b1"
+    },
+    {
+      "path": ".audit-source/CHANGELOG.md",
+      "bytes": 8491,
+      "sha256": "1d57626b6283e0a49e1c743ea2d56eeb192cb8db1f9321dcaea54600b2be730c"
+    },
+    {
+      "path": ".audit-source/Cargo.lock",
+      "bytes": 26736,
+      "sha256": "bf2fc5c5df9c46f1fb0599d9ead9464685aa3e3c03fd64ae7c15d2c5486a0aad"
+    },
+    {
+      "path": ".audit-source/Cargo.toml",
+      "bytes": 4401,
+      "sha256": "a9f762868e6be175b3088c245a9f2cb3c9067710c54673da7cdd8bd84742fa23"
+    },
+    {
+      "path": ".audit-source/LICENSE",
+      "bytes": 2680,
+      "sha256": "0f4fcaecb008764bb7afd316b52a77f830f3ad32594658352f51ed98b3a9c317"
+    },
+    {
+      "path": ".audit-source/README.md",
+      "bytes": 13104,
+      "sha256": "80ea4a718b36a72d039c88a85dd643297aecae4603896bf1da3b35c2bf304283"
+    },
+    {
+      "path": ".audit-source/THIRD-PARTY-NOTICES.md",
+      "bytes": 293758,
+      "sha256": "2c1e67a10040fa6f5ee63c46a6ce96fd85af7bd929aa49e0fa0683bfd86b8a37"
+    },
+    {
+      "path": ".audit-source/benches/interaction_bench.rs",
+      "bytes": 4411,
+      "sha256": "031b24562c5f79083854ae4b3313aed694a2a47ee75749ab4ca10da1d41924c7"
+    },
+    {
+      "path": ".audit-source/benches/layout_bench.rs",
+      "bytes": 4802,
+      "sha256": "eafcce94057bc5d9b170f677ba4fa6a49981eefc27882350972311c00ffdc4f0"
+    },
+    {
+      "path": ".audit-source/benches/parser_bench.rs",
+      "bytes": 2877,
+      "sha256": "e1c85819828e818be8d6b00b32822011586178707b9734a98a7f1ffe9bcb02da"
+    },
+    {
+      "path": ".audit-source/benches/phase3_benchmarks.rs",
+      "bytes": 8510,
+      "sha256": "252b5cc1eb9739836991419ac34590be321d66cde1bedc4e4406161401bfed78"
+    },
+    {
+      "path": ".audit-source/deny.toml",
+      "bytes": 1193,
+      "sha256": "9de2e260dd0abbb08d600c3680fc06404038b4e729598252bd5f042555ab9647"
+    },
+    {
+      "path": ".audit-source/docs/UPSTREAMS.md",
+      "bytes": 18378,
+      "sha256": "c6f983d8bc25d4dd81bcb6d5ac30708de0ca6fd71c6cf656c865ddf2b6a28fa5"
+    },
+    {
+      "path": ".audit-source/docs/adr/ADR-001-shared-ontology-rendering-contract.md",
+      "bytes": 9699,
+      "sha256": "e1e605a3dcfbff723cb77357a9fa63078315dda664d518ac72e872985fc04911"
+    },
+    {
+      "path": ".audit-source/docs/adr/README.md",
+      "bytes": 433,
+      "sha256": "2bb92840e78fd7bfea8ccaaed0c6c48aaff35c45fde4f175b7b1f64a47ed0889"
+    },
+    {
+      "path": ".audit-source/docs/release-inventory.json",
+      "bytes": 4307,
+      "sha256": "f2e08b44b19f0804dc9f43719c8406465d2446284789b5113141aa9dd94460f1"
+    },
+    {
+      "path": ".audit-source/examples/barnes_hut_benchmark.rs",
+      "bytes": 4741,
+      "sha256": "c3388906d3c028b690a2f35c698309e0d5710895e77eec8b88e295998795eaf8"
+    },
+    {
+      "path": ".audit-source/src/bindings/explorer.rs",
+      "bytes": 5223,
+      "sha256": "b535dd5cd879db6825bdbbbb639b277f6f1d9b25928316cf0eb6b670df1de981"
+    },
+    {
+      "path": ".audit-source/src/bindings/mod.rs",
+      "bytes": 33463,
+      "sha256": "f854da192cbff94a84967e7aa382180ccd2243d469de87c7767faec06dbfeead"
+    },
+    {
+      "path": ".audit-source/src/bindings/ngg.rs",
+      "bytes": 12899,
+      "sha256": "9f942851b41b889927c0a97ad94ea21ae62bc5a6a4c09ae8c4d109635841de66"
+    },
+    {
+      "path": ".audit-source/src/debug.rs",
+      "bytes": 5703,
+      "sha256": "00c12a537a5f86e8a41a2fdeaf12911495e5fc4113bff881842fbb71db8fdfff"
+    },
+    {
+      "path": ".audit-source/src/error.rs",
+      "bytes": 1269,
+      "sha256": "5a51919a5305dab5872d682f39a085fcc2a29d5e61800ffd3c54d02255f0c4f8"
+    },
+    {
+      "path": ".audit-source/src/graph/builder.rs",
+      "bytes": 11007,
+      "sha256": "cebd7158a380629f104018e0579e61907206ecb90fc29ca7d71f81e4be178db2"
+    },
+    {
+      "path": ".audit-source/src/graph/edge.rs",
+      "bytes": 3911,
+      "sha256": "b514face1b45dbbf24a0334ead40f0745996a5c8d492be49a85af1933f52064d"
+    },
+    {
+      "path": ".audit-source/src/graph/mod.rs",
+      "bytes": 26916,
+      "sha256": "6321c027db6ca8e8cf30c6703ee3c7925b288879c0810867a5ef73465810222a"
+    },
+    {
+      "path": ".audit-source/src/graph/node.rs",
+      "bytes": 2861,
+      "sha256": "af9db1cd9cbb781caa82d2024b51509ef3cfec2f6df64a03ebe1f660466f4c34"
+    },
+    {
+      "path": ".audit-source/src/graph/pinning.rs",
+      "bytes": 10445,
+      "sha256": "d3ca4e5cc6c8737053c02fbdb10a9e4769847c46ae12dcb1d16a2ed45223b294"
+    },
+    {
+      "path": ".audit-source/src/graph/statistics.rs",
+      "bytes": 21413,
+      "sha256": "234f01de6882de64f88908203a7e7e617267fcac12e406ca89d61a4ad1cdde1b"
+    },
+    {
+      "path": ".audit-source/src/interaction/mod.rs",
+      "bytes": 11793,
+      "sha256": "0f8c0542ba3b559bafaffcc4bfe4d3d281f2724a4baea497f742c47eb95dd4e4"
+    },
+    {
+      "path": ".audit-source/src/layout/csr_sim.rs",
+      "bytes": 39091,
+      "sha256": "501e3826fb4fe0f734f2a750e0ea474dd6d91adeaf6bef0445e6735193966b01"
+    },
+    {
+      "path": ".audit-source/src/layout/force.rs",
+      "bytes": 9659,
+      "sha256": "0a4aa2da67ab0e328e446d2225ad58f67de3d1137a5c70ac5328bd8b93459755"
+    },
+    {
+      "path": ".audit-source/src/layout/mod.rs",
+      "bytes": 5352,
+      "sha256": "65d2baaf4264bdd382d5b119ad0955e7afb6bf86e619d702da33a29cf7516f73"
+    },
+    {
+      "path": ".audit-source/src/layout/quadtree.rs",
+      "bytes": 18761,
+      "sha256": "e673330acb60f6a5950c4b698844c6f137a84702e422ace2b2797449166d93f5"
+    },
+    {
+      "path": ".audit-source/src/layout/simd.rs",
+      "bytes": 27209,
+      "sha256": "6522a70ce586aadfc03446a302679aefe4d0dc025391572538fd32b30f1011a8"
+    },
+    {
+      "path": ".audit-source/src/layout/simulation.rs",
+      "bytes": 17143,
+      "sha256": "c0aeb7ced5d1e602e71ae27e574421fb3dd190c5285c35b78e716ac47df6052b"
+    },
+    {
+      "path": ".audit-source/src/lib.rs",
+      "bytes": 8041,
+      "sha256": "79747a04900a8f70337d20c47d003253a61f93b1396c986144cebffd09b191bc"
+    },
+    {
+      "path": ".audit-source/src/ngg1.rs",
+      "bytes": 250,
+      "sha256": "915670103277f8851b47db8b80c3b27dc06315018bfb5d2869a08055485f49f1"
+    },
+    {
+      "path": ".audit-source/src/ontology/mod.rs",
+      "bytes": 7832,
+      "sha256": "3e175b08efc0682072c9ca3b21ca682536206d6b96837e3e99c5e6599ade4dc1"
+    },
+    {
+      "path": ".audit-source/src/ontology/model.rs",
+      "bytes": 1439,
+      "sha256": "abbb28126c565e3197aadb3c836edbdfb86bfbd05068dad0dfa11be39a642023"
+    },
+    {
+      "path": ".audit-source/src/ontology/parser.rs",
+      "bytes": 20478,
+      "sha256": "f04c7024be97eb423fb9f34b2a140aeb9ed50ff1417bdcf7d78bf94c8cd2342a"
+    },
+    {
+      "path": ".audit-source/src/render/mod.rs",
+      "bytes": 8623,
+      "sha256": "38ff657ea2229975bd77a64658bfec34071bbe685463dfc01c37f7bec512dd8d"
+    },
+    {
+      "path": ".audit-source/tests/estate_ingest_probe.rs",
+      "bytes": 5282,
+      "sha256": "ff77f7d520f3c85d3c716f33f7559adb7a5ba8a3135f627ded153c826f3182e3"
+    },
+    {
+      "path": ".audit-source/tests/fixtures/ngg1-3n2e.bin",
+      "bytes": 183,
+      "sha256": "b4580c96e5d83fe44b791cc59b4e44cab573dcbb467d9bbe363eb1bcba6f0c3f"
+    },
+    {
+      "path": ".audit-source/tests/integration_test.rs",
+      "bytes": 5923,
+      "sha256": "5184def23054ea361fa1c13883128dceb2b1a3f173b00c39aaef0a362f0cc306"
+    },
+    {
+      "path": ".audit-source/tests/ngg1_explorer_test.rs",
+      "bytes": 4354,
+      "sha256": "5096f727f2ad0f0dce2905a094b72848344ea9567000aeb473e3d7007ce70b6b"
+    },
+    {
+      "path": ".audit-source/tests/ngg1_wasm.test.mjs",
+      "bytes": 5253,
+      "sha256": "e7184210c8053874818a72777d52070682e9d1702dc318f53d5cb5f59f0bb1c1"
+    },
+    {
+      "path": ".audit-source/tests/ontology_metadata_test.rs",
+      "bytes": 13172,
+      "sha256": "a4284d6b190249fb4612cf13946d773ce864bc78eabaa8b02935f0ffee913268"
+    },
+    {
+      "path": ".audit-source/tests/ontomark_ngg1_migration.rs",
+      "bytes": 38417,
+      "sha256": "00daa0fdb1d70929bea831cc9388face3509b390e37b9cc159ae1c81eccbd231"
+    },
+    {
+      "path": ".audit-source/tests/ontomark_taxonomy_migration.rs",
+      "bytes": 5834,
+      "sha256": "62e1097dec5a489d76031f5b3713e3fad152c1c126e00a1c38abfcf6a41124c7"
+    },
+    {
+      "path": ".audit-source/tests/phase3_integration.rs",
+      "bytes": 14040,
+      "sha256": "df0ccbf877ec42a97580a24bc74b17bc6b2b57e3cbd8c8107f5f633b261c06f2"
+    },
+    {
+      "path": ".audit-source/tools/release-inventory/Cargo.lock",
+      "bytes": 9410,
+      "sha256": "11ce26b541ac2db1265bd6af3382a979a0b52403cbb84f3845646dc87f017a71"
+    },
+    {
+      "path": ".audit-source/tools/release-inventory/Cargo.toml",
+      "bytes": 403,
+      "sha256": "8e0ec8bb1532f4489eb2bf3c51cf801daebf21d9601ca11126e37277b36d56bb"
+    },
+    {
+      "path": ".audit-source/tools/release-inventory/LICENSE",
+      "bytes": 1083,
+      "sha256": "fdfbfb366dd18da7f7da90ec3ad5e282e04cc2d78b3ee410465087db457cf86f"
+    },
+    {
+      "path": ".audit-source/tools/release-inventory/README.md",
+      "bytes": 1136,
+      "sha256": "468c33c264756c1d9ea037b2fde6b1133e21178208ed8f9e2612a3311bb7943a"
+    },
+    {
+      "path": ".audit-source/tools/release-inventory/src/main.rs",
+      "bytes": 11500,
+      "sha256": "71aa08998051879822a8b984268e8769fec52df5b798c28765fbd344b21b73e0"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/01-crate-composition-and-wasm-boundary/VW-01.1.mmd",
+      "bytes": 648,
+      "sha256": "7f51d6c3962b1c7abdbd5bb4e5e86e567ca3aa38d120d9042f037cbcd1f2ddaf"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/01-crate-composition-and-wasm-boundary/VW-01.1.svg",
+      "bytes": 6903,
+      "sha256": "ffec1da37a7df2b6f315c5bb93d7a984da9eb61ffcc71d668f6123f5663e65cd"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/01-crate-composition-and-wasm-boundary/VW-01.4.mmd",
+      "bytes": 1005,
+      "sha256": "05b2c3e271ad6afcaf2c7221622b2433adcb6ae2202d7074689fb707f9097abb"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/01-crate-composition-and-wasm-boundary/VW-01.4.svg",
+      "bytes": 7568,
+      "sha256": "f5f8a0971a6d51e527fd9fab52865237fa21b1c041328bc1dc1ef059aac498fb"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/01-crate-composition-and-wasm-boundary/VW-01.5.mmd",
+      "bytes": 458,
+      "sha256": "bba9d9b4b8fcbc50c4da2bc0612cf0c21d967f3428f18a29dc3bff05d725647e"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/01-crate-composition-and-wasm-boundary/VW-01.5.svg",
+      "bytes": 6080,
+      "sha256": "fe0628d4a62c8762d45fc2c433a4f8ea21e04582e3e1c9de05cb322eed92d58f"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/01-crate-composition-and-wasm-boundary/VW-01.6.mmd",
+      "bytes": 432,
+      "sha256": "398fc1cfc8f5b7251ceedfcef1cc2ce567783b76326bb87629654191bc963c39"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/01-crate-composition-and-wasm-boundary/VW-01.6.svg",
+      "bytes": 3095,
+      "sha256": "f0669c03eb35c880974d750c15aafcb21e37fceddebb9716e4f0dc6c9cc1d178"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/01-crate-composition-and-wasm-boundary/VW-01.7.mmd",
+      "bytes": 883,
+      "sha256": "45f58b1c25c0d25b7c3823eb83dc1633e70a4a2646ae2762592d0e08afcb6678"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/01-crate-composition-and-wasm-boundary/VW-01.7.svg",
+      "bytes": 7475,
+      "sha256": "775dfa9ac4bad49faec8ad97930fdf23d0492bf947ad725ab3e7d2845dbc1b96"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/01-crate-composition-and-wasm-boundary/VW-01.8.mmd",
+      "bytes": 364,
+      "sha256": "543191f6735b46021d72ce09d2061d907415deed83fcae4fd8a286ac2a2230d9"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/01-crate-composition-and-wasm-boundary/VW-01.8.svg",
+      "bytes": 2418,
+      "sha256": "99cce8dbefb11bcddda306fae09bfb42df0695c32c6f942ee084f36420901fc5"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/02-owl-parse-to-graph-model/VW-02.1.mmd",
+      "bytes": 804,
+      "sha256": "a31bb83c1718cfc122fe103ccb84f745328d5f822f878298ac3dc82e4ad49545"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/02-owl-parse-to-graph-model/VW-02.1.svg",
+      "bytes": 10368,
+      "sha256": "8fecee1221fe35839210bc11361d456eeb7070f9fc8e5ebced5b197172bd93a6"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/02-owl-parse-to-graph-model/VW-02.2.mmd",
+      "bytes": 908,
+      "sha256": "8158bf4084d92a6e93be9e3dbe32b7bfb5969a7ba91ab5a38e792673a4091d21"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/02-owl-parse-to-graph-model/VW-02.2.svg",
+      "bytes": 8133,
+      "sha256": "49b45f0dfb3dce27fd616c3a651aa98be3432173380083aeebfb610a77234880"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/02-owl-parse-to-graph-model/VW-02.3.mmd",
+      "bytes": 1207,
+      "sha256": "267d750043d0b99efb9dac069e91bbe23da51b368f999bd82997af9056f9e1ab"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/02-owl-parse-to-graph-model/VW-02.3.svg",
+      "bytes": 8725,
+      "sha256": "81658d1622ed2199cb09aa5a1e61c8e6f21ff37b1ada1ebd0e766831b35bde62"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/02-owl-parse-to-graph-model/VW-02.4.mmd",
+      "bytes": 543,
+      "sha256": "3ea0ab982fe933eba2d11da3e648ce5bd5a9a2f04bf8071c434812ba180ce63d"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/02-owl-parse-to-graph-model/VW-02.4.svg",
+      "bytes": 4198,
+      "sha256": "e35e6d0a305db6c2fc82715bb61b9117ec74cdea08a5ea50db20f67d35d6ad88"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/02-owl-parse-to-graph-model/VW-02.8.mmd",
+      "bytes": 520,
+      "sha256": "2fccb9e7fe7343fea191c2b0824809289c329a2bf3584b747368f02358bbad93"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/02-owl-parse-to-graph-model/VW-02.8.svg",
+      "bytes": 4764,
+      "sha256": "09885f97101309788bd5acf4beb325d7e3762e96a2ed9d7b25b88c388adfe466"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.1.mmd",
+      "bytes": 866,
+      "sha256": "32cb561d8c6391ea58177b32554ca73b1ae834d219e86676bbf459795107a96d"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.1.svg",
+      "bytes": 8811,
+      "sha256": "b8c67bf2c98052b2776338b16cafcdca197a4410d98bc6b4adfabb0ac36e6d68"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.10.mmd",
+      "bytes": 983,
+      "sha256": "fc25ce5073cc4671e969966bca57895292bb8d928a72f29336d84fd75c6d7200"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.10.svg",
+      "bytes": 6760,
+      "sha256": "70c8622861177437a564f7e703f36ed9f3bbe0b95c8d3d9e9171d76746c8fe3e"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.2.mmd",
+      "bytes": 792,
+      "sha256": "bba21254e00b3e233ef42c82da8ff86ffa9791c19e95b89458992a4e2d0d6ca1"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.2.svg",
+      "bytes": 5530,
+      "sha256": "4101bd5e2c73ebde42eb83d5f544938b7d48dea1047f63128405314617ac1de6"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.3.mmd",
+      "bytes": 1389,
+      "sha256": "64e841c13937d572db1676d03e0b674eec50f8c3bca6392604a4cf928fe22268"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.3.svg",
+      "bytes": 11778,
+      "sha256": "5761ddacd7add012d13c254070585a8f66d0d9feb65366354873b5250f4f75f4"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.4.mmd",
+      "bytes": 760,
+      "sha256": "33db54d1ec1200c85afd2d4146acd5540bba56b776df137e3c1ccdd67a8cab7a"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.4.svg",
+      "bytes": 5905,
+      "sha256": "162c85433fbe82732feee174258c717517441920bd3dc2d7a5204706c992a891"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.5.mmd",
+      "bytes": 2155,
+      "sha256": "1ade7aec209446dda43e9bda607e24e90d33e752895ae343fbb070d1efe4e182"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.5.svg",
+      "bytes": 13326,
+      "sha256": "8a635f5e71174bbe27b52d7e662e2b8e4f8067b0bb3556c39212e0b939203366"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.6.mmd",
+      "bytes": 743,
+      "sha256": "b8e9e813af356922d66342fc6693911d08cdc8148452db72a737fff930f8e5b3"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.6.svg",
+      "bytes": 7848,
+      "sha256": "7869ef081c07cb349b6b6a09f0f569274b72601e411ebaa23ee7f0ea55e1292b"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.7.mmd",
+      "bytes": 636,
+      "sha256": "656573c47b77ca0042aa71c42a147cc5aa389380f96adc9a7d87f4949810da1d"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.7.svg",
+      "bytes": 4268,
+      "sha256": "ff4c0039544e4f4c4da3374f6eef0bc9ff3b9ba1608a2ad82c04622755fbbb73"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.9.mmd",
+      "bytes": 1161,
+      "sha256": "b6b08fa252d9a5beb10751d4cbb03041d236ffe8fa5328a1b22a89307ddfaaaa"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/03-force-layout-lifecycle/VW-03.9.svg",
+      "bytes": 8279,
+      "sha256": "c0286b41c3f7b63017455ac564c7290426c1cfecae047c337579ee388d359166"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.1.mmd",
+      "bytes": 1176,
+      "sha256": "cdd1a520185282d6d5a2b1fff6cdb7a03a3e384f3f7e45d68368d70c6e4d13b6"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.1.svg",
+      "bytes": 7727,
+      "sha256": "89fcbc436e8792a78fd34d2d601d99d35dce10369935d46484f1b0589679bd5a"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.2.mmd",
+      "bytes": 691,
+      "sha256": "bee526fffc6d51231e63f11f2e5e7376cb3bbcddce580b36761f087b2b5c8448"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.2.svg",
+      "bytes": 4746,
+      "sha256": "1e8a4433da5a6e743ea45b61a5f3bd06e200ec70fdd4b077afe7ecd312fd2f55"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.3.mmd",
+      "bytes": 815,
+      "sha256": "955afa5734d16014a6a1708a95f78c2705dcfbd0410bc1929c73866487e46ca0"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.3.svg",
+      "bytes": 8646,
+      "sha256": "99534715b5d57d86db5a46143d2ddffcfc1120b4e3abc4f2873670baab7adb7a"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.5.mmd",
+      "bytes": 877,
+      "sha256": "ad1495586daff7edf12a060247c96a1308e25683424e12067f6037576c6b152f"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.5.svg",
+      "bytes": 5199,
+      "sha256": "555ff5cf1fb85b0ebc1627a8bf16617a84d40732ce43d24d298ecc7184815add"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.6.mmd",
+      "bytes": 748,
+      "sha256": "2532303be74198dc8369917282d12adb79fc1af44e1363b4a9971430f5dd4ef3"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.6.svg",
+      "bytes": 7260,
+      "sha256": "9892e30858026776ce922ee69cfb042854c8e37d7ea46d93ce4237ea0225233b"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.7.mmd",
+      "bytes": 364,
+      "sha256": "f655d64b234c4bb605db4fd0573d914b886c22f78a4490e2843bd4c59aea4187"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.7.svg",
+      "bytes": 3057,
+      "sha256": "4b72b7d23afc922efd57c01d2e25844f1e83bd47c5e3eea3bb904991fc20e351"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.8.mmd",
+      "bytes": 1363,
+      "sha256": "bec8d57ace022f972672bcc5780fc0454cb55fd96b96b3d8aaed68d8a52516b8"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/04-js-api-examples-and-consumers/VW-04.8.svg",
+      "bytes": 8017,
+      "sha256": "fdabe858e8560db656c954447f14857f9c0af37713dfc0ffec8f3e89bff215eb"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/05-build-test-bench-and-publish/VW-05.1.mmd",
+      "bytes": 973,
+      "sha256": "fcf742d71fa1fdf48d9525f87bd74129d4eddbd84af5354e76a1a0b81f31e4a4"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/05-build-test-bench-and-publish/VW-05.1.svg",
+      "bytes": 7827,
+      "sha256": "8136f9ffa5519b9b9b8b06e957687c6dbf6a12e15be407b7556e7b4b0a2f17b3"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/05-build-test-bench-and-publish/VW-05.2.mmd",
+      "bytes": 533,
+      "sha256": "73d6b9de337d3ffd347585d5418a548ad4710770b41221a455dcf976fc97f5a0"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/05-build-test-bench-and-publish/VW-05.2.svg",
+      "bytes": 5553,
+      "sha256": "e11a7de7d5e19fe152348a4a2d825d39342d2f14005091cda9a4fcbe3c3e9fe0"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/05-build-test-bench-and-publish/VW-05.3.mmd",
+      "bytes": 993,
+      "sha256": "d3000b6b7788e27f671541f56f493f655400b86a1f2aa9acf14da21bf35cd73d"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/05-build-test-bench-and-publish/VW-05.3.svg",
+      "bytes": 8232,
+      "sha256": "eb0bdfcbad5def533498d6b6edc6c1cb2243f811fe377dc4507d6acf4df88ed3"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/05-build-test-bench-and-publish/VW-05.4.mmd",
+      "bytes": 693,
+      "sha256": "eec721a1ef5ba36350adba382f0bede3e8d71fdabf50feb91b4a8f0ab2be3872"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/05-build-test-bench-and-publish/VW-05.4.svg",
+      "bytes": 4742,
+      "sha256": "06637294a88a22d908b586ea98bf61f795240e37c6f2896ac84ee4bfba688d39"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/05-build-test-bench-and-publish/VW-05.5.mmd",
+      "bytes": 628,
+      "sha256": "ebdc71ba6e2cd75f1d37f956f4d4f4d4e0129af2d12a614d66f4496bf5455574"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/05-build-test-bench-and-publish/VW-05.5.svg",
+      "bytes": 4693,
+      "sha256": "fd632ccc4af4c35e6b4fb67cf091396e9e0c648768bb9882d117bc614aff59f3"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/05-build-test-bench-and-publish/VW-05.6.mmd",
+      "bytes": 1529,
+      "sha256": "5893e9a05a67d3b520638645d4fb496768ff8c2acc26bf7841cdd5b8ffe26a08"
+    },
+    {
+      "path": "docs/diagrams/rendered/vowl-wasm/05-build-test-bench-and-publish/VW-05.6.svg",
+      "bytes": 6557,
+      "sha256": "1d96df66165e05f28bd6ad7590a2e748c45e3e072330ee1620c6dd51d995dd2a"
+    },
+    {
+      "path": "texput.log",
+      "bytes": 714,
+      "sha256": "0de8dad445a514ae3bc13874d2a354c230d5395982c23ea702c3e573c3d9d304"
+    },
+    {
+      "path": "website/build-receipt.json",
+      "bytes": 4363,
+      "sha256": "fae85100258804d3344673265a4fcc88781ea92f6e2c4a137bd27b48f3460711"
+    }
+  ]
+}

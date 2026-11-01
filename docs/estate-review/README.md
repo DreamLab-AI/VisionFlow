@@ -41,6 +41,8 @@ Codescape presence and XR: [membership replacement, queue loss and concurrent co
 
 Visiontouch continuation: [software force boundaries, evidence and six-decision review](2026-11-01-visiontouch-software-boundaries.md), covering all 39 existing VT panels with nine software-only counterexamples and an explicit recorder-test limitation.
 
+Vowl ingest and release continuation: [JSON semantics, graph statistics and split delivery](2026-11-01-vowl-ingest-and-release.md). Together with the layout/API pass, all five vowl-wasm topics are assessed with open implementation and host findings. The estate audit remains in progress.
+
 ## Reading order
 
 | Document | Question it answers |
@@ -152,4 +154,4 @@ The [1 November media audit](2026-11-01-media-measurements-and-cancellation.md) 
 
 The [1 November XR budget and engine audit](2026-11-01-xr-budget-and-engine-qualification.md) reviews ADR-2167 and ADR-2165, tests sparse GPU readings and frame-cost limits, and separates live demand accounting from benchmark and stereo evidence.
 
-The [1 November vowl layout and API audit](2026-11-01-vowl-layout-and-api-boundaries.md) reviews local ADR-001 and all 16 VW-03/VW-04 panels. Fresh builds pass 199 native and five JS tests; thirteen audit probes reproduce layout, scope-generation and input-boundary issues. Browser/plugin acceptance and remaining vowl topics stay open.
+The [1 November vowl layout and API audit](2026-11-01-vowl-layout-and-api-boundaries.md) reviews local ADR-001 and all 16 VW-03/VW-04 panels. Fresh builds pass 199 native and five JS tests; thirteen audit probes reproduce layout, scope-generation and input-boundary issues. Browser/plugin acceptance stays open; the [subsequent ingest/release pass](2026-11-01-vowl-ingest-and-release.md) assesses the remaining vowl topics.

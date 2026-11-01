@@ -1,0 +1,17 @@
+   Compiling vowl-release-inventory v0.1.0 (/home/devuser/workspace/wt/VisionFlow-vowl-ingest-release/.audit-source/tools/release-inventory)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.39s
+     Running unittests src/main.rs (.audit-release-target/debug/deps/vowl_release_inventory-bc262bbcdb587bd4)
+
+running 9 tests
+test tests::audit_source_commit_is_shape_checked_not_resolved ... ok
+test tests::refuses_changed_release_feature_profile ... ok
+test tests::audit_release_workflow_and_guard_are_outside_source_hash_set ... ok
+test tests::refuses_future_tag_and_toolchain ... ok
+test tests::refuses_npm_version_mismatch ... ok
+test tests::audit_package_guard_does_not_validate_name_or_generated_wasm ... ok
+test tests::accepts_reviewed_inputs_and_includes_notices_in_explicit_allowlist ... ok
+test tests::refuses_notice_changes_before_package_writes ... ok
+test tests::refuses_source_lock_and_new_file_drift ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

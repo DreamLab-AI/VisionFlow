@@ -18,6 +18,8 @@ sources:
   - ../vowl-wasm/tests/ngg1_wasm.test.mjs
   - ../vowl-wasm/src/interaction/mod.rs
   - ../vowl-wasm/.github/workflows/ci.yml
+  - ../visionGraph/publishing-tools/WasmVOWL/modern/package.json
+  - ../visionGraph/publishing-tools/WasmVOWL/modern/package-lock.json
   - ../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/physics.worker.ts
   - ../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/protocol.ts
   - ../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/positionTransport.ts
@@ -92,7 +94,7 @@ flowchart LR
 sequenceDiagram
     autonumber
     participant W as visionGraph worker<br/>physics.worker.ts:39
-    participant PKG as "@dreamlab-ai/vowl-wasm" npm package<br/>(published pkg/, see VW-04.5, VW-05.3)
+    participant PKG as vowl-wasm package<br/>GitHub release tarball, see VW-05.3
     participant WA as NggExplorer<br/>explorer.rs:18
     Note over W: External consumer: visionGraph
     W->>PKG: import init, default glue<br/>await init() → InitOutput.memory
@@ -104,7 +106,7 @@ sequenceDiagram
 ```
 - The worker resolves exported names "permissively (snake_case per Rust, with camelCase fallbacks)" (physics.worker.ts:33-37 comment) — it does not assume `wasm-bindgen`'s `js_name` renaming is exhaustive, a defensive stance against this crate's binding surface.
 - Drag pinning is optional on the worker side: `pinNode`, `unpinNode` and `reheat` are bound with `optionalMethod` (physics.worker.ts:126-128) and the message handlers return silently when the loaded package lacks them. The package supplies them from 0.2.2 (the worker's own comment says `vowl-wasm ≥ 0.2.2`, physics.worker.ts:50); a pin that succeeds wakes the layout to `DRAG_ALPHA` 0.3 and an unpin to `RELEASE_ALPHA` 0.1 (physics.worker.ts:212-225, physics.worker.ts:309-321).
-- Cross-repo dependency direction: visionGraph depends on the *published* `@dreamlab-ai/vowl-wasm` npm bundle (pinned in its `package.json`/`package-lock.json`, per VisionFlow estate map), never on this crate's source — see VW-05.3 for the publish path that produces that bundle.
+- Cross-repo dependency direction: visionGraph installs the 0.2.2 GitHub release tarball under the package name `@dreamlab-ai/vowl-wasm`, rather than resolving that version from npm (publishing-tools/WasmVOWL/modern/package.json:25, publishing-tools/WasmVOWL/modern/package-lock.json:598-603). The npm publication failed; see VW-05.3 and the [1 November release assessment](../../estate-review/2026-11-01-vowl-ingest-and-release.md).
 
 - **Failure boundary:** `loadScope` changes generation/count before validating bytes (physics.worker.ts:271-295). After a rejected tier, a later Start can publish old positions under the new generation. Caller `nodeCount` is not checked against the loaded tier. `isMainToWorker` only checks an object with a string `type` (protocol.ts:195-200), so unchecked non-finite parameter messages reach CSR configuration. These are host-adapter gaps, not guarantees supplied by the codec.
 

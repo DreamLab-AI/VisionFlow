@@ -1,0 +1,138 @@
+{
+  "observed_at": "2026-11-01 01:43:30 UTC",
+  "runs": [
+    {
+      "id": 41063531138,
+      "name": "Release",
+      "head_sha": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "head_branch": "v0.2.2",
+      "conclusion": "failure",
+      "url": "https://github.com/DreamLab-AI/vowl-wasm/actions/runs/41063531138"
+    },
+    {
+      "id": 41063528018,
+      "name": "CI",
+      "head_sha": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "head_branch": "main",
+      "conclusion": "success",
+      "url": "https://github.com/DreamLab-AI/vowl-wasm/actions/runs/41063528018"
+    },
+    {
+      "id": 41060198025,
+      "name": "Release",
+      "head_sha": "79b6949a89b9d2fc90129e052db78f8af83c2509",
+      "head_branch": "v0.2.1",
+      "conclusion": "failure",
+      "url": "https://github.com/DreamLab-AI/vowl-wasm/actions/runs/41060198025"
+    },
+    {
+      "id": 38173452255,
+      "name": "Release",
+      "head_sha": "be257e986a7c6b164575412794e5b123fa9de610",
+      "head_branch": "v0.2.0",
+      "conclusion": "failure",
+      "url": "https://github.com/DreamLab-AI/vowl-wasm/actions/runs/38173452255"
+    }
+  ],
+  "jobs": [
+    {
+      "id": 124088974822,
+      "name": "Build bundle, attach release asset, publish to npm",
+      "conclusion": "failure",
+      "url": "https://github.com/DreamLab-AI/vowl-wasm/actions/runs/41063531138/job/124088974822",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install wasm-pack 0.15.0 (pinned release, checksum-verified)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "conclusion": "success"
+        },
+        {
+          "name": "Resolve the release tag and check it matches the crate version",
+          "conclusion": "success"
+        },
+        {
+          "name": "Verify reviewed third-party release inventory",
+          "conclusion": "success"
+        },
+        {
+          "name": "Build the bundle",
+          "conclusion": "success"
+        },
+        {
+          "name": "Verify Rust and bundle contracts",
+          "conclusion": "success"
+        },
+        {
+          "name": "Pin package metadata",
+          "conclusion": "success"
+        },
+        {
+          "name": "Include reviewed notices and exact source URLs",
+          "conclusion": "success"
+        },
+        {
+          "name": "Pack the bundle",
+          "conclusion": "success"
+        },
+        {
+          "name": "Attach the bundle to the release",
+          "conclusion": "success"
+        },
+        {
+          "name": "Publish to npm (OIDC trusted publishing)",
+          "conclusion": "failure"
+        },
+        {
+          "name": "Run actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "Post Run Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "npm_error_excerpt": [
+    "2026-10-30T13:29:44.8014975Z npm error code E404",
+    "2026-10-30T13:29:44.8015647Z npm error 404 Not Found - PUT https://registry.npmjs.org/@dreamlab-ai%2fvowl-wasm - Not found",
+    "2026-10-30T13:29:44.8016129Z npm error 404",
+    "2026-10-30T13:29:44.8017075Z npm error 404  The requested resource '@dreamlab-ai/vowl-wasm@0.2.2' could not be found or you do not have permission to access it.",
+    "2026-10-30T13:29:44.8017638Z npm error 404",
+    "2026-10-30T13:29:44.8017966Z npm error 404 Note that you can also install from a",
+    "2026-10-30T13:29:44.8018831Z npm error 404 tarball, folder, http url, or git url.",
+    "2026-10-30T13:29:44.8027159Z npm error A complete log of this run can be found in: /home/runner/.npm/_logs/2026-10-30T13_29_43_235Z-debug-0.log"
+  ],
+  "registry_observed": "https://registry.npmjs.org/"
+}
