@@ -2452,7 +2452,7 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/solid-pod-rs/07-provenance-and-payments.md",
-    "source_sha256": "ea9128595672c28af7b86ce1a4d3414e59c6d69e7bf4d502f1943612f838dbe2",
+    "source_sha256": "2da8b64566bddf2fe2054ea4bd026b82cc064388cfbf840a34de61939af61e46",
     "report": "docs/estate-review/2026-11-01-solid-provenance-delivery.md",
     "report_sha256": "ed29ee02705cd1792ba6e748850e5a782e8dcabf3aa8a0989a204df693b0d26b",
     "coverage": "selected-panels",
@@ -2464,5 +2464,31 @@
       "SP-07.5"
     ],
     "basis": "Selected composition, skip, policy, stage classification and response panels checked against native code and HTTP controls; no rendered-sibling or deployment credit."
+  },
+  {
+    "kind": "adr",
+    "repo": "solid-pod-rs",
+    "path": "crates/solid-pod-rs/docs/adr/ADR-2007-mempool-single-url-no-fallback.md",
+    "source_sha256": "31fa070d4a60dcf3fc0f9de8ddcf3be266e35613877229778ea472c4001dbbad",
+    "report": "docs/estate-review/2026-11-01-solid-anchor-recovery.md",
+    "report_sha256": "da765df753d562f24b1bd2a266b254f374248c8c77b49acc4287c2f74c268a90",
+    "coverage": "whole-document",
+    "basis": "All sections assessed against native source,54 existing passing tests and6 probe groups. Startup/request selection mismatch and redirect/presence limits recorded. No deployed chain, full boot or real transaction evidence."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/solid-pod-rs/07-provenance-and-payments.md",
+    "source_sha256": "2da8b64566bddf2fe2054ea4bd026b82cc064388cfbf840a34de61939af61e46",
+    "report": "docs/estate-review/2026-11-01-solid-anchor-recovery.md",
+    "report_sha256": "da765df753d562f24b1bd2a266b254f374248c8c77b49acc4287c2f74c268a90",
+    "coverage": "selected-panels",
+    "panels": [
+      "SP-07.7",
+      "SP-07.11",
+      "SP-07.12",
+      "SP-07.20"
+    ],
+    "basis": "Epoch accumulation/recovery, endpoint selection, MRC20 accepted-save semantics and Gitmark recovery assessed with native fixtures and persistent local files. Synthetic transport is not consensus; other panels retain their existing scope."
   }
 ]

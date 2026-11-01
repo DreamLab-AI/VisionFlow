@@ -1,0 +1,20 @@
+    Finished `test` profile [unoptimized] target(s) in 0.31s
+     Running unittests src/lib.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/solid_pod_rs_server-1a8ce01bd61bf50e)
+
+running 13 tests
+test handlers::prov::tests::build_anchorer_mrc20_trail_read_error_does_not_fall_through ... ok
+test handlers::prov::tests::build_anchorer_storage_error_is_not_silent_git_only ... ok
+test handlers::prov::tests::concurrent_epoch_pushes_both_survive ... ok
+test handlers::prov::tests::concurrent_debits_cannot_overspend ... ok
+test handlers::prov::tests::a_full_backlog_still_drains_once_anchoring_recovers ... ok
+test handlers::prov::tests::epoch_corrupt_batch_is_not_overwritten ... ok
+test handlers::prov::tests::epoch_read_error_keeps_the_pending_batch ... ok
+test handlers::prov::tests::failed_epoch_close_keeps_the_commit_that_filled_it ... ok
+test handlers::prov::tests::concurrent_debits_do_not_lose_an_update ... ok
+test handlers::prov::tests::failing_anchor_cannot_grow_the_epoch_without_bound ... ok
+test handlers::prov::tests::lost_epoch_reset_does_not_anchor_the_same_batch_twice ... ok
+test handlers::prov::tests::failed_refund_is_logged_and_retained ... ok
+test handlers::prov::tests::concurrent_debit_and_refund_keep_both_effects ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 108 filtered out; finished in 0.01s
+

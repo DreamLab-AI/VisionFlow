@@ -1,0 +1,41 @@
+{
+  "previous_claims": 192,
+  "current_claims": 194,
+  "new_adr": "crates/solid-pod-rs/docs/adr/ADR-2007-mempool-single-url-no-fallback.md",
+  "new_panels": [
+    "SP-07.7",
+    "SP-07.11",
+    "SP-07.12",
+    "SP-07.20"
+  ],
+  "rebound_without_new_credit": [
+    {
+      "report": "docs/estate-review/2026-11-01-solid-provenance-delivery.md",
+      "panels": [
+        "SP-07.1",
+        "SP-07.2",
+        "SP-07.3",
+        "SP-07.4",
+        "SP-07.5"
+      ],
+      "body_bytes_unchanged": true
+    }
+  ],
+  "unchanged_sibling_panels": [
+    "SP-07.1",
+    "SP-07.2",
+    "SP-07.3",
+    "SP-07.4",
+    "SP-07.5",
+    "SP-07.6",
+    "SP-07.9",
+    "SP-07.10",
+    "SP-07.13",
+    "SP-07.14",
+    "SP-07.15",
+    "SP-07.16",
+    "SP-07.17",
+    "SP-07.18",
+    "SP-07.19"
+  ]
+}

@@ -1,0 +1,2 @@
+    Finished `test` profile [unoptimized] target(s) in 0.31s
+Recovery probe passed: git

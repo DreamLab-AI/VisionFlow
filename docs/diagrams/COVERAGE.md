@@ -1065,10 +1065,10 @@ Revision labels are author declarations. This index checks structure and referen
 | [SP-07.4 record_receipt — typed, per-tier outcomes (ADR-2004)](solid-pod-rs/07-provenance-and-payments.md#sp-074-recordreceipt-typed-per-tier-outcomes-adr-2004) | flowchart | SP-07 |
 | [SP-07.5 The receipt on the wire](solid-pod-rs/07-provenance-and-payments.md#sp-075-the-receipt-on-the-wire) | sequenceDiagram | SP-07 |
 | [SP-07.6 The `_prov` query surface](solid-pod-rs/07-provenance-and-payments.md#sp-076-the-prov-query-surface) | flowchart | SP-07 |
-| [SP-07.7 Epoch batching — one transaction, many commits](solid-pod-rs/07-provenance-and-payments.md#sp-077-epoch-batching-one-transaction-many-commits) | sequenceDiagram | SP-07 |
+| [SP-07.7 Epoch batching — one transaction, many commits](solid-pod-rs/07-provenance-and-payments.md#sp-077-epoch-batching-one-transaction-many-commits) | flowchart | SP-07 |
 | [SP-07.9 MRC20 state chain and Bitcoin anchoring](solid-pod-rs/07-provenance-and-payments.md#sp-079-mrc20-state-chain-and-bitcoin-anchoring) | flowchart | SP-07 |
 | [SP-07.10 The rust-bitcoin transaction builder (ADR-2008 D1, landed)](solid-pod-rs/07-provenance-and-payments.md#sp-0710-the-rust-bitcoin-transaction-builder-adr-2008-d1-landed) | flowchart | SP-07 |
-| [SP-07.11 Mempool endpoint selection (ADR-2007)](solid-pod-rs/07-provenance-and-payments.md#sp-0711-mempool-endpoint-selection-adr-2007) | sequenceDiagram | SP-07 |
+| [SP-07.11 Mempool endpoint selection (ADR-2007)](solid-pod-rs/07-provenance-and-payments.md#sp-0711-mempool-endpoint-selection-adr-2007) | flowchart | SP-07 |
 | [SP-07.12 The block anchorer](solid-pod-rs/07-provenance-and-payments.md#sp-0712-the-block-anchorer) | sequenceDiagram | SP-07 |
 | [SP-07.13 The web ledger](solid-pod-rs/07-provenance-and-payments.md#sp-0713-the-web-ledger) | classDiagram | SP-07 |
 | [SP-07.14 The `/pay/*` route family](solid-pod-rs/07-provenance-and-payments.md#sp-0714-the-pay-route-family) | flowchart | SP-07 |

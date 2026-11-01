@@ -1,0 +1,159 @@
+{
+  "archive": "/tmp/vf-solid-recovery-audit/worktree-ignored.tar.gz",
+  "sha256": "b379e21ac9decc81a81a1cad1f798b3ce75dcaaa2ac77e4d9f571c7d3b702150",
+  "files": [
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.1.mmd",
+      "sha256": "33fe235ed9a2f05d733e4bdab5557ff30ef4c8762b9405c1c762a7822c31cafb"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.1.svg",
+      "sha256": "a9ffe6492a6375f2d2f30440674001aa27e022e3a39c598fffcc3aa17c1dc350"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.10.mmd",
+      "sha256": "ca7bb61b272acc0ccfe9ed36ba3bfc14ad182e7be8aaad82b8103af6369c59b1"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.10.svg",
+      "sha256": "b39f3b21b5167f7fabc3150b7aa03aa1719b0736d7c2c0644143a59c3ee2710f"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.11.mmd",
+      "sha256": "a1bb94ad23d84db7b91314f627d6ab3e33ce3b7c8490e11677ba419641544d90"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.11.svg",
+      "sha256": "663ca0c719be80dd32ce2d6e2a6a309dbfd82e81b62aabd19032448033349df3"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.12.mmd",
+      "sha256": "58012e6cfb2aa77f65c6a26d01c4d948b1a2170a3f9c757029ea3e64e41bd4ab"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.12.svg",
+      "sha256": "5b02b2890a90d74561ab8bc22f3ad6ce0464d541b66a919c5674087db907886d"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.13.mmd",
+      "sha256": "a61fc685214ae8f5df5e129ca6f6444e63de806f8c1476a8d318e6d18ecfc759"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.13.svg",
+      "sha256": "ce7bd829140a2f45816a2aecde7d2c224734de2b629e42fd9255f7de4d6c70d8"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.14.mmd",
+      "sha256": "aea426c19f8136c7beb1a57ef5fc8eb1caf2e5a08c0ca3e2241dfa7b1f438b55"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.14.svg",
+      "sha256": "3a8271a03aaa4aac569ec59f676381a2a524cdf1647fda075e2839bbb26981e9"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.15.mmd",
+      "sha256": "c92bd1ed7f001d3da306b5d277a92a4e38034445d4c5213be7d528b833a6ba94"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.15.svg",
+      "sha256": "dd04c648cffe2152fe3c1749d68042db0c0a71280634ff3e6e65335351acff9f"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.16.mmd",
+      "sha256": "74c5f38feaaa70cca427a902a464ff999ee172965840cd27e755d30344c37ba4"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.16.svg",
+      "sha256": "ece75d2179961c20d30d55fdfbfcee22efd294a05ea15c44f5521e11178a2829"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.17.mmd",
+      "sha256": "f90d6b55434dfd35e4fdebca0511bf63142f3442af6f4a9a632dea862d4756d1"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.17.svg",
+      "sha256": "edb93f8374d178919b8031dd9f4b02ff96fd99337a71080e512962b315f72ebc"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.18.mmd",
+      "sha256": "9c4985d4a35657d44d381da441d97922e33722c979998384bdeda9af7cb40cfe"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.18.svg",
+      "sha256": "49e33c6a0eea6a209aedaa8e59670a87ed8b80b4485ed5feaae40f3ecc7db77a"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.19.mmd",
+      "sha256": "5149b7ab9923b88849c191519d7fe2819a5e51b1aa15bc2f8100f71dbbafdd77"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.19.svg",
+      "sha256": "8b29913dda6b38c3ad382aaf568db337387472079cc3b0e1fb5b6bcf31b4896d"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.2.mmd",
+      "sha256": "ddf37ed3bbb09e6204c9596c19a6dafe80c455f309e1f9b4f8b985dc964b945b"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.2.svg",
+      "sha256": "1eae9b54b6e55f6344af2d8a66f69f3ca232a2840503e7654e411d8c7bfc4163"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.20.mmd",
+      "sha256": "f60a003f9e3ab69b32bf31d81bc0cdb36b62afe8448fdaab47457ffda76d2e81"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.20.svg",
+      "sha256": "8e48b9bbf9fe1b3419bf87c36810a0ab685851cbd6c49a167a59b1ba225420d4"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.3.mmd",
+      "sha256": "cab847904d11373c5b344c27bbdcbe0d292f24967983ea27bff282131cd57ccc"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.3.svg",
+      "sha256": "1b88a6b77b2f49f9f3e25fce94b16692776b71726b4dec8a26083aeb98f07e88"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.4.mmd",
+      "sha256": "1c88a504b79b9fb970dd11fe0375206a7dbb3b4c5d82e6a62af4b225d868b307"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.4.svg",
+      "sha256": "a1579eaf8e84d7c8425ed3abdae393f93982fc6838541f3757c59b9dbc53a83f"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.5.mmd",
+      "sha256": "88378f28a21c0ec3359babad425c965cd7143e8c45fcf7352b1b3438eae2f8ce"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.5.svg",
+      "sha256": "9d964fffd3244adf09500edb2da7882447ce127d33b0b904aaada01544be8db2"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.6.mmd",
+      "sha256": "4245427c20a9edb946da177986ac25ecc5daf521fb32bd853153440cb6e3a4a5"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.6.svg",
+      "sha256": "93aec04e208f7dc76ac0baa5163756a37cdea1d3d603653917c742120e367910"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.7.mmd",
+      "sha256": "1b2af3a0b1648c02c6909434413cfb4089685037e8adb5161c47ae422edc2e7b"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.7.svg",
+      "sha256": "746b4085566e806ea2cc7205ab61bde1173fed4334bdff9c681ea0512bbf0ea0"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.9.mmd",
+      "sha256": "12bde46a23dfd1053b7e06a131f27242ba1316942016c60f7da0f7ec95be73d4"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.9.svg",
+      "sha256": "cea24328d431f51a3446c1ecc7418fbfc6d90317f13855d988cb5a278ffec24c"
+    }
+  ],
+  "archive_bytes_verified": true
+}

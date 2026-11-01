@@ -206,29 +206,33 @@ flowchart LR
 ## SP-07.7 Epoch batching — one transaction, many commits
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    participant G as git_mark_write
-    participant L as load_epoch_commits<br/>solid-pod-rs-server/src/handlers/prov.rs:219
-    participant A as EpochAccumulator<br/>solid-pod-rs/src/provenance.rs:884
-    participant M as merkle_root<br/>solid-pod-rs/src/provenance.rs:825
-    participant AN as BlockAnchorer
-    participant S as save_epoch_commits<br/>solid-pod-rs-server/src/handlers/prov.rs:230
-
-    G->>L: take the epoch lock, then read the pod's current epoch commit list<br/>solid-pod-rs-server/src/handlers/prov.rs:264
-    G->>A: push the fresh commit SHA<br/>solid-pod-rs/src/provenance.rs:914
-    Note over G,S: A marker of an already anchored batch is dropped first, so a lost reset cannot anchor it twice<br/>solid-pod-rs-server/src/handlers/prov.rs:268. Past 4 times the epoch size a commit is no longer<br/>accumulated, but the close is still attempted (solid-pod-rs-server/src/handlers/prov.rs:289).
-    alt the epoch is below JSS_PROV_EPOCH_SIZE
-        A-->>S: persist and stop<br/>solid-pod-rs-server/src/handlers/prov.rs:301
-    else the epoch fills
-        A->>M: merkle_leaf per commit, then the root<br/>solid-pod-rs/src/provenance.rs:853
-        M->>AN: anchor the ROOT once
-        AN-->>A: ClosedEpoch<br/>solid-pod-rs/src/provenance.rs:895
-        A->>S: reset the accumulator, or keep an anchored-epoch marker if the reset fails<br/>solid-pod-rs-server/src/handlers/prov.rs:319
-    end
-    Note over AN: A failed batch anchor is swallowed — it never fails the write nor the<br/>git-mark (solid-pod-rs-server/src/lib.rs:4066).
-    Note over M: MerkleProof (solid-pod-rs/src/provenance.rs:861) lets one commit prove its<br/>membership in the anchored root without revealing the rest of the epoch.<br/>merkle_root is deterministic and order-sensitive<br/>(solid-pod-rs/src/provenance.rs:1745).
+flowchart TD
+    LOCK["process-local epoch lock and load pending commits<br/>solid-pod-rs-server/src/handlers/prov.rs:264"]
+    DONE["remove commits named by a saved completion marker<br/>solid-pod-rs-server/src/handlers/prov.rs:272"]
+    CAP{"new commit fits below 4 times epoch size?<br/>solid-pod-rs-server/src/handlers/prov.rs:289"}
+    ADD["append new commit<br/>solid-pod-rs-server/src/handlers/prov.rs:290"]
+    DROP["DEBT: omit new commit, still retry old batch<br/>solid-pod-rs-server/src/handlers/prov.rs:294"]
+    SAVE["persist pending list before close<br/>solid-pod-rs-server/src/handlers/prov.rs:301"]
+    FULL{"batch reaches epoch size?<br/>solid-pod-rs-server/src/handlers/prov.rs:302"}
+    ROOT["close accumulator and anchor Merkle root<br/>solid-pod-rs-server/src/handlers/prov.rs:311<br/>solid-pod-rs-server/src/handlers/prov.rs:313"]
+    RESET["on accepted anchor, reset pending list<br/>solid-pod-rs-server/src/handlers/prov.rs:319"]
+    MARK["reset failed: save completed commit list<br/>solid-pod-rs-server/src/handlers/prov.rs:320"]
+    FAIL["DEBT: reset and marker both failed<br/>later push can anchor again<br/>solid-pod-rs-server/src/handlers/prov.rs:328"]
+    LOCK --> DONE --> CAP
+    CAP -- yes --> ADD --> SAVE
+    CAP -- no --> DROP --> SAVE
+    SAVE --> FULL
+    FULL -- no --> WAIT["return accumulated"]
+    FULL -- yes --> ROOT
+    ROOT -- failure --> KEEP["keep pending list and return error"]
+    ROOT -- accepted --> RESET
+    RESET -- failed --> MARK
+    MARK -- failed --> FAIL
 ```
+
+- **What it shows:** pending commits survive a failed close; a saved completion marker can repair a failed reset. The backlog limit omits new commits, including the write that triggers successful draining of a full backlog.
+- **Why it is this way:** batch anchoring bounds transaction cost and retained backlog. The returned anchor is discarded here, and broadcast acceptance does not establish confirmation. Per-resource receipts still omit epoch outcomes (SP-07.5).
+- **Open:** lock_path is process-local at solid-pod-rs-server/src/trail_store.rs:340. Multi-process safety, durable proof export and process-restart reconciliation are not established by the in-memory fault tests.
 
 ## SP-07.9 MRC20 state chain and Bitcoin anchoring
 
@@ -305,56 +309,55 @@ flowchart LR
 ## SP-07.11 Mempool endpoint selection (ADR-2007)
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    participant M as main<br/>solid-pod-rs-server/src/main.rs:261
-    participant SEL as select_mempool_endpoint<br/>solid-pod-rs-server/src/mempool.rs:297
-    participant INF as infer_network<br/>solid-pod-rs-server/src/mempool.rs:201
-    participant LOG as log_mempool_selection_once<br/>solid-pod-rs-server/src/mempool.rs:362
-    participant C as MempoolHttpClient<br/>solid-pod-rs-server/src/mempool.rs:373
-
-    M->>SEL: the configured URL, or None
-    SEL->>INF: derive the Bitcoin network from the URL
-    INF-->>SEL: BitcoinNetwork<br/>solid-pod-rs-server/src/mempool.rs:146
-    SEL-->>M: MempoolSelection with a MempoolConfigSource<br/>solid-pod-rs-server/src/mempool.rs:114
-    M->>LOG: record base URL, inferred network and explicit-vs-defaulted, ONCE
-    LOG-->>M: a warning when the network is unknown or the endpoint defaulted<br/>solid-pod-rs-server/src/mempool.rs:326
-    C->>C: transaction_exists distinguishes 404 from an ambiguous failure<br/>solid-pod-rs-server/src/mempool.rs:456
-
-    Note over SEL: DEFAULT_MEMPOOL_URL is the PUBLIC mempool.space testnet4 explorer<br/>(solid-pod-rs-server/src/mempool.rs:61), read from JSS_PAY_MEMPOOL_URL<br/>(solid-pod-rs-server/src/mempool.rs:57).
-    Note over M: DIVERGENCE (ADR-2007): ONE URL, no fallback chain. Without the startup log an<br/>operator cannot tell from the logs which chain anchors are being written to.<br/>The LAN Bitcoin node cutover remains deployment config, not a crate default.
-    Note over C: to_manifest_json (solid-pod-rs-server/src/mempool.rs:280) makes the selection<br/>machine-readable for a deployment manifest.
+flowchart TD
+    STATE["fresh AppState has mempool_url None<br/>solid-pod-rs-server/src/lib.rs:417"]
+    BOOT["main selects from that state field<br/>solid-pod-rs-server/src/main.rs:327"]
+    LOG["log selection once per process<br/>solid-pod-rs-server/src/mempool.rs:362"]
+    ENV["request client resolves environment override<br/>solid-pod-rs-server/src/mempool.rs:434"]
+    DIFF["DRIFT: startup can log default testnet4<br/>while requests use explicit environment URL<br/>solid-pod-rs-server/src/mempool.rs:314"]
+    INF["infer_network uses URL path and host<br/>not a chain identity query<br/>solid-pod-rs-server/src/mempool.rs:201"]
+    HTTP["one base URL, default redirect policy<br/>solid-pod-rs-server/src/mempool.rs:87"]
+    PRES["presence: 404 false, other errors ambiguous,<br/>any successful status true without body validation<br/>solid-pod-rs-server/src/mempool.rs:456"]
+    STATE --> BOOT --> LOG
+    ENV --> LOG
+    BOOT -.-> DIFF
+    ENV -.-> DIFF
+    ENV --> INF
+    ENV --> HTTP --> PRES
 ```
+
+- **What it shows:** startup and request construction resolve different inputs. Once-only logging can retain the startup default. The client keeps one configured base but follows a local cross-origin redirect in the audit probe.
+- **Why it is this way:** ADR-2007 rejects ordered endpoint failover. That decision does not pin redirect destinations or turn URL-based network inference into chain verification.
+- **Open:** to_manifest_json at solid-pod-rs-server/src/mempool.rs:280 exposes the selection value, but a deployed queryable manifest and chain identity remain unverified.
 
 ## SP-07.12 The block anchorer
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant P as ProvenanceLog
-    participant A as MempoolBlockAnchorer::anchor (MRC20 trails already issued)<br/>solid-pod-rs-server/src/mempool.rs:739
-    participant TS as trail_store<br/>solid-pod-rs-server/src/trail_store.rs:164
-    participant M as mempool REST
-    participant V as verify<br/>solid-pod-rs-server/src/mempool.rs:853
-
-    P->>A: (ticker, commit_sha as the state hash, network)
-    A->>TS: take the per-trail lock, one advance at a time<br/>solid-pod-rs-server/src/mempool.rs:755
-    A->>A: settle_trail_intent finishes an interrupted advance from the chain first<br/>solid-pod-rs-server/src/mempool.rs:757
-    A->>TS: load_trail for the ticker, only NotFound means absent<br/>solid-pod-rs-server/src/trail_store.rs:164
-    TS-->>A: StoredTrail, private key included<br/>solid-pod-rs-server/src/trail_store.rs:111
-    A->>TS: write the pending-anchor intent BEFORE broadcasting<br/>solid-pod-rs-server/src/mempool.rs:810
-    A->>M: broadcast the signed anchoring tx<br/>solid-pod-rs-server/src/mempool.rs:815
-    M-->>A: txid, or a failure that leaves the anchor PENDING and is not refunded
-    A->>TS: save_trail with the new state, then clear the intent<br/>solid-pod-rs-server/src/mempool.rs:827
-    A-->>P: BlockTrailAnchor
-    P->>V: later, verify the anchor
-    V-->>P: true when every mark back to genesis is intact, via verify_anchor_report<br/>solid-pod-rs-server/src/mempool.rs:889
-
-    Note over TS: to_public (solid-pod-rs-server/src/trail_store.rs:132) strips the private key<br/>before a trail is served — merge_public (solid-pod-rs-server/src/trail_store.rs:150) folds a public update back in<br/>WITHOUT losing the secret. A test pins that the key never leaks<br/>(solid-pod-rs-server/src/trail_store.rs:541).
-    Note over A: INVARIANT: once the intent is recorded the transaction may be on-chain, so a broadcast<br/>or save failure returns an "anchor pending" error and the caller is not refunded<br/>(solid-pod-rs-server/src/mempool.rs:717). The next advance settles it.
+    participant P as Caller
+    participant A as MempoolBlockAnchorer
+    participant S as Trail storage
+    participant M as Explorer REST
+    P->>A: ticker, commit state, requested network
+    A->>S: process-local trail lock<br/>solid-pod-rs-server/src/mempool.rs:755
+    A->>A: settle earlier intent first<br/>solid-pod-rs-server/src/mempool.rs:757
+    A->>S: load trail and compare requested network<br/>solid-pod-rs-server/src/mempool.rs:761<br/>solid-pod-rs-server/src/mempool.rs:768
+    A->>S: save signed transaction and proposed trail before broadcast<br/>solid-pod-rs-server/src/mempool.rs:801
+    A->>M: broadcast and require expected txid<br/>solid-pod-rs-server/src/mempool.rs:815
+    alt broadcast fails or returns unexpected txid
+        A-->>P: pending error, intent retained<br/>solid-pod-rs-server/src/mempool.rs:817
+    else accepted txid
+        A->>S: save trail, then try clearing intent<br/>solid-pod-rs-server/src/mempool.rs:827
+        Note over A,S: Save failure is logged, intent retained.<br/>Return still succeeds after accepted broadcast.<br/>solid-pod-rs-server/src/mempool.rs:835
+        A-->>P: anchor with no block height<br/>solid-pod-rs-server/src/mempool.rs:848
+    end
+    Note over A,M: Later verify walks commitments using explorer data.<br/>is_intact permits unconfirmed marks.<br/>solid-pod-rs-server/src/mempool.rs:855
 ```
-- Changed in alpha.12: the former head-only `verify` (one UTXO at the derived address) is gone: both anchorers now walk the trail from the anchor's outpoint through `verify_anchor_report` (`solid-pod-rs-server/src/mempool.rs:889`), and an anchor stays verifiable after a later anchor spends it. New trails use `GitmarkAnchorer`, SP-07.20.
-- **Invariant:** `load_trail` and `load_gitmark_trail` treat only `PodError::NotFound` as an absent trail; any other read failure is an error, so a storage fault is not mistaken for a fresh ticker (`solid-pod-rs-server/src/trail_store.rs:164`, `solid-pod-rs-server/src/trail_store.rs:254`). A trail that exists but cannot be read makes `build_anchorer` return an `UnavailableAnchorer`, so the receipt carries an `anchor_error` instead of reporting the pod as unconfigured (`solid-pod-rs-server/src/handlers/prov.rs:123`).
+
+- **What it shows:** issued MRC20 trails retain their profile. Broadcast ambiguity and a failed save after acceptance have different caller outcomes; acceptance is not chain confirmation.
+- **Why it is this way:** the retained intent supports retry before another advance, without refunding an accepted transaction solely because local persistence failed. Existing fixture tests cover this path.
+- **Open:** settle_trail_intent validates retained transaction identity and head input at solid-pod-rs-server/src/mempool.rs:1129, then trusts the longer proposed trail at solid-pod-rs-server/src/mempool.rs:1147. The analogous git-mark metadata failure is reproduced in SP-07.20; altered MRC20 state is not freshly probed.
 
 ## SP-07.13 The web ledger
 
@@ -588,43 +591,26 @@ sequenceDiagram
 ## SP-07.20 GitmarkAnchorer — the git-mark profile for new trails (alpha.12)
 
 ```mermaid
-flowchart TB
-    GEN["genesis(name, voucher, commit, network)<br/>solid-pod-rs-server/src/mempool.rs:1400"]
-    EXISTS{"trail already stored?<br/>solid-pod-rs-server/src/mempool.rs:1418"}
-    GG["gitmark_genesis — voucher to the first mark<br/>solid-pod-rs/src/bitcoin_tx.rs:869"]
-    ANC["anchor(ticker, commit, network)<br/>solid-pod-rs-server/src/mempool.rs:1455"]
-    NOGEN["Err: trail has no genesis on this pod<br/>solid-pod-rs-server/src/mempool.rs:1469"]
-    NETC{"stored.network equals the requested network?<br/>solid-pod-rs-server/src/mempool.rs:1475"}
-    GA["gitmark_advance — newest mark must be the derived key, else refuse<br/>solid-pod-rs/src/bitcoin_tx.rs:929"]
-    BAS["broadcast_and_save<br/>solid-pod-rs-server/src/mempool.rs:1314"]
-    BC["broadcast_tx returns the txid, written into the new txo entry<br/>solid-pod-rs-server/src/mempool.rs:1358"]
-    SAVE["save_gitmark_trail<br/>solid-pod-rs-server/src/trail_store.rs:354"]
-    P1["/.well-known/gitmark/name.json with the base secret<br/>solid-pod-rs-server/src/trail_store.rs:208"]
-    P2["/.well-known/gitmark/name/blocktrails.json, no secret<br/>solid-pod-rs-server/src/trail_store.rs:215"]
-    ANCHOR["BlockTrailAnchor with state_strings and the trail's base key<br/>solid-pod-rs-server/src/mempool.rs:1314"]
-
-    GEN --> EXISTS
-    EXISTS -- yes --> ERR1["Err: already exists"]
-    EXISTS -- no --> GG --> BAS
-    ANC -- no trail --> NOGEN
-    ANC --> NETC
-    NETC -- no --> ERR2["Err: network mismatch"]
-    NETC -- yes --> GA --> BAS
-    BAS --> BC --> SAVE
-    SAVE --> P1
-    SAVE --> P2
-    BAS --> ANCHOR
-
-    N["INVARIANT: anchor and genesis take the per-trail lock, then settle an interrupted broadcast from the chain<br/>before building on the head, so two concurrent anchors cannot spend the same head.<br/>solid-pod-rs-server/src/mempool.rs:1462 and solid-pod-rs-server/src/mempool.rs:1463"]
-    ANC -.-> N
-    INT["pending-intent record: the broadcast is recorded first, and a failed save after an accepted broadcast leaves it to be settled<br/>solid-pod-rs-server/src/trail_store.rs:271"]
-    BAS -.-> INT
-    N2["OPEN: nothing outside the tests calls genesis, so no pod reaches this path from<br/>this repository (see SP-07.3).<br/>solid-pod-rs-server/src/mempool.rs:1400"]
-    GEN -.-> N2
-    N3["INVARIANT: an issued MRC20 trail is never moved to this profile. build_anchorer keeps<br/>MempoolBlockAnchorer whenever one exists under the name.<br/>solid-pod-rs-server/src/handlers/prov.rs:195"]
-    BAS -.-> N3
-    N4["The gitmark network name encodes addresses with the gm HRP, bc and tb unchanged<br/>solid-pod-rs/src/blocktrail.rs:60"]
-    GG -.-> N4
+flowchart TD
+    CALL["genesis or anchor takes process-local trail lock<br/>solid-pod-rs-server/src/mempool.rs:1409<br/>solid-pod-rs-server/src/mempool.rs:1462"]
+    REC["load earlier intent and query presence<br/>solid-pod-rs-server/src/mempool.rs:1255<br/>solid-pod-rs-server/src/mempool.rs:1261"]
+    CHECK["when rawHex exists, check txid and head input<br/>solid-pod-rs-server/src/mempool.rs:1276"]
+    PRESENT["if unknown, resend retained raw transaction<br/>legacy without rawHex is dropped<br/>solid-pod-rs-server/src/mempool.rs:1288"]
+    SAVE["if accepted and private count is behind, save proposed trail<br/>solid-pod-rs-server/src/mempool.rs:1298"]
+    CLEAR["clear intent<br/>solid-pod-rs-server/src/mempool.rs:1303"]
+    BUILD["new genesis or checked extension<br/>solid-pod-rs-server/src/mempool.rs:1421<br/>solid-pod-rs-server/src/mempool.rs:1480"]
+    INT["save new intent before broadcast<br/>solid-pod-rs-server/src/mempool.rs:1340"]
+    BC["broadcast and require expected txid<br/>solid-pod-rs-server/src/mempool.rs:1358"]
+    FILES["save private trail then public proof<br/>solid-pod-rs-server/src/trail_store.rs:354"]
+    RET["return accepted anchor, even after save failure<br/>solid-pod-rs-server/src/mempool.rs:1375"]
+    CALL --> REC --> CHECK --> PRESENT --> SAVE --> CLEAR --> BUILD --> INT --> BC --> FILES --> RET
+    BAD["DRIFT: altered proposed states can be saved and published.<br/>Transaction identity check does not bind that metadata.<br/>solid-pod-rs-server/src/mempool.rs:1011"]
+    SAVE -.-> BAD
+    PART["DEBT: private save succeeded, public save failed.<br/>Equal private count skips repair before clearing intent.<br/>solid-pod-rs-server/src/mempool.rs:1298"]
+    CLEAR -.-> PART
 ```
-- **What it shows:** the git-mark anchorer starts a trail from a funding voucher, advances it one commit per anchor, and publishes a secret-free `blocktrails.json` beside the secret-bearing trail file where a verifier can read it.
-- **Why it is this way:** new trails follow blocktrails/git-mark b852d7d, with the commit as the state and no MRC20 wrapper, while issued MRC20 trails keep their on-chain keys and `urn:mono:op:anchor` states untouched (0.5.0-alpha.12 CHANGELOG, `Added`). Both anchorers share one read side, `verify_anchor_report`.
+
+- **What it shows:** recovery precedes a new advance. The raw transaction guard rejects a wrong txid, but the audit probe recovers altered state metadata and publishes a non-intact trail. A later extension refuses it.
+- **Why it is this way:** durable intents protect against lost broadcast responses and failed private saves. Recovery uses private mark count to decide whether persistence is complete, which misses a failed public proof write.
+- **Invariant:** a new extension compares the latest output with the key derived from the trail states at solid-pod-rs/src/bitcoin_tx.rs:963. That later check does not prevent recovery from first replacing stored metadata.
+- **Open:** native server source contains no non-test genesis caller (SP-07.3). Full process restart, multi-process locking and external provisioning remain unverified. The fixture transport used here is not a consensus node.

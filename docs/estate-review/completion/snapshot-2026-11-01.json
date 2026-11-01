@@ -59783,58 +59783,80 @@
     },
     {
       "category": "decision-candidate",
-      "claims": [],
+      "claims": [
+        {
+          "basis": "All sections assessed against native source,54 existing passing tests and6 probe groups. Startup/request selection mismatch and redirect/presence limits recorded. No deployed chain, full boot or real transaction evidence.",
+          "coverage": "whole-document",
+          "panels": null,
+          "report": "docs/estate-review/2026-11-01-solid-anchor-recovery.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "path": "crates/solid-pod-rs/docs/adr/ADR-2007-mempool-single-url-no-fallback.md",
       "repo": "solid-pod-rs",
-      "review": "unreconciled",
+      "review": "assessment-recorded",
       "sections": [
         {
           "line": 18,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-anchor-recovery.md"
+          ],
+          "review": "assessment-recorded",
           "title": "ADR-2007 — Anchor against one configured explorer URL, public default, no silent fallback"
         },
         {
           "line": 20,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-anchor-recovery.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Context"
         },
         {
           "line": 29,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-anchor-recovery.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Decision"
         },
         {
           "line": 41,
           "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-anchor-recovery.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Consequences"
         },
         {
           "line": 53,
           "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-anchor-recovery.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Verification"
         },
         {
           "line": 61,
           "ordinal": 6,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-anchor-recovery.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Closeout extension — 2026-09-04"
         },
         {
           "line": 71,
           "ordinal": 7,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-anchor-recovery.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Acceptance progress — 2026-09-05"
         }
       ],
@@ -77012,10 +77034,10 @@
   "counts": {
     "available_checkouts": 23,
     "candidate_files": 842,
-    "numbered_candidates_with_recorded_assessment": 94,
+    "numbered_candidates_with_recorded_assessment": 95,
     "numbered_decision_candidates": 731,
     "panels": 1739,
-    "panels_with_recorded_assessment": 349,
+    "panels_with_recorded_assessment": 353,
     "scope_targets": 24,
     "stale_claim_records": 0,
     "topics": 206
@@ -77026,7 +77048,7 @@
       "available": true,
       "candidate_files": 77,
       "dirty": true,
-      "head": "6e86d149a2806cf2164afcd79630b7583f1ab255",
+      "head": "a3bddd4e0d01793f68c11739884689ec35808405",
       "local": "VisionFlow",
       "name": "VisionFlow"
     },
@@ -88769,6 +88791,18 @@
           ],
           "report": "docs/estate-review/2026-11-01-solid-provenance-delivery.md",
           "state": "assessment-recorded"
+        },
+        {
+          "basis": "Epoch accumulation/recovery, endpoint selection, MRC20 accepted-save semantics and Gitmark recovery assessed with native fixtures and persistent local files. Synthetic transport is not consensus; other panels retain their existing scope.",
+          "coverage": "selected-panels",
+          "panels": [
+            "SP-07.7",
+            "SP-07.11",
+            "SP-07.12",
+            "SP-07.20"
+          ],
+          "report": "docs/estate-review/2026-11-01-solid-anchor-recovery.md",
+          "state": "assessment-recorded"
         }
       ],
       "panels": [
@@ -88837,19 +88871,21 @@
           "review": "unreconciled"
         },
         {
-          "body_sha256": "24851f658b5e8f869895d2f759c8a55cdbe067ec12af158109a8c0e7daed4527",
+          "body_sha256": "1b2af3a0b1648c02c6909434413cfb4089685037e8adb5161c47ae422edc2e7b",
           "heading": "SP-07.7 Epoch batching — one transaction, many commits",
           "id": "SP-07.7",
           "line": 208,
           "ordinal": 7,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-anchor-recovery.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
           "body_sha256": "12bde46a23dfd1053b7e06a131f27242ba1316942016c60f7da0f7ec95be73d4",
           "heading": "SP-07.9 MRC20 state chain and Bitcoin anchoring",
           "id": "SP-07.9",
-          "line": 235,
+          "line": 239,
           "ordinal": 8,
           "reports": [],
           "review": "unreconciled"
@@ -88858,34 +88894,38 @@
           "body_sha256": "ca7bb61b272acc0ccfe9ed36ba3bfc14ad182e7be8aaad82b8103af6369c59b1",
           "heading": "SP-07.10 The rust-bitcoin transaction builder (ADR-2008 D1, landed)",
           "id": "SP-07.10",
-          "line": 267,
+          "line": 271,
           "ordinal": 9,
           "reports": [],
           "review": "unreconciled"
         },
         {
-          "body_sha256": "1ba58cc6cca4b3fb35eb4184edf963edaf5f64e575b290b2544ebe08e18dd03f",
+          "body_sha256": "a1bb94ad23d84db7b91314f627d6ab3e33ce3b7c8490e11677ba419641544d90",
           "heading": "SP-07.11 Mempool endpoint selection (ADR-2007)",
           "id": "SP-07.11",
-          "line": 307,
+          "line": 311,
           "ordinal": 10,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-anchor-recovery.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
-          "body_sha256": "8fd01ef6e0a2bdb2e993b727d07fb7a0d2ca9512f957ab274b2bb4eaf5a57ec8",
+          "body_sha256": "58012e6cfb2aa77f65c6a26d01c4d948b1a2170a3f9c757029ea3e64e41bd4ab",
           "heading": "SP-07.12 The block anchorer",
           "id": "SP-07.12",
-          "line": 331,
+          "line": 335,
           "ordinal": 11,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-anchor-recovery.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
           "body_sha256": "a61fc685214ae8f5df5e129ca6f6444e63de806f8c1476a8d318e6d18ecfc759",
           "heading": "SP-07.13 The web ledger",
           "id": "SP-07.13",
-          "line": 361,
+          "line": 364,
           "ordinal": 12,
           "reports": [],
           "review": "unreconciled"
@@ -88894,7 +88934,7 @@
           "body_sha256": "aea426c19f8136c7beb1a57ef5fc8eb1caf2e5a08c0ca3e2241dfa7b1f438b55",
           "heading": "SP-07.14 The /pay/* route family",
           "id": "SP-07.14",
-          "line": 403,
+          "line": 406,
           "ordinal": 13,
           "reports": [],
           "review": "unreconciled"
@@ -88903,7 +88943,7 @@
           "body_sha256": "c92bd1ed7f001d3da306b5d277a92a4e38034445d4c5213be7d528b833a6ba94",
           "heading": "SP-07.15 Payment-state atomicity",
           "id": "SP-07.15",
-          "line": 438,
+          "line": 441,
           "ordinal": 14,
           "reports": [],
           "review": "unreconciled"
@@ -88912,7 +88952,7 @@
           "body_sha256": "74c5f38feaaa70cca427a902a464ff999ee172965840cd27e755d30344c37ba4",
           "heading": "SP-07.16 Order book and AMM",
           "id": "SP-07.16",
-          "line": 464,
+          "line": 467,
           "ordinal": 15,
           "reports": [],
           "review": "unreconciled"
@@ -88921,7 +88961,7 @@
           "body_sha256": "f90d6b55434dfd35e4fdebca0511bf63142f3442af6f4a9a632dea862d4756d1",
           "heading": "SP-07.17 Deposits are MRC20-only — the stand-in is deleted (ADR-2008 D6)",
           "id": "SP-07.17",
-          "line": 501,
+          "line": 504,
           "ordinal": 16,
           "reports": [],
           "review": "unreconciled"
@@ -88930,7 +88970,7 @@
           "body_sha256": "9c4985d4a35657d44d381da441d97922e33722c979998384bdeda9af7cb40cfe",
           "heading": "SP-07.18 The ledger today, and the remaining chain-view work (ADR-2008, partial)",
           "id": "SP-07.18",
-          "line": 522,
+          "line": 525,
           "ordinal": 17,
           "reports": [],
           "review": "unreconciled"
@@ -88939,25 +88979,27 @@
           "body_sha256": "5149b7ab9923b88849c191519d7fe2819a5e51b1aa15bc2f8100f71dbbafdd77",
           "heading": "SP-07.19 Whole-trail verification — every mark walked back from the head (alpha.12)",
           "id": "SP-07.19",
-          "line": 559,
+          "line": 562,
           "ordinal": 18,
           "reports": [],
           "review": "unreconciled"
         },
         {
-          "body_sha256": "4995655a7a5c9024483c75b161754377ac334aa4f0b48d99bba7612a6833b6a6",
+          "body_sha256": "f60a003f9e3ab69b32bf31d81bc0cdb36b62afe8448fdaab47457ffda76d2e81",
           "heading": "SP-07.20 GitmarkAnchorer — the git-mark profile for new trails (alpha.12)",
           "id": "SP-07.20",
-          "line": 590,
+          "line": 593,
           "ordinal": 19,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-anchor-recovery.md"
+          ],
+          "review": "assessment-recorded"
         }
       ],
       "path": "docs/diagrams/solid-pod-rs/07-provenance-and-payments.md",
       "repo": "VisionFlow",
       "review": "partial-assessment-recorded",
-      "sha256": "ea9128595672c28af7b86ce1a4d3414e59c6d69e7bf4d502f1943612f838dbe2"
+      "sha256": "2da8b64566bddf2fe2054ea4bd026b82cc064388cfbf840a34de61939af61e46"
     },
     {
       "claims": [],

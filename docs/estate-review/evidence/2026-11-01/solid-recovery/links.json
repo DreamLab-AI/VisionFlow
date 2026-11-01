@@ -1,0 +1,81 @@
+{
+  "checked": 19,
+  "links": [
+    {
+      "file": "docs/estate-review/2026-11-01-solid-anchor-recovery.md",
+      "target": "../../../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2007-mempool-single-url-no-fallback.md"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-solid-anchor-recovery.md",
+      "target": "evidence/2026-11-01/solid-recovery/sources.json"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-solid-anchor-recovery.md",
+      "target": "evidence/2026-11-01/solid-recovery/recovery-probe.rs"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-solid-anchor-recovery.md",
+      "target": "evidence/2026-11-01/solid-recovery/run-probe.cjs"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-solid-anchor-recovery.md",
+      "target": "evidence/2026-11-01/solid-recovery/probe.json"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-solid-anchor-recovery.md",
+      "target": "2026-11-01-solid-provenance-delivery.md"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-solid-anchor-recovery.md",
+      "target": "evidence/2026-11-01/solid-recovery/mempool-tests.txt"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-solid-anchor-recovery.md",
+      "target": "evidence/2026-11-01/solid-recovery/prov-tests.txt"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-solid-anchor-recovery.md",
+      "target": "evidence/2026-11-01/solid-recovery/selection-tests.txt"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "scope.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "claims.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "snapshot-2026-11-01.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "validation-2026-11-01.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../../../scripts/estate-review-ledger/README.md"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../2026-11-01-solid-anchor-recovery.md"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../2026-11-01-solid-provenance-delivery.md"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../2026-11-01-solid-http-delivery.md"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../2026-11-01-solid-policy-parsing.md"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../evidence/2026-11-01/solid-recovery/ledger-refresh.json"
+    }
+  ]
+}

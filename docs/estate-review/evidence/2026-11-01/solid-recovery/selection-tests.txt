@@ -1,0 +1,21 @@
+   Compiling solid-pod-rs-server v0.5.0-alpha.18 (/home/devuser/workspace/solid-pod-rs/crates/solid-pod-rs-server)
+    Finished `test` profile [unoptimized] target(s) in 1.73s
+     Running tests/mempool_selection.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/mempool_selection-a14e4d082e1d3ba6)
+
+running 13 tests
+test absent_config_yields_defaulted_testnet4 ... ok
+test explicit_default_url_is_still_explicit ... ok
+test explicit_config_is_marked_explicit_and_trimmed ... ok
+test infer_network_never_guesses_mainnet ... ok
+test infer_network_classifies_known_bases ... ok
+test client_records_its_selection ... ok
+test whitespace_only_config_is_treated_as_absent ... ok
+test infer_network_treats_loopback_as_regtest ... ok
+test manifest_json_carries_url_network_and_source ... ok
+test unreachable_explorer_is_ambiguous ... ok
+test ok_response_reports_the_transaction_as_known ... ok
+test service_unavailable_is_ambiguous_not_a_definite_negative ... ok
+test not_found_is_a_definite_negative_but_server_error_is_not ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

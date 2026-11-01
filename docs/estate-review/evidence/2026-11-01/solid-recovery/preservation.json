@@ -1,0 +1,13 @@
+{
+  "primary_baseline_head": "a3bddd4e0d01793f68c11739884689ec35808405",
+  "primary_user_status_and_file_hashes_unchanged": true,
+  "source_manifests_rechecked": true,
+  "claim_hashes_rechecked": 194,
+  "changed_panels": [
+    "SP-07.7",
+    "SP-07.11",
+    "SP-07.12",
+    "SP-07.20"
+  ],
+  "limits": "Source and primary-user files read-only; only documentation/evidence changed."
+}

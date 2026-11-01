@@ -1,0 +1,18 @@
+{
+  "selected_panels": [
+    "SP-07.7",
+    "SP-07.11",
+    "SP-07.12",
+    "SP-07.20"
+  ],
+  "selected_final_advisories": 0,
+  "unassessed_queue": [
+    {
+      "panel": "SP-07.6",
+      "citation": "solid-pod-rs-server/src/handlers/prov.rs:741",
+      "disposition": "Repeated advisory retained for later source review; not included in this batch claim."
+    }
+  ],
+  "manual_correction": "SP-07.20 now shows presence query before optional raw-transaction check, legacy rawHex absence and resend. No successful broadcast is labelled confirmed.",
+  "limits": "Model sampling is advisory; unchanged siblings receive no new credit."
+}

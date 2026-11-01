@@ -1,0 +1,37 @@
+   Compiling solid-pod-rs-server v0.5.0-alpha.18 (/home/devuser/workspace/solid-pod-rs/crates/solid-pod-rs-server)
+    Finished `test` profile [unoptimized] target(s) in 8.61s
+     Running unittests src/lib.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/solid_pod_rs_server-1a8ce01bd61bf50e)
+
+running 29 tests
+test mempool::tests::already_known_reads_only_node_statements_about_the_same_tx ... ok
+test mempool::tests::block_anchorer_anchor_requires_storage ... ok
+test mempool::tests::block_anchorer_anchor_rejects_unminted_ticker ... ok
+test mempool::tests::live_address_utxos_smoke ... ignored, hits live mempool.space; opt-in only
+test mempool::tests::empty_utxo_set_parses_to_empty_vec ... ok
+test mempool::tests::from_env_defaults_to_testnet4 ... ok
+test mempool::tests::tx_wire_reads_inputs ... ok
+test mempool::tests::utxo_wire_flattens_status ... ok
+test mempool::tests::new_trims_trailing_slash ... ok
+test mempool::tests::tx_wire_flattens_outputs_and_status ... ok
+test mempool::tests::block_anchorer_verify_false_when_the_anchor_tx_is_absent ... ok
+test mempool::tests::block_anchorer_verify_false_without_pubkey ... ok
+test mempool::tests::block_anchorer_verify_false_when_address_forged ... ok
+test mempool::tests::http_client_presence_check_reaches_the_inherent_method ... ok
+test mempool::tests::block_anchorer_verify_true_when_every_link_is_on_chain ... ok
+test mempool::tests::block_anchorer_verify_false_when_an_earlier_mark_does_not_commit ... ok
+test mempool::tests::block_anchorer_rejected_resend_with_an_unspent_head_drops_the_intent ... ok
+test mempool::tests::block_anchorer_refuses_an_intent_whose_txid_is_not_its_transaction ... ok
+test mempool::tests::block_anchorer_accepted_broadcast_with_failed_save_is_not_a_failed_anchor ... ok
+test mempool::tests::block_anchorer_anchor_round_trip_and_self_verifies ... ok
+test mempool::tests::concurrent_anchors_build_on_each_others_head ... ok
+test mempool::tests::dropped_broadcast_is_resent_by_the_next_anchor ... ok
+test mempool::tests::broadcast_then_failed_save_is_ok_and_recovered_by_the_next_anchor ... ok
+test mempool::tests::accepted_but_unindexed_mark_is_not_orphaned_by_the_next_anchor ... ok
+test mempool::tests::rejected_resend_without_proof_of_an_unspent_head_keeps_refusing ... ok
+test mempool::tests::gitmark_anchorer_genesis_anchor_verify ... ok
+test mempool::tests::rejected_resend_with_an_unspent_head_drops_the_intent ... ok
+test mempool::tests::unresolved_resend_keeps_the_intent_and_refuses_to_advance ... ok
+test mempool::tests::gitmark_anchorer_refusals ... ok
+
+test result: ok. 28 passed; 0 failed; 1 ignored; 0 measured; 92 filtered out; finished in 0.19s
+

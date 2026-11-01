@@ -1,0 +1,14 @@
+{
+  "accessed": "2026-11-01",
+  "sources": [
+    {
+      "url": "https://github.com/Blockstream/esplora/blob/master/API.md",
+      "supports": "Separate transaction, status, raw bytes, inclusion proof and block-height hash surfaces; self-hosting option."
+    },
+    {
+      "url": "https://docs.rs/reqwest/latest/reqwest/redirect/struct.Policy.html",
+      "supports": "Current API offers none/custom policies; design reference only, local fixture establishes locked0.12.28 behaviour."
+    }
+  ],
+  "limits": "No live chain validation, provider ranking or interoperability certification."
+}

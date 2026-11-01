@@ -1,0 +1,11 @@
+parsed 1 topic files, 19 mermaid diagrams
+cite-check: 0 warning(s)
+citations: 235 verified at the declared revision, 0 unverified (working-tree fallback), 0 unresolvable, 0 allowlisted (unverifiable)
+jev: reviewing 120 of 235 citations (raise with --jev-max N requests of 24)
+jev: accepted set=vf-06-s1-02/citation-check/v1 model=jev-1.14.0
+jev: accepted set=vf-06-s1-02/citation-check/v1 model=jev-1.14.0
+jev: accepted set=vf-06-s1-02/citation-check/v1 model=jev-1.14.0
+JEV-ADVISORY solid-pod-rs/07-provenance-and-payments.md:SP-07.6 ../solid-pod-rs/crates/solid-pod-rs-server/src/handlers/prov.rs:741 p_defect=0.91 (cited lines may not hold this label; check by hand)
+jev: accepted set=vf-06-s1-02/citation-check/v1 model=jev-1.14.0
+jev: accepted set=vf-06-s1-02/citation-check/v1 model=jev-1.14.0
+rendered 19/19 diagrams via pele

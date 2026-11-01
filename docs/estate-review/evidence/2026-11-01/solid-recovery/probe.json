@@ -1,0 +1,67 @@
+{
+  "http": {
+    "limits": "Two loopback HTTP fixtures, not a live explorer or network attestation.",
+    "manifest_remains_original_origin": true,
+    "network_label": "regtest",
+    "presence_from_non_transaction_200": true,
+    "redirect_followed_to_other_origin": true
+  },
+  "recovery": [
+    {
+      "broadcast_attempts": 3,
+      "case": "ordinary_recovery",
+      "later_extension_refused": false,
+      "limits": "Synthetic transport, no consensus or signature validation; real production builders/recovery and FsBackend. Wrong-network next request isolates recovery side effects.",
+      "pending_intent_retained": false,
+      "recovery_error": "block-anchor: network mismatch: trail is testnet4, requested mainnet",
+      "stored_marks": 2,
+      "stored_trail_intact": true,
+      "tampered_commit_persisted_and_published": false
+    },
+    {
+      "broadcast_attempts": 2,
+      "case": "wrong_txid",
+      "later_extension_refused": false,
+      "limits": "Synthetic transport, no consensus or signature validation; real production builders/recovery and FsBackend. Wrong-network next request isolates recovery side effects.",
+      "pending_intent_retained": true,
+      "recovery_error": "block-anchor: pending intent ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff refused: its transaction is b57ec82781ce4c65043287d26b841715773711a36af321915884964bab6f269a",
+      "stored_marks": 1,
+      "stored_trail_intact": true,
+      "tampered_commit_persisted_and_published": false
+    },
+    {
+      "broadcast_attempts": 3,
+      "case": "tampered_trail",
+      "later_extension_refused": true,
+      "limits": "Synthetic transport, no consensus or signature validation; real production builders/recovery and FsBackend. Wrong-network next request isolates recovery side effects.",
+      "pending_intent_retained": false,
+      "recovery_error": "block-anchor: network mismatch: trail is testnet4, requested mainnet",
+      "stored_marks": 2,
+      "stored_trail_intact": false,
+      "tampered_commit_persisted_and_published": true
+    },
+    {
+      "anchor_returned_success": true,
+      "case": "public_save_failure",
+      "limits": "Fresh FsBackend/anchorer over same files, not OS restart; mismatch request isolates recovery from a new advance.",
+      "next_operation_error": "block-anchor: network mismatch: trail is testnet4, requested mainnet",
+      "pending_intent_before_recovery": true,
+      "private_trail_marks": 2,
+      "public_proof_repaired": false,
+      "recovery_cleared_intent": true
+    }
+  ],
+  "selection": {
+    "limits": "Exact startup-selection expression over fresh AppState and runtime constructor; not a full server boot/log capture. Child-only synthetic environment override; no external requests.",
+    "request_client": {
+      "base_url": "https://explorer.example.invalid/signet",
+      "network": "signet",
+      "source": "explicit"
+    },
+    "startup_expression": {
+      "base_url": "https://mempool.space/testnet4",
+      "network": "testnet4",
+      "source": "default"
+    }
+  }
+}
