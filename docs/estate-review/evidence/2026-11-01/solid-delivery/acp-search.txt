@@ -1,0 +1,3 @@
+Command: rg -n 'ns/solid/acp|AccessControlPolicy|acp#' crates --glob '*.rs'
+Exit status: 1 (no matches). Solid checkout e1d16adbfc096527f82ff16a6bce87ffd6d909f8.
+Scope: exact vocabulary search in Rust sources; not a proof of absence of all equivalent mechanisms.

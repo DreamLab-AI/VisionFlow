@@ -1,0 +1,159 @@
+{
+  "condition_admission": [
+    {
+      "anonymous_get": {
+        "cache_control": null,
+        "secret_returned": false,
+        "status": 401,
+        "vary": null,
+        "wac_allow": "user=\"\", public=\"\""
+      },
+      "case": "valid",
+      "put": {
+        "cache_control": null,
+        "secret_returned": false,
+        "status": 201,
+        "vary": null,
+        "wac_allow": null
+      }
+    },
+    {
+      "anonymous_get": {
+        "cache_control": null,
+        "secret_returned": false,
+        "status": 401,
+        "vary": null,
+        "wac_allow": "user=\"\", public=\"\""
+      },
+      "case": "unterminated",
+      "put": {
+        "cache_control": null,
+        "secret_returned": false,
+        "status": 400,
+        "vary": null,
+        "wac_allow": null
+      }
+    },
+    {
+      "anonymous_get": {
+        "cache_control": null,
+        "secret_returned": true,
+        "status": 200,
+        "vary": null,
+        "wac_allow": "user=\"\", public=\"\""
+      },
+      "case": "missing_type",
+      "put": {
+        "cache_control": null,
+        "secret_returned": false,
+        "status": 201,
+        "vary": null,
+        "wac_allow": null
+      }
+    },
+    {
+      "anonymous_get": {
+        "cache_control": null,
+        "secret_returned": true,
+        "status": 200,
+        "vary": null,
+        "wac_allow": "user=\"\", public=\"\""
+      },
+      "case": "empty",
+      "put": {
+        "cache_control": null,
+        "secret_returned": false,
+        "status": 201,
+        "vary": null,
+        "wac_allow": null
+      }
+    },
+    {
+      "anonymous_get": {
+        "cache_control": null,
+        "secret_returned": false,
+        "status": 401,
+        "vary": null,
+        "wac_allow": "user=\"\", public=\"\""
+      },
+      "case": "unknown",
+      "put": {
+        "cache_control": null,
+        "secret_returned": false,
+        "status": 201,
+        "vary": null,
+        "wac_allow": null
+      }
+    }
+  ],
+  "grant_removal": {
+    "after_new_app": {
+      "cache_control": null,
+      "secret_returned": false,
+      "status": 401,
+      "vary": null,
+      "wac_allow": "user=\"\", public=\"\""
+    },
+    "before": {
+      "cache_control": null,
+      "secret_returned": true,
+      "status": 200,
+      "vary": null,
+      "wac_allow": "user=\"\", public=\"\""
+    },
+    "grant_put": {
+      "cache_control": null,
+      "secret_returned": false,
+      "status": 201,
+      "vary": null,
+      "wac_allow": null
+    },
+    "remove_put": {
+      "cache_control": null,
+      "secret_returned": false,
+      "status": 201,
+      "vary": null,
+      "wac_allow": null
+    },
+    "unauthorised_put": {
+      "cache_control": null,
+      "secret_returned": false,
+      "status": 401,
+      "vary": null,
+      "wac_allow": "user=\"\", public=\"\""
+    }
+  },
+  "limits": "In-process build_app with synthetic MemoryBackend data and NIP-98 test key. New app per request, no OS restart, intermediary cache, deployment or real private data.",
+  "lockout_guard": {
+    "misdirected_control_put": {
+      "cache_control": null,
+      "secret_returned": false,
+      "status": 201,
+      "vary": null,
+      "wac_allow": null
+    },
+    "owner_sidecar_after": {
+      "cache_control": null,
+      "secret_returned": false,
+      "status": 403,
+      "vary": null,
+      "wac_allow": "user=\"\", public=\"\""
+    }
+  },
+  "private_delivery": {
+    "owner_binary": {
+      "cache_control": "private, no-store",
+      "secret_returned": true,
+      "status": 200,
+      "vary": "Authorization",
+      "wac_allow": "user=\"\", public=\"\""
+    },
+    "owner_sidecar": {
+      "cache_control": "private, no-store",
+      "secret_returned": false,
+      "status": 200,
+      "vary": "Authorization",
+      "wac_allow": "user=\"\", public=\"\""
+    }
+  }
+}

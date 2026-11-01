@@ -1016,13 +1016,13 @@ Revision labels are author declarations. This index checks structure and referen
 | [SP-03.9 Glob GET](solid-pod-rs/03-ldp-request-lifecycle.md#sp-039-glob-get) | flowchart | SP-03 |
 | [SP-03.10 RDF content negotiation](solid-pod-rs/03-ldp-request-lifecycle.md#sp-0310-rdf-content-negotiation) | flowchart | SP-03 |
 | [SP-03.11 Response headers set on every LDP response](solid-pod-rs/03-ldp-request-lifecycle.md#sp-0311-response-headers-set-on-every-ldp-response) | classDiagram | SP-03 |
-| [SP-03.12 ADR-2002 cache policy — audience beats media type](solid-pod-rs/03-ldp-request-lifecycle.md#sp-0312-adr-2002-cache-policy-audience-beats-media-type) | stateDiagram-v2 | SP-03 |
+| [SP-03.12 ADR-2002 cache policy — audience beats media type](solid-pod-rs/03-ldp-request-lifecycle.md#sp-0312-adr-2002-cache-policy-audience-beats-media-type) | flowchart | SP-03 |
 | [SP-04.1 The write gate, end to end](solid-pod-rs/04-wac-authorisation.md#sp-041-the-write-gate-end-to-end) | sequenceDiagram | SP-04 |
 | [SP-04.2 The read gate and the ADR-2002 audience classification](solid-pod-rs/04-wac-authorisation.md#sp-042-the-read-gate-and-the-adr-2002-audience-classification) | sequenceDiagram | SP-04 |
 | [SP-04.3 Typed policy outcomes — only absence inherits](solid-pod-rs/04-wac-authorisation.md#sp-043-typed-policy-outcomes-only-absence-inherits) | stateDiagram-v2 | SP-04 |
 | [SP-04.4 classify_policy_read — one level, runtime-free](solid-pod-rs/04-wac-authorisation.md#sp-044-classifypolicyread-one-level-runtime-free) | flowchart | SP-04 |
 | [SP-04.5 The sidecar rule — one function for read and write](solid-pod-rs/04-wac-authorisation.md#sp-045-the-sidecar-rule-one-function-for-read-and-write) | flowchart | SP-04 |
-| [SP-04.6 The lockout guard — you may not ACL yourself out](solid-pod-rs/04-wac-authorisation.md#sp-046-the-lockout-guard-you-may-not-acl-yourself-out) | sequenceDiagram | SP-04 |
+| [SP-04.6 The lockout guard — syntactic Control is not effective Control](solid-pod-rs/04-wac-authorisation.md#sp-046-the-lockout-guard-syntactic-control-is-not-effective-control) | sequenceDiagram | SP-04 |
 | [SP-04.7 evaluate_access_ctx_inner — the decision loop](solid-pod-rs/04-wac-authorisation.md#sp-047-evaluateaccessctxinner-the-decision-loop) | flowchart | SP-04 |
 | [SP-04.8 The origin gate — off by default](solid-pod-rs/04-wac-authorisation.md#sp-048-the-origin-gate-off-by-default) | stateDiagram-v2 | SP-04 |
 | [SP-04.9 Parser bounds — fail closed at the boundary](solid-pod-rs/04-wac-authorisation.md#sp-049-parser-bounds-fail-closed-at-the-boundary) | flowchart | SP-04 |

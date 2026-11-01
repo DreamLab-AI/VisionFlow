@@ -80,9 +80,9 @@ sequenceDiagram
     EV-->>ER: granted or denial
     ER->>EV: RE-evaluate the SAME document with web_id = None<br/>solid-pod-rs-server/src/lib.rs:1291
     EV-->>ER: anonymous_would_be_granted
-    ER-->>H: Public only when anonymous is granted AND no elevation happened<br/>solid-pod-rs-server/src/lib.rs:1300
-    Note over ER: The second evaluation is pure — no extra storage I/O. A sidecar read<br/>and a payment-gated read both classify Private by construction.
-    Note over H: HEAD routes to handle_get, so HEAD inherits this same gate — see SP-02.11.
+    ER-->>H: Public only when anonymous is granted AND resource path is unchanged<br/>solid-pod-rs-server/src/lib.rs:1300
+    Note over ER: The second evaluation is pure — no extra storage I/O.<br/>Sidecar reads classify Private. Both evaluations use the parsed document,<br/>including any restrictions already lost by the parser (SP-04.3).
+    Note over H,ER: HEAD routes to handle_get and uses this gate.<br/>See SP-02.11.
     Note over ER: Glob GET gates the folder (solid-pod-rs-server/src/lib.rs:3044) and then every child<br/>with charge = false (solid-pod-rs-server/src/lib.rs:3061), so a child whose ACL denies Read is<br/>dropped, and a read whose rule carries a PaymentCondition is refused rather than debited<br/>(solid-pod-rs-server/src/lib.rs:1248). COPY needs Read on its Source (solid-pod-rs-server/src/lib.rs:2950).
 ```
 
@@ -175,18 +175,20 @@ flowchart LR
     IN --> PR
     PR -- None --> ORD
     PR -- "Some(p)" --> ELV
-    RD --> IN
-    WR --> IN
+    RD --> GUARD["guarded_acl_target wrapper<br/>solid-pod-rs-server/src/lib.rs:826"]
+    WR --> GUARD
+    GUARD --> IN
+    GUARD -.-> EXTRA["Server-managed secret/state paths also require Control<br/>solid-pod-rs-server/src/lib.rs:831-839"]
 
     N1["Suffix rules: /.acl and /dir/.acl strip to / and /dir/ respectively;<br/>/a/b.acl strips to the resource /a/b.<br/>solid-pod-rs/src/wac/mod.rs:221"]
     PR -.-> N1
-    N2["INVARIANT (WAC 4.3.5): reading OR writing a sidecar discloses or rewrites<br/>the whole authorization graph of the governed resource, so both gate on<br/>acl:Control of that resource — never the base mode on the sidecar path.<br/>P0-2 and P0-3 were the write and read halves of the same bug."]
+    N2["INVARIANT (ACL Control): reading OR writing a sidecar discloses or rewrites<br/>the whole authorization graph of the governed resource, so both gate on<br/>acl:Control of that resource — never the base mode on the sidecar path.<br/>P0-2 and P0-3 were the write and read halves of the same bug."]
     ELV -.-> N2
-    N3["Because read and write share this ONE function they cannot drift apart."]
+    N3["Native read and write call the shared mapping through their wrapper.<br/>A consumer must preserve both the resource and mode it returns."]
     IN -.-> N3
 ```
 
-## SP-04.6 The lockout guard — you may not ACL yourself out
+## SP-04.6 The lockout guard — syntactic Control is not effective Control
 
 ```mermaid
 sequenceDiagram
@@ -198,17 +200,22 @@ sequenceDiagram
 
     C->>H: write a new .acl body
     H->>H: enforce Control on the protected resource (SP-04.5)
-    H->>G: does the PROPOSED document still grant the caller Control?
-    G->>IDS: inspect agent / agentClass ids on each authorization
-    alt keeps Control via absolute WebID, foaf:Agent or acl:AuthenticatedAgent
+    H->>G: inspect the proposed ACL for a matching caller Control entry
+    alt unparseable document
+        G-->>H: true, defer validation<br/>solid-pod-rs-server/src/lib.rs:908
+    else Control mode plus caller agent or recognised class
+        G->>IDS: inspect agent / agentClass ids on each authorization
         G-->>H: true
-        H->>H: proceed with the write
+        H->>H: proceed with further validation
+        Note over G: DEBT does not check target or conditions<br/>solid-pod-rs-server/src/lib.rs:913-934
     else
         G-->>H: false
         H-->>C: 409 Conflict — refused<br/>solid-pod-rs-server/src/lib.rs:1759
     end
     Note over H: The guard runs on all three write paths: PUT (lib.rs:1757),<br/>POST after Slug resolution (lib.rs:1866), and PATCH on the SERIALISED<br/>post-patch document (lib.rs:2005) — F7 closed the PATCH hole. The<br/>create-via-PATCH branch runs the same guard (lib.rs:2039),<br/>and so does COPY onto an .acl destination (lib.rs:2961). COPY of an ACL sidecar happens only<br/>for a caller holding Control on both sides (lib.rs:2983).
 ```
+
+**Debt:** an authorised PUT can retain a caller Control rule aimed at a different resource, return 201, then deny that caller the original ACL. The [local HTTP reproduction](../../estate-review/2026-11-01-solid-http-delivery.md) shows why matching a mode and identity is insufficient.
 
 ## SP-04.7 evaluate_access_ctx_inner — the decision loop
 

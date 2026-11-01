@@ -1,0 +1,58 @@
+[
+  {
+    "panel": "SP-03.1",
+    "original": "docs/diagrams/rendered/solid-pod-rs/03-ldp-request-lifecycle/SP-03.1.svg",
+    "sha256": "f423f3d92ab24a9d361c2f43114584cd5d1496b634a82b9cb22ec4c694a73996",
+    "preview": "/tmp/vf-solid-delivery-audit/SP-03.1.png",
+    "method": "Temporary Liberation Sans 16 fallback only where absent; original SVG unchanged.",
+    "visual_disposition": "Inspected final preview: readable labels and distinct branches."
+  },
+  {
+    "panel": "SP-03.2",
+    "original": "docs/diagrams/rendered/solid-pod-rs/03-ldp-request-lifecycle/SP-03.2.svg",
+    "sha256": "ee30a01265953d6c1730854e3aa8a2c1c117957a96c43890acbbca74ee5bc6e4",
+    "preview": "/tmp/vf-solid-delivery-audit/SP-03.2.png",
+    "method": "Temporary Liberation Sans 16 fallback only where absent; original SVG unchanged.",
+    "visual_disposition": "Inspected final preview: readable labels and distinct branches."
+  },
+  {
+    "panel": "SP-03.3",
+    "original": "docs/diagrams/rendered/solid-pod-rs/03-ldp-request-lifecycle/SP-03.3.svg",
+    "sha256": "e262bdb12211a3d7327f66ddc23fae8e0b10da547010922f3df74ee0eae52945",
+    "preview": "/tmp/vf-solid-delivery-audit/SP-03.3.png",
+    "method": "Temporary Liberation Sans 16 fallback only where absent; original SVG unchanged.",
+    "visual_disposition": "Inspected final preview: readable labels and distinct branches."
+  },
+  {
+    "panel": "SP-03.12",
+    "original": "docs/diagrams/rendered/solid-pod-rs/03-ldp-request-lifecycle/SP-03.12.svg",
+    "sha256": "c4c1a8a8c95504fe43d97971f0f5b57b507d7a51d7aaf659c7c0e72899c7d7ad",
+    "preview": "/tmp/vf-solid-delivery-audit/SP-03.12.png",
+    "method": "Temporary Liberation Sans 16 fallback only where absent; original SVG unchanged.",
+    "visual_disposition": "Inspected final preview: readable labels and distinct branches."
+  },
+  {
+    "panel": "SP-04.2",
+    "original": "docs/diagrams/rendered/solid-pod-rs/04-wac-authorisation/SP-04.2.svg",
+    "sha256": "11ad171df9ac9119b34d1ffd49c1cb85920cdd86ec9a3dc5941256deee1b00ec",
+    "preview": "/tmp/vf-solid-delivery-audit/SP-04.2.png",
+    "method": "Temporary Liberation Sans 16 fallback only where absent; original SVG unchanged.",
+    "visual_disposition": "Inspected final preview: readable labels and distinct branches."
+  },
+  {
+    "panel": "SP-04.5",
+    "original": "docs/diagrams/rendered/solid-pod-rs/04-wac-authorisation/SP-04.5.svg",
+    "sha256": "a42599cc2696be016c07d97504cc5cdee66ec398d9261f13c452a8c4d7873e71",
+    "preview": "/tmp/vf-solid-delivery-audit/SP-04.5.png",
+    "method": "Temporary Liberation Sans 16 fallback only where absent; original SVG unchanged.",
+    "visual_disposition": "Inspected final preview: readable labels and distinct branches."
+  },
+  {
+    "panel": "SP-04.6",
+    "original": "docs/diagrams/rendered/solid-pod-rs/04-wac-authorisation/SP-04.6.svg",
+    "sha256": "53926be7f4920437e6f042e00773a7d7cb0ef738a6188e9fcbe238be3284b3ad",
+    "preview": "/tmp/vf-solid-delivery-audit/SP-04.6.png",
+    "method": "Temporary Liberation Sans 16 fallback only where absent; original SVG unchanged.",
+    "visual_disposition": "Inspected final preview: readable labels and distinct branches."
+  }
+]

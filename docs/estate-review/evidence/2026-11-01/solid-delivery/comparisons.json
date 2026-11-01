@@ -1,0 +1,18 @@
+{
+  "date": "2026-11-01",
+  "sources": [
+    {
+      "url": "https://www.rfc-editor.org/rfc/rfc9111.html#section-3.5",
+      "use": "Authenticated response reuse restrictions; public, must-revalidate, no-store distinction."
+    },
+    {
+      "url": "https://solidproject.org/TR/wac#access-privileges",
+      "use": "GET/HEAD privilege discovery and draft report status; extension semantics."
+    },
+    {
+      "url": "https://communitysolidserver.github.io/CommunitySolidServer/7.x/usage/authorization-methods/",
+      "use": "Configuration choice WAC versus ACP and client-specific restriction motivation."
+    }
+  ],
+  "limits": "Primary-source comparison, not interoperability or comparative security testing."
+}

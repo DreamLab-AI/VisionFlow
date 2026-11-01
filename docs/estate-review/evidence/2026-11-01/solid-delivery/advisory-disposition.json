@@ -1,0 +1,6 @@
+{
+  "final_new_advisories": 0,
+  "initial_selected_warning": "SP-03.3 RDF validator citation corrected from punctuation line 1689 to parse call 1692; rerendered.",
+  "prior_queues": "Unassessed SP-04.15 and SP-06.12 from previous batch are not closed by a new sample.",
+  "limits": "Final selected visual inspection and source review are separate from automated citation sampling."
+}

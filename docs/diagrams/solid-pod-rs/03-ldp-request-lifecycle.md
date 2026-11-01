@@ -26,11 +26,11 @@ sequenceDiagram
     participant CP as set_cache_policy<br/>solid-pod-rs-server/src/lib.rs:1404
 
     C->>G: GET /pod/notes/hello.ttl
-    alt path contains a glob star
-        G->>GL: delegate to the glob handler<br/>solid-pod-rs-server/src/lib.rs:1475
-    end
     opt feature activitypub and path is /profile/card.jsonld
-        G-->>C: actor document when Accept negotiates ActivityJSON, public<br/>solid-pod-rs-server/src/lib.rs:1457
+        G-->>C: return public actor document when Accept negotiates ActivityJSON<br/>solid-pod-rs-server/src/lib.rs:1457
+    end
+    alt path contains a glob star
+        G->>GL: return glob handler result<br/>solid-pod-rs-server/src/lib.rs:1475
     end
     G->>AU: NIP-98 / dev-bearer verification (no body)
     AU-->>G: an optional pubkey
@@ -47,7 +47,8 @@ sequenceDiagram
         G->>G: ETag from meta.etag<br/>solid-pod-rs-server/src/lib.rs:1644
         G->>CP: Cache-Control by audience (ADR-2002)
     end
-    G-->>C: 200 with Link, WAC-Allow, Updates-via, ETag
+    G-->>C: successful branch headers, ETag on verbatim or transcoded bodies
+    Note over G: DEBT WAC-Allow is computed with no ACL document at lib.rs:1487,<br/>so successful reads advertise empty user and public modes.
     Note over G: A storage NotFound becomes a bare 404<br/>solid-pod-rs-server/src/lib.rs:1653
     Note over G: OPTIONS (handle_options, solid-pod-rs-server/src/lib.rs:2303, via<br/>ldp::options_for_conneg, solid-pod-rs/src/ldp.rs:1806) runs NO WAC check — it<br/>advertises capability, not content. Its Accept-Patch dialect list is fixed<br/>at solid-pod-rs/src/ldp.rs:1798, and the container Accept-Post adds text/n3 only when<br/>conneg is on (accept_post_for, solid-pod-rs/src/ldp.rs:102).
 ```
@@ -58,17 +59,18 @@ sequenceDiagram
 flowchart TD
     START["handle_get, ldp::is_container true<br/>solid-pod-rs-server/src/lib.rs:1489"]
     HTML{"accept_includes_html?<br/>solid-pod-rs-server/src/lib.rs:1501"}
-    IDX["try index.html child — serve it verbatim only if the caller also holds acl:Read on that child (own ACL, else fall through to the listing)<br/>solid-pod-rs-server/src/lib.rs:1502"]
+    IDX["try index.html child — require its own Read grant,<br/>serve HTML with optional live-reload injection, else fall through<br/>solid-pod-rs-server/src/lib.rs:1502"]
     REP["storage.container_representation<br/>solid-pod-rs-server/src/lib.rs:1525"]
     MASH{"mashlib::should_serve?<br/>solid-pod-rs-server/src/lib.rs:1534"}
-    MHTML["mashlib HTML wrapper plus X-Frame-Options DENY<br/>solid-pod-rs-server/src/lib.rs:1544"]
+    MHTML["mashlib HTML wrapper, no-store, X-Frame-Options DENY<br/>solid-pod-rs-server/src/lib.rs:1544"]
     JSONLD["application/ld+json listing<br/>solid-pod-rs-server/src/lib.rs:1555"]
-    DONE["plus Link, WAC-Allow, Updates-via headers"]
+    DONE["Cache policy uses child audience for index.html,<br/>container audience for the listing or wrapper.<br/>Plus Link, WAC-Allow, Updates-via.<br/>solid-pod-rs-server/src/lib.rs:1516"]
 
     START --> HTML
-    HTML -- "yes, index.html exists" --> IDX
+    HTML -- yes --> IDX
     HTML -- no --> REP
-    IDX --> DONE
+    IDX -- "allowed child, read succeeds" --> DONE
+    IDX -- "denied or read fails" --> REP
     REP --> MASH
     MASH -- yes --> MHTML --> DONE
     MASH -- no --> JSONLD --> DONE
@@ -107,9 +109,11 @@ sequenceDiagram
     P->>W: acl:Write — sidecar paths elevate to Control, see SP-04.5
     opt path is an acl or meta sidecar
         P->>P: proposed_acl_keeps_caller_control<br/>solid-pod-rs-server/src/lib.rs:1757
-        P-->>C: 409 Conflict if the proposed ACL drops caller Control
+        P-->>C: 409 if no recognised caller Control entry
+        Note over P: DEBT guard does not evaluate the entry target or conditions<br/>solid-pod-rs-server/src/lib.rs:913-934
     end
-    P->>P: validate_rdf_body — Turtle must parse (400), text/n3 needs conneg (415)<br/>solid-pod-rs-server/src/lib.rs:1765
+    P->>P: validate_rdf_body — Turtle syntax must parse (400), text/n3 needs conneg (415)<br/>solid-pod-rs-server/src/lib.rs:1765
+    Note over P: DEBT valid Turtle with incomplete condition shape can pass<br/>solid-pod-rs-server/src/lib.rs:1692
     P->>Q: atomic quota reservation
     P->>S: storage.put(path, body, content_type)
     P->>Q: finish_quota_reservation with the write outcome<br/>solid-pod-rs-server/src/lib.rs:1772
@@ -324,31 +328,17 @@ classDiagram
 ## SP-03.12 ADR-2002 cache policy — audience beats media type
 
 ```mermaid
-stateDiagram-v2
-    [*] --> Classify
-    Classify --> Private: an anonymous caller would NOT have been granted
-    Classify --> Public: an anonymous caller WOULD have been granted<br/>and no sidecar elevation happened
-
-    Private --> VaryAuth: append Vary Authorization<br/>solid-pod-rs-server/src/lib.rs:1409
-    VaryAuth --> NoStore: Cache-Control private no-store<br/>solid-pod-rs/src/ldp.rs:1949
-    Public --> MediaType: cache_control_for(content_type)<br/>solid-pod-rs/src/ldp.rs:1935
-    MediaType --> RdfPolicy: RDF gets private no-cache must-revalidate<br/>solid-pod-rs/src/ldp.rs:1895
-    MediaType --> NoHeader: a public binary gets no Cache-Control
-
-    NoStore --> [*]
-    RdfPolicy --> [*]
-    NoHeader --> [*]
-
-    note right of Classify
-      cache_control_for_response(content_type, audience)
-      solid-pod-rs/src/ldp.rs:1981. Audience is decided by re-evaluating
-      the already-resolved ACL with no principal — pure, no extra I/O.
-      A sidecar read is never classified Public.
-    end note
-    note right of NoStore
-      INVARIANT: a private response is never advertised as publicly
-      cacheable. set_cache_policy never overwrites a Cache-Control a
-      handler already set (solid-pod-rs-server/src/lib.rs:1411), so the
-      mashlib wrapper's own no-store survives.
-    end note
+flowchart TD
+    A["Audience from enforce_read_inner<br/>solid-pod-rs-server/src/lib.rs:1300"] --> PRIVATE{"Private?"}
+    PRIVATE -- yes --> V["append Vary Authorization<br/>solid-pod-rs-server/src/lib.rs:1409"]
+    PRIVATE -- no --> EXIST
+    V --> EXIST{"Cache-Control already set?<br/>solid-pod-rs-server/src/lib.rs:1411"}
+    EXIST -- yes --> KEEP["Keep existing policy, e.g. mashlib no-store<br/>solid-pod-rs-server/src/lib.rs:1595"]
+    EXIST -- no --> POLICY["cache_control_for_response<br/>solid-pod-rs/src/ldp.rs:1981"]
+    POLICY -- Private --> NS["private, no-store<br/>solid-pod-rs/src/ldp.rs:1949"]
+    POLICY -- Public --> MEDIA["cache_control_for by media type<br/>solid-pod-rs/src/ldp.rs:1935"]
+    MEDIA -- RDF --> RDF["private, no-cache, must-revalidate<br/>solid-pod-rs/src/ldp.rs:1895"]
+    MEDIA -- other --> NONE["No explicit Cache-Control"]
 ```
+
+**Boundary:** this policy applies to the audience produced by the parsed ACL. Lost restrictions can misclassify a response as Public. Headers do not prove revocation through an intermediary cache. [HTTP acceptance and remaining delivery gaps](../../estate-review/2026-11-01-solid-http-delivery.md).

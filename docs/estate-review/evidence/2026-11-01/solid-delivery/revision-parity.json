@@ -1,0 +1,13 @@
+{
+  "declared": "09ec90f26aa573731460292d0e80343914cb43d9",
+  "current": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+  "whole_files_byte_identical": [
+    "crates/solid-pod-rs-server/src/lib.rs",
+    "crates/solid-pod-rs/src/ldp.rs",
+    "crates/solid-pod-rs/src/mashlib.rs",
+    "crates/solid-pod-rs/src/wac/mod.rs",
+    "crates/solid-pod-rs/src/wac/resolver.rs",
+    "crates/solid-pod-rs/src/wac/evaluator.rs"
+  ],
+  "limits": "Selected-panel meaning assessed; equality alone grants no sibling-panel credit."
+}

@@ -59422,58 +59422,80 @@
     },
     {
       "category": "decision-candidate",
-      "claims": [],
+      "claims": [
+        {
+          "basis": "Every section including September acceptance progress assessed against current native and consumer source, twelve tests, authorised HTTP probes, RFC 9111 and WAC/CSS primary sources; cache, restart and cross-consumer limits preserved.",
+          "coverage": "whole-document",
+          "panels": null,
+          "report": "docs/estate-review/2026-11-01-solid-http-delivery.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "path": "crates/solid-pod-rs/docs/adr/ADR-2002-wac-access-model.md",
       "repo": "solid-pod-rs",
-      "review": "unreconciled",
+      "review": "assessment-recorded",
       "sections": [
         {
           "line": 18,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-http-delivery.md"
+          ],
+          "review": "assessment-recorded",
           "title": "ADR-2002 — Ground access control on Web Access Control, not ACP"
         },
         {
           "line": 20,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-http-delivery.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Context"
         },
         {
           "line": 29,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-http-delivery.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Decision"
         },
         {
           "line": 39,
           "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-http-delivery.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Consequences"
         },
         {
           "line": 53,
           "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-http-delivery.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Verification"
         },
         {
           "line": 62,
           "ordinal": 6,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-http-delivery.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Closeout extension — 2026-09-04"
         },
         {
           "line": 72,
           "ordinal": 7,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-http-delivery.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Acceptance progress — 2026-09-05"
         }
       ],
@@ -76968,10 +76990,10 @@
   "counts": {
     "available_checkouts": 23,
     "candidate_files": 842,
-    "numbered_candidates_with_recorded_assessment": 92,
+    "numbered_candidates_with_recorded_assessment": 93,
     "numbered_decision_candidates": 731,
     "panels": 1739,
-    "panels_with_recorded_assessment": 337,
+    "panels_with_recorded_assessment": 344,
     "scope_targets": 24,
     "stale_claim_records": 0,
     "topics": 206
@@ -76982,7 +77004,7 @@
       "available": true,
       "candidate_files": 77,
       "dirty": true,
-      "head": "b205687dfa005f79844fb2fa45486a4a40fd71a3",
+      "head": "05c33b1b82eadbc8b602caf51c50c1001bb2d09e",
       "local": "VisionFlow",
       "name": "VisionFlow"
     },
@@ -88128,40 +88150,59 @@
       "sha256": "0a2c6a72dccc2144bd57a6f9e8b47eca169358b35ef5299c7fe3dc27a69749c2"
     },
     {
-      "claims": [],
+      "claims": [
+        {
+          "basis": "Selected GET/PUT, cache, read gate, sidecar mapping and lockout semantics assessed against source and local HTTP controls; no deployment or rendered-sibling credit.",
+          "coverage": "selected-panels",
+          "panels": [
+            "SP-03.1",
+            "SP-03.2",
+            "SP-03.3",
+            "SP-03.12"
+          ],
+          "report": "docs/estate-review/2026-11-01-solid-http-delivery.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "panels": [
         {
-          "body_sha256": "2436e020b114dbbf30fba3192a5dee35362de4791964dedf0900a6091ed3b834",
+          "body_sha256": "0eb9bdbba89ef6ea5c8b720492f7fb82966b5517907a25872f50170dd547483a",
           "heading": "SP-03.1 GET — the full read path",
           "id": "SP-03.1",
           "line": 17,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-http-delivery.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
-          "body_sha256": "9e79223285ff606f616a48d7cf88b81c51996c9b93f04e970301d3e4c49aab42",
+          "body_sha256": "a70649c0e54268918fbe75892928f2bb113e797fe31b88b6ddb72cb0ae2bd299",
           "heading": "SP-03.2 Container GET — three representations",
           "id": "SP-03.2",
-          "line": 57,
+          "line": 58,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-http-delivery.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
-          "body_sha256": "df60cab8e7b0b0f4dcee58156114f787d34be06ee4e220ca3e737f882119e601",
+          "body_sha256": "7440167f6444c37a6a5c6bc7cb1c5f95de17f0edc3e32a3405c6d6c8db7bee82",
           "heading": "SP-03.3 PUT — resource and container creation",
           "id": "SP-03.3",
-          "line": 84,
+          "line": 86,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-http-delivery.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
           "body_sha256": "5cd8bb3fac07ca8aef65486383f04d3e9c19659efa0de113bde59b423809af16",
           "heading": "SP-03.4 POST — Append, Slug resolution and unique-name minting",
           "id": "SP-03.4",
-          "line": 123,
+          "line": 127,
           "ordinal": 4,
           "reports": [],
           "review": "unreconciled"
@@ -88170,7 +88211,7 @@
           "body_sha256": "d0f9338e8054c7c490729b0cc82a7ae508c75d6978a74507df4dff76a0a2d785",
           "heading": "SP-03.5 PATCH — non-destructive, three dialects",
           "id": "SP-03.5",
-          "line": 153,
+          "line": 157,
           "ordinal": 5,
           "reports": [],
           "review": "unreconciled"
@@ -88179,7 +88220,7 @@
           "body_sha256": "3891f77b31826c9d1e5b0bee243eceaef0b4c9fa1ed7c523f19caf0f0f8ae860",
           "heading": "SP-03.6 The non-destructive-write invariant",
           "id": "SP-03.6",
-          "line": 197,
+          "line": 201,
           "ordinal": 6,
           "reports": [],
           "review": "unreconciled"
@@ -88188,7 +88229,7 @@
           "body_sha256": "e054d38153e945135126ab2fbce388109f90f96b0170959c145f850a3fbccd55",
           "heading": "SP-03.8 COPY — the non-standard verb",
           "id": "SP-03.8",
-          "line": 220,
+          "line": 224,
           "ordinal": 7,
           "reports": [],
           "review": "unreconciled"
@@ -88197,7 +88238,7 @@
           "body_sha256": "ecd27e04a18b2f27fd219db2d8f06e8f9fdd8b3d7950d0919899b62b773bab77",
           "heading": "SP-03.9 Glob GET",
           "id": "SP-03.9",
-          "line": 252,
+          "line": 256,
           "ordinal": 8,
           "reports": [],
           "review": "unreconciled"
@@ -88206,7 +88247,7 @@
           "body_sha256": "3335af9d6368a9d73ed0ae30a4da595046d703587baf7151511566aadbaef3a9",
           "heading": "SP-03.10 RDF content negotiation",
           "id": "SP-03.10",
-          "line": 278,
+          "line": 282,
           "ordinal": 9,
           "reports": [],
           "review": "unreconciled"
@@ -88215,25 +88256,27 @@
           "body_sha256": "2f066947b92fd90d372cf45707224be851c6049a3e0690f47acb5508a710453b",
           "heading": "SP-03.11 Response headers set on every LDP response",
           "id": "SP-03.11",
-          "line": 303,
+          "line": 307,
           "ordinal": 10,
           "reports": [],
           "review": "unreconciled"
         },
         {
-          "body_sha256": "01c707963b8d1b505868c560bb7d7b77223cc168120639044cf54ef5d662123d",
+          "body_sha256": "43395c842970372ac4ac89a20e780df73c43065ea993f2c9bdcc0ea9d84939e1",
           "heading": "SP-03.12 ADR-2002 cache policy — audience beats media type",
           "id": "SP-03.12",
-          "line": 326,
+          "line": 330,
           "ordinal": 11,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-http-delivery.md"
+          ],
+          "review": "assessment-recorded"
         }
       ],
       "path": "docs/diagrams/solid-pod-rs/03-ldp-request-lifecycle.md",
       "repo": "VisionFlow",
-      "review": "unreconciled",
-      "sha256": "029b2c7da9abea6540fc3b26002342bc7392cb77670fe191eaec4fd3df1a5948"
+      "review": "partial-assessment-recorded",
+      "sha256": "422a54a252a3b1ca331fd8bd087cb9a7a6b0d3629ce76409e00a545f98a357d8"
     },
     {
       "claims": [
@@ -88248,6 +88291,17 @@
           ],
           "report": "docs/estate-review/2026-11-01-solid-policy-parsing.md",
           "state": "assessment-recorded"
+        },
+        {
+          "basis": "Selected GET/PUT, cache, read gate, sidecar mapping and lockout semantics assessed against source and local HTTP controls; no deployment or rendered-sibling credit.",
+          "coverage": "selected-panels",
+          "panels": [
+            "SP-04.2",
+            "SP-04.5",
+            "SP-04.6"
+          ],
+          "report": "docs/estate-review/2026-11-01-solid-http-delivery.md",
+          "state": "assessment-recorded"
         }
       ],
       "panels": [
@@ -88261,13 +88315,15 @@
           "review": "unreconciled"
         },
         {
-          "body_sha256": "b685202bd88c99ec7b0074ed92a650246494391a32d25d38621eff495835def6",
+          "body_sha256": "2d0f1ef696235569b9386ed5726066cdf123c179c6e85729bf0cdd88406f6377",
           "heading": "SP-04.2 The read gate and the ADR-2002 audience classification",
           "id": "SP-04.2",
           "line": 66,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-http-delivery.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
           "body_sha256": "4393fd710443e1958c5b628d4d84a78155b9fd2f2b436e31fe892462bdde4f26",
@@ -88292,28 +88348,32 @@
           "review": "assessment-recorded"
         },
         {
-          "body_sha256": "7759bf530cdee20dff6c292ae78211fcdd39954a0278e1e412b2a901c33a906c",
+          "body_sha256": "76e8bd9c6a9d13355093c58c7660e4f6fb2e83cb3da3954eeb1874b1bef61fb3",
           "heading": "SP-04.5 The sidecar rule — one function for read and write",
           "id": "SP-04.5",
           "line": 166,
           "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-http-delivery.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
-          "body_sha256": "fa9ad50b0d76affa5367bdb9c926bd14ab44539644e55a5ccff1a4efcff1a3cc",
-          "heading": "SP-04.6 The lockout guard — you may not ACL yourself out",
+          "body_sha256": "01a98bdb0b825fae115bb47a77f7799612805df3c98bec887bbdcf59fb49c1ff",
+          "heading": "SP-04.6 The lockout guard — syntactic Control is not effective Control",
           "id": "SP-04.6",
-          "line": 191,
+          "line": 193,
           "ordinal": 6,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-http-delivery.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
           "body_sha256": "18588d2afaf1b3542ab392c491ceb0e4eae0cc65693ecdd4e9883ae956333d98",
           "heading": "SP-04.7 evaluate_access_ctx_inner — the decision loop",
           "id": "SP-04.7",
-          "line": 215,
+          "line": 222,
           "ordinal": 7,
           "reports": [],
           "review": "unreconciled"
@@ -88322,7 +88382,7 @@
           "body_sha256": "8f6b201b21510a98c7308c9053eaa00a04c00b9cfced50e6c0f541d7adbca9bc",
           "heading": "SP-04.8 The origin gate — off by default",
           "id": "SP-04.8",
-          "line": 256,
+          "line": 263,
           "ordinal": 8,
           "reports": [],
           "review": "unreconciled"
@@ -88331,7 +88391,7 @@
           "body_sha256": "596519a08d4459fbbfd44474087bd1c91bd11c9b0e79494e1f1cc3a97d876d85",
           "heading": "SP-04.9 Parser bounds — fail closed at the boundary",
           "id": "SP-04.9",
-          "line": 286,
+          "line": 293,
           "ordinal": 9,
           "reports": [
             "docs/estate-review/2026-11-01-solid-policy-parsing.md"
@@ -88342,7 +88402,7 @@
           "body_sha256": "dba65c1e399be498e3ccbb1c8dc163708c2f182410f1c42d0d22927ddd7cccf1",
           "heading": "SP-04.10 The Turtle ACL parser",
           "id": "SP-04.10",
-          "line": 309,
+          "line": 316,
           "ordinal": 10,
           "reports": [
             "docs/estate-review/2026-11-01-solid-policy-parsing.md"
@@ -88353,7 +88413,7 @@
           "body_sha256": "058a113231b6182307f58396da9e3bd6e5832e518074747d32f572a672189428",
           "heading": "SP-04.13 Payment, client, issuer and provenance-anchor conditions",
           "id": "SP-04.13",
-          "line": 339,
+          "line": 346,
           "ordinal": 11,
           "reports": [],
           "review": "unreconciled"
@@ -88362,7 +88422,7 @@
           "body_sha256": "b165f2c9f3d1d1d5a07ae97d49919a9960774d17526187faac0369766df97069",
           "heading": "SP-04.14 Denial shape",
           "id": "SP-04.14",
-          "line": 368,
+          "line": 375,
           "ordinal": 12,
           "reports": [],
           "review": "unreconciled"
@@ -88371,7 +88431,7 @@
           "body_sha256": "02be1c4cde95bcc2ab3dc15ac75acf2190b268bf86ce23980210602b6c952472",
           "heading": "SP-04.15 Agent and group matching, and accessTo-vs-default containment",
           "id": "SP-04.15",
-          "line": 390,
+          "line": 397,
           "ordinal": 13,
           "reports": [],
           "review": "unreconciled"
@@ -88380,7 +88440,7 @@
       "path": "docs/diagrams/solid-pod-rs/04-wac-authorisation.md",
       "repo": "VisionFlow",
       "review": "partial-assessment-recorded",
-      "sha256": "147018353c8bcb0a4ede401d440aa7abab4eb0886175610601730b95c3e24c2e"
+      "sha256": "572e5c105445b537adb32684590976c7c4990dfb7d9bff59d70d9e84866d69c9"
     },
     {
       "claims": [],

@@ -7,11 +7,13 @@ type: explanation
 
 # VisionFlow estate review
 
+Latest checkpoint: [Solid HTTP policy admission and delivery](2026-11-01-solid-http-delivery.md) — twelve native tests and local HTTP probes confirm condition-loss admission, ineffective lockout prevention and empty permission headers; private delivery and local grant-removal controls pass. ADR-2002 and seven panels assessed.
+
 **Scope correction, 1 November 2026:** RuView is excluded at the owner’s direction because it is not part of the owned estate. Its earlier reports and references are retained as historical material; their pending source, ADR and remediation work is outside this audit. The [scope manifest](completion/scope.json) records the exclusion.
 
 [The completion ledger](completion/README.md) separates scoped inventory, recorded assessments and unreconciled work. It binds assessments to exact document/report hashes and holds the current counts; these are not an overall completion percentage.
 
-Solid policy parsing: [ADR-2005, lost Turtle conditions and consumer adoption](2026-11-01-solid-policy-parsing.md). Forty-one existing tests pass, while native probes reproduce discarded conditions that leave an anonymous Read grant. Five panels are assessed; forum adapter migration and HTTP/deployed acceptance remain open.
+Solid policy parsing: [ADR-2005, lost Turtle conditions and consumer adoption](2026-11-01-solid-policy-parsing.md). Forty-one existing tests pass, while native probes reproduce discarded conditions that leave an anonymous Read grant. Five panels are assessed. The latest checkpoint extends native HTTP admission evidence; forum adapter migration and deployed acceptance remain open.
 
 SideStr Hitch finality: [channel identity, buffering, reorganisation and independent test coverage](2026-11-01-sidestr-hitch-finality-and-identity.md). Two funding outputs share one protocol ID; signature checks occur on buffer replay. Core script checks participate, while JavaScript oracles explicitly skip. All twenty existing SideStr panels now have recorded source assessments; product findings and broader integration remain open.
 

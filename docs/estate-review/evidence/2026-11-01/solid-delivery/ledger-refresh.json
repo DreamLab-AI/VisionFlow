@@ -1,0 +1,43 @@
+{
+  "new_adr": "solid-pod-rs:crates/solid-pod-rs/docs/adr/ADR-2002-wac-access-model.md",
+  "new_panels": [
+    "SP-03.1",
+    "SP-03.2",
+    "SP-03.3",
+    "SP-03.12",
+    "SP-04.2",
+    "SP-04.5",
+    "SP-04.6"
+  ],
+  "unselected_panel_bodies_unchanged": [
+    "SP-03.4",
+    "SP-03.5",
+    "SP-03.6",
+    "SP-03.8",
+    "SP-03.9",
+    "SP-03.10",
+    "SP-03.11",
+    "SP-04.1",
+    "SP-04.3",
+    "SP-04.4",
+    "SP-04.7",
+    "SP-04.8",
+    "SP-04.9",
+    "SP-04.10",
+    "SP-04.13",
+    "SP-04.14",
+    "SP-04.15"
+  ],
+  "existing_claims_rebound": [
+    {
+      "report": "docs/estate-review/2026-11-01-solid-policy-parsing.md",
+      "panels": [
+        "SP-04.3",
+        "SP-04.4",
+        "SP-04.9",
+        "SP-04.10"
+      ]
+    }
+  ],
+  "limits": "Rebinding preserves byte-identical previously assessed panel bodies and report hashes; no repeat review credit."
+}

@@ -1,8 +1,8 @@
 {
-  "README.md": "7fef7067cd2d773f76e62e7c6d43fe8112ad78efe994dfbc11ca63ff61e1b610",
-  "claims.json": "5daddb8f8c7fd77a6c0d879945318bc3f32c574f1825563f52c56301317ee765",
+  "README.md": "f78feedd7c588c38d8e6f9a80e4c5804c961e2292be421c236ee7a6b851783de",
+  "claims.json": "126fbce259c30aa900d8bbc0f7d200549ec893fbeaa91ca3cdc3cbda589b07d0",
   "scope.json": "fa1813fd247074eb50f7a976700d17eac7bdddba2afcc931c363f6bb450a896f",
-  "snapshot-2026-11-01.json": "d9a73a8fcda46958c7dee441179e77af4c7b4b98704d3b5bf2caba8ce8dd504c",
+  "snapshot-2026-11-01.json": "333b09ba9b43c45e744e398ff547ec59d577b983394e25351142e0939a940025",
   "validation/clippy-final.log": "8f460ae6b73bf669b853447d77880e7a559c7afff6a382703cfda25faa38aaf7",
   "validation/fmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "validation/prose.log": "1874d89e5c00c85502914bcb8943633aa6890ab18c4595bc294c78b59ed21e54",
@@ -22,11 +22,12 @@
   "validation/scan-overlays.txt": "d70af514ef85ed6ff295c93854b90add5eb29be7a49d66efd33e50a593951466",
   "validation/scan-reserve.log": "2d8a77a302c42f66b73ead37acb7dd76f6229e68ebe37106432d31d5427771e0",
   "validation/scan-sealed-history.log": "3b38c990b1e73248715f3c8894176b378a727737c2c1c2f992e3ee9c71216d19",
+  "validation/scan-solid-delivery.txt": "cff94a0283c3aaf87aa387a4d052656039569a304eea934f7a32fe4c3fd36e38",
   "validation/scan-solid-policy.txt": "251750003ce563dfa46bef0941bc57216bbaf5dd86099da19b28ac726005c938",
   "validation/scan-xr-grab.log": "6c9fd3f81049cec6318492851c1d0ba2c282a79b26e08c0dd56e7f155d3873c6",
   "validation/scan-zone-keys.log": "9a6ebad7f991302145e5f6fcb74b4883d1ec1c0145e4d0b13a1548508e7b9b95",
   "validation/tests-final.log": "edb1b9c5c09778f62b6b368e32c0ec85be07c9b461c41feaeb22086b0cff72df",
   "validation/tests-initial.log": "54ee95bd86048f9a973265517426511e900de395ccb837100ff3ec38dcf165df",
   "validation/unicode.log": "709789487c4198b5e320ce5b56f5f6a8bade9797687af98f4a98f80e040e7b59",
-  "validation-2026-11-01.json": "24f92fc158f4a9d719bc8ed18980511f3f32a65a51e3032f244aacc5f5cf8084"
+  "validation-2026-11-01.json": "aae81fd190e055a67b0d00ce35079f20220712cd07d6b735cb0c2aa547bc2b96"
 }

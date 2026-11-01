@@ -2372,7 +2372,7 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/solid-pod-rs/04-wac-authorisation.md",
-    "source_sha256": "147018353c8bcb0a4ede401d440aa7abab4eb0886175610601730b95c3e24c2e",
+    "source_sha256": "572e5c105445b537adb32684590976c7c4990dfb7d9bff59d70d9e84866d69c9",
     "report": "docs/estate-review/2026-11-01-solid-policy-parsing.md",
     "report_sha256": "11b99af2b94fb2a535ebe1222a30ddeb6718ae4eef1fd8d48636d6f5079522eb",
     "coverage": "selected-panels",
@@ -2396,5 +2396,46 @@
       "SP-06.7"
     ],
     "basis": "Source and API assessment of typed resolution, parser bounds/condition loss, and pod-label normalisation/fallback; 41 native tests and three probe groups, scoped citations/rendering and selected-panel visual review. No sibling-panel or deployment credit."
+  },
+  {
+    "kind": "adr",
+    "repo": "solid-pod-rs",
+    "path": "crates/solid-pod-rs/docs/adr/ADR-2002-wac-access-model.md",
+    "source_sha256": "05b2c6fbe4578d70c7e48b11365b18be8d908cf81d544c6d64dfd6479888e7ad",
+    "report": "docs/estate-review/2026-11-01-solid-http-delivery.md",
+    "report_sha256": "c46f2ec24d30366816924dc1d0089c5595a413df98b7c5d0d24d7b02c631ceeb",
+    "coverage": "whole-document",
+    "basis": "Every section including September acceptance progress assessed against current native and consumer source, twelve tests, authorised HTTP probes, RFC 9111 and WAC/CSS primary sources; cache, restart and cross-consumer limits preserved."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/solid-pod-rs/03-ldp-request-lifecycle.md",
+    "source_sha256": "422a54a252a3b1ca331fd8bd087cb9a7a6b0d3629ce76409e00a545f98a357d8",
+    "report": "docs/estate-review/2026-11-01-solid-http-delivery.md",
+    "report_sha256": "c46f2ec24d30366816924dc1d0089c5595a413df98b7c5d0d24d7b02c631ceeb",
+    "coverage": "selected-panels",
+    "panels": [
+      "SP-03.1",
+      "SP-03.2",
+      "SP-03.3",
+      "SP-03.12"
+    ],
+    "basis": "Selected GET/PUT, cache, read gate, sidecar mapping and lockout semantics assessed against source and local HTTP controls; no deployment or rendered-sibling credit."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/solid-pod-rs/04-wac-authorisation.md",
+    "source_sha256": "572e5c105445b537adb32684590976c7c4990dfb7d9bff59d70d9e84866d69c9",
+    "report": "docs/estate-review/2026-11-01-solid-http-delivery.md",
+    "report_sha256": "c46f2ec24d30366816924dc1d0089c5595a413df98b7c5d0d24d7b02c631ceeb",
+    "coverage": "selected-panels",
+    "panels": [
+      "SP-04.2",
+      "SP-04.5",
+      "SP-04.6"
+    ],
+    "basis": "Selected GET/PUT, cache, read gate, sidecar mapping and lockout semantics assessed against source and local HTTP controls; no deployment or rendered-sibling credit."
   }
 ]

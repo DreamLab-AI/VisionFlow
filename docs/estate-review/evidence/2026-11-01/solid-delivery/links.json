@@ -1,0 +1,66 @@
+[
+  {
+    "file": "docs/estate-review/2026-11-01-solid-http-delivery.md",
+    "target": "2026-11-01-solid-policy-parsing.md"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-solid-http-delivery.md",
+    "target": "../../../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2002-wac-access-model.md"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-solid-http-delivery.md",
+    "target": "evidence/2026-11-01/solid-delivery/sources.json"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-solid-http-delivery.md",
+    "target": "evidence/2026-11-01/solid-delivery/http-probe.rs"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-solid-http-delivery.md",
+    "target": "evidence/2026-11-01/solid-delivery/run-probe.cjs"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-solid-http-delivery.md",
+    "target": "evidence/2026-11-01/solid-delivery/probe.json"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-solid-http-delivery.md",
+    "target": "evidence/2026-11-01/solid-delivery/revision-parity.json"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-solid-http-delivery.md",
+    "target": "evidence/2026-11-01/solid-delivery/native.txt"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "scope.json"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "claims.json"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "snapshot-2026-11-01.json"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "validation-2026-11-01.json"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "../../../scripts/estate-review-ledger/README.md"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "../2026-11-01-solid-http-delivery.md"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "../2026-11-01-solid-policy-parsing.md"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "../evidence/2026-11-01/solid-delivery/ledger-refresh.json"
+  }
+]
