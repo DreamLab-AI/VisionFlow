@@ -1,0 +1,1816 @@
+[
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2003-derive-subkey-raw-hmac-js-parity.md",
+    "source_sha256": "83e3d793163492c6b2b2cefe732c2fb1293e9fb80b74f3054b3224fc96bb510b",
+    "report": "docs/estate-review/2026-11-01-forum-subkey-derivation.md",
+    "report_sha256": "fff806b9824b85437d0208e90f88e04ad184987ecb15482d890d0707cacaeabf",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/archive/adr/ADR-094-deterministic-subkey-derivation.md",
+    "source_sha256": "12b7953de09183a7208a28d8081f6738364cef9c2e482a2976bc7638c33c39b2",
+    "report": "docs/estate-review/2026-11-01-forum-subkey-derivation.md",
+    "report_sha256": "fff806b9824b85437d0208e90f88e04ad184987ecb15482d890d0707cacaeabf",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/archive/adr/ADR-100-key-lifecycle.md",
+    "source_sha256": "32e8a15f34edbf2bd4554bfd94842f4ab85723940f4be786b7c73a86d6bee7c0",
+    "report": "docs/estate-review/2026-11-01-forum-subkey-derivation.md",
+    "report_sha256": "fff806b9824b85437d0208e90f88e04ad184987ecb15482d890d0707cacaeabf",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2004-device-keys-default-off-dual-worker-gate.md",
+    "source_sha256": "14c577e5a02286e6fe4b455f656f406c965c708ff0d2df1a445b6d061e9ac51f",
+    "report": "docs/estate-review/2026-11-01-forum-device-keys.md",
+    "report_sha256": "7734f7e829e3b15ec6f533c8e7e2b52fc9e2d07d5468609e8799514386f8b41c",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2006-trust-demotion-cron-tl3-never.md",
+    "source_sha256": "5576b5374b5b351e123addf1a7bebf98a0745f14e17092a5a50466384b86d35a",
+    "report": "docs/estate-review/2026-11-01-forum-trust-transitions.md",
+    "report_sha256": "332261bbebb361ed12b440b8fc059e84b4a5a3a0307b0344f180f57c853acc9e",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/archive/adr/ADR-102-trust-demotion-inactivity-sweep.md",
+    "source_sha256": "9396b22723401b3b9f743418a062a1d35a4575e5fff608a9121bd17f40e3556b",
+    "report": "docs/estate-review/2026-11-01-forum-trust-transitions.md",
+    "report_sha256": "332261bbebb361ed12b440b8fc059e84b4a5a3a0307b0344f180f57c853acc9e",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2008-bbs-signer-holds-key-directly.md",
+    "source_sha256": "db0e48d9e02ac3299e227cd38f614d16a6fdb4fdc402b551812626662fa8116d",
+    "report": "docs/estate-review/2026-11-01-forum-bbs-signer.md",
+    "report_sha256": "9780f594dd16d293e97babdbaef6d9cf923506998d75713d9038fcd4796eb8fa",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2014-member-lifecycle-one-source-of-truth.md",
+    "source_sha256": "d3bbf2c182faec2902c490f8dfb244f1865093b39f5a46d343922c50973bd188",
+    "report": "docs/estate-review/2026-11-01-forum-membership-lifecycle.md",
+    "report_sha256": "1494010fd7ea490bed41bb56a02df3c07c6ac8123b4392bbabc46dd25f201d21",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2015-member-wallets-on-sidestr-dreamlab-and-dream-tips.md",
+    "source_sha256": "92bb704f2a997c7ec0a86e79734469ade734d73a03ac3770409708de7728959b",
+    "report": "docs/estate-review/2026-11-01-forum-wallet-foundations.md",
+    "report_sha256": "a7d20988f53d2bab8bca8ff6a24f40c7e2159f31e075271aa3ba6bff6e7e7a93",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2019-member-wallet-shows-blake2b-testnet4-coins-read-only.md",
+    "source_sha256": "9cf9306299c4160c2fa500d96e7437d0190b2af0ea43f0944315514270033163",
+    "report": "docs/estate-review/2026-11-01-forum-wallet-foundations.md",
+    "report_sha256": "a7d20988f53d2bab8bca8ff6a24f40c7e2159f31e075271aa3ba6bff6e7e7a93",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2018-relay-read-caches-and-activity-throttle.md",
+    "source_sha256": "0e9a4c32617d6ad3ee4b7c940b75fdf2409dfc178ba7bd321f5a4cdefbfcc276",
+    "report": "docs/estate-review/2026-11-01-forum-read-cache-and-activity.md",
+    "report_sha256": "50db16bb5d84779c33bc6765123356615f380e58a8904838383d9ae8dd8e61e0",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2021-two-pinned-sidestr-chains-dreamlab-and-dreamlab-txbt4.md",
+    "source_sha256": "464b40df6d85f62103ed1c1dedbcbf81b7a16c470cb32f55225421fbd9bf11be",
+    "report": "docs/estate-review/2026-11-01-forum-multichain-wallet.md",
+    "report_sha256": "d5795eaeb12eba47d689a558dcc4004f7d79ad116ebd3d5b3947f6e98b41cf45",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md",
+    "source_sha256": "334f7381062e96ed1d8cdde7ee4747cfa8c07694a862830f6dd2f25c67f46cbe",
+    "report": "docs/estate-review/2026-11-01-forum-web-push.md",
+    "report_sha256": "dda72ea1c5c3e5534174c7c5e82e7db078deb36f79e701bb540d9b60463c1f94",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2020-dream-poker-table-house-seat-and-dealt-member-hands.md",
+    "source_sha256": "65f23837b26b802812e3633a99169fa9b8481b7e16b5442154a9c1606fd29143",
+    "report": "docs/estate-review/2026-11-01-website-poker.md",
+    "report_sha256": "e40a5b9963acbb0132e46acdcfa08f86ec2ee4b6b595ee790aa0040db1f5cf80",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2030-nip29-group-engine-from-the-spec.md",
+    "source_sha256": "848b3e503cde366353ddbd527433f3c64a9849b7a82c018c52430092a0cba789",
+    "report": "docs/estate-review/2026-11-01-forum-spaces-and-replication.md",
+    "report_sha256": "fac70ce924e85897fa6761d3104f52006330bfcade41520feddcc732f341d4ce",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2031-federated-groups-have-one-home-and-verbatim-mirrors.md",
+    "source_sha256": "596642ab311c593fd5146771ae6cb74511fa437d18b502dc75e2acb169389879",
+    "report": "docs/estate-review/2026-11-01-forum-spaces-and-replication.md",
+    "report_sha256": "fac70ce924e85897fa6761d3104f52006330bfcade41520feddcc732f341d4ce",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2032-a-space-is-a-nip29-group-with-a-signed-spatial-descriptor.md",
+    "source_sha256": "50610eb93f07121490a863ce15a09ebb7930ed507ab120cda35ac37ee47dfcc6",
+    "report": "docs/estate-review/2026-11-01-forum-spaces-and-replication.md",
+    "report_sha256": "fac70ce924e85897fa6761d3104f52006330bfcade41520feddcc732f341d4ce",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/archive/adr/ADR-095-recovery-device-onboarding-sheet.md",
+    "source_sha256": "b35c5b605655673852b2b2322dca042cad8d4c4d81a913f0659ba45834f27aaf",
+    "report": "docs/estate-review/2026-11-01-forum-recovery-and-connect.md",
+    "report_sha256": "2c00f04f2ec1558913eab9c4683e7b91ea63a9907449ae8e48538fa80b93901b",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/archive/adr/ADR-098-connect-magic-link-onboarding.md",
+    "source_sha256": "f012dbd5cc3f5536fc640fbd12902261afd0c6273c0f4a5d318557f2132b605b",
+    "report": "docs/estate-review/2026-11-01-forum-recovery-and-connect.md",
+    "report_sha256": "2c00f04f2ec1558913eab9c4683e7b91ea63a9907449ae8e48538fa80b93901b",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/archive/adr/ADR-099-revocable-device-keys.md",
+    "source_sha256": "731db07943b03f6527417969301a82c978df27a5c61c4c40f9eabcfa5ba80580",
+    "report": "docs/estate-review/2026-11-01-forum-recovery-and-connect.md",
+    "report_sha256": "2c00f04f2ec1558913eab9c4683e7b91ea63a9907449ae8e48538fa80b93901b",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "dreamlab-ai-website",
+    "path": "docs/adr/ADR-2009-dream-poker-table-house-seat.md",
+    "source_sha256": "9e218d7f33f3c350eefd1b0037a33a5d2316bc59eb57fa7bac9f569e8d9c0cbb",
+    "report": "docs/estate-review/2026-11-01-website-poker.md",
+    "report_sha256": "e40a5b9963acbb0132e46acdcfa08f86ec2ee4b6b595ee790aa0040db1f5cf80",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "dreamlab-ai-website",
+    "path": "docs/adr/ADR-2010-seo-watch-nightly.md",
+    "source_sha256": "1269661e3de9acc4a75903d1345f9dc841bdb5328fbc413fcb949a9b15847031",
+    "report": "docs/estate-review/2026-11-01-website-seo-watch.md",
+    "report_sha256": "74aa9df4e57b82b07b326cee4ea72b7dc2397bdb51dbac7bcf10b04c570ed4a7",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "dreamlab-ai-website",
+    "path": "docs/adr/ADR-2011-website-information-identity.md",
+    "source_sha256": "b9b6f6771fbd238ab063502079123c3d56709f2a585feabcd49eaf794b9b2d02",
+    "report": "docs/estate-review/2026-11-01-website-information-and-inbox.md",
+    "report_sha256": "7427f1eec6c94de136ec1923c460371318232d9fdee189abeb168bda66bb1f56",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2157-presence-rooms-are-bound-to-nip29-spaces-and-admitted-by-membership.md",
+    "source_sha256": "b2b4b57466dc998324058ccc9102e84c76f05b2166d0697be564eff50d9d8cf8",
+    "report": "docs/estate-review/2026-11-01-room-admission-and-voice.md",
+    "report_sha256": "0449058d4a5cf7f1870acf69185092174995773408bfd32fb0a2dccb6d58458c",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2160-a-space-call-is-a-livekit-room-admitted-by-the-presence-handshake.md",
+    "source_sha256": "c2e2799c645420bb518bfbde0fff5ebb3bf6bd61d81c3c1cdc33b141834bc6d0",
+    "report": "docs/estate-review/2026-11-01-room-admission-and-voice.md",
+    "report_sha256": "0449058d4a5cf7f1870acf69185092174995773408bfd32fb0a2dccb6d58458c",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2158-xr-content-is-presented-in-spatial-volumes-emulated-until-the-runtime-provides-them.md",
+    "source_sha256": "24756eb317a4c45512a38657007dc6643d3894f3ff3dca3f356da1a5feaa5410",
+    "report": "docs/estate-review/2026-10-31-xr-volumes-and-code-links.md",
+    "report_sha256": "8aec3364bad5e71f204f77bbbb7f14dc3d06b0392ff70f2e30766c5774f93d1a",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2164-code-graph-entities-link-to-knowledge-and-ontology-nodes-resolved-at-runtime.md",
+    "source_sha256": "9de4974c531a5e6dc4b458dffcc33674473374f1696d1cc599189ca25d67dc48",
+    "report": "docs/estate-review/2026-10-31-xr-volumes-and-code-links.md",
+    "report_sha256": "8aec3364bad5e71f204f77bbbb7f14dc3d06b0392ff70f2e30766c5774f93d1a",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2143-codescape-section-separate-workspace-and-port.md",
+    "source_sha256": "c4924fc6404df8e83308b9aeb5f2951e44d76832dc075b42cf57aa6a866d04f7",
+    "report": "docs/estate-review/2026-10-31-codescape-presence-and-xr.md",
+    "report_sha256": "1e6caf276c12cb5e6c40a9ba202d194cdee48b16376bc6d2d1f3118e937cd0fb",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2159-the-xr-client-holds-one-backend-connection-per-content-source.md",
+    "source_sha256": "5654dbb59c873779be653cd04622c515b6bba66e2d73f31867fcca1c8dfae1a2",
+    "report": "docs/estate-review/2026-10-31-codescape-presence-and-xr.md",
+    "report_sha256": "1e6caf276c12cb5e6c40a9ba202d194cdee48b16376bc6d2d1f3118e937cd0fb",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2166-spatial-volumes-can-be-entered-the-others-become-portals.md",
+    "source_sha256": "7e45c9c83eaf253c5670c8866396592d1268b22ff5de96a4a63d4ba06168adbe",
+    "report": "docs/estate-review/2026-10-31-portals-and-federation.md",
+    "report_sha256": "6611d61beb121d87c47f0c1b9942e2717f02042941f43cd6fde8a733f24e20f1",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2161-a-node-publishes-data-spaces-that-peer-nodes-render-as-linked-volumes.md",
+    "source_sha256": "c77769bb7b236d8370f5e15b7045d27a8a22657813bd43112e44bf436b73c05d",
+    "report": "docs/estate-review/2026-10-31-portals-and-federation.md",
+    "report_sha256": "6611d61beb121d87c47f0c1b9942e2717f02042941f43cd6fde8a733f24e20f1",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2165-the-xr-client-targets-godot-4-8-beta.md",
+    "source_sha256": "6c26521ed335b36b2853d17db821f018cd7f89c53ee5d64f283900d3f997e7c4",
+    "report": "docs/estate-review/2026-11-01-xr-budget-and-engine-qualification.md",
+    "report_sha256": "61b65639141d159b0c82a2c56e859067837acaab8443f4721f1d8dcfe7860425",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2167-the-headsets-visual-extras-are-the-allocators-last-budgeted-layer.md",
+    "source_sha256": "036e377f8ad1aa4edcabedd032d61ecada244ec04b7ffdeffe3c32e3403d9ee5",
+    "report": "docs/estate-review/2026-11-01-xr-budget-and-engine-qualification.md",
+    "report_sha256": "61b65639141d159b0c82a2c56e859067837acaab8443f4721f1d8dcfe7860425",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2162-the-mesh-block-gets-one-reader-pinned-peers-a-node-key-and-the-dataspace-crossing.md",
+    "source_sha256": "4bf5a897bcfd1d76c5c9f949ec6263e728f7d8cbb61dbd911381fa68bb6320eb",
+    "report": "docs/estate-review/2026-11-01-mesh-signer-and-custody.md",
+    "report_sha256": "9a919e12169cac1ed7bae9d231c51c5e7c84db905993a2ce942ebfbf60b3cbe2",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2163-video-production-seam-window-identity-tooling.md",
+    "source_sha256": "a1dedffbe7065116a9194ca21b83092d03bb263e1eee409708ead37825e96f83",
+    "report": "docs/estate-review/2026-11-01-media-measurements-and-cancellation.md",
+    "report_sha256": "3112eedb8026380fec4d8b281b192f562baff218dce6616065f0dc6a7493583c",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2071-journal-the-nightly-dream-cycle.md",
+    "source_sha256": "e1e811d89adcc977eb1c5a54b1b70ae32df57d065a347598f2f39c0f701d3243",
+    "report": "docs/estate-review/2026-11-01-dream-journal-and-api-down.md",
+    "report_sha256": "f941bf42fee409eff3a10de0a6a9f9b766005974a19873fed293e0a13cf8e422",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionFlow",
+    "path": "docs/adr/ADR-2017-haptic-input-device-is-a-supporting-study.md",
+    "source_sha256": "e6f0161bb5c0a899836a6a8cec288ed9a074e7c8b820e6c046bae7f596c5300f",
+    "report": "docs/estate-review/2026-11-01-visiontouch-software-boundaries.md",
+    "report_sha256": "d1040488a191c79486dd6808b52a1bbbaf0e13a08219a5f666e8dfc75f2ce113",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "ontomark",
+    "path": "docs/adr/ADR-OM-010-external-source-ingest-lands-as-proposals.md",
+    "source_sha256": "860356a8f5d58c983de7a6b45abef49ba51599be6360458b10f2e5c555343616",
+    "report": "docs/estate-review/2026-10-31-external-source-ingest.md",
+    "report_sha256": "cf4adf3923277010c7a3384af42304b6087d6b42c21668d9eb470a86b8040f9b",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "Codescape standalone",
+    "path": "docs/adr/ADR-0001-extraction-from-visionclaw.md",
+    "source_sha256": "136cf0200772c3fe0ad59251a7d261e026421deaa1543eba3beb44e14f74fea0",
+    "report": "docs/estate-review/2026-10-31-codescape-boundaries.md",
+    "report_sha256": "ac35ff1028652be1e7d2c06a6492da0db09245fc243f8397b4590fb14205a7df",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "Codescape consumed",
+    "path": "docs/adr/ADR-0001-extraction-from-visionclaw.md",
+    "source_sha256": "26caf2ea72a3ffbb5d578b94d56a529470e84d780b8b19cf5b55ded2cbbed055",
+    "report": "docs/estate-review/2026-10-31-codescape-boundaries.md",
+    "report_sha256": "ac35ff1028652be1e7d2c06a6492da0db09245fc243f8397b4590fb14205a7df",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "ontomark-obsidian",
+    "path": "docs/adr/ADR-OBS-001-shared-graph.md",
+    "source_sha256": "981b241460e8f0e1ecd7229b9faf8029245c7b2779b79a64bd00311a9554d2d0",
+    "report": "docs/estate-review/2026-10-31-obsidian-decisions.md",
+    "report_sha256": "5423010790bdc242b7cf762fc78286f579fe7d2e0f76f3c9b76e89abc7e0aa72",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "ontomark-obsidian",
+    "path": "docs/adr/ADR-OBS-002-assisted-ingest-boundary-and-estate-notes.md",
+    "source_sha256": "585a39972bfb6948d20adbedd3486b438c93eab2c3ad5174ace89c1a4b46352e",
+    "report": "docs/estate-review/2026-10-31-obsidian-decisions.md",
+    "report_sha256": "5423010790bdc242b7cf762fc78286f579fe7d2e0f76f3c9b76e89abc7e0aa72",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "ontomark-obsidian",
+    "path": "docs/adr/ADR-OBS-003-ingest-action-and-offline-contract.md",
+    "source_sha256": "e1bcffe07b933a81fa5b2b3083d028214ae1439c4967c5a0cdef10e2a77b05bd",
+    "report": "docs/estate-review/2026-10-31-obsidian-decisions.md",
+    "report_sha256": "5423010790bdc242b7cf762fc78286f579fe7d2e0f76f3c9b76e89abc7e0aa72",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "ontomark-obsidian",
+    "path": "docs/adr/ADR-OBS-004-in-note-sparql-after-dot-triples.md",
+    "source_sha256": "09da18c15e4f54209445b828849ed5524d36dd83c98a88eea5ff66d8972b6e1a",
+    "report": "docs/estate-review/2026-10-31-obsidian-decisions.md",
+    "report_sha256": "5423010790bdc242b7cf762fc78286f579fe7d2e0f76f3c9b76e89abc7e0aa72",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "ontomark-obsidian",
+    "path": "docs/adr/ADR-OBS-005-excluded-folders.md",
+    "source_sha256": "e0e3e47b9119cf95297e0424e4b23f455e5f59f69548dd18c4fcbf817369d13b",
+    "report": "docs/estate-review/2026-10-31-obsidian-boundaries.md",
+    "report_sha256": "ce956d3755512c285143449dc7a496a37c9727a7735518ae521be1ae5ba69bfa",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "visionGraph",
+    "path": "docs/adr/ADR-VG-001-publication-policy-boundaries.md",
+    "source_sha256": "61821c4310b5b0a95401fce026980875dab3b286b10233be5e846baad770dce8",
+    "report": "docs/estate-review/2026-11-01-visiongraph-publication-and-identity.md",
+    "report_sha256": "c5c16971b1127496a4ae040cf71bda3b4cb0ce3e82cc3e76b8c699036261108c",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "visionGraph",
+    "path": "docs/adr/ADR-VG-002-generation-and-consumer-identity.md",
+    "source_sha256": "3a6b91ee83bae8758e48b6ee884dd8b819c5cf372f9632121029b638ed01baf0",
+    "report": "docs/estate-review/2026-11-01-visiongraph-publication-and-identity.md",
+    "report_sha256": "c5c16971b1127496a4ae040cf71bda3b4cb0ce3e82cc3e76b8c699036261108c",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "visionGraph",
+    "path": "docs/adr/ADR-VG-003-obsidian-only-authoring.md",
+    "source_sha256": "423786ad7bd1ddc7f68360d6abca537725398e4ff5caf0b65ba81b1974a4937f",
+    "report": "docs/estate-review/2026-11-01-visiongraph-vault-and-domain-contracts.md",
+    "report_sha256": "73d7d1757c42efe20b0af1c8e4e871d3f6f910b98c4ecdb2d79eefa0c715afcc",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "visionGraph",
+    "path": "docs/adr/ADR-VG-004-space-and-earth-domains.md",
+    "source_sha256": "16a680bf136539190119c7cf05de007da03d61d5fbf052cbdd8d244b8a2c5ee4",
+    "report": "docs/estate-review/2026-11-01-visiongraph-vault-and-domain-contracts.md",
+    "report_sha256": "73d7d1757c42efe20b0af1c8e4e871d3f6f910b98c4ecdb2d79eefa0c715afcc",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "visionGraph",
+    "path": "docs/adr/ADR-VG-008-supply-chains-and-logistics-domain.md",
+    "source_sha256": "67c5561b942d73838aa93d1a5bf8cb027882ebde24bc08694a82da5ce8c23ab5",
+    "report": "docs/estate-review/2026-11-01-visiongraph-vault-and-domain-contracts.md",
+    "report_sha256": "73d7d1757c42efe20b0af1c8e4e871d3f6f910b98c4ecdb2d79eefa0c715afcc",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "visionGraph",
+    "path": "docs/adr/ADR-VG-005-licensed-source-admission.md",
+    "source_sha256": "a4b702d3ca2d1b256693862494147f20bce50f142b1b0170e5d5a174a846c5ae",
+    "report": "docs/estate-review/2026-11-01-visiongraph-source-admission.md",
+    "report_sha256": "f8fac2d6f17c2c7a13b2b6610c9e93d312bc45ec9f405a45a14747ca553bc64b",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "visionGraph",
+    "path": "docs/adr/ADR-VG-006-ontology-to-obsidian.md",
+    "source_sha256": "8ce14006beddafde321dc98edc5a1cc6fdf9cbf2c9e148a0cd3fc40d33dccef3",
+    "report": "docs/estate-review/2026-11-01-visiongraph-source-admission.md",
+    "report_sha256": "f8fac2d6f17c2c7a13b2b6610c9e93d312bc45ec9f405a45a14747ca553bc64b",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "visionGraph",
+    "path": "docs/adr/ADR-VG-007-shared-ontology-workspace-and-profile.md",
+    "source_sha256": "33c93dbc04ae34210f4dac0a93fa95c4f433740be16977041994a454034ebb8a",
+    "report": "docs/estate-review/2026-11-01-visiongraph-explorer-and-profile.md",
+    "report_sha256": "1d3c37fff8e7f400871553b83d9bfec6f22603251c31e0907e74880411490349",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "knowledgeGraph",
+    "path": "docs/adr/ADR-2001-corpus-consolidation.md",
+    "source_sha256": "83e9fe0d288f30eec53a5a6ad041789cf7deac217a6a1dd9a28ea8dc8427b4a3",
+    "report": "docs/estate-review/2026-11-01-knowledgegraph-explorer-contracts.md",
+    "report_sha256": "aac236d2224be7f865d5d743927e65f8d3ea1c802f4e972f0d6b89f9fbca1459",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "knowledgeGraph",
+    "path": "docs/adr/ADR-2002-corpus-is-the-ontology.md",
+    "source_sha256": "f9f3b2b52fd83a83b5784c2ef1d9ed8db45274bd9f4ba5533248562e0f997f2c",
+    "report": "docs/estate-review/2026-11-01-knowledgegraph-publication-gates.md",
+    "report_sha256": "dd3535a9b07bcc83dc9432feb5e208b71aa074f59d5f40660350cb7951538a9a",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "knowledgeGraph",
+    "path": "docs/adr/ADR-2003-expected-classes-tripwire.md",
+    "source_sha256": "ba3fb92aa9525efe61b209e50e1927269493fa6e8985de31682d9e0bcd775a7c",
+    "report": "docs/estate-review/2026-11-01-knowledgegraph-publication-gates.md",
+    "report_sha256": "dd3535a9b07bcc83dc9432feb5e208b71aa074f59d5f40660350cb7951538a9a",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "knowledgeGraph",
+    "path": "docs/adr/ADR-2004-corpus-page-identity-immutable.md",
+    "source_sha256": "2d1463d928ce66d10dac7c86210108494b56142577fefd519d0d840826802ef8",
+    "report": "docs/estate-review/2026-11-01-knowledgegraph-publication-gates.md",
+    "report_sha256": "dd3535a9b07bcc83dc9432feb5e208b71aa074f59d5f40660350cb7951538a9a",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "dream-engine",
+    "path": "docs/adr/ADR-DE-001-standalone-rust-engine.md",
+    "source_sha256": "e726c7f46674d60c835059ce8a01f04c493cf5b20a3da7c490468bda1fb6d94f",
+    "report": "docs/estate-review/2026-11-01-dream-migration-and-provenance.md",
+    "report_sha256": "e5164bae4dc0db8b568b4bef6591c394282b920b1fb116ad97087737b47e81f7",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "dream-engine",
+    "path": "docs/adr/ADR-DE-002-licence-and-provenance.md",
+    "source_sha256": "f85d78b8ce20f2e00f6a0580ca2a54345c74aaa788564c644726b06aa1fe9745",
+    "report": "docs/estate-review/2026-11-01-dream-migration-and-provenance.md",
+    "report_sha256": "e5164bae4dc0db8b568b4bef6591c394282b920b1fb116ad97087737b47e81f7",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "dream-engine",
+    "path": "docs/adr/ADR-DE-003-protected-path-guard.md",
+    "source_sha256": "35c86511a7f07eb65cfe89ffc7152897070796a76b0304da3cac30ad8673a2e7",
+    "report": "docs/estate-review/2026-11-01-dream-candidate-and-evidence.md",
+    "report_sha256": "92170dae45a2dc14935dbdcb0b70281776059348ec5def712d4ba6b3ef3f65e8",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "dream-engine",
+    "path": "docs/adr/ADR-DE-004-pairwise-selection-and-fingerprints.md",
+    "source_sha256": "5a2dc1b4c0bb0b024428ad99bf5d3489f9c546125849a75ce2d13765ae783b19",
+    "report": "docs/estate-review/2026-11-01-dream-candidate-and-evidence.md",
+    "report_sha256": "92170dae45a2dc14935dbdcb0b70281776059348ec5def712d4ba6b3ef3f65e8",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "dream-engine",
+    "path": "docs/adr/ADR-DE-009-candidates-are-formatted-before-the-gate.md",
+    "source_sha256": "681da868dd5138a9bc201103d21033b5ba965ff2e3d98466e814ebfe8533d239",
+    "report": "docs/estate-review/2026-11-01-dream-candidate-and-evidence.md",
+    "report_sha256": "92170dae45a2dc14935dbdcb0b70281776059348ec5def712d4ba6b3ef3f65e8",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "dream-engine",
+    "path": "docs/adr/ADR-DE-005-seams.md",
+    "source_sha256": "9a3a98919067bd925f17167c25974d68b4e751d2ed3a0732cbe5356c8636b06b",
+    "report": "docs/estate-review/2026-11-01-dream-forge-and-seam-contracts.md",
+    "report_sha256": "e5d9666227d0c143c9f6a16159bbb09e7988c082d873e9db232f1ae30843d1ed",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "dream-engine",
+    "path": "docs/adr/ADR-DE-006-automerge-is-an-option.md",
+    "source_sha256": "987a6d249e785aa59ff05db92eea3621a316b48751cb05d2d4bcfb11874a0347",
+    "report": "docs/estate-review/2026-11-01-dream-forge-and-seam-contracts.md",
+    "report_sha256": "e5d9666227d0c143c9f6a16159bbb09e7988c082d873e9db232f1ae30843d1ed",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "dream-engine",
+    "path": "docs/adr/ADR-DE-007-a-night-is-identified-by-its-directory.md",
+    "source_sha256": "91315eb0d8b4a07089f237a5d9171c2c565cd83286ed8acaefcf5f91c2f6d726",
+    "report": "docs/estate-review/2026-11-01-dream-recovery-and-source-supply.md",
+    "report_sha256": "b34c4bfd1f57e1d617cd539fde610de6b14244bc6f776a4199d8a34ad83605c2",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "dream-engine",
+    "path": "docs/adr/ADR-DE-008-requested-sources-are-honoured-first.md",
+    "source_sha256": "078a8e0c8e16146c673ed56791056dab5e0d9a6c1c662ed2f1678c259f57eef9",
+    "report": "docs/estate-review/2026-11-01-dream-recovery-and-source-supply.md",
+    "report_sha256": "b34c4bfd1f57e1d617cd539fde610de6b14244bc6f776a4199d8a34ad83605c2",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "visiontouch-rs",
+    "path": "docs/adr/ADR-0001-observation-first-clean-room.md",
+    "source_sha256": "37dea058e2833b096e4d76732f182a8daffe1fd409f1fb568c1e7696eb32bb55",
+    "report": "docs/estate-review/2026-11-01-visiontouch-software-boundaries.md",
+    "report_sha256": "d1040488a191c79486dd6808b52a1bbbaf0e13a08219a5f666e8dfc75f2ce113",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "visiontouch-rs",
+    "path": "docs/adr/ADR-0002-layered-software-force-envelope.md",
+    "source_sha256": "189f19968d86b1670e0829930e3281f6cd1356e4f99730f627473b9d03dacb43",
+    "report": "docs/estate-review/2026-11-01-visiontouch-software-boundaries.md",
+    "report_sha256": "d1040488a191c79486dd6808b52a1bbbaf0e13a08219a5f666e8dfc75f2ce113",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "visiontouch-rs",
+    "path": "docs/adr/ADR-0003-staged-force-verification-ladder.md",
+    "source_sha256": "3bd6414e89d6aa1c638ba632776c323c3330b963a703f82dbf9bad0fc2ac3040",
+    "report": "docs/estate-review/2026-11-01-visiontouch-software-boundaries.md",
+    "report_sha256": "d1040488a191c79486dd6808b52a1bbbaf0e13a08219a5f666e8dfc75f2ce113",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "visiontouch-rs",
+    "path": "docs/adr/ADR-0004-reset-pose-registration.md",
+    "source_sha256": "01c348ed7203ccc13b5825529df8fa34be0e974e8ea1a22b4810ea140ab0a426",
+    "report": "docs/estate-review/2026-11-01-visiontouch-software-boundaries.md",
+    "report_sha256": "d1040488a191c79486dd6808b52a1bbbaf0e13a08219a5f666e8dfc75f2ce113",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "visiontouch-rs",
+    "path": "docs/adr/ADR-0005-build-with-quality-retrofit.md",
+    "source_sha256": "1b06fe7928a845f403d02fe8f9bc244c8c8e054ffff5ce733033935e96f4c660",
+    "report": "docs/estate-review/2026-11-01-visiontouch-software-boundaries.md",
+    "report_sha256": "d1040488a191c79486dd6808b52a1bbbaf0e13a08219a5f666e8dfc75f2ce113",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "visiontouch-rs",
+    "path": "docs/adr/ADR-0006-estate-membership-lab-evaluation.md",
+    "source_sha256": "918f7e92c83b0e79d270b3b50160bb55cd4e89fb2ec7c9ca6f0295ce9327f325",
+    "report": "docs/estate-review/2026-11-01-visiontouch-software-boundaries.md",
+    "report_sha256": "d1040488a191c79486dd6808b52a1bbbaf0e13a08219a5f666e8dfc75f2ce113",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "vowl-wasm",
+    "path": "docs/adr/ADR-001-shared-ontology-rendering-contract.md",
+    "source_sha256": "e1e605a3dcfbff723cb77357a9fa63078315dda664d518ac72e872985fc04911",
+    "report": "docs/estate-review/2026-11-01-vowl-layout-and-api-boundaries.md",
+    "report_sha256": "c6960f0a6603b07be7ae404ccb2e9673d98628bef34f3dc2e0996960145d0f18",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2053-dream-default-provider-is-zai.md",
+    "source_sha256": "792ee6d3e69b663870e3d4519eea42e336997868066956b682b84cf64c10ef0e",
+    "report": "docs/estate-review/2026-11-01-dream-adapter-controls-and-egress.md",
+    "report_sha256": "3841446b304d871b13d613b228cb1bbb6b29d101babbfb0ed0b27589d9c5e453",
+    "coverage": "whole-document",
+    "basis": "Report explicitly assesses the complete named ADR section by section; source document matches earlier census bytes. Deployment and implementation findings retain their report limits."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2081-annexe-depth-law-and-honest-evaluator-receipts.md",
+    "source_sha256": "64b8a62c6259ceb48260da07943cde69c2c02fe693db165a375da44e4dced15f",
+    "report": "docs/estate-review/2026-11-01-dream-annexe-and-receipts.md",
+    "report_sha256": "5bdb3dad8c59add3457b02f45836aed5acfaf01b83ae0d31fd3ea999974d6245",
+    "coverage": "whole-document",
+    "basis": "Report explicitly assesses the complete named ADR section by section; source document matches earlier census bytes. Deployment and implementation findings retain their report limits."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2114-dream-candidate-diffs-against-engine-read-source.md",
+    "source_sha256": "acf9e364153027410acb4619e1252af74cdcf95119b1e84b66489e1ae521d272",
+    "report": "docs/estate-review/2026-11-01-dream-execution-and-triage.md",
+    "report_sha256": "9c97aa19db70fa7c2ae186c2b4d35bb9746d359ce762d43dad2101f96fd37941",
+    "coverage": "whole-document",
+    "basis": "Report explicitly assesses the complete named ADR section by section; source document matches earlier census bytes. Deployment and implementation findings retain their report limits."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2115-dream-decisions-surface-on-the-forum-governance-panel.md",
+    "source_sha256": "7d4dc0345f5e3b89951426ae11d17bfe8948be848206d61659a97c3b1ee77294",
+    "report": "docs/estate-review/2026-11-01-dream-governance-and-delivery.md",
+    "report_sha256": "fe0e9fa55201a383ecb314270075055831d911292bbd86cb36d6691078ba8841",
+    "coverage": "whole-document",
+    "basis": "Report explicitly assesses the complete named ADR section by section; source document matches earlier census bytes. Deployment and implementation findings retain their report limits."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/13-group-admission-and-replacement.md",
+    "source_sha256": "bafa6885aa14091b3a1b1bfd3f74055ea757bdadd81a46f90a1084d8f3152c87",
+    "report": "docs/estate-review/2026-11-01-forum-spaces-and-replication.md",
+    "report_sha256": "fac70ce924e85897fa6761d3104f52006330bfcade41520feddcc732f341d4ce",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-13.1",
+      "NF-13.2",
+      "NF-13.3"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/14-proposed-group-replication-and-spaces.md",
+    "source_sha256": "f4d38a065db29be025705b661414c06de5de5dc9b86b4c7a08c137576722fa8f",
+    "report": "docs/estate-review/2026-11-01-forum-spaces-and-replication.md",
+    "report_sha256": "fac70ce924e85897fa6761d3104f52006330bfcade41520feddcc732f341d4ce",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-14.1",
+      "NF-14.2",
+      "NF-14.3"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/15-multichain-wallet-receipts.md",
+    "source_sha256": "4f4c89e8f853b1a1d6a4c87dfc833d0cb7d7b05427f18c26056018be76380bc3",
+    "report": "docs/estate-review/2026-11-01-forum-multichain-wallet.md",
+    "report_sha256": "d5795eaeb12eba47d689a558dcc4004f7d79ad116ebd3d5b3947f6e98b41cf45",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-15.1",
+      "NF-15.2",
+      "NF-15.3",
+      "NF-15.4",
+      "NF-15.5",
+      "NF-15.6"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/16-wallet-foundations-and-parent-balances.md",
+    "source_sha256": "a43f739e28c3fb3cfe301e6b7d810c3beab4942b2f498a796a97e3bfff7290a8",
+    "report": "docs/estate-review/2026-11-01-forum-wallet-foundations.md",
+    "report_sha256": "a7d20988f53d2bab8bca8ff6a24f40c7e2159f31e075271aa3ba6bff6e7e7a93",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-16.1",
+      "NF-16.2",
+      "NF-16.3",
+      "NF-16.4",
+      "NF-16.5",
+      "NF-16.6"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/17-relay-read-cache-and-activity-boundaries.md",
+    "source_sha256": "0554ad5f865d8c78b706f3234bffe28d50469d53a35bda781486addc733454bc",
+    "report": "docs/estate-review/2026-11-01-forum-read-cache-and-activity.md",
+    "report_sha256": "50db16bb5d84779c33bc6765123356615f380e58a8904838383d9ae8dd8e61e0",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-17.1",
+      "NF-17.2",
+      "NF-17.3",
+      "NF-17.4",
+      "NF-17.5",
+      "NF-17.6"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/18-web-push-delivery-and-account-boundaries.md",
+    "source_sha256": "4f79c5138b71111706e556b145abb40697d0166feb76f59c6384c8be98fd5e4e",
+    "report": "docs/estate-review/2026-11-01-forum-web-push.md",
+    "report_sha256": "dda72ea1c5c3e5534174c7c5e82e7db078deb36f79e701bb540d9b60463c1f94",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-18.1",
+      "NF-18.2",
+      "NF-18.3",
+      "NF-18.4",
+      "NF-18.5",
+      "NF-18.6"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/19-bbs-signer-adoption-and-custody.md",
+    "source_sha256": "94146e46b7095c9810ef63da2a601933cd84e84161e2f40bc5250d31b47248b7",
+    "report": "docs/estate-review/2026-11-01-forum-bbs-signer.md",
+    "report_sha256": "9780f594dd16d293e97babdbaef6d9cf923506998d75713d9038fcd4796eb8fa",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-19.1",
+      "NF-19.2",
+      "NF-19.3",
+      "NF-19.4",
+      "NF-19.5",
+      "NF-19.6"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/20-device-keys-contracts-and-revocation.md",
+    "source_sha256": "38642cb6e6d85d909a01a9468b24b618b3689def44d54b34b71ae6835a66e1fa",
+    "report": "docs/estate-review/2026-11-01-forum-device-keys.md",
+    "report_sha256": "7734f7e829e3b15ec6f533c8e7e2b52fc9e2d07d5468609e8799514386f8b41c",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-20.1",
+      "NF-20.2",
+      "NF-20.3",
+      "NF-20.4",
+      "NF-20.5",
+      "NF-20.6"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/21-subkey-parity-and-identity-lifecycle.md",
+    "source_sha256": "ccf5af917590af98f5ab68e16a1eee6cdafbeb0cc8488cdb2626f6bfb3d675db",
+    "report": "docs/estate-review/2026-11-01-forum-subkey-derivation.md",
+    "report_sha256": "fff806b9824b85437d0208e90f88e04ad184987ecb15482d890d0707cacaeabf",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-21.1",
+      "NF-21.2",
+      "NF-21.3",
+      "NF-21.4"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/22-recovery-sheet-and-phone-import.md",
+    "source_sha256": "0b49557d15e30038a92db43ebf40fc40c32a12180e75bfe79dab4772f3796a5c",
+    "report": "docs/estate-review/2026-11-01-forum-recovery-and-connect.md",
+    "report_sha256": "2c00f04f2ec1558913eab9c4683e7b91ea63a9907449ae8e48538fa80b93901b",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-22.1",
+      "NF-22.2",
+      "NF-22.3",
+      "NF-22.4",
+      "NF-22.5"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/23-passkey-client-worker-contracts.md",
+    "source_sha256": "4eeaa4b13c24c051cfe852d771d5ca58dc336c514752cee6f362dec9eb60a006",
+    "report": "docs/estate-review/2026-11-01-forum-passkey-contracts.md",
+    "report_sha256": "28a7e9d8001e0d85ac7483a226502fcf398be635cf86f7acfb8c613121b8beeb",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-23.1",
+      "NF-23.2",
+      "NF-23.3",
+      "NF-23.4",
+      "NF-23.5",
+      "NF-23.6"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/24-trust-transition-and-sweep-contracts.md",
+    "source_sha256": "9f3ce03f74bbd8053433424398b29e510ce0e598eb0532148e9421b817334491",
+    "report": "docs/estate-review/2026-11-01-forum-trust-transitions.md",
+    "report_sha256": "332261bbebb361ed12b440b8fc059e84b4a5a3a0307b0344f180f57c853acc9e",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-24.1",
+      "NF-24.2",
+      "NF-24.3",
+      "NF-24.4"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/25-membership-lifecycle-and-admin-consistency.md",
+    "source_sha256": "37f873dacc45c42441cf44f02f226101f95f44de61127e573b1e9393d9254f7c",
+    "report": "docs/estate-review/2026-11-01-forum-membership-lifecycle.md",
+    "report_sha256": "1494010fd7ea490bed41bb56a02df3c07c6ac8123b4392bbabc46dd25f201d21",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-25.1",
+      "NF-25.2",
+      "NF-25.3",
+      "NF-25.4",
+      "NF-25.5",
+      "NF-25.6"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/08-config-zones-stores-and-admin-authority.md",
+    "source_sha256": "bf52cc2e02d614b9a3aa4074853b82c00ed6ee1ca2ceaf5790d4a9588d659255",
+    "report": "docs/estate-review/2026-11-01-forum-membership-lifecycle.md",
+    "report_sha256": "1494010fd7ea490bed41bb56a02df3c07c6ac8123b4392bbabc46dd25f201d21",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-08.7"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md",
+    "source_sha256": "6d6a31cbf300aea242a817e4a091225b7c1a99a9473a9c89ccc632a530546e3f",
+    "report": "docs/estate-review/2026-11-01-forum-trust-transitions.md",
+    "report_sha256": "332261bbebb361ed12b440b8fc059e84b4a5a3a0307b0344f180f57c853acc9e",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-03.8",
+      "NF-03.9"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/11-relay-durable-object-internals.md",
+    "source_sha256": "8633ad1b633b3e5535f9ea3e4995e48e95188303496c5ae49b61baa053b70a20",
+    "report": "docs/estate-review/2026-11-01-forum-trust-transitions.md",
+    "report_sha256": "332261bbebb361ed12b440b8fc059e84b4a5a3a0307b0344f180f57c853acc9e",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-11.11",
+      "NF-11.12"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/02-auth-worker-passkey-nip98-and-membership.md",
+    "source_sha256": "bcd55f212891200c77713233d36d243981a6ae17c82bab838ce04f6a097534b5",
+    "report": "docs/estate-review/2026-11-01-forum-passkey-contracts.md",
+    "report_sha256": "28a7e9d8001e0d85ac7483a226502fcf398be635cf86f7acfb8c613121b8beeb",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-02.3",
+      "NF-02.4"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/05-leptos-clients-onboarding-messaging-governance.md",
+    "source_sha256": "c912d82ad42ce5acbd8e5966aadd46087b3aa0684459bcb9e54f0a7f251f10d6",
+    "report": "docs/estate-review/2026-11-01-forum-passkey-contracts.md",
+    "report_sha256": "28a7e9d8001e0d85ac7483a226502fcf398be635cf86f7acfb8c613121b8beeb",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-05.3"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/05-leptos-clients-onboarding-messaging-governance.md",
+    "source_sha256": "c912d82ad42ce5acbd8e5966aadd46087b3aa0684459bcb9e54f0a7f251f10d6",
+    "report": "docs/estate-review/2026-11-01-forum-recovery-and-connect.md",
+    "report_sha256": "2c00f04f2ec1558913eab9c4683e7b91ea63a9907449ae8e48538fa80b93901b",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-05.8"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/02-auth-worker-passkey-nip98-and-membership.md",
+    "source_sha256": "bcd55f212891200c77713233d36d243981a6ae17c82bab838ce04f6a097534b5",
+    "report": "docs/estate-review/2026-11-01-forum-device-keys.md",
+    "report_sha256": "7734f7e829e3b15ec6f533c8e7e2b52fc9e2d07d5468609e8799514386f8b41c",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-02.7"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/08-config-zones-stores-and-admin-authority.md",
+    "source_sha256": "bf52cc2e02d614b9a3aa4074853b82c00ed6ee1ca2ceaf5790d4a9588d659255",
+    "report": "docs/estate-review/2026-11-01-forum-device-keys.md",
+    "report_sha256": "7734f7e829e3b15ec6f533c8e7e2b52fc9e2d07d5468609e8799514386f8b41c",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-08.8"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/05-leptos-clients-onboarding-messaging-governance.md",
+    "source_sha256": "c912d82ad42ce5acbd8e5966aadd46087b3aa0684459bcb9e54f0a7f251f10d6",
+    "report": "docs/estate-review/2026-11-01-forum-bbs-signer.md",
+    "report_sha256": "9780f594dd16d293e97babdbaef6d9cf923506998d75713d9038fcd4796eb8fa",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-05.11"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/05-leptos-clients-onboarding-messaging-governance.md",
+    "source_sha256": "c912d82ad42ce5acbd8e5966aadd46087b3aa0684459bcb9e54f0a7f251f10d6",
+    "report": "docs/estate-review/2026-11-01-forum-web-push.md",
+    "report_sha256": "dda72ea1c5c3e5534174c7c5e82e7db078deb36f79e701bb540d9b60463c1f94",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-05.17"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/08-config-zones-stores-and-admin-authority.md",
+    "source_sha256": "bf52cc2e02d614b9a3aa4074853b82c00ed6ee1ca2ceaf5790d4a9588d659255",
+    "report": "docs/estate-review/2026-11-01-forum-web-push.md",
+    "report_sha256": "dda72ea1c5c3e5534174c7c5e82e7db078deb36f79e701bb540d9b60463c1f94",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-08.9"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/dreamlab-ai-website/08-nightly-seo-watch.md",
+    "source_sha256": "ca9aed6c27e7c87a72db356efdcb0d0feb010f48e6226fd090c28c74f432046a",
+    "report": "docs/estate-review/2026-11-01-website-seo-watch.md",
+    "report_sha256": "74aa9df4e57b82b07b326cee4ea72b7dc2397bdb51dbac7bcf10b04c570ed4a7",
+    "coverage": "selected-panels",
+    "panels": [
+      "DW-08.1",
+      "DW-08.2",
+      "DW-08.3",
+      "DW-08.4",
+      "DW-08.5",
+      "DW-08.6"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/dreamlab-ai-website/09-information-identity-and-inbox.md",
+    "source_sha256": "571b96a6715f496b5d47023d3cd77080267beeea5910bbc7a87d8f72b6968967",
+    "report": "docs/estate-review/2026-11-01-website-information-and-inbox.md",
+    "report_sha256": "7427f1eec6c94de136ec1923c460371318232d9fdee189abeb168bda66bb1f56",
+    "coverage": "selected-panels",
+    "panels": [
+      "DW-09.1",
+      "DW-09.2",
+      "DW-09.3",
+      "DW-09.4",
+      "DW-09.5"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/dreamlab-ai-website/10-poker-tables-credit-and-recovery.md",
+    "source_sha256": "489391d59a9f8266e2e953689bab740f2952191e0057c9172ad0fbd3b89bddd4",
+    "report": "docs/estate-review/2026-11-01-website-poker.md",
+    "report_sha256": "e40a5b9963acbb0132e46acdcfa08f86ec2ee4b6b595ee790aa0040db1f5cf80",
+    "coverage": "selected-panels",
+    "panels": [
+      "DW-10.1",
+      "DW-10.2",
+      "DW-10.3",
+      "DW-10.4",
+      "DW-10.5",
+      "DW-10.6"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/dream-engine/01-crates-licence-boundary-and-estate-status.md",
+    "source_sha256": "a4d95851f3d458747d9db57ef96439c5e92c00c85c94f7dd9d9d9970d9cef45e",
+    "report": "docs/estate-review/2026-11-01-dream-candidate-and-evidence.md",
+    "report_sha256": "92170dae45a2dc14935dbdcb0b70281776059348ec5def712d4ba6b3ef3f65e8",
+    "coverage": "selected-panels",
+    "panels": [
+      "DE-01.1",
+      "DE-01.2"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/dream-engine/02-candidate-and-evidence-boundaries.md",
+    "source_sha256": "757b9a4ec6cb0b518690b01e086ec995a45759a8b202823e27795cd62d930e4c",
+    "report": "docs/estate-review/2026-11-01-dream-candidate-and-evidence.md",
+    "report_sha256": "92170dae45a2dc14935dbdcb0b70281776059348ec5def712d4ba6b3ef3f65e8",
+    "coverage": "selected-panels",
+    "panels": [
+      "DE-02.1",
+      "DE-02.2",
+      "DE-02.3",
+      "DE-02.4"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/dream-engine/03-recovery-and-source-supply.md",
+    "source_sha256": "026158604370c206c4827997ae26066c9a9f52ae13f36748a6801951af43d009",
+    "report": "docs/estate-review/2026-11-01-dream-recovery-and-source-supply.md",
+    "report_sha256": "b34c4bfd1f57e1d617cd539fde610de6b14244bc6f776a4199d8a34ad83605c2",
+    "coverage": "selected-panels",
+    "panels": [
+      "DE-03.1",
+      "DE-03.2",
+      "DE-03.3"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/dream-engine/04-forge-and-seam-contracts.md",
+    "source_sha256": "52cb91917d475f4e488623c4fc70d0aa5dad4ab4d4a6e1a55586eeee4d988add",
+    "report": "docs/estate-review/2026-11-01-dream-forge-and-seam-contracts.md",
+    "report_sha256": "e5d9666227d0c143c9f6a16159bbb09e7988c082d873e9db232f1ae30843d1ed",
+    "coverage": "selected-panels",
+    "panels": [
+      "DE-04.1",
+      "DE-04.2",
+      "DE-04.3"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/dream-engine/05-migration-and-package-boundaries.md",
+    "source_sha256": "966962ad238030f97ef08eb62bb57a5a84a90aa6cadf059af620af92bd6d07ab",
+    "report": "docs/estate-review/2026-11-01-dream-migration-and-provenance.md",
+    "report_sha256": "e5164bae4dc0db8b568b4bef6591c394282b920b1fb116ad97087737b47e81f7",
+    "coverage": "selected-panels",
+    "panels": [
+      "DE-05.1",
+      "DE-05.2"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visiongraph/01-vault-structure-and-contract.md",
+    "source_sha256": "a420c47287c4bce7234fbc00d3e4fd8ca34955d5bb10fc62b5829e6b3b4edd34",
+    "report": "docs/estate-review/2026-11-01-visiongraph-vault-and-domain-contracts.md",
+    "report_sha256": "73d7d1757c42efe20b0af1c8e4e871d3f6f910b98c4ecdb2d79eefa0c715afcc",
+    "coverage": "selected-panels",
+    "panels": [
+      "VG-01.1",
+      "VG-01.3",
+      "VG-01.4",
+      "VG-01.5",
+      "VG-01.6",
+      "VG-01.7"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visiongraph/03-publish-pipeline-and-explorer-build.md",
+    "source_sha256": "f0167c26fd32be3fa70ec63047492c95be25412d3ed0721e8e0c1c9e9ef83161",
+    "report": "docs/estate-review/2026-11-01-visiongraph-publication-and-identity.md",
+    "report_sha256": "c5c16971b1127496a4ae040cf71bda3b4cb0ce3e82cc3e76b8c699036261108c",
+    "coverage": "selected-panels",
+    "panels": [
+      "VG-03.1",
+      "VG-03.3",
+      "VG-03.5",
+      "VG-03.6"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visiongraph/04-downstream-contracts.md",
+    "source_sha256": "dc96e21a737cf9ebbe8c2cb8f07a0bbfcf89c59bb8a9328debbd2f6bbfdbb71d",
+    "report": "docs/estate-review/2026-11-01-visiongraph-publication-and-identity.md",
+    "report_sha256": "c5c16971b1127496a4ae040cf71bda3b4cb0ce3e82cc3e76b8c699036261108c",
+    "coverage": "selected-panels",
+    "panels": [
+      "VG-04.1",
+      "VG-04.3"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visiongraph/05-invariants-register.md",
+    "source_sha256": "5cfe313a5dcd920dcb7b7808c1ffac31b940d3b4b403feb4275d18393d9fae23",
+    "report": "docs/estate-review/2026-11-01-visiongraph-publication-and-identity.md",
+    "report_sha256": "c5c16971b1127496a4ae040cf71bda3b4cb0ce3e82cc3e76b8c699036261108c",
+    "coverage": "selected-panels",
+    "panels": [
+      "VG-05.1",
+      "VG-05.2",
+      "VG-05.3",
+      "VG-05.4"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visiongraph/06-shipping-explorer-duplication.md",
+    "source_sha256": "9a7cbd3db9efda6afc533b8fec6e39819079fce7b45764af5067b2e5b90330cd",
+    "report": "docs/estate-review/2026-11-01-visiongraph-explorer-and-profile.md",
+    "report_sha256": "1d3c37fff8e7f400871553b83d9bfec6f22603251c31e0907e74880411490349",
+    "coverage": "selected-panels",
+    "panels": [
+      "VG-06.1",
+      "VG-06.2",
+      "VG-06.3",
+      "VG-06.4",
+      "VG-06.5",
+      "VG-06.6"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visiongraph/07-reviewed-source-admission-and-header-import.md",
+    "source_sha256": "05ee49547a7117e383b2d8fc2d2eecc5c89712b1fe7fe9697bfaf66d34c6c5aa",
+    "report": "docs/estate-review/2026-11-01-visiongraph-source-admission.md",
+    "report_sha256": "f8fac2d6f17c2c7a13b2b6610c9e93d312bc45ec9f405a45a14747ca553bc64b",
+    "coverage": "selected-panels",
+    "panels": [
+      "VG-07.1",
+      "VG-07.2",
+      "VG-07.3",
+      "VG-07.4",
+      "VG-07.5"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/knowledgegraph/01-repo-composition-and-licensing.md",
+    "source_sha256": "e731964f36a6b2c02e0d9e4c34b88c84f1c91eb21bc5c0f6658b1e003748130b",
+    "report": "docs/estate-review/2026-11-01-knowledgegraph-consumers-and-archive.md",
+    "report_sha256": "12e3dc9d339800c169068447bd40c9affe8dfd1e7cc7ca48cb0758a13e019ea8",
+    "coverage": "selected-panels",
+    "panels": [
+      "KG-01.1",
+      "KG-01.2"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/knowledgegraph/04-explorer-and-site-build.md",
+    "source_sha256": "b010a1e1b0057146bd4a10f40890296ba3ebaaba98338ffce45f8a070fbbf4ae",
+    "report": "docs/estate-review/2026-11-01-knowledgegraph-explorer-contracts.md",
+    "report_sha256": "aac236d2224be7f865d5d743927e65f8d3ea1c802f4e972f0d6b89f9fbca1459",
+    "coverage": "selected-panels",
+    "panels": [
+      "KG-04.1",
+      "KG-04.2",
+      "KG-04.3",
+      "KG-04.4",
+      "KG-04.6"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/knowledgegraph/05-ci-cd-and-publish.md",
+    "source_sha256": "ffcc863f1b2bb6861095ac21ff6ab810a1ed3a1974fb702869e639f86606f8d8",
+    "report": "docs/estate-review/2026-11-01-knowledgegraph-publication-gates.md",
+    "report_sha256": "dd3535a9b07bcc83dc9432feb5e208b71aa074f59d5f40660350cb7951538a9a",
+    "coverage": "selected-panels",
+    "panels": [
+      "KG-05.3",
+      "KG-05.5"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/knowledgegraph/06-consumers-and-integration.md",
+    "source_sha256": "ac83645ee08d1a1839b6a423bf4b0c575c7d9c8658edde9f37d83e3925d1d0db",
+    "report": "docs/estate-review/2026-11-01-knowledgegraph-consumers-and-archive.md",
+    "report_sha256": "12e3dc9d339800c169068447bd40c9affe8dfd1e7cc7ca48cb0758a13e019ea8",
+    "coverage": "selected-panels",
+    "panels": [
+      "KG-06.1",
+      "KG-06.2",
+      "KG-06.4"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/knowledgegraph/07-invariants-register.md",
+    "source_sha256": "74fb8f0212b925a8db7382efe8ce3ef38b516c872753720088fb9371ef9391fe",
+    "report": "docs/estate-review/2026-11-01-knowledgegraph-publication-gates.md",
+    "report_sha256": "dd3535a9b07bcc83dc9432feb5e208b71aa074f59d5f40660350cb7951538a9a",
+    "coverage": "selected-panels",
+    "panels": [
+      "KG-07.1",
+      "KG-07.2",
+      "KG-07.3"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/knowledgegraph/07-invariants-register.md",
+    "source_sha256": "74fb8f0212b925a8db7382efe8ce3ef38b516c872753720088fb9371ef9391fe",
+    "report": "docs/estate-review/2026-11-01-knowledgegraph-inventory-and-live-receipt.md",
+    "report_sha256": "e5f6127d27c9867d6d2b12a368b60334b031b3865a67f7a4cd0bbd6d4018e9d9",
+    "coverage": "selected-panels",
+    "panels": [
+      "KG-07.4"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visiontouch-rs/01-clean-room-method-and-provenance.md",
+    "source_sha256": "f096efbee6339e2ad7fa567dc73cc0b3817d0fb6ca844737355ae30cbb31682a",
+    "report": "docs/estate-review/2026-11-01-visiontouch-software-boundaries.md",
+    "report_sha256": "d1040488a191c79486dd6808b52a1bbbaf0e13a08219a5f666e8dfc75f2ce113",
+    "coverage": "selected-panels",
+    "panels": [
+      "VT-01.1",
+      "VT-01.2",
+      "VT-01.3",
+      "VT-01.4"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visiontouch-rs/02-transport-software-epp-and-force-session.md",
+    "source_sha256": "3d70dbc1368714cdee79a4f2615ae097d9a8d1d0596d063d20ff559119084a6d",
+    "report": "docs/estate-review/2026-11-01-visiontouch-software-boundaries.md",
+    "report_sha256": "d1040488a191c79486dd6808b52a1bbbaf0e13a08219a5f666e8dfc75f2ce113",
+    "coverage": "selected-panels",
+    "panels": [
+      "VT-02.1",
+      "VT-02.2",
+      "VT-02.3",
+      "VT-02.4",
+      "VT-02.5"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visiontouch-rs/03-device-sdk-and-force-guard.md",
+    "source_sha256": "163c2a34cbb6f966bddb0eb5009f9b1b809f57290c20f3a80c83540f922f358f",
+    "report": "docs/estate-review/2026-11-01-visiontouch-software-boundaries.md",
+    "report_sha256": "d1040488a191c79486dd6808b52a1bbbaf0e13a08219a5f666e8dfc75f2ce113",
+    "coverage": "selected-panels",
+    "panels": [
+      "VT-03.1",
+      "VT-03.2",
+      "VT-03.3",
+      "VT-03.4",
+      "VT-03.5"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visiontouch-rs/04-mass-lab-servo-rate-coupling.md",
+    "source_sha256": "c6c1cd78d8198d1556fa6223187d7933f16259d2e0bf56fbcf52e4bcc98b6e97",
+    "report": "docs/estate-review/2026-11-01-visiontouch-software-boundaries.md",
+    "report_sha256": "d1040488a191c79486dd6808b52a1bbbaf0e13a08219a5f666e8dfc75f2ce113",
+    "coverage": "selected-panels",
+    "panels": [
+      "VT-04.1",
+      "VT-04.2",
+      "VT-04.3",
+      "VT-04.4",
+      "VT-04.5"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visiontouch-rs/05-effects-and-force-models.md",
+    "source_sha256": "96524af7b5db44f88e20ed6aa2f515b63fb1eca99bcc5cd8fcc019512ccba65c",
+    "report": "docs/estate-review/2026-11-01-visiontouch-software-boundaries.md",
+    "report_sha256": "d1040488a191c79486dd6808b52a1bbbaf0e13a08219a5f666e8dfc75f2ce113",
+    "coverage": "selected-panels",
+    "panels": [
+      "VT-05.1",
+      "VT-05.2",
+      "VT-05.3",
+      "VT-05.4",
+      "VT-05.5"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visiontouch-rs/06-tools-and-evidence-path.md",
+    "source_sha256": "deece59623acce2dc43a946095c03611e1ef5c9fe1a577ce3ac2ac6b79cefd97",
+    "report": "docs/estate-review/2026-11-01-visiontouch-software-boundaries.md",
+    "report_sha256": "d1040488a191c79486dd6808b52a1bbbaf0e13a08219a5f666e8dfc75f2ce113",
+    "coverage": "selected-panels",
+    "panels": [
+      "VT-06.1",
+      "VT-06.2",
+      "VT-06.3",
+      "VT-06.4"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visiontouch-rs/07-estate-position-and-future-visionclaw-grab-path.md",
+    "source_sha256": "707a3f51584967cb75d19bd0c91072d99ca15d132d5c5ab0eb9975ae7c8eed74",
+    "report": "docs/estate-review/2026-11-01-visiontouch-software-boundaries.md",
+    "report_sha256": "d1040488a191c79486dd6808b52a1bbbaf0e13a08219a5f666e8dfc75f2ce113",
+    "coverage": "selected-panels",
+    "panels": [
+      "VT-07.1",
+      "VT-07.2",
+      "VT-07.3",
+      "VT-07.4"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visiontouch-rs/08-calibration-studio-and-verification-ladder.md",
+    "source_sha256": "a9a5cfb63c3144cb84e575434f4c6be3e39faa54eaa48f076cbbd578c4fcc930",
+    "report": "docs/estate-review/2026-11-01-visiontouch-software-boundaries.md",
+    "report_sha256": "d1040488a191c79486dd6808b52a1bbbaf0e13a08219a5f666e8dfc75f2ce113",
+    "coverage": "selected-panels",
+    "panels": [
+      "VT-08.1",
+      "VT-08.2",
+      "VT-08.3",
+      "VT-08.4",
+      "VT-08.5",
+      "VT-08.6",
+      "VT-08.7"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/vowl-wasm/01-crate-composition-and-wasm-boundary.md",
+    "source_sha256": "65a9f6b95c72243814c7056bfca55c0eb859e77beebc49e5879e700808dc2bea",
+    "report": "docs/estate-review/2026-11-01-vowl-ingest-and-release.md",
+    "report_sha256": "dd79d65483546eb434417465592811b1173bd36a30dd089192cc7665399b7c70",
+    "coverage": "selected-panels",
+    "panels": [
+      "VW-01.1",
+      "VW-01.4",
+      "VW-01.5",
+      "VW-01.6",
+      "VW-01.7",
+      "VW-01.8"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/vowl-wasm/02-owl-parse-to-graph-model.md",
+    "source_sha256": "3c2ab0943387ca516411a220ad36b8f8044d8c524c572a4d33d1557da6ac1e4f",
+    "report": "docs/estate-review/2026-11-01-vowl-ingest-and-release.md",
+    "report_sha256": "dd79d65483546eb434417465592811b1173bd36a30dd089192cc7665399b7c70",
+    "coverage": "selected-panels",
+    "panels": [
+      "VW-02.1",
+      "VW-02.2",
+      "VW-02.3",
+      "VW-02.4",
+      "VW-02.8"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/vowl-wasm/05-build-test-bench-and-publish.md",
+    "source_sha256": "7eda12a416e521cc79f0e8532b9b1361ef93467b9af5c5e4a54b2cfde22dc883",
+    "report": "docs/estate-review/2026-11-01-vowl-ingest-and-release.md",
+    "report_sha256": "dd79d65483546eb434417465592811b1173bd36a30dd089192cc7665399b7c70",
+    "coverage": "selected-panels",
+    "panels": [
+      "VW-05.1",
+      "VW-05.2",
+      "VW-05.3",
+      "VW-05.4",
+      "VW-05.5",
+      "VW-05.6"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/vowl-wasm/03-force-layout-lifecycle.md",
+    "source_sha256": "8742071c7393bb0e3e67511053228a321a74971dc36c7fa80f10f1399d3b7ecb",
+    "report": "docs/estate-review/2026-11-01-vowl-layout-and-api-boundaries.md",
+    "report_sha256": "c6960f0a6603b07be7ae404ccb2e9673d98628bef34f3dc2e0996960145d0f18",
+    "coverage": "selected-panels",
+    "panels": [
+      "VW-03.1",
+      "VW-03.2",
+      "VW-03.3",
+      "VW-03.4",
+      "VW-03.5",
+      "VW-03.6",
+      "VW-03.7",
+      "VW-03.9",
+      "VW-03.10"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/vowl-wasm/04-js-api-examples-and-consumers.md",
+    "source_sha256": "a005dcac82d5c6f52b301edd5be199e84389763e24a64c01dd1289768fd0be64",
+    "report": "docs/estate-review/2026-11-01-vowl-layout-and-api-boundaries.md",
+    "report_sha256": "c6960f0a6603b07be7ae404ccb2e9673d98628bef34f3dc2e0996960145d0f18",
+    "coverage": "selected-panels",
+    "panels": [
+      "VW-04.1",
+      "VW-04.2",
+      "VW-04.3",
+      "VW-04.5",
+      "VW-04.6",
+      "VW-04.7",
+      "VW-04.8"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/vowl-wasm/04-js-api-examples-and-consumers.md",
+    "source_sha256": "a005dcac82d5c6f52b301edd5be199e84389763e24a64c01dd1289768fd0be64",
+    "report": "docs/estate-review/2026-11-01-vowl-ingest-and-release.md",
+    "report_sha256": "dd79d65483546eb434417465592811b1173bd36a30dd089192cc7665399b7c70",
+    "coverage": "selected-panels",
+    "panels": [
+      "VW-04.6"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/agentbox/23-dream-engine.md",
+    "source_sha256": "2c53526ad213fdbbfed96e55866597575acb1fe93645440829369f90ed9cc4fd",
+    "report": "docs/estate-review/2026-11-01-dream-migration-and-provenance.md",
+    "report_sha256": "e5164bae4dc0db8b568b4bef6591c394282b920b1fb116ad97087737b47e81f7",
+    "coverage": "selected-panels",
+    "panels": [
+      "AB-23.3"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/agentbox/23-dream-engine.md",
+    "source_sha256": "2c53526ad213fdbbfed96e55866597575acb1fe93645440829369f90ed9cc4fd",
+    "report": "docs/estate-review/2026-11-01-dream-forge-and-seam-contracts.md",
+    "report_sha256": "e5d9666227d0c143c9f6a16159bbb09e7988c082d873e9db232f1ae30843d1ed",
+    "coverage": "selected-panels",
+    "panels": [
+      "AB-23.6"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/agentbox/23-dream-engine.md",
+    "source_sha256": "2c53526ad213fdbbfed96e55866597575acb1fe93645440829369f90ed9cc4fd",
+    "report": "docs/estate-review/2026-11-01-dream-recovery-and-source-supply.md",
+    "report_sha256": "b34c4bfd1f57e1d617cd539fde610de6b14244bc6f776a4199d8a34ad83605c2",
+    "coverage": "selected-panels",
+    "panels": [
+      "AB-23.7",
+      "AB-23.21"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/agentbox/23-dream-engine.md",
+    "source_sha256": "2c53526ad213fdbbfed96e55866597575acb1fe93645440829369f90ed9cc4fd",
+    "report": "docs/estate-review/2026-11-01-dream-adapter-controls-and-egress.md",
+    "report_sha256": "3841446b304d871b13d613b228cb1bbb6b29d101babbfb0ed0b27589d9c5e453",
+    "coverage": "selected-panels",
+    "panels": [
+      "AB-23.2",
+      "AB-23.10",
+      "AB-23.15",
+      "AB-23.16"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/agentbox/23-dream-engine.md",
+    "source_sha256": "2c53526ad213fdbbfed96e55866597575acb1fe93645440829369f90ed9cc4fd",
+    "report": "docs/estate-review/2026-11-01-dream-annexe-and-receipts.md",
+    "report_sha256": "5bdb3dad8c59add3457b02f45836aed5acfaf01b83ae0d31fd3ea999974d6245",
+    "coverage": "selected-panels",
+    "panels": [
+      "AB-23.11",
+      "AB-23.12",
+      "AB-23.13",
+      "AB-23.14"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/agentbox/23-dream-engine.md",
+    "source_sha256": "2c53526ad213fdbbfed96e55866597575acb1fe93645440829369f90ed9cc4fd",
+    "report": "docs/estate-review/2026-11-01-dream-journal-and-api-down.md",
+    "report_sha256": "f941bf42fee409eff3a10de0a6a9f9b766005974a19873fed293e0a13cf8e422",
+    "coverage": "selected-panels",
+    "panels": [
+      "AB-23.19",
+      "AB-23.23"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/agentbox/23-dream-engine.md",
+    "source_sha256": "2c53526ad213fdbbfed96e55866597575acb1fe93645440829369f90ed9cc4fd",
+    "report": "docs/estate-review/2026-11-01-dream-governance-and-delivery.md",
+    "report_sha256": "fe0e9fa55201a383ecb314270075055831d911292bbd86cb36d6691078ba8841",
+    "coverage": "selected-panels",
+    "panels": [
+      "AB-23.9",
+      "AB-23.17",
+      "AB-23.20",
+      "AB-23.24"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/agentbox/23-dream-engine.md",
+    "source_sha256": "2c53526ad213fdbbfed96e55866597575acb1fe93645440829369f90ed9cc4fd",
+    "report": "docs/estate-review/2026-11-01-dream-execution-and-triage.md",
+    "report_sha256": "9c97aa19db70fa7c2ae186c2b4d35bb9746d359ce762d43dad2101f96fd37941",
+    "coverage": "selected-panels",
+    "panels": [
+      "AB-23.1",
+      "AB-23.4",
+      "AB-23.5",
+      "AB-23.8",
+      "AB-23.18",
+      "AB-23.22"
+    ],
+    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+  }
+]

@@ -1,0 +1,120 @@
+{
+  "date": "2026-11-01",
+  "baseline": "16a06a19a4a5ec00149200b8805e1a62e9bb309e",
+  "panel_id_parity": {
+    "ledger": 1683,
+    "existing_coverage_index": 1683,
+    "equal": true
+  },
+  "census_delta": {
+    "previous_candidates": 1129,
+    "current_candidates": 1144,
+    "removed": [],
+    "added": [
+      {
+        "repo": "VisionClaw",
+        "path": "archive/visionclaw-docs/audits/2026-04-20-sovereign-mesh-qe-sprint2/05-phase2-and-adr054.md"
+      },
+      {
+        "repo": "VisionClaw",
+        "path": "docs/gap-close-evidence/P0-ADR071-PHASE3.md"
+      },
+      {
+        "repo": "VisionClaw",
+        "path": "docs/gap-close-evidence/P0-ADR117-CLAMP.md"
+      },
+      {
+        "repo": "VisionClaw",
+        "path": "docs/gap-close-evidence/P0-ADR119-TELEMETRY.md"
+      },
+      {
+        "repo": "VisionFlow",
+        "path": "docs/estate-review/evidence/2026-11-01/nf-derivation/source/nostr-rust-forum/docs/adr/ADR-2003-derive-subkey-raw-hmac-js-parity.md"
+      },
+      {
+        "repo": "VisionFlow",
+        "path": "docs/estate-review/evidence/2026-11-01/nf-derivation/source/nostr-rust-forum/docs/archive/adr/ADR-094-deterministic-subkey-derivation.md"
+      },
+      {
+        "repo": "VisionFlow",
+        "path": "docs/estate-review/evidence/2026-11-01/nf-derivation/source/nostr-rust-forum/docs/archive/adr/ADR-100-key-lifecycle.md"
+      },
+      {
+        "repo": "VisionFlow",
+        "path": "docs/estate-review/evidence/2026-11-01/nf-device/source/docs/adr/ADR-2004-device-keys-default-off-dual-worker-gate.md"
+      },
+      {
+        "repo": "VisionFlow",
+        "path": "docs/estate-review/evidence/2026-11-01/nf-membership/source/docs/adr/ADR-2014-member-lifecycle-one-source-of-truth.md"
+      },
+      {
+        "repo": "VisionFlow",
+        "path": "docs/estate-review/evidence/2026-11-01/nf-onboarding/source/docs/archive/adr/ADR-095-recovery-device-onboarding-sheet.md"
+      },
+      {
+        "repo": "VisionFlow",
+        "path": "docs/estate-review/evidence/2026-11-01/nf-onboarding/source/docs/archive/adr/ADR-098-connect-magic-link-onboarding.md"
+      },
+      {
+        "repo": "VisionFlow",
+        "path": "docs/estate-review/evidence/2026-11-01/nf-onboarding/source/docs/archive/adr/ADR-099-revocable-device-keys.md"
+      },
+      {
+        "repo": "VisionFlow",
+        "path": "docs/estate-review/evidence/2026-11-01/nf-signer/source/docs/adr/ADR-2008-bbs-signer-holds-key-directly.md"
+      },
+      {
+        "repo": "VisionFlow",
+        "path": "docs/estate-review/evidence/2026-11-01/nf-trust/source/docs/adr/ADR-2006-trust-demotion-cron-tl3-never.md"
+      },
+      {
+        "repo": "VisionFlow",
+        "path": "docs/estate-review/evidence/2026-11-01/nf-trust/source/docs/archive/adr/ADR-102-trust-demotion-inactivity-sweep.md"
+      }
+    ]
+  },
+  "heading_units": 15107,
+  "heading_units_with_recorded_assessment": 539,
+  "native_tests": 9,
+  "clippy": "passed -D warnings",
+  "limits": "Counters track evidence reconciliation, not audit completion; document/report hashes do not revalidate implementation code or deployed state.",
+  "local_links_checked": [
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "scope.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "claims.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "snapshot-2026-11-01.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "validation-2026-11-01.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../../../scripts/estate-review-ledger/README.md"
+    },
+    {
+      "file": "scripts/estate-review-ledger/README.md",
+      "target": "../../docs/estate-review/completion/claims.json"
+    }
+  ],
+  "exact_claim_bindings_rechecked": 143,
+  "tool_hashes": {
+    "scripts/estate-review-ledger/src/main.rs": "6a13475db77573e460ab9ba8a99b7aa1e7c306ca33c14ea3cf5188b690ce12b3",
+    "scripts/estate-review-ledger/Cargo.toml": "8109eeff493be24031c394cce1d81a059ca1612f967e5b032f37bf9e8f1e50d6",
+    "scripts/estate-review-ledger/Cargo.lock": "03428add1379736455ce73eb1d677ccb28c7d9ba347ed49f8fe07ac20e4bda11"
+  },
+  "initial_build_limitation": "An initial CARGO_TARGET_DIR under /tmp failed because build-script execution there was denied; the normal ignored package target directory succeeded.",
+  "log_format": "Trailing empty lines removed in prose/test receipt files; command content retained.",
+  "documentation_checks": {
+    "unicode_findings": 0,
+    "prose_flags": 0,
+    "format_check": "passed"
+  }
+}

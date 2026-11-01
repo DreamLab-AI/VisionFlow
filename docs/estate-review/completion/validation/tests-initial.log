@@ -1,0 +1,28 @@
+     Locking 27 packages to highest compatible versions
+      Adding generic-array v0.14.7 (available: v0.14.9)
+      Adding pulldown-cmark v0.13.4 (available: v0.13.5)
+      Adding serde_json v1.0.149 (available: v1.0.154)
+      Adding sha2 v0.10.9 (available: v0.11.1)
+   Compiling version_check v0.9.5
+   Compiling typenum v1.20.1
+   Compiling zmij v1.0.23
+   Compiling serde_core v1.0.229
+   Compiling unicode-width v0.2.2
+   Compiling pulldown-cmark v0.13.4
+   Compiling memchr v2.8.3
+   Compiling serde_json v1.0.149
+   Compiling unicase v2.10.0
+   Compiling pulldown-cmark-escape v0.11.0
+   Compiling cpufeatures v0.2.17
+   Compiling bitflags v2.13.2
+   Compiling cfg-if v1.0.5
+   Compiling itoa v1.0.18
+error: failed to run custom build command for `pulldown-cmark v0.13.4`
+note: To improve backtraces for build dependencies, set the CARGO_PROFILE_TEST_BUILD_OVERRIDE_DEBUG=true environment variable to enable debug information generation.
+
+Caused by:
+  could not execute process `/tmp/vf-audit-ledger-artifacts/target/debug/build/pulldown-cmark-7bf97d52917f2a8f/build-script-build` (never executed)
+
+Caused by:
+  Permission denied (os error 13)
+warning: build failed, waiting for other jobs to finish...

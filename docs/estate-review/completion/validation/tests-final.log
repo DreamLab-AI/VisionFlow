@@ -1,0 +1,16 @@
+   Compiling estate-review-ledger v0.1.0 (/home/devuser/workspace/wt/VisionFlow-completion-ledger/scripts/estate-review-ledger)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.54s
+     Running unittests src/main.rs (scripts/estate-review-ledger/target/debug/deps/estate_review_ledger-e1c14692620c0d89)
+
+running 9 tests
+test tests::candidates_include_nonstandard_decision_directories ... ok
+test tests::evidence_copies_are_not_decisions ... ok
+test tests::mentions_cannot_become_assessments ... ok
+test tests::examples_with_longer_fences_stay_inside ... ok
+test tests::paths_cannot_escape_scope ... ok
+test tests::sha256_known_vector ... ok
+test tests::markdown_examples_are_not_sections ... ok
+test tests::setext_and_duplicate_headings_are_retained ... ok
+test tests::isolated_repositories_preserve_scope_and_invalidate_changed_evidence ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s

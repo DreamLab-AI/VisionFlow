@@ -1,0 +1,109 @@
+{
+  "basis": [
+    "scripts/estate-health/roster.json",
+    "docs/architecture/repository-map.md",
+    "docs/diagrams/visionclaw/35-voice-end-to-end.md"
+  ],
+  "repositories": [
+    {
+      "name": "VisionFlow",
+      "local": "VisionFlow"
+    },
+    {
+      "name": "VisionClaw",
+      "local": "project"
+    },
+    {
+      "name": "agentbox",
+      "local": "project/agentbox"
+    },
+    {
+      "name": "solid-pod-rs",
+      "local": "solid-pod-rs"
+    },
+    {
+      "name": "nostr-rust-forum",
+      "local": "nostr-rust-forum"
+    },
+    {
+      "name": "dreamlab-ai-website",
+      "local": "dreamlab-ai-website"
+    },
+    {
+      "name": "loom",
+      "local": "loom"
+    },
+    {
+      "name": "knowledgeGraph",
+      "local": "knowledgeGraph"
+    },
+    {
+      "name": "sidestr-rs",
+      "local": "sidestr-rs"
+    },
+    {
+      "name": "ontomark",
+      "local": "ontomark"
+    },
+    {
+      "name": "ontomark-obsidian",
+      "local": "ontomark-obsidian"
+    },
+    {
+      "name": "WasmVOWL",
+      "local": "WasmVOWL"
+    },
+    {
+      "name": "visionGraph",
+      "local": "visionGraph"
+    },
+    {
+      "name": "vowl-wasm",
+      "local": "vowl-wasm"
+    },
+    {
+      "name": "prose-sanitiser",
+      "local": "prose-sanitiser"
+    },
+    {
+      "name": "diagram-ir",
+      "local": "diagram-ir"
+    },
+    {
+      "name": "dream-engine",
+      "local": "dream-engine"
+    },
+    {
+      "name": "visiontouch-rs",
+      "local": "visiontouch-rs"
+    },
+    {
+      "name": "dream-machine",
+      "local": "dream-machine"
+    },
+    {
+      "name": "Logseq history",
+      "local": "project4"
+    },
+    {
+      "name": "RuVector",
+      "local": "ruvector"
+    },
+    {
+      "name": "RuView",
+      "local": "RuView"
+    },
+    {
+      "name": "Codescape standalone",
+      "local": "codescape"
+    },
+    {
+      "name": "Codescape consumed",
+      "local": "project/codescape"
+    },
+    {
+      "name": "unmute consumed",
+      "local": "project/voice-stack/unmute"
+    }
+  ]
+}
