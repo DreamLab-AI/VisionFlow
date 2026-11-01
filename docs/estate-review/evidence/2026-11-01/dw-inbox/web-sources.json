@@ -1,0 +1,21 @@
+{
+  "retrieved": "2026-11-01",
+  "sources": [
+    {
+      "url": "https://github.com/nostr-protocol/nips/blob/master/59.md",
+      "claim": "Recipient-authorised deletion/vanish recommendation."
+    },
+    {
+      "url": "https://github.com/nostr-protocol/nips/blob/master/17.md",
+      "claim": "Separate gift wraps, seal/rumor binding and randomised timestamps."
+    },
+    {
+      "url": "https://docs.ntfy.sh/subscribe/api/",
+      "claim": "ID-based cached replay and explicit truncation response."
+    },
+    {
+      "url": "https://docs.ntfy.sh/publish/#message-caching",
+      "claim": "Caching supports reconnect recovery; disabled caching may miss notifications."
+    }
+  ]
+}

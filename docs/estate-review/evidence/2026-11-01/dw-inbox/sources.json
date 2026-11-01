@@ -1,0 +1,206 @@
+[
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "scripts/inbox-watch/run.mjs",
+    "sha256": "f3fda265fe48ebe9256d65915e7a9eceb3b735675b0e93c28769cfd54283774e"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "scripts/lib/website-info.mjs",
+    "sha256": "b5fae15978ea8d6c29ae3a49372673c9c0b7ef914ef2eebe51c596689bbf0e18"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "scripts/lib/digest.mjs",
+    "sha256": "5a93c551628bd771cfc3d61259ab17e2422857c164b85618ef298a9b8b3a04eb"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "scripts/lib/enquiry-topic.mjs",
+    "sha256": "2d83d9386bc534c23c96b590bf762839cb3ef8bea21932521785615122098ed9"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "scripts/lib/toml-lite.mjs",
+    "sha256": "5116e4f2baff29933d61a59c7dc7689da67303cfd190227ed059b696d9490d4d"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "scripts/seed/provision-website-info.mjs",
+    "sha256": "68b2f63c64c245666770e5294f982625eb174b46bc0ebddd58664f8350fc2873"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "scripts/__tests__/website-info.test.mjs",
+    "sha256": "55a5c8559e1bc6084fdc1793cc3f1476a4d03267e14000a0318a9faea5f03ca8"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "scripts/__tests__/inbox-digest.test.mjs",
+    "sha256": "38fd34862f63c65e574bb391de000031275309887a987781bb3d1e9905e91e6b"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "scripts/contact-embed/entry.ts",
+    "sha256": "f5076c834d219a2cfb0276ad599f34ba6f2d0bbca9ebe927b5c4ce8a80c0700d"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "src/lib/nostr.ts",
+    "sha256": "8e2a8573e4d58f52e1d60683d46e0280758f1bd8b61cd794cb7b56903b8bfea0"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "forum-config/dreamlab.toml",
+    "sha256": "f20ce99fbab50bb23af6f4994026d32d76f08516e78671c66eb8b91f6d50dab6"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "forum-config/tests/ingress_mirror.rs",
+    "sha256": "f08f66fba2af27f01b1e6de3c6524a92ac88002feaac74ef86d0483b54d3f882"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "forum-config/Cargo.toml",
+    "sha256": "25805e39672cb4a907dacc6d79aaad7284444736bb4a9981d1f60350cd25cb8a"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "forum-config/Cargo.lock",
+    "sha256": "c870f7de5d4f0b4768869020127f201a74821335687fc2693ce9c1bc351324ca"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "forum-config/deploy/relay-worker.wrangler.toml",
+    "sha256": "4369faebf575434c954a4e5b53d6a626bc9d90d50cbccee82539c5aa8e8d77d9"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": ".github/workflows/deploy.yml",
+    "sha256": "e415a74cbc559fbba1c0a32daea34072aa020e011ed1ceb478388d905ef512d9"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": ".github/workflows/workers-deploy.yml",
+    "sha256": "d31c12e7c7b764eb8b7f190ece920dc470ec849701edace09c4da8bf3f39ea39"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "public/.well-known/nostr.json",
+    "sha256": "f2116ae5c708aae90d3317c64eff8f6ef7efc8802d41ae49611d13a943edada3"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "docs/adr/ADR-2011-website-information-identity.md",
+    "sha256": "b9b6f6771fbd238ab063502079123c3d56709f2a585feabcd49eaf794b9b2d02"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "scripts/seo-watch/crontab",
+    "sha256": "6674022132d05ec8bf9a0f86992dd4d5578f0ce9a78c027bc4e30e934e6a7b51"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "package.json",
+    "sha256": "4287e66e143dd8156e5aea3cb324112b9b87c5f90ff256957e217ddb2a282a6e"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "package-lock.json",
+    "sha256": "412d1dc72c8a6aa20183249465f8362e2e03229134711ef38c95d36666f2507c"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-relay-worker/src/agent_disclosure.rs",
+    "sha256": "1a81e068060d7ca03c21f4de52f1e4111110579af881062330c7bf9a350f6e8c"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-relay-worker/src/whitelist.rs",
+    "sha256": "fcfa572a5000eda940e551c05c381bdce4b01873f8e10f949f8057fc727c1c42"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-relay-worker/src/ingress.rs",
+    "sha256": "f1064898cec9203c57fe69507bfdfd83a3796c3a0276aeb5d689f20dfdd8384b"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs",
+    "sha256": "52c7bd80243276f6f4109f1dc4180b485352141aac70d68fab626d5e1f6c0afd"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-relay-worker/src/relay_do/nip42.rs",
+    "sha256": "6b6c5ef3d65bd86b4d0de8e54568287dbb58a4822928e662c954e28e5d97494f"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-auth-worker/src/governance_api.rs",
+    "sha256": "3a7de134fa5ae4728a4315d764f1e3cbdd5d612fb8e51f9bc6ce77e0c0c75333"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "revision": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "path": "crates/nostr-bbs-config/src/ingress.rs",
+    "sha256": "fe2a0c99b1311e14c4bb6e54e52fc12155d46e55d7d0c3cbfdbf1edee115bd4e"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "path": "scripts/lib/jev.mjs",
+    "sha256": "dab991439b656f91f92d0524a7b7a77deb54c253789b5cb53c67724b77032e47"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "a67cb2a8d474f4ba2e79bdbf55fad2e87bfd7e98",
+    "path": "docs/security/SECURITY_OVERVIEW.md",
+    "sha256": "3db6152754f5bd998f5c407e13cc94bbda2f2ba5a2352a857bf546024dbcf606"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "a67cb2a8d474f4ba2e79bdbf55fad2e87bfd7e98",
+    "path": "forum-config/deploy/SYSTEM-ONE.md",
+    "sha256": "4acaf6c04fb7bfb67b61e068f132b64e91c9f17f96a70533f27aae82020a2f7c"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "a67cb2a8d474f4ba2e79bdbf55fad2e87bfd7e98",
+    "path": "forum-config/deploy/auth-worker.wrangler.toml",
+    "sha256": "5fda0a7a850fb71711c8412e8530ed2789385590572066113fa83189bb741f62"
+  },
+  {
+    "repo": "dreamlab-ai-website",
+    "revision": "a67cb2a8d474f4ba2e79bdbf55fad2e87bfd7e98",
+    "path": "forum-config/deploy/search-worker.wrangler.toml",
+    "sha256": "87b492bb086827e91eda5dd0957829193ad6f614e98af7482d9e2792f022a4db"
+  }
+]

@@ -1,0 +1,13 @@
+{
+  "observed_at": "2026-11-01T05:36:47.003670+00:00",
+  "scheduler": "seo-watch-cron                   RUNNING   pid 919, uptime 13:35:00",
+  "last_run": {
+    "ran_at": "2026-10-31T07:15:04.884Z",
+    "new_messages": 0,
+    "counts": {},
+    "wraps_in_window": 2,
+    "alert": null,
+    "problem_count": 0
+  },
+  "sha256": "39bb9bd3c14f1cb58d511efdb397ce8da64f2eeeea5f0fb705476df5834ae324"
+}

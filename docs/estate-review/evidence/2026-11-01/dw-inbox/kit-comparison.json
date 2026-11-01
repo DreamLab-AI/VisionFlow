@@ -1,0 +1,44 @@
+[
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/agent_disclosure.rs",
+    "consumed": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "head": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/whitelist.rs",
+    "consumed": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "head": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/ingress.rs",
+    "consumed": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "head": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs",
+    "consumed": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "head": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-relay-worker/src/relay_do/nip42.rs",
+    "consumed": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "head": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-auth-worker/src/governance_api.rs",
+    "consumed": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "head": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "identical": true
+  },
+  {
+    "path": "crates/nostr-bbs-config/src/ingress.rs",
+    "consumed": "9c36b6032640c89879ae52fe25da99493979a0b6",
+    "head": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "identical": true
+  }
+]

@@ -60,7 +60,7 @@ sequenceDiagram
     KEYS-->>OP: per-role test privkeys (friends-carol, ...)
     OP->>RELAY: finalizeEvent + publish, NIP-98 admin auth where required
 ```
-- `scripts/seed/probes/` is also gitignored (`.gitignore:78`) — ad hoc probe output/scratch state never lands in the tree. `whitelist-admin-recipient.mjs:1-6` documents its own no-op status as of 2026-07-14: the interim contact-DM recipient is already whitelisted, so the script is a safety check pending ADR-041 Decision 5's key-split cutover (cross-reference DW-03.4); a header note now adds that a recipient declared under `[[ingress]]` is admitted without this row and survives `reset-db`, so the script is only for an undeclared recipient (`whitelist-admin-recipient.mjs:19-21`, DW-04.9). `provision-website-info.mjs:1-20` is the newest seeder: idempotent, it publishes a kind-0 profile and registers the identity without cohorts, reading its keys and never printing them.
+- `scripts/seed/probes/` is also gitignored (`.gitignore:78`) — ad hoc probe output/scratch state never lands in the tree. `whitelist-admin-recipient.mjs:1-6` documents its own no-op status as of 2026-07-14: the interim contact-DM recipient is already whitelisted, so the script is a safety check pending ADR-041 Decision 5's key-split cutover (cross-reference DW-03.4); a header note now adds that a recipient declared under `[[ingress]]` is admitted without this row and survives `reset-db`, so the script is only for an undeclared recipient (`whitelist-admin-recipient.mjs:19-21`, DW-04.9). `provision-website-info.mjs:1-20` is the newest seeder: idempotent, it publishes a kind-0 profile, then registers without cohorts only when public disclosure does not list the key. Configuration-backed disclosure can suppress that registration; see DW-09.1.
 - `reseed-minimoonoir.mjs:1-6` records an in-repo migration note: the `friends`→`minimoonoir` zone-id rename orphaned `friends-*` channels (kind-40 section tags are immutable), requiring a delete-and-recreate rather than an in-place rename — direct evidence for the "Friends zone does not exist" DOC-DRIFT already flagged in DW-03.1.
 - Contrast with the standalone `scripts/keybase-migration/` tool (`server.mjs:7-10`): the keybase paper key and relay admin key it handles live in process memory for a request/job's duration and are never logged or written to disk, but the generated per-user output keys it produces ARE deliberately persisted to `work/keys.json` (gitignored) — that persisted file is the tool's actual deliverable, handed to the friend being migrated.
 
@@ -103,10 +103,19 @@ flowchart LR
 ## DW-07.8 Nightly inbox watch — the monitor key reads its own copies
 ```mermaid
 flowchart TB
-    CRON["supercronic, 07:15 UTC, flock + timeout 300<br/>scripts/seo-watch/crontab:17"] --> HEALTH["1. health: whitelist or ingress row for admin, jarvis, monitor,<br/>registry row, deployed bundle carries all three pubkeys<br/>scripts/inbox-watch/run.mjs:288-295"]
-    HEALTH --> PROBE["2. probe: labelled wrap to the monitor only, read back<br/>scripts/inbox-watch/run.mjs:297-303"]
-    PROBE --> INBOX["3. inbox: wraps for the last 3 days, seal signature and author verified, deduped<br/>scripts/inbox-watch/run.mjs:163,187"]
-    INBOX --> ALERT["4. one NIP-17 digest DM to the operator, only if new mail or a problem, enquiries topic-tagged by Jev first<br/>scripts/inbox-watch/run.mjs:349-375"]
+    %% Source: ../dreamlab-ai-website/scripts/seo-watch/crontab:17
+    A["07:15 UTC, flock and 300-second timeout"]
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:288
+    A --> B["Check effective ingress for three keys<br/>merged disclosure and deployed bundle strings"]
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:297
+    B --> C["Publish labelled probe to monitor<br/>read it back with the monitor inbox"]
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:187
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:314
+    C --> D["Three-day window, verify seal and author<br/>deduplicate by outer wrap ID"]
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:349
+    D --> E["New mail or problems trigger one digest<br/>optional Jev enquiry tags, operator DM"]
 ```
 - It exists because the relay rewrites every kind-1059 read to the viewer's own `#p`, so the admin inbox is unreadable to anyone else; each submission is therefore also wrapped to the monitor key (`scripts/inbox-watch/run.mjs:4-11`, DW-04.9). The digest is written to the operator and, when the DM never reached the relay, state is deliberately not persisted so the same messages surface again next run (`scripts/inbox-watch/run.mjs:376-380`). When `DREAMLAB_JEV=1` (default off) fresh enquiries also get an advisory Jev topic tag (`scripts/inbox-watch/run.mjs:354-356`), which since 2026-10-30 may reach TypeSafe and is local-only only when `DREAMLAB_JEV_TOPIC_LOCAL_ONLY=1` (`scripts/lib/enquiry-topic.mjs:27-32`, `scripts/lib/enquiry-topic.mjs:86`).
-- It judges channel health with `ingressProblem` and `disclosureProblem` from `scripts/lib/website-info.mjs` (`scripts/inbox-watch/run.mjs:35`), so a `reset-db` that drops the whitelist or registry row is reported the next morning, not by a visitor (`docs/adr/ADR-2011-website-information-identity.md:58`).
+- It judges channel health with `ingressProblem` and `disclosureProblem` from `scripts/lib/website-info.mjs` (`scripts/inbox-watch/run.mjs:35`), but these check effective ingress and public disclosure rather than proving the database rows remain. The reset-db detection claim in ADR-2011 is therefore too strong; DW-09 and the [dated review](../../estate-review/2026-11-01-website-information-and-inbox.md) record the counterexamples.
+
+- **Debt:** the digest itemises at most 25 messages but persists all fetched IDs as seen after relay acceptance; undisplayed messages do not roll forward. A sender-controlled probe phrase can also suppress classification. The dated review executes both paths with synthetic encrypted messages.

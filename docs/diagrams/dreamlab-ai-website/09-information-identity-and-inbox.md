@@ -1,0 +1,143 @@
+---
+id: DW-09
+title: Website information identity — disclosure, monitoring and digest delivery
+area: dreamlab-ai-website
+governing:
+  - ../dreamlab-ai-website/docs/adr/ADR-2011-website-information-identity.md
+adrs: [ADR-2011]
+sources:
+  - ../dreamlab-ai-website/docs/adr/ADR-2011-website-information-identity.md
+  - ../dreamlab-ai-website/scripts/seed/provision-website-info.mjs
+  - ../dreamlab-ai-website/scripts/lib/website-info.mjs
+  - ../dreamlab-ai-website/scripts/inbox-watch/run.mjs
+  - ../dreamlab-ai-website/scripts/lib/digest.mjs
+  - ../dreamlab-ai-website/scripts/lib/enquiry-topic.mjs
+  - ../dreamlab-ai-website/scripts/lib/jev.mjs
+  - ../dreamlab-ai-website/scripts/seo-watch/crontab
+  - ../dreamlab-ai-website/src/lib/nostr.ts
+  - ../dreamlab-ai-website/forum-config/dreamlab.toml
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/agent_disclosure.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/governance_api.rs
+verified_commit: {dreamlab-ai-website: b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5, nostr-rust-forum: 9c36b6032640c89879ae52fe25da99493979a0b6}
+---
+
+## For developers
+
+Separate configured admission, public disclosure, stored registration and delivery acknowledgement. The dated estate audit exercises the actual watcher and provisioner with synthetic encrypted messages and fully mocked transport.
+
+## For the business
+
+The monitor can summarise received enquiry copies without joining private forum zones. Its current health checks and bounded digest do not establish complete enquiry capture, durable registration or that every sender's message was shown to the operator.
+
+## DW-09.1 Configuration disclosure is not a registry receipt
+
+```mermaid
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/agent_disclosure.rs:102
+    A["Read active registry rows"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/agent_disclosure.rs:68
+    A --> B["Merge configured ingress identities<br/>that name an authorising principal"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/agent_disclosure.rs:76
+    B --> C["Active registry row wins for same key<br/>otherwise configuration fills the gap"]
+    %% Source: ../dreamlab-ai-website/scripts/lib/website-info.mjs:77
+    C --> D["Website classifier checks key presence<br/>not provenance, name or principal validity"]
+    %% Source: ../dreamlab-ai-website/scripts/seed/provision-website-info.mjs:97
+    D --> E["DRIFT: provisioner skips registration<br/>when configuration alone lists the identity"]
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:229
+    D --> F["DRIFT: watcher cannot infer missing<br/>registry row from this merged endpoint"]
+```
+
+**What it shows:** Public naming survives a missing database row, while the consumer interprets that naming as proof of registration.
+**Why it is this way:** ADR-2011 adopted configuration-backed ingress but retained an older registry-presence check; its two obligations now use the same ambiguous response.
+
+## DW-09.2 Provisioning privilege guard versus nightly health
+
+```mermaid
+flowchart TB
+    %% Source: ../dreamlab-ai-website/scripts/seed/provision-website-info.mjs:51
+    A["Provisioner checks privilege<br/>before publishing kind-0 metadata"]
+    %% Source: ../dreamlab-ai-website/scripts/lib/website-info.mjs:100
+    A --> B["Require admission and reject<br/>admin flag or nonempty cohort array"]
+    %% Source: ../dreamlab-ai-website/scripts/seed/provision-website-info.mjs:115
+    B --> C["Repeat privilege check after adoption"]
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:239
+    D["Nightly checks admin, agent and monitor<br/>through checkWhitelist"]
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:245
+    D --> E["Require effective ingress declaration<br/>do not call privilegeProblem"]
+    %% Source: ../dreamlab-ai-website/scripts/lib/website-info.mjs:120
+    E --> F["DEBT: privileged monitor can pass<br/>nightly admission health"]
+```
+
+**What it shows:** The setup guard and recurring health predicate are different. A healthy nightly receipt does not certify the monitor's lack of privilege.
+**Why it is this way:** ADR-2011 requires a labelled identity with no cohorts or admin rights; the current watcher verifies routing admission rather than that full invariant.
+
+## DW-09.3 Enquiry copies and the scope of the probe
+
+```mermaid
+flowchart TB
+    %% Source: ../dreamlab-ai-website/src/lib/nostr.ts:342
+    A["Primary submission accepted by relay"]
+    %% Source: ../dreamlab-ai-website/src/lib/nostr.ts:352
+    A --> B["Best-effort separate monitor wrap<br/>missing/equal key is a no-op"]
+    %% Source: ../dreamlab-ai-website/src/lib/nostr.ts:363
+    B --> C["Copy failure does not change<br/>visitor-facing primary result"]
+    %% Source: ../dreamlab-ai-website/scripts/seo-watch/crontab:17
+    D["07:15 UTC watcher, flock<br/>300-second timeout"]
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:297
+    D --> E["Publish synthetic wrap to monitor<br/>also performed in dry-run mode"]
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:314
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:187
+    E --> F["Read monitor inbox and verify<br/>seal signature and rumor author binding"]
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:253
+    D --> G["Bundle substring checks for keys<br/>are not a browser form-submission test"]
+```
+
+**What it shows:** The synthetic probe tests the monitor path, while actual visitor copies remain best effort. A dry run suppresses digest delivery and state writes, not the probe.
+**Why it is this way:** The relay isolates each recipient's inbox, so ADR-2011 relies on extra encrypted copies rather than reading the admin's copy.
+
+## DW-09.4 Pagination, classification and digest retirement
+
+```mermaid
+flowchart TB
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:49
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:137
+    A["Three-day window<br/>500 wraps per page, at most ten pages"]
+    %% Source: ../dreamlab-ai-website/scripts/lib/digest.mjs:74
+    A --> B["DEBT: next cursor is oldest second minus one<br/>unseen ties at the boundary can be skipped"]
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:328
+    B --> C["Mark wrap ID seen before<br/>verification and classification"]
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:200
+    C --> D["DEBT: any content containing probe phrase<br/>is omitted as a synthetic probe"]
+    %% Source: ../dreamlab-ai-website/scripts/lib/digest.mjs:18
+    C --> E["Sanitised digest itemises first 25<br/>remaining count is a summary line"]
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:373
+    E --> F["Relay acknowledgement permits state save<br/>rejected digest leaves seen state unsaved"]
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:389
+    F --> G["DEBT: all fetched IDs become persisted seen<br/>undisplayed items do not roll into next digest"]
+```
+
+**What it shows:** Bounds prevent unbounded processing but can omit messages. The 30-message fixture displays 25, marks all 30 seen and reports zero new on its next run.
+**Why it is this way:** The watcher deduplicates received wraps and bounds one digest; its state does not distinguish fetched, itemised, pending and acknowledged messages.
+
+## DW-09.5 Plaintext topic annotation and retained evidence
+
+```mermaid
+flowchart TB
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:214
+    A["Decrypted enquiry text<br/>up to 1500 characters for topic annotation"]
+    %% Source: ../dreamlab-ai-website/scripts/lib/enquiry-topic.mjs:86
+    A --> B["Optional DREAMLAB_JEV switch<br/>off by default"]
+    %% Source: ../dreamlab-ai-website/scripts/lib/enquiry-topic.mjs:30
+    B --> C["Local-only restriction applies only<br/>when TOPIC_LOCAL_ONLY is set to 1"]
+    %% Source: ../dreamlab-ai-website/scripts/lib/jev.mjs:38
+    C --> D["Explicit endpoint, then configured proxy"]
+    %% Source: ../dreamlab-ai-website/scripts/lib/jev.mjs:59
+    D --> E["Otherwise vendor endpoint with API key<br/>plaintext enquiry is request state"]
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:365
+    A --> F["Dry-run prints composed digest<br/>including enquiry excerpts"]
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:341
+    A --> G["Normal status retains counts and problems<br/>seen state is not a complete message archive"]
+```
+
+**What it shows:** Recipient encryption ends where the monitor decrypts. Optional annotation and dry-run output have their own plaintext destinations.
+**Why it is this way:** The topic feature annotates operator mail without changing delivery; its executable default is broader than the module's old local-only header comment.

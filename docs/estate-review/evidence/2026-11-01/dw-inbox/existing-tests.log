@@ -1,0 +1,11 @@
+
+ RUN  v2.1.9 /home/devuser/workspace/wt/VisionFlow-dw-inbox/.audit-inbox
+
+ ✓ scripts/__tests__/inbox-digest.test.mjs (18 tests) 9ms
+ ✓ scripts/__tests__/website-info.test.mjs (29 tests) 69ms
+
+ Test Files  2 passed (2)
+      Tests  47 passed (47)
+   Start at  05:34:39
+   Duration  518ms (transform 56ms, setup 0ms, collect 79ms, tests 78ms, environment 0ms, prepare 187ms)
+

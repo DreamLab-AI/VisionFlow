@@ -7,6 +7,8 @@ type: explanation
 
 # VisionFlow estate review
 
+Website information/inbox continuation: [ADR-2011 section assessment, five new DW-09 panels, three corrected panels, 47 existing tests and nine counterexamples](2026-11-01-website-information-and-inbox.md). Public disclosure masks registry loss, nightly admission checks miss monitor privilege, and capped digests retire undisplayed messages. Other website topics and ADR-2009 still need current review.
+
 Website SEO continuation: [six new DW-08 panels, full ADR-2010 assessment, 33 existing tests and fifteen boundary scenarios](2026-11-01-website-seo-watch.md). The scheduler is live, but proposal publishing rejects after commit; secret-error sinks, cost accounting and receipt coverage have reproduced gaps. Other website topics and decisions remain open.
 
 VisionGraph explorer/profile continuation: [six VG-06 panels, ADR-VG-007 section review, 111 existing tests and sixteen boundary scenarios](2026-11-01-visiongraph-explorer-and-profile.md). All six current visionGraph topics and eight operative ADRs now have source/section assessments; implementation findings, intake programmes and runtime acceptance remain open.

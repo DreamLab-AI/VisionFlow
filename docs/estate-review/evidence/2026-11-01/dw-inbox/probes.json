@@ -1,0 +1,56 @@
+[
+  {
+    "name": "nightly watcher accepts a privileged monitor while provisioning helper refuses",
+    "pass": true,
+    "problems": [],
+    "helperRefuses": true
+  },
+  {
+    "name": "digest cap retires all thirty messages after itemising twenty-five",
+    "pass": true,
+    "firstCount": 30,
+    "itemised": 25,
+    "allThirtyMarkedSeen": true,
+    "secondCount": 0
+  },
+  {
+    "name": "sender-controlled probe phrase suppresses a genuine enquiry",
+    "pass": true,
+    "newMessages": 0,
+    "markedSeen": true
+  },
+  {
+    "name": "dry-run still publishes the synthetic probe",
+    "pass": true,
+    "wrapPublishedToMock": true,
+    "stateWritten": false
+  },
+  {
+    "name": "config disclosure alone makes actual provisioner skip registration",
+    "pass": true,
+    "kindZeroPublishedToMock": true,
+    "registerPosts": 0
+  },
+  {
+    "name": "disclosure health checks key presence, not name or principal",
+    "pass": true
+  },
+  {
+    "name": "malformed cohort shape and ingress-only privilege predicate pass",
+    "pass": true
+  },
+  {
+    "name": "timestamp-only pagination skips an unseen event at the boundary second",
+    "pass": true,
+    "available": 501,
+    "firstPage": 500,
+    "nextUntil": 999,
+    "remainingSelectable": 0
+  },
+  {
+    "name": "enabled default topic option sends decrypted enquiry to vendor fixture",
+    "pass": true,
+    "url": "https://api.typesafe.ai/v1/systemone",
+    "plaintextIncluded": true
+  }
+]

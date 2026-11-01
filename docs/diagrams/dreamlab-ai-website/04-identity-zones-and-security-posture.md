@@ -20,7 +20,8 @@ sources:
   - ../dreamlab-ai-website/scripts/lib/website-info.mjs
   - ../dreamlab-ai-website/scripts/seed/provision-website-info.mjs
   - ../dreamlab-ai-website/forum-config/dreamlab.toml
-verified_commit: a67cb2a8d474f4ba2e79bdbf55fad2e87bfd7e98
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs
+verified_commit: {dreamlab-ai-website: a67cb2a8d474f4ba2e79bdbf55fad2e87bfd7e98, nostr-rust-forum: 9c36b6032640c89879ae52fe25da99493979a0b6}
 ---
 
 ## DW-04.1 Identity is raw-hex Schnorr, not a DID document
@@ -86,12 +87,20 @@ sequenceDiagram
 ## DW-04.5 Anonymous website ingress — threat register
 ```mermaid
 flowchart TB
-    SURFACE["kind-1059 admission:<br/>anonymous ephemeral authors, recipient-gated only<br/>SECURITY_OVERVIEW.md:276,278"] --> T1["Spam/DoS<br/>mitigation: 10 events/s/IP relay limit only —<br/>no PoW/CAPTCHA/per-recipient throttle;<br/>kind 1059 bypasses content moderation<br/>SECURITY_OVERVIEW.md:282"]
-    SURFACE --> T2["PII in DM content<br/>mitigation: NIP-44 E2E encryption;<br/>erasure is operator-side D1 purge only —<br/>self-service NIP-09 deletion is cryptographically<br/>impossible (author key is a discarded throwaway)<br/>SECURITY_OVERVIEW.md:283"]
-    SURFACE --> T3["LLM-cost abuse via junkiejarvis<br/>mitigation: serialised sends (one in-flight/session),<br/>client-side throttle, ops kill-switch JUNKIEJARVIS_ENABLED=0<br/>SECURITY_OVERVIEW.md:284"]
-    SURFACE -.-> T4["OPEN: third-party egress configured by the overlay, not in the threat table above: the search, relay and auth Workers are set to call TypeSafe jev-latest with a TYPESAFE_API_KEY Worker secret, never a plaintext var, and the auth worker's rationale check, previously refused unless local, is cloud by default and private only when JEV_RATIONALE_CHECK_LOCAL_ONLY=1; the Workers deployed from this pin in run 41028875471 (success, 2026-10-30), whose credential check covered search and relay only, so the auth worker's secret has no receipt<br/>forum-config/deploy/search-worker.wrangler.toml:33-37, forum-config/deploy/relay-worker.wrangler.toml:16-20, forum-config/deploy/auth-worker.wrangler.toml:61-66, forum-config/deploy/SYSTEM-ONE.md:3-5, forum-config/deploy/SYSTEM-ONE.md:13-19"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1087
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1135
+    A["Write-auth mode gate, then gift-wrap admission<br/>configured ingress or whitelisted recipient"]
+    %% Source: ../dreamlab-ai-website/docs/security/SECURITY_OVERVIEW.md:282
+    A --> B["Operator docs flag spam risk<br/>IP and structural limits, client validation"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2468
+    A --> C["Deletion supports author or privileged caller<br/>no gift-wrap recipient-only path here"]
+    %% Source: ../dreamlab-ai-website/docs/security/SECURITY_OVERVIEW.md:284
+    A --> D["Docs flag model-cost abuse<br/>client throttling and operator kill switch"]
+    %% Source: ../dreamlab-ai-website/forum-config/deploy/SYSTEM-ONE.md:3
+    %% Source: ../dreamlab-ai-website/forum-config/deploy/SYSTEM-ONE.md:13
+    A --> E["Overlay enables advisory TypeSafe calls<br/>rationale local-only restriction is opt-in"]
 ```
-- Admission rule: the first `["p", ...]` tag pubkey must be whitelisted while the ephemeral author is deliberately unchecked; publishing an EVENT requires no NIP-42 AUTH, but reading kind-1059 DOES require it, with the filter's `#p` force-rewritten to the authed pubkey — a session can only ever read its own inbox (`SECURITY_OVERVIEW.md` Anonymous Website Ingress section).
+- Admission is mode-dependent: the consumed kit checks session authentication before recipient admission, requiring AUTH in `nip42` mode; configured ingress or a whitelist row can admit the recipient. The operator document's unconditional no-AUTH/whitelist-only wording is stale. The prior panel recorded successful Worker deploy run `41028875471` on 30 October, with credential checks for search and relay but no auth-secret receipt. That observation remains historical; this pass reads configuration and does not redeploy or recheck Worker secrets.
 - Federation posture: single relay today; kind 1059 is already in `dreamlab.toml [mesh].federated_kinds` (see DW-03), so this surface is "federation-ready by construction" though the mesh transport itself is designed, not shipped.
 
 ## DW-04.6 Admin identity resolution — three layers
@@ -118,12 +127,20 @@ flowchart TB
 ## DW-04.9 The website-info identity — labelled, never privileged (ADR-2011)
 ```mermaid
 flowchart TB
-    KEY["monitor key 4ed429aa...aad7<br/>VITE_MONITOR_PUBKEY, .github/workflows/deploy.yml:80"] --> COPY["receives every contact, signup and chat copy<br/>publishMonitorCopy, src/lib/nostr.ts:352"]
-    KEY --> ROSTER["[[agents]] website-info with cohorts = []<br/>forum-config/dreamlab.toml:407-412"]
-    KEY --> INGRESS["[[ingress]] role copy, admitted with no whitelist row<br/>forum-config/dreamlab.toml:435-440"]
-    KEY --> REG["agent_registry row via register, not provision<br/>scripts/seed/provision-website-info.mjs:102"]
-    REG --> GUARD["privilegeProblem refuses any cohort or admin right<br/>scripts/lib/website-info.mjs:100-109"]
+    %% Source: ../dreamlab-ai-website/.github/workflows/deploy.yml:80
+    A["Configured monitor identity"]
+    %% Source: ../dreamlab-ai-website/src/lib/nostr.ts:352
+    A --> B["Best-effort contact, signup and chat copies"]
+    %% Source: ../dreamlab-ai-website/forum-config/dreamlab.toml:407
+    A --> C["website-info roster has empty cohorts"]
+    %% Source: ../dreamlab-ai-website/forum-config/dreamlab.toml:435
+    A --> D["Ingress copy role admits addressed wraps<br/>without requiring a whitelist row"]
+    %% Source: ../dreamlab-ai-website/scripts/seed/provision-website-info.mjs:97
+    A --> E["Setup skips registration if public<br/>disclosure already lists the key"]
+    %% Source: ../dreamlab-ai-website/scripts/lib/website-info.mjs:100
+    A --> F["Setup checks reject admin flag<br/>or nonempty cohort array"]
 ```
 - ADR-2011 decides the key is named but unprivileged because the `agent` cohort would receive the zone4 key (`docs/adr/ADR-2011-website-information-identity.md:35-37`); the relay reads only wraps addressed to the viewer, which is why a co-recipient copy exists rather than a second look at the admin's (`src/lib/nostr.ts:342-347`).
 - **Open:** the registry's `registered_by` is the agentbox operator key that signs the registration while the roster says `operator-jjohare`; ADR-2011 leaves that gap open until the kit exports config to the registry (`docs/adr/ADR-2011-website-information-identity.md:56-57`).
-- **Debt:** the registry row and the whitelist row are both lost on `POST /api/admin/reset-db`, and only the nightly watch reports it (`docs/adr/ADR-2011-website-information-identity.md:58`, `scripts/seed/provision-website-info.mjs:19-20`).
+- **Drift:** ADR-2011 says the watch reports missing registry/whitelist rows, but configuration-backed ingress and merged disclosure can keep its checks green after row loss. The provisioner also skips registration when that merged response lists the key (`scripts/seed/provision-website-info.mjs:97`). DW-09 and the [dated review](../../estate-review/2026-11-01-website-information-and-inbox.md) trace the consumed kit and reproduce the consumer behaviour.
+- The old cryptographic-impossibility wording in DW-04.5 was too broad: current NIP-59 recommends recipient-authorised deletion, whereas the inspected kit deletion handler permits author matching or privileged deletion. The dated review separates protocol capability from this implementation; no deletion was executed.

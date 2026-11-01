@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_182 topic files, 1611 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_183 topic files, 1616 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -325,6 +325,7 @@ _182 topic files, 1611 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | DW-06 | [Content pipeline, ADR/security-doc inventory and the invariants register](dreamlab-ai-website/06-content-pipeline-and-invariants-register.md) | 7 | sequenceDiagram, flowchart | [BASELINE-architecture.md](../../../dreamlab-ai-website/docs/BASELINE-architecture.md), [IDENTITY-zones.md](../../../dreamlab-ai-website/docs/IDENTITY-zones.md) | ADR-2001, ADR-2002, ADR-2003, ADR-2004, ADR-2005, ADR-2006, ADR-2007, ADR-2008, ADR-2011 |
 | DW-07 | [Forum provisioning, seeding, embeddings, backup and migration tooling](dreamlab-ai-website/07-forum-provisioning-and-seeding.md) | 6 | flowchart, sequenceDiagram | [BASELINE-architecture.md](../../../dreamlab-ai-website/docs/BASELINE-architecture.md) | ADR-2005 |
 | DW-08 | [Nightly SEO watch — receipts, advice and proposal boundaries](dreamlab-ai-website/08-nightly-seo-watch.md) | 6 | flowchart | [ADR-2010-seo-watch-nightly.md](../../../dreamlab-ai-website/docs/adr/ADR-2010-seo-watch-nightly.md) | ADR-2010 |
+| DW-09 | [Website information identity — disclosure, monitoring and digest delivery](dreamlab-ai-website/09-information-identity-and-inbox.md) | 5 | flowchart | [ADR-2011-website-information-identity.md](../../../dreamlab-ai-website/docs/adr/ADR-2011-website-information-identity.md) | ADR-2011 |
 
 ### vowl-wasm
 

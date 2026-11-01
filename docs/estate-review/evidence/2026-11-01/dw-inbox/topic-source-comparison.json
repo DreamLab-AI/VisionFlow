@@ -1,0 +1,16 @@
+[
+  {
+    "topic": "04-identity-zones-and-security-posture.md",
+    "old_revision": "a67cb2a8d474f4ba2e79bdbf55fad2e87bfd7e98",
+    "new_revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "paths": 15,
+    "changed": []
+  },
+  {
+    "topic": "07-forum-provisioning-and-seeding.md",
+    "old_revision": "a67cb2a8d474f4ba2e79bdbf55fad2e87bfd7e98",
+    "new_revision": "b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5",
+    "paths": 27,
+    "changed": []
+  }
+]

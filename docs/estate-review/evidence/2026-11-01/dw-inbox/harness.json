@@ -1,0 +1,6 @@
+{
+  "vitest": "2.1.9",
+  "nostr-tools": "2.23.3",
+  "node": "v22.23.3",
+  "dependencies": "Existing website node_modules reused; no fresh install."
+}
