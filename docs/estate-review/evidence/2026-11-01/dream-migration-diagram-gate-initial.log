@@ -1,0 +1,7 @@
+parsed 1 topic files, 2 mermaid diagrams
+cite-check: 0 warning(s)
+citations: 20 verified at the declared revision, 0 unverified (working-tree fallback), 0 unresolvable, 0 allowlisted (unverifiable)
+rendered 2/2 diagrams via pele
+
+1 error(s):
+  - dream-engine/05-migration-and-package-boundaries.md: 7 prose lines for 2 diagrams — this tree is diagrams-only (max 3 lines per diagram)

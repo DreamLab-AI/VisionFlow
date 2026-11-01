@@ -49,6 +49,8 @@ Dream-engine recovery continuation: [night recovery and source supply](2026-11-0
 
 Dream-engine publication continuation: [forge and seam contracts](2026-11-01-dream-forge-and-seam-contracts.md), assessing DE-005/006, AB-23.6 and three new DE-04 panels with 61 passing tests. Seven local engine decisions now have section assessments; two decisions and nineteen AB-23 panels remain.
 
+Dream-engine migration continuation: [migration and provenance](2026-11-01-dream-migration-and-provenance.md) assesses DE-001/002, AB-23.3 and two new DE-05 panels. All nine local engine decisions now have dated section assessments with open findings. Twenty existing tests pass; a direct seven-case old/new comparison exposes four whitespace differences. Eighteen other AB-23 panels and the nested corpus remain queued.
+
 ## Reading order
 
 | Document | Question it answers |

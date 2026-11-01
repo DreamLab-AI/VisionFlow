@@ -1,0 +1,367 @@
+{
+  "date": "2026-11-01",
+  "inputs": [
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "Cargo.toml",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "4ea2065e1cb104e1c87295eb16e5ce2fd67eb18794eedc70651bb1ca4ae4571f",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "Cargo.lock",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "9a0e9783c31c813276a6ae0c0d9b1ae3b2ba68456def6ca55c530c6662f8fb88",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "deny.toml",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "40e3c0f1f2e92316b42a457c6a32e8a09f9f9a46bb1230dc3b9fad8dc8b5c6d7",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "NOTICE",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "fb9f49975a178d0fc697dd002bcce75985be5406d0ac880696acabb7262e6d74",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": ".github/workflows/ci.yml",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "8ccda94be79faee1dbfd56300f5818394dde003d4cefec4a372ee17d72ab4353",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "docs/adr/ADR-DE-001-standalone-rust-engine.md",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "e726c7f46674d60c835059ce8a01f04c493cf5b20a3da7c490468bda1fb6d94f",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true,
+      "headings": [
+        {
+          "line": 13,
+          "text": "# ADR-DE-001 \u2014 A standalone Rust engine replaces the TypeScript fork"
+        },
+        {
+          "line": 15,
+          "text": "## Context"
+        },
+        {
+          "line": 23,
+          "text": "## Decision"
+        },
+        {
+          "line": 34,
+          "text": "## Consequences"
+        }
+      ]
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "docs/adr/ADR-DE-002-licence-and-provenance.md",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "f85d78b8ce20f2e00f6a0580ca2a54345c74aaa788564c644726b06aa1fe9745",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true,
+      "headings": [
+        {
+          "line": 13,
+          "text": "# ADR-DE-002 \u2014 Licence and provenance"
+        },
+        {
+          "line": 15,
+          "text": "## Context"
+        },
+        {
+          "line": 21,
+          "text": "## Decision"
+        },
+        {
+          "line": 38,
+          "text": "## Consequences"
+        }
+      ]
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "docs/guide/migrating-from-the-ts-fork.md",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "ac1ba8db39e4b94015ef11abb3ef20882d2ca07d0bf9240d8229f44ef58397f8",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "docs/COMPARISON.md",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "d960885d10e62579e46fc351ef4c49e612ac65ef5e60350ec63c442fc05bdf9a",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "docs/diagrams/crates/01-crate-dependency-dag-and-the-licence-boundary.md",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "f11373f876b11101293e7a2576b5279190816c93973120394975590250578ac9",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "crates/dream-core/tests/ts_parity.rs",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "68ca41a62bc187aa354d70b205b37ca812031fa8e15d22920cfdf887d455b48f",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "crates/dream-core/src/ledger/read.rs",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "63fb8795f8489e575233f1b1b4b12fff4091740917e9e508e06039a158ba37b2",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "crates/dream-core/src/lib.rs",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "2eaab150690f318cf48327aa2b4791b90c50f7b7e4514324d8a60c7ca2ef8791",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "crates/dream-gate/src/lib.rs",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "98e745372c8a7cb3836db354fcb254338a6f0dee1a09b6b3d025fd50c711afb7",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "crates/dream-gate/src/verdict.rs",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "cef8da6ae95fcf447a180394240d86fbc48f69ee70918b25c036882234e8c6a8",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "crates/dream-cli/src/lib.rs",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "351116c718c501295bb38787c115614d046e2fd6482e93021a5adb633aadd33e",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "tests/heldout/ts-parity/derive_expected.py",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "e05342442b7694cc31443cef0d2a0f4eb394d57007dc133dac624afade17c5e4",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "crates/dream-cli/Cargo.toml",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "507210370fcbe5a5c0723a7c732394ab22a1883af936dfec639c4563b6b6e003",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "crates/dream-core/Cargo.toml",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "39e5a6c671a080d0fa53d841358a314fc5f77a73d72614d6d6b7c851bb2c0535",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "crates/dream-gate/Cargo.toml",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "13430af5ede5977f47ba08a7523d49837182e0417d603f398940c273ecee6715",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "crates/pairwise-gate/Cargo.toml",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "c7971700e6da85be85414c60b2bb16a2b7a8d731c1d7d5aa4420710ea0e1bd09",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "crates/failure-fingerprint/Cargo.toml",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "da479d03cf4754e9e100d1bff4cb4c2089cbe3bdca8c9954a4fcc524ecf4616d",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/project/agentbox",
+      "path": "services/dream-engine/Cargo.toml",
+      "head": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+      "sha256": "051ace1c8d144fe0b2b11b82ee7cc5c940fae0c3cce2afdf4d4fd14615107288",
+      "matches_head": true,
+      "existing_diagram_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/project/agentbox",
+      "path": "services/dream-engine/Cargo.lock",
+      "head": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+      "sha256": "85dd2ec34d16c81ffa7710ad9f985a563cecc33332593a789d1d283198d2e248",
+      "matches_head": true,
+      "existing_diagram_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/project/agentbox",
+      "path": "services/dream-engine/src/lib.rs",
+      "head": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+      "sha256": "7f9ce4b8e0d1df4890833bb95bcccf98057d82050ed356fc4cb49651dddb3876",
+      "matches_head": true,
+      "existing_diagram_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/project/agentbox",
+      "path": "services/dream-engine/tests/night_e2e.rs",
+      "head": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+      "sha256": "0b7c11e76200dfce6257a38f1cd6c6947baf47edb560a5936a24acd5881e70d9",
+      "matches_head": true,
+      "existing_diagram_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/project/agentbox",
+      "path": "services/dream-engine/src/ruvector.rs",
+      "head": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+      "sha256": "ad36df458c9dd8359e9b0583f62eebc036d25b9e5ed5bc76c3fd1cee398fdd3c",
+      "matches_head": true,
+      "existing_diagram_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/project/agentbox",
+      "path": "lib/dream-engine.nix",
+      "head": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+      "sha256": "a5abc64dcc920ba5f9831c0d8d2eaaee1ae705f5e2c936423522f44e44649155",
+      "matches_head": true,
+      "existing_diagram_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/project/agentbox",
+      "path": "docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md",
+      "head": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+      "sha256": "a75c49a0a28f90edf53e2010ee851f557f7f9294f081503fe3e201bce85573c1",
+      "matches_head": true,
+      "existing_diagram_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+      "matches_existing_pin": true,
+      "headings": [
+        {
+          "line": 17,
+          "text": "# ADR-2141 \u2014 Extract the dream engine core into a standalone permissive repo"
+        },
+        {
+          "line": 19,
+          "text": "## Context"
+        },
+        {
+          "line": 25,
+          "text": "## Decision"
+        },
+        {
+          "line": 33,
+          "text": "## Consequences"
+        },
+        {
+          "line": 42,
+          "text": "## Verification"
+        },
+        {
+          "line": 45,
+          "text": "## Activation evidence (2026-10-16)"
+        },
+        {
+          "line": 49,
+          "text": "## Re-verification \u2014 2026-10-17 (0.2.0 adopted; one module added)"
+        },
+        {
+          "line": 53,
+          "text": "## Re-verification \u2014 2026-10-23 (0.3.0 adopted; the Pinning bullet is superseded in fact)"
+        }
+      ]
+    },
+    {
+      "repository": "/home/devuser/workspace/project/agentbox",
+      "path": "docs/developer/dream-engine-extraction-ledger.md",
+      "head": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+      "sha256": "41e2276abe9a69d9be698fb3651a806256ff67fb35ca7ac01c1bb824005bf533",
+      "matches_head": true,
+      "existing_diagram_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-machine",
+      "path": "packages/ledger/src/rowContract.ts",
+      "head": "b77093e564ef689923fb523b0e0b18d2bb4a21a4",
+      "sha256": "b9e2972d5e9d42b37882611fc80f05fdb9d19ffd986914560bcfc8cb0f9d1b65",
+      "matches_head": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-machine",
+      "path": "packages/ledger/package.json",
+      "head": "b77093e564ef689923fb523b0e0b18d2bb4a21a4",
+      "sha256": "385d70e379e2d9576c79d67bd20f278996cb0c425e4f32e498873d11f9adebdd",
+      "matches_head": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-machine",
+      "path": "packages/witness/src/index.ts",
+      "head": "b77093e564ef689923fb523b0e0b18d2bb4a21a4",
+      "sha256": "6eae144d97ccbdb15472fe53ca03dc3a2b0a83a37932814ccca85b1a553d0d3f",
+      "matches_head": true
+    }
+  ],
+  "scope": "Files identify evidence inputs; report specifies sections assessed. ADR-2141 and its extraction ledger are host context, not a completed whole-host review."
+}

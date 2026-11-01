@@ -1,0 +1,42 @@
+[
+  {
+    "command": [
+      "inspect-text",
+      "docs/estate-review/2026-11-01-dream-migration-and-provenance.md"
+    ],
+    "exit": 0,
+    "stdout": "Length: 16407 chars\nSuspicious: 0\nNote: Layer A only: invisible/format Unicode, smuggled payloads and homoglyphs (edit-based carriers).\nNote: Statistical (token-sampling) watermarks are not detectable here; use Layer B rewrite.\nNote: Inspect kinds: strip, bidi, tag_chars, variation_selector, zwj_family, private_use, reserved_ignorable, noncharacter, space, confusable, other_cf.\nNote: Load-bearing invisibles are preserved by default: emoji glue (ZWJ/VS after an emoji base), script joiners (ZWNJ/ZWJ inside complex scripts), RGI flag tag sequences, same-script fillers/selectors (Mongolian FVS, Khmer inherent vowels, Hangul jamo and blank fillers), visible-layout format controls next to their own script (Egyptian quadrat, Duployan shorthand, musical beam/tie/slur), orthographic Arabic/Syriac Cf marks, and balanced bidi controls in text that contains RTL script. Use --strip-emoji-glue for paranoid mode (strips them all).\nNote: Homoglyphs are judged by UTS #39 skeleton plus mixed-script and Identifier_Status context, not by a hand-written table; see the `confusables` module for the one documented gap.\nNote: No deterministic Layer A (invisible Unicode/format) carriers detected; statistical and pixel-domain marks are out of scope here.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "slop-scan",
+      "docs/estate-review/2026-11-01-dream-migration-and-provenance.md",
+      "--severity",
+      "high"
+    ],
+    "exit": 1,
+    "stdout": "\n  prose-sanitiser slop scan: docs/estate-review/2026-11-01-dream-migration-and-provenance.md\n  files scanned: 1   findings: 2   slop score: 6\n  verdict: Some AI tells present\n  high: 2   medium: 0   low: 0\n\n  [HIGH] \"The X\" sentence/paragraph opener  (1 hit)\n        fix: Don't open with 'The <lowercase noun>'. Recast so the subject leads, or name the thing directly ('The production-node paired study lifts...' -> 'Holding the model constant and varying only the serving path lifts...'). Proper nouns (The Loom) are fine. See SKILL.md B2.\n        docs/estate-review/2026-11-01-dream-migration-and-provenance.md:10  The extracted engine and its consuming adapter agree on the Rust source of the four consumed engine crates. That does not establish complete migration parity: e...\n\n  [HIGH] Tier-1 banned vocabulary  (1 hit)\n        fix: Replace with a plain word (delve->look at, leverage->use, robust->solid, seamless->smooth, utilise->use). See SKILL.md B4.\n        docs/estate-review/2026-11-01-dream-migration-and-provenance.md:79  ...thub.com/Human-Agent-Society/reef) describes both model-weight training and harness optimisation, with interactions and feedback feeding selection and versioned...\n\n  Top things to change: \"The X\" sentence/paragraph opener; Tier-1 banned vocabulary\n  Narrative and voice tells need eyes too. See Section C of SKILL.md.\n\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "inspect-text",
+      "docs/estate-review/evidence/2026-11-01/dream-migration-reproduction.md"
+    ],
+    "exit": 0,
+    "stdout": "Length: 5850 chars\nSuspicious: 0\nNote: Layer A only: invisible/format Unicode, smuggled payloads and homoglyphs (edit-based carriers).\nNote: Statistical (token-sampling) watermarks are not detectable here; use Layer B rewrite.\nNote: Inspect kinds: strip, bidi, tag_chars, variation_selector, zwj_family, private_use, reserved_ignorable, noncharacter, space, confusable, other_cf.\nNote: Load-bearing invisibles are preserved by default: emoji glue (ZWJ/VS after an emoji base), script joiners (ZWNJ/ZWJ inside complex scripts), RGI flag tag sequences, same-script fillers/selectors (Mongolian FVS, Khmer inherent vowels, Hangul jamo and blank fillers), visible-layout format controls next to their own script (Egyptian quadrat, Duployan shorthand, musical beam/tie/slur), orthographic Arabic/Syriac Cf marks, and balanced bidi controls in text that contains RTL script. Use --strip-emoji-glue for paranoid mode (strips them all).\nNote: Homoglyphs are judged by UTS #39 skeleton plus mixed-script and Identifier_Status context, not by a hand-written table; see the `confusables` module for the one documented gap.\nNote: No deterministic Layer A (invisible Unicode/format) carriers detected; statistical and pixel-domain marks are out of scope here.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "slop-scan",
+      "docs/estate-review/evidence/2026-11-01/dream-migration-reproduction.md",
+      "--severity",
+      "high"
+    ],
+    "exit": 1,
+    "stdout": "\n  prose-sanitiser slop scan: docs/estate-review/evidence/2026-11-01/dream-migration-reproduction.md\n  files scanned: 1   findings: 2   slop score: 6\n  verdict: Some AI tells present\n  high: 2   medium: 0   low: 0\n\n  [HIGH] Tier-1 banned vocabulary  (1 hit)\n        fix: Replace with a plain word (delve->look at, leverage->use, robust->solid, seamless->smooth, utilise->use). See SKILL.md B4.\n        docs/estate-review/evidence/2026-11-01/dream-migration-reproduction.md:13  ...ish the declared minimum compiler version or live host acceptance. The host harness keeps fixture directories containing its transport shims and logs; they are ...\n\n  [HIGH] \"The X\" sentence/paragraph opener  (1 hit)\n        fix: Don't open with 'The <lowercase noun>'. Recast so the subject leads, or name the thing directly ('The production-node paired study lifts...' -> 'Holding the model constant and varying only the serving path lifts...'). Proper nouns (The Loom) are fine. See SKILL.md B2.\n        docs/estate-review/evidence/2026-11-01/dream-migration-reproduction.md:38  The first package-list attempt refused the untracked export; [initial evidence](dream-migration-package-lists-initial.json) is retained. The final invocation pe...\n\n  Top things to change: Tier-1 banned vocabulary; \"The X\" sentence/paragraph opener\n  Narrative and voice tells need eyes too. See Section C of SKILL.md.\n\n",
+    "stderr": ""
+  }
+]

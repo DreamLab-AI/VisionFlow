@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_179 topic files, 1594 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_180 topic files, 1596 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -387,6 +387,7 @@ _179 topic files, 1594 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | DE-02 | [Candidate formatting, gate inputs and retained evidence](dream-engine/02-candidate-and-evidence-boundaries.md) | 4 | flowchart | [ADR-DE-003-protected-path-guard.md](../../../dream-engine/docs/adr/ADR-DE-003-protected-path-guard.md), [ADR-DE-004-pairwise-selection-and-fingerprints.md](../../../dream-engine/docs/adr/ADR-DE-004-pairwise-selection-and-fingerprints.md), [ADR-DE-009-candidates-are-formatted-before-the-gate.md](../../../dream-engine/docs/adr/ADR-DE-009-candidates-are-formatted-before-the-gate.md) | dream-engine:ADR-DE-003, dream-engine:ADR-DE-004, dream-engine:ADR-DE-009 |
 | DE-03 | [Night recovery and requested-source accounting](dream-engine/03-recovery-and-source-supply.md) | 3 | flowchart | [ADR-DE-007-a-night-is-identified-by-its-directory.md](../../../dream-engine/docs/adr/ADR-DE-007-a-night-is-identified-by-its-directory.md), [ADR-DE-008-requested-sources-are-honoured-first.md](../../../dream-engine/docs/adr/ADR-DE-008-requested-sources-are-honoured-first.md) | dream-engine:ADR-DE-007, dream-engine:ADR-DE-008 |
 | DE-04 | [Host seam contracts and publication policy](dream-engine/04-forge-and-seam-contracts.md) | 3 | flowchart | [ADR-DE-005-seams.md](../../../dream-engine/docs/adr/ADR-DE-005-seams.md), [ADR-DE-006-automerge-is-an-option.md](../../../dream-engine/docs/adr/ADR-DE-006-automerge-is-an-option.md) | dream-engine:ADR-DE-005, dream-engine:ADR-DE-006 |
+| DE-05 | [Migration evidence and package boundaries](dream-engine/05-migration-and-package-boundaries.md) | 2 | flowchart | [ADR-DE-001-standalone-rust-engine.md](../../../dream-engine/docs/adr/ADR-DE-001-standalone-rust-engine.md), [ADR-DE-002-licence-and-provenance.md](../../../dream-engine/docs/adr/ADR-DE-002-licence-and-provenance.md) | dream-engine:ADR-DE-001, dream-engine:ADR-DE-002 |
 
 ### visiontouch-rs
 

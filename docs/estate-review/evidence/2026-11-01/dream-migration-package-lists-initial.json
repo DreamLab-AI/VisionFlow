@@ -1,0 +1,87 @@
+[
+  {
+    "crate": "dream-cli",
+    "command": [
+      "cargo",
+      "package",
+      "--manifest-path",
+      ".audit-source/Cargo.toml",
+      "--offline",
+      "--locked",
+      "--list",
+      "-p",
+      "dream-cli"
+    ],
+    "exit": 101,
+    "files": [],
+    "stderr": "error: 8 files in the working directory contain changes that were not yet committed into git:\n\n.audit-source/Cargo.toml\n.audit-source/crates/dream-cli/Cargo.toml\n.audit-source/crates/dream-cli/LICENSE-APACHE\n.audit-source/crates/dream-cli/LICENSE-MIT\n.audit-source/crates/dream-cli/README.md\n.audit-source/crates/dream-cli/src/lib.rs\n.audit-source/crates/dream-cli/src/main.rs\n.audit-source/crates/dream-cli/tests/cli.rs\n\nto proceed despite this and include the uncommitted changes, pass the `--allow-dirty` flag\n"
+  },
+  {
+    "crate": "dream-core",
+    "command": [
+      "cargo",
+      "package",
+      "--manifest-path",
+      ".audit-source/Cargo.toml",
+      "--offline",
+      "--locked",
+      "--list",
+      "-p",
+      "dream-core"
+    ],
+    "exit": 101,
+    "files": [],
+    "stderr": "error: 38 files in the working directory contain changes that were not yet committed into git:\n\n.audit-source/Cargo.toml\n.audit-source/crates/dream-core/Cargo.toml\n.audit-source/crates/dream-core/LICENSE-APACHE\n.audit-source/crates/dream-core/LICENSE-MIT\n.audit-source/crates/dream-core/README.md\n.audit-source/crates/dream-core/src/automerge.rs\n.audit-source/crates/dream-core/src/candidate.rs\n.audit-source/crates/dream-core/src/compile.rs\n.audit-source/crates/dream-core/src/context.rs\n.audit-source/crates/dream-core/src/git.rs\n.audit-source/crates/dream-core/src/ledger.rs\n.audit-source/crates/dream-core/src/ledger/read.rs\n.audit-source/crates/dream-core/src/lib.rs\n.audit-source/crates/dream-core/src/persist.rs\n.audit-source/crates/dream-core/src/readiness.rs\n.audit-source/crates/dream-core/src/replay.rs\n.audit-source/crates/dream-core/src/roster.rs\n.audit-source/crates/dream-core/src/runner.rs\n.audit-source/crates/dream-core/src/runstate.rs\n.audit-source/crates/dream-core/src/screen.rs\n.audit-source/crates/dream-core/src/seams.rs\n.audit-source/crates/dream-core/src/source.rs\n.audit-source/crates/dream-core/src/streak.rs\n.audit-source/crates/dream-core/src/sweep.rs\n.audit-source/crates/dream-core/src/testfmt.rs\n.audit-source/crates/dream-core/tests/fixtures/dream.config.visionflow-style.json\n.audit-source/crates/dream-core/tests/fixtures/journals/old-complete-accept.json\n.audit-source/crates/dream-core/tests/fixtures/journals/old-complete-blocked-env.json\n.audit-source/crates/dream-core/tests/fixtures/journals/old-complete-inconclusive.json\n.audit-source/crates/dream-core/tests/fixtures/journals/old-complete-reject.json\n.audit-source/crates/dream-core/tests/fixtures/journals/old-initialised-none.json\n.audit-source/crates/dream-core/tests/fixtures/journals/old-manifest-frozen-none.json\n.audit-source/crates/dream-core/tests/fixtures/testfmt/junit-vitest.xml\n.audit-source/crates/dream-core/tests/fixtures/testfmt/libtest-fail-backtrace.txt\n.audit-source/crates/dream-core/tests/fixtures/testfmt/libtest-fail.txt\n.audit-source/crates/dream-core/tests/fixtures/testfmt/libtest-pass.txt\n.audit-source/crates/dream-core/tests/fixtures/testfmt/vitest.json\n.audit-source/crates/dream-core/tests/screen.rs\n\nto proceed despite this and include the uncommitted changes, pass the `--allow-dirty` flag\n"
+  },
+  {
+    "crate": "dream-gate",
+    "command": [
+      "cargo",
+      "package",
+      "--manifest-path",
+      ".audit-source/Cargo.toml",
+      "--offline",
+      "--locked",
+      "--list",
+      "-p",
+      "dream-gate"
+    ],
+    "exit": 101,
+    "files": [],
+    "stderr": "error: 18 files in the working directory contain changes that were not yet committed into git:\n\n.audit-source/Cargo.toml\n.audit-source/crates/dream-gate/Cargo.toml\n.audit-source/crates/dream-gate/LICENSE-APACHE\n.audit-source/crates/dream-gate/LICENSE-MIT\n.audit-source/crates/dream-gate/README.md\n.audit-source/crates/dream-gate/src/config.rs\n.audit-source/crates/dream-gate/src/gate.rs\n.audit-source/crates/dream-gate/src/guard.rs\n.audit-source/crates/dream-gate/src/lib.rs\n.audit-source/crates/dream-gate/src/manifest.rs\n.audit-source/crates/dream-gate/src/outcome.rs\n.audit-source/crates/dream-gate/src/patch.rs\n.audit-source/crates/dream-gate/src/pertest.rs\n.audit-source/crates/dream-gate/src/receipts.rs\n.audit-source/crates/dream-gate/src/verdict.rs\n.audit-source/crates/dream-gate/src/witness.rs\n.audit-source/crates/dream-gate/tests/adr_template.rs\n.audit-source/crates/dream-gate/tests/config_ts_parity.rs\n\nto proceed despite this and include the uncommitted changes, pass the `--allow-dirty` flag\n"
+  },
+  {
+    "crate": "failure-fingerprint",
+    "command": [
+      "cargo",
+      "package",
+      "--manifest-path",
+      ".audit-source/Cargo.toml",
+      "--offline",
+      "--locked",
+      "--list",
+      "-p",
+      "failure-fingerprint"
+    ],
+    "exit": 101,
+    "files": [],
+    "stderr": "error: 6 files in the working directory contain changes that were not yet committed into git:\n\n.audit-source/Cargo.toml\n.audit-source/crates/failure-fingerprint/Cargo.toml\n.audit-source/crates/failure-fingerprint/LICENSE-APACHE\n.audit-source/crates/failure-fingerprint/LICENSE-MIT\n.audit-source/crates/failure-fingerprint/README.md\n.audit-source/crates/failure-fingerprint/src/lib.rs\n\nto proceed despite this and include the uncommitted changes, pass the `--allow-dirty` flag\n"
+  },
+  {
+    "crate": "pairwise-gate",
+    "command": [
+      "cargo",
+      "package",
+      "--manifest-path",
+      ".audit-source/Cargo.toml",
+      "--offline",
+      "--locked",
+      "--list",
+      "-p",
+      "pairwise-gate"
+    ],
+    "exit": 101,
+    "files": [],
+    "stderr": "error: 11 files in the working directory contain changes that were not yet committed into git:\n\n.audit-source/Cargo.toml\n.audit-source/crates/pairwise-gate/Cargo.toml\n.audit-source/crates/pairwise-gate/LICENSE-APACHE\n.audit-source/crates/pairwise-gate/LICENSE-MIT\n.audit-source/crates/pairwise-gate/README.md\n.audit-source/crates/pairwise-gate/src/lib.rs\n.audit-source/crates/pairwise-gate/src/model.rs\n.audit-source/crates/pairwise-gate/src/policy.rs\n.audit-source/crates/pairwise-gate/src/stats.rs\n.audit-source/crates/pairwise-gate/tests/props.rs\n.audit-source/crates/pairwise-gate/tests/reference.rs\n\nto proceed despite this and include the uncommitted changes, pass the `--allow-dirty` flag\n"
+  }
+]

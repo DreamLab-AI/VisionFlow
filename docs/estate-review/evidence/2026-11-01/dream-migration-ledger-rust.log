@@ -1,0 +1,3 @@
+   Compiling dream-core v0.4.0 (/home/devuser/workspace/wt/VisionFlow-dream-migration-provenance/.audit-source/crates/dream-core)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.35s
+     Running `.audit-target/debug/examples/migration_ledger_probe`

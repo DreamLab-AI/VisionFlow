@@ -29,6 +29,7 @@ sources:
   - ../project/agentbox/services/agentbox-manifest/src/system_one.rs
   - ../project/agentbox/docs/adr/ADR-2155-system-one-consumer-activation.md
   - ../project/agentbox/services/dream-engine/Cargo.toml
+  - ../project/agentbox/services/dream-engine/src/lib.rs
   - ../project/agentbox/dream.config.json
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/flake.nix
@@ -69,6 +70,8 @@ sources:
   - ../dream-engine/crates/dream-core/src/runner.rs
   - ../dream-engine/crates/dream-core/src/automerge.rs
   - ../dream-engine/crates/dream-core/src/lib.rs
+  - ../dream-engine/crates/dream-core/Cargo.toml
+  - ../dream-engine/crates/dream-gate/Cargo.toml
   - ../dream-engine/crates/dream-gate/src/gate.rs
   - ../dream-engine/crates/dream-gate/src/guard.rs
   - ../dream-engine/crates/dream-gate/src/manifest.rs
@@ -241,50 +244,27 @@ sequenceDiagram
 
 ```mermaid
 flowchart TB
-    subgraph adapter["agentbox/services/dream-engine, AGPL-3.0-only (the adapter)"]
-        direction TB
-        E1["engine.rs, the composition root<br/>agentbox/services/dream-engine/src/engine.rs:95"]
-        E2["estate.rs, every estate default as an explicit parameter<br/>agentbox/services/dream-engine/src/estate.rs:21"]
-        E3["candidate_flow.rs, the ONLY caller of candidate::run<br/>agentbox/services/dream-engine/src/candidate_flow.rs:100"]
-        E4["policy.rs, the night's single protected-path policy<br/>agentbox/services/dream-engine/src/policy.rs:107"]
-        E5["judge.rs, the one way to judge a night<br/>agentbox/services/dream-engine/src/judge.rs:36"]
-        E6["llm.rs, the Z.AI and Loom clients as the Llm seam<br/>agentbox/services/dream-engine/src/llm.rs:49"]
-        E7["runner.rs SshRunner, dispatch.rs, ruvector.rs, notify.rs<br/>agentbox/services/dream-engine/src/runner.rs:34"]
-        E8["governance.rs, relay.rs, inbox.rs, digest.rs, zone_crypto.rs<br/>the forum drivers, linked to nostr-bbs-core"]
-        E9["journal.rs, prompt.rs, records.rs, present.rs, baseline.rs, config.rs"]
-        E10["wanted.rs, the source-request store, and jev_triage.rs, the opt-in hypothesis annotation<br/>agentbox/services/dream-engine/src/wanted.rs:1, agentbox/services/dream-engine/src/jev_triage.rs:1"]
-    end
-    subgraph core["DreamLab-AI/dream-engine, MIT OR Apache-2.0 (public, five crates, dream-core 0.4.0 and dream-gate 0.3.0)"]
-        direction TB
-        C1["dream-core: runner, ledger, readiness, runstate and NightLock, roster, sweep, compile,<br/>source, context, candidate, persist, seams, testfmt, streak, replay, automerge, screen<br/>dream-core/src/lib.rs:1"]
-        C2["dream-gate: verdict, manifest, receipts, witness, gate, guard, patch, outcome, config schema<br/>dream-gate/src/lib.rs:1"]
-        C3["pairwise-gate and failure-fingerprint, leaf crates<br/>pairwise-gate/src/lib.rs:1"]
-        C4["dream-cli, a thin shell over the core<br/>dream-cli/src/lib.rs:1"]
-    end
-    E1 -->|"registry dependency, exact pin"| C1
-    E1 -->|"registry dependency, exact pin"| C2
-    C1 --> C2
-    C2 --> C3
-    C4 --> C1
-    E6 -.->|"implements the Llm seam"| C1
-    E7 -.->|"implements EvaluatorRunner, MemorySink and Notifier"| C1
-    BARRIER["INVARIANT: the adapter depends on the core and never the reverse. zone_crypto is never published<br/>and the adapter links nostr-bbs-core, which is why it stays AGPL-3.0-only<br/>agentbox/services/dream-engine/Cargo.toml:8"]
-    E8 --- BARRIER
-    STAMP["RESOLVED: the extraction is live (ADR-2141 activation live), agentbox stamped at 1da8d2171,<br/>dream-engine at 61581d3 whose workspace version is 0.4.0"]
-    BARRIER --- STAMP
+    AD["Agentbox adapter, AGPL-3.0-only<br/>services/dream-engine/Cargo.toml:8"] --> MODULES["Host orchestration, providers, transport,<br/>memory and forum modules<br/>services/dream-engine/src/lib.rs:25"]
+    MODULES --> ENVELOPE["zone_crypto remains an adapter module<br/>services/dream-engine/src/lib.rs:54"]
+    AD --> PIN["Exact registry dependencies<br/>core 0.4.0 and gate 0.3.0<br/>services/dream-engine/Cargo.toml:26"]
+    PIN --> CORE["dream-core: host-driven loop mechanisms<br/>dream-core/src/lib.rs:3"]
+    PIN --> GATE["dream-gate: judgement and evidence types<br/>dream-gate/src/lib.rs:3"]
+    CORE --> GATE
+    GATE --> PAIR["pairwise-gate<br/>crates/dream-gate/Cargo.toml:23"]
+    GATE --> FP["failure-fingerprint<br/>crates/dream-gate/Cargo.toml:24<br/>crates/dream-core/Cargo.toml:18"]
+    CORE --> FP
+    CLI["dream-cli: offline command checks<br/>dream-cli/src/lib.rs:3"] --> CORE
+    CLI --> GATE
+    AD --> POLICY["Written no-publication policy<br/>No publish=false field in adapter manifest<br/>services/dream-engine/Cargo.toml:4"]
 ```
 
-**What it shows.** Which modules stayed in the adapter and which moved. The line between them follows the licence: anything that links `nostr-bbs-core` or holds the private zone envelope stays under AGPL-3.0-only, and everything else is permissive and reusable by any repository.
+**What it shows.** The adapter imports the reusable engine and retains product-specific modules. Its exact pins resolve to one dream-gate version. The [migration/provenance audit](../../estate-review/2026-11-01-dream-migration-and-provenance.md) compares all 36 Rust source files in the four consumed crate releases and checks their cached archives against the consumer lockfile.
 
-**Why it is this way.** ADR-2141 chose the boundary so that the gate and the loop can be reviewed and versioned without the estate. The seams (`Llm`, `EvaluatorRunner`, `MemorySink`, `Notifier`, `Forge`) are implemented in the adapter and defined in `dream-core` (CRT-02 in the core corpus).
+**Why it is this way.** ADR-2141 separates the engine mechanism from host orchestration. That dependency boundary does not itself enforce the adapter's no-publication policy: offline Cargo metadata leaves publication unrestricted and the selected package files include zone_crypto. No package was uploaded.
 
-**Resolved (pin):** the two core crates are registry dependencies pinned `dream-core =0.4.0` and `dream-gate =0.3.0` (`../project/agentbox/services/dream-engine/Cargo.toml:26-27`), the lockfile carries their checksums, and ADR-2141 records that `lib/dream-engine.nix` needs no `outputHashes` because every dependency is a registry crate (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:31`). The image rebuild that bakes them in was done on 2026-10-16 (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:47`).
+**Open (publication control):** the adapter's manifest declares its licence and version but no publication restriction (`../project/agentbox/services/dream-engine/Cargo.toml:4`, `../project/agentbox/services/dream-engine/Cargo.toml:8`). Source placement and stated policy must not be presented as a registry guard.
 
-**Invariant:** both pins must stay on one `dream-gate` release, because a mismatch links two copies of `dream-gate` whose types would not unify (`../project/agentbox/services/dream-engine/Cargo.toml:22-27`).
-
-**Drift:** the record's Pinning bullet still names `=0.2.0` for both crates (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:31`) and its last re-verification stops at `=0.3.0` (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:55`), while the manifest pins `dream-core =0.4.0` (`../project/agentbox/services/dream-engine/Cargo.toml:26`); no activation receipt for the 0.4.0 image is in the record.
-
-**Resolved (CI):** the agentbox GitHub Actions run again, with CI, ShellCheck and Secret Scan green on 2026-10-29 (`gh run list`); the earlier gap since 2026-10-08 is closed.
+**Drift (activation evidence):** ADR-2141 records activation on 16 October and a later 0.3.0 re-verification (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:47`, `../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:55`). Current source pins core 0.4.0 (`../project/agentbox/services/dream-engine/Cargo.toml:26`); those historical records do not establish its current running image. The local tests in the dated audit use fixture services.
 
 ## AB-23.4 The guard ordering and the deterministic gate
 
@@ -1065,7 +1045,7 @@ sequenceDiagram
 
 ## Audit qualification — 2026-10-29
 
-1 November continuation: AB-23.7 and AB-23.21 were reassessed against matching current source and updated for recovery and source-supply limits. A later forge/seam pass also reassessed AB-23.6. The other nineteen panels remain separately queued; rendering this topic does not close their semantic review.
+1 November continuation: AB-23.7 and AB-23.21 were reassessed against matching current source and updated for recovery and source-supply limits. Later forge/seam and migration passes also reassessed AB-23.6 and AB-23.3. The other eighteen panels remain separately queued; rendering this topic does not close their semantic review.
 
 This topic describes the extraction as source at the stamped revisions. ADR-2141 records `implementation_status: complete` and `activation_status: live`: the operator rebuilt and activated the registry-pinned image on 2026-10-16 and the supervised daemon was RUNNING with no degradation (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:47`). The later pins (0.2.0, 0.3.0, 0.4.0) are source in `Cargo.toml`; the record carries activation evidence for 0.2.0 only (`../project/agentbox/docs/adr/ADR-2143-source-supply-is-plumbing-and-decisions-are-plain-english.md:35`).
 

@@ -1,0 +1,12 @@
+{
+  "test_counts": {
+    "dream-migration-ts-parity": 9,
+    "dream-migration-host-night-tests": 11
+  },
+  "local_links_checked": 24,
+  "differential_cases": 7,
+  "new_whitespace_differences": 4,
+  "retained_files_verified": 257,
+  "primary_dirty_paths_unchanged": 5,
+  "limits": "Only links in the new report, reproduction and DE-05 checked; whole estate semantic audit remains open."
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "id": "ascii",
+    "rules": []
+  },
+  {
+    "id": "utf16_limit",
+    "rules": [
+      "finding-too-long"
+    ]
+  },
+  {
+    "id": "bom_only",
+    "rules": []
+  },
+  {
+    "id": "next_line_only",
+    "rules": [
+      "finding-empty"
+    ]
+  },
+  {
+    "id": "bom_pointer",
+    "rules": []
+  },
+  {
+    "id": "next_line_pointer",
+    "rules": [
+      "finding-pointer"
+    ]
+  },
+  {
+    "id": "documented_veto_prefix",
+    "rules": [
+      "finding-hypothesis-leak"
+    ]
+  }
+]

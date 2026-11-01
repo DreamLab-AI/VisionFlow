@@ -51,7 +51,7 @@ flowchart TB
     DENY["Permissive workspace policy:<br/>licence allowlist and named crate bans<br/>../dream-engine/deny.toml:9-19<br/>../dream-engine/deny.toml:29-31"] --- DC
 ```
 
-**Invariant:** the five crates are one licence expression, `MIT OR Apache-2.0`, and the fence is physical because the code that signs Nostr events is not in this repository at all (`../dream-engine/Cargo.toml:8`, `../dream-engine/docs/adr/ADR-DE-002-licence-and-provenance.md:23-33`).
+**Invariant (declared dependency boundary):** the five crates declare `MIT OR Apache-2.0`; the adapter is outside the workspace (`../dream-engine/Cargo.toml:8`, `../dream-engine/docs/adr/ADR-DE-002-licence-and-provenance.md:23-33`). The [migration/provenance audit](../../estate-review/2026-11-01-dream-migration-and-provenance.md) verifies the current dependency direction and consumed source identity. This does not prove authorship or enforce the adapter’s prohibition on publication; Cargo package lists also omit the repository NOTICE from the five crates.
 
 ## DE-01.2 What is open, and where the estate still says otherwise
 

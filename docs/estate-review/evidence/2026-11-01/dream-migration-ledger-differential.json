@@ -1,0 +1,45 @@
+{
+  "cases": 7,
+  "agreements": 2,
+  "differences": [
+    {
+      "id": "bom_only",
+      "rust": [],
+      "typescript": [
+        "finding-empty"
+      ]
+    },
+    {
+      "id": "next_line_only",
+      "rust": [
+        "finding-empty"
+      ],
+      "typescript": []
+    },
+    {
+      "id": "bom_pointer",
+      "rust": [],
+      "typescript": [
+        "finding-pointer"
+      ]
+    },
+    {
+      "id": "next_line_pointer",
+      "rust": [
+        "finding-pointer"
+      ],
+      "typescript": []
+    },
+    {
+      "id": "documented_veto_prefix",
+      "rust": [
+        "finding-hypothesis-leak"
+      ],
+      "typescript": []
+    }
+  ],
+  "new_undocumented_differences": 4,
+  "documented_difference": "documented_veto_prefix",
+  "typescript_revision": "b77093e564ef689923fb523b0e0b18d2bb4a21a4",
+  "rust_revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e"
+}

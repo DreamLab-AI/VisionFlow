@@ -1,5 +1,7 @@
 # Diagram semantic-review queue — 31 October 2026
 
+1 November migration continuation: [dream-engine migration/provenance assessment](2026-11-01-dream-migration-and-provenance.md) updates AB-23.3, qualifies DE-01 and adds two DE-05 panels. Eighteen AB-23 panels remain. Nested CRT-01 owner findings do not close that corpus.
+
 1 November forge continuation: [dream-engine seam/publication assessment](2026-11-01-dream-forge-and-seam-contracts.md) updates AB-23.6 and adds three DE-04 panels. Nineteen AB-23 panels remain queued. Nested NIT-03/CRT-02 owner findings are recorded without closing that corpus.
 
 1 November recovery continuation: [dream-engine recovery/source assessment](2026-11-01-dream-recovery-and-source-supply.md) updates AB-23.7 and AB-23.21 and adds three DE-03 panels. The remaining twenty AB-23 panels and the nested engine corpus remain queued; the report records a finding against nested NIT-01.

@@ -1,0 +1,30 @@
+[
+  {
+    "id": "ascii",
+    "row": "| 2026-11-01 | audit | A concrete result | NONE | NONE | yes | REJECT | result | | |"
+  },
+  {
+    "id": "utf16_limit",
+    "row": "| 2026-11-01 | audit | \ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00 | NONE | NONE | yes | REJECT | result | | |"
+  },
+  {
+    "id": "bom_only",
+    "row": "| 2026-11-01 | audit | \ufeff | NONE | NONE | yes | REJECT | result | | |"
+  },
+  {
+    "id": "next_line_only",
+    "row": "| 2026-11-01 | audit | \u0085 | NONE | NONE | yes | REJECT | result | | |"
+  },
+  {
+    "id": "bom_pointer",
+    "row": "| 2026-11-01 | audit | x see\ufeffreport | NONE | NONE | yes | REJECT | result | | |"
+  },
+  {
+    "id": "next_line_pointer",
+    "row": "| 2026-11-01 | audit | x see\u0085report | NONE | NONE | yes | REJECT | result | | |"
+  },
+  {
+    "id": "documented_veto_prefix",
+    "row": "| 2026-11-01 | audit | VETOED: Given input x | NONE | NONE | yes | REJECT | result | | |"
+  }
+]
