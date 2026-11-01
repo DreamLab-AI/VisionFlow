@@ -1,0 +1,14 @@
+parsed 180 topic files, 1596 mermaid diagrams
+cite-check: 0 warning(s)
+citations: 24534 verified at the declared revision, 0 unverified (working-tree fallback), 0 unresolvable, 9 allowlisted (unverifiable)
+wrote VERIFICATION.md
+  ~ visionflow/02-website-build-and-deploy.md:VF-02.2 — website/build-receipt.json:18 allowlisted (unverifiable): Gitignored build artefact (website/.gitignore:8); written by the site build, exists in no commit, so no declared revision can contain it.
+  ~ visionflow/02-website-build-and-deploy.md:VF-02.5 — website/build-receipt.json:2 allowlisted (unverifiable): Gitignored build artefact (website/.gitignore:8); written by the site build, exists in no commit, so no declared revision can contain it.
+  ~ visionflow/02-website-build-and-deploy.md:VF-02.5 — website/build-receipt.json:4 allowlisted (unverifiable): Gitignored build artefact (website/.gitignore:8); written by the site build, exists in no commit, so no declared revision can contain it.
+  ~ visionflow/02-website-build-and-deploy.md:VF-02.5 — website/build-receipt.json:18 allowlisted (unverifiable): Gitignored build artefact (website/.gitignore:8); written by the site build, exists in no commit, so no declared revision can contain it.
+  ~ visionflow/07-pitch-presentation-reports.md:VF-07.1 — texput.log:1 allowlisted (unverifiable): Gitignored LaTeX run log (.gitignore:50); written by pdflatex, exists in no commit, so no declared revision can contain it.
+  ~ visionflow/07-pitch-presentation-reports.md:VF-07.8 — texput.log:1 allowlisted (unverifiable): Gitignored LaTeX run log (.gitignore:50); written by pdflatex, exists in no commit, so no declared revision can contain it.
+  ~ visionflow/07-pitch-presentation-reports.md:VF-07.8 — texput.log:5 allowlisted (unverifiable): Gitignored LaTeX run log (.gitignore:50); written by pdflatex, exists in no commit, so no declared revision can contain it.
+  ~ visionflow/07-pitch-presentation-reports.md:VF-07.8 — texput.log:10 allowlisted (unverifiable): Gitignored LaTeX run log (.gitignore:50); written by pdflatex, exists in no commit, so no declared revision can contain it.
+  ~ visionflow/07-pitch-presentation-reports.md:VF-07.8 — texput.log:21 allowlisted (unverifiable): Gitignored LaTeX run log (.gitignore:50); written by pdflatex, exists in no commit, so no declared revision can contain it.
+wrote README.md index block + COVERAGE.md

@@ -1,0 +1,109 @@
+{
+  "agentbox": {
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "prior_diagram_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+    "files": [
+      {
+        "path": "services/dream-engine/src/baseline.rs",
+        "sha256": "2f57c4dc872ebc016ea828d03649ab0e5f182546ca8c4f40b597acc5ba70f3c2",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "services/dream-engine/src/dispatch.rs",
+        "sha256": "b1bfb1f56f73339840b404c570335938996a424b05192f33e16c48a62829012a",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "services/dream-engine/src/runner.rs",
+        "sha256": "fb17c83b2adce1302acd111215ffb952f998e80fd5854ef4fcd9ca3b5b6c604d",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "services/dream-engine/src/engine.rs",
+        "sha256": "c15b31074c173b6409744daa87f1a1f0367d6e917b514e20dab25b006cf2af06",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "services/dream-engine/src/records.rs",
+        "sha256": "1afe0a58a2b4b3e48aefa1791b5694ae10499b9306e39c1ad8b2a64ad143b2b6",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "services/dream-engine/src/inbox.rs",
+        "sha256": "2a79d6a6c20fa8916b20feede995df15002dd16906a71638a6372eea3ab3bbd4",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "services/dream-engine/tests/night_e2e.rs",
+        "sha256": "0b7c11e76200dfce6257a38f1cd6c6947baf47edb560a5936a24acd5881e70d9",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "services/dream-engine/Cargo.toml",
+        "sha256": "051ace1c8d144fe0b2b11b82ee7cc5c940fae0c3cce2afdf4d4fd14615107288",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "services/dream-engine/Cargo.lock",
+        "sha256": "85dd2ec34d16c81ffa7710ad9f985a563cecc33332593a789d1d283198d2e248",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "docs/adr/ADR-2081-annexe-depth-law-and-honest-evaluator-receipts.md",
+        "sha256": "64b8a62c6259ceb48260da07943cde69c2c02fe693db165a375da44e4dced15f",
+        "matches_existing_diagram_pin": true
+      }
+    ]
+  },
+  "dream-engine": {
+    "revision": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+    "prior_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+    "files": [
+      {
+        "path": "crates/dream-core/src/runner.rs",
+        "sha256": "7721c089050fb908f4d4bdf15864f558640f7f61373c8169b33e5973a9e0e531",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "crates/dream-core/src/ledger.rs",
+        "sha256": "60ac0f843f2acb5b7ca226a4e83b5cbe914e8de9a4f2c06aab5e198586caa9e1",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "crates/dream-core/src/streak.rs",
+        "sha256": "0da8f47b2e0d94d89a472d6918fdc92cb0e328b010dc8bc5bbf99b07cfb35cdb",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "crates/dream-gate/src/config.rs",
+        "sha256": "1fb76b178e9b81f2c91b3092a9c8e6cb03f152c29b6965ac45ce7220dcb96321",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "crates/dream-gate/src/manifest.rs",
+        "sha256": "2b17526c057398a286b71b3c169ee54e79001a4222ec466aeaaff3b0f4862a77",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "crates/dream-gate/src/outcome.rs",
+        "sha256": "4fa46aabef58c77f1f1b0bd508675653021354fa5f70ac6649600127ab1f8102",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "crates/dream-gate/src/receipts.rs",
+        "sha256": "873ed5d8f2cd3bab4dbcf3aca3d61cbfe1a558371a60ce8c0579134b982e0fcb",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "crates/dream-gate/src/verdict.rs",
+        "sha256": "cef8da6ae95fcf447a180394240d86fbc48f69ee70918b25c036882234e8c6a8",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "crates/dream-gate/src/gate.rs",
+        "sha256": "3e246709730bdb8370363feb6333bc84dada20fb046e14d9a224615fb4cc1b5d",
+        "matches_existing_diagram_pin": true
+      }
+    ]
+  }
+}

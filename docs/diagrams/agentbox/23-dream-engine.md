@@ -6,6 +6,7 @@ governing:
   - ../project/agentbox/docs/GOVERNANCE-capabilities.md
 adrs: [ADR-2024, ADR-2053, ADR-2071, ADR-2081, ADR-2084, ADR-2087, ADR-2114, ADR-2115, ADR-2122, ADR-2141, ADR-2143, ADR-DE-008, ADR-DE-009]
 sources:
+  - ../project/agentbox/services/dream-engine/src/baseline.rs
   - ../project/agentbox/services/dream-engine/src/engine.rs
   - ../project/agentbox/services/dream-engine/src/config.rs
   - ../project/agentbox/services/dream-engine/src/dispatch.rs
@@ -73,6 +74,7 @@ sources:
   - ../dream-engine/crates/dream-core/src/lib.rs
   - ../dream-engine/crates/dream-core/Cargo.toml
   - ../dream-engine/crates/dream-gate/Cargo.toml
+  - ../dream-engine/crates/dream-gate/src/receipts.rs
   - ../dream-engine/crates/dream-gate/src/gate.rs
   - ../dream-engine/crates/dream-gate/src/guard.rs
   - ../dream-engine/crates/dream-gate/src/manifest.rs
@@ -500,146 +502,87 @@ flowchart LR
 
 **Scope.** This corrects the stale route from `/dream run` to the legacy JavaScript orchestrator. The skill's fixed window/cap summary is guidance, not effective-config reporting; HTTP status and scheduler discovery can disagree on symlinked nominations.
 
-## AB-23.11 ADR-2081 — the annexe mirrors real workspace depth
+## AB-23.11 Annexe depth preserves layout, not immutable input identity
 
 ```mermaid
 flowchart TB
-    subgraph before["Before 2026-09-07: one level too shallow"]
-        B1["remote_dir/agentbox (flat repo_name)"]
-        B2["cargo path-dep ../../../../nostr-rust-forum<br/>climbs to ONE ABOVE remote_dir"]
-        B3["manifest load fails, sovereign-mesh-bridge<br/>REQUIRED gate red every night"]
-        B1 --> B2 --> B3
-    end
-    subgraph after["annexe_subpath and clone_repo_and_siblings, now in dispatch.rs"]
-        A1["annexe_subpath(repo_path, workspace_root)<br/>canonicalizes both, strip_prefix, joins components<br/>agentbox/services/dream-engine/src/dispatch.rs:295"]
-        A2["target ships at remote_dir/project/agentbox<br/>(its REAL path under the workspace, not the leaf name)<br/>called at agentbox/services/dream-engine/src/engine.rs:947"]
-        A3["each annexe_include sibling ships at remote_dir/its own subpath<br/>e.g. remote_dir/nostr-rust-forum, dispatch.rs:276-285"]
-        A4["cargo ../../../../nostr-rust-forum now climbs to<br/>remote_dir exactly as it climbs to the workspace root locally"]
-        A1 --> A2
-        A1 --> A3
-        A2 --> A4
-        A3 --> A4
-    end
-    subgraph dispatch["dispatch::clone_to_hp"]
-        D1["archive_name = dream-{repo_name with slashes flattened}.tar.gz<br/>agentbox/services/dream-engine/src/dispatch.rs:179"]
-        D2["a nested subpath like project/agentbox is FLATTENED to a single<br/>archive filename dream-project-agentbox.tar.gz, the archive is<br/>always a flat file in remote_dir even though its CONTENTS unpack<br/>to the mirrored depth"]
-        D1 --> D2
-    end
-    A2 -.->|"repo_subpath passed as repo_name"| D1
-    subgraph fallback["Fallback: repo outside the workspace, or either path uncanonicalisable"]
-        F1["annexe_subpath returns the leaf, the final path component only<br/>agentbox/services/dream-engine/src/dispatch.rs:303-305, the pre-2026-09-07 behaviour"]
-    end
-    subgraph notes["ADR-2081"]
-        direction TB
-        N1["INVARIANT ADR-2081: symlinked nominations resolve to their REAL depth,<br/>workspace/agentbox to workspace/project/agentbox reports project/agentbox,<br/>proven by annexe_subpath_mirrors_real_depth_under_the_workspace<br/>agentbox/services/dream-engine/src/dispatch.rs:371"]
-        N2["RESOLVED: sibling-path-deps is a REAL required gate again (dream.config.json:69),<br/>the FALLBACK rule from PR 4 that skipped sovereign-mesh-bridge is withdrawn"]
-        N1 ~~~ N2
-    end
+    BASE["Capture target HEAD commit and tree<br/>baseline.rs:37; engine.rs:681"]
+    BASE --> SUB["Canonical repo path relative to canonical workspace<br/>dispatch.rs:295"]
+    SUB -->|inside workspace| DEPTH["Preserve nested depth, including symlink resolution<br/>dispatch.rs:307"]
+    SUB -->|outside or unresolved| LEAF["Fall back to leaf name<br/>dispatch.rs:296-305"]
+    DEPTH --> SHIP["clone_repo_and_siblings ships target first<br/>dispatch.rs:272"]
+    LEAF --> SHIP
+    SHIP --> ARCH["git archive resolves HEAD again at dispatch time<br/>dispatch.rs:183-194"]
+    ARCH --> TAR["Copy archive, then tar into remote_dir/subpath<br/>dispatch.rs:203-214"]
+    TAR --> SIB["For each configured sibling: resolve path, derive subpath, archive<br/>dispatch.rs:275-285"]
+    SIB --> MISSING["Missing directory: warn and skip<br/>dispatch.rs:277"]
+    SIB --> OVERLAY["Same destination: extract over existing target files<br/>No destination uniqueness check<br/>dispatch.rs:283-285"]
+    BASE -.-> DRIFT["Frozen A, dispatch after HEAD moves to B: archive ships B<br/>baseline.rs:38; dispatch.rs:191"]
+    OVERLAY -.-> MIX["Outside sibling with target's leaf can replace target source<br/>while retaining target-only files<br/>dispatch.rs:203-214"]
 ```
 
-**What it shows.** The depth law for the build machine: the target and each sibling are unpacked at their real position under the workspace so relative cargo path dependencies resolve there exactly as they do locally. The functions moved from `engine.rs` into `dispatch.rs` in the extraction, with the same behaviour.
+**Boundary.** Canonical depth fixes ordinary relative path dependencies. It does not freeze target/sibling revisions or prevent leaf-name overlays; the receipt audit reproduces both using local transport substitutes. Missing siblings are skipped, while archive/transfer errors propagate.
 
-**Why it is this way.** ADR-060 (archived) and the 2026-09-07 night that found the sovereign-mesh gate vacuous. The mechanism is adapter-owned because the annexe is an estate machine.
-
-## AB-23.12 ADR-2081 — pipefail closes the tail-masking false positive
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant CFG as evaluatorEntrypoints<br/>agentbox/dream.config.json
-    participant SSH as SshRunner wrap<br/>agentbox/services/dream-engine/src/runner.rs:24
-    participant LOC as LocalRunner::run<br/>dream-core/src/runner.rs:46
-    participant SH as remote or local bash
-
-    Note over CFG: a declared entrypoint commonly ends in output piped to tail -12, the receipt must carry the<br/>PRODUCER's exit code, not the pipe's last stage
-    rect rgb(250,235,235)
-        Note over SSH,SH: BEFORE 2026-09-06: bash -c with no pipefail
-        SSH->>SH: cd into the checkout, then run under timeout: bash -c cargo build, stderr redirected to stdout, piped to tail -12
-        SH-->>SSH: cargo aborts non-zero, but tail exits 0, so the pipeline status is tail's 0
-        Note over SSH: the receipt recorded outcome=PASSED exit=0, a pipe-masked false positive that upheld<br/>an ACCEPT on 09-06 (PR 4)
-    end
-    rect rgb(235,245,235)
-        Note over SSH,SH: AFTER: both wrappers use bash -o pipefail -c
-        SSH->>SH: cd into the checkout, then run under timeout: bash -o pipefail -c cargo build, piped to tail -12
-        SH-->>SSH: pipeline status is the FIRST failing stage's exit code (cargo's, not tail's)
-        Note over SSH: tailing output is still allowed, masking status is not (ADR-2081 Decision).<br/>Repos need no set -o pipefail of their own in dream.config.json
-    end
-    Note over LOC: the local wrapper is at dream-core/src/runner.rs:53, pinned by local_runner_does_not_let_a_tail_pipe_mask_a_failure<br/>at dream-core/src/runner.rs:157, which pipes a failing producer through tail and asserts the receipt keeps its exit code
-    Note over SSH: the SSH wrapper stays in the adapter and is pinned by timeout_wrapper_quotes_the_command_and_the_directory<br/>(agentbox/services/dream-engine/src/runner.rs:57), it asserts the string bash -o pipefail -c at agentbox/services/dream-engine/src/runner.rs:64
-    Note over SSH,LOC: with pipefail, piping to tail -N discards the HEAD of a failing run, repos should tail<br/>generously (website bench raised to 60, ADR-2081 Consequences)
-```
-
-**What it shows.** The two evaluator runners after the split. `SshRunner` (estate-specific) and `LocalRunner` (a core seam implementation) both wrap the command in `bash -o pipefail`, so a producer's failure is never masked by `tail`.
-
-**Why it is this way.** The `EvaluatorRunner` seam is defined in `dream-core`, so the receipts, the gate and the verdict consume one `ExecOutcome` type and never know which runner produced it (`../project/agentbox/services/dream-engine/src/runner.rs:1-6`).
-
-## AB-23.13 ADR-2081 — a no-patch ACCEPT is unproven, not a harness fault
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant G as gate::decide<br/>dream-gate/src/gate.rs:381
-    participant C as CandidateState<br/>dream-gate/src/gate.rs:255
-
-    Note over G: BEFORE 2026-09-07: step 3 graded candidate-phase receipts whenever<br/>the candidate was Applied OR an ACCEPT was claimed, so an ACCEPT with NO patch had<br/>nothing to run and every required evaluator's receipt was Missing
-    rect rgb(250,235,235)
-        Note over G,C: the old condition, measurement night, model says ACCEPT, no dream-patch emitted
-        G->>C: candidate = NoPatch, claimed_accept = true
-        G->>G: step 3 fires because claimed_accept is true
-        loop each required evaluator
-            G->>G: receipt Missing gives Veto{class: Harness}
-        end
-        G-->>G: three false Harness vetoes give verdict BLOCKED-ENV, operator alerted<br/>about a harness that had in fact passed every baseline evaluator<br/>(2026-09-07 dreamlab-ai-website)
-    end
-    rect rgb(235,245,235)
-        Note over G,C: dream-gate/src/gate.rs:461, step 3 is gated on tree_trusted, which needs an Applied candidate
-        G->>C: candidate = NoPatch, claimed_accept = true
-        G->>G: tree_trusted is false, so step 3 does not fire
-        Note over G: step 2 already pushed Veto::unproven for candidate, dream-gate/src/gate.rs:432.<br/>The Refused variant is the same unproven class (gate.rs:437) and DidNotApply is the Harness one (gate.rs:441), see AB-23.4 and AB-23.5
-        G-->>G: verdict = INCONCLUSIVE (counts toward the dry streak, raises no operator alert)<br/>NOT BLOCKED-ENV
-    end
-    Note over G: pinned by accept_without_a_candidate_patch_is_unproven_not_a_harness_fault<br/>dream-gate/src/gate.rs:775, it asserts verdict INCONCLUSIVE and every veto class is not Harness
-    Note over G: INVARIANT ADR-2081: Unproven is not Harness. Harness means the evidence could not be<br/>gathered (an operational fault), Unproven means there was nothing to test, see the VetoClass note in AB-23.8
-```
-
-**What it shows.** The one rule that stops a measurement night from being reported as a broken harness. The code moved to `dream-gate` with the same behaviour, and the gate gained the `Protected` candidate state in the same file (GAT-01 in the core corpus).
-
-**Why it is this way.** The two receipt fixes (this and AB-23.12) landed together: pipefail with the siblings still unresolved would have vetoed every annexe ACCEPT.
-
-## AB-23.14 ADR-2081 — Step-19 ledger cell provenance
+## AB-23.12 Pipefail preserves pipeline failure, with classification limits
 
 ```mermaid
 flowchart TB
-    R["nightly report text"] --> SF["sanitise_finding(report, verdict, night_date)<br/>dream-gate/src/verdict.rs:354"]
-    SF --> Q0{"0. report_ledger_row_finding(report, night_date)<br/>dream-gate/src/verdict.rs:488, the report's own Step-19<br/>ledger table row, a pipe-delimited line,<br/>tonight's row only"}
-    Q0 -->|"the cell satisfies ledger_cell_ok<br/>dream-gate/src/verdict.rs:421"| CELL["return that cell verbatim"]
-    Q0 -->|"no ledger row, or its cell fails the contract"| Q1{"1. a Finding: line<br/>whose text satisfies ledger_cell_ok"}
-    Q1 -->|"ok"| CELL
-    Q1 -->|"none"| Q2["2. select_finding(report, verdict)<br/>the older heuristics, truncated to 80 chars<br/>dream-gate/src/verdict.rs:374"]
-    Q2 --> CELL
-    subgraph contract["finding_violations(cell), dream-gate/src/verdict.rs:393"]
-        direction TB
-        C1["non-empty, finding-empty"]
-        C2["at most 80 UTF-16 code units, finding-too-long"]
-        C3["does not start with given, see or gist, finding-hypothesis-leak and finding-pointer"]
-        C4["does not contain see report or see gist"]
-        C1 --- C2 --- C3 --- C4
-    end
-    Q0 -.-> contract
-    Q1 -.-> contract
-    CELL --> LEDGER["docs/dream-cycle/LEDGER.md finding cell<br/>see AB-23.10"]
-    FULL["sanitise_finding_full(report, verdict)<br/>dream-gate/src/verdict.rs:514, NO 80-char cap, used for<br/>RuVector memory rows and PR bodies"] -.->|"still carries the WHOLE hypothesis"| MEM["memory and PR body"]
-    subgraph notes["ADR-2081"]
-        direction TB
-        N1["RESOLVED: before this, the engine discarded the model's own Step-19 row for the<br/>truncated hypothesis, violating the downstream ledger row contract<br/>(finding-hypothesis-leak, PR 10). Pinned by<br/>sanitise_prefers_the_reports_own_ledger_row_cell, dream-gate/src/verdict.rs:680"]
-        N2["a Step-19 cell that itself leaks the hypothesis, points elsewhere or<br/>overruns 80 units is ignored and the OLDER heuristics apply instead, pinned by<br/>sanitise_ignores_a_ledger_row_cell_that_breaks_the_contract, dream-gate/src/verdict.rs:702"]
-        N1 ~~~ N2
-    end
+    CMD["Evaluator command and timeout budget"]
+    CMD --> LOC["LocalRunner: cwd + timeout + bash -o pipefail -c<br/>dream-core/src/runner.rs:46"]
+    CMD --> SSH["SshRunner: remote cd + timeout + bash -o pipefail -c<br/>dream-engine/src/runner.rs:24"]
+    LOC --> PIPE["Pipeline returns rightmost nonzero status<br/>A failing producer survives a successful tail<br/>dream-core/src/runner.rs:53"]
+    SSH --> PIPE
+    PIPE --> RAW["ExecOutcome: status, stdout, stderr, duration<br/>dream-core/src/runner.rs:66; dispatch.rs:108"]
+    RAW --> CLASS["classify prioritises transport, then timeout codes, then status/output<br/>dream-gate/src/receipts.rs:231"]
+    CLASS --> RESERVED["124 or 137 => TimedOut even if child returned it immediately<br/>dream-gate/src/receipts.rs:239"]
+    CLASS --> FAIL["Other nonzero status => Failed unless transport set<br/>dream-gate/src/receipts.rs:259"]
+    CLASS --> ZERO["Zero: silent => Silent; recognised marker => ExplicitFail; otherwise Passed<br/>dream-gate/src/receipts.rs:250"]
+    SSH -.-> DIFFER["Missing cwd => exit 1 / Failed; remote exit 255 => Blocked<br/>Local missing cwd => Blocked; local exit 255 => Failed<br/>dispatch.rs:102; dream-core/src/runner.rs:72"]
+    PIPE -.-> MASK["No errexit guarantee: false followed by echo can pass<br/>Nested shells need their own failure policy<br/>dream-engine/src/runner.rs:26"]
 ```
 
-**What it shows.** Where the ledger's finding cell comes from. The functions moved unchanged into `dream-gate`, and the one difference is that the length is counted in UTF-16 code units so that it agrees with the TypeScript ledger contract the previous fork shipped (`../dream-engine/crates/dream-gate/src/verdict.rs:379`).
+**Scope.** Pipefail preserves the status of this shell's pipeline; it does not prove evaluator sensitivity or identify which process failed. The local and SSH paths can classify the same environment fault differently. GNU Bash specifies the rightmost failing stage, correcting the former first-stage claim.
 
-**Why it is this way.** The extracted crate has exactly one implementation of the finding rules, which the adapter's ledger-row contract (`../dream-engine/crates/dream-core/src/ledger.rs:254`) builds on.
+## AB-23.13 No-patch ACCEPT is unproven, but the adapter still alerts
+
+```mermaid
+flowchart TB
+    ACCEPT["Strict model verdict is ACCEPT<br/>dream-gate/src/gate.rs:406"]
+    ACCEPT --> STATE{"candidate state?<br/>dream-gate/src/gate.rs:419"}
+    STATE -->|NoPatch / Refused / NotAttempted| UNPROVEN["Unproven veto; no trusted candidate tree<br/>dream-gate/src/gate.rs:432-451"]
+    STATE -->|DidNotApply| HARNESS["Harness veto<br/>dream-gate/src/gate.rs:441"]
+    STATE -->|Applied| GUARD["Check protected paths, then candidate receipts if tree trusted<br/>dream-gate/src/gate.rs:421,461"]
+    UNPROVEN --> VERDICT["Only unproven vetoes => INCONCLUSIVE<br/>dream-gate/src/gate.rs:506"]
+    HARNESS --> BLOCK["Harness veto => BLOCKED-ENV<br/>dream-gate/src/gate.rs:500"]
+    VERDICT --> STREAK["INCONCLUSIVE advances dry streak<br/>engine.rs:1602; dream-core/src/streak.rs:151"]
+    VERDICT --> ALERT["Any nonempty veto list adds operator inbox alert<br/>engine.rs:1689-1705"]
+    BLOCK --> ALERT
+    GUARD --> RESULT["Gate result and typed vetoes<br/>dream-gate/src/gate.rs:489"]
+    RESULT -->|nonempty veto list| ALERT
+    ALERT -.-> GAP["ADR-2081 no-operator-alert clause is not implemented here<br/>engine.rs:1689"]
+```
+
+**Verified distinction.** The no-patch fixture yields INCONCLUSIVE and no Harness veto, but does add an alert. Candidate receipt grading and notification policy are separate; a verdict class alone does not suppress operator messages.
+
+## AB-23.14 Finding selection, validation and append-time repair
+
+```mermaid
+flowchart TB
+    REPORT["Model report text"] --> TABLE["First pipe row with enough cells, matching date and valid finding<br/>Quoted/backticked rows included; no Step-19 or deep check<br/>dream-gate/src/verdict.rs:488"]
+    TABLE -->|found| SELECTED["Selected finding<br/>dream-gate/src/verdict.rs:362"]
+    TABLE -->|none| LINE["First Finding: line passing cell contract<br/>dream-gate/src/verdict.rs:367"]
+    LINE -->|found| SELECTED
+    LINE -->|none| FALL["select_finding then take 80 Rust chars<br/>May retain Given prefix or exceed 80 UTF-16 units<br/>dream-gate/src/verdict.rs:374"]
+    FALL --> SELECTED
+    SELECTED --> BACK["Adapter checks entire row and repairs violations before append<br/>records.rs:45; dream-core/src/ledger.rs:254"]
+    BACK --> LEDGER["Append repaired or original row; commit is fail-open<br/>records.rs:55-75"]
+    RULES["Cell rules: nonempty, <=80 UTF-16 units, no hypothesis/pointer prefix<br/>Checks through repeated VETOED prefixes<br/>dream-gate/src/verdict.rs:394"] -.-> TABLE
+    RULES -.-> LINE
+    REPORT --> FULL["Full finding uses older hypothesis-first selection with a separate bound<br/>dream-gate/src/verdict.rs:514,523"]
+    FULL --> OTHER["Memory/PR presentation path; not the ledger cell selector<br/>dream-gate/src/verdict.rs:510"]
+```
+
+**Limits.** Selection establishes syntax and date, not provenance from a particular report section or evaluated deep. The fallback needs the adapter's repair backstop; UTF-16 validation does not make its character truncation equivalent. Unicode parity differences remain recorded in the migration audit.
 
 ## AB-23.15 Provider selection, retries and cross-provider fallback
 
@@ -930,7 +873,7 @@ sequenceDiagram
 
 ## Audit qualification — 2026-10-29
 
-1 November continuation: AB-23.7 and AB-23.21 were reassessed against matching current source and updated for recovery and source-supply limits. Later forge/seam and migration passes also reassessed AB-23.6 and AB-23.3. The controls pass reassessed AB-23.2, AB-23.10, AB-23.15 and AB-23.16. Fourteen other panels remain separately queued; rendering this topic does not close their semantic review.
+1 November continuation: AB-23.7 and AB-23.21 were reassessed against matching current source and updated for recovery and source-supply limits. Later forge/seam and migration passes also reassessed AB-23.6 and AB-23.3. The controls pass reassessed AB-23.2, AB-23.10, AB-23.15 and AB-23.16. The receipt/depth pass reassessed AB-23.11 to AB-23.14. Ten other panels remain separately queued; rendering this topic does not close their semantic review.
 
 This topic describes the extraction as source at the stamped revisions. ADR-2141 records `implementation_status: complete` and `activation_status: live`: the operator rebuilt and activated the registry-pinned image on 2026-10-16 and the supervised daemon was RUNNING with no degradation (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:47`). The later pins (0.2.0, 0.3.0, 0.4.0) are source in `Cargo.toml`; the record carries activation evidence for 0.2.0 only (`../project/agentbox/docs/adr/ADR-2143-source-supply-is-plumbing-and-decisions-are-plain-english.md:35`).
 

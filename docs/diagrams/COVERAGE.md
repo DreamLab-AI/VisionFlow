@@ -841,10 +841,10 @@ Revision labels are author declarations. This index checks structure and referen
 | [AB-23.8 Core types](agentbox/23-dream-engine.md#ab-238-core-types) | classDiagram | AB-23 |
 | [AB-23.9 Dream-inbox surfacing hook](agentbox/23-dream-engine.md#ab-239-dream-inbox-surfacing-hook) | sequenceDiagram | AB-23 |
 | [AB-23.10 Control and reporting surfaces](agentbox/23-dream-engine.md#ab-2310-control-and-reporting-surfaces) | flowchart | AB-23 |
-| [AB-23.11 ADR-2081 — the annexe mirrors real workspace depth](agentbox/23-dream-engine.md#ab-2311-adr-2081-the-annexe-mirrors-real-workspace-depth) | flowchart | AB-23 |
-| [AB-23.12 ADR-2081 — pipefail closes the tail-masking false positive](agentbox/23-dream-engine.md#ab-2312-adr-2081-pipefail-closes-the-tail-masking-false-positive) | sequenceDiagram | AB-23 |
-| [AB-23.13 ADR-2081 — a no-patch ACCEPT is unproven, not a harness fault](agentbox/23-dream-engine.md#ab-2313-adr-2081-a-no-patch-accept-is-unproven-not-a-harness-fault) | sequenceDiagram | AB-23 |
-| [AB-23.14 ADR-2081 — Step-19 ledger cell provenance](agentbox/23-dream-engine.md#ab-2314-adr-2081-step-19-ledger-cell-provenance) | flowchart | AB-23 |
+| [AB-23.11 Annexe depth preserves layout, not immutable input identity](agentbox/23-dream-engine.md#ab-2311-annexe-depth-preserves-layout-not-immutable-input-identity) | flowchart | AB-23 |
+| [AB-23.12 Pipefail preserves pipeline failure, with classification limits](agentbox/23-dream-engine.md#ab-2312-pipefail-preserves-pipeline-failure-with-classification-limits) | flowchart | AB-23 |
+| [AB-23.13 No-patch ACCEPT is unproven, but the adapter still alerts](agentbox/23-dream-engine.md#ab-2313-no-patch-accept-is-unproven-but-the-adapter-still-alerts) | flowchart | AB-23 |
+| [AB-23.14 Finding selection, validation and append-time repair](agentbox/23-dream-engine.md#ab-2314-finding-selection-validation-and-append-time-repair) | flowchart | AB-23 |
 | [AB-23.15 Provider selection, retries and cross-provider fallback](agentbox/23-dream-engine.md#ab-2315-provider-selection-retries-and-cross-provider-fallback) | flowchart | AB-23 |
 | [AB-23.16 Placeholder and dispatch guards have limited coverage](agentbox/23-dream-engine.md#ab-2316-placeholder-and-dispatch-guards-have-limited-coverage) | flowchart | AB-23 |
 | [AB-23.17 ADR-2115 — the forum governance round trip](agentbox/23-dream-engine.md#ab-2317-adr-2115-the-forum-governance-round-trip) | sequenceDiagram | AB-23 |
@@ -2117,7 +2117,7 @@ Keys are repository-qualified. `estate-unresolved` preserves an unqualified cros
 | `../dream-engine/crates/dream-gate/src/manifest.rs` | [AB-23](agentbox/23-dream-engine.md), [DE-02](dream-engine/02-candidate-and-evidence-boundaries.md), [DE-03](dream-engine/03-recovery-and-source-supply.md) |
 | `../dream-engine/crates/dream-gate/src/patch.rs` | [AB-23](agentbox/23-dream-engine.md) |
 | `../dream-engine/crates/dream-gate/src/pertest.rs` | [DE-02](dream-engine/02-candidate-and-evidence-boundaries.md) |
-| `../dream-engine/crates/dream-gate/src/receipts.rs` | [DE-02](dream-engine/02-candidate-and-evidence-boundaries.md), [DE-04](dream-engine/04-forge-and-seam-contracts.md) |
+| `../dream-engine/crates/dream-gate/src/receipts.rs` | [AB-23](agentbox/23-dream-engine.md), [DE-02](dream-engine/02-candidate-and-evidence-boundaries.md), [DE-04](dream-engine/04-forge-and-seam-contracts.md) |
 | `../dream-engine/crates/dream-gate/src/verdict.rs` | [AB-23](agentbox/23-dream-engine.md), [DE-05](dream-engine/05-migration-and-package-boundaries.md) |
 | `../dream-engine/crates/failure-fingerprint/Cargo.toml` | [DE-01](dream-engine/01-crates-licence-boundary-and-estate-status.md) |
 | `../dream-engine/crates/pairwise-gate/Cargo.toml` | [DE-01](dream-engine/01-crates-licence-boundary-and-estate-status.md) |
@@ -3095,6 +3095,7 @@ Keys are repository-qualified. `estate-unresolved` preserves an unqualified cros
 | `../project/agentbox/services/agentbox-sessions/src/trust.rs` | [AB-02](agentbox/02-boot-sequence-and-readiness.md), [AB-12](agentbox/12-tab0-bridge-and-interaction-plane.md) |
 | `../project/agentbox/services/agentbox-sessions/src/worktree.rs` | [AB-02](agentbox/02-boot-sequence-and-readiness.md), [AB-12](agentbox/12-tab0-bridge-and-interaction-plane.md) |
 | `../project/agentbox/services/dream-engine/Cargo.toml` | [AB-23](agentbox/23-dream-engine.md), [DE-01](dream-engine/01-crates-licence-boundary-and-estate-status.md), [DE-05](dream-engine/05-migration-and-package-boundaries.md), [ES-90](estate/90-evidence-and-supporting-repositories.md) |
+| `../project/agentbox/services/dream-engine/src/baseline.rs` | [AB-23](agentbox/23-dream-engine.md) |
 | `../project/agentbox/services/dream-engine/src/candidate_flow.rs` | [AB-23](agentbox/23-dream-engine.md) |
 | `../project/agentbox/services/dream-engine/src/config.rs` | [AB-23](agentbox/23-dream-engine.md), [AB-24](agentbox/24-loom-facade.md) |
 | `../project/agentbox/services/dream-engine/src/digest.rs` | [AB-23](agentbox/23-dream-engine.md) |

@@ -1,0 +1,18 @@
+   Compiling dream-engine v0.1.0 (/home/devuser/workspace/wt/VisionFlow-dream-receipts/.audit-adapter/services/dream-engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.42s
+     Running tests/night_e2e.rs (.audit-target/debug/deps/night_e2e-fe7afddf165977f9)
+
+running 5 tests
+test audit_receipts_dispatch_reads_current_head_after_baseline_capture ... baseline captured commit A; dispatch after commit B ships B because archive resolves HEAD again
+ok
+test audit_receipts_finding_selection_is_syntax_not_step_provenance ... first valid same-date quoted table cell wins regardless of deep/verdict; fallback can violate its own UTF-16/hypothesis contract
+ok
+test audit_receipts_no_patch_accept_still_adds_an_operator_alert ... no-patch ACCEPT => INCONCLUSIVE without Harness veto, but operator inbox receives alert
+ok
+test audit_receipts_outside_sibling_can_overlay_the_target ... validated absolute sibling and target share leaf; annexe contains sibling source plus target evaluator script
+ok
+test audit_receipts_runner_status_boundaries ... both runners: pipeline 7|9 => 9; false then echo and nested pipeline => PASSED; immediate 124 => TIMED-OUT; missing directory/255 differ across runners
+ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 11 filtered out; finished in 1.08s
+

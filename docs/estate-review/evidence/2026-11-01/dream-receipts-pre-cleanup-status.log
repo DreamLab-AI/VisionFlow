@@ -1,0 +1,24 @@
+ M docs/diagrams/COVERAGE.md
+ M docs/diagrams/VERIFICATION.md
+ M docs/diagrams/agentbox/23-dream-engine.md
+ M docs/estate-review/README.md
+?? .audit-adapter/
+?? .audit-previews/
+?? .audit-target/
+?? .audit-tmp/
+?? docs/estate-review/2026-11-01-dream-annexe-and-receipts.md
+?? docs/estate-review/evidence/2026-11-01/dream-receipts-corpus-regeneration.log
+?? docs/estate-review/evidence/2026-11-01/dream-receipts-final-corpus-check.log
+?? docs/estate-review/evidence/2026-11-01/dream-receipts-probes-final.log
+?? docs/estate-review/evidence/2026-11-01/dream-receipts-probes.log
+?? docs/estate-review/evidence/2026-11-01/dream-receipts-probes.rs
+?? docs/estate-review/evidence/2026-11-01/dream-receipts-prose-inspection.log
+?? docs/estate-review/evidence/2026-11-01/dream-receipts-prose-scan.log
+?? docs/estate-review/evidence/2026-11-01/dream-receipts-render-initial.log
+?? docs/estate-review/evidence/2026-11-01/dream-receipts-render.log
+?? docs/estate-review/evidence/2026-11-01/dream-receipts-reproduction.md
+?? docs/estate-review/evidence/2026-11-01/dream-receipts-retention.json
+?? docs/estate-review/evidence/2026-11-01/dream-receipts-source-manifest.json
+!! docs/diagrams/rendered/
+!! texput.log
+!! website/build-receipt.json

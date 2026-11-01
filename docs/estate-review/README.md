@@ -53,6 +53,8 @@ Dream-engine migration continuation: [migration and provenance](2026-11-01-dream
 
 Dream adapter controls continuation: [scheduling, admission and egress](2026-11-01-dream-adapter-controls-and-egress.md) assesses ADR-2053 and AB-23.2/10/15/16. Three isolated probes expose cloud fallback despite Loom selection, completed-report replacement after changed readiness, and further control/status gaps. Fourteen AB-23 panels remain queued.
 
+Dream annexe/receipt continuation: [source identity, outcome classes and ledger selection](2026-11-01-dream-annexe-and-receipts.md) assesses ADR-2081 and AB-23.11–14. Five probes reproduce moved-HEAD dispatch, sibling overlays, runner classification differences, no-patch alerts and selection limits. Ten AB-23 panels remain queued.
+
 ## Reading order
 
 | Document | Question it answers |

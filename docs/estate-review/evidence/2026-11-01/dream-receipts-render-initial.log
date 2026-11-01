@@ -1,0 +1,16 @@
+parsed 1 topic files, 22 mermaid diagrams
+cite-check: 5 warning(s)
+citations: 339 verified at the declared revision, 0 unverified (working-tree fallback), 0 unresolvable, 0 allowlisted (unverifiable)
+  ! agentbox/23-dream-engine.md:AB-23.12 — ../project/agentbox/services/dream-engine/src/dispatch.rs:107 is punctuation only ('};')
+  ! agentbox/23-dream-engine.md:AB-23.12 — ../dream-engine/crates/dream-gate/src/receipts.rs:260 is punctuation only ('}')
+  ! agentbox/23-dream-engine.md:AB-23.12 — ../dream-engine/crates/dream-core/src/runner.rs:75 is blank
+  ! agentbox/23-dream-engine.md:AB-23.14 — ../dream-engine/crates/dream-gate/src/verdict.rs:375 is punctuation only ('}')
+  ! agentbox/23-dream-engine.md:AB-23.14 — ../dream-engine/crates/dream-gate/src/verdict.rs:509 is blank
+rendered 22/22 diagrams via pele
+
+5 error(s):
+  - citation: agentbox/23-dream-engine.md:AB-23.12 — ../project/agentbox/services/dream-engine/src/dispatch.rs:107 is punctuation only ('};')
+  - citation: agentbox/23-dream-engine.md:AB-23.12 — ../dream-engine/crates/dream-gate/src/receipts.rs:260 is punctuation only ('}')
+  - citation: agentbox/23-dream-engine.md:AB-23.12 — ../dream-engine/crates/dream-core/src/runner.rs:75 is blank
+  - citation: agentbox/23-dream-engine.md:AB-23.14 — ../dream-engine/crates/dream-gate/src/verdict.rs:375 is punctuation only ('}')
+  - citation: agentbox/23-dream-engine.md:AB-23.14 — ../dream-engine/crates/dream-gate/src/verdict.rs:509 is blank
