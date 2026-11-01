@@ -95,16 +95,18 @@ stateDiagram-v2
     Probe --> Present: body read
     Probe --> Failed: any other backend error
 
-    Absent --> Ascend: PolicyStep.Ascend<br/>solid-pod-rs/src/wac/resolver.rs:249
+    %% Source: solid-pod-rs/src/wac/resolver.rs:249
+    Absent --> Ascend: PolicyStep.Ascend
     Ascend --> Probe: parent_container, inherited = true<br/>solid-pod-rs/src/wac/resolver.rs:344
     Ascend --> Missing: no parent left — root probed<br/>solid-pod-rs/src/wac/resolver.rs:401
 
     Present --> Found: parsed JSON-LD or Turtle
-    Present --> Invalid: PayloadTooLarge, depth bomb,<br/>not UTF-8, or malformed
+    Present --> Invalid: byte/depth bound, non-UTF-8,<br/>or parser-reported malformed input
+    Present --> Found: DEBT incomplete Turtle condition may be discarded
     Failed --> Unavailable
 
     Missing --> [*]: deny by default (no ACL means no access)
-    Found --> [*]: evaluate
+    Found --> [*]: evaluate retained rules, not proof of complete parsing
     Invalid --> [*]: DENY, never inherit
     Unavailable --> [*]: DENY, never inherit
 
@@ -120,6 +122,8 @@ stateDiagram-v2
       solid-pod-rs/src/wac/resolver.rs:153
     end note
 ```
+
+**Debt:** the typed resolver prevents fallback after reported failure, but a lenient Turtle parse can report Found after discarding a condition. [Native probes](../../estate-review/2026-11-01-solid-policy-parsing.md) distinguish that direct grant from inheritance.
 
 ## SP-04.4 classify_policy_read — one level, runtime-free
 
@@ -143,16 +147,17 @@ flowchart TD
     JL -- ok --> FOUND
     JL --> TOOBIG
     JL --> TOODEEP
-    JL -- "not JSON at all" --> UTF
-    UTF --> SNIFF
+    JL -- "other parse error" --> DEC{"UTF-8 body?"}
+    DEC -- no --> UTF
+    DEC -- yes --> SNIFF
     SNIFF -- no --> MAL
     SNIFF -- yes --> TT
-    TT -- ok --> FOUND
+    TT -- "Ok, including partially parsed rules" --> FOUND
     TT --> TOOBIG
 
     N["INVARIANT: a bound violation is TERMINAL. An oversized or depth-bombed ACL<br/>must never fall through to the ancestor."]
     TOOBIG -.-> N
-    N2["Pure and runtime-free — this is the function the wasm/edge tier can adopt<br/>with a version pin rather than a port. See SP-01.4."]
+    N2["The edge adapter can consume this pure helper.<br/>A newer crate pin alone does not replace its local resolver.<br/>solid-pod-rs/src/wac/resolver.rs:265"]
     IN -.-> N2
 ```
 
@@ -293,7 +298,7 @@ flowchart LR
     JSONLD --> WL --> DEPTH
     TURTLE --> TWL
 
-    N["INVARIANT: the cap sits AT the parse boundary. check_json_depth fails fast<br/>before serde_json is reached, because serde allocates stack proportional to<br/>nesting depth — removing the cap reopens a parse-bomb DoS (CWE-400)."]
+    N["INVARIANT: byte and depth caps run before serde_json.<br/>These limits bound accepted input, not every parser resource cost.<br/>solid-pod-rs/src/wac/mod.rs:101-107"]
     DEPTH -.-> N
     N2["Both bound failures surface as PolicyOutcome::Invalid, so a bomb denies<br/>rather than inheriting. See SP-04.4."]
     TWL -.-> N2
@@ -313,15 +318,19 @@ flowchart TD
     NORM["normalise_condition_type<br/>solid-pod-rs/src/wac/parser.rs:460"]
     CURIE["expand_curie_or_iri against the prefix map<br/>solid-pod-rs/src/wac/parser.rs:545"]
     DOC["AclDocument { graph, inherited }<br/>solid-pod-rs/src/wac/document.rs:13"]
-    SER["serialize_turtle_acl — the inverse<br/>solid-pod-rs/src/wac/serializer.rs:7"]
+    SER["serialize_turtle_acl — supported fields only<br/>solid-pod-rs/src/wac/serializer.rs:7"]
 
     IN --> STRIP --> SPLIT --> AUTH
     AUTH --> PRED --> CURIE
     AUTH --> COBJ --> CBOD --> NORM
+    COBJ --> LOST["DEBT unbalanced brackets stop parsing<br/>solid-pod-rs/src/wac/parser.rs:317-320"]
+    CBOD --> LOST2["DEBT absent type returns None<br/>solid-pod-rs/src/wac/parser.rs:418"]
+    LOST --> DOC
+    LOST2 --> DOC
     AUTH --> DOC
     DOC --> SER
 
-    N["acl, foaf and vcard prefixes are pre-seeded so a document that omits its<br/>@prefix lines still parses.<br/>solid-pod-rs/src/wac/parser.rs:52"]
+    N["acl, foaf and vcard prefixes are pre-seeded so a document that omits its<br/>@prefix lines still parses.<br/>solid-pod-rs/src/wac/parser.rs:48-50"]
     IN -.-> N
 ```
 

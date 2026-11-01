@@ -59599,58 +59599,80 @@
     },
     {
       "category": "decision-candidate",
-      "claims": [],
+      "claims": [
+        {
+          "basis": "All ADR-2005 sections and acceptance additions assessed against native policy tests, production parser/resolver/validator probes, core compilation, pod-label behaviour and current forum consumer source. Missing-condition, cross-tier and live-acceptance findings remain open.",
+          "coverage": "whole-document",
+          "panels": null,
+          "report": "docs/estate-review/2026-11-01-solid-policy-parsing.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "path": "crates/solid-pod-rs/docs/adr/ADR-2005-fail-closed-untrusted-parsing.md",
       "repo": "solid-pod-rs",
-      "review": "unreconciled",
+      "review": "assessment-recorded",
       "sections": [
         {
           "line": 18,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-policy-parsing.md"
+          ],
+          "review": "assessment-recorded",
           "title": "ADR-2005 — Parse untrusted access-control input fail-closed and bounded"
         },
         {
           "line": 20,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-policy-parsing.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Context"
         },
         {
           "line": 28,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-policy-parsing.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Decision"
         },
         {
           "line": 39,
           "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-policy-parsing.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Consequences"
         },
         {
           "line": 51,
           "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-policy-parsing.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Verification"
         },
         {
           "line": 58,
           "ordinal": 6,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-policy-parsing.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Closeout extension — 2026-09-04"
         },
         {
           "line": 84,
           "ordinal": 7,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-policy-parsing.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Acceptance progress — 2026-09-05"
         }
       ],
@@ -76946,10 +76968,10 @@
   "counts": {
     "available_checkouts": 23,
     "candidate_files": 842,
-    "numbered_candidates_with_recorded_assessment": 91,
+    "numbered_candidates_with_recorded_assessment": 92,
     "numbered_decision_candidates": 731,
     "panels": 1739,
-    "panels_with_recorded_assessment": 332,
+    "panels_with_recorded_assessment": 337,
     "scope_targets": 24,
     "stale_claim_records": 0,
     "topics": 206
@@ -76960,7 +76982,7 @@
       "available": true,
       "candidate_files": 77,
       "dirty": true,
-      "head": "914f553eb26302d2efc1dee4da678e3bac2a7928",
+      "head": "b205687dfa005f79844fb2fa45486a4a40fd71a3",
       "local": "VisionFlow",
       "name": "VisionFlow"
     },
@@ -88214,7 +88236,20 @@
       "sha256": "029b2c7da9abea6540fc3b26002342bc7392cb77670fe191eaec4fd3df1a5948"
     },
     {
-      "claims": [],
+      "claims": [
+        {
+          "basis": "Source and API assessment of typed resolution, parser bounds/condition loss, and pod-label normalisation/fallback; 41 native tests and three probe groups, scoped citations/rendering and selected-panel visual review. No sibling-panel or deployment credit.",
+          "coverage": "selected-panels",
+          "panels": [
+            "SP-04.3",
+            "SP-04.4",
+            "SP-04.9",
+            "SP-04.10"
+          ],
+          "report": "docs/estate-review/2026-11-01-solid-policy-parsing.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "panels": [
         {
           "body_sha256": "e27bf58f29383a389ef7713d4bade22adcd1128ee911ea43d840745e7ee44b61",
@@ -88235,28 +88270,32 @@
           "review": "unreconciled"
         },
         {
-          "body_sha256": "65bdd4723eea764ca5f005a13e87bedbc880f9531ea848be2f0f4a930ee6d541",
+          "body_sha256": "4393fd710443e1958c5b628d4d84a78155b9fd2f2b436e31fe892462bdde4f26",
           "heading": "SP-04.3 Typed policy outcomes — only absence inherits",
           "id": "SP-04.3",
           "line": 91,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-policy-parsing.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
-          "body_sha256": "00316e49a75d18d3c7e71a797797de3eaaaaf55b12433f7245a1e4b359e8c33f",
+          "body_sha256": "97a49e02ed18fe33f927092ee5d37226da32ed55683b11782a6cc290b1b9461f",
           "heading": "SP-04.4 classify_policy_read — one level, runtime-free",
           "id": "SP-04.4",
-          "line": 126,
+          "line": 130,
           "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-policy-parsing.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
           "body_sha256": "7759bf530cdee20dff6c292ae78211fcdd39954a0278e1e412b2a901c33a906c",
           "heading": "SP-04.5 The sidecar rule — one function for read and write",
           "id": "SP-04.5",
-          "line": 161,
+          "line": 166,
           "ordinal": 5,
           "reports": [],
           "review": "unreconciled"
@@ -88265,7 +88304,7 @@
           "body_sha256": "fa9ad50b0d76affa5367bdb9c926bd14ab44539644e55a5ccff1a4efcff1a3cc",
           "heading": "SP-04.6 The lockout guard — you may not ACL yourself out",
           "id": "SP-04.6",
-          "line": 186,
+          "line": 191,
           "ordinal": 6,
           "reports": [],
           "review": "unreconciled"
@@ -88274,7 +88313,7 @@
           "body_sha256": "18588d2afaf1b3542ab392c491ceb0e4eae0cc65693ecdd4e9883ae956333d98",
           "heading": "SP-04.7 evaluate_access_ctx_inner — the decision loop",
           "id": "SP-04.7",
-          "line": 210,
+          "line": 215,
           "ordinal": 7,
           "reports": [],
           "review": "unreconciled"
@@ -88283,34 +88322,38 @@
           "body_sha256": "8f6b201b21510a98c7308c9053eaa00a04c00b9cfced50e6c0f541d7adbca9bc",
           "heading": "SP-04.8 The origin gate — off by default",
           "id": "SP-04.8",
-          "line": 251,
+          "line": 256,
           "ordinal": 8,
           "reports": [],
           "review": "unreconciled"
         },
         {
-          "body_sha256": "6f7e489a833d6c6370fbccfa226d01df53317e712859af4f943a8319d1660c5a",
+          "body_sha256": "596519a08d4459fbbfd44474087bd1c91bd11c9b0e79494e1f1cc3a97d876d85",
           "heading": "SP-04.9 Parser bounds — fail closed at the boundary",
           "id": "SP-04.9",
-          "line": 281,
+          "line": 286,
           "ordinal": 9,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-policy-parsing.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
-          "body_sha256": "1a0f870fe57636cebc1e914a574323f27c8665cedaf9a94192726f74243c9fad",
+          "body_sha256": "dba65c1e399be498e3ccbb1c8dc163708c2f182410f1c42d0d22927ddd7cccf1",
           "heading": "SP-04.10 The Turtle ACL parser",
           "id": "SP-04.10",
-          "line": 304,
+          "line": 309,
           "ordinal": 10,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-policy-parsing.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
           "body_sha256": "058a113231b6182307f58396da9e3bd6e5832e518074747d32f572a672189428",
           "heading": "SP-04.13 Payment, client, issuer and provenance-anchor conditions",
           "id": "SP-04.13",
-          "line": 330,
+          "line": 339,
           "ordinal": 11,
           "reports": [],
           "review": "unreconciled"
@@ -88319,7 +88362,7 @@
           "body_sha256": "b165f2c9f3d1d1d5a07ae97d49919a9960774d17526187faac0369766df97069",
           "heading": "SP-04.14 Denial shape",
           "id": "SP-04.14",
-          "line": 359,
+          "line": 368,
           "ordinal": 12,
           "reports": [],
           "review": "unreconciled"
@@ -88328,7 +88371,7 @@
           "body_sha256": "02be1c4cde95bcc2ab3dc15ac75acf2190b268bf86ce23980210602b6c952472",
           "heading": "SP-04.15 Agent and group matching, and accessTo-vs-default containment",
           "id": "SP-04.15",
-          "line": 381,
+          "line": 390,
           "ordinal": 13,
           "reports": [],
           "review": "unreconciled"
@@ -88336,8 +88379,8 @@
       ],
       "path": "docs/diagrams/solid-pod-rs/04-wac-authorisation.md",
       "repo": "VisionFlow",
-      "review": "unreconciled",
-      "sha256": "2e894e1cb5b15b7a25d2f19d7bbec2caef3419edcd0dac9a593d920f9fa4b767"
+      "review": "partial-assessment-recorded",
+      "sha256": "147018353c8bcb0a4ede401d440aa7abab4eb0886175610601730b95c3e24c2e"
     },
     {
       "claims": [],
@@ -88511,7 +88554,17 @@
       "sha256": "be557a74b87131a651b6e75e8a1495883892e7cb96451dc4d5d83a71564d605b"
     },
     {
-      "claims": [],
+      "claims": [
+        {
+          "basis": "Source and API assessment of typed resolution, parser bounds/condition loss, and pod-label normalisation/fallback; 41 native tests and three probe groups, scoped citations/rendering and selected-panel visual review. No sibling-panel or deployment credit.",
+          "coverage": "selected-panels",
+          "panels": [
+            "SP-06.7"
+          ],
+          "report": "docs/estate-review/2026-11-01-solid-policy-parsing.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "panels": [
         {
           "body_sha256": "2b8f02654637577f826fbc6f8033072e6d4e2b0d07f19793c09fc3bd8508b83d",
@@ -88559,19 +88612,21 @@
           "review": "unreconciled"
         },
         {
-          "body_sha256": "f53cb208b6926747e83da96215c4623dea54678df60580c5997eac5792c072ed",
-          "heading": "SP-06.7 Multitenancy — path versus subdomain resolution",
+          "body_sha256": "6a94678e36796cbf3f45fc3566b62f52ad7733d20b97bcfe97a67118c1d3eea3",
+          "heading": "SP-06.7 Multitenancy — normalisation and path fallback",
           "id": "SP-06.7",
           "line": 160,
           "ordinal": 6,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-policy-parsing.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
           "body_sha256": "ecbbb15c4f98bf52e76c7d261d2932ff912abbcbae06704485919b8f450e0862",
           "heading": "SP-06.8 Pod provisioning",
           "id": "SP-06.8",
-          "line": 183,
+          "line": 177,
           "ordinal": 7,
           "reports": [],
           "review": "unreconciled"
@@ -88580,7 +88635,7 @@
           "body_sha256": "3b8f6199108df424f5b5cb2bd387f37d9e3ce2ff8e05930750f8882b8f6d31dd",
           "heading": "SP-06.9 The SSRF policy",
           "id": "SP-06.9",
-          "line": 219,
+          "line": 213,
           "ordinal": 8,
           "reports": [],
           "review": "unreconciled"
@@ -88589,7 +88644,7 @@
           "body_sha256": "3592cdfe10447919ce5340078a83a002a6e3a7cc731ebb95cd4c99763103a135",
           "heading": "SP-06.10 CORS policy — origin echo and the credentials trap",
           "id": "SP-06.10",
-          "line": 251,
+          "line": 245,
           "ordinal": 9,
           "reports": [],
           "review": "unreconciled"
@@ -88598,7 +88653,7 @@
           "body_sha256": "940a145e87894c6186691a4c9066a9627512d1254f39aa65f9f3b86bff88c3bf",
           "heading": "SP-06.11 Git-versioned pods — repository lifecycle",
           "id": "SP-06.11",
-          "line": 285,
+          "line": 279,
           "ordinal": 10,
           "reports": [],
           "review": "unreconciled"
@@ -88607,7 +88662,7 @@
           "body_sha256": "e32bc00ad1a47244cb920911b8802efef549b2a1ecff978f645f8ebfcf71fa5e",
           "heading": "SP-06.12 Git smart-HTTP — the WAC-gated CGI bridge, clone and fetch only",
           "id": "SP-06.12",
-          "line": 327,
+          "line": 321,
           "ordinal": 11,
           "reports": [],
           "review": "unreconciled"
@@ -88615,8 +88670,8 @@
       ],
       "path": "docs/diagrams/solid-pod-rs/06-storage-quota-and-git-pods.md",
       "repo": "VisionFlow",
-      "review": "unreconciled",
-      "sha256": "9d571566f975952972eaefd527d06714dd6b43b480d7074df3eda3cb8594c0bc"
+      "review": "partial-assessment-recorded",
+      "sha256": "72be52841d3ef382579db609db344cd954479854a1093adba8e10c92aff67e4a"
     },
     {
       "claims": [],

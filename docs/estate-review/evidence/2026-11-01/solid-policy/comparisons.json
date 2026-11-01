@@ -1,0 +1,18 @@
+{
+  "date": "2026-11-01",
+  "sources": [
+    {
+      "url": "https://solidproject.org/TR/wac#effective-acl-resource",
+      "use": "Effective ACL absence/inheritance and Turtle representation requirements; Draft Community Group Report, not W3C Standard."
+    },
+    {
+      "url": "https://www.w3.org/TR/turtle/#grammar-production-blankNodePropertyList",
+      "use": "Turtle blank-node grammar, separate from private condition schema."
+    },
+    {
+      "url": "https://github.com/CommunitySolidServer/CommunitySolidServer",
+      "use": "Official project description: pods, identity, configurable modules and filesystem persistence."
+    }
+  ],
+  "limits": "Primary-source comparison only; no interoperability, benchmark or security comparison executed."
+}

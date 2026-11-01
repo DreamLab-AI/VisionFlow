@@ -1,0 +1,37 @@
+{
+  "repositories": [
+    {
+      "name": "solid-pod-rs",
+      "head": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+      "files": {
+        "crates/solid-pod-rs/docs/BASELINE-solid-pod-rs.md": "16be4b3a498aa8d87bf8e77024f7078f86c67b688c679e7c0d56f59746da0007",
+        "crates/solid-pod-rs/docs/adr/ADR-2005-fail-closed-untrusted-parsing.md": "a6784404f92efce17645ee3df0a4588b886f94692e99eee49beb713bf7a85381",
+        "crates/solid-pod-rs/src/wac/mod.rs": "b3b6d343554bb1c1fab637eb6e11d6da311da20a2457495cc9bc23c433c9740c",
+        "crates/solid-pod-rs/src/wac/resolver.rs": "6ceb7c39da09067977c78ad19b84f177a2bbc5bc4a273449d98c605f6ad8a622",
+        "crates/solid-pod-rs/src/wac/parser.rs": "216553bd637a1e6b0f69e698a023a461c17e69e751435e0560aa8a7cf5a305a4",
+        "crates/solid-pod-rs/src/wac/conditions.rs": "013aa0505c5d7a3bb940d15f573b5a1b211cfdcf22c4074682c72b320ed107a7",
+        "crates/solid-pod-rs/src/wac/evaluator.rs": "b026765ac42bfa42c31c713095c82b5558d71eef3cd0b16d339a0be09a9b47a9",
+        "crates/solid-pod-rs/src/wac/document.rs": "2a2f3fef8891319adcebb06cd8a9b7a4a056a247c146640621b57bc2f99d3964",
+        "crates/solid-pod-rs/src/multitenant.rs": "2fe5914e5a33d1f3a6d476c259e885cc7db0c1bc6968cd6429e6fa599121910d",
+        "crates/solid-pod-rs/src/rdf_input.rs": "a4f6eb77dfba67910ef09ed8a2db32748458ed5d54180431afb66335e13e81fd",
+        "crates/solid-pod-rs-server/src/lib.rs": "6573dc10b392d62743af4cd20da96da7594f7ed755e75b3eedfa8fcd225f26eb",
+        "crates/solid-pod-rs/tests/wac_policy_outcomes.rs": "480172976c391b35ccea06c0f66c89da0fe41f7c82538efa2cb544da373c4acf",
+        "crates/solid-pod-rs/tests/wac_parser_bounds.rs": "9a64e76fcd589724f5a54a93ebd5535ada86348862b2c11a5afd79b72a3535a1",
+        "crates/solid-pod-rs/tests/wac_validate_for_write.rs": "a72aabb0094181c38bec274756332a7eda1b341c6bda9fb330effd35fae86b1c",
+        "crates/solid-pod-rs/tests/wac2_conditions_sprint9.rs": "3494d6fd24a6f981be773ce4c8ef63e156257da5465cd5082401dfa6afdb449d",
+        "Cargo.toml": "d961f54655df352e4d96f33317de60825e69055c4bd461f47c24484614efadd0",
+        "Cargo.lock": "3d2aa7e07ee46b4ec469c1b91bcfb3eca02267e53e5279f86c6065a7e70fd6e1",
+        "crates/solid-pod-rs/src/wac/serializer.rs": "1900689771b81fb70f7241e5b3de0af7171f758ef50e116b29493ff7dbea456a"
+      }
+    },
+    {
+      "name": "nostr-rust-forum",
+      "head": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+      "files": {
+        "Cargo.toml": "a77f8f98ddea050dacf242316e18955d9248b06c893e6bfae97448cba5935f95",
+        "Cargo.lock": "9d9ab8f72d2d50576aba1d1669115e57e4c6443d20b6c709a216ea5e54837807",
+        "crates/nostr-bbs-pod-worker/src/acl.rs": "d58185315d125e9edad3ae9dd996459ac015d31b207ae86b39891dd9381dea80"
+      }
+    }
+  ]
+}

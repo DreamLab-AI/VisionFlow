@@ -1,0 +1,32 @@
+{
+  "new_adr": "solid-pod-rs:crates/solid-pod-rs/docs/adr/ADR-2005-fail-closed-untrusted-parsing.md",
+  "new_panels": [
+    "SP-04.3",
+    "SP-04.4",
+    "SP-04.9",
+    "SP-04.10",
+    "SP-06.7"
+  ],
+  "unassessed_sibling_bodies_unchanged": [
+    "SP-04.1",
+    "SP-04.2",
+    "SP-04.5",
+    "SP-04.6",
+    "SP-04.7",
+    "SP-04.8",
+    "SP-04.13",
+    "SP-04.14",
+    "SP-04.15",
+    "SP-06.1",
+    "SP-06.2",
+    "SP-06.3",
+    "SP-06.4",
+    "SP-06.6",
+    "SP-06.8",
+    "SP-06.9",
+    "SP-06.10",
+    "SP-06.11",
+    "SP-06.12"
+  ],
+  "existing_claims_rebound": 0
+}

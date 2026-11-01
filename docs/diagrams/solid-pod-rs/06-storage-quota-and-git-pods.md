@@ -155,28 +155,22 @@ sequenceDiagram
     Note over Q: reconcile (solid-pod-rs/src/quota/mod.rs:85) recomputes from a directory walk<br/>and sweeps stale .quota.json.tmp-* files (solid-pod-rs/src/quota/mod.rs:212) —<br/>the operator CLI drives it — see SP-02.13.
 ```
 
-## SP-06.7 Multitenancy — path versus subdomain resolution
+## SP-06.7 Multitenancy — normalisation and path fallback
 
 ```mermaid
 flowchart TD
-    RES["PodResolver trait<br/>solid-pod-rs/src/multitenant.rs:38"]
-    PR["PathResolver — host ignored<br/>solid-pod-rs/src/multitenant.rs:49"]
-    SR["SubdomainResolver<br/>solid-pod-rs/src/multitenant.rs:68"]
-    SP["strip_port<br/>solid-pod-rs/src/multitenant.rs:189"]
-    FL["is_file_like_label — pass a label like index.html straight through<br/>solid-pod-rs/src/multitenant.rs:164"]
-    SD["scrub_dotdot — ITERATIVE, loops until stable<br/>solid-pod-rs/src/multitenant.rs:199"]
-    OUT["ResolvedPath<br/>solid-pod-rs/src/multitenant.rs:28"]
-
-    RES --> PR --> OUT
-    RES --> SR --> SP
-    SR --> FL
-    SR --> SD --> OUT
-
-    N["INVARIANT: scrub_dotdot must stay ITERATIVE. A single pass leaves the '....//'<br/>bypass — the outer removal re-forms a '..' from the fragments the inner pass left<br/>behind. Pinned by scrub_dotdot_iterative_defeats_bypass<br/>solid-pod-rs/src/multitenant.rs:245"]
-    SD -.-> N
-    N2["A second, explicit guard rejects any surviving '..' before the label is used as<br/>a pod name<br/>solid-pod-rs/src/multitenant.rs:133"]
-    SD -.-> N2
+    RES["PodResolver<br/>solid-pod-rs/src/multitenant.rs:38"] --> PR["PathResolver ignores host<br/>solid-pod-rs/src/multitenant.rs:49"]
+    RES --> SR["SubdomainResolver strips port and checks suffix<br/>solid-pod-rs/src/multitenant.rs:77"]
+    SR --> FILE{"File-like or non-matching host?"}
+    FILE -->|yes| ROOT["No pod selected, original path returned<br/>solid-pod-rs/src/multitenant.rs:148-151"]
+    FILE -->|no| SCRUB["Lowercase label, iteratively remove dotdot<br/>solid-pod-rs/src/multitenant.rs:124"]
+    SCRUB --> CHECK{"Nonempty, no dot or slash?"}
+    CHECK -->|yes| POD["Select normalised pod label<br/>solid-pod-rs/src/multitenant.rs:129-138"]
+    CHECK -->|no| ROOT
+    POD --> NOTE["al..ice normalises to alice<br/>not an HTTP rejection"]
 ```
+
+**Boundary:** the helper prevents a residual traversal-like pod label, but normalises malformed labels and falls back to path semantics when it cannot select a pod. [P3](../../estate-review/2026-11-01-solid-policy-parsing.md) verifies these helper outputs; authority and host validation remain separate server contracts.
 
 ## SP-06.8 Pod provisioning
 

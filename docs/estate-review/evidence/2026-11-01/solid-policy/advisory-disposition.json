@@ -1,0 +1,14 @@
+{
+  "manual_review_queue": [
+    {
+      "panel": "SP-04.15",
+      "citation": "wac/evaluator.rs:120"
+    },
+    {
+      "panel": "SP-06.12",
+      "citation": "solid-pod-rs-git/src/api.rs:160"
+    }
+  ],
+  "disposition": "Unassessed sibling panels remain queued; no review credit. Selected-panel citation anchors corrected and final previews inspected.",
+  "limits": "Advisory model sampled 120 citations per topic; citation resolution and rendering do not establish whole-topic semantic correctness."
+}

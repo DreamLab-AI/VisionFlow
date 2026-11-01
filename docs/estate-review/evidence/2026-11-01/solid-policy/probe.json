@@ -1,0 +1,66 @@
+{
+  "cases": [
+    {
+      "cases": [
+        {
+          "anonymous_read_granted": false,
+          "case": "valid",
+          "resolved": "Found",
+          "retained_conditions": 1,
+          "strict_turtle_syntax_valid": true,
+          "write_validator_accepts": true
+        },
+        {
+          "anonymous_read_granted": true,
+          "case": "unterminated",
+          "resolved": "Found",
+          "retained_conditions": 0,
+          "strict_turtle_syntax_valid": false,
+          "write_validator_accepts": true
+        },
+        {
+          "anonymous_read_granted": true,
+          "case": "missing_type",
+          "resolved": "Found",
+          "retained_conditions": 0,
+          "strict_turtle_syntax_valid": true,
+          "write_validator_accepts": true
+        },
+        {
+          "anonymous_read_granted": true,
+          "case": "empty_condition",
+          "resolved": "Found",
+          "retained_conditions": 0,
+          "strict_turtle_syntax_valid": true,
+          "write_validator_accepts": true
+        },
+        {
+          "anonymous_read_granted": false,
+          "case": "unknown_type",
+          "resolved": "Found",
+          "retained_conditions": 1,
+          "strict_turtle_syntax_valid": true,
+          "write_validator_accepts": false
+        }
+      ],
+      "http_activation_tested": false,
+      "id": "P1"
+    },
+    {
+      "absence_ascends": true,
+      "exact_byte_limit_accepted": true,
+      "failed_read_unavailable": true,
+      "id": "P2",
+      "json_depth_refused": true,
+      "nonturtle_garbage_invalid": true,
+      "one_byte_over_refused": true
+    },
+    {
+      "http_routing_or_authority_bypass_tested": false,
+      "id": "P3",
+      "malformed_label_normalised_to_existing_pod": "alice",
+      "multi_label_path_fallback": "/secret",
+      "unknown_host_path_fallback": "/secret"
+    }
+  ]
+}

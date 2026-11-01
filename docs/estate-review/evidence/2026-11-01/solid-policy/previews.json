@@ -1,0 +1,42 @@
+[
+  {
+    "panel": "SP-04.3",
+    "original": "docs/diagrams/rendered/solid-pod-rs/04-wac-authorisation/SP-04.3.svg",
+    "sha256": "f7166c0c0cde106d9490c541c0ae79b4a7ef14a8ae3240751e16c0b93302ca02",
+    "preview": "/tmp/vf-solid-policy-audit/SP-04.3.png",
+    "method": "Temporary copy supplies Liberation Sans 16 where absent; original SVG unchanged.",
+    "visual_disposition": "Inspected rendered preview: readable labels, distinct branches and no material clipping."
+  },
+  {
+    "panel": "SP-04.4",
+    "original": "docs/diagrams/rendered/solid-pod-rs/04-wac-authorisation/SP-04.4.svg",
+    "sha256": "50512f2b8c3ba6509e6fec0d46d8f5076418282d70bff3fe40b36934cf1e9315",
+    "preview": "/tmp/vf-solid-policy-audit/SP-04.4.png",
+    "method": "Temporary copy supplies Liberation Sans 16 where absent; original SVG unchanged.",
+    "visual_disposition": "Inspected rendered preview: readable labels, distinct branches and no material clipping."
+  },
+  {
+    "panel": "SP-04.9",
+    "original": "docs/diagrams/rendered/solid-pod-rs/04-wac-authorisation/SP-04.9.svg",
+    "sha256": "8e7354ee151f6e17808dc56e1390ab075ce664c2b65d50dd7fc2ce0a60d91e80",
+    "preview": "/tmp/vf-solid-policy-audit/SP-04.9.png",
+    "method": "Temporary copy supplies Liberation Sans 16 where absent; original SVG unchanged.",
+    "visual_disposition": "Inspected rendered preview: readable labels, distinct branches and no material clipping."
+  },
+  {
+    "panel": "SP-04.10",
+    "original": "docs/diagrams/rendered/solid-pod-rs/04-wac-authorisation/SP-04.10.svg",
+    "sha256": "bb6b0d64e28d9992479562710b8244aef367a03d3abe6572611a517b9b56a71b",
+    "preview": "/tmp/vf-solid-policy-audit/SP-04.10.png",
+    "method": "Temporary copy supplies Liberation Sans 16 where absent; original SVG unchanged.",
+    "visual_disposition": "Inspected rendered preview: readable labels, distinct branches and no material clipping."
+  },
+  {
+    "panel": "SP-06.7",
+    "original": "docs/diagrams/rendered/solid-pod-rs/06-storage-quota-and-git-pods/SP-06.7.svg",
+    "sha256": "364154d5bae589d14f1430c2cf0d7bd38b7030d949c55285e6665e9c81fff3cb",
+    "preview": "/tmp/vf-solid-policy-audit/SP-06.7.png",
+    "method": "Temporary copy supplies Liberation Sans 16 where absent; original SVG unchanged.",
+    "visual_disposition": "Inspected rendered preview: readable labels, distinct branches and no material clipping."
+  }
+]

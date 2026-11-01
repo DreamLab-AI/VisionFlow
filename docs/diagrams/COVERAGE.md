@@ -1053,7 +1053,7 @@ Revision labels are author declarations. This index checks structure and referen
 | [SP-06.3 Capability-confined filesystem access](solid-pod-rs/06-storage-quota-and-git-pods.md#sp-063-capability-confined-filesystem-access) | flowchart | SP-06 |
 | [SP-06.4 Atomic write and the body/metadata pair](solid-pod-rs/06-storage-quota-and-git-pods.md#sp-064-atomic-write-and-the-bodymetadata-pair) | sequenceDiagram | SP-06 |
 | [SP-06.6 Per-pod quota — atomic reservation](solid-pod-rs/06-storage-quota-and-git-pods.md#sp-066-per-pod-quota-atomic-reservation) | sequenceDiagram | SP-06 |
-| [SP-06.7 Multitenancy — path versus subdomain resolution](solid-pod-rs/06-storage-quota-and-git-pods.md#sp-067-multitenancy-path-versus-subdomain-resolution) | flowchart | SP-06 |
+| [SP-06.7 Multitenancy — normalisation and path fallback](solid-pod-rs/06-storage-quota-and-git-pods.md#sp-067-multitenancy-normalisation-and-path-fallback) | flowchart | SP-06 |
 | [SP-06.8 Pod provisioning](solid-pod-rs/06-storage-quota-and-git-pods.md#sp-068-pod-provisioning) | sequenceDiagram | SP-06 |
 | [SP-06.9 The SSRF policy](solid-pod-rs/06-storage-quota-and-git-pods.md#sp-069-the-ssrf-policy) | flowchart | SP-06 |
 | [SP-06.10 CORS policy — origin echo and the credentials trap](solid-pod-rs/06-storage-quota-and-git-pods.md#sp-0610-cors-policy-origin-echo-and-the-credentials-trap) | flowchart | SP-06 |

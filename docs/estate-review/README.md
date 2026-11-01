@@ -11,6 +11,8 @@ type: explanation
 
 [The completion ledger](completion/README.md) separates scoped inventory, recorded assessments and unreconciled work. It binds assessments to exact document/report hashes and holds the current counts; these are not an overall completion percentage.
 
+Solid policy parsing: [ADR-2005, lost Turtle conditions and consumer adoption](2026-11-01-solid-policy-parsing.md). Forty-one existing tests pass, while native probes reproduce discarded conditions that leave an anonymous Read grant. Five panels are assessed; forum adapter migration and HTTP/deployed acceptance remain open.
+
 SideStr Hitch finality: [channel identity, buffering, reorganisation and independent test coverage](2026-11-01-sidestr-hitch-finality-and-identity.md). Two funding outputs share one protocol ID; signature checks occur on buffer replay. Core script checks participate, while JavaScript oracles explicitly skip. All twenty existing SideStr panels now have recorded source assessments; product findings and broader integration remain open.
 
 SideStr Hitch recovery: [snapshot checks, revocation recovery ordering and the routing host contract](2026-11-01-sidestr-hitch-recovery.md). Thirty-five existing native tests and four offline scenarios reproduce invalid-witness rebroadcasts, retained close classification after late recovery, and invoice-expiry boundaries. SR-04.3 is corrected; wider Hitch review remains open.

@@ -1,0 +1,15 @@
+{
+  "declared": "09ec90f26aa573731460292d0e80343914cb43d9",
+  "current": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+  "whole_files_byte_identical": [
+    "crates/solid-pod-rs/src/wac/mod.rs",
+    "crates/solid-pod-rs/src/wac/resolver.rs",
+    "crates/solid-pod-rs/src/wac/parser.rs",
+    "crates/solid-pod-rs/src/wac/conditions.rs",
+    "crates/solid-pod-rs/src/wac/evaluator.rs",
+    "crates/solid-pod-rs/src/wac/document.rs",
+    "crates/solid-pod-rs/src/multitenant.rs",
+    "crates/solid-pod-rs/src/wac/serializer.rs"
+  ],
+  "new_credit": "Selected reviewed panels only; sibling panels remain unreconciled."
+}

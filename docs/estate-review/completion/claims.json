@@ -2357,5 +2357,44 @@
       "SR-04.4"
     ],
     "basis": "Source review of revocation construction, buffered versus final updates, channel/outpoint identity and close/reorganisation handling; four production-library checks, native chain suite with Core script interpreter, explicit JavaScript skip receipts, scoped rendering and visual review. No host batch-funding execution or live activation claim."
+  },
+  {
+    "kind": "adr",
+    "repo": "solid-pod-rs",
+    "path": "crates/solid-pod-rs/docs/adr/ADR-2005-fail-closed-untrusted-parsing.md",
+    "source_sha256": "a6784404f92efce17645ee3df0a4588b886f94692e99eee49beb713bf7a85381",
+    "report": "docs/estate-review/2026-11-01-solid-policy-parsing.md",
+    "report_sha256": "11b99af2b94fb2a535ebe1222a30ddeb6718ae4eef1fd8d48636d6f5079522eb",
+    "coverage": "whole-document",
+    "basis": "All ADR-2005 sections and acceptance additions assessed against native policy tests, production parser/resolver/validator probes, core compilation, pod-label behaviour and current forum consumer source. Missing-condition, cross-tier and live-acceptance findings remain open."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/solid-pod-rs/04-wac-authorisation.md",
+    "source_sha256": "147018353c8bcb0a4ede401d440aa7abab4eb0886175610601730b95c3e24c2e",
+    "report": "docs/estate-review/2026-11-01-solid-policy-parsing.md",
+    "report_sha256": "11b99af2b94fb2a535ebe1222a30ddeb6718ae4eef1fd8d48636d6f5079522eb",
+    "coverage": "selected-panels",
+    "panels": [
+      "SP-04.3",
+      "SP-04.4",
+      "SP-04.9",
+      "SP-04.10"
+    ],
+    "basis": "Source and API assessment of typed resolution, parser bounds/condition loss, and pod-label normalisation/fallback; 41 native tests and three probe groups, scoped citations/rendering and selected-panel visual review. No sibling-panel or deployment credit."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/solid-pod-rs/06-storage-quota-and-git-pods.md",
+    "source_sha256": "72be52841d3ef382579db609db344cd954479854a1093adba8e10c92aff67e4a",
+    "report": "docs/estate-review/2026-11-01-solid-policy-parsing.md",
+    "report_sha256": "11b99af2b94fb2a535ebe1222a30ddeb6718ae4eef1fd8d48636d6f5079522eb",
+    "coverage": "selected-panels",
+    "panels": [
+      "SP-06.7"
+    ],
+    "basis": "Source and API assessment of typed resolution, parser bounds/condition loss, and pod-label normalisation/fallback; 41 native tests and three probe groups, scoped citations/rendering and selected-panel visual review. No sibling-panel or deployment credit."
   }
 ]

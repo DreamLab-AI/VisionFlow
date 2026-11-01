@@ -1,0 +1,9 @@
+
+  prose-sanitiser slop scan: docs/estate-review/2026-11-01-solid-policy-parsing.md
+  files scanned: 1   findings: 0   slop score: 0
+  verdict: Clean, no mechanical tells detected
+  high: 0   medium: 0   low: 0
+
+  Nothing flagged. Either it is clean or the tells are narrative/voice ones a
+  regex cannot see. Read it against Section C of SKILL.md.
+

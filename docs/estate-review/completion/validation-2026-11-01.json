@@ -1891,7 +1891,7 @@
     ]
   },
   "heading_units": 9503,
-  "heading_units_with_recorded_assessment": 642,
+  "heading_units_with_recorded_assessment": 649,
   "native_tests": 9,
   "clippy": "passed -D warnings",
   "limits": "Counters track evidence reconciliation, not audit completion; document/report hashes do not revalidate implementation code or deployed state.",
@@ -1921,7 +1921,7 @@
       "target": "../../docs/estate-review/completion/claims.json"
     }
   ],
-  "exact_claim_bindings_rechecked": 184,
+  "exact_claim_bindings_rechecked": 187,
   "tool_hashes": {
     "scripts/estate-review-ledger/src/main.rs": "6a13475db77573e460ab9ba8a99b7aa1e7c306ca33c14ea3cf5188b690ce12b3",
     "scripts/estate-review-ledger/Cargo.toml": "8109eeff493be24031c394cce1d81a059ca1612f967e5b032f37bf9e8f1e50d6",
@@ -1933,13 +1933,13 @@
     "unicode_findings": 0,
     "prose_flags": 0,
     "scope": [
-      "docs/estate-review/2026-11-01-sidestr-hitch-finality-and-identity.md"
+      "docs/estate-review/2026-11-01-solid-policy-parsing.md"
     ],
     "format_check": "rustfmt and node syntax checks; authored-file staged whitespace check. Raw tool logs retain original whitespace.",
-    "scoped_jev_advisory": "Unchanged SR-04.5 constructor/identity citation; prior source/reproduction disposition retained in hitch-finality/advisory-disposition.json.",
-    "local_links": 15
+    "scoped_jev_advisory": "Unassessed sibling panels SP-04.15 and SP-06.12 remain queued; see solid-policy/advisory-disposition.json.",
+    "local_links": 16
   },
-  "tool_validation_basis": "Nine collector tests and Clippy receipts retained from original ledger batch at 610b57b; unchanged collector/dependency hashes verified. Fresh collection rechecked 184 claims; zero stale records. Product verification is scoped in the current report.",
+  "tool_validation_basis": "Nine collector tests and Clippy receipts retained from original ledger batch at 610b57b; unchanged collector/dependency hashes verified. Fresh collection rechecked 187 claims; zero stale records. Product verification is scoped in the current report.",
   "prior_concurrent_source_refresh": {
     "changed_adrs": 5,
     "stale_claims": 5,
@@ -1985,30 +1985,33 @@
     "disposition": "Historical stale state; all five reassessed in docs/estate-review/2026-11-01-obsidian-refresh.md. See current snapshot for dispositions."
   },
   "previous_source_review_batch": {
-    "report": "docs/estate-review/2026-11-01-sidestr-hitch-recovery.md",
-    "baseline": "2405bb38ea08ee2a11066ac355ac4fc8d35f59aa",
+    "report": "docs/estate-review/2026-11-01-sidestr-hitch-finality-and-identity.md",
+    "baseline": "914f553eb26302d2efc1dee4da678e3bac2a7928",
     "new_whole_adrs": 0,
-    "refreshed_whole_adrs": [],
-    "new_panels": [],
     "newly_assessed_existing_panels": [
-      "SR-04.3"
+      "SR-04.1",
+      "SR-04.2",
+      "SR-04.4"
     ],
-    "refreshed_panels": [],
+    "retained_unchanged_panels": [
+      "SR-04.3",
+      "SR-04.5"
+    ],
     "current_stale_records": 0,
-    "previous_batch_candidates": 1178,
+    "previous_batch_candidates": 842,
     "added_candidates": [],
     "removed_candidates": [],
-    "concurrent_diagram_additions": {
-      "topics": 1,
-      "panels": 9,
-      "assessment_credit": 0
+    "probe_scenarios": 4,
+    "selected_cargo_pass_entries": 6,
+    "substantive_native_entries": 4,
+    "early_return_javascript_entries": 2,
+    "siding_replay": "skipped",
+    "core_script_oracle": {
+      "carried_spends_accepted": 12,
+      "script_negatives_refused": 7,
+      "early_spend_scripts_accepted_but_blocks_refused": 5
     },
-    "retained_prior_panel_bindings": {
-      "panels": 10,
-      "new_review_credit": 0,
-      "evidence": "docs/estate-review/evidence/2026-11-01/hitch-recovery/ledger-refresh.json"
-    },
-    "limits": "Thirty-five existing native tests and four offline production-library scenarios. Production template verifier controls, no fresh independent JavaScript or Bitcoin Core oracle. SR-04.1/.2/.4 remain unreconciled. No runtime activation, operational fund movement, product remediation or deployment change."
+    "limits": "No live host execution, batch-funding activation, full JavaScript parity or fresh whole-corpus citation/semantic pass. Existing source manifests and prior tests retain their stated scope."
   },
   "previous_scope_correction": {
     "kind": "owner-directed scope correction",
@@ -2048,33 +2051,26 @@
     "limits": "Scope correction only. Previous product tests and diagram gates are historical receipts; neither was rerun for this edit. No RuView source was scanned by the refreshed collector."
   },
   "current_batch": {
-    "report": "docs/estate-review/2026-11-01-sidestr-hitch-finality-and-identity.md",
-    "baseline": "914f553eb26302d2efc1dee4da678e3bac2a7928",
-    "new_whole_adrs": 0,
+    "report": "docs/estate-review/2026-11-01-solid-policy-parsing.md",
+    "baseline": "b205687dfa005f79844fb2fa45486a4a40fd71a3",
+    "new_whole_adrs": 1,
     "newly_assessed_existing_panels": [
-      "SR-04.1",
-      "SR-04.2",
-      "SR-04.4"
-    ],
-    "retained_unchanged_panels": [
-      "SR-04.3",
-      "SR-04.5"
+      "SP-04.3",
+      "SP-04.4",
+      "SP-04.9",
+      "SP-04.10",
+      "SP-06.7"
     ],
     "current_stale_records": 0,
     "previous_batch_candidates": 842,
     "added_candidates": [],
     "removed_candidates": [],
-    "probe_scenarios": 4,
-    "selected_cargo_pass_entries": 6,
-    "substantive_native_entries": 4,
-    "early_return_javascript_entries": 2,
-    "siding_replay": "skipped",
-    "core_script_oracle": {
-      "carried_spends_accepted": 12,
-      "script_negatives_refused": 7,
-      "early_spend_scripts_accepted_but_blocks_refused": 5
-    },
-    "limits": "No live host execution, batch-funding activation, full JavaScript parity or fresh whole-corpus citation/semantic pass. Existing source manifests and prior tests retain their stated scope."
+    "candidate_paths_and_hashes_unchanged": true,
+    "native_tests_passed": 41,
+    "probe_groups": 3,
+    "condition_cases": 5,
+    "core_feature_check": "passed natively",
+    "limits": "Library/storage reproduction and consumer source review. No HTTP admission, deployed edge faults, actual disclosure, WASM build or product remediation. RuView excluded."
   },
   "prior_full_corpus_gate": {
     "topics": 206,
@@ -2101,19 +2097,31 @@
     "declared_revisions": 57,
     "check_verification": "passed; no source path access",
     "scope": "Structure and declared-revision set only. Prior full-corpus citation receipt retained separately.",
-    "evidence": "docs/estate-review/evidence/2026-11-01/hitch-finality/structure.txt"
+    "evidence": "docs/estate-review/evidence/2026-11-01/solid-policy/structure.txt"
   },
   "scoped_topic_gate": {
-    "topic": "SR-04",
-    "rendered_panels": 5,
-    "visually_assessed_panels": [
-      "SR-04.1",
-      "SR-04.2",
-      "SR-04.4"
+    "topics": [
+      "SP-04",
+      "SP-06"
     ],
+    "rendered_panels": 24,
+    "visually_assessed_panels": [
+      "SP-04.3",
+      "SP-04.4",
+      "SP-04.9",
+      "SP-04.10",
+      "SP-06.7"
+    ],
+    "verified_citations": 251,
     "warnings": 0,
     "fallback": 0,
-    "evidence": "docs/estate-review/evidence/2026-11-01/hitch-finality/render.txt",
-    "verified_citations": 26
+    "evidence": [
+      "docs/estate-review/evidence/2026-11-01/solid-policy/render-wac.txt",
+      "docs/estate-review/evidence/2026-11-01/solid-policy/render-storage.txt"
+    ],
+    "manual_review_queue": [
+      "SP-04.15",
+      "SP-06.12"
+    ]
   }
 }
