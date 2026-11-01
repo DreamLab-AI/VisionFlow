@@ -175,33 +175,31 @@ sequenceDiagram
 - **What it shows:** eligible PUT/POST/PATCH paths return the receipt while keeping the successful storage status. Earlier skip guards return before composition. The hook's epoch result is not attached to the response or its per-resource sidecar.
 - **Why it is this way:** the receipt exposes local marking and sidecar failures without rolling back storage. A crash before the receipt reaches the client still needs durable reconciliation — a response header cannot close that window.
 
-## SP-07.6 The `_prov` query surface
+## SP-07.6 Provenance queries and explicit paid anchors
 
 ```mermaid
-flowchart LR
-    R1["GET /{pod}/_prov/{commit_sha} -> handle_resolve<br/>solid-pod-rs-server/src/handlers/prov.rs:351"]
-    R2["POST /{pod}/_prov/anchor -> handle_anchor<br/>solid-pod-rs-server/src/handlers/prov.rs:444"]
-    REG["handlers::prov::register<br/>solid-pod-rs-server/src/handlers/prov.rs:741"]
-    RC["resolve_commit against the pod repo<br/>solid-pod-rs-git/src/api.rs:373"]
-    PRICE["anchor_price_sats<br/>solid-pod-rs-server/src/handlers/prov.rs:614"]
-    DEB["debit then refund on failure<br/>solid-pod-rs-server/src/handlers/prov.rs:632"]
-    PEND["an anchor left pending after its intent is recorded answers 202 and is NOT refunded<br/>solid-pod-rs-server/src/handlers/prov.rs:527"]
-    RET["a failed refund is retained in /.well-known/prov/refunds-pending.json<br/>solid-pod-rs-server/src/handlers/prov.rs:683"]
-    SIDE["the .prov.ttl sidecar GET is an ORDINARY LDP read"]
-
-    REG --> R1 --> RC
-    REG --> R2 --> PRICE --> DEB
-    DEB --> PEND
-    DEB --> RET
-    R1 -.-> SIDE
-
-    N["DIVERGENCE (baseline open item REC-11): the provenance query surface is<br/>POINT-LOOKUP only — one commit SHA, or a per-resource sidecar. There is no<br/>pod-wide _prov enumeration, so 'one queryable trace over a whole pod' is not<br/>delivered by this repo."]
-    R1 -.-> N
-    N2["The explicit git-mark to Bitcoin-anchor upgrade is payment-gated and refunds on<br/>failure — refund (solid-pod-rs-server/src/handlers/prov.rs:666) is the<br/>compensating half of debit."]
-    DEB -.-> N2
-    N3["is_sidecar (solid-pod-rs-server/src/handlers/prov.rs:608) keeps the anchor<br/>endpoint off control-plane paths."]
-    R2 -.-> N3
+flowchart TD
+    REG["register before LDP catch-all<br/>solid-pod-rs-server/src/handlers/prov.rs:747"]
+    GET["GET commit: resolve Git metadata and first content path<br/>solid-pod-rs-server/src/handlers/prov.rs:351"]
+    SC["read current resource sidecar directly from storage<br/>solid-pod-rs-server/src/handlers/prov.rs:391"]
+    LEAK["DRIFT: no resource WAC gate or sidecar commit check<br/>anchored is a substring check for bt:txid<br/>solid-pod-rs-server/src/handlers/prov.rs:413"]
+    POST["POST anchor: NIP-98 owner, resolve commit and trail<br/>solid-pod-rs-server/src/handlers/prov.rs:454"]
+    DEBIT["charge before anchor, no logical request receipt<br/>solid-pod-rs-server/src/handlers/prov.rs:512"]
+    ANCHOR["anchor commit hash<br/>solid-pod-rs-server/src/handlers/prov.rs:523"]
+    PENDING["pending error: 202, keep charge<br/>solid-pod-rs-server/src/handlers/prov.rs:527"]
+    REFUND["other error: refund or try retaining debt<br/>solid-pod-rs-server/src/handlers/prov.rs:543"]
+    WRITE["accepted: replace current sidecar even for old commit<br/>write failure logged, still 200 and charged<br/>solid-pod-rs-server/src/handlers/prov.rs:584"]
+    REG --> GET --> SC --> LEAK
+    REG --> POST --> DEBIT --> ANCHOR
+    ANCHOR -- ambiguous --> PENDING
+    ANCHOR -- error --> REFUND
+    ANCHOR -- accepted --> WRITE
 ```
+
+- **What it shows:** the point query bypasses the ordinary LDP read path. A known old commit can return a newer sidecar, and an owner can overwrite that sidecar by anchoring the old commit. The endpoint does not deduplicate logical requests.
+- **Why it is this way:** the explicit upgrade composes a local charge, chain submission and mutable sidecar. NIP-98 rejects reuse of an authentication event, but a retry with a new event is a fresh charge.
+- **Debt:** a failed refund is only *attempted* in the pending file; a second storage failure is logged at solid-pod-rs-server/src/handlers/prov.rs:692. No repayment worker was found in the crate search. This is not a guaranteed durable refund.
+- **Tension:** private resource and sidecar reads returned 401 in the audit fixture, while the unauthenticated commit query returned their metadata and sidecar text. No pod-wide query enumeration or live deployment exposure is claimed.
 
 ## SP-07.7 Epoch batching — one transaction, many commits
 
@@ -269,42 +267,21 @@ flowchart TD
 ## SP-07.10 The rust-bitcoin transaction builder (ADR-2008 D1, landed)
 
 ```mermaid
-flowchart LR
-    BLD["build_transaction<br/>solid-pod-rs/src/bitcoin_tx.rs:281"]
-    P2TR["p2tr_script<br/>solid-pod-rs/src/bitcoin_tx.rs:124"]
-    VS["verify_keypath_signature<br/>solid-pod-rs/src/bitcoin_tx.rs:388"]
-    FEE["DEFAULT_FEE_SATS 300, DUST_LIMIT_SATS 546<br/>solid-pod-rs/src/bitcoin_tx.rs:80"]
-    CO["checked_output — refuses to mint value<br/>solid-pod-rs/src/bitcoin_tx.rs:1081"]
-    MINT["mint_token<br/>solid-pod-rs/src/bitcoin_tx.rs:539"]
-    XFER["transfer_token_with_key<br/>solid-pod-rs/src/bitcoin_tx.rs:639"]
-    ANC["anchor_state<br/>solid-pod-rs/src/bitcoin_tx.rs:745"]
-    VCH["build_withdraw_voucher<br/>solid-pod-rs/src/bitcoin_tx.rs:1137"]
-    TXO["parse_txo_voucher<br/>solid-pod-rs/src/bitcoin_tx.rs:433"]
-    BC["MempoolBroadcast trait<br/>solid-pod-rs/src/bitcoin_tx.rs:502"]
-    GG["gitmark_genesis — voucher to the first mark, state is the commit as text<br/>solid-pod-rs/src/bitcoin_tx.rs:869"]
-    GA["gitmark_advance — spend the newest mark to the next<br/>solid-pod-rs/src/bitcoin_tx.rs:929"]
-    DTI["decode_tx_info — raw hex to the TxInfo view, inputs included<br/>solid-pod-rs/src/bitcoin_tx.rs:1028"]
-
-    P2TR --> BLD --> CO
-    BLD --> MINT
-    BLD --> XFER
-    BLD --> ANC
-    BLD --> VCH
-    BLD --> BC
-    BLD --> GG
-    BLD --> GA
-    DTI -.-> BC
-    VS --> BLD
-    FEE --> BLD
-    TXO --> BC
-
-    N["The former DIVERGENCE is closed (ADR-2008 D1, landed at 0befa5b): serialisation,<br/>CompactSize, txid order, the P2TR script, the BIP-341 TapSighash and TapTweak,<br/>BIP-340 signing and bech32m now come from rust-bitcoin and libsecp256k1<br/>(solid-pod-rs/src/bitcoin_tx.rs:18). tagged_hash, xonly_of, add_mod_n,<br/>neg_mod_n and the hand-rolled bech32m encoder are DELETED. The module still<br/>decides only WHAT to build; determinism is kept with aux_rand = 0^32 so the<br/>cross-implementation golden fixture stays byte-identical to JSS."]
-    BLD -.-> N
-    N3["alpha.12 adds the git-mark composers beside anchor_state. A git-mark state is the commit<br/>hash as text with no MRC20 wrapper, 40 or 64 lowercase hex (check_commit,<br/>solid-pod-rs/src/bitcoin_tx.rs:844). gitmark_advance refuses to extend a trail<br/>whose newest mark on-chain is not the key its states derive. BuiltTx now carries the<br/>txid (solid-pod-rs/src/bitcoin_tx.rs:174)."]
-    GA -.-> N3
-    N2["DEBT: the write side remains a native-only concern — the module is gated<br/>cfg(not(target_arch = wasm32)) behind the mrc20 feature<br/>(solid-pod-rs/src/bitcoin_tx.rs:53), so wasm consumers cannot build transactions."]
-    BLD -.-> N2
+flowchart TD
+    INPUT["build_transaction: nonempty inputs, one secret key<br/>solid-pod-rs/src/bitcoin_tx.rs:281"]
+    KEY["first input script decides key-path tweak<br/>xonly_of uses libsecp256k1 and still exists<br/>solid-pod-rs/src/bitcoin_tx.rs:130<br/>solid-pod-rs/src/bitcoin_tx.rs:293"]
+    TX["rust-bitcoin Transaction, TxIn, TxOut and serialisation<br/>per-value money range checks<br/>solid-pod-rs/src/bitcoin_tx.rs:308<br/>solid-pod-rs/src/bitcoin_tx.rs:372"]
+    HASH["SighashCache with all prevouts, SIGHASH_DEFAULT<br/>solid-pod-rs/src/bitcoin_tx.rs:340"]
+    SIGN["libsecp256k1 Schnorr with zero auxiliary randomness<br/>solid-pod-rs/src/bitcoin_tx.rs:218"]
+    RESULT["witnesses, computed txid, raw and unsigned hex<br/>solid-pod-rs/src/bitcoin_tx.rs:362"]
+    CHECK["golden cases A/B/C and published BIP vectors<br/>solid-pod-rs/src/bitcoin_tx.rs:1244<br/>solid-pod-rs/src/bitcoin_tx.rs:1417"]
+    INPUT --> KEY --> TX --> HASH --> SIGN --> RESULT
+    CHECK -.-> RESULT
 ```
+
+- **What it shows:** the primitive port is implemented. The xonly_of wrapper remains; the removed code is the handwritten primitive arithmetic and encoders. The golden fixtures use deterministic signing for cross-implementation equality.
+- **Why it is this way:** ADR-2008 D1/D2 replaces crypto primitives with maintained libraries while retaining the transaction policy and compatibility surface. One key signs all inputs; callers must group compatible inputs, as the builder documentation states at solid-pod-rs/src/bitcoin_tx.rs:229.
+- **Open:** native vector tests do not prove fee adequacy, chain acceptance, consumer activation or WASM transaction building. The write module remains native-only at solid-pod-rs/src/bitcoin_tx.rs:53.
 
 ## SP-07.11 Mempool endpoint selection (ADR-2007)
 
@@ -359,47 +336,27 @@ sequenceDiagram
 - **Why it is this way:** the retained intent supports retry before another advance, without refunding an accepted transaction solely because local persistence failed. Existing fixture tests cover this path.
 - **Open:** settle_trail_intent validates retained transaction identity and head input at solid-pod-rs-server/src/mempool.rs:1129, then trusts the longer proposed trail at solid-pod-rs-server/src/mempool.rs:1147. The analogous git-mark metadata failure is reproduced in SP-07.20; altered MRC20 state is not freshly probed.
 
-## SP-07.13 The web ledger
+## SP-07.13 The stored web ledger and its public operations
 
 ```mermaid
-classDiagram
-    direction TB
-    class WebLedger {
-        +get_balance(did)  solid-pod-rs/src/payments.rs:412
-        +credit_by_outpoint(txid, vout, ...)  solid-pod-rs/src/payments.rs:450
-        +debit_by_payout(amount, txid)  solid-pod-rs/src/payments.rs:501
-        +reverse_payout(txid)  solid-pod-rs/src/payments.rs:536
-        +check_genesis()  solid-pod-rs/src/payments.rs:372
-    }
-    class LedgerEntry {
-        solid-pod-rs/src/payments.rs:35
-        +LedgerAmount  solid-pod-rs/src/payments.rs:47
-        +chain_balance(chain)  solid-pod-rs/src/payments.rs:83
-    }
-    class LedgerGenesis {
-        solid-pod-rs/src/payments.rs:121
-        operator, name, currency, created, confirmations
-    }
-    class PayConfig {
-        solid-pod-rs/src/payments.rs:638
-        +ChainConfig  solid-pod-rs/src/payments.rs:688
-    }
-    class PaymentStore {
-        <<trait>>
-        solid-pod-rs/src/payments.rs:911
-    }
-    class Identity {
-        +pubkey_to_did  solid-pod-rs/src/payments.rs:923
-        +did_to_pubkey  solid-pod-rs/src/payments.rs:928
-    }
-    WebLedger *-- LedgerEntry
-    WebLedger ..> LedgerGenesis
-    WebLedger ..> PaymentStore
-    PayConfig ..> WebLedger
-    WebLedger ..> Identity
-    note for WebLedger "TELLER-shaped — see the paragraphs below"
+flowchart TD
+    LEDGER["WebLedger stores balances and receipts<br/>get_balance is an exact-key local lookup<br/>solid-pod-rs/src/payments.rs:412"]
+    ID["check_genesis checks genesis hash when present<br/>legacy ledger without genesis is accepted<br/>solid-pod-rs/src/payments.rs:372"]
+    CREDIT["credit_by_outpoint: validate shape and amount,<br/>deduplicate outpoint, update chosen currency<br/>solid-pod-rs/src/payments.rs:450"]
+    PAYOUT["debit_by_payout: debit once by txid<br/>reverse_payout restores its recorded amount<br/>solid-pod-rs/src/payments.rs:501<br/>solid-pod-rs/src/payments.rs:536"]
+    CHARGE["charge and refund: local service-fee mutations<br/>Charge is an in-memory capability<br/>solid-pod-rs/src/payments.rs:548<br/>solid-pod-rs/src/payments.rs:557"]
+    STORE["PaymentStore still reads and writes ledger authority<br/>solid-pod-rs/src/payments.rs:911"]
+    VERIFY["MRC20 HTTP handler verifies before crediting token units<br/>solid-pod-rs-server/src/handlers/pay.rs:608<br/>solid-pod-rs-server/src/handlers/pay.rs:672"]
+    ID --> LEDGER
+    VERIFY --> CREDIT --> LEDGER
+    PAYOUT --> LEDGER
+    CHARGE --> LEDGER
+    LEDGER --> STORE
 ```
-- **What it shows:** the ledger is TELLER-shaped (solidpayorg/teller parity): a fresh ledger is born with a genesis whose identity is `sha256(JCS(genesis))`, and `check_genesis` (`solid-pod-rs/src/payments.rs:372`) refuses a document whose hash is not the hash of its genesis. The only credit is `credit_by_outpoint` — the deposit's outpoint is the receipt, and a second credit for a recorded outpoint is a no-op (`ReceiptOutcome::AlreadyApplied`, `solid-pod-rs/src/payments.rs:450`). Debits are recorded as payout receipts; `reverse_payout` (`:536`) undoes a payout whose transaction never reached the chain. ADR-2008 D4/D5 (chain-derived view, credit/debit removal) are NOT built — this is still a stored number. `payment_required_body` (`solid-pod-rs/src/payments.rs:738`) is the HTTP-402 body; `pay_info` (`:751`) backs GET /pay/.info.
+
+- **What it shows:** outpoint and payout receipts are local replay controls. The public credit_by_outpoint method performs no network lookup; its caller supplies the verified facts. Service charges and refunds are additional balance mutations.
+- **Why it is this way:** Teller-shaped receipts improve the stored ledger without delivering ADR-2008's chain-derived authority. Bare credit/debit are now crate-private at solid-pod-rs/src/payments.rs:565 and solid-pod-rs/src/payments.rs:580, but public receipt operations and write_ledger still change stored balances.
+- **Invariant:** the MRC20 deposit route refuses a ticker that aliases sats at solid-pod-rs-server/src/handlers/pay.rs:602. Its credit goes to token units, not the satoshi balance. Genesis identity does not authenticate the changing balances.
 
 ## SP-07.14 The `/pay/*` route family
 
@@ -436,31 +393,29 @@ flowchart LR
     REG -.-> N2
 ```
 
-## SP-07.15 Payment-state atomicity
+## SP-07.15 Payment-state commits and the read-failure gap
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    participant H as a /pay/* handler
-    participant L as PAYMENT_STATE_LOCK<br/>solid-pod-rs-server/src/lib.rs:208
-    participant PS as StoragePaymentStore<br/>solid-pod-rs-server/src/handlers/pay.rs:129
-    participant S as Storage
-    participant RC as recover_payment_intents<br/>solid-pod-rs-server/src/handlers/pay.rs:242
-
-    H->>L: acquire the process-wide mutex
-    Note over L: The storage API has NO cross-resource CAS primitive, so the guard must be<br/>held across the replay check, the ledger/order/pool/trail mutation and the<br/>persist.
-    H->>PS: check_replay(key)<br/>solid-pod-rs-server/src/handlers/pay.rs:305
-    H->>PS: read_state<br/>solid-pod-rs-server/src/handlers/pay.rs:169
-    H->>H: mutate the ledger, order book or pool
-    H->>PS: commit_state<br/>solid-pod-rs-server/src/handlers/pay.rs:198
-    PS->>S: persist
-    H->>PS: record_replay(key)<br/>solid-pod-rs-server/src/handlers/pay.rs:309
-    H->>L: release
-
-    Note over RC: A durable intent record gives crash recovery where an EXTERNAL broadcast is<br/>involved, raw_transaction_txid (solid-pod-rs-server/src/handlers/pay.rs:229)<br/>re-derives the txid so a re-run can tell "already broadcast" from "never sent".<br/>A definite 404 reverses the recorded payout via reverse_payout, an intent with<br/>no payout receipt is RETAINED with a warning — the ledger cannot restore a<br/>debit it has no receipt for (solid-pod-rs-server/src/handlers/pay.rs:242).
-    Note over H: A token transfer waits at most TRAIL_LOCK_WAIT, 2 s, for the trail while holding the payment lock,<br/>then answers 503 with Retry-After so one slow anchor cannot stall every endpoint<br/>solid-pod-rs-server/src/handlers/pay.rs:1229
-    Note over L: DIVERGENCE: the lock is PROCESS-wide. Two replicas serving the same pod<br/>storage share no lock, and the README's audit line records "non-atomic payment<br/>state" as a reproduced critical finding.
+flowchart TD
+    LOCK["handlers acquire process-local PAYMENT_STATE_LOCK<br/>solid-pod-rs-server/src/lib.rs:208"]
+    READ["read_state_unchecked reads canonical state.json<br/>solid-pod-rs-server/src/handlers/pay.rs:179"]
+    PARSE["successful read: parse or return error<br/>then check ledger genesis<br/>solid-pod-rs-server/src/handlers/pay.rs:181<br/>solid-pod-rs-server/src/handlers/pay.rs:169"]
+    FALL["DRIFT: any get error falls back to legacy files<br/>version zero and no pending intents<br/>solid-pod-rs-server/src/handlers/pay.rs:184"]
+    MUTATE["mutate ledger, replay, orders or exchange"]
+    SAVE["commit_state: increment version and put bundled state<br/>solid-pod-rs-server/src/handlers/pay.rs:198"]
+    MIRROR["write legacy mirrors best-effort afterwards<br/>solid-pod-rs-server/src/handlers/pay.rs:210"]
+    INTENT["token payout stores debit plus intent before broadcast<br/>solid-pod-rs-server/src/handlers/pay.rs:1322"]
+    LOCK --> READ
+    READ -- bytes --> PARSE --> MUTATE
+    READ -- any storage error --> FALL --> MUTATE
+    MUTATE --> SAVE --> MIRROR
+    INTENT --> SAVE
 ```
+
+- **What it shows:** bundled state prevents a local transition being split between authoritative ledger, replay and market files. But a read outage can select stale mirrors and the next successful write can replace the canonical state with them, losing intents and resetting the version.
+- **Why it is this way:** the implementation has a useful single-document commit and process-local serialisation. It has no cross-process compare-and-swap, and its compatibility fallback is broader than its own missing-file-only contract.
+- **Debt:** recovery at solid-pod-rs-server/src/handlers/pay.rs:242 trusts explorer presence, advances a saved trail when behind and reverses a payout on 404. A missing payout receipt retains the intent. These are bounded recovery rules, not proof of finality or safe absence across explorers.
+- **Invariant:** token transfer waits at most two seconds for its trail lock while holding the payment lock, then returns 503 with Retry-After at solid-pod-rs-server/src/handlers/pay.rs:1253. The existing tests establish this local bound.
 
 ## SP-07.16 Order book and AMM
 
@@ -520,42 +475,24 @@ flowchart TD
     MRC -.-> N3
 ```
 
-## SP-07.18 The ledger today, and the remaining chain-view work (ADR-2008, partial)
+## SP-07.18 ADR-2008 — completed port and unfinished ledger authority
 
 ```mermaid
-flowchart TB
-    subgraph LIVE["LIVE at d64131b — a stored number this crate mutates"]
-        GB["get_balance reads the stored map<br/>solid-pod-rs/src/payments.rs:412"]
-        CR["credit_by_outpoint — the only credit, outpoint<br/>as receipt; verified MRC20 deposits only<br/>solid-pod-rs/src/payments.rs:450"]
-        DB["debit_by_payout records a payout receipt;<br/>reverse_payout undoes an unconfirmed payout<br/>solid-pod-rs/src/payments.rs:501"]
-        WL["write_ledger on PaymentStore is still the authority<br/>solid-pod-rs/src/payments.rs:913"]
-        ST["Landed: rust-bitcoin port D1, golden tests D2,<br/>TXO stand-in deleted D6 — verified at e62d028<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:97"]
-        ST -.-> CR
-        CR --> WL
-        DB --> WL
-        GB --> WL
-    end
-    subgraph PROP["NOT BUILT — decision_status proposed, implementation_status partial,<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:5-6"]
-        P1["D4: get_balance reads through sidestr-node and folds<br/>the UTXOs for that did:nostr, bounded cache<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:55"]
-        P2["D5: credit and debit leave the public API — the only<br/>credit is a peg-in claim on the chain<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:60"]
-        P3["write_ledger stops being an authority, writes<br/>become cache population<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:62"]
-        P4["D7: non-atomic payment state fixed first<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:72"]
-        P5["D8: both consumers adopt one post-port version<br/>in lockstep — an exit criterion, not a follow-up<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:76"]
-        P1 --> P2 --> P3
-        P4 --> P5
-    end
-    LIVE --> PROP
-
-    N["INVARIANT (live): a staleness bound does not exist today because the balance is<br/>local — the proposal makes a stale figure an error rather than a slightly old<br/>number, which is a new failure mode callers do not handle yet.<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:57"]
-    PROP -.-> N
-    N2["EXTERNAL: ADR-2008 is this crate's projection of decisions taken elsewhere —<br/>agentbox ADR-2096 D3 and ADR-2099 D2/D3, and PRD-024 D0/D3/D4 — extending<br/>ADR-2007's single-explorer seam with the estate's own chain. MRC20 retires as a<br/>token rail but is retained as an anchoring primitive because block-trail anchors<br/>and the host's AnchorConfirmer depend on it.<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:15"]
-    PROP -.-> N2
-    N3["DIVERGENCE (D3 in part): the chained-key derivation ports and stays<br/>byte-identical, but the .buy / .withdraw MRC20 token routes are still live —<br/>their retirement belongs with D4/D5<br/>(adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:50,<br/>implementation note :144-145)."]
-    LIVE -.-> N3
+flowchart TD
+    PORT["implemented: rust-bitcoin primitives and golden parity D1/D2<br/>solid-pod-rs/src/bitcoin_tx.rs:281<br/>solid-pod-rs/src/bitcoin_tx.rs:1244"]
+    TXO["D6 stand-in deletion implemented: non-MRC20 deposit 501<br/>solid-pod-rs-server/src/handlers/pay.rs:470"]
+    MRC["D3/D6 partial: MRC20 credits token units,<br/>buy and withdraw routes remain<br/>solid-pod-rs-server/src/handlers/pay.rs:672<br/>solid-pod-rs-server/src/handlers/pay.rs:1761"]
+    API["D5 partial: bare credit/debit now crate-private,<br/>public receipt mutations and write_ledger remain<br/>solid-pod-rs/src/payments.rs:565<br/>solid-pod-rs/src/payments.rs:913"]
+    LOCAL["D4 absent: stored local balance, no height-stamped chain view<br/>solid-pod-rs/src/payments.rs:412"]
+    ATOMIC["D7 partial: bundled state and local lock,<br/>read-failure fallback can overwrite authority<br/>solid-pod-rs-server/src/handlers/pay.rs:179"]
+    PLAN["remaining decision: chain-resolved balance and spends,<br/>cache-only writes and coordinated consumers<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:55<br/>adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:76"]
+    PORT --> TXO --> MRC --> API --> LOCAL --> ATOMIC --> PLAN
 ```
-- **Tension (ADR-2008 vs code):** D3 declares MRC20 "retired as a token rail" (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:50-52), yet `/pay/.buy` and `/pay/.withdraw` still execute token trades and withdrawals against the stored ledger (`solid-pod-rs-server/src/handlers/pay.rs:1396`, `solid-pod-rs-server/src/handlers/pay.rs:1485`) — the record itself concedes this is D3 "in part", pending D4/D5 (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:98, :144-145).
-- **Open:** the record makes fixing non-atomic payment state a precondition of the port (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:72), but the lock it would have to replace is process-wide with no cross-resource CAS primitive behind it (`solid-pod-rs-server/src/lib.rs:208`) — nothing states what replaces it.
-- **Invariant:** the PROPOSED half is drawn as not built; the record carries `decision_status: proposed` and `implementation_status: partial` (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:5-6), and its Verification section states exactly what landed — "D1, D2 and D6 are built and verified at `e62d028`" while "D4, D5, D7 and D8 are not built" (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:97-98).
+
+- **What it shows:** code has moved beyond the October implementation note, but not to a chain-derived ledger. D6's stand-in deletion is complete while its requested removal of MRC20 crediting is not. D5's old function-name grep now passes without satisfying its authority requirement.
+- **Why it is this way:** this remains a proposed, partially implemented, staged decision at adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:5. The audit distinguishes landed library changes from chain activation and consumer versions.
+- **Drift:** the implementation note still says bare credit/debit are public and D7 is not built at adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:147. The current code has narrowed those methods and added bundled commits, with the remaining failure in SP-07.15.
+- **Open:** D8 remains unmet in the audited consumer lockfiles: VisionClaw resolves alpha.17 and the forum alpha.18. Detailed consumer source receipts and the whole-section assessment are in the dated payment audit; this topic does not certify either deployment.
 
 ## SP-07.19 Whole-trail verification — every mark walked back from the head (alpha.12)
 

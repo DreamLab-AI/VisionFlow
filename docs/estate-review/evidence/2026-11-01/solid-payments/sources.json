@@ -1,0 +1,247 @@
+[
+  {
+    "repo": "solid-pod-rs",
+    "head": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+    "path": "crates/solid-pod-rs/src/provenance.rs",
+    "sha256": "20ac85602b8f6db2bbe39f35bf719f8caea941f9a866984ed27951b4ac005a39",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "solid-pod-rs",
+    "head": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+    "path": "crates/solid-pod-rs/src/mrc20.rs",
+    "sha256": "084dc978d70c8c8a5f4ff829cc3deb0c787f25257c94c3d9b73194bfa3225e5d",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "solid-pod-rs",
+    "head": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+    "path": "crates/solid-pod-rs/src/blocktrail.rs",
+    "sha256": "f028f821748abf2b8c9bad74d20a1b6688b9632b2d11f801dc9e5a5ff77a3ca3",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "solid-pod-rs",
+    "head": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+    "path": "crates/solid-pod-rs/src/bitcoin_tx.rs",
+    "sha256": "600a5a95db0a1a50b81624d7b384b6f150af104b04bb546458081e5b48b6e5cb",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "solid-pod-rs",
+    "head": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+    "path": "crates/solid-pod-rs/src/payments.rs",
+    "sha256": "71c663d7cffbb848e3dacf5862523a1eb23d8ae2b5bcfe10bd94d2b15b5d1b39",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "solid-pod-rs",
+    "head": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+    "path": "crates/solid-pod-rs/src/trading.rs",
+    "sha256": "db4e5f0c877eb942c97c6ab055c97b5e3139b5157af4188c5bf6f496d8b57416",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "solid-pod-rs",
+    "head": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+    "path": "crates/solid-pod-rs/src/wac/anchor.rs",
+    "sha256": "0c947ffa1fda14bd0560a79dfe69b3426e71b99ce2bf6b9683276dbb726eed9a",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "solid-pod-rs",
+    "head": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+    "path": "crates/solid-pod-rs-server/src/lib.rs",
+    "sha256": "6573dc10b392d62743af4cd20da96da7594f7ed755e75b3eedfa8fcd225f26eb",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "solid-pod-rs",
+    "head": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+    "path": "crates/solid-pod-rs-server/src/handlers/prov.rs",
+    "sha256": "ce9f9c6a2cb98d6c6eed4411eb67e167282494ae8026f484f76d92f058369973",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "solid-pod-rs",
+    "head": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+    "path": "crates/solid-pod-rs-server/src/handlers/pay.rs",
+    "sha256": "b7efca7d65e478563f679f39d3dab6140d7081d297021f1e26d6258be922ce29",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "solid-pod-rs",
+    "head": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+    "path": "crates/solid-pod-rs-server/src/mempool.rs",
+    "sha256": "7506b03de99083c042b3e41f69c923c58eae1e6505b708801070d25ec6c45222",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "solid-pod-rs",
+    "head": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+    "path": "crates/solid-pod-rs-server/src/trail_store.rs",
+    "sha256": "8c609c64f753b26a5b5a9285bb85a1cb0015014b4e85a8ccdb19659504d8b2a4",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "solid-pod-rs",
+    "head": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+    "path": "crates/solid-pod-rs-server/src/main.rs",
+    "sha256": "05597e6741c0647ef177836bf8b976f8e2dfd764f49a8fa350d7fc742edf08c6",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "solid-pod-rs",
+    "head": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+    "path": "crates/solid-pod-rs/src/wac/conditions.rs",
+    "sha256": "013aa0505c5d7a3bb940d15f573b5a1b211cfdcf22c4074682c72b320ed107a7",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "solid-pod-rs",
+    "head": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+    "path": "crates/solid-pod-rs-git/src/api.rs",
+    "sha256": "161fa5f4cc80fe07b308b711d08e89bf6526f8b6edd95dab0e45560f11c9c8e5",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "solid-pod-rs",
+    "head": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+    "path": "crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md",
+    "sha256": "ca1a816a4f5740d0fd7bb5ce6fcf820fb6c1e6434c6863d86f136567e8cf0f7f",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "solid-pod-rs",
+    "head": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+    "path": "Cargo.toml",
+    "sha256": "d961f54655df352e4d96f33317de60825e69055c4bd461f47c24484614efadd0",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "solid-pod-rs",
+    "head": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+    "path": "Cargo.lock",
+    "sha256": "3d2aa7e07ee46b4ec469c1b91bcfb3eca02267e53e5279f86c6065a7e70fd6e1",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "solid-pod-rs",
+    "head": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+    "path": "crates/solid-pod-rs/Cargo.toml",
+    "sha256": "8e038ac4c74c5785e69b5e0f60664dda18639cdf4e75996bc31fb3ec6c2fd44f",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "solid-pod-rs",
+    "head": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+    "path": "crates/solid-pod-rs/src/storage/fs.rs",
+    "sha256": "6c7602ba6bcf53b923384cc4d2513b8723f1f81733c8f418d4acf22ad0754868",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "solid-pod-rs",
+    "head": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+    "path": "crates/solid-pod-rs-server/tests/prov_phase5_routes.rs",
+    "sha256": "d0b41aa1f56730ba0b84d30d0fd3936ccf515568e99832e459e755641ce8aa70",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "solid-pod-rs",
+    "head": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+    "path": "crates/solid-pod-rs-server/tests/pay_routes.rs",
+    "sha256": "7797c7f7f57008074dce4f9736e98a8cae5d0bf2badb7befa5b59ba3b91fcaeb",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "solid-pod-rs",
+    "head": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+    "path": "crates/solid-pod-rs-server/tests/payment_atomicity.rs",
+    "sha256": "3376743292859fbe0f2bfdb54f0b057c1993f9c402494de81374c0a5771bbb48",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "solid-pod-rs",
+    "head": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+    "path": "crates/solid-pod-rs/docs/explanation/payments-and-web-ledger.md",
+    "sha256": "d592103b1619cd2e6051c729e7b21cc98af74ec170d8e461156c94fb36f40858",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "solid-pod-rs",
+    "head": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+    "path": "README.md",
+    "sha256": "3aa9f7fc08ea8f7e291563d6f682e46b89f5210bba8b6613f7b3ab883e98502e",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "solid-pod-rs",
+    "head": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+    "path": "crates/solid-pod-rs/tests/fixtures/bitcoin/golden_tx.json",
+    "sha256": "f2f218fdb0a33e5b3f0c25924d93535de50367f34a7514cb7a4c6538958e92d8",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "project",
+    "head": "531df5ef74453a2ed320bff968c203a9b91faed7",
+    "path": "Cargo.toml",
+    "sha256": "8fb26d3b60096e034d24e6f5cd1f1e160be8adeb9f34b5390dffc65e0680c0e1",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "project",
+    "head": "531df5ef74453a2ed320bff968c203a9b91faed7",
+    "path": "Cargo.lock",
+    "sha256": "531c0b53d66cb25271ff40fee59d2fe1d02ff300a3fdc372fc9ffb9f83893b80",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "project",
+    "head": "531df5ef74453a2ed320bff968c203a9b91faed7",
+    "path": "src/handlers/pay_handler.rs",
+    "sha256": "3a5300ce5dc885696baa6ce460022e4f7ed68f7d67aadb758ce2ddf81ac4bfd0",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "project/agentbox",
+    "head": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "management-api/routes/payments.js",
+    "sha256": "412687777566f69f0744b846fc385c172e045d9d344dcd1f954316fe90418f81",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "head": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "path": "Cargo.toml",
+    "sha256": "a77f8f98ddea050dacf242316e18955d9248b06c893e6bfae97448cba5935f95",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "head": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "path": "Cargo.lock",
+    "sha256": "9d9ab8f72d2d50576aba1d1669115e57e4c6443d20b6c709a216ea5e54837807",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "head": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "path": "crates/nostr-bbs-pod-worker/src/payments.rs",
+    "sha256": "aa8c24af273e41cbb21ade1ecc919fc699860f9b75d16c9f3492b7a8cd118efa",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "head": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "path": "crates/nostr-bbs-pod-worker/src/pay_ledger.rs",
+    "sha256": "41e86931902d09724290ec7e5286940c27249619f16de8aad88e4d9aeb2b25c7",
+    "matches_HEAD": true
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "head": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "path": "crates/nostr-bbs-pod-worker/wrangler.toml",
+    "sha256": "e5e3c77ab6e0b6e1b6555fe965250215da98da2d71d7ac01dd1b297fb85d9eaa",
+    "matches_HEAD": true
+  }
+]

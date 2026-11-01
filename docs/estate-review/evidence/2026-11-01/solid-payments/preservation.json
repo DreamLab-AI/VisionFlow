@@ -1,0 +1,17 @@
+{
+  "primary": "/home/devuser/workspace/VisionFlow",
+  "baseline_head": "bc97713f3fe7cf166297e567bf6c103709d016d8",
+  "post_parallel_merge_head": "9c2ac2c14a7cd26325f157b3a3d4fc028ae03784",
+  "preexisting_files": {
+    "docs/diagrams/review-ledger.jsonl": "00b87eefdf5a6c2bbb72c328855e9035d6dd6e8346c78b32e9f70064b77a81d6",
+    ".dream-standby": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/review/2026-10-31-glm.json": "8fc342d4d518d4b1c17eb0b464fadcb3e7f549b80352a16d51a8d7e466e0bcda",
+    "docs/review/2026-10-31-glm.md": "4ea83e5a198d85ba477b30b7185cfd188d24a21b39bf794b680e886c3dc1d71a",
+    "docs/review/2026-10-31-triage.md": "5c5f18203de6b5bcbffa35998866da1dd0403c966931d790fc2401c7fdd3e372",
+    "docs/review/2026-11-01-glm.json": "f9430401c40ac1e81dc9ee0d79644bf18b5d6219e5eefd218f48de3f9c1a94d5",
+    "docs/review/2026-11-01-glm.md": "e9a561226d5ff7596b649a4fa8d11c9fed1bd8edcb19c1b3004292288eee7ea4",
+    "docs/review/2026-11-01-triage.md": "a69053b35177480bfd50e9e594ce43b04ba85db06a3bc0e953ced6f829e80ae5"
+  },
+  "preexisting_file_bytes_unchanged": true,
+  "product_source_changed_in_payment_batch": false
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "panel": "SP-07.6",
+    "svg": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.6.svg",
+    "sha256": "14b3e19187412413134baeffc06336cdedd70254cd665ee7b970b56f4a4fb9ec",
+    "preview": "/tmp/vf-solid-payment-audit/SP-07.6.png"
+  },
+  {
+    "panel": "SP-07.10",
+    "svg": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.10.svg",
+    "sha256": "3f832914560847232088a0aa1fbf22440532e10ad616c8353d50654ae1cd3550",
+    "preview": "/tmp/vf-solid-payment-audit/SP-07.10.png"
+  },
+  {
+    "panel": "SP-07.13",
+    "svg": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.13.svg",
+    "sha256": "268ff9c7ddd1d8510503fce9982955101640bef19041b266c14e724db1726101",
+    "preview": "/tmp/vf-solid-payment-audit/SP-07.13.png"
+  },
+  {
+    "panel": "SP-07.15",
+    "svg": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.15.svg",
+    "sha256": "2d3b6ebcc2fa4b4f4c7c02ea346f0f5bd0442fa01058c06921519f4cd81488b8",
+    "preview": "/tmp/vf-solid-payment-audit/SP-07.15.png"
+  },
+  {
+    "panel": "SP-07.18",
+    "svg": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.18.svg",
+    "sha256": "5ee643c4fc942c2f5e934052834b8a614463504c44bc7eb07ef5a1d37f60c24c",
+    "preview": "/tmp/vf-solid-payment-audit/SP-07.18.png"
+  }
+]

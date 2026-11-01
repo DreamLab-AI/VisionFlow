@@ -1,0 +1,17 @@
+    Finished `test` profile [unoptimized] target(s) in 0.31s
+     Running unittests src/lib.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/solid_pod_rs_server-1a8ce01bd61bf50e)
+
+running 10 tests
+test handlers::pay::intent_recovery_tests::txid_of_a_witness_transaction_excludes_the_witness ... ok
+test handlers::pay::intent_recovery_tests::ledger_with_a_tampered_genesis_is_refused ... ok
+test handlers::pay::intent_recovery_tests::ambiguous_server_failure_retains_debit_and_intent ... ok
+test handlers::pay::intent_recovery_tests::definite_not_found_compensates_and_clears_intent ... ok
+test handlers::pay::intent_recovery_tests::known_transaction_keeps_debit_and_clears_intent ... ok
+test handlers::pay::intent_recovery_tests::not_found_without_payout_receipt_retains_intent ... ok
+test handlers::pay::intent_recovery_tests::recovery_never_rolls_the_stored_trail_back ... ok
+test handlers::pay::intent_recovery_tests::recovery_still_moves_a_stale_trail_forward ... ok
+test handlers::pay::intent_recovery_tests::token_transfer_behind_a_slow_anchor_answers_503_and_frees_the_payment_lock ... ok
+test handlers::pay::intent_recovery_tests::token_transfer_waits_for_the_trail_lock ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 111 filtered out; finished in 2.31s
+

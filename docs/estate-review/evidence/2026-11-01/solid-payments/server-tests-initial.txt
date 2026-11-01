@@ -1,0 +1,26 @@
+   Compiling solid-pod-rs-server v0.5.0-alpha.18 (/home/devuser/workspace/solid-pod-rs/crates/solid-pod-rs-server)
+    Finished `test` profile [unoptimized] target(s) in 2.93s
+     Running unittests src/lib.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/solid_pod_rs_server-1a8ce01bd61bf50e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 121 filtered out; finished in 0.00s
+
+     Running tests/pay_routes.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/pay_routes-d94960a461819209)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
+
+     Running tests/payment_atomicity.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/payment_atomicity-685fb824f54d0e80)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests/prov_phase5_routes.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/prov_phase5_routes-eb8bc91503539c8b)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.00s
+

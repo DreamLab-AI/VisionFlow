@@ -391,16 +391,6 @@
   },
   {
     "kind": "adr",
-    "repo": "Codescape consumed",
-    "path": "docs/adr/ADR-0001-extraction-from-visionclaw.md",
-    "source_sha256": "26caf2ea72a3ffbb5d578b94d56a529470e84d780b8b19cf5b55ded2cbbed055",
-    "report": "docs/estate-review/2026-10-31-codescape-boundaries.md",
-    "report_sha256": "ac35ff1028652be1e7d2c06a6492da0db09245fc243f8397b4590fb14205a7df",
-    "coverage": "whole-document",
-    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
-  },
-  {
-    "kind": "adr",
     "repo": "ontomark-obsidian",
     "path": "docs/adr/ADR-OBS-001-shared-graph.md",
     "source_sha256": "15c8c5dbb6b770ec7dd6507f72fc4830ee39d2435d18e658544d00c959703902",
@@ -2452,7 +2442,7 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/solid-pod-rs/07-provenance-and-payments.md",
-    "source_sha256": "2da8b64566bddf2fe2054ea4bd026b82cc064388cfbf840a34de61939af61e46",
+    "source_sha256": "bc99baafd93e038317c3f2b9c0db5a2f9688e32365fe4047656065357402041e",
     "report": "docs/estate-review/2026-11-01-solid-provenance-delivery.md",
     "report_sha256": "ed29ee02705cd1792ba6e748850e5a782e8dcabf3aa8a0989a204df693b0d26b",
     "coverage": "selected-panels",
@@ -2479,7 +2469,7 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/solid-pod-rs/07-provenance-and-payments.md",
-    "source_sha256": "2da8b64566bddf2fe2054ea4bd026b82cc064388cfbf840a34de61939af61e46",
+    "source_sha256": "bc99baafd93e038317c3f2b9c0db5a2f9688e32365fe4047656065357402041e",
     "report": "docs/estate-review/2026-11-01-solid-anchor-recovery.md",
     "report_sha256": "da765df753d562f24b1bd2a266b254f374248c8c77b49acc4287c2f74c268a90",
     "coverage": "selected-panels",
@@ -2490,5 +2480,45 @@
       "SP-07.20"
     ],
     "basis": "Epoch accumulation/recovery, endpoint selection, MRC20 accepted-save semantics and Gitmark recovery assessed with native fixtures and persistent local files. Synthetic transport is not consensus; other panels retain their existing scope."
+  },
+  {
+    "kind": "adr",
+    "repo": "solid-pod-rs",
+    "path": "crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md",
+    "source_sha256": "ca1a816a4f5740d0fd7bb5ce6fcf820fb6c1e6434c6863d86f136567e8cf0f7f",
+    "report": "docs/estate-review/2026-11-01-solid-payment-delivery.md",
+    "report_sha256": "333ed29b4207a047bf66d7e02539d68344661032e8a1b0dd11527ceddc8a7563",
+    "coverage": "whole-document",
+    "basis": "Every section and D1\u2013D8 assessed against native and bounded consumer source,99 passing tests and four local probe groups. Chain-derived authority, deployment, crash and multiprocess guarantees remain unproved."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/solid-pod-rs/07-provenance-and-payments.md",
+    "source_sha256": "bc99baafd93e038317c3f2b9c0db5a2f9688e32365fe4047656065357402041e",
+    "report": "docs/estate-review/2026-11-01-solid-payment-delivery.md",
+    "report_sha256": "333ed29b4207a047bf66d7e02539d68344661032e8a1b0dd11527ceddc8a7563",
+    "coverage": "selected-panels",
+    "panels": [
+      "SP-07.6",
+      "SP-07.10",
+      "SP-07.13",
+      "SP-07.15",
+      "SP-07.18"
+    ],
+    "basis": "Query access, sidecar binding, retry charges, primitive port and local ledger authority assessed against code and disposable HTTP fixtures. Rendered siblings receive no new credit."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/agentbox/40-relay-signature-rejection.md",
+    "source_sha256": "b969489c8535f7a898e8190ac49f3a23ae48a79198d42959a6f6504748a0b866",
+    "report": "docs/estate-review/2026-11-01-parallel-remediation.md",
+    "report_sha256": "78f696714408c569cc5679d1a993630a221768fac73ae8819428efb534301e8d",
+    "coverage": "selected-panels",
+    "panels": [
+      "AB-40.1"
+    ],
+    "basis": "Merged signature rejection repair,5 regressions and14 existing tests; partial ABI-05 remediation only. No deployment or AB-13 sibling assessment credit."
   }
 ]

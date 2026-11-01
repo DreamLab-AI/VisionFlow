@@ -1,0 +1,5 @@
+Test Suites: 1 passed, 1 total
+Tests:       14 passed, 14 total
+Snapshots:   0 total
+Time:        1.025 s
+Ran all test suites.

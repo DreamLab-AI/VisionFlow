@@ -1,0 +1,117 @@
+TAP version 13
+# Subtest: missing dependency: reject before notification, persistence or orchestration
+not ok 1 - missing dependency: reject before notification, persistence or orchestration
+  ---
+  duration_ms: 94.28865
+  type: 'test'
+  location: '/home/devuser/workspace/wt/agentbox-relay-verification/tests/sovereign/relay-signature-failure.test.cjs:49:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/home/devuser/workspace/wt/agentbox-relay-verification/tests/sovereign/relay-signature-failure.test.cjs:53:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: verifier throws: reject before notification, persistence or orchestration
+not ok 2 - verifier throws: reject before notification, persistence or orchestration
+  ---
+  duration_ms: 17.844876
+  type: 'test'
+  location: '/home/devuser/workspace/wt/agentbox-relay-verification/tests/sovereign/relay-signature-failure.test.cjs:49:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/home/devuser/workspace/wt/agentbox-relay-verification/tests/sovereign/relay-signature-failure.test.cjs:53:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: injected verifier throws: reject before notification, persistence or orchestration
+not ok 3 - injected verifier throws: reject before notification, persistence or orchestration
+  ---
+  duration_ms: 13.953583
+  type: 'test'
+  location: '/home/devuser/workspace/wt/agentbox-relay-verification/tests/sovereign/relay-signature-failure.test.cjs:49:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Got unwanted exception.
+    Actual message: "injected fault"
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  actual:
+  error: 'injected fault'
+  stack: |-
+    RelayConsumer.verifyEvent [as _verifyEvent] (/home/devuser/workspace/wt/agentbox-relay-verification/tests/sovereign/relay-signature-failure.test.cjs:46:59)
+    RelayConsumer._verifySig (/home/devuser/workspace/wt/agentbox-relay-verification/mcp/nostr-bridge/relay-consumer.js:744:40)
+    RelayConsumer._onForumGovernance (/home/devuser/workspace/wt/agentbox-relay-verification/mcp/nostr-bridge/relay-consumer.js:449:15)
+    /home/devuser/workspace/wt/agentbox-relay-verification/tests/sovereign/relay-signature-failure.test.cjs:51:42
+    getActual (node:assert:609:5)
+    Function.doesNotThrow (node:assert:777:32)
+    TestContext.<anonymous> (/home/devuser/workspace/wt/agentbox-relay-verification/tests/sovereign/relay-signature-failure.test.cjs:51:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  operator: 'doesNotThrow'
+  stack: |-
+    TestContext.<anonymous> (/home/devuser/workspace/wt/agentbox-relay-verification/tests/sovereign/relay-signature-failure.test.cjs:51:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: non-boolean verification result: reject before notification, persistence or orchestration
+not ok 4 - non-boolean verification result: reject before notification, persistence or orchestration
+  ---
+  duration_ms: 15.10294
+  type: 'test'
+  location: '/home/devuser/workspace/wt/agentbox-relay-verification/tests/sovereign/relay-signature-failure.test.cjs:49:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/home/devuser/workspace/wt/agentbox-relay-verification/tests/sovereign/relay-signature-failure.test.cjs:53:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: real valid signature passes; a changed payload and malformed event fail
+ok 5 - real valid signature passes; a changed payload and malformed event fail
+  ---
+  duration_ms: 17.295064
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 1
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 350.367141

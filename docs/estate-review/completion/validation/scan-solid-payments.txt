@@ -1,0 +1,34 @@
+   Compiling version_check v0.9.5
+   Compiling typenum v1.20.1
+   Compiling zmij v1.0.23
+   Compiling serde_core v1.0.229
+   Compiling serde_json v1.0.149
+   Compiling pulldown-cmark v0.13.4
+   Compiling unicode-width v0.2.2
+   Compiling memchr v2.8.3
+   Compiling cpufeatures v0.2.17
+   Compiling itoa v1.0.18
+   Compiling cfg-if v1.0.5
+   Compiling bitflags v2.13.2
+   Compiling unicase v2.10.0
+   Compiling pulldown-cmark-escape v0.11.0
+   Compiling getopts v0.2.24
+   Compiling generic-array v0.14.7
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.7
+   Compiling digest v0.10.7
+   Compiling sha2 v0.10.9
+   Compiling estate-review-ledger v0.1.0 (/home/devuser/workspace/wt/visionflow-solid-payments/scripts/estate-review-ledger)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.42s
+     Running `scripts/estate-review-ledger/target/debug/estate-review-ledger /home/devuser/workspace /home/devuser/workspace/wt/visionflow-solid-payments docs/estate-review/completion/scope.json docs/estate-review/completion/claims.json docs/estate-review/completion/snapshot-2026-11-01.json`
+{
+  "available_checkouts": 20,
+  "candidate_files": 828,
+  "numbered_candidates_with_recorded_assessment": 95,
+  "numbered_decision_candidates": 720,
+  "panels": 1740,
+  "panels_with_recorded_assessment": 359,
+  "scope_targets": 20,
+  "stale_claim_records": 0,
+  "topics": 207
+}

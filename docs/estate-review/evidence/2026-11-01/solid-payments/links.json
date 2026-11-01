@@ -1,0 +1,170 @@
+[
+  {
+    "file": "docs/estate-review/2026-11-01-solid-payment-delivery.md",
+    "target": "2026-11-01-parallel-implementations.md"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-solid-payment-delivery.md",
+    "target": "evidence/2026-11-01/solid-payments/sources.json"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-solid-payment-delivery.md",
+    "target": "evidence/2026-11-01/solid-payments/payment-probe.rs"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-solid-payment-delivery.md",
+    "target": "evidence/2026-11-01/solid-payments/run-probe.cjs"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-solid-payment-delivery.md",
+    "target": "evidence/2026-11-01/solid-payments/probe.json"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-solid-payment-delivery.md",
+    "target": "evidence/2026-11-01/solid-payments/crypto-tests.txt"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-solid-payment-delivery.md",
+    "target": "evidence/2026-11-01/solid-payments/mrc20-tests.txt"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-solid-payment-delivery.md",
+    "target": "evidence/2026-11-01/solid-payments/recovery-tests.txt"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-solid-payment-delivery.md",
+    "target": "evidence/2026-11-01/solid-payments/http-tests.txt"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-solid-payment-delivery.md",
+    "target": "evidence/2026-11-01/solid-payments/server-tests-initial.txt"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-solid-payment-delivery.md",
+    "target": "evidence/2026-11-01/solid-payments/crypto-and-consumer-receipts.json"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-solid-payment-delivery.md",
+    "target": "evidence/2026-11-01/solid-payments/revision-parity.json"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-parallel-remediation.md",
+    "target": "2026-11-01-parallel-implementations.md"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-parallel-remediation.md",
+    "target": "remediation/parallel-implementations-2026-11-01.json"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-parallel-remediation.md",
+    "target": "evidence/2026-11-01/parallel-intake/relay-before.txt"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-parallel-remediation.md",
+    "target": "evidence/2026-11-01/parallel-intake/relay-after.txt"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-parallel-remediation.md",
+    "target": "evidence/2026-11-01/parallel-intake/relay-forum-tests.txt"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-parallel-remediation.md",
+    "target": "../diagrams/agentbox/40-relay-signature-rejection.md"
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-parallel-remediation.md",
+    "target": "2026-11-01-solid-payment-delivery.md"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "scope.json"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "claims.json"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "snapshot-2026-11-01.json"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "validation-2026-11-01.json"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "../../../scripts/estate-review-ledger/README.md"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "exclusions-2026-11-01.json"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "../2026-11-01-solid-payment-delivery.md"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "../2026-11-01-parallel-implementations.md"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "../remediation/parallel-implementations-2026-11-01.json"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "../2026-11-01-parallel-remediation.md"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "../evidence/2026-11-01/solid-payments/ledger-refresh.json"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "../2026-11-01-solid-anchor-recovery.md"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "../2026-11-01-solid-provenance-delivery.md"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "../2026-11-01-solid-http-delivery.md"
+  },
+  {
+    "file": "docs/estate-review/completion/README.md",
+    "target": "../2026-11-01-solid-policy-parsing.md"
+  },
+  {
+    "file": "docs/diagrams/VERIFICATION.md",
+    "target": "citation-allowlist.json"
+  },
+  {
+    "file": "docs/diagrams/VERIFICATION.md",
+    "target": "agentbox/40-relay-signature-rejection.md"
+  },
+  {
+    "file": "docs/diagrams/VERIFICATION.md",
+    "target": "../estate-review/evidence/2026-11-01/parallel-intake/new-diagram.txt"
+  },
+  {
+    "file": "docs/diagrams/VERIFICATION.md",
+    "target": "../estate-review/evidence/2026-11-01/parallel-intake/verification-supplement.json"
+  },
+  {
+    "file": "docs/diagrams/VERIFICATION.md",
+    "target": "../estate-review/evidence/2026-11-01/solid-payments/render.txt"
+  },
+  {
+    "file": "docs/diagrams/VERIFICATION.md",
+    "target": "../estate-review/evidence/2026-11-01/parallel-intake/historical-diagram.txt"
+  },
+  {
+    "file": "docs/diagrams/VERIFICATION.md",
+    "target": "visionflow/02-website-build-and-deploy.md"
+  },
+  {
+    "file": "docs/diagrams/VERIFICATION.md",
+    "target": "visionflow/07-pitch-presentation-reports.md"
+  }
+]

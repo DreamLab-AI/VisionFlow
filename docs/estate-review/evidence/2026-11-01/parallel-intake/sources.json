@@ -1,0 +1,13 @@
+{
+  "repo": "agentbox",
+  "revision": "0ec2956434f9c61eaf40477df58acc40b1b679c3",
+  "files": {
+    "mcp/nostr-bridge/relay-consumer.js": "ba187fbec6a5182e96fe8d53419025256ea4d2f3e43f1cf5c4b39a86d709af23",
+    "tests/sovereign/relay-signature-failure.test.cjs": "19ba74525ef8619d26bad70ec88931e9ee26e2102bc35ea1ea302f5274e8d5e8",
+    "tests/sovereign/relay-consumer-forum-governance.test.js": "3d87a18e0b67f15ceefd3e9dd560e7271fb1f3c7a089b04433091197a0b6f940",
+    "management-api/lib/authority-consumer.js": "a9459b369ffdfe6061ebab177e6ec04caa7f9cb723b3f105a02d4d859bee910b",
+    "docs/GOVERNANCE-capabilities.md": "b5f0230393a397e8eb67236b580a3d8a005e5e72fab496081c05ab4a7ebfbe24",
+    "package.json": "3581a7e7c6fb8b913fc93598a0e2d745a8059c43aacb0e3918c79e0c57e7d846"
+  },
+  "runtime_deployed": false
+}

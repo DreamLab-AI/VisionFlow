@@ -1,0 +1,2 @@
+    Finished `test` profile [unoptimized] target(s) in 0.35s
+Payment/query audit probe passed: git

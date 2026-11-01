@@ -1,0 +1,32 @@
+   Compiling solid-pod-rs v0.5.0-alpha.18 (/home/devuser/workspace/solid-pod-rs/crates/solid-pod-rs)
+    Finished `test` profile [unoptimized] target(s) in 9.35s
+     Running unittests src/lib.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/solid_pod_rs-54486a4bb7ef765a)
+
+running 24 tests
+test bitcoin_tx::tests::build_rejects_empty_inputs ... ok
+test bitcoin_tx::tests::checked_output_rejects_dust ... ok
+test bitcoin_tx::tests::p2tr_script_rejects_non_point ... ok
+test bitcoin_tx::tests::p2tr_script_rejects_wrong_length ... ok
+test bitcoin_tx::tests::build_rejects_short_privkey_without_panicking ... ok
+test bitcoin_tx::tests::bip341_official_output_key_vector ... ok
+test bitcoin_tx::tests::golden_raw_decodes_and_txid_matches_unsigned_hash ... ok
+test bitcoin_tx::tests::bip341_scriptpubkey_vectors ... ok
+test bitcoin_tx::tests::parse_voucher_no_chain_prefix ... ok
+test bitcoin_tx::tests::p2tr_script_shape ... ok
+test bitcoin_tx::tests::parse_voucher_rejects_missing_amount ... ok
+test bitcoin_tx::tests::parse_voucher_full_form ... ok
+test bitcoin_tx::tests::bip341_keypath_default_signature_vector ... ok
+test bitcoin_tx::tests::bip341_keypath_default_sighash_vector ... ok
+test bitcoin_tx::tests::verify_rejects_non_32_byte_sighash ... ok
+test bitcoin_tx::tests::parse_voucher_rejects_bad_key ... ok
+test bitcoin_tx::tests::bip341_keypath_tweaked_privkey_vector ... ok
+test bitcoin_tx::tests::golden_case_a_full_hex_matches_jss ... ok
+test bitcoin_tx::tests::golden_case_c_multi_input_matches_jss ... ok
+test bitcoin_tx::tests::golden_case_b_tweaked_full_hex_matches_jss ... ok
+test bitcoin_tx::tests::golden_signing_key_matches_jss ... ok
+test bitcoin_tx::tests::txid_hex_case_is_insignificant ... ok
+test bitcoin_tx::tests::bip340_official_vectors_sign_and_verify ... ok
+test bitcoin_tx::tests::every_golden_signature_verifies ... ok
+
+test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 476 filtered out; finished in 0.02s
+

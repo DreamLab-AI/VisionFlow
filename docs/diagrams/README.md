@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_206 topic files, 1739 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_207 topic files, 1740 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -282,6 +282,7 @@ _206 topic files, 1739 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | AB-37 | [Proposed mesh signer and current recovery boundaries](agentbox/37-mesh-signer-and-recovery.md) | 4 | flowchart | [PROTOCOL-registry.md](../../../project/agentbox/docs/PROTOCOL-registry.md) | ADR-2162, ADR-2061, ADR-2101, ADR-2122, ADR-2027 |
 | AB-38 | [Video measurements and provider qualification boundaries](agentbox/38-video-measurements-and-provider-boundaries.md) | 4 | flowchart | [GOVERNANCE-capabilities.md](../../../project/agentbox/docs/GOVERNANCE-capabilities.md) | ADR-2150, ADR-2163 |
 | AB-39 | [Session reconciliation and delivery boundaries](agentbox/39-session-reconciliation-and-delivery.md) | 5 | flowchart | [ADR-2153-session-plane-replaces-aoe.md](../../../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md) | ADR-2153 |
+| AB-40 | [Relay signature rejection and governance dispatch](agentbox/40-relay-signature-rejection.md) | 1 | flowchart | [GOVERNANCE-capabilities.md](../../../project/agentbox/docs/GOVERNANCE-capabilities.md) | ADR-2009 |
 
 ### solid-pod-rs
 

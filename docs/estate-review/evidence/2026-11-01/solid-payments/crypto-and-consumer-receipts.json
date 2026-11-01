@@ -1,0 +1,49 @@
+{
+  "golden_fixture": "crates/solid-pod-rs/tests/fixtures/bitcoin/golden_tx.json",
+  "unchanged_since_fc56b39": true,
+  "sha256": "f2f218fdb0a33e5b3f0c25924d93535de50367f34a7514cb7a4c6538958e92d8",
+  "locked_bitcoin": [
+    {
+      "name": "bitcoin",
+      "version": "0.32.102",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "bb0ce8bd5baaa0d303a19915a6d93afed161f528654e42da2a7a97d05c59499a",
+      "dependencies": [
+        "base58ck",
+        "bech32",
+        "bitcoin-io",
+        "bitcoin-units",
+        "bitcoin_hashes",
+        "hex-conservative 0.2.3",
+        "hex_lit",
+        "secp256k1"
+      ]
+    }
+  ],
+  "consumer_resolutions": {
+    "project": [
+      {
+        "name": "solid-pod-rs",
+        "version": "0.5.0-alpha.17"
+      },
+      {
+        "name": "solid-pod-rs-idp",
+        "version": "0.5.0-alpha.17"
+      },
+      {
+        "name": "solid-pod-rs-nostr",
+        "version": "0.5.0-alpha.17"
+      },
+      {
+        "name": "solid-pod-rs-server",
+        "version": "0.5.0-alpha.17"
+      }
+    ],
+    "nostr-rust-forum": [
+      {
+        "name": "solid-pod-rs",
+        "version": "0.5.0-alpha.18"
+      }
+    ]
+  }
+}

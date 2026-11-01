@@ -7,9 +7,9 @@ type: explanation
 
 # VisionFlow estate review
 
-Latest checkpoint: [Solid HTTP policy admission and delivery](2026-11-01-solid-http-delivery.md) — twelve native tests and local HTTP probes confirm condition-loss admission, ineffective lockout prevention and empty permission headers; private delivery and local grant-removal controls pass. ADR-2002 and seven panels assessed.
+Latest checkpoint: [Solid payment and provenance delivery](2026-11-01-solid-payment-delivery.md) — 99 native tests and four local probe groups assess ADR-2008 and five panels. Canonical-state fallback, private provenance disclosure, historical sidecar mismatch and duplicate anchor charges remain open. The [parallel audit intake](2026-11-01-parallel-remediation.md) retains all 134 distinct issues; Agentbox's relay signature-rejection fix is merged with 19 passing tests. Consumer consolidation and deployment remain open.
 
-**Scope correction, 1 November 2026:** RuView is excluded at the owner’s direction because it is not part of the owned estate. Its earlier reports and references are retained as historical material; their pending source, ADR and remediation work is outside this audit. The [scope manifest](completion/scope.json) records the exclusion.
+**Scope correction, 1 November 2026:** RuView, Logseq history, RuVector, consumed Codescape and consumed Unmute are excluded at the owner's direction. Standalone Codescape remains in scope. The twenty active checkout targets and exclusion reasons are recorded in the [scope manifest](completion/scope.json). Earlier reports remain historical evidence; no repositories were deleted.
 
 [The completion ledger](completion/README.md) separates scoped inventory, recorded assessments and unreconciled work. It binds assessments to exact document/report hashes and holds the current counts; these are not an overall completion percentage.
 

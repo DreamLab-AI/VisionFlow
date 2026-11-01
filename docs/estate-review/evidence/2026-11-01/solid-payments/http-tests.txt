@@ -1,0 +1,34 @@
+    Finished `test` profile [unoptimized] target(s) in 0.31s
+     Running tests/pay_routes.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/pay_routes-d94960a461819209)
+
+running 5 tests
+test balance_requires_auth ... ok
+test balance_for_authed_did_zero_then_credited ... ok
+test pool_add_liquidity_then_swap ... ok
+test offers_sell_swap_round_trip ... ok
+test txo_deposit_is_gone_and_credits_nothing ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running tests/payment_atomicity.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/payment_atomicity-685fb824f54d0e80)
+
+running 1 test
+test concurrent_payment_state_writes_lose_no_update ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/prov_phase5_routes.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/prov_phase5_routes-eb8bc91503539c8b)
+
+running 9 tests
+test cheap_write_records_git_mark_only ... ok
+test prov_anchor_upgrade_402_on_insufficient_balance ... ok
+test prov_resolve_maps_commit_to_resource ... ok
+test high_value_write_records_both_tiers ... ok
+test epoch_policy_batches_then_anchors_once ... ok
+test prov_anchor_upgrade_is_payment_gated_and_owner_only ... ok
+test prov_anchor_with_lost_broadcast_is_pending_and_keeps_the_charge ... ok
+test prov_anchor_failing_before_broadcast_still_refunds ... ok
+test anchor_and_withdraw_race_never_overdraw_the_ledger ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.84s
+

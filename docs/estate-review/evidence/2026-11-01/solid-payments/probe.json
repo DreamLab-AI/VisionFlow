@@ -1,0 +1,43 @@
+{
+  "http": {
+    "duplicate_anchor": {
+      "balance_after_two": 90,
+      "different_broadcast_transactions": 2,
+      "initial_balance": 100,
+      "old_anchor_replaced_current_sidecar": true,
+      "requests": 2
+    },
+    "private_query": {
+      "anonymous_query_status": 200,
+      "comment_sets_anchored_true": true,
+      "ordinary_get_statuses": [
+        401,
+        401
+      ],
+      "requested_old_commit_returned_current_sidecar": true
+    },
+    "sidecar_failure": {
+      "balance": 85,
+      "charged": 5,
+      "no_sidecar_error_field": true,
+      "no_sidecar_file": true,
+      "status": 200
+    }
+  },
+  "limits": "Disposable FsBackend/Git and local Actix services, known test identity, synthetic explorer decoding transactions only. No consensus, confirmation, production funds, deployment or OS restart evidence.",
+  "state_read_failure": {
+    "canonical_after_sell": 100,
+    "canonical_before": 20,
+    "limit": "Injected read-only failure over MemoryBackend; canonical fixture includes pending debit, no OS crash or multiprocess test.",
+    "malformed_json_control": {
+      "error": "payment store: malformed payment state: expected value at line 1 column 1"
+    },
+    "malformed_json_status": 500,
+    "outage_http_balance_status": 200,
+    "outage_read_balance": 100,
+    "pending_intents_lost": true,
+    "stale_mirror": 100,
+    "version_reset_from": 7,
+    "version_reset_to": 1
+  }
+}

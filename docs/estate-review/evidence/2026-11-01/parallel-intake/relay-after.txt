@@ -1,0 +1,44 @@
+
+> agentbox@0.1.0 test:relay-signatures
+> node --test tests/sovereign/relay-signature-failure.test.cjs
+
+TAP version 13
+# Subtest: missing dependency: reject before notification, persistence or orchestration
+ok 1 - missing dependency: reject before notification, persistence or orchestration
+  ---
+  duration_ms: 78.116076
+  type: 'test'
+  ...
+# Subtest: verifier throws: reject before notification, persistence or orchestration
+ok 2 - verifier throws: reject before notification, persistence or orchestration
+  ---
+  duration_ms: 9.194775
+  type: 'test'
+  ...
+# Subtest: injected verifier throws: reject before notification, persistence or orchestration
+ok 3 - injected verifier throws: reject before notification, persistence or orchestration
+  ---
+  duration_ms: 9.458906
+  type: 'test'
+  ...
+# Subtest: non-boolean verification result: reject before notification, persistence or orchestration
+ok 4 - non-boolean verification result: reject before notification, persistence or orchestration
+  ---
+  duration_ms: 8.444538
+  type: 'test'
+  ...
+# Subtest: real valid signature passes; a changed payload and malformed event fail
+ok 5 - real valid signature passes; a changed payload and malformed event fail
+  ---
+  duration_ms: 18.785075
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 326.35449

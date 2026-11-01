@@ -82,24 +82,8 @@
       "local": "dream-machine"
     },
     {
-      "name": "Logseq history",
-      "local": "project4"
-    },
-    {
-      "name": "RuVector",
-      "local": "ruvector"
-    },
-    {
       "name": "Codescape standalone",
       "local": "codescape"
-    },
-    {
-      "name": "Codescape consumed",
-      "local": "project/codescape"
-    },
-    {
-      "name": "unmute consumed",
-      "local": "project/voice-stack/unmute"
     }
   ],
   "exclusions": [
@@ -109,6 +93,34 @@
       "date": "2026-11-01",
       "authority": "Explicit user instruction: take RuView out of consideration; it is not ours.",
       "disposition": "Exclude the repository, its ADRs, source review and remediation backlog from this estate audit. Retain prior reports as historical evidence only. References within owned estate documents do not re-admit the external repository."
+    },
+    {
+      "name": "Logseq history",
+      "local": "project4",
+      "date": "2026-11-01",
+      "authority": "Explicit user instruction: drop Logseq history, RuVector, consumed Codescape and consumed Unmute from the audit roster.",
+      "disposition": "Exclude this checkout and its standalone ADR/source/remediation review from this audit. Retain historical evidence. Owned repositories may still document their integration boundary; this does not re-admit the excluded checkout. No repository deletion authorised."
+    },
+    {
+      "name": "RuVector",
+      "local": "ruvector",
+      "date": "2026-11-01",
+      "authority": "Explicit user instruction: drop Logseq history, RuVector, consumed Codescape and consumed Unmute from the audit roster.",
+      "disposition": "Exclude this checkout and its standalone ADR/source/remediation review from this audit. Retain historical evidence. Owned repositories may still document their integration boundary; this does not re-admit the excluded checkout. No repository deletion authorised."
+    },
+    {
+      "name": "Codescape consumed",
+      "local": "project/codescape",
+      "date": "2026-11-01",
+      "authority": "Explicit user instruction: drop Logseq history, RuVector, consumed Codescape and consumed Unmute from the audit roster.",
+      "disposition": "Exclude this checkout and its standalone ADR/source/remediation review from this audit. Retain historical evidence. Owned repositories may still document their integration boundary; this does not re-admit the excluded checkout. No repository deletion authorised."
+    },
+    {
+      "name": "unmute consumed",
+      "local": "project/voice-stack/unmute",
+      "date": "2026-11-01",
+      "authority": "Explicit user instruction: drop Logseq history, RuVector, consumed Codescape and consumed Unmute from the audit roster.",
+      "disposition": "Exclude this checkout and its standalone ADR/source/remediation review from this audit. Retain historical evidence. Owned repositories may still document their integration boundary; this does not re-admit the excluded checkout. No repository deletion authorised."
     }
   ]
 }

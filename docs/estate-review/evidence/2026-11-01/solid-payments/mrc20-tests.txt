@@ -1,0 +1,57 @@
+    Finished `test` profile [unoptimized] target(s) in 0.68s
+     Running unittests src/lib.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/solid_pod_rs-54486a4bb7ef765a)
+
+running 50 tests
+test mrc20::anchor::vector_tests::scalar_mod_n_reduces_and_refuses_zero ... ok
+test mrc20::tests::extract_transfers_finds_matching ... ok
+test mrc20::anchor::vector_tests::base_point_forms ... ok
+test mrc20::tests::jcs_array ... ok
+test mrc20::tests::extract_transfers_ignores_zero_amount ... ok
+test mrc20::tests::extract_transfers_ignores_wrong_recipient ... ok
+test mrc20::tests::jcs_deterministic ... ok
+test mrc20::tests::jcs_empty_object_and_array ... ok
+test mrc20::tests::jcs_nested_objects ... ok
+test mrc20::tests::anchor_tests::verify_anchor_rejects_bad_pubkey_length ... ok
+test mrc20::tests::jcs_null_bool ... ok
+test mrc20::tests::jcs_sorts_keys ... ok
+test mrc20::tests::jcs_string_escaping ... ok
+test mrc20::tests::jcs_state_is_deterministic_across_serializations ... ok
+test mrc20::tests::sha256_hex_deterministic ... ok
+test mrc20::tests::sha256_hex_known_vector ... ok
+test mrc20::anchor::vector_tests::bip350_address_vectors ... ok
+test mrc20::tests::total_transferred_sums_multiple_ops ... ok
+test mrc20::tests::validate_rejects_empty_prev ... ok
+test mrc20::tests::validate_rejects_wrong_profile ... ok
+test mrc20::tests::validate_valid_state ... ok
+test mrc20::tests::trail_roundtrip ... ok
+test mrc20::tests::verify_deposit_fails_chain_break ... ok
+test mrc20::tests::verify_state_link_detects_break ... ok
+test mrc20::tests::verify_deposit_success ... ok
+test mrc20::tests::verify_state_link_valid_chain ... ok
+test mrc20::tests::verify_deposit_fails_no_transfers ... ok
+test mrc20::tests::verify_state_link_detects_sequence_gap ... ok
+test mrc20::anchor::vector_tests::scalar_mod_n_matches_keys_mjs ... ok
+test mrc20::tests::anchor_tests::gitmark_swapped_commits_refused ... ok
+test mrc20::tests::anchor_tests::bt_derive_chained_pubkey_single_state ... ok
+test mrc20::tests::anchor_tests::bt_address_mainnet_format ... ok
+test mrc20::tests::anchor_tests::verify_anchor_rejects_empty_state_strings ... ok
+test mrc20::tests::anchor_tests::bt_derive_chained_pubkey_multiple_states ... ok
+test mrc20::tests::anchor_tests::verify_anchor_false_when_utxo_at_wrong_address ... ok
+test mrc20::tests::anchor_tests::verify_anchor_false_when_utxo_absent ... ok
+test mrc20::tests::anchor_tests::bt_derive_chained_pubkey_differs_per_state ... ok
+test mrc20::tests::anchor_tests::bt_address_differs_per_network ... ok
+test mrc20::tests::anchor_tests::bt_address_testnet_format ... ok
+test mrc20::tests::anchor_tests::bt_derive_chained_pubkey_deterministic ... ok
+test mrc20::tests::anchor_tests::bt_derive_chained_privkey_roundtrip ... ok
+test mrc20::tests::anchor_tests::bt_address_deterministic ... ok
+test mrc20::tests::anchor_tests::gitmark_live_trail_pin ... ok
+test mrc20::tests::anchor_tests::verify_anchor_accepts_a_pending_head ... ok
+test mrc20::tests::anchor_tests::verify_anchor_false_when_head_has_no_history ... ok
+test mrc20::tests::anchor_tests::bt_address_non_mainnet_uses_tb ... ok
+test mrc20::tests::anchor_tests::verify_anchor_false_when_an_earlier_mark_does_not_commit ... ok
+test mrc20::tests::anchor_tests::verify_anchor_true_when_utxo_present ... ok
+test mrc20::anchor::vector_tests::bt_address_gitmark_uses_gm ... ok
+test mrc20::tests::anchor_tests::chained_derivation_matches_pinned_golden ... ok
+
+test result: ok. 50 passed; 0 failed; 0 ignored; 0 measured; 450 filtered out; finished in 0.04s
+

@@ -1,0 +1,12 @@
+{
+  "original": "d2b2a19",
+  "rebased": "9c2ac2c",
+  "onto": "bc97713",
+  "report_bytes_unchanged": true,
+  "report_sha256": "14c447a4a0a602e830716779de5c5d95d476dfc1adda276b267174db03fea88c",
+  "issues_imported": 134,
+  "new_partial_remediations": [
+    "ABI-05"
+  ],
+  "no_push": true
+}

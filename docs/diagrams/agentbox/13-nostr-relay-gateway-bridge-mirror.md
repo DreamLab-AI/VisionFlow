@@ -415,6 +415,7 @@ Note over BOOT,GDW: CORRECTION — despite the path mcp/servers/nostr-bridge.js,
     end
     NB-->>RC: onInbound(event, relayUrl) relay-consumer.js:228
     RC->>RC: _verifySig(event) I01 relay-consumer.js:548,743
+    Note over RC: DRIFT at this declared revision: verifier exceptions accept id/sig string shape.<br/>This does not establish I01 authenticity, relay-consumer.js:743,756.<br/>Current fail-closed repair is recorded separately in AB-40.1.
     RC->>RC: _passesIngressPolicy(event) I07 relay-consumer.js:555, definition :760
     RC->>RC: _findRecipientNpub(event) I10 relay-consumer.js:561
     alt kind in 38000-38099 (agent-intent) and intentSpec present

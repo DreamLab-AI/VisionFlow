@@ -1,0 +1,18 @@
+{
+  "checked": "2026-11-01",
+  "sources": [
+    {
+      "url": "https://raw.githubusercontent.com/solidpayorg/teller/7c00cea/lib/teller.mjs",
+      "use": "Pure receipt semantics require callers to supply verified chain facts."
+    },
+    {
+      "url": "https://docs.stripe.com/api/idempotent_requests",
+      "use": "Logical retry identity and parameter-binding design comparison."
+    },
+    {
+      "url": "https://docs.btcpayserver.org/Users/invoices/",
+      "use": "Payment processing versus settled state and confirmation policy."
+    }
+  ],
+  "no_competitor_runtime_test": true
+}

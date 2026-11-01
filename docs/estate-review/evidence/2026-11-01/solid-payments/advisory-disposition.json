@@ -1,0 +1,12 @@
+{
+  "corrected": [
+    "SP-07.6 register line747 by symbol",
+    "SP-07.10 SighashCache at340, method343"
+  ],
+  "final_selected_advisories": 0,
+  "historical_unassessed": [
+    "AB-13.1 gateway.cjs118",
+    "AB-13.3 flake.nix2738",
+    "AB-13.5 gateway.cjs721"
+  ]
+}

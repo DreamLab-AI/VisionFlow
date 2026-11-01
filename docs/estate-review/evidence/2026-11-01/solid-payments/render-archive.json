@@ -1,0 +1,295 @@
+{
+  "archive": "/tmp/vf-solid-payment-audit/worktree-ignored.tar.gz",
+  "sha256": "6927f00b863a02650f71d302188b479a3cf3614f92def459d9f3b1777d4d69cf",
+  "files": [
+    {
+      "path": "docs/diagrams/rendered/agentbox/13-nostr-relay-gateway-bridge-mirror/AB-13.1.mmd",
+      "sha256": "fc761930429a79bd209aefe117273bbf04081c0d88b8208afb4e649697c6fbee"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/13-nostr-relay-gateway-bridge-mirror/AB-13.1.svg",
+      "sha256": "97a19df6ed60c045f935d793ed4ff12f390abcb1761ff1b0c546c1e17e10ce1f"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/13-nostr-relay-gateway-bridge-mirror/AB-13.10.mmd",
+      "sha256": "f56bdbc009e3626e8b5cf2d49d1b8af1d093bf4cf4ac7f647d4ae99212be094a"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/13-nostr-relay-gateway-bridge-mirror/AB-13.10.svg",
+      "sha256": "7dddd8d026134e4e9935728451dd314f273ccf547f377de315794b91ac146793"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/13-nostr-relay-gateway-bridge-mirror/AB-13.12.mmd",
+      "sha256": "4963ff91c559e7ade05c203666c6e7c995a82691e618fc8bf8bfe341b0d7fc64"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/13-nostr-relay-gateway-bridge-mirror/AB-13.12.svg",
+      "sha256": "bee7885f9f3ede71b7e5c43089d3603618e4179dc36852c1e0d7076e508ceba4"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/13-nostr-relay-gateway-bridge-mirror/AB-13.13.mmd",
+      "sha256": "29fb1a338fad0855f396e77d82254637c23a527039b1192b79d6b30c7accfb06"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/13-nostr-relay-gateway-bridge-mirror/AB-13.13.svg",
+      "sha256": "44fdbb10be911ed3d78533a7cb4c6bc3ba9011ea986b6c84350b85f339017a9a"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/13-nostr-relay-gateway-bridge-mirror/AB-13.14.mmd",
+      "sha256": "286754fcc5897cd37b9844ea91b0bc96267e807afe8222caff3c8b427a2156e1"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/13-nostr-relay-gateway-bridge-mirror/AB-13.14.svg",
+      "sha256": "c6f35cdc3dad0a246b0d1b268402081dff876c8ecc00d387c5bd057451cc3e5b"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/13-nostr-relay-gateway-bridge-mirror/AB-13.15.mmd",
+      "sha256": "500f7b0a858f3987f2526021d01c56b909d9468412184642b30b375e619899d4"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/13-nostr-relay-gateway-bridge-mirror/AB-13.15.svg",
+      "sha256": "65bbe7d84189a68ce883a227cffaded8760495fcecd19648314256ac5976d886"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/13-nostr-relay-gateway-bridge-mirror/AB-13.16.mmd",
+      "sha256": "7ac11ac41df9b752adc61e130dd813dea1cec3b4f5f2e2269a35d1b22271a2b5"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/13-nostr-relay-gateway-bridge-mirror/AB-13.16.svg",
+      "sha256": "2f6e5ff94bb2b64120322f2afaa9a7c61dbda0d93fb7cb6d7d53baf1b63dfa40"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/13-nostr-relay-gateway-bridge-mirror/AB-13.17.mmd",
+      "sha256": "5b4cfeb7338d26fa4ea908e03aa5f4ff5e8d72b8f6bda0af1ba02c42a20d48cd"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/13-nostr-relay-gateway-bridge-mirror/AB-13.17.svg",
+      "sha256": "24cc7180ebba79b4d0679328af7968bf3b06e6f3ab74a6f8c2a54d0eea24780b"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/13-nostr-relay-gateway-bridge-mirror/AB-13.2.mmd",
+      "sha256": "7d83d2cf79c1957a3a43749b90faba1a762efff3fd8e81c486159e4eaaa23519"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/13-nostr-relay-gateway-bridge-mirror/AB-13.2.svg",
+      "sha256": "85a6a76b340c4af4d77c3c7a8a66c5255ff432a7bbf90c92901d5ff28864182e"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/13-nostr-relay-gateway-bridge-mirror/AB-13.3.mmd",
+      "sha256": "22e04aa99c7de86b6da35718e5e9aea6e5a508a5819384742d3c963a80081cff"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/13-nostr-relay-gateway-bridge-mirror/AB-13.3.svg",
+      "sha256": "a5fb7eb4f3260e048b179ec7751d5ac9ec3bcedaf2ea0ba47368b66e397df9c6"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/13-nostr-relay-gateway-bridge-mirror/AB-13.4.mmd",
+      "sha256": "160fa2e75351f4493e5bb2ef83048e9008506528544b59d06f1829e847e24653"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/13-nostr-relay-gateway-bridge-mirror/AB-13.4.svg",
+      "sha256": "9631e74ed0480540aecacd419792f0fa1403b78c9925c059097759b0a80dd5e5"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/13-nostr-relay-gateway-bridge-mirror/AB-13.5.mmd",
+      "sha256": "97d246ae536cafa5299314d0ca50d5a9e2830aec07e6b13c7f07dc22af915b47"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/13-nostr-relay-gateway-bridge-mirror/AB-13.5.svg",
+      "sha256": "f160dec1fc23ec7e92376c44e3874fbdf53d8d368fc7e65c6de98573ccf49d86"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/13-nostr-relay-gateway-bridge-mirror/AB-13.6.mmd",
+      "sha256": "20b2b6254bde924d2f40553a340b7d089478c20556188a5b499a04a911872180"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/13-nostr-relay-gateway-bridge-mirror/AB-13.6.svg",
+      "sha256": "eb83aa74ad6b65f8851902bc52f0ce4c0d068331011424cc458fb949e91669b7"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/13-nostr-relay-gateway-bridge-mirror/AB-13.7.mmd",
+      "sha256": "81d913a85d5195bc548506f415a47bb89306b7459e88359d3bb3263496ba3a05"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/13-nostr-relay-gateway-bridge-mirror/AB-13.7.svg",
+      "sha256": "297c85bb780c6f26eda4018e78de75c096ae42a1d42eefadb4d9a3bf61a6c34a"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/13-nostr-relay-gateway-bridge-mirror/AB-13.8.mmd",
+      "sha256": "f98071e65c4f53d3ee4686512083c93bb919282af37f6387bd204ef9e50b210b"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/13-nostr-relay-gateway-bridge-mirror/AB-13.8.svg",
+      "sha256": "8c810b16ca16c56504d219ae57fb2009ca23c35af059eb1300afdc82524c9723"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/13-nostr-relay-gateway-bridge-mirror/AB-13.9.mmd",
+      "sha256": "72ec294187882346ec1b8bff5ed3f7712da8fe496c63dd23b8e85646377b07f3"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/13-nostr-relay-gateway-bridge-mirror/AB-13.9.svg",
+      "sha256": "79b6fff679e618b8a3d37eeca4f547b19ae66f2058132375df89cf6471bf02eb"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/40-relay-signature-rejection/AB-40.1.mmd",
+      "sha256": "b184ce65158d80a176bf2b7d3956c0e95d42b860de63eb3bdd003aca57952e41"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/40-relay-signature-rejection/AB-40.1.svg",
+      "sha256": "6ab967a1ffa0c7e658a01ee07e9d1277602493fecff6b5963799360fc9985981"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.1.mmd",
+      "sha256": "33fe235ed9a2f05d733e4bdab5557ff30ef4c8762b9405c1c762a7822c31cafb"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.1.svg",
+      "sha256": "a9ffe6492a6375f2d2f30440674001aa27e022e3a39c598fffcc3aa17c1dc350"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.10.mmd",
+      "sha256": "a25c5bca4d45d782a02296bc0e8cc88fe9bdfe5f7741233e6e952cc0e06cfb90"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.10.svg",
+      "sha256": "3f832914560847232088a0aa1fbf22440532e10ad616c8353d50654ae1cd3550"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.11.mmd",
+      "sha256": "a1bb94ad23d84db7b91314f627d6ab3e33ce3b7c8490e11677ba419641544d90"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.11.svg",
+      "sha256": "663ca0c719be80dd32ce2d6e2a6a309dbfd82e81b62aabd19032448033349df3"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.12.mmd",
+      "sha256": "58012e6cfb2aa77f65c6a26d01c4d948b1a2170a3f9c757029ea3e64e41bd4ab"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.12.svg",
+      "sha256": "5b02b2890a90d74561ab8bc22f3ad6ce0464d541b66a919c5674087db907886d"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.13.mmd",
+      "sha256": "a90f0c0da9719fe6c2a44376d3625771dad29f07504f67f67961dcbc2ab2dd28"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.13.svg",
+      "sha256": "268ff9c7ddd1d8510503fce9982955101640bef19041b266c14e724db1726101"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.14.mmd",
+      "sha256": "aea426c19f8136c7beb1a57ef5fc8eb1caf2e5a08c0ca3e2241dfa7b1f438b55"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.14.svg",
+      "sha256": "3a8271a03aaa4aac569ec59f676381a2a524cdf1647fda075e2839bbb26981e9"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.15.mmd",
+      "sha256": "c1b1958d79c3e81cf7b29c1af863f931f4a0e4024ed147668d7015bcc22da515"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.15.svg",
+      "sha256": "2d3b6ebcc2fa4b4f4c7c02ea346f0f5bd0442fa01058c06921519f4cd81488b8"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.16.mmd",
+      "sha256": "74c5f38feaaa70cca427a902a464ff999ee172965840cd27e755d30344c37ba4"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.16.svg",
+      "sha256": "ece75d2179961c20d30d55fdfbfcee22efd294a05ea15c44f5521e11178a2829"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.17.mmd",
+      "sha256": "f90d6b55434dfd35e4fdebca0511bf63142f3442af6f4a9a632dea862d4756d1"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.17.svg",
+      "sha256": "edb93f8374d178919b8031dd9f4b02ff96fd99337a71080e512962b315f72ebc"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.18.mmd",
+      "sha256": "7d7ab0810d2548d8fe40131669fd29884883b4e9e6dceff1df38196673233172"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.18.svg",
+      "sha256": "5ee643c4fc942c2f5e934052834b8a614463504c44bc7eb07ef5a1d37f60c24c"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.19.mmd",
+      "sha256": "5149b7ab9923b88849c191519d7fe2819a5e51b1aa15bc2f8100f71dbbafdd77"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.19.svg",
+      "sha256": "8b29913dda6b38c3ad382aaf568db337387472079cc3b0e1fb5b6bcf31b4896d"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.2.mmd",
+      "sha256": "ddf37ed3bbb09e6204c9596c19a6dafe80c455f309e1f9b4f8b985dc964b945b"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.2.svg",
+      "sha256": "1eae9b54b6e55f6344af2d8a66f69f3ca232a2840503e7654e411d8c7bfc4163"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.20.mmd",
+      "sha256": "f60a003f9e3ab69b32bf31d81bc0cdb36b62afe8448fdaab47457ffda76d2e81"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.20.svg",
+      "sha256": "8e48b9bbf9fe1b3419bf87c36810a0ab685851cbd6c49a167a59b1ba225420d4"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.3.mmd",
+      "sha256": "cab847904d11373c5b344c27bbdcbe0d292f24967983ea27bff282131cd57ccc"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.3.svg",
+      "sha256": "1b88a6b77b2f49f9f3e25fce94b16692776b71726b4dec8a26083aeb98f07e88"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.4.mmd",
+      "sha256": "1c88a504b79b9fb970dd11fe0375206a7dbb3b4c5d82e6a62af4b225d868b307"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.4.svg",
+      "sha256": "a1579eaf8e84d7c8425ed3abdae393f93982fc6838541f3757c59b9dbc53a83f"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.5.mmd",
+      "sha256": "88378f28a21c0ec3359babad425c965cd7143e8c45fcf7352b1b3438eae2f8ce"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.5.svg",
+      "sha256": "9d964fffd3244adf09500edb2da7882447ce127d33b0b904aaada01544be8db2"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.6.mmd",
+      "sha256": "4e98ae2926b3ae24ff105b4db444d0a71c694eb13111b180409e9c9582b6af31"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.6.svg",
+      "sha256": "14b3e19187412413134baeffc06336cdedd70254cd665ee7b970b56f4a4fb9ec"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.7.mmd",
+      "sha256": "1b2af3a0b1648c02c6909434413cfb4089685037e8adb5161c47ae422edc2e7b"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.7.svg",
+      "sha256": "746b4085566e806ea2cc7205ab61bde1173fed4334bdff9c681ea0512bbf0ea0"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.9.mmd",
+      "sha256": "12bde46a23dfd1053b7e06a131f27242ba1316942016c60f7da0f7ec95be73d4"
+    },
+    {
+      "path": "docs/diagrams/rendered/solid-pod-rs/07-provenance-and-payments/SP-07.9.svg",
+      "sha256": "cea24328d431f51a3446c1ecc7418fbfc6d90317f13855d988cb5a278ffec24c"
+    }
+  ],
+  "all_archived_bytes_verified": true
+}

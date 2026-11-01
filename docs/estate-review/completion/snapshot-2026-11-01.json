@@ -59864,58 +59864,80 @@
     },
     {
       "category": "decision-candidate",
-      "claims": [],
+      "claims": [
+        {
+          "basis": "Every section and D1–D8 assessed against native and bounded consumer source,99 passing tests and four local probe groups. Chain-derived authority, deployment, crash and multiprocess guarantees remain unproved.",
+          "coverage": "whole-document",
+          "panels": null,
+          "report": "docs/estate-review/2026-11-01-solid-payment-delivery.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "path": "crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md",
       "repo": "solid-pod-rs",
-      "review": "unreconciled",
+      "review": "assessment-recorded",
       "sections": [
         {
           "line": 18,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-payment-delivery.md"
+          ],
+          "review": "assessment-recorded",
           "title": "ADR-2008 — Port bitcoin_tx.rs and mrc20.rs to rust-bitcoin, make WebLedger a derived view over the sidestr chain, remove credit/debit from the public API and delete the TXO stand-in deposit"
         },
         {
           "line": 20,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-payment-delivery.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Context"
         },
         {
           "line": 35,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-payment-delivery.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Decision"
         },
         {
           "line": 81,
           "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-payment-delivery.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Consequences"
         },
         {
           "line": 95,
           "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-payment-delivery.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Verification"
         },
         {
           "line": 112,
           "ordinal": 6,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-payment-delivery.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Disposition — 2026-10-02"
         },
         {
           "line": 119,
           "ordinal": 7,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-payment-delivery.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Implementation — 2026-10-02"
         }
       ],
@@ -75700,988 +75722,6 @@
     },
     {
       "category": "decision-candidate",
-      "claims": [],
-      "path": "docs/adr/ADR-NG-001-explorer-architecture.md",
-      "repo": "Logseq history",
-      "review": "unreconciled",
-      "sections": [
-        {
-          "line": 1,
-          "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "ADR-NG-001: Ontology explorer & site architecture: tiered data, worker physics, instanced rendering"
-        },
-        {
-          "line": 9,
-          "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "1. Context: why the current architecture cannot be patched"
-        },
-        {
-          "line": 19,
-          "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "2. Decision A: tiered graph artifacts replace the monolith"
-        },
-        {
-          "line": 35,
-          "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "3. Decision B: physics in a worker, zero-copy positions"
-        },
-        {
-          "line": 44,
-          "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "4. Decision C: instanced rendering (three draw-call families)"
-        },
-        {
-          "line": 51,
-          "ordinal": 6,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "5. Decision D: SPA structure, camera, routing"
-        },
-        {
-          "line": 55,
-          "ordinal": 7,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "6. Decision E: repo topology & sync"
-        },
-        {
-          "line": 59,
-          "ordinal": 8,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "7. Decision F: honesty instrumentation"
-        },
-        {
-          "line": 64,
-          "ordinal": 9,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "8. Alternatives rejected"
-        },
-        {
-          "line": 74,
-          "ordinal": 10,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "9. Consequences"
-        }
-      ],
-      "sha256": "eaac09671c83ba13ece576bda8da18ba6c620bed180108afdeb86eb6eaf57708"
-    },
-    {
-      "category": "decision-candidate",
-      "claims": [],
-      "path": "docs/adr/ADR-NG-002-iri-integrity-gate.md",
-      "repo": "Logseq history",
-      "review": "unreconciled",
-      "sections": [
-        {
-          "line": 1,
-          "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "ADR-NG-002: IRI-integrity gate and Loom index reload trigger"
-        },
-        {
-          "line": 9,
-          "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Problem 1 — a corrupted IRI survived every gate"
-        },
-        {
-          "line": 18,
-          "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Decision"
-        },
-        {
-          "line": 30,
-          "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Implementation note (2026-08-15)"
-        },
-        {
-          "line": 86,
-          "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Related finding (2026-08-15) — domain-root disjointness retired"
-        },
-        {
-          "line": 102,
-          "ordinal": 6,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Problem 2 — the Loom serves a stale index with no reload signal"
-        },
-        {
-          "line": 109,
-          "ordinal": 7,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Decision"
-        },
-        {
-          "line": 116,
-          "ordinal": 8,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Consequences"
-        }
-      ],
-      "sha256": "8587f801fc36bba28824a8de80bc6878cbd132d382f39a1e1311e8701cd4f77c"
-    },
-    {
-      "category": "decision-candidate",
-      "claims": [],
-      "path": "docs/prd/ADR-014-enrichment-swarm-architecture.md",
-      "repo": "Logseq history",
-      "review": "unreconciled",
-      "sections": [
-        {
-          "line": 1,
-          "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "ADR-014: Long-Running Enrichment Swarm Architecture"
-        },
-        {
-          "line": 3,
-          "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Status: Accepted"
-        },
-        {
-          "line": 4,
-          "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Date: 2026-04-26"
-        },
-        {
-          "line": 5,
-          "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Context: PRD-007 VisionClaw v5 Ontology Enrichment Programme"
-        },
-        {
-          "line": 9,
-          "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Context"
-        },
-        {
-          "line": 15,
-          "ordinal": 6,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Decision"
-        },
-        {
-          "line": 19,
-          "ordinal": 7,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Tier 1: Opus Controller (this session)"
-        },
-        {
-          "line": 26,
-          "ordinal": 8,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Tier 2: Sonnet Managers (2-3 concurrent)"
-        },
-        {
-          "line": 33,
-          "ordinal": 9,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Tier 3: Haiku Workers (6-8 concurrent)"
-        },
-        {
-          "line": 40,
-          "ordinal": 10,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "File Conflict Prevention"
-        },
-        {
-          "line": 45,
-          "ordinal": 11,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Quality Gates"
-        },
-        {
-          "line": 52,
-          "ordinal": 12,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Alternatives Considered"
-        },
-        {
-          "line": 54,
-          "ordinal": 13,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "A. Single opus agent doing all work"
-        },
-        {
-          "line": 57,
-          "ordinal": 14,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "B. Unsupervised haiku swarm"
-        },
-        {
-          "line": 60,
-          "ordinal": 15,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "C. External CI/CD-driven enrichment"
-        },
-        {
-          "line": 63,
-          "ordinal": 16,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Consequences"
-        },
-        {
-          "line": 65,
-          "ordinal": 17,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Positive"
-        },
-        {
-          "line": 71,
-          "ordinal": 18,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Negative"
-        },
-        {
-          "line": 76,
-          "ordinal": 19,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Mitigations"
-        }
-      ],
-      "sha256": "d1eec329b999220c6099ad70fee1c88e0f1666666755e2a638f2d7db8dea5183"
-    },
-    {
-      "category": "decision-candidate",
-      "claims": [],
-      "path": "docs/prd/ADR-015-jsonld-native-pipeline.md",
-      "repo": "Logseq history",
-      "review": "unreconciled",
-      "sections": [
-        {
-          "line": 1,
-          "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "ADR-015: JSON-LD-Native Publishing Pipeline & Old System Retirement"
-        },
-        {
-          "line": 3,
-          "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Status: Accepted"
-        },
-        {
-          "line": 4,
-          "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Date: 2026-05-19"
-        },
-        {
-          "line": 5,
-          "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Context: PRD-008 JSON-LD Publishing Pipeline; LCR Phase 2 Complete"
-        },
-        {
-          "line": 9,
-          "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Context"
-        },
-        {
-          "line": 23,
-          "ordinal": 6,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Decision"
-        },
-        {
-          "line": 25,
-          "ordinal": 7,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "D1: New Python-only converter stack in pipeline/"
-        },
-        {
-          "line": 42,
-          "ordinal": 8,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "D2: Delete all old conversion infrastructure"
-        },
-        {
-          "line": 64,
-          "ordinal": 9,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "D3: Retain and update"
-        },
-        {
-          "line": 71,
-          "ordinal": 10,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "D4: OWL/RDF export quality"
-        },
-        {
-          "line": 86,
-          "ordinal": 11,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "D5: Additional export formats"
-        },
-        {
-          "line": 90,
-          "ordinal": 12,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Consequences"
-        },
-        {
-          "line": 92,
-          "ordinal": 13,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Positive"
-        },
-        {
-          "line": 99,
-          "ordinal": 14,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Negative"
-        },
-        {
-          "line": 103,
-          "ordinal": 15,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Neutral"
-        }
-      ],
-      "sha256": "4ffe09654586143b8bc97c9abfc552a3b32ffe8310ea2f88bc9033cd8da4ba19"
-    },
-    {
-      "category": "decision-candidate",
-      "claims": [],
-      "path": "docs/prd/ADR-016-website-ux-architecture.md",
-      "repo": "Logseq history",
-      "review": "unreconciled",
-      "sections": [
-        {
-          "line": 1,
-          "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "ADR-016: Website UX Architecture Decisions"
-        },
-        {
-          "line": 3,
-          "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Status: Proposed"
-        },
-        {
-          "line": 4,
-          "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Date: 2026-05-19"
-        },
-        {
-          "line": 5,
-          "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Context: PRD-009 Website Redesign; narrativegoldmine.com audit findings"
-        },
-        {
-          "line": 9,
-          "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Context"
-        },
-        {
-          "line": 13,
-          "ordinal": 6,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Decisions"
-        },
-        {
-          "line": 15,
-          "ordinal": 7,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "D1: Fix client-side routing with 404.html redirect pattern"
-        },
-        {
-          "line": 30,
-          "ordinal": 8,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "D2: Markdown content pipeline — strip, convert, render"
-        },
-        {
-          "line": 45,
-          "ordinal": 9,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "D3: Collapsible ontology metadata component"
-        },
-        {
-          "line": 56,
-          "ordinal": 10,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "D4: Domain filter sidebar with colour-coded chip toggles"
-        },
-        {
-          "line": 70,
-          "ordinal": 11,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "D5: Deprecate /notes/ Logseq publish in favour of React SPA"
-        },
-        {
-          "line": 82,
-          "ordinal": 12,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Consequences"
-        }
-      ],
-      "sha256": "d0c0a298c20104d8a27ccf36fdd6b1f2fb71271f3ef041f09641162059161030"
-    },
-    {
-      "category": "decision-candidate",
-      "claims": [],
-      "path": "mainKnowledgeGraph/ADR-LCR-01-swarm-refactor-strategy.md",
-      "repo": "Logseq history",
-      "review": "unreconciled",
-      "sections": [
-        {
-          "line": 1,
-          "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "ADR-LCR-01 — Swarm Refactor Strategy for the Logseq Master Corpus"
-        },
-        {
-          "line": 20,
-          "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Context"
-        },
-        {
-          "line": 50,
-          "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Decision"
-        },
-        {
-          "line": 52,
-          "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "D1. Swarm topology — small mesh with a single queen"
-        },
-        {
-          "line": 93,
-          "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "D2. Batch sizing — 50 files per worker per batch"
-        },
-        {
-          "line": 122,
-          "ordinal": 6,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "D3. Transformation contract per file"
-        },
-        {
-          "line": 212,
-          "ordinal": 7,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "D4. Stub policy — materialise explicit pages/_stubs/<slug>.md"
-        },
-        {
-          "line": 462,
-          "ordinal": 8,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "D10. Coordination — khive memory as the swarm's nervous system"
-        },
-        {
-          "line": 511,
-          "ordinal": 9,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "D11. Validator integration — pinned to a SHA, run on every batch"
-        },
-        {
-          "line": 538,
-          "ordinal": 10,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "D12. Reasonable agent count — start at 5, scale based on LCR-Phase 1 measurement"
-        },
-        {
-          "line": 563,
-          "ordinal": 11,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "D13. Slug index — built in LCR-Phase 1.5, frozen for LCR-Phase 2"
-        },
-        {
-          "line": 614,
-          "ordinal": 12,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Options considered"
-        },
-        {
-          "line": 616,
-          "ordinal": 13,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "O1. Single-pass codemod (regex + heuristics, no LLM judgement)"
-        },
-        {
-          "line": 641,
-          "ordinal": 14,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "O2. Single LLM agent processing sequentially"
-        },
-        {
-          "line": 655,
-          "ordinal": 15,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "O3. Swarm with batching (this ADR, ADOPTED)"
-        },
-        {
-          "line": 661,
-          "ordinal": 16,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "O4. Human-in-loop per page"
-        },
-        {
-          "line": 673,
-          "ordinal": 17,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "O5. Codemod-first, swarm for stragglers"
-        },
-        {
-          "line": 680,
-          "ordinal": 18,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Risks"
-        },
-        {
-          "line": 682,
-          "ordinal": 19,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "R1. Parent inference hallucinations"
-        },
-        {
-          "line": 708,
-          "ordinal": 20,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "R2. Body content drift"
-        },
-        {
-          "line": 737,
-          "ordinal": 21,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "R3. Coordination overhead exceeds savings if batches are too small"
-        },
-        {
-          "line": 754,
-          "ordinal": 22,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "R4. Output validates but is semantically wrong"
-        },
-        {
-          "line": 778,
-          "ordinal": 23,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "R5. Corpus author's git identity attribution"
-        },
-        {
-          "line": 801,
-          "ordinal": 24,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "R6. Validator and corpus drift during the sprint"
-        },
-        {
-          "line": 818,
-          "ordinal": 25,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "R7. Body-bloat smell is preserved into the canonical corpus"
-        },
-        {
-          "line": 835,
-          "ordinal": 26,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Spawn plan — concrete brief for worker agents"
-        },
-        {
-          "line": 892,
-          "ordinal": 27,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Implementation phasing"
-        },
-        {
-          "line": 894,
-          "ordinal": 28,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "LCR-Phase 1: Pilot (1 wall-clock day)"
-        },
-        {
-          "line": 931,
-          "ordinal": 29,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "LCR-Phase 1.5: Index + Stubs (between Phase 1 and Phase 2; ~1 hour)"
-        },
-        {
-          "line": 947,
-          "ordinal": 30,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "LCR-Phase 2: Bulk transformation (3-4 wall-clock days)"
-        },
-        {
-          "line": 968,
-          "ordinal": 31,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "LCR-Phase 3: Human review pass (1-2 wall-clock days)"
-        },
-        {
-          "line": 988,
-          "ordinal": 32,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "LCR-Phase 4: Validation sweep + commit consolidation (0.5 day)"
-        },
-        {
-          "line": 1007,
-          "ordinal": 33,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Cross-references"
-        },
-        {
-          "line": 1028,
-          "ordinal": 34,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Acceptance"
-        },
-        {
-          "line": 1045,
-          "ordinal": 35,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Amendment-1 — 2026-05-17: Worker model changed to Sonnet 4.6"
-        },
-        {
-          "line": 1071,
-          "ordinal": 36,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Amendment-2 — 2026-05-18: LCR-Phase 2 structural pass complete"
-        },
-        {
-          "line": 1073,
-          "ordinal": 37,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "What was done"
-        },
-        {
-          "line": 1099,
-          "ordinal": 38,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Additional work completed outside original ADR scope"
-        },
-        {
-          "line": 1116,
-          "ordinal": 39,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Remaining decisions to close"
-        },
-        {
-          "line": 1129,
-          "ordinal": 40,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Impact on original decisions"
-        }
-      ],
-      "sha256": "295ecb2627e06558caa2a6f8136b6a959c784fe9a9ecaea6a887bb7746e90eb3"
-    },
-    {
-      "category": "decision-candidate",
-      "claims": [],
-      "path": "mainKnowledgeGraph/pages/ADR-008.md",
-      "repo": "Logseq history",
-      "review": "unreconciled",
-      "sections": [
-        {
-          "line": 5,
-          "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "ADR-008"
-        },
-        {
-          "line": 105,
-          "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Definition"
-        },
-        {
-          "line": 108,
-          "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Semantic Classification"
-        },
-        {
-          "line": 112,
-          "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Relationships"
-        },
-        {
-          "line": 117,
-          "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Content"
-        },
-        {
-          "line": 121,
-          "ordinal": 6,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Provenance"
-        }
-      ],
-      "sha256": "f60ae11bb412a4a65bbaa695274a62b79c62a49298ca7d54055a55c75cdb4a01"
-    },
-    {
-      "category": "decision-candidate",
-      "claims": [],
-      "path": "mainKnowledgeGraph/pages/ADR-012.md",
-      "repo": "Logseq history",
-      "review": "unreconciled",
-      "sections": [
-        {
-          "line": 5,
-          "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "ADR-012"
-        },
-        {
-          "line": 105,
-          "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Definition"
-        },
-        {
-          "line": 108,
-          "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Semantic Classification"
-        },
-        {
-          "line": 112,
-          "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Relationships"
-        },
-        {
-          "line": 117,
-          "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Content"
-        },
-        {
-          "line": 121,
-          "ordinal": 6,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Provenance"
-        }
-      ],
-      "sha256": "38077d5b5463ff8613d09810ad69cca6e3205b23bb6b64443278a5703bc4da04"
-    },
-    {
-      "category": "decision-candidate",
-      "claims": [],
-      "path": "www/api/markdown/adr-008.md",
-      "repo": "Logseq history",
-      "review": "unreconciled",
-      "sections": [
-        {
-          "line": 1,
-          "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Definition"
-        },
-        {
-          "line": 4,
-          "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Semantic Classification"
-        },
-        {
-          "line": 8,
-          "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Relationships"
-        },
-        {
-          "line": 13,
-          "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Content"
-        },
-        {
-          "line": 17,
-          "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Provenance"
-        }
-      ],
-      "sha256": "6f1b00f8f88eb33bd4b9a3e0fb47bf04cee4d9d23d15a71f2a0e3fae7ababc3d"
-    },
-    {
-      "category": "decision-candidate",
-      "claims": [],
-      "path": "www/api/markdown/adr-012.md",
-      "repo": "Logseq history",
-      "review": "unreconciled",
-      "sections": [
-        {
-          "line": 1,
-          "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Definition"
-        },
-        {
-          "line": 4,
-          "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Semantic Classification"
-        },
-        {
-          "line": 8,
-          "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Relationships"
-        },
-        {
-          "line": 13,
-          "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Content"
-        },
-        {
-          "line": 17,
-          "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Provenance"
-        }
-      ],
-      "sha256": "8e2b6570515cd5c828fc034857fdb407df8ced4cc16dc9f378180851a992f6a5"
-    },
-    {
-      "category": "decision-candidate",
       "claims": [
         {
           "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash.",
@@ -76863,184 +75903,18 @@
         }
       ],
       "sha256": "a4fd44181217c33204da7450c3c1f858af622b0e06596f2ce1ebab81d3526fb5"
-    },
-    {
-      "category": "decision-candidate",
-      "claims": [
-        {
-          "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash.",
-          "coverage": "whole-document",
-          "panels": null,
-          "report": "docs/estate-review/2026-10-31-codescape-boundaries.md",
-          "state": "assessment-recorded"
-        }
-      ],
-      "path": "docs/adr/ADR-0001-extraction-from-visionclaw.md",
-      "repo": "Codescape consumed",
-      "review": "assessment-recorded",
-      "sections": [
-        {
-          "line": 17,
-          "ordinal": 1,
-          "reports": [
-            "docs/estate-review/2026-10-31-codescape-boundaries.md"
-          ],
-          "review": "assessment-recorded",
-          "title": "ADR-0001: Codescape is extracted from VisionClaw into its own repository with a per-crate licence split"
-        },
-        {
-          "line": 21,
-          "ordinal": 2,
-          "reports": [
-            "docs/estate-review/2026-10-31-codescape-boundaries.md"
-          ],
-          "review": "assessment-recorded",
-          "title": "Context"
-        },
-        {
-          "line": 27,
-          "ordinal": 3,
-          "reports": [
-            "docs/estate-review/2026-10-31-codescape-boundaries.md"
-          ],
-          "review": "assessment-recorded",
-          "title": "Decision"
-        },
-        {
-          "line": 38,
-          "ordinal": 4,
-          "reports": [
-            "docs/estate-review/2026-10-31-codescape-boundaries.md"
-          ],
-          "review": "assessment-recorded",
-          "title": "Invariants"
-        },
-        {
-          "line": 44,
-          "ordinal": 5,
-          "reports": [
-            "docs/estate-review/2026-10-31-codescape-boundaries.md"
-          ],
-          "review": "assessment-recorded",
-          "title": "Consequences"
-        },
-        {
-          "line": 54,
-          "ordinal": 6,
-          "reports": [
-            "docs/estate-review/2026-10-31-codescape-boundaries.md"
-          ],
-          "review": "assessment-recorded",
-          "title": "Alternatives rejected"
-        },
-        {
-          "line": 59,
-          "ordinal": 7,
-          "reports": [
-            "docs/estate-review/2026-10-31-codescape-boundaries.md"
-          ],
-          "review": "assessment-recorded",
-          "title": "Verification"
-        }
-      ],
-      "sha256": "26caf2ea72a3ffbb5d578b94d56a529470e84d780b8b19cf5b55ded2cbbed055"
-    },
-    {
-      "category": "support-or-unclassified",
-      "claims": [],
-      "path": "docs/adr/PREAMBLE.md",
-      "repo": "Codescape consumed",
-      "review": "unreconciled",
-      "sections": [],
-      "sha256": "6357f8746c4cf54e4fc249221df98c22d959aad88936001e665ccb02126ce12b"
-    },
-    {
-      "category": "support-or-unclassified",
-      "claims": [],
-      "path": "docs/adr/README.md",
-      "repo": "Codescape consumed",
-      "review": "unreconciled",
-      "sections": [
-        {
-          "line": 1,
-          "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Codescape decision records"
-        },
-        {
-          "line": 5,
-          "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Routing"
-        },
-        {
-          "line": 14,
-          "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Ledger"
-        }
-      ],
-      "sha256": "415fdacdaede35d4d95d127162c9a7f57177c878f0ca1e684df9f023d504ca9d"
-    },
-    {
-      "category": "support-or-unclassified",
-      "claims": [],
-      "path": "docs/adr/TEMPLATE.md",
-      "repo": "Codescape consumed",
-      "review": "unreconciled",
-      "sections": [
-        {
-          "line": 17,
-          "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "ADR-NNNN: Short imperative title"
-        },
-        {
-          "line": 19,
-          "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Context"
-        },
-        {
-          "line": 23,
-          "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Decision"
-        },
-        {
-          "line": 27,
-          "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Consequences"
-        },
-        {
-          "line": 31,
-          "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
-          "title": "Verification"
-        }
-      ],
-      "sha256": "a4fd44181217c33204da7450c3c1f858af622b0e06596f2ce1ebab81d3526fb5"
     }
   ],
   "counts": {
-    "available_checkouts": 23,
-    "candidate_files": 842,
+    "available_checkouts": 20,
+    "candidate_files": 828,
     "numbered_candidates_with_recorded_assessment": 95,
-    "numbered_decision_candidates": 731,
-    "panels": 1739,
-    "panels_with_recorded_assessment": 353,
-    "scope_targets": 24,
+    "numbered_decision_candidates": 720,
+    "panels": 1740,
+    "panels_with_recorded_assessment": 359,
+    "scope_targets": 20,
     "stale_claim_records": 0,
-    "topics": 206
+    "topics": 207
   },
   "method": "Explicit scope; Git-owned Markdown; parsed headings exclude fenced examples; explicit human review claims require exact source/report hashes. Unreconciled is not unreviewed. Candidate counts are not a complete obligation denominator or overall task percentage.",
   "repositories": [
@@ -77048,7 +75922,7 @@
       "available": true,
       "candidate_files": 77,
       "dirty": true,
-      "head": "a3bddd4e0d01793f68c11739884689ec35808405",
+      "head": "9c2ac2c14a7cd26325f157b3a3d4fc028ae03784",
       "local": "VisionFlow",
       "name": "VisionFlow"
     },
@@ -77064,7 +75938,7 @@
       "available": true,
       "candidate_files": 239,
       "dirty": true,
-      "head": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+      "head": "0ec2956434f9c61eaf40477df58acc40b1b679c3",
       "local": "project/agentbox",
       "name": "agentbox"
     },
@@ -77198,41 +76072,11 @@
     },
     {
       "available": true,
-      "candidate_files": 10,
-      "dirty": false,
-      "head": "4f233f3210972fe4d8b919b9aabac9bb774d0b8d",
-      "local": "project4",
-      "name": "Logseq history"
-    },
-    {
-      "available": false,
-      "local": "ruvector",
-      "name": "RuVector",
-      "reason": "checkout missing"
-    },
-    {
-      "available": true,
       "candidate_files": 4,
       "dirty": false,
       "head": "58108c0357bd0dbf6588f8b6adf6e044f4c04556",
       "local": "codescape",
       "name": "Codescape standalone"
-    },
-    {
-      "available": true,
-      "candidate_files": 4,
-      "dirty": false,
-      "head": "e3b76f63e801c6a8460110b93e88a0b420e9b0b4",
-      "local": "project/codescape",
-      "name": "Codescape consumed"
-    },
-    {
-      "available": true,
-      "candidate_files": 0,
-      "dirty": true,
-      "head": "e348e567c7020d40020412024f7aa03c38a3bc3e",
-      "local": "project/voice-stack/unmute",
-      "name": "unmute consumed"
     }
   ],
   "schema": 1,
@@ -78918,7 +77762,7 @@
           "review": "unreconciled"
         },
         {
-          "body_sha256": "910b75990f712216963b45b3c2bef9f35bc4e157799850e74ab42bcc372bc71f",
+          "body_sha256": "81d913a85d5195bc548506f415a47bb89306b7459e88359d3bb3263496ba3a05",
           "heading": "AB-13.7 nostr-bridge / relay-consumer — in-process library, not an MCP tool server",
           "id": "AB-13.7",
           "line": 387,
@@ -78930,7 +77774,7 @@
           "body_sha256": "f98071e65c4f53d3ee4686512083c93bb919282af37f6387bd204ef9e50b210b",
           "heading": "AB-13.8 Control gateway — operator command to handler mapping",
           "id": "AB-13.8",
-          "line": 431,
+          "line": 432,
           "ordinal": 10,
           "reports": [],
           "review": "unreconciled"
@@ -78939,7 +77783,7 @@
           "body_sha256": "72ec294187882346ec1b8bff5ed3f7712da8fe496c63dd23b8e85646377b07f3",
           "heading": "AB-13.9 Session-mirror egress — per-turn NIP-59 gift wrap to the cloud relay (owns this flow)",
           "id": "AB-13.9",
-          "line": 453,
+          "line": 454,
           "ordinal": 11,
           "reports": [],
           "review": "unreconciled"
@@ -78948,7 +77792,7 @@
           "body_sha256": "5b4cfeb7338d26fa4ea908e03aa5f4ff5e8d72b8f6bda0af1ba02c42a20d48cd",
           "heading": "AB-13.17 Session-mirror egress phase 2 — publish, deadline and fail-open",
           "id": "AB-13.17",
-          "line": 509,
+          "line": 510,
           "ordinal": 12,
           "reports": [],
           "review": "unreconciled"
@@ -78957,7 +77801,7 @@
           "body_sha256": "f56bdbc009e3626e8b5cf2d49d1b8af1d093bf4cf4ac7f647d4ae99212be094a",
           "heading": "AB-13.10 kind-30840 session-summary digest — Z.AI distil, sign, dual-write",
           "id": "AB-13.10",
-          "line": 537,
+          "line": 538,
           "ordinal": 13,
           "reports": [],
           "review": "unreconciled"
@@ -78966,7 +77810,7 @@
           "body_sha256": "4963ff91c559e7ade05c203666c6e7c995a82691e618fc8bf8bfe341b0d7fc64",
           "heading": "AB-13.12 Federation — agentbox mesh peers vs the agentbox to VisionClaw URN bridge",
           "id": "AB-13.12",
-          "line": 589,
+          "line": 590,
           "ordinal": 14,
           "reports": [],
           "review": "unreconciled"
@@ -78975,7 +77819,7 @@
           "body_sha256": "29fb1a338fad0855f396e77d82254637c23a527039b1192b79d6b30c7accfb06",
           "heading": "AB-13.13 nostr-gateway relay connection — subscribe, live, reconnect lifecycle",
           "id": "AB-13.13",
-          "line": 626,
+          "line": 627,
           "ordinal": 15,
           "reports": [],
           "review": "unreconciled"
@@ -78984,7 +77828,7 @@
           "body_sha256": "286754fcc5897cd37b9844ea91b0bc96267e807afe8222caff3c8b427a2156e1",
           "heading": "AB-13.14 nostr-pod-bridge main — the entry points of one binary",
           "id": "AB-13.14",
-          "line": 660,
+          "line": 661,
           "ordinal": 16,
           "reports": [],
           "review": "unreconciled"
@@ -78993,7 +77837,7 @@
       "path": "docs/diagrams/agentbox/13-nostr-relay-gateway-bridge-mirror.md",
       "repo": "VisionFlow",
       "review": "unreconciled",
-      "sha256": "5aacd0e45ccab8ad949a43aff76d7e8ee209344fab266228fae9c5da8e275b30"
+      "sha256": "8b1479b6c652ae2cc66b322f390677b4c8210428f7a9ece91f5b1f831cddfc80"
     },
     {
       "claims": [],
@@ -81351,6 +80195,36 @@
       "repo": "VisionFlow",
       "review": "assessment-recorded",
       "sha256": "1e824d3194c79d9b60b5b09a9ee48cf9604a2d0078ddc5ecd3564bb5d3cae91c"
+    },
+    {
+      "claims": [
+        {
+          "basis": "Merged signature rejection repair,5 regressions and14 existing tests; partial ABI-05 remediation only. No deployment or AB-13 sibling assessment credit.",
+          "coverage": "selected-panels",
+          "panels": [
+            "AB-40.1"
+          ],
+          "report": "docs/estate-review/2026-11-01-parallel-remediation.md",
+          "state": "assessment-recorded"
+        }
+      ],
+      "panels": [
+        {
+          "body_sha256": "b184ce65158d80a176bf2b7d3956c0e95d42b860de63eb3bdd003aca57952e41",
+          "heading": "AB-40.1 Verification must succeed before a decision has effects",
+          "id": "AB-40.1",
+          "line": 24,
+          "ordinal": 1,
+          "reports": [
+            "docs/estate-review/2026-11-01-parallel-remediation.md"
+          ],
+          "review": "assessment-recorded"
+        }
+      ],
+      "path": "docs/diagrams/agentbox/40-relay-signature-rejection.md",
+      "repo": "VisionFlow",
+      "review": "assessment-recorded",
+      "sha256": "b969489c8535f7a898e8190ac49f3a23ae48a79198d42959a6f6504748a0b866"
     },
     {
       "claims": [
@@ -88803,6 +87677,19 @@
           ],
           "report": "docs/estate-review/2026-11-01-solid-anchor-recovery.md",
           "state": "assessment-recorded"
+        },
+        {
+          "basis": "Query access, sidecar binding, retry charges, primitive port and local ledger authority assessed against code and disposable HTTP fixtures. Rendered siblings receive no new credit.",
+          "coverage": "selected-panels",
+          "panels": [
+            "SP-07.6",
+            "SP-07.10",
+            "SP-07.13",
+            "SP-07.15",
+            "SP-07.18"
+          ],
+          "report": "docs/estate-review/2026-11-01-solid-payment-delivery.md",
+          "state": "assessment-recorded"
         }
       ],
       "panels": [
@@ -88862,19 +87749,21 @@
           "review": "assessment-recorded"
         },
         {
-          "body_sha256": "4245427c20a9edb946da177986ac25ecc5daf521fb32bd853153440cb6e3a4a5",
-          "heading": "SP-07.6 The _prov query surface",
+          "body_sha256": "4e98ae2926b3ae24ff105b4db444d0a71c694eb13111b180409e9c9582b6af31",
+          "heading": "SP-07.6 Provenance queries and explicit paid anchors",
           "id": "SP-07.6",
           "line": 180,
           "ordinal": 6,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-payment-delivery.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
           "body_sha256": "1b2af3a0b1648c02c6909434413cfb4089685037e8adb5161c47ae422edc2e7b",
           "heading": "SP-07.7 Epoch batching — one transaction, many commits",
           "id": "SP-07.7",
-          "line": 208,
+          "line": 206,
           "ordinal": 7,
           "reports": [
             "docs/estate-review/2026-11-01-solid-anchor-recovery.md"
@@ -88885,25 +87774,27 @@
           "body_sha256": "12bde46a23dfd1053b7e06a131f27242ba1316942016c60f7da0f7ec95be73d4",
           "heading": "SP-07.9 MRC20 state chain and Bitcoin anchoring",
           "id": "SP-07.9",
-          "line": 239,
+          "line": 237,
           "ordinal": 8,
           "reports": [],
           "review": "unreconciled"
         },
         {
-          "body_sha256": "ca7bb61b272acc0ccfe9ed36ba3bfc14ad182e7be8aaad82b8103af6369c59b1",
+          "body_sha256": "a25c5bca4d45d782a02296bc0e8cc88fe9bdfe5f7741233e6e952cc0e06cfb90",
           "heading": "SP-07.10 The rust-bitcoin transaction builder (ADR-2008 D1, landed)",
           "id": "SP-07.10",
-          "line": 271,
+          "line": 269,
           "ordinal": 9,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-payment-delivery.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
           "body_sha256": "a1bb94ad23d84db7b91314f627d6ab3e33ce3b7c8490e11677ba419641544d90",
           "heading": "SP-07.11 Mempool endpoint selection (ADR-2007)",
           "id": "SP-07.11",
-          "line": 311,
+          "line": 288,
           "ordinal": 10,
           "reports": [
             "docs/estate-review/2026-11-01-solid-anchor-recovery.md"
@@ -88914,7 +87805,7 @@
           "body_sha256": "58012e6cfb2aa77f65c6a26d01c4d948b1a2170a3f9c757029ea3e64e41bd4ab",
           "heading": "SP-07.12 The block anchorer",
           "id": "SP-07.12",
-          "line": 335,
+          "line": 312,
           "ordinal": 11,
           "reports": [
             "docs/estate-review/2026-11-01-solid-anchor-recovery.md"
@@ -88922,37 +87813,41 @@
           "review": "assessment-recorded"
         },
         {
-          "body_sha256": "a61fc685214ae8f5df5e129ca6f6444e63de806f8c1476a8d318e6d18ecfc759",
-          "heading": "SP-07.13 The web ledger",
+          "body_sha256": "a90f0c0da9719fe6c2a44376d3625771dad29f07504f67f67961dcbc2ab2dd28",
+          "heading": "SP-07.13 The stored web ledger and its public operations",
           "id": "SP-07.13",
-          "line": 364,
+          "line": 341,
           "ordinal": 12,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-payment-delivery.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
           "body_sha256": "aea426c19f8136c7beb1a57ef5fc8eb1caf2e5a08c0ca3e2241dfa7b1f438b55",
           "heading": "SP-07.14 The /pay/* route family",
           "id": "SP-07.14",
-          "line": 406,
+          "line": 363,
           "ordinal": 13,
           "reports": [],
           "review": "unreconciled"
         },
         {
-          "body_sha256": "c92bd1ed7f001d3da306b5d277a92a4e38034445d4c5213be7d528b833a6ba94",
-          "heading": "SP-07.15 Payment-state atomicity",
+          "body_sha256": "c1b1958d79c3e81cf7b29c1af863f931f4a0e4024ed147668d7015bcc22da515",
+          "heading": "SP-07.15 Payment-state commits and the read-failure gap",
           "id": "SP-07.15",
-          "line": 441,
+          "line": 398,
           "ordinal": 14,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-payment-delivery.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
           "body_sha256": "74c5f38feaaa70cca427a902a464ff999ee172965840cd27e755d30344c37ba4",
           "heading": "SP-07.16 Order book and AMM",
           "id": "SP-07.16",
-          "line": 467,
+          "line": 422,
           "ordinal": 15,
           "reports": [],
           "review": "unreconciled"
@@ -88961,25 +87856,27 @@
           "body_sha256": "f90d6b55434dfd35e4fdebca0511bf63142f3442af6f4a9a632dea862d4756d1",
           "heading": "SP-07.17 Deposits are MRC20-only — the stand-in is deleted (ADR-2008 D6)",
           "id": "SP-07.17",
-          "line": 504,
+          "line": 459,
           "ordinal": 16,
           "reports": [],
           "review": "unreconciled"
         },
         {
-          "body_sha256": "9c4985d4a35657d44d381da441d97922e33722c979998384bdeda9af7cb40cfe",
-          "heading": "SP-07.18 The ledger today, and the remaining chain-view work (ADR-2008, partial)",
+          "body_sha256": "7d7ab0810d2548d8fe40131669fd29884883b4e9e6dceff1df38196673233172",
+          "heading": "SP-07.18 ADR-2008 — completed port and unfinished ledger authority",
           "id": "SP-07.18",
-          "line": 525,
+          "line": 480,
           "ordinal": 17,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-payment-delivery.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
           "body_sha256": "5149b7ab9923b88849c191519d7fe2819a5e51b1aa15bc2f8100f71dbbafdd77",
           "heading": "SP-07.19 Whole-trail verification — every mark walked back from the head (alpha.12)",
           "id": "SP-07.19",
-          "line": 562,
+          "line": 499,
           "ordinal": 18,
           "reports": [],
           "review": "unreconciled"
@@ -88988,7 +87885,7 @@
           "body_sha256": "f60a003f9e3ab69b32bf31d81bc0cdb36b62afe8448fdaab47457ffda76d2e81",
           "heading": "SP-07.20 GitmarkAnchorer — the git-mark profile for new trails (alpha.12)",
           "id": "SP-07.20",
-          "line": 593,
+          "line": 530,
           "ordinal": 19,
           "reports": [
             "docs/estate-review/2026-11-01-solid-anchor-recovery.md"
@@ -88999,7 +87896,7 @@
       "path": "docs/diagrams/solid-pod-rs/07-provenance-and-payments.md",
       "repo": "VisionFlow",
       "review": "partial-assessment-recorded",
-      "sha256": "2da8b64566bddf2fe2054ea4bd026b82cc064388cfbf840a34de61939af61e46"
+      "sha256": "bc99baafd93e038317c3f2b9c0db5a2f9688e32365fe4047656065357402041e"
     },
     {
       "claims": [],

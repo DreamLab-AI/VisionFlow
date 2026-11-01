@@ -1,0 +1,33 @@
+{
+  "reason": "User narrowed the audit roster; no newly completed assessment credit.",
+  "removed_checkouts": [
+    {
+      "name": "Logseq history",
+      "local": "project4"
+    },
+    {
+      "name": "RuVector",
+      "local": "ruvector"
+    },
+    {
+      "name": "Codescape consumed",
+      "local": "project/codescape"
+    },
+    {
+      "name": "unmute consumed",
+      "local": "project/voice-stack/unmute"
+    }
+  ],
+  "historical_claims_removed_from_active_counts": [
+    {
+      "kind": "adr",
+      "repo": "Codescape consumed",
+      "path": "docs/adr/ADR-0001-extraction-from-visionclaw.md",
+      "source_sha256": "26caf2ea72a3ffbb5d578b94d56a529470e84d780b8b19cf5b55ded2cbbed055",
+      "report": "docs/estate-review/2026-10-31-codescape-boundaries.md",
+      "report_sha256": "ac35ff1028652be1e7d2c06a6492da0db09245fc243f8397b4590fb14205a7df",
+      "coverage": "whole-document",
+      "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+    }
+  ]
+}

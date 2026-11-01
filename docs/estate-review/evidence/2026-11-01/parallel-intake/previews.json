@@ -1,0 +1,14 @@
+[
+  {
+    "panel": "AB-40.1",
+    "svg": "docs/diagrams/rendered/agentbox/40-relay-signature-rejection/AB-40.1.svg",
+    "sha256": "6ab967a1ffa0c7e658a01ee07e9d1277602493fecff6b5963799360fc9985981",
+    "preview": "/tmp/vf-solid-payment-audit/AB-40.1.png"
+  },
+  {
+    "panel": "AB-13.7",
+    "svg": "docs/diagrams/rendered/agentbox/13-nostr-relay-gateway-bridge-mirror/AB-13.7.svg",
+    "sha256": "297c85bb780c6f26eda4018e78de75c096ae42a1d42eefadb4d9a3bf61a6c34a",
+    "preview": "/tmp/vf-solid-payment-audit/AB-13.7.png"
+  }
+]
