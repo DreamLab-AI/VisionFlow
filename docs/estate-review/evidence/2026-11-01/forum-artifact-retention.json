@@ -1,0 +1,336 @@
+{
+  "byte_verified": true,
+  "files": [
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/14-proposed-group-replication-and-spaces/NF-14.3.mmd",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/14-proposed-group-replication-and-spaces/NF-14.3.mmd",
+      "sha256": "5176b177c7d1bb8bee2add275dd504900183e08c2e2ba24ffeecadb7340e48ff"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/14-proposed-group-replication-and-spaces/NF-14.2.svg",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/14-proposed-group-replication-and-spaces/NF-14.2.svg",
+      "sha256": "19f16077a1505bacdc553b4fab88f196d28ae5d33be86a292150e0af734b797b"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/14-proposed-group-replication-and-spaces/NF-14.3.svg",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/14-proposed-group-replication-and-spaces/NF-14.3.svg",
+      "sha256": "35dc72532bf0243692bd74923451b8be725fa5e5da19f3fdcdfe7943baffba22"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/14-proposed-group-replication-and-spaces/NF-14.1.mmd",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/14-proposed-group-replication-and-spaces/NF-14.1.mmd",
+      "sha256": "abdef2a5c6163d291e89a0bd69fb2036e997d6a396f71ff88d6c0c77f1a15ed5"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/14-proposed-group-replication-and-spaces/NF-14.2.mmd",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/14-proposed-group-replication-and-spaces/NF-14.2.mmd",
+      "sha256": "08144442f347a182f169c590d451f26c5b4888dba73c96ae7cffca8466a6fa29"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/14-proposed-group-replication-and-spaces/NF-14.1.svg",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/14-proposed-group-replication-and-spaces/NF-14.1.svg",
+      "sha256": "f9fdd32703350c85925da2a1f1a9d9ce500544ca8089733cab197039c6488879"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.5.mmd",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.5.mmd",
+      "sha256": "40f764b418e6581a572c02a82938f619736e315e7cdeae5e6a5a9c6b072eb27d"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.14.mmd",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.14.mmd",
+      "sha256": "c36cc8f5dc632a5df292bfcafda01fbc912448fc672756d57602d8090f0bf96d"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.12.mmd",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.12.mmd",
+      "sha256": "4c428e49432029952305847baf1f99ee52adb6f446229c99593ff8b1b1a851c3"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.7.svg",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.7.svg",
+      "sha256": "ee9694c9806741b3d50593ccf0aab213792df34f3bd65873da1ff3c6113010c3"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.16.svg",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.16.svg",
+      "sha256": "28d721fce48031e4d2aae7437ec858765323390e87104478bf54d25be02f5ac6"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.17.svg",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.17.svg",
+      "sha256": "311423e1f3477c5327b64e6a77460280efc1277dda72eebec44eb6b9fb7bf73a"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.4.mmd",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.4.mmd",
+      "sha256": "0538eec22098490b8a1f949e2ba56eb8dd6ce92442b27c697bac05468ccbfe1a"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.15.svg",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.15.svg",
+      "sha256": "91ac0bb428050fef6a3bd9dad8150fbf31e39417e587fee63a124b33f2bc314b"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.16.mmd",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.16.mmd",
+      "sha256": "a0e47b37315ef89f829cc3364d6d4f8c6312f0a80da9718bfdf9c282edcbcc51"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.6.mmd",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.6.mmd",
+      "sha256": "f83a41c3ecdab30097fd43d0c71fc9da301ff662a369c4cd62d2ce94bbb97c5d"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.4.svg",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.4.svg",
+      "sha256": "b572ba42a17bd286e66137fa3f960a92b2fd81bc4dfadf4dddd1e9bd85cb1fdd"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.9.svg",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.9.svg",
+      "sha256": "1afa83afc828cd17551a9db8dcfca99f6bdbdc270dc41dc90dad6ab1cccd1b04"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.7.mmd",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.7.mmd",
+      "sha256": "3af4e3845c9c1e46cae87dc015e18d8d148c5ba71832d6d14477c80029f22614"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.17.mmd",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.17.mmd",
+      "sha256": "498e5d1adaccb901f3341e840482f629787f66e003527571335d6d7e35e40609"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.11.svg",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.11.svg",
+      "sha256": "ecd455f4a39904e41602e23584e7d308051ce83b358577f1438ef4a05c74e06b"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.10.mmd",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.10.mmd",
+      "sha256": "96392baee355a668ed60423dc9b67dfce3ca2005f2607a9b955f33c35ccc4df4"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.13.mmd",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.13.mmd",
+      "sha256": "7e7fd2e36c6e7d3df9354c30e30ca105fd70fa4e100f093d4d1362e736b93e50"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.8.svg",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.8.svg",
+      "sha256": "00cf74882e57cc344951e773caad07e8de79d7c87966896e17609944ca35d9b9"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.6.svg",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.6.svg",
+      "sha256": "70d4d71a6f37f60dd1502b1191498a2a828ae041f72cdf6ef44081a906fbac28"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.14.svg",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.14.svg",
+      "sha256": "e35568456f92a01c287d8c5e2043e43e337f5f9033f975bba6709feb1053274e"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.2.svg",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.2.svg",
+      "sha256": "b6c386fa158c05a6616caef9c276e8bba37babcca4d0928c956303602d6d922d"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.2.mmd",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.2.mmd",
+      "sha256": "94b686e6388c4742fc4f57d96174085f77532ab15d3eabe755f487abb998f7bb"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.5.svg",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.5.svg",
+      "sha256": "b65feab6159140541b0c816ebb5635d70e6812d47d32010ee2894e2ca9c2191f"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.15.mmd",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.15.mmd",
+      "sha256": "a2a1d371c59f546ccf1cc112d5dd29b982d8b22d732653e4931af9c6853dd553"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.1.svg",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.1.svg",
+      "sha256": "c5ef106704d888964ad9919ed63756c6b08c025675c59cb79c32d0fd4a341e39"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.12.svg",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.12.svg",
+      "sha256": "cc7c8876443d6de7a896c3c2464d3ea8d06d4bac7353b1c8e02efbce30ec2b13"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.9.mmd",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.9.mmd",
+      "sha256": "d909c8e542b483dff22f78af2638cf647a6ba3f065609387a313fb2c8db19000"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.13.svg",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.13.svg",
+      "sha256": "100a32cb4fa1df0cd0e380cbb14c4e9fcc3429d381d82d1e332808bc7449aabd"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.11.mmd",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.11.mmd",
+      "sha256": "9b74615216715674af17820baae21f693a793b4fd09be40f7eed126bb6265bb0"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.10.svg",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.10.svg",
+      "sha256": "591fedcae14168a2cde6233d4feeaa6ff6cb2713f861411454c1c15398f579a1"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.8.mmd",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.8.mmd",
+      "sha256": "1c6db2b06492a43840e889cf7f2ecf4f10fd7e1afa22085b90db2a0e3a4a2966"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.1.mmd",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/11-relay-durable-object-internals/NF-11.1.mmd",
+      "sha256": "89150c092fb5fef8f13fc75de512ad63836395370c64f24d9b1fe320cbbae3d7"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/13-group-admission-and-replacement/NF-13.1.svg",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/13-group-admission-and-replacement/NF-13.1.svg",
+      "sha256": "921e06d720626b051220b46ee3a0c03f0787789b13c8149a0be1d89099afcb4e"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/13-group-admission-and-replacement/NF-13.2.svg",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/13-group-admission-and-replacement/NF-13.2.svg",
+      "sha256": "60e20ed1a8d1358cefc2e50671cdc21f36e4a51b28cea31828bcfa9d918ac6db"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/13-group-admission-and-replacement/NF-13.3.mmd",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/13-group-admission-and-replacement/NF-13.3.mmd",
+      "sha256": "157f620b46f20313bc5d45ac6400fe4b4575739a7fba0ec5f08a5cb838f7df09"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/13-group-admission-and-replacement/NF-13.3.svg",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/13-group-admission-and-replacement/NF-13.3.svg",
+      "sha256": "b63bbb0709ce1187543a99205ec4a886bd3fccae7884e052f9d71a001cc876cc"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/13-group-admission-and-replacement/NF-13.2.mmd",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/13-group-admission-and-replacement/NF-13.2.mmd",
+      "sha256": "8c12b40f2b5493fa911ba7dfd73cf38c027696f733b75b80090575842aabb56a"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/13-group-admission-and-replacement/NF-13.1.mmd",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/13-group-admission-and-replacement/NF-13.1.mmd",
+      "sha256": "d5c5db97c8520cb9487ba3d34de32c4df1946af8c265dcc2b6948024bc8e1a53"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.4.mmd",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.4.mmd",
+      "sha256": "031b8b534aaa9c723d522ebd041fe13590168870dd6b30cfd43aa6739ff2902f"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.3.mmd",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.3.mmd",
+      "sha256": "b73ddbe4deb3b557eb8b8a74d69cb16c02d4454f813259e18485912c763e766b"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.2.mmd",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.2.mmd",
+      "sha256": "e57b18e469ddf537321c6f72d7fd32ae9a3316c2bc60c1e5dd66d6fc94994c44"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.3.svg",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.3.svg",
+      "sha256": "63d18ab092590547df1252633a9f32a1b7796e13dde85e6cf66457ab16ef79bf"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.8.mmd",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.8.mmd",
+      "sha256": "af4e36f7f138ea483d14783685a7cdd86895f3f11e37ba759a11a50c69f49add"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.8.svg",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.8.svg",
+      "sha256": "3c6d81df9db40f9242bb60051ef5be2d98d0bbc43f2ef8d0e8a2e84c033beef9"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.2.svg",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.2.svg",
+      "sha256": "1b58b1b3af58359d241825075ce3772d8a21cadb3b4e65f2a04a42ce93c08145"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.6.mmd",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.6.mmd",
+      "sha256": "d586fb438dd027d8ba52d2537d8bb74e5896eafca0530b7ae28921b7d0767130"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.10.mmd",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.10.mmd",
+      "sha256": "090708b9b5798539b7789e9c04bee0fa274e7ac7ec4a78e86ad749b3fb956be9"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.6.svg",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.6.svg",
+      "sha256": "a2a10e59ea5a9f55801cca85ef5891f4d27ce11323be7f4c4e882c34d179b59e"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.4.svg",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.4.svg",
+      "sha256": "7a31a1624b87ae449c2dd9409fa397dbad20373b5f68bc1e968cc0a76549cbeb"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.1.svg",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.1.svg",
+      "sha256": "ada1a6c9bd179eded9e24b935440c53599b6bc164529a4337eed7c40859eb62d"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.7.svg",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.7.svg",
+      "sha256": "e77127b6e850b0bc14f5da776f4ce74ff7d6140597d2708c1f5b52341c12059e"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.10.svg",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.10.svg",
+      "sha256": "28612f21a71b69e9f9fd994b7dc47d30581e8963bcdadf21d3e4d1b27b873dc2"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.7.mmd",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.7.mmd",
+      "sha256": "51c63db4b88f2fc5f700a65eca69e2a741796c23858c9e770a80dc81cc9dda26"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.1.mmd",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.1.mmd",
+      "sha256": "1d5857a36af11f4c8fa43506a04fd41c79795f2c6d0ee84fadeaa66a493aac1e"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.11.mmd",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.11.mmd",
+      "sha256": "b9ec6dfb369d69a5a9fb80c7d8e0eefc8a6c6a438d972aa6a1c78f942c64c554"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.5.mmd",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.5.mmd",
+      "sha256": "52ab74dc5c8fef7162b227b9aa2c1b4a782ba43d7ce31bda111b972ad603519f"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.5.svg",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.5.svg",
+      "sha256": "0c3bdf8c1d4dbd01e169d4d846cdf2ddf02b65ce63ba5a11008f87af6bde13e6"
+    },
+    {
+      "source": "docs/diagrams/rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.11.svg",
+      "retained": "/tmp/vf-forum-spaces-rendered/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope/NF-12.11.svg",
+      "sha256": "1f0f836b5d5a6740d9121a68c7978f3729919f110d1e62a01fc6edbf33a64034"
+    },
+    {
+      "source": "website/build-receipt.json",
+      "retained": "/tmp/vf-forum-spaces-generated-inputs/website/build-receipt.json",
+      "sha256": "fae85100258804d3344673265a4fcc88781ea92f6e2c4a137bd27b48f3460711"
+    },
+    {
+      "source": "texput.log",
+      "retained": "/tmp/vf-forum-spaces-generated-inputs/texput.log",
+      "sha256": "0de8dad445a514ae3bc13874d2a354c230d5395982c23ea702c3e573c3d9d304"
+    }
+  ],
+  "visual_scope": "six new diagrams; ImageMagick PNG previews, no browser/Worker/XR runtime"
+}

@@ -1,0 +1,30 @@
+{
+  "retrieved": "2026-11-01",
+  "nips_commit": "400d157c53264b8e58c7b3cdbd21ef546fb7a157",
+  "sources": [
+    {
+      "url": "https://github.com/nostr-protocol/nips/blob/400d157c53264b8e58c7b3cdbd21ef546fb7a157/01.md",
+      "scope": "protocol comparison; not a compliance certification"
+    },
+    {
+      "url": "https://github.com/nostr-protocol/nips/blob/400d157c53264b8e58c7b3cdbd21ef546fb7a157/29.md",
+      "scope": "protocol comparison; not a compliance certification"
+    },
+    {
+      "url": "https://github.com/nostr-protocol/nips/blob/400d157c53264b8e58c7b3cdbd21ef546fb7a157/53.md",
+      "scope": "protocol comparison; not a compliance certification"
+    },
+    {
+      "url": "https://github.com/max21dev/groups",
+      "scope": "primary product/repository statements; client not executed"
+    },
+    {
+      "url": "https://github.com/purrgrammer/chachi",
+      "scope": "primary product/repository statements; client not executed"
+    },
+    {
+      "url": "https://nostrord.com/",
+      "scope": "primary product/repository statements; client not executed"
+    }
+  ]
+}

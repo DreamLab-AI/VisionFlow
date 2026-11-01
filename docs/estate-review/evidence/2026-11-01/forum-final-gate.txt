@@ -1,0 +1,3 @@
+parsed 173 topic files, 1572 mermaid diagrams
+verification: fresh — VERIFICATION.md records all 39 declared revision(s)
+allowlist: 9 well-formed entries

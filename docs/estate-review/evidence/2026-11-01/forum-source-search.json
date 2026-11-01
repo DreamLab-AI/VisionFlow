@@ -1,0 +1,26 @@
+[
+  {
+    "scope": "proposed_engine",
+    "command": [
+      "rg",
+      "-n",
+      "NIP29_GROUPS_ENABLED|NIP29_FEDERATION_ENABLED|nostr-bbs-groups|visionflow:claim:|visionclaw:dataspace:|30312|10312",
+      "crates"
+    ],
+    "exit": 0,
+    "stdout": "crates/nostr-bbs-core/src/did.rs:485:        \"fe70103124c0fa99407182ece5a24fad9b7f6674902fc422843d3128d38a0afbee0fdd2\";\n",
+    "stderr": ""
+  },
+  {
+    "scope": "peer_connector",
+    "command": [
+      "rg",
+      "-n",
+      "impl.*PeerConnector",
+      "crates"
+    ],
+    "exit": 1,
+    "stdout": "",
+    "stderr": ""
+  }
+]

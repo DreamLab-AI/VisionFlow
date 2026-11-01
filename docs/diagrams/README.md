@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_171 topic files, 1566 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_173 topic files, 1572 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -307,6 +307,8 @@ _171 topic files, 1566 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | NF-10 | [Invariants, the re-verified anomaly register and the doc-drift ledger](nostr-rust-forum/10-invariants-and-anomaly-register.md) | 10 | flowchart, sequenceDiagram | [BASELINE-architecture.md](../../../nostr-rust-forum/docs/BASELINE-architecture.md), [IDENTITY-keys-and-trust.md](../../../nostr-rust-forum/docs/IDENTITY-keys-and-trust.md) | ADR-2002, ADR-2003, ADR-2004, ADR-2005, ADR-2006, ADR-2007, ADR-2008, ADR-2009, ADR-2010, ADR-2014, ADR-2019 |
 | NF-11 | [Inside the relay Durable Object — sessions, storage, filters, broadcast, projection, receipts and the scheduled sweeps](nostr-rust-forum/11-relay-durable-object-internals.md) | 16 | classDiagram, sequenceDiagram, flowchart, stateDiagram-v2 | [BASELINE-architecture.md](../../../nostr-rust-forum/docs/BASELINE-architecture.md), [IDENTITY-keys-and-trust.md](../../../nostr-rust-forum/docs/IDENTITY-keys-and-trust.md) | ADR-2005, ADR-2006, ADR-2010, ADR-2011, ADR-2013, ADR-2014, ADR-2017, ADR-2018, ADR-2023 |
 | NF-12 | [nostr-bbs-core wire and crypto primitives, and the nostr-bbs-mesh federation envelope](nostr-rust-forum/12-core-wire-crypto-and-federation-envelope.md) | 10 | flowchart, sequenceDiagram, classDiagram | [IDENTITY-keys-and-trust.md](../../../nostr-rust-forum/docs/IDENTITY-keys-and-trust.md), [BASELINE-architecture.md](../../../nostr-rust-forum/docs/BASELINE-architecture.md) | ADR-2002, ADR-2003, ADR-2005, ADR-2023, ADR-2025 |
+| NF-13 | [Current group admission and replacement gaps](nostr-rust-forum/13-group-admission-and-replacement.md) | 3 | flowchart | [BASELINE-architecture.md](../../../nostr-rust-forum/docs/BASELINE-architecture.md) | ADR-2030, ADR-2031, ADR-2032 |
+| NF-14 | [Proposed group authority, replication and spatial descriptors](nostr-rust-forum/14-proposed-group-replication-and-spaces.md) | 3 | flowchart | [BASELINE-architecture.md](../../../nostr-rust-forum/docs/BASELINE-architecture.md) | ADR-2030, ADR-2031, ADR-2032 |
 
 ### dreamlab-ai-website
 

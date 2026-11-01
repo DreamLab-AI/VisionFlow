@@ -1,0 +1,10 @@
+{
+  "extraction": "Exact Rust SQL literals with Rust line continuations removed; binding and transaction sequence reproduced, no D1 runtime",
+  "sql": {
+    "SCHEMA": "CREATE TABLE IF NOT EXISTS events (id TEXT PRIMARY KEY, pubkey TEXT NOT NULL, created_at INTEGER NOT NULL, kind INTEGER NOT NULL, tags TEXT NOT NULL, content TEXT NOT NULL, sig TEXT NOT NULL, d_tag TEXT NOT NULL DEFAULT '', received_at INTEGER NOT NULL DEFAULT 0)",
+    "INSERT": "INSERT INTO events (id, pubkey, created_at, kind, tags, content, sig, d_tag, received_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9) ON CONFLICT (id) DO NOTHING",
+    "DELETE_REPLACEABLE": "DELETE FROM events WHERE pubkey = ?1 AND kind = ?2 AND created_at < ?3",
+    "DELETE_ADDRESSABLE": "DELETE FROM events WHERE pubkey = ?1 AND kind = ?2 AND d_tag = ?3 AND created_at < ?4",
+    "READ_UNTAGGED": "SELECT id, pubkey, created_at, kind, tags, content, sig FROM events {where_clause} ORDER BY created_at DESC LIMIT {limit_placeholder}"
+  }
+}

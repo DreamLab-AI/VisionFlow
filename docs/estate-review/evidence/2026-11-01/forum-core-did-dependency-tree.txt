@@ -1,0 +1,348 @@
+nostr-bbs-core v1.0.0-beta.19 (/home/devuser/workspace/nostr-rust-forum/crates/nostr-bbs-core) MIT OR Apache-2.0
+aes v0.8.4 MIT OR Apache-2.0
+cfg-if v1.0.5 MIT OR Apache-2.0
+cipher v0.4.4 MIT OR Apache-2.0
+crypto-common v0.1.7 MIT OR Apache-2.0
+generic-array v0.14.7 MIT
+typenum v1.20.1 MIT OR Apache-2.0
+rand_core v0.6.4 MIT OR Apache-2.0
+getrandom v0.2.17 MIT OR Apache-2.0
+cfg-if v1.0.5 MIT OR Apache-2.0
+libc v0.2.191 MIT OR Apache-2.0
+typenum v1.20.1 MIT OR Apache-2.0
+inout v0.1.4 MIT OR Apache-2.0
+block-padding v0.3.3 MIT OR Apache-2.0
+generic-array v0.14.7 MIT (*)
+generic-array v0.14.7 MIT (*)
+zeroize v1.9.1 Apache-2.0 OR MIT
+zeroize_derive v1.5.0 (proc-macro) Apache-2.0 OR MIT
+proc-macro2 v1.0.107 MIT OR Apache-2.0
+unicode-ident v1.0.27 (MIT OR Apache-2.0) AND Unicode-3.0
+quote v1.0.47 MIT OR Apache-2.0
+proc-macro2 v1.0.107 MIT OR Apache-2.0 (*)
+syn v2.0.119 MIT OR Apache-2.0
+proc-macro2 v1.0.107 MIT OR Apache-2.0 (*)
+quote v1.0.47 MIT OR Apache-2.0 (*)
+unicode-ident v1.0.27 (MIT OR Apache-2.0) AND Unicode-3.0
+cpufeatures v0.2.17 MIT OR Apache-2.0
+async-trait v0.1.92 (proc-macro) MIT OR Apache-2.0
+proc-macro2 v1.0.107 MIT OR Apache-2.0 (*)
+quote v1.0.47 MIT OR Apache-2.0 (*)
+syn v3.0.9 MIT OR Apache-2.0
+proc-macro2 v1.0.107 MIT OR Apache-2.0 (*)
+quote v1.0.47 MIT OR Apache-2.0 (*)
+unicode-ident v1.0.27 (MIT OR Apache-2.0) AND Unicode-3.0
+base64 v0.22.1 MIT OR Apache-2.0
+bech32 v0.11.1 MIT
+cbc v0.1.2 MIT OR Apache-2.0
+cipher v0.4.4 MIT OR Apache-2.0 (*)
+chacha20poly1305 v0.10.1 Apache-2.0 OR MIT
+aead v0.5.2 MIT OR Apache-2.0
+crypto-common v0.1.7 MIT OR Apache-2.0 (*)
+generic-array v0.14.7 MIT (*)
+chacha20 v0.9.1 Apache-2.0 OR MIT
+cfg-if v1.0.5 MIT OR Apache-2.0
+cipher v0.4.4 MIT OR Apache-2.0 (*)
+cpufeatures v0.2.17 MIT OR Apache-2.0
+cipher v0.4.4 MIT OR Apache-2.0 (*)
+poly1305 v0.8.0 Apache-2.0 OR MIT
+cpufeatures v0.2.17 MIT OR Apache-2.0
+opaque-debug v0.3.1 MIT OR Apache-2.0
+universal-hash v0.5.1 MIT OR Apache-2.0
+crypto-common v0.1.7 MIT OR Apache-2.0 (*)
+subtle v2.6.1 BSD-3-Clause
+zeroize v1.9.1 Apache-2.0 OR MIT (*)
+getrandom v0.2.17 MIT OR Apache-2.0 (*)
+hex v0.4.3 MIT OR Apache-2.0
+hkdf v0.12.4 MIT OR Apache-2.0
+hmac v0.12.1 MIT OR Apache-2.0
+digest v0.10.7 MIT OR Apache-2.0
+block-buffer v0.10.4 MIT OR Apache-2.0
+generic-array v0.14.7 MIT (*)
+crypto-common v0.1.7 MIT OR Apache-2.0 (*)
+subtle v2.6.1 BSD-3-Clause
+hmac v0.12.1 MIT OR Apache-2.0 (*)
+k256 v0.14.0 Apache-2.0 OR MIT
+cpubits v0.1.1 MIT OR Apache-2.0
+ecdsa v0.17.0 Apache-2.0 OR MIT
+der v0.8.3 Apache-2.0 OR MIT
+const-oid v0.10.2 Apache-2.0 OR MIT
+zeroize v1.9.1 Apache-2.0 OR MIT (*)
+digest v0.11.3 MIT OR Apache-2.0
+block-buffer v0.12.1 MIT OR Apache-2.0
+hybrid-array v0.4.15 MIT OR Apache-2.0
+subtle v2.6.1 BSD-3-Clause
+typenum v1.20.1 MIT OR Apache-2.0
+zeroize v1.9.1 Apache-2.0 OR MIT (*)
+const-oid v0.10.2 Apache-2.0 OR MIT
+crypto-common v0.2.2 MIT OR Apache-2.0
+getrandom v0.4.3 MIT OR Apache-2.0
+cfg-if v1.0.5 MIT OR Apache-2.0
+libc v0.2.191 MIT OR Apache-2.0
+rand_core v0.10.1 MIT OR Apache-2.0
+hybrid-array v0.4.15 MIT OR Apache-2.0 (*)
+rand_core v0.10.1 MIT OR Apache-2.0
+ctutils v0.4.7 Apache-2.0 OR MIT
+cmov v0.5.4 Apache-2.0 OR MIT
+subtle v2.6.1 BSD-3-Clause
+elliptic-curve v0.14.3 Apache-2.0 OR MIT
+base16ct v1.0.0 Apache-2.0 OR MIT
+crypto-bigint v0.7.10 Apache-2.0 OR MIT
+cpubits v0.1.1 MIT OR Apache-2.0
+ctutils v0.4.7 Apache-2.0 OR MIT (*)
+getrandom v0.4.3 MIT OR Apache-2.0 (*)
+hybrid-array v0.4.15 MIT OR Apache-2.0 (*)
+num-traits v0.2.19 MIT OR Apache-2.0
+rand_core v0.10.1 MIT OR Apache-2.0
+subtle v2.6.1 BSD-3-Clause
+zeroize v1.9.1 Apache-2.0 OR MIT (*)
+crypto-common v0.2.2 MIT OR Apache-2.0 (*)
+digest v0.11.3 MIT OR Apache-2.0 (*)
+ff v0.14.0 MIT/Apache-2.0
+rand_core v0.10.1 MIT OR Apache-2.0
+subtle v2.6.1 BSD-3-Clause
+group v0.14.0 MIT/Apache-2.0
+ff v0.14.0 MIT/Apache-2.0 (*)
+rand_core v0.10.1 MIT OR Apache-2.0
+subtle v2.6.1 BSD-3-Clause
+hkdf v0.13.0 MIT OR Apache-2.0
+hmac v0.13.0 MIT OR Apache-2.0
+digest v0.11.3 MIT OR Apache-2.0 (*)
+hybrid-array v0.4.15 MIT OR Apache-2.0 (*)
+pkcs8 v0.11.0 Apache-2.0 OR MIT
+der v0.8.3 Apache-2.0 OR MIT (*)
+spki v0.8.1 Apache-2.0 OR MIT
+der v0.8.3 Apache-2.0 OR MIT (*)
+rand_core v0.10.1 MIT OR Apache-2.0
+sec1 v0.8.1 Apache-2.0 OR MIT
+base16ct v1.0.0 Apache-2.0 OR MIT
+ctutils v0.4.7 Apache-2.0 OR MIT (*)
+der v0.8.3 Apache-2.0 OR MIT (*)
+hybrid-array v0.4.15 MIT OR Apache-2.0 (*)
+subtle v2.6.1 BSD-3-Clause
+zeroize v1.9.1 Apache-2.0 OR MIT (*)
+subtle v2.6.1 BSD-3-Clause
+zeroize v1.9.1 Apache-2.0 OR MIT (*)
+rfc6979 v0.6.0 Apache-2.0 OR MIT
+crypto-bigint v0.7.10 Apache-2.0 OR MIT (*)
+hmac v0.13.0 MIT OR Apache-2.0 (*)
+signature v3.0.0 Apache-2.0 OR MIT
+digest v0.11.3 MIT OR Apache-2.0 (*)
+rand_core v0.10.1 MIT OR Apache-2.0
+spki v0.8.1 Apache-2.0 OR MIT (*)
+zeroize v1.9.1 Apache-2.0 OR MIT (*)
+elliptic-curve v0.14.3 Apache-2.0 OR MIT (*)
+primeorder v0.14.0 Apache-2.0 OR MIT
+elliptic-curve v0.14.3 Apache-2.0 OR MIT (*)
+primefield v0.14.0 Apache-2.0 OR MIT
+crypto-bigint v0.7.10 Apache-2.0 OR MIT (*)
+crypto-common v0.2.2 MIT OR Apache-2.0 (*)
+ff v0.14.0 MIT/Apache-2.0 (*)
+rand_core v0.10.1 MIT OR Apache-2.0
+subtle v2.6.1 BSD-3-Clause
+zeroize v1.9.1 Apache-2.0 OR MIT (*)
+wnaf v0.14.1 Apache-2.0 OR MIT
+ff v0.14.0 MIT/Apache-2.0 (*)
+group v0.14.0 MIT/Apache-2.0 (*)
+hybrid-array v0.4.15 MIT OR Apache-2.0 (*)
+primefield v0.14.0 Apache-2.0 OR MIT (*)
+sha2 v0.11.1 MIT OR Apache-2.0
+cfg-if v1.0.5 MIT OR Apache-2.0
+cpufeatures v0.3.1 MIT OR Apache-2.0
+digest v0.11.3 MIT OR Apache-2.0 (*)
+signature v3.0.0 Apache-2.0 OR MIT (*)
+wnaf v0.14.1 Apache-2.0 OR MIT (*)
+nostr v0.44.8 MIT
+aes v0.8.4 MIT OR Apache-2.0 (*)
+base64 v0.22.1 MIT OR Apache-2.0
+bech32 v0.11.1 MIT
+bitcoin_hashes v0.14.101 CC0-1.0
+bitcoin-io v0.1.101 CC0-1.0
+hex-conservative v0.2.3 CC0-1.0
+arrayvec v0.7.8 MIT OR Apache-2.0
+serde v1.0.229 MIT OR Apache-2.0
+serde_core v1.0.229 MIT OR Apache-2.0
+serde_derive v1.0.229 (proc-macro) MIT OR Apache-2.0
+proc-macro2 v1.0.107 MIT OR Apache-2.0 (*)
+quote v1.0.47 MIT OR Apache-2.0 (*)
+syn v3.0.9 MIT OR Apache-2.0 (*)
+cbc v0.1.2 MIT OR Apache-2.0 (*)
+chacha20 v0.9.1 Apache-2.0 OR MIT (*)
+hex v0.4.3 MIT OR Apache-2.0
+secp256k1 v0.29.1 CC0-1.0
+rand v0.8.8 MIT OR Apache-2.0
+libc v0.2.191 MIT OR Apache-2.0
+rand_chacha v0.3.1 MIT OR Apache-2.0
+ppv-lite86 v0.2.21 MIT OR Apache-2.0
+zerocopy v0.8.63 BSD-2-Clause OR Apache-2.0 OR MIT
+rand_core v0.6.4 MIT OR Apache-2.0 (*)
+rand_core v0.6.4 MIT OR Apache-2.0 (*)
+secp256k1-sys v0.10.1 CC0-1.0
+serde v1.0.229 MIT OR Apache-2.0 (*)
+serde v1.0.229 MIT OR Apache-2.0 (*)
+serde_json v1.0.154 MIT OR Apache-2.0
+itoa v1.0.18 MIT OR Apache-2.0
+memchr v2.8.3 Unlicense OR MIT
+serde_core v1.0.229 MIT OR Apache-2.0
+zmij v1.0.23 MIT
+url v2.5.8 MIT OR Apache-2.0
+form_urlencoded v1.2.2 MIT OR Apache-2.0
+percent-encoding v2.3.2 MIT OR Apache-2.0
+idna v1.1.0 MIT OR Apache-2.0
+idna_adapter v1.2.2 Apache-2.0 OR MIT
+icu_normalizer v2.3.0 Unicode-3.0
+icu_collections v2.3.0 Unicode-3.0
+displaydoc v0.2.7 (proc-macro) MIT OR Apache-2.0
+proc-macro2 v1.0.107 MIT OR Apache-2.0 (*)
+quote v1.0.47 MIT OR Apache-2.0 (*)
+syn v3.0.9 MIT OR Apache-2.0 (*)
+potential_utf v0.1.6 Unicode-3.0
+zerovec v0.11.8 Unicode-3.0
+yoke v0.8.3 Unicode-3.0
+stable_deref_trait v1.2.1 MIT OR Apache-2.0
+yoke-derive v0.8.4 (proc-macro) Unicode-3.0
+proc-macro2 v1.0.107 MIT OR Apache-2.0 (*)
+quote v1.0.47 MIT OR Apache-2.0 (*)
+syn v3.0.9 MIT OR Apache-2.0 (*)
+synstructure v0.14.0 MIT
+proc-macro2 v1.0.107 MIT OR Apache-2.0 (*)
+quote v1.0.47 MIT OR Apache-2.0 (*)
+syn v3.0.9 MIT OR Apache-2.0 (*)
+zerofrom v0.1.8 Unicode-3.0
+zerofrom-derive v0.1.8 (proc-macro) Unicode-3.0
+proc-macro2 v1.0.107 MIT OR Apache-2.0 (*)
+quote v1.0.47 MIT OR Apache-2.0 (*)
+syn v3.0.9 MIT OR Apache-2.0 (*)
+synstructure v0.14.0 MIT (*)
+zerofrom v0.1.8 Unicode-3.0 (*)
+zerovec-derive v0.11.6 (proc-macro) Unicode-3.0
+proc-macro2 v1.0.107 MIT OR Apache-2.0 (*)
+quote v1.0.47 MIT OR Apache-2.0 (*)
+syn v3.0.9 MIT OR Apache-2.0 (*)
+utf8_iter v1.0.4 Apache-2.0 OR MIT
+yoke v0.8.3 Unicode-3.0 (*)
+zerofrom v0.1.8 Unicode-3.0 (*)
+zerovec v0.11.8 Unicode-3.0 (*)
+icu_normalizer_data v2.3.0 Unicode-3.0
+icu_provider v2.3.1 Unicode-3.0
+displaydoc v0.2.7 (proc-macro) MIT OR Apache-2.0 (*)
+icu_locale_core v2.3.0 Unicode-3.0
+displaydoc v0.2.7 (proc-macro) MIT OR Apache-2.0 (*)
+litemap v0.8.3 Unicode-3.0
+tinystr v0.8.4 Unicode-3.0
+displaydoc v0.2.7 (proc-macro) MIT OR Apache-2.0 (*)
+zerovec v0.11.8 Unicode-3.0 (*)
+writeable v0.6.4 Unicode-3.0
+zerovec v0.11.8 Unicode-3.0 (*)
+writeable v0.6.4 Unicode-3.0
+yoke v0.8.3 Unicode-3.0 (*)
+zerofrom v0.1.8 Unicode-3.0 (*)
+zerotrie v0.2.5 Unicode-3.0
+displaydoc v0.2.7 (proc-macro) MIT OR Apache-2.0 (*)
+yoke v0.8.3 Unicode-3.0 (*)
+zerofrom v0.1.8 Unicode-3.0 (*)
+zerovec v0.11.8 Unicode-3.0 (*)
+smallvec v1.16.3 MIT OR Apache-2.0
+zerovec v0.11.8 Unicode-3.0 (*)
+icu_properties v2.3.0 Unicode-3.0
+displaydoc v0.2.7 (proc-macro) MIT OR Apache-2.0 (*)
+icu_collections v2.3.0 Unicode-3.0 (*)
+icu_locale_core v2.3.0 Unicode-3.0 (*)
+icu_properties_data v2.3.0 Unicode-3.0
+icu_provider v2.3.1 Unicode-3.0 (*)
+zerotrie v0.2.5 Unicode-3.0 (*)
+zerovec v0.11.8 Unicode-3.0 (*)
+smallvec v1.16.3 MIT OR Apache-2.0
+utf8_iter v1.0.4 Apache-2.0 OR MIT
+percent-encoding v2.3.2 MIT OR Apache-2.0
+serde v1.0.229 MIT OR Apache-2.0 (*)
+serde_derive v1.0.229 (proc-macro) MIT OR Apache-2.0 (*)
+serde v1.0.229 MIT OR Apache-2.0 (*)
+serde_json v1.0.154 MIT OR Apache-2.0 (*)
+sha2 v0.10.9 MIT OR Apache-2.0
+cfg-if v1.0.5 MIT OR Apache-2.0
+cpufeatures v0.2.17 MIT OR Apache-2.0
+digest v0.10.7 MIT OR Apache-2.0 (*)
+solid-pod-rs v0.5.0-alpha.18 AGPL-3.0-only
+async-trait v0.1.92 (proc-macro) MIT OR Apache-2.0 (*)
+base64 v0.22.1 MIT OR Apache-2.0
+bytes v1.12.1 MIT
+chrono v0.4.45 MIT OR Apache-2.0
+iana-time-zone v0.1.65 MIT OR Apache-2.0
+num-traits v0.2.19 MIT OR Apache-2.0
+serde v1.0.229 MIT OR Apache-2.0 (*)
+hex v0.4.3 MIT OR Apache-2.0
+js-sys v0.3.105 MIT OR Apache-2.0
+cfg-if v1.0.5 MIT OR Apache-2.0
+futures-util v0.3.34 MIT OR Apache-2.0
+futures-core v0.3.34 MIT OR Apache-2.0
+futures-task v0.3.34 MIT OR Apache-2.0
+pin-project-lite v0.2.17 Apache-2.0 OR MIT
+slab v0.4.12 MIT
+wasm-bindgen v0.2.128 MIT OR Apache-2.0
+cfg-if v1.0.5 MIT OR Apache-2.0
+once_cell v1.21.4 MIT OR Apache-2.0
+wasm-bindgen-macro v0.2.128 (proc-macro) MIT OR Apache-2.0
+quote v1.0.47 MIT OR Apache-2.0 (*)
+wasm-bindgen-macro-support v0.2.128 MIT OR Apache-2.0
+bumpalo v3.20.3 MIT OR Apache-2.0
+proc-macro2 v1.0.107 MIT OR Apache-2.0 (*)
+quote v1.0.47 MIT OR Apache-2.0 (*)
+syn v3.0.9 MIT OR Apache-2.0 (*)
+wasm-bindgen-shared v0.2.128 MIT OR Apache-2.0
+unicode-ident v1.0.27 (MIT OR Apache-2.0) AND Unicode-3.0
+wasm-bindgen-shared v0.2.128 MIT OR Apache-2.0 (*)
+k256 v0.14.0 Apache-2.0 OR MIT (*)
+mime_guess v2.0.5 MIT
+mime v0.3.17 MIT OR Apache-2.0
+unicase v2.10.0 MIT OR Apache-2.0
+oxrdf v0.2.4 MIT OR Apache-2.0
+oxilangtag v0.1.6 MIT
+oxiri v0.2.11 MIT OR Apache-2.0
+rand v0.8.8 MIT OR Apache-2.0 (*)
+thiserror v2.0.21 MIT OR Apache-2.0
+thiserror-impl v2.0.21 (proc-macro) MIT OR Apache-2.0
+proc-macro2 v1.0.107 MIT OR Apache-2.0 (*)
+quote v1.0.47 MIT OR Apache-2.0 (*)
+syn v3.0.9 MIT OR Apache-2.0 (*)
+oxttl v0.1.8 MIT OR Apache-2.0
+memchr v2.8.3 Unlicense OR MIT
+oxilangtag v0.1.6 MIT
+oxiri v0.2.11 MIT OR Apache-2.0
+oxrdf v0.2.4 MIT OR Apache-2.0 (*)
+thiserror v2.0.21 MIT OR Apache-2.0 (*)
+serde v1.0.229 MIT OR Apache-2.0 (*)
+serde_json v1.0.154 MIT OR Apache-2.0 (*)
+sha2 v0.10.9 MIT OR Apache-2.0 (*)
+spargebra v0.3.5 MIT OR Apache-2.0
+oxilangtag v0.1.6 MIT
+oxiri v0.2.11 MIT OR Apache-2.0
+oxrdf v0.2.4 MIT OR Apache-2.0 (*)
+peg v0.8.6 MIT
+peg-macros v0.8.6 (proc-macro) MIT
+peg-runtime v0.8.6 MIT
+proc-macro2 v1.0.107 MIT OR Apache-2.0 (*)
+quote v1.0.47 MIT OR Apache-2.0 (*)
+peg-runtime v0.8.6 MIT
+rand v0.8.8 MIT OR Apache-2.0 (*)
+thiserror v2.0.21 MIT OR Apache-2.0 (*)
+thiserror v1.0.69 MIT OR Apache-2.0
+thiserror-impl v1.0.69 (proc-macro) MIT OR Apache-2.0
+proc-macro2 v1.0.107 MIT OR Apache-2.0 (*)
+quote v1.0.47 MIT OR Apache-2.0 (*)
+syn v2.0.119 MIT OR Apache-2.0 (*)
+tracing v0.1.44 MIT
+pin-project-lite v0.2.17 Apache-2.0 OR MIT
+tracing-attributes v0.1.31 (proc-macro) MIT
+proc-macro2 v1.0.107 MIT OR Apache-2.0 (*)
+quote v1.0.47 MIT OR Apache-2.0 (*)
+syn v2.0.119 MIT OR Apache-2.0 (*)
+tracing-core v0.1.36 MIT
+once_cell v1.21.4 MIT OR Apache-2.0
+url v2.5.8 MIT OR Apache-2.0 (*)
+uuid v1.28.0 Apache-2.0 OR MIT
+getrandom v0.4.3 MIT OR Apache-2.0 (*)
+serde_core v1.0.229 MIT OR Apache-2.0
+thiserror v2.0.21 MIT OR Apache-2.0 (*)
+wasm-bindgen v0.2.128 MIT OR Apache-2.0 (*)
+zeroize v1.9.1 Apache-2.0 OR MIT (*)

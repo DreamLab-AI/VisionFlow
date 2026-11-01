@@ -1,0 +1,124 @@
+[
+  {
+    "case": "legacy_metadata_empty_address_collision",
+    "result": {
+      "remaining": [
+        "group-b"
+      ],
+      "scope": "builder addresses plus real SQL; timestamps supplied by fixture"
+    }
+  },
+  {
+    "case": "content_reference_normalisation",
+    "result": {
+      "input": "/public/%2e%2e/admin",
+      "normalised_path": "/admin",
+      "scope": "URL library counterexample to raw segment inspection; no production descriptor validator exists"
+    }
+  },
+  {
+    "case": "group_read_predicates_pass_anonymous",
+    "result": {
+      "kinds": [
+        9,
+        39000,
+        39001,
+        39002,
+        39003
+      ],
+      "modes": 2,
+      "private_dm_control": "denied",
+      "scope": "real pure predicates; full Worker not executed"
+    }
+  },
+  {
+    "case": "newer_and_address_isolation_controls",
+    "result": {
+      "duplicate_id": "no extra row",
+      "rows": [
+        "b",
+        "new-a"
+      ]
+    }
+  },
+  {
+    "case": "signed_metadata_builders_disagree",
+    "result": {
+      "both_signatures_valid": true,
+      "new_d": "general",
+      "new_h": null,
+      "old_d": "",
+      "old_h": "general"
+    }
+  },
+  {
+    "case": "higher_revision_erased",
+    "result": {
+      "d": "group",
+      "kind": 39002,
+      "remaining": [
+        "lower-rev"
+      ]
+    }
+  },
+  {
+    "case": "higher_revision_erased",
+    "result": {
+      "d": "group",
+      "kind": 30312,
+      "remaining": [
+        "lower-rev"
+      ]
+    }
+  },
+  {
+    "case": "higher_revision_erased",
+    "result": {
+      "d": "visionclaw:dataspace:one",
+      "kind": 30078,
+      "remaining": [
+        "lower-rev"
+      ]
+    }
+  },
+  {
+    "case": "same_second_rows_coexist",
+    "result": {
+      "kind": 10312,
+      "rows": [
+        "00",
+        "ff"
+      ]
+    }
+  },
+  {
+    "case": "same_second_rows_coexist",
+    "result": {
+      "kind": 39000,
+      "rows": [
+        "00",
+        "ff"
+      ]
+    }
+  },
+  {
+    "case": "late_older_event_retained",
+    "result": {
+      "kind": 10312,
+      "rows": [
+        "newer",
+        "older"
+      ]
+    }
+  },
+  {
+    "case": "late_older_event_retained",
+    "result": {
+      "kind": 39000,
+      "rows": [
+        "newer",
+        "older"
+      ]
+    }
+  }
+]

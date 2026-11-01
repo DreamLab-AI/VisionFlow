@@ -132,6 +132,8 @@ flowchart TB
     N4["INVARIANT: the channel creator is recorded in the same save that stores the kind-40, so a later kind-5 deletion of the event<br/>cannot change who may edit the channel relay_do/storage.rs:159. DEBT: the INSERT result is discarded<br/>relay_do/storage.rs:171, so a failed write leaves the lookup on the event row relay_do/nip_handlers.rs:2549"]
 ```
 
+The [1 November storage audit](../../estate-review/2026-11-01-forum-spaces-and-replication.md) reproduces late-older and same-second coexistence and loss of a higher proposed revision. The deletion above does not implement latest-only query results or ADR-2031 revision ordering; see [NF-13](13-group-admission-and-replacement.md).
+
 ## NF-11.5 Broadcast — the kind-1059 delivery gate
 
 ```mermaid

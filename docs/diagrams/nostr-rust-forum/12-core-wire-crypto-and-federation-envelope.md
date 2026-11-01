@@ -236,7 +236,7 @@ classDiagram
     }
 
     note for Moderation "REPORT is DELIBERATELY absent from<br/>ADMIN_ONLY_MOD_KINDS - members may report,<br/>only admins may act moderation_events.rs:67.<br/>The relay ban gate is the enforcement twin,<br/>see NF-03.6"
-    note for Groups "The relay admits 39000-39002 from admin<br/>CLIENTS while these builders exist for relay-key<br/>signing - that mismatch is anomaly O2,<br/>see NF-03.4 and NF-10.3"
+    note for Groups "The relay requires h on admin-submitted 39000-39002.<br/>The legacy metadata builder emits h, the newer builder d.<br/>See the current NF-13 audit and anomaly O2,<br/>see NF-03.4 and NF-10.3"
     note for Thread "MAX_PARENT_HOPS caps the reply walk so a<br/>malicious cycle cannot hang the client thread.rs:40"
 ```
 
@@ -345,3 +345,5 @@ sequenceDiagram
     Note over U: Any single failing check makes the envelope undecryptable — callers must never partly trust it sealed.rs:50-51
     Note over U: The outer signature is NOT verified here - the relay verifies on ingress and a forged outer pubkey fails NIP-44 MAC anyway sealed.rs:71-73
 ```
+
+The [1 November audit](../../estate-review/2026-11-01-forum-spaces-and-replication.md) verifies both metadata signatures and their incompatible address tags. Builders are not evidence of the proposed group engine or membership authority.

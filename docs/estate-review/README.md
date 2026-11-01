@@ -141,3 +141,5 @@ The [agentbox historical map](closeout/agentbox-history.md) adds 72 archived dec
 The [portal and federation pass](2026-10-31-portals-and-federation.md) adds section dispositions for ADR-2166 and ADR-2161, scaled interaction probes, a release-handshake trace and explicit proposed-feature gaps. It does not establish headset or cross-node acceptance.
 
 The [1 November room admission and deferred-voice pass](2026-11-01-room-admission-and-voice.md) assesses ADR-2157 and ADR-2160 section by section, records 117 passing isolated Rust tests, and identifies an omitted SFU refresh path in the proposed voice deadline. Live voice and membership activation remain unverified.
+
+The [1 November forum space and replication audit](2026-11-01-forum-spaces-and-replication.md) assesses ADR-2030/2031/2032, reproduces storage and metadata-builder gaps, and identifies rollback confidentiality and feature-dependent licence-contract issues. Its 69 isolated tests do not establish a deployed group engine.
