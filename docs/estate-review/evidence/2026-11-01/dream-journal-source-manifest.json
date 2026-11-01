@@ -1,0 +1,104 @@
+{
+  "agentbox": {
+    "revision": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "prior_diagram_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+    "files": [
+      {
+        "path": "services/dream-engine/src/journal.rs",
+        "sha256": "57a22901acc3d3288d1dfaf30f46a8bdb4ff579295909f14f2866e974c834357",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "services/dream-engine/src/engine.rs",
+        "sha256": "c15b31074c173b6409744daa87f1a1f0367d6e917b514e20dab25b006cf2af06",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "services/dream-engine/src/records.rs",
+        "sha256": "1afe0a58a2b4b3e48aefa1791b5694ae10499b9306e39c1ad8b2a64ad143b2b6",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "services/dream-engine/src/inbox.rs",
+        "sha256": "2a79d6a6c20fa8916b20feede995df15002dd16906a71638a6372eea3ab3bbd4",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "services/dream-engine/src/notify.rs",
+        "sha256": "b472c304aff5a73a3e7c58c781edb0107a85da494b25a475410d5bad578640fc",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "services/dream-engine/Cargo.toml",
+        "sha256": "051ace1c8d144fe0b2b11b82ee7cc5c940fae0c3cce2afdf4d4fd14615107288",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "services/dream-engine/Cargo.lock",
+        "sha256": "85dd2ec34d16c81ffa7710ad9f985a563cecc33332593a789d1d283198d2e248",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "management-api/routes/exec-record.js",
+        "sha256": "281d41b9d771827a8f5e336ded73c0091fa8e4150513725781dd27d8ea8b3b8a",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "management-api/lib/execution-journal.js",
+        "sha256": "d7df480fb31f0c1307530be0964973011325a80f703f329fd627a363eb8767ba",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "management-api/lib/action-plane.js",
+        "sha256": "b4ab3a86aec4b77c573f538b57e8b9a908469910f8dcc920baa329151f992062",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "management-api/routes/tasks.js",
+        "sha256": "bd72fbae880c24bc7b20611aa91e36c3631485a18f53c0de668bd22ace5fb525",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "management-api/adapters/events/local-jsonl.js",
+        "sha256": "1077b5d834fd5a1b6776064747742c098e87d3c6c160635c71096e6b733f17b8",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "management-api/lib/audit-chain.js",
+        "sha256": "8aeeda05f88691800c4030ce3214181ef48b5d9720aeb5a4f15415164ddf8591",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "tests/integration/exec-record.test.js",
+        "sha256": "bfd97eeccf03d3e3a15726e15fb4d87ef85cb7ed24ad967cb2a3ec274ddd3434",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "tests/config/adr-2071-api-down-night.test.sh",
+        "sha256": "350a2890fdd3fe0d064771b211d52fb779783626a5d4e6d73e824d298d4d00fa",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "scripts/activation/adr-2071-api-down-night.sh",
+        "sha256": "d88606a0a0d645e41a95176bd5da4ec39df37c6a2f15f4d86c312f5fedb5daf0",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "scripts/activation/adr-2087-check.sh",
+        "sha256": "bcc09033474e0cf33b76a6bde9d77ffc94e0a1d2ccfff11195958b0a95d024d4",
+        "matches_existing_diagram_pin": true
+      },
+      {
+        "path": "docs/adr/ADR-2071-journal-the-nightly-dream-cycle.md",
+        "sha256": "e1e811d89adcc977eb1c5a54b1b70ae32df57d065a347598f2f39c0f701d3243",
+        "matches_existing_diagram_pin": true
+      }
+    ]
+  },
+  "historical_receipt": {
+    "path": ".claude/evidence/activation/ADR-2087-activation-20261004T100615Z.md",
+    "sha256": "c11cb8b14684468efb9db2de486416cebec5ab3248ee43ae913a81af348b2a85",
+    "republished": false
+  },
+  "limits": "Byte identity is not semantic verification. No running image was requalified."
+}

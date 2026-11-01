@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_180 topic files, 1596 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_180 topic files, 1597 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -262,7 +262,7 @@ _180 topic files, 1596 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | AB-20 | [RuVector memory path — every MCP memory tool end to end](agentbox/20-ruvector-memory-path.md) | 13 | sequenceDiagram, flowchart, stateDiagram-v2, erDiagram | [LEARNING-memory.md](../../../project/agentbox/docs/LEARNING-memory.md) | ADR-2014, ADR-2018, ADR-2019, ADR-2051, ADR-2082 |
 | AB-21 | [Learning loop — capture, judge, distil, consume](agentbox/21-learning-loop.md) | 10 | sequenceDiagram, classDiagram, stateDiagram-v2, flowchart | [LEARNING-memory.md](../../../project/agentbox/docs/LEARNING-memory.md) | ADR-2015, ADR-2016, ADR-2017, ADR-2018, ADR-2051, ADR-2052 |
 | AB-22 | [Skills estate — discovery, lint gate, the live router, harness and colloquy MCP bridges](agentbox/22-skills-and-routing.md) | 12 | sequenceDiagram, stateDiagram-v2, flowchart | [GOVERNANCE-capabilities.md](../../../project/agentbox/docs/GOVERNANCE-capabilities.md) | ADR-2020, ADR-2021, ADR-2028, ADR-2056, ADR-2057, ADR-2083, ADR-2085, ADR-2086, ADR-2089, ADR-2090, ADR-2091, ADR-2092, ADR-2095, ADR-2110, ADR-2116, ADR-2150 |
-| AB-23 | [Dream machine — the adapter, the extracted core and the nightly path](agentbox/23-dream-engine.md) | 22 | stateDiagram-v2, flowchart, sequenceDiagram, classDiagram | [GOVERNANCE-capabilities.md](../../../project/agentbox/docs/GOVERNANCE-capabilities.md) | ADR-2024, ADR-2053, ADR-2071, ADR-2081, ADR-2084, ADR-2087, ADR-2114, ADR-2115, ADR-2122, ADR-2141, ADR-2143, ADR-DE-008, ADR-DE-009 |
+| AB-23 | [Dream machine — the adapter, the extracted core and the nightly path](agentbox/23-dream-engine.md) | 23 | stateDiagram-v2, flowchart, sequenceDiagram, classDiagram | [GOVERNANCE-capabilities.md](../../../project/agentbox/docs/GOVERNANCE-capabilities.md) | ADR-2024, ADR-2053, ADR-2071, ADR-2081, ADR-2084, ADR-2087, ADR-2114, ADR-2115, ADR-2122, ADR-2141, ADR-2143, ADR-DE-008, ADR-DE-009 |
 | AB-24 | [Ontology Loom facade and the model-swap seam](agentbox/24-loom-facade.md) | 14 | flowchart, sequenceDiagram, stateDiagram-v2 | [GOVERNANCE-capabilities.md](../../../project/agentbox/docs/GOVERNANCE-capabilities.md) | ADR-2023, ADR-2053, ADR-2055, ADR-2075, ADR-2084, ADR-2122, ADR-2140, ADR-2153 |
 | AB-25 | [Ontology tools and governed writes](agentbox/25-ontology-tools-and-governed-writes.md) | 5 | sequenceDiagram, stateDiagram-v2, classDiagram, flowchart | [GOVERNANCE-capabilities.md](../../../project/agentbox/docs/GOVERNANCE-capabilities.md) | ADR-2022, ADR-2023, ADR-2028, ADR-2054 |
 | AB-26 | [Headroom compression, the beads work-DAG, typed spawn and RuvNet grounding](agentbox/26-headroom-beads-spawn-brain.md) | 9 | sequenceDiagram, classDiagram, stateDiagram-v2, flowchart | [GOVERNANCE-capabilities.md](../../../project/agentbox/docs/GOVERNANCE-capabilities.md), [LEARNING-memory.md](../../../project/agentbox/docs/LEARNING-memory.md) | ADR-2004, ADR-2005, ADR-2020 |

@@ -1,0 +1,35 @@
+no marker: nothing happens, even inside the stop slot
+  ok   API untouched
+  ok   no supervisorctl stop/start
+the happy path: stop at 00:40 UTC, hold, restart on the night record
+  ok   the evening before (BST 00:50 on the 6th) does nothing
+  ok   00:20 UTC is too early
+  ok   00:40 UTC stops it
+  ok   phase=stopped
+  ok   a second tick in the slot does not stop twice
+  ok   held while the night runs (old record)
+  ok   restarted once the night record is today's
+  ok   reason=night-record
+  ok   phase=done
+  ok   marker retired
+  ok   inert afterwards
+deadline: no night record by 07:30 UTC still restarts it
+  ok   stopped
+  ok   held at 07:20
+  ok   restarted at 07:30
+  ok   reason=deadline
+container restart mid-night: supervisord brought the API back
+  ok   stopped
+  ok   reason=interrupted
+  ok   phase=done
+missed slot: first tick after 01:00 never stops the API
+  ok   API left up
+  ok   phase=missed
+  ok   no stop issued
+dreaming paused: the run is not attempted
+  ok   API left up
+  ok   reason=dream-paused
+a malformed marker is ignored
+  ok   API left up
+
+26 passed, 0 failed

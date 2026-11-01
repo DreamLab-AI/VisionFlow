@@ -1,0 +1,26 @@
+   Compiling dream-engine v0.1.0 (/home/devuser/workspace/wt/VisionFlow-dream-journal/.audit-adapter/services/dream-engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.12s
+     Running tests/audit_journal.rs (.audit-target/debug/deps/audit_journal-c715260eb39dcc2a)
+
+running 10 tests
+test breaker_does_not_probe_recovered_endpoint ... ok
+test c3_accepts_asserted_stop_without_restart_or_engine_success ... C3 PASS with invalid stop timestamp, missing restart and engine_exit=99
+ok
+test empty_acknowledgement_id_counts_as_recorded ... ok
+test failed_call_can_leave_successful_orphan_completion ... orphan completion: JournalStats { session: "audit", enabled: true, recorded: 1, failed: 1, skipped: 0, unpaired: 0 }
+ok
+test failed_completion_is_reported_unpaired_zero ... completion failure: JournalStats { session: "audit", enabled: true, recorded: 1, failed: 1, skipped: 0, unpaired: 0 }
+ok
+test matching_record_masks_already_running_interruption ... tick: state="night=2026-11-01\nphase=stopped\nstopped_at=2026-11-01T00:35:00Z\nphase=done\nstarted_at=2026-11-01T03:00:00Z\nreason=night-record\n", status="RUNNING\n", retired=true
+ok
+test old_done_state_consumes_fresh_marker_without_stopping ... tick: state="night=2026-10-04\nphase=done\n", status="RUNNING", retired=true
+ok
+test restart_failure_still_marks_done_and_retires ... tick: state="night=2026-11-01\nphase=stopped\nstopped_at=2026-11-01T00:35:00Z\nphase=done\nstarted_at=2026-11-01T07:35:00Z\nreason=deadline\n", status="STOPPED", retired=true
+ok
+test same_date_text_restarts_before_window_without_valid_json ... tick: state="night=2026-11-01\nphase=stopped\nstopped_at=2026-11-01T00:35:00Z\nphase=done\nstarted_at=2026-11-01T00:45:00Z\nreason=night-record\n", status="RUNNING\n", retired=true
+ok
+test session_suffix_can_be_removed_and_names_normalise_to_same_session ... 160-character night ID removes the changing time suffix
+ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.30s
+

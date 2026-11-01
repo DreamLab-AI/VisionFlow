@@ -6,6 +6,10 @@ governing:
   - ../project/agentbox/docs/GOVERNANCE-capabilities.md
 adrs: [ADR-2024, ADR-2053, ADR-2071, ADR-2081, ADR-2084, ADR-2087, ADR-2114, ADR-2115, ADR-2122, ADR-2141, ADR-2143, ADR-DE-008, ADR-DE-009]
 sources:
+  - ../project/agentbox/scripts/activation/adr-2087-check.sh
+  - ../project/agentbox/management-api/lib/action-plane.js
+  - ../project/agentbox/management-api/lib/execution-journal.js
+  - ../project/agentbox/management-api/routes/exec-record.js
   - ../project/agentbox/services/dream-engine/src/baseline.rs
   - ../project/agentbox/services/dream-engine/src/engine.rs
   - ../project/agentbox/services/dream-engine/src/config.rs
@@ -737,37 +741,56 @@ sequenceDiagram
 
 **Invariant:** the annexe probe writes and deletes a file before it trusts `df`'s free-space figure, so a metadata-exhausted btrfs volume that still reports free capacity is still caught (`../project/agentbox/services/dream-engine/src/dispatch.rs:327-332`).
 
-## AB-23.19 ADR-2071 clause (c) — the one-shot night with management-api stopped
+## AB-23.19 ADR-2071 clause (c) — historical acceptance and retained tick
 
 ```mermaid
 flowchart TB
-    CRON["RAN VIA crontab 5-7 Oct 2026 — the crontab block is now REMOVED<br/>#40;ADR-2071:203 retired it once clause #40;c#41; passed#41;; the script stays<br/>scripts/activation/adr-2071-api-down-night.sh for reuse after an image change"]
-    CRON --> TICK["adr-2071-api-down-night.sh tick<br/>stateless: marker, state file and the UTC clock only<br/>adr-2071-api-down-night.sh:9-15"]
-    TICK --> MK{"marker names a YYYY-MM-DD?<br/>adr-2071-api-down-night.sh:83-88"}
-    MK -->|"no marker"| NOOP["exit 0, nothing happens"]
-    MK -->|"yes"| PH{"state phase<br/>adr-2071-api-down-night.sh:92-95"}
-    PH -->|"done or missed"| RET["retire: marker renamed .consumed<br/>adr-2071-api-down-night.sh:90"]
-    PH -->|"none, 00:30-00:59 UTC on the night"| PAUSE{"dream-paused flag?<br/>adr-2071-api-down-night.sh:100-105"}
-    PAUSE -->|"yes"| MISS["phase missed, the API stays up<br/>adr-2071-api-down-night.sh:102"]
-    PAUSE -->|"no"| STOP["EXIT trap armed, supervisorctl stop management-api<br/>phase stopped, stopped_at written<br/>adr-2071-api-down-night.sh:106-111"]
-    PH -->|"none, first tick at or after 01:00"| MISS2["phase missed, reason no-tick-before-window<br/>adr-2071-api-down-night.sh:121-124"]
-    STOP --> NIGHT["the dream window runs with no API:<br/>window_start 1, window_end 5 UTC<br/>agentbox.toml:2600-2601"]
-    NIGHT --> RS{"phase stopped: which comes first?<br/>adr-2071-api-down-night.sh:129-144"}
-    RS -->|"dream-last-night.json dated the night"| R1["reason night-record<br/>adr-2071-api-down-night.sh:137-138"]
-    RS -->|"API RUNNING again"| R2["reason interrupted, a container restart<br/>adr-2071-api-down-night.sh:139-140"]
-    RS -->|"07:30 UTC passed"| R3["reason deadline<br/>adr-2071-api-down-night.sh:141-142"]
-    R1 --> START["supervisorctl start, phase done, marker retired<br/>adr-2071-api-down-night.sh:144-148"]
-    R2 --> START
-    R3 --> START
-    START --> CHK["the morning after: adr-2087-check.sh --api-down-night DATE<br/>C3 passes only on night-record or deadline, see AB-14.15"]
+    %% ADR-2071-journal-the-nightly-dream-cycle.md:195-203
+    %% adr-2071-api-down-night.sh:29-31
+    %% adr-2071-api-down-night.sh:83-95
+    %% adr-2071-api-down-night.sh:94
+    %% adr-2071-api-down-night.sh:100-105
+    %% adr-2071-api-down-night.sh:102-103
+    %% adr-2071-api-down-night.sh:106-108
+    %% adr-2071-api-down-night.sh:108
+    %% adr-2071-api-down-night.sh:109-111
+    %% adr-2071-api-down-night.sh:113-118
+    %% adr-2071-api-down-night.sh:129
+    %% adr-2071-api-down-night.sh:137-142
+    %% adr-2071-api-down-night.sh:132-138
+    %% adr-2071-api-down-night.sh:139-140
+    %% adr-2071-api-down-night.sh:141-142
+    %% adr-2071-api-down-night.sh:145-148
+    %% adr-2087-check.sh:397-419
+    %% adr-2087-check.sh:410-417
+    %% adr-2071-api-down-night.sh:121-124
+    HIST["Historical acceptance: manual wrapper on 4 October<br/>Cron experiment was NOT used; marker and cron block retired<br/>ADR-2071 lines 195-203"]
+    HIST -.-> TICK["Retained script for future reuse<br/>Requires external scheduling plus marker and state<br/>tick lines 29-31"]
+    TICK --> PH{"Marker present and syntactically dated;<br/>read existing phase<br/>tick lines 83-95"}
+    PH -->|"done or missed, even for older night"| RET["Retire new marker without stopping<br/>tick lines 94"]
+    PH -->|"no phase, matching date 00:30-00:59"| PAUSE{"Dream paused?<br/>tick lines 100-105"}
+    PAUSE -->|"yes"| MISS["Mark missed and retire<br/>tick lines 102-103"]
+    PAUSE -->|"no"| TRY["Arm EXIT trap; attempt stop<br/>tick lines 106-108"]
+    TRY --> OK{"Stop succeeded or status STOPPED?<br/>tick lines 108"}
+    OK -->|"yes"| STOP["Write stopped state, then disarm trap<br/>tick lines 109-111"]
+    OK -->|"no"| STOPFAIL["Attempt restart; mark missed and retire<br/>tick lines 113-118"]
+    PH -->|"no phase, matching date at or after 01:00"| MISS
+    STOP --> LATER["Later tick with phase stopped<br/>No independent watchdog in this script<br/>tick lines 129"]
+    PH -->|"stopped"| LATER
+    LATER --> WHY{"Ordered checks<br/>tick lines 137-142"}
+    WHY -->|"first: matching date text in health file"| REC["night-record; no JSON or run-identity validation<br/>tick lines 132-138"]
+    WHY -->|"else: RUNNING or STARTING"| INT["interrupted<br/>tick lines 139-140"]
+    WHY -->|"else: deadline passed"| DEAD["deadline<br/>tick lines 141-142"]
+    REC --> START["Attempt start; ignore failure<br/>Write phase done and started_at; retire marker<br/>tick lines 145-148"]
+    INT --> START
+    DEAD --> START
+    START --> C3["C3: dated health, at least one verdict and failed/skipped post;<br/>matching done state, nonempty stopped_at, allowed reason<br/>checker lines 397-419"]
+    C3 --> LIMIT["No restart-success or engine-exit validation;<br/>no proof of continuous outage or ledger append<br/>checker lines 410-417"]
 ```
 
-**What it shows.** How the estate will run its first dream night with the management API deliberately down: a marker file names the night, a ten-minute cron tick stops the API in the half-hour before the window, and the first tick that sees the night record, the 07:30 UTC deadline or an API that came back on its own restarts it and retires the marker.
-**Why it is this way.** ADR-2071 can only be accepted once clause (c) shows the night still completes, and journals its failures, with nothing to journal to. The owner fixed the night of Monday 5 October (owner decision 2026-10-02, Q9; `../project/agentbox/docs/adr/ADR-2071-journal-the-nightly-dream-cycle.md:191`), then asked for it early: clause (c) ran on 4 October in place of the 6 October night, all three Phase 1 clauses passed on the live image, and the record is **accepted, implementation complete, activation live** (`../project/agentbox/docs/adr/ADR-2071-journal-the-nightly-dream-cycle.md:195`). The schedule rode the checkout crontab rather than the image so that a container restart neither lost it nor needed a rebuild; that crontab block was removed once clause (c) passed and the 6 October marker was retired (`../project/agentbox/docs/adr/ADR-2071-journal-the-nightly-dream-cycle.md:203`). The tick is pure bash plus coreutils because that cron PATH has no `sed` or `awk` (`../project/agentbox/scripts/activation/adr-2071-api-down-night.sh:59-60`).
-
-**Invariant:** the API is never left down by a dying tick: an EXIT trap restarts management-api from the moment the stop is attempted until the state write lands (`../project/agentbox/scripts/activation/adr-2071-api-down-night.sh:106-110`).
-
-**Debt:** the checkout crontab that `[program:podcast-cron]` reads still ticks the EXP-B8 label-log experiment every 30 minutes until its own PR merges (`../project/agentbox/skills/podcast-knowledge-ingest/crontab:34-44`), so a supervised program named for podcast ingest carries a schedule that has nothing to do with podcasts. The retired api-down-night script and its tests are kept in `scripts/activation/` for reuse after a future image change (`../project/agentbox/docs/adr/ADR-2071-journal-the-nightly-dream-cycle.md:203`).
+**History.** ADR-2071 records a manual 4 October acceptance run, three newly dreamed repositories and one previously completed skip. This is historical evidence, not a fresh deployment check (`../project/agentbox/docs/adr/ADR-2071-journal-the-nightly-dream-cycle.md:195-203`).
+**Current boundary.** The retained tick can consume a fresh marker using old done state, restart before the window from matching date text, mask an interruption and retire after a failed start. C3 trusts aggregate files rather than binding an outage to a specific completed run; see the [journal audit](../../estate-review/2026-11-01-dream-journal-and-api-down.md).
+**Recovery limit.** The EXIT trap is removed after writing stopped state; later recovery depends on another tick and a successful supervisor start. It is not an unconditional guarantee that the API returns (`../project/agentbox/scripts/activation/adr-2071-api-down-night.sh:106-111`, `../project/agentbox/scripts/activation/adr-2071-api-down-night.sh:145-148`).
 
 ## AB-23.20 Which key signs the forum round trip — role isolation off and on
 
@@ -880,3 +903,30 @@ This topic describes the extraction as source at the stamped revisions. ADR-2141
 **Resolved:** the earlier follow-on that `ontomark/dream.config.json` (`"adrConvention": "ADR-OM-NNN"`) would not load under the stricter `dream-gate` validation is closed: the legacy free-form template is accepted and rendered with its prefix from `dream-gate` 0.1.1 (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:35`).
 
 **Tension (activation records):** ADR-2141 says the image running the adapter was rebuilt and activated (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:8`), while ADR-2081 still records `activation_status: staged` for the annexe-depth and receipt corrections that the same engine source carries (`../project/agentbox/docs/adr/ADR-2081-annexe-depth-law-and-honest-evaluator-receipts.md:7`); its review_trigger names the first nightly run on the rebuilt image as the receipt that moves it to live (`../project/agentbox/docs/adr/ADR-2081-annexe-depth-law-and-honest-evaluator-receipts.md:13`); AB-23.11 to AB-23.14 describe source behaviour and claim no live receipt.
+
+
+## AB-23.23 Journal delivery — local counters and remote evidence
+
+```mermaid
+flowchart TB
+    SESSION["Night ID plus whole seconds, normalised and truncated to 160<br/>Not unique across all attempts or names<br/>journal.rs:300-315"] --> CALL["called: post tool.called, then increment open_calls<br/>journal.rs:165-187"]
+    CALL --> EFFECT["Caller performs effect independently of delivery success<br/>Phase 1 is fail-open, not an approval gate<br/>journal.rs:11-17"]
+    EFFECT --> DONE["completed: decrement open_calls BEFORE posting<br/>causation present only if called returned an event ID<br/>journal.rs:199-215"]
+    CALL --> HTTP
+    DONE --> HTTP
+    HTTP{"Client enabled and fewer than 3 consecutive failures?<br/>journal.rs:236-244"}
+    HTTP -->|"no client"| OFF["No delivery counters; open_calls still changes<br/>journal.rs:236"]
+    HTTP -->|"breaker open"| SKIP["skipped++; no recovery probe this session<br/>journal.rs:237-243"]
+    HTTP -->|"yes"| POST["POST /v1/exec/record<br/>same API journal singleton<br/>exec-record.js:59-62"]
+    POST --> KEY["Caller key becomes deterministic event ID<br/>Duplicate ID returns prior envelope, without payload comparison<br/>exec-record.js:52-54; execution-journal.js:144-151"]
+    KEY --> APPEND["Assign seq, await dispatch, then update in-memory state<br/>Concurrent appends can share seq; restart needs hydration<br/>execution-journal.js:152-185"]
+    APPEND --> ACK{"HTTP success and string event_id?<br/>journal.rs:257-270"}
+    ACK -->|"yes, including duplicate or empty ID"| REC["recorded++; reset failure streak<br/>journal.rs:267-270"]
+    ACK -->|"no"| FAIL["failed++; increment streak; no retry or local outbox<br/>journal.rs:272-276"]
+    DONE --> STATS["unpaired = current open_calls, not remote pair reconciliation<br/>journal.rs:224-229"]
+    STATS --> HEALTH["Normal path records repo stats, then night-level stats<br/>Early returns and crashes have narrower coverage<br/>engine.rs:352-361; engine.rs:448-449; records.rs:382-399"]
+```
+
+**Evidence.** Loopback probes reproduce unmatched remote records with unpaired=0; route probes reproduce changed-payload deduplication, restart sequence reuse and concurrent duplicate sequence numbers while the on-disk hash chain verifies. These are separate integrity properties, detailed in the [journal audit](../../estate-review/2026-11-01-dream-journal-and-api-down.md).
+**Coverage.** Several inbox writes have no tool pair, including shared-remote warnings, annexe-health failure and damaged-run alerts; inbox::add does not journal internally (`../project/agentbox/services/dream-engine/src/engine.rs:244`, `../project/agentbox/services/dream-engine/src/engine.rs:838`, `../project/agentbox/services/dream-engine/src/engine.rs:2061`, `../project/agentbox/services/dream-engine/src/inbox.rs:174-215`).
+**Skip semantics.** The repo wrapper posts turn.started before calling the body and turn.completed afterwards, including locked or already-finished returns. No tool effect is required for those lifecycle events (`../project/agentbox/services/dream-engine/src/engine.rs:508-529`).

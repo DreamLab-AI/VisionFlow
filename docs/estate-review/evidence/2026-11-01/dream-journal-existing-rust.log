@@ -1,0 +1,14 @@
+   Compiling dream-engine v0.1.0 (/home/devuser/workspace/wt/VisionFlow-dream-journal/.audit-adapter/services/dream-engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.95s
+     Running unittests src/lib.rs (.audit-target/debug/deps/dream_engine-289969c465f16849)
+
+running 6 tests
+test journal::tests::session_slugs_fit_the_api_pattern ... ok
+test journal::tests::an_unclosed_call_is_counted_unpaired ... ok
+test journal::tests::disabled_journal_records_nothing_and_never_blocks ... ok
+test journal::tests::api_down_is_fail_open_and_trips_the_breaker ... ok
+test journal::tests::rejected_posts_count_as_failures ... ok
+test journal::tests::pairs_share_step_and_link_by_causation ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 183 filtered out; finished in 0.01s
+

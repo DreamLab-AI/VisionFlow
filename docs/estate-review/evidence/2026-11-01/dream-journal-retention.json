@@ -1,0 +1,1335 @@
+{
+  "retained_at": "/tmp/vf-dream-journal-artifacts",
+  "files": [
+    {
+      "path": ".audit-adapter/management-api/README.md",
+      "bytes": 1619,
+      "sha256": "666267f4f8c3311644902576b2728517c09a2ef6dc573a291ebaff062c86b179"
+    },
+    {
+      "path": ".audit-adapter/management-api/adapters/base.js",
+      "bytes": 1154,
+      "sha256": "9498b8b7e651e3cf28b4198c5484755207faf17caba22f2088105ec05e0ed092"
+    },
+    {
+      "path": ".audit-adapter/management-api/adapters/beads/external.js",
+      "bytes": 3263,
+      "sha256": "f23cde528d711cfd7840ae40ee34b0c13c4f46682c7edae54a07577c1d2756e4"
+    },
+    {
+      "path": ".audit-adapter/management-api/adapters/beads/local-sqlite.js",
+      "bytes": 11074,
+      "sha256": "181053e1d343fd0401ed19291009efff6c961443016d1d1b01bb330550793624"
+    },
+    {
+      "path": ".audit-adapter/management-api/adapters/beads/off.js",
+      "bytes": 980,
+      "sha256": "e1ba4c94b352f5cd4248a3a6dfc0387b9b20b4d547b83c3a0d8c24ba41871cf5"
+    },
+    {
+      "path": ".audit-adapter/management-api/adapters/beads/placeholder.js",
+      "bytes": 952,
+      "sha256": "28469de87558e937a1a6f5a1130d65a7d55e1572e93a3b802eaec01b5020f358"
+    },
+    {
+      "path": ".audit-adapter/management-api/adapters/contract-versions.js",
+      "bytes": 405,
+      "sha256": "0f85f1e7daa4ba8eb71feacd6192c24b20f4bc6909f5048e812731e4ec79cbf8"
+    },
+    {
+      "path": ".audit-adapter/management-api/adapters/errors.js",
+      "bytes": 2541,
+      "sha256": "17d4ab6fe0c69455844888dd79e1996087d68cd7d034a3eff23442fa79bac5c2"
+    },
+    {
+      "path": ".audit-adapter/management-api/adapters/events/agent-execution-event.schema.json",
+      "bytes": 3542,
+      "sha256": "12165437c3b02cb6e9d63b723a6a4fed7b6ff221dd2a2431ca5776b9f11f5ac3"
+    },
+    {
+      "path": ".audit-adapter/management-api/adapters/events/external.js",
+      "bytes": 2391,
+      "sha256": "0405ccf5c3ebdbec940f2cd042d28b9ed78e3c2837e9a41ec8d4aac4e00114fd"
+    },
+    {
+      "path": ".audit-adapter/management-api/adapters/events/local-jsonl.js",
+      "bytes": 5405,
+      "sha256": "1077b5d834fd5a1b6776064747742c098e87d3c6c160635c71096e6b733f17b8"
+    },
+    {
+      "path": ".audit-adapter/management-api/adapters/events/off.js",
+      "bytes": 890,
+      "sha256": "e121d277ee2e0497888520a2a76e24f020ad9e7d25141f612e862b7fa0613259"
+    },
+    {
+      "path": ".audit-adapter/management-api/adapters/events/placeholder.js",
+      "bytes": 719,
+      "sha256": "b4b5b5f980bb2da1e1786f9952d213abe263be5db300a2f27f6fa1265eb50a66"
+    },
+    {
+      "path": ".audit-adapter/management-api/adapters/index.js",
+      "bytes": 6944,
+      "sha256": "c96ea95a362eb16b002bcf6d1fb8af80ca4a8810639f0a691fb4c1f524911eac"
+    },
+    {
+      "path": ".audit-adapter/management-api/adapters/lifecycle.js",
+      "bytes": 14685,
+      "sha256": "50b3eb1c04d4377e750adda70052bf6b49cc34333bc0b87fd462ba743a3d9577"
+    },
+    {
+      "path": ".audit-adapter/management-api/adapters/manifest-loader.js",
+      "bytes": 3740,
+      "sha256": "6be313a3f67ff268e2928dab4624c220eb40991b591c834999611155f8bf4967"
+    },
+    {
+      "path": ".audit-adapter/management-api/adapters/memory/embedded-ruvector.js",
+      "bytes": 4746,
+      "sha256": "4adee6f50a21d243825ee861f7aceb0c49738361af04223eef1a6330cfc5c341"
+    },
+    {
+      "path": ".audit-adapter/management-api/adapters/memory/external-pg.js",
+      "bytes": 6178,
+      "sha256": "7a9294018108525eb9c39d197fbb3af5a5d2304fb151c3374b110926eb2a015e"
+    },
+    {
+      "path": ".audit-adapter/management-api/adapters/memory/off.js",
+      "bytes": 843,
+      "sha256": "ad43d922660211e903f1d1f93a8d16c2dad855cc8995d886d3460233c30b2132"
+    },
+    {
+      "path": ".audit-adapter/management-api/adapters/memory/placeholder.js",
+      "bytes": 796,
+      "sha256": "a61862c9b47bb2db539182bddd3cbb4bc944ea5eb38639e855f44a9129dcc035"
+    },
+    {
+      "path": ".audit-adapter/management-api/adapters/orchestrator/local-process-manager.js",
+      "bytes": 24797,
+      "sha256": "de1ab5a3233635a5e22719ad0a936dcd68fa373869511eee6c9162accf1c9d7d"
+    },
+    {
+      "path": ".audit-adapter/management-api/adapters/orchestrator/off.js",
+      "bytes": 865,
+      "sha256": "f85e018ff87230b2eb40a0869679195ea64dda6fd70c583d989a8119fa1fc251"
+    },
+    {
+      "path": ".audit-adapter/management-api/adapters/orchestrator/placeholder.js",
+      "bytes": 823,
+      "sha256": "3431e11d679885610daedbcd16225945a8546fb5f9167b38d27ea7bab79592b1"
+    },
+    {
+      "path": ".audit-adapter/management-api/adapters/orchestrator/stdio-bridge.js",
+      "bytes": 4855,
+      "sha256": "852636b9d764f52b6bd657ff95a687ddf8fef6f0be9b0ddad1d1bd5f4d2c78b5"
+    },
+    {
+      "path": ".audit-adapter/management-api/adapters/pods/_solid-http-base.js",
+      "bytes": 7813,
+      "sha256": "fa17d2552520c2ef2b2eca36945ab396b6572d58431c0bfe59b74aea2819f925"
+    },
+    {
+      "path": ".audit-adapter/management-api/adapters/pods/external.js",
+      "bytes": 1227,
+      "sha256": "27459f0b416aab9d00eaea0519e54c04d0716518512ac5049aecb27e0bf8b75f"
+    },
+    {
+      "path": ".audit-adapter/management-api/adapters/pods/local-solid-rs.js",
+      "bytes": 5758,
+      "sha256": "5dec64e3be0a67b2ca5dff52db7ed72a9f1b383169d309087b0bbfb59a76ca76"
+    },
+    {
+      "path": ".audit-adapter/management-api/adapters/pods/off.js",
+      "bytes": 813,
+      "sha256": "e7de7425ef2150dbf9396f43a7918026871cff6e3b8beaaaeb2dd894aac748c9"
+    },
+    {
+      "path": ".audit-adapter/management-api/adapters/pods/placeholder.js",
+      "bytes": 817,
+      "sha256": "e02c212630ba4f6fbca9e9b24dced9262094b77f183418fd7384b9eacde9b6fe"
+    },
+    {
+      "path": ".audit-adapter/management-api/hooks/agent-action-hooks.js",
+      "bytes": 10223,
+      "sha256": "2d4b821f5284f01bfc5b08e922713b10411082b20f755d6d1768addb12497d45"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/action-plane.js",
+      "bytes": 14093,
+      "sha256": "b4ab3a86aec4b77c573f538b57e8b9a908469910f8dcc920baa329151f992062"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/agent-action-pipeline.js",
+      "bytes": 21034,
+      "sha256": "1234cf04490cdcbf7c8cb9f58f877b508214d12bdeda8d1b76789bf18b8293e4"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/agent-control-surface.js",
+      "bytes": 11398,
+      "sha256": "6094a98821b27171b0511bcbd306f59cbbcefc3e06366f3c638db984dd34fe36"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/agent-event-auth.js",
+      "bytes": 10136,
+      "sha256": "636d3d83a7f80bd5623546c9cf09cb8fd8f80d9fb14cc342f03c08d75f4156f3"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/agent-identity.js",
+      "bytes": 14034,
+      "sha256": "69991bd38d846a089f596f69a49a3d1f727b1a83e671082cd42683c2a6f3ea49"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/approval-review-jev.js",
+      "bytes": 6391,
+      "sha256": "6207094e8dd8982660fdabd7837f58b4a28b756bd434ac14f6d76ba0d5d8db32"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/audit-chain.js",
+      "bytes": 8127,
+      "sha256": "8aeeda05f88691800c4030ce3214181ef48b5d9720aeb5a4f15415164ddf8591"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/authority-consumer.js",
+      "bytes": 20509,
+      "sha256": "a9459b369ffdfe6061ebab177e6ec04caa7f9cb723b3f105a02d4d859bee910b"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/authority-journal.js",
+      "bytes": 7816,
+      "sha256": "d1485156694bf1cadb552e980911476bea3698fd559ff5b67ec5b295c7065dad"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/authority.js",
+      "bytes": 24523,
+      "sha256": "85c2785148f15d28d488b19d6c008f3e82878a71d3d519bf2ed09bdc4e999dc1"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/authz.js",
+      "bytes": 9748,
+      "sha256": "7269bc1df0731108841eca4bac05ef23c3e9a113a378b76ddfc9b46960e25e01"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/bc20-provenance-bridge.js",
+      "bytes": 16824,
+      "sha256": "63097cb2741e8f74bb32c8b1dadb237ecf86b93e94c51a57f6446ef5371614d5"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/capability-scope.js",
+      "bytes": 12316,
+      "sha256": "ba03edae7ed75f90a031d1e666c68c0cebd16c9430c9b23603185b173d95999c"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/dream-ledger.js",
+      "bytes": 16237,
+      "sha256": "d3315fbb94852ea4ac89c91435ba979cbfdbe7e0d0ab2c7dcab73f68da01d311"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/elevation-publisher.js",
+      "bytes": 11082,
+      "sha256": "59dbe29e2185c5a72feb029db3d48a43e3ad57d3761da726095fea2c76210039"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/elevation-stage.js",
+      "bytes": 13210,
+      "sha256": "3abe06f6092dfcef88325093d7b3b8d2f363a112eaa409aeb58bd52116e991cb"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/execution-coverage.js",
+      "bytes": 4335,
+      "sha256": "9facf7b399896c9b4cdd39c5d97e1814fa7c127c0279804c6f4ebdddfdf93563"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/execution-journal.js",
+      "bytes": 13631,
+      "sha256": "d7df480fb31f0c1307530be0964973011325a80f703f329fd627a363eb8767ba"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/execution-projections.js",
+      "bytes": 4770,
+      "sha256": "a6ba8d2c35a0cf283f959c8fddbebafbfd74192a989040e383f2dfdef21dba34"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/failure-taxonomy.js",
+      "bytes": 9267,
+      "sha256": "849acb777724a2b82215fd6d1f88e272deb50406b552d8369d3a333faf61c64d"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/governance-application-receipts.js",
+      "bytes": 8915,
+      "sha256": "48f28f1b79d18364baa218324cbdacd59a509a9f77a548360c0cc25e36fd5e5e"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/governance-correlation.js",
+      "bytes": 2121,
+      "sha256": "9a08c4753dd9ea52e108966cef1fb5edf760cf13d9d78369f3e3ccc138f89546"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/governance-decision-waiter.js",
+      "bytes": 5703,
+      "sha256": "f19518f25ddf2192aa244bb9eb7f1c99253d8c9f0ff207e37c3baef21e120b2f"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/governance-evidence-rubric.js",
+      "bytes": 7013,
+      "sha256": "d369edfe27e1b748ae4147c97ff827b84a08c33719870deb4942f551fea9eca5"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/governance-manual-continue.js",
+      "bytes": 11190,
+      "sha256": "6a77f28ddbe76f2c6096055ddf377b3a3002cb7cdd7df4be9eb2a972d9bac77e"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/governance-receipt-publisher.js",
+      "bytes": 22717,
+      "sha256": "7a5c0b35ba804f8f7f1ab2dba5314a2820b111b0b945ebd8319001b3be4cfd78"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/headroom-evidence.js",
+      "bytes": 7997,
+      "sha256": "e520ab186b319cea797792d40d9c1b69d0611ad03d6fdedfc205ecdf0a37154f"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/headroom-mcp-tools.js",
+      "bytes": 7010,
+      "sha256": "36372cce119ae4f2110299c7d4655abda621e08b2f694bd2c09b029379697a0e"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/headroom.js",
+      "bytes": 13485,
+      "sha256": "b43e284647333a58bf3c9fc62b3e7285a8a09aaec59f907bfb10afd7501faa2f"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/junkiejarvis-agent.js",
+      "bytes": 59554,
+      "sha256": "b25fda487aae90db7728a2b21d3e213062acb42c8bc635b230541bfc7a57de91"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/junkiejarvis-clarify.js",
+      "bytes": 19229,
+      "sha256": "fe8b087b42caaf6cf7110596ed482e6d800769c6d8fb8001c00517befe72182a"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/kg-proposal-extractor.js",
+      "bytes": 15781,
+      "sha256": "163dbc38fe96fa3a34b259a93bad843a0070a85bcd30f2dc03d64d6b7e9f0b10"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/llm-marketplace.js",
+      "bytes": 9121,
+      "sha256": "8265f26bda27368bf85361e8cbb4db9dd8ea837a254ef2adf5e1b9f3693d251b"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/mandate.js",
+      "bytes": 8976,
+      "sha256": "4342dc460566a8dbb2301acb69939c71e5a8b96902b026fef42eb6d05c663514"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/memory-flash-notifier.js",
+      "bytes": 4116,
+      "sha256": "b7e3b207593b263da3de9fb173f6b264dd59bd604ca5dbc80b4fb46a21f10d9c"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/ontology-apply.js",
+      "bytes": 39912,
+      "sha256": "db46a136f6cee0906ebba591a01f0418e141b3dbb7b6d8d5a1317f2849dca054"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/ontology-propose.js",
+      "bytes": 16302,
+      "sha256": "44bb3f96b224d5963adaa382c92a89ac1254cf71f3a808d566744a5a6600dae7"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/pay402.js",
+      "bytes": 21418,
+      "sha256": "176807fe3e3a8646279f389b3f68e879a22b2c010ab1849e9fccc36185996b1b"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/per-user-agent.js",
+      "bytes": 32594,
+      "sha256": "16bc51e8e61ae2ad441e909669fe8746ed211b921ba72df967e6bc9fe40680d2"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/pod-signer.js",
+      "bytes": 9291,
+      "sha256": "7b6b2a79f22befc9e162253c0f571a49f4dd99114c0d192d27a79e0e78e23c04"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/project-primer.js",
+      "bytes": 12988,
+      "sha256": "c492e47cf9f4b4b0778d36e5a81cdd02b06fb539bb08bd2f1ae018ada8d03fa4"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/project-tracker.js",
+      "bytes": 23377,
+      "sha256": "e9d577b70d8b25c7e932f60477f2b7309ccdbb989c456d975bb01411a6198760"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/receipt-minter.js",
+      "bytes": 3856,
+      "sha256": "610ac1ed53ba08186ab682a8619c8e562c61227a05604c3a909bb0c9c2f9473e"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/role-secret.js",
+      "bytes": 6114,
+      "sha256": "3200182758aaf257c7e70063e121c4d93d6e88b8c0e81445c0cb79cb5a39a0ff"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/rubrics/governance-evidence-quality.v1.json",
+      "bytes": 3077,
+      "sha256": "3c358473dd0896c812a7ab18cc9b7b044e7b00509016e5d29baed37d697c3c85"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/sidechain-health.js",
+      "bytes": 9443,
+      "sha256": "ee70c7a114b171177c74b9d6e8fd27bc2d2f482d177d48a02b23a68f9335b117"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/sidestr-agent-cli.js",
+      "bytes": 3410,
+      "sha256": "ce6b6b04b5522a22aab26575fe87cf00716a68d2b173b3ecca3590c45a37a98a"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/sidestr-payee.js",
+      "bytes": 4426,
+      "sha256": "17e06ef407ff95dc8ab877a92c3ae051b81542062fc4c0807ac6bbb6957d960f"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/sidestr-payments-store.js",
+      "bytes": 3181,
+      "sha256": "b797a1ef688d412a4a545ff0ef4f7a93d9d9c5d7283db5e7f14f47bb29ed7f98"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/sidestr-rail.js",
+      "bytes": 9766,
+      "sha256": "02706f47af7e4beeb540858163e3337f2df4c57c3e0c10ec60d9e0427f9c0035"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/sidestr-spend-key.js",
+      "bytes": 10725,
+      "sha256": "26ae21ef5857cbdafacde6d3143d3ec725794255391130e79e688beba136ca07"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/system-manifest.js",
+      "bytes": 71019,
+      "sha256": "07d63348d80ff7c13b0e93e384d2c0328b3fd9c5204133d30efd9572a19843ee"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/task-properties.js",
+      "bytes": 12581,
+      "sha256": "be59d6f26fbe9cffcfd940418e698b528d856ebd312d374bf5686724ad87b1b0"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/uris.js",
+      "bytes": 24083,
+      "sha256": "ce4ed70f91ddd83118040eec796dee40e7269abe3992e7138b9006a3b006d904"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/voice-intent-jev.js",
+      "bytes": 6389,
+      "sha256": "774c3a1136926749348f0fdef932572503a1425d3c75f37bd2f020e99c665474"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/voice-intent.js",
+      "bytes": 8823,
+      "sha256": "9e925702485f26158796e77cc9d07c20dd72be18ae7a888e6d26ce1a834e9876"
+    },
+    {
+      "path": ".audit-adapter/management-api/lib/zone-keys.js",
+      "bytes": 30956,
+      "sha256": "7aa7f0b9f5f6a13fe20d920feefd0ee21511b7192f62d491806e3af3a45397a8"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/auth.js",
+      "bytes": 9075,
+      "sha256": "212264868e5576fb992bd806def7cae8aea83ffa0a7b8a9077c40b57fd3912b1"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/consumer-payer.js",
+      "bytes": 9702,
+      "sha256": "b338f94978886a5ad85dd781d60514c5395ea4c24d70781cbc95054f7e1d6a94"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/cost-gate.js",
+      "bytes": 2393,
+      "sha256": "f939e046885061a12b1a405407ac64dc6b37499344571cf173f83aab02c7a7ef"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/linked-data/context-resolver.js",
+      "bytes": 9151,
+      "sha256": "aab9efc38ca6a53011d38420d134798b013b73f5b8ea1d00cde586e71812ca66"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/linked-data/encoder.js",
+      "bytes": 11633,
+      "sha256": "90e0b06154d29af64c3437d5f1ae3276a31a49e1cc943f369f7f18bf9917bebd"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/linked-data/index.js",
+      "bytes": 3435,
+      "sha256": "2ba5c3b8b8e4b31455c20df205dd63fd296fb95fd1c5297d07fdfb68daa7e58a"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/linked-data/input-validator.js",
+      "bytes": 8563,
+      "sha256": "25963a2abc4105b88aecb05b014702514f8cc8dca965bfd3e94f985420138678"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/linked-data/jcs.js",
+      "bytes": 5695,
+      "sha256": "fc2591f51e6f79951e88958dbff646b37bc0686ef9dd2ada38c89527ed28d422"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/linked-data/lion-linter.js",
+      "bytes": 10984,
+      "sha256": "146adb19194be4c5cb44af9b2aa0b64981a2bf525a492b495a4466abc7bd2bf6"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/linked-data/round-trip.js",
+      "bytes": 3595,
+      "sha256": "4dbe246646bf36e86716631539f402a00bfed21e45086686a7c11d0880429a43"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/linked-data/surfaces/s01-pods.js",
+      "bytes": 3100,
+      "sha256": "70150e0cac57d5fc3821c9cc47be18e0daf31a6b4b2b1e28048de648e225c85b"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/linked-data/surfaces/s02-nostr.js",
+      "bytes": 3680,
+      "sha256": "50ba86cf02d822e4929831701530b1197288d8dd78b26301c8df79ef37498170"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/linked-data/surfaces/s03-credentials.js",
+      "bytes": 2708,
+      "sha256": "fd0af7f4b18cf0b7eaffb970eda6d1566486ef0e0cfb42b1c27eac33f9b3c8bd"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/linked-data/surfaces/s04-did.js",
+      "bytes": 5686,
+      "sha256": "0a7cc21010f9cfc329ec84a082f790aa703d86d1bb4a1452bcbadd03a8afb41f"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/linked-data/surfaces/s05-provenance.js",
+      "bytes": 3038,
+      "sha256": "5a5742028bba679849c1df9c684b8506ef624715fbec53a4d65925ac037aa424"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/linked-data/surfaces/s06-wot.js",
+      "bytes": 4186,
+      "sha256": "7f50e0a8734bc7f3f9c769a5560ec2e97532df695f8fa1a63dbc7daf4ec9a0e4"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/linked-data/surfaces/s07-skill.js",
+      "bytes": 2371,
+      "sha256": "5ba6c9fd332cc30e043509d8ea5a851ceb6d57486e2195ec0a028017dad83c0d"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/linked-data/surfaces/s08-payments.js",
+      "bytes": 8354,
+      "sha256": "baada9364e3072b9ea1a8ae9c06d8c101391af3a0f215e085b5d1d69f1209225"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/linked-data/surfaces/s09-dcat.js",
+      "bytes": 2333,
+      "sha256": "87cbf33f929c50e0b672bddc886d0e3bc37d1663ff946b1261c3294f315cacd9"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/linked-data/surfaces/s10-arch-docs.js",
+      "bytes": 2543,
+      "sha256": "66fcd69546d5a34bc84e080660ed53f3fa88fc628a256b106568a453f14715bf"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/linked-data/surfaces/s11-http-meta.js",
+      "bytes": 3139,
+      "sha256": "fd9f1dafd2352aa77c0948f4b7f3bff621c9f4b127179aa564474b89a93bf0ad"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/linked-data/viewer/index.js",
+      "bytes": 4902,
+      "sha256": "32a8f85b47aad4cc34de21ca68d17e2b75588b9d4b7d841fe5adca42ca9c29f9"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/linked-data/viewer/manifest.js",
+      "bytes": 10904,
+      "sha256": "b33b5744d0f0eb6ed9003d7183a9293933875574fee0b06569b876eb6ed88fac"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/linked-data/viewer/panes/README.md",
+      "bytes": 2607,
+      "sha256": "588be3d83a9246ae992fe064dc4b7515afe5226348ab3308ca2e45811f27d29c"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/linked-data/viewer/panes/capability-pane.js",
+      "bytes": 2642,
+      "sha256": "6d70e99070011a5ba111eaea5d2a1bf820aed72fcf84865246a7fe740a02d343"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/linked-data/viewer/panes/dcat-pane.js",
+      "bytes": 2427,
+      "sha256": "b2a8dcc2e2b97744821eae8bc8c54aa19195032876012fedd9646c2ed9ff3f87"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/linked-data/viewer/panes/enrichment-review-pane.js",
+      "bytes": 18370,
+      "sha256": "a038557150266e8d9320c988e2055cc26a76ec59e9b90b9301e6bc66b7385061"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/linked-data/viewer/panes/handoff-pane.js",
+      "bytes": 2631,
+      "sha256": "4df01c6ab75294bbaa51a9de4aea6741c5def2b1c925c24e8dde8353071fc956"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/linked-data/viewer/panes/provenance-pane.js",
+      "bytes": 2930,
+      "sha256": "53d33a7d70863f42af3c598fe3bc32d5ad4233baa58282b4051838173cb18f47"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/linked-data/viewer/panes/runtime-pane.js",
+      "bytes": 2669,
+      "sha256": "6f943571ab72834da5767c2714b07deb8dbd6455deb9c21f1df799d8481cd044"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/linked-data/viewer/panes/vc-pane.js",
+      "bytes": 3591,
+      "sha256": "394c323329166ed63ee0b067b8a145165127d530cb6bcfeeb12f79aea7d16a37"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/payment-gate.js",
+      "bytes": 8319,
+      "sha256": "d9033e74ae63bfa4dded92179ecd5ce4bbe857992162968905866463ba905d09"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/privacy-filter.js",
+      "bytes": 31398,
+      "sha256": "2fe3ece4098ad26bca0e5bee09973e1c1a3facf481d82e9671236db2e028a8bd"
+    },
+    {
+      "path": ".audit-adapter/management-api/middleware/spend-policy.js",
+      "bytes": 10025,
+      "sha256": "126c816bbb8f59a2fcb4e7ca7ae478c9164f4fe3a980037388f14bc6bbffa22e"
+    },
+    {
+      "path": ".audit-adapter/management-api/observability/logger.js",
+      "bytes": 2175,
+      "sha256": "cda137a279f7718b960364de855d4cb8ea7137ad4210a9386ec09a00cc10d7d9"
+    },
+    {
+      "path": ".audit-adapter/management-api/observability/metrics-server.js",
+      "bytes": 2119,
+      "sha256": "2815a0b013c921baa941c24c791c5bfe6030d6c5c65fbeefd3fc002bc9957e92"
+    },
+    {
+      "path": ".audit-adapter/management-api/observability/metrics.js",
+      "bytes": 7686,
+      "sha256": "6c46c134bd45cdc8da540b9a46548c8a8825bbda72bd075d4b9ee84a88c3c307"
+    },
+    {
+      "path": ".audit-adapter/management-api/observability/project-metrics.js",
+      "bytes": 7155,
+      "sha256": "aa3eb9dfd40eab9e852f078dfcd56576cf65e736a9ed8ab63a44114e4de1ce65"
+    },
+    {
+      "path": ".audit-adapter/management-api/observability/tracing.js",
+      "bytes": 2407,
+      "sha256": "aa8798ffd489d7c643329102211ecba00df303b39b3de74cd358674f18d1a097"
+    },
+    {
+      "path": ".audit-adapter/management-api/package-lock.json",
+      "bytes": 308231,
+      "sha256": "c54f8f4aca7a87da2dbe65bcffd793333ec07fa7b4b5452e3a0b2bd7f4961688"
+    },
+    {
+      "path": ".audit-adapter/management-api/package.json",
+      "bytes": 2344,
+      "sha256": "78a518a0b123929616519028c844f18ab2548b8b70540dd9d886d6a5dd360995"
+    },
+    {
+      "path": ".audit-adapter/management-api/routes/admin-users.js",
+      "bytes": 9488,
+      "sha256": "2f573f9b47eb5e9842dec31409bd0d3571180d0708dbfb54930e48d6f1c052d0"
+    },
+    {
+      "path": ".audit-adapter/management-api/routes/agent-events.js",
+      "bytes": 27678,
+      "sha256": "b14596cf1921442403092c892de2bd12143895760e3cd73e0a7b41e629b8471b"
+    },
+    {
+      "path": ".audit-adapter/management-api/routes/approvals.js",
+      "bytes": 11243,
+      "sha256": "58f5289c723e61fc669c84052d4ff9a433e7e3de1ef44408319243d29b91bac5"
+    },
+    {
+      "path": ".audit-adapter/management-api/routes/beads.js",
+      "bytes": 10320,
+      "sha256": "f44817eca3d3206857ff635dc58c34bff02cca34f7864f4ff18e93d0892306fa"
+    },
+    {
+      "path": ".audit-adapter/management-api/routes/briefing.js",
+      "bytes": 22822,
+      "sha256": "125a6f60db789d543a12eb36f199a76ed3abe0f77ce2834583674392764ac6d0"
+    },
+    {
+      "path": ".audit-adapter/management-api/routes/broker-bridge.js",
+      "bytes": 38197,
+      "sha256": "93b6a0e1e499e52098c7e1e2736a364629f8f31bf1f1c09cd470fc54c0aea6de"
+    },
+    {
+      "path": ".audit-adapter/management-api/routes/chain-payments.js",
+      "bytes": 19983,
+      "sha256": "3a6c730e2e125f899a8a334ed3b80b3181a065c6bfe136fa05064ee5efc396b4"
+    },
+    {
+      "path": ".audit-adapter/management-api/routes/chain.js",
+      "bytes": 4753,
+      "sha256": "124ce26b62778b8099fff5d4ca54fa96c753a4501032b99de9634ff2aa146bb9"
+    },
+    {
+      "path": ".audit-adapter/management-api/routes/comfyui.js",
+      "bytes": 9822,
+      "sha256": "f6be758ddb627e41d5c9588dd97e9f003fa2214c617bff986d44667af5485979"
+    },
+    {
+      "path": ".audit-adapter/management-api/routes/dream.js",
+      "bytes": 2070,
+      "sha256": "33ac717413b3ac802b89cad7fa79f1a04f46cb9b3f98425b21531be2cc770919"
+    },
+    {
+      "path": ".audit-adapter/management-api/routes/exec-record.js",
+      "bytes": 5612,
+      "sha256": "281d41b9d771827a8f5e336ded73c0091fa8e4150513725781dd27d8ea8b3b8a"
+    },
+    {
+      "path": ".audit-adapter/management-api/routes/git-bridge.js",
+      "bytes": 28603,
+      "sha256": "164db498a4c83618fd0e8b7ee5a9e65da5ade21bc9ca7633675742ab267c6181"
+    },
+    {
+      "path": ".audit-adapter/management-api/routes/kg-elevation.js",
+      "bytes": 12050,
+      "sha256": "1da5f169297eca58d88d7fcb9864365c5d468ad28018b2cc255ff099a3ffdf0e"
+    },
+    {
+      "path": ".audit-adapter/management-api/routes/linked-objects.js",
+      "bytes": 11707,
+      "sha256": "2d00f3b970116773cd52d0b792dc1e8475bb3691a2bbb3761aa32d829fabb383"
+    },
+    {
+      "path": ".audit-adapter/management-api/routes/llm-marketplace.js",
+      "bytes": 22077,
+      "sha256": "75240ae27881422a0086efaf382bc13a5bc63240cf71fd9080a0fa69b8097d7f"
+    },
+    {
+      "path": ".audit-adapter/management-api/routes/mandate.js",
+      "bytes": 18734,
+      "sha256": "0c739913cc5581ebbaab8dbeff2f75d85985e78d75233fb5de30566745463bbf"
+    },
+    {
+      "path": ".audit-adapter/management-api/routes/memory.js",
+      "bytes": 14381,
+      "sha256": "4831652ff09ef2c7835c4d32548b77db65fbe681275f3f76740733d9ede90af5"
+    },
+    {
+      "path": ".audit-adapter/management-api/routes/payments.js",
+      "bytes": 21806,
+      "sha256": "412687777566f69f0744b846fc385c172e045d9d344dcd1f954316fe90418f81"
+    },
+    {
+      "path": ".audit-adapter/management-api/routes/pod-git.js",
+      "bytes": 11513,
+      "sha256": "f5baffc39e82218e734ea62a7ecf7c18ffa2a49f4b5ff4bbd307fab411d7a0c9"
+    },
+    {
+      "path": ".audit-adapter/management-api/routes/projects.js",
+      "bytes": 11818,
+      "sha256": "ae579748ecbe6609d7375a864b119eec3ef098a25522eee3d58b37b6a6400cf5"
+    },
+    {
+      "path": ".audit-adapter/management-api/routes/sessions-boundary.js",
+      "bytes": 18007,
+      "sha256": "2704958601f9b478c164f795e0d16ba4f861210603bbd16edeb8d3ef43a693ea"
+    },
+    {
+      "path": ".audit-adapter/management-api/routes/status.js",
+      "bytes": 1589,
+      "sha256": "1a7c216e199dde51788f260c625ad4a7e8961d82c02e61acc86a3eace9a0a4fe"
+    },
+    {
+      "path": ".audit-adapter/management-api/routes/system.js",
+      "bytes": 3917,
+      "sha256": "4119abb84011074460b1f4c360262bdae3a7e566e3b16d4598343e940c1b1a0b"
+    },
+    {
+      "path": ".audit-adapter/management-api/routes/tasks.js",
+      "bytes": 11592,
+      "sha256": "bd72fbae880c24bc7b20611aa91e36c3631485a18f53c0de668bd22ace5fb525"
+    },
+    {
+      "path": ".audit-adapter/management-api/routes/uri-resolver.js",
+      "bytes": 6782,
+      "sha256": "7a62ccbd570dabb49eea91dfbc1936c68430813714c5d8cb5c9090b562488c0b"
+    },
+    {
+      "path": ".audit-adapter/management-api/routes/voice-intent.js",
+      "bytes": 15041,
+      "sha256": "bbaf1f896f77882951dd632f958037b64bdf3315a848ca5adb5a0d0d22687350"
+    },
+    {
+      "path": ".audit-adapter/management-api/routes/well-known.js",
+      "bytes": 3322,
+      "sha256": "416583453e7a3f362fb5b58c9602809d8f32688e06173c32d39eff285c5f9622"
+    },
+    {
+      "path": ".audit-adapter/management-api/server.js",
+      "bytes": 67327,
+      "sha256": "1cdd4a6e437657935b3bb664086f0617a39f6678ff1a76824767468d26c9f926"
+    },
+    {
+      "path": ".audit-adapter/management-api/tests/agent-event-ws-subscriber.test.js",
+      "bytes": 11637,
+      "sha256": "6788d912c15b5634ab26068a99604722208a001eebea448debdab4d7d9660980"
+    },
+    {
+      "path": ".audit-adapter/management-api/tests/broker-bridge-receipts.test.js",
+      "bytes": 12564,
+      "sha256": "1f19e244eb7249039132978f11f4c2bc3d8ffbbce2c30b596f509fcbf0563f33"
+    },
+    {
+      "path": ".audit-adapter/management-api/tests/broker-bridge.test.js",
+      "bytes": 17341,
+      "sha256": "940098dff4d65e5c8177f3aae93bd1261f6d9486bc767facd185734402d364dc"
+    },
+    {
+      "path": ".audit-adapter/management-api/tests/elevation-stage.test.js",
+      "bytes": 14478,
+      "sha256": "82a536524bbe01e2f811bcb3ada92e9dc2827f7f28b71213acc5ef3adcd748c6"
+    },
+    {
+      "path": ".audit-adapter/management-api/tests/governance-application-receipts.test.js",
+      "bytes": 2611,
+      "sha256": "c5e00a6dd8c3abdb43ea4bf9f8316ee6a13a0ca825b0048ff2e0a6bf4534320d"
+    },
+    {
+      "path": ".audit-adapter/management-api/tests/governance-correlation.test.js",
+      "bytes": 3058,
+      "sha256": "c5183d4a31ad96d35e8eb53e120b2dcced3d56c3c5d04344a61aca58453d2c1d"
+    },
+    {
+      "path": ".audit-adapter/management-api/tests/governance-manual-continue.test.js",
+      "bytes": 10557,
+      "sha256": "c5be0df6bc5ff15974fedc6b7c5052c47914a50fedd5662ce2048da6170c2939"
+    },
+    {
+      "path": ".audit-adapter/management-api/tests/ontology-apply.test.js",
+      "bytes": 55546,
+      "sha256": "8d8369fb30215755be84aa8dc0039fde5e2258b9ac323d63864978901422727c"
+    },
+    {
+      "path": ".audit-adapter/management-api/tests/ontology-propose-vault.test.js",
+      "bytes": 11232,
+      "sha256": "752c14a837c0028acdf6891dea9d39bbff9efad133c539de4b429d1c263f3594"
+    },
+    {
+      "path": ".audit-adapter/management-api/utils/agent-event-archive.js",
+      "bytes": 6977,
+      "sha256": "6d7fedb372c2e52a17c5f192de56c0ee70c17796e2f9c7e774649ec43f8388c9"
+    },
+    {
+      "path": ".audit-adapter/management-api/utils/agent-event-bridge.js",
+      "bytes": 6257,
+      "sha256": "f83f506a6e34877136e6b0979b63260ba153235be85cd5d5278c1e8805cf4653"
+    },
+    {
+      "path": ".audit-adapter/management-api/utils/agent-event-publisher.js",
+      "bytes": 14173,
+      "sha256": "aff0beecba138c727ab686f537e62131e45d3450f08f180a56ead822d706dc01"
+    },
+    {
+      "path": ".audit-adapter/management-api/utils/agent-event-ws-subscriber.js",
+      "bytes": 7009,
+      "sha256": "d46db1b22b4488b55d652183f8f9a4d85bc04defd8d65da24e22f35422e1ed2d"
+    },
+    {
+      "path": ".audit-adapter/management-api/utils/comfyui-manager.js",
+      "bytes": 14770,
+      "sha256": "87e41ec251e5f44beaaa6d86c38782181b97880c36aea91e054ac12422391710"
+    },
+    {
+      "path": ".audit-adapter/management-api/utils/metrics-comfyui-extension.js",
+      "bytes": 2801,
+      "sha256": "3fbaf3741c6f636c707d607593ccd13102b87e3e8d3ca6578ba3c931214d32d7"
+    },
+    {
+      "path": ".audit-adapter/management-api/utils/metrics.js",
+      "bytes": 373,
+      "sha256": "bd6f0d592e3e2aa03ee5a335c923af1baca425b01d122612752173c40862ecb5"
+    },
+    {
+      "path": ".audit-adapter/management-api/utils/process-manager.js",
+      "bytes": 17192,
+      "sha256": "f0d359171f8bd1226c584d72b137026f5338d181413ea78879d37a51da502a51"
+    },
+    {
+      "path": ".audit-adapter/management-api/utils/system-monitor.js",
+      "bytes": 4328,
+      "sha256": "1f992318ab6600fbf7b52e1d17fb6a462a18b39e98fb0c1149abf0db646768b0"
+    },
+    {
+      "path": ".audit-adapter/scripts/activation/adr-2071-api-down-night.sh",
+      "bytes": 6807,
+      "sha256": "d88606a0a0d645e41a95176bd5da4ec39df37c6a2f15f4d86c312f5fedb5daf0"
+    },
+    {
+      "path": ".audit-adapter/scripts/activation/adr-2087-check.sh",
+      "bytes": 27582,
+      "sha256": "bcc09033474e0cf33b76a6bde9d77ffc94e0a1d2ccfff11195958b0a95d024d4"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/Cargo.lock",
+      "bytes": 81766,
+      "sha256": "85dd2ec34d16c81ffa7710ad9f985a563cecc33332593a789d1d283198d2e248"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/Cargo.toml",
+      "bytes": 1811,
+      "sha256": "051ace1c8d144fe0b2b11b82ee7cc5c940fae0c3cce2afdf4d4fd14615107288"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/LICENSE",
+      "bytes": 34523,
+      "sha256": "0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/README.md",
+      "bytes": 7288,
+      "sha256": "6001f8de97834591ca23f86be33ca51a0fc3f60072fd1260f14e73364d53645f"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/baseline.rs",
+      "bytes": 2225,
+      "sha256": "2f57c4dc872ebc016ea828d03649ab0e5f182546ca8c4f40b597acc5ba70f3c2"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/candidate_flow.rs",
+      "bytes": 26407,
+      "sha256": "2be2e22e4003a2a7619a938c6dd3294f63bcb849f8d8e227711cbfd244873bea"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/config.rs",
+      "bytes": 19045,
+      "sha256": "6ee1506e0d8cade9e867a4bd099ea556df86bcb4420f88af475a245fc5660345"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/digest.rs",
+      "bytes": 24861,
+      "sha256": "bbac8d4472c9fbc5412aa55618c7485358c2309385119959d6eba67016d46943"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/dispatch.rs",
+      "bytes": 18374,
+      "sha256": "b1bfb1f56f73339840b404c570335938996a424b05192f33e16c48a62829012a"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/engine.rs",
+      "bytes": 97914,
+      "sha256": "c15b31074c173b6409744daa87f1a1f0367d6e917b514e20dab25b006cf2af06"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/estate.rs",
+      "bytes": 12834,
+      "sha256": "0c3a45d122f9b0e431c9b5fa754e1b52ee96b5438f04bed16d3c578a8876b1d8"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/governance.rs",
+      "bytes": 67390,
+      "sha256": "dbf0a95cab00fe6b65c5bcc715fb09ad95e44dff74fc87b6ca61a55dda2af8b4"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/inbox.rs",
+      "bytes": 19734,
+      "sha256": "2a79d6a6c20fa8916b20feede995df15002dd16906a71638a6372eea3ab3bbd4"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/jev_triage.rs",
+      "bytes": 44708,
+      "sha256": "78907ae677486ef7dda4be4d19ac2a3a3b228e0daa601e804c7bed58194a3256"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/journal.rs",
+      "bytes": 18065,
+      "sha256": "57a22901acc3d3288d1dfaf30f46a8bdb4ff579295909f14f2866e974c834357"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/judge.rs",
+      "bytes": 12636,
+      "sha256": "520432607474ca4ae7ea5594b9e50a0d2e9fecad41c99ed57124da9b0bc97c7f"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/lib.rs",
+      "bytes": 2443,
+      "sha256": "7f9ce4b8e0d1df4890833bb95bcccf98057d82050ed356fc4cb49651dddb3876"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/llm.rs",
+      "bytes": 11344,
+      "sha256": "ba736cbcc08798cb8141696a076f61b1d62daddaa1425d63831e2c1772c74dc5"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/main.rs",
+      "bytes": 11962,
+      "sha256": "3cfc6c7be3a349fbb0aa15320802964ea24c90435a7c42aa321f97724460c2bc"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/notify.rs",
+      "bytes": 6818,
+      "sha256": "b472c304aff5a73a3e7c58c781edb0107a85da494b25a475410d5bad578640fc"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/policy.rs",
+      "bytes": 10733,
+      "sha256": "f977367133c3950f80e3239248b401bf3dcce27d39df74c6a1daf611aa05de80"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/present.rs",
+      "bytes": 10742,
+      "sha256": "6124eae44c72f9fd2844bbdc5fa3cdbf86d6ce5fb11c1ff4dd094426c0bc13d0"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/prompt/nightly.tmpl",
+      "bytes": 7112,
+      "sha256": "ccccb464fa055ce1636f540a6930035326dd1cc3252a5599bb9b651b6d2754bc"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/prompt.rs",
+      "bytes": 6279,
+      "sha256": "1a7cf1de2c4456d463a6ab542fe6898daf6ef74fe08e1f544564cc9818047aaa"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/records.rs",
+      "bytes": 16379,
+      "sha256": "1afe0a58a2b4b3e48aefa1791b5694ae10499b9306e39c1ad8b2a64ad143b2b6"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/relay.rs",
+      "bytes": 18860,
+      "sha256": "065eeb1b80e5c28808e9dd4e159e7a9ec4a298ea15b6b7b484742142f9d526bc"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/runner.rs",
+      "bytes": 2885,
+      "sha256": "fb17c83b2adce1302acd111215ffb952f998e80fd5854ef4fcd9ca3b5b6c604d"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/ruvector.rs",
+      "bytes": 17332,
+      "sha256": "ad36df458c9dd8359e9b0583f62eebc036d25b9e5ed5bc76c3fd1cee398fdd3c"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/wanted.rs",
+      "bytes": 19543,
+      "sha256": "46e0b65ea27b1fa9510b43d0d3ef209b80326829cc6ccbce318e1fc16d4b7c10"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/src/zone_crypto.rs",
+      "bytes": 15680,
+      "sha256": "eba8dbec7cce7a3425558c672c40f58db4956ea78413a77fc1effc82c8afd980"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/tests/audit_journal.rs",
+      "bytes": 9918,
+      "sha256": "4a9097686705a789a4c7ae033caa7f056eb3ef4b779870f97f5117b268b44448"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/tests/fixtures/prompt-golden.txt",
+      "bytes": 7688,
+      "sha256": "d1b248a6ace2fdfbe246329a9173a34835a16358c7bbcedc4865f94cccbf28cd"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/tests/fixtures/zone-grant-wrap.json",
+      "bytes": 2270,
+      "sha256": "214923bf99926050ff19d4a922e1b70a4566d7e7887e2e82f2e7613539045c30"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/tests/fixtures/zone-js-ciphertext.txt",
+      "bytes": 133,
+      "sha256": "903a049e53b8eb77c3e4f6f1ff3bba288409ad559b4dd93c717b3701886181e9"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/tests/fixtures/zone-rust-ciphertext.txt",
+      "bytes": 133,
+      "sha256": "1f2b8d2356fd699fd4a6deb5d0417605b306fa62183de930141568a5ec2f3582"
+    },
+    {
+      "path": ".audit-adapter/services/dream-engine/tests/night_e2e.rs",
+      "bytes": 34037,
+      "sha256": "0b7c11e76200dfce6257a38f1cd6c6947baf47edb560a5936a24acd5881e70d9"
+    },
+    {
+      "path": ".audit-adapter/tests/config/adr-2071-api-down-night.test.sh",
+      "bytes": 5444,
+      "sha256": "350a2890fdd3fe0d064771b211d52fb779783626a5d4e6d73e824d298d4d00fa"
+    },
+    {
+      "path": ".audit-previews/AB-23.19.png",
+      "bytes": 1394010,
+      "sha256": "a09b37dc775a58dacfb2f211267f5e95fc9ec2e38aca991137a0be9b657dd371"
+    },
+    {
+      "path": ".audit-previews/AB-23.23.png",
+      "bytes": 1069336,
+      "sha256": "aa897acbec13ace4df9973a9cbe1aaf702ca6660e6d53521823c8929c238d267"
+    },
+    {
+      "path": ".audit-tmp/audit-journal-d8gJz7/2026-11-01.jsonl",
+      "bytes": 2492,
+      "sha256": "13909ab31c31e5aaa7948d36dd291a92024048a364c5226451e04f21fdc7fff7"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.1.mmd",
+      "bytes": 2714,
+      "sha256": "2585cf777046ee456cbf017fb44f05747faa25ae6386c5270db6cb64c49ea1f5"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.1.svg",
+      "bytes": 16516,
+      "sha256": "90eeb293aa19f2f99a35bb684863044c5e6df8cab407ff4cd2a5d2af71b62bb0"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.10.mmd",
+      "bytes": 1642,
+      "sha256": "2f0f6d06c10d60490c99c2171cd64752f3cd67945556e0008ce60727946da00f"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.10.svg",
+      "bytes": 11471,
+      "sha256": "759659a35d28668468929dd7c8ef8066591ae05068e9d68c1d7b1442a30b401e"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.11.mmd",
+      "bytes": 1262,
+      "sha256": "d7a42a5e0ee6723a9ffb339a1c28a5cb793ee08e8bc92a2659c5d3e4df134595"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.11.svg",
+      "bytes": 8927,
+      "sha256": "0c49a877a42f859ce92e5fe9c08545767a9c5d69d1b3b8c4d24a4bb353a6b2df"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.12.mmd",
+      "bytes": 1382,
+      "sha256": "cdfbd883fe80b3ac0fdd9d4764c497b75e1cb37eabb5cdd5b56255db34c4144a"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.12.svg",
+      "bytes": 8235,
+      "sha256": "0836ac2b43e47a9080b47536bf8e88699e1d9a6770e76cce5415c7f500df871a"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.13.mmd",
+      "bytes": 1139,
+      "sha256": "9cfae70e2fe5626f31a0b5ae595e350466f12253a5a09843f4405e0487e5c01d"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.13.svg",
+      "bytes": 8722,
+      "sha256": "887670a46a4c06485becc5af0459ebe1976250aa3de06f9de6d6cb430979a612"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.14.mmd",
+      "bytes": 1286,
+      "sha256": "e9202ab1e79584d0cf69f80697395e3d1ca9803e496b5001e44df72a596912da"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.14.svg",
+      "bytes": 8486,
+      "sha256": "546f6276495908c34ecb4ef3ff62dcb6c45ed1545a29b1a9d167875885296b8d"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.15.mmd",
+      "bytes": 1246,
+      "sha256": "78708206935b0587e45b057182679e2593378e937552fbba4de680918a1e99a9"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.15.svg",
+      "bytes": 9715,
+      "sha256": "668f19e02c9c85a8181b5ca0561e15a120b071c8773330e74f3f89a54083f49f"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.16.mmd",
+      "bytes": 1321,
+      "sha256": "c37b15bfa6726455c90f026f7f719af3c7f28a876d7607f5eee6b2bd36d4b3d4"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.16.svg",
+      "bytes": 8296,
+      "sha256": "4b951d1e2afc7f9cea98ff90735ee6a8e20be2ea530f3235bab3ac37556adce6"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.17.mmd",
+      "bytes": 6986,
+      "sha256": "aa84ca41d5f4bdbce77ad66461cadb439b2d0e6325f2766c51ae08250fe64d4c"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.17.svg",
+      "bytes": 31420,
+      "sha256": "412e3c444535fdb291e9ce18ce44a2a63ad1ad944fe3f9d099d20d32bbbcd8c7"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.18.mmd",
+      "bytes": 2370,
+      "sha256": "f314dd29c6b1692cdf4edd62fc5da4f8e9cd6ed15fe20fe511a38a7604543124"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.18.svg",
+      "bytes": 17665,
+      "sha256": "75cd5b9c80b23480f474acd3ef54962ea3f09e68bc883b1dd578c30f28479d0a"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.19.mmd",
+      "bytes": 2825,
+      "sha256": "cc8b615c11cdc5c63978426d3a8751b224ecdf92b5c0543c7ce27a7c43b0df73"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.19.svg",
+      "bytes": 16029,
+      "sha256": "d0f6e183e29acb86894038d4953b003f966d2582cc48fa3a6f0631186f5e3771"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.2.mmd",
+      "bytes": 1743,
+      "sha256": "b9ec7f247d3730259e2a84e39f7398d31431bda6ed065643db387298c4c58f80"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.2.svg",
+      "bytes": 14276,
+      "sha256": "7eec0101b02eb463ee09d27e94200aee701e21e1533e5b57738da7eeb8481804"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.20.mmd",
+      "bytes": 2613,
+      "sha256": "de32b3581580e6bd6095215f49cc22494a9de3d8da054e28aac9ccfd518ee33e"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.20.svg",
+      "bytes": 13949,
+      "sha256": "a3123397e8e63a3e4b91128f2873ed8b1b4bcfce9a7df312c92b8e2df7c508ea"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.21.mmd",
+      "bytes": 791,
+      "sha256": "8f60bae4163286f5a1735393ae8f66b54bd6aa3609b9ef6f12c3879ed44cf807"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.21.svg",
+      "bytes": 5915,
+      "sha256": "e5c6a45755e34b78ba5fd175eccf0914e9aa5ac328b6fbb42c8b3e4a2ea85ac9"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.22.mmd",
+      "bytes": 2373,
+      "sha256": "50a55f3ef6ea4e046bc7597a7f77a3310f8ff8b061ee9e3dda7679c596c7800f"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.22.svg",
+      "bytes": 14512,
+      "sha256": "2bfb1d1f979107f34b9ca4443723a20546d1126a40214e75a55683a4a63d778b"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.23.mmd",
+      "bytes": 1927,
+      "sha256": "9bb3d8464d52021a8a74122c5f70f53f32780dde13bbcf7dbb14b13dc1192422"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.23.svg",
+      "bytes": 12227,
+      "sha256": "f9dbfe660bea00bfb0259176249f0c4d8356e5a7e64a8b60146e72d2c824cb5f"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.3.mmd",
+      "bytes": 1070,
+      "sha256": "c2d463ac07131c6de72f323d10a3fcbd293e4161a83f6e4f914fcc8ec812ce86"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.3.svg",
+      "bytes": 7586,
+      "sha256": "6165854f5cf7a455d0f8e829975114433eef0e74a86de879c4e11177d39cd09f"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.4.mmd",
+      "bytes": 2575,
+      "sha256": "e4bedf1767d50faaed653b78cca4dfb8a243021761f62c61db58f9bae2b88269"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.4.svg",
+      "bytes": 19123,
+      "sha256": "d8c23c045b333b4f61e5bcdc21a454ec0311c78c969324d3afed4fe34735fda6"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.5.mmd",
+      "bytes": 1954,
+      "sha256": "a7a8ed5c48ebd192194d605af8bf7ea024de77576fb572bc15f50fc2a69ce8d4"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.5.svg",
+      "bytes": 15067,
+      "sha256": "49d3f3c335c650f03c4bf4e1a154db3ef5f59efe245036041bc09808605fc0a5"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.6.mmd",
+      "bytes": 1078,
+      "sha256": "99156b86b63cd555d9516698eabb501abb1d537519cb58fafbb4f2a4805cd790"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.6.svg",
+      "bytes": 9063,
+      "sha256": "7fc6c1cde4f6baa9ae7586eab65d68c43102b6eb40de448082056f20ec7bf325"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.7.mmd",
+      "bytes": 1093,
+      "sha256": "a81bba2513e3c6ff0f3033d3d346cf15b7adac81801febaa5651170cefe3f5d8"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.7.svg",
+      "bytes": 9266,
+      "sha256": "84ed4a1d4c16fe0bb2cf13b678b0f1ef66a6e5b063ba9b643c0605f38de2e6a3"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.8.mmd",
+      "bytes": 2056,
+      "sha256": "14062003f15d1f022898de36f2668a4acccefda138d5848967b000ac054fd3ec"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.8.svg",
+      "bytes": 13307,
+      "sha256": "b4298260a412cdd6b857d2f20d7b1391c6c9e2d4bc64109b798ba966a8bbdf4d"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.9.mmd",
+      "bytes": 1980,
+      "sha256": "a1703c9dc4af40a3fc1a5fbe2537b448021a1773f3a6fd4850b66f942d715529"
+    },
+    {
+      "path": "docs/diagrams/rendered/agentbox/23-dream-engine/AB-23.9.svg",
+      "bytes": 14207,
+      "sha256": "6978a3c742327bb085b5f579a25a8f2a5ec3244d9302e15e4f4c9984cfa89136"
+    },
+    {
+      "path": "texput.log",
+      "bytes": 714,
+      "sha256": "0de8dad445a514ae3bc13874d2a354c230d5395982c23ea702c3e573c3d9d304"
+    },
+    {
+      "path": "website/build-receipt.json",
+      "bytes": 4363,
+      "sha256": "fae85100258804d3344673265a4fcc88781ea92f6e2c4a137bd27b48f3460711"
+    },
+    {
+      "path": "worktree-status-before-cleanup.txt",
+      "bytes": 334980,
+      "sha256": "b12ad0282bee94ff8f84d151d36df5b8b7eb37e8f16326dbfb77fdf354989951"
+    }
+  ],
+  "excluded": [
+    "compiled .audit-target cache",
+    "external node_modules symlink"
+  ],
+  "note": "Rust tempfile fixtures self-clean after assertions; returned state is in probe log. Source export, Node on-disk events, SVGs, PNGs and copied ignored inputs are retained. No live daemon or production data was modified."
+}

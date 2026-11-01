@@ -1,0 +1,5 @@
+PASS: same key with changed payload returns prior success; B is absent
+PASS: fresh unhydrated journal reuses seq 0 and event ID, appends C
+PASS: two concurrent append calls in one process receive the same session sequence
+PASS: the real on-disk hash chain still verifies across all four records
+{"eventsDir":"/home/devuser/workspace/wt/VisionFlow-dream-journal/.audit-tmp/audit-journal-d8gJz7","records":4,"concurrentSequences":[0,0]}

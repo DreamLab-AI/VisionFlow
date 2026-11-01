@@ -13,6 +13,8 @@ This review examines the VisionFlow estate as an organisational proposition, a s
 
 The source audit does not declare all optional features, upstream research or six end-to-end system journeys complete. Those implementation and acceptance obligations remain on the [master TODO](../../../project/docs/TODO-unified.md).
 
+Journal delivery: [ADR-2071, local counters, API-down recovery and acceptance evidence](2026-11-01-dream-journal-and-api-down.md).
+
 Current continuation: [31 October market comparison and audit evidence gaps](2026-10-31-market-and-audit-gaps.md) records sourced alternatives, proposed user acceptance tests and limits found in the diagram verification machinery. It does not supersede the full historical review.
 
 Current coverage: [31 October checkout, ADR and diagram census](2026-10-31-scope-and-coverage.md), including [Obsidian exclusion and write-recovery findings](2026-10-31-obsidian-boundaries.md).
