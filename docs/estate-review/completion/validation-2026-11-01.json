@@ -2,8 +2,8 @@
   "date": "2026-11-01",
   "baseline": "2b2c19c0f19b2616e3890946aba384ec448aec9b",
   "panel_id_parity": {
-    "ledger": 1730,
-    "existing_coverage_index": 1730,
+    "ledger": 1739,
+    "existing_coverage_index": 1739,
     "equal": true
   },
   "census_delta": {
@@ -240,7 +240,7 @@
       "target": "../../docs/estate-review/completion/claims.json"
     }
   ],
-  "exact_claim_bindings_rechecked": 182,
+  "exact_claim_bindings_rechecked": 183,
   "tool_hashes": {
     "scripts/estate-review-ledger/src/main.rs": "6a13475db77573e460ab9ba8a99b7aa1e7c306ca33c14ea3cf5188b690ce12b3",
     "scripts/estate-review-ledger/Cargo.toml": "8109eeff493be24031c394cce1d81a059ca1612f967e5b032f37bf9e8f1e50d6",
@@ -250,16 +250,15 @@
   "log_format": "Current batch retains raw native test, probe-build and documentation-check output, including original whitespace. Earlier log receipts retain their recorded formats.",
   "documentation_checks": {
     "unicode_findings": 0,
-    "prose_flags": 3,
-    "prose_disposition": "Two ordinary definite-article openings and one technical acceptance-criterion vocabulary flag retained after manual review; no inferred authorship claim.",
+    "prose_flags": 0,
     "scope": [
-      "docs/estate-review/2026-11-01-sidestr-evm-accounting-and-snapshots.md"
+      "docs/estate-review/2026-11-01-sidestr-hitch-recovery.md"
     ],
     "format_check": "Passed staged whitespace check for authored Markdown, JSON, Rust and JavaScript; raw native/tool text logs preserve original whitespace.",
-    "local_links": 17,
-    "scoped_jev_advisory": "Final SR-03 check has no advisory. Earlier blank world.rs line citation corrected to the actual code-lookup range before final rendering and corpus verification."
+    "local_links": 14,
+    "scoped_jev_advisory": "Two advisories concern unchanged SR-04.5. Read the cited feature gates and follower constructor; prior seven native identity scenarios remain the reproduction. Manual disposition retained in hitch-recovery/advisory-disposition.json. No advisory on SR-04.3."
   },
-  "tool_validation_basis": "Nine collector tests and Clippy receipts retained from original ledger batch at 610b57b; unchanged collector/dependency hashes verified. Fresh collection rechecked 182 claims; zero stale records. Product tests are scoped in the current report, not a collector rerun.",
+  "tool_validation_basis": "Nine collector tests and Clippy receipts retained from original ledger batch at 610b57b; unchanged collector/dependency hashes verified. Fresh collection rechecked 183 claims; zero stale records. Product tests are scoped in the current report, not a collector rerun.",
   "prior_concurrent_source_refresh": {
     "changed_adrs": 5,
     "stale_claims": 5,
@@ -305,28 +304,35 @@
     "disposition": "Historical stale state; all five reassessed in docs/estate-review/2026-11-01-obsidian-refresh.md. See current snapshot for dispositions."
   },
   "current_batch": {
-    "report": "docs/estate-review/2026-11-01-sidestr-evm-accounting-and-snapshots.md",
-    "baseline": "baae32a",
+    "report": "docs/estate-review/2026-11-01-sidestr-hitch-recovery.md",
+    "baseline": "2405bb38ea08ee2a11066ac355ac4fc8d35f59aa",
     "new_whole_adrs": 0,
     "refreshed_whole_adrs": [],
     "new_panels": [],
     "newly_assessed_existing_panels": [
-      "SR-03.1",
-      "SR-03.2",
-      "SR-03.3",
-      "SR-03.4"
+      "SR-04.3"
     ],
     "refreshed_panels": [],
     "current_stale_records": 0,
     "previous_batch_candidates": 1178,
     "added_candidates": [],
     "removed_candidates": [],
-    "limits": "Twenty-one existing native tests and six offline production-library scenarios. Fixture replay includes20 accepted/15 refused blocks; two KZG refusal roots deliberately excepted. Pinned JavaScript predicate source comparison, not fresh reference execution/regeneration. No runtime activation, operational fund movement, product remediation or deployment change."
+    "concurrent_diagram_additions": {
+      "topics": 1,
+      "panels": 9,
+      "assessment_credit": 0
+    },
+    "retained_prior_panel_bindings": {
+      "panels": 10,
+      "new_review_credit": 0,
+      "evidence": "docs/estate-review/evidence/2026-11-01/hitch-recovery/ledger-refresh.json"
+    },
+    "limits": "Thirty-five existing native tests and four offline production-library scenarios. Production template verifier controls, no fresh independent JavaScript or Bitcoin Core oracle. SR-04.1/.2/.4 remain unreconciled. No runtime activation, operational fund movement, product remediation or deployment change."
   },
   "corpus_gate": {
-    "topics": 205,
-    "panels": 1730,
-    "verified_citations": 25556,
+    "topics": 206,
+    "panels": 1739,
+    "verified_citations": 25768,
     "warnings": 0,
     "fallback": 0,
     "allowlisted": 9,
@@ -339,7 +345,7 @@
       ],
       "limits": "Advisory sample, not whole-corpus semantic acceptance."
     },
-    "evidence": "docs/estate-review/evidence/2026-11-01/evm/citations.txt",
-    "declared_revisions": 56
+    "evidence": "docs/estate-review/evidence/2026-11-01/hitch-recovery/citations.txt",
+    "declared_revisions": 57
   }
 }

@@ -1,0 +1,56 @@
+    Blocking waiting for file lock on build directory
+   Compiling sidestr-hitch v0.2.1 (/home/devuser/workspace/sidestr-rs/sidestr-hitch)
+    Finished `test` profile [unoptimized] target(s) in 18.72s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/vf-reserve-audit-target/debug/deps/sidestr_hitch-850d2ff9a7ceb076)
+
+running 32 tests
+test protocol::tests::a_synced_with_reveals_round_trips_through_peer_message ... ok
+test route::tests::invoice_shape_matches_hitch ... ok
+test tests::state_value_and_policy_bounds_are_checked ... ok
+test tests::proof_of_possession_binds_the_point_and_its_place ... ok
+test tests::commitments_and_close_match_hitch_shape ... ok
+test protocol::tests::a_rogue_basepoint_without_its_secret_is_refused_at_the_opening ... ok
+test tests::scripts_match_hitch_golden_vectors ... ok
+test tests::commitment_and_close_txids_match_hitch_golden_vectors ... ok
+test tests::every_htlc_claim_path_has_the_reference_sequence_and_locktime ... ok
+test tests::htlc_revocation_leaf_needs_both_secrets_and_preimage_is_read_back ... ok
+test route::tests::a_payee_settles_once_and_refuses_short_late_or_paid_htlcs ... ok
+test tests::both_sighash_families_sign_the_funding_leaf ... ok
+test protocol::tests::a_closing_asked_channel_rejects_updates_and_a_coop_close_is_final_at_depth ... ok
+test tests::two_party_revocation_key_matches_hitch_golden_vectors ... ok
+test protocol::tests::a_state_leaving_the_funder_below_its_fee_is_never_signed ... ok
+test protocol::tests::opening_carries_basepoints_with_proofs_and_both_sides_agree ... ok
+test protocol::tests::sync_repeats_a_lost_revoke_and_crosses_finality ... ok
+test protocol::tests::update_ack_revoke_crosses_finality_only_on_the_last_message ... ok
+test protocol::tests::every_message_round_trips_through_the_wire_enum ... ok
+test protocol::tests::the_lower_node_id_wins_a_collision_and_the_loser_keeps_its_signed_state ... ok
+test protocol::tests::reasons_are_cut_in_javascript_string_units ... ok
+test protocol::tests::the_tick_takes_a_claimable_htlc_to_the_chain_before_its_deadline ... ok
+test tests::even_secret_lifts_to_the_even_point ... ok
+test protocol::tests::a_reject_names_the_signature_and_sets_the_update_aside ... ok
+test protocol::tests::a_revoked_commitment_is_punished_with_the_two_party_key ... ok
+test route::tests::a_hub_forwards_with_its_fee_and_both_delays_and_records_the_forward_first ... ok
+test route::tests::a_set_aside_forward_waits_while_bound_and_is_failed_once_lost ... ok
+test protocol::tests::htlc_rules_match_hitch ... ok
+test protocol::tests::no_secret_of_a_published_commitment_leaves_by_sync_or_acknowledgement ... ok
+test protocol::tests::snapshot_round_trip_preserves_everything_and_rejects_damage_and_version_one ... ok
+test protocol::tests::bound_follows_an_htlc_output_of_a_close_until_it_settles ... ok
+test protocol::tests::a_rebroadcast_is_signed_again_with_a_fresh_witness ... ok
+
+test result: ok. 32 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+     Running tests/adversarial_scenarios.rs (/home/devuser/workspace/.tmp/vf-reserve-audit-target/debug/deps/adversarial_scenarios-641d3b61efc1bd27)
+
+running 2 tests
+test the_verifier_rejects_what_the_chain_would ... ok
+test adversarial_test ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.29s
+
+     Running tests/peer_scenarios.rs (/home/devuser/workspace/.tmp/vf-reserve-audit-target/debug/deps/peer_scenarios-a826069f123cdb24)
+
+running 1 test
+test peer_test ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.82s
+

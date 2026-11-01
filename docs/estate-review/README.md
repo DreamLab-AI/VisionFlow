@@ -9,6 +9,8 @@ type: explanation
 
 [The completion ledger](completion/README.md) separates scoped inventory, recorded assessments and unreconciled work. It binds assessments to exact document/report hashes and holds the current counts; these are not an overall completion percentage.
 
+SideStr Hitch recovery: [snapshot checks, revocation recovery ordering and the routing host contract](2026-11-01-sidestr-hitch-recovery.md). Thirty-five existing native tests and four offline scenarios reproduce invalid-witness rebroadcasts, retained close classification after late recovery, and invoice-expiry boundaries. SR-04.3 is corrected; wider Hitch review remains open.
+
 SideStr EVM: [withdrawal accounting, snapshot integrity and four corrected SR-03 panels](2026-11-01-sidestr-evm-accounting-and-snapshots.md). A full follower accepts underpayment of duplicate withdrawals; changed snapshot code executes under an unchanged root. Twenty-one existing tests and six production-library scenarios bound the findings.
 
 SideStr overlays: [four corrected SR-02 panels, ten existing tests and four adversarial scenarios](2026-11-01-sidestr-overlays-and-eviction.md). Producer clock failures wrongly evict valid transactions; rejected candidate snapshots remain cached until application. Client asset reading and one-sided market refunds are now explicit.

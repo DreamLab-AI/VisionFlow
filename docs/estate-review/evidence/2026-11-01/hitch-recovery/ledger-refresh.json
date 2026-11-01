@@ -1,0 +1,75 @@
+{
+  "new_review_credit": 0,
+  "items": [
+    {
+      "path": "docs/diagrams/visionclaw/52-drag-holds-and-observation-gates.md",
+      "baseline": "2a92f50",
+      "current_baseline": "2405bb38ea08ee2a11066ac355ac4fc8d35f59aa",
+      "old_source_sha256": "ec3eb93d09ed5aaefbe3e868e69ebc5b89e6997eb13342553c0fc6d6aaf33856",
+      "new_source_sha256": "3d436ed69b20e1bc90b6f33ab0094d40d1b7ecd2e2a120266e41d00962d0f1ff",
+      "same_declared_revision": true,
+      "selected_panels": [
+        {
+          "id": "VC-52.1",
+          "body_sha256": "d500628878ead52c8445c6f26e6e14108f9b8f2c3da8a53dfdc32e940d8e990d"
+        },
+        {
+          "id": "VC-52.2",
+          "body_sha256": "1381c9c9c6cc4e371c650f7f7fb7b79682340369c7ac5966dfccb975930aca7b"
+        },
+        {
+          "id": "VC-52.3",
+          "body_sha256": "e97992944ea1d13c2f2156ea554df8e4f645078946b30bfb3d271876c5cfc1e3"
+        },
+        {
+          "id": "VC-52.4",
+          "body_sha256": "5fbe648d8500add05789bedfc32da2df923e29b2cd1236c1c1f034fc86016bcc"
+        },
+        {
+          "id": "VC-52.5",
+          "body_sha256": "c24b61b887137b2d5e8f76d65f245b6f957d5d30b7c89c1837b114a4fea5ca05"
+        }
+      ],
+      "comparison": "Exact UTF-8 panel bytes after stripping section-separator trailing newlines only",
+      "unassessed_added_panels": [
+        "VC-52.6",
+        "VC-52.7"
+      ]
+    },
+    {
+      "path": "docs/diagrams/visionclaw/53-xr-grab-lifetimes-and-input.md",
+      "baseline": "2a92f50",
+      "current_baseline": "2405bb38ea08ee2a11066ac355ac4fc8d35f59aa",
+      "old_source_sha256": "34e393d5986b64feafab40f56dcd216459074fc91e43094b5e3098d256cdb37d",
+      "new_source_sha256": "5c181ad334c8cb52bffa9dbbb0263a1a03a01872548c8673de9051d5a69eeb0a",
+      "same_declared_revision": true,
+      "selected_panels": [
+        {
+          "id": "VC-53.1",
+          "body_sha256": "8bee32344968f2fa58a92bd8ec24e9deabe8647151adb23f289f4999f0321142"
+        },
+        {
+          "id": "VC-53.2",
+          "body_sha256": "46e39c3fbac62f7ab351f1b112bfd1afc32ea8f7cca35426286c9419e72719e2"
+        },
+        {
+          "id": "VC-53.3",
+          "body_sha256": "1cb9640f763f131eae1e001bba3932e7056e9b2033b7129f492ad79ce3551c11"
+        },
+        {
+          "id": "VC-53.4",
+          "body_sha256": "6e2d8f302d14ef578a76bc0c44a367d29247ecadfb50238b1d97708e98a3d8ea"
+        },
+        {
+          "id": "VC-53.5",
+          "body_sha256": "3de0e81c802de2c9a462a24c7b247b7c92e44c374d7e68e4a76b139005e5b28a"
+        }
+      ],
+      "comparison": "Exact UTF-8 panel bytes after stripping section-separator trailing newlines only",
+      "unassessed_added_panels": [
+        "VC-53.6"
+      ]
+    }
+  ],
+  "limits": "Selected prior panels retain old report boundaries; no review credit for appended panels or current product implementation."
+}

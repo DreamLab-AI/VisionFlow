@@ -1,0 +1,15 @@
+{
+  "scope": "Scoped SR-04 render advisory; unchanged SR-04.5 panel, no new coverage credit",
+  "source_commit": "9c6de86c657a25ec2f2a189baf63db7dedad40eb",
+  "items": [
+    {
+      "citation": "sidestr-agent/src/hitch/mod.rs:36",
+      "disposition": "Read lines31-37: host gated by cli+Unix, store gated by Unix only; prior panel statement supported."
+    },
+    {
+      "citation": "sidestr-agent/src/hitch/follow.rs:121-140",
+      "disposition": "Read structure and constructor: retain family/challenge, no document genesis pin. Prior seven native scenarios remain the reproduction; absence claim cannot be proved from one cited line alone."
+    }
+  ],
+  "sr045_bytes_unchanged": true
+}

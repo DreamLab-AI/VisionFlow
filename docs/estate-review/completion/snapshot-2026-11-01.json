@@ -121342,11 +121342,11 @@
     "candidate_files": 1178,
     "numbered_candidates_with_recorded_assessment": 91,
     "numbered_decision_candidates": 1061,
-    "panels": 1730,
-    "panels_with_recorded_assessment": 328,
+    "panels": 1739,
+    "panels_with_recorded_assessment": 329,
     "scope_targets": 25,
     "stale_claim_records": 0,
-    "topics": 205
+    "topics": 206
   },
   "method": "Explicit scope; Git-owned Markdown; parsed headings exclude fenced examples; explicit human review claims require exact source/report hashes. Unreconciled is not unreviewed. Candidate counts are not a complete obligation denominator or overall task percentage.",
   "repositories": [
@@ -121354,7 +121354,7 @@
       "available": true,
       "candidate_files": 77,
       "dirty": true,
-      "head": "baae32a5ba5d2b1c7240dec745387629d3ce512d",
+      "head": "2405bb38ea08ee2a11066ac355ac4fc8d35f59aa",
       "local": "VisionFlow",
       "name": "VisionFlow"
     },
@@ -132144,6 +132144,15 @@
           ],
           "report": "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md",
           "state": "assessment-recorded"
+        },
+        {
+          "basis": "SR-04.3 only: snapshot witness validation, missing-reveal recovery ordering, invoice Unix-expiry boundary and host versus kernel hub roles. Thirty-five native tests and four offline production-library scenarios. Rendered and visually inspected. SR-04.5 byte-identical and retains its earlier assessment; no whole-ADR or runtime credit.",
+          "coverage": "selected-panels",
+          "panels": [
+            "SR-04.3"
+          ],
+          "report": "docs/estate-review/2026-11-01-sidestr-hitch-recovery.md",
+          "state": "assessment-recorded"
         }
       ],
       "panels": [
@@ -132166,13 +132175,15 @@
           "review": "unreconciled"
         },
         {
-          "body_sha256": "4415169217548b0e2912b3f84d170a1de1dba046286b97847788195f46371681",
-          "heading": "SR-04.3 Durable recovery and one-hop routing",
+          "body_sha256": "c347e06e81cfb5c9d094a57ff8fe6e73c2e42f7c884f664747b30ef0cbf4c38e",
+          "heading": "SR-04.3 Recovery checks and one-hop routing contract",
           "id": "SR-04.3",
           "line": 86,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-sidestr-hitch-recovery.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
           "body_sha256": "098e2daa2d1c5c192156b64907e69b92c7b4defbc3a1f58013124df1a2699525",
@@ -132198,7 +132209,7 @@
       "path": "docs/diagrams/sidestr-rs/04-hitch-channel-kernel-and-host-gap.md",
       "repo": "VisionFlow",
       "review": "partial-assessment-recorded",
-      "sha256": "0750883123e127086fdc1e78f2d0bb2e61a17570153fbb4bb97bb0fe68b176c2"
+      "sha256": "7c52d2e1b06507580bea6f323b66904dfb5d55686dc1c52643a60bdf9e0b1a16"
     },
     {
       "claims": [
@@ -135321,7 +135332,7 @@
       "path": "docs/diagrams/visionclaw/16-interaction-drag-pin-layout.md",
       "repo": "VisionFlow",
       "review": "unreconciled",
-      "sha256": "3390abe5c3edc45458302c0c1465fc45887101ea453a47a91692f868605be27a"
+      "sha256": "099d36c0634f322feef7dcfed9b5f2dbea1987cc683697cdccb0c9104bf4b609"
     },
     {
       "claims": [],
@@ -137382,7 +137393,7 @@
           "body_sha256": "39233010bcc2b5fd5d15b58c913a875e615cdf54c494313d247068dba2f8717e",
           "heading": "VC-37.1 Browser XR capability probe — what platformManager actually does",
           "id": "VC-37.1",
-          "line": 33,
+          "line": 39,
           "ordinal": 1,
           "reports": [],
           "review": "unreconciled"
@@ -137391,7 +137402,7 @@
           "body_sha256": "b8dc56f733887b27649b2b6bca7d6eb6e632ea5710a8fef873d43d5041e81e9b",
           "heading": "VC-37.2 The XR-mode surface is gone (RESOLVED ADR-2081)",
           "id": "VC-37.2",
-          "line": 81,
+          "line": 87,
           "ordinal": 2,
           "reports": [],
           "review": "unreconciled"
@@ -137400,7 +137411,7 @@
           "body_sha256": "e691daa6b3b9759bbec007c2e729113ae04544d9e6342a71067b3fd2158c1182",
           "heading": "VC-37.3 ApplicationMode transitions and the mobile guard",
           "id": "VC-37.3",
-          "line": 111,
+          "line": 117,
           "ordinal": 3,
           "reports": [],
           "review": "unreconciled"
@@ -137409,7 +137420,7 @@
           "body_sha256": "193d10689d0e43d629f7f170a15888710ebbf660052c1511de0f69f3cb7a7449",
           "heading": "VC-37.4 SpaceMouse / SpacePilot — WebHID acquisition and secure-context gate",
           "id": "VC-37.4",
-          "line": 135,
+          "line": 141,
           "ordinal": 4,
           "reports": [],
           "review": "unreconciled"
@@ -137418,7 +137429,7 @@
           "body_sha256": "df8ecc517a760ace4074f25c7a22129235c4abd5293a7ddcf23047458df3c383",
           "heading": "VC-37.5 SpacePilot HID report decode and camera drive",
           "id": "VC-37.5",
-          "line": 189,
+          "line": 195,
           "ordinal": 5,
           "reports": [],
           "review": "unreconciled"
@@ -137427,25 +137438,25 @@
           "body_sha256": "1a03eb8ca201197bf97873b2ea40f39087bc80c7cf04f80d19773ce29a021d6b",
           "heading": "VC-37.6 Head-tracked parallax — MediaPipe face landmarks to camera frustum",
           "id": "VC-37.6",
-          "line": 236,
+          "line": 242,
           "ordinal": 6,
           "reports": [],
           "review": "unreconciled"
         },
         {
-          "body_sha256": "b1db5b2c26a44ed7f7b966f5708d0db2d73c77ac680259677e1cb159003667c0",
+          "body_sha256": "2cd8f9027b36b0da8dd654a4304fb5c62ac6929aecabe8d51cb0f956a573099f",
           "heading": "VC-37.7 How the desktop XR-adjacent inputs share state with the R3F path",
           "id": "VC-37.7",
-          "line": 294,
+          "line": 300,
           "ordinal": 7,
           "reports": [],
           "review": "unreconciled"
         },
         {
-          "body_sha256": "4f66cacbb32a9db4ebcf17cdf8cd93d1ee8f43354aa28cc8c06ed7df1fbfb9e6",
+          "body_sha256": "054fbc3a8034573f5fae1c36dcdd14e54809a9cc2981a0d0f588f81342b83d0f",
           "heading": "VC-37.8 Browser path versus the shipped Godot path",
           "id": "VC-37.8",
-          "line": 332,
+          "line": 338,
           "ordinal": 8,
           "reports": [],
           "review": "unreconciled"
@@ -137454,7 +137465,7 @@
           "body_sha256": "f654738f062da59ce6b23c41c4a127ec9dcf03d8f618ee320f640ae950d6cde8",
           "heading": "VC-37.9 SpaceDriver hot-plug — disconnect and reconnect lifecycle",
           "id": "VC-37.9",
-          "line": 359,
+          "line": 365,
           "ordinal": 9,
           "reports": [],
           "review": "unreconciled"
@@ -137463,8 +137474,17 @@
           "body_sha256": "bfd6055b4148e0a662fbf631c19d4675b8ff29e81b31f3c320f5d8b6706ec813",
           "heading": "VC-37.10 Spatial-input settings — SpacePilot config round trip and head-parallax tuning",
           "id": "VC-37.10",
-          "line": 396,
+          "line": 402,
           "ordinal": 10,
+          "reports": [],
+          "review": "unreconciled"
+        },
+        {
+          "body_sha256": "81310bfb0877abc85f0d1e17865f0b135d7c8684cbb6a3af926bb1626ba2b5c7",
+          "heading": "VC-37.11 A still desktop drag keeps its server hold alive with a heartbeat",
+          "id": "VC-37.11",
+          "line": 437,
+          "ordinal": 11,
           "reports": [],
           "review": "unreconciled"
         }
@@ -137472,7 +137492,7 @@
       "path": "docs/diagrams/visionclaw/37-browser-xr-and-desktop-input.md",
       "repo": "VisionFlow",
       "review": "unreconciled",
-      "sha256": "784af2b71e79a7f269769b3e463be110f9e74290057a2a2575a4a7a7fb3118f8"
+      "sha256": "d1980018ac64173472024975677a87d65ad41a32bac36de67ce4efded1c591cc"
     },
     {
       "claims": [],
@@ -138165,16 +138185,16 @@
           "body_sha256": "2d9b268b4d83df0c0c23b9d3b07ed74f9edb1c468e7d689014bbfa3e6faa4686",
           "heading": "VC-51.1 Requested extras reserve a bounded share before near detail",
           "id": "VC-51.1",
-          "line": 32,
+          "line": 35,
           "ordinal": 1,
           "reports": [],
           "review": "unreconciled"
         },
         {
-          "body_sha256": "107ca4baec1134646456654e5da1f00aa04517529a0ccea91607d11e61d34db9",
+          "body_sha256": "4ba54f7f726711f48579bb34a49d29df91f19b14de1ac3e2744441885d512d4b",
           "heading": "VC-51.2 Live demand and drawn-frame counts bound the guarantee",
           "id": "VC-51.2",
-          "line": 47,
+          "line": 50,
           "ordinal": 2,
           "reports": [],
           "review": "unreconciled"
@@ -138183,17 +138203,26 @@
           "body_sha256": "71d8910370ec9a93309aa7c9e1d49d5ab0fb142219213f469eef77697fe931ea",
           "heading": "VC-51.3 Sparse timing can delay automatic quality reduction",
           "id": "VC-51.3",
-          "line": 61,
+          "line": 64,
           "ordinal": 3,
           "reports": [],
           "review": "unreconciled"
         },
         {
-          "body_sha256": "4a1059794a1400ca7bb13541de20faa0838edcbc26abde6e81bd2af7b0b9c060",
+          "body_sha256": "b90d0253a3e7c6958cb3742405cd178c2c9df46ac02dbafc90447fcb03958b82",
           "heading": "VC-51.4 Engine selection does not close the stereo gate",
           "id": "VC-51.4",
-          "line": 76,
+          "line": 79,
           "ordinal": 4,
+          "reports": [],
+          "review": "unreconciled"
+        },
+        {
+          "body_sha256": "d29be28e1e1007cd8f9601677be786d4131323abb8bf2b7d2579a4ad55ae3227",
+          "heading": "VC-51.5 The gold edge breathe is one shader term, mirrored to the ribbons",
+          "id": "VC-51.5",
+          "line": 94,
+          "ordinal": 5,
           "reports": [],
           "review": "unreconciled"
         }
@@ -138201,12 +138230,12 @@
       "path": "docs/diagrams/visionclaw/51-xr-visual-budget-and-engine-gates.md",
       "repo": "VisionFlow",
       "review": "unreconciled",
-      "sha256": "b3a4dde476ddd0f5373ae05d2b0409dd1392ab01394cd9558bfb24555061c433"
+      "sha256": "fa26ae4ed485ed443121f5303f31223319e0afa041e19d42c268443cbb80b443"
     },
     {
       "claims": [
         {
-          "basis": "Five new source-traced, rendered and visually inspected panels. Historical VC-16 notice gives no additional panel credit.",
+          "basis": "Five new source-traced, rendered and visually inspected panels. Historical VC-16 notice gives no additional panel credit. Concurrent append-only topic extension at 2405bb3: original selected panel bodies and declared source revision verified unchanged; added panels receive no credit. See Hitch recovery batch ledger-refresh receipt.",
           "coverage": "selected-panels",
           "panels": [
             "VC-52.1",
@@ -138224,7 +138253,7 @@
           "body_sha256": "21b9fb78e241f37515bdfd88b51dd5181c4c30272b09375e59f3812004b3b44b",
           "heading": "VC-52.1 A hold and an explicit pin are distinct reasons to anchor a node",
           "id": "VC-52.1",
-          "line": 30,
+          "line": 37,
           "ordinal": 1,
           "reports": [
             "docs/estate-review/2026-11-01-drag-holds-and-acceptance.md"
@@ -138235,7 +138264,7 @@
           "body_sha256": "42bc67f549466325f073220b0d353ffff38275b42cfd3a6b47d7123f13210e50",
           "heading": "VC-52.2 Release notifications can disagree about ownership",
           "id": "VC-52.2",
-          "line": 47,
+          "line": 54,
           "ordinal": 2,
           "reports": [
             "docs/estate-review/2026-11-01-drag-holds-and-acceptance.md"
@@ -138246,7 +138275,7 @@
           "body_sha256": "0ea6f050105be5fbe44b5d07cd3ca94c40311cd811a58563f6c2c632b21c4fe4",
           "heading": "VC-52.3 The effective interaction speed differs from stored speed by decision",
           "id": "VC-52.3",
-          "line": 63,
+          "line": 70,
           "ordinal": 3,
           "reports": [
             "docs/estate-review/2026-11-01-drag-holds-and-acceptance.md"
@@ -138257,7 +138286,7 @@
           "body_sha256": "85ed9deef4360bb0f1e876907207e3fc88842a91335155f4bcf5eecd3f91ea69",
           "heading": "VC-52.4 Cross-client samples and silence can produce a false acceptance",
           "id": "VC-52.4",
-          "line": 78,
+          "line": 85,
           "ordinal": 4,
           "reports": [
             "docs/estate-review/2026-11-01-drag-holds-and-acceptance.md"
@@ -138268,23 +138297,41 @@
           "body_sha256": "ae3737cc2c5750e0b19a88608b8f9e274bd18b86affbc20e0b3513c859660bf0",
           "heading": "VC-52.5 Selecting a volume transform does not select its coordinate source",
           "id": "VC-52.5",
-          "line": 93,
+          "line": 100,
           "ordinal": 5,
           "reports": [
             "docs/estate-review/2026-11-01-drag-holds-and-acceptance.md"
           ],
           "review": "assessment-recorded"
+        },
+        {
+          "body_sha256": "9cbc51e63f8fc81581b908759eb4af753dfa26f01c4545e87b27066575c8e4c1",
+          "heading": "VC-52.6 One desktop hold from press to rejoin, across socket, orchestrator, registry and GPU",
+          "id": "VC-52.6",
+          "line": 115,
+          "ordinal": 6,
+          "reports": [],
+          "review": "unreconciled"
+        },
+        {
+          "body_sha256": "438d822f4728340553d20936774674f6c60bb58b09d20885ef05f889b3f1d052",
+          "heading": "VC-52.7 Where the fact \"this node is held or pinned\" is stored",
+          "id": "VC-52.7",
+          "line": 152,
+          "ordinal": 7,
+          "reports": [],
+          "review": "unreconciled"
         }
       ],
       "path": "docs/diagrams/visionclaw/52-drag-holds-and-observation-gates.md",
       "repo": "VisionFlow",
-      "review": "assessment-recorded",
-      "sha256": "ec3eb93d09ed5aaefbe3e868e69ebc5b89e6997eb13342553c0fc6d6aaf33856"
+      "review": "partial-assessment-recorded",
+      "sha256": "3d436ed69b20e1bc90b6f33ab0094d40d1b7ecd2e2a120266e41d00962d0f1ff"
     },
     {
       "claims": [
         {
-          "basis": "Source rechecked at 531df5ef7, strict citations and rendered visual inspection. VC-47 historical test limits retained; VC-53 method and native-policy evidence boundaries explicit.",
+          "basis": "Source rechecked at 531df5ef7, strict citations and rendered visual inspection. VC-47 historical test limits retained; VC-53 method and native-policy evidence boundaries explicit. Concurrent append-only topic extension at 2405bb3: original selected panel bodies and declared source revision verified unchanged; added panels receive no credit. See Hitch recovery batch ledger-refresh receipt.",
           "coverage": "selected-panels",
           "panels": [
             "VC-53.1",
@@ -138352,12 +138399,66 @@
             "docs/estate-review/2026-11-01-xr-grab-boundaries.md"
           ],
           "review": "assessment-recorded"
+        },
+        {
+          "body_sha256": "ef7995a8131db9fcfb7621103315f01469198d836f4904c222f84fd1f53a869a",
+          "heading": "VC-53.6 Two headset pin sets survive with readers but no writer",
+          "id": "VC-53.6",
+          "line": 91,
+          "ordinal": 6,
+          "reports": [],
+          "review": "unreconciled"
         }
       ],
       "path": "docs/diagrams/visionclaw/53-xr-grab-lifetimes-and-input.md",
       "repo": "VisionFlow",
-      "review": "assessment-recorded",
-      "sha256": "34e393d5986b64feafab40f56dcd216459074fc91e43094b5e3098d256cdb37d"
+      "review": "partial-assessment-recorded",
+      "sha256": "5c181ad334c8cb52bffa9dbbb0263a1a03a01872548c8673de9051d5a69eeb0a"
+    },
+    {
+      "claims": [],
+      "panels": [
+        {
+          "body_sha256": "68e03147351ea4b7da48166c4c37eac93a5f8faea629d95d2e8fccaf91bf39a6",
+          "heading": "VC-54.1 The layout mode has one stored definition and one write path",
+          "id": "VC-54.1",
+          "line": 34,
+          "ordinal": 1,
+          "reports": [],
+          "review": "unreconciled"
+        },
+        {
+          "body_sha256": "846d06438099babaa3b7cbdd6dbd559074aeb5f49e6f7d6297a1ba6e11b65b71",
+          "heading": "VC-54.2 The step is paced by completion, the stream by each client's acknowledgement",
+          "id": "VC-54.2",
+          "line": 51,
+          "ordinal": 2,
+          "reports": [],
+          "review": "unreconciled"
+        },
+        {
+          "body_sha256": "b88e71688fa762bb2d6b5e5a2e2b5a2728863b7e894c602d1b9f6bf84ab7ba0b",
+          "heading": "VC-54.3 Three mechanisms are called settle",
+          "id": "VC-54.3",
+          "line": 71,
+          "ordinal": 3,
+          "reports": [],
+          "review": "unreconciled"
+        },
+        {
+          "body_sha256": "aebe3e5276be83372212598c850e08e89b5e312da1c0bc44b7ebc1261c706afa",
+          "heading": "VC-54.4 How strongly a held node's neighbours follow it is set by the stored force style",
+          "id": "VC-54.4",
+          "line": 87,
+          "ordinal": 4,
+          "reports": [],
+          "review": "unreconciled"
+        }
+      ],
+      "path": "docs/diagrams/visionclaw/54-layout-mode-step-cadence-and-settle.md",
+      "repo": "VisionFlow",
+      "review": "unreconciled",
+      "sha256": "4c9a77c8a5b99f8bc10c719526d23a850d3945508dc27a6e008b52a4cee64948"
     },
     {
       "claims": [],

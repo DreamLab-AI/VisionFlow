@@ -1,0 +1,55 @@
+---
+title: SideStr Hitch recovery and routing boundaries
+status: assessed-with-open-findings
+date: 2026-11-01
+type: explanation
+---
+
+# SideStr Hitch recovery and routing boundaries
+
+Hitch restores a saved close or claim transaction whose witness has been removed, then returns the invalid transaction for rebroadcast. A separate damaged snapshot can lose a previously received revocation secret: normal payments stop for resynchronisation, but observing an old peer commitment before that recovery classifies it as unrevoked. Learning the secret afterwards does not reclassify the same observed spend.
+
+This review covers **SR-04.3 only** at sidestr-rs **`9c6de86c657a25ec2f2a189baf63db7dedad40eb`**. [Source fingerprints](evidence/2026-11-01/hitch-recovery/sources.json) bind snapshot validation, relevant machine/chain methods, the router, host and selected tests. It supplements the [host/runtime audit](2026-11-01-sidestr-crate-and-runtime-boundaries.md), which assessed SR-04.5. SR-04.1, SR-04.2 and SR-04.4 remain in the review queue; this pass adds no whole-ADR assessment.
+
+## Findings and acceptance criteria
+
+| Finding | Evidence and consequence | Acceptance criterion |
+| --- | --- | --- |
+| H1/H3 — recorded transaction checks omit witnesses | `snapshot.rs:341-353` compares stored transaction IDs with `compute_txid`. H1 removes the funding-spend witness; H3 removes a delayed-sweep witness. Both snapshots restore and both damaged transactions are returned for rebroadcast. The production core verifier accepts each original and refuses each damaged transaction. | Validate the complete spend against its expected funding/close output, or safely reconstruct and verify it from retained state before use. Retain normal round-trip and wrong-ID controls. A stored witness hash copied from the same untrusted input would not establish spend validity. |
+| H2 — incomplete revocation recovery changes close handling | `snapshot.rs:274-278` checks secrets that are present, without requiring every prior reveal. `missing_reveals` exposes the gap and new payments fail with `MissingReveal(0)`. Nevertheless, `chain.rs:247-272` classifies an old peer close using the currently available secrets; the same-spend fast path at `chain.rs:189-195` does not revisit that classification after a late reveal. | Treat recovery readiness and missing secrets explicitly. Preserve the valid awaiting-revocation state; do not require every incomplete snapshot to be rejected. Verify that a newly recovered secret can trigger the appropriate penalty for an already observed, still actionable revoked close. Exercise both sync-before-spend and sync-after-spend orderings. |
+| H4 — invoice Unix expiry is enforced on the payer path | `InvoiceRecord` contains preimage, amount and paid status, but no Unix expiry (`route.rs:95-106`). `Router::on_update` receives height, not wall-clock time. A fully finalised HTLC for an expired, unpaid invoice yields `Settle`; the paid control yields `Fail`. The agent payer rejects an expired invoice at `host.rs:1883-1885`, while its payee lookup passes the retained record without filtering expiry (`host.rs:1676-1683`). | Specify whether expiry is a payer hint or a payee acceptance deadline. If the latter, enforce it at the receiving host or extend the router input, while distinguishing invoice time from HTLC block expiry. Document the boundary even if payer-only enforcement is intended. |
+| H5 — forwarding durability is an embedding contract | The kernel records a forward before returning its action (`route.rs:376-390`) and can reload supplied records (`route.rs:248-254`). The current agent host constructs `Router::new(false, 0)` (`host.rs:680`) and treats a `Forward` action as a no-op (`host.rs:1752`). It implements endpoint payment behaviour, not the kernel's hub host. | Describe the available roles accurately. Before offering a hub, implement and verify durable forward records alongside channel mutations, restart reconciliation and save-failure handling. Kernel hub tests alone do not establish a deployed forwarding service. |
+
+Four [offline scenarios](evidence/2026-11-01/hitch-recovery/probe.json) use deterministic synthetic keys and production APIs. They assume damaged snapshot data reaches the restore API; the review establishes no remote ingestion route, wallet compromise or operational fund transfer. Snapshot storage already contains signing keys and preimages. Permission protection and atomic writes reduce exposure and partial writes, but do not prove snapshot completeness, freshness or transaction validity.
+
+## Recovery checks and their limits
+
+Restore does useful validation. It rejects unsupported versions, a wrong channel key, missing current state, some invalid future states, missing current/next revocation points, inconsistent retained secrets, wrong preimages and invalid retained counterparty signatures. The existing round-trip test also checks a missing signature, version 1 and a swapped revocation basepoint (`protocol/tests.rs:247-283`). These checks do not substantiate the module's blanket description, “checked in full on restore”.
+
+H1 preserves the original transaction ID while changing its witness transaction ID. A normal snapshot restores; changing the stored transaction ID fails. Removing only the witness then restores successfully, and `ChannelMachine::tick` returns the damaged close after ten blocks. H3 repeats the check for a valid delayed sweep generated after a local close: restore accepts the damaged claim, and `watch_outputs` returns it after the rebroadcast interval. `sidestr_core::channel::verify_channel_input` judges both original/damaged pairs with the same expected previous output and Knots unified rules. Its refusal is `TooFewItems` for the empty close witness. This is a native template verifier check, not a fresh independent Bitcoin Core or JavaScript interpreter run.
+
+H2 starts from a completed payment at state 1, with the peer's state-0 secret present. The intact restored snapshot recognises the old peer commitment as revoked and emits one penalty. Replacing the secret with an inconsistent value fails validation. Removing its map entry instead restores, exposes `missing_reveals() == [0]` and blocks a new payment. Resynchronising with the peer **before** observing the spend restores penalty behaviour. Observing the spend first produces `revoked: false` and no broadcast; after a successful sync imports the missing secret, observing that same spend again still returns the earlier classification and no broadcast. The review does not claim the secret is permanently unrecoverable, or that every chain reorganisation/recovery sequence behaves identically.
+
+Host `save` restores its last saved channel if a storage write fails (`host.rs:849-882`). Its Unix store writes a fresh owner-only temporary file, syncs it, renames it and syncs the directory (`store.rs:1-17`). Those mechanisms support the save-before-send contract. This pass does not inject filesystem failures, prove a multi-file transaction between invoice/channel state, test backup rollback protection, or execute a live host restart. Those remain distinct acceptance tasks.
+
+## Routing contract
+
+Hitch’s kernel supports a one-hop hub decision engine. It consumes incoming finalised updates, checks invoice amount/paid status and HTLC height, or chooses an open downstream channel with capacity. Forwarded amounts lose the configured fee and their deadline loses `EXPIRY_MARGIN + upstream_delay + CLAIM_MARGIN + downstream_delay`. The router records the upstream/downstream link before the host attempts the add. `forward_attempted` reconciles a failed attempt with signed pending/current HTLCs; periodic routing can settle, fail or request a protective close when a set-aside alternative remains binding (`route.rs:198-200,275-421,570-645`).
+
+These are decisions and in-memory records. Their persistence belongs to the embedding host, which must reload forwards with `with_forwards` and preserve the ordering relative to channel changes. The previous diagram's unconditional claim that restart “cannot lose” a forward exceeded that contract. Current endpoint host construction supplies no evidence for a production hub. H4 likewise distinguishes a Unix invoice deadline from the block-height safety margin that the router actually checks.
+
+## Validation and review credit
+
+[Thirty-five existing native tests](evidence/2026-11-01/hitch-recovery/native.txt) pass: 32 library tests, two adversarial-scenario test entries and one peer-scenario entry. The scenario entries contain multiple assertions; they are counted as three tests, not as a fabricated assertion total. This command selected no reference-oracle test, had no ignored tests and establishes no new external parity result.
+
+The [standalone Rust probe](evidence/2026-11-01/hitch-recovery/recovery-probe.rs), built by the [locked/offline runner](evidence/2026-11-01/hitch-recovery/run-probe.cjs), adds four scenarios with the controls described above. The deterministic opening helper is adapted from the existing unit fixture. The final [build receipt](evidence/2026-11-01/hitch-recovery/probe-build.txt) records warnings-denied compilation and all four scenarios completing.
+
+Only SR-04.3 is corrected, rendered and visually assessed in this batch. SR-04.5 remains byte-identical within the shared topic and keeps its prior host/runtime assessment. The diagram now separates snapshot checks from full recovery assurance and in-memory forwarding from host durability. Product source, service configuration and deployment are unchanged.
+
+## Comparison and user value
+
+Bitcoin's Segregated Witness specification explicitly separates the transaction ID, which excludes witness data, from the witness transaction ID. That explains why H1/H3 can preserve one while damaging the spend: transaction-ID agreement is too weak to certify a recorded witnessed transaction. [BIP 141](https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki#transaction-id).
+
+Lightning's transaction specification also derives a revocation private key using the revealed per-commitment secret and the other party's base secret. This supports the practical need to retain and recover revocation material. It does not make Hitch wire-compatible with Lightning, validate Hitch's distinct key construction or establish deployed service readiness. [BOLT 3 key derivation](https://github.com/lightning/bolts/blob/master/03-transactions.md#key-derivation).
+
+For a user-facing acceptance demonstration, show a restart recovering a valid close and claim, then show an incomplete backup clearly entering recovery before it is described as protected. Demonstrate both orders of secret recovery and old-close observation. State whether an expired invoice is still payable at the receiving end. A hub demonstration should additionally retain and reload the actual forward records and reproduce the upstream outcome after restart. These observable outcomes are more useful than a general promise of durable recovery.

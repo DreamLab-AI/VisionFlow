@@ -1,0 +1,2 @@
+    Finished `test` profile [unoptimized] target(s) in 0.15s
+Probe passed 4 scenarios

@@ -1490,7 +1490,7 @@ Revision labels are author declarations. This index checks structure and referen
 | [SR-03.4 Evidence and activation boundary](sidestr-rs/03-evm-overlay-and-retained-state.md#sr-034-evidence-and-activation-boundary) | flowchart | SR-03 |
 | [SR-04.1 Channel transaction boundary and the two-party revocation key](sidestr-rs/04-hitch-channel-kernel-and-host-gap.md#sr-041-channel-transaction-boundary-and-the-two-party-revocation-key) | flowchart | SR-04 |
 | [SR-04.2 Update finality](sidestr-rs/04-hitch-channel-kernel-and-host-gap.md#sr-042-update-finality) | sequenceDiagram | SR-04 |
-| [SR-04.3 Durable recovery and one-hop routing](sidestr-rs/04-hitch-channel-kernel-and-host-gap.md#sr-043-durable-recovery-and-one-hop-routing) | flowchart | SR-04 |
+| [SR-04.3 Recovery checks and one-hop routing contract](sidestr-rs/04-hitch-channel-kernel-and-host-gap.md#sr-043-recovery-checks-and-one-hop-routing-contract) | flowchart | SR-04 |
 | [SR-04.4 Following a close on the chain](sidestr-rs/04-hitch-channel-kernel-and-host-gap.md#sr-044-following-a-close-on-the-chain) | flowchart | SR-04 |
 | [SR-04.5 Implemented host and remaining trust boundaries](sidestr-rs/04-hitch-channel-kernel-and-host-gap.md#sr-045-implemented-host-and-remaining-trust-boundaries) | flowchart | SR-04 |
 | [SR-05.1 Adapter boundary and confirmation depth](sidestr-rs/05-reserve-attestation-and-liquid-adapter.md#sr-051-adapter-boundary-and-confirmation-depth) | flowchart | SR-05 |

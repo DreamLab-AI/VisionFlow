@@ -33,7 +33,7 @@ verified_commit: {sidestr-rs: 9c6de86c657a25ec2f2a189baf63db7dedad40eb, visionfl
 
 ## For developers
 
-`sidestr-hitch` is a pure channel kernel. Since 0.2.0 (sidestr-rs `5a1e89ae`, 1 Oct) it tracks Hitch at `62f8e39`, through the five rounds of Hitch's adversarial review: `lib/channel.mjs` for the transactions, `lib/peer.mjs` for the sans-IO peer machine and `lib/route.mjs` for the router. The single 2,972-line `protocol.rs` of 0.1 is now a `protocol/` module split by concern: wire messages, opening, the update machine, chain following and snapshots. It constructs Hitch funding, commitment, HTLC and close transactions, runs the update protocol, answers a close seen on the chain with penalties, sweeps and claims, serialises recovery snapshots, and returns routing actions for a host to execute. The release is breaking. Commitments now use a two-party revocation key, so the transactions differ and a 0.1 channel cannot be restored by 0.2: the 0.1 key let a commitment's owner spend its own revocation leaf, which is the flaw this release fixes. Read SR-04.1 for the revocation construction, SR-04.2 for finality, SR-04.3 for recovery and routing, SR-04.4 for the chain side and SR-04.5 for what a host still owes. Since 0.2.1 a chain-consensus suite opens five channels from one funding transaction, drives them through close, sweep, penalty and claim on all seven leaf templates, and has `sidestr-core`'s `Chain` validate every spend, with siding replaying to the same tip hash when the oracle environment is set. The agent host exists in source. SR-04.5 is refreshed in the [crate/runtime audit](../../estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md); SR-04.1–04.4 retain their earlier assessment boundary.
+`sidestr-hitch` is a pure channel kernel. Since 0.2.0 (sidestr-rs `5a1e89ae`, 1 Oct) it tracks Hitch at `62f8e39`, through the five rounds of Hitch's adversarial review: `lib/channel.mjs` for the transactions, `lib/peer.mjs` for the sans-IO peer machine and `lib/route.mjs` for the router. The single 2,972-line `protocol.rs` of 0.1 is now a `protocol/` module split by concern: wire messages, opening, the update machine, chain following and snapshots. It constructs Hitch funding, commitment, HTLC and close transactions, runs the update protocol, answers a close seen on the chain with penalties, sweeps and claims, serialises recovery snapshots, and returns routing actions for a host to execute. The release is breaking. Commitments now use a two-party revocation key, so the transactions differ and a 0.1 channel cannot be restored by 0.2: the 0.1 key let a commitment's owner spend its own revocation leaf, which is the flaw this release fixes. Read SR-04.1 for the revocation construction, SR-04.2 for finality, SR-04.3 for recovery and routing, SR-04.4 for the chain side and SR-04.5 for what a host still owes. Since 0.2.1 a chain-consensus suite opens five channels from one funding transaction, drives them through close, sweep, penalty and claim on all seven leaf templates, and has `sidestr-core`'s `Chain` validate every spend, with siding replaying to the same tip hash when the oracle environment is set. The agent host exists in source. SR-04.5 is refreshed in the [crate/runtime audit](../../estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md); SR-04.3 is refreshed in the [recovery/routing audit](../../estate-review/2026-11-01-sidestr-hitch-recovery.md); SR-04.1, SR-04.2 and SR-04.4 retain their earlier assessment boundary.
 
 ## For the business
 
@@ -81,26 +81,26 @@ sequenceDiagram
 
 **Why it is this way.** Each peer must hold the remedy for an old commitment before external code treats the balance change as settled. 0.2.0 added the `reject` message and the binding of set-aside states from Hitch's peer (`../sidestr-rs/sidestr-hitch/CHANGELOG.md:45`, `../sidestr-rs/sidestr-hitch/CHANGELOG.md:66`). **Invariant:** every field of every message is shape-checked before use, and nothing is written to the channel until the message is verified in full (`../sidestr-rs/sidestr-hitch/src/protocol/mod.rs:43`).
 
-## SR-04.3 Durable recovery and one-hop routing
+## SR-04.3 Recovery checks and one-hop routing contract
 
 ```mermaid
 flowchart TB
-    FINAL["final incoming update<br/>sidestr-hitch/src/route.rs:275"] --> DECIDE{"invoice, route and<br/>capacity decision<br/>sidestr-hitch/src/route.rs:303"}
-    DECIDE --> SETTLE["settle with preimage"]
-    DECIDE --> FORWARD["forward after fee and<br/>forward_delta timeout cut<br/>sidestr-hitch/src/route.rs:198"]
-    DECIDE --> FAIL["fail"]
-    FORWARD --> FR["router keeps ForwardRecord<br/>before the add, host persists it<br/>sidestr-hitch/src/route.rs:108"]
-    FR --> RETURN["carry settle or failure upstream"]
-    TICK["router tick<br/>sidestr-hitch/src/route.rs:578"] --> PROT["protective force close<br/>when only a set-aside state binds"]
-    FR --> TICK
-    SNAP["atomic ChannelSnapshot version 2<br/>sidestr-hitch/src/protocol/snapshot.rs:20"] --> FINAL
+    SNAP["ChannelSnapshot v2, wallet key material<br/>sidestr-hitch/src/protocol/snapshot.rs:22"] --> RESTORE["restore checks keys, states and signatures<br/>sidestr-hitch/src/protocol/snapshot.rs:244"]
+    RESTORE --> TXID["DEBT: close and claim checks use txid only<br/>sidestr-hitch/src/protocol/snapshot.rs:341-353"]
+    RESTORE --> MISSING["Missing prior reveals require resync<br/>sidestr-hitch/src/protocol/machine.rs:523"]
+    FINAL["Finalised incoming update<br/>sidestr-hitch/src/route.rs:275"] --> DECIDE{"Invoice or route decision<br/>sidestr-hitch/src/route.rs:303"}
+    DECIDE --> SETTLE["Settle or fail by amount, paid status<br/>and HTLC block expiry"]
+    DECIDE --> FORWARD["Record forward before returning add action<br/>sidestr-hitch/src/route.rs:376-390"]
+    FORWARD --> HOST["Embedding host persists and reloads records<br/>sidestr-hitch/src/route.rs:248"]
+    HOST --> TICK["Router tick: settle, fail or protective close<br/>sidestr-hitch/src/route.rs:578"]
+    ENDPOINT["Current agent host uses non-hub router<br/>sidestr-agent/src/hitch/host.rs:680"] --> DECIDE
 ```
 
-**What it shows.** The router now keeps forwards itself, recorded before the downstream `add` and keyed by downstream channel and payment hash, so a restart or a second payment in flight cannot lose them; the host persists the record the `Forward` action carries (`../sidestr-rs/sidestr-hitch/src/route.rs:7`, `../sidestr-rs/sidestr-hitch/src/route.rs:173`). The router decides settle, forward or fail on a finalised update and, on its tick, settles, fails or force-closes forwards whose downstream state is lost or held only by a set-aside alternative (`../sidestr-rs/sidestr-hitch/src/route.rs:303`, `../sidestr-rs/sidestr-hitch/src/route.rs:570`). The channel snapshot contains the signing key, the revocation basepoint and per-state secrets, and preimages (`../sidestr-rs/sidestr-hitch/src/protocol/snapshot.rs:22`).
+**What it shows.** Version 2 snapshots contain signing keys, revocation secrets and preimages; restore checks key relationships and retained signatures, but recorded closes/claims are checked only by transaction ID (`../sidestr-rs/sidestr-hitch/src/protocol/snapshot.rs:22`, `../sidestr-rs/sidestr-hitch/src/protocol/snapshot.rs:244`, `../sidestr-rs/sidestr-hitch/src/protocol/snapshot.rs:341-353`). The pure router settles invoices or records a forward before returning its action, with fee and both-channel timeout deductions; the embedding host must persist/reload those records (`../sidestr-rs/sidestr-hitch/src/route.rs:198`, `../sidestr-rs/sidestr-hitch/src/route.rs:248`, `../sidestr-rs/sidestr-hitch/src/route.rs:303`). The present agent host constructs a non-hub router, and its payee lookup supplies no invoice Unix-expiry filter (`../sidestr-rs/sidestr-agent/src/hitch/host.rs:680`, `../sidestr-rs/sidestr-agent/src/hitch/host.rs:1676-1683`).
 
-**Why it is this way.** The host persists the full recovery boundary atomically before sending anything the call returned, and restores the previous snapshot if the save fails (`../sidestr-rs/sidestr-hitch/src/protocol/mod.rs:30`). Snapshot storage must be protected as wallet key material (`../sidestr-rs/sidestr-hitch/src/protocol/snapshot.rs:24`).
+**Why it is this way.** Save-before-send is a host obligation; the machine itself performs no IO (`../sidestr-rs/sidestr-hitch/src/protocol/mod.rs:30`). Missing prior reveals block normal updates and are requested through sync, while snapshots with an awaiting final revocation remain valid recovery states (`../sidestr-rs/sidestr-hitch/src/protocol/machine.rs:523`, `../sidestr-rs/sidestr-hitch/src/protocol/machine.rs:647`, `../sidestr-rs/sidestr-hitch/src/protocol/machine.rs:1205`, `../sidestr-rs/sidestr-hitch/src/protocol/snapshot.rs:325`).
 
-**Invariant:** only version 2 snapshots restore; a 0.1 (version 1) snapshot is refused because its single-party revocation keys let the owner spend its own revocation leaf, so such a channel must be closed with 0.1 (`../sidestr-rs/sidestr-hitch/src/protocol/snapshot.rs:29`, `../sidestr-rs/sidestr-hitch/src/protocol/snapshot.rs:182`).
+**Debt:** [Native recovery checks](../../estate-review/2026-11-01-sidestr-hitch-recovery.md) reproduce damaged-witness rebroadcasts and missing-secret close classification that persists after a late reveal; snapshot acceptance alone does not establish protection. Invoice wall-clock expiry policy and durable hub integration remain explicit acceptance tasks.
 
 ## SR-04.4 Following a close on the chain
 

@@ -2157,7 +2157,7 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/visionclaw/52-drag-holds-and-observation-gates.md",
-    "source_sha256": "ec3eb93d09ed5aaefbe3e868e69ebc5b89e6997eb13342553c0fc6d6aaf33856",
+    "source_sha256": "3d436ed69b20e1bc90b6f33ab0094d40d1b7ecd2e2a120266e41d00962d0f1ff",
     "report": "docs/estate-review/2026-11-01-drag-holds-and-acceptance.md",
     "report_sha256": "26405839aa053f666c42eb64dd68bb18a46a7582e049d5dfacec174471a73edb",
     "coverage": "selected-panels",
@@ -2168,7 +2168,7 @@
       "VC-52.4",
       "VC-52.5"
     ],
-    "basis": "Five new source-traced, rendered and visually inspected panels. Historical VC-16 notice gives no additional panel credit."
+    "basis": "Five new source-traced, rendered and visually inspected panels. Historical VC-16 notice gives no additional panel credit. Concurrent append-only topic extension at 2405bb3: original selected panel bodies and declared source revision verified unchanged; added panels receive no credit. See Hitch recovery batch ledger-refresh receipt."
   },
   {
     "kind": "adr",
@@ -2199,7 +2199,7 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/visionclaw/53-xr-grab-lifetimes-and-input.md",
-    "source_sha256": "34e393d5986b64feafab40f56dcd216459074fc91e43094b5e3098d256cdb37d",
+    "source_sha256": "5c181ad334c8cb52bffa9dbbb0263a1a03a01872548c8673de9051d5a69eeb0a",
     "report": "docs/estate-review/2026-11-01-xr-grab-boundaries.md",
     "report_sha256": "3b6a10787e6d4774b364b3a77abd86626d307608863e01cd434e76f60da8416e",
     "coverage": "selected-panels",
@@ -2210,7 +2210,7 @@
       "VC-53.4",
       "VC-53.5"
     ],
-    "basis": "Source rechecked at 531df5ef7, strict citations and rendered visual inspection. VC-47 historical test limits retained; VC-53 method and native-policy evidence boundaries explicit."
+    "basis": "Source rechecked at 531df5ef7, strict citations and rendered visual inspection. VC-47 historical test limits retained; VC-53 method and native-policy evidence boundaries explicit. Concurrent append-only topic extension at 2405bb3: original selected panel bodies and declared source revision verified unchanged; added panels receive no credit. See Hitch recovery batch ledger-refresh receipt."
   },
   {
     "kind": "adr",
@@ -2289,7 +2289,7 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/sidestr-rs/04-hitch-channel-kernel-and-host-gap.md",
-    "source_sha256": "0750883123e127086fdc1e78f2d0bb2e61a17570153fbb4bb97bb0fe68b176c2",
+    "source_sha256": "7c52d2e1b06507580bea6f323b66904dfb5d55686dc1c52643a60bdf9e0b1a16",
     "report": "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md",
     "report_sha256": "78445adbf7a5d52718b5574db3d8bb6dc18daa3b4a9b53656ef145ea979c3526",
     "coverage": "selected-panels",
@@ -2328,6 +2328,19 @@
       "SR-03.2",
       "SR-03.3",
       "SR-03.4"
+    ]
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/sidestr-rs/04-hitch-channel-kernel-and-host-gap.md",
+    "source_sha256": "7c52d2e1b06507580bea6f323b66904dfb5d55686dc1c52643a60bdf9e0b1a16",
+    "report": "docs/estate-review/2026-11-01-sidestr-hitch-recovery.md",
+    "report_sha256": "8d5dcf94e02f78c61c1c78413eb221cda77398f3c7032ac88c23e4214244e9c6",
+    "coverage": "selected-panels",
+    "basis": "SR-04.3 only: snapshot witness validation, missing-reveal recovery ordering, invoice Unix-expiry boundary and host versus kernel hub roles. Thirty-five native tests and four offline production-library scenarios. Rendered and visually inspected. SR-04.5 byte-identical and retains its earlier assessment; no whole-ADR or runtime credit.",
+    "panels": [
+      "SR-04.3"
     ]
   }
 ]

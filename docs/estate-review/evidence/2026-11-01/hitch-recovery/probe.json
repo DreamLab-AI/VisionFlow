@@ -1,0 +1,46 @@
+{
+  "cases": [
+    {
+      "id": "H1",
+      "normal_restore": true,
+      "wrong_txid_refused": true,
+      "original_spend_valid": true,
+      "damaged_witness_restored": true,
+      "same_txid": true,
+      "different_wtxid": true,
+      "damaged_rebroadcasts": 1,
+      "spend_error": "TooFewItems"
+    },
+    {
+      "id": "H2",
+      "agreed_state": 1,
+      "old_peer_state": 0,
+      "wrong_secret_refused": true,
+      "control_revoked": true,
+      "control_penalties": 1,
+      "missing_secret_restored": true,
+      "new_payment_blocked": true,
+      "sync_before_spend_restores_penalty": true,
+      "late_sync_recovers_secret": true,
+      "same_spend_still_classified_unrevoked_after_late_sync": true,
+      "recovered_revoked": false,
+      "recovered_broadcasts": 0
+    },
+    {
+      "id": "H3",
+      "original_claim_valid": true,
+      "damaged_claim_restored": true,
+      "same_txid": true,
+      "damaged_claim_rebroadcasts": 1
+    },
+    {
+      "id": "H4",
+      "invoice_expiry": 1,
+      "now": 1800000000,
+      "protocol_finalised": true,
+      "unpaid_expired_invoice_settles": true,
+      "paid_control_refused": true,
+      "basis": "Router receives height and InvoiceRecord, neither Unix time nor invoice expiry"
+    }
+  ]
+}

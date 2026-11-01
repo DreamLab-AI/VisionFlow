@@ -1,0 +1,75 @@
+{
+  "source_commit": "9c6de86c657a25ec2f2a189baf63db7dedad40eb",
+  "files": [
+    {
+      "repo": "sidestr-rs",
+      "path": "Cargo.lock",
+      "sha256": "569c20953ae564868b92e55994576114180e115ea16dc0d351ebeb3f9a5d9646"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-hitch/Cargo.toml",
+      "sha256": "4e4c28b6657d1e9a99b760f3a05254b0a10400582eb6652e93fef236a60c8341"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-hitch/src/protocol/mod.rs",
+      "sha256": "b1c2b2816f57991e6a150317262287394a2edf74dae19c3210cf885d06042dce"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-hitch/src/protocol/snapshot.rs",
+      "sha256": "e8e0e7f440e51065211a71521a0352cd8a8e14e9bbf7f678a54500cba235a186"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-hitch/src/protocol/machine.rs",
+      "sha256": "8f561370d7d9773e2fb353da60cdc87a5269634c5880a06245c02fc46fad5824"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-hitch/src/protocol/chain.rs",
+      "sha256": "c9530fb2b1e5229303e5ea81b1b035a1f0358c725ada40d737780140a7f89fd1"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-hitch/src/protocol/tests.rs",
+      "sha256": "7ce5dac59bc4f1a25d910a5d771672e3a6d4d30ca3b9d1f6a22222701a2ca441"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-hitch/src/route.rs",
+      "sha256": "25708fd248754cf56f4086dec743f215ede5fecbfb335d62953919e07c5cca71"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-hitch/tests/peer_scenarios.rs",
+      "sha256": "e92f42cf9bb4239f16c81afdae23817b959d67a56743dd19dd7e7d0457a7380b"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-hitch/tests/adversarial_scenarios.rs",
+      "sha256": "544e1195e9ada4b7382f5f170864aee987407685bfdd8ce35cbc82658c1b2bb8"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-hitch/tests/support/mod.rs",
+      "sha256": "7e3a038bdc4316cce6929db557becb02d1ab92f797a4f1e55c6f4e0e9daee2f7"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-core/src/channel.rs",
+      "sha256": "6b1dca3d5b615a875d979f483aec7b03a59af765db278e0d8c0cfa5e5fea07c6"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-agent/src/hitch/host.rs",
+      "sha256": "9038183803b23374a2b911097e4b3dae20e19a67957b831936dab6d3189e9b89"
+    },
+    {
+      "repo": "sidestr-rs",
+      "path": "sidestr-agent/src/hitch/store.rs",
+      "sha256": "ccaad96158edf97537e42fa03550a66dc159ea8bc5c40ffdb32ec04fd3317ad8"
+    }
+  ]
+}
