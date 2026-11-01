@@ -1,0 +1,32 @@
+   Compiling ontomark-compile v0.6.1 (/home/devuser/workspace/wt/VisionFlow-om-cert/.audit-ontomark/crates/ontomark-compile)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.67s
+     Running tests/audit_certificate.rs (.audit-ontomark/target/debug/deps/audit_certificate-925c1a4cdbf4d6a6)
+
+running 9 tests
+AUDIT malformed definition: omitted, zero refusals
+test audit_malformed_equivalent_definition_is_silent_to_caller ... ok
+AUDIT graph adapter: zero refusals versus facade EL_OUTSIDE_PROFILE
+AUDIT parity positive control: certified=0, classifier=2, same=false
+test audit_graph_adapter_drops_universal_but_facade_refuses_it ... ok
+test audit_parity_rejects_definition_entailment_beyond_rdfs ... ok
+vault build: whelk restrictions mode skip (0 kept, 0 skipped, 0 defined class(es))
+vault build: whelk restrictions mode skip (0 kept, 0 skipped, 0 defined class(es))
+vault build: whelk restrictions mode skip (0 kept, 0 skipped, 0 defined class(es))
+vault build: whelk restrictions mode skip (0 kept, 0 skipped, 0 defined class(es))
+AUDIT write failure: new assertions coexist with old digest
+AUDIT late output failure: certificate exists, output unchanged, error=creating /home/devuser/workspace/.tmp/.tmpHM5vY5/blocked
+test audit_partial_certificate_write_mixes_files ... ok
+test audit_late_output_failure_leaves_certificate ... ok
+AUDIT no flag: successful bundle without certificate
+AUDIT nested certificate: returned directory=/home/devuser/workspace/.tmp/.tmpVw7HMe/www/certificate, exists=false, asserted_exists=false
+test audit_no_flag_build_has_no_certificate ... ok
+test audit_certificate_under_output_is_accepted_then_lost ... ok
+vault build: whelk restrictions mode skip (0 kept, 0 skipped, 0 defined class(es))
+AUDIT unsatisfiable: old bundle preserved, certificate replaced, error=UNSATISFIABLE_CLASSES: 1 unsatisfiable class(es); no bundle written. 1 root cause(s): https://narrativegoldmine.com/class/p
+test audit_unsatisfiable_build_replaces_certificate_before_refusing ... ok
+AUDIT omitted conclusions: {"ok":true,"asserted":2,"derivations":0,"theorem":"OOCert.certificate_sound","checker":{"name":"oo-cert","self_sha256":"68223b4db193783a52bd2810a66ce2ad3a3780f963a5ef84753564c051e3e532","toolchain":"4.33.1","means":"the digest of the FILE this process is running from, read at run time. Match it against the SHASUMS.txt of the release you expected. It does not make this binary honest: a hostile one can print any block it likes. It lets an honest build say which build it is."}}
+
+test audit_checker_accepts_omitted_derivations_and_changed_scope ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.62s
+

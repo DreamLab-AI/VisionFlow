@@ -1,0 +1,20 @@
+parsed 1 topic files, 4 mermaid diagrams
+cite-check: 7 warning(s)
+citations: 64 verified at the declared revision, 0 unverified (working-tree fallback), 0 unresolvable, 0 allowlisted (unverifiable)
+  ! ontomark/10-reasoning-and-certificate-boundaries.md:OM-10.3 — ../ontomark/crates/rdfs-certificate/tests/oo_cert.rs:62 is punctuation only (')')
+  ! ontomark/10-reasoning-and-certificate-boundaries.md:OM-10.3 — ../ontomark/crates/rdfs-certificate/tests/oo_cert.rs:63 is punctuation only ('}')
+  ! ontomark/10-reasoning-and-certificate-boundaries.md:OM-10.3 — ../ontomark/crates/rdfs-certificate/tests/oo_cert.rs:62 is punctuation only (')')
+  ! ontomark/10-reasoning-and-certificate-boundaries.md:OM-10.3 — ../ontomark/crates/rdfs-certificate/tests/oo_cert.rs:63 is punctuation only ('}')
+  ! ontomark/10-reasoning-and-certificate-boundaries.md:OM-10.3 — ../ontomark/crates/rdfs-certificate/tests/oo_cert.rs:62 is punctuation only (')')
+  ! ontomark/10-reasoning-and-certificate-boundaries.md:OM-10.3 — ../ontomark/crates/rdfs-certificate/tests/oo_cert.rs:63 is punctuation only ('}')
+  ! ontomark/10-reasoning-and-certificate-boundaries.md:OM-10.4 — ../ontomark/crates/ontomark-wasm/src/reason.rs:212 is punctuation only ('}')
+rendered 4/4 diagrams via pele
+
+7 error(s):
+  - citation: ontomark/10-reasoning-and-certificate-boundaries.md:OM-10.3 — ../ontomark/crates/rdfs-certificate/tests/oo_cert.rs:62 is punctuation only (')')
+  - citation: ontomark/10-reasoning-and-certificate-boundaries.md:OM-10.3 — ../ontomark/crates/rdfs-certificate/tests/oo_cert.rs:63 is punctuation only ('}')
+  - citation: ontomark/10-reasoning-and-certificate-boundaries.md:OM-10.3 — ../ontomark/crates/rdfs-certificate/tests/oo_cert.rs:62 is punctuation only (')')
+  - citation: ontomark/10-reasoning-and-certificate-boundaries.md:OM-10.3 — ../ontomark/crates/rdfs-certificate/tests/oo_cert.rs:63 is punctuation only ('}')
+  - citation: ontomark/10-reasoning-and-certificate-boundaries.md:OM-10.3 — ../ontomark/crates/rdfs-certificate/tests/oo_cert.rs:62 is punctuation only (')')
+  - citation: ontomark/10-reasoning-and-certificate-boundaries.md:OM-10.3 — ../ontomark/crates/rdfs-certificate/tests/oo_cert.rs:63 is punctuation only ('}')
+  - citation: ontomark/10-reasoning-and-certificate-boundaries.md:OM-10.4 — ../ontomark/crates/ontomark-wasm/src/reason.rs:212 is punctuation only ('}')

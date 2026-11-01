@@ -1,0 +1,192 @@
+65:     ("vc", "https://narrativegoldmine.com/ns/v1#"),
+66:     ("ngm", "https://narrativegoldmine.com/class/"),
+67:     ("ngmi", "https://narrativegoldmine.com/individual/"),
+68: ];
+69:
+70: /// The error code a vocabulary load fails with when an entry would emit a
+71: /// construct outside OWL 2 EL (ADR-2126 Decision 2). Every such message starts
+72: /// with this code.
+73: pub const NON_EL_VOCABULARY: &str = "NON_EL_VOCABULARY";
+74:
+75: /// The error code a vocabulary load fails with when a relation that maps onto
+76: /// a logical or annotation IRI (`rdfs:subClassOf`, `owl:disjointWith`,
+77: /// `owl:equivalentClass`, `skos:*`) declares a `domain:` or `range:`: the
+78: /// emitter would have to write `rdfs:domain` onto the OWL vocabulary itself.
+79: pub const SIGNATURE_ON_LOGICAL_RELATION: &str = "SIGNATURE_ON_LOGICAL_RELATION";
+80:
+81: /// The rule a `defines-as` existential fails when its relation is emitted but
+82: /// not as an existential restriction (`restriction: true` absent): the corpus
+83: /// then carries no `C ⊑ ∃P.D` axiom over it, so the definition would validate
+84: /// and never classify anything (ADR-2124).
+85: pub const NOT_AN_EXISTENTIAL: &str = "DEFINITION_NOT_EXISTENTIAL";
+86:
+87: /// The rule a `defines-as` existential fails when its property is transitive,
+88: /// or has a transitive property among its sub- or super-properties: the
+89: /// reasoner's `Relevant` mode would then keep every existential over that
+90: /// hierarchy, and saturating them over a transitive property does not finish
+91: /// on the real corpus (12,515 kept for `requires`, killed after 600 s;
+92: /// ADR-2124).
+93: pub const DEFINITION_OVER_TRANSITIVE: &str = "DEFINITION_OVER_TRANSITIVE";
+94:
+95: /// Namespaces whose IRIs are logical or annotation vocabulary, never a corpus
+96: /// object property.
+97: const LOGICAL_NAMESPACES: &[&str] = &[
+98:     "http://www.w3.org/2002/07/owl#",
+99:     "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+100:     "http://www.w3.org/2000/01/rdf-schema#",
+101:     "http://www.w3.org/2004/02/skos/core#",
+102: ];
+103:
+104: /// Local names, in the `owl:` namespace, of the constructs a vocabulary may not
+105: /// map a key onto: they are outside OWL 2 EL, or inside it but outside what
+106: /// Whelk implements (`hasValue` and `oneOf` need nominals, which Whelk lacks),
+107: /// so an axiom built from one either enforces nothing under the open-world
+108: /// assumption or is silently ignored by the reasoner. Closed-world
+109: /// requirements belong in `vault validate` rules instead (ADR-2126 Decision 1).
+110: pub const NON_EL_OWL_TERMS: &[&str] = &[
+111:     "allValuesFrom",
+112:     "cardinality",
+113:     "minCardinality",
+114:     "maxCardinality",
+115:     "qualifiedCardinality",
+116:     "minQualifiedCardinality",
+117:     "maxQualifiedCardinality",
+118:     "hasValue",
+119:     "oneOf",
+120:     "propertyDisjointWith",
+121:     "inverseOf",
+122:     "SymmetricProperty",
+123:     "complementOf",
+124:     "unionOf",
+125:     "disjointUnionOf",
+126:     "AsymmetricProperty",
+127:     "IrreflexiveProperty",
+128:     "FunctionalProperty",
+129:     "InverseFunctionalProperty",
+130: ];
+131:
+132: const OWL_NS: &str = "http://www.w3.org/2002/07/owl#";
+133:
+134: fn default_true() -> bool {
+135:     true
+510:     /// # Errors
+511:     /// A human-readable message when the YAML is invalid, a declared inverse
+512:     /// or relation alias names an undeclared relation, a key is both a
+513:     /// relation and a scalar, or an entry would emit a construct outside
+514:     /// OWL 2 EL (a message starting [`NON_EL_VOCABULARY`]; see
+515:     /// [`NON_EL_OWL_TERMS`]).
+516:     pub fn from_yaml_str(yaml: &str) -> std::result::Result<Self, String> {
+517:         let vocab: Self = serde_yaml::from_str(yaml).map_err(|e| e.to_string())?;
+518:         vocab.check()?;
+519:         Ok(vocab)
+520:     }
+521:
+522:     fn check(&self) -> std::result::Result<(), String> {
+523:         self.check_el_profile()?;
+524:         for (key, def) in &self.relations {
+525:             if let Some(inv) = &def.inverse {
+526:                 if !self.relations.contains_key(inv) {
+527:                     return Err(format!(
+528:                         "relation {key:?} declares inverse {inv:?}, which is not itself a relation"
+529:                     ));
+530:                 }
+531:             }
+532:             if self.scalars.contains_key(key) {
+533:                 return Err(format!("{key:?} is declared both a relation and a scalar"));
+534:             }
+535:             if (def.domain.is_some() || def.range.is_some()) && self.is_logical(&def.owl) {
+536:                 return Err(format!(
+537:                     "{SIGNATURE_ON_LOGICAL_RELATION}: relation {key:?} maps to {}, a logical \
+538:                      IRI, and cannot carry a domain or range (ADR-2128)",
+539:                     def.owl
+540:                 ));
+541:             }
+542:         }
+543:         for def in self.scalars.values() {
+544:             if let (Some(min), Some(max)) = (def.min, def.max) {
+545:                 if min > max {
+546:                     return Err(format!("scalar bound min {min} exceeds max {max}"));
+547:                 }
+548:             }
+549:         }
+550:         Ok(())
+551:     }
+552:
+553:     /// The `owl:` local name when `iri` (prefixed or absolute) is one of
+554:     /// [`NON_EL_OWL_TERMS`].
+555:     #[must_use]
+556:     pub fn non_el_term(&self, iri: &str) -> Option<&'static str> {
+557:         let local = self.expand(iri.trim()).strip_prefix(OWL_NS)?.to_owned();
+558:         NON_EL_OWL_TERMS.iter().copied().find(|t| *t == local)
+559:     }
+560:
+561:     /// ADR-2126 Decision 2: refuse every entry whose OWL mapping or declared
+562:     /// characteristics would put a non-EL construct into `ontology.ttl`.
+563:     ///
+564:     /// Checked sites are every IRI the emitter can write from the vocabulary:
+565:     /// relation `owl` and `sub_property_of`, type and scalar `owl`, working
+566:     /// extension `owl`, and super-property names, domains and ranges. A
+567:     /// relation's `inverse:` is deliberately **not** checked: it names another
+568:     /// relation key and is a build hint the emitter never turns into
+569:     /// `owl:inverseOf`.
+570:     fn check_el_profile(&self) -> std::result::Result<(), String> {
+571:         let refuse = |site: String, iri: &str| -> std::result::Result<(), String> {
+572:             let why = |term: &str| match term {
+573:                 "hasValue" | "oneOf" => {
+574:                     "which needs nominals, and Whelk does not implement nominals"
+575:                 }
+576:                 _ => "which is outside OWL 2 EL",
+577:             };
+578:             match self.non_el_term(iri) {
+579:                 Some(term) => Err(format!(
+580:                     "{NON_EL_VOCABULARY}: {site} maps to owl:{term}, {}; \
+581:                      express the requirement as a `vault validate` rule (ADR-2126)",
+582:                     why(term)
+583:                 )),
+584:                 None => Ok(()),
+585:             }
+586:         };
+587:         for (key, def) in &self.types {
+588:             refuse(format!("type {key:?} owl"), &def.owl)?;
+589:         }
+590:         for (key, def) in &self.relations {
+591:             refuse(format!("relation {key:?} owl"), &def.owl)?;
+592:             if let Some(sup) = &def.sub_property_of {
+593:                 refuse(format!("relation {key:?} sub_property_of"), sup)?;
+594:             }
+595:             if let Some(d) = &def.domain {
+596:                 refuse(format!("relation {key:?} domain"), d)?;
+597:             }
+598:             if let Some(r) = &def.range {
+599:                 refuse(format!("relation {key:?} range"), r)?;
+600:             }
+601:             if def.characteristics.contains(&Characteristic::Symmetric) {
+602:                 return Err(format!(
+603:                     "{NON_EL_VOCABULARY}: relation {key:?} declares characteristic `symmetric`, \
+604:                      which would emit owl:SymmetricProperty, outside OWL 2 EL (ADR-2126)"
+605:                 ));
+606:             }
+607:         }
+608:         for (key, def) in &self.super_properties {
+609:             refuse(format!("super_property {key:?}"), key)?;
+610:             if let Some(d) = &def.domain {
+611:                 refuse(format!("super_property {key:?} domain"), d)?;
+612:             }
+613:             if let Some(r) = &def.range {
+614:                 refuse(format!("super_property {key:?} range"), r)?;
+615:             }
+616:         }
+617:         for (key, def) in &self.scalars {
+618:             if let Some(owl) = &def.owl {
+619:                 refuse(format!("scalar {key:?} owl"), owl)?;
+620:             }
+621:         }
+622:         for (key, def) in &self.working_extensions {
+623:             if let Some(owl) = &def.owl {
+624:                 refuse(format!("working_extension {key:?} owl"), owl)?;
+625:             }
+626:         }
+627:         Ok(())
+628:     }
+629:
+630:     /// Expand a `prefix:local` IRI. An absolute IRI or an unknown prefix is

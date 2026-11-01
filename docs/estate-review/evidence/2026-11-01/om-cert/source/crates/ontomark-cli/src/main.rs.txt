@@ -1,0 +1,129 @@
+389:     /// not a per-page decision — and widens the `publish/` staging to
+390:     /// `working/`'s `public: true` pages.
+391:     #[arg(long, default_value = "knowledge", value_parser = VAULT_VALUES)]
+392:     vault: String,
+393:     /// Which consumer the bundle is for: `public` or `machine`.
+394:     ///
+395:     /// `machine` adds `working/`'s `public: true` pages as plain records (no
+396:     /// OWL) to the knowledge projection and writes no `publish/` tree. It fixes
+397:     /// its inputs and always redacts private links, so it refuses (exit 2)
+398:     /// `--publish-out`, `--vault working|all` and `--no-redact-private-links`.
+399:     #[arg(long, value_enum, default_value_t = ScopeArg::Public)]
+400:     scope: ScopeArg,
+401:     /// Print the counts after the build.
+402:     #[arg(long)]
+403:     stats: bool,
+404:     /// Write the RDFS derivation certificate of the published graph into this
+405:     /// directory (`oo-cert/1`: asserted.tsv, derivations.tsv, asserted.sha256,
+406:     /// scope.tsv), ADR-OM-009. An independent checker (`oo-cert`, Lean 4)
+407:     /// re-derives every line. The build is refused if the certified named
+408:     /// closure is not the classifier's.
+409:     #[arg(long)]
+410:     certificate_out: Option<PathBuf>,
+411:     /// Write the `publish/` staging to this directory instead of `<out>/publish`.
+412:     ///
+413:     /// For a publication step that promotes the markdown separately from the
+414:     /// C3 bundle; the credential gate applies either way.
+790:                 }
+791:             })?;
+792:             Ok(ExitCode::from(u8::try_from(worst).unwrap_or(1)))
+793:         }
+794:
+795:         Command::Build(args) => {
+796:             // The ontology projections are always built from ONE vault: OWL,
+797:             // the indexes and the graph tiers are `knowledge/`'s by definition.
+798:             // `--vault all` widens the `publish/` staging to `working/`'s
+799:             // `public: true` pages, which is the only thing "both vaults" can
+800:             // mean for a build.
+801:             let kinds = vault_kinds(&args.vault);
+802:             // A machine bundle always reads both vaults from the knowledge
+803:             // root, so `--vault working|all` is left for the build to refuse
+804:             // by name rather than quietly moving the root.
+805:             let machine = args.scope == ScopeArg::Machine;
+806:             let kind = if kinds == [VaultKind::Working] && !machine {
+807:                 VaultKind::Working
+808:             } else {
+809:                 VaultKind::Knowledge
+810:             };
+811:             let options = build::Options {
+812:                 with_working_publish: kinds.contains(&VaultKind::Working)
+813:                     && kind == VaultKind::Knowledge,
+814:                 publish_out: args.publish_out.clone(),
+815:                 vault_root: vault_root(&root, &profile, kind)?,
+816:                 out: args.out.clone(),
+817:                 repo_root: root.clone(),
+818:                 with_markdown_mirror: args.with_markdown_mirror,
+819:                 generated_at: args.generated_at.clone(),
+820:                 source: args
+821:                     .source_commit
+822:                     .clone()
+823:                     .map(|commit| (commit, args.source_dirty)),
+824:                 stale_after: args.stale_after.clone(),
+825:                 redact_private_links: args.no_redact_private_links.then_some(false),
+826:                 scope: args.scope.into(),
+827:                 certificate_out: args.certificate_out.clone(),
+828:             };
+829:             // `--with-rvdb` is the only network the build ever touches, and the
+830:             // transport lives here, not in the compile crate.
+831:             let embedder: Option<Box<dyn build::records::Embedder>> = args.with_rvdb.then(|| {
+832:                 Box::new(embed::Xinference::new(args.embed_endpoint.clone()))
+833:                     as Box<dyn build::records::Embedder>
+834:             });
+835:             let report = match build::run_with(
+836:                 &options,
+837:                 &profile,
+838:                 &vocab,
+839:                 &ontomark_compile::whelk::WhelkEl,
+840:                 embedder.as_deref(),
+841:             ) {
+842:                 Ok(report) => report,
+843:                 Err(e) => {
+844:                     // A credential on a page selected for publication is not a
+845:                     // generic failure: it is the corpus refusing to publish
+846:                     // something it must not. Exit 2 denotes this refusal.
+847:                     if let Some(secrets) = e.downcast_ref::<build::publish::SecretsFound>() {
+848:                         eprintln!("ontomark: {secrets}");
+849:                         return Ok(ExitCode::from(2));
+850:                     }
+851:                     // Two artefacts claiming one output path: the same refusal
+852:                     // class — the corpus does not permit this build as it stands.
+853:                     if let Some(clash) = e.downcast_ref::<build::OutputCollision>() {
+854:                         eprintln!("ontomark: {clash}");
+855:                         return Ok(ExitCode::from(2));
+856:                     }
+857:                     // A definition the reasoner would not finish on (ADR-2124):
+858:                     // refused before reasoning, same refusal class.
+859:                     if let Some(cap) = e.downcast_ref::<reason::ReasoningError>() {
+860:                         eprintln!("ontomark: {cap}; no bundle written");
+861:                         return Ok(ExitCode::from(2));
+862:                     }
+863:                     // A machine bundle asked for with something it cannot honour:
+864:                     // the same refusal class, naming every conflict.
+865:                     if let Some(conflict) = e.downcast_ref::<build::ScopeConflict>() {
+866:                         eprintln!("ontomark: {conflict}");
+867:                         return Ok(ExitCode::from(2));
+868:                     }
+869:                     // An unsatisfiable class is a broken corpus: the corpus does
+870:                     // not permit this build, the same refusal class (S2.1).
+871:                     if let Some(unsat) = e.downcast_ref::<build::Unsatisfiable>() {
+872:                         eprintln!("ontomark: {unsat}");
+873:                         return Ok(ExitCode::from(2));
+874:                     }
+875:                     // A closure the certificate does not cover: the corpus is
+876:                     // not published without its warrant (ADR-OM-009).
+877:                     if let Some(parity) = e.downcast_ref::<build::CertificateParity>() {
+878:                         eprintln!("ontomark: {parity}");
+879:                         return Ok(ExitCode::from(2));
+880:                     }
+881:                     return Err(e);
+882:                 }
+883:             };
+884:             let value = serde_json::to_value(&report)?;
+885:             emit(cli.json || args.stats, &value, || {
+886:                 println!(
+887:                     "{} -> {} ({} artefact(s) written)",
+888:                     report.generation.id,
+889:                     report.out.display(),
+890:                     report.written
+891:                 );
+892:                 for (vault, counts) in &report.published {

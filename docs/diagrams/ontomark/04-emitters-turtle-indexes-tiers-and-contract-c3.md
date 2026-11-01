@@ -65,7 +65,7 @@ flowchart LR
     INF -.-> CERT
     NC["INVARIANT: the certified named closure must equal the classifier's inferred set or run_with returns CertificateParity before anything is written, mod.rs:696-703, certificate.rs:63-67; the CLI exits 2, ontomark-cli/src/main.rs:867-870<br/>DRIFT: the C3 file listing names no certificate output, sovereign-corpus-contracts.md:111, while ADR-OM-009 decides every published closure carries one, ADR-OM-009-every-published-closure-carries-a-derivation-certificate.md:14"]
     CERT --- NC
-    CERT --> C15["not in C3: oo-cert/1 asserted.tsv, derivations.tsv, asserted.sha256, scope.tsv,<br/>written to the --certificate-out directory, never under out<br/>mod.rs:715-717"]
+    CERT --> C15["not in C3: oo-cert/1 asserted.tsv, derivations.tsv, asserted.sha256, scope.tsv,<br/>written directly to caller-selected --certificate-out directory;<br/>not staged with the bundle, output overlap is not refused<br/>mod.rs:715-717"]
     REC["records::concept_records then embed_all, only when the host hands run_with an Embedder<br/>selector: none, reads the scaffold and prose indexes<br/>records.rs:103, records.rs:173<br/>call mod.rs:949-953"]
     SCA --> REC
     PRO --> REC
@@ -117,7 +117,8 @@ flowchart TD
     CLASSIFY["classifier.refusals, then named_subsumptions<br/>reason.rs:628-632"]
     SPLIT["Drop asserted pairs, Thing, Nothing, reflexive: remainder is inferred<br/>reason.rs:647-651"]
     ROOTS["root_causes = unsatisfiable minus those under an unsatisfiable asserted parent<br/>reason.rs:653-663"]
-    GATE["not is_consistent returns typed build::Unsatisfiable, CLI exits 2, nothing written<br/>mod.rs:743-749, mod.rs:235, ontomark-cli/src/main.rs:861"]
+    GATE{"is_consistent?<br/>mod.rs:743; reason.rs:78-80"}
+    BAD["Typed Unsatisfiable, CLI exits 2<br/>bundle not promoted; certificate may already be written<br/>mod.rs:715,744; ontomark-cli/src/main.rs:861"]
     CONS["is_consistent = no unsatisfiable AND no refusals<br/>reason.rs:78-80"]
     INFTTL["inferred_turtle: one rdfs:subClassOf per inferred pair, inferenceMethod whelk-el++-closure<br/>reason.rs:685-711"]
     WH["WhelkEl implements Classifier over ontomark-reason, refusals plus subsumptions<br/>whelk.rs:98-127"]
@@ -128,12 +129,13 @@ flowchart TD
     OVER -- no --> CLASSIFY
     SKIP --> CLASSIFY
     CLASSIFY --> SPLIT --> ROOTS --> CONS --> GATE
-    GATE --> INFTTL
+    GATE -->|yes| INFTTL
+    GATE -->|no| BAD
     CLASSIFY -.-> WH
 ```
 - **INVARIANT:** the mode is derived from the graph (`Relevant` iff a class has a definition, else `Skip`), never configured; `Include` is a test-only mode that does not finish on the full corpus (`reason.rs:143-145,546`).
 - **INVARIANT:** `WHELK_RELEVANT_CAP` is an error-code string only (`reason.rs:477`); the cap is the constant 2000 and `vault.toml` has no reasoner section (`reason.rs:473`).
-- **DIVERGENCE:** `reason_with` (`reason.rs:604`) and `Restrictions::Include` (`reason.rs:145`) have no caller outside `reason.rs` tests; `reason` is called by `run_with` (`mod.rs:689`) and by the migrate compile path.
+- **DIVERGENCE:** `reason_with` (`reason.rs:604`) and `Restrictions::Include` (`reason.rs:145`) have test callers, including the `defined_classes.rs` integration suite, but no production caller found in this checkout; `reason` is called by `run_with` (`mod.rs:689`) and by the migrate compile path. **AUDIT LIMIT:** extraction precedes the shared refusal check. Unsupported raw RDF shapes and unreadable definitions can disappear before that check; the public Graph adapter is not a general OWL profile validator (`reason.rs:283,401`). The [current audit](../../estate-review/2026-11-01-ontomark-reasoning-and-certificates.md) reproduces this boundary and certificate writes before an unsatisfiable refusal. The relevant implementation matches this topic's declared revision; no sibling panel receives refreshed coverage.
 
 ## OM-04.4 NGG1 tiers — where relation names collapse and where ids and positions are baked
 

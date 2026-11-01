@@ -1,0 +1,9 @@
+   Compiling ontomark-compile v0.6.1 (/home/devuser/workspace/wt/VisionFlow-om-cert/.audit-ontomark/crates/ontomark-compile)
+error[E0599]: no variant named `All` found for enum `ClassExpression`
+  --> crates/ontomark-compile/tests/audit_certificate.rs:60:89
+   |
+60 | ...m::SubClassOf{sub:C::class("urn:A"),sup:C::All{property:Property::named("urn:r"),filler:Box::new(C::class("urn:B"))}}]);
+   |                                               ^^^ variant not found in `ClassExpression`
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `ontomark-compile` (test "audit_certificate") due to 1 previous error

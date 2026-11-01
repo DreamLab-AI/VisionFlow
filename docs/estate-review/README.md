@@ -7,7 +7,9 @@ type: explanation
 
 # VisionFlow estate review
 
-[The completion ledger](completion/README.md) now separates scoped inventory, recorded assessments and unreconciled work. Its first reconciliation binds 77 ADR assessments and 251 panels to exact document/report hashes; these counts are not an overall completion percentage.
+[The completion ledger](completion/README.md) now separates scoped inventory, recorded assessments and unreconciled work. Its current reconciliation binds 84 ADR assessments and 285 panels to exact document/report hashes; these counts are not an overall completion percentage.
+
+Ontomark reasoning and certificates: [two complete ADR assessments, nine adversarial probes and publication boundaries](2026-11-01-ontomark-reasoning-and-certificates.md). New OM-10 panels separate refusal coverage, parity, proof soundness and publication identity; OM-04.3 is corrected.
 
 Membership continuation: [ADR-2014 section review, list completeness and split admin authority](2026-11-01-forum-membership-lifecycle.md). Thirty-seven selected native cases and seven extracted-SQL scenarios qualify pagination, cohort grants, invite revocation and removal. Six NF-25 panels and scoped NF-08.7 corrections distinguish current behaviour from the proposed lifecycle.
 

@@ -1,0 +1,66 @@
+30: use crate::reason::{Classification, Progress, Reasoner, ReasonerRun, WhelkEl};
+31: use crate::store::Store;
+32: use crate::text::{unified_diff, HostSpan, TripleSet};
+33:
+34: /// Default number of reasoner work units per classify step.
+35: /// One slice is about 25 ms of saturation natively (WP-B measurement).
+36: pub const DEFAULT_STEP_BUDGET: u64 = 20_000;
+37:
+535:         let entity = c
+536:             .entity(iri)
+537:             .cloned()
+538:             .ok_or_else(|| wire("not_found", format!("no entity {iri}")))?;
+539:         let node = Term::NamedNode(NamedNode::new_unchecked(iri));
+540:         let as_wire = |t: &Triple| {
+541:             [
+542:                 WireTerm::from(&Term::from(t.subject.clone())),
+543:                 WireTerm::from(&Term::NamedNode(t.predicate.clone())),
+544:                 WireTerm::from(&t.object),
+545:             ]
+546:         };
+547:         let outgoing: Vec<_> = c
+548:             .triples
+549:             .iter()
+550:             .filter(|t| Term::from(t.subject.clone()) == node)
+551:             .map(as_wire)
+552:             .collect();
+553:         let incoming: Vec<_> = c
+554:             .triples
+555:             .iter()
+556:             .filter(|t| t.object == node)
+557:             .map(as_wire)
+558:             .collect();
+559:         Ok(json!({ "entity": entity, "outgoing": outgoing, "incoming": incoming }))
+560:     }
+561:
+562:     fn step(&mut self, budget: Option<u64>) -> Result<Json, WireError> {
+563:         let run = self
+564:             .run
+565:             .as_mut()
+566:             .ok_or_else(|| wire("no_run", "no classification is running for this generation"))?;
+567:         match run.step(budget.unwrap_or(DEFAULT_STEP_BUDGET)) {
+568:             Progress::Pending { steps, total } => {
+569:                 Ok(json!({ "status": "pending", "steps": steps, "total": total }))
+570:             }
+571:             Progress::Done(classification) => {
+572:                 self.run = None;
+573:                 let inferred = self.inferred_triples(&classification);
+574:                 let result = json!({
+575:                     "status": "done",
+576:                     "classification": classification,
+577:                     "inferred_triples": inferred.len(),
+578:                 });
+579:                 self.classified = Some(Classified {
+580:                     classification,
+581:                     inferred,
+582:                 });
+583:                 // Inferred and combined datasets depended on the old (absent) result.
+584:                 self.datasets
+585:                     .retain(|(sel, _, _)| *sel == DatasetSelection::Asserted);
+586:                 Ok(result)
+587:             }
+588:             Progress::Stopped { code, steps } => {
+589:                 self.run = None;
+590:                 Err(wire(
+591:                     &code,
+592:                     format!("classification stopped after {steps} steps"),

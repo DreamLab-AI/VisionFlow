@@ -1,0 +1,20 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling serde_core v1.0.229
+   Compiling getrandom v0.3.4
+   Compiling digest v0.11.3
+   Compiling sha2 v0.11.0
+   Compiling tempfile v3.27.0
+   Compiling syn v3.0.8
+   Compiling serde_derive v1.0.229
+   Compiling serde v1.0.229
+   Compiling rdfs-certificate v0.1.0 (/home/devuser/workspace/wt/VisionFlow-om-cert/.audit-ontomark/crates/rdfs-certificate)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.02s
+     Running tests/oo_cert.rs (target/debug/deps/oo_cert-699063a73126a292)
+
+running 2 tests
+test the_independent_checker_refuses_a_forged_conclusion ... ok
+test the_independent_checker_accepts_what_this_crate_writes ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.26s
+

@@ -1,0 +1,79 @@
+name: ci
+on: { push: { branches: [main] }, pull_request: {} }
+permissions: { contents: read }
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with: { targets: wasm32-unknown-unknown, components: "rustfmt, clippy" }
+      - uses: Swatinem/rust-cache@v2
+      - run: node --test packages/graph/test/*.test.mjs
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+      - run: cargo test --workspace
+      - name: Verify portable and typed compiler features
+        run: |
+          cargo test --locked -p ontomark-compile --all-features
+          cargo test --locked -p ontomark-compile --no-default-features
+      - run: cargo build -p ontomark-wasm --target wasm32-unknown-unknown --release
+      - run: cargo build -p ontomark-ingest --target wasm32-unknown-unknown --release
+      - run: cargo doc --workspace --no-deps
+        env: { RUSTDOCFLAGS: "-D warnings" }
+  adr-ledger:
+    # Estate ADR ledger gate (docs/adr/.ledger.json). The checker is fetched from
+    # agentbox at a pinned commit and verified against a pinned sha256 by
+    # scripts/adr-ledger.sh; nothing is vendored.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - name: Records valid, supersession reciprocal, docs/adr/README.md in sync
+        run: bash scripts/adr-ledger.sh check
+  plugin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with: { targets: wasm32-unknown-unknown }
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - run: cargo install wasm-bindgen-cli --version 0.2.127 --locked
+      - name: Install checksum-pinned Binaryen 132
+        env: { GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}" }
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/binaryen"
+          gh release download version_132 --repo WebAssembly/binaryen \
+            --pattern binaryen-version_132-x86_64-linux.tar.gz --dir "$RUNNER_TEMP/binaryen"
+          cd "$RUNNER_TEMP/binaryen"
+          echo '195ddc94f9bc89f45abdabb0b9eea86023d727ba90eac8b35b80f2544fc30572  binaryen-version_132-x86_64-linux.tar.gz' | sha256sum --check --strict
+          tar -xf binaryen-version_132-x86_64-linux.tar.gz
+          echo "$RUNNER_TEMP/binaryen/binaryen-version_132/bin" >> "$GITHUB_PATH"
+      - uses: actions/checkout@v4
+        with:
+          repository: DreamLab-AI/ontomark-obsidian
+          ref: 548a7fbf2d19e3ee9af54d686124f37978773eb7
+          path: .plugin-consumer
+      - run: bash scripts/test-plugin-consumer.sh .plugin-consumer
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Scan complete history with checksum-pinned Gitleaks
+        env: { GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}" }
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/gitleaks"
+          gh release download v8.30.1 --repo gitleaks/gitleaks \
+            --pattern gitleaks_8.30.1_linux_x64.tar.gz --dir "$RUNNER_TEMP/gitleaks"
+          cd "$RUNNER_TEMP/gitleaks"
+          echo '551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  gitleaks_8.30.1_linux_x64.tar.gz' | sha256sum --check --strict
+          tar -xf gitleaks_8.30.1_linux_x64.tar.gz
+          cd "$GITHUB_WORKSPACE"
+          "$RUNNER_TEMP/gitleaks/gitleaks" git --redact=100 --log-opts=--all .

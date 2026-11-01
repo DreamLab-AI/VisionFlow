@@ -3893,6 +3893,103 @@
       "sha256": "11875442d559c2acbac3747184628f7ab4ce19d17169aeac8b990a7e27f3ff8f"
     },
     {
+      "category": "audit-evidence-or-support",
+      "claims": [],
+      "path": "docs/estate-review/evidence/2026-11-01/om-cert/source/docs/adr/ADR-OM-004-owl2-el-as-the-local-reasoning-profile.md",
+      "repo": "VisionFlow",
+      "review": "unreconciled",
+      "sections": [
+        {
+          "line": 17,
+          "ordinal": 1,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "ADR-OM-004: OWL 2 EL is the local reasoning profile, and non-EL is named, not dropped"
+        },
+        {
+          "line": 26,
+          "ordinal": 2,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Question"
+        },
+        {
+          "line": 30,
+          "ordinal": 3,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Decision"
+        },
+        {
+          "line": 38,
+          "ordinal": 4,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "The real risk, and why it is already closed"
+        },
+        {
+          "line": 50,
+          "ordinal": 5,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Consequences"
+        },
+        {
+          "line": 56,
+          "ordinal": 6,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "References"
+        }
+      ],
+      "sha256": "de101e4765f701f07c6e0e3de9886304bf07a92a5c89d76a9d8edd090b4a5a6f"
+    },
+    {
+      "category": "audit-evidence-or-support",
+      "claims": [],
+      "path": "docs/estate-review/evidence/2026-11-01/om-cert/source/docs/adr/ADR-OM-009-every-published-closure-carries-a-derivation-certificate.md",
+      "repo": "VisionFlow",
+      "review": "unreconciled",
+      "sections": [
+        {
+          "line": 17,
+          "ordinal": 1,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "ADR-OM-009: every published closure carries a derivation certificate an independent checker re-verifies"
+        },
+        {
+          "line": 27,
+          "ordinal": 2,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Context"
+        },
+        {
+          "line": 31,
+          "ordinal": 3,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Decisions"
+        },
+        {
+          "line": 38,
+          "ordinal": 4,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Verification (2026-10-20, visionGraph 1ec5774ad+dirty, checker oo-cert v2.0.1 sha256 68223b4d\u2026)"
+        },
+        {
+          "line": 45,
+          "ordinal": 5,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Alternatives considered"
+        }
+      ],
+      "sha256": "a0eacfd01023104011938cf2bb182a3651143a56581a7d0c9ab29864382a6ac2"
+    },
+    {
       "category": "support-or-unclassified",
       "claims": [],
       "path": "archive/visionclaw-docs/audits/2026-04-20-sovereign-mesh-qe-sprint2/05-phase2-and-adr054.md",
@@ -70897,51 +70994,71 @@
     },
     {
       "category": "decision-candidate",
-      "claims": [],
+      "claims": [
+        {
+          "basis": "Whole-document section assessment at 0caae5d; synthetic producer/facade/checker evidence. Historical corpus and consumer deployment claims remain qualified; findings are not remediation.",
+          "coverage": "whole-document",
+          "panels": null,
+          "report": "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "path": "docs/adr/ADR-OM-004-owl2-el-as-the-local-reasoning-profile.md",
       "repo": "ontomark",
-      "review": "unreconciled",
+      "review": "assessment-recorded",
       "sections": [
         {
           "line": 17,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md"
+          ],
+          "review": "assessment-recorded",
           "title": "ADR-OM-004: OWL 2 EL is the local reasoning profile, and non-EL is named, not dropped"
         },
         {
           "line": 26,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Question"
         },
         {
           "line": 30,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Decision"
         },
         {
           "line": 38,
           "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md"
+          ],
+          "review": "assessment-recorded",
           "title": "The real risk, and why it is already closed"
         },
         {
           "line": 50,
           "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Consequences"
         },
         {
           "line": 56,
           "ordinal": 6,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md"
+          ],
+          "review": "assessment-recorded",
           "title": "References"
         }
       ],
@@ -71171,44 +71288,62 @@
     },
     {
       "category": "decision-candidate",
-      "claims": [],
+      "claims": [
+        {
+          "basis": "Whole-document section assessment at 0caae5d; synthetic producer/facade/checker evidence. Historical corpus and consumer deployment claims remain qualified; findings are not remediation.",
+          "coverage": "whole-document",
+          "panels": null,
+          "report": "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "path": "docs/adr/ADR-OM-009-every-published-closure-carries-a-derivation-certificate.md",
       "repo": "ontomark",
-      "review": "unreconciled",
+      "review": "assessment-recorded",
       "sections": [
         {
           "line": 17,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md"
+          ],
+          "review": "assessment-recorded",
           "title": "ADR-OM-009: every published closure carries a derivation certificate an independent checker re-verifies"
         },
         {
           "line": 27,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Context"
         },
         {
           "line": 31,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Decisions"
         },
         {
           "line": 38,
           "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Verification (2026-10-20, visionGraph 1ec5774ad+dirty, checker oo-cert v2.0.1 sha256 68223b4d\u2026)"
         },
         {
           "line": 45,
           "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Alternatives considered"
         }
       ],
@@ -119761,22 +119896,22 @@
   ],
   "counts": {
     "available_checkouts": 24,
-    "candidate_files": 1157,
-    "numbered_candidates_with_recorded_assessment": 82,
+    "candidate_files": 1159,
+    "numbered_candidates_with_recorded_assessment": 84,
     "numbered_decision_candidates": 1055,
-    "panels": 1709,
-    "panels_with_recorded_assessment": 280,
+    "panels": 1713,
+    "panels_with_recorded_assessment": 285,
     "scope_targets": 25,
     "stale_claim_records": 0,
-    "topics": 200
+    "topics": 201
   },
   "method": "Explicit scope; Git-owned Markdown; parsed headings exclude fenced examples; explicit human review claims require exact source/report hashes. Unreconciled is not unreviewed. Candidate counts are not a complete obligation denominator or overall task percentage.",
   "repositories": [
     {
       "available": true,
-      "candidate_files": 62,
+      "candidate_files": 64,
       "dirty": true,
-      "head": "d87b610005943210f588481568a637d4734b1bcd",
+      "head": "e4248edc0c3466d44474768c0533588ff0f81bc1",
       "local": "VisionFlow",
       "name": "VisionFlow"
     },
@@ -129769,10 +129904,20 @@
       "sha256": "67bd87503125b86db5e856551dac627b72998e6e25d44e952df6d43fb2da8f04"
     },
     {
-      "claims": [],
+      "claims": [
+        {
+          "basis": "Only reasoner panel assessed against current source with runtime identity to its old pin, rendered and visually inspected. OM-04.1 narrow certificate-path correction and other emitter panels receive no new coverage.",
+          "coverage": "selected-panels",
+          "panels": [
+            "OM-04.3"
+          ],
+          "report": "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "panels": [
         {
-          "body_sha256": "c8e0092760212e1aa48dde497191717aa2506eb293a37588728729201e00c75d",
+          "body_sha256": "42d20d2e7531c48e80a6b3c4dd820fba89d634a25dfc3dfc835b39aad740d170",
           "heading": "OM-04.1 Emitter by emitter \u2014 corpus selector, output, C3 artefact",
           "id": "OM-04.1",
           "line": 34,
@@ -129790,19 +129935,21 @@
           "review": "unreconciled"
         },
         {
-          "body_sha256": "d6afaefa0820dc3a5e65eae3a4690aa307bf1b6bb346adb02b9cea36797ae15a",
+          "body_sha256": "e010228c1a6c236d524bfbbfa6d1d4d9d81769a1774f6869c8f2dfbea0ddf043",
           "heading": "OM-04.3 Reasoner \u2014 mode decision, transitive cap, consistency gate",
           "id": "OM-04.3",
           "line": 107,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
           "body_sha256": "4b7d45e8a64a4855bf80d251de17116fe407c6a1394192693bc7fdd651e5878f",
           "heading": "OM-04.4 NGG1 tiers \u2014 where relation names collapse and where ids and positions are baked",
           "id": "OM-04.4",
-          "line": 140,
+          "line": 142,
           "ordinal": 4,
           "reports": [],
           "review": "unreconciled"
@@ -129811,7 +129958,7 @@
           "body_sha256": "a26bb8d404dec8542cc9da99e8084524cafaf3c08ebf739a70c6c896a1d92858",
           "heading": "OM-04.5 Scaffold, prose and search indexes, backlinks and the domain index",
           "id": "OM-04.5",
-          "line": 180,
+          "line": 182,
           "ordinal": 5,
           "reports": [],
           "review": "unreconciled"
@@ -129820,7 +129967,7 @@
           "body_sha256": "0f79a62ebef383083fafccb85cfdd80a6da5d390a11fe0aee0328429819f0ee9",
           "heading": "OM-04.6 WebVOWL graph and OKF bundle \u2014 second and third projections of the same records",
           "id": "OM-04.6",
-          "line": 209,
+          "line": 211,
           "ordinal": 6,
           "reports": [],
           "review": "unreconciled"
@@ -129829,7 +129976,7 @@
           "body_sha256": "72f7815524d26c3d941ffa6d456a06c9ba8318cdefba8c19da349638a753d088",
           "heading": "OM-04.7 Duplicated computation \u2014 what each emitter recomputes instead of sharing",
           "id": "OM-04.7",
-          "line": 235,
+          "line": 237,
           "ordinal": 7,
           "reports": [],
           "review": "unreconciled"
@@ -129837,8 +129984,8 @@
       ],
       "path": "docs/diagrams/ontomark/04-emitters-turtle-indexes-tiers-and-contract-c3.md",
       "repo": "VisionFlow",
-      "review": "unreconciled",
-      "sha256": "4e5d8caf63e9ee28e4172644d77a958d52814438073fcaca6c0467314181a801"
+      "review": "partial-assessment-recorded",
+      "sha256": "4e217402b69b42a115b399eca34254de7cbeb10050270072dd126b1fd727dc45"
     },
     {
       "claims": [],
@@ -130094,6 +130241,72 @@
       "repo": "VisionFlow",
       "review": "assessment-recorded",
       "sha256": "ae8e4fdeb1d118a91a08247adeaf2dd1e5f94636aa3ae811023b2aca254d4b7e"
+    },
+    {
+      "claims": [
+        {
+          "basis": "Four new panels checked against source at 0caae5d, strict citations, Pele rendering and visual inspection. Nine adversarial probes and actual independent-checker execution support the scoped findings.",
+          "coverage": "selected-panels",
+          "panels": [
+            "OM-10.1",
+            "OM-10.2",
+            "OM-10.3",
+            "OM-10.4"
+          ],
+          "report": "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md",
+          "state": "assessment-recorded"
+        }
+      ],
+      "panels": [
+        {
+          "body_sha256": "324606de0ebdb05c592975b3661cf5acab23950351fabf07ac31ccfe7e2b936f",
+          "heading": "OM-10.1 A refusal table only sees the input it receives",
+          "id": "OM-10.1",
+          "line": 34,
+          "ordinal": 1,
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md"
+          ],
+          "review": "assessment-recorded"
+        },
+        {
+          "body_sha256": "efe249b536e5a5e01033d7361b3c8ed51f5cc1772cd3621437cdba962e8d450a",
+          "heading": "OM-10.2 Optional parity precedes certificate writes, consistency and publication",
+          "id": "OM-10.2",
+          "line": 52,
+          "ordinal": 2,
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md"
+          ],
+          "review": "assessment-recorded"
+        },
+        {
+          "body_sha256": "d422c898af2465bbada95e7aa346bf947b5defa73824d74cb589f99a650727f0",
+          "heading": "OM-10.3 Checker soundness is separate from completeness and file identity",
+          "id": "OM-10.3",
+          "line": 73,
+          "ordinal": 3,
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md"
+          ],
+          "review": "assessment-recorded"
+        },
+        {
+          "body_sha256": "a224af7926cbb2745f5e1c1ffbd80f8c6ca6158e4ccd4b5b42625b1155c1c681",
+          "heading": "OM-10.4 Work budgets and completeness are different guarantees",
+          "id": "OM-10.4",
+          "line": 91,
+          "ordinal": 4,
+          "reports": [
+            "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md"
+          ],
+          "review": "assessment-recorded"
+        }
+      ],
+      "path": "docs/diagrams/ontomark/10-reasoning-and-certificate-boundaries.md",
+      "repo": "VisionFlow",
+      "review": "assessment-recorded",
+      "sha256": "deaa83a64a2caea8b0b6c3a54a4b4634839cbea6d5548f384fe79eebc8ff870e"
     },
     {
       "claims": [],

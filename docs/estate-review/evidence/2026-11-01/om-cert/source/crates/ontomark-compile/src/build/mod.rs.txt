@@ -1,0 +1,401 @@
+45: use crate::ir::projection;
+46: use crate::profile::Profile;
+47: use crate::reason;
+48:
+49: /// What to build and where.
+50: #[derive(Debug, Clone)]
+51: pub struct Options {
+52:     /// The vault root, e.g. `<repo>/knowledge`.
+53:     pub vault_root: PathBuf,
+54:     /// The bundle destination.
+55:     pub out: PathBuf,
+56:     /// The repository the generation sha is read from.
+57:     pub repo_root: PathBuf,
+58:     /// Emit `api/markdown/` — the title-form markdown mirror.
+59:     ///
+60:     /// Off by default (decided 2026-09-22): it has no consumer, weighs 124 MB
+61:     /// and the Pages budget is 1 GB.
+62:     pub with_markdown_mirror: bool,
+63:     /// The build instant, `CPython` `isoformat()` shape. `None` reads the
+64:     /// clock; a golden comparison supplies the recorded instant.
+65:     pub generated_at: Option<String>,
+66:     /// The source identity `(commit, dirty)`. `None` asks git.
+67:     pub source: Option<(String, bool)>,
+68:     /// Optional bundle expiry, carried into `.generation.json`.
+69:     pub stale_after: Option<String>,
+70:     /// Write the `publish/` staging to this directory instead of
+71:     /// `<out>/publish`, so the markdown can be promoted separately from the C3
+72:     /// bundle. The credential gate applies either way.
+73:     pub publish_out: Option<PathBuf>,
+74:     /// Also stage `working/`'s `public: true` pages under `publish/`.
+75:     ///
+76:     /// The ontology projections stay `knowledge/`-only regardless: publication
+77:     /// is a per-page decision, OWL membership is not.
+78:     pub with_working_publish: bool,
+79:     /// Redact links to non-public pages in every public surface (EXP-04),
+80:     /// including the machine corpus before closure and Markdown staging.
+81:     ///
+82:     /// `None` takes the profile's `publication.redact_private_links`;
+83:     /// `Some(false)` is the byte-parity switch (`--no-redact-private-links`).
+84:     pub redact_private_links: Option<bool>,
+85:     /// Which consumer the bundle is for. [`Scope::Public`] is today's build;
+86:     /// [`Scope::Machine`] adds `working/`'s public pages as plain records and
+87:     /// writes no `publish/` tree (see [`ScopeConflict`] for what it refuses).
+88:     pub scope: Scope,
+89:     /// Write the RDFS derivation certificate of the published graph into this
+90:     /// directory (`asserted.tsv`, `derivations.tsv`, `asserted.sha256`,
+91:     /// `scope.tsv`, the `oo-cert/1` format), ADR-OM-009. The certified named
+92:     /// closure must equal the classifier's or the build is refused with
+93:     /// [`CertificateParity`]: a generation is never published with a closure
+94:     /// its warrant does not cover. `None` writes nothing and checks nothing.
+95:     pub certificate_out: Option<PathBuf>,
+96: }
+97:
+98: /// The certificate's named closure is not the classifier's (ADR-OM-009).
+99: /// Structural today, so this is the review trigger firing, not a flake.
+100: #[derive(Debug, Clone, PartialEq, Eq)]
+101: pub struct CertificateParity {
+102:     /// Named subsumptions the RDFS certificate derives.
+103:     pub certified: usize,
+104:     /// Named subsumptions the classifier infers.
+105:     pub classifier: usize,
+106: }
+107:
+108: impl std::fmt::Display for CertificateParity {
+109:     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+110:         write!(
+111:             f,
+112:             "the derivation certificate does not cover the classifier's closure: {} certified named subsumptions, {} inferred by the classifier; the build is refused (ADR-OM-009)",
+113:             self.certified, self.classifier
+114:         )
+115:     }
+116: }
+117:
+118: impl std::error::Error for CertificateParity {}
+119:
+120: /// What `--certificate-out` wrote (ADR-OM-009).
+121: #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+122: pub struct CertificateReport {
+123:     /// Where the certificate was written.
+124:     pub dir: PathBuf,
+125:     /// Files, counts and the `asserted.sha256` digest.
+126:     pub summary: crate::certificate::Summary,
+127:     /// Wall time of the fixpoint and the write, milliseconds.
+128:     pub certify_ms: u128,
+129:     /// Named subsumptions the certificate derives.
+130:     pub certified_named_subsumptions: usize,
+131:     /// Named subsumptions the classifier inferred; equal by construction, or
+132:     /// the build would have been refused.
+133:     pub classifier_inferred: usize,
+134:     /// How a reviewer re-checks it.
+135:     pub check_with: String,
+294:     }
+295: }
+296:
+297: impl std::error::Error for ScopeConflict {}
+298:
+299: /// Replace `out` with the fully written `stage` directory: `out` is moved
+300: /// aside, `stage` is renamed into its place, and the old tree is removed only
+301: /// once the rename succeeded. On failure the old tree is put back. The window
+302: /// in which `out` does not exist is the gap between two renames, and nothing
+303: /// is ever deleted before the new tree is complete (S2.3).
+304: pub(crate) fn swap_in(stage: &Path, out: &Path) -> std::io::Result<()> {
+305:     let parent = out.parent().unwrap_or(Path::new("."));
+306:     let retired = parent.join(format!(".publication-retired-{}", std::process::id()));
+307:     if retired.exists() {
+308:         std::fs::remove_dir_all(&retired)?;
+309:     }
+310:     if out.exists() {
+311:         std::fs::rename(out, &retired)?;
+312:     }
+313:     match std::fs::rename(stage, out) {
+314:         Ok(()) => {
+315:             if retired.exists() {
+316:                 let _ = std::fs::remove_dir_all(&retired);
+317:             }
+318:             Ok(())
+319:         }
+320:         Err(e) => {
+321:             // Put the previous tree back before surfacing the failure.
+322:             if retired.exists() {
+323:                 let _ = std::fs::rename(&retired, out);
+324:             }
+325:             let _ = std::fs::remove_dir_all(stage);
+326:             Err(e)
+398:         }
+399:     }
+400:
+401:     fn artifacts(&self) -> Vec<generation::Artifact> {
+402:         self.files
+403:             .iter()
+404:             .map(|(name, content)| generation::Artifact::of(name.clone(), content))
+405:             .chain(self.external.iter().cloned())
+406:             .collect()
+407:     }
+408:
+409:     /// Write into a fresh staging directory beside `out`, then swap it in
+410:     /// ([`swap_in`]): the previous bundle survives any failure.
+411:     fn promote(&self, out: &Path) -> anyhow::Result<()> {
+412:         let parent = out.parent().unwrap_or(Path::new("."));
+413:         std::fs::create_dir_all(parent)
+414:             .with_context(|| format!("creating {}", parent.display()))?;
+415:         let stage = parent.join(format!(".publication-{}", std::process::id()));
+416:         if stage.exists() {
+417:             std::fs::remove_dir_all(&stage)?;
+418:         }
+419:         std::fs::create_dir_all(&stage)?;
+420:
+421:         for (name, content) in &self.files {
+422:             let target = stage.join(name);
+423:             if let Some(dir) = target.parent() {
+424:                 std::fs::create_dir_all(dir)?;
+425:             }
+426:             std::fs::write(&target, content)
+427:                 .with_context(|| format!("writing {}", target.display()))?;
+428:         }
+429:
+430:         swap_in(&stage, out)
+431:             .with_context(|| format!("promoting the bundle into {}", out.display()))?;
+432:         Ok(())
+433:     }
+434: }
+435:
+530:     vocab: &Vocabulary,
+531:     classifier: &dyn reason::Classifier,
+532: ) -> anyhow::Result<Report> {
+533:     run_with(options, profile, vocab, classifier, None)
+534: }
+535:
+536: /// [`run`], optionally embedding the corpus into
+537: /// `data/ontology-corpus.records.jsonl` (contract C3, `--with-rvdb`) through
+538: /// the host's [`records::Embedder`]. The compile crate never opens a socket:
+539: /// the embedder is the one place the build reaches the network, and only when
+540: /// the host hands one in.
+541: ///
+542: /// # Errors
+543: /// As [`run`], plus the embedder's failure or a vector of the wrong width.
+544: #[allow(clippy::too_many_lines)] // The pipeline, in the order it must run.
+545: pub fn run_with(
+546:     options: &Options,
+547:     profile: &Profile,
+548:     vocab: &Vocabulary,
+549:     classifier: &dyn reason::Classifier,
+550:     embedder: Option<&dyn records::Embedder>,
+551: ) -> anyhow::Result<Report> {
+552:     // The machine bundle's inputs are fixed, so what cannot be honoured is
+631:         redact::PrivateLinks::new(&all)
+632:     });
+633:     let staging = publish::stage_redacted(&publish_vaults, private_links.as_ref())?;
+634:
+635:     let report = validate::validate(profile, &vault, &raw, vocab);
+636:     anyhow::ensure!(
+637:         report.errors().is_empty(),
+638:         "validation rejected {} error(s); no bundle written. First: {}",
+639:         report.errors().len(),
+640:         report.errors()[0]
+641:     );
+642:
+643:     // `validate` pairs `vault.pages` with the corpus built from it by position,
+644:     // so `working/` is checked on its own, under its own role.
+645:     if machine {
+646:         if let Some(working) = &working {
+647:             let working_report =
+648:                 validate::validate(profile, working, &Corpus::build(working, vocab), vocab);
+649:             anyhow::ensure!(
+650:                 working_report.errors().is_empty(),
+651:                 "validation rejected {} error(s) in working/; no bundle written. First: {}",
+652:                 working_report.errors().len(),
+653:                 working_report.errors()[0]
+654:             );
+655:         }
+656:     }
+657:
+658:     let excluded = projection::excluded_identities_of(&vault);
+659:     let mut merged: Option<Corpus> = None;
+660:     let mut machine_summary = None;
+661:     let (corpus, prose_redactor) =
+662:         if let (true, Some(links), Some(working)) = (machine, &private_links, &working) {
+663:             let projected =
+664:                 projection::project_machine(profile, &vault, working, vocab, &excluded, links)?;
+665:             merged = Some(projected.merged());
+666:             machine_summary = Some(MachineSummary {
+667:                 working_records: projected.plain.len(),
+668:                 yielded: projected.yielded,
+669:             });
+670:             (projected.knowledge, projected.redactor)
+671:         } else if let Some(links) = &private_links {
+672:             projection::project_vault_with_links(profile, &vault, vocab, &excluded, links)?
+673:         } else {
+674:             // Explicit compatibility mode retains the legacy projection bytes.
+675:             projection::project_with_redactor(profile, &raw, &excluded)?
+676:         };
+677:
+678:     let structural = closure::compute(profile, &corpus);
+679:     let backlinks = indexes::backlink_index(&corpus);
+680:     let roster = options
+681:         .vault_root
+682:         .parent()
+683:         .map(attribution::Roster::discover)
+684:         .unwrap_or_default();
+685:     let graph = turtle::build_graph_attributed(profile, &corpus, vocab, true, &roster);
+686:     // ADR-2124: a definition over a transitive hierarchy is refused here,
+687:     // before the reasoner runs, with the named `WHELK_RELEVANT_CAP` error —
+688:     // never a hang. The error is returned unwrapped so the CLI can downcast it.
+689:     let reasoning = reason::reason(&graph, classifier)?;
+690:     // ADR-OM-009: the warrant for the closure, from the very graph that is
+691:     // reasoned and published, before anything is written.
+692:     let certificate = match &options.certificate_out {
+693:         Some(dir) => {
+694:             let started = std::time::Instant::now();
+695:             let cert = crate::certificate::certify(&graph);
+696:             let (certified, classifier_n, same) = crate::certificate::parity(&cert, &reasoning);
+697:             if !same {
+698:                 return Err(CertificateParity {
+699:                     certified,
+700:                     classifier: classifier_n,
+701:                 }
+702:                 .into());
+703:             }
+704:             let generation_label = generation::generation_id(
+705:                 &profile.generation.prefix_for(&options.repo_root),
+706:                 &options.source.as_ref().map_or_else(
+707:                     || generation::git_sha(&options.repo_root),
+708:                     |(c, _)| c.clone(),
+709:                 ),
+710:                 options.source.as_ref().map_or_else(
+711:                     || generation::git_dirty(&options.repo_root, &[&options.vault_root]),
+712:                     |(_, d)| *d,
+713:                 ),
+714:             );
+715:             let summary = cert
+716:                 .write(dir, &generation_label)
+717:                 .with_context(|| format!("writing the certificate to {}", dir.display()))?;
+718:             Some(CertificateReport {
+719:                 dir: dir.clone(),
+720:                 summary,
+721:                 certify_ms: started.elapsed().as_millis(),
+722:                 certified_named_subsumptions: certified,
+723:                 classifier_inferred: classifier_n,
+724:                 check_with: format!(
+725:                     "oo-cert {d}/asserted.tsv {d}/derivations.tsv",
+726:                     d = dir.display()
+727:                 ),
+728:             })
+729:         }
+730:         None => None,
+731:     };
+732:     // ADR-2124 decision 4: the mode is decided by the graph, so say which.
+733:     eprintln!(
+734:         "vault build: whelk restrictions mode {} ({} kept, {} skipped, {} defined class(es))",
+735:         reasoning.mode.as_str(),
+736:         reasoning.restrictions_kept,
+737:         reasoning.restrictions_skipped,
+738:         reasoning.defined_classes
+739:     );
+740:     // ADR-2125 item 4: the zero-unsatisfiable gate. An unsatisfiable class is
+741:     // a broken corpus, never a warning; nothing is written and the root causes
+742:     // (not every class that inherits `owl:Nothing` from them) are named.
+743:     if !reasoning.is_consistent() {
+744:         return Err(Unsatisfiable {
+745:             unsatisfiable: reasoning.unsatisfiable.clone(),
+746:             root_causes: reasoning.root_causes.clone(),
+747:         }
+748:         .into());
+749:     }
+750:     let generated = options.generated_at.clone().unwrap_or_else(now_iso);
+751:     // `today()` in the legacy build: the same instant's date, so one
+752:     // injected clock fixes both.
+753:     let today = generated.get(..10).map_or_else(today, str::to_owned);
+754:
+755:     let class_count = corpus.public_classes().count();
+756:     // What the page API and the search index are built from: in the machine
+757:     // scope the knowledge records plus the plain `working/` ones. Everything
+758:     // ontological (Turtle, reasoner, indexes Loom reads, graph tiers, OKF) is
+759:     // built from `corpus`, so a plain record cannot reach it.
+760:     let listed = merged.as_ref().unwrap_or(&corpus);
+761:     let page_count = listed.records.len();
+762:
+763:     let mut staged = Staged::new();
+764:     // `publish/` either rides inside the bundle or is promoted on its own —
+765:     // the latter only after the write-once check below passes.
+985:     // too), so the ontology carries its own digest — the tail of its
+986:     // `owl:versionIRI` — recorded here beside the page digest (ADR-2128).
+987:     let ontology_digest = turtle::ontology_digest(profile, &graph);
+988:
+989:     let mut gen = generation::generation(
+990:         &prefix,
+991:         commit,
+992:         dirty,
+993:         content_digest,
+994:         ontology_digest,
+995:         generated,
+996:         class_count,
+997:         page_count,
+998:         vocab.version,
+999:         options.stale_after.clone(),
+1000:         staged.artifacts(),
+1001:     );
+1002:     gen.scope = options.scope;
+1003:     // Loom serves `data/` and reads its marker from there, verifying each
+1004:     // artefact relative to that directory; the root marker keeps the whole
+1005:     // bundle's view. Both carry the same identity. A marker cannot list its
+1006:     // own hash, so the rule is: no marker lists itself, and the root marker
+1007:     // lists the data marker (S2.5).
+1008:     let data_marker = to_indented(&gen.scoped("data"))?;
+1009:     let mut artifacts = gen.artifacts.clone();
+1010:     artifacts.push(generation::Artifact::of(
+1011:         "data/.generation.json",
+1012:         data_marker.as_bytes(),
+1013:     ));
+1014:     let root_marker = generation::Generation { artifacts, ..gen };
+1015:     staged.add("data/.generation.json", data_marker);
+1016:     staged.add(".generation.json", to_indented(&root_marker)?);
+1017:     staged.ensure_single_claims()?;
+1018:     staged.promote(&options.out)?;
+1019:     if let Some(dir) = &options.publish_out {
+1020:         publish::write_to(&staging, dir)?;
+1021:     }
+1022:
+1023:     Ok(Report {
+1024:         generation: root_marker,
+1025:         class_count,
+1026:         page_count,
+1027:         triples: graph.len(),
+1028:         inferred_triples: reasoning.inferred.len(),
+1029:         search_entries,
+1030:         graph_nodes: tiers.nodes,
+1031:         graph_edges: tiers.edges,
+1032:         reasoner_mode: reasoning.mode.as_str(),
+1033:         restrictions_kept: reasoning.restrictions_kept,
+1034:         defined_classes: reasoning.defined_classes,
+1035:         unsatisfiable: reasoning.unsatisfiable,
+1036:         // The machine bundle stages no Markdown, so it publishes nothing.
+1037:         published: if machine {
+1038:             std::collections::BTreeMap::new()
+1039:         } else {
+1040:             staging.per_vault
+1041:         },
+1042:         // Both destinations count: with `--publish-out` the markdown is
+1043:         // promoted separately, and it is still something that was written.
+1044:         written: staged.files.len()
+1045:             + if options.publish_out.is_some() {
+1046:                 staging.files.len()
+1047:             } else {
+1048:                 0
+1049:             },
+1050:         out: options.out.clone(),
+1051:         redaction: staging
+1052:             .redaction
+1053:             .clone()
+1054:             .map(|publish| redact::RedactionReport {
+1055:                 publish: if machine {
+1056:                     std::collections::BTreeMap::new()
+1057:                 } else {
+1058:                     publish
+1059:                 },
+1060:                 mirror: mirror_redaction,
+1061:             }),
+1062:         machine: machine_summary,
+1063:         certificate,
+1064:     })
+1065: }

@@ -1,0 +1,298 @@
+{
+  "revision": "0caae5d4b695cb720942b9b9212017c00a80ad41",
+  "source": {
+    "docs/adr/ADR-OM-004-owl2-el-as-the-local-reasoning-profile.md": {
+      "sha256": "de101e4765f701f07c6e0e3de9886304bf07a92a5c89d76a9d8edd090b4a5a6f",
+      "export": "source/docs/adr/ADR-OM-004-owl2-el-as-the-local-reasoning-profile.md"
+    },
+    "docs/adr/ADR-OM-009-every-published-closure-carries-a-derivation-certificate.md": {
+      "sha256": "a0eacfd01023104011938cf2bb182a3651143a56581a7d0c9ab29864382a6ac2",
+      "export": "source/docs/adr/ADR-OM-009-every-published-closure-carries-a-derivation-certificate.md"
+    },
+    "crates/ontomark-compile/src/certificate.rs": {
+      "sha256": "feba77b64720064fa317bd4968235d488701fa0c21e6a2f30c6fc353d1d144e1",
+      "export": "source/crates/ontomark-compile/src/certificate.rs"
+    },
+    "crates/ontomark-compile/src/reason.rs": {
+      "sha256": "5a8d794fbb38925893b57618a16d10862c200085640b668d2036ce0ef2a0e8d3",
+      "export": "source/crates/ontomark-compile/src/reason.rs"
+    },
+    "crates/ontomark-compile/src/whelk.rs": {
+      "sha256": "e22678969601b6825b97805d607b3eca9b88f0768c4b256622042a584838452a",
+      "export": "source/crates/ontomark-compile/src/whelk.rs"
+    },
+    "crates/ontomark-compile/src/build/mod.rs": {
+      "sha256": "cfc0a84ba4802325de5821e827a949ab206665497e9b23f8ee842ff9019809ea",
+      "export": "source/crates/ontomark-compile/src/build/mod.rs.txt",
+      "lines": [
+        [
+          45,
+          135
+        ],
+        [
+          294,
+          326
+        ],
+        [
+          398,
+          435
+        ],
+        [
+          530,
+          552
+        ],
+        [
+          631,
+          765
+        ],
+        [
+          985,
+          1065
+        ]
+      ]
+    },
+    "crates/ontomark-compile/src/input/vocabulary.rs": {
+      "sha256": "ceefa47438eec7755500af8bbabf9cfcd3403b144d58ff3de27468d0a7b06f51",
+      "export": "source/crates/ontomark-compile/src/input/vocabulary.rs.txt",
+      "lines": [
+        [
+          65,
+          135
+        ],
+        [
+          510,
+          630
+        ]
+      ]
+    },
+    "crates/ontomark-reason/src/profile.rs": {
+      "sha256": "f0f7bda63e43cb4669cb9c15218058f2f20836e5af52310e1f8a59b1fca22a4f",
+      "export": "source/crates/ontomark-reason/src/profile.rs"
+    },
+    "crates/ontomark-reason/src/classify.rs": {
+      "sha256": "6438b17d138afe590430556cee13f45781d3d25b53e35c26b1a7877f0674799f",
+      "export": "source/crates/ontomark-reason/src/classify.rs"
+    },
+    "crates/ontomark-reason/src/session.rs": {
+      "sha256": "b4e4483fe3578d37d722a559a8c46fd0dd11fdc0c4e70b56726a11c7d16c4a59",
+      "export": "source/crates/ontomark-reason/src/session.rs"
+    },
+    "crates/ontomark-wasm/src/reason.rs": {
+      "sha256": "6595a354605ee68b33bfa7e32ccaebb1b30fa9a1015ea9c7ed8c63a21ba9d017",
+      "export": "source/crates/ontomark-wasm/src/reason.rs"
+    },
+    "crates/ontomark-wasm/src/engine.rs": {
+      "sha256": "2865983bb8b4b4944fffa82f7d8dc0f72d1ae82530fd290b223cef37e25db74d",
+      "export": "source/crates/ontomark-wasm/src/engine.rs.txt",
+      "lines": [
+        [
+          30,
+          37
+        ],
+        [
+          535,
+          592
+        ]
+      ]
+    },
+    "crates/rdfs-certificate/src/lib.rs": {
+      "sha256": "8d7dece4ba68ba8317af791b5cfa8f89dbc4fe6d5ad3b01b96914ba8dad39e58",
+      "export": "source/crates/rdfs-certificate/src/lib.rs"
+    },
+    "crates/rdfs-certificate/tests/oo_cert.rs": {
+      "sha256": "c1dfd438b11e2e02300dae89e025ed8a3ac08e90a05287f3923004cb2bcdf429",
+      "export": "source/crates/rdfs-certificate/tests/oo_cert.rs"
+    },
+    "crates/rdfs-certificate/README.md": {
+      "sha256": "17eab55ae328b0208e93ed7e2ea43ab25a6278b97e1038f60be3e8966ff65bac",
+      "export": "source/crates/rdfs-certificate/README.md"
+    },
+    ".github/workflows/ci.yml": {
+      "sha256": "ed2011da4a2df8fa2836e3288b047ddefca398038e173713191106f1693dc42a",
+      "export": "source/.github/workflows/ci.yml"
+    },
+    "crates/ontomark-cli/src/main.rs": {
+      "sha256": "780cff6abf0500ebd4fd74871a43be041afd462ff33d0bd85922afffdb25ad8e",
+      "export": "source/crates/ontomark-cli/src/main.rs.txt",
+      "lines": [
+        [
+          389,
+          414
+        ],
+        [
+          790,
+          892
+        ]
+      ]
+    },
+    "crates/ontomark-compile/tests/defined_classes.rs": {
+      "sha256": "0acbc387427b2cb4ecaf50d24bced4288c572c89fce0d35950d1d4886fab5341",
+      "export": "source/crates/ontomark-compile/tests/defined_classes.rs"
+    }
+  },
+  "identical_to_OM04_pin": {
+    "crates/ontomark-compile/src/reason.rs": true,
+    "crates/ontomark-compile/src/whelk.rs": true,
+    "crates/ontomark-compile/src/build/mod.rs": false,
+    "crates/ontomark-cli/src/main.rs": false,
+    "crates/ontomark-compile/src/certificate.rs": true
+  },
+  "checker": {
+    "url": "https://github.com/fabio-rovai/open-ontologies/releases/download/v2.0.1/oo-cert-x86_64-unknown-linux-gnu",
+    "sha256": "68223b4db193783a52bd2810a66ce2ad3a3780f963a5ef84753564c051e3e532",
+    "expected_sha256": "68223b4db193783a52bd2810a66ce2ad3a3780f963a5ef84753564c051e3e532"
+  },
+  "baseline_tests": {
+    "ontomark_compile_library": 504,
+    "rdfs_certificate_library": 11,
+    "ontomark_reason_integration": 21,
+    "ontomark_reason_doctests": 3,
+    "independent_checker": 2
+  },
+  "adversarial_tests": 9,
+  "scope": "Synthetic fixtures; no live corpus, deployment, full profile conformance, fresh corpus benchmark or proof-kernel rebuild.",
+  "diagram_validation": {
+    "topics_rendered": 2,
+    "panels_rendered": 11,
+    "pinned_citations": 228,
+    "warnings": 0,
+    "fallback": 0,
+    "visually_inspected": [
+      "OM-04.1",
+      "OM-04.3",
+      "OM-10.1",
+      "OM-10.2",
+      "OM-10.3",
+      "OM-10.4"
+    ],
+    "assessment_credit": [
+      "OM-04.3",
+      "OM-10.1",
+      "OM-10.2",
+      "OM-10.3",
+      "OM-10.4"
+    ],
+    "limits": "OM-04.1 certificate-path correction only; sibling panel rendering adds no source assessment credit."
+  },
+  "source_exports_verified": 18,
+  "prose_review": {
+    "unicode_findings": 0,
+    "heuristic_flags": 3,
+    "disposition": "Retained a specific checker-identification subject and correct uses of check/onward. Read the full report for scope, evidence strength and unsupported generalisation."
+  },
+  "local_links_checked": [
+    {
+      "file": "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md",
+      "target": "../diagrams/ontomark/10-reasoning-and-certificate-boundaries.md"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md",
+      "target": "evidence/2026-11-01/om-cert/verification.json"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md",
+      "target": "evidence/2026-11-01/om-cert/audit_certificate.rs"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md",
+      "target": "evidence/2026-11-01/om-cert/probes-third.log"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md",
+      "target": "evidence/2026-11-01/om-cert/README.md"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md",
+      "target": "evidence/2026-11-01/om-cert/source/docs/adr/ADR-OM-004-owl2-el-as-the-local-reasoning-profile.md"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md",
+      "target": "2026-11-01-obsidian-refresh.md"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md",
+      "target": "evidence/2026-11-01/om-cert/source/docs/adr/ADR-OM-009-every-published-closure-carries-a-derivation-certificate.md"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md",
+      "target": "2026-10-31-proposal-construction.md"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md",
+      "target": "evidence/2026-11-01/om-cert/old-pin-runtime-diff.patch"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "scope.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "claims.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "snapshot-2026-11-01.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "validation-2026-11-01.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../../../scripts/estate-review-ledger/README.md"
+    },
+    {
+      "file": "docs/diagrams/ontomark/10-reasoning-and-certificate-boundaries.md",
+      "target": "../../estate-review/2026-11-01-ontomark-reasoning-and-certificates.md"
+    }
+  ],
+  "full_corpus_validation": {
+    "topics": 201,
+    "diagrams": 1713,
+    "pinned_citations": 25367,
+    "warnings": 0,
+    "fallback": 0,
+    "unresolvable": 0,
+    "allowlisted": 9,
+    "declared_revisions": 49,
+    "limits": "Whole-corpus syntax/citation-index checks do not provide source-assessment credit for untouched panels."
+  },
+  "evidence_hashes": {
+    "README.md": "3384070f8153d4a376b0dd9b10fcf065bbe6997f0b6d7e792b7f92d43d07cd15",
+    "audit_certificate.rs": "d64ef1f8e13f87dc3623d9d04ca16707cbc955879fe7070ceebfe0c7f1755fc8",
+    "baseline-tests.log": "62e9924bcb25979b1baaddd94e38a0b821f2d4246f93c9a2cc12de08e5deb0ec",
+    "checker-help.log": "50e242945645a06acb8ec7dec88130b869c1f1fa71e44bbd7d03f0fcfb24c9bc",
+    "checker-tests.log": "f6214d654d652bb9fe5e9f0dea105da1eb996d1821d8b914c9a782d91d496366",
+    "corpus-check.log": "da6e3986e556d89a97b420ec4e6361e065be248fc32317e86dfd4b70687c856f",
+    "corpus.log": "14030feb769162ebb834be0a83c85a94e85585708b264fa35074d63b1f45bed6",
+    "ledger.log": "a14e7abee67495a25f30b877459c2c1d5ad461cc98d120ba4dd63c7659f09ec8",
+    "old-pin-runtime-diff.patch": "88820a77571b824e6ff069342c0e0531b307140fc5a880ee6533c14649144d96",
+    "probes-initial.log": "2c822e825518620e573d3a5d8859833b3c2a7f38a421ca143d4b1064156b2b15",
+    "probes-second.log": "de1435bd7214729291b1cb63eef06c7cf33cb6c45ceaa1fbb9aa0abbafb42964",
+    "probes-third.log": "1f96ded95d4b01ab71408d6a849950f705b3387bba1eadb0b8133433d3ea71fd",
+    "prose-final.log": "4c1b1db7513cc37931162cc82d6b569f009bfeacbdfc92435d0daec4501e6f12",
+    "reason-tests.log": "239b20150f62447763b2683145e1e312715776d53fcbb32c8a672352a3fe52d0",
+    "render-om04.log": "88180285a2760de7b263115bf6e0943fd7fc83c296dd9b4c070ef1285150c7cc",
+    "render-om10-initial.log": "12cf3eb43d932d6dbf7bd259191b6c39040497451aed40dd7a7d88acdee4528a",
+    "render-om10.log": "a36eb3df032e9989fc7d504aec4a9c8c86c225391b446b23470be1ec852d6235",
+    "source/.github/workflows/ci.yml": "ed2011da4a2df8fa2836e3288b047ddefca398038e173713191106f1693dc42a",
+    "source/crates/ontomark-cli/src/main.rs.txt": "afe7920d237a1be2628005505c251f47f80b6cc86e72605be1d1139888d65883",
+    "source/crates/ontomark-compile/src/build/mod.rs.txt": "3836da0bb13406aee6378cf689cf3ceb54f21e12c3f21f24443bb7096343cd1a",
+    "source/crates/ontomark-compile/src/certificate.rs": "feba77b64720064fa317bd4968235d488701fa0c21e6a2f30c6fc353d1d144e1",
+    "source/crates/ontomark-compile/src/input/vocabulary.rs.txt": "56b8d45f77b51fa734c3545a433f016c487c8ecb38b8166bb2fab94ddc462ebb",
+    "source/crates/ontomark-compile/src/reason.rs": "5a8d794fbb38925893b57618a16d10862c200085640b668d2036ce0ef2a0e8d3",
+    "source/crates/ontomark-compile/src/whelk.rs": "e22678969601b6825b97805d607b3eca9b88f0768c4b256622042a584838452a",
+    "source/crates/ontomark-compile/tests/defined_classes.rs": "0acbc387427b2cb4ecaf50d24bced4288c572c89fce0d35950d1d4886fab5341",
+    "source/crates/ontomark-reason/src/classify.rs": "6438b17d138afe590430556cee13f45781d3d25b53e35c26b1a7877f0674799f",
+    "source/crates/ontomark-reason/src/profile.rs": "f0f7bda63e43cb4669cb9c15218058f2f20836e5af52310e1f8a59b1fca22a4f",
+    "source/crates/ontomark-reason/src/session.rs": "b4e4483fe3578d37d722a559a8c46fd0dd11fdc0c4e70b56726a11c7d16c4a59",
+    "source/crates/ontomark-wasm/src/engine.rs.txt": "d389d21632f60e6a629469a89516abb2bfa781eb3842f2da6deaa0fb6f0ecd19",
+    "source/crates/ontomark-wasm/src/reason.rs": "6595a354605ee68b33bfa7e32ccaebb1b30fa9a1015ea9c7ed8c63a21ba9d017",
+    "source/crates/rdfs-certificate/README.md": "17eab55ae328b0208e93ed7e2ea43ab25a6278b97e1038f60be3e8966ff65bac",
+    "source/crates/rdfs-certificate/src/lib.rs": "8d7dece4ba68ba8317af791b5cfa8f89dbc4fe6d5ad3b01b96914ba8dad39e58",
+    "source/crates/rdfs-certificate/tests/oo_cert.rs": "c1dfd438b11e2e02300dae89e025ed8a3ac08e90a05287f3923004cb2bcdf429",
+    "source/docs/adr/ADR-OM-004-owl2-el-as-the-local-reasoning-profile.md": "de101e4765f701f07c6e0e3de9886304bf07a92a5c89d76a9d8edd090b4a5a6f",
+    "source/docs/adr/ADR-OM-009-every-published-closure-carries-a-derivation-certificate.md": "a0eacfd01023104011938cf2bb182a3651143a56581a7d0c9ab29864382a6ac2",
+    "unicode-final.log": "a7ec2b8f6147a7287fa3d4ef175db0837f6843b4f63a7df5af2576fd1df79f2c"
+  }
+}

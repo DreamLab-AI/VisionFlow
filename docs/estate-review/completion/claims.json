@@ -1987,5 +1987,54 @@
       "OM-09.4"
     ],
     "basis": "Four new plugin host panels checked against separately pinned repository source, rendered and visually inspected; no credit for sibling Ontomark topics."
+  },
+  {
+    "kind": "adr",
+    "repo": "ontomark",
+    "path": "docs/adr/ADR-OM-004-owl2-el-as-the-local-reasoning-profile.md",
+    "source_sha256": "de101e4765f701f07c6e0e3de9886304bf07a92a5c89d76a9d8edd090b4a5a6f",
+    "report": "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md",
+    "report_sha256": "fe3f45fdc2c2076d45e48dedee718802c22f0803257f94b969b8e7dd8c08f739",
+    "coverage": "whole-document",
+    "basis": "Whole-document section assessment at 0caae5d; synthetic producer/facade/checker evidence. Historical corpus and consumer deployment claims remain qualified; findings are not remediation."
+  },
+  {
+    "kind": "adr",
+    "repo": "ontomark",
+    "path": "docs/adr/ADR-OM-009-every-published-closure-carries-a-derivation-certificate.md",
+    "source_sha256": "a0eacfd01023104011938cf2bb182a3651143a56581a7d0c9ab29864382a6ac2",
+    "report": "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md",
+    "report_sha256": "fe3f45fdc2c2076d45e48dedee718802c22f0803257f94b969b8e7dd8c08f739",
+    "coverage": "whole-document",
+    "basis": "Whole-document section assessment at 0caae5d; synthetic producer/facade/checker evidence. Historical corpus and consumer deployment claims remain qualified; findings are not remediation."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/ontomark/04-emitters-turtle-indexes-tiers-and-contract-c3.md",
+    "source_sha256": "4e217402b69b42a115b399eca34254de7cbeb10050270072dd126b1fd727dc45",
+    "report": "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md",
+    "report_sha256": "fe3f45fdc2c2076d45e48dedee718802c22f0803257f94b969b8e7dd8c08f739",
+    "coverage": "selected-panels",
+    "panels": [
+      "OM-04.3"
+    ],
+    "basis": "Only reasoner panel assessed against current source with runtime identity to its old pin, rendered and visually inspected. OM-04.1 narrow certificate-path correction and other emitter panels receive no new coverage."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/ontomark/10-reasoning-and-certificate-boundaries.md",
+    "source_sha256": "deaa83a64a2caea8b0b6c3a54a4b4634839cbea6d5548f384fe79eebc8ff870e",
+    "report": "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md",
+    "report_sha256": "fe3f45fdc2c2076d45e48dedee718802c22f0803257f94b969b8e7dd8c08f739",
+    "coverage": "selected-panels",
+    "panels": [
+      "OM-10.1",
+      "OM-10.2",
+      "OM-10.3",
+      "OM-10.4"
+    ],
+    "basis": "Four new panels checked against source at 0caae5d, strict citations, Pele rendering and visual inspection. Nine adversarial probes and actual independent-checker execution support the scoped findings."
   }
 ]

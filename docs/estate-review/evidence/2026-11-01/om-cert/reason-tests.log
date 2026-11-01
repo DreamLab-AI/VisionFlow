@@ -1,0 +1,69 @@
+    Blocking waiting for file lock on build directory
+   Compiling typenum v1.20.1
+   Compiling serde_json v1.0.154
+   Compiling memchr v2.8.3
+   Compiling generic-array v0.14.7
+   Compiling bitmaps v2.1.0
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.7
+   Compiling sized-chunks v0.6.5
+   Compiling digest v0.10.7
+   Compiling sha2 v0.10.9
+   Compiling im v15.1.0
+   Compiling whelk-el v0.1.1 (/home/devuser/workspace/wt/VisionFlow-om-cert/.audit-ontomark/crates/whelk-el)
+   Compiling ontomark-reason v0.1.2 (/home/devuser/workspace/wt/VisionFlow-om-cert/.audit-ontomark/crates/ontomark-reason)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.48s
+     Running unittests src/lib.rs (target/debug/deps/ontomark_reason-4a6616a0199c4fac)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/audit_regressions.rs (target/debug/deps/audit_regressions-6bd497230e78d26a)
+
+running 8 tests
+test built_in_properties_and_nominals_are_refused ... ok
+test consistency_is_not_claimed_for_an_incomplete_relevant_result_without_clashes ... ok
+test a_dropped_existential_does_not_claim_completeness_or_consistency ... ok
+test individual_assertions_are_refused_and_cannot_claim_consistency ... ok
+test an_unsatisfiable_thing_is_reported_even_without_named_classes ... ok
+test relevant_still_initialises_classes_of_a_dropped_restriction ... ok
+test relevant_keeps_named_conjuncts_of_a_reduced_axiom ... ok
+test relevant_never_hides_a_clash_inside_an_anonymous_filler ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/exp01.rs (target/debug/deps/exp01-9014dd50329e398f)
+
+running 3 tests
+test the_closure_only_substitute_fails_exp01 ... ok
+test every_fixture_meets_its_expectations_and_matches_its_golden ... ok
+test the_relevant_policy_changes_no_named_subsumption_on_these_fixtures ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/exp06.rs (target/debug/deps/exp06-9ae0a24c507d4575)
+
+running 10 tests
+test a_finished_job_is_spent ... ok
+test a_zero_step_budget_allows_an_already_finished_empty_job ... ok
+test a_late_old_result_is_rejected_even_before_the_new_one_arrives ... ok
+test an_outcome_from_another_session_is_rejected ... ok
+test an_old_result_that_raced_to_completion_cannot_replace_the_new_one ... ok
+test deleting_a_page_removes_its_class_from_the_accepted_result ... ok
+test a_cancel_from_the_host_stops_the_job ... ok
+test an_edit_during_reasoning_cancels_the_old_job_at_its_next_slice ... ok
+test a_step_budget_stops_the_job_instead_of_running_on ... ok
+test sliced_jobs_equal_one_shot_classification ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+   Doc-tests ontomark_reason
+
+running 3 tests
+test crates/ontomark-reason/src/session.rs - session (line 20) ... ok
+test crates/ontomark-reason/src/lib.rs - (line 9) ... ok
+test crates/ontomark-reason/src/lib.rs - readme_examples (line 64) ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s
+

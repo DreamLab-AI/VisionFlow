@@ -1,0 +1,288 @@
+   Compiling ontomark-compile v0.6.1 (/home/devuser/workspace/wt/VisionFlow-om-cert/.audit-ontomark/crates/ontomark-compile)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.44s
+     Running tests/audit_certificate.rs (.audit-ontomark/target/debug/deps/audit_certificate-925c1a4cdbf4d6a6)
+
+running 9 tests
+AUDIT malformed definition: omitted, zero refusals
+AUDIT graph adapter: zero refusals versus facade EL_OUTSIDE_PROFILE
+test audit_malformed_equivalent_definition_is_silent_to_caller ... ok
+test audit_graph_adapter_drops_universal_but_facade_refuses_it ... ok
+AUDIT parity positive control: certified=0, classifier=2, same=false
+test audit_parity_rejects_definition_entailment_beyond_rdfs ... ok
+
+thread 'audit_certificate_under_output_is_accepted_then_lost' (3022101) panicked at crates/ontomark-compile/tests/audit_certificate.rs:87:21:
+called `Result::unwrap()` on an `Err` value: validation rejected 1 error(s); no bundle written. First: [error] DISJOINT_NOT_SIBLINGS A: urn:ngm:class:a disjoint-with urn:ngm:class:b: the two classes share no direct parent; disjointness is for siblings
+
+Stack backtrace:
+   0: <anyhow::Error>::msg::<alloc::string::String>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anyhow-1.0.104/src/backtrace.rs:10:14
+   1: ontomark_compile::build::run_with
+             at ./src/build/mod.rs:636:5
+   2: ontomark_compile::build::run
+             at ./src/build/mod.rs:533:5
+   3: audit_certificate::run
+             at ./tests/audit_certificate.rs:52:5
+   4: audit_certificate::audit_certificate_under_output_is_accepted_then_lost
+             at ./tests/audit_certificate.rs:87:13
+   5: audit_certificate::audit_certificate_under_output_is_accepted_then_lost::{closure#0}
+             at ./tests/audit_certificate.rs:82:58
+   6: <audit_certificate::audit_certificate_under_output_is_accepted_then_lost::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   7: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+   8: test::__rust_begin_short_backtrace::<core::result::Result<(), alloc::string::String>, fn() -> core::result::Result<(), alloc::string::String>>
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/test/src/lib.rs:733:18
+   9: test::run_test_in_process::{closure#0}
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/test/src/lib.rs:756:74
+  10: <core::panic::unwind_safe::AssertUnwindSafe<test::run_test_in_process::{closure#0}> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panic/unwind_safe.rs:275:9
+  11: std::panicking::catch_unwind::do_call::<core::panic::unwind_safe::AssertUnwindSafe<test::run_test_in_process::{closure#0}>, core::result::Result<(), alloc::string::String>>
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:576:43
+  12: std::panicking::catch_unwind::<core::result::Result<(), alloc::string::String>, core::panic::unwind_safe::AssertUnwindSafe<test::run_test_in_process::{closure#0}>>
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:544:19
+  13: std::panic::catch_unwind::<core::panic::unwind_safe::AssertUnwindSafe<test::run_test_in_process::{closure#0}>, core::result::Result<(), alloc::string::String>>
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panic.rs:359:14
+  14: test::run_test_in_process
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/test/src/lib.rs:756:27
+  15: test::run_test::{closure#0}
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/test/src/lib.rs:677:43
+  16: test::run_test::{closure#1}
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/test/src/lib.rs:707:41
+  17: std::sys::backtrace::__rust_begin_short_backtrace::<test::run_test::{closure#1}, ()>
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/sys/backtrace.rs:166:18
+  18: std::thread::lifecycle::spawn_unchecked::<test::run_test::{closure#1}, ()>::{closure#1}::{closure#0}
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/thread/lifecycle.rs:70:13
+  19: <core::panic::unwind_safe::AssertUnwindSafe<std::thread::lifecycle::spawn_unchecked<test::run_test::{closure#1}, ()>::{closure#1}::{closure#0}> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panic/unwind_safe.rs:275:9
+  20: std::panicking::catch_unwind::do_call::<core::panic::unwind_safe::AssertUnwindSafe<std::thread::lifecycle::spawn_unchecked<test::run_test::{closure#1}, ()>::{closure#1}::{closure#0}>, ()>
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:576:43
+  21: std::panicking::catch_unwind::<(), core::panic::unwind_safe::AssertUnwindSafe<std::thread::lifecycle::spawn_unchecked<test::run_test::{closure#1}, ()>::{closure#1}::{closure#0}>>
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:544:19
+  22: std::panic::catch_unwind::<core::panic::unwind_safe::AssertUnwindSafe<std::thread::lifecycle::spawn_unchecked<test::run_test::{closure#1}, ()>::{closure#1}::{closure#0}>, ()>
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panic.rs:359:14
+  23: std::thread::lifecycle::spawn_unchecked::<test::run_test::{closure#1}, ()>::{closure#1}
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/thread/lifecycle.rs:68:26
+  24: <std::thread::lifecycle::spawn_unchecked<test::run_test::{closure#1}, ()>::{closure#1} as core::ops::function::FnOnce<()>>::call_once::{shim:vtable#0}
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+  25: <alloc::boxed::Box<dyn core::ops::function::FnOnce<(), Output = ()> + core::marker::Send> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/alloc/src/boxed.rs:2320:9
+  26: <std::sys::thread::unix::Thread>::new::thread_start
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/sys/thread/unix.rs:123:17
+  27: start_thread
+  28: __clone3
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::result::unwrap_failed
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/result.rs:1871:5
+   3: <core::result::Result<ontomark_compile::build::Report, anyhow::Error>>::unwrap
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/result.rs:1232:23
+   4: audit_certificate::audit_certificate_under_output_is_accepted_then_lost
+             at ./tests/audit_certificate.rs:87:21
+   5: audit_certificate::audit_certificate_under_output_is_accepted_then_lost::{closure#0}
+             at ./tests/audit_certificate.rs:82:58
+   6: <audit_certificate::audit_certificate_under_output_is_accepted_then_lost::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   7: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+thread 'audit_unsatisfiable_build_replaces_certificate_before_refusing' (3022109) panicked at crates/ontomark-compile/tests/audit_certificate.rs:59:13:
+called `Result::unwrap()` on an `Err` value: validation rejected 1 error(s); no bundle written. First: [error] DISJOINT_NOT_SIBLINGS A: urn:ngm:class:a disjoint-with urn:ngm:class:b: the two classes share no direct parent; disjointness is for siblings
+
+Stack backtrace:
+   0: <anyhow::Error>::msg::<alloc::string::String>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anyhow-1.0.104/src/backtrace.rs:10:14
+   1: ontomark_compile::build::run_with
+             at ./src/build/mod.rs:636:5
+   2: ontomark_compile::build::run
+             at ./src/build/mod.rs:533:5
+   3: audit_certificate::run
+             at ./tests/audit_certificate.rs:52:5
+   4: audit_certificate::audit_unsatisfiable_build_replaces_certificate_before_refusing
+             at ./tests/audit_certificate.rs:59:5
+   5: audit_certificate::audit_unsatisfiable_build_replaces_certificate_before_refusing::{closure#0}
+             at ./tests/audit_certificate.rs:55:68
+   6: <audit_certificate::audit_unsatisfiable_build_replaces_certificate_before_refusing::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   7: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+   8: test::__rust_begin_short_backtrace::<core::result::Result<(), alloc::string::String>, fn() -> core::result::Result<(), alloc::string::String>>
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/test/src/lib.rs:733:18
+   9: test::run_test_in_process::{closure#0}
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/test/src/lib.rs:756:74
+  10: <core::panic::unwind_safe::AssertUnwindSafe<test::run_test_in_process::{closure#0}> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panic/unwind_safe.rs:275:9
+  11: std::panicking::catch_unwind::do_call::<core::panic::unwind_safe::AssertUnwindSafe<test::run_test_in_process::{closure#0}>, core::result::Result<(), alloc::string::String>>
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:576:43
+  12: std::panicking::catch_unwind::<core::result::Result<(), alloc::string::String>, core::panic::unwind_safe::AssertUnwindSafe<test::run_test_in_process::{closure#0}>>
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:544:19
+  13: std::panic::catch_unwind::<core::panic::unwind_safe::AssertUnwindSafe<test::run_test_in_process::{closure#0}>, core::result::Result<(), alloc::string::String>>
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panic.rs:359:14
+  14: test::run_test_in_process
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/test/src/lib.rs:756:27
+  15: test::run_test::{closure#0}
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/test/src/lib.rs:677:43
+  16: test::run_test::{closure#1}
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/test/src/lib.rs:707:41
+  17: std::sys::backtrace::__rust_begin_short_backtrace::<test::run_test::{closure#1}, ()>
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/sys/backtrace.rs:166:18
+  18: std::thread::lifecycle::spawn_unchecked::<test::run_test::{closure#1}, ()>::{closure#1}::{closure#0}
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/thread/lifecycle.rs:70:13
+  19: <core::panic::unwind_safe::AssertUnwindSafe<std::thread::lifecycle::spawn_unchecked<test::run_test::{closure#1}, ()>::{closure#1}::{closure#0}> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panic/unwind_safe.rs:275:9
+  20: std::panicking::catch_unwind::do_call::<core::panic::unwind_safe::AssertUnwindSafe<std::thread::lifecycle::spawn_unchecked<test::run_test::{closure#1}, ()>::{closure#1}::{closure#0}>, ()>
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:576:43
+  21: std::panicking::catch_unwind::<(), core::panic::unwind_safe::AssertUnwindSafe<std::thread::lifecycle::spawn_unchecked<test::run_test::{closure#1}, ()>::{closure#1}::{closure#0}>>
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:544:19
+  22: std::panic::catch_unwind::<core::panic::unwind_safe::AssertUnwindSafe<std::thread::lifecycle::spawn_unchecked<test::run_test::{closure#1}, ()>::{closure#1}::{closure#0}>, ()>
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panic.rs:359:14
+  23: std::thread::lifecycle::spawn_unchecked::<test::run_test::{closure#1}, ()>::{closure#1}
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/thread/lifecycle.rs:68:26
+  24: <std::thread::lifecycle::spawn_unchecked<test::run_test::{closure#1}, ()>::{closure#1} as core::ops::function::FnOnce<()>>::call_once::{shim:vtable#0}
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+  25: <alloc::boxed::Box<dyn core::ops::function::FnOnce<(), Output = ()> + core::marker::Send> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/alloc/src/boxed.rs:2320:9
+  26: <std::sys::thread::unix::Thread>::new::thread_start
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/sys/thread/unix.rs:123:17
+  27: start_thread
+  28: __clone3
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmttest audit_certificate_under_output_is_accepted_then_lost ... 
+FAILED             at 
+/rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::result::unwrap_failed
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/result.rs:1871:5
+   3: <core::result::Result<ontomark_compile::build::Report, anyhow::Error>>::unwrap
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/result.rs:1232:23
+   4: audit_certificate::audit_unsatisfiable_build_replaces_certificate_before_refusing
+             at ./tests/audit_certificate.rs:59:13
+   5: audit_certificate::audit_unsatisfiable_build_replaces_certificate_before_refusing::{closure#0}
+             at ./tests/audit_certificate.rs:55:68
+   6: <audit_certificate::audit_unsatisfiable_build_replaces_certificate_before_refusing::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   7: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+test audit_unsatisfiable_build_replaces_certificate_before_refusing ... 
+thread 'FAILEDaudit_no_flag_build_has_no_certificate
+' (3022106) panicked at crates/ontomark-compile/tests/audit_certificate.rs:76:21:
+called `Result::unwrap()` on an `Err` value: validation rejected 1 error(s); no bundle written. First: [error] DISJOINT_NOT_SIBLINGS A: urn:ngm:class:a disjoint-with urn:ngm:class:b: the two classes share no direct parent; disjointness is for siblings
+
+Stack backtrace:
+   0: <anyhow::Error>::msg::<alloc::string::String>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anyhow-1.0.104/src/backtrace.rs:10:14
+   1: ontomark_compile::build::run_with
+             at ./src/build/mod.rs:636:5
+   2: ontomark_compile::build::run
+             at ./src/build/mod.rs:533:5
+   3: audit_certificate::run
+             at ./tests/audit_certificate.rs:52:5
+   4: audit_certificate::audit_no_flag_build_has_no_certificate
+             at ./tests/audit_certificate.rs:76:13
+   5: audit_certificate::audit_no_flag_build_has_no_certificate::{closure#0}
+             at ./tests/audit_certificate.rs:71:44
+   6: <audit_certificate::audit_no_flag_build_has_no_certificate::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   7: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+   8: test::__rust_begin_short_backtrace::<core::result::Result<(), alloc::string::String>, fn() -> core::result::Result<(), alloc::string::String>>
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/test/src/lib.rs:733:18
+   9: test::run_test_in_process::{closure#0}
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/test/src/lib.rs:756:74
+  10: <core::panic::unwind_safe::AssertUnwindSafe<test::run_test_in_process::{closure#0}> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panic/unwind_safe.rs:275:9
+  11: std::panicking::catch_unwind::do_call::<core::panic::unwind_safe::AssertUnwindSafe<test::run_test_in_process::{closure#0}>, core::result::Result<(), alloc::string::String>>
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:576:43
+  12: std::panicking::catch_unwind::<core::result::Result<(), alloc::string::String>, core::panic::unwind_safe::AssertUnwindSafe<test::run_test_in_process::{closure#0}>>
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:544:19
+  13: std::panic::catch_unwind::<core::panic::unwind_safe::AssertUnwindSafe<test::run_test_in_process::{closure#0}>, core::result::Result<(), alloc::string::String>>
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panic.rs:359:14
+  14: test::run_test_in_process
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/test/src/lib.rs:756:27
+  15: test::run_test::{closure#0}
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/test/src/lib.rs:677:43
+  16: test::run_test::{closure#1}
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/test/src/lib.rs:707:41
+  17: std::sys::backtrace::__rust_begin_short_backtrace::<test::run_test::{closure#1}, ()>
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/sys/backtrace.rs:166:18
+  18: std::thread::lifecycle::spawn_unchecked::<test::run_test::{closure#1}, ()>::{closure#1}::{closure#0}
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/thread/lifecycle.rs:70:13
+  19: <core::panic::unwind_safe::AssertUnwindSafe<std::thread::lifecycle::spawn_unchecked<test::run_test::{closure#1}, ()>::{closure#1}::{closure#0}> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panic/unwind_safe.rs:275:9
+  20: std::panicking::catch_unwind::do_call::<core::panic::unwind_safe::AssertUnwindSafe<std::thread::lifecycle::spawn_unchecked<test::run_test::{closure#1}, ()>::{closure#1}::{closure#0}>, ()>
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:576:43
+  21: std::panicking::catch_unwind::<(), core::panic::unwind_safe::AssertUnwindSafe<std::thread::lifecycle::spawn_unchecked<test::run_test::{closure#1}, ()>::{closure#1}::{closure#0}>>
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:544:19
+  22: std::panic::catch_unwind::<core::panic::unwind_safe::AssertUnwindSafe<std::thread::lifecycle::spawn_unchecked<test::run_test::{closure#1}, ()>::{closure#1}::{closure#0}>, ()>
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panic.rs:359:14
+  23: std::thread::lifecycle::spawn_unchecked::<test::run_test::{closure#1}, ()>::{closure#1}
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/thread/lifecycle.rs:68:26
+  24: <std::thread::lifecycle::spawn_unchecked<test::run_test::{closure#1}, ()>::{closure#1} as core::ops::function::FnOnce<()>>::call_once::{shim:vtable#0}
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+  25: <alloc::boxed::Box<dyn core::ops::function::FnOnce<(), Output = ()> + core::marker::Send> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/alloc/src/boxed.rs:2320:9
+  26: <std::sys::thread::unix::Thread>::new::thread_start
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/sys/thread/unix.rs:123:17
+  27: start_thread
+  28: __clone3
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::result::unwrap_failed
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/result.rs:1871:5
+   3: <core::result::Result<ontomark_compile::build::Report, anyhow::Error>>::unwrap
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/result.rs:1232:23
+   4: audit_certificate::audit_no_flag_build_has_no_certificate
+             at ./tests/audit_certificate.rs:76:21
+   5: audit_certificate::audit_no_flag_build_has_no_certificate::{closure#0}
+             at ./tests/audit_certificate.rs:71:44
+   6: <audit_certificate::audit_no_flag_build_has_no_certificate::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   7: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+thread 'audit_late_output_failure_leaves_certificate' (3022104) panicked at crates/ontomark-compile/tests/audit_certificate.rs:107:5:
+assertion failed: o.certificate_out.as_ref().unwrap().join("asserted.tsv").exists()
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::panicking::panic
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:150:5
+   3: audit_certificate::audit_late_output_failure_leaves_certificate
+             at ./tests/audit_certificate.rs:107:5
+   4: audit_certificate::audit_late_output_failure_leaves_certificate::{closure#0}
+             at ./tests/audit_certificate.rs:101:50
+   5: <audit_certificate::audit_late_output_failure_leaves_certificate::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at test audit_no_flag_build_has_no_certificate ... /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rsFAILED:
+250:5
+   6: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+test audit_late_output_failure_leaves_certificate ... FAILED
+AUDIT write failure: new assertions coexist with old digest
+test audit_partial_certificate_write_mixes_files ... ok
+AUDIT omitted conclusions: {"ok":true,"asserted":2,"derivations":0,"theorem":"OOCert.certificate_sound","checker":{"name":"oo-cert","self_sha256":"68223b4db193783a52bd2810a66ce2ad3a3780f963a5ef84753564c051e3e532","toolchain":"4.33.1","means":"the digest of the FILE this process is running from, read at run time. Match it against the SHASUMS.txt of the release you expected. It does not make this binary honest: a hostile one can print any block it likes. It lets an honest build say which build it is."}}
+
+test audit_checker_accepts_omitted_derivations_and_changed_scope ... ok
+
+failures:
+
+failures:
+    audit_certificate_under_output_is_accepted_then_lost
+    audit_late_output_failure_leaves_certificate
+    audit_no_flag_build_has_no_certificate
+    audit_unsatisfiable_build_replaces_certificate_before_refusing
+
+test result: FAILED. 5 passed; 4 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.31s
+
+error: test failed, to rerun pass `-p ontomark-compile --test audit_certificate`

@@ -1,0 +1,18 @@
+
+  prose-sanitiser slop scan: docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md
+  files scanned: 1   findings: 3   slop score: 7
+  verdict: Some AI tells present
+  high: 1   medium: 2   low: 0
+
+  [HIGH] "The X" sentence/paragraph opener  (1 hit)
+        fix: Don't open with 'The <lowercase noun>'. Recast so the subject leads, or name the thing directly ('The production-node paired study lifts...' -> 'Holding the model constant and varying only the serving path lifts...'). Proper nouns (The Loom) are fine. See SKILL.md B2.
+        docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md:20  The tested checker is the upstream v2.0.1 Linux release asset, SHA-256 `68223b4db193783a52bd2810a66ce2ad3a3780f963a5ef84753564c051e3e532`. Its digest was checke...
+
+  [MEDIUM] Sense-dependent spelling (UK)  (2 hits)
+        fix: Use UK spelling: -ize->-ise, -or->-our, -er->-re, etc. See SKILL.md B12.
+        docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md:49  ...d whole and mentioned only with `VAULT_WHELK_TRACE`. The later typed refusal check therefore cannot account for every original graph axiom. The “already closed”...
+        docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md:71  ... includes asserted and inferred non-blank-node-bearing triples (`lib.rs:630` onward), so metadata changes can count too. The [proposal construction review](2026...
+
+  Top things to change: "The X" sentence/paragraph opener; Sense-dependent spelling (UK)
+  Narrative and voice tells need eyes too. See Section C of SKILL.md.
+
