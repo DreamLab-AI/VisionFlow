@@ -1,0 +1,499 @@
+   Compiling solid-pod-rs-server v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-acl-control/crates/solid-pod-rs-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 55.51s
+     Running unittests src/lib.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/solid_pod_rs_server-e10c43443f977b81)
+
+running 108 tests
+test cli::install::tests::bare_name_resolves_to_solid_apps_org ... ok
+test cli::install::tests::ref_pin_and_rename_parse ... ok
+test cli::install::tests::empty_spec_errors ... ok
+test cli::install::tests::org_repo_resolves_to_github ... ok
+test cli::install::tests::ref_only_keeps_default_dest ... ok
+test cli::install::tests::full_url_is_verbatim_and_strips_dot_git ... ok
+test cross_identity::tests::malformed_pubkey_never_resolves ... ok
+test cross_identity::tests::linked_identities_filters ... ok
+test cross_identity::tests::local_profile_link_resolves ... ok
+test mcp::skills::tests::conventional_skill_paths_are_exact ... ok
+test mcp::tools::tests::forwardable_auth_header_allowlist_is_case_insensitive ... ok
+test live_reload_tests::injects_before_body_close_and_is_disabled_by_default ... ok
+test mcp::tools::tests::forwardable_auth_header_rejects_dangerous_names ... ok
+test mempool::tests::already_known_reads_only_node_statements_about_the_same_tx ... ok
+test handlers::pay::intent_recovery_tests::txid_of_a_witness_transaction_excludes_the_witness ... ok
+test mempool::tests::empty_utxo_set_parses_to_empty_vec ... ok
+test mempool::tests::live_address_utxos_smoke ... ignored, hits live mempool.space; opt-in only
+test mempool::tests::tx_wire_flattens_outputs_and_status ... ok
+test mempool::tests::from_env_defaults_to_testnet4 ... ok
+test mempool::tests::new_trims_trailing_slash ... ok
+test mempool::tests::utxo_wire_flattens_status ... ok
+test mempool::tests::tx_wire_reads_inputs ... ok
+test payment_gating_tests::canonical_pod_path_vectors ... ok
+test payment_gating_tests::fixtures_use_teller_accounts_and_grant_the_principal ... ok
+test payment_gating_tests::guarded_acl_target_vectors ... ok
+test handlers::pay::intent_recovery_tests::ledger_with_a_tampered_genesis_is_refused ... ok
+test payment_gating_tests::paid_write_denied_below_balance ... ok
+test payment_gating_tests::protected_resource_for_acl_strips_suffixes ... ok
+test payment_gating_tests::resolve_balance_none_when_anonymous ... ok
+test payment_gating_tests::resolve_balance_reads_ledger_entry ... ok
+test payment_gating_tests::resolve_balance_zero_when_no_entry ... ok
+test payment_gating_tests::uncharged_read_skips_pay_per_read_resource ... ok
+test scheme::tests::allow_list_matches_host_and_authority ... ok
+test scheme::tests::configured_origin_beats_every_header ... ok
+test scheme::tests::forwarded_host_is_honoured_behind_trust_proxy ... ok
+test scheme::tests::forwarded_host_is_ignored_without_trust_proxy ... ok
+test scheme::tests::forwarded_proto_comma_list_takes_first_hop ... ok
+test scheme::tests::garbage_values_fall_back_to_transport ... ok
+test scheme::tests::hostile_host_values_are_not_reflected ... ok
+test scheme::tests::oversized_cf_visitor_is_ignored ... ok
+test scheme::tests::trusted_cf_visitor_used_when_no_forwarded_proto ... ok
+test scheme::tests::trusted_forwarded_proto_wins_over_cf_visitor ... ok
+test scheme::tests::untrusted_headers_are_ignored ... ok
+test scheme::tests::unusable_forwarded_proto_falls_through_to_cf_visitor ... ok
+test trail_store::tests::gitmark_trail_round_trips_and_publishes_no_secret ... ok
+test trail_store::tests::load_missing_trail_is_none ... ok
+test trail_store::tests::loaders_propagate_storage_errors_and_only_not_found_is_absent ... ok
+test trail_store::tests::merge_public_keeps_secret ... ok
+test trail_store::tests::save_then_load_round_trips ... ok
+test trail_store::tests::secret_and_prov_paths_compare_whole_segments ... ok
+test trail_store::tests::stored_trail_uses_camelcase_keys ... ok
+test trail_store::tests::to_public_drops_privkey ... ok
+test trail_store::tests::trail_path_lowercases ... ok
+test mempool::tests::block_anchorer_anchor_requires_storage ... ok
+test mempool::tests::block_anchorer_anchor_rejects_unminted_ticker ... ok
+test payment_gating_tests::enforce_read_denies_other_principal ... ok
+test payment_gating_tests::acl_put_allowed_for_control_holder ... ok
+test payment_gating_tests::enforce_read_grants_owner ... ok
+test payment_gating_tests::acl_put_denied_for_writer_without_control ... ok
+test cli::invite_store::tests::file_is_owner_only ... ok
+test cli::invite_store::tests::stale_lock_file_is_broken ... ok
+test payment_gating_tests::free_read_does_not_debit ... ok
+test cli::invite_store::tests::corrupt_file_is_an_error_not_a_silent_reset ... ok
+test payment_gating_tests::meta_put_denied_for_writer_without_control ... ok
+test mempool::tests::http_client_presence_check_reaches_the_inherent_method ... ok
+test payment_gating_tests::paid_write_anonymous_denied ... ok
+test payment_gating_tests::enforce_read_denies_anonymous ... ok
+test cli::invite_store::tests::insert_is_idempotent_and_empty_store_lists_nothing ... ok
+test handlers::pay::intent_recovery_tests::ambiguous_server_failure_retains_debit_and_intent ... ok
+test handlers::pay::intent_recovery_tests::definite_not_found_compensates_and_clears_intent ... ok
+test handlers::pay::intent_recovery_tests::known_transaction_keeps_debit_and_clears_intent ... ok
+test mcp::tools::tests::remote_bodies_are_capped ... ok
+test handlers::pay::intent_recovery_tests::not_found_without_payout_receipt_retains_intent ... ok
+test handlers::pay::intent_recovery_tests::recovery_never_rolls_the_stored_trail_back ... ok
+test handlers::pay::intent_recovery_tests::recovery_still_moves_a_stale_trail_forward ... ok
+test mempool::tests::block_anchorer_verify_false_when_the_anchor_tx_is_absent ... ok
+test nip98_request_binding_tests::authentication_binds_the_exact_raw_body ... ok
+test mempool::tests::block_anchorer_verify_false_without_pubkey ... ok
+test mempool::tests::block_anchorer_verify_false_when_address_forged ... ok
+test nip98_request_binding_tests::authentication_binds_the_complete_query_string ... ok
+test mempool::tests::block_anchorer_refuses_an_intent_whose_txid_is_not_its_transaction ... ok
+test mempool::tests::block_anchorer_verify_true_when_every_link_is_on_chain ... ok
+test mempool::tests::block_anchorer_verify_false_when_an_earlier_mark_does_not_commit ... ok
+test mempool::tests::block_anchorer_rejected_resend_with_an_unspent_head_drops_the_intent ... ok
+test mempool::tests::block_anchorer_accepted_broadcast_with_failed_save_is_not_a_failed_anchor ... ok
+test mempool::tests::block_anchorer_anchor_round_trip_and_self_verifies ... ok
+test cli::invite_store::tests::revoke_accepts_a_unique_id_prefix ... ok
+test cli::invite_store::tests::tokens_are_hashed_at_rest ... ok
+test cli::invite_store::tests::legacy_plaintext_file_is_migrated ... ok
+test cli::invite_store::tests::create_list_revoke_round_trip_across_instances ... ok
+test cli::invite_store::tests::consume_enforces_the_use_cap_and_expiry ... ok
+test mempool::tests::concurrent_anchors_build_on_each_others_head ... ok
+test cli::invite_store::tests::concurrent_consumers_cannot_both_redeem_a_single_use_invite ... ok
+test mempool::tests::dropped_broadcast_is_resent_by_the_next_anchor ... ok
+test mempool::tests::rejected_resend_with_an_unspent_head_drops_the_intent ... ok
+test mempool::tests::broadcast_then_failed_save_is_ok_and_recovered_by_the_next_anchor ... ok
+test mempool::tests::rejected_resend_without_proof_of_an_unspent_head_keeps_refusing ... ok
+test mempool::tests::unresolved_resend_keeps_the_intent_and_refuses_to_advance ... ok
+test mempool::tests::accepted_but_unindexed_mark_is_not_orphaned_by_the_next_anchor ... ok
+test mempool::tests::gitmark_anchorer_refusals ... ok
+test mempool::tests::gitmark_anchorer_genesis_anchor_verify ... ok
+test payment_gating_tests::paid_write_allowed_at_balance ... ok
+test payment_gating_tests::paid_write_allowed_above_balance ... ok
+test payment_gating_tests::paid_write_debits_ledger ... ok
+test payment_gating_tests::paid_read_debits_ledger ... ok
+test handlers::pay::intent_recovery_tests::token_transfer_behind_a_slow_anchor_answers_503_and_frees_the_payment_lock ... ok
+test payment_gating_tests::paid_write_debits_each_grant ... ok
+test handlers::pay::intent_recovery_tests::token_transfer_waits_for_the_trail_lock ... ok
+
+test result: ok. 107 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 2.33s
+
+     Running unittests src/main.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/solid_pod_rs_server-8da291312e908d59)
+
+running 1 test
+test port_tests::busy_port_shifts_and_zero_uses_ephemeral_port ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/acl_candidate_control.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/acl_candidate_control-9f2e8bedb0f81f63)
+
+running 8 tests
+test ordinary_metadata_requires_control_but_is_not_an_acl_document ... ok
+test candidate_control_preserves_a_verified_linked_identity ... ok
+test copying_resource_does_not_install_a_policy_for_the_wrong_target ... ok
+test candidate_control_requires_satisfied_conditions ... ok
+test copy_checks_turtle_syntax_even_with_a_recognisable_control_rule ... ok
+test json_patch_checks_resulting_acl_before_committing_it ... ok
+test post_and_copy_refuse_invalid_acl_bodies_before_storage ... ok
+test put_refuses_unparseable_and_misdirected_policies_without_lockout ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running tests/admin_provision.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/admin_provision-87c712b953bc76b1)
+
+running 4 tests
+test provision_requires_admin_key ... ok
+test provision_writes_pod_into_pods_namespace_with_sibling_acl ... ok
+test stranger_cannot_put_into_provisioned_pod ... ok
+test provisioned_owner_can_put_into_pod ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/cache_control_policy.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/cache_control_policy-095fa32b4b94c177)
+
+running 10 tests
+test the_policy_function_never_leaves_a_private_response_unmarked ... ok
+test public_binary_is_left_to_ordinary_caching ... ok
+test public_rdf_keeps_the_rdf_policy ... ok
+test an_acl_sidecar_read_is_always_private ... ok
+test a_private_container_listing_is_not_publicly_cacheable ... ok
+test private_pdf_response_is_not_publicly_cacheable ... ok
+test an_authenticated_read_of_a_public_resource_stays_public ... ok
+test private_rdf_response_is_no_store_not_merely_no_cache ... ok
+test private_binary_response_is_not_publicly_cacheable ... ok
+test private_responses_vary_on_authorization ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/cli_comprehensive.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/cli_comprehensive-3265fa9ac84546f0)
+
+running 13 tests
+test account_delete_nonexistent_user_returns_false ... ok
+test invite_create_strips_trailing_slash_from_base_url ... ok
+test invite_create_url_structure ... ok
+test invite_create_bad_expiry_returns_error ... ok
+test invite_create_tokens_are_unique ... ok
+test invite_create_unlimited_uses ... ok
+test reconcile_outcome_eq_and_clone ... ok
+test reconcile_outcome_ne_on_different_fields ... ok
+test quota_reconcile_args_defaults ... ok
+test invite_create_with_30s_expiry ... ok
+test quota_reconcile_without_feature_returns_error ... ok
+test account_delete_with_correct_confirmation_succeeds ... ok
+test account_delete_trims_confirmation_whitespace ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.52s
+
+     Running tests/cli_invite_persist.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/cli_invite_persist-344979d7bf76ecc2)
+
+running 2 tests
+test revoke_accepts_a_token_beginning_with_a_hyphen ... ok
+test create_list_revoke_persist_between_processes ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/cli_ops_sprint11.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/cli_ops_sprint11-3b1b1d1d286a0bc0)
+
+running 5 tests
+test cli_invite_create_prints_token_url ... ok
+test cli_invite_create_without_uses_stores_none ... ok
+test cli_invite_create_stores_max_uses ... ok
+test cli_account_delete_with_yes_removes_account ... ok
+test cli_account_delete_requires_confirmation_without_yes_flag ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.52s
+
+     Running tests/container_index_acl.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/container_index_acl-a2d1a871f3e84a79)
+
+running 2 tests
+test readable_index_is_still_served ... ok
+test owner_only_index_is_not_served_to_a_container_reader ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/core_rows_parity.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/core_rows_parity-dad35d2c51e3f123)
+
+running 8 tests
+test post_turtle_is_validated_with_the_new_resource_as_base ... ok
+test accept_post_lists_n3_only_with_conneg ... ok
+test turtle_body_must_parse ... ok
+test n3_body_needs_conneg_and_rejects_formulas ... ok
+test cf_visitor_counts_only_behind_a_trusted_proxy ... ok
+test forwarded_proto_counts_only_behind_a_trusted_proxy ... ok
+test webid_acl_matches_a_nostr_caller_with_a_verified_link ... ok
+test webid_acl_does_not_match_without_a_link ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/er22_acl_copy_glob.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/er22_acl_copy_glob-e7a1fd10f6148959)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/er22_ledger_guard.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/er22_ledger_guard-58288b9a3f769a72)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/er22_mcp_dotfiles.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/er22_mcp_dotfiles-3785b73cc9b079f1)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/er22_path_clean.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/er22_path_clean-1aedea763167b6f1)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/error_logging_middleware.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/error_logging_middleware-38f9998343564c3d)
+
+running 3 tests
+test middleware_does_not_log_4xx ... ok
+test middleware_passthrough_on_2xx ... ok
+test middleware_logs_5xx_with_full_chain ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/forge_prefix_precedence.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/forge_prefix_precedence-105fe9b0072eb15e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/get_content_negotiation_integration.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/get_content_negotiation_integration-106b233014e6046d)
+
+running 4 tests
+test get_serves_verbatim_for_wildcard_accept ... ok
+test get_serves_verbatim_for_non_rdf_resource ... ok
+test get_transcodes_ntriples_to_turtle ... ok
+test get_transcodes_ntriples_to_jsonld ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/git_marks.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/git_marks-e2cd109f5e0d7bcd)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/git_wac_gating.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/git_wac_gating-1d4236903a31017a)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/host_origin.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/host_origin-e098e9380bf000ca)
+
+running 6 tests
+test host_outside_the_allow_list_gets_421 ... ok
+test replay_with_forged_forwarded_header_is_refused ... ok
+test replay_with_forged_x_forwarded_host_is_refused ... ok
+test control_token_for_the_real_host_is_accepted ... ok
+test trusted_proxy_may_set_the_host ... ok
+test configured_public_origin_beats_a_trusted_header_too ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/jev_forge.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/jev_forge-5f6c46038b030c28)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/mcp_enforcement.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/mcp_enforcement-5c3ab59d1aed6191)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/mcp_wac_security.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/mcp_wac_security-6768f6f6f8aafa19)
+
+running 3 tests
+test conventional_skill_still_requires_its_effective_read_acl ... ok
+test anonymous_get_skill_cannot_read_arbitrary_private_resource ... ok
+test generic_resource_tools_require_control_for_acl_sidecars ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/mempool_selection.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/mempool_selection-d38ce4813d16bfa2)
+
+running 13 tests
+test absent_config_yields_defaulted_testnet4 ... ok
+test explicit_config_is_marked_explicit_and_trimmed ... ok
+test infer_network_never_guesses_mainnet ... ok
+test infer_network_treats_loopback_as_regtest ... ok
+test infer_network_classifies_known_bases ... ok
+test manifest_json_carries_url_network_and_source ... ok
+test explicit_default_url_is_still_explicit ... ok
+test whitespace_only_config_is_treated_as_absent ... ok
+test client_records_its_selection ... ok
+test unreachable_explorer_is_ambiguous ... ok
+test ok_response_reports_the_transaction_as_known ... ok
+test service_unavailable_is_ambiguous_not_a_definite_negative ... ok
+test not_found_is_a_definite_negative_but_server_error_is_not ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/mempool_timeout.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/mempool_timeout-08a8b6164afcd3de)
+
+running 1 test
+test silent_backend_times_out_instead_of_hanging ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.00s
+
+     Running tests/middleware_guards.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/middleware_guards-220283dd279dffdd)
+
+running 21 tests
+test body_cap_default_is_50mb ... ok
+test app_state_new_sets_defaults ... ok
+test body_cap_from_env_falls_back_on_invalid_value ... ok
+test body_cap_from_env_parses_valid_value ... ok
+test body_cap_from_env_returns_default_on_missing_var ... ok
+test nodeinfo_meta_default_values ... ok
+test dotfile_guard_allows_well_known_paths ... ok
+test dotfile_guard_blocks_git_path ... ok
+test cors_wildcard_mode_does_not_reflect_origin_with_credentials ... ok
+test cors_allowlisted_origin_gets_reflection_and_credentials ... ok
+test traversal_guard_blocks_dot_dot_slash ... ok
+test traversal_guard_allows_normal_paths ... ok
+test dotfile_guard_allows_meta_path ... ok
+test traversal_guard_blocks_encoded_dot_dot ... ok
+test dotfile_guard_blocks_env_path ... ok
+test dotfile_guard_allows_account_path ... ok
+test dotfile_guard_blocks_nested_dotfile ... ok
+test cors_non_allowlisted_origin_gets_no_headers ... ok
+test traversal_guard_blocks_double_encoded_dot_dot ... ok
+test dotfile_guard_allows_acl_path ... ok
+test traversal_guard_allows_root ... ok
+
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/nip05_endpoint_integration.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/nip05_endpoint_integration-8f992bb8388da9de)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/nip98_empty_body.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/nip98_empty_body-9fc7b8be9e86f5e0)
+
+running 1 test
+test put_binds_empty_content_before_consuming_the_token ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/patch_non_destructive_integration.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/patch_non_destructive_integration-742d3538dbcad064)
+
+running 3 tests
+test patch_refuses_unparseable_body_rather_than_destroying_it ... ok
+test n3_patch_preserves_existing_triples ... ok
+test sparql_patch_preserves_existing_triples ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/pay_mrc20_routes.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/pay_mrc20_routes-2ae0c64a57112717)
+
+running 11 tests
+test address_rejects_malformed_did ... ok
+test address_mainnet_chain_yields_bc1p ... ok
+test address_generic_and_per_user_are_deterministic_and_distinct ... ok
+test mrc20_self_issued_trail_is_refused ... ok
+test mrc20_self_issued_trail_from_an_accepted_issuer_is_credited ... ok
+test mrc20_wrong_ticker_is_refused ... ok
+test mrc20_deposit_rejected_when_no_utxo ... ok
+test mrc20_deposit_credits_when_utxo_present ... ok
+test mrc20_credit_leaves_the_sat_balance_unchanged ... ok
+test mrc20_deposit_replay_is_rejected ... ok
+test mrc20_same_anchor_outpoint_twice_credits_once ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+     Running tests/pay_phase4_routes.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/pay_phase4_routes-4fbe9576528c4a57)
+
+running 6 tests
+test buy_requires_nip98 ... ok
+test withdraw_sats_rejects_insufficient_funding ... ok
+test withdraw_sats_mints_a_voucher ... ok
+test buy_moves_tokens_and_debits_sats ... ok
+test buy_rejects_insufficient_balance ... ok
+test withdraw_all_moves_tokens_and_zeroes_balance ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/pay_routes.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/pay_routes-949ae34d61949aef)
+
+running 5 tests
+test balance_requires_auth ... ok
+test balance_for_authed_did_zero_then_credited ... ok
+test pool_add_liquidity_then_swap ... ok
+test offers_sell_swap_round_trip ... ok
+test txo_deposit_is_gone_and_credits_nothing ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/payment_atomicity.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/payment_atomicity-e0498957ac3d393a)
+
+running 1 test
+test concurrent_payment_state_writes_lose_no_update ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/prov_phase5_routes.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/prov_phase5_routes-ac54e5ad3c209317)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/proxy_endpoint.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/proxy_endpoint-60ac1b5168120a0b)
+
+running 17 tests
+test default_proxy_byte_cap_is_50mib ... ok
+test ssrf_allows_public_domain_shape ... ok
+test ssrf_allows_public_ip ... ok
+test ssrf_blocks_10_x_private ... ok
+test ssrf_blocks_192_168_private ... ok
+test ssrf_blocks_172_16_private ... ok
+test ssrf_blocks_ipv6_loopback ... ok
+test ssrf_blocks_file_scheme ... ok
+test ssrf_blocks_link_local ... ok
+test ssrf_blocks_loopback_127_other ... ok
+test ssrf_blocks_cloud_metadata ... ok
+test stripped_headers_include_sensitive_names ... ok
+test ssrf_blocks_loopback_127 ... ok
+test proxy_route_exists ... ok
+test proxy_returns_400_without_url_param ... ok
+test proxy_returns_401_for_loopback_url ... ok
+test proxy_returns_401_without_auth ... ok
+
+test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/quota_enforcement.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/quota_enforcement-702327be4a9910ea)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/registration_security.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/registration_security-936009722c8359b2)
+
+running 6 tests
+test an_invite_does_nothing_without_a_data_root ... ok
+test public_provisioning_is_closed_by_default_on_both_routes ... ok
+test account_route_validates_names_before_touching_storage ... ok
+test admin_key_overrides_closed_registration_without_root_pollution ... ok
+test both_routes_share_the_same_per_ip_rate_limit ... ok
+test a_valid_invite_opens_closed_registration_for_its_allowed_uses ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+   Doc-tests solid_pod_rs_server
+
+running 7 tests
+test crates/solid-pod-rs-server/src/cli/invite_store.rs - cli::invite_store::FileInviteStore::consume (line 302) - compile ... ok
+test crates/solid-pod-rs-server/src/scheme.rs - scheme::host_allowed (line 248) ... ok
+test crates/solid-pod-rs-server/src/scheme.rs - scheme::host_with (line 167) ... ok
+test crates/solid-pod-rs-server/src/scheme.rs - scheme::normalise_origin (line 98) ... ok
+test crates/solid-pod-rs-server/src/scheme.rs - scheme::request_host (line 197) ... ok
+test crates/solid-pod-rs-server/src/scheme.rs - scheme::request_url (line 230) ... ok
+test crates/solid-pod-rs-server/src/scheme.rs - scheme::effective_scheme_with (line 65) ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.50s
+

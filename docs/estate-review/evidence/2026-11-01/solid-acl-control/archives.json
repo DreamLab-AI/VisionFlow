@@ -1,0 +1,5 @@
+{
+  "product_ignored_archive": "/tmp/vf-solid-acl-control/product-ignored.tar.gz",
+  "sha256": "39b50bdcee5030660e4bd4f5556f9d837bf3b9fb96aeca0c097776972a63bed6",
+  "contents": "Owned .claude-flow and .deepsec-gate files; raw reports separately committed here."
+}

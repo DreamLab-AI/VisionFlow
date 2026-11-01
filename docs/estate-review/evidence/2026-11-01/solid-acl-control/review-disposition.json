@@ -1,0 +1,51 @@
+{
+  "gate": "BLOCK at HIGH; retained, not a clean security pass",
+  "new_code_findings": "No finding attributed to newly changed candidate guard; whole-file findings above require separate repair.",
+  "test_coverage": "Scanner selected production only; tests manually reviewed and executed.",
+  "records": [
+    {
+      "id": "SP-ACL-REVIEW-01",
+      "title": "[HIGH] Git clone exposes private child resources with only pod-root Read",
+      "severity": "HIGH",
+      "slug": "acl-check",
+      "status": "open-pre-existing",
+      "disposition": "Source confirms root Read gates whole upload-pack. Feature git is default-off and enabled by forge. Exact deployed build and a child/history runtime repro remain unverified. This path predates the repair."
+    },
+    {
+      "id": "SP-ACL-REVIEW-02",
+      "title": "[HIGH_BUG] Web-Ledger fee debited before the request is validated or served",
+      "severity": "HIGH_BUG",
+      "slug": "other-value-loss",
+      "status": "open-pre-existing",
+      "disposition": "Admission-before-effect debit ordering predates the repair. The claim that a sidecar Control gate itself charges is overstated: elevated Control explicitly skips consumption. POST may still charge container admission before refusal; delivery atomicity remains open."
+    },
+    {
+      "id": "SP-ACL-REVIEW-03",
+      "title": "[MEDIUM] Proxy forwards X-Upstream-Authorization across cross-origin and HTTPS->HTTP redirects",
+      "severity": "MEDIUM",
+      "slug": "other-credential-leak",
+      "status": "open-pre-existing",
+      "disposition": "Source confirms original request header reused on every manual redirect. No fresh network redirect credential fixture was run; path predates the repair."
+    },
+    {
+      "id": "SP-ACL-REVIEW-04",
+      "title": "[MEDIUM] /.well-known/apps publishes per-pod manifest.json bypassing WAC",
+      "severity": "MEDIUM",
+      "slug": "acl-check",
+      "status": "open-pre-existing",
+      "disposition": "Source confirms direct filesystem manifest read with no WAC check. No fresh HTTP manifest fixture was run; path predates the repair."
+    },
+    {
+      "id": "SP-ACL-REVIEW-05",
+      "title": "SPARQL DELETE/INSERT ignores WHERE and skips variable templates",
+      "severity": "BUG",
+      "status": "open-pre-existing",
+      "disposition": "Source at base fe4f2ec and repair daff10d destructures DeleteInsert with delete, insert, .., drops WHERE and applies ground templates. No fresh runtime repro in this checkpoint. Variable-template no-op overlaps imported SP-PAR-SPARQL-NOOP; conditional ground mutation is an additional acceptance case, not five new findings."
+    }
+  ],
+  "reviewed_files": [
+    "crates/solid-pod-rs-server/src/lib.rs",
+    "crates/solid-pod-rs/src/ldp.rs"
+  ],
+  "receipt_accounting": "Second receipt exports five aggregate findings: four retain the first run ID; only the SPARQL BUG belongs to the new core-file analysis. Both raw receipts remain BLOCK at HIGH."
+}

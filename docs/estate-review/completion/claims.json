@@ -2635,5 +2635,19 @@
       "SP-12.2"
     ],
     "basis": "Source, bounded observation probes, revision citations and visual render inspection. Other rendered panels receive no new assessment credit."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/solid-pod-rs/13-acl-control-and-discovery.md",
+    "source_sha256": "7aebc9c77bef965be1428d7738a6a409c85daa06686bcff2ce7ddf315e31ec68",
+    "report": "docs/estate-review/2026-11-01-solid-acl-control-repair.md",
+    "report_sha256": "f7d64e772a6436904b105c989f5d1de7e7d0ed684afef2578a003980f06045d8",
+    "coverage": "selected-panels",
+    "panels": [
+      "SP-13.1",
+      "SP-13.2"
+    ],
+    "basis": "Merged candidate guard and truthful discovery checked against producer commit, nine passing NIP-98 route regressions, sixteen source citations and visual inspection. Wider tests and Clippy pass; raw security reviews remain BLOCK for existing findings. No new ADR or deployment credit."
   }
 ]

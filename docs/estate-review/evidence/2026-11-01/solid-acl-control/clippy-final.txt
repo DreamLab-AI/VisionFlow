@@ -1,0 +1,46 @@
+    Blocking waiting for file lock on build directory
+    Checking serde v1.0.229
+    Checking serde_json v1.0.151
+    Checking hyper-util v0.1.20
+    Checking tower v0.5.3
+    Checking url v2.5.8
+    Checking serde_urlencoded v0.7.1
+    Checking chrono v0.4.45
+    Checking num-bigint-dig v0.8.6
+    Checking tower-http v0.6.11
+    Checking toml_datetime v0.6.11
+    Checking serde_spanned v0.6.9
+    Checking hyper-rustls v0.27.9
+    Checking toml_edit v0.22.27
+    Checking reqwest v0.12.28
+    Checking rsa v0.9.10
+    Checking serde-value v0.7.0
+    Checking serde_plain v1.0.2
+    Checking serde_norway v0.9.42
+    Checking bitcoin v0.32.102
+    Checking oauth2 v5.0.0
+    Checking jsonwebtoken v9.3.1
+    Checking toml v0.8.23
+    Checking openidconnect v4.0.1
+    Checking tokio-tungstenite v0.24.0
+    Checking h2 v0.3.27
+    Checking uuid v1.24.1
+    Checking actix-router v0.5.4
+   Compiling actix-web-codegen v4.3.0
+    Checking tracing-serde v0.2.0
+    Checking assert-json-diff v2.0.2
+    Checking tracing-subscriber v0.3.23
+    Checking wiremock v0.6.5
+    Checking solid-pod-rs v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-acl-control/crates/solid-pod-rs)
+    Checking criterion-plot v0.5.0
+    Checking actix-http v3.19.0
+    Checking axum-core v0.4.5
+    Checking rayon v1.12.0
+    Checking ciborium v0.2.2
+    Checking actix-web v4.14.1
+    Checking tinytemplate v1.2.1
+    Checking axum v0.7.9
+    Checking criterion v0.5.1
+    Checking solid-pod-rs-idp v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-acl-control/crates/solid-pod-rs-idp)
+    Checking solid-pod-rs-server v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-acl-control/crates/solid-pod-rs-server)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3m 43s

@@ -76053,11 +76053,11 @@
     "candidate_files": 829,
     "numbered_candidates_with_recorded_assessment": 98,
     "numbered_decision_candidates": 721,
-    "panels": 1744,
-    "panels_with_recorded_assessment": 372,
+    "panels": 1746,
+    "panels_with_recorded_assessment": 374,
     "scope_targets": 20,
     "stale_claim_records": 0,
-    "topics": 210
+    "topics": 211
   },
   "method": "Explicit scope; Git-owned Markdown; parsed headings exclude fenced examples; explicit human review claims require exact source/report hashes. Unreconciled is not unreviewed. Candidate counts are not a complete obligation denominator or overall task percentage.",
   "repositories": [
@@ -76065,7 +76065,7 @@
       "available": true,
       "candidate_files": 77,
       "dirty": true,
-      "head": "6e26fadb7ab5340269043480a0287eab4544ffb7",
+      "head": "c26e8373d0642d9325e0f8c00023b5ea3e1d813e",
       "local": "VisionFlow",
       "name": "VisionFlow"
     },
@@ -76081,7 +76081,7 @@
       "available": true,
       "candidate_files": 239,
       "dirty": true,
-      "head": "9dfbf7cece25e49f41140b63ce0a0507faa9bba2",
+      "head": "042d5cfc4f05c0b9ed3362a1ba8e8b983d02a96a",
       "local": "project/agentbox",
       "name": "agentbox"
     },
@@ -76089,7 +76089,7 @@
       "available": true,
       "candidate_files": 20,
       "dirty": false,
-      "head": "fe4f2ec338f0c4de75c9769b08d54bbb12e779b2",
+      "head": "b644e55c76d6e89b0e41ec1c7aa44510b20ccf68",
       "local": "solid-pod-rs",
       "name": "solid-pod-rs"
     },
@@ -88522,6 +88522,48 @@
       "repo": "VisionFlow",
       "review": "assessment-recorded",
       "sha256": "4346ac21bba88a66644ec404f2309bf6cc8c3052b1efd43a746f8218ec5b460d"
+    },
+    {
+      "claims": [
+        {
+          "basis": "Merged candidate guard and truthful discovery checked against producer commit, nine passing NIP-98 route regressions, sixteen source citations and visual inspection. Wider tests and Clippy pass; raw security reviews remain BLOCK for existing findings. No new ADR or deployment credit.",
+          "coverage": "selected-panels",
+          "panels": [
+            "SP-13.1",
+            "SP-13.2"
+          ],
+          "report": "docs/estate-review/2026-11-01-solid-acl-control-repair.md",
+          "state": "assessment-recorded"
+        }
+      ],
+      "panels": [
+        {
+          "body_sha256": "a429407528f9077f0937e034684736b418ca8e3fda88dffdf7979d93434b4901",
+          "heading": "SP-13.1 Evaluate Control on the candidate destination",
+          "id": "SP-13.1",
+          "line": 25,
+          "ordinal": 1,
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-acl-control-repair.md"
+          ],
+          "review": "assessment-recorded"
+        },
+        {
+          "body_sha256": "6ff9b65296beb27cea316484e2881ca0434574e1d318c2eaad9e3af3562b2ef5",
+          "heading": "SP-13.2 Follow the ACL link through to enforced access",
+          "id": "SP-13.2",
+          "line": 44,
+          "ordinal": 2,
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-acl-control-repair.md"
+          ],
+          "review": "assessment-recorded"
+        }
+      ],
+      "path": "docs/diagrams/solid-pod-rs/13-acl-control-and-discovery.md",
+      "repo": "VisionFlow",
+      "review": "assessment-recorded",
+      "sha256": "7aebc9c77bef965be1428d7738a6a409c85daa06686bcff2ce7ddf315e31ec68"
     },
     {
       "claims": [],

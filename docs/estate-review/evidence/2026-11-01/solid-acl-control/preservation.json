@@ -1,0 +1,16 @@
+{
+  "baseline": "/tmp/vf-solid-payment-audit/baseline.json",
+  "original_files_unchanged": {
+    "docs/diagrams/review-ledger.jsonl": true,
+    ".dream-standby": true,
+    "docs/review/2026-10-31-glm.json": true,
+    "docs/review/2026-10-31-glm.md": true,
+    "docs/review/2026-10-31-triage.md": true,
+    "docs/review/2026-11-01-glm.json": true,
+    "docs/review/2026-11-01-glm.md": true,
+    "docs/review/2026-11-01-triage.md": true
+  },
+  "source_primary_clean": true,
+  "springs_touched": false,
+  "excluded_repositories_accessed": false
+}

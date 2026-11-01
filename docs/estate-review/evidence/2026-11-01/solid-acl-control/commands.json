@@ -1,0 +1,71 @@
+{
+  "environment": {
+    "CARGO_HOME": "/home/devuser/workspace/.cargo",
+    "CARGO_TARGET_DIR": "/home/devuser/workspace/solid-pod-rs/target",
+    "CARGO_BUILD_JOBS": "4"
+  },
+  "terminal_results": [
+    {
+      "command": "cargo test --locked --offline -p solid-pod-rs-server --test acl_candidate_control",
+      "log": "after-final.txt",
+      "exit_code": 0,
+      "passed": 9,
+      "ignored": 0
+    },
+    {
+      "command": "cargo test --locked --offline -p solid-pod-rs-server",
+      "log": "server-tests.txt",
+      "exit_code": 0,
+      "passed": 268,
+      "ignored": 1
+    },
+    {
+      "command": "cargo test --locked --offline -p solid-pod-rs-server --features dev-bearer",
+      "log": "dev-bearer-final.txt",
+      "exit_code": 0,
+      "passed": 311,
+      "ignored": 1
+    },
+    {
+      "command": "cargo test --locked --offline -p solid-pod-rs --lib --test ldp_headers_jss",
+      "log": "core-tests.txt",
+      "exit_code": 0,
+      "passed": 512,
+      "ignored": 0
+    },
+    {
+      "command": "cargo fmt --all --check",
+      "log": "fmt-final.txt",
+      "exit_code": 0,
+      "passed": null,
+      "ignored": null
+    },
+    {
+      "command": "cargo clippy --locked --offline -p solid-pod-rs -p solid-pod-rs-server --all-targets -- -D warnings",
+      "log": "clippy-final.txt",
+      "exit_code": 0,
+      "passed": null,
+      "ignored": null
+    },
+    {
+      "command": "RUSTDOCFLAGS=\"-D warnings\" cargo doc --locked --offline -p solid-pod-rs -p solid-pod-rs-server --no-deps",
+      "log": "rustdoc-final.txt",
+      "exit_code": 101,
+      "passed": null,
+      "ignored": null
+    },
+    {
+      "command": "RUSTDOCFLAGS=\"-D warnings\" cargo doc --locked --offline -p solid-pod-rs -p solid-pod-rs-server --no-deps",
+      "log": "rustdoc-fixed.txt",
+      "exit_code": 0,
+      "passed": null,
+      "ignored": null
+    }
+  ],
+  "limits": [
+    "Default server suite predates final core discovery change; final nine-case route, development-feature and core/header runs include it.",
+    "Syntax/guard baseline contains fixture failures separately retained; only before-final and discovery-before establish the refined regression failures.",
+    "Linked identity fixture supplies a trusted resolver result; no remote identity verification claim.",
+    "No deployed runtime, external cache, RDF ACL PATCH interoperability or durable race acceptance."
+  ]
+}

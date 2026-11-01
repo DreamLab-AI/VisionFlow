@@ -1,0 +1,20 @@
+{
+  "base": "fe4f2ec338f0c4de75c9769b08d54bbb12e779b2",
+  "repair": "daff10d610ecb0fb4f1dd0e143c0ea6b95bd7445",
+  "merged_head": "b644e55c76d6e89b0e41ec1c7aa44510b20ccf68",
+  "files": {
+    "CHANGELOG.md": "c90e43af8012495e15fa5cbe3704147424c35a804e75f1d53330a95d055388e6",
+    "crates/solid-pod-rs-server/src/cross_identity.rs": "86d30b1290486aea0e2542b63fe8f160eeb27c29b17fe1061bc01ba8147cd06d",
+    "crates/solid-pod-rs-server/src/lib.rs": "f01145a09499ac8f69c9b2d6ee2729e886cdd23079e2bf6dee9f7a40ce21c1ca",
+    "crates/solid-pod-rs-server/tests/acl_candidate_control.rs": "d506653bd41c693a58dca9e7de2416b3f5e957199c5528a6452be2bd2080415f",
+    "crates/solid-pod-rs-server/tests/er22_acl_copy_glob.rs": "de1e4c3265c05a5139952ba0b190d2efeda6072b3312db1eb7699011eae22330",
+    "crates/solid-pod-rs/PARITY-CHECKLIST.md": "33f733478c6b4cfb878c2f3c9ce60174426ab9319f9a23c07b64466f8aa0e9c5",
+    "crates/solid-pod-rs/docs/how-to/migrate-from-jss.md": "d448aa22bcf67e8fa8f2ce5a602a6a969f89b554db31c7371bdcfd7895d48f81",
+    "crates/solid-pod-rs/src/ldp.rs": "dd2937a3d7e48a4dea63243ea0edb6ab5f542b18144d2ce073c2e4aa46a86ea3",
+    "crates/solid-pod-rs/tests/ldp_headers_jss.rs": "c31c4cc0684bf18be7029128ceaf5eb44432e88b5ef97c56c7eda8a87c886336",
+    "crates/solid-pod-rs/src/wac/resolver.rs": "6ceb7c39da09067977c78ad19b84f177a2bbc5bc4a273449d98c605f6ad8a622",
+    "crates/solid-pod-rs/src/wac/evaluator.rs": "b026765ac42bfa42c31c713095c82b5558d71eef3cd0b16d339a0be09a9b47a9",
+    "crates/solid-pod-rs/src/wac/conditions.rs": "013aa0505c5d7a3bb940d15f573b5a1b211cfdcf22c4074682c72b320ed107a7"
+  },
+  "reviewed_server_production_sha256_unchanged": true
+}

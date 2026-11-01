@@ -1,0 +1,624 @@
+   Compiling solid-pod-rs-server v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-acl-control/crates/solid-pod-rs-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.51s
+     Running tests/acl_candidate_control.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/acl_candidate_control-9f2e8bedb0f81f63)
+
+running 7 tests
+
+thread 'post_and_copy_refuse_invalid_acl_bodies_before_storage' (671063) panicked at crates/solid-pod-rs-server/tests/acl_candidate_control.rs:94:9:
+assertion `left == right` failed: method POST
+  left: 404
+ right: 409
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::panicking::assert_failed_inner
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:447:23
+   3: core::panicking::assert_failed::<u16, u16>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/panicking.rs:407:5
+   4: acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage::{closure#0}
+             at ./tests/acl_candidate_control.rs:94:9
+   5: <tokio::task::local::RunUntil<acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage::{closure#0}> as core::future::future::Future>::poll::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:1072:44
+   6: <tokio::task::local::LocalSet>::with::<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:823:13
+   7: <std::thread::local::LocalKey<tokio::task::local::LocalData>>::try_with::<<tokio::task::local::LocalSet>::with<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}, core::task::poll::Poll<()>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:463:12
+   8: <std::thread::local::LocalKey<tokio::task::local::LocalData>>::with::<<tokio::task::local::LocalSet>::with<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}, core::task::poll::Poll<()>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:427:20
+   9: <tokio::task::local::LocalSet>::with::<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage::{closure#0}> as core::future::future::Future>::poll::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:821:17
+  10: <tokio::task::local::RunUntil<acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage::{closure#0}> as core::future::future::Future>::poll
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:1062:22
+  11: <tokio::task::local::LocalSet>::run_until::<acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:719:19
+  12: <core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage::{closure#0}>::{closure#0}>> as core::future::future::Future>::poll
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/future/future.rs:133:9
+  13: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:830:70
+  14: tokio::task::coop::with_budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/coop/mod.rs:167:5
+  15: tokio::task::coop::budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/coop/mod.rs:133:5
+  16: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:830:25
+  17: <tokio::runtime::scheduler::current_thread::Context>::enter::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:486:19
+  18: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage::{closure#0}>::{closure#0}>>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:829:44
+  19: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:906:68
+  20: <tokio::runtime::context::scoped::Scoped<tokio::runtime::scheduler::Context>>::set::<<tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/scoped.rs:40:9
+  21: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context.rs:186:38
+  22: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::try_with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:463:12
+  23: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:427:20
+  24: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context.rs:186:17
+  25: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:906:27
+  26: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage::{closure#0}>::{closure#0}>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:819:24
+  27: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage::{closure#0}>::{closure#0}>>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:216:33
+  28: tokio::runtime::context::runtime::enter_runtime::<<tokio::runtime::scheduler::current_thread::CurrentThread>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage::{closure#0}>::{closure#0}>>>::{closure#0}, ()>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/runtime.rs:65:16
+  29: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage::{closure#0}>::{closure#0}>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:204:9
+  30: <tokio::runtime::runtime::Runtime>::block_on_inner::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage::{closure#0}>::{closure#0}>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/runtime.rs:379:52
+  31: <tokio::runtime::runtime::Runtime>::block_on::<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage::{closure#0}>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/runtime.rs:346:18
+  32: <tokio::task::local::LocalSet>::block_on::<acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:676:12
+  33: <actix_rt::runtime::Runtime>::block_on::<acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-rt-2.11.0/src/runtime.rs:138:20
+  34: <actix_rt::system::SystemRunner>::block_on::<acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-rt-2.11.0/src/system.rs:240:17
+  35: acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage
+             at ./tests/acl_candidate_control.rs:83:1
+  36: acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage::{closure#0}
+             at ./tests/acl_candidate_control.rs:84:66
+  37: <acl_candidate_control::post_and_copy_refuse_invalid_acl_bodies_before_storage::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+  38: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+thread 'copying_resource_does_not_install_a_policy_for_the_wrong_target' (671060) panicked at crates/solid-pod-rs-server/tests/acl_candidate_control.rs:55:9:
+assertion `left == right` failed
+  left: b"@prefix acl: <http://www.w3.org/ns/auth/acl#> .\n<#owner> a acl:Authorization ; acl:agent <did:nostr:3541fe780bb1fe4799c58fdffdd253de95da860294a0b0122de18be79b182048> ; acl:accessTo </source.bin> ;  acl:mode acl:Read, acl:Write, acl:Control .\n"
+ right: b"@prefix acl: <http://www.w3.org/ns/auth/acl#> .\n<#owner> a acl:Authorization ; acl:agent <did:nostr:3541fe780bb1fe4799c58fdffdd253de95da860294a0b0122de18be79b182048> ; acl:accessTo </secret.bin> ;  acl:mode acl:Read, acl:Write, acl:Control .\n"
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::panicking::assert_failed_inner
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:452:17
+test post_and_copy_refuse_invalid_acl_bodies_before_storage ... FAILED 
+  3: core::panicking::assert_failed::<&bytes::bytes::Bytes, &bytes::bytes::Bytes>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/panicking.rs:407:5
+   4: <acl_candidate_control::Fixture>::unchanged_and_usable::{closure#0}
+             at ./tests/acl_candidate_control.rs:55:9
+   5: acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target::{closure#0}
+             at ./tests/acl_candidate_control.rs:136:37
+   6: <tokio::task::local::RunUntil<acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target::{closure#0}> as core::future::future::Future>::poll::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:1072:44
+   7: <tokio::task::local::LocalSet>::with::<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:823:13
+   8: <std::thread::local::LocalKey<tokio::task::local::LocalData>>::try_with::<<tokio::task::local::LocalSet>::with<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}, core::task::poll::Poll<()>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:463:12
+   9: <std::thread::local::LocalKey<tokio::task::local::LocalData>>::with::<<tokio::task::local::LocalSet>::with<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}, core::task::poll::Poll<()>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:427:20
+  10: <tokio::task::local::LocalSet>::with::<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target::{closure#0}> as core::future::future::Future>::poll::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:821:17
+  11: <tokio::task::local::RunUntil<acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target::{closure#0}> as core::future::future::Future>::poll
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:1062:22
+  12: <tokio::task::local::LocalSet>::run_until::<acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:719:19
+  13: <core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target::{closure#0}>::{closure#0}>> as core::future::future::Future>::poll
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/future/future.rs:133:9
+  14: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:830:70
+  15: tokio::task::coop::with_budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/coop/mod.rs:167:5
+  16: tokio::task::coop::budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/coop/mod.rs:133:5
+  17: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:830:25
+  18: <tokio::runtime::scheduler::current_thread::Context>::enter::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:486:19
+  19: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target::{closure#0}>::{closure#0}>>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:829:44
+  20: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:906:68
+  21: <tokio::runtime::context::scoped::Scoped<tokio::runtime::scheduler::Context>>::set::<<tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/scoped.rs:40:9
+  22: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context.rs:186:38
+  23: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::try_with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:463:12
+  24: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:427:20
+  25: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context.rs:186:17
+  26: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:906:27
+  27: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target::{closure#0}>::{closure#0}>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:819:24
+  28: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target::{closure#0}>::{closure#0}>>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:216:33
+  29: tokio::runtime::context::runtime::enter_runtime::<<tokio::runtime::scheduler::current_thread::CurrentThread>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target::{closure#0}>::{closure#0}>>>::{closure#0}, ()>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/runtime.rs:65:16
+  30: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target::{closure#0}>::{closure#0}>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:204:9
+  31: <tokio::runtime::runtime::Runtime>::block_on_inner::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target::{closure#0}>::{closure#0}>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/runtime.rs:379:52
+  32: <tokio::runtime::runtime::Runtime>::block_on::<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target::{closure#0}>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/runtime.rs:346:18
+  33: <tokio::task::local::LocalSet>::block_on::<acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:676:12
+  34: <actix_rt::runtime::Runtime>::block_on::<acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-rt-2.11.0/src/runtime.rs:138:20
+  35: <actix_rt::system::SystemRunner>::block_on::<acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-rt-2.11.0/src/system.rs:240:17
+  36: acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target
+             at ./tests/acl_candidate_control.rs:129:1
+  37: acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target::{closure#0}
+             at ./tests/acl_candidate_control.rs:130:75
+  38: <acl_candidate_control::copying_resource_does_not_install_a_policy_for_the_wrong_target::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+  39: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+thread 'ordinary_metadata_requires_control_but_is_not_an_acl_document' (671062) panicked at crates/solid-pod-rs-server/tests/acl_candidate_control.rs:143:5:
+assertion `left == right` failed
+  left: 409
+ right: 201
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+test copying_resource_does_not_install_a_policy_for_the_wrong_target ... FAILED
+   2: core::panicking::assert_failed_inner
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:452:17
+   3: core::panicking::assert_failed::<u16, u16>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/panicking.rs:407:5
+   4: acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document::{closure#0}
+             at ./tests/acl_candidate_control.rs:143:5
+   5: <tokio::task::local::RunUntil<acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document::{closure#0}> as core::future::future::Future>::poll::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:1072:44
+   6: <tokio::task::local::LocalSet>::with::<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:823:13
+   7: <std::thread::local::LocalKey<tokio::task::local::LocalData>>::try_with::<<tokio::task::local::LocalSet>::with<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}, core::task::poll::Poll<()>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:463:12
+   8: <std::thread::local::LocalKey<tokio::task::local::LocalData>>::with::<<tokio::task::local::LocalSet>::with<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}, core::task::poll::Poll<()>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:427:20
+   9: <tokio::task::local::LocalSet>::with::<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document::{closure#0}> as core::future::future::Future>::poll::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:821:17
+  10: <tokio::task::local::RunUntil<acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document::{closure#0}> as core::future::future::Future>::poll
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:1062:22
+  11: <tokio::task::local::LocalSet>::run_until::<acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:719:19
+  12: <core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document::{closure#0}>::{closure#0}>> as core::future::future::Future>::poll
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/future/future.rs:133:9
+  13: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:830:70
+  14: tokio::task::coop::with_budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/coop/mod.rs:167:5
+  15: tokio::task::coop::budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/coop/mod.rs:133:5
+  16: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:830:25
+  17: <tokio::runtime::scheduler::current_thread::Context>::enter::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:486:19
+  18: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document::{closure#0}>::{closure#0}>>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:829:44
+  19: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:906:68
+  20: <tokio::runtime::context::scoped::Scoped<tokio::runtime::scheduler::Context>>::set::<<tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/scoped.rs:40:9
+  21: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context.rs:186:38
+  22: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::try_with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:463:12
+  23: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:427:20
+  24: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context.rs:186:17
+  25: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:906:27
+  26: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document::{closure#0}>::{closure#0}>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:819:24
+  27: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document::{closure#0}>::{closure#0}>>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:216:33
+  28: tokio::runtime::context::runtime::enter_runtime::<<tokio::runtime::scheduler::current_thread::CurrentThread>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document::{closure#0}>::{closure#0}>>>::{closure#0}, ()>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/runtime.rs:65:16
+  29: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document::{closure#0}>::{closure#0}>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:204:9
+  30: <tokio::runtime::runtime::Runtime>::block_on_inner::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document::{closure#0}>::{closure#0}>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/runtime.rs:379:52
+  31: <tokio::runtime::runtime::Runtime>::block_on::<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document::{closure#0}>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/runtime.rs:346:18
+  32: <tokio::task::local::LocalSet>::block_on::<acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:676:12
+  33: <actix_rt::runtime::Runtime>::block_on::<acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-rt-2.11.0/src/runtime.rs:138:20
+  34: <actix_rt::system::SystemRunner>::block_on::<acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-rt-2.11.0/src/system.rs:240:17
+  35: acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document
+             at ./tests/acl_candidate_control.rs:140:1
+  36: acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document::{closure#0}
+             at ./tests/acl_candidate_control.rs:141:73
+  37: <acl_candidate_control::ordinary_metadata_requires_control_but_is_not_an_acl_document::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+  38: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+thread 'put_refuses_unparseable_and_misdirected_policies_without_lockout' (671064) panicked at crates/solid-pod-rs-server/tests/acl_candidate_control.rs:66:9:
+assertion `left == right` failed: candidate: {not json
+  left: 201
+ right: 409
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   test ordinary_metadata_requires_control_but_is_not_an_acl_document ... 2FAILED: 
+core::panicking::assert_failed_inner
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:447:23
+   3: core::panicking::assert_failed::<u16, u16>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/panicking.rs:407:5
+   4: acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout::{closure#0}
+             at ./tests/acl_candidate_control.rs:66:9
+   5: <tokio::task::local::RunUntil<acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout::{closure#0}> as core::future::future::Future>::poll::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:1072:44
+   6: <tokio::task::local::LocalSet>::with::<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:823:13
+   7: <std::thread::local::LocalKey<tokio::task::local::LocalData>>::try_with::<<tokio::task::local::LocalSet>::with<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}, core::task::poll::Poll<()>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:463:12
+   8: <std::thread::local::LocalKey<tokio::task::local::LocalData>>::with::<<tokio::task::local::LocalSet>::with<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}, core::task::poll::Poll<()>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:427:20
+   9: <tokio::task::local::LocalSet>::with::<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout::{closure#0}> as core::future::future::Future>::poll::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:821:17
+  10: <tokio::task::local::RunUntil<acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout::{closure#0}> as core::future::future::Future>::poll
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:1062:22
+  11: <tokio::task::local::LocalSet>::run_until::<acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:719:19
+  12: <core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout::{closure#0}>::{closure#0}>> as core::future::future::Future>::poll
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/future/future.rs:133:9
+  13: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:830:70
+  14: tokio::task::coop::with_budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/coop/mod.rs:167:5
+  15: tokio::task::coop::budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/coop/mod.rs:133:5
+  16: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:830:25
+  17: <tokio::runtime::scheduler::current_thread::Context>::enter::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:486:19
+  18: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout::{closure#0}>::{closure#0}>>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:829:44
+  19: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:906:68
+  20: <tokio::runtime::context::scoped::Scoped<tokio::runtime::scheduler::Context>>::set::<<tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/scoped.rs:40:9
+  21: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context.rs:186:38
+  22: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::try_with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:463:12
+  23: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:427:20
+  24: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context.rs:186:17
+  25: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:906:27
+  26: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout::{closure#0}>::{closure#0}>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:819:24
+  27: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout::{closure#0}>::{closure#0}>>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:216:33
+  28: tokio::runtime::context::runtime::enter_runtime::<<tokio::runtime::scheduler::current_thread::CurrentThread>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout::{closure#0}>::{closure#0}>>>::{closure#0}, ()>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/runtime.rs:65:16
+  29: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout::{closure#0}>::{closure#0}>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:204:9
+  30: <tokio::runtime::runtime::Runtime>::block_on_inner::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout::{closure#0}>::{closure#0}>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/runtime.rs:379:52
+  31: <tokio::runtime::runtime::Runtime>::block_on::<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout::{closure#0}>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/runtime.rs:346:18
+  32: <tokio::task::local::LocalSet>::block_on::<acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:676:12
+  33: <actix_rt::runtime::Runtime>::block_on::<acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-rt-2.11.0/src/runtime.rs:138:20
+  34: <actix_rt::system::SystemRunner>::block_on::<acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-rt-2.11.0/src/system.rs:240:17
+  35: acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout
+             at ./tests/acl_candidate_control.rs:61:1
+  36: acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout::{closure#0}
+             at ./tests/acl_candidate_control.rs:62:76
+  37: <acl_candidate_control::put_refuses_unparseable_and_misdirected_policies_without_lockout::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+  38: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+thread 'json_patch_checks_resulting_acl_before_committing_it' (671061) panicked at crates/solid-pod-rs-server/tests/acl_candidate_control.rs:105:5:
+assertion `left == right` failed
+  left: 204
+ right: 409
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: coretest put_refuses_unparseable_and_misdirected_policies_without_lockout ... ::FAILEDpanicking
+::assert_failed_inner
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:452:17
+   3: core::panicking::assert_failed::<u16, u16>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/panicking.rs:407:5
+   4: acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it::{closure#0}
+             at ./tests/acl_candidate_control.rs:105:5
+   5: <tokio::task::local::RunUntil<acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it::{closure#0}> as core::future::future::Future>::poll::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:1072:44
+   6: <tokio::task::local::LocalSet>::with::<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:823:13
+   7: <std::thread::local::LocalKey<tokio::task::local::LocalData>>::try_with::<<tokio::task::local::LocalSet>::with<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}, core::task::poll::Poll<()>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:463:12
+   8: <std::thread::local::LocalKey<tokio::task::local::LocalData>>::with::<<tokio::task::local::LocalSet>::with<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}, core::task::poll::Poll<()>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:427:20
+   9: <tokio::task::local::LocalSet>::with::<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it::{closure#0}> as core::future::future::Future>::poll::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:821:17
+  10: <tokio::task::local::RunUntil<acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it::{closure#0}> as core::future::future::Future>::poll
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:1062:22
+  11: <tokio::task::local::LocalSet>::run_until::<acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:719:19
+  12: <core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it::{closure#0}>::{closure#0}>> as core::future::future::Future>::poll
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/future/future.rs:133:9
+  13: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:830:70
+  14: tokio::task::coop::with_budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/coop/mod.rs:167:5
+  15: tokio::task::coop::budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/coop/mod.rs:133:5
+  16: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:830:25
+  17: <tokio::runtime::scheduler::current_thread::Context>::enter::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:486:19
+  18: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it::{closure#0}>::{closure#0}>>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:829:44
+  19: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:906:68
+  20: <tokio::runtime::context::scoped::Scoped<tokio::runtime::scheduler::Context>>::set::<<tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/scoped.rs:40:9
+  21: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context.rs:186:38
+  22: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::try_with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:463:12
+  23: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:427:20
+  24: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context.rs:186:17
+  25: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:906:27
+  26: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it::{closure#0}>::{closure#0}>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:819:24
+  27: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it::{closure#0}>::{closure#0}>>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:216:33
+  28: tokio::runtime::context::runtime::enter_runtime::<<tokio::runtime::scheduler::current_thread::CurrentThread>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it::{closure#0}>::{closure#0}>>>::{closure#0}, ()>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/runtime.rs:65:16
+  29: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it::{closure#0}>::{closure#0}>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:204:9
+  30: <tokio::runtime::runtime::Runtime>::block_on_inner::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it::{closure#0}>::{closure#0}>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/runtime.rs:379:52
+  31: <tokio::runtime::runtime::Runtime>::block_on::<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it::{closure#0}>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/runtime.rs:346:18
+  32: <tokio::task::local::LocalSet>::block_on::<acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:676:12
+  33: <actix_rt::runtime::Runtime>::block_on::<acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-rt-2.11.0/src/runtime.rs:138:20
+  34: <actix_rt::system::SystemRunner>::block_on::<acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-rt-2.11.0/src/system.rs:240:17
+  35: acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it
+             at ./tests/acl_candidate_control.rs:99:1
+  36: acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it::{closure#0}
+             at ./tests/acl_candidate_control.rs:100:64
+  37: <acl_candidate_control::json_patch_checks_resulting_acl_before_committing_it::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+  38: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+thread 'candidate_control_requires_satisfied_conditions' (671059) panicked at crates/solid-pod-rs-server/tests/acl_candidate_control.rs:79:5:
+assertion `left == right` failed
+  left: 201
+ right: 409
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::panicking::assert_failed_inner
+             at test json_patch_checks_resulting_acl_before_committing_it ... /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:FAILED452
+:17
+   3: core::panicking::assert_failed::<u16, u16>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/panicking.rs:407:5
+   4: acl_candidate_control::candidate_control_requires_satisfied_conditions::{closure#0}
+             at ./tests/acl_candidate_control.rs:79:5
+   5: <tokio::task::local::RunUntil<acl_candidate_control::candidate_control_requires_satisfied_conditions::{closure#0}> as core::future::future::Future>::poll::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:1072:44
+   6: <tokio::task::local::LocalSet>::with::<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<acl_candidate_control::candidate_control_requires_satisfied_conditions::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:823:13
+   7: <std::thread::local::LocalKey<tokio::task::local::LocalData>>::try_with::<<tokio::task::local::LocalSet>::with<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<acl_candidate_control::candidate_control_requires_satisfied_conditions::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}, core::task::poll::Poll<()>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:463:12
+   8: <std::thread::local::LocalKey<tokio::task::local::LocalData>>::with::<<tokio::task::local::LocalSet>::with<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<acl_candidate_control::candidate_control_requires_satisfied_conditions::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}, core::task::poll::Poll<()>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:427:20
+   9: <tokio::task::local::LocalSet>::with::<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<acl_candidate_control::candidate_control_requires_satisfied_conditions::{closure#0}> as core::future::future::Future>::poll::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:821:17
+  10: <tokio::task::local::RunUntil<acl_candidate_control::candidate_control_requires_satisfied_conditions::{closure#0}> as core::future::future::Future>::poll
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:1062:22
+  11: <tokio::task::local::LocalSet>::run_until::<acl_candidate_control::candidate_control_requires_satisfied_conditions::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:719:19
+  12: <core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::candidate_control_requires_satisfied_conditions::{closure#0}>::{closure#0}>> as core::future::future::Future>::poll
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/future/future.rs:133:9
+  13: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::candidate_control_requires_satisfied_conditions::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:830:70
+  14: tokio::task::coop::with_budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::candidate_control_requires_satisfied_conditions::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/coop/mod.rs:167:5
+  15: tokio::task::coop::budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::candidate_control_requires_satisfied_conditions::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/coop/mod.rs:133:5
+  16: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::candidate_control_requires_satisfied_conditions::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:830:25
+  17: <tokio::runtime::scheduler::current_thread::Context>::enter::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::candidate_control_requires_satisfied_conditions::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:486:19
+  18: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::candidate_control_requires_satisfied_conditions::{closure#0}>::{closure#0}>>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:829:44
+  19: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::candidate_control_requires_satisfied_conditions::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:906:68
+  20: <tokio::runtime::context::scoped::Scoped<tokio::runtime::scheduler::Context>>::set::<<tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::candidate_control_requires_satisfied_conditions::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/scoped.rs:40:9
+  21: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::candidate_control_requires_satisfied_conditions::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context.rs:186:38
+  22: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::try_with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::candidate_control_requires_satisfied_conditions::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:463:12
+  23: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::candidate_control_requires_satisfied_conditions::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:427:20
+  24: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::candidate_control_requires_satisfied_conditions::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context.rs:186:17
+  25: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::candidate_control_requires_satisfied_conditions::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:906:27
+  26: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::candidate_control_requires_satisfied_conditions::{closure#0}>::{closure#0}>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:819:24
+  27: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::candidate_control_requires_satisfied_conditions::{closure#0}>::{closure#0}>>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:216:33
+  28: tokio::runtime::context::runtime::enter_runtime::<<tokio::runtime::scheduler::current_thread::CurrentThread>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::candidate_control_requires_satisfied_conditions::{closure#0}>::{closure#0}>>>::{closure#0}, ()>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/runtime.rs:65:16
+  29: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::candidate_control_requires_satisfied_conditions::{closure#0}>::{closure#0}>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:204:9
+  30: <tokio::runtime::runtime::Runtime>::block_on_inner::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::candidate_control_requires_satisfied_conditions::{closure#0}>::{closure#0}>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/runtime.rs:379:52
+  31: <tokio::runtime::runtime::Runtime>::block_on::<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::candidate_control_requires_satisfied_conditions::{closure#0}>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/runtime.rs:346:18
+  32: <tokio::task::local::LocalSet>::block_on::<acl_candidate_control::candidate_control_requires_satisfied_conditions::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:676:12
+  33: <actix_rt::runtime::Runtime>::block_on::<acl_candidate_control::candidate_control_requires_satisfied_conditions::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-rt-2.11.0/src/runtime.rs:138:20
+  34: <actix_rt::system::SystemRunner>::block_on::<acl_candidate_control::candidate_control_requires_satisfied_conditions::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-rt-2.11.0/src/system.rs:240:17
+  35: acl_candidate_control::candidate_control_requires_satisfied_conditions
+             at ./tests/acl_candidate_control.rs:73:1
+  36: acl_candidate_control::candidate_control_requires_satisfied_conditions::{closure#0}
+             at ./tests/acl_candidate_control.rs:74:59
+  37: <acl_candidate_control::candidate_control_requires_satisfied_conditions::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+  38: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+thread 'rdf_patch_checks_existing_and_new_policy_targets' (671065) panicked at crates/solid-pod-rs-server/tests/acl_candidate_control.rs:120:9:
+assertion `left == right` failed: existing true
+  left: 403
+ right: 409
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: coretest candidate_control_requires_satisfied_conditions ... ::panickingFAILED::
+assert_failed_inner
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:447:23
+   3: core::panicking::assert_failed::<u16, u16>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/panicking.rs:407:5
+   4: acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets::{closure#0}
+             at ./tests/acl_candidate_control.rs:120:9
+   5: <tokio::task::local::RunUntil<acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets::{closure#0}> as core::future::future::Future>::poll::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:1072:44
+   6: <tokio::task::local::LocalSet>::with::<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:823:13
+   7: <std::thread::local::LocalKey<tokio::task::local::LocalData>>::try_with::<<tokio::task::local::LocalSet>::with<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}, core::task::poll::Poll<()>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:463:12
+   8: <std::thread::local::LocalKey<tokio::task::local::LocalData>>::with::<<tokio::task::local::LocalSet>::with<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}, core::task::poll::Poll<()>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:427:20
+   9: <tokio::task::local::LocalSet>::with::<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets::{closure#0}> as core::future::future::Future>::poll::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:821:17
+  10: <tokio::task::local::RunUntil<acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets::{closure#0}> as core::future::future::Future>::poll
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:1062:22
+  11: <tokio::task::local::LocalSet>::run_until::<acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:719:19
+  12: <core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets::{closure#0}>::{closure#0}>> as core::future::future::Future>::poll
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/future/future.rs:133:9
+  13: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:830:70
+  14: tokio::task::coop::with_budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/coop/mod.rs:167:5
+  15: tokio::task::coop::budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/coop/mod.rs:133:5
+  16: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:830:25
+  17: <tokio::runtime::scheduler::current_thread::Context>::enter::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:486:19
+  18: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets::{closure#0}>::{closure#0}>>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:829:44
+  19: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:906:68
+  20: <tokio::runtime::context::scoped::Scoped<tokio::runtime::scheduler::Context>>::set::<<tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/scoped.rs:40:9
+  21: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context.rs:186:38
+  22: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::try_with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:463:12
+  23: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:427:20
+  24: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context.rs:186:17
+  25: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:906:27
+  26: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets::{closure#0}>::{closure#0}>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:819:24
+  27: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets::{closure#0}>::{closure#0}>>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:216:33
+  28: tokio::runtime::context::runtime::enter_runtime::<<tokio::runtime::scheduler::current_thread::CurrentThread>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets::{closure#0}>::{closure#0}>>>::{closure#0}, ()>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/runtime.rs:65:16
+  29: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets::{closure#0}>::{closure#0}>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:204:9
+  30: <tokio::runtime::runtime::Runtime>::block_on_inner::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets::{closure#0}>::{closure#0}>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/runtime.rs:379:52
+  31: <tokio::runtime::runtime::Runtime>::block_on::<<tokio::task::local::LocalSet>::run_until<acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets::{closure#0}>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/runtime.rs:346:18
+  32: <tokio::task::local::LocalSet>::block_on::<acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:676:12
+  33: <actix_rt::runtime::Runtime>::block_on::<acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-rt-2.11.0/src/runtime.rs:138:20
+  34: <actix_rt::system::SystemRunner>::block_on::<acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-rt-2.11.0/src/system.rs:240:17
+  35: acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets
+             at ./tests/acl_candidate_control.rs:111:1
+  36: acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets::{closure#0}
+             at ./tests/acl_candidate_control.rs:112:60
+  37: <acl_candidate_control::rdf_patch_checks_existing_and_new_policy_targets::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+  38: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+test rdf_patch_checks_existing_and_new_policy_targets ... FAILED
+
+failures:
+
+failures:
+    candidate_control_requires_satisfied_conditions
+    copying_resource_does_not_install_a_policy_for_the_wrong_target
+    json_patch_checks_resulting_acl_before_committing_it
+    ordinary_metadata_requires_control_but_is_not_an_acl_document
+    post_and_copy_refuse_invalid_acl_bodies_before_storage
+    put_refuses_unparseable_and_misdirected_policies_without_lockout
+    rdf_patch_checks_existing_and_new_policy_targets
+
+test result: FAILED. 0 passed; 7 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.01s
+
+error: test failed, to rerun pass `-p solid-pod-rs-server --test acl_candidate_control`

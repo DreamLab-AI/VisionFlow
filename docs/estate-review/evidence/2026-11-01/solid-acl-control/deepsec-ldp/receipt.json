@@ -1,0 +1,31 @@
+{
+  "gate": "deepsec",
+  "adr": "ADR-2033",
+  "result": "BLOCK",
+  "mode": "files-from",
+  "fail_on": "HIGH",
+  "revision": "fe4f2ec338f0c4de75c9769b08d54bbb12e779b2",
+  "dirty": true,
+  "deepsec_version": "2.3.10",
+  "policy_source": "/etc/agentbox.toml",
+  "deepsec_exit": 1,
+  "candidates": 0,
+  "findings_by_severity": {
+    "CRITICAL": 0,
+    "HIGH": 1,
+    "MEDIUM": 2,
+    "HIGH_BUG": 1,
+    "BUG": 1,
+    "LOW": 0
+  },
+  "blocking": [
+    {
+      "severity": "HIGH",
+      "file": null,
+      "title": "[HIGH] Git clone exposes private child resources with only pod-root Read",
+      "lines": null
+    }
+  ],
+  "net_new_reported_by_deepsec": true,
+  "at": "2026-11-01T20:40:27.610149+00:00"
+}

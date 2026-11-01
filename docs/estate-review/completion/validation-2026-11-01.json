@@ -2,8 +2,8 @@
   "date": "2026-11-01",
   "baseline": "2b2c19c0f19b2616e3890946aba384ec448aec9b",
   "panel_id_parity": {
-    "ledger": 1744,
-    "existing_coverage_index": 1744,
+    "ledger": 1746,
+    "existing_coverage_index": 1746,
     "equal": true
   },
   "census_delta": {
@@ -1991,7 +1991,7 @@
       "target": "../../docs/estate-review/completion/claims.json"
     }
   ],
-  "exact_claim_bindings_rechecked": 205,
+  "exact_claim_bindings_rechecked": 206,
   "tool_hashes": {
     "scripts/estate-review-ledger/src/main.rs": "6a13475db77573e460ab9ba8a99b7aa1e7c306ca33c14ea3cf5188b690ce12b3",
     "scripts/estate-review-ledger/Cargo.toml": "8109eeff493be24031c394cce1d81a059ca1612f967e5b032f37bf9e8f1e50d6",
@@ -2127,27 +2127,29 @@
     "limits": "Scope correction only. Previous product tests and diagram gates are historical receipts; neither was rerun for this edit. No RuView source was scanned by the refreshed collector."
   },
   "current_batch": {
-    "report": "docs/estate-review/2026-11-01-solid-parity-intake.md",
-    "baseline": "6e26fad",
-    "source_revision": "fe4f2ec338f0c4de75c9769b08d54bbb12e779b2",
+    "report": "docs/estate-review/2026-11-01-solid-acl-control-repair.md",
+    "baseline": "c26e837",
+    "source_revision": "b644e55c76d6e89b0e41ec1c7aa44510b20ccf68",
+    "diagram_revision": "daff10d610ecb0fb4f1dd0e143c0ea6b95bd7445",
     "new_whole_adrs": 0,
     "newly_assessed_existing_panels": [],
-    "new_topic_panels": [],
-    "completed_observation_groups": 6,
+    "new_topic_panels": [
+      "SP-13.1",
+      "SP-13.2"
+    ],
     "counts": {
       "available_checkouts": 20,
       "candidate_files": 829,
       "numbered_candidates_with_recorded_assessment": 98,
       "numbered_decision_candidates": 721,
-      "panels": 1744,
-      "panels_with_recorded_assessment": 372,
+      "panels": 1746,
+      "panels_with_recorded_assessment": 374,
       "scope_targets": 20,
       "stale_claim_records": 0,
-      "topics": 210
+      "topics": 211
     },
-    "candidate_delta_receipt": "docs/estate-review/evidence/2026-11-01/solid-parity-intake/inventory-delta.json",
-    "evidence_manifest": "docs/estate-review/evidence/2026-11-01/solid-parity-intake/manifest.json",
-    "limits": "Imports 35 parity rows and three additional PATCH defect reports; six print-oriented observation functions rerun, not six regression acceptance tests. No production fix, source-wide review or deployment claimed."
+    "evidence_manifest": "docs/estate-review/evidence/2026-11-01/solid-acl-control/manifest.json",
+    "limits": "Producer repair merged; overlapping native runs pass. Both raw Deepsec receipts BLOCK; five distinct pre-existing findings with source/runtime limits. No migration, publication, consumer upgrade or deployment acceptance."
   },
   "prior_full_corpus_gate": {
     "topics": 206,
@@ -2169,33 +2171,27 @@
     "declared_revisions": 57
   },
   "corpus_gate": {
-    "topics": 210,
-    "panels": 1744,
-    "check_verification": "passed: 61 revision tokens",
+    "topics": 211,
+    "panels": 1746,
+    "check_verification": "passed: 62 revision tokens",
     "scope": "Structure only, no source path access",
-    "evidence": "docs/estate-review/evidence/2026-11-01/solid-oidc/structure.txt"
+    "evidence": "docs/estate-review/evidence/2026-11-01/solid-acl-control/structure.txt"
   },
   "scoped_topic_gate": {
     "topics": [
-      "SP-05",
-      "SP-12"
+      "SP-13"
     ],
-    "rendered_panels": 20,
+    "rendered_panels": 2,
     "visually_checked_panels": [
-      "SP-05.7",
-      "SP-05.8",
-      "SP-05.10",
-      "SP-12.1",
-      "SP-12.2"
+      "SP-13.1",
+      "SP-13.2"
     ],
-    "verified_citations": 225,
+    "verified_citations": 16,
     "warnings": 0,
     "fallback": 0,
-    "evidence": [
-      "docs/estate-review/evidence/2026-11-01/solid-oidc/historical-diagram.txt",
-      "docs/estate-review/evidence/2026-11-01/solid-oidc/new-diagram.txt"
-    ],
-    "limits": "Five selected panels newly assessed; other rendered panels receive no new credit. JEV samples advisory."
+    "unresolved": 0,
+    "evidence": "docs/estate-review/evidence/2026-11-01/solid-acl-control/diagram.txt",
+    "jev": "Advisory citation sample, not semantic proof"
   },
   "current_scope_correction": {
     "excluded": [
@@ -2418,5 +2414,28 @@
       }
     ],
     "editorial_receipt": "docs/estate-review/evidence/2026-11-01/solid-oidc/editorial.json"
+  },
+  "previous_parity_intake_batch": {
+    "report": "docs/estate-review/2026-11-01-solid-parity-intake.md",
+    "baseline": "6e26fad",
+    "source_revision": "fe4f2ec338f0c4de75c9769b08d54bbb12e779b2",
+    "new_whole_adrs": 0,
+    "newly_assessed_existing_panels": [],
+    "new_topic_panels": [],
+    "completed_observation_groups": 6,
+    "counts": {
+      "available_checkouts": 20,
+      "candidate_files": 829,
+      "numbered_candidates_with_recorded_assessment": 98,
+      "numbered_decision_candidates": 721,
+      "panels": 1744,
+      "panels_with_recorded_assessment": 372,
+      "scope_targets": 20,
+      "stale_claim_records": 0,
+      "topics": 210
+    },
+    "candidate_delta_receipt": "docs/estate-review/evidence/2026-11-01/solid-parity-intake/inventory-delta.json",
+    "evidence_manifest": "docs/estate-review/evidence/2026-11-01/solid-parity-intake/manifest.json",
+    "limits": "Imports 35 parity rows and three additional PATCH defect reports; six print-oriented observation functions rerun, not six regression acceptance tests. No production fix, source-wide review or deployment claimed."
   }
 }

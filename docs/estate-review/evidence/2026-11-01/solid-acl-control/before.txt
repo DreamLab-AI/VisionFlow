@@ -1,0 +1,21 @@
+   Compiling solid-pod-rs v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-acl-control/crates/solid-pod-rs)
+   Compiling solid-pod-rs-idp v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-acl-control/crates/solid-pod-rs-idp)
+   Compiling solid-pod-rs-server v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-acl-control/crates/solid-pod-rs-server)
+error[E0425]: cannot find value `OsRng` in crate `k256::elliptic_curve::rand_core`
+  --> crates/solid-pod-rs-server/tests/acl_candidate_control.rs:21:91
+   |
+21 |         let key = k256::schnorr::SigningKey::random(&mut k256::elliptic_curve::rand_core::OsRng);
+   |                                                                                           ^^^^^ not found in `k256::elliptic_curve::rand_core`
+
+warning: use of deprecated associated function `k256::schnorr::SigningKey::random`: use the `Generate` trait instead
+  --> crates/solid-pod-rs-server/tests/acl_candidate_control.rs:21:46
+   |
+21 |         let key = k256::schnorr::SigningKey::random(&mut k256::elliptic_curve::rand_core::OsRng);
+   |                                              ^^^^^^
+   |
+   = note: `#[warn(deprecated)]` on by default
+
+For more information about this error, try `rustc --explain E0425`.
+warning: `solid-pod-rs-server` (test "acl_candidate_control") generated 1 warning
+error: could not compile `solid-pod-rs-server` (test "acl_candidate_control") due to 1 previous error; 1 warning emitted
+warning: build failed, waiting for other jobs to finish...

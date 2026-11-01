@@ -1,0 +1,166 @@
+{
+  "advisory": true,
+  "flag_at": 0.9,
+  "results": [
+    {
+      "topic": "solid-pod-rs/13-acl-control-and-discovery.md",
+      "diagram": "SP-13.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:875",
+      "p_defect": 0.18,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/13-acl-control-and-discovery.md",
+      "diagram": "SP-13.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:883",
+      "p_defect": 0.39,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/13-acl-control-and-discovery.md",
+      "diagram": "SP-13.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:889",
+      "p_defect": 0.1,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/13-acl-control-and-discovery.md",
+      "diagram": "SP-13.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:894",
+      "p_defect": 0.29,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/13-acl-control-and-discovery.md",
+      "diagram": "SP-13.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:906",
+      "p_defect": 0.27,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/13-acl-control-and-discovery.md",
+      "diagram": "SP-13.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:910",
+      "p_defect": 0.4,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/13-acl-control-and-discovery.md",
+      "diagram": "SP-13.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:916",
+      "p_defect": 0.24,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/13-acl-control-and-discovery.md",
+      "diagram": "SP-13.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:1958",
+      "p_defect": 0.6,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/13-acl-control-and-discovery.md",
+      "diagram": "SP-13.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:3004",
+      "p_defect": 0.18,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/13-acl-control-and-discovery.md",
+      "diagram": "SP-13.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/tests/acl_candidate_control.rs:339",
+      "p_defect": 0.29,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/13-acl-control-and-discovery.md",
+      "diagram": "SP-13.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/ldp.rs:152",
+      "p_defect": 0.27,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/13-acl-control-and-discovery.md",
+      "diagram": "SP-13.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/ldp.rs:1859",
+      "p_defect": 0.18,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/13-acl-control-and-discovery.md",
+      "diagram": "SP-13.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/wac/resolver.rs:333",
+      "p_defect": 0.67,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/13-acl-control-and-discovery.md",
+      "diagram": "SP-13.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/tests/acl_candidate_control.rs:382",
+      "p_defect": 0.32,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/13-acl-control-and-discovery.md",
+      "diagram": "SP-13.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/tests/acl_candidate_control.rs:392",
+      "p_defect": 0.44,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/13-acl-control-and-discovery.md",
+      "diagram": "SP-13.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/tests/acl_candidate_control.rs:396",
+      "p_defect": 0.33,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    }
+  ]
+}

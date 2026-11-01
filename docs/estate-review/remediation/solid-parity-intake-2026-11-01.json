@@ -27,8 +27,13 @@
       "source_evidence": "`crates/solid-pod-rs-server/src/lib.rs:906-909`; `src/rdf_input.rs:84-88`; `src/wac/resolver.rs:283-315`",
       "notes": "**P1, runtime.** Self-inflicted lockout of a whole subtree; a bad `/.acl` bricks the pod over HTTP, repairable only on the storage backend. Fix: fail closed in the guard, as MCP `write_acl` already does (`mcp/tools.rs:853-856`), and answer 400. The same gap exists through POST to a sidecar and COPY.",
       "verification": "Observed again by six-group archived probe at fe4f2ec; inspect raw statuses, not test completion alone.",
-      "disposition": "open-triage",
-      "related_existing_finding": "2026-11-01-solid-http-delivery.md D2; overlapping lockout family, distinct inputs/acceptance conditions."
+      "disposition": "producer-repair-partial: malformed and target/condition guard regressions pass; HTTP status parity and parser completeness remain open",
+      "related_existing_finding": "2026-11-01-solid-http-delivery.md D2; overlapping lockout family, distinct inputs/acceptance conditions.",
+      "repair_checkpoint": {
+        "revision": "daff10d610ecb0fb4f1dd0e143c0ea6b95bd7445",
+        "report": "2026-11-01-solid-acl-control-repair.md",
+        "state": "merged into main through b644e55; bounded validation passed, existing security findings remain open"
+      }
     },
     {
       "id": "SP-PAR-267",
@@ -52,7 +57,12 @@
       "source_evidence": "none",
       "notes": "P2. The audit's runtime probes (`docs/reference/jss-parity-audit-2026-11-01/wac-probe-*.rs`, run as an integration test of `solid-pod-rs-server` with `--features dev-bearer`) are the starting point.",
       "verification": "Imported; no new execution in this intake",
-      "disposition": "open-triage"
+      "disposition": "producer-repair-partial: nine production NIP-98 route tests added; full upstream fixture parity remains open",
+      "repair_checkpoint": {
+        "revision": "daff10d610ecb0fb4f1dd0e143c0ea6b95bd7445",
+        "report": "2026-11-01-solid-acl-control-repair.md",
+        "state": "merged into main through b644e55; bounded validation passed, existing security findings remain open"
+      }
     },
     {
       "id": "SP-PAR-269",
@@ -317,7 +327,12 @@
       "source_evidence": "`src/wac/resolver.rs`",
       "notes": "**P1**, runtime. Widens access after a migration: the parent's broader grant applies in place of the narrower container ACL. `migrate-from-jss.md` must state the move.",
       "verification": "Observed again by six-group archived probe at fe4f2ec; inspect raw statuses, not test completion alone.",
-      "disposition": "open-triage"
+      "disposition": "producer-repair-partial: discovery now shares enforced sibling mapping; existing inner ACL migration and provisioning remain open",
+      "repair_checkpoint": {
+        "revision": "daff10d610ecb0fb4f1dd0e143c0ea6b95bd7445",
+        "report": "2026-11-01-solid-acl-control-repair.md",
+        "state": "merged into main through b644e55; bounded validation passed, existing security findings remain open"
+      }
     },
     {
       "id": "SP-PAR-291",
@@ -445,7 +460,8 @@
       "id": "SP-PAR-SPARQL-NOOP",
       "claim": "Variable SPARQL UPDATE returns 204 without applying update",
       "verification": "Imported runtime evidence, not rerun here",
-      "status": "open"
+      "status": "open",
+      "additional_source_observation": "Deepsec core review and source comparison at fe4f2ec/daff10d show WHERE discarded for ground DELETE/INSERT; conditional ground mutation needs a runtime fixture as well as variable-template no-op. See SP-ACL-REVIEW-05; no new runtime credit."
     }
   ],
   "counting": "35 parity rows plus three non-parity defects are intake records, not 38 distinct new issues. No automatic addition to the parallel-audit 134-issue count."

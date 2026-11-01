@@ -1,0 +1,56 @@
+   Compiling solid-pod-rs-server v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-acl-control/crates/solid-pod-rs-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.00s
+     Running tests/acl_candidate_control.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/acl_candidate_control-9f2e8bedb0f81f63)
+
+running 6 tests
+
+thread 'ordinary_metadata_requires_control_but_is_not_an_acl_document' (683827) panicked at crates/solid-pod-rs-server/tests/acl_candidate_control.rs:126:5:
+assertion `left == right` failed
+  left: 409
+ right: 201
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test ordinary_metadata_requires_control_but_is_not_an_acl_document ... FAILED
+
+thread 'post_and_copy_refuse_invalid_acl_bodies_before_storage' (683828) panicked at crates/solid-pod-rs-server/tests/acl_candidate_control.rs:95:9:
+assertion `left == right` failed: method POST
+  left: 201
+ right: 409
+test post_and_copy_refuse_invalid_acl_bodies_before_storage ... FAILED
+
+thread 'candidate_control_requires_satisfied_conditions' (683824) panicked at crates/solid-pod-rs-server/tests/acl_candidate_control.rs:80:5:
+assertion `left == right` failed
+  left: 201
+ right: 409
+test candidate_control_requires_satisfied_conditions ... FAILED
+
+thread 'put_refuses_unparseable_and_misdirected_policies_without_lockout' (683829) panicked at crates/solid-pod-rs-server/tests/acl_candidate_control.rs:67:9:
+assertion `left == right` failed: candidate: {not json
+  left: 201
+ right: 409
+test put_refuses_unparseable_and_misdirected_policies_without_lockout ... FAILED
+
+thread 'copying_resource_does_not_install_a_policy_for_the_wrong_target' (683825) panicked at crates/solid-pod-rs-server/tests/acl_candidate_control.rs:56:9:
+assertion `left == right` failed
+  left: b"@prefix acl: <http://www.w3.org/ns/auth/acl#> .\n<#owner> a acl:Authorization ; acl:agent <did:nostr:ba259655732feb4ba35984f1051b712a2f7ad967295c5793eaee1ad6025c3e11> ; acl:accessTo </source.bin> ;  acl:mode acl:Read, acl:Write, acl:Control .\n"
+ right: b"@prefix acl: <http://www.w3.org/ns/auth/acl#> .\n<#owner> a acl:Authorization ; acl:agent <did:nostr:ba259655732feb4ba35984f1051b712a2f7ad967295c5793eaee1ad6025c3e11> ; acl:accessTo </private/document.bin> ;  acl:mode acl:Read, acl:Write, acl:Control .\n"
+test copying_resource_does_not_install_a_policy_for_the_wrong_target ... FAILED
+
+thread 'json_patch_checks_resulting_acl_before_committing_it' (683826) panicked at crates/solid-pod-rs-server/tests/acl_candidate_control.rs:106:5:
+assertion `left == right` failed
+  left: 204
+ right: 409
+test json_patch_checks_resulting_acl_before_committing_it ... FAILED
+
+failures:
+
+failures:
+    candidate_control_requires_satisfied_conditions
+    copying_resource_does_not_install_a_policy_for_the_wrong_target
+    json_patch_checks_resulting_acl_before_committing_it
+    ordinary_metadata_requires_control_but_is_not_an_acl_document
+    post_and_copy_refuse_invalid_acl_bodies_before_storage
+    put_refuses_unparseable_and_misdirected_policies_without_lockout
+
+test result: FAILED. 0 passed; 6 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+error: test failed, to rerun pass `-p solid-pod-rs-server --test acl_candidate_control`

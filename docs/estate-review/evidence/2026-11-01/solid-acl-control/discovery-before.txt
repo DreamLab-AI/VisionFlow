@@ -1,0 +1,21 @@
+   Compiling solid-pod-rs-server v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-acl-control/crates/solid-pod-rs-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.00s
+     Running tests/acl_candidate_control.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/acl_candidate_control-9f2e8bedb0f81f63)
+
+running 1 test
+
+thread 'following_the_container_acl_link_changes_actual_child_access' (785733) panicked at crates/solid-pod-rs-server/tests/acl_candidate_control.rs:391:5:
+assertion `left == right` failed: restrictive policy written to advertised target /shared/.acl must govern the child
+  left: 200
+ right: 401
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test following_the_container_acl_link_changes_actual_child_access ... FAILED
+
+failures:
+
+failures:
+    following_the_container_acl_link_changes_actual_child_access
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.02s
+
+error: test failed, to rerun pass `-p solid-pod-rs-server --test acl_candidate_control`

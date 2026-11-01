@@ -1,0 +1,19 @@
+   Compiling solid-pod-rs v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-acl-control/crates/solid-pod-rs)
+   Compiling solid-pod-rs-idp v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-acl-control/crates/solid-pod-rs-idp)
+   Compiling solid-pod-rs-server v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-acl-control/crates/solid-pod-rs-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 23.51s
+     Running tests/acl_candidate_control.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/acl_candidate_control-9f2e8bedb0f81f63)
+
+running 9 tests
+test ordinary_metadata_requires_control_but_is_not_an_acl_document ... ok
+test candidate_control_requires_satisfied_conditions ... ok
+test candidate_control_preserves_a_verified_linked_identity ... ok
+test following_the_container_acl_link_changes_actual_child_access ... ok
+test copying_resource_does_not_install_a_policy_for_the_wrong_target ... ok
+test copy_checks_turtle_syntax_even_with_a_recognisable_control_rule ... ok
+test json_patch_checks_resulting_acl_before_committing_it ... ok
+test post_and_copy_refuse_invalid_acl_bodies_before_storage ... ok
+test put_refuses_unparseable_and_misdirected_policies_without_lockout ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+

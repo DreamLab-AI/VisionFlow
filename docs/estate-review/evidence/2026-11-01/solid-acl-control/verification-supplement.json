@@ -1,0 +1,13 @@
+{
+  "previous_verification_sha256": "4a007cf9622678eedce681f00c6f968ee5f4ca62624bae483093c81591950d7d",
+  "current_verification_sha256": "69030bc4019defe8454112b04bb0dbc9dfb757edb8e2e08f6c0d194b3ca3c4c9",
+  "new_revision": "daff10d610ecb0fb4f1dd0e143c0ea6b95bd7445",
+  "scoped_files": {
+    "docs/diagrams/solid-pod-rs/13-acl-control-and-discovery.md": "7aebc9c77bef965be1428d7738a6a409c85daa06686bcff2ce7ddf315e31ec68"
+  },
+  "gate_logs": {
+    "diagram.txt": "9a9a09672e8e5c72b91dcfb7167408186aa6754129dfd9e0bda8c43afb22b256"
+  },
+  "historical_totals_unchanged": true,
+  "excluded_sources_accessed": false
+}

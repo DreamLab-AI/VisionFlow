@@ -1,0 +1,29 @@
+{
+  "checked": [
+    {
+      "file": "docs/estate-review/2026-11-01-solid-acl-control-repair.md",
+      "target": "2026-11-01-solid-http-delivery.md"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-solid-acl-control-repair.md",
+      "target": "2026-11-01-solid-parity-intake.md"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-solid-acl-control-repair.md",
+      "target": "evidence/2026-11-01/solid-acl-control/review-disposition.json"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-solid-acl-control-repair.md",
+      "target": "../diagrams/solid-pod-rs/13-acl-control-and-discovery.md"
+    },
+    {
+      "file": "docs/diagrams/solid-pod-rs/13-acl-control-and-discovery.md",
+      "target": "../../estate-review/2026-11-01-solid-acl-control-repair.md"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-solid-acl-control-repair.md",
+      "target": "remediation/solid-acl-control-2026-11-01.json"
+    }
+  ],
+  "scope": "New report/topic local file targets only; no anchor or external availability claim. Whole README check encountered a historical primary-checkout-relative project link unavailable from this isolated worktree; no full index-link claim."
+}
