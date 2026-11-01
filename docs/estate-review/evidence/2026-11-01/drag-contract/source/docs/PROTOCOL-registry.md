@@ -1,0 +1,435 @@
+---
+title: Protocol Registry — Wire Frames, Endpoints & Version Policy
+doc_id: VC-PROTOCOL
+version: 0.1.14
+status: draft-for-ratification
+verified_commit: 
+changelog:
+  - "0.1.14 (2026-11-01): ADR-2169 — /wss node hold and pin text frames: nodeDragStart/Update/End are holds owned by the connection (the released node rejoins the simulation; two holds per connection; last write wins across connections), new nodePin frame with nodePinAck, nodeUnpin unchanged; drag timeout 2 s; no binary frame change"
+  - "0.1.13 (2026-10-30): PROPOSED only, nothing implemented. ADR-2157 and ADR-2161 add a Proposed section: presence text-frame table (room_meta, room_kicked) a pointer for Nostr kinds, and the initial-load `urn` field with the server-side federated-read connection mode (audit round 2: `rev`/`proj` tag conventions, D = 90 s kick bound, selector ∩ visibility ∩ acl). No binary opcode is allocated. Current-state tables and Invariants untouched. Drafted against e74bcddc7."
+  - "0.1.12 (2026-10-19): ADR-2133 re-verified at b4a175412 — the /api/memory-cloud rows now state that every endpoint, health included, is PowerUser in the handler (the health row wrongly said the central read policy), that VISIONCLAW_DEV_MODE admits every caller as a power user in debug/dev-auth builds only, and that rows past metadata.expires_at are hidden from counts, samples, searches and the recall probe (estate ER-11); citation refresh to memory_cloud_handler.rs:65"
+  - "0.1.11 (2026-10-17): ADR-2143: Codescape recorded as a second producer of V3/V5 on :4100 (no new tags or flag bits, field mapping, 0x23 mapping, 404 list); citation refresh: routes main.rs:1093-1123, 0x23 :1792/:1561/:1571/:1534-1541, batch framing stated"
+  - "0.1.10 (2026-10-13): ADR-2138 — /api/analytics/cycles row (GET, optional edgeType, default subsumption edges); layout-mode whitelist gains spectral and clustered; REST only, no frame change"
+  - "0.1.9 (2026-10-08): ADR-2136 amendment — each MemoryCloudHit in the /api/memory-cloud/query response gains optional position [x,y,z] | null, the hit's own embedding projected with the snapshot's PCA basis (on its row when sampled); additive"
+  - "0.1.8 (2026-10-08): ADR-2136 — /api/memory-cloud/query response gains optional query.position [x,y,z] | null, the query vector projected with the snapshot's own PCA basis and scale (a sampled row lands on its row); additive, older clients ignore it. ADR-2135 amendment — graphSeparationX retired from PUT/GET /api/settings/physics: a sent or stored value is accepted and ignored, never returned"
+  - "0.1.7 (2026-10-07): ADR-2135 — /api/memory-flash{,/batch} rows; optional agentId (alias agent_id) accepted and relayed in the memory_flash frame (omitted when absent) so clients drift that agent towards the memory cloud; additive"
+  - "0.1.6 (2026-10-07): ADR-2134 amendment — memoryRoute gains optional sidecarTotal/sidecarAgree, relayed only as a consistent pair (sidecar.len() ≤ total, agree ≤ sidecar.len()) else both dropped; additive, older peers unaffected"
+  - "0.1.5 (2026-10-07): ADR-2134 — /wss beatClock and memoryRoute client text frames relayed to the same pubkey's other sessions; JSON pong gains serverTime"
+  - "0.1.4 (2026-10-07): ADR-2133 — /api/memory-cloud{,/vectors,/query,/health} rows; memory cloud wire types; PowerUser gate on private memory reads"
+  - "0.1.3 (2026-09-06): Remediation — 2026-09-05 section: Wave 3 ADRs (2094–2101, 2061, 2071, 2085; proposed 2102–2105) and the ledger/diagram re-verification landed in 2cf222406 — re-verified at "
+  - "0.1.2: 2026-09-05 remediation — ADR-2057 compile-time 52-byte and V5-seq locks (assertion language corrected); ADR-2058 header-only WS auth (?token= divergence resolved); ADR-2060 citation corrections after line drift (V5 :513→:592, 0x23 :1354/:1125-1135/:1501→:1721/:1490/:1500, 52B asserts :712,809→compile-time :93 plus tests :1077,1174); TS client V5/V2 parity recorded as open"
+  - "0.1.1: correct RBAC_PUBLIC_READS citation (rbac_gate.rs/compose, not main.rs — code fails closed); reword WIRE_V3_ITEM_SIZE asserts as unit-test (not static) assertions; cite /ws/presence route registration at main.rs:996 not construction at :816"
+sources:
+  - src/utils/binary_protocol.rs
+  - src/handlers/socket_flow_handler/http_handler.rs
+  - src/handlers/socket_flow_handler/position_updates.rs
+  - src/protocols/binary_settings_protocol.rs
+  - src/actors/presence_actor.rs
+  - src/utils/nip98.rs
+  - src/main.rs
+  - crates/visionclaw-xr-presence/src/wire.rs
+  - crates/visionclaw-xr-presence/src/agent_presence.rs
+  - xr-client/rust/src/binary_protocol.rs
+  - xr-client/rust/src/presence.rs
+  - src/handlers/socket_flow_handler/session_relay.rs
+  - xr-client/rust/src/beat.rs
+date: 2026-08-31
+---
+
+# Protocol Registry
+
+## Purpose
+
+Single owning document for every live wire frame, endpoint, and version-negotiation rule
+in the DreamLab estate. It supersedes the scattered protocol prose in legacy ADR-011/031/061
+and is the authoritative home for the V5 broadcast envelope, which no legacy ADR owns.
+
+## Current State
+
+### Frame tag registry
+
+Every binary frame leads with a single tag byte. Tags live in **two disjoint spaces** because
+they travel on different sockets and are demultiplexed independently — they never collide on one
+socket, so the numeric overlap between the graph-protocol space and the settings-protocol space
+is safe. The registry below is the source of truth for tag allocation.
+
+| Tag | Name | Socket / path | Direction | Owning module (file:line) |
+|-----|------|---------------|-----------|---------------------------|
+| `0x03` | Graph position frame **V3** | `/wss` | server→client | `src/utils/binary_protocol.rs:11,43` |
+| `0x04` | **RETIRED — V4 delta position frame** (reserved, never reuse) | `/wss` | none | no encoder exists; decoders refuse it (ADR-2139): web `types/binaryProtocol.ts` `PROTOCOL_V4` branch, XR `DecodeError::BadVersion` |
+| `0x05` | Graph position frame **V5 envelope** (wraps V3) | `/wss` | server→client | `src/utils/binary_protocol.rs:612` (`PROTOCOL_V5` branch); `xr-client/rust/src/binary_protocol.rs:29` |
+| `0x34` | `BROADCAST_ACK` position acknowledgement (ADR-2141) | `/wss` | client→server | `src/utils/binary_protocol.rs` `decode_broadcast_ack`; fixture `wire_fixtures::broadcast_ack_frame` | `[0x34][u64 sequence][u32 nodes][u64 timestamp_ms]` LE, 21 bytes, **no generic header**; sent after a chunk is applied; asserted against one golden frame by the server, web and XR tests |
+| `0x23` | `AGENT_ACTION` beam event | `/wss` (fanned by ClientCoordinator) | server→client | `src/utils/binary_protocol.rs:1721` (`MessageType::AgentAction`) |
+| `0x43` | Avatar pose (`OPCODE_AVATAR_POSE`) | `/ws/presence` | bidirectional | `crates/visionclaw-xr-presence/src/wire.rs:9` |
+| `0x44` | Agent co-presence (`OPCODE_AGENT_PRESENCE`) | `/ws/presence` (sibling channel) | bidirectional | `crates/visionclaw-xr-presence/src/agent_presence.rs:40` |
+| `0x05` | Settings-protocol batch message | settings binary socket (distinct) | bidirectional | `src/protocols/binary_settings_protocol.rs:211,311` |
+
+The trailing `0x05` row is a **separate tag space** on the settings socket and is unrelated to
+the V5 graph envelope; both are recorded here so no future allocation reuses either byte on its
+own socket.
+
+### `0x03` — Graph position frame V3 (52 bytes/node)
+
+Canonical struct `WireNodeDataItemV3` (`src/utils/binary_protocol.rs:43`). One header byte
+`0x03` then N fixed **52-byte** records, little-endian throughout. Field-by-field
+(the layout comment block immediately below the `WIRE_*_SIZE` constants, cross-checked
+against `encode_node_data_with_types` and the client decoder at
+`xr-client/rust/src/binary_protocol.rs`):
+
+> Citations in this section were re-derived against the working tree by ADR-2060 and then
+> again after ADR-2057 inserted the const assertions, which shifted every later line in
+> `binary_protocol.rs`. Prefer the symbol name over the line number when they disagree.
+
+| Offset | Bytes | Type | Field | Notes |
+|--------|-------|------|-------|-------|
+| `@0`  | 4  | u32 | `id` | bits 0-25 node id; bits 26-31 type flags (below) |
+| `@4`  | 12 | f32×3 | `position` | x,y,z metres |
+| `@16` | 12 | f32×3 | `velocity` | vx,vy,vz |
+| `@28` | 4  | f32 | `sssp_distance` | defaults `f32::INFINITY` when absent (`:431`) |
+| `@32` | 4  | i32 | `sssp_parent` | defaults `-1` |
+| `@36` | 4  | u32 | `cluster_id` | K-means/DBSCAN, 1-based, 0=unclustered |
+| `@40` | 4  | f32 | `anomaly_score` | LOF, 0.0–1.0 |
+| `@44` | 4  | u32 | `community_id` | Louvain assignment |
+| `@48` | 4  | f32 | `centrality` | PageRank score |
+
+Total **52 bytes**. `WIRE_V3_ITEM_SIZE == 52` is locked at **compile time** by
+`const _: () = assert!(...)` (`binary_protocol.rs:90`), so changing any `WIRE_*_SIZE`
+constant fails the build rather than a test run (ADR-2057). The original unit-test
+`assert_eq!`s remain as a redundant second check (`binary_protocol.rs:1095,1191`); they are
+no longer the primary guard. The V5 sequence-prefix width is locked the same way
+(`WIRE_V5_SEQ_SIZE == 8`, `binary_protocol.rs:99`).
+
+**Type flag bits** in the `@0` id (`binary_protocol.rs:15-26`, mirrored client-side at
+`xr-client/rust/src/binary_protocol.rs:37-43`): `NODE_ID_MASK = 0x03FF_FFFF` (26-bit id, max
+67,108,863); `AGENT = 0x8000_0000`; `KNOWLEDGE = 0x4000_0000`; ontology sub-types in bits 26-28
+(`CLASS 0x0400_0000`, `INDIVIDUAL 0x0800_0000`, `PROPERTY 0x1000_0000`, mask `0x1C00_0000`).
+
+The encoder strips flag bits before SSSP/analytics map lookups (`:425`) — a real bug class if
+skipped, since the maps are keyed by compact id.
+
+### `0x05` — V5 broadcast envelope
+
+Layout: `[0x05][u64 broadcast_seq LE][ V3 body ]` where the V3 body is the exact 52-byte-per-node
+stream above (no inner `0x03` header byte). Server decode at `binary_protocol.rs:612` (the `PROTOCOL_V5` match arm) skips
+the 8-byte sequence then delegates to `decode_node_data_v3`. Client constants at
+`xr-client/rust/src/binary_protocol.rs:29-32` (`PROTOCOL_V5 = 0x05`, `V5_SEQ_BYTES = 8`,
+`NODE_RECORD_BYTES = 52`). The envelope is **optional** and additive: a receiver distinguishes
+`0x03` from `0x05` by the leading byte and unwraps accordingly. `broadcast_seq` gives clients a
+monotonic ordering/drop-detection handle. **This document is the owner of the V5 envelope** — no
+legacy ADR defines it.
+
+**Client parity (ADR-2078, 2026-09-05).** All three decoders are at parity. The web client's live
+path is `client/src/types/binaryProtocol.ts:198-201,410-424` — it reads the u64 LE sequence,
+rejects a frame shorter than 9 bytes (the client-side equivalent of the server's
+`payload.len() < WIRE_V5_SEQ_SIZE` reject at `binary_protocol.rs:614`), decodes the body from
+offset 9, and surfaces the sequence as the broadcast-ack sequence at
+`client/src/store/websocket/binaryProtocol.ts:416`. The web decoder now also **declines** V2 and
+any unrecognised version instead of decoding them: it previously parsed 36-byte V2 records and,
+in its `default` arm, re-read an unknown frame from offset 0 as 36-byte records whenever the
+length divided by 36 — **fabricating nodes at arbitrary positions from arbitrary payloads. That
+hazard is closed.** The decoder is now pinned against
+`crates/visionclaw-protocol/src/wire_fixtures.rs` by
+`client/src/types/__tests__/wireFixtures.test.ts`, closing the gap that let it drift: it was the
+only one of the three decoders with no fixture-backed cross-check.
+
+### `0x23` — AGENT_ACTION beam event
+
+`MessageType::AgentAction = 0x23` (`binary_protocol.rs:1792`). Frame =
+`[0x23][u16 count LE]( [u16 event_len LE][event_len bytes] )*`, each event a 15-byte header plus
+optional variable payload (`encode_agent_actions` `:1652`, `decode_agent_actions` `:1675-1697`;
+fixture `crates/visionclaw-protocol/src/wire_fixtures.rs:52`). Header
+(`AgentActionEvent`, `binary_protocol.rs:1561`, `AGENT_ACTION_HEADER_SIZE = 15` at `:1571`):
+`source_agent_id u32 @0`, `target_node_id u32 @4`, `action_type u8 @8`
+(`AgentActionType` Query/Update/Create/Delete/Link/Transform, `:1534-1541`), `timestamp u32 @9` (ms),
+`duration_ms u16 @13`, then variable `payload`. Multiple actions coalesce into one frame
+(`src/actors/agent_beam_actor.rs`). Identity-blind by design — carries agent-id-space numeric ids
+only.
+
+### `0x43` — Avatar pose
+
+`OPCODE_AVATAR_POSE = 0x43` (`crates/visionclaw-xr-presence/src/wire.rs:9`). Per-pose layout
+(`wire.rs:22-34`): `[0x43][u16 frame_len LE][u8;16 room_id_hash][u8 avatar_id_len][avatar_id
+utf8][u64 timestamp_us LE][u8 transform_mask]` then present transforms (28 bytes each) in
+head/left/right order. `transform_mask` bits: `head 0b001`, `left 0b010`, `right 0b100`
+(`wire.rs:18-20`) — a presence bitmask, not a count, so asymmetric hand presence round-trips.
+Server broadcast sibling-envelope for fan-out: `[0x43][u64 broadcast_seq LE][u32 room_id LE][u16
+user_count LE]` (`src/actors/presence_actor.rs:49`, client parse
+`xr-client/rust/src/presence.rs:144`).
+
+### `0x44` — Agent co-presence
+
+`OPCODE_AGENT_PRESENCE = 0x44` (`agent_presence.rs:40`). Additive sibling of `0x43` carrying
+social state, not skeleton. Layout (`agent_presence.rs:19-32`): `[0x44][u16 body_len LE][u64 seq
+LE][u16 agent_count LE]` then per agent `[u32 local_id LE][u8 field_mask]` with mask-gated fields
+— `bit0 state` (`u8` activity 0 idle/1 working/2 awaiting_approval/3 speaking), `bit1 gaze`
+(`i16×3` quantised unit dir, scale `32767.0`), `bit2 attention` (`u8` tag 0 none/1 user/2 node,
+`+u32 node_id` when tag==2). Two logical channels (reliable for state/attention, high-rate
+10–20 Hz for gaze-only) share this one codec (`agent_presence.rs:6-12`).
+
+### `/wss` JSON text frames — same-user relay and clock (ADR-2134)
+
+The graph socket also carries JSON text frames routed by `type`
+(`message_routing.rs`). Two of them are **client→server→same user's other
+sessions** relays. They exist so the desktop memory explorer can drive the
+user's headset. They are never delivered to a different or unauthenticated
+pubkey (`ClientManager::relay_text_to_pubkey`, `client_coordinator_actor.rs`).
+
+| `type` | Direction | Fields (validated, `session_relay.rs`) | Relayed as |
+|--------|-----------|-----------------------------------------|-----------|
+| `beatClock` | desktop → server → same-pubkey sessions | `bpm` 40–220, `phaseAt` epoch ms ≥ 0 (0 = not locked), `confidence` 0–1, `source` ∈ off\|file\|tap\|spotify, `sentAt` sender ms (optional) | same fields plus `serverTime`; `phaseAt` rebased to the server clock as `phaseAt − sentAt + serverNow` when `sentAt` is present |
+| `memoryRoute` | desktop → server → same-pubkey sessions | `snapshotId` 1–128 chars, non-blank; `path` ≤ 64 snapshot row indices, root → answer (`[]` clears; any bad entry rejects the frame); `sidecar` ≤ 64 rows (bad entries dropped); `query` ≤ 120 chars (truncated); `seq`, `sentAt` finite ≥ 0; optional `sidecarTotal` / `sidecarAgree` whole numbers, kept only as a pair with `sidecar.len()` ≤ `sidecarTotal` and `sidecarAgree` ≤ `sidecar.len()` (else both dropped; the frame still relays) | same fields (the agreement pair only when it passed) plus `serverTime`; the headset orders frames by (`sentAt`, `seq`) and resolves rows against its own copy of the snapshot (`xr-client/rust/src/memory_route.rs`) |
+| `ping` / `pong` | client → server → client | `{type:"ping",timestamp}` | `{type:"pong",timestamp,serverTime}`; `serverTime` (server Unix ms) is additive, so old clients ignore it |
+
+Relay rules:
+- the raw frame is at most 16 KiB;
+- the server and headset agree on `memoryRoute` validity through one shared case file, `xr-client/rust/tests/fixtures/memory_route_cases.json`, read by both suites;
+- frames are rebuilt from the validated fields, so unknown keys are dropped;
+- each session and kind is throttled to 4 Hz, with the newest held frame flushed at the interval end;
+- a sender without an authenticated pubkey receives one `error` frame.
+
+A session authenticated at the upgrade now reports its pubkey to the coordinator on `SetClientId`, so pubkey scoping covers it.
+
+### `/wss` JSON text frames — node hold and pin (ADR-2169)
+
+Client→server frames from an **authenticated** session (an unauthenticated one is ignored with a warning).
+`nodeId` is a `u32`; `position` is `{x,y,z}` in display space, finite and within ±10,000, else the frame is
+rejected. Handlers: `position_updates.rs` (`handle_node_drag_*`, `handle_node_pin`, `handle_node_unpin`).
+
+| `type` | Fields | Effect | Reply |
+|--------|--------|--------|-------|
+| `nodeDragStart` | `nodeId`, `position` | the connection takes **hold** of the node at `position`; the GPU keeps it there and the graph springs around it | `nodeDragStartAck` |
+| `nodeDragUpdate` | `nodeId`, `position`, `timestamp` (ignored) | moves the hold; more than one per 16 ms per node is coalesced (newest kept, applied by a trailing timer), not dropped; an update with no start is an implicit start | none |
+| `nodeDragEnd` | `nodeId` | applies the newest coalesced position, then **releases** the hold: the node rejoins the simulation and the graph settles | `nodeDragEndAck` |
+| `nodePin` | `nodeId`, `position` | **explicit pin**: anchors the node until `nodeUnpin`; survives any drag before, during or after it | `nodePinAck` |
+| `nodeUnpin` | `nodeId` | clears the explicit pin; a node still held stays held until its hand lets go | `nodeUnpinAck` |
+
+Rules:
+- a connection holds at most **2** nodes at once (one per hand); a third `nodeDragStart` is refused with a warning;
+- any number of connections may hold different nodes at once; if two hold the **same** node the last write wins, and a release counts only from the node's current owner;
+- a hold ends on `nodeDragEnd`, after 2 s without an update (drag timeout), or when the connection closes; the node then rejoins the simulation. An explicit pin on it is untouched;
+- while any node is held, by any connection, the GPU steps every tick (no stability skip, no equilibrium pause) and the stored `globalSpeed` is floored at 2.0 (ADR-2169 decision 6, owner-accepted 2026-11-01); the same holds for 2 s after the last release. Damping is always the stored value. Every client receives the result in the ordinary position stream (V3/V5, paced per client by the ack protocol, ADR-2141); the drag path broadcasts nothing itself.
+
+### Second producer: Codescape (`:4100`, ADR-2143)
+
+Codescape is a second, independent producer of the frozen contract above, in its own Cargo
+workspace (the `codescape/` submodule). It allocates **no** tag byte and **no** flag bit. Encoders and
+their fixture-pinned tests exist now (`codescape/crates/codescape-model/src/wire.rs`; the record
+layout comes from the `visionclaw-wire` crate, which `visionclaw-protocol` re-exports). Serving is phased:
+`/ws/positions`, ack pacing and the 404 list land in P1, `/wss` emulation in P4.
+
+- **Frames.** V3 records inside V5 envelopes (`[0x05][u64 seq][52 B × n]`) on `/ws/positions`,
+  and from P4 on `/wss` behind an `initialGraphLoad` text frame so the XR client is unchanged.
+  It honours `0x34` acks for pacing (ADR-2141); ack bytes match the shared fixture (`wire.rs:174-181`).
+- **Ids.** 26-bit interned ids, never hashed, never reused within an epoch (ADR-2024;
+  `codescape-model/src/ids.rs`). Code nodes carry **no flag bits** (`wire.rs:34`); actors carry
+  `AGENT = 0x8000_0000` (`wire.rs:29,48`). Bit 29 stays unallocated.
+- **Field mapping** (`wire.rs:32-44`):
+
+| V3 field | Codescape meaning |
+|---|---|
+| `cluster_id @36` | structural cluster: crate / top-level directory |
+| `anomaly_score @40` | activity heat 0..1 (recent agent/human touches) |
+| `community_id @44` | Leiden community, stable-matched across recomputes |
+| `centrality @48` | importance 0..1 |
+| `sssp_distance @28` / `sssp_parent @32` | BFS hop distance and parent from the current focus |
+| `velocity @16` | layout velocity |
+
+- **`0x23`.** Same batch framing and existing `AgentActionType` values, no new ones
+  (`wire.rs:100-126`): Read/Grep/Glob → `Query 0`; Edit (existing file) → `Update 1`; Write of a
+  new file → `Create 2`; file removed in a delta → `Delete 3`.
+- **`ontology_refs`** (ADR-2164 D3): an optional string key in the `initialGraphLoad` node `metadata`, present only on nodes that carry an `@ontology` annotation, as `<iri>#L<line>` tokens space-separated, sorted by IRI then line, at most 32; a file node carries the roll-up of its symbols. It is a new key in an existing object, not a new wire format (no tag, no flag bit); the same data is on `GET /api/graph/ontology-refs?repo=` (`codescape/crates/codescape-server/src/xr.rs`, `codescape/crates/codescape-ingest/src/annotations.rs`; both resolve once the submodule pin includes codescape `e3b76f6`).
+- **Knowledge routes are never served.** `/api/memory-cloud/*`, `/api/analytics/*`,
+  `/api/graph/fold` and `/api/canary/*` return 404 on `:4100`. `:4101` (hook ingest, bearer
+  token) is never published.
+- **Scope of the invariants below.** The fail-closed visibility filter and the ADR-2139/2141
+  entitlement rules govern the `:4000` producer. Codescape serves no knowledge graph; its
+  entitlement is the P6 NIP-98 pubkey allowlist on every route. Until P6 `:4100` is unpublished.
+
+### REST + WebSocket endpoints and auth
+
+Routes registered in `src/main.rs:1093-1123`:
+
+| Path | Method | Auth | Notes |
+|------|--------|------|-------|
+| `/wss` | WS upgrade | NIP-98 Bearer **or** `?token=` query (`http_handler.rs:139-150`) | graph position stream; Origin header required (`:130`) |
+| `/wss/agent-events` | WS | inherits `/wss` seam | agent-event hub (`main.rs:1097`) |
+| `/ws/presence` | WS | XR presence registry + `NostrIdentityVerifier` (`main.rs:1103` route → handler `ws_presence`; state built at `:870-875`) | `0x43`/`0x44` traffic |
+| `/ws/speech`, `/ws/mcp-relay`, `/ws/client-messages` | WS | per-handler | `main.rs:1098-1101` |
+| `/healthz`, `/readyz` | GET | none (probes) | `main.rs:1093-1094` |
+| `/client-logs` | POST | none | `main.rs:1123` |
+| `/api/memory-cloud` | GET | `PowerUser` in handler (`require_power_user`, `memory_cloud_handler.rs:65`), regardless of `RBAC_PUBLIC_READS`; `VISIONCLAW_DEV_MODE=1` admits every caller as a power user in debug and `dev-auth` builds only (a release build refuses to boot with it set) | live stratified snapshot JSON (ADR-2133); 503 without `RUVECTOR_PG_CONNINFO`; rows past `metadata.expires_at` are never counted, sampled or searched |
+| `/api/memory-cloud/vectors?snapshot=<id>` | GET | as above | `application/octet-stream`, LE f32 `count*dim`, unit rows, snapshot row order; 409 on a stale id |
+| `/api/memory-cloud/query` | POST | `RbacGate` (`WriteGraph`) **and** `PowerUser` in handler | sidecar HNSW top-k (namespace-restricted = exact scan); `query.position` = the query's point and each hit's `position` = the hit's own point in the snapshot's PCA cloud, or `null` (ADR-2136); validation 400 |
+| `/api/memory-cloud/health` | GET | `PowerUser` in handler (as above), not the central read policy | always 200; aggregates only, excluded namespaces omitted, cached recall probe |
+| `/api/memory-flash`, `/api/memory-flash/batch` | POST | central `/api` policy | `{key, namespace?, action?, agentId?}` (batch: `{events: [...]}`) → `memory_flash` text frame `{type, data: {key, namespace, action, timestamp, agentId?}}` to every client; `agentId` (an agent wire id, flag bits allowed) is relayed only when given and names the agent the clients drift towards the memory cloud (ADR-2135) |
+| `/api/analytics/cycles[?edgeType=<type>\|all]` | GET | public read inside the `/analytics` scope (`mutations_only`) | `{nodeCount, edgeCount, edgeFilter, cyclicNodeIds, components}`; default = edges asserting subClassOf (`Edge::asserts_subsumption`, the DAG ranker's predicate); `layout::scc` shared with the CPU layout engine (ADR-2138) |
+
+**RBAC posture (open by *deployment*, fail-closed in code).** `RbacGate` middleware enforces
+Owner>Admin>Editor>Viewer on NIP-98 pubkeys. The enforcement code **fails closed**:
+`public_reads_enabled()` returns `false` when `RBAC_PUBLIC_READS` is unset
+(`src/middleware/rbac_gate.rs:116-128`, `unwrap_or(false)` — its own doc-comment states this), and
+startup **aborts** with no Owner assigned unless `RBAC_ALLOW_OWNERLESS=1` (`main.rs:717-737`,
+`RBAC_ALLOW_OWNERLESS_ENV` at `src/services/role_store.rs:33`). The permissive posture is therefore
+a *deployment* choice, not a structural code default: the shipped compose sets reads default-on via
+`RBAC_PUBLIC_READS: "${RBAC_PUBLIC_READS:-1}"` (`docker-compose.unified.yml:78`), and an unassigned
+authenticated pubkey resolves to Editor. `RBAC_PUBLIC_READS` appears **nowhere** in `src/main.rs`.
+This is a deliberate compatibility trade-off; see [VC-SECURITY] for the named profile that must gate
+a public deployment. Legacy: ADR-142.
+
+**NIP-98 token validation** (`src/utils/nip98.rs`): ±60 s age window (`TOKEN_MAX_AGE_SECONDS = 60`,
+`:168`) **plus** a process-wide single-use replay cache keyed on event id (`:161-184`) — replay
+inside the 60 s window is now closed (landing 2026-08-31).
+
+**Visibility filter** `PUBKEY_VISIBILITY_FILTER` now defaults **ON / fail-closed**
+(`position_updates.rs:34-43`): private nodes without an owner match are dropped from the wire for
+everyone. Enabling requires only absence of a falsy token. Legacy ADR-050/060.
+
+### Version negotiation & compatibility policy
+
+Legacy ADR-061 mandated "one binary protocol, no versioning". That doctrine is retired: the wire
+already versions itself via the leading tag byte, and the decoder branches on it
+(`binary_protocol.rs:608-622`). The live, enforced policy is:
+
+1. **Tag byte is the version.** Every graph frame's first byte selects the codec: `0x03` (bare
+   V3) or `0x05` (V5 envelope + V3 body). Receivers MUST branch on byte 0 and MUST reject unknown
+   tags with an explicit error, never a silent reinterpret (`:621`, client `BadVersion` at
+   `xr-client/rust/src/binary_protocol.rs:54`).
+2. **Additive envelopes only.** A new envelope (like V5) wraps an existing body rather than
+   re-laying fields. The inner body layout is frozen once shipped; new per-node analytics extend
+   the record only by a new tag with a new documented length.
+3. **Fixed record length is a hard invariant.** Payload length not divisible by the record size
+   is a decode error (`:631`, client `Misaligned` at `xr-client/.../binary_protocol.rs:56`), so a
+   length change cannot be silently absorbed.
+4. **Removed versions fail loud.** V1 and V2 return explicit "upgrade client" errors
+   (`:610-611`); they are not silently accepted.
+5. **Registry-gated allocation.** New tag bytes are allocated only in this document, per socket,
+   to prevent cross-feature collision.
+6. **Every entitled node is eventually delivered and acknowledged; frames carry absolute positions; there are no deltas (ADR-2139, ADR-2141).** A `0x03`/`0x05` position frame is one *chunk* of a client's stream: the nodes that client is entitled to see and has not acknowledged (or that have since moved past `streamMoveThreshold`, or whose analytics changed), most-displaced first (a quarter of a full chunk is reserved for the longest-waiting candidates so small movers are not starved), at most `streamChunkNodes`. Each chunk is absolute and freshly built under a new, increasing sequence; one is in flight per client; the next is built when the client acknowledges the sequence (`0x34`) or after `streamAckTimeoutMs` (doubled for each consecutive timeout, up to 8x, and reset by any acknowledgement; a late acknowledgement for one of the last eight chunks is still honoured, `src/actors/position_stream.rs`). Entitlement (the visibility drop-set) is applied identically to every chunk and nothing is sent until the policy has loaded. Tag `0x04` (the retired V4 delta frame) stays reserved: no encoder exists and every decoder refuses it.
+
+### Deprecation process
+
+- Mark the tag *deprecated* in this registry with the replacement and a removal date; keep the
+  decoder branch returning data for one release.
+- Next release: replace the decoder branch with an explicit "upgrade client" error (the V1/V2
+  pattern at `:510-511`), never a silent drop.
+- Only after telemetry shows zero live senders may the tag byte be freed — and it stays reserved
+  in this table so it is never reused for a different meaning.
+
+## Known divergences & open items
+
+- **28B and 48B figures are retired.** Legacy ADR-061 ("28B forever") and ADR-031 ("48B") are both
+  stale prose. 28 bytes survives only as the *internal* server-side `BinaryNodeData` struct,
+  never on the wire; 48 was an interim analytics count. The wire is **52 bytes/node**, now locked
+  at compile time — *Resolved — ADR-2057 (2026-09-05)*.
+- **V5 envelope had no owning ADR** — *Resolved — ADR-2057 (2026-09-05)*, which is now the owning
+  record for the envelope layout and the `broadcast_seq` contract. This document remains the
+  registry of record for the tag allocation itself.
+- **`?token=` query auth contradicts legacy ADR-011** — *Resolved — ADR-2058 (2026-09-05)*. The
+  `Authorization` header is now the only accepted carrier in a release build; the query-string
+  path is compiled out of release entirely and survives only behind the dev-auth gate, logging a
+  `SECURITY:` warning when used. A release build that receives `token=` logs a rejection warning.
+- **Two `0x05` allocations** (V5 graph envelope vs settings-protocol message) coexist on distinct
+  sockets. Safe today; the registry records both so neither is reused on its own socket.
+  **Caution (ADR-2060):** this hazard has already caused one documentation error —
+  `BASELINE-architecture.md` cited the *settings* `0x05` as the graph V5 envelope. When citing
+  `0x05`, always name the socket.
+- **Settings binary protocol** (`src/protocols/binary_settings_protocol.rs`) is a separate framed
+  protocol not yet fully enumerated here; fold it into this registry in a future revision.
+  **Open** — unchanged by the 2026-09-05 remediation.
+- **TypeScript client wire parity.** The web client (`client/src/services/binaryProtocol/`) has no
+  `0x05`/V5 handling at all and still advertises `PROTOCOL_V2` in `SUPPORTED_PROTOCOLS`, which the
+  server rejects outright. The XR Rust client parses V5 correctly. Spec routed to the vc-clients
+  lead under ADR-2057; **open** until that lands. Root cause: the TS decoder is the only one of the
+  three with no fixture-backed cross-check against
+  `crates/visionclaw-protocol/src/wire_fixtures.rs`.
+
+## Proposed (ADR-2157, ADR-2160; proposed, not implemented): presence text frames and Nostr kinds
+
+Nothing below is emitted or parsed at `e74bcddc7`. **No binary opcode is allocated**: the tag table above is unchanged, and the frozen `visionclaw-wire` crate does not change.
+
+### `/ws/presence` JSON text frames
+
+This registry did not previously tabulate the presence socket's text frames. Today they are the handshake pair `challenge` and `joined` (`src/handlers/presence_handler.rs:78-88`) and the live room events, the `RoomEventEnvelope` enum (`src/actors/presence_actor.rs:216-238`), which `presence_handler.rs:491-498` forwards as JSON text. The first five rows are current; the last two are proposed.
+
+| `type` | Direction | Status | Fields | Notes |
+|--------|-----------|--------|--------|-------|
+| `challenge` | server→client | current | `nonce`, `ts` | handshake |
+| `joined` | server→client | current | `room_id`, `avatar_id`, `members[]` | handshake reply |
+| `avatar_joined` | server→client | current | `avatar_id`, `did`, `display_name`, `local_id` | live |
+| `avatar_left` | server→client | current | `avatar_id`, `did` | live |
+| `agent_presence_expired` | server→client | current | `local_id` | ADR-2020: an agent's `0x44` co-presence went stale (`presence_actor.rs:541`) |
+| `room_meta` | server→client | **proposed** | name, about, picture from the home relay's 39000 | sent after `joined` for a space-bound room and on change |
+| `room_kicked` | server→client | **proposed** | reason | sent on 9001 removal, ban or a stale snapshot; the server then closes the socket within D = 90 s of removal at the home (voice is bounded separately, D_voice = 150 s, ADR-2160) |
+
+Both new frames are low-rate control traffic, which is why they are text. The client's live room-event handler decodes into a closed `ServerMessage` enum (`xr-client/rust/src/presence.rs:75`) and, on a decode failure, logs a warning and carries on (`xr-client/rust/src/transport.rs:296-322`), so an unknown `type` does not end a session. That is also today's behaviour for `agent_presence_expired`, which the client enum lacks, so those frames are dropped with a warning (a current divergence, not introduced here). The client must learn `room_meta` and `room_kicked` before they have any effect. Fixtures and parity tests follow the `memory_route_cases.json` pattern when the code lands.
+
+### Nostr kinds
+
+This registry tabulates binary tags, not Nostr kinds. Kinds used by the estate are registered in the forum repository's `docs/BASELINE-architecture.md` "Nostr kinds in use" table (the table is a forum-side deliverable and was not present when this was drafted). The spatial-rooms work allocates no new kind: it uses NIP-29 39000/39002 and 9001 (read by the bridge adapter), NIP-53 30312 (discovery of the call endpoint, ADR-2160), NIP-42 22242 (bridge AUTH) and, for ADR-2161, NIP-78 30078 (the signed data-space catalogue). No kind is newly defined. Round 2 adds tag conventions only. Every 3900x the home emits carries `["rev", <u64>]` (consumers order state changes by it; `created_at` orders only identical-content equal-`rev` heartbeats, which replace a snapshot to renew freshness, and never events of different `rev`), and a 39002 for a zone-backed group also carries `["proj", <cohort-rev>]`. A 30312 `service` tag is used by a client only if it equals the configured SFU URL and passes signature, pinned-home, group and latest-`rev` validation. The 30078 catalogue is replaceable and carries `rev`; the forum relay's revision-aware storage covers 3900x, 30312 and kind 30078 only in the `visionclaw:dataspace:*` d-tag namespace, and other kinds keep NIP-01 ordering. The catalogue's own watermark is (`rev`, event id), separate from the group-state watermark (`rev`, `created_at`, event id, content digest).
+
+### Initial graph load: `urn` field and data-space read gate (ADR-2161, proposed)
+
+- For **linkable** nodes only, the initial graph load (REST, not a binary frame) carries each node's `urn`. Nodes without one carry no field. The client builds a per-source `id`-to-`urn` table and resolves cross-space link endpoints against it. Wire node ids stay ephemeral and per-source (ADR-2024); no binary tag or flag bit changes.
+- **Federated-read connection mode (server-side).** The existing `/wss` upgrade auth and per-node visibility filter run first. The server then binds the connection to (authenticated viewer DID, one dataspace). Every output and lookup (nodes, edges, counts, positions, search) is filtered by **selector ∩ object visibility ∩ `acl`**, where `acl` is `public`, `dids`, or `space:<nip29-room-urn>` via `RoomAdmission` and ADR-2157's registry. A viewer outside the `acl` receives no node of the space and no count. Mutations are refused by the server in this mode; `BackendCaps` is UX only. ACL, selector and visibility changes are re-evaluated on change and at least every 10 s, and a connection that loses access is closed. The viewer authenticates with their own NIP-98 key, never a node key or a node-issued token.
+- **Origin** (`/wss` requires one) is browser policy only. The home derives its allowed Origins from the pinned peer set and the native XR client sends one, but an Origin is never node provenance.
+- A read is possible only against a pinned peer (catalogue signed by a pinned key, endpoint exactly equal to the configured one). That is necessary, not sufficient: the viewer's own NIP-98 identity and the `acl` decide it.
+- The client keeps one connection per (source node, dataspace), and `id`-to-`urn` tables keyed by (node key, dataspace, stream generation). A link is drawn only if the viewer is authorised for both ends; otherwise nothing is drawn.
+- The data-space catalogue (NIP-78 30078) is replaceable and carries `["rev"]`; beyond the contract fields (`d`, `rev`, `endpoint` or withdrawal `status`, id, pubkey, signature), a public entry's descriptive metadata is only the space id and `acl` kind. `space:` takes the exact registered room-URN form, `space:<nip29-room-urn>`, resolved through ADR-2157's registry. The node-to-node control envelopes are exactly `dataspace_announce`, `link_notice` and `retraction`; the catalogue is the separately signed 30078 event that `dataspace_announce` references.
+- `/v1/uri` 410 emission for erased subjects is a prerequisite and is not wired today.
+
+## Invariants (must not silently change)
+
+- Byte 0 of every binary frame is the tag/version; unknown tags are rejected, not reinterpreted.
+- V3 record is exactly 52 bytes with the field offsets above; `WIRE_V3_ITEM_SIZE == 52` is
+  enforced by a compile-time `const _: () = assert!(...)` (`binary_protocol.rs:90`), so a width
+  change fails the build (ADR-2057). The V5 envelope's 8-byte `broadcast_seq` prefix is locked
+  the same way (`binary_protocol.rs:99`).
+- `NODE_ID_MASK = 0x03FF_FFFF`; flag bits 26-31 are stripped before analytics/SSSP map lookups.
+- All multi-byte fields are little-endian.
+- Tag allocation happens only in this registry, scoped per socket.
+- A drag is a hold owned by the connection and ends with it: only an explicit `nodePin` outlives a `nodeDragEnd`, the timeout or a disconnect (ADR-2169).
+- `beatClock` / `memoryRoute` are delivered only to other sessions holding the sender's exact
+  authenticated pubkey, and only as re-serialised validated fields (ADR-2134).
+- The visibility filter default is fail-closed (ON).
+- Memory-cloud wire types (`client/src/features/visualisation/memoryCloud/types.ts`) change only
+  together with `crates/visionclaw-memory-cloud/src/wire.rs`, whose field-name test pins them; the
+  vectors blob is little-endian f32 with no header (ADR-2133). `query.position` uses the same PCA
+  basis and scale as the snapshot it names (ADR-2136).
+- Namespaces in `MEMORY_CLOUD_EXCLUDE_NAMESPACES` (default `personal-context`) never appear in any
+  memory-cloud response, and the private memory-cloud reads never drop below `PowerUser`.
+
+## Change process
+
+This is a living ground-truth document, not an ADR. Amend it in the same PR that changes any
+wire-facing code, cite `file:line`, and bump `version`. Any new frame tag, field, offset, or
+endpoint auth change MUST update the tables here before merge. Removals follow the deprecation
+process above. Ratification: reviewed against the code at the recorded `verified_commit`.
+
+## Estate closeout qualification — 2026-09-04
+
+See the [rendered-state review](https://github.com/DreamLab-AI/VisionFlow/blob/main/docs/estate-review/rendered-state.md) and [source/test receipt](https://github.com/DreamLab-AI/VisionFlow/blob/main/docs/estate-review/evidence/xr-render-snapshot.json). XR discards V5 sequence values; envelope compatibility is not consumer ordering enforcement. Its 0x23 parser accepts complete events before truncation, whereas malformed position framing is rejected. Codec-specific rejection and freshness policies need explicit tests. The 0x44 codec remains staged without a located live integration. Agent-events transport authenticates a session, but frame processing does not receive that session identity; structural provenance alone does not bind the claimed agent to the sender.
+
+## Remediation — 2026-09-05
+
+- **ADR-2057** — The 52-byte V3 record and the 8-byte V5 sequence prefix are locked at compile
+  time with `const _: () = assert!(...)`; the former test-only assertions remain as a redundant
+  check. This ADR is the owning record for the V5 envelope layout and the `broadcast_seq`
+  contract. `PROTOCOL_V5` and `WIRE_V5_SEQ_SIZE` replace bare literals in the decode branch.
+- **ADR-2078** (vc-clients) — The web TypeScript decoder fails closed on V2 and on unknown
+  versions, the size-autodetect node-fabrication hazard is removed, and the decoder is
+  fixture-pinned against `wire_fixtures.rs`. Amends ADR-2057, whose Finding 1 ("the TS client has
+  no V5 support") was wrong — the live path always had it, including the short-payload guard.
+- **ADR-2058** — WebSocket bearer tokens are accepted only from the `Authorization` header in a
+  release build. The `?token=` query path is compiled out of release and survives only behind
+  the dev-auth gate with a `SECURITY:` warning; a release build receiving `token=` logs a
+  rejection.
+- **ADR-2060** — Citation corrections after line drift in `binary_protocol.rs`, and the
+  `0x05` caution above (a mis-citation of the settings tag as the graph envelope had already
+  occurred in BASELINE).
+- **ADR-2099** (vc-clients) — The bare-tag `[0x23][count:u16]…` decoder is the sole
+  agent-action path in the web client. The framed-header branch was unreachable — `parseHeader`
+  reads its type byte from offset 0, the same byte the tag check has already consumed — so it is
+  deleted rather than kept as a fallback, and the suite now asserts `extractPayload` is never
+  reached for a 0x23 frame. Unknown-version fail-closed behaviour (ADR-2078) is unchanged.
+- **Open** — TypeScript client V5 parity and V2 de-advertisement, routed to the vc-clients
+  lead under ADR-2057; and the settings binary protocol is still not enumerated here.

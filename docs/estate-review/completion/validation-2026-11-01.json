@@ -2,13 +2,13 @@
   "date": "2026-11-01",
   "baseline": "2b2c19c0f19b2616e3890946aba384ec448aec9b",
   "panel_id_parity": {
-    "ledger": 1720,
-    "existing_coverage_index": 1720,
+    "ledger": 1725,
+    "existing_coverage_index": 1725,
     "equal": true
   },
   "census_delta": {
     "previous_candidates": 1129,
-    "current_candidates": 1173,
+    "current_candidates": 1176,
     "removed": [],
     "added": [
       {
@@ -186,11 +186,23 @@
       {
         "repo": "ontomark",
         "path": "docs/adr/ADR-OM-011-shared-filesystem-layout-checks.md"
+      },
+      {
+        "repo": "VisionFlow",
+        "path": "docs/estate-review/evidence/2026-11-01/drag-contract/source/docs/adr/ADR-2140-physics-forces-have-one-stored-definition-and-no-scale-factors.md"
+      },
+      {
+        "repo": "VisionFlow",
+        "path": "docs/estate-review/evidence/2026-11-01/drag-contract/source/docs/adr/ADR-2167-the-headsets-visual-extras-are-the-allocators-last-budgeted-layer.md"
+      },
+      {
+        "repo": "VisionFlow",
+        "path": "docs/estate-review/evidence/2026-11-01/drag-contract/source/docs/adr/ADR-2169-a-drag-is-a-hold-the-released-node-rejoins-the-simulation-and-the-graph-settles.md"
       }
     ]
   },
-  "heading_units": 15322,
-  "heading_units_with_recorded_assessment": 579,
+  "heading_units": 15352,
+  "heading_units_with_recorded_assessment": 594,
   "native_tests": 9,
   "clippy": "passed -D warnings",
   "limits": "Counters track evidence reconciliation, not audit completion; document/report hashes do not revalidate implementation code or deployed state.",
@@ -220,7 +232,7 @@
       "target": "../../docs/estate-review/completion/claims.json"
     }
   ],
-  "exact_claim_bindings_rechecked": 168,
+  "exact_claim_bindings_rechecked": 170,
   "tool_hashes": {
     "scripts/estate-review-ledger/src/main.rs": "6a13475db77573e460ab9ba8a99b7aa1e7c306ca33c14ea3cf5188b690ce12b3",
     "scripts/estate-review-ledger/Cargo.toml": "8109eeff493be24031c394cce1d81a059ca1612f967e5b032f37bf9e8f1e50d6",
@@ -230,19 +242,21 @@
   "log_format": "Trailing empty lines removed in prose/test receipt files; command content retained.",
   "documentation_checks": {
     "unicode_findings": 0,
-    "report_prose_flags": 0,
-    "prose_disposition": "Full report read for evidence boundaries; final prose scan has no mechanical flags.",
+    "prose_flags": 10,
+    "prose_disposition": "Reviewed in context: nine ordinary definite-article sentence openings retained for clarity; one pre-existing em-dash-density flag in historical VC-16 prose retained. Scanner flags do not establish authorship. No source exports rewritten.",
     "scope": [
-      "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md",
+      "docs/diagrams/visionclaw/16-interaction-drag-pin-layout.md",
+      "docs/diagrams/visionclaw/52-drag-holds-and-observation-gates.md",
+      "docs/estate-review/2026-11-01-drag-holds-and-acceptance.md",
+      "docs/estate-review/2026-11-01-xr-budget-and-engine-qualification.md",
       "docs/estate-review/completion/README.md",
-      "docs/estate-review/evidence/2026-11-01/om-machine/README.md",
-      "docs/diagrams/ontomark/11-machine-bundle-identity-and-disclosure.md"
+      "docs/estate-review/evidence/2026-11-01/drag-contract/README.md"
     ],
-    "format_check": "git diff --cached --check passed",
-    "local_links": 18,
+    "format_check": "Passed git diff --cached --check for authored files; pinned source exports, numbered excerpts and the exact source delta are excluded to preserve original whitespace.",
+    "local_links": 23,
     "unicode_files": 6
   },
-  "tool_validation_basis": "Nine collector tests and clippy receipts retained from original ledger batch at 610b57b; unchanged collector source/dependency hashes verified. Fresh collection rechecked all 164 claim records with zero stale bindings.",
+  "tool_validation_basis": "Nine collector tests and clippy receipts retained from original ledger batch at 610b57b; unchanged collector source/dependency hashes verified. Fresh collection rechecked all 170 claim records; two stale source bindings remain (ADR-2143 and ADR-2166).",
   "prior_concurrent_source_refresh": {
     "changed_adrs": 5,
     "stale_claims": 5,
@@ -288,72 +302,54 @@
     "disposition": "Historical stale state; all five reassessed in docs/estate-review/2026-11-01-obsidian-refresh.md. See current snapshot for dispositions."
   },
   "current_batch": {
-    "report": "docs/estate-review/2026-11-01-ontomark-layout-and-shared-checks.md",
-    "baseline": "ec6f9974535208f4d4d9a0df2c7a3fa081d66e5c",
+    "report": "docs/estate-review/2026-11-01-drag-holds-and-acceptance.md",
+    "baseline": "3e3ae7a1f664869345e1ab3f30ab2c23be473a9d",
     "new_whole_adrs": 1,
-    "new_panels": [
-      "OM-01.1",
-      "OM-01.2",
-      "OM-05.4",
-      "OM-12.1",
-      "OM-12.2",
-      "OM-12.3",
-      "OM-12.4"
+    "refreshed_whole_adrs": [
+      "ADR-2167"
     ],
-    "current_stale_records": 3,
-    "previous_batch_candidates": 1163,
+    "new_panels": [
+      "VC-52.1",
+      "VC-52.2",
+      "VC-52.3",
+      "VC-52.4",
+      "VC-52.5"
+    ],
+    "current_stale_records": 2,
+    "previous_batch_candidates": 1173,
     "added_candidates": [
       {
-        "repo": "VisionClaw",
-        "path": "docs/adr/ADR-2168-consume-ontomark-filesystem-layout-checks.md"
-      },
-      {
-        "repo": "VisionClaw",
-        "path": "docs/adr/ADR-2169-a-drag-is-a-hold-the-released-node-rejoins-the-simulation-and-the-graph-settles.md"
-      },
-      {
-        "repo": "VisionClaw",
-        "path": "docs/adr/ADR-2170-gaussian-splat-scenes-are-their-own-volume-on-both-clients.md"
-      },
-      {
-        "repo": "VisionClaw",
-        "path": "docs/adr/ADR-2171-desktop-catches-up-on-webgpurenderer-not-meshlets.md"
-      },
-      {
-        "repo": "VisionClaw",
-        "path": "docs/adr/ADR-2172-a-node-is-grabbed-with-either-hand-in-any-visionclaw-volume.md"
+        "repo": "VisionFlow",
+        "path": "docs/estate-review/evidence/2026-11-01/drag-contract/source/docs/adr/ADR-2140-physics-forces-have-one-stored-definition-and-no-scale-factors.md"
       },
       {
         "repo": "VisionFlow",
-        "path": "docs/estate-review/evidence/2026-11-01/om-layout/implementation/ontomark/docs/adr/ADR-OM-011-shared-filesystem-layout-checks.md"
+        "path": "docs/estate-review/evidence/2026-11-01/drag-contract/source/docs/adr/ADR-2167-the-headsets-visual-extras-are-the-allocators-last-budgeted-layer.md"
       },
       {
         "repo": "VisionFlow",
-        "path": "docs/estate-review/evidence/2026-11-01/om-layout/implementation/visionclaw/docs/adr/ADR-2168-consume-ontomark-filesystem-layout-checks.md"
-      },
-      {
-        "repo": "VisionFlow",
-        "path": "docs/estate-review/evidence/2026-11-01/om-layout/source/docs/adr/ADR-OM-007-vault-root-is-the-content-root.md"
-      },
-      {
-        "repo": "VisionFlow",
-        "path": "docs/estate-review/evidence/2026-11-01/om-layout/source/docs/adr/ADR-OM-008-any-obsidian-vault-is-a-repository.md"
-      },
-      {
-        "repo": "ontomark",
-        "path": "docs/adr/ADR-OM-011-shared-filesystem-layout-checks.md"
+        "path": "docs/estate-review/evidence/2026-11-01/drag-contract/source/docs/adr/ADR-2169-a-drag-is-a-hold-the-released-node-rejoins-the-simulation-and-the-graph-settles.md"
       }
     ],
     "removed_candidates": [],
-    "limits": "Published owner repair and registry consumer integration; no deployment or producer parity. Incoming VisionClaw ADR-2143/2166/2167 changes retain stale assessment status."
+    "limits": "Audit only. Actual registry tests, explicitly modelled orchestrator operations, and synthetic full-script false acceptance. No live backend, headset, GPU or fresh performance claim. ADR-2143/2166 remain stale.",
+    "queue_table_correction": "Diagram-area assessment counts now come from panel review states and sum to 304. Previous area values were inconsistent with the total; correction gives no extra review credit."
   },
   "corpus_gate": {
-    "topics": 203,
-    "panels": 1720,
-    "verified_citations": 25442,
+    "topics": 204,
+    "panels": 1725,
+    "verified_citations": 25480,
     "warnings": 0,
     "fallback": 0,
     "allowlisted": 9,
-    "check_verification": "passed"
+    "check_verification": "passed",
+    "jev_advisory_sample": {
+      "reviewed_citations": 120,
+      "manual_review_queue": [
+        "AB-01.3",
+        "AB-01.5"
+      ],
+      "limits": "Advisory sample only; no whole-corpus semantic review."
+    }
   }
 }

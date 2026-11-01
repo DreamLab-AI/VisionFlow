@@ -315,7 +315,7 @@
     "path": "docs/adr/ADR-2165-the-xr-client-targets-godot-4-8-beta.md",
     "source_sha256": "6c26521ed335b36b2853d17db821f018cd7f89c53ee5d64f283900d3f997e7c4",
     "report": "docs/estate-review/2026-11-01-xr-budget-and-engine-qualification.md",
-    "report_sha256": "61b65639141d159b0c82a2c56e859067837acaab8443f4721f1d8dcfe7860425",
+    "report_sha256": "0aad48c58da3d6906743123e19d3f7b6e8a1c380bdb2908579b3a188cc0d098a",
     "coverage": "whole-document",
     "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
   },
@@ -323,11 +323,11 @@
     "kind": "adr",
     "repo": "VisionClaw",
     "path": "docs/adr/ADR-2167-the-headsets-visual-extras-are-the-allocators-last-budgeted-layer.md",
-    "source_sha256": "036e377f8ad1aa4edcabedd032d61ecada244ec04b7ffdeffe3c32e3403d9ee5",
+    "source_sha256": "627b07b53e450634c6e4b1f9ae3cc33e7a5c118a027ab00cb5459640c29e5cc2",
     "report": "docs/estate-review/2026-11-01-xr-budget-and-engine-qualification.md",
-    "report_sha256": "61b65639141d159b0c82a2c56e859067837acaab8443f4721f1d8dcfe7860425",
+    "report_sha256": "0aad48c58da3d6906743123e19d3f7b6e8a1c380bdb2908579b3a188cc0d098a",
     "coverage": "whole-document",
-    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash. Scoped 2026-11-01 annex reviews incoming focus-marker delta and preserves all prior open findings and runtime limits; linked drag-contract report records coordinate provenance gap."
   },
   {
     "kind": "adr",
@@ -2142,5 +2142,32 @@
       "OM-12.4"
     ],
     "basis": "Selected source-backed panels assessed and visually inspected; historical pins retained where labelled. Sibling renders confer no review credit."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2169-a-drag-is-a-hold-the-released-node-rejoins-the-simulation-and-the-graph-settles.md",
+    "source_sha256": "1f72d848d805b355a47b30d5f91bfbc590d32a2422f8dfd69fd8af23e352e9b2",
+    "report": "docs/estate-review/2026-11-01-drag-holds-and-acceptance.md",
+    "report_sha256": "26405839aa053f666c42eb64dd68bb18a46a7582e049d5dfacec174471a73edb",
+    "coverage": "whole-document",
+    "basis": "Section-by-section ADR-2169 assessment, actual registry tests, explicit model boundary and reproduced full-script false acceptance; no live server/headset or fresh GPU claim."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/52-drag-holds-and-observation-gates.md",
+    "source_sha256": "ec3eb93d09ed5aaefbe3e868e69ebc5b89e6997eb13342553c0fc6d6aaf33856",
+    "report": "docs/estate-review/2026-11-01-drag-holds-and-acceptance.md",
+    "report_sha256": "26405839aa053f666c42eb64dd68bb18a46a7582e049d5dfacec174471a73edb",
+    "coverage": "selected-panels",
+    "panels": [
+      "VC-52.1",
+      "VC-52.2",
+      "VC-52.3",
+      "VC-52.4",
+      "VC-52.5"
+    ],
+    "basis": "Five new source-traced, rendered and visually inspected panels. Historical VC-16 notice gives no additional panel credit."
   }
 ]

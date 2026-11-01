@@ -1,0 +1,39 @@
+both connections authenticated; waiting for position frames
+holding 1; watching neighbours 2, 3
+{
+  "heldNodes": [
+    1
+  ],
+  "neighbours": [
+    2,
+    3
+  ],
+  "streamFps": {
+    "baselineDragger": 0,
+    "baselineObserver": 0,
+    "duringHoldDragger": 19.7,
+    "duringHoldObserver": 19.7,
+    "afterReleaseObserver": 0
+  },
+  "heldNodeVisibleMs": {
+    "dragger": null,
+    "observer": 1
+  },
+  "neighbourMovedMs": {
+    "dragger": 1,
+    "observer": 1
+  },
+  "observerLatencyMs": null,
+  "grabAckMs": 1,
+  "settleMs": 0,
+  "framesAfterRelease": 0,
+  "releasedNodeTravel": {
+    "1": 150
+  }
+}
+PASS  observer saw the held node move  (1 ms after the first update)
+PASS  neighbours moved while held (dragger)  (1 ms, budget 500)
+PASS  neighbours moved while held (observer)  (1 ms, budget 500)
+PASS  graph at rest after release  (0 ms, budget 2000)
+PASS  released node rejoined the physics (not left pinned)  ({"1":150})
+{"negativeControl":true,"scriptExit":0,"nodeStillPinned":true,"pinnedPosition":150,"framesAfterRelease":0,"reproduced":true}

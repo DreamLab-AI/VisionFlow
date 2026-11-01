@@ -27,6 +27,9 @@ sources:
 verified_commit: 8692b12ba987ecb87165566beb7c320a2446e4b4
 ---
 
+The panels below retain their historical source pin. ADR-2169 changes drag-end semantics at the later `531df5ef7` source: holds release separately from explicit pins. See [VC-52](52-drag-holds-and-observation-gates.md) and the [current contract audit](../../estate-review/2026-11-01-drag-holds-and-acceptance.md). The pin-based sequence below is not the current release contract.
+
+
 ## VC-16.1 Node drag start — pin acquisition
 
 ```mermaid

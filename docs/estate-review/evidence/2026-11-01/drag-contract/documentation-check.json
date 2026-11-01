@@ -1,0 +1,158 @@
+{
+  "scans": [
+    {
+      "tool": "inspect-text",
+      "file": "docs/estate-review/2026-11-01-drag-holds-and-acceptance.md",
+      "exit": 0
+    },
+    {
+      "tool": "inspect-text",
+      "file": "docs/estate-review/evidence/2026-11-01/drag-contract/README.md",
+      "exit": 0
+    },
+    {
+      "tool": "inspect-text",
+      "file": "docs/estate-review/completion/README.md",
+      "exit": 0
+    },
+    {
+      "tool": "inspect-text",
+      "file": "docs/diagrams/visionclaw/52-drag-holds-and-observation-gates.md",
+      "exit": 0
+    },
+    {
+      "tool": "inspect-text",
+      "file": "docs/diagrams/visionclaw/16-interaction-drag-pin-layout.md",
+      "exit": 0
+    },
+    {
+      "tool": "inspect-text",
+      "file": "docs/estate-review/2026-11-01-xr-budget-and-engine-qualification.md",
+      "exit": 0
+    },
+    {
+      "tool": "slop-scan",
+      "file": "docs/estate-review/2026-11-01-drag-holds-and-acceptance.md",
+      "exit": 1
+    },
+    {
+      "tool": "slop-scan",
+      "file": "docs/estate-review/evidence/2026-11-01/drag-contract/README.md",
+      "exit": 1
+    },
+    {
+      "tool": "slop-scan",
+      "file": "docs/estate-review/completion/README.md",
+      "exit": 0
+    },
+    {
+      "tool": "slop-scan",
+      "file": "docs/diagrams/visionclaw/52-drag-holds-and-observation-gates.md",
+      "exit": 0
+    },
+    {
+      "tool": "slop-scan",
+      "file": "docs/diagrams/visionclaw/16-interaction-drag-pin-layout.md",
+      "exit": 1
+    },
+    {
+      "tool": "slop-scan",
+      "file": "docs/estate-review/2026-11-01-xr-budget-and-engine-qualification.md",
+      "exit": 0
+    }
+  ],
+  "links": [
+    {
+      "file": "docs/estate-review/2026-11-01-drag-holds-and-acceptance.md",
+      "target": "evidence/2026-11-01/drag-contract/README.md"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-drag-holds-and-acceptance.md",
+      "target": "2026-11-01-xr-budget-and-engine-qualification.md"
+    },
+    {
+      "file": "docs/estate-review/evidence/2026-11-01/drag-contract/README.md",
+      "target": "../../../2026-11-01-drag-holds-and-acceptance.md"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "scope.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "claims.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "snapshot-2026-11-01.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "validation-2026-11-01.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../../../scripts/estate-review-ledger/README.md"
+    },
+    {
+      "file": "docs/diagrams/visionclaw/52-drag-holds-and-observation-gates.md",
+      "target": "../../estate-review/2026-11-01-drag-holds-and-acceptance.md"
+    },
+    {
+      "file": "docs/diagrams/visionclaw/52-drag-holds-and-observation-gates.md",
+      "target": "16-interaction-drag-pin-layout.md"
+    },
+    {
+      "file": "docs/diagrams/visionclaw/16-interaction-drag-pin-layout.md",
+      "target": "52-drag-holds-and-observation-gates.md"
+    },
+    {
+      "file": "docs/diagrams/visionclaw/16-interaction-drag-pin-layout.md",
+      "target": "../../estate-review/2026-11-01-drag-holds-and-acceptance.md"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-xr-budget-and-engine-qualification.md",
+      "target": "evidence/2026-11-01/xr-budget-source-receipt.json"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-xr-budget-and-engine-qualification.md",
+      "target": "evidence/2026-11-01/xr-budget-run.sh"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-xr-budget-and-engine-qualification.md",
+      "target": "evidence/2026-11-01/xr-budget-fixture-manifest.json"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-xr-budget-and-engine-qualification.md",
+      "target": "evidence/2026-11-01/xr-budget-isolated-tests.gd"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-xr-budget-and-engine-qualification.md",
+      "target": "evidence/2026-11-01/xr-budget-audit.rs"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-xr-budget-and-engine-qualification.md",
+      "target": "evidence/2026-11-01/xr-budget-probe.gd"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-xr-budget-and-engine-qualification.md",
+      "target": "evidence/2026-11-01/xr-budget-probe461.json"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-xr-budget-and-engine-qualification.md",
+      "target": "evidence/2026-11-01/xr-budget-probe48.json"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-xr-budget-and-engine-qualification.md",
+      "target": "evidence/2026-11-01/xr-budget-rust-audit-results.json"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-xr-budget-and-engine-qualification.md",
+      "target": "../diagrams/visionclaw/51-xr-visual-budget-and-engine-gates.md"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-xr-budget-and-engine-qualification.md",
+      "target": "2026-11-01-drag-holds-and-acceptance.md"
+    }
+  ]
+}

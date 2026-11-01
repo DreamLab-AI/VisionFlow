@@ -1,0 +1,39 @@
+     Locking 1 package to highest compatible version
+      Adding glam v0.30.5 (available: v0.30.10)
+   Compiling glam v0.30.5
+   Compiling hold-contract-probe v0.0.0 (/home/devuser/workspace/wt/VisionFlow-drag-contract/docs/estate-review/evidence/2026-11-01/drag-contract/probe)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.75s
+     Running unittests ../source/src/actors/gpu/hold_registry.rs (/home/devuser/workspace/.tmp/vf-drag-audit-target/debug/deps/hold_contract_probe-ad455530a7b3ce13)
+
+running 14 tests
+test tests::a_refreshed_hold_does_not_expire ... ok
+test tests::a_hold_nobody_refreshes_expires_and_the_node_rejoins ... ok
+test tests::a_released_hold_rejoins_the_simulation ... ok
+test tests::an_expired_hold_leaves_an_explicit_pin_in_place ... ok
+test tests::an_explicit_pin_made_during_a_drag_survives_its_release ... ok
+test tests::an_explicit_pin_survives_a_drag_that_started_after_it ... ok
+test tests::an_explicit_unpin_during_a_hold_keeps_the_hold_and_frees_the_node_on_release ... ok
+test tests::disconnect_releases_only_what_the_connection_owned ... ok
+test tests::one_connection_can_hold_two_nodes_at_once ... ok
+test tests::re_sending_the_same_hold_reports_no_change ... ok
+test tests::releasing_a_node_nobody_holds_is_ignored ... ok
+test tests::the_last_write_wins_when_two_connections_grab_one_node ... ok
+test tests::two_connections_hold_two_nodes_independently ... ok
+test tests::unpin_frees_a_node_that_is_not_held ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/ordering.rs (/home/devuser/workspace/.tmp/vf-drag-audit-target/debug/deps/ordering-d712a382dc572f76)
+
+running 3 tests
+test a_late_hold_after_disconnect_is_readmitted_until_the_backstop_runs ... ok
+test capacity_is_a_socket_rule_not_a_registry_invariant ... ok
+test stale_release_leaves_gpu_ownership_despite_a_node_only_release_notification ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests hold_contract_probe
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

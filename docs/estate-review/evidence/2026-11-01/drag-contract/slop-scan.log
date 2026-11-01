@@ -1,0 +1,92 @@
+slop-scan docs/estate-review/2026-11-01-drag-holds-and-acceptance.md
+exit=1
+
+  prose-sanitiser slop scan: docs/estate-review/2026-11-01-drag-holds-and-acceptance.md
+  files scanned: 1   findings: 3   slop score: 9
+  verdict: Some AI tells present
+  high: 3   medium: 0   low: 0
+
+  [HIGH] "The X" sentence/paragraph opener  (3 hits)
+        fix: Don't open with 'The <lowercase noun>'. Recast so the subject leads, or name the thing directly ('The production-node paired study lifts...' -> 'Holding the model constant and varying only the serving path lifts...'). Proper nouns (The Loom) are fine. See SKILL.md B2.
+        docs/estate-review/2026-11-01-drag-holds-and-acceptance.md:10  The drag acceptance script can report that a node rejoined physics when the peer kept it pinned and sent no post-release positions. A fresh localhost negative c...
+        docs/estate-review/2026-11-01-drag-holds-and-acceptance.md:48  The earlier [ADR-2167/2165 section assessment](2026-11-01-xr-budget-and-engine-qualification.md) remains the detailed baseline. Across all seven ADR-2167 govern...
+        docs/estate-review/2026-11-01-drag-holds-and-acceptance.md:50  The new annex changes the focus marker from one grabbed id to the first held hand and asks `focus_frame_for` for that node's volume transform. Source tracing fi...
+
+  Top things to change: "The X" sentence/paragraph opener
+  Narrative and voice tells need eyes too. See Section C of SKILL.md.
+
+
+slop-scan docs/estate-review/evidence/2026-11-01/drag-contract/README.md
+exit=1
+
+  prose-sanitiser slop scan: docs/estate-review/evidence/2026-11-01/drag-contract/README.md
+  files scanned: 1   findings: 5   slop score: 15
+  verdict: STRONG AI writing fingerprint
+  high: 5   medium: 0   low: 0
+
+  [HIGH] "The X" sentence/paragraph opener  (5 hits)
+        fix: Don't open with 'The <lowercase noun>'. Recast so the subject leads, or name the thing directly ('The production-node paired study lifts...' -> 'Holding the model constant and varying only the serving path lifts...'). Proper nouns (The Loom) are fine. See SKILL.md B2.
+        docs/estate-review/evidence/2026-11-01/drag-contract/README.md:19  The crate compiles the exported production `hold_registry.rs` directly: 14 native
+        docs/estate-review/evidence/2026-11-01/drag-contract/README.md:35  The fixture binds only `127.0.0.1` on an ephemeral port and launches the unchanged
+        docs/estate-review/evidence/2026-11-01/drag-contract/README.md:43  The synthetic peer accepts V5 acknowledgements but does not implement server
+        docs/estate-review/evidence/2026-11-01/drag-contract/README.md:58  The full corpus gate resolved 25,480 citations at their declared revisions, with
+        docs/estate-review/evidence/2026-11-01/drag-contract/README.md:66  The report's comparisons distinguish temporary holds, explicit fixed coordinates
+
+  Top things to change: "The X" sentence/paragraph opener
+  Narrative and voice tells need eyes too. See Section C of SKILL.md.
+
+
+slop-scan docs/estate-review/completion/README.md
+exit=0
+
+  prose-sanitiser slop scan: docs/estate-review/completion/README.md
+  files scanned: 1   findings: 0   slop score: 0
+  verdict: Clean, no mechanical tells detected
+  high: 0   medium: 0   low: 0
+
+  Nothing flagged. Either it is clean or the tells are narrative/voice ones a
+  regex cannot see. Read it against Section C of SKILL.md.
+
+
+slop-scan docs/diagrams/visionclaw/52-drag-holds-and-observation-gates.md
+exit=0
+
+  prose-sanitiser slop scan: docs/diagrams/visionclaw/52-drag-holds-and-observation-gates.md
+  files scanned: 1   findings: 0   slop score: 0
+  verdict: Clean, no mechanical tells detected
+  high: 0   medium: 0   low: 0
+
+  Nothing flagged. Either it is clean or the tells are narrative/voice ones a
+  regex cannot see. Read it against Section C of SKILL.md.
+
+
+slop-scan docs/diagrams/visionclaw/16-interaction-drag-pin-layout.md
+exit=1
+
+  prose-sanitiser slop scan: docs/diagrams/visionclaw/16-interaction-drag-pin-layout.md
+  files scanned: 1   findings: 2   slop score: 6
+  verdict: Some AI tells present
+  high: 2   medium: 0   low: 0
+
+  [HIGH] "The X" sentence/paragraph opener  (1 hit)
+        fix: Don't open with 'The <lowercase noun>'. Recast so the subject leads, or name the thing directly ('The production-node paired study lifts...' -> 'Holding the model constant and varying only the serving path lifts...'). Proper nouns (The Loom) are fine. See SKILL.md B2.
+        docs/diagrams/visionclaw/16-interaction-drag-pin-layout.md:30  The panels below retain their historical source pin. ADR-2169 changes drag-end semantics at the later `531df5ef7` source: holds release separately from explicit...
+
+  [HIGH] Em-dash density over threshold  (1 hit)
+        fix: Max 2 per 500 words. Replace with comma / full stop / colon. See SKILL.md B1.
+        docs/diagrams/visionclaw/16-interaction-drag-pin-layout.md  3 em-dashes across ~329 words (budget 2)
+
+  Top things to change: "The X" sentence/paragraph opener; Em-dash density over threshold
+  Narrative and voice tells need eyes too. See Section C of SKILL.md.
+
+
+slop-scan docs/estate-review/2026-11-01-xr-budget-and-engine-qualification.md
+exit=0
+
+  prose-sanitiser slop scan: docs/estate-review/2026-11-01-xr-budget-and-engine-qualification.md
+  files scanned: 1   findings: 0   slop score: 0
+  verdict: Clean, no mechanical tells detected
+  high: 0   medium: 0   low: 0
+
+  Nothing flagged. Either it is clean or the tells are narrative/voice ones a
+  regex cannot see. Read it against Section C of SKILL.md.

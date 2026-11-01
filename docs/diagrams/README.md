@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_203 topic files, 1720 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_204 topic files, 1725 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -237,6 +237,7 @@ _203 topic files, 1720 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | VC-49 | [Current presence joins and proposed room admission](visionclaw/49-room-admission.md) | 3 | flowchart | [IDENTITY-authority-chain.md](../../../project/docs/IDENTITY-authority-chain.md), [IDENTIFIER-taxonomy.md](../../../project/docs/IDENTIFIER-taxonomy.md) | ADR-2019, ADR-2157 |
 | VC-50 | [Deferred space voice and the scope of its authority proof](visionclaw/50-deferred-space-voice.md) | 3 | flowchart | [IDENTITY-authority-chain.md](../../../project/docs/IDENTITY-authority-chain.md), [XR-client.md](../../../project/docs/XR-client.md) | ADR-2157, ADR-2160 |
 | VC-51 | [XR visual budgets and engine qualification gates](visionclaw/51-xr-visual-budget-and-engine-gates.md) | 4 | flowchart | [XR-client.md](../../../project/docs/XR-client.md) | ADR-2167, ADR-2165, ADR-2159, ADR-2166 |
+| VC-52 | [Drag holds and observation gates](visionclaw/52-drag-holds-and-observation-gates.md) | 5 | flowchart | [PROTOCOL-registry.md](../../../project/docs/PROTOCOL-registry.md) | ADR-2169, ADR-2140, ADR-2167, ADR-2172 |
 
 ### agentbox
 

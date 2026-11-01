@@ -1,0 +1,5 @@
+parsed 204 topic files, 1725 mermaid diagrams
+  ~ nostr-rust-forum/28-nip171-owner-recovery-and-ticket-contracts.md: 6 source(s) exist at the declared revision but not in the working tree
+jev: citation review needs --cite-check (it reviews the citations the gate resolved)
+verification: fresh — VERIFICATION.md records all 52 declared revision(s)
+allowlist: 9 well-formed entries

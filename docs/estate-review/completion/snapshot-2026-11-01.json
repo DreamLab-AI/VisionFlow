@@ -2611,6 +2611,246 @@
     {
       "category": "audit-evidence-or-support",
       "claims": [],
+      "path": "docs/estate-review/evidence/2026-11-01/drag-contract/source/docs/adr/ADR-2140-physics-forces-have-one-stored-definition-and-no-scale-factors.md",
+      "repo": "VisionFlow",
+      "review": "unreconciled",
+      "sections": [
+        {
+          "line": 19,
+          "ordinal": 1,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "ADR-2140 — Physics forces have one stored definition, applied as stored"
+        },
+        {
+          "line": 21,
+          "ordinal": 2,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Context"
+        },
+        {
+          "line": 26,
+          "ordinal": 3,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Decision"
+        },
+        {
+          "line": 34,
+          "ordinal": 4,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Consequences"
+        },
+        {
+          "line": 39,
+          "ordinal": 5,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Layout lock"
+        },
+        {
+          "line": 42,
+          "ordinal": 6,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Not yet done (recorded, not hidden)"
+        },
+        {
+          "line": 47,
+          "ordinal": 7,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Verification"
+        },
+        {
+          "line": 52,
+          "ordinal": 8,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Amendment — 2026-10-19"
+        },
+        {
+          "line": 71,
+          "ordinal": 9,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Close-out 2026-10-31"
+        },
+        {
+          "line": 104,
+          "ordinal": 10,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Close-out 2026-10-31 — item 1, the layout mode moves into physics.*"
+        },
+        {
+          "line": 141,
+          "ordinal": 11,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Close-out 2026-10-31 — /analytics/sssp/params deleted; record complete"
+        },
+        {
+          "line": 155,
+          "ordinal": 12,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Close-out 2026-11-01 — second review (R13) blockers fixed"
+        },
+        {
+          "line": 168,
+          "ordinal": 13,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Follow-ups from the third review (R14, 2026-11-01)"
+        },
+        {
+          "line": 176,
+          "ordinal": 14,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Amended by ADR-2169 (2026-11-01)"
+        },
+        {
+          "line": 180,
+          "ordinal": 15,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Re-verification — 2026-10-31 (f1fa1862c)"
+        }
+      ],
+      "sha256": "76e51cf7a900d72d9392aa860e1be4bc3781df839f68e92cc4c0daaeb11d0a17"
+    },
+    {
+      "category": "audit-evidence-or-support",
+      "claims": [],
+      "path": "docs/estate-review/evidence/2026-11-01/drag-contract/source/docs/adr/ADR-2167-the-headsets-visual-extras-are-the-allocators-last-budgeted-layer.md",
+      "repo": "VisionFlow",
+      "review": "unreconciled",
+      "sections": [
+        {
+          "line": 21,
+          "ordinal": 1,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "ADR-2167 — The headset's visual extras hold a bounded allowance in the allocator, tiered by measured GPU time"
+        },
+        {
+          "line": 23,
+          "ordinal": 2,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Context"
+        },
+        {
+          "line": 27,
+          "ordinal": 3,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Decision"
+        },
+        {
+          "line": 35,
+          "ordinal": 4,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Consequences"
+        },
+        {
+          "line": 39,
+          "ordinal": 5,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Verification"
+        },
+        {
+          "line": 43,
+          "ordinal": 6,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Review follow-up (R11, 2026-10-31)"
+        },
+        {
+          "line": 49,
+          "ordinal": 7,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Amendment: bounded extras allowance (owner decision, 2026-10-31)"
+        },
+        {
+          "line": 55,
+          "ordinal": 8,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Re-verification — 2026-10-31 (ca35fd9db)"
+        },
+        {
+          "line": 61,
+          "ordinal": 9,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Re-verification — 2026-10-31 (f1fa1862c)"
+        }
+      ],
+      "sha256": "627b07b53e450634c6e4b1f9ae3cc33e7a5c118a027ab00cb5459640c29e5cc2"
+    },
+    {
+      "category": "audit-evidence-or-support",
+      "claims": [],
+      "path": "docs/estate-review/evidence/2026-11-01/drag-contract/source/docs/adr/ADR-2169-a-drag-is-a-hold-the-released-node-rejoins-the-simulation-and-the-graph-settles.md",
+      "repo": "VisionFlow",
+      "review": "unreconciled",
+      "sections": [
+        {
+          "line": 22,
+          "ordinal": 1,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "ADR-2169 — A drag is a hold: the released node rejoins the simulation and the graph answers the hand within a few ticks"
+        },
+        {
+          "line": 24,
+          "ordinal": 2,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Context"
+        },
+        {
+          "line": 31,
+          "ordinal": 3,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Decision"
+        },
+        {
+          "line": 40,
+          "ordinal": 4,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Consequences"
+        },
+        {
+          "line": 47,
+          "ordinal": 5,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Verification"
+        },
+        {
+          "line": 50,
+          "ordinal": 6,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Re-verification — 2026-10-31 (f1fa1862c)"
+        }
+      ],
+      "sha256": "1f72d848d805b355a47b30d5f91bfbc590d32a2422f8dfd69fd8af23e352e9b2"
+    },
+    {
+      "category": "audit-evidence-or-support",
+      "claims": [],
       "path": "docs/estate-review/evidence/2026-11-01/nf-derivation/source/nostr-rust-forum/docs/adr/ADR-2003-derive-subkey-raw-hmac-js-parity.md",
       "repo": "VisionFlow",
       "review": "unreconciled",
@@ -17753,78 +17993,96 @@
       "category": "decision-candidate",
       "claims": [
         {
-          "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash.",
+          "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash. Scoped 2026-11-01 annex reviews incoming focus-marker delta and preserves all prior open findings and runtime limits; linked drag-contract report records coordinate provenance gap.",
           "coverage": "whole-document",
           "panels": null,
           "report": "docs/estate-review/2026-11-01-xr-budget-and-engine-qualification.md",
-          "state": "stale-source"
+          "state": "assessment-recorded"
         }
       ],
       "path": "docs/adr/ADR-2167-the-headsets-visual-extras-are-the-allocators-last-budgeted-layer.md",
       "repo": "VisionClaw",
-      "review": "stale-evidence",
+      "review": "assessment-recorded",
       "sections": [
         {
           "line": 21,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-xr-budget-and-engine-qualification.md"
+          ],
+          "review": "assessment-recorded",
           "title": "ADR-2167 — The headset's visual extras hold a bounded allowance in the allocator, tiered by measured GPU time"
         },
         {
           "line": 23,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-xr-budget-and-engine-qualification.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Context"
         },
         {
           "line": 27,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-xr-budget-and-engine-qualification.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Decision"
         },
         {
           "line": 35,
           "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-xr-budget-and-engine-qualification.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Consequences"
         },
         {
           "line": 39,
           "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-xr-budget-and-engine-qualification.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Verification"
         },
         {
           "line": 43,
           "ordinal": 6,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-xr-budget-and-engine-qualification.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Review follow-up (R11, 2026-10-31)"
         },
         {
           "line": 49,
           "ordinal": 7,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-xr-budget-and-engine-qualification.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Amendment: bounded extras allowance (owner decision, 2026-10-31)"
         },
         {
           "line": 55,
           "ordinal": 8,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-xr-budget-and-engine-qualification.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Re-verification — 2026-10-31 (ca35fd9db)"
         },
         {
           "line": 61,
           "ordinal": 9,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-xr-budget-and-engine-qualification.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Re-verification — 2026-10-31 (f1fa1862c)"
         }
       ],
@@ -17884,51 +18142,71 @@
     },
     {
       "category": "decision-candidate",
-      "claims": [],
+      "claims": [
+        {
+          "basis": "Section-by-section ADR-2169 assessment, actual registry tests, explicit model boundary and reproduced full-script false acceptance; no live server/headset or fresh GPU claim.",
+          "coverage": "whole-document",
+          "panels": null,
+          "report": "docs/estate-review/2026-11-01-drag-holds-and-acceptance.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "path": "docs/adr/ADR-2169-a-drag-is-a-hold-the-released-node-rejoins-the-simulation-and-the-graph-settles.md",
       "repo": "VisionClaw",
-      "review": "unreconciled",
+      "review": "assessment-recorded",
       "sections": [
         {
           "line": 22,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-drag-holds-and-acceptance.md"
+          ],
+          "review": "assessment-recorded",
           "title": "ADR-2169 — A drag is a hold: the released node rejoins the simulation and the graph answers the hand within a few ticks"
         },
         {
           "line": 24,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-drag-holds-and-acceptance.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Context"
         },
         {
           "line": 31,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-drag-holds-and-acceptance.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Decision"
         },
         {
           "line": 40,
           "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-drag-holds-and-acceptance.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Consequences"
         },
         {
           "line": 47,
           "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-drag-holds-and-acceptance.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Verification"
         },
         {
           "line": 50,
           "ordinal": 6,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-drag-holds-and-acceptance.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Re-verification — 2026-10-31 (f1fa1862c)"
         }
       ],
@@ -120822,22 +121100,22 @@
   ],
   "counts": {
     "available_checkouts": 24,
-    "candidate_files": 1173,
-    "numbered_candidates_with_recorded_assessment": 83,
+    "candidate_files": 1176,
+    "numbered_candidates_with_recorded_assessment": 85,
     "numbered_decision_candidates": 1061,
-    "panels": 1720,
-    "panels_with_recorded_assessment": 299,
+    "panels": 1725,
+    "panels_with_recorded_assessment": 304,
     "scope_targets": 25,
-    "stale_claim_records": 3,
-    "topics": 203
+    "stale_claim_records": 2,
+    "topics": 204
   },
   "method": "Explicit scope; Git-owned Markdown; parsed headings exclude fenced examples; explicit human review claims require exact source/report hashes. Unreconciled is not unreviewed. Candidate counts are not a complete obligation denominator or overall task percentage.",
   "repositories": [
     {
       "available": true,
-      "candidate_files": 72,
+      "candidate_files": 75,
       "dirty": true,
-      "head": "ec6f9974535208f4d4d9a0df2c7a3fa081d66e5c",
+      "head": "3e3ae7a1f664869345e1ab3f30ab2c23be473a9d",
       "local": "VisionFlow",
       "name": "VisionFlow"
     },
@@ -134631,7 +134909,7 @@
           "body_sha256": "d84e41d0c21a0aacda38bd0fae70e1a2f77ae1dab3fe93ffc90024cb9a0cb52c",
           "heading": "VC-16.1 Node drag start — pin acquisition",
           "id": "VC-16.1",
-          "line": 32,
+          "line": 35,
           "ordinal": 1,
           "reports": [],
           "review": "unreconciled"
@@ -134640,7 +134918,7 @@
           "body_sha256": "35ca15d0b1ec6c94b543568726f71ae94eed2a32ab1ef1d47dd4a43a62a0d7a3",
           "heading": "VC-16.2 Drag update and drag end",
           "id": "VC-16.2",
-          "line": 65,
+          "line": 68,
           "ordinal": 2,
           "reports": [],
           "review": "unreconciled"
@@ -134649,7 +134927,7 @@
           "body_sha256": "4035b1723e972e2a164cb901df21793b871659a71e067eefbc3556f353790f58",
           "heading": "VC-16.3 Unpin and orphaned-drag cleanup on disconnect",
           "id": "VC-16.3",
-          "line": 95,
+          "line": 98,
           "ordinal": 3,
           "reports": [],
           "review": "unreconciled"
@@ -134658,7 +134936,7 @@
           "body_sha256": "866bf52e256fed870bbe1b6ad0589cc70e6c3777f36fd4d84a0c30eecc838efe",
           "heading": "VC-16.4 Agent beam 0x23 fan-out",
           "id": "VC-16.4",
-          "line": 123,
+          "line": 126,
           "ordinal": 4,
           "reports": [],
           "review": "unreconciled"
@@ -134667,7 +134945,7 @@
           "body_sha256": "09b757cd856a118615aaa691a5e16541797ee13a0db6283b4b4e0f18553395aa",
           "heading": "VC-16.5 Layout mode switch over REST — post-ADR-2055",
           "id": "VC-16.5",
-          "line": 157,
+          "line": 160,
           "ordinal": 5,
           "reports": [],
           "review": "unreconciled"
@@ -134676,7 +134954,7 @@
           "body_sha256": "77f2f5742fb13eaeb1510227cdafad3f067f711ba8676b783ad253e3c0b76549",
           "heading": "VC-16.6 Constraint CRUD to GPU residency",
           "id": "VC-16.6",
-          "line": 185,
+          "line": 188,
           "ordinal": 6,
           "reports": [],
           "review": "unreconciled"
@@ -134685,7 +134963,7 @@
           "body_sha256": "234cab5a67962a1f5471647ddf18d7cde9ff6b475e56a2fdeba865dd33f89a73",
           "heading": "VC-16.7 Interaction surface map",
           "id": "VC-16.7",
-          "line": 225,
+          "line": 228,
           "ordinal": 7,
           "reports": [],
           "review": "unreconciled"
@@ -134694,7 +134972,7 @@
           "body_sha256": "08f644287a2d0fd610fc6027898604a2e74669dd906f1ef6d14dcd170b4bd885",
           "heading": "VC-16.8 DAG rank layering — subClassOf provenance, domain spokes as domain_member",
           "id": "VC-16.8",
-          "line": 271,
+          "line": 274,
           "ordinal": 8,
           "reports": [],
           "review": "unreconciled"
@@ -134703,7 +134981,7 @@
       "path": "docs/diagrams/visionclaw/16-interaction-drag-pin-layout.md",
       "repo": "VisionFlow",
       "review": "unreconciled",
-      "sha256": "2fe747f76764ef0662dd6229b6f464687c0e47da2a701c3ead5146b0a3f36d33"
+      "sha256": "3390abe5c3edc45458302c0c1465fc45887101ea453a47a91692f868605be27a"
     },
     {
       "claims": [],
@@ -137566,6 +137844,84 @@
       "repo": "VisionFlow",
       "review": "unreconciled",
       "sha256": "b3a4dde476ddd0f5373ae05d2b0409dd1392ab01394cd9558bfb24555061c433"
+    },
+    {
+      "claims": [
+        {
+          "basis": "Five new source-traced, rendered and visually inspected panels. Historical VC-16 notice gives no additional panel credit.",
+          "coverage": "selected-panels",
+          "panels": [
+            "VC-52.1",
+            "VC-52.2",
+            "VC-52.3",
+            "VC-52.4",
+            "VC-52.5"
+          ],
+          "report": "docs/estate-review/2026-11-01-drag-holds-and-acceptance.md",
+          "state": "assessment-recorded"
+        }
+      ],
+      "panels": [
+        {
+          "body_sha256": "21b9fb78e241f37515bdfd88b51dd5181c4c30272b09375e59f3812004b3b44b",
+          "heading": "VC-52.1 A hold and an explicit pin are distinct reasons to anchor a node",
+          "id": "VC-52.1",
+          "line": 30,
+          "ordinal": 1,
+          "reports": [
+            "docs/estate-review/2026-11-01-drag-holds-and-acceptance.md"
+          ],
+          "review": "assessment-recorded"
+        },
+        {
+          "body_sha256": "42bc67f549466325f073220b0d353ffff38275b42cfd3a6b47d7123f13210e50",
+          "heading": "VC-52.2 Release notifications can disagree about ownership",
+          "id": "VC-52.2",
+          "line": 47,
+          "ordinal": 2,
+          "reports": [
+            "docs/estate-review/2026-11-01-drag-holds-and-acceptance.md"
+          ],
+          "review": "assessment-recorded"
+        },
+        {
+          "body_sha256": "0ea6f050105be5fbe44b5d07cd3ca94c40311cd811a58563f6c2c632b21c4fe4",
+          "heading": "VC-52.3 The effective interaction speed differs from stored speed by decision",
+          "id": "VC-52.3",
+          "line": 63,
+          "ordinal": 3,
+          "reports": [
+            "docs/estate-review/2026-11-01-drag-holds-and-acceptance.md"
+          ],
+          "review": "assessment-recorded"
+        },
+        {
+          "body_sha256": "85ed9deef4360bb0f1e876907207e3fc88842a91335155f4bcf5eecd3f91ea69",
+          "heading": "VC-52.4 Cross-client samples and silence can produce a false acceptance",
+          "id": "VC-52.4",
+          "line": 78,
+          "ordinal": 4,
+          "reports": [
+            "docs/estate-review/2026-11-01-drag-holds-and-acceptance.md"
+          ],
+          "review": "assessment-recorded"
+        },
+        {
+          "body_sha256": "ae3737cc2c5750e0b19a88608b8f9e274bd18b86affbc20e0b3513c859660bf0",
+          "heading": "VC-52.5 Selecting a volume transform does not select its coordinate source",
+          "id": "VC-52.5",
+          "line": 93,
+          "ordinal": 5,
+          "reports": [
+            "docs/estate-review/2026-11-01-drag-holds-and-acceptance.md"
+          ],
+          "review": "assessment-recorded"
+        }
+      ],
+      "path": "docs/diagrams/visionclaw/52-drag-holds-and-observation-gates.md",
+      "repo": "VisionFlow",
+      "review": "assessment-recorded",
+      "sha256": "ec3eb93d09ed5aaefbe3e868e69ebc5b89e6997eb13342553c0fc6d6aaf33856"
     },
     {
       "claims": [],

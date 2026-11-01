@@ -78,3 +78,17 @@ Godot's extension guidance expects older API targets to work on newer minor vers
 Android's Dynamic Performance Framework is a useful comparator for the future standalone headset path: it connects application quality controls to thermal/performance signals and encourages profiling and gradual adaptation. It is not a drop-in replacement for the current Linux/OpenXR governor. The transferable product requirement is sustainable, intelligible quality: show which signal is trusted, its age, requested versus granted tier, and why detail changed. Evaluate long-session task accuracy and comfort alongside frame timing before spending additional pixels on decoration. See [ADPF best practices](https://developer.android.com/games/optimize/adpf/best-practices-adpf).
 
 [VC-51 diagrams](../diagrams/visionclaw/51-xr-visual-budget-and-engine-gates.md) separate allocation, measurement reliability and engine qualification. These two records now have section dispositions; the wider estate and older XR corpus still have outstanding review obligations.
+
+## Scoped refresh — 2026-11-01, incoming drag work
+
+The [drag-contract review](2026-11-01-drag-holds-and-acceptance.md) checks the
+new ADR-2167 annex at VisionClaw `531df5ef74453a2ed320bff968c203a9b91faed7`.
+Across all seven governed paths since this report's `75b72416b` baseline,
+only nine lines of `spatial_environment.gd` change: first-held-hand selection
+and a volume-specific focus transform. Allocator, governor, cost-table, pass,
+benchmark and probe source are byte-identical; the section dispositions and
+XB1–XB5 findings stand. The new transform helper was traced, with a conditional
+coordinate-supplier gap recorded for differing connection buffers. The existing
+focus test checks transforms, not the whole marker's coordinate provenance.
+No new renderer, stereo, timing or full-scene acceptance is claimed; historical
+unit/headless receipts remain scoped to their original revisions.

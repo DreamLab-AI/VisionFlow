@@ -1,0 +1,86 @@
+{
+  "repo": "VisionClaw",
+  "revision": "531df5ef74453a2ed320bff968c203a9b91faed7",
+  "sources": [
+    {
+      "path": "src/actors/gpu/hold_registry.rs",
+      "sha256": "9dd557982df78dbfe4ec21dcb95d1994922f3760ae57af10fbca1bc055bbaf99",
+      "export": "source/src/actors/gpu/hold_registry.rs"
+    },
+    {
+      "path": "src/actors/gpu/force_compute_actor.rs",
+      "sha256": "546ed199518ac32859071461b65e408e7119decf8a563a8d6735428ddfb0c02d",
+      "export": "source/src/actors/gpu/force_compute_actor.rs"
+    },
+    {
+      "path": "src/actors/physics_orchestrator_actor.rs",
+      "sha256": "7258e96a63fc9813c811e7978f06ce28a228fd9d2159ee8e49c9c8cc890e98bb",
+      "export": "source/src/actors/physics_orchestrator_actor.rs"
+    },
+    {
+      "path": "src/handlers/socket_flow_handler/position_updates.rs",
+      "sha256": "45523870e29b46aab5e5a73f9468758673c36b692cc9c8d8fa7b2ce1c0d13356",
+      "export": "source/src/handlers/socket_flow_handler/position_updates.rs"
+    },
+    {
+      "path": "src/handlers/socket_flow_handler/types.rs",
+      "sha256": "2c9753024713cf2a1f5d2dadc134ef7802e0d46730536e80aea4ae28df2f823d",
+      "export": "source/src/handlers/socket_flow_handler/types.rs"
+    },
+    {
+      "path": "src/handlers/layout_handler.rs",
+      "sha256": "7d347a56ee84949586849245d7f0f73554d0534b9832902b01b5488e8eec560e",
+      "export": "source/src/handlers/layout_handler.rs"
+    },
+    {
+      "path": "scripts/drag-physics-acceptance.mjs",
+      "sha256": "3fb511190a2a7b123e747c4d88ff04fcdf5254ab8f2e62d344268f909c17ee12",
+      "export": "source/scripts/drag-physics-acceptance.mjs"
+    },
+    {
+      "path": "docs/PROTOCOL-registry.md",
+      "sha256": "91c64dbea97101f0a757a60ce008d27f59fcb0c4abc511a840bdb041df37a1d7",
+      "export": "source/docs/PROTOCOL-registry.md"
+    },
+    {
+      "path": "docs/adr/ADR-2169-a-drag-is-a-hold-the-released-node-rejoins-the-simulation-and-the-graph-settles.md",
+      "sha256": "1f72d848d805b355a47b30d5f91bfbc590d32a2422f8dfd69fd8af23e352e9b2",
+      "export": "source/docs/adr/ADR-2169-a-drag-is-a-hold-the-released-node-rejoins-the-simulation-and-the-graph-settles.md"
+    },
+    {
+      "path": "docs/adr/ADR-2167-the-headsets-visual-extras-are-the-allocators-last-budgeted-layer.md",
+      "export": "source/docs/adr/ADR-2167-the-headsets-visual-extras-are-the-allocators-last-budgeted-layer.md",
+      "sha256": "627b07b53e450634c6e4b1f9ae3cc33e7a5c118a027ab00cb5459640c29e5cc2"
+    },
+    {
+      "path": "xr-client/scripts/spatial_environment.gd",
+      "export": "source/xr-client/scripts/spatial_environment.gd",
+      "sha256": "7e71c89073c36e728b6a248840e09e8b811511d43a3930051d1ad971b65b5685"
+    },
+    {
+      "path": "xr-client/tests/unit/test_grab_client.gd",
+      "export": "source/xr-client/tests/unit/test_grab_client.gd",
+      "sha256": "6b5268303cbe8f82345882c530ea110abaea39ea746ffbd74db37fcc323641e8"
+    },
+    {
+      "path": "docs/adr/ADR-2140-physics-forces-have-one-stored-definition-and-no-scale-factors.md",
+      "export": "source/docs/adr/ADR-2140-physics-forces-have-one-stored-definition-and-no-scale-factors.md",
+      "sha256": "76e51cf7a900d72d9392aa860e1be4bc3781df839f68e92cc4c0daaeb11d0a17"
+    },
+    {
+      "path": "xr-client/scripts/graph_scene.gd",
+      "export": "graph-scene-excerpts.txt",
+      "sha256": "1053bbbdfda3cb32bd4f72ba95b8e5f6a564c6433bd598d12a5be8211a10c7d0",
+      "ranges": [
+        [
+          161,
+          211
+        ],
+        [
+          3378,
+          3424
+        ]
+      ]
+    }
+  ]
+}

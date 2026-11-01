@@ -1,0 +1,98 @@
+161: # Release the node grabs in flight: every hand's, or only those held in `vid`
+162: # (its volume went away, hid, or turned into a portal mid-drag).
+163: func _release_grab(vid: StringName = &"") -> void:
+164: 	for hand: int in 2:
+165: 		if _grab_id[hand] != -1 and (vid == &"" or _grab_vol[hand] == vid):
+166: 			_end_grab(hand, false)
+167: 
+168: 
+169: # The node id held by any hand (the left first), or -1 when both are free. Reads
+170: # that only need "is a node held" (fold, two-hand eligibility) use this.
+171: func _any_grab_id() -> int:
+172: 	return _grab_id[0] if _grab_id[0] != -1 else _grab_id[1]
+173: 
+174: 
+175: func _is_held(node_id: int) -> bool:
+176: 	return node_id >= 0 and (_grab_id[0] == node_id or _grab_id[1] == node_id)
+177: 
+178: 
+179: # Held node ids, left hand first; with `only_vol`, only those held in that volume
+180: # (overlays placed through GraphRoot, the knowledge frame, take only its own).
+181: func _held_ids(only_vol: StringName = &"") -> Array[int]:
+182: 	var out: Array[int] = []
+183: 	for hand: int in 2:
+184: 		if _grab_id[hand] != -1 and (only_vol == &"" or _grab_vol[hand] == only_vol):
+185: 			out.append(_grab_id[hand])
+186: 	return out
+187: 
+188: 
+189: # Writes volume `vid`'s refit exclusion set from the nodes held in it (E7): a node the
+190: # hand drags is pinned to the hand, so letting it into the fit chases the hand outward
+191: # (the box refits around the held node, the hand maps to a farther server point, the
+192: # node moves, and so on). Called wherever a grab begins or ends.
+193: func _sync_grab_exclusion(vid: StringName) -> void:
+194: 	var src = _sources.get(vid, null)
+195: 	if src == null or not ("grabbed_ids" in src):
+196: 		return
+197: 	src.grabbed_ids = PackedInt32Array(_held_ids(vid))
+198: 
+199: 
+200: ## The world frame (graph units → world) that places node `node_id` for overlays
+201: ## such as the focus marker: the Content transform of the volume holding it, or
+202: ## of the volume the ray last targeted it in, else GraphRoot's (knowledge).
+203: func focus_frame_for(node_id: int) -> Transform3D:
+204: 	for hand: int in 2:
+205: 		if node_id >= 0 and _grab_id[hand] == node_id:
+206: 			return _content_xf(_grab_vol[hand])
+207: 	if node_id >= 0 and node_id == _last_targeted_id and _last_targeted_vol != &"":
+208: 		return _content_xf(_last_targeted_vol)
+209: 	return graph_root.global_transform if graph_root != null else Transform3D.IDENTITY
+210: 
+211: # --- Spatial-volume UX (UX contract features 1-5) ------------------------------
+3378: func _content_xf(vid: StringName) -> Transform3D:
+3379: 	var v: Node3D = _volumes.get(vid, null)
+3380: 	if v == null:
+3381: 		return Transform3D.IDENTITY
+3382: 	var c: Node3D = v.content
+3383: 	if c == null:
+3384: 		return v.global_transform if v.is_inside_tree() else v.transform
+3385: 	return c.global_transform if c.is_inside_tree() else v.transform * c.transform
+3386: 
+3387: 
+3388: ## Starts `hand`'s grab of node `node_id` in volume `vid`: records the hand's
+3389: ## state, selects the node, and sends nodeDragStart on that volume's connection.
+3390: ## `hand_pos` is the controller's world position (grab depth is measured from
+3391: ## it); `hand_basis` (the controller's global basis) lets the drive hold the node
+3392: ## at the same hand-local offset it was caught at, so an off-axis catch does not snap
+3393: ## it onto the ray. False and no state change when the grab is refused: the hand already
+3394: ## holds a node, the other hand holds this one, the volume's connection has no
+3395: ## DRAG (codescape), the volume is a portal of the entered space, or a room
+3396: ## transition is in flight.
+3397: func _begin_grab(hand: int, vid: StringName, node_id: int, hand_pos: Vector3, hand_basis: Variant = null) -> bool:
+3398: 	if hand < 0 or hand > 1 or node_id < 0 or _grab_id[hand] != -1 or _is_held(node_id):
+3399: 		return false
+3400: 	if not volume_serves_drag(vid) or not grab_volume_allowed(vid, _entered_volume()) or _grab_locked():
+3401: 		return false
+3402: 	var conn: Node = _conn_for_volume(vid)
+3403: 	if conn == null:
+3404: 		return false
+3405: 	_grab_id[hand] = node_id
+3406: 	_grab_vol[hand] = vid
+3407: 	_sync_grab_exclusion(vid)
+3408: 	print("GraphScene DEBUG: node_grabbed hand=%d volume=%s id=%d" % [hand, vid, node_id])
+3409: 	# The held node is the selection (UX feature 2): the Rust tube may catch a
+3410: 	# node the volume picker's cone missed, or a different one.
+3411: 	select_volume_node(vid, StringName(VOLUME_BINDINGS[vid]["conn"]), node_id)
+3412: 	# Node render position lives in the connection's Rust store.
+3413: 	var pos: Vector3 = Vector3.ZERO
+3414: 	if conn.client != null and conn.client.has_method("node_position"):
+3415: 		pos = conn.client.node_position(node_id)
+3416: 	_grab_target[hand] = pos
+3417: 	# Remember how far along the ray the node was so the drag preserves depth.
+3418: 	var node_world: Vector3 = _content_xf(vid) * pos
+3419: 	_grab_dist[hand] = clampf(hand_pos.distance_to(node_world), 0.2, 6.0)
+3420: 	_grab_lateral[hand] = Vector3.ZERO
+3421: 	if hand_basis is Basis:
+3422: 		# The catch offset in the hand's own frame: depth along -Z, lateral in x / y.
+3423: 		var local: Vector3 = (hand_basis as Basis).orthonormalized().inverse() * (node_world - hand_pos)
+3424: 		_grab_lateral[hand] = Vector3(local.x, local.y, 0.0)
