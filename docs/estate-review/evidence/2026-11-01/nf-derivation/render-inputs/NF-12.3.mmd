@@ -1,0 +1,22 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs:198
+    P1["PRF root: HKDF Extract with client salt"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs:202
+    P2["Expand Podkey info plus counter<br/>try 0 through 255 for a valid scalar"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs:254
+    S1["Purpose child: HMAC-SHA256<br/>key = root bytes, message = exact UTF-8 tag"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs:263
+    S2["Validate raw child bytes as a scalar<br/>reject invalid output; no reduction or retry"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/tests/identity_subkey_vectors.rs:151
+    V["Shared vectors test compatibility<br/>for fixed valid roots and exact tags"]
+    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:204
+    J["JS runner mirrors the expression<br/>source substring check is not consumer execution"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs:241
+    R["Root possession recovers each known-tag child"]
+    %% Source: ../nostr-rust-forum/docs/archive/adr/ADR-100-key-lifecycle.md:78
+    C["Child-only and root exposure are separate cases<br/>tag changes do not revoke old authority"]
+    P1 --> P2
+    S1 --> S2 --> V
+    J --> V
+    S1 --> R
+    R -. lifecycle policy .-> C

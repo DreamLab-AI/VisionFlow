@@ -1,0 +1,11 @@
+   Compiling nostr-bbs-core v1.0.0-beta.19 (/home/devuser/workspace/wt/VisionFlow-nf-derivation/.audit-derivation/forum/crates/nostr-bbs-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.53s
+     Running tests/audit_derivation.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/audit_derivation-91b86c13cbefa94c)
+
+running 3 tests
+test same_root_and_tag_have_no_account_or_service_context ... ok
+test tags_are_exact_bytes_including_spaces_and_normalisation ... ok
+test tag_bump_does_not_invalidate_old_signatures ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+

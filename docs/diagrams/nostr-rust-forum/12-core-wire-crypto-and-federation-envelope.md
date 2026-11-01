@@ -7,6 +7,8 @@ governing:
   - ../nostr-rust-forum/docs/BASELINE-architecture.md
 adrs: [ADR-2002, ADR-2003, ADR-2005, ADR-2023, ADR-2025]
 sources:
+  - ../nostr-rust-forum/docs/archive/adr/ADR-100-key-lifecycle.md
+  - ../nostr-rust-forum/scripts/identity-vector-parity.mjs
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/lib.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/event.rs
@@ -124,23 +126,27 @@ sequenceDiagram
 
 ```mermaid
 flowchart TB
-    subgraph prf["derive_from_prf - passkey root"]
-        P1["HKDF-SHA256, salt = per-identity derivation salt<br/>nostr-bbs-core/src/keys.rs:198"]
-        P2["info = HKDF_INFO || counter, 32-byte OKM<br/>nostr-bbs-core/src/keys.rs:203 constant keys.rs:15"]
-        P3["counter loop 0..=255 searching for a valid scalar<br/>nostr-bbs-core/src/keys.rs:202"]
-    end
-    subgraph sub["derive_subkey - purpose-scoped child"]
-        S1["ONE raw HMAC-SHA-256, keyed by the root's 32 secret bytes<br/>nostr-bbs-core/src/keys.rs:254"]
-        S2["message is the UTF-8 tag - no Extract/Expand<br/>nostr-bbs-core/src/keys.rs:256"]
-        S3["exactly crypto.createHmac sha256 root update tag digest<br/>nostr-bbs-core/src/keys.rs:230"]
-    end
-    KAT["known-answer JS-parity vector<br/>nostr-bbs-core/src/keys.rs:479, digest keys.rs:484<br/>shared fixture nostr-bbs-core/tests/identity_subkey_vectors.rs:30"]
-
-    sub --> KAT
-
-    N1["INVARIANT: these are DIFFERENT constructions and must never be substituted - the doc says so at the<br/>definition site nostr-bbs-core/src/keys.rs:225"]
-    N2["INVARIANT: a derived subkey is RECOVERABLE FROM THE ROOT by anyone holding the root<br/>nostr-bbs-core/src/keys.rs:241. It provides DOMAIN SEPARATION, not compromise isolation<br/>nostr-bbs-core/src/keys.rs:243 - rotation of the root is the only boundary."]
-    N3["INVARIANT ADR-2003: the HMAC construction is a byte-for-byte cross-stack contract with agentbox's JS<br/>mirror derivation. Both halves read ONE versioned fixture, so they cannot drift - see NF-09.3.<br/>EXTERNAL: see AB-11 and ES-04"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs:198
+    P1["PRF root: HKDF Extract with client salt"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs:202
+    P2["Expand Podkey info plus counter<br/>try 0 through 255 for a valid scalar"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs:254
+    S1["Purpose child: HMAC-SHA256<br/>key = root bytes, message = exact UTF-8 tag"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs:263
+    S2["Validate raw child bytes as a scalar<br/>reject invalid output; no reduction or retry"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/tests/identity_subkey_vectors.rs:151
+    V["Shared vectors test compatibility<br/>for fixed valid roots and exact tags"]
+    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:204
+    J["JS runner mirrors the expression<br/>source substring check is not consumer execution"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs:241
+    R["Root possession recovers each known-tag child"]
+    %% Source: ../nostr-rust-forum/docs/archive/adr/ADR-100-key-lifecycle.md:78
+    C["Child-only and root exposure are separate cases<br/>tag changes do not revoke old authority"]
+    P1 --> P2
+    S1 --> S2 --> V
+    J --> V
+    S1 --> R
+    R -. lifecycle policy .-> C
 ```
 
 ## NF-12.4 NIP-59 gift wrap — three layers, and what each hides

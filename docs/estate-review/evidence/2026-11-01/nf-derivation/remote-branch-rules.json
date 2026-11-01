@@ -1,0 +1,32 @@
+{
+  "observed_at_utc": "2026-11-01T07:26:10.780059+00:00",
+  "read_only": true,
+  "responses": [
+    {
+      "endpoint": "repos/DreamLab-AI/nostr-rust-forum/branches/main/protection",
+      "returncode": 1,
+      "body": {
+        "message": "Branch not protected",
+        "documentation_url": "https://docs.github.com/rest/branches/branch-protection#get-branch-protection",
+        "status": "404"
+      },
+      "stderr": "gh: Branch not protected (HTTP 404)\n"
+    },
+    {
+      "endpoint": "repos/DreamLab-AI/nostr-rust-forum/rules/branches/main",
+      "returncode": 0,
+      "body": [],
+      "stderr": ""
+    },
+    {
+      "endpoint": "repos/DreamLab-AI/nostr-rust-forum/branches/main",
+      "returncode": 0,
+      "body": {
+        "commit_sha": "478f51229734cbbdb58ab57cc2fe2d2ad9c82ac8",
+        "name": "main",
+        "protected": false
+      },
+      "stderr": ""
+    }
+  ]
+}

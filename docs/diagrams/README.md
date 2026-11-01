@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_190 topic files, 1658 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_191 topic files, 1662 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -318,6 +318,7 @@ _190 topic files, 1658 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | NF-18 | [Web Push — registration, wake-up ordering and display receipts](nostr-rust-forum/18-web-push-delivery-and-account-boundaries.md) | 6 | flowchart | [ADR-2023-content-free-web-push-for-pwa-alerts.md](../../../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md) | ADR-2023 |
 | NF-19 | [BBS signer — adoption, account lifetime and key custody](nostr-rust-forum/19-bbs-signer-adoption-and-custody.md) | 6 | flowchart | [ADR-2008-bbs-signer-holds-key-directly.md](../../../nostr-rust-forum/docs/adr/ADR-2008-bbs-signer-holds-key-directly.md) | ADR-2008 |
 | NF-20 | [Device keys — producer contracts, authority and revocation](nostr-rust-forum/20-device-keys-contracts-and-revocation.md) | 6 | flowchart | [ADR-2004-device-keys-default-off-dual-worker-gate.md](../../../nostr-rust-forum/docs/adr/ADR-2004-device-keys-default-off-dual-worker-gate.md) | ADR-2004 |
+| NF-21 | [Subkey parity, consumer identity and rotation boundaries](nostr-rust-forum/21-subkey-parity-and-identity-lifecycle.md) | 4 | flowchart | [ADR-2003-derive-subkey-raw-hmac-js-parity.md](../../../nostr-rust-forum/docs/adr/ADR-2003-derive-subkey-raw-hmac-js-parity.md) | ADR-2003, ADR-094, ADR-100 |
 
 ### dreamlab-ai-website
 

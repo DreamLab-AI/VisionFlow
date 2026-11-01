@@ -1,0 +1,15 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/tests/identity_subkey_vectors.rs:266
+    A["Same root and new tag<br/>produce a different child"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs:66
+    B["Old secret remains able to sign"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs:254
+    C["Old root and tag still reproduce old child"]
+    %% Source: ../project/agentbox/config/hooks/nostr-live-mirror.cjs:212
+    D["Warm mirror cache returns first result<br/>before rereading tag or root"]
+    %% Source: ../nostr-rust-forum/docs/archive/adr/ADR-100-key-lifecycle.md:78
+    E["Lifecycle intent: adopt replacement<br/>and withdraw old authority separately"]
+    A -. does not disable .-> B
+    C --> B
+    D -. may retain .-> B
+    A --> E

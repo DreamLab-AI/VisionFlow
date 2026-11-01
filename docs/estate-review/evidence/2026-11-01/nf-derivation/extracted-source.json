@@ -1,0 +1,26 @@
+{
+  "mirrorEnv": {
+    "sha256": "2e593a134a3ab7d00007170b5dc2141e0a37dc9e87d82edddccd001bb3f60d94",
+    "source": "function envFirst(...keys) {\n  for (const k of keys) {\n    const v = process.env[k];\n    if (v && String(v).trim()) return String(v).trim();\n  }\n  return '';\n}"
+  },
+  "mirror": {
+    "sha256": "b0260199398db7be191f3e9b06b2693bc3ec3f52fd88161f315dc66ff7e2507a",
+    "source": "let _childCache;\nfunction deriveChildKey() {\n  if (_childCache !== undefined) return _childCache;\n  if (String(process.env.AGENTBOX_MIRROR_CHILD || '').trim() === '0') { _childCache = null; return null; }\n  const hex = operatorKeyHex({ log });\n  if (!/^[0-9a-f]{64}$/i.test(hex)) { _childCache = null; return null; }\n  const tag = envFirst('AGENTBOX_MIRROR_KEY_TAG') || 'agentbox-mirror-v1';\n  try {\n    const d = crypto.createHmac('sha256', Buffer.from(hex, 'hex')).update(tag).digest();\n    _childCache = Uint8Array.from(d);\n  } catch { _childCache = null; }\n  return _childCache;\n}"
+  },
+  "sendEnv": {
+    "sha256": "449c91b8aacbc8ecfe14ad49664a59ee08745ec1af6c56f11b948161e20ebbbf",
+    "source": "const envFirst = (...ks) => { for (const k of ks) { const v = process.env[k]; if (v && String(v).trim()) return String(v).trim(); } return ''; };"
+  },
+  "send": {
+    "sha256": "2485e197b9e33dfbeec13c229d3ef1e87c85d2e55f677a32dd3d124f2a210a61",
+    "source": "function loadIdentity() {\n  const hex = operatorKeyHex({ log: (m) => process.stderr.write(`[nostr-send] ${m}\\n`) });\n  if (!/^[0-9a-f]{64}$/i.test(hex)) return null;\n  const mode = (envFirst('AGENTBOX_GATEWAY_IDENTITY') || 'operator').toLowerCase();\n  try {\n    if (mode === 'child') {\n      const tag = envFirst('AGENTBOX_MIRROR_KEY_TAG') || 'agentbox-mirror-v1';\n      return Uint8Array.from(crypto.createHmac('sha256', Buffer.from(hex, 'hex')).update(tag).digest());\n    }\n    return Uint8Array.from(Buffer.from(hex, 'hex'));\n  } catch { return null; }\n}"
+  },
+  "gatewayEnv": {
+    "sha256": "4b53b1fbd114b66857b696db42d28a4439ba6c6e2907add23cdba1a1b7cd35cc",
+    "source": "function envFirst(...ks) { for (const k of ks) { const v = process.env[k]; if (v && String(v).trim()) return String(v).trim(); } return ''; }"
+  },
+  "gateway": {
+    "sha256": "c43b5dc13cb223942916a0534979d865d8504835f5ad65a957fc556da20840ec",
+    "source": "const IDENTITY = (envFirst('AGENTBOX_GATEWAY_IDENTITY') || 'operator').toLowerCase();\nconst sk = IDENTITY === 'gateway'\n  ? Uint8Array.from(crypto.createHmac('sha256', Buffer.from(OP_HEX, 'hex')).update(envFirst('AGENTBOX_GATEWAY_KEY_TAG') || 'agentbox-gateway-v1').digest())\n  : rawSk;"
+  }
+}

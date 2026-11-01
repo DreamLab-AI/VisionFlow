@@ -1,0 +1,13 @@
+   Compiling nostr-bbs-core v1.0.0-beta.19 (/home/devuser/workspace/wt/VisionFlow-nf-derivation/.audit-derivation/forum/crates/nostr-bbs-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.33s
+     Running tests/identity_subkey_vectors.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/identity_subkey_vectors-eb5da8dc6477a482)
+
+running 5 tests
+test fixture_header_is_the_expected_contract ... ok
+test invalid_roots_are_rejected ... ok
+test derive_subkey_is_raw_hmac_not_hkdf ... ok
+test tag_rotation_changes_the_child_key ... ok
+test every_fixture_vector_matches_derive_subkey ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+

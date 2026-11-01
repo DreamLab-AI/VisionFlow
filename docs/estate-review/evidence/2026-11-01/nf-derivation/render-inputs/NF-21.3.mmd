@@ -1,0 +1,15 @@
+flowchart TB
+    %% Source: ../project/agentbox/config/nostr-gateway/nostr-send.cjs:36
+    A["AGENTBOX_GATEWAY_IDENTITY"]
+    %% Source: ../project/agentbox/config/nostr-gateway/nostr-send.cjs:38
+    B["Sender: child selects derived key<br/>default tag agentbox-mirror-v1"]
+    %% Source: ../project/agentbox/config/nostr-gateway/nostr-send.cjs:42
+    C["Sender: gateway and default select root"]
+    %% Source: ../project/agentbox/config/nostr-gateway/gateway.cjs:153
+    D["Gateway: gateway selects derived key<br/>default tag agentbox-gateway-v1"]
+    %% Source: ../project/agentbox/config/nostr-gateway/gateway.cjs:155
+    E["Gateway: child and default select root"]
+    A --> B
+    A --> C
+    A --> D
+    A --> E

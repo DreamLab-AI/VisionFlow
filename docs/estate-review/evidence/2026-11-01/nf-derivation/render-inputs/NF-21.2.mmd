@@ -1,0 +1,19 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:197
+    A["Try reading three agentbox source files"]
+    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:199
+    B["Read failure: successful skip"]
+    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:203
+    C["Readable: record hash<br/>no expected hash comparison"]
+    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:204
+    D["Search source substring<br/>comments can satisfy it"]
+    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:223
+    E["Any HKDF text fails<br/>including unrelated comments"]
+    %% Source: ../nostr-rust-forum/.github/workflows/ci.yml:283
+    F["CI checks out agentbox without explicit ref"]
+    %% Source: ../nostr-rust-forum/.github/workflows/ci.yml:306
+    G["Aggregate ci-pass omits drift-gates<br/>external rules are separate;<br/>see dated report"]
+    A --> B
+    A --> C --> D --> E
+    F --> A
+    F -. enforcement boundary .-> G

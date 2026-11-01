@@ -1,0 +1,43 @@
+{
+  "native_existing": 27,
+  "native_audit": 3,
+  "native_total": 30,
+  "js_selection_probes": 12,
+  "runner_scenarios": 8,
+  "baseline_runner": {
+    "vectors": 13,
+    "invalid_roots": 3,
+    "checks": 18,
+    "not_added_to_independent_test_count": true
+  },
+  "topics": 191,
+  "panels": 1662,
+  "verified_citations": 24968,
+  "citation_warnings": 0,
+  "unverified": 0,
+  "unresolvable": 0,
+  "allowlisted": 9,
+  "fresh_declared_revisions": 46,
+  "rendered_panels": 33,
+  "visually_inspected": [
+    "NF-09.3",
+    "NF-10.2",
+    "NF-10.7",
+    "NF-12.3",
+    "NF-21.1",
+    "NF-21.2",
+    "NF-21.3",
+    "NF-21.4"
+  ],
+  "local_link_checks": 13,
+  "live_service_execution": false,
+  "browser_acceptance": false,
+  "whole_estate_complete": false,
+  "notes": [
+    "Initial citation checks caught missing declared vector source and a punctuation-only anchor; corrected before final gate.",
+    "Source location anchors were inspected for semantic relevance. New label citations were moved to comments after preview showed overflow.",
+    "No invisible characters detected. One high vocabulary flag on the forced-zero HMAC mock explanation was reviewed as technical wording and retained.",
+    "Branch rules read only: protected false, specific unprotected response and no active rules at observed remote commit; local/remote source identities remain distinct.",
+    "Counterexample probes assert present gaps, not repairs."
+  ]
+}

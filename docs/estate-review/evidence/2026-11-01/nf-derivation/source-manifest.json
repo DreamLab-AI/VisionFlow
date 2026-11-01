@@ -1,0 +1,100 @@
+[
+  {
+    "repo": "nostr-rust-forum",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "path": "crates/nostr-bbs-core/src/keys.rs",
+    "sha256": "7f5d61656a037ce29eb06e1c4f6cf7f4c7d294feba9318865f78d47c3b179a0a",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": false
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "path": "crates/nostr-bbs-core/tests/identity_subkey_vectors.rs",
+    "sha256": "77ed39a2e1f5bb03a3b1797496727af26fc246e96f0cf742f993cce53b15b9cd",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": true
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "path": "crates/nostr-bbs-core/tests/vectors/identity-subkey-vectors.v1.json",
+    "sha256": "51d8a9fede65576cdd3033d8f3e1e526ed6dc4f422ce4854d5dc77679020709b",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": true
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "path": "scripts/identity-vector-parity.mjs",
+    "sha256": "1ed211e88845759e441d80af1a802962f1d611387dafd57e2dd382c1a0e1910f",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": true
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "path": ".github/workflows/ci.yml",
+    "sha256": "53ea86aa1e3d20e748a7ae895a05ecf3dfaa9b87ebb2bdee2a54db4cadc0f35d",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": true
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "path": "docs/adr/ADR-2003-derive-subkey-raw-hmac-js-parity.md",
+    "sha256": "83e3d793163492c6b2b2cefe732c2fb1293e9fb80b74f3054b3224fc96bb510b",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": true
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "path": "docs/archive/adr/ADR-094-deterministic-subkey-derivation.md",
+    "sha256": "12b7953de09183a7208a28d8081f6738364cef9c2e482a2976bc7638c33c39b2",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": true
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "path": "docs/archive/adr/ADR-100-key-lifecycle.md",
+    "sha256": "32e8a15f34edbf2bd4554bfd94842f4ab85723940f4be786b7c73a86d6bee7c0",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": true
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "path": "crates/nostr-bbs-forum-client/src/utils/devices.rs",
+    "sha256": "f08886fdd0e8d88b7f38b1929508682ff57d98afed4fd669f119522e0eb8de01",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": true
+  },
+  {
+    "repo": "agentbox",
+    "commit": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "config/hooks/nostr-live-mirror.cjs",
+    "sha256": "8234e8837ab8ef29192a2ee599ade530273bf0330ed1e7bb8d28efd22fa030f0"
+  },
+  {
+    "repo": "agentbox",
+    "commit": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "config/nostr-gateway/nostr-send.cjs",
+    "sha256": "91793bd4be301f0746f421c49efe67521f924f221aafe6f15f0eb58e5aebd3f4"
+  },
+  {
+    "repo": "agentbox",
+    "commit": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+    "path": "config/nostr-gateway/gateway.cjs",
+    "sha256": "0a64b7d3d6d572b25903d0eb91744b9a0ba8e3a34a18c1982117c9e3f1dd040d"
+  },
+  {
+    "repo": "nostr-rust-forum",
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "path": "crates/nostr-bbs-core/src/wasm_bridge.rs",
+    "sha256": "8fd5a9ebfbfbf46c82e7716b43a44b688999f535ff3936959a7f1b82159c103d",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": true
+  }
+]

@@ -1,0 +1,16 @@
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs:49
+    A["Rust validates the root scalar"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs:254
+    B["HMAC-SHA256 over exact UTF-8 tag"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs:263
+    C["Rust validates child scalar<br/>no modular reduction"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/tests/identity_subkey_vectors.rs:151
+    D["Rust checks shared vectors"]
+    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:105
+    E["Node separately mirrors primitive<br/>and checks the same fixture"]
+    %% Source: ../project/agentbox/config/hooks/nostr-live-mirror.cjs:68
+    F["Consumer envFirst trims tags<br/>before derivation"]
+    A --> B --> C --> D
+    E -. shared vectors .-> D
+    F --> B

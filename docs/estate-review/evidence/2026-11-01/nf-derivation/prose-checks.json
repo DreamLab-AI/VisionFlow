@@ -1,0 +1,62 @@
+[
+  {
+    "args": [
+      "inspect-text",
+      "/home/devuser/workspace/wt/VisionFlow-nf-derivation/docs/estate-review/2026-11-01-forum-subkey-derivation.md"
+    ],
+    "returncode": 0,
+    "stdout": "Length: 18842 chars\nSuspicious: 0\nNote: Layer A only: invisible/format Unicode, smuggled payloads and homoglyphs (edit-based carriers).\nNote: Statistical (token-sampling) watermarks are not detectable here; use Layer B rewrite.\nNote: Inspect kinds: strip, bidi, tag_chars, variation_selector, zwj_family, private_use, reserved_ignorable, noncharacter, space, confusable, other_cf.\nNote: Load-bearing invisibles are preserved by default: emoji glue (ZWJ/VS after an emoji base), script joiners (ZWNJ/ZWJ inside complex scripts), RGI flag tag sequences, same-script fillers/selectors (Mongolian FVS, Khmer inherent vowels, Hangul jamo and blank fillers), visible-layout format controls next to their own script (Egyptian quadrat, Duployan shorthand, musical beam/tie/slur), orthographic Arabic/Syriac Cf marks, and balanced bidi controls in text that contains RTL script. Use --strip-emoji-glue for paranoid mode (strips them all).\nNote: Homoglyphs are judged by UTS #39 skeleton plus mixed-script and Identifier_Status context, not by a hand-written table; see the `confusables` module for the one documented gap.\nNote: No deterministic Layer A (invisible Unicode/format) carriers detected; statistical and pixel-domain marks are out of scope here.\n",
+    "stderr": ""
+  },
+  {
+    "args": [
+      "slop-scan",
+      "/home/devuser/workspace/wt/VisionFlow-nf-derivation/docs/estate-review/2026-11-01-forum-subkey-derivation.md",
+      "--severity",
+      "high"
+    ],
+    "returncode": 0,
+    "stdout": "\n  prose-sanitiser slop scan: /home/devuser/workspace/wt/VisionFlow-nf-derivation/docs/estate-review/2026-11-01-forum-subkey-derivation.md\n  files scanned: 1   findings: 0   slop score: 0\n  verdict: Clean, no mechanical tells detected\n  high: 0   medium: 0   low: 0\n\n  Nothing flagged. Either it is clean or the tells are narrative/voice ones a\n  regex cannot see. Read it against Section C of SKILL.md.\n\n",
+    "stderr": ""
+  },
+  {
+    "args": [
+      "inspect-text",
+      "/home/devuser/workspace/wt/VisionFlow-nf-derivation/docs/diagrams/nostr-rust-forum/21-subkey-parity-and-identity-lifecycle.md"
+    ],
+    "returncode": 0,
+    "stdout": "Length: 5197 chars\nSuspicious: 0\nNote: Layer A only: invisible/format Unicode, smuggled payloads and homoglyphs (edit-based carriers).\nNote: Statistical (token-sampling) watermarks are not detectable here; use Layer B rewrite.\nNote: Inspect kinds: strip, bidi, tag_chars, variation_selector, zwj_family, private_use, reserved_ignorable, noncharacter, space, confusable, other_cf.\nNote: Load-bearing invisibles are preserved by default: emoji glue (ZWJ/VS after an emoji base), script joiners (ZWNJ/ZWJ inside complex scripts), RGI flag tag sequences, same-script fillers/selectors (Mongolian FVS, Khmer inherent vowels, Hangul jamo and blank fillers), visible-layout format controls next to their own script (Egyptian quadrat, Duployan shorthand, musical beam/tie/slur), orthographic Arabic/Syriac Cf marks, and balanced bidi controls in text that contains RTL script. Use --strip-emoji-glue for paranoid mode (strips them all).\nNote: Homoglyphs are judged by UTS #39 skeleton plus mixed-script and Identifier_Status context, not by a hand-written table; see the `confusables` module for the one documented gap.\nNote: No deterministic Layer A (invisible Unicode/format) carriers detected; statistical and pixel-domain marks are out of scope here.\n",
+    "stderr": ""
+  },
+  {
+    "args": [
+      "slop-scan",
+      "/home/devuser/workspace/wt/VisionFlow-nf-derivation/docs/diagrams/nostr-rust-forum/21-subkey-parity-and-identity-lifecycle.md",
+      "--severity",
+      "high"
+    ],
+    "returncode": 0,
+    "stdout": "\n  prose-sanitiser slop scan: /home/devuser/workspace/wt/VisionFlow-nf-derivation/docs/diagrams/nostr-rust-forum/21-subkey-parity-and-identity-lifecycle.md\n  files scanned: 1   findings: 0   slop score: 0\n  verdict: Clean, no mechanical tells detected\n  high: 0   medium: 0   low: 0\n\n  Nothing flagged. Either it is clean or the tells are narrative/voice ones a\n  regex cannot see. Read it against Section C of SKILL.md.\n\n",
+    "stderr": ""
+  },
+  {
+    "args": [
+      "inspect-text",
+      "/home/devuser/workspace/wt/VisionFlow-nf-derivation/docs/estate-review/evidence/2026-11-01/nf-derivation/README.md"
+    ],
+    "returncode": 0,
+    "stdout": "Length: 3636 chars\nSuspicious: 0\nNote: Layer A only: invisible/format Unicode, smuggled payloads and homoglyphs (edit-based carriers).\nNote: Statistical (token-sampling) watermarks are not detectable here; use Layer B rewrite.\nNote: Inspect kinds: strip, bidi, tag_chars, variation_selector, zwj_family, private_use, reserved_ignorable, noncharacter, space, confusable, other_cf.\nNote: Load-bearing invisibles are preserved by default: emoji glue (ZWJ/VS after an emoji base), script joiners (ZWNJ/ZWJ inside complex scripts), RGI flag tag sequences, same-script fillers/selectors (Mongolian FVS, Khmer inherent vowels, Hangul jamo and blank fillers), visible-layout format controls next to their own script (Egyptian quadrat, Duployan shorthand, musical beam/tie/slur), orthographic Arabic/Syriac Cf marks, and balanced bidi controls in text that contains RTL script. Use --strip-emoji-glue for paranoid mode (strips them all).\nNote: Homoglyphs are judged by UTS #39 skeleton plus mixed-script and Identifier_Status context, not by a hand-written table; see the `confusables` module for the one documented gap.\nNote: No deterministic Layer A (invisible Unicode/format) carriers detected; statistical and pixel-domain marks are out of scope here.\n",
+    "stderr": ""
+  },
+  {
+    "args": [
+      "slop-scan",
+      "/home/devuser/workspace/wt/VisionFlow-nf-derivation/docs/estate-review/evidence/2026-11-01/nf-derivation/README.md",
+      "--severity",
+      "high"
+    ],
+    "returncode": 1,
+    "stdout": "\n  prose-sanitiser slop scan: /home/devuser/workspace/wt/VisionFlow-nf-derivation/docs/estate-review/evidence/2026-11-01/nf-derivation/README.md\n  files scanned: 1   findings: 1   slop score: 3\n  verdict: Some AI tells present\n  high: 1   medium: 0   low: 0\n\n  [HIGH] Tier-1 banned vocabulary  (1 hit)\n        fix: Replace with a plain word (delve->look at, leverage->use, robust->solid, seamless->smooth, utilise->use). See SKILL.md B4.\n        /home/devuser/workspace/wt/VisionFlow-nf-derivation/docs/estate-review/evidence/2026-11-01/nf-derivation/README.md:24  Replace the angle-bracket paths. The JavaScript harness reads the retained exports next to itself; it never imports the self-executing production entrypoints. I...\n\n  Top things to change: Tier-1 banned vocabulary\n  Narrative and voice tells need eyes too. See Section C of SKILL.md.\n\n",
+    "stderr": ""
+  }
+]

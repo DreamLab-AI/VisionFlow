@@ -1,0 +1,82 @@
+[
+  {
+    "file": "NF-09.3.mmd",
+    "sha256": "cb5bd1de3215133f4a67e7635f6983c136746377536bf5d3ddf3ae5bd260c874",
+    "visually_inspected": false
+  },
+  {
+    "file": "NF-09.3.svg",
+    "sha256": "f8e1a2c11114e6cf13beb16ce2372f24e52fd3c464825cd2c6423c7b245b1f92",
+    "visually_inspected": true
+  },
+  {
+    "file": "NF-10.2.mmd",
+    "sha256": "0ba31aa8d2f0e70595a22aa5fecfb5863d7f857c2cdaf24802afea09c3fa6138",
+    "visually_inspected": false
+  },
+  {
+    "file": "NF-10.2.svg",
+    "sha256": "84a20c86663fc6864e1d290b6a671c85d94cc6a5147c083ec669ddb10f8aefcd",
+    "visually_inspected": true
+  },
+  {
+    "file": "NF-10.7.mmd",
+    "sha256": "004aa8ea61edea1b2da19a5685e00c570b7d00a439308f94f76c426c1d0727cd",
+    "visually_inspected": false
+  },
+  {
+    "file": "NF-10.7.svg",
+    "sha256": "52c518ab5a0998d0833ec6e8be87f426c2e7906ae083c518287ab9923e6cf20c",
+    "visually_inspected": true
+  },
+  {
+    "file": "NF-12.3.mmd",
+    "sha256": "df92b9f7b0440cda4ac59d9aa6b632e0a192d1792917ec204d79ca9bc126d3a8",
+    "visually_inspected": false
+  },
+  {
+    "file": "NF-12.3.svg",
+    "sha256": "571e8ae78e748e224085077f591ca10bade848bf4e3e560f9a4fa049cd38f6d1",
+    "visually_inspected": true
+  },
+  {
+    "file": "NF-21.1.mmd",
+    "sha256": "d72b02ff129f831c83510adfb03e9f69a3d103d06dcd45ecab6a6e4c7768c777",
+    "visually_inspected": false
+  },
+  {
+    "file": "NF-21.1.svg",
+    "sha256": "fc6fb01a051d08b382c2c18fe9c7063b34fd97462680df993e0c37c03368a2ba",
+    "visually_inspected": true
+  },
+  {
+    "file": "NF-21.2.mmd",
+    "sha256": "a8c05094d83aa7c46d1235f73b910e232b14120222048042e77d7b54a2061698",
+    "visually_inspected": false
+  },
+  {
+    "file": "NF-21.2.svg",
+    "sha256": "e2ad166afbce36dfdfd843e7f76ded60c0b4c36d7c0c8df78d58bff82ef17138",
+    "visually_inspected": true
+  },
+  {
+    "file": "NF-21.3.mmd",
+    "sha256": "e6aa1dd7f3f40a2c191d47a7d05ee7d81a47328dde418305f69d0b6164e62ec1",
+    "visually_inspected": false
+  },
+  {
+    "file": "NF-21.3.svg",
+    "sha256": "1b42d2f046fdb20b030e2473fe580741ab22d3a1c66ec90ef84bb0d059ef8423",
+    "visually_inspected": true
+  },
+  {
+    "file": "NF-21.4.mmd",
+    "sha256": "26827c88febe0cc16ca386f07f560f0865387a210a48a4800b080f2174aeeb95",
+    "visually_inspected": false
+  },
+  {
+    "file": "NF-21.4.svg",
+    "sha256": "4b961c79605eb462403cfd2def9ab8205b13ac3981cb4fd587f25ad44b213a44",
+    "visually_inspected": true
+  }
+]

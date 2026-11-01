@@ -7,6 +7,8 @@ type: explanation
 
 # VisionFlow estate review
 
+Forum subkey continuation: [ADR-2003 and archived ADR-094/100 section review](2026-11-01-forum-subkey-derivation.md), four NF-21 panels and four scoped legacy corrections. Native parity passes; extracted consumers disagree on identity modes and the source guard accepts changed defaults. Thirty native tests, twelve JavaScript probes and eight runner scenarios retain the evidence. Live rotation remains open.
+
 Forum device-key continuation: [ADR-2004 section review, six NF-20 panels and 76 selected checks](2026-11-01-forum-device-keys.md). Missing registration proofs and incompatible list numbers block the client contract; cached delegation outlives revocation writes. NF-02.7 and NF-08.8 receive scoped corrections. Live acceptance remains open.
 
 Forum BBS signer continuation: [ADR-2008 section review, six NF-19 panels and 22 selected native tests](2026-11-01-forum-bbs-signer.md). Retained signers survive logout; storage adoption, backup identity and extension results need stronger account binding. NF-05.11 receives custody and boot-routing corrections; browser acceptance remains open.

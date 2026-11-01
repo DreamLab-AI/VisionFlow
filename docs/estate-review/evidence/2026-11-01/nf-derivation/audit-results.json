@@ -1,0 +1,1118 @@
+{
+  "schema": "nf-derivation-audit-v1",
+  "node": "v22.23.3",
+  "selection_tests": [
+    {
+      "name": "mirror default matches canonical fixture",
+      "passed": true
+    },
+    {
+      "name": "send child matches canonical mirror fixture",
+      "passed": true
+    },
+    {
+      "name": "gateway gateway matches canonical gateway fixture",
+      "passed": true
+    },
+    {
+      "name": "default send and gateway both select raw root",
+      "passed": true
+    },
+    {
+      "name": "child mode diverges between send and gateway",
+      "passed": true
+    },
+    {
+      "name": "gateway mode diverges between send and gateway",
+      "passed": true
+    },
+    {
+      "name": "environment tags are trimmed before derivation",
+      "passed": true
+    },
+    {
+      "name": "warm mirror cache survives root and tag changes",
+      "passed": true
+    },
+    {
+      "name": "mirror cached off result survives reenable",
+      "passed": true
+    },
+    {
+      "name": "all-zero root passes mirror lexical validation",
+      "passed": true
+    },
+    {
+      "name": "all-zero root passes send child lexical validation",
+      "passed": true
+    },
+    {
+      "name": "forced zero HMAC output is not scalar-checked in mirror or send",
+      "passed": true
+    }
+  ],
+  "runner_scenarios": [
+    {
+      "name": "baseline",
+      "expected_success": true,
+      "exit_code": 0,
+      "summary": {
+        "schema": "adr-2003.identity-vector-parity.v1",
+        "ok": true,
+        "fixture": "crates/nostr-bbs-core/tests/vectors/identity-subkey-vectors.v1.json",
+        "fixture_version": 1,
+        "fixture_algorithm_id": "agentbox-subkey-hmac-sha256-v1",
+        "fixture_sha256": "51d8a9fede65576cdd3033d8f3e1e526ed6dc4f422ce4854d5dc77679020709b",
+        "node_version": "v22.23.3",
+        "js_source": "mirrored",
+        "js_source_reason": "The agentbox derivation is not exported by any of its call sites and two of the three files self-execute at require time; the construction is re-executed here verbatim and the agentbox sources are pinned by sha256 plus an exact-expression check.",
+        "agentbox_root": "/home/devuser/workspace/wt/VisionFlow-nf-derivation/.audit-derivation/js/baseline/agentbox",
+        "agentbox_sources": [
+          {
+            "file": "config/hooks/nostr-live-mirror.cjs",
+            "path": "/home/devuser/workspace/wt/VisionFlow-nf-derivation/.audit-derivation/js/baseline/agentbox/config/hooks/nostr-live-mirror.cjs",
+            "status": "present",
+            "sha256": "8234e8837ab8ef29192a2ee599ade530273bf0330ed1e7bb8d28efd22fa030f0",
+            "symbol": "deriveChildKey",
+            "construction_verified": true
+          },
+          {
+            "file": "config/nostr-gateway/nostr-send.cjs",
+            "path": "/home/devuser/workspace/wt/VisionFlow-nf-derivation/.audit-derivation/js/baseline/agentbox/config/nostr-gateway/nostr-send.cjs",
+            "status": "present",
+            "sha256": "91793bd4be301f0746f421c49efe67521f924f221aafe6f15f0eb58e5aebd3f4",
+            "symbol": "loadIdentity",
+            "construction_verified": true
+          },
+          {
+            "file": "config/nostr-gateway/gateway.cjs",
+            "path": "/home/devuser/workspace/wt/VisionFlow-nf-derivation/.audit-derivation/js/baseline/agentbox/config/nostr-gateway/gateway.cjs",
+            "status": "present",
+            "sha256": "0a64b7d3d6d572b25903d0eb91744b9a0ba8e3a34a18c1982117c9e3f1dd040d",
+            "symbol": "child identity constant",
+            "construction_verified": true
+          }
+        ],
+        "vectors_total": 13,
+        "vectors_passed": 13,
+        "invalid_total": 3,
+        "invalid_rejected": 3,
+        "checks_total": 18,
+        "checks_passed": 18,
+        "failures": [],
+        "vector_results": [
+          {
+            "id": "canonical-mirror-v1",
+            "ok": true,
+            "tag_utf8_bytes": 18,
+            "child_secret_hex": "2d07f2ce93d0361687fdd81d2690082b5d6c35b93e3ece2d44bcf115ef8f695d"
+          },
+          {
+            "id": "canonical-mirror-v1-alt",
+            "ok": true,
+            "tag_utf8_bytes": 18,
+            "child_secret_hex": "5c593f64607573e264c2dfbdf72d29e38750d1bb105ac5eb05bdfaadbfc2ef91"
+          },
+          {
+            "id": "canonical-gateway-v1",
+            "ok": true,
+            "tag_utf8_bytes": 19,
+            "child_secret_hex": "e10e112b110a9a39a9b6c3d7acdb127d6a95cd5e2c0163cf131de0d1d04d8f2f"
+          },
+          {
+            "id": "canonical-agent-v1",
+            "ok": true,
+            "tag_utf8_bytes": 17,
+            "child_secret_hex": "1bb6d6f28fba0af100fdc0d342a844124d782acc403147b4dc1b9b818f5df427"
+          },
+          {
+            "id": "rotation-mirror-v2",
+            "ok": true,
+            "tag_utf8_bytes": 18,
+            "child_secret_hex": "6b61ae9254a980c996eb2742efa74a298d0fe21e4464fed806e2fa0f7a7ed1ab"
+          },
+          {
+            "id": "rotation-gateway-v2",
+            "ok": true,
+            "tag_utf8_bytes": 19,
+            "child_secret_hex": "bed7fe8493db732e67f5e161040c459748772042061d5f50183346170866d1cc"
+          },
+          {
+            "id": "empty-tag",
+            "ok": true,
+            "tag_utf8_bytes": 0,
+            "child_secret_hex": "9dac6a74401b46ed9b489d0e19d68d1b13cc6b5090352fdcfa5bd74df4e69d87"
+          },
+          {
+            "id": "single-byte-tag",
+            "ok": true,
+            "tag_utf8_bytes": 1,
+            "child_secret_hex": "4e7004bebac287656f96a29d4b16be2d4aa352cf8871cd2222f27bd0240e6118"
+          },
+          {
+            "id": "long-tag",
+            "ok": true,
+            "tag_utf8_bytes": 519,
+            "child_secret_hex": "3f5c607b93ca0a63ff78d48de670032cff2a6f893c2352257d35a94acb5707e0"
+          },
+          {
+            "id": "utf8-multibyte-tag",
+            "ok": true,
+            "tag_utf8_bytes": 39,
+            "child_secret_hex": "8ec78107457818d2ea2584c43fa3f2f36f148338fa924d7e4fc464f49d6961cb"
+          },
+          {
+            "id": "utf8-combining-tag",
+            "ok": true,
+            "tag_utf8_bytes": 15,
+            "child_secret_hex": "c85b709b47284b27e3edf86fc5e53955f6c956e26419f27e36234f4159d60f4b"
+          },
+          {
+            "id": "max-scalar-root",
+            "ok": true,
+            "tag_utf8_bytes": 18,
+            "child_secret_hex": "fa8cc55a9709563157ab49fa53914e179dd643be52f1938de3456a9b228888c6"
+          },
+          {
+            "id": "whitespace-tag",
+            "ok": true,
+            "tag_utf8_bytes": 20,
+            "child_secret_hex": "a0475d2e7fbadb673362a44bede0279ccecbe21a37cf493f4dbe65c6bbb9987f"
+          }
+        ],
+        "invalid_results": [
+          {
+            "id": "invalid-root-all-zero",
+            "ok": true,
+            "rejected_as": "scalar_out_of_range"
+          },
+          {
+            "id": "invalid-root-all-ff",
+            "ok": true,
+            "rejected_as": "scalar_out_of_range"
+          },
+          {
+            "id": "invalid-root-equals-order",
+            "ok": true,
+            "rejected_as": "scalar_out_of_range"
+          }
+        ]
+      }
+    },
+    {
+      "name": "absent-agentbox",
+      "expected_success": true,
+      "exit_code": 0,
+      "summary": {
+        "schema": "adr-2003.identity-vector-parity.v1",
+        "ok": true,
+        "fixture": "crates/nostr-bbs-core/tests/vectors/identity-subkey-vectors.v1.json",
+        "fixture_version": 1,
+        "fixture_algorithm_id": "agentbox-subkey-hmac-sha256-v1",
+        "fixture_sha256": "51d8a9fede65576cdd3033d8f3e1e526ed6dc4f422ce4854d5dc77679020709b",
+        "node_version": "v22.23.3",
+        "js_source": "mirrored",
+        "js_source_reason": "The agentbox derivation is not exported by any of its call sites and two of the three files self-execute at require time; the construction is re-executed here verbatim and the agentbox sources are pinned by sha256 plus an exact-expression check.",
+        "agentbox_root": "/home/devuser/workspace/wt/VisionFlow-nf-derivation/.audit-derivation/js/absent-agentbox/agentbox",
+        "agentbox_sources": [
+          {
+            "file": "config/hooks/nostr-live-mirror.cjs",
+            "path": "/home/devuser/workspace/wt/VisionFlow-nf-derivation/.audit-derivation/js/absent-agentbox/agentbox/config/hooks/nostr-live-mirror.cjs",
+            "status": "absent",
+            "sha256": null,
+            "symbol": "deriveChildKey"
+          },
+          {
+            "file": "config/nostr-gateway/nostr-send.cjs",
+            "path": "/home/devuser/workspace/wt/VisionFlow-nf-derivation/.audit-derivation/js/absent-agentbox/agentbox/config/nostr-gateway/nostr-send.cjs",
+            "status": "absent",
+            "sha256": null,
+            "symbol": "loadIdentity"
+          },
+          {
+            "file": "config/nostr-gateway/gateway.cjs",
+            "path": "/home/devuser/workspace/wt/VisionFlow-nf-derivation/.audit-derivation/js/absent-agentbox/agentbox/config/nostr-gateway/gateway.cjs",
+            "status": "absent",
+            "sha256": null,
+            "symbol": "child identity constant"
+          }
+        ],
+        "vectors_total": 13,
+        "vectors_passed": 13,
+        "invalid_total": 3,
+        "invalid_rejected": 3,
+        "checks_total": 15,
+        "checks_passed": 15,
+        "failures": [],
+        "vector_results": [
+          {
+            "id": "canonical-mirror-v1",
+            "ok": true,
+            "tag_utf8_bytes": 18,
+            "child_secret_hex": "2d07f2ce93d0361687fdd81d2690082b5d6c35b93e3ece2d44bcf115ef8f695d"
+          },
+          {
+            "id": "canonical-mirror-v1-alt",
+            "ok": true,
+            "tag_utf8_bytes": 18,
+            "child_secret_hex": "5c593f64607573e264c2dfbdf72d29e38750d1bb105ac5eb05bdfaadbfc2ef91"
+          },
+          {
+            "id": "canonical-gateway-v1",
+            "ok": true,
+            "tag_utf8_bytes": 19,
+            "child_secret_hex": "e10e112b110a9a39a9b6c3d7acdb127d6a95cd5e2c0163cf131de0d1d04d8f2f"
+          },
+          {
+            "id": "canonical-agent-v1",
+            "ok": true,
+            "tag_utf8_bytes": 17,
+            "child_secret_hex": "1bb6d6f28fba0af100fdc0d342a844124d782acc403147b4dc1b9b818f5df427"
+          },
+          {
+            "id": "rotation-mirror-v2",
+            "ok": true,
+            "tag_utf8_bytes": 18,
+            "child_secret_hex": "6b61ae9254a980c996eb2742efa74a298d0fe21e4464fed806e2fa0f7a7ed1ab"
+          },
+          {
+            "id": "rotation-gateway-v2",
+            "ok": true,
+            "tag_utf8_bytes": 19,
+            "child_secret_hex": "bed7fe8493db732e67f5e161040c459748772042061d5f50183346170866d1cc"
+          },
+          {
+            "id": "empty-tag",
+            "ok": true,
+            "tag_utf8_bytes": 0,
+            "child_secret_hex": "9dac6a74401b46ed9b489d0e19d68d1b13cc6b5090352fdcfa5bd74df4e69d87"
+          },
+          {
+            "id": "single-byte-tag",
+            "ok": true,
+            "tag_utf8_bytes": 1,
+            "child_secret_hex": "4e7004bebac287656f96a29d4b16be2d4aa352cf8871cd2222f27bd0240e6118"
+          },
+          {
+            "id": "long-tag",
+            "ok": true,
+            "tag_utf8_bytes": 519,
+            "child_secret_hex": "3f5c607b93ca0a63ff78d48de670032cff2a6f893c2352257d35a94acb5707e0"
+          },
+          {
+            "id": "utf8-multibyte-tag",
+            "ok": true,
+            "tag_utf8_bytes": 39,
+            "child_secret_hex": "8ec78107457818d2ea2584c43fa3f2f36f148338fa924d7e4fc464f49d6961cb"
+          },
+          {
+            "id": "utf8-combining-tag",
+            "ok": true,
+            "tag_utf8_bytes": 15,
+            "child_secret_hex": "c85b709b47284b27e3edf86fc5e53955f6c956e26419f27e36234f4159d60f4b"
+          },
+          {
+            "id": "max-scalar-root",
+            "ok": true,
+            "tag_utf8_bytes": 18,
+            "child_secret_hex": "fa8cc55a9709563157ab49fa53914e179dd643be52f1938de3456a9b228888c6"
+          },
+          {
+            "id": "whitespace-tag",
+            "ok": true,
+            "tag_utf8_bytes": 20,
+            "child_secret_hex": "a0475d2e7fbadb673362a44bede0279ccecbe21a37cf493f4dbe65c6bbb9987f"
+          }
+        ],
+        "invalid_results": [
+          {
+            "id": "invalid-root-all-zero",
+            "ok": true,
+            "rejected_as": "scalar_out_of_range"
+          },
+          {
+            "id": "invalid-root-all-ff",
+            "ok": true,
+            "rejected_as": "scalar_out_of_range"
+          },
+          {
+            "id": "invalid-root-equals-order",
+            "ok": true,
+            "rejected_as": "scalar_out_of_range"
+          }
+        ]
+      }
+    },
+    {
+      "name": "expressions-only-in-comments",
+      "expected_success": true,
+      "exit_code": 0,
+      "summary": {
+        "schema": "adr-2003.identity-vector-parity.v1",
+        "ok": true,
+        "fixture": "crates/nostr-bbs-core/tests/vectors/identity-subkey-vectors.v1.json",
+        "fixture_version": 1,
+        "fixture_algorithm_id": "agentbox-subkey-hmac-sha256-v1",
+        "fixture_sha256": "51d8a9fede65576cdd3033d8f3e1e526ed6dc4f422ce4854d5dc77679020709b",
+        "node_version": "v22.23.3",
+        "js_source": "mirrored",
+        "js_source_reason": "The agentbox derivation is not exported by any of its call sites and two of the three files self-execute at require time; the construction is re-executed here verbatim and the agentbox sources are pinned by sha256 plus an exact-expression check.",
+        "agentbox_root": "/home/devuser/workspace/wt/VisionFlow-nf-derivation/.audit-derivation/js/expressions-only-in-comments/agentbox",
+        "agentbox_sources": [
+          {
+            "file": "config/hooks/nostr-live-mirror.cjs",
+            "path": "/home/devuser/workspace/wt/VisionFlow-nf-derivation/.audit-derivation/js/expressions-only-in-comments/agentbox/config/hooks/nostr-live-mirror.cjs",
+            "status": "present",
+            "sha256": "5272289b6d4050615c32a207fff5f45cd2cb71eed1dafd6152469a2560d3a789",
+            "symbol": "deriveChildKey",
+            "construction_verified": true
+          },
+          {
+            "file": "config/nostr-gateway/nostr-send.cjs",
+            "path": "/home/devuser/workspace/wt/VisionFlow-nf-derivation/.audit-derivation/js/expressions-only-in-comments/agentbox/config/nostr-gateway/nostr-send.cjs",
+            "status": "present",
+            "sha256": "5272289b6d4050615c32a207fff5f45cd2cb71eed1dafd6152469a2560d3a789",
+            "symbol": "loadIdentity",
+            "construction_verified": true
+          },
+          {
+            "file": "config/nostr-gateway/gateway.cjs",
+            "path": "/home/devuser/workspace/wt/VisionFlow-nf-derivation/.audit-derivation/js/expressions-only-in-comments/agentbox/config/nostr-gateway/gateway.cjs",
+            "status": "present",
+            "sha256": "6a37c295aec9a2f1475b4e21ae25ebe3b91b51b4679d5f33be2d756dbc4e8629",
+            "symbol": "child identity constant",
+            "construction_verified": true
+          }
+        ],
+        "vectors_total": 13,
+        "vectors_passed": 13,
+        "invalid_total": 3,
+        "invalid_rejected": 3,
+        "checks_total": 18,
+        "checks_passed": 18,
+        "failures": [],
+        "vector_results": [
+          {
+            "id": "canonical-mirror-v1",
+            "ok": true,
+            "tag_utf8_bytes": 18,
+            "child_secret_hex": "2d07f2ce93d0361687fdd81d2690082b5d6c35b93e3ece2d44bcf115ef8f695d"
+          },
+          {
+            "id": "canonical-mirror-v1-alt",
+            "ok": true,
+            "tag_utf8_bytes": 18,
+            "child_secret_hex": "5c593f64607573e264c2dfbdf72d29e38750d1bb105ac5eb05bdfaadbfc2ef91"
+          },
+          {
+            "id": "canonical-gateway-v1",
+            "ok": true,
+            "tag_utf8_bytes": 19,
+            "child_secret_hex": "e10e112b110a9a39a9b6c3d7acdb127d6a95cd5e2c0163cf131de0d1d04d8f2f"
+          },
+          {
+            "id": "canonical-agent-v1",
+            "ok": true,
+            "tag_utf8_bytes": 17,
+            "child_secret_hex": "1bb6d6f28fba0af100fdc0d342a844124d782acc403147b4dc1b9b818f5df427"
+          },
+          {
+            "id": "rotation-mirror-v2",
+            "ok": true,
+            "tag_utf8_bytes": 18,
+            "child_secret_hex": "6b61ae9254a980c996eb2742efa74a298d0fe21e4464fed806e2fa0f7a7ed1ab"
+          },
+          {
+            "id": "rotation-gateway-v2",
+            "ok": true,
+            "tag_utf8_bytes": 19,
+            "child_secret_hex": "bed7fe8493db732e67f5e161040c459748772042061d5f50183346170866d1cc"
+          },
+          {
+            "id": "empty-tag",
+            "ok": true,
+            "tag_utf8_bytes": 0,
+            "child_secret_hex": "9dac6a74401b46ed9b489d0e19d68d1b13cc6b5090352fdcfa5bd74df4e69d87"
+          },
+          {
+            "id": "single-byte-tag",
+            "ok": true,
+            "tag_utf8_bytes": 1,
+            "child_secret_hex": "4e7004bebac287656f96a29d4b16be2d4aa352cf8871cd2222f27bd0240e6118"
+          },
+          {
+            "id": "long-tag",
+            "ok": true,
+            "tag_utf8_bytes": 519,
+            "child_secret_hex": "3f5c607b93ca0a63ff78d48de670032cff2a6f893c2352257d35a94acb5707e0"
+          },
+          {
+            "id": "utf8-multibyte-tag",
+            "ok": true,
+            "tag_utf8_bytes": 39,
+            "child_secret_hex": "8ec78107457818d2ea2584c43fa3f2f36f148338fa924d7e4fc464f49d6961cb"
+          },
+          {
+            "id": "utf8-combining-tag",
+            "ok": true,
+            "tag_utf8_bytes": 15,
+            "child_secret_hex": "c85b709b47284b27e3edf86fc5e53955f6c956e26419f27e36234f4159d60f4b"
+          },
+          {
+            "id": "max-scalar-root",
+            "ok": true,
+            "tag_utf8_bytes": 18,
+            "child_secret_hex": "fa8cc55a9709563157ab49fa53914e179dd643be52f1938de3456a9b228888c6"
+          },
+          {
+            "id": "whitespace-tag",
+            "ok": true,
+            "tag_utf8_bytes": 20,
+            "child_secret_hex": "a0475d2e7fbadb673362a44bede0279ccecbe21a37cf493f4dbe65c6bbb9987f"
+          }
+        ],
+        "invalid_results": [
+          {
+            "id": "invalid-root-all-zero",
+            "ok": true,
+            "rejected_as": "scalar_out_of_range"
+          },
+          {
+            "id": "invalid-root-all-ff",
+            "ok": true,
+            "rejected_as": "scalar_out_of_range"
+          },
+          {
+            "id": "invalid-root-equals-order",
+            "ok": true,
+            "rejected_as": "scalar_out_of_range"
+          }
+        ]
+      }
+    },
+    {
+      "name": "changed-gateway-default",
+      "expected_success": true,
+      "exit_code": 0,
+      "summary": {
+        "schema": "adr-2003.identity-vector-parity.v1",
+        "ok": true,
+        "fixture": "crates/nostr-bbs-core/tests/vectors/identity-subkey-vectors.v1.json",
+        "fixture_version": 1,
+        "fixture_algorithm_id": "agentbox-subkey-hmac-sha256-v1",
+        "fixture_sha256": "51d8a9fede65576cdd3033d8f3e1e526ed6dc4f422ce4854d5dc77679020709b",
+        "node_version": "v22.23.3",
+        "js_source": "mirrored",
+        "js_source_reason": "The agentbox derivation is not exported by any of its call sites and two of the three files self-execute at require time; the construction is re-executed here verbatim and the agentbox sources are pinned by sha256 plus an exact-expression check.",
+        "agentbox_root": "/home/devuser/workspace/wt/VisionFlow-nf-derivation/.audit-derivation/js/changed-gateway-default/agentbox",
+        "agentbox_sources": [
+          {
+            "file": "config/hooks/nostr-live-mirror.cjs",
+            "path": "/home/devuser/workspace/wt/VisionFlow-nf-derivation/.audit-derivation/js/changed-gateway-default/agentbox/config/hooks/nostr-live-mirror.cjs",
+            "status": "present",
+            "sha256": "8234e8837ab8ef29192a2ee599ade530273bf0330ed1e7bb8d28efd22fa030f0",
+            "symbol": "deriveChildKey",
+            "construction_verified": true
+          },
+          {
+            "file": "config/nostr-gateway/nostr-send.cjs",
+            "path": "/home/devuser/workspace/wt/VisionFlow-nf-derivation/.audit-derivation/js/changed-gateway-default/agentbox/config/nostr-gateway/nostr-send.cjs",
+            "status": "present",
+            "sha256": "91793bd4be301f0746f421c49efe67521f924f221aafe6f15f0eb58e5aebd3f4",
+            "symbol": "loadIdentity",
+            "construction_verified": true
+          },
+          {
+            "file": "config/nostr-gateway/gateway.cjs",
+            "path": "/home/devuser/workspace/wt/VisionFlow-nf-derivation/.audit-derivation/js/changed-gateway-default/agentbox/config/nostr-gateway/gateway.cjs",
+            "status": "present",
+            "sha256": "6714ce0745a0b5632b55dd89f171868ded3aadf56b9e537fa5b7eb1b6e86625d",
+            "symbol": "child identity constant",
+            "construction_verified": true
+          }
+        ],
+        "vectors_total": 13,
+        "vectors_passed": 13,
+        "invalid_total": 3,
+        "invalid_rejected": 3,
+        "checks_total": 18,
+        "checks_passed": 18,
+        "failures": [],
+        "vector_results": [
+          {
+            "id": "canonical-mirror-v1",
+            "ok": true,
+            "tag_utf8_bytes": 18,
+            "child_secret_hex": "2d07f2ce93d0361687fdd81d2690082b5d6c35b93e3ece2d44bcf115ef8f695d"
+          },
+          {
+            "id": "canonical-mirror-v1-alt",
+            "ok": true,
+            "tag_utf8_bytes": 18,
+            "child_secret_hex": "5c593f64607573e264c2dfbdf72d29e38750d1bb105ac5eb05bdfaadbfc2ef91"
+          },
+          {
+            "id": "canonical-gateway-v1",
+            "ok": true,
+            "tag_utf8_bytes": 19,
+            "child_secret_hex": "e10e112b110a9a39a9b6c3d7acdb127d6a95cd5e2c0163cf131de0d1d04d8f2f"
+          },
+          {
+            "id": "canonical-agent-v1",
+            "ok": true,
+            "tag_utf8_bytes": 17,
+            "child_secret_hex": "1bb6d6f28fba0af100fdc0d342a844124d782acc403147b4dc1b9b818f5df427"
+          },
+          {
+            "id": "rotation-mirror-v2",
+            "ok": true,
+            "tag_utf8_bytes": 18,
+            "child_secret_hex": "6b61ae9254a980c996eb2742efa74a298d0fe21e4464fed806e2fa0f7a7ed1ab"
+          },
+          {
+            "id": "rotation-gateway-v2",
+            "ok": true,
+            "tag_utf8_bytes": 19,
+            "child_secret_hex": "bed7fe8493db732e67f5e161040c459748772042061d5f50183346170866d1cc"
+          },
+          {
+            "id": "empty-tag",
+            "ok": true,
+            "tag_utf8_bytes": 0,
+            "child_secret_hex": "9dac6a74401b46ed9b489d0e19d68d1b13cc6b5090352fdcfa5bd74df4e69d87"
+          },
+          {
+            "id": "single-byte-tag",
+            "ok": true,
+            "tag_utf8_bytes": 1,
+            "child_secret_hex": "4e7004bebac287656f96a29d4b16be2d4aa352cf8871cd2222f27bd0240e6118"
+          },
+          {
+            "id": "long-tag",
+            "ok": true,
+            "tag_utf8_bytes": 519,
+            "child_secret_hex": "3f5c607b93ca0a63ff78d48de670032cff2a6f893c2352257d35a94acb5707e0"
+          },
+          {
+            "id": "utf8-multibyte-tag",
+            "ok": true,
+            "tag_utf8_bytes": 39,
+            "child_secret_hex": "8ec78107457818d2ea2584c43fa3f2f36f148338fa924d7e4fc464f49d6961cb"
+          },
+          {
+            "id": "utf8-combining-tag",
+            "ok": true,
+            "tag_utf8_bytes": 15,
+            "child_secret_hex": "c85b709b47284b27e3edf86fc5e53955f6c956e26419f27e36234f4159d60f4b"
+          },
+          {
+            "id": "max-scalar-root",
+            "ok": true,
+            "tag_utf8_bytes": 18,
+            "child_secret_hex": "fa8cc55a9709563157ab49fa53914e179dd643be52f1938de3456a9b228888c6"
+          },
+          {
+            "id": "whitespace-tag",
+            "ok": true,
+            "tag_utf8_bytes": 20,
+            "child_secret_hex": "a0475d2e7fbadb673362a44bede0279ccecbe21a37cf493f4dbe65c6bbb9987f"
+          }
+        ],
+        "invalid_results": [
+          {
+            "id": "invalid-root-all-zero",
+            "ok": true,
+            "rejected_as": "scalar_out_of_range"
+          },
+          {
+            "id": "invalid-root-all-ff",
+            "ok": true,
+            "rejected_as": "scalar_out_of_range"
+          },
+          {
+            "id": "invalid-root-equals-order",
+            "ok": true,
+            "rejected_as": "scalar_out_of_range"
+          }
+        ]
+      },
+      "actual_extracted_selection_changed": true
+    },
+    {
+      "name": "unrelated-hkdf-comment",
+      "expected_success": false,
+      "exit_code": 1,
+      "summary": {
+        "schema": "adr-2003.identity-vector-parity.v1",
+        "ok": false,
+        "fixture": "crates/nostr-bbs-core/tests/vectors/identity-subkey-vectors.v1.json",
+        "fixture_version": 1,
+        "fixture_algorithm_id": "agentbox-subkey-hmac-sha256-v1",
+        "fixture_sha256": "51d8a9fede65576cdd3033d8f3e1e526ed6dc4f422ce4854d5dc77679020709b",
+        "node_version": "v22.23.3",
+        "js_source": "mirrored",
+        "js_source_reason": "The agentbox derivation is not exported by any of its call sites and two of the three files self-execute at require time; the construction is re-executed here verbatim and the agentbox sources are pinned by sha256 plus an exact-expression check.",
+        "agentbox_root": "/home/devuser/workspace/wt/VisionFlow-nf-derivation/.audit-derivation/js/unrelated-hkdf-comment/agentbox",
+        "agentbox_sources": [
+          {
+            "file": "config/hooks/nostr-live-mirror.cjs",
+            "path": "/home/devuser/workspace/wt/VisionFlow-nf-derivation/.audit-derivation/js/unrelated-hkdf-comment/agentbox/config/hooks/nostr-live-mirror.cjs",
+            "status": "present",
+            "sha256": "91f5897816f2f77de9563ccc3510d109dc42a226aca3c0a99ffb2505f8c65732",
+            "symbol": "deriveChildKey",
+            "construction_verified": true
+          },
+          {
+            "file": "config/nostr-gateway/nostr-send.cjs",
+            "path": "/home/devuser/workspace/wt/VisionFlow-nf-derivation/.audit-derivation/js/unrelated-hkdf-comment/agentbox/config/nostr-gateway/nostr-send.cjs",
+            "status": "present",
+            "sha256": "91793bd4be301f0746f421c49efe67521f924f221aafe6f15f0eb58e5aebd3f4",
+            "symbol": "loadIdentity",
+            "construction_verified": true
+          },
+          {
+            "file": "config/nostr-gateway/gateway.cjs",
+            "path": "/home/devuser/workspace/wt/VisionFlow-nf-derivation/.audit-derivation/js/unrelated-hkdf-comment/agentbox/config/nostr-gateway/gateway.cjs",
+            "status": "present",
+            "sha256": "0a64b7d3d6d572b25903d0eb91744b9a0ba8e3a34a18c1982117c9e3f1dd040d",
+            "symbol": "child identity constant",
+            "construction_verified": true
+          }
+        ],
+        "vectors_total": 13,
+        "vectors_passed": 13,
+        "invalid_total": 3,
+        "invalid_rejected": 3,
+        "checks_total": 18,
+        "checks_passed": 17,
+        "failures": [
+          {
+            "name": "agentbox.config/hooks/nostr-live-mirror.cjs.no_hkdf",
+            "detail": "agentbox source mentions HKDF — ADR-2003 forbids that construction for subkey derivation"
+          }
+        ],
+        "vector_results": [
+          {
+            "id": "canonical-mirror-v1",
+            "ok": true,
+            "tag_utf8_bytes": 18,
+            "child_secret_hex": "2d07f2ce93d0361687fdd81d2690082b5d6c35b93e3ece2d44bcf115ef8f695d"
+          },
+          {
+            "id": "canonical-mirror-v1-alt",
+            "ok": true,
+            "tag_utf8_bytes": 18,
+            "child_secret_hex": "5c593f64607573e264c2dfbdf72d29e38750d1bb105ac5eb05bdfaadbfc2ef91"
+          },
+          {
+            "id": "canonical-gateway-v1",
+            "ok": true,
+            "tag_utf8_bytes": 19,
+            "child_secret_hex": "e10e112b110a9a39a9b6c3d7acdb127d6a95cd5e2c0163cf131de0d1d04d8f2f"
+          },
+          {
+            "id": "canonical-agent-v1",
+            "ok": true,
+            "tag_utf8_bytes": 17,
+            "child_secret_hex": "1bb6d6f28fba0af100fdc0d342a844124d782acc403147b4dc1b9b818f5df427"
+          },
+          {
+            "id": "rotation-mirror-v2",
+            "ok": true,
+            "tag_utf8_bytes": 18,
+            "child_secret_hex": "6b61ae9254a980c996eb2742efa74a298d0fe21e4464fed806e2fa0f7a7ed1ab"
+          },
+          {
+            "id": "rotation-gateway-v2",
+            "ok": true,
+            "tag_utf8_bytes": 19,
+            "child_secret_hex": "bed7fe8493db732e67f5e161040c459748772042061d5f50183346170866d1cc"
+          },
+          {
+            "id": "empty-tag",
+            "ok": true,
+            "tag_utf8_bytes": 0,
+            "child_secret_hex": "9dac6a74401b46ed9b489d0e19d68d1b13cc6b5090352fdcfa5bd74df4e69d87"
+          },
+          {
+            "id": "single-byte-tag",
+            "ok": true,
+            "tag_utf8_bytes": 1,
+            "child_secret_hex": "4e7004bebac287656f96a29d4b16be2d4aa352cf8871cd2222f27bd0240e6118"
+          },
+          {
+            "id": "long-tag",
+            "ok": true,
+            "tag_utf8_bytes": 519,
+            "child_secret_hex": "3f5c607b93ca0a63ff78d48de670032cff2a6f893c2352257d35a94acb5707e0"
+          },
+          {
+            "id": "utf8-multibyte-tag",
+            "ok": true,
+            "tag_utf8_bytes": 39,
+            "child_secret_hex": "8ec78107457818d2ea2584c43fa3f2f36f148338fa924d7e4fc464f49d6961cb"
+          },
+          {
+            "id": "utf8-combining-tag",
+            "ok": true,
+            "tag_utf8_bytes": 15,
+            "child_secret_hex": "c85b709b47284b27e3edf86fc5e53955f6c956e26419f27e36234f4159d60f4b"
+          },
+          {
+            "id": "max-scalar-root",
+            "ok": true,
+            "tag_utf8_bytes": 18,
+            "child_secret_hex": "fa8cc55a9709563157ab49fa53914e179dd643be52f1938de3456a9b228888c6"
+          },
+          {
+            "id": "whitespace-tag",
+            "ok": true,
+            "tag_utf8_bytes": 20,
+            "child_secret_hex": "a0475d2e7fbadb673362a44bede0279ccecbe21a37cf493f4dbe65c6bbb9987f"
+          }
+        ],
+        "invalid_results": [
+          {
+            "id": "invalid-root-all-zero",
+            "ok": true,
+            "rejected_as": "scalar_out_of_range"
+          },
+          {
+            "id": "invalid-root-all-ff",
+            "ok": true,
+            "rejected_as": "scalar_out_of_range"
+          },
+          {
+            "id": "invalid-root-equals-order",
+            "ok": true,
+            "rejected_as": "scalar_out_of_range"
+          }
+        ]
+      }
+    },
+    {
+      "name": "missing-expression",
+      "expected_success": false,
+      "exit_code": 1,
+      "summary": {
+        "schema": "adr-2003.identity-vector-parity.v1",
+        "ok": false,
+        "fixture": "crates/nostr-bbs-core/tests/vectors/identity-subkey-vectors.v1.json",
+        "fixture_version": 1,
+        "fixture_algorithm_id": "agentbox-subkey-hmac-sha256-v1",
+        "fixture_sha256": "51d8a9fede65576cdd3033d8f3e1e526ed6dc4f422ce4854d5dc77679020709b",
+        "node_version": "v22.23.3",
+        "js_source": "mirrored",
+        "js_source_reason": "The agentbox derivation is not exported by any of its call sites and two of the three files self-execute at require time; the construction is re-executed here verbatim and the agentbox sources are pinned by sha256 plus an exact-expression check.",
+        "agentbox_root": "/home/devuser/workspace/wt/VisionFlow-nf-derivation/.audit-derivation/js/missing-expression/agentbox",
+        "agentbox_sources": [
+          {
+            "file": "config/hooks/nostr-live-mirror.cjs",
+            "path": "/home/devuser/workspace/wt/VisionFlow-nf-derivation/.audit-derivation/js/missing-expression/agentbox/config/hooks/nostr-live-mirror.cjs",
+            "status": "present",
+            "sha256": "b049f3bf6ce510401ceb8140040c063e35131e2b5cdb89a43f96af91e797c834",
+            "symbol": "deriveChildKey",
+            "construction_verified": false
+          },
+          {
+            "file": "config/nostr-gateway/nostr-send.cjs",
+            "path": "/home/devuser/workspace/wt/VisionFlow-nf-derivation/.audit-derivation/js/missing-expression/agentbox/config/nostr-gateway/nostr-send.cjs",
+            "status": "present",
+            "sha256": "91793bd4be301f0746f421c49efe67521f924f221aafe6f15f0eb58e5aebd3f4",
+            "symbol": "loadIdentity",
+            "construction_verified": true
+          },
+          {
+            "file": "config/nostr-gateway/gateway.cjs",
+            "path": "/home/devuser/workspace/wt/VisionFlow-nf-derivation/.audit-derivation/js/missing-expression/agentbox/config/nostr-gateway/gateway.cjs",
+            "status": "present",
+            "sha256": "0a64b7d3d6d572b25903d0eb91744b9a0ba8e3a34a18c1982117c9e3f1dd040d",
+            "symbol": "child identity constant",
+            "construction_verified": true
+          }
+        ],
+        "vectors_total": 13,
+        "vectors_passed": 13,
+        "invalid_total": 3,
+        "invalid_rejected": 3,
+        "checks_total": 18,
+        "checks_passed": 17,
+        "failures": [
+          {
+            "name": "agentbox.config/hooks/nostr-live-mirror.cjs.construction_pinned",
+            "detail": "deriveChildKey: expected expression not found — agentbox derivation may have changed: crypto.createHmac('sha256', Buffer.from(hex, 'hex')).update(tag).digest()"
+          }
+        ],
+        "vector_results": [
+          {
+            "id": "canonical-mirror-v1",
+            "ok": true,
+            "tag_utf8_bytes": 18,
+            "child_secret_hex": "2d07f2ce93d0361687fdd81d2690082b5d6c35b93e3ece2d44bcf115ef8f695d"
+          },
+          {
+            "id": "canonical-mirror-v1-alt",
+            "ok": true,
+            "tag_utf8_bytes": 18,
+            "child_secret_hex": "5c593f64607573e264c2dfbdf72d29e38750d1bb105ac5eb05bdfaadbfc2ef91"
+          },
+          {
+            "id": "canonical-gateway-v1",
+            "ok": true,
+            "tag_utf8_bytes": 19,
+            "child_secret_hex": "e10e112b110a9a39a9b6c3d7acdb127d6a95cd5e2c0163cf131de0d1d04d8f2f"
+          },
+          {
+            "id": "canonical-agent-v1",
+            "ok": true,
+            "tag_utf8_bytes": 17,
+            "child_secret_hex": "1bb6d6f28fba0af100fdc0d342a844124d782acc403147b4dc1b9b818f5df427"
+          },
+          {
+            "id": "rotation-mirror-v2",
+            "ok": true,
+            "tag_utf8_bytes": 18,
+            "child_secret_hex": "6b61ae9254a980c996eb2742efa74a298d0fe21e4464fed806e2fa0f7a7ed1ab"
+          },
+          {
+            "id": "rotation-gateway-v2",
+            "ok": true,
+            "tag_utf8_bytes": 19,
+            "child_secret_hex": "bed7fe8493db732e67f5e161040c459748772042061d5f50183346170866d1cc"
+          },
+          {
+            "id": "empty-tag",
+            "ok": true,
+            "tag_utf8_bytes": 0,
+            "child_secret_hex": "9dac6a74401b46ed9b489d0e19d68d1b13cc6b5090352fdcfa5bd74df4e69d87"
+          },
+          {
+            "id": "single-byte-tag",
+            "ok": true,
+            "tag_utf8_bytes": 1,
+            "child_secret_hex": "4e7004bebac287656f96a29d4b16be2d4aa352cf8871cd2222f27bd0240e6118"
+          },
+          {
+            "id": "long-tag",
+            "ok": true,
+            "tag_utf8_bytes": 519,
+            "child_secret_hex": "3f5c607b93ca0a63ff78d48de670032cff2a6f893c2352257d35a94acb5707e0"
+          },
+          {
+            "id": "utf8-multibyte-tag",
+            "ok": true,
+            "tag_utf8_bytes": 39,
+            "child_secret_hex": "8ec78107457818d2ea2584c43fa3f2f36f148338fa924d7e4fc464f49d6961cb"
+          },
+          {
+            "id": "utf8-combining-tag",
+            "ok": true,
+            "tag_utf8_bytes": 15,
+            "child_secret_hex": "c85b709b47284b27e3edf86fc5e53955f6c956e26419f27e36234f4159d60f4b"
+          },
+          {
+            "id": "max-scalar-root",
+            "ok": true,
+            "tag_utf8_bytes": 18,
+            "child_secret_hex": "fa8cc55a9709563157ab49fa53914e179dd643be52f1938de3456a9b228888c6"
+          },
+          {
+            "id": "whitespace-tag",
+            "ok": true,
+            "tag_utf8_bytes": 20,
+            "child_secret_hex": "a0475d2e7fbadb673362a44bede0279ccecbe21a37cf493f4dbe65c6bbb9987f"
+          }
+        ],
+        "invalid_results": [
+          {
+            "id": "invalid-root-all-zero",
+            "ok": true,
+            "rejected_as": "scalar_out_of_range"
+          },
+          {
+            "id": "invalid-root-all-ff",
+            "ok": true,
+            "rejected_as": "scalar_out_of_range"
+          },
+          {
+            "id": "invalid-root-equals-order",
+            "ok": true,
+            "rejected_as": "scalar_out_of_range"
+          }
+        ]
+      }
+    },
+    {
+      "name": "corrupt-vector",
+      "expected_success": false,
+      "exit_code": 1,
+      "summary": {
+        "schema": "adr-2003.identity-vector-parity.v1",
+        "ok": false,
+        "fixture": "crates/nostr-bbs-core/tests/vectors/identity-subkey-vectors.v1.json",
+        "fixture_version": 1,
+        "fixture_algorithm_id": "agentbox-subkey-hmac-sha256-v1",
+        "fixture_sha256": "a52613063dc1c62e539f8a1fad075885ec74bba8c18008212157ec0165894af2",
+        "node_version": "v22.23.3",
+        "js_source": "mirrored",
+        "js_source_reason": "The agentbox derivation is not exported by any of its call sites and two of the three files self-execute at require time; the construction is re-executed here verbatim and the agentbox sources are pinned by sha256 plus an exact-expression check.",
+        "agentbox_root": "/home/devuser/workspace/wt/VisionFlow-nf-derivation/.audit-derivation/js/corrupt-vector/agentbox",
+        "agentbox_sources": [
+          {
+            "file": "config/hooks/nostr-live-mirror.cjs",
+            "path": "/home/devuser/workspace/wt/VisionFlow-nf-derivation/.audit-derivation/js/corrupt-vector/agentbox/config/hooks/nostr-live-mirror.cjs",
+            "status": "present",
+            "sha256": "8234e8837ab8ef29192a2ee599ade530273bf0330ed1e7bb8d28efd22fa030f0",
+            "symbol": "deriveChildKey",
+            "construction_verified": true
+          },
+          {
+            "file": "config/nostr-gateway/nostr-send.cjs",
+            "path": "/home/devuser/workspace/wt/VisionFlow-nf-derivation/.audit-derivation/js/corrupt-vector/agentbox/config/nostr-gateway/nostr-send.cjs",
+            "status": "present",
+            "sha256": "91793bd4be301f0746f421c49efe67521f924f221aafe6f15f0eb58e5aebd3f4",
+            "symbol": "loadIdentity",
+            "construction_verified": true
+          },
+          {
+            "file": "config/nostr-gateway/gateway.cjs",
+            "path": "/home/devuser/workspace/wt/VisionFlow-nf-derivation/.audit-derivation/js/corrupt-vector/agentbox/config/nostr-gateway/gateway.cjs",
+            "status": "present",
+            "sha256": "0a64b7d3d6d572b25903d0eb91744b9a0ba8e3a34a18c1982117c9e3f1dd040d",
+            "symbol": "child identity constant",
+            "construction_verified": true
+          }
+        ],
+        "vectors_total": 13,
+        "vectors_passed": 12,
+        "invalid_total": 3,
+        "invalid_rejected": 3,
+        "checks_total": 18,
+        "checks_passed": 17,
+        "failures": [
+          {
+            "name": "vector.canonical-mirror-v1",
+            "detail": "MISMATCH: expected 0000000000000000000000000000000000000000000000000000000000000000, agentbox JS construction produced 2d07f2ce93d0361687fdd81d2690082b5d6c35b93e3ece2d44bcf115ef8f695d"
+          },
+          {
+            "name": "vectors.all_passed",
+            "detail": "12/13"
+          }
+        ],
+        "vector_results": [
+          {
+            "id": "canonical-mirror-v1",
+            "ok": false,
+            "error": "MISMATCH: expected 0000000000000000000000000000000000000000000000000000000000000000, agentbox JS construction produced 2d07f2ce93d0361687fdd81d2690082b5d6c35b93e3ece2d44bcf115ef8f695d"
+          },
+          {
+            "id": "canonical-mirror-v1-alt",
+            "ok": true,
+            "tag_utf8_bytes": 18,
+            "child_secret_hex": "5c593f64607573e264c2dfbdf72d29e38750d1bb105ac5eb05bdfaadbfc2ef91"
+          },
+          {
+            "id": "canonical-gateway-v1",
+            "ok": true,
+            "tag_utf8_bytes": 19,
+            "child_secret_hex": "e10e112b110a9a39a9b6c3d7acdb127d6a95cd5e2c0163cf131de0d1d04d8f2f"
+          },
+          {
+            "id": "canonical-agent-v1",
+            "ok": true,
+            "tag_utf8_bytes": 17,
+            "child_secret_hex": "1bb6d6f28fba0af100fdc0d342a844124d782acc403147b4dc1b9b818f5df427"
+          },
+          {
+            "id": "rotation-mirror-v2",
+            "ok": true,
+            "tag_utf8_bytes": 18,
+            "child_secret_hex": "6b61ae9254a980c996eb2742efa74a298d0fe21e4464fed806e2fa0f7a7ed1ab"
+          },
+          {
+            "id": "rotation-gateway-v2",
+            "ok": true,
+            "tag_utf8_bytes": 19,
+            "child_secret_hex": "bed7fe8493db732e67f5e161040c459748772042061d5f50183346170866d1cc"
+          },
+          {
+            "id": "empty-tag",
+            "ok": true,
+            "tag_utf8_bytes": 0,
+            "child_secret_hex": "9dac6a74401b46ed9b489d0e19d68d1b13cc6b5090352fdcfa5bd74df4e69d87"
+          },
+          {
+            "id": "single-byte-tag",
+            "ok": true,
+            "tag_utf8_bytes": 1,
+            "child_secret_hex": "4e7004bebac287656f96a29d4b16be2d4aa352cf8871cd2222f27bd0240e6118"
+          },
+          {
+            "id": "long-tag",
+            "ok": true,
+            "tag_utf8_bytes": 519,
+            "child_secret_hex": "3f5c607b93ca0a63ff78d48de670032cff2a6f893c2352257d35a94acb5707e0"
+          },
+          {
+            "id": "utf8-multibyte-tag",
+            "ok": true,
+            "tag_utf8_bytes": 39,
+            "child_secret_hex": "8ec78107457818d2ea2584c43fa3f2f36f148338fa924d7e4fc464f49d6961cb"
+          },
+          {
+            "id": "utf8-combining-tag",
+            "ok": true,
+            "tag_utf8_bytes": 15,
+            "child_secret_hex": "c85b709b47284b27e3edf86fc5e53955f6c956e26419f27e36234f4159d60f4b"
+          },
+          {
+            "id": "max-scalar-root",
+            "ok": true,
+            "tag_utf8_bytes": 18,
+            "child_secret_hex": "fa8cc55a9709563157ab49fa53914e179dd643be52f1938de3456a9b228888c6"
+          },
+          {
+            "id": "whitespace-tag",
+            "ok": true,
+            "tag_utf8_bytes": 20,
+            "child_secret_hex": "a0475d2e7fbadb673362a44bede0279ccecbe21a37cf493f4dbe65c6bbb9987f"
+          }
+        ],
+        "invalid_results": [
+          {
+            "id": "invalid-root-all-zero",
+            "ok": true,
+            "rejected_as": "scalar_out_of_range"
+          },
+          {
+            "id": "invalid-root-all-ff",
+            "ok": true,
+            "rejected_as": "scalar_out_of_range"
+          },
+          {
+            "id": "invalid-root-equals-order",
+            "ok": true,
+            "rejected_as": "scalar_out_of_range"
+          }
+        ]
+      }
+    },
+    {
+      "name": "missing-fixture",
+      "expected_success": false,
+      "exit_code": 1,
+      "summary": {
+        "schema": "adr-2003.identity-vector-parity.v1",
+        "ok": false,
+        "error": "identity-vector fixture missing or unreadable at /home/devuser/workspace/wt/VisionFlow-nf-derivation/.audit-derivation/js/missing-fixture/forum/crates/nostr-bbs-core/tests/vectors/identity-subkey-vectors.v1.json: ENOENT: no such file or directory, open '/home/devuser/workspace/wt/VisionFlow-nf-derivation/.audit-derivation/js/missing-fixture/forum/crates/nostr-bbs-core/tests/vectors/identity-subkey-vectors.v1.json'. This fixture is the shared Rust/JS contract and is not optional.",
+        "fixture": "crates/nostr-bbs-core/tests/vectors/identity-subkey-vectors.v1.json"
+      }
+    }
+  ],
+  "limits": [
+    "Extracted selection code with synthetic roots and injected operatorKeyHex/env; no live secret reads, service imports, sockets or messages.",
+    "Forced zero HMAC is a mock boundary, not a discovered real preimage. Gateway pre-derivation getPublicKey is outside fixture.",
+    "Cache tests are same-module calls, not production process reload tests.",
+    "Passing adversarial scenarios demonstrate current validation gaps, not fixes."
+  ]
+}

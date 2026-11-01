@@ -7,6 +7,7 @@ governing:
   - ../nostr-rust-forum/docs/IDENTITY-keys-and-trust.md
 adrs: [ADR-2002, ADR-2003, ADR-2004, ADR-2005, ADR-2006, ADR-2007, ADR-2008, ADR-2009, ADR-2010, ADR-2014, ADR-2019]
 sources:
+  - ../nostr-rust-forum/docs/archive/adr/ADR-100-key-lifecycle.md
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs
   - ../nostr-rust-forum/docs/diagrams/00-anomaly-register.md
   - ../nostr-rust-forum/README.md
@@ -87,12 +88,14 @@ flowchart LR
     K3["3 DEVICE_KEYS_ENABLED enables only on the exact string true, checked in both workers<br/>auth gate nostr-bbs-auth-worker/src/devices.rs:112 | asserted nostr-bbs-auth-worker/src/devices.rs:974 - see NF-02.7"]
     K4["4 gift-wrap admission keys on the recipient p tag, never the ephemeral author<br/>nip_handlers.rs:138 - see NF-03.5"]
     K5["5 TL3 is never auto-demoted; demotion stays time-driven on cron, never inline on admission<br/>nostr-bbs-relay-worker/src/trust.rs:334 - see NF-03.8"]
-    K6["6 a derived subkey is ROOT-RECOVERABLE - domain separation, not compromise isolation<br/>nostr-bbs-core/src/keys.rs:241"]
+    K6["6 root possession recovers derived children<br/>nostr-bbs-core/src/keys.rs:241<br/>Child-only exposure is a separate case; see N1"]
 
     K1 --> K2 --> K3
     K4 --> K5 --> K6
 
-    N1["K6 is load-bearing for the whole device-key model: rotation of the ROOT, not per-subkey secrecy, is<br/>the compromise boundary. Any design that assumes a compromised subkey is contained is wrong."]
+    %% Source: ../nostr-rust-forum/docs/archive/adr/ADR-100-key-lifecycle.md:78
+    %% Source: ../nostr-rust-forum/docs/archive/adr/ADR-100-key-lifecycle.md:85
+    N1["Root exposure and isolated child exposure<br/>need different responses.<br/>A tag bump does not revoke old signatures<br/>or registry grants. See NF-20 and NF-21."]
     N2["K1 and K4 are the two invariants that cross a repo boundary - EXTERNAL: see AB-11 and ES-04 for the<br/>agentbox side of the derivation contract"]
 ```
 
@@ -149,7 +152,12 @@ flowchart TB
     S3["The preview worker's SSRF guard is denylist-only without PREVIEW_ALLOWED_HOSTS, which the template<br/>never sets nostr-bbs-preview-worker/wrangler.toml:13. The code says so itself - the Workers runtime exposes no<br/>resolve-then-pin primitive nostr-bbs-preview-worker/src/ssrf.rs:13 - and there is no wall-clock timeout.<br/>See NF-07.6."]
     S4["DEVICE_KEYS_ENABLED ships false in BOTH templates nostr-bbs-auth-worker/wrangler.toml:69<br/>nostr-bbs-relay-worker/wrangler.toml:29, so the whole ADR-099/100 device story is dormant by default and<br/>revocation has no effect at AUTH. See NF-02.7."]
     S5["MESH_ALLOWED_REMOTE_DIDS ships empty nostr-bbs-relay-worker/wrangler.toml:96, so the federated-kind gate at<br/>nip_handlers.rs:3590 is inert. Standalone is the only supported mode. See NF-03.13."]
-    S6["The drift-gates CI job now runs both anti-drift-lint.sh and identity-vector-parity.mjs .github/workflows/ci.yml:293 .github/workflows/ci.yml:296,<br/>but it is not in the required ci-pass needs .github/workflows/ci.yml:306-314, so the ADR-2003 cross-stack parity proof runs on change<br/>without gating merges. See NF-09.1 and NF-09.3."]
+    %% Source: ../nostr-rust-forum/.github/workflows/ci.yml:293
+    %% Source: ../nostr-rust-forum/.github/workflows/ci.yml:296
+    %% Source: ../nostr-rust-forum/.github/workflows/ci.yml:306
+    %% Source: ../nostr-rust-forum/.github/workflows/ci.yml:20
+    %% Source: ../nostr-rust-forum/.github/workflows/ci.yml:283
+    S6["drift-gates runs parity and lint.<br/>ci-pass omits it from needs.<br/>External branch rules are separate;<br/>see dated report.<br/>Workflow path filters apply.<br/>No paired agentbox release ref is set.<br/>See NF-21 for source-check limits."]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/mod.rs:268
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/parent.rs:50
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/parent.rs:56

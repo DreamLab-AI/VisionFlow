@@ -1,0 +1,29 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.23s
+     Running unittests src/lib.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/nostr_bbs_core-e9b10af8afafc0ec)
+
+running 22 tests
+test keys::tests::public_key_from_hex_invalid_length ... ok
+test keys::tests::public_key_from_hex_invalid_chars ... ok
+test keys::tests::secret_key_from_bytes_zero_rejected ... ok
+test keys::tests::public_key_from_hex_not_on_curve ... ok
+test keys::tests::signing_key_roundtrip ... ok
+test keys::tests::derive_from_prf_matches_podkey_vector ... ok
+test keys::tests::pubkey_hex_produces_64_char_hex ... ok
+test keys::tests::derive_subkey_known_answer_vector_js_parity ... ok
+test keys::tests::derive_subkey_empty_tag_is_valid_and_distinct ... ok
+test keys::tests::derive_subkey_different_roots_differ ... ok
+test keys::tests::derive_subkey_domain_separation ... ok
+test keys::tests::public_key_hex_roundtrip ... ok
+test keys::tests::derive_from_prf_deterministic ... ok
+test keys::tests::derive_from_prf_different_inputs_differ ... ok
+test keys::tests::public_key_from_hex_valid ... ok
+test keys::tests::derive_subkey_deterministic ... ok
+test keys::tests::derive_from_prf_salt_separates_identities ... ok
+test keys::tests::sign_verify_with_derived_keypair ... ok
+test keys::tests::verify_wrong_message_fails ... ok
+test keys::tests::verify_wrong_key_fails ... ok
+test keys::tests::signature_hex_roundtrip ... ok
+test keys::tests::generate_keypair_sign_verify_roundtrip ... ok
+
+test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 422 filtered out; finished in 0.02s
+

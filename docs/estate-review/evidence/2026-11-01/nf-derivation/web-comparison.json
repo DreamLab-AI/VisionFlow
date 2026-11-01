@@ -1,0 +1,26 @@
+{
+  "observed_date": "2026-11-01",
+  "primary_sources": [
+    {
+      "url": "https://github.com/bitcoin/bips/blob/master/bip-0085.mediawiki",
+      "comparison": "Structured deterministic application entropy with hardened BIP32 and HMAC-SHA512; not byte-compatible with forum raw HMAC-SHA256."
+    },
+    {
+      "url": "https://www.rfc-editor.org/rfc/rfc5869",
+      "comparison": "Extract and Expand are separate; Expand block counter is appended."
+    },
+    {
+      "url": "https://nodejs.org/api/crypto.html#cryptohkdfsyncdigest-ikm-salt-info-keylen",
+      "comparison": "Node hkdfSync implements full RFC5869; runner comment saying Expand alone is inaccurate."
+    },
+    {
+      "url": "https://github.com/nostr-protocol/nips/blob/master/26.md",
+      "comparison": "Currently unrecommended delegated event signing; kind/time conditions, no general immediate revocation endpoint."
+    },
+    {
+      "url": "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches",
+      "comparison": "Required status checks depend on configured branch rules."
+    }
+  ],
+  "inference": "Improve user recovery with exact purpose/algorithm/public-identity records, consumer adoption checks and separate withdrawal of old grants; no new protocol or market/adoption claim."
+}

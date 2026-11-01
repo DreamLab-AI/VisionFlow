@@ -1,0 +1,17 @@
+flowchart TB
+    ADR["adr-index-gen.js:5 - walk the ADR tree, validate frontmatter, regenerate README index"]
+    DRIFT["anti-drift-lint.sh:2 - ADR-077 P3: reject SUPERSEDED Schnorr verification-key identifiers<br/>after the ADR-125 did:nostr Multikey convergence anti-drift-lint.sh:5"]
+    PARITY["identity-vector-parity.mjs:3 - the JavaScript half of the ADR-2003 parity proof,<br/>loading the SAME versioned fixture as the Rust suite identity-vector-parity.mjs:6"]
+    PKG["package-repo.sh:2 - package code + metadata into one review blob, ~800K tokens package-repo.sh:4"]
+    SEC["security-audit.sh:6 - cargo audit with the curated ignore list"]
+    SYNC["sync-fixtures.sh:4 - ADR-082 D5: clone VisionClaw, copy tests/fixtures, write a CHECKSUM"]
+    VAL["validate-forum-config.sh:7 - run the kit's own nostr-bbs-config validator binary"]
+
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/tests/identity_subkey_vectors.rs:153
+    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:105
+    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:199
+    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:203
+    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:204
+    N1["Shared vectors test raw HMAC compatibility.<br/>JS mirrors the primitive.<br/>Missing sources pass; recorded hashes and<br/>substring checks do not execute consumers.<br/>See NF-21 for tested limits."]
+    N2["Both anti-drift-lint.sh and identity-vector-parity.mjs are now wired into CI by the drift-gates job<br/>.github/workflows/ci.yml:293 .github/workflows/ci.yml:296, but outside the required ci-pass set .github/workflows/ci.yml:306-314.<br/>validate-forum-config.sh runs inside the required test job .github/workflows/ci.yml:121"]
+    N3["Fixtures come FROM VisionClaw, so a fixture-suite change there is an unversioned input here -<br/>EXTERNAL: see the VisionClaw area (VC-*)"]

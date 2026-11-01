@@ -1,0 +1,54 @@
+[
+  {
+    "source": "docs/estate-review/2026-11-01-forum-subkey-derivation.md",
+    "target": "evidence/2026-11-01/nf-derivation/source-manifest.json"
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-forum-subkey-derivation.md",
+    "target": "evidence/2026-11-01/nf-derivation/source-differences.json"
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-forum-subkey-derivation.md",
+    "target": "evidence/2026-11-01/nf-derivation/README.md"
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-forum-subkey-derivation.md",
+    "target": "2026-11-01-forum-device-keys.md"
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-forum-subkey-derivation.md",
+    "target": "../../../nostr-rust-forum/scripts/identity-vector-parity.mjs:193"
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-forum-subkey-derivation.md",
+    "target": "../../../project/agentbox/config/nostr-gateway/nostr-send.cjs:34"
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-forum-subkey-derivation.md",
+    "target": "../../../project/agentbox/config/nostr-gateway/gateway.cjs:152"
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-forum-subkey-derivation.md",
+    "target": "../../../project/agentbox/config/hooks/nostr-live-mirror.cjs:211"
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-forum-subkey-derivation.md",
+    "target": "../../../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs:49"
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-forum-subkey-derivation.md",
+    "target": "../../../nostr-rust-forum/.github/workflows/ci.yml:274"
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-forum-subkey-derivation.md",
+    "target": "evidence/2026-11-01/nf-derivation/remote-branch-rules.json"
+  },
+  {
+    "source": "docs/estate-review/2026-11-01-forum-subkey-derivation.md",
+    "target": "evidence/2026-11-01/nf-derivation/README.md"
+  },
+  {
+    "source": "docs/diagrams/nostr-rust-forum/21-subkey-parity-and-identity-lifecycle.md",
+    "target": "../../estate-review/2026-11-01-forum-subkey-derivation.md"
+  }
+]

@@ -6,6 +6,7 @@ governing:
   - ../nostr-rust-forum/docs/BASELINE-architecture.md
 adrs: [ADR-2002, ADR-2003, ADR-2007, ADR-2016]
 sources:
+  - ../nostr-rust-forum/crates/nostr-bbs-core/tests/identity_subkey_vectors.rs
   - ../nostr-rust-forum/.github/workflows/ci.yml
   - ../nostr-rust-forum/.github/workflows/audit.yml
   - ../nostr-rust-forum/deny.toml
@@ -105,7 +106,12 @@ flowchart TB
     SYNC["sync-fixtures.sh:4 - ADR-082 D5: clone VisionClaw, copy tests/fixtures, write a CHECKSUM"]
     VAL["validate-forum-config.sh:7 - run the kit's own nostr-bbs-config validator binary"]
 
-    N1["INVARIANT ADR-2003: derive_subkey is a BYTE-FOR-BYTE cross-stack contract with agentbox's JS<br/>mirror derivation. The Rust half is the known-answer vector nostr-bbs-core/src/keys.rs:479 with the<br/>expected digest at nostr-bbs-core/src/keys.rs:484; the JS half is identity-vector-parity.mjs. Both read<br/>ONE fixture, so they cannot drift. EXTERNAL: see AB-11 and ES-04."]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/tests/identity_subkey_vectors.rs:153
+    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:105
+    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:199
+    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:203
+    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:204
+    N1["Shared vectors test raw HMAC compatibility.<br/>JS mirrors the primitive.<br/>Missing sources pass; recorded hashes and<br/>substring checks do not execute consumers.<br/>See NF-21 for tested limits."]
     N2["Both anti-drift-lint.sh and identity-vector-parity.mjs are now wired into CI by the drift-gates job<br/>.github/workflows/ci.yml:293 .github/workflows/ci.yml:296, but outside the required ci-pass set .github/workflows/ci.yml:306-314.<br/>validate-forum-config.sh runs inside the required test job .github/workflows/ci.yml:121"]
     N3["Fixtures come FROM VisionClaw, so a fixture-suite change there is an unversioned input here -<br/>EXTERNAL: see the VisionClaw area (VC-*)"]
 ```
