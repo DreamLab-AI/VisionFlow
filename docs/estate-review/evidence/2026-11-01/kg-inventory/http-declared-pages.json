@@ -1,0 +1,36 @@
+[
+  {
+    "url": "https://narrativegoldmine.com/api/markdown/ADR-008.md.gz",
+    "observed_at": "2026-11-01T04:34:05.757628+00:00",
+    "status": 200,
+    "bytes": 430,
+    "sha256": "787df6b79062722891ff47245e7178079979bf45c4ff4036cca747c195757346",
+    "artifact": "gzip__ADR-008.md.gz",
+    "decoded_bytes": 717,
+    "decoded_sha256": "d66c0793a9fc5ae924a29252d221915401d79d238b132834d18b22304ff6ae7d",
+    "manifest_entry": {
+      "name": "api/markdown/ADR-008.md",
+      "sha256": "d66c0793a9fc5ae924a29252d221915401d79d238b132834d18b22304ff6ae7d",
+      "bytes": 717
+    },
+    "decoded_matches_manifest": true,
+    "has_individual_prose": false
+  },
+  {
+    "url": "https://narrativegoldmine.com/api/markdown/ADR-012.md.gz",
+    "observed_at": "2026-11-01T04:34:05.928356+00:00",
+    "status": 200,
+    "bytes": 373,
+    "sha256": "3d7a12d08db60eb4d38800d2e6f6c0ae77c4b26d93da9f12605c5aa6a16e1fc9",
+    "artifact": "gzip__ADR-012.md.gz",
+    "decoded_bytes": 634,
+    "decoded_sha256": "540dcb174d0fa1687b344c4685a96114a3a46a897e5f53f5aa40cab3f19f03b3",
+    "manifest_entry": {
+      "name": "api/markdown/ADR-012.md",
+      "sha256": "540dcb174d0fa1687b344c4685a96114a3a46a897e5f53f5aa40cab3f19f03b3",
+      "bytes": 634
+    },
+    "decoded_matches_manifest": true,
+    "has_individual_prose": false
+  }
+]

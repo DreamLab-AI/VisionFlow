@@ -14,6 +14,10 @@ sources:
   - ../knowledgeGraph/archive/logseq-era-2026-09-22/README.md
   - ../knowledgeGraph/archive/logseq-era-2026-09-22/pipeline/manifest.py
   - ../knowledgeGraph/archive/logseq-era-2026-09-22/pipeline/release_gate.py
+  - ../knowledgeGraph/scripts/adr-index-gen.js
+  - ../knowledgeGraph/docs/adr/PREAMBLE.md
+  - ../knowledgeGraph/archive/logseq-era-2026-09-22/pages/ADR-008.md
+  - ../knowledgeGraph/archive/logseq-era-2026-09-22/pages/ADR-012.md
   - ../visionGraph/.github/workflows/publish.yml
   - ../visionGraph/quartz/scripts/check-urls.sh
 verified_commit: {knowledgegraph: 4ed9ac159daf402b4fb252ce559dbeb894a8d91e, visiongraph: 556a0156b5c326fb61141ed2ab1760dd8d9c4dd6}
@@ -83,3 +87,26 @@ flowchart TB
 **What it shows:** Historical counts and missing lineage stay dated; a later whole-tree archive conflicts with an unqualified forever-in-place reading of ADR-2004. The section does not declare old corpus defects present in the current vault.
 
 **Why it is this way:** A migration needs explicit succession and identity evidence. Comparing raw RDF triple strings is insufficient when blank-node identifiers change; the byte manifest answers a different question.
+
+## KG-07.4 Decision inventory and the validator boundary
+
+```mermaid
+flowchart TB
+    %% knowledgeGraph/docs/adr/PREAMBLE.md:3
+    LEDGER["Baseline plus four operative ledger records<br/>Separate decision, implementation and activation status"]
+    %% knowledgeGraph/archive/logseq-era-2026-09-22/pages/ADR-008.md:3
+    %% knowledgeGraph/archive/logseq-era-2026-09-22/pages/ADR-012.md:3
+    CONTENT["ADR-008 and ADR-012 are frozen corpus pages<br/>Their labels do not confer decision authority"]
+    %% knowledgeGraph/scripts/adr-index-gen.js:113
+    CHECK["Validator checks required fields and enums<br/>List types and duplicate IDs also reject errors"]
+    %% knowledgeGraph/scripts/adr-index-gen.js:148
+    GRAPH["DEBT: missing or nonreciprocal supersession warns only<br/>A reciprocal supersession cycle passes"]
+    %% knowledgeGraph/scripts/adr-index-gen.js:205
+    LIMIT["--check validates metadata, leaving README untouched<br/>It does not establish body evidence, valid revisions,<br/>index freshness or deployed activation"]
+    LEDGER --> CHECK --> GRAPH --> LIMIT
+    CONTENT --- LEDGER
+```
+
+**What it shows:** Decision authority comes from the operative ledger, while the generator establishes a limited metadata contract; the [inventory and eight probes](../../estate-review/2026-11-01-knowledgegraph-inventory-and-live-receipt.md) make that limit reproducible.
+
+**Why it is this way:** The preamble separates corpus content from governance. Required-field validation helps maintain the ledger, but cannot substitute for section review, source verification or a consumer's activation receipt.

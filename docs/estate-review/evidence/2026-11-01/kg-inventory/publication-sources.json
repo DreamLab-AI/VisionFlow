@@ -1,0 +1,20 @@
+[
+  {
+    "repo": "visionGraph",
+    "revision": "84c1cee32b6ad03b58bcb31ba33320142c330523",
+    "path": "static/ns/v2.jsonld",
+    "sha256": "7b0d8f4f456677b47b0d928fc0f0185bb57c1d3ff1d46adf59f3312cb7cb4125"
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "84c1cee32b6ad03b58bcb31ba33320142c330523",
+    "path": ".github/workflows/publish.yml",
+    "sha256": "a1d0e9f9d8a15ef59554260a30a21491b07a71d6461968a66409cbdcaafa8199"
+  },
+  {
+    "repo": "ontomark",
+    "revision": "0caae5d4b695cb720942b9b9212017c00a80ad41",
+    "path": "crates/ontomark-compile/src/build/mod.rs",
+    "sha256": "cfc0a84ba4802325de5821e827a949ab206665497e9b23f8ee842ff9019809ea"
+  }
+]

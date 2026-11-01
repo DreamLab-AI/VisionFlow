@@ -1,5 +1,7 @@
 # Diagram semantic-review queue — 31 October 2026
 
+1 November inventory continuation: [knowledgeGraph decision inventory and live receipt](2026-11-01-knowledgegraph-inventory-and-live-receipt.md) accounts for all five current topics (sixteen panels after one addition), all four operative ADRs and both frozen ADR-named content pages. The historical archive inventory is now assessed. Six sampled public artefacts match; one served context contradicts the root manifest. Full runtime acceptance and implementation findings remain open.
+
 1 November consumer continuation: [KG-01/KG-06 five-panel source assessment](2026-11-01-knowledgegraph-consumers-and-archive.md) corrects current routes and committed licence-path evidence, with four existing tests and four reproduced archive defects. The archive decision inventory and deployment acceptance remain queued.
 
 1 November publication continuation: [KG-05/KG-07 five-panel assessment and ADR-2002/3/4 section dispositions](2026-11-01-knowledgegraph-publication-gates.md), with 11 gate probes and 41 existing publisher tests. KG-01 and KG-06 were queued at that checkpoint; the continuation above assesses them.

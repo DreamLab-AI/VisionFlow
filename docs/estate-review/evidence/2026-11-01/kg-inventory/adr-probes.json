@@ -1,0 +1,54 @@
+{
+  "scope": "validator controls and limits, no product edits",
+  "passed": 8,
+  "results": [
+    {
+      "probe": "committed-pack",
+      "exit": 0,
+      "stdout": "ok: 4 ADR(s) valid (--check, README not written)",
+      "stderr": ""
+    },
+    {
+      "probe": "invalid-enum-rejected",
+      "exit": 1,
+      "stdout": "",
+      "stderr": "error: a.md: 'decision_status' = 'imaginary' not in {proposed, accepted, rejected, superseded}\nerror: 1 validation error(s); README not generated"
+    },
+    {
+      "probe": "missing-owner-rejected",
+      "exit": 1,
+      "stdout": "",
+      "stderr": "error: a.md: missing required field 'owner'\nerror: 1 validation error(s); README not generated"
+    },
+    {
+      "probe": "duplicate-id-rejected",
+      "exit": 1,
+      "stdout": "",
+      "stderr": "error: duplicate id 'ADR-2001' (b.md and a.md)\nerror: 1 validation error(s); README not generated"
+    },
+    {
+      "probe": "empty-body-invalid-date-and-revision-accepted",
+      "exit": 0,
+      "stdout": "ok: 1 ADR(s) valid (--check, README not written)",
+      "stderr": ""
+    },
+    {
+      "probe": "missing-supersession-target-warning-only",
+      "exit": 0,
+      "stdout": "ok: 1 ADR(s) valid (--check, README not written)",
+      "stderr": "warning: a.md: supersedes 'ADR-9999' which is not present in this tree"
+    },
+    {
+      "probe": "reciprocal-cycle-accepted-without-warning",
+      "exit": 0,
+      "stdout": "ok: 2 ADR(s) valid (--check, README not written)",
+      "stderr": ""
+    },
+    {
+      "probe": "stale-readme-accepted-unchanged",
+      "exit": 0,
+      "stdout": "ok: 1 ADR(s) valid (--check, README not written)",
+      "stderr": ""
+    }
+  ]
+}

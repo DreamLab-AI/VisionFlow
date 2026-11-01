@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_180 topic files, 1598 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_180 topic files, 1599 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -343,7 +343,7 @@ _180 topic files, 1598 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | KG-04 | [Retained explorer — scope limits, worker transfers and publication boundary](knowledgegraph/04-explorer-and-site-build.md) | 5 | flowchart, sequenceDiagram | [ADR-2001-corpus-consolidation.md](../../../knowledgeGraph/docs/adr/ADR-2001-corpus-consolidation.md) | ADR-2001 |
 | KG-05 | [Publication — released compiler, assembled site and final-gate limits](knowledgegraph/05-ci-cd-and-publish.md) | 2 | sequenceDiagram, flowchart | [build-and-gates.md](../../../knowledgeGraph/docs/ci-cd/build-and-gates.md) | ADR-2003, ADR-2013 |
 | KG-06 | [Current corpus consumers and the archived RDF import boundary](knowledgegraph/06-consumers-and-integration.md) | 3 | flowchart | [ecosystem.md](../../../knowledgeGraph/docs/ecosystem.md) |  |
-| KG-07 | [Historical invariants — obligations, dated evidence and publication limits](knowledgegraph/07-invariants-register.md) | 3 | flowchart | [BASELINE-narrativegoldmine.md](../../../knowledgeGraph/docs/BASELINE-narrativegoldmine.md) | ADR-2001, ADR-2002, ADR-2003, ADR-2004 |
+| KG-07 | [Historical invariants — obligations, dated evidence and publication limits](knowledgegraph/07-invariants-register.md) | 4 | flowchart | [BASELINE-narrativegoldmine.md](../../../knowledgeGraph/docs/BASELINE-narrativegoldmine.md) | ADR-2001, ADR-2002, ADR-2003, ADR-2004 |
 
 ### visiongraph
 

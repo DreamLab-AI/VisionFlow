@@ -1,0 +1,28 @@
+commit eab90d3d1f20ad6b0922b881c492a8b900a29652
+Author: Claude Code <noreply@anthropic.com>
+Date:   Wed Sep 30 02:54:21 2026 +0000
+
+    docs(diagrams): refresh the whole corpus to code HEAD and prune low-value diagrams
+    
+    Every topic re-verified against current source (Haiku scouts, Sonnet workers):
+    citations re-anchored, behaviour that changed since the last stamp redrawn, and
+    gaps the scouts found folded in. A second pass dropped or merged diagrams that
+    restated a neighbour or carried no non-obvious structure.
+    
+    - 136 -> 133 topics: KG-02, KG-03, VG-02 retired (they drew Python pipelines
+      deleted from their repositories)
+    - 1,500 -> 1,327 diagrams; duplicates resolved to one owner each
+      (AB-13.9 session-mirror egress, AB-14.6 decision waiter, AB-11.10 authority gate)
+    - 17,235 citations verified at the declared revisions, 0 warnings;
+      1,327/1,327 render under the 4,500 px ceiling
+    
+    Co-Authored-By: jjohare <github@thedreamlab.uk>
+
+ .../01-repo-composition-and-licensing.md           |  72 +++------
+ .../02-corpus-to-ontology-pipeline.md              | 161 ---------------------
+ .../knowledgegraph/03-ontology-architecture.md     | 111 --------------
+ .../knowledgegraph/04-explorer-and-site-build.md   |  30 +---
+ .../knowledgegraph/05-ci-cd-and-publish.md         |  95 +++++-------
+ .../knowledgegraph/06-consumers-and-integration.md |  63 ++++----
+ .../knowledgegraph/07-invariants-register.md       |  32 ++--
+ 7 files changed, 107 insertions(+), 457 deletions(-)

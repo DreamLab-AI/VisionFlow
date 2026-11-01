@@ -37,16 +37,19 @@ sequenceDiagram
     participant G as knowledgeGraph gh-pages
     V->>O: fetch release and verify SHA-256<br/>publish.yml:48-51,98-117
     V->>O: validate, collision lint, build both vaults<br/>publish.yml:127-183
-    O-->>V: machine outputs and staged notes<br/>publish.yml:155-165
+    O-->>V: machine outputs, generation markers and staged notes<br/>mod.rs:990-1016, publish.yml:155-165
     V->>C: check derivation certificate<br/>publish.yml:217-234
-    V->>V: body residue, required files, minimum counts,<br/>space/Earth and supply-chain contracts<br/>publish.yml:248-324
+    V->>V: body residue gate<br/>publish.yml:248-253
+    V->>V: overlay tracked static contexts<br/>AFTER marker creation, publish.yml:257-262
+    V->>V: required files, minimum counts and domain contracts<br/>publish.yml:264-324
     V->>S: build Quartz notes then copy machine files<br/>publish.yml:329-355
     V->>S: verify copied hashes, then gzip selected files<br/>publish.yml:347-373
     V->>S: size check BEFORE explorer build<br/>publish.yml:375-398,421-490
     V->>S: browser smoke, credential scan, layout gate<br/>publish.yml:492-520
     V->>G: deploy www then dispatch corpus-sync<br/>publish.yml:526-542
+    Note over O,S: DEBT: overlay can change a manifest-listed context<br/>Compiler receipt does not inventory the final website
     Note over V,S: DEBT: final scanner skips binary files<br/>check-secrets.sh:150<br/>Actual gzip step hides a synthetic canary from this scan
-    Note over S,G: OPEN: configuration does not prove deployment<br/>DEBT: layout checks presence and note counts,<br/>not every output identity<br/>check-urls.sh:90-95,115-126
+    Note over S,G: OPEN: verify each deployment<br/>DEBT: presence and count checks<br/>do not verify every output identity<br/>check-urls.sh:90-95,115-126
 ```
 
 **What it shows:** The configured producer is pinned by tag and digest, but publication continues to transform its outputs after the copy check. The final scan and layout gate have narrower coverage than their broad descriptions suggest.

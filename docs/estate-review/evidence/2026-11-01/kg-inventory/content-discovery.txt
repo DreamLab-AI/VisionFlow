@@ -1,0 +1,7 @@
+HEAD:archive/logseq-era-2026-09-22/pages/ADR-008.md
+HEAD:archive/logseq-era-2026-09-22/pages/ADR-012.md
+HEAD:docs/adr/ADR-2001-corpus-consolidation.md
+HEAD:docs/adr/ADR-2002-corpus-is-the-ontology.md
+HEAD:docs/adr/ADR-2003-expected-classes-tripwire.md
+HEAD:docs/adr/ADR-2004-corpus-page-identity-immutable.md
+HEAD:docs/adr/TEMPLATE.md

@@ -1,0 +1,19 @@
+{
+  "id": "visionGraph@84c1cee32b6ad03b58bcb31ba33320142c330523",
+  "commit": "84c1cee32b6ad03b58bcb31ba33320142c330523",
+  "dirty": false,
+  "content_digest": "5837e57c3462bd7916d09d087bf51e15c5db1775faa40616ffc00715a502138a",
+  "ontology_digest": "sha256-12-b5e547c50de7",
+  "generated_at": "2026-10-31T14:46:05.322496+00:00",
+  "class_count": 9595,
+  "page_count": 9595,
+  "vocabulary_version": 1,
+  "root_artifact_count": 38892,
+  "data_artifact_count": 18,
+  "root_data_identity_equal": true,
+  "search_entries": 9595,
+  "unique_search_ids": 9595,
+  "tracked_context_matches_served": true,
+  "root_marker_stable_on_repeat": true,
+  "context_stable_on_repeat": true
+}

@@ -1,0 +1,18 @@
+[
+  {
+    "url": "https://narrativegoldmine.com/api/markdown/adr-008.md.gz",
+    "observed_at": "2026-11-01T04:33:47.508248+00:00",
+    "status": 404,
+    "bytes": 724,
+    "sha256": "5ce8f1e8d293112e9b0609c1fee63ea2f22d9ba07c42d4c1dfd7251f0897fd50",
+    "artifact": "gzip__adr-008.md.gz"
+  },
+  {
+    "url": "https://narrativegoldmine.com/api/markdown/adr-012.md.gz",
+    "observed_at": "2026-11-01T04:33:47.685958+00:00",
+    "status": 404,
+    "bytes": 724,
+    "sha256": "5ce8f1e8d293112e9b0609c1fee63ea2f22d9ba07c42d4c1dfd7251f0897fd50",
+    "artifact": "gzip__adr-012.md.gz"
+  }
+]

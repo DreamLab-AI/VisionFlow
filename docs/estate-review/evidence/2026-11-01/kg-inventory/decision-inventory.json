@@ -1,0 +1,46 @@
+{
+  "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+  "tracked_paths_considered": 8397,
+  "selected": [
+    {
+      "path": "archive/logseq-era-2026-09-22/pages/ADR-008.md",
+      "sha256": "afce747389457921ed40af486ad041f52ac64bfed721bf19c4d2ab57ee13ebfb"
+    },
+    {
+      "path": "archive/logseq-era-2026-09-22/pages/ADR-012.md",
+      "sha256": "4fa1e11b9616549b78416d374e57bd63d4215356f74b6e5bbaec9879adfceb91"
+    },
+    {
+      "path": "docs/adr/ADR-2001-corpus-consolidation.md",
+      "sha256": "83e9fe0d288f30eec53a5a6ad041789cf7deac217a6a1dd9a28ea8dc8427b4a3"
+    },
+    {
+      "path": "docs/adr/ADR-2002-corpus-is-the-ontology.md",
+      "sha256": "f9f3b2b52fd83a83b5784c2ef1d9ed8db45274bd9f4ba5533248562e0f997f2c"
+    },
+    {
+      "path": "docs/adr/ADR-2003-expected-classes-tripwire.md",
+      "sha256": "ba3fb92aa9525efe61b209e50e1927269493fa6e8985de31682d9e0bcd775a7c"
+    },
+    {
+      "path": "docs/adr/ADR-2004-corpus-page-identity-immutable.md",
+      "sha256": "2d1463d928ce66d10dac7c86210108494b56142577fefd519d0d840826802ef8"
+    },
+    {
+      "path": "docs/adr/PREAMBLE.md",
+      "sha256": "43ff5cc336bb2a7644f7b6030314dbc4f02304da35461151847c69afd11312c0"
+    },
+    {
+      "path": "docs/adr/README.md",
+      "sha256": "bd189c17469aae65b3327ddf41b209064825e75178c68acf9e821a60c34d5ea4"
+    },
+    {
+      "path": "docs/adr/TEMPLATE.md",
+      "sha256": "2dff719c6e66f6fdd2e1198ab64f4599fbfcc6e3c580414899652e05d433dc9d"
+    },
+    {
+      "path": "scripts/adr-index-gen.js",
+      "sha256": "364fb3b86c357add707e800ac18dfb6c290bd44d2e9000e0e662c009f32b5d42"
+    }
+  ]
+}

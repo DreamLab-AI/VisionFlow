@@ -1,0 +1,11 @@
+{
+  "path": "/api/search-index.json",
+  "observed_at": "2026-11-01T04:32:12.274888+00:00",
+  "status": 200,
+  "content_type": "application/json; charset=utf-8",
+  "etag": "\"6ae606f2-8eede9\"",
+  "bytes": 9367017,
+  "truncated": false,
+  "sha256": "a1a8bf77884be35739493cc3a0a877838ca21cb04b7f99075368b0b0ad2255ea",
+  "artifact": "search-index-complete.json"
+}

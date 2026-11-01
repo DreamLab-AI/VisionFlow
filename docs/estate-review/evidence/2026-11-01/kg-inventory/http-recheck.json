@@ -1,0 +1,38 @@
+[
+  {
+    "path": "/.generation.json",
+    "observed_at": "2026-11-01T04:32:58.564766+00:00",
+    "status": 200,
+    "etag": "\"6ae606f3-6445c2\"",
+    "bytes": 6571458,
+    "sha256": "8723256ea66e457337d272a4b32e76d26dda8cdcc3022cf417c347bed86b35db",
+    "artifact": "recheck__.generation.json"
+  },
+  {
+    "path": "/ns/v2.jsonld",
+    "observed_at": "2026-11-01T04:32:58.664251+00:00",
+    "status": 200,
+    "etag": "\"6ae606f1-d2b\"",
+    "bytes": 3371,
+    "sha256": "7b0d8f4f456677b47b0d928fc0f0185bb57c1d3ff1d46adf59f3312cb7cb4125",
+    "artifact": "recheck__ns__v2.jsonld"
+  },
+  {
+    "path": "/api/markdown/adr-008.md",
+    "observed_at": "2026-11-01T04:32:58.922521+00:00",
+    "status": 404,
+    "etag": "\"6ae606f1-2d4\"",
+    "bytes": 724,
+    "sha256": "5ce8f1e8d293112e9b0609c1fee63ea2f22d9ba07c42d4c1dfd7251f0897fd50",
+    "artifact": "recheck__api__markdown__adr-008.md"
+  },
+  {
+    "path": "/api/markdown/adr-012.md",
+    "observed_at": "2026-11-01T04:32:59.094555+00:00",
+    "status": 404,
+    "etag": "\"6ae606f2-2d4\"",
+    "bytes": 724,
+    "sha256": "5ce8f1e8d293112e9b0609c1fee63ea2f22d9ba07c42d4c1dfd7251f0897fd50",
+    "artifact": "recheck__api__markdown__adr-012.md"
+  }
+]
