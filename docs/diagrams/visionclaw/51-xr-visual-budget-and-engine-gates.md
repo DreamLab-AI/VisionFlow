@@ -16,7 +16,10 @@ sources:
   - ../project/xr-client/project.godot
   - ../project/xr-client/rust/Cargo.toml
   - ../project/xr-client/visionclaw_xr_gdext.gdextension
-verified_commit: {visionclaw: 75b72416bac176ca8fde715cac3bd7c77657b3e7}
+  - ../project/xr-client/materials/edge_flow_common.gdshaderinc
+  - ../project/xr-client/materials/edge_flow.tres
+  - ../project/xr-client/scripts/node_lod.gd
+verified_commit: {visionclaw: d6c091f0ffb6d1af04ce011836c45ace6f4dafd9}
 ---
 
 ## For developers
@@ -46,8 +49,8 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    SCENE["Count named graph and volume calls<br/>graph_scene.gd:3056,3066"] --> CALLS["Add agent, link and hull calls<br/>graph_scene.gd:3072,3076,3078"]
-    CALLS --> INPUT["Pass assembled call demand to allocator<br/>graph_scene.gd:3079,3082"]
+    SCENE["Count named graph and volume calls<br/>graph_scene.gd:3157,3167"] --> CALLS["Add agent, link and hull calls<br/>graph_scene.gd:3173,3177,3179"]
+    CALLS --> INPUT["Pass assembled call demand to allocator<br/>graph_scene.gd:3180,3183"]
     OTHER["Measured other triangles, but no other-call remainder<br/>frame_budget_pass.gd:102,125"] --> INPUT
     BENCH["Benchmark separately calibrates other calls<br/>benchmark.gd:230,572"]
     VISIBLE["Controller counts every visible frame<br/>eye_candy.gd:462,466,469"] --> PRICE["Cost clamps at eight frames<br/>frame_budget.rs:170"]
@@ -75,13 +78,25 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    TARGET["Recorded target: Godot 4.8-beta2<br/>XR-client.md:93,94"] --> CONTROLLER["AUDIT: isolated headless tests on both engines<br/>18 retained tests per engine; no native extension"]
-    ROLLBACK["4.6.1 rollback remains separate<br/>XR-client.md:127"]
+    TARGET["Recorded target: Godot 4.8-beta2<br/>XR-client.md:95,96"] --> CONTROLLER["AUDIT: isolated headless tests on both engines<br/>18 retained tests per engine; no native extension"]
+    ROLLBACK["4.6.1 rollback remains separate<br/>XR-client.md:129"]
     API["godot crate 0.2; minimum engine 4.3<br/>Cargo.toml:21<br/>visionclaw_xr_gdext.gdextension:4"] --> LOAD["Historical full extension-load evidence<br/>current audit does not rerun it"]
-    RENDER["Compatibility renderer; MSAA disabled in project<br/>project.godot:56,59"] --> STEREO["Both-eye headset qualification still partial<br/>XR-client.md:118"]
+    RENDER["Compatibility renderer; MSAA disabled in project<br/>project.godot:56,59"] --> STEREO["Both-eye headset qualification still partial<br/>XR-client.md:120"]
     CONTROLLER -.-> STEREO
     LOAD -.-> STEREO
     STEREO -.-> ROLLBACK
 ```
 
 **What it shows.** Target engine, API compatibility, headless behaviour and both-eye rendering have different evidence. **Why it is this way.** The engine change reopens the stereo invariant; an unchanged extension or a successful desktop mirror does not prove the right eye works.
+
+## VC-51.5 The gold edge breathe is one shader term, mirrored to the ribbons
+
+```mermaid
+flowchart TD
+    COL["Gold flow colour<br/>edge_flow_common.gdshaderinc:5"] --> UNI["Breathe period 36 s, depth 0.8<br/>edge_flow_common.gdshaderinc:16,17<br/>edge_flow.tres:14,15"]
+    UNI --> SWELL["Cosine swell scales albedo and alpha, except inferred and subclass edges<br/>edge_flow_common.gdshaderinc:99,100,101,102"]
+    SWELL --> BEAT["Beat pulse gain applied after the breathe<br/>edge_flow_common.gdshaderinc:104"]
+    UNI --> MIRROR["Ribbon material copies breathe uniforms with the rest<br/>node_lod.gd:20,23,98,103"]
+```
+
+**What it shows.** The breathe is time-driven in the shader, so reduced motion leaves it on, and the trough is 0.04 of the peak. It multiplies with the separate beat pulse. **Why it is this way.** The owner asked on 2026-11-01 for a slow visible breathe. 36 s divides Godot's 3600 s TIME rollover exactly (`edge_flow_common.gdshaderinc:10`).

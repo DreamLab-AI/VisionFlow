@@ -28,6 +28,8 @@ sources:
 verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4}
 ---
 
+The panels below keep their historical source pin. The desktop drag-hold heartbeat (ADR-2169, `dragHeartbeat.ts`, 500 ms) and the release path are drawn at the later source in [VC-52.6](52-drag-holds-and-observation-gates.md).
+
 ## VC-37.1 Browser XR capability probe — what platformManager actually does
 
 ```mermaid
