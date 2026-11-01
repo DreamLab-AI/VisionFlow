@@ -1,0 +1,22 @@
+   Compiling version_check v0.9.5
+   Compiling typenum v1.20.1
+   Compiling generic-array v0.14.7
+   Compiling zmij v1.0.23
+   Compiling serde_core v1.0.229
+   Compiling serde_json v1.0.149
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.7
+   Compiling memchr v2.8.3
+   Compiling unicode-width v0.2.2
+   Compiling pulldown-cmark v0.13.4
+   Compiling getopts v0.2.24
+   Compiling digest v0.10.7
+   Compiling itoa v1.0.18
+   Compiling cpufeatures v0.2.17
+   Compiling pulldown-cmark-escape v0.11.0
+   Compiling cfg-if v1.0.5
+   Compiling unicase v2.10.0
+   Compiling bitflags v2.13.2
+   Compiling sha2 v0.10.9
+   Compiling estate-review-ledger v0.1.0 (/home/devuser/workspace/wt/visionflow-solid-git-disclosure/scripts/estate-review-ledger)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 7.40s

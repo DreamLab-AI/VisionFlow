@@ -1,0 +1,20 @@
+{
+  "repo": "solid-pod-rs",
+  "revision": "31fe89856d0cddcf855e3656eb498ddb1df66c9c",
+  "files": {
+    "crates/solid-pod-rs-server/src/lib.rs": "f01145a09499ac8f69c9b2d6ee2729e886cdd23079e2bf6dee9f7a40ce21c1ca",
+    "crates/solid-pod-rs-server/Cargo.toml": "a39225158c86d61b6783a18d291f34ef50fb1a961d181f7327802c136df8f212",
+    "crates/solid-pod-rs-git/src/service.rs": "7277b7728f5aa5a2a69d7073c4278b10b5db8185644e937c3f8e663c4476003d",
+    "crates/solid-pod-rs-git/src/guard.rs": "58aa85bb5e8083f7af09115639076159ce0525b92a95ed5fb4df99526daad5fa",
+    "crates/solid-pod-rs-git/src/mark.rs": "3d458fef7aa05bd5e9803df6741700b1f2410a350f3b577a8b134bbf24724d5b",
+    "crates/solid-pod-rs-git/src/error.rs": "5d88544262231625771427e4b5a66b20f578bb03e66e88a70014faaa63f5f6e8",
+    "crates/solid-pod-rs-git/tests/hidden_ref_fetch.rs": "4aff26f9adce55e6a1cc401300bbbd877a8af1e0b9a644def56164bde924845e",
+    "crates/solid-pod-rs-forge/src/lib.rs": "efb5b9677ea7fa947e4ccdb4638012adad1d0fc5c1dbd45e137875230dd62a17",
+    "crates/solid-pod-rs-forge/src/mirror.rs": "845de417daa3772c8df8c0b6b43160f911aefac652256f4be3ca5372891a22ce",
+    "crates/solid-pod-rs/docs/BASELINE-solid-pod-rs.md": "2cbd689c922d0ab6ccec64e86c501f47a859cd25d1bbbb98dc1cdaa293145258",
+    "crates/solid-pod-rs/docs/adr/ADR-2001-corpus-consolidation.md": "eb7d927d4b669319a27c0a3e04e6982ac5561209cc6d87d6d1c0f7b2ecdcb67f",
+    "crates/solid-pod-rs/docs/adr/ADR-2009-forge-plugins-comparator-and-default-off-mirror.md": "34316b0bd845da62964d19422a7ea187ea4f4a4c7836fd0d039a746f3da889da",
+    "crates/solid-pod-rs/docs/adr/ADR-2010-forge-and-mirror-are-on-in-shipped-builds.md": "9b4e55f5cec114667396baa279bcd5758246e6ba41921e7d7ee1eaed3761ae39",
+    "scripts/adr-index-gen.js": "bcb2ab12a332ba8e098289ce30b2c7481e377881d77c8b5963ca4b89bc646473"
+  }
+}

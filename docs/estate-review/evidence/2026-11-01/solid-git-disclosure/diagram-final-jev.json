@@ -1,0 +1,186 @@
+{
+  "advisory": true,
+  "flag_at": 0.9,
+  "results": [
+    {
+      "topic": "solid-pod-rs/14-git-export-boundaries.md",
+      "diagram": "SP-14.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:4724",
+      "p_defect": 0.48,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/14-git-export-boundaries.md",
+      "diagram": "SP-14.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:4740",
+      "p_defect": 0.37,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/14-git-export-boundaries.md",
+      "diagram": "SP-14.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:4816",
+      "p_defect": 0.04,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/14-git-export-boundaries.md",
+      "diagram": "SP-14.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-git/src/service.rs:295",
+      "p_defect": 0.22,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/14-git-export-boundaries.md",
+      "diagram": "SP-14.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-git/src/service.rs:299",
+      "p_defect": 0.53,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/14-git-export-boundaries.md",
+      "diagram": "SP-14.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-git/src/guard.rs:92",
+      "p_defect": 0.18,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/14-git-export-boundaries.md",
+      "diagram": "SP-14.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-git/src/service.rs:338",
+      "p_defect": 0.13,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/14-git-export-boundaries.md",
+      "diagram": "SP-14.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:3952",
+      "p_defect": 0.17,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/14-git-export-boundaries.md",
+      "diagram": "SP-14.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-git/src/mark.rs:168",
+      "p_defect": 0.07,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/14-git-export-boundaries.md",
+      "diagram": "SP-14.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:4792",
+      "p_defect": 0.31,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/14-git-export-boundaries.md",
+      "diagram": "SP-14.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:4797",
+      "p_defect": 0.09,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/14-git-export-boundaries.md",
+      "diagram": "SP-14.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-git/src/service.rs:338",
+      "p_defect": 0.21,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/14-git-export-boundaries.md",
+      "diagram": "SP-14.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-git/src/service.rs:378",
+      "p_defect": 0.3,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/14-git-export-boundaries.md",
+      "diagram": "SP-14.3",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-forge/src/mirror.rs:1211",
+      "p_defect": 0.25,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/14-git-export-boundaries.md",
+      "diagram": "SP-14.3",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-forge/src/mirror.rs:1442",
+      "p_defect": 0.06,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/14-git-export-boundaries.md",
+      "diagram": "SP-14.3",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-forge/src/mirror.rs:2043",
+      "p_defect": 0.16,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/14-git-export-boundaries.md",
+      "diagram": "SP-14.3",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-forge/src/lib.rs:626",
+      "p_defect": 0.22,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/14-git-export-boundaries.md",
+      "diagram": "SP-14.3",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-git/src/service.rs:427-429",
+      "p_defect": 0.25,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    }
+  ]
+}

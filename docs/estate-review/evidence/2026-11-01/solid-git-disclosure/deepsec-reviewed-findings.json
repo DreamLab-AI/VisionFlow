@@ -1,0 +1,173 @@
+[
+  {
+    "title": "[MEDIUM] git-http-backend stderr and absolute server paths leak to remote client on backend errors",
+    "description": "**File:** [`crates/solid-pod-rs-git/src/service.rs`](https://github.com/DreamLab-AI/solid-pod-rs/blob/audit/git-disclosure/blob/audit/crates/solid-pod-rs-git/src/service.rs#L346-L542) (lines 346, 517, 527, 542)\n**Project:** solid-pod-git-disclosure\n**Severity:** MEDIUM  •  **Confidence:** medium  •  **Slug:** `secret-in-log`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\nWhen the CGI exits non-zero with empty stdout, spawn_cgi returns GitError::BackendFailed{stderr} with the raw captured stderr (lines 539-544; also the timeout branches 515-518/525-528). The auto-init failure path embeds the absolute server path repo_abs.display() into the error (line 346). error.rs's Display for BackendFailed interpolates `stderr` verbatim (error.rs line 38), and the in-repo server surfaces this straight to the remote client as JSON: `handle_git` does `builder.json({\"error\": e.to_string()})` on the 500 path (solid-pod-rs-server/src/lib.rs line 4837). A read whose CGI invocation fails therefore returns git-http-backend's diagnostic text — which can include internal filesystem paths, repo layout, and git version/configuration detail — to an unauthenticated-at-transport remote caller. This is reachable on the shipped server (reads reach the CGI) and worse for any library consumer that wires the write/auto-init path.\n\n## Recommendation\n\nDo not propagate raw CGI stderr or absolute filesystem paths to the client. Log the detail server-side (tracing) and return a generic opaque 500 body to the caller. Strip repo_abs.display() from the auto-init error surfaced outward.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-11-01)",
+    "severity": "MEDIUM",
+    "labels": [
+      "security",
+      "project:solid-pod-git-disclosure",
+      "severity:MEDIUM",
+      "slug:secret-in-log",
+      "confidence:medium"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "solid-pod-git-disclosure",
+      "filePath": "crates/solid-pod-rs-git/src/service.rs",
+      "lineNumbers": [
+        346,
+        517,
+        527,
+        542
+      ],
+      "severity": "MEDIUM",
+      "vulnSlug": "secret-in-log",
+      "confidence": "medium",
+      "discoveredAt": "2026-11-01T21:32:31.820Z",
+      "runId": "20261101212553-5e6afe9e0fa48581",
+      "githubUrl": "https://github.com/DreamLab-AI/solid-pod-rs/blob/audit/git-disclosure/blob/audit/crates/solid-pod-rs-git/src/service.rs#L346-L542",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-11-01T21:27:10Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[BUG] GitResponse::error builds JSON by unescaped string interpolation",
+    "description": "**File:** [`crates/solid-pod-rs-git/src/service.rs`](https://github.com/DreamLab-AI/solid-pod-rs/blob/audit/git-disclosure/blob/audit/crates/solid-pod-rs-git/src/service.rs#L170-L172) (lines 170, 172)\n**Project:** solid-pod-git-disclosure\n**Severity:** BUG  •  **Confidence:** high  •  **Slug:** `other-json-injection`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\nGitResponse::error formats the body as `format!(\"{{\\\"error\\\":\\\"{msg}\\\"}}\")` (line 172) with content-type application/json. `msg` is caller-supplied and in practice derived from GitError variants that embed URL-controlled data (e.g. NotARepository(slug), PathTraversal(path)). A slug/path containing a double-quote, backslash, or control character produces malformed JSON and lets an attacker inject arbitrary content into the JSON `error` value. Not XSS (JSON content type) but a correctness/robustness defect and a minor response-injection vector for any binder using this helper. The in-repo server happens to use serde_json instead, but this is a public library helper.\n\n## Recommendation\n\nBuild the body with serde_json::json!({\"error\": msg}).to_string() (or manual escaping) so the message is always correctly encoded.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-11-01)",
+    "severity": "BUG",
+    "labels": [
+      "security",
+      "project:solid-pod-git-disclosure",
+      "severity:BUG",
+      "slug:other-json-injection",
+      "confidence:high"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "solid-pod-git-disclosure",
+      "filePath": "crates/solid-pod-rs-git/src/service.rs",
+      "lineNumbers": [
+        170,
+        172
+      ],
+      "severity": "BUG",
+      "vulnSlug": "other-json-injection",
+      "confidence": "high",
+      "discoveredAt": "2026-11-01T21:32:31.820Z",
+      "runId": "20261101212553-5e6afe9e0fa48581",
+      "githubUrl": "https://github.com/DreamLab-AI/solid-pod-rs/blob/audit/git-disclosure/blob/audit/crates/solid-pod-rs-git/src/service.rs#L170-L172",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-11-01T21:27:10Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[BUG] Substring-based is_write misclassifies reads of repos named like a service, and can auto-init on GET",
+    "description": "**File:** [`crates/solid-pod-rs-git/src/service.rs`](https://github.com/DreamLab-AI/solid-pod-rs/blob/audit/git-disclosure/blob/audit/crates/solid-pod-rs-git/src/service.rs#L129-L340) (lines 129, 144, 340)\n**Project:** solid-pod-git-disclosure\n**Severity:** BUG  •  **Confidence:** medium  •  **Slug:** `other-logic-bug`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\nis_write() uses `path.contains(\"/git-receive-pack\")` and is_read() returns false whenever is_write() is true (lines 130, 144). A read request to a repo whose name contains the service string — e.g. GET /alice/git-receive-pack-notes/info/refs — is classified as a write. In a library deployment that installs an auth provider (so the write branch runs) and relies on the service's own gate, this GET is routed down the write path: it demands write auth, skips the push-path guard (which keys off the narrower ends_with(\"/git-receive-pack\")), and if the repo's .git is missing it triggers on-demand auto-init (lines 338-350) — i.e. a GET creates a repository. The shipped server dodges this only because it refuses all writes upstream. Classifying repository data operations by unanchored substring match on the URL is fragile.\n\n## Recommendation\n\nMatch the service verbs against the final path segment (strip query first, then check the last component equals/ends with the exact service name) rather than `contains`, and derive is_write/is_read from the same anchored parse the push guard uses.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-11-01)",
+    "severity": "BUG",
+    "labels": [
+      "security",
+      "project:solid-pod-git-disclosure",
+      "severity:BUG",
+      "slug:other-logic-bug",
+      "confidence:medium"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "solid-pod-git-disclosure",
+      "filePath": "crates/solid-pod-rs-git/src/service.rs",
+      "lineNumbers": [
+        129,
+        144,
+        340
+      ],
+      "severity": "BUG",
+      "vulnSlug": "other-logic-bug",
+      "confidence": "medium",
+      "discoveredAt": "2026-11-01T21:32:31.820Z",
+      "runId": "20261101212553-5e6afe9e0fa48581",
+      "githubUrl": "https://github.com/DreamLab-AI/solid-pod-rs/blob/audit/git-disclosure/blob/audit/crates/solid-pod-rs-git/src/service.rs#L129-L340",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-11-01T21:27:10Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[BUG] with_auth doc claims anonymous push without a provider, but the code fails closed",
+    "description": "**File:** [`crates/solid-pod-rs-git/src/service.rs`](https://github.com/DreamLab-AI/solid-pod-rs/blob/audit/git-disclosure/blob/audit/crates/solid-pod-rs-git/src/service.rs#L267-L318) (lines 267, 318)\n**Project:** solid-pod-git-disclosure\n**Severity:** BUG  •  **Confidence:** high  •  **Slug:** `other-doc-mismatch`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\nThe with_auth doc (lines 267-269) states \"Without one, write requests still succeed — the service becomes an anonymous-push setup\". The actual code fails closed: for a write (or an auth-required read) with no provider configured, handle() returns GitError::Unauthorised(\"no auth provider configured\") (lines 315-320). The documentation describes the opposite of the implemented security behaviour; a consumer trusting the doc could believe they must always install auth to prevent anonymous pushes, or mis-reason about the default posture.\n\n## Recommendation\n\nCorrect the doc to state that writes (and auth-required reads) fail closed with 401 when no auth provider is configured.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-11-01)",
+    "severity": "BUG",
+    "labels": [
+      "security",
+      "project:solid-pod-git-disclosure",
+      "severity:BUG",
+      "slug:other-doc-mismatch",
+      "confidence:high"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "solid-pod-git-disclosure",
+      "filePath": "crates/solid-pod-rs-git/src/service.rs",
+      "lineNumbers": [
+        267,
+        318
+      ],
+      "severity": "BUG",
+      "vulnSlug": "other-doc-mismatch",
+      "confidence": "high",
+      "discoveredAt": "2026-11-01T21:32:31.820Z",
+      "runId": "20261101212553-5e6afe9e0fa48581",
+      "githubUrl": "https://github.com/DreamLab-AI/solid-pod-rs/blob/audit/git-disclosure/blob/audit/crates/solid-pod-rs-git/src/service.rs#L267-L318",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-11-01T21:27:10Z"
+          }
+        ]
+      }
+    }
+  }
+]

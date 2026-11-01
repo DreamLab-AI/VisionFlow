@@ -1,0 +1,130 @@
+{
+  "checked": 31,
+  "links": [
+    {
+      "file": "docs/estate-review/2026-11-01-solid-git-export-and-baseline.md",
+      "target": "evidence/2026-11-01/solid-git-disclosure/native-check.json"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-solid-git-export-and-baseline.md",
+      "target": "evidence/2026-11-01/solid-git-disclosure/hidden-ref-probe.txt"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-solid-git-export-and-baseline.md",
+      "target": "evidence/2026-11-01/solid-git-disclosure/hidden-ref-probe.sh"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-solid-git-export-and-baseline.md",
+      "target": "evidence/2026-11-01/solid-git-disclosure/repair-checks.json"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-solid-git-export-and-baseline.md",
+      "target": "evidence/2026-11-01/solid-git-disclosure/security-review-scope.json"
+    },
+    {
+      "file": "docs/estate-review/2026-11-01-solid-git-export-and-baseline.md",
+      "target": "remediation/solid-git-export-2026-11-01.json"
+    },
+    {
+      "file": "docs/diagrams/solid-pod-rs/14-git-export-boundaries.md",
+      "target": "../../estate-review/2026-11-01-solid-git-export-and-baseline.md"
+    },
+    {
+      "file": "docs/diagrams/solid-pod-rs/14-git-export-boundaries.md",
+      "target": "../../estate-review/2026-11-01-solid-git-export-and-baseline.md#mirror-refs-configuration-contradicts-the-withholding-claim"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "scope.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "claims.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "snapshot-2026-11-01.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "validation-2026-11-01.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../../../scripts/estate-review-ledger/README.md"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "exclusions-2026-11-01.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../2026-11-01-solid-git-export-and-baseline.md"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../2026-11-01-solid-acl-control-repair.md"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../2026-11-01-solid-parity-intake.md"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../2026-11-01-solid-oidc-boundaries.md"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../2026-11-01-solid-empty-body-repair.md"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../2026-11-01-solid-identity-boundaries.md"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../2026-11-01-visionclaw-payment-auth.md"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../2026-11-01-review-method-lessons.md"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../2026-11-01-solid-payment-delivery.md"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../2026-11-01-parallel-implementations.md"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../remediation/parallel-implementations-2026-11-01.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../2026-11-01-parallel-remediation.md"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../evidence/2026-11-01/solid-payments/ledger-refresh.json"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../2026-11-01-solid-anchor-recovery.md"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../2026-11-01-solid-provenance-delivery.md"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../2026-11-01-solid-http-delivery.md"
+    },
+    {
+      "file": "docs/estate-review/completion/README.md",
+      "target": "../2026-11-01-solid-policy-parsing.md"
+    }
+  ],
+  "anchors_checked": false
+}

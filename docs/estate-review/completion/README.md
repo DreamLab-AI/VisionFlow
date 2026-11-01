@@ -7,7 +7,7 @@ type: reference
 
 # Estate audit completion ledger
 
-This ledger makes the review backlog explicit. It currently reconciles **98 current ADR assessments and 374 diagram panels** with named reports. All 98 whole-document claims currently match their reviewed document and report bytes; ADR-2143 now has a scoped refresh. ADR-2166 and ADR-2167 now have scoped refreshes with open findings preserved. These are counted evidence records, not a percentage of the whole audit. Earlier reports still need reconciliation, candidate decisions still need classification, and substantial source review remains.
+This ledger makes the review backlog explicit. It currently reconciles **99 current ADR assessments and 378 diagram panels** with named reports. All 99 whole-document claims currently match their reviewed document and report bytes; ADR-2143 now has a scoped refresh. ADR-2166 and ADR-2167 now have scoped refreshes with open findings preserved. These are counted evidence records, not a percentage of the whole audit. Earlier reports still need reconciliation, candidate decisions still need classification, and substantial source review remains.
 
 [Scope](scope.json), [review claims](claims.json), the [dated snapshot](snapshot-2026-11-01.json) and [validation](validation-2026-11-01.json) are separate files. The [Rust collector](../../../scripts/estate-review-ledger/README.md) can rebuild the snapshot without scanning unrelated workspace repositories. This replaces the old census's undifferentiated pending list as a working queue; earlier audit findings remain valid to their stated evidence boundaries.
 
@@ -19,16 +19,18 @@ This ledger makes the review backlog explicit. It currently reconciles **98 curr
 | Available checkouts | 20 | All remaining targets are locally available |
 | ADR-like candidate files | 829 | Includes support, imported copies, history and retained audit evidence |
 | Numbered decision candidates | 721 | A naming-based queue, not a count of operative or unique adopted decisions |
-| Parsed heading units | 9,369 | Excludes headings in fenced examples; a heading is not an exhaustive requirement decomposition |
-| ADR assessments reconciled | 98 | Explicit whole-document assessments linked to unchanged source-document and report bytes |
-| Heading units with those assessments | 700 | Inherit the bounded whole-document report; implementation claims still need its evidence |
-| Diagram topics / panels | 211 / 1,746 | Exact panel-ID set matches the existing generated coverage index |
-| Panel assessments reconciled | 374 | Selected panels only; 65 topics have all panels recorded and twenty have partial coverage |
+| Parsed heading units | 9,372 | Excludes headings in fenced examples; a heading is not an exhaustive requirement decomposition |
+| ADR assessments reconciled | 99 | Explicit whole-document assessments linked to unchanged source-document and report bytes |
+| Heading units with those assessments | 707 | Inherit the bounded whole-document report; implementation claims still need its evidence |
+| Diagram topics / panels | 212 / 1,749 | Exact panel-ID set matches the existing generated coverage index |
+| Panel assessments reconciled | 378 | Selected panels only; 66 topics have all panels recorded and twenty have partial coverage |
 | Stale claim records | 0 | Document/report hashes match; implementation and deployment limits still belong to each report |
 
 RuView, Logseq history, RuVector, the Codescape copy within VisionClaw and the Unmute copy within VisionClaw are excluded at the owner's direction. Standalone Codescape remains in scope. This removes fourteen candidate files and one previously counted assessment from the active totals; it adds no review credit. Historical evidence is retained in the [exclusion receipt](exclusions-2026-11-01.json). Owned-repository integration references do not re-admit excluded checkouts. No repositories were deleted.
 
-The latest [candidate ACL and discovery repair](../2026-11-01-solid-acl-control-repair.md) is merged into Solid main through `b644e55`. Nine production-authenticated route regressions, 311 development-feature tests and 512 core/header tests pass; the runs overlap. Final Clippy and corrected warning-denied rustdoc pass. Two new panels are assessed, bringing Solid to 39 of 138 panels; its seven of sixteen numbered ADR assessments are unchanged. Existing security findings, parser limitations, stored-policy migration and deployment remain open.
+The latest [Git export assessment](../2026-11-01-solid-git-export-and-baseline.md) records the merged direct hidden-object fetch repair through Solid `31fe898`, with 105 Git crate and four server WAC tests passing and one doctest ignored. A native probe confirms ordinary pod routing failure and nested private-content export. ADR-2001 and four panels receive assessment credit: Solid now has eight of sixteen numbered ADR assessments and 43 of 141 panels. Whole-history authority, mirror object-publication isolation, three reviewer findings, consumer adoption and deployment remain open. Agentbox review lessons are merged through `cf04e56cd`, awaiting rebuild activation.
+
+The preceding [candidate ACL and discovery repair](../2026-11-01-solid-acl-control-repair.md) is merged into Solid main through `b644e55`. Nine production-authenticated route regressions, 311 development-feature tests and 512 core/header tests pass; the runs overlap. Final Clippy and corrected warning-denied rustdoc pass. Two new panels are assessed, bringing Solid to 39 of 138 panels; its seven of sixteen numbered ADR assessments are unchanged. Existing security findings, parser limitations, stored-policy migration and deployment remain open.
 
 The preceding [JSS parity intake](../2026-11-01-solid-parity-intake.md) adds proposed ADR-2011 to the queue and re-observes six access-control/provisioning probe groups at concurrent Solid head `fe4f2ec`. It imports 35 classified parity rows and three additional PATCH defects, without treating them as 38 new distinct issues. Existing OIDC source hashes are unchanged. No whole-ADR or panel credit is added; Solid has seven of sixteen numbered ADR assessments.
 
@@ -52,8 +54,8 @@ Nine previous SP-07 panel claims were rebound after unchanged-body verification,
 | --- | --- | --- |
 | Limit work to the linked VisionFlow estate | Explicit repository identity, link/ownership basis, nested-owner handling and unavailable-source record | Scope is enumerated; further dependencies found through in-scope references require a recorded inclusion decision |
 | Check the systems against implementation | Per-repository component and cross-repository contract assessments, exact source revisions, relevant adversarial checks and clearly bounded runtime observations | Many reports exist; whole-system path coverage remains open and cannot be inferred from ADR counts |
-| Inspect and update every diagram | A source-backed disposition for every existing panel, corrections where needed, revision citations and rendering/visual evidence | 374 panel assessments reconciled; 1,372 remain unreconciled, some already reviewed in earlier reports |
-| Examine every ADR section | Classify each candidate; reconcile operative, historical, imported and support obligations; link every material section/requirement to a disposition | 98 current complete-document assessments reconciled; partial/earlier assessments still need explicit mapping |
+| Inspect and update every diagram | A source-backed disposition for every existing panel, corrections where needed, revision citations and rendering/visual evidence | 378 panel assessments reconciled; 1,371 remain unreconciled, some already reviewed in earlier reports |
+| Examine every ADR section | Classify each candidate; reconcile operative, historical, imported and support obligations; link every material section/requirement to a disposition | 99 current complete-document assessments reconciled; partial/earlier assessments still need explicit mapping |
 | Gap analysis, adversarial review and sense checks | Findings with triggers, consequences, evidence strength, counterexamples or bounded non-reproduction, and acceptance criteria | Available throughout dated reports; repo-by-repo completeness and cross-system synthesis remain open |
 | Compare alternatives and develop user utility | Primary-source comparisons tied to product paths, distinct recommendations and measurable user outcomes | Bounded comparisons exist; remaining product areas and final estate positioning still need review |
 

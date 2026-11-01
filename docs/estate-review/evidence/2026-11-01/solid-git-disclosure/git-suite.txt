@@ -1,0 +1,194 @@
+   Compiling solid-pod-rs-git v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-git-disclosure/crates/solid-pod-rs-git)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.39s
+     Running unittests src/lib.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/solid_pod_rs_git-83225531bf34f0db)
+
+running 72 tests
+test api::tests::parse_ahead_only ... ok
+test api::tests::parse_ahead_behind ... ok
+test api::tests::parse_branch_no_tracking ... ok
+test api::tests::parse_clean_repo ... ok
+test api::tests::parse_deleted_staged ... ok
+test api::tests::parse_no_commits_yet ... ok
+test api::tests::parse_modified_staged_and_unstaged ... ok
+test api::tests::parse_renamed_staged ... ok
+test api::tests::parse_no_commits_yet_with_staged ... ok
+test api::tests::parse_untracked ... ok
+test api::tests::validate_path_accepts_normal ... ok
+test api::tests::validate_path_rejects_absolute ... ok
+test api::tests::validate_path_rejects_dotdot ... ok
+test auth::tests::extract_accepts_valid_shape ... ok
+test auth::tests::extract_rejects_missing_colon ... ok
+test auth::tests::extract_rejects_bad_base64 ... ok
+test auth::tests::extract_rejects_empty_token ... ok
+test auth::tests::extract_rejects_non_basic_scheme ... ok
+test api::tests::resolve_commit_rejects_malformed_rev ... ok
+test auth::tests::extract_rejects_wrong_user ... ok
+test guard::tests::extract_slug_empty_returns_dot ... ok
+test guard::tests::extract_slug_removes_parent_dirs ... ok
+test guard::tests::extract_slug_strips_receive_pack ... ok
+test guard::tests::extract_slug_strips_info_refs ... ok
+test guard::tests::extract_slug_strips_upload_pack ... ok
+test hardened::tests::cgi_env_has_matching_count ... ok
+test push_guard::tests::builtin_path_rules_hold_even_when_the_guard_allows_everything ... ok
+test push_guard::tests::the_guard_sees_rooted_and_lower_cased_spellings ... ok
+test push_guard::tests::request_parser_reads_commands_caps_and_pack_offset ... ok
+test service::tests::git_request_auth_url_with_query ... ok
+test service::tests::git_request_auth_url_without_query ... ok
+test service::tests::git_request_is_read_detects_upload_pack_and_info_refs ... ok
+test service::tests::git_request_is_read_false_for_write ... ok
+test service::tests::git_request_is_write_detects_receive_pack_path ... ok
+test service::tests::git_request_is_write_detects_receive_pack_query ... ok
+test service::tests::git_request_is_write_false_for_read ... ok
+test service::tests::git_response_error_helper ... ok
+test service::tests::parse_cgi_basic ... ok
+test service::tests::parse_cgi_lf_only_separator ... ok
+test service::tests::parse_cgi_no_separator_fails ... ok
+test service::tests::parse_cgi_status_override ... ok
+test service::tests::bounded_reader_rejects_output_above_cap ... ok
+test config::tests::find_git_dir_regular_detected ... ok
+test config::tests::find_git_dir_empty_returns_none ... ok
+test config::tests::find_git_dir_bare_detected ... ok
+test guard::tests::path_safe_accepts_child ... ok
+test guard::tests::path_safe_rejects_absolute ... ok
+test guard::tests::path_safe_rejects_nested_parent ... ok
+test guard::tests::path_safe_rejects_parent_dir ... ok
+test identity::tests::rejects_malformed_privkey ... ok
+test identity::tests::rejects_malformed_pubkey ... ok
+test service::tests::read_of_missing_repo_still_404s_and_does_not_init ... ok
+test identity::tests::writes_canonical_agent_did_json ... ok
+test identity::tests::rejects_privkey_that_does_not_match_pubkey ... ok
+test identity::tests::odd_y_controller_key_publishes_0x03 ... ok
+test identity::tests::even_y_controller_key_publishes_0x02 ... ok
+test mark::tests::rejects_path_traversal ... ok
+test mark::tests::head_is_none_on_unborn_branch ... ok
+test identity::tests::configures_nostr_privkey_in_repo ... ok
+test init::tests::git_auto_init_sets_deny_current_branch ... ok
+test init::tests::git_auto_init_creates_dot_git ... ok
+test hardened::tests::repo_local_fsmonitor_is_neutralised ... ok
+test config::tests::apply_write_config_roundtrip ... ok
+test service::tests::first_push_to_missing_repo_auto_inits_not_404 ... ok
+test init::tests::git_auto_init_custom_branch ... ok
+test mark::tests::repo_local_gpg_program_does_not_run ... ok
+test mark::tests::repo_local_hooks_do_not_run ... ok
+test mark::tests::mark_write_creates_commit_and_captures_sha ... ok
+test init::tests::git_auto_init_idempotent ... ok
+test mark::tests::nothing_to_commit_returns_head_without_error ... ok
+test hardened::tests::repo_local_hooks_do_not_fire ... ok
+test mark::tests::parent_chain_links_two_writes ... ok
+
+test result: ok. 72 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.49s
+
+     Running tests/git_service_sprint10.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/git_service_sprint10-41d3a9db610e6cdb)
+
+running 12 tests
+test options_preflight_returns_cors ... ok
+test path_traversal_denied_via_parent_dir ... ok
+test not_a_repo_returns_404 ... ok
+test receive_pack_post_rejects_without_auth ... ok
+test upload_pack_advert_rejects_without_auth_when_provider_configured ... ok
+test upload_pack_post_rejects_without_auth_when_provider_configured ... ok
+test upload_pack_read_stays_anonymous_without_provider ... ok
+test receive_pack_post_accepts_nip98_basic_auth_header ... ok
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: call:
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint:
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: 	git config --global init.defaultBranch <name>
+hint: call:
+hint: call:
+hint:
+hint:
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 	git config --global init.defaultBranch <name>
+hint: 	git config --global init.defaultBranch <name>
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint:
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 	git branch -m <name>
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint:
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: 	git branch -m <name>
+hint: 	git branch -m <name>
+hint:
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: will change to "main" in Git 3.0. To configure the initial branch name
+hint: to use in all of your new repositories, which will suppress this warning,
+hint: call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+Initialized empty Git repository in /home/devuser/workspace/.tmp/.tmpw2CWIw/pod/.git/
+Initialized empty Git repository in /home/devuser/workspace/.tmp/.tmpG6uf8Y/repo/.git/
+Initialized empty Git repository in /home/devuser/workspace/.tmp/.tmpI1nYN7/repo/.git/
+Initialized empty Git repository in /home/devuser/workspace/.tmp/.tmp0X22PT/repo/.git/
+test info_refs_get_returns_service_advertisement ... ok
+test upload_pack_post_returns_packfile_magic ... ok
+test update_instead_applied_on_push_config ... ok
+test pushed_symlink_entry_is_not_checked_out_as_symlink ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.39s
+
+     Running tests/hidden_ref_fetch.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/hidden_ref_fetch-28edec89a1ecba97)
+
+running 2 tests
+test hidden_tip_is_not_fetchable_by_known_hash ... ok
+test repository_config_cannot_enable_hidden_tip_fetch ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+     Running tests/push_guard.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/push_guard-f9f784f63a598220)
+
+running 17 tests
+test malformed_and_empty_requests_are_refused_not_hung ... ok
+test refusal_is_side_band_framed_when_the_client_asked_for_it ... ok
+test without_report_status_the_refusal_is_a_403 ... ok
+test allowed_and_forbidden_in_one_push_is_all_or_nothing ... ok
+test case_variant_of_a_guarded_path_is_refused ... ok
+test flush_only_and_delete_only_pushes_are_not_blocked ... ok
+test deleting_a_guarded_path_is_refused ... ok
+test promoting_onto_an_unborn_head_is_refused ... ok
+test guarded_path_on_a_non_default_ref_is_refused ... ok
+test symlinks_and_submodules_are_refused ... ok
+test rename_into_a_guarded_path_is_refused ... ok
+test delete_then_recreate_inside_one_pack_is_refused ... ok
+test promoting_an_object_already_in_the_repo_is_refused ... ok
+test ordinary_push_still_succeeds_and_checks_out ... ok
+test too_many_commits_is_refused_within_the_bound ... ok
+test guarded_paths_are_refused_and_nothing_is_applied ... ok
+test too_many_changed_paths_is_refused ... ok
+
+test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.36s
+
+   Doc-tests solid_pod_rs_git
+
+running 3 tests
+test crates/solid-pod-rs-git/src/init.rs - init::GitAutoInit (line 38) ... ignored
+test crates/solid-pod-rs-git/src/lib.rs - (line 18) - compile ... ok
+test crates/solid-pod-rs-git/src/hardened.rs - hardened (line 17) ... ok
+
+test result: ok. 2 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.30s
+

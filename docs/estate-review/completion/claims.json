@@ -2378,7 +2378,7 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/solid-pod-rs/06-storage-quota-and-git-pods.md",
-    "source_sha256": "72be52841d3ef382579db609db344cd954479854a1093adba8e10c92aff67e4a",
+    "source_sha256": "895039a21bf474bd134c37b60cbf24f4e9a7a85744014389a711a39aab55214a",
     "report": "docs/estate-review/2026-11-01-solid-policy-parsing.md",
     "report_sha256": "11b99af2b94fb2a535ebe1222a30ddeb6718ae4eef1fd8d48636d6f5079522eb",
     "coverage": "selected-panels",
@@ -2649,5 +2649,43 @@
       "SP-13.2"
     ],
     "basis": "Merged candidate guard and truthful discovery checked against producer commit, nine passing NIP-98 route regressions, sixteen source citations and visual inspection. Wider tests and Clippy pass; raw security reviews remain BLOCK for existing findings. No new ADR or deployment credit."
+  },
+  {
+    "kind": "adr",
+    "repo": "solid-pod-rs",
+    "path": "crates/solid-pod-rs/docs/adr/ADR-2001-corpus-consolidation.md",
+    "source_sha256": "eb7d927d4b669319a27c0a3e04e6982ac5561209cc6d87d6d1c0f7b2ecdcb67f",
+    "report": "docs/estate-review/2026-11-01-solid-git-export-and-baseline.md",
+    "report_sha256": "1fe57c64add33eec980ad79399f2ffa723da56fb511cfc75f2ca32e50cd8480b",
+    "coverage": "whole-document",
+    "basis": "All six substantive sections assessed, including dated closeout and qualification. Eleven-ADR structural gate, archive identity at the actual cut, invalid-revision structural control and native Git transport evidence retain source, release and deployment limits."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/solid-pod-rs/06-storage-quota-and-git-pods.md",
+    "source_sha256": "895039a21bf474bd134c37b60cbf24f4e9a7a85744014389a711a39aab55214a",
+    "report": "docs/estate-review/2026-11-01-solid-git-export-and-baseline.md",
+    "report_sha256": "1fe57c64add33eec980ad79399f2ffa723da56fb511cfc75f2ca32e50cd8480b",
+    "coverage": "selected-panels",
+    "panels": [
+      "SP-06.12"
+    ],
+    "basis": "Revision-pinned source, native production-route reproduction, direct hidden-tip red-to-green HTTP regression, citation checks and visual render inspection. Whole-history authority, mirror object-publication isolation and deployment remain open."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/solid-pod-rs/14-git-export-boundaries.md",
+    "source_sha256": "6f9759217b9bfcb75f9f5a2ec8e0a8b95f20627010eb49455270d1da158ee9fa",
+    "report": "docs/estate-review/2026-11-01-solid-git-export-and-baseline.md",
+    "report_sha256": "1fe57c64add33eec980ad79399f2ffa723da56fb511cfc75f2ca32e50cd8480b",
+    "coverage": "selected-panels",
+    "panels": [
+      "SP-14.1",
+      "SP-14.2",
+      "SP-14.3"
+    ],
+    "basis": "Revision-pinned source, native production-route reproduction, direct hidden-tip red-to-green HTTP regression, citation checks and visual render inspection. Whole-history authority, mirror object-publication isolation and deployment remain open."
   }
 ]

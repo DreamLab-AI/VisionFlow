@@ -1,0 +1,4 @@
+parsed 212 topic files, 1749 mermaid diagrams
+jev: citation review needs --cite-check (it reviews the citations the gate resolved)
+verification: fresh — VERIFICATION.md records all 63 declared revision(s)
+allowlist: 9 well-formed entries

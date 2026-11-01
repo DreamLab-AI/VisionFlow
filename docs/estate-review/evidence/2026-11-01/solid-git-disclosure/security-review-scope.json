@@ -1,0 +1,21 @@
+{
+  "requested_mode": "diff-staged",
+  "actual_selected_source_files": [
+    "crates/solid-pod-rs-git/src/service.rs"
+  ],
+  "selected_source_sha256": {
+    "crates/solid-pod-rs-git/src/service.rs": "bed817d826380b8656aaf2570e392a0969752c88a8631a06fafd3ba52e8e9ea9"
+  },
+  "review_start_head": "b76fd8fc068f4210c91f587350961687b502f446",
+  "reviewed_working_bytes_committed_as": "1a66c2d9222c52782891938da1b0373a0b41ab28",
+  "not_selected": [
+    "crates/solid-pod-rs-git/tests/hidden_ref_fetch.rs",
+    "CHANGELOG.md",
+    "crates/solid-pod-rs-git/README.md"
+  ],
+  "other_validation": "Regression fixture executed red and green, full Git crate tests, server WAC tests, Clippy and rustdoc. Documentation reviewed separately.",
+  "earlier_empty_run": "diff-working selected 0 files after staging; raw PASS is not security-review coverage.",
+  "status": "complete; PASS at HIGH with four pre-existing findings",
+  "run_id": "20261101212553-5e6afe9e0fa48581",
+  "post_review_change": "31fe898 changes only three with_auth rustdoc lines; warning-denied rustdoc re-run passes. No runtime code changed after review."
+}

@@ -1,0 +1,16 @@
+    Blocking waiting for file lock on build directory
+   Compiling solid-pod-rs v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-git-disclosure/crates/solid-pod-rs)
+   Compiling solid-pod-rs-idp v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-git-disclosure/crates/solid-pod-rs-idp)
+   Compiling solid-pod-rs-git v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-git-disclosure/crates/solid-pod-rs-git)
+   Compiling solid-pod-rs-server v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-git-disclosure/crates/solid-pod-rs-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 13.56s
+     Running tests/git_wac_gating.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/git_wac_gating-3a46ebc0da024bc6)
+
+running 4 tests
+test anonymous_clone_of_private_pod_is_denied ... ok
+test anonymous_push_to_private_pod_is_denied ... ok
+test anonymous_read_of_public_pod_passes_gate ... ok
+test push_is_refused_even_where_wac_would_allow_it ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+

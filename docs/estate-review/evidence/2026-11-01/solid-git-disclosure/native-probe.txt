@@ -1,0 +1,15 @@
+   Compiling solid-pod-rs v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-git-disclosure/crates/solid-pod-rs)
+   Compiling solid-pod-rs-idp v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-git-disclosure/crates/solid-pod-rs-idp)
+   Compiling solid-pod-rs-git v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-git-disclosure/crates/solid-pod-rs-git)
+   Compiling solid-pod-rs-server v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-git-disclosure/crates/solid-pod-rs-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 25m 49s
+     Running tests/audit_git_disclosure.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/audit_git_disclosure-fc2ab06b3774cecf)
+
+running 1 test
+normal pod: private LDP=401; Git discovery=404; response={"error":"not a git repository: alice"}
+correct-root transport control: decoded old and current synthetic bytes from returned pack
+nested pod: private LDP=401; anonymous Git=200; decoded protected synthetic bytes from returned pack
+test observe_normal_and_nested_git_roots ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.18s
+

@@ -1,0 +1,35 @@
+{
+  "status": "merged native repair; bounded security review complete",
+  "source_revision": "1a66c2d9222c52782891938da1b0373a0b41ab28",
+  "before_revision": "b76fd8f",
+  "fixture": "hidden-ref-fetch-regression.rs",
+  "commands": {
+    "red_and_green": "cargo test --locked --offline -p solid-pod-rs-git --features with-git-binary --test hidden_ref_fetch -- --nocapture",
+    "suite": "cargo test --locked --offline -p solid-pod-rs-git --features with-git-binary",
+    "clippy": "cargo clippy --locked --offline -p solid-pod-rs-git --all-targets --features with-git-binary -- -D warnings",
+    "rustdoc": "RUSTDOCFLAGS=-Dwarnings cargo doc --locked --offline -p solid-pod-rs-git --no-deps --features with-git-binary",
+    "server_gate": "cargo test --locked --offline -p solid-pod-rs-server --features git --test git_wac_gating"
+  },
+  "results": {
+    "before": "2 fail at hidden tip produced a pack, after public pack decode succeeds",
+    "after": "2 pass",
+    "git_crate_suite": "105 pass, 1 doctest ignored; includes 2 regressions",
+    "server_git_wac": "4 pass",
+    "clippy": "pass",
+    "rustdoc": "pass with warnings denied",
+    "fmt": "pass"
+  },
+  "limits": [
+    "Full Forge route and mirror relay lifecycle not executed",
+    "Held objects still share the served repository; complete publication isolation open",
+    "Pod routing and whole-history authorisation remain open",
+    "No package release, consumer upgrade or deployment"
+  ],
+  "source_sha256": {
+    "crates/solid-pod-rs-git/src/service.rs": "bed817d826380b8656aaf2570e392a0969752c88a8631a06fafd3ba52e8e9ea9",
+    "crates/solid-pod-rs-git/tests/hidden_ref_fetch.rs": "4aff26f9adce55e6a1cc401300bbbd877a8af1e0b9a644def56164bde924845e"
+  },
+  "merged_head": "31fe89856d0cddcf855e3656eb498ddb1df66c9c",
+  "security_review": "PASS at HIGH; MEDIUM1 BUG3, all pre-existing; doc mismatch corrected, three open. Initial empty-file run earns no coverage.",
+  "post_review_doc_check": "pass"
+}

@@ -1,0 +1,9 @@
+{
+  "base": "4ce7cce",
+  "topic": "docs/diagrams/solid-pod-rs/06-storage-quota-and-git-pods.md",
+  "unchanged_assessed_panel": "SP-06.7",
+  "panel_sha256": "64c66b73b57d61bd809e4e1c15c9f3e1ee7771cd9d3672788b8330f26bcbff4b",
+  "previous_topic_sha256": "72be52841d3ef382579db609db344cd954479854a1093adba8e10c92aff67e4a",
+  "current_topic_sha256": "895039a21bf474bd134c37b60cbf24f4e9a7a85744014389a711a39aab55214a",
+  "new_credit_for_existing_panel": false
+}

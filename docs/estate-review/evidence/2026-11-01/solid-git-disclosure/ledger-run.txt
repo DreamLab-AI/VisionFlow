@@ -1,0 +1,11 @@
+{
+  "available_checkouts": 20,
+  "candidate_files": 829,
+  "numbered_candidates_with_recorded_assessment": 99,
+  "numbered_decision_candidates": 721,
+  "panels": 1749,
+  "panels_with_recorded_assessment": 378,
+  "scope_targets": 20,
+  "stale_claim_records": 0,
+  "topics": 212
+}

@@ -1,0 +1,10 @@
+   Compiling solid-pod-rs-git v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-git-disclosure/crates/solid-pod-rs-git)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 39.06s
+     Running tests/hidden_ref_fetch.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/hidden_ref_fetch-28edec89a1ecba97)
+
+running 2 tests
+test hidden_tip_is_not_fetchable_by_known_hash ... ok
+test repository_config_cannot_enable_hidden_tip_fetch ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.14s
+

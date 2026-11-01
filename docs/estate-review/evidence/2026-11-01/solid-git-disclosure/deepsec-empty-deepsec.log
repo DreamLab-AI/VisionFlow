@@ -1,0 +1,15 @@
+[1mDirect process[0m project [1msolid-pod-git-disclosure[0m
+  Source: git-diff:working
+  Files: 0
+  Agent: claude-agent-sdk (claude-opus-4-8)
+  Root: /home/devuser/workspace/wt/solid-pod-git-disclosure
+
+[33mNo files matched git-diff:working (after ignore filter).[0m
+[32mNothing to process — exit 0.[0m
+[1mExporting findings (json)[0m
+  Projects: solid-pod-git-disclosure
+  Min severity: LOW
+  Filter: hiding resolved verdicts (fixed/false-positive/accepted-risk)
+  [solid-pod-git-disclosure] 0 finding(s)
+
+[32mExported 0 finding(s)[0m → [1m/home/devuser/workspace/wt/solid-pod-git-disclosure/.deepsec-gate/reports/20261101T212523Z/findings.json[0m

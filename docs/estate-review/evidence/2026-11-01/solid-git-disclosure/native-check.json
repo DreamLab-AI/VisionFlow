@@ -1,0 +1,44 @@
+{
+  "status": "completed; observed defects remain open",
+  "native_session": 76313,
+  "probe_source_sha256": "c6db686efc98afcad4beddadbbe8a8b4e61dab9fc595105a25657aeb0639f174",
+  "source_worktree": "/home/devuser/workspace/wt/solid-pod-git-disclosure",
+  "base_revision": "b644e55c76d6e89b0e41ec1c7aa44510b20ccf68",
+  "documentation_commit": "d40e97a",
+  "log": "/tmp/vf-solid-git-disclosure/probe.txt",
+  "command": "cargo test --locked --offline -p solid-pod-rs-server --features git --test audit_git_disclosure -- --nocapture",
+  "environment": {
+    "CARGO_HOME": "/home/devuser/workspace/.cargo",
+    "CARGO_TARGET_DIR": "/home/devuser/workspace/solid-pod-rs/target",
+    "CARGO_BUILD_JOBS": "4",
+    "GIT_HTTP_BACKEND_PATH": "git --exec-path + /git-http-backend"
+  },
+  "observed_host_condition": "Completed after 25m49s build and 2.18s test; heavy I/O pressure. Original session retained throughout; no restart.",
+  "exit_code": 0,
+  "test_result": "1 passed, 0 failed, 0 ignored",
+  "observations": {
+    "normal_pod": {
+      "private_ldp": 401,
+      "git_discovery": 404
+    },
+    "correct_root_service_control": "decoded old and current synthetic private bytes",
+    "nested_repository": {
+      "private_ldp": 401,
+      "anonymous_git": 200,
+      "decoded": "synthetic-nested-private"
+    }
+  },
+  "execution_source_revision": "b644e55c76d6e89b0e41ec1c7aa44510b20ccf68",
+  "documentation_commits": [
+    "d40e97a",
+    "b76fd8f"
+  ],
+  "archive": {
+    "probe": "audit-git-disclosure.rs",
+    "log": "native-probe.txt"
+  },
+  "files": {
+    "audit-git-disclosure.rs": "c6db686efc98afcad4beddadbbe8a8b4e61dab9fc595105a25657aeb0639f174",
+    "native-probe.txt": "3aa7620e3b5cd0f091fda919414c84d97b876d75d58d04b9eda9a26c9c32a27f"
+  }
+}

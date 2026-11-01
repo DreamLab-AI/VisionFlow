@@ -1,22 +1,61 @@
 {
   "source_revision": "b644e55c76d6e89b0e41ec1c7aa44510b20ccf68",
   "source_report": "2026-11-01-solid-git-export-and-baseline.md",
-  "counting": "SP-GIT-01 qualifies existing SP-ACL-REVIEW-01; do not count it as another disclosure. SP-GIT-02 is a separate shared-service configuration finding, pending reconciliation with the estate register.",
+  "counting": "SP-GIT-01 qualifies existing SP-ACL-REVIEW-01; do not count it as another disclosure. SP-GIT-02 is a separate shared-service configuration finding, pending reconciliation with the estate register. Four reviewer records also predate the repair; one documentation correction is complete. Reconcile before adding estate distinct-issue totals.",
   "records": [
     {
       "id": "SP-GIT-01",
-      "related": ["SP-ACL-REVIEW-01"],
+      "related": [
+        "SP-ACL-REVIEW-01"
+      ],
       "title": "Pod Git applies the pod component twice and authorises only the root",
-      "status": "source-confirmed-runtime-pending",
-      "disposition": "The adapter passes data_root/pod as the service root and retains /pod in the request path. Normal repositories are missed; a nested repository can be selected under root-only Read. The native normal/nested repository probe is still running. Correcting the root alone would expose normal history to the same insufficient authority decision.",
+      "status": "runtime-reproduced-open",
+      "disposition": "Native production-route fixture confirms normal pod Git discovery 404, private LDP 401, and anonymous nested-repository Git 200 with decoded private synthetic bytes. A correctly rooted direct-service control also decodes current and historical private content. Correcting the root alone would expose normal history to the same insufficient authority decision. This qualifies SP-ACL-REVIEW-01 rather than reproducing its blanket normal-layout claim.",
       "acceptance": "Repair selection and whole-history export authority together. Exercise normal and nested repositories, private children, historic versions, permitted and denied callers, Git discovery and object delivery. Verify the feature and policy in actual consumers."
     },
     {
       "id": "SP-GIT-02",
       "title": "Git CGI permits known hidden-tip requests despite mirror ref hiding",
-      "status": "subprocess-reproduced-http-pending",
-      "disposition": "The shared service forces uploadpack.allowTipSHA1InWant=true. A fresh synthetic local Git fixture confirms hidden-tip pack delivery, with denied delivery when false and discovery hiding in both cases. Forge uses this service; the Rust HTTP regression is queued. No live forge or mirror relay was exercised.",
-      "acceptance": "Deny direct hidden-object requests despite permissive repository-local settings while keeping advertised-tip fetches working. Test the shared HTTP service and forge adapter. Establish a separate object-publication boundary for held mirror objects, including fetch and validation races; ref hiding and a single configuration switch do not establish complete repository read isolation. Verify consumer adoption separately."
+      "status": "direct-fetch-repaired-isolation-open",
+      "disposition": "Two real Rust HTTP CGI regressions fail before the repair by receiving a hidden-tip pack and pass afterwards, including when repository settings enable all unadvertised-object request options. Both retain advertised-tip pack decoding as a positive control. 105 crate tests and 4 server WAC tests pass; one doctest ignored. Complete mirror publication isolation, full Forge lifecycle acceptance, release and deployment remain open.",
+      "acceptance": "Deny direct hidden-object requests despite permissive repository-local settings while keeping advertised-tip fetches working. Test the shared HTTP service and forge adapter. Establish a separate object-publication boundary for held mirror objects, including fetch and validation races; ref hiding and a single configuration switch do not establish complete repository read isolation. Verify consumer adoption separately.",
+      "repair_revision": "1a66c2d9222c52782891938da1b0373a0b41ab28"
+    },
+    {
+      "id": "SP-GIT-03",
+      "title": "[MEDIUM] git-http-backend stderr and absolute server paths leak to remote client on backend errors",
+      "severity": "MEDIUM",
+      "status": "open-pre-existing",
+      "review_run": "20261101212553-5e6afe9e0fa48581",
+      "disposition": "Source confirms raw backend diagnostics are interpolated into error Display and server JSON; exact leaked values and a fresh HTTP failure fixture remain unverified. Normal pod routing limits earlier blanket reachability claims.",
+      "acceptance": "Keep detailed diagnostics in server logs; test a sentinel diagnostic and absolute path through every HTTP adapter and ensure neither reaches the client."
+    },
+    {
+      "id": "SP-GIT-04",
+      "title": "[BUG] GitResponse::error builds JSON by unescaped string interpolation",
+      "severity": "BUG",
+      "status": "open-pre-existing",
+      "review_run": "20261101212553-5e6afe9e0fa48581",
+      "disposition": "Unescaped formatting predates the repair. Search finds no production call to GitResponse::error in this workspace, only its unit test and documentation. This establishes a public helper defect, not the claimed deployed injection path.",
+      "acceptance": "Use the existing JSON serializer and assert round-trip fidelity for quotes, backslashes, control characters and Unicode; trace downstream callers separately."
+    },
+    {
+      "id": "SP-GIT-05",
+      "title": "[BUG] Substring-based is_write misclassifies reads of repos named like a service, and can auto-init on GET",
+      "severity": "BUG",
+      "status": "open-pre-existing",
+      "review_run": "20261101212553-5e6afe9e0fa48581",
+      "disposition": "Substring classification predates the repair; source admits service-like repository names into the write branch. No new auto-init-on-GET runtime fixture was executed. Pod push refusal and Forge namespace checks differ and must be assessed separately.",
+      "acceptance": "Parse exact endpoint and query service names consistently; test service-like repository names, read-only requests and disk state with permitted and denied callers."
+    },
+    {
+      "id": "SP-GIT-06",
+      "title": "[BUG] with_auth doc claims anonymous push without a provider, but the code fails closed",
+      "severity": "BUG",
+      "status": "fixed-documentation",
+      "review_run": "20261101212553-5e6afe9e0fa48581",
+      "disposition": "Incorrect anonymous-push documentation predates the repair; corrected in31fe898 to match the existing fail-closed implementation. Warning-denied rustdoc passes.",
+      "acceptance": "No remaining source-document change; published documentation adoption follows release."
     }
   ]
 }

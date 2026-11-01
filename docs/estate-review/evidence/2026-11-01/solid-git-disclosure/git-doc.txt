@@ -1,0 +1,7 @@
+    Blocking waiting for file lock on build directory
+    Checking tokio v1.54.1
+    Checking tokio-tungstenite v0.24.0
+    Checking solid-pod-rs v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-git-disclosure/crates/solid-pod-rs)
+ Documenting solid-pod-rs-git v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-git-disclosure/crates/solid-pod-rs-git)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 12.72s
+   Generated /home/devuser/workspace/solid-pod-rs/target/doc/solid_pod_rs_git/index.html

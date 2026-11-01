@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_211 topic files, 1746 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_212 topic files, 1749 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -302,6 +302,7 @@ _211 topic files, 1746 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | SP-11 | [Empty-body request commitments](solid-pod-rs/11-empty-body-binding.md) | 1 | flowchart | [BASELINE-solid-pod-rs.md](../../../solid-pod-rs/crates/solid-pod-rs/docs/BASELINE-solid-pod-rs.md) | ADR-2006 |
 | SP-12 | [OIDC consumer admission and guarded document fetching](solid-pod-rs/12-oidc-admission-and-fetching.md) | 2 | flowchart | [BASELINE-solid-pod-rs.md](../../../solid-pod-rs/crates/solid-pod-rs/docs/BASELINE-solid-pod-rs.md) | ADR-2003 |
 | SP-13 | [Candidate ACL control and truthful discovery](solid-pod-rs/13-acl-control-and-discovery.md) | 2 | flowchart | [BASELINE-solid-pod-rs.md](../../../solid-pod-rs/crates/solid-pod-rs/docs/BASELINE-solid-pod-rs.md) | ADR-2005 |
+| SP-14 | [Git repository selection and export authority](solid-pod-rs/14-git-export-boundaries.md) | 3 | flowchart | [BASELINE-solid-pod-rs.md](../../../solid-pod-rs/crates/solid-pod-rs/docs/BASELINE-solid-pod-rs.md) | ADR-2001, ADR-2004, ADR-2009, ADR-2010 |
 
 ### nostr-rust-forum
 
