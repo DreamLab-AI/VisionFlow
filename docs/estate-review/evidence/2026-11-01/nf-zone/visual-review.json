@@ -1,0 +1,38 @@
+[
+  {
+    "panel": "NF-05.16",
+    "svg_sha256": "d5dfd94474c565a3c25baae1bd18916f889e49b3029801cf027a1c586ba69b14",
+    "png_sha256": "80a162483fecf0643d7ebd1e977f3b135dcdaabc05b6d32a22bca2f41ddee87e",
+    "inspection": "Viewed at 1700 px raster width; labels and edges legible. NF-27.3 note overflow corrected and re-inspected."
+  },
+  {
+    "panel": "NF-27.1",
+    "svg_sha256": "1c3fcd4bf13f1466bcd828a7ef11df72882d621df2bcb7f47c37f3925c9a84cb",
+    "png_sha256": "c84e79eb5c1720cdcc9a0b9843e20666b62791628bbd97eb9864541443dd1d98",
+    "inspection": "Viewed at 1700 px raster width; labels and edges legible. NF-27.3 note overflow corrected and re-inspected."
+  },
+  {
+    "panel": "NF-27.2",
+    "svg_sha256": "b558850b9700b6dc9085a8d2234290287297b4438eb36d4693b50410759b8600",
+    "png_sha256": "3f2eb08211f56350fc5496e5f4d539ed6ab60001aee869f851b9720d2adeacde",
+    "inspection": "Viewed at 1700 px raster width; labels and edges legible. NF-27.3 note overflow corrected and re-inspected."
+  },
+  {
+    "panel": "NF-27.3",
+    "svg_sha256": "45ef4beb9deb760038a36d2ee13a17be82aa4ead6f052c3f657801c818307cb2",
+    "png_sha256": "6671c11ba6d88b9199af6f4fa671f1e9d86afbb4524b9f2af4ffcc89006e7b76",
+    "inspection": "Viewed at 1700 px raster width; labels and edges legible. NF-27.3 note overflow corrected and re-inspected."
+  },
+  {
+    "panel": "NF-27.4",
+    "svg_sha256": "4ba32107594ddc1b1a90c002bd408dae6c9df4c9243b7365627881096a509ab9",
+    "png_sha256": "cde2dd894166b9ad61f9a5ca0200ba82ab7da6389e5b3f0c2d0c24af01e98271",
+    "inspection": "Viewed at 1700 px raster width; labels and edges legible. NF-27.3 note overflow corrected and re-inspected."
+  },
+  {
+    "panel": "NF-27.5",
+    "svg_sha256": "727e11ea546f884d4aaf13cdcf9be5f41d4b84abb09fbbf259d8858fe11927eb",
+    "png_sha256": "6e6fe92f4e27a6bc73aa32ff60421f643446749a691a89f004055c6314292b91",
+    "inspection": "Viewed at 1700 px raster width; labels and edges legible. NF-27.3 note overflow corrected and re-inspected."
+  }
+]

@@ -7,7 +7,7 @@ type: reference
 
 # Estate audit completion ledger
 
-This ledger makes the review backlog explicit. It currently reconciles **78 ADR assessments and 258 diagram panels** with named reports. Those are counted evidence records, not a percentage of the whole audit. Earlier reports still need reconciliation, candidate decisions still need classification, and substantial source review remains.
+This ledger makes the review backlog explicit. It currently reconciles **80 ADR assessments and 264 diagram panels** with named reports. Those are counted evidence records, not a percentage of the whole audit. Earlier reports still need reconciliation, candidate decisions still need classification, and substantial source review remains.
 
 [Scope](scope.json), [review claims](claims.json), the [dated snapshot](snapshot-2026-11-01.json) and [validation](validation-2026-11-01.json) are separate files. The [Rust collector](../../../scripts/estate-review-ledger/README.md) can rebuild the snapshot without scanning unrelated workspace repositories. This replaces the old census's undifferentiated pending list as a working queue; earlier audit findings remain valid to their stated evidence boundaries.
 
@@ -17,18 +17,18 @@ This ledger makes the review backlog explicit. It currently reconciles **78 ADR 
 | --- | ---: | --- |
 | Explicit checkout targets | 25 | The existing roster/map scope, including separate standalone/consumed Codescape observations |
 | Available checkouts | 24 | Missing RuVector remains visible; it is not silently removed from the denominator |
-| ADR-like candidate files | 1,145 | Includes support, imported copies, history and retained audit evidence |
+| ADR-like candidate files | 1,148 | Includes support, imported copies, history and retained audit evidence |
 | Numbered decision candidates | 1,055 | A naming-based queue, not a count of operative or unique adopted decisions |
-| Parsed heading units | 15,114 | Excludes headings in fenced examples; a heading is not an exhaustive requirement decomposition |
-| ADR assessments reconciled | 78 | Explicit whole-document assessments linked to unchanged source-document and report bytes |
-| Heading units with those assessments | 546 | Inherit the bounded whole-document report; implementation claims still need its evidence |
-| Diagram topics / panels | 196 / 1,689 | Exact panel-ID set matches the existing generated coverage index |
-| Panel assessments reconciled | 258 | Selected panels only; 47 topics have all panels recorded and six have partial coverage |
+| Parsed heading units | 15,150 | Excludes headings in fenced examples; a heading is not an exhaustive requirement decomposition |
+| ADR assessments reconciled | 80 | Explicit whole-document assessments linked to unchanged source-document and report bytes |
+| Heading units with those assessments | 560 | Inherit the bounded whole-document report; implementation claims still need its evidence |
+| Diagram topics / panels | 197 / 1,694 | Exact panel-ID set matches the existing generated coverage index |
+| Panel assessments reconciled | 264 | Selected panels only; 48 topics have all panels recorded and six have partial coverage |
 | Stale claim records | 0 | None of this manifest's source-document/report bindings changed during this observation |
 
-This snapshot retains all 1,129 records from the 31 October census and adds sixteen: twelve retained audit-source copies and four ADR-named evidence/review files discovered by compact identifier matching. Copies are classified separately from decision candidates. The census does not adopt imported decisions merely because they are present, and it does not treat a content page named ADR as an operative policy. Those classifications remain explicit review work.
+This snapshot retains all 1,129 records from the 31 October census and adds nineteen: fifteen retained audit-source copies and four ADR-named evidence/review files discovered by compact identifier matching. Copies are classified separately from decision candidates. The census does not adopt imported decisions merely because they are present, and it does not treat a content page named ADR as an operative policy. Those classifications remain explicit review work.
 
-This update records ADR-2017 and seven panels, with one retained ADR evidence copy. ADR-2016 and the other NF-12 panels remain outside this batch’s assessed scope.
+This update records ADR-2016 and superseded ADR-2026, NF-05.16 and five new NF-27 panels. Three retained ADR evidence copies are added to the candidate census; consulted ADR-2028 remains unassessed as a whole document. A concurrent VisionClaw update changed eleven unassessed ADRs and added fourteen heading units; their queue entries were refreshed without review credit. Previously assessed NF-05 panel bodies were checked byte-for-byte unchanged before rebinding their whole-file hashes.
 
 ## What completion must prove
 
@@ -36,8 +36,8 @@ This update records ADR-2017 and seven panels, with one retained ADR evidence co
 | --- | --- | --- |
 | Limit work to the linked VisionFlow estate | Explicit repository identity, link/ownership basis, nested-owner handling and unavailable-source record | Scope is enumerated; further dependencies found through in-scope references require a recorded inclusion decision |
 | Check the systems against implementation | Per-repository component and cross-repository contract assessments, exact source revisions, relevant adversarial checks and clearly bounded runtime observations | Many reports exist; whole-system path coverage remains open and cannot be inferred from ADR counts |
-| Inspect and update every diagram | A source-backed disposition for every existing panel, corrections where needed, revision citations and rendering/visual evidence | 258 panel assessments reconciled; 1,431 remain unreconciled, some already reviewed in earlier reports |
-| Examine every ADR section | Classify each candidate; reconcile operative, historical, imported and support obligations; link every material section/requirement to a disposition | 78 complete-document assessments reconciled; partial and earlier assessments still need explicit mapping |
+| Inspect and update every diagram | A source-backed disposition for every existing panel, corrections where needed, revision citations and rendering/visual evidence | 264 panel assessments reconciled; 1,430 remain unreconciled, some already reviewed in earlier reports |
+| Examine every ADR section | Classify each candidate; reconcile operative, historical, imported and support obligations; link every material section/requirement to a disposition | 80 complete-document assessments reconciled; partial and earlier assessments still need explicit mapping |
 | Gap analysis, adversarial review and sense checks | Findings with triggers, consequences, evidence strength, counterexamples or bounded non-reproduction, and acceptance criteria | Available throughout dated reports; repo-by-repo completeness and cross-system synthesis remain open |
 | Compare alternatives and develop user utility | Primary-source comparisons tied to product paths, distinct recommendations and measurable user outcomes | Bounded comparisons exist; remaining product areas and final estate positioning still need review |
 
@@ -61,11 +61,11 @@ Counts below come from the dated snapshot. Zero means no qualifying claim entere
 
 | Checkout | Candidate files | Numbered decision candidates | ADR assessments reconciled |
 | --- | ---: | ---: | ---: |
-| VisionFlow | 51 | 30 | 1 |
+| VisionFlow | 54 | 30 | 1 |
 | VisionClaw | 287 | 273 | 10 |
 | agentbox | 239 | 227 | 7 |
 | solid-pod-rs | 19 | 15 | 0 |
-| nostr-rust-forum | 64 | 58 | 21 |
+| nostr-rust-forum | 64 | 58 | 23 |
 | dreamlab-ai-website | 47 | 43 | 3 |
 | loom | 10 | 8 | 0 |
 | knowledgeGraph | 9 | 6 | 4 |
@@ -94,7 +94,7 @@ Counts below come from the dated snapshot. Zero means no qualifying claim entere
 | dreamlab-ai-website | 64 | 17 |
 | estate | 135 | 0 |
 | knowledgegraph | 16 | 16 |
-| nostr-rust-forum | 209 | 88 |
+| nostr-rust-forum | 214 | 94 |
 | ontomark | 49 | 0 |
 | sidestr-rs | 20 | 0 |
 | solid-pod-rs | 133 | 0 |

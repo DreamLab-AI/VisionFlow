@@ -1051,7 +1051,7 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/nostr-rust-forum/05-leptos-clients-onboarding-messaging-governance.md",
-    "source_sha256": "c912d82ad42ce5acbd8e5966aadd46087b3aa0684459bcb9e54f0a7f251f10d6",
+    "source_sha256": "aac6d3d13920566ba3a4168dc3d4159e7a2b43e6cc747b58dd5fbd79cb429123",
     "report": "docs/estate-review/2026-11-01-forum-passkey-contracts.md",
     "report_sha256": "28a7e9d8001e0d85ac7483a226502fcf398be635cf86f7acfb8c613121b8beeb",
     "coverage": "selected-panels",
@@ -1064,7 +1064,7 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/nostr-rust-forum/05-leptos-clients-onboarding-messaging-governance.md",
-    "source_sha256": "c912d82ad42ce5acbd8e5966aadd46087b3aa0684459bcb9e54f0a7f251f10d6",
+    "source_sha256": "aac6d3d13920566ba3a4168dc3d4159e7a2b43e6cc747b58dd5fbd79cb429123",
     "report": "docs/estate-review/2026-11-01-forum-recovery-and-connect.md",
     "report_sha256": "2c00f04f2ec1558913eab9c4683e7b91ea63a9907449ae8e48538fa80b93901b",
     "coverage": "selected-panels",
@@ -1103,7 +1103,7 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/nostr-rust-forum/05-leptos-clients-onboarding-messaging-governance.md",
-    "source_sha256": "c912d82ad42ce5acbd8e5966aadd46087b3aa0684459bcb9e54f0a7f251f10d6",
+    "source_sha256": "aac6d3d13920566ba3a4168dc3d4159e7a2b43e6cc747b58dd5fbd79cb429123",
     "report": "docs/estate-review/2026-11-01-forum-bbs-signer.md",
     "report_sha256": "9780f594dd16d293e97babdbaef6d9cf923506998d75713d9038fcd4796eb8fa",
     "coverage": "selected-panels",
@@ -1116,7 +1116,7 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/nostr-rust-forum/05-leptos-clients-onboarding-messaging-governance.md",
-    "source_sha256": "c912d82ad42ce5acbd8e5966aadd46087b3aa0684459bcb9e54f0a7f251f10d6",
+    "source_sha256": "aac6d3d13920566ba3a4168dc3d4159e7a2b43e6cc747b58dd5fbd79cb429123",
     "report": "docs/estate-review/2026-11-01-forum-web-push.md",
     "report_sha256": "dda72ea1c5c3e5534174c7c5e82e7db078deb36f79e701bb540d9b60463c1f94",
     "coverage": "selected-panels",
@@ -1852,6 +1852,56 @@
       "NF-26.4",
       "NF-26.5",
       "NF-26.6"
+    ]
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2016-end-to-end-encrypted-zones.md",
+    "source_sha256": "1b25618d75298a61392d051d50987d70a1d369ed3536ce3d68229a3c45f3a016",
+    "report": "docs/estate-review/2026-11-01-forum-zone-key-distribution.md",
+    "report_sha256": "108ac965f14629da8b974b1b6cda4fd8a9185c174183ade1d04f965cdd22cd18",
+    "coverage": "whole-document",
+    "basis": "Full ADR-2016 and superseded ADR-2026 section assessments and named panel dispositions; native probes and source evidence distinguished from unexecuted browser/Worker acceptance. ADR-2028 and upgrade branch excluded."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2026-zone-key-recovery-master.md",
+    "source_sha256": "37bdd1287eaec7561eb2f7df8fbadd74b20709690906a495e85a5231e037552a",
+    "report": "docs/estate-review/2026-11-01-forum-zone-key-distribution.md",
+    "report_sha256": "108ac965f14629da8b974b1b6cda4fd8a9185c174183ade1d04f965cdd22cd18",
+    "coverage": "whole-document",
+    "basis": "Full ADR-2016 and superseded ADR-2026 section assessments and named panel dispositions; native probes and source evidence distinguished from unexecuted browser/Worker acceptance. ADR-2028 and upgrade branch excluded."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/05-leptos-clients-onboarding-messaging-governance.md",
+    "source_sha256": "aac6d3d13920566ba3a4168dc3d4159e7a2b43e6cc747b58dd5fbd79cb429123",
+    "report": "docs/estate-review/2026-11-01-forum-zone-key-distribution.md",
+    "report_sha256": "108ac965f14629da8b974b1b6cda4fd8a9185c174183ade1d04f965cdd22cd18",
+    "coverage": "selected-panels",
+    "basis": "Full ADR-2016 and superseded ADR-2026 section assessments and named panel dispositions; native probes and source evidence distinguished from unexecuted browser/Worker acceptance. ADR-2028 and upgrade branch excluded.",
+    "panels": [
+      "NF-05.16"
+    ]
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/27-zone-key-distribution-and-recovery.md",
+    "source_sha256": "194149165a4033f2a4bf7afc191bfa95d0e58ace4cd5d688c819629cd7aea2f3",
+    "report": "docs/estate-review/2026-11-01-forum-zone-key-distribution.md",
+    "report_sha256": "108ac965f14629da8b974b1b6cda4fd8a9185c174183ade1d04f965cdd22cd18",
+    "coverage": "selected-panels",
+    "basis": "Full ADR-2016 and superseded ADR-2026 section assessments and named panel dispositions; native probes and source evidence distinguished from unexecuted browser/Worker acceptance. ADR-2028 and upgrade branch excluded.",
+    "panels": [
+      "NF-27.1",
+      "NF-27.2",
+      "NF-27.3",
+      "NF-27.4",
+      "NF-27.5"
     ]
   }
 ]

@@ -1,0 +1,13 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running `scripts/estate-review-ledger/target/debug/estate-review-ledger /home/devuser/workspace /home/devuser/workspace/wt/VisionFlow-zone-keys docs/estate-review/completion/scope.json docs/estate-review/completion/claims.json /tmp/vf-nf-zone-artifacts/snapshot.json`
+{
+  "available_checkouts": 24,
+  "candidate_files": 1148,
+  "numbered_candidates_with_recorded_assessment": 80,
+  "numbered_decision_candidates": 1055,
+  "panels": 1694,
+  "panels_with_recorded_assessment": 264,
+  "scope_targets": 25,
+  "stale_claim_records": 0,
+  "topics": 197
+}

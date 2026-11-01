@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_196 topic files, 1689 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_197 topic files, 1694 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -324,6 +324,7 @@ _196 topic files, 1689 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | NF-24 | [Trust transitions, sweep fairness and audit consistency](nostr-rust-forum/24-trust-transition-and-sweep-contracts.md) | 4 | flowchart, sequenceDiagram | [ADR-2006-trust-demotion-cron-tl3-never.md](../../../nostr-rust-forum/docs/adr/ADR-2006-trust-demotion-cron-tl3-never.md), [ADR-102-trust-demotion-inactivity-sweep.md](../../../nostr-rust-forum/docs/archive/adr/ADR-102-trust-demotion-inactivity-sweep.md) | ADR-2006 |
 | NF-25 | [Membership lifecycle, cohort grants and admin consistency](nostr-rust-forum/25-membership-lifecycle-and-admin-consistency.md) | 6 | flowchart | [ADR-2014-member-lifecycle-one-source-of-truth.md](../../../nostr-rust-forum/docs/adr/ADR-2014-member-lifecycle-one-source-of-truth.md) | ADR-2014 |
 | NF-26 | [Sealed history migration and reader contracts](nostr-rust-forum/26-sealed-history-migration-and-reader-contracts.md) | 6 | flowchart, sequenceDiagram | [ADR-2017-sealed-original-history-migration.md](../../../nostr-rust-forum/docs/adr/ADR-2017-sealed-original-history-migration.md) | ADR-2017 |
+| NF-27 | [Zone key distribution, rotation and recovery](nostr-rust-forum/27-zone-key-distribution-and-recovery.md) | 5 | flowchart, sequenceDiagram | [ADR-2016-end-to-end-encrypted-zones.md](../../../nostr-rust-forum/docs/adr/ADR-2016-end-to-end-encrypted-zones.md), [ADR-2026-zone-key-recovery-master.md](../../../nostr-rust-forum/docs/adr/ADR-2026-zone-key-recovery-master.md) | ADR-2016, ADR-2026 |
 
 ### dreamlab-ai-website
 

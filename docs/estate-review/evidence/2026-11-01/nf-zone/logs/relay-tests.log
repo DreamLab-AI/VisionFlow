@@ -1,0 +1,64 @@
+   Compiling nostr-bbs-core v1.0.0-beta.19 (/tmp/vf-nf-zone-artifacts/forum/crates/nostr-bbs-core)
+   Compiling nostr-bbs-rate-limit v1.0.0-beta.16 (/tmp/vf-nf-zone-artifacts/forum/crates/nostr-bbs-rate-limit)
+   Compiling nostr-bbs-mesh v1.0.0-beta.16 (/tmp/vf-nf-zone-artifacts/forum/crates/nostr-bbs-mesh)
+   Compiling nostr-bbs-relay-worker v1.0.0-beta.10 (/tmp/vf-nf-zone-artifacts/forum/crates/nostr-bbs-relay-worker)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 13.98s
+     Running unittests src/lib.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/nostr_bbs_relay_worker-4e24e725587f94f0)
+
+running 12 tests
+test zone_config::tests::encryption_flag_accepts_only_exact_true ... ok
+test zone_config::tests::encrypted_flag_parses_from_zone_config ... ok
+test zone_config::tests::hidden_zone_omits_tile_for_nonmembers ... ok
+test zone_config::tests::locked_zone_gates_content_but_shows_tile ... ok
+test zone_config::tests::master_gate_off_disables_every_zone ... ok
+test zone_config::tests::public_zone_is_never_enforced_as_encrypted ... ok
+test zone_config::tests::public_zone_is_unauth_readable_but_not_unauth_writable ... ok
+test zone_config::tests::unknown_zone_denies_all ... ok
+test zone_config::tests::write_falls_back_to_required_when_unset ... ok
+test zone_config::tests::plaintext_and_malformed_zk_are_refused ... ok
+test zone_config::tests::real_zone_ciphertext_is_accepted ... ok
+test zone_config::tests::audit_shape_guard_accepts_old_epoch_after_new_epoch ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 477 filtered out; finished in 0.01s
+
+     Running tests/audit_tests.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/audit_tests-5bc16701366a9df6)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/device_gate_tests.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/device_gate_tests-92a10a039b133984)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/events_schema.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/events_schema-fdc4c66892512cd6)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s
+
+     Running tests/moderation_tests.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/moderation_tests-e72c77d1a168537c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/nip_handlers_tests.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/nip_handlers_tests-04341855c8df10f9)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/whitelist_cohort_writers.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/whitelist_cohort_writers-f52dc4dcd7b82c1b)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+     Running tests/whitelist_tests.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/whitelist_tests-858e3fa42adecd4e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

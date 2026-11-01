@@ -3307,6 +3307,190 @@
       "sha256": "9396b22723401b3b9f743418a062a1d35a4575e5fff608a9121bd17f40e3556b"
     },
     {
+      "category": "audit-evidence-or-support",
+      "claims": [],
+      "path": "docs/estate-review/evidence/2026-11-01/nf-zone/source/docs/adr/ADR-2016-end-to-end-encrypted-zones.md",
+      "repo": "VisionFlow",
+      "review": "unreconciled",
+      "sections": [
+        {
+          "line": 18,
+          "ordinal": 1,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "ADR-2016 \u2014 A zone can be end-to-end encrypted with per-epoch zone keys granted by gift wrap, behind a deployment gate"
+        },
+        {
+          "line": 20,
+          "ordinal": 2,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Context"
+        },
+        {
+          "line": 31,
+          "ordinal": 3,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Decision"
+        },
+        {
+          "line": 94,
+          "ordinal": 4,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "What it protects"
+        },
+        {
+          "line": 104,
+          "ordinal": 5,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "agent_keys trade-off"
+        },
+        {
+          "line": 111,
+          "ordinal": 6,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Alternative: MLS (NIP-EE / Marmot)"
+        },
+        {
+          "line": 120,
+          "ordinal": 7,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Consequences"
+        },
+        {
+          "line": 142,
+          "ordinal": 8,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Verification"
+        },
+        {
+          "line": 156,
+          "ordinal": 9,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Close-out 2026-10-30"
+        }
+      ],
+      "sha256": "1b25618d75298a61392d051d50987d70a1d369ed3536ce3d68229a3c45f3a016"
+    },
+    {
+      "category": "audit-evidence-or-support",
+      "claims": [],
+      "path": "docs/estate-review/evidence/2026-11-01/nf-zone/source/docs/adr/ADR-2026-zone-key-recovery-master.md",
+      "repo": "VisionFlow",
+      "review": "unreconciled",
+      "sections": [
+        {
+          "line": 16,
+          "ordinal": 1,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "ADR-2026 \u2014 Derive zone epoch keys from a 12-word recovery master so a lost admin device does not lose a zone"
+        },
+        {
+          "line": 18,
+          "ordinal": 2,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Context"
+        },
+        {
+          "line": 30,
+          "ordinal": 3,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Decision"
+        },
+        {
+          "line": 51,
+          "ordinal": 4,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Consequences"
+        },
+        {
+          "line": 61,
+          "ordinal": 5,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Verification"
+        }
+      ],
+      "sha256": "37bdd1287eaec7561eb2f7df8fbadd74b20709690906a495e85a5231e037552a"
+    },
+    {
+      "category": "audit-evidence-or-support",
+      "claims": [],
+      "path": "docs/estate-review/evidence/2026-11-01/nf-zone/source/docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md",
+      "repo": "VisionFlow",
+      "review": "unreconciled",
+      "sections": [
+        {
+          "line": 16,
+          "ordinal": 1,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "ADR-2028 \u2014 Zones adopt the NIP-171 key plane and ticket format; board transport stays signed kind 42; one owner per zone"
+        },
+        {
+          "line": 18,
+          "ordinal": 2,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Context"
+        },
+        {
+          "line": 34,
+          "ordinal": 3,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Decision"
+        },
+        {
+          "line": 76,
+          "ordinal": 4,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Consequences"
+        },
+        {
+          "line": 89,
+          "ordinal": 5,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Verification"
+        },
+        {
+          "line": 98,
+          "ordinal": 6,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Amendment (ADR-2029, proposed)"
+        },
+        {
+          "line": 106,
+          "ordinal": 7,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Operator decisions recorded during Phase 4 (2026-10-20)"
+        },
+        {
+          "line": 124,
+          "ordinal": 8,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Hard blocker before ZONE_GROUPS_ENABLED is turned on (recorded 2026-10-20)"
+        }
+      ],
+      "sha256": "e7b66d823345645a76641003aae74e040d802b1c0cd3522fc317bd880fad9833"
+    },
+    {
       "category": "support-or-unclassified",
       "claims": [],
       "path": "archive/visionclaw-docs/audits/2026-04-20-sovereign-mesh-qe-sprint2/05-phase2-and-adr054.md",
@@ -6117,9 +6301,16 @@
           "reports": [],
           "review": "unreconciled",
           "title": "Re-checked at 8e380aad3 (2026-10-20)"
+        },
+        {
+          "line": 256,
+          "ordinal": 25,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Re-stamp \u2014 2026-10-31 (ADR-2140 item 1)"
         }
       ],
-      "sha256": "aeb821ed0765356f6a3cc0b742ca5f5e3bb4188f29ed847ede15e1cd8f278c5e"
+      "sha256": "3a2c5728d53065ab420e8eae5f31ccd56576fedc9fc0599ca4a49bda00a4a63b"
     },
     {
       "category": "decision-candidate",
@@ -6365,9 +6556,16 @@
           "reports": [],
           "review": "unreconciled",
           "title": "Close-out 2026-10-31"
+        },
+        {
+          "line": 326,
+          "ordinal": 35,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Re-stamp \u2014 2026-10-31 (ADR-2140 item 1)"
         }
       ],
-      "sha256": "72d747e0671e69d444c5a67c14f21d64c1c78ea3fdae8894714f06ddf6ebcc01"
+      "sha256": "bad2c8197f0ccd9892905444691ffe98a5b29e1193901e0a633a6560bce758a8"
     },
     {
       "category": "decision-candidate",
@@ -8730,9 +8928,16 @@
           "reports": [],
           "review": "unreconciled",
           "title": "Re-verification \u2014 2026-10-31"
+        },
+        {
+          "line": 197,
+          "ordinal": 14,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Re-stamp \u2014 2026-10-31 (ADR-2140 item 1)"
         }
       ],
-      "sha256": "68ddcd50a1b2eb234548d74d60e649f41044dfe9fe5035db1d3ea14cd582cf67"
+      "sha256": "f7201908461f358f12f63e6c0c8d65e77b08b815281ed72822e93506d1d209c4"
     },
     {
       "category": "decision-candidate",
@@ -8838,9 +9043,16 @@
           "reports": [],
           "review": "unreconciled",
           "title": "Re-verification \u2014 2026-10-31"
+        },
+        {
+          "line": 248,
+          "ordinal": 15,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Re-stamp \u2014 2026-10-31 (ADR-2140 item 1)"
         }
       ],
-      "sha256": "d6886e11ad0d6c78c31e25ea9ed84e9ff9a506a75eece09c57405be8568b2423"
+      "sha256": "e9989620fdad8a80a8edc72864b7c928a6540f9404dc78f10d9a9ea278ac7934"
     },
     {
       "category": "decision-candidate",
@@ -9339,9 +9551,16 @@
           "reports": [],
           "review": "unreconciled",
           "title": "Re-verified 2026-10-31 at 8775359e3"
+        },
+        {
+          "line": 387,
+          "ordinal": 24,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Re-stamp \u2014 2026-10-31 (ADR-2140 item 1)"
         }
       ],
-      "sha256": "cfa07566192183d5d140c67aa34dfeb926319b230814a1308827c71e04cedc11"
+      "sha256": "42321770fa194784f8dfc660ecc1ab2f5a7ac2b18760f8708eefa7b701c582a1"
     },
     {
       "category": "decision-candidate",
@@ -10085,9 +10304,16 @@
           "reports": [],
           "review": "unreconciled",
           "title": "Amendment \u2014 2026-10-19"
+        },
+        {
+          "line": 193,
+          "ordinal": 26,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Re-stamp \u2014 2026-10-31 (ADR-2140 item 1)"
         }
       ],
-      "sha256": "d1cad497f4f876bf59499e5bfe1c1542fb261bb784c1969db3ac814ae0a6494c"
+      "sha256": "c4fa8db6ec4e8241a21fc667e9a0b808a201077794c1a80278b9fe2a4042137a"
     },
     {
       "category": "decision-candidate",
@@ -10769,9 +10995,16 @@
           "reports": [],
           "review": "unreconciled",
           "title": "Verification"
+        },
+        {
+          "line": 93,
+          "ordinal": 7,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Amendment \u2014 2026-10-31 (ADR-2140 item 1)"
         }
       ],
-      "sha256": "1f006746d35188ae3a783b443629528f0c943965dcb6783a0d8b6acb962ee072"
+      "sha256": "f8e82f87f6adc6dd6a757ad2de1ef9145fbc95075f99017cf92568981fb5a313"
     },
     {
       "category": "decision-candidate",
@@ -14636,9 +14869,16 @@
           "reports": [],
           "review": "unreconciled",
           "title": "Re-verification \u2014 2026-10-31 (2a8b795dc)"
+        },
+        {
+          "line": 86,
+          "ordinal": 11,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Re-stamp \u2014 2026-10-31 (ADR-2140 item 1)"
         }
       ],
-      "sha256": "ac8b5c0624b653fc901e2cb249b311d32c209b3fa4d6547239737133e65e9e37"
+      "sha256": "7c9f6d1f58c85e6828c97882b53a66b57f7c5cea4683002e658d31638d161231"
     },
     {
       "category": "decision-candidate",
@@ -14845,9 +15085,16 @@
           "reports": [],
           "review": "unreconciled",
           "title": "Close-out 2026-10-30"
+        },
+        {
+          "line": 241,
+          "ordinal": 20,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Re-stamp \u2014 2026-10-31 (ADR-2140 item 1)"
         }
       ],
-      "sha256": "b12ef21d1aa25cf71c792e9cc1d90ea6793f6f7ddf06f5bc927160f3f688da0c"
+      "sha256": "379f7d25915cc1afdf4794b96001687e3287f0713578fa19a2a8fc8afbcacbd9"
     },
     {
       "category": "decision-candidate",
@@ -15238,9 +15485,16 @@
           "reports": [],
           "review": "unreconciled",
           "title": "Re-verification \u2014 2026-10-31"
+        },
+        {
+          "line": 81,
+          "ordinal": 8,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Re-stamp \u2014 2026-10-31 (ADR-2140 item 1)"
         }
       ],
-      "sha256": "aa1ea403bc24d46bf0cd84a4cec6828f9cec3c1ff915125edbf798da969f2c45"
+      "sha256": "1012208713269bb95295195e92519288a78c802487ebd2c90c83dff21af64279"
     },
     {
       "category": "decision-candidate",
@@ -15309,70 +15563,98 @@
       "review": "unreconciled",
       "sections": [
         {
-          "line": 17,
+          "line": 19,
           "ordinal": 1,
           "reports": [],
           "review": "unreconciled",
           "title": "ADR-2140 \u2014 Physics forces have one stored definition, applied as stored"
         },
         {
-          "line": 19,
+          "line": 21,
           "ordinal": 2,
           "reports": [],
           "review": "unreconciled",
           "title": "Context"
         },
         {
-          "line": 24,
+          "line": 26,
           "ordinal": 3,
           "reports": [],
           "review": "unreconciled",
           "title": "Decision"
         },
         {
-          "line": 32,
+          "line": 34,
           "ordinal": 4,
           "reports": [],
           "review": "unreconciled",
           "title": "Consequences"
         },
         {
-          "line": 37,
+          "line": 39,
           "ordinal": 5,
           "reports": [],
           "review": "unreconciled",
           "title": "Layout lock"
         },
         {
-          "line": 40,
+          "line": 42,
           "ordinal": 6,
           "reports": [],
           "review": "unreconciled",
           "title": "Not yet done (recorded, not hidden)"
         },
         {
-          "line": 45,
+          "line": 47,
           "ordinal": 7,
           "reports": [],
           "review": "unreconciled",
           "title": "Verification"
         },
         {
-          "line": 50,
+          "line": 52,
           "ordinal": 8,
           "reports": [],
           "review": "unreconciled",
           "title": "Amendment \u2014 2026-10-19"
         },
         {
-          "line": 69,
+          "line": 71,
           "ordinal": 9,
           "reports": [],
           "review": "unreconciled",
           "title": "Close-out 2026-10-31"
+        },
+        {
+          "line": 104,
+          "ordinal": 10,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Close-out 2026-10-31 \u2014 item 1, the layout mode moves into physics.*"
+        },
+        {
+          "line": 141,
+          "ordinal": 11,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Close-out 2026-10-31 \u2014 /analytics/sssp/params deleted; record complete"
+        },
+        {
+          "line": 155,
+          "ordinal": 12,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Close-out 2026-11-01 \u2014 second review (R13) blockers fixed"
+        },
+        {
+          "line": 168,
+          "ordinal": 13,
+          "reports": [],
+          "review": "unreconciled",
+          "title": "Follow-ups from the third review (R14, 2026-11-01)"
         }
       ],
-      "sha256": "0462f9dd0a047e53d65d95cc7d81e5e0524695372f3f754f41ff95f321a6c9cb"
+      "sha256": "1ec0d5d97c5b4a64f8138f1abb772416031230a56f696b2d720d358c4aff242d"
     },
     {
       "category": "decision-candidate",
@@ -59632,72 +59914,98 @@
     },
     {
       "category": "decision-candidate",
-      "claims": [],
+      "claims": [
+        {
+          "basis": "Full ADR-2016 and superseded ADR-2026 section assessments and named panel dispositions; native probes and source evidence distinguished from unexecuted browser/Worker acceptance. ADR-2028 and upgrade branch excluded.",
+          "coverage": "whole-document",
+          "panels": null,
+          "report": "docs/estate-review/2026-11-01-forum-zone-key-distribution.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "path": "docs/adr/ADR-2016-end-to-end-encrypted-zones.md",
       "repo": "nostr-rust-forum",
-      "review": "unreconciled",
+      "review": "assessment-recorded",
       "sections": [
         {
           "line": 18,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-zone-key-distribution.md"
+          ],
+          "review": "assessment-recorded",
           "title": "ADR-2016 \u2014 A zone can be end-to-end encrypted with per-epoch zone keys granted by gift wrap, behind a deployment gate"
         },
         {
           "line": 20,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-zone-key-distribution.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Context"
         },
         {
           "line": 31,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-zone-key-distribution.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Decision"
         },
         {
           "line": 94,
           "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-zone-key-distribution.md"
+          ],
+          "review": "assessment-recorded",
           "title": "What it protects"
         },
         {
           "line": 104,
           "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-zone-key-distribution.md"
+          ],
+          "review": "assessment-recorded",
           "title": "agent_keys trade-off"
         },
         {
           "line": 111,
           "ordinal": 6,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-zone-key-distribution.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Alternative: MLS (NIP-EE / Marmot)"
         },
         {
           "line": 120,
           "ordinal": 7,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-zone-key-distribution.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Consequences"
         },
         {
           "line": 142,
           "ordinal": 8,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-zone-key-distribution.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Verification"
         },
         {
           "line": 156,
           "ordinal": 9,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-zone-key-distribution.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Close-out 2026-10-30"
         }
       ],
@@ -60234,44 +60542,62 @@
     },
     {
       "category": "decision-candidate",
-      "claims": [],
+      "claims": [
+        {
+          "basis": "Full ADR-2016 and superseded ADR-2026 section assessments and named panel dispositions; native probes and source evidence distinguished from unexecuted browser/Worker acceptance. ADR-2028 and upgrade branch excluded.",
+          "coverage": "whole-document",
+          "panels": null,
+          "report": "docs/estate-review/2026-11-01-forum-zone-key-distribution.md",
+          "state": "assessment-recorded"
+        }
+      ],
       "path": "docs/adr/ADR-2026-zone-key-recovery-master.md",
       "repo": "nostr-rust-forum",
-      "review": "unreconciled",
+      "review": "assessment-recorded",
       "sections": [
         {
           "line": 16,
           "ordinal": 1,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-zone-key-distribution.md"
+          ],
+          "review": "assessment-recorded",
           "title": "ADR-2026 \u2014 Derive zone epoch keys from a 12-word recovery master so a lost admin device does not lose a zone"
         },
         {
           "line": 18,
           "ordinal": 2,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-zone-key-distribution.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Context"
         },
         {
           "line": 30,
           "ordinal": 3,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-zone-key-distribution.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Decision"
         },
         {
           "line": 51,
           "ordinal": 4,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-zone-key-distribution.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Consequences"
         },
         {
           "line": 61,
           "ordinal": 5,
-          "reports": [],
-          "review": "unreconciled",
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-zone-key-distribution.md"
+          ],
+          "review": "assessment-recorded",
           "title": "Verification"
         }
       ],
@@ -118956,22 +119282,22 @@
   ],
   "counts": {
     "available_checkouts": 24,
-    "candidate_files": 1145,
-    "numbered_candidates_with_recorded_assessment": 78,
+    "candidate_files": 1148,
+    "numbered_candidates_with_recorded_assessment": 80,
     "numbered_decision_candidates": 1055,
-    "panels": 1689,
-    "panels_with_recorded_assessment": 258,
+    "panels": 1694,
+    "panels_with_recorded_assessment": 264,
     "scope_targets": 25,
     "stale_claim_records": 0,
-    "topics": 196
+    "topics": 197
   },
   "method": "Explicit scope; Git-owned Markdown; parsed headings exclude fenced examples; explicit human review claims require exact source/report hashes. Unreconciled is not unreviewed. Candidate counts are not a complete obligation denominator or overall task percentage.",
   "repositories": [
     {
       "available": true,
-      "candidate_files": 51,
-      "dirty": true,
-      "head": "610b57bdfa87f56f2dc880a0d588bb98bc17011c",
+      "candidate_files": 54,
+      "dirty": false,
+      "head": "e09b00ab8e55883ea27ffefe83037c8304eb3317",
       "local": "VisionFlow",
       "name": "VisionFlow"
     },
@@ -118979,7 +119305,7 @@
       "available": true,
       "candidate_files": 287,
       "dirty": true,
-      "head": "75b72416bac176ca8fde715cac3bd7c77657b3e7",
+      "head": "0dafdb29829c8f3f73811aa959467598e54004db",
       "local": "project",
       "name": "VisionClaw"
     },
@@ -126291,6 +126617,15 @@
           ],
           "report": "docs/estate-review/2026-11-01-forum-web-push.md",
           "state": "assessment-recorded"
+        },
+        {
+          "basis": "Full ADR-2016 and superseded ADR-2026 section assessments and named panel dispositions; native probes and source evidence distinguished from unexecuted browser/Worker acceptance. ADR-2028 and upgrade branch excluded.",
+          "coverage": "selected-panels",
+          "panels": [
+            "NF-05.16"
+          ],
+          "report": "docs/estate-review/2026-11-01-forum-zone-key-distribution.md",
+          "state": "assessment-recorded"
         }
       ],
       "panels": [
@@ -126436,19 +126771,21 @@
           "review": "unreconciled"
         },
         {
-          "body_sha256": "87b52d748f63e4d7b58cf6ac51cd598a4e7ba7d934eb2850c9af6960dcef7928",
-          "heading": "NF-05.16 Zone end-to-end encryption \u2014 grant, encrypt, decrypt, redecrypt, and why deletion still works",
+          "body_sha256": "364569c0f84063953f8a092fbd5fd56e373d5560978fa8e48abf78d9a79a2c25",
+          "heading": "NF-05.16 Zone encryption depends on resolved policy and locally held keys",
           "id": "NF-05.16",
-          "line": 516,
+          "line": 518,
           "ordinal": 16,
-          "reports": [],
-          "review": "unreconciled"
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-zone-key-distribution.md"
+          ],
+          "review": "assessment-recorded"
         },
         {
           "body_sha256": "ab43285429a9233f22eb137f0b06379acdae0bd3018fe9b9f6db478c6dc69931",
           "heading": "NF-05.17 Web Push in the client \u2014 default off, staged, content-free",
           "id": "NF-05.17",
-          "line": 540,
+          "line": 547,
           "ordinal": 17,
           "reports": [
             "docs/estate-review/2026-11-01-forum-web-push.md"
@@ -126459,7 +126796,7 @@
       "path": "docs/diagrams/nostr-rust-forum/05-leptos-clients-onboarding-messaging-governance.md",
       "repo": "VisionFlow",
       "review": "partial-assessment-recorded",
-      "sha256": "c912d82ad42ce5acbd8e5966aadd46087b3aa0684459bcb9e54f0a7f251f10d6"
+      "sha256": "aac6d3d13920566ba3a4168dc3d4159e7a2b43e6cc747b58dd5fbd79cb429123"
     },
     {
       "claims": [],
@@ -128432,6 +128769,84 @@
       "repo": "VisionFlow",
       "review": "assessment-recorded",
       "sha256": "4d44050143a87e55e113ff76775408b134ed4d1b3d5fadd5177bbd4171af0387"
+    },
+    {
+      "claims": [
+        {
+          "basis": "Full ADR-2016 and superseded ADR-2026 section assessments and named panel dispositions; native probes and source evidence distinguished from unexecuted browser/Worker acceptance. ADR-2028 and upgrade branch excluded.",
+          "coverage": "selected-panels",
+          "panels": [
+            "NF-27.1",
+            "NF-27.2",
+            "NF-27.3",
+            "NF-27.4",
+            "NF-27.5"
+          ],
+          "report": "docs/estate-review/2026-11-01-forum-zone-key-distribution.md",
+          "state": "assessment-recorded"
+        }
+      ],
+      "panels": [
+        {
+          "body_sha256": "166d392febb116f9b67c348ae811372493e7c762ab5a3ebcb47c4de89f843ca2",
+          "heading": "NF-27.1 Rotation does not force every writer onto the new epoch",
+          "id": "NF-27.1",
+          "line": 35,
+          "ordinal": 1,
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-zone-key-distribution.md"
+          ],
+          "review": "assessment-recorded"
+        },
+        {
+          "body_sha256": "a17fc9d7e4eb72034cf655e5865f22f3b731d6918b0083383c76d2392554a007",
+          "heading": "NF-27.2 Newest-key acknowledgement can hide missing history",
+          "id": "NF-27.2",
+          "line": 56,
+          "ordinal": 2,
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-zone-key-distribution.md"
+          ],
+          "review": "assessment-recorded"
+        },
+        {
+          "body_sha256": "39d8cd9c7cc78cd9129cdce2377318c4e8529e98da56d1ef173a30bb49b6b22b",
+          "heading": "NF-27.3 Grant-ledger repair is scoped to one instance",
+          "id": "NF-27.3",
+          "line": 74,
+          "ordinal": 3,
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-zone-key-distribution.md"
+          ],
+          "review": "assessment-recorded"
+        },
+        {
+          "body_sha256": "42c77be2d60df6368579a62d421e0db99e40d4fd4431acf15e14d41c76cb6df9",
+          "heading": "NF-27.4 Account identity and zone-key custody have different lifetimes",
+          "id": "NF-27.4",
+          "line": 92,
+          "ordinal": 4,
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-zone-key-distribution.md"
+          ],
+          "review": "assessment-recorded"
+        },
+        {
+          "body_sha256": "ff8af8a1544739ebe72bd9c3f2e229fb295e31bb9c602787511cbdef6afbbb82",
+          "heading": "NF-27.5 Recovery proposal is superseded and unimplemented on main",
+          "id": "NF-27.5",
+          "line": 113,
+          "ordinal": 5,
+          "reports": [
+            "docs/estate-review/2026-11-01-forum-zone-key-distribution.md"
+          ],
+          "review": "assessment-recorded"
+        }
+      ],
+      "path": "docs/diagrams/nostr-rust-forum/27-zone-key-distribution-and-recovery.md",
+      "repo": "VisionFlow",
+      "review": "assessment-recorded",
+      "sha256": "194149165a4033f2a4bf7afc191bfa95d0e58ace4cd5d688c819629cd7aea2f3"
     },
     {
       "claims": [],

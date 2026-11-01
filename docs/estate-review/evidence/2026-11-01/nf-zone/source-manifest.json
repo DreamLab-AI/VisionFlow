@@ -1,0 +1,181 @@
+{
+  "head": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "e1f01b20bf09f14e6b96d91c5d3d955e102f62e753c9085cce8f5633e54a2b8d",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "docs/adr/ADR-2016-end-to-end-encrypted-zones.md",
+      "sha256": "1b25618d75298a61392d051d50987d70a1d369ed3536ce3d68229a3c45f3a016",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": false
+      }
+    },
+    {
+      "path": "docs/adr/ADR-2026-zone-key-recovery-master.md",
+      "sha256": "37bdd1287eaec7561eb2f7df8fbadd74b20709690906a495e85a5231e037552a",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md",
+      "sha256": "e7b66d823345645a76641003aae74e040d802b1c0cd3522fc317bd880fad9833",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs",
+      "sha256": "69c0dbdec1c3ceeabf21db304c43aeb55ee063def4a571628d18671697ed8c1e",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/zone_crypto/store.rs",
+      "sha256": "da982d943e96c2636b6ed9707214418ce4b4ec470f60206ea0e297bdec0cdf03",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/zone_crypto/auto_grant.rs",
+      "sha256": "e0ebfe90f7ce7397c1c4e46691f47444944ea30aacca34e64792364a1b8ac060",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/zone_crypto/grant_ledger.rs",
+      "sha256": "ffe2938339d86d9d8fc757b504e2b28fab28970b9176fdc7886f22cba69a49e5",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/zone_crypto/read_cache.rs",
+      "sha256": "a3a00fb68036bfb487cc14e50ca29462bc67e5850c1f83171479c0010df2f6e6",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": false
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/admin/zone_encryption.rs",
+      "sha256": "1165c6bcc3b3df2dc2816a6e6d4d2d3c79d49db2a881bc3ec6c03d86c08faaca",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/stores/indexed_db.rs",
+      "sha256": "e71e2e2e2d8bda3771a682e56be1010ca8648a3fc2955f3b6cc2644ef87febdf",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/auth/mod.rs",
+      "sha256": "f55352bf50b59b9736ecd60910b48d63c62fb1d3ba2bd4f08fc3e1452de049e5",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": false
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/app.rs",
+      "sha256": "356bf2da3b51466abeed614a45562a56d8bb766955183436d90b9e3198e1074f",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/relay.rs",
+      "sha256": "63ec7fb8896e1e54d2d73a957d6389e92563f1753bcfa47876037eb26b72d60f",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/pages/channel.rs",
+      "sha256": "523b25c48fa202728017cde70475bf4448904187230c4984cd20d86fa7743f8d",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/stores/channels.rs",
+      "sha256": "4954d77cea5becbecfa61e854f236d9af6a81d7af51c04659c036cd0d1e78f64",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-forum-client/src/components/message_bubble.rs",
+      "sha256": "a4bebcdc719ee85a6db28c2dd6b6e71c2e5487dd96b2d6a166259e9d4f93e375",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-relay-worker/src/zone_config.rs",
+      "sha256": "583c0c383d9f605695e4a3c4c1b1827c379c933e1b0b2e0a9b805e0828082401",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-config/src/schema.rs",
+      "sha256": "38e3a45d8d3f9d9b48993432cddb2ce0663a80601e600782604a5dae0cd79935",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-config/src/validate.rs",
+      "sha256": "571771e9fb14085a7850cb897f74eb64cb967c8838f338919828778a4c26fcb6",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-bbs-client/src/relay.rs",
+      "sha256": "1ffe43614109d41b7e7857e57ab8afe1d70a4cd52fd0af6718a34089986dc8d9",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    },
+    {
+      "path": "crates/nostr-bbs-bbs-client/src/screens.rs",
+      "sha256": "b7625ca720ddd72077b558005c439c7307af2ace8be4621c6195e6b981c38d9a",
+      "same_at": {
+        "1b27f79d08537b61b3d5a5d02cac9ee5999b79ed": true,
+        "9c36b60": true
+      }
+    }
+  ]
+}

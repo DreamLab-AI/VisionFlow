@@ -1,15 +1,16 @@
 {
-  "README.md": "1d1e30509150f5a511306ddb3d41f6c7aca9f1aba0a77381d269de193d004896",
-  "claims.json": "a60daf2f70ee47fa2569189fb4631dac0f56ed21fed13cc5958c154469a7c908",
+  "README.md": "993219fbd2e3a896fc3bf4952467c4aea48b7a3de8946eb37a3e155f8cbff519",
+  "claims.json": "bda1e3ab5bdfa2ed7b0e8c162d73e7fc9165b798ed70e3556b9cfc77c3b8badc",
   "scope.json": "914bc33d0b1ccdd168c7a1554deb78fc0cbdc998dfe6edddff07074a7d9b6be1",
-  "snapshot-2026-11-01.json": "0ab544162d5a02a54d9a0aef8167a3fdaebb4c9f2548105a97a9092818c3f1f9",
+  "snapshot-2026-11-01.json": "b0aeedbf9960caf6752d55947a52fef9aadc06a0e0e9e4f3bc5f12074a9ac611",
   "validation/clippy-final.log": "8f460ae6b73bf669b853447d77880e7a559c7afff6a382703cfda25faa38aaf7",
   "validation/fmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "validation/prose.log": "1874d89e5c00c85502914bcb8943633aa6890ab18c4595bc294c78b59ed21e54",
   "validation/scan-final.log": "87ce3b8b58365592300a1f8b1c041025354f5e3aa4e358df4345d0fd8ff82098",
   "validation/scan-sealed-history.log": "3b38c990b1e73248715f3c8894176b378a727737c2c1c2f992e3ee9c71216d19",
+  "validation/scan-zone-keys.log": "9a6ebad7f991302145e5f6fcb74b4883d1ec1c0145e4d0b13a1548508e7b9b95",
   "validation/tests-final.log": "edb1b9c5c09778f62b6b368e32c0ec85be07c9b461c41feaeb22086b0cff72df",
   "validation/tests-initial.log": "54ee95bd86048f9a973265517426511e900de395ccb837100ff3ec38dcf165df",
   "validation/unicode.log": "709789487c4198b5e320ce5b56f5f6a8bade9797687af98f4a98f80e040e7b59",
-  "validation-2026-11-01.json": "4cd606840ad4446334584d04d72c2553eaf1701364aad0ae96beee3472074682"
+  "validation-2026-11-01.json": "30f459d48c4a6f3e93a928df97851b998c08389b4824e1fde5ab607a8191e0a2"
 }

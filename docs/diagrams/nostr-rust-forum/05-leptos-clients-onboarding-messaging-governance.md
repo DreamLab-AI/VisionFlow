@@ -511,28 +511,35 @@ sequenceDiagram
     Note over TP: The 2.5s settle window exists because a reply can still be en route when the page first<br/>paints, re-landing during that window is what keeps the reader ON the target post thread.rs:205-206
 ```
 
-## NF-05.16 Zone end-to-end encryption — grant, encrypt, decrypt, redecrypt, and why deletion still works
+## NF-05.16 Zone encryption depends on resolved policy and locally held keys
+
+[The zone-key audit](../../estate-review/2026-11-01-forum-zone-key-distribution.md) separates tested crypto/planning behaviour from browser-only lifecycle findings. NF-27 expands rotation, delivery and recovery.
 
 ```mermaid
 flowchart TB
-    GRANT["Grant sync Effect: once NIP-42 authed, start_grant_sync pulls zone-key grants<br/>out of the member's own gift wraps nostr-bbs-forum-client/src/app.rs:795-811, store.rs:217"]
-    DISP["A grant rides the SAME kind-1059 transport as a DM; core rejects its rumor<br/>kind before DM unwrap succeeds, so dm/mod.rs never special-cases it; the grant path has its own unwrap_any,<br/>which verifies the wrap's id and signature before decrypting and returns fixed-string errors (ADR-2025) zone_crypto/mod.rs:676 zone_crypto/mod.rs:683<br/>dm/mod.rs:942-944 zone_crypto/mod.rs:87 - see NF-05.9"]
-    KEYSTORE["ZoneKeyStore.insert - new key kept, then redecrypt() runs over every<br/>cached message in that zone store.rs:105-121"]
-    WRITE["ZoneWriter::prepare on publish: encrypt when the zone is encrypted,<br/>refuse with no key, pass through a plaintext zone store.rs:480-491"]
-    INGEST["prepare_incoming on every inbound kind-42: decrypt to plaintext,<br/>or a missing-key placeholder under the SAME event id store.rs:130-144 store.rs:408-414"]
-    TOMB1["admits_message gate BEFORE prepare_incoming - a kind-5 that arrived<br/>first still suppresses the still-encrypted event channels.rs:405"]
-    TOMB2["admits_message gate AFTER prepare_incoming - a restored sealed original<br/>carries its ORIGINAL id, which is what a kind-5 tombstoned (ADR-2017)<br/>channels.rs:446"]
-    REDECRYPT["redecrypt re-runs decryption in place over channel_messages once a key<br/>arrives; a sealed placeholder that now opens is replaced by the real<br/>event, same id, so no re-fetch and no re-dedup is needed store.rs:151-181"]
-
-    GRANT --> DISP --> KEYSTORE --> REDECRYPT
-    WRITE --> INGEST
-    INGEST --> TOMB2
-    TOMB1 --> INGEST
-    KEYSTORE --> INGEST
-
-    N1["INVARIANT: a message is ALWAYS admitted through the SAME tombstone gate whether it is plaintext,<br/>freshly decrypted, or still a placeholder - encryption changes what the reader sees, never whether<br/>a deletion applies to it channels.rs:405 channels.rs:446 ADR-2017"]
-    N2["The retro BBS client never holds a zone key at all: it masks ciphertext instead of decrypting it<br/>nostr-bbs-bbs-client/src/relay.rs:79 - see NF-05.11, and refuses to compose into an encrypted board<br/>nostr-bbs-bbs-client/src/screens.rs:906-918 - see NF-05.12"]
-    N3["Dormant with the deployment gate off: keys already held keep decrypting, but no gift wrap is<br/>re-opened (which would prompt a NIP-07 signer for every DM) until encryption_enabled() is true<br/>nostr-bbs-forum-client/src/app.rs:796-800 zone_crypto/mod.rs:99"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/app.rs:795
+    G["Gate on and relay authenticated<br/>start member grant sync once per page"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs:676
+    V["Verify wrap and seal, unwrap private rumor<br/>admin authority and key-pair validation"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:279
+    K["Persist and replace zone/epoch entry<br/>conflicting public keys are not preserved"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:458
+    W["Resolve channel zone before writing<br/>unknown mapping passes plaintext through"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs:568
+    E["Mapped encrypted zone uses newest held key<br/>no key means refuse and retain draft"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/stores/channels.rs:405
+    T["Incoming event passes tombstone check<br/>then decrypt or keep placeholder"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/stores/channels.rs:446
+    I["Check restored original ID against tombstones<br/>insert with ID deduplication"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:163
+    R["Later key arrival reopens cached events<br/>ReadCache applies deletion predicate and deduplication"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/app.rs:796
+    O["Gate off stops grant sync<br/>already held keys can still decrypt"]
+    G --> V --> K --> R
+    W --> E
+    T --> I
+    K --> T
+    O --> T
 ```
 
 ## NF-05.17 Web Push in the client — default off, staged, content-free

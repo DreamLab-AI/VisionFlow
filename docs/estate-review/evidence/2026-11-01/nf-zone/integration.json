@@ -1,0 +1,97 @@
+{
+  "original_baseline": "8b24fa3f6580a41f56fbc99c4983249df11f0b30",
+  "main_advanced_to": "48de8321c6ccf20896bba95c9a90b35bc3576459",
+  "external_change": "docs/registers/sprint-2026-10-31.md only; preserved by rebase",
+  "source_checkouts": "Forum, agentbox and website heads/status unchanged; original VisionFlow modified/untracked file bytes unchanged",
+  "ledger_refresh": "Fresh collection after rebase. Counts, topic bodies and existing review claims unchanged. Eleven unreconciled VisionClaw ADR observations refreshed without assessment credit.",
+  "concurrent_changes": [
+    {
+      "repo": "VisionClaw",
+      "path": "docs/adr/ADR-2004-oxigraph-sqlite-persistence.md",
+      "sha256_before": "aeb821ed0765356f6a3cc0b742ca5f5e3bb4188f29ed847ede15e1cd8f278c5e",
+      "sha256_after": "3a2c5728d53065ab420e8eae5f31ccd56576fedc9fc0599ca4a49bda00a4a63b",
+      "headings_before": 24,
+      "headings_after": 25
+    },
+    {
+      "repo": "VisionClaw",
+      "path": "docs/adr/ADR-2005-hexagonal-crate-split.md",
+      "sha256_before": "72d747e0671e69d444c5a67c14f21d64c1c78ea3fdae8894714f06ddf6ebcc01",
+      "sha256_after": "bad2c8197f0ccd9892905444691ffe98a5b29e1193901e0a633a6560bce758a8",
+      "headings_before": 34,
+      "headings_after": 35
+    },
+    {
+      "repo": "VisionClaw",
+      "path": "docs/adr/ADR-2028-simparams-212-byte-abi.md",
+      "sha256_before": "68ddcd50a1b2eb234548d74d60e649f41044dfe9fe5035db1d3ea14cd582cf67",
+      "sha256_after": "f7201908461f358f12f63e6c0c8d65e77b08b815281ed72822e93506d1d209c4",
+      "headings_before": 13,
+      "headings_after": 14
+    },
+    {
+      "repo": "VisionClaw",
+      "path": "docs/adr/ADR-2029-force-channel-flag-derivation.md",
+      "sha256_before": "d6886e11ad0d6c78c31e25ea9ed84e9ff9a506a75eece09c57405be8568b2423",
+      "sha256_after": "e9989620fdad8a80a8edc72864b7c928a6540f9404dc78f10d9a9ea278ac7934",
+      "headings_before": 14,
+      "headings_after": 15
+    },
+    {
+      "repo": "VisionClaw",
+      "path": "docs/adr/ADR-2035-dag-rank-accepts-hierarchical-label.md",
+      "sha256_before": "cfa07566192183d5d140c67aa34dfeb926319b230814a1308827c71e04cedc11",
+      "sha256_after": "42321770fa194784f8dfc660ecc1ab2f5a7ac2b18760f8708eefa7b701c582a1",
+      "headings_before": 23,
+      "headings_after": 24
+    },
+    {
+      "repo": "VisionClaw",
+      "path": "docs/adr/ADR-2041-graph-settings-key-knowledge.md",
+      "sha256_before": "d1cad497f4f876bf59499e5bfe1c1542fb261bb784c1969db3ac814ae0a6494c",
+      "sha256_after": "c4fa8db6ec4e8241a21fc667e9a0b808a201077794c1a80278b9fe2a4042137a",
+      "headings_before": 25,
+      "headings_after": 26
+    },
+    {
+      "repo": "VisionClaw",
+      "path": "docs/adr/ADR-2055-retire-physics-v2-layout-engines.md",
+      "sha256_before": "1f006746d35188ae3a783b443629528f0c943965dcb6783a0d8b6acb962ee072",
+      "sha256_after": "f8e82f87f6adc6dd6a757ad2de1ef9145fbc95075f99017cf92568981fb5a313",
+      "headings_before": 6,
+      "headings_after": 7
+    },
+    {
+      "repo": "VisionClaw",
+      "path": "docs/adr/ADR-2127-ontology-agent-answers-distinguish-not-asserted-from-false.md",
+      "sha256_before": "ac8b5c0624b653fc901e2cb249b311d32c209b3fa4d6547239737133e65e9e37",
+      "sha256_after": "7c9f6d1f58c85e6828c97882b53a66b57f7c5cea4683002e658d31638d161231",
+      "headings_before": 10,
+      "headings_after": 11
+    },
+    {
+      "repo": "VisionClaw",
+      "path": "docs/adr/ADR-2133-live-memory-cloud-serves-a-stratified-sidecar-snapshot.md",
+      "sha256_before": "b12ef21d1aa25cf71c792e9cc1d90ea6793f6f7ddf06f5bc927160f3f688da0c",
+      "sha256_after": "379f7d25915cc1afdf4794b96001687e3287f0713578fa19a2a8fc8afbcacbd9",
+      "headings_before": 19,
+      "headings_after": 20
+    },
+    {
+      "repo": "VisionClaw",
+      "path": "docs/adr/ADR-2138-directed-cycles-are-a-server-analysis-with-one-adjacency.md",
+      "sha256_before": "aa1ea403bc24d46bf0cd84a4cec6828f9cec3c1ff915125edbf798da969f2c45",
+      "sha256_after": "1012208713269bb95295195e92519288a78c802487ebd2c90c83dff21af64279",
+      "headings_before": 7,
+      "headings_after": 8
+    },
+    {
+      "repo": "VisionClaw",
+      "path": "docs/adr/ADR-2140-physics-forces-have-one-stored-definition-and-no-scale-factors.md",
+      "sha256_before": "0462f9dd0a047e53d65d95cc7d81e5e0524695372f3f754f41ff95f321a6c9cb",
+      "sha256_after": "1ec0d5d97c5b4a64f8138f1abb772416031230a56f696b2d720d358c4aff242d",
+      "headings_before": 9,
+      "headings_after": 13
+    }
+  ]
+}

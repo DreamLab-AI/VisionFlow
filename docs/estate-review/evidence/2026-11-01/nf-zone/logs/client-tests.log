@@ -1,0 +1,51 @@
+   Compiling nostr-bbs-core v1.0.0-beta.19 (/tmp/vf-nf-zone-artifacts/forum/crates/nostr-bbs-core)
+   Compiling nostr-bbs-forum-client v1.0.0-beta.10 (/tmp/vf-nf-zone-artifacts/forum/crates/nostr-bbs-forum-client)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 59.04s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src/main.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/nostr_bbs_forum_client-5ec1ffda0703b362)
+
+running 41 tests
+test zone_crypto::grant_ledger::tests::audit_two_loaded_ledgers_overwrite_one_anothers_records ... ok
+test zone_crypto::grant_ledger::tests::load_unions_with_records_made_meanwhile ... ok
+test zone_crypto::grant_ledger::tests::failed_write_stops_without_looping ... ok
+test zone_crypto::grant_ledger::tests::sets_are_per_zone_and_epoch ... ok
+test zone_crypto::grant_ledger::tests::naive_read_modify_write_loses_concurrent_records ... ok
+test zone_crypto::grant_ledger::tests::concurrent_records_all_persist ... ok
+test zone_crypto::tests::agent_keys_zone_includes_agents ... ok
+test zone_crypto::tests::agents_are_never_grant_targets ... ok
+test zone_crypto::tests::gate_is_exact_string_true_and_ands_with_zone_flag ... ok
+test zone_crypto::tests::relay_rejection_is_explained ... ok
+test zone_crypto::tests::grant_wrap_settles_only_on_a_final_outcome ... ok
+test zone_crypto::auto_grant::tests::nobody_is_granted_twice ... ok
+test zone_crypto::auto_grant::tests::grants_the_newest_key_to_every_eligible_member_not_on_record ... ok
+test zone_crypto::auto_grant::tests::a_zone_this_device_holds_no_key_for_is_skipped ... ok
+test zone_crypto::auto_grant::tests::agents_get_the_key_only_where_the_zone_allows_it ... ok
+test zone_crypto::tests::grant_plan_empty_inputs ... ok
+test zone_crypto::tests::zk_tag_round_trips_and_rejects_malformed ... ok
+test zone_crypto::auto_grant::tests::audit_newest_ack_prevents_retry_of_missing_history ... ok
+test zone_crypto::tests::encrypted_zone_without_key_refuses_never_plaintext ... ok
+test zone_crypto::auto_grant::tests::an_allocation_grants_only_that_member ... ok
+test zone_crypto::tests::ciphertext_is_what_the_relay_accepts ... ok
+test zone_crypto::auto_grant::tests::a_late_joiner_also_gets_the_keys_they_missed ... ok
+test zone_crypto::tests::grant_plan_newest_only_without_history ... ok
+test zone_crypto::tests::author_encrypts_zone_decrypts_and_vice_versa ... ok
+test zone_crypto::tests::grant_plan_history_sends_earlier_epochs_newest_first_skipping_holders ... ok
+test zone_crypto::tests::read_path_placeholders_and_legacy ... ok
+test zone_crypto::tests::audit_stale_writer_uses_old_key_and_old_holder_can_read ... ok
+test zone_crypto::tests::grant_validation ... ok
+test zone_crypto::tests::grant_unwrap_errors_never_echo_decrypted_bytes ... ok
+test zone_crypto::read_cache::tests::json_text_in_a_live_post_is_not_mistaken_for_an_envelope ... ok
+test zone_crypto::tests::grant_unwrap_refuses_a_tampered_wrap_before_decrypting ... ok
+test zone_crypto::read_cache::tests::tampered_envelope_shows_the_undecryptable_placeholder ... ok
+test zone_crypto::read_cache::tests::sealed_envelope_is_never_a_plain_decryption ... ok
+test zone_crypto::read_cache::tests::tombstoned_original_is_not_restored ... ok
+test zone_crypto::read_cache::tests::reactions_and_replies_to_the_original_attach_to_the_restored_message ... ok
+test zone_crypto::read_cache::tests::live_encrypted_posts_are_unchanged ... ok
+test zone_crypto::read_cache::tests::envelope_with_key_held_dedupes_on_insertion ... ok
+test zone_crypto::read_cache::tests::sealed_original_round_trips_through_prepare ... ok
+test zone_crypto::read_cache::tests::placeholder_becomes_the_original_in_place_when_the_key_arrives ... ok
+test zone_crypto::tests::grant_wrap_round_trips_through_core_gift_wrap ... ok
+test zone_crypto::read_cache::tests::restored_placeholder_dedupes_against_the_plaintext_copy ... ok
+
+test result: ok. 41 passed; 0 failed; 0 ignored; 0 measured; 687 filtered out; finished in 0.05s

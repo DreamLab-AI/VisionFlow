@@ -1,0 +1,407 @@
+//! Admin "Encryption" tab: zone keys for end-to-end encrypted zones (ADR-2016).
+//!
+//! One card per zone whose `ZONE_CONFIG` entry has `"encrypted": true`:
+//! create the first key, grant it to members who are missing it, or rotate to
+//! a new epoch. Grants are NIP-59 gift wraps sealed by this admin; which
+//! members hold a key can only be known for grants sent from this device, so
+//! the card says exactly that. Agents (cohort `agent`) receive a key only in a
+//! zone configured with `agent_keys`. Granting to a member who is missing the
+//! current key can also send the earlier keys this admin holds, so someone
+//! who joins after a rotation can read the zone's history.
+//! Both actions re-read the member roster from the relay first, so a tab left
+//! open across a cohort change never grants or rotates to a stale list.
+//! Grants also go out without this tab: on allocation and at an admin's
+//! sign-in ([`crate::zone_crypto::auto_grant`]).
+
+use std::collections::HashSet;
+use std::rc::Rc;
+
+use leptos::prelude::*;
+use wasm_bindgen_futures::spawn_local;
+
+use crate::admin::use_admin;
+use crate::auth::use_auth;
+use crate::components::copy_key::CopyKey;
+use crate::relay::RelayConnection;
+use crate::stores::zones::{load_zones, Zone};
+use crate::utils::shorten_pubkey;
+use crate::zone_crypto::auto_grant::{grant_count, send_grants};
+use crate::zone_crypto::store::{try_use_zone_key_store, ZoneKeyStore};
+use crate::zone_crypto::{generate_zone_key, grant_plan, grant_targets, ZoneKey, AGENT_COHORT};
+
+fn now_secs() -> u64 {
+    (js_sys::Date::now() / 1000.0) as u64
+}
+
+/// The Encryption tab.
+#[component]
+pub fn ZoneEncryptionTab() -> impl IntoView {
+    let admin = use_admin();
+    let auth = use_auth();
+    let gate_on = crate::zone_crypto::encryption_enabled();
+    let zones: Vec<Zone> = load_zones()
+        .into_iter()
+        .filter(|z| crate::zone_crypto::zone_is_encrypted(gate_on, z.encrypted))
+        .collect();
+
+    // The member list drives grant targeting; load it if the Members tab has
+    // not been visited this session. Key actions stay disabled until it has
+    // arrived, or a quick click would grant (or rotate) to the admin alone.
+    let members_ready = RwSignal::new(!admin.state.users.with_untracked(|u| u.is_empty()));
+    if !members_ready.get_untracked() {
+        if let Some(signer) = auth.get_signer() {
+            let admin = admin.clone();
+            spawn_local(async move {
+                let _ = admin.fetch_whitelist_signer(&*signer).await;
+                let _ = members_ready.try_set(true);
+            });
+        } else {
+            members_ready.set(true);
+        }
+    }
+
+    let Some(keys) = try_use_zone_key_store() else {
+        return view! { <p class="text-sm text-gray-400">"Zone encryption is unavailable in this build."</p> }
+            .into_any();
+    };
+
+    if zones.is_empty() {
+        return view! {
+            <p class="text-sm text-gray-400">
+                "No zone is configured as encrypted. Set "
+                <code>"encrypted = true"</code>
+                " on a zone in the operator config to enable this."
+            </p>
+        }
+        .into_any();
+    }
+
+    view! {
+        <div class="space-y-6">
+            <p class="text-sm text-gray-400 max-w-3xl">
+                "Members of an encrypted zone read and write its messages with a shared zone key. \
+                 The relay only ever stores ciphertext. Grant the key to each member once; rotate it \
+                 when someone leaves so they cannot read anything posted afterwards. Agents get \
+                 a key only in zones the operator configured with agent_keys."
+            </p>
+            {zones.into_iter().map(|z| view! { <ZoneKeyCard zone=z keys=keys members_ready=members_ready /> }).collect_view()}
+        </div>
+    }
+    .into_any()
+}
+
+#[derive(Clone, PartialEq)]
+struct MemberRow {
+    pubkey: String,
+    name: String,
+    /// `name` is the abridged key (no display name or handle): rendered as a
+    /// click-to-copy key.
+    name_is_key: bool,
+    agent: bool,
+}
+
+#[component]
+fn ZoneKeyCard(zone: Zone, keys: ZoneKeyStore, members_ready: RwSignal<bool>) -> impl IntoView {
+    let admin = use_admin();
+    let auth = use_auth();
+    let relay = expect_context::<RelayConnection>();
+    let zone = StoredValue::new(zone);
+
+    let busy = RwSignal::new(false);
+    let status: RwSignal<Option<String>> = RwSignal::new(None);
+    let sent: RwSignal<HashSet<String>> = RwSignal::new(HashSet::new());
+    // Also send earlier epochs to members being granted the current key, so a
+    // late joiner can read older messages. On by default; the admin can opt out.
+    let include_history = RwSignal::new(true);
+
+    let latest = move || zone.with_value(|z| keys.latest_tracked(&z.id));
+
+    // Reload "granted from this device" whenever the current epoch changes.
+    Effect::new(move |_| {
+        let Some(key) = latest() else {
+            sent.set(HashSet::new());
+            return;
+        };
+        spawn_local(async move {
+            let s = keys.grants_sent(&key.zone, key.epoch).await;
+            sent.set(s);
+        });
+    });
+
+    let me = move || auth.pubkey().get().unwrap_or_default();
+
+    // Grants and rotations go to whoever the roster says is in the zone, so
+    // re-read it from the relay right before sending. An admin tab left open
+    // across a cohort change would otherwise act on a stale list — and hand
+    // the new key to someone excluded since the tab was opened.
+    let fresh_roster = {
+        let admin = admin.clone();
+        move |then: Box<dyn FnOnce()>| {
+            let admin = admin.clone();
+            let signer = auth.get_signer();
+            busy.set(true);
+            spawn_local(async move {
+                if let Some(signer) = signer {
+                    if let Err(e) = admin.fetch_whitelist_signer(&*signer).await {
+                        busy.set(false);
+                        status.set(Some(format!("Could not refresh the member list: {e}")));
+                        return;
+                    }
+                }
+                busy.set(false);
+                then();
+            });
+        }
+    };
+
+    let rows = move || {
+        let required = zone.with_value(|z| z.required_cohorts.clone());
+        admin.state.users.with(|users| {
+            let mut v: Vec<MemberRow> = users
+                .iter()
+                .filter(|u| u.cohorts.iter().any(|c| required.contains(c)))
+                .map(|u| MemberRow {
+                    pubkey: u.pubkey.to_ascii_lowercase(),
+                    name: u
+                        .display_name
+                        .clone()
+                        .or_else(|| u.handle.clone())
+                        .unwrap_or_else(|| shorten_pubkey(&u.pubkey)),
+                    name_is_key: u.display_name.is_none() && u.handle.is_none(),
+                    agent: !zone.with_value(|z| z.agent_keys)
+                        && u.cohorts.iter().any(|c| c == AGENT_COHORT),
+                })
+                .collect();
+            v.sort_by_key(|r| r.name.to_lowercase());
+            v
+        })
+    };
+
+    let targets = move || {
+        let required = zone.with_value(|z| z.required_cohorts.clone());
+        admin.state.users.with(|users| {
+            let members: Vec<(String, Vec<String>)> = users
+                .iter()
+                .map(|u| (u.pubkey.clone(), u.cohorts.clone()))
+                .collect();
+            grant_targets(
+                &members,
+                &required,
+                &me(),
+                zone.with_value(|z| z.agent_keys),
+            )
+        })
+    };
+
+    let missing = move || {
+        let s = sent.get();
+        targets()
+            .into_iter()
+            .filter(|pk| !s.contains(pk))
+            .collect::<Vec<_>>()
+    };
+
+    // Send each `(key, recipients)` pair: one gift wrap per recipient, recorded
+    // once the relay accepts it.
+    let grant = {
+        let relay = relay.clone();
+        move |plan: Vec<(ZoneKey, Vec<String>)>| {
+            let Some(signer) = auth.get_signer() else {
+                status.set(Some("Sign in again to grant keys.".into()));
+                return;
+            };
+            if plan.iter().all(|(_, r)| r.is_empty()) {
+                status.set(Some("Everyone eligible already has this key.".into()));
+                return;
+            }
+            let members: HashSet<&String> = plan.iter().flat_map(|(_, r)| r.iter()).collect();
+            let epochs = plan.len();
+            busy.set(true);
+            status.set(Some(format!(
+                "Granting {} key(s) to {} member(s)…",
+                epochs,
+                members.len()
+            )));
+            let relay = relay.clone();
+            spawn_local(async move {
+                let total = grant_count(&plan);
+                // The tab may be closed by the time the relay acks.
+                let on_recorded = Rc::new(move |_: &ZoneKey, pk: &str| {
+                    let _ = sent.try_update(|s| {
+                        s.insert(pk.to_string());
+                    });
+                });
+                let report = send_grants(keys, &relay, &*signer, plan, on_recorded).await;
+                let _ = busy.try_set(false);
+                let _ = status.try_set(Some(if report.failed == 0 {
+                    format!("Sent {total} grant(s). Members receive the key next time they open the forum.")
+                } else {
+                    format!("Sent {} grant(s); {} could not be built or sent — try again.", report.sent, report.failed)
+                }));
+            });
+        }
+    };
+
+    let create_or_rotate = {
+        let grant = grant.clone();
+        let fresh_roster = fresh_roster.clone();
+        move |rotate: bool| {
+            let next_epoch = latest().map(|k| k.epoch + 1).unwrap_or(1);
+            if rotate {
+                let ok = web_sys::window()
+                    .and_then(|w| {
+                        w.confirm_with_message(&format!(
+                            "Rotate to key epoch {next_epoch}? Everyone eligible gets the new key; \
+                             anyone removed from the zone cannot read messages posted after this. \
+                             Older messages stay readable with the keys members already hold."
+                        ))
+                        .ok()
+                    })
+                    .unwrap_or(false);
+                if !ok {
+                    return;
+                }
+            }
+            let grant = grant.clone();
+            fresh_roster(Box::new(move || {
+                let me = me();
+                let zone_id = zone.with_value(|z| z.id.clone());
+                match generate_zone_key(&zone_id, next_epoch, &me, now_secs()) {
+                    Ok(key) => {
+                        keys.insert(key.clone());
+                        // A new key goes to everyone eligible; they already hold
+                        // (or were already offered) the earlier ones.
+                        grant(vec![(key, targets())]);
+                    }
+                    Err(e) => status.set(Some(format!("Could not create a key: {e}"))),
+                }
+            }));
+        }
+    };
+    let create_or_rotate = StoredValue::new_local(create_or_rotate);
+    let grant = StoredValue::new_local(grant);
+    let fresh_roster = StoredValue::new_local(fresh_roster);
+
+    let title = zone.with_value(|z| {
+        if z.display_name.is_empty() {
+            z.id.clone()
+        } else {
+            z.display_name.clone()
+        }
+    });
+
+    view! {
+        <section class="bg-gray-800/60 border border-gray-700 rounded-xl p-4 space-y-4">
+            <header class="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                    <h3 class="text-white font-semibold">{title}</h3>
+                    <p class="text-xs text-gray-400">
+                        {move || match latest() {
+                            Some(k) => format!("Key epoch {} · created or received here", k.epoch),
+                            None => "No key on this device yet".to_string(),
+                        }}
+                    </p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    {move || latest().is_none().then(|| view! {
+                        <button
+                            class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-gray-900 text-sm font-semibold disabled:opacity-50"
+                            disabled=move || busy.get() || !members_ready.get()
+                            on:click=move |_| create_or_rotate.with_value(|f| f(false))
+                        >"Create key (epoch 1)"</button>
+                    })}
+                    {move || latest().map(|_| {
+                        view! {
+                            <button
+                                class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-gray-900 text-sm font-semibold disabled:opacity-50"
+                                disabled=move || busy.get() || !members_ready.get() || missing().is_empty()
+                                on:click=move |_| fresh_roster.with_value(|f| f(Box::new(move || {
+                                    let recipients = missing();
+                                    let history = include_history.get_untracked();
+                                    let zone_id = zone.with_value(|z| z.id.clone());
+                                    let held = keys.all_for_zone(&zone_id);
+                                    spawn_local(async move {
+                                        let mut earlier = std::collections::HashMap::new();
+                                        if history {
+                                            for k in &held {
+                                                earlier.insert(k.epoch, keys.grants_sent(&k.zone, k.epoch).await);
+                                            }
+                                        }
+                                        let plan = grant_plan(&held, &recipients, history, |e| {
+                                            earlier.get(&e).cloned().unwrap_or_default()
+                                        });
+                                        grant.with_value(|g| g(plan));
+                                    });
+                                })))
+                            >{move || format!("Grant to members missing it ({})", missing().len())}</button>
+                            <button
+                                class="px-3 py-1.5 rounded-lg border border-gray-600 text-gray-200 hover:bg-gray-700 text-sm disabled:opacity-50"
+                                disabled=move || busy.get() || !members_ready.get()
+                                on:click=move |_| create_or_rotate.with_value(|f| f(true))
+                            >"Rotate key"</button>
+                        }
+                    })}
+                </div>
+            </header>
+
+            {move || (latest().map(|k| k.epoch).unwrap_or(0) > 1).then(|| view! {
+                <label class="flex items-center gap-2 text-sm text-gray-300">
+                    <input
+                        type="checkbox"
+                        prop:checked=move || include_history.get()
+                        on:change=move |ev| include_history.set(event_target_checked(&ev))
+                    />
+                    "Also send earlier keys, so new members can read older messages"
+                </label>
+            })}
+
+            {move || status.get().map(|s| view! {
+                <p class="text-sm text-amber-300" role="status">{s}</p>
+            })}
+
+            <p class="text-xs text-gray-500">
+                {move || {
+                    let t = targets().len();
+                    let s = sent.with(|s| targets().iter().filter(|pk| s.contains(*pk)).count());
+                    format!("{s} of {t} eligible members granted from this device (including you).")
+                }}
+            </p>
+
+            <ul class="divide-y divide-gray-700/60 text-sm">
+                {move || {
+                    let s = sent.get();
+                    let me = me();
+                    rows().into_iter().map(|r| {
+                        let label = if r.agent {
+                            ("excluded — agent", "text-gray-500")
+                        } else if r.pubkey == me {
+                            ("you", "text-green-400")
+                        } else if s.contains(&r.pubkey) {
+                            ("granted", "text-green-400")
+                        } else {
+                            ("missing", "text-amber-400")
+                        };
+                        view! {
+                            <li class="flex items-center justify-between py-1.5 gap-3">
+                                {if r.name_is_key {
+                                    view! {
+                                        <span class="truncate text-gray-200 font-mono">
+                                            <CopyKey full=r.pubkey.clone() display=r.name.clone() />
+                                        </span>
+                                    }
+                                    .into_any()
+                                } else {
+                                    view! {
+                                        <span class="truncate text-gray-200" title=r.pubkey.clone()>{r.name.clone()}</span>
+                                    }
+                                    .into_any()
+                                }}
+                                <span class=format!("text-xs {}", label.1)>{label.0}</span>
+                            </li>
+                        }
+                    }).collect_view()
+                }}
+            </ul>
+        </section>
+    }
+}

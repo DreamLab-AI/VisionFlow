@@ -1,0 +1,78 @@
+--- a/crates/nostr-bbs-forum-client/src/zone_crypto/auto_grant.rs
++++ b/crates/nostr-bbs-forum-client/src/zone_crypto/auto_grant.rs
+@@ -452 +452,19 @@
+-}
++    #[test]
++    fn audit_newest_ack_prevents_retry_of_missing_history() {
++        let zones = [rule("zone3", "family", false)];
++        let held = held("zone3", &[1, 2]);
++        let initial = plan_missing(&zones, &members(), ME, &held, &HashMap::new(), None);
++        assert_eq!(initial.len(), 2);
++        let sent = HashMap::from([
++            (("zone3".to_string(), 2), HashSet::from([ME.to_string(), pk('b')])),
++            (("zone3".to_string(), 1), HashSet::from([ME.to_string()])),
++        ]);
++        let retry = plan_missing(&zones, &members(), ME, &held, &sent, None);
++        assert!(retry.is_empty(), "current planner drops the owed epoch-1 grant");
++        let explicit = grant_plan(&held["zone3"], &[pk('b')], true, |epoch| {
++            sent.get(&("zone3".to_string(), epoch)).cloned().unwrap_or_default()
++        });
++        assert!(explicit.iter().any(|(k, r)| k.epoch == 1 && r.contains(&pk('b'))));
++    }
++
++}
+--- a/crates/nostr-bbs-forum-client/src/zone_crypto/grant_ledger.rs
++++ b/crates/nostr-bbs-forum-client/src/zone_crypto/grant_ledger.rs
+@@ -273 +273,19 @@
+-}
++    #[test]
++    fn audit_two_loaded_ledgers_overwrite_one_anothers_records() {
++        let kv = SlowKv::default();
++        let first = GrantLedger::default();
++        let second = GrantLedger::default();
++        let recipients = pks(2);
++        futures::executor::block_on(async {
++            assert!(first.sent(&kv, "zone3", 1).await.is_empty());
++            assert!(second.sent(&kv, "zone3", 1).await.is_empty());
++            first.record(&kv, "zone3", 1, &recipients[..1]).await;
++            second.record(&kv, "zone3", 1, &recipients[1..]).await;
++            assert_eq!(kv.stored(&ledger_id("zone3", 1)), BTreeSet::from([recipients[1].clone()]));
++            assert_eq!(first.sent(&kv, "zone3", 1).await, HashSet::from([recipients[0].clone()]));
++            let reopened = GrantLedger::default();
++            assert_eq!(reopened.sent(&kv, "zone3", 1).await, HashSet::from([recipients[1].clone()]));
++        });
++    }
++
++}
+--- a/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs
++++ b/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs
+@@ -1103 +1103,14 @@
+-}
++    #[test]
++    fn audit_stale_writer_uses_old_key_and_old_holder_can_read() {
++        let author = signer();
++        let old = key_at(1);
++        let new = key_at(2);
++        let plan = write_plan(true, "Family", Some(old.clone())).unwrap();
++        let out = block_on(apply_write_plan(&plan, &author, unsigned42(&author, "new post after rotation"))).unwrap();
++        assert_eq!(parse_zk(&out.tags).unwrap().epoch, 1);
++        let event = msg(&author, &out.content, out.tags);
++        assert_eq!(decrypt_with(&event, &old).unwrap(), "new post after rotation");
++        assert!(decrypt_with(&event, &new).is_err());
++    }
++
++}
+--- a/crates/nostr-bbs-relay-worker/src/zone_config.rs
++++ b/crates/nostr-bbs-relay-worker/src/zone_config.rs
+@@ -381 +381,10 @@
+-}
++    #[test]
++    fn audit_shape_guard_accepts_old_epoch_after_new_epoch() {
++        let (old_tags, old_ct) = zk_payload();
++        let (mut new_tags, new_ct) = zk_payload();
++        new_tags[1][2] = "2".to_string();
++        assert!(is_zone_ciphertext("zone3", &new_tags, &new_ct));
++        assert!(is_zone_ciphertext("zone3", &old_tags, &old_ct));
++    }
++
++}
