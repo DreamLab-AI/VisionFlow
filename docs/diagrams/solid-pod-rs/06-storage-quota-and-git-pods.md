@@ -333,7 +333,7 @@ sequenceDiagram
     alt data_root unset
         H-->>C: 501 git requires fs-backend storage<br/>solid-pod-rs-server/src/lib.rs:4721
     end
-    alt request is a write (git-receive-pack or its info/refs discovery)
+    alt push or push discovery
         H-->>C: 403 git push is not served, before any credential is read<br/>solid-pod-rs-server/src/lib.rs:4754
     end
     H->>A: resolve did:nostr from the Basic nostr: or Nostr credential
@@ -341,17 +341,22 @@ sequenceDiagram
     H->>H: is_write separates push from clone and fetch<br/>solid-pod-rs-git/src/service.rs:128
     H->>W: enforce Read against the POD-ROOT container ACL<br/>solid-pod-rs-server/src/lib.rs:4784
     W-->>H: 401 on a private pod so the client retries with credentials
-    H->>S: GitRequest
-    S->>CGI: spawn_cgi with bounded stdin/stdout reads<br/>solid-pod-rs-git/src/service.rs:389
-    CGI-->>S: raw CGI output
-    S->>S: parse_cgi_output<br/>solid-pod-rs-git/src/service.rs:539
-    S-->>C: GitResponse plus GIT_CORS_HEADERS<br/>solid-pod-rs-git/src/service.rs:189
+    H->>S: original pod-prefixed GitRequest, service root already includes pod<br/>solid-pod-rs-server/src/lib.rs:4803
+    S->>S: extract slug and join to root again<br/>solid-pod-rs-git/src/service.rs:294<br/>solid-pod-rs-git/src/service.rs:298
+    alt selected repository absent
+        S-->>C: 404, before CGI transport<br/>solid-pod-rs-git/src/service.rs:337
+    else selected repository exists
+        S->>CGI: spawn_cgi with bounded stdin/stdout reads<br/>solid-pod-rs-git/src/service.rs:389
+        CGI-->>S: raw CGI output
+        S->>S: parse_cgi_output<br/>solid-pod-rs-git/src/service.rs:539
+        S-->>C: GitResponse plus GIT_CORS_HEADERS<br/>solid-pod-rs-git/src/service.rs:189
+    end
 
-    Note over H: Before this gate git requests went straight to the CGI: a private pod's<br/>history was anonymously clonable and pushes were anonymous. Pushes are now<br/>refused outright (estate register ER-28, owner decision 2026-10-18,<br/>solid-pod-rs-server/src/lib.rs:5342).
+    Note over H: Pushes are refused outright (estate register ER-28,<br/>solid-pod-rs-server/src/lib.rs:5342). Read admission names the root resource,<br/>not every private child or historical version in the selected repository.
     Note over S: path_safe (solid-pod-rs-git/src/guard.rs:68) and extract_repo_slug<br/>(solid-pod-rs-git/src/guard.rs:18) keep the CGI's repo argument inside repo_root.
-    Note over A: A separate owner-only `_git` control-panel REST surface (status/log/diff/<br/>stage/unstage/commit/branches/create-branch/discard) is gated by<br/>require_pod_owner_with_body — caller pubkey MUST equal the pod pubkey<br/>(solid-pod-rs-server/src/lib.rs:4125). INVARIANT: that gate is an identity<br/>equality check, not a WAC evaluation — history rewriting and discard are not<br/>delegable to a Control holder, unlike this smart-HTTP surface. validate_path<br/>(solid-pod-rs-git/src/api.rs:160) constrains every caller-supplied path before<br/>it reaches the git argv, parse_status_output (api.rs:191) parses porcelain<br/>rather than free text, and resolve_commit (api.rs:373) backs the _prov commit<br/>lookup — see SP-07.6.
+    Note over A: The separate owner-only _git control panel requires caller pubkey<br/>to equal pod pubkey. require_pod_owner_with_body is an identity check,<br/>not delegated WAC Control (solid-pod-rs-server/src/lib.rs:4125).<br/>That authority contract differs from the smart-HTTP root Read gate.
 ```
 
 **Debt:** the pre-receive path guard (`solid-pod-rs-git/src/push_guard.rs:1`) and `GitHttpService::with_push_guard` (`solid-pod-rs-git/src/service.rs:254`) ship in the git crate, but `handle_git` refuses every push before the service runs (`solid-pod-rs-server/src/lib.rs:4754`), so the server installs no guard and the code is unreachable from it.
 
-**Invariant:** every production `git` spawn goes through the hardened constructors: repo hooks, fsmonitor and ambient config are neutralised (`solid-pod-rs-git/src/hardened.rs:44`), and the CGI also runs with `core.symlinks=false` (`solid-pod-rs-git/src/service.rs:421`).
+**Boundary:** the CGI constructs a restricted environment and sets `core.symlinks=false`; this transport setup does not implement per-child or historical WAC. The [Git export assessment](../../estate-review/2026-11-01-solid-git-export-and-baseline.md) separates the root/path mismatch from export authority. Both defects must be considered before making normal clones reachable. This correction retains the topic's historical source stamp; SP-14 records the current source revision.

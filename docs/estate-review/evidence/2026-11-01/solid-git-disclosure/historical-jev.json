@@ -1,0 +1,1236 @@
+{
+  "advisory": true,
+  "flag_at": 0.9,
+  "results": [
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/storage/mod.rs:73",
+      "p_defect": 0.85,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/storage/mod.rs:108",
+      "p_defect": 0.21,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/storage/mod.rs:127",
+      "p_defect": 0.05,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/storage/fs.rs:47",
+      "p_defect": 0.05,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/storage/fs.rs:53",
+      "p_defect": 0.17,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/storage/memory.rs:45",
+      "p_defect": 0.04,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/storage/mod.rs:27",
+      "p_defect": 0.78,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/storage/mod.rs:58",
+      "p_defect": 0.15,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/storage/mod.rs:118",
+      "p_defect": 0.31,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/storage/fs.rs:350",
+      "p_defect": 0.46,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/storage/fs.rs:69",
+      "p_defect": 0.12,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/storage/fs.rs:70",
+      "p_defect": 0.45,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/storage/fs.rs:77",
+      "p_defect": 0.18,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/storage/fs.rs:81",
+      "p_defect": 0.32,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/storage/fs.rs:87",
+      "p_defect": 0.06,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/storage/fs.rs:97",
+      "p_defect": 0.36,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:3430",
+      "p_defect": 0.5,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:3481",
+      "p_defect": 0.3,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:3757",
+      "p_defect": 0.4,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:850",
+      "p_defect": 0.66,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.2",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/security/dotfile.rs:306",
+      "p_defect": 0.66,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.3",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/storage/fs.rs:53",
+      "p_defect": 0.04,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.3",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/storage/fs.rs:14",
+      "p_defect": 0.92,
+      "calibrated": true,
+      "flagged": true,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.3",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/storage/fs.rs:510",
+      "p_defect": 0.55,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.3",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/storage/fs.rs:511",
+      "p_defect": 0.86,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.4",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/storage/fs.rs:232",
+      "p_defect": 0.45,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.4",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/storage/fs.rs:111",
+      "p_defect": 0.07,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.4",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/storage/fs.rs:123",
+      "p_defect": 0.2,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.4",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/storage/fs.rs:138",
+      "p_defect": 0.2,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.4",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/storage/fs.rs:142",
+      "p_defect": 0.12,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.4",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/storage/fs.rs:255",
+      "p_defect": 0.78,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.4",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/storage/fs.rs:107",
+      "p_defect": 0.36,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.4",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/storage/fs.rs:306",
+      "p_defect": 0.21,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.4",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/storage/fs.rs:365",
+      "p_defect": 0.53,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.4",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/storage/fs.rs:374",
+      "p_defect": 0.17,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.4",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/storage/fs.rs:394",
+      "p_defect": 0.16,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.4",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/storage/memory.rs:198",
+      "p_defect": 0.53,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.6",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:2652",
+      "p_defect": 0.06,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.6",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/quota/mod.rs:105",
+      "p_defect": 0.05,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.6",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:2680",
+      "p_defect": 0.14,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.6",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:2645",
+      "p_defect": 0.47,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.6",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/quota/mod.rs:272",
+      "p_defect": 0.33,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.6",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/quota/mod.rs:55",
+      "p_defect": 0.21,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.6",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:2640",
+      "p_defect": 0.08,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.6",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/quota/mod.rs:327",
+      "p_defect": 0.37,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.6",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/quota/mod.rs:158",
+      "p_defect": 0.34,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.6",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/quota/mod.rs:85",
+      "p_defect": 0.42,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.6",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/quota/mod.rs:212",
+      "p_defect": 0.33,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.7",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/multitenant.rs:38",
+      "p_defect": 0.68,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.7",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/multitenant.rs:49",
+      "p_defect": 0.64,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.7",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/multitenant.rs:77",
+      "p_defect": 0.84,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.7",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/multitenant.rs:148-151",
+      "p_defect": 0.67,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.7",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/multitenant.rs:124",
+      "p_defect": 0.21,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.7",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/multitenant.rs:129-138",
+      "p_defect": 0.08,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.8",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:2729",
+      "p_defect": 0.1,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.8",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/cli/invite_store.rs:315",
+      "p_defect": 0.11,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.8",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:555",
+      "p_defect": 0.07,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.8",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:2806",
+      "p_defect": 0.16,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.8",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/provision.rs:207",
+      "p_defect": 0.06,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.8",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/provision.rs:340",
+      "p_defect": 0.07,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.8",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:2734",
+      "p_defect": 0.58,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.8",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:2757",
+      "p_defect": 0.51,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.8",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:555",
+      "p_defect": 0.61,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.8",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:2763",
+      "p_defect": 0.24,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.8",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:2786",
+      "p_defect": 0.2,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.8",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/provision.rs:39",
+      "p_defect": 0.1,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.8",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/provision.rs:119",
+      "p_defect": 0.43,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.8",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/provision.rs:151",
+      "p_defect": 0.15,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.8",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/provision.rs:355",
+      "p_defect": 0.53,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.8",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/provision.rs:338",
+      "p_defect": 0.2,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.8",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/provision.rs:98",
+      "p_defect": 0.17,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.8",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/provision.rs:454",
+      "p_defect": 0.73,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.9",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/security/ssrf.rs:137",
+      "p_defect": 0.06,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.9",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/security/ssrf.rs:21",
+      "p_defect": 0.43,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.9",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/security/ssrf.rs:206",
+      "p_defect": 0.21,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.9",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/security/ssrf.rs:281",
+      "p_defect": 0.05,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.9",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/security/ssrf.rs:330",
+      "p_defect": 0.14,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.9",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/security/ssrf.rs:557",
+      "p_defect": 0.26,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.9",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/metrics.rs:63",
+      "p_defect": 0.06,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.9",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:3201",
+      "p_defect": 0.48,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.9",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:3257",
+      "p_defect": 0.49,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.9",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:3379",
+      "p_defect": 0.82,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.10",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/security/cors.rs:98",
+      "p_defect": 0.06,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.10",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/security/cors.rs:166",
+      "p_defect": 0.17,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.10",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/security/cors.rs:212",
+      "p_defect": 0.08,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.10",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/security/cors.rs:239",
+      "p_defect": 0.18,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.10",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/security/cors.rs:241",
+      "p_defect": 0.21,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.10",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/security/cors.rs:243",
+      "p_defect": 0.81,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.10",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/security/cors.rs:252",
+      "p_defect": 0.49,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.10",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/security/cors.rs:177",
+      "p_defect": 0.77,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.10",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:3505",
+      "p_defect": 0.58,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.11",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-git/src/init.rs:100",
+      "p_defect": 0.16,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.11",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-git/src/config.rs:69",
+      "p_defect": 0.21,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.11",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-git/src/identity.rs:103",
+      "p_defect": 0.22,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.11",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-git/src/init.rs:76",
+      "p_defect": 0.18,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.11",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-git/src/config.rs:35",
+      "p_defect": 0.34,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.11",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-git/src/identity.rs:50",
+      "p_defect": 0.15,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.11",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-git/src/identity.rs:54",
+      "p_defect": 0.05,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.11",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-git/src/identity.rs:121",
+      "p_defect": 0.43,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.11",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-git/src/identity.rs:124",
+      "p_defect": 0.26,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.11",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-git/src/identity.rs:116-120",
+      "p_defect": 0.38,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.11",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/webid.rs:46",
+      "p_defect": 0.39,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:4703",
+      "p_defect": 0.08,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-git/src/auth.rs:115",
+      "p_defect": 0.14,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-git/src/service.rs:283",
+      "p_defect": 0.03,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-git/src/service.rs:40",
+      "p_defect": 0.03,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:4727",
+      "p_defect": 0.28,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:4721",
+      "p_defect": 0.62,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:4754",
+      "p_defect": 0.44,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:4775",
+      "p_defect": 0.38,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-git/src/service.rs:128",
+      "p_defect": 0.35,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:4784",
+      "p_defect": 0.11,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:4803",
+      "p_defect": 0.4,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-git/src/service.rs:294",
+      "p_defect": 0.38,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-git/src/service.rs:298",
+      "p_defect": 0.17,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-git/src/service.rs:337",
+      "p_defect": 0.71,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-git/src/service.rs:389",
+      "p_defect": 0.53,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-git/src/service.rs:539",
+      "p_defect": 0.09,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-git/src/service.rs:189",
+      "p_defect": 0.36,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:5342",
+      "p_defect": 0.7,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-git/src/guard.rs:68",
+      "p_defect": 0.7,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-git/src/guard.rs:18",
+      "p_defect": 0.67,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/06-storage-quota-and-git-pods.md",
+      "diagram": "SP-06.12",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:4125",
+      "p_defect": 0.48,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    }
+  ]
+}

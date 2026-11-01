@@ -1,0 +1,7 @@
+{
+  "fixture": "Copied ADR-2001 with only verified_commit changed to not-a-git-revision",
+  "exit": 0,
+  "stdout": "ok: 1 ADR(s) valid (--check, README not written)\n",
+  "stderr": "",
+  "interpretation": "Structural validation checks presence, not resolution or source freshness."
+}

@@ -1,0 +1,52 @@
+[
+  {
+    "path": "crates/solid-pod-rs/docs/archive/adr/ADR-057-lws10-oidc-delta.md",
+    "current_sha256": "9de85f070657ddc9799d19222b4c3fc696957c7f3a5e5f9ec9542156a810e4b8",
+    "before": "9de85f070657ddc9799d19222b4c3fc696957c7f3a5e5f9ec9542156a810e4b8",
+    "at_cut": {
+      "unavailable": "fatal: path 'crates/solid-pod-rs/docs/archive/adr/ADR-057-lws10-oidc-delta.md' exists on disk, but not in '0ccad60'"
+    },
+    "unchanged_at_cut": false,
+    "unchanged_since_cut": false
+  },
+  {
+    "path": "crates/solid-pod-rs/docs/archive/adr/ADR-058-jss-v060-v071-drift.md",
+    "current_sha256": "3a576da17dc24df423aae479d44676b294a13f6f63c71fa92a0cdb134a1dbe4d",
+    "before": "3a576da17dc24df423aae479d44676b294a13f6f63c71fa92a0cdb134a1dbe4d",
+    "at_cut": {
+      "unavailable": "fatal: path 'crates/solid-pod-rs/docs/archive/adr/ADR-058-jss-v060-v071-drift.md' exists on disk, but not in '0ccad60'"
+    },
+    "unchanged_at_cut": false,
+    "unchanged_since_cut": false
+  },
+  {
+    "path": "crates/solid-pod-rs/docs/archive/adr/ADR-059-provenance-primitives-block-trails-git-marks.md",
+    "current_sha256": "cb1f1dfdd0e72bec8e86fd3aebe297880ee4497fc55306c443f75d581170655a",
+    "before": "cb1f1dfdd0e72bec8e86fd3aebe297880ee4497fc55306c443f75d581170655a",
+    "at_cut": {
+      "unavailable": "fatal: path 'crates/solid-pod-rs/docs/archive/adr/ADR-059-provenance-primitives-block-trails-git-marks.md' exists on disk, but not in '0ccad60'"
+    },
+    "unchanged_at_cut": false,
+    "unchanged_since_cut": false
+  },
+  {
+    "path": "crates/solid-pod-rs/docs/archive/adr/ADR-060-gap-close-solid-pod-slice.md",
+    "current_sha256": "404e88cb82ce72489cd0c8905336fa50a39832b144da5638ef3ef522b9b1543d",
+    "before": "404e88cb82ce72489cd0c8905336fa50a39832b144da5638ef3ef522b9b1543d",
+    "at_cut": {
+      "unavailable": "fatal: path 'crates/solid-pod-rs/docs/archive/adr/ADR-060-gap-close-solid-pod-slice.md' exists on disk, but not in '0ccad60'"
+    },
+    "unchanged_at_cut": false,
+    "unchanged_since_cut": false
+  },
+  {
+    "path": "crates/solid-pod-rs/docs/archive/adr/ADR-061-lan-bitcoin-node.md",
+    "current_sha256": "6620f22908f0838489051d0eb2807f61cc54679ad6205fcf5c5d06ea102bb377",
+    "before": "bfd65a49d7e36be5f9608abaed02c939f251c2897159f2f569bf154a46c27e91",
+    "at_cut": {
+      "unavailable": "fatal: path 'crates/solid-pod-rs/docs/archive/adr/ADR-061-lan-bitcoin-node.md' exists on disk, but not in '0ccad60'"
+    },
+    "unchanged_at_cut": false,
+    "unchanged_since_cut": false
+  }
+]
