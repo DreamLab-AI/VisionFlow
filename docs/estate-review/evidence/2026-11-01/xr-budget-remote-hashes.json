@@ -1,0 +1,13 @@
+{
+  "scripts/node_lod.gd": "c1c113a7f5756d7868152519f5f39f6712a8515c5c815d7973575ed33dbf6b68",
+  "scripts/frame_budget_pass.gd": "4c6d2423a44c84eea65957214508722ec9bde70a2e3543360adf503d48c97a6f",
+  "scripts/eye_candy.gd": "1a9cb1720c4f4fc677418a2d7b03494e26d4d2fbdc80d0fe3e878a14c9ab2f12",
+  "scripts/emulated_volume.gd": "7b4058761a0103c7d541fca7c5313bb3cf82101257b0647c0b7af4676ac28cee",
+  "scripts/spatial_volume.gd": "784ee4b5e7804514bbc4dbf061cfd865130200248fa1122857346b561250f059",
+  "materials/edge_ribbon.gdshader": "a6b4786d48fd7fbb83be8f95adf313963483ca1c7433822e8f3d0b5335302601",
+  "materials/node_impostor.gdshader": "5f310b955ebe8719533d913ee841bfa9af2b6ad91cd0704096c978ecb05c2fbd",
+  "materials/ambient_mote.gdshader": "27371407216e617b2aaf931edd0e4fe10293d9d48bad9eeb01f3e80a51af4b58",
+  "materials/eye_candy_sky.gdshader": "ba35c75bce2ae8c8e15c2d83f8ee5891307d9fec7361f273fdb7dc7d38c2d4bc",
+  "materials/frame_ribbon.gdshader": "91d8844d60e5211771835ab1cdee855c31f32f4921367fa019019f5ee26f75f9",
+  "scenes/EmulatedVolume.tscn": "d3bfd699a429c2ccbf3da5d25c9826c5446c015cea53fe84204b8cb54b23349e"
+}

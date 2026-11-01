@@ -1,0 +1,30 @@
+{
+  "call_pressure": {
+    "extras": "FrameCaps { graph: GraphCaps { gem_nodes: 80, cylinder_edges: 96, max_hulls: 0 }, cloud_sprites: 0, route_tris: 0, route_ring_cap: 121, burst_slots: 0, tris_total: 29992, draw_calls: 49, extras_tier: 2, extras_tris: 72, extras_draw_calls: 0, extras_allowance: 72, over_budget: true }",
+    "observed_allowance": 72,
+    "over_budget": true,
+    "plain": "FrameCaps { graph: GraphCaps { gem_nodes: 80, cylinder_edges: 96, max_hulls: 0 }, cloud_sprites: 0, route_tris: 0, route_ring_cap: 121, burst_slots: 0, tris_total: 29920, draw_calls: 49, extras_tier: 0, extras_tris: 0, extras_draw_calls: 0, extras_allowance: 0, over_budget: true }"
+  },
+  "frame_cost": {
+    "eight": 192,
+    "nine": 192
+  },
+  "three_volume_portal_floor": {
+    "cap": 35,
+    "demands": [
+      4388,
+      4388,
+      4388
+    ],
+    "split": [
+      12,
+      12,
+      11
+    ],
+    "weights": [
+      1.0,
+      0.15,
+      0.15
+    ]
+  }
+}

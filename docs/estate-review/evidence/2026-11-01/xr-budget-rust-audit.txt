@@ -1,0 +1,8 @@
+   Compiling xr-budget-audit v0.1.0 (/home/devuser/workspace/.tmp/vf-xr-budget-_wupk2gh/xr-client/rust)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.83s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/vf-xr-budget-_wupk2gh/target/debug/deps/xr_budget_audit-40ffcec940103d38)
+
+running 1 test
+test audit::call_pressure_and_portal_floor_observations ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 151 filtered out; finished in 0.00s

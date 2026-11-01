@@ -1,0 +1,61 @@
+{
+  "files": [
+    {
+      "source": "/home/devuser/workspace/wt/VisionFlow-xr-budget/docs/diagrams/rendered/visionclaw/51-xr-visual-budget-and-engine-gates/VC-51.1.mmd",
+      "retained": "/tmp/vf-xr-budget-artifacts/rendered/visionclaw/51-xr-visual-budget-and-engine-gates/VC-51.1.mmd",
+      "sha256": "2d9b268b4d83df0c0c23b9d3b07ed74f9edb1c468e7d689014bbfa3e6faa4686"
+    },
+    {
+      "source": "/home/devuser/workspace/wt/VisionFlow-xr-budget/docs/diagrams/rendered/visionclaw/51-xr-visual-budget-and-engine-gates/VC-51.1.svg",
+      "retained": "/tmp/vf-xr-budget-artifacts/rendered/visionclaw/51-xr-visual-budget-and-engine-gates/VC-51.1.svg",
+      "sha256": "e3eb3fd55afbc22be62b4c65790a6e3053d17c6211001562b7712822f62f4d6f"
+    },
+    {
+      "source": "/home/devuser/workspace/wt/VisionFlow-xr-budget/docs/diagrams/rendered/visionclaw/51-xr-visual-budget-and-engine-gates/VC-51.4.svg",
+      "retained": "/tmp/vf-xr-budget-artifacts/rendered/visionclaw/51-xr-visual-budget-and-engine-gates/VC-51.4.svg",
+      "sha256": "ed290e8a66dcfe8b39931ab62acb6c2d85ae3442cac78fb82b70d4be8d2da028"
+    },
+    {
+      "source": "/home/devuser/workspace/wt/VisionFlow-xr-budget/docs/diagrams/rendered/visionclaw/51-xr-visual-budget-and-engine-gates/VC-51.3.svg",
+      "retained": "/tmp/vf-xr-budget-artifacts/rendered/visionclaw/51-xr-visual-budget-and-engine-gates/VC-51.3.svg",
+      "sha256": "40504f2dd78e0a386fd9256d5935ae1717451876e73ed3934026d140c8cbb0d2"
+    },
+    {
+      "source": "/home/devuser/workspace/wt/VisionFlow-xr-budget/docs/diagrams/rendered/visionclaw/51-xr-visual-budget-and-engine-gates/VC-51.3.mmd",
+      "retained": "/tmp/vf-xr-budget-artifacts/rendered/visionclaw/51-xr-visual-budget-and-engine-gates/VC-51.3.mmd",
+      "sha256": "71d8910370ec9a93309aa7c9e1d49d5ab0fb142219213f469eef77697fe931ea"
+    },
+    {
+      "source": "/home/devuser/workspace/wt/VisionFlow-xr-budget/docs/diagrams/rendered/visionclaw/51-xr-visual-budget-and-engine-gates/VC-51.2.mmd",
+      "retained": "/tmp/vf-xr-budget-artifacts/rendered/visionclaw/51-xr-visual-budget-and-engine-gates/VC-51.2.mmd",
+      "sha256": "107ca4baec1134646456654e5da1f00aa04517529a0ccea91607d11e61d34db9"
+    },
+    {
+      "source": "/home/devuser/workspace/wt/VisionFlow-xr-budget/docs/diagrams/rendered/visionclaw/51-xr-visual-budget-and-engine-gates/VC-51.4.mmd",
+      "retained": "/tmp/vf-xr-budget-artifacts/rendered/visionclaw/51-xr-visual-budget-and-engine-gates/VC-51.4.mmd",
+      "sha256": "4a1059794a1400ca7bb13541de20faa0838edcbc26abde6e81bd2af7b0b9c060"
+    },
+    {
+      "source": "/home/devuser/workspace/wt/VisionFlow-xr-budget/docs/diagrams/rendered/visionclaw/51-xr-visual-budget-and-engine-gates/VC-51.2.svg",
+      "retained": "/tmp/vf-xr-budget-artifacts/rendered/visionclaw/51-xr-visual-budget-and-engine-gates/VC-51.2.svg",
+      "sha256": "ee3e4da5d26f8e0d08ce32ca1818ef08fc85435ec6596103cd6d10cb1bf7eaba"
+    },
+    {
+      "source": "/home/devuser/workspace/wt/VisionFlow-xr-budget/texput.log",
+      "retained": "/tmp/vf-xr-budget-artifacts/generated-inputs/texput.log",
+      "sha256": "0de8dad445a514ae3bc13874d2a354c230d5395982c23ea702c3e573c3d9d304"
+    },
+    {
+      "source": "/home/devuser/workspace/wt/VisionFlow-xr-budget/website/build-receipt.json",
+      "retained": "/tmp/vf-xr-budget-artifacts/generated-inputs/website/build-receipt.json",
+      "sha256": "fae85100258804d3344673265a4fcc88781ea92f6e2c4a137bd27b48f3460711"
+    },
+    {
+      "retained": "/tmp/vf-xr-budget-final-fixture.tar.gz",
+      "sha256": "e7b04da69964f9c0646012d69d0dfef92776fa5e137fa24e73c191ce340f96e9",
+      "scope": "Complete isolated remote fixture and logs; remote directory and archive removed after hash verification"
+    }
+  ],
+  "remote_fixture_removed": true,
+  "temporary_paths_are_not_publication_urls": true
+}

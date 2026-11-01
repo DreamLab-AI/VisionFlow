@@ -1,0 +1,47 @@
+Godot Engine v4.8.beta2.official.cafc17a19 - https://godotengine.org
+
+---  GUT  ---
+[INFO]:  using [/tmp/visionflow-xr-budget.QnE5wIOz/data/godot/app_userdata/VisionFlow XR budget audit] for temporary output.
+Godot version:  4.8.0
+GUT version:  9.6.1
+
+
+res://tests/unit/test_eye_candy.gd
+* test_governor_climbs_one_tier_per_hold_on_a_quiet_gpu
+* test_governor_hold_outlasts_the_budget_pass_peak_hold
+* test_governor_steps_down_at_once_on_a_loaded_window
+* test_a_loaded_governor_never_goes_below_the_sky
+* test_governor_does_not_flap_inside_the_hysteresis_band
+* test_governor_backs_off_after_a_reversal
+* test_frame_time_mode_is_conservative_and_capped
+* test_the_probe_picks_gpu_time_only_on_a_majority_of_nonzero_readings
+* test_a_gpu_timer_that_goes_quiet_falls_back_to_frame_time
+* test_ribbon_frame_keeps_the_focus_colour_state
+* test_frames_follow_the_style_switch_and_new_volumes_inherit_it
+* test_set_frame_hidden_hides_the_frame_whatever_the_state
+* test_low_cost_turns_every_extra_off
+* test_reduced_motion_holds_the_motes_still
+* test_the_scene_environment_resource_is_never_mutated
+* test_the_extras_request_a_tier_and_are_bounded_by_the_grant
+* test_low_cost_withdraws_the_request_at_once_so_no_allowance_is_held
+* test_no_extra_reaches_for_a_post_process_or_a_screen_read
+18/18 passed.
+
+
+
+
+==============================================
+= Run Summary
+==============================================
+
+Totals
+------
+Scripts               1
+Tests                18
+Passing Tests        18
+Asserts             109
+Time              0.458s
+
+
+---- All tests passed! ----
+GUT 9.7.1:  https://github.com/bitwes/Gut/releases/tag/v9.7.1 is now available!

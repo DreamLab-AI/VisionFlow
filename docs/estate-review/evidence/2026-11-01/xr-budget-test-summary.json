@@ -1,0 +1,41 @@
+{
+  "revision": "75b72416bac176ca8fde715cac3bd7c77657b3e7",
+  "rust_existing_passed": 151,
+  "frame_budget_subset": 30,
+  "rust_audit_passed": 1,
+  "godot": {
+    "4.6.1": {
+      "retained_tests": 18,
+      "assertions": 109,
+      "guard_exit": 0
+    },
+    "4.8-beta2": {
+      "retained_tests": 18,
+      "assertions": 109,
+      "guard_exit": 0
+    }
+  },
+  "excluded_gut_tests": 7,
+  "godot_audit_observations_per_engine": 5,
+  "retained_test_statements_match": true,
+  "production_fixture_bytes_match": true,
+  "engines": [
+    "4.6.1.stable.official.14d19694e",
+    "4.8.beta2.official.cafc17a19"
+  ],
+  "not_run": [
+    "real shader renderer",
+    "native Godot extension",
+    "full client GUT suite",
+    "GPU timer measurement",
+    "headset or stereo",
+    "live session inspection",
+    "consolidated runner invocation"
+  ],
+  "setup_failures_resolved": [
+    "Rust parity fixture paths",
+    "GUT transitive script/shader preloads",
+    "remote shell expected bash; runner used explicitly",
+    "log-normalisation helper quoting corrected"
+  ]
+}

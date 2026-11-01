@@ -1,0 +1,227 @@
+{
+  "revision": "75b72416bac176ca8fde715cac3bd7c77657b3e7",
+  "scope": "Source identity for inspected/tested surfaces; not full semantic coverage of every listed file",
+  "files": [
+    {
+      "path": "client/src/features/visualisation/components/EmbeddingCloudLayer.tsx",
+      "sha256": "bdea77bb5881030ffd75546bb74dd5e5adff390a8f558368151d94bb77bdabd4",
+      "matches_revision": true
+    },
+    {
+      "path": "client/src/features/visualisation/memoryCloud/TrajectoryLayer.tsx",
+      "sha256": "2dd5c8ae860fb81ffbdd3a6cc95fb51f72782b91dca48f5370f2feddbf744ffb",
+      "matches_revision": true
+    },
+    {
+      "path": "client/src/features/visualisation/memoryCloud/cloudData.ts",
+      "sha256": "9f8eed2e452d0b918d93f5730f0f35ca6317696edf7c02ce5da1277cf75b9375",
+      "matches_revision": true
+    },
+    {
+      "path": "client/src/features/visualisation/memoryCloud/memoryCloudStore.ts",
+      "sha256": "77e693cad2661e8956c39604f1b6c958b910a8371fa9820e02c1bcd7d9847059",
+      "matches_revision": true
+    },
+    {
+      "path": "client/src/features/visualisation/memoryCloud/routeMath.ts",
+      "sha256": "f46e1948333e0d0052fc632c1d621ba3ab9be930c5ffd33de4b7a919dceffa34",
+      "matches_revision": true
+    },
+    {
+      "path": "client/src/features/visualisation/memoryCloud/types.ts",
+      "sha256": "8e99954c42d6dcad3ca125dba4f2f1158ae3c2fd63148ba9a328aba85b4ba4c5",
+      "matches_revision": true
+    },
+    {
+      "path": "client/src/features/visualisation/memoryCloud/xrRelay.ts",
+      "sha256": "1b7e8e77aeee154710a01468b9a38cb636c3c803f0ddbf405629c8b62c07d079",
+      "matches_revision": true
+    },
+    {
+      "path": "client/src/features/visualisation/memoryTrajectory/layout.ts",
+      "sha256": "01773886f9006e75f90bdd5a7a8cacbd870e57a632043b850deaed8a136ad9ac",
+      "matches_revision": true
+    },
+    {
+      "path": "docs/BASELINE-architecture.md",
+      "sha256": "49328728bf806e610b3c241950581f1ed3d53bde137f119836a2516e98224249",
+      "matches_revision": true
+    },
+    {
+      "path": "docs/XR-client.md",
+      "sha256": "73e8041be36381a3b4a49f48d673b080232783679d57cded3186638b0dc26f72",
+      "matches_revision": true
+    },
+    {
+      "path": "docs/adr/ADR-2165-the-xr-client-targets-godot-4-8-beta.md",
+      "sha256": "6c26521ed335b36b2853d17db821f018cd7f89c53ee5d64f283900d3f997e7c4",
+      "matches_revision": true
+    },
+    {
+      "path": "docs/adr/ADR-2167-the-headsets-visual-extras-are-the-allocators-last-budgeted-layer.md",
+      "sha256": "036e377f8ad1aa4edcabedd032d61ecada244ec04b7ffdeffe3c32e3403d9ee5",
+      "matches_revision": true
+    },
+    {
+      "path": "xr-client/materials/ambient_mote.gdshader",
+      "sha256": "27371407216e617b2aaf931edd0e4fe10293d9d48bad9eeb01f3e80a51af4b58",
+      "matches_revision": true
+    },
+    {
+      "path": "xr-client/materials/edge_ribbon.gdshader",
+      "sha256": "a6b4786d48fd7fbb83be8f95adf313963483ca1c7433822e8f3d0b5335302601",
+      "matches_revision": true
+    },
+    {
+      "path": "xr-client/materials/eye_candy_sky.gdshader",
+      "sha256": "ba35c75bce2ae8c8e15c2d83f8ee5891307d9fec7361f273fdb7dc7d38c2d4bc",
+      "matches_revision": true
+    },
+    {
+      "path": "xr-client/materials/frame_ribbon.gdshader",
+      "sha256": "91d8844d60e5211771835ab1cdee855c31f32f4921367fa019019f5ee26f75f9",
+      "matches_revision": true
+    },
+    {
+      "path": "xr-client/materials/memory_bead.gdshader",
+      "sha256": "cec581e51e7cbe70ea91115c3ceaee052cd4b7f8fadc86ddbcfd889dce1cd0fb",
+      "matches_revision": true
+    },
+    {
+      "path": "xr-client/materials/memory_ring.gdshader",
+      "sha256": "3e5472cb2913bcc7d3774c26d6a43aaaf3f8444a67e56ab8225aa26aadb35f1b",
+      "matches_revision": true
+    },
+    {
+      "path": "xr-client/materials/memory_route.gdshader",
+      "sha256": "fd66b12ac4ee2c1f92fbdc2da691f522d8c47f5f732c101029bfc8a2cf856ab8",
+      "matches_revision": true
+    },
+    {
+      "path": "xr-client/materials/node_impostor.gdshader",
+      "sha256": "5f310b955ebe8719533d913ee841bfa9af2b6ad91cd0704096c978ecb05c2fbd",
+      "matches_revision": true
+    },
+    {
+      "path": "xr-client/perf/benchmark.gd",
+      "sha256": "c46e0f3e70f241f0a9a107a9c992af3b51e9bacb4de50eb2557fef930b15760d",
+      "matches_revision": true
+    },
+    {
+      "path": "xr-client/perf/gpu_time_probe.gd",
+      "sha256": "a153a70536185f0b04cb06d2a817bb2ef6f7be7534a7294c5872f1a25aa1c0ba",
+      "matches_revision": true
+    },
+    {
+      "path": "xr-client/project.godot",
+      "sha256": "3bf937efaf43662a7785b1efebb04330c82b059e90c5b9e1ef1b89e7c76cf945",
+      "matches_revision": true
+    },
+    {
+      "path": "xr-client/rust/Cargo.toml",
+      "sha256": "a811458578434167535756f5c215a10bb70a669805b72514fa4a3951f232f5ab",
+      "matches_revision": true
+    },
+    {
+      "path": "xr-client/rust/src/domain_palette.rs",
+      "sha256": "2276876ab1c515a88a0f54b83eae51b01798075b6f00e66dcc9e8a25db274136",
+      "matches_revision": true
+    },
+    {
+      "path": "xr-client/rust/src/frame_budget.rs",
+      "sha256": "d675fa924eaa47a9089d816e1a364baaac25394a29226dbbc0b754cac0748a73",
+      "matches_revision": true
+    },
+    {
+      "path": "xr-client/rust/src/hulls.rs",
+      "sha256": "4d8ea3993b2767a6d1ac69bc2fe127efacc7a37bf70dbb19dd5c761ebcead6d9",
+      "matches_revision": true
+    },
+    {
+      "path": "xr-client/rust/src/lod.rs",
+      "sha256": "20f3aea01317989fc9580742a18192c3d9af90992d15cc84504efdcbac3cd48b",
+      "matches_revision": true
+    },
+    {
+      "path": "xr-client/rust/src/memory_cloud.rs",
+      "sha256": "316bb7c16b19c6068b4f98c2b9a5e0fdf5d7731ed5539a34027956cf7305750b",
+      "matches_revision": true
+    },
+    {
+      "path": "xr-client/rust/src/memory_route.rs",
+      "sha256": "cfa5e970c032a2bea70c5d1d5797299c14b0dd99fd887757c3e19ae9d0b88d17",
+      "matches_revision": true
+    },
+    {
+      "path": "xr-client/scenes/EmulatedVolume.tscn",
+      "sha256": "d3bfd699a429c2ccbf3da5d25c9826c5446c015cea53fe84204b8cb54b23349e",
+      "matches_revision": true
+    },
+    {
+      "path": "xr-client/scripts/emulated_volume.gd",
+      "sha256": "7b4058761a0103c7d541fca7c5313bb3cf82101257b0647c0b7af4676ac28cee",
+      "matches_revision": true
+    },
+    {
+      "path": "xr-client/scripts/eye_candy.gd",
+      "sha256": "1a9cb1720c4f4fc677418a2d7b03494e26d4d2fbdc80d0fe3e878a14c9ab2f12",
+      "matches_revision": true
+    },
+    {
+      "path": "xr-client/scripts/frame_budget_pass.gd",
+      "sha256": "4c6d2423a44c84eea65957214508722ec9bde70a2e3543360adf503d48c97a6f",
+      "matches_revision": true
+    },
+    {
+      "path": "xr-client/scripts/graph_scene.gd",
+      "sha256": "58b95160c2e8bd19c93dca329522f0539481509b98452af6b9a4e96b2986fec6",
+      "matches_revision": true
+    },
+    {
+      "path": "xr-client/scripts/hud.gd",
+      "sha256": "00e38f6ff47f6a79232db597f0f1b3f46dc65a314e61f96c211dfbfcfd0d20c4",
+      "matches_revision": true
+    },
+    {
+      "path": "xr-client/scripts/node_lod.gd",
+      "sha256": "c1c113a7f5756d7868152519f5f39f6712a8515c5c815d7973575ed33dbf6b68",
+      "matches_revision": true
+    },
+    {
+      "path": "xr-client/scripts/radial_menu.gd",
+      "sha256": "66fbbe7ac30719acba172270a0c0d45484129599920c3311948658e27bc46208",
+      "matches_revision": true
+    },
+    {
+      "path": "xr-client/scripts/spatial_environment.gd",
+      "sha256": "8ae0f6a8e8f4bc842c238eb4a9a5cd398fae1e9b41fc47bfe4e4d2565bb48594",
+      "matches_revision": true
+    },
+    {
+      "path": "xr-client/scripts/spatial_volume.gd",
+      "sha256": "784ee4b5e7804514bbc4dbf061cfd865130200248fa1122857346b561250f059",
+      "matches_revision": true
+    },
+    {
+      "path": "xr-client/tests/gut_guard.sh",
+      "sha256": "5edcdc650b27ab5bd65d2fe5dcd34af57c4ae1234dee5a4b467dbf9fc2f0ba92",
+      "matches_revision": true
+    },
+    {
+      "path": "xr-client/tests/unit/test_eye_candy.gd",
+      "sha256": "cd79e01d9a2619f69f45d003b4c529083ddad2114e4e2bbb86e55196d48cebcb",
+      "matches_revision": true
+    },
+    {
+      "path": "xr-client/tests/unit/test_frame_budget_pass.gd",
+      "sha256": "1d313ede994ddc0cda6e434438271dcb1c5f2c009aa65c6de1a2420a02d61dd6",
+      "matches_revision": true
+    },
+    {
+      "path": "xr-client/visionclaw_xr_gdext.gdextension",
+      "sha256": "4af4590f012dca8e4ffc192b8210560cf6f33d407662d7afbb981d310948a736",
+      "matches_revision": true
+    }
+  ],
+  "remote_production_hashes_match": true
+}

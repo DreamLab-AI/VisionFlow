@@ -1,0 +1,33 @@
+[
+  {
+    "case": "sparse_loaded_gpu",
+    "governor_elapsed": 0.222222222222222,
+    "mode": "gpu",
+    "positive_samples": 20,
+    "tier": 4,
+    "wall_seconds": 40
+  },
+  {
+    "case": "consecutive_zero_control",
+    "mode": "frame",
+    "tier": 2
+  },
+  {
+    "case": "manual_pin_bypasses_fallback_ceiling",
+    "mode": "frame",
+    "requested": 4
+  },
+  {
+    "built_triangles": 216,
+    "case": "nine_visible_frames",
+    "frames": 9,
+    "reported_triangles": 192
+  },
+  {
+    "case": "unlisted_scene_meshes",
+    "demand_calls_after": 0,
+    "demand_calls_before": 0,
+    "extra_mesh_nodes": 20,
+    "scope": "exact scene method; headless; renderer calls not measured"
+  }
+]

@@ -1,0 +1,4 @@
+{
+  "method_sha256": "b7e11b6ea405a9bc77c1559e49f4310ed53db66b73d4064afdad3d1396f2a96e",
+  "scope": "Exact GraphScene method body in a minimal class with the referenced fields; no full GraphScene/native extension"
+}

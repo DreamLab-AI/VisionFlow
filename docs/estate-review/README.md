@@ -147,3 +147,5 @@ The [1 November forum space and replication audit](2026-11-01-forum-spaces-and-r
 The [1 November mesh signer and custody audit](2026-11-01-mesh-signer-and-custody.md) reviews agentbox ADR-2162 in full. Its 65 isolated tests expose configuration/codec incompatibility and the limits of UID/kind allowlists, ID caches and backup selection; durable delivery, recovery and deployment remain prerequisites.
 
 The [1 November media audit](2026-11-01-media-measurements-and-cancellation.md) reviews ADR-2163 section by section, records 305 passing existing tests and reproduces cancellation, input-boundary, registration and receipt-shape gaps. Image, real-face and GPU qualification remain unrun.
+
+The [1 November XR budget and engine audit](2026-11-01-xr-budget-and-engine-qualification.md) reviews ADR-2167 and ADR-2165, tests sparse GPU readings and frame-cost limits, and separates live demand accounting from benchmark and stereo evidence.

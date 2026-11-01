@@ -1,0 +1,385 @@
+     Locking 13 packages to highest compatible versions
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.27
+   Compiling quote v1.0.47
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling serde_json v1.0.154
+   Compiling serde v1.0.229
+   Compiling thiserror v2.0.21
+   Compiling memchr v2.8.3
+   Compiling itoa v1.0.18
+   Compiling syn v3.0.9
+   Compiling serde_derive v1.0.229
+   Compiling thiserror-impl v2.0.21
+   Compiling xr-budget-audit v0.1.0 (/home/devuser/workspace/.tmp/vf-xr-budget-_wupk2gh/rust)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.68s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/vf-xr-budget-_wupk2gh/target/debug/deps/xr_budget_audit-40ffcec940103d38)
+
+running 151 tests
+test domain_palette::tests::backend_picks_its_palette ... ok
+test domain_palette::tests::color_mode_codes_round_trip_and_default_to_domain ... ok
+test domain_palette::tests::hsl_round_trips_every_swatch ... ok
+test frame_budget::tests::a_thinner_route_is_used_before_it_overruns ... ok
+test frame_budget::tests::a_tier_the_call_guard_refuses_returns_its_allowance_to_the_graph ... ok
+test frame_budget::tests::draw_call_overrun_is_reported_inside_the_reserve ... ok
+test frame_budget::tests::extras_tiers_cost_what_the_constants_say ... ok
+test frame_budget::tests::extras_are_held_by_the_draw_call_limit ... ok
+test frame_budget::tests::burst_pool_is_a_layer_after_the_cloud ... ok
+test frame_budget::tests::extras_are_granted_in_full_where_the_budget_allows_and_hold_back_their_cost ... ok
+test frame_budget::tests::extras_drop_first_when_the_minimums_alone_overrun ... ok
+test frame_budget::tests::hidden_cloud_and_no_route_cost_nothing ... ok
+test frame_budget::tests::faded_nodes_are_charged_the_full_mesh ... ok
+test frame_budget::tests::layers_give_way_in_priority_order ... ok
+test frame_budget::tests::impossible_graph_reports_over_budget_with_minimums ... ok
+test frame_budget::tests::production_scene_with_full_cloud_and_longest_route_fits ... ok
+test frame_budget::tests::other_triangles_are_reserved_first ... ok
+test frame_budget::tests::production_shape_grants_tier_four_for_at_most_two_gems ... ok
+test frame_budget::tests::split_near_caps_deals_floors_when_the_cap_is_short ... ok
+test frame_budget::tests::small_graph_without_memory_layers_gets_the_defaults ... ok
+test frame_budget::tests::split_near_caps_is_proportional_above_the_floor ... ok
+test frame_budget::tests::split_near_caps_redistributes_what_a_small_volume_cannot_use ... ok
+test frame_budget::tests::split_near_caps_single_volume_gets_the_whole_cap ... ok
+test frame_budget::tests::the_allowance_is_zero_under_minimum_overrun_or_pressure ... ok
+test frame_budget::tests::split_near_caps_holds_its_invariants_over_a_sweep ... ok
+test frame_budget::tests::weighted_split_keeps_the_floor_for_a_zero_weight_volume ... ok
+test frame_budget::tests::weighted_split_sanitises_bad_weights ... ok
+test frame_budget::tests::weighted_split_shares_by_drawn_times_weight ... ok
+test hulls::tests::degenerate_inputs_return_none_without_panicking ... ok
+test frame_budget::tests::the_allowance_costs_the_graph_at_most_its_size_in_gems ... ok
+test hulls::tests::cube_hull_ignores_interior_points ... ok
+test hulls::tests::grouping_prefers_cluster_id_and_never_fabricates ... ok
+test hulls::tests::hull_colours_match_the_desktop_palette ... ok
+test hulls::tests::signature_is_order_independent_and_tracks_motion ... ok
+test hulls::tests::source_codes_cycle ... ok
+test hulls::tests::grouping_drops_small_clusters_ranks_by_size_and_caps ... ok
+test lod::tests::agent_core_mesh_and_billboard_never_coexist ... ok
+test lod::tests::agent_feature_visibility_is_monotone_non_increasing ... ok
+test hulls::tests::tetrahedron_hull_is_four_outward_faces ... ok
+test lod::tests::agent_features_drop_badge_first_then_cone ... ok
+test hulls::tests::flat_cluster_is_extruded_along_its_thin_axis_like_the_desktop ... ok
+test lod::tests::classify_avatars_empty_returns_empty ... ok
+test lod::tests::classify_avatars_respects_camera_position ... ok
+test lod::tests::culled_above_30m ... ok
+test lod::tests::distance_squared_identity ... ok
+test lod::tests::distance_squared_known_vector ... ok
+test lod::tests::from_i32_clamps_out_of_range_to_culled ... ok
+test lod::tests::from_i32_round_trips_every_level ... ok
+test lod::tests::high_under_5m ... ok
+test lod::tests::low_15_to_30m ... ok
+test lod::tests::medium_5_to_15m ... ok
+test lod::tests::negative_distance_handled ... ok
+test lod::tests::squared_classify_matches_linear ... ok
+test lod::tests::tick_returns_true_every_two_frames ... ok
+test lod::tests::top_by_centrality_handles_nan_without_panic ... ok
+test lod::tests::top_by_centrality_identity_when_under_cap ... ok
+test lod::tests::top_by_centrality_picks_most_important ... ok
+test lod::tests::top_by_centrality_ties_keep_lower_index ... ok
+test memory_cloud::tests::age_colour_hits_its_stops ... ok
+test memory_cloud::tests::age_ranks_share_ties_and_span_zero_to_one ... ok
+test frame_budget::tests::weighted_split_holds_its_invariants_over_a_sweep ... ok
+test memory_cloud::tests::colour_mode_cycles ... ok
+test frame_budget::tests::a_short_burst_pool_alone_takes_no_allowance ... ok
+test memory_cloud::tests::buffer_is_stride_20_with_origin_colour_and_neutral_emphasis ... ok
+test memory_cloud::tests::empty_snapshot_is_valid ... ok
+test memory_cloud::tests::flash_prefers_namespaced_key_then_bare_key ... ok
+test frame_budget::tests::weighted_split_with_no_or_equal_weights_is_the_unweighted_split ... ok
+test memory_cloud::tests::flash_falls_back_to_at_most_three_namespace_rows ... ok
+test memory_cloud::tests::flash_with_unknown_namespace_lands_nowhere ... ok
+test memory_cloud::tests::lod_keeps_everything_under_the_cap ... ok
+test lod::tests::tick_fires_on_interval_cadence ... ok
+test memory_cloud::tests::failed_load_keeps_previous_snapshot ... ok
+test memory_cloud::tests::focus_dim_darkens_rows_off_the_route_only ... ok
+test memory_cloud::tests::null_metadata_fields_become_defaults ... ok
+test memory_cloud::tests::namespace_colours_index_the_sorted_server_list ... ok
+test memory_cloud::tests::namespace_rows_counts_sampled_rows_largest_first ... ok
+test memory_cloud::tests::lod_with_more_pins_than_cap_draws_exactly_the_pins ... ok
+test memory_cloud::tests::pick_takes_the_smallest_angle_in_front ... ok
+test memory_cloud::tests::parses_a_well_formed_snapshot_and_ignores_unknown_fields ... ok
+test memory_cloud::tests::rejects_short_positions_and_metadata ... ok
+test memory_cloud::tests::rejects_malformed_json ... ok
+test memory_cloud::tests::pinned_rows_draw_even_past_the_cap ... ok
+test memory_cloud::tests::sprite_size_matches_desktop_point_maths ... ok
+test memory_cloud::tests::sprite_triangle_circumscribes_the_disc ... ok
+test memory_cloud::tests::instance_of_row_maps_drawn_rows_and_rejects_the_rest ... ok
+test memory_cloud::tests::unavailable_backoff_doubles_without_retry_after_and_clamps ... ok
+test memory_route::tests::a_headset_query_always_replays_the_walk_even_on_the_same_hits ... ok
+test memory_cloud::tests::unlisted_category_takes_slot_zero_and_palette_cycles ... ok
+test memory_route::tests::a_picked_hit_takes_the_cue_and_leaves_the_answer_ring_plain ... ok
+test memory_cloud::tests::statuses_map_to_outcomes ... ok
+test memory_route::tests::a_repeated_route_does_not_replay_the_trace_or_the_cue ... ok
+test memory_route::tests::an_origin_route_starts_at_the_query_point_and_answers_on_the_top_hit ... ok
+test memory_route::tests::animation_traces_then_loops_and_pulses ... ok
+test memory_cloud::tests::retry_after_parses_seconds_and_http_dates ... ok
+test memory_cloud::tests::rejects_wrong_version_empty_id_and_oversize ... ok
+test memory_cloud::tests::rejects_missing_required_fields ... ok
+test memory_route::tests::beat_locks_the_pulse_and_lifts_the_glow ... ok
+test memory_route::tests::beads_pop_in_at_the_walk_scale_then_settle_to_the_line_scale ... ok
+test memory_route::tests::cue_dots_are_in_the_route_budget ... ok
+test memory_route::tests::active_route_keeps_path_and_sidecar_rows_lit ... ok
+test memory_route::tests::cue_fades_in_holds_and_fades_out ... ok
+test memory_route::tests::bead_pops_past_its_knot ... ok
+test memory_route::tests::cue_dots_run_from_the_controller_towards_the_answer ... ok
+test memory_route::tests::gate_drops_after_a_reload_that_did_not_help ... ok
+test memory_route::tests::gate_drops_out_of_range_rows_and_single_node_paths ... ok
+test memory_route::tests::gate_reloads_once_on_snapshot_mismatch ... ok
+test memory_route::tests::gate_applies_in_order_and_drops_stale ... ok
+test memory_route::tests::gate_clears_on_empty_path ... ok
+test memory_route::tests::gate_reloads_when_nothing_is_loaded ... ok
+test memory_route::tests::gradient_runs_root_white_tip ... ok
+test memory_route::tests::hit_points_draw_every_placed_hit_even_outside_the_sample ... ok
+test memory_route::tests::instance_buffers_have_fixed_counts ... ok
+test memory_route::tests::long_routes_stay_within_the_ring_cap ... ok
+test memory_route::tests::parses_the_agreed_frame ... ok
+test memory_route::tests::reduced_motion_shows_a_still_converged_route ... ok
+test memory_route::tests::query_is_truncated_and_missing_seq_is_zero ... ok
+test memory_route::tests::reduced_motion_cue_holds_still_and_never_grows_the_ring ... ok
+test memory_route::tests::reduced_motion_shows_a_static_thin_route ... ok
+test memory_route::tests::rings_and_marks_keep_the_desktop_size ... ok
+test memory_route::tests::route_samples_share_endpoints_and_hit_the_rows ... ok
+test memory_route::tests::route_with_missing_rows_sits_on_the_parent ... ok
+test memory_route::tests::rejects_malformed_routes ... ok
+test memory_route::tests::ring_cap_trades_curve_detail_for_budget ... ok
+test memory_route::tests::set_ring_cap_resamples_and_keeps_the_clock ... ok
+test memory_route::tests::the_answer_ring_and_the_cue_go_to_the_top_hit ... ok
+test memory_route::tests::the_drawing_in_segment_is_thick_behind_the_head_and_settles ... ok
+test memory_route::tests::the_gate_takes_one_row_with_an_origin_and_drops_a_bad_origin ... ok
+test memory_route::tests::the_gate_applies_a_frame_of_unsampled_hits_only ... ok
+test memory_route::tests::sidecar_stats_follow_the_desktop_accounting ... ok
+test memory_route::tests::the_walk_comet_subtends_half_a_degree_at_fifteen_metres ... ok
+test memory_route::tests::total_counts_tube_beads_and_rings ... ok
+test memory_route::tests::transport_frames_are_orthonormal_and_do_not_twist ... ok
+test memory_route::tests::longest_route_fits_its_triangle_budget ... ok
+test memory_route::tests::xr_bead_buffer_keeps_positions_alpha_count_and_thin_cue_dots ... ok
+test memory_route::tests::xr_settled_lines_are_a_tenth_and_the_walk_has_its_own_scale ... ok
+test memory_route::tests::route_mesh_has_five_layers_and_valid_indices ... ok
+test memory_route::tests::xr_settled_tube_is_the_desktop_tube_at_the_line_factors_and_the_tail_at_the_walk_factors ... ok
+test hulls::tests::random_cloud_hull_is_closed_convex_and_bounded ... ok
+test memory_cloud::tests::age_stops_match_cloud_data_ts ... FAILED
+test memory_cloud::tests::cloud_palette_matches_cloud_data_ts ... FAILED
+test memory_cloud::tests::desktop_defaults_match_embedding_cloud_layer ... FAILED
+test memory_route::tests::desktop_relay_frame_fields_are_the_parsed_ones ... FAILED
+test memory_route::tests::route_draws_above_the_scene_and_below_the_overlay ... FAILED
+test memory_route::tests::route_palette_matches_route_math_ts ... FAILED
+test memory_route::tests::trajectory_sizes_match_trajectory_layer_tsx ... FAILED
+test memory_route::tests::what_the_user_holds_draws_above_the_route_and_below_the_overlay ... FAILED
+test hulls::tests::mesh_is_one_triangle_list_within_budget_at_the_cap ... ok
+test frame_budget::tests::a_short_route_alone_takes_no_allowance ... ok
+test memory_cloud::tests::lod_respects_cap_pins_and_represents_every_namespace ... ok
+test memory_cloud::tests::twenty_thousand_rows_fit_the_triangle_budget ... ok
+test memory_cloud::tests::the_thirty_thousand_default_draws_the_cap_with_pins_always_drawn ... ok
+
+failures:
+
+---- memory_cloud::tests::age_stops_match_cloud_data_ts stdout ----
+
+thread 'memory_cloud::tests::age_stops_match_cloud_data_ts' (2935571) panicked at src/memory_cloud.rs:1318:59:
+read /home/devuser/workspace/.tmp/vf-xr-budget-_wupk2gh/rust/../../client/src/features/visualisation/memoryCloud/cloudData.ts: No such file or directory (os error 2)
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: xr_budget_audit::memory_cloud::tests::ts_source::{closure#0}
+             at ./src/memory_cloud.rs:1318:59
+   3: <core::result::Result<alloc::string::String, core::io::error::Error>>::unwrap_or_else::<xr_budget_audit::memory_cloud::tests::ts_source::{closure#0}>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/result.rs:1621:23
+   4: xr_budget_audit::memory_cloud::tests::ts_source
+             at ./src/memory_cloud.rs:1318:40
+   5: xr_budget_audit::memory_cloud::tests::age_stops_match_cloud_data_ts
+             at ./src/memory_cloud.rs:1359:19
+   6: xr_budget_audit::memory_cloud::tests::age_stops_match_cloud_data_ts::{closure#0}
+             at ./src/memory_cloud.rs:1358:39
+   7: <xr_budget_audit::memory_cloud::tests::age_stops_match_cloud_data_ts::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   8: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+---- memory_cloud::tests::cloud_palette_matches_cloud_data_ts stdout ----
+
+thread 'memory_cloud::tests::cloud_palette_matches_cloud_data_ts' (2935573) panicked at src/memory_cloud.rs:1318:59:
+read /home/devuser/workspace/.tmp/vf-xr-budget-_wupk2gh/rust/../../client/src/features/visualisation/memoryCloud/cloudData.ts: No such file or directory (os error 2)
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: xr_budget_audit::memory_cloud::tests::ts_source::{closure#0}
+             at ./src/memory_cloud.rs:1318:59
+   3: <core::result::Result<alloc::string::String, core::io::error::Error>>::unwrap_or_else::<xr_budget_audit::memory_cloud::tests::ts_source::{closure#0}>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/result.rs:1621:23
+   4: xr_budget_audit::memory_cloud::tests::ts_source
+             at ./src/memory_cloud.rs:1318:40
+   5: xr_budget_audit::memory_cloud::tests::cloud_palette_matches_cloud_data_ts
+             at ./src/memory_cloud.rs:1348:19
+   6: xr_budget_audit::memory_cloud::tests::cloud_palette_matches_cloud_data_ts::{closure#0}
+             at ./src/memory_cloud.rs:1347:45
+   7: <xr_budget_audit::memory_cloud::tests::cloud_palette_matches_cloud_data_ts::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   8: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+---- memory_cloud::tests::desktop_defaults_match_embedding_cloud_layer stdout ----
+
+thread 'memory_cloud::tests::desktop_defaults_match_embedding_cloud_layer' (2935575) panicked at src/memory_cloud.rs:1318:59:
+read /home/devuser/workspace/.tmp/vf-xr-budget-_wupk2gh/rust/../../client/src/features/visualisation/components/EmbeddingCloudLayer.tsx: No such file or directory (os error 2)
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: xr_budget_audit::memory_cloud::tests::ts_source::{closure#0}
+             at ./src/memory_cloud.rs:1318:59
+   3: <core::result::Result<alloc::string::String, core::io::error::Error>>::unwrap_or_else::<xr_budget_audit::memory_cloud::tests::ts_source::{closure#0}>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/result.rs:1621:23
+   4: xr_budget_audit::memory_cloud::tests::ts_source
+             at ./src/memory_cloud.rs:1318:40
+   5: xr_budget_audit::memory_cloud::tests::desktop_defaults_match_embedding_cloud_layer
+             at ./src/memory_cloud.rs:1377:19
+   6: xr_budget_audit::memory_cloud::tests::desktop_defaults_match_embedding_cloud_layer::{closure#0}
+             at ./src/memory_cloud.rs:1376:54
+   7: <xr_budget_audit::memory_cloud::tests::desktop_defaults_match_embedding_cloud_layer::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   8: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+---- memory_route::tests::desktop_relay_frame_fields_are_the_parsed_ones stdout ----
+
+thread 'memory_route::tests::desktop_relay_frame_fields_are_the_parsed_ones' (2935616) panicked at src/memory_route.rs:2408:59:
+read /home/devuser/workspace/.tmp/vf-xr-budget-_wupk2gh/rust/../../client/src/features/visualisation/memoryCloud/xrRelay.ts: No such file or directory (os error 2)
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: xr_budget_audit::memory_route::tests::ts_source::{closure#0}
+             at ./src/memory_route.rs:2408:59
+   3: <core::result::Result<alloc::string::String, core::io::error::Error>>::unwrap_or_else::<xr_budget_audit::memory_route::tests::ts_source::{closure#0}>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/result.rs:1621:23
+   4: xr_budget_audit::memory_route::tests::ts_source
+             at ./src/memory_route.rs:2408:40
+   5: xr_budget_audit::memory_route::tests::desktop_relay_frame_fields_are_the_parsed_ones
+             at ./src/memory_route.rs:3278:19
+   6: xr_budget_audit::memory_route::tests::desktop_relay_frame_fields_are_the_parsed_ones::{closure#0}
+             at ./src/memory_route.rs:3277:56
+   7: <xr_budget_audit::memory_route::tests::desktop_relay_frame_fields_are_the_parsed_ones::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   8: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+---- memory_route::tests::route_draws_above_the_scene_and_below_the_overlay stdout ----
+
+thread 'memory_route::tests::route_draws_above_the_scene_and_below_the_overlay' (2935636) panicked at src/memory_route.rs:3379:51:
+called `Result::unwrap()` on an `Err` value: Os { code: 2, kind: NotFound, message: "No such file or directory" }
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::result::unwrap_failed
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/result.rs:1871:5
+   3: <core::result::Result<alloc::string::String, core::io::error::Error>>::unwrap
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/result.rs:1232:23
+   4: xr_budget_audit::memory_route::tests::route_draws_above_the_scene_and_below_the_overlay
+             at ./src/memory_route.rs:3379:51
+   5: xr_budget_audit::memory_route::tests::route_draws_above_the_scene_and_below_the_overlay::{closure#0}
+             at ./src/memory_route.rs:3357:59
+   6: <xr_budget_audit::memory_route::tests::route_draws_above_the_scene_and_below_the_overlay::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   7: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+---- memory_route::tests::route_palette_matches_route_math_ts stdout ----
+
+thread 'memory_route::tests::route_palette_matches_route_math_ts' (2935638) panicked at src/memory_route.rs:2408:59:
+read /home/devuser/workspace/.tmp/vf-xr-budget-_wupk2gh/rust/../../client/src/features/visualisation/memoryCloud/routeMath.ts: No such file or directory (os error 2)
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: xr_budget_audit::memory_route::tests::ts_source::{closure#0}
+             at ./src/memory_route.rs:2408:59
+   3: <core::result::Result<alloc::string::String, core::io::error::Error>>::unwrap_or_else::<xr_budget_audit::memory_route::tests::ts_source::{closure#0}>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/result.rs:1621:23
+   4: xr_budget_audit::memory_route::tests::ts_source
+             at ./src/memory_route.rs:2408:40
+   5: xr_budget_audit::memory_route::tests::route_palette_matches_route_math_ts
+             at ./src/memory_route.rs:2423:19
+   6: xr_budget_audit::memory_route::tests::route_palette_matches_route_math_ts::{closure#0}
+             at ./src/memory_route.rs:2422:45
+   7: <xr_budget_audit::memory_route::tests::route_palette_matches_route_math_ts::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   8: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+---- memory_route::tests::trajectory_sizes_match_trajectory_layer_tsx stdout ----
+
+thread 'memory_route::tests::trajectory_sizes_match_trajectory_layer_tsx' (2935649) panicked at src/memory_route.rs:2408:59:
+read /home/devuser/workspace/.tmp/vf-xr-budget-_wupk2gh/rust/../../client/src/features/visualisation/memoryCloud/TrajectoryLayer.tsx: No such file or directory (os error 2)
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: xr_budget_audit::memory_route::tests::ts_source::{closure#0}
+             at ./src/memory_route.rs:2408:59
+   3: <core::result::Result<alloc::string::String, core::io::error::Error>>::unwrap_or_else::<xr_budget_audit::memory_route::tests::ts_source::{closure#0}>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/result.rs:1621:23
+   4: xr_budget_audit::memory_route::tests::ts_source
+             at ./src/memory_route.rs:2408:40
+   5: xr_budget_audit::memory_route::tests::trajectory_sizes_match_trajectory_layer_tsx
+             at ./src/memory_route.rs:2437:19
+   6: xr_budget_audit::memory_route::tests::trajectory_sizes_match_trajectory_layer_tsx::{closure#0}
+             at ./src/memory_route.rs:2436:53
+   7: <xr_budget_audit::memory_route::tests::trajectory_sizes_match_trajectory_layer_tsx::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   8: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+---- memory_route::tests::what_the_user_holds_draws_above_the_route_and_below_the_overlay stdout ----
+
+thread 'memory_route::tests::what_the_user_holds_draws_above_the_route_and_below_the_overlay' (2935651) panicked at src/memory_route.rs:3340:18:
+called `Result::unwrap()` on an `Err` value: Os { code: 2, kind: NotFound, message: "No such file or directory" }
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::result::unwrap_failed
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/result.rs:1871:5
+   3: <core::result::Result<alloc::string::String, core::io::error::Error>>::unwrap
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/result.rs:1232:23
+   4: xr_budget_audit::memory_route::tests::what_the_user_holds_draws_above_the_route_and_below_the_overlay::{closure#0}
+             at ./src/memory_route.rs:3340:18
+   5: xr_budget_audit::memory_route::tests::what_the_user_holds_draws_above_the_route_and_below_the_overlay
+             at ./src/memory_route.rs:3343:13
+   6: xr_budget_audit::memory_route::tests::what_the_user_holds_draws_above_the_route_and_below_the_overlay::{closure#0}
+             at ./src/memory_route.rs:3334:73
+   7: <xr_budget_audit::memory_route::tests::what_the_user_holds_draws_above_the_route_and_below_the_overlay::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   8: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+
+failures:
+    memory_cloud::tests::age_stops_match_cloud_data_ts
+    memory_cloud::tests::cloud_palette_matches_cloud_data_ts
+    memory_cloud::tests::desktop_defaults_match_embedding_cloud_layer
+    memory_route::tests::desktop_relay_frame_fields_are_the_parsed_ones
+    memory_route::tests::route_draws_above_the_scene_and_below_the_overlay
+    memory_route::tests::route_palette_matches_route_math_ts
+    memory_route::tests::trajectory_sizes_match_trajectory_layer_tsx
+    memory_route::tests::what_the_user_holds_draws_above_the_route_and_below_the_overlay
+
+test result: FAILED. 143 passed; 8 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.40s
+
+error: test failed, to rerun pass `--lib`

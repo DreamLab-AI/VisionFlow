@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_175 topic files, 1580 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_176 topic files, 1584 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -236,6 +236,7 @@ _175 topic files, 1580 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | VC-48 | [Proposed data-space federation and current release connection gates](visionclaw/48-dataspace-federation-prerequisites.md) | 3 | flowchart | [ADR-2161-a-node-publishes-data-spaces-that-peer-nodes-render-as-linked-volumes.md](../../../project/docs/adr/ADR-2161-a-node-publishes-data-spaces-that-peer-nodes-render-as-linked-volumes.md) | ADR-2021, ADR-2159, ADR-2161, ADR-2162 |
 | VC-49 | [Current presence joins and proposed room admission](visionclaw/49-room-admission.md) | 3 | flowchart | [IDENTITY-authority-chain.md](../../../project/docs/IDENTITY-authority-chain.md), [IDENTIFIER-taxonomy.md](../../../project/docs/IDENTIFIER-taxonomy.md) | ADR-2019, ADR-2157 |
 | VC-50 | [Deferred space voice and the scope of its authority proof](visionclaw/50-deferred-space-voice.md) | 3 | flowchart | [IDENTITY-authority-chain.md](../../../project/docs/IDENTITY-authority-chain.md), [XR-client.md](../../../project/docs/XR-client.md) | ADR-2157, ADR-2160 |
+| VC-51 | [XR visual budgets and engine qualification gates](visionclaw/51-xr-visual-budget-and-engine-gates.md) | 4 | flowchart | [XR-client.md](../../../project/docs/XR-client.md) | ADR-2167, ADR-2165, ADR-2159, ADR-2166 |
 
 ### agentbox
 
