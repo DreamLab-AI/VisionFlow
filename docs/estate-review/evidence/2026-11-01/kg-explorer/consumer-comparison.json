@@ -1,0 +1,26 @@
+[
+  {
+    "path": "src/workers/positionTransport.ts",
+    "same": false,
+    "knowledgeGraph_sha256": "6002d04a9108156c7d5a536ba7d947fee96b4bb7bca67356c94c7f0c4403e433",
+    "visionGraph_sha256": "5cbf5122bf416bf83b92e2446bc9bce443adc669e826d6fc959ec89c6e2b093b"
+  },
+  {
+    "path": "src/workers/physics.worker.ts",
+    "same": false,
+    "knowledgeGraph_sha256": "26ad4566cf16a4a34abca121ab89cf1a30929d02d85c2baae9f6f8917084991f",
+    "visionGraph_sha256": "46389282ad729507fd908a3ec515bb4198f2749e838f47217509c0da3ee2c125"
+  },
+  {
+    "path": "src/types/scope.ts",
+    "same": false,
+    "knowledgeGraph_sha256": "32a0645389f4ed5fb09363567c71d0ee8580635250be957286d73e43c898fc62",
+    "visionGraph_sha256": "510f7911e4d6a22c097349c54e79f3910fc497c52e6966997481635c94227acb"
+  },
+  {
+    "path": "src/api/pageService.ts",
+    "same": false,
+    "knowledgeGraph_sha256": "27d2e035b45492a0b7b228a8272c6602ef6861fe9d03d625af7966a79e161bd2",
+    "visionGraph_sha256": "6d038bce13039be97436332633815cade97df1ddf41784ab26761505827424e3"
+  }
+]

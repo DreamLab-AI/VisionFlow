@@ -1,118 +1,150 @@
 ---
 id: KG-04
-title: Explorer — NGG1 tier reader, worker transport, React SPA, and the externalised WASM crate
+title: Retained explorer — scope limits, worker transfers and publication boundary
 area: knowledgegraph
 governing:
-  - ../knowledgeGraph/docs/BASELINE-narrativegoldmine.md
+  - ../knowledgeGraph/docs/adr/ADR-2001-corpus-consolidation.md
 adrs: [ADR-2001]
 sources:
+  - ../knowledgeGraph/docs/adr/ADR-2001-corpus-consolidation.md
   - ../knowledgeGraph/explorer/modern/package.json
   - ../knowledgeGraph/explorer/modern/src/router.tsx
   - ../knowledgeGraph/explorer/modern/src/types/scope.ts
+  - ../knowledgeGraph/explorer/modern/src/stores/scopeStore.ts
   - ../knowledgeGraph/explorer/modern/src/workers/protocol.ts
+  - ../knowledgeGraph/explorer/modern/src/workers/positionTransport.ts
+  - ../knowledgeGraph/explorer/modern/src/workers/physics.worker.ts
+  - ../knowledgeGraph/explorer/modern/src/hooks/useSimulation.ts
   - ../knowledgeGraph/explorer/modern/src/api/pageService.ts
+  - ../knowledgeGraph/explorer/modern/src/components/Canvas/GraphCanvas.tsx
   - ../knowledgeGraph/explorer/FORMAT-NGG1.md
   - ../knowledgeGraph/docs/architecture/explorer.md
-  - ../knowledgeGraph/docs/BASELINE-narrativegoldmine.md
   - ../visionGraph/publishing-tools/WasmVOWL/modern/package.json
   - ../visionGraph/publishing-tools/WasmVOWL/modern/src/types/scope.ts
+  - ../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/positionTransport.ts
   - ../visionGraph/.github/workflows/publish.yml
   - ../knowledgeGraph/archive/github-workflows/build.yml
-verified_commit: {knowledgegraph: 1edcfc93de90ccff564073ef82cb198c422f75e3, visiongraph: 7b0875f2c26b9e69dc5c97e9c88166acc14c47dc}
+verified_commit: {knowledgegraph: 4ed9ac159daf402b4fb252ce559dbeb894a8d91e, visiongraph: 556a0156b5c326fb61141ed2ab1760dd8d9c4dd6}
 ---
 
-## KG-04.1 Explorer topology — MIT viewer over AGPL-built, ODbL-licensed data
+## For developers
+
+This topic distinguishes the retained knowledgeGraph viewer from visionGraph's configured publication copy. Follow the scope, transfer and page-content boundaries before reusing it; [the dated assessment](../../estate-review/2026-11-01-knowledgegraph-explorer-contracts.md) records probes and the knowledgeGraph ADR-2001 section dispositions.
+
+## For the business
+
+A successful viewer build does not establish a working browsing journey. The retained viewer can stop receiving positions and can describe an unavailable page as an unfinished concept; the configured publishing copy has a different buffer pool, so those results cannot be generalised to the public site.
+
+## KG-04.1 Retained viewer topology and legacy routing
 
 ```mermaid
 flowchart TB
-    subgraph MODERN["explorer/modern — React 19 + Vite 6 + R3F 9<br/>package.json: webvowl-modern"]
-        ROUTER["router.tsx — routes: / /page/:id /graph<br/>/search /data /about; /ontology* redirects to /graph<br/>router.tsx:35-40"]
-        GP["GraphPage — the ONLY route that pulls<br/>WASM + worker + renderer chunks<br/>router.tsx:9,37"]
-        WORKER["physics.worker.ts — drives NggExplorer"]
-    end
-    subgraph WASM["@dreamlab-ai/vowl-wasm — EXTERNAL package<br/>explorer/modern/package.json:20"]
-        NGGEXP["NggExplorer wasm_bindgen class<br/>loadCsr/tick/isFinished/positionsPtr — see VW-*"]
-    end
-    ROUTER --> GP --> WORKER --> NGGEXP
-    note1["DOC-DRIFT: BASELINE-narrativegoldmine.md:14 and architecture/explorer.md:10<br/>both cite explorer/rust-wasm/src/ngg1.rs as an IN-TREE crate. At this commit<br/>there is no rust-wasm/ directory in explorer/ at all — explorer/modern/package.json:20<br/>fetches '@dreamlab-ai/vowl-wasm' as a GitHub release TARBALL v0.1.1<br/>#40;GitHub release, not npm#41;. The reader now lives in the sibling vowl-wasm repo —<br/>EXTERNAL: see VW-* for the crate itself. DIVERGENCE: the copy that actually SHIPS<br/>to narrativegoldmine.com is a DIFFERENT tree — visionGraph's publishing-tools/<br/>WasmVOWL/modern/package.json:25 pins the same package as the v0.2.2 release tarball<br/>(WasmVOWL/modern/package.json:25), not this tarball's v0.1.1, and adds<br/>@dreamlab-ai/ontomark-graph (WasmVOWL/modern/package.json:24) — see KG-04.6 and VG-06"]
+    ROUTER["Lazy routes: home, page, graph, search, data, about<br/>router.tsx:35-41"]
+    GP["GraphPage imports the graph route<br/>router.tsx:37"]
+    WORKER["Worker creates NggExplorer<br/>physics.worker.ts:235-242"]
+    WASM["External vowl-wasm v0.1.1 release tarball<br/>explorer/modern/package.json:20"]
+    OLD["Legacy ontology path redirects to graph<br/>query string preserved; path nodeId dropped<br/>router.tsx:48-50,87-88"]
+    ROUTER --> GP --> WORKER --> WASM
+    ROUTER --> OLD
+    DRIFT["DRIFT: architecture still names an in-tree Rust crate<br/>docs/architecture/explorer.md:10<br/>ADR-2001 retains historical-absent decision lineage<br/>docs/adr/ADR-2001-corpus-consolidation.md:112"]
+    WASM -.-> DRIFT
 ```
 
-## KG-04.2 NGG1 tier data flow — fetch → parse → worker tick → instanced render
+**What it shows:** The retained SPA loads the graph through a lazy route and an external WASM package. The legacy redirect preserves query parameters but does not translate the path's node identity.
+
+**Why it is this way:** knowledgeGraph ADR-2001 preserves missing historical decisions as absent rather than inventing authority; the package pin is the current dependency evidence.
+
+## KG-04.2 Tier and transfer flow — overview is baked
 
 ```mermaid
 sequenceDiagram
-    autonumber
-    participant GP as GraphPage
-    participant SCOPE as scopeStore<br/>assertScope on every construction
-    participant WK as physics.worker.ts
-    participant NGG as NggExplorer #40;@dreamlab-ai/vowl-wasm#41;
-    participant CANVAS as GraphCanvas — orthographic, frameloop='demand'
-
-    GP->>GP: fetch tier for current URL<br/>T0 overview.json · T1 domain-*.bin · T2 ego #40;client-derived#41;
-    GP->>SCOPE: build GraphScope + RenderModel
-    SCOPE->>SCOPE: assertScope#40;#41; — throws RangeError over MAX_NODES/MAX_EDGES/FOCUS_MAX<br/>explorer/modern/src/types/scope.ts:144-155
-    SCOPE->>WK: mint NGG1 buffer #40;T0/T2 serialised client-side#41;
-    WK->>NGG: loadCsr#40;buffer#41;, then tick loop #40;16ms#41;
-    NGG-->>WK: positions #40;Float32Array over WASM linear memory#41;
-    WK->>CANVAS: transferable ping-pong #40;positionTransport.ts#41;
-    CANVAS->>CANVAS: read live buffer per frame, write instance matrices<br/>zero allocation in useFrame
-    Note over WK,CANVAS: DIVERGENCE: SharedArrayBuffer transport exists on both sides but<br/>is HARD-DISABLED — canUseSharedMemory#40;#41; unconditionally returns false<br/>#40;protocol.ts:153#41; — a half-written frame amplified to ~1e20 and blanked<br/>the view. Re-enable only behind a double-buffered SAB + Atomics flip.
+    participant S as scopeStore
+    participant H as useSimulation
+    participant W as physics worker
+    participant P as DoubleBuffer
+    S->>S: overview has no worker buffer<br/>scopeStore.ts:650-658
+    S->>H: domain tier buffer or minted focus buffer<br/>scopeStore.ts:650-658
+    H->>W: transfer a copy of the tier buffer<br/>useSimulation.ts:227-231
+    W->>W: loadCsr and publish seed<br/>physics.worker.ts:246-266
+    W->>P: acquire buffer, copy positions<br/>physics.worker.ts:166-183
+    W->>H: transfer positions buffer<br/>physics.worker.ts:183
+    H->>H: copy into stable positions view<br/>useSimulation.ts:145-155
+    H->>W: transfer returned buffer<br/>useSimulation.ts:159-160
+    W->>P: same generation: release<br/>physics.worker.ts:287-289
+    Note over W,P: DEBT: release requires original object identity<br/>explorer/modern/src/workers/positionTransport.ts:76-82<br/>A real transferred return is a new object, two sends exhaust pool
+    Note over S,W: Shared transport is disabled by default<br/>protocol.ts:153-155, overview has no simulation<br/>Rendered canvas uses demand frames: GraphCanvas.tsx:298
 ```
 
-## KG-04.3 Scope contract — the caps assertScope enforces
+**What it shows:** Worker positions cross a transfer boundary; the retained pool rejects the returned objects. A Node MessageChannel probe reproduces exhaustion, while the visionGraph counterpart reclaims four successive transfers.
 
-```mermaid
-flowchart LR
-    INV["INVARIANTS — explorer/modern/src/types/scope.ts:30-36"]
-    MN["MAX_NODES: 1500"]
-    ME["MAX_EDGES: 4000"]
-    FM["FOCUS_MAX: 300"]
-    INV --> MN & ME & FM
-    ASSERT["assertScope#40;#41; — explorer/modern/src/types/scope.ts:144<br/>throws RangeError on any over-budget scope"]
-    MN --> ASSERT
-    ME --> ASSERT
-    FM --> ASSERT
-    note1["INVARIANT: caps are named CONTRACT, not tuning — construction of a<br/>GraphScope above them must be rejected, never silently truncated<br/>(scopeStore.ts is documented as the only place a GraphScope is built)"]
-```
+**Why it is this way:** The worker uses two reusable buffers to bound allocation; its object-identity ownership check conflicts with actual transfer semantics. This is a source and transport finding, not a deployed-browser measurement.
 
-## KG-04.4 Page content — fetched by slug (structured) and by title (prose), independently
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant PS as pageService.ts
-    participant IDX as /api/search-index.json — 6 resolution strategies
-    participant PAGEAPI as api/pages/SLUG.json
-    participant MDAPI as api/markdown/TITLE.md
-    participant RAW as raw.githubusercontent.com fallback
-
-    PS->>IDX: resolve page name — exact id, ci title, labels[],<br/>IRI/suffix, camelCase, hyphen-form
-    IDX-->>PS: slug + title
-    PS->>PAGEAPI: fetch#40;/api/pages/${slug}.json#41; — pageService.ts:108
-    PS->>MDAPI: fetch#40;/api/markdown/${title}.md#41; — pageService.ts:133 TITLE-form
-    alt primary 404s
-        PS->>RAW: fallback to gh-pages raw markdown — pageService.ts:134
-    end
-    Note over PS: isValidMarkdown rejects HTML content-type, sessionStorage.setItem<br/>bodies, or a DOCTYPE — detects a static host 404-ing to index.html
-    Note over PS: DIVERGENCE: jsonld_to_page_api.py writes a SLUG-form mirror<br/>#40;api/markdown/SLUG.md#41; that pageService.ts never requests — see KG-05.3
-```
-
-## KG-04.6 This copy never ships — the deployed explorer is a DIFFERENT, diverged tree
+## KG-04.3 Scope contract — count ceilings after selection
 
 ```mermaid
 flowchart TB
-    subgraph HERE["knowledgeGraph/explorer/modern — THIS diagram's subject"]
-        HPKG["explorer/modern/package.json:20<br/>@dreamlab-ai/vowl-wasm — GitHub RELEASE TARBALL<br/>v0.1.1-pkg.tgz"]
-    end
-    subgraph SHIP["visionGraph/publishing-tools/WasmVOWL/modern — the SHIPPING tree<br/>EXTERNAL: see VG-06"]
-        SPKG["WasmVOWL/modern/package.json:25<br/>@dreamlab-ai/vowl-wasm — GitHub RELEASE TARBALL<br/>v0.2.2-pkg.tgz"]
-        SGRAPH["WasmVOWL/modern/package.json:24<br/>@dreamlab-ai/ontomark-graph 0.2.0 release tarball —<br/>shared graph rendering, replaces the local<br/>r3f / drei / d3-force-3d dependencies"]
-    end
-    BUILDYML["this repo's build.yml — RETIRED, INERT<br/>archive/github-workflows/build.yml:1<br/>moved out of .github/workflows/ #40;its ontology/ target<br/>had already moved to archive/#41; — never builds explorer/"]
-    PUBYML["visionGraph publish.yml:410<br/>'Build the explorer SPA' step builds THIS SPA — EXTERNAL VG-03.3"]
-    SITE["narrativegoldmine.com<br/>external_repository DreamLab-AI/knowledgeGraph gh-pages<br/>EXTERNAL publish.yml:519"]
-    HERE -.->|"built by NOTHING in this repo — even the retired workflow is inert"| BUILDYML
-    SHIP --> PUBYML --> SITE
-    note1["DOC-DRIFT: KG-04.1 through KG-04.4 document explorer/modern as THE explorer —<br/>accurate for what the source code says, but this copy is never built or<br/>deployed by anything in this repository, and the one workflow that once<br/>tried #40;build.yml#41; is now retired to archive/ — see VG-06 for the<br/>shipping tree's own topic. The two trees have DIVERGED on the one<br/>dependency both pin: HPKG v0.1.1 vs SPKG v0.2.2, both release tarballs"]
-    note2["DIVERGED on domains since 2026-10-01: THIS copy's DOMAIN_SLUGS has six<br/>entries, explorer/modern/src/types/scope.ts:73-80 — the shipping tree has<br/>nine, WasmVOWL/modern/src/types/scope.ts:76-86 — see VG-06.5"]
+    DOMAIN["Domain: whole at 300 or fewer nodes;<br/>otherwise collapsed categories<br/>scopeStore.ts:215-224"]
+    CUT["Expanded members are budget-truncated<br/>scopeStore.ts:303<br/>CSR edges stop at MAX_EDGES<br/>scopeStore.ts:172"]
+    FOCUS["Focus: bounded ego selection then serialisation<br/>scopeStore.ts:466-508"]
+    OVER["Overview arrays supplied by caller<br/>scopeStore.ts:512-543"]
+    ASSERT["assertScope checks upper count bounds<br/>1500 nodes; 4000 edges; focus 300<br/>explorer/modern/src/types/scope.ts:144-157"]
+    DOMAIN --> CUT --> ASSERT
+    FOCUS --> ASSERT
+    OVER --> ASSERT
+    GAP["DEBT: no finite-integer or non-negative check;<br/>no array-length or endpoint validation here<br/>explorer/modern/src/types/scope.ts:144-157<br/>Inconsistent overview arrays can be published"]
+    ASSERT --> GAP
+    URL["Unknown domain decodes to overview<br/>explorer/modern/src/types/scope.ts:206-218"]
 ```
+
+**What it shows:** Selection can truncate before the guard runs. Upper count limits are enforced, but the guard alone does not establish a structurally valid render model.
+
+**Why it is this way:** The builders bound displayed detail to keep scopes manageable; stronger data-shape guarantees must come from another boundary and are not supplied by this assertion.
+
+## KG-04.4 Page content — failure, fallback and cache boundaries
+
+```mermaid
+sequenceDiagram
+    participant P as pageService
+    participant I as search index
+    participant A as page API
+    participant M as title Markdown
+    participant G as GitHub raw
+    P->>I: fetch and resolve document<br/>pageService.ts:158-220
+    alt document matched
+        P->>A: slug JSON, awaited first<br/>pageService.ts:224
+        P->>M: title-form Markdown<br/>pageService.ts:129-133,225
+        alt non-OK, network error or invalid HTML-like body
+            P->>G: same title on gh-pages<br/>pageService.ts:134-151
+        end
+        P->>P: Markdown else definition else no-detail message<br/>pageService.ts:233-243
+    else no match or unavailable index
+        P->>P: return concept-exists stub, no page API attempt<br/>pageService.ts:267-274
+    end
+    Note over P,G: DEBT: API body is not a content fallback,<br/>successful caches have no generation expiry<br/>pageService.ts:58-59,127,158-173,233-243
+    Note over P,I: DEBT: malformed search document can throw during lookup<br/>pageService.ts:184-216<br/>Index outage is not distinguished from absent content
+```
+
+**What it shows:** Page metadata and prose are fetched sequentially after index resolution. External fallback applies beyond 404, and successful responses remain cached for the module lifetime.
+
+**Why it is this way:** The reader combines structured metadata with cleaned Markdown. Its fallback paths favour displaying something, but do not preserve the distinction between missing content and failed retrieval.
+
+## KG-04.6 Configured publisher uses a different viewer tree
+
+```mermaid
+flowchart TB
+    KG["Retained knowledgeGraph viewer<br/>vowl-wasm v0.1.1<br/>explorer/modern/package.json:20<br/>Six domains: explorer/modern/src/types/scope.ts:73-80"]
+    ARCH["Historical workflow is under archive<br/>archive/github-workflows/build.yml:1"]
+    VG["visionGraph publication copy<br/>vowl-wasm v0.2.2 and ontomark-graph v0.2.0<br/>WasmVOWL/modern/package.json:24-25<br/>Nine domains: WasmVOWL/modern/src/types/scope.ts:76-86"]
+    BUILD["Configured workflow builds visionGraph copy<br/>publish.yml:421-440"]
+    SITE["Configured destination: knowledgeGraph gh-pages<br/>narrativegoldmine.com<br/>publish.yml:528-533"]
+    POOL["Different pool reclaims transferred objects<br/>WasmVOWL/modern/src/workers/positionTransport.ts:49-94"]
+    KG -.-> ARCH
+    VG --> BUILD --> SITE
+    VG --> POOL
+    NOTE["INVARIANT: implementation findings belong to a source revision<br/>OPEN: workflow configuration does not prove a live deployment<br/>publish.yml:528-533"]
+    SITE -.-> NOTE
+```
+
+**What it shows:** The inspected publisher chooses the visionGraph tree, whose dependencies, domains and pool differ from this retained viewer. The diagram establishes configured provenance, not the currently served site revision.
+
+**Why it is this way:** knowledgeGraph ADR-2001 requires an identified consumer build. Repository names and a shared public destination do not make the two source trees interchangeable.

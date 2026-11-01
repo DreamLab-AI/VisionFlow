@@ -13,6 +13,8 @@ This review examines the VisionFlow estate as an organisational proposition, a s
 
 The source audit does not declare all optional features, upstream research or six end-to-end system journeys complete. Those implementation and acceptance obligations remain on the [master TODO](../../../project/docs/TODO-unified.md).
 
+Retained graph explorer: [five-panel review, transfer and content probes, and knowledgeGraph ADR-2001 supplement](2026-11-01-knowledgegraph-explorer-contracts.md). The configured publisher has a different, working transfer pool; retained-viewer findings and browser acceptance remain open.
+
 Nested engine corpus: [24-panel source assessment and fingerprint/streak probes](2026-11-01-dream-diagram-corpus.md). All eight owner topics are updated; all nine local ADRs have linked section assessments. Findings and runtime acceptance remain open.
 
 Execution boundaries: [candidate repair egress, triage evidence and annexe retention](2026-11-01-dream-execution-and-triage.md). This completes source assessment of AB-23’s original panels; its findings and the wider audit remain open.

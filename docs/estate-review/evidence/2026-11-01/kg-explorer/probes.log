@@ -1,0 +1,82 @@
+TAP version 13
+# Subtest: same-object pool return works as existing tests expect
+ok 1 - same-object pool return works as existing tests expect
+  ---
+  duration_ms: 0.971189
+  type: 'test'
+  ...
+# Subtest: real transferred returns are rejected and exhaust the two-buffer pool
+ok 2 - real transferred returns are rejected and exhaust the two-buffer pool
+  ---
+  duration_ms: 4.746711
+  type: 'test'
+  ...
+# Subtest: short position view retains old tail values
+ok 3 - short position view retains old tail values
+  ---
+  duration_ms: 0.271847
+  type: 'test'
+  ...
+# Subtest: scope cap rejects ordinary overflow but accepts invalid numeric counts
+ok 4 - scope cap rejects ordinary overflow but accepts invalid numeric counts
+  ---
+  duration_ms: 0.653224
+  type: 'test'
+  ...
+# Subtest: overview builder publishes inconsistent array shapes and endpoints
+ok 5 - overview builder publishes inconsistent array shapes and endpoints
+  ---
+  duration_ms: 0.44187
+  type: 'test'
+  ...
+# Subtest: unknown domain link silently becomes overview
+ok 6 - unknown domain link silently becomes overview
+  ---
+  duration_ms: 0.333947
+  type: 'test'
+  ...
+# Subtest: non-404 primary failure also triggers external markdown fallback
+ok 7 - non-404 primary failure also triggers external markdown fallback
+  ---
+  duration_ms: 27.65105
+  type: 'test'
+  ...
+# Subtest: page API body is discarded when markdown is absent
+ok 8 - page API body is discarded when markdown is absent
+  ---
+  duration_ms: 1.976992
+  type: 'test'
+  ...
+# Subtest: failed search index reports known requested slug as content stub without trying page API
+ok 9 - failed search index reports known requested slug as content stub without trying page API
+  ---
+  duration_ms: 1.843536
+  type: 'test'
+  ...
+# Subtest: successful page and index caches never observe a new generation in the same module
+ok 10 - successful page and index caches never observe a new generation in the same module
+  ---
+  duration_ms: 2.601813
+  type: 'test'
+  ...
+# Subtest: malformed search document escapes fetch boundary as a TypeError
+ok 11 - malformed search document escapes fetch boundary as a TypeError
+  ---
+  duration_ms: 2.026681
+  type: 'test'
+  ...
+# Subtest: visionGraph counterpart reclaims transferred buffers across repeated round trips
+ok 12 - visionGraph counterpart reclaims transferred buffers across repeated round trips
+  ---
+  duration_ms: 8.114214
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 135.033776

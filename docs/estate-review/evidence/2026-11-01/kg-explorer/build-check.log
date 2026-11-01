@@ -1,0 +1,36 @@
+
+> webvowl-modern@0.2.0 build:check
+> tsc -b && vite build
+
+vite v6.4.3 building for production...
+transforming...
+✓ 2151 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                             2.01 kB │ gzip:   1.01 kB
+dist/assets/physics.worker-O_zFWhvM.js      3.50 kB
+dist/assets/vowl_wasm-CWB8NafY.js          12.61 kB
+dist/assets/vowl_wasm_bg-Dq8yBIyp.wasm  1,112.26 kB │ gzip: 381.48 kB
+dist/assets/HomePage-tn0RQdqM.css           0.00 kB │ gzip:   0.02 kB
+dist/assets/PageView-BkWxxcoK.css           0.02 kB │ gzip:   0.04 kB
+dist/assets/SearchView-CLTe30pf.css         0.20 kB │ gzip:   0.15 kB
+dist/assets/GraphPage-BWsn_p18.css         13.90 kB │ gzip:   3.13 kB
+dist/assets/index-BTp0F-Op.css             67.37 kB │ gzip:  12.83 kB
+dist/assets/scope-GLj7WEjH.js               1.84 kB │ gzip:   0.80 kB
+dist/assets/useStats-BKIRXfWH.js            2.23 kB │ gzip:   0.99 kB
+dist/assets/pageMeta-D8zn4FiT.js            2.46 kB │ gzip:   1.34 kB
+dist/assets/SearchView-D1BsB6Lp.js          3.49 kB │ gzip:   1.37 kB
+dist/assets/DataPage-D9MQJaOA.js            5.07 kB │ gzip:   2.26 kB
+dist/assets/AboutPage-C7ojA9Lx.js           6.90 kB │ gzip:   2.86 kB
+dist/assets/HomePage-DxvVc60o.js            8.30 kB │ gzip:   3.04 kB
+dist/assets/fuse-DRqTZInw.js               17.95 kB │ gzip:   6.27 kB
+dist/assets/vendor-C7P63gMA.js             75.68 kB │ gzip:  24.74 kB
+dist/assets/index-CHDm--HB.js             247.94 kB │ gzip:  77.53 kB
+dist/assets/PageView-f-ppUfwH.js          393.92 kB │ gzip: 118.57 kB
+dist/assets/GraphPage-xa-ClLlX.js       1,030.53 kB │ gzip: 286.21 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 14.49s

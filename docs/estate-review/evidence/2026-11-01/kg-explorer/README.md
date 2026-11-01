@@ -1,0 +1,11 @@
+# Retained explorer evidence
+
+Pins and exact source hashes are in `sources.json`. The 12-case `probes.mjs` imports bundled source modules under `built/`; it is audit evidence, not a production test addition. All network responses in the page-service cases are mocked.
+
+To reproduce, use knowledgeGraph `4ed9ac159daf402b4fb252ce559dbeb894a8d91e` and visionGraph `556a0156b5c326fb61141ed2ab1760dd8d9c4dd6`. Provide the retained viewer's installed dependencies, including esbuild, Zustand and React. Bundle `src/api/pageService.ts`, `src/types/scope.ts`, `src/workers/positionTransport.ts` and `src/stores/scopeStore.ts` with esbuild (`bundle: true`, `platform: node`, `format: esm`), to matching paths below `built/` with extension `.mjs`. Bundle the visionGraph counterpart `src/workers/positionTransport.ts` to `built/visiongraph-transport.mjs`. Run `node probes.mjs` from this evidence directory. Bundles used in this pass are retained locally in `/tmp/vf-kg-explorer-artifacts/built`; they are not portable evidence of dependency integrity.
+
+Existing test command in knowledgeGraph `explorer/modern`: `npx vitest run src/workers/__tests__/positionTransport.test.ts src/workers/__tests__/protocol.test.ts`. Result: 18 passed, 2 files. Build command: `npm run build:check` in an isolated git archive with the existing node_modules symlinked. Node v22.23.3, Vite 6.4.3, Vitest 4.1.10, installed vowl-wasm 0.1.1. No fresh install or full frontend-suite claim.
+
+Diagram commands from VisionFlow: `VISIONFLOW_JEV=off node scripts/diagram-index-gen.cjs docs/diagrams --check --only knowledgegraph/04 --strict-citations --render`, then the whole-corpus `--strict-citations` generation and `--check --no-source-paths --check-verification` freshness gate. Local rendered SVGs are authoritative; PNG rasterisation is a review aid and can differ in font metrics. Five panels were inspected. The whole-corpus gate retains nine pre-existing allowlisted artefact citations; KG-04 uses none.
+
+External references retrieved 1 November 2026: [HTML transfer semantics](https://html.spec.whatwg.org/multipage/structured-data.html#structureddeserializewithtransfer) and [Sigma settings](https://www.sigmajs.org/reference/settings/). These support the scoped comparison in the report, not measured product performance.

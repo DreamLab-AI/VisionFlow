@@ -1,0 +1,128 @@
+[
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "docs/adr/ADR-2001-corpus-consolidation.md",
+    "sha256": "83e9fe0d288f30eec53a5a6ad041789cf7deac217a6a1dd9a28ea8dc8427b4a3",
+    "working_bytes_match": true
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/package.json",
+    "sha256": "8733c65dabde8b8f8096cd3ef346bb96496fe51771a73f51b4ed93f53c875a81",
+    "working_bytes_match": true
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/router.tsx",
+    "sha256": "d163cc0d8fe88d7c3b0f876aa756b5a25e4614d1d03e1965be9e43f669ec8a35",
+    "working_bytes_match": true
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/types/scope.ts",
+    "sha256": "32a0645389f4ed5fb09363567c71d0ee8580635250be957286d73e43c898fc62",
+    "working_bytes_match": true
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/stores/scopeStore.ts",
+    "sha256": "3f04bb98fcd0b2b56f39a1785942c3c286b145867fbd0e48f69106ea0926bd36",
+    "working_bytes_match": true
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/workers/protocol.ts",
+    "sha256": "e1994fc9b2e89be8d8ded4b2307e37d4ebd1bd6846e1e2dd52d82ca76ed2888e",
+    "working_bytes_match": true
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/workers/positionTransport.ts",
+    "sha256": "6002d04a9108156c7d5a536ba7d947fee96b4bb7bca67356c94c7f0c4403e433",
+    "working_bytes_match": true
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/workers/physics.worker.ts",
+    "sha256": "26ad4566cf16a4a34abca121ab89cf1a30929d02d85c2baae9f6f8917084991f",
+    "working_bytes_match": true
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/hooks/useSimulation.ts",
+    "sha256": "131066021214de9ecd6c8a6206dac09f56c4a7b70ae9fb0b517e14bc9ca0ac5d",
+    "working_bytes_match": true
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/api/pageService.ts",
+    "sha256": "27d2e035b45492a0b7b228a8272c6602ef6861fe9d03d625af7966a79e161bd2",
+    "working_bytes_match": true
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/modern/src/components/Canvas/GraphCanvas.tsx",
+    "sha256": "35dc1943992d1b3d8f25cb65d48486585187ad888a4c3d5befb2a477be36138e",
+    "working_bytes_match": true
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "explorer/FORMAT-NGG1.md",
+    "sha256": "1f4e04ac91f42c8ec9a903f2935935029b35ef11f05739d99f35e8dfb88bc1ea",
+    "working_bytes_match": true
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "docs/architecture/explorer.md",
+    "sha256": "9821100e87e026a968502590bc596ae0b9f55eb2c456b4bd42d04f9dc23dfc42",
+    "working_bytes_match": true
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/package.json",
+    "sha256": "45fdb68c3d8a4a331aab14971c8cee63670679be052fbd218ec4a57ce89f42e3",
+    "working_bytes_match": true
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/types/scope.ts",
+    "sha256": "510f7911e4d6a22c097349c54e79f3910fc497c52e6966997481635c94227acb",
+    "working_bytes_match": true
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": "publishing-tools/WasmVOWL/modern/src/workers/positionTransport.ts",
+    "sha256": "5cbf5122bf416bf83b92e2446bc9bce443adc669e826d6fc959ec89c6e2b093b",
+    "working_bytes_match": true
+  },
+  {
+    "repo": "visionGraph",
+    "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+    "path": ".github/workflows/publish.yml",
+    "sha256": "7508b63c8b591b8f915a1f9651ce0b270160198f72d80bdb2292bedba6e9bd7c",
+    "working_bytes_match": true
+  },
+  {
+    "repo": "knowledgeGraph",
+    "revision": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+    "path": "archive/github-workflows/build.yml",
+    "sha256": "41fe0f4ebce52fb8da7e99b82758616209db3b5294da912eda0084297a28a3da",
+    "working_bytes_match": true
+  }
+]

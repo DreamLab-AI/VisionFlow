@@ -1,0 +1,9 @@
+
+ RUN  v4.1.10 /home/devuser/workspace/knowledgeGraph/explorer/modern
+
+
+ Test Files  2 passed (2)
+      Tests  18 passed (18)
+   Start at  04:00:46
+   Duration  1.12s (transform 257ms, setup 473ms, import 136ms, tests 27ms, environment 1.23s)
+
