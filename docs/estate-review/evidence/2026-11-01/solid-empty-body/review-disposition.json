@@ -1,0 +1,15 @@
+{
+  "review": "deepsec",
+  "result": "PASS at HIGH threshold",
+  "findings": 1,
+  "dispositions": [
+    {
+      "title": "GitLenient URL prefix match lacks path-segment boundary",
+      "status": "known-confirmed-open",
+      "existing_id": "SP-ID-03",
+      "net_new_tool_flag_corrected": true,
+      "basis": "Same starts_with branch at baseline and repaired source; reproduced in previous identity probe; not a WAC/push bypass claim."
+    }
+  ],
+  "scope": "Changed nip98.rs; route test untracked during review, manually reviewed and executed separately"
+}

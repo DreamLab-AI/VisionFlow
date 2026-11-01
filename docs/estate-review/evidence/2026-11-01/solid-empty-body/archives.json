@@ -1,0 +1,21 @@
+{
+  "product_worktree_artifacts": {
+    "path": "/tmp/vf-solid-empty-body/product-worktree-artifacts.tar.gz",
+    "sha256": "cd6fa36110c747ecdca6c7f2381bc0ee031d9afd934325333f9ecf9fdbb7cae9",
+    "contents": [
+      ".deepsec-gate",
+      ".claude-flow"
+    ],
+    "purpose": "Preserved ignored tool artefacts before removing merged product worktree"
+  },
+  "diagram_renders": {
+    "path": "/tmp/vf-solid-empty-body/diagram-renders.tar.gz",
+    "sha256": "23e7a09af331aea2745b61091fb55abf0334f0d2467d71b1f2ac66719a2e55ab",
+    "contents": [
+      "SP-11.1.mmd",
+      "SP-11.1.svg"
+    ],
+    "visual_review": "Final raster inspected; citation labels shortened to prevent overflow."
+  },
+  "discarded_build_cache": "scripts/estate-review-ledger/target contains regenerable compilation output only"
+}

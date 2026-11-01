@@ -1,0 +1,94 @@
+   Compiling solid-pod-rs v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-empty-body/crates/solid-pod-rs)
+   Compiling solid-pod-rs-idp v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-empty-body/crates/solid-pod-rs-idp)
+   Compiling solid-pod-rs-server v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-empty-body/crates/solid-pod-rs-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 22.51s
+     Running unittests src/lib.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/solid_pod_rs-6ed0414cef827e11)
+
+running 4 tests
+test wac::anchor::tests::deserialize_from_json_empty_body ... ok
+test auth::nip98::tests::mint_with_payload_binds_empty_body ... FAILED
+test auth::nip98::tests::requires_payload_tag_for_supplied_empty_body ... FAILED
+test auth::nip98::tests::rejects_payload_removal_to_empty_body ... FAILED
+
+failures:
+
+---- auth::nip98::tests::mint_with_payload_binds_empty_body stdout ----
+
+thread 'auth::nip98::tests::mint_with_payload_binds_empty_body' (215702) panicked at crates/solid-pod-rs/src/auth/nip98.rs:824:9:
+assertion `left == right` failed
+  left: None
+ right: Some("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::panicking::assert_failed_inner
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:452:17
+   3: core::panicking::assert_failed::<core::option::Option<&str>, core::option::Option<&str>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/panicking.rs:407:5
+   4: solid_pod_rs::auth::nip98::tests::mint_with_payload_binds_empty_body
+             at ./src/auth/nip98.rs:824:9
+   5: solid_pod_rs::auth::nip98::tests::mint_with_payload_binds_empty_body::{closure#0}
+             at ./src/auth/nip98.rs:818:44
+   6: <solid_pod_rs::auth::nip98::tests::mint_with_payload_binds_empty_body::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   7: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+---- auth::nip98::tests::requires_payload_tag_for_supplied_empty_body stdout ----
+
+thread 'auth::nip98::tests::requires_payload_tag_for_supplied_empty_body' (215704) panicked at crates/solid-pod-rs/src/auth/nip98.rs:810:72:
+called `Result::unwrap_err()` on an `Ok` value: Nip98Verified { pubkey: "24653eac434488002cc06bbfb7f10fe18991e35f9fe4302dbea6d2353dc0ab1c", url: "https://a/b", method: "PUT", payload_hash: None, created_at: 1700000000, event_id: "4c8b1bdb1fefb876637a51b5a1cc2e90d27179ebb732cbcff8988920d0cb5b0c" }
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::result::unwrap_failed
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/result.rs:1871:5
+   3: <core::result::Result<solid_pod_rs::auth::nip98::Nip98Verified, solid_pod_rs::error::PodError>>::unwrap_err
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/result.rs:1328:22
+   4: solid_pod_rs::auth::nip98::tests::requires_payload_tag_for_supplied_empty_body
+             at ./src/auth/nip98.rs:810:72
+   5: solid_pod_rs::auth::nip98::tests::requires_payload_tag_for_supplied_empty_body::{closure#0}
+             at ./src/auth/nip98.rs:806:54
+   6: <solid_pod_rs::auth::nip98::tests::requires_payload_tag_for_supplied_empty_body::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   7: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+---- auth::nip98::tests::rejects_payload_removal_to_empty_body stdout ----
+
+thread 'auth::nip98::tests::rejects_payload_removal_to_empty_body' (215703) panicked at crates/solid-pod-rs/src/auth/nip98.rs:801:72:
+called `Result::unwrap_err()` on an `Ok` value: Nip98Verified { pubkey: "24653eac434488002cc06bbfb7f10fe18991e35f9fe4302dbea6d2353dc0ab1c", url: "https://a/b", method: "PUT", payload_hash: Some("0682c5f2076f099c34cfdd15a9e063849ed437a49677e6fcc5b4198c76575be5"), created_at: 1700000000, event_id: "03407aca67433669333b66ddb0d7dcacd49cbe05df0d51ef3265b8e66dee0919" }
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::result::unwrap_failed
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/result.rs:1871:5
+   3: <core::result::Result<solid_pod_rs::auth::nip98::Nip98Verified, solid_pod_rs::error::PodError>>::unwrap_err
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/result.rs:1328:22
+   4: solid_pod_rs::auth::nip98::tests::rejects_payload_removal_to_empty_body
+             at ./src/auth/nip98.rs:801:72
+   5: solid_pod_rs::auth::nip98::tests::rejects_payload_removal_to_empty_body::{closure#0}
+             at ./src/auth/nip98.rs:797:47
+   6: <solid_pod_rs::auth::nip98::tests::rejects_payload_removal_to_empty_body::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   7: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+
+failures:
+    auth::nip98::tests::mint_with_payload_binds_empty_body
+    auth::nip98::tests::rejects_payload_removal_to_empty_body
+    auth::nip98::tests::requires_payload_tag_for_supplied_empty_body
+
+test result: FAILED. 1 passed; 3 failed; 0 ignored; 0 measured; 499 filtered out; finished in 0.08s
+
+error: test failed, to rerun pass `-p solid-pod-rs --lib`

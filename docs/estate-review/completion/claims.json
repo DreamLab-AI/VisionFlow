@@ -2583,5 +2583,18 @@
       "SP-05.4",
       "SP-05.5"
     ]
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/solid-pod-rs/11-empty-body-binding.md",
+    "source_sha256": "620410cc45756e8dbcaa2e35308b1f8f65dd26aa8a5fb40a334549c8a262665f",
+    "report": "docs/estate-review/2026-11-01-solid-empty-body-repair.md",
+    "report_sha256": "31621016b74e6650571936a093b5168fe6cdb3afaad90d5357b3eb25f80981c1",
+    "coverage": "selected-panels",
+    "panels": [
+      "SP-11.1"
+    ],
+    "basis": "Merged producer body-binding repair; actual private PUT regression and three core regressions pass. Eleven source citations, render and visual review. No additional ADR, release or deployment credit."
   }
 ]

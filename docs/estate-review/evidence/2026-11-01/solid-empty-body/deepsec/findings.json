@@ -1,0 +1,54 @@
+[
+  {
+    "title": "[MEDIUM] GitLenient URL prefix match lacks path-segment boundary",
+    "description": "**File:** [`crates/solid-pod-rs/src/auth/nip98.rs`](https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/nip98-empty-body/blob/fix/crates/solid-pod-rs/src/auth/nip98.rs#L168-L395) (lines 168, 395)\n**Project:** solid-pod-empty-body\n**Severity:** MEDIUM  •  **Confidence:** medium  •  **Slug:** `other-scope-boundary`\n\n## Owners\n\n**Suggested assignee:** `github@xrsystems.uk` _(via last-committer)_\n\n## Finding\n\nUnder MatchPolicy::GitLenient the URL binding is accepted when `e.starts_with(t)` (line 168), where `t` is the normalized token URL (trailing slash trimmed) and `e` the normalized request URL. This is a raw string prefix test with no path-separator boundary. A token scoped to `https://pod.example/alice/repo` therefore also satisfies the scope check for sibling paths that merely share a character prefix, e.g. `https://pod.example/alice/repo-backup/...` or `https://pod.example/alice/repository/...`, not just true sub-paths like `…/repo/info/refs`. normalize_url (line 395-397) only trims trailing slashes, so the trimmed base has no trailing `/` to force a boundary. The signing pubkey is still cryptographically verified, so this is a scope-binding (defence-in-depth) weakening rather than a full auth bypass: the git bridge's single static token is meant to cover exactly one repo's smart-protocol sub-paths, but it will also authenticate requests to adjacent repo paths sharing the prefix. The existing test only covers a different top-level user (bob vs alice) and does not exercise the sibling-prefix case.\n\n## Recommendation\n\nRequire a true path boundary for the lenient case, e.g. accept only when `e == t || e.starts_with(&format!(\"{t}/\"))`, so `…/repo` matches `…/repo/...` but not `…/repo-backup`.\n\n## Recent committers (`git log`)\n\n- Dr John O'Hare <github@xrsystems.uk> (2026-10-29)\n- Claude Code <noreply@anthropic.com> (2026-08-20)\n- jjohare <github@thedreamlab.uk> (2026-07-10)",
+    "severity": "MEDIUM",
+    "labels": [
+      "security",
+      "project:solid-pod-empty-body",
+      "severity:MEDIUM",
+      "slug:other-scope-boundary",
+      "confidence:medium"
+    ],
+    "assignee": "github@xrsystems.uk",
+    "metadata": {
+      "projectId": "solid-pod-empty-body",
+      "filePath": "crates/solid-pod-rs/src/auth/nip98.rs",
+      "lineNumbers": [
+        168,
+        395
+      ],
+      "severity": "MEDIUM",
+      "vulnSlug": "other-scope-boundary",
+      "confidence": "medium",
+      "discoveredAt": "2026-11-01T19:40:00.043Z",
+      "runId": "20261101193846-0a618b465df99272",
+      "githubUrl": "https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/nip98-empty-body/blob/fix/crates/solid-pod-rs/src/auth/nip98.rs#L168-L395",
+      "owners": {
+        "assignee": "github@xrsystems.uk",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Dr John O'Hare",
+            "email": "github@xrsystems.uk",
+            "date": "2026-10-29T22:25:06Z"
+          },
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-08-20T09:40:35Z"
+          },
+          {
+            "name": "jjohare",
+            "email": "github@thedreamlab.uk",
+            "date": "2026-07-10T13:11:55Z"
+          }
+        ]
+      }
+    }
+  }
+]

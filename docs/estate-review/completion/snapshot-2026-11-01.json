@@ -75977,11 +75977,11 @@
     "candidate_files": 828,
     "numbered_candidates_with_recorded_assessment": 97,
     "numbered_decision_candidates": 720,
-    "panels": 1741,
-    "panels_with_recorded_assessment": 366,
+    "panels": 1742,
+    "panels_with_recorded_assessment": 367,
     "scope_targets": 20,
     "stale_claim_records": 0,
-    "topics": 208
+    "topics": 209
   },
   "method": "Explicit scope; Git-owned Markdown; parsed headings exclude fenced examples; explicit human review claims require exact source/report hashes. Unreconciled is not unreviewed. Candidate counts are not a complete obligation denominator or overall task percentage.",
   "repositories": [
@@ -75989,7 +75989,7 @@
       "available": true,
       "candidate_files": 77,
       "dirty": true,
-      "head": "75481f7a8f0e5a640ea70f0967d59732714e7114",
+      "head": "cc2790532e182e204aaf1dc301faf6e0d620805a",
       "local": "VisionFlow",
       "name": "VisionFlow"
     },
@@ -76005,7 +76005,7 @@
       "available": true,
       "candidate_files": 239,
       "dirty": true,
-      "head": "686db14b1be0825ed9ff683790fb0ac550e30188",
+      "head": "9dfbf7cece25e49f41140b63ce0a0507faa9bba2",
       "local": "project/agentbox",
       "name": "agentbox"
     },
@@ -76013,7 +76013,7 @@
       "available": true,
       "candidate_files": 19,
       "dirty": false,
-      "head": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+      "head": "8f2df863e230ae9b59ecbbe4cce36e76263f4380",
       "local": "solid-pod-rs",
       "name": "solid-pod-rs"
     },
@@ -88357,6 +88357,36 @@
       "repo": "VisionFlow",
       "review": "unreconciled",
       "sha256": "0e6eb898ec9c189fd54e1d5b3dea291d95ae1f5a7c3ae9f27259c71a4e052dec"
+    },
+    {
+      "claims": [
+        {
+          "basis": "Merged producer body-binding repair; actual private PUT regression and three core regressions pass. Eleven source citations, render and visual review. No additional ADR, release or deployment credit.",
+          "coverage": "selected-panels",
+          "panels": [
+            "SP-11.1"
+          ],
+          "report": "docs/estate-review/2026-11-01-solid-empty-body-repair.md",
+          "state": "assessment-recorded"
+        }
+      ],
+      "panels": [
+        {
+          "body_sha256": "8cb96c9a2b928e941c21d41ff060f81e615ed0a1b73c66093b4706b899cfaee3",
+          "heading": "SP-11.1 Commit to the bytes before consuming the request",
+          "id": "SP-11.1",
+          "line": 24,
+          "ordinal": 1,
+          "reports": [
+            "docs/estate-review/2026-11-01-solid-empty-body-repair.md"
+          ],
+          "review": "assessment-recorded"
+        }
+      ],
+      "path": "docs/diagrams/solid-pod-rs/11-empty-body-binding.md",
+      "repo": "VisionFlow",
+      "review": "assessment-recorded",
+      "sha256": "620410cc45756e8dbcaa2e35308b1f8f65dd26aa8a5fb40a334549c8a262665f"
     },
     {
       "claims": [],

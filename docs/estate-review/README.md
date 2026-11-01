@@ -7,7 +7,9 @@ type: explanation
 
 # VisionFlow estate review
 
-Latest checkpoint: [Solid Pod signed-request boundaries](2026-11-01-solid-identity-boundaries.md) assesses ADR-2006 and five identity panels. A private PUT probe reproduces empty-body substitution; short replay retention and Git string-prefix scope also need repair. Thirty-one native auth tests and five observation probes pass. These findings remain open; no deployment was changed.
+Latest checkpoint: [Solid Pod empty-body repair](2026-11-01-solid-empty-body-repair.md) is merged locally as `8f2df86`. The default workspace suite passes 2,170 tests, with 30 core doctests separately passing. The real private-PUT regression checks stored bytes and replay admission; publication, consumer upgrades and deployment remain open. SP-11.1 records the repaired source. Agentbox review-method guidance received a further merged update at `9dfbf7cec`; baked skills await rebuild.
+
+Previous checkpoint: [Solid Pod signed-request boundaries](2026-11-01-solid-identity-boundaries.md) assesses ADR-2006 and five identity panels. A private PUT probe reproduces empty-body substitution; short replay retention and Git string-prefix scope also need repair. Thirty-one native auth tests and five observation probes pass. These findings remain open; no deployment was changed.
 
 Previous checkpoint: [VisionClaw payment authentication](2026-11-01-visionclaw-payment-auth.md) is repaired and merged locally, with six route regressions and 46 shared-verifier tests passing. VCS-10 / XR-01 remains partial pending proxy/fixture work and deployment. [Review-method lessons](2026-11-01-review-method-lessons.md) are incorporated into three existing Agentbox skills, with JEV discovery checked. Springs work is untouched.
 

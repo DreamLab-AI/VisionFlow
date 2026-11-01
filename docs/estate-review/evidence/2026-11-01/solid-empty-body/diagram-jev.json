@@ -1,0 +1,116 @@
+{
+  "advisory": true,
+  "flag_at": 0.9,
+  "results": [
+    {
+      "topic": "solid-pod-rs/11-empty-body-binding.md",
+      "diagram": "SP-11.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/nip98.rs:304",
+      "p_defect": 0.11,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/11-empty-body-binding.md",
+      "diagram": "SP-11.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:1735",
+      "p_defect": 0.15,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/11-empty-body-binding.md",
+      "diagram": "SP-11.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/nip98.rs:191",
+      "p_defect": 0.63,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/11-empty-body-binding.md",
+      "diagram": "SP-11.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/nip98.rs:194",
+      "p_defect": 0.22,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/11-empty-body-binding.md",
+      "diagram": "SP-11.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/nip98.rs:197",
+      "p_defect": 0.19,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/11-empty-body-binding.md",
+      "diagram": "SP-11.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs/src/auth/nip98.rs:212",
+      "p_defect": 0.29,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/11-empty-body-binding.md",
+      "diagram": "SP-11.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:641",
+      "p_defect": 0.33,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/11-empty-body-binding.md",
+      "diagram": "SP-11.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:1737",
+      "p_defect": 0.08,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/11-empty-body-binding.md",
+      "diagram": "SP-11.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:1765",
+      "p_defect": 0.12,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/11-empty-body-binding.md",
+      "diagram": "SP-11.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:1770",
+      "p_defect": 0.08,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    },
+    {
+      "topic": "solid-pod-rs/11-empty-body-binding.md",
+      "diagram": "SP-11.1",
+      "cite": "../solid-pod-rs/crates/solid-pod-rs-server/tests/nip98_empty_body.rs:15",
+      "p_defect": 0.16,
+      "calibrated": true,
+      "flagged": false,
+      "question_set": "vf-06-s1-02/citation-check/v1",
+      "model": "jev-1.14.0"
+    }
+  ]
+}

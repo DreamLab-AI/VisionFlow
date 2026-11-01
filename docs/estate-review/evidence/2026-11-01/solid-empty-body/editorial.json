@@ -1,0 +1,8 @@
+{
+  "unicode_findings": 0,
+  "prose_high_flags": 2,
+  "disposition": "Both are The-X opener heuristics in specific factual paragraphs; retained after manual reading.",
+  "visual_review": "SP-11.1 final render inspected, no clipping or unreadable labels",
+  "generator_compatibility": "Used repository-local scripts/diagram-index-gen.cjs. It has no --report flag and enforces three prose lines per panel; final check passes its actual contract.",
+  "raw_log_whitespace": "Three raw logs retain blank lines at EOF: doctests.txt, prose.txt and workspace-tests.txt. Default git diff --check reports these; evidence bytes intentionally preserved."
+}

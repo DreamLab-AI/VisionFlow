@@ -1,0 +1,12 @@
+{
+  "revision": "8f2df863e230ae9b59ecbbe4cce36e76263f4380",
+  "files": {
+    "CHANGELOG.md": "c13ca03eaf335716fd706383978dbfdecde457f0bf13b60867e189578575dc51",
+    "crates/solid-pod-rs/src/auth/nip98.rs": "325699f6d60ad080b272c9be79304623458184db3f40e67fe58c7320c6405f3f",
+    "crates/solid-pod-rs-server/src/lib.rs": "6573dc10b392d62743af4cd20da96da7594f7ed755e75b3eedfa8fcd225f26eb",
+    "crates/solid-pod-rs-server/tests/nip98_empty_body.rs": "6b16a2626cf32762b23620889eb55cd8ea74682d5931330087be6eb402d54c18",
+    "crates/solid-pod-rs/examples/nip98_client.rs": "7aded52a011bdbdfbc696d6fa758f7e9135bbedbb72a33360e2b43426fe1b5c6",
+    "Cargo.toml": "d961f54655df352e4d96f33317de60825e69055c4bd461f47c24484614efadd0",
+    "Cargo.lock": "3d2aa7e07ee46b4ec469c1b91bcfb3eca02267e53e5279f86c6065a7e70fd6e1"
+  }
+}

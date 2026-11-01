@@ -1,0 +1,99 @@
+   Compiling solid-pod-rs v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-empty-body/crates/solid-pod-rs)
+   Compiling solid-pod-rs-idp v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-empty-body/crates/solid-pod-rs-idp)
+   Compiling solid-pod-rs-server v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-empty-body/crates/solid-pod-rs-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 22.61s
+     Running tests/nip98_empty_body.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/nip98_empty_body-9fc7b8be9e86f5e0)
+
+running 1 test
+test put_binds_empty_content_before_consuming_the_token ... FAILED
+
+failures:
+
+---- put_binds_empty_content_before_consuming_the_token stdout ----
+
+thread 'put_binds_empty_content_before_consuming_the_token' (219438) panicked at crates/solid-pod-rs-server/tests/nip98_empty_body.rs:62:9:
+expected authentication refusal: 201 Created
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: nip98_empty_body::put_binds_empty_content_before_consuming_the_token::{closure#0}::{closure#2}
+             at ./tests/nip98_empty_body.rs:62:9
+   3: nip98_empty_body::put_binds_empty_content_before_consuming_the_token::{closure#0}
+             at ./tests/nip98_empty_body.rs:77:5
+   4: <tokio::task::local::RunUntil<nip98_empty_body::put_binds_empty_content_before_consuming_the_token::{closure#0}> as core::future::future::Future>::poll::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:1072:44
+   5: <tokio::task::local::LocalSet>::with::<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<nip98_empty_body::put_binds_empty_content_before_consuming_the_token::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:823:13
+   6: <std::thread::local::LocalKey<tokio::task::local::LocalData>>::try_with::<<tokio::task::local::LocalSet>::with<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<nip98_empty_body::put_binds_empty_content_before_consuming_the_token::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}, core::task::poll::Poll<()>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:463:12
+   7: <std::thread::local::LocalKey<tokio::task::local::LocalData>>::with::<<tokio::task::local::LocalSet>::with<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<nip98_empty_body::put_binds_empty_content_before_consuming_the_token::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}, core::task::poll::Poll<()>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:427:20
+   8: <tokio::task::local::LocalSet>::with::<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<nip98_empty_body::put_binds_empty_content_before_consuming_the_token::{closure#0}> as core::future::future::Future>::poll::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:821:17
+   9: <tokio::task::local::RunUntil<nip98_empty_body::put_binds_empty_content_before_consuming_the_token::{closure#0}> as core::future::future::Future>::poll
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:1062:22
+  10: <tokio::task::local::LocalSet>::run_until::<nip98_empty_body::put_binds_empty_content_before_consuming_the_token::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:719:19
+  11: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<<tokio::task::local::LocalSet>::run_until<nip98_empty_body::put_binds_empty_content_before_consuming_the_token::{closure#0}>::{closure#0}>::{closure#0}::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:830:70
+  12: tokio::task::coop::with_budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<<tokio::task::local::LocalSet>::run_until<nip98_empty_body::put_binds_empty_content_before_consuming_the_token::{closure#0}>::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/coop/mod.rs:167:5
+  13: tokio::task::coop::budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<<tokio::task::local::LocalSet>::run_until<nip98_empty_body::put_binds_empty_content_before_consuming_the_token::{closure#0}>::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/coop/mod.rs:133:5
+  14: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<<tokio::task::local::LocalSet>::run_until<nip98_empty_body::put_binds_empty_content_before_consuming_the_token::{closure#0}>::{closure#0}>::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:830:25
+  15: <tokio::runtime::scheduler::current_thread::Context>::enter::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<<tokio::task::local::LocalSet>::run_until<nip98_empty_body::put_binds_empty_content_before_consuming_the_token::{closure#0}>::{closure#0}>::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:486:19
+  16: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<<tokio::task::local::LocalSet>::run_until<nip98_empty_body::put_binds_empty_content_before_consuming_the_token::{closure#0}>::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:829:44
+  17: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<<tokio::task::local::LocalSet>::run_until<nip98_empty_body::put_binds_empty_content_before_consuming_the_token::{closure#0}>::{closure#0}>::{closure#0}, core::option::Option<()>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:906:68
+  18: <tokio::runtime::context::scoped::Scoped<tokio::runtime::scheduler::Context>>::set::<<tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<<tokio::task::local::LocalSet>::run_until<nip98_empty_body::put_binds_empty_content_before_consuming_the_token::{closure#0}>::{closure#0}>::{closure#0}, core::option::Option<()>>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/scoped.rs:40:9
+  19: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<<tokio::task::local::LocalSet>::run_until<nip98_empty_body::put_binds_empty_content_before_consuming_the_token::{closure#0}>::{closure#0}>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context.rs:186:38
+  20: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::try_with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<<tokio::task::local::LocalSet>::run_until<nip98_empty_body::put_binds_empty_content_before_consuming_the_token::{closure#0}>::{closure#0}>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:463:12
+  21: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<<tokio::task::local::LocalSet>::run_until<nip98_empty_body::put_binds_empty_content_before_consuming_the_token::{closure#0}>::{closure#0}>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:427:20
+  22: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<<tokio::task::local::LocalSet>::run_until<nip98_empty_body::put_binds_empty_content_before_consuming_the_token::{closure#0}>::{closure#0}>::{closure#0}, core::option::Option<()>>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context.rs:186:17
+  23: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<<tokio::task::local::LocalSet>::run_until<nip98_empty_body::put_binds_empty_content_before_consuming_the_token::{closure#0}>::{closure#0}>::{closure#0}, core::option::Option<()>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:906:27
+  24: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<<tokio::task::local::LocalSet>::run_until<nip98_empty_body::put_binds_empty_content_before_consuming_the_token::{closure#0}>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:819:24
+  25: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<<tokio::task::local::LocalSet>::run_until<nip98_empty_body::put_binds_empty_content_before_consuming_the_token::{closure#0}>::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:216:33
+  26: tokio::runtime::context::runtime::enter_runtime::<<tokio::runtime::scheduler::current_thread::CurrentThread>::block_on<<tokio::task::local::LocalSet>::run_until<nip98_empty_body::put_binds_empty_content_before_consuming_the_token::{closure#0}>::{closure#0}>::{closure#0}, ()>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/runtime.rs:65:16
+  27: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<<tokio::task::local::LocalSet>::run_until<nip98_empty_body::put_binds_empty_content_before_consuming_the_token::{closure#0}>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:204:9
+  28: <tokio::runtime::runtime::Runtime>::block_on_inner::<<tokio::task::local::LocalSet>::run_until<nip98_empty_body::put_binds_empty_content_before_consuming_the_token::{closure#0}>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/runtime.rs:379:52
+  29: <tokio::runtime::runtime::Runtime>::block_on::<<tokio::task::local::LocalSet>::run_until<nip98_empty_body::put_binds_empty_content_before_consuming_the_token::{closure#0}>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/runtime.rs:348:18
+  30: <tokio::task::local::LocalSet>::block_on::<nip98_empty_body::put_binds_empty_content_before_consuming_the_token::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:676:12
+  31: <actix_rt::runtime::Runtime>::block_on::<nip98_empty_body::put_binds_empty_content_before_consuming_the_token::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-rt-2.11.0/src/runtime.rs:138:20
+  32: <actix_rt::system::SystemRunner>::block_on::<nip98_empty_body::put_binds_empty_content_before_consuming_the_token::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-rt-2.11.0/src/system.rs:240:17
+  33: nip98_empty_body::put_binds_empty_content_before_consuming_the_token
+             at ./tests/nip98_empty_body.rs:14:1
+  34: nip98_empty_body::put_binds_empty_content_before_consuming_the_token::{closure#0}
+             at ./tests/nip98_empty_body.rs:15:62
+  35: <nip98_empty_body::put_binds_empty_content_before_consuming_the_token::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+  36: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+
+failures:
+    put_binds_empty_content_before_consuming_the_token
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+error: test failed, to rerun pass `-p solid-pod-rs-server --test nip98_empty_body`

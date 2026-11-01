@@ -1,0 +1,45 @@
+{
+  "source_report": "docs/estate-review/2026-11-01-solid-identity-boundaries.md",
+  "repair_report": "docs/estate-review/2026-11-01-solid-empty-body-repair.md",
+  "updated": "2026-11-01",
+  "issues": [
+    {
+      "id": "SP-ID-01",
+      "status": "producer-fixed-adoption-open",
+      "commit": "8f2df863e230ae9b59ecbbe4cce36e76263f4380",
+      "evidence": "Three new unit regressions and actual private PUT regression pass in workspace suite",
+      "remaining": [
+        "Publish repaired package",
+        "Upgrade relevant locked consumers and empty-body signers",
+        "Verify deployed private PUT behaviour"
+      ]
+    },
+    {
+      "id": "SP-ID-02",
+      "status": "open",
+      "remaining": [
+        "Bound retention to token acceptance window",
+        "Exercise default TTL at inclusive clock boundary",
+        "Validate direct constructors and configuration consistently"
+      ],
+      "limit": "Short/zero TTL acceptance reproduced; default TTL boundary unverified"
+    },
+    {
+      "id": "SP-ID-03",
+      "status": "open",
+      "remaining": [
+        "Use parsed repository scope boundaries",
+        "Test affected Git consumers"
+      ],
+      "limit": "Verifier-level prefix acceptance reproduced; no WAC or push bypass demonstrated"
+    },
+    {
+      "id": "SP-ID-04",
+      "status": "open",
+      "remaining": [
+        "Correct IdP delegation and protocol documentation"
+      ],
+      "limit": "Direct challenge verification uses a different contract; no duplicate NIP-98 route established"
+    }
+  ]
+}

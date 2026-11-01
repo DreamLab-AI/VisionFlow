@@ -1,0 +1,11 @@
+{
+  "previous_verification_sha256": "df86ef29e93ce103aba1052e38a31943f4fbf831ca662741d75700e361333d4e",
+  "current_verification_sha256": "74529b454b82226d94a04988e78515b43a884f2ead2b4886f47c4a1b2a78f84e",
+  "declared_revision_tokens": 60,
+  "new_revision": "8f2df863e230ae9b59ecbbe4cce36e76263f4380",
+  "source_access": "One in-scope topic only; no fresh whole-corpus source run",
+  "files": {
+    "docs/diagrams/solid-pod-rs/11-empty-body-binding.md": "620410cc45756e8dbcaa2e35308b1f8f65dd26aa8a5fb40a334549c8a262665f",
+    "docs/estate-review/evidence/2026-11-01/solid-empty-body/diagram.txt": "13c69822c8d2d63b3597ddca056202528ca1692d1c2d744596b8950f0b72a91e"
+  }
+}

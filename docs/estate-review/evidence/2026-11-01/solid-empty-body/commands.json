@@ -1,0 +1,65 @@
+{
+  "cwd": "/home/devuser/workspace/wt/solid-pod-empty-body",
+  "target_dir": "/home/devuser/workspace/solid-pod-rs/target",
+  "baseline": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+  "repaired": "8f2df863e230ae9b59ecbbe4cce36e76263f4380",
+  "checks": [
+    {
+      "command": "cargo test --locked --offline -p solid-pod-rs --lib empty_body",
+      "phase": "baseline with new regressions",
+      "exit": 101,
+      "passed": 1,
+      "failed": 3,
+      "log": "before-core.txt"
+    },
+    {
+      "command": "cargo test --locked --offline -p solid-pod-rs-server --test nip98_empty_body",
+      "phase": "baseline with new regression",
+      "exit": 101,
+      "passed": 0,
+      "failed": 1,
+      "first_failure": "unbound empty request accepted",
+      "log": "before-route.txt"
+    },
+    {
+      "command": "cargo test --locked --offline --workspace --all-targets",
+      "exit": 0,
+      "passed": 2170,
+      "failed": 0,
+      "ignored": 2,
+      "summaries": 138,
+      "log": "workspace-tests.txt",
+      "limits": "Executed default workspace features; count includes repeated targets, not unique requirements. Benchmark smoke executions also succeeded."
+    },
+    {
+      "command": "cargo test --locked --offline -p solid-pod-rs --doc",
+      "exit": 0,
+      "passed": 30,
+      "failed": 0,
+      "ignored": 3,
+      "log": "doctests.txt"
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "exit": 0,
+      "log": "fmt-check.txt"
+    },
+    {
+      "command": "cargo clippy --locked --offline --workspace --all-targets -- -D warnings",
+      "exit": 0,
+      "log": "clippy.txt"
+    },
+    {
+      "command": "RUSTDOCFLAGS='-D warnings' cargo doc --locked --offline -p solid-pod-rs --no-deps",
+      "exit": 0,
+      "log": "rustdoc.txt"
+    },
+    {
+      "command": "/opt/agentbox/skills/build-with-quality/scripts/deepsec-gate.sh --diff-working --report-dir /tmp/vf-solid-empty-body/deepsec",
+      "exit": 0,
+      "gate": "PASS at HIGH threshold",
+      "finding": "One known MEDIUM GitLenient scope finding; review-disposition.json",
+      "scope": "nip98.rs only; route test manually reviewed and executed"
+    }
+  ]
+}

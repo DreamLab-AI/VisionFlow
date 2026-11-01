@@ -1,0 +1,39 @@
+{
+  "visionflow_user_files": [
+    {
+      "path": "docs/diagrams/review-ledger.jsonl",
+      "unchanged": true
+    },
+    {
+      "path": ".dream-standby",
+      "unchanged": true
+    },
+    {
+      "path": "docs/review/2026-10-31-glm.json",
+      "unchanged": true
+    },
+    {
+      "path": "docs/review/2026-10-31-glm.md",
+      "unchanged": true
+    },
+    {
+      "path": "docs/review/2026-10-31-triage.md",
+      "unchanged": true
+    },
+    {
+      "path": "docs/review/2026-11-01-glm.json",
+      "unchanged": true
+    },
+    {
+      "path": "docs/review/2026-11-01-glm.md",
+      "unchanged": true
+    },
+    {
+      "path": "docs/review/2026-11-01-triage.md",
+      "unchanged": true
+    }
+  ],
+  "solid_primary_clean": true,
+  "excluded_source_access": false,
+  "visionclaw_springs_touched": false
+}

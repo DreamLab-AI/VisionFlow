@@ -1,0 +1,5 @@
+parsed 1 topic files, 1 mermaid diagrams
+cite-check: 0 warning(s)
+citations: 11 verified at the declared revision, 0 unverified (working-tree fallback), 0 unresolvable, 0 allowlisted (unverifiable)
+jev: accepted set=vf-06-s1-02/citation-check/v1 model=jev-1.14.0
+rendered 1/1 diagrams via pele

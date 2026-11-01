@@ -1,0 +1,28 @@
+{
+  "mode": "diff-working",
+  "diff_ref": "",
+  "files_from": "",
+  "root": "/home/devuser/workspace/wt/solid-pod-empty-body",
+  "project_id": "solid-pod-empty-body",
+  "workspace": "/home/devuser/workspace/wt/solid-pod-empty-body/.deepsec-gate",
+  "report_dir": "/tmp/vf-solid-empty-body/deepsec",
+  "revision": "e1d16adbfc096527f82ff16a6bce87ffd6d909f8",
+  "dirty": "true",
+  "deepsec_version": "2.3.10",
+  "policy_source": "/etc/agentbox.toml",
+  "agent": "claude",
+  "model_auth": "local",
+  "model": "",
+  "thinking_level": "minimal",
+  "fail_on": "HIGH",
+  "max_duration": "20m",
+  "batch_size": "5",
+  "concurrency": "2",
+  "ai_provider": "",
+  "ai_api_key_env": "",
+  "ai_base_url": "",
+  "route": {
+    "mode": "local",
+    "provider": "local"
+  }
+}
