@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_206 topic files, 1738 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_206 topic files, 1739 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -222,7 +222,7 @@ _206 topic files, 1738 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | VC-34 | [Client feature directories — API and WebSocket surface](visionclaw/34-client-features.md) | 20 | sequenceDiagram, flowchart | [BASELINE-architecture.md](../../../project/docs/BASELINE-architecture.md) | ADR-2041, ADR-2115, ADR-2006, ADR-2074, ADR-2077, ADR-2142 |
 | VC-35 | [Voice end to end — PTT, STT, intent, TTS](visionclaw/35-voice-end-to-end.md) | 12 | stateDiagram-v2, sequenceDiagram, flowchart | [BASELINE-architecture.md](../../../project/docs/BASELINE-architecture.md), [IDENTITY-authority-chain.md](../../../project/docs/IDENTITY-authority-chain.md) | ADR-2002, ADR-2039, ADR-2075, ADR-2151, ADR-2148 |
 | VC-36 | [Godot + gdext OpenXR immersive client](visionclaw/36-godot-xr-client.md) | 27 | sequenceDiagram, flowchart, stateDiagram-v2, classDiagram | [XR-client.md](../../../project/docs/XR-client.md), [BASELINE-architecture.md](../../../project/docs/BASELINE-architecture.md) | ADR-2032, ADR-2033, ADR-2034, ADR-2035, ADR-2036, ADR-2039, ADR-2076, ADR-2079, ADR-2107, ADR-2108, ADR-2109, ADR-2133, ADR-2134, ADR-2135, ADR-2141, ADR-2142, ADR-2143 |
-| VC-37 | [Browser XR surface and desktop spatial input](visionclaw/37-browser-xr-and-desktop-input.md) | 10 | sequenceDiagram, flowchart, stateDiagram-v2 | [BASELINE-architecture.md](../../../project/docs/BASELINE-architecture.md), [XR-client.md](../../../project/docs/XR-client.md) | ADR-2032, ADR-2081 |
+| VC-37 | [Browser XR surface and desktop spatial input](visionclaw/37-browser-xr-and-desktop-input.md) | 11 | sequenceDiagram, flowchart, stateDiagram-v2 | [BASELINE-architecture.md](../../../project/docs/BASELINE-architecture.md), [XR-client.md](../../../project/docs/XR-client.md) | ADR-2032, ADR-2081 |
 | VC-38 | [XR memory cloud internals - snapshot, route, query, beat and semantic encoding](visionclaw/38-xr-memory-cloud-internals.md) | 19 | flowchart, sequenceDiagram, classDiagram, stateDiagram-v2 | [XR-client.md](../../../project/docs/XR-client.md) | ADR-2107, ADR-2133, ADR-2134, ADR-2135, ADR-2136 |
 | VC-39 | [Codescape - the separate code-graph section, its crates, wire reuse, voice and proxy trust](visionclaw/39-codescape.md) | 7 | flowchart, sequenceDiagram, classDiagram | [BASELINE-architecture.md](../../../project/docs/BASELINE-architecture.md), [BASELINE-codescape.md](../../../project/codescape/docs/BASELINE-codescape.md), [PROTOCOL-registry.md](../../../project/docs/PROTOCOL-registry.md) | ADR-2143, ADR-2018, ADR-2019, ADR-2024, ADR-2141, ADR-2148 |
 | VC-40 | [Historical exclusive XR backend switch - the capability table, the request gate, the switch and the Codescape palette (ADR-2143 A6)](visionclaw/40-xr-two-backends-capability-gating.md) | 3 | flowchart, sequenceDiagram | [XR-client.md](../../../project/docs/XR-client.md), [ADR-2143-codescape-section-separate-workspace-and-port.md](../../../project/docs/adr/ADR-2143-codescape-section-separate-workspace-and-port.md) | ADR-2143, ADR-2134, ADR-2108 |

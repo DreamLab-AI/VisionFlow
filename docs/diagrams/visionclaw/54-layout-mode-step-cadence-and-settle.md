@@ -87,8 +87,8 @@ flowchart TD
 ```mermaid
 flowchart TD
     PIN["Held node skips integration but stays in neighbours' spring loops<br/>visionclaw_unified.cu:942"] --> ATT{"Stored linLogMode<br/>live_physics_settings.json:1"}
-    ATT -->|true, fixture| LOG["Attraction log1p of distance, ignores spring_k<br/>visionclaw_unified.cu:574"]
-    ATT -->|false| HOOKE["Hooke around one global rest length<br/>visionclaw_unified.cu:577,590"]
+    ATT -->|true, fixture| LOG["Attraction log1p of distance, ignores spring_k<br/>visionclaw_unified.cu:574,2385"]
+    ATT -->|false| HOOKE["Hooke around one global rest length<br/>visionclaw_unified.cu:577,590,2387,2397"]
     LOG --> CAP["Total force capped at max_force<br/>visionclaw_unified.cu:968"]
     HOOKE --> CAP
     CAP --> INT{"Stored adaptiveSpeed<br/>live_physics_settings.json:1"}
@@ -96,8 +96,11 @@ flowchart TD
     INT -->|false| VER["Verlet with dt and damping<br/>visionclaw_unified.cu:1012,1013"]
     FLOOR["Hold floor raises global_speed to 2.0<br/>force_compute_actor.rs:4455,4496"] --> AD
     FLOOR -.-> GAP["OPEN: a Verlet span while held would leave<br/>the floor with no reader<br/>visionclaw_unified.cu:1012"]
+    SEL["Kernel chosen by stability_threshold<br/>execution.rs:652,653,655"] -.-> TWIN["DEBT: the spring loop is written twice, in<br/>force_pass_kernel and force_pass_with_stability_kernel<br/>visionclaw_unified.cu:385,2211"]
 ```
 
 **What it shows.** The fixture's LinLog plus adaptive pairing gives a weak, swing-damped pull. Turning LinLog off globally would move every edge to one rest length, and the resting layout with it. **Why it is this way.** LinLog is the modularity layout, and the ADR-2169 floor was the first attempt to answer the hand inside it.
+
+**Debt:** the attraction and Hooke branches exist in both force kernels, so any change to the spring force has to be made twice (`visionclaw_unified.cu:574,2385`).
 
 **Open:** an in-flight change (HS, not merged) adds a snapshot rest-length overlay and runs Verlet while held. That would make the `HOLD_GLOBAL_SPEED` floor unread over the same span (`force_compute_actor.rs:4455,4496`; `visionclaw_unified.cu:1012`).

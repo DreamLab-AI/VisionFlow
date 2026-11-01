@@ -161,4 +161,6 @@ flowchart TD
 
 **What it shows.** Of the server-side copies, the registry is the only one that carries ownership and the hold-versus-pin distinction. The GPU mask is derived from it, and the timeouts are deliberately layered. **Why it is this way.** ADR-2169 added the registry beside the existing socket and orchestrator state rather than replacing either.
 
+**Drift:** the desktop drag handlers cite "ADR-03 D7: pin state is server-authoritative", but no ADR-03 or ADR-003 exists in `docs/adr` or `docs/archive` (`useGraphEventHandlers.ts:151,269`).
+
 **Debt:** the socket's `dragged_nodes` duplicates the registry's per-holder set (`types.rs:73`; `hold_registry.rs:83`), and the desktop `pinnedNodeIds` is read but never written (`graph.worker.ts:31`; `graphWorkerProxy.ts:410`).
