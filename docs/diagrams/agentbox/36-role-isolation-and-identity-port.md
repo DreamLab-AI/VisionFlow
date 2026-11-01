@@ -168,11 +168,11 @@ sequenceDiagram
     P->>P: sign with the held key for the named op only
     P->>R: one JSONL line, admit or refuse, no content and no secret
     R-->>P: written to a 0640 file (identity_port/receipts.rs:133)
-    Note over P,R: INVARIANT: an admitted request whose receipt cannot be written<br/>is answered as a refusal, nothing signed off the record (identity_port/port.rs:324)
+    Note over P,R: INVARIANT: an admitted request whose receipt cannot be written<br/>is answered as a refusal and the signed result is withheld (identity_port/port.rs:324)
     P-->>C: one JSON response, the result or refused with a reason
 ```
 
-**What it shows.** A caller writes one JSON line to a unix socket. The port takes the caller's uid from the kernel, not from anything the caller says, checks it against a static ACL and a closed operation list, signs only what the grant allows, and writes a receipt before it answers. A receipt that cannot be written turns an admission into a refusal. **Why it is this way.** ADR-2101 rules out a generic "sign this payload" port as a bypass, so the port offers named operations only. NIP-98 to a loopback HTTP port was rejected because the caller would need a key to sign the request, which brings back the key it must not hold (ADR-2122 §4). The existing Rust relay daemon became the service because it already loads the key and signs through an allowlist.
+**What it shows.** A caller writes one JSON line to a unix socket. The port takes the caller's uid from the kernel, not from anything the caller says, checks it against a static ACL and a closed operation list, signs only what the grant allows, and writes a receipt before it answers. A receipt that cannot be written turns an admission into a refusal. **Why it is this way.** ADR-2101 rules out a generic "sign this payload" port as a bypass, so the port offers named operations only. NIP-98 to a loopback HTTP port was rejected because the caller would need a key to sign the request, which brings back the key it must not hold (ADR-2122 §4). The existing Rust relay daemon became the service because it already loads the key and signs through an allowlist. The [1 November mesh audit](../../estate-review/2026-11-01-mesh-signer-and-custody.md) qualifies this boundary: UID identifies an account, ordinary event signing checks kind rather than catalogue semantics, and appended receipts are not a crash-durable protocol inbox. The earlier source pin is retained.
 
 **Invariant:** authorisation is the peer uid from `SO_PEERCRED` (`services/nostr-pod-bridge/src/identity_port/server.rs:106`), never the socket mode. The socket group only narrows who can connect (`config/role-accounts.json:132`).
 

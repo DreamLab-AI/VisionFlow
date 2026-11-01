@@ -1,0 +1,547 @@
+{
+  "checked": 108,
+  "missing": [],
+  "scope": "relative file links in four touched documents; anchors and remote links excluded",
+  "links": [
+    {
+      "source": "docs/estate-review/2026-11-01-mesh-signer-and-custody.md",
+      "target": "evidence/2026-11-01/mesh-source-receipt.json",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/2026-11-01-mesh-signer-and-custody.md",
+      "target": "evidence/2026-11-01/mesh-custody-run.sh",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/2026-11-01-mesh-signer-and-custody.md",
+      "target": "evidence/2026-11-01/mesh-custody-audit.rs",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/2026-11-01-mesh-signer-and-custody.md",
+      "target": "evidence/2026-11-01/mesh-backup-audit.rs",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/2026-11-01-mesh-signer-and-custody.md",
+      "target": "evidence/2026-11-01/mesh-custody-Cargo.toml",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/2026-11-01-mesh-signer-and-custody.md",
+      "target": "evidence/2026-11-01/mesh-custody-Cargo.lock",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/2026-11-01-mesh-signer-and-custody.md",
+      "target": "evidence/2026-11-01/mesh-custody-suite.txt",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/2026-11-01-mesh-signer-and-custody.md",
+      "target": "evidence/2026-11-01/mesh-test-exits.json",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/2026-11-01-mesh-signer-and-custody.md",
+      "target": "evidence/2026-11-01/mesh-schema-observations.json",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/2026-11-01-mesh-signer-and-custody.md",
+      "target": "evidence/2026-11-01/mesh-runtime-search.txt",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/2026-11-01-mesh-signer-and-custody.md",
+      "target": "2026-11-01-forum-spaces-and-replication.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/2026-11-01-mesh-signer-and-custody.md",
+      "target": "../diagrams/agentbox/37-mesh-signer-and-recovery.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/2026-11-01-mesh-signer-and-custody.md",
+      "target": "../diagrams/agentbox/36-role-isolation-and-identity-port.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "../registers/park-2026-10-30.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "../../../project/docs/TODO-unified.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "2026-09-07-estate-audit.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "closeout/2026-09-07-sprint.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "../../../project/docs/TODO-unified.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "2026-10-31-market-and-audit-gaps.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "2026-10-31-scope-and-coverage.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "2026-10-31-obsidian-boundaries.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "2026-10-31-obsidian-decisions.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "2026-10-31-diagram-drift-and-health.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "2026-10-31-diagram-review-queue.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "2026-10-31-release-evidence.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "2026-10-31-corpus-consumer.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "2026-10-31-proposal-application.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "2026-10-31-governance-ingress.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "2026-10-31-external-source-ingest.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "2026-10-31-proposal-construction.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "2026-10-31-governed-knowledge-comparison.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "2026-10-31-codescape-boundaries.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "2026-10-31-codescape-presence-and-xr.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "scope-and-evidence.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "vision-and-architecture.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "book-roadmap-reconciliation.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "canon-claim-reconciliation.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "engineering-governance.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "canon-and-verification.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "knowledge-production.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "authored-vault-transition.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "agent-grounding-and-governance.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "grounding-delivery.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "visionclaw-data-runtime.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "role-authority.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "runtime-ingress.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "forum-decisions.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "storage-and-authority.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "learning-evidence.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "consumed-vector-storage.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "runtime-egress-and-profiles.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "configuration-projection.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "process-lifecycle.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "adapter-dispatch.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "catalog-decisions.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "capability-instructions-and-enforcement.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "federation-identifiers.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "ontology-explorer.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "self-improvement.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "commercial-surfaces.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "rendered-state.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "mobile-sensing.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "sensing-extension.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "shared-memory.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "pocket-provenance.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "agent-disclosure.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "decision-history.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "failure-telemetry.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "transaction-cost-accounting.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "joined-provenance-trace.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "liveness-observation.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "kpi-outcomes.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "historical-decision-reconciliation.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "closeout/execution-sequence.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "closeout/README.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "closeout/adr-inventory.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "upstream-decision-scope.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "closeout/upstream-packs.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "closeout/sensing-decisions.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "closeout/adr-lineage.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "closeout/assessment-requirements.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "investigation-ledger.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "evidence/snapshot.json",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "evidence/review-navigation.json",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "evidence/review-navigation.py",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "evidence/collect.py",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "evidence/knowledge-snapshot.json",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "evidence/knowledge-probes.py",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "evidence/knowledge-boundaries.json",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "../README.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "../../presentation/report/main.tex",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "../BASELINE-visionflow.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "../registers/gap-register-v1.2.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "../closeout/final-design.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "2026-10-31-xr-volumes-and-code-links.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "closeout/sensing-decisions.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "historical-decision-reconciliation.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "closeout/visionclaw-history.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "liveness-observation.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "kpi-outcomes.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "closeout/agentbox-history.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "historical-decision-reconciliation.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "2026-10-31-portals-and-federation.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "2026-11-01-room-admission-and-voice.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "2026-11-01-forum-spaces-and-replication.md",
+      "exists": true
+    },
+    {
+      "source": "docs/estate-review/README.md",
+      "target": "2026-11-01-mesh-signer-and-custody.md",
+      "exists": true
+    },
+    {
+      "source": "docs/diagrams/agentbox/37-mesh-signer-and-recovery.md",
+      "target": "../../estate-review/2026-11-01-mesh-signer-and-custody.md",
+      "exists": true
+    },
+    {
+      "source": "docs/diagrams/agentbox/36-role-isolation-and-identity-port.md",
+      "target": "../../estate-review/2026-11-01-mesh-signer-and-custody.md",
+      "exists": true
+    }
+  ]
+}

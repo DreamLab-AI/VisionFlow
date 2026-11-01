@@ -1,0 +1,195 @@
+{
+  "date": "2026-11-01",
+  "repos": [
+    {
+      "repo": "/home/devuser/workspace/project/agentbox",
+      "head": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+      "sources": [
+        {
+          "path": "AGENTS.md",
+          "sha256": "fdf66e91f27bd085e8c453eff357227bd0404836b28e9a019a2c0a2911cea34c",
+          "matches_head": true
+        },
+        {
+          "path": "agentbox.toml",
+          "sha256": "c9c7016e6649c118f69ccbbab8d25e35e26c1dc3f449dab61b5ea2493b61203d",
+          "matches_head": true
+        },
+        {
+          "path": "schema/agentbox.toml.schema.json",
+          "sha256": "f139b6ab136593b238cfb046b55e79bf11bdc42b54bcf61a4fb5af3a209d43b0",
+          "matches_head": true
+        },
+        {
+          "path": "schema/federation-kinds.json",
+          "sha256": "beb954700b8d3e9b8e67275a883c74f8d7ccff01219c937f89c1ec4b5425886c",
+          "matches_head": true
+        },
+        {
+          "path": "docs/PROTOCOL-registry.md",
+          "sha256": "553370707b146689006b3387b24330ba988f37222d84f79ce1711dfcea9df304",
+          "matches_head": true
+        },
+        {
+          "path": "docs/adr/ADR-2162-the-mesh-block-gets-one-reader-pinned-peers-a-node-key-and-the-dataspace-crossing.md",
+          "sha256": "4bf5a897bcfd1d76c5c9f949ec6263e728f7d8cbb61dbd911381fa68bb6320eb",
+          "matches_head": true
+        },
+        {
+          "path": "docs/adr/ADR-2101-federation-topology-and-key-separation.md",
+          "sha256": "4991672d9bb6abeeb9e76c748c4bea7b198306fc0cc4031e524069a62e09af30",
+          "matches_head": true
+        },
+        {
+          "path": "docs/adr/ADR-2061-federation-kind-map-parity.md",
+          "sha256": "a19237f55cabdc81ed31ae7743088c65b9af3b930eb95398d3d2d475a0ecb395",
+          "matches_head": true
+        },
+        {
+          "path": "config/custody/identity-port-acl.json",
+          "sha256": "0c88a4cfe1c7b1124f5cb97da80ab5e11a296da3d85998a0784e76cd0b976fb4",
+          "matches_head": true
+        },
+        {
+          "path": "config/role-accounts.json",
+          "sha256": "a050fe37eb9441759baa8f9a6565981c9dd804536cf07472a174243c3a02a110",
+          "matches_head": true
+        },
+        {
+          "path": "services/agentbox-manifest/src/role_accounts.rs",
+          "sha256": "36e0dfd2cef44c0bfd140d6b5e76ce16f77c21a8c1739c48c2b76dccbfe28d4b",
+          "matches_head": true
+        },
+        {
+          "path": "services/secret-backup/src/main.rs",
+          "sha256": "6ca657596ceb541c2059b07e2ac61d8af70b24314866bd44128af7eb16859474",
+          "matches_head": true
+        },
+        {
+          "path": "services/secret-backup/README.md",
+          "sha256": "2b6872795b80c66e7e9f873f596e020cea6fce14c1ce1814c5fc45ac7082530a",
+          "matches_head": true
+        },
+        {
+          "path": "services/nostr-pod-bridge/Cargo.toml",
+          "sha256": "4502c16719e2fd548ac4e40a5fbafee34c63d8119e988511e2fd4fd69b2cf1f7",
+          "matches_head": true
+        },
+        {
+          "path": "services/nostr-pod-bridge/src/envmap.rs",
+          "sha256": "f74aa46d3820e1610a7dbf2db8fdbe704d5262683a821a8e8dd921a66a80aa47",
+          "matches_head": true
+        },
+        {
+          "path": "services/nostr-pod-bridge/src/identity.rs",
+          "sha256": "736af0a7248f1b490dfd092acda9eadb66ef23666d5f3534c75e55d2fdfc3e79",
+          "matches_head": true
+        },
+        {
+          "path": "services/nostr-pod-bridge/src/mirror_key.rs",
+          "sha256": "530e8048f85c1cee953043d39b85510ad7adbf9973bbc58c48c2e55d55375082",
+          "matches_head": true
+        },
+        {
+          "path": "services/nostr-pod-bridge/src/pyjson.rs",
+          "sha256": "f840cfbec615697b332efbc8088e4918a2267e0355db73cedcd2339052b16253",
+          "matches_head": true
+        },
+        {
+          "path": "services/nostr-pod-bridge/src/role_secret.rs",
+          "sha256": "18e5ff4dbbab181c49694a415aad700174daf8149c97f9a9f07bc1c7f8736004",
+          "matches_head": true
+        },
+        {
+          "path": "services/nostr-pod-bridge/src/identity_port/mod.rs",
+          "sha256": "9989346c23dfb4fd5853581b32e8ad997810ff998ed482a35252c5682dccee20",
+          "matches_head": true
+        },
+        {
+          "path": "services/nostr-pod-bridge/src/identity_port/acl.rs",
+          "sha256": "b99a133987fd1e8927fd77d599417ec8dfb8c1978364d8f1f241b9c5ce9e7c9b",
+          "matches_head": true
+        },
+        {
+          "path": "services/nostr-pod-bridge/src/identity_port/port.rs",
+          "sha256": "3d834f95a377d6c566cb6b6ba13f94897f414222d9dc8e11b12589841e2689b1",
+          "matches_head": true
+        },
+        {
+          "path": "services/nostr-pod-bridge/src/identity_port/receipts.rs",
+          "sha256": "48c176ee86782070eea4b2c61526a4c79619d15f638a68a5e757ceadee80be11",
+          "matches_head": true
+        },
+        {
+          "path": "services/nostr-pod-bridge/src/identity_port/server.rs",
+          "sha256": "9a02d3a4258c3872580562455da38b0935f9d8495be59d491078a2d66c9b12a6",
+          "matches_head": true
+        }
+      ]
+    },
+    {
+      "repo": "/home/devuser/workspace/nostr-rust-forum",
+      "head": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+      "sources": [
+        {
+          "path": "crates/nostr-bbs-mesh/Cargo.toml",
+          "sha256": "437dca03e3a25811b2b19f126492ced807637d3f5af014ec98935545d5a91054",
+          "matches_head": true
+        },
+        {
+          "path": "crates/nostr-bbs-mesh/src/config.rs",
+          "sha256": "a465f4575e79e0b76fc7cca56e15c14cef404133ca9418a6b4871df455b0c5fd",
+          "matches_head": true
+        },
+        {
+          "path": "crates/nostr-bbs-mesh/src/envelope.rs",
+          "sha256": "7175124e1e78274991197d09d11fbcf275d0e6e81d48a4ca22c600fbf74466fe",
+          "matches_head": true
+        },
+        {
+          "path": "crates/nostr-bbs-mesh/src/transport.rs",
+          "sha256": "b44f842afb937600bed155f837bba3e62591741add7f001f4aeca31048b43789",
+          "matches_head": true
+        },
+        {
+          "path": "crates/nostr-bbs-core/src/gift_wrap.rs",
+          "sha256": "32b61893390212cd2121e2ca222ba46084c67a637df1bbc37f6a6da6ecadde4f",
+          "matches_head": true
+        },
+        {
+          "path": "crates/nostr-bbs-core/src/event.rs",
+          "sha256": "b55d967f23258dca03eb6cb810b26571e5aeb6db2f8b4ad3864d99dc80aaeea8",
+          "matches_head": true
+        },
+        {
+          "path": "crates/nostr-bbs-core/src/keys.rs",
+          "sha256": "7f5d61656a037ce29eb06e1c4f6cf7f4c7d294feba9318865f78d47c3b179a0a",
+          "matches_head": true
+        }
+      ]
+    },
+    {
+      "repo": "/home/devuser/workspace/project",
+      "head": "75b72416bac176ca8fde715cac3bd7c77657b3e7",
+      "sources": [
+        {
+          "path": "Dockerfile.production",
+          "sha256": "6c2fc459587da452a4387718dc6def28afd3b1c6c271d03e6d6d681b4905c297",
+          "matches_head": true
+        },
+        {
+          "path": "Dockerfile.unified",
+          "sha256": "143af15aa3fa931aa70a306b4813590441108782c5e038e4dcd668fbc008992a",
+          "matches_head": true
+        },
+        {
+          "path": "docs/adr/ADR-2161-a-node-publishes-data-spaces-that-peer-nodes-render-as-linked-volumes.md",
+          "sha256": "c77769bb7b236d8370f5e15b7045d27a8a22657813bd43112e44bf436b73c05d",
+          "matches_head": true
+        }
+      ]
+    }
+  ],
+  "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+  "cargo": "cargo 1.99.1 (5f94df478 2026-08-27)"
+}

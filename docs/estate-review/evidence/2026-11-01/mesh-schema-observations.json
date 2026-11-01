@@ -1,0 +1,10 @@
+{
+  "method": "read schema fields, not execution of validator",
+  "modes": [
+    "standalone",
+    "client"
+  ],
+  "additionalProperties": false,
+  "peers_property_present": false,
+  "moderation_type": "boolean"
+}

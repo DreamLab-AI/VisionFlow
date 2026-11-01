@@ -1,0 +1,125 @@
+{
+  "verified_byte_equal": true,
+  "files": [
+    {
+      "source": "docs/diagrams/rendered/agentbox/36-role-isolation-and-identity-port/AB-36.1.mmd",
+      "retained": "/tmp/vf-mesh-rendered/agentbox/36-role-isolation-and-identity-port/AB-36.1.mmd",
+      "sha256": "7d960f2c94481c80bfb49b9300a6b3808dad7d609fd08cb96a364be0ce465b36"
+    },
+    {
+      "source": "docs/diagrams/rendered/agentbox/36-role-isolation-and-identity-port/AB-36.1.svg",
+      "retained": "/tmp/vf-mesh-rendered/agentbox/36-role-isolation-and-identity-port/AB-36.1.svg",
+      "sha256": "2c622620cad971f3aaacc99685e474c37cc571efe2614fd8d551dd94df042410"
+    },
+    {
+      "source": "docs/diagrams/rendered/agentbox/36-role-isolation-and-identity-port/AB-36.2.mmd",
+      "retained": "/tmp/vf-mesh-rendered/agentbox/36-role-isolation-and-identity-port/AB-36.2.mmd",
+      "sha256": "cb95c3ec6cfae379e5812c6e20d00e78e397ca3d005c6bbfec0eae59819f28ca"
+    },
+    {
+      "source": "docs/diagrams/rendered/agentbox/36-role-isolation-and-identity-port/AB-36.2.svg",
+      "retained": "/tmp/vf-mesh-rendered/agentbox/36-role-isolation-and-identity-port/AB-36.2.svg",
+      "sha256": "574f42a90f1162b9e7f188314f94250e47c1ce7061af5a3bc1b7d6d0fd323c85"
+    },
+    {
+      "source": "docs/diagrams/rendered/agentbox/36-role-isolation-and-identity-port/AB-36.3.mmd",
+      "retained": "/tmp/vf-mesh-rendered/agentbox/36-role-isolation-and-identity-port/AB-36.3.mmd",
+      "sha256": "516b23279fe11e7e48593d3d767047cb213be8d3e940bc5f86de35af1e68d7e6"
+    },
+    {
+      "source": "docs/diagrams/rendered/agentbox/36-role-isolation-and-identity-port/AB-36.3.svg",
+      "retained": "/tmp/vf-mesh-rendered/agentbox/36-role-isolation-and-identity-port/AB-36.3.svg",
+      "sha256": "aebbf1de20d9ce06e78cc7182e45f4fe917e4aaf4ba1bfc740bbce4ddce90d3b"
+    },
+    {
+      "source": "docs/diagrams/rendered/agentbox/36-role-isolation-and-identity-port/AB-36.4.mmd",
+      "retained": "/tmp/vf-mesh-rendered/agentbox/36-role-isolation-and-identity-port/AB-36.4.mmd",
+      "sha256": "5b5469d454923086beba07d41d4ca6e3d6109abf153dbfc4fd083c26c578ffd2"
+    },
+    {
+      "source": "docs/diagrams/rendered/agentbox/36-role-isolation-and-identity-port/AB-36.4.svg",
+      "retained": "/tmp/vf-mesh-rendered/agentbox/36-role-isolation-and-identity-port/AB-36.4.svg",
+      "sha256": "4fbefd9e8fce62bd33a464d1c44e4ab0278ed2cbc48ec4329c6b52e033fb14d8"
+    },
+    {
+      "source": "docs/diagrams/rendered/agentbox/36-role-isolation-and-identity-port/AB-36.5.mmd",
+      "retained": "/tmp/vf-mesh-rendered/agentbox/36-role-isolation-and-identity-port/AB-36.5.mmd",
+      "sha256": "cdaa35d9cda0efca606944db38cf2905e8d62627b2f19bf6e6b25efb35089146"
+    },
+    {
+      "source": "docs/diagrams/rendered/agentbox/36-role-isolation-and-identity-port/AB-36.5.svg",
+      "retained": "/tmp/vf-mesh-rendered/agentbox/36-role-isolation-and-identity-port/AB-36.5.svg",
+      "sha256": "fadd04c776179f03b5878b60a897147c9ba749481f1035f90708c77fc012262b"
+    },
+    {
+      "source": "docs/diagrams/rendered/agentbox/36-role-isolation-and-identity-port/AB-36.6.mmd",
+      "retained": "/tmp/vf-mesh-rendered/agentbox/36-role-isolation-and-identity-port/AB-36.6.mmd",
+      "sha256": "5656f5a1bbf19ba7ecee54dc4ecdcf502aa5fa070c30f52393304c3a4deb1808"
+    },
+    {
+      "source": "docs/diagrams/rendered/agentbox/36-role-isolation-and-identity-port/AB-36.6.svg",
+      "retained": "/tmp/vf-mesh-rendered/agentbox/36-role-isolation-and-identity-port/AB-36.6.svg",
+      "sha256": "269966aa60074a621e719c09336520b3897a832de4731e0a087279b8434ef4c7"
+    },
+    {
+      "source": "docs/diagrams/rendered/agentbox/36-role-isolation-and-identity-port/AB-36.7.mmd",
+      "retained": "/tmp/vf-mesh-rendered/agentbox/36-role-isolation-and-identity-port/AB-36.7.mmd",
+      "sha256": "e97402ff0c04f25e3130d6f52cf6fc8fddd1c519a3e68abd3d27e9254d5a8668"
+    },
+    {
+      "source": "docs/diagrams/rendered/agentbox/36-role-isolation-and-identity-port/AB-36.7.svg",
+      "retained": "/tmp/vf-mesh-rendered/agentbox/36-role-isolation-and-identity-port/AB-36.7.svg",
+      "sha256": "6df92c00c01ea1162419fff79c40d5d648729952b3dd492c01100d9eca085d55"
+    },
+    {
+      "source": "docs/diagrams/rendered/agentbox/37-mesh-signer-and-recovery/AB-37.1.mmd",
+      "retained": "/tmp/vf-mesh-rendered/agentbox/37-mesh-signer-and-recovery/AB-37.1.mmd",
+      "sha256": "2f6aac5b9ae267e42fce59f0d4c94085038262bda22c7807f4e58ed43a98ede2"
+    },
+    {
+      "source": "docs/diagrams/rendered/agentbox/37-mesh-signer-and-recovery/AB-37.1.svg",
+      "retained": "/tmp/vf-mesh-rendered/agentbox/37-mesh-signer-and-recovery/AB-37.1.svg",
+      "sha256": "3ff1ed5e2dc3a6a330c32230f3043b18dd91de960040322e64230543bc54e377"
+    },
+    {
+      "source": "docs/diagrams/rendered/agentbox/37-mesh-signer-and-recovery/AB-37.2.mmd",
+      "retained": "/tmp/vf-mesh-rendered/agentbox/37-mesh-signer-and-recovery/AB-37.2.mmd",
+      "sha256": "beaceb56515a7bddbef4f55683f6ba963b66cae2d853637cbafe9b117b90fb2d"
+    },
+    {
+      "source": "docs/diagrams/rendered/agentbox/37-mesh-signer-and-recovery/AB-37.2.svg",
+      "retained": "/tmp/vf-mesh-rendered/agentbox/37-mesh-signer-and-recovery/AB-37.2.svg",
+      "sha256": "542618141b15e49a365a708255fc02e992d3bb18f689d3b5bee702d5dd0f240f"
+    },
+    {
+      "source": "docs/diagrams/rendered/agentbox/37-mesh-signer-and-recovery/AB-37.3.mmd",
+      "retained": "/tmp/vf-mesh-rendered/agentbox/37-mesh-signer-and-recovery/AB-37.3.mmd",
+      "sha256": "ddc21d14e2a78af37e9470aa4a675272962ac17385e9d92383f27a87c88b4862"
+    },
+    {
+      "source": "docs/diagrams/rendered/agentbox/37-mesh-signer-and-recovery/AB-37.3.svg",
+      "retained": "/tmp/vf-mesh-rendered/agentbox/37-mesh-signer-and-recovery/AB-37.3.svg",
+      "sha256": "bce90d60e13012935cc2e75c681ebcf22ed12a4fdd1cd52b4e088cea7807f8c8"
+    },
+    {
+      "source": "docs/diagrams/rendered/agentbox/37-mesh-signer-and-recovery/AB-37.4.mmd",
+      "retained": "/tmp/vf-mesh-rendered/agentbox/37-mesh-signer-and-recovery/AB-37.4.mmd",
+      "sha256": "48664f447bd6c81df2635f517891381b6e6d655a4fcd668d4e81abf3ea449b37"
+    },
+    {
+      "source": "docs/diagrams/rendered/agentbox/37-mesh-signer-and-recovery/AB-37.4.svg",
+      "retained": "/tmp/vf-mesh-rendered/agentbox/37-mesh-signer-and-recovery/AB-37.4.svg",
+      "sha256": "fe737e6e125a309835a8a29148da5863e0c34cad56f801da86a990762f557d12"
+    },
+    {
+      "source": "website/build-receipt.json",
+      "retained": "/tmp/vf-mesh-generated-inputs/website/build-receipt.json",
+      "sha256": "fae85100258804d3344673265a4fcc88781ea92f6e2c4a137bd27b48f3460711"
+    },
+    {
+      "source": "texput.log",
+      "retained": "/tmp/vf-mesh-generated-inputs/texput.log",
+      "sha256": "0de8dad445a514ae3bc13874d2a354c230d5395982c23ea702c3e573c3d9d304"
+    }
+  ]
+}

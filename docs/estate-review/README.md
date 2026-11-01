@@ -143,3 +143,5 @@ The [portal and federation pass](2026-10-31-portals-and-federation.md) adds sect
 The [1 November room admission and deferred-voice pass](2026-11-01-room-admission-and-voice.md) assesses ADR-2157 and ADR-2160 section by section, records 117 passing isolated Rust tests, and identifies an omitted SFU refresh path in the proposed voice deadline. Live voice and membership activation remain unverified.
 
 The [1 November forum space and replication audit](2026-11-01-forum-spaces-and-replication.md) assesses ADR-2030/2031/2032, reproduces storage and metadata-builder gaps, and identifies rollback confidentiality and feature-dependent licence-contract issues. Its 69 isolated tests do not establish a deployed group engine.
+
+The [1 November mesh signer and custody audit](2026-11-01-mesh-signer-and-custody.md) reviews agentbox ADR-2162 in full. Its 65 isolated tests expose configuration/codec incompatibility and the limits of UID/kind allowlists, ID caches and backup selection; durable delivery, recovery and deployment remain prerequisites.

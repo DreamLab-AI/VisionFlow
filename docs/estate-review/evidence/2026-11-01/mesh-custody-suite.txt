@@ -1,0 +1,81 @@
+   Compiling mesh-custody-audit v0.1.0 (/home/devuser/workspace/.tmp/vf-mesh-custody-z6jo20ke)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.12s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/vf-mesh-custody-z6jo20ke/target/debug/deps/mesh_custody_audit-27cf121e8810bd0b)
+
+running 65 tests
+OBS top_level_sequence_dropped; id_cache_eviction_and_restart_allow_again
+OBS all_three_control_types_rejected
+OBS proposed_peers_ignored; ws_relay_resolves; inbound_pin_remains_denied
+OBS socket_parent_0770_accepted_0777_refused; trusted_parent_group_is_external_precondition
+OBS backup_collect_omits_federation_key_names_even_inside_root; identity_env_and_dotenv_controls_selected
+test audit::generic_envelope_drops_unknown_sequence_and_seen_ids_forget ... ok
+test audit::all_three_control_types_are_unknown ... ok
+test audit::proposed_peers_are_ignored_and_do_not_establish_pins ... ok
+test backup::tests::restore_rejects_paths_that_escape_the_destination ... ok
+test envmap::tests::get_distinguishes_unset_from_empty ... ok
+test envmap::tests::non_empty_collapses_the_empty_string ... ok
+test envmap::tests::first_skips_empty_and_missing ... ok
+test envmap::tests::or_falls_back_for_empty_and_missing ... ok
+test backup::tests::refuses_to_write_a_plaintext_archive ... ok
+test backup::tests::excluded_ancestor_does_not_hide_the_requested_tree ... ok
+test audit::socket_parent_group_write_is_not_checked ... ok
+test identity_port::acl::tests::an_agent_governance_key_may_sign_panels_and_cases_on_forum_event ... ok
+test backup::mesh_backup_audit::role_key_names_are_not_selected_by_current_backup_allowlist ... ok
+test identity_port::acl::tests::a_valid_acl_loads ... ok
+test identity_port::acl::tests::an_unknown_operation_fails_to_load ... ok
+test identity_port::acl::tests::an_agent_governance_key_is_usable_for_forum_event_alone_and_never_mixed ... ok
+test identity_port::acl::tests::non_numeric_uid_and_path_like_key_file_fail ... ok
+test identity_port::acl::tests::panel_and_case_kinds_stay_refused_without_the_agent_key ... ok
+test backup::tests::templates_and_vendored_trees_are_excluded ... ok
+test identity_port::acl::tests::url_prefix_matching_is_segment_bounded_and_origin_exact ... ok
+test identity_port::acl::tests::a_never_grantable_kind_fails_to_load ... ok
+test identity_port::acl::tests::the_agent_exception_refuses_every_other_never_grantable_kind ... ok
+test identity_port::acl::tests::kinds_on_the_wrong_op_or_missing_kinds_fail ... ok
+test identity_port::acl::tests::manifest_references_resolve_or_grant_nothing ... ok
+test identity_port::receipts::tests::utc_dates ... ok
+test identity_port::port::tests::a_missing_required_key_or_a_bad_key_file_fails_without_echoing_it ... [role-secret] ROLE-ISOLATION-LEAK okA
+ is set in the environment under role isolation; ignored (deliver it as test pyjson::tests::astral_plane_uses_surrogate_pairs ... A_FILEok)
+
+test pyjson::tests::compact_empty_containers_match_python ... ok
+test pyjson::tests::compact_uses_python_separators ... ok
+test pyjson::tests::control_characters_keep_serde_escapes ... ok
+test pyjson::tests::key_insertion_order_is_preserved ... ok
+test pyjson::tests::non_ascii_is_escaped_like_ensure_ascii ... ok
+test pyjson::tests::pretty_empty_containers_stay_inline ... ok
+test pyjson::tests::pretty_matches_python_indent_two ... ok
+test role_secret::tests::a_directory_is_not_a_secret_file ... ok
+test role_secret::tests::flag_must_be_exactly_one ... ok
+test role_secret::tests::flag_on_empty_env_var_still_counts_as_present ... ok
+test role_secret::tests::default_file_is_used_when_no_file_var ... ok
+test role_secret::tests::flag_off_env_var_is_honoured ... ok
+test role_secret::tests::flag_on_env_var_is_ignored_and_reported ... ok
+test role_secret::tests::file_var_wins_over_env_var_with_flag_off ... ok
+test role_secret::tests::unreadable_file_var_is_an_error_naming_the_path_not_a_fallback ... ok
+test role_secret::tests::flag_on_file_var_is_read_and_a_present_env_var_is_still_a_leak ... ok
+test role_secret::tests::oversized_file_is_refused ... ok
+test role_secret::tests::read_first_returns_the_first_value_and_its_name ... ok
+test role_secret::tests::role_secrets_dir_is_consulted_after_the_file_var ... ok
+test identity_port::port::tests::malformed_requests_are_refused_and_receipted ... ok
+test identity_port::port::tests::a_uid_outside_the_acl_is_refused_for_every_op_and_nothing_is_signed ... ok
+OBS local_socket_real_SO_PEERCRED_fixture_signed; no_live_service_used
+test audit::real_socket_uses_kernel_credentials ... ok
+test identity_port::port::tests::governance_and_graduation_kinds_are_refused_even_when_asked_directly ... ok
+test identity_port::port::tests::an_unwritable_receipt_refuses_an_admission ... ok
+test identity_port::port::tests::mirror_key_matches_the_w8_derivation_and_the_secret_is_per_grant ... ok
+test identity_port::port::tests::a_key_not_granted_or_not_held_is_refused ... ok
+test backup::tests::a_recipient_encrypted_archive_needs_an_identity ... ok
+test identity_port::port::tests::nip98_signs_only_allowlisted_urls_and_strips_the_query ... ok
+test identity_port::port::tests::the_kind_allowlist_is_per_caller ... ok
+test identity_port::port::tests::an_odd_y_supplied_key_signs_as_its_x_only_identity_and_keeps_the_phone_child ... ok
+OBS synthetic_30078_grant_signs_wrong_namespace_without_rev; same_uid_pids_equivalent; other_uid_and_ungranted_kind_refused
+test audit::adding_kind_30078_alone_is_not_a_catalogue_signer ... ok
+test identity_port::port::tests::nip42_names_only_configured_relays ... ok
+test identity_port::port::tests::forum_events_default_to_the_forum_key_and_refuse_zones ... ok
+test identity_port::port::tests::the_sovereign_secret_is_in_no_response_and_no_receipt ... ok
+OBS current_manifest_rejected: boolean honor_remote_moderation is not a list
+test audit::checked_in_mesh_block_is_not_library_compatible ... ok
+test backup::tests::the_archive_is_owner_only_on_disk ... ok
+test backup::tests::synthetic_backup_restores_byte_for_byte ... ok
+test backup::tests::a_wrong_passphrase_fails_rather_than_returning_rubbish ... ok
+
+test result: ok. 65 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.16s

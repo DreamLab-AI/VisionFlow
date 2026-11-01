@@ -1,0 +1,8 @@
+{
+  "accessed": "2026-11-01",
+  "sources": [
+    {"url":"https://github.com/spiffe/spire/blob/main/doc/plugin_agent_workloadattestor_unix.md","use":"UID/GID and optional executable path/hash attestation selectors; comparison only; not executed"},
+    {"url":"https://docs.nats.io/learn/jetstream/delivery-and-acknowledgment","use":"Durable consumer position, acknowledgement and redelivery; comparison only; not executed"},
+    {"url":"https://github.com/nostr-protocol/nips/blob/400d157c53264b8e58c7b3cdbd21ef546fb7a157/59.md","use":"Author seal versus one-time outer key; encryption and application protocol distinction"}
+  ]
+}

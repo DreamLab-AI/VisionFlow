@@ -1,0 +1,8 @@
+{
+  "isolated_suite_exit": 0,
+  "passed": 65,
+  "existing_tests": 57,
+  "audit_tests": 8,
+  "actual_socket_test": "temporary path with synthetic key; kernel credentials",
+  "production_services_contacted": false
+}
