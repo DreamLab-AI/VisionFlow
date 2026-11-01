@@ -1,0 +1,30 @@
+{
+  "native_cases": 19,
+  "native_existing": 5,
+  "native_audit_behaviour": 13,
+  "native_fixture_emission": 1,
+  "browser_cases": 5,
+  "rendered_topics": 2,
+  "rendered_panels": 22,
+  "visually_inspected": [
+    "NF-05.8",
+    "NF-22.1",
+    "NF-22.2",
+    "NF-22.3",
+    "NF-22.4",
+    "NF-22.5"
+  ],
+  "visual_corrections": "Replaced clipped sequence self-label with a wrapped note and re-inspected. Final six updated panels have readable labels and no observed clipping.",
+  "corpus": {
+    "topics": 192,
+    "panels": 1667,
+    "citations_verified": 25000,
+    "warnings": 0,
+    "unverified": 0,
+    "unresolvable": 0,
+    "allowlisted": 9,
+    "fresh_declared_revisions": 47
+  },
+  "prose": "Zero suspicious invisible characters. Three heuristic high flags retained after review: local unlock is a concrete authentication step, prioritise is ordinary UK wording, and the opening sentence names the subject. No automated prose rewrite.",
+  "scope": "Docs-only audit; bounded native/browser fixtures, not full signup or deployment acceptance."
+}

@@ -1,0 +1,12 @@
+[
+  {
+    "path": "crates/nostr-bbs-forum-client/src/auth/mod.rs",
+    "revision": "9c36b60",
+    "diff": "diff --git a/crates/nostr-bbs-forum-client/src/auth/mod.rs b/crates/nostr-bbs-forum-client/src/auth/mod.rs\nindex c02a4fb..591f4d5 100644\n--- a/crates/nostr-bbs-forum-client/src/auth/mod.rs\n+++ b/crates/nostr-bbs-forum-client/src/auth/mod.rs\n@@ -207,7 +207,7 @@ impl AuthStore {\n             }\n             let mut key_bytes = [0u8; 32];\n             key_bytes.copy_from_slice(v);\n-            let signing_key = k256::schnorr::SigningKey::from_bytes(&key_bytes)\n+            let signing_key = k256::schnorr::SigningKey::from_bytes((&key_bytes).into())\n                 .map_err(|e| format!(\"Invalid signing key: {e}\"))?;\n             key_bytes.zeroize();\n             // Auto-populate pubkey when caller left it blank. The relay's\n"
+  },
+  {
+    "path": "crates/nostr-bbs-auth-worker/src/devices.rs",
+    "revision": "9c36b60",
+    "diff": "diff --git a/crates/nostr-bbs-auth-worker/src/devices.rs b/crates/nostr-bbs-auth-worker/src/devices.rs\nindex 0e5b527..f47b675 100644\n--- a/crates/nostr-bbs-auth-worker/src/devices.rs\n+++ b/crates/nostr-bbs-auth-worker/src/devices.rs\n@@ -694,14 +694,14 @@ mod tests {\n     const NOW: u64 = 1_700_000_000;\n \n     fn device_sk() -> SigningKey {\n-        SigningKey::from_bytes(&[0x11u8; 32]).unwrap()\n+        SigningKey::from_bytes((&[0x11u8; 32]).into()).unwrap()\n     }\n     fn device_pk() -> String {\n         hex::encode(device_sk().verifying_key().to_bytes())\n     }\n     fn owner_pk() -> String {\n         // A distinct key's pubkey stands in for the NIP-98 author.\n-        let sk = SigningKey::from_bytes(&[0x22u8; 32]).unwrap();\n+        let sk = SigningKey::from_bytes((&[0x22u8; 32]).into()).unwrap();\n         hex::encode(sk.verifying_key().to_bytes())\n     }\n \n"
+  }
+]

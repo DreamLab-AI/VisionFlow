@@ -1,0 +1,22 @@
+[
+  {
+    "url": "https://support.signal.org/hc/en-us/articles/360007320551-Linked-Devices",
+    "checked": "2026-11-01",
+    "scope": "Primary-device QR linking, local unlock, linked-device visibility and unlinking."
+  },
+  {
+    "url": "https://github.com/nostr-protocol/nips/blob/master/46.md",
+    "checked": "2026-11-01",
+    "scope": "Client communication keypair separate from user signing key; pairing and session semantics."
+  },
+  {
+    "url": "https://developer.mozilla.org/en-US/docs/Web/API/History/replaceState",
+    "checked": "2026-11-01",
+    "scope": "Same-origin URL requirement and exception semantics."
+  },
+  {
+    "url": "https://developer.mozilla.org/en-US/docs/Web/API/Window/print",
+    "checked": "2026-11-01",
+    "scope": "Opens print dialog, no saved-copy return value."
+  }
+]

@@ -1,0 +1,49 @@
+{
+  "transport": "browsercontainer chrome-devtools MCP SSE",
+  "cases": [
+    {
+      "case": "plain_html",
+      "result": {
+        "marker": null,
+        "syntheticSecretVisible": true,
+        "fragment": "#k=SYNTHETIC-FRAGMENT"
+      }
+    },
+    {
+      "case": "history_success",
+      "result": {
+        "fragment": ""
+      }
+    },
+    {
+      "case": "history_cross_origin_failure",
+      "result": {
+        "error": "SecurityError",
+        "fragment": "#k=SYNTHETIC-FRAGMENT"
+      }
+    },
+    {
+      "case": "display_name_html_executes",
+      "result": {
+        "marker": 1,
+        "syntheticSecretVisible": true,
+        "nameLength": 30,
+        "scripts": 0
+      }
+    },
+    {
+      "case": "escaped_name_control",
+      "result": {
+        "marker": null,
+        "escapedNameVisible": true,
+        "syntheticSecretVisible": true
+      }
+    }
+  ],
+  "limits": [
+    "Synthetic HTML from extracted production formatter; not the full Leptos signup or connect app.",
+    "Inert marker executes only assignment; no exfiltration or external requests.",
+    "History error is deliberately cross-origin, showing browser failure semantics; production route failure controlled separately by native mock.",
+    "Escaped control is a test-only derivative, not a production fix."
+  ]
+}

@@ -7,6 +7,8 @@ type: explanation
 
 # VisionFlow estate review
 
+Recovery and phone onboarding continuation: [archived ADR-095/098/099, five NF-22 panels and the NF-05.8 correction](2026-11-01-forum-recovery-and-connect.md). Nineteen native cases and five isolated Chrome cases qualify HTML injection, ignored history failures, backup acknowledgement and master/device export differences; full signup and deployed enrolment remain open.
+
 Forum subkey continuation: [ADR-2003 and archived ADR-094/100 section review](2026-11-01-forum-subkey-derivation.md), four NF-21 panels and four scoped legacy corrections. Native parity passes; extracted consumers disagree on identity modes and the source guard accepts changed defaults. Thirty native tests, twelve JavaScript probes and eight runner scenarios retain the evidence. Live rotation remains open.
 
 Forum device-key continuation: [ADR-2004 section review, six NF-20 panels and 76 selected checks](2026-11-01-forum-device-keys.md). Missing registration proofs and incompatible list numbers block the client contract; cached delegation outlives revocation writes. NF-02.7 and NF-08.8 receive scoped corrections. Live acceptance remains open.

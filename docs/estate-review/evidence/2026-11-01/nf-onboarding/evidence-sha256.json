@@ -1,0 +1,194 @@
+[
+  {
+    "path": "NF-05.8.png",
+    "sha256": "08edf1422535b092609848968ea191e0dd358b06cd851d4c1536888957e7e427"
+  },
+  {
+    "path": "NF-22.1.png",
+    "sha256": "c2ed5d01b42eb3195e2432bcd2b06ae1859c679edf7b148869714dce655dfb5d"
+  },
+  {
+    "path": "NF-22.2.png",
+    "sha256": "a45586a50792d45c4bb144c7e2dbd4e03f35182b2e7b37cec5fce975e6dcee5e"
+  },
+  {
+    "path": "NF-22.3.png",
+    "sha256": "6cca4656c88b485c7c22d666fc44b9c3ae8c26c8e258e74e79ccee9962df188d"
+  },
+  {
+    "path": "NF-22.4.png",
+    "sha256": "f2868c348ea9d58c10d7972a706a2ababa5e55f67c31113f6e0f1c45a579f7a8"
+  },
+  {
+    "path": "NF-22.5.png",
+    "sha256": "0f772787a89cbe47705784011848cdf9e362138c5c0b660074831671da8260cf"
+  },
+  {
+    "path": "README.md",
+    "sha256": "32029063c37b4c3044eadd0b15af7fb5d8d0662fad6fc56f0a2e895417b92b2f"
+  },
+  {
+    "path": "audit-cases.rs",
+    "sha256": "87b67c27a1db8aac7c8552c6bcadbe1d272f92d994000f962b3226a221fc0725"
+  },
+  {
+    "path": "audit_onboarding.rs",
+    "sha256": "4ef0e5381861fbf5d6e91c63a79f07c12881470dc252e7bd0c49d7ffb1554f64"
+  },
+  {
+    "path": "browser-results.json",
+    "sha256": "1381889cac88a9ea7b01a6e09a54552fd40d2f0283eea6cee524eff543fdcb01"
+  },
+  {
+    "path": "browser_probe.py",
+    "sha256": "e6ef38cd52b49b9d21396d9b9c77c6f15ef39cdfa5de31a46254fc8a515a7c26"
+  },
+  {
+    "path": "corpus-citations.log",
+    "sha256": "0bff48bc8d24df14426e3c9523a7a2774d33b10169f5e313a3d0dee8536518d8"
+  },
+  {
+    "path": "corpus-freshness.log",
+    "sha256": "052cc128533c6bdea8d04abfd89037864037bb5becf4c844f7e1853de0f981e2"
+  },
+  {
+    "path": "extracted-source.json",
+    "sha256": "22e097c81a6cd2ee0707a0e89bb5d88ffd7d0a47eb23796216e9f9c10ad71bec"
+  },
+  {
+    "path": "fixture-prefix.rs",
+    "sha256": "0fb4e3aa0c7032162c5856b1e4a9a3433887dfd8e93b3ae3abb172a34fc4f4b3"
+  },
+  {
+    "path": "html/escaped-control.html",
+    "sha256": "360d27f66310de1cfffe607b5f507f9aaf26d164343e07543ec0c7db58ec06ea"
+  },
+  {
+    "path": "html/marker.html",
+    "sha256": "4ee423f7e34de901f6ddea48a805341bbb683f58e6616bf963136d748ad3cba0"
+  },
+  {
+    "path": "html/plain.html",
+    "sha256": "dc11add7b23f911720dca37c58a78703b3cc601c776d5f11c09b41c9a5d26315"
+  },
+  {
+    "path": "http-server.log",
+    "sha256": "53665a7313a8b486cc0718dadb55fcb123da6fb6d573876df7090e3040dacc3b"
+  },
+  {
+    "path": "local-links.json",
+    "sha256": "66b7d2921795bf13c534d16f7c3a410f08c416d38004a3e2a40ff4ec2e0b0ce2"
+  },
+  {
+    "path": "mcp_client.py",
+    "sha256": "151e0298d4d9c5089448da4a60bc9bd4447c3e80e4395082bdd1a73fa48c002a"
+  },
+  {
+    "path": "native-first-hypothesis.log",
+    "sha256": "f05b518e9ab537ee8f174dd95daaa49290596a334f2fff3a2a440cc4cc886cec"
+  },
+  {
+    "path": "native-tests.log",
+    "sha256": "e1b2e5fc5f3e6a87a3a09a775819c696d505f052366a421eda4e2a59e9e067c7"
+  },
+  {
+    "path": "owned-browser-page.json",
+    "sha256": "8a00a94b5a40c8d4e376f75925029199b012ccd367dd2001d1bae48d705058ce"
+  },
+  {
+    "path": "prepare_tests.py",
+    "sha256": "5f2144109c2be29ad792459cfe69164fa91c1282eb805a76bf359029869d83dd"
+  },
+  {
+    "path": "prose-scan.log",
+    "sha256": "a02cbe8f7d83bf503e0706d818a1742e1c0d4167cc025ba6e74a40470f5637a1"
+  },
+  {
+    "path": "recovery-marker-browser.png",
+    "sha256": "3ca4e3da3f4b39173c4f9a4189291b34a198d2dbb393ea5d25a034b6dc2f84f7"
+  },
+  {
+    "path": "render-nf05.log",
+    "sha256": "f5850c8e133b5d35da86619be788c225cc6418957e580f84088eddca936da2b6"
+  },
+  {
+    "path": "render-nf22.log",
+    "sha256": "39c825c0bfb451ea350941483f9a5a95ce0c112279b4767a4efd2a39a0da1634"
+  },
+  {
+    "path": "source/crates/nostr-bbs-auth-worker/src/devices.rs",
+    "sha256": "b6f7cee693ea0ace83b4ec7cf3f8255efb6b0bead34c80730ce20718e27c6901"
+  },
+  {
+    "path": "source/crates/nostr-bbs-core/src/nip19.rs",
+    "sha256": "55466e5ab3a47333bf2e54d7770875d5edd826a8f6a7f9334174a0894d3bec0a"
+  },
+  {
+    "path": "source/crates/nostr-bbs-forum-client/src/app.rs",
+    "sha256": "356bf2da3b51466abeed614a45562a56d8bb766955183436d90b9e3198e1074f"
+  },
+  {
+    "path": "source/crates/nostr-bbs-forum-client/src/auth/mod.rs",
+    "sha256": "f55352bf50b59b9736ecd60910b48d63c62fb1d3ba2bd4f08fc3e1452de049e5"
+  },
+  {
+    "path": "source/crates/nostr-bbs-forum-client/src/auth/session.rs",
+    "sha256": "cc5d37eb47e94e59e58a635cc067c732a3ab2fbb111766a90a2ce5b8c4d9bb7e"
+  },
+  {
+    "path": "source/crates/nostr-bbs-forum-client/src/components/recovery_sheet.rs",
+    "sha256": "f08a5e85c88105a807282ea59af16691dac236e4b10a623630f6babeef487b16"
+  },
+  {
+    "path": "source/crates/nostr-bbs-forum-client/src/pages/connect.rs",
+    "sha256": "d8e555bf0390a67ade36f45181174e3938a62f7da05d37d7b5bb01e6b0f38540"
+  },
+  {
+    "path": "source/crates/nostr-bbs-forum-client/src/pages/signup.rs",
+    "sha256": "564c35704084d17a0a0396fee344fe13956844fdb831f10f2d176d9298ff1ceb"
+  },
+  {
+    "path": "source/crates/nostr-bbs-forum-client/src/utils/devices.rs",
+    "sha256": "f08886fdd0e8d88b7f38b1929508682ff57d98afed4fd669f119522e0eb8de01"
+  },
+  {
+    "path": "source/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs",
+    "sha256": "52c7bd80243276f6f4109f1dc4180b485352141aac70d68fab626d5e1f6c0afd"
+  },
+  {
+    "path": "source/crates/nostr-bbs-relay-worker/src/relay_do/storage.rs",
+    "sha256": "4048b61f9bd43bc24eb36af6edb3e84a5207e1b01bbecf0639b0a224a9440351"
+  },
+  {
+    "path": "source/docs/archive/adr/ADR-095-recovery-device-onboarding-sheet.md",
+    "sha256": "b35c5b605655673852b2b2322dca042cad8d4c4d81a913f0659ba45834f27aaf"
+  },
+  {
+    "path": "source/docs/archive/adr/ADR-098-connect-magic-link-onboarding.md",
+    "sha256": "f012dbd5cc3f5536fc640fbd12902261afd0c6273c0f4a5d318557f2132b605b"
+  },
+  {
+    "path": "source/docs/archive/adr/ADR-099-revocable-device-keys.md",
+    "sha256": "731db07943b03f6527417969301a82c978df27a5c61c4c40f9eabcfa5ba80580"
+  },
+  {
+    "path": "source-differences.json",
+    "sha256": "d26ec90460401921aea4b5be0ed55166a4a55302ba088920a96112a267bdb1e8"
+  },
+  {
+    "path": "source-manifest.json",
+    "sha256": "15f462398ae7d1ed46a827cb072ed574b84d44ebc2ad549a481d543fdfcb0354"
+  },
+  {
+    "path": "text-inspection.log",
+    "sha256": "4b6761294627b1454ea41aeb2dbd061e820a111b03c3f1753c2aa6150a46402a"
+  },
+  {
+    "path": "validation.json",
+    "sha256": "cc1269fd656692d1c1dd90e1eeaf0500c2cb50683b3bab6df99fe9e5f06b734e"
+  },
+  {
+    "path": "web-sources.json",
+    "sha256": "c4b165ade7ac3187cc8e7ba2edcce327525e2d1438856ebd1c420ca5ac2d0855"
+  }
+]

@@ -1,0 +1,1702 @@
+//! Root application component with router, layout, and auth gate.
+
+use leptos::prelude::*;
+use leptos_router::components::{FlatRoutes, Redirect, Route, Router, A};
+use leptos_router::hooks::{use_location, use_navigate};
+use leptos_router::path;
+use leptos_router::NavigateOptions;
+
+use crate::auth::{provide_auth, use_auth};
+use crate::components::bookmarks_modal::provide_bookmarks;
+use crate::components::bookmarks_modal::BookmarksModal;
+use crate::components::fx::provide_render_tier;
+use crate::components::global_search::GlobalSearch;
+use crate::components::message_bubble::{provide_profile_modal_target, ProfileModalTarget};
+use crate::components::mobile_bottom_nav::MobileBottomNav;
+use crate::components::notification_bell::{provide_notifications, NotificationBell};
+use crate::components::onboarding_modal::provide_onboarding_prefill;
+use crate::components::profile_modal::ProfileModal;
+use crate::components::screen_reader::{provide_announcer, ScreenReaderAnnouncer};
+use crate::components::toast::{provide_toasts, use_toasts, ToastContainer, ToastVariant};
+use crate::components::user_display::provide_name_cache;
+use crate::pages::{
+    AdminPage, BoardPage, CategoryPage, ChannelPage, ConnectPage, DmChatPage, DmListPage,
+    EventsPage, ForumsPage, GlossaryPage, GovernancePage, HomePage, JoinPage, KnowledgePage,
+    LoginPage, MessageJumpPage, NoteViewPage, PodBrowserPage, ProfilePage, SectionPage,
+    SettingsPage, SetupPage, SignupPage, TablePage, ThreadPage, WalletPage,
+};
+use crate::relay::{ConnectionState, RelayConnection};
+use crate::stores::case_projection::provide_case_projection_store;
+use crate::stores::channels::{provide_channel_store, use_channel_store};
+use crate::stores::custom_emoji::provide_custom_emoji_store;
+use crate::stores::mute::provide_mute_store;
+use crate::stores::panel_registry::provide_panel_registry;
+use crate::stores::preferences::provide_preferences;
+use crate::stores::profile_cache::{provide_profile_cache, try_use_profile_cache};
+use crate::stores::read_position::provide_read_positions;
+use crate::stores::receipts::provide_receipt_store;
+use crate::stores::zone_access::{provide_zone_access, use_zone_access};
+
+// -- Base path for sub-directory deployment -----------------------------------
+
+/// Base URL prefix. Set `FORUM_BASE=/community` at compile time for production.
+/// Empty/unset for local development (routes mount at root).
+const FORUM_BASE: &str = match option_env!("FORUM_BASE") {
+    Some(b) => b,
+    None => "",
+};
+
+/// Build a full href by prepending the base path.
+///
+/// Use for `<A href=...>` and `window.location.set_href()`.
+/// Do **NOT** use with `use_navigate()` — the router prepends `base` automatically.
+pub(crate) fn base_href(path: &str) -> String {
+    if FORUM_BASE.is_empty() {
+        path.to_string()
+    } else {
+        format!("{}{}", FORUM_BASE, path)
+    }
+}
+
+/// Routes a `returnTo` must never point at: bouncing back to an auth page
+/// after authenticating is a redirect loop (QA HIGH bug #2).
+pub(crate) const AUTH_ROUTES: &[&str] = &["/login", "/signup", "/setup"];
+
+/// Where a rejected or absent `returnTo` sends the user instead.
+pub(crate) const DEFAULT_RETURN_TO: &str = "/forums";
+
+/// Strip `FORUM_BASE` from a browser path, returning a base-relative app path.
+///
+/// `current_app_path("/community/forums")` → `"/forums"` when `FORUM_BASE="/community"`.
+/// Identity when `FORUM_BASE` is empty. Always returns a string starting with `/`.
+///
+/// Use this whenever you want to feed `location.pathname.get()` back into
+/// `use_navigate(...)` or store it in a `returnTo` query — the router will
+/// re-prefix the base on its own, so the value stored must NOT contain it.
+///
+/// ADR-090 closeout: the strip is **router-aware**, i.e. it only fires on a
+/// path-segment boundary. `/communityfoo` is a sibling route, not a route
+/// inside `/community`, and is returned untouched; `/community/community-notes`
+/// loses only its leading occurrence. See [`crate::utils::paths::app_path`] for
+/// the pure implementation and its unit tests.
+pub(crate) fn current_app_path(pathname: &str) -> String {
+    crate::utils::paths::app_path(FORUM_BASE, pathname)
+}
+
+/// Validate an attacker-controllable `returnTo` and reduce it to a safe,
+/// base-relative app path.
+///
+/// ADR-090 closeout: `returnTo` arrives in a query string that anybody can put
+/// in a link, so it is treated as hostile input. Absolute URLs, schemes
+/// (`javascript:`, `data:`), scheme-relative `//evil.example`, backslash
+/// authorities, control-character splitting, encoded traversal and anything
+/// that escapes the base are all refused, and the user lands on
+/// [`DEFAULT_RETURN_TO`] instead. See [`crate::utils::paths::validate_return_to`].
+pub(crate) fn safe_return_to(raw: &str) -> String {
+    crate::utils::paths::sanitise_return_to(FORUM_BASE, raw, DEFAULT_RETURN_TO, AUTH_ROUTES)
+}
+
+// -- Dev-auth panel (no-op when feature is disabled) -------------------------
+
+#[cfg(feature = "dev-auth")]
+fn dev_auth_panel() -> impl IntoView {
+    view! { <crate::auth::dev::DevAuthPanel /> }
+}
+
+#[cfg(not(feature = "dev-auth"))]
+fn dev_auth_panel() -> impl IntoView {}
+
+/// Publish a kind-0 profile, retrying if the relay rejects it because the author
+/// is not yet whitelisted. A brand-new joiner is authenticated client-side and
+/// publishes their kind-0 immediately, but the whitelist row is created a moment
+/// later by the auth-worker username-claim; the relay rejects a non-whitelisted
+/// author, so the first publish is dropped and the display name is lost (the
+/// user then only sees their pubkey). Re-publishing the SAME signed event once
+/// the claim lands succeeds (a rejected event was never stored, so its id is
+/// free). Backs off a few times, then gives up quietly.
+fn publish_kind0_retrying(
+    relay: RelayConnection,
+    signed: nostr_bbs_core::NostrEvent,
+    attempts_left: u32,
+) {
+    let relay_for_retry = relay.clone();
+    let signed_for_retry = signed.clone();
+    let on_ok: crate::relay::PublishCallback =
+        std::rc::Rc::new(move |accepted: bool, message: String| {
+            if accepted {
+                return;
+            }
+            if attempts_left == 0 {
+                web_sys::console::warn_1(
+                    &format!("[app] kind-0 still rejected after retries: {message}").into(),
+                );
+                return;
+            }
+            let relay_next = relay_for_retry.clone();
+            let signed_next = signed_for_retry.clone();
+            // Wait for the username-claim's cross-D1 whitelist write to land.
+            crate::utils::set_timeout_once(
+                move || publish_kind0_retrying(relay_next, signed_next, attempts_left - 1),
+                2500,
+            );
+        });
+    let _ = relay.publish_with_ack(&signed, Some(on_ok));
+}
+
+// -- SVG icon helpers ---------------------------------------------------------
+
+fn brand_icon() -> impl IntoView {
+    view! {
+        <svg class="w-7 h-7 text-amber-400" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2L21.5 7.5V16.5L12 22L2.5 16.5V7.5L12 2Z"
+                fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="1.5"/>
+            <circle cx="12" cy="12" r="3" fill="currentColor"/>
+        </svg>
+    }
+}
+
+fn dm_icon() -> impl IntoView {
+    view! {
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+                stroke-linecap="round" stroke-linejoin="round"/>
+            <polyline points="22,6 12,13 2,6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    }
+}
+
+fn user_icon() -> impl IntoView {
+    view! {
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="12" cy="7" r="4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    }
+}
+
+fn logout_icon() -> impl IntoView {
+    view! {
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"
+                stroke-linecap="round" stroke-linejoin="round"/>
+            <polyline points="16 17 21 12 16 7" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="21" y1="12" x2="9" y2="12" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    }
+}
+
+fn hamburger_icon() -> impl IntoView {
+    view! {
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6" stroke-linecap="round"/>
+            <line x1="3" y1="12" x2="21" y2="12" stroke-linecap="round"/>
+            <line x1="3" y1="18" x2="21" y2="18" stroke-linecap="round"/>
+        </svg>
+    }
+}
+
+fn close_icon() -> impl IntoView {
+    view! {
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18" stroke-linecap="round"/>
+            <line x1="6" y1="6" x2="18" y2="18" stroke-linecap="round"/>
+        </svg>
+    }
+}
+
+fn governance_icon() -> impl IntoView {
+    view! {
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3" stroke-linecap="round"/>
+            <path d="M12 2v4m0 12v4M2 12h4m12 0h4m-2.93-7.07l-2.83 2.83m-8.48 8.48l-2.83 2.83m0-14.14l2.83 2.83m8.48 8.48l2.83 2.83"
+                stroke-linecap="round"/>
+        </svg>
+    }
+}
+
+fn admin_icon() -> impl IntoView {
+    view! {
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    }
+}
+
+fn search_icon() -> impl IntoView {
+    view! {
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="M21 21l-4.35-4.35"/>
+        </svg>
+    }
+}
+
+fn about_icon() -> impl IntoView {
+    view! {
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="12" y1="16" x2="12" y2="12" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="12" y1="8" x2="12.01" y2="8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    }
+}
+
+fn events_icon() -> impl IntoView {
+    view! {
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="16" y1="2" x2="16" y2="6" stroke-linecap="round"/>
+            <line x1="8" y1="2" x2="8" y2="6" stroke-linecap="round"/>
+            <line x1="3" y1="10" x2="21" y2="10" stroke-linecap="round"/>
+        </svg>
+    }
+}
+
+fn pod_icon() -> impl IntoView {
+    view! {
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <ellipse cx="12" cy="5" rx="9" ry="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    }
+}
+
+fn wallet_icon() -> impl IntoView {
+    crate::components::tip_button::dream_icon("w-4 h-4")
+}
+
+/// Two overlapping playing cards, for the practice poker table.
+fn table_icon() -> impl IntoView {
+    view! {
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="7" width="10" height="14" rx="2" transform="rotate(-12 8 14)"/>
+            <rect x="11" y="3" width="10" height="14" rx="2" transform="rotate(12 16 10)"/>
+        </svg>
+    }
+}
+
+fn settings_icon() -> impl IntoView {
+    view! {
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    }
+}
+
+fn loading_spinner() -> impl IntoView {
+    view! {
+        <div class="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+            <div class="animate-spin w-8 h-8 border-2 border-amber-400 border-t-transparent rounded-full"></div>
+            <p class="text-gray-500 text-sm">"Loading..."</p>
+        </div>
+    }
+}
+
+fn redirect_spinner() -> impl IntoView {
+    view! {
+        <div class="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+            <div class="animate-spin w-8 h-8 border-2 border-amber-400 border-t-transparent rounded-full"></div>
+            <p class="text-gray-400 text-sm">"Redirecting to login..."</p>
+        </div>
+    }
+}
+
+// -- App root -----------------------------------------------------------------
+
+#[component]
+pub fn App() -> impl IntoView {
+    // Defensive, no-op-safe capture of any `beforeinstallprompt` that fires on
+    // the forum origin (the real prompt lives on the BBS page, ADR-109). Called
+    // once, as early as possible per MDN (the event can originate from an
+    // earlier load). Harmless when it never fires here.
+    crate::utils::pwa_install::init_capture();
+
+    provide_auth();
+    provide_zone_access();
+    provide_render_tier();
+
+    // Provide global context stores
+    provide_toasts();
+    provide_notifications();
+    crate::stores::notifications::provide_notification_store();
+    provide_bookmarks();
+    provide_name_cache();
+    provide_profile_cache();
+    provide_profile_modal_target();
+    provide_onboarding_prefill();
+    provide_read_positions();
+    provide_mute_store();
+    provide_preferences();
+    // Member wallets, one per configured sidestr chain (ADR-2015, ADR-2021);
+    // inert unless SIDESTR_WALLET is on. After the auth store (each wallet
+    // binds to the signed-in member) and the preferences (the chain chosen).
+    crate::wallet::provide_wallet();
+    // Per-user reaction emoji. Provided at the root so the picker's list stays
+    // in sync across tabs; `use_custom_emoji_store` self-provisions from
+    // localStorage without it, so this only adds the cross-tab listener.
+    provide_custom_emoji_store();
+
+    // Admin alert producer: bell notifications for new members awaiting zone
+    // access (no-op for non-admins). Mounted after the auth / zone-access /
+    // notification providers it captures.
+    crate::stores::admin_alerts::start_admin_alerts();
+
+    // PWA one-shot boot for the MAIN interface (ADR-109 amendment): when
+    // launched with `?pwa=1` (the installed app's start_url) and no live
+    // session, adopt the baked key into a normal local-key session and strip
+    // the flag from the URL. Falls through silently to the login page when
+    // nothing is baked (fresh iOS home-screen storage, forgotten device).
+    {
+        let auth = use_auth();
+        let is_pwa = web_sys::window()
+            .and_then(|w| w.location().search().ok())
+            .map(|q| nostr_bbs_core::is_pwa_boot(&q))
+            .unwrap_or(false);
+        if is_pwa {
+            if let Some(w) = web_sys::window() {
+                // Clean the address bar so in-app reloads boot normally; the
+                // adopted session (or the bake, on relaunch) carries auth.
+                let path = w.location().pathname().unwrap_or_default();
+                let _ = w.history().and_then(|h| {
+                    h.replace_state_with_url(&wasm_bindgen::JsValue::NULL, "", Some(&path))
+                });
+            }
+            if !auth.is_authenticated().get_untracked() {
+                leptos::task::spawn_local(async move {
+                    if crate::utils::bake::is_baked().await {
+                        if let Some(secret) = crate::utils::bake::adopt_baked_secret().await {
+                            let hex = hex::encode(&secret[..]);
+                            if let Err(e) = auth.login_with_local_key(&hex) {
+                                web_sys::console::warn_1(
+                                    &format!("[pwa] baked-key adoption failed: {e}").into(),
+                                );
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // iOS home-screen storage isolation: the installed app starts with an
+        // EMPTY origin partition, so there is nothing to adopt and the user
+        // logs in manually once. When that happens in standalone display mode
+        // with no bake present, re-bake automatically (keyed to the resolved
+        // home zone) so every later launch is one-shot — the forum-side
+        // equivalent of the BBS first-launch rebind.
+        let zone_access = use_zone_access();
+        let standalone = web_sys::window()
+            .and_then(|w| w.match_media("(display-mode: standalone)").ok())
+            .flatten()
+            .map(|m| m.matches())
+            .unwrap_or(false);
+        if standalone {
+            let rebaked = StoredValue::new(false);
+            Effect::new(move |_| {
+                if rebaked.get_value() || !auth.is_authenticated().get() {
+                    return;
+                }
+                let Some(zone) = zone_access
+                    .home_zone()
+                    .or_else(|| zone_access.first_accessible_zone())
+                else {
+                    return;
+                };
+                rebaked.set_value(true);
+                leptos::task::spawn_local(async move {
+                    if crate::utils::bake::is_baked().await {
+                        return;
+                    }
+                    let Some(secret) = auth.get_privkey_bytes() else {
+                        return;
+                    };
+                    if let Err(e) = crate::utils::bake::bake(&secret, &zone.id).await {
+                        web_sys::console::warn_1(
+                            &format!("[pwa] standalone auto-rebake failed: {e}").into(),
+                        );
+                    }
+                });
+            });
+        }
+    }
+    provide_announcer();
+    crate::stores::badges::provide_badges();
+    provide_panel_registry();
+    // FR4.1: the receipt ladder past projection — whether an approved act
+    // actually took effect. Provided beside the panel registry so every
+    // governance surface can read it.
+    provide_receipt_store();
+    // FR6.3: the relay-authoritative calibration flag (HMAC-selected under a
+    // secret this client neither has nor should have).
+    provide_case_projection_store();
+    // Agent disclosure cache (COM-13/F2): one fetch of the active agent set for
+    // the whole page; every AgentBadge reads it reactively.
+    crate::components::agent_badge::provide_agent_disclosure();
+    // Popover coordinator: only one header popover (Notifications,
+    // Bookmarks, …) can be open at a time. Bug #18 — clicking one used
+    // to leave the other open *and* intercept the channel cards behind
+    // them.
+    provide_context(crate::components::popover_coord::PopoverCoord::new());
+
+    // Provide relay connection as context — connect/disconnect reactively with auth state
+    let relay = RelayConnection::new();
+    provide_context(relay.clone());
+    provide_channel_store();
+    // Zone end-to-end encryption (ADR-2016): keys load from IndexedDB now,
+    // before channel sync, so held keys decrypt the first messages to arrive.
+    crate::zone_crypto::store::provide_zone_key_store(use_channel_store());
+    crate::stores::reactions::provide_reaction_store();
+
+    let auth = use_auth();
+    let is_authed = auth.is_authenticated();
+
+    let auth_conn = auth;
+    Effect::new(move |_| {
+        if is_authed.get() {
+            let r = expect_context::<RelayConnection>();
+            let a = auth_conn;
+            if a.state.get_untracked().is_nip07 {
+                let a2 = a;
+                let async_signer: crate::relay::AuthSignAsyncCallback =
+                    std::rc::Rc::new(move |event| {
+                        let auth = a2;
+                        Box::pin(async move { auth.sign_event_async(event).await.ok() })
+                    });
+                r.set_auth_signer_async(async_signer);
+            } else {
+                let sync_signer = std::rc::Rc::new(move |event: nostr_bbs_core::UnsignedEvent| {
+                    a.sign_event(event).ok()
+                });
+                r.set_auth_signer(sync_signer);
+            }
+            r.connect();
+        } else {
+            let r = expect_context::<RelayConnection>();
+            r.disconnect();
+        }
+    });
+
+    // Publish kind-0 profile event on first relay connect to trigger auto-whitelist.
+    // Without this, new users who register/login are authenticated client-side but
+    // the relay never sees them, so kind-42 messages get rejected ("not whitelisted").
+    {
+        let published_profile = RwSignal::new(false);
+        let relay_state = relay.connection_state();
+        let auth_k0 = auth;
+        Effect::new(move |_| {
+            if relay_state.get() != ConnectionState::Connected {
+                return;
+            }
+            if !is_authed.get() {
+                published_profile.set(false);
+                return;
+            }
+            if published_profile.get_untracked() {
+                return;
+            }
+
+            let auth = auth_k0;
+            let r = expect_context::<RelayConnection>();
+            let pubkey = match auth.pubkey().get_untracked() {
+                Some(pk) => pk,
+                None => return,
+            };
+
+            // kind-0 is replaceable: this auto-whitelist publish must not
+            // clobber an existing username claim's `name`/`nip05` fields
+            // (QA HIGH bug #5b — the claimed handle vanished on the next
+            // connect). The nickname is only ever the display name.
+            let nickname = auth.nickname().get_untracked().unwrap_or_default();
+            let nickname = nickname.trim().to_string();
+            let claimed = crate::components::onboarding_modal::claimed_username_cached(&pubkey);
+
+            // No display name AND no claimed handle: there is nothing safe to
+            // put in a kind-0 that would not overwrite an existing profile with
+            // blanks. But the relay only auto-whitelists a pubkey once it has
+            // seen that pubkey's kind-0, so a brand-new NIP-07 user (whose
+            // nickname never hydrates) would be authenticated yet permanently
+            // unable to post. Resolve without clobbering: consult the relay's
+            // existing kind-0 first — if one is already present the user is
+            // already whitelisted, so leave it untouched; only when none exists
+            // do we publish a minimal kind-0 purely to register for whitelist.
+            if nickname.is_empty() && claimed.is_none() {
+                published_profile.set(true);
+                let pk = pubkey.clone();
+                let r_whitelist = r.clone();
+                wasm_bindgen_futures::spawn_local(async move {
+                    if let Some(entry) = crate::stores::profile_cache::fetch_profile(&pk).await {
+                        let has_profile = entry
+                            .display_name
+                            .as_deref()
+                            .map(str::trim)
+                            .is_some_and(|s| !s.is_empty())
+                            || entry
+                                .name
+                                .as_deref()
+                                .map(str::trim)
+                                .is_some_and(|s| !s.is_empty());
+                        if has_profile {
+                            // Relay already holds this pubkey's kind-0 (and has
+                            // auto-whitelisted it) — never overwrite it.
+                            return;
+                        }
+                    }
+                    let now = (js_sys::Date::now() / 1000.0) as u64;
+                    let unsigned = nostr_bbs_core::UnsignedEvent {
+                        pubkey: pk.clone(),
+                        created_at: now,
+                        kind: 0,
+                        tags: vec![],
+                        content: "{}".to_string(),
+                    };
+                    match auth.sign_event_async(unsigned).await {
+                        Ok(signed) => {
+                            publish_kind0_retrying(r_whitelist, signed, 4);
+                            web_sys::console::log_1(
+                                &format!(
+                                    "[app] Published minimal kind-0 for auto-whitelist: {}",
+                                    crate::utils::Abbrev::Name.apply(&pk)
+                                )
+                                .into(),
+                            );
+                        }
+                        Err(e) => {
+                            web_sys::console::warn_1(
+                                &format!("[app] Failed to publish minimal kind-0: {e}").into(),
+                            );
+                        }
+                    }
+                });
+                return;
+            }
+
+            // We have a display name and/or a claimed handle — (re)publish a
+            // full, non-clobbering kind-0. When the display name is absent but a
+            // handle is claimed, surface the handle as the display name.
+            let display_name = if nickname.is_empty() {
+                claimed.clone().unwrap_or_default()
+            } else {
+                nickname.clone()
+            };
+            // Set the session guard up front so a relay reconnect cannot re-fire
+            // this effect while the async publish below is in flight.
+            published_profile.set(true);
+
+            wasm_bindgen_futures::spawn_local(async move {
+                // kind-0 is replaceable, so rebuilding it here from only
+                // name/nip05 would CLOBBER fields this effect does not carry —
+                // most visibly the avatar `picture`, but also `about`/`birthday`
+                // set via Settings. Consult the relay's existing kind-0 first:
+                // if it already holds this identity the user is registered and
+                // there is nothing to add, so leave it untouched; when a publish
+                // IS needed, merge over the existing profile so the avatar and
+                // any claimed nip05 survive.
+                let existing = crate::stores::profile_cache::fetch_profile(&pubkey).await;
+
+                if let Some(e) = &existing {
+                    let has_label = e
+                        .display_name
+                        .as_deref()
+                        .map(str::trim)
+                        .is_some_and(|s| !s.is_empty())
+                        || e.name
+                            .as_deref()
+                            .map(str::trim)
+                            .is_some_and(|s| !s.is_empty());
+                    let identity_current = match &claimed {
+                        Some(u) => {
+                            e.name.as_deref() == Some(u.as_str())
+                                && e.nip05.as_deref()
+                                    == Some(
+                                        crate::components::onboarding_modal::nip05_for(u).as_str(),
+                                    )
+                        }
+                        None => {
+                            e.display_name.as_deref().map(str::trim) == Some(display_name.trim())
+                        }
+                    };
+                    if has_label && identity_current {
+                        // Already registered with this identity — do not clobber.
+                        return;
+                    }
+                }
+
+                // Seed from the existing profile so a set avatar / claimed nip05
+                // is preserved, then override the fields this effect manages.
+                let mut obj = serde_json::Map::new();
+                if let Some(e) = &existing {
+                    if let Some(pic) = e.picture.as_deref().filter(|s| !s.is_empty()) {
+                        obj.insert("picture".into(), serde_json::Value::String(pic.to_string()));
+                    }
+                    if let Some(nip) = e.nip05.as_deref().filter(|s| !s.is_empty()) {
+                        obj.insert("nip05".into(), serde_json::Value::String(nip.to_string()));
+                    }
+                }
+                obj.insert(
+                    "display_name".into(),
+                    serde_json::Value::String(display_name.clone()),
+                );
+                match &claimed {
+                    Some(username) => {
+                        obj.insert("name".into(), serde_json::Value::String(username.clone()));
+                        obj.insert(
+                            "nip05".into(),
+                            serde_json::Value::String(
+                                crate::components::onboarding_modal::nip05_for(username),
+                            ),
+                        );
+                    }
+                    None => {
+                        obj.insert("name".into(), serde_json::Value::String(nickname.clone()));
+                    }
+                }
+                let content =
+                    serde_json::to_string(&serde_json::Value::Object(obj)).unwrap_or_default();
+
+                let now = (js_sys::Date::now() / 1000.0) as u64;
+                let unsigned = nostr_bbs_core::UnsignedEvent {
+                    pubkey: pubkey.clone(),
+                    created_at: now,
+                    kind: 0,
+                    tags: vec![],
+                    content,
+                };
+
+                match auth.sign_event_async(unsigned).await {
+                    Ok(signed) => {
+                        // Retry on relay rejection: a new joiner publishes this
+                        // before the username-claim whitelists them, so the first
+                        // attempt is dropped and the display name would be lost.
+                        publish_kind0_retrying(r, signed, 4);
+                        web_sys::console::log_1(
+                            &format!(
+                                "[app] Published kind-0 profile for auto-whitelist: {}",
+                                crate::utils::Abbrev::Name.apply(&pubkey)
+                            )
+                            .into(),
+                        );
+                    }
+                    Err(e) => {
+                        web_sys::console::warn_1(
+                            &format!("[app] Failed to publish kind-0: {e}").into(),
+                        );
+                    }
+                }
+            });
+        });
+    }
+
+    // Publish kind-10002 (relay list) on first login so peers can discover our relay.
+    // This is a replaceable event, so publishing again is idempotent.
+    {
+        let published_relay_list = RwSignal::new(false);
+        let relay_state = relay.connection_state();
+        let auth_k10002 = auth;
+        Effect::new(move |_| {
+            if relay_state.get() != ConnectionState::Connected {
+                return;
+            }
+            if !is_authed.get() {
+                published_relay_list.set(false);
+                return;
+            }
+            if published_relay_list.get_untracked() {
+                return;
+            }
+
+            let auth = auth_k10002;
+            let r = expect_context::<RelayConnection>();
+            let pubkey = match auth.pubkey().get_untracked() {
+                Some(pk) => pk,
+                None => return,
+            };
+
+            let relay_url = crate::utils::relay_url::relay_url();
+            let now = (js_sys::Date::now() / 1000.0) as u64;
+            let unsigned = nostr_bbs_core::UnsignedEvent {
+                pubkey: pubkey.clone(),
+                created_at: now,
+                kind: 10002,
+                tags: vec![vec!["r".to_string(), relay_url]],
+                content: String::new(),
+            };
+
+            wasm_bindgen_futures::spawn_local(async move {
+                match auth.sign_event_async(unsigned).await {
+                    Ok(signed) => {
+                        r.publish(&signed);
+                        published_relay_list.set(true);
+                        web_sys::console::log_1(
+                            &format!(
+                                "[app] Published kind-10002 relay list for: {}",
+                                crate::utils::Abbrev::Name.apply(&pubkey)
+                            )
+                            .into(),
+                        );
+                    }
+                    Err(e) => {
+                        web_sys::console::warn_1(
+                            &format!("[app] Failed to publish kind-10002: {e}").into(),
+                        );
+                    }
+                }
+            });
+        });
+    }
+
+    // Subscribe to kind-0 metadata events on the relay and feed them into the
+    // ProfileCache so every component that renders a pubkey gets a live
+    // nickname as soon as the relay sends it. The subscription is unfiltered
+    // (no `authors`) so we receive any kind-0 the relay emits — typically
+    // the contact graph plus anyone who posts in our channels.
+    {
+        let kind0_sub_started = RwSignal::new(false);
+        let relay_state = relay.connection_state();
+        Effect::new(move |_| {
+            if relay_state.get() != ConnectionState::Connected {
+                return;
+            }
+            if kind0_sub_started.get_untracked() {
+                return;
+            }
+            let cache = match try_use_profile_cache() {
+                Some(c) => c,
+                None => return,
+            };
+            let r = expect_context::<RelayConnection>();
+            let filter = crate::relay::Filter {
+                kinds: Some(vec![0]),
+                limit: Some(500),
+                ..Default::default()
+            };
+            let on_event: crate::relay::EventCallback =
+                std::rc::Rc::new(move |event: nostr_bbs_core::NostrEvent| {
+                    if event.kind == 0 && !event.content.is_empty() {
+                        cache.upsert_from_kind0(&event.pubkey, &event.content, event.created_at);
+                    }
+                });
+            r.subscribe(vec![filter], on_event, None);
+            kind0_sub_started.set(true);
+        });
+    }
+
+    // Zone-key grants (ADR-2016): once the relay session is NIP-42
+    // authenticated (kind-1059 REQs are AUTH-gated), pull grants out of the
+    // member's gift wraps. Idempotent; starts once per page load.
+    {
+        let relay_authed = relay.authenticated();
+        let zone_keys = crate::zone_crypto::store::try_use_zone_key_store();
+        let auth_for_keys = use_auth();
+        let relay_for_keys = relay.clone();
+        Effect::new(move |_| {
+            // Dormant with the deployment gate off: keys already held keep
+            // decrypting, but no member's gift wraps are re-opened (which
+            // would prompt NIP-07 signers for every DM) until encryption is
+            // switched on.
+            if !crate::zone_crypto::encryption_enabled() || !relay_authed.get() {
+                return;
+            }
+            let (Some(store), Some(me), Some(signer)) = (
+                zone_keys,
+                auth_for_keys.pubkey().get(),
+                auth_for_keys.get_signer(),
+            ) else {
+                return;
+            };
+            store.start_grant_sync(&relay_for_keys, signer, me);
+        });
+    }
+
+    // Zone-key sweep (ADR-2016 follow-on): once per page load, an admin's
+    // browser grants each zone key it holds to every eligible member it has
+    // no record of granting — members who joined by invite or auto-approve,
+    // or were allocated from a device without the key. Waits for the relay
+    // session, the admin flag and this device's stored keys.
+    if let Some(auto_grant) = crate::zone_crypto::auto_grant::AutoGrant::capture() {
+        let relay_authed = relay.authenticated();
+        let access = use_zone_access();
+        let keys_loaded = auto_grant.keys_loaded();
+        let swept = StoredValue::new(false);
+        Effect::new(move |_| {
+            if swept.get_value()
+                || !relay_authed.get()
+                || !access.is_admin.get()
+                || !keys_loaded.get()
+            {
+                return;
+            }
+            swept.set_value(true);
+            auto_grant.sweep();
+        });
+    }
+
+    // Subscribe to governance events (kinds 31400-31405) and feed them into the
+    // PanelRegistry store so the governance page renders live agent panels.
+    {
+        let gov_sub_started = RwSignal::new(false);
+        let relay_state = relay.connection_state();
+        Effect::new(move |_| {
+            if relay_state.get() != ConnectionState::Connected {
+                return;
+            }
+            if gov_sub_started.get_untracked() {
+                return;
+            }
+            let registry = crate::stores::panel_registry::use_panel_registry();
+            let r = expect_context::<RelayConnection>();
+            let filter = crate::relay::Filter {
+                kinds: Some(vec![31400, 31401, 31402, 31403, 31404, 31405]),
+                limit: Some(200),
+                ..Default::default()
+            };
+            let on_event: crate::relay::EventCallback =
+                std::rc::Rc::new(move |event: nostr_bbs_core::NostrEvent| {
+                    registry.ingest_event(&event);
+                });
+            r.subscribe(vec![filter], on_event, None);
+            gov_sub_started.set(true);
+        });
+    }
+
+    // Start channel sync once relay connects (single subscription for all pages)
+    let relay_conn = relay.connection_state();
+    Effect::new(move |_| {
+        if relay_conn.get() != ConnectionState::Connected {
+            return;
+        }
+        let store = use_channel_store();
+        let r = expect_context::<RelayConnection>();
+        store.start_sync(&r);
+        // NIP-25 reactions: one broad kind-7/kind-5 sub for the whole app.
+        crate::stores::reactions::use_reaction_store().start_sync(&r);
+    });
+
+    // Start message count sync after channel EOSE
+    Effect::new(move |_| {
+        let store = use_channel_store();
+        if !store.eose_received.get() {
+            return;
+        }
+        let r = expect_context::<RelayConnection>();
+        store.start_msg_sync(&r);
+    });
+
+    // Start badge sync after relay connects
+    crate::stores::badges::init_badge_sync();
+
+    // Cleanup on unmount
+    {
+        let relay_cleanup = relay;
+        on_cleanup(move || {
+            let store = use_channel_store();
+            store.cleanup(&relay_cleanup);
+            crate::stores::reactions::use_reaction_store().cleanup(&relay_cleanup);
+        });
+    }
+
+    view! {
+        <Router base=FORUM_BASE>
+            <Layout>
+                <FlatRoutes fallback=|| view! {
+                    <div class="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+                        <div class="text-center">
+                            <h1 class="text-6xl font-bold mb-4">"404"</h1>
+                            <p class="text-gray-400 mb-8">"Page not found"</p>
+                            <A href=base_href("/") attr:class="text-amber-400 hover:text-amber-300 underline">
+                                "Go home"
+                            </A>
+                        </div>
+                    </div>
+                }>
+                    // Public routes (no auth required)
+                    // Root: authed members skip the marketing landing and go
+                    // straight to their forums (issue #42 — fewer clicks to
+                    // entry); logged-out visitors get the landing. The same
+                    // landing is always reachable at /about.
+                    <Route path=path!("/") view=HomeOrForums />
+                    <Route path=path!("/about") view=HomePage />
+                    <Route path=path!("/login") view=LoginPage />
+                    // /connect: magic-link sign-in (ADR-098). MUST NOT be
+                    // auth-gated — it is the route that authenticates the device
+                    // from the nsec in the URL fragment.
+                    <Route path=path!("/connect") view=ConnectPage />
+                    <Route path=path!("/signup") view=SignupPage />
+                    // Glossary: public info page explaining the technical terms
+                    // surfaced in the UI (issue #19). InfoTerm bubbles deep-link
+                    // here via /glossary#<slug>.
+                    <Route path=path!("/glossary") view=GlossaryPage />
+                    <Route path=path!("/view/:note_id") view=NoteViewPage />
+                    <Route path=path!("/go/:event_id") view=MessageJumpPage />
+                    // Zone-bound invite landing (PUBLIC — branches on auth). A
+                    // static "join" segment out-scores the `/:category` dynamic
+                    // aliases declared last, so `/join/<code>` never resolves to a
+                    // zone. The page itself gates the redeem action behind auth.
+                    <Route path=path!("/join/:code") view=JoinPage />
+                    // Auth-gated routes
+                    <Route path=path!("/setup") view=AuthGatedSetup />
+                    // Knowledge board (agentbox ADR-2085). Members-only, and
+                    // membership includes agents in their own right — which is
+                    // why the evidence it shows is counted per authorising
+                    // principal rather than per account (ADR-2086).
+                    <Route path=path!("/knowledge") view=AuthGatedKnowledge />
+                    // Chat is consolidated into Forums (the canonical,
+                    // config-correct channel browser). The bare /chat route
+                    // redirects to /forums for legacy bookmarks; the Chat nav
+                    // link and the channel-list dashboard have been removed.
+                    <Route path=path!("/chat") view=|| view! { <Redirect path="/forums" /> } />
+                    <Route path=path!("/chat/:channel_id") view=AuthGatedChannel />
+                    <Route path=path!("/dm") view=AuthGatedDmList />
+                    <Route path=path!("/dm/:pubkey") view=AuthGatedDmChat />
+                    <Route path=path!("/forums") view=AuthGatedForums />
+                    <Route path=path!("/forums/:category") view=AuthGatedCategory />
+                    // Zone task board (kanban). Static "board" segment out-scores
+                    // the dynamic `:section` at equal depth, so no section named
+                    // "board" is reachable — acceptable reserved word.
+                    <Route path=path!("/forums/:category/board") view=AuthGatedBoard />
+                    <Route path=path!("/forums/:category/:section") view=AuthGatedSection />
+                    <Route path=path!("/forums/:category/:section/:topic") view=AuthGatedThread />
+                    <Route path=path!("/events") view=AuthGatedEvents />
+                    <Route path=path!("/profile/:pubkey") view=AuthGatedProfile />
+                    <Route path=path!("/settings") view=AuthGatedSettings />
+                    <Route path=path!("/admin") view=AdminPage />
+                    // Agent Control Surface, split by route (ADR-106 Decision 2,
+                    // F1). `/governance` is the auth-only read-only MEMBER surface
+                    // (panels + outcomes, no response control mounted).
+                    // `/governance/admin` is the admin WRITE surface (Approve /
+                    // Reject / panel actions), behind the admin guard.
+                    <Route path=path!("/governance") view=MemberGatedGovernance />
+                    <Route path=path!("/governance/admin") view=AdminGatedGovernance />
+                    <Route path=path!("/pod") view=AuthGatedPod />
+                    <Route path=path!("/wallet") view=AuthGatedWallet />
+                    // Practice poker table: renders a notice unless POKER, the
+                    // wallet and the member's own preference are all on.
+                    <Route path=path!("/table") view=AuthGatedTable />
+                    // Zone URL slugs (issue #45): top-level aliases so a zone
+                    // reads as `/<slug>` (e.g. `/welcome`, `/dreamlab`) with no
+                    // `/forums` segment. They render the SAME gated views as the
+                    // `/forums` tree and expose the SAME param names
+                    // (:category/:section/:topic), so the pages work unchanged;
+                    // the queen's sweep teaches the pages slug↔id resolution.
+                    //
+                    // Declared LAST, after every static route. `FlatRoutes` ranks
+                    // static path segments above dynamic ones, so `/about`,
+                    // `/login`, `/forums/*`, `/governance/*`, `/profile/:pubkey`,
+                    // etc. all out-score these dynamic aliases at equal depth —
+                    // the legacy `/forums/*` routes above stay intact as redirect
+                    // targets. An unknown single segment (`/nope`) falls through
+                    // to `/:category` → CategoryPage, whose own "Zone Not Found"
+                    // handles it (the desired behaviour, not a 404).
+                    <Route path=path!("/:category") view=AuthGatedCategory />
+                    // Slug alias for the zone task board (mirrors /forums form).
+                    <Route path=path!("/:category/board") view=AuthGatedBoard />
+                    <Route path=path!("/:category/:section") view=AuthGatedSection />
+                    <Route path=path!("/:category/:section/:topic") view=AuthGatedThread />
+                </FlatRoutes>
+            </Layout>
+        </Router>
+    }
+}
+
+// -- Layout -------------------------------------------------------------------
+
+#[component]
+fn Layout(children: Children) -> impl IntoView {
+    let auth = use_auth();
+    let is_authed = auth.is_authenticated();
+    let nickname = auth.nickname();
+    let pubkey = auth.pubkey();
+    let mobile_open = RwSignal::new(false);
+    let bookmarks_open = RwSignal::new(false);
+    // Practice poker table nav item: reactive on the member's preference, so
+    // ticking Settings → Games shows it without a reload.
+    let table_on = crate::poker::use_table_enabled();
+    let profile_target_pk = RwSignal::new(String::new());
+    let profile_open = RwSignal::new(false);
+
+    // Bug #18: Bookmarks popover participates in the shared PopoverCoord so
+    // opening it closes Notifications (and vice versa). Two-way sync:
+    // - coord active → reflect into `bookmarks_open` so the modal renders
+    // - `bookmarks_open` cleared by the modal's own close button → tell the
+    //   coordinator so the next toggle behaves correctly.
+    let coord = crate::components::popover_coord::use_popover_coord();
+    const BOOKMARKS_KEY: &str = "bookmarks";
+    Effect::new(move |_| {
+        bookmarks_open.set(coord.is_active(BOOKMARKS_KEY));
+    });
+    Effect::new(move |_| {
+        if !bookmarks_open.get() {
+            coord.close(BOOKMARKS_KEY);
+        }
+    });
+
+    // Watch for profile modal requests from any component
+    Effect::new(move |_| {
+        if let Some(target) = use_context::<ProfileModalTarget>() {
+            if let Some(pk) = target.0.get() {
+                profile_target_pk.set(pk);
+                profile_open.set(true);
+                target.0.set(None);
+            }
+        }
+    });
+
+    let location = use_location();
+    // Strip FORUM_BASE prefix so nav comparisons work regardless of sub-directory.
+    // Router-aware (ADR-090): a sibling route that merely shares the base's
+    // leading characters is left alone rather than mangled.
+    let pathname = move || current_app_path(&location.pathname.get());
+
+    // Resolve the logged-in user's display name through the layered profile
+    // cache (tracked, so the chip updates the moment our kind-0 lands in the
+    // cache). The cache only wins when it yields a real label; otherwise we
+    // prefer `auth.nickname()` (the claimed username set during onboarding)
+    // over the shortened hex key, and "Anonymous" only when neither exists.
+    let display_name = Memo::new(move |_| {
+        let pk = pubkey.get().unwrap_or_default();
+        if !pk.is_empty() {
+            if let Some(resolved) = crate::components::user_display::try_display_name_tracked(&pk) {
+                return resolved;
+            }
+        }
+        if let Some(nick) = nickname.get().filter(|n| !n.trim().is_empty()) {
+            return nick;
+        }
+        if !pk.is_empty() {
+            return crate::utils::shorten_pubkey(&pk);
+        }
+        "Anonymous".to_string()
+    });
+    // The chip's label; when it fell back to the shortened key (no profile
+    // name, no claimed nickname) it is a click-to-copy key (full hex).
+    let header_label = move || {
+        let label = display_name.get();
+        match pubkey.get() {
+            Some(pk) if !pk.is_empty() && label == crate::utils::shorten_pubkey(&pk) => {
+                view! { <crate::components::copy_key::CopyKey full=pk display=label class="font-mono" /> }
+                    .into_any()
+            }
+            _ => label.into_any(),
+        }
+    };
+
+    let zone_access = crate::stores::zone_access::use_zone_access();
+
+    // The header carries no "Forums" item any more (issue #42): the brand
+    // wordmark links to "/", which now lands authed members straight on their
+    // forums, so a dedicated nav link was redundant. `zone_access` is retained
+    // solely to drive the admin-only nav item. (ADR-107 zone-first forwarding —
+    // sending a single-zone member into their zone — lives at /forums.)
+    let is_admin = Memo::new(move |_| zone_access.is_admin.get());
+
+    // Helper: returns active or inactive CSS for nav links
+    let nav_link_class = move |prefix: &'static str| {
+        move || {
+            let p = pathname();
+            let active = if prefix == "/" {
+                p == "/"
+            } else {
+                p == prefix || p.starts_with(&format!("{}/", prefix))
+            };
+            if active {
+                "flex items-center gap-1.5 text-amber-400 transition-colors px-3 py-2 rounded-lg hover:bg-gray-800 font-medium"
+            } else {
+                "flex items-center gap-1.5 text-gray-300 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-gray-800"
+            }
+        }
+    };
+
+    let mobile_link_class = move |prefix: &'static str| {
+        move || {
+            let p = pathname();
+            let active = if prefix == "/" {
+                p == "/"
+            } else {
+                p == prefix || p.starts_with(&format!("{}/", prefix))
+            };
+            if active {
+                "flex items-center gap-2 text-amber-400 font-medium px-4 py-3 rounded-lg bg-amber-400/10"
+            } else {
+                "flex items-center gap-2 text-gray-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors"
+            }
+        }
+    };
+
+    let close_mobile = move |_| {
+        mobile_open.set(false);
+    };
+
+    // Shared open-state for the GlobalSearch overlay so the visible nav search
+    // button and the Cmd/Ctrl+K shortcut drive the same panel (the overlay reads
+    // this via context; see components::global_search::SearchOpen).
+    let search_open = RwSignal::new(false);
+    provide_context(crate::components::global_search::SearchOpen(search_open));
+
+    view! {
+        <div class="min-h-screen bg-gray-900 text-white flex flex-col">
+            // Skip navigation link
+            <a
+                href="#main-content"
+                class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-amber-500 focus:text-gray-900 focus:rounded-lg focus:font-semibold focus:text-sm"
+            >
+                "Skip to main content"
+            </a>
+
+            // Screen reader announcer
+            <ScreenReaderAnnouncer />
+
+            // Dev-auth: floating identity picker
+            {dev_auth_panel()}
+
+            // Header
+            <header class="border-b border-gray-800/50 bg-gray-900/80 backdrop-blur-md sticky top-0 z-50">
+                <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                    // Brand — links to the forum's own home, not the host
+                    // site root (issue #21: the wordmark must stay inside the
+                    // SPA when the forum is mounted under a base path).
+                    <a href=base_href("/") class="flex items-center gap-2 text-xl sm:text-2xl font-bold text-amber-400 hover:text-amber-300 transition-colors">
+                        {brand_icon()}
+                        {crate::utils::relay_url::brand_label()}
+                    </a>
+
+                    // Desktop nav
+                    <div class="hidden sm:flex items-center gap-4">
+                        <Show
+                            when=move || is_authed.get()
+                            fallback=move || view! {
+                                <A href=base_href("/login") attr:class="text-gray-300 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-gray-800">
+                                    "Log In"
+                                </A>
+                                <A href=base_href("/signup") attr:class="bg-amber-500 hover:bg-amber-400 text-gray-900 font-semibold px-4 py-2 rounded-lg transition-colors">
+                                    "Sign Up"
+                                </A>
+                            }
+                        >
+                            <A href=base_href("/dm") attr:class=nav_link_class("/dm")>
+                                {dm_icon()}
+                                "DMs"
+                            </A>
+                            <A href=base_href("/events") attr:class=nav_link_class("/events")>
+                                {events_icon()}
+                                "Events"
+                            </A>
+                            // Agent Control Surface — read-only member view at
+                            // /governance (F1). Any authenticated member reaches
+                            // the panels + outcomes; the admin write surface is a
+                            // distinct route linked from the page for admins.
+                            <A href=base_href("/governance") attr:class=nav_link_class("/governance")>
+                                {governance_icon()}
+                                "Governance"
+                            </A>
+                            <A href=base_href("/pod") attr:class=nav_link_class("/pod")>
+                                {pod_icon()}
+                                "Pod"
+                            </A>
+                            // Member wallet (ADR-2015): only where the deployment
+                            // switched it on, so other instances' nav is unchanged.
+                            {crate::wallet::enabled().then(|| view! {
+                                <A href=base_href("/wallet") attr:class=nav_link_class("/wallet")>
+                                    {wallet_icon()}
+                                    "Wallet"
+                                </A>
+                            })}
+                            // Practice poker table: operator flag, wallet, and
+                            // the member's Settings → Games preference.
+                            {move || table_on.get().then(|| view! {
+                                <A href=base_href("/table") attr:class=nav_link_class("/table")>
+                                    {table_icon()}
+                                    "Table"
+                                </A>
+                            })}
+                            // About: the marketing landing, reachable in-app
+                            // (issue #42). Last among the text items so it
+                            // stays low-key.
+                            <A href=base_href("/about") attr:class=nav_link_class("/about")>
+                                {about_icon()}
+                                "About"
+                            </A>
+                            {move || is_admin.get().then(|| view! {
+                                <A href=base_href("/admin") attr:class=nav_link_class("/admin")>
+                                    {admin_icon()}
+                                    <span class="text-sm">"Admin"</span>
+                                </A>
+                            })}
+                            <button
+                                class="text-gray-400 hover:text-amber-400 transition-colors p-2 rounded-lg hover:bg-gray-800"
+                                on:click=move |_| search_open.set(true)
+                                aria-label="Search (Ctrl/Cmd+K)"
+                            >
+                                {search_icon()}
+                            </button>
+                            <NotificationBell />
+                            <button
+                                class="text-gray-400 hover:text-amber-400 transition-colors p-2 rounded-lg hover:bg-gray-800"
+                                on:click=move |_| coord.toggle(BOOKMARKS_KEY)
+                                title="Bookmarks"
+                            >
+                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M5 2h14a1 1 0 011 1v19.143a.5.5 0 01-.766.424L12 18.03l-7.234 4.536A.5.5 0 014 22.143V3a1 1 0 011-1z"/>
+                                </svg>
+                            </button>
+                            <A href=base_href("/settings") attr:class="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-800">
+                                {settings_icon()}
+                            </A>
+                            <div class="flex items-center gap-1.5 bg-gray-800 px-3 py-1 rounded-full text-xs text-gray-300">
+                                {user_icon()}
+                                <span>{header_label}</span>
+                            </div>
+                            <LogoutButton />
+                        </Show>
+                    </div>
+
+                    // Mobile search.
+                    //
+                    // Search had NO reachable entry point on a phone. The nav
+                    // button below lives in the `hidden sm:flex` desktop block,
+                    // the hamburger's "Search" item sits inside
+                    // `<Show when=is_authed>`, MobileBottomNav has no search
+                    // entry, and Ctrl/Cmd+K obviously does not exist on touch —
+                    // so a signed-out mobile visitor could not open search at
+                    // all, and a signed-in one had to know to look in the
+                    // hamburger. That is most of "search seems completely
+                    // broken - unclear if just on mobile": for some users it
+                    // was not broken, it was absent.
+                    //
+                    // Sits beside the hamburger, outside any auth gate, so the
+                    // affordance is always one tap away.
+                    <button
+                        class="sm:hidden p-2 text-gray-400 hover:text-amber-400 rounded-lg hover:bg-gray-800 transition-colors"
+                        on:click=move |_| { search_open.set(true); mobile_open.set(false); }
+                        aria-label="Search"
+                    >
+                        {search_icon()}
+                    </button>
+
+                    // Mobile hamburger
+                    <button
+                        class="sm:hidden p-2 text-gray-400 hover:text-white rounded-lg hover:bg-gray-800 transition-colors"
+                        on:click=move |_| mobile_open.update(|v| *v = !*v)
+                    >
+                        <Show
+                            when=move || mobile_open.get()
+                            fallback=|| { hamburger_icon() }
+                        >
+                            {close_icon()}
+                        </Show>
+                    </button>
+                </nav>
+
+                // Mobile dropdown menu
+                <Show when=move || mobile_open.get()>
+                    <div class="sm:hidden border-t border-gray-800/50 bg-gray-900/95 backdrop-blur-md px-4 pb-4 pt-2 space-y-1">
+                        <Show
+                            when=move || is_authed.get()
+                            fallback=move || view! {
+                                <A href=base_href("/login") attr:class="block text-gray-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors" on:click=close_mobile>
+                                    "Log In"
+                                </A>
+                                <A href=base_href("/signup") attr:class="block bg-amber-500 hover:bg-amber-400 text-gray-900 font-semibold px-4 py-3 rounded-lg transition-colors text-center" on:click=close_mobile>
+                                    "Sign Up"
+                                </A>
+                            }
+                        >
+                            <A href=base_href("/dm") attr:class=mobile_link_class("/dm") on:click=close_mobile>
+                                {dm_icon()}
+                                "DMs"
+                            </A>
+                            <A href=base_href("/events") attr:class=mobile_link_class("/events") on:click=close_mobile>
+                                {events_icon()}
+                                "Events"
+                            </A>
+                            // Agent Control Surface — read-only member view (F1).
+                            <A href=base_href("/governance") attr:class=mobile_link_class("/governance") on:click=close_mobile>
+                                {governance_icon()}
+                                "Governance"
+                            </A>
+                            <A href=base_href("/pod") attr:class=mobile_link_class("/pod") on:click=close_mobile>
+                                {pod_icon()}
+                                "Pod"
+                            </A>
+                            {crate::wallet::enabled().then(|| view! {
+                                <A href=base_href("/wallet") attr:class=mobile_link_class("/wallet") on:click=close_mobile>
+                                    {wallet_icon()}
+                                    "Wallet"
+                                </A>
+                            })}
+                            {move || table_on.get().then(|| view! {
+                                <A href=base_href("/table") attr:class=mobile_link_class("/table") on:click=close_mobile>
+                                    {table_icon()}
+                                    "Table"
+                                </A>
+                            })}
+                            // About: the marketing landing, reachable in-app
+                            // (issue #42). Last among the text items.
+                            <A href=base_href("/about") attr:class=mobile_link_class("/about") on:click=close_mobile>
+                                {about_icon()}
+                                "About"
+                            </A>
+                            <button
+                                class="w-full flex items-center gap-2 text-gray-300 hover:text-white px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors text-left"
+                                on:click=move |_| { search_open.set(true); mobile_open.set(false); }
+                            >
+                                {search_icon()}
+                                "Search"
+                            </button>
+                            <A href=base_href("/settings") attr:class=mobile_link_class("/settings") on:click=close_mobile>
+                                {settings_icon()}
+                                "Settings"
+                            </A>
+                            {move || is_admin.get().then(|| view! {
+                                <A href=base_href("/admin") attr:class=mobile_link_class("/admin") on:click=close_mobile>
+                                    {admin_icon()}
+                                    "Admin"
+                                </A>
+                            })}
+                            <div class="border-t border-gray-800/50 mt-2 pt-2 flex items-center justify-between px-4 py-2">
+                                <div class="flex items-center gap-2 text-gray-300 text-sm">
+                                    {user_icon()}
+                                    <span>{header_label}</span>
+                                </div>
+                                <LogoutButton />
+                            </div>
+                        </Show>
+                    </div>
+                </Show>
+            </header>
+
+            <main id="main-content" class="flex-1" role="main">
+                {children()}
+            </main>
+
+            // Global overlays and layout components
+            <ToastContainer />
+            <GlobalSearch />
+            <MobileBottomNav />
+            <BookmarksModal is_open=bookmarks_open />
+            // Post-signup "Complete your profile" overlay removed (issue #15):
+            // the signup wizard already captures display + real name, so the
+            // auto-popup was redundant. Display/real name remain editable in
+            // Settings, and the prefill context is still provided so the
+            // Settings username action stays a harmless no-op.
+
+            {move || {
+                let pk = profile_target_pk.get();
+                (!pk.is_empty()).then(|| view! {
+                    <ProfileModal pubkey=pk is_open=profile_open />
+                })
+            }}
+
+            // Footer
+            <footer class="border-t border-gray-800/50 py-8 mt-auto">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div class="flex items-center gap-2 text-gray-500">
+                            {brand_icon()}
+                            <span class="text-sm">{crate::utils::relay_url::brand_label()}</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-xs text-gray-600">
+                            <span>"End-to-end encrypted"</span>
+                            <span class="text-gray-700">"|"</span>
+                            <span>"Built with Rust + WASM"</span>
+                            <span class="text-gray-700">"|"</span>
+                            // Glossary: plain-English explanations of the
+                            // technical terms surfaced in the UI (issue #19).
+                            <A href=base_href("/glossary") attr:class="hover:text-amber-400 transition-colors underline">
+                                "Glossary"
+                            </A>
+                        </div>
+                        <div class="text-xs text-gray-600">"2026"</div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    }
+}
+
+// -- Logout button ------------------------------------------------------------
+
+#[component]
+fn LogoutButton() -> impl IntoView {
+    let auth = use_auth();
+
+    let on_logout = move |_| {
+        auth.logout();
+    };
+
+    view! {
+        <button
+            on:click=on_logout
+            class="flex items-center gap-1.5 text-gray-400 hover:text-red-400 transition-colors px-3 py-2 rounded-lg border border-transparent hover:border-red-500/20 hover:bg-red-500/10 text-sm"
+        >
+            {logout_icon()}
+            "Log Out"
+        </button>
+    }
+}
+
+// -- Auth-gated chat pages ----------------------------------------------------
+
+/// Single channel view with auth gate.
+#[component]
+fn AuthGatedChannel() -> impl IntoView {
+    let auth = use_auth();
+    let is_authed = auth.is_authenticated();
+    let is_ready = auth.is_ready();
+    let navigate = StoredValue::new(use_navigate());
+    let location = use_location();
+
+    Effect::new(move |_| {
+        if is_ready.get() && !is_authed.get() {
+            let current = location.pathname.get();
+            if let Some(target) = login_redirect_target(&current) {
+                navigate.with_value(|nav| nav(&target, NavigateOptions::default()));
+            }
+        }
+    });
+
+    view! {
+        <Show when=move || is_ready.get() fallback=|| { loading_spinner() }>
+            <Show when=move || is_authed.get() fallback=|| { redirect_spinner() }>
+                <ChannelPage />
+            </Show>
+        </Show>
+    }
+}
+
+/// DM conversation list with auth gate.
+#[component]
+fn AuthGatedDmList() -> impl IntoView {
+    let auth = use_auth();
+    let is_authed = auth.is_authenticated();
+    let is_ready = auth.is_ready();
+    let navigate = StoredValue::new(use_navigate());
+    let location = use_location();
+
+    Effect::new(move |_| {
+        if is_ready.get() && !is_authed.get() {
+            let current = location.pathname.get();
+            if let Some(target) = login_redirect_target(&current) {
+                navigate.with_value(|nav| nav(&target, NavigateOptions::default()));
+            }
+        }
+    });
+
+    view! {
+        <Show when=move || is_ready.get() fallback=|| { loading_spinner() }>
+            <Show when=move || is_authed.get() fallback=|| { redirect_spinner() }>
+                <DmListPage />
+            </Show>
+        </Show>
+    }
+}
+
+/// Single DM conversation with auth gate.
+#[component]
+fn AuthGatedDmChat() -> impl IntoView {
+    let auth = use_auth();
+    let is_authed = auth.is_authenticated();
+    let is_ready = auth.is_ready();
+    let navigate = StoredValue::new(use_navigate());
+    let location = use_location();
+
+    Effect::new(move |_| {
+        if is_ready.get() && !is_authed.get() {
+            let current = location.pathname.get();
+            if let Some(target) = login_redirect_target(&current) {
+                navigate.with_value(|nav| nav(&target, NavigateOptions::default()));
+            }
+        }
+    });
+
+    view! {
+        <Show when=move || is_ready.get() fallback=|| { loading_spinner() }>
+            <Show when=move || is_authed.get() fallback=|| { redirect_spinner() }>
+                <DmChatPage />
+            </Show>
+        </Show>
+    }
+}
+
+// -- Auth-gated v3.0 pages ----------------------------------------------------
+
+/// Compute a `/login?returnTo=...` target from the current pathname.
+///
+/// Returns `None` when the user is already on an auth page (`/login`,
+/// `/signup`) so callers skip the navigation entirely — re-navigating from
+/// there used to overwrite a good `returnTo` with a self-referential
+/// `returnTo=/community/login` (QA HIGH bug #2). The pathname is normalised
+/// through `current_app_path` so the `FORUM_BASE` prefix (e.g. `/community`)
+/// never leaks into the stored value and the `/login`/`/signup` guards
+/// actually match in production builds.
+fn login_redirect_target(pathname: &str) -> Option<String> {
+    crate::utils::paths::login_redirect_for(FORUM_BASE, pathname, AUTH_ROUTES)
+}
+
+/// Macro-like helper: all new auth gates follow identical pattern.
+macro_rules! auth_gated {
+    ($name:ident, $page:ident) => {
+        #[component]
+        fn $name() -> impl IntoView {
+            let auth = use_auth();
+            let is_authed = auth.is_authenticated();
+            let is_ready = auth.is_ready();
+            let navigate = StoredValue::new(use_navigate());
+            let location = use_location();
+
+            Effect::new(move |_| {
+                if is_ready.get() && !is_authed.get() {
+                    let current = location.pathname.get();
+                    if let Some(target) = login_redirect_target(&current) {
+                        navigate.with_value(|nav| nav(&target, NavigateOptions::default()));
+                    }
+                }
+            });
+
+            view! {
+                <Show when=move || is_ready.get() fallback=|| { loading_spinner() }>
+                    <Show when=move || is_authed.get() fallback=|| { redirect_spinner() }>
+                        <$page />
+                    </Show>
+                </Show>
+            }
+        }
+    };
+}
+
+auth_gated!(AuthGatedSetup, SetupPage);
+auth_gated!(AuthGatedKnowledge, KnowledgePage);
+auth_gated!(AuthGatedForums, ForumsPage);
+auth_gated!(AuthGatedBoard, BoardPage);
+auth_gated!(AuthGatedCategory, CategoryPage);
+auth_gated!(AuthGatedSection, SectionPage);
+auth_gated!(AuthGatedThread, ThreadPage);
+auth_gated!(AuthGatedEvents, EventsPage);
+auth_gated!(AuthGatedProfile, ProfilePage);
+auth_gated!(AuthGatedSettings, SettingsPage);
+auth_gated!(AuthGatedPod, PodBrowserPage);
+auth_gated!(AuthGatedWallet, WalletPage);
+auth_gated!(AuthGatedTable, TablePage);
+
+/// Root route (`/`): authed members skip the marketing landing and are
+/// redirected straight to their forums (issue #42 — reduce clicks to entry);
+/// logged-out visitors get the landing (`HomePage`, also served verbatim at
+/// `/about`).
+///
+/// The branch waits on `is_ready` before committing, mirroring the auth gates:
+/// deciding on the pre-hydration default (`is_authenticated == false`) would
+/// flash the landing to an authed member on reload and momentarily aim a
+/// logged-out visitor at a redirect. Until the session resolves we hold on the
+/// loading spinner, then either redirect (authed) or render the landing.
+#[component]
+fn HomeOrForums() -> impl IntoView {
+    let auth = use_auth();
+    let is_authed = auth.is_authenticated();
+    let is_ready = auth.is_ready();
+
+    view! {
+        <Show when=move || is_ready.get() fallback=|| { loading_spinner() }>
+            <Show when=move || is_authed.get() fallback=|| view! { <HomePage /> }>
+                <Redirect path="/forums" />
+            </Show>
+        </Show>
+    }
+}
+
+/// Member (auth-only) read-only Agent Control Surface (`/governance`, F1,
+/// ADR-106 Decision 2).
+///
+/// Any authenticated member reaches this route. It mounts
+/// `GovernancePage(member_view = true)`, which renders only the read-only
+/// `ReadOnlyPanelCard`/`ReadOnlyActionRow` components — no 31403 publish path is
+/// compiled into the member component tree. The admin write surface is a
+/// distinct route (`/governance/admin`, `AdminGatedGovernance`). Splitting by
+/// route rather than by conditional render is what guarantees the member client
+/// never ships a response control (ADR-106 Decision 2; DDD Invariant 1).
+#[component]
+fn MemberGatedGovernance() -> impl IntoView {
+    let auth = use_auth();
+    let is_authed = auth.is_authenticated();
+    let is_ready = auth.is_ready();
+    let navigate = StoredValue::new(use_navigate());
+    let location = use_location();
+
+    Effect::new(move |_| {
+        if is_ready.get() && !is_authed.get() {
+            let current = location.pathname.get();
+            if let Some(target) = login_redirect_target(&current) {
+                navigate.with_value(|nav| nav(&target, NavigateOptions::default()));
+            }
+        }
+    });
+
+    view! {
+        <Show when=move || is_ready.get() fallback=|| { loading_spinner() }>
+            <Show when=move || is_authed.get() fallback=|| { redirect_spinner() }>
+                <GovernancePage member_view=true />
+            </Show>
+        </Show>
+    }
+}
+
+/// Admin-gated Agent Control Surface (`/governance/admin`, issue #22, F1).
+///
+/// The write surface exposes agent/ops controls (Approve / Reject / panel
+/// actions) that are not meant for ordinary members. This gate mirrors
+/// `AdminPage`: it requires both auth and the admin flag from the relay
+/// whitelist (`ZoneAccess::is_admin`). Non-admins are bounced with an
+/// explanatory toast rather than a silent redirect.
+///
+/// The admin flag is fetched asynchronously after login (`ZoneAccess::loaded`),
+/// so the redirect waits for that fetch to complete — otherwise a genuine admin
+/// would be bounced during the brief window before their flag arrives.
+#[component]
+fn AdminGatedGovernance() -> impl IntoView {
+    let auth = use_auth();
+    let is_authed = auth.is_authenticated();
+    let is_ready = auth.is_ready();
+    let zone_access = use_zone_access();
+    let is_admin = Memo::new(move |_| zone_access.is_admin.get());
+    let access_loaded = zone_access.loaded;
+    let navigate = StoredValue::new(use_navigate());
+    let location = use_location();
+    let toasts = use_toasts();
+
+    // Not signed in → send to login, preserving returnTo.
+    Effect::new(move |_| {
+        if is_ready.get() && !is_authed.get() {
+            let current = location.pathname.get();
+            if let Some(target) = login_redirect_target(&current) {
+                navigate.with_value(|nav| nav(&target, NavigateOptions::default()));
+            }
+        }
+    });
+
+    // Signed in but not an admin → bounce to /forums with a toast, but only
+    // once the whitelist access fetch has resolved (avoids racing the admin
+    // flag on a fresh login).
+    Effect::new(move |_| {
+        if is_ready.get() && is_authed.get() && access_loaded.get() && !is_admin.get() {
+            toasts.show(
+                "The Agents control surface is for administrators.",
+                ToastVariant::Warning,
+            );
+            navigate.with_value(|nav| nav("/forums", NavigateOptions::default()));
+        }
+    });
+
+    view! {
+        <Show when=move || is_ready.get() fallback=|| { loading_spinner() }>
+            <Show
+                when=move || is_authed.get() && (!access_loaded.get() || is_admin.get())
+                fallback=|| { redirect_spinner() }
+            >
+                <Show when=move || is_admin.get() fallback=|| { loading_spinner() }>
+                    <GovernancePage />
+                </Show>
+            </Show>
+        </Show>
+    }
+}

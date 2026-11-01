@@ -1,0 +1,55 @@
+   Compiling nostr-bbs-core v1.0.0-beta.19 (/home/devuser/workspace/wt/VisionFlow-nf-onboarding/.audit-onboarding/forum/crates/nostr-bbs-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.71s
+     Running tests/audit_onboarding.rs (/home/devuser/workspace/nostr-rust-forum/target/debug/deps/audit_onboarding-97cffbc03a107735)
+
+running 19 tests
+test absent_window_still_marks_printed ... ok
+test decode_nsec_empty_string ... ok
+test decode_nsec_invalid_bech32 ... ok
+test decode_nsec_completely_invalid ... ok
+test decode_nsec_valid ... ok
+test empty_fragment_errors_without_import ... ok
+test decode_nsec_wrong_prefix ... ok
+test export_contains_unescaped_signup_name ... ok
+test failed_print_still_marks_printed ... ok
+test export_has_master_link_and_no_device_or_sweep_inputs ... ok
+test emit_browser_artifacts ... ok
+test hash_parser_accepts_bare_and_prefix_but_not_url_decoding ... ok
+test invalid_fragment_cleared_before_error ... ok
+test ready_callback_latches_after_checkbox_cleared ... ok
+test connect_orders_read_strip_import ... ok
+test unavailable_history_still_imports ... ok
+test failed_history_rewrite_still_imports ... ok
+test key_validation_accepts_hex_and_nsec_and_rejects_invalid_scalars ... ok
+test nsec_case_asymmetry ... FAILED
+
+failures:
+
+---- nsec_case_asymmetry stdout ----
+
+thread 'nsec_case_asymmetry' (1560309) panicked at crates/nostr-bbs-core/tests/audit_onboarding.rs:315:87:
+assertion failed: decode_nsec(&nsec.to_uppercase()).is_ok()
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::panicking::panic
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:150:5
+   3: audit_onboarding::nsec_case_asymmetry
+             at ./tests/audit_onboarding.rs:315:87
+   4: audit_onboarding::nsec_case_asymmetry::{closure#0}
+             at ./tests/audit_onboarding.rs:315:32
+   5: <audit_onboarding::nsec_case_asymmetry::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   6: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+
+failures:
+    nsec_case_asymmetry
+
+test result: FAILED. 18 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+error: test failed, to rerun pass `-p nostr-bbs-core --test audit_onboarding`

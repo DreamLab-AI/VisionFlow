@@ -1,0 +1,100 @@
+[
+  {
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "path": "docs/archive/adr/ADR-095-recovery-device-onboarding-sheet.md",
+    "sha256": "b35c5b605655673852b2b2322dca042cad8d4c4d81a913f0659ba45834f27aaf",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": true
+  },
+  {
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "path": "docs/archive/adr/ADR-098-connect-magic-link-onboarding.md",
+    "sha256": "f012dbd5cc3f5536fc640fbd12902261afd0c6273c0f4a5d318557f2132b605b",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": true
+  },
+  {
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "path": "docs/archive/adr/ADR-099-revocable-device-keys.md",
+    "sha256": "731db07943b03f6527417969301a82c978df27a5c61c4c40f9eabcfa5ba80580",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": true
+  },
+  {
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "path": "crates/nostr-bbs-forum-client/src/components/recovery_sheet.rs",
+    "sha256": "f08a5e85c88105a807282ea59af16691dac236e4b10a623630f6babeef487b16",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": true
+  },
+  {
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "path": "crates/nostr-bbs-forum-client/src/pages/connect.rs",
+    "sha256": "d8e555bf0390a67ade36f45181174e3938a62f7da05d37d7b5bb01e6b0f38540",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": true
+  },
+  {
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "path": "crates/nostr-bbs-forum-client/src/pages/signup.rs",
+    "sha256": "564c35704084d17a0a0396fee344fe13956844fdb831f10f2d176d9298ff1ceb",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": true
+  },
+  {
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "path": "crates/nostr-bbs-forum-client/src/auth/mod.rs",
+    "sha256": "f55352bf50b59b9736ecd60910b48d63c62fb1d3ba2bd4f08fc3e1452de049e5",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": false
+  },
+  {
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "path": "crates/nostr-bbs-forum-client/src/auth/session.rs",
+    "sha256": "cc5d37eb47e94e59e58a635cc067c732a3ab2fbb111766a90a2ce5b8c4d9bb7e",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": true
+  },
+  {
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "path": "crates/nostr-bbs-forum-client/src/utils/devices.rs",
+    "sha256": "f08886fdd0e8d88b7f38b1929508682ff57d98afed4fd669f119522e0eb8de01",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": true
+  },
+  {
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "path": "crates/nostr-bbs-forum-client/src/app.rs",
+    "sha256": "356bf2da3b51466abeed614a45562a56d8bb766955183436d90b9e3198e1074f",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": true
+  },
+  {
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "path": "crates/nostr-bbs-core/src/nip19.rs",
+    "sha256": "55466e5ab3a47333bf2e54d7770875d5edd826a8f6a7f9334174a0894d3bec0a",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": true
+  },
+  {
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "path": "crates/nostr-bbs-auth-worker/src/devices.rs",
+    "sha256": "b6f7cee693ea0ace83b4ec7cf3f8255efb6b0bead34c80730ce20718e27c6901",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": false
+  },
+  {
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "path": "crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs",
+    "sha256": "52c7bd80243276f6f4109f1dc4180b485352141aac70d68fab626d5e1f6c0afd",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": true
+  },
+  {
+    "commit": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+    "path": "crates/nostr-bbs-relay-worker/src/relay_do/storage.rs",
+    "sha256": "4048b61f9bd43bc24eb36af6edb3e84a5207e1b01bbecf0639b0a224a9440351",
+    "equals_old_diagram_revision": true,
+    "equals_website_consumed": true
+  }
+]

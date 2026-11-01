@@ -1,0 +1,87 @@
+[
+  {
+    "file": "docs/estate-review/2026-11-01-forum-recovery-and-connect.md",
+    "link": "2026-11-01-forum-device-keys.md",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-recovery-and-connect.md",
+    "link": "evidence/2026-11-01/nf-onboarding/source-manifest.json",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-recovery-and-connect.md",
+    "link": "evidence/2026-11-01/nf-onboarding/source-differences.json",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-recovery-and-connect.md",
+    "link": "evidence/2026-11-01/nf-onboarding/README.md",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-recovery-and-connect.md",
+    "link": "2026-11-01-forum-device-keys.md",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-recovery-and-connect.md",
+    "link": "2026-11-01-forum-subkey-derivation.md",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-recovery-and-connect.md",
+    "link": "../../../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/signup.rs:241",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-recovery-and-connect.md",
+    "link": "../../../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/recovery_sheet.rs:138",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-recovery-and-connect.md",
+    "link": "../../../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/connect.rs:75",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-recovery-and-connect.md",
+    "link": "../../../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/recovery_sheet.rs:338",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-recovery-and-connect.md",
+    "link": "../../../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/recovery_sheet.rs:303",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-recovery-and-connect.md",
+    "link": "../../../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/signup.rs:647",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-recovery-and-connect.md",
+    "link": "../../../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/recovery_sheet.rs:288",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-recovery-and-connect.md",
+    "link": "../../../nostr-rust-forum/crates/nostr-bbs-forum-client/src/auth/mod.rs:438",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-recovery-and-connect.md",
+    "link": "../../../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1121",
+    "exists": true
+  },
+  {
+    "file": "docs/estate-review/2026-11-01-forum-recovery-and-connect.md",
+    "link": "../../../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/storage.rs:66",
+    "exists": true
+  },
+  {
+    "file": "docs/diagrams/nostr-rust-forum/22-recovery-sheet-and-phone-import.md",
+    "link": "../../estate-review/2026-11-01-forum-recovery-and-connect.md",
+    "exists": true
+  }
+]

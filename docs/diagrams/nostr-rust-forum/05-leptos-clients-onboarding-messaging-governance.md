@@ -270,27 +270,31 @@ flowchart TB
     N3["ANOMALY O7 CLOSED: settings no longer hardcodes example.test - it imports the onboarding modal's NIP05_HOST, which is baked from NOSTR_BBS_NIP05_DOMAIN, so the two cannot drift<br/>nostr-bbs-forum-client/src/pages/settings.rs:35, nostr-bbs-forum-client/src/components/onboarding_modal.rs:59"]
 ```
 
-## NF-05.8 Signup — key, recovery sheet, pod
+## NF-05.8 Signup — generated key, recovery sheet and asynchronous provisioning
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant U as New user
-    participant S as SignupPage<br/>nostr-bbs-forum-client/src/pages/signup.rs:207
-    participant RS as RecoverySheet<br/>nostr-bbs-forum-client/src/components/recovery_sheet.rs:294
-    participant POD as pod-worker
-
-    U->>S: create account (passkey ceremony, see NF-05.3)
-    S->>POD: eager provision_pod during creation signup.rs:290
-    S->>POD: POST {POD_API}/pods/{pubkey}/.provision, NIP-98 authed signup.rs:136
-    S->>RS: render the printable recovery sheet signup.rs:641
-    RS->>RS: nsec QR generated in-WASM recovery_sheet.rs:66 recovery_sheet.rs:294
-    RS->>RS: /connect magic link with the nsec in the URL FRAGMENT recovery_sheet.rs:290
-
-    Note over RS: The sheet is 100 percent client-side - the nsec travels in the fragment (#k=), which browsers do not send to the server
-    Note over S: ANOMALY O8 re-verified: a SECOND provision_pod lives in settings.rs:2021, triggered when an avatar upload 404s settings.rs:659 - two independent implementations of the same call
-    Note over POD: EXTERNAL: the pod side of provisioning is NF-04 - the pod server itself is solid-pod-rs (SP-*)
+    participant S as SignupPage
+    participant A as Local auth
+    participant W as Auth and pod workers
+    participant R as RecoverySheet
+    U->>S: enter display name
+    S->>A: register_with_generated_key signup.rs:259
+    A-->>S: generated private hex held in signal signup.rs:261
+    S->>W: async handle claim signup.rs:274
+    S->>W: then attempt pod provisioning signup.rs:290
+    Note over S,W: Failures log deferred work signup.rs:283 signup.rs:292<br/>Profile phase follows signup.rs:297
+    S->>R: backup phase uses one recovery sheet signup.rs:641
+    Note over S,R: Rust QR and master-key connect fragment<br/>recovery_sheet.rs:290 recovery_sheet.rs:294
+    U->>R: print/download attempt and acknowledgement
+    R-->>S: positive-only ready callback recovery_sheet.rs:303 signup.rs:647
+    S->>A: finish confirms backup and applies remember preference signup.rs:309
+    Note over R,S: Print failure and unticked acknowledgement do not reset parent readiness<br/>Advanced override is intentional signup.rs:674
 ```
+
+[The recovery review](../../estate-review/2026-11-01-forum-recovery-and-connect.md) and NF-22 distinguish attempted output, local import and relay acceptance. This signup path generates a local key; it is not the passkey ceremony in NF-05.3. The downloaded HTML interpolates unescaped display text and differs from the screen's optional device/sweep sections. Fragment-only navigation excludes the key from the HTTP request, but does not prove WASM-only custody or successful history clearing.
 
 **Invariant:** Settings never publishes a kind-0 over a profile it has not loaded: the save merges only the fields it manages into the member's hydrated kind-0, keeps every other field, and refuses while the existing event is still being fetched, because kind-0 is replaceable and an absent field is lost for good (`../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/settings.rs:1847`, `../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/settings.rs:1904`). SVG avatars are refused, since the pod serves stored bytes with the declared type (`../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/settings.rs:1985`).
 

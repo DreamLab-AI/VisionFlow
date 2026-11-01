@@ -1,0 +1,18 @@
+
+  prose-sanitiser slop scan: docs/estate-review/2026-11-01-forum-recovery-and-connect.md
+  files scanned: 1   findings: 3   slop score: 9
+  verdict: Some AI tells present
+  high: 3   medium: 0   low: 0
+
+  [HIGH] Tier-1 banned vocabulary  (2 hits)
+        fix: Replace with a plain word (delve->look at, leverage->use, robust->solid, seamless->smooth, utilise->use). See SKILL.md B4.
+        docs/estate-review/2026-11-01-forum-recovery-and-connect.md:90  ...ented workflow scans the new device's QR from the primary device after local unlock; linked devices are visible and can be unlinked. | A user can understand enr...
+        docs/estate-review/2026-11-01-forum-recovery-and-connect.md:94  Prioritise safe recovery export and honest completion feedback, then a phone enrolment journey that visibly shows credential scope, target account, granted capa...
+
+  [HIGH] "The X" sentence/paragraph opener  (1 hit)
+        fix: Don't open with 'The <lowercase noun>'. Recast so the subject leads, or name the thing directly ('The production-node paired study lifts...' -> 'Holding the model constant and varying only the serving path lifts...'). Proper nouns (The Loom) are fine. See SKILL.md B2.
+        docs/estate-review/2026-11-01-forum-recovery-and-connect.md:3  The recovery flow has useful pieces: locally generated keys, printable recovery material and a direct route into the forum on a phone. Its security and completi...
+
+  Top things to change: Tier-1 banned vocabulary; "The X" sentence/paragraph opener
+  Narrative and voice tells need eyes too. See Section C of SKILL.md.
+
