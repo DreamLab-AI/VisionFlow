@@ -7,6 +7,8 @@ type: explanation
 
 # VisionFlow estate review
 
+**Scope correction, 1 November 2026:** RuView is excluded at the owner’s direction because it is not part of the owned estate. Its earlier reports and references are retained as historical material; their pending source, ADR and remediation work is outside this audit. The [scope manifest](completion/scope.json) records the exclusion.
+
 [The completion ledger](completion/README.md) separates scoped inventory, recorded assessments and unreconciled work. It binds assessments to exact document/report hashes and holds the current counts; these are not an overall completion percentage.
 
 SideStr Hitch recovery: [snapshot checks, revocation recovery ordering and the routing host contract](2026-11-01-sidestr-hitch-recovery.md). Thirty-five existing native tests and four offline scenarios reproduce invalid-witness rebroadcasts, retained close classification after late recovery, and invoice-expiry boundaries. SR-04.3 is corrected; wider Hitch review remains open.
@@ -156,7 +158,7 @@ Dream annexe/receipt continuation: [source identity, outcome classes and ledger 
 | [Commercial surfaces](commercial-surfaces.md) | Do release pins, config mirrors and chat tiers mean what the interface promises? |
 | [Rendered state](rendered-state.md) | How do authenticated actions, wire frames and current work state become visible? |
 | [Mobile sensing companion](mobile-sensing.md) | Which mobile observations are measured, inferred or simulated, and what proves platform acceptance? |
-| [Sensing extension](sensing-extension.md) | Which RuView paths are implemented, simulated or incompatible with their firmware? |
+| [Sensing extension — historical, excluded](sensing-extension.md) | Which RuView paths are implemented, simulated or incompatible with their firmware? |
 | [Shared memory](shared-memory.md) | What happens when embeddings fail or stored memories expire? |
 | [Pocket provenance](pocket-provenance.md) | Can a mirrored session reference reconstruct the exact decision after restart or eviction? |
 | [Agent disclosure](agent-disclosure.md) | What does an agent badge prove, and how do stale or historical registrations affect it? |
@@ -172,8 +174,8 @@ Dream annexe/receipt continuation: [source identity, outcome classes and ledger 
 | [ADR inventory](closeout/adr-inventory.md) | Which decision, archive and reference candidates remain to be reconciled? |
 | [Upstream decision scope](upstream-decision-scope.md) | Which upstream families are consumed, copied, divergent or still awaiting semantic review? |
 | [Upstream decision packs](closeout/upstream-packs.md) | How are the upstream records grouped for review without assuming adoption? |
-| [RuView local decisions](closeout/sensing-decisions.md) | Which sensing decisions have dedicated evidence and which remain open? |
-| [Vendored lineage](closeout/adr-lineage.md) | Which RuView ADRs copy or diverge from the standalone RuVector tree? |
+| [RuView local decisions — historical, excluded](closeout/sensing-decisions.md) | Which sensing decisions have dedicated evidence and which remain open? |
+| [Vendored lineage — historical RuView comparison](closeout/adr-lineage.md) | Which RuView ADRs copy or diverge from the standalone RuVector tree? |
 | [Assessment completion requirements](closeout/assessment-requirements.md) | What remains to finish the requested review, separately from implementing its roadmap? |
 | [Investigation ledger](investigation-ledger.md) | What findings are established, and what work remains at each level? |
 | [Execution snapshot](evidence/snapshot.json) | Which checkouts, source hashes and command results support this pass? |
@@ -207,7 +209,6 @@ XR volumes and concept links: [annotation provenance, fit cadence and highlight 
 | WasmVOWL | Standalone native tests (47 pass), frontend tests (19 pass/60 fail), schema/state findings and proposed consumer ADR | Renderer, WASM boundary, accessibility, performance evidence and whole-tree divergence |
 | dream-engine | All nine local ADRs section-assessed; 24 nested panels updated; candidate, process recovery, forge and fingerprint fixtures | Open confinement/egress/identity findings; full deployed cycle, storage-fault recovery and delivery reconciliation |
 | RuVector | Agentbox MCP/store/model/filter and Loom local VectorDB/redb/index paths investigated; wrong-configuration probes; 176 vendored ADRs compared | Standalone consumed extension internals, build/release identity, persistence and recall under failures; unconsumed features need disposition |
-| RuView | MAT/server/hardware distinction and parser mismatch; signal, learning, retrieval, security, tracking, mobile, training UI and macOS evidence; [current decision coverage](closeout/sensing-decisions.md) | Locate estate consumer; canonical codec, per-frame inference labels, physical measurement, retention and remaining upstream ADR scope |
 
 Further source dependencies may establish additional estate-owned components; add them to this ledger as they are identified.
 

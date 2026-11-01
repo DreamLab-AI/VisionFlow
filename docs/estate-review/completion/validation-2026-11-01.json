@@ -8,8 +8,1689 @@
   },
   "census_delta": {
     "previous_candidates": 1129,
-    "current_candidates": 1178,
-    "removed": [],
+    "current_candidates": 842,
+    "removed": [
+      {
+        "repo": "RuView",
+        "path": ".claude/agents/v3/adr-architect.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/ADR-110-BRANCH-STATE.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/ADR-110-REVIEW-GUIDE.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/.issue-177-body.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-001-wifi-mat-disaster-detection.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-002-ruvector-rvf-integration-strategy.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-003-rvf-cognitive-containers-csi.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-004-hnsw-vector-search-fingerprinting.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-005-sona-self-learning-pose-estimation.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-006-gnn-enhanced-csi-pattern-recognition.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-007-post-quantum-cryptography-secure-sensing.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-008-distributed-consensus-multi-ap.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-009-rvf-wasm-runtime-edge-deployment.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-010-witness-chains-audit-trail-integrity.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-011-python-proof-of-reality-mock-elimination.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-012-esp32-csi-sensor-mesh.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-013-feature-level-sensing-commodity-gear.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-014-sota-signal-processing.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-015-public-dataset-training-strategy.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-016-ruvector-integration.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-017-ruvector-signal-mat-integration.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-018-esp32-dev-implementation.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-019-sensing-only-ui-mode.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-020-rust-ruvector-ai-model-migration.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-021-vital-sign-detection-rvdna-pipeline.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-022-windows-wifi-enhanced-fidelity-ruvector.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-023-trained-densepose-model-ruvector-pipeline.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-024-contrastive-csi-embedding-model.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-025-macos-corewlan-wifi-sensing.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-026-survivor-track-lifecycle.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-027-cross-environment-domain-generalization.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-028-esp32-capability-audit.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-029-ruvsense-multistatic-sensing-mode.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-030-ruvsense-persistent-field-model.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-031-ruview-sensing-first-rf-mode.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-032-multistatic-mesh-security-hardening.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-033-crv-signal-line-sensing-integration.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-034-expo-mobile-app.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-035-live-sensing-ui-accuracy.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-036-rvf-training-pipeline-ui.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-037-multi-person-pose-detection.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-038-sublinear-goal-oriented-action-planning.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-039-esp32-edge-intelligence.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-040-wasm-programmable-sensing.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-041-wasm-module-collection.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-042-coherent-human-channel-imaging.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-043-sensing-server-ui-api-completion.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-044-geospatial-satellite-integration.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-045-amoled-display-support.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-046-android-tv-box-armbian-deployment.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-047-psychohistory-observatory-visualization.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-048-adaptive-csi-classifier.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-049-cross-platform-wifi-interface-detection.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-050-provisioning-tool-enhancements.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-052-tauri-desktop-frontend.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-053-ui-design-system.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-054-desktop-full-implementation.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-055-integrated-sensing-server.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-056-ruview-desktop-capabilities.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-057-firmware-csi-build-guard.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-058-ruvector-wasm-browser-pose-example.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-059-live-esp32-csi-pipeline.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-060-provision-channel-mac-filter.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-061-qemu-esp32s3-firmware-testing.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-062-qemu-swarm-configurator.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-063-mmwave-sensor-fusion.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-064-multimodal-ambient-intelligence.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-065-happiness-scoring-seed-bridge.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-066-esp32-swarm-seed-coordinator.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-067-ruvector-v2.0.5-upgrade.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-068-per-node-state-pipeline.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-069-cognitum-seed-csi-pipeline.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-070-self-supervised-pretraining.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-071-ruvllm-training-pipeline.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-072-wiflow-architecture.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-073-multifrequency-mesh-scan.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-074-spiking-neural-csi-sensing.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-075-mincut-person-separation.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-076-csi-spectrogram-embeddings.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-077-novel-rf-sensing-applications.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-078-multifreq-mesh-applications.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-079-camera-ground-truth-training.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-080-qe-remediation-plan.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-081-adaptive-csi-mesh-firmware-kernel.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-082-pose-tracker-confirmed-output-filter.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-083-per-cluster-pi-compute-hop.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-084-rabitq-similarity-sensor.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-085-rabitq-pipeline-expansion.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-086-edge-novelty-gate.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-089-nvsim-nv-diamond-simulator.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-090-nvsim-lindblad-extension.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-091-stand-off-radar-tier-research.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-092-nvsim-dashboard-implementation.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-093-dashboard-gap-analysis.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-094-pointcloud-github-pages-deployment.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-095-rvcsi-edge-rf-sensing-platform.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-096-rvcsi-ffi-crate-layout.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-097-adopt-rvcsi-as-ruview-csi-runtime.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-098-evaluate-midstream-fit.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-099-midstream-introspection-tap.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-100-cog-packaging-specification.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-101-pose-estimation-cog.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-102-edge-module-registry.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-103-learned-multi-person-counter.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-104-ruview-mcp-cli-distribution.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-105-federated-csi-training.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-106-dp-sgd-and-primitive-isolation.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-107-cross-installation-federation.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-108-kyber-post-quantum-key-exchange.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-109-dilithium-pqc-signatures.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-110-esp32-c6-firmware-extension.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-113-multistatic-placement-strategy.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-114-cog-quantum-vitals.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-115-home-assistant-integration.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-116-cog-ha-matter-seed.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-117-pip-wifi-densepose-modernization.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-118-bfld-beamforming-feedback-layer-for-detection.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-119-bfld-frame-format-and-wire-protocol.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-120-bfld-privacy-class-and-hash-rotation.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-121-bfld-identity-risk-scoring.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-122-bfld-ruview-ha-matter-exposure.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-123-bfld-capture-path-nexmon-and-esp32.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-124-rvagent-mcp-ruvector-npm-integration.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-125-ruview-apple-home-native-hap-bridge.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-126-ruview-native-ha-port-master.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-127-homecore-state-machine-rust.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-128-homecore-integration-plugin-system.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-129-homecore-automation-engine.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-130-homecore-rest-websocket-api.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-131-homecore-ui-operational-dashboard.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-132-homecore-recorder-history-semantic-search.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-133-homecore-assist-ruflo.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-134-csi-to-cir-time-domain-multipath.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-135-empty-room-baseline-calibration.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-136-ruview-streaming-engine-frame-contracts.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-137-fusion-engine-quality-scoring-evidence.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-138-linkgroup-array-coordinator-clock-quality.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-139-worldgraph-environmental-digital-twin.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-140-semantic-state-record-and-agent-bridge.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-141-bfld-privacy-control-plane-modes-attestation.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-142-evolution-tracker-temporal-voxel-aggregation.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-143-rf-slam-reflector-discovery-anchor-learning.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-144-uwb-range-constraint-fusion.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-145-ablation-eval-harness-privacy-leakage.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-146-rf-encoder-multitask-heads-uncertainty.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-147-nvidia-cosmos-world-foundation-model-integration.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-148-drone-swarm-control-system.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-149-public-community-leaderboard-huggingface.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-150-rf-foundation-encoder.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-151-room-calibration-specialist-training.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-152-wifi-pose-sota-2026-intake.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-153-ieee-802-11bf-sensing-protocol-layer.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-154-signal-dsp-beyond-sota.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-155-nn-training-beyond-sota.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-156-ruvector-fusion-beyond-sota.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-157-hardware-sensing-beyond-sota.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-158-mat-worldmodel-beyond-sota.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-159-cognitum-appliance-beyond-sota.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-160-edge-skill-library-honest-labeling.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-161-homecore-server-layer-security.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-162-plugin-security-and-bounded-runmodes.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-163-edge-latency-measurement.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-164-adr-corpus-gap-analysis.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-165-homecore-migrate-from-home-assistant.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-166-quality-engineering-security-hardening.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-167-ddd-bounded-contexts.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-168-benchmark-proof.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-169-adam-mode-light-theme.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-170-yoga-mode-pose-system.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-171-swarm-benchmarking-evaluation-methodology.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-172-cli-core-csi-deserialiser-security-review.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-173-metric-locked-pck-mpjpe-accuracy-harness.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-174-ci-bench-regression-compile-verify-gate.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-175-int8-quantization-half-pose-model-measured.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-176-ruview-swarm-nan-fail-open-safety-review.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-177-nvsim-degenerate-input-hardening.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-178-desktop-ipc-injection-and-capability-least-privilege.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-179-occworld-candle-checkpoint-load-hardening.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-182-npx-ruview-harness-via-metaharness.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-183-onboard-led-gamma-stimulus-csi-colormap.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-184-adr117-completion-pypi-trusted-publishing.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-185-python-p6-sota-bindings.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-186-training-progress-api.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-187-archive-v1-deprecation-honest-labeling.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-260-rufield-mfs.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-261-ruvector-graph-ann-index.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-262-rufield-ruview-integration.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-263-rtl8720f-2-4ghz-fmcw-radar-platform.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-263-ruview-npm-harness-deep-review.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-264-rtl8720f-radar-wire-protocol.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-264-rvagent-mcp-and-cli-npm-deep-review.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-265-ruview-npm-distribution-strategy.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-266-mediatek-filogic-csi-platform.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-267-mediatek-mimo-csi-wire-protocol.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-268-qualcomm-atheros-csi-platform.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-269-qualcomm-csi-wire-protocol.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-270-vendor-rf-sensing-integration-program.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-271-cognitum-oauth-resource-server.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-272-websocket-authentication-tickets.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-273-unified-rf-spatial-world-model.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-274-universal-rf-encoder-adapter-registry.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-275-rf-aware-gaussian-spatial-memory.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-276-physics-guided-synthetic-rf-worlds.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-277-edge-sensing-control-plane.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-278-radar-inverse-rendering-research-program.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-279-native-rf-frame-contract.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-280-active-sensing-programmable-perception.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-281-ble-cs-delay-doppler-pose-factorization.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-282-ruview-ecosystem-positioning.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-283-ruview-community-metaharness-flywheel.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-284-bounded-nightly-sota-agent.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-285-homecore-wasm-first-metaharness.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-286-wifi-densepose-sar-harness-via-metaharness.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-287-coherent-wideband-rf-tomography-crate.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-288-veil-privacy-shield-compliant-waveform.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-289-wifi-densepose-privshield-harness-via-metaharness.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-290-veil-e2e-hardware-implementation-program.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-291-public-benchmark-evaluation-harness.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-292-wideband-80211ax-csi-ingest.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-293-vitals-ground-truth-rig.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-294-wifi-veil-integration.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-295-source-provenance-state-machine.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-296-sensor-data-plane-bind-hardening.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-297-multi-node-semantic-correctness.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-298-model-release-sanity-gates.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-299-csi-data-incident-repo-controls.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-300-perception-substrate-program.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-301-automatic-domain-calibration.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-302-out-of-distribution-detection.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-303-ground-truth-synchronization.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-304-evidence-engine.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-305-authenticated-sensor-identity.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-306-canonical-spatial-ontology.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-307-persistent-identity-tracking.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-308-sensor-placement-optimizer.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-309-active-sensing.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-310-80211bf-native-architecture.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-311-real-sensor-fusion.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-312-long-term-spatial-memory.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-313-counterfactual-inference.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-314-information-gain-scheduler.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-315-digital-rf-twin.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-316-fleet-control-plane.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-317-benchmark-multi-domain-scorecard.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-318-capability-certificates.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-319-witness-chain.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-320-sensor-hal.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-321-decision-policy-action-authorization.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-323-native-rust-physics-constrained-pose-refinement.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-323-rtl8721dx-ameba-csi-wire-protocol.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-324-off-axis-head-coupled-perspective-demo.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-325-cognitum-spaces-activation-and-governed-spatial-exchange.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-326-tenant-scoped-ruvector-spatial-memory.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-327-governed-action-intents-and-witness-receipts.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-340-iphone-lidar-sensor-bridge.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-344-adaptive-local-installation-discovery.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-345-per-link-csi-and-node-to-node-ranging.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-346-fail-closed-edge-occupancy-evidence.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-347-rate-aware-esp32-temporal-sensing.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-348-independent-rust-multivariate-forecasting.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-349-governed-local-and-fal-forecast-training.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-350-ruvector-predictive-memory-and-ruvllm-boundary.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-353-fal-visual-teacher-lora.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-354-forecast-governance-enforcement-in-ruforecast-submodule.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-355-local-empty-room-bootstrap-prior.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-356-rate-truthful-csi-and-reliability-gated-adaptation.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-357-raw-csi-calibration-sample-integrity.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-361-single-transmitter-pairing.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-362-on-node-log-access-is-on-demand.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-363-native-macos-usb-node-onboarding.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-364-bfi-capture-admission-and-continuity.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-365-public-bfi-dataset-and-decoder-contract.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-366-csi-controls-and-frozen-evaluation.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-367-bounded-research-swarm-and-compute-ownership.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-368-ruview-kernel-wasm-napi-npm.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-369-ruview-npm-operator-surface-and-sdk.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-370-cross-platform-firmware-flashing.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-371-harness-training-runner-and-evidence-gate.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-372-structured-debugging-doctor.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-373-host-device-access-layer.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-374-remote-host-access-over-ssh.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-375-ruview-mcp-apps-console-http-transport-and-terminal-ui.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-376-ruview-umbrella-npm-package.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-377-ruview-live-claude-code-mod.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-378-ruview-live-showcase-views.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-379-ota-first-boot-health-check.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-380-loopback-udp-tee.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-381-node-self-survey.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-382-spatial-evidence-rf-export.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-383-http-request-target-validation.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-384-sdk-explicit-search-limits.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-385-watch-terminal-input-errors.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-386-csi-gap-recovery-identity.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-389-csi-observed-capture-duration.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-390-lidar-bounded-scan-extrema.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-391-csi-analysis-synthetic-provenance.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-392-mmwave-known-model-single-frame.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-393-lidar-even-sample-median.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-394-sdk-strict-doctor-errors.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-395-cli-missing-numeric-values.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-396-esphome-millimeter-distance-units.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-397-esphome-entity-update-counters.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-398-esphome-nonfinite-sensor-states.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-399-csi-dominant-capped-stream.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-400-fused-vitals-node-diagnostics.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-401-auxiliary-node-wire-payload-validation.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-402-csi-shape-window-synthetic-provenance.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-403-training-report-timestamp-normalization.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-404-cli-watch-missing-window-history.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-405-iphone-lidar-closed-stream-completion.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-406-esphome-numeric-role-entity-kinds.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-407-serial-partial-capture-status.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-408-ld2410-absent-target-distance.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-409-sdk-supported-device-argument-types.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-410-monitor-csi-flow-log-markers.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-411-doctor-corrupt-manifest-diagnostics.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-412-csi-transcode-incomplete-iq-quarantine.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-413-csi-relay-datagram-preservation.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-414-overnight-capture-adr018-decoding.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-415-training-capture-session-collisions.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-416-alignment-cli-window-validation.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-417-csi-transcode-source-preservation.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-418-esphome-rejection-fixture-reset-lifecycle.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/ADR-419-w1700k-rf-diagnostics.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/README.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/gap-analysis/census.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/adr/gap-analysis/lens-findings.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/research/ADR-116-ha-matter-cog-research.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "docs/research/BFLD/08-adr-draft.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "plugins/ruview/docs/adrs/0001-ruview-plugin-contract.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "v2/docs/adr/ADR-001-workspace-structure.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "v2/docs/adr/ADR-002-signal-processing.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "v2/docs/adr/ADR-003-neural-network-inference.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "wifi-veil/docs/adr/ADR-288-veil-privacy-shield-compliant-waveform.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "wifi-veil/docs/adr/ADR-289-wifi-densepose-privshield-harness-via-metaharness.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      },
+      {
+        "repo": "RuView",
+        "path": "wifi-veil/docs/adr/ADR-290-veil-e2e-hardware-implementation-program.md",
+        "reason": "Owner excluded RuView from audit scope on 2026-11-01"
+      }
+    ],
     "added": [
       {
         "repo": "VisionClaw",
@@ -209,7 +1890,7 @@
       }
     ]
   },
-  "heading_units": 15365,
+  "heading_units": 9503,
   "heading_units_with_recorded_assessment": 642,
   "native_tests": 9,
   "clippy": "passed -D warnings",
@@ -258,7 +1939,7 @@
     "local_links": 14,
     "scoped_jev_advisory": "Two advisories concern unchanged SR-04.5. Read the cited feature gates and follower constructor; prior seven native identity scenarios remain the reproduction. Manual disposition retained in hitch-recovery/advisory-disposition.json. No advisory on SR-04.3."
   },
-  "tool_validation_basis": "Nine collector tests and Clippy receipts retained from original ledger batch at 610b57b; unchanged collector/dependency hashes verified. Fresh collection rechecked 183 claims; zero stale records. Product tests are scoped in the current report, not a collector rerun.",
+  "tool_validation_basis": "Nine collector tests and Clippy receipts retained from original ledger batch at 610b57b; unchanged collector/dependency hashes verified. Fresh scope-only collection rechecked 183 claims; zero stale records. Previous source-review tests remain scoped in their reports.",
   "prior_concurrent_source_refresh": {
     "changed_adrs": 5,
     "stale_claims": 5,
@@ -303,7 +1984,26 @@
     "next_action": "Reassess ADR-OBS-001 through ADR-OBS-005 at ontomark-obsidian 2a6c44e024121ec055329d37915e0ce5a05f75f2; do not rebind old reports without semantic review.",
     "disposition": "Historical stale state; all five reassessed in docs/estate-review/2026-11-01-obsidian-refresh.md. See current snapshot for dispositions."
   },
-  "current_batch": {
+  "corpus_gate": {
+    "topics": 206,
+    "panels": 1739,
+    "verified_citations": 25768,
+    "warnings": 0,
+    "fallback": 0,
+    "allowlisted": 9,
+    "check_verification": "passed",
+    "jev_advisory_sample": {
+      "reviewed_citations": 120,
+      "manual_review_queue": [
+        "agentbox/01-nix-flake-composition.md:AB-01.3",
+        "agentbox/01-nix-flake-composition.md:AB-01.5"
+      ],
+      "limits": "Advisory sample, not whole-corpus semantic acceptance."
+    },
+    "evidence": "docs/estate-review/evidence/2026-11-01/hitch-recovery/citations.txt",
+    "declared_revisions": 57
+  },
+  "previous_source_review_batch": {
     "report": "docs/estate-review/2026-11-01-sidestr-hitch-recovery.md",
     "baseline": "2405bb38ea08ee2a11066ac355ac4fc8d35f59aa",
     "new_whole_adrs": 0,
@@ -329,23 +2029,41 @@
     },
     "limits": "Thirty-five existing native tests and four offline production-library scenarios. Production template verifier controls, no fresh independent JavaScript or Bitcoin Core oracle. SR-04.1/.2/.4 remain unreconciled. No runtime activation, operational fund movement, product remediation or deployment change."
   },
-  "corpus_gate": {
-    "topics": 206,
-    "panels": 1739,
-    "verified_citations": 25768,
-    "warnings": 0,
-    "fallback": 0,
-    "allowlisted": 9,
-    "check_verification": "passed",
-    "jev_advisory_sample": {
-      "reviewed_citations": 120,
-      "manual_review_queue": [
-        "agentbox/01-nix-flake-composition.md:AB-01.3",
-        "agentbox/01-nix-flake-composition.md:AB-01.5"
-      ],
-      "limits": "Advisory sample, not whole-corpus semantic acceptance."
+  "current_batch": {
+    "kind": "owner-directed scope correction",
+    "baseline": "dc7ae5509fdf2c95ee8ae34e1aebc6085a6cce98",
+    "excluded_repository": "RuView",
+    "reason": "User states RuView is not ours and requests removal from consideration.",
+    "before_counts": {
+      "available_checkouts": 24,
+      "candidate_files": 1178,
+      "numbered_candidates_with_recorded_assessment": 91,
+      "numbered_decision_candidates": 1061,
+      "panels": 1739,
+      "panels_with_recorded_assessment": 329,
+      "scope_targets": 25,
+      "stale_claim_records": 0,
+      "topics": 206
     },
-    "evidence": "docs/estate-review/evidence/2026-11-01/hitch-recovery/citations.txt",
-    "declared_revisions": 57
+    "after_counts": {
+      "available_checkouts": 23,
+      "candidate_files": 842,
+      "numbered_candidates_with_recorded_assessment": 91,
+      "numbered_decision_candidates": 731,
+      "panels": 1739,
+      "panels_with_recorded_assessment": 329,
+      "scope_targets": 24,
+      "stale_claim_records": 0,
+      "topics": 206
+    },
+    "removed_candidate_files": 336,
+    "removed_numbered_candidates": 330,
+    "removed_heading_units": 5862,
+    "retained_candidate_hashes_equal": true,
+    "diagram_records_equal": true,
+    "claim_manifest_unchanged": true,
+    "new_review_credit": 0,
+    "receipt": "docs/estate-review/completion/validation/scan-exclude-ruview.txt",
+    "limits": "Scope correction only. Previous product tests and diagram gates are historical receipts; neither was rerun for this edit. No RuView source was scanned by the refreshed collector."
   }
 }

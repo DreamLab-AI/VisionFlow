@@ -15,20 +15,20 @@ This ledger makes the review backlog explicit. It currently reconciles **91 curr
 
 | Measure | Recorded result | Meaning |
 | --- | ---: | --- |
-| Explicit checkout targets | 25 | The existing roster/map scope, including separate standalone/consumed Codescape observations |
-| Available checkouts | 24 | Missing RuVector remains visible; it is not silently removed from the denominator |
-| ADR-like candidate files | 1,178 | Includes support, imported copies, history and retained audit evidence |
-| Numbered decision candidates | 1,061 | A naming-based queue, not a count of operative or unique adopted decisions |
-| Parsed heading units | 15,365 | Excludes headings in fenced examples; a heading is not an exhaustive requirement decomposition |
+| Explicit checkout targets | 24 | Roster/map scope with RuView explicitly excluded by the owner; separate standalone/consumed Codescape observations retained |
+| Available checkouts | 23 | Missing RuVector remains visible; it is not silently removed from the denominator |
+| ADR-like candidate files | 842 | Includes support, imported copies, history and retained audit evidence |
+| Numbered decision candidates | 731 | A naming-based queue, not a count of operative or unique adopted decisions |
+| Parsed heading units | 9,503 | Excludes headings in fenced examples; a heading is not an exhaustive requirement decomposition |
 | ADR assessments reconciled | 91 | Explicit whole-document assessments linked to unchanged source-document and report bytes |
 | Heading units with those assessments | 642 | Inherit the bounded whole-document report; implementation claims still need its evidence |
 | Diagram topics / panels | 206 / 1,739 | Exact panel-ID set matches the existing generated coverage index |
 | Panel assessments reconciled | 329 | Selected panels only; 59 topics have all panels recorded and fifteen have partial coverage |
 | Stale claim records | 0 | Document/report hashes match; implementation and deployment limits still belong to each report |
 
-This snapshot retains all 1,178 candidate paths from the previous batch. It records one additional existing panel after source review and adds no whole-document assessment. The concurrent diagram merge at `2405bb3` added nine panels across one new and several extended topics; those additions receive no audit credit here. Ten previously assessed panels in VC-52 and VC-53 retain identical bodies and the same declared source revision; their selected claims were rebound with a [comparison receipt](../evidence/2026-11-01/hitch-recovery/ledger-refresh.json).
+The owner excluded **RuView** on 1 November 2026 because it is not part of the owned estate. This refresh removes exactly 336 candidate files, including 330 numbered candidates and 5,862 parsed heading units. All retained candidate hashes and diagram records match the previous snapshot. No new assessment credit is claimed. Earlier RuView reports remain historical evidence; their pending source, ADR and remediation obligations are outside the active audit. References in owned estate diagrams remain documentation context and do not re-admit the external repository.
 
-This update assesses SR-04.3 against Hitch snapshot validation, recovery ordering and routing/host boundaries. The [report](../2026-11-01-sidestr-hitch-recovery.md) records thirty-five existing native tests and four offline scenarios. Damaged close/claim witnesses survive restore and are returned for rebroadcast. A late recovered revocation secret does not reclassify an already observed spend. Invoice expiry policy and hub durability remain explicit acceptance tasks. No product implementation or activation state changes.
+The previous source-review batch assessed SR-04.3 against Hitch snapshot validation, recovery ordering and routing/host boundaries. Its [report](../2026-11-01-sidestr-hitch-recovery.md) and test receipts remain unchanged. The earlier concurrent diagram additions and retained VC-52/VC-53 panel bindings remain documented in the [comparison receipt](../evidence/2026-11-01/hitch-recovery/ledger-refresh.json).
 
 ## What completion must prove
 
@@ -82,7 +82,6 @@ Counts below come from the dated snapshot. Diagram-area counts derive from indiv
 | dream-machine | 9 | 8 | 0 |
 | Logseq history | 10 | 10 | 0 |
 | RuVector | unavailable | unknown | 0 |
-| RuView | 336 | 330 | 0 |
 | Codescape standalone | 4 | 1 | 1 |
 | Codescape consumed | 4 | 1 | 1 |
 | unmute consumed | 0 | 0 | 0 |

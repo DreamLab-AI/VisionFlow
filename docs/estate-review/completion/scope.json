@@ -90,10 +90,6 @@
       "local": "ruvector"
     },
     {
-      "name": "RuView",
-      "local": "RuView"
-    },
-    {
       "name": "Codescape standalone",
       "local": "codescape"
     },
@@ -104,6 +100,15 @@
     {
       "name": "unmute consumed",
       "local": "project/voice-stack/unmute"
+    }
+  ],
+  "exclusions": [
+    {
+      "name": "RuView",
+      "local": "RuView",
+      "date": "2026-11-01",
+      "authority": "Explicit user instruction: take RuView out of consideration; it is not ours.",
+      "disposition": "Exclude the repository, its ADRs, source review and remediation backlog from this estate audit. Retain prior reports as historical evidence only. References within owned estate documents do not re-admit the external repository."
     }
   ]
 }
