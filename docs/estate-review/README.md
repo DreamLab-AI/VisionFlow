@@ -1,5 +1,7 @@
 ---
 
+VisionGraph vault/domain continuation: [six VG-01 panels, three ADR section assessments and thirteen boundary probes](2026-11-01-visiongraph-vault-and-domain-contracts.md). Domain-tier integrity, category identity, Bases validation and publication-policy findings remain open.
+
 KnowledgeGraph inventory and public-site continuation: [decision classification, validator probes and a live manifest mismatch](2026-11-01-knowledgegraph-inventory-and-live-receipt.md). All five knowledgeGraph topics and four operative ADRs are accounted for, with implementation and full runtime acceptance still open.
 
 Consumer and archive continuation: [current distribution routes, licence-path drift and four archived importer probes](2026-11-01-knowledgegraph-consumers-and-archive.md), covering all five KG-01/KG-06 panels.

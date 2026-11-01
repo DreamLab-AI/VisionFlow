@@ -1,0 +1,305 @@
+{
+  "retained_root": "/tmp/vf-vg-contract-artifacts",
+  "artifacts": [
+    {
+      "path": "VG-01.1.mmd",
+      "bytes": 793,
+      "sha256": "b18306626461b91b28ece7bf89d92d0724f65d77f41b2bb0cb5f2362d2e74aec"
+    },
+    {
+      "path": "VG-01.1.png",
+      "bytes": 144120,
+      "sha256": "d7746922bd981c21f5ecfee5f0f8f2cafbea47dc6251f8a145035d1ae5f3e5d1"
+    },
+    {
+      "path": "VG-01.1.svg",
+      "bytes": 4545,
+      "sha256": "95c02e4a2169c6f63f613a1ffbad9fb9a1bd292c1a5d2f1376f3d2d714ff5fd6"
+    },
+    {
+      "path": "VG-01.3.mmd",
+      "bytes": 824,
+      "sha256": "c46d7053e809f0cfbf49d77e6c23fcd98121622881ed086ff09c77412f5e253b"
+    },
+    {
+      "path": "VG-01.3.png",
+      "bytes": 155851,
+      "sha256": "51ff3cad4672030fcb1572dc65a0921b70bfaf8893ceea3714bb70cbc7179700"
+    },
+    {
+      "path": "VG-01.3.svg",
+      "bytes": 4523,
+      "sha256": "d35b6e82959603b7dd3f5eb4bea7f048d4d95796ba8087439e4dd4fd17127b41"
+    },
+    {
+      "path": "VG-01.4.mmd",
+      "bytes": 831,
+      "sha256": "578a9590eb8505f84ba4ef504499ae961927f86ebfc8b8881cb79ebe4d4217d8"
+    },
+    {
+      "path": "VG-01.4.png",
+      "bytes": 144220,
+      "sha256": "411ad2f336a84b4d42914a988f04d92e745004d5cd573aab5fa411bca6dad30f"
+    },
+    {
+      "path": "VG-01.4.svg",
+      "bytes": 3932,
+      "sha256": "317c15966f62807fbcb16dcced6c4bc51fd19efb74bdd6bb26c232a0cef57733"
+    },
+    {
+      "path": "VG-01.5.mmd",
+      "bytes": 839,
+      "sha256": "3e897961e3f32b2d32d9fdabadcc5899c7032c78a97a70498d12e7da0c0c5b8b"
+    },
+    {
+      "path": "VG-01.5.png",
+      "bytes": 155432,
+      "sha256": "99214ea799d276eeb2119b36f3673e022dede942aff4106c593f6d4a66ced486"
+    },
+    {
+      "path": "VG-01.5.svg",
+      "bytes": 4591,
+      "sha256": "b844650b7016510d97d32faed0f62c8e10ef9d75f3fdbccc1da7a8d6e7e9949b"
+    },
+    {
+      "path": "VG-01.6.mmd",
+      "bytes": 854,
+      "sha256": "468178c8e5054511929b531cfd525a7a57ca0594201b392de25d6ce880e76211"
+    },
+    {
+      "path": "VG-01.6.png",
+      "bytes": 165371,
+      "sha256": "71aec87bc1f915056946a2cf5e3fab282990c3bc841d7e4fe1e35e72b0ff249f"
+    },
+    {
+      "path": "VG-01.6.svg",
+      "bytes": 5007,
+      "sha256": "a2b746692fcb213107831a83e6a129b3825f87b6f542bc05dc62397f161177fa"
+    },
+    {
+      "path": "VG-01.7.mmd",
+      "bytes": 1231,
+      "sha256": "750c5f3fc5ef9dfc06a5a572f9a72909c16bd6efe15fb95c9ccffceb61dfd9a0"
+    },
+    {
+      "path": "VG-01.7.png",
+      "bytes": 183246,
+      "sha256": "9e5d659ba79f31e17809028e835102753183fe116a417de3d361195ca01c2882"
+    },
+    {
+      "path": "VG-01.7.svg",
+      "bytes": 5100,
+      "sha256": "662de8574ae4c017e61295965d3525463967546acb76748801bf407987b9d741"
+    },
+    {
+      "path": "bases-existing.log",
+      "bytes": 675,
+      "sha256": "725e11761a7989df040676acaae30c6a4e27af7ceb542011cb4bc64427cd500d"
+    },
+    {
+      "path": "build-receipt.json",
+      "bytes": 4363,
+      "sha256": "fae85100258804d3344673265a4fcc88781ea92f6e2c4a137bd27b48f3460711"
+    },
+    {
+      "path": "corpus-gate.log",
+      "bytes": 2411,
+      "sha256": "937c52ce09bd3121873672953961c9a003521ac6bcd31462b1762c02ba3045f3"
+    },
+    {
+      "path": "diagram-gate.log",
+      "bytes": 229,
+      "sha256": "db2f6217cc22b3f98b0050cc69368d6dc79671761193522277f9ce3912e0efd0"
+    },
+    {
+      "path": "domain-census.json",
+      "bytes": 1559,
+      "sha256": "a1bdf5265bd77f7674f518fd70c63853962abc34b1c6cf2e748054d6518f2c4d"
+    },
+    {
+      "path": "freshness.log",
+      "bytes": 155,
+      "sha256": "718aa4c82bd9673b37b5679b95075b293ef44eaf2c42cbc97195a7013c49e0a5"
+    },
+    {
+      "path": "link-visual-check.json",
+      "bytes": 326,
+      "sha256": "6e034b928354ddc5cfbda76a4fb498cfe6e2a6609ba257e3859b47ce33e509ce"
+    },
+    {
+      "path": "probes.json",
+      "bytes": 4188,
+      "sha256": "f1fa3aaed71b4063c8e68d9a2d4d41e61b0d54665cf48a55e6ba4afc84eacb58"
+    },
+    {
+      "path": "source/.github/workflows/publish.yml",
+      "bytes": 29238,
+      "sha256": "7508b63c8b591b8f915a1f9651ce0b270160198f72d80bdb2292bedba6e9bd7c"
+    },
+    {
+      "path": "source/CLAUDE.md",
+      "bytes": 5689,
+      "sha256": "bc91a84c24d10dc80e7e08f80d58e0ec0b397a0b0e15784b1b329ba8d016da9e"
+    },
+    {
+      "path": "source/README.md",
+      "bytes": 10071,
+      "sha256": "9d3de1060a2e93a338a9606076c32a9cbd3366a2fb89ea3d6e7af9d6d661214a"
+    },
+    {
+      "path": "source/docs/PUBLICATION-contract.md",
+      "bytes": 6360,
+      "sha256": "2c1bbf979bbf37b52e562913ed3191b9d2ce7beebc444e6559d7304c05d0ed17"
+    },
+    {
+      "path": "source/docs/adr/ADR-VG-001-publication-policy-boundaries.md",
+      "bytes": 4022,
+      "sha256": "61821c4310b5b0a95401fce026980875dab3b286b10233be5e846baad770dce8"
+    },
+    {
+      "path": "source/docs/adr/ADR-VG-002-generation-and-consumer-identity.md",
+      "bytes": 5390,
+      "sha256": "3a6b91ee83bae8758e48b6ee884dd8b819c5cf372f9632121029b638ed01baf0"
+    },
+    {
+      "path": "source/docs/adr/ADR-VG-003-obsidian-only-authoring.md",
+      "bytes": 2717,
+      "sha256": "423786ad7bd1ddc7f68360d6abca537725398e4ff5caf0b65ba81b1974a4937f"
+    },
+    {
+      "path": "source/docs/adr/ADR-VG-004-space-and-earth-domains.md",
+      "bytes": 3117,
+      "sha256": "16a680bf136539190119c7cf05de007da03d61d5fbf052cbdd8d244b8a2c5ee4"
+    },
+    {
+      "path": "source/docs/adr/ADR-VG-008-supply-chains-and-logistics-domain.md",
+      "bytes": 5054,
+      "sha256": "67c5561b942d73838aa93d1a5bf8cb027882ebde24bc08694a82da5ce8c23ab5"
+    },
+    {
+      "path": "source/docs/adr/README.md",
+      "bytes": 2808,
+      "sha256": "e760fdf725427c77086a2f19e54da7f47c31439633e30ad88feaee6ae4d7f7c6"
+    },
+    {
+      "path": "source/knowledge/bases/by-domain.base",
+      "bytes": 1880,
+      "sha256": "6ecb5971dd654dca1eb2ab9f20d3743878b2fb6badbfd9c88f5f08e271ac392b"
+    },
+    {
+      "path": "source/knowledge/bases/machine-confirmed-awaiting-me.base",
+      "bytes": 1759,
+      "sha256": "449c0f385323d3acd21fa20c3da7f7087ded6e8d17fa09d21feb1a88759f3433"
+    },
+    {
+      "path": "source/knowledge/bases/review-queue.base",
+      "bytes": 1556,
+      "sha256": "9778a0db25997932fb9dc02db4c33f19cf82f6af7cec606e8a22696bf8eca76e"
+    },
+    {
+      "path": "source/knowledge/bases/stale.base",
+      "bytes": 1328,
+      "sha256": "e8219c42547acdd7a53759f061b32b9d7ed55582b2d7b466c55f1448223349d8"
+    },
+    {
+      "path": "source/licensing/NOTICE",
+      "bytes": 2704,
+      "sha256": "9116c9a8970c97576cb2dc8109372e6a48b4b89984191f59ad88bf4afc7bc4f1"
+    },
+    {
+      "path": "source/ontology/vocabulary.yaml",
+      "bytes": 22448,
+      "sha256": "26a99e57c407c5334116ba055278ebd7e49ce0995d8830306f4326c5de9d39ff"
+    },
+    {
+      "path": "source/planning/space-science-and-geo-sensing/catalogue.json",
+      "bytes": 1077371,
+      "sha256": "4cde34241fd405d25bc9a579b1f9b7da17a422080be85e4bc63ffd8325b4ef8e"
+    },
+    {
+      "path": "source/planning/space-science-and-geo-sensing/researched-pages.json",
+      "bytes": 30207,
+      "sha256": "377b95dabe56a36fe9d755aa20b0104e4da62ee5027d7054b4884327078a3c37"
+    },
+    {
+      "path": "source/planning/supply-chains-and-logistics/catalogue.json",
+      "bytes": 171034,
+      "sha256": "8785d4caeb497144352bd04583338eda4cc006b24f4868ef33d9461d6240d681"
+    },
+    {
+      "path": "source/publishing-tools/WasmVOWL/modern/scripts/check-space-domains.mjs",
+      "bytes": 4541,
+      "sha256": "fdbe24cd10434bd647d150b3b8aa701a69eddb140863937871fe75471b73eb89"
+    },
+    {
+      "path": "source/publishing-tools/WasmVOWL/modern/scripts/check-supply-chain-domain.mjs",
+      "bytes": 4284,
+      "sha256": "6681419b5fd0da0257fb0a4580b413d7e5ba18717582727a4e42da8d9b5b3180"
+    },
+    {
+      "path": "source/quartz/README.md",
+      "bytes": 24153,
+      "sha256": "b88a10465a168427851dfe3f431dce275d647d1fe2f9b3c8b41b422bcaa0e781"
+    },
+    {
+      "path": "source/quartz/quartz/plugins/filters/explicit.ts",
+      "bytes": 818,
+      "sha256": "19b2d6bb6950b20a9c316b655974ad04a290539db09fa12dcc2c410bf8a45312"
+    },
+    {
+      "path": "source/quartz/quartz.config.ts",
+      "bytes": 6472,
+      "sha256": "037d5c5aa9cdb25dd42a238eb97d4ea69fe2aa3941fb6d7ce04a8602ddd5ab77"
+    },
+    {
+      "path": "source/scripts/check-bases.sh",
+      "bytes": 1807,
+      "sha256": "95c4bcfeca52fded1097f8421bad2061a1e81b7fc413e77a086364523f6f868d"
+    },
+    {
+      "path": "source/vault.toml",
+      "bytes": 7802,
+      "sha256": "32b7bd5d247dbfb9d8543d1e5da57b7570f8f86c4ff91705b50884bb11629050"
+    },
+    {
+      "path": "source/working/bases/draft-concepts.base",
+      "bytes": 1674,
+      "sha256": "209fc6308f7842abbf0b84f39610decd6e23c11983f57ab7c07c6178e3dd9b34"
+    },
+    {
+      "path": "source/working/bases/episodes.base",
+      "bytes": 1546,
+      "sha256": "f9c1bdc781c11576a7d627f67d9d0816a36ada012f95ab9694819197ec395f88"
+    },
+    {
+      "path": "source/working/bases/journal.base",
+      "bytes": 3146,
+      "sha256": "08d55fadde03d604aafd017aa852f6c940d86f873c2ff67989035148acf859c9"
+    },
+    {
+      "path": "source/working/bases/podcast-evidence.base",
+      "bytes": 1724,
+      "sha256": "638943a0f90470f7ea07ab42d2cb13203bbd3221995df2b3e9bd4688253bf686"
+    },
+    {
+      "path": "source/working/bases/public.base",
+      "bytes": 1880,
+      "sha256": "76dd25d93a81cddda2f17168ca1c51b45cad2b34d0f3a19b45393b23fbcdbace"
+    },
+    {
+      "path": "source/working/bases/review-before-publish.base",
+      "bytes": 1511,
+      "sha256": "a4642ef37f6b02fcf1af85037c6288da1f40c81170b3367e963560c079c4990e"
+    },
+    {
+      "path": "sources.json",
+      "bytes": 4991,
+      "sha256": "85f147d417c5c0395cb26168dd4fa3fabb1db9d1dadc518e5d9e7b9b3a7bf224"
+    },
+    {
+      "path": "texput.log",
+      "bytes": 714,
+      "sha256": "0de8dad445a514ae3bc13874d2a354c230d5395982c23ea702c3e573c3d9d304"
+    }
+  ]
+}

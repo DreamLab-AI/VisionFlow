@@ -1,0 +1,8 @@
+{
+  "files": [
+    "docs/estate-review/2026-11-01-visiongraph-vault-and-domain-contracts.md",
+    "docs/diagrams/visiongraph/01-vault-structure-and-contract.md"
+  ],
+  "missing_local_links": [],
+  "visual_review": "All six final panels inspected. Long citations moved to adjacent Mermaid comments to prevent label overflow."
+}

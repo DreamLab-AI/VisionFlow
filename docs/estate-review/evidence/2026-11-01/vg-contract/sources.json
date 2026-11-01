@@ -1,0 +1,137 @@
+{
+  "revision": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+  "files": [
+    {
+      "path": "docs/PUBLICATION-contract.md",
+      "sha256": "2c1bbf979bbf37b52e562913ed3191b9d2ce7beebc444e6559d7304c05d0ed17"
+    },
+    {
+      "path": "README.md",
+      "sha256": "9d3de1060a2e93a338a9606076c32a9cbd3366a2fb89ea3d6e7af9d6d661214a"
+    },
+    {
+      "path": "CLAUDE.md",
+      "sha256": "bc91a84c24d10dc80e7e08f80d58e0ec0b397a0b0e15784b1b329ba8d016da9e"
+    },
+    {
+      "path": "docs/PUBLICATION-contract.md",
+      "sha256": "2c1bbf979bbf37b52e562913ed3191b9d2ce7beebc444e6559d7304c05d0ed17"
+    },
+    {
+      "path": "docs/adr/README.md",
+      "sha256": "e760fdf725427c77086a2f19e54da7f47c31439633e30ad88feaee6ae4d7f7c6"
+    },
+    {
+      "path": "docs/adr/ADR-VG-001-publication-policy-boundaries.md",
+      "sha256": "61821c4310b5b0a95401fce026980875dab3b286b10233be5e846baad770dce8"
+    },
+    {
+      "path": "docs/adr/ADR-VG-003-obsidian-only-authoring.md",
+      "sha256": "423786ad7bd1ddc7f68360d6abca537725398e4ff5caf0b65ba81b1974a4937f"
+    },
+    {
+      "path": "docs/adr/ADR-VG-004-space-and-earth-domains.md",
+      "sha256": "16a680bf136539190119c7cf05de007da03d61d5fbf052cbdd8d244b8a2c5ee4"
+    },
+    {
+      "path": "docs/adr/ADR-VG-008-supply-chains-and-logistics-domain.md",
+      "sha256": "67c5561b942d73838aa93d1a5bf8cb027882ebde24bc08694a82da5ce8c23ab5"
+    },
+    {
+      "path": "publishing-tools/WasmVOWL/modern/scripts/check-supply-chain-domain.mjs",
+      "sha256": "6681419b5fd0da0257fb0a4580b413d7e5ba18717582727a4e42da8d9b5b3180"
+    },
+    {
+      "path": "publishing-tools/WasmVOWL/modern/scripts/check-space-domains.mjs",
+      "sha256": "fdbe24cd10434bd647d150b3b8aa701a69eddb140863937871fe75471b73eb89"
+    },
+    {
+      "path": "licensing/NOTICE",
+      "sha256": "9116c9a8970c97576cb2dc8109372e6a48b4b89984191f59ad88bf4afc7bc4f1"
+    },
+    {
+      "path": "vault.toml",
+      "sha256": "32b7bd5d247dbfb9d8543d1e5da57b7570f8f86c4ff91705b50884bb11629050"
+    },
+    {
+      "path": "ontology/vocabulary.yaml",
+      "sha256": "26a99e57c407c5334116ba055278ebd7e49ce0995d8830306f4326c5de9d39ff"
+    },
+    {
+      "path": "quartz/README.md",
+      "sha256": "b88a10465a168427851dfe3f431dce275d647d1fe2f9b3c8b41b422bcaa0e781"
+    },
+    {
+      "path": ".github/workflows/publish.yml",
+      "sha256": "7508b63c8b591b8f915a1f9651ce0b270160198f72d80bdb2292bedba6e9bd7c"
+    },
+    {
+      "path": "scripts/check-bases.sh",
+      "sha256": "95c4bcfeca52fded1097f8421bad2061a1e81b7fc413e77a086364523f6f868d"
+    },
+    {
+      "path": "knowledge/bases/review-queue.base",
+      "sha256": "9778a0db25997932fb9dc02db4c33f19cf82f6af7cec606e8a22696bf8eca76e"
+    },
+    {
+      "path": "knowledge/bases/stale.base",
+      "sha256": "e8219c42547acdd7a53759f061b32b9d7ed55582b2d7b466c55f1448223349d8"
+    },
+    {
+      "path": "knowledge/bases/by-domain.base",
+      "sha256": "6ecb5971dd654dca1eb2ab9f20d3743878b2fb6badbfd9c88f5f08e271ac392b"
+    },
+    {
+      "path": "knowledge/bases/machine-confirmed-awaiting-me.base",
+      "sha256": "449c0f385323d3acd21fa20c3da7f7087ded6e8d17fa09d21feb1a88759f3433"
+    },
+    {
+      "path": "working/bases/draft-concepts.base",
+      "sha256": "209fc6308f7842abbf0b84f39610decd6e23c11983f57ab7c07c6178e3dd9b34"
+    },
+    {
+      "path": "working/bases/episodes.base",
+      "sha256": "f9c1bdc781c11576a7d627f67d9d0816a36ada012f95ab9694819197ec395f88"
+    },
+    {
+      "path": "working/bases/journal.base",
+      "sha256": "08d55fadde03d604aafd017aa852f6c940d86f873c2ff67989035148acf859c9"
+    },
+    {
+      "path": "working/bases/podcast-evidence.base",
+      "sha256": "638943a0f90470f7ea07ab42d2cb13203bbd3221995df2b3e9bd4688253bf686"
+    },
+    {
+      "path": "working/bases/public.base",
+      "sha256": "76dd25d93a81cddda2f17168ca1c51b45cad2b34d0f3a19b45393b23fbcdbace"
+    },
+    {
+      "path": "working/bases/review-before-publish.base",
+      "sha256": "a4642ef37f6b02fcf1af85037c6288da1f40c81170b3367e963560c079c4990e"
+    },
+    {
+      "path": "docs/adr/ADR-VG-002-generation-and-consumer-identity.md",
+      "sha256": "3a6b91ee83bae8758e48b6ee884dd8b819c5cf372f9632121029b638ed01baf0"
+    },
+    {
+      "path": "planning/space-science-and-geo-sensing/catalogue.json",
+      "sha256": "4cde34241fd405d25bc9a579b1f9b7da17a422080be85e4bc63ffd8325b4ef8e"
+    },
+    {
+      "path": "planning/space-science-and-geo-sensing/researched-pages.json",
+      "sha256": "377b95dabe56a36fe9d755aa20b0104e4da62ee5027d7054b4884327078a3c37"
+    },
+    {
+      "path": "planning/supply-chains-and-logistics/catalogue.json",
+      "sha256": "8785d4caeb497144352bd04583338eda4cc006b24f4868ef33d9461d6240d681"
+    },
+    {
+      "path": "quartz/quartz/plugins/filters/explicit.ts",
+      "sha256": "19b2d6bb6950b20a9c316b655974ad04a290539db09fa12dcc2c410bf8a45312"
+    },
+    {
+      "path": "quartz/quartz.config.ts",
+      "sha256": "037d5c5aa9cdb25dd42a238eb97d4ea69fe2aa3941fb6d7ce04a8602ddd5ab77"
+    }
+  ]
+}

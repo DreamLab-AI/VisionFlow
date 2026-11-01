@@ -1,0 +1,50 @@
+{
+  "http_evidence": "VisionFlow docs/estate-review/evidence/2026-11-01/kg-inventory/http-index-complete.json",
+  "generation": "visionGraph@84c1cee32b6ad03b58bcb31ba33320142c330523",
+  "roots": [
+    {
+      "title": "Space Science and Systems",
+      "matches": [
+        {
+          "id": "space-science-and-systems",
+          "title": "Space Science and Systems",
+          "domain": "space-science-and-systems",
+          "domain_name": "Space Science And Systems",
+          "entityType": "Class",
+          "iri": "urn:ngm:class:space-science-and-systems"
+        }
+      ]
+    },
+    {
+      "title": "Earth Observation and Geospatial Sensing",
+      "matches": [
+        {
+          "id": "earth-observation-and-geospatial-sensing",
+          "title": "Earth Observation and Geospatial Sensing",
+          "domain": "earth-observation-and-geospatial-sensing",
+          "domain_name": "Earth Observation And Geospatial Sensing",
+          "entityType": "Class",
+          "iri": "urn:ngm:class:earth-observation-and-geospatial-sensing"
+        }
+      ]
+    },
+    {
+      "title": "Supply Chains and Logistics",
+      "matches": [
+        {
+          "id": "supply-chains-and-logistics",
+          "title": "Supply Chains and Logistics",
+          "domain": "supply-chains-and-logistics",
+          "domain_name": "Supply Chains And Logistics",
+          "entityType": "Class",
+          "iri": "urn:ngm:class:supply-chains-and-logistics"
+        }
+      ]
+    }
+  ],
+  "catalogue_actions": {
+    "new": 288,
+    "rehome": 48,
+    "reuse": 21
+  }
+}

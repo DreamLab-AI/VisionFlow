@@ -349,7 +349,7 @@ _180 topic files, 1599 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 
 | ID | Topic | Diagrams | Kinds | Governing | ADRs |
 |----|-------|----------|-------|-----------|------|
-| VG-01 | [Vault structure and the publication contract — frontmatter gate, inclusion divergence](visiongraph/01-vault-structure-and-contract.md) | 6 | flowchart | [PUBLICATION-contract.md](../../../visionGraph/docs/PUBLICATION-contract.md) | ADR-VG-001, ADR-VG-002, ADR-VG-003, ADR-VG-004, ADR-VG-008 |
+| VG-01 | [Vault structure, publication boundaries and domain gates](visiongraph/01-vault-structure-and-contract.md) | 6 | flowchart | [PUBLICATION-contract.md](../../../visionGraph/docs/PUBLICATION-contract.md) | ADR-VG-001, ADR-VG-002, ADR-VG-003, ADR-VG-004, ADR-VG-008 |
 | VG-03 | [publish.yml — ontomark build, Quartz notes, and the React/vowl-wasm explorer build](visiongraph/03-publish-pipeline-and-explorer-build.md) | 4 | flowchart, sequenceDiagram | [PUBLICATION-contract.md](../../../visionGraph/docs/PUBLICATION-contract.md) | ADR-VG-004, ADR-VG-008 |
 | VG-04 | [Downstream contracts — VisionClaw's pull model, and knowledgeGraph as deploy target](visiongraph/04-downstream-contracts.md) | 2 | sequenceDiagram, flowchart | [PUBLICATION-contract.md](../../../visionGraph/docs/PUBLICATION-contract.md) | ADR-VG-002, visionclaw:ADR-2147 |
 | VG-05 | [Invariants register — vault contract facts vs the proposed, inactive closeout ADRs](visiongraph/05-invariants-register.md) | 4 | flowchart | [PUBLICATION-contract.md](../../../visionGraph/docs/PUBLICATION-contract.md) | ADR-VG-001, ADR-VG-002 |

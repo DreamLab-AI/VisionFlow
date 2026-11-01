@@ -1,0 +1,100 @@
+{
+  "scope": "isolated gate behaviour; not whole-workflow bypass; full tracked catalogues used for first six cases",
+  "passed": 13,
+  "results": [
+    {
+      "probe": "space-real-catalogue-zero-byte-tiers-pass",
+      "exit": 0,
+      "stdout": "Space Science and Systems: domain 6, 545 public members\nEarth Observation and Geospatial Sensing: domain 7, 389 public members\nBoth new domains and representative draft identities survive public projection.\nAll 934 expansion identities are accounted for: 934 researched drafts and 0 vocabulary-only drafts (936 researched drafts registered in total, including reused pages).",
+      "stderr": ""
+    },
+    {
+      "probe": "space-missing-tier-rejected",
+      "exit": 1,
+      "stdout": "",
+      "stderr": "AssertionError [ERR_ASSERTION]: Missing space-science-and-systems tier"
+    },
+    {
+      "probe": "space-invalid-tier-bytes-pass",
+      "exit": 0,
+      "stdout": "Space Science and Systems: domain 6, 545 public members\nEarth Observation and Geospatial Sensing: domain 7, 389 public members\nBoth new domains and representative draft identities survive public projection.\nAll 934 expansion identities are accounted for: 934 researched drafts and 0 vocabulary-only drafts (936 researched drafts registered in total, including reused pages).",
+      "stderr": ""
+    },
+    {
+      "probe": "space-wrong-stable-id-rejected",
+      "exit": 1,
+      "stdout": "",
+      "stderr": "AssertionError [ERR_ASSERTION]: space-science-and-systems changed its stable domain ID"
+    },
+    {
+      "probe": "supply-real-catalogue-no-category-slug-ids-and-empty-tier-pass",
+      "exit": 0,
+      "stdout": "Supply Chains and Logistics: domain 8, 1 public members\n0 of 15 category hubs are published.\nAll 336 catalogue identities are published in their stated domain.",
+      "stderr": ""
+    },
+    {
+      "probe": "supply-missing-accounted-page-rejected",
+      "exit": 1,
+      "stdout": "Supply Chains and Logistics: domain 8, 1 public members\n0 of 15 category hubs are published.",
+      "stderr": "Error: ENOENT: no such file or directory, open '/home/devuser/workspace/.tmp/vg-gates-V6FyI8/supply/bundle/api/pages/synthetic-0.json'\n  code: 'ENOENT',"
+    },
+    {
+      "probe": "supply-missing-catalogue-root-only-pass",
+      "exit": 0,
+      "stdout": "Supply Chains and Logistics: domain 8, 1 public members\n0 of 15 category hubs are published.\nSKIP: planning/supply-chains-and-logistics/catalogue.json not present; page-identity checks not run.",
+      "stderr": ""
+    },
+    {
+      "probe": "bases-normal-view-pass",
+      "exit": 0,
+      "stdout": "ok    knowledge/bases/probe.base — 1 view(s), 0 formula(s)\nok    working/bases/control.base — 1 view(s), 0 formula(s)",
+      "stderr": ""
+    },
+    {
+      "probe": "bases-named-invalid-type-rejected",
+      "exit": 1,
+      "stdout": "FAIL  knowledge/bases/probe.base — bad view type on: Named\nok    working/bases/control.base — 1 view(s), 0 formula(s)",
+      "stderr": ""
+    },
+    {
+      "probe": "bases-blank-name-invalid-type-pass",
+      "exit": 0,
+      "stdout": "ok    knowledge/bases/probe.base — 1 view(s), 0 formula(s)\nok    working/bases/control.base — 1 view(s), 0 formula(s)",
+      "stderr": ""
+    },
+    {
+      "probe": "bases-undeclared-filter-formula-pass",
+      "exit": 0,
+      "stdout": "ok    knowledge/bases/probe.base — 1 view(s), 0 formula(s)\nok    working/bases/control.base — 1 view(s), 0 formula(s)",
+      "stderr": ""
+    },
+    {
+      "probe": "bases-undeclared-order-formula-rejected",
+      "exit": 1,
+      "stdout": "FAIL  knowledge/bases/probe.base — undeclared formula(s): missing\nok    working/bases/control.base — 1 view(s), 0 formula(s)",
+      "stderr": ""
+    },
+    {
+      "probe": "quartz-exact-publication-predicate",
+      "values": [
+        true,
+        "true",
+        false,
+        "false",
+        1,
+        0,
+        null
+      ],
+      "observed": [
+        true,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "note": "Exact extracted method body, not full Quartz render or upstream compiler inclusion"
+    }
+  ]
+}
