@@ -378,51 +378,29 @@ sequenceDiagram
 ## AB-23.6 Persistence and the human merge gate
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    participant G as judge::judge<br/>agentbox/services/dream-engine/src/judge.rs:36
-    participant ENG as Engine persist arm<br/>agentbox/services/dream-engine/src/engine.rs:1710
-    participant RS as runstate::persist<br/>dream-core/src/runstate.rs:615
-    participant FG as Forge::publish_draft<br/>dream-core/src/seams.rs:425
-    participant LED as append_and_commit_ledger<br/>agentbox/services/dream-engine/src/engine.rs:1857
-    participant NT as notify::lost_pr<br/>agentbox/services/dream-engine/src/notify.rs:28
-    participant H as Human reviewer
-    participant CFG as dream.config.json<br/>agentbox/dream.config.json
-
-    G-->>ENG: GateDecision
-    ENG->>RS: persist(night_dir, run, verdict), Phase::Persisted (engine.rs:1710)
-    Note over ENG,RS: BEFORE any externally visible effect. If the journal cannot be written the engine refuses to publish<br/>and the night is BLOCKED-ENV (engine.rs:1710-1725)
-    alt not accepted
-        ENG->>ENG: candidate::discard deletes the branch and worktree, the ledger row says VETOED (engine.rs:1821-1831)
-    else accepted but persist_accepts is false
-        ENG->>ENG: branch kept locally only, no push (engine.rs:1816-1819)
-    else accepted and persist_accepts (engine.rs:1734)
-        ENG->>FG: publish_draft(DraftPr), git push then gh pr create --draft (engine.rs:1774, dream-core/src/seams.rs:425)
-        FG-->>H: a PULL REQUEST, never a merge
-        opt pr_url is None
-            ENG->>NT: lost_pr alert naming the kept local branch (engine.rs:1791)
-        end
-        ENG->>LED: append the row then commit THAT file only (engine.rs:1857, dream-core/src/ledger.rs:411)
-        Note over LED: git commit --only on the default branch, local only, never pushed (dream-core/src/ledger.rs:408-411).<br/>The append stays fatal, the commit is fail-open
-        Note over CFG: autoMerge is false (agentbox/dream.config.json:80), labels at :76-79
-        H->>H: review and merge, or not
-    end
-    Note over CFG: extraDisciplines also fence the self-referential case: a change to services/dream-engine changes the dreamer,<br/>so it is never let past the human-merge gate (dream.config.json:67), the image build is HANDOFF only (dream.config.json:68),<br/>secrets are never quoted (dream.config.json:70), and only ADR ids that exist may be cited (dream.config.json:71)
+flowchart TB
+    PERSIST["Persist verdict before forge and ledger<br/>engine.rs:1710"] --> CHOOSE["Prepared candidate and gate acceptance<br/>engine.rs:1733"]
+    CHOOSE -->|"accepted and persistence enabled"| PUSH["Direct draft publication<br/>engine.rs:1774"]
+    CHOOSE -->|"accepted, persistence disabled"| LOCAL["Keep branch locally<br/>engine.rs:1816"]
+    CHOOSE -->|"candidate vetoed"| DISCARD["Discard candidate<br/>engine.rs:1821"]
+    CHOOSE -->|"no prepared candidate"| NONE["No publication<br/>engine.rs:1833"]
+    PUSH --> RESULT["URL present selects Accepted notice<br/>otherwise LostPr<br/>engine.rs:1788"]
+    RESULT --> LED["Append ledger for every continuing branch<br/>engine.rs:1857"]
+    LOCAL --> LED
+    DISCARD --> LED
+    NONE --> LED
+    LED --> COMMIT["Append failure stops, commit failure is logged<br/>records.rs:55<br/>records.rs:80"]
+    COMMIT --> MEMORY["Memory write failure is logged and tolerated<br/>engine.rs:1891<br/>engine.rs:1901"]
+    MEMORY --> COMPLETE["Summary, remote cleanup, then complete<br/>engine.rs:1905<br/>engine.rs:1932"]
 ```
 
-**What it shows.** The persistence order after the gate has ruled: journal, then the forge request, then the ledger, with the human still deciding the merge.
+**What it shows.** The adapter checks publication eligibility before calling the forge, and calls `Forge::publish_draft` directly. The common ledger path follows all continuing branches, including vetoed and locally retained candidates. A publication failure does not erase the verdict; it changes the PR reference and notice. Earlier inbox and request-store effects precede the persistence boundary described here.
 
-**Why it is this way.** Persist-before-effect is the at-most-once guarantee (ADR-DE-007). The merge gate stays a process, not a code control, because `autoMerge` is false and, as below, is not consulted by the adapter at all.
+**Why it is this way.** A human still decides the merge. The core's `autoMerge` policy is only used by `persist::publish`, which this adapter does not call. The [1 November forge/seam audit](../../estate-review/2026-11-01-dream-forge-and-seam-contracts.md) exercises the real GhForge subprocess boundary with local Git remotes and an offline replacement for gh; it does not establish live GitHub behaviour or current deployment.
 
-**Open:** `autoMerge` is read from the repository's `dream.config.json` and defaults to off (`../dream-engine/crates/dream-gate/src/config.rs:437-442`), and the core ships a pure decision tree plus a `persist::publish` that applies it (`../dream-engine/crates/dream-core/src/persist.rs:291`, `../dream-engine/crates/dream-core/src/automerge.rs:110`). The adapter calls `Forge::publish_draft` directly (`../project/agentbox/services/dream-engine/src/engine.rs:1774`) and never `persist::publish`, so setting `autoMerge: true` would have no effect here: the option is inert in the adapter. The core now says so itself, that only `persist::publish` applies the policy and a host publishing through `Forge::publish_draft` never merges whatever `autoMerge` says (`../dream-engine/README.md:130-135`, `../dream-engine/docs/adr/ADR-DE-006-automerge-is-an-option.md:44-48`), and that the first consuming host is exactly that case. The forge calls behind the option have not been exercised against real GitHub (`../dream-engine/docs/adr/ADR-DE-006-automerge-is-an-option.md:41-42`). See ES-05.
+**Open (publication identity):** the PR request carries a branch name, not the verified commit hash (`../dream-engine/crates/dream-core/src/seams.rs:341`). A successful create command returns Some even for empty stdout (`../dream-engine/crates/dream-core/src/seams.rs:531`); the adapter then selects the acceptance notice by Option presence. The tested command boundary does not validate the URL or bind the pushed head to the evaluated tree.
 
-**Tension (dream.config.json vs the prompt):** RESOLVED. The previous stamp recorded that every night's prompt cited "agentbox ADR-2024" while the discipline `cite-existing-adrs` listed ADR-2024 as non-existent (`../project/agentbox/dream.config.json:71`). The estate tag is now stripped from the shared compiler's output: the prompt test removes the string from the pre-extraction golden before comparing (`../project/agentbox/services/dream-engine/src/prompt.rs:82`).
-
-**Drift:** the pull request body gains a note when a fixer reformatted the candidate, so a reviewer reads the logic as the model's and the layout as the formatter's (`../project/agentbox/services/dream-engine/src/engine.rs:1753-1760`); the option is inert here for the reason recorded in AB-23.4.
-
-**Debt:** RETIRED. `persist::persist_accept` and `push_and_open_pr`, recorded as dead code at the previous stamp, no longer exist in either repository.
-
-**Tension (forge step):** the forge request is the one effect of a night the engine cannot undo and, per the core, cannot reconcile after a crash. Its only test double is the `Forge` trait object the engine accepts (`../project/agentbox/services/dream-engine/src/engine.rs:112`); the real `GhForge` shells out to `git push` and `gh` (`../dream-engine/crates/dream-core/src/seams.rs:424-440`) and no record at these revisions shows a full night publishing a pull request through the extracted path.
+**Tension (error ownership):** draft creation exposes only pushed and an optional URL, losing the command error detail (`../dream-engine/crates/dream-core/src/seams.rs:425`, `../dream-engine/crates/dream-core/src/seams.rs:512`). Memory errors are journalled and logged but tolerated (`../project/agentbox/services/dream-engine/src/engine.rs:1895`); they are not automatically written into the core run-state last_error field. ADR-DE-005's universal error-propagation wording is broader than this implementation.
 
 ## AB-23.7 Run journal — restart, resume, abandonment and the finished-night rule
 
@@ -1087,7 +1065,7 @@ sequenceDiagram
 
 ## Audit qualification — 2026-10-29
 
-1 November continuation: AB-23.7 and AB-23.21 were reassessed against matching current source and updated for recovery and source-supply limits. The other twenty panels remain separately queued; rendering this topic does not close their semantic review.
+1 November continuation: AB-23.7 and AB-23.21 were reassessed against matching current source and updated for recovery and source-supply limits. A later forge/seam pass also reassessed AB-23.6. The other nineteen panels remain separately queued; rendering this topic does not close their semantic review.
 
 This topic describes the extraction as source at the stamped revisions. ADR-2141 records `implementation_status: complete` and `activation_status: live`: the operator rebuilt and activated the registry-pinned image on 2026-10-16 and the supervised daemon was RUNNING with no degradation (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:47`). The later pins (0.2.0, 0.3.0, 0.4.0) are source in `Cargo.toml`; the record carries activation evidence for 0.2.0 only (`../project/agentbox/docs/adr/ADR-2143-source-supply-is-plumbing-and-decisions-are-plain-english.md:35`).
 

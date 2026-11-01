@@ -1,0 +1,16 @@
+   Compiling dream-core v0.4.0 (/home/devuser/workspace/wt/VisionFlow-dream-forge-seams/.audit-source/crates/dream-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.07s
+     Running unittests src/lib.rs (.audit-target/debug/deps/dream_core-5f380e84d0446981)
+
+running 7 tests
+test seams::tests::a_record_written_before_the_typed_fields_still_reads_and_writes_the_same_shape ... ok
+[r] n: the evaluation harness is stuck — the same environment failures (ab) recurred unchanged; the dry streak was not advanced.
+test seams::tests::lost_pr_text_names_the_branch_and_the_recovery_commands ... ok
+test seams::tests::null_sink_and_stderr_notifier_never_fail ... ok
+test seams::tests::traits_are_dyn_safe ... ok
+test seams::tests::jsonl_sink_appends_one_line_per_record ... ok
+test seams::tests::the_typed_fields_round_trip_and_use_camel_case_keys ... ok
+test seams::tests::transient_classification ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 238 filtered out; finished in 0.00s
+

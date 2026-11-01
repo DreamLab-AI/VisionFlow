@@ -1,0 +1,29 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (.audit-target/debug/deps/dream_core-5f380e84d0446981)
+
+running 22 tests
+test persist::tests::an_unreadable_pr_base_never_merges ... ok
+test persist::tests::a_pr_that_did_not_open_is_never_merged ... ok
+test persist::tests::a_pr_whose_real_base_differs_from_the_checked_branch_never_merges ... ok
+test persist::tests::a_forge_that_cannot_report_the_base_is_refused_by_default ... ok
+test persist::tests::a_forge_without_protection_support_is_refused_by_default ... ok
+test persist::tests::allowed_enables_automerge_after_the_pr_opened ... ok
+test persist::tests::a_forge_that_refuses_to_enable_leaves_an_ordinary_draft ... ok
+test persist::tests::flag_off_on_a_self_referential_repo_is_disabled_not_refused ... ok
+test persist::tests::default_path_is_a_draft_with_no_protection_query_and_no_merge ... ok
+test persist::tests::branch_name_slugifies_and_dates ... ok
+test persist::tests::apply_attempts_order_and_three_way_gate ... ok
+test persist::tests::flag_on_but_no_checks_never_merges ... ok
+test persist::tests::flag_on_but_self_referential_never_merges ... ok
+test persist::tests::flag_on_but_protection_api_error_never_merges ... ok
+test persist::tests::protected_patch_is_refused_before_any_worktree_exists ... ok
+test persist::tests::build_branch_worktree_applies_patch_in_isolation ... ok
+test persist::tests::f4_the_patch_never_touches_a_predictable_temp_file ... ok
+test persist::tests::worktree_can_be_pinned_to_an_older_base ... ok
+test persist::tests::miscounted_hunk_lands_via_recount ... ok
+test persist::tests::unappliable_patch_reports_last_strategy_detail_and_cleans_up ... ok
+test persist::tests::mid_file_hunk_without_trailing_context_lands_after_normalising ... ok
+test persist::tests::headerless_two_file_patch_lands_after_normalising ... ok
+
+test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 223 filtered out; finished in 0.12s
+

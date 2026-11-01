@@ -1,0 +1,13 @@
+{
+  "local_links_checked": 25,
+  "test_counts": {
+    "dream-forge-seam-probes": 13,
+    "dream-forge-existing-seams": 7,
+    "dream-forge-existing-automerge": 13,
+    "dream-forge-existing-persist": 22,
+    "dream-forge-existing-runner": 6
+  },
+  "test_total": 61,
+  "retained_files_verified": 196,
+  "scope": "New report, reproduction and DE-04 local links; unrelated historical corpus links excluded."
+}

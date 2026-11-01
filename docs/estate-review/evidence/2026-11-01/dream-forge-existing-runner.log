@@ -1,0 +1,13 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (.audit-target/debug/deps/dream_core-5f380e84d0446981)
+
+running 6 tests
+test runner::tests::runner_is_dyn_safe ... ok
+test runner::tests::scripted_runner_blocks_on_unscripted_commands ... ok
+test runner::tests::local_runner_captures_streams_and_exit_code ... ok
+test runner::tests::local_runner_runs_in_the_given_directory ... ok
+test runner::tests::local_runner_does_not_let_a_tail_pipe_mask_a_failure ... ok
+test runner::tests::local_runner_enforces_the_timeout ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 239 filtered out; finished in 1.01s
+

@@ -1,0 +1,20 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (.audit-target/debug/deps/dream_core-5f380e84d0446981)
+
+running 13 tests
+test automerge::tests::default_config_has_automerge_off ... ok
+test automerge::tests::a_pr_that_is_not_draft_clean_is_refused ... ok
+test automerge::tests::flag_off_is_disabled_whatever_else_is_true ... ok
+test automerge::tests::flag_on_and_protection_not_found_or_erroring_is_refused ... ok
+test automerge::tests::flag_on_and_gate_crates_protected_or_present_is_refused ... ok
+test automerge::tests::flag_on_and_no_required_checks_is_refused ... ok
+test automerge::tests::flag_on_and_this_engines_own_repo_is_refused ... ok
+test automerge::tests::garbage_protection_json_is_an_error ... ok
+test automerge::tests::flag_on_with_everything_in_order_is_allowed ... ok
+test automerge::tests::only_accept_may_merge ... ok
+test automerge::tests::self_reference_wins_over_a_perfect_protection_record ... ok
+test automerge::tests::protection_json_without_status_checks_is_empty_not_an_error ... ok
+test automerge::tests::protection_json_yields_contexts_and_checks ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 232 filtered out; finished in 0.00s
+

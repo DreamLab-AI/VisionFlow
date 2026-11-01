@@ -1,0 +1,69 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.27
+   Compiling quote v1.0.47
+   Compiling typenum v1.20.1
+   Compiling memchr v2.8.3
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling cfg-if v1.0.5
+   Compiling autocfg v1.5.1
+   Compiling serde v1.0.229
+   Compiling pin-project-lite v0.2.17
+   Compiling serde_json v1.0.154
+   Compiling const-oid v0.10.2
+   Compiling libc v0.2.190
+   Compiling futures-sink v0.3.34
+   Compiling futures-core v0.3.34
+   Compiling once_cell v1.21.4
+   Compiling cpufeatures v0.3.1
+   Compiling itoa v1.0.18
+   Compiling thiserror v2.0.21
+   Compiling slab v0.4.12
+   Compiling getrandom v0.4.3
+   Compiling futures-task v0.3.34
+   Compiling rustix v1.1.5
+   Compiling iana-time-zone v0.1.65
+   Compiling futures-io v0.3.34
+   Compiling hex v0.4.3
+   Compiling bitflags v2.13.2
+   Compiling linux-raw-sys v0.12.1
+   Compiling fastrand v2.5.0
+   Compiling futures-channel v0.3.34
+   Compiling tracing-core v0.1.36
+   Compiling num-traits v0.2.19
+   Compiling quick-xml v0.41.0
+   Compiling syn v3.0.9
+   Compiling syn v2.0.119
+   Compiling hybrid-array v0.4.15
+   Compiling chrono v0.4.45
+   Compiling crypto-common v0.2.2
+   Compiling block-buffer v0.12.1
+   Compiling tempfile v3.27.0
+   Compiling digest v0.11.3
+   Compiling sha2 v0.11.1
+   Compiling serde_derive v1.0.229
+   Compiling futures-macro v0.3.34
+   Compiling thiserror-impl v2.0.21
+   Compiling futures-util v0.3.34
+   Compiling tracing-attributes v0.1.31
+   Compiling tracing v0.1.44
+   Compiling pairwise-gate v0.1.0 (/home/devuser/workspace/wt/VisionFlow-dream-forge-seams/.audit-source/crates/pairwise-gate)
+   Compiling failure-fingerprint v0.1.0 (/home/devuser/workspace/wt/VisionFlow-dream-forge-seams/.audit-source/crates/failure-fingerprint)
+   Compiling futures-executor v0.3.34
+   Compiling futures v0.3.34
+   Compiling dream-gate v0.3.0 (/home/devuser/workspace/wt/VisionFlow-dream-forge-seams/.audit-source/crates/dream-gate)
+   Compiling dream-core v0.4.0 (/home/devuser/workspace/wt/VisionFlow-dream-forge-seams/.audit-source/crates/dream-core)
+error[E0599]: no variant named `Timeout` found for enum `EvaluatorOutcome`
+   --> crates/dream-core/tests/estate_forge_seams.rs:254:27
+    |
+254 |         EvaluatorOutcome::Timeout { .. }
+    |                           ^^^^^^^
+    |
+help: there is a variant with a similar name
+    |
+254 -         EvaluatorOutcome::Timeout { .. }
+254 +         EvaluatorOutcome::TimedOut { .. }
+    |
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `dream-core` (test "estate_forge_seams") due to 1 previous error

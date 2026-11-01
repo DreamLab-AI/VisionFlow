@@ -1,0 +1,8 @@
+parsed 1 topic files, 22 mermaid diagrams
+cite-check: 1 warning(s)
+citations: 364 verified at the declared revision, 0 unverified (working-tree fallback), 0 unresolvable, 0 allowlisted (unverifiable)
+  ! agentbox/23-dream-engine.md:AB-23.6 — ../project/agentbox/services/dream-engine/src/engine.rs:1832 is punctuation only ('}')
+rendered 22/22 diagrams via pele
+
+1 error(s):
+  - citation: agentbox/23-dream-engine.md:AB-23.6 — ../project/agentbox/services/dream-engine/src/engine.rs:1832 is punctuation only ('}')

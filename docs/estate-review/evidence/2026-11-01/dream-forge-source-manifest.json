@@ -1,0 +1,231 @@
+{
+  "date": "2026-11-01",
+  "inputs": [
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "crates/dream-core/src/seams.rs",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "d7fed64e52eb4e809f5d34aa420866ae3c4c9a926cce55a7bc9632d69c57fa02",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "crates/dream-core/src/runner.rs",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "7721c089050fb908f4d4bdf15864f558640f7f61373c8169b33e5973a9e0e531",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "crates/dream-core/src/automerge.rs",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "2908c1b1d628d599198529fdea5e083d4084cb5230505c02301c8981dc0c0c6c",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "crates/dream-core/src/persist.rs",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "7040715fc23654bf385cd8da94be834ce13ad708461176435d232c0b37bbbbef",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "crates/dream-core/src/git.rs",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "b395c809d206e4e54e9f7f2de6ad324ee977e6a2678f39da58bfb23eb1ae88b9",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "crates/dream-core/src/candidate.rs",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "ce7fc3c350fd8cdbe5a72a5c8a06d089ac689ab3ef345fabf5ab7e279990f39a",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "crates/dream-core/src/ledger.rs",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "60ac0f843f2acb5b7ca226a4e83b5cbe914e8de9a4f2c06aab5e198586caa9e1",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "crates/dream-gate/src/config.rs",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "1fb76b178e9b81f2c91b3092a9c8e6cb03f152c29b6965ac45ce7220dcb96321",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "crates/dream-gate/src/receipts.rs",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "873ed5d8f2cd3bab4dbcf3aca3d61cbfe1a558371a60ce8c0579134b982e0fcb",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "docs/adr/ADR-DE-005-seams.md",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "9a3a98919067bd925f17167c25974d68b4e751d2ed3a0732cbe5356c8636b06b",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true,
+      "headings": [
+        {
+          "line": 13,
+          "text": "# ADR-DE-005 \u2014 Seams"
+        },
+        {
+          "line": 15,
+          "text": "## Context"
+        },
+        {
+          "line": 21,
+          "text": "## Decision"
+        },
+        {
+          "line": 41,
+          "text": "## Consequences"
+        }
+      ]
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "docs/adr/ADR-DE-006-automerge-is-an-option.md",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "987a6d249e785aa59ff05db92eea3621a316b48751cb05d2d4bcfb11874a0347",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true,
+      "headings": [
+        {
+          "line": 13,
+          "text": "# ADR-DE-006 \u2014 Automerge is an option, default off"
+        },
+        {
+          "line": 15,
+          "text": "## Context"
+        },
+        {
+          "line": 21,
+          "text": "## Decision"
+        },
+        {
+          "line": 35,
+          "text": "## Consequences"
+        }
+      ]
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "docs/diagrams/nightly/03-automerge-policy-decision-tree.md",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "3d7fcce8f8cf7cdb966c27632b1158c8ba45154b1436f7ec21c6873fc7359c89",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true,
+      "headings": [
+        {
+          "line": 15,
+          "text": "## For developers"
+        },
+        {
+          "line": 25,
+          "text": "## For the business"
+        },
+        {
+          "line": 34,
+          "text": "## NIT-03.1 The decision tree"
+        },
+        {
+          "line": 65,
+          "text": "## NIT-03.2 Gathering the facts in publish"
+        }
+      ]
+    },
+    {
+      "repository": "/home/devuser/workspace/dream-engine",
+      "path": "docs/diagrams/crates/02-seams-and-what-implements-them.md",
+      "head": "815f963b1cbd6999e78144ce5475005ae1dd1d8e",
+      "sha256": "395bc4715f4e1c780fc5c50de03d2303795356541f28761b08ccde0a2159c4a5",
+      "matches_head": true,
+      "existing_diagram_pin": "59a3e215e826aa1e9ebe157d49c1ac504f7f39c9",
+      "matches_existing_pin": true,
+      "headings": [
+        {
+          "line": 16,
+          "text": "## For developers"
+        },
+        {
+          "line": 25,
+          "text": "## For the business"
+        },
+        {
+          "line": 32,
+          "text": "## CRT-02.1 The five seams and the implementations that ship"
+        },
+        {
+          "line": 86,
+          "text": "## CRT-02.2 Where each seam is crossed in a night"
+        }
+      ]
+    },
+    {
+      "repository": "/home/devuser/workspace/project/agentbox",
+      "path": "services/dream-engine/src/engine.rs",
+      "head": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+      "sha256": "c15b31074c173b6409744daa87f1a1f0367d6e917b514e20dab25b006cf2af06",
+      "matches_head": true,
+      "existing_diagram_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/project/agentbox",
+      "path": "services/dream-engine/src/records.rs",
+      "head": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+      "sha256": "1afe0a58a2b4b3e48aefa1791b5694ae10499b9306e39c1ad8b2a64ad143b2b6",
+      "matches_head": true,
+      "existing_diagram_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/project/agentbox",
+      "path": "services/dream-engine/src/notify.rs",
+      "head": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+      "sha256": "b472c304aff5a73a3e7c58c781edb0107a85da494b25a475410d5bad578640fc",
+      "matches_head": true,
+      "existing_diagram_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+      "matches_existing_pin": true
+    },
+    {
+      "repository": "/home/devuser/workspace/project/agentbox",
+      "path": "services/dream-engine/src/ruvector.rs",
+      "head": "9dfc27b16e82e9786535a55e790710493dd51fdf",
+      "sha256": "ad36df458c9dd8359e9b0583f62eebc036d25b9e5ed5bc76c3fd1cee398fdd3c",
+      "matches_head": true,
+      "existing_diagram_pin": "6500582dfae23bf8a38a6942916d208154e43625",
+      "matches_existing_pin": true
+    }
+  ],
+  "scope_note": "Hashes identify whole files; report bounds the sections assessed. Historical pin comparison does not imply complete semantic review."
+}

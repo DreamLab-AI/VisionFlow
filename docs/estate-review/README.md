@@ -47,6 +47,8 @@ Dream-engine continuation: [candidate confinement and evidence boundaries](2026-
 
 Dream-engine recovery continuation: [night recovery and source supply](2026-11-01-dream-recovery-and-source-supply.md), assessing DE-007/008 section by section, AB-23.7/21 and three new DE-03 panels. Process-death recovery is tested; source completion and storage acceptance findings remain open.
 
+Dream-engine publication continuation: [forge and seam contracts](2026-11-01-dream-forge-and-seam-contracts.md), assessing DE-005/006, AB-23.6 and three new DE-04 panels with 61 passing tests. Seven local engine decisions now have section assessments; two decisions and nineteen AB-23 panels remain.
+
 ## Reading order
 
 | Document | Question it answers |
