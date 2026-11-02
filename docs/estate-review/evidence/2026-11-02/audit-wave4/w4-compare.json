@@ -1,0 +1,1013 @@
+{
+  "worker": "w4-compare",
+  "date": "2026-11-02",
+  "evidence_class": "source tracing at the pinned revision",
+  "pins": {
+    "VisionClaw (project)": "86cdd7635582",
+    "visionGraph": "556a0156b5c3",
+    "agentbox": "c57d9c0508f4",
+    "nostr-rust-forum": "c39f41f104b1",
+    "dream-engine": "bfe8c8885a58",
+    "vowl-wasm": "28af4365a68d",
+    "loom": "ba21a689a57d",
+    "ontomark-obsidian": "2a6c44e02412",
+    "dreamlab-ai-website": "0e1572801d03",
+    "solid-pod-rs": "9b6143ce55b2",
+    "sidestr-rs": "814b9e54cd16",
+    "VisionFlow (worktree)": "b105a94"
+  },
+  "status_vocabulary": {
+    "adopted-in-source": "the recommendation is visible in code at the pin (cited)",
+    "open-in-source": "the pin still shows the behaviour the recommendation targets (cited)",
+    "open-per-report": "carried from the source report; not re-traced at the pin in this pass",
+    "prospective (not run)": "an evaluation or study the report proposes; nothing in source to check",
+    "proposed (ADR)": "the ADR is proposed or its implementation is none",
+    "decided (ADR)": "an accepted ADR choice; wiring checked only where cited",
+    "not-checkable (runtime)": "only live or runtime state could settle it",
+    "see w4-sidestr re-check": "status owned by the SideStr re-check worker"
+  },
+  "rows": [
+    {
+      "area": "Estate positioning (governed knowledge)",
+      "kind": "comparison",
+      "item": "Graphiti, Cognee, TrustGraph and TopQuadrant TQ Data Foundation against a governed change workflow (documented capability only, nothing installed)",
+      "source": "docs/estate-review/2026-10-31-governed-knowledge-comparison.md:14-25; first pass docs/estate-review/2026-10-31-market-and-audit-gaps.md:8-11",
+      "product_path": "ontomark build → visionGraph publish → Loom grounding → forum governance",
+      "user_outcome": "Today: no evaluation protocol has been run. Measure: time to ingest, correct and remove a corpus; whether removal reaches derived stores; reviewer effort on multi-object changes",
+      "status": "prospective (not run)"
+    },
+    {
+      "area": "Estate positioning (governed knowledge)",
+      "kind": "recommendation",
+      "item": "Ship one small governed knowledge journey: import, sourced question, proposed correction, exact diff review, apply, retrieve the new version with a receipt; include rejection, stale approval, duplicate delivery and restart. Restated as the six acceptance journeys",
+      "source": "docs/estate-review/2026-10-31-market-and-audit-gaps.md:30; closeout/2026-09-07-sprint.md:46-48",
+      "product_path": "visionGraph:.github/workflows/publish.yml:42-50 (ontomark producer) and project:.github/workflows/ontology-publish.yml:167-172 (vault producer)",
+      "user_outcome": "Today: two producers build the same corpus at the pins, so a consumer cannot name one generation. Measure: journey completion with each negative case refused and the receipt surviving restart",
+      "status": "open-in-source (see COMPARE-F1)"
+    },
+    {
+      "area": "Estate positioning (governed knowledge)",
+      "kind": "recommendation",
+      "item": "Make authority legible: who proposed, who approved, which capability, which bytes changed, whether the receipt survived recovery; test revocation and replay. Restated per area as decision receipts",
+      "source": "docs/estate-review/2026-10-31-market-and-audit-gaps.md:33; docs/estate-review/2026-11-01-dream-governance-and-delivery.md:78; docs/estate-review/2026-11-01-forum-membership-lifecycle.md:91",
+      "product_path": "forum governance panel; agentbox management-api/lib/authority.js:230-242",
+      "user_outcome": "Today: signed decisions are verified fail-closed (agentbox authority.js:233-242), but no single receipt view was found. Measure: an operator identifies the applied decision without reading logs",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "Estate positioning (governed knowledge)",
+      "kind": "recommendation",
+      "item": "Test spatial interaction as an optional benefit: desktop against XR on the same comprehension and correction tasks; keep headset install out of the first journey",
+      "source": "docs/estate-review/2026-10-31-market-and-audit-gaps.md:34; restated docs/estate-review/2026-10-31-portals-and-federation.md:97, docs/estate-review/2026-10-31-xr-volumes-and-code-links.md:98, docs/estate-review/2026-11-01-xr-grab-boundaries.md:74",
+      "product_path": "VisionClaw web client and xr-client",
+      "user_outcome": "Today: no comparative study exists in the corpus. Measure: completion, mistakes, fatigue, accessibility per modality",
+      "status": "prospective (not run)"
+    },
+    {
+      "area": "Estate positioning (governed knowledge)",
+      "kind": "recommendation",
+      "item": "Closed-loop agent operations: headline metric signal-to-action latency; silent-loop-stopped is an incident class; ship volume is not a target",
+      "source": "VisionFlow:docs/adr/ADR-2021-closed-loop-agent-operations-and-18-month-roadmap.md:29-40",
+      "product_path": "agentbox signals and sessions; forum governance panel",
+      "user_outcome": "Today: ADR is proposed, implementation none (frontmatter). Measure: SAL from existing journals",
+      "status": "proposed (ADR)"
+    },
+    {
+      "area": "VisionFlow canon and tooling",
+      "kind": "comparison",
+      "item": "Copy-only static site against a compiler, bundler or WASM build; hand-written WebGL2 module instead of WASM",
+      "source": "VisionFlow:docs/adr/ADR-2002-static-copy-only-website.md:28-34",
+      "product_path": "VisionFlow website/ and .github/workflows/deploy.yml",
+      "user_outcome": "Today: decision accepted and live per ADR. Outcome: no toolchain to break a publish",
+      "status": "decided (ADR; not re-traced beyond deploy.yml)"
+    },
+    {
+      "area": "VisionFlow canon and tooling",
+      "kind": "comparison",
+      "item": "GitHub Pages artefact/deploy actions against a gh-pages branch",
+      "source": "VisionFlow:docs/adr/ADR-2003-pages-artifact-deploy.md:20-27",
+      "product_path": "VisionFlow:.github/workflows/deploy.yml:184,197",
+      "user_outcome": "Today: upload-pages-artifact and deploy-pages are pinned by SHA (deploy.yml:184,197). Outcome: a defective candidate is never uploaded",
+      "status": "adopted-in-source"
+    },
+    {
+      "area": "VisionFlow canon and tooling",
+      "kind": "comparison",
+      "item": "Pele against vendored Mermaid in Chrome and mmdc/Puppeteer; measured 1,490 of 1,495 corpus blocks in 1.6 s, every rejection also rejected by Mermaid 11",
+      "source": "VisionFlow:docs/adr/ADR-2020-pele-renders-every-estate-diagram.md:20-27 (supersedes ADR-2004)",
+      "product_path": "VisionFlow:scripts/vendor/pele/VERSION:1-3",
+      "user_outcome": "Today: Pele 1.12.0 pinned with npm integrity (VERSION:1-3). Outcome: CI renders the corpus without a browser",
+      "status": "adopted-in-source"
+    },
+    {
+      "area": "VisionFlow canon and tooling",
+      "kind": "recommendation",
+      "item": "Unify the forked diagram-corpus generator (VisionFlow against the agentbox skill copy, +587/-555) so one checker decides citation resolution",
+      "source": "docs/estate-review/2026-11-01-parallel-implementations.md:423 (EST-10)",
+      "product_path": "VisionFlow scripts and agentbox diagrams-as-code skill",
+      "user_outcome": "Today: not re-traced. Measure: one corpus passes or fails identically under both",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "VisionFlow canon and tooling",
+      "kind": "comparison",
+      "item": "CI collects estate health; the dream cycle only reads the snapshot, against the dream night collecting it",
+      "source": "VisionFlow:docs/adr/ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md:48-50",
+      "product_path": "estate-health snapshot; agentbox dream adapter",
+      "user_outcome": "Outcome: a red repository is evidence for a hypothesis, not a task the night acquires a token for",
+      "status": "decided (ADR; not re-traced)"
+    },
+    {
+      "area": "VisionFlow canon and tooling",
+      "kind": "comparison",
+      "item": "webgl-mesh deep stays sidecar-only against nightly rotation without a browser runner",
+      "source": "VisionFlow:docs/adr/ADR-2009-webgl-mesh-deep-is-sidecar-only.md:15",
+      "product_path": "dream rotation; browser sidecar",
+      "user_outcome": "Outcome: no nightly result is claimed for a surface the annexe cannot observe",
+      "status": "decided (ADR; not re-traced)"
+    },
+    {
+      "area": "VisionFlow canon and tooling",
+      "kind": "comparison",
+      "item": "Operator-declared task-property triple against the requesting agent's self-declared risk tier",
+      "source": "VisionFlow:docs/adr/ADR-2011-task-properties-set-the-boundary-not-agent-self-tiering.md:26-32",
+      "product_path": "nostr-rust-forum nostr-bbs-core governance effective_tier",
+      "user_outcome": "Outcome: an agent cannot loosen its own escalation; declared-against-effective divergence becomes telemetry. Activation staged",
+      "status": "decided (ADR; staged)"
+    },
+    {
+      "area": "VisionFlow canon and tooling",
+      "kind": "recommendation",
+      "item": "A parity figure names its comparator (JSS 8d68ceb, plugins 63a16cb; 97.3% strict over 244 rows) and is sourced from the checklist script, never restated",
+      "source": "VisionFlow:docs/adr/ADR-2018-parity-claims-name-their-comparator.md:29",
+      "product_path": "solid-pod-rs PARITY-CHECKLIST.md via scripts/parity-check.sh",
+      "user_outcome": "Outcome: a reader can reproduce any parity number",
+      "status": "decided (ADR; not re-traced)"
+    },
+    {
+      "area": "VisionFlow canon and tooling",
+      "kind": "recommendation",
+      "item": "MADR Confirmation against separate decision, implementation and activation axes, each linked to evidence",
+      "source": "docs/estate-review/2026-11-01-knowledgegraph-inventory-and-live-receipt.md:85",
+      "product_path": "VisionFlow:docs/adr/TEMPLATE.md:1-15 (three status axes, evidence_class, acceptance_boundary)",
+      "user_outcome": "Today: the template carries all three axes plus evidence class. Outcome: an audit view shows decided, implemented and served separately",
+      "status": "adopted-in-source"
+    },
+    {
+      "area": "Ontology toolchain (ontomark, visionGraph, VisionClaw vault)",
+      "kind": "comparison",
+      "item": "One producer: ADR-2013 names VisionClaw crates/vault the only build; ADR-2014 estate alignment and the parallel audit name ontomark and recommend retiring vault",
+      "source": "VisionFlow:docs/adr/ADR-2013-sovereign-corpus-is-ecosystem-canon.md:52-56; VisionFlow:docs/adr/ADR-2014-shared-ontology-workspace.md:89-96; docs/estate-review/2026-11-01-parallel-implementations.md:77-93,511",
+      "product_path": "project:.github/workflows/ontology-publish.yml:167-172; visionGraph:.github/workflows/publish.yml:42-50",
+      "user_outcome": "Today: both producers are live in workflow source. Measure: one generation identity per consumer; ONT-02/06/14 and ONT-04 disappear with vault",
+      "status": "open-in-source (COMPARE-F1)"
+    },
+    {
+      "area": "Ontology toolchain (ontomark, visionGraph, VisionClaw vault)",
+      "kind": "comparison",
+      "item": "ROBOT extract/filter module guarantees and SLSA v1.2 build provenance against ontomark's public/machine projection",
+      "source": "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md:96-104",
+      "product_path": "ontomark build machine bundle; Loom and VisionClaw consumers",
+      "user_outcome": "Recommendation: paired public/machine preview with a private-name canary; generation receipt that consumers verify; dated migration rehearsal with rollback. Measure: canary leaks, consumer rejection of an unexpected build",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "Ontology toolchain (ontomark, visionGraph, VisionClaw vault)",
+      "kind": "comparison",
+      "item": "Open Ontologies oo-cert, ELK and the OWL 2 EL profile against ontomark reasoning and certificates",
+      "source": "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md:95-101; priorities :83-91",
+      "product_path": "ontomark classification, certificate and publication",
+      "user_outcome": "Recommendation: readers receive either the old or the new matching certificate/bundle pair under injected failure. Measure: time to explain one changed conclusion; refusal of truncated or mixed proofs",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "Ontology toolchain (ontomark, visionGraph, VisionClaw vault)",
+      "kind": "comparison",
+      "item": "Obsidian vault storage and Quartz private pages against ontomark layout roles and parsing exclusion",
+      "source": "docs/estate-review/2026-11-01-ontomark-layout-and-shared-checks.md:84-88",
+      "product_path": "ontomark layout validation; visionGraph publish",
+      "user_outcome": "Recommendation: the same invalid layout is refused by validation, publication and consumers, naming the paths; a configuration preview",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "Ontology toolchain (ontomark, visionGraph, VisionClaw vault)",
+      "kind": "recommendation",
+      "item": "Separate metadata (versionIRI) from logical consequences in the conservativity comparison; expose the excluded blank-node scope",
+      "source": "docs/estate-review/2026-10-31-proposal-construction.md:61-65",
+      "product_path": "ontomark propose and rdfs-certificate",
+      "user_outcome": "Today: not re-traced at the ontomark pin. Measure: a restriction-only filler change reads conservative",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "Ontology toolchain (ontomark, visionGraph, VisionClaw vault)",
+      "kind": "comparison",
+      "item": "SLSA build provenance and IPFS content identity against corpus freshness by rolling release",
+      "source": "docs/estate-review/2026-11-01-visiongraph-publication-and-identity.md:107-111",
+      "product_path": "visionGraph:.github/workflows/publish.yml:42-50; consumers",
+      "user_outcome": "Recommendation: change one public page, publish, observe each consumer move to that generation, roll back. Measure: convergence time and stale-consumer detection",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "Ontology toolchain (ontomark, visionGraph, VisionClaw vault)",
+      "kind": "recommendation",
+      "item": "Produce a final-site receipt after overlays and compression; the compiler manifest is a compiler receipt only",
+      "source": "docs/estate-review/2026-11-01-knowledgegraph-inventory-and-live-receipt.md:63-71",
+      "product_path": "visionGraph publish (static overlay after ontomark build)",
+      "user_outcome": "Today: the report observed ns/v2.jsonld differing from the manifest on the live site; runtime state, not source. Measure: zero listed artefacts that differ from served bytes",
+      "status": "not-checkable (runtime)"
+    },
+    {
+      "area": "Ontology toolchain (ontomark, visionGraph, VisionClaw vault)",
+      "kind": "comparison",
+      "item": "Gitleaks archive traversal and GitHub path filters against the publication scanner",
+      "source": "docs/estate-review/2026-11-01-knowledgegraph-publication-gates.md:116-120",
+      "product_path": "visionGraph publish workflow",
+      "user_outcome": "Recommendation: a synthetic canary is detected in each final stored representation. Measure: publication delay, substituted pages, decompression failures",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "Ontology toolchain (ontomark, visionGraph, VisionClaw vault)",
+      "kind": "comparison",
+      "item": "Sigma.js and Cytoscape.js renderers against the corpus explorer",
+      "source": "docs/estate-review/2026-11-01-knowledgegraph-explorer-contracts.md:83-85; docs/estate-review/2026-11-01-visiongraph-explorer-and-profile.md:94-98",
+      "product_path": "narrativegoldmine.com explorer",
+      "user_outcome": "Recommendation: same versioned graph to both renderers; task success, cold-load bytes, stale-content detection, reduced motion",
+      "status": "prospective (not run)"
+    },
+    {
+      "area": "Ontology toolchain (ontomark, visionGraph, VisionClaw vault)",
+      "kind": "comparison",
+      "item": "ROBOT extract and verify against the visionGraph source importer",
+      "source": "docs/estate-review/2026-11-01-visiongraph-source-admission.md:69-71",
+      "product_path": "visionGraph importer",
+      "user_outcome": "Recommendation: digest-bound review receipt, semantic/visibility preview, refusal of ambiguous or cyclic additions. Measure: preserved identities and explained omissions",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "Ontology toolchain (ontomark, visionGraph, VisionClaw vault)",
+      "kind": "comparison",
+      "item": "Obsidian Bases syntax against the four-type lint allowlist",
+      "source": "docs/estate-review/2026-11-01-visiongraph-vault-and-domain-contracts.md:81-83",
+      "product_path": "visionGraph vault lint",
+      "user_outcome": "Recommendation: a versioned local lint profile plus fixtures; broken filters fail clearly",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "Ontology toolchain (ontomark, visionGraph, VisionClaw vault)",
+      "kind": "comparison",
+      "item": "Reuse Horned-OWL and RDF terms against inventing a competing OWL language",
+      "source": "VisionFlow:docs/adr/ADR-2015-typed-ontology-model-and-migration.md:27-31",
+      "product_path": "ontomark typed model",
+      "user_outcome": "Today: ADR proposed, implementation none",
+      "status": "proposed (ADR)"
+    },
+    {
+      "area": "ontomark-obsidian",
+      "kind": "comparison",
+      "item": "Dot Triples and Dataview against the plugin's typed relationships, inference and reviewed change",
+      "source": "docs/estate-review/2026-11-01-obsidian-refresh.md:101-107; decision VisionFlow:docs/adr/ADR-2016-local-markdown-ontology-application.md:25-37",
+      "product_path": "ontomark-obsidian plugin",
+      "user_outcome": "Recommendation: evidence-notebook pilot (two saved queries, changed note, patch review, index failure, recovery). Measure: correct refresh and recovery",
+      "status": "prospective (not run)"
+    },
+    {
+      "area": "ontomark-obsidian",
+      "kind": "recommendation",
+      "item": "First priority: expose a persisted-but-unindexed state when the file write succeeds and the engine upsert rejects; prove idempotent recovery",
+      "source": "docs/estate-review/2026-11-01-obsidian-refresh.md:91; earlier docs/estate-review/2026-10-31-obsidian-decisions.md:77",
+      "product_path": "ontomark-obsidian:src/api.ts:237-255",
+      "user_outcome": "Today: applyPatch writes through vault.process, then awaits client.upsert outside the try (api.ts:242-253); an upsert rejection rejects the call after the bytes are saved, with no applied receipt",
+      "status": "open-in-source"
+    },
+    {
+      "area": "WasmVOWL and vowl-wasm",
+      "kind": "comparison",
+      "item": "WebVOWL's upstream parser and the OWL 2 Primer cardinality kinds against the VOWL import",
+      "source": "docs/estate-review/2026-11-01-vowl-ingest-and-release.md:81-83",
+      "product_path": "vowl-wasm:src/ontology/mod.rs:160-171; vowl-wasm:src/graph/builder.rs:59-60",
+      "user_outcome": "Today: the parsed Cardinality carries min, max and exact (mod.rs:164-170) but the graph builder passes only min and max (builder.rs:60), so an exact restriction is dropped. Measure: supported constructs preserved, unsupported ones reported before replacement",
+      "status": "open-in-source"
+    },
+    {
+      "area": "WasmVOWL and vowl-wasm",
+      "kind": "comparison",
+      "item": "D3 force and quadtree, Cytoscape layout lifecycle, WebVOWL, wasm-bindgen slice copying against the layout/API boundary",
+      "source": "docs/estate-review/2026-11-01-vowl-layout-and-api-boundaries.md:92-99",
+      "product_path": "vowl-wasm layout; WasmVOWL host adapter",
+      "user_outcome": "Recommendation: an ordinary vault survives rename, scope replacement, malformed input, drag and unload. Measure: cold load, bytes copied, cancellation latency, retained memory",
+      "status": "prospective (not run)"
+    },
+    {
+      "area": "Loom",
+      "kind": "recommendation",
+      "item": "Independent grounding entry point: package Loom with a reproducible sample corpus and minimal consumer; compare with Open WebUI/AnythingLLM on the same documents and model",
+      "source": "docs/estate-review/2026-10-31-market-and-audit-gaps.md:31",
+      "product_path": "loom:README.md:31; loom:data/.gitkeep",
+      "user_outcome": "Today: the README requires a complete corpus bundle (README.md:31) and data/ holds only .gitkeep. Test fixtures (tests/golden-python/fixture.json) and evaluation data (uplift-results/routing/corpus/) exist, but no sample corpus is packaged for the quickstart. Measure: time to first useful answer, operator interventions, deletion propagation",
+      "status": "open-in-source"
+    },
+    {
+      "area": "Loom",
+      "kind": "recommendation",
+      "item": "Make reasoning benefits measurable: vector retrieval, graph baseline and ontology-assisted retrieval at equal budgets on held-out and external corpora",
+      "source": "docs/estate-review/2026-10-31-market-and-audit-gaps.md:32",
+      "product_path": "loom:README.md:141-148",
+      "user_outcome": "Today: one internal pilot compared tool and injection arms on 40 preregistered questions; the pooled interval included zero (README.md:148). No vector-only baseline is cited. Measure: per-stratum accuracy and cost",
+      "status": "partial (internal comparison only)"
+    },
+    {
+      "area": "VisionClaw",
+      "kind": "comparison",
+      "item": "L402 payment protocol against the 402 balance/debit gate; parallel audit's first consolidation item routes /pay through the canonical NIP-98 verifier",
+      "source": "docs/estate-review/2026-11-01-visionclaw-payment-auth.md:64-66; docs/estate-review/2026-11-01-parallel-implementations.md:508; docs/estate-review/2026-11-01-parallel-remediation.md:34",
+      "product_path": "project:src/handlers/pay_handler.rs:403-425; project:src/utils/nip98.rs:418,567-573",
+      "user_outcome": "Today: /pay authenticates through validate_nip98_token_bound with body binding (pay_handler.rs:411-418) and the shared single-use replay claim (nip98.rs:573). Remaining: funding receipt and recoverable paid-job path (payment-auth:66)",
+      "status": "adopted-in-source (verifier); open-per-report (funding journey)"
+    },
+    {
+      "area": "VisionClaw",
+      "kind": "comparison",
+      "item": "D3 fixed coordinates and Yjs awareness against drag holds and pins",
+      "source": "docs/estate-review/2026-11-01-drag-holds-and-acceptance.md:58-62",
+      "product_path": "VisionClaw graph drag over /wss",
+      "user_outcome": "Recommendation: show holder, pin and connection health; two-person grab and disconnect. Measure: accidental anchors, settle time",
+      "status": "prospective (not run)"
+    },
+    {
+      "area": "VisionClaw",
+      "kind": "comparison",
+      "item": "Unity XR Interaction Toolkit select and attach semantics against XR grab",
+      "source": "docs/estate-review/2026-11-01-xr-grab-boundaries.md:70-74",
+      "product_path": "xr-client selection",
+      "user_outcome": "Recommendation: one-hand-hold, other-hand-inspect journey with refresh. Measure: unintended moves, first-update displacement",
+      "status": "prospective (not run)"
+    },
+    {
+      "area": "VisionClaw",
+      "kind": "comparison",
+      "item": "Godot GPU timer, GDExtension compatibility and Android ADPF against the XR quality governor",
+      "source": "docs/estate-review/2026-11-01-xr-budget-and-engine-qualification.md:74-78",
+      "product_path": "xr-client budget governor",
+      "user_outcome": "Recommendation: show trusted signal, its age, requested against granted tier. Measure: long-session task accuracy and comfort",
+      "status": "prospective (not run)"
+    },
+    {
+      "area": "VisionClaw",
+      "kind": "comparison",
+      "item": "Matrix spaces and restricted rooms, ShapesXR alignment against portals and federation",
+      "source": "docs/estate-review/2026-10-31-portals-and-federation.md:93-97",
+      "product_path": "VisionClaw portals; federation",
+      "user_outcome": "Recommendation: inspect, enter, return, denied viewer, revoked permission. Measure: wrong-space entry, return success, discomfort",
+      "status": "prospective (not run)"
+    },
+    {
+      "area": "VisionClaw",
+      "kind": "recommendation",
+      "item": "Room membership before voice: run one pinned two-client scenario only after the deferral lifts; accept membership independently",
+      "source": "docs/estate-review/2026-11-01-room-admission-and-voice.md:93-95",
+      "product_path": "VisionClaw room admission; LiveKit",
+      "user_outcome": "Measure: home-removal time, last audible sample, rejoin decisions",
+      "status": "open-per-report (deferred)"
+    },
+    {
+      "area": "VisionClaw",
+      "kind": "comparison",
+      "item": "SPIRE Unix workload attestor and NATS JetStream acknowledgement against the mesh signer and federation control plane",
+      "source": "docs/estate-review/2026-11-01-mesh-signer-and-custody.md:88-92",
+      "product_path": "VisionClaw federation; agentbox signer",
+      "user_outcome": "Recommendation: two-node single-operator pilot with removal/restart/restore. Measure: catalogue age, sequence gaps, delivery lag",
+      "status": "prospective (not run)"
+    },
+    {
+      "area": "codescape",
+      "kind": "comparison",
+      "item": "Sourcegraph precise and search-based navigation against Codescape's authored annotation join",
+      "source": "docs/estate-review/2026-10-31-xr-volumes-and-code-links.md:96-100",
+      "product_path": "codescape annotation join in VisionClaw XR",
+      "user_outcome": "Recommendation: same tasks in Sourcegraph, an annotation table and XR. Measure: correct answers, time, unsupported conclusions",
+      "status": "prospective (not run)"
+    },
+    {
+      "area": "visiontouch-rs",
+      "kind": "comparison",
+      "item": "CHAI3D device abstraction, Haply Inverse SDK and Force Dimension watchdog against the haptic study",
+      "source": "docs/estate-review/2026-11-01-visiontouch-software-boundaries.md:100-110; decision VisionFlow:docs/adr/ADR-2017-haptic-input-device-is-a-supporting-study.md:26-33",
+      "product_path": "planned VisionClaw input path (xr-client selection Resolver)",
+      "user_outcome": "Today: ADR-2017 implementation none; the VisionClaw pin carries only an xr.enableHaptics toggle (client/src/features/control-center/registry/groups/immersion.ts:16), no visiontouch resolver. Proposed test: input-only comparison against mouse/controller on selection errors and drag time",
+      "status": "proposed (ADR); prospective"
+    },
+    {
+      "area": "agentbox",
+      "kind": "comparison",
+      "item": "Agent of Empires and tmux multi-client semantics against the session roster",
+      "source": "docs/estate-review/2026-11-01-agentbox-session-lifecycle.md:72-76",
+      "product_path": "agentbox-sessions supervisor and picker",
+      "user_outcome": "Recommendation: preserve working context across config change; report submission without unsafe retry; worktree disposition on close. Measure: duplicate submissions, orphaned worktrees",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "agentbox",
+      "kind": "recommendation",
+      "item": "Remove the structural-accept fallback so the default 31403 governance gate fails closed (ABI-05)",
+      "source": "docs/estate-review/2026-11-01-parallel-implementations.md:509; docs/estate-review/2026-11-01-parallel-remediation.md:36",
+      "product_path": "agentbox:mcp/nostr-bridge/relay-consumer.js:743-756; agentbox:management-api/lib/authority.js:233-241; agentbox:management-api/lib/authority-consumer.js:159-166",
+      "user_outcome": "Today: RelayConsumer._verifySig requires an explicit true and returns false on any verifier error (relay-consumer.js:747-754); the two decision verifiers do the same (authority.js:237-240; authority-consumer.js:163-165). parallel-remediation.md:36 already records this item as remediated",
+      "status": "adopted-in-source"
+    },
+    {
+      "area": "agentbox",
+      "kind": "recommendation",
+      "item": "Break-glass bounds: synthetic expired, wrong-scope and revoked fixtures, durable use receipts, documented custody boundary",
+      "source": "docs/estate-review/2026-09-07-agentbox-audit.md:28-30",
+      "product_path": "agentbox config/nip98-proxy/proxy.mjs",
+      "user_outcome": "Measure: refusal of each fixture; receipts surviving restart",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "agentbox",
+      "kind": "recommendation",
+      "item": "Consolidation items 5-10: one memory write contract and embedder (ABM-01/02); identity and settings splits (VCS-14/15); key custody onto the identity port; bespoke-format quick wins (ABR-11, EST-13, FWP-08); one URN minter per repository (EST-05/06); shared NIP-98 and zone-grant vectors",
+      "source": "docs/estate-review/2026-11-01-parallel-implementations.md:512-517",
+      "product_path": "agentbox, VisionClaw, forum (multiple)",
+      "user_outcome": "Not re-traced individually in this pass. Measure per item as the report states (contract tests, fixtures consumed in every repository)",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "agentbox",
+      "kind": "comparison",
+      "item": "Kinoloom and OpenTimelineIO against the media measurement pipeline",
+      "source": "docs/estate-review/2026-11-01-media-measurements-and-cancellation.md:74-78",
+      "product_path": "agentbox media tooling (AB-38)",
+      "user_outcome": "Recommendation: review queue for suspect cuts; OTIO round trip of cuts and markers. Measure: false alarms, missed defects, wasted reruns",
+      "status": "prospective (not run)"
+    },
+    {
+      "area": "dream-engine and the agentbox dream adapter",
+      "kind": "comparison",
+      "item": "Kubernetes CronJob concurrency/deadline policy and LiteLLM fallback routing against the adapter's scheduling and egress",
+      "source": "docs/estate-review/2026-11-01-dream-adapter-controls-and-egress.md:54-58",
+      "product_path": "agentbox dream adapter",
+      "user_outcome": "Recommendation: one status view of window, pause scope, destinations, unfinished nights. Measure: unplanned destination changes under provider failure",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "dream-engine and the agentbox dream adapter",
+      "kind": "comparison",
+      "item": "Bazel hermeticity and Reproducible Builds against the annexe boundary",
+      "source": "docs/estate-review/2026-11-01-dream-annexe-and-receipts.md:69-71",
+      "product_path": "dream annexe",
+      "user_outcome": "Recommendation: portable experiment-input receipt. Measure: rerun on a second clean worker; detection of post-freeze source change",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "dream-engine and the agentbox dream adapter",
+      "kind": "comparison",
+      "item": "SWE-bench harness and SWE-agent environments against candidate evaluation and execution",
+      "source": "docs/estate-review/2026-11-01-dream-candidate-and-evidence.md:67-69; docs/estate-review/2026-11-01-dream-execution-and-triage.md:83-87",
+      "product_path": "dream-core candidate and evaluator path",
+      "user_outcome": "Recommendation: bind every evaluation record to the exact input; triage off/annotation/deferral at equal budgets. Measure: missed useful fixes, reviewer minutes, egress canaries",
+      "status": "prospective (not run)"
+    },
+    {
+      "area": "dream-engine and the agentbox dream adapter",
+      "kind": "comparison",
+      "item": "Sentry versioned grouping and scrubbing against failure grouping",
+      "source": "docs/estate-review/2026-11-01-dream-diagram-corpus.md:99-101",
+      "product_path": "dream-engine failure grouping",
+      "user_outcome": "Measure: false merges and splits on a labelled set",
+      "status": "prospective (not run)"
+    },
+    {
+      "area": "dream-engine and the agentbox dream adapter",
+      "kind": "comparison",
+      "item": "gh pr merge --match-head-commit and Renovate automerge against forge delivery (DE-F2)",
+      "source": "docs/estate-review/2026-11-01-dream-forge-and-seam-contracts.md:77-79",
+      "product_path": "dream-engine:crates/dream-core/src/seams.rs:469-483",
+      "user_outcome": "Today: enable_automerge takes only repo and PR URL (seams.rs:469), runs gh pr ready, then gh pr merge --auto --squash with no head-commit match (seams.rs:481). A grep of automerge.rs and seams.rs found no head-SHA comparison. Re-confirms DE-F2. Measure: verified-head delivery rate",
+      "status": "open-in-source"
+    },
+    {
+      "area": "dream-engine and the agentbox dream adapter",
+      "kind": "comparison",
+      "item": "NIP-09, NIP-42 and GitHub deployment review against dream governance cases",
+      "source": "docs/estate-review/2026-11-01-dream-governance-and-delivery.md:74-78",
+      "product_path": "dream governance panel; forum relay",
+      "user_outcome": "Recommendation: decision receipt separating generation, request, signer, applied, persisted, published, withdrawn",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "dream-engine and the agentbox dream adapter",
+      "kind": "comparison",
+      "item": "OpenTelemetry Collector resilience and OTLP retry against the journal",
+      "source": "docs/estate-review/2026-11-01-dream-journal-and-api-down.md:70-72",
+      "product_path": "dream journal writer",
+      "user_outcome": "Recommendation: durable outbox drained through the same writer. Measure: recovery after outage, orphan pairs",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "dream-engine and the agentbox dream adapter",
+      "kind": "comparison",
+      "item": "REEF against dream-engine's own comparison page",
+      "source": "docs/estate-review/2026-11-01-dream-migration-and-provenance.md:79-81",
+      "product_path": "dream-engine docs comparison page",
+      "user_outcome": "Recommendation: revise the comparison page; measure clean-checkout-to-first-reproducible-draft time",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "dream-engine and the agentbox dream adapter",
+      "kind": "comparison",
+      "item": "Aider repository map, Temporal idempotency and tempfile persistence against context planning and delivery",
+      "source": "docs/estate-review/2026-11-01-dream-recovery-and-source-supply.md:78-82",
+      "product_path": "dream planner; post-Persisted delivery",
+      "user_outcome": "Recommendation: dependency-aware context at equal budgets; durable outcome record keyed to the night",
+      "status": "prospective (not run)"
+    },
+    {
+      "area": "nostr-rust-forum",
+      "kind": "comparison",
+      "item": "NIP-07, Alby and NIP-46 against the BBS signer",
+      "source": "docs/estate-review/2026-11-01-forum-bbs-signer.md:42-46",
+      "product_path": "forum signer adapter",
+      "user_outcome": "Recommendation: reliable sign-out, account-labelled backup, cancellation of stale approvals before another signer backend",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "nostr-rust-forum",
+      "kind": "comparison",
+      "item": "Matrix device deletion, Syncthing admission and NIP-42 against device keys",
+      "source": "docs/estate-review/2026-11-01-forum-device-keys.md:52-54",
+      "product_path": "forum device registry",
+      "user_outcome": "Measure: revoke from another device; existing and new connections lose delegated access",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "nostr-rust-forum",
+      "kind": "comparison",
+      "item": "SCIM membership operations and Keycloak logout against membership lifecycle",
+      "source": "docs/estate-review/2026-11-01-forum-membership-lifecycle.md:87-91",
+      "product_path": "forum membership and admin",
+      "user_outcome": "Measure: approval-to-first-post, repeated Pending, incomplete removal age",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "nostr-rust-forum",
+      "kind": "recommendation",
+      "item": "Clear the KV nip05 entry in admin member-delete (FWP-04), then move well-known resolution onto D1",
+      "source": "docs/estate-review/2026-11-01-parallel-implementations.md:510 (item 3); docs/estate-review/2026-11-01-parallel-remediation.md:34",
+      "product_path": "nostr-rust-forum:crates/nostr-bbs-auth-worker/src/admins.rs:301-352; username.rs:358-386; crates/nostr-bbs-pod-worker/src/lib.rs:577-581",
+      "user_outcome": "Today: handle_delete_member deletes the members and username_reservations rows only (admins.rs:334-343); the KV delete exists only in username::release (username.rs:382-385). The pod-worker serves /.well-known/nostr.json from that KV key (pod-worker lib.rs:577-581), so a deleted member's NIP-05 name keeps resolving",
+      "status": "open-in-source"
+    },
+    {
+      "area": "nostr-rust-forum",
+      "kind": "comparison",
+      "item": "EIP-1193 context events, sidestr-nostr tip comparison and NIP-01 OK against the multichain wallet",
+      "source": "docs/estate-review/2026-11-01-forum-multichain-wallet.md:57-63",
+      "product_path": "forum wallet (parked activation)",
+      "user_outcome": "Recommendation: receipt states submitted, relay-accepted, included, uncertain. Measure: members recover a receipt after account change",
+      "status": "open-per-report (parked)"
+    },
+    {
+      "area": "nostr-rust-forum",
+      "kind": "comparison",
+      "item": "Anagram NIP-171 draft and private-group docs against the key plane",
+      "source": "docs/estate-review/2026-11-01-forum-nip171-keyplane.md:64-68",
+      "product_path": "forum NIP-171 key plane",
+      "user_outcome": "Recommendation: distinct key-received, history-loading, history-incomplete, ready states. Measure: fresh-device recovery",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "nostr-rust-forum",
+      "kind": "comparison",
+      "item": "Yubico PRF guide and wwWallet compatibility matrix against passkey identity",
+      "source": "docs/estate-review/2026-11-01-forum-passkey-contracts.md:53-57",
+      "product_path": "forum passkey enrolment",
+      "user_outcome": "Recommendation: return with the same credential and derive the same key; publish a tested compatibility matrix",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "nostr-rust-forum",
+      "kind": "comparison",
+      "item": "Cloudflare D1 billing, Durable Object hibernation and Synapse replication against read cache and activity",
+      "source": "docs/estate-review/2026-11-01-forum-read-cache-and-activity.md:50-56",
+      "product_path": "forum relay worker caches",
+      "user_outcome": "Measure: removed member stops receiving protected metadata; busy evening within a measured row budget",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "nostr-rust-forum",
+      "kind": "comparison",
+      "item": "Signal linked devices and NIP-46 against URL-based key import",
+      "source": "docs/estate-review/2026-11-01-forum-recovery-and-connect.md:88-94",
+      "product_path": "forum recovery and connect",
+      "user_outcome": "Measure: time to first authorised action, wrong-account recovery, denial after revocation",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "nostr-rust-forum",
+      "kind": "comparison",
+      "item": "Marmot (MLS over Nostr) and RFC 9420: two reports recommend refreshing the forum ADR-2016 rationale that defers MLS as draft",
+      "source": "docs/estate-review/2026-11-01-forum-sealed-history.md:63-65; docs/estate-review/2026-11-01-forum-zone-key-distribution.md:66-68",
+      "product_path": "nostr-rust-forum:docs/adr/ADR-2016-end-to-end-encrypted-zones.md:111-114",
+      "user_outcome": "Today: the forum ADR still defers MLS because its Nostr mapping is a draft (ADR-2016:111-114). Recommendation: bounded prototype on offline rejoin, removal, history access, recovery",
+      "status": "open-in-source"
+    },
+    {
+      "area": "nostr-rust-forum",
+      "kind": "comparison",
+      "item": "NIP-29, NIP-01, NIP-53 and the Groups, Nostrord and Chachi clients against spaces and replication",
+      "source": "docs/estate-review/2026-11-01-forum-spaces-and-replication.md:112-122",
+      "product_path": "forum groups; proposed spaces",
+      "user_outcome": "Recommendation: declared interoperability profile; two-client scenario plus an ordinary NIP-29 client",
+      "status": "prospective (not run)"
+    },
+    {
+      "area": "nostr-rust-forum",
+      "kind": "comparison",
+      "item": "BIP-85, RFC 5869, NIP-26 and protected branches against subkey derivation",
+      "source": "docs/estate-review/2026-11-01-forum-subkey-derivation.md:74-78",
+      "product_path": "forum subkey derivation",
+      "user_outcome": "Recommendation: versioned recovery descriptor and visible withdrawal of old delegated rights",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "nostr-rust-forum",
+      "kind": "comparison",
+      "item": "Discourse trust levels and the D1 batch transaction against trust transitions",
+      "source": "docs/estate-review/2026-11-01-forum-trust-transitions.md:60-64",
+      "product_path": "forum trust sweep",
+      "user_outcome": "Recommendation: publish the earning rule; conditional audit creation with checked counts",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "nostr-rust-forum",
+      "kind": "comparison",
+      "item": "Esplora, Blaketestnode and Bitcoin Core descriptors against wallet foundations",
+      "source": "docs/estate-review/2026-11-01-forum-wallet-foundations.md:73-79",
+      "product_path": "forum wallet balance cards",
+      "user_outcome": "Recommendation: capability detection with Unknown maturity; transaction preview before more cards",
+      "status": "open-per-report (parked)"
+    },
+    {
+      "area": "nostr-rust-forum",
+      "kind": "comparison",
+      "item": "WebKit visible-notification rule, RFC 8030 and ntfy replay against web push",
+      "source": "docs/estate-review/2026-11-01-forum-web-push.md:60-66",
+      "product_path": "forum push worker",
+      "user_outcome": "Recommendation: content-free sequence receipts acknowledged by devices; distinguish unsupported, disabled, broken, throttled, displayed",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "nostr-rust-forum",
+      "kind": "comparison",
+      "item": "NIP-44 limits against zone key distribution",
+      "source": "docs/estate-review/2026-11-01-forum-zone-key-distribution.md:66-70",
+      "product_path": "forum zone keys",
+      "user_outcome": "Measure: approval to first readable post; promised history readable after partial grant failure",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "solid-pod-rs (with forum edge and VisionClaw consumers)",
+      "kind": "comparison",
+      "item": "WAC report and Turtle grammar, Community Solid Server against policy parsing; forum edge to consume the shared typed classifier",
+      "source": "docs/estate-review/2026-11-01-solid-policy-parsing.md:50-54,73-77",
+      "product_path": "nostr-rust-forum:crates/nostr-bbs-pod-worker/src/acl.rs:290-338",
+      "user_outcome": "Today: the edge resolver returns Option<AclDocument> and falls through to a broader probe when a sidecar is unparseable (acl.rs:297-306, 329-334); it does not call the shared classifier. Recommendation: effective-policy preview with the same result in native and edge",
+      "status": "open-in-source"
+    },
+    {
+      "area": "solid-pod-rs (with forum edge and VisionClaw consumers)",
+      "kind": "comparison",
+      "item": "WAC ACL discovery and Control against the sibling ACL layout",
+      "source": "docs/estate-review/2026-11-01-solid-acl-control-repair.md:131-141",
+      "product_path": "solid-pod-rs ACL association",
+      "user_outcome": "Recommendation: staged migration check for inner and sibling copies",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "solid-pod-rs (with forum edge and VisionClaw consumers)",
+      "kind": "comparison",
+      "item": "Esplora status separation and reqwest redirect policy against anchor recovery",
+      "source": "docs/estate-review/2026-11-01-solid-anchor-recovery.md:88-92",
+      "product_path": "solid-pod-rs anchoring",
+      "user_outcome": "Recommendation: idempotent repair outcomes; exported proof verified on another machine",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "solid-pod-rs (with forum edge and VisionClaw consumers)",
+      "kind": "comparison",
+      "item": "Git HTTP backend and namespaces, Forgejo permissions and Nextcloud versions against history export",
+      "source": "docs/estate-review/2026-11-01-solid-git-export-and-baseline.md:165-193",
+      "product_path": "solid-pod-rs git export",
+      "user_outcome": "Recommendation: repository-wide authority for export; per-document version recovery. Measure: authorised recovery and denied neighbouring bytes",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "solid-pod-rs (with forum edge and VisionClaw consumers)",
+      "kind": "comparison",
+      "item": "RFC 9111 shared-cache rules and CSS WAC/ACP choice against HTTP delivery",
+      "source": "docs/estate-review/2026-11-01-solid-http-delivery.md:58-60,80-82",
+      "product_path": "forum pod-worker cache headers; solid-pod-rs native",
+      "user_outcome": "Recommendation: policy preview; measure grant and removal across native and edge with a real cache and restart",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "solid-pod-rs (with forum edge and VisionClaw consumers)",
+      "kind": "comparison",
+      "item": "NIP-98 exact URL and Git HTTP protocol against identity binding",
+      "source": "docs/estate-review/2026-11-01-solid-identity-boundaries.md:52-56",
+      "product_path": "solid-pod-rs NIP-98 Strict policy; git credential",
+      "user_outcome": "Recommendation: reuse the existing verifier, fix boundary policies, test each consumer",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "solid-pod-rs (with forum edge and VisionClaw consumers)",
+      "kind": "comparison",
+      "item": "RFC 9449, RFC 7519, Solid-OIDC, the LWS draft and CSS against OIDC boundaries",
+      "source": "docs/estate-review/2026-11-01-solid-oidc-boundaries.md:96-124",
+      "product_path": "solid-pod-rs-idp",
+      "user_outcome": "Recommendation: one reproducible external-client journey. Today the report supports a Rust/Nostr store with OIDC parts, not a drop-in OIDC pod",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "solid-pod-rs (with forum edge and VisionClaw consumers)",
+      "kind": "comparison",
+      "item": "Teller, Stripe idempotency and BTCPay invoice states against payment delivery; unify teller receipt keys (EST-08, FWP-10)",
+      "source": "docs/estate-review/2026-11-01-solid-payment-delivery.md:85-91; docs/estate-review/2026-11-01-parallel-implementations.md:519",
+      "product_path": "solid-pod-rs WebLedger; forum D1 pay; sidestr",
+      "user_outcome": "Recommendation: retry-safe operation id and observable charged/submitted/confirmed/published/refund states",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "solid-pod-rs (with forum edge and VisionClaw consumers)",
+      "kind": "comparison",
+      "item": "OpenTimestamps and Sigstore Rekor against provenance delivery",
+      "source": "docs/estate-review/2026-11-01-solid-provenance-delivery.md:82-84",
+      "product_path": "solid-pod-rs provenance",
+      "user_outcome": "Measure: each requested policy reaches a durable outcome after restart",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "solid-pod-rs (with forum edge and VisionClaw consumers)",
+      "kind": "comparison",
+      "item": "Forgejo pull/push mirrors against publication tied to followed identity",
+      "source": "docs/estate-review/2026-11-02-solid-mirror-publication.md:135-142",
+      "product_path": "solid-pod-rs mirror",
+      "user_outcome": "Remaining gap: readers see 503 or 404, not why content is held",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "solid-pod-rs (with forum edge and VisionClaw consumers)",
+      "kind": "recommendation",
+      "item": "Forge and mirror on in shipped agentbox pods; open edit, mainnet and external follow stay opt-in",
+      "source": "VisionFlow:docs/adr/ADR-2019-forge-and-mirror-on-in-shipped-pods.md:26-30",
+      "product_path": "agentbox:flake.nix:1548; solid-pod-rs:crates/solid-pod-rs-server/Cargo.toml:127",
+      "user_outcome": "Today: the server crate default is empty (Cargo.toml:127) and agentbox adds forge-full unless disabled (flake.nix:1548)",
+      "status": "adopted-in-source"
+    },
+    {
+      "area": "sidestr-rs",
+      "kind": "comparison",
+      "item": "LDK library/application split against the Hitch kernel and agent host",
+      "source": "docs/estate-review/2026-11-01-sidestr-crate-and-runtime-boundaries.md:70-72",
+      "product_path": "sidestr-rs crates",
+      "user_outcome": "Recommendations are integrator demonstrations with visible receipts (chain-switch refusal, restart recovery, lifecycle replay, compatibility matrix per crate)",
+      "status": "see w4-sidestr re-check"
+    },
+    {
+      "area": "sidestr-rs",
+      "kind": "comparison",
+      "item": "Ethereum account code-hash and gas/fee model against the EVM profile",
+      "source": "docs/estate-review/2026-11-01-sidestr-evm-accounting-and-snapshots.md:64-68",
+      "product_path": "sidestr-rs crates",
+      "user_outcome": "Recommendations are integrator demonstrations with visible receipts (chain-switch refusal, restart recovery, lifecycle replay, compatibility matrix per crate)",
+      "status": "see w4-sidestr re-check"
+    },
+    {
+      "area": "sidestr-rs",
+      "kind": "comparison",
+      "item": "BOLT 2 channel identity and forwarding finality, BOLT 3 revocation against Hitch",
+      "source": "docs/estate-review/2026-11-01-sidestr-hitch-finality-and-identity.md:50-52",
+      "product_path": "sidestr-rs crates",
+      "user_outcome": "Recommendations are integrator demonstrations with visible receipts (chain-switch refusal, restart recovery, lifecycle replay, compatibility matrix per crate)",
+      "status": "see w4-sidestr re-check"
+    },
+    {
+      "area": "sidestr-rs",
+      "kind": "comparison",
+      "item": "BIP 141 txid/wtxid and BOLT 3 key derivation against Hitch recovery",
+      "source": "docs/estate-review/2026-11-01-sidestr-hitch-recovery.md:51-55",
+      "product_path": "sidestr-rs crates",
+      "user_outcome": "Recommendations are integrator demonstrations with visible receipts (chain-switch refusal, restart recovery, lifecycle replay, compatibility matrix per crate)",
+      "status": "see w4-sidestr re-check"
+    },
+    {
+      "area": "sidestr-rs",
+      "kind": "comparison",
+      "item": "Ethereum execution-spec fixture filling against SideStr oracle fixtures",
+      "source": "docs/estate-review/2026-11-01-sidestr-oracle-contract.md:49-51",
+      "product_path": "sidestr-rs crates",
+      "user_outcome": "Recommendations are integrator demonstrations with visible receipts (chain-switch refusal, restart recovery, lifecycle replay, compatibility matrix per crate)",
+      "status": "see w4-sidestr re-check"
+    },
+    {
+      "area": "sidestr-rs",
+      "kind": "comparison",
+      "item": "Uniswap v2 fee and Gnosis Conditional Tokens against pool and market overlays",
+      "source": "docs/estate-review/2026-11-01-sidestr-overlays-and-eviction.md:52-56",
+      "product_path": "sidestr-rs crates",
+      "user_outcome": "Recommendations are integrator demonstrations with visible receipts (chain-switch refusal, restart recovery, lifecycle replay, compatibility matrix per crate)",
+      "status": "see w4-sidestr re-check"
+    },
+    {
+      "area": "sidestr-rs",
+      "kind": "comparison",
+      "item": "LWK, Chainlink Secure Mint and RFC 8785 against reserve attestation",
+      "source": "docs/estate-review/2026-11-01-reserve-attestation-boundaries.md:53-59",
+      "product_path": "sidestr-rs crates",
+      "user_outcome": "Recommendations are integrator demonstrations with visible receipts (chain-switch refusal, restart recovery, lifecycle replay, compatibility matrix per crate)",
+      "status": "see w4-sidestr re-check"
+    },
+    {
+      "area": "sidestr-rs",
+      "kind": "comparison",
+      "item": "Own sidestr sidechains against Lightning-first (L402/NWC) and an external EVM rail",
+      "source": "VisionFlow:docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:42-56",
+      "product_path": "sidestr-rs:README.md:63",
+      "user_outcome": "Today: ADR proposed and inactive; the sidestr README disclaims Lightning-network interoperability (README.md:63), consistent with the retirement",
+      "status": "proposed (ADR); consistent in source"
+    },
+    {
+      "area": "dreamlab-ai-website",
+      "kind": "comparison",
+      "item": "RFC 9309 group combination, Lighthouse CI, Screaming Frog and the URL Inspection API against SEO watch",
+      "source": "docs/estate-review/2026-11-01-website-seo-watch.md:88-98",
+      "product_path": "dreamlab-ai-website:scripts/seo-watch/lib/checks.mjs:221-222",
+      "user_outcome": "Today: the robots analyser selects the first matching group, then the * group (checks.mjs:221-222), rather than combining all matching groups. Recommendation: a trustworthy morning report with coverage and skipped work",
+      "status": "open-in-source"
+    },
+    {
+      "area": "dreamlab-ai-website",
+      "kind": "comparison",
+      "item": "NIP-17 timestamps and ntfy replay against enquiry intake monitoring",
+      "source": "docs/estate-review/2026-11-01-website-information-and-inbox.md:83-89",
+      "product_path": "website enquiry monitor",
+      "user_outcome": "Recommendation: complete recoverable queue beyond the display cap. Measure: acknowledged enquiries, time to response",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "dreamlab-ai-website",
+      "kind": "comparison",
+      "item": "Libre Poker, Poker Now and PokerKit against the community poker table",
+      "source": "docs/estate-review/2026-11-01-website-poker.md:91-103",
+      "product_path": "website poker; forum wallet",
+      "user_outcome": "Recommendation: exact receipts, recoverable session, finite credit, readiness view, federation as a separate deliverable; PokerKit as an independent rule oracle",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "Loom",
+      "kind": "comparison",
+      "item": "ADR-137 D6 chose sqlx for an embed-on-promote write channel; the rejected alternative was taken",
+      "source": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md:31 (LOOM-A-05)",
+      "product_path": "loom:Cargo.toml:54; loom:crates/loom-vector-ruvector/Cargo.toml:25,40",
+      "user_outcome": "Today: no sqlx in any loom manifest; tokio-postgres is the Postgres client, behind an optional pg-write feature (crates/loom-vector-ruvector/Cargo.toml:40). Recommendation: amend D6",
+      "status": "open-in-source (ADR drift)"
+    },
+    {
+      "area": "Loom",
+      "kind": "comparison",
+      "item": "Loom ADR alternatives A1 to A6, including actix-web instead of axum, checked absent",
+      "source": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md:225-229",
+      "product_path": "loom serving crates",
+      "user_outcome": "Report states the rejected options are absent in source. No user-outcome change proposed",
+      "status": "open-per-report (consistent; not re-traced)"
+    },
+    {
+      "area": "dream-machine",
+      "kind": "comparison",
+      "item": "dream-machine ADR Alternatives sections (internal design choices), e.g. targeting the Loom door 127.0.0.1:8084 rather than the model port :8085",
+      "source": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md:370-474",
+      "product_path": "dream-machine dream.config.json and CLI",
+      "user_outcome": "Report finds each Alternatives section consistent with code; whether :8084 is the Loom door depends on deployment (DM-10). No external comparator exists for dream-machine",
+      "status": "open-per-report (consistent; not re-traced)"
+    },
+    {
+      "area": "agentbox",
+      "kind": "comparison",
+      "item": "Judge engine: openjev was rejected as 'not adopted, and not scheduled' in the ADR's alternatives, but is now a selectable engine",
+      "source": "docs/estate-review/2026-11-02-w3-ab-adr-5.md:83; vendor-slot decision docs/estate-review/2026-11-02-w3-ab-adr-6.md:434 (ADR-2139: SubQ Snap as first alternative to Jev)",
+      "product_path": "agentbox:agentbox.toml:1025-1031",
+      "user_outcome": "Today: engine = laya | openjev, with openjev pinned to a full commit (agentbox.toml:1025,1031). Recommendation: amend the overtaken alternatives section; measure each judge per consumer as ADR-2139 states",
+      "status": "open-in-source (ADR drift)"
+    },
+    {
+      "area": "agentbox",
+      "kind": "comparison",
+      "item": "ruvector-catalog imported ADR alternatives: neural embeddings deferred, no-CLI rejected, BM25 considered against TF-IDF",
+      "source": "docs/estate-review/2026-11-02-w3-ab-adr-8.md:99-102; docs/estate-review/2026-11-02-w3-ab-adr-7.md:329-455",
+      "product_path": "agentbox ruvector-catalog skill (cli.ts, embeddings.ts)",
+      "user_outcome": "Report finds TF-IDF with sublinear TF and no BM25; imported records are not adopted estate decisions. No retrieval-quality comparison was run",
+      "status": "open-per-report (imported; not re-traced)"
+    },
+    {
+      "area": "VisionClaw",
+      "kind": "comparison",
+      "item": "ADR-2037: a symbol/feature check on the emitted binary against the boot self-test alternative",
+      "source": "docs/estate-review/2026-11-02-w3-vc-adr-3.md:21",
+      "product_path": "VisionClaw release build and dev-auth guard",
+      "user_outcome": "Report finds the CI gate is a source grep and the boot self-test alternative does exist (DevAuthFeatureInArtefact). Outcome: a dev-auth binary cannot bind",
+      "status": "open-per-report (not re-traced)"
+    },
+    {
+      "area": "VisionFlow canon and tooling",
+      "kind": "comparison",
+      "item": "Imported engineering ADRs: a centralised harness service, LLM-only validation and zero-trust per-call verification were rejected",
+      "source": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md:375-406",
+      "product_path": "VisionFlow engineering harness",
+      "user_outcome": "Report: nothing in source builds the rejected options; consistent",
+      "status": "open-per-report (consistent; not re-traced)"
+    }
+  ],
+  "areas_without_comparison": [
+    {
+      "area": "prose-sanitiser",
+      "note": "Named in 6 dated reports, none with a comparison or utility section; no ADR comparison."
+    },
+    {
+      "area": "diagram-ir",
+      "note": "Named in 5 dated reports, none with a comparison section. ADR-2020 compares renderers, not the IR."
+    },
+    {
+      "area": "dream-machine (partial)",
+      "note": "Only its own ADR Alternatives sections, assessed as consistent (loom-and-dream-machine-adrs.md:370-474). No external comparator; the dream comparisons concern dream-engine and its agentbox adapter."
+    },
+    {
+      "area": "Loom (partial)",
+      "note": "Market comparison names Open WebUI/AnythingLLM only as a future evaluation target; the one executed comparison is internal (two arms, 40 questions, loom:README.md:148)."
+    },
+    {
+      "area": "codescape runtime (partial)",
+      "note": "Only the Sourcegraph comparison on code links; 2026-11-01-codescape-runtime-boundary.md has no comparison section."
+    },
+    {
+      "area": "agentbox as a whole (partial)",
+      "note": "Session lifecycle, signer and media have comparators; the container image, role isolation and memory plane have none."
+    }
+  ],
+  "findings": [
+    {
+      "id": "COMPARE-F1",
+      "severity": "medium",
+      "citation": "VisionFlow:docs/adr/ADR-2013-sovereign-corpus-is-ecosystem-canon.md:52-56; VisionFlow:docs/adr/ADR-2014-shared-ontology-workspace.md:89-96; project:.github/workflows/ontology-publish.yml:167-172; visionGraph:.github/workflows/publish.yml:42-50",
+      "summary": "Two accepted ADRs name different sole producers of the sovereign corpus, and both producers run at the pins. ADR-2013 Decision 3 makes VisionClaw crates/vault the only parser, reasoner and build. ADR-2014's estate alignment and visionGraph's workflow make ontomark the only producer. VisionClaw's ontology-publish workflow still builds with vault. ADR-2013 is not marked superseded or amended.",
+      "consequence": "Canon gives contradictory guidance on the highest-leverage consolidation in the estate (retiring vault, parallel-implementations.md:511). Consumers can load generations built by two compilers whose public gates and reasoners differ (ONT-02, ONT-04).",
+      "class": "drift",
+      "finding_and_consequence": "Two accepted ADRs name different sole producers of the sovereign corpus, and both producers run at the pins. ADR-2013 Decision 3 makes VisionClaw crates/vault the only parser, reasoner and build. ADR-2014's estate alignment and visionGraph's workflow make ontomark the only producer. VisionClaw's ontology-publish workflow still builds with vault. ADR-2013 is not marked superseded or amended. Consequence: Canon gives contradictory guidance on the highest-leverage consolidation in the estate (retiring vault, parallel-implementations.md:511). Consumers can load generations built by two compilers whose public gates and reasoners differ (ONT-02, ONT-04)."
+    },
+    {
+      "id": "COMPARE-F2",
+      "severity": "low",
+      "citation": "docs/estate-review/2026-11-01-parallel-remediation.md:34; project:src/handlers/pay_handler.rs:411-418; project:src/utils/nip98.rs:418-425,573",
+      "summary": "parallel-remediation.md:34 asks for VCS-10 to be revalidated and /pay to be routed through the established verifier. At the VisionClaw pin it is: extract_caller_pubkey calls validate_nip98_token_bound with body binding (pay_handler.rs:411-418), which reaches the shared inner validator and its single-use claim (nip98.rs:418-425, 573). The same module serves other handlers (solid_proxy_handler.rs, auth_extractor.rs).",
+      "consequence": "That revalidation now has a source answer. The queue entry can move once a test or HTTP-boundary receipt for altered-body and replay rejection is filed; source alone does not close it under the evidence bar.",
+      "class": "drift",
+      "finding_and_consequence": "parallel-remediation.md:34 asks for VCS-10 to be revalidated and /pay to be routed through the established verifier. At the VisionClaw pin it is: extract_caller_pubkey calls validate_nip98_token_bound with body binding (pay_handler.rs:411-418), which reaches the shared inner validator and its single-use claim (nip98.rs:418-425, 573). The same module serves other handlers (solid_proxy_handler.rs, auth_extractor.rs). Consequence: That revalidation now has a source answer. The queue entry can move once a test or HTTP-boundary receipt for altered-body and replay rejection is filed; source alone does not close it under the evidence bar."
+    },
+    {
+      "id": "COMPARE-F3",
+      "severity": "medium",
+      "citation": "docs/estate-review/2026-10-31-governed-knowledge-comparison.md:12; docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md:97; loom:README.md:148",
+      "summary": "Almost no external comparison in the corpus was executed. The reports read alternatives from documentation and state that nothing was installed or benchmarked. The exceptions are three. The Open Ontologies oo-cert v2.0.1 binary was exercised, but not head-to-head. ADR-2020 measures Pele's render coverage. Loom's pilot compares two internal arms.",
+      "consequence": "Nearly every user-outcome claim in this index is a proposed measure, not an observed result. Positioning against Graphiti, Cognee, TrustGraph or TQ rests on advertised contracts.",
+      "class": "gap",
+      "finding_and_consequence": "Almost no external comparison in the corpus was executed. The reports read alternatives from documentation and state that nothing was installed or benchmarked. The exceptions are three. The Open Ontologies oo-cert v2.0.1 binary was exercised, but not head-to-head. ADR-2020 measures Pele's render coverage. Loom's pilot compares two internal arms. Consequence: Nearly every user-outcome claim in this index is a proposed measure, not an observed result. Positioning against Graphiti, Cognee, TrustGraph or TQ rests on advertised contracts."
+    },
+    {
+      "id": "COMPARE-F4",
+      "severity": "low",
+      "citation": "no-comparison list in this report",
+      "summary": "prose-sanitiser and diagram-ir have no primary-source comparison of any kind. dream-machine has only its own ADR Alternatives sections. Loom, codescape runtime and the agentbox platform have partial coverage.",
+      "consequence": "Utility judgements for these components rest on no comparator at all. The coverage workers (w4-cov-a, w4-cov-e) assess their code, not their position.",
+      "class": "gap",
+      "finding_and_consequence": "prose-sanitiser and diagram-ir have no primary-source comparison of any kind. dream-machine has only its own ADR Alternatives sections. Loom, codescape runtime and the agentbox platform have partial coverage. Consequence: Utility judgements for these components rest on no comparator at all. The coverage workers (w4-cov-a, w4-cov-e) assess their code, not their position."
+    },
+    {
+      "id": "COMPARE-F5",
+      "severity": "low",
+      "citation": "docs/estate-review/2026-10-31-governed-knowledge-comparison.md:12; docs/estate-review/2026-11-01-forum-spaces-and-replication.md:112; docs/estate-review/2026-11-01-solid-payment-delivery.md:85",
+      "summary": "Most external comparators are cited by a moving URL (latest, main or master) with a consultation date. A minority pin a commit or version. Commit pins: NIPs 400d157 (forum-spaces-and-replication.md:112), Teller 7c00cea (solid-payment-delivery.md:85), SLSO and SWEET (visiongraph-source-admission.md:67). Version pins: Keycloak 26.4.7, sidestr-nostr 0.6.0, Unity XRI 3.0 and the Force Dimension SDK 3.14.0 manual. The governed-knowledge report itself says URLs must be pinned again before an evaluation.",
+      "consequence": "A later reader cannot reproduce what the comparison read; comparators such as SWE-agent (now maintenance-only) and Chachi (archived) have already moved.",
+      "class": "debt",
+      "finding_and_consequence": "Most external comparators are cited by a moving URL (latest, main or master) with a consultation date. A minority pin a commit or version. Commit pins: NIPs 400d157 (forum-spaces-and-replication.md:112), Teller 7c00cea (solid-payment-delivery.md:85), SLSO and SWEET (visiongraph-source-admission.md:67). Version pins: Keycloak 26.4.7, sidestr-nostr 0.6.0, Unity XRI 3.0 and the Force Dimension SDK 3.14.0 manual. The governed-knowledge report itself says URLs must be pinned again before an evaluation. Consequence: A later reader cannot reproduce what the comparison read; comparators such as SWE-agent (now maintenance-only) and Chachi (archived) have already moved."
+    },
+    {
+      "id": "COMPARE-F6",
+      "severity": "medium",
+      "citation": "dream-engine:crates/dream-core/src/seams.rs:469-483; origin DE-F2 in docs/estate-review/2026-11-01-dream-forge-and-seam-contracts.md",
+      "summary": "This re-confirms DE-F2 at the pin; it is not a new defect. enable_automerge receives no evaluated SHA. It runs `gh pr ready` and then `gh pr merge --auto --squash` without `--match-head-commit`, the option dream-forge-and-seam-contracts.md:77 named as a partial fix.",
+      "consequence": "A head pushed after evaluation can merge under an acceptance computed for an earlier commit.",
+      "class": "defect",
+      "finding_and_consequence": "This re-confirms DE-F2 at the pin; it is not a new defect. enable_automerge receives no evaluated SHA. It runs `gh pr ready` and then `gh pr merge --auto --squash` without `--match-head-commit`, the option dream-forge-and-seam-contracts.md:77 named as a partial fix. Consequence: A head pushed after evaluation can merge under an acceptance computed for an earlier commit."
+    }
+  ]
+}
