@@ -1,0 +1,251 @@
+{
+  "worker": "w4-cov-d",
+  "date": "2026-11-02",
+  "evidence_class": "source tracing at pinned revision",
+  "pins": {
+    "project": "86cdd7635582",
+    "agentbox": "c57d9c0508f4",
+    "solid-pod-rs": "9b6143ce55b2",
+    "dream-engine": "bfe8c8885a58"
+  },
+  "rows": [
+    {
+      "repository": "project",
+      "component": "test",
+      "files": 26,
+      "disposition": "out-of-scope",
+      "evidence": "test/helpers.js:5 imports ../src/server.js (absent at pin); .qlty/qlty.toml:45-46",
+      "note": "Dead JavaScriptSolidServer test suite; cannot run. See CD-F6."
+    },
+    {
+      "repository": "project",
+      "component": "crates/visionclaw-memory-cloud",
+      "files": 11,
+      "disposition": "assessed",
+      "evidence": "Cargo.toml:17,146; crates/visionclaw-memory-cloud/src/lib.rs:1-19; src/validate.rs:9-13,66-94; src/sampling.rs:22-34; src/vector.rs:86-92; src/config.rs:113-145; src/handlers/memory_cloud_handler.rs:47-48; src/services/memory_cloud_service.rs:27-39,114,133,633-653",
+      "note": "Pure-logic crate behind /api/memory-cloud*: validation, sqrt-count sampling with floors, L2 normalisation, PCA, recall maths, wire types. Static SQL with bound parameters; LIKE prefixes escaped. No defect. Crate rules not described by any topic (service covered by ES-07, VC-01, VC-38)."
+    },
+    {
+      "repository": "project",
+      "component": "src/events",
+      "files": 11,
+      "disposition": "assessed",
+      "evidence": "src/lib.rs:13; src/app_state.rs:323,887,890-893,900-916; src/main.rs:851-857; src/events/bus.rs:158-198; src/events/handlers/audit_handler.rs:9,87-100; src/actors/event_coordination.rs:111-123; src/handlers/metrics_handler.rs:67",
+      "note": "Domain-event bus wired into AppState but disconnected: subscribers and publisher are on different bus instances; EventStore never appended. See CD-F1, CD-F2."
+    },
+    {
+      "repository": "project",
+      "component": "crates/visionclaw-integration-tests",
+      "files": 10,
+      "disposition": "covered-elsewhere",
+      "evidence": "ES-09.11 docs/diagrams/estate/09-build-deploy-and-ci-estate.md:469; .github/workflows/ci.yml:117-120; crates/visionclaw-integration-tests/src/lib.rs:9-16",
+      "note": "CI runs four hermetic targets; network probes skip without VISIONCLAW_URL."
+    },
+    {
+      "repository": "project",
+      "component": "src/constraints",
+      "files": 10,
+      "disposition": "assessed",
+      "evidence": "src/lib.rs:8; src/constraints/mod.rs:1-60; tests/reasoning_integration_tests.rs:14; tests/benchmarks/reasoning_benchmarks.rs:15; src/physics/mod.rs:79",
+      "note": "OWL axiom to physics-constraint pipeline compiled but with no caller under src/; live path is physics::ontology_constraints. See CD-F8."
+    },
+    {
+      "repository": "project",
+      "component": ".agentic-qe",
+      "files": 1,
+      "disposition": "out-of-scope",
+      "evidence": ".agentic-qe/start-learning.js:1-10; .agentic-qe/sessions/*.jsonl",
+      "note": "agentic-qe tool state and config; no product role. Contains committed DB password, CD-F9."
+    },
+    {
+      "repository": "project",
+      "component": ".qlty",
+      "files": 1,
+      "disposition": "out-of-scope",
+      "evidence": ".qlty/qlty.toml:16-52; no 'qlty' match in .github/ at pin",
+      "note": "Linter configuration not invoked by any workflow."
+    },
+    {
+      "repository": "project",
+      "component": "bin",
+      "files": 1,
+      "disposition": "out-of-scope",
+      "evidence": "bin/jss.js:12-15 imports four src/*.js modules absent at pin",
+      "note": "Dead JSS CLI, last touched 9b93d40c1 (2026-03-06). See CD-F6."
+    },
+    {
+      "repository": "project",
+      "component": "src/errors",
+      "files": 1,
+      "disposition": "assessed",
+      "evidence": "src/lib.rs:12; src/errors/mod.rs:1-40 (enum :19-20, IO serialised as string :9-17); 13 importing files under src/",
+      "note": "Unified VisionClawError enum, 1,090 lines; VC-02 (02-actor-supervision.md:346-406) names it only in signatures. No defect."
+    },
+    {
+      "repository": "project",
+      "component": "src/ontology",
+      "files": 1,
+      "disposition": "covered-elsewhere",
+      "evidence": "src/ontology/mod.rs:3,7-12; VC-20, VC-21 cite visionclaw-ontology",
+      "note": "Re-export shim with two empty submodules."
+    },
+    {
+      "repository": "project",
+      "component": "src/protocol",
+      "files": 1,
+      "disposition": "out-of-scope",
+      "evidence": "src/protocol/mod.rs:1-5; no crate::protocol importers under src/",
+      "note": "Doc-only empty module."
+    },
+    {
+      "repository": "project",
+      "component": "src/tests",
+      "files": 1,
+      "disposition": "out-of-scope",
+      "evidence": "no mod declaration in src/lib.rs or src/main.rs; only reference .promptcode/presets/strippedServer.patterns:53",
+      "note": "Orphan test never compiled. See CD-F11."
+    },
+    {
+      "repository": "agentbox",
+      "component": "services/openjev-engine",
+      "files": 10,
+      "disposition": "assessed",
+      "evidence": "services/openjev-engine/README.md:1-30; openjev_engine/app.py:104-137; openjev_engine/config.py:21-30,227-228; openjev_engine/runtime.py:88-100,130-143; docker-compose.system-one.yml:146-175",
+      "note": "NLI cross-encoder engine behind System One facade; loopback 8099 in systemone netns; full-SHA weight pin enforced; vendored module digest checked at startup. AB-06.10 cites only compose. See CD-F5."
+    },
+    {
+      "repository": "agentbox",
+      "component": "isaac-sim-sidecar",
+      "files": 7,
+      "disposition": "assessed",
+      "evidence": "isaac-sim-sidecar/entrypoint.sh:4-13; runner/isaac_runner.py:24-27,69-73,104-116,214-235,275-285,500-578; docker-compose.isaac-sim.yml:42-44",
+      "note": "Stdlib HTTP job runner on 0.0.0.0:9890 running Python scripts from /exchange/isaac on GPU; path confinement, job-id regex, 1 MiB cap, JSON content-type; no authentication. AB-06.14 covers compose only. See CD-F3."
+    },
+    {
+      "repository": "agentbox",
+      "component": "services/laya-engine",
+      "files": 7,
+      "disposition": "assessed",
+      "evidence": "services/laya-engine/README.md:1-30; laya_engine/app.py:91-125; laya_engine/config.py:27-38,46-62,120-121; laya_engine/runtime.py:123-139,161-170; requirements.txt; docker-compose.system-one.yml:32-37",
+      "note": "First typed-decision engine, loopback 8098 behind facade; degrades /health on load failure. Exact pip pins but weights fetched unpinned, CD-F4. SDK file handling not checkable."
+    },
+    {
+      "repository": "agentbox",
+      "component": "claude-zai",
+      "files": 2,
+      "disposition": "assessed",
+      "evidence": "claude-zai/Dockerfile; claude-zai/wrapper/server.js:10-26,80-90,140-159,347; docker-compose.yml:5-9; management-api/utils/process-manager.js:193-213,236; tests/security/zai-launch-env.test.cjs:10-13",
+      "note": "Bearer-gated (fail-closed) HTTP wrapper spawning the Claude CLI against Z.AI with a tool allowlist. Distinct from the claude-zai CLI in AB-08. No compose service; in-repo localhost:9600 callers send no bearer token. See CD-F7."
+    },
+    {
+      "repository": "agentbox",
+      "component": "services/agentbox-vex",
+      "files": 2,
+      "disposition": "assessed",
+      "evidence": "services/agentbox-vex/README.md:1-12; src/main.rs:338-420,467-500,585-594; flake.nix:167,4645; .github/workflows/build-multi-arch.yml:160-161; .github/workflows/security-vex.yml:6-41",
+      "note": "Host-only OpenVEX/SBOM scoping and bundle verify/bind tool, run in CI per build. AB-01 records only that it is built. See CD-F12."
+    },
+    {
+      "repository": "solid-pod-rs",
+      "component": ".cargo",
+      "files": 1,
+      "disposition": "covered-elsewhere",
+      "evidence": "SP-09 docs/diagrams/solid-pod-rs/09-ci-release-and-consumer-pins.md:147,157; .cargo/audit.toml:1-22",
+      "note": "Three dated advisory ignores; RUSTSEC-2023-0071 review due no later than 2026-11-20 (.cargo/audit.toml:11-14)."
+    },
+    {
+      "repository": "dream-engine",
+      "component": "tests",
+      "files": 1,
+      "disposition": "out-of-scope",
+      "evidence": "crates/dream-core/tests/ts_parity.rs:3-5,22; crates/dream-gate/src/guard.rs:421; .github/CODEOWNERS:9; docs/estate-review/2026-11-01-dream-migration-and-provenance.md:18",
+      "note": "Held-out TS-parity test fixtures and Python oracle; write-guarded."
+    }
+  ],
+  "findings": [
+    {
+      "id": "CD-F1",
+      "class": "defect",
+      "severity": "medium",
+      "citation": "project:src/app_state.rs:887,900-916; project:src/main.rs:851-857; project:src/actors/event_coordination.rs:111-123; project:src/handlers/metrics_handler.rs:67",
+      "consequence": "AppState's EventBus has four handlers but no publisher; PhysicsService publishes to a separate empty EventBus and initialize_event_coordinator has no caller. All domain events are dropped; audit/notification/graph/ontology handlers are inert. VC-04.13 draws the publish without noting it."
+    },
+    {
+      "id": "CD-F2",
+      "class": "debt",
+      "severity": "low",
+      "citation": "project:src/app_state.rs:323,890-893,1385",
+      "consequence": "File-backed EventStore (default /tmp/visionclaw-events) is constructed and held but never appended; startup log implies persistence that does not happen."
+    },
+    {
+      "id": "CD-F3",
+      "class": "security",
+      "severity": "medium",
+      "citation": "agentbox:isaac-sim-sidecar/runner/isaac_runner.py:25,214-235,278-285,500-578; agentbox:docker-compose.isaac-sim.yml:42-44",
+      "consequence": "Unauthenticated POST /v1/jobs runs any script under /exchange/isaac on the GPU sidecar with the runner's full environment; trust boundary is visionclaw_network membership plus exchange write access, unrecorded in the corpus. ADR-2149 open per AB-06.14."
+    },
+    {
+      "id": "CD-F4",
+      "class": "security",
+      "severity": "medium",
+      "citation": "agentbox:services/laya-engine/laya_engine/config.py:27-38; agentbox:services/laya-engine/laya_engine/runtime.py:134-139; agentbox:docker-compose.system-one.yml:32; agentbox:services/openjev-engine/openjev_engine/runtime.py:130-143; agentbox:docker-compose.system-one.yml:25-60; agentbox:services/laya-engine/Dockerfile:53-55,74; agentbox:services/openjev-engine/README.md:17-19",
+      "consequence": "laya weights are fetched at the default branch with no revision and no HF_HUB_OFFLINE or baked weights; served model can change between identical deployments and the 53.5% eval cannot be reproduced. The sibling openjev engine refuses unpinned weights."
+    },
+    {
+      "id": "CD-F5",
+      "class": "drift",
+      "severity": "low",
+      "citation": "agentbox:services/openjev-engine/openjev_engine/config.py:24",
+      "consequence": "Comment claims tests/test_vendor.py verifies the vendored digest; the file is absent at the pin. Only the startup check (runtime.py:95-100) exists."
+    },
+    {
+      "id": "CD-F6",
+      "class": "drift",
+      "severity": "low",
+      "citation": "project:bin/jss.js:12-15; project:test/helpers.js:5; docs/diagrams/estate/08-solid-pod-estate.md:77,458-477",
+      "consequence": "ES-08.10 says the vendored JSS is gone; its CLI and 26-file test suite remain tracked at the VisionClaw root, importing a src/server.js that does not exist."
+    },
+    {
+      "id": "CD-F7",
+      "class": "drift",
+      "severity": "low",
+      "citation": "agentbox:docker-compose.yml:5-9; agentbox:management-api/utils/process-manager.js:193-213,236; agentbox:claude-zai/wrapper/server.js:80-90; agentbox:skills/terracraft/pipeline/enrich.js:130-135; agentbox:config/agentbox-aliases.sh:190-191; agentbox:skills/mcp.json:143,149; agentbox:services/agentbox-mcp/src/web_summary/llm.rs:33-37",
+      "consequence": "Compose comment says process-manager dials claude-zai-service:9600; it spawns a local claude and only forwards ZAI_CONTAINER_URL. No service builds claude-zai/. In-repo localhost:9600 callers (terracraft enricher, aliases, web-summary registry entry marked reference) send no bearer token, so would get 401 from the wrapper; web-summary ZAI_URL would override its Loom default. Sidecar is maintained but has no deployment or authenticating client."
+    },
+    {
+      "id": "CD-F8",
+      "class": "debt",
+      "severity": "low",
+      "citation": "project:src/lib.rs:8; project:src/constraints/mod.rs:1-60; project:src/physics/mod.rs:79; project:tests/reasoning_service_tests.rs:4-6",
+      "consequence": "A second OWL-to-constraint pipeline (~148 KB) is compiled but has no product caller; only test targets import it, some disabled for export mismatch."
+    },
+    {
+      "id": "CD-F9",
+      "class": "security",
+      "severity": "low",
+      "citation": "project:.agentic-qe/config/memory.json:8; project:.agentic-qe/config/code-intelligence.json:10; agentbox:config/claude-flow-config.json:10; agentbox:docker-compose.yml:17",
+      "consequence": "Committed plaintext ruvector-postgres credentials matching agentbox's committed default; compose now requires RUVECTOR_PG_PASSWORD, so live validity is not checkable."
+    },
+    {
+      "id": "CD-F10",
+      "class": "defect",
+      "severity": "low",
+      "citation": "project:src/application/semantic_service.rs:44,320,330; project:.github/workflows/ci.yml:81-91",
+      "consequence": "SemanticService::new takes one argument but its cfg(test) tests pass two, so the module cannot compile at source; CI never builds root-crate tests because visionclaw-server is not in CPU_CRATES. Source tracing only. Other workflow cargo test runs name specific crates only (xr-godot-ci.yml:73,75)."
+    },
+    {
+      "id": "CD-F11",
+      "class": "debt",
+      "severity": "low",
+      "citation": "project:src/tests/voice_tag_integration_test.rs:1-20; project:src/lib.rs:1-49",
+      "consequence": "Orphan test file included by no module; dead code."
+    },
+    {
+      "id": "CD-F12",
+      "class": "gap",
+      "severity": "low",
+      "citation": "agentbox:services/agentbox-vex/src/main.rs:338-357,359-420; agentbox:.github/workflows/build-multi-arch.yml:160-161",
+      "consequence": "bundle.json holds unsigned self-digests and no workflow signs or attests the bundle; verify detects inconsistency, not substitution by a writer. Limit unstated in the corpus. docs/developer/vex.md grep for sign/authentic/tamper/substitut/integrity finds only an unrelated line (:119)."
+    }
+  ]
+}

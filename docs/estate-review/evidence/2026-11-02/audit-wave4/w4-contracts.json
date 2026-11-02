@@ -1,0 +1,578 @@
+{
+  "worker": "w4-contracts",
+  "date": "2026-11-02",
+  "evidence_class": "source tracing at the pinned revision; no runtime, test or deployment evidence was produced",
+  "pins": {
+    "VisionClaw (project)": "86cdd7635582",
+    "agentbox": "c57d9c0508f4",
+    "solid-pod-rs": "9b6143ce55b2",
+    "nostr-rust-forum": "c39f41f104b1",
+    "dreamlab-ai-website": "0e1572801d03",
+    "loom": "ba21a689a57d",
+    "codescape": "58108c0357bd",
+    "vowl-wasm": "28af4365a68d",
+    "WasmVOWL": "51a148430190",
+    "visionGraph": "556a0156b5c3",
+    "ontomark": "4b9d15df4805",
+    "dream-engine": "bfe8c8885a58",
+    "sidestr-rs": "814b9e54cd16"
+  },
+  "rows": [
+    {
+      "id": "C01",
+      "group": "agent events",
+      "contract": "Agent-event live forwarder: socket authentication (agentbox to VisionClaw /wss/agent-events)",
+      "producer": "agentbox:management-api/utils/agent-event-ws-subscriber.js:94 (opens the socket with the subprotocol only, no header); agentbox:management-api/server.js:377-383 (URL derived from visionclaw_api_url, no token)",
+      "consumer": "VisionClaw:src/agent_events/ingest.rs:261-292 (Bearer header or ?token= resolved by nostr_service.get_session, else 401); ingest.rs:64-68 (insecure defaults compiled to false in release)",
+      "agreement": "disagree",
+      "fixture": "none",
+      "note": "In a release build the upgrade is refused with 401 before any frame is read; the forwarder then reconnects with backoff capped at 30 s (agent-event-ws-subscriber.js:130-141). Only a debug or dev-auth build with ALLOW_INSECURE_DEFAULTS reaches the envelope check in C02. Finding CONTRACTS-F1."
+    },
+    {
+      "id": "C02",
+      "group": "agent events",
+      "contract": "Agent-event live forwarder: frame envelope (W2-01)",
+      "producer": "agentbox:management-api/utils/agent-event-ws-subscriber.js:46-48,147 (sends JSON.stringify(event), the bare publisher event); agentbox:management-api/utils/agent-event-publisher.js:50-62,163-165 (bare event: version, id, timestamp, type, direction)",
+      "consumer": "VisionClaw:src/agent_events/ingest.rs:100-102,148-149 (accepts only AgentActionNotification that is_canonical; anything else is NonCanonical or Malformed); ingest.rs:229-231 (replies {\"error\":\"malformed_json\"})",
+      "agreement": "disagree",
+      "fixture": "none across sides. agentbox:management-api/tests/agent-event-ws-subscriber.test.js:292-296 asserts the bare shape (sent.type, sent.version, sent.direction), so the test pins the defect; VisionClaw:src/agent_events/ingest.rs:330+ tests use hand-written canonical JSON",
+      "note": "W2-01 still holds at the pins. The rejection reply has no type field, so agentbox drops it silently (agent-event-ws-subscriber.js:161-163) and the producer never learns its frames are refused. Finding CONTRACTS-F2."
+    },
+    {
+      "id": "C03",
+      "group": "agent events",
+      "contract": "Agent-event socket path, subprotocol and port",
+      "producer": "agentbox:management-api/utils/agent-event-ws-subscriber.js:26,94 (subprotocol vc-agent-events.v1); agentbox:management-api/server.js:383 (path /wss/agent-events); agentbox:agentbox.toml:1099 (http://visionclaw-server:4000)",
+      "consumer": "VisionClaw:src/agent_events/ingest.rs:54,316 (subprotocol vc-agent-events.v1); VisionClaw:src/main.rs:1113 (route /wss/agent-events); VisionClaw:src/main.rs:872-875 (actix binds SYSTEM_NETWORK_PORT, default 4000); VisionClaw:docker-compose.unified.yml:76 (hostname visionclaw-server)",
+      "agreement": "agree",
+      "fixture": "none",
+      "note": "Addressing agrees; the failures are C01 and C02."
+    },
+    {
+      "id": "C04",
+      "group": "agent events",
+      "contract": "Agent-action notification schema (createMcpNotification to AgentActionNotification)",
+      "producer": "agentbox:management-api/utils/agent-event-publisher.js:305-342",
+      "consumer": "VisionClaw:src/agent_events/schema.rs:26-55,61-147",
+      "agreement": "disagree for authority-journal events; agree in shape otherwise, with field drift",
+      "fixture": "one-sided copy: VisionClaw:src/agent_events/schema.rs:189-190 and :270-291 embed what they call verbatim agentbox output; agentbox:tests/sovereign/agent-event-notification.test.js:24-40 tests the builder alone. No shared fixture file",
+      "note": "jsonrpc, method, params.type (serde rename at schema.rs:46-47), version 3 and the typed CTC fields agree. The emit route requires the two ids and defaults duration_ms to 100 (agentbox:management-api/routes/agent-events.js:326,342) and hashes string ids to integers (:407-411). emitAgentAction itself does not, and agentbox:management-api/lib/authority-journal.js:141-150 passes string source_agent_id and target_node_id, which cannot deserialise into VisionClaw's u32 fields (schema.rs:64-65). agentbox:management-api/hooks/agent-action-hooks.js:119-124 is sampled and passes resolved ids. failure_mode and authority_class are emitted (publisher.js:326,335) and silently dropped by VisionClaw (no deny_unknown_fields on schema.rs:60-61); intent (schema.rs:142-143) is never emitted. The builder is only reached by the stream WebSocket and MCP-TCP paths, not by the live forwarder (C02). Findings CONTRACTS-F10, CONTRACTS-F22."
+    },
+    {
+      "id": "C05",
+      "group": "pinned dependency",
+      "contract": "VisionClaw submodule pointer to agentbox (compile-time input)",
+      "producer": "agentbox at its pin c57d9c0508f4",
+      "consumer": "VisionClaw:.gitmodules (submodule agentbox); VisionClaw gitlink agentbox = c3746299e923 at 86cdd7635582",
+      "agreement": "disagree (51 commits behind); schema/ identical",
+      "fixture": "n/a",
+      "note": "c3746299e923 is an ancestor of the agentbox pin, 51 commits behind (git rev-list --count). git diff c3746299e923 c57d9c0508f4 -- schema/ is empty, so the compiled-in federation-kinds.json (C07) is unaffected. Anything else VisionClaw takes from the submodule is the older commit; its content was not read (pin rule). Finding CONTRACTS-F16."
+    },
+    {
+      "id": "C06",
+      "group": "pinned dependency",
+      "contract": "VisionClaw submodule pointer to codescape",
+      "producer": "codescape at its pin 58108c0357bd",
+      "consumer": "VisionClaw:.gitmodules (submodule codescape); VisionClaw gitlink codescape = e3b76f63e801 at 86cdd7635582",
+      "agreement": "disagree (6 commits behind)",
+      "fixture": "n/a",
+      "note": "Ancestor of the codescape pin, 6 commits behind. Content at the older commit not read (pin rule). Finding CONTRACTS-F16."
+    },
+    {
+      "id": "C07",
+      "group": "shared schema",
+      "contract": "Federation kind map (schema/federation-kinds.json, ADR-2061)",
+      "producer": "agentbox:schema/federation-kinds.json:1-6 (artefact federation-kinds 1.1.0); read at load by agentbox:management-api/lib/bc20-provenance-bridge.js",
+      "consumer": "VisionClaw:src/uri/mod.rs:655-665 (include_str! of ../../agentbox/schema/federation-kinds.json)",
+      "agreement": "agree",
+      "fixture": "both sides read the same artefact: VisionClaw:src/uri/mod.rs:1469-1476 (Rust half) and agentbox:tests/contract/federation-kind-parity.contract.spec.js:49-56 (JS half)",
+      "note": "The one contract in the estate whose fixture is shared rather than copied. The compiled bytes come from the submodule commit (C05), whose schema/ is identical to the agentbox pin. agentbox:docs/PROTOCOL-registry.md:8 still describes the pre-ADR-2061 asymmetry. Finding CONTRACTS-F17."
+    },
+    {
+      "id": "C08",
+      "group": "shared schema",
+      "contract": "Content address sha256-12 (ADR-2023)",
+      "producer": "agentbox:management-api/lib/bc20-provenance-bridge.js:132-134 (sha256 of String(input), first 12 hex); agentbox:management-api/lib/uris.js:460-469 (sha256 of sorted-key JSON for payload objects)",
+      "consumer": "VisionClaw:src/uri/mod.rs:177-187 (sha256 of input bytes, first 6 bytes as lowercase hex)",
+      "agreement": "agree",
+      "fixture": "one-sided: VisionClaw:src/services/provenance_writer.rs:620-630 pins sha256-12-8c3913fd05a9; agentbox carries the value only in docs (docs/PROTOCOL-registry.md:24, docs/adr/ADR-2061-federation-kind-map-parity.md:41), no agentbox test asserts it",
+      "note": "Truncation agrees. Equality also needs identical input bytes: uris.js hashes canonical JSON for objects, VisionClaw hashes whatever bytes it is given."
+    },
+    {
+      "id": "C09",
+      "group": "HTTP API",
+      "contract": "Management API GET /v1/tasks (list) to ManagementApiClient::list_tasks",
+      "producer": "agentbox:management-api/routes/tasks.js:163-198 (response schema declares taskId, agent, startTime, duration, claudeFlowAgentId, didNostr only; :178-179 notes fastify strips undeclared fields)",
+      "consumer": "VisionClaw:src/services/management_api_client.rs:76-100 (TaskInfo requires task, provider, status with no serde default); callers VisionClaw:src/actors/agent_monitor_actor.rs:366, src/actors/task_orchestrator_actor.rs:464,512",
+      "agreement": "disagree",
+      "fixture": "one-sided and wrong on the consumer side: VisionClaw:tests/d2_interrupt_resolution.rs:126-141 fakes a list carrying task, provider and status, which the real producer strips. agentbox:tests/integration/tasks-claude-flow-agent-id.test.js:151-157 injects through the real route but asserts only taskId, claudeFlowAgentId and agent, so it neither confirms nor refutes the stripping",
+      "note": "Every real list response fails deserialisation on the consumer. Finding CONTRACTS-F3."
+    },
+    {
+      "id": "C10",
+      "group": "HTTP API",
+      "contract": "Management API GET /v1/tasks/:taskId to ManagementApiClient::get_task_status",
+      "producer": "agentbox:management-api/routes/tasks.js:107-157 (schema :116-134 has no taskDir or logFile)",
+      "consumer": "VisionClaw:src/services/management_api_client.rs:44-58,334-354 (TaskStatus requires task_dir and log_file); caller VisionClaw:src/actors/task_orchestrator_actor.rs:420",
+      "agreement": "disagree",
+      "fixture": "none",
+      "note": "Required taskDir and logFile are stripped by the response schema, so the call returns DeserializationError. Finding CONTRACTS-F4."
+    },
+    {
+      "id": "C11",
+      "group": "HTTP API",
+      "contract": "Management API GET /v1/status to ManagementApiClient::get_system_status",
+      "producer": "agentbox:management-api/routes/status.js:12-36 (schema api has uptime and version only), :48-52 (handler sets pid, which the schema strips)",
+      "consumer": "VisionClaw:src/services/management_api_client.rs:109-124 (ApiStatus.pid: u32 required), :460-480",
+      "agreement": "disagree",
+      "fixture": "none",
+      "note": "The consumer degrades: agent_monitor_actor.rs:371-395 falls back to zero CPU and memory telemetry on error. Finding CONTRACTS-F5."
+    },
+    {
+      "id": "C12",
+      "group": "HTTP API",
+      "contract": "Management API POST /v1/tasks (create)",
+      "producer": "agentbox:management-api/routes/tasks.js:16,32-41,95-101",
+      "consumer": "VisionClaw:src/services/management_api_client.rs:33-42,263-305",
+      "agreement": "agree",
+      "fixture": "one-sided: VisionClaw:tests/d2_interrupt_resolution.rs:126",
+      "note": "taskId, status and message are declared; taskDir and logFile are stripped but Option on the consumer."
+    },
+    {
+      "id": "C13",
+      "group": "HTTP API",
+      "contract": "Management API briefing workflow (POST /v1/briefs, /execute, /debrief)",
+      "producer": "agentbox:management-api/routes/briefing.js:85-92 (roleTaskSchema, snake_case), :207,228-230, :336,359-360, :491,525,611",
+      "consumer": "VisionClaw:src/services/management_api_client.rs:139-158,500,555,603; VisionClaw:src/types/user_context.rs:95-107 (RoleTask)",
+      "agreement": "agree",
+      "fixture": "none",
+      "note": "Top-level camelCase and inner snake_case RoleTask match field for field."
+    },
+    {
+      "id": "C14",
+      "group": "HTTP API",
+      "contract": "Management API authentication for VisionClaw calls",
+      "producer": "VisionClaw:src/services/management_api_client.rs:305 (Authorization: Bearer api_key)",
+      "consumer": "agentbox:management-api/middleware/auth.js:106-129,173-181; agentbox:flake.nix:4298 (MANAGEMENT_API_AUTH_MODE=hybrid)",
+      "agreement": "agree",
+      "fixture": "none",
+      "note": "Bearer is accepted in hybrid mode. The strict-nip98 auto-elevation reads AGENTBOX_SOVEREIGN_MESH_ENABLED (auth.js:177-179) but the image exports SOVEREIGN_MESH_ENABLED (flake.nix:4300), so it never fires. Finding CONTRACTS-F19."
+    },
+    {
+      "id": "C15",
+      "group": "HTTP API",
+      "contract": "Management API GET /v1/chain/payments",
+      "producer": "agentbox:management-api/routes/chain-payments.js:365",
+      "consumer": "VisionClaw:src/services/chain_payments.rs:31; VisionClaw:src/services/management_api_client.rs:399-410",
+      "agreement": "unverified (path agrees)",
+      "fixture": "none",
+      "note": "Path agrees. Response body shape was not compared."
+    },
+    {
+      "id": "C16",
+      "group": "Nostr kind",
+      "contract": "NIP-98 HTTP auth: agentbox pod-signer to solid-pod-rs pod",
+      "producer": "agentbox:management-api/lib/pod-signer.js:92-93,127; agentbox:mcp/servers/nostr-bridge.js:633-657 (u tag = URL with the query string removed, :637-638; method upper-cased; payload sha256 hex)",
+      "consumer": "solid-pod-rs:crates/solid-pod-rs/src/auth/nip98.rs:27-28 (kind 27235, 60 s), :395-396 (normalize_url trims trailing / only); solid-pod-rs:crates/solid-pod-rs-server/src/lib.rs:631-636; solid-pod-rs:crates/solid-pod-rs-server/src/scheme.rs:236-241 (request_url keeps the query, doc example ?x=1)",
+      "agreement": "disagree for URLs with a query string; agree otherwise",
+      "fixture": "shared vector file, byte-identical (blob 6371af3): agentbox:tests/contract/upstream_vectors/nip98-tokens.json and solid-pod-rs:crates/solid-pod-rs-nostr/tests/fixtures/nip98-tokens.json; agentbox uses it as a count check (tests/contract/upstream_vectors/all_fixtures.test.js:92); solid-pod-rs:crates/solid-pod-rs-nostr/tests/upstream_vectors/all_fixtures.rs:81 lists it (body not read). No test runs an agentbox-built header through the pod verifier",
+      "note": "Kind, method, payload and the 60 s window agree (nostr-bridge.js:80). VisionClaw's validator uses the same constants (VisionClaw:src/utils/nip98.rs:20,169) but its signers are browsers, not another repository. Finding CONTRACTS-F8."
+    },
+    {
+      "id": "C17",
+      "group": "Nostr kind",
+      "contract": "Governance kind numbers 31400-31405 (ACSP)",
+      "producer": "VisionClaw:src/services/acsp/events.rs:18-23; agentbox:mcp/servers/governance-bridge.js:310,354,420,446",
+      "consumer": "nostr-rust-forum:crates/nostr-bbs-core/src/governance.rs:27-34; agentbox:mcp/nostr-bridge/relay-consumer.js:91-92",
+      "agreement": "agree",
+      "fixture": "none across sides",
+      "note": "Each side defines its own constants; nothing shares them."
+    },
+    {
+      "id": "C18",
+      "group": "Nostr kind",
+      "contract": "Kind 31402 and 31403 content (ActionRequest and ActionResponse)",
+      "producer": "VisionClaw:src/services/acsp/events.rs:127-143",
+      "consumer": "nostr-rust-forum:crates/nostr-bbs-core/src/governance.rs:1109-1138",
+      "agreement": "agree",
+      "fixture": "none across sides",
+      "note": "The forum's ActionRequest is a superset (risk_tier, confidence, serde default); VisionClaw drops those when it parses a forum-side request."
+    },
+    {
+      "id": "C19",
+      "group": "Nostr kind",
+      "contract": "Kind 31402 priority tag",
+      "producer": "VisionClaw:src/services/acsp/events.rs:105-106,313 (label: critical/high/medium/low); agentbox:services/dream-engine/src/governance.rs:539 (label); nostr-rust-forum:crates/nostr-bbs-governance-probe/src/lib.rs:225 (\"low\")",
+      "consumer": "nostr-rust-forum:crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2748-2750 (parses u32, defaults to 50)",
+      "agreement": "disagree",
+      "fixture": "none",
+      "note": "Every labelled priority projects as 50. Finding CONTRACTS-F6."
+    },
+    {
+      "id": "C20",
+      "group": "Nostr kind",
+      "contract": "Kind 31402 projection tags from the agentbox governance-bridge",
+      "producer": "agentbox:mcp/servers/governance-bridge.js:340-362 (tags d, e and task-property tags only; priority, title and the rest in content)",
+      "consumer": "nostr-rust-forum:crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2743-2750 (category, subject-kind, subject-id, title, priority read from tags with defaults); nostr-rust-forum:crates/nostr-bbs-forum-client/src/stores/panel_registry.rs:463-481 (lenient content parse)",
+      "agreement": "disagree",
+      "fixture": "none",
+      "note": "As written to the outbox the case projects as Untitled, manual_submission, priority 50. The client tolerates the missing fields key. Whatever drains the outbox (governance-bridge.js:88-91) was not traced, so a later step that adds tags is not excluded. VisionClaw and the dream engine do emit these tags (events.rs:313-320; dream-engine governance.rs:539-544). Finding CONTRACTS-F7."
+    },
+    {
+      "id": "C21",
+      "group": "Nostr kind",
+      "contract": "Colloquy kinds 38410-38415",
+      "producer": "agentbox:crates/colloquy/colloquy-nostr/Cargo.toml:3 (0.2.1); agentbox:crates/colloquy/colloquy-nostr/src/decode.rs:56,116,170,209; registry agentbox:docs/PROTOCOL-registry.md:90,112-117",
+      "consumer": "nostr-rust-forum:Cargo.lock:647-648 (colloquy-nostr 0.2.1 from crates.io); nostr-rust-forum:crates/nostr-bbs-forum-client/src/pages/knowledge.rs:528-534 (constants imported from the crate)",
+      "agreement": "agree (kind numbers); relay storage not traced",
+      "fixture": "consumer-side value check: nostr-rust-forum:crates/nostr-bbs-forum-client/src/pages/knowledge.rs:528-534",
+      "note": "The constants are shared through the published crate, not transcribed. No explicit allow or deny of 38410-38415 was found in nostr-rust-forum:crates/nostr-bbs-relay-worker/src; the only kind gate found is for mesh peers (nip_handlers.rs:1176,3603). Whether the relay stores and serves these kinds was not traced."
+    },
+    {
+      "id": "C22",
+      "group": "HTTP API",
+      "contract": "Loom façade /v1/chat/completions and loom_options",
+      "producer": "agentbox:management-api/lib/junkiejarvis-agent.js:552, agentbox:scripts/dream-machine-nightly.mjs:263, agentbox:scripts/session-provision.mjs:118; loom-client via agentbox:services/agentbox-mcp/Cargo.toml:26 (lock :879, 0.1.0)",
+      "consumer": "loom:crates/loom-facade/src/routes/mod.rs:66; loom:crates/loom-facade/src/serving.rs:52-71,109-110; loom:crates/loom-client/src/request.rs:61-69",
+      "agreement": "agree",
+      "fixture": "one-sided only: loom:crates/loom-client/tests/wire.rs (wiremock), loom:crates/loom-facade/src/serving.rs:297-311, agentbox:services/agentbox-mcp/src/web_summary/llm.rs:193",
+      "note": "verbatim and scaffold are read as present-and-false on both sides. loom-client 0.1.0 matches the loom workspace version. The email gateway and Xinference are outside the pin table."
+    },
+    {
+      "id": "C23",
+      "group": "shared schema",
+      "contract": "VisionClaw position and 0x23 wire (visionclaw-wire) to codescape",
+      "producer": "VisionClaw:crates/visionclaw-wire/Cargo.toml:2-3 (0.1.0); VisionClaw:crates/visionclaw-wire/src/lib.rs:83-102; server encoder VisionClaw:src/utils/binary_protocol.rs:28,1571",
+      "consumer": "codescape:Cargo.toml:48 (visionclaw-wire 0.1.0, lock :4616); codescape:crates/codescape-model/src/wire.rs:17,211",
+      "agreement": "unverified (constants agree where comparable)",
+      "fixture": "consumer against the crate only: codescape:crates/codescape-model/src/wire.rs:211. The server encoder is not tested against the crate",
+      "note": "visionclaw-wire claims every producer encoder is tested against it (lib.rs:4-6), but the VisionClaw server crate does not depend on it: Cargo.toml:7 lists it as a workspace member and nothing else references it. NODE_ID_MASK and the 15-byte 0x23 header match. Finding CONTRACTS-F9."
+    },
+    {
+      "id": "C24",
+      "group": "HTTP API",
+      "contract": "Corpus-sync repository_dispatch (visionGraph to VisionClaw)",
+      "producer": "visionGraph:.github/workflows/publish.yml:541-542 (event_type corpus-sync, client_payload source_repo and source_sha)",
+      "consumer": "VisionClaw:.github/workflows/ontology-publish.yml:15-16,93",
+      "agreement": "agree",
+      "fixture": "none",
+      "note": "CI-to-CI edge; dispatch delivery is not checkable from source."
+    },
+    {
+      "id": "C25",
+      "group": "pinned dependency",
+      "contract": "ontomark CLI release consumed by visionGraph publish",
+      "producer": "ontomark at its pin 4b9d15df4805 (git describe v0.7.0-4-g4b9d15d; workspace version 0.7.0 at Cargo.toml:20)",
+      "consumer": "visionGraph:.github/workflows/publish.yml:49,51 (ONTOMARK_RELEASE_TAG v0.7.0 plus sha256)",
+      "agreement": "agree (tag); digest not checkable",
+      "fixture": "none",
+      "note": "The pin is four commits past the v0.7.0 tag; the release asset digest is external state."
+    },
+    {
+      "id": "C26",
+      "group": "pinned dependency",
+      "contract": "vowl-wasm bundle in the VOWL explorers",
+      "producer": "vowl-wasm:Cargo.toml:5 (0.2.2)",
+      "consumer": "visionGraph:publishing-tools/WasmVOWL/modern/package.json:25 (v0.2.2 tarball); WasmVOWL:modern/package.json:19 (v0.1.1 tarball)",
+      "agreement": "disagree (WasmVOWL repo lags a minor version)",
+      "fixture": "none",
+      "note": "ES-11.3 draws the lagging consumer as knowledgeGraph, which is outside the pin table; the standalone WasmVOWL repo carries the same v0.1.1 pin. Finding CONTRACTS-F15."
+    },
+    {
+      "id": "C27",
+      "group": "pinned dependency",
+      "contract": "Forum kit consumed by dreamlab-ai-website (KIT_REF source clone and crates.io libraries)",
+      "producer": "nostr-rust-forum at its pin c39f41f104b1; nostr-bbs-core 1.0.0-beta.19 (crates/nostr-bbs-core/Cargo.toml:3)",
+      "consumer": "dreamlab-ai-website:.github/workflows/rust-ci.yml:20, deploy.yml:130, workers-deploy.yml:44 (KIT_REF 9c36b603); dreamlab-ai-website:forum-config/Cargo.toml:50-52 (=1.0.0-beta.16)",
+      "agreement": "disagree (22 commits behind; two core versions)",
+      "fixture": "none read",
+      "note": "KIT_REF is an ancestor of the forum pin, 22 commits behind. At KIT_REF nostr-bbs-core is beta.18 while forum-config pins core =beta.16, so the client built from source and the config crate use different core versions. Finding CONTRACTS-F14."
+    },
+    {
+      "id": "C28",
+      "group": "pinned dependency",
+      "contract": "solid-pod-rs consumers",
+      "producer": "solid-pod-rs:Cargo.toml:14-15 (workspace 0.5.0-alpha.18)",
+      "consumer": "VisionClaw:Cargo.lock:6005 (alpha.17); nostr-rust-forum:Cargo.lock:4225-4226 (alpha.18); dreamlab-ai-website:forum-config/Cargo.lock:1363 (alpha.13); agentbox:services/dream-engine/Cargo.lock:2208 (alpha.13); agentbox:crates/colloquy/Cargo.lock:1429 (alpha.7); agentbox:services/nostr-pod-bridge/Cargo.toml:22,75 (unpinned sibling path) with lock :2020 (alpha.7 registry) and :2044 (alpha.18 path)",
+      "agreement": "disagree (only the forum is current)",
+      "fixture": "none",
+      "note": "Behaviour differences between the alphas were not traced. Findings CONTRACTS-F11 and CONTRACTS-F13."
+    },
+    {
+      "id": "C29",
+      "group": "pinned dependency",
+      "contract": "nostr-bbs-core consumers",
+      "producer": "nostr-rust-forum:crates/nostr-bbs-core/Cargo.toml:3 (1.0.0-beta.19)",
+      "consumer": "VisionClaw:Cargo.lock:3783 (beta.17); dreamlab-ai-website:forum-config/Cargo.lock:854 (beta.16); agentbox:services/dream-engine/Cargo.lock:1445 (beta.16); agentbox:services/nostr-pod-bridge/Cargo.toml:21 (unpinned sibling path) with lock :1202 (beta.11)",
+      "agreement": "disagree (all consumers lag)",
+      "fixture": "none",
+      "note": "The nostr-pod-bridge lock records beta.11 for a path dependency whose source is beta.19 at the forum pin, so the build input is whatever sibling working tree is present. Findings CONTRACTS-F11 and CONTRACTS-F13."
+    },
+    {
+      "id": "C30",
+      "group": "pinned dependency",
+      "contract": "ontomark crates consumed by loom, VisionClaw and vowl-wasm",
+      "producer": "ontomark:crates/ontomark-compile/Cargo.toml:4 (0.6.3); ontomark workspace 0.7.0 (Cargo.toml:20)",
+      "consumer": "loom:Cargo.toml:56 (ontomark-compile =0.1.1, lock :1935) used for ScaffoldIndex and ProseIndex at loom:crates/loom-scaffold/src/index.rs:17,29 and prose.rs:10; VisionClaw:Cargo.lock:4055 (0.6.3); vowl-wasm:Cargo.lock:496-497 (ontomark-ngg1 0.1.0)",
+      "agreement": "disagree (loom pins 0.1.1); VisionClaw and vowl-wasm agree",
+      "fixture": "none",
+      "note": "Loom reads scaffold bundles with 0.1.1 types, while the corpus is built by the ontomark v0.7.0 CLI (visionGraph:.github/workflows/publish.yml:49). Bundle compatibility between the two was not traced. Finding CONTRACTS-F12."
+    },
+    {
+      "id": "C31",
+      "group": "pinned dependency",
+      "contract": "sidestr crates consumers",
+      "producer": "sidestr-rs:sidestr-core/Cargo.toml:3 (0.4.2) and sibling crates",
+      "consumer": "nostr-rust-forum:Cargo.lock:4099 (sidestr-core 0.4.2, all seven sidestr crates current); agentbox:scripts/activation/sidechain-witness-replay/Cargo.lock:351 (sidestr-core 0.4.0)",
+      "agreement": "agree (forum); disagree (agentbox replay script lags)",
+      "fixture": "none",
+      "note": "Version row only; the sidestr findings belong to w4-sidestr. Finding CONTRACTS-F13."
+    },
+    {
+      "id": "C32",
+      "group": "pinned dependency",
+      "contract": "dream-engine crates consumed by agentbox",
+      "producer": "dream-engine:Cargo.toml:11 (workspace 0.4.0)",
+      "consumer": "agentbox:services/dream-engine/Cargo.lock:579 (dream-core 0.4.0, plus dream-gate 0.3.0, pairwise-gate 0.1.0, failure-fingerprint 0.1.0)",
+      "agreement": "agree",
+      "fixture": "none",
+      "note": "ES-05 stamps dream-engine at 59a3e215, not the audit pin; not used here."
+    },
+    {
+      "id": "C33",
+      "group": "pinned dependency",
+      "contract": "visionGraph space-corpus to VisionClaw vault-core",
+      "producer": "VisionClaw:crates/vault-core (0.1.0)",
+      "consumer": "visionGraph:scripts/space-corpus/Cargo.toml:18 (path ../../../project/crates/vault-core)",
+      "agreement": "unverified (unpinned path)",
+      "fixture": "none",
+      "note": "The build uses whatever VisionClaw working tree sits beside visionGraph. Finding CONTRACTS-F11."
+    },
+    {
+      "id": "C34",
+      "group": "HTTP API",
+      "contract": "LEGACY :9500 MCP-TCP agent poll (ES-02.7 to ES-02.9)",
+      "producer": "none found: agentbox has only clients at its pin, management-api/utils/agent-event-bridge.js:19,46 and mcp/mcp.json:277-281 (points at external-mcp-bridge:9500)",
+      "consumer": "VisionClaw:src/services/bots_client.rs:126,192; VisionClaw:src/utils/mcp_tcp_client.rs:202,293-306 (tools/call agent_list)",
+      "agreement": "unverified (no producer in the pinned repos)",
+      "fixture": "none",
+      "note": "Finding CONTRACTS-F18."
+    },
+    {
+      "id": "C35",
+      "group": "out of scope",
+      "contract": "RuVector memory and embedding (ES-07), email gateway (ES-06), Xinference embeddings, knowledgeGraph explorer (ES-11)",
+      "producer": "outside the pin table or excluded by the contract",
+      "consumer": "agentbox and VisionClaw callers (not traced)",
+      "agreement": "unverified",
+      "fixture": "not checked",
+      "note": "RuVector is excluded; knowledgeGraph, the email gateway and Xinference have no pin."
+    },
+    {
+      "id": "C36",
+      "group": "shared schema",
+      "contract": "Human-rationale gate on governance decisions (ES-05.13), one predicate in two repositories",
+      "producer": "nostr-rust-forum:crates/nostr-bbs-core/src/governance.rs:710 (MIN_HUMAN_RATIONALE_CHARS 20), :743-748 (exact outcomes approve, reject, amend, delegate, promote, demote), :764-785 (high or critical effective tier); applied by the relay at nostr-rust-forum:crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1344-1376",
+      "consumer": "VisionClaw:src/handlers/enrichment_proposals_handler.rs:320 (MIN_RATIONALE_CHARS 20), :349-356 (prefix match approve, accept, reject, amend, delegate)",
+      "agreement": "disagree (outcome set)",
+      "fixture": "none across sides",
+      "note": "The threshold (20 trimmed characters) and the high or critical tiers agree. The outcome sets differ: the relay gates promote and demote and the host does not, while the host gates accept* and prefix variants that the relay's exact match lets through. Finding CONTRACTS-F21."
+    }
+  ],
+  "findings": [
+    {
+      "id": "CONTRACTS-F1",
+      "class": "defect",
+      "severity": "high",
+      "title": "The live agent-event forwarder never authenticates, so a release VisionClaw refuses the socket before W2-01 is reached",
+      "citation": "agentbox:management-api/utils/agent-event-ws-subscriber.js:94; agentbox:management-api/server.js:377-383; VisionClaw:src/agent_events/ingest.rs:64-68,261-292,302-305",
+      "consequence": "In release builds no agent action reaches the embodiment render through the forwarder, and the forwarder reconnects every 30 s indefinitely (agent-event-ws-subscriber.js:130-141). The dev stack compiles the escape hatch (VisionClaw:Cargo.toml:331-333 dev-runtime with debug-assertions; scripts/rust-backend-wrapper.sh:42 dev-auth), but no pinned compose or script sets ALLOW_INSECURE_DEFAULTS, and launch.sh:205 lists it as a forbidden setting. So the default dev stack also returns 401 unless the operator's .env sets it, which is not checkable from source. Fixing W2-01 alone would not make the edge work."
+    },
+    {
+      "id": "CONTRACTS-F2",
+      "class": "defect",
+      "severity": "high",
+      "title": "W2-01 still holds at the pins, the rejection is silent, and agentbox's own test asserts the defective shape",
+      "citation": "agentbox:management-api/utils/agent-event-ws-subscriber.js:46-48,147,161-163; VisionClaw:src/agent_events/ingest.rs:100-102,148-149,229-231; agentbox:management-api/tests/agent-event-ws-subscriber.test.js:292-296",
+      "consequence": "In dev builds that accept the socket, every frame is refused as malformed. The error reply has no type field, so agentbox discards it without logging, and its test would fail if the forwarder were fixed to send the canonical envelope."
+    },
+    {
+      "id": "CONTRACTS-F3",
+      "class": "defect",
+      "severity": "high",
+      "title": "GET /v1/tasks strips three fields VisionClaw requires, so list_tasks always fails",
+      "citation": "agentbox:management-api/routes/tasks.js:169-186; VisionClaw:src/services/management_api_client.rs:76-85; VisionClaw:src/actors/agent_monitor_actor.rs:366; VisionClaw:src/actors/task_orchestrator_actor.rs:464,512; VisionClaw:tests/d2_interrupt_resolution.rs:126-141; VisionClaw:src/actors/task_orchestrator_actor.rs:450-468",
+      "consequence": "Every list_tasks call returns DeserializationError. Interrupting a task this orchestrator created still works through the local fast path (VisionClaw:src/actors/task_orchestrator_actor.rs:450-458). Interrupting by claude-flow agent id fails with a Transport error (:464-468), ListActiveTasks fails (:512-516), and the agent monitor logs an error each poll and publishes no agent list (VisionClaw:src/actors/agent_monitor_actor.rs:403-425). The VisionClaw test passes because its fake API serves fields the real producer strips."
+    },
+    {
+      "id": "CONTRACTS-F4",
+      "class": "defect",
+      "severity": "medium",
+      "title": "GET /v1/tasks/:taskId strips taskDir and logFile, which TaskStatus requires",
+      "citation": "agentbox:management-api/routes/tasks.js:116-134; VisionClaw:src/services/management_api_client.rs:46-58,349-353; VisionClaw:src/actors/task_orchestrator_actor.rs:420",
+      "consequence": "Task status polling from VisionClaw fails for every task."
+    },
+    {
+      "id": "CONTRACTS-F6",
+      "class": "defect",
+      "severity": "medium",
+      "title": "Kind 31402 priority is a label on every producer and an integer on the relay",
+      "citation": "VisionClaw:src/services/acsp/events.rs:105-106,313; agentbox:services/dream-engine/src/governance.rs:539; nostr-rust-forum:crates/nostr-bbs-governance-probe/src/lib.rs:225; nostr-rust-forum:crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2748-2750",
+      "consequence": "Every broker case projects at priority 50, so declared critical and high cases rank no higher than low ones wherever broker_cases.priority is used."
+    },
+    {
+      "id": "CONTRACTS-F7",
+      "class": "defect",
+      "severity": "medium",
+      "title": "The agentbox governance-bridge writes 31402 events without the tags the relay projects",
+      "citation": "agentbox:mcp/servers/governance-bridge.js:340-362; nostr-rust-forum:crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2743-2750",
+      "consequence": "If the outbox event is published as written, the case appears as Untitled, manual_submission, priority 50. The outbox drain was not traced."
+    },
+    {
+      "id": "CONTRACTS-F9",
+      "class": "drift",
+      "severity": "medium",
+      "title": "visionclaw-wire says every producer encoder is tested against it, but the VisionClaw server does not depend on it",
+      "citation": "VisionClaw:crates/visionclaw-wire/src/lib.rs:4-6; VisionClaw:Cargo.toml:7; VisionClaw:src/utils/binary_protocol.rs:28,1571; codescape:Cargo.toml:48",
+      "consequence": "codescape decodes against the published crate while the server encodes with its own code, and no test compares the two. A server-side wire change would not fail any check."
+    },
+    {
+      "id": "CONTRACTS-F11",
+      "class": "debt",
+      "severity": "medium",
+      "title": "Cross-repository path dependencies build against whatever sibling checkout is present",
+      "citation": "agentbox:services/nostr-pod-bridge/Cargo.toml:21-22,70-75; agentbox:services/nostr-pod-bridge/Cargo.lock:1202,2020,2044; visionGraph:scripts/space-corpus/Cargo.toml:18",
+      "consequence": "Builds are not reproducible from one repository's pin. The pod-bridge lock records nostr-bbs-core beta.11 for a source that is beta.19 at the forum pin, and it holds two solid-pod-rs versions although Cargo.toml:70-73 says they are unified."
+    },
+    {
+      "id": "CONTRACTS-F12",
+      "class": "drift",
+      "severity": "medium",
+      "title": "Loom reads ontology scaffold bundles with ontomark-compile 0.1.1 while the corpus is built by ontomark 0.7.0",
+      "citation": "loom:Cargo.toml:56; loom:Cargo.lock:1935; loom:crates/loom-scaffold/src/index.rs:17,29; loom:crates/loom-scaffold/src/prose.rs:10; visionGraph:.github/workflows/publish.yml:49",
+      "consequence": "Bundle compatibility is not checked anywhere. A bundle change in ontomark since 0.1.1 would surface as a grounding failure at the façade."
+    },
+    {
+      "id": "CONTRACTS-F20",
+      "class": "gap",
+      "severity": "medium",
+      "title": "Only one contract has a fixture shared by both sides; the rest are tested against hand-written copies",
+      "citation": "VisionClaw:src/uri/mod.rs:1469-1476; agentbox:tests/contract/federation-kind-parity.contract.spec.js:49-56; VisionClaw:src/agent_events/schema.rs:189-190; VisionClaw:src/services/provenance_writer.rs:620-630; VisionClaw:tests/d2_interrupt_resolution.rs:126-141",
+      "consequence": "F2 and F3 are both cases where a one-sided fixture passes while the real edge fails. The NIP-98 vector file is shared byte-for-byte but is only shape-checked on the agentbox side."
+    },
+    {
+      "id": "CONTRACTS-F5",
+      "class": "defect",
+      "severity": "low",
+      "title": "GET /v1/status strips pid, which ApiStatus requires",
+      "citation": "agentbox:management-api/routes/status.js:19-25,48-52; VisionClaw:src/services/management_api_client.rs:119-124; VisionClaw:src/actors/agent_monitor_actor.rs:371-395",
+      "consequence": "Container telemetry always reads as zero CPU and zero memory. The monitor degrades instead of failing."
+    },
+    {
+      "id": "CONTRACTS-F8",
+      "class": "defect",
+      "severity": "low",
+      "title": "agentbox signs the NIP-98 u tag without the query string; the solid-pod-rs server verifies against the full URI",
+      "citation": "agentbox:mcp/servers/nostr-bridge.js:637-641; solid-pod-rs:crates/solid-pod-rs-server/src/scheme.rs:236-241; solid-pod-rs:crates/solid-pod-rs/src/auth/nip98.rs:395-396",
+      "consequence": "Any agent-signed pod request that carries a query string fails authentication. Plain LDP writes to resource paths are unaffected."
+    },
+    {
+      "id": "CONTRACTS-F10",
+      "class": "drift",
+      "severity": "low",
+      "title": "Agent-action envelope: failure_mode and authority_class are dropped by VisionClaw, and intent is never emitted",
+      "citation": "agentbox:management-api/utils/agent-event-publisher.js:326,335; VisionClaw:src/agent_events/schema.rs:60-61,142-143",
+      "consequence": "MAST failure tags and authority classes do not survive the federation boundary, and the about-to line never renders. Already marked in ES-03.1; confirmed at the pins."
+    },
+    {
+      "id": "CONTRACTS-F13",
+      "class": "drift",
+      "severity": "low",
+      "title": "Estate crate consumers lag their producers",
+      "citation": "VisionClaw:Cargo.lock:3783,6005; dreamlab-ai-website:forum-config/Cargo.lock:854,1363; agentbox:services/dream-engine/Cargo.lock:1445,2208; agentbox:crates/colloquy/Cargo.lock:1429; agentbox:scripts/activation/sidechain-witness-replay/Cargo.lock:351",
+      "consequence": "solid-pod-rs consumers sit at alpha.7 to alpha.17 against alpha.18; nostr-bbs-core consumers at beta.11 to beta.17 against beta.19; sidestr-core in the replay script at 0.4.0 against 0.4.2. Behavioural differences were not traced."
+    },
+    {
+      "id": "CONTRACTS-F14",
+      "class": "drift",
+      "severity": "low",
+      "title": "The website builds two nostr-bbs-core versions, and its kit pin is 22 commits behind the forum",
+      "citation": "dreamlab-ai-website:.github/workflows/rust-ci.yml:20; dreamlab-ai-website:forum-config/Cargo.toml:50-52; nostr-rust-forum:crates/nostr-bbs-core/Cargo.toml (beta.18 at 9c36b603)",
+      "consequence": "The client built from source uses core beta.18 and the config crate uses beta.16. Whether they agree on shared types was not traced."
+    },
+    {
+      "id": "CONTRACTS-F15",
+      "class": "drift",
+      "severity": "low",
+      "title": "The standalone WasmVOWL repository still pins the vowl-wasm v0.1.1 bundle",
+      "citation": "WasmVOWL:modern/package.json:19; vowl-wasm:Cargo.toml:5",
+      "consequence": "A vowl-wasm release reaches the visionGraph explorer and not this one. ES-11.3 attributes the lag to knowledgeGraph only."
+    },
+    {
+      "id": "CONTRACTS-F16",
+      "class": "drift",
+      "severity": "low",
+      "title": "VisionClaw's submodules lag the audit pins: agentbox by 51 commits, codescape by 6",
+      "citation": "VisionClaw:.gitmodules; gitlinks agentbox c3746299e923 and codescape e3b76f63e801 at 86cdd7635582",
+      "consequence": "Estate topics stamp VisionClaw and agentbox at separate pins, but VisionClaw compiles the older agentbox commit. schema/ is identical, so the federation artefact is safe; nothing else from the submodule was compared."
+    },
+    {
+      "id": "CONTRACTS-F17",
+      "class": "drift",
+      "severity": "low",
+      "title": "The agentbox protocol registry still describes the pre-ADR-2061 kind-map asymmetry",
+      "citation": "agentbox:docs/PROTOCOL-registry.md:8; VisionClaw:src/uri/mod.rs:60,89,655-665",
+      "consequence": "A reader is told that the Rust side refuses bead crossings. The translator now derives its map from the shared artefact."
+    },
+    {
+      "id": "CONTRACTS-F18",
+      "class": "gap",
+      "severity": "low",
+      "title": "The legacy :9500 MCP-TCP poll has no producer in any pinned repository",
+      "citation": "VisionClaw:src/services/bots_client.rs:126; VisionClaw:src/utils/mcp_tcp_client.rs:202,303; agentbox:management-api/utils/agent-event-bridge.js:19,46; agentbox:mcp/mcp.json:277-281",
+      "consequence": "Either the edge is dead or its server lives outside the estate's pinned repositories. ES-02.7 to ES-02.9 draw it as LEGACY but do not say which."
+    },
+    {
+      "id": "CONTRACTS-F19",
+      "class": "debt",
+      "severity": "low",
+      "title": "The strict-nip98 auto-elevation reads an env name the image never sets",
+      "citation": "agentbox:management-api/middleware/auth.js:173-181; agentbox:flake.nix:4300; agentbox:management-api/lib/agent-identity.js:36-38",
+      "consequence": "With sovereign_mesh enabled, the management API stays in hybrid mode and keeps accepting Bearer. That keeps VisionClaw's Bearer client working, but the hardening intent is dead config."
+    },
+    {
+      "id": "CONTRACTS-F21",
+      "class": "drift",
+      "severity": "low",
+      "title": "The rationale gate's outcome set differs between the relay and the VisionClaw host",
+      "citation": "nostr-rust-forum:crates/nostr-bbs-core/src/governance.rs:743-748; VisionClaw:src/handlers/enrichment_proposals_handler.rs:349-356",
+      "consequence": "A promote or demote decision on a high-tier case without a rationale is refused at the relay and accepted by the host path. An accept-spelled outcome is refused by the host and passed by the relay."
+    },
+    {
+      "id": "CONTRACTS-F22",
+      "class": "defect",
+      "severity": "low",
+      "title": "Authority-denial agent events carry string ids where the canonical envelope needs integers",
+      "citation": "agentbox:management-api/lib/authority-journal.js:141-150; agentbox:management-api/utils/agent-event-publisher.js:50-62,314-315; VisionClaw:src/agent_events/schema.rs:64-65",
+      "consequence": "Latent behind F1 and F2: once the forwarder sends canonical envelopes, every authority-denial event, the blocked-action beam, will still be rejected as Malformed by VisionClaw."
+    }
+  ],
+  "summary": {
+    "contracts": 36,
+    "agree": 13,
+    "disagree": 18,
+    "unverified": 5,
+    "shared_fixture": 1,
+    "findings": 22,
+    "findings_by_severity": {
+      "high": 3,
+      "medium": 7,
+      "low": 12
+    },
+    "counting_rule": "C21 (kind numbers agree, relay storage not traced) counts as agree; C04 (disagree for authority-journal events), C16 (query-string URLs only) and C31 (forum current, agentbox replay script lags) count as disagree"
+  },
+  "pin_rule_notes": [
+    "nostr-rust-forum:crates/nostr-bbs-core/Cargo.toml was read at 9c36b6032640 (the website's KIT_REF), not at the forum pin, because that is the commit the website builds; this is a committed object, not a working tree, and lies outside the pin-only rule (C27, F14).",
+    "agentbox schema/ was diffed between c3746299e923 (VisionClaw's submodule gitlink) and the agentbox pin, because that is the commit VisionClaw compiles; no file content at c3746299e923 is cited (C05, F16)."
+  ]
+}

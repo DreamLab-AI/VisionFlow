@@ -1,0 +1,135 @@
+{
+  "worker": "w4-cov-c",
+  "evidence_class": "source tracing at pinned revision",
+  "pins": {
+    "WasmVOWL": "51a148430190",
+    "codescape": "58108c0357bd",
+    "visiontouch-rs": "7b95fb20d50a",
+    "vowl-wasm": "28af4365a68d",
+    "VisionClaw(project, nginx and gitlink only)": "86cdd7635582"
+  },
+  "rows": [
+    {
+      "repository": "WasmVOWL",
+      "component": "legacy",
+      "files": 115,
+      "disposition": "out-of-scope",
+      "evidence": "WasmVOWL:README.md:17; WasmVOWL:CLAUDE.md:33; git grep over modern/ at 51a148430190 finds no legacy reference",
+      "note": "Archived WebVOWL D3 code; product modern/ never imports it; root package.json still tries to drive it (W4COVC-F4)."
+    },
+    {
+      "repository": "WasmVOWL",
+      "component": "tests",
+      "files": 7,
+      "disposition": "out-of-scope",
+      "evidence": "WasmVOWL:tests/karma.conf.js:10,28,34 (root src/ absent); tests/unit/parser.test.js:43; legacy/Gruntfile.js:106 uses legacy/test/karma.conf.js; root package.json:46 with no root Gruntfile",
+      "note": "Orphaned suite: no runner reaches it and its imports do not resolve (W4COVC-F6)."
+    },
+    {
+      "repository": "codescape",
+      "component": "client",
+      "files": 54,
+      "disposition": "assessed",
+      "evidence": "crates/codescape-server/src/config.rs:101; http.rs:152; deploy/README.md:137; .github/workflows/ci.yml:72-90; client/src/net/config.ts:15-18,32-58; net/api.ts:33-59; net/PositionsSocket.ts:45-54; session.ts:47-51; audio/voice.ts:110-121; ui/PttButton.tsx:22",
+      "note": "React/R3F desktop client over V3/V5 wire, REST and PTT voice; holds no credential; unrestricted ?server= override (W4COVC-F1). VC-39 cites only net/config.ts, at another codescape revision."
+    },
+    {
+      "repository": "codescape",
+      "component": "crates/codescape-collab",
+      "files": 11,
+      "disposition": "assessed",
+      "evidence": "crates/codescape-collab/src/lib.rs:1-5,18-25,41; Cargo.toml:7,15; src/llm.rs:188-192,209-217; src/grammar.rs:26-36; server routes/mod.rs:25,300,311-312; state.rs:7,125,133; ingest_sink.rs:14,77,123; main.rs:26,87; queries.rs:12,387; engine.rs:16,204",
+      "note": "I/O-free collaboration state, floor, grammar and LLM fallback; LLM output is executed only after strict deserialisation and validate; unbounded answer text (W4COVC-F2)."
+    },
+    {
+      "repository": "codescape",
+      "component": "crates/codescape-model",
+      "files": 9,
+      "disposition": "assessed",
+      "evidence": "crates/codescape-model/src/lib.rs:1-19,75; src/ids.rs:16,110-115; src/wire.rs:17; Cargo.toml:7,15,17-21; codescape-ingest/src/analytics.rs:13; codescape-layout/src/cpu.rs:8; cuda.rs:34; codescape-server/src/engine.rs:20-22",
+      "note": "Contract crate, I/O-free, forbid(unsafe_code); V3 record re-exported from crates.io visionclaw-wire; id interner refuses exhaustion. No defect found."
+    },
+    {
+      "repository": "codescape",
+      "component": "(root)",
+      "files": 1,
+      "disposition": "assessed",
+      "evidence": "Root source file is Cargo.toml (SRC_EXT includes .toml, component_coverage.py:21); codescape:Cargo.toml:19-25,28,34,48,53,55",
+      "note": "Workspace manifest encoding licence split and isolation invariants; agrees with member manifests at pin."
+    },
+    {
+      "repository": "visiontouch-rs",
+      "component": "apps/workspace-viewer",
+      "files": 4,
+      "disposition": "assessed",
+      "evidence": "apps/workspace-viewer/README.md:3-4,19; package.json:7; geometry.mjs:3-25,26-48; main.mjs:5,292,311-312; crates/device/src/lib.rs:252-270; apps/calibration/src/arm.rs:3; apps/calibration/src/coverage.rs:59,118; .github/workflows/ci.yml:39,44; scripts/quality-gate.sh:27-31",
+      "note": "Offline loopback Three.js sweep replay, no device path; kinematics agree with visiontouch-device; source of Calibration Studio's arm model; no topic; browser test not in CI (W4COVC-F8)."
+    },
+    {
+      "repository": "vowl-wasm",
+      "component": "examples",
+      "files": 1,
+      "disposition": "out-of-scope",
+      "evidence": "examples/barnes_hut_benchmark.rs:1-3; Cargo.toml:131-132; Cargo.toml:20; docs/release-inventory.json:18; .github/workflows/ci.yml:75,92",
+      "note": "Benchmark with no product role or importer; compiled by CI via --all-targets and packaged in the crate."
+    }
+  ],
+  "findings": [
+    {
+      "id": "W4COVC-F1",
+      "class": "security",
+      "severity": "low",
+      "citation": "codescape:client/src/net/config.ts:34,39-44; client/src/session.ts:47; client/src/ui/PttButton.tsx:22; client/src/audio/voice.ts:110,121; client/index.html:4-6; project:nginx.dev.conf:74-94; project:nginx.production.conf:100",
+      "consequence": "?server= redirects REST, all three WebSockets and PTT microphone PCM to any origin, with no dev-build gate and no CSP. A crafted link can capture voice queries and serve a fake graph. Mitigated by the visible connection label, the PTT press plus mic permission, and the absence of client credentials."
+    },
+    {
+      "id": "W4COVC-F2",
+      "class": "debt",
+      "severity": "low",
+      "citation": "codescape:crates/codescape-collab/src/llm.rs:180,192; crates/codescape-server/src/routes/mod.rs:289,323-337",
+      "consequence": "The LLM answer string has no length bound and is returned even when the reply fails validation; a misbehaving model can push arbitrarily long text to the client. It is never executed."
+    },
+    {
+      "id": "W4COVC-F3",
+      "class": "gap",
+      "severity": "medium",
+      "citation": "docs/diagrams/visionclaw/39-codescape.md:12-32,64; scripts/estate-review-ledger/component_coverage.py:21,56-60,74; git -C project ls-tree 86cdd7635582 codescape -> e3b76f6",
+      "consequence": "VC-39 describes model, collab, root manifest and client config through ../project/codescape at codescape 13e056d9. The standalone pin is 58108c0 and VisionClaw's gitlink is e3b76f6. The coverage script misses ../project/codescape paths, so the ledger shows these crates uncited, and the one topic that covers them is at a third revision."
+    },
+    {
+      "id": "W4COVC-F4",
+      "class": "debt",
+      "severity": "low",
+      "citation": "WasmVOWL:package.json:43,46; legacy/Gruntfile.js:177-178; no root Gruntfile at 51a148430190",
+      "consequence": "Root postinstall and test scripts call grunt with no root Gruntfile. By source reading, root npm install and npm test are broken; only modern/ builds. Not run."
+    },
+    {
+      "id": "W4COVC-F5",
+      "class": "drift",
+      "severity": "low",
+      "citation": "WasmVOWL:Dockerfile:9-13; docker-compose.yml",
+      "consequence": "The root image fetches upstream webvowl_1.1.7.war over plain HTTP with no checksum and ships neither this repository's modern explorer nor its legacy source."
+    },
+    {
+      "id": "W4COVC-F6",
+      "class": "drift",
+      "severity": "low",
+      "citation": "WasmVOWL:tests/karma.conf.js:10,28,34; tests/unit/parser.test.js:43; tests/README.md:8-14; package.json:42-48",
+      "consequence": "The tests README documents npm scripts that do not exist, and the suite points at a root src/ that is absent. Its test claims cannot be reproduced."
+    },
+    {
+      "id": "W4COVC-F7",
+      "class": "drift",
+      "severity": "low",
+      "citation": "docs/diagrams/vowl-wasm/04-js-api-examples-and-consumers.md:3,9-26; vowl-wasm:Cargo.toml:131-132",
+      "consequence": "VW-04's title promises examples, but it cites no file under examples/."
+    },
+    {
+      "id": "W4COVC-F8",
+      "class": "gap",
+      "severity": "low",
+      "citation": "visiontouch-rs:apps/workspace-viewer/package.json:8; scripts/quality-gate.sh:27-31; .github/workflows/ci.yml:44",
+      "consequence": "CI never runs the viewer's browser test (rendering, replay, GLB export), so regressions in the tool that produced the calibration arm model go unnoticed."
+    }
+  ]
+}

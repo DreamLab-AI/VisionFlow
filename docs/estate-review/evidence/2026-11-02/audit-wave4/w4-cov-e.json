@@ -1,0 +1,308 @@
+{
+  "worker": "w4-cov-e",
+  "date": "2026-11-02",
+  "evidence_class": "source tracing at the pinned revision",
+  "pins": {
+    "ontomark": "4b9d15df4805",
+    "ontomark-obsidian": "2a6c44e02412",
+    "visionGraph": "556a0156b5c3",
+    "dream-machine": "b77093e564ef",
+    "nostr-rust-forum": "c39f41f104b1",
+    "dreamlab-ai-website": "0e1572801d03",
+    "agentbox": "c57d9c0508f4",
+    "project": "86cdd7635582"
+  },
+  "rows": [
+    {
+      "repository": "ontomark",
+      "component": "crates/whelk-el",
+      "files": 8,
+      "disposition": "assessed",
+      "evidence": "ontomark:Cargo.toml:14; ontomark:crates/whelk-el/Cargo.toml:3,14-20; ontomark:crates/whelk-el/src/lib.rs:1-9,91,170; ontomark:crates/whelk-el/src/reasoner.rs:484-493; ontomark:crates/whelk-el/tests/entailments.rs:97; ontomark:crates/ontomark-reason/Cargo.toml:18; ontomark:crates/ontomark-reason/src/classify.rs:8-9,225; ontomark:crates/ontomark-compile/Cargo.toml:15-17,48",
+      "note": "The OWL 2 EL saturation reasoner (a Whelk / whelk-rs derivative, no I/O, wasm-portable). Product path: ontomark-reason's classify facade drives `Saturation` (classify.rs:225), and ontomark-compile pulls it in through its default `whelk-el` feature. Its ⊥-left rule tests the superclass (reasoner.rs:493). The doc comment records that upstream tested the subclass (:484-487), and a named regression test pins the fix (entailments.rs:97). ONT-04 / XR-03 (2026-11-01-parallel-implementations.md:306) reports that the whelk-rs fork still carries the old rule. The fork is outside the pin set and was not read here. Only node text in OM-04 (04-emitters…md:123) names it; no topic cites a file inside it."
+    },
+    {
+      "repository": "ontomark",
+      "component": "scripts",
+      "files": 7,
+      "disposition": "assessed",
+      "evidence": "ontomark:.github/workflows/ci.yml:35,62; ontomark:.github/workflows/release.yml:53; ontomark:dream.config.json:46; ontomark:scripts/adr-ledger.sh:4-8,18-22; ontomark:scripts/build-plugin-engine.mjs:3,11; ontomark:scripts/test-plugin-consumer.sh:8-23; ontomark:scripts/estate-guard.sh:2-3,32,146-147,169; project:crates/vault-core (ls-tree @86cdd7635582)",
+      "note": "Build and gate tooling. CI runs `adr-ledger.sh check`, a sha256-pinned fetch of agentbox's ADR checker (ci.yml:35), and `test-plugin-consumer.sh` (ci.yml:62). The release workflow builds the plugin engine (release.yml:53), and the nightly evaluator runs `doc-strict.sh` (dream.config.json:46). `env.sh` is a developer convenience. No CI or nightly step runs `estate-guard.sh` (COV-E-F5). The comment in `build-plugin-engine.mjs` gives the wrong output location (COV-E-F9)."
+    },
+    {
+      "repository": "ontomark",
+      "component": "packages/graph",
+      "files": 4,
+      "disposition": "covered-elsewhere",
+      "evidence": "VisionFlow:docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md:68-70; ontomark:packages/graph/package.json:2-3; ontomark:.github/workflows/ci.yml:12; ontomark-obsidian:package.json:25",
+      "note": "The ADR-OM-002 assessment reads its five exports at this pin. CI runs its node tests (ci.yml:12). It is consumed as a release tarball by ontomark-obsidian (package.json:25), whose graph view uses it (see src/views)."
+    },
+    {
+      "repository": "ontomark",
+      "component": "(root)",
+      "files": 1,
+      "disposition": "covered-elsewhere",
+      "evidence": "VisionFlow:docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md:54; ontomark:Cargo.toml:1-17,23",
+      "note": "The workspace manifest: 13 members (Cargo.toml:3-17), dual licence (:23). The pipeline report cites `Cargo.toml:23` for D2."
+    },
+    {
+      "repository": "ontomark-obsidian",
+      "component": "test",
+      "files": 13,
+      "disposition": "covered-elsewhere",
+      "evidence": "VisionFlow:docs/estate-review/2026-11-01-obsidian-refresh.md:10,54,81,83; ontomark-obsidian:package.json:12-14; ontomark-obsidian:scripts/offline-test.mjs:40-49",
+      "note": "Vitest units, the WASM harness and the e2e shim (`test/e2e`, staged and run with `--network none` by offline-test.mjs:40-49). The refresh audit at this pin executed and bounded these (the 69-check shim, :54)."
+    },
+    {
+      "repository": "ontomark-obsidian",
+      "component": "docs",
+      "files": 7,
+      "disposition": "out-of-scope",
+      "evidence": "ontomark-obsidian:docs/figures/anatomy-src/build.mjs:1-4; ontomark-obsidian:README.md:59,63; ontomark-obsidian:package.json:8-16",
+      "note": "Figure-generation tooling for the README's anatomy SVG. `kit/` and `scripts/` are copied from the anatomy skill under MIT (build.mjs:4). No package script or build step references it."
+    },
+    {
+      "repository": "ontomark-obsidian",
+      "component": "src/views",
+      "files": 6,
+      "disposition": "assessed",
+      "evidence": "ontomark-obsidian:src/main.ts:13-18; ontomark-obsidian:src/sparql-block.ts:14; ontomark-obsidian:src/views/graph-view.ts:3,47,57,64,66; ontomark-obsidian:src/views/query-view.ts:122-146; ontomark-obsidian:src/views/query-render.ts:20-39; ontomark-obsidian:src/views/diff-modal.ts:25-29,39,61-71; ontomark-obsidian:src/views/ingest-modal.ts:99-115,119-123",
+      "note": "The plugin's UI surface: entity, query and graph panes, diff and ingest confirmation modals, and the result table. main.ts registers them (:13-18). Every DOM write goes through Obsidian's `createEl`/`setText` with `text:`; there is no innerHTML sink. Both modals resolve false on any close that is not Apply (diff-modal.ts:61-64; ingest-modal.ts:112-115), which matches the guarded-edit behaviour drawn in OM-09.4. The graph view mounts the shared `@dreamlab-ai/ontomark-graph` renderer (graph-view.ts:3,57). Its `openNote` has no error handling (COV-E-F8). `QueryView.run` re-runs classify on `not_classified` (query-view.ts:131-134) and has no stale-result guard."
+    },
+    {
+      "repository": "ontomark-obsidian",
+      "component": "src/generated",
+      "files": 1,
+      "disposition": "out-of-scope",
+      "evidence": "ontomark-obsidian:.gitignore:3-6; ontomark-obsidian:scripts/build-wasm.mjs:27,30,40",
+      "note": "Generated wasm-bindgen typings, `src/generated/web/ontomark_wasm.d.ts`, fetched with the pinned engine. Only this file is un-ignored (.gitignore:6), and build-wasm.mjs:40 fails if it changes without being committed."
+    },
+    {
+      "repository": "visionGraph",
+      "component": "transcripts",
+      "files": 9,
+      "disposition": "assessed",
+      "evidence": "visionGraph:transcripts/weekly_ingest.py:1-21,53-54,76-77,479-489; agentbox:skills/podcast-knowledge-ingest/crontab:21; agentbox:skills/podcast-knowledge-ingest/run-ingest.sh:3,11; agentbox:skills/podcast-knowledge-ingest/run-catchup.sh:52,145; agentbox:services/podcast-ingest/src/ingest/verify.rs:1-5,13-20; agentbox:skills/podcast-knowledge-ingest/references/pipeline-and-operations.md:19-20",
+      "note": "Python podcast-transcript tooling: download, enrichment, and the `weekly_ingest.py` pipeline (Loom extraction to draft pages in `working/`). The live weekly and catch-up jobs run agentbox's Rust `podcast-ingest` binary (run-ingest.sh:11; run-catchup.sh:52). No agentbox script invokes the Python file, which is a superseded, divergent copy that an agentbox doc still names (COV-E-F3). Both copies call their output 'verified', but only a confidence threshold is applied (COV-E-F4). The other eight scripts are one-off batch downloaders and enrichers; none of them is scheduled."
+    },
+    {
+      "repository": "visionGraph",
+      "component": "working",
+      "files": 7,
+      "disposition": "out-of-scope",
+      "evidence": "visionGraph:working/.obsidian/plugins/{obsidian-git,obsidian-tasks-plugin,slides-extended,templater-obsidian}/main.js:1-3; visionGraph:working/.obsidian/plugins/{daily-notes-editor,obsidian-outliner}/manifest.json (id, author); visionGraph:working/.termux/setup.sh:2-7,19-20",
+      "note": "Six vendored Obsidian community-plugin bundles. Four carry the esbuild banner 'THIS IS A GENERATED/BUNDLED FILE BY ESBUILD' (main.js:1-3). `daily-notes-editor` (Boninall) and `obsidian-outliner` (Viacheslav Slinko) have no banner, so their vendoring evidence is the third-party author in each `manifest.json`. The one non-vendored file, `.termux/setup.sh`, is a phone-side setup script that clones `jjohare/visionGraph-working` (:19-20). It is operator tooling with no product role."
+    },
+    {
+      "repository": "visionGraph",
+      "component": "knowledge",
+      "files": 3,
+      "disposition": "out-of-scope",
+      "evidence": "visionGraph:knowledge/.obsidian/plugins/{obsidian-git,slides-extended,templater-obsidian}/main.js:1-3; their manifest.json authors (Vinzent; Matthäus Szturc / Erin Schnabel; SilentVoid)",
+      "note": "Three vendored Obsidian community-plugin bundles inside the curated vault's `.obsidian/`. All three carry the esbuild 'GENERATED/BUNDLED' banner (main.js:1-3)."
+    },
+    {
+      "repository": "visionGraph",
+      "component": "static",
+      "files": 2,
+      "disposition": "assessed",
+      "evidence": "visionGraph:static/contact/contact.js:1-7,112; visionGraph:static/contact/index.html:42-46; visionGraph:static/contact/nostr-contact.js:1-2; visionGraph:.github/workflows/publish.yml:29,262; dreamlab-ai-website:scripts/contact-embed/entry.ts:1-16; VisionFlow:docs/diagrams/visionflow/02-website-build-and-deploy.md:84,129",
+      "note": "The Narrative Gold Mine contact page, published with the site (`cp -r static/. site-data/`, publish.yml:262). It gift-wraps the message in the browser (NIP-17) and lazily imports the transport (contact.js:112). `nostr-contact.js` is the dreamlab-ai-website embed built at 08628f06 (:1). That is the latest commit touching `src/lib/nostr.ts` and `scripts/contact-embed/` at the website pin, so the bundle is current. It is byte-identical (sha256 2b6bd4b2…) to VisionFlow's `website/static/js/nostr-contact.js` at VisionFlow worktree HEAD b105a94, which is not a pin, and VF-02 describes that copy. `contact.js` differs from VisionFlow's copy only in its defaults (topic and source tag)."
+    },
+    {
+      "repository": "visionGraph",
+      "component": "assets",
+      "files": 1,
+      "disposition": "out-of-scope",
+      "evidence": "visionGraph:assets/comfyui_1719066564707_0.py:9; visionGraph:working/Server Setup.md:246",
+      "note": "An Open WebUI ComfyUI adapter kept as a note attachment ('copy into open-webui container', Server Setup.md:246). It imports `config.SRC_LOG_LEVELS` (:9), and no `config.py` exists in the repository. Nothing imports it."
+    },
+    {
+      "repository": "dream-machine",
+      "component": "packages/ledger",
+      "files": 4,
+      "disposition": "covered-elsewhere",
+      "evidence": "VisionFlow:docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md:69,82,87,366,418-423; VisionFlow:docs/estate-review/2026-11-01-dream-migration-and-provenance.md:28",
+      "note": "The ADR-0001, -0004 and -0007 assessments at b77093e read the 10-column ledger, `rowContract.ts` and the proposer. DE-M1 records the whitespace-contract divergence from Rust."
+    },
+    {
+      "repository": "dream-machine",
+      "component": "docs",
+      "files": 3,
+      "disposition": "assessed",
+      "evidence": "dream-machine:.github/workflows/pages.yml:6,27,31; dream-machine:docs/site/vendor/three.module.min.js:1-4; dream-machine:docs/site/dream4d.js:1-8; dream-machine:docs/site/dashboard.html:138-141,300,758",
+      "note": "The GitHub Pages site (pages.yml:31). It contains a vendored three.js r168 (MIT header) and a decorative tesseract hero. The dashboard renders an illustrative `data/ledger.json` and says so ('Sample data… not the output of a real nightly run', dashboard.html:138-141). It is not product code; no defect found."
+    },
+    {
+      "repository": "dream-machine",
+      "component": "packages/memory",
+      "files": 2,
+      "disposition": "assessed",
+      "evidence": "dream-machine:packages/memory/src/index.ts:4-9,75-84,86-101,129-145,153-178; dream-machine:.github/workflows/ci.yml:49,65; dream-machine:package.json:21; dream-machine:vitest.config.ts:13",
+      "note": "'Optional semantic memory' over past nights. Only the workspace build, CI tests and README reach it; no package in the repository imports it. The RuVector path is not implemented, and an explicit request returns the flat-file store labelled `ruvector-rvf` (COV-E-F1; self-improvement.md:79, dated 2026-09-04, notes this too). A corrupt store is silently reset and then overwritten (COV-E-F2)."
+    },
+    {
+      "repository": "dream-machine",
+      "component": "packages/schedule",
+      "files": 2,
+      "disposition": "covered-elsewhere",
+      "evidence": "VisionFlow:docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md:366,369",
+      "note": "Read at b77093e: paste-in `/schedule` routine body only (`packages/schedule/src/index.ts:4-6,112-118`)."
+    },
+    {
+      "repository": "dream-machine",
+      "component": "packages/witness",
+      "files": 2,
+      "disposition": "covered-elsewhere",
+      "evidence": "VisionFlow:docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md:366,371",
+      "note": "Read at b77093e: the witness `sha256(sha256(report)+commit)` (`packages/witness/src/index.ts:49-53`), with a single-byte mutation test."
+    },
+    {
+      "repository": "nostr-rust-forum",
+      "component": "crates/nostr-bbs-sidestr-admin",
+      "files": 6,
+      "disposition": "assessed",
+      "evidence": "nostr-rust-forum:Cargo.toml:38-40; nostr-rust-forum:crates/nostr-bbs-sidestr-admin/Cargo.toml:3,15,17-20; nostr-rust-forum:crates/nostr-bbs-sidestr-admin/src/lib.rs:1-33,65-68,84-95; nostr-rust-forum:crates/nostr-bbs-sidestr-admin/src/faucet.rs:1-14,75-79,88-111; nostr-rust-forum:crates/nostr-bbs-sidestr-admin/src/cli/faucet_run.rs:1-10,62-74,171-196; agentbox:config/sidechain/run-faucet.sh:9,60",
+      "note": "The operator CLI for the kit's two pinned sidestr chains: holdings, issue, send, and a kind-23501 faucet. It replays either header family. Product path: agentbox's faucet runner execs it for BLAKE2b-parent chains (run-faucet.sh:60). A ledger that cannot be parsed is a hard error (faucet.rs:75-79). The producer-refused-but-relay-accepted path is documented behaviour (faucet_run.rs:9-10). A failed ledger save is only logged (COV-E-F6). Crate version 1.0.0-beta.15, `publish = false`."
+    },
+    {
+      "repository": "nostr-rust-forum",
+      "component": ".claude",
+      "files": 5,
+      "disposition": "out-of-scope",
+      "evidence": "nostr-rust-forum:.claude/helpers/brain-checkpoint.cjs:3; nostr-rust-forum:.claude/helpers/statusline-v3.cjs:3; nostr-rust-forum:.claude/hooks/aqe-hook.cjs:3; nostr-rust-forum:.claude/helpers/v3/advisor-call.cjs:3; nostr-rust-forum:.claude/helpers/v3/quality-criteria/validate-quality-criteria.ts:3",
+      "note": "Agentic-QE (AQE) agent-harness helpers: a hook shim, the statusline, a brain checkpoint, an advisor-call helper and a quality-criteria HTML validator. Two of them say they were 'generated by aqe init' (brain-checkpoint.cjs:3, statusline-v3.cjs:3). No workspace member, build or CI step references `.claude/`."
+    },
+    {
+      "repository": "nostr-rust-forum",
+      "component": ".cargo",
+      "files": 1,
+      "disposition": "assessed",
+      "evidence": "nostr-rust-forum:.cargo/config.toml:1-6",
+      "note": "Workspace-wide wasm32 link flag `--max-memory=268435456` (:1-2). It caps every wasm32 build, including the trunk-built forum client, at 256 MiB of linear memory. There is no default target, so native tests run (:4-6). A grep of `docs/diagrams` and `docs/estate-review` for `max-memory` or `268435456` finds no mention."
+    },
+    {
+      "repository": "dreamlab-ai-website",
+      "component": "src/data",
+      "files": 4,
+      "disposition": "assessed",
+      "evidence": "dreamlab-ai-website:src/data/site-facts.ts:1-25; dreamlab-ai-website:src/data/__tests__/site-facts.test.ts:10,13-30; dreamlab-ai-website:src/data/workshop-meta.ts:1-17; dreamlab-ai-website:src/pages/Index.tsx:174,449; dreamlab-ai-website:src/pages/Ventures.tsx:195; dreamlab-ai-website:src/pages/Research.tsx:65",
+      "note": "The single source for the figures the site states, and the workshop display map. Pages import them (Header, Index, Programmes, Team, Workshop*, og-meta). The test checks only the specialist count and retired figures in the static files; prices are not checked. '£8M+' is hand-typed in three pages, despite site-facts.ts:2 (COV-E-F7)."
+    },
+    {
+      "repository": "dreamlab-ai-website",
+      "component": "src/hooks",
+      "files": 4,
+      "disposition": "assessed",
+      "evidence": "dreamlab-ai-website:src/hooks/useOGMeta.ts:23-33; dreamlab-ai-website:src/prerender.tsx:8,58; dreamlab-ai-website:src/hooks/use-mobile.tsx:5-45; dreamlab-ai-website:src/hooks/useWorkshopProgress.ts:3,9-24; dreamlab-ai-website:src/hooks/useLongPress.ts",
+      "note": "`useOGMeta` feeds both the browser meta update and the build-time prerender through `StaticMetaContext` (prerender.tsx:58), which DW-02's prerender panel relies on. `useIsMobileSync` resolves on the first render so phones never mount the desktop tree. Workshop progress is per-browser localStorage that fails soft (:16, :23). No defect found."
+    },
+    {
+      "repository": "dreamlab-ai-website",
+      "component": "marketing",
+      "files": 1,
+      "disposition": "assessed",
+      "evidence": "dreamlab-ai-website:marketing/clickthrough-residential/build.mjs:1-16; dreamlab-ai-website:marketing/clickthrough-residential/flyer.html:161,206-207",
+      "note": "An offline build for the A4 print flyer (WeasyPrint to `public/downloads/`). The flyer's figures match site-facts at this pin (40+, £995, £2,500), but the build says it hand-writes them and no test checks them (build.mjs:14-16). See COV-E-F7."
+    },
+    {
+      "repository": "dreamlab-ai-website",
+      "component": "public",
+      "files": 1,
+      "disposition": "covered-elsewhere",
+      "evidence": "VisionFlow:docs/diagrams/dreamlab-ai-website/01-repo-composition-and-deploy-topology.md:114,122; VisionFlow:docs/diagrams/dreamlab-ai-website/02-site-build-and-pages-deploy.md:94; VisionFlow:docs/estate-review/2026-11-02-dreamlab-site-and-forum-config.md:75; dreamlab-ai-website:public/spa-redirect.js:9-37",
+      "note": "`spa-redirect.js`: deep-link restore, kept external because of the CSP. DW-01.7 and DW-02 describe it in prose and node text but do not list it under `sources:`. Re-read at the pin: scheme 1 refuses protocol-relative paths (:16), and scheme 2 relies on `replaceState` same-origin enforcement."
+    },
+    {
+      "repository": "dreamlab-ai-website",
+      "component": "src/test",
+      "files": 1,
+      "disposition": "out-of-scope",
+      "evidence": "dreamlab-ai-website:vitest.config.ts:24; dreamlab-ai-website:src/test/setup.ts:1-15",
+      "note": "The Vitest setup file (jest-dom matchers and a matchMedia stub), wired only as `setupFiles`."
+    }
+  ],
+  "findings": [
+    {
+      "id": "COV-E-F1",
+      "class": "drift",
+      "severity": "low",
+      "citation": "dream-machine:packages/memory/src/index.ts:4-6,159-170",
+      "summary": "The module header says nights are stored as vectors in an RVF container for HNSW recall when RuVector is installed. In fact `openMemory` always builds `FlatMemory`, and with `backend: 'ruvector-rvf'` it overwrites the label to `ruvector-rvf` (:169).",
+      "consequence": "A caller or telemetry that reads `backend` is told semantic recall is active while keyword scoring runs. Recall quality claims built on that label are false.",
+      "finding_and_consequence": "The module header says nights are stored as vectors in an RVF container for HNSW recall when RuVector is installed. In fact `openMemory` always builds `FlatMemory`, and with `backend: 'ruvector-rvf'` it overwrites the label to `ruvector-rvf` (:169). Consequence: A caller or telemetry that reads `backend` is told semantic recall is active while keyword scoring runs. Recall quality claims built on that label are false."
+    },
+    {
+      "id": "COV-E-F2",
+      "class": "defect",
+      "severity": "low",
+      "citation": "dream-machine:packages/memory/src/index.ts:75-84,86-92,94-101",
+      "summary": "`load` turns any read or JSON parse failure into an empty list (:81-83). The next `remember` then persists that list over the file (:99-100 → :91).",
+      "consequence": "A store that is corrupt or partly written, for example after an interrupted non-atomic `writeFile` (:91), is silently wiped on the next write, and all prior nights are lost. No package in the repository calls it yet, so there is no product exposure today.",
+      "finding_and_consequence": "`load` turns any read or JSON parse failure into an empty list (:81-83). The next `remember` then persists that list over the file (:99-100 → :91). Consequence: A store that is corrupt or partly written, for example after an interrupted non-atomic `writeFile` (:91), is silently wiped on the next write, and all prior nights are lost. No package in the repository calls it yet, so there is no product exposure today."
+    },
+    {
+      "id": "COV-E-F3",
+      "class": "drift",
+      "severity": "low",
+      "citation": "visionGraph:transcripts/weekly_ingest.py:1-21,486; agentbox:skills/podcast-knowledge-ingest/run-ingest.sh:3,11; agentbox:services/podcast-ingest/src/ingest/verify.rs:13-20; agentbox:skills/podcast-knowledge-ingest/references/pipeline-and-operations.md:19-20; VisionFlow:docs/estate-review/2026-11-01-parallel-implementations.md:439",
+      "summary": "`visionGraph/transcripts/weekly_ingest.py` presents itself as the weekly cron job, but the live jobs run agentbox's Rust port. The two have diverged: Python keeps confidence ≥ 0.7 flat (:486), while Rust uses tier thresholds of 0.7, 0.5 and 0.4 (verify.rs:13-20). An agentbox reference doc still names the Python file as an implementation of `write_assertion_ledger`, and XR-12 cites its `split_frontmatter` (:117) as a parallel parser.",
+      "consequence": "A maintainer who edits or runs the Python copy changes nothing in production, or lands drafts under the older rules. Corpus references to it describe a path that does not run.",
+      "finding_and_consequence": "`visionGraph/transcripts/weekly_ingest.py` presents itself as the weekly cron job, but the live jobs run agentbox's Rust port. The two have diverged: Python keeps confidence ≥ 0.7 flat (:486), while Rust uses tier thresholds of 0.7, 0.5 and 0.4 (verify.rs:13-20). An agentbox reference doc still names the Python file as an implementation of `write_assertion_ledger`, and XR-12 cites its `split_frontmatter` (:117) as a parallel parser. Consequence: A maintainer who edits or runs the Python copy changes nothing in production, or lands drafts under the older rules. Corpus references to it describe a path that does not run."
+    },
+    {
+      "id": "COV-E-F4",
+      "class": "drift",
+      "severity": "low",
+      "citation": "visionGraph:transcripts/weekly_ingest.py:6,479-489; agentbox:services/podcast-ingest/src/ingest/verify.rs:1-5,22-40",
+      "summary": "Both ingest paths name their output 'verified' (Python docstring: 'verifies them via Perplexity'). Phase 3 only filters by the model's self-reported confidence, and no external check runs in cron mode.",
+      "consequence": "Draft pages and ledger bullets carry LLM claims as 'verified' that nothing has checked. The drafts stay in `working/` and need governed promotion, so the effect is limited to mislabelled evidence. A grep of `docs/diagrams/agentbox` and `docs/diagrams/estate` for `phase_verify` finds nothing, and none of their `pass-through` hits concerns the podcast pipeline.",
+      "finding_and_consequence": "Both ingest paths name their output 'verified' (Python docstring: 'verifies them via Perplexity'). Phase 3 only filters by the model's self-reported confidence, and no external check runs in cron mode. Consequence: Draft pages and ledger bullets carry LLM claims as 'verified' that nothing has checked. The drafts stay in `working/` and need governed promotion, so the effect is limited to mislabelled evidence. A grep of `docs/diagrams/agentbox` and `docs/diagrams/estate` for `phase_verify` finds nothing, and none of their `pass-through` hits concerns the podcast pipeline."
+    },
+    {
+      "id": "COV-E-F5",
+      "class": "debt",
+      "severity": "low",
+      "citation": "ontomark:scripts/estate-guard.sh:2-3,32,146-147,169; ontomark:.github/workflows/ci.yml:35,62; project:crates/vault-core (present in ls-tree @86cdd7635582)",
+      "summary": "The legacy-toolchain migration guard is not run by CI, the release workflow or the nightly evaluator. It scans sibling checkouts on disk, and its `legacy-crate` condition (`project/crates/vault-core` present, :146-147) holds at the VisionClaw pin. The script was not run.",
+      "consequence": "The DEPRECATION/EXP-10 migration has no enforcing gate. Residue can grow without any signal, and the guard can only be run by hand against working trees.",
+      "finding_and_consequence": "The legacy-toolchain migration guard is not run by CI, the release workflow or the nightly evaluator. It scans sibling checkouts on disk, and its `legacy-crate` condition (`project/crates/vault-core` present, :146-147) holds at the VisionClaw pin. The script was not run. Consequence: The DEPRECATION/EXP-10 migration has no enforcing gate. Residue can grow without any signal, and the guard can only be run by hand against working trees."
+    },
+    {
+      "id": "COV-E-F6",
+      "class": "defect",
+      "severity": "low",
+      "citation": "nostr-rust-forum:crates/nostr-bbs-sidestr-admin/src/cli/faucet_run.rs:70-74,193-196; nostr-rust-forum:crates/nostr-bbs-sidestr-admin/src/faucet.rs:75-76; nostr-rust-forum:crates/nostr-bbs-sidestr-admin/src/lib.rs:33",
+      "summary": "After a grant is sent, a failed ledger save is only logged (:194-196), and the save neither fsyncs nor checks the rename beyond `?` (:70-74). The in-memory ledger keeps enforcing limits until the process restarts.",
+      "consequence": "A restart after a failed save forgets those grants, so the faucet can pay the same script again within its window. That defeats the stated rationale ('forgetting grants would pay everyone again', faucet.rs:75-76). The impact is bounded because these chains' coins carry no value (lib.rs:33).",
+      "finding_and_consequence": "After a grant is sent, a failed ledger save is only logged (:194-196), and the save neither fsyncs nor checks the rename beyond `?` (:70-74). The in-memory ledger keeps enforcing limits until the process restarts. Consequence: A restart after a failed save forgets those grants, so the faucet can pay the same script again within its window. That defeats the stated rationale ('forgetting grants would pay everyone again', faucet.rs:75-76). The impact is bounded because these chains' coins carry no value (lib.rs:33)."
+    },
+    {
+      "id": "COV-E-F7",
+      "class": "gap",
+      "severity": "low",
+      "citation": "dreamlab-ai-website:src/data/site-facts.ts:1-8,20-24; dreamlab-ai-website:src/data/__tests__/site-facts.test.ts:10,13-30; dreamlab-ai-website:content/site-content.yaml:3,54,173-175; dreamlab-ai-website:scripts/generate-testimonials.mjs:6; dreamlab-ai-website:src/pages/Index.tsx:174,449; dreamlab-ai-website:src/pages/Ventures.tsx:195; dreamlab-ai-website:marketing/clickthrough-residential/build.mjs:14-16",
+      "summary": "site-facts claims to be the one place pages take figures from. Its guard test checks only the specialist count and retired figures, not prices or accommodation. '£8M+' is typed by hand in three places, and the print flyer's prices are hand-copied with no check.",
+      "consequence": "`index.html` and `public/llms.txt` state no prices, so they are not at risk. The print flyer hand-copies the prices. It matches at this pin, but a change to site-facts.ts would leave it stale with CI green. `content/site-content.yaml`, which the test reads, already disagrees with site-facts ('£2999 · One-day intensive', :54, against `priceSprintFrom` £2,500), and the test does not catch it. Only its testimonials are consumed (generate-testimonials.mjs:6), so this stale copy is not rendered today.",
+      "finding_and_consequence": "site-facts claims to be the one place pages take figures from. Its guard test checks only the specialist count and retired figures, not prices or accommodation. '£8M+' is typed by hand in three places, and the print flyer's prices are hand-copied with no check. Consequence: `index.html` and `public/llms.txt` state no prices, so they are not at risk. The print flyer hand-copies the prices. It matches at this pin, but a change to site-facts.ts would leave it stale with CI green. `content/site-content.yaml`, which the test reads, already disagrees with site-facts ('£2999 · One-day intensive', :54, against `priceSprintFrom` £2,500), and the test does not catch it. Only its testimonials are consumed (generate-testimonials.mjs:6), so this stale copy is not rendered today."
+    },
+    {
+      "id": "COV-E-F8",
+      "class": "defect",
+      "severity": "low",
+      "citation": "ontomark-obsidian:src/views/graph-view.ts:57,64,66",
+      "summary": "`openNote` awaits `api.index` without a try/catch, and both callers discard the promise with `void` (:57, :64).",
+      "consequence": "When the index fails (for example after an engine error), double-clicking or pressing 'Open note' gives no feedback and an unhandled rejection is raised. The other views report errors through `statusEl` or `reportError`.",
+      "finding_and_consequence": "`openNote` awaits `api.index` without a try/catch, and both callers discard the promise with `void` (:57, :64). Consequence: When the index fails (for example after an engine error), double-clicking or pressing 'Open note' gives no feedback and an unhandled rejection is raised. The other views report errors through `statusEl` or `reportError`."
+    },
+    {
+      "id": "COV-E-F9",
+      "class": "drift",
+      "severity": "low",
+      "citation": "ontomark:scripts/build-plugin-engine.mjs:3,11",
+      "summary": "The header says outputs land in `src/generated/`, but the default output directory is `target/plugin-engine` (`ONTOMARK_ENGINE_OUT`, :11).",
+      "consequence": "A maintainer who follows the comment looks in the wrong place for the release engine bundle.",
+      "finding_and_consequence": "The header says outputs land in `src/generated/`, but the default output directory is `target/plugin-engine` (`ONTOMARK_ENGINE_OUT`, :11). Consequence: A maintainer who follows the comment looks in the wrong place for the release engine bundle."
+    }
+  ]
+}

@@ -8006,7 +8006,7 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/agentbox/28-agentbox-services-and-manifest-binary.md",
-    "source_sha256": "49042e17c48a0afa65847be3b1bfe3c95ff2e05c1d99866670da3970543f69bf",
+    "source_sha256": "aa012cdf01c65f8c9f7de6e42820bccc335d3fda14254f1205680809c9e78c23",
     "report": "docs/estate-review/2026-11-02-w3-ab-h.md",
     "report_sha256": "d096909dd9ab2cee5b96b5d295d4897b250d4c6d037ad4f90b419a89912f26d4",
     "coverage": "selected-panels",

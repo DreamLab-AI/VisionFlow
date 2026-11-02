@@ -1,0 +1,247 @@
+{
+ "worker": "w4-sidestr",
+ "date": "2026-11-02",
+ "evidence_class": "source tracing at pinned revision",
+ "pins": {
+  "sidestr-rs": "814b9e54cd16",
+  "agentbox": "c57d9c0508f4",
+  "VisionClaw": "86cdd7635582"
+ },
+ "rows": [
+  {
+   "Report": "crate-and-runtime-boundaries",
+   "Finding": "B1 follower lacks genesis pin",
+   "Was": "open",
+   "Now": "still-open",
+   "Evidence": "`ChainFollower` holds only family, challenge, blocks, txs, spends (`sr:sidestr-agent/src/hitch/follow.rs:121-127`); `new` stores no genesis hash (`:133-141`); `plan` compares hashes from index position 0 (`:198-203`); `apply` checks only the index hash and link above height 0 (`:276-294`)"
+  },
+  {
+   "Report": "crate-and-runtime-boundaries",
+   "Finding": "B2 store not gated by `cli`",
+   "Was": "open",
+   "Now": "still-open",
+   "Evidence": "`host` gated `all(feature = \"cli\", unix)`, `store` gated `unix` only (`sr:sidestr-agent/src/hitch/mod.rs:34-37`)"
+  },
+  {
+   "Report": "crate-and-runtime-boundaries",
+   "Finding": "B3 clients and admission inside core",
+   "Was": "open",
+   "Now": "still-open",
+   "Evidence": "`rpc = [\"std\", \"dep:ureq\"]` (`sr:sidestr-core/Cargo.toml:38`); `pub mod rpc` under `cfg(feature = \"rpc\")` (`sr:sidestr-core/src/parent.rs:774-775`); `State::submit` in core (`sr:sidestr-core/src/state.rs:636`); ADR still says \"Network clients and producer policy remain outside both\" (`sr:docs/adr/ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md:37`)"
+  },
+  {
+   "Report": "crate-and-runtime-boundaries",
+   "Finding": "B4 core is not `no_std`",
+   "Was": "open",
+   "Now": "still-open",
+   "Evidence": "The CI step is still labelled \"sidestr-core alone, no std\" (`sr:.github/workflows/ci.yml:85-88`), and there is no `no_std` attribute (`sr:sidestr-core/src/lib.rs:298-307`). The crate doc says \"The crate is not `no_std`\" (`:165`). That line is unchanged since `9c6de86c` because only the ledger changed, so the CI label contradicts it. Header has the real conditional attribute (`sr:sidestr-header/src/lib.rs:144`)."
+  },
+  {
+   "Report": "crate-and-runtime-boundaries",
+   "Finding": "B5 records lag implementation",
+   "Was": "open",
+   "Now": "still-open",
+   "Evidence": "ADR still says \"seven public crates\" (`sr:docs/adr/ADR-0002-…:38`). Eight manifests set `publish = true` (e.g. `sr:sidestr-core/Cargo.toml:15`); `sidestr-bridge-liquid`, `sidestr-evm` and `sidestr-reserve` set `publish = false` (e.g. `sr:sidestr-evm/Cargo.toml:16`). The agentbox README says the txbt4 table \"ships `enabled = false`\" (`ab:config/sidechain/README.md:188`), but it is `enabled = true` (`ab:agentbox.toml:1975`). VisionClaw N-10 still says \"Hitch has no host\" (`vc:docs/TODO-unified.md:103`)."
+  },
+  {
+   "Report": "evm-accounting-and-snapshots",
+   "Finding": "E1 duplicate withdrawal underpayment",
+   "Was": "open",
+   "Now": "still-open",
+   "Evidence": "Each withdrawal is checked with `outputs.iter().any(...)`, and no output is consumed (`sr:sidestr-evm/src/state.rs:510-515`). The allowance sums every withdrawal (`:73-77`) and feeds `coinbase_allowance` (`sr:sidestr-evm/src/rule.rs:107-109`), then the core upper bound (`sr:sidestr-core/src/rules.rs:737-756`). Reference `evm.mjs` parity is not checkable at these pins."
+  },
+  {
+   "Report": "evm-accounting-and-snapshots",
+   "Finding": "E2 code bytes not checked against hash",
+   "Was": "open",
+   "Now": "still-open",
+   "Evidence": "`root` commits `acct.code_hash` (`sr:sidestr-evm/src/world.rs:110-121`). Execution reads `code.get(&a.code_hash)` without rehashing (`:184-203`). `restore` checks version, config and `world.root() == block.root` only (`sr:sidestr-evm/src/state.rs:305-328`). `keccak` appears in `world.rs` only in docs and tests (`:36,109,217-228`)."
+  },
+  {
+   "Report": "evm-accounting-and-snapshots",
+   "Finding": "E3 snapshot metadata unauthenticated",
+   "Was": "open",
+   "Now": "still-open",
+   "Evidence": "Time is required to exist, but its value is not checked (`sr:sidestr-evm/src/state.rs:329-333`). Receipts and blocks are copied unverified (`:340-346`)."
+  },
+  {
+   "Report": "evm-accounting-and-snapshots",
+   "Finding": "E4 selected height keeps later history",
+   "Was": "open",
+   "Now": "still-open",
+   "Evidence": "`self.blocks = snapshot.blocks.clone()` and all receipts are copied regardless of `height` (`sr:sidestr-evm/src/state.rs:335-346`). The accessors serve them (`:272-285`)."
+  },
+  {
+   "Report": "evm-accounting-and-snapshots",
+   "Finding": "E5 unbounded verdict cache",
+   "Was": "open",
+   "Now": "still-open",
+   "Evidence": "Each verdict is inserted unconditionally (`sr:sidestr-evm/src/state.rs:541`). `commit` clears `pending` but not `verdicts` (`:565-566`)."
+  },
+  {
+   "Report": "evm-accounting-and-snapshots",
+   "Finding": "E6 profile narrower than Ethereum",
+   "Was": "open",
+   "Now": "still-open",
+   "Evidence": "`disable_block_gas_limit = true` (`sr:sidestr-evm/src/exec.rs:170`), documented at `sr:sidestr-evm/src/config.rs:23-25`. KZG aborts (`exec.rs:77-78`). `block_hash` returns zero (`world.rs:209-210`). Chainless legacy transactions are accepted (`sr:sidestr-evm/src/tx.rs:48-54`). A published profile document is not present in what was read."
+  },
+  {
+   "Report": "hitch-finality-and-identity",
+   "Finding": "F1 channel ID ignores output index",
+   "Was": "open",
+   "Now": "still-open",
+   "Evidence": "`from_txid` takes the first 16 hex characters of the txid (`sr:sidestr-hitch/src/protocol/wire.rs:37-40`); `propose` uses only `funding.txid` (`sr:sidestr-hitch/src/protocol/opening.rs:210`); the host drops a repeat ID in `on_open` and `on_ready` (`sr:sidestr-agent/src/hitch/host.rs:1329-1331,1482-1484`)"
+  },
+  {
+   "Report": "hitch-finality-and-identity",
+   "Finding": "F2 unverified buffered update",
+   "Was": "open",
+   "Now": "still-open",
+   "Evidence": "Buffered before the proof, state and signature checks (`sr:sidestr-hitch/src/protocol/machine.rs:833-836` before `:843-850`). The buffer is snapshotted (`sr:sidestr-hitch/src/protocol/snapshot.rs:155,217`). `take_buffered_update` says to replay it through `receive_update` (`machine.rs:1049-1056`). No source statement records the host obligation beyond that."
+  },
+  {
+   "Report": "hitch-finality-and-identity",
+   "Finding": "F3 reorg can reopen",
+   "Was": "open (diagram corrected)",
+   "Now": "not-checkable",
+   "Evidence": "The behaviour is unchanged: the fallback arm restores `previous_status`, which can be `Open` (`sr:sidestr-hitch/src/protocol/chain.rs:357-358`). The remaining acceptance is host reorganisation (block replacement, duplicates, persisted recovery), which is runtime. The rustdoc at `:335-337` still claims \"never goes back to `open`\" (SIDESTR-F2)."
+  },
+  {
+   "Report": "hitch-finality-and-identity",
+   "Finding": "F4 oracle participation for revocation and wire",
+   "Was": "open (evidence scope)",
+   "Now": "still-open",
+   "Evidence": "The Hitch transaction oracle returns early without `HITCH` and the related variables (`sr:sidestr-hitch/tests/oracle.rs:62-66`). So do the wire oracle (`sr:sidestr-hitch/tests/wire_oracle.rs:186-188`) and the reference half of the chain test (`sr:sidestr-hitch/tests/chain_consensus.rs:416-418`). The revocation construction is unchanged (`sr:sidestr-hitch/src/lib.rs:740-791`). JavaScript parity is not checkable."
+  },
+  {
+   "Report": "hitch-recovery",
+   "Finding": "H1/H3 witness not checked on restore",
+   "Was": "open",
+   "Now": "still-open",
+   "Evidence": "Close and claim are checked by `compute_txid() != txid` only (`sr:sidestr-hitch/src/protocol/snapshot.rs:341-354`). The module doc still says \"checked in full on restore\" (`:1`)."
+  },
+  {
+   "Report": "hitch-recovery",
+   "Finding": "H2 late reveal not reclassified",
+   "Was": "open",
+   "Now": "still-open",
+   "Evidence": "Present secrets are checked for consistency only (`sr:sidestr-hitch/src/protocol/snapshot.rs:274-278`). `revoked` is computed from the current map (`sr:sidestr-hitch/src/protocol/chain.rs:242`). The same-txid fast path returns the stored `kind` without reclassifying (`:189-194`)."
+  },
+  {
+   "Report": "hitch-recovery",
+   "Finding": "H4 invoice expiry payer-only",
+   "Was": "open",
+   "Now": "still-open",
+   "Evidence": "`InvoiceRecord` has no expiry (`sr:sidestr-hitch/src/route.rs:98-106`). The payee lookup passes `i.record` unfiltered (`sr:sidestr-agent/src/hitch/host.rs:1677-1682`). The payer checks `inv.x < unix_now()` (`:1883-1885`)."
+  },
+  {
+   "Report": "hitch-recovery",
+   "Finding": "H5 host is not a hub",
+   "Was": "open",
+   "Now": "still-open",
+   "Evidence": "`Router::new(false, 0)` (`sr:sidestr-agent/src/hitch/host.rs:680`). `Forward` maps to `Ok(())` (`:1752`). The kernel records a forward before returning (`sr:sidestr-hitch/src/route.rs:379-391`) and offers `with_forwards` (`:247-253`)."
+  },
+  {
+   "Report": "oracle-contract",
+   "Finding": "O1 missing reference reports success",
+   "Was": "open",
+   "Now": "still-open",
+   "Evidence": "`upstream()` returns `None` when `bin/siding.mjs` is absent (`sr:sidestr-round/tests/support/interop.rs:23-26,34-39`). Pegtweak returns `None` when variables or `lib/pegtweak.mjs` are absent (`sr:sidestr-core/tests/pegtweak.rs:406-414`). No strict mode was found."
+  },
+  {
+   "Report": "oracle-contract",
+   "Finding": "O2 ADR understates reference set",
+   "Was": "open",
+   "Now": "still-open",
+   "Evidence": "ADR says \"all four reference repositories\" (`sr:docs/adr/ADR-0001-reference-oracle-is-the-compatibility-contract.md:27`), and its trigger omits Reef and teller (`:12`). The workflow pins six (`sr:.github/workflows/ci.yml:17-30`), with checkouts at `:108-143`."
+  },
+  {
+   "Report": "oracle-contract",
+   "Finding": "O3 build not frozen",
+   "Was": "open",
+   "Now": "still-open",
+   "Evidence": "`runs-on: ubuntu-latest` (`ci.yml:35,101`), `toolchain: stable` (`:42,157`), `node-version: 22` (`:152`). The Cargo commands have no `--locked` (`:53,56,62,65,87-88,97,208`)."
+  },
+  {
+   "Report": "oracle-contract",
+   "Finding": "O4 release enforcement unverified",
+   "Was": "open",
+   "Now": "still-open",
+   "Evidence": "The `oracle` job has no `needs` edge (`ci.yml:99-102`; `git grep needs:` is empty). Branch protection and publication credentials are external state and could not be checked."
+  },
+  {
+   "Report": "overlays-and-eviction",
+   "Finding": "O1 producer evicts on block-global failure",
+   "Was": "open",
+   "Now": "still-open",
+   "Evidence": "The core fallback evicts any transaction whose candidate verdict fails (`sr:sidestr-core/src/state.rs:882-895`). The composed producer does the same (`sr:sidestr-evm/src/rule.rs:364-371`). Exact bytes are remembered (`sr:sidestr-core/src/state.rs:762-770`) and refused on resubmission (`:646-651`)."
+  },
+  {
+   "Report": "overlays-and-eviction",
+   "Finding": "O2 unbounded candidate caches",
+   "Was": "open",
+   "Now": "still-open",
+   "Evidence": "Each rule only replaces the same hash and pushes: assets `sr:sidestr-core/src/assets.rs:535-536`, pool `sr:sidestr-core/src/pool.rs:316-317`, markets `sr:sidestr-core/src/markets.rs:434-435`. The only other mutation is `std::mem::take` in `applied` (`assets.rs:546`, `pool.rs:324`, `markets.rs:445`), from `git grep -n pending` over the three files."
+  }
+ ],
+ "context": [
+  {
+   "Report": "overlays-and-eviction",
+   "Finding": "O3 asset capability wording",
+   "Was": "diagram corrected",
+   "Now": "source matches corrected diagram",
+   "Evidence": "Holder-side `AssetView` reading is documented (`sr:sidestr-core/src/assets.rs:18-25`). No rules gives `Rules::default()` (`sr:sidestr-evm/src/rule.rs:425-427`). Diagram SR-02 line 69 states this distinction. The consumer badge criterion is not checkable."
+  },
+  {
+   "Report": "overlays-and-eviction",
+   "Finding": "O4 refund lifecycle wording",
+   "Was": "diagram corrected",
+   "Now": "source matches corrected diagram",
+   "Evidence": "The split and merge arms check no status (`sr:sidestr-core/src/markets.rs:260-287`). Unresolved refund requires combined burns of at least twice the amount and sets `Refunding` (`:306-320`). Diagram SR-02 lines 78-90 match."
+  }
+ ],
+ "findings": [
+  {
+   "id": "SIDESTR-F1",
+   "class": "gap",
+   "severity": "high",
+   "citation": "`git diff --stat 9c6de86c 814b9e54cd16` touches only `docs/dream-cycle/LEDGER.md`",
+   "consequence": "No remediation has landed for any of the 25 open rows (26 IDs), including the security-relevant B1, E1, E2, H1/H3 and H2. Every acceptance criterion in the six reports is still unmet. The pin's last commit is a dream-cycle ledger row marked REJECT."
+  },
+  {
+   "id": "SIDESTR-F2",
+   "class": "drift",
+   "severity": "medium",
+   "citation": "`sr:sidestr-hitch/src/protocol/chain.rs:335-337` vs `:357-358`",
+   "consequence": "The rustdoc on `un_spend` promises the channel \"never goes back to `open`\", but the code restores `Open`. Integrators reading the API docs get the same wrong invariant that the 1 November report removed from the diagram."
+  },
+  {
+   "id": "SIDESTR-F3",
+   "class": "drift",
+   "severity": "medium",
+   "citation": "`sr:sidestr-hitch/src/protocol/snapshot.rs:1` vs `:341-354`",
+   "consequence": "The module doc says snapshots are \"checked in full on restore\", but witnesses are not checked (H1/H3)."
+  },
+  {
+   "id": "SIDESTR-F4",
+   "class": "drift",
+   "severity": "low",
+   "citation": "`sr:.github/workflows/ci.yml:85` vs `sr:sidestr-core/src/lib.rs:165`",
+   "consequence": "The crate doc and the CI label disagree inside one repository. This mismatch already existed at `9c6de86c` and is not a partial fix. Renaming the CI step closes B4's documentation half."
+  },
+  {
+   "id": "SIDESTR-F5",
+   "class": "drift",
+   "severity": "low",
+   "citation": "`ab:config/sidechain/README.md:188` vs `ab:agentbox.toml:1975`",
+   "consequence": "The agentbox operator README says the txbt4 table ships disabled, but the shipped config enables it. This is B5's consumer half, unchanged at the agentbox pin."
+  },
+  {
+   "id": "SIDESTR-F6",
+   "class": "drift",
+   "severity": "low",
+   "citation": "`vc:docs/TODO-unified.md:103` vs `sr:sidestr-agent/src/hitch/mod.rs:34-35`",
+   "consequence": "VisionClaw N-10 still says \"Hitch has no host\" while the host module exists. The estate adoption tracker understates the implementation and does not record B1's identity gap."
+  }
+ ]
+}
