@@ -1,0 +1,56 @@
+parsed 212 topic files, 1750 mermaid diagrams
+  ~ nostr-rust-forum/28-nip171-owner-recovery-and-ticket-contracts.md: 6 source(s) exist at the declared revision but not in the working tree
+cite-check: 40 warning(s)
+citations: 0 verified at the declared revision, 0 unverified (working-tree fallback), 19 unresolvable, 5 allowlisted (unverifiable)
+wrote VERIFICATION.md
+  ~ visionflow/07-pitch-presentation-reports.md:VF-07.1 — texput.log:1 allowlisted (unverifiable): Gitignored LaTeX run log (.gitignore:50); written by the LaTeX engine (XeTeX here), exists in no commit, so no declared revision can contain it.
+  ~ visionflow/07-pitch-presentation-reports.md:VF-07.8 — texput.log:1 allowlisted (unverifiable): Gitignored LaTeX run log (.gitignore:50); written by the LaTeX engine (XeTeX here), exists in no commit, so no declared revision can contain it.
+  ~ visionflow/07-pitch-presentation-reports.md:VF-07.8 — texput.log:5 allowlisted (unverifiable): Gitignored LaTeX run log (.gitignore:50); written by the LaTeX engine (XeTeX here), exists in no commit, so no declared revision can contain it.
+  ~ visionflow/07-pitch-presentation-reports.md:VF-07.8 — texput.log:10 allowlisted (unverifiable): Gitignored LaTeX run log (.gitignore:50); written by the LaTeX engine (XeTeX here), exists in no commit, so no declared revision can contain it.
+  ~ visionflow/07-pitch-presentation-reports.md:VF-07.8 — texput.log:21 allowlisted (unverifiable): Gitignored LaTeX run log (.gitignore:50); written by the LaTeX engine (XeTeX here), exists in no commit, so no declared revision can contain it.
+  ! knowledgegraph/05-ci-cd-and-publish.md:KG-05.3 — ../ontomark/crates/ontomark-compile/src/build/mod.rs:990 is punctuation only ('));')
+  ! knowledgegraph/07-invariants-register.md:KG-07.1 — ../knowledgeGraph/docs/BASELINE-narrativegoldmine.md:187 is blank
+  ! nostr-rust-forum/06-agent-control-surface-31400-31405.md:NF-06.18 — ../nostr-rust-forum/docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md:187 is blank
+  ! nostr-rust-forum/06-agent-control-surface-31400-31405.md:NF-06.18 — ../nostr-rust-forum/docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md:198 is blank
+  ! nostr-rust-forum/28-nip171-owner-recovery-and-ticket-contracts.md:NF-28.1 — ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/nip171.rs could not be read
+  ! nostr-rust-forum/28-nip171-owner-recovery-and-ticket-contracts.md:NF-28.1 — ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/tickets.rs could not be read
+  ! nostr-rust-forum/28-nip171-owner-recovery-and-ticket-contracts.md:NF-28.1 — ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/tickets.rs could not be read
+  ! nostr-rust-forum/28-nip171-owner-recovery-and-ticket-contracts.md:NF-28.2 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/zone_groups.rs could not be read
+  ! nostr-rust-forum/28-nip171-owner-recovery-and-ticket-contracts.md:NF-28.2 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/zone_groups.rs could not be read
+  ! nostr-rust-forum/28-nip171-owner-recovery-and-ticket-contracts.md:NF-28.2 — ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/zone_groups.rs could not be read
+  ! nostr-rust-forum/28-nip171-owner-recovery-and-ticket-contracts.md:NF-28.2 — ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/recipient_keys.rs could not be read
+  ! nostr-rust-forum/28-nip171-owner-recovery-and-ticket-contracts.md:NF-28.3 — ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/keyset.rs could not be read
+  ! nostr-rust-forum/28-nip171-owner-recovery-and-ticket-contracts.md:NF-28.3 — ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/keyset.rs could not be read
+  ! nostr-rust-forum/28-nip171-owner-recovery-and-ticket-contracts.md:NF-28.4 — ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/nip171.rs could not be read
+  ! nostr-rust-forum/28-nip171-owner-recovery-and-ticket-contracts.md:NF-28.4 — ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/nip171.rs could not be read
+  ! nostr-rust-forum/28-nip171-owner-recovery-and-ticket-contracts.md:NF-28.4 — ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/nip171.rs could not be read
+  ! nostr-rust-forum/28-nip171-owner-recovery-and-ticket-contracts.md:NF-28.4 — ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/nip171.rs could not be read
+  ! nostr-rust-forum/28-nip171-owner-recovery-and-ticket-contracts.md:NF-28.4 — ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/tickets.rs could not be read
+  ! nostr-rust-forum/28-nip171-owner-recovery-and-ticket-contracts.md:NF-28.5 — ../nostr-rust-forum/docs/runbooks/deploy-phase-0-4.md could not be read
+  ! nostr-rust-forum/28-nip171-owner-recovery-and-ticket-contracts.md:NF-28.5 — ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/tickets.rs could not be read
+  ! nostr-rust-forum/28-nip171-owner-recovery-and-ticket-contracts.md:NF-28.5 — ../nostr-rust-forum/docs/runbooks/deploy-phase-0-4.md could not be read
+  ! nostr-rust-forum/28-nip171-owner-recovery-and-ticket-contracts.md:NF-28.6 — ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/tickets.rs could not be read
+  ! nostr-rust-forum/28-nip171-owner-recovery-and-ticket-contracts.md:NF-28.6 — ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/keyset.rs could not be read
+  ! ontomark/00-anomaly-register-and-reconciliation.md:OM-00.3 — ../ontomark/docs/adr/ADR-OM-005-estate-alignment-one-producer-explicit-projections.md:28 is blank
+  ! ontomark/04-emitters-turtle-indexes-tiers-and-contract-c3.md:OM-04.1 — ../ontomark/docs/adr/ADR-OM-009-every-published-closure-carries-a-derivation-certificate.md:34 is blank
+  ! ontomark/05-cli-commands-vault-selector-and-exit-codes.md:OM-05.5 — ../ontomark/docs/adr/ADR-OM-005-estate-alignment-one-producer-explicit-projections.md:30 is blank
+  ! ontomark/05-cli-commands-vault-selector-and-exit-codes.md:OM-05.5 — ../ontomark/docs/adr/ADR-OM-005-estate-alignment-one-producer-explicit-projections.md:28 is blank
+  ! ontomark/10-reasoning-and-certificate-boundaries.md:OM-10.1 — ../ontomark/crates/ontomark-compile/src/input/vocabulary.rs:523 is punctuation only ('}')
+  ! ontomark/10-reasoning-and-certificate-boundaries.md:OM-10.2 — ../ontomark/crates/ontomark-compile/src/build/mod.rs:685 is blank
+  ! ontomark/11-machine-bundle-identity-and-disclosure.md:OM-11.2 — ../ontomark/crates/ontomark-compile/src/build/mod.rs:685 is blank
+  ! ontomark/11-machine-bundle-identity-and-disclosure.md:OM-11.3 — ../ontomark/crates/ontomark-compile/src/build/mod.rs:963 is blank
+  ! ontomark/11-machine-bundle-identity-and-disclosure.md:OM-11.3 — ../ontomark/crates/ontomark-compile/src/build/mod.rs:983 is punctuation only ('}')
+  ! ontomark/11-machine-bundle-identity-and-disclosure.md:OM-11.3 — ../ontomark/crates/ontomark-compile/src/build/mod.rs:685 is blank
+  ! ontomark/11-machine-bundle-identity-and-disclosure.md:OM-11.3 — ../ontomark/crates/ontomark-compile/src/build/mod.rs:963 is blank
+  ! ontomark/11-machine-bundle-identity-and-disclosure.md:OM-11.3 — ../ontomark/crates/ontomark-compile/src/build/mod.rs:989 is punctuation only (')),')
+  ! solid-pod-rs/12-oidc-admission-and-fetching.md:SP-12.2 — ../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:1160 is punctuation only ('}')
+  ! visionclaw/47-portal-entry-and-scaled-walkthrough.md:VC-47.3 — ../project/xr-client/scripts/spatial_volume.gd:248 is blank
+  ! visionclaw/47-portal-entry-and-scaled-walkthrough.md:VC-47.3 — ../project/xr-client/scripts/graph_scene.gd:3149 is blank
+  ! visiontouch-rs/07-estate-position-and-future-visionclaw-grab-path.md:VT-07.3 — ../project/client/src/features/graph/hooks/useGraphEventHandlers.ts:27 is blank
+  ! visiontouch-rs/07-estate-position-and-future-visionclaw-grab-path.md:VT-07.3 — ../project/client/src/features/graph/hooks/useGraphEventHandlers.ts:78 is blank
+jev: reviewing 120 of 28201 citations (raise with --jev-max N requests of 24)
+jev: accepted set=vf-06-s1-02/citation-check/v1 model=jev-1.14.0
+jev: accepted set=vf-06-s1-02/citation-check/v1 model=jev-1.14.0
+jev: accepted set=vf-06-s1-02/citation-check/v1 model=jev-1.14.0
+jev: accepted set=vf-06-s1-02/citation-check/v1 model=jev-1.14.0
+jev: accepted set=vf-06-s1-02/citation-check/v1 model=jev-1.14.0

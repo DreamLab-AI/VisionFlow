@@ -1,0 +1,315 @@
+{
+  "schema": "external-review-doc-changes/v1",
+  "date": "2026-11-02",
+  "whole_document_reverification": false,
+  "repositories": [
+    {
+      "local": "agentbox",
+      "source_baseline": "eb570ca93ab4a0443dcfb0def35ac47493b059d6",
+      "documentation_head": "b36abb6cbe9e71bbe48fc1c5d46a4f8ced44c1bd",
+      "files": [
+        {
+          "path": "docs/adr/ADR-2018-recall-harness-merge-gate.md",
+          "sha256": "82f4d7236d9a86eb418f423eb3dc20602e1260aa5f36022115065d7dc7acc783"
+        },
+        {
+          "path": "docs/adr/ADR-2027-secret-custody-rotation-break-glass.md",
+          "sha256": "e3848a589a0dad946147db9b7936a8ab214c9e4944976faeb7438d8b724ae948"
+        },
+        {
+          "path": "docs/adr/ADR-2032-daemon-identification-argv-boundaries.md",
+          "sha256": "dd210cb7a6205c976d26fbe290933957ce3be29435d661eb0b617ad64ee6fe32"
+        },
+        {
+          "path": "docs/adr/ADR-2034-resource-topology-hook-shim-mcp-hub.md",
+          "sha256": "bfa8b09c118054c2495659b03a065f655e2243fcaa85c0201d0e739e4e0117dc"
+        },
+        {
+          "path": "docs/adr/ADR-2054-every-ontology-authoring-caller-crosses-the-gate.md",
+          "sha256": "dde9265d43c5ea02e29dcbec84653f85f1dfd2930cf0ab350d7b74f42251ea78"
+        },
+        {
+          "path": "docs/adr/ADR-2100-every-settlement-passes-the-authority-gate.md",
+          "sha256": "3758991c6cd780f579bf4f0ea099775a6c5c98bd8458b1cac489fb3adf583fb9"
+        },
+        {
+          "path": "docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md",
+          "sha256": "a259569baf175323fcacef1ea06eabb5a82fe6c4117ab238d9240bda8c080c02"
+        },
+        {
+          "path": "docs/adr/ADR-2132-incremental-image-delivery.md",
+          "sha256": "086f927af075335d3e5bc5e7757115383f9acfd4ba3f676dcfb30635e5d8f69c"
+        },
+        {
+          "path": "docs/adr/ADR-2149-isaac-sim-sidecar.md",
+          "sha256": "b6e4880d588bb07faefd0a5910019a02b1167ed2e1aa649dde3fe949eaf5c7ba"
+        },
+        {
+          "path": "docs/adr/ADR-2150-video-production-skill.md",
+          "sha256": "1702b4c717e1b9d6ad7f56f00b63d0fd749e982abf948bc837f879f5b9827d5b"
+        },
+        {
+          "path": "docs/adr/ADR-2151-voicelink-edge-voice.md",
+          "sha256": "6b97be99598d9ca3ad305274f7abff2e7798f7e99df956ca0ab7562bdefaa52b"
+        },
+        {
+          "path": "docs/adr/README.md",
+          "sha256": "5699bf5753604ff016ccc6cf69f75bbf5abf476c1405295fcedf5067dc95eead"
+        },
+        {
+          "path": "docs/adr/external-review-2026-11-02.md",
+          "sha256": "de49a20f1a4a433fce74df5c51334f1d63bf50eef6b73fa39b50db2ab6c82843"
+        }
+      ]
+    },
+    {
+      "local": "nostr-rust-forum",
+      "source_baseline": "c39f41f104b114d6a3fa29013daaf6fa58b45080",
+      "documentation_head": "944e84485ba125999bfd6de22bec01debe47f22d",
+      "files": [
+        {
+          "path": "docs/adr/ADR-2003-derive-subkey-raw-hmac-js-parity.md",
+          "sha256": "99b72ccdb9604edee3e9d9e3946935bc26c9066efc15148d407b67a69f0f8290"
+        },
+        {
+          "path": "docs/adr/ADR-2004-device-keys-default-off-dual-worker-gate.md",
+          "sha256": "7371f59669c321db82276e5aa69990aa40ad11c96b56d7a943404241d7a27409"
+        },
+        {
+          "path": "docs/adr/ADR-2006-trust-demotion-cron-tl3-never.md",
+          "sha256": "5610641c006ad7e21a3fe89962a83967165fa7af6849a1ecfc3e77f46e14148b"
+        },
+        {
+          "path": "docs/adr/ADR-2008-bbs-signer-holds-key-directly.md",
+          "sha256": "07123d348b8c6e7d8d617fd25c98c77fa08d174ebe73808a869d35f4e8d9338c"
+        },
+        {
+          "path": "docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md",
+          "sha256": "2a2e6a625ca2357398e11824b76926eed30ab86d722392d939dafbd4078d4069"
+        },
+        {
+          "path": "docs/adr/ADR-2014-member-lifecycle-one-source-of-truth.md",
+          "sha256": "f4c450799384d862ba0f5320d850e669014b2af0155c30ba95e53e59376d3bf6"
+        },
+        {
+          "path": "docs/adr/ADR-2016-end-to-end-encrypted-zones.md",
+          "sha256": "aa6ba583e52ce2912e22ed58f68e56a7280931d09678694bd4f57db33b3b4082"
+        },
+        {
+          "path": "docs/adr/ADR-2017-sealed-original-history-migration.md",
+          "sha256": "c3e48d8d804a05ebff92027530519db8d51623393d50dcfc6c7bc5cf3ca7be8c"
+        },
+        {
+          "path": "docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md",
+          "sha256": "19a557e4bab62ea511507488459bdd880b3a48e07e52676ac367ed27b4aacb10"
+        },
+        {
+          "path": "docs/adr/external-review-2026-11-02.md",
+          "sha256": "1a796900fa843c070bf0a74425be7aefc2d84073cbc9a8aefdba3ba67aeb113c"
+        }
+      ]
+    },
+    {
+      "local": "dreamlab-ai-website",
+      "source_baseline": "0e1572801d03a1af6d8bc8861f928da087d69eed",
+      "documentation_head": "d7e39fb6c3df84e4b83d760bb0eea9e5db900883",
+      "files": [
+        {
+          "path": "docs/adr/ADR-2005-config-hand-synced-mirrors.md",
+          "sha256": "4b4d2e13f96870993c47245af0e60d08d0fe315c209ce6971696956198bec24b"
+        },
+        {
+          "path": "docs/adr/ADR-2006-raw-schnorr-nip42-identity.md",
+          "sha256": "40710235c5d872c162f39ebf047aa653fab04b9abcfbd7db300eedc5baaa5ce4"
+        },
+        {
+          "path": "docs/adr/ADR-2007-four-zone-dual-accept-cohorts.md",
+          "sha256": "31ac06c30e773b246278081c53771e57fdd0477ecf6e835d50df3ba9dc5255f5"
+        },
+        {
+          "path": "docs/adr/ADR-2010-seo-watch-nightly.md",
+          "sha256": "002583fbe73b7a48b3532d9abd8905c1b7aad1fffc07f88b883a8fb8f18e1638"
+        },
+        {
+          "path": "docs/adr/ADR-2011-website-information-identity.md",
+          "sha256": "5f3e95e2b94f5747ce9ed84d3de398b0ec044706deaa3bfa36159a795b97aa20"
+        },
+        {
+          "path": "docs/adr/external-review-2026-11-02.md",
+          "sha256": "8b91e94ef887fb34350c8c1cbbae968226e9447da3ab147fdb8d184a18d89a7b"
+        }
+      ]
+    },
+    {
+      "local": "dream-engine",
+      "source_baseline": "bfe8c8885a58cc576a18ecb55d4e05e6f3bd37c7",
+      "documentation_head": "ce94bbcd7cafb62e642450a37771ee07287e8489",
+      "files": [
+        {
+          "path": "docs/adr/ADR-DE-003-protected-path-guard.md",
+          "sha256": "424fff1e6b4ccc3776186ebd2f94095c3ba63e5e8f5f536fbe0bdb8f43e61fc2"
+        },
+        {
+          "path": "docs/adr/ADR-DE-008-requested-sources-are-honoured-first.md",
+          "sha256": "251ff27f115b607e4b79248f956c216f4c2cfd33475ab7e33826b73f8cc201b9"
+        },
+        {
+          "path": "docs/adr/ADR-DE-009-candidates-are-formatted-before-the-gate.md",
+          "sha256": "458a0effbb87b1529dc3ace90029c0a172c9c509c4fe3f1337220d92a594eec2"
+        },
+        {
+          "path": "docs/adr/external-review-2026-11-02.md",
+          "sha256": "e511ce01485c2d5e58af0a042af5817b092c62f89b20874bc11d7b8b8578fc93"
+        }
+      ]
+    },
+    {
+      "local": "solid-pod-rs",
+      "source_baseline": "9b6143ce55b242c322c92d8c6bcc0c1a5371b451",
+      "documentation_head": "b24a8e154a13062d5536346d73405387f549fb0a",
+      "files": [
+        {
+          "path": "crates/solid-pod-rs/docs/adr/ADR-2004-provenance-off-by-default.md",
+          "sha256": "f08273f5d014b58c85e174b6171467b0445804ac8aaa3d40b261fa03e33ebb9b"
+        },
+        {
+          "path": "crates/solid-pod-rs/docs/adr/ADR-2005-fail-closed-untrusted-parsing.md",
+          "sha256": "69f87c2361a17ddff2aa8f5239e52846f25d9066b5680057923f6e6090763827"
+        },
+        {
+          "path": "crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md",
+          "sha256": "6ec6fb9707f7806dadf1c4a13b40e1292b4eea67ca3701b8d726a0a191bd92cc"
+        },
+        {
+          "path": "crates/solid-pod-rs/docs/adr/ADR-2010-forge-and-mirror-are-on-in-shipped-builds.md",
+          "sha256": "f0090621390556b595197bc968a2b037b538cb44a5cc80abbfb0ba285c02e36f"
+        }
+      ]
+    },
+    {
+      "local": "sidestr-rs",
+      "source_baseline": "814b9e54cd163344af8aa63b79238fb0a08660da",
+      "documentation_head": "9ba0764f698c111b5674a46e7df0988d5dd32344",
+      "files": [
+        {
+          "path": "docs/adr/ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md",
+          "sha256": "c57c6092519650fd0031a889552a6d956a5e8e59dc8097e84a65f8fd9ab7aeb0"
+        }
+      ]
+    },
+    {
+      "local": "ontomark",
+      "source_baseline": "4b9d15df48056971321a62b8c4e905f4536c74db",
+      "documentation_head": "a525902fed8b0fbd62417dbbdfa44ef1087ab3c4",
+      "files": [
+        {
+          "path": "docs/adr/ADR-OM-005-estate-alignment-one-producer-explicit-projections.md",
+          "sha256": "c0acbcebedcc15b6b2f923298e541ff7d2262ae0d64fa1d016101984efaea3b5"
+        },
+        {
+          "path": "docs/adr/ADR-OM-009-every-published-closure-carries-a-derivation-certificate.md",
+          "sha256": "61e91a27d3f20002cd23168dc5bdc062737b3dac36b4eca69ce066cfc76254b8"
+        }
+      ]
+    },
+    {
+      "local": "visionGraph",
+      "source_baseline": "556a0156b5c326fb61141ed2ab1760dd8d9c4dd6",
+      "documentation_head": "91452aa66a23bb27ab4b00dcead5477c2afdea7e",
+      "files": [
+        {
+          "path": "docs/adr/ADR-VG-002-generation-and-consumer-identity.md",
+          "sha256": "7189e5081338687db89ddd35b51a2b0518be1a4203d67f71213dcab6754d2ea6"
+        }
+      ]
+    },
+    {
+      "local": "knowledgeGraph",
+      "source_baseline": "4ed9ac159daf402b4fb252ce559dbeb894a8d91e",
+      "documentation_head": "a5a74c068fa0a7be0c5483dcb2c7a959076d9951",
+      "files": [
+        {
+          "path": "docs/adr/ADR-2002-corpus-is-the-ontology.md",
+          "sha256": "6289b8292ff412d5f95c7a5163b76f1f8a814ddf095a498bf1b9d865329b8db8"
+        }
+      ]
+    },
+    {
+      "local": "vowl-wasm",
+      "source_baseline": "28af4365a68d9aacfd7c04f63299cc96ad717ce3",
+      "documentation_head": "ca1deaeca0357129a676b87392950e13d4db675a",
+      "files": [
+        {
+          "path": "docs/adr/ADR-001-shared-ontology-rendering-contract.md",
+          "sha256": "3f3edd18572c07ed11304024665f7d0d8951762acf80d5548163aba52018c351"
+        }
+      ]
+    },
+    {
+      "local": "project",
+      "source_baseline": "e78210c4d71b6411e466d031c0538ffe8aabc071",
+      "documentation_head": "221d8b5599fc8d6ed931b8ca6337bb6f2b8f8f6a",
+      "files": [
+        {
+          "path": "docs/GPU-wire-abi.md",
+          "sha256": "309265d1162ddb0c0b1f80b048816b1b5db58c043d4ccac66aec0516d788308c"
+        },
+        {
+          "path": "docs/XR-client.md",
+          "sha256": "aed56480181f92f1a3ba894f82e07c9301cdd2ed2dfb82c5b4b4261093964aee"
+        },
+        {
+          "path": "docs/adr/ADR-2028-simparams-212-byte-abi.md",
+          "sha256": "fbf5ee87aa839d787a55aeab705629b231c2941e41515897309ea88bea791c4f"
+        },
+        {
+          "path": "docs/adr/ADR-2058-websocket-auth-header-only.md",
+          "sha256": "497b1208255a31f922cbb637bb348f117c5333efab4da19738ba392cbc3d9206"
+        },
+        {
+          "path": "docs/adr/ADR-2061-validate-analytics-kernels-against-oracle.md",
+          "sha256": "fe9f03e136cd0632a9fabba9e6b2d166f5e129059d5a85398ce551b13bce6f27"
+        },
+        {
+          "path": "docs/adr/ADR-2141-positions-are-streamed-per-client-until-acknowledged.md",
+          "sha256": "461f455cf27b655a0a1a253ee1d0f36a71c66791e034d40a6c337a828eaf4caa"
+        },
+        {
+          "path": "docs/adr/ADR-2164-code-graph-entities-link-to-knowledge-and-ontology-nodes-resolved-at-runtime.md",
+          "sha256": "fffdf5af1d3d328e0e3ecc579dfabeaab37b25dd06a00acf5ab077f1388c5260"
+        },
+        {
+          "path": "docs/adr/ADR-2166-spatial-volumes-can-be-entered-the-others-become-portals.md",
+          "sha256": "641ae71fdc7993ed8a39c28fda08929d89ef5d53e2b3b4f57d9d30dd608f101b"
+        },
+        {
+          "path": "docs/adr/ADR-2169-a-drag-is-a-hold-the-released-node-rejoins-the-simulation-and-the-graph-settles.md",
+          "sha256": "c9fb7b712037835360f5213f6c34bd3f875a08ba29367969b1e9d94614bb7f3f"
+        },
+        {
+          "path": "docs/adr/ADR-2172-a-node-is-grabbed-with-either-hand-in-any-visionclaw-volume.md",
+          "sha256": "e7eb07a1fd639521bdf0d98ec744873fda934e3470918bf58da17de751f516b6"
+        },
+        {
+          "path": "docs/reference/external-review-2026-11-02.md",
+          "sha256": "4105030340a5d4fcb68e8a2602cc15848ec707ed3b78bf1e5f6ba360bd0095e5"
+        }
+      ]
+    },
+    {
+      "local": "codescape",
+      "source_baseline": "58108c0357bd0dbf6588f8b6adf6e044f4c04556",
+      "documentation_head": "4db47bac633984285c43a3ca3ae9bf7c69696def",
+      "files": [
+        {
+          "path": "docs/BASELINE-codescape.md",
+          "sha256": "2ff9044000eee95b456069ad9afac6d99f4394712bb2fc5c4c5fb6c8b8afd84b"
+        },
+        {
+          "path": "docs/adr/ADR-0001-extraction-from-visionclaw.md",
+          "sha256": "af31af2675e83e3d974834334e69e0f31b61b4adb0365585d2a62b1ed87edf22"
+        }
+      ]
+    }
+  ]
+}
