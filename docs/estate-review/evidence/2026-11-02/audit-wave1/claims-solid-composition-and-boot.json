@@ -1,0 +1,10 @@
+[
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/solid-pod-rs/01-workspace-composition.md",
+   "report": "docs/estate-review/2026-11-02-solid-composition-and-boot.md", "coverage": "selected-panels",
+   "panels": ["SP-01.1", "SP-01.3", "SP-01.4", "SP-01.5", "SP-01.6", "SP-01.7", "SP-01.8", "SP-01.9", "SP-01.10", "SP-01.11", "SP-01.12", "SP-01.13"],
+   "basis": "Source tracing at solid-pod-rs 9b6143c; restamped, strict cite-check and render pass (143 citations); all 12 panels assessed (2 accurate, 8 corrected, 2 with limits); consumer-repo claims and cargo-deny release gating not verified; no runtime evidence."},
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/solid-pod-rs/02-server-boot-and-routes.md",
+   "report": "docs/estate-review/2026-11-02-solid-composition-and-boot.md", "coverage": "selected-panels",
+   "panels": ["SP-02.1", "SP-02.2", "SP-02.3", "SP-02.5", "SP-02.6", "SP-02.7", "SP-02.8", "SP-02.9", "SP-02.10", "SP-02.11", "SP-02.13"],
+   "basis": "Source tracing at solid-pod-rs 9b6143c; restamped, strict cite-check and render pass (149 citations); all 11 panels assessed (1 accurate, 9 corrected, 1 with limits); middleware ordering rests on actix-web 4.14.1 docs, not a request run; no runtime evidence."}
+]

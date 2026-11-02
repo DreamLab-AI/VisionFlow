@@ -1,0 +1,90 @@
+[
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2164-code-graph-entities-link-to-knowledge-and-ontology-nodes-resolved-at-runtime.md",
+    "report": "docs/estate-review/2026-11-02-stale-claim-rebind.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd76; changed sections assessed in this report, unchanged sections carried from the named earlier report with the governed-path delta recorded; changed D8 endpoint bullet assessed (Rust pack true; 'every frame' is the 90 Hz physics tick; marker budget breach still holds); other sections carried from 2026-10-31-xr-volumes-and-code-links; timings not checkable."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2143-codescape-section-separate-workspace-and-port.md",
+    "report": "docs/estate-review/2026-11-02-stale-claim-rebind.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd76; changed sections assessed in this report, unchanged sections carried from the named earlier report with the governed-path delta recorded; stamp and ff849f2ba annex assessed (conclusion true; delta description and date inaccurate, ST-1); other sections carried from 2026-11-01-codescape-runtime-boundary, governed delta since 531df5ef7 one registry line."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2166-spatial-volumes-can-be-entered-the-others-become-portals.md",
+    "report": "docs/estate-review/2026-11-02-stale-claim-rebind.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd76; changed sections assessed in this report, unchanged sections carried from the named earlier report with the governed-path delta recorded; stamp and seven annexes assessed against source (ef021a41d formula superseded in-document, date drift, ST-2); other sections carried from 2026-10-31-portals-and-federation; portal code byte-identical since 531df5ef7; no GUT or headset run."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2071-journal-the-nightly-dream-cycle.md",
+    "report": "docs/estate-review/2026-11-02-stale-claim-rebind.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0; changed sections assessed in this report, unchanged sections carried from the named earlier report with the governed-path delta recorded; stamp and cc949bb79 annex accurate (single test literal over all governed paths); other sections carried from 2026-11-01-dream-journal-and-api-down, delta since 9dfc27b16 that one line."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2081-annexe-depth-law-and-honest-evaluator-receipts.md",
+    "report": "docs/estate-review/2026-11-02-stale-claim-rebind.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0; changed sections assessed in this report, unchanged sections carried from the named earlier report with the governed-path delta recorded; stamp and cc949bb79 annex accurate; other sections carried from 2026-11-01-dream-annexe-and-receipts, delta since 9dfc27b16 one test line."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2114-dream-candidate-diffs-against-engine-read-source.md",
+    "report": "docs/estate-review/2026-11-02-stale-claim-rebind.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0; changed sections assessed in this report, unchanged sections carried from the named earlier report with the governed-path delta recorded; stamp and cc949bb79 annex accurate; other sections carried from 2026-11-01-dream-execution-and-triage, delta since 9dfc27b16 one test line."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2115-dream-decisions-surface-on-the-forum-governance-panel.md",
+    "report": "docs/estate-review/2026-11-02-stale-claim-rebind.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0; changed sections assessed in this report, unchanged sections carried from the named earlier report with the governed-path delta recorded; stamp and cc949bb79 annex accurate (dream-inbox-surface.cjs unchanged); other sections carried from 2026-11-01-dream-governance-and-delivery, delta since 9dfc27b16 one test line."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2153-session-plane-replaces-aoe.md",
+    "report": "docs/estate-review/2026-11-02-stale-claim-rebind.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0; changed sections assessed in this report, unchanged sections carried from the named earlier report with the governed-path delta recorded; stamp and four annexes accurate per-range over all 26 governed paths (credential custody and scrub only); other sections carried from 2026-11-01-agentbox-session-lifecycle; no session-plane lines in the delta."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2169-a-drag-is-a-hold-the-released-node-rejoins-the-simulation-and-the-graph-settles.md",
+    "report": "docs/estate-review/2026-11-02-stale-claim-rebind.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd76; changed sections assessed in this report, unchanged sections carried from the named earlier report with the governed-path delta recorded; items 8-10, frontmatter and six stamps assessed: overlay, x20 gain, springs_active cap, placement, constraint sync implemented; 2.0 floor inert (ST-5); ff849f2ba stamp misdescribed (ST-1); measured figures and PTX not checked; items 1-7 carried from 2026-11-01-drag-holds-and-acceptance with DH anchors rechecked."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2172-a-node-is-grabbed-with-either-hand-in-any-visionclaw-volume.md",
+    "report": "docs/estate-review/2026-11-02-stale-claim-rebind.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd76; changed sections assessed in this report, unchanged sections carried from the named earlier report with the governed-path delta recorded; stamp and seven annexes assessed ('hunt_grabs unchanged' literally false, behaviour-preserving, ST-3); other sections carried from 2026-11-01-xr-grab-boundaries, grab code unchanged since 531df5ef7; no GUT or headset run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2002-nip98-single-use-replay-cache.md",
+    "report": "docs/estate-review/2026-11-02-stale-claim-rebind.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd76; changed sections assessed in this report, unchanged sections carried from the named earlier report with the governed-path delta recorded; stamp and ff849f2ba annex assessed (conclusion true; delta is the 5fa0e1325 payment paragraph, not sprint work, ST-1); other sections carried from 2026-11-01-visionclaw-payment-auth, governed delta since 5fa0e1325 empty."
+  }
+]

@@ -1,0 +1,446 @@
+Reading additional input from stdin...
+OpenAI Codex v0.165.0
+--------
+workdir: /home/devuser/workspace/VisionFlow
+model: gpt-6-astra
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: medium
+reasoning summaries: none
+session id: 01a19bc8-7ca1-7021-a3bc-bd1b1d223e8f
+--------
+user
+You are an independent cross-vendor auditor. Stdin holds two claims from a source-tracing audit with their evidence at pinned revisions. Do not use tools. For each give SUPPORTED, PARTLY SUPPORTED or NOT SUPPORTED with brief reasoning grounded only in what is shown. For SAMPLE 5, judge each node label of the panel against its cited line and list any label the cited line does not support. End with one line: OVERALL <n>/2 supported.
+
+<stdin>
+=== SAMPLE 3 (rerun): VisionClaw /ontology/derived write gating vs ADR-135 D7
+Claim: the derived-write route is gated by power_user only; no signed distiller
+envelope or distiller allow-list check exists on that path in VisionClaw.
+--- route registration and handler (whole file, 86cdd7635582)
+       1	//! Fenced derived-ontology write surface (WS-9).
+       2	//!
+       3	//! `POST /api/ontology/derived` accepts a list of quads `{graph, s, p, o}` and
+       4	//! writes them into the derived named graphs **`urn:ngm:graph:ontology:summary`**
+       5	//! and **`urn:ngm:graph:ontology:observed`** only. Any quad targeting
+       6	//! `:assert` or `:inferred` is rejected with HTTP 400 — the **fence**.
+       7	//!
+       8	//! Defence-in-depth: the fence is enforced at BOTH layers —
+       9	//!   1. here, an early 400 before any Oxigraph call, and
+      10	//!   2. in [`OxigraphOntologyRepository::append_derived_quads`], which re-checks
+      11	//!      `DERIVED_FENCE` so a future direct caller of the repo method cannot
+      12	//!      bypass the handler.
+      13	//!
+      14	//! Scope is `/ontology/derived` (NOT `/ontology`), so it does not collide with
+      15	//! the single `/ontology` scope in `ontology_handler::config`. It is mounted at
+      16	//! the `/api` level via `main.rs`, and gated `RequireAuth::power_user()` —
+      17	//! mirroring the privileged ontology scope (`ontology_handler.rs:917-918`).
+      18	
+      19	use actix_web::{web, HttpResponse};
+      20	use log::warn;
+      21	use serde::Deserialize;
+      22	use serde_json::json;
+      23	
+      24	use crate::middleware::RequireAuth;
+      25	use crate::settings::auth_extractor::AuthenticatedUser;
+      26	use crate::AppState;
+      27	
+      28	/// Forbidden graphs — mirrored locally for the early 400. Must match
+      29	/// `DERIVED_FENCE` in `oxigraph_ontology_repository.rs`.
+      30	const FORBIDDEN_GRAPHS: [&str; 2] = [
+      31	    "urn:ngm:graph:ontology:assert",
+      32	    "urn:ngm:graph:ontology:inferred",
+      33	];
+      34	
+      35	/// The only writable derived graphs.
+      36	const ALLOWED_GRAPHS: [&str; 2] = [
+      37	    "urn:ngm:graph:ontology:summary",
+      38	    "urn:ngm:graph:ontology:observed",
+      39	];
+      40	
+      41	#[derive(Debug, Deserialize)]
+      42	pub struct DerivedQuad {
+      43	    pub graph: String,
+      44	    pub s: String,
+      45	    pub p: String,
+      46	    pub o: String,
+      47	}
+      48	
+      49	#[derive(Debug, Deserialize)]
+      50	pub struct DerivedWriteRequest {
+      51	    pub quads: Vec<DerivedQuad>,
+      52	}
+      53	
+      54	/// `POST /api/ontology/derived` — fenced quad write to `:summary`/`:observed`.
+      55	async fn write_derived(
+      56	    _auth: AuthenticatedUser,
+      57	    state: web::Data<AppState>,
+      58	    body: web::Json<DerivedWriteRequest>,
+      59	) -> HttpResponse {
+      60	    let body = body.into_inner();
+      61	
+      62	    if body.quads.is_empty() {
+      63	        return HttpResponse::BadRequest().json(json!({
+      64	            "error": "empty quads",
+      65	            "detail": "derived write requires at least one quad",
+      66	        }));
+      67	    }
+      68	
+      69	    // Layer-1 fence: reject before any store interaction.
+      70	    for q in &body.quads {
+      71	        if FORBIDDEN_GRAPHS.contains(&q.graph.as_str()) {
+      72	            warn!(
+      73	                "[ontology-derived] rejected fenced graph write: {}",
+      74	                q.graph
+      75	            );
+      76	            return HttpResponse::BadRequest().json(json!({
+      77	                "error": "fenced graph",
+      78	                "graph": q.graph,
+      79	                "detail": "derived writes may not target :assert or :inferred",
+      80	            }));
+      81	        }
+      82	        if !ALLOWED_GRAPHS.contains(&q.graph.as_str()) {
+      83	            return HttpResponse::BadRequest().json(json!({
+      84	                "error": "unsupported graph",
+      85	                "graph": q.graph,
+      86	                "detail": "derived writes only to :summary/:observed",
+      87	            }));
+      88	        }
+      89	    }
+      90	
+      91	    let quads: Vec<(String, String, String, String)> = body
+      92	        .quads
+      93	        .into_iter()
+      94	        .map(|q| (q.graph, q.s, q.p, q.o))
+      95	        .collect();
+      96	
+      97	    // Layer-2 fence + injection guards live inside append_derived_quads.
+      98	    match state.ontology_repository.append_derived_quads(quads).await {
+      99	        Ok(n) => HttpResponse::Ok().json(json!({ "success": true, "written": n })),
+     100	        Err(e) => {
+     101	            warn!("[ontology-derived] write failed: {e}");
+     102	            HttpResponse::BadRequest().json(json!({
+     103	                "success": false,
+     104	                "error": e.to_string(),
+     105	            }))
+     106	        }
+     107	    }
+     108	}
+     109	
+     110	/// `POST /api/ontology/derived/regenerate` — clear + re-mark `:summary` so the
+     111	/// endpoint is non-lossy and idempotent. Clears both derived graphs then writes
+     112	/// a provenance marker triple recording the regeneration. A full re-derivation
+     113	/// from a SELECT over `:assert`/`:inferred` is the WS-0 LIMIT-clamp follow-on;
+     114	/// it is deliberately NOT run unbounded here.
+     115	async fn regenerate(_auth: AuthenticatedUser, state: web::Data<AppState>) -> HttpResponse {
+     116	    if let Err(e) = state
+     117	        .ontology_repository
+     118	        .clear_derived_graph("summary")
+     119	        .await
+     120	    {
+     121	        warn!("[ontology-derived] clear summary failed: {e}");
+     122	        return HttpResponse::InternalServerError()
+     123	            .json(json!({ "success": false, "error": e.to_string() }));
+     124	    }
+     125	    if let Err(e) = state
+     126	        .ontology_repository
+     127	        .clear_derived_graph("observed")
+     128	        .await
+     129	    {
+     130	        warn!("[ontology-derived] clear observed failed: {e}");
+     131	        return HttpResponse::InternalServerError()
+     132	            .json(json!({ "success": false, "error": e.to_string() }));
+     133	    }
+     134	
+     135	    // Provenance marker so the regeneration is observable + idempotent.
+     136	    let marker_subject = "urn:ngm:derived:regeneration".to_string();
+     137	    let activity = format!(
+     138	        "urn:visionclaw:execution:regenerate-derived-{}",
+     139	        std::time::SystemTime::now()
+     140	            .duration_since(std::time::UNIX_EPOCH)
+     141	            .map(|d| d.as_millis())
+     142	            .unwrap_or(0)
+     143	    );
+     144	    let marker = vec![(
+     145	        marker_subject,
+     146	        "https://narrativegoldmine.com/ns/v1#regeneratedAt".to_string(),
+     147	        chrono::Utc::now().to_rfc3339(),
+     148	    )];
+     149	
+     150	    match state
+     151	        .ontology_repository
+     152	        .append_derived_summary(None, &activity, marker)
+     153	        .await
+     154	    {
+     155	        Ok(()) => HttpResponse::Ok().json(json!({
+     156	            "success": true,
+     157	            "cleared": ["summary", "observed"],
+     158	            "activity_urn": activity,
+     159	        })),
+     160	        Err(e) => {
+     161	            warn!("[ontology-derived] regenerate marker failed: {e}");
+     162	            HttpResponse::InternalServerError()
+     163	                .json(json!({ "success": false, "error": e.to_string() }))
+     164	        }
+     165	    }
+     166	}
+     167	
+     168	/// `GET /api/ontology/derived/{which}` — read a derived graph (summary|observed).
+     169	async fn read_derived(
+     170	    _auth: AuthenticatedUser,
+     171	    state: web::Data<AppState>,
+     172	    which: web::Path<String>,
+     173	) -> HttpResponse {
+     174	    match state.ontology_repository.read_derived_graph(&which).await {
+     175	        Ok(v) => HttpResponse::Ok().json(v),
+     176	        Err(e) => HttpResponse::BadRequest().json(json!({
+     177	            "success": false,
+     178	            "error": e.to_string(),
+     179	        })),
+     180	    }
+     181	}
+     182	
+     183	/// Mounts `/ontology/derived` under the caller's scope (registered at `/api`).
+     184	/// `power_user`-gated — same posture as the privileged ontology mutators.
+     185	pub fn configure_routes(cfg: &mut web::ServiceConfig) {
+     186	    cfg.service(
+     187	        web::scope("/ontology/derived")
+     188	            .wrap(RequireAuth::power_user())
+     189	            .route("", web::post().to(write_derived))
+     190	            .route("/regenerate", web::post().to(regenerate))
+     191	            .route("/{which}", web::get().to(read_derived)),
+     192	    );
+     193	}
+--- repository-wide search at 86cdd7635582 in src/ and crates/ for signature or allow-list terms
+86cdd7635582:crates/vault/Cargo.toml:55:# Nostr 31402 ActionRequest construction + BIP-340 signing. Never hand-rolled:
+86cdd7635582:crates/vault/src/nostr.rs:3://! **No cryptography is implemented here.** The event id, the BIP-340
+86cdd7635582:crates/vault/src/nostr.rs:175:/// The event id and the BIP-340 signature both come from `nostr-bbs-core`;
+86cdd7635582:crates/vault/src/nostr.rs:190:    let signature = key.sign(&id).map_err(|e| format!("schnorr sign: {e}"))?;
+86cdd7635582:crates/visionclaw-contracts/README.md:5:Single source of truth for every envelope that crosses a process boundary in
+86cdd7635582:crates/visionclaw-contracts/README.md:13:| Module             | Envelope                       | Canonical spec               |
+86cdd7635582:crates/visionclaw-contracts/README.md:15:| `agent_action`     | `AgentActionEnvelope`          | ADR-10 §D3 + T7 resolution   |
+86cdd7635582:crates/visionclaw-contracts/README.md:16:| `telemetry`        | `AgentTelemetryEnvelope`       | ADR-10 §D1 (CC-1 ACL added)  |
+86cdd7635582:crates/visionclaw-contracts/README.md:17:| `enterprise`       | `EnterpriseEventEnvelope`      | ADR-10 §D5                   |
+86cdd7635582:crates/visionclaw-contracts/README.md:42:All envelopes carry `schema_version`. Bump rules (ADR-10 §D8):
+86cdd7635582:crates/visionclaw-contracts/README.md:68:let envelope = AgentAction::new(
+86cdd7635582:crates/visionclaw-contracts/README.md:75:).into_envelope();
+86cdd7635582:crates/visionclaw-contracts/README.md:76:let wire_json = serde_json::to_string(&envelope)?;
+86cdd7635582:crates/visionclaw-contracts/README.md:83:  AgentActionEnvelope,
+86cdd7635582:crates/visionclaw-contracts/README.md:90:channel.onmessage = (e: MessageEvent<AgentActionEnvelope>) => {
+86cdd7635582:crates/visionclaw-contracts/bindings/AgentAction.ts:8: * Payload for an `agent-action` envelope at schema version 1.
+86cdd7635582:crates/visionclaw-contracts/bindings/AgentActionEnvelope.ts:5: * Top-level envelope dispatched on every agent-node interaction.
+86cdd7635582:crates/visionclaw-contracts/bindings/AgentActionEnvelope.ts:12:export type AgentActionEnvelope = { "type": "visionclaw:agent-action" } & AgentAction;
+86cdd7635582:crates/visionclaw-contracts/bindings/AgentTelemetryEnvelope.ts:10: * Top-level telemetry envelope arriving on `/ws/agent-telemetry`.
+86cdd7635582:crates/visionclaw-contracts/bindings/AgentTelemetryEnvelope.ts:13: * emit `schema_version` at the envelope root so consumers can reject
+86cdd7635582:crates/visionclaw-contracts/bindings/AgentTelemetryEnvelope.ts:16:export type AgentTelemetryEnvelope = { schema_version: number, 
+86cdd7635582:crates/visionclaw-contracts/bindings/EnterpriseEventEnvelope.ts:7: * Top-level enterprise event envelope.
+86cdd7635582:crates/visionclaw-contracts/bindings/EnterpriseEventEnvelope.ts:9:export type EnterpriseEventEnvelope = { schema_version: number, issued_at_ms: bigint, } & ({ "type": "membership_change", "payload": MembershipChangePayload } | { "type": "role_change", "payload": RoleChangePayload } | { "type": "session_revoked", "payload": SessionRevokedPayload });
+86cdd7635582:crates/visionclaw-contracts/src/agent_action.rs:1://! `AgentActionEnvelope` — outbound message from VisionClaw to agentbox/forum
+86cdd7635582:crates/visionclaw-contracts/src/agent_action.rs:22://!    [`AgentActionTargetOrigin`] allowlist
+86cdd7635582:crates/visionclaw-contracts/src/agent_action.rs:27://! - Re-broadcast the envelope (one-way contract)
+86cdd7635582:crates/visionclaw-contracts/src/agent_action.rs:59:/// Discriminator literal for the envelope `type` field.
+86cdd7635582:crates/visionclaw-contracts/src/agent_action.rs:66:// Envelope
+86cdd7635582:crates/visionclaw-contracts/src/agent_action.rs:69:/// Top-level envelope dispatched on every agent-node interaction.
+86cdd7635582:crates/visionclaw-contracts/src/agent_action.rs:79:    ts(export, export_to = "AgentActionEnvelope.ts")
+86cdd7635582:crates/visionclaw-contracts/src/agent_action.rs:82:pub enum AgentActionEnvelope {
+86cdd7635582:crates/visionclaw-contracts/src/agent_action.rs:83:    /// The one and only envelope variant at `schema_version = 1`.
+86cdd7635582:crates/visionclaw-contracts/src/agent_action.rs:88:/// Payload for an `agent-action` envelope at schema version 1.
+86cdd7635582:crates/visionclaw-contracts/src/agent_action.rs:235:    /// Free-form origin string. The allowlist itself is configured per
+86cdd7635582:crates/visionclaw-contracts/src/agent_action.rs:236:    /// deployment; the type exists to make the allowlist a typed value
+86cdd7635582:crates/visionclaw-contracts/src/agent_action.rs:272:    /// Wrap this action in the discriminated envelope. The envelope is what
+86cdd7635582:crates/visionclaw-contracts/src/agent_action.rs:274:    pub fn into_envelope(self) -> AgentActionEnvelope {
+86cdd7635582:crates/visionclaw-contracts/src/agent_action.rs:275:        AgentActionEnvelope::V1(self)
+86cdd7635582:crates/visionclaw-contracts/src/agent_action.rs:284:    fn envelope_serialises_with_type_discriminator() {
+86cdd7635582:crates/visionclaw-contracts/src/agent_action.rs:293:        let envelope = action.into_envelope();
+--- ADR-135 D7 text
+> - **D7** (server-side SPARQL clamp) → `loom-graph-oxigraph` (read-only, `SERVICE` forbidden, LIMIT clamp — strengthened beyond Python, RUST-ARCHITECTURE §8.1).
+> - **D8** (ADR-090 hexagonal ring for any Rust surface) → the eight-crate acyclic workspace: `loom-domain` core, five adapters, `loom-scaffold` policy, `loom-facade` binary.
+
+---
+
+## 1. Context
+
+VisionFlow's ontology intelligence is scattered across four codebases and, worse, **duplicated**
+in ways that have already caused live drift (the 8152-vs-5975 class-count divergence; a stale
+`:assert` graph). There are two reasoners (VisionClaw Whelk EL++ → `:inferred` vs
+`pipeline/reason.py` transitive closure → `ontology-inferred.ttl`), three retrieval
+implementations (agentbox `ontology-retrieval` "one brain" vs HP `ontology_scaffold.py` vs
+`ontology-mcp`), two parsers (Rust `knowledge_graph_parser` vs Python `jsonld_parser`), and two
+conflict checkers (Whelk consistency vs `conflicts.py`).
+
+The corpus-lifecycle owner today is the wrong component. VisionClaw's
+`github_sync_service` performs a `force_full` **CLEAR+INSERT** of the entire
+`urn:ngm:graph:ontology:assert` graph on sync — wiping runtime decision-class triples so
+thoroughly that VisionClaw ADR-050 (pod-backed-kgnode) needed an inverse-corpus-path just so
+the graph could survive its own reload. A real-time render/physics engine is playing
+corpus-lifecycle-manager. That is the "clunky GitHub connector."
+
+The operator reframe (2026-08-11) is that HP-Desktop is not a peripheral connector: it is the
+**reference deployment of a first-class VisionFlow node, the Ontology Loom**. The Loom weaves
+the corpus into a reasoned ontology, holds it as the canonical source of truth, and serves that
+intelligence behind a **stable, model-swappable façade**. This is a DEV/TEST estate, so we build
+
+=== SAMPLE 5 (rerun): panel SP-10.1 with every cited line
+## SP-10.1 The eight baseline invariants and where each lives in code
+
+```mermaid
+flowchart TD
+    I1["1. NIP-98 is SINGLE-SOURCED — one verifier, siblings delegate<br/>solid-pod-rs/src/auth/nip98.rs:120"]
+    I2["2. Replay protection keeps BOTH layers — freshness window and a<br/>single-use claim — and never evicts an unexpired entry<br/>solid-pod-rs/src/auth/replay.rs:275"]
+    I3["3. Pod-label '..' scrubbing stays ITERATIVE<br/>solid-pod-rs/src/multitenant.rs:199"]
+    I4["4. ACL parsing stays SIZE-CAPPED at the parse boundary<br/>solid-pod-rs/src/wac/parser.rs:40"]
+    I4b["4b. ONLY an absent policy inherits<br/>solid-pod-rs/src/wac/resolver.rs:153"]
+    I5["5. Provenance never changes a write's HTTP status —<br/>but the failure is no longer swallowed<br/>solid-pod-rs/src/provenance.rs:514"]
+    I6["6. Discovery metadata must MATCH the crypto path<br/>solid-pod-rs/src/oidc/mod.rs:184"]
+    I7["7. A private response is never advertised as publicly cacheable<br/>solid-pod-rs/src/ldp.rs:1949"]
+    I8["8. The mirror is ON in shipped builds and fails closed (ADR-2010) —<br/>shipped means built with forge-full; the server's cargo default is empty<br/>crates/solid-pod-rs-server/Cargo.toml:172"]
+
+    I1 --> SUR["the compliance surface"]
+    I2 --> SUR
+    I3 --> SUR
+    I4 --> SUR
+    I4b --> SUR
+    I5 --> SUR
+    I6 --> SUR
+    I7 --> SUR
+    I8 --> SUR
+
+    N["Invariant 6 is the one currently BROKEN in the shipped direction: the verifier<br/>accepts EdDSA (solid-pod-rs/src/oidc/mod.rs:549) and discovery does not<br/>advertise it. Closing the gap must move both halves together. See SP-05.8."]
+    I6 -.-> N
+    N2["Each invariant names a specific regression, not a general principle — reverting<br/>any one of them re-opens a named, previously-fixed bug."]
+    SUR -.-> N2
+```
+
+- **Drift:** the baseline lists eight invariants, the eighth being the mirror (../solid-pod-rs/crates/solid-pod-rs/docs/BASELINE-solid-pod-rs.md:291); this panel used to say seven. Invariant 8 was already present at the previous stamp.
+- **Open:** nothing in this repository builds forge-full apart from a test; the feature is defined at ../solid-pod-rs/crates/solid-pod-rs-server/Cargo.toml:172 and the default stays empty at ../solid-pod-rs/crates/solid-pod-rs-server/Cargo.toml:127. "Shipped builds" therefore means consumer builds, which this topic does not trace.
+- **Invariant:** invariant 1 survived the empty-body fix: the one verifier now binds any supplied body, empty included (solid-pod-rs/src/auth/nip98.rs:191), so SP-ID-01 is closed in source.
+
+## SP-10.2 Fail-closed boundaries, in request order
+--- crates/solid-pod-rs/src/auth/replay.rs lines 271-279 (cited :275)
+     271	                // Every live entry is unexpired. Evicting one would reopen the
+     272	                // replay window for that credential, so refuse this one
+     273	                // instead — fail closed on authentication, not on replay.
+     274	                return Err(ReplayError::CapacityExhausted {
+     275	                    capacity: self.max_size,
+     276	                    ttl: self.ttl,
+     277	                });
+     278	            }
+     279	        }
+--- crates/solid-pod-rs/src/ldp.rs lines 1945-1953 (cited :1949)
+    1945	/// `private` forbids a shared cache from storing it at all; `no-store`
+    1946	/// forbids any cache — shared or private — from writing it to disk. Applied
+    1947	/// together because a Solid pod's private resources are exactly the class of
+    1948	/// data that must not survive in an intermediary.
+    1949	pub const CACHE_CONTROL_PRIVATE: &str = "private, no-store";
+    1950	
+    1951	/// How a response's audience bears on its cacheability.
+    1952	///
+    1953	/// The distinction that matters is **who could have received this body**, not
+--- crates/solid-pod-rs/src/multitenant.rs lines 195-203 (cited :199)
+     195	
+     196	/// Double-pass `..` scrub (JSS parity: `urlToPathWithPod` lines 62-66
+     197	/// and 70-74). Repeats until the string stops shrinking, defeating the
+     198	/// `....//` bypass.
+     199	fn scrub_dotdot(s: &str) -> String {
+     200	    // Fast path: a label with no `..` needs no replace pass — return
+     201	    // the single owned copy directly, skipping the scan-and-rebuild
+     202	    // allocation `String::replace` performs even when nothing matches.
+     203	    // Most requests carry clean labels, so this is the common case.
+--- crates/solid-pod-rs/src/oidc/mod.rs lines 180-188 (cited :184)
+     180	            "client_secret_post".into(),
+     181	            "private_key_jwt".into(),
+     182	            "none".into(),
+     183	        ],
+     184	        dpop_signing_alg_values_supported: vec!["ES256".into(), "RS256".into()],
+     185	        solid_oidc_supported: vec!["https://solidproject.org/TR/solid-oidc".into()],
+     186	        id_token_signing_alg_values_supported: vec!["RS256".into(), "ES256".into()],
+     187	    }
+     188	}
+--- crates/solid-pod-rs/src/oidc/mod.rs lines 545-553 (cited :549)
+     545	        | Algorithm::RS512
+     546	        | Algorithm::PS256
+     547	        | Algorithm::PS384
+     548	        | Algorithm::PS512
+     549	        | Algorithm::EdDSA => {
+     550	            // Asymmetric family — signature is verified against
+     551	            // `header.jwk` below. No further gating needed here.
+     552	        }
+     553	        // TEST-ONLY: a `kty=oct` jwk is a symmetric key, unusable for
+--- crates/solid-pod-rs/src/provenance.rs lines 510-518 (cited :514)
+     510	    ///   was requested with no anchorer wired.
+     511	    ///
+     512	    /// A failed anchor never suppresses a successful git-mark: the receipt
+     513	    /// carries the mark **and** the anchor error, so the caller sees exactly
+     514	    /// the tier it actually got. Never returns an error — the LDP write has
+     515	    /// already succeeded and provenance must not change its status.
+     516	    pub async fn record_receipt(&self, rec: WriteRecord<'_>) -> ProvenanceReceipt {
+     517	        let resource = path_to_resource(rec.path);
+     518	
+--- crates/solid-pod-rs/src/wac/parser.rs lines 36-44 (cited :40)
+      36	/// Equivalent to [`parse_turtle_acl`] but accepts the size cap as a
+      37	/// parameter instead of reading from the `JSS_MAX_ACL_BYTES` environment
+      38	/// variable. Returns `PodError::PayloadTooLarge` (HTTP 413 equivalent)
+      39	/// when `input.len() > max_bytes`.
+      40	pub fn parse_turtle_acl_with_limit(input: &str, max_bytes: usize) -> Result<AclDocument, PodError> {
+      41	    if input.len() > max_bytes {
+      42	        return Err(PodError::PayloadTooLarge(format!(
+      43	            "ACL body exceeds {max_bytes} bytes"
+      44	        )));
+--- crates/solid-pod-rs/src/wac/resolver.rs lines 149-157 (cited :153)
+     149	
+     150	    /// `true` when the walk may legitimately fall back to an ancestor or legacy
+     151	    /// policy — i.e. only for [`Missing`](Self::Missing).
+     152	    #[must_use]
+     153	    pub fn may_inherit(&self) -> bool {
+     154	        matches!(self, PolicyOutcome::Missing)
+     155	    }
+     156	
+     157	    /// Collapse to the historical `Result<Option<AclDocument>, PodError>` shape.
+</stdin>
+codex
+**SAMPLE 3 — PARTLY SUPPORTED.** Lines 187–189 explicitly apply `RequireAuth::power_user()`. The request contains only quads, and the handler shows no signed distiller envelope or distiller allow-list check. However, the middleware, authentication extractor and repository implementation are not shown; the search results alone cannot establish absence throughout the path. Also, the supplied ADR-135 D7 concerns read-only SPARQL clamping, not signed distiller writes.
+
+**SAMPLE 5 — PARTLY SUPPORTED.** Judging each node against the supplied citation and surrounding excerpt:
+
+| Node | Verdict | Reason |
+|---|---|---|
+| I1 | NOT SUPPORTED | `nip98.rs:120` is not supplied; one verifier and sibling delegation are unverified. |
+| I2 | PARTLY SUPPORTED | Supports refusing capacity exhaustion instead of evicting live entries; does not demonstrate both freshness and single-use protection. |
+| I3 | SUPPORTED | The adjacent documentation explicitly describes repeated scrubbing until the string stops shrinking. |
+| I4 | SUPPORTED | Lines 41–42 enforce the size cap at the parser boundary. |
+| I4b | SUPPORTED | `may_inherit` returns true only for `PolicyOutcome::Missing`. |
+| I5 | SUPPORTED | The documentation says provenance preserves write status and exposes the anchor error in the receipt. |
+| I6 | NOT SUPPORTED | Discovery lists algorithms; this does not establish matching the crypto path. The supplied EdDSA branch instead demonstrates a mismatch. |
+| I7 | PARTLY SUPPORTED | Defines `"private, no-store"`; does not show that every private response receives it. |
+| I8 | NOT SUPPORTED | The cited Cargo lines are absent. Neither shipped feature selection nor fail-closed behaviour is demonstrated. |
+| SUR | NOT SUPPORTED | “The compliance surface” is an uncited organising label, not a demonstrated compliance finding. |
+| N | PARTLY SUPPORTED | EdDSA acceptance and omission from discovery are shown. Shipped-build behaviour and the claim that invariant 6 is the sole broken invariant are not established. |
+| N2 | NOT SUPPORTED | No regression history establishes that every invariant corresponds to a previously fixed, named bug. |
+
+Labels not fully supported: **I1, I2, I6, I7, I8, SUR, N, N2**.
+
+OVERALL 0/2 supported.
+tokens used
+15,617
+**SAMPLE 3 — PARTLY SUPPORTED.** Lines 187–189 explicitly apply `RequireAuth::power_user()`. The request contains only quads, and the handler shows no signed distiller envelope or distiller allow-list check. However, the middleware, authentication extractor and repository implementation are not shown; the search results alone cannot establish absence throughout the path. Also, the supplied ADR-135 D7 concerns read-only SPARQL clamping, not signed distiller writes.
+
+**SAMPLE 5 — PARTLY SUPPORTED.** Judging each node against the supplied citation and surrounding excerpt:
+
+| Node | Verdict | Reason |
+|---|---|---|
+| I1 | NOT SUPPORTED | `nip98.rs:120` is not supplied; one verifier and sibling delegation are unverified. |
+| I2 | PARTLY SUPPORTED | Supports refusing capacity exhaustion instead of evicting live entries; does not demonstrate both freshness and single-use protection. |
+| I3 | SUPPORTED | The adjacent documentation explicitly describes repeated scrubbing until the string stops shrinking. |
+| I4 | SUPPORTED | Lines 41–42 enforce the size cap at the parser boundary. |
+| I4b | SUPPORTED | `may_inherit` returns true only for `PolicyOutcome::Missing`. |
+| I5 | SUPPORTED | The documentation says provenance preserves write status and exposes the anchor error in the receipt. |
+| I6 | NOT SUPPORTED | Discovery lists algorithms; this does not establish matching the crypto path. The supplied EdDSA branch instead demonstrates a mismatch. |
+| I7 | PARTLY SUPPORTED | Defines `"private, no-store"`; does not show that every private response receives it. |
+| I8 | NOT SUPPORTED | The cited Cargo lines are absent. Neither shipped feature selection nor fail-closed behaviour is demonstrated. |
+| SUR | NOT SUPPORTED | “The compliance surface” is an uncited organising label, not a demonstrated compliance finding. |
+| N | PARTLY SUPPORTED | EdDSA acceptance and omission from discovery are shown. Shipped-build behaviour and the claim that invariant 6 is the sole broken invariant are not established. |
+| N2 | NOT SUPPORTED | No regression history establishes that every invariant corresponds to a previously fixed, named bug. |
+
+Labels not fully supported: **I1, I2, I6, I7, I8, SUR, N, N2**.
+
+OVERALL 0/2 supported.

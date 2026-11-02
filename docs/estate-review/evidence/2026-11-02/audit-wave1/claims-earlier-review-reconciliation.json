@@ -1,0 +1,91 @@
+[
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2136-pin-the-shared-ontology-toolchain.md",
+    "report": "docs/estate-review/2026-10-31-corpus-consumer.md",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; ADR bytes at agentbox 9dfc27b equal the wave-1 snapshot hash; every heading mapped to a report row. Documentary/source assessment only; proposed/partial/inactive status and activation limits stand. Reconciled by 2026-11-02-earlier-review-reconciliation."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionFlow",
+    "path": "docs/adr/ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md",
+    "report": "docs/estate-review/2026-10-31-diagram-drift-and-health.md",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; ADR bytes at report commit de1fd11 equal the wave-1 snapshot hash; every heading mapped. No live workflow run or published-snapshot equality; malformed-snapshot findings open. Reconciled by 2026-11-02-earlier-review-reconciliation."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionFlow",
+    "path": "docs/adr/ADR-2006-canon-owns-crossrepo-view-not-implementation.md",
+    "report": "docs/estate-review/2026-10-31-release-evidence.md",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; ADR bytes at report commit 38323b0 equal the wave-1 snapshot hash; every heading mapped. Source and bounded probes only; release-fixture provenance findings open. Reconciled by 2026-11-02-earlier-review-reconciliation."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2013-ontology-governance-panel-promote-demote-expiry.md",
+    "report": "docs/estate-review/2026-10-31-governance-ingress.md",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; ADR bytes at forum c39f41f equal the wave-1 snapshot hash; every heading mapped, close-outs included. Source and signed consumer probes; no deployed panel or live relay journey. Reconciled by 2026-11-02-earlier-review-reconciliation."
+  },
+  {
+    "kind": "adr",
+    "repo": "ontomark",
+    "path": "docs/adr/ADR-OM-007-vault-root-is-the-content-root.md",
+    "report": "docs/estate-review/2026-10-31-proposal-application.md",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; ADR bytes at ontomark 0caae5d equal the wave-1 snapshot hash; every heading mapped. Layout probe and source only; no current full-corpus parity run. Reconciled by 2026-11-02-earlier-review-reconciliation."
+  },
+  {
+    "kind": "adr",
+    "repo": "knowledgeGraph",
+    "path": "archive/logseq-era-2026-09-22/pages/ADR-008.md",
+    "report": "docs/estate-review/2026-11-01-knowledgegraph-inventory-and-live-receipt.md",
+    "coverage": "whole-document",
+    "basis": "Historical archived content page, not governance; full section assessment in the named report at knowledgeGraph 4ed9ac1, bytes equal its inventory and the wave-1 snapshot hash. Findings not inherited by published pages. Reconciled by 2026-11-02-earlier-review-reconciliation."
+  },
+  {
+    "kind": "adr",
+    "repo": "knowledgeGraph",
+    "path": "archive/logseq-era-2026-09-22/pages/ADR-012.md",
+    "report": "docs/estate-review/2026-11-01-knowledgegraph-inventory-and-live-receipt.md",
+    "coverage": "whole-document",
+    "basis": "Historical archived content page, not governance; full section assessment in the named report at knowledgeGraph 4ed9ac1, bytes equal its inventory and the wave-1 snapshot hash. Findings not inherited by published pages. Reconciled by 2026-11-02-earlier-review-reconciliation."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionflow/08-compatibility-and-dependency-direction.md",
+    "report": "docs/estate-review/2026-10-31-corpus-consumer.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VF-08.1"
+    ],
+    "basis": "Panel redrawn against agentbox 9dfc27b source in the named report; strict citation check (22 revision citations) and render passed there. Panel body and verified_commit unchanged since report commit ed5e8eb. Historical sibling panels receive no credit. Reconciled by 2026-11-02-earlier-review-reconciliation."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionflow/03-estate-health.md",
+    "report": "docs/estate-review/2026-10-31-diagram-drift-and-health.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VF-03.6"
+    ],
+    "basis": "Check-gate panel corrected against estate-health.mjs alongside the full ADR-2008 reading; structural/render validation only, no strict citation run. Body and verified_commit unchanged since report commit de1fd11. Siblings receive no credit. Reconciled by 2026-11-02-earlier-review-reconciliation."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionflow/07-pitch-presentation-reports.md",
+    "report": "docs/estate-review/2026-10-31-release-evidence.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VF-07.3"
+    ],
+    "basis": "Fixtures-block panel reworked to the reproduced digest/commit-binding/missing-fixture findings; structural/render validation only. Body and verified_commit unchanged since report commit 38323b0. Pitch/report siblings receive no credit. Reconciled by 2026-11-02-earlier-review-reconciliation."
+  }
+]

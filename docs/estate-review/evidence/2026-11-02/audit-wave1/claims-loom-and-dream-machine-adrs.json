@@ -1,0 +1,130 @@
+[
+  {
+    "kind": "adr",
+    "repo": "loom",
+    "path": "docs/design/ADR-135-ontology-loom-node.md",
+    "report": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at loom ba21a68, VisionClaw 86cdd76 and agentbox c57d9c0; all 29 sections assessed; /loom/v1 contract, distillation (D4/D5) and D7 signature door unimplemented, D2.3 contradicted by VisionClaw CLEAR+INSERT; live HP state not checked."
+  },
+  {
+    "kind": "adr",
+    "repo": "loom",
+    "path": "docs/design/ADR-136-loom-tooling-allocation.md",
+    "report": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at loom ba21a68; all 31 sections assessed; domain predicates (D5) absent from loom and no CI gate; RuVector source, recall and benchmark figures not reproduced."
+  },
+  {
+    "kind": "adr",
+    "repo": "loom",
+    "path": "docs/design/ADR-137-loom-rust-replatform.md",
+    "report": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at loom ba21a68; all 34 sections assessed; musl (D1), tower-layer clamps (D2) and sqlx (D6) contradicted by source; deployment parity and test results not reproduced."
+  },
+  {
+    "kind": "adr",
+    "repo": "loom",
+    "path": "docs/design/ADR-138-confidence-surfacing-contract.md",
+    "report": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at loom ba21a68; all 15 sections assessed; wire contract implemented, status count since grown to eight; live node and consumer handling not checked."
+  },
+  {
+    "kind": "adr",
+    "repo": "loom",
+    "path": "docs/design/ADR-139-per-request-scaffold-opt-out.md",
+    "report": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at loom ba21a68; all 6 sections assessed; opt-out and streaming passthrough implemented as described; live qualification not reproduced."
+  },
+  {
+    "kind": "adr",
+    "repo": "loom",
+    "path": "docs/design/ADR-140-loom-v2-agent-drivable-grounding.md",
+    "report": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at loom ba21a68; all 35 sections assessed; P0 (/mcp, six tools, manifest, Navigated) implemented, P2-P4 machinery absent, Mapping/AttestedComputation not in CanonicalUnit header; runtime probes and pilot numbers not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "loom",
+    "path": "docs/design/ADR-141-loom-consumes-the-vault-build.md",
+    "report": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at loom ba21a68; all 8 sections assessed; two-shape reader, stale reporting, OKF vocabulary and attest route implemented; D6 content-digest refusal contradicted by reload.rs:207; live-node claims not checked."
+  },
+  {
+    "kind": "adr",
+    "repo": "loom",
+    "path": "docs/design/ADR-142-consume-versioned-shared-ontology-contracts.md",
+    "report": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at loom ba21a68; all 7 sections assessed; step-10 index aliasing and CLI pin implemented, version-IRI reporting and unsupported-version rejection absent, front matter contradicts body; deployment and external licence not checked."
+  },
+  {
+    "kind": "adr",
+    "repo": "dream-machine",
+    "path": "docs/adrs/ADR-0001-dream-machine-engine.md",
+    "report": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at dream-machine b77093e (consumer checks at agentbox c57d9c0); all 13 sections assessed; external routines, backends and nightly runtime not source-checkable; closeout extension stale against the agentbox adapter."
+  },
+  {
+    "kind": "adr",
+    "repo": "dream-machine",
+    "path": "docs/adrs/ADR-0002-dream-cycle-security-adversarial-entrypoint-liveness.md",
+    "report": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at dream-machine b77093e (agentbox c57d9c0 for the service); all 8 sections assessed; live receipts and dream-gate classification outside the pinned set; Status still Proposed although shipped."
+  },
+  {
+    "kind": "adr",
+    "repo": "dream-machine",
+    "path": "docs/adrs/ADR-0003-darwin-bound-guard.md",
+    "report": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at dream-machine b77093e; all 8 sections assessed as amended by ADR-0005 to ADR-0007; receipts and the annexe gate not in this repository."
+  },
+  {
+    "kind": "adr",
+    "repo": "dream-machine",
+    "path": "docs/adrs/ADR-0004-ledger-verdict-vocabulary.md",
+    "report": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at dream-machine b77093e (agentbox c57d9c0 for the dry streak); all 7 sections assessed; OPERATOR streak handling is in external dream-core; append write path unvalidated."
+  },
+  {
+    "kind": "adr",
+    "repo": "dream-machine",
+    "path": "docs/adrs/ADR-0005-darwin-bound-five.md",
+    "report": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at dream-machine b77093e (agentbox c57d9c0); all 10 sections assessed; cited agentbox readiness.rs admission absent at pin, Test Contract item 2 superseded by ADR-0006; gate veto is runtime and external."
+  },
+  {
+    "kind": "adr",
+    "repo": "dream-machine",
+    "path": "docs/adrs/ADR-0006-darwin-score-uniformity.md",
+    "report": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at dream-machine b77093e; all 5 sections assessed; diagnosis corrected and rule amended by ADR-0007; receipts not checked."
+  },
+  {
+    "kind": "adr",
+    "repo": "dream-machine",
+    "path": "docs/adrs/ADR-0007-darwin-mutator-loom-shim.md",
+    "report": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at dream-machine b77093e; all 9 sections assessed; darwin@0.10.2 internals, the 3a measurements and annexe time budget not source-checkable; Loom door URL deployment-dependent."
+  },
+  {
+    "kind": "adr",
+    "repo": "dream-machine",
+    "path": "docs/dream-engine/ADR-DL-001-meta-harness-optimisation.md",
+    "report": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at dream-machine b77093e; all 9 sections assessed; proposal (1) implemented, (2) partly, (3) and (4) absent; paper summary and outer-loop efficacy not checkable."
+  }
+]

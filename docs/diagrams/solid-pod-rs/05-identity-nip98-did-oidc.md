@@ -43,7 +43,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs-git/src/auth.rs
   - ../solid-pod-rs/crates/solid-pod-rs-idp/src/password_change.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/security/rate_limit.rs
-verified_commit: 09ec90f26aa573731460292d0e80343914cb43d9
+verified_commit: 9b6143ce55b242c322c92d8c6bcc0c1a5371b451
 ---
 
 ## SP-05.1 REST identity extraction and anonymous fallback
@@ -88,27 +88,29 @@ flowchart TD
 sequenceDiagram
     autonumber
     participant C as Caller
-    participant V as verify_at_with_policy<br/>auth/nip98.rs:116
-    participant S as verify_schnorr_signature<br/>auth/nip98.rs:342
-    participant ID as compute_event_id<br/>auth/nip98.rs:241
+    participant V as verify_at_with_policy<br/>auth/nip98.rs:120
+    participant S as verify_schnorr_signature<br/>auth/nip98.rs:347
+    participant ID as compute_event_id<br/>auth/nip98.rs:245
 
     C->>V: Authorization: Nostr <base64 kind-27235 event>
     V->>V: strip the "Nostr " prefix<br/>auth/nip98.rs:30
-    V->>V: reject above MAX_EVENT_SIZE, 64 KiB, before AND after base64<br/>auth/nip98.rs:129
-    V->>V: kind must equal HTTP_AUTH_KIND 27235<br/>auth/nip98.rs:138
-    V->>V: pubkey must be 64 hex chars<br/>auth/nip98.rs:144
-    V->>V: created_at within TIMESTAMP_TOLERANCE of now<br/>auth/nip98.rs:147
-    V->>V: 'u' tag must match the expected URL per MatchPolicy<br/>auth/nip98.rs:154
-    V->>V: 'method' tag must match, or be * under GitLenient<br/>auth/nip98.rs:173
-    V->>V: 'payload' tag must equal sha256(raw body) only when supplied body is nonempty<br/>auth/nip98.rs:192
-    V->>S: BIP-340 Schnorr verification — UNCONDITIONAL<br/>auth/nip98.rs:208
+    V->>V: reject above MAX_EVENT_SIZE, 64 KiB, before AND after base64<br/>auth/nip98.rs:133
+    V->>V: kind must equal HTTP_AUTH_KIND 27235<br/>auth/nip98.rs:142
+    V->>V: pubkey must be 64 hex chars<br/>auth/nip98.rs:148
+    V->>V: created_at within TIMESTAMP_TOLERANCE of now<br/>auth/nip98.rs:151
+    V->>V: 'u' tag must match the expected URL per MatchPolicy<br/>auth/nip98.rs:158
+    V->>V: 'method' tag must match, or be * under GitLenient<br/>auth/nip98.rs:177
+    V->>V: 'payload' tag must equal sha256(raw body) whenever a body is supplied, empty included<br/>auth/nip98.rs:191
+    V->>S: BIP-340 Schnorr verification — UNCONDITIONAL<br/>auth/nip98.rs:212
     S-->>V: ok, and the canonical event id is bound to the signature
-    V->>ID: recompute the NIP-01 id from content, never trust event.id<br/>auth/nip98.rs:213
+    V->>ID: recompute the NIP-01 id from content, never trust event.id<br/>auth/nip98.rs:217
     V-->>C: Nip98Verified { pubkey, url, method, payload_hash, created_at, event_id }<br/>auth/nip98.rs:44
     Note over V: TIMESTAMP_TOLERANCE is 60 s (auth/nip98.rs:28) — a two-sided<br/>window, so the freshness check alone still leaves a replay gap. That gap is<br/>what SP-05.4 is meant to close, but its TTL is not bounded by freshness.
-    Note over V: Supplied empty bytes skip payload verification, even with a hash for nonempty bytes.
-    Note over V: Server PUT forwards empty bodies here (lib.rs:1735).
+    Note over V: Since 8f2df86, supplied empty bytes are bound too. Only body = None skips the payload check.
+    Note over V: Server PUT forwards its body, empty or not, here (lib.rs:1711).
 ```
+
+**Drift:** at the topic's earlier stamp (`09ec90f`) a supplied empty body skipped the payload check, so a token minted over non-empty bytes also admitted an empty PUT. Commit `8f2df86` (2026-11-01) removed the `!b.is_empty()` arm: `Some(body)` now requires a matching `payload` tag (`auth/nip98.rs:191`), and `mint_with_payload` hashes empty bytes too. Wave-1 audit, 2026-11-02, source tracing only.
 
 ## SP-05.3 The two match policies
 
@@ -117,7 +119,7 @@ flowchart LR
     MP["MatchPolicy<br/>auth/nip98.rs:89"]
     ST["Strict — trailing-slash-trimmed URL and case-insensitive method<br/>auth/nip98.rs:91"]
     GL["GitLenient — * method plus raw string URL-prefix<br/>auth/nip98.rs:93"]
-    REST["Strict verifier entry via verify_at; replay is caller-owned<br/>auth/nip98.rs:97"]
+    REST["Strict verifier entry via verify_at; replay is caller-owned<br/>auth/nip98.rs:101"]
     GIT["BasicNostrExtractor for Git authentication<br/>solid-pod-rs-git/src/auth.rs:144"]
 
     MP --> ST --> REST
@@ -133,8 +135,8 @@ The IdP Schnorr login is a separate challenge protocol and calls k256 directly.
 schnorr.rs:397"]
     MP -.-> N3
     N4["Native server rejects push before authentication; Git reads still use this extractor.
-lib.rs:4750
-lib.rs:4775"]
+lib.rs:4763
+lib.rs:4788"]
     GIT -.-> N4
 ```
 
@@ -241,16 +243,18 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    CACHE["JWKS cache lookup by canonical issuer<br/>oidc/jwks.rs:401"]
-    DISC["miss: fetch discovery, independent of config cache<br/>oidc/jwks.rs:294"]
-    POLICY["check issuer destination, build pinned client<br/>oidc/jwks.rs:225<br/>oidc/jwks.rs:239"]
-    ISS["check returned<br/>issuer string<br/>oidc/jwks.rs:277"]
-    JWK["check jwks_uri separately, build pinned client<br/>oidc/jwks.rs:306<br/>oidc/jwks.rs:322"]
-    GAP["GAP at this revision: builder leaves redirects enabled<br/>redirect destination is not checked<br/>oidc/jwks.rs:210"]
+    CACHE["JWKS cache lookup by canonical issuer<br/>oidc/jwks.rs:405"]
+    DISC["miss: fetch discovery, independent of config cache<br/>oidc/jwks.rs:298"]
+    POLICY["check issuer destination, build pinned client<br/>oidc/jwks.rs:227<br/>oidc/jwks.rs:243"]
+    ISS["check returned<br/>issuer string<br/>oidc/jwks.rs:281"]
+    JWK["check jwks_uri separately, build pinned client<br/>oidc/jwks.rs:310<br/>oidc/jwks.rs:326"]
+    GAP["CLOSED at this revision: the pinned client refuses redirects<br/>a 3xx fails the fetch instead of reaching an unchecked host<br/>oidc/jwks.rs:214"]
     CACHE -->|miss| DISC --> POLICY --> ISS --> JWK
     POLICY -.-> GAP
     JWK -.-> GAP
 ```
+
+**Drift:** the redirect gap this panel was drawn for existed at `09ec90f`, where `pinned_client` left reqwest's default redirect policy in place. Commit `fcc624a` (2026-11-01) added `redirect(Policy::none())` (`oidc/jwks.rs:214`) and documented it in the module header (`oidc/jwks.rs:27`). The 2026-11-01 OIDC assessment describes the older revision. Wave-1 audit, 2026-11-02, source tracing only: no fetch was made against a redirecting issuer.
 
 ## SP-05.12 did:nostr — document rendering, the parity model and the bidirectional binding
 
@@ -259,7 +263,7 @@ flowchart TD
     PK["NostrPubkey — 32-byte x-only identifier, no parity<br/>solid-pod-rs/src/did_nostr_types.rs:68"]
     URI["did_nostr_uri<br/>solid-pod-rs/src/did_nostr_types.rs:152"]
     WKP["well_known_path<br/>solid-pod-rs/src/did_nostr_types.rs:158"]
-    RT["handle_well_known_did_nostr — the served endpoint<br/>solid-pod-rs-server/src/lib.rs:2394"]
+    RT["handle_well_known_did_nostr — served only with the did-nostr feature,<br/>and only for the pod owner key, else 404<br/>solid-pod-rs-server/src/lib.rs:2395"]
     VT["verify_webid_tag<br/>solid-pod-rs/src/did_nostr_types.rs:612"]
     WD["webid_declares_pubkey<br/>solid-pod-rs/src/did_nostr_types.rs:674"]
 
@@ -298,6 +302,7 @@ flowchart TD
 ```
 - **What it shows:** since `0.5.0-alpha.10` (2026-10-01, `8b5d0a5` and `0302cde`) the module follows the did:nostr parity model of nostrcg/did-nostr#145 (`solid-pod-rs/src/did_nostr_types.rs:36-49`). The identifier carries no parity. A resolver holding only the identifier emits `0x02`, so `render_did_document` and `format_multibase_schnorr` never change. A controller holding its full key publishes through `render_did_document_published`, which emits `fe70103` when y is odd (`solid-pod-rs/src/did_nostr_types.rs:261-266`, `:462-463`). Decoders accept both prefixes in `split_multikey` (`solid-pod-rs/src/did_nostr_types.rs:512-515`).
 - **Why it is this way:** before alpha.10 the encoder always produced `fe70102` and the docs called `0x02` invariant. A key derived by additive tweaking has unpredictable parity, and its controller must be able to publish it truthfully. Point reading matches `basePoint()` and `multikey()` in sidestr/spec PR #28. The module deliberately has no key-arithmetic (tweak) API until that PR settles (`solid-pod-rs/src/did_nostr_types.rs:56-57`).
+- **Tension:** the served endpoint is compiled only under the server's `did-nostr` feature (`solid-pod-rs-server/src/lib.rs:2394`), and since P1-l it answers only for the key the pod's own profile card declares, returning 404 for any other well-formed key (`solid-pod-rs-server/src/lib.rs:2431`). It renders through `interop::did_nostr::did_nostr_document`, which delegates to `render_did_document`, so the served document always carries the identifier-only `fe70102` form, whatever the owner's key parity.
 - **Invariant:** the x-coordinate is the identifier whichever prefix a document carries. `parse_multibase_schnorr` drops the parity byte and returns X (`solid-pod-rs/src/did_nostr_types.rs:555-556`), so a BIP-340 signature verifies against the same key either way.
 
 ## SP-05.13 did:nostr resolution — WebID and DID-Doc must agree
@@ -305,26 +310,35 @@ flowchart TD
 ```mermaid
 sequenceDiagram
     autonumber
-    participant A as caller
+    participant A as library caller
     participant R as NostrWebIdResolver<br/>solid-pod-rs-nostr/src/resolver.rs:71
     participant SS as SsrfCheck<br/>solid-pod-rs-nostr/src/resolver.rs:36
     participant W as WebID document
     participant D as did:nostr document
 
     A->>R: resolve_webid_to_nostr(webid)<br/>solid-pod-rs-nostr/src/resolver.rs:132
-    R->>SS: DefaultSsrfCheck before any fetch<br/>solid-pod-rs-nostr/src/resolver.rs:54
-    R->>W: fetch the profile
-    W-->>R: HTML or JSON-LD
-    R->>R: extract_json_ld_island<br/>solid-pod-rs-nostr/src/resolver.rs:400
-    R->>R: scan_json_for_did_nostr (solid-pod-rs-nostr/src/resolver.rs:302) / scan_text_for_did_nostr, which now binds a 64-hex id only when the run ends there<br/>solid-pod-rs-nostr/src/resolver.rs:382
-    R-->>A: NostrPubkey
+    R->>SS: verify_host before any fetch, DefaultSsrfCheck by default<br/>solid-pod-rs-nostr/src/resolver.rs:54
+    R->>W: fetch through a pinned, redirect-none client<br/>solid-pod-rs-nostr/src/resolver.rs:107
+    W-->>R: HTML, JSON-LD or Turtle
+    R->>R: extract_json_ld_island for HTML<br/>solid-pod-rs-nostr/src/resolver.rs:400
+    R->>R: scan_json_for_did_nostr over alsoKnownAs and the sameAs spellings (solid-pod-rs-nostr/src/resolver.rs:302) / scan_text_for_did_nostr, which binds a 64-hex id only when the run ends there<br/>solid-pod-rs-nostr/src/resolver.rs:382
+    R-->>A: NostrPubkey, or None
 
-    A->>R: resolve_nostr_to_webid(pubkey)<br/>solid-pod-rs-nostr/src/resolver.rs:181
-    R->>D: fetch the .well-known did:nostr document
-    D-->>R: alsoKnownAs / owl:sameAs claims
-    R-->>A: the WebID, only when the binding is mutual
-    Note over R: parse_did_nostr (solid-pod-rs-nostr/src/resolver.rs:359) is the strict<br/>syntax gate. The SSRF check runs BEFORE the fetch on both directions — a WebID<br/>is an attacker-supplied URL. See SP-06.9.
+    A->>R: resolve_nostr_to_webid(origin, pubkey)<br/>solid-pod-rs-nostr/src/resolver.rs:181
+    R->>SS: verify_host for the origin
+    R->>D: fetch origin plus the .well-known did:nostr path
+    D-->>R: id plus alsoKnownAs
+    R->>R: id must equal did:nostr:pubkey<br/>solid-pod-rs-nostr/src/resolver.rs:220
+    R->>W: first http(s) alsoKnownAs, resolved back through resolve_webid_to_nostr<br/>solid-pod-rs-nostr/src/resolver.rs:242
+    R-->>A: the WebID only when the back-link names the same key, else None
+    Note over R: parse_did_nostr (solid-pod-rs-nostr/src/resolver.rs:359) is the strict<br/>syntax gate. The SSRF check runs BEFORE every fetch, because a WebID<br/>is an attacker-supplied URL. See SP-06.9.
 ```
+
+**What it shows:** the `solid-pod-rs-nostr` resolver in both directions. Only the did:nostr-to-WebID direction is mutual: it checks the DID document's `id`, takes the first HTTP(S) `alsoKnownAs` entry and accepts it only when that WebID's profile names the same key back (`solid-pod-rs-nostr/src/resolver.rs:227-247`). The WebID-to-did:nostr direction returns whatever key the profile declares.
+
+**Why it is this way:** an `alsoKnownAs` entry is a claim made by the DID document. Returning it unchecked would let a hostile pod point at a victim's WebID (`solid-pod-rs-nostr/src/resolver.rs:227-234`).
+
+**Tension:** the server does not call this resolver. Its cross-identity path (SP-05.22) uses the core crate's `interop::did_nostr::DidNostrResolver` under `SsrfPolicy::from_env` (`solid-pod-rs-server/src/main.rs:417`). This one, by default, uses the fixed free-function check `security::resolve_and_check` (`solid-pod-rs-nostr/src/resolver.rs:59`). Two did:nostr resolvers therefore exist, each with its own SSRF tier.
 
 ## SP-05.14 did:key — multicodec and self-signed JWT
 
@@ -350,6 +364,8 @@ flowchart LR
     JWT -.-> N
 ```
 
+**Tension:** `verify_self_signed_jwt` refuses an `alg` that does not match the key's curve before verifying the signature (`solid-pod-rs-didkey/src/jwt.rs:110-118`), and bounds `iat` on both sides (`solid-pod-rs-didkey/src/jwt.rs:144`). It records no `jti` and has no replay store, though, so the same proof is reusable for the same method and URL within the skew window. Nothing in the server registers `DidKeyVerifier`; it is a library surface.
+
 ## SP-05.15 The self-signed / CID verifier registry
 
 ```mermaid
@@ -363,7 +379,7 @@ classDiagram
         +registered()  solid-pod-rs/src/auth/self_signed.rs:153
     }
     class Nip98Verifier {
-        solid-pod-rs/src/auth/nip98.rs:425
+        solid-pod-rs/src/auth/nip98.rs:427
     }
     class LwsCidVerifier {
         +with_skew  solid-pod-rs/src/auth/lws_cid.rs:138
@@ -379,8 +395,12 @@ classDiagram
     SelfSignedVerifier <|.. LwsCidVerifier
     SelfSignedVerifier ..> ProofEnvelope
     SelfSignedVerifier ..> VerifiedSubject
-    note for LwsCidVerifier "validate_alg_jwk_match (solid-pod-rs/src/auth/lws_cid.rs:463) refuses an alg\nthat does not match the JWK's key type — the alg-confusion guard. Per-curve\nverifiers: ES256K (:503), ES256 (:523), EdDSA (:543); time bounds at :341."
+    note for LwsCidVerifier "validate_alg_jwk_match (solid-pod-rs/src/auth/lws_cid.rs:463) refuses an alg\nthat does not match the JWK's key type — the alg-confusion guard. Per-curve\nverifiers: ES256K (:503), ES256 (:523), EdDSA (:543). The iat check at :343 can never fire."
 ```
+
+**Debt:** `validate_time_bounds` joins its two `iat` conditions with `&&` (`solid-pod-rs/src/auth/lws_cid.rs:343`). For any `iat`, one of `now - iat` and `iat - now` saturates to zero, so the conjunction is never true and no `iat` is ever rejected. An LWS-CID JWT without `exp` therefore has no time bound at all. With `exp`, only the expiry and the one-hour lifetime cap apply (`solid-pod-rs/src/auth/lws_cid.rs:350-364`). The did:key verifier uses `||` correctly (`solid-pod-rs-didkey/src/jwt.rs:144`). Closing it needs `||` and a regression test with a stale `iat` and no `exp`.
+
+**Open:** the registry has no in-tree production consumer. `CidVerifier` is re-exported (`solid-pod-rs/src/lib.rs:216`), but no WAC issuer condition or server path builds one, and `lws-cid` is not a server feature. The verifier for NIP-98 here passes `body = None` and claims no replay slot (`solid-pod-rs/src/auth/nip98.rs:454`). Each defect above is latent until a consumer wires the registry in.
 
 ## SP-05.16 The bundled IdP — authorisation-code flow with PKCE and DPoP
 
@@ -395,19 +415,29 @@ sequenceDiagram
     participant J as Jwks<br/>solid-pod-rs-idp/src/jwks.rs:192
 
     U->>P: authorize(AuthorizeRequest)<br/>solid-pod-rs-idp/src/provider.rs:152
-    P->>CS: resolve the client document
-    P->>SS: issue_code with the PKCE challenge<br/>solid-pod-rs-idp/src/session.rs:158
-    P-->>U: AuthorizeResponse<br/>solid-pod-rs-idp/src/provider.rs:396
+    P->>CS: resolve the client, response_type code, registered redirect_uri
+    P->>P: PKCE S256 challenge required for every client<br/>solid-pod-rs-idp/src/provider.rs:183
+    alt no session account
+        P-->>U: AuthorizeResponse NeedsLogin<br/>solid-pod-rs-idp/src/provider.rs:396
+    else session account present
+        P->>SS: issue_code with the PKCE challenge<br/>solid-pod-rs-idp/src/session.rs:158
+        P-->>U: AuthorizeResponse Redirect with code and iss
+    end
     U->>P: token(TokenRequest)<br/>solid-pod-rs-idp/src/provider.rs:226
-    P->>SS: take_code — single use<br/>solid-pod-rs-idp/src/session.rs:185
-    P->>P: pkce_s256 verifier check<br/>solid-pod-rs-idp/src/provider.rs:362
+    P->>P: verify_dpop_proof for POST issuer/idp/token, with the replay cache, BEFORE the code is touched<br/>solid-pod-rs-idp/src/provider.rs:241
+    P->>SS: take_code — removed on read, then TTL-checked<br/>solid-pod-rs-idp/src/session.rs:185
+    P->>P: client_id and redirect_uri must match the code, then pkce_s256<br/>solid-pod-rs-idp/src/provider.rs:362
     P->>J: active_key, ES256<br/>solid-pod-rs-idp/src/jwks.rs:230
-    P->>T: mint the DPoP-bound access token
+    P->>T: mint the access token bound to the proof key
     T-->>P: AccessToken with a cnf jkt claim<br/>solid-pod-rs-idp/src/tokens.rs:56
-    P-->>U: TokenResponse<br/>solid-pod-rs-idp/src/provider.rs:448
-    U->>P: userinfo<br/>solid-pod-rs-idp/src/provider.rs:318
+    P-->>U: TokenResponse, token_type DPoP<br/>solid-pod-rs-idp/src/provider.rs:448
+    U->>P: userinfo, re-verified through the core verify_access_token<br/>solid-pod-rs-idp/src/provider.rs:318
     Note over T: ath_hash (solid-pod-rs-idp/src/tokens.rs:126) computes the value a DPoP<br/>proof must echo — the other half of the binding verified in SP-05.7.
 ```
+
+**What it shows:** `Provider` as a library. The DPoP proof at `/token` is verified first and claims its `jti` in the provider's replay cache (`solid-pod-rs-idp/src/provider.rs:241-250`). Only then is the code consumed, so a request with a bad proof does not burn a valid code.
+
+**Open:** no in-tree router serves `authorize`, `token` or `userinfo`. The axum binder routes discovery, JWKS, registration, credentials and account deletion only (SP-05.17), so a consumer must wire these three methods itself.
 
 ## SP-05.17 IdP key management and discovery
 
@@ -431,12 +461,16 @@ flowchart TD
     ROUTER -.-> N2
 ```
 
+**Drift:** `build_discovery` advertises endpoints and grants that nothing in the crate serves. It lists `/idp/auth`, `/idp/token`, `/idp/me`, introspection, revocation and end-session endpoints, plus the `refresh_token` and `client_credentials` grants (`solid-pod-rs-idp/src/discovery.rs:82-103`). `Provider::token` accepts only `authorization_code` (`solid-pod-rs-idp/src/provider.rs:227`), and the axum router serves five routes (`solid-pod-rs-idp/src/axum_binder.rs:92-102`).
+
+**Open:** nothing in-tree calls `Jwks::rotate` or `Jwks::prune_expired`; rotation cadence and pruning are the consumer's job. Retired keys stay published for a one-week default retention (`solid-pod-rs-idp/src/jwks.rs:218`).
+
 ## SP-05.18 IdP credential surfaces
 
 ```mermaid
 flowchart LR
-    PWD["login — Argon2-style credential check<br/>solid-pod-rs-idp/src/credentials.rs:104"]
-    MINLEN["MIN_PASSWORD_LENGTH 8<br/>solid-pod-rs-idp/src/credentials.rs:31"]
+    PWD["login — rate limit, then Argon2id verify via UserStore<br/>solid-pod-rs-idp/src/credentials.rs:104"]
+    MINLEN["MIN_PASSWORD_LENGTH 8, checked by password change, not by login<br/>solid-pod-rs-idp/src/credentials.rs:31"]
     RL["RATE_LIMIT_ROUTE idp_credentials<br/>solid-pod-rs-idp/src/credentials.rs:36"]
     PK["PasskeyBackend trait plus WebauthnPasskey<br/>solid-pod-rs-idp/src/passkey.rs:123"]
     TODO["PasskeyTodo — the null backend<br/>solid-pod-rs-idp/src/passkey.rs:157"]
@@ -447,7 +481,7 @@ flowchart LR
     INV["Invite mint_token<br/>solid-pod-rs-idp/src/invites.rs:98"]
     DEL["delete_account behind CONFIRMATION_PHRASE<br/>solid-pod-rs-idp/src/account_delete.rs:55"]
 
-    PWD --> MINLEN
+    MINLEN -.-> PWC["validate_password_length callers: change_password only<br/>solid-pod-rs-idp/src/password_change.rs:101"]
     PWD --> RL
     PK --> TODO
     SCH --> STODO
@@ -456,11 +490,13 @@ flowchart LR
     US --> INV
     US --> DEL
 
-    N["DIVERGENCE: PasskeyTodo and SchnorrTodo are null backends behind the same<br/>traits. Without the passkey and schnorr-sso features (SP-01.9) those login<br/>routes exist but resolve to the stub implementors."]
+    N["PasskeyTodo and SchnorrTodo are null backends that return Unimplemented. Their<br/>modules compile only with the passkey and schnorr-sso features (SP-01.9),<br/>and no in-tree router mounts a passkey or Schnorr login route."]
     TODO -.-> N
     N2["delete_account requires the literal phrase DELETE MY ACCOUNT<br/>solid-pod-rs-idp/src/account_delete.rs:14"]
     DEL -.-> N2
 ```
+
+**Tension:** the axum binder calls `login` with `dpop_jkt = None` (`solid-pod-rs-idp/src/axum_binder.rs:158`), so a password login through it always returns a `Bearer` token, not a DPoP-bound one (`solid-pod-rs-idp/src/credentials.rs:170-174`). An unknown email returns before any Argon2 work (`solid-pod-rs-idp/src/credentials.rs:141-143`), so response time can distinguish an unknown account from a wrong password. The per-IP rate limit, which runs first, bounds the probing. The passkey and Schnorr modules are declared under `#[cfg(feature = ...)]` in the crate root (`solid-pod-rs-idp/src/lib.rs:78-82`), so without those features neither the real backends nor the null ones exist.
 
 ## SP-05.19 Pod key provisioning — deliberately not an HTTP route
 
@@ -484,6 +520,8 @@ sequenceDiagram
     PV-->>OP: KeyProvisioningOutcome<br/>solid-pod-rs-idp/src/key_provisioning.rs:67
     Note over PV: INVARIANT: no HTTP route mints keys. Returning a freshly generated nsec over<br/>HTTP is an owner-signoff decision, so this stays a library surface behind the<br/>default-off provision-keys feature — see SP-01.8.
 ```
+
+**Drift:** the IdP manifest still says the provisioner's "function bodies are `todo!()`" (`solid-pod-rs-idp/Cargo.toml:84`). The bodies are implemented (`solid-pod-rs-idp/src/key_provisioning.rs:322-390`), and the crate root says so (`solid-pod-rs-idp/src/lib.rs:87-89`). The server only forwards the feature (`solid-pod-rs-server/Cargo.toml:150`) and calls no provisioner, so the invariant holds.
 
 ## SP-05.21 Password change — the one credential-MUTATION path
 
@@ -513,20 +551,22 @@ sequenceDiagram
 
     Note over P: INVARIANT: the rate-limit gate runs FIRST, before any validation, lookup or<br/>hash. Argon2 verification is deliberately expensive, so checking credentials<br/>before rate-limiting would turn this endpoint into a CPU-amplification oracle.<br/>Its own route key keeps that budget separate from login<br/>(solid-pod-rs-idp/src/password_change.rs:24 vs credentials.rs:36).
     Note over U: The current password is re-verified even though the caller is already<br/>authenticated — a stolen session must not be enough to change the password.
-    Note over P: The server exposes POST /account/password/change (SP-02.9) — this is the IdP<br/>library function behind it.
+    Note over P: Reached only through the axum binder's PUT /idp/credentials<br/>(solid-pod-rs-idp/src/axum_binder.rs:99). The native server's POST /account/password/change<br/>is a separate 501 stub that never calls this function (solid-pod-rs-server/src/lib.rs:3149).
 ```
+
+**Drift:** this panel previously said the server's `POST /account/password/change` (SP-02.9) runs this function. At `9b6143c` that route is bound to `handle_password_change` (`solid-pod-rs-server/src/lib.rs:5315`), which declares its own `{token, new_password}` body and returns `501 Not Implemented` (`solid-pod-rs-server/src/lib.rs:3139-3154`). `change_password` is reachable only through the default-off axum binder.
 
 ## SP-05.22 Cross-identity — a did:nostr caller presenting as its WebID too
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant G as enforce_write_ctx / enforce_read_inner<br/>solid-pod-rs-server/src/lib.rs:1021
+    participant G as enforce_write_ctx / enforce_read_inner<br/>solid-pod-rs-server/src/lib.rs:997
     participant LI as linked_identities<br/>solid-pod-rs-server/src/cross_identity.rs:114
     participant R as PodCrossIdentity::linked_web_id<br/>solid-pod-rs-server/src/cross_identity.rs:92
     participant L as local profile card<br/>solid-pod-rs-server/src/cross_identity.rs:77
     participant D as remote DidNostrResolver (feature did-nostr)<br/>solid-pod-rs-server/src/cross_identity.rs:100
-    participant GI as grant_for_identities<br/>solid-pod-rs-server/src/lib.rs:1102
+    participant GI as grant_for_identities<br/>solid-pod-rs-server/src/lib.rs:1078
 
     G->>LI: agent_uri from the verified NIP-98 pubkey
     LI->>R: pubkey as 64 lowercase hex, else no link
@@ -539,7 +579,7 @@ sequenceDiagram
     R-->>LI: Some(webid) only for a bidirectionally verified link
     LI-->>G: linked WebIDs, never the agent itself, http or https only
     G->>GI: primary first, then each linked identity
-    Note over GI: The ACL is evaluated once per identity, so acl:agent naming either the<br/>did:nostr or the WebID matches (solid-pod-rs-server/src/lib.rs:1102).
+    Note over GI: The ACL is evaluated once per identity, so acl:agent naming either the<br/>did:nostr or the WebID matches (solid-pod-rs-server/src/lib.rs:1078).
 ```
 
 **What it shows:** after NIP-98 succeeds, the server asks a resolver whether the pubkey is bound to a WebID and, if so, the caller presents as both.

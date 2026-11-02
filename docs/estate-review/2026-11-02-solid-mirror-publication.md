@@ -35,7 +35,7 @@ start of this work).
 
 | Commit | Revision | Change |
 | --- | --- | --- |
-| A | `30135fec` (merged `d6133e7`) | Fetch and validate in a private candidate store under `mirror-work/`, outside `repos/`. Publish only approved commits into the served store by explicit SHA, one `--force-with-lease` per ref (no `+`), `--atomic`, and a fixed hardened receive-pack. A publication marker and a reader gate cover every serving route. Writes into a mirror are refused with 409. |
+| A | `30135fec` (merged `d6133e7`) | Fetch and validate in a private candidate store under `mirror-work/`, outside `repos/`. Publish only approved commits into the served store by explicit SHA, one `--force-with-lease` per ref (no `+`), `--atomic`, and a fixed hardened receive-pack. A publication marker and a reader gate cover every serving route. Forge writes into a mirror (compare, PR, merge, web edit, fork) are refused with 409; an owner's smart-HTTP push into a mirror is refused with 403 (`ForgeError::Forbidden`, forge `lib.rs:826-839`). |
 | B1 | `bcaf9cf6` (merged `8ba3372`) | Boot-time migration of pre-release mirror stores: rebuild from approved branches and tags only, verify object by object, swap behind a journal. Every journal gates readers while it exists, and an incomplete pass gates every mirror owner. Fixes the smart-HTTP pass-through for invalid path segments (such as `.fork-x.tmp`) that Commit A introduced. |
 | B2 | `ff8048b` (merged `9b6143c`) | Boot-time migration of forks of legacy mirrors: transitive discovery through `forge.parent`, a rebuild triggered by an ancestor's dropped objects or by objects the fork's own refs do not reach, and ref selection that drops and reports anything reaching held. |
 
@@ -108,6 +108,17 @@ Open, availability and durability only (queued as B3 under SP-GIT-02):
   done; the engine has a race between process exit and its size check.
 - Overlapping ancestor roots can fail a whole fork rebuild and leave the fork
   gated.
+
+## SP-14 panel dispositions
+
+Source tracing at solid-pod-rs `9b6143ce55b2`. Each cited line was read at that revision; the strict citation check and Pele render also pass, but those are not the review.
+
+| Panel | Disposition | Evidence |
+| --- | --- | --- |
+| SP-14.1 | accurate | The server keeps the request path (`solid-pod-rs-server/src/lib.rs:4724`), roots the adapter at `data_root/<pod>` (`:4740`) and builds the Git service with it (`:4816`); the service extracts the slug again (`solid-pod-rs-git/src/service.rs:295`) and joins it to that root (`:299`, `guard.rs:92`) before looking up the repository (`service.rs:338`). The pod component is still applied twice. The cited files changed between `1a66c2d` and `9b6143c` only below these lines. |
+| SP-14.2 | accurate | Writes build the pod repository path (`lib.rs:3952`) and stage content (`mark.rs:168`); clone and fetch check Read only on `/<pod>/` (`lib.rs:4792`, `:4797`) before serving the selected repository through the CGI (`service.rs:338`, `:378`). No per-resource ACL walk; still open as recorded in the 2026-11-01 report. |
+| SP-14.3 | accurate | New this session; see "What changed" and "Evidence" above. Mirror fetches go to the private candidate store and only approved tips are published. |
+| SP-14.4 | accurate-with-limits | New this session. Reader gate and boot migration as committed; deployment and multi-instance behaviour are not verified (see "Residuals"). |
 
 ## ADR implications and scope
 

@@ -1,0 +1,6 @@
+[
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/solid-pod-rs/14-git-export-boundaries.md",
+   "report": "docs/estate-review/2026-11-02-solid-mirror-publication.md", "coverage": "selected-panels",
+   "panels": ["SP-14.1", "SP-14.2", "SP-14.3", "SP-14.4"],
+   "basis": "Source tracing at solid-pod-rs 9b6143c with every cited line read; strict cite-check and Pele render pass; SP-14.3/14.4 also backed by native red-to-green regressions, mutations and cross-vendor review. Deployment and multi-instance behaviour remain unverified."}
+]

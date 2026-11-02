@@ -1,0 +1,17 @@
+# Stale ADR claims at wave-1 start
+
+Each claim below no longer matches its ADR bytes. Current hash is at the pinned revision.
+
+| Repo | ADR | Claimed source_sha256 | Current sha256 | Report |
+| --- | --- | --- | --- | --- |
+| VisionClaw | `docs/adr/ADR-2164-code-graph-entities-link-to-knowledge-and-ontology-nodes-resolved-at-runtime.md` | `9de4974c531a5e6dc4b458dffcc33674473374f1696d1cc599189ca25d67dc48` | `0babf7aa915e0c4b7f615f8e1e72703526012895cd293c9705053806dadf2484` | `docs/estate-review/2026-10-31-xr-volumes-and-code-links.md` |
+| VisionClaw | `docs/adr/ADR-2143-codescape-section-separate-workspace-and-port.md` | `e0642f79c5aa4f50d96384f37ffe5242a2371d8f4f2dc5cf8f4a89eb70cbf3eb` | `8a648209276110897d0662815292cf1eca69c05dfd816deefd28e4f41a2ce0e3` | `docs/estate-review/2026-11-01-codescape-runtime-boundary.md` |
+| VisionClaw | `docs/adr/ADR-2166-spatial-volumes-can-be-entered-the-others-become-portals.md` | `c2756c3a15fe6560eb05b612b737dadb70933cc5a0cb15341b913ecbfbe92528` | `d41afc504a2f700a5ca22a2b14f919479bcb0dcb59ccd242a8a943ebf24bbefc` | `docs/estate-review/2026-10-31-portals-and-federation.md` |
+| agentbox | `docs/adr/ADR-2071-journal-the-nightly-dream-cycle.md` | `e1e811d89adcc977eb1c5a54b1b70ae32df57d065a347598f2f39c0f701d3243` | `75b2b3b346d9a0aec85b67889aa595fda6e3fcff74832774d110d714f865cadd` | `docs/estate-review/2026-11-01-dream-journal-and-api-down.md` |
+| agentbox | `docs/adr/ADR-2081-annexe-depth-law-and-honest-evaluator-receipts.md` | `64b8a62c6259ceb48260da07943cde69c2c02fe693db165a375da44e4dced15f` | `88d3648b0d6783b151626e6dfae4130e3e74d2a110a2f8855aed668ef7f611e7` | `docs/estate-review/2026-11-01-dream-annexe-and-receipts.md` |
+| agentbox | `docs/adr/ADR-2114-dream-candidate-diffs-against-engine-read-source.md` | `acf9e364153027410acb4619e1252af74cdcf95119b1e84b66489e1ae521d272` | `7ed05fc03b8659b76e9cdd6c7b34ae5f8c6381be516a04b6577101e6afa604a6` | `docs/estate-review/2026-11-01-dream-execution-and-triage.md` |
+| agentbox | `docs/adr/ADR-2115-dream-decisions-surface-on-the-forum-governance-panel.md` | `7d4dc0345f5e3b89951426ae11d17bfe8948be848206d61659a97c3b1ee77294` | `8d177327216bac9ad3f63e43b299bffade4df2dd8eb39fd82b73d032c20c63f9` | `docs/estate-review/2026-11-01-dream-governance-and-delivery.md` |
+| agentbox | `docs/adr/ADR-2153-session-plane-replaces-aoe.md` | `23773e4b516bb9bdbb57d1927d5ca54470834ab7730dcd8448cdfd39ea97eb41` | `fb148d42df8fae0b45c2cf251d0095dd944ec192281dc20005d532a7a4014848` | `docs/estate-review/2026-11-01-agentbox-session-lifecycle.md` |
+| VisionClaw | `docs/adr/ADR-2169-a-drag-is-a-hold-the-released-node-rejoins-the-simulation-and-the-graph-settles.md` | `1f72d848d805b355a47b30d5f91bfbc590d32a2422f8dfd69fd8af23e352e9b2` | `0b167a73d4fbcb028682ba36b46565f1abc19d749e3b7cf1c26e0ab30cf1e5b4` | `docs/estate-review/2026-11-01-drag-holds-and-acceptance.md` |
+| VisionClaw | `docs/adr/ADR-2172-a-node-is-grabbed-with-either-hand-in-any-visionclaw-volume.md` | `9c53d920de82b832f1978e7c4d6cbd954b58fc9ac3ea869759140b1cc9b75a84` | `fd217d2d87dde866904f18fd06be42c0d85e99dde15286385b35438761f79115` | `docs/estate-review/2026-11-01-xr-grab-boundaries.md` |
+| VisionClaw | `docs/adr/ADR-2002-nip98-single-use-replay-cache.md` | `993d6ca1c46daf5167e98830fedceadc9e643f3db2cc4f3a7f9b09f380e9f9a1` | `57f4c39012071ef22e6939a7a88cced58332af113801a47ec3a72c97cace05a4` | `docs/estate-review/2026-11-01-visionclaw-payment-auth.md` |

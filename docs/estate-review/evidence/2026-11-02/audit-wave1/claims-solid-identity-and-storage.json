@@ -1,0 +1,51 @@
+[
+ {
+  "kind": "topic",
+  "repo": "VisionFlow",
+  "path": "docs/diagrams/solid-pod-rs/05-identity-nip98-did-oidc.md",
+  "report": "docs/estate-review/2026-11-02-solid-identity-and-storage.md",
+  "coverage": "selected-panels",
+  "panels": [
+   "SP-05.1",
+   "SP-05.2",
+   "SP-05.3",
+   "SP-05.4",
+   "SP-05.5",
+   "SP-05.7",
+   "SP-05.8",
+   "SP-05.10",
+   "SP-05.12",
+   "SP-05.13",
+   "SP-05.14",
+   "SP-05.15",
+   "SP-05.16",
+   "SP-05.17",
+   "SP-05.18",
+   "SP-05.19",
+   "SP-05.21",
+   "SP-05.22"
+  ],
+  "basis": "Source tracing at solid-pod-rs 9b6143c; topic restamped and strict cite-check and render pass; SP-05.2 and SP-05.10 re-traced after the post-assessment fixes 8f2df86 and fcc624a. No runtime, test or deployment evidence; LWS-CID iat defect and IdP drift recorded, not repaired; previously credited SP-05.1, 05.3, 05.4, 05.5, 05.7 and 05.8 re-checked at 9b6143c after the restamp (SP-05.3 fully re-traced and corrected)."
+ },
+ {
+  "kind": "topic",
+  "repo": "VisionFlow",
+  "path": "docs/diagrams/solid-pod-rs/06-storage-quota-and-git-pods.md",
+  "report": "docs/estate-review/2026-11-02-solid-identity-and-storage.md",
+  "coverage": "selected-panels",
+  "panels": [
+   "SP-06.1",
+   "SP-06.2",
+   "SP-06.3",
+   "SP-06.4",
+   "SP-06.6",
+   "SP-06.7",
+   "SP-06.8",
+   "SP-06.9",
+   "SP-06.10",
+   "SP-06.11",
+   "SP-06.12"
+  ],
+  "basis": "Source tracing at solid-pod-rs 9b6143c; topic restamped and strict cite-check and render pass. No runtime evidence: crash atomicity, concurrent quota drift, fresh-pod ACL inheritance and admin-pod git marking remain open; previously credited SP-06.7 re-checked and SP-06.12 fully re-traced at 9b6143c after the restamp (missing pod-absent 404 step added)."
+ }
+]
