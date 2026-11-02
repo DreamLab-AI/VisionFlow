@@ -16,10 +16,24 @@
     {
       "id": "SP-GIT-02",
       "title": "Git CGI permits known hidden-tip requests despite mirror ref hiding",
-      "status": "direct-fetch-repaired-isolation-open",
-      "disposition": "Two real Rust HTTP CGI regressions fail before the repair by receiving a hidden-tip pack and pass afterwards, including when repository settings enable all unadvertised-object request options. Both retain advertised-tip pack decoding as a positive control. 105 crate tests and 4 server WAC tests pass; one doctest ignored. Complete mirror publication isolation, full Forge lifecycle acceptance, release and deployment remain open.",
-      "acceptance": "Deny direct hidden-object requests despite permissive repository-local settings while keeping advertised-tip fetches working. Test the shared HTTP service and forge adapter. Establish a separate object-publication boundary for held mirror objects, including fetch and validation races; ref hiding and a single configuration switch do not establish complete repository read isolation. Verify consumer adoption separately.",
-      "repair_revision": "1a66c2d9222c52782891938da1b0373a0b41ab28"
+      "status": "publication-isolation-repaired-local-main",
+      "disposition": "Direct hidden-tip fetches were repaired in 1a66c2d (unchanged). Mirror publication isolation, migration of pre-release mirror stores and migration of their forks are committed and merged into local solid-pod-rs main 9b6143c (Commit A 30135fec, B1 bcaf9cf6, B2 ff8048b). Not pushed, released or deployed. Native route regressions: the original raw-route held-SHA test (200 before, 404 after) and held-object denial across raw, HTML, JSON, archive and smart-HTTP, plus migration and fork fixtures built so an in-place gc cleanup would fail them; nine gates green on each exact committed tree. Subprocess controls: scratch git controls for lease semantics, receive-pack hardening, clone variants and object reachability. Source tracing: Opus security and code reviews and Codex gpt-6-astra cross-vendor audits each round; last verdicts PARTLY SUPPORTED with named, out-of-model or non-arising residuals. The smart-HTTP denial test is defence in depth only (1a66c2d already refused the request). Commit A introduced a smart-HTTP pass-through for invalid path segments (.fork-*.tmp); B1 fixed it; recorded here, not counted separately. A lost-record legacy store was served with 200 before B1 (pre-existing, closed by B1).",
+      "acceptance": "Claim, for remote attackers: no object present at migration time and held (not reachable from any approved branch or tag) is served by a mirror or a fork. Met on local main: fetch and validation in a private candidate store outside repos/; publication of approved commits only by explicit SHA with per-ref lease and hardened receive-pack; marker and journal reader gate on every serving route; boot-time rebuild of legacy stores and forks with object-level verification. Not met: deployment evidence, MSRV 1.89 build, consumer adoption. Out of model: filesystem writers, multiple instances sharing a plugin directory, recycled process-group ids, a fork owner re-pushing bytes they hold.",
+      "repair_revision": "1a66c2d9222c52782891938da1b0373a0b41ab28",
+      "repair_revisions": {
+        "direct_fetch": "1a66c2d9222c52782891938da1b0373a0b41ab28",
+        "commit_a": "30135fec2a2e4fd42c404040bcc793c36f17f302",
+        "commit_b1": "bcaf9cf6",
+        "commit_b2": "ff8048b",
+        "local_main": "9b6143c"
+      },
+      "evidence": "docs/estate-review/evidence/2026-11-01/solid-mirror-closeout/ (SHA256SUMS, SHA256SUMS-commit-a, -commit-b1, -commit-b2; decisions 1-39 in publication-design.md)",
+      "open_followups": [
+        "B3 (availability): operator recourse for stores stuck at the attempt limit, over 512 MiB, or behind an unreadable owner directory (an unreadable owner directory makes every boot incomplete and gates every 64-hex owner).",
+        "B3 (durability): ancestor-directory fsync; descendant-process cleanup on timeout; the engine's process-exit versus size-check race.",
+        "B3 (availability): overlapping ancestor roots fail a whole fork rebuild and leave it gated.",
+        "Deployment evidence and MSRV 1.89 build remain unverified."
+      ]
     },
     {
       "id": "SP-GIT-03",
