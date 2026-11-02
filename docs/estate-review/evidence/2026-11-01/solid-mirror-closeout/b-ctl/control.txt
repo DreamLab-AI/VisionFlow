@@ -1,0 +1,31 @@
+== legacy store
+held commit: present  held blob: present
+== fork via clone --local --bare
+fork held commit: present  held blob: present  pack links: 2 same-inode: yes
+fork refs: refs/heads/main refs/heads/republished refs/tags/v1 
+held set: 865640f810dcd3d1fc755b31a49a46fa6ca5beab
+refs reaching held: refs/mirror/side refs/misc/stash-held 
+== A. fresh store + push of chosen refs (mirror: skip refs/mirror and refs/forge/heads)
+  dropped (reaches held): refs/misc/stash-held
+held commit: absent  held blob: absent  approved: present  foreign PR head: absent
+refs: refs/heads/main refs/notes/commits refs/tags/v1 
+tag kept as annotated: tag  note: note on approved
+alternates: none  fsck: 0 unreachable lines
+== B. negative controls on the recovery store
+clone --local --bare: held blob present links 3
+clone --bare (path, implicit local): held blob present
+clone --mirror --no-local: held blob present
+clone --bare --no-local: held blob absent (but refs: refs/heads/main refs/tags/v1 )
+clone --shared: held blob present alternates: /home/devuser/workspace/.tmp/claude-1000/-home-devuser-workspace-VisionFlow/3bacf5e1-eb41-460b-9c59-dcbf9490e95d/scratchpad/b-ctl/run/mirror-recovery/aaaa/sample.git.1/objects
+ref deletion + gc --prune=now on a copy: held blob absent (reflogs: 0)
+== C. fork rebuild the same way (all refs except refs/mirror, held check)
+  dropped (reaches held): refs/heads/republished
+fork rebuilt: held commit absent held blob absent approved present refs: refs/heads/main refs/tags/v1 
+rebuilt fork objects sharing the legacy pack inode 39194780: 0
+== D. fork-swept-in-place alternative (repack -a -d + prune) on a copy of the fork
+repack -a -d + prune: held blob present  (fork ref refs reach held? none here)
+== E. hidden source refs: fork with uploadpack/transfer.hideRefs=refs/forge; push still copies them
+  dropped (reaches held): refs/heads/republished
+refs/forge/heads/carol/x copied: yes
+== F. hook planted in staging is not run with the constant receive-pack
+sentinel: not-run

@@ -1,0 +1,12 @@
+== 1. fork of a fork (clone --local of a clone --local) hardlinks held objects
+f2 held blob: present  f2 pack inode == legacy pack inode: yes
+== 2. a ref pointing straight at a held blob or tree escapes --contains
+for-each-ref --contains=53c118295f3fbd5154431f7b8b000298e1b15317: refs/mirror/side 
+after copying refs/misc/*: held blob in staging: present
+held object set (rev-list --objects refs/mirror --not branches tags): 3 objects
+batch-check of held set in staging, hits: 2
+== 3. --contains with a commit the store lacks
+exit 129 : error: no such commit 53c118295f3fbd5154431f7b8b000298e1b15317
+== 4. mutant: delete refs/mirror + gc --prune=now in place, with a .keep pack
+held blob after gc with .keep: present
+held blob after gc with a non-mirror ref reaching held: present

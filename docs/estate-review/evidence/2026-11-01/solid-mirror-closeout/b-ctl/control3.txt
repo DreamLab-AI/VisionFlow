@@ -1,0 +1,7 @@
+== C16 approximate H contains the approved M1 blob?
+yes: approved blob 3367afdbbf91e638efe983616377c60477cc6612 is in H_approx
+exact H (minus full root closure) excludes it; |H_approx|=4 |H|=3
+== C17 fork while side=X1, then upstream force-pushes side to X2, legacy refetches
+X1 blob in fork: present; X1 blob in parent's current H: no
+H-trigger hits in fork: 0  (0 = fork would be skipped while serving X1)
+X1 blob in D: yes; D-trigger hits in fork: 3
