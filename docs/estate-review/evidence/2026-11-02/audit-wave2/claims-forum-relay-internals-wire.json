@@ -1,0 +1,20 @@
+[
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/11-relay-durable-object-internals.md",
+    "report": "docs/estate-review/2026-11-02-forum-relay-internals-wire.md",
+    "coverage": "selected-panels",
+    "panels": ["NF-11.1", "NF-11.2", "NF-11.4", "NF-11.5", "NF-11.6", "NF-11.7", "NF-11.8", "NF-11.9", "NF-11.10", "NF-11.11", "NF-11.12", "NF-11.13", "NF-11.14", "NF-11.15", "NF-11.16", "NF-11.17"],
+    "basis": "Source tracing at nostr-rust-forum c39f41f104b1; topic restamped, every panel given a disposition (5 accurate, 10 corrected, 1 with limits); strict cite-check and render pass; DO hibernation, ADR-2010 live journeys and D1 cost figures not runtime-verified."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope.md",
+    "report": "docs/estate-review/2026-11-02-forum-relay-internals-wire.md",
+    "coverage": "selected-panels",
+    "panels": ["NF-12.1", "NF-12.2", "NF-12.3", "NF-12.4", "NF-12.5", "NF-12.6", "NF-12.7", "NF-12.8", "NF-12.10", "NF-12.11"],
+    "basis": "Source tracing at nostr-rust-forum c39f41f104b1; topic restamped, every panel given a disposition (4 accurate, 6 corrected); strict cite-check and render pass; cross-topic and EXTERNAL references not re-verified."
+  }
+]

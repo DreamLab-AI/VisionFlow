@@ -1,0 +1,186 @@
+[
+ {
+  "kind": "adr",
+  "repo": "VisionFlow",
+  "path": "docs/adr/ADR-2001-corpus-consolidation.md",
+  "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+  "coverage": "whole-document",
+  "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source."
+ },
+ {
+  "kind": "adr",
+  "repo": "VisionFlow",
+  "path": "docs/adr/ADR-2002-static-copy-only-website.md",
+  "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+  "coverage": "whole-document",
+  "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source."
+ },
+ {
+  "kind": "adr",
+  "repo": "VisionFlow",
+  "path": "docs/adr/ADR-2003-pages-artifact-deploy.md",
+  "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+  "coverage": "whole-document",
+  "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source."
+ },
+ {
+  "kind": "adr",
+  "repo": "VisionFlow",
+  "path": "docs/adr/ADR-2004-diagram-baseline-vendored-render-gate.md",
+  "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+  "coverage": "whole-document",
+  "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source; superseded record; vendored Mermaid render path contradicted (Pele now)."
+ },
+ {
+  "kind": "adr",
+  "repo": "VisionFlow",
+  "path": "docs/adr/ADR-2005-drift-counter-allowlist-substrate-sourced.md",
+  "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+  "coverage": "whole-document",
+  "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source; mcp-ontology-tools axis counts a file absent at agentbox c57d9c0."
+ },
+ {
+  "kind": "adr",
+  "repo": "VisionFlow",
+  "path": "docs/adr/ADR-2007-estate-closeout-evidence-roadmap.md",
+  "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+  "coverage": "whole-document",
+  "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source."
+ },
+ {
+  "kind": "adr",
+  "repo": "VisionFlow",
+  "path": "docs/adr/ADR-2009-webgl-mesh-deep-is-sidecar-only.md",
+  "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+  "coverage": "whole-document",
+  "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source."
+ },
+ {
+  "kind": "adr",
+  "repo": "VisionFlow",
+  "path": "docs/adr/ADR-2010-augmentation-conditions-are-the-canon-audit-lens.md",
+  "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+  "coverage": "whole-document",
+  "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source; verified_commit unresolvable; named checker script absent."
+ },
+ {
+  "kind": "adr",
+  "repo": "VisionFlow",
+  "path": "docs/adr/ADR-2011-task-properties-set-the-boundary-not-agent-self-tiering.md",
+  "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+  "coverage": "whole-document",
+  "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source; legacy-panel self-tier path contradicts Decision §5."
+ },
+ {
+  "kind": "adr",
+  "repo": "VisionFlow",
+  "path": "docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md",
+  "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+  "coverage": "whole-document",
+  "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source; retired anchoring sentence still on site; registry parity fails; sidestr-rs unpinned."
+ },
+ {
+  "kind": "adr",
+  "repo": "VisionFlow",
+  "path": "docs/adr/ADR-2013-sovereign-corpus-is-ecosystem-canon.md",
+  "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+  "coverage": "whole-document",
+  "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source; GitHubSource still selectable in VisionClaw."
+ },
+ {
+  "kind": "adr",
+  "repo": "VisionFlow",
+  "path": "docs/adr/ADR-2014-shared-ontology-workspace.md",
+  "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+  "coverage": "whole-document",
+  "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source."
+ },
+ {
+  "kind": "adr",
+  "repo": "VisionFlow",
+  "path": "docs/adr/ADR-2015-typed-ontology-model-and-migration.md",
+  "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+  "coverage": "whole-document",
+  "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source."
+ },
+ {
+  "kind": "adr",
+  "repo": "VisionFlow",
+  "path": "docs/adr/ADR-2016-local-markdown-ontology-application.md",
+  "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+  "coverage": "whole-document",
+  "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source."
+ },
+ {
+  "kind": "adr",
+  "repo": "VisionFlow",
+  "path": "docs/adr/ADR-2018-parity-claims-name-their-comparator.md",
+  "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+  "coverage": "whole-document",
+  "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source; canon parity figure stale against checklist."
+ },
+ {
+  "kind": "adr",
+  "repo": "VisionFlow",
+  "path": "docs/adr/ADR-2019-forge-and-mirror-on-in-shipped-pods.md",
+  "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+  "coverage": "whole-document",
+  "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source; mirror not started in shipped pods."
+ },
+ {
+  "kind": "adr",
+  "repo": "VisionFlow",
+  "path": "docs/adr/ADR-2020-pele-renders-every-estate-diagram.md",
+  "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+  "coverage": "whole-document",
+  "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source."
+ },
+ {
+  "kind": "adr",
+  "repo": "VisionFlow",
+  "path": "docs/adr/ADR-2021-closed-loop-agent-operations-and-18-month-roadmap.md",
+  "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+  "coverage": "whole-document",
+  "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source."
+ },
+ {
+  "kind": "adr",
+  "repo": "VisionFlow",
+  "path": "docs/engineering/ADR-004-harness-engineering-framework.md",
+  "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+  "coverage": "whole-document",
+  "basis": "Source tracing at VisionFlow 5f8b1da and agentbox c57d9c0; every section assessed; D6 precedent system retired in agentbox; CI threshold 50% vs stated 80%."
+ },
+ {
+  "kind": "adr",
+  "repo": "VisionFlow",
+  "path": "docs/engineering/ADR-005-mandate-at-grant-governance.md",
+  "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+  "coverage": "whole-document",
+  "basis": "Source tracing at VisionFlow 5f8b1da and agentbox c57d9c0; every section assessed; speculative and unbuilt as stated; Context motivation partly stale."
+ },
+ {
+  "kind": "adr",
+  "repo": "visionGraph",
+  "path": "knowledge/ADR-008.md",
+  "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+  "coverage": "whole-document",
+  "basis": "Source tracing at visionGraph 556a015; classified as a generated ontology concept page, not a decision record; all three sections tabled; no decision claims to check."
+ },
+ {
+  "kind": "adr",
+  "repo": "visionGraph",
+  "path": "knowledge/ADR-012.md",
+  "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+  "coverage": "whole-document",
+  "basis": "Source tracing at visionGraph 556a015; classified as a generated ontology concept page, not a decision record; all three sections tabled; no decision claims to check."
+ },
+ {
+  "kind": "adr",
+  "repo": "WasmVOWL",
+  "path": "docs/adr/ADR-001-explorer-consumer-contract-closeout.md",
+  "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+  "coverage": "whole-document",
+  "basis": "Source tracing at WasmVOWL 51a1484; every section assessed; topology-reset hazard inferred from source only, frontend not run."
+ }
+]

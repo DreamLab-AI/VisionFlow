@@ -32,7 +32,7 @@ sources:
   - docs/adr/ADR-2007-estate-closeout-evidence-roadmap.md
   - docs/BASELINE-visionflow.md
   - ./README.md
-verified_commit: {visionflow: 4d361b58ce2b3ee17e1570361eaf78270b630012, visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, agentbox: 9dfc27b16e82e9786535a55e790710493dd51fdf, nostr-rust-forum: 1b27f79d08537b61b3d5a5d02cac9ee5999b79ed}
+verified_commit: {visionflow: 5f8b1da92ce5d9e6b32a0bd90ec3630c66619083, visionclaw: 86cdd76355823a51bb64d503c005fe277726e724, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35, nostr-rust-forum: c39f41f104b114d6a3fa29013daaf6fa58b45080}
 ---
 
 Source reconciliation: 2026-09-07. These panels follow the current sections of the compatibility matrix and status reconciliation, plus the source audits named in frontmatter. Historical metrics and register cuts remain historical. This review did not certify a live federation, image, hardware session or replica-wide authentication contract.
@@ -63,7 +63,7 @@ flowchart TB
 
 **Current Agentbox corpus dispatch, 2026-10-31:** `binFor` routes `propose` and `panel` through `vault`, and other corpus verbs through `ontomark` (`../project/agentbox/management-api/lib/ontology-apply.js:153`). Both are selected under the same Nix gate (`../project/agentbox/flake.nix:942`, `../project/agentbox/flake.nix:960`). The old vault-only statement did not describe the migrated consumer. This source trace is not a universal absence claim about every estate MCP adapter.
 
-**INVARIANT: `verified_commit` is a `{repo: sha}` map, not one sha, for any topic whose `sources:` span more than one repo (`compatibility-matrix.md:8`).** A missing repository pin can fall back to working-tree bytes, but the current checker reports that as unverified (`scripts/diagram-index-gen.cjs:548`) and strict mode rejects warnings (`scripts/diagram-index-gen.cjs:881`). Such a fallback must not be presented as revision-backed verification.
+**INVARIANT: `verified_commit` is a `{repo: sha}` map, not one sha, for any topic whose `sources:` span more than one repo (`scripts/diagram-index-gen.cjs:206-216`).** A missing repository pin can fall back to working-tree bytes, but the current checker reports that as unverified (`scripts/diagram-index-gen.cjs:550`) and strict mode rejects warnings (`scripts/diagram-index-gen.cjs:883`). Such a fallback must not be presented as revision-backed verification.
 
 Evidence: `repository-map.md`, the Agentbox audit and imported-scope review. This interaction view is not an exhaustive repository count.
 
@@ -72,7 +72,7 @@ Evidence: `repository-map.md`, the Agentbox audit and imported-scope review. Thi
 ```mermaid
 flowchart LR
     KEY["BIP-340 x-only public key"] --> DID["Agentbox canonical did:nostr:64-hex<br/>agent-identity.js:22"]
-    KEY --> MULTI["Multikey verification material offered ALONGSIDE,<br/>never as a replacement DID string<br/>agent-identity.js:18"]
+    KEY --> MULTI["Multikey verification material offered ALONGSIDE,<br/>never as a replacement DID string<br/>agent-identity.js:22-25"]
     REQ["Signed NIP-98 request"] --> VC["VisionClaw process-local single-use cache —<br/>the event id is recorded atomically after validation<br/>nip98.rs:164"]
     REQ --> POD["Native Solid replay-store seam"]
     REQ --> EDGE["Forum and Worker-specific verifier contracts"]
@@ -143,13 +143,13 @@ flowchart TB
     ID --> SOURCE["Describe implemented mechanism"]
     SOURCE --> TEST["Attach actual test or measurement"]
     TEST --> LIMIT["State missing runtime, replica, hardware or integration proof"]
-    LIMIT --> VIEW["Update current canon view under the ACCEPTED evidence rule:<br/>an item closes only on evidence naming its repository,<br/>the revision it was checked at, its evidence class and its<br/>acceptance boundary — ADR-2007-estate-closeout-evidence-roadmap.md:24"]
+    LIMIT --> VIEW["Update current canon view under the ACCEPTED evidence rule:<br/>an item closes only on evidence naming its repository,<br/>the revision it was checked at, its evidence class and its<br/>acceptance boundary — ADR-2007-estate-closeout-evidence-roadmap.md:26"]
     PROPOSAL["Proposed ADR or imported design"] -.-> SCOPE["Explicit proposal/adoption disposition"]
     SCOPE --> VIEW
     VIEW --> BOUNDARY["No blanket completion from diagrams, hashes or passing helper tests"]
 ```
 
-VisionFlow owns the cross-repository view and evidence vocabulary. Source audits can correct that view, while implementation changes belong to the owning repository. Source hashes bind observations; they do not turn a planned feature or a helper assertion into a running end-to-end system. ADR-2007 was accepted on 2026-10-02, narrowed to exactly this evidence rule (`docs/adr/ADR-2007-estate-closeout-evidence-roadmap.md:24`); the estate closeout roadmap it originally proposed is recorded there as overtaken, not accepted, so this panel states the accepted rule rather than the abandoned coordinating contract.
+VisionFlow owns the cross-repository view and evidence vocabulary. Source audits can correct that view, while implementation changes belong to the owning repository. Source hashes bind observations; they do not turn a planned feature or a helper assertion into a running end-to-end system. ADR-2007 was accepted on 2026-10-02, narrowed to exactly this evidence rule (`docs/adr/ADR-2007-estate-closeout-evidence-roadmap.md:26`); the estate closeout roadmap it originally proposed is recorded there as overtaken, not accepted, so this panel states the accepted rule rather than the abandoned coordinating contract.
 
 ## VF-08.11 Supporting repositories sit beside the substrates, not inside the mesh
 
@@ -171,4 +171,10 @@ flowchart TB
 **Why it is this way.** The matrix row says to read neither as a federated substrate; the isolation rule in VisionClaw's agent instructions makes the Codescape boundary a build-graph property rather than a convention.
 
 
-**Review boundary, 2026-10-31:** Only the Agentbox corpus-dispatch slice and the checker-fallback wording were refreshed here. The Agentbox revision now names the inspected `9dfc27b16`; other repository pins remain historical. The current session exposes Ontomark 0.7.0 and vault 0.1.0, recorded with binary hashes in the [consumer audit](../../estate-review/2026-10-31-corpus-consumer.md). No full mesh or universal deployment claim follows from those local versions.
+**Review boundary, 2026-10-31:** the Agentbox corpus-dispatch slice and the checker-fallback wording were refreshed then. The session at that time exposed Ontomark 0.7.0 and vault 0.1.0, recorded with binary hashes in the [consumer audit](../../estate-review/2026-10-31-corpus-consumer.md). No full mesh or universal deployment claim follows from those local versions.
+
+**Restamp, 2026-11-02:** all four repository pins moved to the audit wave 2 revisions: VisionFlow `5f8b1da`, VisionClaw `86cdd76`, Agentbox `c57d9c0` and nostr-rust-forum `c39f41f`. Every citation was re-read at those revisions. The cross-repository lines were byte-identical to the earlier pins. Two VisionFlow lines moved, and are now `ADR-2007-estate-closeout-evidence-roadmap.md:26` and the checker lines in VF-08.1. ADR-2007 is now `complete` and `live` (`docs/adr/ADR-2007-estate-closeout-evidence-roadmap.md:6-7`), with the evidence gate in all five ledgers, so the rule VF-08.10 states is also mechanically enforced at closing transitions. That is source tracing; no hosted run was checked.
+
+**Drift (anchors, corrected 2026-11-02):**
+- VF-08.1's map invariant cited a matrix sentence that says nothing about `verified_commit`. It now cites the checker that enforces the form (`scripts/diagram-index-gen.cjs:206-216`).
+- VF-08.2's Multikey node cited the key-handling line. It now cites the lines that say the Multikey is offered alongside the unchanged DID (`../project/agentbox/management-api/lib/agent-identity.js:22-25`).

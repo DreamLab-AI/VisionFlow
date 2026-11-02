@@ -1,0 +1,29 @@
+[
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/08-config-zones-stores-and-admin-authority.md",
+    "report": "docs/estate-review/2026-11-02-forum-config-ci-invariants.md",
+    "coverage": "selected-panels",
+    "panels": ["NF-08.1", "NF-08.2", "NF-08.3", "NF-08.4", "NF-08.5", "NF-08.6", "NF-08.7", "NF-08.8", "NF-08.9"],
+    "basis": "Source tracing at nostr-rust-forum c39f41f104b1; topic restamped, every panel given a disposition (3 accurate, 5 corrected, 1 with limits); strict cite-check and render pass; D1 latch/retry behaviour not run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/09-ci-deploy-canary-and-validation.md",
+    "report": "docs/estate-review/2026-11-02-forum-config-ci-invariants.md",
+    "coverage": "selected-panels",
+    "panels": ["NF-09.1", "NF-09.2", "NF-09.3", "NF-09.4", "NF-09.5", "NF-09.6", "NF-09.7", "NF-09.8", "NF-09.9"],
+    "basis": "Source tracing at nostr-rust-forum c39f41f104b1; topic restamped, every panel given a disposition (3 accurate, 6 corrected); strict cite-check and render pass; no CI, cargo-deny, e2e or benchmark run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/10-invariants-and-anomaly-register.md",
+    "report": "docs/estate-review/2026-11-02-forum-config-ci-invariants.md",
+    "coverage": "selected-panels",
+    "panels": ["NF-10.1", "NF-10.2", "NF-10.3", "NF-10.4", "NF-10.6", "NF-10.7", "NF-10.8", "NF-10.10", "NF-10.11", "NF-10.12"],
+    "basis": "Source tracing at nostr-rust-forum c39f41f104b1; topic restamped, every panel given a disposition (5 accurate, 4 corrected, 1 with limits); strict cite-check and render pass; D1 transaction semantics and trust SQL tests not run; EXTERNAL cross-repo references not re-read."
+  }
+]

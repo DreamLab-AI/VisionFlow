@@ -58,7 +58,13 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/onboarding_modal.rs
   - ../nostr-rust-forum/.github/workflows/audit.yml
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/receipts.rs
-verified_commit: {nostr-rust-forum: 1b27f79d08537b61b3d5a5d02cac9ee5999b79ed}
+  - ../nostr-rust-forum/crates/nostr-bbs-core/src/feature_gate.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/git_panel.rs
+  - ../nostr-rust-forum/benchmarks/js-vs-wasm/bench.mjs
+  - ../nostr-rust-forum/benchmarks/js-vs-wasm/package.json
+  - ../nostr-rust-forum/crates/nostr-bbs-core/src/wasm_bridge.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-core/tests/upstream_vectors/all_fixtures.rs
+verified_commit: {nostr-rust-forum: c39f41f104b114d6a3fa29013daaf6fa58b45080}
 ---
 
 ## NF-10.1 The compliance surface — BASELINE-architecture invariants
@@ -66,8 +72,8 @@ verified_commit: {nostr-rust-forum: 1b27f79d08537b61b3d5a5d02cac9ee5999b79ed}
 ```mermaid
 flowchart LR
     I1["1 nostr-bbs-core owns on-wasm32 Schnorr until the canary records Shape A<br/>nostr-bbs-upstream-canary/src/lib.rs:17 - see NF-01.5"]
-    I2["2 FORUM_BASE is applied in exactly TWO places<br/>Router base nostr-bbs-forum-client/src/app.rs:867 | base_href nostr-bbs-forum-client/src/app.rs:54 - see NF-05.1"]
-    I3["3 channel counts are derived, never accumulated<br/>count_for nostr-bbs-forum-client/src/stores/channels.rs:159 | dedup on insert channels.rs:444 - see NF-05.6"]
+    I2["2 FORUM_BASE is applied in exactly TWO places<br/>Router base nostr-bbs-forum-client/src/app.rs:902 | base_href nostr-bbs-forum-client/src/app.rs:54 - see NF-05.1"]
+    I3["3 channel counts are derived, never accumulated<br/>count_for nostr-bbs-forum-client/src/stores/channels.rs:159 | dedup on insert channels.rs:453 - see NF-05.6"]
     I4["4 .acl and .meta sidecar access coerces to Control<br/>nostr-bbs-pod-worker/src/acl.rs:85 | shared policy nostr-bbs-pod-worker/src/acl.rs:34 - see NF-04.3"]
     I5["5 gift-wraps are recipient-whitelist-gated, never author-gated<br/>gift_wrap_recipient nip_handlers.rs:138 | admission nip_handlers.rs:1140 - see NF-03.5"]
     I6["6 TENSION: BASELINE invariant 6 says solid-pod-rs stays an EXACT pin docs/BASELINE-architecture.md:200,<br/>the manifest now declares a caret range under ER-35 nostr-rust-forum/Cargo.toml:185 - see NF-01.4"]
@@ -85,7 +91,7 @@ flowchart LR
 flowchart LR
     K1["1 derive_subkey is a byte-for-byte cross-stack contract with agentbox's JS mirror derivation<br/>raw HMAC, not HKDF nostr-bbs-core/src/keys.rs:254 | vector nostr-bbs-core/src/keys.rs:479 | digest keys.rs:484 - see NF-09.3"]
     K2["2 derive_from_prf and derive_subkey are DISTINCT and never substitutable<br/>HKDF path nostr-bbs-core/src/keys.rs:198 | contrast documented nostr-bbs-core/src/keys.rs:225"]
-    K3["3 DEVICE_KEYS_ENABLED enables only on the exact string true, checked in both workers<br/>auth gate nostr-bbs-auth-worker/src/devices.rs:112 | asserted nostr-bbs-auth-worker/src/devices.rs:974 - see NF-02.7"]
+    K3["3 DEVICE_KEYS_ENABLED enables only on the exact string true, checked in both workers<br/>shared rule nostr-bbs-core/src/feature_gate.rs:65 | auth delegates nostr-bbs-auth-worker/src/devices.rs:112 | asserted nostr-bbs-auth-worker/src/devices.rs:912 - see NF-02.7"]
     K4["4 gift-wrap admission keys on the recipient p tag, never the ephemeral author<br/>nip_handlers.rs:138 - see NF-03.5"]
     K5["5 TL3 is never auto-demoted; demotion stays time-driven on cron, never inline on admission<br/>nostr-bbs-relay-worker/src/trust.rs:334 - see NF-03.8"]
     K6["6 root possession recovers derived children<br/>nostr-bbs-core/src/keys.rs:241<br/>Child-only exposure is a separate case; see N1"]
@@ -125,9 +131,11 @@ flowchart TB
     O6["O6 NIP-07 silent no-op DM subscription - CORRECTED. The subscription registers unconditionally<br/>(nostr-bbs-forum-client/src/dm/mod.rs:245). The real limit is per-event: a NIP-04-only extension fails gift-wrap<br/>unwrap at nostr-bbs-forum-client/src/dm/mod.rs:935 and it IS surfaced via state.error at dm/mod.rs:962. See NF-05.9."]
     O7["O7 NIP05_USERNAME_HOST hardcoded - NOW SHARED, no longer a settings-local constant. settings.rs:35 aliases the onboarding<br/>modal constant nostr-bbs-forum-client/src/pages/settings.rs:35, which bakes NOSTR_BBS_NIP05_DOMAIN at build time and falls back to example.test<br/>nostr-bbs-forum-client/src/components/onboarding_modal.rs:59; settings.rs:343 uses it. A display fallback only. See NF-05.7."]
     O9["O9 nostr-bbs-mesh has no impl AND no relay import - HALF holds. No production MeshSocket impl exists<br/>(only nostr-bbs-mesh/src/mock.rs:249), but the relay DOES declare the dependency nostr-bbs-relay-worker/Cargo.toml:27.<br/>See NF-09.8."]
-    O10["O10 wasm_bridge has no JS consumers - CONFIRMED. The upstream-vector suite is soft-skipped, not<br/>failed, when fixtures are absent (nostr-bbs-core/tests/upstream_vectors/mod.rs:11) and no workflow runs<br/>sync-fixtures.sh. See NF-09.3."]
+    O10["O10 wasm_bridge has no JS consumers - REFINED. The one in-repo JS consumer of its exports nostr-bbs-core/src/wasm_bridge.rs:228<br/>is the benchmark, which imports @dreamlab/nostr-core-wasm benchmarks/js-vs-wasm/bench.mjs:39 while its package.json<br/>declares @nostr-bbs/nostr-core-wasm at the absent crates/nostr-core/pkg benchmarks/js-vs-wasm/package.json:12, so it cannot<br/>resolve. The upstream-vector suite returns early and passes when fixtures are absent<br/>(nostr-bbs-core/tests/upstream_vectors/all_fixtures.rs:18) and no workflow runs sync-fixtures.sh. DRIFT: the loader doc says<br/>such tests are ignore-attributed nostr-bbs-core/tests/upstream_vectors/mod.rs:11, and none is. See NF-09.3 and NF-09.7."]
     O11c["O11 broker_decisions is write-only - CORRECTED. A read endpoint exists:<br/>GET /api/governance/decisions with pagination and a case filter,<br/>nostr-bbs-auth-worker/src/governance_api.rs:619. See NF-06.9."]
 ```
+
+**Drift:** the upstream-vector loader says missing-fixture tests are ignore-attributed (`../nostr-rust-forum/crates/nostr-bbs-core/tests/upstream_vectors/mod.rs:11`); they return early and pass (O10).
 
 ## NF-10.6 New doc-drift found in this pass
 
@@ -135,12 +143,12 @@ flowchart TB
 flowchart TB
     DD1["CLOSED by the README rewrite: the Known-gaps row calling NIP-42 AUTH scaffolded with auth_required false is gone<br/>(the README at this stamp carries no scaffolded or planned rows README.md:60). The code is unchanged: nip42 is the DEFAULT nip42.rs:115,<br/>the template ships AUTH_MODE nip42 nostr-bbs-relay-worker/wrangler.toml:39, and every EVENT passes the gate first nip_handlers.rs:1102.<br/>See NF-03.3."]
     DD2["CLOSED by the README rewrite: the row saying nostr-bbs-mesh is NOT a dependency of the relay-worker is gone and the README<br/>now draws mesh as a dotted configured-routing edge README.md:60. nostr-bbs-relay-worker/Cargo.toml:27 declares the dependency. See NF-09.8."]
-    DD3["nostr-bbs-relay-worker/wrangler.toml:18 asserts there is no ADMIN_PUBKEYS reader in src/.<br/>nostr-bbs-relay-worker/src/auth.rs:185 reads it, and so does nostr-bbs-auth-worker/src/admin.rs:71.<br/>Only nostr-bbs-search-worker/wrangler.toml:41 declares the var. See NF-08.7."]
+    DD3["nostr-bbs-relay-worker/wrangler.toml:18 asserts there is no ADMIN_PUBKEYS reader in src/.<br/>nostr-bbs-relay-worker/src/auth.rs:185 reads it, and so does nostr-bbs-auth-worker/src/admin.rs:67.<br/>Only nostr-bbs-search-worker/wrangler.toml:41 declares the var. See NF-08.7."]
     DD4["nostr-rust-forum/Cargo.toml:72 workspace.metadata.ci.wasm-check-packages names three crates (config, preview-worker, jev) and is read by NOTHING -<br/>the wasm job checks the whole workspace .github/workflows/ci.yml:188. Inert metadata. See NF-01.2."]
     DD5["nostr-bbs-upstream-canary/src/lib.rs:10 names a five-NIP build matrix but only three smokes exist<br/>nostr-bbs-upstream-canary/src/lib.rs:35 nostr-bbs-upstream-canary/src/lib.rs:56 nostr-bbs-upstream-canary/src/lib.rs:89 - nip04, nip59 and nip98 are unexercised. The same doc calls the crate<br/>nostr-upstream-canary nostr-bbs-upstream-canary/src/lib.rs:14 while the package is nostr-bbs-upstream-canary. See NF-01.5."]
     DD6["The search-worker cron runs every five minutes and reindexes NOTHING - the handler body is a<br/>load_store warm touch nostr-bbs-search-worker/src/lib.rs:1008. See NF-07.1."]
     DD7["CLOSED in part: KIND_GOVERNANCE_AUDIT_LOG, which was numerically the SAME kind as KIND_PANEL_RETIRED, is deleted and a regression test<br/>keeps the six kinds pairwise distinct nostr-bbs-core/src/governance.rs:2079, KIND_PANEL_RETIRED stays nostr-bbs-core/src/governance.rs:32.<br/>Still open: only three of the six documented ACS types have Rust structs nostr-bbs-core/src/governance.rs:102 nostr-bbs-core/src/governance.rs:1109 nostr-bbs-core/src/governance.rs:1135.<br/>See NF-06.1 and NF-06.2."]
-    DD8["docs/consumer-surface-map.md:21 lists the git panel as calling /.well-known/apps; the client fetches<br/>/apps/manifest.json and no .well-known path exists in that crate. See NF-05.10."]
+    DD8["docs/consumer-surface-map.md:21 lists the git panel as calling /.well-known/apps; the client fetches<br/>/apps/manifest.json nostr-bbs-forum-client/src/components/git_panel.rs:893 and no .well-known path exists in that crate. See NF-05.10."]
 ```
 
 ## NF-10.7 Deployment-shaped divergences

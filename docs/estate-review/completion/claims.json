@@ -999,29 +999,55 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md",
-    "source_sha256": "6d6a31cbf300aea242a817e4a091225b7c1a99a9473a9c89ccc632a530546e3f",
-    "report": "docs/estate-review/2026-11-01-forum-trust-transitions.md",
-    "report_sha256": "332261bbebb361ed12b440b8fc059e84b4a5a3a0307b0344f180f57c853acc9e",
+    "source_sha256": "3dd5cd2324cb2180323b90aeb242b521cf80b5f960f2f8e0495cd3f15dd8cb75",
+    "report": "docs/estate-review/2026-11-02-forum-workers-auth-relay-pod.md",
+    "report_sha256": "6893718a27478e3e863e8244014625a89563cf1342f6806cead747fb0d278cf0",
     "coverage": "selected-panels",
     "panels": [
+      "NF-03.1",
+      "NF-03.2",
+      "NF-03.3",
+      "NF-03.4",
+      "NF-03.5",
+      "NF-03.6",
+      "NF-03.7",
       "NF-03.8",
-      "NF-03.9"
+      "NF-03.9",
+      "NF-03.10",
+      "NF-03.11",
+      "NF-03.12",
+      "NF-03.13",
+      "NF-03.14"
     ],
-    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+    "basis": "Source tracing at nostr-rust-forum c39f41f; restamped, every panel re-assessed; strict cite-check and render pass (exit 0); no runtime or deployed-relay evidence."
   },
   {
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/nostr-rust-forum/11-relay-durable-object-internals.md",
-    "source_sha256": "8633ad1b633b3e5535f9ea3e4995e48e95188303496c5ae49b61baa053b70a20",
-    "report": "docs/estate-review/2026-11-01-forum-trust-transitions.md",
-    "report_sha256": "332261bbebb361ed12b440b8fc059e84b4a5a3a0307b0344f180f57c853acc9e",
+    "source_sha256": "01ed2138243d28a91abea955bff23b1082027d0e3806a5948e297c0e097a7cd6",
+    "report": "docs/estate-review/2026-11-02-forum-relay-internals-wire.md",
+    "report_sha256": "dbec9b1f2b02cc669bb4aeafe9dc0812226b3c2f7b267687a0cf63d866ac81f9",
     "coverage": "selected-panels",
     "panels": [
+      "NF-11.1",
+      "NF-11.2",
+      "NF-11.4",
+      "NF-11.5",
+      "NF-11.6",
+      "NF-11.7",
+      "NF-11.8",
+      "NF-11.9",
+      "NF-11.10",
       "NF-11.11",
-      "NF-11.12"
+      "NF-11.12",
+      "NF-11.13",
+      "NF-11.14",
+      "NF-11.15",
+      "NF-11.16",
+      "NF-11.17"
     ],
-    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+    "basis": "Source tracing at nostr-rust-forum c39f41f104b1; topic restamped, every panel given a disposition (5 accurate, 10 corrected, 1 with limits); strict cite-check and render pass; DO hibernation, ADR-2010 live journeys and D1 cost figures not runtime-verified."
   },
   {
     "kind": "topic",
@@ -1067,14 +1093,22 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/nostr-rust-forum/02-auth-worker-passkey-nip98-and-membership.md",
-    "source_sha256": "bcd55f212891200c77713233d36d243981a6ae17c82bab838ce04f6a097534b5",
-    "report": "docs/estate-review/2026-11-01-forum-device-keys.md",
-    "report_sha256": "7734f7e829e3b15ec6f533c8e7e2b52fc9e2d07d5468609e8799514386f8b41c",
+    "source_sha256": "13cbd090645e7d8121261e0fa279c24fac0471cc1e5f0a793c0252e8e1e3f4a1",
+    "report": "docs/estate-review/2026-11-02-forum-workers-auth-relay-pod.md",
+    "report_sha256": "6893718a27478e3e863e8244014625a89563cf1342f6806cead747fb0d278cf0",
     "coverage": "selected-panels",
     "panels": [
-      "NF-02.7"
+      "NF-02.1",
+      "NF-02.2",
+      "NF-02.3",
+      "NF-02.4",
+      "NF-02.5",
+      "NF-02.6",
+      "NF-02.7",
+      "NF-02.8",
+      "NF-02.10"
     ],
-    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+    "basis": "Source tracing at nostr-rust-forum c39f41f; restamped, every panel re-assessed; strict cite-check and render pass (exit 0); replay fail-open path and anomaly O11 are runtime-dependent."
   },
   {
     "kind": "topic",
@@ -1119,14 +1153,22 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/nostr-rust-forum/08-config-zones-stores-and-admin-authority.md",
-    "source_sha256": "bf52cc2e02d614b9a3aa4074853b82c00ed6ee1ca2ceaf5790d4a9588d659255",
-    "report": "docs/estate-review/2026-11-01-forum-web-push.md",
-    "report_sha256": "dda72ea1c5c3e5534174c7c5e82e7db078deb36f79e701bb540d9b60463c1f94",
+    "source_sha256": "82e2ffa5a6328810db2ea409d417a49144dae0dd9cacf40c1292b2485b774bd1",
+    "report": "docs/estate-review/2026-11-02-forum-config-ci-invariants.md",
+    "report_sha256": "04116e46b5d2f671ca1e50cc588d24e074c0866acae0a0a7fa76e2d88cbbd23f",
     "coverage": "selected-panels",
     "panels": [
+      "NF-08.1",
+      "NF-08.2",
+      "NF-08.3",
+      "NF-08.4",
+      "NF-08.5",
+      "NF-08.6",
+      "NF-08.7",
+      "NF-08.8",
       "NF-08.9"
     ],
-    "basis": "Named report explicitly assesses or authors these panels. Narrow subsequent corrections are separately linked; rendered-only siblings are excluded. This records the report, not fresh execution of its source probes."
+    "basis": "Source tracing at nostr-rust-forum c39f41f104b1; topic restamped, every panel given a disposition (3 accurate, 5 corrected, 1 with limits); strict cite-check and render pass; D1 latch/retry behaviour not run."
   },
   {
     "kind": "topic",
@@ -1817,14 +1859,23 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope.md",
-    "source_sha256": "1916e0706907fa703f21255c47e12d12c8644607daa9644cc8d12ce733f720e8",
-    "report": "docs/estate-review/2026-11-01-forum-sealed-history.md",
-    "report_sha256": "3aa25fb5f2a89efbd4ae9adc7ecee1f8089c7a0601ae3e8acba75e901712b048",
+    "source_sha256": "7bbe9447cdb450ddafd8a6ebabed3974c230072304cafa9152fc1160ad25f1ed",
+    "report": "docs/estate-review/2026-11-02-forum-relay-internals-wire.md",
+    "report_sha256": "dbec9b1f2b02cc669bb4aeafe9dc0812226b3c2f7b267687a0cf63d866ac81f9",
     "coverage": "selected-panels",
-    "basis": "Full ADR-2017 section assessment and explicitly named diagram dispositions, bounded by source revisions and synthetic execution; live deployment and remaining key-management ADRs excluded.",
     "panels": [
+      "NF-12.1",
+      "NF-12.2",
+      "NF-12.3",
+      "NF-12.4",
+      "NF-12.5",
+      "NF-12.6",
+      "NF-12.7",
+      "NF-12.8",
+      "NF-12.10",
       "NF-12.11"
-    ]
+    ],
+    "basis": "Source tracing at nostr-rust-forum c39f41f104b1; topic restamped, every panel given a disposition (4 accurate, 6 corrected); strict cite-check and render pass; cross-topic and EXTERNAL references not re-verified."
   },
   {
     "kind": "topic",
@@ -1868,14 +1919,30 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/nostr-rust-forum/05-leptos-clients-onboarding-messaging-governance.md",
-    "source_sha256": "9fc5d4e5394a424cd9d6446b5d8f1b08de055bb4f662ed7f51ebfdfd0cc4875c",
-    "report": "docs/estate-review/2026-11-01-forum-zone-key-distribution.md",
-    "report_sha256": "108ac965f14629da8b974b1b6cda4fd8a9185c174183ade1d04f965cdd22cd18",
+    "source_sha256": "ec5fc1f62ae1670e0fff9b0af4461badf3ed07c0ed6d3e054e5b81d93699dcd2",
+    "report": "docs/estate-review/2026-11-02-forum-clients-agents-search.md",
+    "report_sha256": "ffb27915ab6159166206955418b700ee36c5566cdbc8979db5f73f75098d8c50",
     "coverage": "selected-panels",
-    "basis": "Full ADR-2016 and superseded ADR-2026 section assessments and named panel dispositions; native probes and source evidence distinguished from unexecuted browser/Worker acceptance. ADR-2028 and upgrade branch excluded.",
     "panels": [
-      "NF-05.16"
-    ]
+      "NF-05.1",
+      "NF-05.2",
+      "NF-05.3",
+      "NF-05.4",
+      "NF-05.5",
+      "NF-05.6",
+      "NF-05.7",
+      "NF-05.8",
+      "NF-05.9",
+      "NF-05.10",
+      "NF-05.11",
+      "NF-05.12",
+      "NF-05.13",
+      "NF-05.14",
+      "NF-05.15",
+      "NF-05.16",
+      "NF-05.17"
+    ],
+    "basis": "Source tracing at nostr-rust-forum c39f41f; restamped, every citation re-resolved, strict cite-check and render pass; 7 accurate, 7 corrected, 3 with limits (passkey, recovery and zone-key browser behaviour not exercised)."
   },
   {
     "kind": "topic",
@@ -2002,14 +2069,20 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/ontomark/04-emitters-turtle-indexes-tiers-and-contract-c3.md",
-    "source_sha256": "4e217402b69b42a115b399eca34254de7cbeb10050270072dd126b1fd727dc45",
-    "report": "docs/estate-review/2026-11-01-ontomark-reasoning-and-certificates.md",
-    "report_sha256": "fe3f45fdc2c2076d45e48dedee718802c22f0803257f94b969b8e7dd8c08f739",
+    "source_sha256": "426b590333158e1d8106308b18c6310a6b1ad713c701e607d9973bdf79441756",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "report_sha256": "4fb39deaa80cfff3008cb461f73d9fc924269b4f0186ab63d9442d962c021035",
     "coverage": "selected-panels",
     "panels": [
-      "OM-04.3"
+      "OM-04.1",
+      "OM-04.2",
+      "OM-04.3",
+      "OM-04.4",
+      "OM-04.5",
+      "OM-04.6",
+      "OM-04.7"
     ],
-    "basis": "Only reasoner panel assessed against current source with runtime identity to its old pin, rendered and visually inspected. OM-04.1 narrow certificate-path correction and other emitter panels receive no new coverage."
+    "basis": "Source tracing at ontomark 4b9d15d and VisionFlow 5f8b1da; strict cite-check and render pass; reasoner extraction boundary relies on a prior audit's reproduction."
   },
   {
     "kind": "topic",
@@ -2041,29 +2114,38 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/ontomark/03-build-run-gates-staging-and-generation.md",
-    "source_sha256": "a107cccd91d5cac050a6a367ac5c554d4126c209ff4e456149b631151b82dae6",
-    "report": "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md",
-    "report_sha256": "2af1b0b4255a5f6b55cf31c0e8700cd958485959c28550ea83adaa75cde84c89",
+    "source_sha256": "ec371cffde9647c558130bdd112cf6592a023e6709da7e8f8416a7733cc83a56",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "report_sha256": "4fb39deaa80cfff3008cb461f73d9fc924269b4f0186ab63d9442d962c021035",
     "coverage": "selected-panels",
     "panels": [
       "OM-03.1",
-      "OM-03.2"
+      "OM-03.2",
+      "OM-03.3",
+      "OM-03.4",
+      "OM-03.5",
+      "OM-03.6",
+      "OM-03.7",
+      "OM-03.8"
     ],
-    "basis": "Selected panels source-reviewed, strict-citation checked, rendered and visually inspected. Old topic pins retained with reviewed runtime diff; no coverage credit for rendered sibling panels."
+    "basis": "Source tracing at ontomark 4b9d15d and VisionFlow 5f8b1da; strict cite-check and render pass; promote failure behaviour is runtime and not exercised."
   },
   {
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/ontomark/06-machine-scope-and-ingest-contract.md",
-    "source_sha256": "8c5dff95cbdee93d0f588cccb30c84d6bf32dd2fc398bfead0613db9da0dd1a4",
-    "report": "docs/estate-review/2026-11-01-ontomark-machine-bundle-contract.md",
-    "report_sha256": "2af1b0b4255a5f6b55cf31c0e8700cd958485959c28550ea83adaa75cde84c89",
+    "source_sha256": "9cf1b7c440953df0ea11ac9bac1d0c5f58a27ef4ba6e3ecbba17a210c6c23fdd",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "report_sha256": "4fb39deaa80cfff3008cb461f73d9fc924269b4f0186ab63d9442d962c021035",
     "coverage": "selected-panels",
     "panels": [
       "OM-06.1",
-      "OM-06.2"
+      "OM-06.2",
+      "OM-06.3",
+      "OM-06.4",
+      "OM-06.5"
     ],
-    "basis": "Selected panels source-reviewed, strict-citation checked, rendered and visually inspected. Old topic pins retained with reviewed runtime diff; no coverage credit for rendered sibling panels."
+    "basis": "Source tracing at ontomark 4b9d15d, Loom ba21a68, agentbox c57d9c0, VisionFlow 5f8b1da; strict cite-check and render pass; machine-scope tests and live Loom reload not run."
   },
   {
     "kind": "topic",
@@ -2094,28 +2176,37 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/ontomark/01-input-layer-vault-pages-and-gates.md",
-    "source_sha256": "f81a34ea31ef383822a8e8d85b45a92b5ab9e33736dc93ce518af2ccab0e71d2",
-    "report": "docs/estate-review/2026-11-01-ontomark-layout-and-shared-checks.md",
-    "report_sha256": "34afea99d6fa1c0ed192d597205af15d7ee6a985365343f2c53a7dcaa6c64ab4",
+    "source_sha256": "460e9e9cddc1f87e2cbebecb2fe83b180fb5f11956cabfbba506459c5a23aee6",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "report_sha256": "4fb39deaa80cfff3008cb461f73d9fc924269b4f0186ab63d9442d962c021035",
     "coverage": "selected-panels",
     "panels": [
       "OM-01.1",
-      "OM-01.2"
+      "OM-01.2",
+      "OM-01.3",
+      "OM-01.4",
+      "OM-01.5",
+      "OM-01.6"
     ],
-    "basis": "Selected source-backed panels assessed and visually inspected; historical pins retained where labelled. Sibling renders confer no review credit."
+    "basis": "Source tracing at ontomark 4b9d15d; strict cite-check and render pass; layout-fix changes folded in; no tests run."
   },
   {
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/ontomark/05-cli-commands-vault-selector-and-exit-codes.md",
-    "source_sha256": "dd9092fd0850414892730136461e5757a671ca5c889badf1c365a98f244cbc4a",
-    "report": "docs/estate-review/2026-11-01-ontomark-layout-and-shared-checks.md",
-    "report_sha256": "34afea99d6fa1c0ed192d597205af15d7ee6a985365343f2c53a7dcaa6c64ab4",
+    "source_sha256": "00e5477baf3f70ec8050c2fd523a615a70eca6e8e8cef9e8a6fa0138826c9c25",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "report_sha256": "4fb39deaa80cfff3008cb461f73d9fc924269b4f0186ab63d9442d962c021035",
     "coverage": "selected-panels",
     "panels": [
-      "OM-05.4"
+      "OM-05.1",
+      "OM-05.2",
+      "OM-05.3",
+      "OM-05.4",
+      "OM-05.5",
+      "OM-05.6"
     ],
-    "basis": "Selected source-backed panels assessed and visually inspected; historical pins retained where labelled. Sibling renders confer no review credit."
+    "basis": "Source tracing at ontomark 4b9d15d, visionGraph 556a015, VisionClaw 86cdd76, VisionFlow 5f8b1da; strict cite-check and render pass; CLI exit codes not executed."
   },
   {
     "kind": "topic",
@@ -2899,40 +2990,64 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/visionflow/08-compatibility-and-dependency-direction.md",
-    "source_sha256": "db560bcd1f949a268b4c69b28c75175c932341dd3ed7cbf0b940215ebdc0eab9",
-    "report": "docs/estate-review/2026-10-31-corpus-consumer.md",
-    "report_sha256": "048e9116b3e662ae4c826d9888a9621eb9f7c6a97797c219869608ed75e25f47",
+    "source_sha256": "7e27d00ee89cb2905ab3a822d23d8e60ff30dd9cb937e8b33d62c387f7e7e47c",
+    "report": "docs/estate-review/2026-11-02-visionflow-gates-tooling-pitch-compat.md",
+    "report_sha256": "dba7bf109d47f36ef2f9611622d2dcdc99eb590517f3099b08f6b70f729983ab",
     "coverage": "selected-panels",
     "panels": [
-      "VF-08.1"
+      "VF-08.1",
+      "VF-08.2",
+      "VF-08.4",
+      "VF-08.7",
+      "VF-08.8",
+      "VF-08.10",
+      "VF-08.11"
     ],
-    "basis": "Panel redrawn against agentbox 9dfc27b source in the named report; strict citation check (22 revision citations) and render passed there. Panel body and verified_commit unchanged since report commit ed5e8eb. Historical sibling panels receive no credit. Reconciled by 2026-11-02-earlier-review-reconciliation."
+    "basis": "Source tracing at VisionFlow 5f8b1da, VisionClaw 86cdd76, agentbox c57d9c0, nostr-rust-forum c39f41f (all four map keys restamped); strict cite-check and render pass; no runtime, replica or federation evidence."
   },
   {
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/visionflow/03-estate-health.md",
-    "source_sha256": "0a5247ee1548503fe4c15c575d3b85241d5dd98c61e2f884896b91b2e3cd9e72",
-    "report": "docs/estate-review/2026-10-31-diagram-drift-and-health.md",
-    "report_sha256": "e41eef83119194fd768ee444079f7e082455ebd9030a4c1b4a2918d1bd1ba1b8",
+    "source_sha256": "b8f2a262b21bc471c3015c048db848d1d5957bd49d79e1087aa8bb5ae251b475",
+    "report": "docs/estate-review/2026-11-02-visionflow-canon-site-health-dream.md",
+    "report_sha256": "cc33e2a357c585b40d44295ecd54816dbdb9bc31b3db1dc038cc27da48671fe3",
     "coverage": "selected-panels",
     "panels": [
-      "VF-03.6"
+      "VF-03.1",
+      "VF-03.2",
+      "VF-03.3",
+      "VF-03.4",
+      "VF-03.5",
+      "VF-03.6",
+      "VF-03.8",
+      "VF-03.9",
+      "VF-03.11"
     ],
-    "basis": "Check-gate panel corrected against estate-health.mjs alongside the full ADR-2008 reading; structural/render validation only, no strict citation run. Body and verified_commit unchanged since report commit de1fd11. Siblings receive no credit. Reconciled by 2026-11-02-earlier-review-reconciliation."
+    "basis": "Source tracing at VisionFlow 5f8b1da; restamped, VF-03.11 redrawn from the committed 2026-11-01 snapshot; strict cite-check and render pass; GitHub runtime behaviour (token 404s, dispatch) not observed."
   },
   {
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/visionflow/07-pitch-presentation-reports.md",
-    "source_sha256": "dde904f5a53336eacb70a3be63436592c3cde9d0257b270e352cb38ff0827190",
-    "report": "docs/estate-review/2026-10-31-release-evidence.md",
-    "report_sha256": "8a85952d667dd9bb7d09b4e4d7d3b5e3f2783297e88245180819b61316e35b48",
+    "source_sha256": "220ca0d2f063cf63b795c4d2820741e052b574aa463ae2e8248d825613f103fc",
+    "report": "docs/estate-review/2026-11-02-visionflow-gates-tooling-pitch-compat.md",
+    "report_sha256": "dba7bf109d47f36ef2f9611622d2dcdc99eb590517f3099b08f6b70f729983ab",
     "coverage": "selected-panels",
     "panels": [
-      "VF-07.3"
+      "VF-07.1",
+      "VF-07.2",
+      "VF-07.3",
+      "VF-07.4",
+      "VF-07.5",
+      "VF-07.6",
+      "VF-07.7",
+      "VF-07.8",
+      "VF-07.9",
+      "VF-07.10",
+      "VF-07.11"
     ],
-    "basis": "Fixtures-block panel reworked to the reproduced digest/commit-binding/missing-fixture findings; structural/render validation only. Body and verified_commit unchanged since report commit 38323b0. Pitch/report siblings receive no credit. Reconciled by 2026-11-02-earlier-review-reconciliation."
+    "basis": "Source tracing at VisionFlow 5f8b1da; restamped, texput.log dropped from sources (Drift), its five citations remain allowlisted and unverified; strict cite-check and render pass; no LaTeX or image generation run."
   },
   {
     "kind": "adr",
@@ -3214,5 +3329,1267 @@
       "SP-10.12"
     ],
     "basis": "Source tracing at solid-pod-rs 9b6143c; topic restamped and every citation re-resolved; strict cite-check and render pass (exit 0, 134 citations); all 12 panels corrected; no runtime, test or consumer-build evidence (crash/replica windows, middleware order and forge-full builds not observed); nostr-rust-forum halves of D5/D6 and the VisionClaw metrics binder not traced."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2001-corpus-consolidation.md",
+    "source_sha256": "22726b11b95b9470a8d572143f0d74b3a9455189d087dfac3688d719890fc6ff",
+    "report": "docs/estate-review/2026-11-02-forum-adrs.md",
+    "report_sha256": "5db5af0d0cee2615639d2cf1d2582e0163ae53b2297ebd2638f1ac4910c550d0",
+    "coverage": "whole-document",
+    "basis": "Source tracing at nostr-rust-forum c39f41f; every section assessed; structure implemented; same-change citation discipline unmet (F11); historical verification not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2002-canary-first-upstream-nostr-absorption.md",
+    "source_sha256": "f1af81842a0b3ea48cbaa5674a5bb4b3e6f265f66ff1be23d591ed070d34ccb7",
+    "report": "docs/estate-review/2026-11-02-forum-adrs.md",
+    "report_sha256": "5db5af0d0cee2615639d2cf1d2582e0163ae53b2297ebd2638f1ac4910c550d0",
+    "coverage": "whole-document",
+    "basis": "Source tracing at nostr-rust-forum c39f41f; every section assessed; canary present and unlinked; NIP-04/44 already delegated upstream without a recorded verdict (F5); no wasm32 execution evidence."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2005-gift-wrap-recipient-tag-admission.md",
+    "source_sha256": "0a5651aebb75c60a2eb9b3eb44c5ddc314b843171b7ccd5a528d0ff5a4ccdece",
+    "report": "docs/estate-review/2026-11-02-forum-adrs.md",
+    "report_sha256": "5db5af0d0cee2615639d2cf1d2582e0163ae53b2297ebd2638f1ac4910c550d0",
+    "coverage": "whole-document",
+    "basis": "Source tracing at nostr-rust-forum c39f41f; every section assessed; recipient gate holds; ADR-2022 ingress exception contradicts the non-member consequence and citations are stale (F4); runtime acceptance tests not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2007-kit-exact-pin-beta-channel.md",
+    "source_sha256": "bd9f824c63a64ca22312306bdf9801dfacbb20e5a6daf82dfe338dd0387b6094",
+    "report": "docs/estate-review/2026-11-02-forum-adrs.md",
+    "report_sha256": "5db5af0d0cee2615639d2cf1d2582e0163ae53b2297ebd2638f1ac4910c550d0",
+    "coverage": "whole-document",
+    "basis": "Source tracing at nostr-rust-forum c39f41f; every section assessed; contradicted: caret solid-pod-rs 0.5.0-alpha.18 under ER-35 and non-lockstep kit versions (F2); registry artefacts not checked."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2009-acl-sidecar-coerce-to-control.md",
+    "source_sha256": "e71209bec4fbcbb0b6f728c3d3c9bd4856a7f665f5ac5c7cb05cad30e7afeb9f",
+    "report": "docs/estate-review/2026-11-02-forum-adrs.md",
+    "report_sha256": "5db5af0d0cee2615639d2cf1d2582e0163ae53b2297ebd2638f1ac4910c550d0",
+    "coverage": "whole-document",
+    "basis": "Source tracing at nostr-rust-forum c39f41f; every section assessed; shared helper traced to solid-pod-rs 9b6143c; .meta sidecars evaluated against the sidecar path's ACL (F7, open); deployed-version equality not checked."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2010-durable-governance-outcome-receipts.md",
+    "source_sha256": "2af20c360989d095cf6f77a1e128a92675c6bfd1d731f430cf7b4e9a99549c08",
+    "report": "docs/estate-review/2026-11-02-forum-adrs.md",
+    "report_sha256": "5db5af0d0cee2615639d2cf1d2582e0163ae53b2297ebd2638f1ac4910c550d0",
+    "coverage": "whole-document",
+    "basis": "Source tracing at nostr-rust-forum c39f41f; every section assessed; relay stages and forum application stages built, Remaining list stale (F6); API applied flag regresses at consumer-received (F14); UI requirements, live journey, deploys and agentbox adoption not checked."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md",
+    "source_sha256": "b60b73f067c27f36c14091e5c7c5097a07581bf1718a409f4b652d09643d882c",
+    "report": "docs/estate-review/2026-11-02-forum-adrs.md",
+    "report_sha256": "5db5af0d0cee2615639d2cf1d2582e0163ae53b2297ebd2638f1ac4910c550d0",
+    "coverage": "whole-document",
+    "basis": "Source tracing at nostr-rust-forum c39f41f; every section assessed; decisions 1 and 3-6 implemented; Decision 2 and Consequences disagree on a declared tier without properties, and the code follows Consequences (F3); citation drift (F12); live M4 and deepsec receipts not checked, two uncommitted (F13)."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md",
+    "source_sha256": "61681dd3092c25e85f9cb7cb2f00195ba26f3303ebb2e5184d1e52f71a76693f",
+    "report": "docs/estate-review/2026-11-02-forum-adrs.md",
+    "report_sha256": "5db5af0d0cee2615639d2cf1d2582e0163ae53b2297ebd2638f1ac4910c550d0",
+    "coverage": "whole-document",
+    "basis": "Source tracing at nostr-rust-forum c39f41f; every section assessed; D6 and journal built, D1 view unbuilt as proposed, D4 pin facts stale against VisionClaw 86cdd76 (F9); deployment not checked."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2022-ingress-recipients-declared-in-config.md",
+    "source_sha256": "18e557dc4317438a707203670b090827c7c8cad37ef6ba3e2b60d71d922cfd1e",
+    "report": "docs/estate-review/2026-11-02-forum-adrs.md",
+    "report_sha256": "5db5af0d0cee2615639d2cf1d2582e0163ae53b2297ebd2638f1ac4910c550d0",
+    "coverage": "whole-document",
+    "basis": "Source tracing at nostr-rust-forum c39f41f; every section assessed; implemented in relay and config; deploy binding is a test-checked mirror at dreamlab-ai-website 0e15728, not rendered (F10); live reset-db not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2025-nip59-unwrap-verifies-the-wrap-and-never-echoes-plaintext.md",
+    "source_sha256": "7d7db7516824afad2ce76ad03a5e6898b00ea32adea54d366bf25f85cd1edf85",
+    "report": "docs/estate-review/2026-11-02-forum-adrs.md",
+    "report_sha256": "5db5af0d0cee2615639d2cf1d2582e0163ae53b2297ebd2638f1ac4910c550d0",
+    "coverage": "whole-document",
+    "basis": "Source tracing at nostr-rust-forum c39f41f; every section assessed; wrap-first verification in all three readers and CSP implemented; core error text echoes decrypted seal id and rumor pubkey (F8); live artefact not fetched."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2027-nip17-overlay-for-nostr-chat-interop.md",
+    "source_sha256": "de2e8dce9e0befd13342ceb76b59d049be9925a3a89dc2d46f8f41e05da2bd5f",
+    "report": "docs/estate-review/2026-11-02-forum-adrs.md",
+    "report_sha256": "5db5af0d0cee2615639d2cf1d2582e0163ae53b2297ebd2638f1ac4910c550d0",
+    "coverage": "whole-document",
+    "basis": "Source tracing at nostr-rust-forum c39f41f; every section assessed; implementation absent on main: acceptance and Phase 3 records describe code on the unmerged feat/upgrade-phase-0-1 branch (F1)."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2029-room-profile-deployment-type.md",
+    "source_sha256": "53c2c9861b6d1f7fb02701f523797e8270f8f6716c4a565fded353cf0e8a2939",
+    "report": "docs/estate-review/2026-11-02-forum-adrs.md",
+    "report_sha256": "5db5af0d0cee2615639d2cf1d2582e0163ae53b2297ebd2638f1ac4910c550d0",
+    "coverage": "whole-document",
+    "basis": "Source tracing at nostr-rust-forum c39f41f; every section assessed; proposed and unimplemented as stated; context mostly accurate with minor line drift, five context lines not re-resolved."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/sprint/2026-05-17-ux-audit/ADR-090-forum-base-path-discipline.md",
+    "source_sha256": "915f448c443af8e139bbc5fccab27a44fcc7ac97d669530866498fef6b3c2b38",
+    "report": "docs/estate-review/2026-11-02-forum-adrs.md",
+    "report_sha256": "5db5af0d0cee2615639d2cf1d2582e0163ae53b2297ebd2638f1ac4910c550d0",
+    "coverage": "whole-document",
+    "basis": "Source tracing at nostr-rust-forum c39f41f; every section assessed; paths helpers, returnTo validation and SW scope implemented; browser receipts not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/sprint/2026-05-17-ux-audit/ADR-091-channel-counts-derived-from-events.md",
+    "source_sha256": "4eda872597f869724963adbbe54a9c6b26d37f359b2042033d0995ec3e217415",
+    "report": "docs/estate-review/2026-11-02-forum-adrs.md",
+    "report_sha256": "5db5af0d0cee2615639d2cf1d2582e0163ae53b2297ebd2638f1ac4910c550d0",
+    "coverage": "whole-document",
+    "basis": "Source tracing at nostr-rust-forum c39f41f; every section assessed; derived counts and reconcile implemented; no total_messages helper; browser deletion not driven."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/sprint/2026-05-17-ux-audit/ADR-092-deeplink-self-bootstrap.md",
+    "source_sha256": "d5c76262ef4686d3e3f3708bd33c9c5bc7c4f6e650cb81054cf3d1fef02f69f5",
+    "report": "docs/estate-review/2026-11-02-forum-adrs.md",
+    "report_sha256": "5db5af0d0cee2615639d2cf1d2582e0163ae53b2297ebd2638f1ac4910c550d0",
+    "coverage": "whole-document",
+    "basis": "Source tracing at nostr-rust-forum c39f41f; every section assessed; ensure_subscribed replaced on ChannelPage by observed bootstrap phases, tombstone check present; title memo and browser success path not checked."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionFlow",
+    "path": "docs/adr/ADR-2001-corpus-consolidation.md",
+    "source_sha256": "1255304b527e282b1568d8af21c15647b5130a4478ce86ba20b3bd19f7d83ade",
+    "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+    "report_sha256": "a7085cde622f7aeb34bebdbd3b1d4af09cf319c30ae433c5192a7be897eeee26",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionFlow",
+    "path": "docs/adr/ADR-2002-static-copy-only-website.md",
+    "source_sha256": "39de594dd72bac3623c4bf3aff57fd3921271c38e34e98ced0867d1e1ebae4d5",
+    "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+    "report_sha256": "a7085cde622f7aeb34bebdbd3b1d4af09cf319c30ae433c5192a7be897eeee26",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionFlow",
+    "path": "docs/adr/ADR-2003-pages-artifact-deploy.md",
+    "source_sha256": "2dbc34dccd2ea62a3dacfb591a953296b101fc2cd0720b208837894459fc1066",
+    "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+    "report_sha256": "a7085cde622f7aeb34bebdbd3b1d4af09cf319c30ae433c5192a7be897eeee26",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionFlow",
+    "path": "docs/adr/ADR-2004-diagram-baseline-vendored-render-gate.md",
+    "source_sha256": "00daaee93559328277b9e1ee778d938d22c4ff7c22d705ab928df0d3d04342f9",
+    "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+    "report_sha256": "a7085cde622f7aeb34bebdbd3b1d4af09cf319c30ae433c5192a7be897eeee26",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source; superseded record; vendored Mermaid render path contradicted (Pele now)."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionFlow",
+    "path": "docs/adr/ADR-2005-drift-counter-allowlist-substrate-sourced.md",
+    "source_sha256": "a9db06270a12488d5f3b3059501205a17b7f039986c666afd4e016ec3ef98060",
+    "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+    "report_sha256": "a7085cde622f7aeb34bebdbd3b1d4af09cf319c30ae433c5192a7be897eeee26",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source; mcp-ontology-tools axis counts a file absent at agentbox c57d9c0."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionFlow",
+    "path": "docs/adr/ADR-2007-estate-closeout-evidence-roadmap.md",
+    "source_sha256": "9984755d924876b3cd19b7cfc3ce73a89545891aa1c7e45be392ce6ea5c9ea96",
+    "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+    "report_sha256": "a7085cde622f7aeb34bebdbd3b1d4af09cf319c30ae433c5192a7be897eeee26",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionFlow",
+    "path": "docs/adr/ADR-2009-webgl-mesh-deep-is-sidecar-only.md",
+    "source_sha256": "3d6555ba9cdc1f41646444a4fb9c7b3ad2184ec2787b67a314943d7f0f32f4cd",
+    "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+    "report_sha256": "a7085cde622f7aeb34bebdbd3b1d4af09cf319c30ae433c5192a7be897eeee26",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionFlow",
+    "path": "docs/adr/ADR-2010-augmentation-conditions-are-the-canon-audit-lens.md",
+    "source_sha256": "91616d65a84587df83b8a2f1d0f14266d816acff2fced53d85131c8b1e9f28d8",
+    "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+    "report_sha256": "a7085cde622f7aeb34bebdbd3b1d4af09cf319c30ae433c5192a7be897eeee26",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source; verified_commit unresolvable; named checker script absent."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionFlow",
+    "path": "docs/adr/ADR-2011-task-properties-set-the-boundary-not-agent-self-tiering.md",
+    "source_sha256": "cbb76f2d8536ceb5fb256cf9dcd1bea74d1768a6222bd350b0c25ad12997b3fc",
+    "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+    "report_sha256": "a7085cde622f7aeb34bebdbd3b1d4af09cf319c30ae433c5192a7be897eeee26",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source; legacy-panel self-tier path contradicts Decision \u00a75."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionFlow",
+    "path": "docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md",
+    "source_sha256": "fbf318733da6b11b5d023e7ae701808ebe926128e65483d26388a76d40b05d32",
+    "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+    "report_sha256": "a7085cde622f7aeb34bebdbd3b1d4af09cf319c30ae433c5192a7be897eeee26",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source; retired anchoring sentence still on site; registry parity fails; sidestr-rs unpinned."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionFlow",
+    "path": "docs/adr/ADR-2013-sovereign-corpus-is-ecosystem-canon.md",
+    "source_sha256": "ce46367cae068838d9e720677444d4b97e98dd2bbf9d62a1962143e65dbb98ca",
+    "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+    "report_sha256": "a7085cde622f7aeb34bebdbd3b1d4af09cf319c30ae433c5192a7be897eeee26",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source; GitHubSource still selectable in VisionClaw."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionFlow",
+    "path": "docs/adr/ADR-2014-shared-ontology-workspace.md",
+    "source_sha256": "cc259d295e9c1bfb4e984f25f6694f5a0692f7a6ddadf0bec7936d7d5915c4ac",
+    "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+    "report_sha256": "a7085cde622f7aeb34bebdbd3b1d4af09cf319c30ae433c5192a7be897eeee26",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionFlow",
+    "path": "docs/adr/ADR-2015-typed-ontology-model-and-migration.md",
+    "source_sha256": "4ad0fd98acf90fc92353e0c2a91f1f75fac9233b212d517e8813d1d1fd240d90",
+    "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+    "report_sha256": "a7085cde622f7aeb34bebdbd3b1d4af09cf319c30ae433c5192a7be897eeee26",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionFlow",
+    "path": "docs/adr/ADR-2016-local-markdown-ontology-application.md",
+    "source_sha256": "66fbd99238fdab325362efce42c7ed3ce5c31a6bef2be26e388b09e103564acd",
+    "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+    "report_sha256": "a7085cde622f7aeb34bebdbd3b1d4af09cf319c30ae433c5192a7be897eeee26",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionFlow",
+    "path": "docs/adr/ADR-2018-parity-claims-name-their-comparator.md",
+    "source_sha256": "94f2d6cf709ddbc12f89ed85be72a86783e04dcd64697f06b9ecc0156eab7de1",
+    "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+    "report_sha256": "a7085cde622f7aeb34bebdbd3b1d4af09cf319c30ae433c5192a7be897eeee26",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source; canon parity figure stale against checklist."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionFlow",
+    "path": "docs/adr/ADR-2019-forge-and-mirror-on-in-shipped-pods.md",
+    "source_sha256": "bdf7035051fcc3dd48dd2bffb93b611545629b04d53dffe02716ffcb45f8354a",
+    "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+    "report_sha256": "a7085cde622f7aeb34bebdbd3b1d4af09cf319c30ae433c5192a7be897eeee26",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source; mirror not started in shipped pods."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionFlow",
+    "path": "docs/adr/ADR-2020-pele-renders-every-estate-diagram.md",
+    "source_sha256": "53dd0596d5b2ea75b3f47f45fb3a9ed32811d53fd035c9ffad907cfead0db5f4",
+    "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+    "report_sha256": "a7085cde622f7aeb34bebdbd3b1d4af09cf319c30ae433c5192a7be897eeee26",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionFlow",
+    "path": "docs/adr/ADR-2021-closed-loop-agent-operations-and-18-month-roadmap.md",
+    "source_sha256": "2bdc677804301028f5f3f733764b857c7aef2932085b19e2f5339c8d6136a02d",
+    "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+    "report_sha256": "a7085cde622f7aeb34bebdbd3b1d4af09cf319c30ae433c5192a7be897eeee26",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionFlow 5f8b1da and pinned product revisions; every section assessed; CI, deployment and runtime claims not checked from source."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionFlow",
+    "path": "docs/engineering/ADR-004-harness-engineering-framework.md",
+    "source_sha256": "6d83338f8c60f6a7d59647392d567b2e10d8dfd079cbac1a4cd7bdf6b643f512",
+    "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+    "report_sha256": "a7085cde622f7aeb34bebdbd3b1d4af09cf319c30ae433c5192a7be897eeee26",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionFlow 5f8b1da and agentbox c57d9c0; every section assessed; D6 precedent system retired in agentbox; CI threshold 50% vs stated 80%."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionFlow",
+    "path": "docs/engineering/ADR-005-mandate-at-grant-governance.md",
+    "source_sha256": "cdc4bcfbbdd249fa37cc2d7214ab4758d457592523d6206201e2695feab5a369",
+    "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+    "report_sha256": "a7085cde622f7aeb34bebdbd3b1d4af09cf319c30ae433c5192a7be897eeee26",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionFlow 5f8b1da and agentbox c57d9c0; every section assessed; speculative and unbuilt as stated; Context motivation partly stale."
+  },
+  {
+    "kind": "adr",
+    "repo": "visionGraph",
+    "path": "knowledge/ADR-008.md",
+    "source_sha256": "65744afab7fcfa210b4dfe58539041a7d01b30325f53aedb6f195076bb4d3c26",
+    "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+    "report_sha256": "a7085cde622f7aeb34bebdbd3b1d4af09cf319c30ae433c5192a7be897eeee26",
+    "coverage": "whole-document",
+    "basis": "Source tracing at visionGraph 556a015; classified as a generated ontology concept page, not a decision record; all three sections tabled; no decision claims to check."
+  },
+  {
+    "kind": "adr",
+    "repo": "visionGraph",
+    "path": "knowledge/ADR-012.md",
+    "source_sha256": "9fd4a95232acdae2b003b764702c5a8c5b32d30e008e3e9aba5c95f24799d9f1",
+    "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+    "report_sha256": "a7085cde622f7aeb34bebdbd3b1d4af09cf319c30ae433c5192a7be897eeee26",
+    "coverage": "whole-document",
+    "basis": "Source tracing at visionGraph 556a015; classified as a generated ontology concept page, not a decision record; all three sections tabled; no decision claims to check."
+  },
+  {
+    "kind": "adr",
+    "repo": "WasmVOWL",
+    "path": "docs/adr/ADR-001-explorer-consumer-contract-closeout.md",
+    "source_sha256": "0fd53c1e8b39fe99079c443afe1b27045af00da2187ca7b9097b7ddef80e8997",
+    "report": "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+    "report_sha256": "a7085cde622f7aeb34bebdbd3b1d4af09cf319c30ae433c5192a7be897eeee26",
+    "coverage": "whole-document",
+    "basis": "Source tracing at WasmVOWL 51a1484; every section assessed; topology-reset hazard inferred from source only, frontend not run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/dreamlab-ai-website/01-repo-composition-and-deploy-topology.md",
+    "source_sha256": "d4fb2299a6541c91e3524cbabcea72258799e59e373e43a519c48afb2822cacf",
+    "report": "docs/estate-review/2026-11-02-dreamlab-site-and-forum-config.md",
+    "report_sha256": "06e8bb368e999111c20f1838502e875dcb01ad7533c63e6a765e80a5cb8ab0d0",
+    "coverage": "selected-panels",
+    "panels": [
+      "DW-01.1",
+      "DW-01.2",
+      "DW-01.3",
+      "DW-01.5",
+      "DW-01.6",
+      "DW-01.7",
+      "DW-01.8"
+    ],
+    "basis": "Source tracing at dreamlab-ai-website 0e1572801d03; strict cite-check and render pass; topic restamped to 0e15728; 4 accurate, 1 corrected, 2 with limits; DNS observation and Pages 404 handling not re-checked."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/dreamlab-ai-website/02-site-build-and-pages-deploy.md",
+    "source_sha256": "d716d51ae6461ddbfef5a4a471c8220236a7f80988492df53238e2fbd67be4dd",
+    "report": "docs/estate-review/2026-11-02-dreamlab-site-and-forum-config.md",
+    "report_sha256": "06e8bb368e999111c20f1838502e875dcb01ad7533c63e6a765e80a5cb8ab0d0",
+    "coverage": "selected-panels",
+    "panels": [
+      "DW-02.1",
+      "DW-02.3",
+      "DW-02.4",
+      "DW-02.5",
+      "DW-02.7"
+    ],
+    "basis": "Source tracing at dreamlab-ai-website 0e1572801d03; strict cite-check and render pass; not edited (stamp a67cb2a byte-identical for cited files); 4 accurate, 1 with limits; production static serving not tested."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md",
+    "source_sha256": "3930512cb8015d8a732eb64eefb5524d059889edb9ba9094630152cb51a6fbfc",
+    "report": "docs/estate-review/2026-11-02-dreamlab-site-and-forum-config.md",
+    "report_sha256": "06e8bb368e999111c20f1838502e875dcb01ad7533c63e6a765e80a5cb8ab0d0",
+    "coverage": "selected-panels",
+    "panels": [
+      "DW-03.1",
+      "DW-03.3",
+      "DW-03.4",
+      "DW-03.5",
+      "DW-03.6",
+      "DW-03.7",
+      "DW-03.8",
+      "DW-03.9",
+      "DW-03.10",
+      "DW-03.11"
+    ],
+    "basis": "Source tracing at dreamlab-ai-website 0e1572801d03; strict cite-check and render pass; topic restamped to 0e15728; 4 accurate, 6 corrected; secret validator test-only (Tension); relay D1 schema and whitelist D1 left Open; Worker run receipt not re-checked."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/dreamlab-ai-website/04-identity-zones-and-security-posture.md",
+    "source_sha256": "4206e4bc5f721f3d2d8ac77b81dc60732f4226350646e0d86ad599cd49b24ca4",
+    "report": "docs/estate-review/2026-11-02-dreamlab-site-and-forum-config.md",
+    "report_sha256": "06e8bb368e999111c20f1838502e875dcb01ad7533c63e6a765e80a5cb8ab0d0",
+    "coverage": "selected-panels",
+    "panels": [
+      "DW-04.1",
+      "DW-04.3",
+      "DW-04.4",
+      "DW-04.5",
+      "DW-04.6",
+      "DW-04.8",
+      "DW-04.9"
+    ],
+    "basis": "Source tracing at dreamlab-ai-website 0e1572801d03; strict cite-check and render pass; topic restamped (dreamlab 0e15728, kit c39f41f); 2 accurate, 3 corrected, 2 with limits; SECURITY_OVERVIEW-sourced kit limits and admin resolution not traced into kit code."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/dreamlab-ai-website/05-ci-gates-rust-ci-kit-pin-playwright.md",
+    "source_sha256": "93960733b8ef8be3ffbd3f8422d82574662b07095be5abce31b0d4e7efae0f49",
+    "report": "docs/estate-review/2026-11-02-dreamlab-site-and-forum-config.md",
+    "report_sha256": "06e8bb368e999111c20f1838502e875dcb01ad7533c63e6a765e80a5cb8ab0d0",
+    "coverage": "selected-panels",
+    "panels": [
+      "DW-05.1",
+      "DW-05.2",
+      "DW-05.3",
+      "DW-05.4",
+      "DW-05.8"
+    ],
+    "basis": "Source tracing at dreamlab-ai-website 0e1572801d03; strict cite-check and render pass; topic restamped to 0e15728; 3 accurate, 2 corrected; workflows not executed."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/dreamlab-ai-website/06-content-pipeline-and-invariants-register.md",
+    "source_sha256": "23714a808a8c703a74d5f876ebecce9aa1916543c4f0a493ffaa856b6e79412c",
+    "report": "docs/estate-review/2026-11-02-dreamlab-site-and-forum-config.md",
+    "report_sha256": "06e8bb368e999111c20f1838502e875dcb01ad7533c63e6a765e80a5cb8ab0d0",
+    "coverage": "selected-panels",
+    "panels": [
+      "DW-06.1",
+      "DW-06.2",
+      "DW-06.5",
+      "DW-06.6",
+      "DW-06.7",
+      "DW-06.9",
+      "DW-06.8"
+    ],
+    "basis": "Source tracing at dreamlab-ai-website 0e1572801d03; strict cite-check and render pass; topic restamped (dreamlab 0e15728, kit c39f41f for ADR-2016); 4 accurate, 3 corrected; governing-doc revisions not made."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/dreamlab-ai-website/07-forum-provisioning-and-seeding.md",
+    "source_sha256": "105d7f5e304ed919bc7f6aa6c2dbf8425d1504b5326edec7ad39de3b195b1381",
+    "report": "docs/estate-review/2026-11-02-dreamlab-site-and-forum-config.md",
+    "report_sha256": "06e8bb368e999111c20f1838502e875dcb01ad7533c63e6a765e80a5cb8ab0d0",
+    "coverage": "selected-panels",
+    "panels": [
+      "DW-07.2",
+      "DW-07.3",
+      "DW-07.4",
+      "DW-07.5",
+      "DW-07.7",
+      "DW-07.8"
+    ],
+    "basis": "Source tracing at dreamlab-ai-website 0e1572801d03; strict cite-check and render pass; topic restamped to 0e15728; 3 accurate, 1 corrected, 2 with limits; Worker run receipt and inbox-watch runtime paths not re-run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/estate/04-identity-mesh-did-nostr.md",
+    "source_sha256": "b6d47128289f54dd2cde212d6049263f4055b9e7eb5a1ed6418582ce43c7e445",
+    "report": "docs/estate-review/2026-11-02-estate-identity-governance-loom-memory.md",
+    "report_sha256": "7f571504191c49f1d45d0b6cbcf2cb708185ddf7e7f247c36d3975433e5ce87c",
+    "coverage": "selected-panels",
+    "panels": [
+      "ES-04.1",
+      "ES-04.3",
+      "ES-04.4",
+      "ES-04.5",
+      "ES-04.6",
+      "ES-04.7"
+    ],
+    "basis": "Source tracing at visionclaw 86cdd76 and agentbox c57d9c0; restamped, every citation re-resolved, strict cite-check and render pass; 2 accurate, 3 corrected (ES-04.4's unsigned pod-write fallback was false), 1 with limits (mirror relay acceptance and fail-open are runtime)."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/estate/05-governance-loop-across-estate.md",
+    "source_sha256": "9bcac35146f58a64872696f4a368ed264d4a43b859a16d0da28b2869804258c6",
+    "report": "docs/estate-review/2026-11-02-estate-identity-governance-loom-memory.md",
+    "report_sha256": "7f571504191c49f1d45d0b6cbcf2cb708185ddf7e7f247c36d3975433e5ce87c",
+    "coverage": "selected-panels",
+    "panels": [
+      "ES-05.2",
+      "ES-05.6",
+      "ES-05.7",
+      "ES-05.8",
+      "ES-05.9",
+      "ES-05.10",
+      "ES-05.11",
+      "ES-05.12",
+      "ES-05.13",
+      "ES-05.14",
+      "ES-05.15",
+      "ES-05.16"
+    ],
+    "basis": "Source tracing at agentbox c57d9c0, visionclaw 86cdd76, nostr-rust-forum c39f41f, dreamlab-ai-website 0e15728, VisionFlow 5f8b1da; dream-engine read at its unchanged stamp 59a3e21 (no wave-2 pin); restamped, strict cite-check and render pass; 3 accurate, 5 corrected, 4 with limits (live responders, edge deployment and GitHub forge not exercised)."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/estate/06-loom-and-email-privacy-path.md",
+    "source_sha256": "811bc804e806a40c6bceb0275e091c38abd576f751afac8a96b0ca70bf9e992e",
+    "report": "docs/estate-review/2026-11-02-estate-identity-governance-loom-memory.md",
+    "report_sha256": "7f571504191c49f1d45d0b6cbcf2cb708185ddf7e7f247c36d3975433e5ce87c",
+    "coverage": "selected-panels",
+    "panels": [
+      "ES-06.1",
+      "ES-06.2",
+      "ES-06.3",
+      "ES-06.4",
+      "ES-06.5",
+      "ES-06.6",
+      "ES-06.7",
+      "ES-06.8",
+      "ES-06.9",
+      "ES-06.10",
+      "ES-06.11"
+    ],
+    "basis": "Source tracing at agentbox c57d9c0, visionclaw 86cdd76, loom ba21a68; restamped, every citation re-resolved, strict cite-check and render pass; 5 corrected, 6 with limits (email gateway source is outside the estate, so the gateway panels rest on the agentbox skill document; HP topology and model identity not observed)."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/estate/07-memory-and-embedding-estate.md",
+    "source_sha256": "73177cff30bfafbf0d499b8d8a1819753effce06a68b876b251dc227a9443650",
+    "report": "docs/estate-review/2026-11-02-estate-identity-governance-loom-memory.md",
+    "report_sha256": "7f571504191c49f1d45d0b6cbcf2cb708185ddf7e7f247c36d3975433e5ce87c",
+    "coverage": "selected-panels",
+    "panels": [
+      "ES-07.1",
+      "ES-07.2",
+      "ES-07.3",
+      "ES-07.7",
+      "ES-07.9",
+      "ES-07.10"
+    ],
+    "basis": "Source tracing at agentbox c57d9c0 and visionclaw 86cdd76; restamped, every citation re-resolved, strict cite-check and render pass; 6 corrected (stale lines, the replaced RUVECTOR_PG_CONNINFO path, the proxy-error branch); recall, SONA accumulation and rerank activation not exercised."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/estate/10-deployment-and-security-profiles.md",
+    "source_sha256": "1666a304933ca88a38c8c5f6832c5f0a48cc9efb54f3a95e0de6d0cd04a3a519",
+    "report": "docs/estate-review/2026-11-02-estate-profiles-publishing-evaluation.md",
+    "report_sha256": "b800aded08a04bf5bd56d404d9cddfc0bc64e0f8f3912bc028ed930f1a335b0b",
+    "coverage": "selected-panels",
+    "panels": [
+      "ES-10.1",
+      "ES-10.2",
+      "ES-10.3",
+      "ES-10.4",
+      "ES-10.5",
+      "ES-10.6",
+      "ES-10.7",
+      "ES-10.8",
+      "ES-10.10",
+      "ES-10.11",
+      "ES-10.12"
+    ],
+    "basis": "Source tracing at visionclaw 86cdd76 and agentbox c57d9c0; strict cite-check and render pass (exit 0); report-mode release path and compose line labels corrected; runtime reachability, host socket mode and release probes not re-observed."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/estate/11-publishing-axis.md",
+    "source_sha256": "8a4495e0097e533597a7d36a089b6fcff153a8fdca4abc8324c5066e15a84042",
+    "report": "docs/estate-review/2026-11-02-estate-profiles-publishing-evaluation.md",
+    "report_sha256": "b800aded08a04bf5bd56d404d9cddfc0bc64e0f8f3912bc028ed930f1a335b0b",
+    "coverage": "selected-panels",
+    "panels": [
+      "ES-11.1",
+      "ES-11.2",
+      "ES-11.3",
+      "ES-11.4",
+      "ES-11.5"
+    ],
+    "basis": "Source tracing at visionGraph 556a015, knowledgeGraph 4ed9ac1, dreamlab-ai-website 0e15728, visionclaw 86cdd76, VisionFlow 5f8b1da (vowl-wasm at declared 28af436); strict cite-check and render pass (exit 0); no deployment or published-site observation."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/estate/12-loom-evaluation-and-preregistration.md",
+    "source_sha256": "a60a1fc0019c2d8c24e7cd06b03446261de2858d84f1a2aa24da587971d6bd77",
+    "report": "docs/estate-review/2026-11-02-estate-profiles-publishing-evaluation.md",
+    "report_sha256": "b800aded08a04bf5bd56d404d9cddfc0bc64e0f8f3912bc028ed930f1a335b0b",
+    "coverage": "selected-panels",
+    "panels": [
+      "ES-12.1",
+      "ES-12.2",
+      "ES-12.3",
+      "ES-12.4",
+      "ES-12.5",
+      "ES-12.6",
+      "ES-12.7",
+      "ES-12.8"
+    ],
+    "basis": "Source tracing at loom ba21a68 and agentbox c57d9c0; strict cite-check and render pass (exit 0); panels trace decision records and benchmark notes, no benchmark re-run or facade response observed."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/estate/13-governance-delivery-and-expiry.md",
+    "source_sha256": "b6e96604fd205f1f705f460a5eb09f65cfe38689ec32df27484f0fd74e0aea80",
+    "report": "docs/estate-review/2026-11-02-estate-profiles-publishing-evaluation.md",
+    "report_sha256": "b800aded08a04bf5bd56d404d9cddfc0bc64e0f8f3912bc028ed930f1a335b0b",
+    "coverage": "selected-panels",
+    "panels": [
+      "ES-13.1",
+      "ES-13.2"
+    ],
+    "basis": "Source tracing at nostr-rust-forum c39f41f and agentbox c57d9c0; strict cite-check and render pass (exit 0); checkpoint suppression fixture and parser panic not re-run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/estate/90-evidence-and-supporting-repositories.md",
+    "source_sha256": "0eefef9c9c4e7dbf519b26d0fa7d13355156aef441bbbf620dfaa1638ad10a7e",
+    "report": "docs/estate-review/2026-11-02-estate-profiles-publishing-evaluation.md",
+    "report_sha256": "b800aded08a04bf5bd56d404d9cddfc0bc64e0f8f3912bc028ed930f1a335b0b",
+    "coverage": "selected-panels",
+    "panels": [
+      "ES-90.1",
+      "ES-90.2",
+      "ES-90.3",
+      "ES-90.4",
+      "ES-90.5"
+    ],
+    "basis": "Source tracing at VisionFlow 5f8b1da, agentbox c57d9c0, loom ba21a68, dream-machine b77093e, WasmVOWL 51a1484, and the declared (not wave-pinned) revisions for dream-engine 59a3e21, prose-sanitiser b261f65 and diagram-ir 15cba16; strict cite-check and render pass (exit 0); RuView excluded by operator, its citations removed and not checked."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/estate/08-solid-pod-estate.md",
+    "source_sha256": "f91921982398aca16eec7e61c7ad6db68c04d7c0219f02fd9d0f41fb1bb46b7f",
+    "report": "docs/estate-review/2026-11-02-estate-solid-and-build.md",
+    "report_sha256": "a2dc9fca5e001be51cee410b8008bc5b08485aae12b8020f2af38784b63505a0",
+    "coverage": "selected-panels",
+    "panels": [
+      "ES-08.1",
+      "ES-08.2",
+      "ES-08.3",
+      "ES-08.4",
+      "ES-08.5",
+      "ES-08.6",
+      "ES-08.7",
+      "ES-08.8",
+      "ES-08.9",
+      "ES-08.10",
+      "ES-08.11",
+      "ES-08.12",
+      "ES-08.13"
+    ],
+    "basis": "Source tracing at visionclaw 86cdd76, agentbox c57d9c05, solid-pod-rs 9b6143c, nostr-rust-forum c39f41f, visionflow 5f8b1da; every citation re-resolved and restamped; strict cite-check and render pass (207 citations, 13/13); runtime durability, supervisord semantics and running-pod state not verified, and server line numbers are the solid-pod-rs pin's rather than the image's 76ab7aab."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/estate/09-build-deploy-and-ci-estate.md",
+    "source_sha256": "2bb4916621329ecd123ab4c0b9d20ef0aa04560cd341f15c275e208d4501e873",
+    "report": "docs/estate-review/2026-11-02-estate-solid-and-build.md",
+    "report_sha256": "a2dc9fca5e001be51cee410b8008bc5b08485aae12b8020f2af38784b63505a0",
+    "coverage": "selected-panels",
+    "panels": [
+      "ES-09.1",
+      "ES-09.2",
+      "ES-09.3",
+      "ES-09.4",
+      "ES-09.5",
+      "ES-09.6",
+      "ES-09.7",
+      "ES-09.8",
+      "ES-09.9",
+      "ES-09.10",
+      "ES-09.11",
+      "ES-09.12",
+      "ES-09.13",
+      "ES-09.14",
+      "ES-09.15",
+      "ES-09.16",
+      "ES-09.17",
+      "ES-09.18",
+      "ES-09.19",
+      "ES-09.20",
+      "ES-09.21",
+      "ES-09.22",
+      "ES-09.23",
+      "ES-09.24"
+    ],
+    "basis": "Source tracing at visionclaw 86cdd76 and agentbox c57d9c05; every citation re-resolved and restamped; strict cite-check and render pass (414 citations, 24/24); no workflow, build or container was run, the host build trap is an operator fact and the fifteen-record ADR staleness count was not recomputed."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/estate/01-estate-topology.md",
+    "source_sha256": "3dcbf4966c95816eea70ae2ab439520c3cc1e6345fef3bd1d33c475f08416925",
+    "report": "docs/estate-review/2026-11-02-estate-topology-events-federation.md",
+    "report_sha256": "8e7ecafe92279fea59ccdc0446b3cdf0fe8d636db1fec3d03f1f732c978a3ecd",
+    "coverage": "selected-panels",
+    "panels": [
+      "ES-01.1",
+      "ES-01.2",
+      "ES-01.3",
+      "ES-01.4",
+      "ES-01.5",
+      "ES-01.6",
+      "ES-01.7",
+      "ES-01.8"
+    ],
+    "basis": "Source tracing at visionclaw 86cdd76, agentbox c57d9c0, visionflow 5f8b1da; every citation re-resolved; strict cite-check and render pass; runtime port binding, supervisord FATAL parking and the live Loom model not observed."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/estate/02-agent-events-agentbox-to-visionclaw.md",
+    "source_sha256": "a931431eb0041f92be1ca8fb46784671997ed261178943644d4ea07b15897242",
+    "report": "docs/estate-review/2026-11-02-estate-topology-events-federation.md",
+    "report_sha256": "8e7ecafe92279fea59ccdc0446b3cdf0fe8d636db1fec3d03f1f732c978a3ecd",
+    "coverage": "selected-panels",
+    "panels": [
+      "ES-02.1",
+      "ES-02.2",
+      "ES-02.3",
+      "ES-02.4",
+      "ES-02.5",
+      "ES-02.6",
+      "ES-02.7",
+      "ES-02.8",
+      "ES-02.9",
+      "ES-02.10",
+      "ES-02.11",
+      "ES-02.12"
+    ],
+    "basis": "Source tracing at visionclaw 86cdd76, agentbox c57d9c0; every citation re-resolved; strict cite-check and render pass; no socket or route exercised, binary-mode RangeError inferred, briefing route activation not confirmable from source."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/estate/03-cross-repo-federation-contract.md",
+    "source_sha256": "2dea8d1087765712ac56c44504de480a6c9126c29fbc4b04400d64eccf9b10de",
+    "report": "docs/estate-review/2026-11-02-estate-topology-events-federation.md",
+    "report_sha256": "8e7ecafe92279fea59ccdc0446b3cdf0fe8d636db1fec3d03f1f732c978a3ecd",
+    "coverage": "selected-panels",
+    "panels": [
+      "ES-03.1",
+      "ES-03.2",
+      "ES-03.3",
+      "ES-03.4",
+      "ES-03.5",
+      "ES-03.6",
+      "ES-03.7",
+      "ES-03.8",
+      "ES-03.9",
+      "ES-03.10",
+      "ES-03.11",
+      "ES-03.12"
+    ],
+    "basis": "Source tracing at visionclaw 86cdd76, agentbox c57d9c0, visionflow 5f8b1da, solid-pod-rs 9b6143c, nostr-rust-forum c39f41f; every citation re-resolved; strict cite-check and render pass; ADR-2061 parity counts quoted not re-run, pod DID document and payment_settlement gating not traced at runtime."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/06-agent-control-surface-31400-31405.md",
+    "source_sha256": "09d32f22b8de93f747d7c69eebc096161c20b0ec08c4358349bb7e29e1017d58",
+    "report": "docs/estate-review/2026-11-02-forum-clients-agents-search.md",
+    "report_sha256": "ffb27915ab6159166206955418b700ee36c5566cdbc8979db5f73f75098d8c50",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-06.1",
+      "NF-06.2",
+      "NF-06.3",
+      "NF-06.4",
+      "NF-06.6",
+      "NF-06.8",
+      "NF-06.9",
+      "NF-06.10",
+      "NF-06.11",
+      "NF-06.12",
+      "NF-06.13",
+      "NF-06.14",
+      "NF-06.15",
+      "NF-06.16",
+      "NF-06.17",
+      "NF-06.18",
+      "NF-06.19"
+    ],
+    "basis": "Source tracing at nostr-rust-forum c39f41f and dreamlab-ai-website 0e15728; restamped, every citation re-resolved, strict cite-check and render pass; 7 accurate, 7 corrected, 3 with limits (ADR-recorded activation runs and Worker secrets not re-established)."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/07-search-preview-and-shared-worker-utilities.md",
+    "source_sha256": "e5d6cb0850cf61b2db636e407206126552e5cfb77d982515a2ac209cff8512a6",
+    "report": "docs/estate-review/2026-11-02-forum-clients-agents-search.md",
+    "report_sha256": "ffb27915ab6159166206955418b700ee36c5566cdbc8979db5f73f75098d8c50",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-07.1",
+      "NF-07.2",
+      "NF-07.3",
+      "NF-07.4",
+      "NF-07.5",
+      "NF-07.6",
+      "NF-07.7",
+      "NF-07.8",
+      "NF-07.9"
+    ],
+    "basis": "Source tracing at nostr-rust-forum c39f41f; restamped, every citation re-resolved, strict cite-check and render pass; 4 accurate, 5 corrected; remote Jev behaviour and deployed secrets not checkable from source."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/09-ci-deploy-canary-and-validation.md",
+    "source_sha256": "d75393d569ae4202dfe5a3ed46d37f002b548637c21175152be5b83ec4016deb",
+    "report": "docs/estate-review/2026-11-02-forum-config-ci-invariants.md",
+    "report_sha256": "04116e46b5d2f671ca1e50cc588d24e074c0866acae0a0a7fa76e2d88cbbd23f",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-09.1",
+      "NF-09.2",
+      "NF-09.3",
+      "NF-09.4",
+      "NF-09.5",
+      "NF-09.6",
+      "NF-09.7",
+      "NF-09.8",
+      "NF-09.9"
+    ],
+    "basis": "Source tracing at nostr-rust-forum c39f41f104b1; topic restamped, every panel given a disposition (3 accurate, 6 corrected); strict cite-check and render pass; no CI, cargo-deny, e2e or benchmark run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/10-invariants-and-anomaly-register.md",
+    "source_sha256": "ef221c3c3019d421ccc743f7310847d31bea80ca4874b6a064e6a50cfa58afec",
+    "report": "docs/estate-review/2026-11-02-forum-config-ci-invariants.md",
+    "report_sha256": "04116e46b5d2f671ca1e50cc588d24e074c0866acae0a0a7fa76e2d88cbbd23f",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-10.1",
+      "NF-10.2",
+      "NF-10.3",
+      "NF-10.4",
+      "NF-10.6",
+      "NF-10.7",
+      "NF-10.8",
+      "NF-10.10",
+      "NF-10.11",
+      "NF-10.12"
+    ],
+    "basis": "Source tracing at nostr-rust-forum c39f41f104b1; topic restamped, every panel given a disposition (5 accurate, 4 corrected, 1 with limits); strict cite-check and render pass; D1 transaction semantics and trust SQL tests not run; EXTERNAL cross-repo references not re-read."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/01-workspace-and-worker-topology.md",
+    "source_sha256": "a16e09ce1fb9b084552e772ecfac2bdac4141e95005765fa40a73a874904ab41",
+    "report": "docs/estate-review/2026-11-02-forum-workers-auth-relay-pod.md",
+    "report_sha256": "6893718a27478e3e863e8244014625a89563cf1342f6806cead747fb0d278cf0",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-01.1",
+      "NF-01.2",
+      "NF-01.3",
+      "NF-01.4",
+      "NF-01.5",
+      "NF-01.6"
+    ],
+    "basis": "Source tracing at nostr-rust-forum c39f41f; restamped, every panel re-assessed; strict cite-check and render pass (exit 0); NF-01.4 production kit revision is a deployment fact."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/04-pod-worker-ldp-wac-and-delegation.md",
+    "source_sha256": "5b448240d8925945e9c0475bd04e5e42c29ddf0105fad2d7e1bbfd44d7ac1c8a",
+    "report": "docs/estate-review/2026-11-02-forum-workers-auth-relay-pod.md",
+    "report_sha256": "6893718a27478e3e863e8244014625a89563cf1342f6806cead747fb0d278cf0",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-04.1",
+      "NF-04.2",
+      "NF-04.3",
+      "NF-04.4",
+      "NF-04.5",
+      "NF-04.7",
+      "NF-04.8",
+      "NF-04.9",
+      "NF-04.10",
+      "NF-04.11"
+    ],
+    "basis": "Source tracing at nostr-rust-forum c39f41f; restamped, every panel re-assessed; strict cite-check and render pass (exit 0); production PAY_ENABLED rests on ADR-2012 amendment text, not source."
+  },
+  {
+    "kind": "adr",
+    "repo": "ontomark",
+    "path": "docs/adr/ADR-OM-001-sprint-decisions.md",
+    "source_sha256": "9e544f38f39f6c47e900c0b4528c8bbf1f8a5e89a99bfe32ec3d6e228de4ca46",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "report_sha256": "4fb39deaa80cfff3008cb461f73d9fc924269b4f0186ab63d9442d962c021035",
+    "coverage": "whole-document",
+    "basis": "Source tracing at ontomark 4b9d15d (visionGraph 556a015 for D15); every section assessed; historical record; Signer (D6) absent, naming drift; census facts, cross-repo amendments, crates.io and GitHub settings not checkable from source."
+  },
+  {
+    "kind": "adr",
+    "repo": "ontomark",
+    "path": "docs/adr/ADR-OM-002-shared-graph-and-obsidian-boundary.md",
+    "source_sha256": "c20de44125da3fda6c9f6021fd2727ffde21cbd03d695f0393cfd4563b8eaa63",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "report_sha256": "4fb39deaa80cfff3008cb461f73d9fc924269b4f0186ab63d9442d962c021035",
+    "coverage": "whole-document",
+    "basis": "Source tracing at ontomark 4b9d15d; every section assessed; graph package implements the decision; plugin read at ontomark-obsidian HEAD outside the pin set; publisher and runtime acceptance not verified."
+  },
+  {
+    "kind": "adr",
+    "repo": "ontomark",
+    "path": "docs/adr/ADR-OM-003-native-assisted-ingest.md",
+    "source_sha256": "981d41268d126355292bb7a173c7b0e11d8a89df36f5f84772c32f412696d1f5",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "report_sha256": "4fb39deaa80cfff3008cb461f73d9fc924269b4f0186ab63d9442d962c021035",
+    "coverage": "whole-document",
+    "basis": "Source tracing at ontomark 4b9d15d; every section assessed; pure two-phase core implemented; minting claim in \u00a72/\u00a72a contradicted and dependency set drifted; parity, acceptance and EXP-11 not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "ontomark",
+    "path": "docs/adr/ADR-OM-006-dot-triples-interop.md",
+    "source_sha256": "c9b9114d2ad4d9681053b71c2a3130b122268874c93400be7ec8254cf879e916",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "report_sha256": "4fb39deaa80cfff3008cb461f73d9fc924269b4f0186ab63d9442d962c021035",
+    "coverage": "whole-document",
+    "basis": "Source tracing at ontomark 4b9d15d; every section assessed; bridge implemented; D4 contradicted by the ingest evidence export without oa: selectors; bridge test not run; plugin claims outside the pin set."
+  },
+  {
+    "kind": "adr",
+    "repo": "ontomark",
+    "path": "docs/adr/ADR-OM-011-shared-filesystem-layout-checks.md",
+    "source_sha256": "3c42086bd8eff4b36d9e17585c6f139367e69128be2672fd524c0e3e39bd7405",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "report_sha256": "4fb39deaa80cfff3008cb461f73d9fc924269b4f0186ab63d9442d962c021035",
+    "coverage": "whole-document",
+    "basis": "Source tracing at ontomark 4b9d15d (crates unchanged since its verified 395c18b); every section assessed; implemented; public_gate open item confirmed; tests and receipt not re-run; VisionClaw adoption not traced."
+  },
+  {
+    "kind": "adr",
+    "repo": "dreamlab-ai-website",
+    "path": "docs/adr/ADR-2001-corpus-consolidation.md",
+    "source_sha256": "13c6569fc0f94b4cfd6ab5d2934c12770829734d8558f49613d6d12d5af0859d",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "report_sha256": "4fb39deaa80cfff3008cb461f73d9fc924269b4f0186ab63d9442d962c021035",
+    "coverage": "whole-document",
+    "basis": "Source tracing at dreamlab-ai-website 0e15728; every section assessed; operative; structure implemented; IDENTITY-zones.md stamp drift breaks its restamp rule; annex test counts and runtime receipts not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "dreamlab-ai-website",
+    "path": "docs/adr/ADR-2002-split-hosting-pages-workers.md",
+    "source_sha256": "ee3d38bfbd9302f7298588e5322c6e2b64271c78653869bfedc4b81103496dec",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "report_sha256": "4fb39deaa80cfff3008cb461f73d9fc924269b4f0186ab63d9442d962c021035",
+    "coverage": "whole-document",
+    "basis": "Source tracing at dreamlab-ai-website 0e15728; every section assessed; operative; implemented with stale line numbers; CORS breadth drift; browser receipts not re-run; annex test counts and runtime receipts not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "dreamlab-ai-website",
+    "path": "docs/adr/ADR-2003-three-frontends-one-origin.md",
+    "source_sha256": "30d0b1c7b6b15100f136b6d450469fd54d292da784a5a8ff72a87e563312daaf",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "report_sha256": "4fb39deaa80cfff3008cb461f73d9fc924269b4f0186ab63d9442d962c021035",
+    "coverage": "whole-document",
+    "basis": "Source tracing at dreamlab-ai-website 0e15728; every section assessed; operative; implemented with stale line numbers; acceptance receipt predates the current kit pin; annex test counts and runtime receipts not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "dreamlab-ai-website",
+    "path": "docs/adr/ADR-2004-kit-pin-version-and-sha-lockstep.md",
+    "source_sha256": "2ed8236d66213748f1e8b33d0b86f737d8fa30a03e965f3d6ab16529491c86ae",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "report_sha256": "4fb39deaa80cfff3008cb461f73d9fc924269b4f0186ab63d9442d962c021035",
+    "coverage": "whole-document",
+    "basis": "Source tracing at dreamlab-ai-website 0e15728; every section assessed; operative; lockstep rule implemented and enforced; Decision and Verification literals stale (beta.16, 9c36b60); annex test counts and runtime receipts not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "dreamlab-ai-website",
+    "path": "docs/adr/ADR-2005-config-hand-synced-mirrors.md",
+    "source_sha256": "ae14358f5abd33222a281595bc0a440763c7c038044dc0ebbbf2e0d04be15318",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "report_sha256": "4fb39deaa80cfff3008cb461f73d9fc924269b4f0186ab63d9442d962c021035",
+    "coverage": "whole-document",
+    "basis": "Source tracing at dreamlab-ai-website 0e15728; every section assessed; operative; implemented and machine-checked; mirror count grown; annex test counts and runtime receipts not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "dreamlab-ai-website",
+    "path": "docs/adr/ADR-2006-raw-schnorr-nip42-identity.md",
+    "source_sha256": "40ed3cc50bbf9d2d13f4d2c760605153f92d99ccaea8f97a4198ba8ba39a125e",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "report_sha256": "4fb39deaa80cfff3008cb461f73d9fc924269b4f0186ab63d9442d962c021035",
+    "coverage": "whole-document",
+    "basis": "Source tracing at dreamlab-ai-website 0e15728; every section assessed; operative; implemented; no DID construction; annex test counts and runtime receipts not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "dreamlab-ai-website",
+    "path": "docs/adr/ADR-2007-four-zone-dual-accept-cohorts.md",
+    "source_sha256": "17edf983084ca1f52ef4e3dba59103893a268907ec0ae0a52abf9dea9422f27a",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "report_sha256": "4fb39deaa80cfff3008cb461f73d9fc924269b4f0186ab63d9442d962c021035",
+    "coverage": "whole-document",
+    "basis": "Source tracing at dreamlab-ai-website 0e15728; every section assessed; operative; four zones implemented; single-encrypted-zone decision contradicted (zones 2-4 encrypted); annex test counts and runtime receipts not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "dreamlab-ai-website",
+    "path": "docs/adr/ADR-2008-talk-to-ai-nostr-dm-routing.md",
+    "source_sha256": "223a07474e5872b45b0241afaa1cf811ca1eb250ced8c476730828d9ff3c43dd",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "report_sha256": "4fb39deaa80cfff3008cb461f73d9fc924269b4f0186ab63d9442d962c021035",
+    "coverage": "whole-document",
+    "basis": "Source tracing at dreamlab-ai-website 0e15728; every section assessed; operative; implemented; monitor co-recipient unrecorded; agent fan-out not checkable here; annex test counts and runtime receipts not re-run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/ontomark/00-anomaly-register-and-reconciliation.md",
+    "source_sha256": "b00bee9312e317bfd43a7f2a90034014230cfb70ea8c3d355d7b819a90b6f1c9",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "report_sha256": "4fb39deaa80cfff3008cb461f73d9fc924269b4f0186ab63d9442d962c021035",
+    "coverage": "selected-panels",
+    "panels": [
+      "OM-00.1",
+      "OM-00.2",
+      "OM-00.3",
+      "OM-00.4",
+      "OM-00.5"
+    ],
+    "basis": "Source tracing at ontomark 4b9d15d, VisionClaw 86cdd76, agentbox c57d9c0, VisionFlow 5f8b1da; strict cite-check and render pass; register tests and the parity receipt not re-run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/ontomark/02-ir-corpus-projection-and-redaction.md",
+    "source_sha256": "84bad0ed31323b5fba0c2dedbe1856565918b582a03f7132df352e2477edd9d9",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "report_sha256": "4fb39deaa80cfff3008cb461f73d9fc924269b4f0186ab63d9442d962c021035",
+    "coverage": "selected-panels",
+    "panels": [
+      "OM-02.1",
+      "OM-02.2",
+      "OM-02.3",
+      "OM-02.4",
+      "OM-02.5",
+      "OM-02.6"
+    ],
+    "basis": "Source tracing at ontomark 4b9d15d; strict cite-check and render pass; caller claims re-grepped across crates; no tests run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/ontomark/07-governed-create-and-amend.md",
+    "source_sha256": "06c879d6b93ec2c611815750d99068589741b4ff7522b250edf640e0e2becc69",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "report_sha256": "4fb39deaa80cfff3008cb461f73d9fc924269b4f0186ab63d9442d962c021035",
+    "coverage": "selected-panels",
+    "panels": [
+      "OM-07.1",
+      "OM-07.2",
+      "OM-07.3"
+    ],
+    "basis": "Source tracing at ontomark 4b9d15d and agentbox c57d9c0; strict cite-check and render pass; write/rename interleaving is a source-level concern only."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/ontomark/08-external-source-ingest.md",
+    "source_sha256": "31aeadcb8efc41fa8c3728d380f6a20a4e8a7e32ef56618e4ce03a34fe14ee65",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "report_sha256": "4fb39deaa80cfff3008cb461f73d9fc924269b4f0186ab63d9442d962c021035",
+    "coverage": "selected-panels",
+    "panels": [
+      "OM-08.1",
+      "OM-08.2",
+      "OM-08.3"
+    ],
+    "basis": "Source tracing at ontomark 4b9d15d (cited files unchanged since 0caae5d); strict cite-check and render pass; negated-relation acceptance relies on a prior audit's probe."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionflow/01-repo-composition-and-canon.md",
+    "source_sha256": "5a32e7da80a9b4a771624e45346cd6c21ad9a54c1215aa73fb0189be7559fa8a",
+    "report": "docs/estate-review/2026-11-02-visionflow-canon-site-health-dream.md",
+    "report_sha256": "cc33e2a357c585b40d44295ecd54816dbdb9bc31b3db1dc038cc27da48671fe3",
+    "coverage": "selected-panels",
+    "panels": [
+      "VF-01.2",
+      "VF-01.3",
+      "VF-01.4",
+      "VF-01.6",
+      "VF-01.8",
+      "VF-01.10",
+      "VF-01.11",
+      "VF-01.12",
+      "VF-01.13",
+      "VF-01.14",
+      "VF-01.15"
+    ],
+    "basis": "Source tracing at VisionFlow 5f8b1da; restamped and every citation re-resolved; strict cite-check and render pass; 1 accurate, 9 corrected, 1 with limits (VF-01.15 routes sibling-repo facts not checked here)."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionflow/02-website-build-and-deploy.md",
+    "source_sha256": "46330b0c18cff199cb415a00548247f7342b0a8e351ecd287533a6b93c6e6039",
+    "report": "docs/estate-review/2026-11-02-visionflow-canon-site-health-dream.md",
+    "report_sha256": "cc33e2a357c585b40d44295ecd54816dbdb9bc31b3db1dc038cc27da48671fe3",
+    "coverage": "selected-panels",
+    "panels": [
+      "VF-02.1",
+      "VF-02.2",
+      "VF-02.3",
+      "VF-02.4",
+      "VF-02.5",
+      "VF-02.6",
+      "VF-02.7",
+      "VF-02.8",
+      "VF-02.9",
+      "VF-02.10",
+      "VF-02.11",
+      "VF-02.12"
+    ],
+    "basis": "Source tracing at VisionFlow 5f8b1da; restamped, build-receipt.json dropped from sources and its fields re-cited to website-assets.mjs; strict cite-check and render pass under --only; four VF-02 citation-allowlist entries are now stale and need lead removal; no build, browser or deploy run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionflow/04-dream-cycle-integration.md",
+    "source_sha256": "0ff4cb4c46ee2ecf39008d64a795eca1d419e68907506a0f7db63fcd42fe2b41",
+    "report": "docs/estate-review/2026-11-02-visionflow-canon-site-health-dream.md",
+    "report_sha256": "cc33e2a357c585b40d44295ecd54816dbdb9bc31b3db1dc038cc27da48671fe3",
+    "coverage": "selected-panels",
+    "panels": [
+      "VF-04.1",
+      "VF-04.2",
+      "VF-04.3",
+      "VF-04.4",
+      "VF-04.5",
+      "VF-04.6",
+      "VF-04.8",
+      "VF-04.9",
+      "VF-04.10"
+    ],
+    "basis": "Source tracing at VisionFlow 5f8b1da (plus agentbox c57d9c0 for one ledger-schema note); restamped; strict cite-check and render pass; external dream-engine behaviour not observed."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionflow/05-governance-gates.md",
+    "source_sha256": "20a35c9019bf343f4fadb7d6dde6f125539a191700a13ccc9c7ef4df05785d13",
+    "report": "docs/estate-review/2026-11-02-visionflow-gates-tooling-pitch-compat.md",
+    "report_sha256": "dba7bf109d47f36ef2f9611622d2dcdc99eb590517f3099b08f6b70f729983ab",
+    "coverage": "selected-panels",
+    "panels": [
+      "VF-05.1",
+      "VF-05.2",
+      "VF-05.3",
+      "VF-05.4",
+      "VF-05.5",
+      "VF-05.6",
+      "VF-05.7",
+      "VF-05.8",
+      "VF-05.9",
+      "VF-05.11",
+      "VF-05.12",
+      "VF-05.13",
+      "VF-05.14"
+    ],
+    "basis": "Source tracing at VisionFlow 5f8b1da; restamped, every citation re-resolved, strict cite-check and render pass; no CI runs observed; ratchet and gate-suites findings are source-only."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionflow/06-diagram-tooling.md",
+    "source_sha256": "4243d9327d13aa2dfe2dafcbd1867d313eb992b0aef1617104312f9db774f0b1",
+    "report": "docs/estate-review/2026-11-02-visionflow-gates-tooling-pitch-compat.md",
+    "report_sha256": "dba7bf109d47f36ef2f9611622d2dcdc99eb590517f3099b08f6b70f729983ab",
+    "coverage": "selected-panels",
+    "panels": [
+      "VF-06.1",
+      "VF-06.2",
+      "VF-06.3",
+      "VF-06.4",
+      "VF-06.5",
+      "VF-06.6",
+      "VF-06.7",
+      "VF-06.8",
+      "VF-06.9",
+      "VF-06.10",
+      "VF-06.11",
+      "VF-06.12",
+      "VF-06.13",
+      "VF-06.14",
+      "VF-06.15"
+    ],
+    "basis": "Source tracing at VisionFlow 5f8b1da; restamped, every citation re-resolved, strict cite-check and render pass; ADR-recorded render and pin-check results not reproduced."
   }
 ]

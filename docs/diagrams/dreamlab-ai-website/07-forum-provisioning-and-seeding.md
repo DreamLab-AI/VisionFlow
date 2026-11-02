@@ -32,7 +32,8 @@ sources:
   - ../dreamlab-ai-website/forum-config/deploy/search-worker.wrangler.toml
   - ../dreamlab-ai-website/forum-config/deploy/SYSTEM-ONE.md
   - ../dreamlab-ai-website/scripts/lib/enquiry-topic.mjs
-verified_commit: a67cb2a8d474f4ba2e79bdbf55fad2e87bfd7e98
+  - ../dreamlab-ai-website/scripts/lib/digest.mjs
+verified_commit: 0e1572801d03a1af6d8bc8861f928da087d69eed
 ---
 
 ## DW-07.2 Root-level seeders — deleted 2026-10-07 (historical)
@@ -44,7 +45,7 @@ flowchart TB
 ```
 - **Drift:** this topic previously described the three root-level seeders as live code (stamp `ebaf16c`); `scripts/seed-forum.mjs`, `scripts/seed-semantic.mjs` and `scripts/assign-cohorts.mjs` were deleted by `3baf2fa4` (2026-10-07, "delete the three dead seed scripts carrying a hard-coded admin key"). Their original line anchors resolve only at `ebaf16c`, so they are no longer cited. The seeding they once did is not relocated one-for-one: live seeding is `scripts/seed/` (`CLOSEOUT-SECURITY-AUDIT.md:116`), and nothing there replaces the semantic-seed or cohort-assignment scripts by name.
 - **Debt:** the plaintext private key stays in git history from `c0bcece`; the owner judges it unused or already replaced, so no rotation followed (`CLOSEOUT-SECURITY-AUDIT.md:116`). Whether it is live cannot be decided from this repo; the `CLAUDE.md` rule against hardcoded credentials was breached for as long as the files existed.
-- Contrast with `scripts/seed/` (DW-07.3): every script there reads its signing key from the environment or an external `.env`, never embeds one. `scripts/seed/` holds **37** tracked files at the stamped revision (`git ls-tree -r --name-only 3afa374f scripts/seed`; 36 at the previous stamp, the addition being `provision-website-info.mjs`, ADR-2011).
+- Contrast with `scripts/seed/` (DW-07.3): every script there reads its signing key from the environment or an external `.env`, never embeds one. `scripts/seed/` holds **37** tracked files at the stamped revision (`git ls-tree -r --name-only 0e157280 scripts/seed`); the addition over an earlier 36 was `provision-website-info.mjs` (ADR-2011).
 
 ## DW-07.3 `scripts/seed/` — keys sourced externally, not embedded
 ```mermaid
@@ -118,4 +119,4 @@ flowchart TB
 - It exists because the relay rewrites every kind-1059 read to the viewer's own `#p`, so the admin inbox is unreadable to anyone else; each submission is therefore also wrapped to the monitor key (`scripts/inbox-watch/run.mjs:4-11`, DW-04.9). The digest is written to the operator and, when the DM never reached the relay, state is deliberately not persisted so the same messages surface again next run (`scripts/inbox-watch/run.mjs:376-380`). When `DREAMLAB_JEV=1` (default off) fresh enquiries also get an advisory Jev topic tag (`scripts/inbox-watch/run.mjs:354-356`), which since 2026-10-30 may reach TypeSafe and is local-only only when `DREAMLAB_JEV_TOPIC_LOCAL_ONLY=1` (`scripts/lib/enquiry-topic.mjs:27-32`, `scripts/lib/enquiry-topic.mjs:86`).
 - It judges channel health with `ingressProblem` and `disclosureProblem` from `scripts/lib/website-info.mjs` (`scripts/inbox-watch/run.mjs:35`), but these check effective ingress and public disclosure rather than proving the database rows remain. The reset-db detection claim in ADR-2011 is therefore too strong; DW-09 and the [dated review](../../estate-review/2026-11-01-website-information-and-inbox.md) record the counterexamples.
 
-- **Debt:** the digest itemises at most 25 messages but persists all fetched IDs as seen after relay acceptance; undisplayed messages do not roll forward. A sender-controlled probe phrase can also suppress classification. The dated review executes both paths with synthetic encrypted messages.
+- **Debt:** the digest itemises at most 25 messages (`scripts/lib/digest.mjs:18-19`) but persists all fetched IDs as seen after relay acceptance (`scripts/inbox-watch/run.mjs:327-328`); undisplayed messages do not roll forward. A sender-controlled probe phrase can also suppress classification. The dated review executes both paths with synthetic encrypted messages.

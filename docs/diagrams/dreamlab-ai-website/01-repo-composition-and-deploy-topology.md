@@ -18,7 +18,7 @@ sources:
   - ../dreamlab-ai-website/forum-config/dreamlab.toml
   - ../dreamlab-ai-website/forum-config/src/workers.rs
   - ../dreamlab-ai-website/src/App.tsx
-verified_commit: a67cb2a8d474f4ba2e79bdbf55fad2e87bfd7e98
+verified_commit: 0e1572801d03a1af6d8bc8861f928da087d69eed
 ---
 
 ## DW-01.1 Repo composition — thin operator overlay, not a protocol owner
@@ -92,10 +92,10 @@ sequenceDiagram
     participant BB as Build retro BBS with Trunk<br/>deploy.yml:335
     participant PG as Deploy to gh-pages<br/>deploy.yml:405-412
     GH->>CO: needs.gate.outputs.passed == 'true'
-    CO->>RB: dist/index.html + assets
-    CO->>LB: kit/dist (forum WASM)
-    RB->>MG: cp -r kit/dist/* dist/community/
-    LB->>MG: (forum output)
+    CO->>RB: repo source, npm run build
+    CO->>LB: kit source at KIT_REF
+    RB->>MG: dist/index.html + assets
+    LB->>MG: kit/dist, copied by cp -r kit/dist/* dist/community/<br/>deploy.yml:270-273
     MG->>ENV: sed inject <script>window.__ENV__=...SIDESTR_WALLET,ENCRYPTION_ENABLED,ZONE_CONFIG...
     ENV->>BB: build BBS after the forum merge so `cp kit/dist/*` does not grab the bbs subtree
     BB->>PG: dist/community/bbs/ merged, rebrand step, 404 shims

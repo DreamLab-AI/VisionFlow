@@ -26,60 +26,60 @@ sources:
   - ../ontomark/crates/ontomark-cli/src/main.rs
   - ../ontomark/docs/adr/ADR-OM-009-every-published-closure-carries-a-derivation-certificate.md
   - docs/engineering/sovereign-corpus-contracts.md
-verified_commit: {ontomark: 560e50c1a35bb9486b9f43ebf074b816c1e01349, visionflow: 4d361b58ce2b3ee17e1570361eaf78270b630012}
+verified_commit: {ontomark: 4b9d15df48056971321a62b8c4e905f4536c74db, visionflow: 5f8b1da92ce5d9e6b32a0bd90ec3630c66619083}
 ---
 
 ## OM-04.1 Emitter by emitter — corpus selector, output, C3 artefact
 
 ```mermaid
 flowchart LR
-    PROJ["Corpus handed to every emitter is already public-only<br/>records = split.public clean_record, machine scope forks, see OM-06.1<br/>projection.rs:499-503<br/>all projection paths, mod.rs:661-676"]
-    TTL["turtle::serialise of build_graph_attributed<br/>selector: records filtered by public_only AND has_ontology<br/>turtle.rs:231-234<br/>call mod.rs:685,780"]
-    INF["reason::inferred_turtle<br/>selector: none, takes the Reasoning not the corpus<br/>reason.rs:685<br/>call mod.rs:781-784"]
-    SCA["scaffold_index<br/>selector: public_classes<br/>indexes.rs:102<br/>call mod.rs:786-787"]
-    PRO["prose_index<br/>selector: public<br/>indexes.rs:255<br/>call mod.rs:788-789"]
-    SRCH["search_index<br/>selector: public<br/>indexes.rs:310<br/>call mod.rs:791-793"]
-    PG["page_api::build_attributed + domain index<br/>selector: public<br/>page_api.rs:77<br/>call mod.rs:798-811"]
-    CEN["census + validation-report<br/>selector: none, inputs are census and report<br/>mod.rs:812-816"]
-    CTX["okf::context to three paths<br/>selector: none, vocabulary only<br/>okf.rs:31<br/>mod.rs:822-826"]
-    VOWL["webvowl::build<br/>selector: records filtered r.public AND has_ontology<br/>webvowl.rs:60-63<br/>call mod.rs:829-832"]
-    TIER["graph_tiers::emit<br/>selector: records filtered r.public AND has_ontology<br/>graph_tiers.rs:195-198<br/>call mod.rs:836-839"]
-    MIR["markdown mirror, only with the flag<br/>selector: public<br/>mod.rs:842,858,868"]
-    OKF["okf::bundle<br/>selector: public_classes<br/>okf.rs:74<br/>call mod.rs:945-947"]
-    GEN["two .generation.json markers<br/>mod.rs:1008-1016"]
-    CERT["certificate::certify of the SAME graph, only with --certificate-out<br/>selector: none, takes the Graph and checks parity against the Reasoning<br/>certificate.rs:51,63<br/>call mod.rs:692-717"]
+    PROJ["Corpus handed to every emitter is already public-only<br/>records = split.public clean_record, machine scope forks, see OM-06.1<br/>projection.rs:499-503<br/>all projection paths, mod.rs:669-684"]
+    TTL["turtle::serialise of build_graph_attributed<br/>selector: records filtered by public_only AND has_ontology<br/>turtle.rs:231-234<br/>call mod.rs:693,788"]
+    INF["reason::inferred_turtle<br/>selector: none, takes the Reasoning not the corpus<br/>reason.rs:685<br/>call mod.rs:789-792"]
+    SCA["scaffold_index<br/>selector: public_classes<br/>indexes.rs:102<br/>call mod.rs:794-795"]
+    PRO["prose_index<br/>selector: public<br/>indexes.rs:256<br/>call mod.rs:796-797"]
+    SRCH["search_index<br/>selector: public<br/>indexes.rs:311<br/>call mod.rs:799-801"]
+    PG["page_api::build_attributed + domain index<br/>selector: public<br/>page_api.rs:77<br/>call mod.rs:806-819"]
+    CEN["census + validation-report<br/>selector: none, inputs are census and report<br/>mod.rs:820-824"]
+    CTX["okf::context to three paths<br/>selector: none, vocabulary only<br/>okf.rs:31<br/>mod.rs:830-834"]
+    VOWL["webvowl::build<br/>selector: records filtered r.public AND has_ontology<br/>webvowl.rs:60-63<br/>call mod.rs:837-840"]
+    TIER["graph_tiers::emit<br/>selector: records filtered r.public AND has_ontology<br/>graph_tiers.rs:195-198<br/>call mod.rs:844-847"]
+    MIR["markdown mirror, only with the flag<br/>selector: public<br/>mod.rs:850,866,876"]
+    OKF["okf::bundle<br/>selector: public_classes<br/>okf.rs:74<br/>call mod.rs:953-955"]
+    GEN["two .generation.json markers<br/>mod.rs:1016-1024"]
+    CERT["certificate::certify of the SAME graph, only with --certificate-out<br/>selector: none, takes the Graph and checks parity against the Reasoning<br/>certificate.rs:51,63<br/>call mod.rs:700-725"]
     PROJ --> TTL & SCA & PRO & SRCH & PG & VOWL & TIER & MIR & OKF
-    TTL --> C1["C3 data/ontology.ttl<br/>mod.rs:780"]
-    INF --> C2["C3 data/ontology-inferred.ttl<br/>mod.rs:782"]
-    SCA --> C3["C3 data/scaffold-index.json<br/>mod.rs:787"]
-    PRO --> C4["C3 data/prose-index.json<br/>mod.rs:789"]
-    SRCH --> C5["C3 api/search-index.json<br/>mod.rs:793"]
-    PG --> C6["C3 api/pages/SLUG.json<br/>mod.rs:806<br/>plus api/pages/_domain-index.json, not in C3<br/>mod.rs:811"]
-    CEN --> C7["C3 api/census.json, api/validation-report.json<br/>mod.rs:812-814"]
-    CTX --> C8["C3 ns/v2.jsonld, api/schema/context.jsonld, context/v1.jsonld<br/>mod.rs:824-826"]
-    VOWL --> C9["C3 data/ontology.json<br/>mod.rs:830"]
-    TIER --> C10["C3 data/graph/ overview.json, domain-*.bin, full.bin, stats.json, bridges.json<br/>mod.rs:838"]
-    MIR --> C11["C3 api/markdown/, off by default<br/>mod.rs:917"]
-    OKF --> C12["C3 okf/ index.md and concept files<br/>mod.rs:946"]
-    GEN --> C13["C3 .generation.json, plus data/.generation.json not in C3<br/>mod.rs:1015-1016"]
+    TTL --> C1["C3 data/ontology.ttl<br/>mod.rs:788"]
+    INF --> C2["C3 data/ontology-inferred.ttl<br/>mod.rs:790"]
+    SCA --> C3["C3 data/scaffold-index.json<br/>mod.rs:795"]
+    PRO --> C4["C3 data/prose-index.json<br/>mod.rs:797"]
+    SRCH --> C5["C3 api/search-index.json<br/>mod.rs:801"]
+    PG --> C6["C3 api/pages/SLUG.json<br/>mod.rs:814<br/>plus api/pages/_domain-index.json, which C3 lists<br/>mod.rs:819, sovereign-corpus-contracts.md:123"]
+    CEN --> C7["C3 api/census.json, api/validation-report.json<br/>mod.rs:820-822"]
+    CTX --> C8["C3 ns/v2.jsonld, api/schema/context.jsonld, context/v1.jsonld<br/>mod.rs:832-834"]
+    VOWL --> C9["C3 data/ontology.json<br/>mod.rs:838"]
+    TIER --> C10["C3 data/graph/ overview.json, domain-*.bin, full.bin, stats.json, bridges.json<br/>mod.rs:846"]
+    MIR --> C11["C3 api/markdown/, off by default<br/>mod.rs:925"]
+    OKF --> C12["C3 okf/ index.md and concept files<br/>mod.rs:954"]
+    GEN --> C13["C3 .generation.json and data/.generation.json<br/>mod.rs:1023-1024, sovereign-corpus-contracts.md:153"]
     INF -.-> CERT
-    NC["INVARIANT: the certified named closure must equal the classifier's inferred set or run_with returns CertificateParity before anything is written, mod.rs:696-703, certificate.rs:63-67; the CLI exits 2, ontomark-cli/src/main.rs:867-870<br/>DRIFT: the C3 file listing names no certificate output, sovereign-corpus-contracts.md:111, while ADR-OM-009 decides every published closure carries one, ADR-OM-009-every-published-closure-carries-a-derivation-certificate.md:14"]
+    NC["INVARIANT: the certified named closure must equal the classifier's inferred set or run_with returns CertificateParity before anything is written, mod.rs:704-711, certificate.rs:63-67; the CLI exits 2, ontomark-cli/src/main.rs:880-883<br/>DRIFT: the C3 file listing names no certificate output, sovereign-corpus-contracts.md:111, while ADR-OM-009 decides every published closure carries one, ADR-OM-009-every-published-closure-carries-a-derivation-certificate.md:34"]
     CERT --- NC
-    CERT --> C15["not in C3: oo-cert/1 asserted.tsv, derivations.tsv, asserted.sha256, scope.tsv,<br/>written directly to caller-selected --certificate-out directory;<br/>not staged with the bundle, output overlap is not refused<br/>mod.rs:715-717"]
-    REC["records::concept_records then embed_all, only when the host hands run_with an Embedder<br/>selector: none, reads the scaffold and prose indexes<br/>records.rs:103, records.rs:173<br/>call mod.rs:949-953"]
+    CERT --> C15["not in C3: oo-cert/1 asserted.tsv, derivations.tsv, asserted.sha256, scope.tsv,<br/>written directly to caller-selected --certificate-out directory;<br/>not staged with the bundle, output overlap is not refused<br/>mod.rs:723-725"]
+    REC["records::concept_records then embed_all, only when the host hands run_with an Embedder<br/>selector: none, reads the scaffold and prose indexes<br/>records.rs:103, records.rs:173<br/>call mod.rs:957-961"]
     SCA --> REC
     PRO --> REC
-    REC --> C14["C3 data/ontology-corpus.records.jsonl, --with-rvdb<br/>records.rs:38<br/>mod.rs:953"]
+    REC --> C14["C3 data/ontology-corpus.records.jsonl, --with-rvdb<br/>records.rs:38<br/>mod.rs:961"]
 ```
-- **DIVERGENCE:** `ontology-corpus.records.jsonl` is staged only when the host passes an `Embedder` to `run_with` (`mod.rs:949-953`), so plain `run` never writes it. Emitted but not in C3: `api/pages/_domain-index.json` (`mod.rs:811`), `context/v1.jsonld` (`mod.rs:824`), `data/.generation.json` (`mod.rs:1015`).
-- **INVARIANT:** the selector split is `public()` for per-page artefacts and `public_classes()`, which also requires `EntityType::Class` (`ir/model.rs:456-460`), for scaffold, OKF and `class_count`; Turtle, WebVOWL and NGG1 use the inline `public AND has_ontology AND iri` filter (`turtle.rs:234`, `webvowl.rs:63`, `graph_tiers.rs:198`), so they include individuals and the others do not. The corpus is already public-only, so each `r.public` test is a second filter (`turtle.rs:168-172`). Under `--scope machine` only the page API and search index read the merged corpus (`mod.rs:760`), see OM-06.
-- **DIVERGENCE:** `class_count` counts `public_classes()` un-deduplicated (`mod.rs:755`), `page_count` is `listed.records.len()` (`mod.rs:761`), scaffold `counts.classes` keeps the first record per class slug (`indexes.rs:110-111`) and `stats.json` `pages` counts distinct page ids (`graph_tiers.rs:201-210`); they can differ only if two records share a slug, which `DUPLICATE_IRI` refuses (`check/validate.rs:634`) and `Staged` write-once refuses for OKF paths (`mod.rs:372`), so the gap is theoretical.
+- **DIVERGENCE:** `ontology-corpus.records.jsonl` is staged only when the host passes an `Embedder` to `run_with` (`mod.rs:957-961`), so plain `run` never writes it. **Corrected at 4b9d15d:** `api/pages/_domain-index.json` (`mod.rs:819`), `context/v1.jsonld` (`mod.rs:832`) and `data/.generation.json` (`mod.rs:1023`) are all listed in C3 (`sovereign-corpus-contracts.md:123`, `sovereign-corpus-contracts.md:126`, `sovereign-corpus-contracts.md:153`); this panel previously said they were not.
+- **INVARIANT:** the selector split is `public()` for per-page artefacts and `public_classes()`, which also requires `EntityType::Class` (`ir/model.rs:456-460`), for scaffold, OKF and `class_count`; Turtle, WebVOWL and NGG1 use the inline `public AND has_ontology AND iri` filter (`turtle.rs:234`, `webvowl.rs:63`, `graph_tiers.rs:198`), so they include individuals and the others do not. The corpus is already public-only, so each `r.public` test is a second filter (`turtle.rs:168-172`). Under `--scope machine` only the page API and search index read the merged corpus (`mod.rs:768`), see OM-06.
+- **DIVERGENCE:** `class_count` counts `public_classes()` un-deduplicated (`mod.rs:763`), `page_count` is `listed.records.len()` (`mod.rs:769`), scaffold `counts.classes` keeps the first record per class slug (`indexes.rs:110-111`) and `stats.json` `pages` counts distinct page ids (`graph_tiers.rs:201-210`); within each pair (class count against scaffold classes, page count against distinct pages) they can differ only if two records share a slug; across the pairs they count different populations, public classes against every listed record, which `DUPLICATE_IRI` refuses (`check/validate.rs:634`) and `Staged` write-once refuses for OKF paths (`mod.rs:372`), so the gap is theoretical.
 
 ## OM-04.2 Turtle graph build — one function, header last, digest feeds the version IRI
 
 ```mermaid
 flowchart TD
-    CALL["run calls build_graph_attributed public_only=true<br/>mod.rs:685"]
+    CALL["run calls build_graph_attributed public_only=true<br/>mod.rs:693"]
     DECL["Declare skos:Concept, annotation props, object props, maturity<br/>turtle.rs:204-228"]
     SEL["records = corpus.records filtered<br/>public_only or r.public AND has_ontology AND iri not empty<br/>turtle.rs:231-234"]
     DECLSET["declared = set of every selected iri_to_uri<br/>turtle.rs:237-240"]
@@ -93,14 +93,14 @@ flowchart TD
     HDR["Header added last: versionIRI = ontology_iri / ontology_digest of every non-header triple<br/>turtle.rs:487-508"]
     DIG["ontology_digest: sorted N-Triples lines, header subject skipped, sha256_12<br/>turtle.rs:611-641"]
     SER["serialise: prefixes sorted, subjects in graph order<br/>turtle.rs:933-981"]
-    GENM["Same digest recomputed for the marker<br/>mod.rs:987"]
+    GENM["Same digest recomputed for the marker<br/>mod.rs:995"]
     CALL --> DECL --> SEL --> DECLSET --> CLS --> SUBC --> REL --> RESTR --> DISJ --> DEFS --> STUB --> HDR --> SER
     HDR -.-> DIG
     SER --> GENM
 ```
-- **INVARIANT:** the header is built last so `owl:versionIRI` addresses everything above it and none of it addresses itself (`turtle.rs:485-488`); `run` recomputes `ontology_digest` on the finished graph (`mod.rs:987`), the same value because the header subject is skipped (`turtle.rs:614-616`), a duplicated computation rather than a shared one.
+- **INVARIANT:** the header is built last so `owl:versionIRI` addresses everything above it and none of it addresses itself (`turtle.rs:485-488`); `run` recomputes `ontology_digest` on the finished graph (`mod.rs:995`), the same value because the header subject is skipped (`turtle.rs:614-616`), a duplicated computation rather than a shared one.
 - **DIVERGENCE:** the stub list is a hardcoded array of 13 property names (`turtle.rs:446-460`), a third copy of the relation set beside the vocabulary-driven `declare_object_properties` list (`turtle.rs:678-691`); a relation the vocabulary adds is declared but never stubbed.
-- **DIVERGENCE:** `build_graph` with `public_only=false` is called by the CLI `gate` command on the raw, unprojected corpus (`ontomark-cli/src/main.rs:690`), so that graph holds private classes; it is a gate-only graph and is never serialised.
+- **DIVERGENCE:** `build_graph` with `public_only=false` is called by the CLI `gate` command on the raw, unprojected corpus (`ontomark-cli/src/main.rs:703`), so that graph holds private classes; it is a gate-only graph and is never serialised.
 
 ## OM-04.3 Reasoner — mode decision, transitive cap, consistency gate
 
@@ -117,8 +117,8 @@ flowchart TD
     CLASSIFY["classifier.refusals, then named_subsumptions<br/>reason.rs:628-632"]
     SPLIT["Drop asserted pairs, Thing, Nothing, reflexive: remainder is inferred<br/>reason.rs:647-651"]
     ROOTS["root_causes = unsatisfiable minus those under an unsatisfiable asserted parent<br/>reason.rs:653-663"]
-    GATE{"is_consistent?<br/>mod.rs:743; reason.rs:78-80"}
-    BAD["Typed Unsatisfiable, CLI exits 2<br/>bundle not promoted; certificate may already be written<br/>mod.rs:715,744; ontomark-cli/src/main.rs:861"]
+    GATE{"is_consistent?<br/>mod.rs:751; reason.rs:78-80"}
+    BAD["Typed Unsatisfiable, CLI exits 2<br/>bundle not promoted; certificate may already be written<br/>mod.rs:723,752; ontomark-cli/src/main.rs:874"]
     CONS["is_consistent = no unsatisfiable AND no refusals<br/>reason.rs:78-80"]
     INFTTL["inferred_turtle: one rdfs:subClassOf per inferred pair, inferenceMethod whelk-el++-closure<br/>reason.rs:685-711"]
     WH["WhelkEl implements Classifier over ontomark-reason, refusals plus subsumptions<br/>whelk.rs:98-127"]
@@ -135,7 +135,7 @@ flowchart TD
 ```
 - **INVARIANT:** the mode is derived from the graph (`Relevant` iff a class has a definition, else `Skip`), never configured; `Include` is a test-only mode that does not finish on the full corpus (`reason.rs:143-145,546`).
 - **INVARIANT:** `WHELK_RELEVANT_CAP` is an error-code string only (`reason.rs:477`); the cap is the constant 2000 and `vault.toml` has no reasoner section (`reason.rs:473`).
-- **DIVERGENCE:** `reason_with` (`reason.rs:604`) and `Restrictions::Include` (`reason.rs:145`) have test callers, including the `defined_classes.rs` integration suite, but no production caller found in this checkout; `reason` is called by `run_with` (`mod.rs:689`) and by the migrate compile path. **AUDIT LIMIT:** extraction precedes the shared refusal check. Unsupported raw RDF shapes and unreadable definitions can disappear before that check; the public Graph adapter is not a general OWL profile validator (`reason.rs:283,401`). The [current audit](../../estate-review/2026-11-01-ontomark-reasoning-and-certificates.md) reproduces this boundary and certificate writes before an unsatisfiable refusal. The relevant implementation matches this topic's declared revision; no sibling panel receives refreshed coverage.
+- **DIVERGENCE:** `reason_with` (`reason.rs:604`) and `Restrictions::Include` (`reason.rs:145`) have test callers, including the `defined_classes.rs` integration suite, but no production caller found in this checkout; `reason` is called by `run_with` (`mod.rs:697`) and by the migrate compile path. **AUDIT LIMIT:** extraction precedes the shared refusal check. Unsupported raw RDF shapes and unreadable definitions can disappear before that check; the public Graph adapter is not a general OWL profile validator (`reason.rs:283,401`). The [current audit](../../estate-review/2026-11-01-ontomark-reasoning-and-certificates.md) reproduces this boundary and certificate writes before an unsatisfiable refusal. `reason.rs` is unchanged between that audit and 4b9d15d; the 2026-11-02 restamp re-read every panel here.
 
 ## OM-04.4 NGG1 tiers — where relation names collapse and where ids and positions are baked
 
@@ -183,13 +183,15 @@ flowchart TD
 flowchart TD
     BL["backlink_index: slug_set and loop over ALL records, not public<br/>indexes.rs:51-55"]
     BLSLUG["target slug recomputed: ref_slug of iri if it has a colon, else slugify of label<br/>indexes.rs:57-60"]
-    CLO["closure::compute: loop over ALL records with ontology, class slug first wins<br/>closure.rs:99-106<br/>call mod.rs:678"]
+    CLO["closure::compute: loop over ALL records with ontology, class slug first wins<br/>closure.rs:99-106<br/>call mod.rs:686"]
     SC["scaffold_index: public_classes sorted by class slug, first definition wins<br/>indexes.rs:102-110"]
     SCREL["rel lists in SCAFFOLD_REL_ORDER, empty lists omitted<br/>indexes.rs:30,115-127"]
     SCTITLE["title = label, else record title<br/>indexes.rs:129"]
     SCSUP["sup and isup read from the structural closure, bl capped at 20<br/>indexes.rs:23,145-160"]
-    PR["prose_index: public, has_ontology, dfull over 400 chars, cl capped at 1500<br/>indexes.rs:21,25,255-275"]
-    SE["search_index: public, domain_name by title_case of the domain, wikilinks first 20<br/>indexes.rs:308-350"]
+    PR["prose_index: public, has_ontology, dfull over 400 chars, cl capped at 1500<br/>indexes.rs:21,25,256-276"]
+    PRCL["INVARIANT since 4b9d15d: cl is read only under a Markdown Current Landscape heading; an outline bullet heading yields an empty cl without an error, kept out at the source by repair bodies --check<br/>indexes.rs:173-185"]
+    PR --> PRCL
+    SE["search_index: public, domain_name by title_case of the domain, wikilinks first 20<br/>indexes.rs:309-351"]
     PGS["page_api: backlinks looked up by page slug, label from slug_to_title<br/>page_api.rs:78,175-190"]
     PGD["Domain index: groups by domain, empty domain bucket named unclassified<br/>page_api.rs:147-161"]
     PGREL["relationships in PAGE_API_REL_ORDER, every key present even when empty<br/>page_api.rs:18-31,111-119"]
@@ -203,7 +205,7 @@ flowchart TD
     PGS --> PGD
 ```
 - **DIVERGENCE:** `backlink_index` (`indexes.rs:53-55`) and `closure::compute` (`closure.rs:99`) iterate `records`, while the artefacts consuming them iterate `public()` or `public_classes()`; safe today only because the corpus is pre-filtered (`projection.rs:499-503`), unenforced here.
-- **DIVERGENCE:** three emitters compute the same domain and label differently: scaffold label falls back to title (`indexes.rs:129`), closure to title then slug (`closure.rs:109-113`), NGG1 to the slug (`graph_tiers.rs:254-256`); the domain is a title-cased name in search (`indexes.rs:328`), `unclassified` in the page API (`page_api.rs:148`), alias-folded in NGG1 (`graph_tiers.rs:81-90`) and exact-match in WebVOWL (`webvowl.rs:91`).
+- **DIVERGENCE:** three emitters compute the same domain and label differently: scaffold label falls back to title (`indexes.rs:129`), closure to title then slug (`closure.rs:109-113`), NGG1 to the slug (`graph_tiers.rs:254-256`); the domain is a title-cased name in search (`indexes.rs:329`), `unclassified` in the page API (`page_api.rs:148`), alias-folded in NGG1 (`graph_tiers.rs:81-90`) and exact-match in WebVOWL (`webvowl.rs:91`).
 - **DIVERGENCE:** `SCAFFOLD_REL_ORDER` (`indexes.rs:30`), `PAGE_API_REL_ORDER` (`page_api.rs:18`), `RELATION_KEYS` (`ir/model.rs:36`) and WebVOWL `REL_MAP` (`webvowl.rs:30`) are four hand-kept orderings of the same twelve relations; `page_api::build` has no caller outside tests, `build_attributed` is the live one (`page_api.rs:55,71`).
 
 ## OM-04.6 WebVOWL graph and OKF bundle — second and third projections of the same records
@@ -245,8 +247,8 @@ flowchart LR
     SLUG2["slug_of local copy, splits on last colon or slash<br/>graph_tiers.rs:68-77"]
     SLUG3["slug_from_uri in Turtle<br/>turtle.rs:882"]
     BLK["Backlinks"]
-    BLK1["backlink_index, shared by scaffold and page API<br/>indexes.rs:51<br/>mod.rs:679"]
-    BLK2["Search wikilinks first 20 from record.links<br/>indexes.rs:346-352"]
+    BLK1["backlink_index, shared by scaffold and page API<br/>indexes.rs:51<br/>mod.rs:687"]
+    BLK2["Search wikilinks first 20 from record.links<br/>indexes.rs:347-353"]
     DOMN["Domain id"]
     DOMN1["alias-folded index, NGG1<br/>graph_tiers.rs:81-90"]
     DOMN2["raw string compared to taxonomy, WebVOWL<br/>webvowl.rs:91"]
@@ -256,6 +258,6 @@ flowchart LR
     BLK --> BLK1 & BLK2
     DOMN --> DOMN1 & DOMN2 & DOMN3
 ```
-- **DIVERGENCE:** the structural closure and the Whelk closure are intentionally two engines; a build test pins that they agree on the taxonomy (`build/mod.rs:1653`), so only the third, NGG1's ancestry walk, is untested for agreement.
+- **DIVERGENCE:** the structural closure and the Whelk closure are intentionally two engines; a build test pins that they agree on the taxonomy (`build/mod.rs:1661`), so only the third, NGG1's ancestry walk, is untested for agreement.
 - **DIVERGENCE:** Turtle emits the domain verbatim while NGG1 folds aliases (`turtle.rs:302-304` against `graph_tiers.rs:81-90`): a class in an aliased domain lands in the canonical domain tier but carries the unfolded string in `ontology.ttl`.
 - **DIVERGENCE:** callable only from tests (no non-test caller): `turtle::version_iri` (`turtle.rs:645`), `reason::reason_with` (`reason.rs:604`), `page_api::build` (`page_api.rs:55`).

@@ -1,0 +1,59 @@
+[
+ {
+  "kind": "topic",
+  "repo": "VisionFlow",
+  "path": "docs/diagrams/estate/08-solid-pod-estate.md",
+  "report": "docs/estate-review/2026-11-02-estate-solid-and-build.md",
+  "coverage": "selected-panels",
+  "panels": [
+   "ES-08.1",
+   "ES-08.2",
+   "ES-08.3",
+   "ES-08.4",
+   "ES-08.5",
+   "ES-08.6",
+   "ES-08.7",
+   "ES-08.8",
+   "ES-08.9",
+   "ES-08.10",
+   "ES-08.11",
+   "ES-08.12",
+   "ES-08.13"
+  ],
+  "basis": "Source tracing at visionclaw 86cdd76, agentbox c57d9c05, solid-pod-rs 9b6143c, nostr-rust-forum c39f41f, visionflow 5f8b1da; every citation re-resolved and restamped; strict cite-check and render pass (207 citations, 13/13); runtime durability, supervisord semantics and running-pod state not verified, and server line numbers are the solid-pod-rs pin's rather than the image's 76ab7aab."
+ },
+ {
+  "kind": "topic",
+  "repo": "VisionFlow",
+  "path": "docs/diagrams/estate/09-build-deploy-and-ci-estate.md",
+  "report": "docs/estate-review/2026-11-02-estate-solid-and-build.md",
+  "coverage": "selected-panels",
+  "panels": [
+   "ES-09.1",
+   "ES-09.2",
+   "ES-09.3",
+   "ES-09.4",
+   "ES-09.5",
+   "ES-09.6",
+   "ES-09.7",
+   "ES-09.8",
+   "ES-09.9",
+   "ES-09.10",
+   "ES-09.11",
+   "ES-09.12",
+   "ES-09.13",
+   "ES-09.14",
+   "ES-09.15",
+   "ES-09.16",
+   "ES-09.17",
+   "ES-09.18",
+   "ES-09.19",
+   "ES-09.20",
+   "ES-09.21",
+   "ES-09.22",
+   "ES-09.23",
+   "ES-09.24"
+  ],
+  "basis": "Source tracing at visionclaw 86cdd76 and agentbox c57d9c05; every citation re-resolved and restamped; strict cite-check and render pass (414 citations, 24/24); no workflow, build or container was run, the host build trap is an operator fact and the fifteen-record ADR staleness count was not recomputed."
+ }
+]

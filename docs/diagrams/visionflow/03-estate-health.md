@@ -24,7 +24,7 @@ sources:
   - tests/gates/run-all.sh
   - ./README.md
   - docs/jev-option.md
-verified_commit: 4d361b58ce2b3ee17e1570361eaf78270b630012
+verified_commit: 5f8b1da92ce5d9e6b32a0bd90ec3630c66619083
 ---
 
 ## VF-03.1 The roster — the only place the estate is enumerated
@@ -38,28 +38,28 @@ flowchart LR
 
     R --> REPOS["repos — 18 entries"]
     REPOS --> P1["DreamLab-AI/VisionFlow — canon (this area)<br/>roster.json:5"]:::fp
-    REPOS --> P2["DreamLab-AI/VisionClaw — GPU engine, OWL 2 EL<br/>EXTERNAL: area visionclaw, VC-01..VC-37 — roster.json:6"]:::fp
-    REPOS --> P3["DreamLab-AI/agentbox — sovereign agent runtime<br/>EXTERNAL: area agentbox, AB-01..AB-28 — roster.json:7"]:::fp
+    REPOS --> P2["DreamLab-AI/VisionClaw — GPU engine, OWL 2 EL<br/>EXTERNAL: area visionclaw, VC-nn — roster.json:6"]:::fp
+    REPOS --> P3["DreamLab-AI/agentbox — sovereign agent runtime<br/>EXTERNAL: area agentbox, AB-nn — roster.json:7"]:::fp
     REPOS --> P4["DreamLab-AI/solid-pod-rs — native Solid pod<br/>EXTERNAL: area solid-pod-rs, SP-nn — roster.json:8"]:::fp
     REPOS --> P5["DreamLab-AI/nostr-rust-forum — governance plane, relay<br/>EXTERNAL: area nostr-rust-forum, NF-nn — roster.json:9"]:::fp
     REPOS --> P6["DreamLab-AI/dreamlab-ai-website — commercial surface<br/>EXTERNAL: area dreamlab-ai-website, DW-nn — roster.json:10"]:::fp
     REPOS --> P7["DreamLab-AI/loom — Ontology Loom grounding facade<br/>EXTERNAL: no diagram area in this tree — roster.json:11"]:::fp
     REPOS --> P8["DreamLab-AI/knowledgeGraph — published corpus mirror<br/>ci_by_design: a publish target whose only workflow is the<br/>Pages build — EXTERNAL: area knowledgegraph, KG-nn — roster.json:12"]:::fp
     REPOS --> P15["DreamLab-AI/sidestr-rs — sidechain crates, added 2026-09-23<br/>EXTERNAL: area sidestr-rs, SR-nn — roster.json:13"]:::fp
-    REPOS --> P16["DreamLab-AI/ontomark — Obsidian-vault ontology toolchain, crates<br/>EXTERNAL: area ontomark, OM-00..OM-06 — roster.json:14"]:::fp
+    REPOS --> P16["DreamLab-AI/ontomark — Obsidian-vault ontology toolchain, crates<br/>EXTERNAL: area ontomark, OM-nn — roster.json:14"]:::fp
     REPOS --> P17["DreamLab-AI/ontomark-obsidian — Obsidian plugin for ontomark<br/>EXTERNAL: no diagram area in this tree — roster.json:15"]:::fp
     REPOS --> P9["DreamLab-AI/WasmVOWL — demo shell, default branch master<br/>ci_by_design: frozen, no workflows<br/>EXTERNAL: no diagram area; distinct from vowl-wasm — roster.json:16"]:::fp
     REPOS --> P10["jjohare/visionGraph — the vault, PRIVATE and cross-owner<br/>EXTERNAL: area visiongraph, VG-nn — roster.json:17"]:::priv
     REPOS --> P11["DreamLab-AI/vowl-wasm — published crate plus npm bundle<br/>EXTERNAL: area vowl-wasm, VW-nn — roster.json:18"]:::fp
     REPOS --> P12["DreamLab-AI/prose-sanitiser — published crate — roster.json:19"]:::fp
     REPOS --> P13["DreamLab-AI/diagram-ir — published crate — roster.json:20"]:::fp
-    REPOS --> P14["DreamLab-AI/dream-engine — provenance IMPORTED,<br/>fork of ruvnet/dream-machine — roster.json:21<br/>EXTERNAL: the dream engine itself, see AB-23"]:::imp
+    REPOS --> P14["DreamLab-AI/dream-engine — provenance IMPORTED,<br/>fork of ruvnet/dream-machine — roster.json:21<br/>EXTERNAL: the dream engine itself, see AB-23 and DE-nn"]:::imp
     REPOS --> P18["DreamLab-AI/visiontouch-rs — haptic input device study,<br/>private proof of principle, admitted by ADR-2017 — roster.json:22"]:::fp
 
     R --> SURF["surfaces — 6 probes — roster.json:24<br/>www.visionflow.info, narrativegoldmine.com,<br/>its /ns/v2.jsonld and /data/graph/stats.json,<br/>www.dreamlab-ai.com, and the VisionClaw<br/>ontology-latest/index.jsonld release asset"]
     R --> REG["registries — 22 entries — roster.json:59<br/>crates.io: vowl-wasm, prose-sanitiser, diagram-ir,<br/>solid-pod-rs, solid-pod-rs-server, nostr-bbs-core — roster.json:60-65,<br/>the six ontomark-family crates (parse, model, reason, compile,<br/>ingest, ngg1) and whelk-el — roster.json:66-72,<br/>and all eight sidestr-rs crates: header, core, nostr, wallet,<br/>round, hitch, agent, webledgers-teller — roster.json:73-80<br/>npm: @dreamlab-ai/vowl-wasm — roster.json:81"]
 
-    NOTE["The two enumerations of the estate are reconciled in one<br/>direction: repository-map.md:8 lists twelve repositories with local<br/>paths, sidestr-rs among them at repository-map.md:18, and<br/>repository-map.md:25 names the roster as THE authoritative list for<br/>nightly collection, scoping the other six roster repositories as<br/>supporting components — repository-map.md:29-37. The roster still<br/>does not reference the map back."]
+    NOTE["The two enumerations of the estate are reconciled in one<br/>direction: repository-map.md:8 lists twelve repositories with local<br/>paths, sidestr-rs among them at repository-map.md:18, and<br/>repository-map.md:25 names the roster as THE authoritative list for<br/>nightly collection, scoping the other six roster repositories as<br/>supporting components — repository-map.md:29-38 — beside<br/>non-roster rows such as RuVector and Codescape. The roster still<br/>does not reference the map back."]
     R -.-> NOTE
 ```
 
@@ -78,7 +78,7 @@ sequenceDiagram
     CRON->>JOB: "cron plus workflow_dispatch, permissions contents:write, actions:write<br/>estate-health.yml:58"
     JOB->>JOB: "checkout with persist-credentials true — estate-health.yml:74"
     JOB->>COL: "GITHUB_TOKEN plus optional ESTATE_READ_TOKEN — estate-health.yml:97"
-    COL->>GH: "roster repos, surfaces and registries, at most 4 requests in flight<br/>estate-health.mjs:902"
+    COL->>GH: "roster repos, surfaces and registries — three pools of 4 run at once,<br/>and each repo issues 5 calls together — estate-health.mjs:902-905, estate-health.mjs:532"
     GH-->>COL: "per-field answers, or a degraded field plus a note"
     COL->>SNAP: "write the whole snapshot — estate-health.mjs:919"
     COL-->>JOB: "summary line plus ESTATE-HEALTH-COLLECTED — estate-health.mjs:928"
@@ -96,6 +96,8 @@ sequenceDiagram
     end
     DREAM->>SNAP: "reads the committed file offline, 30 minutes later"
 ```
+
+**Debt (concurrency is per pool, not estate-wide):** `CONCURRENCY = 4` is commented "≤ 4 in flight, estate-wide" (`scripts/estate-health.mjs:158`). But `mapPool` bounds only its own items (`scripts/estate-health.mjs:229-238`), the repo, surface and registry pools run together (`scripts/estate-health.mjs:902-905`), and each repo worker fires five calls at once (`scripts/estate-health.mjs:532`). The source therefore allows about 28 requests in flight, 20 of them to the GitHub API. This is a source reading only; no rate-limit failure has been observed.
 
 ## VF-03.3 What is collected per repository — six calls, each degrading alone
 ```mermaid
@@ -278,27 +280,27 @@ sequenceDiagram
     end
     Note over M,P: "pill words since judgement calls 7 and 10: none reads 'no run on head'<br/>and exempt reads 'no CI by design' — main.js:598 and main.js:599"
     Note over P,F: "Relative times are computed in the browser, so a stale deploy<br/>reads as stale rather than quietly claiming freshness — main.js:628"
-    Note over P,F: "The file is a REQUIRED entry in website/assets.manifest.json,<br/>so a missing snapshot fails the asset gate — assets.manifest.json:13"
+    Note over P,F: "The file is a REQUIRED entry in website/assets.manifest.json,<br/>so a missing snapshot fails the asset gate — assets.manifest.json:15"
 ```
 
-## VF-03.11 The snapshot as it stands — 11 of 18 green, 3 red, 1 none, 2 exempt by design
+## VF-03.11 The snapshot as it stands — 12 of 18 green, 3 red, 1 none, 1 exempt by design
 ```mermaid
 flowchart TB
     classDef red fill:#f7dede,stroke:#a33333,color:#111
     classDef green fill:#e6f0dc,stroke:#4a7a2a,color:#111
     classDef amb fill:#f9f0d5,stroke:#8a7020,color:#111
 
-    SNAP["schema visionflow.estate-health/1, generated 2026-10-30T08:48Z<br/>collected by the nightly run at revision 7e02560<br/>estate-health.json:2, estate-health.json:3 and estate-health.json:5"]
+    SNAP["schema visionflow.estate-health/1, generated 2026-11-01T09:26Z<br/>collected by the nightly run at revision 0bd6897<br/>estate-health.json:2, estate-health.json:3 and estate-health.json:5"]
 
-    SNAP --> SUM["summary — 18 repos: 11 green, 3 red, 0 amber,<br/>1 none, 2 exempt, 1 unreadable, 9 open PRs,<br/>6 of 6 surfaces reachable<br/>estate-health.json:10 through estate-health.json:19"]
+    SNAP --> SUM["summary — 18 repos: 12 green, 3 red, 0 amber,<br/>1 none, 1 exempt, 1 unreadable, 8 open PRs,<br/>6 of 6 surfaces reachable<br/>estate-health.json:10 through estate-health.json:19"]
 
-    SUM --> R4["RED — agentbox (Contract tests failed), nostr-rust-forum (CI and Security Audit failed) and dreamlab-ai-website (the Set CF Worker secrets run failed; CI and both deploys still in progress)<br/>estate-health.json:178 and estate-health.json:196, estate-health.json:318, estate-health.json:329 and estate-health.json:336, estate-health.json:371 and estate-health.json:410"]:::red
-    SUM --> A1["AMBER — none this snapshot: summary.amber is 0 (dreamlab-ai-website, amber at the last stamp, now reads red on its failed secrets run)<br/>estate-health.json:13"]:::amb
-    SUM --> N1["NONE — VisionClaw (no qualifying run on HEAD e74bcdd; its latest runs are on older commits and were green), so its older verdict is reported none<br/>estate-health.json:123 and estate-health.json:157 — estate-health.mjs:442"]:::amb
-    SUM --> E1["EXEMPT — knowledgeGraph. Its last Build and verify run failed on<br/>an older commit, so the HEAD rule reports none and ci_by_design<br/>turns that into exempt; both notes are kept<br/>estate-health.json:480 and estate-health.json:500-501"]:::amb
-    SUM --> E2["EXEMPT — WasmVOWL, no workflows by design<br/>estate-health.json:635 and estate-health.json:643"]:::amb
-    SUM --> U1["UNREADABLE — jjohare/visionGraph, the one known hole<br/>see VF-03.5 — estate-health.json:658"]:::amb
-    SUM --> G1["GREEN — VisionFlow itself, solid-pod-rs, loom, sidestr-rs, ontomark, ontomark-obsidian,<br/>vowl-wasm, prose-sanitiser, diagram-ir, dream-engine and visiontouch-rs"]:::green
+    SUM --> R4["RED — agentbox (Contract tests and Security Invariants failed),<br/>dreamlab-ai-website (the Set CF Worker secrets run failed)<br/>and knowledgeGraph (Build and verify failed)<br/>estate-health.json:178, estate-health.json:196 and estate-health.json:217,<br/>estate-health.json:371 and estate-health.json:410,<br/>estate-health.json:480 and estate-health.json:491"]:::red
+    SUM --> KG["knowledgeGraph declares ci_by_design, yet reads RED: a red<br/>verdict on HEAD is never exempted, only a none is —<br/>estate-health.mjs:112 and estate-health.mjs:559"]:::red
+    SUM --> A1["AMBER — none this snapshot: summary.amber is 0<br/>estate-health.json:13"]:::amb
+    SUM --> N1["NONE — VisionClaw (no qualifying run on HEAD 1c1ac67; its latest runs are on older commits and were green), so its older verdict is reported none<br/>estate-health.json:123 and estate-health.json:157 — estate-health.mjs:442"]:::amb
+    SUM --> E2["EXEMPT — WasmVOWL, no workflows by design<br/>estate-health.json:639 and estate-health.json:647"]:::amb
+    SUM --> U1["UNREADABLE — jjohare/visionGraph, the one known hole<br/>see VF-03.5 — estate-health.json:658 and estate-health.json:662"]:::amb
+    SUM --> G1["GREEN — VisionFlow itself, solid-pod-rs, nostr-rust-forum, loom, sidestr-rs,<br/>ontomark, ontomark-obsidian, vowl-wasm, prose-sanitiser, diagram-ir,<br/>dream-engine and visiontouch-rs"]:::green
 
     VERD["The offline check therefore returns ESTATE-HEALTH-RED:<br/>any red repo is enough, and the verdict beats staleness<br/>estate-health.mjs:1008 — see VF-03.6. check() has no branch for<br/>exempt, so an exempt row prints nothing and moves no verdict<br/>estate-health.mjs:968 and estate-health.mjs:978"]:::red
     SUM --> VERD
@@ -307,13 +309,13 @@ flowchart TB
     VERD -.-> INV
 ```
 
-**Debt:** since the 2026-09-23 snapshot knowledgeGraph moved from red to exempt by rule rather than by a passing run; since 2026-10-06 VisionClaw moved from red to none because its failing runs are on an older commit (the HEAD rule), not because a run passed, while in this snapshot agentbox is red again on a failed Contract tests run, solid-pod-rs and prose-sanitiser read green, nostr-rust-forum is still red on a HEAD run and dreamlab-ai-website has turned red on a failed Worker-secrets run; no mechanism records why a row flips, so any trend is only visible by reading committed snapshots in sequence (`website/static/data/estate-health.json:11`).
+**Debt:** rows flip without a recorded reason. Between the 2026-10-30 snapshot this topic last drew and the 2026-11-01 one it draws now, nostr-rust-forum moved from red to green. knowledgeGraph moved from exempt to red: its Build and verify run now fails on a run the HEAD rule keeps, so `ci_by_design` cannot exempt it. VisionClaw remains none by the HEAD rule rather than by a passing run. No mechanism records why a row flips, so any trend is only visible by reading committed snapshots in sequence (`website/static/data/estate-health.json:11`).
 
-**Debt (registry roster vs canon) — RESOLVED 2026-10-03, re-opened and RESOLVED again 2026-10-18:** the 10-03 dream ACCEPT (PR #13, merged as `c1e1498`) brought the roster to the seven sidestr crates canon then named; `webledgers-teller` was published later and went unprobed until `26df6c9` added it, with canon updated to eight in the same commit (`scripts/estate-health/roster.json:73-80`, estate register ER-3); the rewritten README no longer states a crate count (`./README.md:31`).
+**Debt (registry roster vs canon) — RESOLVED 2026-10-03, re-opened and RESOLVED again 2026-10-18:** the 10-03 dream ACCEPT (PR #13, merged as `c1e1498`) brought the roster to the seven sidestr crates canon then named; `webledgers-teller` was published later and went unprobed until `26df6c9` added it, with canon updated to eight in the same commit (`scripts/estate-health/roster.json:73-80`, estate register ER-3); the rewritten README no longer states a crate count (`./README.md:31`). The repository map still describes sidestr-rs as "seven published AGPL crates" (`docs/architecture/repository-map.md:18`), one behind the roster's eight (**Drift**).
 
 **Drift (2026-10-15, dream-engine extraction):** the roster row for `dream-engine` (`provenance: imported`, a fork of ruvnet/dream-machine) is stamped before the extraction. The slug now names the new Rust repository and the fork is renamed dream-machine and archived (checked 2026-10-16). The row has not been changed, because the release manifest and its gate assert two imported rows, see DE-01.
 
-**Since the last stamp:** `check` now builds its output in a buffer and prints it directly before the sentinel line, so a Jev advisory block, never able to change the verdict or exit code, can add `JEV priority` and `JEV triage` lines for the failed observations (`scripts/estate-health.mjs:964`, `scripts/estate-health.mjs:1005`, `scripts/estate-health.mjs:1035`, `docs/jev-option.md:13-14`). The library default is off but agentbox projects `VISIONFLOW_JEV=all` into its shells, where these two items are public data and, since the 2026-10-30 System One unification, take the shared proxy's selected backend (TypeSafe by default) once the new agentbox image is activated, while hosted CI and the dream annexe do not inherit it (`docs/jev-option.md:3`, `docs/jev-option.md:13-14` and `docs/jev-option.md:16`). `collect` never calls it.
+**Since the earlier stamps:** `check` now builds its output in a buffer and prints it directly before the sentinel line, so a Jev advisory block, never able to change the verdict or exit code, can add `JEV priority` and `JEV triage` lines for the failed observations (`scripts/estate-health.mjs:964`, `scripts/estate-health.mjs:1005`, `scripts/estate-health.mjs:1035`, `docs/jev-option.md:13-14`). The library default is off but agentbox projects `VISIONFLOW_JEV=all` into its shells, where these two items are public data and, since the 2026-10-30 System One unification, take the shared proxy's selected backend (TypeSafe by default) once the new agentbox image is activated, while hosted CI and the dream annexe do not inherit it (`docs/jev-option.md:3`, `docs/jev-option.md:13-14` and `docs/jev-option.md:16`). `collect` never calls it.
 
 
 **Debt (snapshot shape and clock bounds, reproduced 2026-10-31):** A schema tag and current timestamp without any repository/surface arrays returns `ESTATE-HEALTH-OK`; a 2099 timestamp also returns OK. A non-array `repos` object throws instead of returning a classified verdict. These follow from the optional empty-array scans and one-sided age test at `scripts/estate-health.mjs:967`, `scripts/estate-health.mjs:984` and `scripts/estate-health.mjs:1012`. The source is unchanged from this topic's declared revision. See the [estate-health adversarial review](../../estate-review/2026-10-31-diagram-drift-and-health.md). The literal verdict is not proof that the full roster was measured.

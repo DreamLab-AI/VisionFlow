@@ -1,0 +1,1508 @@
+OpenAI Codex v0.165.0
+--------
+workdir: /home/devuser/workspace/VisionFlow
+model: gpt-6-astra
+provider: openai
+approval: never
+sandbox: read-only
+reasoning effort: medium
+reasoning summaries: none
+session id: 01a19bed-7296-7e11-b470-f1e9791985f5
+--------
+user
+You are an independent cross-vendor auditor of an estate code audit. Below are 12 diagram panels from a documentation corpus, each followed by the exact source lines it cites, read with git show at the revision the topic declares. Other reviewers have already marked each panel accurate or corrected it. For EACH panel, judge only from the source lines shown: does every mechanism claim in the panel that carries a citation match the cited lines? Answer per panel with one of: HOLDS, WRONG (say which claim and which line contradicts it), or CANNOT-JUDGE (the cited lines are not enough). Do not use tools. Do not judge uncited prose. Finish with a one-line count: N HOLDS, N WRONG, N CANNOT-JUDGE.
+
+======================================================================
+PANEL ES-02.2  (docs/diagrams/estate/02-agent-events-agentbox-to-visionclaw.md)
+## ES-02.2 Cross-container forward — agentbox WS subscriber to VisionClaw ingest, auth + envelope validation
+```mermaid
+sequenceDiagram
+    autonumber
+    participant PUB as agentEventPublisher<br/>agentbox/management-api/utils/agent-event-publisher.js:347
+    participant SUB as AgentEventWsSubscriber<br/>agentbox/management-api/utils/agent-event-ws-subscriber.js:30
+    participant VCW as agent_events_ws<br/>src/agent_events/ingest.rs:296-297
+    participant NS as NostrService.get_session<br/>src/agent_events/ingest.rs:274
+    participant PF as process_frame<br/>src/agent_events/ingest.rs:100
+    participant PROV as provenance::record<br/>src/agent_events/provenance.rs:96
+    participant HUB as AGENT_EVENT_HUB<br/>src/agent_events/hub.rs:24
+
+    rect rgb(245,230,230)
+    Note over SUB,VCW: TRUST BOUNDARY: agentbox container -> VisionClaw container, subprotocol vc-agent-events.v1
+    PUB->>SUB: subscribe callback, direction != 'inbound'<br/>agent-event-ws-subscriber.js:46-49
+    SUB->>SUB: new WebSocket(url,[SUBPROTOCOL])<br/>agent-event-ws-subscriber.js:94
+    SUB->>VCW: GET /wss/agent-events upgrade, Authorization: Bearer <token> or ?token=
+    VCW->>NS: authenticate(req, app_state)<br/>src/agent_events/ingest.rs:257,302
+    alt token present, session valid
+        NS-->>VCW: Some(user.pubkey)
+    else token invalid/expired, ALLOW_INSECURE_DEFAULTS set (debug/dev-auth only)
+        NS-->>VCW: None (warn, dev bypass)
+    else token invalid/expired, insecure defaults off
+        VCW-->>SUB: 401 Unauthorized "Invalid or expired authentication token"
+    else no token, insecure defaults off
+        VCW-->>SUB: 401 Unauthorized "Authentication required for the agent-events socket"
+    end
+    VCW->>VCW: WsResponseBuilder.protocols(&[SUBPROTOCOL]).start()<br/>src/agent_events/ingest.rs:311,316
+    VCW-->>SUB: 101 Switching Protocols
+    loop reconnect backoff on close/error
+        SUB->>SUB: delay = min(30000, 1000*2^attempt)<br/>agent-event-ws-subscriber.js:27-28,133-136
+    end
+    PUB->>SUB: _forwardOutbound(event) -> ws.send(JSON.stringify(event))<br/>agent-event-ws-subscriber.js:144-151
+    SUB->>VCW: Text frame: the BARE publisher event, not the createMcpNotification envelope<br/>agent-event-ws-subscriber.js:147 versus agent-event-publisher.js:305
+    VCW->>PF: process_frame(&text)
+    alt jsonrpc=="2.0" && method matches && kind=="agent_action" && event.version>=3
+        PF->>PROV: record(&event)
+        PROV-->>PF: IngestProvenance{status,source_crossing,target_crossing}
+        PF->>HUB: hub::publish(event)<br/>src/agent_events/hub.rs:32
+        HUB-->>PF: receivers: usize (0 until AgentBeamActor subscribes)
+        PF-->>VCW: IngestOutcome::Published{action,attributed,provenance_status,crossings_recorded,ctc_present,receivers}
+        opt ctc_present
+            VCW->>VCW: fire_ctc_canary CANARY-VC-REC3-CTC (one-shot, AtomicBool)<br/>src/agent_events/ingest.rs:173-190
+        end
+    else valid JSON-RPC, wrong method or version<3
+        PF-->>VCW: IngestOutcome::NonCanonical
+        VCW-->>SUB: ctx.text {"error":"non_canonical_envelope"}
+    else not parseable JSON
+        PF-->>VCW: IngestOutcome::Malformed
+        VCW-->>SUB: ctx.text {"error":"malformed_json"}
+    end
+    Note over HUB: INVARIANT: HUB_CAPACITY=256 tokio broadcast channel, a lagged receiver observes<br/>RecvError::Lagged(skipped) and resyncs on next frame drop-oldest no crash
+    Note over VCW: RESOLVED ADR-2084: src/agent_events/mod.rs and ingest.rs now state that the beam render<br/>actor is SHIPPED and subscribes to this hub, and that the attractive gluon transient edge is a<br/>separate deferred sub-feature. DOC-DRIFT: mod.rs:13 and ingest.rs:11, :24 still send the reader to<br/>agent_beam_actor.rs:327 for the packed-CSR reason, but the gluon_deferral_note block was deleted by 4a3452c91.<br/>At this stamp :327 is the BeamCoalescer construction inside the forwarding task, and the comment at<br/>agent_beam_actor.rs:402 still names the deleted note. hub.rs:4-7 still calls the render actor future and latent
+    end
+```
+
+**Drift:** the cross-container forward carries the wrong shape. `_forwardOutbound` sends `JSON.stringify(event)`, the publisher's bare event object (`agentbox/management-api/utils/agent-event-ws-subscriber.js:144-151`), while the canonical `jsonrpc`/`method`/`params` envelope is built only by `createMcpNotification` (`agentbox/management-api/utils/agent-event-publisher.js:305-343`), which the subscriber never calls. `AgentActionNotification` requires `jsonrpc`, `method` and `params` with no serde default (`src/agent_events/schema.rs:26-29`), so the bare event fails to deserialise and `process_frame` returns `Malformed` (`src/agent_events/ingest.rs:101,149`); the socket answers `malformed_json` (`src/agent_events/ingest.rs:229-231`). Read at source, no forwarded frame from this path reaches the hub. Closing it means sending `createMcpNotification(event)` from the subscriber, with a cross-repo contract test on the bytes. Source tracing only.
+
+**Drift:** the forwarder presents no credential. The subscriber opens `new WebSocket(this.url, [SUBPROTOCOL])` with no headers (`agentbox/management-api/utils/agent-event-ws-subscriber.js:94`), and the URL that `server.js` derives from `visionclaw_api_url` appends `/wss/agent-events` with no token (`agentbox/management-api/server.js:383`). Only an operator-set `AGENTBOX_HOST_WS_URL` carrying `?token=` could authenticate. Otherwise a release VisionClaw refuses the upgrade with 401 (`src/agent_events/ingest.rs:291-292`).
+
+**Tension:** this ingest socket still reads `?token=` in every build (`src/agent_events/ingest.rs:267-271`), while ADR-2090's amendment compiles the query carrier out of release on `/ws/mcp-relay` and `/multi-mcp/ws` (`src/handlers/mcp_relay_handler.rs:482,496`). The agent-events socket is the one server-to-server door that keeps the bearer in the URL.
+--- cited source lines at the declared revision
+======================================================================
+PANEL ES-06.3  (docs/diagrams/estate/06-loom-and-email-privacy-path.md)
+## ES-06.3 Break-glass tier — raw tools behind a second, capability gate
+```mermaid
+sequenceDiagram
+    autonumber
+    participant A as agent
+    participant G as email-mcp-gateway:8765
+    participant AL as PRIVILEGED_NOSTR_PUBKEYS allow-list
+    participant S as message store
+
+    A->>G: fetch_email_raw{query, nostr_pubkey} or fetch_email_by_ref{ref_id, nostr_pubkey}
+    rect rgb(240,230,230)
+    Note over A,G: TIER 1 — transport bearer gates any call
+    alt bearer invalid
+        G-->>A: 401
+    else bearer valid
+        Note over G,AL: TIER 2 — capability. The nostr_pubkey ARGUMENT is<br/>checked against the server allow-list. Every attempt is<br/>logged with an 8-char fingerprint.
+        G->>AL: lookup pubkey
+        alt pubkey on the allow-list
+            AL-->>G: authorised
+            G->>S: fetch raw
+            S-->>G: real headers, sender, subject, date, full text
+            G-->>A: RAW — egress filter BYPASSED
+        else absent, empty, or npub instead of hex
+            AL-->>G: not authorised
+            G-->>A: {"authorized": false} and NO data
+        end
+    end
+    end
+    Note over A,AL: INVARIANT — a Nostr PUBLIC key is the publishable half,<br/>an identity/capability token, not a secret. Passing it as a<br/>tool argument is the design, not a leak. What never leaves<br/>the box is the bearer token and the Nostr PRIVATE key.
+    Note over G: Read the operator pubkey from AGENTBOX_X_ONLY_PUBKEY_HEX<br/>at call time. Never hardcode the hex into skill source.
+```
+--- cited source lines at the declared revision
+======================================================================
+PANEL ES-09.5  (docs/diagrams/estate/09-build-deploy-and-ci-estate.md)
+## ES-09.5 CUDA_ARCH ARG-to-ENV promotion, and the ADR-2037 hygiene-stub divergence
+```mermaid
+sequenceDiagram
+    autonumber
+    participant U as Dockerfile-unified-base<br/>Dockerfile.unified:27
+    participant C1 as rust-deps-child-stage<br/>Dockerfile.unified:145
+    participant P as Dockerfile-production-toolchain<br/>Dockerfile.production:13
+    participant C2 as cuda-ptx-child-stage<br/>Dockerfile.production:107
+
+    U->>U: ARG CUDA_ARCH=75 (:30, scoped to this stage only)
+    U->>U: ENV CUDA_ARCH=CUDA_ARCH (:44, promotes ARG into ENV)
+    U->>C1: FROM base AS rust-deps
+    Note over C1: INVARIANT: ENV values set in a parent stage ARE<br/>inherited by a child FROM stage, ARG values are NOT
+    C1->>C1: nvcc build.rs reads env CUDA_ARCH (inherited, correct)
+
+    P->>P: ARG CUDA_ARCH=86 (:15, scoped to toolchain stage only)
+    P->>P: ENV CUDA_ARCH=CUDA_ARCH (:21, promotes ARG into ENV)
+    P->>C2: FROM toolchain AS cuda-ptx
+    Note over C2: re-declares ARG CUDA_ARCH=86 (:109) redundantly,<br/>ENV already inherited from toolchain — both agree
+    C2->>C2: nvcc -ptx -arch sm_CUDA_ARCH (:120)
+
+    Note over U,P: DIVERGENCE (ADR-2008 vs ADR-2037): the dev build is now a<br/>NAMED PROFILE rather than release — cargo build --profile<br/>dev-runtime with BUILD_FEATURES defaulting to gpu,ontology,dev-auth<br/>(scripts/rust-backend-wrapper.sh:42,66). The binary still carries<br/>enforce_release_env_hygiene as a no-op stub (src/main.rs:169), so<br/>the ADR-2037 boundary is the CI gate and the profile name, not the<br/>compiler flag
+    Note over U,P: ADR-2037 is proposed, implementation_status partial, activation staged<br/>(ADR-2037-production-build-excludes-dev-auth.md:5-7). Its CI half is ADR-2086,<br/>accepted, complete and live (ADR-2086-ci-gate-dev-auth-excluded-from-release.md:5-7):<br/>a hermetic text gate over the committed Dockerfiles, see ES-09.11. No gate<br/>inspects a BUILT image, so a mis-targeted pipeline that bypasses those files<br/>could still promote the stubbed-hygiene binary
+```
+
+**Open (no gate inspects a built image):** ADR-2037 remains proposed and partial (`../project/docs/adr/ADR-2037-production-build-excludes-dev-auth.md:5-7`). Its CI half, ADR-2086, is live (`../project/docs/adr/ADR-2086-ci-gate-dev-auth-excluded-from-release.md:5-7`), but that gate is a text assertion over the committed Dockerfiles (`../project/.github/workflows/ci.yml:163-168`). A production binary built outside those files, still carrying the hygiene stub (`../project/src/main.rs:169`), would not be caught.
+--- cited source lines at the declared revision
+======================================================================
+PANEL ES-12.2  (docs/diagrams/estate/12-loom-evaluation-and-preregistration.md)
+## ES-12.2 The preregistration — its question, and the arm it must beat
+```mermaid
+flowchart TB
+    Q["PROPOSED primary question — at matched information access and<br/>context budget, does the Loom improve evidence-supported task<br/>success by a practically meaningful amount over the STRONGEST<br/>flat-text retrieval baseline selected on development data<br/>../loom/docs/design/PRD-028-does-loom-earn-its-complexity.md:29"]
+
+    subgraph ARMS["Five arms, PRD-028-does-loom-earn-its-complexity.md:149-155"]
+        AA["A closed book — measures unaided performance, explicitly NOT<br/>architectural advantage, :151"]
+        AB["B tuned lexical BM25 — the required simple baseline, :152"]
+        AC["C hybrid retrieval with a local reranker — the required<br/>STRONG baseline, :153"]
+        AD["D Loom — frozen production retrieval, gating and scaffold, :154"]
+        AE["E oracle evidence — a diagnostic reference, not a deployable<br/>competitor, :155"]
+    end
+    Q --> ARMS
+
+    BSTAR["B-star is the better deployable flat baseline of B and C, chosen<br/>on DEVELOPMENT data with tie-breaking declared by cost, then<br/>FROZEN. The primary contrast is D minus B-star on the sealed test.<br/>PRD-028-does-loom-earn-its-complexity.md:157"]
+    AB --> BSTAR
+    AC --> BSTAR
+    AD --> BSTAR
+
+    PARITY["INVARIANT — information parity. Asserted and materialised inferred<br/>facts are made available to the flat baseline as readable,<br/>provenance-linked records, with NO information exclusive to the<br/>Loom, and both systems retrieve within the same budget.<br/>PRD-028-does-loom-earn-its-complexity.md:100"]
+    BSTAR --> PARITY
+
+    LOCK["INVARIANT — source and canonical collections are frozen BEFORE<br/>final question authoring, representations are generated without<br/>the questions or gold answers, and there is no test-driven<br/>ontology repair after lock.<br/>PRD-028-does-loom-earn-its-complexity.md:96"]
+    PARITY --> LOCK
+
+    STATUS["PROPOSED — status is proposed requirements and preregistration<br/>specification, no new experiments have been run, and the numerical<br/>thresholds are product decisions rather than constants.<br/>PRD-028-does-loom-earn-its-complexity.md:19"]
+    Q --> STATUS
+```
+--- cited source lines at the declared revision
+../loom/docs/design/PRD-028-does-loom-earn-its-complexity.md @ ba21a689a57d lines 28-30:
+     28  
+     29  **Proposed primary question:** At matched information access and context budget, does Loom improve evidence-supported task success by a practically meaningful amount over the strongest flat-text retri
+     30  
+../loom/docs/design/PRD-028-does-loom-earn-its-complexity.md @ ba21a689a57d lines 148-156:
+    148  
+    149  | Arm | Behaviour | Role |
+    150  |---|---|---|
+    151  | A: closed book | Question and common instructions; no corpus | Measures unaided performance, not architectural advantage |
+    152  | B: BM25 | Tuned lexical retrieval over canonical facts and prose | Required simple baseline |
+    153  | C: hybrid RAG | Tuned lexical+dense retrieval, locally hosted reranker, coherent chunk packing | Required strong baseline |
+    154  | D: Loom | Frozen production retrieval, gating and ontology scaffold | Candidate system |
+    155  | E: oracle evidence | Human-verified sufficient evidence, same generator and budget | Diagnostic evidence-selection reference; not a deployable competitor |
+    156  
+../loom/docs/design/PRD-028-does-loom-earn-its-complexity.md @ ba21a689a57d lines 156-158:
+    156  
+    157  Choose **B-star**, the better deployable flat-text baseline among B and C, using development success and declared tie-breaking by cost. Freeze the selection. The primary contrast is D minus B-star on 
+    158  
+../loom/docs/design/PRD-028-does-loom-earn-its-complexity.md @ ba21a689a57d lines 99-101:
+     99  
+    100  - **Representation/serving comparison — primary:** Loom versus flat-text retrieval over the same canonical knowledge. Make asserted and materialised inferred facts available to the flat baseline as re
+    101  - **Whole-product comparison — secondary:** Loom's curated pipeline versus retrieval over original source documents. Attribute any difference to the combined curation and serving package, and count it
+../loom/docs/design/PRD-028-does-loom-earn-its-complexity.md @ ba21a689a57d lines 95-97:
+     95  
+     96  Freeze source and canonical collections before final question authoring. Generate representations without test questions, gold answers or gold entity IDs. No test-driven ontology repair after lock.
+     97  
+../loom/docs/design/PRD-028-does-loom-earn-its-complexity.md @ ba21a689a57d lines 18-20:
+     18  
+     19  Status: proposed requirements and preregistration specification. No new experiments have been run. Numerical thresholds below are proposed product decisions, not established scientific constants. The 
+     20  
+======================================================================
+PANEL NF-03.4  (docs/diagrams/nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md)
+## NF-03.4 EVENT admission pipeline — every gate, in order
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Authenticated socket
+    participant H as handle_event<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1049
+    participant Z as zone_config<br/>nostr-bbs-relay-worker/src/zone_config.rs:208
+    participant D1 as relay D1
+    participant B as broadcast_event
+
+    C->>H: ["EVENT", event]
+    H->>H: 1 per-IP rate limit nip_handlers.rs:1057
+    H->>H: 2 structural validation nip_handlers.rs:1063
+    H->>H: 3 NIP-40 expiration tag in the past, or malformed nip_handlers.rs:1070
+    H->>H: 4 verify_event_strict BEFORE any side effect nip_handlers.rs:1077
+    H->>H: 5 NIP-42 write gate write_auth_ok nip_handlers.rs:1102
+    H->>D1: 6 resolve the effective principal ONCE, never for a gift wrap (ADR-099 device key to owner) nip_handlers.rs:1121
+    alt kind 1059 gift wrap
+        H->>D1: 7a recipient from first p tag: a configured ingress recipient (ADR-2022) needs no row, any other must be whitelisted nip_handlers.rs:1139 nip_handlers.rs:1142
+    else every other kind
+        H->>D1: 7b is_whitelisted on the principal nip_handlers.rs:1161
+    end
+    H->>H: 8 mesh peer? federated_kinds allowlist nip_handlers.rs:1176
+    H->>D1: 9 suspension and silence, checked for the device key AND its owner nip_handlers.rs:1189
+    H->>D1: 10 ban/mute ingress gate, admins bypass nip_handlers.rs:1213 nip_handlers.rs:1217
+    H->>D1: 11 trust-level gates for 40, 41, 1984 and 5 nip_handlers.rs:1228
+    H->>H: 12 NIP-29 admin kinds need an h tag and an admin nip_handlers.rs:1299
+    H->>D1: 13 governance kinds need agent_registry, except a 31403 (gated at step 14) and a kanban approval request nip_handlers.rs:1324 nip_handlers.rs:1325 nip_handlers.rs:1326
+    H->>D1: 14 kind-31403 is admin, or a reviewer delegated to THIS case, then the FR2.2 rationale check nip_handlers.rs:1344 nip_handlers.rs:1354 nip_handlers.rs:1372
+    H->>D1: 15 a superseding 31403 is authority-gated nip_handlers.rs:1390 nip_handlers.rs:1396
+    H->>H: 16 an appeal-marked 31402 must name its case in a case tag distinct from d nip_handlers.rs:1407
+    H->>Z: 17a ADR-2017 kind-42 sealed tag: admin-only AND an encrypted zone, else rejected nip_handlers.rs:1440 nip_handlers.rs:1445
+    H->>D1: 17b kind-42 zone write gate nip_handlers.rs:1451 nip_handlers.rs:1452
+    H->>Z: 17c ADR-2016 encrypted zone requires NIP-44 v2 shaped ciphertext nip_handlers.rs:1458 nip_handlers.rs:1464
+    H->>D1: 18 NIP-52 RSVP and calendar/kanban write gates nip_handlers.rs:1490 nip_handlers.rs:1515
+    H->>H: 19 NIP-16 treatment - Ephemeral is OK-then-broadcast, never saved nip_handlers.rs:1540
+    H->>D1: 20 push_event_known, then save_event nip_handlers.rs:1549 nip_handlers.rs:1552
+    H->>B: 21 broadcast + post-save effects, incl. ADR-2018 activity coalescing nip_handlers.rs:1554 nip_handlers.rs:1564
+
+    Note over H: INVARIANT: the signature is verified BEFORE any side effect - admission state changes and activity tracking alike nip_handlers.rs:1075-1077
+    Note over H: In nip42 mode gift wraps are NOT exempt from the write gate - the wrap is signed by an ephemeral key but is published over the sender's authenticated socket nip_handlers.rs:1087-1094
+    Note over H: INVARIANT FR2.2 is enforced at the RELAY, not only in the UI - a 31403 is a signed event any client or script can publish straight here, so a rule that lives only in the forum UI is a suggestion nip_handlers.rs:1360-1366 governance.rs:758
+    Note over H: A refusal never fills the rationale in - absence is refused, not papered over governance.rs:761-763
+    Note over Z: INVARIANT ADR-2017: a sealed original is exempt from validate_event's timestamp-drift check on the tag alone, so this write gate is what actually enforces admin-only AND encrypted-zone-only for it nip_handlers.rs:1703-1711 nip_handlers.rs:1748-1760
+```
+--- cited source lines at the declared revision
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1048-1050:
+   1048  
+   1049      pub(crate) async fn handle_event(
+   1050          &self,
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/zone_config.rs @ c39f41f104b1 lines 207-209:
+    207  /// included), is refused.
+    208  pub fn is_zone_ciphertext(zone: &str, tags: &[Vec<String>], content: &str) -> bool {
+    209      use base64::Engine as _;
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1056-1058:
+   1056          // Rate limit
+   1057          if !self.check_rate_limit(ip) {
+   1058              Self::send_notice(ws, "rate limit exceeded");
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1062-1064:
+   1062          // Validate event structure
+   1063          if !Self::validate_event(&event) {
+   1064              Self::send_ok(ws, &event.id, false, "invalid: event validation failed");
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1069-1071:
+   1069          // retention sweep would otherwise delete an accepted event silently.
+   1070          if let Err(reason) = filter::expiration_admission(&event, auth::js_now_secs()) {
+   1071              Self::send_ok(ws, &event.id, false, reason);
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1076-1078:
+   1076          // including admission state changes or activity tracking.
+   1077          if nostr_bbs_core::verify_event_strict(&event).is_err() {
+   1078              Self::send_ok(
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1101-1103:
+   1101              .unwrap_or(false);
+   1102          if let Err(reason) = nip42::write_auth_ok(auth_mode, session_authed) {
+   1103              Self::send_ok(ws, &event.id, false, reason);
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1120-1122:
+   1120          // mirroring stay on the raw signing key.
+   1121          let principal = if needs_owner_lookup(event.kind) {
+   1122              self.effective_pubkey(&event.pubkey).await
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1138-1140:
+   1138              // other recipient still has to be whitelisted.
+   1139              let ingress = crate::ingress::ingress_from_env(&self.env);
+   1140              let recipient_ok = match gift_wrap_recipient(&event) {
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1141-1143:
+   1141                  Some(pk) if nostr_bbs_config::ingress::is_ingress_recipient(&ingress, &pk) => true,
+   1142                  Some(pk) => self.is_whitelisted(&pk).await,
+   1143                  None => false,
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1160-1162:
+   1160              // device's own key; we only rebind WHO the allowlist is checked for.
+   1161              if !self.is_whitelisted(&principal).await {
+   1162                  // NIP-42 semantics: a denial AFTER a completed AUTH is
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1175-1177:
+   1175          // pubkey is NOT in the remote DIDs list bypass this check entirely.
+   1176          if self.is_mesh_peer(&event.pubkey) && !self.is_federated_kind_allowed(event.kind) {
+   1177              Self::send_ok(
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1188-1190:
+   1188          for subject in &sanction_subjects {
+   1189              let (suspended, silenced) = trust::check_suspension(subject, &self.env).await;
+   1190              if suspended {
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1212-1214:
+   1212          // P2-03: use admin_cache to avoid redundant D1 queries on every event.
+   1213          if is_ban_gated_kind(event.kind)
+   1214              && !self.admin_cache.is_admin(&event.pubkey, &self.env).await
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1216-1218:
+   1216              for subject in &sanction_subjects {
+   1217                  if self.mod_cache.is_blocked(subject, &self.env).await {
+   1218                      Self::send_ok(ws, &event.id, false, "blocked: author is banned or muted");
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1227-1229:
+   1227          if !is_admin {
+   1228              let trust_level = trust::get_trust_level(&principal, &self.env).await;
+   1229  
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1298-1300:
+   1298          // NIP-29: Admin-only group management kinds
+   1299          if is_nip29_admin_kind(event.kind) {
+   1300              // NIP-29 TODO: This enforces the h-tag/admin gate, but full group
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1323-1325:
+   1323          // other 31402 remains agent-registry-gated.
+   1324          if governance::is_governance_kind(event.kind)
+   1325              && event.kind != governance::KIND_ACTION_RESPONSE
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1324-1326:
+   1324          if governance::is_governance_kind(event.kind)
+   1325              && event.kind != governance::KIND_ACTION_RESPONSE
+   1326              && !nostr_bbs_core::is_kanban_approval_request(&event)
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1325-1327:
+   1325              && event.kind != governance::KIND_ACTION_RESPONSE
+   1326              && !nostr_bbs_core::is_kanban_approval_request(&event)
+   1327              && !self.is_registered_agent(&event.pubkey).await
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1343-1345:
+   1343          // on the row. Everyone else is refused exactly as before.
+   1344          if event.kind == governance::KIND_ACTION_RESPONSE {
+   1345              let case_id = governance::extract_d_tag(&event.tags).unwrap_or_default();
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1353-1355:
+   1353              };
+   1354              let admission = response_admission(is_admin, is_reviewer, delegated);
+   1355              if !admission.is_admitted() {
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1371-1373:
+   1371                          if let Err(e) =
+   1372                              governance::check_rationale(effective, &action, reasoning.as_deref())
+   1373                          {
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1389-1391:
+   1389          if event.kind == governance::KIND_ACTION_RESPONSE {
+   1390              if let Some(superseded_event_id) = governance::extract_supersedes_target(&event.tags) {
+   1391                  let case_id = governance::extract_d_tag(&event.tags).unwrap_or("");
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1395-1397:
+   1395                  {
+   1396                      Self::send_ok(ws, &event.id, false, refusal.reason());
+   1397                      return;
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1406-1408:
+   1406              && governance::extract_appeal_target(&event.tags).is_some()
+   1407              && appeal_shape_refused(&event)
+   1408          {
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1439-1441:
+   1439              // envelope into an unscoped channel from an admin.
+   1440              let sealed = nostr_bbs_core::sealed::has_sealed_tag(&event.tags);
+   1441              if sealed {
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1444-1446:
+   1444                      .map(|z| ZoneConfig::load(&self.env).is_encrypted(z));
+   1445                  if let Some(reason) = sealed_write_rejection(sealed, is_admin, zone_encrypted) {
+   1446                      Self::send_ok(ws, &event.id, false, reason);
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1450-1452:
+   1450              if let Some(zone) = zone {
+   1451                  if !is_admin && !trust::has_zone_write_access(&principal, &zone, &self.env).await {
+   1452                      Self::send_ok(ws, &event.id, false, "zone access denied");
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1451-1453:
+   1451                  if !is_admin && !trust::has_zone_write_access(&principal, &zone, &self.env).await {
+   1452                      Self::send_ok(ws, &event.id, false, "zone access denied");
+   1453                      return;
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1457-1459:
+   1457                  if crate::zone_config::ZoneConfig::load(&self.env).is_encrypted(&zone)
+   1458                      && !crate::zone_config::is_zone_ciphertext(&zone, &event.tags, &event.content)
+   1459                  {
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1463-1465:
+   1463                          false,
+   1464                          "blocked: encrypted zone requires zone-key ciphertext",
+   1465                      );
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1489-1491:
+   1489          //     calendar events are unscoped and keep prior behaviour.
+   1490          if event.kind == KIND_CALENDAR_RSVP && !is_admin {
+   1491              let permitted = match self.resolve_rsvp_target(&event).await {
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1514-1516:
+   1514              }
+   1515          } else if (matches!(
+   1516              event.kind,
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1539-1541:
+   1539  
+   1540          if treatment == EventTreatment::Ephemeral {
+   1541              Self::send_ok(ws, &event.id, true, "");
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1548-1550:
+   1548          // anyone a second time.
+   1549          let push_repeat = self.push_event_known(&event).await;
+   1550  
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1551-1553:
+   1551          // Save to D1
+   1552          if self.save_event(&event, treatment).await {
+   1553              Self::send_ok(ws, &event.id, true, "");
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1553-1555:
+   1553              Self::send_ok(ws, &event.id, true, "");
+   1554              self.broadcast_event(&event).await;
+   1555              // Activity tracking: increment posts_created and update last_active
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1563-1565:
+   1563              // above stays exact because it is the promotion counter itself.
+   1564              self.note_write_activity(&principal).await;
+   1565  
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1074-1078:
+   1074  
+   1075          // Verify event ID and Schnorr signature before any side effects
+   1076          // including admission state changes or activity tracking.
+   1077          if nostr_bbs_core::verify_event_strict(&event).is_err() {
+   1078              Self::send_ok(
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1086-1095:
+   1086  
+   1087          // PRD-010 G4: NIP-42 AUTH is the universal write gate. Resolve the mode
+   1088          // and whether THIS session completed the AUTH handshake ONCE, then reuse
+   1089          // both below (the mode read crosses the JS env boundary). In `nip42`
+   1090          // mode an unauthenticated session may not publish ANY event — including
+   1091          // gift wraps, which are still published over the sender's authenticated
+   1092          // socket even though the wrap itself is signed by an ephemeral key. The
+   1093          // allowlist check further down then applies as AUTHORISATION on the
+   1094          // authenticated identity (see `allowlist_denial_reason`).
+   1095          let auth_mode = self.auth_mode();
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1359-1367:
+   1359  
+   1360              // FR2.2: a decision on a consequential case must carry the human's
+   1361              // own words. Enforced HERE, before `save_event`, because a 31403 is
+   1362              // a signed event any client or script can publish straight to the
+   1363              // relay — a rule that lives only in the forum UI is a suggestion,
+   1364              // and the point of FR2.2 is that a signed decision represents a
+   1365              // judgement a human actually formed. A refusal never fills the
+   1366              // rationale in; absence is refused, not papered over.
+   1367              if !case_id.is_empty() {
+../nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs @ c39f41f104b1 lines 757-759:
+    757  /// This exists as a **relay-side** rule and not only a UI one because a UI rule
+    758  /// is a suggestion: the 31403 is a signed event that any client — or any
+    759  /// script — can publish directly to the relay. FR2.2's purpose is that a
+../nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs @ c39f41f104b1 lines 760-764:
+    760  /// signed decision represents a judgement a human actually formed, and a rule
+    761  /// enforced only in the surface that happens to be convenient does not deliver
+    762  /// that. Nothing here ever *fills in* a rationale: absence is refused, never
+    763  /// papered over (PRD non-functional rule 1).
+    764  pub fn check_rationale(
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1702-1712:
+   1702  
+   1703  /// Whether `event` is exempt from the [`MAX_TIMESTAMP_DRIFT`] check because it
+   1704  /// is a sealed-original envelope (ADR-2017).
+   1705  ///
+   1706  /// An envelope keeps its original's `created_at` so relay pagination and
+   1707  /// ordering and clients' unread logic stay correct; migrated history is
+   1708  /// usually far older than seven days. `validate_event` runs before admin
+   1709  /// status is known, so the exemption is keyed on the tag alone and is safe
+   1710  /// only because [`sealed_write_rejection`] then refuses the event unless the
+   1711  /// author is an admin writing into an encrypted zone.
+   1712  ///
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1747-1761:
+   1747  /// well-formed `zk` tag and NIP-44 v2-shaped content.
+   1748  pub(crate) fn sealed_write_rejection(
+   1749      sealed: bool,
+   1750      is_admin: bool,
+   1751      zone_encrypted: Option<bool>,
+   1752  ) -> Option<&'static str> {
+   1753      if !sealed {
+   1754          return None;
+   1755      }
+   1756      if !is_admin {
+   1757          return Some(SEALED_ADMIN_ONLY);
+   1758      }
+   1759      if zone_encrypted != Some(true) {
+   1760          return Some(SEALED_ENCRYPTED_ZONES_ONLY);
+   1761      }
+======================================================================
+PANEL NF-06.4  (docs/diagrams/nostr-rust-forum/06-agent-control-surface-31400-31405.md)
+## NF-06.4 The two gates a governance event must pass at ingress
+
+```mermaid
+flowchart TB
+    EV["governance-kind event at the relay"]
+    G1{"is_governance_kind AND kind != 31403<br/>AND not a kanban approval request<br/>AND not a registered agent<br/>nip_handlers.rs:1324-1327"}
+    G2{"response_admission: admin admits any case; a reviewer<br/>admits only a case delegated to them; else blocked (FR6.2)<br/>nip_handlers.rs:1354 via response_admission nip_handlers.rs:275"}
+    G3{"a 31403 carrying a supersedes e-tag<br/>supersession_authorised<br/>nip_handlers.rs:1393"}
+    OK["saved and projected"]
+
+    EV --> G1
+    G1 -->|"unregistered"| B1["blocked: pubkey not in agent registry nip_handlers.rs:1333"]
+    G1 -->|"pass"| G2
+    G2 -->|"not admitted"| B2["blocked: admin-only governance action response, or<br/>case not delegated to this reviewer nip_handlers.rs:1356"]
+    G2 -->|"admitted"| G3
+    G3 -->|"unauthorised"| B3["blocked: unauthorised supersession nip_handlers.rs:1396"]
+    G3 -->|"pass"| OK
+
+    N1["Kanban exception: a 31402 tagged k=30302 is a MEMBER-initiated ask - may this card enter the<br/>approval-gated column - so it is admitted from any whitelisted author. Decisions stay admin/reviewer-only;<br/>every other 31402 remains registry-gated nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1319-1322"]
+    N2["F6 supersession authority: only the ORIGINAL decision's signer, or a human of a strictly higher<br/>governance role, may supersede a published decision - rejected BEFORE the event is saved or<br/>projected nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1389-1396"]
+    N3["The whitelist gate ran earlier in the pipeline, so registry membership is an ADDITIONAL<br/>requirement on top of forum membership - see NF-03.4 step 7b"]
+```
+--- cited source lines at the declared revision
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1323-1328:
+   1323          // other 31402 remains agent-registry-gated.
+   1324          if governance::is_governance_kind(event.kind)
+   1325              && event.kind != governance::KIND_ACTION_RESPONSE
+   1326              && !nostr_bbs_core::is_kanban_approval_request(&event)
+   1327              && !self.is_registered_agent(&event.pubkey).await
+   1328          {
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1353-1355:
+   1353              };
+   1354              let admission = response_admission(is_admin, is_reviewer, delegated);
+   1355              if !admission.is_admitted() {
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 274-276:
+    274  /// the three booleans from `broker_roles`, its admin list, and `case_delegations`.
+    275  pub fn response_admission(
+    276      is_admin: bool,
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1392-1394:
+   1392                  if let Err(refusal) = self
+   1393                      .supersession_authorised(&event.pubkey, &event.id, case_id, superseded_event_id)
+   1394                      .await
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1332-1334:
+   1332                  false,
+   1333                  "blocked: pubkey not in agent registry",
+   1334              );
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1355-1357:
+   1355              if !admission.is_admitted() {
+   1356                  Self::send_ok(ws, &event.id, false, admission.reason());
+   1357                  return;
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1395-1397:
+   1395                  {
+   1396                      Self::send_ok(ws, &event.id, false, refusal.reason());
+   1397                      return;
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1318-1323:
+   1318          //
+   1319          // Kanban exception: a kanban approval request (31402 tagged `k=30302`)
+   1320          // is a MEMBER-initiated ask — "may this card enter the approval-gated
+   1321          // column?" — so it is admitted from any whitelisted author (whitelist
+   1322          // admission already ran above). Decisions stay admin-only 31403; every
+   1323          // other 31402 remains agent-registry-gated.
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1388-1397:
+   1388          // saved or projected.
+   1389          if event.kind == governance::KIND_ACTION_RESPONSE {
+   1390              if let Some(superseded_event_id) = governance::extract_supersedes_target(&event.tags) {
+   1391                  let case_id = governance::extract_d_tag(&event.tags).unwrap_or("");
+   1392                  if let Err(refusal) = self
+   1393                      .supersession_authorised(&event.pubkey, &event.id, case_id, superseded_event_id)
+   1394                      .await
+   1395                  {
+   1396                      Self::send_ok(ws, &event.id, false, refusal.reason());
+   1397                      return;
+======================================================================
+PANEL NF-09.3  (docs/diagrams/nostr-rust-forum/09-ci-deploy-canary-and-validation.md)
+## NF-09.3 Repository scripts
+
+```mermaid
+flowchart TB
+    ADR["adr-index-gen.js:5 - walk the ADR tree, validate frontmatter, regenerate README index"]
+    DRIFT["anti-drift-lint.sh:2 - ADR-077 P3: reject SUPERSEDED Schnorr verification-key identifiers<br/>after the ADR-125 did:nostr Multikey convergence anti-drift-lint.sh:5"]
+    PARITY["identity-vector-parity.mjs:3 - the JavaScript half of the ADR-2003 parity proof,<br/>loading the SAME versioned fixture as the Rust suite identity-vector-parity.mjs:6"]
+    PKG["package-repo.sh:2 - package code + metadata into one review blob, ~800K tokens package-repo.sh:4"]
+    SEC["security-audit.sh:6 - cargo audit with the curated ignore list"]
+    SYNC["sync-fixtures.sh:4 - ADR-082 D5: clone VisionClaw, copy tests/fixtures, write a CHECKSUM"]
+    VAL["validate-forum-config.sh:7 - run the kit's own nostr-bbs-config validator binary"]
+
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/tests/identity_subkey_vectors.rs:153
+    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:105
+    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:199
+    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:203
+    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:204
+    N1["Shared vectors test raw HMAC compatibility.<br/>JS mirrors the primitive.<br/>Missing sources pass; recorded hashes and<br/>substring checks do not execute consumers.<br/>See NF-21 for tested limits."]
+    N2["Both anti-drift-lint.sh and identity-vector-parity.mjs are now wired into CI by the drift-gates job<br/>.github/workflows/ci.yml:293 .github/workflows/ci.yml:296, but outside the required ci-pass set .github/workflows/ci.yml:306-314.<br/>validate-forum-config.sh runs inside the required test job .github/workflows/ci.yml:121"]
+    N3["Fixtures come FROM VisionClaw, so a fixture-suite change there is an unversioned input here -<br/>EXTERNAL: see the VisionClaw area (VC-*)"]
+```
+--- cited source lines at the declared revision
+../nostr-rust-forum/scripts/adr-index-gen.js @ c39f41f104b1 lines 4-6:
+      4  /*
+      5   * adr-index-gen.js — walk an ADR docs tree, parse YAML frontmatter, validate,
+      6   * and (re)generate a README.md index table from the frontmatter.
+../nostr-rust-forum/scripts/anti-drift-lint.sh @ c39f41f104b1 lines 1-3:
+      1  #!/usr/bin/env bash
+      2  # scripts/anti-drift-lint.sh — ADR-077 P3 anti-drift lint (forum substrate)
+      3  #
+../nostr-rust-forum/scripts/anti-drift-lint.sh @ c39f41f104b1 lines 4-6:
+      4  # Forum-substrate scope (post ADR-125 did:nostr Multikey convergence):
+      5  #   1. Reject the SUPERSEDED Schnorr verification-key suite identifiers in
+      6  #      emitted source. The canonical verification-method type per ADR-125
+../nostr-rust-forum/scripts/identity-vector-parity.mjs @ c39f41f104b1 lines 2-4:
+      2  /**
+      3   * ADR-2003 acceptance — JavaScript half of the shared identity-vector parity proof.
+      4   *
+../nostr-rust-forum/scripts/identity-vector-parity.mjs @ c39f41f104b1 lines 5-7:
+      5   * This runner loads the SAME versioned fixture as the Rust suite
+      6   * (`crates/nostr-bbs-core/tests/vectors/identity-subkey-vectors.v1.json`,
+      7   * also exercised by `crates/nostr-bbs-core/tests/identity_subkey_vectors.rs`)
+../nostr-rust-forum/scripts/package-repo.sh @ c39f41f104b1 lines 1-3:
+      1  #!/usr/bin/env bash
+      2  # Package a repo's high-value code + metadata into a single review blob.
+      3  # Usage: package-repo.sh <repo_path> <output_file> [max_chars]
+../nostr-rust-forum/scripts/package-repo.sh @ c39f41f104b1 lines 3-5:
+      3  # Usage: package-repo.sh <repo_path> <output_file> [max_chars]
+      4  # Targets ~800K tokens ≈ ~3.2M chars (4 chars/token average for code)
+      5  
+../nostr-rust-forum/scripts/security-audit.sh @ c39f41f104b1 lines 5-7:
+      5  # this list aligned with deny.toml; cargo-audit has no shared config format.
+      6  cargo audit --deny warnings \
+      7    --ignore RUSTSEC-2025-0141 \
+../nostr-rust-forum/scripts/sync-fixtures.sh @ c39f41f104b1 lines 3-5:
+      3  #
+      4  # Per ADR-082 D5: the forum substrate consumes cross-substrate fixtures from
+      5  # VisionClaw (the master host). This script clones VisionClaw, copies
+../nostr-rust-forum/scripts/validate-forum-config.sh @ c39f41f104b1 lines 6-8:
+      6  
+      7  cargo run --quiet --manifest-path "$REPO_ROOT/Cargo.toml" \
+      8    -p nostr-bbs-config --bin validate-forum-config -- "$CONFIG_PATH"
+../nostr-rust-forum/crates/nostr-bbs-core/tests/identity_subkey_vectors.rs @ c39f41f104b1 lines 152-154:
+    152  #[test]
+    153  fn every_fixture_vector_matches_derive_subkey() {
+    154      let fixture = load_fixture();
+../nostr-rust-forum/scripts/identity-vector-parity.mjs @ c39f41f104b1 lines 104-106:
+    104   */
+    105  function deriveSubkey(rootBytes, tag) {
+    106    return crypto.createHmac('sha256', rootBytes).update(tag, 'utf8').digest();
+../nostr-rust-forum/scripts/identity-vector-parity.mjs @ c39f41f104b1 lines 198-200:
+    198    } catch {
+    199      agentboxSources.push({ file: src.file, path: abs, status: 'absent', sha256: null, symbol: src.symbol });
+    200      check(`agentbox.${src.file}.present`, true, 'checkout absent — pinning skipped, parity vectors still run');
+../nostr-rust-forum/scripts/identity-vector-parity.mjs @ c39f41f104b1 lines 202-204:
+    202    }
+    203    const sha256 = crypto.createHash('sha256').update(text, 'utf8').digest('hex');
+    204    const matches = text.includes(src.expression);
+../nostr-rust-forum/scripts/identity-vector-parity.mjs @ c39f41f104b1 lines 203-205:
+    203    const sha256 = crypto.createHash('sha256').update(text, 'utf8').digest('hex');
+    204    const matches = text.includes(src.expression);
+    205    agentboxSources.push({
+../nostr-rust-forum/.github/workflows/ci.yml @ c39f41f104b1 lines 292-294:
+    292            AGENTBOX_ROOT: ${{ github.workspace }}/_agentbox
+    293          run: node scripts/identity-vector-parity.mjs
+    294  
+../nostr-rust-forum/.github/workflows/ci.yml @ c39f41f104b1 lines 295-297:
+    295        - name: Anti-drift lint
+    296          run: bash scripts/anti-drift-lint.sh
+    297  
+../nostr-rust-forum/.github/workflows/ci.yml @ c39f41f104b1 lines 305-315:
+    305      if: always()
+    306      needs:
+    307        - fmt
+    308        - clippy
+    309        - test
+    310        - test-security
+    311        - wasm
+    312        - doc
+    313        - coverage
+    314        - deny
+    315      steps:
+../nostr-rust-forum/.github/workflows/ci.yml @ c39f41f104b1 lines 120-122:
+    120          run: |
+    121            bash scripts/validate-forum-config.sh forum.example.toml
+    122            if [[ -f forum.toml ]]; then
+======================================================================
+PANEL NF-12.2  (docs/diagrams/nostr-rust-forum/12-core-wire-crypto-and-federation-envelope.md)
+## NF-12.2 Event identity and the signing path
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant A as Author
+    participant U as UnsignedEvent<br/>nostr-bbs-core/src/event.rs:62
+    participant ID as compute_event_id<br/>nostr-bbs-core/src/event.rs:78
+    participant S as sign_event<br/>nostr-bbs-core/src/event.rs:122
+    participant R as Relay
+    participant V as verify_event_strict<br/>nostr-bbs-core/src/event.rs:205
+
+    A->>U: kind, tags, content, created_at
+    U->>ID: canonical serialisation
+    ID->>ID: SHA-256 nostr-bbs-core/src/event.rs:88
+    ID-->>S: 32-byte id
+    S->>S: BIP-340 Schnorr sign nostr-bbs-core/src/event.rs:141
+    S-->>R: NostrEvent nostr-bbs-core/src/event.rs:50
+    R->>V: on admission
+    V->>V: rebuild the id and compare, then Schnorr verify nostr-bbs-core/src/event.rs:210 nostr-bbs-core/src/event.rs:241
+
+    Note over V: The single verification the WHOLE estate leans on - verify_event is a thin wrapper over it nostr-bbs-core/src/event.rs:197-198. The relay calls it before any side effect nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1077 (NF-03.4 step 4)
+    Note over V: NIP-42 AUTH calls it nostr-bbs-relay-worker/src/relay_do/nip42.rs:187 (NF-03.2), and the forum client re-runs it on every inbound event rather than trusting the relay nostr-bbs-forum-client/src/relay.rs:769 (NF-05.5)
+    Note over S: sign_event_deterministic nostr-bbs-core/src/event.rs:160 exists for test vectors
+    Note over S: sign_event_upstream nostr-bbs-core/src/event.rs:319 is the absorption seam onto the upstream nostr crate
+    Note over U: The Signer trait nostr-bbs-core/src/signer.rs:78 lets a NIP-07 extension, a passkey key or a pasted nsec share one call site - see NF-05.4
+```
+--- cited source lines at the declared revision
+../nostr-rust-forum/crates/nostr-bbs-core/src/event.rs @ c39f41f104b1 lines 61-63:
+     61  #[derive(Debug, Clone, Serialize, Deserialize)]
+     62  pub struct UnsignedEvent {
+     63      pub pubkey: String,
+../nostr-rust-forum/crates/nostr-bbs-core/src/event.rs @ c39f41f104b1 lines 77-79:
+     77  /// intermediate heap allocations per event, no GC stutter in WASM.
+     78  pub fn compute_event_id(event: &UnsignedEvent) -> [u8; 32] {
+     79      let canonical = (
+../nostr-rust-forum/crates/nostr-bbs-core/src/event.rs @ c39f41f104b1 lines 121-123:
+    121  /// signing (tests, reproducibility), use [`sign_event_deterministic`].
+    122  pub fn sign_event(
+    123      event: UnsignedEvent,
+../nostr-rust-forum/crates/nostr-bbs-core/src/event.rs @ c39f41f104b1 lines 204-206:
+    204  /// instead of a bare `false`, making it easier to log or propagate the reason.
+    205  pub fn verify_event_strict(event: &NostrEvent) -> Result<(), EventError> {
+    206      // Recompute ID — never trust the provided id field
+../nostr-rust-forum/crates/nostr-bbs-core/src/event.rs @ c39f41f104b1 lines 87-89:
+     87      let serialized = serde_json::to_string(&canonical).expect("canonical JSON serialization");
+     88      let mut hasher = Sha256::new();
+     89      hasher.update(serialized.as_bytes());
+../nostr-rust-forum/crates/nostr-bbs-core/src/event.rs @ c39f41f104b1 lines 140-142:
+    140          .sign_raw(&id_bytes, &aux_rand)
+    141          .expect("schnorr sign");
+    142      let sig_hex = hex::encode(signature.to_bytes());
+../nostr-rust-forum/crates/nostr-bbs-core/src/event.rs @ c39f41f104b1 lines 49-51:
+     49  #[derive(Debug, Clone, Serialize, Deserialize)]
+     50  pub struct NostrEvent {
+     51      pub id: String,
+../nostr-rust-forum/crates/nostr-bbs-core/src/event.rs @ c39f41f104b1 lines 209-211:
+    209  
+    210      if event.id != expected_id_hex {
+    211          return Err(EventError::IdMismatch {
+../nostr-rust-forum/crates/nostr-bbs-core/src/event.rs @ c39f41f104b1 lines 240-242:
+    240      verifying_key
+    241          .verify_raw(&expected_id, &signature)
+    242          .map_err(|_| EventError::SignatureInvalid)
+../nostr-rust-forum/crates/nostr-bbs-core/src/event.rs @ c39f41f104b1 lines 196-199:
+    196  /// [`verify_event_strict`] instead.
+    197  pub fn verify_event(event: &NostrEvent) -> bool {
+    198      verify_event_strict(event).is_ok()
+    199  }
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs @ c39f41f104b1 lines 1076-1078:
+   1076          // including admission state changes or activity tracking.
+   1077          if nostr_bbs_core::verify_event_strict(&event).is_err() {
+   1078              Self::send_ok(
+../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip42.rs @ c39f41f104b1 lines 186-188:
+    186  
+    187      if nostr_bbs_core::verify_event_strict(event).is_err() {
+    188          return AuthVerdict::Rejected("invalid: signature verification failed");
+../nostr-rust-forum/crates/nostr-bbs-forum-client/src/relay.rs @ c39f41f104b1 lines 768-770:
+    768              // dispatch. Never hand forged authorship to callbacks — drop it.
+    769              if let Err(e) = nostr_bbs_core::verify_event_strict(&event) {
+    770                  web_sys::console::warn_1(
+../nostr-rust-forum/crates/nostr-bbs-core/src/event.rs @ c39f41f104b1 lines 159-161:
+    159  /// recommended for production** — prefer [`sign_event`] which uses random aux.
+    160  pub fn sign_event_deterministic(
+    161      event: UnsignedEvent,
+../nostr-rust-forum/crates/nostr-bbs-core/src/event.rs @ c39f41f104b1 lines 318-320:
+    318  /// unsigned event's `pubkey` matches the signing key.
+    319  pub fn sign_event_upstream(
+    320      event: UnsignedEvent,
+../nostr-rust-forum/crates/nostr-bbs-core/src/signer.rs @ c39f41f104b1 lines 77-79:
+     77  #[async_trait(?Send)]
+     78  pub trait Signer {
+     79      /// Return the x-only public key (64-char hex) this signer controls.
+======================================================================
+PANEL VF-03.2  (docs/diagrams/visionflow/03-estate-health.md)
+## VF-03.2 The nightly sequence — collect at 02:30, commit, dispatch, publish
+```mermaid
+sequenceDiagram
+    autonumber
+    participant CRON as "schedule 30 2 * * * — estate-health.yml:54"
+    participant JOB as "job collect — estate-health.yml:66"
+    participant COL as "estate-health.mjs collect"
+    participant GH as "api.github.com, public surfaces, crates.io, npm"
+    participant SNAP as "website/static/data/estate-health.json"
+    participant DEP as "deploy.yml — see VF-02"
+    participant DREAM as "03:00 UTC dream night — see VF-04"
+
+    CRON->>JOB: "cron plus workflow_dispatch, permissions contents:write, actions:write<br/>estate-health.yml:58"
+    JOB->>JOB: "checkout with persist-credentials true — estate-health.yml:74"
+    JOB->>COL: "GITHUB_TOKEN plus optional ESTATE_READ_TOKEN — estate-health.yml:97"
+    COL->>GH: "roster repos, surfaces and registries — three pools of 4 run at once,<br/>and each repo issues 5 calls together — estate-health.mjs:902-905, estate-health.mjs:532"
+    GH-->>COL: "per-field answers, or a degraded field plus a note"
+    COL->>SNAP: "write the whole snapshot — estate-health.mjs:919"
+    COL-->>JOB: "summary line plus ESTATE-HEALTH-COLLECTED — estate-health.mjs:928"
+    JOB->>COL: "check, REPORTED only — estate-health.yml:105"
+    COL-->>JOB: "verdict grepped into the step summary — estate-health.yml:107"
+    Note over JOB: "INVARIANT: the job never fails on RED. Failing would abort<br/>before the commit, so the one night the estate breaks would be<br/>the night no snapshot is published — estate-health.yml:21"
+    alt snapshot changed
+        JOB->>SNAP: "commit as estate-health[bot] then push — estate-health.yml:145"
+        JOB->>DEP: "gh workflow run deploy.yml --ref main — estate-health.yml:158"
+        Note over JOB,DEP: "a push made with GITHUB_TOKEN fires no on:push trigger,<br/>so the deploy must be dispatched explicitly — estate-health.yml:30"
+        DEP-->>SNAP: "published through the ordinary blocking gates, no privileged path"
+        Note over DEP: "A red snapshot still deploys: no publication gate in deploy.yml<br/>consults estate health, and the workflow deliberately does not<br/>fail on check's non-zero exit<br/>ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md:61"
+    else unchanged
+        JOB-->>JOB: "nothing to commit, deploy not dispatched — estate-health.yml:137"
+    end
+    DREAM->>SNAP: "reads the committed file offline, 30 minutes later"
+```
+
+**Debt (concurrency is per pool, not estate-wide):** `CONCURRENCY = 4` is commented "≤ 4 in flight, estate-wide" (`scripts/estate-health.mjs:158`). But `mapPool` bounds only its own items (`scripts/estate-health.mjs:229-238`), the repo, surface and registry pools run together (`scripts/estate-health.mjs:902-905`), and each repo worker fires five calls at once (`scripts/estate-health.mjs:532`). The source therefore allows about 28 requests in flight, 20 of them to the GitHub API. This is a source reading only; no rate-limit failure has been observed.
+--- cited source lines at the declared revision
+.github/workflows/estate-health.yml @ 5f8b1da92ce5 lines 53-55:
+     53      # (dream.config.json), so the dream night reads a snapshot collected tonight.
+     54      - cron: '30 2 * * *'
+     55    workflow_dispatch:
+.github/workflows/estate-health.yml @ 5f8b1da92ce5 lines 65-67:
+     65  jobs:
+     66    collect:
+     67      runs-on: ubuntu-latest
+.github/workflows/estate-health.yml @ 5f8b1da92ce5 lines 57-59:
+     57  permissions:
+     58    contents: write   # commit and push the snapshot
+     59    actions: write    # dispatch deploy.yml (GITHUB_TOKEN pushes do not trigger on:push)
+.github/workflows/estate-health.yml @ 5f8b1da92ce5 lines 73-75:
+     73          with:
+     74            persist-credentials: true
+     75            fetch-depth: 1
+.github/workflows/estate-health.yml @ 5f8b1da92ce5 lines 96-98:
+     96            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+     97            ESTATE_READ_TOKEN: ${{ secrets.ESTATE_READ_TOKEN }}
+     98          run: node scripts/estate-health.mjs collect
+scripts/estate-health.mjs @ 5f8b1da92ce5 lines 901-906:
+    901  
+    902    const [repos, surfaces, registries] = await Promise.all([
+    903      mapPool(roster.repos, CONCURRENCY, (entry) => collectRepo(entry, primary, fallback)),
+    904      mapPool(roster.surfaces, CONCURRENCY, probeSurface),
+    905      mapPool(roster.registries, CONCURRENCY, collectRegistry),
+    906    ]);
+scripts/estate-health.mjs @ 5f8b1da92ce5 lines 531-533:
+    531  
+    532    const [head, ci, prs, release, pages] = await Promise.all([
+    533      collectHead(entry.full_name, branch, token, notes),
+scripts/estate-health.mjs @ 5f8b1da92ce5 lines 918-920:
+    918    mkdirSync(dirname(OUT_PATH), { recursive: true });
+    919    writeFileSync(OUT_PATH, `${JSON.stringify(snapshot, null, 2)}\n`);
+    920  
+scripts/estate-health.mjs @ 5f8b1da92ce5 lines 927-929:
+    927      + `registries: ${registries.filter((r) => r.version).length}/${registries.length} resolved\n`
+    928      + 'ESTATE-HEALTH-COLLECTED\n');
+    929    return 0;
+.github/workflows/estate-health.yml @ 5f8b1da92ce5 lines 104-106:
+    104            set -uo pipefail
+    105            OUT="$(node scripts/estate-health.mjs check)" || true
+    106            echo "$OUT"
+.github/workflows/estate-health.yml @ 5f8b1da92ce5 lines 106-108:
+    106            echo "$OUT"
+    107            VERDICT="$(grep -oE '^ESTATE-HEALTH-(OK|STALE|RED)$' <<< "$OUT" | tail -n 1)"
+    108            echo "verdict=${VERDICT:-ESTATE-HEALTH-UNKNOWN}" >> "$GITHUB_OUTPUT"
+.github/workflows/estate-health.yml @ 5f8b1da92ce5 lines 20-22:
+     20  #
+     21  # WHY THE JOB DOES NOT FAIL ON RED
+     22  #
+.github/workflows/estate-health.yml @ 5f8b1da92ce5 lines 144-146:
+    144            ')"
+    145            git config user.name  "estate-health[bot]"
+    146            git config user.email "estate-health@users.noreply.github.com"
+.github/workflows/estate-health.yml @ 5f8b1da92ce5 lines 157-159:
+    157            set -euo pipefail
+    158            gh workflow run deploy.yml --ref main
+    159            echo "deploy.yml dispatched for the new snapshot (verdict: ${{ steps.check.outputs.verdict }})"
+.github/workflows/estate-health.yml @ 5f8b1da92ce5 lines 29-31:
+     29  #
+     30  # WHY THE DEPLOY IS DISPATCHED EXPLICITLY
+     31  #
+docs/adr/ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md @ 5f8b1da92ce5 lines 60-62:
+     60    page shows it as unreadable. The snapshot is honest about the hole; it does not close it.
+     61  - **A red snapshot still deploys.** The workflow deliberately does not fail on `check`'s
+     62    non-zero exit, and no publication gate in `deploy.yml` consults estate health. The page
+.github/workflows/estate-health.yml @ 5f8b1da92ce5 lines 136-138:
+    136              echo "changed=false" >> "$GITHUB_OUTPUT"
+    137              echo "snapshot unchanged — nothing to commit, deploy not dispatched"
+    138              exit 0
+scripts/estate-health.mjs @ 5f8b1da92ce5 lines 157-159:
+    157  const SURFACE_TIMEOUT_MS = 10_000;  // public surfaces
+    158  const CONCURRENCY = 4;              // ≤ 4 in flight, estate-wide
+    159  
+scripts/estate-health.mjs @ 5f8b1da92ce5 lines 228-239:
+    228   */
+    229  async function mapPool(items, limit, fn) {
+    230    const out = new Array(items.length);
+    231    let cursor = 0;
+    232    const worker = async () => {
+    233      while (cursor < items.length) {
+    234        const i = cursor++;
+    235        out[i] = await fn(items[i], i);
+    236      }
+    237    };
+    238    await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+    239    return out;
+======================================================================
+PANEL VF-06.3  (docs/diagrams/visionflow/06-diagram-tooling.md)
+## VF-06.3 render.mjs — how Pele is obtained and verified
+```mermaid
+flowchart TB
+    classDef ci fill:#e4ecf8,stroke:#33559a,color:#222
+    classDef fail fill:#ffe0e0,stroke:#aa3333,color:#222
+
+    START["main — list the .mmd sources, create rendered/<br/>render.mjs:31-34"]:::ci --> LOAD["peleStatic.loadPele — import the vendored build<br/>render.mjs:35"]:::ci
+    LOAD --> PIN["read the sha256 line from scripts/vendor/pele/VERSION<br/>pele-static.cjs:29"]:::ci
+    PIN --> NOPIN["VERSION carries no sha256 line — throw<br/>pele-static.cjs:30"]:::fail
+    PIN --> HASH["hash pele.js and compare<br/>pele-static.cjs:31"]:::ci
+    HASH --> MISMATCH["vendored pele.js sha256 does not match VERSION — throw<br/>pele-static.cjs:32"]:::fail
+    HASH --> IMPORT["import the file by URL, once per process<br/>pele-static.cjs:26"]:::ci
+    IMPORT --> RENDER["renderStatic with responsive false and autoDirection false<br/>so a width belongs to the diagram, not a viewport<br/>pele-static.cjs:21 and pele-static.cjs:55"]:::ci
+
+    NOTE["INVARIANT: no CDN, no npm renderer, no browser and no CDP client. The engine is the committed pele.js,<br/>pinned by npm integrity and sha256 in VERSION; npm pele 1.0.0 is an unrelated 2020 package and is never accepted<br/>scripts/vendor/pele/VERSION:3-5 and docs/adr/ADR-2020-pele-renders-every-estate-diagram.md:32-35"]
+    NOTE2["DRIFT: scripts/check-cdp-sidecar.mjs and docs/site-verification.md still describe a raw CDP connection to the shared browser sidecar<br/>for site checks, which is now unrelated to diagram rendering and is not touched by ADR-2020<br/>scripts/check-cdp-sidecar.mjs:14-16"]
+```
+--- cited source lines at the declared revision
+scripts/diagram-render/render.mjs @ 5f8b1da92ce5 lines 30-35:
+     30  
+     31  async function main() {
+     32    const sources = readdirSync(SRC_DIR).filter((f) => f.endsWith('.mmd')).sort();
+     33    if (sources.length === 0) throw new Error(`No .mmd sources under ${SRC_DIR}`);
+     34    mkdirSync(OUT_DIR, { recursive: true });
+     35    const pele = await peleStatic.loadPele();
+scripts/diagram-render/render.mjs @ 5f8b1da92ce5 lines 34-36:
+     34    mkdirSync(OUT_DIR, { recursive: true });
+     35    const pele = await peleStatic.loadPele();
+     36  
+scripts/lib/pele-static.cjs @ 5f8b1da92ce5 lines 28-30:
+     28    const file = path.join(VENDOR, 'pele.js');
+     29    const pinned = /^sha256\s+([0-9a-f]{64})$/m.exec(fs.readFileSync(path.join(VENDOR, 'VERSION'), 'utf8'));
+     30    if (!pinned) throw new Error(`${VENDOR}/VERSION carries no sha256 line`);
+scripts/lib/pele-static.cjs @ 5f8b1da92ce5 lines 29-31:
+     29    const pinned = /^sha256\s+([0-9a-f]{64})$/m.exec(fs.readFileSync(path.join(VENDOR, 'VERSION'), 'utf8'));
+     30    if (!pinned) throw new Error(`${VENDOR}/VERSION carries no sha256 line`);
+     31    const actual = crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+scripts/lib/pele-static.cjs @ 5f8b1da92ce5 lines 30-32:
+     30    if (!pinned) throw new Error(`${VENDOR}/VERSION carries no sha256 line`);
+     31    const actual = crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+     32    if (actual !== pinned[1]) throw new Error(`vendored pele.js sha256 ${actual} does not match VERSION ${pinned[1]}`);
+scripts/lib/pele-static.cjs @ 5f8b1da92ce5 lines 31-33:
+     31    const actual = crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+     32    if (actual !== pinned[1]) throw new Error(`vendored pele.js sha256 ${actual} does not match VERSION ${pinned[1]}`);
+     33    peleModule = await import(pathToFileURL(file).href);
+scripts/lib/pele-static.cjs @ 5f8b1da92ce5 lines 25-27:
+     25  /** Import the vendored Pele build after checking it against VERSION's sha256. */
+     26  async function loadPele() {
+     27    if (peleModule) return peleModule;
+scripts/lib/pele-static.cjs @ 5f8b1da92ce5 lines 20-22:
+     20  // width is a property of the diagram, not of the viewport it happened to meet.
+     21  const GATE_OPTIONS = Object.freeze({ responsive: false, autoDirection: false });
+     22  
+scripts/lib/pele-static.cjs @ 5f8b1da92ce5 lines 54-56:
+     54  /** Render one Mermaid source to a static SVG. Throws PeleError on bad source. */
+     55  function renderStatic(pele, source, { background = null, options = {} } = {}) {
+     56    const r = pele.render(source, { ...GATE_OPTIONS, ...options });
+docs/adr/ADR-2020-pele-renders-every-estate-diagram.md @ 5f8b1da92ce5 lines 31-36:
+     31    controls: CI gates, the corpus generator, agent tools and the published sites.
+     32  - **One exact pinned version estate-wide** (1.12.0 at adoption), with an integrity check on every
+     33    path: `scripts/vendor/pele/VERSION` carries the npm integrity and the sha256 that
+     34    `scripts/lib/pele-static.cjs` verifies before import; a site lockfile carries the integrity, a
+     35    CDN tag carries SRI. npm `pele` 1.0.0 is an unrelated 2020 package and is never accepted.
+     36  - **Files that leave the browser are static.** An SVG written to disk is flattened: every Pele CSS
+scripts/check-cdp-sidecar.mjs @ 5f8b1da92ce5 lines 13-17:
+     13  
+     14  const DEFAULT_HOST = process.env.BROWSER_CDP_HOST || (isDockerRuntime() ? 'browsercontainer' : 'localhost');
+     15  const DEFAULT_PORT = process.env.BROWSER_CDP_PORT || (isDockerRuntime() ? '9223' : '9222');
+     16  const endpoint = process.env.CDP_ENDPOINT || process.env.CHROME_CDP_URL || `http://${DEFAULT_HOST}:${DEFAULT_PORT}`;
+     17  
+======================================================================
+PANEL DW-03.4  (docs/diagrams/dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md)
+## DW-03.4 Open, staged: the admin/governance key split
+```mermaid
+stateDiagram-v2
+    [*] --> Unsplit
+    Unsplit: visionclaw-server (11ed6422...663c) is BOTH\nprimary admin AND [governance].agent_pubkeys publisher
+    Unsplit --> Staged: operator mints a distinct operator/admin key\ndocumented in admin-key-split-runbook.md
+    Staged --> Split: FOUR-location atomic change executed by an operator
+    Split --> [*]
+    note right of Unsplit
+      dreamlab.toml:39-72 comment; legacy ADR-040 D3.
+      Held deliberately: the auth-worker ADMIN_PUBKEYS
+      CF secret cannot be rotated from this repo or CI.
+    end note
+```
+- The four locations the split must move together: `[admin].static_pubkeys` in `dreamlab.toml`, the relay/search worker `ADMIN_PUBKEYS` `[vars]`, and the auth-worker `ADMIN_PUBKEYS` Cloudflare secret (`docs/deployment/admin-key-split-runbook.md`, referenced `dreamlab.toml:54-55`).
+- `deploy.yml:62-73` marks `VITE_ADMIN_PUBKEY` as INTERIM per legacy ADR-041: the operator's current working admin key, already relay-whitelisted so signup DMs deliver with no runbook step; the ADR-040 D3 runbook must re-point it when executed, extending the split to a five-location atomic change (adding the client mirror).
+--- cited source lines at the declared revision
+../dreamlab-ai-website/forum-config/dreamlab.toml @ 0e1572801d03 lines 38-73:
+     38  
+     39  [admin]
+     40  mode            = "static"
+     41  static_pubkeys  = [
+     42    # ⚠ KEY-SPLIT PENDING (ADR-040 D3 / WP-3 AC2 — blocked-operational) ─────────────
+     43    # The pubkey below is the visionclaw-server key — the SAME pubkey used under
+     44    # [governance].agent_pubkeys as a BrokerActor governance publisher. It is a
+     45    # non-admin service identity (forum-config/README.md: "Admin: no"), yet it is
+     46    # still listed here as the PRIMARY forum admin and mirrored into the relay-worker
+     47    # / search-worker ADMIN_PUBKEYS and the auth-worker ADMIN_PUBKEYS CF secret.
+     48    #
+     49    # The fix (mint a distinct operator/admin key; leave visionclaw-server only in
+     50    # [governance]) is a FOUR-location atomic change that includes the auth-worker
+     51    # ADMIN_PUBKEYS CF secret, which cannot be rotated from CI or this repo. The
+     52    # split therefore stays staged, not applied: doing it here alone would desync
+     53    # the CF secret and lock out admins. It is deliberately held until an operator
+     54    # runs the rotation. Exact steps + the target ADMIN_PUBKEYS layout for all four
+     55    # locations are in docs/deployment/admin-key-split-runbook.md.
+     56    #
+     57    # Placeholder for the new key the operator will mint (documentation only — NOT a
+     58    # real key, do NOT deploy as-is): OPERATOR_ADMIN_PUBKEY = "<64-hex minted by operator>".
+     59    # When the runbook is executed, this visionclaw-server pubkey is REPLACED by that
+     60    # minted key across [admin] here + relay/search ADMIN_PUBKEYS + the CF secret in
+     61    # one change, and admin-pubkeys-sync stays green because all mirrors move together.
+     62    # ────────────────────────────────────────────────────────────────────────────────
+     63    "11ed64225dd5e2c5e18f61ad43d5ad9272d08739d3a20dd25886197b0738663c",
+     64    # operator-jjohare — human admin (Dr John O'Hare)
+     65    "6407eed80e2a8646e41a5ddba0ae6619425fc54af40e2b30482b9623c682425a",
+     66    # moderation-bot — automated moderation agent
+     67    "5d80b5facd2d746689d7d2e400db6acce5843456967054adcf6956e4c734c54c",
+     68    # calendar-bot — cross-zone NIP-52 scheduling (needs all zones)
+     69    "be92ccf53d9d535fd21f3388201fd83b49588552fff5a1395fb60b6998df2243",
+     70    # search-indexer — indexes all zones for search
+     71    "d5194639ee3560204a1b5584a0714a6dd2a6c59953d0869b483e72ee185ada26",
+     72  ]
+     73  
+../dreamlab-ai-website/forum-config/dreamlab.toml @ 0e1572801d03 lines 53-56:
+     53    # the CF secret and lock out admins. It is deliberately held until an operator
+     54    # runs the rotation. Exact steps + the target ADMIN_PUBKEYS layout for all four
+     55    # locations are in docs/deployment/admin-key-split-runbook.md.
+     56    #
+../dreamlab-ai-website/.github/workflows/deploy.yml @ 0e1572801d03 lines 61-74:
+     61    VITE_LINK_PREVIEW_API_URL: 'https://dreamlab-link-preview.solitary-paper-764d.workers.dev'
+     62    # Nostr DM recipients for the React site (contact form → admin, Talk-to-AI →
+     63    # junkiejarvis). Canonical source is forum-config/dreamlab.toml (admin at :59,
+     64    # junkiejarvis in [[agents]]). These are HAND-SYNCED mirrors, not generated —
+     65    # per ADR-037 the O1/O2 single-source generator is deferred, so keep them in
+     66    # lockstep with dreamlab.toml by hand when rotating (same posture as the
+     67    # admin-pubkeys-sync mirrors). Injected into the React build env block below.
+     68    # INTERIM per ADR-041: the operator's current working admin key (visionclaw-server,
+     69    # dreamlab.toml:57, already relay-whitelisted so signup DMs deliver with no runbook
+     70    # step). The ADR-040 D3 key-split runbook MUST re-point this to the newly minted
+     71    # operator key when executed (and run scripts/seed/whitelist-admin-recipient.mjs
+     72    # for it) — extending the split to a five-location atomic change.
+     73    VITE_ADMIN_PUBKEY: '11ed64225dd5e2c5e18f61ad43d5ad9272d08739d3a20dd25886197b0738663c'
+     74    VITE_JARVIS_PUBKEY: '2de44d5622eef79519ac078f6e227a85aecbaefd561e4e50c5f51dfadbf916e9'  # junkiejarvis — dreamlab.toml [[agents]]
+======================================================================
+PANEL OM-04.1  (docs/diagrams/ontomark/04-emitters-turtle-indexes-tiers-and-contract-c3.md)
+## OM-04.1 Emitter by emitter — corpus selector, output, C3 artefact
+
+```mermaid
+flowchart LR
+    PROJ["Corpus handed to every emitter is already public-only<br/>records = split.public clean_record, machine scope forks, see OM-06.1<br/>projection.rs:499-503<br/>all projection paths, mod.rs:669-684"]
+    TTL["turtle::serialise of build_graph_attributed<br/>selector: records filtered by public_only AND has_ontology<br/>turtle.rs:231-234<br/>call mod.rs:693,788"]
+    INF["reason::inferred_turtle<br/>selector: none, takes the Reasoning not the corpus<br/>reason.rs:685<br/>call mod.rs:789-792"]
+    SCA["scaffold_index<br/>selector: public_classes<br/>indexes.rs:102<br/>call mod.rs:794-795"]
+    PRO["prose_index<br/>selector: public<br/>indexes.rs:256<br/>call mod.rs:796-797"]
+    SRCH["search_index<br/>selector: public<br/>indexes.rs:311<br/>call mod.rs:799-801"]
+    PG["page_api::build_attributed + domain index<br/>selector: public<br/>page_api.rs:77<br/>call mod.rs:806-819"]
+    CEN["census + validation-report<br/>selector: none, inputs are census and report<br/>mod.rs:820-824"]
+    CTX["okf::context to three paths<br/>selector: none, vocabulary only<br/>okf.rs:31<br/>mod.rs:830-834"]
+    VOWL["webvowl::build<br/>selector: records filtered r.public AND has_ontology<br/>webvowl.rs:60-63<br/>call mod.rs:837-840"]
+    TIER["graph_tiers::emit<br/>selector: records filtered r.public AND has_ontology<br/>graph_tiers.rs:195-198<br/>call mod.rs:844-847"]
+    MIR["markdown mirror, only with the flag<br/>selector: public<br/>mod.rs:850,866,876"]
+    OKF["okf::bundle<br/>selector: public_classes<br/>okf.rs:74<br/>call mod.rs:953-955"]
+    GEN["two .generation.json markers<br/>mod.rs:1016-1024"]
+    CERT["certificate::certify of the SAME graph, only with --certificate-out<br/>selector: none, takes the Graph and checks parity against the Reasoning<br/>certificate.rs:51,63<br/>call mod.rs:700-725"]
+    PROJ --> TTL & SCA & PRO & SRCH & PG & VOWL & TIER & MIR & OKF
+    TTL --> C1["C3 data/ontology.ttl<br/>mod.rs:788"]
+    INF --> C2["C3 data/ontology-inferred.ttl<br/>mod.rs:790"]
+    SCA --> C3["C3 data/scaffold-index.json<br/>mod.rs:795"]
+    PRO --> C4["C3 data/prose-index.json<br/>mod.rs:797"]
+    SRCH --> C5["C3 api/search-index.json<br/>mod.rs:801"]
+    PG --> C6["C3 api/pages/SLUG.json<br/>mod.rs:814<br/>plus api/pages/_domain-index.json, which C3 lists<br/>mod.rs:819, sovereign-corpus-contracts.md:123"]
+    CEN --> C7["C3 api/census.json, api/validation-report.json<br/>mod.rs:820-822"]
+    CTX --> C8["C3 ns/v2.jsonld, api/schema/context.jsonld, context/v1.jsonld<br/>mod.rs:832-834"]
+    VOWL --> C9["C3 data/ontology.json<br/>mod.rs:838"]
+    TIER --> C10["C3 data/graph/ overview.json, domain-*.bin, full.bin, stats.json, bridges.json<br/>mod.rs:846"]
+    MIR --> C11["C3 api/markdown/, off by default<br/>mod.rs:925"]
+    OKF --> C12["C3 okf/ index.md and concept files<br/>mod.rs:954"]
+    GEN --> C13["C3 .generation.json and data/.generation.json<br/>mod.rs:1023-1024, sovereign-corpus-contracts.md:153"]
+    INF -.-> CERT
+    NC["INVARIANT: the certified named closure must equal the classifier's inferred set or run_with returns CertificateParity before anything is written, mod.rs:704-711, certificate.rs:63-67; the CLI exits 2, ontomark-cli/src/main.rs:880-883<br/>DRIFT: the C3 file listing names no certificate output, sovereign-corpus-contracts.md:111, while ADR-OM-009 decides every published closure carries one, ADR-OM-009-every-published-closure-carries-a-derivation-certificate.md:34"]
+    CERT --- NC
+    CERT --> C15["not in C3: oo-cert/1 asserted.tsv, derivations.tsv, asserted.sha256, scope.tsv,<br/>written directly to caller-selected --certificate-out directory;<br/>not staged with the bundle, output overlap is not refused<br/>mod.rs:723-725"]
+    REC["records::concept_records then embed_all, only when the host hands run_with an Embedder<br/>selector: none, reads the scaffold and prose indexes<br/>records.rs:103, records.rs:173<br/>call mod.rs:957-961"]
+    SCA --> REC
+    PRO --> REC
+    REC --> C14["C3 data/ontology-corpus.records.jsonl, --with-rvdb<br/>records.rs:38<br/>mod.rs:961"]
+```
+- **DIVERGENCE:** `ontology-corpus.records.jsonl` is staged only when the host passes an `Embedder` to `run_with` (`mod.rs:957-961`), so plain `run` never writes it. **Corrected at 4b9d15d:** `api/pages/_domain-index.json` (`mod.rs:819`), `context/v1.jsonld` (`mod.rs:832`) and `data/.generation.json` (`mod.rs:1023`) are all listed in C3 (`sovereign-corpus-contracts.md:123`, `sovereign-corpus-contracts.md:126`, `sovereign-corpus-contracts.md:153`); this panel previously said they were not.
+- **INVARIANT:** the selector split is `public()` for per-page artefacts and `public_classes()`, which also requires `EntityType::Class` (`ir/model.rs:456-460`), for scaffold, OKF and `class_count`; Turtle, WebVOWL and NGG1 use the inline `public AND has_ontology AND iri` filter (`turtle.rs:234`, `webvowl.rs:63`, `graph_tiers.rs:198`), so they include individuals and the others do not. The corpus is already public-only, so each `r.public` test is a second filter (`turtle.rs:168-172`). Under `--scope machine` only the page API and search index read the merged corpus (`mod.rs:768`), see OM-06.
+- **DIVERGENCE:** `class_count` counts `public_classes()` un-deduplicated (`mod.rs:763`), `page_count` is `listed.records.len()` (`mod.rs:769`), scaffold `counts.classes` keeps the first record per class slug (`indexes.rs:110-111`) and `stats.json` `pages` counts distinct page ids (`graph_tiers.rs:201-210`); they can differ only if two records share a slug, which `DUPLICATE_IRI` refuses (`check/validate.rs:634`) and `Staged` write-once refuses for OKF paths (`mod.rs:372`), so the gap is theoretical.
+--- cited source lines at the declared revision
+../ontomark/crates/ontomark-compile/src/ir/projection.rs @ 4b9d15df4805 lines 498-504:
+    498      let redactor = split.redactor(profile)?;
+    499      let records: Vec<ClassRecord> = split
+    500          .public
+    501          .iter()
+    502          .map(|r| redactor.clean_record(r))
+    503          .collect();
+    504      Ok((corpus_of(records), ProseRedactor(redactor)))
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 668-685:
+    668      let mut machine_summary = None;
+    669      let (corpus, prose_redactor) =
+    670          if let (true, Some(links), Some(working)) = (machine, &private_links, &working) {
+    671              let projected =
+    672                  projection::project_machine(profile, &vault, working, vocab, &excluded, links)?;
+    673              merged = Some(projected.merged());
+    674              machine_summary = Some(MachineSummary {
+    675                  working_records: projected.plain.len(),
+    676                  yielded: projected.yielded,
+    677              });
+    678              (projected.knowledge, projected.redactor)
+    679          } else if let Some(links) = &private_links {
+    680              projection::project_vault_with_links(profile, &vault, vocab, &excluded, links)?
+    681          } else {
+    682              // Explicit compatibility mode retains the legacy projection bytes.
+    683              projection::project_with_redactor(profile, &raw, &excluded)?
+    684          };
+    685  
+../ontomark/crates/ontomark-compile/src/build/turtle.rs @ 4b9d15df4805 lines 230-235:
+    230  
+    231      let records: Vec<_> = corpus
+    232          .records
+    233          .iter()
+    234          .filter(|r| (!public_only || r.public) && r.has_ontology && !r.iri.is_empty())
+    235          .collect();
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 692-694:
+    692          .unwrap_or_default();
+    693      let graph = turtle::build_graph_attributed(profile, &corpus, vocab, true, &roster);
+    694      // ADR-2124: a definition over a transitive hierarchy is refused here,
+../ontomark/crates/ontomark-compile/src/reason.rs @ 4b9d15df4805 lines 684-686:
+    684  #[must_use]
+    685  pub fn inferred_turtle(profile: &Profile, reasoning: &Reasoning, generated_at: &str) -> String {
+    686      let mut g = Graph::new();
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 788-793:
+    788      staged.add("data/ontology.ttl", turtle::serialise(profile, &graph));
+    789      staged.add(
+    790          "data/ontology-inferred.ttl",
+    791          reason::inferred_turtle(profile, &reasoning, &generated),
+    792      );
+    793  
+../ontomark/crates/ontomark-compile/src/build/indexes.rs @ 4b9d15df4805 lines 101-103:
+    101  ) -> Value {
+    102      let mut candidates: Vec<&ClassRecord> = corpus.public_classes().collect();
+    103      // Python: `sorted(candidates, key=lambda p: ref_slug(p.ontology_class.iri))`
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 793-796:
+    793  
+    794      let scaffold = indexes::scaffold_index(&corpus, &structural, &backlinks, &generated);
+    795      staged.add("data/scaffold-index.json", to_compact(&scaffold)?);
+    796      let prose = indexes::prose_index(&corpus, &generated);
+../ontomark/crates/ontomark-compile/src/build/indexes.rs @ 4b9d15df4805 lines 255-257:
+    255      let mut entries: Vec<(String, Map<String, Value>)> = Vec::new();
+    256      for record in corpus.public() {
+    257          if !record.has_ontology {
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 795-798:
+    795      staged.add("data/scaffold-index.json", to_compact(&scaffold)?);
+    796      let prose = indexes::prose_index(&corpus, &generated);
+    797      staged.add("data/prose-index.json", to_default_utf8(&prose)?);
+    798  
+../ontomark/crates/ontomark-compile/src/build/indexes.rs @ 4b9d15df4805 lines 310-312:
+    310      let mut index = Vec::new();
+    311      for record in corpus.public() {
+    312          let mut entry = Map::new();
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 798-802:
+    798  
+    799      let search = indexes::search_index(listed, &aliases);
+    800      let search_entries = search.as_array().map_or(0, Vec::len);
+    801      staged.add("api/search-index.json", to_indented(&search)?);
+    802  
+../ontomark/crates/ontomark-compile/src/build/page_api.rs @ 4b9d15df4805 lines 76-78:
+     76  ) -> (Vec<PageDocument>, Value) {
+     77      let public: Vec<&ClassRecord> = corpus.public().collect();
+     78      let slug_to_title: HashMap<&str, &str> = public
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 805-820:
+    805      let page_backlinks = merged.as_ref().map(indexes::backlink_index);
+    806      let (documents, domain_index) = page_api::build_attributed(
+    807          listed,
+    808          &structural,
+    809          page_backlinks.as_ref().unwrap_or(&backlinks),
+    810          &roster,
+    811      );
+    812      for doc in &documents {
+    813          staged.add_for(
+    814              format!("api/pages/{}.json", doc.slug),
+    815              to_indented(&doc.value)?,
+    816              doc.page_id.clone(),
+    817          );
+    818      }
+    819      staged.add("api/pages/_domain-index.json", to_indented(&domain_index)?);
+    820      staged.add("api/census.json", to_indented(&census)?);
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 819-825:
+    819      staged.add("api/pages/_domain-index.json", to_indented(&domain_index)?);
+    820      staged.add("api/census.json", to_indented(&census)?);
+    821      staged.add(
+    822          "api/validation-report.json",
+    823          to_indented(&report.summary())?,
+    824      );
+    825      // The context is served from /ns/v2.jsonld; the property IRIs inside it
+../ontomark/crates/ontomark-compile/src/build/okf.rs @ 4b9d15df4805 lines 30-32:
+     30  #[must_use]
+     31  pub fn context(profile: &Profile, vocab: &Vocabulary) -> Value {
+     32      let iris = &profile.iris;
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 829-835:
+    829      // this document — and the publish workflow requires it.
+    830      let context = okf::context(profile, vocab);
+    831      let context_json = to_indented(&context)?;
+    832      staged.add("context/v1.jsonld", context_json.clone());
+    833      staged.add("api/schema/context.jsonld", context_json.clone());
+    834      staged.add("ns/v2.jsonld", context_json);
+    835  
+../ontomark/crates/ontomark-compile/src/build/webvowl.rs @ 4b9d15df4805 lines 59-64:
+     59  pub fn build(profile: &Profile, corpus: &Corpus) -> Value {
+     60      let public: Vec<_> = corpus
+     61          .records
+     62          .iter()
+     63          .filter(|r| r.public && r.has_ontology && !r.iri.is_empty())
+     64          .collect();
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 836-841:
+    836      // WebVOWL graph — the explorer's build input.
+    837      staged.add(
+    838          "data/ontology.json",
+    839          to_default_ascii(&webvowl::build(profile, &corpus))?,
+    840      );
+    841  
+../ontomark/crates/ontomark-compile/src/build/graph_tiers.rs @ 4b9d15df4805 lines 194-199:
+    194  pub fn build_model(profile: &Profile, corpus: &Corpus) -> GraphModel {
+    195      let public: Vec<&ClassRecord> = corpus
+    196          .records
+    197          .iter()
+    198          .filter(|r| r.public && r.has_ontology && !r.iri.is_empty())
+    199          .collect();
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 843-848:
+    843      // published site, so the `.bin` layout is byte-frozen.
+    844      let tiers = graph_tiers::emit(profile, &corpus, &today);
+    845      for file in &tiers.files {
+    846          staged.add(format!("data/graph/{}", file.name), file.bytes.clone());
+    847      }
+    848  
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 849-851:
+    849      let mut mirror_redaction = redact::SurfaceRedaction::default();
+    850      if options.with_markdown_mirror {
+    851          // A page's own name (its page id, in both `/` encodings) always wins.
+../ontomark/crates/ontomark-compile/src/build/okf.rs @ 4b9d15df4805 lines 73-75:
+     73  ) -> Vec<BundleFile> {
+     74      let mut classes: Vec<&ClassRecord> = corpus.public_classes().collect();
+     75      classes.sort_by_key(|r| r.class_slug());
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 952-956:
+    952      let generation_id = generation::generation_id(&prefix, &commit, dirty);
+    953      for file in okf::bundle(profile, &corpus, vocab, &generation_id) {
+    954          staged.add(format!("okf/{}", file.path), file.content);
+    955      }
+    956  
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 1015-1025:
+   1015      // lists the data marker (S2.5).
+   1016      let data_marker = to_indented(&gen.scoped("data"))?;
+   1017      let mut artifacts = gen.artifacts.clone();
+   1018      artifacts.push(generation::Artifact::of(
+   1019          "data/.generation.json",
+   1020          data_marker.as_bytes(),
+   1021      ));
+   1022      let root_marker = generation::Generation { artifacts, ..gen };
+   1023      staged.add("data/.generation.json", data_marker);
+   1024      staged.add(".generation.json", to_indented(&root_marker)?);
+   1025      staged.ensure_single_claims()?;
+../ontomark/crates/ontomark-compile/src/certificate.rs @ 4b9d15df4805 lines 50-52:
+     50  #[must_use]
+     51  pub fn certify(graph: &Graph) -> Certificate {
+     52      let spelled = spell(graph);
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 699-726:
+    699      // reasoned and published, before anything is written.
+    700      let certificate = match &options.certificate_out {
+    701          Some(dir) => {
+    702              let started = std::time::Instant::now();
+    703              let cert = crate::certificate::certify(&graph);
+    704              let (certified, classifier_n, same) = crate::certificate::parity(&cert, &reasoning);
+    705              if !same {
+    706                  return Err(CertificateParity {
+    707                      certified,
+    708                      classifier: classifier_n,
+    709                  }
+    710                  .into());
+    711              }
+    712              let generation_label = generation::generation_id(
+    713                  &profile.generation.prefix_for(&options.repo_root),
+    714                  &options.source.as_ref().map_or_else(
+    715                      || generation::git_sha(&options.repo_root),
+    716                      |(c, _)| c.clone(),
+    717                  ),
+    718                  options.source.as_ref().map_or_else(
+    719                      || generation::git_dirty(&options.repo_root, &[&options.vault_root]),
+    720                      |(_, d)| *d,
+    721                  ),
+    722              );
+    723              let summary = cert
+    724                  .write(dir, &generation_label)
+    725                  .with_context(|| format!("writing the certificate to {}", dir.display()))?;
+    726              Some(CertificateReport {
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 787-789:
+    787      }
+    788      staged.add("data/ontology.ttl", turtle::serialise(profile, &graph));
+    789      staged.add(
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 789-791:
+    789      staged.add(
+    790          "data/ontology-inferred.ttl",
+    791          reason::inferred_turtle(profile, &reasoning, &generated),
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 794-796:
+    794      let scaffold = indexes::scaffold_index(&corpus, &structural, &backlinks, &generated);
+    795      staged.add("data/scaffold-index.json", to_compact(&scaffold)?);
+    796      let prose = indexes::prose_index(&corpus, &generated);
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 796-798:
+    796      let prose = indexes::prose_index(&corpus, &generated);
+    797      staged.add("data/prose-index.json", to_default_utf8(&prose)?);
+    798  
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 800-802:
+    800      let search_entries = search.as_array().map_or(0, Vec::len);
+    801      staged.add("api/search-index.json", to_indented(&search)?);
+    802  
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 813-815:
+    813          staged.add_for(
+    814              format!("api/pages/{}.json", doc.slug),
+    815              to_indented(&doc.value)?,
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 818-820:
+    818      }
+    819      staged.add("api/pages/_domain-index.json", to_indented(&domain_index)?);
+    820      staged.add("api/census.json", to_indented(&census)?);
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 819-823:
+    819      staged.add("api/pages/_domain-index.json", to_indented(&domain_index)?);
+    820      staged.add("api/census.json", to_indented(&census)?);
+    821      staged.add(
+    822          "api/validation-report.json",
+    823          to_indented(&report.summary())?,
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 831-835:
+    831      let context_json = to_indented(&context)?;
+    832      staged.add("context/v1.jsonld", context_json.clone());
+    833      staged.add("api/schema/context.jsonld", context_json.clone());
+    834      staged.add("ns/v2.jsonld", context_json);
+    835  
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 837-839:
+    837      staged.add(
+    838          "data/ontology.json",
+    839          to_default_ascii(&webvowl::build(profile, &corpus))?,
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 845-847:
+    845      for file in &tiers.files {
+    846          staged.add(format!("data/graph/{}", file.name), file.bytes.clone());
+    847      }
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 924-926:
+    924                  staged.add_for(
+    925                      format!("api/markdown/{name}.md"),
+    926                      text.clone(),
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 953-955:
+    953      for file in okf::bundle(profile, &corpus, vocab, &generation_id) {
+    954          staged.add(format!("okf/{}", file.path), file.content);
+    955      }
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 1022-1025:
+   1022      let root_marker = generation::Generation { artifacts, ..gen };
+   1023      staged.add("data/.generation.json", data_marker);
+   1024      staged.add(".generation.json", to_indented(&root_marker)?);
+   1025      staged.ensure_single_claims()?;
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 703-712:
+    703              let cert = crate::certificate::certify(&graph);
+    704              let (certified, classifier_n, same) = crate::certificate::parity(&cert, &reasoning);
+    705              if !same {
+    706                  return Err(CertificateParity {
+    707                      certified,
+    708                      classifier: classifier_n,
+    709                  }
+    710                  .into());
+    711              }
+    712              let generation_label = generation::generation_id(
+../ontomark/crates/ontomark-compile/src/certificate.rs @ 4b9d15df4805 lines 62-68:
+     62  #[must_use]
+     63  pub fn parity(cert: &Certificate, reasoning: &Reasoning) -> (usize, usize, bool) {
+     64      let classifier: BTreeSet<(String, String)> = reasoning.inferred.iter().cloned().collect();
+     65      let certified = cert.named_subclass_closure();
+     66      let same = certified == classifier;
+     67      (certified.len(), classifier.len(), same)
+     68  }
+../ontomark/crates/ontomark-cli/src/main.rs @ 4b9d15df4805 lines 879-884:
+    879                      // not published without its warrant (ADR-OM-009).
+    880                      if let Some(parity) = e.downcast_ref::<build::CertificateParity>() {
+    881                          eprintln!("ontomark: {parity}");
+    882                          return Ok(ExitCode::from(2));
+    883                      }
+    884                      return Err(e);
+../ontomark/docs/adr/ADR-OM-009-every-published-closure-carries-a-derivation-certificate.md @ 4b9d15df4805 lines 33-35:
+     33  1. **The engine is one crate, consumed by both producers.** `rdfs-certificate` takes triples as three N-Triples-spelled terms and depends on no graph library, so it is the same code in ontomark (MIT O
+     34  2. **`ontomark build --certificate-out <dir>` certifies the graph it publishes**, from the very `Graph` that is reasoned and serialised, before any artefact is written. The report gains `certificate` 
+     35  3. **Parity is enforced, not reported.** The certificate's named `rdfs:subClassOf` closure must equal the classifier's `inferred` set or the build is refused with `CertificateParity` (exit 2, the same
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 722-726:
+    722              );
+    723              let summary = cert
+    724                  .write(dir, &generation_label)
+    725                  .with_context(|| format!("writing the certificate to {}", dir.display()))?;
+    726              Some(CertificateReport {
+../ontomark/crates/ontomark-compile/src/build/records.rs @ 4b9d15df4805 lines 102-104:
+    102  #[must_use]
+    103  pub fn concept_records(scaffold: &Value, prose: &Value, generation: &str) -> Vec<ConceptRecord> {
+    104      let Some(classes) = scaffold["classes"].as_object() else {
+../ontomark/crates/ontomark-compile/src/build/records.rs @ 4b9d15df4805 lines 172-174:
+    172  /// than a half-embedded bundle.
+    173  pub fn embed_all(records: &mut [ConceptRecord], embedder: &dyn Embedder) -> anyhow::Result<()> {
+    174      for chunk in records.chunks_mut(BATCH) {
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 956-962:
+    956  
+    957      if let Some(embedder) = embedder {
+    958          let mut concept_records = records::concept_records(&scaffold, &prose, &generation_id);
+    959          records::embed_all(&mut concept_records, embedder)
+    960              .context("embedding the corpus for --with-rvdb")?;
+    961          staged.add(records::RECORDS_PATH, records::to_jsonl(&concept_records)?);
+    962      }
+../ontomark/crates/ontomark-compile/src/build/records.rs @ 4b9d15df4805 lines 37-39:
+     37  /// Where `--with-rvdb` writes the portable records, relative to the bundle.
+     38  pub const RECORDS_PATH: &str = "data/ontology-corpus.records.jsonl";
+     39  /// Records per embedder call.
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 960-962:
+    960              .context("embedding the corpus for --with-rvdb")?;
+    961          staged.add(records::RECORDS_PATH, records::to_jsonl(&concept_records)?);
+    962      }
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 831-833:
+    831      let context_json = to_indented(&context)?;
+    832      staged.add("context/v1.jsonld", context_json.clone());
+    833      staged.add("api/schema/context.jsonld", context_json.clone());
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 1022-1024:
+   1022      let root_marker = generation::Generation { artifacts, ..gen };
+   1023      staged.add("data/.generation.json", data_marker);
+   1024      staged.add(".generation.json", to_indented(&root_marker)?);
+../ontomark/crates/ontomark-compile/src/ir/model.rs @ 4b9d15df4805 lines 455-461:
+    455      /// `scaffold-index.json` and the class count are computed over.
+    456      pub fn public_classes(&self) -> impl Iterator<Item = &ClassRecord> {
+    457          self.records.iter().filter(|r| {
+    458              r.public && r.has_ontology && !r.iri.is_empty() && r.entity_type == EntityType::Class
+    459          })
+    460      }
+    461  
+../ontomark/crates/ontomark-compile/src/build/turtle.rs @ 4b9d15df4805 lines 233-235:
+    233          .iter()
+    234          .filter(|r| (!public_only || r.public) && r.has_ontology && !r.iri.is_empty())
+    235          .collect();
+../ontomark/crates/ontomark-compile/src/build/webvowl.rs @ 4b9d15df4805 lines 62-64:
+     62          .iter()
+     63          .filter(|r| r.public && r.has_ontology && !r.iri.is_empty())
+     64          .collect();
+../ontomark/crates/ontomark-compile/src/build/graph_tiers.rs @ 4b9d15df4805 lines 197-199:
+    197          .iter()
+    198          .filter(|r| r.public && r.has_ontology && !r.iri.is_empty())
+    199          .collect();
+../ontomark/crates/ontomark-compile/src/build/turtle.rs @ 4b9d15df4805 lines 167-173:
+    167  ///
+    168  /// When `public_only`, private pages contribute nothing — though by the time
+    169  /// `vault build` calls this the corpus has already been through
+    170  /// [`crate::ir::projection::project`], so the flag is a belt-and-braces second
+    171  /// filter rather than the boundary itself.
+    172  #[must_use]
+    173  #[allow(clippy::too_many_lines)] // One faithful port of one Python function.
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 767-769:
+    767      // built from `corpus`, so a plain record cannot reach it.
+    768      let listed = merged.as_ref().unwrap_or(&corpus);
+    769      let page_count = listed.records.len();
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 762-764:
+    762  
+    763      let class_count = corpus.public_classes().count();
+    764      // What the page API and the search index are built from: in the machine
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 768-770:
+    768      let listed = merged.as_ref().unwrap_or(&corpus);
+    769      let page_count = listed.records.len();
+    770  
+../ontomark/crates/ontomark-compile/src/build/indexes.rs @ 4b9d15df4805 lines 109-112:
+    109          let slug = record.class_slug();
+    110          if classes.contains_key(&slug) {
+    111              continue; // first definition wins
+    112          }
+../ontomark/crates/ontomark-compile/src/build/graph_tiers.rs @ 4b9d15df4805 lines 200-211:
+    200  
+    201      // The reading-unit count: DISTINCT public source pages, not OWL entities.
+    202      let pages_public = corpus
+    203          .records
+    204          .iter()
+    205          .filter(|r| r.public)
+    206          .map(|r| {
+    207              if r.page_iri.is_empty() {
+    208                  r.page_id.clone()
+    209              } else {
+    210                  r.page_iri.clone()
+    211              }
+../ontomark/crates/ontomark-compile/src/check/validate.rs @ 4b9d15df4805 lines 633-635:
+    633              Severity::Error,
+    634              "DUPLICATE_IRI",
+    635              format!(
+../ontomark/crates/ontomark-compile/src/build/mod.rs @ 4b9d15df4805 lines 371-373:
+    371      /// so a clash names both claimants.
+    372      fn add_for(
+    373          &mut self,
+
+codex
+| Panel | Verdict | Reason |
+|---|---|---|
+| ES-02.2 | CANNOT-JUDGE | No cited source lines were supplied. |
+| ES-06.3 | CANNOT-JUDGE | No source lines were supplied to assess the mechanisms. |
+| ES-09.5 | CANNOT-JUDGE | No cited source lines were supplied. |
+| ES-12.2 | CANNOT-JUDGE | Lines 29, 100 and 157 are truncated; they do not establish the complete information-parity and sealed-test claims. |
+| NF-03.4 | CANNOT-JUDGE | Several helper implementations are missing, including `needs_owner_lookup` and `gift_wrap_recipient`. The excerpts cannot establish “never for a gift wrap” or “first p tag”. |
+| NF-06.4 | WRONG | N1 says decisions stay “admin/reviewer-only”, but its cited `nip_handlers.rs:1322` says “Decisions stay admin-only 31403”. The supplied `response_admission` excerpts omit the body needed to resolve this discrepancy. |
+| NF-09.3 | CANNOT-JUDGE | `sync-fixtures.sh:4-5` does not establish copying `tests/fixtures` or writing a CHECKSUM. |
+| NF-12.2 | CANNOT-JUDGE | `signer.rs:77-79` establishes a trait, but not the claimed NIP-07, passkey and pasted-nsec implementations. The upstream signing implementation is also absent. |
+| VF-03.2 | CANNOT-JUDGE | `estate-health.yml:145-146` configures the commit identity but does not show committing or pushing; lines 107-108 show a step output, not the claimed step-summary write. |
+| VF-06.3 | CANNOT-JUDGE | The cited VERSION contents and `docs/site-verification.md` are absent. The CDP endpoint configuration alone does not establish the entire cited drift claim. |
+| DW-03.4 | HOLDS | The supplied configuration comments and deployment lines support the staged split, four coordinated locations, and fifth client mirror. |
+| OM-04.1 | WRONG | “They can differ only if two records share a slug” is contradicted by the different counting populations: `model.rs:456-460` restricts classes to `EntityType::Class`, while `mod.rs:769` counts all listed records and `graph_tiers.rs:201-210` counts distinct public pages. Differences do not require duplicate slugs. |
+
+1 HOLDS, 2 WRONG, 9 CANNOT-JUDGE.
+tokens used
+39,061
+| Panel | Verdict | Reason |
+|---|---|---|
+| ES-02.2 | CANNOT-JUDGE | No cited source lines were supplied. |
+| ES-06.3 | CANNOT-JUDGE | No source lines were supplied to assess the mechanisms. |
+| ES-09.5 | CANNOT-JUDGE | No cited source lines were supplied. |
+| ES-12.2 | CANNOT-JUDGE | Lines 29, 100 and 157 are truncated; they do not establish the complete information-parity and sealed-test claims. |
+| NF-03.4 | CANNOT-JUDGE | Several helper implementations are missing, including `needs_owner_lookup` and `gift_wrap_recipient`. The excerpts cannot establish “never for a gift wrap” or “first p tag”. |
+| NF-06.4 | WRONG | N1 says decisions stay “admin/reviewer-only”, but its cited `nip_handlers.rs:1322` says “Decisions stay admin-only 31403”. The supplied `response_admission` excerpts omit the body needed to resolve this discrepancy. |
+| NF-09.3 | CANNOT-JUDGE | `sync-fixtures.sh:4-5` does not establish copying `tests/fixtures` or writing a CHECKSUM. |
+| NF-12.2 | CANNOT-JUDGE | `signer.rs:77-79` establishes a trait, but not the claimed NIP-07, passkey and pasted-nsec implementations. The upstream signing implementation is also absent. |
+| VF-03.2 | CANNOT-JUDGE | `estate-health.yml:145-146` configures the commit identity but does not show committing or pushing; lines 107-108 show a step output, not the claimed step-summary write. |
+| VF-06.3 | CANNOT-JUDGE | The cited VERSION contents and `docs/site-verification.md` are absent. The CDP endpoint configuration alone does not establish the entire cited drift claim. |
+| DW-03.4 | HOLDS | The supplied configuration comments and deployment lines support the staged split, four coordinated locations, and fifth client mirror. |
+| OM-04.1 | WRONG | “They can differ only if two records share a slug” is contradicted by the different counting populations: `model.rs:456-460` restricts classes to `EntityType::Class`, while `mod.rs:769` counts all listed records and `graph_tiers.rs:201-210` counts distinct public pages. Differences do not require duplicate slugs. |
+
+1 HOLDS, 2 WRONG, 9 CANNOT-JUDGE.
+exit=0

@@ -13,6 +13,14 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-core/Cargo.toml
   - ../nostr-rust-forum/crates/nostr-bbs-jev/Cargo.toml
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/Cargo.toml
+  - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/Cargo.toml
+  - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/Cargo.toml
+  - ../nostr-rust-forum/crates/nostr-bbs-preview-worker/Cargo.toml
+  - ../nostr-rust-forum/crates/nostr-bbs-search-worker/Cargo.toml
+  - ../nostr-rust-forum/crates/nostr-bbs-forum-client/Cargo.toml
+  - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/Cargo.toml
+  - ../nostr-rust-forum/crates/nostr-bbs-mesh/Cargo.toml
+  - ../nostr-rust-forum/crates/nostr-bbs-poker-citizen/Cargo.toml
   - ../nostr-rust-forum/docs/BASELINE-architecture.md
   - ../nostr-rust-forum/docs/adr/ADR-2007-kit-exact-pin-beta-channel.md
   - ../nostr-rust-forum/crates/nostr-bbs-ascii/Cargo.toml
@@ -32,7 +40,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-preview-worker/wrangler.toml
   - ../nostr-rust-forum/crates/nostr-bbs-search-worker/wrangler.toml
   - ../nostr-rust-forum/.github/workflows/ci.yml
-verified_commit: 1b27f79d08537b61b3d5a5d02cac9ee5999b79ed
+verified_commit: c39f41f104b114d6a3fa29013daaf6fa58b45080
 ---
 
 ## NF-01.1 Twenty crates in four layers
@@ -58,8 +66,8 @@ flowchart TB
         SEARCH["nostr-bbs-search-worker nostr-rust-forum/Cargo.toml:29"]
     end
     subgraph clients["Leptos CSR browser clients"]
-        FC["nostr-bbs-forum-client nostr-rust-forum/Cargo.toml:32"]
-        BBS["nostr-bbs-bbs-client nostr-rust-forum/Cargo.toml:35 - served at /community/bbs/"]
+        FC["nostr-bbs-forum-client nostr-rust-forum/Cargo.toml:43"]
+        BBS["nostr-bbs-bbs-client nostr-rust-forum/Cargo.toml:46 - served at /community/bbs/"]
     end
     ZM["nostr-bbs-zone-migrate nostr-rust-forum/Cargo.toml:51 - operator CLI, native-only binary, ADR-2017 sealed-original migration"]
     PK["heads-up poker - pure engine + native house seat<br/>nostr-bbs-poker nostr-rust-forum/Cargo.toml:33<br/>nostr-bbs-poker-citizen nostr-rust-forum/Cargo.toml:36"]
@@ -71,31 +79,40 @@ flowchart TB
     POD --> CORE
     RELAY --> CORE
     SEARCH --> CORE
-    PREV --> CORE
     FC --> CORE
     BBS --> CORE
     ZM --> CORE
     PK --> CORE
     SA --> CORE
     GP --> CORE
+    RATE --> CORE
+    MESH --> CORE
     CFG --> RELAY
-    CFG --> FC
+    CFG --> BBS
+    CFG --> MESH
+    JEV --> AUTH
     JEV --> RELAY
+    JEV --> SEARCH
     RATE --> AUTH
+    RATE --> POD
     RATE --> RELAY
+    RATE --> SEARCH
+    RATE --> PREV
     ASCII --> PREV
-    ASCII --> BBS
+    ASCII --> POD
+    PK --> FC
     MESH -.->|"README.md:60 dotted, configured peer routing<br/>relay-worker depends on it nostr-bbs-relay-worker/Cargo.toml:27"| RELAY
 
     N1["resolver 2, edition 2021, rust-version 1.85 nostr-rust-forum/Cargo.toml:2 nostr-rust-forum/Cargo.toml:67"]
     N2["DIVERGENCE: the kit publishes on one beta channel but its path-dep versions are not one set - core beta.19<br/>nostr-rust-forum/Cargo.toml:188, config, mesh, rate-limit and jev beta.16 nostr-rust-forum/Cargo.toml:189-192,<br/>poker beta.15 nostr-rust-forum/Cargo.toml:194, ascii still beta.10 nostr-rust-forum/Cargo.toml:193;<br/>core declares beta.19 crates/nostr-bbs-core/Cargo.toml:3 and ascii beta.10 crates/nostr-bbs-ascii/Cargo.toml:3"]
     N3["DOC-DRIFT ADR-2007 / BASELINE known-divergence: the Cargo.toml comment above the path deps still<br/>says published to crates.io as 1.0.0-beta.3 while the tree is on beta.19 nostr-rust-forum/Cargo.toml:187"]
+    N5["Edges are direct Cargo path dependencies: preview-worker links rate-limit and ascii but NOT core<br/>crates/nostr-bbs-preview-worker/Cargo.toml:24-25; forum-client links core and poker but NOT config<br/>crates/nostr-bbs-forum-client/Cargo.toml:24 crates/nostr-bbs-forum-client/Cargo.toml:27; bbs-client links config and core<br/>but NOT ascii crates/nostr-bbs-bbs-client/Cargo.toml:26 crates/nostr-bbs-bbs-client/Cargo.toml:31, although the workspace comment<br/>says its HTML emit is consumed by the BBS client nostr-rust-forum/Cargo.toml:20-21; pod-worker links ascii<br/>crates/nostr-bbs-pod-worker/Cargo.toml:34; jev is linked by auth, relay and search crates/nostr-bbs-auth-worker/Cargo.toml:29<br/>crates/nostr-bbs-search-worker/Cargo.toml:28; mesh links core and config crates/nostr-bbs-mesh/Cargo.toml:16-17;<br/>PK reaches core through poker-citizen crates/nostr-bbs-poker-citizen/Cargo.toml:34. setup-skill edges omitted for width."]
     N4["nostr-bbs-zone-migrate is library-plus-native-binary only, so it still passes the wasm32 workspace<br/>check nostr-rust-forum/Cargo.toml:49-51; seals plaintext channel history into sealed-original<br/>envelopes, verifies, then purges the plaintext crates/nostr-bbs-zone-migrate/Cargo.toml:5"]
 ```
 
 **Drift:** the README draws the mesh as a dotted "configured peer routing" edge into the relay (`../nostr-rust-forum/README.md:60`), yet the relay-worker declares a normal path dependency on `nostr-bbs-mesh` with a `src/mesh.rs` wiring note (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/Cargo.toml:27`).
 
-**Open:** does the "room" deployment profile (ADR-2029, proposed, no implementation) or the NIP-17/NIP-171 interop work change the crate set? The README places that implementation on the unmerged `feat/upgrade-phase-0-1` branch (`../nostr-rust-forum/README.md:124`) and `docs/BASELINE-architecture.md` records the profile as "proposed, not implemented" (`../nostr-rust-forum/docs/BASELINE-architecture.md:271`).
+**Open:** does the "room" deployment profile (ADR-2029, proposed, no implementation) or the NIP-17/NIP-171 interop work change the crate set? The README places that implementation on the unmerged `feat/upgrade-phase-0-1` branch (`../nostr-rust-forum/README.md:124`) and `docs/BASELINE-architecture.md` records the profile as "proposed, not implemented" (`../nostr-rust-forum/docs/BASELINE-architecture.md:279`).
 
 ## NF-01.2 Build matrix — one target, one release profile
 
@@ -177,7 +194,7 @@ classDiagram
     note for SolidPodRs "EXTERNAL: the consumer surface is enumerated in docs/consumer-surface-map.md:14 - see the solid-pod-rs area (SP-*) and NF-04"
 ```
 
-**Drift:** the RUSTSEC-2026-0387 dependency bump is fixed on main (`1b27f79`): k256 and p256 are `0.14.0` (`../nostr-rust-forum/Cargo.toml:104-105`), solid-pod-rs is `0.5.0-alpha.18` (`../nostr-rust-forum/Cargo.toml:185`) and nostr-bbs-core is `1.0.0-beta.19` (`../nostr-rust-forum/Cargo.toml:188`), with `Cargo.lock` resolving crypto-bigint `0.7.10` and k256 `0.14.0`. Production is not fixed: the edge still runs kit `9c36b60`, which resolves crypto-bigint `0.5.5` and k256 `0.13.4`. The 0.14 line also needs a wasm32-only `getrandom` 0.4 dependency with the `wasm_js` feature (`../nostr-rust-forum/crates/nostr-bbs-core/Cargo.toml:60`).
+**Drift:** the RUSTSEC-2026-0387 dependency bump is fixed on main (`1b27f79`): k256 and p256 are `0.14.0` (`../nostr-rust-forum/Cargo.toml:104-105`), solid-pod-rs is `0.5.0-alpha.18` (`../nostr-rust-forum/Cargo.toml:185`) and nostr-bbs-core is `1.0.0-beta.19` (`../nostr-rust-forum/Cargo.toml:188`), with `Cargo.lock` resolving crypto-bigint `0.7.10` and k256 `0.14.0`. Whether production is fixed is a deployment fact this source tracing cannot check; the earlier record that the edge still runs kit `9c36b60` (crypto-bigint `0.5.5`, k256 `0.13.4`) is carried, not re-verified. The 0.14 line also needs a wasm32-only `getrandom` 0.4 dependency with the `wasm_js` feature (`../nostr-rust-forum/crates/nostr-bbs-core/Cargo.toml:60`).
 
 ## NF-01.5 Upstream `nostr` absorption — canary-first, nothing deleted
 
@@ -231,7 +248,7 @@ flowchart LR
     AGENT -->|"kinds 31400-31402, 31404, 31405"| RELAYW
     AUTHW -->|"agent_registry + whitelist writes into the relay D1"| RELAYW
 
-    N1["The relay is the ONLY access boundary that matters - the client renders what the config describes,<br/>the relay enforces access README.md:70, and TOML, bindings and injected config must agree - a contract to check, not a guarantee README.md:72. See NF-03 (deny-by-default) and NF-08.2"]
+    N1["The relay is the ONLY access boundary that matters - the client renders what the config describes,<br/>the relay enforces access, and TOML, bindings and injected config must agree - a contract to check, not a guarantee README.md:70. See NF-03 (deny-by-default) and NF-08.2"]
     N2["EXTERNAL: agentbox publishes control panels into this relay and reads back the signed decision -<br/>see AB-13 and AB-14; the estate view is ES-05"]
-    N3["EXTERNAL: VisionClaw is the single live consumer of the governance surface today<br/>(the documented estate consumer is the ontology-review workflow; universal use is not established) README.md:120 - see VC-24"]
+    N3["EXTERNAL: the README names VisionClaw's ontology-review workflow as the documented estate consumer of the<br/>governance surface and says universal production use is not established README.md:120 - see VC-24"]
 ```

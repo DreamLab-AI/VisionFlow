@@ -21,7 +21,7 @@ sources:
   - ../dreamlab-ai-website/scripts/seed/provision-website-info.mjs
   - ../dreamlab-ai-website/forum-config/dreamlab.toml
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs
-verified_commit: {dreamlab-ai-website: a67cb2a8d474f4ba2e79bdbf55fad2e87bfd7e98, nostr-rust-forum: 9c36b6032640c89879ae52fe25da99493979a0b6}
+verified_commit: {dreamlab-ai-website: 0e1572801d03a1af6d8bc8861f928da087d69eed, nostr-rust-forum: c39f41f104b114d6a3fa29013daaf6fa58b45080}
 ---
 
 ## DW-04.1 Identity is raw-hex Schnorr, not a DID document
@@ -46,7 +46,7 @@ sequenceDiagram
     participant FAB as AIChatFab<br/>src/components/AIChatFab.tsx:445 sendQuestion
     participant DM as DmSession<br/>src/lib/nostr.ts:486
     participant W as nip17.wrapEvent<br/>src/lib/nostr.ts:196
-    participant R as VITE_RELAY_URL<br/>publishGiftWrap, src/lib/nostr.ts:225
+    participant R as VITE_RELAY_URL<br/>publishGiftWrap, src/lib/nostr.ts:226
     participant OPEN as open relays<br/>VITE_REPLY_RELAYS: relay.damus.io, relay.primal.net
     U->>FAB: submits question
     FAB->>FAB: encodeQuestion({requestId, question, tier, identityHint: pubkey})<br/>AIChatFab.tsx:435-441
@@ -60,7 +60,7 @@ sequenceDiagram
     OPEN--)FAB: reply readable only from open relays<br/>the agent (junkiejarvis) also publishes to
 ```
 - INVARIANT (`IDENTITY-zones.md:182-183`): the Talk-to-AI reply-relay set must remain a subset of the agent's own publish fan-out, or replies are never seen.
-- `AIChatFab.tsx`'s own closeout comment flags what is NOT yet built: "the DM transport carries no protocol-level correlation" for request/reply matching — a late answer to a timed-out question can otherwise read as the answer to whatever was asked most recently (`ChatMessage.lateForQuestion`, `AIChatFab.tsx:9-19`); the estate closeout note (`IDENTITY-zones.md:208`) calls this out explicitly: "Preserve sender verification while adding request/reply correlation and verifying real agent fan-out."
+- **Drift (corrected):** an earlier reading said request/reply correlation was not yet built. The DM transport still carries no protocol-level correlation (the agent's reply rumor has no `e` tag), but the client now mints its own request id per question and binds replies to it, so a late or out-of-order reply resolves the turn it names or none (`AIChatFab.tsx:51-56`; `requestId` at `AIChatFab.tsx:435-441`); `ChatMessage.lateForQuestion` labels a late answer (`AIChatFab.tsx:9-19`). The estate closeout note still asks to "Preserve sender verification while adding request/reply correlation and verifying real agent fan-out" (`IDENTITY-zones.md:208`); agent-side correlation is outside this repo.
 
 ## DW-04.4 NIP-42 AUTH — lazy challenge-response on publish
 ```mermaid
@@ -82,7 +82,7 @@ sequenceDiagram
     C-->>C: PublishResult { ok, message } — never rejects,<br/>resolves false on transport failure, OK-false, or timeout
 ```
 - The challenge is answered lazily — only after a rejection — "so allowlist-mode relays keep the zero-round-trip fast path" (`src/lib/nostr.ts:260-263` comment).
-- `authSk` is minted per submission and discarded, exactly as for the wrap signature — anonymity is preserved even though the publish now requires proof of key possession (`src/lib/nostr.ts:213-216`).
+- `authSk` is minted per submission and discarded, exactly as for the wrap signature — anonymity is preserved even though the publish now requires proof of key possession (`src/lib/nostr.ts:207-213`).
 
 ## DW-04.5 Anonymous website ingress — threat register
 ```mermaid
@@ -92,7 +92,7 @@ flowchart TB
     A["Write-auth mode gate, then gift-wrap admission<br/>configured ingress or whitelisted recipient"]
     %% Source: ../dreamlab-ai-website/docs/security/SECURITY_OVERVIEW.md:282
     A --> B["Operator docs flag spam risk<br/>IP and structural limits, client validation"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2468
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2453-2457
     A --> C["Deletion supports author or privileged caller<br/>no gift-wrap recipient-only path here"]
     %% Source: ../dreamlab-ai-website/docs/security/SECURITY_OVERVIEW.md:284
     A --> D["Docs flag model-cost abuse<br/>client throttling and operator kill switch"]
@@ -112,7 +112,7 @@ flowchart TB
     RESOLVE --> BOOT["first-user-is-admin bootstrap<br/>GET /api/setup-status reports needsSetup<br/>when no is_admin=1 row exists<br/>SECURITY_OVERVIEW.md:259"]
 ```
 - Known gap: the search-worker honours only its own `ADMIN_PUBKEYS` `[vars]` value — D1-promoted admins are not visible to it (`SECURITY_OVERVIEW.md:272`, "see the forum-flow cartography Gap 2"); its own separate copy is `search-worker.wrangler.toml:46` (see DW-03.10).
-- `workers-deploy.yml` blocks the auth-worker deploy if the `ADMIN_PUBKEYS` secret is unset (cross-reference DW-03.7's `validate_required_secrets` gate).
+- `workers-deploy.yml` blocks the auth-worker deploy if the `ADMIN_PUBKEYS` secret is unset; the block is that workflow's bash step, not the Rust `validate_required_secrets`, which no workflow calls (see DW-03.8).
 
 ## DW-04.8 Rate/size limits relevant to the identity surface
 ```mermaid

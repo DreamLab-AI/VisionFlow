@@ -6,7 +6,7 @@ governing:
   - docs/BASELINE-visionflow.md
   - docs/README.md
   - docs/architecture/repository-map.md
-adrs: [ADR-2001, ADR-2002, ADR-2005, ADR-2006, ADR-2007, ADR-2010, ADR-2011, ADR-2012, ADR-2013, ADR-2018, ADR-2019, ADR-2020]
+adrs: [ADR-2001, ADR-2002, ADR-2005, ADR-2006, ADR-2007, ADR-2010, ADR-2011, ADR-2012, ADR-2013, ADR-2018, ADR-2019, ADR-2020, ADR-2021]
 sources:
   - ./README.md
   - docs/README.md
@@ -27,6 +27,10 @@ sources:
   - docs/adr/ADR-2011-task-properties-set-the-boundary-not-agent-self-tiering.md
   - docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md
   - docs/adr/ADR-2013-sovereign-corpus-is-ecosystem-canon.md
+  - docs/adr/ADR-2019-forge-and-mirror-on-in-shipped-pods.md
+  - docs/adr/ADR-2020-pele-renders-every-estate-diagram.md
+  - docs/adr/ADR-2021-closed-loop-agent-operations-and-18-month-roadmap.md
+  - docs/business/roadmap-2026-11-to-2028-04.md
   - docs/archive/adr/README.md
   - scripts/adr-index-gen.cjs
   - .github/workflows/adr-index.yml
@@ -58,7 +62,7 @@ sources:
   - docs/engineering/README.md
   - docs/engineering/ADR-004-harness-engineering-framework.md
   - docs/engineering/ADR-005-mandate-at-grant-governance.md
-verified_commit: 4d361b58ce2b3ee17e1570361eaf78270b630012
+verified_commit: 5f8b1da92ce5d9e6b32a0bd90ec3630c66619083
 ---
 
 ## VF-01.2 Document taxonomy — which class a file belongs to, and who owns its truth
@@ -72,12 +76,12 @@ flowchart LR
 
     subgraph LIVING["NORMATIVE — the living decision surface"]
         BASE["docs/BASELINE-visionflow.md<br/>doc_id VF-BASELINE, version 0.5.4<br/>'Invariants' section IS the compliance surface<br/>BASELINE-visionflow.md:301"]:::norm
-        LED["docs/adr/ — thin ledger, 20 records ADR-2001..2020<br/>generated index + hand-written PREAMBLE + TEMPLATE<br/>docs/adr/README.md:29"]:::norm
+        LED["docs/adr/ — thin ledger, 21 records ADR-2001..2021<br/>generated index + hand-written PREAMBLE + TEMPLATE<br/>docs/adr/README.md:29"]:::norm
     end
 
     subgraph SPECS["REQUIREMENT AND DESIGN SET"]
-        PRD["docs/PRD-*.md — 7 records<br/>website, ecosystem-alignment, judgment-broker,<br/>gap-close-sprint, gap-close-canon, augmentation-conditions,<br/>sovereign-corpus (added with ADR-2013) — docs/README.md:32,34"]:::spec
-        DDD["docs/DDD-*.md — 6 bounded-context records<br/>website, ecosystem-alignment, judgment-broker,<br/>gap-close, gap-close-canon, augmentation-conditions<br/>docs/README.md:33"]:::spec
+        PRD["docs/PRD-*.md — 7 records<br/>website, ecosystem-alignment, judgment-broker,<br/>gap-close-sprint, gap-close-canon, augmentation-conditions,<br/>sovereign-corpus (added with ADR-2013) — docs/README.md:33,35"]:::spec
+        DDD["docs/DDD-*.md — 6 bounded-context records<br/>website, ecosystem-alignment, judgment-broker,<br/>gap-close, gap-close-canon, augmentation-conditions<br/>docs/README.md:34"]:::spec
         ARCH["docs/architecture/ — compatibility-matrix.md:10,<br/>repository-map.md:8, licensing.md:1,<br/>pod-tier-matrix.md:1, status-reconciliation.md:1,<br/>adr-status-contract.md:1 — the three-axis evidence contract"]:::spec
         PROTO["docs/protocol/identity-spine.md:6<br/>the shared did:nostr contract, plus mesh-smoke-test.md<br/>and the cross-mesh allocation table event-kind-registry.md:8"]:::spec
     end
@@ -91,22 +95,25 @@ flowchart LR
 
     subgraph WORDS["VOCABULARY AND DIRECTION"]
         TERM["docs/terminology.md:19<br/>canon for ontology / knowledge graph / reasoning / grounding"]:::other
-        ROAD["docs/roadmap.md:7<br/>a pointer, not a second plan — ADR-2007 owns sequencing"]:::other
+        ROAD["docs/roadmap.md:11<br/>a pointer, not a second plan — still names ADR-2007<br/>as owner of sequencing; see the Drift below"]:::other
+        BIZ["docs/business/ — the 18-month business roadmap,<br/>proposed with ADR-2021 — roadmap.md:3, docs/README.md:29"]:::other
         MAP["docs/ecosystem-map.md:3<br/>sibling synthesis + gap register"]:::other
     end
 
     subgraph FROZEN["FROZEN — rationale only, never authority"]
         ARCHV["docs/archive/adr/ — ADR-001..007, frozen 2026-08-31<br/>archive/adr/README.md:3 'Do not add or edit records here'"]:::frozen
-        ENG["docs/engineering/ — its OWN ADR-004 / ADR-005 sequence<br/>engineering/README.md:3 — a distinct namespace,<br/>explicitly out of the 2026-08-31 cut"]:::frozen
+        ENG["docs/engineering/ — its OWN ADR-004 / ADR-005 sequence<br/>engineering/README.md:3 — a distinct namespace,<br/>out of scope of the 2026-08-31 cut — BASELINE-visionflow.md:272-273"]:::frozen
     end
 
     BASE --> LED
     LED -.->|"each record names its governing doc in frontmatter 'domain'"| BASE
     ARCHV -.->|"citable as evidence and history"| BASE
     ENG -.->|"number collision with archived canon ADR-004/005"| ARCHV
-    EMPTY["docs/governance/ exists on disk and is EMPTY<br/>no governed content ships from it"]:::frozen
+    EMPTY["no docs/governance/ in the tree at this revision<br/>no governed content ships from it"]:::frozen
     WORDS -.-> EMPTY
 ```
+
+**Drift (roadmap vs ADR-2007):** the roadmap still says ADR-2007 and the closeout programme "now own estate-wide sequencing" (`docs/roadmap.md:11`). ADR-2007 itself records that coordinating role as overtaken by the 2026-09-21 planning cycle and narrows the decision to its evidence rule (`docs/adr/ADR-2007-estate-closeout-evidence-roadmap.md:26`). The roadmap's newest entry now points at the business roadmap that ADR-2021 proposes (`docs/roadmap.md:3`).
 
 ## VF-01.3 Lookup and authority order — how a reader resolves a claim
 ```mermaid
@@ -148,24 +155,27 @@ stateDiagram-v2
         staged --> live
     }
     note right of DEC
-      Enum enforced at adr-index-gen.cjs:31
+      Enum enforced at adr-index-gen.cjs:43
       A value outside the set is a hard error,
-      not a warning: adr-index-gen.cjs:122
+      not a warning: adr-index-gen.cjs:134
     end note
     note right of IMP
-      adr-index-gen.cjs:32
-      ADR-2005 is 'partial' on purpose: the
-      mechanism is live but two of four axes
-      are unenforced
-      ADR-2005-drift-counter-allowlist-substrate-sourced.md:46
+      adr-index-gen.cjs:44
+      ADR-2005 frontmatter reads complete since
+      2026-09-05 (ADR-2007-estate-closeout-evidence-roadmap.md:58-59),
+      but its Consequences text still says partial
+      ADR-2005-drift-counter-allowlist-substrate-sourced.md:46-47
     end note
     note right of ACT
-      adr-index-gen.cjs:33
-      ADR-2007 sits accepted/partial/live
-      since the 2026-10-02 acceptance
+      adr-index-gen.cjs:45
+      ADR-2007 sits accepted/complete/live and
+      carries evidence_class and acceptance_boundary
       ADR-2007-estate-closeout-evidence-roadmap.md:5-7
+      ADR-2007-estate-closeout-evidence-roadmap.md:14-15
     end note
 ```
+
+**Drift (ADR-2005 frontmatter vs body):** the record's frontmatter and the generated index read `accepted / complete / live` (`docs/adr/ADR-2005-drift-counter-allowlist-substrate-sourced.md:6`, `docs/adr/README.md:37`), after the 2026-09-05 acceptance pass moved it from partial to complete (`docs/adr/ADR-2007-estate-closeout-evidence-roadmap.md:58-59`). Its Consequences paragraph was never amended and still says `implementation_status` is partial because two of four axes are not policed (`docs/adr/ADR-2005-drift-counter-allowlist-substrate-sourced.md:46-47`).
 
 ## VF-01.6 What adr-index-gen.cjs walks, validates and emits
 ```mermaid
@@ -174,32 +184,33 @@ flowchart TB
     classDef check fill:#f6efd8,stroke:#8a7020,color:#111
     classDef out fill:#e6f0dc,stroke:#4a7a2a,color:#111
 
-    CLI["node scripts/adr-index-gen.cjs docs/adr [--check]<br/>adr-index-gen.cjs:88"]:::io
-    CLI --> WALK["walk(): recursive *.md,<br/>SKIPPING README.md and PREAMBLE.md<br/>adr-index-gen.cjs:78"]:::io
-    WALK --> FM["parseFrontmatter(): minimal YAML —<br/>flat scalars plus inline [a, b] lists only<br/>adr-index-gen.cjs:45"]:::io
+    CLI["node scripts/adr-index-gen.cjs docs/adr [--check]<br/>adr-index-gen.cjs:100"]:::io
+    CLI --> WALK["walk(): recursive *.md,<br/>SKIPPING README.md and PREAMBLE.md<br/>adr-index-gen.cjs:84 / :91-92"]:::io
+    WALK --> FM["parseFrontmatter(): minimal YAML —<br/>flat scalars plus inline [a, b] lists only<br/>adr-index-gen.cjs:57"]:::io
 
-    FM --> V1["required fields present — 12 of them<br/>adr-index-gen.cjs:24 / :107"]:::check
-    V1 --> V2["required scalars non-empty<br/>list fields supersedes/superseded_by exempt<br/>adr-index-gen.cjs:117"]:::check
-    V2 --> V3["enum membership: decision / implementation /<br/>activation / repo where repo == visionflow<br/>adr-index-gen.cjs:34 / :122"]:::check
-    V3 --> V4["supersedes and superseded_by must be lists<br/>adr-index-gen.cjs:128"]:::check
-    V4 --> V5["unique ids across the tree<br/>adr-index-gen.cjs:138"]:::check
-    V5 --> V6["reciprocity walk — warnings only: 'X' not present in tree<br/>adr-index-gen.cjs:144, or back edge missing<br/>adr-index-gen.cjs:146 — a one-sided supersession still<br/>passes the gate"]:::check
+    FM --> V1["required fields present — 12 of them<br/>adr-index-gen.cjs:28 / :119"]:::check
+    V1 --> V2["required scalars non-empty<br/>list fields supersedes/superseded_by exempt<br/>adr-index-gen.cjs:127-128"]:::check
+    V2 --> V3["enum membership: decision / implementation /<br/>activation / repo where repo == visionflow<br/>adr-index-gen.cjs:42 / :134"]:::check
+    V3 --> V7["evidence gate (ADR-2007): records dated on or after<br/>2026-10-31 must carry evidence_class and<br/>acceptance_boundary — adr-index-gen.cjs:39 / :139-143;<br/>evidence_class is validated wherever present,<br/>as + joined members of five classes — adr-index-gen.cjs:40 / :146-150"]:::check
+    V7 --> V4["supersedes and superseded_by must be lists<br/>adr-index-gen.cjs:156"]:::check
+    V4 --> V5["unique ids across the tree<br/>adr-index-gen.cjs:166"]:::check
+    V5 --> V6["reciprocity walk, both directions — warnings only:<br/>'X' not present in tree, adr-index-gen.cjs:172 / :179,<br/>or back edge missing, adr-index-gen.cjs:174 / :181 —<br/>a one-sided supersession still passes the gate"]:::check
 
-    DIVERGE["DIVERGENCE: today the whole ledger is<br/>supersedes: [] / superseded_by: [] — docs/adr/README.md:31<br/>opens a table whose every row shows an em-dash, so the<br/>warn-only edge case is untested in practice. ADR-2012 and<br/>ADR-2013 each retire prior canon claims in prose rather<br/>than by supersession — ADR-2012-sidestr-settlement-is-ecosystem-canon.md:8,<br/>ADR-2013-sovereign-corpus-is-ecosystem-canon.md:8"]:::check
-    V6 -.-> DIVERGE
+    EDGE["the ledger's one supersession edge today:<br/>ADR-2020 supersedes ADR-2004, and both sides are recorded —<br/>ADR-2020-pele-renders-every-estate-diagram.md:8, docs/adr/README.md:36 / :52;<br/>ADR-2012 and ADR-2013 still retire prior canon claims in prose<br/>with supersedes: [] — ADR-2012-sidestr-settlement-is-ecosystem-canon.md:8,<br/>ADR-2013-sovereign-corpus-is-ecosystem-canon.md:8"]:::check
+    V6 -.-> EDGE
 
-    V6 -->|"errors > 0"| FAIL["exit 1, README NOT generated<br/>adr-index-gen.cjs:158"]
-    V6 -->|"--check and 0 errors"| CHECKOK["print 'ok: N ADR(s) valid', write nothing<br/>adr-index-gen.cjs:188"]:::out
-    V6 -->|"no --check and 0 errors"| EMIT["emit docs/adr/README.md<br/>adr-index-gen.cjs:190"]:::out
+    V6 -->|"errors > 0"| FAIL["exit 1, README NOT generated<br/>adr-index-gen.cjs:186"]
+    V6 -->|"--check and 0 errors"| CHECKOK["print 'ok: N ADR(s) valid', write nothing<br/>adr-index-gen.cjs:216"]:::out
+    V6 -->|"no --check and 0 errors"| EMIT["emit docs/adr/README.md<br/>adr-index-gen.cjs:218"]:::out
 
     EMIT --> P1["header comment: GENERATED, DO NOT EDIT BY HAND<br/>docs/adr/README.md:1"]:::out
-    EMIT --> P2["PREAMBLE.md inlined verbatim so the routing prose<br/>survives regeneration<br/>adr-index-gen.cjs:174"]:::out
-    EMIT --> P3["record count line + 10-column table,<br/>rows sorted numerically by id<br/>adr-index-gen.cjs:164 / :178"]:::out
+    EMIT --> P2["PREAMBLE.md inlined verbatim so the routing prose<br/>survives regeneration<br/>adr-index-gen.cjs:202-203"]:::out
+    EMIT --> P3["record count line + 10-column table,<br/>rows sorted numerically by id<br/>adr-index-gen.cjs:192 / :205-206"]:::out
 
-    EXEMPT["TEMPLATE.md is id ADR-NNNN: it must carry every key<br/>but is exempt from value-level checks and from the index<br/>adr-index-gen.cjs:39 / :111"]:::check
+    EXEMPT["TEMPLATE.md is id ADR-NNNN: it must carry every key<br/>but is exempt from value-level checks, the evidence gate<br/>and the index — adr-index-gen.cjs:51 / :123"]:::check
     V1 -.-> EXEMPT
 
-    OPT["Two fields ride outside the 12 required and outside the<br/>generator's checks entirely: domain — which governing doc<br/>this record amends — ADR-2002-static-copy-only-website.md:14,<br/>and lineage — which legacy record it distils or reverses<br/>ADR-2002-static-copy-only-website.md:15"]:::io
+    OPT["Two fields ride outside the generator's checks entirely:<br/>domain — which governing doc this record amends —<br/>ADR-2002-static-copy-only-website.md:14,<br/>and lineage — which legacy record it distils or reverses<br/>ADR-2002-static-copy-only-website.md:15"]:::io
     V1 -.-> OPT
 ```
 
@@ -221,15 +232,18 @@ sequenceDiagram
     Note over GEN: "validates frontmatter, then exits 1 on any invalid record<br/>adr-index.yml:44"
     GEN-->>NODE: exit 0 or 1
     NODE->>RAT: "step 2 — adr-ratchet.sh docs/adr BASE github.sha (adr-index.yml:49)"
-    Note over RAT: "BASE is the PR base sha, else the push's before sha<br/>adr-index.yml:48 — an all-zeros or unknown base is skipped, adr-ratchet.sh:38"
-    RAT->>RAT: "classify each ADR file in the git range (adr-ratchet.sh:57)"
-    Note over RAT: "added and still proposed counts as backlog (adr-ratchet.sh:62),<br/>added already decided is reported, not counted (adr-ratchet.sh:61),<br/>an ADR-Ratchet commit trailer exempts the record it names (adr-ratchet.sh:52),<br/>a modified record that left proposed counts as closed (adr-ratchet.sh:63)"
-    alt added undecided is at most closed from proposed
-        RAT-->>NODE: "ADR-RATCHET-OK, exit 0 (adr-ratchet.sh:74)"
+    Note over RAT: "BASE is the PR base sha, else the push's before sha<br/>adr-index.yml:48 — an all-zeros or unknown base is skipped, adr-ratchet.sh:46"
+    RAT->>RAT: "backlog rule: classify each ADR file in the git range (adr-ratchet.sh:69)"
+    Note over RAT: "added and still proposed counts as backlog (adr-ratchet.sh:74),<br/>added already decided is reported, not counted (adr-ratchet.sh:73),<br/>an ADR-Ratchet commit trailer exempts the record it names (adr-ratchet.sh:64),<br/>a modified record that left proposed counts as closed (adr-ratchet.sh:75)"
+    RAT->>RAT: "evidence gate (ADR-2007): a record that becomes complete or live in the range<br/>must carry evidence_class and acceptance_boundary at head (adr-ratchet.sh:92-94)"
+    alt a closing record lacks either field
+        RAT-->>GH: "::error file=... then ADR-RATCHET-FAIL, exit 1 (adr-ratchet.sh:109-111)"
+    else added undecided is at most closed from proposed
+        RAT-->>NODE: "ADR-RATCHET-OK, exit 0 (adr-ratchet.sh:115-116)"
     else more added than closed, before the rule's end date
-        RAT-->>GH: "::error:: then ADR-RATCHET-FAIL, exit 1 (adr-ratchet.sh:83)"
+        RAT-->>GH: "::error:: then ADR-RATCHET-FAIL, exit 1 (adr-ratchet.sh:123-125)"
     end
-    Note over RAT: "the rule self-expires: ADR_RATCHET_UNTIL defaults to 2026-10-20 (adr-ratchet.sh:36),<br/>after which a failing count is reported and passes (adr-ratchet.sh:78)"
+    Note over RAT: "the backlog rule self-expires: ADR_RATCHET_UNTIL defaults to 2026-10-20 (adr-ratchet.sh:44),<br/>after which a failing count is reported and passes (adr-ratchet.sh:118-121),<br/>the evidence gate is not tied to that date (adr-ratchet.sh:31)"
     NODE->>GEN: "step 3 — regenerate WITHOUT --check"
     GEN->>IDX: rewrite the index in the working tree
     NODE->>IDX: "git diff --quiet -- docs/adr/README.md"
@@ -240,10 +254,12 @@ sequenceDiagram
         IDX-->>GH: green
     end
     Note over PR,IDX: "INVARIANT: the index is a build artefact — never hand-edited.<br/>Prose changes go in PREAMBLE.md, which is inlined verbatim.<br/>docs/adr/README.md:1"
-    Note over PR,IDX: "DIVERGENCE: the BASELINE change process (BASELINE-visionflow.md:349-354)<br/>also requires updating the governing doc IN THE SAME CHANGE as any new<br/>ADR, but nothing in this gate enforces that half — adr-index.yml checks<br/>frontmatter validity, the proposed-backlog count and index freshness.<br/>The BASELINE coupling is a convention, not a gate."
+    Note over PR,IDX: "DIVERGENCE: the BASELINE change process (BASELINE-visionflow.md:349-354)<br/>also requires updating the governing doc IN THE SAME CHANGE as any new<br/>ADR, but nothing in this gate enforces that half — adr-index.yml checks<br/>frontmatter validity, the ratchet's two rules and index freshness.<br/>The BASELINE coupling is a convention, not a gate."
 ```
 
-## VF-01.10 The thirteen ledger records — domain, lineage and what each forecloses
+**Debt (expired backlog rule):** `ADR_RATCHET_UNTIL` defaults to 2026-10-20 (`scripts/adr-ratchet.sh:44`) and the workflow does not override it (`.github/workflows/adr-index.yml:47-49`), so since 2026-10-21 the backlog half only reports. The step is still named "a new proposal must close a proposed one" (`.github/workflows/adr-index.yml:46`). ADR-2021 landed `proposed` on 2026-10-30 (`docs/adr/ADR-2021-closed-loop-agent-operations-and-18-month-roadmap.md:4-5`) under the reported-only rule. Only the evidence gate still blocks.
+
+## VF-01.10 The first thirteen ledger records — domain, lineage and what each forecloses
 ```mermaid
 flowchart TB
     classDef live fill:#e6f0dc,stroke:#4a7a2a,color:#111
@@ -255,9 +271,9 @@ flowchart TB
     A2["ADR-2002 copy-only static website<br/>reverses legacy ADR-001 D1/D3 Rust+WASM<br/>ADR-2002-static-copy-only-website.md:30"]:::live
     A3["ADR-2003 Pages artifact deploy<br/>reverses legacy ADR-001 D4 gh-pages branch push<br/>ADR-2003-pages-artifact-deploy.md:29"]:::live
     A4["ADR-2004 committed diagram baseline, vendored Mermaid<br/>diverges from legacy ADR-005 D3<br/>ADR-2004-diagram-baseline-vendored-render-gate.md:30"]:::live
-    A5["ADR-2005 drift counter, allowlist-anchored, fail-open per axis<br/>implementation_status PARTIAL — 2 of 4 axes unenforced<br/>ADR-2005-drift-counter-allowlist-substrate-sourced.md:30"]:::part
+    A5["ADR-2005 drift counter, allowlist-anchored, fail-open per axis<br/>accepted / complete / live in frontmatter; body still says partial<br/>ADR-2005-drift-counter-allowlist-substrate-sourced.md:30"]:::live
     A6["ADR-2006 canon-only — cross-repo view, never substrate truth<br/>makes BASELINE Invariant 4 a standing constraint<br/>ADR-2006-canon-owns-crossrepo-view-not-implementation.md:37"]:::live
-    A7["ADR-2007 estate closeout evidence roadmap<br/>accepted / partial / live — narrowed to its evidence rule<br/>(owner decision 2026-10-02); the coordinating-roadmap half<br/>is overtaken by the planning cycle — ADR-2007-estate-closeout-evidence-roadmap.md:24"]:::part
+    A7["ADR-2007 estate closeout evidence roadmap<br/>accepted / complete / live — narrowed to its evidence rule<br/>(owner decision 2026-10-02); the coordinating-roadmap half<br/>is overtaken by the planning cycle — ADR-2007-estate-closeout-evidence-roadmap.md:26"]:::live
     A8["ADR-2008 estate health collected by CI, read by the dream cycle<br/>extends ADR-2006 — see VF-03<br/>ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md:34"]:::live
     A9["ADR-2009 webgl-mesh deep is sidecar-only<br/>applies the ADR-2008 pattern, parks a rotation slot — see VF-04<br/>ADR-2009-webgl-mesh-deep-is-sidecar-only.md:36"]:::live
     A10["ADR-2010 the six augmentation conditions are the canon's audit lens<br/>accepted / complete / staged — extends ADR-2006 by giving<br/>the cross-repo view a rubric — see VF-01.13 and VF-05.13<br/>ADR-2010-augmentation-conditions-are-the-canon-audit-lens.md:26"]:::live
@@ -281,7 +297,7 @@ flowchart TB
     BASE --- A13
 ```
 
-**Invariant:** the ledger is a thin amendment layer over one governing document, and every record still names `BASELINE-visionflow.md` as its `domain` (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:14`).
+**Drift (the `domain` field is not universal):** the ledger is meant to be a thin amendment layer over one governing document, and eighteen of the twenty-one records name `BASELINE-visionflow.md` as their `domain` (for example `docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:14`). ADR-2001, ADR-2007 and ADR-2020 carry no `domain` key at all (`docs/adr/ADR-2001-corpus-consolidation.md:1-14`, `docs/adr/ADR-2007-estate-closeout-evidence-roadmap.md:1-16`, `docs/adr/ADR-2020-pele-renders-every-estate-diagram.md:1-16`). The generator never checks the field (VF-01.6), so nothing flags the gap. Records ADR-2014 to ADR-2021 are outside this panel; their statuses are in the index at `docs/adr/README.md:46-53`.
 
 **Open:** ADR-2012 withdraws three published claims in prose while leaving `supersedes: []` empty (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:8`); nothing states how a retirement that is not a supersession is represented in the generated index.
 
@@ -304,7 +320,7 @@ flowchart LR
     VF -.-> N5["MAY NOT read a crate release or oracle pass as an estate feature —<br/>source, publication and activation are separate sidestr claims;<br/>activation needs the owning substrate's deployment receipt<br/>BASELINE-visionflow.md:319-321"]:::mayn
     VF --> M5["MAY own a grading rubric over the substrates' own code —<br/>the six augmentation conditions, each cell cited to file:line<br/>ADR-2010-augmentation-conditions-are-the-canon-audit-lens.md:28"]:::may
 
-    EXT["EXTERNAL: the substrates own their own implementation truth —<br/>VisionClaw VC-01..VC-37, agentbox AB-01..AB-30,<br/>solid-pod-rs SP-nn, nostr-rust-forum NF-nn,<br/>dreamlab-ai-website DW-nn, knowledgeGraph KG-nn,<br/>vowl-wasm VW-nn, visionGraph VG-nn, sidestr-rs SR-nn,<br/>estate ES-01..ES-10"]
+    EXT["EXTERNAL: the substrates own their own implementation truth —<br/>VisionClaw VC-nn, agentbox AB-nn,<br/>solid-pod-rs SP-nn, nostr-rust-forum NF-nn,<br/>dreamlab-ai-website DW-nn, knowledgeGraph KG-nn,<br/>vowl-wasm VW-nn, visionGraph VG-nn, sidestr-rs SR-nn,<br/>estate ES-nn"]
     N2 -.-> EXT
 ```
 
@@ -316,7 +332,7 @@ flowchart TB
 
     SRC["Ground truth: website/build.sh is copy-only<br/>ADR-2002-static-copy-only-website.md:30"]:::settled
 
-    D1["DRIFT: BASELINE-visionflow.md:238-246 still records two README sentences ('The site is a Rust/WASM build' at the old line 192,<br/>'wasm-pack builds both WASM crates' at the old line 196) as open, but the README<br/>at this stamp is 164 lines, says static HTML, CSS and JavaScript and carries neither — ./README.md:82"]:::drift
+    D1["DRIFT: BASELINE-visionflow.md:238-246 still records two README sentences ('The site is a Rust/WASM build' at the old line 192,<br/>'wasm-pack builds both WASM crates' at the old line 196) as open, but the README<br/>at this stamp is 163 lines, says static HTML, CSS and JavaScript and carries neither — ./README.md:82"]:::drift
     D2["DOC-DRIFT: site-verification.md:10 'builds both WASM crates'<br/>and site-verification.md:17 'wasm-pack release builds complete'"]:::drift
     D3["DOC-DRIFT: PRD-website.md:124 still specifies two required<br/>WASM modules, mesh-hero and particle-field,<br/>with PRD-website.md:132 a 300 KB gzip WASM budget"]:::drift
     SRC -.->|"contradicted by"| D1
@@ -333,6 +349,8 @@ flowchart TB
 
     INV["INVARIANT: BASELINE-visionflow.md:6 pins the document's own<br/>verified_commit; each dated subsection instead carries the commit<br/>at which ITS facts were last checked (ADR-2008 subsection: pending<br/>vs c205575, BASELINE-visionflow.md:208; ADR-2010/2011 subsection:<br/>03db671, BASELINE-visionflow.md:234) — per the change process<br/>(BASELINE-visionflow.md:349-354) this is intended per-section staging,<br/>not undetected drift, provided every subsection is re-recorded when its<br/>own facts change"]:::settled
 ```
+
+**Drift (BASELINE subsections lag the ledger):** the INVARIANT above holds only if every subsection is re-recorded when its own facts change, and at this stamp four have not been. BASELINE gives ADR-2010 as partial/staged and ADR-2011 as none/inactive (`docs/BASELINE-visionflow.md:229-233`), while both records read complete/staged (`docs/adr/README.md:42-43`). It calls ADR-2014 to ADR-2016 proposed, unimplemented and inactive (`docs/BASELINE-visionflow.md:368`), while the index shows ADR-2014 and ADR-2016 accepted/partial/staged (`docs/adr/README.md:46`, `docs/adr/README.md:48`). It says ADR-2018 and ADR-2019 are both inactive (`docs/BASELINE-visionflow.md:391`), while ADR-2019 is live (`docs/adr/README.md:51`). It still describes ADR-2007 as a staged proposal (`docs/BASELINE-visionflow.md:404-413`), while the record is accepted/complete/live (`docs/adr/README.md:39`).
 
 ## VF-01.13 The augmentation conditions enter canon — a rubric, a graded table and a gate
 ```mermaid
@@ -351,8 +369,8 @@ flowchart TB
 
     D1 --> TBL["docs/architecture/compatibility-matrix.md:24<br/>Augmentation conditions, graded 2026-09-15<br/>six rows by three substrate columns, 18 cells<br/>compatibility-matrix.md:28"]:::tbl
     TBL --> R1["C1 partial, partial, measured — compatibility-matrix.md:30"]:::tbl
-    TBL --> R2["C2 and C3 measured across all three — compatibility-matrix.md:31"]:::tbl
-    TBL --> R3["C4 to C6 are LONGITUDINAL: a first measured is a baseline,<br/>not a pass, and the second cycle is 2026-12-14<br/>compatibility-matrix.md:33"]:::tbl
+    TBL --> R2["C2 and C3 measured across all three — compatibility-matrix.md:31-32"]:::tbl
+    TBL --> R3["C4 to C6 are LONGITUDINAL: a first measured is a baseline,<br/>not a pass — compatibility-matrix.md:26 — and the<br/>re-grade trigger is 2026-12-14 — compatibility-matrix.md:41"]:::tbl
     D3 --> OWN["all three prior field-ownership defects now have an owner<br/>compatibility-matrix.md:39"]:::tbl
 
     TBL --> GATE["the table is machine-checked — exit 1 on a missing path,<br/>an elided path, or a measured cell citing a document<br/>BASELINE-visionflow.md:217 — the gate itself is drawn at VF-05.13"]:::gate
@@ -393,7 +411,7 @@ flowchart TB
     REC --> P5["P5 — custody is stated honestly: the root chain is LEVEL 1<br/>with one signer we operate and is CUSTODIAL; the k-of-n<br/>federation is rung 2 of the hardening path, not reached<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:84-87"]:::prop
     REC --> P6["P6 — no regulatory claim moves; canon may not be cited<br/>as relief for any cell of the ADR-124 matrix<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:91"]:::prop
 
-    P2 --> C1["the claims P2 withdraws were corrected on the published page<br/>on 2026-10-02 (owner decision Q12): the page now says no<br/>Lightning or NWC rail is built and the pill reads<br/>'testnet research only'<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:169<br/>website/static/index.html:630 and website/static/index.html:1125"]:::retire
+    P2 --> C1["the claims P2 withdraws were corrected on the published page<br/>on 2026-10-02 (owner decision Q12): the page now says no<br/>Lightning or NWC rail is built and the pill reads<br/>'testnet research only'<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:169<br/>website/static/index.html:631, website/static/index.html:1125-1126"]:::retire
     P1 --> C2["the did:nostr payment-account claim gets a named instrument<br/>for the first time — the README row for sidestr-rs, ./README.md:31<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:45-46"]:::prop
 
     P4 --> REG["the registry owns the ALLOCATION TABLE; semantics stay with<br/>the originating record — event-kind-registry.md:8<br/>this ratification criterion is now MET: the sidestr 0.0.5 rows,<br/>the teller rows and 38420 are written, with the §2.5 collision<br/>check finding no collision and nothing new in 38400-38499 —<br/>event-kind-registry.md:135,<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:153"]:::tbl
@@ -411,11 +429,11 @@ flowchart TB
     REC --> VER
 ```
 
-**Tension (ADR-2012 vs the shipped site) — RESOLVED 2026-10-02:** ADR-2012 withdraws the Lightning and NWC rail claims as unbuilt (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:51`), and as of owner decision Q12 the deployed page says the same: no Lightning or NWC rail is built, with the status pill reading "testnet research only" (`website/static/index.html:630`, `website/static/index.html:1125`; disposition at `docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:169`). The record itself stays `proposed / partial / inactive` (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:5-7`).
+**Tension (ADR-2012 vs the shipped site) — RESOLVED 2026-10-02:** ADR-2012 withdraws the Lightning and NWC rail claims as unbuilt (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:51`), and as of owner decision Q12 the deployed page says the same: no Lightning or NWC rail is built, with the status pill reading "testnet research only" (`website/static/index.html:631`, `website/static/index.html:1125-1126`; disposition at `docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:169`). The record itself stays `proposed / partial / inactive` (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:5-7`).
 
-**Drift (ADR-2012 context vs HEAD):** the record's context still points at line 597 and lines 1015 to 1016 of the site page for the withdrawn claims, and at README lines 134 and 248 for the payment-account rows (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:28-33`); the site sentences have since been rewritten in place — the withdrawal text sits at `website/static/index.html:630` and the corrected pill at `website/static/index.html:1125` — and the README was rewritten to 164 lines, so the README text that record names no longer exists at those lines: the sidestr-rs row now sits at `./README.md:31`.
+**Drift (ADR-2012 context vs HEAD):** the record's context still points at line 597 and lines 1015 to 1016 of the site page for the withdrawn claims, and at README lines 134 and 248 for the payment-account rows (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:28-33`); the site sentences have since been rewritten in place — the withdrawal text sits at `website/static/index.html:631` and `website/static/index.html:1125`, and the corrected pill at `website/static/index.html:1126` — and the README was rewritten to 163 lines, so the README text that record names no longer exists at those lines: the sidestr-rs row now sits at `./README.md:31`.
 
-The site tile and roster agree on eight published sidestr-rs crates since `26df6c9` (`website/static/index.html:1197`, estate register ER-3); the README no longer states a crate count (`./README.md:31`), and BASELINE and ADR-2012 keep seven as the count at the 2026-10-01 parity release they record (`docs/BASELINE-visionflow.md:146`, `docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:118`).
+The roster probes eight published sidestr-rs crates since `26df6c9` (see VF-03.1, estate register ER-3). The site's sidestr-rs tile no longer states a crate count (`website/static/index.html:1217-1220`), and neither does the README (`./README.md:31`), and BASELINE and ADR-2012 keep seven as the count at the 2026-10-01 parity release they record (`docs/BASELINE-visionflow.md:146`, `docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:118`).
 
 ## VF-01.15 ADR-2013 sovereign corpus — four disagreeing doors become one vault, one parser, one gate
 ```mermaid
@@ -457,4 +475,10 @@ flowchart TB
 
 **Tension (ADR-2013 D3 vs BASELINE alignment note):** ADR-2013 says `VisionClaw/crates/vault` is the only implementation that parses, reasons over or builds the corpus (`docs/adr/ADR-2013-sovereign-corpus-is-ecosystem-canon.md:52`), while the baseline's 2026-10-12 note records Ontomark as the producer of the shared build and VisionClaw as its consumer with its own publish build job retired behind gates (`docs/BASELINE-visionflow.md:53`); ADR-2013 has not been amended.
 
-**Since the last stamp:** the ledger gained ADR-2018 (parity claims name their comparator, commit and row count), ADR-2019 (forge and mirror run in shipped pods, inert until configured, superseding ADR-2018's default-off clause) and ADR-2020 (Pele renders every estate diagram); BASELINE records the first two in one section (`docs/BASELINE-visionflow.md:381-392`) and the third in its render-gate entries (`docs/BASELINE-visionflow.md:126-134`, `docs/BASELINE-visionflow.md:262-267`). ADR-2018 is accepted / partial / inactive (`docs/adr/README.md:50`). ADR-2019 moved on 2026-10-30 from inactive to live and is now accepted / partial / live (`docs/adr/README.md:51`, `docs/adr/ADR-2019-forge-and-mirror-on-in-shipped-pods.md:5-7`): the forge runs in the shipped pod, and it stays partial because the kind-30618 mirror does not start while the follow list is empty.
+**Since the earlier stamps:** the ledger gained ADR-2018, which makes parity claims name their comparator, commit and row count. It gained ADR-2019, under which the forge and mirror run in shipped pods, inert until configured, superseding ADR-2018's default-off clause. It gained ADR-2020, under which Pele renders every estate diagram. BASELINE records the first two in one section (`docs/BASELINE-visionflow.md:381-391`) and the third in its render-gate entries (`docs/BASELINE-visionflow.md:126-134`, `docs/BASELINE-visionflow.md:262-267`).
+
+- ADR-2018 is accepted / partial / inactive (`docs/adr/README.md:50`).
+- ADR-2019 is accepted / partial / live (`docs/adr/README.md:51`, `docs/adr/ADR-2019-forge-and-mirror-on-in-shipped-pods.md:5-7`).
+- ADR-2020 is now accepted / complete / live, with an evidence class and acceptance boundary (`docs/adr/ADR-2020-pele-renders-every-estate-diagram.md:5-7`, `docs/adr/ADR-2020-pele-renders-every-estate-diagram.md:14-15`).
+- ADR-2007 is now complete as well (`docs/adr/README.md:39`).
+- At this stamp the ledger also gained ADR-2021, proposed / none / inactive (`docs/adr/ADR-2021-closed-loop-agent-operations-and-18-month-roadmap.md:5-7`). It names `docs/business/roadmap-2026-11-to-2028-04.md` as the roadmap of record, and BASELINE mirrors it in its own section (`docs/BASELINE-visionflow.md:393-402`).

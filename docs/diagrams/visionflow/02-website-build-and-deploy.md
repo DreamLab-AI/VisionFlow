@@ -9,8 +9,8 @@ governing:
 adrs: [ADR-2002, ADR-2003, ADR-2004, ADR-2005]
 sources:
   - website/build.sh
+  - website/.gitignore
   - website/assets.manifest.json
-  - website/build-receipt.json
   - website/static/index.html
   - website/static/js/main.js
   - website/static/js/mesh-webgl.js
@@ -42,7 +42,7 @@ sources:
   - docs/adr/ADR-2003-pages-artifact-deploy.md
   - docs/architecture/compatibility-matrix.md
   - ./README.md
-verified_commit: 4d361b58ce2b3ee17e1570361eaf78270b630012
+verified_commit: 5f8b1da92ce5d9e6b32a0bd90ec3630c66619083
 ---
 
 ## VF-02.1 The copy-only build — every step of website/build.sh
@@ -88,7 +88,7 @@ flowchart LR
 
     subgraph DIST["website/dist/ — the published artefact"]
         D1["dist equals static/ minus dotfiles,<br/>plus CNAME, plus staged repo images"]:::out
-        D2["51 files, 60,241,361 bytes at this build<br/>build-receipt.json:18"]:::out
+        D2["file_count, bytes and tree_sha256 are recorded per build<br/>in the receipt, never in a commit — website-assets.mjs:227-232"]:::out
     end
 
     STATIC ==>|"cp -r, no transform — build.sh:21"| DIST
@@ -168,14 +168,14 @@ sequenceDiagram
 ```mermaid
 erDiagram
     BUILD_RECEIPT {
-        int receipt_version "1 — build-receipt.json:2"
+        int receipt_version "1 — website-assets.mjs:203"
         string generated_at "ISO to seconds — website-assets.mjs:204"
-        object manifest "path, sha256 of the manifest bytes, required_count, optional_count — build-receipt.json:4"
-        object revision "source is local git HEAD; published is GITHUB_SHA or --published-revision; workflow_run; dirty — website-assets.mjs:211"
-        object dist "path, file_count, bytes, tree_sha256 — build-receipt.json:18"
+        object manifest "path, sha256 of the manifest bytes, required_count, optional_count — website-assets.mjs:205-210"
+        object revision "source is local git HEAD; published is GITHUB_SHA or --published-revision; workflow_run; dirty — website-assets.mjs:211-226"
+        object dist "path, file_count, bytes, tree_sha256 — website-assets.mjs:227-232"
         list required_assets "dest plus bytes plus sha256 per required entry — website-assets.mjs:188"
         list missing_required "dest plus why plus reason absent or empty — website-assets.mjs:180"
-        object staging "the stage-step sidecar, derived and optional outcomes"
+        object staging "the stage-step sidecar, derived and optional outcomes — website-assets.mjs:235"
         bool ok "true when missing_required is empty — website-assets.mjs:236"
         object gates "per-gate verdict, written by the deploy workflow — deploy.yml:155"
         object published "target, revision, workflow_run, ref — deploy.yml:164"
@@ -186,7 +186,7 @@ erDiagram
         string sha256 "per-file digest"
     }
     ARTEFACT {
-        string placement "the receipt lives OUTSIDE dist/ so it never becomes part of the tree it hashes — website-assets.mjs:36"
+        string placement "the receipt lives OUTSIDE dist/, at website/build-receipt.json by default, so it never becomes part of the tree it hashes — website-assets.mjs:36 and website-assets.mjs:239-240"
         string upload "uploaded as its own workflow artefact named website-build-receipt — deploy.yml:177"
     }
     BUILD_RECEIPT ||--o{ REQUIRED_ASSET : lists
@@ -250,6 +250,8 @@ sequenceDiagram
 
 **Drift (resolved 2026-10-12, `4159e08`):** this topic recorded that the dream evaluators exit 0 on failure, so that the annexe would read a failure as a finding rather than an infrastructure fault; `scripts/dream-build-check.sh:12-13` now prints `BUILD-FAIL` and exits 1, and `scripts/dream-link-check.sh:155-156` prints `LINK-INTEGRITY-FAIL` and exits 1, while the header comment (`scripts/dream-build-check.sh:5-6`) states that the printed marker stays the verdict the deploy gate and the dream engine read (the engine side is catalogued in AB-23). `tests/gates/dream-evaluator-exit.test.sh:36-65` drives both scripts through a scratch tree and asserts marker and exit code together, and `.github/workflows/harness-fitness-gates.yml:170-171` runs it (see VF-05.7).
 
+**Drift (ADR-2003 rationale vs the scripts):** ADR-2003 still justifies the sentinel greps by saying "the first five sentinel-based scripts exit 0 even when they fail" (`docs/adr/ADR-2003-pages-artifact-deploy.md:85`). Since `4159e08` the build and link scripts exit 1 on failure (`scripts/dream-build-check.sh:12-13`, `scripts/dream-link-check.sh:155-156`). The grep is still needed because the `|| true` discards the code (`.github/workflows/deploy.yml:92`, `.github/workflows/deploy.yml:102`), but the record's stated reason is out of date.
+
 **Debt:** the no-`dist/` path still prints `NO-DIST` and exits 0 with no marker (`scripts/dream-link-check.sh:43`), and the exit-code test exercises only the marker paths (`tests/gates/dream-evaluator-exit.test.sh:48-65`).
 
 ## VF-02.8 The drift counter's two modes — reported vs enforced
@@ -267,7 +269,7 @@ stateDiagram-v2
     state "gates.drift_counter recorded in build-receipt.json" as Receipt
     Receipt --> [*]
     note right of Attempt
-      deploy.yml:62 — the ref is pinned to the same
+      deploy.yml:59-68 — the ref is pinned to the same
       revision as the drift-counter allowlist source_pin
     end note
     note right of Reported
@@ -293,7 +295,7 @@ flowchart LR
     S3 --> S4["npm run check:sidecar<br/>node scripts/check-cdp-sidecar.mjs — package.json:8"]:::needs
     S4 --> S5["npm run test:site<br/>playwright test — package.json:14"]:::needs
 
-    S3 --> SUITES["seven suites, each driving a deliberate defect through its<br/>gate and asserting the gate goes red — harness-audit,<br/>drift-counter, release-manifest, website-assets, since<br/>2026-09-14 diagram-index and augmentation-citations, and since<br/>2026-09-23 estate-health-ci, which drives the collector's<br/>CI-state-at-HEAD rule (see VF-03.4) — run-all.sh:18, run-all.sh:25<br/>.cjs and .mjs suites run under node — run-all.sh:34<br/>sentinel GATE-TESTS-OK at run-all.sh:41"]:::step
+    S3 --> SUITES["twelve suites, each driving a deliberate defect through its<br/>gate and asserting the gate goes red — harness-audit, drift-counter,<br/>release-manifest, website-assets, diagram-index, augmentation-citations,<br/>estate-health-ci (the CI-state-at-HEAD rule, see VF-03.4), jev-option,<br/>dream-evaluator-exit, and the ADR-2007 adr-evidence-field and<br/>adr-ratchet-evidence suites plus pele-pin — run-all.sh:18-31<br/>.cjs and .mjs suites run under node — run-all.sh:37<br/>sentinel GATE-TESTS-OK at run-all.sh:44"]:::step
 
     SIDE["EXTERNAL, not in this repo: the browsercontainer Chrome sidecar<br/>in-network port 9223, from the host port 9222<br/>check-cdp-sidecar.mjs:15, probes /json/version at :31<br/>see ES-01 for the sidecar's place in the estate"]:::needs
     S4 --- SIDE
@@ -320,7 +322,7 @@ sequenceDiagram
     Note over FX,CH: "the sidecar rejects a non-localhost Host header on the<br/>WebSocket upgrade, so the hostname is resolved first<br/>fixtures/cdp.js:25"
     CH->>WS: navigate to baseURL
     WS-->>P: serve website/dist
-    P-->>T: "structure assertions: ten named sections, the mesh canvas,<br/>four particle canvases, zero console errors — site.spec.js:31"
+    P-->>T: "structure assertions: ten named sections, the mesh canvas,<br/>four particle canvases, zero console errors — site.spec.js:4-15 and site.spec.js:31-33"
     P-->>T: "@a11y — axe-core analyze, violations must be empty<br/>site.spec.js:85"
     P-->>T: "@perf — total transferSize at most 800 KB<br/>site.spec.js:108"
     Note over T,CH: "INVARIANT: no local Chromium is installed in CI — both<br/>projects, chromium and mobile-chrome, drive the sidecar<br/>BASELINE-visionflow.md:309"
@@ -390,10 +392,10 @@ stateDiagram-v2
 
 **Invariant (supply chain):** every third-party action in the publication workflow is pinned to a commit sha rather than a moving tag, so a compromised `@v4` cannot enter the artefact (`.github/workflows/deploy.yml:52`, `.github/workflows/deploy.yml:55`).
 
-**Drift (page copy vs the graded table):** the deployed page dates the augmentation grade to 14 September 2026 and links that anchor (`website/static/index.html:580`), while the section it links is now headed *graded 2026-09-15* (`docs/architecture/compatibility-matrix.md:24`).
+**Drift (page copy vs the graded table):** the page dates the augmentation grade to 14 September 2026 and says the estate is *partial* on control and recovery (`website/static/index.html:580`). The section it links is headed *graded 2026-09-15* (`docs/architecture/compatibility-matrix.md:24`), and that table grades C2 and C3 `measured` for all three substrates (`docs/architecture/compatibility-matrix.md:31-32`). The copy is stale on the grade itself, not only on the date.
 
 **Debt (reveal threshold):** `initScrollReveal` was moved from a 10 percent intersection threshold to zero because a tall section may never occupy a tenth of its own area in the viewport (`website/static/js/main.js:41`); nothing in the site tests asserts that a long section still reveals.
 
-**Debt (unverifiable citation):** `website/build-receipt.json` is gitignored at `website/.gitignore:8`, so it exists in no commit and the four citations into it are read from the working tree whatever revision this topic declares; the numbers they carry are true of one local build, not of a revision.
+**Drift (generated source, closed in this stamp):** this topic used to list `website/build-receipt.json` in `sources:` and cite four of its lines. The file is a gitignored build output (`website/.gitignore:8`). It exists in no commit, so the strict gate failed on it in a clean checkout, and its figures (51 files, 60,241,361 bytes) were true of one local build, not of a revision. The receipt's fields are now cited where they are written (`scripts/website-assets.mjs:202-237`), and the one-build figures are dropped. The four VF-02 entries for this file in `docs/diagrams/citation-allowlist.json` now match nothing and must be removed before a full-tree strict run.
 
 **Invariant (site states CUDA counts, README no longer does):** the page states 83 CUDA kernels in 10 `.cu` files and 6,302 lines (`website/static/index.html:296`, `website/static/index.html:1089`), which matches VisionClaw at `7d3ea2edb` (10 tracked `.cu` files, 6,302 lines, 83 `__global__` definitions); the repository README, which stated the same figures between 54e1d02 and the rewrite that cut it to 164 lines, no longer carries any CUDA count: its GPU, XR and haptics row says only that product-specific source and evidence links exist (`./README.md:130`). The drift counter still carries no CUDA axis, so the page's figures rest on review, not on a gate.

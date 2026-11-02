@@ -36,7 +36,9 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/admins.rs
   - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs
-verified_commit: 1b27f79d08537b61b3d5a5d02cac9ee5999b79ed
+  - ../nostr-rust-forum/crates/nostr-bbs-core/src/feature_gate.rs
+  - ../nostr-rust-forum/docs/adr/ADR-2029-room-profile-deployment-type.md
+verified_commit: c39f41f104b114d6a3fa29013daaf6fa58b45080
 ---
 
 ## NF-08.1 forum.toml — the single source of access truth and its projection
@@ -108,17 +110,17 @@ sequenceDiagram
     autonumber
     participant U as New user
     participant AW as auth-worker username::claim<br/>nostr-bbs-auth-worker/src/username.rs:210
-    participant ZA as zone_approval::new_joiner_cohorts_json<br/>nostr-bbs-auth-worker/src/zone_approval.rs:31
+    participant ZA as zone_approval::new_joiner_cohorts_json<br/>nostr-bbs-auth-worker/src/zone_approval.rs:30
     participant D1 as RELAY_DB whitelist INSERT<br/>nostr-bbs-auth-worker/src/username.rs:307
 
     U->>AW: POST /api/username/claim (NIP-98 authed)
     AW->>ZA: ZONE_CONFIG string
-    ZA->>ZA: base cohort vector starts as members zone_approval.rs:32
-    ZA->>ZA: for each zone with auto_approve, add required_cohorts de-duplicated zone_approval.rs:36-41
+    ZA->>ZA: base cohort vector starts as members zone_approval.rs:31
+    ZA->>ZA: for each zone with auto_approve, add required_cohorts de-duplicated zone_approval.rs:34-38
     ZA-->>AW: JSON cohort array
     AW->>D1: whitelist row for the claimed pubkey, ON CONFLICT DO NOTHING username.rs:308
 
-    Note over ZA: INVARIANT opt-in per zone, deny-by-default - absent, empty or malformed ZONE_CONFIG yields exactly the members cohort alone zone_approval.rs:45
+    Note over ZA: INVARIANT opt-in per zone, deny-by-default - absent, empty or malformed ZONE_CONFIG yields exactly the members cohort alone zone_approval.rs:29, tested zone_approval.rs:53-60
     Note over ZA: Only auto_approve zones grant - family and business stay admin-gated zone_approval.rs:74-78
 ```
 
@@ -162,10 +164,10 @@ flowchart TB
     SEARCHW -->|"REPLAY_DB nostr-bbs-search-worker/wrangler.toml:25"| AUTHDB
     PREVW["preview-worker"] --> RL
 
-    N1["INVARIANT: NIP-98 replay lives in ONE database - every worker binds REPLAY_DB (or DB) to<br/>nostr-bbs-auth so cross-worker replay is detected nostr-bbs-relay-worker/wrangler.toml:104-111"]
+    N1["INVARIANT: NIP-98 replay lives in ONE database - relay, pod and search bind REPLAY_DB, and auth uses DB, all to<br/>nostr-bbs-auth so cross-worker replay is detected nostr-bbs-relay-worker/wrangler.toml:104-111<br/>auth DB is nostr-bbs-auth nostr-bbs-auth-worker/wrangler.toml:9-10. The preview worker binds no replay store."]
     N2["ANOMALY O11 now DOCUMENTED, not removed: KV and SESSIONS are still the SAME physical namespace id<br/>nostr-bbs-auth-worker/wrangler.toml:28 and :44; the template says the key prefixes are disjoint<br/>nostr-bbs-auth-worker/wrangler.toml:22-25 and a unit test pins the admin cache key outside the rl: prefix<br/>nostr-bbs-auth-worker/src/admins.rs:372"]
     N3["The auth-worker RELAY_DB database_id is a ZERO placeholder that every deployment must override<br/>nostr-bbs-auth-worker/wrangler.toml:20 - shipped unusable on purpose"]
-    N4["PROPOSED, NOT BUILT: ADR-2012 demotes the pod-worker payment D1 from ledger to a height-stamped<br/>derived view over the sidestr chain, with a staleness bound that is an error<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:5-6 ADR-2012-d1-ledger-becomes-a-chain-view.md:37-41.<br/>Nothing in this store map changes until it is built - see NF-04.11"]
+    N4["PROPOSED AND PARKED: ADR-2012 demotes the pod-worker payment D1 from ledger to a height-stamped<br/>derived view over the sidestr chain, with a staleness bound that is an error<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:48-51. Status proposed, implementation partial, inactive<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:5-7, parked at P3 ADR-2012-d1-ledger-becomes-a-chain-view.md:165.<br/>The chain view is not built, so this store map is unchanged - see NF-04.11"]
 ```
 
 ## NF-08.5 Table map — who creates each table and who reads it
@@ -219,7 +221,7 @@ flowchart TB
 
     N1["INVARIANT (ADR-2014 phase 1, extended to events at 66ca8d8): each table's DDL is one string shared by the<br/>migration record and the live bootstrap, and each precedes the ALTERs and indexes that touch it, so a<br/>fresh D1 has a table to alter. events first nostr-bbs-relay-worker/src/lib.rs:823, whitelist next<br/>nostr-bbs-relay-worker/src/lib.rs:838-842, with migrations/0008_whitelist.sql:14-20"]
     N2["Closed at 66ca8d8: no migration created events, and the SETUP.md copy-paste omitted d_tag and received_at,<br/>which save_event inserts on every write, so a deploy that followed the guide failed every save<br/>migrations/0009_events.sql:3-6"]
-    N3["Governance tables are created TWICE - by migration 0002_governance.sql:5,17,39,52 and inline by<br/>the relay bootstrap, agent_registry lib.rs:1000, broker_cases lib.rs:741, broker_decisions lib.rs:765,<br/>broker_roles lib.rs:1009. Both use IF NOT EXISTS, so this is duplication, not drift.<br/>SETUP.md:123 states the same."]
+    N3["Governance tables are created TWICE - by migration 0002_governance.sql:5,17,39,52 and inline by<br/>the relay bootstrap, agent_registry lib.rs:1000, broker_cases lib.rs:741, broker_decisions lib.rs:765,<br/>broker_roles lib.rs:1009. Both use IF NOT EXISTS, so this is duplication, not drift.<br/>DRIFT: SETUP.md:123-125 states the duplication but credits the AUTH worker with the inline copy;<br/>the auth bootstrap nostr-bbs-auth-worker/src/schema.rs:19 creates no governance table"]
     N4["DEBT: the migration cannot repair an existing table - SQLite has no ADD COLUMN IF NOT EXISTS, so the<br/>0009 file adds no column and leaves the two ALTERs to its header comment or to ensure_schema, which<br/>discards their result (let _ =), so a real failure there is silent migrations/0009_events.sql:12-17 nostr-bbs-relay-worker/src/lib.rs:835"]
 ```
 
@@ -242,6 +244,8 @@ the two column additions are a hand-applied comment in the file
 (`migrations/0009_events.sql:12-17`) and a bootstrap loop that discards its
 result (`nostr-bbs-relay-worker/src/lib.rs:835`).
 
+**Drift:** `SETUP.md:123-125` credits the auth worker with the inline governance tables; only the relay bootstrap creates them (N3).
+
 ## NF-08.7 Admin authority — three sources, two unions, and where they differ
 
 ```mermaid
@@ -250,23 +254,23 @@ flowchart TB
     S1["1. Static set - ADMIN_PUBKEYS env var"]
     S2["2. RELAY_DB whitelist.is_admin<br/>nostr-bbs-core/src/admin_shared.rs:72"]
     S3["3. auth DB members.is_admin<br/>nostr-bbs-core/src/admin_shared.rs:76"]
-    AUTHIS["auth-worker is_admin - union of all three<br/>nostr-bbs-auth-worker/src/admin.rs:57<br/>static nostr-bbs-auth-worker/src/admin.rs:71<br/>RELAY_DB nostr-bbs-auth-worker/src/admin.rs:76<br/>DB nostr-bbs-auth-worker/src/admin.rs:90"]
+    AUTHIS["auth-worker is_admin - union of all three<br/>nostr-bbs-auth-worker/src/admin.rs:57<br/>static nostr-bbs-auth-worker/src/admin.rs:67<br/>RELAY_DB nostr-bbs-auth-worker/src/admin.rs:76<br/>DB nostr-bbs-auth-worker/src/admin.rs:90"]
     RELIS["relay-worker query_is_admin<br/>nostr-bbs-relay-worker/src/auth.rs:181<br/>static nostr-bbs-relay-worker/src/auth.rs:185<br/>whitelist nostr-bbs-relay-worker/src/auth.rs:194"]
 
     CANON --> S1 & S2 & S3
     S1 & S2 & S3 --> AUTHIS
     S1 & S2 --> RELIS
 
-    N1["Auth lower-cases at resolver entry nostr-bbs-auth-worker/src/admin.rs:62<br/>Relay query binds its supplied pubkey nostr-bbs-relay-worker/src/auth.rs:196"]
+    N1["Auth lower-cases at resolver entry nostr-bbs-auth-worker/src/admin.rs:62<br/>Relay query binds its supplied pubkey nostr-bbs-relay-worker/src/auth.rs:195"]
     N2["A failed or missing relay lookup can fall through to auth members nostr-bbs-auth-worker/src/admin.rs:90<br/>False only after no source grants authority nostr-bbs-auth-worker/src/admin.rs:103"]
     N3["CLOSED at 66ca8d8: the relay used to query members in its OWN D1 where no migration or bootstrap creates<br/>that table, so the branch failed on every call and the error was swallowed. The query is removed, and relay<br/>authority is ADMIN_PUBKEYS union whitelist.is_admin only nostr-bbs-relay-worker/src/auth.rs:185 nostr-bbs-relay-worker/src/auth.rs:194"]
     N3B["DRIFT: the doc comment on query_is_admin still names members - its Task #7 paragraph says the relay<br/>whitelist/members tables may carry no is_admin row, below a paragraph saying the relay no longer queries it<br/>nostr-bbs-relay-worker/src/auth.rs:174 nostr-bbs-relay-worker/src/auth.rs:164"]
-    N3C["REVOCATION GAP: relay set-admin changes only whitelist nostr-bbs-relay-worker/src/whitelist.rs:451<br/>Auth members can retain its grant nostr-bbs-auth-worker/src/admin.rs:90"]
-    N4["DOC-DRIFT: ADMIN_PUBKEYS is DECLARED in exactly one wrangler template - the search worker,<br/>nostr-bbs-search-worker/wrangler.toml:41 - yet is read by the auth worker (admin.rs:71) and the relay<br/>(auth.rs:185). The relay template asserts the opposite: there is no ADMIN_PUBKEYS reader in src/<br/>nostr-bbs-relay-worker/wrangler.toml:18-21. SETUP.md:147-151 never lists it either."]
+    N3C["REVOCATION GAP: relay set-admin changes only whitelist nostr-bbs-relay-worker/src/whitelist.rs:450<br/>Auth members can retain its grant nostr-bbs-auth-worker/src/admin.rs:90"]
+    N4["DOC-DRIFT: ADMIN_PUBKEYS is DECLARED in exactly one wrangler template - the search worker,<br/>nostr-bbs-search-worker/wrangler.toml:41 - yet is read by the auth worker (admin.rs:67) and the relay<br/>(auth.rs:185). The relay template asserts the opposite: there is no ADMIN_PUBKEYS reader in src/<br/>nostr-bbs-relay-worker/wrangler.toml:18-21. SETUP.md:147-151 never lists it either."]
     N5["Consequence of N4: a by-the-book deployment has NO static admin bootstrap on relay or auth,<br/>and the search worker ships a REAL non-placeholder pubkey as its default admin<br/>nostr-bbs-search-worker/wrangler.toml:41 - the only non-generic value in any template."]
 ```
 
-The [1 November membership review](../../estate-review/2026-11-01-forum-membership-lifecycle.md) corrects only the normalisation, error-fallback and revocation claims in NF-08.7. Its inspected resolver files match this topic's declared revision. The template/bootstrap notes above retain their earlier review scope.
+The [1 November membership review](../../estate-review/2026-11-01-forum-membership-lifecycle.md) corrects only the normalisation, error-fallback and revocation claims in NF-08.7. The [2 November review](../../estate-review/2026-11-02-forum-config-ci-invariants.md) re-read every citation in this topic, the template and bootstrap notes included, at the declared revision.
 
 ## NF-08.8 Cross-worker feature gates that must be set in lockstep
 
@@ -288,8 +292,8 @@ flowchart LR
     CLIENTPARSE["Client uses its own loose parser<br/>boolean true or normalised true / 1"]
     DKC --> CLIENTPARSE
 
-    N1["INVARIANT ADR-2004: each worker reads its own binding and decides ALONE - no cross-worker call.<br/>Only the parse rule is shared, so the two cannot drift on what true means<br/>nostr-bbs-auth-worker/src/devices.rs:100-107"]
-    N2["INVARIANT: enables on the EXACT string true; unset, empty or anything else is off<br/>nostr-bbs-auth-worker/src/devices.rs:112, asserted nostr-bbs-auth-worker/src/devices.rs:974"]
+    N1["INVARIANT ADR-2004: each worker reads its own binding and decides ALONE - no cross-worker call.<br/>Only the parse rule is shared, so the two cannot drift on what true means<br/>nostr-bbs-auth-worker/src/devices.rs:100-107, relay delegates at nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:971"]
+    N2["INVARIANT: enables on the EXACT string true; unset, empty, padded, TRUE or 1 is off<br/>rule nostr-bbs-core/src/feature_gate.rs:65, asserted nostr-bbs-auth-worker/src/devices.rs:912"]
     N3["AUTH_MODE: anything other than allowlist resolves to the secure nip42 default<br/>nostr-bbs-relay-worker/wrangler.toml:37-39 - see NF-03"]
     N4["ESCALATION_DEFAULT_TIER is a declared SCAFFOLD - the authoritative risk-tier schema is owned by<br/>agentbox, EXTERNAL: see AB-14 and AB-15; an unrecognised tier folds to medium<br/>nostr-bbs-relay-worker/wrangler.toml:54-61"]
     N5["INVARIANT: calibration sampling is HMAC over a key the agent cannot read. The request id is the<br/>31402 d tag, which the agent chooses, so the key secrecy is the only thing stopping it grinding tags<br/>until it finds one sampling never selects nostr-bbs-relay-worker/wrangler.toml:69-74 - see NF-12"]
@@ -297,8 +301,12 @@ flowchart LR
     PUSH["relay-worker PUSH_ENABLED=false, ADR-2023 content-free Web Push, off by default<br/>nostr-bbs-relay-worker/wrangler.toml:86 with VAPID_PUBLIC_KEY nostr-bbs-relay-worker/wrangler.toml:87 and PUSH_MAX_FANOUT nostr-bbs-relay-worker/wrangler.toml:90"]
     RURL["RELAY_URL is blank by default, and required in nip42 mode: blank logs a console error on every AUTH<br/>nostr-bbs-relay-worker/wrangler.toml:48-51"]
     N8["All three templates now ship System One advisory flags ON (relay JEV_TRIAGE=1 nostr-bbs-relay-worker/wrangler.toml:11, search JEV_SEARCH_RERANK=1 nostr-bbs-search-worker/wrangler.toml:32, auth JEV_RATIONALE_CHECK=1 nostr-bbs-auth-worker/wrangler.toml:53) pointing at TypeSafe jev-latest (nostr-bbs-relay-worker/wrangler.toml:12-13); TYPESAFE_API_KEY is a Worker secret named at :14 and never a plaintext var, and the auth worker declares no endpoint, so it resolves to TypeSafe through the same secret and stays private only when JEV_RATIONALE_CHECK_LOCAL_ONLY=1 (nostr-bbs-auth-worker/wrangler.toml:54-58)"]
+    N9["TENSION: the workers enable only on exact true nostr-bbs-core/src/feature_gate.rs:65, but the client lower-cases<br/>and also accepts 1 - an operator who sets 1 in all three places gets a client that registers device keys<br/>and workers that 404 the device routes. Client parser: CLIENTPARSE above"]
+    CLIENTPARSE -.- N9
     N7["A second lockstep gate, ENCRYPTION_ENABLED, follows the same own-binding pattern across relay<br/>and clients but is undeclared in every wrangler.toml - see NF-08.2"]
 ```
+
+**Tension:** the client accepts `1` for `DEVICE_KEYS_ENABLED` (`../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/devices.rs:111`) while both workers need exact `true` (N9).
 
 ## NF-08.9 Encrypted-zone write enforcement — shape check, not decryption
 

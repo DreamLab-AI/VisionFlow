@@ -14,7 +14,7 @@ sources:
   - ../loom/docs/design/LOOM-POSITIONING.md
   - ../loom/docs/design/ADR-140-loom-v2-agent-drivable-grounding.md
   - ../project/agentbox/skills/email-search/SKILL.md
-verified_commit: {loom: 5ad860863b588c0cdb2290e31c69e39d82755aeb, agentbox: 6500582dfae23bf8a38a6942916d208154e43625, visionflow: 4d361b58ce2b3ee17e1570361eaf78270b630012}
+verified_commit: {loom: ba21a689a57dc67dc68ad22e52b058da34a7fb05, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35, visionflow: 4d361b58ce2b3ee17e1570361eaf78270b630012}
 ---
 
 ## For developers

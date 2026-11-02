@@ -33,7 +33,8 @@ sources:
   - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs
   - ../nostr-rust-forum/Cargo.toml
-verified_commit: 1b27f79d08537b61b3d5a5d02cac9ee5999b79ed
+  - ../nostr-rust-forum/docs/BASELINE-architecture.md
+verified_commit: c39f41f104b114d6a3fa29013daaf6fa58b45080
 ---
 
 ## NF-04.1 Route surface
@@ -52,7 +53,7 @@ flowchart TB
     end
     PODS["POST /.pods - authenticated provisioning alias lib.rs:635"]
     PAY["/pay/ routes - HTTP 402 Web Ledgers lib.rs:693 lib.rs:730"]
-    GITG["_git request guard lib.rs:784"]
+    GITG[".git forbidden lib.rs:759, git requests not implemented lib.rs:766"]
     LDP["/pods/{pubkey}/... LDP resource verbs<br/>parsed at lib.rs:94<br/>GET/HEAD lib.rs:1045 PUT lib.rs:1271 POST lib.rs:1347<br/>PATCH lib.rs:1483 DELETE lib.rs:1575"]
     PROV["/.provision lib.rs:124 and /.deprovision lib.rs:129"]
 
@@ -79,8 +80,9 @@ sequenceDiagram
 
     C->>W: METHOD /pods/{pubkey}/{path}
     W->>W: parse owner + resource path lib.rs:94
-    W->>W: git request guard lib.rs:784
+    W->>W: git request guard, before any auth lib.rs:759 lib.rs:766
     W->>A: Authorization: Nostr <base64 event> lib.rs:812
+    W->>W: an .acl path leaves here for handle_acl_request lib.rs:992
     W->>W: required_mode = coerce_required_mode_for_acl lib.rs:1015
     W->>ACL: resolve the effective ACL lib.rs:1016
     ACL->>R2: sidecar walk, most specific first acl.rs:295
@@ -113,7 +115,7 @@ flowchart TB
     BASE["base = method_to_mode(method)<br/>nostr-bbs-pod-worker/src/acl.rs:86"]
     COERCE["coerce_required_mode_for_acl<br/>nostr-bbs-pod-worker/src/acl.rs:85"]
     SHARED["delegates to the SHARED upstream policy effective_acl_target<br/>re-exported nostr-bbs-pod-worker/src/acl.rs:34"]
-    CTRL["a .acl or .meta path collapses to AccessMode::Control<br/>nostr-bbs-pod-worker/src/acl.rs:46"]
+    CTRL["a .acl or .meta path collapses to AccessMode::Control<br/>nostr-bbs-pod-worker/src/acl.rs:88-89"]
     NORM["a normal path keeps its method-derived mode"]
 
     REQ --> BASE --> COERCE --> SHARED
@@ -124,7 +126,12 @@ flowchart TB
     N2["This closes BOTH holes at once: the write escalation - a mere acl:Write holder seizing acl:Control by<br/>overwriting a sidecar - and the read-side disclosure P2-1, an acl:Read holder reading the graph<br/>nostr-bbs-pod-worker/src/acl.rs:80-82"]
     N3["The kit no longer re-derives the rule; it delegates to the shared upstream policy, so the forum and<br/>the pod server cannot drift on what counts as a sidecar nostr-bbs-pod-worker/src/acl.rs:75-77.<br/>EXTERNAL: the policy lives in solid-pod-rs - see the solid-pod-rs area (SP-*)"]
     N4["Never widen this. Widening reopens both holes - BASELINE-architecture invariant 4."]
+    N5["Two call paths share the MODE, not the TARGET: a path ending .acl is dispatched to handle_acl_request<br/>nostr-bbs-pod-worker/src/lib.rs:118 nostr-bbs-pod-worker/src/lib.rs:992, which checks Control on the PROTECTED resource<br/>nostr-bbs-pod-worker/src/lib.rs:1648-1650; a .meta sidecar stays on the standard path, where coerce keeps only the mode<br/>acl.rs:89 and the ACL is resolved and evaluated for the .meta path itself nostr-bbs-pod-worker/src/lib.rs:1016-1021"]
 ```
+
+**Open:** a `.meta` sidecar needs `acl:Control`, but on the standard path that Control is resolved for the `.meta` path itself (its own `.meta.acl` sidecar, then inherited container rules), not for the protected resource (`../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/lib.rs:1015-1021`, `../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/acl.rs:89`, `../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/acl.rs:200`). The `.acl` handler instead checks Control on the protected resource (`../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/lib.rs:1648-1650`). Where a resource has its own `.acl`, the two answers can differ. No test here establishes whether that matters in practice.
+
+**Drift:** the handler comment says deriving the target there "covers `.meta` sidecars identically" (`../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/lib.rs:1646-1647`), but only paths ending `.acl` reach that handler (`../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/lib.rs:118-119`).
 
 ## NF-04.4 ACL resolution order — R2 authoritative, KV fallback only
 
@@ -142,7 +149,7 @@ flowchart TB
     START --> SEQ --> OWN --> CONT --> LEG --> HIT
     HIT -.->|"no hit anywhere"| KV --> NONE
 
-    N1["INVARIANT: KV can NEVER shadow a more-specific R2 sidecar, so it can never mask a delegation grant<br/>nostr-bbs-pod-worker/src/acl.rs:253-273. This is the R11 / O3 fix, re-verified live."]
+    N1["INVARIANT: KV can NEVER shadow a more-specific R2 sidecar, so it can never mask a delegation grant<br/>nostr-bbs-pod-worker/src/acl.rs:253-273. This is the R11 / O3 fix; live behaviour is not re-checked here."]
     N2["The inherited flag matters: for an ANCESTOR container only acl:default rules may apply per WAC 4.2,<br/>which the upstream evaluator gates on AclDocument::inherited<br/>nostr-bbs-pod-worker/src/acl.rs:161-164; the resource's own sidecar is non-inherited so its<br/>acl:accessTo applies directly acl.rs:166-167"]
     N3["Kit-specific hardening on top of upstream: a stricter 64 KiB ACL document cap<br/>nostr-bbs-pod-worker/src/acl.rs:93, parser at acl.rs:111"]
     N4["resolve_effective_acl acl.rs:360 exists so the ordering is unit-testable WITHOUT the worker R2/KV<br/>runtime types - the ordering rule is provable in a native test"]
@@ -158,15 +165,15 @@ sequenceDiagram
     participant B as build_delegation_acl<br/>nostr-bbs-pod-worker/src/acl.rs:402
     participant R2 as container sidecar
 
-    O->>W: PUT a delegation to {container}/.acl
-    W->>W: sidecar access coerces to Control - only the owner can do this, see NF-04.3
-    W->>B: owner_did, agent_did, container_path, modes
+    O->>W: PUT a body carrying @delegation to {container}/.acl nostr-bbs-pod-worker/src/lib.rs:1769
+    W->>W: writing a sidecar needs acl:Control on the container, so only a Control holder gets here nostr-bbs-pod-worker/src/lib.rs:1721-1725, see NF-04.3
+    W->>B: owner_did, agent_did, container_path, modes nostr-bbs-pod-worker/src/lib.rs:1815
     B->>B: normalise the container path, keeping a trailing slash so acl:accessTo names the container acl.rs:411
     B->>B: emit owner Control plus agent modes MINUS Control acl.rs:394
     B->>B: modes are deduped into canonical Read, Write, Append, Control order acl.rs:423
     B-->>W: AclDocument AST
     W->>R2: serialise to the canonical wire shape
-    W->>W: preserves_owner_control assertion acl.rs:123
+    W->>W: preserves_owner_control, also applied to a raw JSON-LD replacement nostr-bbs-pod-worker/src/lib.rs:1833 acl.rs:123
 
     Note over B: INVARIANT: the delegate never gets Control, so it can neither re-delegate nor seize the container nostr-bbs-pod-worker/src/acl.rs:394-396
     Note over B: DIDs are written verbatim as did:nostr hex form - callers validate the shape upstream nostr-bbs-pod-worker/src/acl.rs:397-398
@@ -274,13 +281,13 @@ flowchart TB
     FEAT -.-> EXPORT
     STATE --> FEAT
 
-    N1["DIVERGENCE BASELINE-architecture: these three surfaces remain STRUCTURALLY unreachable from wasm32<br/>CF Workers. Legacy ADR-087 (portable cores) is deferred, so ADR-086's pod-federation fallback is<br/>degenerate - the pod returns the same data D1 already holds. Latent risk, not scheduled work."]
-    N2["DIVERGENCE: the related WAC Turtle serializer bare-path IRI quirk (legacy ADR-088) has ZERO live<br/>impact because this worker writes JSON-LD ACLs and never round-trips Turtle - see NF-04.4"]
+    N1["DIVERGENCE BASELINE-architecture: these three surfaces remain STRUCTURALLY unreachable from wasm32<br/>CF Workers. Legacy ADR-087 (portable cores) is deferred, so ADR-086's pod-federation fallback is<br/>degenerate - the pod returns the same data D1 already holds. Latent risk, not scheduled work<br/>docs/BASELINE-architecture.md:96-99"]
+    N2["DIVERGENCE: the related WAC Turtle serializer bare-path IRI quirk (legacy ADR-088) has ZERO live<br/>impact because this worker writes JSON-LD ACLs and never round-trips Turtle docs/BASELINE-architecture.md:99-102 - see NF-04.4"]
     N3["The kit groups the three upstream features under ONE forum-facing alias so an operator flips a single<br/>switch rather than three docs/consumer-surface-map.md:52"]
     N4["Property tests cover the WAC document handling this whole topic rests on<br/>nostr-bbs-pod-worker/tests/wac_proptests.rs:1"]
 ```
 
-**Tension (ADR-2012 vs Cargo.toml):** ADR-2012 decision 4 speaks of "the exact pin at `Cargo.toml:155`" bumped in lockstep with the host, while the workspace dependency is now a caret range, `0.5.0-alpha.18`, recorded as an owner decision to stop an exact pin forcing a core republish on every solid-pod-rs release (`../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md:76-80`, `../nostr-rust-forum/Cargo.toml:181-185`). The pod-worker now also enables the `did` feature on `nostr-bbs-core` (`../nostr-rust-forum/crates/nostr-bbs-pod-worker/Cargo.toml:29`).
+**Tension (ADR-2012 vs Cargo.toml):** ADR-2012 decision 4 speaks of "the exact pin" at line 155 of the root manifest, bumped in lockstep with the host, while the workspace dependency is now a caret range, `0.5.0-alpha.18`, recorded as an owner decision to stop an exact pin forcing a core republish on every solid-pod-rs release (`../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md:76-80`, `../nostr-rust-forum/Cargo.toml:181-185`). The pod-worker now also enables the `did` feature on `nostr-bbs-core` (`../nostr-rust-forum/crates/nostr-bbs-pod-worker/Cargo.toml:29`).
 
 ## NF-04.11 The journalled D1 ledger today, and the chain view ADR-2012 is moving to
 
@@ -301,7 +308,7 @@ flowchart TB
     DEB --> BAL
     REC -.-> JOURNAL
 
-    PROP["STILL PROPOSED - the full view: decision_status proposed,<br/>implementation_status partial<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:6-7"]
+    PROP["STILL PROPOSED - the full view: decision_status proposed,<br/>implementation_status partial<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:5-6"]
     P1["D1 demoted to a height-stamped derived view folded from sidestr UTXOs,<br/>staleness bound an error - not yet built<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:48-52"]
     P2["DONE in the amendment: credit_atomic and D1PaymentStore (with its<br/>write_ledger) are REMOVED - every credit is a journalled row<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:61-68"]
     P3["solid-pod-rs moves in lockstep with the host, closing the pin<br/>skew as a P1 exit criterion - pending<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:76-80"]

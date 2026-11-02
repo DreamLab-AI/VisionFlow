@@ -12,12 +12,12 @@ sources:
   - ../ontomark/crates/ontomark-source/src/ledger.rs
   - ../ontomark/crates/ontomark-ingest/src/accept.rs
   - ../ontomark/crates/ontomark-jev/src/config.rs
-verified_commit: {ontomark: 0caae5d4b695cb720942b9b9212017c00a80ad41}
+verified_commit: {ontomark: 4b9d15df48056971321a62b8c4e905f4536c74db}
 ---
 
 ## For developers
 
-The current `ingest` verb reads external evidence, asks an explicitly selected model and prepares full proposed pages for a separate governance submission. This topic supplements the historical OM-05 command inventory. The [audit and executable probes](../../estate-review/2026-10-31-external-source-ingest.md) distinguish input identity, extraction completeness, proposal bytes and publication. The ADR remains inactive: a passing local dry-run does not prove a signed forum-to-corpus journey.
+The current `ingest` verb reads external evidence, asks an explicitly selected model and prepares full proposed pages for a separate governance submission. This topic supplements the OM-05 command inventory, which lists the verb (OM-05.1). The [audit and executable probes](../../estate-review/2026-10-31-external-source-ingest.md) distinguish input identity, extraction completeness, proposal bytes and publication. The ADR remains inactive: a passing local dry-run does not prove a signed forum-to-corpus journey.
 
 ## For the business
 

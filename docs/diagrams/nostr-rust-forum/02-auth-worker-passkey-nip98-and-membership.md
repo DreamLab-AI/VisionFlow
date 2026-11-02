@@ -29,7 +29,9 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/rationale_check.rs
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/wrangler.toml
   - ../nostr-rust-forum/crates/nostr-bbs-rate-limit/src/lib.rs
-verified_commit: 1b27f79d08537b61b3d5a5d02cac9ee5999b79ed
+  - ../nostr-rust-forum/crates/nostr-bbs-rate-limit/src/replay.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-core/src/nip98.rs
+verified_commit: c39f41f104b114d6a3fa29013daaf6fa58b45080
 ---
 
 ## NF-02.1 Request entry — bootstrap, rate limit, body pre-read, dispatch
@@ -41,17 +43,18 @@ sequenceDiagram
     participant F as fetch<br/>nostr-bbs-auth-worker/src/lib.rs:144
     participant H as handle_request<br/>nostr-bbs-auth-worker/src/lib.rs:158
     participant S as schema::ensure_schema<br/>nostr-bbs-auth-worker/src/schema.rs:19
-    participant RL as rate-limit + replay schema<br/>nostr-bbs-auth-worker/src/lib.rs:175
+    participant RL as check_rate_limit<br/>nostr-bbs-auth-worker/src/lib.rs:175
     participant R as route<br/>nostr-bbs-auth-worker/src/lib.rs:225
 
     C->>F: HTTP request
     F->>H: handle_request (all errors caught by the wrapper)
     H->>S: idempotent D1 bootstrap at the top of every request, no isolate latch nostr-bbs-auth-worker/src/lib.rs:163
-    H->>RL: ensure_replay_schema then check_rate_limit 20 req / 60 s per IP nostr-bbs-auth-worker/src/lib.rs:175
+    H->>H: ensure_replay_schema on the DB binding, also every request nostr-bbs-auth-worker/src/lib.rs:164
+    H->>H: Options preflight returns 204 + CORS, so preflights are never rate-limited nostr-bbs-auth-worker/src/lib.rs:167
+    H->>RL: check_rate_limit 20 req / 60 s per IP nostr-bbs-auth-worker/src/lib.rs:175
     alt over budget
         RL-->>C: 429 Too many requests nostr-bbs-auth-worker/src/lib.rs:176
     end
-    H->>H: Options preflight returns 204 + CORS nostr-bbs-auth-worker/src/lib.rs:170
     H->>H: origin = the ACTUAL request URL, not EXPECTED_ORIGIN nostr-bbs-auth-worker/src/lib.rs:191
     H->>H: body bytes read BEFORE routing for NIP-98 payload hashing nostr-bbs-auth-worker/src/lib.rs:195
     H->>R: route(path, method, body_bytes, origin)
@@ -103,7 +106,7 @@ flowchart TB
     legacy -->|"no match"| NF["404 Not found nostr-bbs-auth-worker/src/lib.rs:349"]
 
     N1["Sprint handlers are dispatched BEFORE the legacy verify branch because they run their own<br/>require_admin / require_authed gates nostr-bbs-auth-worker/src/lib.rs:280-288"]
-    N2["ANOMALY O11 confirmed live: /api/native-pod/provision nostr-bbs-auth-worker/src/lib.rs:616 requires NATIVE_POD_URL and the<br/>NATIVE_POD_ADMIN_KEY secret; both are placeholders in the template nostr-bbs-auth-worker/wrangler.toml:66"]
+    N2["ANOMALY O11 (recorded live by an earlier review, not re-run here): /api/native-pod/provision nostr-bbs-auth-worker/src/lib.rs:616 requires NATIVE_POD_URL and the<br/>NATIVE_POD_ADMIN_KEY secret; both are placeholders in the template nostr-bbs-auth-worker/wrangler.toml:66"]
 ```
 
 **Invariant:** `SESSIONS` (the rate limiter's `rl:{ip}:{bucket}` keys) and `KV` (the admin pubkey cache) bind the same KV namespace id, so the admin cache key must never start with `rl:` (`../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/admins.rs:372`, `../nostr-rust-forum/crates/nostr-bbs-auth-worker/wrangler.toml:22-25`).
@@ -131,8 +134,8 @@ sequenceDiagram
     RV->>RV: mandatory NIP-98 header and matching author webauthn.rs:836 webauthn.rs:849
     RV->>RV: reject cross-origin ceremony webauthn.rs:878
     RV->>RV: clientData.origin must equal EXPECTED_ORIGIN webauthn.rs:886
-    RV->>D1: challenge must exist, be unexpired AND have pubkey = challenge webauthn.rs:906
-    RV->>RV: attestation fmt must be none or packed webauthn.rs:933
+    RV->>D1: challenge must exist, be unexpired AND have pubkey = challenge webauthn.rs:908
+    RV->>RV: attestation fmt must be none or packed webauthn.rs:932
     RV->>RV: constant-time RP-ID-hash compare webauthn.rs:951
     RV->>RV: flags UP bit0 webauthn.rs:957 and UV bit2 webauthn.rs:960 must be set
     RV->>RV: COSE coordinates must form a valid P-256 point webauthn.rs:976
@@ -143,7 +146,7 @@ sequenceDiagram
     RV-->>C: verified, pubkey, didNostr webauthn.rs:1054
 
     Note over D1,RV: Registration challenge uses pubkey = challenge<br/>Login-bucket challenges do not satisfy this lookup webauthn.rs:898-905
-    Note over RV: Stored salt differs from the random options salt<br/>Same-identity login is not established webauthn.rs:739 webauthn.rs:1021
+    Note over RV: Stored salt differs from the random options salt<br/>Same-identity login is not established webauthn.rs:739 webauthn.rs:1022
     Note over RV,WOT: WoT disabled returns Ok(true)<br/>No trust gate on open instances webauthn.rs:996-999
 ```
 
@@ -184,29 +187,32 @@ sequenceDiagram
     autonumber
     participant H as Route handler
     participant A as auth::verify_nip98_replay<br/>nostr-bbs-auth-worker/src/auth.rs:15
-    participant RLC as nostr_bbs_rate_limit::verify_nip98<br/>nostr-bbs-rate-limit/src/lib.rs:21
+    participant RLC as nostr_bbs_rate_limit::verify_nip98<br/>nostr-bbs-rate-limit/src/replay.rs:77, re-exported nostr-bbs-rate-limit/src/lib.rs:21
     participant D1 as nostr-bbs-auth D1 (binding DB)
 
     H->>A: header, canonical URL, method, body bytes
     A->>RLC: delegate with REPLAY_DB = "DB" nostr-bbs-auth-worker/src/auth.rs:11
-    RLC->>RLC: Schnorr + URL + method + payload-hash + created_at window checks
-    RLC->>D1: atomic INSERT OR IGNORE on the replay row
+    RLC->>RLC: core verify_token_full - Schnorr, URL, method, payload hash, created_at window - BEFORE any replay write nostr-bbs-core/src/nip98.rs:576
+    RLC->>D1: then seen_or_record, an atomic INSERT OR IGNORE on the replay row nostr-bbs-core/src/nip98.rs:585 nostr-bbs-rate-limit/src/replay.rs:27
     alt row already present
         D1-->>H: replay rejected
     end
     RLC-->>H: Nip98Token { pubkey, .. }
 
-    Note over A: INVARIANT: every worker binds its replay store to the SAME database (nostr-bbs-auth) so cross-worker replay is detected nostr-bbs-auth-worker/src/auth.rs:9-11 - see NF-08.4
+    Note over A: INVARIANT: every worker binds its replay store to the SAME database (nostr-bbs-auth) so cross-worker replay is detected nostr-bbs-auth-worker/src/auth.rs:9-11 - the auth template's DB id nostr-bbs-auth-worker/wrangler.toml:11 is the id the relay, pod and search templates give REPLAY_DB - see NF-08.4
+    Note over D1: OPEN: when D1 returns no write metadata the store answers first-seen, so the replay check fails OPEN on that path nostr-bbs-rate-limit/src/replay.rs:37-39 - whether D1 ever omits it is runtime behaviour
     Note over H: canonical_url composes the ACTUAL origin with the path so a workers.dev token verifies against a custom-domain deployment nostr-bbs-auth-worker/src/lib.rs:313
     Note over RLC: EXTERNAL: agentbox terminates NIP-98 at its own proxy with an independent single-use cache - see AB-10
 ```
+
+**Open:** the D1 replay store answers first-seen when D1 returns no write metadata (`../nostr-rust-forum/crates/nostr-bbs-rate-limit/src/replay.rs:37-39`; the trait contract is `true` on first observation, `../nostr-rust-forum/crates/nostr-bbs-core/src/nip98.rs:94-95`). The full signature, URL, method, payload and freshness check runs first (`../nostr-rust-forum/crates/nostr-bbs-core/src/nip98.rs:576`), so the exposure is bounded: a valid captured token could be replayed within its freshness window, and only on a request where D1 omits the metadata. Whether D1 ever does so is runtime behaviour, not settled by source.
 
 ## NF-02.6 The two gates every sprint handler chooses between
 
 ```mermaid
 flowchart LR
-    RA["require_admin<br/>nostr-bbs-auth-worker/src/admin.rs:112"]
-    RU["require_authed<br/>nostr-bbs-auth-worker/src/admin.rs:145"]
+    RA["require_admin<br/>nostr-bbs-auth-worker/src/admin.rs:110"]
+    RU["require_authed<br/>nostr-bbs-auth-worker/src/admin.rs:143"]
     ISA["is_admin - static union RELAY_DB union DB<br/>nostr-bbs-auth-worker/src/admin.rs:57"]
 
     RA --> ISA
@@ -244,7 +250,7 @@ flowchart TB
     D -. registry lookup .-> G
 ```
 
-[ADR-2004 review and NF-20](../../estate-review/2026-11-01-forum-device-keys.md) distinguish exact worker gating from client interoperability and revocation acceptance. This panel is updated; the rest of NF-02 is not newly certified.
+[ADR-2004 review and NF-20](../../estate-review/2026-11-01-forum-device-keys.md) distinguish exact worker gating from client interoperability and revocation acceptance. The 2026-11-02 forum-workers review ([report](../../estate-review/2026-11-02-forum-workers-auth-relay-pod.md)) re-assessed every NF-02 panel at `c39f41f`.
 
 ## NF-02.8 Membership creation paths — invite redemption and username claim
 
@@ -262,12 +268,14 @@ sequenceDiagram
     I->>IC: POST /api/invites/create
     IC->>AD: invitations row schema.rs:123
     N->>IR: POST /api/invites/{code}/redeem
-    IR->>AD: invitation_redemptions schema.rs:136 + members row schema.rs:116
+    IR->>AD: invitation_redemptions invites.rs:661 schema.rs:136 + members row invites.rs:671 schema.rs:116
+    IR->>RD: zone invite only - grant_zone_cohorts on the relay whitelist invites.rs:230 invites.rs:245 invites.rs:271
     N->>UC: POST /api/username/claim
-    UC->>AD: username_reservations upsert schema.rs:208
-    UC->>RD: whitelist row with the auto-approved cohort set
+    UC->>AD: one atomic INSERT into username_reservations username.rs:237, table schema.rs:208
+    UC->>RD: whitelist row with the auto-approved cohort set, ON CONFLICT DO NOTHING keeps admin-set cohorts username.rs:307
 
-    Note over UC: INVARIANT pubkey-uniqueness on username_reservations, claimed via upsert-with-DO-NOTHING so the SELECT-then-branch race cannot double-claim invites.rs:217
+    Note over UC: INVARIANT one name per pubkey and one pubkey per name: the claim is a single INSERT that relies on UNIQUE(username) and UNIQUE(pubkey) username.rs:231 schema.rs:211, not an upsert
+    Note over IR: INVARIANT ensure-then-merge: the zone grant inserts-or-keeps the whitelist row, then merges cohorts into it, so a concurrent username claim creating the same row cannot drop the grant invites.rs:215-225
     Note over IC: consume_for_registration is the registration-time bypass of the WoT gate invites.rs:785
     Note over UC: The granted cohort set is config-driven, not hardcoded - see NF-08.3
 ```
@@ -300,3 +308,5 @@ sequenceDiagram
     Note over H: INVARIANT the stage write is a compare-and-swap - two consumers racing the same receipt cannot both win, the loser sees a 409 governance_api.rs:1202-1204
     Note over RV: Reviewer telemetry measures the humans, not only the agents, and is admin-gated where the case and decision reads are member-visible governance_api.rs:1407
 ```
+
+**Drift:** the compare-and-swap comment names the guard `stage = ?5` (`../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/governance_api.rs:1202`), but in the statement `?5` is the event id and the stage guard is `?6` (`../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/governance_api.rs:1210`). The behaviour matches the invariant; only the comment is stale.

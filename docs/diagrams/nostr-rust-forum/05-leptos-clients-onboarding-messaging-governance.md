@@ -62,7 +62,8 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/screens.rs
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/theme.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/category.rs
-verified_commit: 1b27f79d08537b61b3d5a5d02cac9ee5999b79ed
+  - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/mobile_bottom_nav.rs
+verified_commit: c39f41f104b114d6a3fa29013daaf6fa58b45080
 ---
 
 ## NF-05.1 Forum client boot and the FORUM_BASE discipline
@@ -93,6 +94,8 @@ sequenceDiagram
     Note over M: main.rs:55-57 re-read the same option_env! for the service-worker SCOPE - a deliberate, documented mirror of<br/>app::FORUM_BASE, not a third application of the prefix
     Note over A: current_app_path strips the prefix back off a browser path so the router sees an unprefixed route<br/>nostr-bbs-forum-client/src/app.rs:82
 ```
+
+**Debt:** the mobile bottom nav strips the prefix with its own `option_env!("FORUM_BASE")` read (`../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/mobile_bottom_nav.rs:30`) instead of calling `current_app_path` (`../nostr-rust-forum/crates/nostr-bbs-forum-client/src/app.rs:82`). This is not a third *application* of the prefix, so the ADR-090 invariant above holds. It is a second hand-written copy of the stripping rule, though, and it can drift from `utils::paths::app_path`. Closing it means routing the nav through `current_app_path`.
 
 
 ## NF-05.2 Route table
@@ -197,7 +200,7 @@ classDiagram
     AuthStore --> LocalKey
     AuthStore --> Nip98Builder
 
-    note for Nip98Builder "create_nip98_token_with_signer routes through the Signer TRAIT, so an extension-backed session builds a valid NIP-98 header without the client ever holding a key auth/nip98.rs:148"
+    note for Nip98Builder "create_nip98_token_with_signer routes through the Signer TRAIT, so an extension-backed session builds a valid NIP-98 header without the client ever holding a key auth/nip98.rs:149"
     note for AuthStore "Session key persistence is remember-me dependent: localStorage auth/session.rs:156 or sessionStorage auth/session.rs:163; both cleared on logout auth/session.rs:187"
     note for Nip07Signer "sign_event_async is the async seam an extension needs; the sync path is key-backed only auth/mod.rs:669"
 ```
@@ -240,7 +243,7 @@ flowchart TB
     GATE2["admits_message gate AGAIN AFTER decrypt - a restored sealed original<br/>carries the ORIGINAL id, which a kind-5 may already have tombstoned<br/>channels.rs:446 ADR-2017"]
     INS["insert_message helper: dedup by id, then sort by created_at<br/>channels.rs:611"]
     CNT["count_for = Vec::len on every read<br/>channels.rs:159 channels.rs:161"]
-    UNREAD["unread_count is a Memo filtering !read<br/>notifications.rs:223"]
+    UNREAD["unread_count is a Memo filtering !read<br/>notifications.rs:249"]
 
     EVS --> GATE1 --> DEC --> GATE2 --> INS --> CNT
     TOMB --> GATE1
@@ -248,7 +251,7 @@ flowchart TB
     EVS --> UNREAD
 
     N1["INVARIANT ADR-091: post counts are NEVER stored as an independent field - a mutable counter drifts<br/>against deletions and replaceable events channels.rs:62"]
-    N2["admits_message is the tombstone-set inverse - insert_message is the ONLY writer of channel_messages,<br/>so dedup-by-id plus the double tombstone gate is what makes len() correct even when a deletion and<br/>its target race channels.rs:609 channels.rs:828"]
+    N2["admits_message is the tombstone-set inverse - insert_message is the only path that ADDS to channel_messages,<br/>so dedup-by-id plus the double tombstone gate is what makes len() correct even when a deletion and<br/>its target race channels.rs:609 channels.rs:828. The other mutations only remove or rewrite: fold_deletions<br/>channels.rs:795 behind remove_message channels.rs:129, the empty-EOSE reset channels.rs:320, and redecrypt,<br/>which rewrites in place behind a deletion check zone_crypto/store.rs:164"]
     N3["The same discipline is applied to notifications - unread is derived, not incremented<br/>notifications.rs:249. init_sync opens NO subscription of its own,<br/>and is idempotent behind a synced flag notifications.rs:460"]
 ```
 
@@ -269,7 +272,7 @@ flowchart TB
     ZC --> COH
 
     N1["The client renders what the config describes; the relay is the real boundary enforcing the SAME<br/>JSON - see NF-08.1 and NF-08.2"]
-    N2["ANOMALY O8 re-verified and STILL LIVE: relay.rs reads window.__ENV__ inline<br/>nostr-bbs-forum-client/src/relay.rs:1045 instead of calling the shared window_env helper, and the two<br/>resolvers' hardcoded fallbacks DIVERGE - nostr-bbs-forum-client/src/relay.rs:22 versus utils/relay_url.rs:9"]
+    N2["ANOMALY O8 re-verified and STILL LIVE: relay.rs reads window.__ENV__ inline<br/>nostr-bbs-forum-client/src/relay.rs:1045 instead of calling the shared window_env helper, and the two<br/>resolvers' hardcoded fallbacks DIVERGE - nostr-bbs-forum-client/src/relay.rs:23 versus utils/relay_url.rs:13"]
     N3["ANOMALY O7 CLOSED: settings no longer hardcodes example.test - it imports the onboarding modal's NIP05_HOST, which is baked from NOSTR_BBS_NIP05_DOMAIN, so the two cannot drift<br/>nostr-bbs-forum-client/src/pages/settings.rs:35, nostr-bbs-forum-client/src/components/onboarding_modal.rs:59"]
 ```
 
@@ -333,7 +336,7 @@ sequenceDiagram
     Note over B: ANOMALY O6 CORRECTED: the filed defect was a silent no-op NIP-07 DM subscription. The subscription is registered unconditionally dm/mod.rs:267. The NIP-07 limitation is per-event, and it IS surfaced dm/mod.rs:955-963
 ```
 
-**Open:** ADR-2027 (NIP-17 overlay for nostr.chat interop) is accepted but only partly implemented and inactive, and ADR-2028 (NIP-171 key plane for zones, superseding ADR-2026) remains proposed/inactive on main; the local upgrade branch contains tested primitives but lacks owner activation workflows (see [NF-28](28-nip171-owner-recovery-and-ticket-contracts.md)), so none of that DM or zone-key routing is drawn as live here (`../nostr-rust-forum/docs/adr/ADR-2027-nip17-overlay-for-nostr-chat-interop.md:6`, `../nostr-rust-forum/docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md:6`).
+**Open:** ADR-2027 (NIP-17 overlay for nostr.chat interop) is accepted but only partly implemented and inactive, and ADR-2028 (NIP-171 key plane for zones, superseding ADR-2026) remains proposed/inactive on main; the local upgrade branch contains tested primitives but lacks owner activation workflows (see [NF-28](28-nip171-owner-recovery-and-ticket-contracts.md)), so none of that DM or zone-key routing is drawn as live here (`../nostr-rust-forum/docs/adr/ADR-2027-nip17-overlay-for-nostr-chat-interop.md:6`, `../nostr-rust-forum/docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md:5`, `:7`).
 
 
 ## NF-05.10 Feature surfaces the forum client calls out to
@@ -347,7 +350,7 @@ flowchart LR
     BADGE["agent disclosure over public HTTP GET<br/>nostr-bbs-forum-client/src/components/agent_badge.rs:317"]
     GIT["pod git control panel - _git/status :213 stage :272 unstage :310<br/>discard :359 commit :385 diff :434 log :466<br/>nostr-bbs-forum-client/src/components/git_panel.rs:213"]
     POD["pod browser - {POD_API}/pods/{pubkey} and /HEAD<br/>nostr-bbs-forum-client/src/pages/pod_browser.rs:513 pod_browser.rs:582"]
-    ADMINT["admin actions - POST /api/admin/suspend :269 and /api/admin/silence :701, NIP-98 signed<br/>nostr-bbs-forum-client/src/admin/user_table.rs:266"]
+    ADMINT["admin actions - POST /api/admin/suspend :269 and /api/admin/silence :701, NIP-98 signed<br/>nostr-bbs-forum-client/src/admin/user_table.rs:269"]
 
     N1["DOC-DRIFT consumer-surface-map: the map lists the git panel as calling /.well-known/apps, but the<br/>client fetches and PUTs /apps/manifest.json instead - git_panel.rs:893 and git_panel.rs:946; no<br/>.well-known path exists anywhere in the crate"]
     N2["Calendar: only 31923 (time-based) and 31925 (RSVP) are used client-side. Kind 31922 (date-based),<br/>which the relay ban-gates and zone-gates, has no client surface - see NF-03.6 and NF-03.12"]
@@ -357,7 +360,7 @@ flowchart LR
 
 ## NF-05.11 Retro BBS client — session adoption and key custody
 
-Custody and boot-routing correction: [current ADR-2008 review](../../estate-review/2026-11-01-forum-bbs-signer.md). The reviewed files match this topic’s source stamp; this is a narrow correction, not a new whole-topic certification.
+Custody and boot-routing correction: [current ADR-2008 review](../../estate-review/2026-11-01-forum-bbs-signer.md). That review was narrow; the whole topic was re-read and restamped at nostr-rust-forum c39f41f on 2026-11-02 ([audit](../../estate-review/2026-11-02-forum-clients-agents-search.md)).
 
 ```mermaid
 flowchart TB
@@ -391,7 +394,7 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    ENUM["Screen enum<br/>nostr-bbs-bbs-client/src/menu.rs:14<br/>Rebind :29 MainMenu :32 Agents :34 Chat :38"]
+    ENUM["Screen enum<br/>nostr-bbs-bbs-client/src/menu.rs:14<br/>Rebind :28 MainMenu :31 Agents :33 Chat :37"]
     GO["BbsState::go - the single transition point<br/>nostr-bbs-bbs-client/src/chrome.rs:63 chrome.rs:65"]
     KEYS["from_menu_key numeric entry menu.rs:87<br/>parse_command slash entry menu.rs:186<br/>aliases table menu.rs:138<br/>menu_order ten screens menu.rs:56"]
     VIEW["ScreenView dispatch<br/>nostr-bbs-bbs-client/src/screens.rs:124"]
@@ -583,4 +586,4 @@ flowchart TB
 
 **Why it is this way.** Push payloads transit Google, Apple and Mozilla, and the service worker has no access to the page’s localStorage or sessionStorage, so ADR-2023 chose payload-less push with a bearer-token drain instead of RFC 8291 encryption (`../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md:21`, `../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md:25`).
 
-**Open:** ADR-2023 records `activation_status: staged` (no live Cloudflare deploy, push-service round trip or iOS device run was verified), and the shipped relay template leaves `PUSH_ENABLED = "false"` (`../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md:6`, `../nostr-rust-forum/crates/nostr-bbs-relay-worker/wrangler.toml:86`).
+**Open:** ADR-2023 records `activation_status: staged` (no live Cloudflare deploy, push-service round trip or iOS device run was verified), and the shipped relay template leaves `PUSH_ENABLED = "false"` (`../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md:7`, `../nostr-rust-forum/crates/nostr-bbs-relay-worker/wrangler.toml:86`).

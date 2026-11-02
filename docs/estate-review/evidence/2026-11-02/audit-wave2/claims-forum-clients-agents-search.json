@@ -1,0 +1,14 @@
+[
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/nostr-rust-forum/05-leptos-clients-onboarding-messaging-governance.md",
+   "report": "docs/estate-review/2026-11-02-forum-clients-agents-search.md", "coverage": "selected-panels",
+   "panels": ["NF-05.1", "NF-05.2", "NF-05.3", "NF-05.4", "NF-05.5", "NF-05.6", "NF-05.7", "NF-05.8", "NF-05.9", "NF-05.10", "NF-05.11", "NF-05.12", "NF-05.13", "NF-05.14", "NF-05.15", "NF-05.16", "NF-05.17"],
+   "basis": "Source tracing at nostr-rust-forum c39f41f; restamped, every citation re-resolved, strict cite-check and render pass; 7 accurate, 7 corrected, 3 with limits (passkey, recovery and zone-key browser behaviour not exercised)."},
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/nostr-rust-forum/06-agent-control-surface-31400-31405.md",
+   "report": "docs/estate-review/2026-11-02-forum-clients-agents-search.md", "coverage": "selected-panels",
+   "panels": ["NF-06.1", "NF-06.2", "NF-06.3", "NF-06.4", "NF-06.6", "NF-06.8", "NF-06.9", "NF-06.10", "NF-06.11", "NF-06.12", "NF-06.13", "NF-06.14", "NF-06.15", "NF-06.16", "NF-06.17", "NF-06.18", "NF-06.19"],
+   "basis": "Source tracing at nostr-rust-forum c39f41f and dreamlab-ai-website 0e15728; restamped, every citation re-resolved, strict cite-check and render pass; 7 accurate, 7 corrected, 3 with limits (ADR-recorded activation runs and Worker secrets not re-established)."},
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/nostr-rust-forum/07-search-preview-and-shared-worker-utilities.md",
+   "report": "docs/estate-review/2026-11-02-forum-clients-agents-search.md", "coverage": "selected-panels",
+   "panels": ["NF-07.1", "NF-07.2", "NF-07.3", "NF-07.4", "NF-07.5", "NF-07.6", "NF-07.7", "NF-07.8", "NF-07.9"],
+   "basis": "Source tracing at nostr-rust-forum c39f41f; restamped, every citation re-resolved, strict cite-check and render pass; 4 accurate, 5 corrected; remote Jev behaviour and deployed secrets not checkable from source."}
+]

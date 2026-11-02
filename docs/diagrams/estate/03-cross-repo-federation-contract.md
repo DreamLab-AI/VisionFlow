@@ -37,7 +37,22 @@ sources:
   - docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md
   - ../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md
   - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
-verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, agentbox: 6500582dfae23bf8a38a6942916d208154e43625, visionflow: 4d361b58ce2b3ee17e1570361eaf78270b630012, solid-pod-rs: 09ec90f26aa573731460292d0e80343914cb43d9, nostr-rust-forum: 1b27f79d08537b61b3d5a5d02cac9ee5999b79ed}
+  - ../project/docs/IDENTIFIER-taxonomy.md
+  - ../project/docs/BASELINE-architecture.md
+  - ../project/.github/workflows/ci.yml
+  - ../project/src/handlers/pay_handler.rs
+  - ../project/agentbox/docs/adr/ADR-2061-federation-kind-map-parity.md
+  - ../project/agentbox/docs/adr/ADR-2097-sidestr-rail-supersedes-lightning-first.md
+  - ../project/agentbox/docs/adr/ADR-2100-every-settlement-passes-the-authority-gate.md
+  - ../project/agentbox/docs/adr/ADR-2101-federation-topology-and-key-separation.md
+  - ../project/agentbox/docs/adr/ADR-2102-assets-are-bridged-in-rgb-as-a-wrapped-asset.md
+  - ../project/agentbox/docs/adr/ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md
+  - ../solid-pod-rs/crates/solid-pod-rs/src/payments.rs
+  - ../solid-pod-rs/crates/solid-pod-rs-server/src/handlers/pay.rs
+  - ../nostr-rust-forum/Cargo.toml
+  - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/payments.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/pay_ledger.rs
+verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35, visionflow: 5f8b1da92ce5d9e6b32a0bd90ec3630c66619083, solid-pod-rs: 9b6143ce55b242c322c92d8c6bcc0c1a5371b451, nostr-rust-forum: c39f41f104b114d6a3fa29013daaf6fa58b45080}
 ---
 ## ES-03.1 Shared wire envelope: AgentActionNotification (agentbox emit -> VisionClaw ingest)
 ```mermaid
@@ -89,7 +104,7 @@ classDiagram
     AgentActionParams --> AgentActionEnvelope : event
     AgentActionEnvelope --> AgentActionEvent : to_binary_event
     note for AgentActionNotification "src/agent_events/schema.rs:26-30 struct; METHOD const :33;<br/>is_canonical requires jsonrpc 2.0, kind agent_action, version >= 3 at :36-41"
-    note for AgentActionEnvelope "src/agent_events/schema.rs:61-147 mirrors agentbox<br/>management-api/utils/agent-event-publisher.js byte-for-field (ADR-059 par2)<br/>INVARIANT: canonical wire names (token_count/handoff_id/verification) come from agentbox;<br/>serde alias accepts the older draft spelling"
+    note for AgentActionEnvelope "src/agent_events/schema.rs:61-147 takes its wire names from agentbox<br/>createMcpNotification, agent-event-publisher.js:305-342 (ADR-059 par2)<br/>INVARIANT: canonical wire names (token_count/handoff_id/verification) come from agentbox;<br/>serde alias accepts the older draft spelling<br/>DRIFT: not byte-for-field. failure_mode and authority_class are emitted at<br/>agent-event-publisher.js:326,335 and silently dropped by serde (no deny_unknown_fields);<br/>intent, schema.rs:143, is never emitted by agentbox"
     note for AgentActionEvent "to_binary_event src/agent_events/schema.rs:173 is the identity-blind 0x23 projection:<br/>source_urn/target_urn/pubkey are dropped on purpose, already resolved server-side (ADR-059) :169-172"
 ```
 ## ES-03.2 VisionClaw urn:visionclaw grammar - 7 kinds, no agent kind
@@ -118,12 +133,12 @@ flowchart TD
     KGADDR -- "require_content_address fails<br/>:169-174" --> ERR
     subgraph LEGACY["Legacy coexistence"]
         NGM["urn:ngm:* LEGACY_NGM_NS<br/>src/uri/mod.rs:45"]
-        DUAL["parse_dual()<br/>src/uri/mod.rs:630<br/>resolve paths only"]
+        DUAL["parse_dual()<br/>src/uri/mod.rs:633<br/>resolve paths only"]
         NGM --> DUAL
     end
     NOTE1["INVARIANT: no urn:visionclaw:agent kind - identity IS the DID<br/>src/uri/mod.rs:26-27,51-52"]
     NOTE2["INVARIANT: every durable id minted only via these typed constructors<br/>ad-hoc format! is prohibited - src/uri/mod.rs:33-35"]
-    NOTE3["DELIBERATE (2026-09-05, ADR-2061 review): parse rejects urn:ngm:* and parse_dual accepts it<br/>Not drift - a mint vs resolve split. parse refuses the retired namespace so no NEW durable id is minted under it<br/>parse_dual accepts it so ids persisted before the ADR-105 cutover keep resolving<br/>Collapsing them either strands legacy ids or re-opens minting - docs/IDENTIFIER-taxonomy.md invariant 7"]
+    NOTE3["DELIBERATE (2026-09-05, ADR-2061 review): parse rejects urn:ngm:* and parse_dual accepts it<br/>Not drift - a mint vs resolve split. parse refuses the retired namespace so no NEW durable id is minted under it<br/>parse_dual accepts it so ids persisted before the ADR-105 cutover keep resolving<br/>Collapsing them either strands legacy ids or re-opens minting - invariant 7, IDENTIFIER-taxonomy.md:244"]
     NOTE1 -.-> DID
     NOTE2 -.-> NS
     DUAL -.-> NOTE3
@@ -167,7 +182,7 @@ flowchart TD
     THING ~~~ DATASET ~~~ AGENT ~~~ META ~~~ CHAIN
     NORM["_normalisePubkey supplied<br/>uris.js:237-259<br/>accepts hex, did:nostr hex, or npub1 bech32"]
     MINT -- "spec.ownerScope true" --> NORM
-    NOTE_KIND["INVARIANT: 21 kinds total, decision added by ADR-048,<br/>knowledge by ADR-2085 and chain by ADR-2098 (uris.js:115).<br/>The KINDS table is frozen at uris.js:88 and every durable<br/>identifier is minted through it.<br/>agentbox/CLAUDE.md Parallel namespace"]
+    NOTE_KIND["INVARIANT: 21 kinds total, decision added by ADR-048,<br/>knowledge by ADR-2085 and chain by ADR-2098 (uris.js:115,128).<br/>The KINDS table is frozen at uris.js:88 and every durable<br/>identifier is minted through it.<br/>agentbox/CLAUDE.md Parallel namespace"]
     NOTE_R1["INVARIANT: R1 content-addressed local is sha256-12 plus first 12 hex chars, same input gives same URI<br/>uris.js:37-42"]
     RE -.-> NOTE_KIND
     CA -.-> NOTE_R1
@@ -175,19 +190,19 @@ flowchart TD
 ## ES-03.4 cross_from_agentbox: shared kind policy and typed inbound targets
 ```mermaid
 flowchart TD
-    IN["cross_from_agentbox<br/>src/uri/mod.rs:809"] --> DID{"Valid did:nostr hex identity?<br/>src/uri/mod.rs:811-819"}
-    DID -->|yes| SAME["Return identity unchanged with owner DID<br/>src/uri/mod.rs:813-816"]
+    IN["cross_from_agentbox<br/>src/uri/mod.rs:812"] --> DID{"Valid did:nostr hex identity?<br/>src/uri/mod.rs:814-822"}
+    DID -->|yes| SAME["Return identity unchanged with owner DID<br/>src/uri/mod.rs:816-819"]
     DID -->|malformed DID| NO["Refuse without inventing an identifier"]
-    DID -->|URN| PARSE["Parse agentbox kind and optional hex scope<br/>src/uri/mod.rs:822-826"]
-    PARSE --> ROW["Look up shared federation-kinds.json policy<br/>src/uri/mod.rs:832-834"]
+    DID -->|URN| PARSE["Parse agentbox kind and optional hex scope<br/>src/uri/mod.rs:825-829"]
+    PARSE --> ROW["Look up shared federation-kinds.json policy<br/>src/uri/mod.rs:835-837"]
     ROW -->|unknown or crossing disabled| NO
-    ROW -->|crossing enabled| TARGET{"Typed target constructor<br/>src/uri/mod.rs:842"}
-    TARGET --> ID["did:nostr: scoped identity<br/>src/uri/mod.rs:843"]
-    TARGET --> EXEC["execution: hash original URN, unscoped<br/>src/uri/mod.rs:844"]
-    TARGET --> KG["kg: hash original URN with owner scope<br/>src/uri/mod.rs:845"]
-    TARGET --> BEAD["bead: preserve valid scoped content address<br/>src/uri/mod.rs:853-855"]
+    ROW -->|crossing enabled| TARGET{"Typed target constructor<br/>src/uri/mod.rs:845"}
+    TARGET --> ID["did:nostr: scoped identity<br/>src/uri/mod.rs:846"]
+    TARGET --> EXEC["execution: hash original URN, unscoped<br/>src/uri/mod.rs:847"]
+    TARGET --> KG["kg: hash original URN with owner scope<br/>src/uri/mod.rs:848"]
+    TARGET --> BEAD["bead: preserve valid scoped content address<br/>src/uri/mod.rs:856-858"]
     TARGET -->|unsupported target| NO
-    ID --> OUT["Return crossing with original identifier<br/>src/uri/mod.rs:860-863"]
+    ID --> OUT["Return crossing with original identifier<br/>src/uri/mod.rs:863-866"]
     EXEC --> OUT
     KG --> OUT
     BEAD --> OUT
@@ -220,7 +235,7 @@ flowchart TD
     VCBEAD --> RESULT
     VCKG --> RESULT
     VCCONCEPT --> RESULT
-    NOTE_DIFF["RESOLVED ADR-2061 (2026-09-05): both translators now derive this map from one versioned artefact<br/>schema/federation-kinds.json v1.0.0 is read here at load and embedded in Rust with include_str!<br/>A paired fixture asserts per-kind agreement on crossed versus refused and on the target grammar<br/>Flipping one artefact row failed 3 of 50 jest cases and 4 of 7 cargo test cases - asymmetry is a test failure"]
+    NOTE_DIFF["RESOLVED ADR-2061 (2026-09-05): both translators now derive this map from one versioned artefact<br/>schema/federation-kinds.json, now v1.1.0 (the bump added an event_kinds section; the 21 kind rows are unchanged),<br/>is read at load, bc20-provenance-bridge.js:112-115, and embedded in Rust with include_str!<br/>A paired fixture asserts per-kind agreement on crossed versus refused and on the target grammar<br/>Recorded, not re-run here: flipping memory failed 3 of 50 jest and 4 of 82 cargo uri cases,<br/>ADR-2061-federation-kind-map-parity.md:196-203"]
     VCBEAD -.-> NOTE_DIFF
     subgraph REV["toAgentbox: source recovery, bc20-provenance-bridge.js:239"]
         REVDID{"Parsed did:nostr?<br/>bc20-provenance-bridge.js:243-244"}
@@ -235,6 +250,8 @@ flowchart TD
         STORE -->|other kind without hit| MISS["Count store miss and return null<br/>bc20-provenance-bridge.js:287-289"]
     end
 ```
+
+**Tension:** ADR-2061 is recorded `live`, but only its JS half is CI-gated; the Rust half (`cargo test --lib uri`) is not, because the crate owning `src/uri` is outside the CPU crate list (`../project/agentbox/docs/adr/ADR-2061-federation-kind-map-parity.md:232-237`). That still holds at the VisionClaw stamp: `../project/.github/workflows/ci.yml:80-81` leaves `visionclaw-server` to the GPU job, which runs on the developer's CUDA host (`../project/.github/workflows/ci.yml:258`). A one-sided artefact edit that breaks only Rust is caught locally, not in CI.
 ## ES-03.6 Content address byte-identity: sha256-12, first 6 bytes, lowercase hex (ADR-2023)
 ```mermaid
 sequenceDiagram
@@ -283,6 +300,12 @@ sequenceDiagram
             M->>CA: _contentAddress(payload)
             CA->>CA: canon = _stableStringify(payload)
             CA-->>M: local = sha256-12- + hex.slice(0,12)
+        end
+    else contentAddressed false and spec.localGrammar set (chain)
+        alt localId fails the local grammar
+            M-->>C: throw MalformedUri local id must match the grammar<br/>uris.js:197-198
+        else matches
+            M->>M: local = lowercased id, never slugged
         end
     else contentAddressed false
         alt localId supplied
@@ -362,6 +385,8 @@ sequenceDiagram
     end
     Note over R,C: DIVERGENCE: historical 410 language has no implemented 410 response.<br/>A 307 proves a route was selected, and the target may still be missing or refuse access.<br/>Deterministic naming does not guarantee collision-free or available data.
 ```
+
+**Open:** every `did:nostr:<hex>` redirects to the one pod-level `/.well-known/did.json`; the pubkey in the request is not used to pick a document (`../project/agentbox/management-api/routes/uri-resolver.js:65-75`). Whether that document is the requested identity's is decided by the pod, not this resolver. Source does not show which.
 ## ES-03.9 Adapter dispatch: observability -> privacy filter -> JSON-LD encoder, in that order
 ```mermaid
 sequenceDiagram
@@ -374,25 +399,25 @@ sequenceDiagram
     participant AA as assertPrivacyFilterApplied<br/>privacy-filter.js:595
     participant Ad as Adapter impl call
     rect rgb(240,240,255)
-    Note over Rt,Ad: DOC-DRIFT RESOLVED BY CORRECTION (ADR-2036) - the governing doc's own<br/>THREE-LAYER dispatch claim was the error, retracted at BASELINE-container.md:299.<br/>Observability and privacy wrap the dispatch (metrics.js:125, privacy-filter.js:649),<br/>JSON-LD encoding is a SEPARATE caller action, deliberately, not a third wrapper layer.
+    Note over Rt,Ad: DOC-DRIFT RESOLVED BY CORRECTION (ADR-2036) - the governing doc's own<br/>THREE-LAYER dispatch claim was the error, retracted at BASELINE-container.md:300.<br/>Observability and privacy wrap the dispatch (metrics.js:125, privacy-filter.js:649),<br/>JSON-LD encoding is a SEPARATE caller action, deliberately, not a third wrapper layer.
     Rt->>WD: instrumentedDispatch(...args)
     WD->>WD: executionId = uris.mint kind event,pubkey,payload
     WD->>PF: privacyWrapped(...args)
-    alt OPF_MODE strict and sidecar unreachable
+    alt slot policy strict (pods and memory, privacy-filter.js:196-197) and sidecar unreachable
         PF->>OPF: redact payload
         OPF--xPF: connection error
         PF-->>WD: throw AdapterWriteRejected, fail-closed 503<br/>privacy-filter.js policy strict
-    else OPF_MODE soft and sidecar unreachable
+    else slot policy soft (events and beads, privacy-filter.js:198-199) and sidecar unreachable
         PF->>OPF: redact payload
         OPF--xPF: connection error
         PF-->>WD: continue unredacted, fail-open, warn plus counter
-    else OPF_MODE off
-        PF->>PF: skip OPF entirely, pass-through
+    else OPF_MODE off, or slot policy off
+        PF->>PF: skip OPF entirely, pass-through, still stamped<br/>privacy-filter.js:223,661-663
     else OPF reachable
         PF->>OPF: redact payload
         OPF-->>PF: redacted text, replaced count
     end
-    PF->>PF: stamp WeakSet plus non-enumerable Symbol marker on payload<br/>privacy-filter.js:171 _hasPrivacyMark counterpart
+    PF->>PF: stamp WeakSet plus non-enumerable Symbol marker on payload<br/>_markPrivacyApplied privacy-filter.js:149, read back by _hasPrivacyMark :171
     PF-->>WD: result
     WD->>WD: adapterDispatchTotal / adapterDurationSeconds metrics, structured log
     end
@@ -407,7 +432,7 @@ sequenceDiagram
         else payload unmarked (route bypassed wrapWithPrivacyFilter)
             AA-->>LD: throw MiddlewareOrderViolation slot,payloadType<br/>privacy-filter.js:562-571
             LD->>LD: increment opf_middleware_order_violations_total
-            alt slot is pods or memory (fail-closed slots)
+            alt slot is pods or memory (fail-closed slots, privacy-filter.js:138,613-614)
                 LD-->>Rt: throw, request fails
             else other slot
                 LD-->>Rt: log and continue, fail-open
@@ -415,9 +440,11 @@ sequenceDiagram
         end
     end
     Note over LD: INVARIANT DDD-004 par L08 - privacy redaction completes before the encoder runs, verified<br/>per-dispatch not per-module-load
-    Note over Ad: DIVERGENCE agentbox/docs/BASELINE-container.md - adapter contract versions are STALE<br/>PLACEHOLDERS. pods, memory, events and orchestrator all still declare 1.0.0 despite live<br/>churn, so a breaking change would need a MAJOR bump that has NOT happened. A consumer<br/>cannot tell from the version whether the contract it compiled against still holds.
-    Note over Ad: CORRECTED (ADR-2035) - there is NO orchestrator-specific fatal probe. connectAdapters<br/>races EVERY slot against its OWN deadline (lifecycle.js:31), failure and timeout are<br/>equally fatal and both quarantine the adapter (lifecycle.js:256,274). If the off-replacement<br/>cannot be built the slot is left unavailable and dispatch throws AdapterQuarantined rather<br/>than reach a degraded adapter (lifecycle.js:292-299). toLegacyHealth maps all five slots<br/>uniformly into adapterHealth (server.js:1358), and /ready blocks on ANY manifest slot that<br/>is not healthy (server.js:511-512) - no slot is privileged.
+    Note over Ad: DIVERGENCE BASELINE-container.md:229 - adapter contract versions are STALE<br/>PLACEHOLDERS. pods, memory, events and orchestrator all still declare 1.0.0 despite live<br/>churn, so a breaking change would need a MAJOR bump that has NOT happened. A consumer<br/>cannot tell from the version whether the contract it compiled against still holds.
+    Note over Ad: CORRECTED 2026-11-02 (ADR-2035) - connectAdapters races EVERY slot against its OWN<br/>deadline (lifecycle.js:31), and failure and timeout both quarantine the adapter (lifecycle.js:273,296).<br/>They are NOT equally fatal and one slot IS privileged: orchestrator is the only fail-closed slot<br/>(lifecycle.js:75) and aborts startup (lifecycle.js:298-302,329-335). Every other failed slot gets<br/>an off stand-in whose dispatch refuses (lifecycle.js:178,312), and if that cannot be built the slot<br/>stays quarantined and dispatch throws AdapterQuarantined (lifecycle.js:318-326).<br/>toLegacyHealth feeds adapterHealth (server.js:1380), and /ready blocks on any non-off<br/>manifest slot that is not healthy (server.js:511-513).
 ```
+
+**Drift:** the governing doc's own resolution paragraph still cites `adapters/lifecycle.js:256`, `:274` and `:292-299` (`../project/agentbox/docs/BASELINE-container.md:300`); at the agentbox stamp those lines hold a readiness record, the `reason` assignment and the quarantine comment, and the replacement-failed branch is at `../project/agentbox/management-api/adapters/lifecycle.js:318-326`. It also says failure and timeout "no longer have different outcomes", which is true of quarantine but not of startup: `orchestrator` aborts (`../project/agentbox/management-api/adapters/lifecycle.js:75`).
 ## ES-03.10 Partial convergence: typed operational crossings and remaining RDF identity seams
 ```mermaid
 flowchart TD
@@ -429,15 +456,15 @@ flowchart TD
         G5["visionclaw:owner:{npub}/kg/... NOT emitted anywhere in src/ or crates/<br/>legacy ADR-050, superseded by urn:visionclaw:kg pubkey scope"]
     end
     subgraph AB["agentbox grammars in live code"]
-        G6["urn:agentbox:kind:scope:local hex-canonical<br/>agentbox/management-api/lib/uris.js:119 legacy ADR-053"]
-        G7["did:nostr:hex identity, npub accepted at boundary only<br/>uris.js:208-232"]
+        G6["urn:agentbox:kind:scope:local hex-canonical<br/>agentbox/management-api/lib/uris.js:138 legacy ADR-053"]
+        G7["did:nostr:hex identity, npub accepted at boundary only<br/>uris.js:208-220, normalised by _normalisePubkey :237-259"]
     end
     G1 -. "cross_from_agentbox, ADR-2025 closed map" .-> G6
     G3 -. "structural round-trip, already converged" .-> G7
     NOTE1["PARTIAL CONVERGENCE: the shared federation-kinds.json governs operational URN crossings<br/>and both translators have typed refusal paths. RDF urn:ngm and semantic display<br/>identities remain separate seams; the historical visionclaw:owner form is not emitted.<br/>Distinct grammars alone are not evidence of a broken join; test each boundary."]
-    NOTE2["DIVERGENCE docs/BASELINE-architecture.md par235 - identifier grammars unreconciled, DID doc ADR-074-D2prime vs ADR-125 conflict"]
+    NOTE2["DIVERGENCE BASELINE-architecture.md:338-339 - identifier grammars unreconciled, DID doc ADR-074-D2prime vs ADR-125 conflict"]
     NOTE3["DELIBERATE REFUSAL: memory needs an explicit ontology elevation target;<br/>unknown kinds are refused. Preserve the raw identifier and refusal reason.<br/>This is a bounded translation contract, not proof that every identifier resolves."]
-    NOTE4["PROPOSED 2026-10-30, not implemented: ADR-2157 adds a space-bound room form<br/>urn:visionclaw:room:nip29-hex (IDENTIFIER-taxonomy.md, Proposed section, room table) and ADR-2161 a dataspace<br/>URN plus a federation dataspace kind that amends this closed map (IDENTIFIER-taxonomy.md, data-space URN table).<br/>Today the only live room grammar is room plus sha256-12."]
+    NOTE4["PROPOSED 2026-10-30, not implemented: ADR-2157 adds a space-bound room form<br/>urn:visionclaw:room:nip29-hex (IDENTIFIER-taxonomy.md, Proposed section, room table) and ADR-2161 a dataspace<br/>URN plus a federation dataspace kind that amends this closed map (IDENTIFIER-taxonomy.md:203,209,222).<br/>Neither room_from_group nor a dataspace kind exists in src/uri/mod.rs or federation-kinds.json at the stamp.<br/>Today the only live room grammar is room plus sha256-12."]
     G4 -.-> NOTE1
     G2 -.-> NOTE1
     G5 -.-> NOTE2
@@ -452,9 +479,9 @@ flowchart TD
 flowchart TB
     PRD["PROPOSED — PRD-024 Sovereign Settlement, the source record<br/>our own sidestr sidechains are the sole value instrument<br/>agentbox/docs/proposals/sovereign-settlement.md:42"]
 
-    subgraph AB["agentbox — the eight records that implement it, all proposed"]
-        A96["ADR-2096 sidechains are the sole value instrument,<br/>clean-room in Rust, rust-bitcoin accepted estate-wide<br/>ADR-2096-sidestr-sidechains-are-the-sole-value-instrument.md:35,49"]
-        A98["ADR-2098 two new URN kinds chain and asset minted only<br/>through uris.js, plus kind 38420 sidestr-account-binding<br/>ADR-2098-chain-and-asset-urn-kinds-and-the-chain-nostr-plane.md:36,44"]
+    subgraph AB["agentbox — the eight records that implement it, ADR-2096 to ADR-2103: seven proposed, ADR-2097 accepted"]
+        A96["ADR-2096 sidechains are the sole value instrument,<br/>ADR-2096-sidestr-sidechains-are-the-sole-value-instrument.md:35.<br/>No longer clean-room: ADR-2106 made the crates AGPL derivatives of upstream siding (:45-48)<br/>and ADR-2112 moved them to sidestr-rs (:49-51); rust-bitcoin accepted estate-wide :56"]
+        A98["ADR-2098 two new URN kinds chain and asset minted only<br/>through uris.js, plus kind 38420 sidestr-account-binding<br/>ADR-2098-chain-and-asset-urn-kinds-and-the-chain-nostr-plane.md:36,44.<br/>Only chain landed (management-api/lib/uris.js:128); asset is still unminted, ADR-2098:149"]
         A99["ADR-2099 the chain is the ledger of record, a balance<br/>is a UTXO fold and every existing ledger becomes a view<br/>ADR-2099-the-chain-is-the-ledger-of-record.md:33,37"]
     end
     PRD --> AB
@@ -469,15 +496,15 @@ flowchart TB
     AB --> SPR
     AB --> FRM
 
-    INV["INVARIANT — every record in this pack still carries decision_status<br/>proposed. Four have moved to implementation_status partial: ADR-2096<br/>(crates/sidestr shipped and relocated to DreamLab-AI/sidestr-rs,<br/>ADR-2096:5-6), the canon entry, which since e5826a8 tracks the<br/>verified sidestr-rs source as partial while staying inactive<br/>(ADR-2012-sidestr-settlement-is-ecosystem-canon.md:5-7), the<br/>solid-pod-rs port, now partial and staged<br/>(ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:5-7),<br/>and the forum D1 demotion, now partial but inactive<br/>(ADR-2012-d1-ledger-becomes-a-chain-view.md:5-7). Two stay at<br/>implementation_status none:<br/>the host at ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:5-6<br/>and ADR-2099 at ADR-2099-the-chain-is-the-ledger-of-record.md:5-6."]
+    INV["CORRECTED 2026-11-02 — not every record is proposed. ADR-2097, the sidestr rail<br/>superseding Lightning-first, is accepted, complete and staged<br/>(ADR-2097-sidestr-rail-supersedes-lightning-first.md:5-7). Every other record carries<br/>decision_status proposed. implementation_status partial: ADR-2096 (ADR-2096:5-6),<br/>ADR-2098 (ADR-2098:5-6), ADR-2103<br/>(ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:5-6),<br/>the canon entry, partial and inactive<br/>(ADR-2012-sidestr-settlement-is-ecosystem-canon.md:5-7), the solid-pod-rs port, partial and staged<br/>(ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:5-7),<br/>and the forum D1 demotion, partial but inactive<br/>(ADR-2012-d1-ledger-becomes-a-chain-view.md:5-7). implementation_status none:<br/>the host at ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:5-6,<br/>ADR-2099 at ADR-2099-the-chain-is-the-ledger-of-record.md:5-6,<br/>ADR-2100-every-settlement-passes-the-authority-gate.md:5-6,<br/>ADR-2101-federation-topology-and-key-separation.md:5-6 and<br/>ADR-2102-assets-are-bridged-in-rgb-as-a-wrapped-asset.md:5-6."]
     CANON --> INV
-    SRCST["PARTIAL, INACTIVE — the canon entry now records that sidestr-rs<br/>publishes seven crates and carries inactive pool, market, EVM and<br/>Hitch code. EVM executes inside a sidestr chain and Hitch speaks to<br/>no Lightning peer, so neither is an estate rail,<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:36-40.<br/>The one running piece is agentbox's interim testnet producer,<br/>mirror and faucet under the sidechain gates, with no sidestr-node,<br/>bridge or port 9097 bind, BASELINE-container.md:209."]
+    SRCST["PARTIAL, INACTIVE — the canon entry now records that sidestr-rs<br/>publishes seven crates and carries inactive pool, market, EVM and<br/>Hitch code. EVM executes inside a sidestr chain and Hitch speaks to<br/>no Lightning peer, so neither is an estate rail,<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:36-40.<br/>The one running piece is agentbox's interim testnet producer,<br/>mirror and faucet under the sidechain gates, with no sidestr-node,<br/>bridge or port 9097 bind, BASELINE-container.md:234."]
     CANON --> SRCST
 
     RET["RETIRED — Lightning-first is superseded. x402 and l402 stay<br/>payable false permanently and Lightning may return only as a<br/>bridge on-ramp, never as the planned rail.<br/>agentbox/docs/developer/economy-loop.md:143"]
     PRD --> RET
 
-    KILL["EXTERNAL — the k256-only, zero-rust-bitcoin-dependency posture<br/>is retired estate-wide by ADR-2096 D3, which is why the<br/>solid-pod-rs port is in scope at all.<br/>ADR-2096-sidestr-sidechains-are-the-sole-value-instrument.md:49"]
+    KILL["EXTERNAL — the k256-only, zero-rust-bitcoin-dependency posture<br/>is retired estate-wide by ADR-2096 D3, which is why the<br/>solid-pod-rs port is in scope at all.<br/>ADR-2096-sidestr-sidechains-are-the-sole-value-instrument.md:56-57"]
     A96 --> KILL
 ```
 
@@ -487,9 +514,9 @@ flowchart LR
     FACT["DIVERGENCE — the estate runs THREE independent did:nostr-keyed<br/>sats ledgers and NONE of them is synced with the others. The host<br/>deposit path is a 501 stub and the crate version pins skew.<br/>agentbox/docs/proposals/sovereign-settlement.md:61"]
 
     subgraph TODAY["Today — three stores of record"]
-        L1["solid-pod-rs StoragePaymentStore and WebLedger,<br/>a stored number mutated by credit and debit<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:29"]
-        L2["host FsPaymentStore behind the 402 route set, whose own<br/>deposit handler returns 501 so no value ever entered it<br/>ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:22-25"]
-        L3["forum pod-worker D1PaymentStore, the best engineered of the<br/>three, atomic SQL and a 28-test suite<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:22-26"]
+        L1["solid-pod-rs StoragePaymentStore (solid-pod-rs-server/src/handlers/pay.rs:129) and WebLedger<br/>(solid-pod-rs/src/payments.rs:283), a stored number mutated by credit and debit<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:29.<br/>At the stamp credit and debit are already pub(crate) (solid-pod-rs/src/payments.rs:565,579)<br/>and an outpoint-keyed credit_by_outpoint is public (solid-pod-rs/src/payments.rs:450)"]
+        L2["host FsPaymentStore behind the 402 route set, whose own<br/>deposit handler returns 501 so no value ever entered it<br/>ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:22-25;<br/>still so at the stamp, pay_handler.rs:202,504,511"]
+        L3["forum pod-worker D1 ledger. The ADR describes D1PaymentStore with an atomic<br/>credit and debit pair (ADR-2012-d1-ledger-becomes-a-chain-view.md:22-26); at the stamp<br/>that type is gone: D1Ledger implements the pay_ledger LedgerDb seam<br/>(nostr-bbs-pod-worker/src/payments.rs:61,82; pay_ledger.rs:289) and sats enter only from a confirmed<br/>output credited once by outpoint (nostr-bbs-pod-worker/src/payments.rs:10-11, ADR-2012 D6)"]
     end
     FACT --> TODAY
 
@@ -504,6 +531,6 @@ flowchart LR
     GATE["OPEN — the payment_settlement authority class is declared today<br/>and currently GATES NOTHING. The settlement pack is what would<br/>give it work to do.<br/>agentbox/docs/developer/economy-loop.md:270"]
     CHAIN --> GATE
 
-    SKEW["DOC-DRIFT — the version pins skew across the three: the forum<br/>record still reads the host at solid-pod-rs 0.4.0-alpha.15 while the<br/>forum resolves 0.5.0-alpha.7<br/>(ADR-2012-d1-ledger-becomes-a-chain-view.md:28-30), and no gate<br/>compares them — while the VisionClaw checkout has since moved its own<br/>crates.io pin to 0.5.0-alpha.17 (Cargo.toml:245). see ES-01.1"]
+    SKEW["DOC-DRIFT — the forum record still reads the host at solid-pod-rs 0.4.0-alpha.15<br/>and the forum at 0.5.0-alpha.7 (ADR-2012-d1-ledger-becomes-a-chain-view.md:28-30),<br/>as does the proposal (sovereign-settlement.md:61). Both are stale: the forum workspace now<br/>requires 0.5.0-alpha.18 (nostr-rust-forum/Cargo.toml:185) and the VisionClaw checkout<br/>0.5.0-alpha.17 (project/Cargo.toml:246). The skew is narrower than recorded, still one<br/>pre-release apart, and no gate compares them. see ES-01.1"]
     TODAY --> SKEW
 ```

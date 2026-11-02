@@ -33,25 +33,25 @@ sources:
   - ../loom/crates/loom-vector-ruvector/src/artifact.rs
   - ../project/agentbox/docs/adr/ADR-2136-pin-the-shared-ontology-toolchain.md
   - docs/engineering/sovereign-corpus-contracts.md
-verified_commit: {ontomark: 560e50c1a35bb9486b9f43ebf074b816c1e01349, loom: 5ad860863b588c0cdb2290e31c69e39d82755aeb, agentbox: 6500582dfae23bf8a38a6942916d208154e43625, visionflow: 4d361b58ce2b3ee17e1570361eaf78270b630012}
+verified_commit: {ontomark: 4b9d15df48056971321a62b8c4e905f4536c74db, loom: ba21a689a57dc67dc68ad22e52b058da34a7fb05, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35, visionflow: 5f8b1da92ce5d9e6b32a0bd90ec3630c66619083}
 ---
 
 ## OM-06.1 build --scope public|machine — the surface, the refusals and where run_with forks
 
 ```mermaid
 flowchart TD
-    ARG["CLI --scope public or machine, default public; ScopeArg is the clap twin of build::Scope<br/>ontomark-cli/src/main.rs:195-210, ontomark-cli/src/main.rs:390-391"]
+    ARG["CLI --scope public or machine, default public; ScopeArg is the clap twin of build::Scope<br/>ontomark-cli/src/main.rs:204-219, ontomark-cli/src/main.rs:399-400"]
     OPT["build::Options.scope reaches run_with; Scope is the enum Public (default) and Machine<br/>ontomark-compile/src/build/mod.rs:88, ontomark-compile/src/build/generation.rs:58"]
-    GUARD["ensure_machine_scope names EVERY conflict, then ScopeConflict exits 2: --publish-out, --vault working or all, redaction off, a non-knowledge root, a layout with no working vault or no working folder<br/>ontomark-compile/src/build/mod.rs:476-518, ontomark-compile/src/build/mod.rs:282-297"]
-    CENSUS["knowledge AND working run the census; working is loaded once and a public flag that is not a bool refuses the build<br/>ontomark-compile/src/build/mod.rs:596-603"]
-    CRED["credential gate scans working's public pages with the knowledge ones; the staged Markdown is then discarded, publish/ is never written<br/>ontomark-compile/src/build/mod.rs:633, ontomark-compile/src/build/mod.rs:766-768"]
-    VALW["working validated on its own under its own role; an error refuses the build<br/>ontomark-compile/src/build/mod.rs:645-656"]
-    FORK["projection forks: project_machine returns knowledge + plain records, else the public projection<br/>ontomark-compile/src/build/mod.rs:658-676"]
-    KNOW["corpus = the knowledge projection exactly as a public build makes it: Turtle, reasoner, scaffold, prose index, WebVOWL, NGG1, OKF read only this<br/>ontomark-compile/src/build/mod.rs:678-689"]
-    LIST["listed = knowledge records followed by plain working records; only the page API and the search index read it, and page_count counts it<br/>ontomark-compile/src/build/mod.rs:756-761, ontomark-compile/src/build/mod.rs:791"]
-    BACK["scaffold backlinks stay knowledge-only (D4), page-document backlinks may include working sources<br/>ontomark-compile/src/build/mod.rs:679, ontomark-compile/src/build/mod.rs:795-800"]
-    MARK["gen.scope = options.scope; the field is omitted from a public marker so public marker bytes do not change<br/>ontomark-compile/src/build/mod.rs:1002, ontomark-compile/src/build/generation.rs:118-121"]
-    REP["Report.machine carries working_records and yielded; published is empty in machine scope<br/>ontomark-compile/src/build/mod.rs:190-196, ontomark-compile/src/build/mod.rs:1036-1040, ontomark-compile/src/build/mod.rs:1062"]
+    GUARD["ensure_machine_scope names EVERY conflict, then ScopeConflict exits 2: --publish-out, --vault working or all, redaction off, a non-knowledge root, a layout with no working vault or no working folder<br/>ontomark-compile/src/build/mod.rs:476-523, ontomark-compile/src/build/mod.rs:282-297"]
+    CENSUS["knowledge AND working run the census; working is loaded once and a public flag that is not a bool refuses the build<br/>ontomark-compile/src/build/mod.rs:604-611"]
+    CRED["credential gate scans working's public pages with the knowledge ones; the staged Markdown is then discarded, publish/ is never written<br/>ontomark-compile/src/build/mod.rs:641, ontomark-compile/src/build/mod.rs:774-776"]
+    VALW["working validated on its own under its own role; an error refuses the build<br/>ontomark-compile/src/build/mod.rs:653-664"]
+    FORK["projection forks: project_machine returns knowledge + plain records, else the public projection<br/>ontomark-compile/src/build/mod.rs:666-684"]
+    KNOW["corpus = the knowledge projection exactly as a public build makes it: Turtle, reasoner, scaffold, prose index, WebVOWL, NGG1, OKF read only this<br/>ontomark-compile/src/build/mod.rs:686-697"]
+    LIST["listed = knowledge records followed by plain working records; only the page API and the search index read it, and page_count counts it<br/>ontomark-compile/src/build/mod.rs:764-769, ontomark-compile/src/build/mod.rs:799"]
+    BACK["scaffold backlinks stay knowledge-only (D4), page-document backlinks may include working sources<br/>ontomark-compile/src/build/mod.rs:687, ontomark-compile/src/build/mod.rs:803-808"]
+    MARK["gen.scope = options.scope; the field is omitted from a public marker so public marker bytes do not change<br/>ontomark-compile/src/build/mod.rs:1010, ontomark-compile/src/build/generation.rs:118-121"]
+    REP["Report.machine carries working_records and yielded; published is empty in machine scope<br/>ontomark-compile/src/build/mod.rs:190-196, ontomark-compile/src/build/mod.rs:1044-1048, ontomark-compile/src/build/mod.rs:1070"]
     ARG --> OPT --> GUARD --> CENSUS --> CRED --> VALW --> FORK
     FORK --> KNOW --> LIST --> BACK --> MARK --> REP
     SAME["INVARIANT: data/ (bar the markers) and okf/ are byte-identical across scopes, in both directions, and ontology_digest is equal for identical build parameters; content_digest matches when both load the same vaults; every ontology artefact reads KNOW<br/>test machine_and_public_builds_share_every_ontology_artefact ontomark-compile/tests/machine_scope.rs:143"]
@@ -62,8 +62,8 @@ flowchart TD
     CLI["CLI contract: machine stamps scope, public writes no scope field, refusals exit 2<br/>ontomark-cli/tests/machine_scope_cli.rs:52, ontomark-cli/tests/machine_scope_cli.rs:70, ontomark-cli/tests/machine_scope_cli.rs:85"]
     ARG -.- CLI
 ```
-- DECISION: ADR-OM-005 decision 4 requires its own private-machine flag; the delivered surface is `--scope machine`, while `--vault all` retains the public publication meaning (`ontomark-cli/src/main.rs:192-193`, `DEPRECATION.md:468`). The provisional recipe at `DEPRECATION.md:470` remains stale.
-- EXTERNAL: the design record is `docs/design/machine-bundle-brief.md:9-13`; the decisions D1-D4 are in the ADR amendment (`ADR-OM-005-estate-alignment-one-producer-explicit-projections.md:79-88`).
+- DECISION: ADR-OM-005 decision 4 requires its own private-machine flag; the delivered surface is `--scope machine`, while `--vault all` retains the public publication meaning (`ontomark-cli/src/main.rs:201-202`, `DEPRECATION.md:468`). The provisional recipe at `DEPRECATION.md:470` remains stale.
+- EXTERNAL: the design record is `docs/design/machine-bundle-brief.md:9-13`; the decisions D1-D4 are in the ADR amendment (`ADR-OM-005-estate-alignment-one-producer-explicit-projections.md:96-105`).
 
 ## OM-06.2 project_machine — the union split, the directional twin rule and the plain records
 
@@ -94,7 +94,7 @@ flowchart TD
     NOTE["INVARIANT: no urn page IRI under working/ reaches a public bundle; machine page IRIs carry no spaces and equal the slug path<br/>ontomark-compile/tests/machine_scope.rs:293, ontomark-compile/tests/machine_scope.rs:696"]
     PLAIN -.- NOTE
 ```
-- INVARIANT: edges from a working record to knowledge are resolved; edges from knowledge to working are not, because knowledge records are never re-resolved (D3), so working links are one-directional in v1. The [current audit](../../estate-review/2026-11-01-ontomark-machine-bundle-contract.md) reproduces a refused 32-bit slug collision and the separate knowledge/working marker boundaries; sibling panels receive no new coverage.
+- INVARIANT: edges from a working record to knowledge are resolved; edges from knowledge to working are not, because knowledge records are never re-resolved (D3), so working links are one-directional in v1. The [current audit](../../estate-review/2026-11-01-ontomark-machine-bundle-contract.md) reproduces a refused 32-bit slug collision and the separate knowledge/working marker boundaries; `ir/projection.rs` is unchanged between that audit and 4b9d15d.
 - DIVERGENCE: the twin rule was amended after the first real-corpus build found a private working twin of a public knowledge page (`Web3`); the amended text is `docs/design/machine-bundle-brief.md:44-49`.
 
 ## OM-06.3 The records emitter and Loom's promote_vault_build
@@ -102,20 +102,20 @@ flowchart TD
 ```mermaid
 sequenceDiagram
     autonumber
-    participant CLI as ontomark-cli<br/>ontomark-cli/src/main.rs:416
-    participant RUN as build::run_with<br/>ontomark-compile/src/build/mod.rs:545
+    participant CLI as ontomark-cli<br/>ontomark-cli/src/main.rs:425
+    participant RUN as build::run_with<br/>ontomark-compile/src/build/mod.rs:550
     participant REC as build::records<br/>ontomark-compile/src/build/records.rs:103
     participant XIN as Xinference embedder<br/>ontomark-cli/src/embed.rs:14
     participant LOOM as promote_vault_build<br/>loom-vector-ruvector/src/artifact.rs:165
-    CLI->>CLI: --with-rvdb builds Some(Xinference::new endpoint) from --embed-endpoint, the<br/>only network the build touches (ontomark-cli/src/main.rs:819-824)
-    CLI->>RUN: run_with options, profile, vocab, classifier, embedder<br/>(ontomark-compile/src/build/mod.rs:545-551)
-    RUN->>REC: concept_records scaffold, prose, generation_id<br/>(ontomark-compile/src/build/mod.rs:949-950)
+    CLI->>CLI: --with-rvdb builds Some(Xinference::new endpoint) from --embed-endpoint, the<br/>only network the build touches (ontomark-cli/src/main.rs:832-837)
+    CLI->>RUN: run_with options, profile, vocab, classifier, embedder<br/>(ontomark-compile/src/build/mod.rs:550-556)
+    RUN->>REC: concept_records scaffold, prose, generation_id<br/>(ontomark-compile/src/build/mod.rs:957-958)
     REC-->>RUN: ConceptRecord key urn:ngm:class:slug, id loom:ontology-corpus:key, text header,<br/>metadata.generation (ontomark-compile/src/build/records.rs:120-123)
     RUN->>REC: embed_all in batches of 96 (ontomark-compile/src/build/records.rs:40,<br/>ontomark-compile/src/build/records.rs:173)
     REC->>XIN: embed texts: one vector per text (ontomark-compile/src/build/records.rs:61-67)
     XIN-->>REC: vectors - each is width-checked to 384 and normalised, any other width is an<br/>error (ontomark-compile/src/build/records.rs:74-81,<br/>ontomark-compile/src/build/records.rs:86,<br/>ontomark-compile/src/build/records.rs:173)
     REC-->>RUN: to_jsonl, one record per line (ontomark-compile/src/build/records.rs:195)
-    RUN->>RUN: staged.add data/ontology-corpus.records.jsonl, so the marker lists it with its<br/>sha256 and size (ontomark-compile/src/build/mod.rs:953)
+    RUN->>RUN: staged.add data/ontology-corpus.records.jsonl, so the marker lists it with its<br/>sha256 and size (ontomark-compile/src/build/mod.rs:961)
     Note over RUN,REC: INVARIANT: the compile crate never opens a socket - the Embedder trait is the<br/>one seam, and a fake embedder tests the emitter<br/>(ontomark-compile/src/build/records.rs:14-20,<br/>ontomark-compile/src/build/records.rs:61-67)
     RUN-->>LOOM: bundle on disk - the host runs Loom's promotion as its own process<br/>(loom-vector-ruvector/src/artifact.rs:20-25)
     LOOM->>LOOM: read marker, require id and the records entry, verify the file against the<br/>listed sha256 and bytes (loom-vector-ruvector/src/artifact.rs:166-195)
@@ -133,30 +133,30 @@ sequenceDiagram
     autonumber
     participant HOST as host<br/>ontomark-wasm/src/lib.rs:73
     participant ENG as Engine<br/>ontomark-wasm/src/engine.rs:217
-    participant ING as Ingest plan and accept<br/>ontomark-ingest/src/lib.rs:170
+    participant ING as Ingest plan and accept<br/>ontomark-ingest/src/lib.rs:220
     participant MODEL as host-controlled model
     HOST->>ENG: load generation g with the vault files (ontomark-wasm/src/engine.rs:289-302)
     HOST->>ENG: ingest_plan generation g, path, options (ontomark-wasm/src/engine.rs:159-166)
     ENG->>ENG: read guard: a generation other than the engine's is answered stale and nothing runs (ontomark-wasm/src/engine.rs:445-458)
     ENG->>ING: ensure_model, then plan the note against the profile and the typed model (ontomark-wasm/src/engine.rs:733-751)
-    ING->>ING: the note must declare an entity and the profile must grant assertion keys (ontomark-ingest/src/contract.rs:176-195)
-    ING-->>ENG: ModelRequest contract ontomark-ingest/facts/1, note<br/>digest, KeySpec list, chunks, response schema<br/>(ontomark-ingest/src/contract.rs:196-212,<br/>ontomark-ingest/src/contract.rs:13)
+    ING->>ING: the note must declare an entity and the profile must grant assertion keys (ontomark-ingest/src/contract.rs:296-314)
+    ING-->>ENG: ModelRequest contract ontomark-ingest/facts/1, note<br/>digest, KeySpec list, chunks, response schema<br/>(ontomark-ingest/src/contract.rs:326-350,<br/>ontomark-ingest/src/contract.rs:13)
     ENG-->>HOST: path, digest, request (ontomark-wasm/src/engine.rs:750)
     HOST->>MODEL: request.instructions, chunks and schema - the engine never calls a model
-    MODEL-->>HOST: one ModelResponse per chunk: key, a name or literal, a<br/>verbatim evidence quote<br/>(ontomark-ingest/src/contract.rs:82-98)
+    MODEL-->>HOST: one ModelResponse per chunk: key, a name or literal, a<br/>verbatim evidence quote<br/>(ontomark-ingest/src/contract.rs:177-218)
     HOST->>ENG: ingest_accept generation g, path, the request UNCHANGED, responses, options (ontomark-wasm/src/engine.rs:170-181)
     ENG->>ING: accept doc, request, responses (ontomark-wasm/src/engine.rs:753-773)
-    ING->>ING: refuse a foreign contract, a stale note digest, a request whose note, keys or chunks no longer equal what plan produces, an unknown chunk (ontomark-ingest/src/accept.rs:216-258)
-    ING->>ING: per assertion: key in request, quote located in its chunk, name grounded and not the note itself, kind fits the predicate, quote mentions the value, not already present, not conflicting (ontomark-ingest/src/accept.rs:293-300, ontomark-ingest/src/accept.rs:330, ontomark-ingest/src/accept.rs:345, ontomark-ingest/src/accept.rs:410-418)
-    ING->>ING: build ONE patch bound to the source digest, keys in profile order, and prove it applies before returning it (ontomark-ingest/src/accept.rs:467-536)
-    ING-->>ENG: Candidates patch, accepted with evidence spans, withheld<br/>with a reason, diagnostics<br/>(ontomark-ingest/src/accept.rs:170-182,<br/>ontomark-ingest/src/accept.rs:537-545)
+    ING->>ING: refuse a foreign contract, a stale note digest, a request whose note, keys or chunks no longer equal what plan produces, an unknown chunk, and on the external-source path a source that is not the planned one (ontomark-ingest/src/accept.rs:307-376)
+    ING->>ING: per assertion: key in request, quote located in its chunk, name grounded and not the note itself, kind fits the predicate, quote mentions the value, not already present, not conflicting (ontomark-ingest/src/accept.rs:414-421, ontomark-ingest/src/accept.rs:452, ontomark-ingest/src/accept.rs:467, ontomark-ingest/src/accept.rs:532-540)
+    ING->>ING: build ONE patch bound to the source digest, keys in profile order, and prove it applies before returning it (ontomark-ingest/src/accept.rs:589-658)
+    ING-->>ENG: Candidates patch, accepted with evidence spans, withheld<br/>with a reason, diagnostics, plus source and counts on the external-source path only<br/>(ontomark-ingest/src/accept.rs:185-197,<br/>ontomark-ingest/src/accept.rs:659-674)
     ENG->>ENG: apply the patch once more to give the preview shape of propose_patch: base_text, new_text, new_digest, diff, edits (ontomark-wasm/src/engine.rs:774-790)
     ENG-->>HOST: path, candidates, preview, or preview null when nothing<br/>was accepted (ontomark-wasm/src/engine.rs:777-778,<br/>ontomark-wasm/src/engine.rs:793)
     HOST->>HOST: host owns review and guarded persistence - the engine only returns new text<br/>(ontomark-wasm/src/engine.rs:14-15)
     HOST->>ENG: after a host write, upsert generation g+1 with the written text<br/>the model and every cache are rebuilt (ontomark-wasm/src/engine.rs:304-314, ontomark-wasm/src/engine.rs:410-416)
-    Note over ENG: INVARIANT: model faults are data, not errors: only a bad<br/>request is an IngestError with a stable wire code<br/>(ontomark-ingest/src/error.rs:9-58,<br/>ontomark-wasm/src/engine.rs:799-810)
-    Note over ING: INVARIANT: the opt-in Jev hooks (FactJudge,<br/>CandidateSelector, FieldSuggester) are host-supplied and<br/>monotone, a judge can only withhold what accept already<br/>allowed, and NoJudge makes accept_judged equal accept<br/>(ontomark-ingest/src/judge.rs:13-26,<br/>ontomark-ingest/src/judge.rs:341)
-    Note over ING: INVARIANT: starting provenance is fixed, confidence 0.5<br/>and method inferred - ingest never raises it, a reviewer<br/>does (ontomark-ingest/src/accept.rs:18-23)
+    Note over ENG: INVARIANT: model faults are data, not errors: only a bad<br/>request is an IngestError with a stable wire code, and SourceVersion,<br/>unreachable from the note-only engine, falls to ingest_failed<br/>(ontomark-ingest/src/error.rs:10-71,<br/>ontomark-wasm/src/engine.rs:799-813)
+    Note over ING: INVARIANT: the opt-in Jev hooks (FactJudge,<br/>CandidateSelector, FieldSuggester) are host-supplied and<br/>monotone, a judge can only withhold what accept already<br/>allowed, and NoJudge makes accept_judged equal accept<br/>(ontomark-ingest/src/judge.rs:13-26,<br/>ontomark-ingest/src/judge.rs:350)
+    Note over ING: INVARIANT: starting provenance is fixed, confidence 0.5<br/>and method inferred - ingest never raises it, a reviewer<br/>does (ontomark-ingest/src/accept.rs:20-25)
 ```
 - INVARIANT: the engine is pure; `ingest_plan` and `ingest_accept` never write and never call a model, and a mutation carries a generation strictly greater than the engine's (`ontomark-wasm/src/engine.rs:1-15`, `ontomark-wasm/src/engine.rs:429-443`).
 - EXTERNAL: the instructions are versioned prompt data, `facts-v1.md`, carried inside the request (`ontomark-ingest/src/contract.rs:16`).
@@ -183,7 +183,7 @@ flowchart TB
         A1["ontomark names the producer as build --scope machine, with --vault all the public publish's value<br/>DEPRECATION.md:468"]
         A2["agentbox ADR-2136 names AB-P6 as the same released-CLI build --scope machine, no separate verb<br/>ADR-2136-pin-the-shared-ontology-toolchain.md:84"]
         A3["the only verb split ADR-2136 states is elsewhere: the released ontomark CLI versus a thin AGPL adapter for propose, apply and panel publish<br/>ADR-2136-pin-the-shared-ontology-toolchain.md:80"]
-        A4["DECIDED 2026-10-12 (owner, via ADR-OM-005 decision 4): AB-P6 is `build --scope machine`, no separate verb<br/>ontomark-cli/src/main.rs:192-193"]
+        A4["DECIDED 2026-10-12 (owner, via ADR-OM-005 decision 4): AB-P6 is `build --scope machine`, no separate verb<br/>ontomark-cli/src/main.rs:201-202"]
         A5["DRIFT: the DEPRECATION input-set bullet still names `ontomark build --vault all --private-machine-bundle` (name provisional), a flag that does not exist<br/>DEPRECATION.md:470"]
         A1 --> A4
         A2 --> A4
@@ -196,4 +196,4 @@ flowchart TB
 - INVARIANT: of the three rows, AB-P6 is decided (the scope flag) and the Loom tolerance is verified (C3 corrected at VisionFlow HEAD); only the NGG1 collapse stays open, pending a format bump.
 
 
-**Open (host persistence and index recovery, audited 2026-10-31):** OM-06.4 establishes an engine preview and a separate index update, not an atomic file-write/index transaction. The Obsidian host compares the complete base text, rather than rehashing the file, and a later index failure can reject after persistence. See the [plugin boundary review](../../estate-review/2026-10-31-obsidian-boundaries.md). This clarification uses the engine ownership statement at the existing declared revision; it does not restamp the remaining machine-scope diagrams.
+**Open (host persistence and index recovery, audited 2026-10-31):** OM-06.4 establishes an engine preview and a separate index update, not an atomic file-write/index transaction. The Obsidian host compares the complete base text, rather than rehashing the file, and a later index failure can reject after persistence. See the [plugin boundary review](../../estate-review/2026-10-31-obsidian-boundaries.md). The 2026-11-02 restamp re-read the engine ownership statement at 4b9d15d (`ontomark-wasm/src/engine.rs:14-15`); the host side is outside this topic's pins.
