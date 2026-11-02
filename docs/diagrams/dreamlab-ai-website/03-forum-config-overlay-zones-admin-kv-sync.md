@@ -11,6 +11,8 @@ sources:
   - ../dreamlab-ai-website/forum-config/src/deploy_config.rs
   - ../dreamlab-ai-website/forum-config/src/workers.rs
   - ../dreamlab-ai-website/forum-config/README.md
+  - ../dreamlab-ai-website/README.md
+  - ../dreamlab-ai-website/CLOSEOUT-SECURITY-AUDIT.md
   - ../dreamlab-ai-website/scripts/lib/config-mirrors.mjs
   - ../dreamlab-ai-website/scripts/check-config-mirrors.mjs
   - ../dreamlab-ai-website/scripts/__tests__/operator-var-mirrors.test.mjs
@@ -27,7 +29,7 @@ sources:
   - ../dreamlab-ai-website/forum-config/deploy/search-worker.wrangler.toml
   - ../dreamlab-ai-website/forum-config/deploy/preview-worker.wrangler.toml
   - ../dreamlab-ai-website/forum-config/deploy/migrations/001_init.sql
-verified_commit: a67cb2a8d474f4ba2e79bdbf55fad2e87bfd7e98
+verified_commit: 0e1572801d03a1af6d8bc8861f928da087d69eed
 ---
 
 ## DW-03.1 The four-zone model plus the encryption master gate
@@ -53,7 +55,7 @@ flowchart TB
 ```mermaid
 flowchart TB
     subgraph Operator["Trust domain: Operator (human)"]
-        OP["operator-jjohare<br/>6407eed8...425a, ADMIN, trust 3"]
+        OP["operator-jjohare<br/>6407eed8...425a, ADMIN, trust 3<br/>forum-config/README.md:47"]
     end
     subgraph Agents["Trust domain: Agents (11)"]
         MB["moderation-bot ADMIN"]
@@ -78,6 +80,7 @@ flowchart TB
     end
     VS -.->|"SAME key, two roles — see DW-03.4"| OP
 ```
+- **Drift:** `forum-config/README.md:18` says "Three trust domains" while its own diagram draws four (`forum-config/README.md:22-38`) and `IDENTITY-zones.md:86-87` says four.
 - All entities carry `authorised_by` naming the human operator `operator-jjohare` (`forum-config/README.md`, `IDENTITY-zones.md:86-87`); admin pubkeys are static (`[admin].mode = "static"`, `dreamlab.toml:39-40`), not resolved from D1.
 - DOC-DRIFT: `authorised_by` is authored in `[[agents]]` but not rendered — the kit renders the authorising principal from server-side D1 `agent_registry.registered_by`, and `ForumConfig` does not parse the `[[agents]]` table at all (`IDENTITY-zones.md:168-171`, `dreamlab.toml` `[[agents]]` comment).
 - **Drift:** `[[agents]]` has grown from seven to eleven — `poker-citizen`, `poker-coach` and `poker-citizen-blakes7` joined for the poker table (`dreamlab.toml:386-405`, ADR-2009/kit ADR-2021) and `website-info` (ADR-2011) is labelled with `cohorts = []` because the `agent` cohort would receive the zone4 key (`dreamlab.toml:407-412`) — but `IDENTITY-zones.md:89` still reads "Seven agents and three test users". Three recipients are also declared under `[[ingress]]` (`dreamlab.toml:421-441`), which `forum-config/tests/ingress_mirror.rs:24-58` holds equal to the relay's `INGRESS_RECIPIENTS` var.
@@ -163,15 +166,17 @@ sequenceDiagram
 flowchart TB
     KVID["ADMIN_KV id = REPLACE_WITH_NEW_ADMIN_KV_ID<br/>shipped in auth-worker + pod-worker wrangler.toml"] --> SCAN["collect_placeholder_ids()<br/>deploy_config.rs:151-179<br/>walks every TOML table/array"]
     SCAN --> DETECT["validate_deploy_dir(deploy_dir)<br/>deploy_config.rs:192-215"]
-    DETECT -->|placeholder present| FAIL1["DeployConfigError::UnresolvedPlaceholder<br/>CI test asserts >= 2 (auth + pod)<br/>deploy_config.rs:271-296"]
-    SECRETS["PRF_SERVER_SECRET, ADMIN_PUBKEYS<br/>REQUIRED_AUTH_SECRETS, deploy_config.rs:73-79"] --> CHECK["validate_required_secrets(configured)<br/>deploy_config.rs:232-253"]
+    DETECT -->|placeholder present| FAIL1["DeployConfigError::UnresolvedPlaceholder<br/>unit test EXPECTS >= 2 (auth + pod) to remain<br/>deploy_config.rs:271-296"]
+    SECRETS["REQUIRED_AUTH_SECRETS: PRF_SERVER_SECRET, ADMIN_PUBKEYS,<br/>NATIVE_POD_ADMIN_KEY, NATIVE_POD_URL<br/>deploy_config.rs:73-78"] --> CHECK["validate_required_secrets(configured)<br/>deploy_config.rs:232-253<br/>called only from this crate's unit tests"]
     CHECK -->|missing| FAIL2["DeployConfigError::MissingSecret"]
-    FAIL2 --> DEPLOYSTEP["workers-deploy.yml 'Validate required auth-worker secrets are set'<br/>fails the deploy job, not just a request"]
+    DEPLOYSTEP["workers-deploy.yml 'Validate required auth-worker secrets are set'<br/>bash: PRF_SERVER_SECRET, ADMIN_PUBKEYS required, NATIVE_POD_* warn only<br/>workers-deploy.yml:301-337, fails the deploy job"]
+    SECRETS -.->|"Tension: four required here, two at deploy"| DEPLOYSTEP
     SUBQ["TYPESAFE_API_KEY: job set-system-one-secrets runs after set-secrets and set-push-secret (Cloudflare 409 on concurrent writes, retried up to five times) and pushes the GH secret to dreamlab-search-api, dreamlab-nostr-relay and dreamlab-auth-api, failing when it is empty<br/>.github/workflows/set-worker-secrets.yml:135-173"] --> SUBQCHK["workers-deploy.yml 'Validate public System One credential', search and relay only (the auth worker is not checked): fails the deploy when the Worker secret name is absent<br/>.github/workflows/workers-deploy.yml:287-297"]
     OPTIN["OPEN: the overlay is configured to opt in JEV_TRIAGE, JEV_SEARCH_RERANK and JEV_RATIONALE_CHECK, with a 5-minute relay cron for the triage sweep, deployed by the Cloudflare Workers run 41028875471 (success, 2026-10-30, kit 9c36b60) whose credential check covered search and relay only, so the auth worker's secret has no receipt; all three reach TypeSafe jev-latest directly, and the auth worker's rationale check is cloud by default and private only when JEV_RATIONALE_CHECK_LOCAL_ONLY=1<br/>forum-config/deploy/SYSTEM-ONE.md:3-5, forum-config/deploy/relay-worker.wrangler.toml:16, forum-config/deploy/search-worker.wrangler.toml:33, forum-config/deploy/auth-worker.wrangler.toml:61-66, forum-config/deploy/relay-worker.wrangler.toml:99-100"]
 ```
 - The `provision-kv` pre-job in `workers-deploy.yml` (`workers-deploy.yml:60`) resolves or creates a SINGLE shared `dreamlab-admin-kv` namespace before the per-worker matrix runs, specifically so the auth-worker's `ADMIN_KV` (read/write) and pod-worker's `ADMIN_KV_RO` (read-only) bind the same namespace — a per-worker title would split it and silently drop bans/mutes.
 - `NATIVE_POD_ADMIN_KEY`/`NATIVE_POD_URL` are OPTIONAL secrets (`workers-deploy.yml:312-318`): absent, `/api/native-pod/provision` 503s "native pod not configured" rather than crashing — the deploy step warns but does not block on these two.
+- **Tension:** the Rust validator lists all four as required and says `NATIVE_POD_URL` is "gated here so a fresh deploy without it fails fast" (`deploy_config.rs:67-78`), but no workflow calls `validate_required_secrets` or `validate_deploy_dir`; the deploy gate is the bash step, which requires two and warns on two (`workers-deploy.yml:318-336`), and the placeholder test asserts the placeholders are still present rather than failing on them (`deploy_config.rs:271-296`). The repo's own security closeout records the validator as test-only (`CLOSEOUT-SECURITY-AUDIT.md:148-152`). Closing it means either invoking the validator in the deploy job or deleting it and treating the bash as canonical.
 
 ## DW-03.9 Per-worker wrangler bindings (1/2) — auth-worker and pod-worker
 ```mermaid
@@ -197,7 +202,7 @@ flowchart TB
     A_R2 -.->|"shared physical R2"| P_R2
     A_ADMIN -.->|"same namespace, RO here"| P_KVRO
 ```
-- `ADMIN_KV` (auth, read/write) and `ADMIN_KV_RO` (pod, read-only) are a deliberate split; both ship the unresolved `REPLACE_WITH_NEW_ADMIN_KV_ID` placeholder (DW-03.8) — `workers-deploy.yml`'s `provision-kv` job substitutes the real id into both at deploy time.
+- `ADMIN_KV` (auth, read/write) and `ADMIN_KV_RO` (pod, read-only) are a deliberate split; both ship the unresolved `REPLACE_WITH_NEW_ADMIN_KV_ID` placeholder (DW-03.8). `workers-deploy.yml`'s `provision-kv` job resolves or creates the one namespace (`workers-deploy.yml:74-84`), and the per-worker deploy job then substitutes its id into each manifest with `sed` (`workers-deploy.yml:231-237`).
 
 ## DW-03.10 Per-worker wrangler bindings (2/2) — relay, search, preview
 ```mermaid
@@ -218,10 +223,9 @@ flowchart TB
     subgraph PREVIEWW["preview-worker: dreamlab-link-preview<br/>preview-worker.wrangler.toml:3"]
         PR_KV["KV RATE_LIMIT<br/>:13-14"]
     end
-    R_DB -.->|"shared physical D1<br/>with auth-worker DB, see DW-03.9"| R_RDB
-    R_DB -.-> S_RDB
+    R_RDB -.->|"both bind dreamlab-auth,<br/>the auth-worker DB, see DW-03.9"| S_RDB
 ```
-- INVARIANT: `dreamlab-auth` D1 hosts the `nip98_replay` table read via `REPLAY_DB`/`RELAY_DB`/`DB` bindings from all four HTTP workers — auth/pod/search's `REPLAY_DB` and relay's own `DB` are the same physical database under different binding names per worker (see DW-03.9/DW-03.10).
+- INVARIANT (corrected): `dreamlab-auth` D1 hosts the `nip98_replay` table (`001_init.sql:78`) and is bound as `DB` by the auth worker (`auth-worker.wrangler.toml:14-17`) and as `REPLAY_DB` by the pod, search and relay workers (`pod-worker.wrangler.toml:35-38`, `search-worker.wrangler.toml:25-28`, `relay-worker.wrangler.toml:93-96`). The relay's own `DB` is a different database, `dreamlab-relay` (`relay-worker.wrangler.toml:74-77`), which the auth and pod workers bind as `RELAY_DB` (`auth-worker.wrangler.toml:23-26`, `pod-worker.wrangler.toml:45-48`). An earlier reading had the relay's `DB` and the others' `REPLAY_DB` as one database; the database ids show otherwise.
 - `preview-worker` is the only one of the five with no D1/R2 binding at all — its state is a single rate-limit KV namespace, consistent with it being a stateless SSRF-guarded link-preview fetcher (see DW-04.8).
 - `search-worker`'s `ADMIN_PUBKEYS` is its own separate `[vars]` copy, not read from `ADMIN_KV`/`ADMIN_KV_RO` — the gap DW-04.6 notes (D1-promoted admins invisible to search) follows directly from this file's binding shape.
 
@@ -235,5 +239,6 @@ flowchart TB
     MIG --> PAY["Payments/quota:<br/>webledger_accounts :295, txo_deposits :303,<br/>quota_usage :320"]
     MIG --> MISC["profiles :416, agent_jobs :448"]
 ```
-- 24 `CREATE TABLE IF NOT EXISTS` statements, run against the `dreamlab-auth` D1 database via `auth-worker.wrangler.toml:18` `migrations_dir = "migrations"` — this file is the only DDL in the repo; `dreamlab-relay`'s Durable Object storage (DW-03.10 `RELAYW`) has no equivalent SQL file because `NostrRelayDO` manages its own SQLite schema at runtime.
-- `moderation_actions`/`mod_reports` back `docs/api/MODERATION_API.md`'s kind 30910-30914 projections (see DW-06.5); `whitelist`/`members` back the D1 half of admin resolution (DW-04.6); `nip98_replay` backs the replay-protection binding shared across all four HTTP workers (DW-03.9/DW-03.10).
+- 24 `CREATE TABLE IF NOT EXISTS` statements, run against the `dreamlab-auth` D1 database via `auth-worker.wrangler.toml:18` `migrations_dir = "migrations"` — this file is the only `.sql` file in the repo.
+- **Open:** the relay worker's own D1, `dreamlab-relay` (`relay-worker.wrangler.toml:74-77`), declares no `migrations_dir` in this overlay, so its schema is authored in kit code this repo does not carry; the `NostrRelayDO` Durable Object is a separate SQLite-backed class (`relay-worker.wrangler.toml:84-86`). An earlier reading conflated the D1 database with the Durable Object's storage.
+- `moderation_actions`/`mod_reports` back `docs/api/MODERATION_API.md`'s kind 30910-30914 projections (see DW-06.5); `whitelist` (`001_init.sql:266`) and `members` (`001_init.sql:160`) are created in `dreamlab-auth`, while the governing security doc reads `whitelist.is_admin` from the relay D1 (DW-04.6) — **Open:** which copy the kit's admin resolution reads cannot be settled from this repo; `nip98_replay` backs the replay-protection binding shared across all four HTTP workers (DW-03.9/DW-03.10).

@@ -1,0 +1,18 @@
+[
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/visionflow/01-repo-composition-and-canon.md",
+   "report": "docs/estate-review/2026-11-02-visionflow-canon-site-health-dream.md", "coverage": "selected-panels",
+   "panels": ["VF-01.2", "VF-01.3", "VF-01.4", "VF-01.6", "VF-01.8", "VF-01.10", "VF-01.11", "VF-01.12", "VF-01.13", "VF-01.14", "VF-01.15"],
+   "basis": "Source tracing at VisionFlow 5f8b1da; restamped and every citation re-resolved; strict cite-check and render pass; 1 accurate, 9 corrected, 1 with limits (VF-01.15 routes sibling-repo facts not checked here)."},
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/visionflow/02-website-build-and-deploy.md",
+   "report": "docs/estate-review/2026-11-02-visionflow-canon-site-health-dream.md", "coverage": "selected-panels",
+   "panels": ["VF-02.1", "VF-02.2", "VF-02.3", "VF-02.4", "VF-02.5", "VF-02.6", "VF-02.7", "VF-02.8", "VF-02.9", "VF-02.10", "VF-02.11", "VF-02.12"],
+   "basis": "Source tracing at VisionFlow 5f8b1da; restamped, build-receipt.json dropped from sources and its fields re-cited to website-assets.mjs; strict cite-check and render pass under --only; four VF-02 citation-allowlist entries are now stale and need lead removal; no build, browser or deploy run."},
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/visionflow/03-estate-health.md",
+   "report": "docs/estate-review/2026-11-02-visionflow-canon-site-health-dream.md", "coverage": "selected-panels",
+   "panels": ["VF-03.1", "VF-03.2", "VF-03.3", "VF-03.4", "VF-03.5", "VF-03.6", "VF-03.8", "VF-03.9", "VF-03.11"],
+   "basis": "Source tracing at VisionFlow 5f8b1da; restamped, VF-03.11 redrawn from the committed 2026-11-01 snapshot; strict cite-check and render pass; GitHub runtime behaviour (token 404s, dispatch) not observed."},
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/visionflow/04-dream-cycle-integration.md",
+   "report": "docs/estate-review/2026-11-02-visionflow-canon-site-health-dream.md", "coverage": "selected-panels",
+   "panels": ["VF-04.1", "VF-04.2", "VF-04.3", "VF-04.4", "VF-04.5", "VF-04.6", "VF-04.8", "VF-04.9", "VF-04.10"],
+   "basis": "Source tracing at VisionFlow 5f8b1da (plus agentbox c57d9c0 for one ledger-schema note); restamped; strict cite-check and render pass; external dream-engine behaviour not observed."}
+]

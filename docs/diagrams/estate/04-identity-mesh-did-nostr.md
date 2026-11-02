@@ -15,6 +15,9 @@ sources:
   - ../project/agentbox/management-api/lib/agent-event-auth.js
   - ../project/agentbox/management-api/lib/action-plane.js
   - ../project/agentbox/management-api/lib/zone-keys.js
+  - ../project/agentbox/management-api/adapters/index.js
+  - ../project/agentbox/management-api/adapters/pods/_solid-http-base.js
+  - ../project/agentbox/config/entrypoint-unified.sh
   - ../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md
   - ../project/agentbox/services/agentbox-sessions/src/api.rs
   - ../project/agentbox/services/agentbox-sessions/src/boundary.rs
@@ -33,7 +36,7 @@ sources:
   - ../project/src/settings/auth_extractor.rs
   - ../project/client/src/services/nostrAuthService.ts
   - ../project/agentbox/docs/INGRESS-identity.md
-verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, agentbox: 6500582dfae23bf8a38a6942916d208154e43625}
+verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35}
 ---
 ## ES-04.1 verification mesh — who signs, who verifies whom
 ```mermaid
@@ -85,11 +88,13 @@ flowchart TB
     Note1["EXTERNAL: nostr-rust-forum, dreamlab-ai-website,<br/>code-as-harness sign their own events;<br/>not on disk in this repo — asserted only where cited"]
 ```
 
-**Drift (resolved at this stamp):** the edge from `AEA` to `NBB` is path 1 only. Path 2 of `verifyAgentEventRequest` accepts the proxy-stamped `X-Agentbox-Pubkey` without a signature (`agentbox/management-api/lib/agent-event-auth.js:184-186`). At the earlier stamp any `MANAGEMENT_API_KEY` holder on the docker network could forge it, because management-api binds `0.0.0.0`. At this stamp the header is honoured only from a loopback TCP peer (`peerIsProxy`, `AGENTBOX_PROXY_PEERS` overrides) in both `agent-event-auth` and `action-plane` `resolveAgentDid` (`agentbox/management-api/lib/agent-event-auth.js:98-106,117`, `agentbox/management-api/lib/action-plane.js:228-232`), so the `did:nostr` carried into agent-events and the task journal cannot be asserted from another container.
+**Drift (resolved by agentbox 6500582, still holds at c57d9c0):** the edge from `AEA` to `NBB` is path 1 only. Path 2 of `verifyAgentEventRequest` accepts the proxy-stamped `X-Agentbox-Pubkey` without a signature (`agentbox/management-api/lib/agent-event-auth.js:192-194`). Before the fix any `MANAGEMENT_API_KEY` holder on the docker network could forge it, because management-api binds `0.0.0.0`. Now the header is honoured only from a loopback TCP peer (`peerIsProxy`, `AGENTBOX_PROXY_PEERS` overrides) in both `agent-event-auth` and `action-plane` `resolveAgentDid` (`agentbox/management-api/lib/agent-event-auth.js:98-106,117`, `agentbox/management-api/lib/action-plane.js:228-232`), so the `did:nostr` carried into agent-events and the task journal cannot be asserted from another container.
+
+**Drift (new at agentbox c57d9c0, ADR-2164):** a third credential now reaches `verifyAgentEventRequest` ahead of both paths: a per-task action token, already checked by the global auth gate, is accepted under every policy and returns `did: null` with the task id, so a task's own agent-action posts carry no `did:nostr` at all (`agentbox/management-api/lib/agent-event-auth.js:143-145`, `agentbox/docs/INGRESS-identity.md:338-344`). The mesh above draws only the two identity-bearing paths.
 
 **Debt:** the stamp's strength is the same-UID boundary of the agentbox container, because any process inside it reaches management-api over loopback (TODO-unified X-1; `agentbox/management-api/lib/agent-event-auth.js:36-39`).
 
-**Drift (resolved at this stamp):** ADR-2153 is live (`decision_status: accepted`, `implementation_status: partial`, `activation_status: live`; `../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`). Agent of Empires, its `:9095` listener, its bearer token and the proxy hop to it are gone; session control is a 0660 `ab-sessions` unix socket authorised by `SO_PEERCRED` against uids 1000 and 961 (`../project/agentbox/services/agentbox-sessions/src/api.rs:74`, `../project/agentbox/config/custody/session-plane-acl.json:8-11`), and `:9096` forwards named routes only (`../project/agentbox/docs/INGRESS-identity.md:64-66,239-242`). The 2026-10-30 close-out re-checks the running image and leaves the axes unchanged: `command -v aoe` finds nothing and nothing listens on `:9095` (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:219`); `partial` stays because the all-seed acceptance gap remains open (`:222`).
+**Drift (resolved at this stamp):** ADR-2153 is live (`decision_status: accepted`, `implementation_status: partial`, `activation_status: live`; `../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`). Agent of Empires, its `:9095` listener, its bearer token and the proxy hop to it are gone; session control is a 0660 `ab-sessions` unix socket authorised by `SO_PEERCRED` against uids 1000 and 961 (`../project/agentbox/services/agentbox-sessions/src/api.rs:74`, `../project/agentbox/config/custody/session-plane-acl.json:8-11`), and `:9096` forwards named routes only (`../project/agentbox/docs/INGRESS-identity.md:69-71,244-247`). The 2026-10-30 close-out re-checks the running image and leaves the axes unchanged: `command -v aoe` finds nothing and nothing listens on `:9095` (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:228`); `partial` stays because the all-seed acceptance gap remains open (`:231`).
 
 **Open (PROPOSED 2026-10-30, not implemented):** VisionClaw's identity-authority record now carries a Proposed room-admission section (ADR-2157, ADR-2160, ADR-2161): a `RoomAdmission` port after the presence handshake, fed by the home relay's signed NIP-29 39002 member list, and a single agentbox-held node federation key that VisionClaw never holds (`docs/IDENTITY-authority-chain.md`, section "Proposed"). Today the handshake alone admits a DID to any room, and the diagrams here describe only that shipped path.
 
@@ -161,7 +166,7 @@ sequenceDiagram
     participant POD as Solid pod
 
     CALLER->>B: buildPodNip98(manifest, deps)
-    alt pod signing enabled in the manifest
+    alt sign_requests on (agentbox.toml:590) and no identity port selected
         B-->>CALLER: async (method, url, body) => header<br/>pod-signer.js:124
         CALLER->>H: nip98(method, url, body)
         H->>S: resolve signer (loaded lazily on first use, then cached)
@@ -172,17 +177,21 @@ sequenceDiagram
             CALLER->>POD: LDP write with the signed header
             POD-->>CALLER: 2xx
         else signer unavailable or the key will not decrypt
-            Note over S,POD: DIVERGENCE — pod signing can fall back UNSIGNED<br/>(legacy agentbox ADR-026). Combined with the did:nostr:local<br/>placeholder fallback that agent-identity.js:41-43 says the<br/>entrypoint still runs unconditionally, a degraded boot<br/>can silently produce a NON-SOVEREIGN identity.
             S-->>H: none
-            H-->>CALLER: no header
-            CALLER->>POD: UNSIGNED write
-            POD-->>CALLER: accepted or refused by WAC, see ES-08
+            H-->>CALLER: null header
+            Note over CALLER,POD: FAIL-CLOSED (ADR-2064) — with sign_requests on, the adapter<br/>carries requireSigned (adapters/index.js:74) and a null header<br/>throws SigningUnavailable before any byte is sent<br/>(_solid-http-base.js:105). No unsigned fallback exists.
+            CALLER--xPOD: no request sent
         end
-    else disabled
-        B-->>CALLER: null — surface stays standalone
+    else sign_requests off
+        B-->>CALLER: null — pods adapter goes out unsigned, the pre-signing baseline<br/>pod-signer.js:73
     end
     Note over CALLER,POD: The signer lifecycle MIRRORS lib/elevation-publisher —<br/>owned here, loaded lazily on first use, cached. No<br/>in-request connect or disconnect. see ES-05.7
+    Note over B,S: Under role_isolation, or sign_source = identity-port, the header comes<br/>from the identity port instead and no key is read (pod-signer.js:76-77)
 ```
+
+**Drift (corrected at agentbox c57d9c0):** this panel used to show a degraded signer falling back to an UNSIGNED write and a boot that could keep the `did:nostr:local` placeholder. Neither holds at the pin, and neither held at 6500582 either (pod-signer.js is byte-identical between the two, and the entrypoint already aborted on a failed mint there): `buildPodNip98` returns `null` only when `sign_requests` is off (`../project/agentbox/management-api/lib/pod-signer.js:73`); when it is on, the adapter is built with `requireSigned` (`../project/agentbox/management-api/adapters/index.js:74`) and a null header throws `SigningUnavailable` (`../project/agentbox/management-api/adapters/pods/_solid-http-base.js:105`); and the entrypoint now aborts boot when the mint fails (`../project/agentbox/config/entrypoint-unified.sh:1424-1433`).
+
+**Drift (source comment):** `agent-identity.js` still says the entrypoint's `did:nostr:local` fallback "runs unconditionally" (`../project/agentbox/management-api/lib/agent-identity.js:41-43`); the entrypoint it describes now exits 1 on a failed or inconsistent mint (`../project/agentbox/config/entrypoint-unified.sh:1424-1433`). The comment is stale, not the code.
 
 ## ES-04.5 Key custody — where every signing key actually lives
 ```mermaid
@@ -257,7 +266,7 @@ sequenceDiagram
     Note over HK: DOC-DRIFT agentbox/docs/SECURITY-profiles.md:11 still asserts the live<br/>hook composes UNREDACTED text —<br/>SECURITY-profiles.md:68-69 and the code<br/>(redactForEgress before compose, nostr-live-mirror.cjs:453) say this<br/>closed 2026-09-05 on both paths. Doc line 11 is stale prose, not code.
 ```
 
-Encrypted forum zones (ADR-2016, INGRESS-identity.md item 10): zone-key grants (rumor kind 21453) and signed NIP-171 epoch tickets (kind 1014, `../project/agentbox/management-api/lib/zone-keys.js:54-56`, `../project/agentbox/docs/INGRESS-identity.md:290-294`), gating and
+Encrypted forum zones (ADR-2016, INGRESS-identity.md item 10): zone-key grants (rumor kind 21453) and signed NIP-171 epoch tickets (kind 1014, `../project/agentbox/management-api/lib/zone-keys.js:54-56`, `../project/agentbox/docs/INGRESS-identity.md:295-299`), gating and
 admin-relay retry live in AB-12.11 and AB-13.5 (`zone-keys.js`, `../project/agentbox/config/nostr-gateway/gateway.cjs:671`), not here.
 
 The 2026-09-07 source closeout makes opaque session issuance, lookup and refresh
@@ -271,26 +280,26 @@ actual proxy/reconnect deployment have migrated. See VC-03.17 and the
 ## ES-04.7 PROPOSED key separation — one identity key, two derived families, a second Multikey
 ```mermaid
 flowchart TB
-    KID["k_id — the sovereign identity key, minted by the identity binary<br/>agentbox/docs/INGRESS-identity.md:445<br/>PROPOSED rule: it never spends and never seals a block"]
+    KID["k_id — the sovereign identity key, minted by the identity binary<br/>agentbox/docs/INGRESS-identity.md:506<br/>PROPOSED rule: it never spends and never seals a block"]
 
-    SPEND["k_spend(chain) = derive_subkey(k_id, sidestr/spend/ chain_id)<br/>used on the wallet path, spends UTXOs on exactly that chain<br/>agentbox/docs/INGRESS-identity.md:446"]
-    SIGN["k_sign(chain) = derive_subkey(k_id, sidestr/sign/ chain_id)<br/>federated instance operators only, seals blocks on that chain<br/>agentbox/docs/INGRESS-identity.md:447"]
+    SPEND["k_spend(chain) = derive_subkey(k_id, sidestr/spend/ chain_id)<br/>used on the wallet path, spends UTXOs on exactly that chain<br/>agentbox/docs/INGRESS-identity.md:507"]
+    SIGN["k_sign(chain) = derive_subkey(k_id, sidestr/sign/ chain_id)<br/>federated instance operators only, seals blocks on that chain<br/>agentbox/docs/INGRESS-identity.md:508"]
 
-    KID -->|"HMAC-SHA256 domain-separated child derivation,<br/>a tool the estate already owns<br/>agentbox/docs/INGRESS-identity.md:440-441"| SPEND
+    KID -->|"HMAC-SHA256 domain-separated child derivation,<br/>a tool the estate already owns<br/>agentbox/docs/INGRESS-identity.md:501-502"| SPEND
     KID -->|"same derivation, different domain string"| SIGN
 
-    BIND["PROPOSED kind 38420 sidestr-account-binding (ADR-2105, band<br/>38400-38499), addressable, d tag is chain id plus did hex,<br/>content is the derived spend pubkey, signed by k_id<br/>agentbox/docs/INGRESS-identity.md:458-460"]
+    BIND["PROPOSED kind 38420 sidestr-account-binding (ADR-2105, band<br/>38400-38499), addressable, d tag is chain id plus did hex,<br/>content is the derived spend pubkey, signed by k_id<br/>agentbox/docs/INGRESS-identity.md:519-521"]
     SPEND --> BIND
 
-    MK["PROPOSED — a SECOND Multikey entry in the DID document for the<br/>per-chain spend key. This AMENDS legacy ADR-033, whose<br/>single-Multikey form is what build_did_document emits today.<br/>agentbox/docs/INGRESS-identity.md:461-463"]
+    MK["PROPOSED — a SECOND Multikey entry in the DID document for the<br/>per-chain spend key. This AMENDS legacy ADR-033, whose<br/>single-Multikey form is what build_did_document emits today.<br/>agentbox/docs/INGRESS-identity.md:522-524"]
     BIND --> MK
 
-    LIVE["LIVE today — one Multikey, publicKeyMultibase is the<br/>MULTIKEY_PREFIX followed by the x-only hex, and the private key<br/>never leaves the function<br/>agentbox/docs/INGRESS-identity.md:143-147"]
+    LIVE["LIVE today — one Multikey, publicKeyMultibase is the<br/>MULTIKEY_PREFIX followed by the x-only hex, and the private key<br/>never leaves the function<br/>agentbox/docs/INGRESS-identity.md:148-152"]
     MK -.->|"amends"| LIVE
 
-    SCOPE["PROPOSED scope note — Invariant 6 is narrowed to IDENTITY<br/>ingress; chain ingress is authenticated by consensus rather than<br/>by the relay allowlist.<br/>agentbox/docs/INGRESS-identity.md:249-250"]
+    SCOPE["PROPOSED scope note — Invariant 6 is narrowed to IDENTITY<br/>ingress; chain ingress is authenticated by consensus rather than<br/>by the relay allowlist.<br/>agentbox/docs/INGRESS-identity.md:254-255"]
     KID --> SCOPE
 
-    INV["INVARIANT — the whole of this diagram sits in a clearly marked<br/>PROPOSED section and the live compliance surface above it is<br/>unchanged apart from that one scope note.<br/>agentbox/docs/INGRESS-identity.md:13,431-434. see ES-03.11"]
+    INV["INVARIANT — the whole of this diagram sits in a clearly marked<br/>PROPOSED section and the live compliance surface above it is<br/>unchanged apart from that one scope note.<br/>agentbox/docs/INGRESS-identity.md:18,492-495. see ES-03.11"]
     SCOPE --> INV
 ```

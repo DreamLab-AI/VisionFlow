@@ -33,7 +33,9 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs
   - ../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md
   - ../nostr-rust-forum/README.md
-verified_commit: 1b27f79d08537b61b3d5a5d02cac9ee5999b79ed
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/auth.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/wrangler.toml
+verified_commit: c39f41f104b114d6a3fa29013daaf6fa58b45080
 ---
 
 ## NF-11.1 The Durable Object and its in-memory state
@@ -49,7 +51,7 @@ classDiagram
         rate_limit_per_sec : Cell Option usize — relay_do/mod.rs:94
         connection_counts : relay_do/mod.rs:95
         mod_cache : ModCache 60 s TTL — relay_do/mod.rs:97
-        admin_cache : AdminCache 5 min TTL — relay_do/mod.rs:100
+        admin_cache : AdminCache 30 s TTL — relay_do/mod.rs:100
         channel_zone_cache : TtlCache String, 60 s TTL — relay_do/mod.rs:102
         cohort_cache : TtlCache Vec String, bool, 60 s TTL — relay_do/mod.rs:104
         device_owner_cache : TtlCache Option String, 60 s TTL — relay_do/mod.rs:106
@@ -57,19 +59,22 @@ classDiagram
     }
     class DurableObject {
         new : relay_do/mod.rs:112
-        fetch — websocket upgrade only, else 426 : relay_do/mod.rs:130
+        fetch — websocket upgrade only, else 426 : relay_do/mod.rs:130 relay_do/mod.rs:132
         websocket_message : relay_do/mod.rs:210
         websocket_close : relay_do/mod.rs:352
     }
     NostrRelayDO ..|> DurableObject
 
     note for NostrRelayDO "EVERY field except state and env is volatile in-memory cache. Hibernation wipes all of it, which is what NF-11.2 exists to survive."
+    note for NostrRelayDO "DRIFT: the admin_cache field comment says a 5-minute TTL relay_do/mod.rs:98, but the constant it uses is 30 s nostr-bbs-relay-worker/src/auth.rs:46"
     note for NostrRelayDO "rate_limit_per_sec is lazily resolved and CACHED because Env::var crosses the JS boundary on every read relay_do/mod.rs:91-93"
-    note for NostrRelayDO "ADR-2018: the four newest fields are 60s-TTL memos plus a throttled activity ledger, added because authorize_event and resolve_viewer_context were re-reading D1 per frame - see NF-11.16"
+    note for NostrRelayDO "ADR-2018: the four newest fields are three 60s-TTL memos plus a throttled activity ledger, added because authorize_event and resolve_viewer_context were re-reading D1 per frame - see NF-11.17"
     note for NostrRelayDO "Per-IP connection slots are RESERVED atomically at accept (reserve_connection_slot, relay_do/mod.rs:394) and released on a failed WebSocketPair (relay_do/mod.rs:408) and on close (relay_do/session.rs:371), so the count can neither be read stale nor leak. CLOSE of a held subscription skips the limiter because it only sheds load (close_admitted relay_do/mod.rs:385), while AUTH is limited and answers a refused OK relay_do/mod.rs:307"
     note for NostrRelayDO "ADR-2023 content-free Web Push: a push_fanout module extends the DO and runs after save and OK, resolving recipients through the same viewer context and authorize_event gate as live delivery; it returns at once while PUSH_ENABLED is false, which is the shipped default relay_do/push_fanout.rs:47 relay_do/push_fanout.rs:94 - see NF-03.10"
     note for DurableObject "The DO is a singleton reached by get_by_name main from the worker fetch nostr-bbs-relay-worker/src/lib.rs:230 - see NF-03.1"
 ```
+
+**Drift:** the `admin_cache` field comment calls it a 5-minute TTL cache (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/mod.rs:98`), but `AdminCache` expires entries after `ADMIN_CACHE_TTL_SECS = 30` (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/auth.rs:46`). The panel draws the constant.
 
 ## NF-11.2 Hibernation — recover_untracked_sessions runs on EVERY wake path
 
@@ -140,7 +145,7 @@ The [1 November storage audit](../../estate-review/2026-11-01-forum-spaces-and-r
 sequenceDiagram
     autonumber
     participant H as handle_event after save
-    participant B as broadcast_event<br/>relay_do/broadcast.rs:61
+    participant B as broadcast_event<br/>relay_do/broadcast.rs:62
     participant S as Session candidate
     participant W as WebSocket
 
@@ -149,12 +154,12 @@ sequenceDiagram
     B->>B: snapshot candidates - authed pubkey, socket, subscriptions relay_do/broadcast.rs:88
     loop each candidate relay_do/broadcast.rs:114
         alt event is a protected-read kind - 4, 13, 14, 1059, 30910-30916
-            B->>B: protected_read_permitted per session: a DM needs a party to it, a moderation event needs only AUTH relay_do/broadcast.rs:115 relay_do/broadcast.rs:116
+            B->>B: protected_read_permitted per session: a DM needs an authenticated party to it, a moderation event needs AUTH only in nip42 mode relay_do/broadcast.rs:115 relay_do/broadcast.rs:116 relay_do/nip42.rs:103
         end
         alt event is kind 1059
             B->>B: skip unless the session is AUTHENTICATED as that recipient relay_do/broadcast.rs:129
         end
-        B->>B: resolve_viewer_context relay_do/broadcast.rs:148
+        B->>B: zone-scoped kinds only - 40, 42, calendar, kanban: resolve_viewer_context then authorize_event relay_do/broadcast.rs:75 relay_do/broadcast.rs:148
         B->>W: deliver if the event matches that subscription's filters
     end
 
@@ -176,16 +181,18 @@ flowchart TB
     C2["authors: event.pubkey must be in the set relay_do/filter.rs:261"]
     C3["kinds: event.kind must be in the set relay_do/filter.rs:266"]
     C4["since / until bound created_at relay_do/filter.rs:271 relay_do/filter.rs:276"]
+    C4B["search: NIP-50 content substring, ASCII case-insensitive like the SQL LIKE<br/>relay_do/filter.rs:281 relay_do/filter.rs:282"]
     C5["tag filters: at least one tag must match relay_do/filter.rs:299"]
     OK["all constraints satisfied relay_do/filter.rs:307"]
     HELP["tag_value relay_do/filter.rs:360 | d_tag_value relay_do/filter.rs:390"]
-    TAGPLAN["SQL path: tag_filter_plan decides each #tag key before any condition is built - Ignore, MatchNothing or Values<br/>relay_do/filter.rs:194"]
+    TAGPLAN["tag_filter_plan decides each #tag key - Ignore, MatchNothing or Values - for BOTH the SQL builder and the live matcher<br/>relay_do/filter.rs:194, used at relay_do/filter.rs:129 and relay_do/filter.rs:292"]
     PROBE["a #probe filter is MatchNothing, so the seeded-probe tag can never be queried for<br/>relay_do/filter.rs:206"]
 
     F --> FLDS --> M
-    M --> C1 --> C2 --> C3 --> C4 --> C5 --> OK
+    M --> C1 --> C2 --> C3 --> C4 --> C4B --> C5 --> OK
     M -.-> HELP
     TAGPLAN --> PROBE
+    C5 -.-> TAGPLAN
 
     N1["Semantics are AND across fields, OR within a field - an absent field is UNCONSTRAINED, which is why<br/>a filter naming no kinds requests everything and is still not blocked by the protected-read gate<br/>(asserted relay_do/nip42.rs:393). See NF-03.3."]
     N2["The SAME predicate serves both directions: query_events replays history relay_do/storage.rs:268 and<br/>broadcast_event tests each live event against every session subscription - see NF-11.5"]
@@ -241,17 +248,19 @@ flowchart TB
     FRIV["family or business zone at a SHARED venue to FreeBusy<br/>relay_do/calendar_projection.rs:105"]
     FRIO["off-site to Omit<br/>relay_do/calendar_projection.rs:116"]
     BUS["business cohort - own zone Full, family and friends Omit<br/>relay_do/calendar_projection.rs:121 relay_do/calendar_projection.rs:125"]
-    DEF["anything unmatched to Omit<br/>relay_do/calendar_projection.rs:138"]
+    DEF["any other zone, for any viewer, to Omit<br/>relay_do/calendar_projection.rs:138"]
+    PUB["public zone to Full for friends, business and uncohorted viewers<br/>relay_do/calendar_projection.rs:112 relay_do/calendar_projection.rs:127 relay_do/calendar_projection.rs:137"]
 
     PT --> OWN --> CADM --> VEN
     VEN --> FAM & FRI & BUS
     FRI --> FRIV & FRIO
     PT --> DEF
+    PT --> PUB
 
     N1["Three outcomes only: Full serves the event as-is, FreeBusy serves to_free_busy, Omit drops it<br/>relay_do/calendar_projection.rs:53 relay_do/calendar_projection.rs:66-68"]
     N2["INVARIANT deny-by-default: the terminal arm is Omit relay_do/calendar_projection.rs:138 - a viewer with<br/>no recognised cohort must remain UNAWARE the event exists relay_do/calendar_projection.rs:58"]
     N3["Free/busy keeps start, end, venue and a busy flag ONLY. An event NOT at a recognised venue is omitted<br/>rather than shown as free/busy, so friends see venue blocking and never off-site activity<br/>relay_do/calendar_projection.rs:25-29 - this is what makes 'you learn the room is booked, not whose party<br/>it is' true rather than aspirational"]
-    N4["DOC-DRIFT CLOSED: README.md:79 asserts the tiered calendar and its 25 unit tests. The tests are here -<br/>the module carries its own suite from relay_do/calendar_projection.rs:190 - and the write side is gated<br/>by the SAME function, see NF-03.12 N3"]
+    N4["README.md:79 now states only the three outcomes and makes no test-count claim. The module carries<br/>its own 25-test suite from relay_do/calendar_projection.rs:190, and the write side is gated by the<br/>SAME function, see NF-03.12 N3"]
 ```
 
 ## NF-11.9 Governance receipts — the ten-stage ladder, owned by core
@@ -322,7 +331,7 @@ flowchart TB
 
     N1["The relay now serves the APPLICATION stages on the read API, so the human who approved something<br/>can learn whether it actually happened - the loop ADR-2010 left open relay_do/receipts.rs:846-849"]
     N6["INVARIANT: migration 0006 is mirrored into ensure_schema, the live schema path, so case_side_receipts<br/>and case_delegations exist on a cold start without the migration runner<br/>nostr-bbs-relay-worker/src/lib.rs:1035 nostr-bbs-relay-worker/src/lib.rs:1047 - see NF-08.5"]
-    N2["INVARIANT: the projection commit is ATOMIC - decision row, case state and receipt in one batch<br/>relay_do/receipts.rs:452. A receipt that says committed cannot outlive a decision that did not land. A superseding decision and an appeal commit through the same Commit enum and stage machine relay_do/receipts.rs:308"]
+    N2["INVARIANT: the projection commit is ATOMIC - decision row, case state and receipt in one batch<br/>relay_do/receipts.rs:452 relay_do/receipts.rs:672 relay_do/receipts.rs:716, every statement checked relay_do/receipts.rs:558. A receipt that says committed cannot outlive a decision that did not land. A superseding decision and an appeal commit through the same Commit enum and stage machine relay_do/receipts.rs:308"]
     N3["DIVERGENCE: the read stays scoped to the relay's existing ADMIN authority because ADR-2010's<br/>history-consumer extension leaves cross-case read authority to ratify relay_do/receipts.rs:865-868"]
     N4["RESOLVED at 341c5d2: the ledger row moved from inactive to staged on a live signed journey - the M4 run's<br/>system-decider 31403 read back projection-failed and applied false on the edge<br/>docs/adr/ADR-2010-durable-governance-outcome-receipts.md:153. A relay receipt still cannot prove external<br/>application - EXTERNAL: see VC-24 and AB-14, estate loop ES-05"]
     N5["OPEN: the commit path is not yet witnessed live - acceptance needs the owner's own high-tier 31403 at<br/>projection-committed with its broker_decisions row docs/adr/ADR-2010-durable-governance-outcome-receipts.md:157.<br/>Refines NF-10.8; the decision card and correlation half is NF-06.17"]
@@ -333,7 +342,7 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant CR as cron trigger every 5 min
+    participant CR as cron trigger every 5 min<br/>nostr-bbs-relay-worker/wrangler.toml:123
     participant SW as sweep_inactive_demotions<br/>trust_sweep.rs:522
     participant RUN as run_demotion_sweep<br/>trust_sweep.rs:240
     participant POL as trust::decide_demotion<br/>trust.rs:326
@@ -347,7 +356,7 @@ sequenceDiagram
         RUN->>POL: decide Hold or Demote - the SHARED pure policy
         alt Demote
             RUN->>D1: trust UPDATE and audit INSERT in ONE batch trust_sweep.rs:488
-            RUN->>RUN: counters move only on a CONFIRMED commit trust_sweep.rs:288
+            RUN->>RUN: counters move only on a CONFIRMED commit trust_sweep.rs:286
         end
     end
     RUN-->>SW: DemotionSweepResult trust_sweep.rs:142
@@ -390,9 +399,10 @@ flowchart LR
     RET["retention / NIP-40 expiry sweep<br/>nostr-bbs-relay-worker/src/cron.rs:345"]
     AGE["ageing sweep - escalate_stale_cases<br/>nostr-bbs-relay-worker/src/cron.rs:592"]
     SW["trust demotion sweep - moved OUT to trust_sweep<br/>nostr-bbs-relay-worker/src/cron.rs:269"]
+    PUSH["ADR-2023 push: sweep_stale, then flush_pending<br/>nostr-bbs-relay-worker/src/lib.rs:1179 nostr-bbs-relay-worker/src/lib.rs:1181"]
     EXP["ADR-2013: expire_stale_proposals - closes ontology proposals past stale_after<br/>nostr-bbs-relay-worker/src/cron.rs:748, runs AFTER the ageing sweep<br/>nostr-bbs-relay-worker/src/lib.rs:1224"]
 
-    CRON --> RET & SW & AGE --> EXP
+    CRON --> SW --> PUSH --> RET --> AGE --> EXP
     BF --> CAP --> RES
 
     N1["The profiles backfill is triggered manually via POST /api/admin/profiles/backfill and NOT from the cron,<br/>because it is a one-shot operation and the live ingest hook keeps rows fresh thereafter<br/>nostr-bbs-relay-worker/src/cron.rs:24-26"]
@@ -423,7 +433,7 @@ flowchart TB
 
     N1["INVARIANT: the advertised auth_required must reflect the mode the handlers ACTUALLY enforce - it is<br/>sourced from the same parser, so the NIP-11 claim can never drift from behaviour<br/>nostr-bbs-relay-worker/src/nip11.rs:155-157. This is the strongest possible refutation of the stale<br/>README status row in NF-03.3."]
     N2["The escalation block is explicitly a SCAFFOLD whose authoritative schema is owned by agentbox -<br/>said in the served document itself nostr-bbs-relay-worker/src/nip11.rs:55.<br/>EXTERNAL: see AB-15, and NF-06.12"]
-    N3["NIP-45 COUNT and NIP-50 SEARCH are advertised - handlers at relay_do/nip_handlers.rs:2389 and<br/>nostr-bbs-relay-worker/src/profiles.rs:251"]
+    N3["NIP-45 COUNT is handled at relay_do/nip_handlers.rs:2389. NIP-50 is the REQ search field, applied in SQL<br/>relay_do/filter.rs:166 and on the live path relay_do/filter.rs:282. profiles::handle_search<br/>nostr-bbs-relay-worker/src/profiles.rs:251 is a separate REST endpoint, not NIP-50"]
 ```
 
 ## NF-11.15 Admin and moderation surfaces on the worker
@@ -440,12 +450,14 @@ flowchart TB
     MOD --> AUD
 
     N1["suspend and silence are the two states the admission pipeline reads at NF-03.4 step 8 -<br/>written here, enforced there"]
-    N2["profiles::batch is what the forum client's ProfileCache fetches over HTTP rather than by relay REQ -<br/>see NF-05.6; profiles::search backs the advertised NIP-50"]
+    N2["profiles::batch is what the forum client's ProfileCache fetches over HTTP rather than by relay REQ -<br/>see NF-05.6; profiles::search is the REST GET /api/profiles/search profiles.rs:248, separate from<br/>the relay's NIP-50 REQ search, see NF-11.6"]
     N3["agent_disclosure is a PUBLIC endpoint - the client's agent badge reads it without auth, see NF-05.10.<br/>It is how a reader can tell a human post from an agent post."]
-    N4["Every admin mutation routes through log_admin_action into admin_log, the same table the trust sweep<br/>writes its audit rows to nostr-bbs-relay-worker/src/audit.rs:25 - see NF-08.5"]
+    N4["The user_admin and moderation mutations call log_admin_action nostr-bbs-relay-worker/src/audit.rs:25 -<br/>user_admin.rs:229 user_admin.rs:307 user_admin.rs:370 user_admin.rs:465 user_admin.rs:625 moderation.rs:351 -<br/>into admin_log, the table the trust sweep also writes trust_sweep.rs:425 - see NF-08.5.<br/>DEBT: every call discards the result, so a failed audit write never fails the mutation"]
     N5["A key REPLACED via pubkey_aliases is excluded from both search shapes - roster mode profiles.rs:307<br/>and query mode profiles.rs:318 - so a renamed pubkey never shows twice under two identities"]
     N6["INVARIANT since 1a26e51: alias_set with inherit_cohorts grants the old key's cohorts to the new one through the<br/>shared merge statement, so the successor keeps any cohort it already held user_admin.rs:602-605 user_admin.rs:612"]
 ```
+
+**Debt:** each admin mutation in `user_admin` and `moderation` discards the result of its audit write (`let _ = audit::log_admin_action(`, `../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/user_admin.rs:229`), so `admin_log` can miss a mutation that took effect.
 
 ## NF-11.16 ADR-2017 sealed originals — migrating history into an encrypted zone without a fresh-write hole
 
@@ -482,7 +494,7 @@ flowchart TB
     DEV["cached_device_owner - 60s memo, BOTH outcomes cached<br/>relay_do/nip_handlers.rs:2216"]
     TTL["TtlCache generic memo, entries expire ttl_secs after being stored<br/>read_cache.rs:56"]
     READ["note_read_activity - accumulates delivered reads<br/>relay_do/nip_handlers.rs:2228"]
-    WRITE["note_write_activity - stamps EVERY accepted EVENT<br/>relay_do/nip_handlers.rs:2238"]
+    WRITE["note_write_activity - records EVERY accepted EVENT; only the stamp and promotion check are throttled<br/>relay_do/nip_handlers.rs:2238 relay_do/nip_handlers.rs:2237"]
     LEDGER["ActivityLedger - flush at most once per pubkey per 300s, or at 50 pending reads<br/>read_cache.rs:98, thresholds read_cache.rs:44-48"]
     FLUSH["flush_activity - increment_posts_read_by, update_last_active, check_promotion<br/>relay_do/nip_handlers.rs:2245"]
 

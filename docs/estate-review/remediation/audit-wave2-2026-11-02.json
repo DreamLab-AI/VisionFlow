@@ -1,0 +1,80 @@
+{
+  "source_report": "docs/estate-review/2026-11-02-audit-wave2.md",
+  "source_revisions": {
+    "nostr-rust-forum": "c39f41f",
+    "agentbox": "c57d9c0508f4",
+    "VisionClaw (project)": "86cdd7635582",
+    "dreamlab-ai-website": "0e157280",
+    "ontomark": "4b9d15df4805"
+  },
+  "counting": "Lead-confirmed findings are recorded individually. Every other finding stays in the Findings section of the worker report named by `report`, with the evidence class that report states; it is not counted here a second time.",
+  "records": [
+    {
+      "id": "W2-01",
+      "title": "agentbox forwards bare agent events; VisionClaw ingest drops every frame as Malformed",
+      "severity": "high (data loss on a live path, availability of the agent-activity feature)",
+      "evidence_class": "source tracing at pinned revisions, confirmed by the lead",
+      "evidence": [
+        "agentbox management-api/utils/agent-event-publisher.js:163-165 (subscribers get the bare fullEvent)",
+        "agentbox management-api/utils/agent-event-ws-subscriber.js:147 (sent without the JSON-RPC envelope)",
+        "VisionClaw src/agent_events/ingest.rs:101,149 (only notifications/agent_action is accepted; anything else is Malformed)"
+      ],
+      "closes_when": "the forwarder wraps each event with createMcpNotification, and a cross-repo contract fixture sends one publisher frame through the ingest",
+      "report": "docs/estate-review/2026-11-02-estate-topology-events-federation.md",
+      "status": "open"
+    },
+    {
+      "id": "W2-02",
+      "title": "forum ADR-2027 describes an inbox-key relay change that is not on main",
+      "severity": "medium (a consumer pinning main would believe the change shipped)",
+      "evidence_class": "source tracing at c39f41f, confirmed by the lead",
+      "evidence": [
+        "no gift_wrap_rumor_with_signer or RECIPIENT_KEYS_ENABLED under crates/ at c39f41f",
+        "core is 1.0.0-beta.19, not the beta.20 the ADR names",
+        "implementing commit 7df61ae is not an ancestor of main (it is on feat/upgrade-phase-0-1)"
+      ],
+      "closes_when": "the branch merges and core is released at beta.20, or the ADR is marked as not yet shipped",
+      "report": "docs/estate-review/2026-11-02-forum-adrs.md",
+      "status": "open"
+    },
+    {
+      "id": "W2-03",
+      "title": "website ADR-2007 says one zone is encrypted; configuration encrypts three",
+      "severity": "low (record drift; the configuration is stronger than the record, not weaker)",
+      "evidence_class": "source tracing at dreamlab-ai-website 0e157280, confirmed by the lead",
+      "evidence": [
+        "forum-config/dreamlab.toml:123,137,148 encrypted = true on three of four [[zones]]",
+        "ENCRYPTION_ENABLED = true in deploy.yml:106 and relay-worker.wrangler.toml:24"
+      ],
+      "closes_when": "ADR-2007's Decision, Consequences, Verification and title are restated for three encrypted zones",
+      "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+      "status": "open"
+    },
+    {
+      "id": "W2-04",
+      "title": "four citation-allowlist entries were stale after the VF-02 corrections",
+      "severity": "housekeeping",
+      "evidence_class": "whole-corpus --cite-check run in this wave",
+      "evidence": ["full-cite-check.txt: allow[0..3] (website/build-receipt.json) matched no citation"],
+      "closes_when": "removed in this wave",
+      "report": "docs/estate-review/2026-11-02-audit-wave2.md",
+      "status": "closed"
+    }
+  ],
+  "worker_reports": [
+    "docs/estate-review/2026-11-02-estate-topology-events-federation.md",
+    "docs/estate-review/2026-11-02-estate-identity-governance-loom-memory.md",
+    "docs/estate-review/2026-11-02-estate-solid-and-build.md",
+    "docs/estate-review/2026-11-02-estate-profiles-publishing-evaluation.md",
+    "docs/estate-review/2026-11-02-forum-workers-auth-relay-pod.md",
+    "docs/estate-review/2026-11-02-forum-clients-agents-search.md",
+    "docs/estate-review/2026-11-02-forum-config-ci-invariants.md",
+    "docs/estate-review/2026-11-02-forum-relay-internals-wire.md",
+    "docs/estate-review/2026-11-02-forum-adrs.md",
+    "docs/estate-review/2026-11-02-visionflow-canon-site-health-dream.md",
+    "docs/estate-review/2026-11-02-visionflow-gates-tooling-pitch-compat.md",
+    "docs/estate-review/2026-11-02-visionflow-graph-vowl-adrs.md",
+    "docs/estate-review/2026-11-02-dreamlab-site-and-forum-config.md",
+    "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md"
+  ]
+}

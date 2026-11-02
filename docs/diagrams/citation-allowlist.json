@@ -21,67 +21,39 @@
   ],
   "allow": [
     {
-      "topic": "VF-02",
-      "diagram": "VF-02.2",
-      "path": "website/build-receipt.json",
-      "line": 18,
-      "reason": "Gitignored build artefact (website/.gitignore:8); written by the site build, exists in no commit, so no declared revision can contain it."
-    },
-    {
-      "topic": "VF-02",
-      "diagram": "VF-02.5",
-      "path": "website/build-receipt.json",
-      "line": 2,
-      "reason": "Gitignored build artefact (website/.gitignore:8); written by the site build, exists in no commit, so no declared revision can contain it."
-    },
-    {
-      "topic": "VF-02",
-      "diagram": "VF-02.5",
-      "path": "website/build-receipt.json",
-      "line": 4,
-      "reason": "Gitignored build artefact (website/.gitignore:8); written by the site build, exists in no commit, so no declared revision can contain it."
-    },
-    {
-      "topic": "VF-02",
-      "diagram": "VF-02.5",
-      "path": "website/build-receipt.json",
-      "line": 18,
-      "reason": "Gitignored build artefact (website/.gitignore:8); written by the site build, exists in no commit, so no declared revision can contain it."
-    },
-    {
       "topic": "VF-07",
       "diagram": "VF-07.1",
       "path": "texput.log",
       "line": 1,
-      "reason": "Gitignored LaTeX run log (.gitignore:50); written by pdflatex, exists in no commit, so no declared revision can contain it."
+      "reason": "Gitignored LaTeX run log (.gitignore:50); written by the LaTeX engine (XeTeX here), exists in no commit, so no declared revision can contain it."
     },
     {
       "topic": "VF-07",
       "diagram": "VF-07.8",
       "path": "texput.log",
       "line": 1,
-      "reason": "Gitignored LaTeX run log (.gitignore:50); written by pdflatex, exists in no commit, so no declared revision can contain it."
+      "reason": "Gitignored LaTeX run log (.gitignore:50); written by the LaTeX engine (XeTeX here), exists in no commit, so no declared revision can contain it."
     },
     {
       "topic": "VF-07",
       "diagram": "VF-07.8",
       "path": "texput.log",
       "line": 5,
-      "reason": "Gitignored LaTeX run log (.gitignore:50); written by pdflatex, exists in no commit, so no declared revision can contain it."
+      "reason": "Gitignored LaTeX run log (.gitignore:50); written by the LaTeX engine (XeTeX here), exists in no commit, so no declared revision can contain it."
     },
     {
       "topic": "VF-07",
       "diagram": "VF-07.8",
       "path": "texput.log",
       "line": 10,
-      "reason": "Gitignored LaTeX run log (.gitignore:50); written by pdflatex, exists in no commit, so no declared revision can contain it."
+      "reason": "Gitignored LaTeX run log (.gitignore:50); written by the LaTeX engine (XeTeX here), exists in no commit, so no declared revision can contain it."
     },
     {
       "topic": "VF-07",
       "diagram": "VF-07.8",
       "path": "texput.log",
       "line": 21,
-      "reason": "Gitignored LaTeX run log (.gitignore:50); written by pdflatex, exists in no commit, so no declared revision can contain it."
+      "reason": "Gitignored LaTeX run log (.gitignore:50); written by the LaTeX engine (XeTeX here), exists in no commit, so no declared revision can contain it."
     }
   ]
 }

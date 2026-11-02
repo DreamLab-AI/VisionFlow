@@ -1,0 +1,119 @@
+[
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/dreamlab-ai-website/01-repo-composition-and-deploy-topology.md",
+    "report": "docs/estate-review/2026-11-02-dreamlab-site-and-forum-config.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "DW-01.1",
+      "DW-01.2",
+      "DW-01.3",
+      "DW-01.5",
+      "DW-01.6",
+      "DW-01.7",
+      "DW-01.8"
+    ],
+    "basis": "Source tracing at dreamlab-ai-website 0e1572801d03; strict cite-check and render pass; topic restamped to 0e15728; 4 accurate, 1 corrected, 2 with limits; DNS observation and Pages 404 handling not re-checked."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/dreamlab-ai-website/02-site-build-and-pages-deploy.md",
+    "report": "docs/estate-review/2026-11-02-dreamlab-site-and-forum-config.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "DW-02.1",
+      "DW-02.3",
+      "DW-02.4",
+      "DW-02.5",
+      "DW-02.7"
+    ],
+    "basis": "Source tracing at dreamlab-ai-website 0e1572801d03; strict cite-check and render pass; not edited (stamp a67cb2a byte-identical for cited files); 4 accurate, 1 with limits; production static serving not tested."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/dreamlab-ai-website/03-forum-config-overlay-zones-admin-kv-sync.md",
+    "report": "docs/estate-review/2026-11-02-dreamlab-site-and-forum-config.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "DW-03.1",
+      "DW-03.3",
+      "DW-03.4",
+      "DW-03.5",
+      "DW-03.6",
+      "DW-03.7",
+      "DW-03.8",
+      "DW-03.9",
+      "DW-03.10",
+      "DW-03.11"
+    ],
+    "basis": "Source tracing at dreamlab-ai-website 0e1572801d03; strict cite-check and render pass; topic restamped to 0e15728; 4 accurate, 6 corrected; secret validator test-only (Tension); relay D1 schema and whitelist D1 left Open; Worker run receipt not re-checked."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/dreamlab-ai-website/04-identity-zones-and-security-posture.md",
+    "report": "docs/estate-review/2026-11-02-dreamlab-site-and-forum-config.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "DW-04.1",
+      "DW-04.3",
+      "DW-04.4",
+      "DW-04.5",
+      "DW-04.6",
+      "DW-04.8",
+      "DW-04.9"
+    ],
+    "basis": "Source tracing at dreamlab-ai-website 0e1572801d03; strict cite-check and render pass; topic restamped (dreamlab 0e15728, kit c39f41f); 2 accurate, 3 corrected, 2 with limits; SECURITY_OVERVIEW-sourced kit limits and admin resolution not traced into kit code."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/dreamlab-ai-website/05-ci-gates-rust-ci-kit-pin-playwright.md",
+    "report": "docs/estate-review/2026-11-02-dreamlab-site-and-forum-config.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "DW-05.1",
+      "DW-05.2",
+      "DW-05.3",
+      "DW-05.4",
+      "DW-05.8"
+    ],
+    "basis": "Source tracing at dreamlab-ai-website 0e1572801d03; strict cite-check and render pass; topic restamped to 0e15728; 3 accurate, 2 corrected; workflows not executed."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/dreamlab-ai-website/06-content-pipeline-and-invariants-register.md",
+    "report": "docs/estate-review/2026-11-02-dreamlab-site-and-forum-config.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "DW-06.1",
+      "DW-06.2",
+      "DW-06.5",
+      "DW-06.6",
+      "DW-06.7",
+      "DW-06.9",
+      "DW-06.8"
+    ],
+    "basis": "Source tracing at dreamlab-ai-website 0e1572801d03; strict cite-check and render pass; topic restamped (dreamlab 0e15728, kit c39f41f for ADR-2016); 4 accurate, 3 corrected; governing-doc revisions not made."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/dreamlab-ai-website/07-forum-provisioning-and-seeding.md",
+    "report": "docs/estate-review/2026-11-02-dreamlab-site-and-forum-config.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "DW-07.2",
+      "DW-07.3",
+      "DW-07.4",
+      "DW-07.5",
+      "DW-07.7",
+      "DW-07.8"
+    ],
+    "basis": "Source tracing at dreamlab-ai-website 0e1572801d03; strict cite-check and render pass; topic restamped to 0e15728; 3 accurate, 1 corrected, 2 with limits; Worker run receipt and inbox-watch runtime paths not re-run."
+  }
+]

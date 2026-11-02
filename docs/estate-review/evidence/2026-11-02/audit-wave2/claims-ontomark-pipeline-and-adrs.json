@@ -1,0 +1,245 @@
+[
+  {
+    "kind": "adr",
+    "repo": "ontomark",
+    "path": "docs/adr/ADR-OM-001-sprint-decisions.md",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at ontomark 4b9d15d (visionGraph 556a015 for D15); every section assessed; historical record; Signer (D6) absent, naming drift; census facts, cross-repo amendments, crates.io and GitHub settings not checkable from source."
+  },
+  {
+    "kind": "adr",
+    "repo": "ontomark",
+    "path": "docs/adr/ADR-OM-002-shared-graph-and-obsidian-boundary.md",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at ontomark 4b9d15d; every section assessed; graph package implements the decision; plugin read at ontomark-obsidian HEAD outside the pin set; publisher and runtime acceptance not verified."
+  },
+  {
+    "kind": "adr",
+    "repo": "ontomark",
+    "path": "docs/adr/ADR-OM-003-native-assisted-ingest.md",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at ontomark 4b9d15d; every section assessed; pure two-phase core implemented; minting claim in §2/§2a contradicted and dependency set drifted; parity, acceptance and EXP-11 not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "ontomark",
+    "path": "docs/adr/ADR-OM-006-dot-triples-interop.md",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at ontomark 4b9d15d; every section assessed; bridge implemented; D4 contradicted by the ingest evidence export without oa: selectors; bridge test not run; plugin claims outside the pin set."
+  },
+  {
+    "kind": "adr",
+    "repo": "ontomark",
+    "path": "docs/adr/ADR-OM-011-shared-filesystem-layout-checks.md",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at ontomark 4b9d15d (crates unchanged since its verified 395c18b); every section assessed; implemented; public_gate open item confirmed; tests and receipt not re-run; VisionClaw adoption not traced."
+  },
+  {
+    "kind": "adr",
+    "repo": "dreamlab-ai-website",
+    "path": "docs/adr/ADR-2001-corpus-consolidation.md",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at dreamlab-ai-website 0e15728; every section assessed; operative; structure implemented; IDENTITY-zones.md stamp drift breaks its restamp rule; annex test counts and runtime receipts not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "dreamlab-ai-website",
+    "path": "docs/adr/ADR-2002-split-hosting-pages-workers.md",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at dreamlab-ai-website 0e15728; every section assessed; operative; implemented with stale line numbers; CORS breadth drift; browser receipts not re-run; annex test counts and runtime receipts not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "dreamlab-ai-website",
+    "path": "docs/adr/ADR-2003-three-frontends-one-origin.md",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at dreamlab-ai-website 0e15728; every section assessed; operative; implemented with stale line numbers; acceptance receipt predates the current kit pin; annex test counts and runtime receipts not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "dreamlab-ai-website",
+    "path": "docs/adr/ADR-2004-kit-pin-version-and-sha-lockstep.md",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at dreamlab-ai-website 0e15728; every section assessed; operative; lockstep rule implemented and enforced; Decision and Verification literals stale (beta.16, 9c36b60); annex test counts and runtime receipts not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "dreamlab-ai-website",
+    "path": "docs/adr/ADR-2005-config-hand-synced-mirrors.md",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at dreamlab-ai-website 0e15728; every section assessed; operative; implemented and machine-checked; mirror count grown; annex test counts and runtime receipts not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "dreamlab-ai-website",
+    "path": "docs/adr/ADR-2006-raw-schnorr-nip42-identity.md",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at dreamlab-ai-website 0e15728; every section assessed; operative; implemented; no DID construction; annex test counts and runtime receipts not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "dreamlab-ai-website",
+    "path": "docs/adr/ADR-2007-four-zone-dual-accept-cohorts.md",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at dreamlab-ai-website 0e15728; every section assessed; operative; four zones implemented; single-encrypted-zone decision contradicted (zones 2-4 encrypted); annex test counts and runtime receipts not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "dreamlab-ai-website",
+    "path": "docs/adr/ADR-2008-talk-to-ai-nostr-dm-routing.md",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at dreamlab-ai-website 0e15728; every section assessed; operative; implemented; monitor co-recipient unrecorded; agent fan-out not checkable here; annex test counts and runtime receipts not re-run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/ontomark/00-anomaly-register-and-reconciliation.md",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "OM-00.1",
+      "OM-00.2",
+      "OM-00.3",
+      "OM-00.4",
+      "OM-00.5"
+    ],
+    "basis": "Source tracing at ontomark 4b9d15d, VisionClaw 86cdd76, agentbox c57d9c0, VisionFlow 5f8b1da; strict cite-check and render pass; register tests and the parity receipt not re-run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/ontomark/01-input-layer-vault-pages-and-gates.md",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "OM-01.1",
+      "OM-01.2",
+      "OM-01.3",
+      "OM-01.4",
+      "OM-01.5",
+      "OM-01.6"
+    ],
+    "basis": "Source tracing at ontomark 4b9d15d; strict cite-check and render pass; layout-fix changes folded in; no tests run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/ontomark/02-ir-corpus-projection-and-redaction.md",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "OM-02.1",
+      "OM-02.2",
+      "OM-02.3",
+      "OM-02.4",
+      "OM-02.5",
+      "OM-02.6"
+    ],
+    "basis": "Source tracing at ontomark 4b9d15d; strict cite-check and render pass; caller claims re-grepped across crates; no tests run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/ontomark/03-build-run-gates-staging-and-generation.md",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "OM-03.1",
+      "OM-03.2",
+      "OM-03.3",
+      "OM-03.4",
+      "OM-03.5",
+      "OM-03.6",
+      "OM-03.7",
+      "OM-03.8"
+    ],
+    "basis": "Source tracing at ontomark 4b9d15d and VisionFlow 5f8b1da; strict cite-check and render pass; promote failure behaviour is runtime and not exercised."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/ontomark/04-emitters-turtle-indexes-tiers-and-contract-c3.md",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "OM-04.1",
+      "OM-04.2",
+      "OM-04.3",
+      "OM-04.4",
+      "OM-04.5",
+      "OM-04.6",
+      "OM-04.7"
+    ],
+    "basis": "Source tracing at ontomark 4b9d15d and VisionFlow 5f8b1da; strict cite-check and render pass; reasoner extraction boundary relies on a prior audit's reproduction."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/ontomark/05-cli-commands-vault-selector-and-exit-codes.md",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "OM-05.1",
+      "OM-05.2",
+      "OM-05.3",
+      "OM-05.4",
+      "OM-05.5",
+      "OM-05.6"
+    ],
+    "basis": "Source tracing at ontomark 4b9d15d, visionGraph 556a015, VisionClaw 86cdd76, VisionFlow 5f8b1da; strict cite-check and render pass; CLI exit codes not executed."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/ontomark/06-machine-scope-and-ingest-contract.md",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "OM-06.1",
+      "OM-06.2",
+      "OM-06.3",
+      "OM-06.4",
+      "OM-06.5"
+    ],
+    "basis": "Source tracing at ontomark 4b9d15d, Loom ba21a68, agentbox c57d9c0, VisionFlow 5f8b1da; strict cite-check and render pass; machine-scope tests and live Loom reload not run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/ontomark/07-governed-create-and-amend.md",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "OM-07.1",
+      "OM-07.2",
+      "OM-07.3"
+    ],
+    "basis": "Source tracing at ontomark 4b9d15d and agentbox c57d9c0; strict cite-check and render pass; write/rename interleaving is a source-level concern only."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/ontomark/08-external-source-ingest.md",
+    "report": "docs/estate-review/2026-11-02-ontomark-pipeline-and-adrs.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "OM-08.1",
+      "OM-08.2",
+      "OM-08.3"
+    ],
+    "basis": "Source tracing at ontomark 4b9d15d (cited files unchanged since 0caae5d); strict cite-check and render pass; negated-relation acceptance relies on a prior audit's probe."
+  }
+]

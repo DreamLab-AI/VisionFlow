@@ -1,0 +1,122 @@
+[
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2001-corpus-consolidation.md",
+    "report": "docs/estate-review/2026-11-02-forum-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at nostr-rust-forum c39f41f; every section assessed; structure implemented; same-change citation discipline unmet (F11); historical verification not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2002-canary-first-upstream-nostr-absorption.md",
+    "report": "docs/estate-review/2026-11-02-forum-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at nostr-rust-forum c39f41f; every section assessed; canary present and unlinked; NIP-04/44 already delegated upstream without a recorded verdict (F5); no wasm32 execution evidence."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2005-gift-wrap-recipient-tag-admission.md",
+    "report": "docs/estate-review/2026-11-02-forum-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at nostr-rust-forum c39f41f; every section assessed; recipient gate holds; ADR-2022 ingress exception contradicts the non-member consequence and citations are stale (F4); runtime acceptance tests not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2007-kit-exact-pin-beta-channel.md",
+    "report": "docs/estate-review/2026-11-02-forum-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at nostr-rust-forum c39f41f; every section assessed; contradicted: caret solid-pod-rs 0.5.0-alpha.18 under ER-35 and non-lockstep kit versions (F2); registry artefacts not checked."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2009-acl-sidecar-coerce-to-control.md",
+    "report": "docs/estate-review/2026-11-02-forum-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at nostr-rust-forum c39f41f; every section assessed; shared helper traced to solid-pod-rs 9b6143c; .meta sidecars evaluated against the sidecar path's ACL (F7, open); deployed-version equality not checked."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2010-durable-governance-outcome-receipts.md",
+    "report": "docs/estate-review/2026-11-02-forum-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at nostr-rust-forum c39f41f; every section assessed; relay stages and forum application stages built, Remaining list stale (F6); API applied flag regresses at consumer-received (F14); UI requirements, live journey, deploys and agentbox adoption not checked."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md",
+    "report": "docs/estate-review/2026-11-02-forum-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at nostr-rust-forum c39f41f; every section assessed; decisions 1 and 3-6 implemented; Decision 2 and Consequences disagree on a declared tier without properties, and the code follows Consequences (F3); citation drift (F12); live M4 and deepsec receipts not checked, two uncommitted (F13)."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md",
+    "report": "docs/estate-review/2026-11-02-forum-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at nostr-rust-forum c39f41f; every section assessed; D6 and journal built, D1 view unbuilt as proposed, D4 pin facts stale against VisionClaw 86cdd76 (F9); deployment not checked."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2022-ingress-recipients-declared-in-config.md",
+    "report": "docs/estate-review/2026-11-02-forum-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at nostr-rust-forum c39f41f; every section assessed; implemented in relay and config; deploy binding is a test-checked mirror at dreamlab-ai-website 0e15728, not rendered (F10); live reset-db not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2025-nip59-unwrap-verifies-the-wrap-and-never-echoes-plaintext.md",
+    "report": "docs/estate-review/2026-11-02-forum-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at nostr-rust-forum c39f41f; every section assessed; wrap-first verification in all three readers and CSP implemented; core error text echoes decrypted seal id and rumor pubkey (F8); live artefact not fetched."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2027-nip17-overlay-for-nostr-chat-interop.md",
+    "report": "docs/estate-review/2026-11-02-forum-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at nostr-rust-forum c39f41f; every section assessed; implementation absent on main: acceptance and Phase 3 records describe code on the unmerged feat/upgrade-phase-0-1 branch (F1)."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2029-room-profile-deployment-type.md",
+    "report": "docs/estate-review/2026-11-02-forum-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at nostr-rust-forum c39f41f; every section assessed; proposed and unimplemented as stated; context mostly accurate with minor line drift, five context lines not re-resolved."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/sprint/2026-05-17-ux-audit/ADR-090-forum-base-path-discipline.md",
+    "report": "docs/estate-review/2026-11-02-forum-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at nostr-rust-forum c39f41f; every section assessed; paths helpers, returnTo validation and SW scope implemented; browser receipts not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/sprint/2026-05-17-ux-audit/ADR-091-channel-counts-derived-from-events.md",
+    "report": "docs/estate-review/2026-11-02-forum-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at nostr-rust-forum c39f41f; every section assessed; derived counts and reconcile implemented; no total_messages helper; browser deletion not driven."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/sprint/2026-05-17-ux-audit/ADR-092-deeplink-self-bootstrap.md",
+    "report": "docs/estate-review/2026-11-02-forum-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at nostr-rust-forum c39f41f; every section assessed; ensure_subscribed replaced on ChannelPage by observed bootstrap phases, tombstone check present; title memo and browser success path not checked."
+  }
+]

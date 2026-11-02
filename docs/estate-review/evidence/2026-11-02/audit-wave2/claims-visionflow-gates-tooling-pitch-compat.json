@@ -1,0 +1,88 @@
+[
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionflow/05-governance-gates.md",
+    "report": "docs/estate-review/2026-11-02-visionflow-gates-tooling-pitch-compat.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VF-05.1",
+      "VF-05.2",
+      "VF-05.3",
+      "VF-05.4",
+      "VF-05.5",
+      "VF-05.6",
+      "VF-05.7",
+      "VF-05.8",
+      "VF-05.9",
+      "VF-05.11",
+      "VF-05.12",
+      "VF-05.13",
+      "VF-05.14"
+    ],
+    "basis": "Source tracing at VisionFlow 5f8b1da; restamped, every citation re-resolved, strict cite-check and render pass; no CI runs observed; ratchet and gate-suites findings are source-only."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionflow/06-diagram-tooling.md",
+    "report": "docs/estate-review/2026-11-02-visionflow-gates-tooling-pitch-compat.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VF-06.1",
+      "VF-06.2",
+      "VF-06.3",
+      "VF-06.4",
+      "VF-06.5",
+      "VF-06.6",
+      "VF-06.7",
+      "VF-06.8",
+      "VF-06.9",
+      "VF-06.10",
+      "VF-06.11",
+      "VF-06.12",
+      "VF-06.13",
+      "VF-06.14",
+      "VF-06.15"
+    ],
+    "basis": "Source tracing at VisionFlow 5f8b1da; restamped, every citation re-resolved, strict cite-check and render pass; ADR-recorded render and pin-check results not reproduced."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionflow/07-pitch-presentation-reports.md",
+    "report": "docs/estate-review/2026-11-02-visionflow-gates-tooling-pitch-compat.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VF-07.1",
+      "VF-07.2",
+      "VF-07.3",
+      "VF-07.4",
+      "VF-07.5",
+      "VF-07.6",
+      "VF-07.7",
+      "VF-07.8",
+      "VF-07.9",
+      "VF-07.10",
+      "VF-07.11"
+    ],
+    "basis": "Source tracing at VisionFlow 5f8b1da; restamped, texput.log dropped from sources (Drift), its five citations remain allowlisted and unverified; strict cite-check and render pass; no LaTeX or image generation run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionflow/08-compatibility-and-dependency-direction.md",
+    "report": "docs/estate-review/2026-11-02-visionflow-gates-tooling-pitch-compat.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VF-08.1",
+      "VF-08.2",
+      "VF-08.4",
+      "VF-08.7",
+      "VF-08.8",
+      "VF-08.10",
+      "VF-08.11"
+    ],
+    "basis": "Source tracing at VisionFlow 5f8b1da, VisionClaw 86cdd76, agentbox c57d9c0, nostr-rust-forum c39f41f (all four map keys restamped); strict cite-check and render pass; no runtime, replica or federation evidence."
+  }
+]

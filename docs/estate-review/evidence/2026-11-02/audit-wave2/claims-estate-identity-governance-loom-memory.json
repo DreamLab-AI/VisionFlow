@@ -1,0 +1,18 @@
+[
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/estate/04-identity-mesh-did-nostr.md",
+   "report": "docs/estate-review/2026-11-02-estate-identity-governance-loom-memory.md", "coverage": "selected-panels",
+   "panels": ["ES-04.1", "ES-04.3", "ES-04.4", "ES-04.5", "ES-04.6", "ES-04.7"],
+   "basis": "Source tracing at visionclaw 86cdd76 and agentbox c57d9c0; restamped, every citation re-resolved, strict cite-check and render pass; 2 accurate, 3 corrected (ES-04.4's unsigned pod-write fallback was false), 1 with limits (mirror relay acceptance and fail-open are runtime)."},
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/estate/05-governance-loop-across-estate.md",
+   "report": "docs/estate-review/2026-11-02-estate-identity-governance-loom-memory.md", "coverage": "selected-panels",
+   "panels": ["ES-05.2", "ES-05.6", "ES-05.7", "ES-05.8", "ES-05.9", "ES-05.10", "ES-05.11", "ES-05.12", "ES-05.13", "ES-05.14", "ES-05.15", "ES-05.16"],
+   "basis": "Source tracing at agentbox c57d9c0, visionclaw 86cdd76, nostr-rust-forum c39f41f, dreamlab-ai-website 0e15728, VisionFlow 5f8b1da; dream-engine read at its unchanged stamp 59a3e21 (no wave-2 pin); restamped, strict cite-check and render pass; 3 accurate, 5 corrected, 4 with limits (live responders, edge deployment and GitHub forge not exercised)."},
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/estate/06-loom-and-email-privacy-path.md",
+   "report": "docs/estate-review/2026-11-02-estate-identity-governance-loom-memory.md", "coverage": "selected-panels",
+   "panels": ["ES-06.1", "ES-06.2", "ES-06.3", "ES-06.4", "ES-06.5", "ES-06.6", "ES-06.7", "ES-06.8", "ES-06.9", "ES-06.10", "ES-06.11"],
+   "basis": "Source tracing at agentbox c57d9c0, visionclaw 86cdd76, loom ba21a68; restamped, every citation re-resolved, strict cite-check and render pass; 5 corrected, 6 with limits (email gateway source is outside the estate, so the gateway panels rest on the agentbox skill document; HP topology and model identity not observed)."},
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/estate/07-memory-and-embedding-estate.md",
+   "report": "docs/estate-review/2026-11-02-estate-identity-governance-loom-memory.md", "coverage": "selected-panels",
+   "panels": ["ES-07.1", "ES-07.2", "ES-07.3", "ES-07.7", "ES-07.9", "ES-07.10"],
+   "basis": "Source tracing at agentbox c57d9c0 and visionclaw 86cdd76; restamped, every citation re-resolved, strict cite-check and render pass; 6 corrected (stale lines, the replaced RUVECTOR_PG_CONNINFO path, the proxy-error branch); recall, SONA accumulation and rerank activation not exercised."}
+]

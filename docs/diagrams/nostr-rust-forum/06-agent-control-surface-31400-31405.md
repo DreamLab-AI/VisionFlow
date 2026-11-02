@@ -35,7 +35,7 @@ sources:
   - ../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md
   - ../nostr-rust-forum/docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md
   - ../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md
-verified_commit: {nostr-rust-forum: 1b27f79d08537b61b3d5a5d02cac9ee5999b79ed, dreamlab-ai-website: a67cb2a8d474f4ba2e79bdbf55fad2e87bfd7e98}
+verified_commit: {nostr-rust-forum: c39f41f104b114d6a3fa29013daaf6fa58b45080, dreamlab-ai-website: 0e1572801d03a1af6d8bc8861f928da087d69eed}
 ---
 
 ## NF-06.1 The six kinds and their publishers
@@ -62,7 +62,7 @@ classDiagram
     ACSKinds --> TypedPayloads
     ACSKinds --> RegisteredAgent
 
-    note for ACSKinds "This repo OWNS the 31400-31405 schema for the estate. Every kind constant is re-exported at crate level so no consumer hardcodes a number nostr-bbs-core/src/lib.rs:155"
+    note for ACSKinds "This repo OWNS the 31400-31405 schema for the estate. Every kind constant is re-exported at crate level so no consumer need hardcode a number nostr-bbs-core/src/lib.rs:155. DEBT: the forum client still does - the board declares its own 31402 and 31403 nostr-bbs-forum-client/src/pages/board.rs:46-47 and the app subscribes with a literal list nostr-bbs-forum-client/src/app.rs:852"
     note for TypedPayloads "DOC-DRIFT: the README table (README.md:111-116) and this module's own doc table (nostr-bbs-core/src/governance.rs:9-16) name six types, but only THREE have a Rust struct - PanelDefinition, ActionRequest and ActionResponse. PanelState, PanelUpdate and PanelRetired exist as kind constants and doc rows only."
     note for RegisteredAgent "INVARIANT: only kinds 31400, 31401, 31402, 31404 and 31405 are agent-published. 31403 is the HUMAN half - see NF-06.3"
 ```
@@ -104,7 +104,7 @@ sequenceDiagram
     FC->>FC: ingest_event into the panel registry nostr-bbs-forum-client/src/app.rs:858
     FC-->>HU: render the decision card
     HU->>FC: approve / reject on the decision card
-    FC->>R: kind 31403 ActionResponse nostr-bbs-forum-client/src/pages/governance.rs:919
+    FC->>R: kind 31403 ActionResponse nostr-bbs-forum-client/src/pages/governance.rs:918
     R->>R: admin-or-delegated-reviewer gate nip_handlers.rs:1354 via response_admission nip_handlers.rs:275
     R->>R: correlate reads the request id, falling back to the first unmarked e tag nostr-bbs-relay-worker/src/relay_do/receipts.rs:130
     R->>R: project_action_response nip_handlers.rs:2944
@@ -112,7 +112,7 @@ sequenceDiagram
 
     Note over R: INVARIANT P1-6+FR6.2: a Decision is a PRIVILEGED act, not a generic member action - kind 31403 from a non-admin, non-delegated-reviewer is blocked outright nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1344-1357
     Note over R: 31403 is EXEMPT from the agent-registry gate - it is the human half of the protocol nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1325
-    Note over FC: The published response carries an UNMARKED e-tag naming the request it answers nostr-bbs-forum-client/src/pages/governance.rs:923 - the relay read only a request-marked tag until a5b809e, so every UI decision was stored and never projected - see NF-06.17
+    Note over FC: The published response carries an UNMARKED e-tag naming the request it answers nostr-bbs-forum-client/src/pages/governance.rs:921 - the relay read only a request-marked tag until a5b809e, so every UI decision was stored and never projected - see NF-06.17
 ```
 
 ## NF-06.4 The two gates a governance event must pass at ingress
@@ -120,7 +120,7 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     EV["governance-kind event at the relay"]
-    G1{"is_governance_kind AND kind != 31403<br/>AND not a kanban approval request<br/>AND not a registered agent<br/>nip_handlers.rs:1291"}
+    G1{"is_governance_kind AND kind != 31403<br/>AND not a kanban approval request<br/>AND not a registered agent<br/>nip_handlers.rs:1324-1327"}
     G2{"response_admission: admin admits any case; a reviewer<br/>admits only a case delegated to them; else blocked (FR6.2)<br/>nip_handlers.rs:1354 via response_admission nip_handlers.rs:275"}
     G3{"a 31403 carrying a supersedes e-tag<br/>supersession_authorised<br/>nip_handlers.rs:1393"}
     OK["saved and projected"]
@@ -133,7 +133,7 @@ flowchart TB
     G3 -->|"unauthorised"| B3["blocked: unauthorised supersession nip_handlers.rs:1396"]
     G3 -->|"pass"| OK
 
-    N1["Kanban exception: a 31402 tagged k=30302 is a MEMBER-initiated ask - may this card enter the<br/>approval-gated column - so it is admitted from any whitelisted author. Decisions stay admin/reviewer-only;<br/>every other 31402 remains registry-gated nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1319-1322"]
+    N1["Kanban exception: a 31402 tagged k=30302 is a MEMBER-initiated ask - may this card enter the<br/>approval-gated column - so it is admitted from any whitelisted author. Every other 31402 remains registry-gated<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1319-1321. Decisions (31403) are admin,<br/>or a reviewer delegated to the case nip_handlers.rs:1344-1351.<br/>DRIFT: the comment at nip_handlers.rs:1322 still says admin-only"]
     N2["F6 supersession authority: only the ORIGINAL decision's signer, or a human of a strictly higher<br/>governance role, may supersede a published decision - rejected BEFORE the event is saved or<br/>projected nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1389-1396"]
     N3["The whitelist gate ran earlier in the pipeline, so registry membership is an ADDITIONAL<br/>requirement on top of forum membership - see NF-03.4 step 7b"]
 ```
@@ -143,9 +143,11 @@ flowchart TB
 ```mermaid
 stateDiagram-v2
     [*] --> Open: 31402 ActionRequest projected<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2736
-    Open --> Reopened: 31402 carrying an appeal e-tag<br/>project_appeal nip_handlers.rs:3441
     Open --> Decided: 31403 routed through the DecisionOrchestrator<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:564-565
     Decided --> Superseded: 31403 carrying a supersedes e-tag<br/>project_supersession nip_handlers.rs:3344
+    Decided --> Reopened: appeal-marked 31402 from the requester<br/>project_appeal nip_handlers.rs:3441, reopen nostr-bbs-core/src/governance.rs:1847-1854
+    Superseded --> Reopened: appeal-marked 31402<br/>nostr-bbs-core/src/governance.rs:1853
+    Reopened --> Decided: a fresh authorised 31403<br/>projection admits open, under_review or reopened nostr-bbs-relay-worker/src/relay_do/receipts.rs:188
     Decided --> [*]
 
     note right of Decided
@@ -185,36 +187,36 @@ erDiagram
 
     agent_registry {
         migration_0002 line5
-        inline_bootstrap relay_lib_813
-        admin_gated_upsert governance_api_380
+        inline_bootstrap relay_lib_1000
+        admin_gated_upsert governance_api_381
     }
     broker_cases {
         migration_0002 line17
-        inline_bootstrap relay_lib_823
-        category_state_created_by nip_handlers_137
+        inline_bootstrap relay_lib_741
+        case_upsert nip_handlers_1001
         stale_after migration_0007_line16_nullable_ontology_expiry
     }
     broker_decisions {
         migration_0002 line39
-        inline_bootstrap relay_lib_845
-        outcome_and_detail nip_handlers_151
+        inline_bootstrap relay_lib_765
+        outcome_and_detail receipts_185
     }
     broker_roles {
         migration_0002 line52
-        inline_bootstrap relay_lib_880
+        inline_bootstrap relay_lib_1009
     }
     governance_receipts {
         migration_0005 line12
-        inline_bootstrap relay_lib_862
-        application_stage_columns applied_at_applied_by
+        inline_bootstrap relay_lib_783
+        application_stage_columns migration_0006_line79
     }
     case_delegations {
-        migration_0006 mirrored_into_ensure_schema
-        inline_bootstrap relay_lib_918
+        migration_0006 line89
+        inline_bootstrap relay_lib_1047
     }
     case_side_receipts {
-        migration_0006 mirrored_into_ensure_schema
-        inline_bootstrap relay_lib_906
+        migration_0006 line65
+        inline_bootstrap relay_lib_1035
         expiry_rows keyed_case_id_stage
     }
 ```
@@ -255,9 +257,9 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     RELAY["relay-worker - schema owner and gate"]
-    FCADMIN["forum-client /governance/admin<br/>decision card publishes 31403 nostr-bbs-forum-client/src/pages/governance.rs:848<br/>panel actions publish 31403 nostr-bbs-forum-client/src/pages/governance.rs:501"]
+    FCADMIN["forum-client /governance/admin<br/>decision card publishes 31403 nostr-bbs-forum-client/src/pages/governance.rs:918<br/>panel actions publish 31403 nostr-bbs-forum-client/src/pages/governance.rs:522"]
     FCMEM["forum-client /governance member view<br/>read-only, no 31403 publish path compiles<br/>nostr-bbs-forum-client/src/pages/governance.rs:39"]
-    BOARD["forum-client kanban board<br/>subscribes to 31402 and 31403 only<br/>nostr-bbs-forum-client/src/pages/board.rs:46"]
+    BOARD["forum-client kanban board<br/>subscribes to 31402 and 31403 only<br/>nostr-bbs-forum-client/src/pages/board.rs:46 nostr-bbs-forum-client/src/pages/board.rs:393"]
     REG["PanelRegistry store<br/>nostr-bbs-forum-client/src/stores/panel_registry.rs:212"]
     BBS["bbs-client governance bucket<br/>nostr-bbs-bbs-client/src/relay.rs:27"]
     KAN["kanban approval decisions are parsed FROM 31403<br/>nostr-bbs-core/src/kanban.rs:739 nostr-bbs-core/src/kanban.rs:745"]
@@ -266,9 +268,9 @@ flowchart TB
     FCADMIN --> REG
     BOARD --> KAN
 
-    N1["The member view is enforced by COMPOSITION, not by a runtime flag - it mounts components that do<br/>not compile a 31403 publish path nostr-bbs-forum-client/src/pages/governance.rs:35"]
+    N1["The member view is enforced by COMPOSITION, not by a runtime flag - it mounts components that do<br/>not compile a 31403 publish path nostr-bbs-forum-client/src/pages/governance.rs:36-40"]
     N2["The registry resolves a decision chain to the most recent AUTHORISED 31403; superseded events<br/>remain in the store rather than being deleted nostr-bbs-forum-client/src/stores/panel_registry.rs:486"]
-    N3["EXTERNAL: exactly ONE live consumer today - ontology-concept elevation in VisionClaw, a case queue<br/>capped at five concurrent README.md:120. Treat universal human-in-the-loop surface as the design<br/>target, not a claim of many production consumers. See VC-24."]
+    N3["EXTERNAL: the README names one documented estate consumer - VisionClaw's ontology-review workflow - and<br/>says universal production use is not established README.md:120. Treat a universal human-in-the-loop<br/>surface as the design target, not a claim of many production consumers. See VC-24."]
 ```
 
 ## NF-06.11 Guarded relay projection and separate consumer receipts
@@ -385,7 +387,7 @@ flowchart TB
     FIX["canonical_agent_pubkey - validate, then lowercase - now called by register too<br/>nostr-bbs-auth-worker/src/governance_api.rs:108"]
     ECHO["the response echoes what was STORED, not what was sent<br/>nostr-bbs-auth-worker/src/governance_api.rs:396-398"]
     NIP33["client side: NIP-33 replaceability per pubkey and d tag - a replayed OLDER<br/>31400 must not roll back the operator's declaration<br/>nostr-bbs-forum-client/src/stores/panel_registry.rs:242"]
-    HELD["supersedes_held decides it, and accept_panel_state records the newest<br/>31401 or 31404 per address<br/>nostr-bbs-forum-client/src/stores/panel_registry.rs:461<br/>nostr-bbs-forum-client/src/stores/panel_registry.rs:199"]
+    HELD["supersedes_held decides it, and accept_panel_state records the newest<br/>31401 or 31404 per address<br/>nostr-bbs-forum-client/src/stores/panel_registry.rs:496<br/>nostr-bbs-forum-client/src/stores/panel_registry.rs:199"]
 
     REG --> LOOK --> BUG --> FIX --> ECHO
     NIP33 --> HELD
@@ -393,6 +395,7 @@ flowchart TB
     N1["INVARIANT: NIP-98 accepts case-insensitive hex and returns event.pubkey verbatim, and the event id is<br/>recomputed over that string, so the SAME key can legitimately present in two casings and both verify<br/>nostr-bbs-auth-worker/src/governance_api.rs:98-100"]
     N2["Canonicalisation is idempotent and still rejects everything it always rejected - length, non-hex and<br/>a blank name nostr-bbs-auth-worker/src/governance_api.rs:87-91"]
     N3["The registry keeps superseded events rather than deleting them - DecisionView tracks whether each<br/>entry is superseded and whether it is the current effective decision<br/>nostr-bbs-forum-client/src/stores/panel_registry.rs:174"]
+    N4["DRIFT in-code: the validate_agent_fields doc still says register stores the pubkey as supplied<br/>nostr-bbs-auth-worker/src/governance_api.rs:85, though register now canonicalises<br/>nostr-bbs-auth-worker/src/governance_api.rs:372"]
 ```
 
 ## NF-06.16 Ontology proposal expiry — ADR-2013 stale_after and the cron sweep
@@ -492,4 +495,4 @@ flowchart TB
 
 **Open:** the option is named NF-06-S1-01 in the Jev option record and is documented as a proposed research candidate (`nostr-bbs-auth-worker/src/rationale_check.rs:1`), so whether a reviewer's draft rationale should ever be shaped by a model answer is a decision the record leaves unmade.
 
-**Tension (expiry and delivery, 2026-10-31):** NF-06.16 now names the actual SQL states at its existing revision. Closing a case does not retract a decision already stored and broadcast. [ES-13](../estate/13-governance-delivery-and-expiry.md) maps the current consumer boundary, and the [ingress audit](../../estate-review/2026-10-31-governance-ingress.md) records signed local probes and parser defects. Other panels retain their historical source pins.
+**Tension (expiry and delivery, 2026-10-31):** NF-06.16 names the actual SQL states. Closing a case does not retract a decision already stored and broadcast. [ES-13](../estate/13-governance-delivery-and-expiry.md) maps the current consumer boundary, and the [ingress audit](../../estate-review/2026-10-31-governance-ingress.md) records signed local probes and parser defects. Every panel was re-read and re-resolved at nostr-rust-forum c39f41f on 2026-11-02 ([audit](../../estate-review/2026-11-02-forum-clients-agents-search.md)).

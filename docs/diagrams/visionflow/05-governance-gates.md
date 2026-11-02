@@ -41,7 +41,7 @@ sources:
   - .github/workflows/adr-index.yml
   - scripts/adr-ratchet.sh
   - tests/gates/estate-health-ci.test.mjs
-verified_commit: 4d361b58ce2b3ee17e1570361eaf78270b630012
+verified_commit: 5f8b1da92ce5d9e6b32a0bd90ec3630c66619083
 ---
 
 ## VF-05.1 Gate route table — trigger, script, verdict, blocking
@@ -73,6 +73,8 @@ flowchart TB
     WHARN --> J1["job harness-audit<br/>harness-audit.sh --target 50<br/>harness-fitness-gates.yml:56"]:::tool
     WHARN --> J2["job fixture-parity<br/>inline jq template schema check<br/>harness-fitness-gates.yml:108"]:::tool
     WHARN --> J3["job release-manifest<br/>release-manifest.test.sh, then dream-evaluator-exit.test.sh<br/>harness-fitness-gates.yml:166 and harness-fitness-gates.yml:171"]:::tool
+    WHARN --> J4["job gate-suites<br/>bash tests/gates/run-all.sh, agentbox checked out at the drift pin<br/>harness-fitness-gates.yml:178 and harness-fitness-gates.yml:206"]:::tool
+    J4 --> VH4["exit 1 when any suite fails<br/>run-all.sh:47-50"]:::block
     J1 --> VH["exit 1 when pairing ratio &lt; target<br/>harness-audit.sh:430"]:::block
     J2 --> VH2["exit 1 on bad JSON, missing field,<br/>duplicate id or dangling pairing ref<br/>harness-fitness-gates.yml:144"]:::block
     J3 --> VH3["exit 1 when a candidate manifest<br/>can be cut with no fixture comparison"]:::block
@@ -311,7 +313,7 @@ flowchart TB
     NOTE["EXTERNAL: the canonical corpus and its consumers live in sibling repos —<br/>VisionClaw (VC-NN), agentbox (AB-NN), solid-pod-rs (SP-NN),<br/>nostr-rust-forum (NF-NN). VisionFlow's own tests/fixtures/ holds no JSON"]
 ```
 
-## VF-05.7 harness-fitness-gates.yml — three independent jobs, three verdicts
+## VF-05.7 harness-fitness-gates.yml — four independent jobs, four verdicts
 ```mermaid
 flowchart LR
     classDef job fill:#e4ecf8,stroke:#33559a,color:#222
@@ -322,6 +324,8 @@ flowchart LR
     TRIG --> A["job harness-audit<br/>Pairing ratio audit"]:::job
     TRIG --> B["job fixture-parity<br/>Template schema validation"]:::job
     TRIG --> C["job release-manifest<br/>Roster and fixture gate"]:::job
+    TRIG --> D["job gate-suites<br/>All governance-gate regression suites<br/>harness-fitness-gates.yml:178"]:::job
+    D --> D1["check out agentbox at the drift-counter pin, then<br/>bash tests/gates/run-all.sh with DRIFT_AGENTBOX_DIR set<br/>harness-fitness-gates.yml:188-192 and harness-fitness-gates.yml:206"]:::block
 
     A --> A1["FIRST prove the audit can fail:<br/>tests/gates/harness-audit.test.sh<br/>harness-fitness-gates.yml:44"]
     A1 --> A2["then bash harness-audit.sh --target 50,<br/>exit code captured, NOT propagated directly<br/>harness-fitness-gates.yml:56"]
@@ -339,13 +343,15 @@ flowchart LR
     C --> C2["then tests/gates/dream-evaluator-exit.test.sh (4159e08):<br/>dream-build-check.sh and dream-link-check.sh must print<br/>the FAIL marker AND exit 1 on a broken tree<br/>harness-fitness-gates.yml:171"]:::block
 
     NOTE1["TARGET SCOPE: the script default is 80 (harness-audit.sh:57).<br/>Historical Harness Coverage totals at compatibility-matrix.md:97<br/>record July's PASS at target 80%, while this workflow passes --target 50"]
-    NOTE4["the same suite now also runs from run-all.sh, which lists nine suites and ends with it<br/>run-all.sh:18-28"]
+    NOTE4["the same suite also runs from run-all.sh, which now lists twelve suites, so job D runs it a second time<br/>run-all.sh:18-31"]
     NOTE2["INVARIANT: the missing template directory is a skip, not a failure —<br/>job B exits 0 when docs/engineering/templates does not exist"]
 ```
 
 **Drift (resolved 2026-10-12, `4159e08`):** the release-manifest job gained a second step, `tests/gates/dream-evaluator-exit.test.sh` (`.github/workflows/harness-fitness-gates.yml:170-171`), which copies `scripts/dream-build-check.sh` and `scripts/dream-link-check.sh` into a scratch tree and asserts each prints its marker and exits with it (`tests/gates/dream-evaluator-exit.test.sh:36-65`); the evaluators it pins are described in VF-02.7 and VF-04.4.
 
-**Debt:** the workflow's path filter names `tests/gates/**` but neither dream script (`.github/workflows/harness-fitness-gates.yml:5-12`), so an edit to `scripts/dream-build-check.sh` alone does not run the suite that pins its exit code, while `tests/gates/run-all.sh` now lists it, so the local runner covers it even though the workflow's path filter does not (`tests/gates/run-all.sh:27`).
+**Debt:** the workflow's path filter names `tests/gates/**` but neither dream script (`.github/workflows/harness-fitness-gates.yml:5-12`), so an edit to `scripts/dream-build-check.sh` alone does not run the suite that pins its exit code. `tests/gates/run-all.sh` lists it (`tests/gates/run-all.sh:27`), and job `gate-suites` runs that list in CI (`.github/workflows/harness-fitness-gates.yml:206`), but under the same path filter, so only a local run covers a dream-script-only edit.
+
+**Drift (corrected 2026-11-02):** this panel said three jobs. Since `5a3107d` (2026-10-14) the workflow has a fourth job, `gate-suites`, which runs `tests/gates/run-all.sh` (`.github/workflows/harness-fitness-gates.yml:178`, `.github/workflows/harness-fitness-gates.yml:206`). The topic's previous stamp post-dated that change, so the panel was already stale when it was stamped.
 
 ## VF-05.8 harness-audit.sh — the three defects the counting rules close
 ```mermaid
@@ -401,7 +407,7 @@ flowchart TB
     classDef block fill:#ffe0e0,stroke:#aa3333,color:#222
     classDef ok fill:#e0f2e4,stroke:#2f7a45,color:#222
 
-    T["EVERY push and EVERY pull_request —<br/>this is the only gate with no path filter<br/>copyright-guard.yml:9"] --> S1
+    T["EVERY push and EVERY pull_request —<br/>the only gate with neither a path nor a branch filter;<br/>deploy.yml has no path filter but runs on main only<br/>copyright-guard.yml:9"] --> S1
 
     S1["git ls-files for luddites.txt, doctorow.txt<br/>and their nested forms<br/>copyright-guard.yml:25"] --> Q1{"any tracked?"}
     Q1 -->|yes| F1["::error:: copyrighted source text is tracked,<br/>exit 1"]:::block
@@ -423,6 +429,8 @@ flowchart TB
     LICN -.-> DIVL
 ```
 
+**Drift (corrected 2026-11-02):** the trigger node said this was the only gate with no path filter. `deploy.yml` has no path filter either, but it runs only on a push to `main` or a manual dispatch (`.github/workflows/deploy.yml:34-37`), so the distinguishing property is no path filter and no branch filter together.
+
 ## VF-05.11 tests/gates — proving each gate can still fail
 ```mermaid
 flowchart TB
@@ -430,18 +438,19 @@ flowchart TB
 
     WHY["A gate nobody tests is a gate nobody knows is broken:<br/>the harness audit scored duplicate pairings 200% PASS,<br/>the drift counter policed two archived files forever, and<br/>a release candidate could assert fixture parity nothing compared<br/>run-all.sh:5"]
 
-    WHY --> RUN["bash tests/gates/run-all.sh — nine suites, one verdict<br/>run-all.sh:18-28"]
-    RUN --> PRINT["GATE-TESTS-OK or GATE-TESTS-FAIL<br/>run-all.sh:41"]
+    WHY --> RUN["bash tests/gates/run-all.sh — twelve suites, one verdict<br/>run-all.sh:18-31"]
+    RUN --> PRINT["GATE-TESTS-OK or GATE-TESTS-FAIL<br/>run-all.sh:44"]
 
     RUN --> S1["drift-counter.test.sh"]:::suite
     RUN --> S2["harness-audit.test.sh"]:::suite
     RUN --> S3["release-manifest.test.sh"]:::suite
     RUN --> S4["website-assets.test.sh"]:::suite
-    RUN --> S5["diagram-index.test.cjs — the .cjs and .mjs suites are run<br/>with node rather than bash, chosen per suite by extension<br/>run-all.sh:34"]:::suite
+    RUN --> S5["diagram-index.test.cjs — the .cjs and .mjs suites are run<br/>with node rather than bash, chosen per suite by extension<br/>run-all.sh:37"]:::suite
     RUN --> S6["augmentation-citations.test.cjs — see VF-05.13<br/>run-all.sh:24"]:::suite
     RUN --> S7["estate-health-ci.test.mjs — imports the collector's pure<br/>CI-state functions and drives the 2026-09-23 knowledgeGraph<br/>false red through them — run-all.sh:25<br/>estate-health-ci.test.mjs:1 — see VF-03.4"]:::suite
     RUN --> S8["jev-option.test.cjs — the opt-in Jev option must fall back to the pre-change output of each script<br/>run-all.sh:26"]:::suite
     RUN --> S9["dream-evaluator-exit.test.sh — the dream build and link evaluators print their marker and exit with it<br/>run-all.sh:27"]:::suite
+    RUN --> S10["adr-evidence-field.test.sh, adr-ratchet-evidence.test.sh and pele-pin.test.sh —<br/>the three suites added since, see VF-05.14 for the ratchet one<br/>run-all.sh:28-30"]:::suite
     S7 --> E1["a verdict on an older commit reads none, not red<br/>estate-health-ci.test.mjs:24"]
     E1 --> E2["a red run on HEAD stays red<br/>estate-health-ci.test.mjs:28"]
     E2 --> E3["only documentation carries a verdict to HEAD<br/>estate-health-ci.test.mjs:44"]
@@ -478,7 +487,7 @@ flowchart TB
 
     CI1["drift-counter.yml runs its suite BEFORE trusting the counter<br/>drift-counter.yml:75"]
     CI2["harness-fitness-gates.yml runs the audit suite first<br/>harness-fitness-gates.yml:44"]
-    CI3["DIVERGENCE: run-all.sh itself is wired to NO workflow — it is<br/>reachable only through package.json's test:gates / verify scripts"]
+    CI3["run-all.sh runs in CI as job gate-suites, harness-fitness-gates.yml:206,<br/>but only when that workflow's path filter fires, harness-fitness-gates.yml:4-12;<br/>locally through package.json's test:gates script, package.json:17"]
 ```
 
 ## VF-05.12 mesh-smoke-preflight.sh — the read-only, unwired substrate probe
@@ -544,26 +553,30 @@ flowchart TB
     CITE --> E5["the highest line in the range must exist in the file<br/>check-augmentation-citations.cjs:80"]:::fail
     CITE --> PASS["counted, summary line, exit 0 only when failures is zero<br/>check-augmentation-citations.cjs:93 and check-augmentation-citations.cjs:116"]:::ok
 
-    SUITE["tests/gates/augmentation-citations.test.cjs — ten deliberate<br/>defects driven through the gate, each asserted to exit 1:<br/>missing path :35, elided path :39, measured citing a document :44,<br/>five rows :48, line past EOF :52, duplicate header :56,<br/>unknown header :59, directory citation :63, a C7 row :67,<br/>measured citing an extensionless document :72"]:::ok
+    SUITE["tests/gates/augmentation-citations.test.cjs — ten deliberate<br/>defects driven through the gate, each asserted to exit 1:<br/>missing path augmentation-citations.test.cjs:35, elided path :39, measured citing a document :44,<br/>five rows :48, line past EOF :52, duplicate header :56,<br/>unknown header :59, directory citation :63, a C7 row :67,<br/>measured citing an extensionless document :72"]:::ok
     PASS --- SUITE
     SUITE --> FIX["the suite materialises a FIXTURE estate of 5000-line stand-ins<br/>so the real table can be checked with no siblings present<br/>augmentation-citations.test.cjs:29"]:::ok
     SUITE --> SKIP["the run against the REAL sibling checkouts is SKIPPED<br/>when they are absent — augmentation-citations.test.cjs:77"]:::local
 
-    WIRE["wired through tests/gates/run-all.sh:24 and the<br/>npm script check:augmentation at package.json:10;<br/>no workflow of its own"]:::local
+    WIRE["wired through tests/gates/run-all.sh:24 and the<br/>npm script check:augmentation at package.json:10;<br/>no workflow of its own — CI reaches it only through<br/>job gate-suites, harness-fitness-gates.yml:206"]:::local
     CLI --- WIRE
 
     INV["INVARIANT: a status may be RAISED only by a citation to code or a<br/>runtime receipt, never by a document — the extension allowlist is<br/>what makes that rule mechanical rather than editorial<br/>ADR-2010-augmentation-conditions-are-the-canon-audit-lens.md:28"]
     E2 -.-> INV
 
-    DIV["DIVERGENCE: the gate resolves every citation against SIBLING<br/>checkouts, so it can only ever run locally. run-all.sh is wired<br/>to no workflow, and the suite silently skips the real-checkout<br/>assertion on a hosted runner — the matrix's cells are checked<br/>by whoever remembers to run it<br/>augmentation-citations.test.cjs:77"]:::fail
+    DIV["DIVERGENCE: the gate resolves every citation against SIBLING<br/>checkouts. CI runs the suite through job gate-suites, but that runner<br/>has no siblings, so the suite skips the real-checkout assertion there —<br/>the matrix's cells are checked against real code only<br/>by whoever remembers to run it locally<br/>augmentation-citations.test.cjs:77"]:::fail
     SKIP -.-> DIV
 ```
 
-**Debt:** the augmentation-citations gate has no workflow of its own and reaches CI through no path, because `tests/gates/run-all.sh:24` is itself reachable only from `package.json:17`, so the eighteen cited cells of the graded matrix are verified only by a local run.
+**Debt:** the augmentation-citations gate has no workflow of its own. CI reaches it only through job `gate-suites` (`.github/workflows/harness-fitness-gates.yml:206`), which runs `tests/gates/run-all.sh:24` on a runner with no sibling checkouts, so there the suite proves the gate against fixtures, not the real matrix. The eighteen cited cells of the graded matrix are verified against real code only by a local run.
+
+**Drift (corrected 2026-11-02):** this panel and VF-05.11 said `run-all.sh` was wired to no workflow. Job `gate-suites` has run it since `5a3107d` (2026-10-14).
 
 **Invariant:** the substrate column set is closed — a header outside `SUBSTRATE_DIRS` fails rather than defaulting, so a new substrate cannot be graded until the checker learns where its code lives (`scripts/check-augmentation-citations.cjs:19`, `scripts/check-augmentation-citations.cjs:43`).
 
-**Debt (ratchet without a gate test):** `scripts/adr-ratchet.sh` is a blocking step of `adr-index.yml` (`.github/workflows/adr-index.yml:49`) but has no suite under `tests/gates/`, so nothing drives an added-undecided record through it and asserts the step goes red (`tests/gates/run-all.sh:18-28`); its expiry date is likewise a default in the script, not a tested property (`scripts/adr-ratchet.sh:36`).
+**Drift (citation binding, corrected 2026-11-02):** the suite node listed its defect lines as bare `:35`, `:39` … `:72`. The generator binds a bare reference to the last path cited earlier in the diagram, which was the checker, so the gate had been checking those numbers against `scripts/check-augmentation-citations.cjs`. The numbers were right for the suite (`tests/gates/augmentation-citations.test.cjs:35`, `tests/gates/augmentation-citations.test.cjs:72`), and the first reference now names the suite so that the rest bind to it.
+
+**Debt (ratchet half-tested):** `scripts/adr-ratchet.sh` is a blocking step of `adr-index.yml` (`.github/workflows/adr-index.yml:49`). Its second rule, the ADR-2007 evidence gate on a closing transition, now has a suite, `tests/gates/adr-ratchet-evidence.test.sh` (`tests/gates/run-all.sh:29`). No suite drives an added-undecided record through the first rule, the backlog ratchet. That rule's end date is a script default, 2026-10-20 (`scripts/adr-ratchet.sh:44`). The workflow sets no `ADR_RATCHET_UNTIL` (`.github/workflows/adr-index.yml:46-49`), so after that date the backlog rule only reports (`scripts/adr-ratchet.sh:118-121`).
 
 ## VF-05.14 Gate route table, continued — the diagram index gate and the ADR ledger gate
 ```mermaid
@@ -587,11 +600,13 @@ flowchart TB
     SDIAG4 --> VDIAG4["exit 1 on a stale generated index<br/>diagram-index.yml:77"]:::block
 
     WDIAG ~~~ WADR["adr-index.yml — triggered by push to main and by pull_request,<br/>paths docs/adr/**,<br/>adr-index-gen.cjs, adr-ratchet.sh, the workflow<br/>adr-index.yml:10 and adr-index.yml:17<br/>three steps: --check at adr-index.yml:44,<br/>adr-ratchet.sh at adr-index.yml:49,<br/>regenerate-and-diff at adr-index.yml:55"]:::tool
-    WADR --> VADR["exit 1 on invalid frontmatter, on a stale index,<br/>or when more ADRs were added undecided than left proposed<br/>adr-ratchet.sh:74, until 2026-10-20 — adr-ratchet.sh:36<br/>see VF-01.8"]:::block
+    WADR --> VADR["exit 1 on invalid frontmatter, on a stale index, or on a record<br/>closed to complete or live without evidence_class and acceptance_boundary<br/>adr-ratchet.sh:108-111. The undecided-backlog rule ended 2026-10-20<br/>and now only reports — adr-ratchet.sh:44 and adr-ratchet.sh:118-121<br/>see VF-01.8"]:::block
 
 ```
 
 **What it shows.** The same route table as VF-05.1 for the two documentation gates that fire on `docs/**` paths: the diagrams-as-code index gate, which now also renders every block with Pele on the hosted runner, and the ADR ledger gate with its ratchet.
-**Why it is this way.** VF-05.1 was split because the single table rendered 4,681 px wide under Pele's layout and the 4,500 px ceiling is enforced (docs/adr/ADR-2020-pele-renders-every-estate-diagram.md:37-38).
+**Why it is this way.** VF-05.1 was split because the single table rendered 4,681 px wide under Pele's layout and the 4,500 px ceiling is enforced (docs/adr/ADR-2020-pele-renders-every-estate-diagram.md:39-40).
+
+**Drift (ratchet verdict, corrected 2026-11-02):** the ledger node said the ratchet fails when more records were added undecided than left proposed, until 2026-10-20. The script now has a second, unexpiring rule, which fails a record closed to `complete` or `live` without `evidence_class` and `acceptance_boundary` (`scripts/adr-ratchet.sh:80-111`). The backlog rule passed its default end date, so it only reports, because `adr-index.yml` sets no `ADR_RATCHET_UNTIL` (`scripts/adr-ratchet.sh:44`, `scripts/adr-ratchet.sh:118-121`). This is source tracing. Whether a hosted run has gone red on the evidence rule was not checked.
 
 **Since the last stamp:** `scripts/check-augmentation-citations.cjs` gained an opt-in advisory pass (`--jev` or `VISIONFLOW_JEV=claim`) that runs after the deterministic gate has printed its summary and can only append `JEV claim` lines for cells a typed-decision model finds unsupported; it never changes a FAIL, the summary line or the exit code, and, since the 2026-10-30 System One unification, it is no longer local-only by default: it sends excerpts of sibling checkouts to the shared proxy's selected backend (TypeSafe) unless `VISIONFLOW_JEV_CLAIMS_LOCAL_ONLY=1` pins it local (`scripts/check-augmentation-citations.cjs:13-16`, `scripts/check-augmentation-citations.cjs:27`, `scripts/check-augmentation-citations.cjs:96-106`, `docs/jev-option.md:12`). LIVE NOW in the script; agentbox projects `VISIONFLOW_JEV=all` into service and shell environments at boot (configured, taking effect when the new agentbox image is activated, ADR-2155), while hosted CI and the dream annexe inherit nothing and still make no call (`docs/jev-option.md:16`).

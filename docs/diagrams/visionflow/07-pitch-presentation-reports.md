@@ -22,15 +22,17 @@ sources:
   - presentation/pitch-deck-2026-07/README.md
   - presentation/pitch-deck-2026-07/make-pdf.sh
   - presentation/pitch-deck-2026-07/render-batch.sh
+  - presentation/pitch-deck-2026-07/.gitignore
   - pitch/visionflow-onepager.tex
   - pitch/visionflow-ecosystem-pitch.tex
-  - texput.log
   - the-bubble-is-the-architecture.md
   - the-bubble-is-the-architecture-v3.md
   - docs/estate-review/evidence/adr-inventory.json
   - docs/BASELINE-visionflow.md
   - docs/architecture/compatibility-matrix.md
-verified_commit: 4d361b58ce2b3ee17e1570361eaf78270b630012
+  - docs/architecture/repository-map.md
+  - .gitignore
+verified_commit: 5f8b1da92ce5d9e6b32a0bd90ec3630c66619083
 ---
 
 ## VF-07.1 Artefact map — what produces each output and where it lands
@@ -71,7 +73,7 @@ flowchart LR
     B1 --> NOP["NO pipeline. Two long-form root documents, 249 lines each,<br/>differing in content. Nothing builds, validates or publishes them;<br/>they are referenced once, as content the two real surfaces publish<br/>BASELINE-visionflow.md:80"]:::content
     B2 --> NOP
 
-    ORPH["texput.log at the repo root — evidence of a real XeTeX run on<br/>2026-07-08 that ABORTED because main.tex is not at the root.<br/>Same date as dist/arxiv-2026-07-08.tar.gz<br/>texput.log:1"]:::content
+    ORPH["texput.log, in an operator working tree only — a git-ignored log of a XeTeX run on<br/>2026-07-08 that ABORTED because main.tex is not at the root.<br/>It exists in no commit, so this is a waived citation, not a verified one<br/>texput.log:1"]:::content
 
     NOTE["DOC-DRIFT: pdf-reports/ holds byte-identical copies of the two pitch/ PDFs.<br/>No script produces them and no doc explains the duplication; the<br/>rewritten README links only the pdf-reports/ copy of the ecosystem pitch, ./README.md:17,<br/>and links no pitch/ path, so the one-pager copy is no longer linked from it"]
 ```
@@ -107,7 +109,7 @@ sequenceDiagram
     JQ-->>OP: JSON on stdout — the caller redirects it<br/>generate-release-manifest.sh:249
 
     Note over OP,RO: EXTERNAL: the roster spans VisionClaw (VC-NN), agentbox (AB-NN),<br/>solid-pod-rs (SP-NN), nostr-rust-forum (NF-NN), dreamlab-ai-website (DW-NN),<br/>vowl-wasm (VW-NN), knowledgeGraph (KG-NN) and visionGraph (VG-NN),<br/>plus loom, dream-machine, logseq, ruvector, RuView, ontomark and ontomark-obsidian
-    Note over RO: DIVERGENCE: the roster names the WASM ontology visualiser "WasmVOWL"<br/>at path WasmVOWL, while repository-map.md names it vowl-wasm at ../vowl-wasm —<br/>see VF-08 for the ownership consequence<br/>generate-release-manifest.sh:100
+    Note over RO: DIVERGENCE: the roster carries WasmVOWL as the WASM ontology visualiser,<br/>generate-release-manifest.sh:100, but repository-map.md records WasmVOWL as a retained<br/>standalone demo, not an alias for the published vowl-wasm engine, repository-map.md:32,<br/>and vowl-wasm itself, repository-map.md:16, is not in the roster
 ```
 
 ## VF-07.3 The fixtures block — a canonical revision set, or an explicit refusal
@@ -215,25 +217,25 @@ classDiagram
     note for Repository "provenance decides qualification: first-party and imported\nare qualified for release; upstream repositories are PINNED,\nnot qualified. ecosystem-release.schema.json:32"
 ```
 
-## VF-07.5 The v1 release candidate is gone, the releases README still describes the v1 world
+## VF-07.5 The v1 release candidate is gone; the releases README field table still omits v2 fields
 ```mermaid
 flowchart TB
     classDef doc fill:#fff4d6,stroke:#aa8833,color:#222
     classDef ok fill:#e0f0e0,stroke:#338833,color:#222
 
-    CAND["docs/releases/candidate-2026-05-22.json — the only committed manifest,<br/>a manifest_version 1 artefact under the v2 schema, DELETED 2026-10-15<br/>(estate register ER-5d). No committed manifest exists; the generator<br/>writes ecosystem-release.local.json, uncommitted by default<br/>releases/README.md:8"]:::ok
+    CAND["docs/releases/candidate-2026-05-22.json — six repositories, manifest_version 1 —<br/>DELETED 2026-10-14 (estate register ER-5d). No committed manifest exists; the generator<br/>writes ecosystem-release.local.json, uncommitted by default<br/>releases/README.md:8 and releases/README.md:11"]:::ok
 
-    RM["docs/releases/README.md still describes the v1 world"] --> D1["the candidate row reads 'Pins all 6 repos at main branch HEADs'<br/>releases/README.md:28"]:::doc
-    RM --> D2["the Required Fields table lists neither provenance nor<br/>fixtures, both of which the v2 schema requires<br/>releases/README.md:32 vs ecosystem-release.schema.json:7"]:::doc
-    RM --> D4["PARTLY CURRENT: a 2026-10-11 paragraph states the sixteen-repository roster<br/>and that a roster entry is not a maturity claim (releases/README.md:13-22),<br/>but the candidate row and the field table were not touched"]:::doc
+    RM["docs/releases/README.md"] --> D1["CURRENT: the Release Candidates section says none is committed<br/>and records why the v1 candidate was deleted<br/>releases/README.md:24-26"]:::ok
+    RM --> D2["the Required Fields table lists neither provenance nor<br/>fixtures, both of which the v2 schema requires<br/>releases/README.md:30-40 vs ecosystem-release.schema.json:7 and ecosystem-release.schema.json:18"]:::doc
+    RM --> D4["CURRENT: a 2026-10-11 paragraph states the sixteen-repository roster<br/>and that a roster entry is not a maturity claim<br/>releases/README.md:13-22"]:::ok
     CAND --> RM
 
     GATE["harness-fitness-gates.yml runs the regression suite against GENERATED output;<br/>with no committed artefact there is nothing else for it to validate<br/>harness-fitness-gates.yml:166"]
 ```
 
-**What it shows.** The artefact this diagram used to fail against the schema (five findings, VF-07.5 before 2026-10-18) was deleted on 2026-10-15 in `5a3107d`, so the drift between a v1 manifest and the v2 contract is closed by removal. What remains is documentary: `docs/releases/README.md` still carries the v1 candidate row and a field table that omits `provenance` and `fixtures` (`releases/README.md:28`, `releases/README.md:32`).
+**What it shows.** The artefact this diagram used to check against the schema (five findings, VF-07.5 before 2026-10-18) was deleted on 2026-10-14 in `5a3107d`, so the drift between a v1 manifest and the v2 contract is closed by removal. The README records the deletion (`releases/README.md:26`). What remains is its field table, which omits `provenance` and `fixtures` (`releases/README.md:30-40`).
 
-**Why it is this way:** the ADR-2006 closeout rewrote the generator and schema on 2026-09-05 and left the artefact at v1; estate register row ER-5(d) deleted it as a file with no consumer (ER-33 recorded the stale citations here). **Drift (releases README vs schema):** the candidate row and the Required Fields table describe the v1 shape (`releases/README.md:28`, `releases/README.md:32`); the schema requires `provenance` and `fixtures` (`ecosystem-release.schema.json:7`, `ecosystem-release.schema.json:18`).
+**Why it is this way:** the ADR-2006 closeout rewrote the generator and schema on 2026-09-05 and left the artefact at v1. Estate register row ER-5(d) deleted it as a file with no consumer (ER-33 had recorded the stale citations here). **Drift (releases README vs schema):** the Required Fields table describes the v1 shape (`releases/README.md:30-40`), but the schema requires `provenance` at top level and on each repository (`ecosystem-release.schema.json:7`, `ecosystem-release.schema.json:18`). **Drift (corrected 2026-11-02):** this panel said the README still carried a v1 candidate row reading "Pins all 6 repos" at line 28, and dated the deletion 2026-10-15. At the earlier stamp, as now, line 28 was the `## Required Fields` heading, the candidate section already read "None committed" (`releases/README.md:26`), and the deleting commit `5a3107d` is dated 2026-10-14.
 
 ## VF-07.6 release-manifest.test.sh — what the release gate actually proves
 ```mermaid
@@ -284,7 +286,7 @@ sequenceDiagram
 
     T-->>CI: RELEASE-MANIFEST-TESTS-OK or ...-FAIL
 
-    Note over CI,SC: DIVERGENCE: the suite validates GENERATED output only. The committed<br/>candidate-2026-05-22.json is never validated by any gate — see VF-07.5
+    Note over CI,SC: DIVERGENCE: the suite validates GENERATED output only. No manifest is committed<br/>(releases/README.md:26), so no gate validates a real release artefact — see VF-07.5
 ```
 
 ## VF-07.7 render-wardley.mjs — chrome-free print-resolution map export
@@ -328,14 +330,14 @@ flowchart TB
         BT["main.tex declares its own toolchain in a magic comment:<br/>xelatex, with fontspec loading FreeSerif, FreeSans, FreeMono<br/>main.tex:1"]:::manual
         BC["the compile sequence is stated in a COMMENT, not a script:<br/>xelatex, biber, xelatex, xelatex<br/>main.tex:6"]:::manual
         BA["build-arxiv-package.sh IS automated — but it packages<br/>sources, it does not compile them<br/>ARXIV.md:10"]:::auto
-        BOUT["main.pdf, main.aux, main.bbl, main.log, main.toc and the rest<br/>are COMMITTED build output next to the sources"]:::manual
+        BOUT["only main.pdf is committed; main.aux, main.bbl, main.log, main.toc and the rest<br/>are git-ignored and untracked since 2026-07-10<br/>.gitignore:17-29"]:::manual
         BT --> BC --> BOUT
         BT --> BA
     end
 
     subgraph PITCH["pitch/ — two standalone documents"]
         PT["onepager.tex and ecosystem-pitch.tex are article-class<br/>dark-palette documents with no shared preamble<br/>visionflow-ecosystem-pitch.tex:1"]:::manual
-        PO["each ships its .pdf, .aux, .log and .out beside the source"]:::manual
+        PO["each ships only its committed .pdf beside the source;<br/>.aux, .log and .out are git-ignored<br/>.gitignore:35-38"]:::manual
         PN["NO build script, NO Makefile, NO workflow —<br/>the PDFs are produced by hand and committed"]:::orphan
         PT --> PO --> PN
     end
@@ -348,7 +350,7 @@ flowchart TB
         T1 --> T2 --> T3 --> T4
     end
 
-    T4 --> DATE["Same date as presentation/report/dist/arxiv-2026-07-08.tar.gz —<br/>consistent with an arXiv-packaging session run from the wrong<br/>working directory. The log is an untracked-looking artefact<br/>that survived into the tree"]:::orphan
+    T4 --> DATE["No committed artefact dates the run: dist/ is git-ignored, .gitignore:32-33,<br/>so the tarball the earlier text matched it to exists in no commit.<br/>The log is ignored too, .gitignore:48-50, and survives only in a working tree"]:::orphan
 
     VERD["DOC-DRIFT: there is NO LaTeX pipeline in this repository. No workflow,<br/>no package.json script and no shell script anywhere under .github/ or<br/>scripts/ invokes latex, xelatex, pdflatex or latexmk. Every PDF here was<br/>compiled by hand outside the repo's own automation"]:::orphan
 
@@ -396,7 +398,8 @@ sequenceDiagram
     S-->>OP: DONE, with package and tarball sizes<br/>build-arxiv-package.sh:204
 
     Note over S,PKG: INVARIANT: the repo originals are never mutated — everything is copied<br/>into dist/, and the script is idempotent<br/>build-arxiv-package.sh:20
-    Note over TAR: DOC-DRIFT: ARXIV.md:18 says neither the tarball nor the assembled tree<br/>is committed, and ARXIV.md:13 calls dist/ git-ignored — yet dist/ holds two<br/>committed tarballs and an unpacked arxiv-package/ tree
+    Note over TAR: ARXIV.md:13 and ARXIV.md:18 are accurate at this revision:<br/>dist/ is git-ignored and nothing under it is committed (.gitignore:33)
+    Note over S,PKG: DEBT: the packager needs a pre-built main.bbl, build-arxiv-package.sh:106-107,<br/>but main.bbl is git-ignored (.gitignore:22), so a clean checkout must run<br/>the full XeLaTeX and biber sequence by hand before it can package
 ```
 
 ## VF-07.10 pitch-deck-2026-07 — prompt-driven image generation to a single PDF
@@ -425,7 +428,7 @@ sequenceDiagram
             end
         end
     end
-    RB-->>OP: BATCH DONE with a timestamp<br/>render-batch.sh:19
+    RB-->>OP: BATCH DONE with a timestamp<br/>render-batch.sh:20
 
     OP->>MP: bash make-pdf.sh
     MP->>MP: magick each slide PNG to a 2200px-wide JPEG at quality 82<br/>make-pdf.sh:7
@@ -433,7 +436,7 @@ sequenceDiagram
     MP-->>OP: list the resulting PDF
 
     Note over OP,PDF: twenty slides, each one self-contained infographic mapped to a<br/>book chapter in the deck's own narrative-arc table<br/>pitch-deck-2026-07/README.md:10
-    Note over RB: DIVERGENCE: no exit-code contract. A slide that fails both attempts leaves<br/>no file and the batch still reports DONE — make-pdf.sh then silently builds a<br/>PDF with that slide missing. render.log, render2.log, render3.log and<br/>render4.log beside the script are the only record of past runs
+    Note over RB: DIVERGENCE: no exit-code contract. A slide that fails both attempts leaves<br/>no file and the batch still reports DONE — make-pdf.sh then silently builds a<br/>PDF with that slide missing. The run logs, slides/ and jpg/ are git-ignored,<br/>pitch-deck-2026-07/.gitignore:1-3, so no commit records a past run
     Note over NB: EXTERNAL: the image generator lives in agentbox — see AB-NN. Nothing in<br/>this repository pins its version or asserts its presence
 ```
 
@@ -443,7 +446,7 @@ flowchart TB
     classDef content fill:#f0f0f0,stroke:#888,color:#222
     classDef surface fill:#e0f2e4,stroke:#2f7a45,color:#222
 
-    BASE["BASELINE-visionflow.md: the repo has exactly TWO concrete surfaces —<br/>a static marketing website and the governance canon under docs/.<br/>Everything else is content that those two surfaces publish<br/>BASELINE-visionflow.md:78"]
+    BASE["BASELINE-visionflow.md: the repo has exactly TWO concrete surfaces —<br/>a static marketing website and the governance canon under docs/.<br/>Everything else is content that those two surfaces publish<br/>BASELINE-visionflow.md:73-81"]
 
     BASE --> C1["the-bubble-is-the-architecture.md<br/>249 lines, long-form essay with numbered citations"]:::content
     BASE --> C2["the-bubble-is-the-architecture-v3.md<br/>249 lines, a revised edition with different content —<br/>its method note records how the revision was checked<br/>the-bubble-is-the-architecture-v3.md:117"]:::content
@@ -463,9 +466,20 @@ flowchart TB
     XREF["Cross-references rather than duplication: the report's mermaid figures<br/>and their render gate are VF-06; the release manifest is VF-07.2 to VF-07.6;<br/>the compatibility posture those documents cite is VF-08"]
 ```
 
-**Drift (matrix relabelled, release prose not):** the compatibility matrix's harness-coverage and gap-close tables were relabelled historical and explicitly not rerun (`docs/architecture/compatibility-matrix.md:81`, `docs/architecture/compatibility-matrix.md:112`), while the release surface still reads as a live obligation (`docs/releases/README.md:3`) and the only committed candidate is the 2026-05-22 cut (`docs/releases/candidate-2026-05-22.json:2`).
+**Drift (matrix relabelled, release prose not):** the compatibility matrix's harness-coverage and gap-close tables were relabelled historical and explicitly not rerun (`docs/architecture/compatibility-matrix.md:81`, `docs/architecture/compatibility-matrix.md:112`), while the release surface still reads as a live obligation (`docs/releases/README.md:3`) and no candidate is committed (`docs/releases/README.md:26`). The 2026-05-22 candidate this paragraph used to cite was deleted on 2026-10-14 (`5a3107d`).
 
-**Debt (unverifiable citation):** `texput.log` is gitignored at `.gitignore:50`, so it exists in no commit and the five citations into it are read from the working tree whatever revision this topic declares; that is inherent to cataloguing a stray build artefact, and it is why the aborted-run evidence cannot be re-checked from history alone.
+**Debt (unverifiable citation):** `texput.log` is gitignored (`.gitignore:48-50`), so it exists in no commit. The five citations into it (VF-07.1 line 1; VF-07.8 lines 1, 5, 10 and 21) are waived one by one in `docs/diagrams/citation-allowlist.json` and counted as allowlisted, never as verified. A clean checkout of this repository has no such file. The aborted-run evidence comes from one operator working tree and cannot be re-checked from history.
+
+**Drift (generated source path, 2026-11-02):** `sources:` used to list `texput.log`. A path that exists in no commit fails the source-path check in any clean checkout, so the entry was dropped. No committed file can stand in for it. `.gitignore` is listed instead, as the committed evidence that the log is deliberately untracked. The allowlist's reason calls the log "written by pdflatex", but VF-07.8 describes a XeTeX run, so that sentence in the allowlist needs its owner to correct it.
 
 
-**Debt (canonical revision does not bind fixture bytes, 2026-10-31):** The generator verifies that the commit exists, then hashes the current directory rather than that commit's tree (`scripts/generate-release-manifest.sh:179`, `scripts/generate-release-manifest.sh:194`). A temporary-repository probe emitted the same canonical revision with different corpus hashes after an uncommitted edit. A second probe returned `released`/`match` with zero matched and two missing consumer fixtures, because only checksum mismatches fail the comparator (`scripts/check-fixture-drift.sh:257`). The [release-evidence audit](../../estate-review/2026-10-31-release-evidence.md) records inputs, limits and acceptance obligations. Both scripts are unchanged from this topic's declared revision; the remaining panels have not been restamped.
+**Debt (canonical revision does not bind fixture bytes, 2026-10-31):** The generator verifies that the commit exists, then hashes the current directory rather than that commit's tree (`scripts/generate-release-manifest.sh:182`, `scripts/generate-release-manifest.sh:195`). A temporary-repository probe emitted the same canonical revision with different corpus hashes after an uncommitted edit. A second probe returned `released`/`match` with zero matched and two missing consumer fixtures, because only checksum mismatches fail the comparator (`scripts/check-fixture-drift.sh:257`). The [release-evidence audit](../../estate-review/2026-10-31-release-evidence.md) records inputs, limits and acceptance obligations. Both scripts are unchanged between the 2026-10-31 audit and this topic's restamp at `5f8b1da`, where every panel was re-read.
+
+**Drift (working-tree observations stamped as committed, corrected 2026-11-02):** several panels described files that a working tree held but no commit does. The LaTeX intermediates beside `main.tex` and the two pitch sources, the arXiv `dist/` tarballs and tree, the deck's `render*.log`, `slides/` and `jpg/` are all git-ignored (`.gitignore:17-38`, `presentation/pitch-deck-2026-07/.gitignore:1-3`). The ignore rules date from 2026-07-08, and the last tracked intermediates were removed in `8d4990d` (2026-07-10). At the earlier stamp, as at `5f8b1da`, only `presentation/report/main.pdf` and the two pitch PDFs are committed. So VF-07.8 no longer claims committed intermediates, VF-07.9 no longer reports ARXIV.md as contradicted, and VF-07.1 and VF-07.8 no longer date `texput.log` against a tarball that exists in no commit.
+
+**Debt (packaging needs an uncommitted input):** `build-arxiv-package.sh` refuses to run without a pre-built `main.bbl` (`presentation/report/scripts/build-arxiv-package.sh:106-107`), and `main.bbl` is git-ignored (`.gitignore:22`). A clean checkout therefore cannot package the book until someone runs the whole XeLaTeX and biber sequence by hand (`presentation/report/main.tex:6`).
+
+**Drift (anchors, corrected 2026-11-02):** three anchors were wrong:
+- VF-07.10's `BATCH DONE` cited the loop's closing `done`; it now cites the line that prints it (`presentation/pitch-deck-2026-07/render-batch.sh:20`).
+- VF-07.11's two-surface claim cited one line of the list; it now cites the whole statement (`docs/BASELINE-visionflow.md:73-81`).
+- VF-07.2's WasmVOWL divergence said the repository map names the visualiser `vowl-wasm`. The map now lists both repositories and records WasmVOWL as a retained standalone demo, not an alias of the published engine (`docs/architecture/repository-map.md:16`, `docs/architecture/repository-map.md:32`). The roster carries WasmVOWL and omits `vowl-wasm`.

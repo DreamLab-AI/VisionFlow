@@ -23,7 +23,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/push_fanout.rs
   - ../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/Cargo.toml
-verified_commit: 1b27f79d08537b61b3d5a5d02cac9ee5999b79ed
+verified_commit: c39f41f104b114d6a3fa29013daaf6fa58b45080
 ---
 
 ## NF-03.1 Worker entry — three doors into the relay
@@ -42,10 +42,10 @@ flowchart TB
     BOOT --> WS
     BOOT --> N11
     BOOT --> RT
-    CRON -.-> BOOT
 
     N1["The DO is a SINGLETON: every socket goes to get_by_name main<br/>nostr-bbs-relay-worker/src/lib.rs:230"]
-    N2["Error responses are JSON-shaped by hand rather than leaking the framework's Debug text<br/>nostr-bbs-relay-worker/src/lib.rs:257"]
+    N2["Error responses are JSON-shaped by hand rather than leaking the framework's Debug text<br/>nostr-bbs-relay-worker/src/lib.rs:256-267"]
+    N3["The cron does NOT pass through the bootstrap: neither scheduled nor the Durable Object creates the schema,<br/>which is why fetch bootstraps BEFORE the WebSocket branch nostr-bbs-relay-worker/src/lib.rs:218-221; scheduled goes straight to the<br/>demotion sweep nostr-bbs-relay-worker/src/lib.rs:1157"]
 ```
 
 ## NF-03.2 NIP-42 AUTH — the verdict table
@@ -88,7 +88,7 @@ stateDiagram-v2
         1059 gift wrap, 30910-30916 moderation
         The filter gate reads only the kinds a filter
         NAMES, so a kindless filter passes it,
-        asserted nip42.rs:383-393. The PER-EVENT gate
+        asserted nip42.rs:392-393. The PER-EVENT gate
         catches that case - see NF-03.14
     end note
     note right of Allowlist
@@ -96,7 +96,8 @@ stateDiagram-v2
         example worker selects AUTH_MODE=nip42". The earlier "scaffolded" ledger row is gone.
         nip42 IS the default (nip42.rs:115), the template ships AUTH_MODE = "nip42"
         (nostr-bbs-relay-worker/wrangler.toml:39), and every EVENT passes write_auth_ok
-        (nip_handlers.rs:1102) before any other check. A denial AFTER a completed AUTH is
+        (nip_handlers.rs:1102) after the rate, shape, expiry and signature
+        checks and before any admission lookup - see NF-03.4. A denial AFTER a completed AUTH is
         "restricted:", while legacy allowlist mode keeps "blocked:" (nip42.rs:282)
     end note
     note right of WriteDenied
@@ -133,7 +134,7 @@ sequenceDiagram
     H->>D1: 10 ban/mute ingress gate, admins bypass nip_handlers.rs:1213 nip_handlers.rs:1217
     H->>D1: 11 trust-level gates for 40, 41, 1984 and 5 nip_handlers.rs:1228
     H->>H: 12 NIP-29 admin kinds need an h tag and an admin nip_handlers.rs:1299
-    H->>D1: 13 governance kinds need agent_registry, except a kanban approval request nip_handlers.rs:1324 nip_handlers.rs:1326
+    H->>D1: 13 governance kinds need agent_registry, except a 31403 (gated at step 14) and a kanban approval request nip_handlers.rs:1324 nip_handlers.rs:1325 nip_handlers.rs:1326
     H->>D1: 14 kind-31403 is admin, or a reviewer delegated to THIS case, then the FR2.2 rationale check nip_handlers.rs:1344 nip_handlers.rs:1354 nip_handlers.rs:1372
     H->>D1: 15 a superseding 31403 is authority-gated nip_handlers.rs:1390 nip_handlers.rs:1396
     H->>H: 16 an appeal-marked 31402 must name its case in a case tag distinct from d nip_handlers.rs:1407
@@ -338,7 +339,7 @@ flowchart LR
     L2["content cap - registration kinds 0 and 9024 get 8 KiB<br/>nip_handlers.rs:1667 nip_handlers.rs:1673 nip_handlers.rs:41"]
     L3["max 2000 tags nip_handlers.rs:1677 nip_handlers.rs:42"]
     L4["max 1024 bytes per tag value nip_handlers.rs:1682 nip_handlers.rs:43"]
-    L5["created_at drift cap 7 days, sealed originals exempt (ADR-2017) nip_handlers.rs:1688 nip_handlers.rs:44 nip_handlers.rs:1728"]
+    L5["created_at drift cap 7 days, sealed originals exempt from the PAST bound only (ADR-2017) nip_handlers.rs:1688 nip_handlers.rs:44 nip_handlers.rs:1728"]
     L6["max 20 subscriptions per socket nip_handlers.rs:45 nip_handlers.rs:1796"]
 
     V --> L1 & L2 & L3 & L4 & L5

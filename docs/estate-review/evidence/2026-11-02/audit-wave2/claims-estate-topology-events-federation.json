@@ -1,0 +1,64 @@
+[
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/estate/01-estate-topology.md",
+    "report": "docs/estate-review/2026-11-02-estate-topology-events-federation.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "ES-01.1",
+      "ES-01.2",
+      "ES-01.3",
+      "ES-01.4",
+      "ES-01.5",
+      "ES-01.6",
+      "ES-01.7",
+      "ES-01.8"
+    ],
+    "basis": "Source tracing at visionclaw 86cdd76, agentbox c57d9c0, visionflow 5f8b1da; every citation re-resolved; strict cite-check and render pass; runtime port binding, supervisord FATAL parking and the live Loom model not observed."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/estate/02-agent-events-agentbox-to-visionclaw.md",
+    "report": "docs/estate-review/2026-11-02-estate-topology-events-federation.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "ES-02.1",
+      "ES-02.2",
+      "ES-02.3",
+      "ES-02.4",
+      "ES-02.5",
+      "ES-02.6",
+      "ES-02.7",
+      "ES-02.8",
+      "ES-02.9",
+      "ES-02.10",
+      "ES-02.11",
+      "ES-02.12"
+    ],
+    "basis": "Source tracing at visionclaw 86cdd76, agentbox c57d9c0; every citation re-resolved; strict cite-check and render pass; no socket or route exercised, binary-mode RangeError inferred, briefing route activation not confirmable from source."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/estate/03-cross-repo-federation-contract.md",
+    "report": "docs/estate-review/2026-11-02-estate-topology-events-federation.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "ES-03.1",
+      "ES-03.2",
+      "ES-03.3",
+      "ES-03.4",
+      "ES-03.5",
+      "ES-03.6",
+      "ES-03.7",
+      "ES-03.8",
+      "ES-03.9",
+      "ES-03.10",
+      "ES-03.11",
+      "ES-03.12"
+    ],
+    "basis": "Source tracing at visionclaw 86cdd76, agentbox c57d9c0, visionflow 5f8b1da, solid-pod-rs 9b6143c, nostr-rust-forum c39f41f; every citation re-resolved; strict cite-check and render pass; ADR-2061 parity counts quoted not re-run, pod DID document and payment_settlement gating not traced at runtime."
+  }
+]

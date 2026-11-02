@@ -1,0 +1,81 @@
+[
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/01-workspace-and-worker-topology.md",
+    "report": "docs/estate-review/2026-11-02-forum-workers-auth-relay-pod.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-01.1",
+      "NF-01.2",
+      "NF-01.3",
+      "NF-01.4",
+      "NF-01.5",
+      "NF-01.6"
+    ],
+    "basis": "Source tracing at nostr-rust-forum c39f41f; restamped, every panel re-assessed; strict cite-check and render pass (exit 0); NF-01.4 production kit revision is a deployment fact."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/02-auth-worker-passkey-nip98-and-membership.md",
+    "report": "docs/estate-review/2026-11-02-forum-workers-auth-relay-pod.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-02.1",
+      "NF-02.2",
+      "NF-02.3",
+      "NF-02.4",
+      "NF-02.5",
+      "NF-02.6",
+      "NF-02.7",
+      "NF-02.8",
+      "NF-02.10"
+    ],
+    "basis": "Source tracing at nostr-rust-forum c39f41f; restamped, every panel re-assessed; strict cite-check and render pass (exit 0); replay fail-open path and anomaly O11 are runtime-dependent."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/03-relay-worker-admission-auth-and-trust.md",
+    "report": "docs/estate-review/2026-11-02-forum-workers-auth-relay-pod.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-03.1",
+      "NF-03.2",
+      "NF-03.3",
+      "NF-03.4",
+      "NF-03.5",
+      "NF-03.6",
+      "NF-03.7",
+      "NF-03.8",
+      "NF-03.9",
+      "NF-03.10",
+      "NF-03.11",
+      "NF-03.12",
+      "NF-03.13",
+      "NF-03.14"
+    ],
+    "basis": "Source tracing at nostr-rust-forum c39f41f; restamped, every panel re-assessed; strict cite-check and render pass (exit 0); no runtime or deployed-relay evidence."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/nostr-rust-forum/04-pod-worker-ldp-wac-and-delegation.md",
+    "report": "docs/estate-review/2026-11-02-forum-workers-auth-relay-pod.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "NF-04.1",
+      "NF-04.2",
+      "NF-04.3",
+      "NF-04.4",
+      "NF-04.5",
+      "NF-04.7",
+      "NF-04.8",
+      "NF-04.9",
+      "NF-04.10",
+      "NF-04.11"
+    ],
+    "basis": "Source tracing at nostr-rust-forum c39f41f; restamped, every panel re-assessed; strict cite-check and render pass (exit 0); production PAY_ENABLED rests on ADR-2012 amendment text, not source."
+  }
+]

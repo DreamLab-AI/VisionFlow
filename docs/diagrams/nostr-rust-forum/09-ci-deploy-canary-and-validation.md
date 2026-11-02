@@ -36,7 +36,11 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-config/src/validate.rs
   - ../nostr-rust-forum/crates/nostr-bbs-config/src/ingress.rs
   - ../nostr-rust-forum/README.md
-verified_commit: 1b27f79d08537b61b3d5a5d02cac9ee5999b79ed
+  - ../nostr-rust-forum/forum.example.toml
+  - ../nostr-rust-forum/crates/nostr-bbs-config/src/schema.rs
+  - ../nostr-rust-forum/benchmarks/js-vs-wasm/package.json
+  - ../nostr-rust-forum/docs/security/advisory-exceptions.md
+verified_commit: c39f41f104b114d6a3fa29013daaf6fa58b45080
 ---
 
 ## NF-09.1 The CI gate graph
@@ -49,7 +53,7 @@ flowchart TB
         TEST["test - cargo test --workspace --all-targets --all-features<br/>.github/workflows/ci.yml:104 .github/workflows/ci.yml:114"]
         SEC["test-security - six security-critical crates re-run alone<br/>.github/workflows/ci.yml:136 .github/workflows/ci.yml:148"]
         WASM["wasm32 check - cargo check --workspace --target wasm32-unknown-unknown<br/>.github/workflows/ci.yml:171 .github/workflows/ci.yml:188"]
-        DOC["doc - cargo doc --workspace --no-deps<br/>.github/workflows/ci.yml:194 .github/workflows/ci.yml:206"]
+        DOC["doc - cargo doc --workspace --no-deps<br/>.github/workflows/ci.yml:194 .github/workflows/ci.yml:208"]
         COV["coverage - cargo llvm-cov lcov artefact<br/>.github/workflows/ci.yml:211 .github/workflows/ci.yml:227"]
         DENY["deny - cargo deny check<br/>.github/workflows/ci.yml:239 .github/workflows/ci.yml:258"]
     end
@@ -59,24 +63,27 @@ flowchart TB
     FMT & CLIP & TEST & SEC & WASM & DOC & COV & DENY --> PASS
     DG -.->|"absent from the ci-pass needs list .github/workflows/ci.yml:306-314"| PASS
 
-    N1["The test job also validates the shipped configuration contract by running the kit's own validator<br/>over forum.example.toml .github/workflows/ci.yml:121"]
+    N1["The test job also validates the shipped configuration contract by running the kit's own validator<br/>over forum.example.toml .github/workflows/ci.yml:121. DEBT: forum.example.toml is not in the push or PR<br/>path filters .github/workflows/ci.yml:23-36 .github/workflows/ci.yml:39-52, so an edit to it alone triggers no validation"]
     N2["The security crates re-run is nostr-bbs-core, relay-worker, pod-worker, auth-worker, preview-worker<br/>and config .github/workflows/ci.yml:150 through .github/workflows/ci.yml:155"]
     N3["The wasm32 job installs libc6-dev-i386 so the secp256k1-sys cross-compile succeeds<br/>.github/workflows/ci.yml:185 - which is why it can check the WHOLE workspace, not the three crates<br/>workspace.metadata.ci.wasm-check-packages names nostr-rust-forum/Cargo.toml:72. See NF-01.2."]
     N4["ci-pass iterates every job result and fails the aggregate unless all succeeded<br/>.github/workflows/ci.yml:329"]
-    N6["The drift job needs no Rust toolchain, checks out agentbox read-only into _agentbox so the JS derivation is pinned to the real call sites<br/>.github/workflows/ci.yml:281-284, and runs only when its scripts or fixtures change - the push and PR path filters name them<br/>.github/workflows/ci.yml:33-35 .github/workflows/ci.yml:272-273"]
+    N6["The drift job needs no Rust toolchain and checks out agentbox read-only into _agentbox so the JS derivation is pinned to the real call sites<br/>.github/workflows/ci.yml:281-284. DRIFT: the comment says it runs only when its scripts or fixtures change<br/>.github/workflows/ci.yml:272-273, but the job has no if: and the path filters are workflow-wide and include every .rs file<br/>.github/workflows/ci.yml:26 .github/workflows/ci.yml:275-278, so it runs on every CI run, still outside ci-pass"]
     N5["INVARIANT: no toolchain pin, by owner decision 2026-10-02 R8 - the forum floats on stable rust-toolchain.toml:2<br/>under -D warnings so every release is taken the day it ships BASELINE-architecture.md:252-254. Recovery when a new<br/>lint fires on code we do not own: a scoped per-item allow(clippy::lint) naming the cause, as rustc 1.99 needed on<br/>every async_trait trait - nostr-bbs-mesh/src/transport.rs:236 transport.rs:249 nostr-bbs-setup-skill/src/lib.rs:71<br/>nostr-bbs-relay-worker/src/mesh.rs:141 - never a crate-wide allow, never a pin"]
     CLIP -.- N5
     DG -.- N6
 ```
+
+**Drift:** the drift-gates comment says it runs only on script or fixture changes (`../nostr-rust-forum/.github/workflows/ci.yml:272-273`); the workflow-wide filters include every `.rs` file (N6).
+**Debt:** an edit to `forum.example.toml` alone triggers no CI, though the test job validates it (N1).
 
 ## NF-09.2 Supply-chain policy
 
 ```mermaid
 flowchart LR
     DENYJ["deny job .github/workflows/ci.yml:239"]
-    AUD["Security Audit workflow<br/>.github/workflows/audit.yml:9<br/>weekly Monday 06:17 UTC audit.yml:14<br/>plus Cargo.lock changes audit.yml:17"]
+    AUD["Security Audit workflow<br/>.github/workflows/audit.yml:9<br/>weekly Monday 06:17 UTC audit.yml:14<br/>plus Cargo.lock changes audit.yml:18"]
     AUDD["weekly cargo deny check advisories, same check as ci.yml<br/>.github/workflows/audit.yml:62 installed at .github/workflows/audit.yml:59"]
-    DEPW["informational dependency watch list, continue-on-error<br/>.github/workflows/audit.yml:66 scripts/ci/dep-watchlist.sh:1 reading scripts/ci/dep-watchlist.txt:3"]
+    DEPW["informational dependency watch list, continue-on-error<br/>.github/workflows/audit.yml:66 scripts/ci/dep-watchlist.sh:2-3 reading scripts/ci/dep-watchlist.txt:3"]
     SH["scripts/security-audit.sh:6 - cargo audit --deny warnings with a curated ignore list"]
     POL["deny.toml policy<br/>advisory ignores deny.toml:12<br/>licence allowlist deny.toml:25 incl. AGPL-3.0-only deny.toml:29 and MITNFA deny.toml:43<br/>ring clarification deny.toml:48"]
     HARD["wildcards = deny deny.toml:66<br/>unknown-registry = deny deny.toml:75<br/>allow-registry crates.io only deny.toml:77<br/>allow-git = [] deny.toml:78"]
@@ -87,12 +94,14 @@ flowchart LR
     AUD --> SH
     AUD --> AUDD --> POL
     AUD --> DEPW
-    SH -.->|"same exceptions, no shared config format"| POL
+    SH -.->|"meant to mirror, no shared config format"| POL
 
-    N1["INVARIANT: no git dependencies. allow-git is empty deny.toml:78, which is what makes the exact<br/>crates.io pin on solid-pod-rs enforceable rather than advisory - see NF-01.4 and ADR-2007"]
-    N2["The advisory ignore list is duplicated by hand between deny.toml and security-audit.sh because<br/>cargo-audit has no shared config format scripts/security-audit.sh:5 - a drift risk by construction"]
+    N1["INVARIANT: no git dependencies. allow-git is empty deny.toml:78, so every crate, solid-pod-rs included,<br/>comes from crates.io. It does not fix the version: solid-pod-rs is now a caret range nostr-rust-forum/Cargo.toml:185 -<br/>see NF-10.1 I6, NF-01.4 and ADR-2007"]
+    N2["DRIFT: the advisory ignore list is duplicated by hand between deny.toml and security-audit.sh because<br/>cargo-audit has no shared config format scripts/security-audit.sh:5, and the copies now differ. The script also ignores<br/>RUSTSEC-2026-0097 and RUSTSEC-2026-0221 scripts/security-audit.sh:10 scripts/security-audit.sh:12, which deny.toml:12-19<br/>omits, though both are reviewed exceptions docs/security/advisory-exceptions.md:13-14"]
     N3["MITNFA (MIT plus a no-false-attribution clause) was added for hex_lit, a rust-bitcoin 0.32<br/>dependency reached through the member wallet - ADR-2015 deny.toml:41"]
 ```
+
+**Drift:** `../nostr-rust-forum/scripts/security-audit.sh:10` and `:12` ignore two advisories that `../nostr-rust-forum/deny.toml:12-19` does not (N2).
 
 ## NF-09.3 Repository scripts
 
@@ -139,7 +148,8 @@ flowchart LR
     N3["ADR-2016 gate; the sealed-history migration CLI it authorises (nostr-bbs-zone-migrate, ADR-2017)<br/>is a config/zones concern - see NF-08"]
 ```
 
-**Open:** `forum.example.toml` already sets `[deployment] profile = "forum"` and documents `room` as proposed under ADR-2029 (`../nostr-rust-forum/forum.example.toml:31`), but the config validator checks no profile value and no crate source mentions a channel dialect (`../nostr-rust-forum/crates/nostr-bbs-config/src/validate.rs:6`), so the key is read by nothing here.
+**Open:** `forum.example.toml` sets `[deployment] profile = "forum"` and documents `room` as proposed under ADR-2029 (`../nostr-rust-forum/forum.example.toml:31`, `../nostr-rust-forum/forum.example.toml:52`), but the `Deployment` struct has no `profile` field (`../nostr-rust-forum/crates/nostr-bbs-config/src/schema.rs:100`) and the validator checks none (`../nostr-rust-forum/crates/nostr-bbs-config/src/validate.rs:6`), so serde drops the key.
+**Drift:** the example file and SETUP say the profile is projected to the relay as `CHANNEL_DIALECT` (`../nostr-rust-forum/forum.example.toml:45`, `../nostr-rust-forum/SETUP.md:53-54`); no crate source names that variable.
 
 ## NF-09.5 Deploy — the wrangler sequence
 
@@ -156,21 +166,21 @@ sequenceDiagram
     OP->>CF: wrangler d1 create nostr-bbs-relay SETUP.md:68
     OP->>CF: hand-run the auth schema SQL SETUP.md:75
     OP->>CF: apply the events migration, optional because the relay creates it itself SETUP.md:100 - whitelist is a checked-in migration SETUP.md:108 SETUP.md:114
-    OP->>CF: apply the governance migration SETUP.md:119
-    OP->>CF: create four KV namespaces SETUP.md:129
-    OP->>CF: create two R2 buckets SETUP.md:138
+    OP->>CF: apply the governance migration SETUP.md:120
+    OP->>CF: create four KV namespaces SETUP.md:130
+    OP->>CF: create two R2 buckets SETUP.md:139
     OP->>OP: paste resource ids into each wrangler.toml SETUP.md:145
     OP->>CF: wrangler secret put for the two secrets SETUP.md:155
-    OP->>CF: wrangler deploy, one crate at a time SETUP.md:178
+    OP->>CF: wrangler deploy, one crate at a time SETUP.md:179
     OP->>CF: DNS - CNAME or Workers Routes per subdomain SETUP.md:190
-    OP->>OP: FORUM_BASE=/community trunk build --release --public-url /community/ SETUP.md:275
+    OP->>OP: FORUM_BASE=/community trunk build --release --public-url /community/ SETUP.md:276
 
     Note over OP: worker-build is pinned to 0.8.4 because 0.8.5 breaks the abort-handler codegen SETUP.md:29
     Note over OP: SETUP.md step 0 asks the operator to choose a deployment profile before creating any resource, but marks it proposed (ADR-2029), only forum deploys SETUP.md:32
     Note over OP: RELAY_URL must be set in nip42 mode, blank skips the relay tag check and logs an error on every AUTH SETUP.md:158 - CALIBRATION_SELECTION_KEY is a relay secret SETUP.md:165
     Note over OP: optional step 10, content-free Web Push (ADR-2023): VAPID keys, PUSH_ENABLED, VAPID_PRIVATE_KEY secret SETUP.md:373
     Note over OP: The client build is where FORUM_BASE is baked in - it is a COMPILE-TIME constant, so a base change is a rebuild, not a config flip. See NF-05.1.
-    Note over CF: DIVERGENCE (narrowed at 66ca8d8): the auth schema at step 6 is still hand-run SQL pasted from the guide, but the relay tables are migration files the relay also creates at startup - see NF-08.6
+    Note over CF: DIVERGENCE (narrowed at 66ca8d8): the auth schema step is still hand-run SQL pasted from the guide, two of the twelve auth tables, though the auth worker bootstraps all of them itself - the relay tables are migration files the relay also creates at startup - see NF-08.6
 ```
 
 ## NF-09.6 End-to-end journeys — against production, not a fixture
@@ -195,7 +205,7 @@ flowchart TB
     end
 
     N1["DIVERGENCE: both suites drive a REAL deployment over the public internet with a Nix-pinned Chromium<br/>path baked in e2e-forum-test.mjs:19. They are operator smoke tests, not CI gates - ci.yml runs neither."]
-    N2["The journeys exercise all five workers from a browser context, which is the only place the CORS and<br/>ALLOWED_ORIGIN envelopes are actually proved - see NF-07.5 and NF-08.8"]
+    N2["The journeys exercise four of the five workers - relay, auth, pod and search e2e-forum-test.mjs:4-7 - from a browser<br/>context, the only place the CORS and ALLOWED_ORIGIN envelopes are exercised; the preview worker is never called -<br/>see NF-07.5 and NF-08.8"]
     N3["EXTERNAL: dreamlab-ai.com is a thin CONSUMER of this kit, not part of it - see the dreamlab-ai-website<br/>area (DW-*)"]
 ```
 
@@ -213,7 +223,11 @@ flowchart LR
     B --> WARM
 
     N1["The benchmarked set is exactly the surface the upstream-nostr absorption would replace - so the<br/>bench is the performance half of the ADR-2002 decision the canary makes the correctness half.<br/>See NF-01.5."]
+    N2["DEBT: the bench cannot resolve its WASM module as committed. It imports @dreamlab/nostr-core-wasm<br/>bench.mjs:39, but package.json declares @nostr-bbs/nostr-core-wasm at file:../../crates/nostr-core/pkg<br/>benchmarks/js-vs-wasm/package.json:12, and no crates/nostr-core directory exists - the crate is now nostr-bbs-core"]
+    B --> N2
 ```
+
+**Debt:** the bench imports a package name and path that its `package.json` does not provide, so it cannot run as committed (N2).
 
 ## NF-09.8 Canary and mesh — the two crates that prove rather than serve
 

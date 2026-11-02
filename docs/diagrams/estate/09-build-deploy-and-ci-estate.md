@@ -19,6 +19,9 @@ sources:
   - ../project/scripts/dev-entrypoint.sh
   - ../project/scripts/rust-backend-wrapper.sh
   - ../project/scripts/prod-entrypoint.sh
+  - ../project/scripts/production-startup.sh
+  - ../project/docs/adr/ADR-2037-production-build-excludes-dev-auth.md
+  - ../project/docs/adr/ADR-2086-ci-gate-dev-auth-excluded-from-release.md
   - ../project/src/main.rs
   - ../project/src/utils/auth.rs
   - ../project/src/handlers/solid_proxy_handler.rs
@@ -44,6 +47,8 @@ sources:
   - ../project/agentbox/.github/workflows/build-multi-arch.yml
   - ../project/agentbox/.github/workflows/nix-flake-update.yml
   - ../project/agentbox/.github/workflows/release.yml
+  - ../project/agentbox/.github/workflows/adr-checker.yml
+  - ../project/agentbox/.github/workflows/security-vex.yml
   - ../project/build.rs
   - ../project/env.example
   - ../project/src/uri/mod.rs
@@ -70,7 +75,7 @@ sources:
   - ../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md
   - ../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md
   - ../project/agentbox/docker-compose.system-one.yml
-verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, agentbox: 6500582dfae23bf8a38a6942916d208154e43625}
+verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35}
 ---
 ## ES-09.1 The host-vs-container build trap — wrong path vs sanctioned path
 ```mermaid
@@ -164,7 +169,7 @@ sequenceDiagram
 ```mermaid
 flowchart LR
     BASE["base<br/>Dockerfile.unified:27<br/>cachyos-v3 pinned digest<br/>ARG CUDA_ARCH=75 (:30) promoted to ENV:39-46"]
-    RUSTDEPS["rust-deps<br/>Dockerfile.unified:145<br/>COPY Cargo.toml/crates, cargo fetch:184,<br/>cargo build --release --features gpu:185"]
+    RUSTDEPS["rust-deps<br/>Dockerfile.unified:145<br/>COPY Cargo.toml/crates, cargo fetch:183,<br/>cargo build --release --features gpu:184"]
     RUSTBUILD["rust-builder<br/>Dockerfile.unified:190<br/>COPY src:193, cargo build --release --features gpu:213<br/>strip target/release/visionclaw-server:214"]
     NODEDEPS["node-deps<br/>Dockerfile.unified:221<br/>npm ci --prefer-offline --no-audit:233"]
     NODEBUILD["node-builder<br/>Dockerfile.unified:238<br/>npx vite build:247"]
@@ -227,8 +232,10 @@ sequenceDiagram
     C2->>C2: nvcc -ptx -arch sm_CUDA_ARCH (:120)
 
     Note over U,P: DIVERGENCE (ADR-2008 vs ADR-2037): the dev build is now a<br/>NAMED PROFILE rather than release — cargo build --profile<br/>dev-runtime with BUILD_FEATURES defaulting to gpu,ontology,dev-auth<br/>(scripts/rust-backend-wrapper.sh:42,66). The binary still carries<br/>enforce_release_env_hygiene as a no-op stub (src/main.rs:169), so<br/>the ADR-2037 boundary is the CI gate and the profile name, not the<br/>compiler flag
-    Note over U,P: ADR-2037 (proposed, implementation_status none): no CI or<br/>image-build assertion yet verifies a shipped release binary<br/>omits dev-auth — a mis-targeted pipeline could promote the<br/>stubbed-hygiene binary to production undetected
+    Note over U,P: ADR-2037 is proposed, implementation_status partial, activation staged<br/>(ADR-2037-production-build-excludes-dev-auth.md:5-7). Its CI half is ADR-2086,<br/>accepted, complete and live (ADR-2086-ci-gate-dev-auth-excluded-from-release.md:5-7):<br/>a hermetic text gate over the committed Dockerfiles, see ES-09.11. No gate<br/>inspects a BUILT image, so a mis-targeted pipeline that bypasses those files<br/>could still promote the stubbed-hygiene binary
 ```
+
+**Open (no gate inspects a built image):** ADR-2037 remains proposed and partial (`../project/docs/adr/ADR-2037-production-build-excludes-dev-auth.md:5-7`). Its CI half, ADR-2086, is live (`../project/docs/adr/ADR-2086-ci-gate-dev-auth-excluded-from-release.md:5-7`), but that gate is a text assertion over the committed Dockerfiles (`../project/.github/workflows/ci.yml:163-168`). A production binary built outside those files, still carrying the hygiene stub (`../project/src/main.rs:169`), would not be caught.
 
 ## ES-09.6 supervisord.dev.conf — program set and restart policy
 ```mermaid
@@ -266,19 +273,19 @@ stateDiagram-v2
     end note
 ```
 
-## ES-09.7 supervisord.production.conf — root PID1, appuser drop, restart policy
+## ES-09.7 supervisord.production.conf — reached only by the Dockerfile.unified production target
 ```mermaid
 stateDiagram-v2
     [*] --> supervisordRootProd
-    supervisordRootProd: supervisord user root supervisord.production.conf:1-3
+    supervisordRootProd: supervisord declares user root supervisord.production.conf:1-3
     supervisordRootProd --> nginxProd
     supervisordRootProd --> rustBackendProd
 
     nginxProd: program nginx supervisord.production.conf:18 priority 10
-    rustBackendProd: program rust-backend supervisord.production.conf:28 priority 20 visionclaw-server --port 4001
+    rustBackendProd: program rust-backend supervisord.production.conf:28 command /app/target/release/visionclaw-server --port 4001 supervisord.production.conf:29
 
     rustBackendProd --> rustBackendProdRetry: crash, startretries 5 supervisord.production.conf:38
-    rustBackendProdRetry --> rustBackendProd: restart, startsecs 10, stopasgroup killasgroup true
+    rustBackendProdRetry --> rustBackendProd: restart, startsecs 10, stopasgroup killasgroup true supervisord.production.conf:39-41
     nginxProd --> nginxProdRetry: crash, startretries 3 supervisord.production.conf:26
     nginxProdRetry --> nginxProd
 
@@ -291,13 +298,25 @@ stateDiagram-v2
         binary already compiled, no wrapper script
     end note
     note left of supervisordRootProd
-        cross-estate compare (agentbox flake.nix 2622 and 2683):
+        cross-estate compare (agentbox flake.nix 2622 and 2684):
         agentbox supervisord also runs as PID1 root,
         but every long-running program declares user devuser
-        per-program — this file has no per-program user line
-        so rust-backend and nginx run as the image USER (appuser)
+        per-program. Here the image switches to USER appuser
+        before the entrypoint (Dockerfile.unified 427), so the
+        user=root line cannot raise privilege and every program
+        runs as appuser
+    end note
+    note left of rustBackendProd
+        DEBT: the command path does not exist in the image
+        that uses this file. Dockerfile.unified copies the
+        binary to /app/visionclaw-server (lines 393 and 406),
+        not /app/target/release
     end note
 ```
+
+**Divergence (which production path uses this file):** only `Dockerfile.unified`'s `production` target copies this config (`../project/Dockerfile.unified:414`) and execs it (`../project/scripts/prod-entrypoint.sh:23`). The compose `visionclaw-production` service builds `Dockerfile.production` instead (`../project/docker-compose.unified.yml:256-258`), whose entrypoint is `/app/start.sh` (`../project/Dockerfile.production:237`, `:245`). That script starts the backend on port 4001 in the background and runs nginx in the foreground itself, with no supervisord (`../project/scripts/production-startup.sh:38-41`, `:68-70`). From source, nothing on the compose production path restarts a backend that crashes after startup: nginx keeps the container alive, so `restart: unless-stopped` (`../project/docker-compose.unified.yml:323`) does not fire.
+
+**Debt (binary path):** the `rust-backend` program runs `/app/target/release/visionclaw-server` (`../project/supervisord.production.conf:29`), but the image that reads this file puts the binary at `/app/visionclaw-server` (`../project/Dockerfile.unified:406`, with `WORKDIR /app` at `:393`). Traced in source only and not run: from source, the `Dockerfile.unified` production target would fail its backend start. Closing it means pointing the command at `/app/visionclaw-server`, or retiring the target if `Dockerfile.production` is the only production build.
 
 ## ES-09.8 Compose profiles — dev, production, tunnel, loom
 ```mermaid
@@ -387,12 +406,12 @@ flowchart LR
 ```mermaid
 flowchart TB
     subgraph FLAKE["agentbox/flake.nix — image composition"]
-        NIXPKG["Nix package set<br/>e.g. toolchains.ruflo gate agentbox/flake.nix:480"]
-        SUPTEXT["supervisorText string<br/>agentbox/flake.nix:2621, agentbox/flake.nix:2652,<br/>agentbox/flake.nix:2668<br/>program blocks e.g. management-api, bootstrap-seal"]
-        SUPWRITE["writeText supervisord.conf<br/>agentbox/flake.nix:4006-4010"]
+        NIXPKG["Nix package set<br/>e.g. toolchains.ruflo gate agentbox/flake.nix:481"]
+        SUPTEXT["supervisorText string<br/>agentbox/flake.nix:2622, agentbox/flake.nix:2653,<br/>agentbox/flake.nix:2669<br/>program blocks e.g. management-api, bootstrap-seal"]
+        SUPWRITE["writeText supervisord.conf, asserting no JSS_ variable leaked<br/>agentbox/flake.nix:4008-4013"]
     end
     subgraph TOML["agentbox/agentbox.toml — RUNNING config, not a template"]
-        GATEKEY["gate key e.g. interaction_plane.enabled, now rebuild-class (ADR-2153)<br/>agentbox.toml:2081-2082"]
+        GATEKEY["gate key e.g. interaction_plane.enabled, now rebuild-class (ADR-2153)<br/>agentbox.toml:2119-2120, catalogue entry system-manifest.js:74-75"]
     end
     subgraph MANIFEST["agentbox/management-api/lib/system-manifest.js"]
         CATALOGUE["CATALOGUE entry<br/>system-manifest.js:39<br/>gate, service, apply_class"]
@@ -417,7 +436,7 @@ flowchart TB
 
     subgraph SUBMOD["VisionClaw submodule pointer-bump"]
         GITMODULES[".gitmodules:1-3<br/>submodule agentbox<br/>url github.com/DreamLab-AI/agentbox.git<br/>.gitmodules:4-6<br/>submodule codescape (ADR-2143 A5, its own repository)<br/>url github.com/DreamLab-AI/codescape"]
-        SUBSTATUS["git submodule status<br/>e786197cc agentbox and e3b76f63e codescape at the stamped gitlinks<br/>a + prefix means the checkout differs from the index"]
+        SUBSTATUS["git submodule status<br/>c3746299e agentbox and e3b76f63e codescape at the stamped gitlinks<br/>a + prefix means the checkout differs from the index"]
         SUBUPDATE["cd agentbox and git checkout NEW_SHA<br/>then git add agentbox (records gitlink)"]
         SUBCOMMIT["git commit records new gitlink SHA<br/>in the VisionClaw superproject tree"]
     end
@@ -425,7 +444,11 @@ flowchart TB
     SUBSTATUS --> SUBUPDATE
     SUBUPDATE --> SUBCOMMIT
     IMAGE -.->|"agentbox image built from the checked-out<br/>submodule commit, independent pin"| SUBSTATUS
+    SKEW["DRIFT: the gitlink c3746299e at the VisionClaw stamp is 51 commits behind<br/>the agentbox stamp c57d9c05 this topic reads agentbox files at, so what VisionClaw<br/>pins is older than what these panels describe"]
+    SUBSTATUS -.-> SKEW
 ```
+
+**Drift (submodule pin skew):** `.gitmodules` names the agentbox and codescape submodules (`../project/.gitmodules:1-6`). At the VisionClaw stamp the agentbox gitlink is `c3746299e`, 51 commits behind the agentbox stamp `c57d9c05` that this topic reads agentbox files at. A claim here about agentbox therefore describes a revision newer than the one VisionClaw checks out.
 
 ## ES-09.11 VisionClaw ci.yml — Rust CPU/client blocking gates, GPU excluded
 ```mermaid
@@ -443,7 +466,7 @@ sequenceDiagram
     GH->>CPU: cargo build CPU_CRATES :105, now built over<br/>vault-core and vault (ADR-2113), replacing vault-migrate :90-91
     CPU->>CPU: cargo clippy CPU_CRATES --all-targets :109
     CPU->>CPU: cargo test CPU_CRATES :111
-    CPU->>CPU: cargo clippy/test -p visionclaw-integration-tests, hermetic targets<br/>backup_posture, dev_build_inputs and prod_ingress (ADR-2119) :118,120
+    CPU->>CPU: cargo clippy/test -p visionclaw-integration-tests, hermetic targets<br/>backup_posture, dev_build_inputs, prod_ingress (ADR-2119) and layer_direction :118,120
     GH->>CLI: npm ci :136-137, then npm run test (vitest) :141
     GH->>GATE: hermetic text assertion over the<br/>committed Dockerfiles/entrypoints :146-155
     GATE->>GATE: no --release cargo line may name dev-auth :163-168
@@ -461,30 +484,33 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant GH as push/PR touching docs/** or the ratchet<br/>docs-ci.yml:4-22
-    participant ADR as validate-adr-ledger job<br/>docs-ci.yml:25
-    participant DOC as validate-documentation job<br/>docs-ci.yml:40
+    participant GH as push/PR touching docs/** or the ratchet and its tests<br/>docs-ci.yml:3-26
+    participant ADR as validate-adr-ledger job<br/>docs-ci.yml:29
+    participant DOC as validate-documentation job<br/>docs-ci.yml:50
 
-    GH->>ADR: checkout fetch-depth 0 :32 (staleness diffs old commits)
-    ADR->>ADR: node scripts/adr-index-gen.js docs/adr --check :34
-    Note over ADR: checks frontmatter, supersession reciprocity,<br/>verified_commit staleness
-    ADR->>ADR: bash scripts/adr-ratchet.sh docs/adr BASE sha :35-38
-    Note over ADR: ADR RATCHET (2026-09-21 planning rule) — fails when more<br/>ADRs were ADDED undecided than LEFT proposed over the push<br/>range, project/scripts/adr-ratchet.sh:74-77. A record added<br/>already decided is reported, not counted (:61), an ADR-Ratchet<br/>commit trailer exempts the record it names (:52), and after<br/>ADR_RATCHET_UNTIL, default 2026-10-20 (:36), it reports only
+    GH->>ADR: checkout fetch-depth 0 :36 (staleness diffs old commits)
+    ADR->>ADR: node scripts/adr-index-gen.js docs/adr --check :38
+    Note over ADR: checks frontmatter, supersession reciprocity,<br/>verified_commit staleness, and the evidence_class enum (see ES-09.23)
+    ADR->>ADR: ratchet evidence-gate self-test :39-40, evidence_class value check :42-43
+    ADR->>ADR: bash scripts/adr-ratchet.sh docs/adr BASE sha :45-48
+    Note over ADR: TWO RULES in the ratchet. Backlog: fails when more ADRs were ADDED<br/>undecided than LEFT proposed over the push range, project/scripts/adr-ratchet.sh:115-126.<br/>A record added already decided is reported, not counted (:74), an ADR-Ratchet<br/>trailer exempts the record it names (:65-66, :73), and after ADR_RATCHET_UNTIL,<br/>default 2026-10-20 (:45), it reports only (:119-123). Evidence (VisionFlow ADR-2007):<br/>a record turning complete or live without evidence_class and acceptance_boundary<br/>fails, with no end date (:81-113)
 
     GH->>DOC: checkout
-    DOC->>DOC: validate internal links :48-113
-    DOC->>DOC: validate mermaid diagrams :115-168
-    DOC->>DOC: check stale references :170-216
-    Note over DOC: stale refs are warnings only, never a score penalty :213-216
-    DOC->>DOC: validate directory structure :218-247
-    Note over DOC: required Diataxis dirs: tutorials, how-to,<br/>explanation, reference, plus docs/README.md :227-237
-    DOC->>DOC: score = (links_rate*60 + mermaid_rate*40)/100<br/>minus 10 per structure error, clamp 0-100 :260-266
+    DOC->>DOC: validate internal links :58-123
+    DOC->>DOC: validate mermaid diagrams :125-178
+    DOC->>DOC: check stale references :180-226
+    Note over DOC: stale refs are warnings only, never a score penalty :223-226
+    DOC->>DOC: validate directory structure :228-257
+    Note over DOC: required Diataxis dirs: tutorials, how-to,<br/>explanation, reference, plus docs/README.md :236-248
+    DOC->>DOC: score = (links_rate*60 + mermaid_rate*40)/100<br/>minus 10 per structure error, clamp 0-100 :270-276
     alt score below 50
-        DOC->>GH: exit 1, quality threshold failed :332-334
+        DOC->>GH: exit 1, quality threshold failed :342-344
     else score at or above 50
-        DOC->>GH: pass :336
+        DOC->>GH: pass :346
     end
 ```
+
+**Open (the backlog rule has lapsed):** `ADR_RATCHET_UNTIL` defaults to 2026-10-20 (`../project/scripts/adr-ratchet.sh:45`), so on any run after that date a push that adds more undecided records than it closes is reported and passes (`../project/scripts/adr-ratchet.sh:119-123`). Only the evidence rule still fails a build. Whether the backlog rule should be extended or retired is the owner's decision; the workflow step's name still describes it as live (`../project/.github/workflows/docs-ci.yml:45`).
 
 ## ES-09.13 VisionClaw ontology-publish.yml — vault build now runs in-repo, pull model to pod
 ```mermaid
@@ -601,13 +627,13 @@ sequenceDiagram
     J->>J: adr-index-gen.js docs/adr --check :192
     J->>J: adr-index-gen.js docs/adr --check-index (ADR-2001) :200
     J->>J: N-7 render-egress-register.js --check :207 - see ES-09.24
-    J->>J: adr-ratchet self-test :210, then adr-ratchet.sh over the push range :215
-    Note over J: the ratchet script is byte-identical to the host copy<br/>(agentbox/scripts/adr-ratchet.sh:36 carries the same 2026-10-20<br/>end date) so both ledgers run one rule. see ES-09.12
-    J->>J: check-crate-licensing.sh :218
-    Note over J: DRIFT resolved — the vault-frontmatter unit test step<br/>(node --test mcp/servers/lib/__tests__/*.test.js) is GONE:<br/>ADR-2107/ADR-2108 deleted the V2 frontmatter writer it gated<br/>along with the ontology write path. `vault validate` is the<br/>successor contract check, run against the corpus not a helper.
+    J->>J: adr-ratchet self-test :210, evidence-gate self-test (VisionFlow ADR-2007) :213,<br/>then adr-ratchet.sh over the push range :215-218
+    Note over J: the ratchet script is byte-identical to the host copy at both stamps<br/>(same sha256, agentbox/scripts/adr-ratchet.sh:45 carries the same 2026-10-20<br/>end date) so both ledgers run one rule. The copy at VisionClaw's agentbox<br/>gitlink c3746299e predates the evidence gate and differs. see ES-09.12
+    J->>J: check-crate-licensing.sh :221
+    Note over J: DRIFT resolved — the vault-frontmatter unit test step<br/>(node --test mcp/servers/lib/__tests__/*.test.js) is GONE:<br/>ADR-2107/ADR-2108 deleted the V2 frontmatter writer it gated<br/>along with the ontology write path. The workflow comment now names<br/>ontomark validate as the successor contract check, run against the<br/>corpus not a helper (invariants.yml:186-189).
 ```
 
-**Open:** ADR-2153 has replaced Agent of Empires and is live, with implementation still recorded partial (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`): the supervisor runs `[program:agentbox-sessions]` and no longer `aoe serve` (`../project/agentbox/flake.nix:2910`), and the invariants job runs the contract and notify steps (`../project/agentbox/.github/workflows/invariants.yml:87-91`) while the surviving regression test keeps its `aoe-launch` filename (`../project/agentbox/.github/workflows/invariants.yml:84-85`).
+**Open:** ADR-2153 has replaced Agent of Empires and is live, with implementation still recorded partial (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`): the supervisor runs `[program:agentbox-sessions]` and no longer `aoe serve` (`../project/agentbox/flake.nix:2912`), and the invariants job runs the contract and notify steps (`../project/agentbox/.github/workflows/invariants.yml:87-91`) while the surviving regression test keeps its `aoe-launch` filename (`../project/agentbox/.github/workflows/invariants.yml:84-85`).
 
 ## ES-09.16 agentbox contract-tests.yml — adapter contract suites
 ```mermaid
@@ -673,7 +699,7 @@ sequenceDiagram
         AGG->>GH: aggregate gate fails, branch protection blocks merge
     end
     Note over AGG: structurally-identical family (each is its own workflow<br/>file, one job, checkout+setup+run+upload pattern) —<br/>flake-check.yml (Nix eval x86_64/aarch64, statix lint)<br/>secret-scan.yml (gitleaks), shellcheck.yml (severity matrix)<br/>image-scan.yml (Trivy HIGH/CRITICAL gate + SBOM CycloneDX/SPDX)<br/>deepsec.yml (deepsec-gate against PR diff, Anthropic route)<br/>tui-tests.yml (cargo clippy+test services/agentbox-manifest)<br/>build-multi-arch.yml (Nix image build, GHCR push, manifest list)<br/>nix-flake-update.yml (scheduled flake update, branch always pushed with<br/>GITHUB_TOKEN, PR opened only if NIX_FLAKE_UPDATE_TOKEN is set, else a<br/>tracking issue — org disallows Actions-created PR approval)<br/>release.yml (CHANGELOG-derived GitHub Release body)
-    Note over AGG: agentbox/.github/workflows/ontology-publish.yml is a stale copy of the<br/>pre-2026-09-06 VisionClaw ontology-publish.yml (inline md_to_ttl.py converter, jjohare/logseq<br/>default, no token preflight) — fails on every push, no agentbox consumer — not re-diagrammed
+    Note over AGG: RESOLVED: the stale copy of the pre-2026-09-06 VisionClaw ontology-publish.yml<br/>is deleted (agentbox 7b2811272) and absent at this stamp. Two workflows<br/>outside this family are new: adr-checker.yml (the canonical ledger checker's<br/>consumer contract) and security-vex.yml (VEX contracts, pull requests only)
 ```
 
 ## ES-09.19 End-to-end artefact flow — source to running container
@@ -684,7 +710,7 @@ flowchart LR
     DOCKERBUILD["docker compose build<br/>Dockerfile.unified or Dockerfile.production<br/>host tmux tab 6 only (ES-09.1)"]
     IMAGE["Built image<br/>cachyos-v3 base + compiled binary or dev toolchain"]
     COMPOSEUP["docker compose --profile dev|production up<br/>docker-compose.unified.yml"]
-    CONTAINER["visionclaw_container or visionclaw_prod_container<br/>supervisord manages nginx + rust-backend (+vite-dev in dev)"]
+    CONTAINER["visionclaw_container: supervisord manages nginx, rust-backend, vite-dev<br/>visionclaw_prod_container: production-startup.sh runs the backend and nginx itself,<br/>no supervisord (ES-09.7)"]
     NGINXROUTE["nginx.dev.conf or nginx.production.conf<br/>route table (ES-09.9)"]
     HEALTH["/api/health, /readyz<br/>docker-compose.unified.yml:236, docker-compose.unified.yml:325"]
 
@@ -709,14 +735,14 @@ flowchart LR
 ```mermaid
 sequenceDiagram
     autonumber
-    participant CB as "cargo build (dev container)"<br/>rust-backend-wrapper.sh:83
-    participant URI as visionclaw-server src/uri<br/>src/uri/mod.rs:662
+    participant CB as "cargo build (dev container)"<br/>rust-backend-wrapper.sh:66
+    participant URI as visionclaw-server src/uri<br/>src/uri/mod.rs:665
     participant FK as federation-kinds artefact<br/>agentbox/schema/federation-kinds.json:2-4
     participant CMP as dev compose mounts<br/>docker-compose.unified.yml:203
     participant BR as "BC20 bridge (agentbox, JS)"
 
     Note over URI,FK: ADR-2061 — federation-kinds.json is the SINGLE versioned<br/>authority for which urn:agentbox kinds cross the boundary.<br/>cross_from_agentbox derives its closed map from it — the JS bridge<br/>reads the same bytes at load. Neither side transcribes the list.
-    URI->>FK: "const FEDERATION_KINDS_JSON = include_str!(\"../../agentbox/schema/federation-kinds.json\")"<br/>src/uri/mod.rs:662
+    URI->>FK: "const FEDERATION_KINDS_JSON = include_str!(\"../../agentbox/schema/federation-kinds.json\")"<br/>src/uri/mod.rs:665
     Note over URI: include_str! is COMPILE time, so the file must exist under /app<br/>or the lib cannot build at all — not a runtime read.
     CMP->>CB: "bind ${HOST_PROJECT_ROOT}/agentbox/schema -> /app/agentbox/schema:ro"<br/>docker-compose.unified.yml:203
     CB->>URI: compiles, artefact bytes baked into the binary
@@ -783,40 +809,40 @@ flowchart TB
     S2 --> DEBT
     C3 --> DEBT
 
-    CAT["INVARIANT ADR-039 — a new manifest gate must arrive with a<br/>CATALOGUE entry carrying an honest apply class, and the parity<br/>check above is what enforces it. Recent module entries: Claude Code<br/>permissions (ADR-2116) and instruction tiers (ADR-2118) and the<br/>collaboration floor (ADR-2144) at boot, claude-cred-sync at<br/>rebuild, skill-router-cascade (ADR-2095) and<br/>routing-teacher-labels (ADR-2110, proposed) at boot, vault-cli<br/>(ADR-2107/2108) at rebuild<br/>agentbox/management-api/lib/system-manifest.js:253, :259, :262, :265, :348, :351, :403"]
-    HONEST["2026-10-02 — two entries show the honesty rule working. jev-compaction<br/>moved from boot to REBUILD when factrail landed (ADR-2121), because<br/>the binary and plugin are now gated in flake.nix,<br/>agentbox/management-api/lib/system-manifest.js:268-269. A new sidechain<br/>entry is rebuild-class with three gates,<br/>agentbox/management-api/lib/system-manifest.js:382-383, and stateOf<br/>lets a false parent gate dominate its child gates,<br/>agentbox/management-api/lib/system-manifest.js:457-458. 2026-10-29: interaction-plane moved from boot to REBUILD with ADR-2153,<br/>agentbox/management-api/lib/system-manifest.js:74-76, and nineteen System One consumer entries arrived,<br/>sixteen boot and three rebuild (solid pod, ontomark, vault rank), agentbox/management-api/lib/system-manifest.js:288-344. 2026-10-30: system-one-network arrived at BOOT,<br/>agentbox/management-api/lib/system-manifest.js:277-279. 2026-10-03: the<br/>role-isolation entry first arrived at BOOT, because both supervisor configs<br/>ship in every image; it is now rebuild-class, because the devuser sudo route is<br/>removed at build, agentbox/management-api/lib/system-manifest.js:97-99"]
+    CAT["INVARIANT ADR-039 — a new manifest gate must arrive with a<br/>CATALOGUE entry carrying an honest apply class, and the parity<br/>check above is what enforces it. Recent module entries: Claude Code<br/>permissions (ADR-2116) and instruction tiers (ADR-2118) and the<br/>collaboration floor (ADR-2144) at boot, claude-cred-sync at<br/>rebuild, skill-router-cascade (ADR-2095) and<br/>routing-teacher-labels (ADR-2110, proposed) at boot, vault-cli<br/>(ADR-2107/2108) at rebuild<br/>agentbox/management-api/lib/system-manifest.js:253, :259, :262, :265, :348, :351, :406"]
+    HONEST["2026-10-02 — two entries show the honesty rule working. jev-compaction<br/>moved from boot to REBUILD when factrail landed (ADR-2121), because<br/>the binary and plugin are now gated in flake.nix,<br/>agentbox/management-api/lib/system-manifest.js:268-269. A new sidechain<br/>entry is rebuild-class with three gates,<br/>agentbox/management-api/lib/system-manifest.js:385-386, and stateOf<br/>lets a false parent gate dominate its child gates,<br/>agentbox/management-api/lib/system-manifest.js:456-458. 2026-10-29: interaction-plane moved from boot to REBUILD with ADR-2153,<br/>agentbox/management-api/lib/system-manifest.js:74-76, and nineteen System One consumer entries arrived,<br/>sixteen boot and three rebuild (solid pod, ontomark, vault rank), agentbox/management-api/lib/system-manifest.js:288-344. 2026-10-30: system-one-network arrived at BOOT,<br/>agentbox/management-api/lib/system-manifest.js:277-279. 2026-10-03: the<br/>role-isolation entry first arrived at BOOT, because both supervisor configs<br/>ship in every image; it is now rebuild-class, because the devuser sudo route is<br/>removed at build, agentbox/management-api/lib/system-manifest.js:97-99"]
     CAT --> HONEST
     C2 --> CAT
 
-    CLASS["Each carries apply_class boot, meaning the entrypoint projects<br/>it and a flip takes effect on the next container restart with no<br/>image rebuild. The three classes are defined at<br/>system-manifest.js:28-30."]
+    CLASS["A boot-class entry is projected by the entrypoint, so a flip takes effect<br/>on the next container restart with no image rebuild. A rebuild-class entry,<br/>such as claude-cred-sync or vault-cli above, needs ./agentbox.sh rebuild.<br/>The three classes are defined at system-manifest.js:28-30."]
     CAT --> CLASS
 ```
 
-## ES-09.23 The host ADR ledger gates its own staleness, and fifteen records are failing it
+## ES-09.23 The host ADR ledger gates its own staleness, and the gate is opt-in per record
 ```mermaid
 sequenceDiagram
     autonumber
-    participant CI as docs-ci workflow<br/>project/.github/workflows/docs-ci.yml:34
-    participant GEN as adr-index-gen check<br/>project/scripts/adr-index-gen.js:190
+    participant CI as docs-ci workflow<br/>project/.github/workflows/docs-ci.yml:38
+    participant GEN as adr-index-gen check<br/>project/scripts/adr-index-gen.js:186
     participant REC as one ADR record's frontmatter
     participant GIT as git
 
     CI->>GEN: node scripts/adr-index-gen.js docs/adr --check
     GEN->>REC: does it declare verified_paths
     alt no verified_paths
-        REC-->>GEN: nothing to check
-        Note over GEN: The staleness gate is OPT-IN per record. A record with no<br/>verified_paths gets only a soft nudge toward a full 40-char<br/>SHA, project/scripts/adr-index-gen.js:175-184.
+        REC-->>GEN: nothing to check, the loop continues, project/scripts/adr-index-gen.js:207
+        Note over GEN: The staleness gate is OPT-IN per record. The abbreviated-SHA<br/>warning fires only for a record that HAS verified_paths,<br/>project/scripts/adr-index-gen.js:204-206, so a record without them gets no nudge
     else verified_paths declared
         REC-->>GEN: verified_commit plus the governed paths
         GEN->>GIT: does the commit exist, and is it an ancestor of HEAD
         alt either answer is no
             GIT-->>GEN: no
-            GEN-->>CI: fail, project/scripts/adr-index-gen.js:200-202
+            GEN-->>CI: fail, project/scripts/adr-index-gen.js:210-213
         else both yes
             GEN->>GIT: diff those paths from the commit to HEAD
             alt anything changed
                 GIT-->>GEN: a non-empty path list
-                GEN-->>CI: STALE, re-verify and bump verified_commit,<br/>project/scripts/adr-index-gen.js:207
+                GEN-->>CI: STALE, re-verify and bump verified_commit,<br/>project/scripts/adr-index-gen.js:217-218
             else nothing changed
                 GIT-->>GEN: empty
                 GEN-->>CI: the claim still holds
@@ -824,11 +850,13 @@ sequenceDiagram
         end
     end
 
-    Note over GEN,CI: DEBT — at visionclaw f223bbd40 FIFTEEN host records fail this<br/>gate, each naming the governed path that moved under it. The<br/>gate works, and what it is reporting is a re-verification backlog,<br/>project/scripts/adr-index-gen.js:207.
-    Note over CI: INVARIANT — the gate is wired into the docs workflow rather than<br/>left to a habit: invalid frontmatter, asymmetric supersession<br/>edges and stale verification claims all fail the build,<br/>project/.github/workflows/docs-ci.yml:34. see VF-01
-    Note over CI: SECOND LEDGER GATE (2026-10, 95ec80059 and c57f6c128) — the same<br/>job now runs the ADR ratchet after this check, project/.github/workflows/docs-ci.yml:35-38.<br/>Staleness asks whether a claim still holds, the ratchet asks whether the<br/>proposed backlog grew, project/scripts/adr-ratchet.sh:74-77. see ES-09.12
-    Note over REC: Presence of verified_paths is what ARMS the gate, which is why<br/>a record can be honestly unverified without failing CI,<br/>project/scripts/adr-index-gen.js:137-138.
+    Note over GEN,CI: DEBT (historical) — at visionclaw f223bbd40 FIFTEEN host records failed this<br/>gate, each naming the governed path that moved under it. This audit did not<br/>re-run the gate at the stamp, so the current count is not known,<br/>project/scripts/adr-index-gen.js:217-218.
+    Note over CI: INVARIANT — the gate is wired into the docs workflow rather than<br/>left to a habit: invalid frontmatter, asymmetric supersession<br/>edges and stale verification claims all fail the build,<br/>project/.github/workflows/docs-ci.yml:38. see VF-01
+    Note over CI: SECOND AND THIRD LEDGER GATES — the same job runs the ratchet's<br/>evidence-gate self-tests and then the ratchet itself, project/.github/workflows/docs-ci.yml:39-48.<br/>Staleness asks whether a claim still holds, the ratchet asks whether the<br/>proposed backlog grew, project/scripts/adr-ratchet.sh:115-126, and whether a<br/>closing record carries its evidence, project/scripts/adr-ratchet.sh:81-113. see ES-09.12
+    Note over REC: Presence of verified_paths is what ARMS the gate, which is why<br/>a record can be honestly unverified without failing CI,<br/>project/scripts/adr-index-gen.js:207. A proposed or rejected record may also<br/>leave verified_commit empty, project/scripts/adr-index-gen.js:118-121.
 ```
+
+**Drift (comment vs code):** the block comment says records without `verified_paths` "only get a soft nudge toward full 40-char SHAs" (`../project/scripts/adr-index-gen.js:190-191`), but the nudge is guarded on `verified_paths` being a non-empty list (`../project/scripts/adr-index-gen.js:204`), and those records skip the block at `:207`. A record with no `verified_paths` therefore gets no message at all. Either the comment or the guard should change; source tracing alone cannot say which one the authors meant.
 
 ## ES-09.24 Custody X-1 step 1 in agentbox CI — what is gated, and the two suites nothing runs
 

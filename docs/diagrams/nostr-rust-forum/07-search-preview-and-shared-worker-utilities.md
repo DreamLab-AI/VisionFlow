@@ -27,7 +27,9 @@ sources:
   - ../nostr-rust-forum/Cargo.toml
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/lib.rs
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/ascii_img.rs
-verified_commit: 1b27f79d08537b61b3d5a5d02cac9ee5999b79ed
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/wrangler.toml
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/auth.rs
+verified_commit: c39f41f104b114d6a3fa29013daaf6fa58b45080
 ---
 
 ## NF-07.1 search-worker — routes and gates
@@ -69,9 +71,12 @@ flowchart LR
     WHY --> READ
 
     N1["INVARIANT: the parse rule is shared through nostr_bbs_core so the comma / whitespace / npub-or-hex<br/>semantics cannot drift between the three workers - see NF-08.7"]
-    N2["This worker is the ONLY wrangler template that declares ADMIN_PUBKEYS, yet the auth and relay<br/>workers both read it - the deployment gap is written up in NF-08.7 N4"]
+    N2["This worker is the ONLY wrangler template that declares ADMIN_PUBKEYS, yet the auth and relay<br/>workers both read it - the relay reader is nostr-bbs-relay-worker/src/auth.rs:185 - and the deployment gap is written up in NF-08.7 N4"]
+    N4["DRIFT: the relay template comment still says the relay has no ADMIN_PUBKEYS reader<br/>nostr-bbs-relay-worker/wrangler.toml:19, contradicted by nostr-bbs-relay-worker/src/auth.rs:185"]
     N3["It is also the only template shipping a non-placeholder value where every other template ships<br/>example.com or a zeroed key nostr-bbs-search-worker/wrangler.toml:41"]
 ```
+
+**Drift:** the relay-worker template's comment says "there is no ADMIN_PUBKEYS reader in src/" (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/wrangler.toml:19`), but the relay resolves admins as static `ADMIN_PUBKEYS` ∪ D1 and reads the variable at `../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/auth.rs:185`. An operator who trusts the comment will not set the variable on the relay, so a static-only admin is an admin to search and auth but not to the relay. Closing it means correcting the comment, or declaring the variable in the template beside the search worker's.
 
 ## NF-07.3 Semantic search — embeddings and the RVF store
 
@@ -134,7 +139,7 @@ flowchart TB
 ```mermaid
 flowchart TB
     F["fetch nostr-bbs-preview-worker/src/lib.rs:498"]
-    AL["install PREVIEW_ALLOWED_HOSTS into the SSRF allowlist<br/>nostr-bbs-preview-worker/src/lib.rs:511 set at ssrf.rs:153"]
+    AL["install PREVIEW_ALLOWED_HOSTS into the SSRF allowlist<br/>nostr-bbs-preview-worker/src/lib.rs:514 set at ssrf.rs:153"]
     RL["rate limit 30 req / 60 s per IP against RATE_LIMIT KV<br/>nostr-bbs-preview-worker/src/lib.rs:519"]
     P["GET /preview nostr-bbs-preview-worker/src/lib.rs:533"]
     A["GET /ascii nostr-bbs-preview-worker/src/lib.rs:534"]
@@ -148,7 +153,7 @@ flowchart TB
     A --> CACHE
 
     N1["CORS origin comes from ALLOWED_ORIGIN nostr-bbs-preview-worker/src/lib.rs:95, applied at nostr-bbs-preview-worker/src/lib.rs:102"]
-    N2["The preview handler runs the SSRF check BEFORE consulting the cache<br/>nostr-bbs-preview-worker/src/lib.rs:274 then nostr-bbs-preview-worker/src/lib.rs:284"]
+    N2["The preview handler runs the SSRF check BEFORE consulting the cache<br/>nostr-bbs-preview-worker/src/lib.rs:274 then the cache lookup nostr-bbs-preview-worker/src/lib.rs:287"]
     N3["Twitter/X URLs branch to oEmbed rather than OpenGraph parsing<br/>nostr-bbs-preview-worker/src/lib.rs:284"]
 ```
 
@@ -160,15 +165,15 @@ flowchart TB
     P0["unparseable to BLOCK ssrf.rs:294"]
     P1["scheme allowlist http/https only ssrf.rs:300"]
     P2["embedded credentials user:pass@ blocked ssrf.rs:306-308"]
-    P3["ports other than 80 and 443 blocked ssrf.rs:311"]
-    P4["egress allowlist when configured ssrf.rs:323"]
+    P3["ports other than 80 and 443 blocked ssrf.rs:313"]
+    P4["egress allowlist when configured ssrf.rs:326"]
     P5["mDNS .local blocked ssrf.rs:331"]
     P6["pure-integer and pure-hex IP obfuscation blocked ssrf.rs:338 ssrf.rs:342"]
     P7["localhost and *.localhost blocked ssrf.rs:347"]
     P8["cloud metadata 169.254.169.254 and metadata.google.internal ssrf.rs:352 ssrf.rs:353"]
-    P9["IPv4 private ranges 10/8 :448, 127/8 :451, 172.16/12 :454,<br/>192.168/16 at ssrf.rs:457, 169.254/16 at ssrf.rs:460,<br/>zero-net at ssrf.rs:463, reserved high range at ssrf.rs:466"]
+    P9["IPv4 private ranges: ten-net at ssrf.rs:448, loopback at ssrf.rs:451, 172.16/12 at ssrf.rs:454,<br/>192.168/16 at ssrf.rs:457, 169.254/16 at ssrf.rs:460,<br/>zero-net at ssrf.rs:463, reserved high range at ssrf.rs:466"]
     P10["IPv6 loopback and unspecified ssrf.rs:377; ULA fc00::/7,<br/>link-local fe80::/10, site-local fec0::/10 ssrf.rs:384"]
-    P11["embedded-IPv4 forms: 6to4 2002::/16 ssrf.rs:400,<br/>NAT64 64:ff9b::/96 ssrf.rs:404, v4-mapped ssrf.rs:409"]
+    P11["embedded-IPv4 forms: 6to4 2002::/16 ssrf.rs:395,<br/>NAT64 64:ff9b::/96 ssrf.rs:399, v4-mapped and v4-compatible ssrf.rs:404-409"]
 
     URL --> P0 --> P1 --> P2 --> P3 --> P4 --> P5 --> P6 --> P7 --> P8 --> P9 --> P10 --> P11
 
@@ -219,7 +224,8 @@ classDiagram
     }
     RateLimit --> Replay
     Ascii --> PreviewWorker
-    Ascii --> BbsClient
+    Ascii --> PodWorker
+    BbsClient ..> PreviewWorker : fetches /ascii
     RateLimit --> AuthWorker
     RateLimit --> RelayWorker
     RateLimit --> PodWorker
@@ -241,7 +247,7 @@ flowchart TB
     KEEP["rerank_or_keep - any Fallback returns the input untouched<br/>nostr-bbs-search-worker/src/lib.rs:596"]
     SNIP["public snippets loaded from SEARCH_CONFIG KV key store_key:snippets<br/>nostr-bbs-search-worker/src/lib.rs:643"]
     RR["rerank scores the head only - HEAD_CAP 10<br/>nostr-bbs-search-worker/src/rerank.rs:81, cap nostr-bbs-search-worker/src/rerank.rs:24"]
-    LOW["below the confidence floor, default 0.5, falls back<br/>nostr-bbs-search-worker/src/rerank.rs:92, default nostr-bbs-search-worker/src/rerank.rs:29"]
+    LOW["any head score below the confidence floor, default 0.5, falls back<br/>nostr-bbs-search-worker/src/rerank.rs:111, default nostr-bbs-search-worker/src/rerank.rs:29"]
     ORD["apply_order permutes the head, the tail keeps cosine order<br/>nostr-bbs-search-worker/src/rerank.rs:145"]
     LOC["endpoint resolution takes local_only from JEV_SEARCH_RERANK_LOCAL_ONLY, default off, so the proxy or TypeSafe may answer<br/>nostr-bbs-search-worker/src/lib.rs:518, switch name nostr-bbs-search-worker/src/rerank.rs:22"]
     ING["ingest persists a snippet only when the flag is on AND the entry is public<br/>nostr-bbs-search-worker/src/lib.rs:799, nostr-bbs-search-worker/src/lib.rs:825"]
