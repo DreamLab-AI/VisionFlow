@@ -1,0 +1,13 @@
+M1a-held-set-mirror-only (item 1): mutated exit=101; failed=3 ['migrate_tests::f1_a_dropped_tag_does_not_shield_held_objects', 'migrate_tests::f1_lost_record_store_without_refs_mirror_copies_roots_only', 'migrate_tests::f1_force_pushed_away_held_history_is_not_copied']; restored sha ok=True
+M1b-verify-outside-roots-off (item 1): mutated exit=101; failed=1 ['migrate_tests::t4_direct_held_blob_ref_is_dropped_and_verify_catches_it']; restored sha ok=True
+M2a-detection-error-is-none (item 2): mutated exit=101; failed=1 ['migrate_tests::f2_a_detection_error_gates_and_a_clean_recheck_ungates']; restored sha ok=True
+M2b-incomplete-flag-off (item 2): mutated exit=101; failed=1 ['migrate_tests::f2_a_panicked_migration_gates_unmarked_mirror_class_stores']; restored sha ok=True
+M3a-bad-journal-opens-gate (item 3): mutated exit=101; failed=1 ['migrate_tests::f3_a_symlinked_journal_gates']; restored sha ok=True
+M3b-containment-off (item 3): mutated exit=101; failed=1 ['migrate_tests::f3_a_journal_recovery_outside_mirror_recovery_fails_closed']; restored sha ok=True
+M4-nested-path-to-cgi (item 4): mutated exit=101; failed=1 ['migrate_tests::f4_smart_http_accepts_one_path_shape']; restored sha ok=True
+M5a-served-is-ours-off (item 5): mutated exit=101; failed=1 ['migrate_tests::f5_a_crash_after_the_second_rename_is_finished_not_rebuilt']; restored sha ok=True
+M5b-finish-unbound (item 5): mutated exit=101; failed=1 ['migrate_tests::f5_a_stale_report_does_not_finish_a_substituted_store']; restored sha ok=True
+M6-attempt-not-counted-at-start (item 6): mutated exit=101; failed=1 ['migrate_tests::f6_three_crashes_mid_build_then_the_boot_gives_up']; restored sha ok=True
+M7-lock-wait-unbounded (item 7): mutated exit=101; failed=1 ['migrate_tests::f7_a_held_lock_times_out_and_gates']; restored sha ok=True
+M9-groups-not-killed (item 9): mutated exit=101; failed=1 ['migrate_tests::f9_a_budget_timeout_kills_the_whole_process_group']; restored sha ok=True
+M10-push-uncapped (item 10): mutated exit=101; failed=1 ['migrate_tests::f10_a_staging_store_past_the_size_cap_fails_closed']; restored sha ok=True

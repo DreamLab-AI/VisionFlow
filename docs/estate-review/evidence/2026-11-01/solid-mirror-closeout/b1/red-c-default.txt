@@ -1,0 +1,168 @@
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.10s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d447461302ae6d2c)
+
+running 15 tests
+test migrate_tests::t20_hoisted_constants_and_record_key_are_pinned ... ok
+test migrate_tests::t18_smart_http_push_is_refused_while_a_journal_exists ... FAILED
+test migrate_tests::t22_smart_http_refuses_a_dot_named_bare_repo ... ok
+
+running 1 test
+
+running 1 test
+test migrate_tests::t11_unreadable_record_store_is_rebuilt_and_the_record_kept ... FAILED
+test migrate_tests::t16_two_processes_migrate_once ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 242 filtered out; finished in 0.00s
+
+test migrate_tests::t16_two_processes_migrate_once ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 242 filtered out; finished in 0.00s
+
+test migrate_tests::t14_restart_is_idempotent ... FAILED
+test migrate_tests::t1_restart_migrates_a_record_bearing_legacy_store ... FAILED
+test migrate_tests::t16_two_processes_migrate_once ... FAILED
+test migrate_tests::t10_mirror_pull_request_head_is_not_copied ... FAILED
+test migrate_tests::t9_owner_pushed_mirror_keeps_its_tag ... FAILED
+test migrate_tests::t5_fixture_survives_delete_and_gc ... ok
+test migrate_tests::t17_new_inside_a_multi_thread_runtime ... FAILED
+test migrate_tests::t17_new_inside_a_current_thread_runtime ... FAILED
+test migrate_tests::t2_t3_lost_record_legacy_store_is_migrated ... FAILED
+test migrate_tests::t4_direct_held_blob_ref_is_dropped_and_verify_catches_it ... FAILED
+test migrate_tests::t21_failed_migration_keeps_the_store_gated ... FAILED
+
+failures:
+
+---- migrate_tests::t18_smart_http_push_is_refused_while_a_journal_exists stdout ----
+
+thread 'migrate_tests::t18_smart_http_push_is_refused_while_a_journal_exists' (3730248) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:1029:9:
+assertion `left == right` failed: push with a published journal
+  left: 401
+ right: 503
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- migrate_tests::t11_unreadable_record_store_is_rebuilt_and_the_record_kept stdout ----
+
+thread 'migrate_tests::t11_unreadable_record_store_is_rebuilt_and_the_record_kept' (3730243) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:495:5:
+assertion `left == right` failed: approved raw: {"error":"busy: 'd3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3/sample' is a mirror awaiting migration to publication isolation"}
+  left: (503, [123, 34, 101, 114, 114, 111, 114, 34, 58, 34, 98, 117, 115, 121, 58, 32, 39, 100, 51, 100, 51, 100, 51, 100, 51, 100, 51, 100, 51, 100, 51, 100, 51, 100, 51, 100, 51, 100, 51, 100, 51, 100, 51, 100, 51, 100, 51, 100, 51, 100, 51, 100, 51, 100, 51, 100, 51, 100, 51, 100, 51, 100, 51, 100, 51, 100, 51, 100, 51, 100, 51, 100, 51, 100, 51, 100, 51, 100, 51, 100, 51, 47, 115, 97, 109, 112, 108, 101, 39, 32, 105, 115, 32, 97, 32, 109, 105, 114, 114, 111, 114, 32, 97, 119, 97, 105, 116, 105, 110, 103, 32, 109, 105, 103, 114, 97, 116, 105, 111, 110, 32, 116, 111, 32, 112, 117, 98, 108, 105, 99, 97, 116, 105, 111, 110, 32, 105, 115, 111, 108, 97, 116, 105, 111, 110, 34, 125])
+ right: (200, [98, 49, 45, 97, 112, 112, 114, 111, 118, 101, 100, 45, 112, 117, 98, 108, 105, 99, 45, 98, 121, 116, 101, 115, 10])
+
+---- migrate_tests::t14_restart_is_idempotent stdout ----
+
+thread 'migrate_tests::t14_restart_is_idempotent' (3730244) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:495:5:
+assertion `left == right` failed: approved raw: {"error":"busy: 'd6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6/sample' is a mirror awaiting migration to publication isolation"}
+  left: (503, [123, 34, 101, 114, 114, 111, 114, 34, 58, 34, 98, 117, 115, 121, 58, 32, 39, 100, 54, 100, 54, 100, 54, 100, 54, 100, 54, 100, 54, 100, 54, 100, 54, 100, 54, 100, 54, 100, 54, 100, 54, 100, 54, 100, 54, 100, 54, 100, 54, 100, 54, 100, 54, 100, 54, 100, 54, 100, 54, 100, 54, 100, 54, 100, 54, 100, 54, 100, 54, 100, 54, 100, 54, 100, 54, 100, 54, 100, 54, 100, 54, 47, 115, 97, 109, 112, 108, 101, 39, 32, 105, 115, 32, 97, 32, 109, 105, 114, 114, 111, 114, 32, 97, 119, 97, 105, 116, 105, 110, 103, 32, 109, 105, 103, 114, 97, 116, 105, 111, 110, 32, 116, 111, 32, 112, 117, 98, 108, 105, 99, 97, 116, 105, 111, 110, 32, 105, 115, 111, 108, 97, 116, 105, 111, 110, 34, 125])
+ right: (200, [98, 49, 45, 97, 112, 112, 114, 111, 118, 101, 100, 45, 112, 117, 98, 108, 105, 99, 45, 98, 121, 116, 101, 115, 10])
+
+---- migrate_tests::t1_restart_migrates_a_record_bearing_legacy_store stdout ----
+
+thread 'migrate_tests::t1_restart_migrates_a_record_bearing_legacy_store' (3730249) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:495:5:
+assertion `left == right` failed: approved raw: {"error":"busy: 'c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9/sample' is a mirror awaiting migration to publication isolation"}
+  left: (503, [123, 34, 101, 114, 114, 111, 114, 34, 58, 34, 98, 117, 115, 121, 58, 32, 39, 99, 57, 99, 57, 99, 57, 99, 57, 99, 57, 99, 57, 99, 57, 99, 57, 99, 57, 99, 57, 99, 57, 99, 57, 99, 57, 99, 57, 99, 57, 99, 57, 99, 57, 99, 57, 99, 57, 99, 57, 99, 57, 99, 57, 99, 57, 99, 57, 99, 57, 99, 57, 99, 57, 99, 57, 99, 57, 99, 57, 99, 57, 99, 57, 47, 115, 97, 109, 112, 108, 101, 39, 32, 105, 115, 32, 97, 32, 109, 105, 114, 114, 111, 114, 32, 97, 119, 97, 105, 116, 105, 110, 103, 32, 109, 105, 103, 114, 97, 116, 105, 111, 110, 32, 116, 111, 32, 112, 117, 98, 108, 105, 99, 97, 116, 105, 111, 110, 32, 105, 115, 111, 108, 97, 116, 105, 111, 110, 34, 125])
+ right: (200, [98, 49, 45, 97, 112, 112, 114, 111, 118, 101, 100, 45, 112, 117, 98, 108, 105, 99, 45, 98, 121, 116, 101, 115, 10])
+
+---- migrate_tests::t16_two_processes_migrate_once stdout ----
+
+thread 'migrate_tests::t16_two_processes_migrate_once' (3730245) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:495:5:
+assertion `left == right` failed: approved raw: {"error":"busy: 'd8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8/sample' is a mirror awaiting migration to publication isolation"}
+  left: (503, [123, 34, 101, 114, 114, 111, 114, 34, 58, 34, 98, 117, 115, 121, 58, 32, 39, 100, 56, 100, 56, 100, 56, 100, 56, 100, 56, 100, 56, 100, 56, 100, 56, 100, 56, 100, 56, 100, 56, 100, 56, 100, 56, 100, 56, 100, 56, 100, 56, 100, 56, 100, 56, 100, 56, 100, 56, 100, 56, 100, 56, 100, 56, 100, 56, 100, 56, 100, 56, 100, 56, 100, 56, 100, 56, 100, 56, 100, 56, 100, 56, 47, 115, 97, 109, 112, 108, 101, 39, 32, 105, 115, 32, 97, 32, 109, 105, 114, 114, 111, 114, 32, 97, 119, 97, 105, 116, 105, 110, 103, 32, 109, 105, 103, 114, 97, 116, 105, 111, 110, 32, 116, 111, 32, 112, 117, 98, 108, 105, 99, 97, 116, 105, 111, 110, 32, 105, 115, 111, 108, 97, 116, 105, 111, 110, 34, 125])
+ right: (200, [98, 49, 45, 97, 112, 112, 114, 111, 118, 101, 100, 45, 112, 117, 98, 108, 105, 99, 45, 98, 121, 116, 101, 115, 10])
+
+---- migrate_tests::t10_mirror_pull_request_head_is_not_copied stdout ----
+
+thread 'migrate_tests::t10_mirror_pull_request_head_is_not_copied' (3730242) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:495:5:
+assertion `left == right` failed: approved raw: {"error":"busy: 'd2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2/sample' is a mirror awaiting migration to publication isolation"}
+  left: (503, [123, 34, 101, 114, 114, 111, 114, 34, 58, 34, 98, 117, 115, 121, 58, 32, 39, 100, 50, 100, 50, 100, 50, 100, 50, 100, 50, 100, 50, 100, 50, 100, 50, 100, 50, 100, 50, 100, 50, 100, 50, 100, 50, 100, 50, 100, 50, 100, 50, 100, 50, 100, 50, 100, 50, 100, 50, 100, 50, 100, 50, 100, 50, 100, 50, 100, 50, 100, 50, 100, 50, 100, 50, 100, 50, 100, 50, 100, 50, 100, 50, 47, 115, 97, 109, 112, 108, 101, 39, 32, 105, 115, 32, 97, 32, 109, 105, 114, 114, 111, 114, 32, 97, 119, 97, 105, 116, 105, 110, 103, 32, 109, 105, 103, 114, 97, 116, 105, 111, 110, 32, 116, 111, 32, 112, 117, 98, 108, 105, 99, 97, 116, 105, 111, 110, 32, 105, 115, 111, 108, 97, 116, 105, 111, 110, 34, 125])
+ right: (200, [98, 49, 45, 97, 112, 112, 114, 111, 118, 101, 100, 45, 112, 117, 98, 108, 105, 99, 45, 98, 121, 116, 101, 115, 10])
+
+---- migrate_tests::t9_owner_pushed_mirror_keeps_its_tag stdout ----
+
+thread 'migrate_tests::t9_owner_pushed_mirror_keeps_its_tag' (3730258) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:495:5:
+assertion `left == right` failed: approved raw: {"error":"busy: 'd1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1/sample' is a mirror awaiting migration to publication isolation"}
+  left: (503, [123, 34, 101, 114, 114, 111, 114, 34, 58, 34, 98, 117, 115, 121, 58, 32, 39, 100, 49, 100, 49, 100, 49, 100, 49, 100, 49, 100, 49, 100, 49, 100, 49, 100, 49, 100, 49, 100, 49, 100, 49, 100, 49, 100, 49, 100, 49, 100, 49, 100, 49, 100, 49, 100, 49, 100, 49, 100, 49, 100, 49, 100, 49, 100, 49, 100, 49, 100, 49, 100, 49, 100, 49, 100, 49, 100, 49, 100, 49, 100, 49, 47, 115, 97, 109, 112, 108, 101, 39, 32, 105, 115, 32, 97, 32, 109, 105, 114, 114, 111, 114, 32, 97, 119, 97, 105, 116, 105, 110, 103, 32, 109, 105, 103, 114, 97, 116, 105, 111, 110, 32, 116, 111, 32, 112, 117, 98, 108, 105, 99, 97, 116, 105, 111, 110, 32, 105, 115, 111, 108, 97, 116, 105, 111, 110, 34, 125])
+ right: (200, [98, 49, 45, 97, 112, 112, 114, 111, 118, 101, 100, 45, 112, 117, 98, 108, 105, 99, 45, 98, 121, 116, 101, 115, 10])
+
+---- migrate_tests::t17_new_inside_a_multi_thread_runtime stdout ----
+
+thread 'migrate_tests::t17_new_inside_a_multi_thread_runtime' (3730247) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:489:5:
+held commit served:
+/forge/dadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadada/sample/raw/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/dadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadada/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/dadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadada/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: false)
+/forge/dadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadada/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/dadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadada/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/dadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadada/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/dadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadada/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/dadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadada/sample/archive/4580200492d1a9506c809389e9b0cd9c744c79b1.tar.gz -> 200 (held bytes: false)
+
+---- migrate_tests::t17_new_inside_a_current_thread_runtime stdout ----
+
+thread 'migrate_tests::t17_new_inside_a_current_thread_runtime' (3730246) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:489:5:
+held commit served:
+/forge/d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9/sample/raw/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: false)
+/forge/d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9/sample/archive/4580200492d1a9506c809389e9b0cd9c744c79b1.tar.gz -> 200 (held bytes: false)
+
+---- migrate_tests::t2_t3_lost_record_legacy_store_is_migrated stdout ----
+
+thread 'migrate_tests::t2_t3_lost_record_legacy_store_is_migrated' (3730253) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:489:5:
+held commit served:
+/forge/cacacacacacacacacacacacacacacacacacacacacacacacacacacacacacacaca/sample/raw/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/cacacacacacacacacacacacacacacacacacacacacacacacacacacacacacacaca/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/cacacacacacacacacacacacacacacacacacacacacacacacacacacacacacacaca/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: false)
+/forge/cacacacacacacacacacacacacacacacacacacacacacacacacacacacacacacaca/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/cacacacacacacacacacacacacacacacacacacacacacacacacacacacacacacaca/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/cacacacacacacacacacacacacacacacacacacacacacacacacacacacacacacaca/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/cacacacacacacacacacacacacacacacacacacacacacacacacacacacacacacaca/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/cacacacacacacacacacacacacacacacacacacacacacacacacacacacacacacaca/sample/archive/4580200492d1a9506c809389e9b0cd9c744c79b1.tar.gz -> 200 (held bytes: false)
+
+---- migrate_tests::t4_direct_held_blob_ref_is_dropped_and_verify_catches_it stdout ----
+
+thread 'migrate_tests::t4_direct_held_blob_ref_is_dropped_and_verify_catches_it' (3730255) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:489:5:
+held commit served:
+/forge/cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc/sample/raw/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: false)
+/forge/cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc/sample/archive/4580200492d1a9506c809389e9b0cd9c744c79b1.tar.gz -> 200 (held bytes: false)
+
+---- migrate_tests::t21_failed_migration_keeps_the_store_gated stdout ----
+
+thread 'migrate_tests::t21_failed_migration_keeps_the_store_gated' (3730251) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:1077:5:
+held commit served:
+/forge/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/sample/raw/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: false)
+/forge/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/sample/archive/4580200492d1a9506c809389e9b0cd9c744c79b1.tar.gz -> 200 (held bytes: false)
+
+
+failures:
+    migrate_tests::t10_mirror_pull_request_head_is_not_copied
+    migrate_tests::t11_unreadable_record_store_is_rebuilt_and_the_record_kept
+    migrate_tests::t14_restart_is_idempotent
+    migrate_tests::t16_two_processes_migrate_once
+    migrate_tests::t17_new_inside_a_current_thread_runtime
+    migrate_tests::t17_new_inside_a_multi_thread_runtime
+    migrate_tests::t18_smart_http_push_is_refused_while_a_journal_exists
+    migrate_tests::t1_restart_migrates_a_record_bearing_legacy_store
+    migrate_tests::t21_failed_migration_keeps_the_store_gated
+    migrate_tests::t2_t3_lost_record_legacy_store_is_migrated
+    migrate_tests::t4_direct_held_blob_ref_is_dropped_and_verify_catches_it
+    migrate_tests::t9_owner_pushed_mirror_keeps_its_tag
+
+test result: FAILED. 3 passed; 12 failed; 0 ignored; 0 measured; 228 filtered out; finished in 0.40s
+
+error: test failed, to rerun pass `-p solid-pod-rs-forge --lib`

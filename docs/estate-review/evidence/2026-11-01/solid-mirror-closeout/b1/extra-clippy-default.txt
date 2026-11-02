@@ -1,0 +1,4 @@
+===== extra: clippy forge default features
+    Checking solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.90s
+===== exit=0

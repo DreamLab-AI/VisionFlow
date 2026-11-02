@@ -1,0 +1,9 @@
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.47s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d447461302ae6d2c)
+
+running 1 test
+test migrate_tests::t22_smart_http_refuses_a_dot_named_bare_repo ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 229 filtered out; finished in 0.29s
+

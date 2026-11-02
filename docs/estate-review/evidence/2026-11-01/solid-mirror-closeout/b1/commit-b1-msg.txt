@@ -1,0 +1,54 @@
+fix(forge): migrate pre-release mirror stores at boot (SP-GIT-02, commit B1)
+
+Commit A stopped new mirror fetches from reaching the served store, but
+stores written by earlier releases still hold fetched-but-held objects. On
+local main a legacy store whose mirror record was lost was served with 200,
+held objects included, and `h_git_smart` passed any segment that failed name
+validation (for example `.fork-x.tmp`) straight to the export-all CGI.
+
+B1 migrates the mirror class:
+
+- `h_git_smart` accepts exactly `/<owner>/<name>[.git]/<suffix>` and 404s any
+  invalid or nested path before the CGI (a Commit A defect, fixed first).
+- `ForgeService::new` runs migration synchronously before serving. Each
+  legacy store (64-hex owner; any pre-release trace, or an unreadable
+  record) is rebuilt by SHA push of its approved branches and tags only (R),
+  with grafts and replace objects disabled, into a fresh staging store, then
+  verified at object level against H = everything outside R's closure,
+  sealed with a migration id and swapped in behind a durable journal.
+- Every journal, in any state, gates its store (503). A failed or partial
+  migration keeps its journal; a detection error writes one; a store that
+  fails MAX_ATTEMPTS times stays gated. A new journal is persisted before any
+  rejection branch, and if it cannot be written the pass is incomplete.
+- An incomplete pass (enumeration error, journal write failure, thread
+  failure) gates every 64-hex owner, marked stores included, until a restart
+  completes it.
+- Crash resume is bound to the journal's migration id; the report and swap
+  are idempotent across repeated crashes.
+
+Claim, precisely: for a remote attacker, no object outside the closure of a
+store's copied branches and tags is served from a migrated store, and an
+unmigrated legacy mirror store is refused. Filesystem writers (anyone who can
+write the plugin directory), recycled process-group IDs and several instances
+sharing one plugin directory are outside the threat model.
+
+Residuals, recorded in the report:
+- Opus reviewers last saw fix round 1; fix rounds 2 and 3 were reviewed by
+  the cross-vendor Codex auditor only.
+- Notes are not copied to the served store (kept in recovery); stores over
+  512 MiB stay gated; suffix-less smart-HTTP paths open `<name>.git`.
+- The size cap bounds staging at push completion, not after HEAD/seal writes.
+- Directory fsync of ancestors and descendant-process cleanup are partial.
+- No operator recourse yet for stores stuck at the attempt limit, over the
+  cap, or behind a permanently unreadable owner directory (which makes every
+  boot incomplete).
+- Forks, the transitive fork sweep and `.fork-*.tmp` are Commit B2.
+
+Gates (lead-run on the committed tree, sources touched): fmt; forge tests
+with mirror, default, and mirror+anchoring+announce; server forge-full tests;
+clippy -D warnings forge and server; rustdoc -D warnings. All green. Reviews:
+security and code (Opus) on B1 and fix round 1; Codex gpt-6-astra on B1 and
+each fix round. Evidence: VisionFlow
+docs/estate-review/evidence/2026-11-01/solid-mirror-closeout/b1/.
+
+Co-Authored-By: jjohare <github@thedreamlab.uk>

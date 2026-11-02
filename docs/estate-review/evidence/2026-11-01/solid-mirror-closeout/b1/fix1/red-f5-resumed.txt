@@ -1,0 +1,10 @@
+## first case (241, "verified", true),
+thread 'migrate_tests::f5_a_crash_after_the_second_rename_is_finished_not_rebuilt' (3998093) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:1612:9:
+verified/true: journal left: {
+  "id": "b1crashid",
+  "ts": 1,
+## first case (242, "verified", false),
+thread 'migrate_tests::f5_a_crash_after_the_second_rename_is_finished_not_rebuilt' (3998571) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:1612:9:
+verified/false: journal left: {
+  "id": "b1crashid",
+  "ts": 1,

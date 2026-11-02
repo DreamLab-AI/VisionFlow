@@ -1,0 +1,12 @@
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.72s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d229dc2d13dcc7a9)
+
+running 4 tests
+test mirror::tests::migration_b1::t13_crash_after_publish_clears_the_flag_and_the_engine_follows ... ok
+test migrate_tests::f3_a_forged_published_journal_does_not_open_a_store ... ok
+test migrate_tests::f1_a_replace_ref_does_not_widen_the_roots ... ok
+test migrate_tests::f2_a_symlinked_served_store_is_detected ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 379 filtered out; finished in 0.80s
+

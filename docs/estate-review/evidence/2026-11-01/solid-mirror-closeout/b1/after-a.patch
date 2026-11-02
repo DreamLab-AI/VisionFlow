@@ -1,0 +1,1423 @@
+diff --git a/crates/solid-pod-rs-forge/src/lib.rs b/crates/solid-pod-rs-forge/src/lib.rs
+index 291642e..6c5090c 100644
+--- a/crates/solid-pod-rs-forge/src/lib.rs
++++ b/crates/solid-pod-rs-forge/src/lib.rs
+@@ -66,8 +66,10 @@
+ #[cfg(feature = "anchoring")]
+ pub mod marks_ui;
+ pub mod merge;
++pub mod migrate;
+ #[cfg(feature = "mirror")]
+ pub mod mirror;
++mod mirror_record;
+ #[cfg(feature = "announce")]
+ pub mod nip34;
+ pub mod ownership;
+@@ -116,6 +118,8 @@
+ /// ```
+ pub const PUBLICATION_MARKER: &str = "mirror-publication-v1";
+ 
++#[cfg(test)]
++mod migrate_tests;
+ #[cfg(test)]
+ mod readfeat_tests;
+ 
+diff --git a/crates/solid-pod-rs-forge/src/migrate.rs b/crates/solid-pod-rs-forge/src/migrate.rs
+new file mode 100644
+index 0000000..3e981f7
+--- /dev/null
++++ b/crates/solid-pod-rs-forge/src/migrate.rs
+@@ -0,0 +1,328 @@
++//! Shared served-store plumbing, kept outside the `mirror` feature.
++//!
++//! The mirror engine (feature `mirror`) and boot migration both build and
++//! write served stores. Migration has to run on a plugin directory that was
++//! mirrored once and is now served without the feature, so everything both
++//! of them need lives here: the fixed `--receive-pack` command, the fixed
++//! served-store config, the cross-process lock path, the legacy-config probe
++//! and the hardened, process-group `git` runner.
++//!
++//! # Example
++//!
++//! ```
++//! use std::path::Path;
++//! use solid_pod_rs_forge::migrate::lock_path;
++//!
++//! let owner = "a".repeat(64);
++//! let lock = lock_path(Path::new("/srv/forge"), &owner, "sample");
++//! assert_eq!(
++//!     lock,
++//!     Some(Path::new("/srv/forge/mirror-work/locks").join(&owner).join("sample.lock"))
++//! );
++//! assert_eq!(lock_path(Path::new("/srv/forge"), "..", "sample"), None);
++//! ```
++
++#![cfg_attr(
++    not(feature = "mirror"),
++    expect(
++        dead_code,
++        reason = "the runner is used by the mirror engine; boot migration uses it in every build"
++    )
++)]
++
++use std::path::{Path, PathBuf};
++use std::time::Duration;
++
++use crate::ownership::valid_name_segment;
++
++/// The `--receive-pack` command every push into a served store runs on the
++/// receiving side.
++///
++/// Local transport strips the pusher's `-c` options before receive-pack
++/// starts, so this string (with the served store's own config) is the hook
++/// boundary. Git runs it through a shell: it is a fixed literal, equal to
++/// `solid_pod_rs_git::hardened::HARDENED_CONFIG` plus the receive keys.
++/// Never interpolate a path, name or sha into it; that would be shell
++/// injection.
++pub const RECEIVE_PACK: &str = "git -c core.fsmonitor=false -c core.hooksPath=/dev/null \
++-c core.sshCommand=false -c commit.gpgSign=false -c receive.fsckObjects=true \
++-c receive.denyDeletes=true receive-pack";
++
++/// Config every served store carries, written when it is created or first
++/// marked: no hooks, objects checked on receipt, no ref deletion.
++pub const SERVED_CONFIG: [(&str, &str); 3] = [
++    ("core.hooksPath", "/dev/null"),
++    ("receive.fsckObjects", "true"),
++    ("receive.denyDeletes", "true"),
++];
++
++/// The camelCase key of the mirror record's awaits-migration flag, as it is
++/// written to `plugin_dir/mirror/<owner>/<name>.json`.
++pub const AWAITS_MIGRATION_KEY: &str = "awaitsMigration";
++
++/// The runner's error when git outran its deadline.
++pub(crate) const GIT_TIMED_OUT: &str = "git timed out";
++
++/// The runner's (and the mirror fetch's) error when a store grew past its
++/// size cap.
++pub(crate) const GREW_PAST_CAP: &str = "repository grew past the size cap";
++
++/// How a capped git run measures the directory it watches (injectable so
++/// tests can stand in a slow or fixed measurement).
++pub(crate) type DirMeasure = fn(&Path) -> u64;
++
++/// `plugin_dir/mirror-work/locks/<owner>/<name>.lock`: the cross-process
++/// advisory lock for one served repository, shared by the mirror engine and
++/// boot migration so that each excludes the other, across server instances
++/// too.
++///
++/// `None` unless both `owner` and `name` are single safe path segments
++/// ([`crate::ownership::valid_name_segment`]). For a 64-hex owner the path is
++/// the one the mirror engine has always locked.
++#[must_use]
++pub fn lock_path(plugin_dir: &Path, owner: &str, name: &str) -> Option<PathBuf> {
++    if !valid_name_segment(owner) || !valid_name_segment(name) {
++        return None;
++    }
++    Some(
++        plugin_dir
++            .join("mirror-work")
++            .join("locks")
++            .join(owner)
++            .join(format!("{name}.lock")),
++    )
++}
++
++/// Whether `git config --list -z` output sets `uploadpack.hideRefs` or
++/// `transfer.hideRefs` to a value naming `refs/mirror`. Each entry is
++/// `key\nvalue\0`; git prints section and variable names in lower case.
++pub(crate) fn hides_mirror_refs(list_z: &[u8]) -> bool {
++    list_z.split(|b| *b == 0).any(|entry| {
++        let entry = String::from_utf8_lossy(entry);
++        let (key, value) = entry.split_once('\n').unwrap_or((&entry, ""));
++        let key = key.to_ascii_lowercase();
++        (key == "uploadpack.hiderefs" || key == "transfer.hiderefs")
++            && value.contains("refs/mirror")
++    })
++}
++
++/// Create `dir` and initialise an empty bare repository in it, with `main`
++/// as the initial branch.
++pub(crate) async fn init_bare(dir: &Path) -> Result<(), String> {
++    tokio::fs::create_dir_all(dir)
++        .await
++        .map_err(|e| e.to_string())?;
++    run_in(
++        dir,
++        dir,
++        &["init", "--bare", "--quiet", "--initial-branch=main", "."],
++        None,
++        Duration::from_secs(15),
++        None,
++    )
++    .await
++    .map(|_| ())
++}
++
++/// Write [`SERVED_CONFIG`] into the local config of the store at `dir`.
++pub(crate) async fn write_served_config(dir: &Path) -> Result<(), String> {
++    for (key, value) in SERVED_CONFIG {
++        run_in(
++            dir,
++            dir,
++            &["config", "--local", key, value],
++            None,
++            Duration::from_secs(15),
++            None,
++        )
++        .await?;
++    }
++    Ok(())
++}
++
++/// Run git on the store at `git_dir`, named with an explicit `--git-dir` so
++/// git never searches upward: a store missing `HEAD`, `objects/` or `refs/`
++/// fails instead of resolving to whatever repository encloses it. `watch` is
++/// git's working directory and, with `cap = (limit, measure)`, the directory
++/// measured: it is measured at once and then every 500 ms while git runs,
++/// and the group is killed once it is past `limit`. The walk runs on its own
++/// task and only signals when the cap is passed, so a slow walk of a huge
++/// repository can neither stall the draining of git's pipes nor delay the
++/// deadline.
++///
++/// Returns stdout on success, or the first line of stderr.
++pub(crate) async fn run_in(
++    git_dir: &Path,
++    watch: &Path,
++    args: &[&str],
++    allow: Option<&str>,
++    timeout: Duration,
++    cap: Option<(u64, DirMeasure)>,
++) -> Result<Vec<u8>, String> {
++    let out = run_output(git_dir, watch, args, allow, timeout, cap).await?;
++    if out.status.success() {
++        Ok(out.stdout)
++    } else {
++        let err = String::from_utf8_lossy(&out.stderr);
++        Err(err.lines().next().unwrap_or("git failed").to_string())
++    }
++}
++
++/// [`run_in`] without the exit-status check: git's whole output, for a
++/// caller that must tell one non-zero status from another. `Err` only when
++/// git could not be run to completion (it could not start, it timed out, the
++/// cap killed it).
++///
++/// Every spawn goes through [`solid_pod_rs_git::hardened_git_async`] (no
++/// hooks, no ambient config, no prompts) with an argv, in its own process
++/// group, with `HOME` and `XDG_CONFIG_HOME` removed. `allow`, when set,
++/// becomes `GIT_ALLOW_PROTOCOL`.
++pub(crate) async fn run_output(
++    git_dir: &Path,
++    watch: &Path,
++    args: &[&str],
++    allow: Option<&str>,
++    timeout: Duration,
++    cap: Option<(u64, DirMeasure)>,
++) -> Result<std::process::Output, String> {
++    let mut explicit = std::ffi::OsString::from("--git-dir=");
++    explicit.push(git_dir);
++    let mut cmd = solid_pod_rs_git::hardened_git_async();
++    cmd.arg(explicit)
++        .args(args)
++        .current_dir(watch)
++        .env_remove("HOME")
++        .env_remove("XDG_CONFIG_HOME")
++        .stdin(std::process::Stdio::null())
++        .stdout(std::process::Stdio::piped())
++        .stderr(std::process::Stdio::piped())
++        .kill_on_drop(true);
++    #[cfg(unix)]
++    cmd.process_group(0);
++    if let Some(a) = allow {
++        cmd.env("GIT_ALLOW_PROTOCOL", a);
++    }
++    let child = cmd
++        .spawn()
++        .map_err(|e| format!("git could not start: {e}"))?;
++    let pid = child.id();
++    let waited = child.wait_with_output();
++    tokio::pin!(waited);
++    let deadline = tokio::time::sleep(timeout);
++    tokio::pin!(deadline);
++    let (tx, mut grew) = tokio::sync::oneshot::channel::<()>();
++    let watcher = cap.map(|(limit, measure)| {
++        let d = watch.to_path_buf();
++        tokio::spawn(async move {
++            loop {
++                let d2 = d.clone();
++                let size = tokio::task::spawn_blocking(move || measure(&d2))
++                    .await
++                    .unwrap_or(0);
++                if size > limit {
++                    let _ = tx.send(());
++                    return;
++                }
++                tokio::time::sleep(Duration::from_millis(500)).await;
++            }
++        })
++    });
++    let outcome = tokio::select! {
++        out = &mut waited => Ok(out),
++        () = &mut deadline => Err(GIT_TIMED_OUT.to_string()),
++        Ok(()) = &mut grew => Err(GREW_PAST_CAP.to_string()),
++    };
++    if let Some(w) = watcher {
++        w.abort();
++    }
++    match outcome {
++        Ok(out) => out.map_err(|e| format!("git failed: {e}")),
++        Err(why) => {
++            kill_group(pid).await;
++            Err(why)
++        }
++    }
++}
++
++/// Run git on the store at `git_dir` and read its stdout line by line,
++/// returning the first line `pick` accepts (git is then killed), or `None`
++/// once git has exited successfully without one. stderr is discarded; a
++/// failure is reported as `git <command> failed`.
++pub(crate) async fn first_line(
++    git_dir: &Path,
++    args: &[&str],
++    timeout: Duration,
++    pick: impl Fn(&str) -> bool,
++) -> Result<Option<String>, String> {
++    use tokio::io::AsyncBufReadExt;
++    let mut explicit = std::ffi::OsString::from("--git-dir=");
++    explicit.push(git_dir);
++    let mut cmd = solid_pod_rs_git::hardened_git_async();
++    cmd.arg(explicit)
++        .args(args)
++        .current_dir(git_dir)
++        .env_remove("HOME")
++        .env_remove("XDG_CONFIG_HOME")
++        .stdin(std::process::Stdio::null())
++        .stdout(std::process::Stdio::piped())
++        .stderr(std::process::Stdio::null())
++        .kill_on_drop(true);
++    #[cfg(unix)]
++    cmd.process_group(0);
++    let mut child = cmd
++        .spawn()
++        .map_err(|e| format!("git could not start: {e}"))?;
++    let pid = child.id();
++    let what = args.first().copied().unwrap_or("git");
++    let stdout = child.stdout.take().ok_or("git has no stdout")?;
++    let mut lines = tokio::io::BufReader::new(stdout).lines();
++    let read = async {
++        while let Some(line) = lines
++            .next_line()
++            .await
++            .map_err(|e| format!("git {what} output unreadable: {e}"))?
++        {
++            if pick(&line) {
++                return Ok(Some(line));
++            }
++        }
++        Ok(None)
++    };
++    let started = tokio::time::Instant::now();
++    match tokio::time::timeout(timeout, read).await {
++        Err(_) => {
++            kill_group(pid).await;
++            Err(GIT_TIMED_OUT.to_string())
++        }
++        Ok(Ok(None)) => {
++            let left = timeout.saturating_sub(started.elapsed());
++            match tokio::time::timeout(left, child.wait()).await {
++                Ok(Ok(st)) if st.success() => Ok(None),
++                Ok(_) => Err(format!("git {what} failed")),
++                Err(_) => {
++                    kill_group(pid).await;
++                    Err(GIT_TIMED_OUT.to_string())
++                }
++            }
++        }
++        Ok(found) => {
++            kill_group(pid).await;
++            found
++        }
++    }
++}
++
++/// Kill a process group by leader pid. `kill -KILL -- -<pid>` through the
++/// system `kill`, because `unsafe` is forbidden here; a no-op where there is
++/// no pid or no `kill`.
++pub(crate) async fn kill_group(pid: Option<u32>) {
++    if let Some(pid) = pid {
++        let _ = tokio::process::Command::new("kill")
++            .args(["-KILL", "--", &format!("-{pid}")])
++            .stdin(std::process::Stdio::null())
++            .stdout(std::process::Stdio::null())
++            .stderr(std::process::Stdio::null())
++            .status()
++            .await;
++    }
++}
+diff --git a/crates/solid-pod-rs-forge/src/migrate_tests.rs b/crates/solid-pod-rs-forge/src/migrate_tests.rs
+new file mode 100644
+index 0000000..b45d17f
+--- /dev/null
++++ b/crates/solid-pod-rs-forge/src/migrate_tests.rs
+@@ -0,0 +1,59 @@
++//! Tests for the ungated migration module (SP-GIT-02 Commit B1): the
++//! hoisted constants, the smart-HTTP refusal of invalid repository names,
++//! and the boot migration of pre-release served stores.
++
++/// Test 20: the hoisted constants are pinned byte for byte, the mirror
++/// engine uses the very same items, the lock path is the engine's for a
++/// 64-hex owner, and the `awaitsMigration` key matches the record's serde.
++#[test]
++fn t20_hoisted_constants_and_record_key_are_pinned() {
++    assert_eq!(
++        crate::migrate::RECEIVE_PACK,
++        "git -c core.fsmonitor=false -c core.hooksPath=/dev/null \
++         -c core.sshCommand=false -c commit.gpgSign=false -c receive.fsckObjects=true \
++         -c receive.denyDeletes=true receive-pack"
++    );
++    assert_eq!(
++        crate::migrate::SERVED_CONFIG,
++        [
++            ("core.hooksPath", "/dev/null"),
++            ("receive.fsckObjects", "true"),
++            ("receive.denyDeletes", "true"),
++        ]
++    );
++    let owner = "a".repeat(64);
++    let plugin = std::path::Path::new("/srv/plugin");
++    assert_eq!(
++        crate::migrate::lock_path(plugin, &owner, "sample"),
++        Some(
++            plugin
++                .join("mirror-work")
++                .join("locks")
++                .join(&owner)
++                .join("sample.lock")
++        )
++    );
++    assert_eq!(
++        crate::migrate::lock_path(plugin, "bob", "fork-1"),
++        Some(plugin.join("mirror-work/locks/bob/fork-1.lock")),
++        "a fork owner is a valid name segment"
++    );
++    assert_eq!(crate::migrate::lock_path(plugin, "..", "x"), None);
++    assert_eq!(
++        crate::migrate::lock_path(plugin, "bob", ".fork-x.tmp"),
++        None
++    );
++    #[cfg(feature = "mirror")]
++    assert_eq!(
++        crate::mirror::MirrorStore::new(plugin).lock_file(&owner, "sample"),
++        crate::migrate::lock_path(plugin, &owner, "sample"),
++        "the engine's lock file and the migration's differ"
++    );
++    let json =
++        format!(r#"{{"pubkey":"{owner}","name":"sample","events":0,"awaitsMigration":true}}"#);
++    let rec: crate::mirror_record::MirrorRecord = serde_json::from_str(&json).unwrap();
++    assert!(rec.awaits_migration);
++    let back = serde_json::to_value(&rec).unwrap();
++    assert_eq!(back[crate::migrate::AWAITS_MIGRATION_KEY], true, "{back}");
++    assert_eq!(crate::migrate::AWAITS_MIGRATION_KEY, "awaitsMigration");
++}
+diff --git a/crates/solid-pod-rs-forge/src/mirror.rs b/crates/solid-pod-rs-forge/src/mirror.rs
+index bd7ab6f..137e6f0 100644
+--- a/crates/solid-pod-rs-forge/src/mirror.rs
++++ b/crates/solid-pod-rs-forge/src/mirror.rs
+@@ -92,7 +92,12 @@
+ use tokio_tungstenite::tungstenite::protocol::WebSocketConfig;
+ use tokio_tungstenite::tungstenite::Message;
+ 
+-use crate::ownership::valid_name_segment;
++use crate::migrate::{hides_mirror_refs, DirMeasure, GIT_TIMED_OUT, GREW_PAST_CAP, RECEIVE_PACK};
++use crate::mirror_record::{is_hex64, is_repo_name};
++pub use crate::mirror_record::{
++    BranchOutcome, EventRef, LastFetch, LastSeen, MirrorMark, MirrorRecord, MirrorStore,
++    SeenAction, StoredRecord,
++};
+ use crate::sizecap::dir_size;
+ pub use crate::PUBLICATION_MARKER;
+ 
+@@ -152,25 +157,12 @@
+ // Validation helpers (pure)
+ // ---------------------------------------------------------------------------
+ 
+-fn is_hex64(s: &str) -> bool {
+-    s.len() == 64
+-        && s.bytes()
+-            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+-}
+-
+ fn is_sha40(s: &str) -> bool {
+     s.len() == 40
+         && s.bytes()
+             .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+ }
+ 
+-/// A followed repository name: starts alphanumeric, then `[A-Za-z0-9._-]`,
+-/// at most 100 bytes, and safe as a single path segment.
+-fn is_repo_name(s: &str) -> bool {
+-    let first_ok = s.bytes().next().is_some_and(|b| b.is_ascii_alphanumeric());
+-    first_ok && valid_name_segment(s)
+-}
+-
+ /// A relay URL: `ws://` or `wss://`, no whitespace, `;`, `'` or `"`.
+ fn is_relay_url(s: &str) -> bool {
+     let lower = s.to_ascii_lowercase();
+@@ -445,17 +437,6 @@ fn tag_value<'a>(ev: &'a Event, name: &str) -> Option<&'a str> {
+         .map(String::as_str)
+ }
+ 
+-/// The mark a state carries: the latest on-chain anchor of the repository.
+-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+-pub struct MirrorMark {
+-    /// Chain name from the `chain` tag (for example `txbt4`).
+-    pub chain: String,
+-    /// TXO URI from the `txo` tag.
+-    pub txo: String,
+-    /// The marked commit (40 lowercase hex) from the `commit` tag.
+-    pub commit: String,
+-}
+-
+ /// What a kind-30618 event says.
+ #[derive(Debug, Clone, PartialEq, Eq)]
+ pub struct RepoState {
+@@ -908,318 +889,6 @@ pub fn classify_relay_frame(text: &str) -> RelayFrame {
+     out
+ }
+ 
+-// ---------------------------------------------------------------------------
+-// Record and store
+-// ---------------------------------------------------------------------------
+-
+-/// What the mirror did with the latest state.
+-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+-#[serde(rename_all = "kebab-case")]
+-pub enum SeenAction {
+-    /// Nothing to do (or nothing possible); see the reason.
+-    Skip,
+-    /// The fetch failed.
+-    FetchFailed,
+-    /// At least one branch moved.
+-    Moved,
+-    /// Fetched, but no branch passed its verdict.
+-    Held,
+-}
+-
+-/// The latest state seen for a repository.
+-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+-pub struct LastSeen {
+-    /// Event id.
+-    pub id: String,
+-    /// Event `created_at` (seconds).
+-    #[serde(rename = "created_at")]
+-    pub created_at: u64,
+-    /// Millisecond clock when the event was handled.
+-    pub at: u64,
+-    /// What happened.
+-    pub action: SeenAction,
+-    /// Why, in words.
+-    pub reason: String,
+-}
+-
+-/// A reference to the last state acted on.
+-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+-pub struct EventRef {
+-    /// Event id.
+-    pub id: String,
+-    /// Event `created_at` (seconds).
+-    #[serde(rename = "created_at")]
+-    pub created_at: u64,
+-}
+-
+-/// One branch's outcome in the last fetch.
+-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+-pub struct BranchOutcome {
+-    /// The sha the state named.
+-    pub sha: String,
+-    /// Whether the branch moved.
+-    pub moved: bool,
+-    /// Why, in words.
+-    pub verdict: String,
+-}
+-
+-/// The last fetch.
+-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+-pub struct LastFetch {
+-    /// Millisecond clock of the fetch.
+-    pub at: u64,
+-    /// The clone URL used.
+-    pub clone: String,
+-    /// Per-branch outcomes, keyed by ref.
+-    pub branches: BTreeMap<String, BranchOutcome>,
+-    /// How many branches moved.
+-    pub moved: usize,
+-    /// The mark the state carried, if any.
+-    pub mark: Option<MirrorMark>,
+-}
+-
+-/// The durable record of one mirrored repository. Serialised to
+-/// `<plugin_dir>/mirror/<pubkey>/<name>.json` in camelCase, the shape the
+-/// JSS forge serves at `api/repos/<owner>/<name>/mirror`.
+-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+-#[serde(rename_all = "camelCase")]
+-pub struct MirrorRecord {
+-    /// Agent key.
+-    pub pubkey: String,
+-    /// Repository name.
+-    pub name: String,
+-    /// Clone URL from the newest kind-30617 (or the configured one).
+-    pub clone: Option<String>,
+-    /// States counted for this repository.
+-    pub events: u64,
+-    /// The latest state seen.
+-    pub last_seen: Option<LastSeen>,
+-    /// The last state acted on (advances only after a fetch).
+-    pub last_event: Option<EventRef>,
+-    /// Millisecond clock of the last fetch attempt.
+-    pub last_fetch_at: Option<u64>,
+-    /// The last completed fetch.
+-    pub last_fetch: Option<LastFetch>,
+-    /// `created_at` of the newest kind-30617 used for the clone URL.
+-    pub announce_at: Option<u64>,
+-    /// Every clone URL the newest kind-30617 offered.
+-    #[serde(default)]
+-    pub clones: Vec<String>,
+-    /// `created_at` of the newest verified state seen, acted on or not. A
+-    /// state older than this is a replay and is dropped; one equal to it is
+-    /// the catch-up resend of a state that was rate-limited, and is kept.
+-    #[serde(default)]
+-    pub newest_seen_at: u64,
+-    /// Event id of the state that set [`Self::newest_seen_at`]. Two states with
+-    /// the same `created_at` are ordered by id (NIP-01: the lowest id wins), so
+-    /// a sibling that loses the tie-break is dropped.
+-    #[serde(default)]
+-    pub newest_seen_id: String,
+-    /// Consecutive failed applies: a store that could not be examined, or a
+-    /// failed materialise, fetch or publication.
+-    /// The floor between fetches doubles for each, up to [`MAX_BACKOFF_MS`],
+-    /// and only a completed apply resets it.
+-    #[serde(default)]
+-    pub failures: u32,
+-    /// Millisecond clock at which the latest state is worth applying again:
+-    /// set when the rate limit held it back, or when examining its store, or
+-    /// its materialise, fetch or publication, failed in a way that may pass
+-    /// on a retry (never sooner
+-    /// than [`backoff_delay`] of [`Self::failures`] after the failure).
+-    /// Unset when nothing is waiting, or when the refusal will not pass on a
+-    /// retry: a fetch past the size cap, a refused clone URL or address, a
+-    /// terminal [`PublishError`], or [`MAX_TIMEOUTS`] timeouts of the state.
+-    #[serde(default, skip_serializing_if = "Option::is_none")]
+-    pub retry_at: Option<u64>,
+-    /// Whether this record was first written under publication isolation.
+-    /// A record without it predates this release, so its served store may
+-    /// hold content the old shared layout fetched but never approved.
+-    #[serde(default)]
+-    pub isolated: bool,
+-    /// Whether the served store was found in the pre-isolation layout and
+-    /// waits for migration. Persisted so the store is examined once, not on
+-    /// every event.
+-    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+-    pub awaits_migration: bool,
+-    /// Timeouts of the newest state seen, in its fetch, its publication or
+-    /// the examination of its store, and failed DNS lookups of its clone
+-    /// host; at [`MAX_TIMEOUTS`] the state is no longer retried. Reset only
+-    /// when a newer state arrives or an apply completes, not by another
+-    /// kind of failure in between (security I5). Counted only once a record
+-    /// is saved; see [`MAX_TIMEOUTS`].
+-    #[serde(default, skip_serializing_if = "is_zero")]
+-    pub timeouts: u32,
+-}
+-
+-#[allow(clippy::trivially_copy_pass_by_ref)] // serde's skip_serializing_if signature
+-fn is_zero(n: &u32) -> bool {
+-    *n == 0
+-}
+-
+-impl MirrorRecord {
+-    fn new(pubkey: &str, name: &str, clone: Option<String>) -> Self {
+-        Self {
+-            pubkey: pubkey.to_string(),
+-            name: name.to_string(),
+-            clone,
+-            events: 0,
+-            last_seen: None,
+-            last_event: None,
+-            last_fetch_at: None,
+-            last_fetch: None,
+-            announce_at: None,
+-            clones: Vec::new(),
+-            newest_seen_at: 0,
+-            newest_seen_id: String::new(),
+-            failures: 0,
+-            retry_at: None,
+-            isolated: true,
+-            awaits_migration: false,
+-            timeouts: 0,
+-        }
+-    }
+-}
+-
+-/// Reads and writes [`MirrorRecord`] files under a directory.
+-#[derive(Debug, Clone)]
+-pub struct MirrorStore {
+-    dir: PathBuf,
+-}
+-
+-/// What [`MirrorStore::load`] found at a record path.
+-#[derive(Debug, Clone, PartialEq, Eq)]
+-pub enum StoredRecord {
+-    /// No record file: the repository is not (yet) a mirror.
+-    Missing,
+-    /// A record file exists but cannot be read or parsed. The repository is
+-    /// still a mirror: readers refuse it, and the engine leaves the file in
+-    /// place and treats the store as awaiting migration. The reason names
+-    /// no path.
+-    Unreadable(String),
+-    /// A valid record.
+-    Valid(Box<MirrorRecord>),
+-}
+-
+-impl MirrorStore {
+-    /// A store rooted at `plugin_dir/mirror`.
+-    #[must_use]
+-    pub fn new(plugin_dir: impl AsRef<Path>) -> Self {
+-        Self {
+-            dir: plugin_dir.as_ref().join("mirror"),
+-        }
+-    }
+-
+-    fn file(&self, owner: &str, name: &str) -> Option<PathBuf> {
+-        if !is_hex64(owner) || !is_repo_name(name) {
+-            return None;
+-        }
+-        Some(self.dir.join(owner).join(format!("{name}.json")))
+-    }
+-
+-    /// `plugin_dir/mirror-work/locks/<owner>/<name>.lock`, the cross-process
+-    /// advisory lock for one repository (design §3).
+-    fn lock_file(&self, owner: &str, name: &str) -> Option<PathBuf> {
+-        if !is_hex64(owner) || !is_repo_name(name) {
+-            return None;
+-        }
+-        Some(
+-            self.dir
+-                .parent()?
+-                .join("mirror-work")
+-                .join("locks")
+-                .join(owner)
+-                .join(format!("{name}.lock")),
+-        )
+-    }
+-
+-    /// The record for `(owner, name)` when it is present and valid; `None`
+-    /// when it is missing *or* cannot be read or parsed. Use [`Self::load`]
+-    /// to tell those apart: an unreadable record still marks a mirror.
+-    ///
+-    /// # Examples
+-    ///
+-    /// ```
+-    /// use solid_pod_rs_forge::mirror::MirrorStore;
+-    ///
+-    /// let dir = tempfile::tempdir().unwrap();
+-    /// let store = MirrorStore::new(dir.path());
+-    /// assert!(store.read(&"a".repeat(64), "nobody").is_none());
+-    /// ```
+-    #[must_use]
+-    pub fn read(&self, owner: &str, name: &str) -> Option<MirrorRecord> {
+-        match self.load(owner, name) {
+-            StoredRecord::Valid(rec) => Some(*rec),
+-            StoredRecord::Missing | StoredRecord::Unreadable(_) => None,
+-        }
+-    }
+-
+-    /// The record for `(owner, name)`, telling a missing file from one that
+-    /// exists but cannot be read or parsed. An owner or name that is not a
+-    /// safe record key (a 64-hex owner, a valid repository name) has no
+-    /// record path, so no record can exist for it: [`StoredRecord::Missing`],
+-    /// as the reader gate's own path check also finds. Otherwise `Missing`
+-    /// means no directory entry exists; a symlink at the path, dangling or
+-    /// not, is [`StoredRecord::Unreadable`].
+-    ///
+-    /// # Examples
+-    ///
+-    /// ```
+-    /// use solid_pod_rs_forge::mirror::{MirrorStore, StoredRecord};
+-    ///
+-    /// let dir = tempfile::tempdir().unwrap();
+-    /// let store = MirrorStore::new(dir.path());
+-    /// let owner = "a".repeat(64);
+-    /// assert!(matches!(store.load(&owner, "x"), StoredRecord::Missing));
+-    /// assert!(matches!(store.load("alice", "x"), StoredRecord::Missing));
+-    /// std::fs::create_dir_all(dir.path().join("mirror").join(&owner)).unwrap();
+-    /// std::fs::write(dir.path().join("mirror").join(&owner).join("x.json"), b"{").unwrap();
+-    /// assert!(matches!(store.load(&owner, "x"), StoredRecord::Unreadable(_)));
+-    /// ```
+-    #[must_use]
+-    pub fn load(&self, owner: &str, name: &str) -> StoredRecord {
+-        let Some(path) = self.file(owner, name) else {
+-            return StoredRecord::Missing;
+-        };
+-        // Missing only when no directory entry exists. An entry that is a
+-        // symlink, dangling or not, is not a record this store wrote.
+-        match std::fs::symlink_metadata(&path) {
+-            Ok(m) if m.file_type().is_symlink() => {
+-                return StoredRecord::Unreadable("is a symbolic link".into());
+-            }
+-            Ok(_) => {}
+-            Err(e) if e.kind() == std::io::ErrorKind::NotFound => return StoredRecord::Missing,
+-            Err(e) => return StoredRecord::Unreadable(format!("cannot be read: {}", e.kind())),
+-        }
+-        let bytes = match std::fs::read(path) {
+-            Ok(b) => b,
+-            // The entry existed a moment ago: not "no record".
+-            Err(e) => return StoredRecord::Unreadable(format!("cannot be read: {}", e.kind())),
+-        };
+-        match serde_json::from_slice(&bytes) {
+-            Ok(rec) => StoredRecord::Valid(Box::new(rec)),
+-            Err(e) => StoredRecord::Unreadable(format!("is not a valid record: {e}")),
+-        }
+-    }
+-
+-    /// Save a record atomically (write a temporary file, then rename).
+-    ///
+-    /// # Errors
+-    ///
+-    /// An I/O error, or `InvalidInput` when the owner or name is unsafe as
+-    /// a path segment.
+-    pub fn save(&self, rec: &MirrorRecord) -> std::io::Result<()> {
+-        let path = self.file(&rec.pubkey, &rec.name).ok_or_else(|| {
+-            std::io::Error::new(std::io::ErrorKind::InvalidInput, "unsafe mirror key")
+-        })?;
+-        if let Some(parent) = path.parent() {
+-            std::fs::create_dir_all(parent)?;
+-        }
+-        let tmp = path.with_extension("json.tmp");
+-        std::fs::write(&tmp, serde_json::to_vec_pretty(rec)?)?;
+-        std::fs::rename(tmp, path)
+-    }
+-}
+-
+ // ---------------------------------------------------------------------------
+ // The git seam and the real adapter
+ // ---------------------------------------------------------------------------
+@@ -1463,18 +1132,6 @@ fn now_ms(&self) -> u64 {
+     }
+ }
+ 
+-/// The `--receive-pack` command publication runs on the served side.
+-///
+-/// Local transport strips the pusher's `-c` options before receive-pack
+-/// starts, so this string (with the served store's own config) is the hook
+-/// boundary. Git runs it through a shell: it is a fixed literal, equal to
+-/// `solid_pod_rs_git::hardened::HARDENED_CONFIG` plus the receive keys
+-/// (pinned by `receive_pack_command_is_a_fixed_hardened_constant`). Never
+-/// interpolate a path, name or sha into it; that would be shell injection.
+-const RECEIVE_PACK: &str = "git -c core.fsmonitor=false -c core.hooksPath=/dev/null \
+--c core.sshCommand=false -c commit.gpgSign=false -c receive.fsckObjects=true \
+--c receive.denyDeletes=true receive-pack";
+-
+ /// The reason recorded for a served store in the pre-isolation layout.
+ const AWAITS_MIGRATION: &str =
+     "the served repository predates publication isolation and awaits migration";
+@@ -1490,19 +1147,6 @@ fn resolution_failed(why: &str) -> bool {
+         || why.starts_with("DNS resolution returned no addresses for host ")
+ }
+ 
+-/// Whether `git config --list -z` output sets `uploadpack.hideRefs` or
+-/// `transfer.hideRefs` to a value naming `refs/mirror`. Each entry is
+-/// `key\nvalue\0`; git prints section and variable names in lower case.
+-fn hides_mirror_refs(list_z: &[u8]) -> bool {
+-    list_z.split(|b| *b == 0).any(|entry| {
+-        let entry = String::from_utf8_lossy(entry);
+-        let (key, value) = entry.split_once('\n').unwrap_or((&entry, ""));
+-        let key = key.to_ascii_lowercase();
+-        (key == "uploadpack.hiderefs" || key == "transfer.hiderefs")
+-            && value.contains("refs/mirror")
+-    })
+-}
+-
+ /// The refusal of a clone URL that is not one the mirror may fetch. Both
+ /// the engine and [`GitCli`]'s own check return exactly this, so it is
+ /// classified terminal on either path (security S5).
+@@ -1511,12 +1155,6 @@ fn hides_mirror_refs(list_z: &[u8]) -> bool {
+ /// Wall-clock budget for one publication push.
+ const PUBLISH_TIMEOUT: Duration = Duration::from_secs(120);
+ 
+-/// [`GitCli::run_in`]'s error when git outran its deadline.
+-const GIT_TIMED_OUT: &str = "git timed out";
+-/// [`GitCli::run_in`]'s (and the fetch's) error when a store grew past its
+-/// size cap.
+-const GREW_PAST_CAP: &str = "repository grew past the size cap";
+-
+ /// How a failed publication push is classified: a growth-cap kill is
+ /// terminal (the same push grows the same way again), a timeout is
+ /// retryable and flagged, and anything else (a stale lease, a receiver ref
+@@ -1535,14 +1173,6 @@ fn push_failure(reason: String) -> PublishError {
+     }
+ }
+ 
+-/// Config every served store carries, written when it is created or first
+-/// marked: no hooks, objects checked on receipt, no ref deletion.
+-const SERVED_CONFIG: [(&str, &str); 3] = [
+-    ("core.hooksPath", "/dev/null"),
+-    ("receive.fsckObjects", "true"),
+-    ("receive.denyDeletes", "true"),
+-];
+-
+ /// The `git` command-line adapter, rooted at `repo_root`, which must be the
+ /// forge's `plugin_dir/repos` (the root the Git CGI and every reader
+ /// serve). The other stores are derived from its parent:
+@@ -1641,17 +1271,7 @@ fn staging(&self, owner: &str, name: &str) -> Option<PathBuf> {
+     }
+ 
+     async fn init_bare(&self, dir: &Path) -> Result<(), String> {
+-        tokio::fs::create_dir_all(dir)
+-            .await
+-            .map_err(|e| e.to_string())?;
+-        self.run(
+-            dir,
+-            &["init", "--bare", "--quiet", "--initial-branch=main", "."],
+-            None,
+-            Duration::from_secs(15),
+-        )
+-        .await
+-        .map(|_| ())
++        crate::migrate::init_bare(dir).await
+     }
+ 
+     /// The candidate store, created empty when absent (first use, or after
+@@ -1674,16 +1294,7 @@ async fn ensure_candidate(&self, owner: &str, name: &str) -> Result<PathBuf, Str
+     }
+ 
+     async fn write_served_config(&self, dir: &Path) -> Result<(), String> {
+-        for (key, value) in SERVED_CONFIG {
+-            self.run(
+-                dir,
+-                &["config", "--local", key, value],
+-                None,
+-                Duration::from_secs(15),
+-            )
+-            .await?;
+-        }
+-        Ok(())
++        crate::migrate::write_served_config(dir).await
+     }
+ 
+     /// Init, configure and mark a served store in `staging`, then rename it
+@@ -1792,62 +1403,7 @@ async fn first_line(
+         timeout: Duration,
+         pick: impl Fn(&str) -> bool,
+     ) -> Result<Option<String>, String> {
+-        use tokio::io::AsyncBufReadExt;
+-        let mut explicit = std::ffi::OsString::from("--git-dir=");
+-        explicit.push(git_dir);
+-        let mut cmd = solid_pod_rs_git::hardened_git_async();
+-        cmd.arg(explicit)
+-            .args(args)
+-            .current_dir(git_dir)
+-            .env_remove("HOME")
+-            .env_remove("XDG_CONFIG_HOME")
+-            .stdin(std::process::Stdio::null())
+-            .stdout(std::process::Stdio::piped())
+-            .stderr(std::process::Stdio::null())
+-            .kill_on_drop(true);
+-        #[cfg(unix)]
+-        cmd.process_group(0);
+-        let mut child = cmd
+-            .spawn()
+-            .map_err(|e| format!("git could not start: {e}"))?;
+-        let pid = child.id();
+-        let what = args.first().copied().unwrap_or("git");
+-        let stdout = child.stdout.take().ok_or("git has no stdout")?;
+-        let mut lines = tokio::io::BufReader::new(stdout).lines();
+-        let read = async {
+-            while let Some(line) = lines
+-                .next_line()
+-                .await
+-                .map_err(|e| format!("git {what} output unreadable: {e}"))?
+-            {
+-                if pick(&line) {
+-                    return Ok(Some(line));
+-                }
+-            }
+-            Ok(None)
+-        };
+-        let started = tokio::time::Instant::now();
+-        match tokio::time::timeout(timeout, read).await {
+-            Err(_) => {
+-                kill_group(pid).await;
+-                Err(GIT_TIMED_OUT.to_string())
+-            }
+-            Ok(Ok(None)) => {
+-                let left = timeout.saturating_sub(started.elapsed());
+-                match tokio::time::timeout(left, child.wait()).await {
+-                    Ok(Ok(st)) if st.success() => Ok(None),
+-                    Ok(_) => Err(format!("git {what} failed")),
+-                    Err(_) => {
+-                        kill_group(pid).await;
+-                        Err(GIT_TIMED_OUT.to_string())
+-                    }
+-                }
+-            }
+-            Ok(found) => {
+-                kill_group(pid).await;
+-                found
+-            }
+-        }
++        crate::migrate::first_line(git_dir, args, timeout, pick).await
+     }
+ 
+     /// Whether the store shows the old shared layout: `refs/mirror/*`, or
+@@ -1997,78 +1553,7 @@ async fn run_output(
+         timeout: Duration,
+         cap: Option<(u64, DirMeasure)>,
+     ) -> Result<std::process::Output, String> {
+-        let mut explicit = std::ffi::OsString::from("--git-dir=");
+-        explicit.push(git_dir);
+-        let mut cmd = solid_pod_rs_git::hardened_git_async();
+-        cmd.arg(explicit)
+-            .args(args)
+-            .current_dir(watch)
+-            .env_remove("HOME")
+-            .env_remove("XDG_CONFIG_HOME")
+-            .stdin(std::process::Stdio::null())
+-            .stdout(std::process::Stdio::piped())
+-            .stderr(std::process::Stdio::piped())
+-            .kill_on_drop(true);
+-        #[cfg(unix)]
+-        cmd.process_group(0);
+-        if let Some(a) = allow {
+-            cmd.env("GIT_ALLOW_PROTOCOL", a);
+-        }
+-        let child = cmd
+-            .spawn()
+-            .map_err(|e| format!("git could not start: {e}"))?;
+-        let pid = child.id();
+-        let waited = child.wait_with_output();
+-        tokio::pin!(waited);
+-        let deadline = tokio::time::sleep(timeout);
+-        tokio::pin!(deadline);
+-        let (tx, mut grew) = tokio::sync::oneshot::channel::<()>();
+-        let watcher = cap.map(|(limit, measure)| {
+-            let d = watch.to_path_buf();
+-            tokio::spawn(async move {
+-                loop {
+-                    let d2 = d.clone();
+-                    let size = tokio::task::spawn_blocking(move || measure(&d2))
+-                        .await
+-                        .unwrap_or(0);
+-                    if size > limit {
+-                        let _ = tx.send(());
+-                        return;
+-                    }
+-                    tokio::time::sleep(Duration::from_millis(500)).await;
+-                }
+-            })
+-        });
+-        let outcome = tokio::select! {
+-            out = &mut waited => Ok(out),
+-            () = &mut deadline => Err(GIT_TIMED_OUT.to_string()),
+-            Ok(()) = &mut grew => Err(GREW_PAST_CAP.to_string()),
+-        };
+-        if let Some(w) = watcher {
+-            w.abort();
+-        }
+-        match outcome {
+-            Ok(out) => out.map_err(|e| format!("git failed: {e}")),
+-            Err(why) => {
+-                kill_group(pid).await;
+-                Err(why)
+-            }
+-        }
+-    }
+-}
+-
+-/// Kill a process group by leader pid. `kill -KILL -- -<pid>` through the
+-/// system `kill`, because `unsafe` is forbidden here; a no-op where there is
+-/// no pid or no `kill`.
+-async fn kill_group(pid: Option<u32>) {
+-    if let Some(pid) = pid {
+-        let _ = tokio::process::Command::new("kill")
+-            .args(["-KILL", "--", &format!("-{pid}")])
+-            .stdin(std::process::Stdio::null())
+-            .stdout(std::process::Stdio::null())
+-            .stderr(std::process::Stdio::null())
+-            .status()
+-            .await;
++        crate::migrate::run_output(git_dir, watch, args, allow, timeout, cap).await
+     }
+ }
+ 
+@@ -2095,10 +1580,6 @@ async fn remove_store(dir: &Path) {
+     }
+ }
+ 
+-/// How a capped git run measures the directory it watches (injectable so
+-/// tests can stand in a slow or fixed measurement).
+-type DirMeasure = fn(&Path) -> u64;
+-
+ /// Whether `dir` looks like a bare repository to git (`HEAD`, `objects/`
+ /// and `refs/` present). Anything less is rebuilt, never handed to git.
+ async fn is_bare_store(dir: &Path) -> bool {
+diff --git a/crates/solid-pod-rs-forge/src/mirror_record.rs b/crates/solid-pod-rs-forge/src/mirror_record.rs
+new file mode 100644
+index 0000000..5cdd9c7
+--- /dev/null
++++ b/crates/solid-pod-rs-forge/src/mirror_record.rs
+@@ -0,0 +1,354 @@
++//! The mirror record and its store, kept outside the `mirror` feature.
++//!
++//! [`MirrorStore::load`] is the one reader of
++//! `plugin_dir/mirror/<owner>/<name>.json`: the mirror engine uses it, and so
++//! does boot migration ([`crate::migrate`]), which runs without the feature.
++//! Both must reach the same verdict (missing, unreadable or valid) on the same
++//! bytes, so there is one parser. The public path of every item here is
++//! `crate::mirror`, which re-exports them.
++
++#![cfg_attr(
++    not(feature = "mirror"),
++    expect(
++        dead_code,
++        reason = "read by the mirror engine; boot migration reads it in every build"
++    )
++)]
++
++use std::collections::BTreeMap;
++use std::path::{Path, PathBuf};
++
++use serde::{Deserialize, Serialize};
++
++use crate::ownership::valid_name_segment;
++
++pub(crate) fn is_hex64(s: &str) -> bool {
++    s.len() == 64
++        && s.bytes()
++            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
++}
++
++/// A followed repository name: starts alphanumeric, then `[A-Za-z0-9._-]`,
++/// at most 100 bytes, and safe as a single path segment.
++pub(crate) fn is_repo_name(s: &str) -> bool {
++    let first_ok = s.bytes().next().is_some_and(|b| b.is_ascii_alphanumeric());
++    first_ok && valid_name_segment(s)
++}
++
++/// The mark a state carries: the latest on-chain anchor of the repository.
++#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
++pub struct MirrorMark {
++    /// Chain name from the `chain` tag (for example `txbt4`).
++    pub chain: String,
++    /// TXO URI from the `txo` tag.
++    pub txo: String,
++    /// The marked commit (40 lowercase hex) from the `commit` tag.
++    pub commit: String,
++}
++
++/// What the mirror did with the latest state.
++#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
++#[serde(rename_all = "kebab-case")]
++pub enum SeenAction {
++    /// Nothing to do (or nothing possible); see the reason.
++    Skip,
++    /// The fetch failed.
++    FetchFailed,
++    /// At least one branch moved.
++    Moved,
++    /// Fetched, but no branch passed its verdict.
++    Held,
++}
++
++/// The latest state seen for a repository.
++#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
++pub struct LastSeen {
++    /// Event id.
++    pub id: String,
++    /// Event `created_at` (seconds).
++    #[serde(rename = "created_at")]
++    pub created_at: u64,
++    /// Millisecond clock when the event was handled.
++    pub at: u64,
++    /// What happened.
++    pub action: SeenAction,
++    /// Why, in words.
++    pub reason: String,
++}
++
++/// A reference to the last state acted on.
++#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
++pub struct EventRef {
++    /// Event id.
++    pub id: String,
++    /// Event `created_at` (seconds).
++    #[serde(rename = "created_at")]
++    pub created_at: u64,
++}
++
++/// One branch's outcome in the last fetch.
++#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
++pub struct BranchOutcome {
++    /// The sha the state named.
++    pub sha: String,
++    /// Whether the branch moved.
++    pub moved: bool,
++    /// Why, in words.
++    pub verdict: String,
++}
++
++/// The last fetch.
++#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
++pub struct LastFetch {
++    /// Millisecond clock of the fetch.
++    pub at: u64,
++    /// The clone URL used.
++    pub clone: String,
++    /// Per-branch outcomes, keyed by ref.
++    pub branches: BTreeMap<String, BranchOutcome>,
++    /// How many branches moved.
++    pub moved: usize,
++    /// The mark the state carried, if any.
++    pub mark: Option<MirrorMark>,
++}
++
++/// The durable record of one mirrored repository. Serialised to
++/// `<plugin_dir>/mirror/<pubkey>/<name>.json` in camelCase, the shape the
++/// JSS forge serves at `api/repos/<owner>/<name>/mirror`.
++#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
++#[serde(rename_all = "camelCase")]
++pub struct MirrorRecord {
++    /// Agent key.
++    pub pubkey: String,
++    /// Repository name.
++    pub name: String,
++    /// Clone URL from the newest kind-30617 (or the configured one).
++    pub clone: Option<String>,
++    /// States counted for this repository.
++    pub events: u64,
++    /// The latest state seen.
++    pub last_seen: Option<LastSeen>,
++    /// The last state acted on (advances only after a fetch).
++    pub last_event: Option<EventRef>,
++    /// Millisecond clock of the last fetch attempt.
++    pub last_fetch_at: Option<u64>,
++    /// The last completed fetch.
++    pub last_fetch: Option<LastFetch>,
++    /// `created_at` of the newest kind-30617 used for the clone URL.
++    pub announce_at: Option<u64>,
++    /// Every clone URL the newest kind-30617 offered.
++    #[serde(default)]
++    pub clones: Vec<String>,
++    /// `created_at` of the newest verified state seen, acted on or not. A
++    /// state older than this is a replay and is dropped; one equal to it is
++    /// the catch-up resend of a state that was rate-limited, and is kept.
++    #[serde(default)]
++    pub newest_seen_at: u64,
++    /// Event id of the state that set [`Self::newest_seen_at`]. Two states with
++    /// the same `created_at` are ordered by id (NIP-01: the lowest id wins), so
++    /// a sibling that loses the tie-break is dropped.
++    #[serde(default)]
++    pub newest_seen_id: String,
++    /// Consecutive failed applies: a store that could not be examined, or a
++    /// failed materialise, fetch or publication.
++    /// The floor between fetches doubles for each, up to [`MAX_BACKOFF_MS`](crate::mirror::MAX_BACKOFF_MS),
++    /// and only a completed apply resets it.
++    #[serde(default)]
++    pub failures: u32,
++    /// Millisecond clock at which the latest state is worth applying again:
++    /// set when the rate limit held it back, or when examining its store, or
++    /// its materialise, fetch or publication, failed in a way that may pass
++    /// on a retry (never sooner
++    /// than [`backoff_delay`](crate::mirror::backoff_delay) of [`Self::failures`] after the failure).
++    /// Unset when nothing is waiting, or when the refusal will not pass on a
++    /// retry: a fetch past the size cap, a refused clone URL or address, a
++    /// terminal [`PublishError`](crate::mirror::PublishError), or [`MAX_TIMEOUTS`](crate::mirror::MAX_TIMEOUTS) timeouts of the state.
++    #[serde(default, skip_serializing_if = "Option::is_none")]
++    pub retry_at: Option<u64>,
++    /// Whether this record was first written under publication isolation.
++    /// A record without it predates this release, so its served store may
++    /// hold content the old shared layout fetched but never approved.
++    #[serde(default)]
++    pub isolated: bool,
++    /// Whether the served store was found in the pre-isolation layout and
++    /// waits for migration. Persisted so the store is examined once, not on
++    /// every event.
++    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
++    pub awaits_migration: bool,
++    /// Timeouts of the newest state seen, in its fetch, its publication or
++    /// the examination of its store, and failed DNS lookups of its clone
++    /// host; at [`MAX_TIMEOUTS`](crate::mirror::MAX_TIMEOUTS) the state is no longer retried. Reset only
++    /// when a newer state arrives or an apply completes, not by another
++    /// kind of failure in between (security I5). Counted only once a record
++    /// is saved; see [`MAX_TIMEOUTS`](crate::mirror::MAX_TIMEOUTS).
++    #[serde(default, skip_serializing_if = "is_zero")]
++    pub timeouts: u32,
++}
++
++#[allow(clippy::trivially_copy_pass_by_ref)] // serde's skip_serializing_if signature
++fn is_zero(n: &u32) -> bool {
++    *n == 0
++}
++
++impl MirrorRecord {
++    pub(crate) fn new(pubkey: &str, name: &str, clone: Option<String>) -> Self {
++        Self {
++            pubkey: pubkey.to_string(),
++            name: name.to_string(),
++            clone,
++            events: 0,
++            last_seen: None,
++            last_event: None,
++            last_fetch_at: None,
++            last_fetch: None,
++            announce_at: None,
++            clones: Vec::new(),
++            newest_seen_at: 0,
++            newest_seen_id: String::new(),
++            failures: 0,
++            retry_at: None,
++            isolated: true,
++            awaits_migration: false,
++            timeouts: 0,
++        }
++    }
++}
++
++/// Reads and writes [`MirrorRecord`] files under a directory.
++#[derive(Debug, Clone)]
++pub struct MirrorStore {
++    dir: PathBuf,
++}
++
++/// What [`MirrorStore::load`] found at a record path.
++#[derive(Debug, Clone, PartialEq, Eq)]
++pub enum StoredRecord {
++    /// No record file: the repository is not (yet) a mirror.
++    Missing,
++    /// A record file exists but cannot be read or parsed. The repository is
++    /// still a mirror: readers refuse it, and the engine leaves the file in
++    /// place and treats the store as awaiting migration. The reason names
++    /// no path.
++    Unreadable(String),
++    /// A valid record.
++    Valid(Box<MirrorRecord>),
++}
++
++impl MirrorStore {
++    /// A store rooted at `plugin_dir/mirror`.
++    #[must_use]
++    pub fn new(plugin_dir: impl AsRef<Path>) -> Self {
++        Self {
++            dir: plugin_dir.as_ref().join("mirror"),
++        }
++    }
++
++    fn file(&self, owner: &str, name: &str) -> Option<PathBuf> {
++        if !is_hex64(owner) || !is_repo_name(name) {
++            return None;
++        }
++        Some(self.dir.join(owner).join(format!("{name}.json")))
++    }
++
++    /// `plugin_dir/mirror-work/locks/<owner>/<name>.lock`, the cross-process
++    /// advisory lock for one repository (design §3). Only a 64-hex owner and a
++    /// followed repository name have one here; the path itself is
++    /// [`crate::migrate::lock_path`], which boot migration shares.
++    pub(crate) fn lock_file(&self, owner: &str, name: &str) -> Option<PathBuf> {
++        if !is_hex64(owner) || !is_repo_name(name) {
++            return None;
++        }
++        crate::migrate::lock_path(self.dir.parent()?, owner, name)
++    }
++
++    /// The record for `(owner, name)` when it is present and valid; `None`
++    /// when it is missing *or* cannot be read or parsed. Use [`Self::load`]
++    /// to tell those apart: an unreadable record still marks a mirror.
++    ///
++    /// # Examples
++    ///
++    /// ```
++    /// # #[cfg(feature = "mirror")] {
++    /// use solid_pod_rs_forge::mirror::MirrorStore;
++    ///
++    /// let dir = tempfile::tempdir().unwrap();
++    /// let store = MirrorStore::new(dir.path());
++    /// assert!(store.read(&"a".repeat(64), "nobody").is_none());
++    /// # }
++    /// ```
++    #[must_use]
++    pub fn read(&self, owner: &str, name: &str) -> Option<MirrorRecord> {
++        match self.load(owner, name) {
++            StoredRecord::Valid(rec) => Some(*rec),
++            StoredRecord::Missing | StoredRecord::Unreadable(_) => None,
++        }
++    }
++
++    /// The record for `(owner, name)`, telling a missing file from one that
++    /// exists but cannot be read or parsed. An owner or name that is not a
++    /// safe record key (a 64-hex owner, a valid repository name) has no
++    /// record path, so no record can exist for it: [`StoredRecord::Missing`],
++    /// as the reader gate's own path check also finds. Otherwise `Missing`
++    /// means no directory entry exists; a symlink at the path, dangling or
++    /// not, is [`StoredRecord::Unreadable`].
++    ///
++    /// # Examples
++    ///
++    /// ```
++    /// # #[cfg(feature = "mirror")] {
++    /// use solid_pod_rs_forge::mirror::{MirrorStore, StoredRecord};
++    ///
++    /// let dir = tempfile::tempdir().unwrap();
++    /// let store = MirrorStore::new(dir.path());
++    /// let owner = "a".repeat(64);
++    /// assert!(matches!(store.load(&owner, "x"), StoredRecord::Missing));
++    /// assert!(matches!(store.load("alice", "x"), StoredRecord::Missing));
++    /// std::fs::create_dir_all(dir.path().join("mirror").join(&owner)).unwrap();
++    /// std::fs::write(dir.path().join("mirror").join(&owner).join("x.json"), b"{").unwrap();
++    /// assert!(matches!(store.load(&owner, "x"), StoredRecord::Unreadable(_)));
++    /// # }
++    /// ```
++    #[must_use]
++    pub fn load(&self, owner: &str, name: &str) -> StoredRecord {
++        let Some(path) = self.file(owner, name) else {
++            return StoredRecord::Missing;
++        };
++        // Missing only when no directory entry exists. An entry that is a
++        // symlink, dangling or not, is not a record this store wrote.
++        match std::fs::symlink_metadata(&path) {
++            Ok(m) if m.file_type().is_symlink() => {
++                return StoredRecord::Unreadable("is a symbolic link".into());
++            }
++            Ok(_) => {}
++            Err(e) if e.kind() == std::io::ErrorKind::NotFound => return StoredRecord::Missing,
++            Err(e) => return StoredRecord::Unreadable(format!("cannot be read: {}", e.kind())),
++        }
++        let bytes = match std::fs::read(path) {
++            Ok(b) => b,
++            // The entry existed a moment ago: not "no record".
++            Err(e) => return StoredRecord::Unreadable(format!("cannot be read: {}", e.kind())),
++        };
++        match serde_json::from_slice(&bytes) {
++            Ok(rec) => StoredRecord::Valid(Box::new(rec)),
++            Err(e) => StoredRecord::Unreadable(format!("is not a valid record: {e}")),
++        }
++    }
++
++    /// Save a record atomically (write a temporary file, then rename).
++    ///
++    /// # Errors
++    ///
++    /// An I/O error, or `InvalidInput` when the owner or name is unsafe as
++    /// a path segment.
++    pub fn save(&self, rec: &MirrorRecord) -> std::io::Result<()> {
++        let path = self.file(&rec.pubkey, &rec.name).ok_or_else(|| {
++            std::io::Error::new(std::io::ErrorKind::InvalidInput, "unsafe mirror key")
++        })?;
++        if let Some(parent) = path.parent() {
++            std::fs::create_dir_all(parent)?;
++        }
++        let tmp = path.with_extension("json.tmp");
++        std::fs::write(&tmp, serde_json::to_vec_pretty(rec)?)?;
++        std::fs::rename(tmp, path)
++    }
++}

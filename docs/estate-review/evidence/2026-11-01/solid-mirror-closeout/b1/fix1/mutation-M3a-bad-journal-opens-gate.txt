@@ -1,0 +1,24 @@
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.91s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d229dc2d13dcc7a9)
+
+running 1 test
+test migrate_tests::f3_a_symlinked_journal_gates ... FAILED
+
+failures:
+
+---- migrate_tests::f3_a_symlinked_journal_gates stdout ----
+
+thread 'migrate_tests::f3_a_symlinked_journal_gates' (4046078) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:1488:9:
+assertion `left == right` failed: a journal symlink to /home/devuser/workspace/.tmp/.tmpV0glo1/nowhere.json opened the gate
+  left: 200
+ right: 503
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    migrate_tests::f3_a_symlinked_journal_gates
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 379 filtered out; finished in 0.85s
+
+error: test failed, to rerun pass `-p solid-pod-rs-forge --lib`

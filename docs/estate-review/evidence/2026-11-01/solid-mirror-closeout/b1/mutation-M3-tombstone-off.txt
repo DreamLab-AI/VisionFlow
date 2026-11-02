@@ -1,0 +1,38 @@
+# mutation M3-tombstone-off: replace
+pub(crate) fn journal_exists(plugin_dir: &Path, owner: &str, name: &str) -> bool {
+# with
+pub(crate) fn journal_exists(plugin_dir: &Path, owner: &str, name: &str) -> bool {
+    if !plugin_dir.as_os_str().is_empty() {
+        return false;
+    }
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.85s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d229dc2d13dcc7a9)
+
+running 2 tests
+test migrate_tests::t18_smart_http_push_is_refused_while_a_journal_exists ... FAILED
+test migrate_tests::t12_crash_after_the_first_rename_resumes_and_materialise_refuses ... FAILED
+
+failures:
+
+---- migrate_tests::t18_smart_http_push_is_refused_while_a_journal_exists stdout ----
+
+thread 'migrate_tests::t18_smart_http_push_is_refused_while_a_journal_exists' (3778391) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:1029:9:
+assertion `left == right` failed: push with a published journal
+  left: 401
+ right: 503
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- migrate_tests::t12_crash_after_the_first_rename_resumes_and_materialise_refuses stdout ----
+
+thread 'migrate_tests::t12_crash_after_the_first_rename_resumes_and_materialise_refuses' (3778390) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:1150:5:
+materialise ran while a migration journal exists
+
+
+failures:
+    migrate_tests::t12_crash_after_the_first_rename_resumes_and_materialise_refuses
+    migrate_tests::t18_smart_http_push_is_refused_while_a_journal_exists
+
+test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 362 filtered out; finished in 0.98s
+
+error: test failed, to rerun pass `-p solid-pod-rs-forge --lib`

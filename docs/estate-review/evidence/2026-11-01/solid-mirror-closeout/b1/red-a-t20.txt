@@ -1,0 +1,75 @@
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+error[E0433]: cannot find `migrate` in the crate root
+  --> crates/solid-pod-rs-forge/src/migrate_tests.rs:11:16
+   |
+11 |         crate::migrate::RECEIVE_PACK,
+   |                ^^^^^^^ could not find `migrate` in the crate root
+
+error[E0433]: cannot find `migrate` in the crate root
+  --> crates/solid-pod-rs-forge/src/migrate_tests.rs:17:16
+   |
+17 |         crate::migrate::SERVED_CONFIG,
+   |                ^^^^^^^ could not find `migrate` in the crate root
+
+error[E0433]: cannot find `migrate` in the crate root
+  --> crates/solid-pod-rs-forge/src/migrate_tests.rs:27:16
+   |
+27 |         crate::migrate::lock_path(plugin, &owner, "sample"),
+   |                ^^^^^^^ could not find `migrate` in the crate root
+
+error[E0433]: cannot find `migrate` in the crate root
+  --> crates/solid-pod-rs-forge/src/migrate_tests.rs:37:16
+   |
+37 |         crate::migrate::lock_path(plugin, "bob", "fork-1"),
+   |                ^^^^^^^ could not find `migrate` in the crate root
+
+error[E0433]: cannot find `migrate` in the crate root
+  --> crates/solid-pod-rs-forge/src/migrate_tests.rs:41:23
+   |
+41 |     assert_eq!(crate::migrate::lock_path(plugin, "..", "x"), None);
+   |                       ^^^^^^^ could not find `migrate` in the crate root
+
+error[E0433]: cannot find `migrate` in the crate root
+  --> crates/solid-pod-rs-forge/src/migrate_tests.rs:42:23
+   |
+42 |     assert_eq!(crate::migrate::lock_path(plugin, "bob", ".fork-x.tmp"), None);
+   |                       ^^^^^^^ could not find `migrate` in the crate root
+
+error[E0433]: cannot find `migrate` in the crate root
+  --> crates/solid-pod-rs-forge/src/migrate_tests.rs:46:16
+   |
+46 |         crate::migrate::lock_path(plugin, &owner, "sample"),
+   |                ^^^^^^^ could not find `migrate` in the crate root
+
+error[E0433]: cannot find `mirror_record` in the crate root
+  --> crates/solid-pod-rs-forge/src/migrate_tests.rs:50:21
+   |
+50 |     let rec: crate::mirror_record::MirrorRecord = serde_json::from_str(&json).unwrap();
+   |                     ^^^^^^^^^^^^^ could not find `mirror_record` in the crate root
+
+error[E0433]: cannot find `migrate` in the crate root
+  --> crates/solid-pod-rs-forge/src/migrate_tests.rs:53:28
+   |
+53 |     assert_eq!(back[crate::migrate::AWAITS_MIGRATION_KEY], true, "{back}");
+   |                            ^^^^^^^ could not find `migrate` in the crate root
+
+error[E0433]: cannot find `migrate` in the crate root
+  --> crates/solid-pod-rs-forge/src/migrate_tests.rs:54:23
+   |
+54 |     assert_eq!(crate::migrate::AWAITS_MIGRATION_KEY, "awaitsMigration");
+   |                       ^^^^^^^ could not find `migrate` in the crate root
+
+error[E0624]: method `lock_file` is private
+    --> crates/solid-pod-rs-forge/src/migrate_tests.rs:45:49
+     |
+  45 |         crate::mirror::MirrorStore::new(plugin).lock_file(&owner, "sample"),
+     |                                                 ^^^^^^^^^ private method
+     |
+    ::: crates/solid-pod-rs-forge/src/mirror.rs:1121:5
+     |
+1121 |     fn lock_file(&self, owner: &str, name: &str) -> Option<PathBuf> {
+     |     --------------------------------------------------------------- private method defined here
+
+Some errors have detailed explanations: E0433, E0624.
+For more information about an error, try `rustc --explain E0433`.
+error: could not compile `solid-pod-rs-forge` (lib test) due to 11 previous errors

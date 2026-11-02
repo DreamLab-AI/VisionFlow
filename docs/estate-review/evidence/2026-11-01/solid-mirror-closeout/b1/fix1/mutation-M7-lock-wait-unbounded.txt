@@ -1,0 +1,22 @@
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.32s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d229dc2d13dcc7a9)
+
+running 1 test
+test migrate_tests::f7_a_held_lock_times_out_and_gates ... FAILED
+
+failures:
+
+---- migrate_tests::f7_a_held_lock_times_out_and_gates stdout ----
+
+thread 'migrate_tests::f7_a_held_lock_times_out_and_gates' (4049071) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:1756:21:
+ForgeService::new waited on the lock past its deadline: Timeout
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    migrate_tests::f7_a_held_lock_times_out_and_gates
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 379 filtered out; finished in 31.28s
+
+error: test failed, to rerun pass `-p solid-pod-rs-forge --lib`

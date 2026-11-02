@@ -1,0 +1,22 @@
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.26s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d229dc2d13dcc7a9)
+
+running 1 test
+test migrate_tests::f5_a_crash_after_the_second_rename_is_finished_not_rebuilt ... FAILED
+
+failures:
+
+---- migrate_tests::f5_a_crash_after_the_second_rename_is_finished_not_rebuilt stdout ----
+
+thread 'migrate_tests::f5_a_crash_after_the_second_rename_is_finished_not_rebuilt' (4047512) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:1622:9:
+moved/true: journal left: {"id":"56ba796c1efe454f806c5ccac06218f5","ts":1,"class":"mirror","state":"moved","moved":true,"staging":"mirror-work/staging/f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0/sample.git.0123456789abcdef0123456789abcdef","recovery":"mirror-recovery/f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0/sample.git.1793597662","attempts":1}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    migrate_tests::f5_a_crash_after_the_second_rename_is_finished_not_rebuilt
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 379 filtered out; finished in 1.21s
+
+error: test failed, to rerun pass `-p solid-pod-rs-forge --lib`

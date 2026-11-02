@@ -1,0 +1,33 @@
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+warning: variable does not need to be mutable
+    --> crates/solid-pod-rs-forge/src/migrate.rs:2309:9
+     |
+2309 |     let mut cmd = git_command(git_dir, git_dir, args);
+     |         ----^^^
+     |         |
+     |         help: remove this `mut`
+     |
+     = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: `solid-pod-rs-forge` (lib test) generated 1 warning (run `cargo fix --lib -p solid-pod-rs-forge --tests` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.19s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d229dc2d13dcc7a9)
+
+running 1 test
+test migrate_tests::f1_a_replace_ref_does_not_widen_the_roots ... FAILED
+
+failures:
+
+---- migrate_tests::f1_a_replace_ref_does_not_widen_the_roots stdout ----
+
+thread 'migrate_tests::f1_a_replace_ref_does_not_widen_the_roots' (4123052) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:1949:5:
+a replacement smuggled the held blob into the rebuilt store
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    migrate_tests::f1_a_replace_ref_does_not_widen_the_roots
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 382 filtered out; finished in 0.75s
+
+error: test failed, to rerun pass `-p solid-pod-rs-forge --lib`

@@ -1,0 +1,567 @@
+# boot migration switched off (lib.rs: run_at_boot commented out); hardened fixtures
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+warning: constant `PUSH_BATCH` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:369:7
+    |
+369 | const PUSH_BATCH: usize = 512;
+    |       ^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: constant `MAX_HELD_IDS` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:374:7
+    |
+374 | const MAX_HELD_IDS: usize = 16_000_000;
+    |       ^^^^^^^^^^^^
+
+warning: function `run_at_boot` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:474:15
+    |
+474 | pub(crate) fn run_at_boot(plugin_dir: &Path) {
+    |               ^^^^^^^^^^^
+
+warning: function `run` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:494:10
+    |
+494 | async fn run(plugin: &Path) {
+    |          ^^^
+
+warning: enum `Outcome` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:532:6
+    |
+532 | enum Outcome {
+    |      ^^^^^^^
+
+warning: function `journaled` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:539:10
+    |
+539 | async fn journaled(plugin: &Path) -> Vec<(String, String)> {
+    |          ^^^^^^^^^
+
+warning: enum `Detected` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:568:6
+    |
+568 | enum Detected {
+    |      ^^^^^^^^
+
+warning: struct `Paths` is never constructed
+   --> crates/solid-pod-rs-forge/src/migrate.rs:580:8
+    |
+580 | struct Paths {
+    |        ^^^^^
+
+warning: associated function `of` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:590:8
+    |
+589 | impl Paths {
+    | ---------- associated function in this implementation
+590 |     fn of(plugin: &Path, owner: &str, name: &str) -> Option<Self> {
+    |        ^^
+
+warning: function `is_dir` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:606:4
+    |
+606 | fn is_dir(p: &Path) -> bool {
+    |    ^^^^^^
+
+warning: function `has_report` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:611:4
+    |
+611 | fn has_report(recovery_dir: &Path, name: &str) -> bool {
+    |    ^^^^^^^^^^
+
+warning: function `detect` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:628:10
+    |
+628 | async fn detect(plugin: &Path, owner: &str, name: &str) -> Detected {
+    |          ^^^^^^
+
+warning: function `legacy_traces` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:667:10
+    |
+667 | async fn legacy_traces(served: &Path) -> Result<bool, String> {
+    |          ^^^^^^^^^^^^^
+
+warning: function `now_secs` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:706:4
+    |
+706 | fn now_secs() -> u64 {
+    |    ^^^^^^^^
+
+warning: function `read_journal` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:714:4
+    |
+714 | fn read_journal(path: &Path) -> Option<Result<Journal, String>> {
+    |    ^^^^^^^^^^^^
+
+warning: function `write_journal` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:723:4
+    |
+723 | fn write_journal(path: &Path, j: &Journal) -> Result<(), String> {
+    |    ^^^^^^^^^^^^^
+
+warning: function `take_lock` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:734:10
+    |
+734 | async fn take_lock(path: PathBuf) -> std::io::Result<std::fs::File> {
+    |          ^^^^^^^^^
+
+warning: function `fresh_recovery` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:752:4
+    |
+752 | fn fresh_recovery(plugin: &Path, p: &Paths, name: &str) -> (u64, String) {
+    |    ^^^^^^^^^^^^^^
+
+warning: function `migrate_one` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:773:10
+    |
+773 | async fn migrate_one(plugin: &Path, owner: &str, name: &str) -> Outcome {
+    |          ^^^^^^^^^^^
+
+warning: function `relative` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:871:4
+    |
+871 | fn relative(plugin: &Path, p: &Path) -> String {
+    |    ^^^^^^^^
+
+warning: function `redact` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:879:4
+    |
+879 | fn redact(plugin: &Path, msg: &str) -> String {
+    |    ^^^^^^
+
+warning: function `with_suffix` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:887:4
+    |
+887 | fn with_suffix(base: &Path, suffix: &str) -> PathBuf {
+    |    ^^^^^^^^^^^
+
+warning: function `fail` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:894:4
+    |
+894 | fn fail(plugin: &Path, p: &Paths, owner: &str, name: &str, mut j: Journal, why: &str) -> Outcome {
+    |    ^^^^
+
+warning: function `clear_staging` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:908:10
+    |
+908 | async fn clear_staging(staging_dir: &Path, name: &str) {
+    |          ^^^^^^^^^^^^^
+
+warning: function `rebuild` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:924:10
+    |
+924 | async fn rebuild(plugin: &Path, p: &Paths, owner: &str, name: &str, mut j: Journal) -> Outcome {
+    |          ^^^^^^^
+
+warning: function `remove_dir` is never used
+    --> crates/solid-pod-rs-forge/src/migrate.rs:1044:10
+     |
+1044 | async fn remove_dir(dir: &Path) {
+     |          ^^^^^^^^^^
+
+warning: function `finish` is never used
+    --> crates/solid-pod-rs-forge/src/migrate.rs:1055:4
+     |
+1055 | fn finish(plugin: &Path, p: &Paths, owner: &str, name: &str) -> Result<(), String> {
+     |    ^^^^^^
+
+warning: struct `DroppedRef` is never constructed
+    --> crates/solid-pod-rs-forge/src/migrate.rs:1086:8
+     |
+1086 | struct DroppedRef {
+     |        ^^^^^^^^^^
+
+warning: struct `Built` is never constructed
+    --> crates/solid-pod-rs-forge/src/migrate.rs:1095:8
+     |
+1095 | struct Built {
+     |        ^^^^^
+
+warning: function `safe_ref` is never used
+    --> crates/solid-pod-rs-forge/src/migrate.rs:1111:4
+     |
+1111 | fn safe_ref(r: &str) -> bool {
+     |    ^^^^^^^^
+
+warning: function `is_sha40` is never used
+    --> crates/solid-pod-rs-forge/src/migrate.rs:1126:4
+     |
+1126 | fn is_sha40(s: &str) -> bool {
+     |    ^^^^^^^^
+
+warning: function `build` is never used
+    --> crates/solid-pod-rs-forge/src/migrate.rs:1135:10
+     |
+1135 | async fn build(source: &Path, staging: &Path) -> Result<Built, String> {
+     |          ^^^^^
+
+warning: function `held_set` is never used
+    --> crates/solid-pod-rs-forge/src/migrate.rs:1207:10
+     |
+1207 | async fn held_set(source: &Path, has_mirror_refs: bool) -> Result<HashSet<String>, String> {
+     |          ^^^^^^^^
+
+warning: function `reaches_held` is never used
+    --> crates/solid-pod-rs-forge/src/migrate.rs:1256:10
+     |
+1256 | async fn reaches_held(source: &Path, sha: &str, held: &HashSet<String>) -> Result<bool, String> {
+     |          ^^^^^^^^^^^^
+
+warning: function `push_refs` is never used
+    --> crates/solid-pod-rs-forge/src/migrate.rs:1277:10
+     |
+1277 | async fn push_refs(
+     |          ^^^^^^^^^
+
+warning: function `choose_head` is never used
+    --> crates/solid-pod-rs-forge/src/migrate.rs:1319:10
+     |
+1319 | async fn choose_head(
+     |          ^^^^^^^^^^^
+
+warning: function `dropped_objects` is never used
+    --> crates/solid-pod-rs-forge/src/migrate.rs:1461:10
+     |
+1461 | async fn dropped_objects(source: &Path, staging: &Path) -> Result<Vec<String>, String> {
+     |          ^^^^^^^^^^^^^^^
+
+warning: function `write_report` is never used
+    --> crates/solid-pod-rs-forge/src/migrate.rs:1487:4
+     |
+1487 | fn write_report(
+     |    ^^^^^^^^^^^^
+
+warning: function `for_each_line` is never used
+    --> crates/solid-pod-rs-forge/src/migrate.rs:1566:10
+     |
+1566 | async fn for_each_line(
+     |          ^^^^^^^^^^^^^
+
+warning: `solid-pod-rs-forge` (lib test) generated 39 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.64s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d229dc2d13dcc7a9)
+
+running 1 test
+test mirror::tests::migration_b1::t15_redelivered_state_is_applied_after_migration ... FAILED
+
+failures:
+
+---- mirror::tests::migration_b1::t15_redelivered_state_is_applied_after_migration stdout ----
+
+thread 'mirror::tests::migration_b1::t15_redelivered_state_is_applied_after_migration' (3838316) panicked at crates/solid-pod-rs-forge/src/mirror.rs:9193:13:
+the served repository predates publication isolation and awaits migration
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    mirror::tests::migration_b1::t15_redelivered_state_is_applied_after_migration
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 363 filtered out; finished in 0.43s
+
+error: test failed, to rerun pass `-p solid-pod-rs-forge --lib`
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+warning: constant `STORE_BUDGET` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:366:7
+    |
+366 | const STORE_BUDGET: Duration = Duration::from_secs(600);
+    |       ^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: constant `PUSH_BATCH` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:369:7
+    |
+369 | const PUSH_BATCH: usize = 512;
+    |       ^^^^^^^^^^
+
+warning: constant `MAX_HELD_IDS` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:374:7
+    |
+374 | const MAX_HELD_IDS: usize = 16_000_000;
+    |       ^^^^^^^^^^^^
+
+warning: function `run_at_boot` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:474:15
+    |
+474 | pub(crate) fn run_at_boot(plugin_dir: &Path) {
+    |               ^^^^^^^^^^^
+
+warning: function `run` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:494:10
+    |
+494 | async fn run(plugin: &Path) {
+    |          ^^^
+
+warning: enum `Outcome` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:532:6
+    |
+532 | enum Outcome {
+    |      ^^^^^^^
+
+warning: function `journaled` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:539:10
+    |
+539 | async fn journaled(plugin: &Path) -> Vec<(String, String)> {
+    |          ^^^^^^^^^
+
+warning: enum `Detected` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:568:6
+    |
+568 | enum Detected {
+    |      ^^^^^^^^
+
+warning: struct `Paths` is never constructed
+   --> crates/solid-pod-rs-forge/src/migrate.rs:580:8
+    |
+580 | struct Paths {
+    |        ^^^^^
+
+warning: associated function `of` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:590:8
+    |
+589 | impl Paths {
+    | ---------- associated function in this implementation
+590 |     fn of(plugin: &Path, owner: &str, name: &str) -> Option<Self> {
+    |        ^^
+
+warning: function `is_dir` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:606:4
+    |
+606 | fn is_dir(p: &Path) -> bool {
+    |    ^^^^^^
+
+warning: function `has_report` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:611:4
+    |
+611 | fn has_report(recovery_dir: &Path, name: &str) -> bool {
+    |    ^^^^^^^^^^
+
+warning: function `detect` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:628:10
+    |
+628 | async fn detect(plugin: &Path, owner: &str, name: &str) -> Detected {
+    |          ^^^^^^
+
+warning: function `legacy_traces` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:667:10
+    |
+667 | async fn legacy_traces(served: &Path) -> Result<bool, String> {
+    |          ^^^^^^^^^^^^^
+
+warning: function `now_secs` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:706:4
+    |
+706 | fn now_secs() -> u64 {
+    |    ^^^^^^^^
+
+warning: function `read_journal` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:714:4
+    |
+714 | fn read_journal(path: &Path) -> Option<Result<Journal, String>> {
+    |    ^^^^^^^^^^^^
+
+warning: function `write_journal` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:723:4
+    |
+723 | fn write_journal(path: &Path, j: &Journal) -> Result<(), String> {
+    |    ^^^^^^^^^^^^^
+
+warning: function `take_lock` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:734:10
+    |
+734 | async fn take_lock(path: PathBuf) -> std::io::Result<std::fs::File> {
+    |          ^^^^^^^^^
+
+warning: function `fresh_recovery` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:752:4
+    |
+752 | fn fresh_recovery(plugin: &Path, p: &Paths, name: &str) -> (u64, String) {
+    |    ^^^^^^^^^^^^^^
+
+warning: function `migrate_one` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:773:10
+    |
+773 | async fn migrate_one(plugin: &Path, owner: &str, name: &str) -> Outcome {
+    |          ^^^^^^^^^^^
+
+warning: function `relative` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:871:4
+    |
+871 | fn relative(plugin: &Path, p: &Path) -> String {
+    |    ^^^^^^^^
+
+warning: function `redact` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:879:4
+    |
+879 | fn redact(plugin: &Path, msg: &str) -> String {
+    |    ^^^^^^
+
+warning: function `with_suffix` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:887:4
+    |
+887 | fn with_suffix(base: &Path, suffix: &str) -> PathBuf {
+    |    ^^^^^^^^^^^
+
+warning: function `fail` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:894:4
+    |
+894 | fn fail(plugin: &Path, p: &Paths, owner: &str, name: &str, mut j: Journal, why: &str) -> Outcome {
+    |    ^^^^
+
+warning: function `clear_staging` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:908:10
+    |
+908 | async fn clear_staging(staging_dir: &Path, name: &str) {
+    |          ^^^^^^^^^^^^^
+
+warning: function `rebuild` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:924:10
+    |
+924 | async fn rebuild(plugin: &Path, p: &Paths, owner: &str, name: &str, mut j: Journal) -> Outcome {
+    |          ^^^^^^^
+
+warning: function `remove_dir` is never used
+    --> crates/solid-pod-rs-forge/src/migrate.rs:1044:10
+     |
+1044 | async fn remove_dir(dir: &Path) {
+     |          ^^^^^^^^^^
+
+warning: function `finish` is never used
+    --> crates/solid-pod-rs-forge/src/migrate.rs:1055:4
+     |
+1055 | fn finish(plugin: &Path, p: &Paths, owner: &str, name: &str) -> Result<(), String> {
+     |    ^^^^^^
+
+warning: struct `DroppedRef` is never constructed
+    --> crates/solid-pod-rs-forge/src/migrate.rs:1086:8
+     |
+1086 | struct DroppedRef {
+     |        ^^^^^^^^^^
+
+warning: struct `Built` is never constructed
+    --> crates/solid-pod-rs-forge/src/migrate.rs:1095:8
+     |
+1095 | struct Built {
+     |        ^^^^^
+
+warning: function `safe_ref` is never used
+    --> crates/solid-pod-rs-forge/src/migrate.rs:1111:4
+     |
+1111 | fn safe_ref(r: &str) -> bool {
+     |    ^^^^^^^^
+
+warning: function `is_sha40` is never used
+    --> crates/solid-pod-rs-forge/src/migrate.rs:1126:4
+     |
+1126 | fn is_sha40(s: &str) -> bool {
+     |    ^^^^^^^^
+
+warning: function `build` is never used
+    --> crates/solid-pod-rs-forge/src/migrate.rs:1135:10
+     |
+1135 | async fn build(source: &Path, staging: &Path) -> Result<Built, String> {
+     |          ^^^^^
+
+warning: function `held_set` is never used
+    --> crates/solid-pod-rs-forge/src/migrate.rs:1207:10
+     |
+1207 | async fn held_set(source: &Path, has_mirror_refs: bool) -> Result<HashSet<String>, String> {
+     |          ^^^^^^^^
+
+warning: function `reaches_held` is never used
+    --> crates/solid-pod-rs-forge/src/migrate.rs:1256:10
+     |
+1256 | async fn reaches_held(source: &Path, sha: &str, held: &HashSet<String>) -> Result<bool, String> {
+     |          ^^^^^^^^^^^^
+
+warning: function `push_refs` is never used
+    --> crates/solid-pod-rs-forge/src/migrate.rs:1277:10
+     |
+1277 | async fn push_refs(
+     |          ^^^^^^^^^
+
+warning: function `choose_head` is never used
+    --> crates/solid-pod-rs-forge/src/migrate.rs:1319:10
+     |
+1319 | async fn choose_head(
+     |          ^^^^^^^^^^^
+
+warning: function `verify` is never used
+    --> crates/solid-pod-rs-forge/src/migrate.rs:1348:21
+     |
+1348 | pub(crate) async fn verify(
+     |                     ^^^^^^
+
+warning: function `present_count` is never used
+    --> crates/solid-pod-rs-forge/src/migrate.rs:1396:10
+     |
+1396 | async fn present_count(git_dir: &Path, ids: &HashSet<String>) -> Result<usize, String> {
+     |          ^^^^^^^^^^^^^
+
+warning: function `shares_inodes` is never used
+    --> crates/solid-pod-rs-forge/src/migrate.rs:1421:4
+     |
+1421 | fn shares_inodes(source: &Path, staging: &Path) -> Result<bool, String> {
+     |    ^^^^^^^^^^^^^
+
+warning: function `dropped_objects` is never used
+    --> crates/solid-pod-rs-forge/src/migrate.rs:1461:10
+     |
+1461 | async fn dropped_objects(source: &Path, staging: &Path) -> Result<Vec<String>, String> {
+     |          ^^^^^^^^^^^^^^^
+
+warning: function `write_report` is never used
+    --> crates/solid-pod-rs-forge/src/migrate.rs:1487:4
+     |
+1487 | fn write_report(
+     |    ^^^^^^^^^^^^
+
+warning: function `for_each_line` is never used
+    --> crates/solid-pod-rs-forge/src/migrate.rs:1566:10
+     |
+1566 | async fn for_each_line(
+     |          ^^^^^^^^^^^^^
+
+warning: function `run_with_input` is never used
+    --> crates/solid-pod-rs-forge/src/migrate.rs:1610:10
+     |
+1610 | async fn run_with_input(
+     |          ^^^^^^^^^^^^^^
+
+   Compiling solid-pod-rs-server v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-server)
+warning: `solid-pod-rs-forge` (lib) generated 44 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 10.81s
+     Running tests/forge_migration_runtime.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/forge_migration_runtime-bcadf2f77dc5b713)
+
+running 2 tests
+test forge_migration_completes_inside_an_actix_web_test ... FAILED
+test forge_migration_completes_inside_an_actix_system ... FAILED
+
+failures:
+
+---- forge_migration_completes_inside_an_actix_web_test stdout ----
+
+thread 'forge_migration_completes_inside_an_actix_web_test' (3839624) panicked at crates/solid-pod-rs-server/tests/forge_migration_runtime.rs:116:5:
+assertion `left == right` failed: b1-server-held-bytes
+
+  left: 200
+ right: 404
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- forge_migration_completes_inside_an_actix_system stdout ----
+
+thread 'forge_migration_completes_inside_an_actix_system' (3839623) panicked at crates/solid-pod-rs-server/tests/forge_migration_runtime.rs:116:5:
+assertion `left == right` failed: b1-server-held-bytes
+
+  left: 200
+ right: 404
+
+
+failures:
+    forge_migration_completes_inside_an_actix_system
+    forge_migration_completes_inside_an_actix_web_test
+
+test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.54s
+
+error: test failed, to rerun pass `-p solid-pod-rs-server --test forge_migration_runtime`

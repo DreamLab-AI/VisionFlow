@@ -1,0 +1,3 @@
+M1c-replace-objects-on (item 1): mutated exit=101; failed=1 ['migrate_tests::f1_a_replace_ref_does_not_widen_the_roots']; restored sha ok=True
+M3c-published-unbound (item 3): mutated exit=101; failed=1 ['migrate_tests::f3_a_forged_published_journal_does_not_open_a_store']; restored sha ok=True
+M11-is-dir-no-follow (item 1/2): mutated exit=101; failed=1 ['migrate_tests::f2_a_symlinked_served_store_is_detected']; restored sha ok=True

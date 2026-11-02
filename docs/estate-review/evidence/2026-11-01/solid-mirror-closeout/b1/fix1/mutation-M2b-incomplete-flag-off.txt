@@ -1,0 +1,33 @@
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.61s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d229dc2d13dcc7a9)
+
+running 1 test
+test migrate_tests::f2_a_panicked_migration_gates_unmarked_mirror_class_stores ... FAILED
+
+failures:
+
+---- migrate_tests::f2_a_panicked_migration_gates_unmarked_mirror_class_stores stdout ----
+
+thread '<unnamed>' (4045691) panicked at crates/solid-pod-rs-forge/src/migrate.rs:679:13:
+test hook: the migration thread panics
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'migrate_tests::f2_a_panicked_migration_gates_unmarked_mirror_class_stores' (4045620) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:1240:5:
+held commit served:
+/forge/ecececececececececececececececececececececececececececececececec/sample/raw/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/ecececececececececececececececececececececececececececececececec/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/ecececececececececececececececececececececececececececececececec/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: false)
+/forge/ecececececececececececececececececececececececececececececececec/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/ecececececececececececececececececececececececececececececececec/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/ecececececececececececececececececececececececececececececececec/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/ecececececececececececececececececececececececececececececececec/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/ecececececececececececececececececececececececececececececececec/sample/archive/4580200492d1a9506c809389e9b0cd9c744c79b1.tar.gz -> 200 (held bytes: false)
+
+
+failures:
+    migrate_tests::f2_a_panicked_migration_gates_unmarked_mirror_class_stores
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 379 filtered out; finished in 0.82s
+
+error: test failed, to rerun pass `-p solid-pod-rs-forge --lib`

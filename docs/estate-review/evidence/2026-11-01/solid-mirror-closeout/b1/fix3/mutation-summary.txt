@@ -1,0 +1,2 @@
+M1-no-early-persist: test=h1_a_recovery_probe_error_still_gates_the_store mutated_exit=101 (caught) restored_sha_match=True restored_exit=0
+M2-no-final-size-check: test=h2_a_fast_push_past_the_cap_is_caught_by_the_final_check mutated_exit=101 (caught) restored_sha_match=True restored_exit=0

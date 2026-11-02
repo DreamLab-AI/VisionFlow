@@ -348,3 +348,13 @@ Deleting refs plus `gc --prune=now` in the existing shared store:
 18. Decision 13 is REVISED (round 5, after security review R1): scanning for unreachable objects every owner-pushed store made nearly every followed owner repo 503 permanently, with no owner recovery. The scan now applies only to stores with pre-release mirror history (a record already present while unmarked, or legacy config/refs/mirror traces); a store first followed under the new code is the owner's, and its unreachable objects are the owner's. The verdict is persisted; the scan runs after the replay check.
 19. Marker semantics (round 5/6): for a store first followed after this release, the marker means "publication allowed; legacy layout not detected", not "every object reachable". Owner leftovers are the owner's own content. Commit B must NOT use the marker to decide what to sweep: it sweeps forks of legacy mirrors (found through `forge.parent`) whether or not they are marked.
 20. Accepted for Commit A, measure later: verification CPU per relay event and scan memory have no hard limit; the marker is trusted once written; an `isolated: true` record is reused if an operator replaces the served directory by hand.
+
+### Commit B1 decisions (lead, 2026-11-02)
+
+27. Every migration journal gates its store, in every state including `published`; cleanup removes it. Chosen over checking the migration id on each request: same closure, no extra read.
+28. An incomplete boot pass (enumeration error, journal write failure, migration thread failure) gates every 64-hex owner, marked stores included, until a restart completes the pass. Availability cost accepted.
+29. Notes are not copied to the migrated served store; they stay in the recovery copy.
+30. A legacy store whose roots-only rebuild exceeds 512 MiB stays gated (503) for operator action.
+31. Smart-HTTP accepts exactly `/<owner>/<name>[.git]/<suffix>`; a suffix-less path opens `<name>.git`.
+32. Threat model: anyone able to write the plugin directory, recycled process-group IDs, and several instances sharing one plugin directory are out of scope. The B1 claim is stated for remote attackers.
+33. Review coverage: Opus security and code reviews covered B1 and fix round 1; fix rounds 2 and 3 had the Codex cross-vendor audit only.

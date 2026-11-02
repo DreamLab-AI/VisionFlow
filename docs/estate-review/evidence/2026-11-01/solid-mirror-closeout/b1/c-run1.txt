@@ -1,0 +1,37 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.18s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d229dc2d13dcc7a9)
+
+running 18 tests
+test migrate_tests::t20_hoisted_constants_and_record_key_are_pinned ... ok
+test migrate_tests::t18_smart_http_push_is_refused_while_a_journal_exists ... ok
+test migrate_tests::t22_smart_http_refuses_a_dot_named_bare_repo ... ok
+test mirror::tests::migration_b1::t13_crash_after_publish_clears_the_flag_and_the_engine_follows ... ok
+
+running 1 test
+
+running 1 test
+test migrate_tests::t5_fixture_survives_delete_and_gc ... ok
+test migrate_tests::t16_two_processes_migrate_once ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 363 filtered out; finished in 0.12s
+
+test migrate_tests::t16_two_processes_migrate_once ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 363 filtered out; finished in 0.12s
+
+test mirror::tests::migration_b1::t15_redelivered_state_is_applied_after_migration ... ok
+test migrate_tests::t12_crash_after_the_first_rename_resumes_and_materialise_refuses ... ok
+test migrate_tests::t11_unreadable_record_store_is_rebuilt_and_the_record_kept ... ok
+test migrate_tests::t17_new_inside_a_multi_thread_runtime ... ok
+test migrate_tests::t16_two_processes_migrate_once ... ok
+test migrate_tests::t2_t3_lost_record_legacy_store_is_migrated ... ok
+test migrate_tests::t17_new_inside_a_current_thread_runtime ... ok
+test migrate_tests::t10_mirror_pull_request_head_is_not_copied ... ok
+test migrate_tests::t9_owner_pushed_mirror_keeps_its_tag ... ok
+test migrate_tests::t21_failed_migration_keeps_the_store_gated ... ok
+test migrate_tests::t1_restart_migrates_a_record_bearing_legacy_store ... ok
+test migrate_tests::t14_restart_is_idempotent ... ok
+test migrate_tests::t4_direct_held_blob_ref_is_dropped_and_verify_catches_it ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 346 filtered out; finished in 0.67s
+

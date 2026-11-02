@@ -1,0 +1,23 @@
+# t5 red: legacy() weakened (no .keep, no refs/misc/stash-held, no refs/misc/blob)
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.36s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d447461302ae6d2c)
+
+running 1 test
+test migrate_tests::t5_fixture_survives_delete_and_gc ... FAILED
+
+failures:
+
+---- migrate_tests::t5_fixture_survives_delete_and_gc stdout ----
+
+thread 'migrate_tests::t5_fixture_survives_delete_and_gc' (3837052) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:786:5:
+the fixture is weak: delete-plus-gc removed the held blob
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    migrate_tests::t5_fixture_survives_delete_and_gc
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 242 filtered out; finished in 0.35s
+
+error: test failed, to rerun pass `-p solid-pod-rs-forge --lib`

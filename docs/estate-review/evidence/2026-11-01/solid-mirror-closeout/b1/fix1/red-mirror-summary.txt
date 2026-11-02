@@ -1,0 +1,17 @@
+migrate_tests::f10_a_staging_store_past_the_size_cap_fails_closed :: the store was migrated past the size cap
+migrate_tests::f11_a_non_utf8_ref_is_dropped_not_renamed :: a non-UTF-8 ref was copied: refs/heads/main
+migrate_tests::f12_a_fork_onto_a_journalled_name_is_refused :: assertion `left == right` failed: a fork landed on a journalled name
+migrate_tests::f1_a_dropped_tag_does_not_shield_held_objects :: held commit served:
+migrate_tests::f1_force_pushed_away_held_history_is_not_copied :: assertion `left == right` failed: b1-c17-secret
+migrate_tests::f1_lost_record_store_without_refs_mirror_copies_roots_only :: held commit served:
+migrate_tests::f2_a_detection_error_gates_and_a_clean_recheck_ungates :: assertion `left == right` failed: a store detection could not examine is served: b1-undetected-bytes
+migrate_tests::f2_a_panicked_migration_gates_unmarked_mirror_class_stores :: held commit served:
+migrate_tests::f2_a_panicked_migration_gates_unmarked_mirror_class_stores :: test hook: the migration thread panics
+migrate_tests::f3_a_journal_recovery_outside_mirror_recovery_fails_closed :: the migration wrote outside mirror-recovery/
+migrate_tests::f3_a_symlinked_journal_gates :: assertion `left == right` failed: a journal symlink to /home/devuser/workspace/.tmp/.tmpGFgUWB/nowhere.json opened the gate
+migrate_tests::f4_smart_http_accepts_one_path_shape :: /forge/bob/dir/x/info/refs -> 200: 001e# service=git-upload-pack
+migrate_tests::f5_a_crash_after_the_second_rename_is_finished_not_rebuilt :: moved/true: journal left: {"id":"b1crashid","ts":1,"class":"mirror","state":"moved","moved":true,"staging":"mirror-work/staging/f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0/sample.
+migrate_tests::f5_a_stale_report_does_not_finish_a_substituted_store :: held commit served:
+migrate_tests::f6_three_crashes_mid_build_then_the_boot_gives_up :: the fourth boot migrated instead of giving up
+migrate_tests::f7_a_held_lock_times_out_and_gates :: ForgeService::new waited on the lock past its deadline: Timeout
+migrate_tests::f9_a_budget_timeout_kills_the_whole_process_group :: orphaned helpers survived: 3995927

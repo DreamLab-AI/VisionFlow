@@ -1,0 +1,210 @@
+diff --git a/home/devuser/workspace/VisionFlow/docs/estate-review/evidence/2026-11-01/solid-mirror-closeout/b1/after-a.patch b/home/devuser/workspace/VisionFlow/docs/estate-review/evidence/2026-11-01/solid-mirror-closeout/b1/after-b.patch
+index a55cdcc..75f4066 100644
+--- a/home/devuser/workspace/VisionFlow/docs/estate-review/evidence/2026-11-01/solid-mirror-closeout/b1/after-a.patch
++++ b/home/devuser/workspace/VisionFlow/docs/estate-review/evidence/2026-11-01/solid-mirror-closeout/b1/after-b.patch
+@@ -1,5 +1,5 @@
+ diff --git a/crates/solid-pod-rs-forge/src/lib.rs b/crates/solid-pod-rs-forge/src/lib.rs
+-index 291642e..6c5090c 100644
++index 291642e..8903ce4 100644
+ --- a/crates/solid-pod-rs-forge/src/lib.rs
+ +++ b/crates/solid-pod-rs-forge/src/lib.rs
+ @@ -66,8 +66,10 @@
+@@ -22,6 +22,28 @@ index 291642e..6c5090c 100644
+  #[cfg(test)]
+  mod readfeat_tests;
+  
++@@ -745,10 +749,17 @@ async fn h_git_smart(
++             let mut parts = rel_path.trim_start_matches('/').split('/');
++             if let (Some(owner), Some(name)) = (parts.next(), parts.next()) {
++                 let name = name.strip_suffix(".git").unwrap_or(name);
++-                // Only the gate's refusal stops the request here; a path
++-                // that is not a repository is the CGI's to answer.
++-                if let Err(e @ ForgeError::Busy(_)) = self.gated_git_dir(owner, name).await {
++-                    return Err(e);
+++                // Any refusal stops the request here. The CGI exports every
+++                // bare repository under `repos/`, so a name the forge does not
+++                // accept as a repository (such as a crashed fork's
+++                // `.fork-*.tmp` directory) is 404, never the CGI's to serve
+++                // (decision 22). A missing repository is still the CGI's.
+++                match self.gated_git_dir(owner, name).await {
+++                    Ok(_) | Err(ForgeError::NotFound(_)) => {}
+++                    Err(ForgeError::PathTraversal(_)) => {
+++                        return Err(ForgeError::NotFound(format!("repo {owner}/{name}")));
+++                    }
+++                    Err(e) => return Err(e),
++                 }
++             }
++         }
+ diff --git a/crates/solid-pod-rs-forge/src/migrate.rs b/crates/solid-pod-rs-forge/src/migrate.rs
+ new file mode 100644
+ index 0000000..3e981f7
+@@ -358,10 +380,10 @@ index 0000000..3e981f7
+ +}
+ diff --git a/crates/solid-pod-rs-forge/src/migrate_tests.rs b/crates/solid-pod-rs-forge/src/migrate_tests.rs
+ new file mode 100644
+-index 0000000..b45d17f
++index 0000000..40cf9bc
+ --- /dev/null
+ +++ b/crates/solid-pod-rs-forge/src/migrate_tests.rs
+-@@ -0,0 +1,59 @@
++@@ -0,0 +1,209 @@
+ +//! Tests for the ungated migration module (SP-GIT-02 Commit B1): the
+ +//! hoisted constants, the smart-HTTP refusal of invalid repository names,
+ +//! and the boot migration of pre-release served stores.
+@@ -421,6 +443,156 @@ index 0000000..b45d17f
+ +    assert_eq!(back[crate::migrate::AWAITS_MIGRATION_KEY], true, "{back}");
+ +    assert_eq!(crate::migrate::AWAITS_MIGRATION_KEY, "awaitsMigration");
+ +}
+++
+++// ---- shared helpers -------------------------------------------------------
+++
+++use std::path::{Path, PathBuf};
+++use std::process::Command;
+++
+++/// Run git with a clean, fixed identity; panics with stderr on failure.
+++fn git(cwd: &Path, args: &[&str]) -> String {
+++    let out = Command::new("git")
+++        .args([
+++            "-c",
+++            "user.name=Agent",
+++            "-c",
+++            "user.email=agent@example.org",
+++        ])
+++        .args(args)
+++        .current_dir(cwd)
+++        .env("GIT_CONFIG_GLOBAL", "/dev/null")
+++        .env("GIT_CONFIG_NOSYSTEM", "1")
+++        .env("GIT_AUTHOR_DATE", "1700000000 +0000")
+++        .env("GIT_COMMITTER_DATE", "1700000000 +0000")
+++        .output()
+++        .expect("git runs");
+++    assert!(
+++        out.status.success(),
+++        "git {args:?}: {}",
+++        String::from_utf8_lossy(&out.stderr)
+++    );
+++    String::from_utf8_lossy(&out.stdout).trim().to_string()
+++}
+++
+++fn http_backend() -> PathBuf {
+++    let out = Command::new("git")
+++        .arg("--exec-path")
+++        .output()
+++        .expect("git runs");
+++    let p = PathBuf::from(String::from_utf8_lossy(&out.stdout).trim()).join("git-http-backend");
+++    assert!(
+++        p.is_file(),
+++        "git-http-backend not found under `git --exec-path`; this test needs it and does not skip"
+++    );
+++    p
+++}
+++
+++/// A forge at `plugin` whose git CGI uses the located `git-http-backend`.
+++fn forge_with_backend(plugin: &Path) -> crate::ForgeService {
+++    let mut forge =
+++        crate::ForgeService::new(crate::ForgeConfig::default(), plugin).expect("forge builds");
+++    forge.git = std::sync::Arc::new(
+++        solid_pod_rs_git::service::GitHttpService::new(plugin.join("repos"))
+++            .with_backend_path(http_backend()),
+++    );
+++    forge
+++}
+++
+++fn req(method: &str, path: &str, query: &str) -> crate::ForgeRequest {
+++    crate::ForgeRequest {
+++        method: method.into(),
+++        path: path.into(),
+++        query: query.into(),
+++        headers: vec![],
+++        raw_body: bytes::Bytes::new(),
+++        host_url: None,
+++    }
+++}
+++
+++/// A bare store at `dir` holding one commit on `main`; returns its sha.
+++fn bare_with_commit(home: &Path, dir: &Path, body: &str) -> String {
+++    let work = home.join(format!("work-{}", uuid::Uuid::new_v4().simple()));
+++    std::fs::create_dir_all(&work).unwrap();
+++    git(&work, &["init", "--quiet", "-b", "main"]);
+++    std::fs::write(work.join("f.txt"), body).unwrap();
+++    git(&work, &["add", "-A"]);
+++    git(&work, &["commit", "--quiet", "-m", "c"]);
+++    let sha = git(&work, &["rev-parse", "HEAD"]);
+++    std::fs::create_dir_all(dir.parent().unwrap()).unwrap();
+++    git(
+++        home,
+++        &[
+++            "clone",
+++            "--quiet",
+++            "--bare",
+++            work.to_str().unwrap(),
+++            dir.to_str().unwrap(),
+++        ],
+++    );
+++    sha
+++}
+++
+++/// Decision 22: smart HTTP refuses a repository path whose name is not a
+++/// valid segment (a crashed fork's `.fork-*.tmp` directory), instead of
+++/// passing it on to the CGI, which exports every bare repository under
+++/// `repos/`. A normal repository of the same owner is the positive control.
+++#[tokio::test]
+++async fn t22_smart_http_refuses_a_dot_named_bare_repo() {
+++    let tmp = tempfile::tempdir().unwrap();
+++    let home = tmp.path();
+++    let plugin = home.join("plugin");
+++    let tmp_sha = bare_with_commit(home, &plugin.join("repos/bob/.fork-x.tmp"), "secret\n");
+++    let ok_sha = bare_with_commit(home, &plugin.join("repos/bob/real.git"), "public\n");
+++    let forge = forge_with_backend(&plugin);
+++    let adv = |path: &str| req("GET", path, "service=git-upload-pack");
+++
+++    let ok = forge
+++        .handle(
+++            adv("/forge/bob/real.git/info/refs"),
+++            crate::ForgeAgent::Anonymous,
+++        )
+++        .await
+++        .unwrap();
+++    assert_eq!(
+++        ok.status,
+++        200,
+++        "control: {}",
+++        String::from_utf8_lossy(&ok.body)
+++    );
+++    assert!(
+++        String::from_utf8_lossy(&ok.body).contains(&ok_sha),
+++        "control: the normal repository is advertised"
+++    );
+++
+++    for path in [
+++        "/forge/bob/.fork-x.tmp/info/refs",
+++        "/forge/bob/.fork-x.tmp/git-upload-pack",
+++    ] {
+++        let mut r = adv(path);
+++        if path.ends_with("git-upload-pack") {
+++            r.method = "POST".into();
+++            r.query = String::new();
+++            r.headers = vec![(
+++                "content-type".into(),
+++                "application/x-git-upload-pack-request".into(),
+++            )];
+++            let want = format!("want {tmp_sha}\n");
+++            r.raw_body = bytes::Bytes::from(format!("{:04x}{want}00000009done\n", want.len() + 4));
+++        }
+++        let got = forge.handle(r, crate::ForgeAgent::Anonymous).await;
+++        let (status, body) = match got {
+++            Ok(resp) => (resp.status, resp.body.to_vec()),
+++            Err(e) => (e.status_code(), e.to_string().into_bytes()),
+++        };
+++        let text = String::from_utf8_lossy(&body);
+++        assert_eq!(status, 404, "{path} -> {status}: {text}");
+++        assert!(
+++            !text.contains(&tmp_sha),
+++            "{path} advertised the tmp repo: {text}"
+++        );
+++        assert!(!body.windows(4).any(|w| w == b"PACK"), "{path} sent a pack");
+++    }
+++}
+ diff --git a/crates/solid-pod-rs-forge/src/mirror.rs b/crates/solid-pod-rs-forge/src/mirror.rs
+ index bd7ab6f..137e6f0 100644
+ --- a/crates/solid-pod-rs-forge/src/mirror.rs

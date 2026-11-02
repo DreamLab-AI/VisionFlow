@@ -1,0 +1,51 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.19s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d229dc2d13dcc7a9)
+
+running 32 tests
+test migrate_tests::t20_hoisted_constants_and_record_key_are_pinned ... ok
+test migrate_tests::f12_a_fork_onto_a_journalled_name_is_refused ... ok
+test migrate_tests::f3_a_symlinked_journal_gates ... ok
+test migrate_tests::t18_smart_http_push_is_refused_while_a_journal_exists ... ok
+test migrate_tests::t22_smart_http_refuses_a_dot_named_bare_repo ... ok
+test migrate_tests::f4_smart_http_accepts_one_path_shape ... ok
+test migrate_tests::f2_a_detection_error_gates_and_a_clean_recheck_ungates ... ok
+
+running 1 test
+
+running 1 test
+test migrate_tests::f3_a_journal_recovery_outside_mirror_recovery_fails_closed ... ok
+test migrate_tests::t5_fixture_survives_delete_and_gc ... ok
+test migrate_tests::f10_a_staging_store_past_the_size_cap_fails_closed ... ok
+test migrate_tests::f2_a_panicked_migration_gates_unmarked_mirror_class_stores ... ok
+test migrate_tests::t16_two_processes_migrate_once ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 379 filtered out; finished in 0.33s
+
+test migrate_tests::t16_two_processes_migrate_once ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 379 filtered out; finished in 0.36s
+
+test migrate_tests::f5_a_stale_report_does_not_finish_a_substituted_store ... ok
+test migrate_tests::t21_failed_migration_keeps_the_store_gated ... ok
+test migrate_tests::t11_unreadable_record_store_is_rebuilt_and_the_record_kept ... ok
+test migrate_tests::t12_crash_after_the_first_rename_resumes_and_materialise_refuses ... ok
+test migrate_tests::t2_t3_lost_record_legacy_store_is_migrated ... ok
+test migrate_tests::t17_new_inside_a_current_thread_runtime ... ok
+test migrate_tests::f1_a_dropped_tag_does_not_shield_held_objects ... ok
+test migrate_tests::t17_new_inside_a_multi_thread_runtime ... ok
+test migrate_tests::f11_a_non_utf8_ref_is_dropped_not_renamed ... ok
+test migrate_tests::f1_lost_record_store_without_refs_mirror_copies_roots_only ... ok
+test migrate_tests::t16_two_processes_migrate_once ... ok
+test migrate_tests::t10_mirror_pull_request_head_is_not_copied ... ok
+test migrate_tests::t1_restart_migrates_a_record_bearing_legacy_store ... ok
+test migrate_tests::t9_owner_pushed_mirror_keeps_its_tag ... ok
+test migrate_tests::t14_restart_is_idempotent ... ok
+test migrate_tests::f1_force_pushed_away_held_history_is_not_copied ... ok
+test migrate_tests::t4_direct_held_blob_ref_is_dropped_and_verify_catches_it ... ok
+test migrate_tests::f7_a_held_lock_times_out_and_gates ... ok
+test migrate_tests::f6_three_crashes_mid_build_then_the_boot_gives_up ... ok
+test migrate_tests::f5_a_crash_after_the_second_rename_is_finished_not_rebuilt ... ok
+test migrate_tests::f9_a_budget_timeout_kills_the_whole_process_group ... ok
+
+test result: ok. 32 passed; 0 failed; 0 ignored; 0 measured; 348 filtered out; finished in 2.99s
+

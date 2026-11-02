@@ -1,0 +1,6 @@
+N1-published-opens-gate (item 1): mutated exit=101; failed=1 ['migrate_tests::g1_a_published_journal_gates_across_boots']; restored sha ok=True
+N2-incomplete-skips-marked (item 2): mutated exit=101; failed=1 ['migrate_tests::g2_an_incomplete_pass_gates_a_marked_store']; restored sha ok=True
+N3-enumeration-errors-silent (item 3): mutated exit=101; failed=1 ['migrate_tests::g3_an_unlistable_owner_makes_the_pass_incomplete']; restored sha ok=True
+N4-probe-error-is-absent (item 4): mutated exit=101; failed=1 ['migrate_tests::g4_a_failing_store_probe_leaves_the_detection_error_journal']; restored sha ok=True
+N5-grafts-honoured (item 5): mutated exit=101; failed=1 ['migrate_tests::g5_grafts_do_not_widen_the_roots']; restored sha ok=True
+N6-replace-refs-copied (item 6): mutated exit=101; failed=1 ['migrate_tests::g6_replace_refs_are_never_copied']; restored sha ok=True

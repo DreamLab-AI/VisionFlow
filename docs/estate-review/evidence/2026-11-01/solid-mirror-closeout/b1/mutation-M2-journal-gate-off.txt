@@ -1,0 +1,37 @@
+# mutation M2-journal-gate-off: replace
+pub(crate) async fn journal_gates(plugin_dir: &Path, owner: &str, name: &str) -> bool {
+# with
+pub(crate) async fn journal_gates(plugin_dir: &Path, owner: &str, name: &str) -> bool {
+    if !plugin_dir.as_os_str().is_empty() {
+        return false;
+    }
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.43s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d229dc2d13dcc7a9)
+
+running 1 test
+test migrate_tests::t21_failed_migration_keeps_the_store_gated ... FAILED
+
+failures:
+
+---- migrate_tests::t21_failed_migration_keeps_the_store_gated stdout ----
+
+thread 'migrate_tests::t21_failed_migration_keeps_the_store_gated' (3777958) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:1077:5:
+held commit served:
+/forge/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/sample/raw/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: false)
+/forge/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/sample/archive/4580200492d1a9506c809389e9b0cd9c744c79b1.tar.gz -> 200 (held bytes: false)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    migrate_tests::t21_failed_migration_keeps_the_store_gated
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 363 filtered out; finished in 0.83s
+
+error: test failed, to rerun pass `-p solid-pod-rs-forge --lib`

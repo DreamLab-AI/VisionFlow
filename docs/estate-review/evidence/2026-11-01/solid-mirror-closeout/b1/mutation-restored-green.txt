@@ -1,0 +1,13 @@
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.43s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d229dc2d13dcc7a9)
+
+running 5 tests
+test migrate_tests::t18_smart_http_push_is_refused_while_a_journal_exists ... ok
+test migrate_tests::t12_crash_after_the_first_rename_resumes_and_materialise_refuses ... ok
+test migrate_tests::t1_restart_migrates_a_record_bearing_legacy_store ... ok
+test migrate_tests::t21_failed_migration_keeps_the_store_gated ... ok
+test migrate_tests::t4_direct_held_blob_ref_is_dropped_and_verify_catches_it ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 359 filtered out; finished in 0.83s
+

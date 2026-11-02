@@ -1,0 +1,92 @@
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.01s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d229dc2d13dcc7a9)
+
+running 7 tests
+test migrate_tests::g4_a_failing_store_probe_leaves_the_detection_error_journal ... FAILED
+test migrate_tests::t18_smart_http_push_is_refused_while_a_journal_exists ... FAILED
+test migrate_tests::g1_a_published_journal_gates_across_boots ... FAILED
+test migrate_tests::g2_an_incomplete_pass_gates_a_marked_store ... FAILED
+test migrate_tests::g3_an_unlistable_owner_makes_the_pass_incomplete ... FAILED
+test migrate_tests::g6_replace_refs_are_never_copied ... FAILED
+test migrate_tests::g5_grafts_do_not_widen_the_roots ... FAILED
+
+failures:
+
+---- migrate_tests::g4_a_failing_store_probe_leaves_the_detection_error_journal stdout ----
+
+thread 'migrate_tests::g4_a_failing_store_probe_leaves_the_detection_error_journal' (64685) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:2149:5:
+a detection-error journal was removed without a clean examination
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- migrate_tests::t18_smart_http_push_is_refused_while_a_journal_exists stdout ----
+
+thread 'migrate_tests::t18_smart_http_push_is_refused_while_a_journal_exists' (64688) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:1075:9:
+assertion `left == right` failed: read with a published journal
+  left: 200
+ right: 503
+
+---- migrate_tests::g1_a_published_journal_gates_across_boots stdout ----
+
+thread 'migrate_tests::g1_a_published_journal_gates_across_boots' (64682) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:2043:9:
+boot 1: held commit served:
+/forge/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/sample/raw/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: false)
+/forge/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/sample/archive/4580200492d1a9506c809389e9b0cd9c744c79b1.tar.gz -> 200 (held bytes: false)
+
+---- migrate_tests::g2_an_incomplete_pass_gates_a_marked_store stdout ----
+
+thread 'migrate_tests::g2_an_incomplete_pass_gates_a_marked_store' (64683) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:2082:5:
+held commit served:
+/forge/abababababababababababababababababababababababababababababababab/sample/raw/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/abababababababababababababababababababababababababababababababab/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/abababababababababababababababababababababababababababababababab/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: false)
+/forge/abababababababababababababababababababababababababababababababab/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/abababababababababababababababababababababababababababababababab/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/abababababababababababababababababababababababababababababababab/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/abababababababababababababababababababababababababababababababab/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/abababababababababababababababababababababababababababababababab/sample/archive/4580200492d1a9506c809389e9b0cd9c744c79b1.tar.gz -> 200 (held bytes: false)
+
+---- migrate_tests::g3_an_unlistable_owner_makes_the_pass_incomplete stdout ----
+
+thread 'migrate_tests::g3_an_unlistable_owner_makes_the_pass_incomplete' (64684) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:2112:5:
+held commit served:
+/forge/acacacacacacacacacacacacacacacacacacacacacacacacacacacacacacacac/sample/raw/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/acacacacacacacacacacacacacacacacacacacacacacacacacacacacacacacac/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/acacacacacacacacacacacacacacacacacacacacacacacacacacacacacacacac/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: false)
+/forge/acacacacacacacacacacacacacacacacacacacacacacacacacacacacacacacac/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/acacacacacacacacacacacacacacacacacacacacacacacacacacacacacacacac/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/acacacacacacacacacacacacacacacacacacacacacacacacacacacacacacacac/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/acacacacacacacacacacacacacacacacacacacacacacacacacacacacacacacac/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/acacacacacacacacacacacacacacacacacacacacacacacacacacacacacacacac/sample/archive/4580200492d1a9506c809389e9b0cd9c744c79b1.tar.gz -> 200 (held bytes: false)
+
+---- migrate_tests::g6_replace_refs_are_never_copied stdout ----
+
+thread 'migrate_tests::g6_replace_refs_are_never_copied' (64687) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:2204:5:
+a replace ref was copied: refs/heads/main
+refs/replace/4580200492d1a9506c809389e9b0cd9c744c79b1
+refs/tags/v1
+
+---- migrate_tests::g5_grafts_do_not_widen_the_roots stdout ----
+
+thread 'migrate_tests::g5_grafts_do_not_widen_the_roots' (64686) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:2184:5:
+a graft smuggled held history into the rebuilt store
+
+
+failures:
+    migrate_tests::g1_a_published_journal_gates_across_boots
+    migrate_tests::g2_an_incomplete_pass_gates_a_marked_store
+    migrate_tests::g3_an_unlistable_owner_makes_the_pass_incomplete
+    migrate_tests::g4_a_failing_store_probe_leaves_the_detection_error_journal
+    migrate_tests::g5_grafts_do_not_widen_the_roots
+    migrate_tests::g6_replace_refs_are_never_copied
+    migrate_tests::t18_smart_http_push_is_refused_while_a_journal_exists
+
+test result: FAILED. 0 passed; 7 failed; 0 ignored; 0 measured; 382 filtered out; finished in 0.86s
+
+error: test failed, to rerun pass `-p solid-pod-rs-forge --lib`

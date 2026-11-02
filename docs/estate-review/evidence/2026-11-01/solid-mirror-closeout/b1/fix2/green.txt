@@ -1,0 +1,14 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.19s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d229dc2d13dcc7a9)
+
+running 7 tests
+test migrate_tests::g4_a_failing_store_probe_leaves_the_detection_error_journal ... ok
+test migrate_tests::t18_smart_http_push_is_refused_while_a_journal_exists ... ok
+test migrate_tests::g3_an_unlistable_owner_makes_the_pass_incomplete ... ok
+test migrate_tests::g2_an_incomplete_pass_gates_a_marked_store ... ok
+test migrate_tests::g1_a_published_journal_gates_across_boots ... ok
+test migrate_tests::g6_replace_refs_are_never_copied ... ok
+test migrate_tests::g5_grafts_do_not_widen_the_roots ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 382 filtered out; finished in 0.90s
+

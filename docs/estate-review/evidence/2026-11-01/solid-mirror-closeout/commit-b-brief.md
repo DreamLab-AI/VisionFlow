@@ -42,3 +42,11 @@
 - Recovery data stays outside the served namespace.
 - Migration can be interrupted and resumed.
 - Hidden-ref deletion plus GC is **not** acceptance evidence.
+
+## B2 additions (from the B1 reviews and advisor, 2026-11-02)
+
+- Forks whose creation overlapped journal creation when several instances share a plugin directory.
+- Operator recourse for stores stuck at the attempt limit, over 512 MiB, or behind a permanently unreadable owner directory (which today makes every boot incomplete, so every 64-hex owner serves 503 after every restart).
+- The engine's race between process exit and the size check, noted by the B1 worker.
+- Codex items only partly done: ancestor-directory fsync and descendant-process cleanup on normal completion.
+- The B1 base for B2 is solid-pod-rs main 8ba3372 (B1 = bcaf9cf6).

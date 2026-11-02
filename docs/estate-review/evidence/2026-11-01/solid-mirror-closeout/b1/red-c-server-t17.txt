@@ -1,0 +1,45 @@
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+warning: function `verify` is never used
+   --> crates/solid-pod-rs-forge/src/migrate.rs:332:21
+    |
+332 | pub(crate) async fn verify(
+    |                     ^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+   Compiling solid-pod-rs-server v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-server)
+warning: `solid-pod-rs-forge` (lib) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.84s
+     Running tests/forge_migration_runtime.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/forge_migration_runtime-bcadf2f77dc5b713)
+
+running 2 tests
+test forge_migration_completes_inside_an_actix_system ... FAILED
+test forge_migration_completes_inside_an_actix_web_test ... FAILED
+
+failures:
+
+---- forge_migration_completes_inside_an_actix_system stdout ----
+
+thread 'forge_migration_completes_inside_an_actix_system' (3732718) panicked at crates/solid-pod-rs-server/tests/forge_migration_runtime.rs:106:5:
+assertion `left == right` failed: b1-server-held-bytes
+
+  left: 200
+ right: 404
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- forge_migration_completes_inside_an_actix_web_test stdout ----
+
+thread 'forge_migration_completes_inside_an_actix_web_test' (3732719) panicked at crates/solid-pod-rs-server/tests/forge_migration_runtime.rs:106:5:
+assertion `left == right` failed: b1-server-held-bytes
+
+  left: 200
+ right: 404
+
+
+failures:
+    forge_migration_completes_inside_an_actix_system
+    forge_migration_completes_inside_an_actix_web_test
+
+test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.44s
+
+error: test failed, to rerun pass `-p solid-pod-rs-server --test forge_migration_runtime`

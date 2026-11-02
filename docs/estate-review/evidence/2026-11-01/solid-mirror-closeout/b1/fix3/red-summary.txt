@@ -1,0 +1,2 @@
+migrate_tests::h1_a_recovery_probe_error_still_gates_the_store :: no journal and a complete pass: nothing gates the store
+migrate_tests::h2_a_fast_push_past_the_cap_is_caught_by_the_final_check :: the store was migrated past the size cap

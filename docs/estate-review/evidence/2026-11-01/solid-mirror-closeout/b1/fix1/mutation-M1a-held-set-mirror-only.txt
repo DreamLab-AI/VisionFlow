@@ -1,0 +1,42 @@
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.77s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d229dc2d13dcc7a9)
+
+running 3 tests
+test migrate_tests::f1_a_dropped_tag_does_not_shield_held_objects ... FAILED
+test migrate_tests::f1_lost_record_store_without_refs_mirror_copies_roots_only ... FAILED
+test migrate_tests::f1_force_pushed_away_held_history_is_not_copied ... FAILED
+
+failures:
+
+---- migrate_tests::f1_a_dropped_tag_does_not_shield_held_objects stdout ----
+
+thread 'migrate_tests::f1_a_dropped_tag_does_not_shield_held_objects' (4043909) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:498:5:
+assertion `left == right` failed: approved raw: {"error":"busy: 'e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8/sample' is a mirror awaiting migration to publication isolation"}
+  left: (503, [123, 34, 101, 114, 114, 111, 114, 34, 58, 34, 98, 117, 115, 121, 58, 32, 39, 101, 56, 101, 56, 101, 56, 101, 56, 101, 56, 101, 56, 101, 56, 101, 56, 101, 56, 101, 56, 101, 56, 101, 56, 101, 56, 101, 56, 101, 56, 101, 56, 101, 56, 101, 56, 101, 56, 101, 56, 101, 56, 101, 56, 101, 56, 101, 56, 101, 56, 101, 56, 101, 56, 101, 56, 101, 56, 101, 56, 101, 56, 101, 56, 47, 115, 97, 109, 112, 108, 101, 39, 32, 105, 115, 32, 97, 32, 109, 105, 114, 114, 111, 114, 32, 97, 119, 97, 105, 116, 105, 110, 103, 32, 109, 105, 103, 114, 97, 116, 105, 111, 110, 32, 116, 111, 32, 112, 117, 98, 108, 105, 99, 97, 116, 105, 111, 110, 32, 105, 115, 111, 108, 97, 116, 105, 111, 110, 34, 125])
+ right: (200, [98, 49, 45, 97, 112, 112, 114, 111, 118, 101, 100, 45, 112, 117, 98, 108, 105, 99, 45, 98, 121, 116, 101, 115, 10])
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- migrate_tests::f1_lost_record_store_without_refs_mirror_copies_roots_only stdout ----
+
+thread 'migrate_tests::f1_lost_record_store_without_refs_mirror_copies_roots_only' (4043911) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:498:5:
+assertion `left == right` failed: approved raw: {"error":"busy: 'e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7/sample' is a mirror awaiting migration to publication isolation"}
+  left: (503, [123, 34, 101, 114, 114, 111, 114, 34, 58, 34, 98, 117, 115, 121, 58, 32, 39, 101, 55, 101, 55, 101, 55, 101, 55, 101, 55, 101, 55, 101, 55, 101, 55, 101, 55, 101, 55, 101, 55, 101, 55, 101, 55, 101, 55, 101, 55, 101, 55, 101, 55, 101, 55, 101, 55, 101, 55, 101, 55, 101, 55, 101, 55, 101, 55, 101, 55, 101, 55, 101, 55, 101, 55, 101, 55, 101, 55, 101, 55, 101, 55, 47, 115, 97, 109, 112, 108, 101, 39, 32, 105, 115, 32, 97, 32, 109, 105, 114, 114, 111, 114, 32, 97, 119, 97, 105, 116, 105, 110, 103, 32, 109, 105, 103, 114, 97, 116, 105, 111, 110, 32, 116, 111, 32, 112, 117, 98, 108, 105, 99, 97, 116, 105, 111, 110, 32, 105, 115, 111, 108, 97, 116, 105, 111, 110, 34, 125])
+ right: (200, [98, 49, 45, 97, 112, 112, 114, 111, 118, 101, 100, 45, 112, 117, 98, 108, 105, 99, 45, 98, 121, 116, 101, 115, 10])
+
+---- migrate_tests::f1_force_pushed_away_held_history_is_not_copied stdout ----
+
+thread 'migrate_tests::f1_force_pushed_away_held_history_is_not_copied' (4043910) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:1348:5:
+assertion `left == right` failed: {"error":"busy: 'e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9/sample' is a mirror awaiting migration to publication isolation"}
+  left: 503
+ right: 404
+
+
+failures:
+    migrate_tests::f1_a_dropped_tag_does_not_shield_held_objects
+    migrate_tests::f1_force_pushed_away_held_history_is_not_copied
+    migrate_tests::f1_lost_record_store_without_refs_mirror_copies_roots_only
+
+test result: FAILED. 0 passed; 3 failed; 0 ignored; 0 measured; 377 filtered out; finished in 1.29s
+
+error: test failed, to rerun pass `-p solid-pod-rs-forge --lib`

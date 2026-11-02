@@ -1,0 +1,3510 @@
+diff --git a/afterc/CHANGELOG.md b/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/CHANGELOG.md
+index 1ca9c05..cdaed33 100644
+--- a/afterc/CHANGELOG.md
++++ b/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/CHANGELOG.md
+@@ -14,40 +14,95 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+   feature. A repository at a 64-hex owner is migrated when it is unmarked and
+   has a mirror record that is flagged, pre-release (`isolated` absent) or
+   unreadable, or has `refs/mirror/*`, `hideRefs` naming them, alternates, or
+-  an earlier migration report. Each is rebuilt in a fresh store under
+-  `plugin_dir/mirror-work/staging/` by pushing, by SHA and through the fixed
+-  receive-pack command, every ref except `refs/mirror/*` and pull request
+-  heads (`refs/forge/heads/*`); a ref outside branches and tags that reaches a
+-  held object is left out. The rebuilt store is verified at object level (no
+-  held object, no alternates, no object file shared with the old store),
+-  marked, and renamed into `repos/`; the old store moves to
++  an earlier migration report; each signal is checked on its own. A marked
++  repository whose record is still flagged is only finished, not rebuilt,
++  when a migration report names the migration id the store carries;
++  otherwise it is rebuilt.
++- Forge: migration copies the roots only. The roots are the branches and
++  tags with names the push accepts. Every other ref, including notes,
++  stashes and `refs/misc/*`, is copied only if everything it reaches is
++  reachable from the roots; otherwise it is dropped and reported as
++  `outside-roots`. `refs/mirror/*`, pull request heads (`refs/forge/heads/*`)
++  and refs with unsafe or non-UTF-8 names are dropped and reported too, and
++  are never renamed. The held set is every object any ref reaches that the
++  roots do not. It does not depend on `refs/mirror` still being present, and
++  it includes the history of a held branch that upstream force-pushed away.
++  Replacement refs are ignored while closures are computed, because a push
++  sends the original objects; `refs/replace/*` refs are dropped as
++  `outside-roots`.
++  The rebuilt store is pushed by SHA, through the fixed receive-pack command,
++  into a fresh store under `plugin_dir/mirror-work/staging/`, and the push is
++  killed if staging grows past `MAX_REPO_BYTES` (512 MiB). A legacy store
++  larger than that is not migrated and stays refused. The rebuilt store is
++  then verified at object level: no held object; nothing outside the roots'
++  closure; no alternates; no object file shared with the old store. It is
++  then marked, given a `migration-id` file naming the migration, and renamed
++  into `repos/`. The old store moves to
+   `plugin_dir/mirror-recovery/<owner>/<name>.git.<ts>`, outside the served
+-  tree, with a `.migration.json` report (refs copied and dropped, with
+-  reasons; the bytes of an unreadable record) and `.held` and `.dropped`
+-  object lists beside it. The record's `awaitsMigration` flag is then
+-  removed, every other field kept, and the candidate is wiped. This closes a
+-  live exposure that predates part 1: a legacy repository whose mirror
+-  record had been deleted, with its `refs/mirror` still in place, was served
+-  with 200, held objects included. Commits orphaned by approved force moves
+-  and pull request heads of legacy mirrors are no longer served; they stay
+-  in recovery. Forks of legacy mirrors are not swept yet.
++  tree. Beside it go a `.migration.json` report (the migration id, refs
++  copied and dropped with reasons, and the bytes of an unreadable record) and
++  `.held` and `.dropped` object lists. A report is never overwritten. The
++  record's `awaitsMigration` flag is then removed, every other field kept,
++  and the candidate is wiped.
++  - This closes a live exposure that predates part 1: a legacy repository
++    whose mirror record had been deleted, with its `refs/mirror` still in
++    place, was served with 200, held objects included.
++  - Notes, commits orphaned by approved force moves, and pull request heads
++    of legacy mirrors are no longer served; they stay in recovery.
++  - Forks of legacy mirrors are not swept until the follow-up change (B2).
+ - Forge: a migration journal (`plugin_dir/mirror-work/migrations/<owner>/<name>.json`)
+-  makes the migration resumable after a crash at any step and acts as a
+-  tombstone. While it exists in any state but `published`, every reader of
+-  the repository returns 503, marked or not (the reader gate in
+-  `ForgeService` gains this check); while any journal exists, smart-HTTP
+-  pushes into the repository return 503 and the mirror engine neither
+-  creates nor prepares its store (a retryable error). A migration that fails
+-  (for example, an old object `receive.fsckObjects` rejects) leaves the old
+-  store in place behind a `failed` journal with the reason and an attempt
+-  count; after 3 failed attempts boot stops retrying it and it stays refused
+-  until an operator acts.
+-- Forge: smart HTTP now refuses a repository path whose owner or name the
+-  forge does not accept (for example a crashed fork's
+-  `repos/<owner>/.fork-*.tmp` directory) with 404, instead of passing it to
+-  the Git CGI, which exports every bare repository under `repos/`. Any other
+-  refusal from the reader gate also stops the request; only a missing
+-  repository is still answered by the CGI.
++  acts as a tombstone, and the migration resumes from it at the next boot.
++  - **Readers:** while anything other than a regular file in the `published`
++    state is at that path (any other state, a file that cannot be read, a
++    symbolic link, dangling or not), every reader of the repository returns
++    503, marked or not. The reader gate in `ForgeService` gains this check.
++  - **Writers:** while any entry exists there, smart-HTTP pushes into the
++    repository and forks onto its name return 503. The mirror engine neither
++    creates nor prepares the store (a retryable error).
++  - **Journal paths:** the journal's recovery and staging paths must lie
++    inside `mirror-recovery/` and `mirror-work/staging/`, or the migration
++    fails closed.
++  - **Crash recovery:** the journal, report and object lists are `fsync`ed,
++    with their directories, before each rename that depends on them. A crash
++    after the rebuilt store is renamed into place is finished at the next
++    boot, recognised by its migration id, and never rebuilt. A journal in any
++    state, `published` included, never finishes a store that does not carry
++    its migration id. A crash before
++    that rebuilds from the old store, read from recovery once it has moved
++    there. An attempt counts when it starts, so after 3 attempts (crashes
++    included) boot stops retrying, and the repository stays refused until an
++    operator acts.
++  - **Failed migration:** a failure (for example, an old object that
++    `receive.fsckObjects` rejects, a timeout, or the size cap) leaves a
++    `failed` journal with the reason and the attempt count. A timeout kills
++    every process group the build spawned. Before the old store is moved it
++    stays in `repos/`, refused; after, `repos/` has no store (404) and the old
++    store is in recovery.
++  - **Gate journals:** if detection cannot examine a store (a check fails and
++    no signal is positive), or the store's lock is not free within 600 s,
++    the store is gated by a `failed` journal created exclusively (an
++    existing journal is never replaced) and is not migrated that boot. A
++    `detection-error` journal is removed at a later boot that examines the
++    store and finds it clean. If the migration pass itself cannot complete
++    (its runtime cannot be built, its thread panics, or a store cannot be
++    gated by a journal), every unmarked repository under a 64-hex owner
++    returns 503 until a restart completes it.
++  - **Operator recovery:** no recourse is built in for a store that gave up
++    (for example, on an fsck rejection). Deleting the journal of a
++    record-less legacy store serves its old objects, held ones included,
++    until the next boot gates it again. Stop the server before deleting a
++    journal.
++  - **Boot time:** boot is bounded per store (600 s for the lock and 600 s for
++    the build), not in total. Stores are migrated one after another.
++- Forge: smart HTTP accepts exactly `/<owner>/<name>[.git]/<suffix>` with
++  `<owner>` and `<name>` valid single segments, and always hands the Git CGI
++  `/<owner>/<name>.git/<suffix>`, the directory the reader gate checks.
++  Anything else returns 404 before the CGI runs: deeper nesting, a dot-led or
++  encoded segment, or a crashed fork's `repos/<owner>/.fork-*.tmp`
++  directory. A suffix-less clone URL now opens `<name>.git` instead of a bare
++  `repos/<owner>/<name>` directory. Any other refusal from the reader gate
++  also stops the request; only a missing repository is still answered by the
++  CGI.
+ 
+ - Forge mirror publication isolation (part 1 of 2). The mirror now fetches
+   into a private candidate store (`plugin_dir/mirror-work/candidates/`),
+@@ -64,8 +119,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+   readers return 503 for a mirrored repository without it, including the
+   pull request, merge and compare internals, a compare naming it as the head,
+   and `GET /api/repos/<owner>/<repo>`. Repository listings leave such a
+-  repository out. Repositories mirrored before this change are not migrated
+-  yet and stay refused (503) until the migration change lands.
++  repository out. Repositories mirrored before this change are migrated at
++  boot (part 2).
+   `/commits/<full sha>` now returns 404 when the commit is absent instead of
+   an empty page. Mirror git commands name each store with an explicit
+   `--git-dir`, so a damaged store is rebuilt instead of git resolving an
+@@ -139,7 +194,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+   `RECEIVE_PACK` and `SERVED_CONFIG` (moved from the private items of
+   `mirror`, values unchanged), `AWAITS_MIGRATION_KEY`, `lock_path` (the
+   engine's lock path, now also for any valid owner segment),
+-  `journal_path` and `MAX_ATTEMPTS`. The mirror record types
++  `journal_path`, `MAX_ATTEMPTS`, `MIGRATION_ID_FILE` and `MAX_REPO_BYTES`
++  (moved from `mirror`, value unchanged; `mirror::MAX_REPO_BYTES` re-exports
++  it). The mirror record types
+   (`MirrorRecord`, `MirrorStore`, `StoredRecord` and the types they contain)
+   are now defined outside the feature so migration reads records with the
+   engine's own parser; their public path is still `mirror::*`. The
+diff --git a/afterc/crates/solid-pod-rs-forge/src/forks.rs b/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge/src/forks.rs
+index f25d4f1..77a592c 100644
+--- a/afterc/crates/solid-pod-rs-forge/src/forks.rs
++++ b/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge/src/forks.rs
+@@ -283,6 +283,13 @@ impl ForgeService {
+         let dest = repo::repo_git_dir(&self.repo_root, caller, &target)?;
+         // A fork onto a followed mirror's name would become its served store.
+         self.refuse_mirror_write(caller, &target).await?;
++        // Nor may it land on a name being migrated: between the migration's
++        // two renames the served store is absent (fix round 1, F6).
++        if crate::migrate::journal_exists(&self.plugin_dir, caller, &target) {
++            return Err(ForgeError::Busy(format!(
++                "'{caller}/{target}' is being migrated"
++            )));
++        }
+         if tokio::fs::metadata(&dest).await.is_ok() {
+             return Ok(ForgeResponse::error(
+                 409,
+diff --git a/afterc/crates/solid-pod-rs-forge/src/lib.rs b/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge/src/lib.rs
+index 75ff82c..060ea72 100644
+--- a/afterc/crates/solid-pod-rs-forge/src/lib.rs
++++ b/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge/src/lib.rs
+@@ -149,6 +149,22 @@ pub mod prelude {
+ }
+ 
+ /// The 503 every reader returns for an unmigrated mirror.
++/// `(owner, name, suffix)` when `rel` is exactly
++/// `/<owner>/<name>[.git]<suffix>` for one of the router's git suffixes,
++/// with `owner` and `name` (`.git` stripped once) valid single segments
++/// ([`ownership::valid_name_segment`]: no `/`, `%`, or leading `.`).
++fn smart_http_path(rel: &str) -> Option<(&str, &str, &'static str)> {
++    let suffix = router::GIT_SUFFIXES
++        .iter()
++        .copied()
++        .find(|s| rel.ends_with(s))?;
++    let head = rel.strip_suffix(suffix)?.strip_prefix('/')?;
++    let (owner, name) = head.split_once('/')?;
++    let name = name.strip_suffix(".git").unwrap_or(name);
++    (ownership::valid_name_segment(owner) && ownership::valid_name_segment(name))
++        .then_some((owner, name, suffix))
++}
++
+ fn unpublished_mirror_error(owner: &str, repo: &str) -> ForgeError {
+     ForgeError::Busy(format!(
+         "'{owner}/{repo}' is a mirror awaiting migration to publication isolation"
+@@ -218,6 +234,10 @@ pub struct ForgeService {
+     pr: pulls::PrExt,
+     /// Per-repo serialisation locks for spine writes (JSS `serializeOn`).
+     locks: Arc<locks::ForgeLocks>,
++    /// The boot migration did not run to completion (its runtime could not
++    /// be built, its thread panicked, or a store could not be gated by a
++    /// journal): every unmarked store under a 64-hex owner is refused.
++    migration_incomplete: bool,
+ }
+ 
+ impl std::fmt::Debug for ForgeService {
+@@ -241,8 +261,11 @@ impl ForgeService {
+     /// once per legacy store, on purpose: no reader may reach a legacy store
+     /// first. It runs on its own thread and runtime, so it is safe to call
+     /// from synchronous code and from inside any `tokio` or actix runtime.
+-    /// A store that cannot be migrated is logged and stays refused (503);
+-    /// it does not fail `new`.
++    /// A store that cannot be migrated, or that detection cannot examine, is
++    /// logged and stays refused (503) behind its journal; it does not fail
++    /// `new`. If the migration pass itself cannot run to completion, every
++    /// unmarked store under a 64-hex owner is refused for the life of this
++    /// service instead.
+     ///
+     /// # Errors
+     ///
+@@ -260,7 +283,12 @@ impl ForgeService {
+         // before anything can read it (SP-GIT-02 Commit B). Synchronous, on
+         // its own thread; a store that fails stays gated and never fails
+         // `new`.
+-        migrate::run_at_boot(&plugin_dir);
++        let migration_incomplete = !migrate::run_at_boot(&plugin_dir);
++        if migration_incomplete {
++            tracing::error!(
++                "forge: boot migration incomplete; every unmarked mirror-class repository is refused (503) until a restart migrates it"
++            );
++        }
+         let git = Arc::new(GitHttpService::new(repo_root.clone()));
+         let spine: Arc<dyn SpineStore> = Arc::new(FsSpineStore::new(plugin_dir.clone()));
+         let hosted = Arc::new(HostedStore::new(plugin_dir.clone()));
+@@ -292,6 +320,7 @@ impl ForgeService {
+             trails,
+             pr: pulls::PrExt::default(),
+             locks: Arc::new(locks::ForgeLocks::default()),
++            migration_incomplete,
+         })
+     }
+ 
+@@ -606,9 +635,11 @@ impl ForgeService {
+     /// record but no [`PUBLICATION_MARKER`] predates candidate isolation
+     /// and may hold commits the mirror never approved. A repository with a
+     /// migration journal in any state but `published`
+-    /// ([`migrate::journal_path`]) is refused first, marked or not. One
+-    /// journal read, then one `stat` for a marked mirror and two for any
+-    /// other repository. The record path is
++    /// ([`migrate::journal_path`]) is refused first, marked or not, and so is
++    /// any entry there that is not a regular file. One journal check, then
++    /// one `stat` for a marked mirror and two for any other repository. If
++    /// the boot migration did not complete, every unmarked repository under
++    /// a 64-hex owner is refused. The record path is
+     /// `mirror::MirrorStore`'s layout, checked without the `mirror` feature
+     /// so a plugin directory that was mirrored once stays gated. `owner` and
+     /// `repo` are already validated path segments (`repo::repo_git_dir`).
+@@ -622,10 +653,13 @@ impl ForgeService {
+         if migrate::journal_gates(&self.plugin_dir, owner, repo).await {
+             return true;
+         }
+-        if tokio::fs::metadata(dir.join(PUBLICATION_MARKER))
++        let marked = tokio::fs::metadata(dir.join(PUBLICATION_MARKER))
+             .await
+-            .is_ok()
+-        {
++            .is_ok();
++        if self.migration_incomplete && !marked && mirror_record::is_hex64(owner) {
++            return true;
++        }
++        if marked {
+             return false;
+         }
+         self.has_mirror_record(owner, repo).await.unwrap_or(true)
+@@ -729,9 +763,18 @@ impl ForgeService {
+         agent: &ForgeAgent,
+         rel_path: &str,
+     ) -> Result<ForgeResponse, ForgeError> {
++        // One path shape only: `/<owner>/<name>[.git]/<suffix>`, both
++        // segments valid names. Anything else (deeper nesting, a dot-led or
++        // encoded segment) is 404 before the CGI runs, and the CGI is always
++        // handed `/<owner>/<name>.git/<suffix>`, the very directory the
++        // gates below check (it opens `repos/<owner>/<name>` for a
++        // suffix-less path otherwise).
++        let Some((owner, name, suffix)) = smart_http_path(rel_path) else {
++            return Err(ForgeError::NotFound("not a repository path".into()));
++        };
+         let git_req = GitRequest {
+             method: req.method.clone(),
+-            path: rel_path.to_string(),
++            path: format!("/{owner}/{name}.git{suffix}"),
+             query: req.query.clone(),
+             headers: req.headers.clone(),
+             body: req.raw_body.clone(),
+@@ -742,21 +785,11 @@ impl ForgeService {
+         // is `403` (JSS forge namespace guard). Reads are unaffected here;
+         // the server's WAC gate governs private-repo read access.
+         if git_req.is_write() {
+-            let owner = rel_path
+-                .trim_start_matches('/')
+-                .split('/')
+-                .next()
+-                .unwrap_or("");
+             if !agent.can_write_namespace(owner) {
+                 return Err(ForgeError::Forbidden(format!(
+                     "cannot push into namespace '{owner}'"
+                 )));
+             }
+-            let name = rel_path
+-                .trim_start_matches('/')
+-                .split('/')
+-                .nth(1)
+-                .map_or("", |n| n.strip_suffix(".git").unwrap_or(n));
+             // The migration tombstone: while any journal exists, in any
+             // state, nothing but the migration writes the store.
+             if migrate::journal_exists(&self.plugin_dir, owner, name) {
+@@ -781,24 +814,17 @@ impl ForgeService {
+             }
+         }
+         // Marker gate, after the write guard above: smart-HTTP bypasses
+-        // `resolve_repo`, so an unmigrated mirror is refused here too.
+-        {
+-            let mut parts = rel_path.trim_start_matches('/').split('/');
+-            if let (Some(owner), Some(name)) = (parts.next(), parts.next()) {
+-                let name = name.strip_suffix(".git").unwrap_or(name);
+-                // Any refusal stops the request here. The CGI exports every
+-                // bare repository under `repos/`, so a name the forge does not
+-                // accept as a repository (such as a crashed fork's
+-                // `.fork-*.tmp` directory) is 404, never the CGI's to serve
+-                // (decision 22). A missing repository is still the CGI's.
+-                match self.gated_git_dir(owner, name).await {
+-                    Ok(_) | Err(ForgeError::NotFound(_)) => {}
+-                    Err(ForgeError::PathTraversal(_)) => {
+-                        return Err(ForgeError::NotFound(format!("repo {owner}/{name}")));
+-                    }
+-                    Err(e) => return Err(e),
+-                }
++        // `resolve_repo`, so an unmigrated mirror is refused here too. Any
++        // refusal stops the request here. The CGI exports every bare
++        // repository under `repos/`, so a name the forge does not accept as a
++        // repository is 404, never the CGI's to serve (decision 22). A
++        // missing repository is still the CGI's.
++        match self.gated_git_dir(owner, name).await {
++            Ok(_) | Err(ForgeError::NotFound(_)) => {}
++            Err(ForgeError::PathTraversal(_)) => {
++                return Err(ForgeError::NotFound(format!("repo {owner}/{name}")));
+             }
++            Err(e) => return Err(e),
+         }
+         // A completed push to a default branch advances an anchored trail
+         // (JSS `recordTip` on receive-pack exit). The CGI response is fully
+diff --git a/afterc/crates/solid-pod-rs-forge/src/migrate.rs b/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge/src/migrate.rs
+index a05e0e5..8388075 100644
+--- a/afterc/crates/solid-pod-rs-forge/src/migrate.rs
++++ b/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge/src/migrate.rs
+@@ -13,30 +13,41 @@
+ //!
+ //! [`crate::ForgeService::new`] runs it before returning. A mirror-class
+ //! store (a 64-hex owner) is migrated when it has no
+-//! [`crate::PUBLICATION_MARKER`] and shows any pre-release signal: a mirror
+-//! record that is flagged, pre-release or unreadable; `refs/mirror/*`;
+-//! `hideRefs` naming them; alternates; or an earlier migration report. Under
+-//! the store's lock, with a journal ([`journal_path`]) recording each step:
++//! [`crate::PUBLICATION_MARKER`] and shows any pre-release signal, each
++//! checked on its own: a mirror record that is flagged, pre-release or
++//! unreadable; `refs/mirror/*`; `hideRefs` naming them; alternates; or an
++//! earlier migration report. A check that fails with nothing positive found
++//! gates the store instead (a `detection-error` journal, removed once a later
++//! boot finds the store clean). Under the store's lock (waited for at most
++//! 600 s), with a journal ([`journal_path`]) recording each step:
+ //!
+-//! 1. a fresh store is initialised in `plugin_dir/mirror-work/staging/`;
+-//! 2. every ref but `refs/mirror/*` and `refs/forge/heads/*` is pushed into
+-//!    it by SHA from the old store, except a ref outside branches and tags
+-//!    that reaches a *held* object (one the `refs/mirror` tips reach and no
+-//!    branch or tag does);
+-//! 3. it is verified at object level (no held object, no alternates, no
+-//!    object file shared with the old store) and marked;
+-//! 4. a report is written beside the recovery path
+-//!    (`<name>.git.<ts>.migration.json`, `.held`, `.dropped`);
++//! 1. the attempt is counted and a fresh store initialised in
++//!    `plugin_dir/mirror-work/staging/`;
++//! 2. the roots (branches and tags with safe names) are pushed into it by
++//!    SHA, under the [`MAX_REPO_BYTES`] cap, with every other ref whose
++//!    closure lies inside theirs; `refs/mirror/*`, pull request heads, unsafe
++//!    or non-UTF-8 names and refs outside the roots are dropped and reported;
++//! 3. it is verified at object level (no object any ref reaches outside the
++//!    roots, nothing outside the roots' closure, no alternates, no object file
++//!    shared with the old store), then given its [`MIGRATION_ID_FILE`] and
++//!    marked;
++//! 4. a report naming the migration id is written beside the recovery path
++//!    (`<name>.git.<ts>.migration.json`, `.held`, `.dropped`), never over an
++//!    existing one;
+ //! 5. the old store is renamed to `plugin_dir/mirror-recovery/<owner>/<name>.git.<ts>`
+ //!    and the new one into `repos/`;
+ //! 6. the record's awaits-migration flag is removed, the candidate wiped and
+ //!    the journal deleted.
+ //!
+-//! A crash at any step is resumed at the next boot. A failure leaves the old
+-//! store in place behind a `failed` journal, which keeps every reader
+-//! refusing it (503); after [`MAX_ATTEMPTS`] failures boot stops retrying.
+-//! Recovery copies are never deleted automatically and must never be served:
+-//! do not add `.forge` to the pod's dotfile allowlist.
++//! Journal, report and lists are `fsync`ed before the renames that depend on
++//! them. A crash is resumed at the next boot: a rebuilt store already in
++//! `repos/` carrying the journal's migration id is finished, never rebuilt;
++//! otherwise the store is rebuilt from the old store, read from recovery
++//! once it has moved. A failure leaves a `failed` journal, which keeps every
++//! reader refusing the store (503); after [`MAX_ATTEMPTS`] attempts, crashes
++//! included, boot stops retrying. Recovery copies are never deleted
++//! automatically and must never be served: do not add `.forge` to the pod's
++//! dotfile allowlist.
+ //!
+ //! # Example
+ //!
+@@ -83,6 +94,13 @@ pub const SERVED_CONFIG: [(&str, &str); 3] = [
+     ("receive.denyDeletes", "true"),
+ ];
+ 
++/// Largest a mirrored repository may grow on disk, in bytes. A fetch that
++/// pushes the candidate store past this is killed and the candidate removed;
++/// a publication that grows the served store by more than this is killed;
++/// and a boot migration whose staging store grows past it during the push
++/// fails, leaving the old store gated.
++pub const MAX_REPO_BYTES: u64 = 512 * 1024 * 1024;
++
+ /// The camelCase key of the mirror record's awaits-migration flag, as it is
+ /// written to `plugin_dir/mirror/<owner>/<name>.json`.
+ pub const AWAITS_MIGRATION_KEY: &str = "awaitsMigration";
+@@ -244,6 +262,7 @@ pub(crate) async fn run_output(
+         .spawn()
+         .map_err(|e| format!("git could not start: {e}"))?;
+     let pid = child.id();
++    note_group(pid);
+     let waited = child.wait_with_output();
+     tokio::pin!(waited);
+     let deadline = tokio::time::sleep(timeout);
+@@ -274,9 +293,13 @@ pub(crate) async fn run_output(
+         w.abort();
+     }
+     match outcome {
+-        Ok(out) => out.map_err(|e| format!("git failed: {e}")),
++        Ok(out) => {
++            forget_group(pid);
++            out.map_err(|e| format!("git failed: {e}"))
++        }
+         Err(why) => {
+             kill_group(pid).await;
++            forget_group(pid);
+             Err(why)
+         }
+     }
+@@ -286,6 +309,7 @@ pub(crate) async fn run_output(
+ /// returning the first line `pick` accepts (git is then killed), or `None`
+ /// once git has exited successfully without one. stderr is discarded; a
+ /// failure is reported as `git <command> failed`.
++#[cfg(feature = "mirror")]
+ pub(crate) async fn first_line(
+     git_dir: &Path,
+     args: &[&str],
+@@ -357,30 +381,147 @@ pub(crate) async fn kill_group(pid: Option<u32>) {
+ // Boot migration of pre-release served stores
+ // ---------------------------------------------------------------------------
+ 
+-/// How many failed migrations of one store boot tolerates. After this many
+-/// the store is no longer retried at boot; its journal stays and every reader
++/// How many migration attempts of one store boot makes. An attempt counts
++/// when it starts, so a crash mid-build counts too. After this many the
++/// store is no longer retried at boot; its journal stays and every reader
+ /// refuses it (503) until an operator acts.
+ pub const MAX_ATTEMPTS: u32 = 3;
+ 
+-/// Wall-clock budget for migrating one store.
++/// Wall-clock budget for migrating one store, and the longest boot waits
++/// for one store's lock.
+ const STORE_BUDGET: Duration = Duration::from_secs(600);
+ 
+ /// Most refspecs in one push, to stay inside argv limits.
+ const PUSH_BATCH: usize = 512;
+ 
+-/// Most object ids the held set of one store may hold (about 50 bytes each
+-/// in memory). A store past it fails closed: it is not migrated and stays
+-/// gated behind its journal.
++/// Most object ids one in-memory set of a store may hold (about 50 bytes
++/// each): the held set, and the staging objects checked against the roots.
++/// A store past it fails closed: it is not migrated and stays gated behind
++/// its journal.
+ const MAX_HELD_IDS: usize = 16_000_000;
+ 
++/// The file at the root of a rebuilt store that names the migration (the
++/// journal id) that built it. Resume and the finish-only path compare it
++/// with the journal and the report, so a store that is not this migration's
++/// is never published or finished as if it were.
++pub const MIGRATION_ID_FILE: &str = "migration-id";
++
++/// The reason prefix of a gate journal written because detection could not
++/// examine a store. Only a journal with this prefix is removed when a later
++/// boot examines the store and finds it clean.
++const DETECTION_ERROR: &str = "detection-error";
++
++/// The limits one boot pass applies, per plugin directory (tests shorten
++/// them through [`test_hooks`]).
++#[derive(Debug, Clone, Copy)]
++struct Limits {
++    /// Longest the pass waits for one store's lock.
++    lock_wait: Duration,
++    /// Wall-clock budget for building one store.
++    store_budget: Duration,
++    /// Largest the staging store may grow during the push, in bytes.
++    size_cap: u64,
++}
++
++impl Limits {
++    fn for_plugin(plugin: &Path) -> Self {
++        let base = Self {
++            lock_wait: STORE_BUDGET,
++            store_budget: STORE_BUDGET,
++            size_cap: MAX_REPO_BYTES,
++        };
++        #[cfg(test)]
++        {
++            test_hooks::limits(plugin, base)
++        }
++        #[cfg(not(test))]
++        {
++            let _ = plugin;
++            base
++        }
++    }
++}
++
++/// Test-only fault and limit injection, keyed by the absolute plugin
++/// directory (tests run in parallel, so nothing here is process-wide).
++#[cfg(test)]
++pub(crate) mod test_hooks {
++    use std::path::{Path, PathBuf};
++    use std::sync::Mutex;
++    use std::time::Duration;
++
++    /// What a test injects for one plugin directory.
++    #[derive(Debug, Clone, Default)]
++    pub(crate) struct Hooks {
++        pub(crate) lock_wait: Option<Duration>,
++        pub(crate) store_budget: Option<Duration>,
++        pub(crate) size_cap: Option<u64>,
++        /// Panic on the migration thread before anything is migrated.
++        pub(crate) panic_at_boot: bool,
++        /// `std::process::abort()` once the `building` journal is written
++        /// (a crash mid-build; only ever set in a child process).
++        pub(crate) abort_in_build: bool,
++        /// Run, inside the build, a git alias that backgrounds
++        /// `sleep <token>` in git's process group and waits on it.
++        pub(crate) slow_child: Option<String>,
++    }
++
++    static HOOKS: Mutex<Vec<(PathBuf, Hooks)>> = Mutex::new(Vec::new());
++
++    fn key(plugin: &Path) -> PathBuf {
++        std::path::absolute(plugin).unwrap_or_else(|_| plugin.to_path_buf())
++    }
++
++    /// Install `h` for `plugin`, replacing any earlier hooks for it.
++    pub(crate) fn set(plugin: &Path, h: Hooks) {
++        let k = key(plugin);
++        let mut all = HOOKS
++            .lock()
++            .unwrap_or_else(std::sync::PoisonError::into_inner);
++        all.retain(|(p, _)| *p != k);
++        all.push((k, h));
++    }
++
++    /// Remove the hooks for `plugin`.
++    pub(crate) fn clear(plugin: &Path) {
++        let k = key(plugin);
++        HOOKS
++            .lock()
++            .unwrap_or_else(std::sync::PoisonError::into_inner)
++            .retain(|(p, _)| *p != k);
++    }
++
++    /// The hooks for `plugin` (all off when none are installed).
++    pub(crate) fn get(plugin: &Path) -> Hooks {
++        let k = key(plugin);
++        HOOKS
++            .lock()
++            .unwrap_or_else(std::sync::PoisonError::into_inner)
++            .iter()
++            .find(|(p, _)| *p == k)
++            .map(|(_, h)| h.clone())
++            .unwrap_or_default()
++    }
++
++    pub(super) fn limits(plugin: &Path, base: super::Limits) -> super::Limits {
++        let h = get(plugin);
++        super::Limits {
++            lock_wait: h.lock_wait.unwrap_or(base.lock_wait),
++            store_budget: h.store_budget.unwrap_or(base.store_budget),
++            size_cap: h.size_cap.unwrap_or(base.size_cap),
++        }
++    }
++}
++
+ /// `plugin_dir/mirror-work/migrations/<owner>/<name>.json`: the migration
+ /// journal of one served repository.
+ ///
+ /// While it exists the repository is being migrated, or its migration
+ /// failed. Every forge reader refuses the repository (503) unless the
+-/// journal's state is `published`, and while any journal exists the mirror
+-/// engine neither creates nor prepares the store and smart-HTTP refuses a
+-/// push into it. `None` unless both segments are safe
++/// journal is a regular file whose state is `published`, and while any
++/// entry exists at this path the mirror engine neither creates nor prepares
++/// the store, smart-HTTP refuses a push into it and a fork onto its name is
++/// refused. `None` unless both segments are safe
+ /// ([`crate::ownership::valid_name_segment`]).
+ #[must_use]
+ pub fn journal_path(plugin_dir: &Path, owner: &str, name: &str) -> Option<PathBuf> {
+@@ -400,22 +541,24 @@ pub fn journal_path(plugin_dir: &Path, owner: &str, name: &str) -> Option<PathBu
+ #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+ #[serde(rename_all = "kebab-case")]
+ enum Stage {
+-    /// Staging is being built; the old store is still in `repos/`.
++    /// Staging is being built.
+     Building,
+-    /// Staging passed verification and is marked; the old store is still in
+-    /// `repos/`.
++    /// Staging passed verification and is marked.
+     Verified,
+-    /// The old store has been moved to recovery; `repos/` has no store.
++    /// The old store is in recovery; the rebuilt store is about to be (or
++    /// has just been) renamed into `repos/`.
+     Moved,
+     /// The rebuilt store is in `repos/`; the record flag, the candidate and
+     /// the journal remain to be cleared.
+     Published,
+-    /// The last attempt failed; see the reason and the attempt count.
++    /// The last attempt failed, or the store is gated without one (a
++    /// detection error, a lock not taken); see the reason.
+     Failed,
+ }
+ 
+ /// The migration journal of one store (see [`journal_path`]). Paths are
+-/// relative to the plugin directory.
++/// relative to the plugin directory and are checked before any use
++/// ([`contained`]).
+ #[derive(Debug, Clone, Serialize, Deserialize)]
+ #[serde(rename_all = "camelCase")]
+ struct Journal {
+@@ -423,6 +566,10 @@ struct Journal {
+     ts: u64,
+     class: String,
+     state: Stage,
++    /// Whether the old store has been renamed to `recovery`. Once set, the
++    /// old store is only ever read from there.
++    #[serde(default)]
++    moved: bool,
+     #[serde(default, skip_serializing_if = "Option::is_none")]
+     staging: Option<String>,
+     recovery: String,
+@@ -432,27 +579,88 @@ struct Journal {
+     reason: Option<String>,
+ }
+ 
++/// What is at a journal path.
++enum JournalRead {
++    /// Nothing ("not found").
++    Absent,
++    /// A regular file holding a journal.
++    Present(Journal),
++    /// Anything else: a symlink, a directory, a file that cannot be read or
++    /// parsed, a check that failed. It gates, and is never acted on.
++    Bad(String),
++}
++
++/// Read `path` only if it is a regular file, not a symlink: `lstat`, open,
++/// then `fstat`, refusing a file whose identity changed in between.
++fn read_regular(path: &Path) -> std::io::Result<Vec<u8>> {
++    use std::io::Read as _;
++    let before = std::fs::symlink_metadata(path)?;
++    if !before.file_type().is_file() {
++        return Err(std::io::Error::new(
++            std::io::ErrorKind::InvalidData,
++            "not a regular file",
++        ));
++    }
++    let mut file = std::fs::File::open(path)?;
++    let after = file.metadata()?;
++    #[cfg(unix)]
++    {
++        use std::os::unix::fs::MetadataExt as _;
++        if (before.dev(), before.ino()) != (after.dev(), after.ino()) {
++            return Err(std::io::Error::new(
++                std::io::ErrorKind::InvalidData,
++                "changed while being read",
++            ));
++        }
++    }
++    if !after.is_file() {
++        return Err(std::io::Error::new(
++            std::io::ErrorKind::InvalidData,
++            "not a regular file",
++        ));
++    }
++    let mut out = Vec::new();
++    file.read_to_end(&mut out)?;
++    Ok(out)
++}
++
++/// Read the journal at `path` (see [`JournalRead`]).
++fn read_journal(path: &Path) -> JournalRead {
++    match std::fs::symlink_metadata(path) {
++        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return JournalRead::Absent,
++        Err(e) => return JournalRead::Bad(format!("cannot be checked: {}", e.kind())),
++        Ok(m) if !m.file_type().is_file() => {
++            return JournalRead::Bad("not a regular file".into());
++        }
++        Ok(_) => {}
++    }
++    match read_regular(path) {
++        Ok(bytes) => match serde_json::from_slice(&bytes) {
++            Ok(j) => JournalRead::Present(j),
++            Err(e) => JournalRead::Bad(format!("not a journal: {e}")),
++        },
++        Err(e) => JournalRead::Bad(format!("cannot be read: {e}")),
++    }
++}
++
+ /// Whether a reader must refuse `<owner>/<name>` because of its migration
+-/// journal: one exists in any state but `published`, or cannot be read.
+-/// "Not found" is the only answer that lets the reader go on (decision 21).
++/// journal: anything is at the journal path except a regular file whose
++/// state is `published`. "Not found" is the only answer that lets the
++/// reader go on (decision 21); a symlink gates whatever it points at.
+ pub(crate) async fn journal_gates(plugin_dir: &Path, owner: &str, name: &str) -> bool {
+     let Some(path) = journal_path(plugin_dir, owner, name) else {
+         return false;
+     };
+-    match tokio::fs::read(&path).await {
+-        Ok(bytes) => !matches!(
+-            serde_json::from_slice::<Journal>(&bytes),
+-            Ok(Journal {
+-                state: Stage::Published,
+-                ..
+-            })
+-        ),
+-        Err(e) => e.kind() != std::io::ErrorKind::NotFound,
++    match tokio::task::spawn_blocking(move || read_journal(&path)).await {
++        Ok(JournalRead::Absent) => false,
++        Ok(JournalRead::Present(j)) => j.state != Stage::Published,
++        Ok(JournalRead::Bad(_)) | Err(_) => true,
+     }
+ }
+ 
+-/// Whether any migration journal exists for `<owner>/<name>`, in any state
+-/// (the tombstone). An entry that cannot be checked counts as present.
++/// Whether any entry exists at the migration journal path of
++/// `<owner>/<name>`, in any state and of any file type (the tombstone). An
++/// entry that cannot be checked counts as present.
+ pub(crate) fn journal_exists(plugin_dir: &Path, owner: &str, name: &str) -> bool {
+     let Some(path) = journal_path(plugin_dir, owner, name) else {
+         return false;
+@@ -464,45 +672,65 @@ pub(crate) fn journal_exists(plugin_dir: &Path, owner: &str, name: &str) -> bool
+ }
+ 
+ /// Migrate every pre-release served store under `plugin_dir`, synchronously.
++/// Returns whether the pass ran to completion.
+ ///
+ /// Runs on a dedicated thread with its own current-thread `tokio` runtime and
+ /// joins it, so it behaves the same from plain synchronous code, from inside
+ /// actix's current-thread runtime and from a `#[tokio::test]`: no
+ /// `block_in_place`, no nested `block_on` on the caller's thread. A failure to
+-/// migrate one store is logged and leaves that store gated; it never fails
+-/// the caller.
+-pub(crate) fn run_at_boot(plugin_dir: &Path) {
++/// migrate one store is logged and leaves that store gated behind its
++/// journal; it never fails the caller. `false` (the runtime could not be
++/// built, the thread panicked, or a store could not be gated by a journal)
++/// tells the caller to refuse every unmarked mirror-class store instead.
++pub(crate) fn run_at_boot(plugin_dir: &Path) -> bool {
+     let plugin = std::path::absolute(plugin_dir).unwrap_or_else(|_| plugin_dir.to_path_buf());
+     std::thread::scope(|scope| {
+         let worker = scope.spawn(|| {
++            #[cfg(test)]
++            assert!(
++                !test_hooks::get(&plugin).panic_at_boot,
++                "test hook: the migration thread panics"
++            );
+             match tokio::runtime::Builder::new_current_thread()
+                 .enable_all()
+                 .build()
+             {
+                 Ok(rt) => rt.block_on(run(&plugin)),
+-                Err(e) => tracing::error!(error = %e, "forge: migration runtime not built; legacy stores stay as they are"),
++                Err(e) => {
++                    tracing::error!(error = %e, "forge: migration runtime not built; every unmarked mirror-class store is refused");
++                    false
++                }
+             }
+         });
+-        if worker.join().is_err() {
+-            tracing::error!("forge: the migration thread panicked");
++        if let Ok(complete) = worker.join() {
++            complete
++        } else {
++            tracing::error!(
++                "forge: the migration thread panicked; every unmarked mirror-class store is refused"
++            );
++            false
+         }
+-    });
++    })
+ }
+ 
+ /// One boot pass: resume every journal, then migrate every store detected as
+-/// needing it. Serial, one lock at a time.
+-async fn run(plugin: &Path) {
++/// needing it (or that detection could not examine). Serial, one lock at a
++/// time. Returns `false` if any store could not be gated by a journal.
++async fn run(plugin: &Path) -> bool {
+     let started = std::time::Instant::now();
+     let mut done = 0usize;
+     let mut failed = 0usize;
++    let mut ungated = 0usize;
+     let mut seen = std::collections::BTreeSet::new();
++    let mut tally = |o: Outcome| match o {
++        Outcome::Migrated => done += 1,
++        Outcome::Failed => failed += 1,
++        Outcome::Ungated => ungated += 1,
++        Outcome::Skipped => {}
++    };
+     for (owner, name) in journaled(plugin).await {
+         seen.insert((owner.clone(), name.clone()));
+-        match migrate_one(plugin, &owner, &name).await {
+-            Outcome::Migrated => done += 1,
+-            Outcome::Failed => failed += 1,
+-            Outcome::Skipped => {}
+-        }
++        tally(migrate_one(plugin, &owner, &name).await);
+     }
+     for (owner, name) in crate::repo::list_all(&plugin.join("repos")).await {
+         if seen.contains(&(owner.clone(), name.clone())) {
+@@ -511,31 +739,39 @@ async fn run(plugin: &Path) {
+         if matches!(detect(plugin, &owner, &name).await, Detected::None) {
+             continue;
+         }
+-        match migrate_one(plugin, &owner, &name).await {
+-            Outcome::Migrated => done += 1,
+-            Outcome::Failed => failed += 1,
+-            Outcome::Skipped => {}
+-        }
++        tally(migrate_one(plugin, &owner, &name).await);
+     }
+-    if done + failed > 0 {
++    if done + failed + ungated > 0 {
+         tracing::info!(
+             migrated = done,
+             failed,
++            ungated,
+             ms = u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX),
+             "forge: legacy served stores migrated"
+         );
+     }
++    if ungated > 0 {
++        tracing::error!(
++            ungated,
++            "forge: a store could not be gated by a journal; every unmarked mirror-class store is refused"
++        );
++    }
++    ungated == 0
+ }
+ 
+ /// What one store's pass came to.
+ #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+ enum Outcome {
+     Migrated,
++    /// Not migrated; a journal gates the store.
+     Failed,
++    /// Not migrated, and no journal could be written to gate it: the caller
++    /// must gate it another way.
++    Ungated,
+     Skipped,
+ }
+ 
+-/// Every `(owner, name)` with a journal file.
++/// Every `(owner, name)` with an entry at its journal path.
+ async fn journaled(plugin: &Path) -> Vec<(String, String)> {
+     let mut out = Vec::new();
+     let root = plugin.join("mirror-work").join("migrations");
+@@ -564,16 +800,18 @@ async fn journaled(plugin: &Path) -> Vec<(String, String)> {
+ }
+ 
+ /// What detection found for one store.
+-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
++#[derive(Debug, Clone, PartialEq, Eq)]
+ enum Detected {
+     /// Nothing to do.
+     None,
+     /// A legacy store: rebuild it.
+     Rebuild,
+-    /// Already rebuilt and marked, but the record still carries the flag
+-    /// (a crash after the journal was removed, or an engine write in
+-    /// between): finish only.
++    /// Rebuilt and marked by a migration whose report names the store's
++    /// migration id, but the record still carries the flag (a crash after
++    /// the journal was removed, or an engine write in between): finish only.
+     Finish,
++    /// A check could not be made and nothing positive was found: gate it.
++    Error(String),
+ }
+ 
+ /// Paths of one store under the plugin directory.
+@@ -603,28 +841,70 @@ impl Paths {
+     }
+ }
+ 
++/// Whether `p` is a directory, following symlinks as the readers and the
++/// repository listing do (an operator may symlink a store to another disk).
+ fn is_dir(p: &Path) -> bool {
+     std::fs::metadata(p).is_ok_and(|m| m.is_dir())
+ }
+ 
+-/// Whether a migration report exists for `<owner>/<name>` in recovery.
+-fn has_report(recovery_dir: &Path, name: &str) -> bool {
+-    let Ok(entries) = std::fs::read_dir(recovery_dir) else {
+-        return false;
++/// Whether `ts` is a non-empty run of ASCII digits.
++fn all_digits(ts: &str) -> bool {
++    !ts.is_empty() && ts.bytes().all(|b| b.is_ascii_digit())
++}
++
++/// The migration reports (`<name>.git.<ts>.migration.json`, regular files)
++/// in recovery. "Not found" is no reports; any other error is an error.
++fn reports(recovery_dir: &Path, name: &str) -> Result<Vec<PathBuf>, String> {
++    let entries = match std::fs::read_dir(recovery_dir) {
++        Ok(e) => e,
++        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
++        Err(e) => return Err(format!("the recovery directory: {}", e.kind())),
+     };
+     let prefix = format!("{name}.git.");
+-    entries.flatten().any(|e| {
++    let mut out = Vec::new();
++    for e in entries {
++        let e = e.map_err(|e| format!("the recovery directory: {}", e.kind()))?;
+         let f = e.file_name();
+         let f = f.to_string_lossy();
+-        f.strip_prefix(&prefix)
++        let is_report = f
++            .strip_prefix(&prefix)
+             .and_then(|rest| rest.strip_suffix(".migration.json"))
+-            .is_some_and(|ts| !ts.is_empty() && ts.bytes().all(|b| b.is_ascii_digit()))
+-    })
++            .is_some_and(all_digits);
++        if is_report {
++            out.push(e.path());
++        }
++    }
++    Ok(out)
++}
++
++/// The `id` a report names, if it is a regular file holding one.
++fn report_id(path: &Path) -> Option<String> {
++    let bytes = read_regular(path).ok()?;
++    let v: serde_json::Value = serde_json::from_slice(&bytes).ok()?;
++    v.get("id")?.as_str().map(str::to_string)
++}
++
++/// The migration id a store carries ([`MIGRATION_ID_FILE`]), if it is a
++/// regular file.
++fn store_migration_id(store: &Path) -> Option<String> {
++    let bytes = read_regular(&store.join(MIGRATION_ID_FILE)).ok()?;
++    let id = String::from_utf8(bytes).ok()?;
++    let id = id.trim();
++    (!id.is_empty()).then(|| id.to_string())
+ }
+ 
+-/// Legacy detection for a mirror-class store (64-hex owner): unmarked and
+-/// showing any pre-release signal. A check that cannot be made is logged and
+-/// the store is left as it is this boot.
++/// Whether `served` is marked and carries migration id `id`: the store this
++/// migration built is in place.
++fn served_is_ours(served: &Path, id: &str) -> bool {
++    std::fs::symlink_metadata(served.join(crate::PUBLICATION_MARKER)).is_ok_and(|m| m.is_file())
++        && store_migration_id(served).is_some_and(|got| got == id)
++}
++
++/// Legacy detection for a mirror-class store (64-hex owner). Every
++/// pre-release signal is evaluated independently: any positive is
++/// `Rebuild`, whatever the others' errors; if none is positive and a check
++/// failed, the answer is `Error` (the store is then gated, never left
++/// served).
+ async fn detect(plugin: &Path, owner: &str, name: &str) -> Detected {
+     if !is_hex64(owner) || !is_repo_name(name) {
+         return Detected::None;
+@@ -636,12 +916,26 @@ async fn detect(plugin: &Path, owner: &str, name: &str) -> Detected {
+         return Detected::None;
+     }
+     let record = MirrorStore::new(plugin).load(owner, name);
+-    if std::fs::metadata(p.served.join(crate::PUBLICATION_MARKER)).is_ok_and(|m| m.is_file()) {
+-        let flagged = matches!(&record, StoredRecord::Valid(r) if r.awaits_migration);
+-        return if flagged && has_report(&p.recovery_dir, name) {
+-            Detected::Finish
+-        } else {
+-            Detected::None
++    let marked = match std::fs::symlink_metadata(p.served.join(crate::PUBLICATION_MARKER)) {
++        Ok(m) => m.is_file(),
++        Err(e) if e.kind() == std::io::ErrorKind::NotFound => false,
++        Err(e) => return Detected::Error(format!("the marker check failed: {}", e.kind())),
++    };
++    if marked {
++        if !matches!(&record, StoredRecord::Valid(r) if r.awaits_migration) {
++            return Detected::None;
++        }
++        // Flagged but marked: finish only if a report names this store's
++        // migration id; otherwise the marker proves nothing, rebuild.
++        let Some(id) = store_migration_id(&p.served) else {
++            return Detected::Rebuild;
++        };
++        return match reports(&p.recovery_dir, name) {
++            Ok(found) if found.iter().any(|r| report_id(r).as_deref() == Some(&id)) => {
++                Detected::Finish
++            }
++            Ok(_) => Detected::Rebuild,
++            Err(e) => Detected::Error(e),
+         };
+     }
+     match &record {
+@@ -649,29 +943,36 @@ async fn detect(plugin: &Path, owner: &str, name: &str) -> Detected {
+         StoredRecord::Unreadable(_) => return Detected::Rebuild,
+         StoredRecord::Valid(_) | StoredRecord::Missing => {}
+     }
+-    match legacy_traces(&p.served).await {
+-        Ok(true) => return Detected::Rebuild,
+-        Ok(false) => {}
+-        Err(e) => {
+-            tracing::warn!(owner = %owner, name = %name, error = %e, "forge: legacy check failed; store left as it is");
+-            return Detected::None;
++    let mut error = None;
++    for signal in legacy_traces(&p.served).await {
++        match signal {
++            Ok(true) => return Detected::Rebuild,
++            Ok(false) => {}
++            Err(e) => error = error.or(Some(e)),
+         }
+     }
+-    if has_report(&p.recovery_dir, name) {
+-        return Detected::Rebuild;
++    match reports(&p.recovery_dir, name) {
++        Ok(found) if !found.is_empty() => return Detected::Rebuild,
++        Ok(_) => {}
++        Err(e) => error = error.or(Some(e)),
+     }
+-    Detected::None
++    error.map_or(Detected::None, Detected::Error)
+ }
+ 
+-/// `refs/mirror/*`, `hideRefs` naming them, or alternates.
+-async fn legacy_traces(served: &Path) -> Result<bool, String> {
++/// The pre-release signals of a store, each evaluated on its own:
++/// alternates, `refs/mirror/*`, and `hideRefs` naming them.
++async fn legacy_traces(served: &Path) -> Vec<Result<bool, String>> {
+     let quick = Duration::from_secs(15);
+     let info = served.join("objects").join("info");
++    let mut alternates = Ok(false);
+     for file in ["alternates", "http-alternates"] {
+         match tokio::fs::symlink_metadata(info.join(file)).await {
+-            Ok(_) => return Ok(true),
++            Ok(_) => {
++                alternates = Ok(true);
++                break;
++            }
+             Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+-            Err(e) => return Err(format!("the alternates check failed: {}", e.kind())),
++            Err(e) => alternates = Err(format!("the alternates check failed: {}", e.kind())),
+         }
+     }
+     let refs = run_in(
+@@ -687,10 +988,8 @@ async fn legacy_traces(served: &Path) -> Result<bool, String> {
+         quick,
+         None,
+     )
+-    .await?;
+-    if !refs.is_empty() {
+-        return Ok(true);
+-    }
++    .await
++    .map(|out| !out.is_empty());
+     let config = run_in(
+         served,
+         served,
+@@ -699,8 +998,9 @@ async fn legacy_traces(served: &Path) -> Result<bool, String> {
+         quick,
+         None,
+     )
+-    .await?;
+-    Ok(hides_mirror_refs(&config))
++    .await
++    .map(|out| hides_mirror_refs(&out));
++    vec![alternates, refs, config]
+ }
+ 
+ fn now_secs() -> u64 {
+@@ -709,29 +1009,64 @@ fn now_secs() -> u64 {
+         .map_or(0, |d| d.as_secs())
+ }
+ 
+-/// Read a journal: `None` when absent, `Some(Err)` when present but not
+-/// readable as a journal.
+-fn read_journal(path: &Path) -> Option<Result<Journal, String>> {
+-    match std::fs::read(path) {
+-        Ok(bytes) => Some(serde_json::from_slice(&bytes).map_err(|e| e.to_string())),
+-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => None,
+-        Err(e) => Some(Err(format!("cannot be read: {}", e.kind()))),
++/// `fsync` a directory, so the entries just created, renamed or removed in
++/// it survive a machine crash.
++fn sync_dir(dir: &Path) -> std::io::Result<()> {
++    #[cfg(unix)]
++    {
++        std::fs::File::open(dir)?.sync_all()
++    }
++    #[cfg(not(unix))]
++    {
++        let _ = dir;
++        Ok(())
+     }
+ }
+ 
+-/// Write a journal atomically (temporary file, then rename).
++/// Write `bytes` to `path` and `fsync` it.
++fn write_synced(path: &Path, bytes: &[u8]) -> std::io::Result<()> {
++    use std::io::Write as _;
++    let mut f = std::fs::File::create(path)?;
++    f.write_all(bytes)?;
++    f.sync_all()
++}
++
++/// Write a journal durably: a temporary file, `fsync`, rename, `fsync` the
++/// directory.
+ fn write_journal(path: &Path, j: &Journal) -> Result<(), String> {
+-    if let Some(parent) = path.parent() {
+-        std::fs::create_dir_all(parent).map_err(|e| format!("journal directory: {e}"))?;
+-    }
++    let parent = path.parent().ok_or("no journal directory")?;
++    std::fs::create_dir_all(parent).map_err(|e| format!("journal directory: {e}"))?;
+     let tmp = path.with_extension("json.tmp");
+     let bytes = serde_json::to_vec_pretty(j).map_err(|e| e.to_string())?;
+-    std::fs::write(&tmp, bytes).map_err(|e| format!("journal not written: {e}"))?;
+-    std::fs::rename(&tmp, path).map_err(|e| format!("journal not written: {e}"))
++    write_synced(&tmp, &bytes).map_err(|e| format!("journal not written: {e}"))?;
++    std::fs::rename(&tmp, path).map_err(|e| format!("journal not written: {e}"))?;
++    sync_dir(parent).map_err(|e| format!("journal not synced: {e}"))
++}
++
++/// Create `path` holding `bytes`, durably, only if nothing is there: a
++/// temporary file, `fsync`, `hard_link` (which, unlike rename, never
++/// replaces), `fsync` the directory. `Ok(false)` when an entry already
++/// exists (it is left as it is).
++fn create_exclusive(path: &Path, bytes: &[u8]) -> Result<bool, String> {
++    let parent = path.parent().ok_or("no parent directory")?;
++    std::fs::create_dir_all(parent).map_err(|e| format!("directory: {e}"))?;
++    let tmp = with_suffix(path, &format!(".{}.tmp", uuid::Uuid::new_v4().simple()));
++    write_synced(&tmp, bytes).map_err(|e| format!("not written: {e}"))?;
++    let linked = std::fs::hard_link(&tmp, path);
++    let _ = std::fs::remove_file(&tmp);
++    match linked {
++        Ok(()) => {
++            sync_dir(parent).map_err(|e| format!("not synced: {e}"))?;
++            Ok(true)
++        }
++        Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => Ok(false),
++        Err(e) => Err(format!("not written: {e}")),
++    }
+ }
+ 
+-/// Take the store's cross-process lock (blocking, off the runtime).
+-async fn take_lock(path: PathBuf) -> std::io::Result<std::fs::File> {
++/// Take the store's cross-process lock, polling `try_lock` (off the
++/// runtime) for at most `wait`.
++async fn take_lock(path: PathBuf, wait: Duration) -> std::io::Result<std::fs::File> {
+     tokio::task::spawn_blocking(move || {
+         if let Some(parent) = path.parent() {
+             std::fs::create_dir_all(parent)?;
+@@ -741,8 +1076,22 @@ async fn take_lock(path: PathBuf) -> std::io::Result<std::fs::File> {
+             .write(true)
+             .truncate(false)
+             .open(&path)?;
+-        file.lock()?;
+-        Ok(file)
++        let deadline = std::time::Instant::now() + wait;
++        loop {
++            match file.try_lock() {
++                Ok(()) => return Ok(file),
++                Err(std::fs::TryLockError::WouldBlock) => {
++                    if std::time::Instant::now() >= deadline {
++                        return Err(std::io::Error::new(
++                            std::io::ErrorKind::TimedOut,
++                            "another process held it past the deadline",
++                        ));
++                    }
++                    std::thread::sleep(Duration::from_millis(50));
++                }
++                Err(std::fs::TryLockError::Error(e)) => return Err(e),
++            }
++        }
+     })
+     .await
+     .map_err(std::io::Error::other)?
+@@ -753,118 +1102,265 @@ fn fresh_recovery(plugin: &Path, p: &Paths, name: &str) -> (u64, String) {
+     let mut ts = now_secs();
+     loop {
+         let stem = format!("{name}.git.{ts}");
+-        let taken = p.recovery_dir.join(&stem).exists()
+-            || p.recovery_dir
+-                .join(format!("{stem}.migration.json"))
+-                .exists();
++        let taken = std::fs::symlink_metadata(p.recovery_dir.join(&stem)).is_ok()
++            || std::fs::symlink_metadata(p.recovery_dir.join(format!("{stem}.migration.json")))
++                .is_ok();
+         if !taken {
+-            let rel = p
+-                .recovery_dir
+-                .join(&stem)
+-                .strip_prefix(plugin)
+-                .map_or_else(|_| p.recovery_dir.join(&stem), Path::to_path_buf);
+-            return (ts, rel.to_string_lossy().into_owned());
++            return (ts, relative(plugin, &p.recovery_dir.join(&stem)));
+         }
+         ts += 1;
+     }
+ }
+ 
++/// A new journal in `state` with a fresh id and recovery stem.
++fn new_journal(
++    plugin: &Path,
++    p: &Paths,
++    name: &str,
++    state: Stage,
++    reason: Option<String>,
++) -> Journal {
++    let (ts, recovery) = fresh_recovery(plugin, p, name);
++    Journal {
++        id: uuid::Uuid::new_v4().simple().to_string(),
++        ts,
++        class: "mirror".into(),
++        state,
++        moved: false,
++        staging: None,
++        recovery,
++        attempts: 0,
++        reason,
++    }
++}
++
++/// Gate a store with a `failed` journal holding `reason` and no attempt
++/// counted, created exclusively (an existing journal is never replaced, and
++/// already gates). `Ungated` when nothing could be written.
++fn gate(plugin: &Path, p: &Paths, owner: &str, name: &str, reason: &str) -> Outcome {
++    let j = new_journal(plugin, p, name, Stage::Failed, Some(redact(plugin, reason)));
++    let written = serde_json::to_vec_pretty(&j)
++        .map_err(|e| e.to_string())
++        .and_then(|bytes| create_exclusive(&p.journal, &bytes));
++    match written {
++        Ok(_) => {
++            tracing::error!(owner = %owner, name = %name, reason = %redact(plugin, reason), "forge: store gated without migrating");
++            Outcome::Failed
++        }
++        Err(e) => {
++            tracing::error!(owner = %owner, name = %name, error = %redact(plugin, &e), "forge: gate journal not written");
++            Outcome::Ungated
++        }
++    }
++}
++
++/// The journal's recovery (and staging) path, if each lies where it must:
++/// `mirror-recovery/<owner>/<name>.git.<digits>` and
++/// `mirror-work/staging/<owner>/<name>.git.<alphanumerics>`, as plain
++/// relative components, with the parent directory (when it exists)
++/// canonicalising to the same place under the canonical plugin directory.
++fn contained(plugin: &Path, owner: &str, name: &str, j: &Journal) -> Result<PathBuf, String> {
++    fn check(
++        plugin: &Path,
++        rel: &str,
++        base: &[&str],
++        owner: &str,
++        leaf_ok: impl Fn(&str) -> bool,
++    ) -> Result<PathBuf, String> {
++        use std::path::Component;
++        let parts: Vec<&str> = Path::new(rel)
++            .components()
++            .map(|c| match c {
++                Component::Normal(s) => s.to_str().ok_or(()),
++                _ => Err(()),
++            })
++            .collect::<Result<_, _>>()
++            .map_err(|()| format!("journal path {rel:?} is not plain"))?;
++        let ok = parts.len() == base.len() + 2
++            && parts[..base.len()] == *base
++            && parts[base.len()] == owner
++            && leaf_ok(parts[base.len() + 1]);
++        if !ok {
++            return Err(format!(
++                "journal path {rel:?} is outside {}",
++                base.join("/")
++            ));
++        }
++        let parent: PathBuf = base
++            .iter()
++            .fold(plugin.to_path_buf(), |d, s| d.join(s))
++            .join(owner);
++        if let Ok(real) = std::fs::canonicalize(&parent) {
++            let root =
++                std::fs::canonicalize(plugin).map_err(|e| format!("plugin directory: {e}"))?;
++            let want = base.iter().fold(root, |d, s| d.join(s)).join(owner);
++            if real != want {
++                return Err(format!(
++                    "journal path {rel:?} resolves outside {}",
++                    base.join("/")
++                ));
++            }
++        }
++        Ok(plugin.join(rel))
++    }
++    let stem = format!("{name}.git.");
++    let recovery = check(plugin, &j.recovery, &["mirror-recovery"], owner, |leaf| {
++        leaf.strip_prefix(&stem).is_some_and(all_digits)
++    })?;
++    if let Some(s) = &j.staging {
++        check(plugin, s, &["mirror-work", "staging"], owner, |leaf| {
++            leaf.strip_prefix(&stem)
++                .is_some_and(|u| !u.is_empty() && u.bytes().all(|b| b.is_ascii_alphanumeric()))
++        })?;
++    }
++    Ok(recovery)
++}
++
+ /// Migrate (or resume, or finish) one store under its lock.
+ async fn migrate_one(plugin: &Path, owner: &str, name: &str) -> Outcome {
+     let Some(p) = Paths::of(plugin, owner, name) else {
+         return Outcome::Skipped;
+     };
+-    let _lock = match take_lock(p.lock.clone()).await {
++    let limits = Limits::for_plugin(plugin);
++    let _lock = match take_lock(p.lock.clone(), limits.lock_wait).await {
+         Ok(f) => f,
++        // No lock: still gate the store (decision 21; a journal only adds
++        // denial), never replacing a journal that is there.
+         Err(e) => {
+-            // No lock: still gate the store (a journal only adds denial),
+-            // unless a journal already does.
+-            tracing::error!(owner = %owner, name = %name, error = %e, "forge: migration lock not taken; store gated");
+-            if read_journal(&p.journal).is_none() {
+-                let (ts, recovery) = fresh_recovery(plugin, &p, name);
+-                let j = Journal {
+-                    id: uuid::Uuid::new_v4().simple().to_string(),
+-                    ts,
+-                    class: "mirror".into(),
+-                    state: Stage::Failed,
+-                    staging: None,
+-                    recovery,
+-                    attempts: 0,
+-                    reason: Some(format!(
+-                        "the migration lock could not be taken: {}",
+-                        e.kind()
+-                    )),
+-                };
+-                if let Err(w) = write_journal(&p.journal, &j) {
+-                    tracing::error!(owner = %owner, name = %name, error = %w, "forge: gate journal not written");
+-                }
+-            }
+-            return Outcome::Failed;
++            return gate(
++                plugin,
++                &p,
++                owner,
++                name,
++                &format!("the migration lock was not taken: {e}"),
++            );
+         }
+     };
+     // Re-read everything under the lock: another instance may have finished.
+     let journal = match read_journal(&p.journal) {
+-        Some(Ok(j)) => j,
+-        Some(Err(e)) => {
+-            tracing::error!(owner = %owner, name = %name, error = %e, "forge: migration journal unreadable; store stays gated");
++        JournalRead::Present(j) => j,
++        JournalRead::Bad(e) => {
++            tracing::error!(owner = %owner, name = %name, error = %e, "forge: migration journal unusable; store stays gated");
+             return Outcome::Failed;
+         }
+-        None => match detect(plugin, owner, name).await {
++        JournalRead::Absent => match detect(plugin, owner, name).await {
+             Detected::None => return Outcome::Skipped,
+-            Detected::Finish => {
+-                return match finish(plugin, &p, owner, name) {
+-                    Ok(()) => Outcome::Migrated,
++            Detected::Finish => return finished(plugin, &p, owner, name),
++            Detected::Error(e) => {
++                return gate(plugin, &p, owner, name, &format!("{DETECTION_ERROR}: {e}"));
++            }
++            Detected::Rebuild => new_journal(plugin, &p, name, Stage::Building, None),
++        },
++    };
++    let recovery = match contained(plugin, owner, name, &journal) {
++        Ok(r) => r,
++        Err(e) => {
++            tracing::error!(owner = %owner, name = %name, error = %redact(plugin, &e), "forge: migration journal refused; store stays gated");
++            return Outcome::Failed;
++        }
++    };
++    if journal.state == Stage::Failed
++        && journal
++            .reason
++            .as_deref()
++            .is_some_and(|r| r.starts_with(DETECTION_ERROR))
++    {
++        // A store gated because it could not be examined: examine it again.
++        match detect(plugin, owner, name).await {
++            Detected::None => {
++                return match std::fs::remove_file(&p.journal) {
++                    Ok(()) => {
++                        let _ = p.journal.parent().map(sync_dir);
++                        tracing::info!(owner = %owner, name = %name, "forge: store examined and clean; gate removed");
++                        Outcome::Skipped
++                    }
+                     Err(e) => {
+-                        tracing::error!(owner = %owner, name = %name, error = %e, "forge: migration not finished");
++                        tracing::error!(owner = %owner, name = %name, error = %e, "forge: gate journal not removed");
+                         Outcome::Failed
+                     }
+-                }
++                };
+             }
+-            Detected::Rebuild => {
+-                let (ts, recovery) = fresh_recovery(plugin, &p, name);
+-                Journal {
+-                    id: uuid::Uuid::new_v4().simple().to_string(),
+-                    ts,
+-                    class: "mirror".into(),
+-                    state: Stage::Building,
+-                    staging: None,
+-                    recovery,
+-                    attempts: 0,
+-                    reason: None,
+-                }
++            Detected::Error(e) => {
++                tracing::warn!(owner = %owner, name = %name, error = %redact(plugin, &e), "forge: store still cannot be examined; stays gated");
++                return Outcome::Failed;
+             }
+-        },
+-    };
+-    let recovery = plugin.join(&journal.recovery);
+-    match journal.state {
+-        Stage::Published => {
+-            return match finish(plugin, &p, owner, name) {
+-                Ok(()) => Outcome::Migrated,
+-                Err(e) => {
+-                    tracing::error!(owner = %owner, name = %name, error = %e, "forge: migration not finished");
+-                    Outcome::Failed
+-                }
+-            };
+-        }
+-        Stage::Failed if journal.attempts >= MAX_ATTEMPTS => {
+-            tracing::warn!(owner = %owner, name = %name, attempts = journal.attempts, "forge: migration gave up; store stays gated");
+-            return Outcome::Failed;
++            Detected::Finish => return finished(plugin, &p, owner, name),
++            Detected::Rebuild => {}
+         }
+-        Stage::Moved if is_dir(&p.served) && is_dir(&recovery) => {
++    }
++    if served_is_ours(&p.served, &journal.id) {
++        // The rebuilt store is in place (a crash after the second rename,
++        // or after the `published` write): publish and finish, never
++        // rebuild it. A journal in any state, `published` included, whose
++        // id the served store does not carry is never finished.
++        return publish(plugin, &p, owner, name, journal);
++    }
++    // Once the journal reached `moved` the old store is only ever read
++    // from recovery, whatever the `moved` field says.
++    let was_moved = journal.moved || matches!(journal.state, Stage::Moved | Stage::Published);
++    if journal.attempts >= MAX_ATTEMPTS {
++        tracing::warn!(owner = %owner, name = %name, attempts = journal.attempts, "forge: migration gave up; store stays gated");
++        return Outcome::Failed;
++    }
++    let moved = match (is_dir(&p.served), is_dir(&recovery)) {
++        (true, true) => {
+             // Something created the store in the gap despite the tombstone:
+-            // never overwrite it. Set staging aside and leave the journal.
++            // never overwrite it, never read it as the old store. Set
++            // staging aside and leave the journal.
+             if let Some(s) = journal.staging.as_deref().map(|s| plugin.join(s)) {
+                 if is_dir(&s) {
+-                    let aside = PathBuf::from(format!("{}.rebuilt", recovery.display()));
+-                    let _ = std::fs::rename(&s, aside);
++                    let _ = std::fs::rename(&s, with_suffix(&recovery, ".rebuilt"));
+                 }
+             }
+             tracing::error!(owner = %owner, name = %name, "forge: a store appeared during migration; left for the operator");
+             return Outcome::Failed;
+         }
+-        _ => {}
++        (true, false) if was_moved => {
++            return fail(
++                plugin,
++                &p,
++                owner,
++                name,
++                journal,
++                "the old store was moved but its recovery copy is gone",
++            );
++        }
++        (true, false) => false,
++        (false, true) => true,
++        (false, false) => {
++            return fail(
++                plugin,
++                &p,
++                owner,
++                name,
++                journal,
++                "neither the served store nor its recovery copy exists",
++            );
++        }
++    };
++    rebuild(plugin, &p, owner, name, journal, &recovery, moved, limits).await
++}
++
++/// `finish`, logged.
++fn finished(plugin: &Path, p: &Paths, owner: &str, name: &str) -> Outcome {
++    match finish(plugin, p, owner, name) {
++        Ok(()) => Outcome::Migrated,
++        Err(e) => {
++            tracing::error!(owner = %owner, name = %name, error = %redact(plugin, &e), "forge: migration not finished");
++            Outcome::Failed
++        }
++    }
++}
++
++/// The rebuilt store is in `repos/`: journal `published`, then finish.
++fn publish(plugin: &Path, p: &Paths, owner: &str, name: &str, mut j: Journal) -> Outcome {
++    if j.state != Stage::Published {
++        j.state = Stage::Published;
++        if let Err(e) = write_journal(&p.journal, &j) {
++            tracing::error!(owner = %owner, name = %name, error = %redact(plugin, &e), "forge: migration journal not written");
++        }
+     }
+-    rebuild(plugin, &p, owner, name, journal).await
++    finished(plugin, p, owner, name)
+ }
+ 
+ /// `p` relative to the plugin directory, for the journal.
+@@ -890,11 +1386,11 @@ fn with_suffix(base: &Path, suffix: &str) -> PathBuf {
+     PathBuf::from(s)
+ }
+ 
+-/// Record a failed attempt in the journal; the store stays gated.
++/// Record a failed attempt in the journal (the attempt was counted when it
++/// started); the store stays gated.
+ fn fail(plugin: &Path, p: &Paths, owner: &str, name: &str, mut j: Journal, why: &str) -> Outcome {
+     let why = redact(plugin, why);
+     j.state = Stage::Failed;
+-    j.attempts = j.attempts.saturating_add(1);
+     j.reason = Some(why.clone());
+     if let Err(e) = write_journal(&p.journal, &j) {
+         tracing::error!(owner = %owner, name = %name, error = %e, "forge: migration journal not written");
+@@ -903,15 +1399,19 @@ fn fail(plugin: &Path, p: &Paths, owner: &str, name: &str, mut j: Journal, why:
+     Outcome::Failed
+ }
+ 
+-/// Remove every staging store of `<name>` (safe under the lock: the engine
+-/// builds staging under the same lock).
++/// Remove every staging store of `<name>` (`<name>.git.<alphanumerics>`;
++/// safe under the lock: the engine builds staging under the same lock).
+ async fn clear_staging(staging_dir: &Path, name: &str) {
+     let Ok(mut entries) = tokio::fs::read_dir(staging_dir).await else {
+         return;
+     };
+     let prefix = format!("{name}.git.");
+     while let Ok(Some(e)) = entries.next_entry().await {
+-        if e.file_name().to_string_lossy().starts_with(&prefix) {
++        let f = e.file_name().to_string_lossy().into_owned();
++        let ours = f
++            .strip_prefix(&prefix)
++            .is_some_and(|u| !u.is_empty() && u.bytes().all(|b| b.is_ascii_alphanumeric()));
++        if ours {
+             if let Err(err) = tokio::fs::remove_dir_all(e.path()).await {
+                 tracing::warn!(error = %err, "forge: stale staging store not removed");
+             }
+@@ -919,24 +1419,50 @@ async fn clear_staging(staging_dir: &Path, name: &str) {
+     }
+ }
+ 
+-/// Rebuild one store from its old store (in `repos/`, or already moved to
+-/// recovery), verify, report, swap and finish.
+-async fn rebuild(plugin: &Path, p: &Paths, owner: &str, name: &str, mut j: Journal) -> Outcome {
+-    let started = std::time::Instant::now();
+-    let recovery = plugin.join(&j.recovery);
+-    let moved = !is_dir(&p.served);
+-    if moved && !is_dir(&recovery) {
+-        return fail(
+-            plugin,
+-            p,
+-            owner,
+-            name,
+-            j,
+-            "neither the served store nor its recovery copy exists",
+-        );
++tokio::task_local! {
++    /// The process groups (leader pids) a migration build has spawned and
++    /// not yet seen finish, so a budget timeout can kill all of them.
++    static GROUPS: std::sync::Arc<std::sync::Mutex<Vec<u32>>>;
++}
++
++/// Note a spawned process group, inside a build.
++fn note_group(pid: Option<u32>) {
++    if let Some(pid) = pid {
++        let _ = GROUPS.try_with(|g| {
++            g.lock()
++                .unwrap_or_else(std::sync::PoisonError::into_inner)
++                .push(pid);
++        });
+     }
++}
++
++/// Forget a process group that finished normally, inside a build.
++fn forget_group(pid: Option<u32>) {
++    if let Some(pid) = pid {
++        let _ = GROUPS.try_with(|g| {
++            g.lock()
++                .unwrap_or_else(std::sync::PoisonError::into_inner)
++                .retain(|p| *p != pid);
++        });
++    }
++}
++
++/// Rebuild one store from its old store (`source`: in `repos/`, or already
++/// moved to `recovery`), verify, report, swap and finish.
++#[allow(clippy::too_many_arguments)]
++async fn rebuild(
++    plugin: &Path,
++    p: &Paths,
++    owner: &str,
++    name: &str,
++    mut j: Journal,
++    recovery: &Path,
++    moved: bool,
++    limits: Limits,
++) -> Outcome {
++    let started = std::time::Instant::now();
+     let source = if moved {
+-        recovery.clone()
++        recovery.to_path_buf()
+     } else {
+         p.served.clone()
+     };
+@@ -944,25 +1470,55 @@ async fn rebuild(plugin: &Path, p: &Paths, owner: &str, name: &str, mut j: Journ
+     let staging = p
+         .staging_dir
+         .join(format!("{name}.git.{}", uuid::Uuid::new_v4().simple()));
++    // The attempt counts now, before anything can crash.
++    j.attempts = j.attempts.saturating_add(1);
+     j.state = Stage::Building;
++    j.moved = moved;
++    j.reason = None;
+     j.staging = Some(relative(plugin, &staging));
+     if let Err(e) = write_journal(&p.journal, &j) {
+         tracing::error!(owner = %owner, name = %name, error = %e, "forge: migration journal not written; store not migrated");
+-        return Outcome::Failed;
++        // A journal may already gate the store; if none does, the caller
++        // must gate it another way.
++        return if journal_exists(plugin, owner, name) {
++            Outcome::Failed
++        } else {
++            Outcome::Ungated
++        };
++    }
++    #[cfg(test)]
++    if test_hooks::get(plugin).abort_in_build {
++        std::process::abort();
+     }
+     let record_bytes = match MirrorStore::new(plugin).load(owner, name) {
+         StoredRecord::Unreadable(_) => MirrorStore::new(plugin)
+             .file(owner, name)
+-            .map(|f| std::fs::read(f).map_err(|e| e.kind().to_string())),
++            .map(|f| read_regular(&f).map_err(|e| e.kind().to_string())),
+         _ => None,
+     };
+-    let built = match tokio::time::timeout(STORE_BUDGET, build(&source, &staging)).await {
++    let groups = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
++    let attempt = GROUPS.scope(
++        std::sync::Arc::clone(&groups),
++        tokio::time::timeout(
++            limits.store_budget,
++            build(plugin, &source, &staging, limits.size_cap),
++        ),
++    );
++    let built = match attempt.await {
+         Ok(Ok(b)) => b,
+         Ok(Err(e)) => {
+             remove_dir(&staging).await;
+             return fail(plugin, p, owner, name, j, &e);
+         }
+         Err(_) => {
++            let left: Vec<u32> = std::mem::take(
++                &mut *groups
++                    .lock()
++                    .unwrap_or_else(std::sync::PoisonError::into_inner),
++            );
++            for pid in left {
++                kill_group(Some(pid)).await;
++            }
+             remove_dir(&staging).await;
+             return fail(
+                 plugin,
+@@ -974,7 +1530,7 @@ async fn rebuild(plugin: &Path, p: &Paths, owner: &str, name: &str, mut j: Journ
+             );
+         }
+     };
+-    if let Err(e) = write_marker(&staging).await {
++    if let Err(e) = seal(&staging, &j.id) {
+         remove_dir(&staging).await;
+         return fail(plugin, p, owner, name, j, &e);
+     }
+@@ -983,62 +1539,83 @@ async fn rebuild(plugin: &Path, p: &Paths, owner: &str, name: &str, mut j: Journ
+         remove_dir(&staging).await;
+         return fail(plugin, p, owner, name, j, &e);
+     }
+-    if let Err(e) = write_report(plugin, &recovery, owner, name, &built, record_bytes) {
++    if let Err(e) = write_report(plugin, recovery, owner, name, &j.id, &built, record_bytes) {
+         remove_dir(&staging).await;
+         return fail(plugin, p, owner, name, j, &e);
+     }
+     if !moved {
+-        if let Err(e) = std::fs::create_dir_all(&p.recovery_dir)
+-            .and_then(|()| std::fs::rename(&p.served, &recovery))
+-        {
+-            remove_dir(&staging).await;
++        let renamed = std::fs::create_dir_all(&p.recovery_dir)
++            .and_then(|()| std::fs::rename(&p.served, recovery))
++            .and_then(|()| sync_dir(&p.recovery_dir))
++            .and_then(|()| p.served.parent().map_or(Ok(()), sync_dir));
++        if let Err(e) = renamed {
++            if is_dir(&p.served) {
++                remove_dir(&staging).await;
++                return fail(
++                    plugin,
++                    p,
++                    owner,
++                    name,
++                    j,
++                    &format!("the old store was not moved: {e}"),
++                );
++            }
++            tracing::error!(owner = %owner, name = %name, error = %e, "forge: old store moved but not synced");
++        }
++    }
++    // Written before the second rename on every path (normal and resumed):
++    // a crash after it is resolved by the store's migration id.
++    j.state = Stage::Moved;
++    j.moved = true;
++    if let Err(e) = write_journal(&p.journal, &j) {
++        tracing::error!(owner = %owner, name = %name, error = %e, "forge: migration journal not written");
++    }
++    let placed = p
++        .served
++        .parent()
++        .map_or(Ok(()), std::fs::create_dir_all)
++        .and_then(|()| std::fs::rename(&staging, &p.served))
++        .and_then(|()| p.served.parent().map_or(Ok(()), sync_dir));
++    if let Err(e) = placed {
++        if !served_is_ours(&p.served, &j.id) {
+             return fail(
+                 plugin,
+                 p,
+                 owner,
+                 name,
+                 j,
+-                &format!("the old store was not moved: {e}"),
++                &format!("the rebuilt store was not placed: {e}"),
+             );
+         }
+-        j.state = Stage::Moved;
+-        if let Err(e) = write_journal(&p.journal, &j) {
+-            tracing::error!(owner = %owner, name = %name, error = %e, "forge: migration journal not written");
+-        }
+     }
+-    let placed = p
+-        .served
+-        .parent()
+-        .map_or(Ok(()), std::fs::create_dir_all)
+-        .and_then(|()| std::fs::rename(&staging, &p.served));
+-    if let Err(e) = placed {
+-        return fail(
+-            plugin,
+-            p,
+-            owner,
+-            name,
+-            j,
+-            &format!("the rebuilt store was not placed: {e}"),
++    let outcome = publish(plugin, p, owner, name, j);
++    if outcome == Outcome::Migrated {
++        tracing::info!(
++            owner = %owner,
++            name = %name,
++            ms = u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX),
++            copied = built.copied.len(),
++            dropped = built.dropped.len(),
++            held = built.held.len(),
++            "forge: migrated"
+         );
+     }
+-    j.state = Stage::Published;
+-    if let Err(e) = write_journal(&p.journal, &j) {
+-        tracing::error!(owner = %owner, name = %name, error = %e, "forge: migration journal not written");
+-    }
+-    if let Err(e) = finish(plugin, p, owner, name) {
+-        tracing::error!(owner = %owner, name = %name, error = %e, "forge: migration published but not finished");
+-        return Outcome::Failed;
+-    }
+-    tracing::info!(
+-        owner = %owner,
+-        name = %name,
+-        ms = u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX),
+-        copied = built.copied.len(),
+-        dropped = built.dropped.len(),
+-        held = built.held.len(),
+-        "forge: migrated"
+-    );
+-    Outcome::Migrated
++    outcome
++}
++
++/// Write the migration id, then the marker, into staging, durably.
++fn seal(staging: &Path, id: &str) -> Result<(), String> {
++    let marker = crate::PUBLICATION_MARKER;
++    write_synced(
++        &staging.join(MIGRATION_ID_FILE),
++        format!("{id}\n").as_bytes(),
++    )
++    .map_err(|e| format!("could not write the migration id: {e}"))?;
++    let tmp = staging.join(format!("{marker}.tmp"));
++    write_synced(&tmp, format!("{marker}\n").as_bytes())
++        .and_then(|()| std::fs::rename(&tmp, staging.join(marker)))
++        .and_then(|()| sync_dir(staging))
++        .map_err(|e| format!("could not write the publication marker: {e}"))
+ }
+ 
+ async fn remove_dir(dir: &Path) {
+@@ -1057,7 +1634,7 @@ fn finish(plugin: &Path, p: &Paths, owner: &str, name: &str) -> Result<(), Strin
+     if let StoredRecord::Valid(r) = store.load(owner, name) {
+         if r.awaits_migration {
+             let file = store.file(owner, name).ok_or("unsafe record key")?;
+-            let bytes = std::fs::read(&file).map_err(|e| format!("record not read: {e}"))?;
++            let bytes = read_regular(&file).map_err(|e| format!("record not read: {e}"))?;
+             let mut v: serde_json::Value =
+                 serde_json::from_slice(&bytes).map_err(|e| format!("record not parsed: {e}"))?;
+             if let Some(o) = v.as_object_mut() {
+@@ -1065,8 +1642,11 @@ fn finish(plugin: &Path, p: &Paths, owner: &str, name: &str) -> Result<(), Strin
+             }
+             let tmp = file.with_extension("json.tmp");
+             let out = serde_json::to_vec_pretty(&v).map_err(|e| e.to_string())?;
+-            std::fs::write(&tmp, out).map_err(|e| format!("record not written: {e}"))?;
++            write_synced(&tmp, &out).map_err(|e| format!("record not written: {e}"))?;
+             std::fs::rename(&tmp, &file).map_err(|e| format!("record not written: {e}"))?;
++            if let Some(dir) = file.parent() {
++                sync_dir(dir).map_err(|e| format!("record not synced: {e}"))?;
++            }
+         }
+     }
+     if let Err(e) = std::fs::remove_dir_all(&p.candidate) {
+@@ -1075,7 +1655,10 @@ fn finish(plugin: &Path, p: &Paths, owner: &str, name: &str) -> Result<(), Strin
+         }
+     }
+     match std::fs::remove_file(&p.journal) {
+-        Ok(()) => Ok(()),
++        Ok(()) => {
++            let _ = p.journal.parent().map(sync_dir);
++            Ok(())
++        }
+         Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(()),
+         Err(e) => Err(format!("journal not removed: {e}")),
+     }
+@@ -1084,6 +1667,8 @@ fn finish(plugin: &Path, p: &Paths, owner: &str, name: &str) -> Result<(), Strin
+ /// A ref left out of the rebuilt store, and why.
+ #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+ struct DroppedRef {
++    /// The name, lossily decoded when it is not UTF-8 (such a ref is never
++    /// copied).
+     #[serde(rename = "ref")]
+     name: String,
+     sha: String,
+@@ -1129,12 +1714,63 @@ fn is_sha40(s: &str) -> bool {
+             .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+ }
+ 
++/// Whether `r` is a root: a branch or a tag.
++fn is_root(r: &str) -> bool {
++    r.starts_with("refs/heads/") || r.starts_with("refs/tags/")
++}
++
++/// One `for-each-ref` line, `<sha> <name>`: the name `None` when it is not
++/// UTF-8.
++fn parse_ref_line(line: &[u8]) -> Option<(String, Option<String>, String)> {
++    let at = line.iter().position(|b| *b == b' ')?;
++    let sha = String::from_utf8_lossy(&line[..at]).into_owned();
++    let raw = &line[at + 1..];
++    let name = std::str::from_utf8(raw).ok().map(str::to_string);
++    Some((sha, name, String::from_utf8_lossy(raw).into_owned()))
++}
++
++/// `^<sha>` lines for `rev-list --stdin`: the roots, excluded.
++fn exclude_input(roots: &[String]) -> Vec<u8> {
++    let mut input = Vec::with_capacity(roots.len() * 42);
++    for sha in roots {
++        input.push(b'^');
++        input.extend_from_slice(sha.as_bytes());
++        input.push(b'\n');
++    }
++    input
++}
++
+ /// Steps 3 to 7 and the dropped set: initialise staging with the fixed
+-/// served config, choose the refs, push them by SHA from `source`, set
+-/// `HEAD`, verify, and list what was left behind.
+-async fn build(source: &Path, staging: &Path) -> Result<Built, String> {
++/// served config, choose the refs, push them by SHA from `source` under the
++/// size cap, set `HEAD`, verify, and list what was left behind.
++///
++/// The roots R are the branches and tags that will be copied (safe names,
++/// valid SHAs). The held set H is every object any ref of `source` reaches
++/// that R does not ([`held_set`]). A ref outside R is copied only if it
++/// reaches nothing in H, so the copy holds R's closure and nothing else.
++async fn build(
++    plugin: &Path,
++    source: &Path,
++    staging: &Path,
++    size_cap: u64,
++) -> Result<Built, String> {
+     init_bare(staging).await?;
+     write_served_config(staging).await?;
++    #[cfg(test)]
++    if let Some(token) = test_hooks::get(plugin).slow_child {
++        let alias = format!("alias.b1slow=!sleep {token} & sleep {token}");
++        run_in(
++            source,
++            source,
++            &["-c", &alias, "b1slow"],
++            None,
++            STORE_BUDGET,
++            None,
++        )
++        .await?;
++    }
++    #[cfg(not(test))]
++    let _ = plugin;
+     let listing = run_in(
+         source,
+         source,
+@@ -1144,43 +1780,53 @@ async fn build(source: &Path, staging: &Path) -> Result<Built, String> {
+         None,
+     )
+     .await?;
+-    let refs: Vec<(String, String)> = String::from_utf8_lossy(&listing)
+-        .lines()
+-        .filter_map(|l| l.split_once(' '))
+-        .map(|(sha, r)| (sha.to_string(), r.to_string()))
++    let refs: Vec<(String, Option<String>, String)> = listing
++        .split(|b| *b == b'\n')
++        .filter(|l| !l.is_empty())
++        .filter_map(parse_ref_line)
+         .collect();
+-    let held = held_set(
+-        source,
+-        refs.iter().any(|(_, r)| r.starts_with("refs/mirror/")),
+-    )
+-    .await?;
+     let mut built = Built::default();
+-    for (sha, r) in refs {
+-        let reason = if !safe_ref(&r) || !is_sha40(&sha) {
+-            Some("unsafe-name")
+-        } else if r.starts_with("refs/mirror/") {
+-            Some("mirror")
+-        } else if r.starts_with("refs/forge/heads/") {
+-            Some("pull-request-head")
+-        } else if r.starts_with("refs/heads/") || r.starts_with("refs/tags/") {
+-            None
+-        } else if !held.is_empty() && reaches_held(source, &sha, &held).await? {
+-            Some("reaches-held")
+-        } else {
+-            None
++    let mut roots = Vec::new();
++    let mut others = Vec::new();
++    for (sha, name, lossy) in refs {
++        let reason = match name.as_deref() {
++            None => Some("unsafe-name"),
++            Some(r) if !safe_ref(r) || !is_sha40(&sha) => Some("unsafe-name"),
++            Some(r) if r.starts_with("refs/mirror/") => Some("mirror"),
++            Some(r) if r.starts_with("refs/forge/heads/") => Some("pull-request-head"),
++            Some(r) if is_root(r) => {
++                roots.push(sha.clone());
++                built.copied.insert(r.to_string(), sha);
++                continue;
++            }
++            Some(r) => {
++                others.push((r.to_string(), sha));
++                continue;
++            }
+         };
+-        match reason {
+-            Some(reason) => built.dropped.push(DroppedRef {
+-                name: r,
++        if let Some(reason) = reason {
++            built.dropped.push(DroppedRef {
++                name: lossy,
+                 sha,
+                 reason,
+-            }),
+-            None => {
+-                built.copied.insert(r, sha);
+-            }
++            });
++        }
++    }
++    roots.sort();
++    roots.dedup();
++    let held = held_set(source, &roots).await?;
++    for (r, sha) in others {
++        if reaches_held(source, &sha, &roots, &held).await? {
++            built.dropped.push(DroppedRef {
++                name: r,
++                sha,
++                reason: "outside-roots",
++            });
++        } else {
++            built.copied.insert(r, sha);
+         }
+     }
+-    push_refs(source, staging, &built.copied).await?;
++    push_refs(source, staging, &built.copied, size_cap).await?;
+     built.head = choose_head(source, &built.copied).await?;
+     if let Some(h) = &built.head {
+         run_in(
+@@ -1201,87 +1847,98 @@ async fn build(source: &Path, staging: &Path) -> Result<Built, String> {
+     Ok(built)
+ }
+ 
+-/// The held set of a mirror-class store (design §2.4): every object the
+-/// `refs/mirror/*` tips reach that no branch or tag reaches, minus the full
+-/// closure of the branches and tags. Empty when there are no such tips.
+-async fn held_set(source: &Path, has_mirror_refs: bool) -> Result<HashSet<String>, String> {
++/// The held set of a store: every object any ref reaches
++/// (`rev-list --objects --all`) outside the full closure of the roots. The
++/// closure is subtracted in a second pass because `--not <roots>` only
++/// marks the boundary commits' trees uninteresting: a blob the held history
++/// shares with deeper root history (C16) would otherwise count as held.
++async fn held_set(source: &Path, roots: &[String]) -> Result<HashSet<String>, String> {
+     let mut held = HashSet::new();
+-    if !has_mirror_refs {
+-        return Ok(held);
+-    }
++    let cap = |set: &HashSet<String>| {
++        if set.len() >= MAX_HELD_IDS {
++            Err(format!("the held set passed {MAX_HELD_IDS} objects"))
++        } else {
++            Ok(())
++        }
++    };
+     for_each_line(
+         source,
+         &[
+             "rev-list",
+             "--objects",
+             "--no-object-names",
+-            "--glob=refs/mirror",
+-            "--not",
+-            "--branches",
+-            "--tags",
++            "--all",
++            "--stdin",
+         ],
++        Some(exclude_input(roots)),
+         STORE_BUDGET,
+         |id| {
+-            if held.len() >= MAX_HELD_IDS {
+-                return Err(format!("the held set passed {MAX_HELD_IDS} objects"));
+-            }
++            cap(&held)?;
+             held.insert(id.to_string());
+-            Ok(())
++            Ok(Flow::Go)
+         },
+     )
+     .await?;
+-    if held.is_empty() {
++    if held.is_empty() || roots.is_empty() {
+         return Ok(held);
+     }
++    let mut input = Vec::with_capacity(roots.len() * 41);
++    for sha in roots {
++        input.extend_from_slice(sha.as_bytes());
++        input.push(b'\n');
++    }
+     for_each_line(
+         source,
+-        &[
+-            "rev-list",
+-            "--objects",
+-            "--no-object-names",
+-            "--branches",
+-            "--tags",
+-        ],
++        &["rev-list", "--objects", "--no-object-names", "--stdin"],
++        Some(input),
+         STORE_BUDGET,
+         |id| {
+             held.remove(id);
+-            Ok(())
++            Ok(Flow::Go)
+         },
+     )
+     .await?;
+     Ok(held)
+ }
+ 
+-/// Whether anything `sha` reaches beyond the branches and tags is held.
+-async fn reaches_held(source: &Path, sha: &str, held: &HashSet<String>) -> Result<bool, String> {
+-    first_line(
++/// Whether anything `sha` reaches beyond the roots is held.
++async fn reaches_held(
++    source: &Path,
++    sha: &str,
++    roots: &[String],
++    held: &HashSet<String>,
++) -> Result<bool, String> {
++    let mut hit = false;
++    for_each_line(
+         source,
+-        &[
+-            "rev-list",
+-            "--objects",
+-            "--no-object-names",
+-            sha,
+-            "--not",
+-            "--branches",
+-            "--tags",
+-        ],
++        &["rev-list", "--objects", "--no-object-names", sha, "--stdin"],
++        Some(exclude_input(roots)),
+         STORE_BUDGET,
+-        |id| held.contains(id),
++        |id| {
++            if held.contains(id) {
++                hit = true;
++                return Ok(Flow::Stop);
++            }
++            Ok(Flow::Go)
++        },
+     )
+-    .await
+-    .map(|hit| hit.is_some())
++    .await?;
++    Ok(hit)
+ }
+ 
+ /// Push exactly `refs` (name to SHA) from `source` into the empty `staging`,
+-/// by SHA, in batches, with the fixed receive-pack and no hooks.
++/// by SHA, in batches, with the fixed receive-pack and no hooks, killing
++/// the push once staging grows past `size_cap`.
+ async fn push_refs(
+     source: &Path,
+     staging: &Path,
+     refs: &BTreeMap<String, String>,
++    size_cap: u64,
+ ) -> Result<(), String> {
+     let target = staging.to_str().ok_or("non-UTF-8 staging path")?;
+     let specs: Vec<String> = refs.iter().map(|(r, sha)| format!("{sha}:{r}")).collect();
+     let receive = format!("--receive-pack={RECEIVE_PACK}");
++    let cap: Option<(u64, DirMeasure)> = Some((size_cap, crate::sizecap::dir_size));
+     for batch in specs.chunks(PUSH_BATCH) {
+         let mut args: Vec<&str> = vec![
+             "-c",
+@@ -1298,7 +1955,7 @@ async fn push_refs(
+             target,
+         ];
+         args.extend(batch.iter().map(String::as_str));
+-        let out = run_output(source, source, &args, Some("file"), STORE_BUDGET, None).await?;
++        let out = run_output(source, staging, &args, Some("file"), STORE_BUDGET, cap).await?;
+         if !out.status.success() {
+             let err = String::from_utf8_lossy(&out.stderr);
+             let lines: Vec<&str> = err
+@@ -1343,8 +2000,10 @@ async fn choose_head(
+ }
+ 
+ /// Step 7, failing closed on any miss: every staging ref is exactly the one
+-/// chosen, no held object is present, nothing is borrowed through
+-/// alternates, and no object file is shared with the source.
++/// chosen; no object of `held` is present (checked whatever `held` holds);
++/// every object in staging lies in the closure, in `source`, of the chosen
++/// branches and tags; nothing is borrowed through alternates; and no object
++/// file is shared with the source.
+ pub(crate) async fn verify(
+     source: &Path,
+     staging: &Path,
+@@ -1360,7 +2019,8 @@ pub(crate) async fn verify(
+         None,
+     )
+     .await?;
+-    let got: BTreeMap<String, String> = String::from_utf8_lossy(&listing)
++    let text = String::from_utf8(listing).map_err(|_| "a rebuilt store ref is not UTF-8")?;
++    let got: BTreeMap<String, String> = text
+         .lines()
+         .filter_map(|l| l.split_once(' '))
+         .map(|(r, sha)| (r.to_string(), sha.to_string()))
+@@ -1368,11 +2028,22 @@ pub(crate) async fn verify(
+     if &got != want {
+         return Err("the rebuilt store's refs differ from the refs chosen".into());
+     }
+-    if !held.is_empty() {
+-        let present = present_count(staging, held).await?;
+-        if present > 0 {
+-            return Err(format!("{present} held objects reached the rebuilt store"));
+-        }
++    let present = present_count(staging, held).await?;
++    if present > 0 {
++        return Err(format!("{present} held objects reached the rebuilt store"));
++    }
++    let mut roots: Vec<String> = want
++        .iter()
++        .filter(|(r, _)| is_root(r))
++        .map(|(_, sha)| sha.clone())
++        .collect();
++    roots.sort();
++    roots.dedup();
++    let outside = outside_roots(source, staging, &roots).await?;
++    if outside > 0 {
++        return Err(format!(
++            "{outside} objects in the rebuilt store lie outside the roots"
++        ));
+     }
+     let info = staging.join("objects").join("info");
+     for file in ["alternates", "http-alternates"] {
+@@ -1392,6 +2063,53 @@ pub(crate) async fn verify(
+     Ok(())
+ }
+ 
++/// How many objects in `staging` the closure of `roots` in `source` does not
++/// reach.
++async fn outside_roots(source: &Path, staging: &Path, roots: &[String]) -> Result<usize, String> {
++    let mut staged = HashSet::new();
++    for_each_line(
++        staging,
++        &[
++            "cat-file",
++            "--batch-all-objects",
++            "--batch-check=%(objectname)",
++        ],
++        None,
++        STORE_BUDGET,
++        |id| {
++            if staged.len() >= MAX_HELD_IDS {
++                return Err(format!("the rebuilt store passed {MAX_HELD_IDS} objects"));
++            }
++            staged.insert(id.to_string());
++            Ok(Flow::Go)
++        },
++    )
++    .await?;
++    if staged.is_empty() || roots.is_empty() {
++        return Ok(staged.len());
++    }
++    let mut input = Vec::with_capacity(roots.len() * 41);
++    for sha in roots {
++        input.extend_from_slice(sha.as_bytes());
++        input.push(b'\n');
++    }
++    for_each_line(
++        source,
++        &["rev-list", "--objects", "--no-object-names", "--stdin"],
++        Some(input),
++        STORE_BUDGET,
++        |id| {
++            staged.remove(id);
++            Ok(if staged.is_empty() {
++                Flow::Stop
++            } else {
++                Flow::Go
++            })
++        },
++    )
++    .await?;
++    Ok(staged.len())
++}
+ /// How many of `ids` the store at `git_dir` holds (`cat-file --batch-check`).
+ async fn present_count(git_dir: &Path, ids: &HashSet<String>) -> Result<usize, String> {
+     let mut input = Vec::with_capacity(ids.len() * 41);
+@@ -1465,17 +2183,17 @@ async fn dropped_objects(source: &Path, staging: &Path) -> Result<Vec<String>, S
+         "--batch-check=%(objectname)",
+     ];
+     let mut kept = HashSet::new();
+-    for_each_line(staging, &all, STORE_BUDGET, |id| {
++    for_each_line(staging, &all, None, STORE_BUDGET, |id| {
+         kept.insert(id.to_string());
+-        Ok(())
++        Ok(Flow::Go)
+     })
+     .await?;
+     let mut dropped = Vec::new();
+-    for_each_line(source, &all, STORE_BUDGET, |id| {
++    for_each_line(source, &all, None, STORE_BUDGET, |id| {
+         if !kept.contains(id) {
+             dropped.push(id.to_string());
+         }
+-        Ok(())
++        Ok(Flow::Go)
+     })
+     .await?;
+     dropped.sort();
+@@ -1483,18 +2201,35 @@ async fn dropped_objects(source: &Path, staging: &Path) -> Result<Vec<String>, S
+ }
+ 
+ /// Step 8: `<recovery>.held`, `<recovery>.dropped` and, last,
+-/// `<recovery>.migration.json` beside the recovery path.
++/// `<recovery>.migration.json` (naming migration `id`) beside the recovery
++/// path, each `fsync`ed, then the directory. A report already there is
++/// never replaced: if it names this migration it stands (a resumed build
++/// of the same old store), and if it names another the migration fails
++/// closed.
++#[allow(clippy::too_many_arguments)]
+ fn write_report(
+     plugin: &Path,
+     recovery: &Path,
+     owner: &str,
+     name: &str,
++    id: &str,
+     built: &Built,
+     record_bytes: Option<Result<Vec<u8>, String>>,
+ ) -> Result<(), String> {
+     use base64::Engine as _;
+-    if let Some(parent) = recovery.parent() {
+-        std::fs::create_dir_all(parent).map_err(|e| format!("recovery directory: {e}"))?;
++    let dir = recovery.parent().ok_or("no recovery directory")?;
++    std::fs::create_dir_all(dir).map_err(|e| format!("recovery directory: {e}"))?;
++    let path = with_suffix(recovery, ".migration.json");
++    match std::fs::symlink_metadata(&path) {
++        Ok(_) => {
++            return if report_id(&path).as_deref() == Some(id) {
++                Ok(())
++            } else {
++                Err("a report for this recovery path names another migration".into())
++            };
++        }
++        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
++        Err(e) => return Err(format!("the report check failed: {}", e.kind())),
+     }
+     let stem = recovery
+         .file_name()
+@@ -1508,11 +2243,14 @@ fn write_report(
+         }
+         s
+     };
+-    std::fs::write(with_suffix(recovery, ".held"), lines(&built.held))
+-        .map_err(|e| format!("held list not written: {e}"))?;
+-    std::fs::write(
+-        with_suffix(recovery, ".dropped"),
+-        lines(&built.dropped_objects),
++    write_synced(
++        &with_suffix(recovery, ".held"),
++        lines(&built.held).as_bytes(),
++    )
++    .map_err(|e| format!("held list not written: {e}"))?;
++    write_synced(
++        &with_suffix(recovery, ".dropped"),
++        lines(&built.dropped_objects).as_bytes(),
+     )
+     .map_err(|e| format!("dropped list not written: {e}"))?;
+     let record = match record_bytes {
+@@ -1529,6 +2267,7 @@ fn write_report(
+         .map(|(r, sha)| serde_json::json!({ "ref": r, "sha": sha }))
+         .collect();
+     let report = serde_json::json!({
++        "id": id,
+         "owner": owner,
+         "name": name,
+         "class": "mirror",
+@@ -1540,15 +2279,16 @@ fn write_report(
+         "droppedObjects": { "file": format!("{stem}.dropped"), "count": built.dropped_objects.len() },
+         "record": record,
+     });
+-    let path = with_suffix(recovery, ".migration.json");
+-    let tmp = with_suffix(recovery, ".migration.json.tmp");
+     let bytes = serde_json::to_vec_pretty(&report).map_err(|e| e.to_string())?;
+-    std::fs::write(&tmp, bytes).map_err(|e| format!("report not written: {e}"))?;
+-    std::fs::rename(&tmp, &path).map_err(|e| format!("report not written: {e}"))
++    match create_exclusive(&path, &bytes) {
++        Ok(true) => Ok(()),
++        Ok(false) => Err("a report for this recovery path appeared meanwhile".into()),
++        Err(e) => Err(format!("report {e}")),
++    }
+ }
+-
+ /// Write [`crate::PUBLICATION_MARKER`] into a store: a temporary file, then
+ /// a rename, so a reader never sees a partial marker.
++#[cfg(feature = "mirror")]
+ pub(crate) async fn write_marker(dir: &Path) -> Result<(), String> {
+     let marker = crate::PUBLICATION_MARKER;
+     let tmp = dir.join(format!("{marker}.tmp"));
+@@ -1560,23 +2300,56 @@ pub(crate) async fn write_marker(dir: &Path) -> Result<(), String> {
+         .map_err(|e| format!("could not write the publication marker: {e}"))
+ }
+ 
+-/// Run git on the store at `git_dir` and hand every stdout line to `each`,
+-/// streaming (nothing is buffered whole). An error from `each`, a timeout or
+-/// a failing exit stops git and is returned.
++/// [`git_command`] for the migration's object walks and checks, with
++/// replacements off (`GIT_NO_REPLACE_OBJECTS=1`): `rev-list` and `cat-file`
++/// otherwise walk an owner's `refs/replace/*` graph while a push sends the
++/// original objects, so the closures the filter and the verification compute
++/// would not be the objects copied.
++fn migration_command(git_dir: &Path, args: &[&str]) -> tokio::process::Command {
++    let mut cmd = git_command(git_dir, git_dir, args);
++    cmd.env("GIT_NO_REPLACE_OBJECTS", "1");
++    cmd
++}
++
++/// Whether [`for_each_line`] reads on.
++#[derive(Debug, Clone, Copy, PartialEq, Eq)]
++enum Flow {
++    Go,
++    /// Enough read: stop git and return `Ok`.
++    Stop,
++}
++
++/// Run git on the store at `git_dir`, with `input` (if any) on its stdin,
++/// and hand every stdout line to `each`, streaming (nothing is buffered
++/// whole). `Flow::Stop` stops git early with `Ok`; an error from `each`, a
++/// timeout or a failing exit stops git and is returned.
+ async fn for_each_line(
+     git_dir: &Path,
+     args: &[&str],
++    input: Option<Vec<u8>>,
+     timeout: Duration,
+-    mut each: impl FnMut(&str) -> Result<(), String>,
++    mut each: impl FnMut(&str) -> Result<Flow, String>,
+ ) -> Result<(), String> {
+-    use tokio::io::AsyncBufReadExt;
+-    let mut cmd = git_command(git_dir, git_dir, args);
++    use tokio::io::{AsyncBufReadExt, AsyncWriteExt};
++    let mut cmd = migration_command(git_dir, args);
+     cmd.stderr(std::process::Stdio::null());
++    if input.is_some() {
++        cmd.stdin(std::process::Stdio::piped());
++    }
+     let mut child = cmd
+         .spawn()
+         .map_err(|e| format!("git could not start: {e}"))?;
+     let pid = child.id();
++    note_group(pid);
+     let what = args.first().copied().unwrap_or("git");
++    let writer = match (input, child.stdin.take()) {
++        (Some(bytes), Some(mut stdin)) => Some(tokio::spawn(async move {
++            let wrote = stdin.write_all(&bytes).await;
++            drop(stdin);
++            wrote
++        })),
++        _ => None,
++    };
+     let stdout = child.stdout.take().ok_or("git has no stdout")?;
+     let mut lines = tokio::io::BufReader::new(stdout).lines();
+     let work = async {
+@@ -1585,21 +2358,45 @@ async fn for_each_line(
+             .await
+             .map_err(|e| format!("git {what} output unreadable: {e}"))?
+         {
+-            each(&line)?;
++            if each(&line)? == Flow::Stop {
++                return Ok(Flow::Stop);
++            }
+         }
+         match child.wait().await {
+-            Ok(st) if st.success() => Ok(()),
++            Ok(st) if st.success() => Ok(Flow::Go),
+             _ => Err(format!("git {what} failed")),
+         }
+     };
+-    match tokio::time::timeout(timeout, work).await {
+-        Ok(Ok(())) => Ok(()),
++    let outcome = tokio::time::timeout(timeout, work).await;
++    let wrote = match writer {
++        Some(w) if !matches!(outcome, Ok(Ok(Flow::Go))) => {
++            w.abort();
++            None
++        }
++        Some(w) => Some(w.await),
++        None => None,
++    };
++    match outcome {
++        Ok(Ok(Flow::Go)) => {
++            forget_group(pid);
++            match wrote {
++                None | Some(Ok(Ok(()))) => Ok(()),
++                Some(_) => Err(format!("git {what}'s input was not written")),
++            }
++        }
++        Ok(Ok(Flow::Stop)) => {
++            kill_group(pid).await;
++            forget_group(pid);
++            Ok(())
++        }
+         Ok(Err(e)) => {
+             kill_group(pid).await;
++            forget_group(pid);
+             Err(e)
+         }
+         Err(_) => {
+             kill_group(pid).await;
++            forget_group(pid);
+             Err(GIT_TIMED_OUT.to_string())
+         }
+     }
+@@ -1614,12 +2411,13 @@ async fn run_with_input(
+     timeout: Duration,
+ ) -> Result<std::process::Output, String> {
+     use tokio::io::AsyncWriteExt;
+-    let mut cmd = git_command(git_dir, git_dir, args);
++    let mut cmd = migration_command(git_dir, args);
+     cmd.stdin(std::process::Stdio::piped());
+     let mut child = cmd
+         .spawn()
+         .map_err(|e| format!("git could not start: {e}"))?;
+     let pid = child.id();
++    note_group(pid);
+     let mut stdin = child.stdin.take().ok_or("git has no stdin")?;
+     let writer = tokio::spawn(async move {
+         let wrote = stdin.write_all(&input).await;
+@@ -1630,14 +2428,19 @@ async fn run_with_input(
+     let wrote = writer.await;
+     match waited {
+         Ok(Ok(out)) => {
++            forget_group(pid);
+             if !matches!(wrote, Ok(Ok(()))) {
+                 return Err("git's input was not written".into());
+             }
+             Ok(out)
+         }
+-        Ok(Err(e)) => Err(format!("git failed: {e}")),
++        Ok(Err(e)) => {
++            forget_group(pid);
++            Err(format!("git failed: {e}"))
++        }
+         Err(_) => {
+             kill_group(pid).await;
++            forget_group(pid);
+             Err(GIT_TIMED_OUT.to_string())
+         }
+     }
+diff --git a/afterc/crates/solid-pod-rs-forge/src/migrate_tests.rs b/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge/src/migrate_tests.rs
+index 69bc281..255dce6 100644
+--- a/afterc/crates/solid-pod-rs-forge/src/migrate_tests.rs
++++ b/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge/src/migrate_tests.rs
+@@ -223,6 +223,9 @@ const NEW: &str = "b1-new-approved-bytes\n";
+ const HELD: &str = "b1-held-secret-bytes\n";
+ const HELD_SUBJECT: &str = "b1-held-subject";
+ const MARKER: &str = "mirror-publication-v1";
++/// The file at the root of a rebuilt store naming the migration that built
++/// it (fix round 1, item 5).
++const MIGRATION_ID: &str = "migration-id";
+ 
+ /// A legacy (pre-release) served store, in today's pre-release layout.
+ struct Legacy {
+@@ -523,6 +526,18 @@ async fn assert_migrated(fx: &Legacy, forge: &crate::ForgeService) {
+             "no {suffix} report file"
+         );
+     }
++    // Fix round 1, item 5: the rebuilt store carries its migration id, and
++    // the report names the same id.
++    let id = std::fs::read_to_string(fx.served.join(MIGRATION_ID))
++        .expect("the rebuilt store carries its migration id");
++    let report: serde_json::Value =
++        serde_json::from_slice(&std::fs::read(sibling(&entries[0], ".migration.json")).unwrap())
++            .unwrap();
++    assert_eq!(
++        report["id"].as_str(),
++        Some(id.trim()),
++        "the report and the store name different migrations: {report}"
++    );
+     let held_list = std::fs::read_to_string(sibling(&entries[0], ".held")).unwrap();
+     assert!(
+         held_list.lines().any(|l| l == fx.held_blob),
+@@ -566,8 +581,10 @@ fn dropped_reason(report: &serde_json::Value, r: &str) -> Option<String> {
+ 
+ /// Test 1: a restart migrates a record-bearing legacy store (a pre-release
+ /// record, `isolated` absent, flagged). The C16 blob (an approved blob the
+-/// held commit re-adds) stays readable; tag `v1` stays annotated; the note
+-/// stays; the flag is cleared, every other record field kept.
++/// held commit re-adds) stays readable; tag `v1` stays annotated; the notes
++/// ref lies outside the roots, so it is dropped, reported and kept in the
++/// recovery copy (fix round 1, item 1); the flag is cleared, every other
++/// record field kept.
+ #[tokio::test]
+ async fn t1_restart_migrates_a_record_bearing_legacy_store() {
+     let fx = legacy(201, Shape::Engine);
+@@ -591,8 +608,23 @@ async fn t1_restart_migrates_a_record_bearing_legacy_store() {
+         git(&fx.served, &["rev-parse", "refs/tags/v1^{commit}"]),
+         fx.m2
+     );
++    // Fix round 1, item 1: only branches and tags are roots. A notes ref's
++    // closure leaves theirs, so it is dropped and reported, and the note is
++    // kept in the recovery copy.
++    let refs = refs_of(&fx.served);
++    assert!(
++        !refs.contains("refs/notes/"),
++        "a notes ref was copied: {refs}"
++    );
++    let report = report_of(&fx);
+     assert_eq!(
+-        git(&fx.served, &["notes", "--ref=commits", "show", &fx.m2]),
++        dropped_reason(&report, "refs/notes/commits").as_deref(),
++        Some("outside-roots"),
++        "{report}"
++    );
++    let recovery = recovery_entries(&fx.plugin, o).remove(0);
++    assert_eq!(
++        git(&recovery, &["notes", "--ref=commits", "show", &fx.m2]),
+         "b1 note on approved"
+     );
+     assert_eq!(
+@@ -653,7 +685,8 @@ async fn t2_t3_lost_record_legacy_store_is_migrated() {
+ }
+ 
+ /// Test 4: a ref pointing straight at a held blob (`refs/misc/blob`, which
+-/// `for-each-ref --contains` cannot see, C11) is dropped and reported; and
++/// `for-each-ref --contains` cannot see, C11) is dropped as outside the
++/// roots and reported; and
+ /// the object-level verification refuses a staging store that holds it.
+ #[tokio::test]
+ async fn t4_direct_held_blob_ref_is_dropped_and_verify_catches_it() {
+@@ -666,12 +699,12 @@ async fn t4_direct_held_blob_ref_is_dropped_and_verify_catches_it() {
+     let report = report_of(&fx);
+     assert_eq!(
+         dropped_reason(&report, "refs/misc/blob").as_deref(),
+-        Some("reaches-held"),
++        Some("outside-roots"),
+         "{report}"
+     );
+     assert_eq!(
+         dropped_reason(&report, "refs/misc/stash-held").as_deref(),
+-        Some("reaches-held"),
++        Some("outside-roots"),
+         "{report}"
+     );
+     // The verification alone: a staging store that took the blob.
+@@ -715,6 +748,16 @@ async fn t4_direct_held_blob_ref_is_dropped_and_verify_catches_it() {
+         verdict.as_ref().is_err_and(|e| e.contains("held")),
+         "verification passed a staging store holding a held blob: {verdict:?}"
+     );
++    // Fix round 1, item 1: with an empty held set the same staging store
++    // still fails, because the blob lies outside the roots' closure.
++    let none = std::collections::HashSet::new();
++    let verdict = crate::migrate::verify(&recovery, &staging, &want, &none).await;
++    assert!(
++        verdict
++            .as_ref()
++            .is_err_and(|e| e.contains("outside the roots")),
++        "verification passed an object outside the roots: {verdict:?}"
++    );
+     // Control: the same staging without the blob ref and object passes the
+     // ref and held checks.
+     let clean = fx.home.join("clean.git");
+@@ -1161,3 +1204,800 @@ async fn t12_crash_after_the_first_rename_resumes_and_materialise_refuses() {
+     assert_migrated(&fx, &forge).await;
+     assert_eq!(recovery_entries(&fx.plugin, o), vec![recovery]);
+ }
++
++// ---- Fix round 1 ------------------------------------------------------------
++//
++// One test per confirmed review finding (review-b1-security.md F1-F7,
++// review-b1-code.md H1/H2/M1/L1-L7, the Codex audit items 1-6). Each was
++// captured red on the tree before its fix.
++
++use crate::migrate::test_hooks::{self, Hooks};
++
++/// The relative recovery path of `entry` for a hand-written journal.
++fn rel(plugin: &Path, entry: &Path) -> String {
++    entry
++        .strip_prefix(plugin)
++        .unwrap()
++        .to_string_lossy()
++        .into_owned()
++}
++
++fn plant_journal(plugin: &Path, owner: &str, body: &str) {
++    let j = journal_of(plugin, owner);
++    std::fs::create_dir_all(j.parent().unwrap()).unwrap();
++    std::fs::write(j, body).unwrap();
++}
++
++fn read_journal_json(plugin: &Path, owner: &str) -> serde_json::Value {
++    let bytes = std::fs::read(journal_of(plugin, owner)).expect("the journal persists");
++    serde_json::from_slice(&bytes).unwrap()
++}
++
++/// Held denied on every reader, and the approved content refused too: the
++/// store is gated (503), not migrated.
++async fn assert_gated(fx: &Legacy, forge: &crate::ForgeService) {
++    let leaks = held_leaks(forge, &fx.owner, &fx.held).await;
++    assert!(
++        leaks.is_empty(),
++        "held commit served:\n{}",
++        leaks.join("\n")
++    );
++    let o = &fx.owner;
++    let approved = get(forge, format!("/forge/{o}/sample/raw/{}/public.txt", fx.m2)).await;
++    assert_eq!(
++        approved.status,
++        503,
++        "the store is not gated: {}",
++        String::from_utf8_lossy(&approved.body)
++    );
++}
++
++/// Item 1 (F2): a lost-record store whose `refs/mirror/*` were removed (only
++/// `hideRefs` is left) keeps `refs/misc/*` refs reaching the held commit and
++/// blob. The held set is everything outside the roots, so they are dropped
++/// and verification checks the held objects whatever `refs/mirror` holds.
++#[tokio::test]
++async fn f1_lost_record_store_without_refs_mirror_copies_roots_only() {
++    let fx = legacy(231, Shape::Engine);
++    let gone = git(
++        &fx.served,
++        &["for-each-ref", "--format=delete %(refname)", "refs/mirror"],
++    );
++    for line in gone.lines() {
++        let r = line.trim_start_matches("delete ");
++        git(&fx.served, &["update-ref", "-d", r]);
++    }
++    assert_eq!(git(&fx.served, &["for-each-ref", "refs/mirror"]), "");
++    assert!(
++        has(&fx.served, &fx.held_blob),
++        "fixture: held kept by misc refs"
++    );
++    let forge = forge_at(&fx.plugin);
++    assert_migrated(&fx, &forge).await;
++    let report = report_of(&fx);
++    for r in ["refs/misc/stash-held", "refs/misc/blob"] {
++        assert_eq!(
++            dropped_reason(&report, r).as_deref(),
++            Some("outside-roots"),
++            "{report}"
++        );
++    }
++}
++
++/// Item 1 (Codex #5): a tag git accepts but the push filter refuses (longer
++/// than 1,024 bytes) points at the held commit, beside `refs/misc/stash-held`.
++/// The dropped tag must not shield the held objects from the held set.
++#[tokio::test]
++async fn f1_a_dropped_tag_does_not_shield_held_objects() {
++    let fx = legacy(232, Shape::Engine);
++    let long = format!("refs/tags/{}", vec!["t".repeat(200); 6].join("/"));
++    assert!(long.len() > 1024);
++    git(&fx.served, &["update-ref", &long, &fx.held]);
++    let forge = forge_at(&fx.plugin);
++    assert_migrated(&fx, &forge).await;
++    let report = report_of(&fx);
++    assert_eq!(
++        dropped_reason(&report, &long).as_deref(),
++        Some("unsafe-name"),
++        "{report}"
++    );
++    assert_eq!(
++        dropped_reason(&report, "refs/misc/stash-held").as_deref(),
++        Some("outside-roots"),
++        "{report}"
++    );
++}
++
++/// Item 1 (C17): a held branch upstream force-pushed away before migration.
++/// Its old tip X1 is no longer under `refs/mirror`, but `refs/misc/c17`
++/// still reaches it; X1's blob must not be published.
++#[tokio::test]
++async fn f1_force_pushed_away_held_history_is_not_copied() {
++    let fx = legacy(233, Shape::Engine);
++    let up = fx.home.join("up");
++    git(&up, &["checkout", "--quiet", "-b", "c17", &fx.m2]);
++    let x1 = commit(&up, &[("c17.txt", "b1-c17-secret\n")], "b1 c17 old tip");
++    let x1_blob = git(&up, &["rev-parse", "HEAD:c17.txt"]);
++    git(&up, &["checkout", "--quiet", "main"]);
++    git(
++        &fx.served,
++        &[
++            "fetch",
++            "--quiet",
++            "--no-tags",
++            up.to_str().unwrap(),
++            "+refs/heads/c17:refs/mirror/c17",
++        ],
++    );
++    git(&fx.served, &["update-ref", "refs/misc/c17", &x1]);
++    // Upstream force-pushes c17 back to the approved tip.
++    git(&fx.served, &["update-ref", "refs/mirror/c17", &fx.m2]);
++    git(&fx.served, &["repack", "-a", "-d", "-q"]);
++    for e in std::fs::read_dir(fx.served.join("objects/pack"))
++        .unwrap()
++        .flatten()
++    {
++        let p = e.path();
++        if p.extension().is_some_and(|x| x == "pack") {
++            std::fs::write(p.with_extension("keep"), b"b1 fixture\n").unwrap();
++        }
++    }
++    let forge = forge_at(&fx.plugin);
++    let o = &fx.owner;
++    let raw = get(&forge, format!("/forge/{o}/sample/raw/{x1}/c17.txt")).await;
++    assert_eq!(raw.status, 404, "{}", String::from_utf8_lossy(&raw.body));
++    assert!(!has(&fx.served, &x1), "the force-pushed-away tip is served");
++    assert!(!has(&fx.served, &x1_blob), "its blob is served");
++    assert_migrated(&fx, &forge).await;
++    assert_eq!(
++        dropped_reason(&report_of(&fx), "refs/misc/c17").as_deref(),
++        Some("outside-roots")
++    );
++}
++
++/// Item 2 (F1, M1, Codex #2): a detection check that fails (here the
++/// alternates `stat`, `objects/info` at mode 000) gates the store behind a
++/// `detection-error` journal instead of leaving it served. Once the check
++/// succeeds and finds the store clean, that journal (and only that kind) is
++/// removed.
++#[tokio::test]
++async fn f2_a_detection_error_gates_and_a_clean_recheck_ungates() {
++    use std::os::unix::fs::PermissionsExt;
++    let tmp = tempfile::tempdir().unwrap();
++    let home = tmp.path();
++    let plugin = home.join("plugin");
++    let owner = owner_of(234);
++    let served = plugin.join("repos").join(&owner).join("sample.git");
++    let sha = bare_with_commit(home, &served, "b1-undetected-bytes\n");
++    // Control: another store's `failed` journal for another reason is kept.
++    let other = owner_of(235);
++    bare_with_commit(
++        home,
++        &plugin.join("repos").join(&other).join("sample.git"),
++        "x\n",
++    );
++    let kept = format!(
++        r#"{{"id":"keep","ts":1,"class":"mirror","state":"failed","recovery":"mirror-recovery/{other}/sample.git.1","attempts":3,"reason":"push into staging failed"}}"#
++    );
++    plant_journal(&plugin, &other, &kept);
++    let info = served.join("objects").join("info");
++    std::fs::create_dir_all(&info).unwrap();
++    std::fs::set_permissions(&info, std::fs::Permissions::from_mode(0o000)).unwrap();
++    assert!(
++        std::fs::symlink_metadata(info.join("alternates"))
++            .is_err_and(|e| e.kind() == std::io::ErrorKind::PermissionDenied),
++        "precondition: mode 000 must block the alternates check (not running as root?)"
++    );
++    let forge = forge_at(&plugin);
++    let read = get(&forge, format!("/forge/{owner}/sample/raw/{sha}/f.txt")).await;
++    let gated = read.status;
++    let journal = std::fs::read(journal_of(&plugin, &owner));
++    std::fs::set_permissions(&info, std::fs::Permissions::from_mode(0o755)).unwrap();
++    assert_eq!(
++        gated,
++        503,
++        "a store detection could not examine is served: {}",
++        String::from_utf8_lossy(&read.body)
++    );
++    let j: serde_json::Value = serde_json::from_slice(&journal.expect("a gate journal")).unwrap();
++    assert_eq!(j["state"], "failed", "{j}");
++    assert_eq!(j["attempts"], 0, "{j}");
++    let reason = j["reason"].as_str().unwrap_or("");
++    assert!(reason.starts_with("detection-error"), "{j}");
++    assert!(
++        !reason.contains(plugin.to_str().unwrap()),
++        "unredacted: {j}"
++    );
++    // Next boot: the check succeeds, the store is a plain owner store.
++    let forge = forge_at(&plugin);
++    assert!(
++        !journal_of(&plugin, &owner).exists(),
++        "the detection-error journal was not removed"
++    );
++    let read = get(&forge, format!("/forge/{owner}/sample/raw/{sha}/f.txt")).await;
++    assert_eq!(read.status, 200, "{}", String::from_utf8_lossy(&read.body));
++    assert!(!served.join(MARKER).exists(), "a plain store was rebuilt");
++    assert_eq!(
++        std::fs::read_to_string(journal_of(&plugin, &other)).unwrap(),
++        kept,
++        "another kind of journal was touched"
++    );
++}
++
++/// Item 2: when the migration thread panics (or its runtime cannot be
++/// built), every unmarked store under a 64-hex owner without a valid record
++/// is refused; marked stores and other owners are not.
++#[tokio::test]
++async fn f2_a_panicked_migration_gates_unmarked_mirror_class_stores() {
++    let fx = legacy(236, Shape::Engine);
++    let marked = owner_of(237);
++    let marked_dir = fx.plugin.join("repos").join(&marked).join("sample.git");
++    let marked_sha = bare_with_commit(&fx.home, &marked_dir, "b1-marked\n");
++    std::fs::write(marked_dir.join(MARKER), format!("{MARKER}\n")).unwrap();
++    let plain_sha = bare_with_commit(
++        &fx.home,
++        &fx.plugin.join("repos/bob/plain.git"),
++        "b1-plain\n",
++    );
++    test_hooks::set(
++        &fx.plugin,
++        Hooks {
++            panic_at_boot: true,
++            ..Hooks::default()
++        },
++    );
++    let forge = forge_at(&fx.plugin);
++    test_hooks::clear(&fx.plugin);
++    assert_gated(&fx, &forge).await;
++    let ok = get(
++        &forge,
++        format!("/forge/{marked}/sample/raw/{marked_sha}/f.txt"),
++    )
++    .await;
++    assert_eq!(ok.status, 200, "control: a marked store");
++    let ok = get(&forge, format!("/forge/bob/plain/raw/{plain_sha}/f.txt")).await;
++    assert_eq!(ok.status, 200, "control: a non-mirror owner");
++}
++
++/// Item 3 (L1, Codex #1): a journal that is a symlink, dangling or pointing
++/// at a `published` journal, gates every reader; a boot leaves it in place.
++#[tokio::test]
++async fn f3_a_symlinked_journal_gates() {
++    let tmp = tempfile::tempdir().unwrap();
++    let home = tmp.path();
++    let plugin = home.join("plugin");
++    let owner = owner_of(238);
++    let served = plugin.join("repos").join(&owner).join("sample.git");
++    let sha = bare_with_commit(home, &served, "b1-symlink\n");
++    std::fs::write(served.join(MARKER), format!("{MARKER}\n")).unwrap();
++    let forge = forge_at(&plugin);
++    let path = format!("/forge/{owner}/sample/raw/{sha}/f.txt");
++    assert_eq!(get(&forge, path.clone()).await.status, 200, "control");
++    let published = home.join("published.json");
++    std::fs::write(
++        &published,
++        format!(r#"{{"id":"x","ts":1,"class":"mirror","state":"published","recovery":"mirror-recovery/{owner}/sample.git.1","attempts":0}}"#),
++    )
++    .unwrap();
++    let j = journal_of(&plugin, &owner);
++    std::fs::create_dir_all(j.parent().unwrap()).unwrap();
++    for target in [home.join("nowhere.json"), published] {
++        let _ = std::fs::remove_file(&j);
++        std::os::unix::fs::symlink(&target, &j).unwrap();
++        let r = get(&forge, path.clone()).await;
++        assert_eq!(
++            r.status,
++            503,
++            "a journal symlink to {} opened the gate",
++            target.display()
++        );
++        let again = forge_at(&plugin);
++        assert!(
++            std::fs::symlink_metadata(&j).is_ok_and(|m| m.file_type().is_symlink()),
++            "a boot removed the symlinked journal ({})",
++            target.display()
++        );
++        assert_eq!(get(&again, path.clone()).await.status, 503);
++    }
++}
++
++/// Item 3 (Codex #3): a journal whose `recovery` leaves `mirror-recovery/`
++/// fails the migration closed; nothing is written outside it.
++#[tokio::test]
++async fn f3_a_journal_recovery_outside_mirror_recovery_fails_closed() {
++    let fx = legacy(239, Shape::Engine);
++    let o = &fx.owner;
++    plant_journal(
++        &fx.plugin,
++        o,
++        &format!(
++            r#"{{"id":"esc","ts":1,"class":"mirror","state":"building","recovery":"mirror-recovery/{o}/../../escape/sample.git.1","attempts":0}}"#
++        ),
++    );
++    let forge = forge_at(&fx.plugin);
++    assert!(
++        !fx.plugin.join("escape").exists(),
++        "the migration wrote outside mirror-recovery/"
++    );
++    assert_gated(&fx, &forge).await;
++    assert!(has(&fx.served, &fx.held_blob), "the old store was moved");
++}
++
++/// Item 4 (Codex #4, L6, F4): smart HTTP accepts exactly
++/// `/<owner>/<name>[.git]/<suffix>`. A nested bare repository is not
++/// fetchable, and the suffix-less form opens `<name>.git`, the directory the
++/// gate checks, never a bare `repos/<owner>/<name>`.
++#[tokio::test]
++async fn f4_smart_http_accepts_one_path_shape() {
++    let tmp = tempfile::tempdir().unwrap();
++    let home = tmp.path();
++    let plugin = home.join("plugin");
++    let nested = bare_with_commit(home, &plugin.join("repos/bob/dir/x"), "b1-nested\n");
++    let nested_git = bare_with_commit(home, &plugin.join("repos/bob/dir/y.git"), "b1-nested-git\n");
++    let bare = bare_with_commit(home, &plugin.join("repos/bob/plain"), "b1-suffixless\n");
++    let ok = bare_with_commit(home, &plugin.join("repos/bob/real.git"), "b1-real\n");
++    let forge = forge_with_backend(&plugin);
++    let adv = |path: &str| req("GET", path, "service=git-upload-pack");
++    let answer = |r: Result<crate::ForgeResponse, crate::ForgeError>| match r {
++        Ok(resp) => (
++            resp.status,
++            String::from_utf8_lossy(&resp.body).into_owned(),
++        ),
++        Err(e) => (e.status_code(), e.to_string()),
++    };
++    for (path, sha) in [
++        ("/forge/bob/dir/x/info/refs", &nested),
++        ("/forge/bob/dir/y.git/info/refs", &nested_git),
++        ("/forge/bob/plain/info/refs", &bare),
++        ("/forge/bob/.dir/x.git/info/refs", &nested),
++        ("/forge/bob/dir%2Fx/info/refs", &nested),
++    ] {
++        let (status, body) = answer(forge.handle(adv(path), crate::ForgeAgent::Anonymous).await);
++        assert!(
++            status == 404 || (status == 400 && path.contains('%')),
++            "{path} -> {status}: {body}"
++        );
++        assert!(
++            !body.contains(sha.as_str()),
++            "{path} advertised {sha}: {body}"
++        );
++    }
++    for path in ["/forge/bob/real.git/info/refs", "/forge/bob/real/info/refs"] {
++        let (status, body) = answer(forge.handle(adv(path), crate::ForgeAgent::Anonymous).await);
++        assert_eq!(status, 200, "control {path}: {body}");
++        assert!(body.contains(&ok), "control {path}: {body}");
++    }
++}
++
++/// Run a real migration of a record-bearing fixture, then rewind it to the
++/// state a crash after the second rename leaves: the journal back at
++/// `state` (with `moved`), the record flagged again. Returns the report's
++/// bytes and the recovery entry.
++fn rewind_after_second_rename(fx: &Legacy, state: &str, moved: bool) -> (Vec<u8>, PathBuf) {
++    let entry = recovery_entries(&fx.plugin, &fx.owner).remove(0);
++    let report = std::fs::read(sibling(&entry, ".migration.json")).unwrap();
++    let v: serde_json::Value = serde_json::from_slice(&report).unwrap();
++    let id = match v["id"].as_str() {
++        Some(id) => id.to_string(),
++        None => {
++            // The pre-fix tree writes no id: plant one in both places.
++            std::fs::write(fx.served.join(MIGRATION_ID), "b1crashid\n").unwrap();
++            "b1crashid".to_string()
++        }
++    };
++    let o = &fx.owner;
++    plant_journal(
++        &fx.plugin,
++        o,
++        &format!(
++            r#"{{"id":"{id}","ts":1,"class":"mirror","state":"{state}","moved":{moved},"staging":"mirror-work/staging/{o}/sample.git.0123456789abcdef0123456789abcdef","recovery":"{}","attempts":1}}"#,
++            rel(&fx.plugin, &entry)
++        ),
++    );
++    write_record(&fx.plugin, o, pre_release_record(o).as_bytes());
++    (report, entry)
++}
++
++/// Item 5 (H1, H2, Codex #3): a crash after `rename(staging -> served)`,
++/// on the normal path (`moved`) and on the resumed path (`verified` after a
++/// resume, and `verified` when the `moved` write was lost). The next boot
++/// sees its own store in place (the migration id matches), publishes it and
++/// finishes, without rebuilding or touching the report.
++#[tokio::test]
++async fn f5_a_crash_after_the_second_rename_is_finished_not_rebuilt() {
++    for (seed, state, moved) in [
++        (240u8, "moved", true),
++        (241, "verified", true),
++        (242, "verified", false),
++    ] {
++        let fx = legacy(seed, Shape::Engine);
++        write_record(
++            &fx.plugin,
++            &fx.owner,
++            pre_release_record(&fx.owner).as_bytes(),
++        );
++        drop(forge_at(&fx.plugin));
++        let (report, entry) = rewind_after_second_rename(&fx, state, moved);
++        let forge = forge_at(&fx.plugin);
++        assert!(
++            !journal_of(&fx.plugin, &fx.owner).exists(),
++            "{state}/{moved}: journal left: {}",
++            std::fs::read_to_string(journal_of(&fx.plugin, &fx.owner)).unwrap_or_default()
++        );
++        assert_eq!(
++            std::fs::read(sibling(&entry, ".migration.json")).unwrap(),
++            report,
++            "{state}/{moved}: the report was rewritten"
++        );
++        assert_eq!(recovery_entries(&fx.plugin, &fx.owner), vec![entry]);
++        let rec: serde_json::Value =
++            serde_json::from_slice(&std::fs::read(record_path(&fx.plugin, &fx.owner)).unwrap())
++                .unwrap();
++        assert!(
++            rec.get("awaitsMigration").is_none(),
++            "{state}/{moved}: flag kept: {rec}"
++        );
++        assert_migrated(&fx, &forge).await;
++    }
++}
++
++/// Item 5 (Codex #5): a stale report beside a substituted, marked, flagged
++/// store does not finish it: the report names another migration, so the
++/// store is rebuilt and its held objects are not served.
++#[tokio::test]
++async fn f5_a_stale_report_does_not_finish_a_substituted_store() {
++    let fx = legacy(243, Shape::Engine);
++    let o = &fx.owner;
++    write_record(&fx.plugin, o, pre_release_record(o).as_bytes());
++    std::fs::write(fx.served.join(MARKER), format!("{MARKER}\n")).unwrap();
++    std::fs::write(fx.served.join(MIGRATION_ID), "someoneelse\n").unwrap();
++    let dir = fx.plugin.join("mirror-recovery").join(o);
++    std::fs::create_dir_all(&dir).unwrap();
++    std::fs::write(
++        dir.join("sample.git.1600000000.migration.json"),
++        format!(r#"{{"id":"stale","owner":"{o}","name":"sample","class":"mirror"}}"#),
++    )
++    .unwrap();
++    let forge = forge_at(&fx.plugin);
++    let leaks = held_leaks(&forge, o, &fx.held).await;
++    assert!(
++        leaks.is_empty(),
++        "held commit served:\n{}",
++        leaks.join("\n")
++    );
++    assert!(
++        !has(&fx.served, &fx.held_blob),
++        "the substituted store was kept"
++    );
++}
++
++/// Item 6 (F3), child half: crash (abort) mid-build.
++const F6_CHILD: &str = "SOLID_FORGE_B1_F6_PLUGIN";
++
++/// Item 6 (F3): an attempt counts when it starts. Three crashes mid-build
++/// use up the budget, and the fourth boot gives up with the store gated.
++#[test]
++fn f6_three_crashes_mid_build_then_the_boot_gives_up() {
++    if let Ok(dir) = std::env::var(F6_CHILD) {
++        test_hooks::set(
++            Path::new(&dir),
++            Hooks {
++                abort_in_build: true,
++                ..Hooks::default()
++            },
++        );
++        let _ = forge_at(Path::new(&dir));
++        return;
++    }
++    let fx = legacy(244, Shape::Engine);
++    let me = std::env::current_exe().unwrap();
++    for n in 1..=3 {
++        let st = Command::new(&me)
++            .args([
++                "--exact",
++                "migrate_tests::f6_three_crashes_mid_build_then_the_boot_gives_up",
++                "--nocapture",
++            ])
++            .env(F6_CHILD, &fx.plugin)
++            .stdout(std::process::Stdio::null())
++            .stderr(std::process::Stdio::null())
++            .status()
++            .unwrap();
++        assert!(!st.success(), "crash {n}: the child did not crash");
++        let j = read_journal_json(&fx.plugin, &fx.owner);
++        assert_eq!(j["state"], "building", "crash {n}: {j}");
++    }
++    let rt = tokio::runtime::Builder::new_current_thread()
++        .enable_all()
++        .build()
++        .unwrap();
++    rt.block_on(async {
++        let forge = forge_at(&fx.plugin);
++        assert!(
++            journal_of(&fx.plugin, &fx.owner).exists(),
++            "the fourth boot migrated instead of giving up"
++        );
++        let j = read_journal_json(&fx.plugin, &fx.owner);
++        assert_eq!(j["attempts"], 3, "{j}");
++        assert_gated(&fx, &forge).await;
++        assert!(!fx.served.join(MARKER).exists());
++    });
++}
++
++/// Item 7 (F7, L3, Codex #6): a lock another process holds is waited for
++/// only up to the deadline; then the store is gated (decision 21) and
++/// skipped, and boot goes on. Released, the next boot migrates it.
++#[test]
++fn f7_a_held_lock_times_out_and_gates() {
++    let fx = legacy(245, Shape::Engine);
++    let lock = crate::migrate::lock_path(&fx.plugin, &fx.owner, "sample").unwrap();
++    std::fs::create_dir_all(lock.parent().unwrap()).unwrap();
++    let held = std::fs::OpenOptions::new()
++        .create(true)
++        .truncate(false)
++        .write(true)
++        .open(&lock)
++        .unwrap();
++    held.lock().unwrap();
++    test_hooks::set(
++        &fx.plugin,
++        Hooks {
++            lock_wait: Some(std::time::Duration::from_millis(300)),
++            ..Hooks::default()
++        },
++    );
++    let (tx, rx) = std::sync::mpsc::channel();
++    let plugin = fx.plugin.clone();
++    std::thread::spawn(move || {
++        let _ = tx.send(forge_at(&plugin));
++    });
++    let got = rx.recv_timeout(std::time::Duration::from_secs(30));
++    test_hooks::clear(&fx.plugin);
++    let forge = got.expect("ForgeService::new waited on the lock past its deadline");
++    let j = read_journal_json(&fx.plugin, &fx.owner);
++    assert_eq!(j["state"], "failed", "{j}");
++    assert!(j["reason"].as_str().unwrap_or("").contains("lock"), "{j}");
++    let rt = tokio::runtime::Builder::new_current_thread()
++        .enable_all()
++        .build()
++        .unwrap();
++    rt.block_on(assert_gated(&fx, &forge));
++    drop(held);
++    rt.block_on(async {
++        let forge = forge_at(&fx.plugin);
++        assert_migrated(&fx, &forge).await;
++    });
++}
++
++/// Item 9 (L4, Codex): when the store budget runs out, every process in
++/// the build's process groups is killed, not only the direct child.
++#[tokio::test]
++async fn f9_a_budget_timeout_kills_the_whole_process_group() {
++    let token = "41.4142135";
++    let fx = legacy(246, Shape::Engine);
++    test_hooks::set(
++        &fx.plugin,
++        Hooks {
++            store_budget: Some(std::time::Duration::from_secs(2)),
++            slow_child: Some(token.into()),
++            ..Hooks::default()
++        },
++    );
++    let forge = forge_at(&fx.plugin);
++    test_hooks::clear(&fx.plugin);
++    tokio::time::sleep(std::time::Duration::from_millis(500)).await;
++    let left = Command::new("pgrep")
++        .args(["-f", &format!("sleep {token}")])
++        .output()
++        .unwrap();
++    let survivors = String::from_utf8_lossy(&left.stdout).trim().to_string();
++    let _ = Command::new("pkill")
++        .args(["-f", &format!("sleep {token}")])
++        .status();
++    assert!(
++        survivors.is_empty(),
++        "orphaned helpers survived: {survivors}"
++    );
++    let j = read_journal_json(&fx.plugin, &fx.owner);
++    assert!(j["reason"].as_str().unwrap_or("").contains("budget"), "{j}");
++    assert_gated(&fx, &forge).await;
++}
++
++/// Item 10 (Codex #2): the push into staging runs under the size cap. A
++/// staging store past it is killed, and the migration fails closed.
++#[tokio::test]
++async fn f10_a_staging_store_past_the_size_cap_fails_closed() {
++    let fx = legacy(247, Shape::Engine);
++    test_hooks::set(
++        &fx.plugin,
++        Hooks {
++            size_cap: Some(1),
++            ..Hooks::default()
++        },
++    );
++    let forge = forge_at(&fx.plugin);
++    test_hooks::clear(&fx.plugin);
++    assert!(
++        journal_of(&fx.plugin, &fx.owner).exists(),
++        "the store was migrated past the size cap"
++    );
++    let j = read_journal_json(&fx.plugin, &fx.owner);
++    assert_eq!(j["state"], "failed", "{j}");
++    assert!(
++        j["reason"].as_str().unwrap_or("").contains("size cap"),
++        "{j}"
++    );
++    assert_gated(&fx, &forge).await;
++}
++
++/// Item 11 (L5): a ref whose name is not UTF-8 is dropped as `unsafe-name`
++/// and reported; it is never copied under a lossy name.
++#[tokio::test]
++async fn f11_a_non_utf8_ref_is_dropped_not_renamed() {
++    use std::os::unix::ffi::OsStrExt;
++    let fx = legacy(248, Shape::Engine);
++    let name = std::ffi::OsStr::from_bytes(b"refs/misc/\xff\xfe");
++    let st = Command::new("git")
++        .arg("update-ref")
++        .arg(name)
++        .arg(&fx.m2)
++        .current_dir(&fx.served)
++        .env("GIT_CONFIG_GLOBAL", "/dev/null")
++        .status()
++        .unwrap();
++    assert!(st.success());
++    let forge = forge_at(&fx.plugin);
++    let refs = Command::new("git")
++        .args(["for-each-ref", "--format=%(refname)"])
++        .current_dir(&fx.served)
++        .output()
++        .unwrap()
++        .stdout;
++    assert!(
++        std::str::from_utf8(&refs).is_ok_and(|s| !s.contains('\u{fffd}')),
++        "a non-UTF-8 ref was copied: {}",
++        String::from_utf8_lossy(&refs)
++    );
++    assert_migrated(&fx, &forge).await;
++    let report = report_of(&fx);
++    let lossy = String::from_utf8_lossy(b"refs/misc/\xff\xfe").into_owned();
++    assert_eq!(
++        dropped_reason(&report, &lossy).as_deref(),
++        Some("unsafe-name"),
++        "{report}"
++    );
++}
++
++/// Item 12 (F6): a fork onto a name with a migration journal is refused
++/// (503); it would otherwise land in the gap between the two renames.
++#[tokio::test]
++async fn f12_a_fork_onto_a_journalled_name_is_refused() {
++    let tmp = tempfile::tempdir().unwrap();
++    let home = tmp.path();
++    let plugin = home.join("plugin");
++    bare_with_commit(home, &plugin.join("repos/alice/src.git"), "b1-src\n");
++    let caller = owner_of(249);
++    let forge = forge_at(&plugin);
++    plant_journal(
++        &plugin,
++        &caller,
++        &format!(
++            r#"{{"id":"f","ts":1,"class":"mirror","state":"moved","moved":true,"recovery":"mirror-recovery/{caller}/sample.git.1","attempts":0}}"#
++        ),
++    );
++    let mut r = req("POST", "/forge/api/repos/alice/src/fork", "");
++    r.raw_body = bytes::Bytes::from_static(br#"{"name":"sample"}"#);
++    let got = forge
++        .handle(
++            r,
++            crate::ForgeAgent::Nostr {
++                pubkey_hex: caller.clone(),
++            },
++        )
++        .await;
++    let status = got.map_or_else(|e| e.status_code(), |r| r.status);
++    assert_eq!(status, 503, "a fork landed on a journalled name");
++    assert!(!plugin
++        .join("repos")
++        .join(&caller)
++        .join("sample.git")
++        .exists());
++}
++
++/// Item 1 (advisor review of fix round 1): an owner-planted
++/// `refs/replace/<m2>` makes `rev-list` walk a commit whose tree adds the
++/// held blob, while a push sends the originals. Replacements must not widen
++/// the roots' closure, or `refs/misc/blob` would pass the filter and both
++/// verify checks.
++#[tokio::test]
++async fn f1_a_replace_ref_does_not_widen_the_roots() {
++    let fx = legacy(250, Shape::Engine);
++    let m2_tree = git(&fx.served, &["rev-parse", &format!("{}^{{tree}}", fx.m2)]);
++    let listing = format!(
++        "040000 tree {m2_tree}\tsub\n100644 blob {}\theld.txt\n",
++        fx.held_blob
++    );
++    let mut child = Command::new("git")
++        .args(["mktree"])
++        .current_dir(&fx.served)
++        .env("GIT_CONFIG_GLOBAL", "/dev/null")
++        .stdin(std::process::Stdio::piped())
++        .stdout(std::process::Stdio::piped())
++        .spawn()
++        .unwrap();
++    {
++        use std::io::Write;
++        child
++            .stdin
++            .take()
++            .unwrap()
++            .write_all(listing.as_bytes())
++            .unwrap();
++    }
++    let tree = String::from_utf8_lossy(&child.wait_with_output().unwrap().stdout)
++        .trim()
++        .to_string();
++    let fake = git(
++        &fx.served,
++        &["commit-tree", &tree, "-p", &fx.m1, "-m", "b1 replacement"],
++    );
++    git(
++        &fx.served,
++        &["update-ref", &format!("refs/replace/{}", fx.m2), &fake],
++    );
++    let forge = forge_at(&fx.plugin);
++    assert!(
++        !has(&fx.served, &fx.held_blob),
++        "a replacement smuggled the held blob into the rebuilt store"
++    );
++    assert_migrated(&fx, &forge).await;
++    let report = report_of(&fx);
++    assert_eq!(
++        dropped_reason(&report, "refs/misc/blob").as_deref(),
++        Some("outside-roots"),
++        "{report}"
++    );
++}
++
++/// Item 3 (Codex #1, second half): a regular-file journal reading
++/// `published` beside a store that is not this migration's (no matching
++/// migration id) is never finished; the store stays gated.
++#[tokio::test]
++async fn f3_a_forged_published_journal_does_not_open_a_store() {
++    let fx = legacy(251, Shape::Engine);
++    let o = &fx.owner;
++    plant_journal(
++        &fx.plugin,
++        o,
++        &format!(
++            r#"{{"id":"forged","ts":1,"class":"mirror","state":"published","recovery":"mirror-recovery/{o}/sample.git.1","attempts":0}}"#
++        ),
++    );
++    let forge = forge_at(&fx.plugin);
++    assert_gated(&fx, &forge).await;
++    assert!(
++        journal_of(&fx.plugin, o).exists(),
++        "the forged journal was finished"
++    );
++}
++
++/// Item 1/2 (advisor review): a served store reached through a symlink
++/// (`repos/<owner>/<name>.git -> elsewhere`, as an operator moving stores to
++/// another disk makes) is listed and served, so detection must examine it
++/// too.
++#[tokio::test]
++async fn f2_a_symlinked_served_store_is_detected() {
++    let fx = legacy(252, Shape::Engine);
++    let elsewhere = fx.home.join("disk2").join("sample.git");
++    std::fs::create_dir_all(elsewhere.parent().unwrap()).unwrap();
++    std::fs::rename(&fx.served, &elsewhere).unwrap();
++    std::os::unix::fs::symlink(&elsewhere, &fx.served).unwrap();
++    let forge = forge_at(&fx.plugin);
++    let leaks = held_leaks(&forge, &fx.owner, &fx.held).await;
++    assert!(
++        leaks.is_empty(),
++        "held commit served:\n{}",
++        leaks.join("\n")
++    );
++    assert_migrated(&fx, &forge).await;
++}
+diff --git a/afterc/crates/solid-pod-rs-forge/src/mirror.rs b/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge/src/mirror.rs
+index 97c97d9..c5eed61 100644
+--- a/afterc/crates/solid-pod-rs-forge/src/mirror.rs
++++ b/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge/src/mirror.rs
+@@ -119,10 +119,7 @@ pub const MAX_EVENT_TAGS: usize = 512;
+ pub const MAX_TRAIL_BYTES: u64 = 1024 * 1024;
+ /// Wall-clock budget for one `git fetch`.
+ pub const FETCH_TIMEOUT: Duration = Duration::from_secs(60);
+-/// Largest a mirrored repository may grow on disk, in bytes. A fetch that
+-/// pushes the candidate store past this is killed and the candidate removed;
+-/// a publication that grows the served store by more than this is killed.
+-pub const MAX_REPO_BYTES: u64 = 512 * 1024 * 1024;
++pub use crate::migrate::MAX_REPO_BYTES;
+ /// The admission threshold for publication, in bytes: a served store
+ /// already larger than this (receive-pack quarantine directories not
+ /// counted) refuses publication before any push starts. It is not a hard
+@@ -9089,6 +9086,9 @@ mod tests {
+             git_ok(home, home, &["init", "--bare", "--quiet", "-b", "main", s]);
+             git_ok(&up, home, &["push", "--quiet", s, "main:main"]);
+             std::fs::write(served.join(MARKER_FILE), format!("{MARKER_FILE}\n")).unwrap();
++            // Fix round 1, item 5: the rebuilt store carries the journal's
++            // migration id (a `published` journal is bound to it).
++            std::fs::write(served.join("migration-id"), "t13\n").unwrap();
+             let mut rec = MirrorRecord::new(&owner, "sample", None);
+             rec.awaits_migration = true;
+             rec.isolated = false;
+diff --git a/afterc/crates/solid-pod-rs-forge/src/router.rs b/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge/src/router.rs
+index f2e17a3..2c09326 100644
+--- a/afterc/crates/solid-pod-rs-forge/src/router.rs
++++ b/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge/src/router.rs
+@@ -368,7 +368,7 @@ pub const API_ACTIONS: &[&str] = &[
+ ];
+ 
+ /// Git smart-HTTP suffixes that identify a CGI request.
+-const GIT_SUFFIXES: &[&str] = &["/info/refs", "/git-upload-pack", "/git-receive-pack"];
++pub(crate) const GIT_SUFFIXES: &[&str] = &["/info/refs", "/git-upload-pack", "/git-receive-pack"];
+ 
+ /// Strip `prefix` from `path`. Returns the remainder with a guaranteed
+ /// leading `/` (or `"/"` for an exact-prefix match). Returns `None` when

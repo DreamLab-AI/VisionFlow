@@ -1,0 +1,7 @@
+migrate_tests::g4_a_failing_store_probe_leaves_the_detection_error_journal :: a detection-error journal was removed without a clean examination
+migrate_tests::t18_smart_http_push_is_refused_while_a_journal_exists :: assertion `left == right` failed: read with a published journal
+migrate_tests::g1_a_published_journal_gates_across_boots :: boot 1: held commit served:
+migrate_tests::g2_an_incomplete_pass_gates_a_marked_store :: held commit served:
+migrate_tests::g3_an_unlistable_owner_makes_the_pass_incomplete :: held commit served:
+migrate_tests::g6_replace_refs_are_never_copied :: a replace ref was copied: refs/heads/main
+migrate_tests::g5_grafts_do_not_widen_the_roots :: a graft smuggled held history into the rebuilt store

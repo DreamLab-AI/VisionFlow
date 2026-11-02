@@ -1,0 +1,324 @@
+diff --git a/home/devuser/workspace/.tmp/claude-1000/-home-devuser-workspace-VisionFlow/770d51cb-532b-46ec-b569-b80bea93cc51/scratchpad/idf/base/CHANGELOG.md b/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/CHANGELOG.md
+index ef5e72b..cccd3d4 100644
+--- a/home/devuser/workspace/.tmp/claude-1000/-home-devuser-workspace-VisionFlow/770d51cb-532b-46ec-b569-b80bea93cc51/scratchpad/idf/base/CHANGELOG.md
++++ b/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/CHANGELOG.md
+@@ -35,8 +35,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+   The rebuilt store is pushed by SHA, through the fixed receive-pack command,
+   into a fresh store under `plugin_dir/mirror-work/staging/`, and the push is
+   killed if staging grows past `MAX_REPO_BYTES` (512 MiB) while the push
+-  runs (the size is polled every 500 ms). A store whose rebuilt,
+-  roots-only copy is larger than that is not migrated and stays refused. The rebuilt store is
++  runs (the size is polled every 500 ms), and staging is measured once more
++  after each push completes, so a push that finishes between two polls is
++  still checked. A store whose rebuilt, roots-only copy is larger than that
++  is not migrated and stays refused (git may briefly write past the cap
++  between polls before the push is killed or the final check fails it). The rebuilt store is
+   then verified at object level: no held object; nothing outside the roots'
+   closure; no alternates; no object file shared with the old store. It is
+   then marked, given a `migration-id` file naming the migration, and renamed
+@@ -79,6 +82,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+     there. An attempt counts when it starts, so after 3 attempts (crashes
+     included) boot stops retrying, and the repository stays refused until an
+     operator acts.
++  - **Journal first:** once detection decides to rebuild a store, its
++    journal is written durably before anything else is checked, so a later
++    failure (an unreadable recovery directory, a path that fails its
++    containment check) leaves the store refused. If that journal cannot be
++    written, or a failure leaves no journal behind, the pass counts as
++    incomplete and every store under a 64-hex owner is refused until a boot
++    completes it.
+   - **Failed migration:** a failure (for example, an old object that
+     `receive.fsckObjects` rejects, a timeout, or the size cap) leaves a
+     `failed` journal with the reason and the attempt count. A timeout kills
+diff --git a/home/devuser/workspace/.tmp/claude-1000/-home-devuser-workspace-VisionFlow/770d51cb-532b-46ec-b569-b80bea93cc51/scratchpad/idf/base/crates/solid-pod-rs-forge/src/migrate.rs b/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge/src/migrate.rs
+index f4219e7..b2d13ee 100644
+--- a/home/devuser/workspace/.tmp/claude-1000/-home-devuser-workspace-VisionFlow/770d51cb-532b-46ec-b569-b80bea93cc51/scratchpad/idf/base/crates/solid-pod-rs-forge/src/migrate.rs
++++ b/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge/src/migrate.rs
+@@ -122,6 +122,14 @@
+ /// tests can stand in a slow or fixed measurement).
+ pub(crate) type DirMeasure = fn(&Path) -> u64;
+ 
++/// When a capped run measures the directory it watches: the delay before the
++/// first measurement, then the interval between measurements.
++type SizePoll = (Duration, Duration);
++
++/// The size watcher's timing outside tests: measure at once, then every
++/// 500 ms.
++const SIZE_POLL: SizePoll = (Duration::ZERO, Duration::from_millis(500));
++
+ /// `plugin_dir/mirror-work/locks/<owner>/<name>.lock`: the cross-process
+ /// advisory lock for one served repository, shared by the mirror engine and
+ /// boot migration so that each excludes the other, across server instances
+@@ -260,10 +268,12 @@ pub(crate) async fn run_output(
+     timeout: Duration,
+     cap: Option<(u64, DirMeasure)>,
+ ) -> Result<std::process::Output, String> {
+-    run_output_env(git_dir, watch, args, allow, timeout, cap, &[]).await
++    run_output_env(git_dir, watch, args, allow, timeout, cap, SIZE_POLL, &[]).await
+ }
+ 
+-/// [`run_output`] with `env` added to git's environment.
++/// [`run_output`] with `env` added to git's environment and the size
++/// watcher's timing given by `poll`.
++#[allow(clippy::too_many_arguments)]
+ async fn run_output_env(
+     git_dir: &Path,
+     watch: &Path,
+@@ -271,6 +281,7 @@ async fn run_output_env(
+     allow: Option<&str>,
+     timeout: Duration,
+     cap: Option<(u64, DirMeasure)>,
++    poll: SizePoll,
+     env: &[(&str, &str)],
+ ) -> Result<std::process::Output, String> {
+     let mut cmd = git_command(git_dir, watch, args);
+@@ -293,6 +304,7 @@ async fn run_output_env(
+     let watcher = cap.map(|(limit, measure)| {
+         let d = watch.to_path_buf();
+         tokio::spawn(async move {
++            tokio::time::sleep(poll.0).await;
+             loop {
+                 let d2 = d.clone();
+                 let size = tokio::task::spawn_blocking(move || measure(&d2))
+@@ -302,7 +314,7 @@ async fn run_output_env(
+                     let _ = tx.send(());
+                     return;
+                 }
+-                tokio::time::sleep(Duration::from_millis(500)).await;
++                tokio::time::sleep(poll.1).await;
+             }
+         })
+     });
+@@ -443,6 +455,8 @@ struct Limits {
+     store_budget: Duration,
+     /// Largest the staging store may grow during the push, in bytes.
+     size_cap: u64,
++    /// The push's size watcher timing.
++    size_poll: SizePoll,
+ }
+ 
+ impl Limits {
+@@ -451,6 +465,7 @@ fn for_plugin(plugin: &Path) -> Self {
+             lock_wait: STORE_BUDGET,
+             store_budget: STORE_BUDGET,
+             size_cap: MAX_REPO_BYTES,
++            size_poll: SIZE_POLL,
+         };
+         #[cfg(test)]
+         {
+@@ -478,6 +493,9 @@ pub(crate) struct Hooks {
+         pub(crate) lock_wait: Option<Duration>,
+         pub(crate) store_budget: Option<Duration>,
+         pub(crate) size_cap: Option<u64>,
++        /// Delay the push's size watcher by this long, and measure only this
++        /// often (a fast push then finishes before any measurement).
++        pub(crate) size_poll: Option<Duration>,
+         /// Panic on the migration thread before anything is migrated.
+         pub(crate) panic_at_boot: bool,
+         /// `std::process::abort()` once the `building` journal is written
+@@ -531,6 +549,7 @@ pub(super) fn limits(plugin: &Path, base: super::Limits) -> super::Limits {
+             lock_wait: h.lock_wait.unwrap_or(base.lock_wait),
+             store_budget: h.store_budget.unwrap_or(base.store_budget),
+             size_cap: h.size_cap.unwrap_or(base.size_cap),
++            size_poll: h.size_poll.map_or(base.size_poll, |d| (d, d)),
+         }
+     }
+ }
+@@ -1391,7 +1410,17 @@ async fn migrate_one(plugin: &Path, owner: &str, name: &str) -> Outcome {
+             Detected::Error(e) => {
+                 return gate(plugin, &p, owner, name, &format!("{DETECTION_ERROR}: {e}"));
+             }
+-            Detected::Rebuild => new_journal(plugin, &p, name, Stage::Building, None),
++            Detected::Rebuild => {
++                // Persist the journal before any branch below can refuse
++                // the store: every `Failed` from here on relies on a
++                // journal on disk to gate it.
++                let j = new_journal(plugin, &p, name, Stage::Building, None);
++                if let Err(e) = write_journal(&p.journal, &j) {
++                    tracing::error!(owner = %owner, name = %name, error = %redact(plugin, &e), "forge: migration journal not written; store not migrated");
++                    return Outcome::Ungated;
++                }
++                j
++            }
+         },
+     };
+     let recovery = match contained(plugin, owner, name, &journal) {
+@@ -1501,11 +1530,21 @@ fn finished(plugin: &Path, p: &Paths, owner: &str, name: &str) -> Outcome {
+         Ok(()) => Outcome::Migrated,
+         Err(e) => {
+             tracing::error!(owner = %owner, name = %name, error = %redact(plugin, &e), "forge: migration not finished");
+-            Outcome::Failed
++            gated_or_ungated(plugin, owner, name)
+         }
+     }
+ }
+ 
++/// `Failed` when a journal is on disk to gate the store, else `Ungated`
++/// (the caller must gate it another way).
++fn gated_or_ungated(plugin: &Path, owner: &str, name: &str) -> Outcome {
++    if journal_exists(plugin, owner, name) {
++        Outcome::Failed
++    } else {
++        Outcome::Ungated
++    }
++}
++
+ /// The rebuilt store is in `repos/`: journal `published`, then finish.
+ fn publish(plugin: &Path, p: &Paths, owner: &str, name: &str, mut j: Journal) -> Outcome {
+     if j.state != Stage::Published {
+@@ -1550,7 +1589,7 @@ fn fail(plugin: &Path, p: &Paths, owner: &str, name: &str, mut j: Journal, why:
+         tracing::error!(owner = %owner, name = %name, error = %e, "forge: migration journal not written");
+     }
+     tracing::error!(owner = %owner, name = %name, attempts = j.attempts, error = %why, "forge: migration failed; store stays gated");
+-    Outcome::Failed
++    gated_or_ungated(plugin, owner, name)
+ }
+ 
+ /// Remove every staging store of `<name>` (`<name>.git.<alphanumerics>`;
+@@ -1634,11 +1673,7 @@ async fn rebuild(
+         tracing::error!(owner = %owner, name = %name, error = %e, "forge: migration journal not written; store not migrated");
+         // A journal may already gate the store; if none does, the caller
+         // must gate it another way.
+-        return if journal_exists(plugin, owner, name) {
+-            Outcome::Failed
+-        } else {
+-            Outcome::Ungated
+-        };
++        return gated_or_ungated(plugin, owner, name);
+     }
+     #[cfg(test)]
+     if test_hooks::get(plugin).abort_in_build {
+@@ -1655,7 +1690,7 @@ async fn rebuild(
+         std::sync::Arc::clone(&groups),
+         tokio::time::timeout(
+             limits.store_budget,
+-            build(plugin, &source, &staging, limits.size_cap),
++            build(plugin, &source, &staging, limits.size_cap, limits.size_poll),
+         ),
+     );
+     let built = match attempt.await {
+@@ -1907,6 +1942,7 @@ async fn build(
+     source: &Path,
+     staging: &Path,
+     size_cap: u64,
++    size_poll: SizePoll,
+ ) -> Result<Built, String> {
+     init_bare(staging).await?;
+     write_served_config(staging).await?;
+@@ -1983,7 +2019,7 @@ async fn build(
+             built.copied.insert(r, sha);
+         }
+     }
+-    push_refs(source, staging, &built.copied, size_cap).await?;
++    push_refs(source, staging, &built.copied, size_cap, size_poll).await?;
+     built.head = choose_head(source, &built.copied).await?;
+     if let Some(h) = &built.head {
+         run_in(
+@@ -2091,6 +2127,7 @@ async fn push_refs(
+     staging: &Path,
+     refs: &BTreeMap<String, String>,
+     size_cap: u64,
++    size_poll: SizePoll,
+ ) -> Result<(), String> {
+     let target = staging.to_str().ok_or("non-UTF-8 staging path")?;
+     let specs: Vec<String> = refs.iter().map(|(r, sha)| format!("{sha}:{r}")).collect();
+@@ -2119,6 +2156,7 @@ async fn push_refs(
+             Some("file"),
+             STORE_BUDGET,
+             cap,
++            size_poll,
+             &MIGRATION_ENV,
+         )
+         .await?;
+@@ -2132,6 +2170,15 @@ async fn push_refs(
+                 .collect();
+             return Err(format!("push into staging failed: {}", lines.join(" | ")));
+         }
++        // The push can finish between two measurements: measure the
++        // completed staging store once more.
++        let d = staging.to_path_buf();
++        let size = tokio::task::spawn_blocking(move || crate::sizecap::dir_size(&d))
++            .await
++            .map_err(|e| format!("staging not measured: {e}"))?;
++        if size > size_cap {
++            return Err(GREW_PAST_CAP.to_string());
++        }
+     }
+     Ok(())
+ }
+diff --git a/home/devuser/workspace/.tmp/claude-1000/-home-devuser-workspace-VisionFlow/770d51cb-532b-46ec-b569-b80bea93cc51/scratchpad/idf/base/crates/solid-pod-rs-forge/src/migrate_tests.rs b/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge/src/migrate_tests.rs
+index 333e475..f75367b 100644
+--- a/home/devuser/workspace/.tmp/claude-1000/-home-devuser-workspace-VisionFlow/770d51cb-532b-46ec-b569-b80bea93cc51/scratchpad/idf/base/crates/solid-pod-rs-forge/src/migrate_tests.rs
++++ b/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge/src/migrate_tests.rs
+@@ -2213,3 +2213,71 @@ async fn g6_replace_refs_are_never_copied() {
+     );
+     assert_migrated(&fx, &forge).await;
+ }
++
++// ---- Fix round 3 ------------------------------------------------------------
++
++/// Fix 3, item 1 (Codex High 1): a lost-record legacy store whose
++/// `mirror-recovery/<owner>` directory cannot be searched. The recovery
++/// probe fails after detection chose to rebuild; the journal must already be
++/// on disk then (or the pass must report incomplete), so the store is
++/// refused.
++#[tokio::test]
++async fn h1_a_recovery_probe_error_still_gates_the_store() {
++    use std::os::unix::fs::PermissionsExt;
++    let fx = legacy(180, Shape::Engine);
++    let recovery_owner = fx.plugin.join("mirror-recovery").join(&fx.owner);
++    std::fs::create_dir_all(&recovery_owner).unwrap();
++    std::fs::set_permissions(&recovery_owner, std::fs::Permissions::from_mode(0o000)).unwrap();
++    let probe = std::fs::symlink_metadata(recovery_owner.join("sample.git.1"));
++    let forge = forge_at(&fx.plugin);
++    let leaks = held_leaks(&forge, &fx.owner, &fx.held).await;
++    let approved = get(
++        &forge,
++        format!("/forge/{}/sample/raw/{}/public.txt", fx.owner, fx.m2),
++    )
++    .await;
++    std::fs::set_permissions(&recovery_owner, std::fs::Permissions::from_mode(0o755)).unwrap();
++    assert!(
++        probe.is_err_and(|e| e.kind() == std::io::ErrorKind::PermissionDenied),
++        "precondition: the recovery probe must fail with EACCES"
++    );
++    assert!(
++        journal_of(&fx.plugin, &fx.owner).exists() || forge.migration_incomplete,
++        "no journal and a complete pass: nothing gates the store"
++    );
++    assert!(
++        leaks.is_empty(),
++        "held commit served:\n{}",
++        leaks.join("\n")
++    );
++    assert_eq!(approved.status, 503, "the store is not gated");
++}
++
++/// Fix 3, item 2 (Codex Medium 2): a push that finishes before the size
++/// watcher measures anything is still checked against the cap once it has
++/// completed, and the migration fails closed.
++#[tokio::test]
++async fn h2_a_fast_push_past_the_cap_is_caught_by_the_final_check() {
++    let fx = legacy(181, Shape::Engine);
++    test_hooks::set(
++        &fx.plugin,
++        Hooks {
++            size_cap: Some(1),
++            size_poll: Some(std::time::Duration::from_secs(3600)),
++            ..Hooks::default()
++        },
++    );
++    let forge = forge_at(&fx.plugin);
++    test_hooks::clear(&fx.plugin);
++    assert!(
++        journal_of(&fx.plugin, &fx.owner).exists(),
++        "the store was migrated past the size cap"
++    );
++    let j = read_journal_json(&fx.plugin, &fx.owner);
++    assert_eq!(j["state"], "failed", "{j}");
++    assert!(
++        j["reason"].as_str().unwrap_or("").contains("size cap"),
++        "{j}"
++    );
++    assert_gated(&fx, &forge).await;
++}

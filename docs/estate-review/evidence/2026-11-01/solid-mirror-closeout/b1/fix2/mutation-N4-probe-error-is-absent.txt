@@ -1,0 +1,22 @@
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.83s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d229dc2d13dcc7a9)
+
+running 1 test
+test migrate_tests::g4_a_failing_store_probe_leaves_the_detection_error_journal ... FAILED
+
+failures:
+
+---- migrate_tests::g4_a_failing_store_probe_leaves_the_detection_error_journal stdout ----
+
+thread 'migrate_tests::g4_a_failing_store_probe_leaves_the_detection_error_journal' (136568) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:2151:5:
+a detection-error journal was removed without a clean examination
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    migrate_tests::g4_a_failing_store_probe_leaves_the_detection_error_journal
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 388 filtered out; finished in 0.70s
+
+error: test failed, to rerun pass `-p solid-pod-rs-forge --lib`

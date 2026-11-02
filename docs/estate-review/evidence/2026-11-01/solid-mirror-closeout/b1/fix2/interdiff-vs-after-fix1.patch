@@ -1,0 +1,979 @@
+diff --git a/af1/CHANGELOG.md b/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/CHANGELOG.md
+index cdaed33..ef5e72b 100644
+--- a/af1/CHANGELOG.md
++++ b/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/CHANGELOG.md
+@@ -25,15 +25,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+   `outside-roots`. `refs/mirror/*`, pull request heads (`refs/forge/heads/*`)
+   and refs with unsafe or non-UTF-8 names are dropped and reported too, and
+   are never renamed. The held set is every object any ref reaches that the
+-  roots do not. It does not depend on `refs/mirror` still being present, and
+-  it includes the history of a held branch that upstream force-pushed away.
+-  Replacement refs are ignored while closures are computed, because a push
+-  sends the original objects; `refs/replace/*` refs are dropped as
+-  `outside-roots`.
++  roots do not; it does not depend on `refs/mirror` still being present.
++  History no ref reaches any more (for example, a held branch that upstream
++  force-pushed away) is kept out by the verification instead: nothing outside
++  the roots' closure may be in the rebuilt store. Replacement refs and a
++  legacy `info/grafts` are ignored while closures are computed and while the
++  push runs, so the closures are the store's real history. `refs/replace/*`
++  refs are never copied; they are dropped and reported as `outside-roots`.
+   The rebuilt store is pushed by SHA, through the fixed receive-pack command,
+   into a fresh store under `plugin_dir/mirror-work/staging/`, and the push is
+-  killed if staging grows past `MAX_REPO_BYTES` (512 MiB). A legacy store
+-  larger than that is not migrated and stays refused. The rebuilt store is
++  killed if staging grows past `MAX_REPO_BYTES` (512 MiB) while the push
++  runs (the size is polled every 500 ms). A store whose rebuilt,
++  roots-only copy is larger than that is not migrated and stays refused. The rebuilt store is
+   then verified at object level: no held object; nothing outside the roots'
+   closure; no alternates; no object file shared with the old store. It is
+   then marked, given a `migration-id` file naming the migration, and renamed
+@@ -52,10 +55,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+   - Forks of legacy mirrors are not swept until the follow-up change (B2).
+ - Forge: a migration journal (`plugin_dir/mirror-work/migrations/<owner>/<name>.json`)
+   acts as a tombstone, and the migration resumes from it at the next boot.
+-  - **Readers:** while anything other than a regular file in the `published`
+-    state is at that path (any other state, a file that cannot be read, a
+-    symbolic link, dangling or not), every reader of the repository returns
+-    503, marked or not. The reader gate in `ForgeService` gains this check.
++  - **Readers:** while anything is at that path, in any state (`published`
++    included), whether a file that cannot be read or a symbolic link
++    (dangling or not), every reader of the repository returns 503, marked or
++    not. The reader gate in `ForgeService` gains this check. A migrated
++    repository is therefore refused for the moment between the `published`
++    write and the journal's removal.
+   - **Writers:** while any entry exists there, smart-HTTP pushes into the
+     repository and forks onto its name return 503. The mirror engine neither
+     creates nor prepares the store (a retryable error).
+@@ -67,8 +72,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+     after the rebuilt store is renamed into place is finished at the next
+     boot, recognised by its migration id, and never rebuilt. A journal in any
+     state, `published` included, never finishes a store that does not carry
+-    its migration id. A crash before
+-    that rebuilds from the old store, read from recovery once it has moved
++    its migration id, and it keeps gating that store. The migration id is
++    continuity bookkeeping, not an integrity check: anyone who can write the
++    served store's directory can already serve anything. A crash before that
++    rebuilds from the old store, read from recovery once it has moved
+     there. An attempt counts when it starts, so after 3 attempts (crashes
+     included) boot stops retrying, and the repository stays refused until an
+     operator acts.
+@@ -78,15 +85,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+     every process group the build spawned. Before the old store is moved it
+     stays in `repos/`, refused; after, `repos/` has no store (404) and the old
+     store is in recovery.
+-  - **Gate journals:** if detection cannot examine a store (a check fails and
+-    no signal is positive), or the store's lock is not free within 600 s,
+-    the store is gated by a `failed` journal created exclusively (an
+-    existing journal is never replaced) and is not migrated that boot. A
+-    `detection-error` journal is removed at a later boot that examines the
+-    store and finds it clean. If the migration pass itself cannot complete
+-    (its runtime cannot be built, its thread panics, or a store cannot be
+-    gated by a journal), every unmarked repository under a 64-hex owner
+-    returns 503 until a restart completes it.
++  - **Gate journals:** if detection cannot examine a store (a check fails,
++    including the check of the store's directory itself, and no signal is
++    positive), or the store's lock is not free within 600 s, the store is
++    gated by a `failed` journal created exclusively (an existing journal is
++    never replaced) and is not migrated that boot. A `detection-error`
++    journal is removed only at a later boot that examines every signal of
++    the unmarked store successfully and finds them all negative. A marked
++    store whose record is not flagged is not examined, so its journal stays.
++  - **Incomplete pass:** if the migration pass itself cannot complete, every
++    repository under a 64-hex owner, marked or not, returns 503 until a
++    restart completes it. This covers a runtime that cannot be built, a
++    thread that panics, a store that cannot be gated by a journal, and any
++    error listing the served repositories or the journals (a directory that
++    cannot be listed, an entry that cannot be read or whose type cannot be
++    checked). The reader gate and detection apply the same marker test: a
++    regular file at the store root.
+   - **Operator recovery:** no recourse is built in for a store that gave up
+     (for example, on an fsck rejection). Deleting the journal of a
+     record-less legacy store serves its old objects, held ones included,
+diff --git a/af1/crates/solid-pod-rs-forge/src/lib.rs b/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge/src/lib.rs
+index 060ea72..ba7ea17 100644
+--- a/af1/crates/solid-pod-rs-forge/src/lib.rs
++++ b/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge/src/lib.rs
+@@ -148,7 +148,6 @@ pub mod prelude {
+     pub use crate::ForgeService;
+ }
+ 
+-/// The 503 every reader returns for an unmigrated mirror.
+ /// `(owner, name, suffix)` when `rel` is exactly
+ /// `/<owner>/<name>[.git]<suffix>` for one of the router's git suffixes,
+ /// with `owner` and `name` (`.git` stripped once) valid single segments
+@@ -165,6 +164,7 @@ fn smart_http_path(rel: &str) -> Option<(&str, &str, &'static str)> {
+         .then_some((owner, name, suffix))
+ }
+ 
++/// The 503 every reader returns for an unmigrated mirror.
+ fn unpublished_mirror_error(owner: &str, repo: &str) -> ForgeError {
+     ForgeError::Busy(format!(
+         "'{owner}/{repo}' is a mirror awaiting migration to publication isolation"
+@@ -235,8 +235,9 @@ pub struct ForgeService {
+     /// Per-repo serialisation locks for spine writes (JSS `serializeOn`).
+     locks: Arc<locks::ForgeLocks>,
+     /// The boot migration did not run to completion (its runtime could not
+-    /// be built, its thread panicked, or a store could not be gated by a
+-    /// journal): every unmarked store under a 64-hex owner is refused.
++    /// be built, its thread panicked, a store could not be gated by a
++    /// journal, or the stores could not all be listed): every store under a
++    /// 64-hex owner is refused, marked or not.
+     migration_incomplete: bool,
+ }
+ 
+@@ -264,7 +265,7 @@ impl ForgeService {
+     /// A store that cannot be migrated, or that detection cannot examine, is
+     /// logged and stays refused (503) behind its journal; it does not fail
+     /// `new`. If the migration pass itself cannot run to completion, every
+-    /// unmarked store under a 64-hex owner is refused for the life of this
++    /// store under a 64-hex owner, marked or not, is refused for the life of this
+     /// service instead.
+     ///
+     /// # Errors
+@@ -286,7 +287,7 @@ impl ForgeService {
+         let migration_incomplete = !migrate::run_at_boot(&plugin_dir);
+         if migration_incomplete {
+             tracing::error!(
+-                "forge: boot migration incomplete; every unmarked mirror-class repository is refused (503) until a restart migrates it"
++                "forge: boot migration incomplete; every mirror-class repository is refused (503) until a restart migrates it"
+             );
+         }
+         let git = Arc::new(GitHttpService::new(repo_root.clone()));
+@@ -633,32 +634,37 @@ impl ForgeService {
+ 
+     /// Marker gate (defence in depth): a served repository with a mirror
+     /// record but no [`PUBLICATION_MARKER`] predates candidate isolation
+-    /// and may hold commits the mirror never approved. A repository with a
+-    /// migration journal in any state but `published`
+-    /// ([`migrate::journal_path`]) is refused first, marked or not, and so is
+-    /// any entry there that is not a regular file. One journal check, then
+-    /// one `stat` for a marked mirror and two for any other repository. If
+-    /// the boot migration did not complete, every unmarked repository under
+-    /// a 64-hex owner is refused. The record path is
++    /// and may hold commits the mirror never approved. A repository with
++    /// anything at its migration journal path ([`migrate::journal_path`]),
++    /// in any state, `published` included, is refused first, marked or not.
++    /// If the boot migration did not complete, every repository under a
++    /// 64-hex owner is refused, marked or not. Then one `lstat` for a marked
++    /// mirror (the marker must be a regular file) and two for any other
++    /// repository. The record path is
+     /// `mirror::MirrorStore`'s layout, checked without the `mirror` feature
+     /// so a plugin directory that was mirrored once stays gated. `owner` and
+     /// `repo` are already validated path segments (`repo::repo_git_dir`).
+     /// A record path that cannot be checked (any error but "not found")
+     /// keeps the gate closed.
+     async fn unpublished_mirror(&self, owner: &str, repo: &str, dir: &Path) -> bool {
+-        // Decision 21: a migration journal in any state but `published`
+-        // (building, moved, failed, unreadable) gates the store, marked or
+-        // not, record or not. This is what keeps a lost-record legacy store
++        // Decision 21: a migration journal in any state (`published`
++        // included, until `finish` removes it), or any entry there, gates the
++        // store, marked or not, record or not. This is what keeps a lost-record legacy store
+         // whose migration failed from being served.
+         if migrate::journal_gates(&self.plugin_dir, owner, repo).await {
+             return true;
+         }
+-        let marked = tokio::fs::metadata(dir.join(PUBLICATION_MARKER))
+-            .await
+-            .is_ok();
+-        if self.migration_incomplete && !marked && mirror_record::is_hex64(owner) {
++        // The boot migration did not complete: every store under a 64-hex
++        // owner is refused, marked or not (a marked, flagged store may be one
++        // detection wanted rebuilt).
++        if self.migration_incomplete && mirror_record::is_hex64(owner) {
+             return true;
+         }
++        // The marker is a regular file at the store root, not a symlink: the
++        // same test detection applies.
++        let marked = tokio::fs::symlink_metadata(dir.join(PUBLICATION_MARKER))
++            .await
++            .is_ok_and(|m| m.is_file());
+         if marked {
+             return false;
+         }
+diff --git a/af1/crates/solid-pod-rs-forge/src/migrate.rs b/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge/src/migrate.rs
+index 8388075..f4219e7 100644
+--- a/af1/crates/solid-pod-rs-forge/src/migrate.rs
++++ b/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge/src/migrate.rs
+@@ -17,16 +17,21 @@
+ //! checked on its own: a mirror record that is flagged, pre-release or
+ //! unreadable; `refs/mirror/*`; `hideRefs` naming them; alternates; or an
+ //! earlier migration report. A check that fails with nothing positive found
+-//! gates the store instead (a `detection-error` journal, removed once a later
+-//! boot finds the store clean). Under the store's lock (waited for at most
++//! gates the store instead (a `detection-error` journal, removed only once a
++//! later boot examines every signal and finds them negative). If the pass
++//! cannot list every journal and served store, or cannot gate a store, it
++//! reports itself incomplete and the forge refuses every mirror-class store.
++//! Walks and the push run with replacements and grafts off. Under the
++//! store's lock (waited for at most
+ //! 600 s), with a journal ([`journal_path`]) recording each step:
+ //!
+ //! 1. the attempt is counted and a fresh store initialised in
+ //!    `plugin_dir/mirror-work/staging/`;
+ //! 2. the roots (branches and tags with safe names) are pushed into it by
+ //!    SHA, under the [`MAX_REPO_BYTES`] cap, with every other ref whose
+-//!    closure lies inside theirs; `refs/mirror/*`, pull request heads, unsafe
+-//!    or non-UTF-8 names and refs outside the roots are dropped and reported;
++//!    closure lies inside theirs; `refs/mirror/*`, pull request heads,
++//!    `refs/replace/*`, unsafe or non-UTF-8 names and refs outside the roots
++//!    are dropped and reported;
+ //! 3. it is verified at object level (no object any ref reaches outside the
+ //!    roots, nothing outside the roots' closure, no alternates, no object file
+ //!    shared with the old store), then given its [`MIGRATION_ID_FILE`] and
+@@ -43,8 +48,9 @@
+ //! them. A crash is resumed at the next boot: a rebuilt store already in
+ //! `repos/` carrying the journal's migration id is finished, never rebuilt;
+ //! otherwise the store is rebuilt from the old store, read from recovery
+-//! once it has moved. A failure leaves a `failed` journal, which keeps every
+-//! reader refusing the store (503); after [`MAX_ATTEMPTS`] attempts, crashes
++//! once it has moved. Every journal, in any state, keeps every reader
++//! refusing the store (503) until it is deleted. A failure leaves a `failed`
++//! journal; after [`MAX_ATTEMPTS`] attempts, crashes
+ //! included, boot stops retrying. Recovery copies are never deleted
+ //! automatically and must never be served: do not add `.forge` to the pod's
+ //! dotfile allowlist.
+@@ -253,8 +259,24 @@ pub(crate) async fn run_output(
+     allow: Option<&str>,
+     timeout: Duration,
+     cap: Option<(u64, DirMeasure)>,
++) -> Result<std::process::Output, String> {
++    run_output_env(git_dir, watch, args, allow, timeout, cap, &[]).await
++}
++
++/// [`run_output`] with `env` added to git's environment.
++async fn run_output_env(
++    git_dir: &Path,
++    watch: &Path,
++    args: &[&str],
++    allow: Option<&str>,
++    timeout: Duration,
++    cap: Option<(u64, DirMeasure)>,
++    env: &[(&str, &str)],
+ ) -> Result<std::process::Output, String> {
+     let mut cmd = git_command(git_dir, watch, args);
++    for (k, v) in env {
++        cmd.env(k, v);
++    }
+     if let Some(a) = allow {
+         cmd.env("GIT_ALLOW_PROTOCOL", a);
+     }
+@@ -516,12 +538,10 @@ pub(crate) mod test_hooks {
+ /// `plugin_dir/mirror-work/migrations/<owner>/<name>.json`: the migration
+ /// journal of one served repository.
+ ///
+-/// While it exists the repository is being migrated, or its migration
+-/// failed. Every forge reader refuses the repository (503) unless the
+-/// journal is a regular file whose state is `published`, and while any
+-/// entry exists at this path the mirror engine neither creates nor prepares
+-/// the store, smart-HTTP refuses a push into it and a fork onto its name is
+-/// refused. `None` unless both segments are safe
++/// While any entry exists at this path the repository is being migrated,
++/// or its migration failed: every forge reader refuses it (503), the mirror
++/// engine neither creates nor prepares the store, smart-HTTP refuses a push
++/// into it and a fork onto its name is refused. `None` unless both segments are safe
+ /// ([`crate::ownership::valid_name_segment`]).
+ #[must_use]
+ pub fn journal_path(plugin_dir: &Path, owner: &str, name: &str) -> Option<PathBuf> {
+@@ -644,18 +664,19 @@ fn read_journal(path: &Path) -> JournalRead {
+ }
+ 
+ /// Whether a reader must refuse `<owner>/<name>` because of its migration
+-/// journal: anything is at the journal path except a regular file whose
+-/// state is `published`. "Not found" is the only answer that lets the
+-/// reader go on (decision 21); a symlink gates whatever it points at.
++/// journal: anything at the journal path gates, in any state, `published`
++/// included, and whatever its file type. "Not found" is the only answer
++/// that lets the reader go on (decision 21). A migrated store is briefly
++/// refused between the `published` write and [`finish`], which removes the
++/// journal.
+ pub(crate) async fn journal_gates(plugin_dir: &Path, owner: &str, name: &str) -> bool {
+     let Some(path) = journal_path(plugin_dir, owner, name) else {
+         return false;
+     };
+-    match tokio::task::spawn_blocking(move || read_journal(&path)).await {
+-        Ok(JournalRead::Absent) => false,
+-        Ok(JournalRead::Present(j)) => j.state != Stage::Published,
+-        Ok(JournalRead::Bad(_)) | Err(_) => true,
+-    }
++    !matches!(
++        tokio::task::spawn_blocking(move || read_journal(&path)).await,
++        Ok(JournalRead::Absent)
++    )
+ }
+ 
+ /// Whether any entry exists at the migration journal path of
+@@ -681,7 +702,7 @@ pub(crate) fn journal_exists(plugin_dir: &Path, owner: &str, name: &str) -> bool
+ /// migrate one store is logged and leaves that store gated behind its
+ /// journal; it never fails the caller. `false` (the runtime could not be
+ /// built, the thread panicked, or a store could not be gated by a journal)
+-/// tells the caller to refuse every unmarked mirror-class store instead.
++/// tells the caller to refuse every mirror-class store instead.
+ pub(crate) fn run_at_boot(plugin_dir: &Path) -> bool {
+     let plugin = std::path::absolute(plugin_dir).unwrap_or_else(|_| plugin_dir.to_path_buf());
+     std::thread::scope(|scope| {
+@@ -697,7 +718,7 @@ pub(crate) fn run_at_boot(plugin_dir: &Path) -> bool {
+             {
+                 Ok(rt) => rt.block_on(run(&plugin)),
+                 Err(e) => {
+-                    tracing::error!(error = %e, "forge: migration runtime not built; every unmarked mirror-class store is refused");
++                    tracing::error!(error = %e, "forge: migration runtime not built; every mirror-class store is refused");
+                     false
+                 }
+             }
+@@ -706,7 +727,7 @@ pub(crate) fn run_at_boot(plugin_dir: &Path) -> bool {
+             complete
+         } else {
+             tracing::error!(
+-                "forge: the migration thread panicked; every unmarked mirror-class store is refused"
++                "forge: the migration thread panicked; every mirror-class store is refused"
+             );
+             false
+         }
+@@ -715,7 +736,8 @@ pub(crate) fn run_at_boot(plugin_dir: &Path) -> bool {
+ 
+ /// One boot pass: resume every journal, then migrate every store detected as
+ /// needing it (or that detection could not examine). Serial, one lock at a
+-/// time. Returns `false` if any store could not be gated by a journal.
++/// time. Returns `false` if any store could not be gated by a journal, or
++/// the journals or stores could not all be listed.
+ async fn run(plugin: &Path) -> bool {
+     let started = std::time::Instant::now();
+     let mut done = 0usize;
+@@ -728,15 +750,20 @@ async fn run(plugin: &Path) -> bool {
+         Outcome::Ungated => ungated += 1,
+         Outcome::Skipped => {}
+     };
+-    for (owner, name) in journaled(plugin).await {
++    let (journals, journals_listed) = journaled(plugin);
++    for (owner, name) in journals {
+         seen.insert((owner.clone(), name.clone()));
+         tally(migrate_one(plugin, &owner, &name).await);
+     }
+-    for (owner, name) in crate::repo::list_all(&plugin.join("repos")).await {
++    let (stores, stores_listed) = served_stores(plugin);
++    for (owner, name) in stores {
+         if seen.contains(&(owner.clone(), name.clone())) {
+             continue;
+         }
+-        if matches!(detect(plugin, &owner, &name).await, Detected::None) {
++        if matches!(
++            detect(plugin, &owner, &name).await,
++            Detected::Skip | Detected::Clean
++        ) {
+             continue;
+         }
+         tally(migrate_one(plugin, &owner, &name).await);
+@@ -753,10 +780,15 @@ async fn run(plugin: &Path) -> bool {
+     if ungated > 0 {
+         tracing::error!(
+             ungated,
+-            "forge: a store could not be gated by a journal; every unmarked mirror-class store is refused"
++            "forge: a store could not be gated by a journal; every mirror-class store is refused"
++        );
++    }
++    if !(journals_listed && stores_listed) {
++        tracing::error!(
++            "forge: the stores could not all be listed; every mirror-class store is refused"
+         );
+     }
+-    ungated == 0
++    ungated == 0 && journals_listed && stores_listed
+ }
+ 
+ /// What one store's pass came to.
+@@ -771,39 +803,133 @@ enum Outcome {
+     Skipped,
+ }
+ 
+-/// Every `(owner, name)` with an entry at its journal path.
+-async fn journaled(plugin: &Path) -> Vec<(String, String)> {
++/// The names in directory `dir`, or an error. "Not found" is no names.
++fn names_in(dir: &Path) -> Result<Vec<(String, PathBuf)>, String> {
++    let entries = match std::fs::read_dir(dir) {
++        Ok(e) => e,
++        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
++        Err(e) => return Err(format!("a directory could not be listed: {}", e.kind())),
++    };
++    let mut out = Vec::new();
++    for e in entries {
++        let e = e.map_err(|e| format!("a directory entry could not be read: {}", e.kind()))?;
++        out.push((e.file_name().to_string_lossy().into_owned(), e.path()));
++    }
++    Ok(out)
++}
++
++/// Every `(owner, name)` with an entry at its journal path, and whether the
++/// listing was complete (every directory listed, every entry read).
++fn journaled(plugin: &Path) -> (Vec<(String, String)>, bool) {
+     let mut out = Vec::new();
++    let mut complete = true;
+     let root = plugin.join("mirror-work").join("migrations");
+-    let Ok(mut owners) = tokio::fs::read_dir(&root).await else {
+-        return out;
+-    };
+-    while let Ok(Some(o)) = owners.next_entry().await {
+-        let owner = o.file_name().to_string_lossy().into_owned();
++    let owners = names_in(&root).unwrap_or_else(|e| {
++        tracing::error!(error = %e, "forge: migration journals not listed");
++        complete = false;
++        Vec::new()
++    });
++    for (owner, path) in owners {
+         if !valid_name_segment(&owner) {
+             continue;
+         }
+-        let Ok(mut files) = tokio::fs::read_dir(o.path()).await else {
++        match dir_state(&path) {
++            Ok(true) => {}
++            Ok(false) => continue,
++            Err(e) => {
++                tracing::error!(owner = %owner, error = %e, "forge: migration journals not listed");
++                complete = false;
++                continue;
++            }
++        }
++        match names_in(&path) {
++            Ok(files) => {
++                for (file, _) in files {
++                    if let Some(name) = file.strip_suffix(".json") {
++                        if valid_name_segment(name) {
++                            out.push((owner.clone(), name.to_string()));
++                        }
++                    }
++                }
++            }
++            Err(e) => {
++                tracing::error!(owner = %owner, error = %e, "forge: migration journals not listed");
++                complete = false;
++            }
++        }
++    }
++    out.sort();
++    (out, complete)
++}
++
++/// Every served `(owner, name)` under `repos/` (directories `<name>.git`,
++/// symlinks followed, as the readers do), and whether the listing was
++/// complete. Unlike [`crate::repo::list_all`], an error listing a
++/// directory, reading an entry or checking an entry's type is reported, never
++/// taken for absence: a store the pass cannot see is a store it cannot
++/// examine.
++fn served_stores(plugin: &Path) -> (Vec<(String, String)>, bool) {
++    let mut out = Vec::new();
++    let mut complete = true;
++    let repos = plugin.join("repos");
++    let owners = names_in(&repos).unwrap_or_else(|e| {
++        tracing::error!(error = %e, "forge: served repositories not listed");
++        complete = false;
++        Vec::new()
++    });
++    for (owner, path) in owners {
++        if !valid_name_segment(&owner) {
+             continue;
++        }
++        match dir_state(&path) {
++            Ok(true) => {}
++            Ok(false) => continue,
++            Err(e) => {
++                tracing::error!(owner = %owner, error = %e, "forge: served repositories not listed");
++                complete = false;
++                continue;
++            }
++        }
++        let repos = match names_in(&path) {
++            Ok(r) => r,
++            Err(e) => {
++                tracing::error!(owner = %owner, error = %e, "forge: served repositories not listed");
++                complete = false;
++                continue;
++            }
+         };
+-        while let Ok(Some(f)) = files.next_entry().await {
+-            let file = f.file_name().to_string_lossy().into_owned();
+-            if let Some(name) = file.strip_suffix(".json") {
+-                if valid_name_segment(name) {
+-                    out.push((owner.clone(), name.to_string()));
++        for (file, entry) in repos {
++            let Some(name) = file.strip_suffix(".git") else {
++                continue;
++            };
++            if !valid_name_segment(name) {
++                continue;
++            }
++            match dir_state(&entry) {
++                Ok(true) => out.push((owner.clone(), name.to_string())),
++                Ok(false) => {}
++                Err(e) => {
++                    tracing::error!(owner = %owner, name = %name, error = %e, "forge: served repository not checked");
++                    complete = false;
+                 }
+             }
+         }
+     }
+     out.sort();
+-    out
++    (out, complete)
+ }
+ 
+ /// What detection found for one store.
+ #[derive(Debug, Clone, PartialEq, Eq)]
+ enum Detected {
+-    /// Nothing to do.
+-    None,
++    /// Out of scope, or not examined: not a mirror-class name, no store, or
++    /// a marked store whose record is not flagged. Nothing to do, but not
++    /// proof the store is clean.
++    Skip,
++    /// Examined: an unmarked store, every signal checked successfully and
++    /// found negative. The only answer that removes a `detection-error`
++    /// journal.
++    Clean,
+     /// A legacy store: rebuild it.
+     Rebuild,
+     /// Rebuilt and marked by a migration whose report names the store's
+@@ -841,10 +967,24 @@ impl Paths {
+     }
+ }
+ 
+-/// Whether `p` is a directory, following symlinks as the readers and the
+-/// repository listing do (an operator may symlink a store to another disk).
++/// Whether `p` is a directory, following symlinks as the readers do (an
++/// operator may symlink a store to another disk). "Not found" is `false`;
++/// any other error is an error, never taken for absence.
++fn dir_state(p: &Path) -> Result<bool, String> {
++    match std::fs::metadata(p) {
++        Ok(m) => Ok(m.is_dir()),
++        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(false),
++        Err(e) => Err(format!(
++            "a store directory could not be checked: {}",
++            e.kind()
++        )),
++    }
++}
++
++/// [`dir_state`], an error counting as present (fail closed: a path that
++/// cannot be checked is never treated as free).
+ fn is_dir(p: &Path) -> bool {
+-    std::fs::metadata(p).is_ok_and(|m| m.is_dir())
++    dir_state(p).unwrap_or(true)
+ }
+ 
+ /// Whether `ts` is a non-empty run of ASCII digits.
+@@ -907,13 +1047,15 @@ fn served_is_ours(served: &Path, id: &str) -> bool {
+ /// served).
+ async fn detect(plugin: &Path, owner: &str, name: &str) -> Detected {
+     if !is_hex64(owner) || !is_repo_name(name) {
+-        return Detected::None;
++        return Detected::Skip;
+     }
+     let Some(p) = Paths::of(plugin, owner, name) else {
+-        return Detected::None;
++        return Detected::Skip;
+     };
+-    if !is_dir(&p.served) {
+-        return Detected::None;
++    match dir_state(&p.served) {
++        Ok(true) => {}
++        Ok(false) => return Detected::Skip,
++        Err(e) => return Detected::Error(e),
+     }
+     let record = MirrorStore::new(plugin).load(owner, name);
+     let marked = match std::fs::symlink_metadata(p.served.join(crate::PUBLICATION_MARKER)) {
+@@ -923,7 +1065,7 @@ async fn detect(plugin: &Path, owner: &str, name: &str) -> Detected {
+     };
+     if marked {
+         if !matches!(&record, StoredRecord::Valid(r) if r.awaits_migration) {
+-            return Detected::None;
++            return Detected::Skip;
+         }
+         // Flagged but marked: finish only if a report names this store's
+         // migration id; otherwise the marker proves nothing, rebuild.
+@@ -956,7 +1098,7 @@ async fn detect(plugin: &Path, owner: &str, name: &str) -> Detected {
+         Ok(_) => {}
+         Err(e) => error = error.or(Some(e)),
+     }
+-    error.map_or(Detected::None, Detected::Error)
++    error.map_or(Detected::Clean, Detected::Error)
+ }
+ 
+ /// The pre-release signals of a store, each evaluated on its own:
+@@ -1244,7 +1386,7 @@ async fn migrate_one(plugin: &Path, owner: &str, name: &str) -> Outcome {
+             return Outcome::Failed;
+         }
+         JournalRead::Absent => match detect(plugin, owner, name).await {
+-            Detected::None => return Outcome::Skipped,
++            Detected::Skip | Detected::Clean => return Outcome::Skipped,
+             Detected::Finish => return finished(plugin, &p, owner, name),
+             Detected::Error(e) => {
+                 return gate(plugin, &p, owner, name, &format!("{DETECTION_ERROR}: {e}"));
+@@ -1267,7 +1409,7 @@ async fn migrate_one(plugin: &Path, owner: &str, name: &str) -> Outcome {
+     {
+         // A store gated because it could not be examined: examine it again.
+         match detect(plugin, owner, name).await {
+-            Detected::None => {
++            Detected::Clean => {
+                 return match std::fs::remove_file(&p.journal) {
+                     Ok(()) => {
+                         let _ = p.journal.parent().map(sync_dir);
+@@ -1284,6 +1426,10 @@ async fn migrate_one(plugin: &Path, owner: &str, name: &str) -> Outcome {
+                 tracing::warn!(owner = %owner, name = %name, error = %redact(plugin, &e), "forge: store still cannot be examined; stays gated");
+                 return Outcome::Failed;
+             }
++            Detected::Skip => {
++                tracing::warn!(owner = %owner, name = %name, "forge: store not examined; its gate stays");
++                return Outcome::Failed;
++            }
+             Detected::Finish => return finished(plugin, &p, owner, name),
+             Detected::Rebuild => {}
+         }
+@@ -1302,7 +1448,15 @@ async fn migrate_one(plugin: &Path, owner: &str, name: &str) -> Outcome {
+         tracing::warn!(owner = %owner, name = %name, attempts = journal.attempts, "forge: migration gave up; store stays gated");
+         return Outcome::Failed;
+     }
+-    let moved = match (is_dir(&p.served), is_dir(&recovery)) {
++    let (served_present, recovery_present) = match (dir_state(&p.served), dir_state(&recovery)) {
++        (Ok(s), Ok(r)) => (s, r),
++        (Err(e), _) | (_, Err(e)) => {
++            // The journal stays and gates; nothing is moved or rebuilt.
++            tracing::error!(owner = %owner, name = %name, error = %e, "forge: migration paths not checked; store stays gated");
++            return Outcome::Failed;
++        }
++    };
++    let moved = match (served_present, recovery_present) {
+         (true, true) => {
+             // Something created the store in the gap despite the tombstone:
+             // never overwrite it, never read it as the old store. Set
+@@ -1794,6 +1948,9 @@ async fn build(
+             Some(r) if !safe_ref(r) || !is_sha40(&sha) => Some("unsafe-name"),
+             Some(r) if r.starts_with("refs/mirror/") => Some("mirror"),
+             Some(r) if r.starts_with("refs/forge/heads/") => Some("pull-request-head"),
++            // A replacement names its target, which may be held, and means
++            // nothing without it: never copied.
++            Some(r) if r.starts_with("refs/replace/") => Some("outside-roots"),
+             Some(r) if is_root(r) => {
+                 roots.push(sha.clone());
+                 built.copied.insert(r.to_string(), sha);
+@@ -1955,13 +2112,22 @@ async fn push_refs(
+             target,
+         ];
+         args.extend(batch.iter().map(String::as_str));
+-        let out = run_output(source, staging, &args, Some("file"), STORE_BUDGET, cap).await?;
++        let out = run_output_env(
++            source,
++            staging,
++            &args,
++            Some("file"),
++            STORE_BUDGET,
++            cap,
++            &MIGRATION_ENV,
++        )
++        .await?;
+         if !out.status.success() {
+             let err = String::from_utf8_lossy(&out.stderr);
+             let lines: Vec<&str> = err
+                 .lines()
+                 .map(str::trim)
+-                .filter(|l| !l.is_empty())
++                .filter(|l| !l.is_empty() && !l.starts_with("hint:"))
+                 .take(4)
+                 .collect();
+             return Err(format!("push into staging failed: {}", lines.join(" | ")));
+@@ -2301,16 +2467,29 @@ pub(crate) async fn write_marker(dir: &Path) -> Result<(), String> {
+ }
+ 
+ /// [`git_command`] for the migration's object walks and checks, with
+-/// replacements off (`GIT_NO_REPLACE_OBJECTS=1`): `rev-list` and `cat-file`
+-/// otherwise walk an owner's `refs/replace/*` graph while a push sends the
+-/// original objects, so the closures the filter and the verification compute
+-/// would not be the objects copied.
++/// [`MIGRATION_ENV`]: `rev-list` and `cat-file` otherwise walk an owner's
++/// `refs/replace/*` graph while a push sends the original objects, and both
++/// follow a legacy `info/grafts`, so the closures the filter and the
++/// verification compute would not be the store's history.
+ fn migration_command(git_dir: &Path, args: &[&str]) -> tokio::process::Command {
+     let mut cmd = git_command(git_dir, git_dir, args);
+-    cmd.env("GIT_NO_REPLACE_OBJECTS", "1");
++    for (k, v) in MIGRATION_ENV {
++        cmd.env(k, v);
++    }
+     cmd
+ }
+ 
++/// The environment of the migration's walks, checks and push: replacements
++/// off, and legacy `info/grafts` neutralised (an empty graft file), so the
++/// closures computed and the objects sent are the store's real history.
++/// Advice is off, so git's graft-deprecation hints do not crowd the real
++/// error out of a failure reason.
++const MIGRATION_ENV: [(&str, &str); 3] = [
++    ("GIT_NO_REPLACE_OBJECTS", "1"),
++    ("GIT_GRAFT_FILE", "/dev/null"),
++    ("GIT_ADVICE", "0"),
++];
++
+ /// Whether [`for_each_line`] reads on.
+ #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+ enum Flow {
+diff --git a/af1/crates/solid-pod-rs-forge/src/migrate_tests.rs b/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge/src/migrate_tests.rs
+index 255dce6..333e475 100644
+--- a/af1/crates/solid-pod-rs-forge/src/migrate_tests.rs
++++ b/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge/src/migrate_tests.rs
+@@ -1034,8 +1034,8 @@ async fn t17_new_inside_a_multi_thread_runtime() {
+ }
+ 
+ /// Test 18: while a migration journal exists, smart HTTP refuses a push
+-/// into the store (503), whatever the journal's state; with a `published`
+-/// journal reads go on.
++/// into the store (503), whatever the journal's state, and every reader
++/// refuses it too, `published` included (fix round 2, item 1).
+ #[tokio::test]
+ async fn t18_smart_http_push_is_refused_while_a_journal_exists() {
+     let tmp = tempfile::tempdir().unwrap();
+@@ -1071,8 +1071,8 @@ async fn t18_smart_http_push_is_refused_while_a_journal_exists() {
+         let status = push.map_or_else(|e| e.status_code(), |r| r.status);
+         assert_eq!(status, 503, "push with a {state} journal");
+         let read = get(&forge, format!("/forge/{owner}/sample/raw/{sha}/f.txt")).await;
+-        let want = if state == "published" { 200 } else { 503 };
+-        assert_eq!(read.status, want, "read with a {state} journal");
++        // Fix round 2, item 1: every journal gates, `published` included.
++        assert_eq!(read.status, 503, "read with a {state} journal");
+     }
+ }
+ 
+@@ -1425,8 +1425,8 @@ async fn f2_a_detection_error_gates_and_a_clean_recheck_ungates() {
+ }
+ 
+ /// Item 2: when the migration thread panics (or its runtime cannot be
+-/// built), every unmarked store under a 64-hex owner without a valid record
+-/// is refused; marked stores and other owners are not.
++/// built), every store under a 64-hex owner is refused, marked or not (fix
++/// round 2, item 2); other owners are not.
+ #[tokio::test]
+ async fn f2_a_panicked_migration_gates_unmarked_mirror_class_stores() {
+     let fx = legacy(236, Shape::Engine);
+@@ -1454,7 +1454,9 @@ async fn f2_a_panicked_migration_gates_unmarked_mirror_class_stores() {
+         format!("/forge/{marked}/sample/raw/{marked_sha}/f.txt"),
+     )
+     .await;
+-    assert_eq!(ok.status, 200, "control: a marked store");
++    // Fix round 2, item 2: an incomplete pass refuses marked stores under a
++    // 64-hex owner too.
++    assert_eq!(ok.status, 503, "a marked mirror-class store is not refused");
+     let ok = get(&forge, format!("/forge/bob/plain/raw/{plain_sha}/f.txt")).await;
+     assert_eq!(ok.status, 200, "control: a non-mirror owner");
+ }
+@@ -2001,3 +2003,213 @@ async fn f2_a_symlinked_served_store_is_detected() {
+     );
+     assert_migrated(&fx, &forge).await;
+ }
++
++// ---- Fix round 2 ------------------------------------------------------------
++//
++// One test per remaining fail-open path (b1-fix2-brief.md items 1-6), each
++// captured red on the fix-round-1 tree.
++
++/// Make `dir` keep the commits grafted or planted since the fixture was built
++/// in a `.keep` pack (C15-hard).
++fn keep_packs(dir: &Path) {
++    git(dir, &["repack", "-a", "-d", "-q"]);
++    for e in std::fs::read_dir(dir.join("objects/pack"))
++        .unwrap()
++        .flatten()
++    {
++        let p = e.path();
++        if p.extension().is_some_and(|x| x == "pack") && !p.with_extension("keep").exists() {
++            std::fs::write(p.with_extension("keep"), b"b1 fixture\n").unwrap();
++        }
++    }
++}
++
++/// Item 1 (Codex High 1, security N2, code N1): every journal gates,
++/// `published` included. A regular `published` journal at `attempts: 3` with
++/// no matching migration id, beside a lost-record legacy store, keeps it
++/// refused across boots.
++#[tokio::test]
++async fn g1_a_published_journal_gates_across_boots() {
++    let fx = legacy(170, Shape::Engine);
++    let o = &fx.owner;
++    plant_journal(
++        &fx.plugin,
++        o,
++        &format!(
++            r#"{{"id":"stale","ts":1,"class":"mirror","state":"published","moved":true,"recovery":"mirror-recovery/{o}/sample.git.1","attempts":3}}"#
++        ),
++    );
++    for boot in 1..=2 {
++        let forge = forge_at(&fx.plugin);
++        let leaks = held_leaks(&forge, o, &fx.held).await;
++        assert!(
++            leaks.is_empty(),
++            "boot {boot}: held commit served:\n{}",
++            leaks.join("\n")
++        );
++        assert_gated(&fx, &forge).await;
++    }
++}
++
++/// Item 2 (Codex High 2): while the pass is incomplete, a marked store under a
++/// 64-hex owner is refused too. Here a marked, flagged store with no bound
++/// report cannot be journalled (the migrations directory is read-only).
++#[tokio::test]
++async fn g2_an_incomplete_pass_gates_a_marked_store() {
++    use std::os::unix::fs::PermissionsExt;
++    let fx = legacy(171, Shape::Engine);
++    let o = &fx.owner;
++    write_record(&fx.plugin, o, pre_release_record(o).as_bytes());
++    std::fs::write(fx.served.join(MARKER), format!("{MARKER}\n")).unwrap();
++    let migrations = fx.plugin.join("mirror-work").join("migrations");
++    std::fs::create_dir_all(&migrations).unwrap();
++    std::fs::set_permissions(&migrations, std::fs::Permissions::from_mode(0o555)).unwrap();
++    assert!(
++        std::fs::create_dir(migrations.join("probe"))
++            .is_err_and(|e| e.kind() == std::io::ErrorKind::PermissionDenied),
++        "precondition: the migrations directory must be read-only (not running as root?)"
++    );
++    let forge = forge_at(&fx.plugin);
++    let leaks = held_leaks(&forge, o, &fx.held).await;
++    let approved = get(
++        &forge,
++        format!("/forge/{o}/sample/raw/{}/public.txt", fx.m2),
++    )
++    .await;
++    std::fs::set_permissions(&migrations, std::fs::Permissions::from_mode(0o755)).unwrap();
++    assert!(
++        forge.migration_incomplete,
++        "the pass did not report incomplete"
++    );
++    assert!(
++        leaks.is_empty(),
++        "held commit served:\n{}",
++        leaks.join("\n")
++    );
++    assert_eq!(approved.status, 503, "the marked store is not gated");
++}
++
++/// Item 3 (security N1): an owner directory that can be searched but not
++/// listed makes the pass incomplete; that owner's legacy store is refused.
++#[tokio::test]
++async fn g3_an_unlistable_owner_makes_the_pass_incomplete() {
++    use std::os::unix::fs::PermissionsExt;
++    let fx = legacy(172, Shape::Engine);
++    let owner_dir = fx.served.parent().unwrap().to_path_buf();
++    std::fs::set_permissions(&owner_dir, std::fs::Permissions::from_mode(0o311)).unwrap();
++    let listable = std::fs::read_dir(&owner_dir);
++    let reachable = std::fs::metadata(&fx.served).is_ok_and(|m| m.is_dir());
++    let forge = forge_at(&fx.plugin);
++    let leaks = held_leaks(&forge, &fx.owner, &fx.held).await;
++    let approved = get(
++        &forge,
++        format!("/forge/{}/sample/raw/{}/public.txt", fx.owner, fx.m2),
++    )
++    .await;
++    std::fs::set_permissions(&owner_dir, std::fs::Permissions::from_mode(0o755)).unwrap();
++    assert!(
++        listable.is_err_and(|e| e.kind() == std::io::ErrorKind::PermissionDenied) && reachable,
++        "precondition: the owner directory must be searchable but not listable"
++    );
++    assert!(
++        leaks.is_empty(),
++        "held commit served:\n{}",
++        leaks.join("\n")
++    );
++    assert!(
++        forge.migration_incomplete,
++        "the pass did not report incomplete"
++    );
++    assert_eq!(approved.status, 503, "the unlisted store is not gated");
++}
++
++/// Item 4 (Codex Medium 5): a detection-error journal is removed only when
++/// detection examined every signal and found them negative. A boot on which
++/// the store-directory probe itself fails leaves it.
++#[tokio::test]
++async fn g4_a_failing_store_probe_leaves_the_detection_error_journal() {
++    use std::os::unix::fs::PermissionsExt;
++    let tmp = tempfile::tempdir().unwrap();
++    let home = tmp.path();
++    let plugin = home.join("plugin");
++    let owner = owner_of(173);
++    let served = plugin.join("repos").join(&owner).join("sample.git");
++    bare_with_commit(home, &served, "b1-probe\n");
++    let body = format!(
++        r#"{{"id":"probe","ts":1,"class":"mirror","state":"failed","recovery":"mirror-recovery/{owner}/sample.git.1","attempts":0,"reason":"detection-error: the alternates check failed"}}"#
++    );
++    plant_journal(&plugin, &owner, &body);
++    let owner_dir = served.parent().unwrap().to_path_buf();
++    std::fs::set_permissions(&owner_dir, std::fs::Permissions::from_mode(0o000)).unwrap();
++    let probe = std::fs::metadata(&served);
++    drop(forge_at(&plugin));
++    std::fs::set_permissions(&owner_dir, std::fs::Permissions::from_mode(0o755)).unwrap();
++    assert!(
++        probe.is_err_and(|e| e.kind() == std::io::ErrorKind::PermissionDenied),
++        "precondition: the store probe must fail with EACCES"
++    );
++    assert!(
++        journal_of(&plugin, &owner).exists(),
++        "a detection-error journal was removed without a clean examination"
++    );
++}
++
++/// Item 5 (security N3): a legacy `info/grafts` line grafting held history
++/// onto an approved commit neither widens the roots' closure nor makes the
++/// push send the held objects.
++#[tokio::test]
++async fn g5_grafts_do_not_widen_the_roots() {
++    let fx = legacy(174, Shape::Engine);
++    let work = fx.home.join("graft-work");
++    std::fs::create_dir_all(&work).unwrap();
++    git(&work, &["init", "--quiet", "-b", "g"]);
++    let g = commit(&work, &[("graft.txt", "b1-graft-secret\n")], "b1 grafted");
++    let g_blob = git(&work, &["rev-parse", "HEAD:graft.txt"]);
++    git(
++        &fx.served,
++        &[
++            "fetch",
++            "--quiet",
++            "--no-tags",
++            work.to_str().unwrap(),
++            "+refs/heads/g:refs/misc/g5",
++        ],
++    );
++    keep_packs(&fx.served);
++    std::fs::create_dir_all(fx.served.join("info")).unwrap();
++    std::fs::write(
++        fx.served.join("info").join("grafts"),
++        format!("{} {} {g}\n", fx.m2, fx.m1),
++    )
++    .unwrap();
++    let forge = forge_at(&fx.plugin);
++    assert!(
++        !has(&fx.served, &g_blob),
++        "a graft smuggled held history into the rebuilt store"
++    );
++    assert_migrated(&fx, &forge).await;
++    assert_eq!(
++        dropped_reason(&report_of(&fx), "refs/misc/g5").as_deref(),
++        Some("outside-roots")
++    );
++}
++
++/// Item 6 (code N3): `refs/replace/*` is never copied, even when its target
++/// reaches nothing held; its name would disclose a held id.
++#[tokio::test]
++async fn g6_replace_refs_are_never_copied() {
++    let fx = legacy(175, Shape::Engine);
++    let r = format!("refs/replace/{}", fx.held);
++    git(&fx.served, &["update-ref", &r, &fx.m2]);
++    let forge = forge_at(&fx.plugin);
++    let refs = refs_of(&fx.served);
++    assert!(
++        !refs.contains("refs/replace/"),
++        "a replace ref was copied: {refs}"
++    );
++    assert_eq!(
++        dropped_reason(&report_of(&fx), &r).as_deref(),
++        Some("outside-roots")
++    );
++    assert_migrated(&fx, &forge).await;
++}

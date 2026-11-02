@@ -1,0 +1,22 @@
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.09s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d447461302ae6d2c)
+
+running 1 test
+test migrate_tests::h2_a_fast_push_past_the_cap_is_caught_by_the_final_check ... FAILED
+
+failures:
+
+---- migrate_tests::h2_a_fast_push_past_the_cap_is_caught_by_the_final_check stdout ----
+
+thread 'migrate_tests::h2_a_fast_push_past_the_cap_is_caught_by_the_final_check' (307136) panicked at crates/solid-pod-rs-forge/src/migrate_tests.rs:2272:5:
+the store was migrated past the size cap
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    migrate_tests::h2_a_fast_push_past_the_cap_is_caught_by_the_final_check
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 269 filtered out; finished in 0.67s
+
+error: test failed, to rerun pass `-p solid-pod-rs-forge --lib`
