@@ -1,0 +1,24 @@
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.87s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d447461302ae6d2c)
+
+running 1 test
+test migrate_tests::fork::b2f1_a_fork_of_unknown_lineage_is_gated_while_the_pass_is_incomplete ... FAILED
+
+failures:
+
+---- migrate_tests::fork::b2f1_a_fork_of_unknown_lineage_is_gated_while_the_pass_is_incomplete stdout ----
+
+thread 'migrate_tests::fork::b2f1_a_fork_of_unknown_lineage_is_gated_while_the_pass_is_incomplete' (780630) panicked at crates/solid-pod-rs-forge/src/migrate_fork_tests.rs:959:5:
+assertion `left == right` failed: a fork of unknown lineage is served while the pass is incomplete
+  left: 200
+ right: 503
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    migrate_tests::fork::b2f1_a_fork_of_unknown_lineage_is_gated_while_the_pass_is_incomplete
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 291 filtered out; finished in 1.36s
+
+error: test failed, to rerun pass `-p solid-pod-rs-forge --lib`

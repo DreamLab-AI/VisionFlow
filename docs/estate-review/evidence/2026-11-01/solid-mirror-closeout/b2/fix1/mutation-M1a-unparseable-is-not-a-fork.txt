@@ -1,0 +1,48 @@
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+warning: unused variable: `v`
+   --> crates/solid-pod-rs-forge/src/forks.rs:152:21
+    |
+152 |         Some((_, _, v)) => {
+    |                     ^ help: if this is intentional, prefix it with an underscore: `_v`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: variant `Unknown` is never constructed
+   --> crates/solid-pod-rs-forge/src/forks.rs:127:5
+    |
+121 | pub(crate) enum StoredLineage {
+    |                 ------------- variant in this enum
+...
+127 |     Unknown(String),
+    |     ^^^^^^^
+    |
+    = note: `StoredLineage` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `solid-pod-rs-forge` (lib test) generated 2 warnings (run `cargo fix --lib -p solid-pod-rs-forge --tests` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.93s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d447461302ae6d2c)
+
+running 1 test
+test migrate_tests::fork::b2f1_a_fork_of_a_dot_git_named_mirror_is_swept ... FAILED
+
+failures:
+
+---- migrate_tests::fork::b2f1_a_fork_of_a_dot_git_named_mirror_is_swept stdout ----
+
+thread 'migrate_tests::fork::b2f1_a_fork_of_a_dot_git_named_mirror_is_swept' (777504) panicked at crates/solid-pod-rs-forge/src/migrate_fork_tests.rs:867:5:
+held commit served by the fork of a mirror named foo.git:
+/forge/carol/foo.git.git/raw/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/foo.git.git/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/foo.git.git/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: false)
+/forge/carol/foo.git.git/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/carol/foo.git.git/archive/4580200492d1a9506c809389e9b0cd9c744c79b1.tar.gz -> 200 (held bytes: false)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    migrate_tests::fork::b2f1_a_fork_of_a_dot_git_named_mirror_is_swept
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 291 filtered out; finished in 1.15s
+
+error: test failed, to rerun pass `-p solid-pod-rs-forge --lib`

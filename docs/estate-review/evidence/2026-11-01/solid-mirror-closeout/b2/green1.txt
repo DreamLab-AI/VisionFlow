@@ -1,0 +1,35 @@
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 10.36s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d447461302ae6d2c)
+
+running 12 tests
+test migrate_tests::fork::b2_a_fork_of_a_journalled_source_is_refused ... ok
+test migrate_tests::fork::b2_a_fork_of_an_unmigrated_parent_is_gated ... ok
+test migrate_tests::fork::b2_an_unreadable_fork_config_makes_the_pass_incomplete_and_gates ... ok
+test migrate_tests::fork::b2_t19_a_stale_partial_fork_is_moved_to_recovery ... ok
+test migrate_tests::fork::b2_a_fork_with_no_dropped_object_is_left_untouched ... ok
+test migrate_tests::fork::b2_t6_a_fork_of_a_legacy_mirror_is_rebuilt ... FAILED
+test migrate_tests::fork::b2_a_rebuilt_fork_is_not_rebuilt_again_and_the_parent_is_stamped ... ok
+test migrate_tests::fork::b2_t8_a_fork_ref_reaching_held_is_dropped_and_reported ... ok
+test migrate_tests::fork::b2_a_fork_cycle_terminates_and_the_fork_is_swept ... ok
+test migrate_tests::fork::b2_t7b_a_fork_taken_before_a_force_push_is_rebuilt ... ok
+test migrate_tests::fork::b2_t7_a_fork_of_a_fork_is_rebuilt ... ok
+test migrate_tests::fork::b2_a_followed_fork_gets_both_treatments ... ok
+
+failures:
+
+---- migrate_tests::fork::b2_t6_a_fork_of_a_legacy_mirror_is_rebuilt stdout ----
+
+thread 'migrate_tests::fork::b2_t6_a_fork_of_a_legacy_mirror_is_rebuilt' (460768) panicked at crates/solid-pod-rs-forge/src/migrate_fork_tests.rs:154:5:
+assertion `left == right` failed: the fork's own branch is not served
+  left: 503
+ right: 200
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    migrate_tests::fork::b2_t6_a_fork_of_a_legacy_mirror_is_rebuilt
+
+test result: FAILED. 11 passed; 1 failed; 0 ignored; 0 measured; 270 filtered out; finished in 1.54s
+
+error: test failed, to rerun pass `-p solid-pod-rs-forge --lib`

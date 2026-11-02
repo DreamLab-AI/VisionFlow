@@ -358,3 +358,12 @@ Deleting refs plus `gc --prune=now` in the existing shared store:
 31. Smart-HTTP accepts exactly `/<owner>/<name>[.git]/<suffix>`; a suffix-less path opens `<name>.git`.
 32. Threat model: anyone able to write the plugin directory, recycled process-group IDs, and several instances sharing one plugin directory are out of scope. The B1 claim is stated for remote attackers.
 33. Review coverage: Opus security and code reviews covered B1 and fix round 1; fix rounds 2 and 3 had the Codex cross-vendor audit only.
+
+### Commit B2 decisions (lead, 2026-11-02)
+
+34. Fork claim scope: objects present when the sweep runs. A fork owner re-pushing held bytes they kept is their own act (risk 4), outside the claim.
+35. F2 walk versus rebuild selection: the walk excludes refs/mirror/* and refs/replace/*; the rebuild additionally drops names failing safe_ref (git check-ref-format rules, plus a 1024-byte cap) and refs reaching held. Reaches-held refs imply a held object in the fork, which already triggers the rebuild; unsafe names are writable only by the fork's owner (own act). Recorded, not fixed.
+36. The forksCleanAt stamp argument holds only because B2 and fix round 1 landed as one commit (ff8048b): no released code ever wrote the stamp. Any later release that widens the trigger must version or invalidate the stamp.
+37. Fork creation refuses with 422 a source whose lineage the parser would reject (for example an operator mirror named foo.git).
+38. Out of model for B2: report deletion or truncation, symlinked owner or recovery directories in the tmp sweep, timestamp collisions, multiple instances, recycled process-group ids.
+39. Availability residuals carried to B3: overlapping ancestor roots fail a whole fork rebuild; a persistent unrelated gate keeps the F2 trigger active.

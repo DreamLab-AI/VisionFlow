@@ -1,0 +1,152 @@
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+warning: function `read_fork_parent_checked` is never used
+   --> crates/solid-pod-rs-forge/src/forks.rs:122:15
+    |
+122 | pub(crate) fn read_fork_parent_checked(git_dir: &Path) -> std::io::Result<Option<ForkParent>> {
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `solid-pod-rs-forge` (lib test) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.47s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d447461302ae6d2c)
+
+running 12 tests
+test migrate_tests::fork::b2_a_fork_of_a_journalled_source_is_refused ... ok
+test migrate_tests::fork::b2_a_fork_of_an_unmigrated_parent_is_gated ... FAILED
+test migrate_tests::fork::b2_t19_a_stale_partial_fork_is_moved_to_recovery ... FAILED
+test migrate_tests::fork::b2_an_unreadable_fork_config_makes_the_pass_incomplete_and_gates ... FAILED
+test migrate_tests::fork::b2_a_rebuilt_fork_is_not_rebuilt_again_and_the_parent_is_stamped ... FAILED
+test migrate_tests::fork::b2_a_fork_with_no_dropped_object_is_left_untouched ... ok
+test migrate_tests::fork::b2_t8_a_fork_ref_reaching_held_is_dropped_and_reported ... FAILED
+test migrate_tests::fork::b2_t7_a_fork_of_a_fork_is_rebuilt ... FAILED
+test migrate_tests::fork::b2_a_fork_cycle_terminates_and_the_fork_is_swept ... FAILED
+test migrate_tests::fork::b2_t6_a_fork_of_a_legacy_mirror_is_rebuilt ... FAILED
+test migrate_tests::fork::b2_t7b_a_fork_taken_before_a_force_push_is_rebuilt ... FAILED
+test migrate_tests::fork::b2_a_followed_fork_gets_both_treatments ... FAILED
+
+failures:
+
+---- migrate_tests::fork::b2_a_fork_of_an_unmigrated_parent_is_gated stdout ----
+
+thread 'migrate_tests::fork::b2_a_fork_of_an_unmigrated_parent_is_gated' (452613) panicked at crates/solid-pod-rs-forge/src/migrate_fork_tests.rs:549:5:
+held commit served by the fork of an unmigrated parent:
+/forge/carol/sample/raw/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: false)
+/forge/carol/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/carol/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/carol/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/carol/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/sample/archive/4580200492d1a9506c809389e9b0cd9c744c79b1.tar.gz -> 200 (held bytes: false)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- migrate_tests::fork::b2_t19_a_stale_partial_fork_is_moved_to_recovery stdout ----
+
+thread 'migrate_tests::fork::b2_t19_a_stale_partial_fork_is_moved_to_recovery' (452617) panicked at crates/solid-pod-rs-forge/src/migrate_fork_tests.rs:349:5:
+the stale partial fork is still under repos/
+
+---- migrate_tests::fork::b2_an_unreadable_fork_config_makes_the_pass_incomplete_and_gates stdout ----
+
+thread 'migrate_tests::fork::b2_an_unreadable_fork_config_makes_the_pass_incomplete_and_gates' (452616) panicked at crates/solid-pod-rs-forge/src/migrate_fork_tests.rs:390:5:
+the pass did not report incomplete
+
+---- migrate_tests::fork::b2_a_rebuilt_fork_is_not_rebuilt_again_and_the_parent_is_stamped stdout ----
+
+thread 'migrate_tests::fork::b2_a_rebuilt_fork_is_not_rebuilt_again_and_the_parent_is_stamped' (452615) panicked at crates/solid-pod-rs-forge/src/migrate_fork_tests.rs:620:37:
+boot 1 did not rebuild the fork
+
+---- migrate_tests::fork::b2_t8_a_fork_ref_reaching_held_is_dropped_and_reported stdout ----
+
+thread 'migrate_tests::fork::b2_t8_a_fork_ref_reaching_held_is_dropped_and_reported' (452621) panicked at crates/solid-pod-rs-forge/src/migrate_fork_tests.rs:296:5:
+held commit served by the fork:
+/forge/carol/sample/raw/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: false)
+/forge/carol/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/carol/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/carol/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/carol/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/sample/archive/4580200492d1a9506c809389e9b0cd9c744c79b1.tar.gz -> 200 (held bytes: false)
+
+---- migrate_tests::fork::b2_t7_a_fork_of_a_fork_is_rebuilt stdout ----
+
+thread 'migrate_tests::fork::b2_t7_a_fork_of_a_fork_is_rebuilt' (452619) panicked at crates/solid-pod-rs-forge/src/migrate_fork_tests.rs:205:5:
+held commit served by the fork of a fork:
+/forge/dave/sample/raw/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/dave/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/dave/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: false)
+/forge/dave/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/dave/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/dave/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/dave/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/dave/sample/archive/4580200492d1a9506c809389e9b0cd9c744c79b1.tar.gz -> 200 (held bytes: false)
+
+---- migrate_tests::fork::b2_a_fork_cycle_terminates_and_the_fork_is_swept stdout ----
+
+thread 'migrate_tests::fork::b2_a_fork_cycle_terminates_and_the_fork_is_swept' (452611) panicked at crates/solid-pod-rs-forge/src/migrate_fork_tests.rs:427:9:
+held commit served by the fork in a cycle:
+/forge/carol/sample/raw/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: false)
+/forge/carol/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/carol/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/carol/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/carol/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/sample/archive/4580200492d1a9506c809389e9b0cd9c744c79b1.tar.gz -> 200 (held bytes: false)
+
+---- migrate_tests::fork::b2_t6_a_fork_of_a_legacy_mirror_is_rebuilt stdout ----
+
+thread 'migrate_tests::fork::b2_t6_a_fork_of_a_legacy_mirror_is_rebuilt' (452618) panicked at crates/solid-pod-rs-forge/src/migrate_fork_tests.rs:144:5:
+held commit served by the fork:
+/forge/carol/sample/raw/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: false)
+/forge/carol/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/carol/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/carol/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/carol/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/sample/archive/4580200492d1a9506c809389e9b0cd9c744c79b1.tar.gz -> 200 (held bytes: false)
+
+---- migrate_tests::fork::b2_t7b_a_fork_taken_before_a_force_push_is_rebuilt stdout ----
+
+thread 'migrate_tests::fork::b2_t7b_a_fork_taken_before_a_force_push_is_rebuilt' (452620) panicked at crates/solid-pod-rs-forge/src/migrate_fork_tests.rs:276:5:
+X1 served by the fork:
+/forge/carol/sample/raw/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: false)
+/forge/carol/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/carol/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/carol/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/carol/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/sample/archive/4580200492d1a9506c809389e9b0cd9c744c79b1.tar.gz -> 200 (held bytes: false)
+
+---- migrate_tests::fork::b2_a_followed_fork_gets_both_treatments stdout ----
+
+thread 'migrate_tests::fork::b2_a_followed_fork_gets_both_treatments' (452610) panicked at crates/solid-pod-rs-forge/src/migrate_fork_tests.rs:579:5:
+held commit served by the followed fork:
+/forge/bdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbd/sample/raw/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/bdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbd/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/bdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbd/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: false)
+/forge/bdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbd/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/bdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbd/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/bdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbd/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/bdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbd/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/bdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbdbd/sample/archive/4580200492d1a9506c809389e9b0cd9c744c79b1.tar.gz -> 200 (held bytes: false)
+
+
+failures:
+    migrate_tests::fork::b2_a_followed_fork_gets_both_treatments
+    migrate_tests::fork::b2_a_fork_cycle_terminates_and_the_fork_is_swept
+    migrate_tests::fork::b2_a_fork_of_an_unmigrated_parent_is_gated
+    migrate_tests::fork::b2_a_rebuilt_fork_is_not_rebuilt_again_and_the_parent_is_stamped
+    migrate_tests::fork::b2_an_unreadable_fork_config_makes_the_pass_incomplete_and_gates
+    migrate_tests::fork::b2_t19_a_stale_partial_fork_is_moved_to_recovery
+    migrate_tests::fork::b2_t6_a_fork_of_a_legacy_mirror_is_rebuilt
+    migrate_tests::fork::b2_t7_a_fork_of_a_fork_is_rebuilt
+    migrate_tests::fork::b2_t7b_a_fork_taken_before_a_force_push_is_rebuilt
+    migrate_tests::fork::b2_t8_a_fork_ref_reaching_held_is_dropped_and_reported
+
+test result: FAILED. 2 passed; 10 failed; 0 ignored; 0 measured; 270 filtered out; finished in 1.16s
+
+error: test failed, to rerun pass `-p solid-pod-rs-forge --lib`

@@ -1,0 +1,2826 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 53bcf1c..dc41f5c 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -8,6 +8,50 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+ 
+ ### Security
+ 
++- Forge: forks of pre-release mirror stores are swept at boot (SP-GIT-02
++  Commit B2). A fork made with `clone --local` hardlinks its parent's packs,
++  held objects included. After the mirror-class stores, `ForgeService::new`
++  reads every served repository's `forge.parent` and follows each fork's
++  lineage to its root, transitively and cycle-safe. A fork is rebuilt when
++  it holds any object of a migrated mirror-class ancestor's dropped set
++  (`.dropped`, every object the ancestor's migration left behind, so a held
++  branch that upstream force-pushed away still counts), checked with a
++  streamed `cat-file --batch-check`; the publication marker never decides.
++  The rebuild uses the same journal, staging, verification and recovery as
++  a mirror-class store. Every ref is copied except `refs/mirror/*` and
++  `refs/replace/*`, pull request heads included, and any ref that reaches an
++  object in the ancestors' held sets (`.held`) is dropped and listed in the
++  fork's report as `reaches-held`. The fork keeps `forge.parent`,
++  `http.receivepack` and its `refs/forge/` hides, gets no served config, and
++  keeps the marker only if it had one. A followed fork (one with a mirror
++  record) also gets the mirror's config and marker, and its branches and
++  tags are filtered too. A mirror-class rebuild now keeps a valid
++  `forge.parent`.
++  - **Fail closed:** a fork whose lineage passes a mirror-class store still
++    behind a journal, or whose ancestor's report cannot be read, is gated
++    behind a journal. A repository config that cannot be read makes the
++    pass incomplete, and an incomplete pass now refuses every fork (any
++    repository whose config names a `forge.parent` or cannot be read) as
++    well as every repository under a 64-hex owner. A fork whose lineage stops
++    at a repository that is gone is checked against every mirror-class
++    report.
++  - **Once clean:** a fork rebuilt against an ancestor's reports is not
++    rebuilt again, and once a complete pass finds every fork of a parent
++    clean, `forksCleanAt` is stamped into the parent's report and its forks
++    are no longer checked.
++  - **Partial forks:** `repos/<owner>/.fork-*.tmp` directories older than an
++    hour, left by a crashed fork build, are moved to `mirror-recovery/`.
++  - **Size cap:** a fork whose rebuilt copy exceeds `MAX_REPO_BYTES`
++    (512 MiB) is not migrated and stays refused, as a mirror-class store
++    does.
++  - **Residual (risk 4):** a fork owner's own ref that reaches an object a
++    mirror's upstream force-pushed away before migration is in the dropped
++    set but not the held set, so it is kept, and that object stays served
++    from the fork.
++  - **Residual (pruned parent):** an object a legacy parent had already
++    garbage-collected before migration is in neither set, so a fork still
++    holding it in a hardlinked pack is rebuilt only if it also holds some
++    other dropped object.
+ - Forge mirror publication isolation (part 2 of 2, mirror-class stores):
+   `ForgeService::new` now migrates every served repository left in the
+   pre-release mirror layout before it returns, with or without the `mirror`
+diff --git a/crates/solid-pod-rs-forge/src/forks.rs b/crates/solid-pod-rs-forge/src/forks.rs
+index 77a592c..6a9cec9 100644
+--- a/crates/solid-pod-rs-forge/src/forks.rs
++++ b/crates/solid-pod-rs-forge/src/forks.rs
+@@ -56,7 +56,7 @@ pub fn full(&self) -> String {
+ 
+ /// `(section, key, value)` triples of a git config file (section and key
+ /// lowercased).
+-fn config_entries(conf: &str) -> Vec<(String, String, String)> {
++pub(crate) fn config_entries(conf: &str) -> Vec<(String, String, String)> {
+     let mut out = Vec::new();
+     let mut section = String::new();
+     for raw in conf.lines() {
+@@ -111,6 +111,24 @@ pub fn read_fork_parent(repo_root: &Path, owner: &str, name: &str) -> Option<For
+     parse_fork_parent(&conf)
+ }
+ 
++/// The lineage in the config file of the bare repository at `git_dir`:
++/// `Ok(None)` when it is not a fork. Unlike [`read_fork_parent`], a config
++/// that cannot be read (a missing file included) is an error, never "not a fork";
++/// the config must be a regular file.
++///
++/// # Errors
++///
++/// The error checking or reading `git_dir/config`.
++pub(crate) fn read_fork_parent_checked(git_dir: &Path) -> std::io::Result<Option<ForkParent>> {
++    let path = git_dir.join("config");
++    let meta = std::fs::symlink_metadata(&path)?;
++    if !meta.file_type().is_file() {
++        return Err(std::io::Error::other("the config is not a regular file"));
++    }
++    let conf = std::fs::read(&path)?;
++    Ok(parse_fork_parent(&String::from_utf8_lossy(&conf)))
++}
++
+ /// Count repositories naming `<owner>/<name>` as `forge.parent`, scanning at
+ /// most [`FORK_SCAN_CAP`] repositories (JSS `countForks`).
+ pub async fn count_forks(repo_root: &Path, owner: &str, name: &str) -> usize {
+@@ -344,39 +362,52 @@ async fn build_fork(
+         owner: &str,
+         name: &str,
+     ) -> Result<(), ForgeError> {
+-        let (s, t) = (src.to_string_lossy(), tmp.to_string_lossy());
+-        let c = prgit::run_at(
+-            &self.repo_root,
+-            None,
+-            &["clone", "--local", "--bare", "--quiet", "--", &s, &t],
+-            &[],
+-        )
+-        .await?;
+-        if !c.ok() {
++        build_fork_at(&self.repo_root, src, tmp, owner, name).await
++    }
++}
++
++/// Clone `src` into `tmp` (`clone --local --bare`, run from `repo_root`) and
++/// write the fork's configuration: `http.receivepack`, `refs/forge/` hidden
++/// from upload-pack and transfer, and `forge.parent = <owner>/<name>`.
++pub(crate) async fn build_fork_at(
++    repo_root: &Path,
++    src: &Path,
++    tmp: &Path,
++    owner: &str,
++    name: &str,
++) -> Result<(), ForgeError> {
++    let (s, t) = (src.to_string_lossy(), tmp.to_string_lossy());
++    let c = prgit::run_at(
++        repo_root,
++        None,
++        &["clone", "--local", "--bare", "--quiet", "--", &s, &t],
++        &[],
++    )
++    .await?;
++    if !c.ok() {
++        return Err(ForgeError::Backend(format!(
++            "fork clone failed: {}",
++            c.stderr.trim()
++        )));
++    }
++    let lineage = format!("{owner}/{name}");
++    for args in [
++        vec!["config", "http.receivepack", "true"],
++        vec!["config", "--add", "uploadpack.hideRefs", FORGE_REFS],
++        vec!["config", "--add", "transfer.hideRefs", FORGE_REFS],
++        vec!["config", "forge.parent", lineage.as_str()],
++    ] {
++        let o = prgit::run(tmp, &args).await?;
++        if !o.ok() {
+             return Err(ForgeError::Backend(format!(
+-                "fork clone failed: {}",
+-                c.stderr.trim()
++                "fork config failed: {}",
++                o.stderr.trim()
+             )));
+         }
+-        let lineage = format!("{owner}/{name}");
+-        for args in [
+-            vec!["config", "http.receivepack", "true"],
+-            vec!["config", "--add", "uploadpack.hideRefs", FORGE_REFS],
+-            vec!["config", "--add", "transfer.hideRefs", FORGE_REFS],
+-            vec!["config", "forge.parent", lineage.as_str()],
+-        ] {
+-            let o = prgit::run(tmp, &args).await?;
+-            if !o.ok() {
+-                return Err(ForgeError::Backend(format!(
+-                    "fork config failed: {}",
+-                    o.stderr.trim()
+-                )));
+-            }
+-        }
+-        // The clone's origin is an internal filesystem path: drop it.
+-        let _ = prgit::run(tmp, &["remote", "remove", "origin"]).await;
+-        Ok(())
+     }
++    // The clone's origin is an internal filesystem path: drop it.
++    let _ = prgit::run(tmp, &["remote", "remove", "origin"]).await;
++    Ok(())
+ }
+ 
+ #[cfg(test)]
+diff --git a/crates/solid-pod-rs-forge/src/lib.rs b/crates/solid-pod-rs-forge/src/lib.rs
+index ba7ea17..0321e43 100644
+--- a/crates/solid-pod-rs-forge/src/lib.rs
++++ b/crates/solid-pod-rs-forge/src/lib.rs
+@@ -236,8 +236,9 @@ pub struct ForgeService {
+     locks: Arc<locks::ForgeLocks>,
+     /// The boot migration did not run to completion (its runtime could not
+     /// be built, its thread panicked, a store could not be gated by a
+-    /// journal, or the stores could not all be listed): every store under a
+-    /// 64-hex owner is refused, marked or not.
++    /// journal, or the stores could not all be listed or their configs
++    /// read): every store under a 64-hex owner is refused, marked or not, and
++    /// every fork.
+     migration_incomplete: bool,
+ }
+ 
+@@ -638,7 +639,8 @@ async fn resolve_repo(&self, owner: &str, repo: &str) -> Result<PathBuf, ForgeEr
+     /// anything at its migration journal path ([`migrate::journal_path`]),
+     /// in any state, `published` included, is refused first, marked or not.
+     /// If the boot migration did not complete, every repository under a
+-    /// 64-hex owner is refused, marked or not. Then one `lstat` for a marked
++    /// 64-hex owner is refused, marked or not, and so is every fork (any
++    /// repository whose config names a `forge.parent` or cannot be read). Then one `lstat` for a marked
+     /// mirror (the marker must be a regular file) and two for any other
+     /// repository. The record path is
+     /// `mirror::MirrorStore`'s layout, checked without the `mirror` feature
+@@ -660,6 +662,20 @@ async fn unpublished_mirror(&self, owner: &str, repo: &str, dir: &Path) -> bool
+         if self.migration_incomplete && mirror_record::is_hex64(owner) {
+             return true;
+         }
++        // Nor every fork (B2): forks live under any owner, and one the pass
++        // could not check may still hold a legacy mirror's held objects. A
++        // config that cannot be read may be a fork's.
++        if self.migration_incomplete {
++            let dir = dir.to_path_buf();
++            let fork_or_unknown = tokio::task::spawn_blocking(move || {
++                !matches!(forks::read_fork_parent_checked(&dir), Ok(None))
++            })
++            .await
++            .unwrap_or(true);
++            if fork_or_unknown {
++                return true;
++            }
++        }
+         // The marker is a regular file at the store root, not a symlink: the
+         // same test detection applies.
+         let marked = tokio::fs::symlink_metadata(dir.join(PUBLICATION_MARKER))
+diff --git a/crates/solid-pod-rs-forge/src/migrate.rs b/crates/solid-pod-rs-forge/src/migrate.rs
+index b2d13ee..9eb7571 100644
+--- a/crates/solid-pod-rs-forge/src/migrate.rs
++++ b/crates/solid-pod-rs-forge/src/migrate.rs
+@@ -20,7 +20,8 @@
+ //! gates the store instead (a `detection-error` journal, removed only once a
+ //! later boot examines every signal and finds them negative). If the pass
+ //! cannot list every journal and served store, or cannot gate a store, it
+-//! reports itself incomplete and the forge refuses every mirror-class store.
++//! reports itself incomplete and the forge refuses every mirror-class store
++//! (and every fork).
+ //! Walks and the push run with replacements and grafts off. Under the
+ //! store's lock (waited for at most
+ //! 600 s), with a journal ([`journal_path`]) recording each step:
+@@ -55,6 +56,19 @@
+ //! automatically and must never be served: do not add `.forge` to the pod's
+ //! dotfile allowlist.
+ //!
++//! # Forks
++//!
++//! After the mirror-class stores, the same machinery sweeps forks of them
++//! (any owner): every served repository's `forge.parent` is read (a config
++//! that cannot be read makes the pass incomplete, and the forge then also
++//! refuses every fork), each fork's lineage is walked to its root, and a
++//! fork holding any object of a migrated ancestor's `.dropped` set is
++//! rebuilt. It keeps every ref but `refs/mirror/*` and `refs/replace/*`,
++//! except a ref reaching an object in the ancestors' `.held` sets, which is
++//! dropped and reported. A fork whose ancestor is still behind a journal is
++//! gated. Stale `repos/<owner>/.fork-*.tmp` directories are moved to
++//! recovery. See the `migrate_fork` source for the details.
++//!
+ //! # Example
+ //!
+ //! ```
+@@ -152,6 +166,36 @@ pub fn lock_path(plugin_dir: &Path, owner: &str, name: &str) -> Option<PathBuf>
+     )
+ }
+ 
++#[path = "migrate_fork.rs"]
++mod fork;
++
++/// How a store is rebuilt: as a mirror-class store, or as a fork of one or
++/// more migrated mirror-class stores (the fork sweep, [`fork`]).
++#[derive(Debug, Clone)]
++enum Kind {
++    Mirror,
++    Fork(fork::Plan),
++}
++
++impl Kind {
++    /// The journal and report `class`.
++    fn class(&self) -> &'static str {
++        match self {
++            Self::Mirror => "mirror",
++            Self::Fork(_) => "fork",
++        }
++    }
++
++    /// Whether the rebuilt store gets the mirror's served config and the
++    /// marker (a mirror-class store, or a followed fork).
++    fn mirror_config(&self) -> bool {
++        match self {
++            Self::Mirror => true,
++            Self::Fork(plan) => plan.followed(),
++        }
++    }
++}
++
+ /// Whether `git config --list -z` output sets `uploadpack.hideRefs` or
+ /// `transfer.hideRefs` to a value naming `refs/mirror`. Each entry is
+ /// `key\nvalue\0`; git prints section and variable names in lower case.
+@@ -616,6 +660,10 @@ struct Journal {
+     attempts: u32,
+     #[serde(default, skip_serializing_if = "Option::is_none")]
+     reason: Option<String>,
++    /// A fork's `forge.parent` (`<owner>/<name>`), so a resumed fork
++    /// migration knows its lineage while its store is in recovery.
++    #[serde(default, skip_serializing_if = "Option::is_none")]
++    parent: Option<String>,
+ }
+ 
+ /// What is at a journal path.
+@@ -759,20 +807,16 @@ pub(crate) fn run_at_boot(plugin_dir: &Path) -> bool {
+ /// the journals or stores could not all be listed.
+ async fn run(plugin: &Path) -> bool {
+     let started = std::time::Instant::now();
+-    let mut done = 0usize;
+-    let mut failed = 0usize;
+-    let mut ungated = 0usize;
++    let mut outcomes = Vec::new();
+     let mut seen = std::collections::BTreeSet::new();
+-    let mut tally = |o: Outcome| match o {
+-        Outcome::Migrated => done += 1,
+-        Outcome::Failed => failed += 1,
+-        Outcome::Ungated => ungated += 1,
+-        Outcome::Skipped => {}
+-    };
+     let (journals, journals_listed) = journaled(plugin);
+     for (owner, name) in journals {
+         seen.insert((owner.clone(), name.clone()));
+-        tally(migrate_one(plugin, &owner, &name).await);
++        if journal_class(plugin, &owner, &name).as_deref() == Some("fork") {
++            // A fork migration: resumed by the fork pass below.
++            continue;
++        }
++        outcomes.push(migrate_one(plugin, &owner, &name).await);
+     }
+     let (stores, stores_listed) = served_stores(plugin);
+     for (owner, name) in stores {
+@@ -785,8 +829,19 @@ async fn run(plugin: &Path) -> bool {
+         ) {
+             continue;
+         }
+-        tally(migrate_one(plugin, &owner, &name).await);
+-    }
++        outcomes.push(migrate_one(plugin, &owner, &name).await);
++    }
++    // Forks of migrated mirror-class stores, after every mirror-class store
++    // (each lock released before the next is taken: never two at once).
++    let mirror_complete = journals_listed && stores_listed && !outcomes.contains(&Outcome::Ungated);
++    let forks = fork::sweep(plugin, mirror_complete).await;
++    outcomes.extend(forks.outcomes);
++    let count = |want: Outcome| outcomes.iter().filter(|o| **o == want).count();
++    let (done, failed, ungated) = (
++        count(Outcome::Migrated),
++        count(Outcome::Failed),
++        count(Outcome::Ungated),
++    );
+     if done + failed + ungated > 0 {
+         tracing::info!(
+             migrated = done,
+@@ -802,12 +857,21 @@ async fn run(plugin: &Path) -> bool {
+             "forge: a store could not be gated by a journal; every mirror-class store is refused"
+         );
+     }
+-    if !(journals_listed && stores_listed) {
++    if !(journals_listed && stores_listed && forks.listed) {
+         tracing::error!(
+-            "forge: the stores could not all be listed; every mirror-class store is refused"
++            "forge: the stores could not all be listed or read; every mirror-class store and every fork is refused"
+         );
+     }
+-    ungated == 0 && journals_listed && stores_listed
++    ungated == 0 && journals_listed && stores_listed && forks.listed
++}
++
++/// The `class` of the journal of `<owner>/<name>`, if one is there and
++/// readable.
++fn journal_class(plugin: &Path, owner: &str, name: &str) -> Option<String> {
++    match read_journal(&journal_path(plugin, owner, name)?) {
++        JournalRead::Present(j) => Some(j.class),
++        _ => None,
++    }
+ }
+ 
+ /// What one store's pass came to.
+@@ -1052,10 +1116,14 @@ fn store_migration_id(store: &Path) -> Option<String> {
+     (!id.is_empty()).then(|| id.to_string())
+ }
+ 
+-/// Whether `served` is marked and carries migration id `id`: the store this
+-/// migration built is in place.
+-fn served_is_ours(served: &Path, id: &str) -> bool {
+-    std::fs::symlink_metadata(served.join(crate::PUBLICATION_MARKER)).is_ok_and(|m| m.is_file())
++/// Whether `served` carries migration id `id` (and, when `marked`, the
++/// marker as a regular file): the store this migration built is in place. A
++/// fork that had no marker is rebuilt without one, so only its id is
++/// checked.
++fn served_is_ours(served: &Path, id: &str, marked: bool) -> bool {
++    (!marked
++        || std::fs::symlink_metadata(served.join(crate::PUBLICATION_MARKER))
++            .is_ok_and(|m| m.is_file()))
+         && store_migration_id(served).is_some_and(|got| got == id)
+ }
+ 
+@@ -1280,26 +1348,38 @@ fn new_journal(
+     name: &str,
+     state: Stage,
+     reason: Option<String>,
++    kind: &Kind,
+ ) -> Journal {
+     let (ts, recovery) = fresh_recovery(plugin, p, name);
+     Journal {
+         id: uuid::Uuid::new_v4().simple().to_string(),
+         ts,
+-        class: "mirror".into(),
++        class: kind.class().into(),
+         state,
+         moved: false,
+         staging: None,
+         recovery,
+         attempts: 0,
+         reason,
++        parent: match kind {
++            Kind::Mirror => None,
++            Kind::Fork(plan) => Some(plan.parent().to_string()),
++        },
+     }
+ }
+ 
+ /// Gate a store with a `failed` journal holding `reason` and no attempt
+ /// counted, created exclusively (an existing journal is never replaced, and
+ /// already gates). `Ungated` when nothing could be written.
+-fn gate(plugin: &Path, p: &Paths, owner: &str, name: &str, reason: &str) -> Outcome {
+-    let j = new_journal(plugin, p, name, Stage::Failed, Some(redact(plugin, reason)));
++fn gate(plugin: &Path, p: &Paths, owner: &str, name: &str, reason: &str, kind: &Kind) -> Outcome {
++    let j = new_journal(
++        plugin,
++        p,
++        name,
++        Stage::Failed,
++        Some(redact(plugin, reason)),
++        kind,
++    );
+     let written = serde_json::to_vec_pretty(&j)
+         .map_err(|e| e.to_string())
+         .and_then(|bytes| create_exclusive(&p.journal, &bytes));
+@@ -1379,6 +1459,19 @@ fn check(
+ 
+ /// Migrate (or resume, or finish) one store under its lock.
+ async fn migrate_one(plugin: &Path, owner: &str, name: &str) -> Outcome {
++    migrate_store(plugin, owner, name, &Kind::Mirror).await
++}
++
++/// What detection says about `<owner>/<name>` for a store of `kind`.
++async fn detect_for(plugin: &Path, owner: &str, name: &str, kind: &Kind) -> Detected {
++    match kind {
++        Kind::Mirror => detect(plugin, owner, name).await,
++        Kind::Fork(plan) => fork::detect(plugin, owner, name, plan).await,
++    }
++}
++
++/// Migrate (or resume, or finish) one store of `kind` under its lock.
++async fn migrate_store(plugin: &Path, owner: &str, name: &str, kind: &Kind) -> Outcome {
+     let Some(p) = Paths::of(plugin, owner, name) else {
+         return Outcome::Skipped;
+     };
+@@ -1394,27 +1487,41 @@ async fn migrate_one(plugin: &Path, owner: &str, name: &str) -> Outcome {
+                 owner,
+                 name,
+                 &format!("the migration lock was not taken: {e}"),
++                kind,
+             );
+         }
+     };
+     // Re-read everything under the lock: another instance may have finished.
+     let journal = match read_journal(&p.journal) {
++        JournalRead::Present(j) if j.class != kind.class() => {
++            // Another pass owns it (a mirror journal seen by the fork pass,
++            // or the reverse): it gates, and is left alone here.
++            tracing::warn!(owner = %owner, name = %name, class = %j.class, "forge: migration journal of another class; store stays gated");
++            return Outcome::Failed;
++        }
+         JournalRead::Present(j) => j,
+         JournalRead::Bad(e) => {
+             tracing::error!(owner = %owner, name = %name, error = %e, "forge: migration journal unusable; store stays gated");
+             return Outcome::Failed;
+         }
+-        JournalRead::Absent => match detect(plugin, owner, name).await {
++        JournalRead::Absent => match detect_for(plugin, owner, name, kind).await {
+             Detected::Skip | Detected::Clean => return Outcome::Skipped,
+             Detected::Finish => return finished(plugin, &p, owner, name),
+             Detected::Error(e) => {
+-                return gate(plugin, &p, owner, name, &format!("{DETECTION_ERROR}: {e}"));
++                return gate(
++                    plugin,
++                    &p,
++                    owner,
++                    name,
++                    &format!("{DETECTION_ERROR}: {e}"),
++                    kind,
++                );
+             }
+             Detected::Rebuild => {
+                 // Persist the journal before any branch below can refuse
+                 // the store: every `Failed` from here on relies on a
+                 // journal on disk to gate it.
+-                let j = new_journal(plugin, &p, name, Stage::Building, None);
++                let j = new_journal(plugin, &p, name, Stage::Building, None, kind);
+                 if let Err(e) = write_journal(&p.journal, &j) {
+                     tracing::error!(owner = %owner, name = %name, error = %redact(plugin, &e), "forge: migration journal not written; store not migrated");
+                     return Outcome::Ungated;
+@@ -1437,7 +1544,7 @@ async fn migrate_one(plugin: &Path, owner: &str, name: &str) -> Outcome {
+             .is_some_and(|r| r.starts_with(DETECTION_ERROR))
+     {
+         // A store gated because it could not be examined: examine it again.
+-        match detect(plugin, owner, name).await {
++        match detect_for(plugin, owner, name, kind).await {
+             Detected::Clean => {
+                 return match std::fs::remove_file(&p.journal) {
+                     Ok(()) => {
+@@ -1463,7 +1570,7 @@ async fn migrate_one(plugin: &Path, owner: &str, name: &str) -> Outcome {
+             Detected::Rebuild => {}
+         }
+     }
+-    if served_is_ours(&p.served, &journal.id) {
++    if served_is_ours(&p.served, &journal.id, kind.mirror_config()) {
+         // The rebuilt store is in place (a crash after the second rename,
+         // or after the `published` write): publish and finish, never
+         // rebuild it. A journal in any state, `published` included, whose
+@@ -1521,7 +1628,19 @@ async fn migrate_one(plugin: &Path, owner: &str, name: &str) -> Outcome {
+             );
+         }
+     };
+-    rebuild(plugin, &p, owner, name, journal, &recovery, moved, limits).await
++    if let Kind::Fork(plan) = kind {
++        if let Some(why) = plan.gate() {
++            // The fork's ancestors are not all known: with no complete held
++            // set to filter against, a rebuild could publish a ref reaching
++            // held. The journal is on disk and gates.
++            tracing::warn!(owner = %owner, name = %name, reason = %redact(plugin, why), "forge: fork not rebuilt; its ancestors cannot be checked; store stays gated");
++            return Outcome::Failed;
++        }
++    }
++    rebuild(
++        plugin, &p, owner, name, journal, &recovery, moved, limits, kind,
++    )
++    .await
+ }
+ 
+ /// `finish`, logged.
+@@ -1652,6 +1771,7 @@ async fn rebuild(
+     recovery: &Path,
+     moved: bool,
+     limits: Limits,
++    kind: &Kind,
+ ) -> Outcome {
+     let started = std::time::Instant::now();
+     let source = if moved {
+@@ -1690,7 +1810,14 @@ async fn rebuild(
+         std::sync::Arc::clone(&groups),
+         tokio::time::timeout(
+             limits.store_budget,
+-            build(plugin, &source, &staging, limits.size_cap, limits.size_poll),
++            build(
++                plugin,
++                &source,
++                &staging,
++                limits.size_cap,
++                limits.size_poll,
++                kind,
++            ),
+         ),
+     );
+     let built = match attempt.await {
+@@ -1719,7 +1846,12 @@ async fn rebuild(
+             );
+         }
+     };
+-    if let Err(e) = seal(&staging, &j.id) {
++    // The marker: always for a mirror-class store and a followed fork; for a
++    // fork, only if the old fork had one.
++    let marker = kind.mirror_config()
++        || std::fs::symlink_metadata(source.join(crate::PUBLICATION_MARKER))
++            .is_ok_and(|m| m.is_file());
++    if let Err(e) = seal(&staging, &j.id, marker) {
+         remove_dir(&staging).await;
+         return fail(plugin, p, owner, name, j, &e);
+     }
+@@ -1728,7 +1860,16 @@ async fn rebuild(
+         remove_dir(&staging).await;
+         return fail(plugin, p, owner, name, j, &e);
+     }
+-    if let Err(e) = write_report(plugin, recovery, owner, name, &j.id, &built, record_bytes) {
++    if let Err(e) = write_report(
++        plugin,
++        recovery,
++        owner,
++        name,
++        &j.id,
++        &built,
++        record_bytes,
++        kind,
++    ) {
+         remove_dir(&staging).await;
+         return fail(plugin, p, owner, name, j, &e);
+     }
+@@ -1766,7 +1907,7 @@ async fn rebuild(
+         .and_then(|()| std::fs::rename(&staging, &p.served))
+         .and_then(|()| p.served.parent().map_or(Ok(()), sync_dir));
+     if let Err(e) = placed {
+-        if !served_is_ours(&p.served, &j.id) {
++        if !served_is_ours(&p.served, &j.id, kind.mirror_config()) {
+             return fail(
+                 plugin,
+                 p,
+@@ -1792,14 +1933,18 @@ async fn rebuild(
+     outcome
+ }
+ 
+-/// Write the migration id, then the marker, into staging, durably.
+-fn seal(staging: &Path, id: &str) -> Result<(), String> {
++/// Write the migration id, then (when `marked`) the marker, into staging,
++/// durably.
++fn seal(staging: &Path, id: &str, marked: bool) -> Result<(), String> {
+     let marker = crate::PUBLICATION_MARKER;
+     write_synced(
+         &staging.join(MIGRATION_ID_FILE),
+         format!("{id}\n").as_bytes(),
+     )
+     .map_err(|e| format!("could not write the migration id: {e}"))?;
++    if !marked {
++        return sync_dir(staging).map_err(|e| format!("could not sync staging: {e}"));
++    }
+     let tmp = staging.join(format!("{marker}.tmp"));
+     write_synced(&tmp, format!("{marker}\n").as_bytes())
+         .and_then(|()| std::fs::rename(&tmp, staging.join(marker)))
+@@ -1929,23 +2074,34 @@ fn exclude_input(roots: &[String]) -> Vec<u8> {
+     input
+ }
+ 
+-/// Steps 3 to 7 and the dropped set: initialise staging with the fixed
+-/// served config, choose the refs, push them by SHA from `source` under the
+-/// size cap, set `HEAD`, verify, and list what was left behind.
++/// Steps 3 to 7 and the dropped set: initialise staging (the fixed served
++/// config for a mirror-class store or a followed fork, an allow-list of the
++/// old config for a fork), choose the refs, push them by SHA from `source`
++/// under the size cap, set `HEAD`, verify, and list what was left behind.
+ ///
+-/// The roots R are the branches and tags that will be copied (safe names,
+-/// valid SHAs). The held set H is every object any ref of `source` reaches
+-/// that R does not ([`held_set`]). A ref outside R is copied only if it
+-/// reaches nothing in H, so the copy holds R's closure and nothing else.
++/// Mirror class: the roots R are the branches and tags that will be copied
++/// (safe names, valid SHAs). The held set H is every object any ref of
++/// `source` reaches that R does not ([`held_set`]). A ref outside R is
++/// copied only if it reaches nothing in H, so the copy holds R's closure and
++/// nothing else. A followed fork first drops any root that reaches the
++/// inherited held set (the union of its mirror-class ancestors' `.held`
++/// files). A fork copies every ref but `refs/mirror/*` and
++/// `refs/replace/*`, each one only if it reaches nothing in the inherited
++/// held set beyond the ancestors' roots it holds; every copied ref is then a
++/// root of the rebuild.
+ async fn build(
+     plugin: &Path,
+     source: &Path,
+     staging: &Path,
+     size_cap: u64,
+     size_poll: SizePoll,
++    kind: &Kind,
+ ) -> Result<Built, String> {
+     init_bare(staging).await?;
+-    write_served_config(staging).await?;
++    if kind.mirror_config() {
++        write_served_config(staging).await?;
++        keep_parent(source, staging).await?;
++    }
+     #[cfg(test)]
+     if let Some(token) = test_hooks::get(plugin).slow_child {
+         let alias = format!("alias.b1slow=!sleep {token} & sleep {token}");
+@@ -1976,6 +2132,78 @@ async fn build(
+         .filter_map(parse_ref_line)
+         .collect();
+     let mut built = Built::default();
++    // What verification checks staging against: the objects that must be
++    // absent, and the roots whose closure staging must lie within.
++    let (check_held, roots) = match kind {
++        Kind::Mirror => select_mirror(source, refs, &mut built, None).await?,
++        Kind::Fork(plan) => {
++            let inherited = fork::inherited_held(plan)?;
++            let ancestor_roots = fork::present_roots(source, plan).await?;
++            if plan.followed() {
++                let (own, roots) = select_mirror(
++                    source,
++                    refs,
++                    &mut built,
++                    Some((&inherited, &ancestor_roots)),
++                )
++                .await?;
++                (own.union(&inherited).cloned().collect(), roots)
++            } else {
++                fork::select(source, refs, &mut built, &inherited, &ancestor_roots).await?;
++                let mut roots: Vec<String> = built.copied.values().cloned().collect();
++                roots.sort();
++                roots.dedup();
++                (inherited, roots)
++            }
++        }
++    };
++    push_refs(source, staging, &built.copied, size_cap, size_poll).await?;
++    if !kind.mirror_config() {
++        // After the push: the fork's `transfer.hideRefs = refs/forge/` would
++        // make receive-pack refuse its pull-request heads.
++        fork::write_fork_config(source, staging).await?;
++    }
++    built.head = choose_head(source, &built.copied).await?;
++    if let Some(h) = &built.head {
++        run_in(
++            staging,
++            staging,
++            &["symbolic-ref", "HEAD", h],
++            None,
++            Duration::from_secs(15),
++            None,
++        )
++        .await?;
++    }
++    verify_with_roots(source, staging, &built.copied, &check_held, &roots).await?;
++    built.dropped_objects = dropped_objects(source, staging).await?;
++    let mut held: Vec<String> = match kind {
++        Kind::Mirror => check_held.into_iter().collect(),
++        // A fork's report lists the held objects it actually left behind.
++        Kind::Fork(_) => built
++            .dropped_objects
++            .iter()
++            .filter(|id| check_held.contains(*id))
++            .cloned()
++            .collect(),
++    };
++    held.sort();
++    built.held = held;
++    Ok(built)
++}
++
++/// Mirror-class ref selection into `built`: roots (branches and tags) are
++/// copied, `refs/mirror/*`, pull-request heads and replacements never, and
++/// any other ref only if it reaches nothing held. With `inherited` (a
++/// followed fork: the inherited held set and the ancestors' roots present in
++/// `source`), a root that reaches an inherited held object is dropped first.
++/// Returns the held set and the copied roots.
++async fn select_mirror(
++    source: &Path,
++    refs: Vec<(String, Option<String>, String)>,
++    built: &mut Built,
++    inherited: Option<(&HashSet<String>, &[String])>,
++) -> Result<(HashSet<String>, Vec<String>), String> {
+     let mut roots = Vec::new();
+     let mut others = Vec::new();
+     for (sha, name, lossy) in refs {
+@@ -1988,6 +2216,16 @@ async fn build(
+             // nothing without it: never copied.
+             Some(r) if r.starts_with("refs/replace/") => Some("outside-roots"),
+             Some(r) if is_root(r) => {
++                if let Some((held, ancestor_roots)) = inherited {
++                    if reaches_held(source, &sha, ancestor_roots, held).await? {
++                        built.dropped.push(DroppedRef {
++                            name: r.to_string(),
++                            sha,
++                            reason: "reaches-held",
++                        });
++                        continue;
++                    }
++                }
+                 roots.push(sha.clone());
+                 built.copied.insert(r.to_string(), sha);
+                 continue;
+@@ -2019,25 +2257,26 @@ async fn build(
+             built.copied.insert(r, sha);
+         }
+     }
+-    push_refs(source, staging, &built.copied, size_cap, size_poll).await?;
+-    built.head = choose_head(source, &built.copied).await?;
+-    if let Some(h) = &built.head {
++    Ok((held, roots))
++}
++
++/// Carry the old store's `forge.parent` (validated) into staging, so a
++/// followed fork keeps its lineage through a mirror-class rebuild.
++async fn keep_parent(source: &Path, staging: &Path) -> Result<(), String> {
++    let parent = crate::forks::read_fork_parent_checked(source)
++        .map_err(|e| format!("the old config could not be read: {}", e.kind()))?;
++    if let Some(parent) = parent {
+         run_in(
+             staging,
+             staging,
+-            &["symbolic-ref", "HEAD", h],
++            &["config", "--local", "forge.parent", &parent.full()],
+             None,
+             Duration::from_secs(15),
+             None,
+         )
+         .await?;
+     }
+-    verify(source, staging, &built.copied, &held).await?;
+-    built.dropped_objects = dropped_objects(source, staging).await?;
+-    let mut held: Vec<String> = held.into_iter().collect();
+-    held.sort();
+-    built.held = held;
+-    Ok(built)
++    Ok(())
+ }
+ 
+ /// The held set of a store: every object any ref reaches
+@@ -2217,11 +2456,31 @@ async fn choose_head(
+ /// every object in staging lies in the closure, in `source`, of the chosen
+ /// branches and tags; nothing is borrowed through alternates; and no object
+ /// file is shared with the source.
++#[cfg(test)]
+ pub(crate) async fn verify(
+     source: &Path,
+     staging: &Path,
+     want: &BTreeMap<String, String>,
+     held: &HashSet<String>,
++) -> Result<(), String> {
++    let mut roots: Vec<String> = want
++        .iter()
++        .filter(|(r, _)| is_root(r))
++        .map(|(_, sha)| sha.clone())
++        .collect();
++    roots.sort();
++    roots.dedup();
++    verify_with_roots(source, staging, want, held, &roots).await
++}
++
++/// [`verify`] with the roots given: every object in staging must lie in the
++/// closure of `roots` in `source` (a fork's roots are every ref it copies).
++async fn verify_with_roots(
++    source: &Path,
++    staging: &Path,
++    want: &BTreeMap<String, String>,
++    held: &HashSet<String>,
++    roots: &[String],
+ ) -> Result<(), String> {
+     let listing = run_in(
+         staging,
+@@ -2245,14 +2504,7 @@ pub(crate) async fn verify(
+     if present > 0 {
+         return Err(format!("{present} held objects reached the rebuilt store"));
+     }
+-    let mut roots: Vec<String> = want
+-        .iter()
+-        .filter(|(r, _)| is_root(r))
+-        .map(|(_, sha)| sha.clone())
+-        .collect();
+-    roots.sort();
+-    roots.dedup();
+-    let outside = outside_roots(source, staging, &roots).await?;
++    let outside = outside_roots(source, staging, roots).await?;
+     if outside > 0 {
+         return Err(format!(
+             "{outside} objects in the rebuilt store lie outside the roots"
+@@ -2428,6 +2680,7 @@ fn write_report(
+     id: &str,
+     built: &Built,
+     record_bytes: Option<Result<Vec<u8>, String>>,
++    kind: &Kind,
+ ) -> Result<(), String> {
+     use base64::Engine as _;
+     let dir = recovery.parent().ok_or("no recovery directory")?;
+@@ -2479,11 +2732,11 @@ fn write_report(
+         .iter()
+         .map(|(r, sha)| serde_json::json!({ "ref": r, "sha": sha }))
+         .collect();
+-    let report = serde_json::json!({
++    let mut report = serde_json::json!({
+         "id": id,
+         "owner": owner,
+         "name": name,
+-        "class": "mirror",
++        "class": kind.class(),
+         "recovery": relative(plugin, recovery),
+         "head": built.head,
+         "copied": copied,
+@@ -2492,6 +2745,11 @@ fn write_report(
+         "droppedObjects": { "file": format!("{stem}.dropped"), "count": built.dropped_objects.len() },
+         "record": record,
+     });
++    if let (Kind::Fork(plan), Some(o)) = (kind, report.as_object_mut()) {
++        o.insert("parent".into(), plan.parent().into());
++        o.insert("followed".into(), plan.followed().into());
++        o.insert("ancestors".into(), plan.report_ids().into());
++    }
+     let bytes = serde_json::to_vec_pretty(&report).map_err(|e| e.to_string())?;
+     match create_exclusive(&path, &bytes) {
+         Ok(true) => Ok(()),
+@@ -2554,12 +2812,49 @@ async fn for_each_line(
+     args: &[&str],
+     input: Option<Vec<u8>>,
+     timeout: Duration,
++    each: impl FnMut(&str) -> Result<Flow, String>,
++) -> Result<(), String> {
++    let input = input.map_or(Input::None, Input::Bytes);
++    for_each_line_input(git_dir, args, input, timeout, each).await
++}
++
++/// What a streamed git run reads on stdin.
++enum Input {
++    None,
++    Bytes(Vec<u8>),
++    /// Files, each a regular file (not a symlink), streamed in order and
++    /// never read whole.
++    Files(Vec<PathBuf>),
++}
++
++/// Stream the regular files `files` into `out`, in order.
++async fn copy_files(
++    files: Vec<PathBuf>,
++    out: &mut tokio::process::ChildStdin,
++) -> std::io::Result<()> {
++    for f in files {
++        let m = tokio::fs::symlink_metadata(&f).await?;
++        if !m.file_type().is_file() {
++            return Err(std::io::Error::other("not a regular file"));
++        }
++        let mut file = tokio::fs::File::open(&f).await?;
++        tokio::io::copy(&mut file, out).await?;
++    }
++    Ok(())
++}
++
++/// [`for_each_line`] with any [`Input`].
++async fn for_each_line_input(
++    git_dir: &Path,
++    args: &[&str],
++    input: Input,
++    timeout: Duration,
+     mut each: impl FnMut(&str) -> Result<Flow, String>,
+ ) -> Result<(), String> {
+     use tokio::io::{AsyncBufReadExt, AsyncWriteExt};
+     let mut cmd = migration_command(git_dir, args);
+     cmd.stderr(std::process::Stdio::null());
+-    if input.is_some() {
++    if !matches!(input, Input::None) {
+         cmd.stdin(std::process::Stdio::piped());
+     }
+     let mut child = cmd
+@@ -2569,11 +2864,16 @@ async fn for_each_line(
+     note_group(pid);
+     let what = args.first().copied().unwrap_or("git");
+     let writer = match (input, child.stdin.take()) {
+-        (Some(bytes), Some(mut stdin)) => Some(tokio::spawn(async move {
++        (Input::Bytes(bytes), Some(mut stdin)) => Some(tokio::spawn(async move {
+             let wrote = stdin.write_all(&bytes).await;
+             drop(stdin);
+             wrote
+         })),
++        (Input::Files(files), Some(mut stdin)) => Some(tokio::spawn(async move {
++            let wrote = copy_files(files, &mut stdin).await;
++            drop(stdin);
++            wrote
++        })),
+         _ => None,
+     };
+     let stdout = child.stdout.take().ok_or("git has no stdout")?;
+diff --git a/crates/solid-pod-rs-forge/src/migrate_fork.rs b/crates/solid-pod-rs-forge/src/migrate_fork.rs
+new file mode 100644
+index 0000000..e684941
+--- /dev/null
++++ b/crates/solid-pod-rs-forge/src/migrate_fork.rs
+@@ -0,0 +1,722 @@
++//! The fork sweep of the boot migration (SP-GIT-02 Commit B2).
++//!
++//! A fork made from a pre-release mirror store with `clone --local`
++//! hardlinks the mirror's packs, held objects included, and keeps serving
++//! them after the mirror itself is rebuilt. After every mirror-class store
++//! is migrated, this pass:
++//!
++//! 1. reads every served store's `forge.parent` (a config error makes the
++//!    pass incomplete, decision 28) and walks each fork's lineage to its
++//!    root, transitively, cycle-safe, bounded by the store count;
++//! 2. collects the migration reports of every mirror-class ancestor: their
++//!    `.dropped` sets are the trigger, their `.held` sets the ref filter. A
++//!    fork whose chain passes a mirror-class store still behind a journal,
++//!    or whose ancestor's report cannot be read, has nothing to be checked
++//!    against and is gated. A fork whose chain stops at a store that is gone
++//!    is checked against every mirror-class report;
++//! 3. rebuilds a fork holding any object of an unstamped ancestor's dropped
++//!    set (object presence, never the marker: decision 19) with the same
++//!    machinery as a mirror-class store: journal, staging, verification,
++//!    seal, swap, recovery. Every ref but `refs/mirror/*` and
++//!    `refs/replace/*` is copied, pull-request heads included, unless it
++//!    reaches an inherited held object (D1: dropped and reported);
++//! 4. stamps `forksCleanAt` into every mirror-class report once a complete
++//!    pass found all its forks clean, so the check stops for that parent;
++//! 5. moves `repos/<owner>/.fork-*.tmp` directories older than an hour (a
++//!    crashed fork build) into recovery (D4; smart-HTTP already refuses
++//!    them, so this is cleanup).
++
++use std::collections::{BTreeMap, BTreeSet, HashSet};
++use std::path::{Path, PathBuf};
++use std::time::Duration;
++
++use super::{
++    dir_state, journal_exists, journal_path, journaled, migrate_store, now_secs, read_journal,
++    read_regular, reports, run_in, served_stores, store_migration_id, sync_dir, with_suffix,
++    write_synced, Built, Detected, DroppedRef, Input, JournalRead, Kind, Outcome, MAX_HELD_IDS,
++    STORE_BUDGET,
++};
++use crate::forks::{config_entries, parse_fork_parent, read_fork_parent_checked, FORGE_REFS};
++use crate::mirror_record::{is_hex64, MirrorStore, StoredRecord};
++
++/// How old a `.fork-*.tmp` directory must be before it is swept (D4: a
++/// heuristic against a fork build still running in another instance).
++const PARTIAL_FORK_AGE: Duration = Duration::from_secs(3600);
++
++/// One migrated mirror-class ancestor's report, as the sweep reads it.
++#[derive(Debug, Clone)]
++struct AncestorReport {
++    id: String,
++    path: PathBuf,
++    held: PathBuf,
++    dropped: PathBuf,
++    /// The SHAs of the branches and tags the migration copied.
++    roots: Vec<String>,
++    /// `forksCleanAt` is set: every fork was found clean.
++    stamped: bool,
++}
++
++/// What one fork is checked and rebuilt against.
++#[derive(Debug, Clone, Default)]
++pub(super) struct Plan {
++    /// `forge.parent`, `<owner>/<name>`.
++    parent: String,
++    /// The fork has a mirror record: it also gets the mirror's config and
++    /// marker.
++    followed: bool,
++    /// The reports of its migrated mirror-class ancestors.
++    reports: Vec<AncestorReport>,
++    /// Why it cannot be checked (it is gated), if so.
++    gate: Option<String>,
++}
++
++impl Plan {
++    pub(super) fn parent(&self) -> &str {
++        &self.parent
++    }
++
++    pub(super) fn followed(&self) -> bool {
++        self.followed
++    }
++
++    /// Why the fork cannot be checked against its ancestors, if so.
++    pub(super) fn gate(&self) -> Option<&str> {
++        self.gate.as_deref()
++    }
++
++    /// The ids of every ancestor report the fork is rebuilt against, sorted.
++    pub(super) fn report_ids(&self) -> Vec<String> {
++        let mut ids: Vec<String> = self.reports.iter().map(|r| r.id.clone()).collect();
++        ids.sort();
++        ids.dedup();
++        ids
++    }
++
++    /// The reports whose dropped sets still trigger a check.
++    fn triggers(&self) -> Vec<&AncestorReport> {
++        self.reports.iter().filter(|r| !r.stamped).collect()
++    }
++}
++
++/// A served store's lineage.
++#[derive(Debug, Clone)]
++enum Lineage {
++    Root,
++    Parent(String, String),
++    /// The config could not be read: the pass is incomplete.
++    Unreadable,
++}
++
++/// What the sweep came to.
++pub(super) struct Swept {
++    /// Every fork's outcome, for the pass's tally.
++    pub(super) outcomes: Vec<Outcome>,
++    /// Every store's lineage was read and every listing completed.
++    pub(super) listed: bool,
++}
++
++/// The fork sweep. `mirror_complete` says whether the mirror-class pass
++/// completed; reports are stamped only if it did and this pass did too.
++pub(super) async fn sweep(plugin: &Path, mirror_complete: bool) -> Swept {
++    sweep_partial_forks(plugin);
++    let (stores, stores_listed) = served_stores(plugin);
++    let mut listed = stores_listed;
++    let mut lineage = BTreeMap::new();
++    for (owner, name) in &stores {
++        let dir = plugin.join("repos").join(owner).join(format!("{name}.git"));
++        let l = match read_fork_parent_checked(&dir) {
++            Ok(Some(p)) => Lineage::Parent(p.owner, p.name),
++            Ok(None) => Lineage::Root,
++            Err(e) => {
++                tracing::error!(owner = %owner, name = %name, error = %e.kind(), "forge: repository config not read; every fork is refused");
++                listed = false;
++                Lineage::Unreadable
++            }
++        };
++        lineage.insert((owner.clone(), name.clone()), l);
++    }
++    // Forks: served stores with a parent, and fork journals (a fork whose
++    // store is in recovery mid-migration names its parent in the journal).
++    let mut targets: BTreeMap<(String, String), String> = BTreeMap::new();
++    for (key, l) in &lineage {
++        if let Lineage::Parent(o, n) = l {
++            targets.insert(key.clone(), format!("{o}/{n}"));
++        }
++    }
++    let (journals, journals_listed) = journaled(plugin);
++    listed &= journals_listed;
++    for (owner, name) in journals {
++        let Some(path) = journal_path(plugin, &owner, &name) else {
++            continue;
++        };
++        if let JournalRead::Present(j) = read_journal(&path) {
++            if j.class == "fork" {
++                if let Some(parent) = j.parent {
++                    targets.entry((owner, name)).or_insert(parent);
++                }
++            }
++        }
++    }
++    let mut outcomes = Vec::new();
++    let mut blocked: BTreeSet<String> = BTreeSet::new();
++    let mut every: Option<Result<Vec<AncestorReport>, String>> = None;
++    for ((owner, name), parent) in &targets {
++        let plan = plan_for(plugin, owner, name, parent, &lineage, &mut every);
++        let kind = Kind::Fork(plan.clone());
++        let outcome = if journal_exists(plugin, owner, name) {
++            migrate_store(plugin, owner, name, &kind).await
++        } else {
++            match detect(plugin, owner, name, &plan).await {
++                Detected::Skip | Detected::Clean => Outcome::Skipped,
++                _ => migrate_store(plugin, owner, name, &kind).await,
++            }
++        };
++        blocked.extend(stamp_blocks(&plan, outcome));
++        if outcome == Outcome::Ungated {
++            listed = false;
++        }
++        outcomes.push(outcome);
++    }
++    if mirror_complete && listed && !blocked.contains("") {
++        stamp_clean(plugin, &blocked, &mut every);
++    }
++    Swept { outcomes, listed }
++}
++
++/// The report ids a fork's plan and outcome keep from being stamped; the
++/// empty id blocks every report.
++fn stamp_blocks(plan: &Plan, outcome: Outcome) -> Vec<String> {
++    match outcome {
++        Outcome::Migrated | Outcome::Skipped => Vec::new(),
++        Outcome::Failed | Outcome::Ungated => {
++            let mut ids = plan.report_ids();
++            if plan.reports.is_empty() {
++                // Gated before its ancestors were known: block them all.
++                ids.push(String::new());
++            }
++            ids
++        }
++    }
++}
++
++/// The plan of fork `<owner>/<name>` whose parent is `parent`: walk the
++/// lineage to its root (cycle-safe, at most one step per store), collecting
++/// every mirror-class ancestor's reports.
++fn plan_for(
++    plugin: &Path,
++    owner: &str,
++    name: &str,
++    parent: &str,
++    lineage: &BTreeMap<(String, String), Lineage>,
++    every: &mut Option<Result<Vec<AncestorReport>, String>>,
++) -> Plan {
++    let mut plan = Plan {
++        parent: parent.to_string(),
++        followed: is_hex64(owner)
++            && !matches!(
++                MirrorStore::new(plugin).load(owner, name),
++                StoredRecord::Missing
++            ),
++        ..Plan::default()
++    };
++    let mut visited = BTreeSet::from([(owner.to_string(), name.to_string())]);
++    let mut next = parent
++        .split_once('/')
++        .map(|(o, n)| (o.to_string(), n.to_string()));
++    let mut orphan = false;
++    while let Some(at) = next.take() {
++        if visited.len() > lineage.len() + 1 || !visited.insert(at.clone()) {
++            break; // a cycle, or longer than the store count
++        }
++        let (o, n) = (&at.0, &at.1);
++        if is_hex64(o) {
++            if journal_exists(plugin, o, n) {
++                plan.gate = Some(format!("ancestor {o}/{n} is behind a migration journal"));
++                return plan;
++            }
++            match mirror_reports(plugin, o, n) {
++                Ok(found) => plan.reports.extend(found),
++                Err(e) => {
++                    plan.gate = Some(format!("ancestor {o}/{n}'s migration report: {e}"));
++                    return plan;
++                }
++            }
++        }
++        let dir = plugin.join("repos").join(o).join(format!("{n}.git"));
++        match dir_state(&dir) {
++            Ok(true) => match lineage.get(&at) {
++                Some(Lineage::Parent(po, pn)) => next = Some((po.clone(), pn.clone())),
++                Some(Lineage::Root) => {}
++                Some(Lineage::Unreadable) | None => {
++                    plan.gate = Some(format!("ancestor {o}/{n}'s lineage could not be read"));
++                    return plan;
++                }
++            },
++            Ok(false) => orphan = true,
++            Err(e) => {
++                plan.gate = Some(format!("ancestor {o}/{n}: {e}"));
++                return plan;
++            }
++        }
++    }
++    if orphan {
++        // The chain stops at a store that is gone: its own ancestors are
++        // unknown, so check against every mirror-class report.
++        match every.get_or_insert_with(|| every_mirror_report(plugin)) {
++            Ok(all) => plan.reports.extend(all.iter().cloned()),
++            Err(e) => {
++                plan.gate = Some(format!("the migration reports could not be listed: {e}"));
++                return plan;
++            }
++        }
++    }
++    let mut seen = HashSet::new();
++    plan.reports.retain(|r| seen.insert(r.id.clone()));
++    plan
++}
++
++/// The mirror-class migration reports of `<owner>/<name>`, with their
++/// `.held` and `.dropped` files. Any report that cannot be read, or lacks
++/// either file, is an error (the fork is then gated).
++fn mirror_reports(plugin: &Path, owner: &str, name: &str) -> Result<Vec<AncestorReport>, String> {
++    let dir = plugin.join("mirror-recovery").join(owner);
++    let mut out = Vec::new();
++    for path in reports(&dir, name)? {
++        if let Some(r) = read_report(&path)? {
++            out.push(r);
++        }
++    }
++    Ok(out)
++}
++
++/// Every mirror-class migration report under `mirror-recovery/`.
++fn every_mirror_report(plugin: &Path) -> Result<Vec<AncestorReport>, String> {
++    let root = plugin.join("mirror-recovery");
++    let mut out = Vec::new();
++    for (owner, path) in super::names_in(&root)? {
++        if !is_hex64(&owner) || !dir_state(&path)? {
++            continue;
++        }
++        for (file, entry) in super::names_in(&path)? {
++            let Some(stem) = file.strip_suffix(".migration.json") else {
++                continue;
++            };
++            let is_report = stem
++                .rsplit_once(".git.")
++                .is_some_and(|(_, ts)| super::all_digits(ts));
++            if is_report {
++                if let Some(r) = read_report(&entry)? {
++                    out.push(r);
++                }
++            }
++        }
++    }
++    Ok(out)
++}
++
++/// One report, if it is a mirror-class report.
++fn read_report(path: &Path) -> Result<Option<AncestorReport>, String> {
++    let bytes = read_regular(path).map_err(|e| format!("not read: {}", e.kind()))?;
++    let v: serde_json::Value =
++        serde_json::from_slice(&bytes).map_err(|e| format!("not parsed: {e}"))?;
++    if v.get("class").and_then(|c| c.as_str()) != Some("mirror") {
++        return Ok(None);
++    }
++    let id = v
++        .get("id")
++        .and_then(|i| i.as_str())
++        .ok_or("no id")?
++        .to_string();
++    let file = path
++        .to_str()
++        .and_then(|p| p.strip_suffix(".migration.json"))
++        .ok_or("not a report name")?;
++    let stem = PathBuf::from(file);
++    let (held, dropped) = (with_suffix(&stem, ".held"), with_suffix(&stem, ".dropped"));
++    for f in [&held, &dropped] {
++        if !std::fs::symlink_metadata(f).is_ok_and(|m| m.is_file()) {
++            return Err("its held or dropped list is missing".into());
++        }
++    }
++    let roots = v
++        .get("copied")
++        .and_then(|c| c.as_array())
++        .map(|refs| {
++            refs.iter()
++                .filter(|r| {
++                    r.get("ref")
++                        .and_then(|n| n.as_str())
++                        .is_some_and(super::is_root)
++                })
++                .filter_map(|r| r.get("sha").and_then(|s| s.as_str()))
++                .filter(|s| super::is_sha40(s))
++                .map(str::to_string)
++                .collect()
++        })
++        .unwrap_or_default();
++    Ok(Some(AncestorReport {
++        id,
++        path: path.to_path_buf(),
++        held,
++        dropped,
++        roots,
++        stamped: v.get("forksCleanAt").is_some(),
++    }))
++}
++
++/// Fork detection: `Rebuild` when the fork holds any object of an
++/// unstamped ancestor's dropped set, `Clean` when it holds none (or this
++/// sweep already rebuilt it against every such report), `Error` when it
++/// cannot be checked.
++pub(super) async fn detect(plugin: &Path, owner: &str, name: &str, plan: &Plan) -> Detected {
++    let served = plugin.join("repos").join(owner).join(format!("{name}.git"));
++    match dir_state(&served) {
++        Ok(true) => {}
++        Ok(false) => return Detected::Skip,
++        Err(e) => return Detected::Error(e),
++    }
++    if let Some(g) = &plan.gate {
++        return Detected::Error(g.clone());
++    }
++    let triggers = plan.triggers();
++    if triggers.is_empty() {
++        return Detected::Clean;
++    }
++    if rebuilt_against(plugin, owner, name, &served, &triggers) {
++        return Detected::Clean;
++    }
++    let files: Vec<PathBuf> = triggers.iter().map(|r| r.dropped.clone()).collect();
++    match holds_any(&served, files).await {
++        Ok(true) => Detected::Rebuild,
++        Ok(false) => Detected::Clean,
++        Err(e) => Detected::Error(e),
++    }
++}
++
++/// Whether the served fork carries the migration id of a fork report that
++/// lists every one of `triggers` among its ancestors: it was rebuilt against
++/// them, and what it still holds of their dropped sets its own refs reach
++/// (risk 4), so it is not rebuilt again.
++fn rebuilt_against(
++    plugin: &Path,
++    owner: &str,
++    name: &str,
++    served: &Path,
++    triggers: &[&AncestorReport],
++) -> bool {
++    let Some(id) = store_migration_id(served) else {
++        return false;
++    };
++    let dir = plugin.join("mirror-recovery").join(owner);
++    let Ok(found) = reports(&dir, name) else {
++        return false;
++    };
++    found.iter().any(|path| {
++        let Some(v) = read_regular(path)
++            .ok()
++            .and_then(|b| serde_json::from_slice::<serde_json::Value>(&b).ok())
++        else {
++            return false;
++        };
++        let covered: BTreeSet<&str> = v
++            .get("ancestors")
++            .and_then(|a| a.as_array())
++            .map(|a| a.iter().filter_map(|x| x.as_str()).collect())
++            .unwrap_or_default();
++        v.get("class").and_then(|c| c.as_str()) == Some("fork")
++            && v.get("id").and_then(|i| i.as_str()) == Some(id.as_str())
++            && triggers.iter().all(|t| covered.contains(t.id.as_str()))
++    })
++}
++
++/// Whether the store at `git_dir` holds any id listed in `files`
++/// (`cat-file --batch-check`, the lists streamed, stopping at the first hit).
++async fn holds_any(git_dir: &Path, files: Vec<PathBuf>) -> Result<bool, String> {
++    let mut hit = false;
++    super::for_each_line_input(
++        git_dir,
++        &["cat-file", "--batch-check=%(objectname) %(objecttype)"],
++        Input::Files(files),
++        STORE_BUDGET,
++        |line| {
++            if line.ends_with(" missing") {
++                Ok(super::Flow::Go)
++            } else {
++                hit = true;
++                Ok(super::Flow::Stop)
++            }
++        },
++    )
++    .await?;
++    Ok(hit)
++}
++
++/// The inherited held set: the union of the ancestors' `.held` files,
++/// bounded by [`MAX_HELD_IDS`].
++pub(super) fn inherited_held(plan: &Plan) -> Result<HashSet<String>, String> {
++    use std::io::BufRead;
++    let mut held = HashSet::new();
++    for r in &plan.reports {
++        let m = std::fs::symlink_metadata(&r.held).map_err(|e| format!("held list: {e}"))?;
++        if !m.file_type().is_file() {
++            return Err("a held list is not a regular file".into());
++        }
++        let f = std::fs::File::open(&r.held).map_err(|e| format!("held list: {e}"))?;
++        for line in std::io::BufReader::new(f).lines() {
++            let line = line.map_err(|e| format!("held list: {e}"))?;
++            if line.is_empty() {
++                continue;
++            }
++            if !super::is_sha40(&line) {
++                return Err("a held list holds something other than object ids".into());
++            }
++            if held.len() >= MAX_HELD_IDS {
++                return Err(format!(
++                    "the inherited held set passed {MAX_HELD_IDS} objects"
++                ));
++            }
++            held.insert(line);
++        }
++    }
++    Ok(held)
++}
++
++/// The ancestors' roots that `source` holds (checked first: `rev-list
++/// --not` fails on an object it does not have, C12).
++pub(super) async fn present_roots(source: &Path, plan: &Plan) -> Result<Vec<String>, String> {
++    let mut all: Vec<String> = plan
++        .reports
++        .iter()
++        .flat_map(|r| r.roots.iter().cloned())
++        .collect();
++    all.sort();
++    all.dedup();
++    if all.is_empty() {
++        return Ok(all);
++    }
++    let mut input = Vec::with_capacity(all.len() * 41);
++    for sha in &all {
++        input.extend_from_slice(sha.as_bytes());
++        input.push(b'\n');
++    }
++    let out = super::run_with_input(
++        source,
++        &["cat-file", "--batch-check=%(objectname) %(objecttype)"],
++        input,
++        STORE_BUDGET,
++    )
++    .await?;
++    if !out.status.success() {
++        return Err("git cat-file --batch-check failed".into());
++    }
++    let present: Vec<String> = String::from_utf8_lossy(&out.stdout)
++        .lines()
++        .filter(|l| !l.ends_with(" missing"))
++        .filter_map(|l| l.split(' ').next())
++        .filter(|id| super::is_sha40(id))
++        .map(str::to_string)
++        .collect();
++    Ok(present)
++}
++
++/// Fork ref selection into `built`: every ref but `refs/mirror/*` and
++/// `refs/replace/*` (and names unsafe on a push command line), each copied
++/// only if it reaches nothing in `held` beyond `ancestor_roots` (D1: a ref
++/// that does is dropped and reported as `reaches-held`).
++pub(super) async fn select(
++    source: &Path,
++    refs: Vec<(String, Option<String>, String)>,
++    built: &mut Built,
++    held: &HashSet<String>,
++    ancestor_roots: &[String],
++) -> Result<(), String> {
++    for (sha, name, lossy) in refs {
++        let reason = match name.as_deref() {
++            None => "unsafe-name",
++            Some(r) if !super::safe_ref(r) || !super::is_sha40(&sha) => "unsafe-name",
++            Some(r) if r.starts_with("refs/mirror/") => "mirror",
++            Some(r) if r.starts_with("refs/replace/") => "replace",
++            Some(r) => {
++                if super::reaches_held(source, &sha, ancestor_roots, held).await? {
++                    "reaches-held"
++                } else {
++                    built.copied.insert(r.to_string(), sha);
++                    continue;
++                }
++            }
++        };
++        built.dropped.push(DroppedRef {
++            name: lossy,
++            sha,
++            reason,
++        });
++    }
++    Ok(())
++}
++
++/// A fork's config: an allow-list of the old one (`forge.parent`,
++/// `http.receivepack` when a boolean, and `uploadpack.hideRefs` /
++/// `transfer.hideRefs` entries equal to `refs/forge/`). The old config is
++/// never copied whole: it is legacy-written and may name hooks or
++/// alternates. No served config: `receive.denyDeletes` would stop the owner
++/// deleting branches.
++pub(super) async fn write_fork_config(source: &Path, staging: &Path) -> Result<(), String> {
++    let bytes = read_regular(&source.join("config"))
++        .map_err(|e| format!("the old config could not be read: {}", e.kind()))?;
++    let text = String::from_utf8_lossy(&bytes);
++    let parent = parse_fork_parent(&text).ok_or("the old config names no valid forge.parent")?;
++    let mut sets: Vec<(&str, String)> = vec![("forge.parent", parent.full())];
++    for (section, key, value) in config_entries(&text) {
++        match (section.as_str(), key.as_str()) {
++            ("http", "receivepack") if matches!(value.as_str(), "true" | "false") => {
++                sets.push(("http.receivepack", value));
++            }
++            ("uploadpack", "hiderefs") if value == FORGE_REFS => {
++                sets.push(("uploadpack.hideRefs", value));
++            }
++            ("transfer", "hiderefs") if value == FORGE_REFS => {
++                sets.push(("transfer.hideRefs", value));
++            }
++            _ => {}
++        }
++    }
++    for (key, value) in sets {
++        run_in(
++            staging,
++            staging,
++            &["config", "--local", "--add", key, &value],
++            None,
++            Duration::from_secs(15),
++            None,
++        )
++        .await?;
++    }
++    Ok(())
++}
++
++/// Stamp `forksCleanAt` into every unstamped mirror-class report whose id
++/// is not `blocked` (a fork checked against it was not found clean).
++fn stamp_clean(
++    plugin: &Path,
++    blocked: &BTreeSet<String>,
++    every: &mut Option<Result<Vec<AncestorReport>, String>>,
++) {
++    let all = match every.get_or_insert_with(|| every_mirror_report(plugin)) {
++        Ok(all) => all,
++        Err(e) => {
++            tracing::warn!(error = %e, "forge: migration reports not listed; none stamped");
++            return;
++        }
++    };
++    for r in all
++        .iter()
++        .filter(|r| !r.stamped && !blocked.contains(&r.id))
++    {
++        if let Err(e) = stamp(&r.path) {
++            tracing::warn!(error = %e, "forge: migration report not stamped");
++        }
++    }
++}
++
++/// Add `forksCleanAt` to the report at `path`, every other field kept: a
++/// temporary file, `fsync`, rename, `fsync` the directory.
++fn stamp(path: &Path) -> Result<(), String> {
++    let bytes = read_regular(path).map_err(|e| format!("not read: {}", e.kind()))?;
++    let mut v: serde_json::Value =
++        serde_json::from_slice(&bytes).map_err(|e| format!("not parsed: {e}"))?;
++    let o = v.as_object_mut().ok_or("not an object")?;
++    o.insert("forksCleanAt".into(), now_secs().into());
++    let out = serde_json::to_vec_pretty(&v).map_err(|e| e.to_string())?;
++    let tmp = with_suffix(path, ".tmp");
++    write_synced(&tmp, &out).map_err(|e| format!("not written: {e}"))?;
++    std::fs::rename(&tmp, path).map_err(|e| format!("not written: {e}"))?;
++    path.parent()
++        .map_or(Ok(()), sync_dir)
++        .map_err(|e| format!("not synced: {e}"))
++}
++
++/// D4: move every `repos/<owner>/.fork-*.tmp` directory older than
++/// [`PARTIAL_FORK_AGE`] to `mirror-recovery/<owner>/<entry>.<ts>`. Cleanup
++/// only (smart-HTTP refuses such paths), so errors are logged.
++fn sweep_partial_forks(plugin: &Path) {
++    let Ok(owners) = super::names_in(&plugin.join("repos")) else {
++        return;
++    };
++    for (owner, owner_dir) in owners {
++        if !crate::ownership::valid_name_segment(&owner) {
++            continue;
++        }
++        let Ok(entries) = super::names_in(&owner_dir) else {
++            continue;
++        };
++        for (file, entry) in entries {
++            if !(file.starts_with(".fork-") && file.ends_with(".tmp")) {
++                continue;
++            }
++            let Ok(meta) = std::fs::symlink_metadata(&entry) else {
++                continue;
++            };
++            let old = meta
++                .modified()
++                .ok()
++                .and_then(|t| t.elapsed().ok())
++                .is_some_and(|age| age >= PARTIAL_FORK_AGE);
++            if !meta.is_dir() || !old {
++                continue;
++            }
++            let dir = plugin.join("mirror-recovery").join(&owner);
++            let dest = dir.join(format!("{file}.{}", now_secs()));
++            let moved = std::fs::create_dir_all(&dir)
++                .and_then(|()| std::fs::rename(&entry, &dest))
++                .and_then(|()| sync_dir(&dir))
++                .and_then(|()| sync_dir(&owner_dir));
++            match moved {
++                Ok(()) => {
++                    tracing::info!(owner = %owner, entry = %file, "forge: stale partial fork moved to recovery");
++                }
++                Err(e) => {
++                    tracing::warn!(owner = %owner, entry = %file, error = %e, "forge: stale partial fork not moved");
++                }
++            }
++        }
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    /// Item 3 (F3): a plan gated partway up its lineage holds only the
++    /// reports collected before the gate; the ancestors beyond it are
++    /// unknown, so every report is kept from being stamped, whatever the
++    /// fork's outcome.
++    #[test]
++    fn a_gate_partway_up_the_lineage_blocks_every_report() {
++        let report = AncestorReport {
++            id: "r1".into(),
++            path: PathBuf::new(),
++            held: PathBuf::new(),
++            dropped: PathBuf::new(),
++            roots: Vec::new(),
++            stamped: false,
++        };
++        let plan = Plan {
++            parent: "f/sample".into(),
++            reports: vec![report],
++            gate: Some("ancestor carol/sample: transient".into()),
++            ..Plan::default()
++        };
++        for outcome in [
++            Outcome::Failed,
++            Outcome::Ungated,
++            Outcome::Skipped,
++            Outcome::Migrated,
++        ] {
++            assert!(
++                stamp_blocks(&plan, outcome).contains(&String::new()),
++                "{outcome:?}: a gated plan blocked only {:?}",
++                stamp_blocks(&plan, outcome)
++            );
++        }
++    }
++}
+diff --git a/crates/solid-pod-rs-forge/src/migrate_fork_tests.rs b/crates/solid-pod-rs-forge/src/migrate_fork_tests.rs
+new file mode 100644
+index 0000000..94f15e2
+--- /dev/null
++++ b/crates/solid-pod-rs-forge/src/migrate_fork_tests.rs
+@@ -0,0 +1,1125 @@
++//! Tests for the fork sweep of the boot migration (SP-GIT-02 Commit B2).
++//!
++//! A child of `migrate_tests`, so it shares its fixtures. Every fork here is
++//! made the way production makes one (`forks::build_fork_at`, a
++//! `clone --local --bare` that hardlinks the parent's packs), and that
++//! hardlink is asserted as a precondition (control C15: a delete-plus-gc
++//! implementation goes red on a hardlinked fork).
++
++use super::*;
++
++/// Make `<fork_owner>/sample` a fork of `<src_owner>/<src_name>` with the
++/// production fork builder, under a `.fork-*.tmp` name, then renamed into
++/// place as `h_api_fork` does.
++async fn make_fork(plugin: &Path, src_owner: &str, fork_owner: &str) -> PathBuf {
++    let repos = plugin.join("repos");
++    let src = repos.join(src_owner).join("sample.git");
++    let owner_dir = repos.join(fork_owner);
++    std::fs::create_dir_all(&owner_dir).unwrap();
++    let tmp = owner_dir.join(format!(".fork-{}.tmp", uuid::Uuid::new_v4()));
++    crate::forks::build_fork_at(&repos, &src, &tmp, src_owner, "sample")
++        .await
++        .expect("the fork builds");
++    let dest = owner_dir.join("sample.git");
++    std::fs::rename(&tmp, &dest).unwrap();
++    dest
++}
++
++/// Precondition (C15): the fork shares at least one pack file, by inode,
++/// with `parent`.
++fn assert_hardlinked(parent: &Path, fork: &Path) {
++    use std::os::unix::fs::MetadataExt;
++    let inodes = |d: &Path| -> Vec<(u64, u64)> {
++        std::fs::read_dir(d.join("objects/pack"))
++            .map(|rd| {
++                rd.flatten()
++                    .filter_map(|e| std::fs::metadata(e.path()).ok())
++                    .filter(|m| m.is_file() && m.nlink() > 1)
++                    .map(|m| (m.dev(), m.ino()))
++                    .collect()
++            })
++            .unwrap_or_default()
++    };
++    let theirs = inodes(parent);
++    assert!(
++        inodes(fork).iter().any(|i| theirs.contains(i)),
++        "precondition: the fork must hardlink the parent's pack (C15)"
++    );
++}
++
++/// Run git with `input` on stdin and the fixed identity.
++fn git_stdin(cwd: &Path, args: &[&str], input: &str) -> String {
++    use std::io::Write;
++    let mut child = Command::new("git")
++        .args([
++            "-c",
++            "user.name=Agent",
++            "-c",
++            "user.email=agent@example.org",
++        ])
++        .args(args)
++        .current_dir(cwd)
++        .env("GIT_CONFIG_GLOBAL", "/dev/null")
++        .env("GIT_CONFIG_NOSYSTEM", "1")
++        .env("GIT_AUTHOR_DATE", "1700000000 +0000")
++        .env("GIT_COMMITTER_DATE", "1700000000 +0000")
++        .stdin(std::process::Stdio::piped())
++        .stdout(std::process::Stdio::piped())
++        .stderr(std::process::Stdio::piped())
++        .spawn()
++        .expect("git runs");
++    child
++        .stdin
++        .take()
++        .unwrap()
++        .write_all(input.as_bytes())
++        .unwrap();
++    let out = child.wait_with_output().unwrap();
++    assert!(
++        out.status.success(),
++        "git {args:?}: {}",
++        String::from_utf8_lossy(&out.stderr)
++    );
++    String::from_utf8_lossy(&out.stdout).trim().to_string()
++}
++
++/// A commit in the bare store `dir` on top of `parent`, adding `file`.
++fn bare_commit(dir: &Path, parent: &str, file: &str, body: &str, subject: &str) -> String {
++    let blob = git_stdin(dir, &["hash-object", "-w", "--stdin"], body);
++    let base = git(dir, &["ls-tree", &format!("{parent}^{{tree}}")]);
++    let listing = format!("{base}\n100644 blob {blob}\t{file}\n");
++    let tree = git_stdin(dir, &["mktree"], &listing);
++    git(dir, &["commit-tree", &tree, "-p", parent, "-m", subject])
++}
++
++fn config_get(dir: &Path, key: &str) -> Option<String> {
++    let out = Command::new("git")
++        .args(["config", "--local", "--get", key])
++        .current_dir(dir)
++        .env("GIT_CONFIG_GLOBAL", "/dev/null")
++        .env("GIT_CONFIG_NOSYSTEM", "1")
++        .output()
++        .unwrap();
++    out.status
++        .success()
++        .then(|| String::from_utf8_lossy(&out.stdout).trim().to_string())
++}
++
++/// The migration reports `mirror-recovery/<owner>/sample.git.<ts>.migration.json`.
++fn reports_of(plugin: &Path, owner: &str) -> Vec<serde_json::Value> {
++    recovery_entries(plugin, owner)
++        .iter()
++        .filter_map(|e| std::fs::read(sibling(e, ".migration.json")).ok())
++        .map(|b| serde_json::from_slice(&b).unwrap())
++        .collect()
++}
++
++fn migration_id_of(store: &Path) -> Option<String> {
++    std::fs::read_to_string(store.join(MIGRATION_ID))
++        .ok()
++        .map(|s| s.trim().to_string())
++}
++
++/// Design test 6: a fork of a legacy mirror, made with the production fork
++/// builder and then marked by hand (decision 19: the marker never decides
++/// the sweep), is rebuilt. Held is denied on the fork's readers; the fork's
++/// branches, its pull-request heads and `forge.parent` survive;
++/// `receive.denyDeletes` is not set; the marker it had is kept.
++#[tokio::test]
++async fn b2_t6_a_fork_of_a_legacy_mirror_is_rebuilt() {
++    let fx = legacy(190, Shape::Engine);
++    let fork = make_fork(&fx.plugin, &fx.owner, "carol").await;
++    assert_hardlinked(&fx.served, &fork);
++    let feature = bare_commit(&fork, &fx.m2, "carol.txt", "b2-carol\n", "b2 carol");
++    git(&fork, &["update-ref", "refs/heads/feature", &feature]);
++    let pr = bare_commit(&fork, &fx.m2, "dave.txt", "b2-dave-pr\n", "b2 dave pr");
++    git(&fork, &["update-ref", "refs/forge/heads/dave/x", &pr]);
++    std::fs::write(fork.join(MARKER), format!("{MARKER}\n")).unwrap();
++    assert!(
++        has(&fork, &fx.held),
++        "precondition: the fork holds the held commit"
++    );
++    let forge = forge_at(&fx.plugin);
++    let leaks = held_leaks(&forge, "carol", &fx.held).await;
++    assert!(
++        leaks.is_empty(),
++        "held commit served by the fork:\n{}",
++        leaks.join("\n")
++    );
++    let ok = get(
++        &forge,
++        format!("/forge/carol/sample/raw/{feature}/carol.txt"),
++    )
++    .await;
++    assert_eq!(ok.status, 200, "the fork's own branch is not served");
++    let refs = refs_of(&fork);
++    for r in [
++        "refs/heads/main",
++        "refs/heads/feature",
++        "refs/forge/heads/dave/x",
++    ] {
++        assert!(refs.contains(r), "{r} lost from the fork:\n{refs}");
++    }
++    assert_eq!(
++        config_get(&fork, "forge.parent").as_deref(),
++        Some(format!("{}/sample", fx.owner).as_str()),
++        "forge.parent lost"
++    );
++    assert_eq!(
++        config_get(&fork, "receive.denyDeletes"),
++        None,
++        "a fork must not get the mirror's receive.denyDeletes"
++    );
++    assert!(
++        fork.join(MARKER).is_file(),
++        "the fork's marker was not kept"
++    );
++    for key in ["uploadpack.hideRefs", "transfer.hideRefs"] {
++        assert_eq!(
++            config_get(&fork, key).as_deref(),
++            Some("refs/forge/"),
++            "{key} lost from the fork"
++        );
++    }
++    assert!(
++        !journal_of(&fx.plugin, "carol").exists(),
++        "fork journal left"
++    );
++    assert_eq!(
++        recovery_entries(&fx.plugin, "carol").len(),
++        1,
++        "no fork recovery entry"
++    );
++    assert!(
++        !has(&fork, &fx.held),
++        "the held commit is still in the fork"
++    );
++}
++
++/// Design test 7: a fork of a fork (transitive) is rebuilt (C2).
++#[tokio::test]
++async fn b2_t7_a_fork_of_a_fork_is_rebuilt() {
++    let fx = legacy(191, Shape::Engine);
++    let first = make_fork(&fx.plugin, &fx.owner, "carol").await;
++    let second = make_fork(&fx.plugin, "carol", "dave").await;
++    assert_hardlinked(&first, &second);
++    assert!(
++        has(&second, &fx.held),
++        "precondition: the fork of a fork holds held"
++    );
++    let forge = forge_at(&fx.plugin);
++    let leaks = held_leaks(&forge, "dave", &fx.held).await;
++    assert!(
++        leaks.is_empty(),
++        "held commit served by the fork of a fork:\n{}",
++        leaks.join("\n")
++    );
++    assert!(
++        !has(&second, &fx.held),
++        "the held commit is still in the fork of a fork"
++    );
++    assert_eq!(
++        config_get(&second, "forge.parent").as_deref(),
++        Some("carol/sample")
++    );
++}
++
++/// The C17 shape: a legacy store whose held branch `side` was at `X1` when
++/// carol forked it; upstream then force-pushed `side` to an unrelated `X2`
++/// and the legacy store refetched. `(fixture, fork, X1, X2)`.
++async fn c17_fixture(seed: u8) -> (Legacy, PathBuf, String, String) {
++    let fx = legacy(seed, Shape::Engine);
++    // Start from a store with nothing outside the roots but `refs/mirror`.
++    for r in [
++        "refs/misc/stash-held",
++        "refs/misc/blob",
++        "refs/notes/commits",
++    ] {
++        git(&fx.served, &["update-ref", "-d", r]);
++    }
++    git(
++        &fx.served,
++        &["update-ref", "-d", "refs/forge/heads/bob/feat"],
++    );
++    let x1 = fx.held.clone();
++    let fork = make_fork(&fx.plugin, &fx.owner, "carol").await;
++    assert_hardlinked(&fx.served, &fork);
++    let up = fx.home.join("up");
++    git(&up, &["checkout", "--quiet", "--orphan", "b2-x2"]);
++    git(&up, &["rm", "-rf", "--quiet", "."]);
++    std::fs::write(up.join("x2.txt"), "b2-unrelated-x2\n").unwrap();
++    git(&up, &["add", "-A"]);
++    git(&up, &["commit", "--quiet", "-m", "b2 x2"]);
++    let x2 = git(&up, &["rev-parse", "HEAD"]);
++    git(&up, &["branch", "-M", "b2-x2", "side"]);
++    git(
++        &fx.served,
++        &[
++            "fetch",
++            "--quiet",
++            "--no-tags",
++            "--prune",
++            up.to_str().unwrap(),
++            "+refs/heads/*:refs/mirror/*",
++        ],
++    );
++    assert_eq!(git(&fx.served, &["rev-parse", "refs/mirror/side"]), x2);
++    assert!(has(&fork, &x1), "precondition: the fork still holds X1");
++    assert!(
++        !has(&fork, &x2),
++        "precondition: X2 is not in the fork (H trigger misses)"
++    );
++    (fx, fork, x1, x2)
++}
++
++/// Design test 7b (C17): a fork taken before upstream force-pushed the held
++/// branch away is rebuilt, and X1's held blob is denied on its readers. An
++/// `H` trigger (current `refs/mirror` tips) has no hit in this fork.
++#[tokio::test]
++async fn b2_t7b_a_fork_taken_before_a_force_push_is_rebuilt() {
++    let (fx, fork, x1, _x2) = c17_fixture(192).await;
++    let forge = forge_at(&fx.plugin);
++    let leaks = held_leaks(&forge, "carol", &x1).await;
++    assert!(
++        leaks.is_empty(),
++        "X1 served by the fork:\n{}",
++        leaks.join("\n")
++    );
++    assert!(!has(&fork, &x1), "X1 is still in the fork");
++}
++
++/// Design test 8 (C9, D1): a fork owner's ref reaching held is dropped and
++/// listed in the fork's report; the fork's other refs survive.
++#[tokio::test]
++async fn b2_t8_a_fork_ref_reaching_held_is_dropped_and_reported() {
++    let fx = legacy(193, Shape::Engine);
++    let fork = make_fork(&fx.plugin, &fx.owner, "carol").await;
++    assert_hardlinked(&fx.served, &fork);
++    git(&fork, &["update-ref", "refs/heads/republished", &fx.held]);
++    let feature = bare_commit(&fork, &fx.m2, "carol.txt", "b2-carol\n", "b2 carol");
++    git(&fork, &["update-ref", "refs/heads/feature", &feature]);
++    let forge = forge_at(&fx.plugin);
++    let leaks = held_leaks(&forge, "carol", &fx.held).await;
++    assert!(
++        leaks.is_empty(),
++        "held commit served by the fork:\n{}",
++        leaks.join("\n")
++    );
++    let refs = refs_of(&fork);
++    assert!(
++        !refs.contains("refs/heads/republished"),
++        "republished kept:\n{refs}"
++    );
++    assert!(refs.contains("refs/heads/feature"), "feature lost:\n{refs}");
++    assert!(refs.contains("refs/heads/main"), "main lost:\n{refs}");
++    let ok = get(
++        &forge,
++        format!("/forge/carol/sample/raw/{feature}/carol.txt"),
++    )
++    .await;
++    assert_eq!(ok.status, 200, "the fork's own branch is not served");
++    let reports = reports_of(&fx.plugin, "carol");
++    assert_eq!(reports.len(), 1, "one fork report");
++    let reason = dropped_reason(&reports[0], "refs/heads/republished");
++    assert_eq!(
++        reason.as_deref(),
++        Some("reaches-held"),
++        "republished is not reported: {}",
++        reports[0]
++    );
++    assert_eq!(reports[0]["class"], "fork", "{}", reports[0]);
++}
++
++/// Design test 19 (D4): a `.fork-*.tmp` directory older than an hour is
++/// moved out of `repos/` into recovery; a fresh one is left alone.
++#[tokio::test]
++async fn b2_t19_a_stale_partial_fork_is_moved_to_recovery() {
++    let fx = legacy(194, Shape::Engine);
++    let repos = fx.plugin.join("repos");
++    let owner_dir = repos.join("carol");
++    std::fs::create_dir_all(&owner_dir).unwrap();
++    let stale = owner_dir.join(".fork-stale.tmp");
++    crate::forks::build_fork_at(&repos, &fx.served, &stale, &fx.owner, "sample")
++        .await
++        .unwrap();
++    assert_hardlinked(&fx.served, &stale);
++    let fresh = owner_dir.join(".fork-fresh.tmp");
++    crate::forks::build_fork_at(&repos, &fx.served, &fresh, &fx.owner, "sample")
++        .await
++        .unwrap();
++    let old = std::time::SystemTime::now() - std::time::Duration::from_secs(2 * 3600);
++    std::fs::File::open(&stale)
++        .unwrap()
++        .set_modified(old)
++        .unwrap();
++    drop(forge_at(&fx.plugin));
++    assert!(
++        !stale.exists(),
++        "the stale partial fork is still under repos/"
++    );
++    assert!(fresh.exists(), "a fresh partial fork was moved");
++    let moved: Vec<String> = std::fs::read_dir(fx.plugin.join("mirror-recovery/carol"))
++        .map(|rd| {
++            rd.flatten()
++                .map(|e| e.file_name().to_string_lossy().into_owned())
++                .collect()
++        })
++        .unwrap_or_default();
++    assert!(
++        moved.iter().any(|n| n.starts_with(".fork-stale.tmp")),
++        "the stale partial fork is not in recovery: {moved:?}"
++    );
++}
++
++/// A fork whose config cannot be read: the pass is incomplete (decision 28)
++/// and the fork is refused.
++#[tokio::test]
++async fn b2_an_unreadable_fork_config_makes_the_pass_incomplete_and_gates() {
++    use std::os::unix::fs::PermissionsExt;
++    let fx = legacy(195, Shape::Engine);
++    let fork = make_fork(&fx.plugin, &fx.owner, "carol").await;
++    assert_hardlinked(&fx.served, &fork);
++    let config = fork.join("config");
++    std::fs::set_permissions(&config, std::fs::Permissions::from_mode(0o000)).unwrap();
++    let probe = std::fs::read(&config);
++    let forge = forge_at(&fx.plugin);
++    let leaks = held_leaks(&forge, "carol", &fx.held).await;
++    let approved = get(
++        &forge,
++        format!("/forge/carol/sample/raw/{}/public.txt", fx.m2),
++    )
++    .await;
++    std::fs::set_permissions(&config, std::fs::Permissions::from_mode(0o644)).unwrap();
++    assert!(
++        probe.is_err_and(|e| e.kind() == std::io::ErrorKind::PermissionDenied),
++        "precondition: the fork's config must be unreadable (EACCES)"
++    );
++    assert!(
++        forge.migration_incomplete,
++        "the pass did not report incomplete"
++    );
++    assert!(
++        leaks.is_empty(),
++        "held commit served by the fork:\n{}",
++        leaks.join("\n")
++    );
++    assert_eq!(approved.status, 503, "the fork is not gated");
++}
++
++/// A `forge.parent` loop (legacy M names its fork carol/sample as parent,
++/// and carol/sample names M): the boot terminates, and the fork is swept.
++#[test]
++fn b2_a_fork_cycle_terminates_and_the_fork_is_swept() {
++    let rt = tokio::runtime::Builder::new_current_thread()
++        .enable_all()
++        .build()
++        .unwrap();
++    let (fx, fork) = rt.block_on(async {
++        let fx = legacy(196, Shape::Engine);
++        let fork = make_fork(&fx.plugin, &fx.owner, "carol").await;
++        assert_hardlinked(&fx.served, &fork);
++        git(&fx.served, &["config", "forge.parent", "carol/sample"]);
++        (fx, fork)
++    });
++    let plugin = fx.plugin.clone();
++    let (tx, rx) = std::sync::mpsc::channel();
++    std::thread::spawn(move || {
++        let _ = tx.send(forge_at(&plugin));
++    });
++    let forge = rx
++        .recv_timeout(std::time::Duration::from_secs(120))
++        .expect("the boot did not terminate on a forge.parent cycle");
++    rt.block_on(async {
++        let leaks = held_leaks(&forge, "carol", &fx.held).await;
++        assert!(
++            leaks.is_empty(),
++            "held commit served by the fork in a cycle:\n{}",
++            leaks.join("\n")
++        );
++        let leaks = held_leaks(&forge, &fx.owner, &fx.held).await;
++        assert!(
++            leaks.is_empty(),
++            "held served by the mirror:\n{}",
++            leaks.join("\n")
++        );
++    });
++    assert!(
++        !has(&fork, &fx.held),
++        "the held commit is still in the fork"
++    );
++}
++
++/// A fork none of whose objects is in an ancestor's dropped set is left
++/// untouched: no journal, no recovery entry, the same config bytes and the
++/// same pack files.
++#[tokio::test]
++async fn b2_a_fork_with_no_dropped_object_is_left_untouched() {
++    use std::os::unix::fs::MetadataExt;
++    let fx = legacy(197, Shape::Engine);
++    let fork = fx.plugin.join("repos/carol/sample.git");
++    std::fs::create_dir_all(fork.parent().unwrap()).unwrap();
++    git(
++        &fx.home,
++        &[
++            "init",
++            "--bare",
++            "--quiet",
++            "-b",
++            "main",
++            fork.to_str().unwrap(),
++        ],
++    );
++    git(
++        &fx.home.join("up"),
++        &["push", "--quiet", fork.to_str().unwrap(), "main:main"],
++    );
++    git(
++        &fork,
++        &["config", "forge.parent", &format!("{}/sample", fx.owner)],
++    );
++    git(&fork, &["repack", "-a", "-d", "-q"]);
++    keep_packs(&fork);
++    let config = std::fs::read(fork.join("config")).unwrap();
++    let packs = |d: &Path| -> Vec<(String, u64)> {
++        let mut v: Vec<(String, u64)> = std::fs::read_dir(d.join("objects/pack"))
++            .unwrap()
++            .flatten()
++            .map(|e| {
++                (
++                    e.file_name().to_string_lossy().into_owned(),
++                    std::fs::metadata(e.path()).unwrap().ino(),
++                )
++            })
++            .collect();
++        v.sort();
++        v
++    };
++    let before = packs(&fork);
++    let forge = forge_at(&fx.plugin);
++    assert!(
++        !journal_of(&fx.plugin, "carol").exists(),
++        "a journal was written"
++    );
++    assert!(
++        !fx.plugin.join("mirror-recovery/carol").exists(),
++        "the clean fork was moved to recovery"
++    );
++    assert_eq!(
++        std::fs::read(fork.join("config")).unwrap(),
++        config,
++        "config changed"
++    );
++    assert_eq!(packs(&fork), before, "the fork's packs changed");
++    assert!(
++        migration_id_of(&fork).is_none(),
++        "the clean fork was rebuilt"
++    );
++    let ok = get(
++        &forge,
++        format!("/forge/carol/sample/raw/{}/public.txt", fx.m2),
++    )
++    .await;
++    assert_eq!(ok.status, 200, "the clean fork is not served");
++}
++
++/// A fork whose legacy parent cannot be migrated (t21's fsck-bad history)
++/// has no dropped set to be checked against: it is gated.
++#[tokio::test]
++async fn b2_a_fork_of_an_unmigrated_parent_is_gated() {
++    let fx = legacy(198, Shape::Engine);
++    let tree = git(&fx.served, &["rev-parse", &format!("{}^{{tree}}", fx.m2)]);
++    let raw = format!(
++        "tree {tree}\nparent {}\nauthor t <t@t> 1700000000 +99999\ncommitter t <t@t> 1700000000 +0000\n\nb2 bad zone\n",
++        fx.m2
++    );
++    let bad = git_stdin(
++        &fx.served,
++        &[
++            "hash-object",
++            "--literally",
++            "-t",
++            "commit",
++            "-w",
++            "--stdin",
++        ],
++        &raw,
++    );
++    git(&fx.served, &["update-ref", "refs/heads/main", &bad]);
++    let fork = make_fork(&fx.plugin, &fx.owner, "carol").await;
++    assert_hardlinked(&fx.served, &fork);
++    let forge = forge_at(&fx.plugin);
++    assert!(
++        journal_of(&fx.plugin, &fx.owner).exists(),
++        "precondition: the parent's migration failed"
++    );
++    let leaks = held_leaks(&forge, "carol", &fx.held).await;
++    assert!(
++        leaks.is_empty(),
++        "held commit served by the fork of an unmigrated parent:\n{}",
++        leaks.join("\n")
++    );
++    let approved = get(
++        &forge,
++        format!("/forge/carol/sample/raw/{}/public.txt", fx.m2),
++    )
++    .await;
++    assert_eq!(approved.status, 503, "the fork is not gated");
++}
++
++/// A followed fork (a fork with a mirror record) gets both treatments: the
++/// mirror's config and marker, and its refs, roots included, filtered
++/// against the inherited held set; `forge.parent` is kept.
++#[tokio::test]
++async fn b2_a_followed_fork_gets_both_treatments() {
++    let fx = legacy(199, Shape::Engine);
++    let follower = owner_of(189);
++    let fork = make_fork(&fx.plugin, &fx.owner, &follower).await;
++    assert_hardlinked(&fx.served, &fork);
++    git(&fork, &["update-ref", "refs/heads/side", &fx.held]);
++    write_record(
++        &fx.plugin,
++        &follower,
++        pre_release_record(&follower).as_bytes(),
++    );
++    let forge = forge_at(&fx.plugin);
++    let leaks = held_leaks(&forge, &follower, &fx.held).await;
++    assert!(
++        leaks.is_empty(),
++        "held commit served by the followed fork:\n{}",
++        leaks.join("\n")
++    );
++    let refs = refs_of(&fork);
++    assert!(
++        !refs.contains("refs/heads/side"),
++        "the held branch was kept:\n{refs}"
++    );
++    assert!(refs.contains("refs/heads/main"), "main lost:\n{refs}");
++    assert!(
++        fork.join(MARKER).is_file(),
++        "the followed fork is not marked"
++    );
++    assert_eq!(
++        config_get(&fork, "receive.denyDeletes").as_deref(),
++        Some("true"),
++        "the followed fork lacks the mirror config"
++    );
++    assert_eq!(
++        config_get(&fork, "forge.parent").as_deref(),
++        Some(format!("{}/sample", fx.owner).as_str()),
++        "forge.parent lost"
++    );
++    let ok = get(
++        &forge,
++        format!("/forge/{follower}/sample/raw/{}/public.txt", fx.m2),
++    )
++    .await;
++    assert_eq!(ok.status, 200, "the followed fork is not served");
++}
++
++/// A rebuilt fork that keeps a ref at X1 (risk 4: X1 is in the parent's
++/// dropped set but not in its held set) is not rebuilt again on the next
++/// boot, and the parent's report is stamped `forksCleanAt`.
++#[tokio::test]
++async fn b2_a_rebuilt_fork_is_not_rebuilt_again_and_the_parent_is_stamped() {
++    let (fx, fork, x1, _x2) = c17_fixture(188).await;
++    git(&fork, &["update-ref", "refs/heads/keep-x1", &x1]);
++    drop(forge_at(&fx.plugin));
++    let id = migration_id_of(&fork).expect("boot 1 did not rebuild the fork");
++    let entries = recovery_entries(&fx.plugin, "carol");
++    assert_eq!(entries.len(), 1, "boot 1: one fork recovery entry");
++    assert!(has(&fork, &x1), "risk 4: the fork ref at X1 is kept");
++    drop(forge_at(&fx.plugin));
++    assert_eq!(
++        migration_id_of(&fork).as_deref(),
++        Some(id.as_str()),
++        "boot 2 rebuilt the fork"
++    );
++    assert_eq!(
++        recovery_entries(&fx.plugin, "carol"),
++        entries,
++        "boot 2 made a recovery entry"
++    );
++    let parent = reports_of(&fx.plugin, &fx.owner);
++    assert_eq!(parent.len(), 1);
++    assert!(
++        parent[0]
++            .get("forksCleanAt")
++            .is_some_and(|v| v.as_u64().is_some()),
++        "the parent's report is not stamped: {}",
++        parent[0]
++    );
++}
++
++/// Item 6: a fork of a source with a migration journal is refused (503)
++/// through `resolve_repo`; a fork onto a journalled target is covered by
++/// `f12_a_fork_onto_a_journalled_name_is_refused`.
++#[tokio::test]
++async fn b2_a_fork_of_a_journalled_source_is_refused() {
++    let tmp = tempfile::tempdir().unwrap();
++    let home = tmp.path();
++    let plugin = home.join("plugin");
++    bare_with_commit(home, &plugin.join("repos/alice/src.git"), "b2-src\n");
++    let forge = forge_at(&plugin);
++    let journal = plugin.join("mirror-work/migrations/alice/src.json");
++    std::fs::create_dir_all(journal.parent().unwrap()).unwrap();
++    std::fs::write(
++        &journal,
++        r#"{"id":"s","ts":1,"class":"fork","state":"building","recovery":"mirror-recovery/alice/src.git.1","attempts":0}"#,
++    )
++    .unwrap();
++    let caller = owner_of(187);
++    let mut r = req("POST", "/forge/api/repos/alice/src/fork", "");
++    r.raw_body = bytes::Bytes::from_static(br#"{"name":"sample"}"#);
++    let got = forge
++        .handle(
++            r,
++            crate::ForgeAgent::Nostr {
++                pubkey_hex: caller.clone(),
++            },
++        )
++        .await;
++    let status = got.map_or_else(|e| e.status_code(), |r| r.status);
++    assert_eq!(status, 503, "a fork of a journalled source was made");
++    assert!(!plugin
++        .join("repos")
++        .join(&caller)
++        .join("sample.git")
++        .exists());
++}
++
++/// Plant a fork journal for `<owner>/sample` naming `parent`.
++fn plant_fork_journal(plugin: &Path, owner: &str, parent: &str, reason: &str, attempts: u32) {
++    let journal = plugin
++        .join("mirror-work/migrations")
++        .join(owner)
++        .join("sample.json");
++    std::fs::create_dir_all(journal.parent().unwrap()).unwrap();
++    std::fs::write(
++        &journal,
++        format!(
++            r#"{{"id":"planted","ts":1,"class":"fork","state":"failed","recovery":"mirror-recovery/{owner}/sample.git.1","attempts":{attempts},"reason":"{reason}","parent":"{parent}"}}"#
++        ),
++    )
++    .unwrap();
++}
++
++/// A fork with an existing (not detection-error) journal whose ancestor is
++/// gated is not rebuilt: with no ancestor reports there is no held set to
++/// filter against, so a rebuild would publish a ref reaching held.
++#[tokio::test]
++async fn b2_a_journalled_fork_with_a_gated_ancestor_is_not_rebuilt() {
++    let fx = legacy(186, Shape::Engine);
++    let fork = make_fork(&fx.plugin, &fx.owner, "carol").await;
++    assert_hardlinked(&fx.served, &fork);
++    git(&fork, &["update-ref", "refs/heads/republished", &fx.held]);
++    let tree = git(&fx.served, &["rev-parse", &format!("{}^{{tree}}", fx.m2)]);
++    let raw = format!(
++        "tree {tree}\nparent {}\nauthor t <t@t> 1700000000 +99999\ncommitter t <t@t> 1700000000 +0000\n\nb2 bad zone\n",
++        fx.m2
++    );
++    let bad = git_stdin(
++        &fx.served,
++        &[
++            "hash-object",
++            "--literally",
++            "-t",
++            "commit",
++            "-w",
++            "--stdin",
++        ],
++        &raw,
++    );
++    git(&fx.served, &["update-ref", "refs/heads/main", &bad]);
++    plant_fork_journal(
++        &fx.plugin,
++        "carol",
++        &format!("{}/sample", fx.owner),
++        "push into staging failed",
++        1,
++    );
++    let forge = forge_at(&fx.plugin);
++    assert!(
++        journal_of(&fx.plugin, &fx.owner).exists(),
++        "precondition: the parent's migration failed"
++    );
++    let leaks = held_leaks(&forge, "carol", &fx.held).await;
++    assert!(
++        leaks.is_empty(),
++        "held commit served by the fork:\n{}",
++        leaks.join("\n")
++    );
++    assert!(
++        journal_of(&fx.plugin, "carol").exists(),
++        "the fork journal was removed"
++    );
++    assert!(
++        recovery_entries(&fx.plugin, "carol").is_empty(),
++        "the fork was rebuilt without its ancestors' held set"
++    );
++    let approved = get(
++        &forge,
++        format!("/forge/carol/sample/raw/{}/public.txt", fx.m2),
++    )
++    .await;
++    assert_eq!(approved.status, 503, "the fork is not gated");
++}
++
++/// A rebuilt fork keeping a ref at X1 (risk 4) is not rebuilt again even
++/// when stamping stays blocked (another fork of the parent, erin's, has
++/// given up): the fork report's `ancestors` covers the parent's report.
++#[tokio::test]
++async fn b2_a_rebuilt_fork_is_not_rebuilt_again_while_stamping_is_blocked() {
++    let (fx, fork, x1, _x2) = c17_fixture(185).await;
++    git(&fork, &["update-ref", "refs/heads/keep-x1", &x1]);
++    plant_fork_journal(
++        &fx.plugin,
++        "erin",
++        &format!("{}/sample", fx.owner),
++        "push into staging failed",
++        3,
++    );
++    drop(forge_at(&fx.plugin));
++    let id = migration_id_of(&fork).expect("boot 1 did not rebuild the fork");
++    let entries = recovery_entries(&fx.plugin, "carol");
++    assert_eq!(entries.len(), 1, "boot 1: one fork recovery entry");
++    drop(forge_at(&fx.plugin));
++    let parent = reports_of(&fx.plugin, &fx.owner);
++    assert_eq!(parent.len(), 1);
++    assert!(
++        parent[0].get("forksCleanAt").is_none(),
++        "precondition: stamping must stay blocked: {}",
++        parent[0]
++    );
++    assert_eq!(
++        migration_id_of(&fork).as_deref(),
++        Some(id.as_str()),
++        "boot 2 rebuilt the fork"
++    );
++    assert_eq!(
++        recovery_entries(&fx.plugin, "carol"),
++        entries,
++        "boot 2 made a recovery entry"
++    );
++}
++
++// ---- B2 fix round 1 -----------------------------------------------------
++
++/// Held denial on the raw, HTML and archive readers of `<o>/<seg>`, where
++/// `seg` is the URL segment (`foo.git.git` for a store named `foo.git`;
++/// the JSON API refuses such a name on its own).
++async fn held_leaks_at(forge: &crate::ForgeService, o: &str, seg: &str, h: &str) -> Vec<String> {
++    let paths = [
++        format!("/forge/{o}/{seg}/raw/{h}/held.txt"),
++        format!("/forge/{o}/{seg}/blob/{h}/held.txt"),
++        format!("/forge/{o}/{seg}/tree/{h}"),
++        format!("/forge/{o}/{seg}/commit/{h}"),
++        format!("/forge/{o}/{seg}/archive/{h}.tar.gz"),
++    ];
++    let mut leaks = Vec::new();
++    for p in paths {
++        let r = get(forge, p.clone()).await;
++        let bytes = contains(&r.body, HELD.trim_end().as_bytes())
++            || contains(&r.body, HELD_SUBJECT.as_bytes());
++        if (200..300).contains(&r.status) || bytes {
++            leaks.push(format!("{p} -> {} (held bytes: {bytes})", r.status));
++        }
++    }
++    leaks
++}
++
++/// Item 1 (F1): a legacy mirror named `foo.git` (served as
++/// `repos/<hex>/foo.git.git`), forked to `carol/foo.git` by the production
++/// fork builder, records `forge.parent = <hex>/foo.git`, which the strict
++/// lineage parser rejects (`valid_repo` refuses a `.git` suffix). The sweep
++/// must still see and rebuild the fork: held is denied on carol's raw, HTML
++/// and archive readers.
++#[tokio::test]
++async fn b2f1_a_fork_of_a_dot_git_named_mirror_is_swept() {
++    let fx = legacy(176, Shape::Engine);
++    let repos = fx.plugin.join("repos");
++    let src = repos.join(&fx.owner).join("foo.git.git");
++    std::fs::rename(&fx.served, &src).unwrap();
++    let owner_dir = repos.join("carol");
++    std::fs::create_dir_all(&owner_dir).unwrap();
++    let tmp = owner_dir.join(format!(".fork-{}.tmp", uuid::Uuid::new_v4()));
++    crate::forks::build_fork_at(&repos, &src, &tmp, &fx.owner, "foo.git")
++        .await
++        .expect("the fork builds");
++    let fork = owner_dir.join("foo.git.git");
++    std::fs::rename(&tmp, &fork).unwrap();
++    assert_hardlinked(&src, &fork);
++    assert_eq!(
++        config_get(&fork, "forge.parent"),
++        Some(format!("{}/foo.git", fx.owner)),
++        "precondition: the production builder records the lineage"
++    );
++    let conf = std::fs::read_to_string(fork.join("config")).unwrap();
++    assert!(
++        crate::forks::parse_fork_parent(&conf).is_none(),
++        "precondition: the strict parser rejects this lineage"
++    );
++    assert!(
++        has(&fork, &fx.held),
++        "precondition: the fork holds the held commit"
++    );
++    let forge = forge_at(&fx.plugin);
++    let leaks = held_leaks_at(&forge, "carol", "foo.git.git", &fx.held).await;
++    assert!(
++        leaks.is_empty(),
++        "held commit served by the fork of a mirror named foo.git:\n{}",
++        leaks.join("\n")
++    );
++    let ok = get(
++        &forge,
++        format!("/forge/carol/foo.git.git/raw/{}/public.txt", fx.m2),
++    )
++    .await;
++    assert_eq!(
++        ok.status, 200,
++        "the swept fork's approved content is not served"
++    );
++    assert!(
++        !has(&fork, &fx.held),
++        "the held commit is still in the fork"
++    );
++}
++
++/// Item 1: a `forge.parent` that is present but unparseable (`x/y/z`) is a
++/// fork of unknown lineage. It gets the orphan treatment (checked against
++/// every mirror-class report, so this hardlinked fork is rebuilt), keeps its
++/// lineage, and never lets a report be stamped.
++#[tokio::test]
++async fn b2f1_a_fork_of_unknown_lineage_is_checked_against_every_report() {
++    let fx = legacy(177, Shape::Engine);
++    let fork = make_fork(&fx.plugin, &fx.owner, "carol").await;
++    assert_hardlinked(&fx.served, &fork);
++    git(&fork, &["config", "--local", "forge.parent", "x/y/z"]);
++    assert!(
++        has(&fork, &fx.held),
++        "precondition: the fork holds the held commit"
++    );
++    let forge = forge_at(&fx.plugin);
++    let leaks = held_leaks(&forge, "carol", &fx.held).await;
++    assert!(
++        leaks.is_empty(),
++        "held commit served by a fork of unknown lineage:\n{}",
++        leaks.join("\n")
++    );
++    let ok = get(
++        &forge,
++        format!("/forge/carol/sample/raw/{}/public.txt", fx.m2),
++    )
++    .await;
++    assert_eq!(
++        ok.status, 200,
++        "the swept fork's approved content is not served"
++    );
++    assert_eq!(
++        config_get(&fork, "forge.parent").as_deref(),
++        Some("x/y/z"),
++        "the unknown lineage was not kept"
++    );
++    let parent = reports_of(&fx.plugin, &fx.owner);
++    assert_eq!(parent.len(), 1, "precondition: the parent migrated");
++    assert!(
++        parent[0].get("forksCleanAt").is_none(),
++        "a fork of unknown lineage let the parent's report be stamped: {}",
++        parent[0]
++    );
++}
++
++/// Item 1: while the pass is incomplete (erin's config is unreadable), a
++/// store whose `forge.parent` is present but unparseable is refused like
++/// any other fork.
++#[tokio::test]
++async fn b2f1_a_fork_of_unknown_lineage_is_gated_while_the_pass_is_incomplete() {
++    use std::os::unix::fs::PermissionsExt;
++    let fx = legacy(178, Shape::Engine);
++    let fork = make_fork(&fx.plugin, &fx.owner, "carol").await;
++    git(&fork, &["config", "--local", "forge.parent", "x/y/z"]);
++    let other = make_fork(&fx.plugin, &fx.owner, "erin").await;
++    let config = other.join("config");
++    std::fs::set_permissions(&config, std::fs::Permissions::from_mode(0o000)).unwrap();
++    let probe = std::fs::read(&config);
++    let forge = forge_at(&fx.plugin);
++    let approved = get(
++        &forge,
++        format!("/forge/carol/sample/raw/{}/public.txt", fx.m2),
++    )
++    .await;
++    std::fs::set_permissions(&config, std::fs::Permissions::from_mode(0o644)).unwrap();
++    assert!(
++        probe.is_err_and(|e| e.kind() == std::io::ErrorKind::PermissionDenied),
++        "precondition: erin's config must be unreadable (EACCES)"
++    );
++    assert!(
++        forge.migration_incomplete,
++        "precondition: the pass must be incomplete"
++    );
++    assert_eq!(
++        approved.status, 503,
++        "a fork of unknown lineage is served while the pass is incomplete"
++    );
++}
++
++/// Item 1: `h_api_fork` refuses to write a lineage the parser would reject
++/// (a source named `foo.git`), so no new fork of unknown lineage is made.
++#[tokio::test]
++async fn b2f1_a_fork_whose_lineage_the_parser_rejects_is_refused() {
++    let tmp = tempfile::tempdir().unwrap();
++    let home = tmp.path();
++    let plugin = home.join("plugin");
++    bare_with_commit(home, &plugin.join("repos/alice/foo.git.git"), "b2-src\n");
++    let caller = owner_of(179);
++    let forge = forge_at(&plugin);
++    let r = req("POST", "/forge/api/repos/alice/foo.git.git/fork", "");
++    let got = forge
++        .handle(
++            r,
++            crate::ForgeAgent::Nostr {
++                pubkey_hex: caller.clone(),
++            },
++        )
++        .await;
++    let status = got.map_or_else(|e| e.status_code(), |r| r.status);
++    assert_eq!(status, 422, "a fork with an unparseable lineage was made");
++    assert!(!plugin
++        .join("repos")
++        .join(&caller)
++        .join("foo.git.git")
++        .exists());
++}
++
++/// Item 2 (F2): carol forked the legacy store while it held X1; upstream
++/// then force-pushed X1 away and the legacy engine's `gc` pruned it from the
++/// parent, so X1 is in neither the parent's held nor its dropped set. The
++/// fork still holds X1 in its hardlinked pack, unreachable from its refs:
++/// it is rebuilt, and X1 is denied.
++#[tokio::test]
++async fn b2f1_a_fork_keeping_an_object_pruned_from_the_parent_is_rebuilt() {
++    let (fx, fork, x1, _x2) = c17_fixture(182).await;
++    for e in std::fs::read_dir(fx.served.join("objects/pack"))
++        .unwrap()
++        .flatten()
++    {
++        if e.path().extension().is_some_and(|x| x == "keep") {
++            std::fs::remove_file(e.path()).unwrap();
++        }
++    }
++    git(&fx.served, &["reflog", "expire", "--expire=now", "--all"]);
++    git(&fx.served, &["gc", "--quiet", "--prune=now"]);
++    assert!(
++        !has(&fx.served, &x1),
++        "precondition: X1 pruned from the parent"
++    );
++    assert!(has(&fork, &x1), "precondition: the fork still holds X1");
++    let forge = forge_at(&fx.plugin);
++    let entries = recovery_entries(&fx.plugin, &fx.owner);
++    assert_eq!(entries.len(), 1, "precondition: the parent migrated");
++    let dropped = std::fs::read_to_string(sibling(&entries[0], ".dropped")).unwrap();
++    assert!(
++        !dropped.lines().any(|l| l == x1),
++        "precondition: X1 is not in the parent's dropped set"
++    );
++    let leaks = held_leaks(&forge, "carol", &x1).await;
++    assert!(
++        leaks.is_empty(),
++        "X1, pruned from the parent, served by the fork:\n{}",
++        leaks.join("\n")
++    );
++    assert!(!has(&fork, &x1), "X1 is still in the fork");
++}
++
++/// Item 4 (Codex Medium 2): a journalled ancestor fork under a non-hex
++/// owner (carol, given up after three attempts) gates its descendant dave.
++#[tokio::test]
++async fn b2f1_a_journalled_ancestor_fork_under_any_owner_gates_its_descendants() {
++    let fx = legacy(183, Shape::Engine);
++    let carol = make_fork(&fx.plugin, &fx.owner, "carol").await;
++    let dave = make_fork(&fx.plugin, "carol", "dave").await;
++    assert_hardlinked(&carol, &dave);
++    plant_fork_journal(
++        &fx.plugin,
++        "carol",
++        &format!("{}/sample", fx.owner),
++        "push into staging failed",
++        3,
++    );
++    let forge = forge_at(&fx.plugin);
++    assert!(
++        journal_of(&fx.plugin, "carol").exists(),
++        "precondition: carol's journal stays"
++    );
++    let leaks = held_leaks(&forge, "dave", &fx.held).await;
++    assert!(
++        leaks.is_empty(),
++        "held commit served by dave:\n{}",
++        leaks.join("\n")
++    );
++    let approved = get(
++        &forge,
++        format!("/forge/dave/sample/raw/{}/public.txt", fx.m2),
++    )
++    .await;
++    assert_eq!(
++        approved.status, 503,
++        "a descendant of a journalled fork is served"
++    );
++    assert!(
++        journal_of(&fx.plugin, "dave").exists(),
++        "the descendant is not gated by a journal"
++    );
++}
++
++/// Item 5 (Codex fail-open 3): a fork crash-resumed after the second rename
++/// (`published`, the served store carrying the journal's id) whose ancestor
++/// is now gated is not published: its journal stays.
++#[tokio::test]
++async fn b2f1_a_crash_resumed_fork_with_a_gated_ancestor_keeps_its_journal() {
++    let fx = legacy(184, Shape::Engine);
++    let fork = make_fork(&fx.plugin, &fx.owner, "carol").await;
++    assert_hardlinked(&fx.served, &fork);
++    drop(forge_at(&fx.plugin));
++    let id = migration_id_of(&fork).expect("boot 1 did not rebuild the fork");
++    let entries = recovery_entries(&fx.plugin, "carol");
++    assert_eq!(entries.len(), 1, "boot 1: one fork recovery entry");
++    let rel = entries[0]
++        .strip_prefix(&fx.plugin)
++        .unwrap()
++        .to_str()
++        .unwrap()
++        .to_string();
++    // Rewind carol to a crash after the second rename.
++    plant_journal(
++        &fx.plugin,
++        "carol",
++        &format!(
++            r#"{{"id":"{id}","ts":1,"class":"fork","state":"published","moved":true,"recovery":"{rel}","attempts":0,"parent":"{}/sample"}}"#,
++            fx.owner
++        ),
++    );
++    // Gate the ancestor: a mirror journal that has given up.
++    plant_journal(
++        &fx.plugin,
++        &fx.owner,
++        &format!(
++            r#"{{"id":"planted","ts":1,"class":"mirror","state":"failed","recovery":"mirror-recovery/{}/sample.git.1","attempts":3,"reason":"push into staging failed"}}"#,
++            fx.owner
++        ),
++    );
++    let forge = forge_at(&fx.plugin);
++    assert!(
++        journal_of(&fx.plugin, &fx.owner).exists(),
++        "precondition: the ancestor stays gated"
++    );
++    assert!(
++        journal_of(&fx.plugin, "carol").exists(),
++        "a crash-resumed fork with a gated ancestor had its journal removed"
++    );
++    let approved = get(
++        &forge,
++        format!("/forge/carol/sample/raw/{}/public.txt", fx.m2),
++    )
++    .await;
++    assert_eq!(approved.status, 503, "the fork is not gated");
++}
+diff --git a/crates/solid-pod-rs-forge/src/migrate_tests.rs b/crates/solid-pod-rs-forge/src/migrate_tests.rs
+index f75367b..0a91f89 100644
+--- a/crates/solid-pod-rs-forge/src/migrate_tests.rs
++++ b/crates/solid-pod-rs-forge/src/migrate_tests.rs
+@@ -2281,3 +2281,6 @@ async fn h2_a_fast_push_past_the_cap_is_caught_by_the_final_check() {
+     );
+     assert_gated(&fx, &forge).await;
+ }
++
++#[path = "migrate_fork_tests.rs"]
++mod fork;

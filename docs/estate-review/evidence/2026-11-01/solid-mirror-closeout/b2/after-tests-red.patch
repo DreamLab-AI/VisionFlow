@@ -1,0 +1,818 @@
+diff --git a/crates/solid-pod-rs-forge/src/forks.rs b/crates/solid-pod-rs-forge/src/forks.rs
+index 77a592c..774b12b 100644
+--- a/crates/solid-pod-rs-forge/src/forks.rs
++++ b/crates/solid-pod-rs-forge/src/forks.rs
+@@ -56,7 +56,7 @@ pub fn full(&self) -> String {
+ 
+ /// `(section, key, value)` triples of a git config file (section and key
+ /// lowercased).
+-fn config_entries(conf: &str) -> Vec<(String, String, String)> {
++pub(crate) fn config_entries(conf: &str) -> Vec<(String, String, String)> {
+     let mut out = Vec::new();
+     let mut section = String::new();
+     for raw in conf.lines() {
+@@ -111,6 +111,24 @@ pub fn read_fork_parent(repo_root: &Path, owner: &str, name: &str) -> Option<For
+     parse_fork_parent(&conf)
+ }
+ 
++/// The lineage in the config file of the bare repository at `git_dir`:
++/// `Ok(None)` when it is not a fork. Unlike [`read_fork_parent`], a config
++/// that cannot be read (missing included) is an error, never "not a fork";
++/// the config must be a regular file.
++///
++/// # Errors
++///
++/// The error checking or reading `git_dir/config`.
++pub(crate) fn read_fork_parent_checked(git_dir: &Path) -> std::io::Result<Option<ForkParent>> {
++    let path = git_dir.join("config");
++    let meta = std::fs::symlink_metadata(&path)?;
++    if !meta.file_type().is_file() {
++        return Err(std::io::Error::other("the config is not a regular file"));
++    }
++    let conf = std::fs::read(&path)?;
++    Ok(parse_fork_parent(&String::from_utf8_lossy(&conf)))
++}
++
+ /// Count repositories naming `<owner>/<name>` as `forge.parent`, scanning at
+ /// most [`FORK_SCAN_CAP`] repositories (JSS `countForks`).
+ pub async fn count_forks(repo_root: &Path, owner: &str, name: &str) -> usize {
+@@ -344,39 +362,52 @@ async fn build_fork(
+         owner: &str,
+         name: &str,
+     ) -> Result<(), ForgeError> {
+-        let (s, t) = (src.to_string_lossy(), tmp.to_string_lossy());
+-        let c = prgit::run_at(
+-            &self.repo_root,
+-            None,
+-            &["clone", "--local", "--bare", "--quiet", "--", &s, &t],
+-            &[],
+-        )
+-        .await?;
+-        if !c.ok() {
++        build_fork_at(&self.repo_root, src, tmp, owner, name).await
++    }
++}
++
++/// Clone `src` into `tmp` (`clone --local --bare`, run from `repo_root`) and
++/// write the fork's configuration: `http.receivepack`, `refs/forge/` hidden
++/// from upload-pack and transfer, and `forge.parent = <owner>/<name>`.
++pub(crate) async fn build_fork_at(
++    repo_root: &Path,
++    src: &Path,
++    tmp: &Path,
++    owner: &str,
++    name: &str,
++) -> Result<(), ForgeError> {
++    let (s, t) = (src.to_string_lossy(), tmp.to_string_lossy());
++    let c = prgit::run_at(
++        repo_root,
++        None,
++        &["clone", "--local", "--bare", "--quiet", "--", &s, &t],
++        &[],
++    )
++    .await?;
++    if !c.ok() {
++        return Err(ForgeError::Backend(format!(
++            "fork clone failed: {}",
++            c.stderr.trim()
++        )));
++    }
++    let lineage = format!("{owner}/{name}");
++    for args in [
++        vec!["config", "http.receivepack", "true"],
++        vec!["config", "--add", "uploadpack.hideRefs", FORGE_REFS],
++        vec!["config", "--add", "transfer.hideRefs", FORGE_REFS],
++        vec!["config", "forge.parent", lineage.as_str()],
++    ] {
++        let o = prgit::run(tmp, &args).await?;
++        if !o.ok() {
+             return Err(ForgeError::Backend(format!(
+-                "fork clone failed: {}",
+-                c.stderr.trim()
++                "fork config failed: {}",
++                o.stderr.trim()
+             )));
+         }
+-        let lineage = format!("{owner}/{name}");
+-        for args in [
+-            vec!["config", "http.receivepack", "true"],
+-            vec!["config", "--add", "uploadpack.hideRefs", FORGE_REFS],
+-            vec!["config", "--add", "transfer.hideRefs", FORGE_REFS],
+-            vec!["config", "forge.parent", lineage.as_str()],
+-        ] {
+-            let o = prgit::run(tmp, &args).await?;
+-            if !o.ok() {
+-                return Err(ForgeError::Backend(format!(
+-                    "fork config failed: {}",
+-                    o.stderr.trim()
+-                )));
+-            }
+-        }
+-        // The clone's origin is an internal filesystem path: drop it.
+-        let _ = prgit::run(tmp, &["remote", "remove", "origin"]).await;
+-        Ok(())
+     }
++    // The clone's origin is an internal filesystem path: drop it.
++    let _ = prgit::run(tmp, &["remote", "remove", "origin"]).await;
++    Ok(())
+ }
+ 
+ #[cfg(test)]
+diff --git a/crates/solid-pod-rs-forge/src/migrate_fork_tests.rs b/crates/solid-pod-rs-forge/src/migrate_fork_tests.rs
+new file mode 100644
+index 0000000..1248d4c
+--- /dev/null
++++ b/crates/solid-pod-rs-forge/src/migrate_fork_tests.rs
+@@ -0,0 +1,681 @@
++//! Tests for the fork sweep of the boot migration (SP-GIT-02 Commit B2).
++//!
++//! A child of `migrate_tests`, so it shares its fixtures. Every fork here is
++//! made the way production makes one (`forks::build_fork_at`, a
++//! `clone --local --bare` that hardlinks the parent's packs), and that
++//! hardlink is asserted as a precondition (control C15: a delete-plus-gc
++//! implementation goes red on a hardlinked fork).
++
++use super::*;
++
++/// Make `<fork_owner>/sample` a fork of `<src_owner>/<src_name>` with the
++/// production fork builder, under a `.fork-*.tmp` name, then renamed into
++/// place as `h_api_fork` does.
++async fn make_fork(plugin: &Path, src_owner: &str, fork_owner: &str) -> PathBuf {
++    let repos = plugin.join("repos");
++    let src = repos.join(src_owner).join("sample.git");
++    let owner_dir = repos.join(fork_owner);
++    std::fs::create_dir_all(&owner_dir).unwrap();
++    let tmp = owner_dir.join(format!(".fork-{}.tmp", uuid::Uuid::new_v4()));
++    crate::forks::build_fork_at(&repos, &src, &tmp, src_owner, "sample")
++        .await
++        .expect("the fork builds");
++    let dest = owner_dir.join("sample.git");
++    std::fs::rename(&tmp, &dest).unwrap();
++    dest
++}
++
++/// Precondition (C15): the fork shares at least one pack file, by inode,
++/// with `parent`.
++fn assert_hardlinked(parent: &Path, fork: &Path) {
++    use std::os::unix::fs::MetadataExt;
++    let inodes = |d: &Path| -> Vec<(u64, u64)> {
++        std::fs::read_dir(d.join("objects/pack"))
++            .map(|rd| {
++                rd.flatten()
++                    .filter_map(|e| std::fs::metadata(e.path()).ok())
++                    .filter(|m| m.is_file() && m.nlink() > 1)
++                    .map(|m| (m.dev(), m.ino()))
++                    .collect()
++            })
++            .unwrap_or_default()
++    };
++    let theirs = inodes(parent);
++    assert!(
++        inodes(fork).iter().any(|i| theirs.contains(i)),
++        "precondition: the fork must hardlink the parent's pack (C15)"
++    );
++}
++
++/// Run git with `input` on stdin and the fixed identity.
++fn git_stdin(cwd: &Path, args: &[&str], input: &str) -> String {
++    use std::io::Write;
++    let mut child = Command::new("git")
++        .args([
++            "-c",
++            "user.name=Agent",
++            "-c",
++            "user.email=agent@example.org",
++        ])
++        .args(args)
++        .current_dir(cwd)
++        .env("GIT_CONFIG_GLOBAL", "/dev/null")
++        .env("GIT_CONFIG_NOSYSTEM", "1")
++        .env("GIT_AUTHOR_DATE", "1700000000 +0000")
++        .env("GIT_COMMITTER_DATE", "1700000000 +0000")
++        .stdin(std::process::Stdio::piped())
++        .stdout(std::process::Stdio::piped())
++        .stderr(std::process::Stdio::piped())
++        .spawn()
++        .expect("git runs");
++    child
++        .stdin
++        .take()
++        .unwrap()
++        .write_all(input.as_bytes())
++        .unwrap();
++    let out = child.wait_with_output().unwrap();
++    assert!(
++        out.status.success(),
++        "git {args:?}: {}",
++        String::from_utf8_lossy(&out.stderr)
++    );
++    String::from_utf8_lossy(&out.stdout).trim().to_string()
++}
++
++/// A commit in the bare store `dir` on top of `parent`, adding `file`.
++fn bare_commit(dir: &Path, parent: &str, file: &str, body: &str, subject: &str) -> String {
++    let blob = git_stdin(dir, &["hash-object", "-w", "--stdin"], body);
++    let base = git(dir, &["ls-tree", &format!("{parent}^{{tree}}")]);
++    let listing = format!("{base}\n100644 blob {blob}\t{file}\n");
++    let tree = git_stdin(dir, &["mktree"], &listing);
++    git(dir, &["commit-tree", &tree, "-p", parent, "-m", subject])
++}
++
++fn config_get(dir: &Path, key: &str) -> Option<String> {
++    let out = Command::new("git")
++        .args(["config", "--local", "--get", key])
++        .current_dir(dir)
++        .env("GIT_CONFIG_GLOBAL", "/dev/null")
++        .env("GIT_CONFIG_NOSYSTEM", "1")
++        .output()
++        .unwrap();
++    out.status
++        .success()
++        .then(|| String::from_utf8_lossy(&out.stdout).trim().to_string())
++}
++
++/// The migration reports `mirror-recovery/<owner>/sample.git.<ts>.migration.json`.
++fn reports_of(plugin: &Path, owner: &str) -> Vec<serde_json::Value> {
++    recovery_entries(plugin, owner)
++        .iter()
++        .filter_map(|e| std::fs::read(sibling(e, ".migration.json")).ok())
++        .map(|b| serde_json::from_slice(&b).unwrap())
++        .collect()
++}
++
++fn migration_id_of(store: &Path) -> Option<String> {
++    std::fs::read_to_string(store.join(MIGRATION_ID))
++        .ok()
++        .map(|s| s.trim().to_string())
++}
++
++/// Design test 6: a fork of a legacy mirror, made with the production fork
++/// builder and then marked by hand (decision 19: the marker never decides
++/// the sweep), is rebuilt. Held is denied on the fork's readers; the fork's
++/// branches, its pull-request heads and `forge.parent` survive;
++/// `receive.denyDeletes` is not set; the marker it had is kept.
++#[tokio::test]
++async fn b2_t6_a_fork_of_a_legacy_mirror_is_rebuilt() {
++    let fx = legacy(190, Shape::Engine);
++    let fork = make_fork(&fx.plugin, &fx.owner, "carol").await;
++    assert_hardlinked(&fx.served, &fork);
++    let feature = bare_commit(&fork, &fx.m2, "carol.txt", "b2-carol\n", "b2 carol");
++    git(&fork, &["update-ref", "refs/heads/feature", &feature]);
++    let pr = bare_commit(&fork, &fx.m2, "dave.txt", "b2-dave-pr\n", "b2 dave pr");
++    git(&fork, &["update-ref", "refs/forge/heads/dave/x", &pr]);
++    std::fs::write(fork.join(MARKER), format!("{MARKER}\n")).unwrap();
++    assert!(
++        has(&fork, &fx.held),
++        "precondition: the fork holds the held commit"
++    );
++    let forge = forge_at(&fx.plugin);
++    let leaks = held_leaks(&forge, "carol", &fx.held).await;
++    assert!(
++        leaks.is_empty(),
++        "held commit served by the fork:\n{}",
++        leaks.join("\n")
++    );
++    let ok = get(
++        &forge,
++        format!("/forge/carol/sample/raw/{feature}/carol.txt"),
++    )
++    .await;
++    assert_eq!(ok.status, 200, "the fork's own branch is not served");
++    let refs = refs_of(&fork);
++    for r in [
++        "refs/heads/main",
++        "refs/heads/feature",
++        "refs/forge/heads/dave/x",
++    ] {
++        assert!(refs.contains(r), "{r} lost from the fork:\n{refs}");
++    }
++    assert_eq!(
++        config_get(&fork, "forge.parent").as_deref(),
++        Some(format!("{}/sample", fx.owner).as_str()),
++        "forge.parent lost"
++    );
++    assert_eq!(
++        config_get(&fork, "receive.denyDeletes"),
++        None,
++        "a fork must not get the mirror's receive.denyDeletes"
++    );
++    assert!(
++        fork.join(MARKER).is_file(),
++        "the fork's marker was not kept"
++    );
++    assert!(
++        !journal_of(&fx.plugin, "carol").exists(),
++        "fork journal left"
++    );
++    assert_eq!(
++        recovery_entries(&fx.plugin, "carol").len(),
++        1,
++        "no fork recovery entry"
++    );
++    assert!(
++        !has(&fork, &fx.held),
++        "the held commit is still in the fork"
++    );
++}
++
++/// Design test 7: a fork of a fork (transitive) is rebuilt (C2).
++#[tokio::test]
++async fn b2_t7_a_fork_of_a_fork_is_rebuilt() {
++    let fx = legacy(191, Shape::Engine);
++    let first = make_fork(&fx.plugin, &fx.owner, "carol").await;
++    let second = make_fork(&fx.plugin, "carol", "dave").await;
++    assert_hardlinked(&first, &second);
++    assert!(
++        has(&second, &fx.held),
++        "precondition: the fork of a fork holds held"
++    );
++    let forge = forge_at(&fx.plugin);
++    let leaks = held_leaks(&forge, "dave", &fx.held).await;
++    assert!(
++        leaks.is_empty(),
++        "held commit served by the fork of a fork:\n{}",
++        leaks.join("\n")
++    );
++    assert!(
++        !has(&second, &fx.held),
++        "the held commit is still in the fork of a fork"
++    );
++    assert_eq!(
++        config_get(&second, "forge.parent").as_deref(),
++        Some("carol/sample")
++    );
++}
++
++/// The C17 shape: a legacy store whose held branch `side` was at `X1` when
++/// carol forked it; upstream then force-pushed `side` to an unrelated `X2`
++/// and the legacy store refetched. `(fixture, fork, X1, X2)`.
++async fn c17_fixture(seed: u8) -> (Legacy, PathBuf, String, String) {
++    let fx = legacy(seed, Shape::Engine);
++    // Start from a store with nothing outside the roots but `refs/mirror`.
++    for r in [
++        "refs/misc/stash-held",
++        "refs/misc/blob",
++        "refs/notes/commits",
++    ] {
++        git(&fx.served, &["update-ref", "-d", r]);
++    }
++    git(
++        &fx.served,
++        &["update-ref", "-d", "refs/forge/heads/bob/feat"],
++    );
++    let x1 = fx.held.clone();
++    let fork = make_fork(&fx.plugin, &fx.owner, "carol").await;
++    assert_hardlinked(&fx.served, &fork);
++    let up = fx.home.join("up");
++    git(&up, &["checkout", "--quiet", "--orphan", "b2-x2"]);
++    git(&up, &["rm", "-rf", "--quiet", "."]);
++    std::fs::write(up.join("x2.txt"), "b2-unrelated-x2\n").unwrap();
++    git(&up, &["add", "-A"]);
++    git(&up, &["commit", "--quiet", "-m", "b2 x2"]);
++    let x2 = git(&up, &["rev-parse", "HEAD"]);
++    git(&up, &["branch", "-M", "b2-x2", "side"]);
++    git(
++        &fx.served,
++        &[
++            "fetch",
++            "--quiet",
++            "--no-tags",
++            "--prune",
++            up.to_str().unwrap(),
++            "+refs/heads/*:refs/mirror/*",
++        ],
++    );
++    assert_eq!(git(&fx.served, &["rev-parse", "refs/mirror/side"]), x2);
++    assert!(has(&fork, &x1), "precondition: the fork still holds X1");
++    assert!(
++        !has(&fork, &x2),
++        "precondition: X2 is not in the fork (H trigger misses)"
++    );
++    (fx, fork, x1, x2)
++}
++
++/// Design test 7b (C17): a fork taken before upstream force-pushed the held
++/// branch away is rebuilt, and X1's held blob is denied on its readers. An
++/// `H` trigger (current `refs/mirror` tips) has no hit in this fork.
++#[tokio::test]
++async fn b2_t7b_a_fork_taken_before_a_force_push_is_rebuilt() {
++    let (fx, fork, x1, _x2) = c17_fixture(192).await;
++    let forge = forge_at(&fx.plugin);
++    let leaks = held_leaks(&forge, "carol", &x1).await;
++    assert!(
++        leaks.is_empty(),
++        "X1 served by the fork:\n{}",
++        leaks.join("\n")
++    );
++    assert!(!has(&fork, &x1), "X1 is still in the fork");
++}
++
++/// Design test 8 (C9, D1): a fork owner's ref reaching held is dropped and
++/// listed in the fork's report; the fork's other refs survive.
++#[tokio::test]
++async fn b2_t8_a_fork_ref_reaching_held_is_dropped_and_reported() {
++    let fx = legacy(193, Shape::Engine);
++    let fork = make_fork(&fx.plugin, &fx.owner, "carol").await;
++    assert_hardlinked(&fx.served, &fork);
++    git(&fork, &["update-ref", "refs/heads/republished", &fx.held]);
++    let feature = bare_commit(&fork, &fx.m2, "carol.txt", "b2-carol\n", "b2 carol");
++    git(&fork, &["update-ref", "refs/heads/feature", &feature]);
++    let forge = forge_at(&fx.plugin);
++    let leaks = held_leaks(&forge, "carol", &fx.held).await;
++    assert!(
++        leaks.is_empty(),
++        "held commit served by the fork:\n{}",
++        leaks.join("\n")
++    );
++    let refs = refs_of(&fork);
++    assert!(
++        !refs.contains("refs/heads/republished"),
++        "republished kept:\n{refs}"
++    );
++    assert!(refs.contains("refs/heads/feature"), "feature lost:\n{refs}");
++    assert!(refs.contains("refs/heads/main"), "main lost:\n{refs}");
++    let ok = get(
++        &forge,
++        format!("/forge/carol/sample/raw/{feature}/carol.txt"),
++    )
++    .await;
++    assert_eq!(ok.status, 200, "the fork's own branch is not served");
++    let reports = reports_of(&fx.plugin, "carol");
++    assert_eq!(reports.len(), 1, "one fork report");
++    let reason = dropped_reason(&reports[0], "refs/heads/republished");
++    assert_eq!(
++        reason.as_deref(),
++        Some("reaches-held"),
++        "republished is not reported: {}",
++        reports[0]
++    );
++    assert_eq!(reports[0]["class"], "fork", "{}", reports[0]);
++}
++
++/// Design test 19 (D4): a `.fork-*.tmp` directory older than an hour is
++/// moved out of `repos/` into recovery; a fresh one is left alone.
++#[tokio::test]
++async fn b2_t19_a_stale_partial_fork_is_moved_to_recovery() {
++    let fx = legacy(194, Shape::Engine);
++    let repos = fx.plugin.join("repos");
++    let owner_dir = repos.join("carol");
++    std::fs::create_dir_all(&owner_dir).unwrap();
++    let stale = owner_dir.join(".fork-stale.tmp");
++    crate::forks::build_fork_at(&repos, &fx.served, &stale, &fx.owner, "sample")
++        .await
++        .unwrap();
++    assert_hardlinked(&fx.served, &stale);
++    let fresh = owner_dir.join(".fork-fresh.tmp");
++    crate::forks::build_fork_at(&repos, &fx.served, &fresh, &fx.owner, "sample")
++        .await
++        .unwrap();
++    let old = std::time::SystemTime::now() - std::time::Duration::from_secs(2 * 3600);
++    std::fs::File::open(&stale)
++        .unwrap()
++        .set_modified(old)
++        .unwrap();
++    drop(forge_at(&fx.plugin));
++    assert!(
++        !stale.exists(),
++        "the stale partial fork is still under repos/"
++    );
++    assert!(fresh.exists(), "a fresh partial fork was moved");
++    let moved: Vec<String> = std::fs::read_dir(fx.plugin.join("mirror-recovery/carol"))
++        .map(|rd| {
++            rd.flatten()
++                .map(|e| e.file_name().to_string_lossy().into_owned())
++                .collect()
++        })
++        .unwrap_or_default();
++    assert!(
++        moved.iter().any(|n| n.starts_with(".fork-stale.tmp")),
++        "the stale partial fork is not in recovery: {moved:?}"
++    );
++}
++
++/// A fork whose config cannot be read: the pass is incomplete (decision 28)
++/// and the fork is refused.
++#[tokio::test]
++async fn b2_an_unreadable_fork_config_makes_the_pass_incomplete_and_gates() {
++    use std::os::unix::fs::PermissionsExt;
++    let fx = legacy(195, Shape::Engine);
++    let fork = make_fork(&fx.plugin, &fx.owner, "carol").await;
++    assert_hardlinked(&fx.served, &fork);
++    let config = fork.join("config");
++    std::fs::set_permissions(&config, std::fs::Permissions::from_mode(0o000)).unwrap();
++    let probe = std::fs::read(&config);
++    let forge = forge_at(&fx.plugin);
++    let leaks = held_leaks(&forge, "carol", &fx.held).await;
++    let approved = get(
++        &forge,
++        format!("/forge/carol/sample/raw/{}/public.txt", fx.m2),
++    )
++    .await;
++    std::fs::set_permissions(&config, std::fs::Permissions::from_mode(0o644)).unwrap();
++    assert!(
++        probe.is_err_and(|e| e.kind() == std::io::ErrorKind::PermissionDenied),
++        "precondition: the fork's config must be unreadable (EACCES)"
++    );
++    assert!(
++        forge.migration_incomplete,
++        "the pass did not report incomplete"
++    );
++    assert!(
++        leaks.is_empty(),
++        "held commit served by the fork:\n{}",
++        leaks.join("\n")
++    );
++    assert_eq!(approved.status, 503, "the fork is not gated");
++}
++
++/// A `forge.parent` loop (legacy M names its fork carol/sample as parent,
++/// and carol/sample names M): the boot terminates, and the fork is swept.
++#[test]
++fn b2_a_fork_cycle_terminates_and_the_fork_is_swept() {
++    let rt = tokio::runtime::Builder::new_current_thread()
++        .enable_all()
++        .build()
++        .unwrap();
++    let (fx, fork) = rt.block_on(async {
++        let fx = legacy(196, Shape::Engine);
++        let fork = make_fork(&fx.plugin, &fx.owner, "carol").await;
++        assert_hardlinked(&fx.served, &fork);
++        git(&fx.served, &["config", "forge.parent", "carol/sample"]);
++        (fx, fork)
++    });
++    let plugin = fx.plugin.clone();
++    let (tx, rx) = std::sync::mpsc::channel();
++    std::thread::spawn(move || {
++        let _ = tx.send(forge_at(&plugin));
++    });
++    let forge = rx
++        .recv_timeout(std::time::Duration::from_secs(120))
++        .expect("the boot did not terminate on a forge.parent cycle");
++    rt.block_on(async {
++        let leaks = held_leaks(&forge, "carol", &fx.held).await;
++        assert!(
++            leaks.is_empty(),
++            "held commit served by the fork in a cycle:\n{}",
++            leaks.join("\n")
++        );
++        let leaks = held_leaks(&forge, &fx.owner, &fx.held).await;
++        assert!(
++            leaks.is_empty(),
++            "held served by the mirror:\n{}",
++            leaks.join("\n")
++        );
++    });
++    assert!(
++        !has(&fork, &fx.held),
++        "the held commit is still in the fork"
++    );
++}
++
++/// A fork none of whose objects is in an ancestor's dropped set is left
++/// untouched: no journal, no recovery entry, the same config bytes and the
++/// same pack files.
++#[tokio::test]
++async fn b2_a_fork_with_no_dropped_object_is_left_untouched() {
++    use std::os::unix::fs::MetadataExt;
++    let fx = legacy(197, Shape::Engine);
++    let fork = fx.plugin.join("repos/carol/sample.git");
++    std::fs::create_dir_all(fork.parent().unwrap()).unwrap();
++    git(
++        &fx.home,
++        &[
++            "init",
++            "--bare",
++            "--quiet",
++            "-b",
++            "main",
++            fork.to_str().unwrap(),
++        ],
++    );
++    git(
++        &fx.home.join("up"),
++        &["push", "--quiet", fork.to_str().unwrap(), "main:main"],
++    );
++    git(
++        &fork,
++        &["config", "forge.parent", &format!("{}/sample", fx.owner)],
++    );
++    git(&fork, &["repack", "-a", "-d", "-q"]);
++    keep_packs(&fork);
++    let config = std::fs::read(fork.join("config")).unwrap();
++    let packs = |d: &Path| -> Vec<(String, u64)> {
++        let mut v: Vec<(String, u64)> = std::fs::read_dir(d.join("objects/pack"))
++            .unwrap()
++            .flatten()
++            .map(|e| {
++                (
++                    e.file_name().to_string_lossy().into_owned(),
++                    std::fs::metadata(e.path()).unwrap().ino(),
++                )
++            })
++            .collect();
++        v.sort();
++        v
++    };
++    let before = packs(&fork);
++    let forge = forge_at(&fx.plugin);
++    assert!(
++        !journal_of(&fx.plugin, "carol").exists(),
++        "a journal was written"
++    );
++    assert!(
++        !fx.plugin.join("mirror-recovery/carol").exists(),
++        "the clean fork was moved to recovery"
++    );
++    assert_eq!(
++        std::fs::read(fork.join("config")).unwrap(),
++        config,
++        "config changed"
++    );
++    assert_eq!(packs(&fork), before, "the fork's packs changed");
++    assert!(
++        migration_id_of(&fork).is_none(),
++        "the clean fork was rebuilt"
++    );
++    let ok = get(
++        &forge,
++        format!("/forge/carol/sample/raw/{}/public.txt", fx.m2),
++    )
++    .await;
++    assert_eq!(ok.status, 200, "the clean fork is not served");
++}
++
++/// A fork whose legacy parent cannot be migrated (t21's fsck-bad history)
++/// has no dropped set to be checked against: it is gated.
++#[tokio::test]
++async fn b2_a_fork_of_an_unmigrated_parent_is_gated() {
++    let fx = legacy(198, Shape::Engine);
++    let tree = git(&fx.served, &["rev-parse", &format!("{}^{{tree}}", fx.m2)]);
++    let raw = format!(
++        "tree {tree}\nparent {}\nauthor t <t@t> 1700000000 +99999\ncommitter t <t@t> 1700000000 +0000\n\nb2 bad zone\n",
++        fx.m2
++    );
++    let bad = git_stdin(
++        &fx.served,
++        &[
++            "hash-object",
++            "--literally",
++            "-t",
++            "commit",
++            "-w",
++            "--stdin",
++        ],
++        &raw,
++    );
++    git(&fx.served, &["update-ref", "refs/heads/main", &bad]);
++    let fork = make_fork(&fx.plugin, &fx.owner, "carol").await;
++    assert_hardlinked(&fx.served, &fork);
++    let forge = forge_at(&fx.plugin);
++    assert!(
++        journal_of(&fx.plugin, &fx.owner).exists(),
++        "precondition: the parent's migration failed"
++    );
++    let leaks = held_leaks(&forge, "carol", &fx.held).await;
++    assert!(
++        leaks.is_empty(),
++        "held commit served by the fork of an unmigrated parent:\n{}",
++        leaks.join("\n")
++    );
++    let approved = get(
++        &forge,
++        format!("/forge/carol/sample/raw/{}/public.txt", fx.m2),
++    )
++    .await;
++    assert_eq!(approved.status, 503, "the fork is not gated");
++}
++
++/// A followed fork (a fork with a mirror record) gets both treatments: the
++/// mirror's config and marker, and its refs, roots included, filtered
++/// against the inherited held set; `forge.parent` is kept.
++#[tokio::test]
++async fn b2_a_followed_fork_gets_both_treatments() {
++    let fx = legacy(199, Shape::Engine);
++    let follower = owner_of(189);
++    let fork = make_fork(&fx.plugin, &fx.owner, &follower).await;
++    assert_hardlinked(&fx.served, &fork);
++    git(&fork, &["update-ref", "refs/heads/side", &fx.held]);
++    write_record(
++        &fx.plugin,
++        &follower,
++        pre_release_record(&follower).as_bytes(),
++    );
++    let forge = forge_at(&fx.plugin);
++    let leaks = held_leaks(&forge, &follower, &fx.held).await;
++    assert!(
++        leaks.is_empty(),
++        "held commit served by the followed fork:\n{}",
++        leaks.join("\n")
++    );
++    let refs = refs_of(&fork);
++    assert!(
++        !refs.contains("refs/heads/side"),
++        "the held branch was kept:\n{refs}"
++    );
++    assert!(refs.contains("refs/heads/main"), "main lost:\n{refs}");
++    assert!(
++        fork.join(MARKER).is_file(),
++        "the followed fork is not marked"
++    );
++    assert_eq!(
++        config_get(&fork, "receive.denyDeletes").as_deref(),
++        Some("true"),
++        "the followed fork lacks the mirror config"
++    );
++    assert_eq!(
++        config_get(&fork, "forge.parent").as_deref(),
++        Some(format!("{}/sample", fx.owner).as_str()),
++        "forge.parent lost"
++    );
++    let ok = get(
++        &forge,
++        format!("/forge/{follower}/sample/raw/{}/public.txt", fx.m2),
++    )
++    .await;
++    assert_eq!(ok.status, 200, "the followed fork is not served");
++}
++
++/// A rebuilt fork that keeps a ref at X1 (risk 4: X1 is in the parent's
++/// dropped set but not in its held set) is not rebuilt again on the next
++/// boot, and the parent's report is stamped `forksCleanAt`.
++#[tokio::test]
++async fn b2_a_rebuilt_fork_is_not_rebuilt_again_and_the_parent_is_stamped() {
++    let (fx, fork, x1, _x2) = c17_fixture(188).await;
++    git(&fork, &["update-ref", "refs/heads/keep-x1", &x1]);
++    drop(forge_at(&fx.plugin));
++    let id = migration_id_of(&fork).expect("boot 1 did not rebuild the fork");
++    let entries = recovery_entries(&fx.plugin, "carol");
++    assert_eq!(entries.len(), 1, "boot 1: one fork recovery entry");
++    assert!(has(&fork, &x1), "risk 4: the fork ref at X1 is kept");
++    drop(forge_at(&fx.plugin));
++    assert_eq!(
++        migration_id_of(&fork).as_deref(),
++        Some(id.as_str()),
++        "boot 2 rebuilt the fork"
++    );
++    assert_eq!(
++        recovery_entries(&fx.plugin, "carol"),
++        entries,
++        "boot 2 made a recovery entry"
++    );
++    let parent = reports_of(&fx.plugin, &fx.owner);
++    assert_eq!(parent.len(), 1);
++    assert!(
++        parent[0]
++            .get("forksCleanAt")
++            .is_some_and(|v| v.as_u64().is_some()),
++        "the parent's report is not stamped: {}",
++        parent[0]
++    );
++}
++
++/// Item 6: a fork of a source with a migration journal is refused (503)
++/// through `resolve_repo`; a fork onto a journalled target is covered by
++/// `f12_a_fork_onto_a_journalled_name_is_refused`.
++#[tokio::test]
++async fn b2_a_fork_of_a_journalled_source_is_refused() {
++    let tmp = tempfile::tempdir().unwrap();
++    let home = tmp.path();
++    let plugin = home.join("plugin");
++    bare_with_commit(home, &plugin.join("repos/alice/src.git"), "b2-src\n");
++    let forge = forge_at(&plugin);
++    let journal = plugin.join("mirror-work/migrations/alice/src.json");
++    std::fs::create_dir_all(journal.parent().unwrap()).unwrap();
++    std::fs::write(
++        &journal,
++        r#"{"id":"s","ts":1,"class":"fork","state":"building","recovery":"mirror-recovery/alice/src.git.1","attempts":0}"#,
++    )
++    .unwrap();
++    let caller = owner_of(187);
++    let mut r = req("POST", "/forge/api/repos/alice/src/fork", "");
++    r.raw_body = bytes::Bytes::from_static(br#"{"name":"sample"}"#);
++    let got = forge
++        .handle(
++            r,
++            crate::ForgeAgent::Nostr {
++                pubkey_hex: caller.clone(),
++            },
++        )
++        .await;
++    let status = got.map_or_else(|e| e.status_code(), |r| r.status);
++    assert_eq!(status, 503, "a fork of a journalled source was made");
++    assert!(!plugin
++        .join("repos")
++        .join(&caller)
++        .join("sample.git")
++        .exists());
++}
+diff --git a/crates/solid-pod-rs-forge/src/migrate_tests.rs b/crates/solid-pod-rs-forge/src/migrate_tests.rs
+index f75367b..0a91f89 100644
+--- a/crates/solid-pod-rs-forge/src/migrate_tests.rs
++++ b/crates/solid-pod-rs-forge/src/migrate_tests.rs
+@@ -2281,3 +2281,6 @@ async fn h2_a_fast_push_past_the_cap_is_caught_by_the_final_check() {
+     );
+     assert_gated(&fx, &forge).await;
+ }
++
++#[path = "migrate_fork_tests.rs"]
++mod fork;

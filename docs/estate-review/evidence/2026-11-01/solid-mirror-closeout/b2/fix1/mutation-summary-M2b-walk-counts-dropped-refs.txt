@@ -1,0 +1,1 @@
+M2b-walk-counts-dropped-refs (item 2: reachability only through kept refs): file=migrate_fork.rs test=b2f1_a_pruned_object_reached_only_by_dropped mutated_exit=101 (caught) restored_sha_match=True restored_exit=0

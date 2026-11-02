@@ -1,0 +1,98 @@
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.81s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d447461302ae6d2c)
+
+running 8 tests
+test migrate::fork::tests::a_gate_partway_up_the_lineage_blocks_every_report ... FAILED
+test migrate_tests::fork::b2f1_a_fork_whose_lineage_the_parser_rejects_is_refused ... FAILED
+test migrate_tests::fork::b2f1_a_fork_of_unknown_lineage_is_gated_while_the_pass_is_incomplete ... FAILED
+test migrate_tests::fork::b2f1_a_fork_of_a_dot_git_named_mirror_is_swept ... FAILED
+test migrate_tests::fork::b2f1_a_fork_of_unknown_lineage_is_checked_against_every_report ... FAILED
+test migrate_tests::fork::b2f1_a_fork_keeping_an_object_pruned_from_the_parent_is_rebuilt ... FAILED
+test migrate_tests::fork::b2f1_a_crash_resumed_fork_with_a_gated_ancestor_keeps_its_journal ... FAILED
+test migrate_tests::fork::b2f1_a_journalled_ancestor_fork_under_any_owner_gates_its_descendants ... FAILED
+
+failures:
+
+---- migrate::fork::tests::a_gate_partway_up_the_lineage_blocks_every_report stdout ----
+
+thread 'migrate::fork::tests::a_gate_partway_up_the_lineage_blocks_every_report' (735468) panicked at crates/solid-pod-rs-forge/src/migrate_fork.rs:715:13:
+Failed: a gated plan blocked only ["r1"]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- migrate_tests::fork::b2f1_a_fork_whose_lineage_the_parser_rejects_is_refused stdout ----
+
+thread 'migrate_tests::fork::b2f1_a_fork_whose_lineage_the_parser_rejects_is_refused' (735474) panicked at crates/solid-pod-rs-forge/src/migrate_fork_tests.rs:985:5:
+assertion `left == right` failed: a fork with an unparseable lineage was made
+  left: 201
+ right: 422
+
+---- migrate_tests::fork::b2f1_a_fork_of_unknown_lineage_is_gated_while_the_pass_is_incomplete stdout ----
+
+thread 'migrate_tests::fork::b2f1_a_fork_of_unknown_lineage_is_gated_while_the_pass_is_incomplete' (735473) panicked at crates/solid-pod-rs-forge/src/migrate_fork_tests.rs:959:5:
+assertion `left == right` failed: a fork of unknown lineage is served while the pass is incomplete
+  left: 200
+ right: 503
+
+---- migrate_tests::fork::b2f1_a_fork_of_a_dot_git_named_mirror_is_swept stdout ----
+
+thread 'migrate_tests::fork::b2f1_a_fork_of_a_dot_git_named_mirror_is_swept' (735471) panicked at crates/solid-pod-rs-forge/src/migrate_fork_tests.rs:867:5:
+held commit served by the fork of a mirror named foo.git:
+/forge/carol/foo.git.git/raw/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/foo.git.git/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/foo.git.git/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: false)
+/forge/carol/foo.git.git/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/carol/foo.git.git/archive/4580200492d1a9506c809389e9b0cd9c744c79b1.tar.gz -> 200 (held bytes: false)
+
+---- migrate_tests::fork::b2f1_a_fork_of_unknown_lineage_is_checked_against_every_report stdout ----
+
+thread 'migrate_tests::fork::b2f1_a_fork_of_unknown_lineage_is_checked_against_every_report' (735472) panicked at crates/solid-pod-rs-forge/src/migrate_fork_tests.rs:903:5:
+held commit served by a fork of unknown lineage:
+/forge/carol/sample/raw/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: false)
+/forge/carol/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/carol/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/carol/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/carol/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/sample/archive/4580200492d1a9506c809389e9b0cd9c744c79b1.tar.gz -> 200 (held bytes: false)
+
+---- migrate_tests::fork::b2f1_a_fork_keeping_an_object_pruned_from_the_parent_is_rebuilt stdout ----
+
+thread 'migrate_tests::fork::b2f1_a_fork_keeping_an_object_pruned_from_the_parent_is_rebuilt' (735470) panicked at crates/solid-pod-rs-forge/src/migrate_fork_tests.rs:1025:5:
+X1, pruned from the parent, served by the fork:
+/forge/carol/sample/raw/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: false)
+/forge/carol/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/carol/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/carol/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/carol/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/sample/archive/4580200492d1a9506c809389e9b0cd9c744c79b1.tar.gz -> 200 (held bytes: false)
+
+---- migrate_tests::fork::b2f1_a_crash_resumed_fork_with_a_gated_ancestor_keeps_its_journal stdout ----
+
+thread 'migrate_tests::fork::b2f1_a_crash_resumed_fork_with_a_gated_ancestor_keeps_its_journal' (735469) panicked at crates/solid-pod-rs-forge/src/migrate_fork_tests.rs:1115:5:
+a crash-resumed fork with a gated ancestor had its journal removed
+
+---- migrate_tests::fork::b2f1_a_journalled_ancestor_fork_under_any_owner_gates_its_descendants stdout ----
+
+thread 'migrate_tests::fork::b2f1_a_journalled_ancestor_fork_under_any_owner_gates_its_descendants' (735475) panicked at crates/solid-pod-rs-forge/src/migrate_fork_tests.rs:1064:5:
+assertion `left == right` failed: a descendant of a journalled fork is served
+  left: 200
+ right: 503
+
+
+failures:
+    migrate::fork::tests::a_gate_partway_up_the_lineage_blocks_every_report
+    migrate_tests::fork::b2f1_a_crash_resumed_fork_with_a_gated_ancestor_keeps_its_journal
+    migrate_tests::fork::b2f1_a_fork_keeping_an_object_pruned_from_the_parent_is_rebuilt
+    migrate_tests::fork::b2f1_a_fork_of_a_dot_git_named_mirror_is_swept
+    migrate_tests::fork::b2f1_a_fork_of_unknown_lineage_is_checked_against_every_report
+    migrate_tests::fork::b2f1_a_fork_of_unknown_lineage_is_gated_while_the_pass_is_incomplete
+    migrate_tests::fork::b2f1_a_fork_whose_lineage_the_parser_rejects_is_refused
+    migrate_tests::fork::b2f1_a_journalled_ancestor_fork_under_any_owner_gates_its_descendants
+
+test result: FAILED. 0 passed; 8 failed; 0 ignored; 0 measured; 284 filtered out; finished in 1.56s
+
+error: test failed, to rerun pass `-p solid-pod-rs-forge --lib`

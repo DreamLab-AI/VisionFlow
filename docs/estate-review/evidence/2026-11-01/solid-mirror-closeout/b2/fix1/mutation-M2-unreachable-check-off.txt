@@ -1,0 +1,39 @@
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+warning: function `holds_unreachable` is never used
+   --> crates/solid-pod-rs-forge/src/migrate_fork.rs:440:10
+    |
+440 | async fn holds_unreachable(git_dir: &Path) -> Result<bool, String> {
+    |          ^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `solid-pod-rs-forge` (lib test) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.79s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d447461302ae6d2c)
+
+running 1 test
+test migrate_tests::fork::b2f1_a_fork_keeping_an_object_pruned_from_the_parent_is_rebuilt ... FAILED
+
+failures:
+
+---- migrate_tests::fork::b2f1_a_fork_keeping_an_object_pruned_from_the_parent_is_rebuilt stdout ----
+
+thread 'migrate_tests::fork::b2f1_a_fork_keeping_an_object_pruned_from_the_parent_is_rebuilt' (782574) panicked at crates/solid-pod-rs-forge/src/migrate_fork_tests.rs:1025:5:
+X1, pruned from the parent, served by the fork:
+/forge/carol/sample/raw/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: false)
+/forge/carol/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/carol/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/carol/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/carol/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/sample/archive/4580200492d1a9506c809389e9b0cd9c744c79b1.tar.gz -> 200 (held bytes: false)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    migrate_tests::fork::b2f1_a_fork_keeping_an_object_pruned_from_the_parent_is_rebuilt
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 291 filtered out; finished in 1.55s
+
+error: test failed, to rerun pass `-p solid-pod-rs-forge --lib`

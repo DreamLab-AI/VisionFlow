@@ -1,0 +1,10 @@
+M1-trigger-held-not-dropped (trigger): file=migrate_fork.rs test=b2_t7b_ mutated_exit=101 (caught) restored_sha_match=True restored_exit=0
+M2-fork-filter-off (inherited-held filter): file=migrate_fork.rs test=b2_t8_ mutated_exit=101 (caught) restored_sha_match=True restored_exit=0
+M3-direct-parent-only (transitivity): file=migrate_fork.rs test=b2_t7_a_fork_of_a_fork mutated_exit=101 (caught) restored_sha_match=True restored_exit=0
+M4-tmp-sweep-off (tmp sweep): file=migrate_fork.rs test=b2_t19_ mutated_exit=101 (caught) restored_sha_match=True restored_exit=0
+M5-incomplete-fork-rule-off (incomplete pass gates forks): file=lib.rs test=b2_an_unreadable_fork_config mutated_exit=101 (caught) restored_sha_match=True restored_exit=0
+M6-trigger-always-fires (untouched guard): file=migrate_fork.rs test=b2_a_fork_with_no_dropped_object mutated_exit=101 (caught) restored_sha_match=True restored_exit=0
+M7-followed-root-filter-off (followed fork: inherited filter on roots): file=migrate.rs test=b2_a_followed_fork mutated_exit=101 (caught) restored_sha_match=True restored_exit=0
+M8-ancestor-journal-not-gating (unmigrated ancestor gates): file=migrate_fork.rs test=b2_a_fork_of_an_unmigrated_parent mutated_exit=101 (caught) restored_sha_match=True restored_exit=0
+M9-gated-fork-journal-rebuilds (gated plan never rebuilds): file=migrate.rs test=b2_a_journalled_fork_with_a_gated mutated_exit=101 (caught) restored_sha_match=True restored_exit=0
+M10-rebuilt-against-never (no re-rebuild of a risk-4 fork): file=migrate_fork.rs test=b2_a_rebuilt_fork_is_not_rebuilt_again_while mutated_exit=101 (caught) restored_sha_match=True restored_exit=0

@@ -1,0 +1,30 @@
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.32s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d447461302ae6d2c)
+
+running 1 test
+test migrate_tests::fork::b2_a_fork_of_an_unmigrated_parent_is_gated ... FAILED
+
+failures:
+
+---- migrate_tests::fork::b2_a_fork_of_an_unmigrated_parent_is_gated stdout ----
+
+thread 'migrate_tests::fork::b2_a_fork_of_an_unmigrated_parent_is_gated' (510005) panicked at crates/solid-pod-rs-forge/src/migrate_fork_tests.rs:556:5:
+held commit served by the fork of an unmigrated parent:
+/forge/carol/sample/raw/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: false)
+/forge/carol/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/carol/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/carol/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/carol/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/sample/archive/4580200492d1a9506c809389e9b0cd9c744c79b1.tar.gz -> 200 (held bytes: false)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    migrate_tests::fork::b2_a_fork_of_an_unmigrated_parent_is_gated
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 281 filtered out; finished in 1.06s
+
+error: test failed, to rerun pass `-p solid-pod-rs-forge --lib`

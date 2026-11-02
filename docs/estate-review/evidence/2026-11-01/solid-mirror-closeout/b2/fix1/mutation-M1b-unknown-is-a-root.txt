@@ -1,0 +1,43 @@
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+warning: variant `Unknown` is never constructed
+   --> crates/solid-pod-rs-forge/src/migrate_fork.rs:113:5
+    |
+109 | enum Lineage {
+    |      ------- variant in this enum
+...
+113 |     Unknown(String),
+    |     ^^^^^^^
+    |
+    = note: `Lineage` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `solid-pod-rs-forge` (lib test) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.82s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d447461302ae6d2c)
+
+running 1 test
+test migrate_tests::fork::b2f1_a_fork_of_unknown_lineage_is_checked_against_every_report ... FAILED
+
+failures:
+
+---- migrate_tests::fork::b2f1_a_fork_of_unknown_lineage_is_checked_against_every_report stdout ----
+
+thread 'migrate_tests::fork::b2f1_a_fork_of_unknown_lineage_is_checked_against_every_report' (778525) panicked at crates/solid-pod-rs-forge/src/migrate_fork_tests.rs:903:5:
+held commit served by a fork of unknown lineage:
+/forge/carol/sample/raw/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: false)
+/forge/carol/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/carol/sample/commit/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/carol/sample/tree/4580200492d1a9506c809389e9b0cd9c744c79b1 -> 200 (held bytes: true)
+/forge/api/repos/carol/sample/blob/4580200492d1a9506c809389e9b0cd9c744c79b1/held.txt -> 200 (held bytes: true)
+/forge/carol/sample/archive/4580200492d1a9506c809389e9b0cd9c744c79b1.tar.gz -> 200 (held bytes: false)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    migrate_tests::fork::b2f1_a_fork_of_unknown_lineage_is_checked_against_every_report
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 291 filtered out; finished in 1.46s
+
+error: test failed, to rerun pass `-p solid-pod-rs-forge --lib`

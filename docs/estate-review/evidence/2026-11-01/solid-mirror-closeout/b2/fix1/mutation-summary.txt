@@ -1,0 +1,9 @@
+M1a-unparseable-is-not-a-fork (item 1: lineage read (pre-fix semantics)): file=forks.rs test=b2f1_a_fork_of_a_dot_git_named_mirror mutated_exit=101 (caught) restored_sha_match=True restored_exit=0
+M1b-unknown-is-a-root (item 1: unknown lineage swept): file=migrate_fork.rs test=b2f1_a_fork_of_unknown_lineage_is_checked mutated_exit=101 (caught) restored_sha_match=True restored_exit=0
+M1c-unknown-allows-stamping (item 1: unknown lineage never allows stamping): file=migrate_fork.rs test=b2f1_a_fork_of_unknown_lineage_is_checked mutated_exit=101 (caught) restored_sha_match=True restored_exit=0
+M1d-incomplete-rule-ignores-unknown (item 1: incomplete-pass rule): file=lib.rs test=b2f1_a_fork_of_unknown_lineage_is_gated mutated_exit=101 (caught) restored_sha_match=True restored_exit=0
+M1e-api-fork-writes-any-lineage (item 1: h_api_fork refusal): file=forks.rs test=b2f1_a_fork_whose_lineage_the_parser_rejects mutated_exit=101 (caught) restored_sha_match=True restored_exit=0
+M2-unreachable-check-off (item 2: unreachable-object trigger): file=migrate_fork.rs test=b2f1_a_fork_keeping_an_object_pruned mutated_exit=101 (caught) restored_sha_match=True restored_exit=0
+M3-gate-blocks-collected-only (item 3: a gate blocks every report): file=migrate_fork.rs test=a_gate_partway_up_the_lineage mutated_exit=101 (caught) restored_sha_match=True restored_exit=0
+M4-ancestor-journal-hex-only (item 4: journalled ancestor under any owner): file=migrate_fork.rs test=b2f1_a_journalled_ancestor_fork_under_any_owner mutated_exit=101 (caught) restored_sha_match=True restored_exit=0
+M5-gate-after-resume (item 5: gated-plan check before the resume path): file=migrate.rs test=b2f1_a_crash_resumed_fork_with_a_gated_ancestor mutated_exit=101 (caught) restored_sha_match=True restored_exit=0

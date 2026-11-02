@@ -1,0 +1,24 @@
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.29s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d447461302ae6d2c)
+
+running 1 test
+test migrate_tests::fork::b2_a_rebuilt_fork_is_not_rebuilt_again_while_stamping_is_blocked ... FAILED
+
+failures:
+
+---- migrate_tests::fork::b2_a_rebuilt_fork_is_not_rebuilt_again_while_stamping_is_blocked stdout ----
+
+thread 'migrate_tests::fork::b2_a_rebuilt_fork_is_not_rebuilt_again_while_stamping_is_blocked' (589677) panicked at crates/solid-pod-rs-forge/src/migrate_fork_tests.rs:793:5:
+assertion `left == right` failed: boot 2 rebuilt the fork
+  left: Some("480ba9c4f72c4188b689c2d279bf63a9")
+ right: Some("df5bf4bb0a0b496bae46d3b1ef2eeee7")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    migrate_tests::fork::b2_a_rebuilt_fork_is_not_rebuilt_again_while_stamping_is_blocked
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 283 filtered out; finished in 1.33s
+
+error: test failed, to rerun pass `-p solid-pod-rs-forge --lib`

@@ -1,0 +1,24 @@
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.60s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d447461302ae6d2c)
+
+running 1 test
+test migrate_tests::fork::b2f1_a_fork_whose_lineage_the_parser_rejects_is_refused ... FAILED
+
+failures:
+
+---- migrate_tests::fork::b2f1_a_fork_whose_lineage_the_parser_rejects_is_refused stdout ----
+
+thread 'migrate_tests::fork::b2f1_a_fork_whose_lineage_the_parser_rejects_is_refused' (781750) panicked at crates/solid-pod-rs-forge/src/migrate_fork_tests.rs:985:5:
+assertion `left == right` failed: a fork with an unparseable lineage was made
+  left: 201
+ right: 422
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    migrate_tests::fork::b2f1_a_fork_whose_lineage_the_parser_rejects_is_refused
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 291 filtered out; finished in 0.59s
+
+error: test failed, to rerun pass `-p solid-pod-rs-forge --lib`

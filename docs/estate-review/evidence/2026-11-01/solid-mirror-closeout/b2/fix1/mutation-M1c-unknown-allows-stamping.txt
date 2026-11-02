@@ -1,0 +1,22 @@
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.36s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d447461302ae6d2c)
+
+running 1 test
+test migrate_tests::fork::b2f1_a_fork_of_unknown_lineage_is_checked_against_every_report ... FAILED
+
+failures:
+
+---- migrate_tests::fork::b2f1_a_fork_of_unknown_lineage_is_checked_against_every_report stdout ----
+
+thread 'migrate_tests::fork::b2f1_a_fork_of_unknown_lineage_is_checked_against_every_report' (779570) panicked at crates/solid-pod-rs-forge/src/migrate_fork_tests.rs:924:5:
+a fork of unknown lineage let the parent's report be stamped: {"class":"mirror","copied":[{"ref":"refs/heads/main","sha":"c1b9750d108c236ce3a839901f1a027bef04c912"},{"ref":"refs/tags/v1","sha":"3d0657d1174021fd841d1666b3ecbd0e89936776"}],"dropped":[{"reason":"pull-request-head","ref":"refs/forge/heads/bob/feat","sha":"d62b3c101e7f74e3acc3eefd5d9b7cf9d41066eb"},{"reason":"mirror","ref":"refs/mirror/main","sha":"c1b9750d108c236ce3a839901f1a027bef04c912"},{"reason":"mirror","ref":"refs/mirror/side","sha":"4580200492d1a9506c809389e9b0cd9c744c79b1"},{"reason":"outside-roots","ref":"refs/misc/blob","sha":"a434d74512a0b58dd82b3c75cfeb050c399dcef3"},{"reason":"outside-roots","ref":"refs/misc/stash-held","sha":"4580200492d1a9506c809389e9b0cd9c744c79b1"},{"reason":"outside-roots","ref":"refs/notes/commits","sha":"535869cf84a25f5188d8558f412a5c8cc1ebe361"}],"droppedObjects":{"count":9,"file":"sample.git.1793606743.dropped"},"forksCleanAt":1793606743,"head":"refs/heads/main","held":{"count":9,"file":"sample.git.1793606743.held"},"id":"1b3f7a8d45ef4f5e9442a468bd9ac2a7","name":"sample","owner":"b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1","record":null,"recovery":"mirror-recovery/b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1/sample.git.1793606743"}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    migrate_tests::fork::b2f1_a_fork_of_unknown_lineage_is_checked_against_every_report
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 291 filtered out; finished in 1.57s
+
+error: test failed, to rerun pass `-p solid-pod-rs-forge --lib`

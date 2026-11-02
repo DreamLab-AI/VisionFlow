@@ -1,0 +1,2 @@
+M9-gated-fork-journal-rebuilds (gated plan never rebuilds): file=migrate.rs test=b2_a_journalled_fork_with_a_gated mutated_exit=101 (caught) restored_sha_match=True restored_exit=0
+M10-rebuilt-against-never (no re-rebuild of a risk-4 fork): file=migrate_fork.rs test=b2_a_rebuilt_fork_is_not_rebuilt_again_while mutated_exit=101 (caught) restored_sha_match=True restored_exit=0

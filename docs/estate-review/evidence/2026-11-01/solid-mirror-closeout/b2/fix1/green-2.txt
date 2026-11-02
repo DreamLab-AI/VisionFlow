@@ -1,0 +1,17 @@
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.57s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d447461302ae6d2c)
+
+running 9 tests
+test migrate::fork::tests::a_gate_partway_up_the_lineage_blocks_every_report ... ok
+test migrate_tests::fork::b2f1_a_fork_whose_lineage_the_parser_rejects_is_refused ... ok
+test migrate_tests::fork::b2f1_a_journalled_ancestor_fork_under_any_owner_gates_its_descendants ... ok
+test migrate_tests::fork::b2f1_a_crash_resumed_fork_with_a_gated_ancestor_keeps_its_journal ... ok
+test migrate_tests::fork::b2f1_a_fork_of_unknown_lineage_is_gated_while_the_pass_is_incomplete ... ok
+test migrate_tests::fork::b2f1_a_fork_of_a_dot_git_named_mirror_is_swept ... ok
+test migrate_tests::fork::b2f1_a_fork_of_unknown_lineage_is_checked_against_every_report ... ok
+test migrate_tests::fork::b2f1_a_fork_keeping_an_object_pruned_from_the_parent_is_rebuilt ... ok
+test migrate_tests::fork::b2f1_a_pruned_object_reached_only_by_dropped_refs_is_removed ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 1.24s
+

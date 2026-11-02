@@ -1,0 +1,49 @@
+fix(forge): migrate forks of pre-release mirrors at boot (SP-GIT-02, commit B2)
+
+A fork made with `clone --local` from a pre-release mirror hardlinks the
+mirror's whole object store, so it held every held object the mirror
+held. B1 rebuilt the mirrors but left their forks serving those objects
+by SHA.
+
+Boot-time fork migration, run after the mirror pass:
+
+- Forks are found transitively through `forge.parent`, cycles included.
+  Lineage is parsed with the readers' segment rule, so a parent named
+  `<hex>/foo.git` resolves. A `forge.parent` that is present but still
+  unparseable is a fork of unknown lineage: it is checked against every
+  mirror-class report, gated while a pass is incomplete, never allows a
+  report to be stamped, and keeps its value through a rebuild.
+- A fork is rebuilt when it holds any object in an ancestor report's
+  `.dropped` set, or holds an object its own kept refs do not reach
+  (objects gc pruned from the parent but kept in the fork's packs).
+- The rebuild copies only refs that reach nothing held beyond the
+  ancestors' approved roots, drops and reports the rest (D1), and is
+  verified object by object like a mirror rebuild.
+- A gated ancestor, under any owner, gates its descendants; the
+  gated-plan check runs before crash resume; any gate in a lineage
+  blocks all report stamping.
+- Stale `.fork-*.tmp` builds are moved to recovery.
+- Fork creation refuses with 422 a source whose lineage the parser
+  would reject.
+
+Claim: for remote attackers, no object present when the sweep runs and
+held under the B1 definition stays served by a fork. Out of the claim:
+a fork owner re-pushing held bytes they kept (their own act, risk 4),
+ref names git refuses or over 1024 bytes that only a fork's owner could
+write, filesystem writers (report deletion or truncation, symlinked
+owner or recovery directories), several instances sharing a plugin
+directory, recycled process-group ids.
+
+Recorded, not fixed (availability): overlapping ancestor roots can fail
+a whole rebuild and leave the fork gated; a persistent unrelated gate
+keeps the F2 trigger active and can rebuild forks holding only their
+own garbage. The `forksCleanAt` stamp argument holds only because B2
+and its fix round land together: no released code ever wrote the stamp.
+
+Evidence: VisionFlow docs/estate-review/evidence/2026-11-01/
+solid-mirror-closeout/b2/ (report, fix1/, mutations, gates). Nine gates
+green on this exact tree (lead-gates-b2-fix1.txt). Reviewed by an Opus
+security reviewer (B2) and Codex gpt-6-astra (B2 and fix round 1);
+fix round 1 was reviewed by Codex only.
+
+Co-Authored-By: jjohare <github@thedreamlab.uk>
