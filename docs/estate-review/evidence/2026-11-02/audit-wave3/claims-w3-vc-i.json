@@ -1,0 +1,74 @@
+[
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/32-client-websocket-and-binary.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-i.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VC-32.1",
+      "VC-32.2",
+      "VC-32.3",
+      "VC-32.4",
+      "VC-32.5",
+      "VC-32.6",
+      "VC-32.7",
+      "VC-32.8",
+      "VC-32.9",
+      "VC-32.10",
+      "VC-32.11",
+      "VC-32.12",
+      "VC-32.15",
+      "VC-32.16"
+    ],
+    "basis": "Source tracing at VisionClaw 86cdd7635582; restamped from 8692b12, every citation re-resolved, drag panel rewritten for the ADR-2169 hold model, dead framed-header paths marked; strict cite-check and render pass; limits: ADR-2141 pacing, ADR-2169 hold timing and heartbeat eviction are runtime."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/33-client-auth-and-identity.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-i.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VC-33.1",
+      "VC-33.2",
+      "VC-33.3",
+      "VC-33.4",
+      "VC-33.5",
+      "VC-33.6",
+      "VC-33.8",
+      "VC-33.9"
+    ],
+    "basis": "Source tracing at VisionClaw 86cdd7635582; restamped from 8692b12, every citation re-resolved, legacy session realm corrected to opt-in default off, doubled-prefix whoami recorded; strict cite-check and render pass; limits: the /api/api 404 and /idp/passkey behaviour are inferred from source, not observed."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/34-client-features.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-i.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VC-34.1",
+      "VC-34.2",
+      "VC-34.3",
+      "VC-34.4",
+      "VC-34.5",
+      "VC-34.6",
+      "VC-34.7",
+      "VC-34.8",
+      "VC-34.9",
+      "VC-34.10",
+      "VC-34.11",
+      "VC-34.12",
+      "VC-34.13",
+      "VC-34.14",
+      "VC-34.15",
+      "VC-34.17",
+      "VC-34.18",
+      "VC-34.19",
+      "VC-34.20",
+      "VC-34.21"
+    ],
+    "basis": "Source tracing at VisionClaw 86cdd7635582; restamped from 8692b12, every citation re-resolved, settings failure path, type generator and dead client paths corrected; strict cite-check and render pass; limits: server routes outside the cited files and all runtime behaviour not exercised."
+  }
+]

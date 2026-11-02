@@ -1,0 +1,10 @@
+[
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/visionclaw/04-handlers-graph-and-state.md",
+   "report": "docs/estate-review/2026-11-02-w3-vc-b.md", "coverage": "selected-panels",
+   "panels": ["VC-04.1", "VC-04.2", "VC-04.3", "VC-04.4", "VC-04.5", "VC-04.6", "VC-04.7", "VC-04.8", "VC-04.11", "VC-04.12", "VC-04.13", "VC-04.14", "VC-04.16", "VC-04.17", "VC-04.18", "VC-04.19", "VC-04.20", "VC-04.22", "VC-04.23", "VC-04.24", "VC-04.25", "VC-04.27", "VC-04.28"],
+   "basis": "Source tracing at VisionClaw 86cdd7635582; restamped from 8692b12, every citation re-resolved, bots/SSSP/layout/pay panels rewritten for the pin; strict cite-check and render pass; limits: RbacGate and replay-cache interplay, per-worker export state and anonymous MCP-relay start are traced from source, not exercised."},
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/visionclaw/05-handlers-governance-and-identity.md",
+   "report": "docs/estate-review/2026-11-02-w3-vc-b.md", "coverage": "selected-panels",
+   "panels": ["VC-05.1", "VC-05.3", "VC-05.4", "VC-05.5", "VC-05.6", "VC-05.7", "VC-05.8", "VC-05.9", "VC-05.10", "VC-05.12", "VC-05.13", "VC-05.15", "VC-05.16", "VC-05.17", "VC-05.18"],
+   "basis": "Source tracing at VisionClaw 86cdd7635582 and agentbox c57d9c0508f4; restamped from 8692b12 / 6500582, every citation re-resolved, VC-05.6 mis-bound ontology_agent_handler citations fixed; strict cite-check and render pass; limits: X-Agent-Key refusal at the RbacGate and the Solid double-verification replay are source findings, not exercised against a release build."}
+]

@@ -1,0 +1,250 @@
+[
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2074-single-nip98-signing-helper.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; tests, CI and runtime behaviour not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2075-ws-speech-post-upgrade-nip98-auth.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; tests, CI and runtime behaviour not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2076-xr-client-drops-query-token-auth.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; tests, CI and runtime behaviour not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2077-delete-dead-client-surfaces.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; tests, CI and runtime behaviour not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2078-ts-decoder-fails-closed-on-v2-and-unknown-versions.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; tests, CI and runtime behaviour not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2079-xr-closeout-narrative-corrections.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; tests, CI and runtime behaviour not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2080-client-consumes-settingsupdated-broadcast.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; tests, CI and runtime behaviour not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2081-remove-dead-browser-xr-surface.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; tests, CI and runtime behaviour not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2083-multi-mcp-discovery-interval-wired.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; tests, CI and runtime behaviour not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2084-9500-load-bearing-doc-correct-plan-ws-cutover.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; agentbox read at c57d9c0508f4 for the unbuilt cutover."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2085-briefing-workflow-server-route-gap.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; agentbox routes read at c57d9c0508f4; round-trip and image activation not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2086-ci-gate-dev-auth-excluded-from-release.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; tests, CI and runtime behaviour not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2087-deployment-profile-doc-correctness.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; tests, CI and runtime behaviour not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2088-bots-client-status-resolved-values.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; tests, CI and runtime behaviour not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2089-remove-dead-visualization-subscriber-api.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; tests, CI and runtime behaviour not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2090-ws-upgrade-resolves-token-through-session-realm.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; tests, CI and runtime behaviour not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2091-remove-fictional-mcp-status-routes.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; tests, CI and runtime behaviour not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2093-agent-key-fail-closed-constant-time.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; tests, CI and runtime behaviour not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2094-fail-closed-management-api-credential-and-cached-mcp-health.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; tests, CI and runtime behaviour not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2095-typed-legacy-ngm-class-mint.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; tests, CI and runtime behaviour not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2096-local-file-sync-uses-the-vault-parsing-entry-point.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; superseded by ADR-2114; successor gate traced."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2097-delete-the-metadata-refresh-stub.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; tests, CI and runtime behaviour not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2098-solid-pod-url-names-the-in-process-endpoint.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; tests, CI and runtime behaviour not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2099-delete-unreachable-framed-agent-action-branch.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; tests, CI and runtime behaviour not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2100-one-solid-jss-notification-client.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; tests, CI and runtime behaviour not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2101-durable-decision-elevation-case-state.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; tests, CI and runtime behaviour not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2102-estate-wide-cross-store-erasure-orchestration.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; proposed and deferred; gap claim checked, agentbox ADR-2060 status read at c57d9c0508f4."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2103-oxigraph-point-in-time-backup.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; proposed; gap claim checked against backup scripts and boot checkpoint."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2104-sops-execute-or-withdraw.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; proposed; working-tree sops binary and .env files cannot be checked at a revision."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2105-correlated-promotion-chain-end-to-end.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; rejected; withdrawal premises checked at both pins."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2106-ontology-pull-model-into-the-embedded-pod.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; tests, CI and runtime behaviour not run."
+  }
+]

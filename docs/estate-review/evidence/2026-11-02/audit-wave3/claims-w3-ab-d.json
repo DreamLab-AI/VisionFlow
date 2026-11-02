@@ -1,0 +1,14 @@
+[
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/agentbox/11-identity-did-mandate-authority.md",
+   "report": "docs/estate-review/2026-11-02-w3-ab-d.md", "coverage": "selected-panels",
+   "panels": ["AB-11.1", "AB-11.2", "AB-11.3", "AB-11.4", "AB-11.5", "AB-11.6", "AB-11.7", "AB-11.8", "AB-11.9", "AB-11.10", "AB-11.11", "AB-11.12", "AB-11.13", "AB-11.14", "AB-11.15", "AB-11.16"],
+   "basis": "Source tracing at agentbox c57d9c0; restamped from 6500582, every panel read line by line; strict cite-check and render pass (195 citations); no runtime evidence, mandate publication by operators and pod ACL state not observable from source."},
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/agentbox/12-tab0-bridge-and-interaction-plane.md",
+   "report": "docs/estate-review/2026-11-02-w3-ab-d.md", "coverage": "selected-panels",
+   "panels": ["AB-12.2", "AB-12.3", "AB-12.5", "AB-12.6", "AB-12.7", "AB-12.8", "AB-12.9", "AB-12.10", "AB-12.11", "AB-12.13", "AB-12.14", "AB-12.15"],
+   "basis": "Source tracing at agentbox c57d9c0; restamped from 6500582, every panel read line by line; strict cite-check and render pass (285 citations); measured voice-loop timings and session-plane liveness not re-tested."},
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/agentbox/13-nostr-relay-gateway-bridge-mirror.md",
+   "report": "docs/estate-review/2026-11-02-w3-ab-d.md", "coverage": "selected-panels",
+   "panels": ["AB-13.1", "AB-13.2", "AB-13.3", "AB-13.4", "AB-13.15", "AB-13.16", "AB-13.5", "AB-13.6", "AB-13.7", "AB-13.8", "AB-13.9", "AB-13.17", "AB-13.10", "AB-13.12", "AB-13.13", "AB-13.14"],
+   "basis": "Source tracing at agentbox c57d9c0; restamped from 6500582, every panel read line by line; strict cite-check and render pass (388 citations, one JEV advisory settled by hand as a false positive); relay, Durable Object and deployed-env behaviour not observed."}
+]

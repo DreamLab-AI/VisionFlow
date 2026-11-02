@@ -1,0 +1,196 @@
+[
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/40-xr-two-backends-capability-gating.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-l.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VC-40.1",
+      "VC-40.2",
+      "VC-40.3"
+    ],
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every citation re-resolved and read at the pin; strict cite-check and render pass; Restamped from e4ba5eb (280 commits) and redrawn: per-volume gate, retired exclusive switch, Codescape palette not applied to the Codescape client (Debt); 3 corrected."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/41-proposal-construction-and-consumer-scope.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-l.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VC-41.1",
+      "VC-41.2",
+      "VC-41.3",
+      "VC-41.4"
+    ],
+    "basis": "Source tracing at VisionClaw 86cdd7635582, agentbox c57d9c0508f4, ontomark 4b9d15df4805; every citation re-resolved and read at the pin; strict cite-check and render pass; Restamped from 75b7241/9dfc27b/0caae5d with agentbox c57d9c0508f4 and ontomark 4b9d15df4805; main.rs, proposal.rs and propose.rs anchors fixed; 4 corrected; signed dry-run and grouped-fixture results are the audit's, not re-run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/42-codescape-command-policy-and-runtime-artefacts.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-l.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VC-42.1",
+      "VC-42.2",
+      "VC-42.3",
+      "VC-42.4"
+    ],
+    "basis": "Source tracing at VisionClaw 86cdd7635582, Codescape 58108c0357bd; every citation re-resolved and read at the pin; strict cite-check and render pass; Codescape kept at 58108c0 (submodule pointer e3b76f6 differs only by jev.rs fmt); 2 corrected, 1 accurate, 1 with limits; isolation tests and PTX probe not re-run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/43-codescape-presence-lifecycle.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-l.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VC-43.1",
+      "VC-43.2",
+      "VC-43.3"
+    ],
+    "basis": "Source tracing at VisionClaw 86cdd7635582, Codescape 58108c0357bd; every citation re-resolved and read at the pin; strict cite-check and render pass; Codescape kept at 58108c0; prose citation re-resolved; 3 accurate with limits (probe results not re-run, no live socket race)."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/44-xr-concurrent-backend-connections.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-l.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VC-44.1",
+      "VC-44.2",
+      "VC-44.3"
+    ],
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every citation re-resolved and read at the pin; strict cite-check and render pass; graph_scene.gd and backend_connection.gd anchors re-resolved; 3 corrected; two_clients.rs advisory checked by hand; E8 headset not run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/45-code-to-concept-link-evidence.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-l.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VC-45.1",
+      "VC-45.2",
+      "VC-45.3"
+    ],
+    "basis": "Source tracing at VisionClaw 86cdd7635582, Codescape 58108c0357bd; every citation re-resolved and read at the pin; strict cite-check and render pass; Codescape kept at 58108c0; 2 corrected, 1 with limits; executable join probe not re-run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/46-spatial-volume-fit-and-link-budget.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-l.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VC-46.1",
+      "VC-46.2",
+      "VC-46.3"
+    ],
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every citation re-resolved and read at the pin; strict cite-check and render pass; VC-46.1 redrawn for the Rust pack_links port; 3 corrected; headless fixtures not re-run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/48-dataspace-federation-prerequisites.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-l.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VC-48.1",
+      "VC-48.2",
+      "VC-48.3"
+    ],
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every citation re-resolved and read at the pin; strict cite-check and render pass; anchors re-resolved, visibility-default comment drift marked; 2 corrected, 1 accurate; no live federation session."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/49-room-admission.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-l.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VC-49.1",
+      "VC-49.2",
+      "VC-49.3"
+    ],
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every citation re-resolved and read at the pin; strict cite-check and render pass; 2 anchors fixed; 1 corrected, 1 with limits, 1 accurate; isolated actor run not repeated."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/50-deferred-space-voice.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-l.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VC-50.1",
+      "VC-50.2",
+      "VC-50.3"
+    ],
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every citation re-resolved and read at the pin; strict cite-check and render pass; XR-client.md anchor fixed; 1 corrected, 1 accurate, 1 with limits; no call activated."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/51-xr-visual-budget-and-engine-gates.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-l.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VC-51.1",
+      "VC-51.2",
+      "VC-51.3",
+      "VC-51.4",
+      "VC-51.5"
+    ],
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every citation re-resolved and read at the pin; strict cite-check and render pass; graph_scene.gd and XR-client.md anchors re-resolved; 2 corrected, 2 accurate, 1 with limits; headless controller and stereo runs not repeated."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/52-drag-holds-and-observation-gates.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-l.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VC-52.1",
+      "VC-52.2",
+      "VC-52.3",
+      "VC-52.4",
+      "VC-52.5",
+      "VC-52.6",
+      "VC-52.7"
+    ],
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every citation re-resolved and read at the pin; strict cite-check and render pass; Restamped from 531df5e; VC-52.3 redrawn for merged ADR-2169 spring mode (speed floor unread, Debt); 6 corrected, 1 with limits; acceptance-script negative control not re-run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/53-xr-grab-lifetimes-and-input.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-l.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VC-53.1",
+      "VC-53.2",
+      "VC-53.3",
+      "VC-53.4",
+      "VC-53.5",
+      "VC-53.6"
+    ],
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every citation re-resolved and read at the pin; strict cite-check and render pass; Restamped from 531df5e with content-identical line mapping; 6 corrected; spy probes not re-run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/54-layout-mode-step-cadence-and-settle.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-l.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VC-54.1",
+      "VC-54.2",
+      "VC-54.3",
+      "VC-54.4"
+    ],
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every citation re-resolved and read at the pin; strict cite-check and render pass; Restamped from d6c091f; VC-54.4 redrawn (shared edge_spring_scale, Verlet while held, dead speed floor); 4 corrected; no GPU timing run."
+  }
+]

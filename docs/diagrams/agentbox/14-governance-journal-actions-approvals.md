@@ -73,20 +73,20 @@ sources:
   - ../project/agentbox/management-api/lib/governance-evidence-rubric.js
   - ../project/agentbox/scripts/dream-forum-suggestions.mjs
   - ../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md
-verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
+verified_commit: c57d9c0508f4044915f9aecea4b9aa5629cc6a35
 ---
 
 ## AB-14.1 Governance plane — surfaces that reach the decision point vs surfaces that miss it
 
 ```mermaid
 flowchart TB
-    subgraph SURF["Agent-initiated side-effect surfaces GOVERNANCE-capabilities.md:60-77"]
+    subgraph SURF["Agent-initiated side-effect surfaces GOVERNANCE-capabilities.md:72-89"]
         DTC["Direct tool call<br/>MCP fleet mcp/mcp.json"]
-        CMS["Code-mode sub-call<br/>codeact / code-interpreter agentbox.toml:665,681"]
-        ACISHELL["ACI shell<br/>test allowlist agentbox.toml:1047<br/>raw Bash still reachable outside it"]
-        CONSULT["Consultant / subagent action<br/>tree-search-coder agentbox.toml:1083"]
+        CMS["Code-mode sub-call<br/>codeact / code-interpreter agentbox.toml:664,680"]
+        ACISHELL["ACI shell<br/>test allowlist agentbox.toml:1052<br/>raw Bash still reachable outside it"]
+        CONSULT["Consultant / subagent action<br/>tree-search-coder agentbox.toml:1088"]
         DREAM["Background job dream-engine<br/>01:00-05:00 UTC unattended"]
-        BEADS["Background job beads work-DAG<br/>spawn_child mcp/mcp.json:219"]
+        BEADS["Background job beads work-DAG<br/>spawn_child mcp/mcp.json:227"]
         ALTHARNESS["Alternate harness path<br/>non-Claude harness"]
         TASKAPI["POST /v1/tasks<br/>routes/tasks.js:16 spawnTask"]
     end
@@ -96,7 +96,7 @@ flowchart TB
     ACTPLANE(["action-plane.js getActionPlane<br/>lazy singleton, ADR-2041, see AB-14.14"])
     COSTGATE["costGate middleware<br/>middleware/cost-gate.js, see AB-15.x"]
     ACSPGATE["ACSP authority gate<br/>authority.js:226 buildAuthorityGate.guard, see AB-11.10"]
-    AXIOMGUARD["direct_axiom_load=false guard agentbox.toml:1100<br/>ADR-2108 supersedes ADR-2022, see AB-25"]
+    AXIOMGUARD["direct_axiom_load=false guard agentbox.toml:1105<br/>ADR-2108 supersedes ADR-2022, see AB-25"]
     EXEC(["side effect executes"])
 
     DTC -.->|"designed target, never instantiated for this surface"| PIPE
@@ -115,10 +115,10 @@ flowchart TB
     ACSPGATE --> EXEC
     AXIOMGUARD --> EXEC
 
-    DRIFT["DOC-DRIFT GOVERNANCE-capabilities.md:93-94 claims a repo-wide search of src/, services/, mcp/ for SessionEvent / execution-journal code returns nothing<br/>execution-journal.js:85 class ExecutionJournal and agent-action-pipeline.js:58 class AgentActionPipeline fully implement legacy-ADR-057/059 D1-D5<br/>under management-api/lib/, a path outside the doc's stated search scope"]
-    DIVERGE1["DIVERGENCE (NARROWED by ADR-2041) TOP OPEN RISK GOVERNANCE-capabilities.md:339-342 named 'no single policy decision point' with zero production instantiations<br/>action-plane.js now builds a real ExecutionJournal + AgentActionPipeline singleton and POST /v1/tasks calls dispatchTaskSpawn — one surface is now wired, journalled and capability-tokened<br/>the dream engine now RECORDS each side effect into the same journal through POST /v1/exec/record (ADR-2071, activation live, decision still proposed) but nothing there approves or denies<br/>every OTHER surface above (direct tool call, code-mode, ACI shell, consultant, dream, beads, alt harness) still reaches EXEC with no interceptor — the gap is narrower, not closed, see AB-14.14"]
-    DRIFT2["DOC-DRIFT the capability-surface list cites agentbox.toml line numbers that have moved and keep moving —<br/>GOVERNANCE-capabilities.md:65 says aci_shell is at agentbox.toml line 582 (it is agentbox.toml:1041),<br/>GOVERNANCE-capabilities.md:68-69 says code_interpreter line 539 and codeact line 554 (they are agentbox.toml:665 and agentbox.toml:681),<br/>GOVERNANCE-capabilities.md:72 says the test allowlist is line 585 (it is agentbox.toml:1047), GOVERNANCE-capabilities.md:76 says tree_search_coder line 624 (it is agentbox.toml:1083),<br/>GOVERNANCE-capabilities.md:66-67 says spawn_child is at mcp.json line 197 (it is mcp/mcp.json:219)"]
-    DIVERGE7["DIVERGENCE GOVERNANCE-capabilities.md:364-365 skill lint is advisory, not a runtime capability gate<br/>lint-skills.sh gates estate hygiene only; an enabled skill with clean frontmatter is trusted at runtime with no further check"]
+    DRIFT["DOC-DRIFT GOVERNANCE-capabilities.md:105-106 claims a repo-wide search of src/, services/, mcp/ for SessionEvent / execution-journal code returns nothing<br/>execution-journal.js:85 class ExecutionJournal and agent-action-pipeline.js:58 class AgentActionPipeline fully implement legacy-ADR-057/059 D1-D5<br/>under management-api/lib/, a path outside the doc's stated search scope"]
+    DIVERGE1["DIVERGENCE (NARROWED by ADR-2041) TOP OPEN RISK GOVERNANCE-capabilities.md:359-362 named 'no single policy decision point' with zero production instantiations<br/>action-plane.js now builds a real ExecutionJournal + AgentActionPipeline singleton and POST /v1/tasks calls dispatchTaskSpawn — one surface is now wired, journalled and capability-tokened<br/>the dream engine now RECORDS each side effect into the same journal through POST /v1/exec/record (ADR-2071, accepted and live) but nothing there approves or denies<br/>every OTHER surface above (direct tool call, code-mode, ACI shell, consultant, dream, beads, alt harness) still reaches EXEC with no interceptor — the gap is narrower, not closed, see AB-14.14"]
+    DRIFT2["DOC-DRIFT the capability-surface list cites agentbox.toml line numbers that have moved and keep moving —<br/>GOVERNANCE-capabilities.md:77 says aci_shell is at agentbox.toml line 582 (it is agentbox.toml:1046),<br/>GOVERNANCE-capabilities.md:80-81 says code_interpreter line 539 and codeact line 554 (they are agentbox.toml:664 and agentbox.toml:680),<br/>GOVERNANCE-capabilities.md:84 says the test allowlist is line 585 (it is agentbox.toml:1052), GOVERNANCE-capabilities.md:88 says tree_search_coder line 624 (it is agentbox.toml:1088),<br/>GOVERNANCE-capabilities.md:78-79 says spawn_child is at mcp.json line 197 (it is mcp/mcp.json:227)"]
+    DIVERGE7["DIVERGENCE GOVERNANCE-capabilities.md:384-385 skill lint is advisory, not a runtime capability gate<br/>lint-skills.sh gates estate hygiene only; an enabled skill with clean frontmatter is trusted at runtime with no further check"]
 ```
 
 ## AB-14.2 Action lifecycle — intent through policy, approval, execution, receipt, journal
@@ -159,9 +159,11 @@ stateDiagram-v2
         can rewrite an earlier approval.
     end note
     note right of RecordDeny
-        DOC-DRIFT this state machine is fully implemented and
-        contract-tested (tests/contract/agent-action-pipeline.contract.spec.js)
-        but is never reached by real traffic — see AB-14.1 DIVERGENCE.
+        this state machine is fully implemented and contract-tested
+        (tests/contract/agent-action-pipeline.contract.spec.js). Real traffic
+        reaches it only through POST /v1/tasks, classified local, so only the
+        FastPath branch runs; the approval branch has no production caller.
+        see AB-14.14 and AB-14.1 DIVERGENCE.
     end note
 ```
 
@@ -275,8 +277,8 @@ sequenceDiagram
         FA-->>C: 200 {approvals:[], count:0, wired:false, note} :89
     else consumer wired
         FA->>AJ: annotateApprovals(c.listPending()) :94, the Jev option
-        AJ-->>FA: the same array unless AGENTBOX_JEV_APPROVAL_REVIEW is on (opted in by system_one.consumers.approval_review, agentbox.toml:908, staged until a rebuild) and an endpoint answers, the proxy unless AGENTBOX_JEV_APPROVAL_LOCAL_ONLY=1 (approval-review-jev.js:20-24,127)
-        FA-->>C: 200 {approvals, count, wired:true} :87-88,95
+        AJ-->>FA: the same array unless AGENTBOX_JEV_APPROVAL_REVIEW is on (opted in by system_one.consumers.approval_review, agentbox.toml:912, staged until a rebuild) and an endpoint answers, the proxy unless AGENTBOX_JEV_APPROVAL_LOCAL_ONLY=1 (approval-review-jev.js:20-24,127)
+        FA-->>C: 200 {approvals, count, wired:true} :95
     end
     Note over FA,AJ: INVARIANT: the review_aid is advisory, annotate never reorders or hides a request<br/>and the decide route below never consults it, approval-review-jev.js:120-134
 
@@ -361,7 +363,7 @@ sequenceDiagram
     EJ-->>CALLER: {envelope, duplicate:false} :187
     Note over EJ,EVT: INVARIANT the journal rides the ADR-005 events adapter — no sixth adapter slot, no new database :9,20-24
     Note over EJ: hydrate(envelopes) rebuilds _nextSeq and _seenIds from persisted envelopes after a restart, idempotent replay :289-300
-    Note over EJ: RESOLVED (ADR-2041, partial) — action-plane.js now builds a live ExecutionJournal and this append path IS reached by POST /v1/tasks (task-spawn, side_effect_class 'local') when the events adapter is live. Every other surface in AB-14.1 still bypasses it — see AB-14.14
+    Note over EJ: RESOLVED (ADR-2041, implementation complete) — action-plane.js now builds a live ExecutionJournal and this append path IS reached by POST /v1/tasks (task-spawn, side_effect_class 'local') when the events adapter is live. Every other surface in AB-14.1 still bypasses it — see AB-14.14
 ```
 
 ## AB-14.8 execution-projections and execution-coverage over the journal
@@ -390,7 +392,7 @@ flowchart LR
     COV -.->|"journal.status = live if live.journal passed, else declared"| SYS
     COV -.->|"action_pipeline.status = live if live.pipeline passed, else declared execution-coverage.js:65"| SYS
 
-    DRIFTNOTE["DOC-DRIFT (PARTIALLY RESOLVED, ADR-2041) execution-coverage.js gained buildLiveExecutionCoverage(), which pulls a REAL singleton from action-plane.js getCoverageSnapshot() when POST /v1/tasks has built one<br/>but routes/system.js:26,61 still calls the OLD buildExecutionCoverage(live) with live={} — routes/system.js:48-49 reads options.execution.snapshot and server.js never supplies one — so GET /v1/system still reports status: declared always, even though a live instance now genuinely exists"]
+    DRIFTNOTE["RESOLVED (ADR-2041 close-out 2026-10-31) server.js:1029-1037 now registers routes/system with execution.snapshot, a lazy fail-open call of getCoverageSnapshot() action-plane.js:296<br/>routes/system.js:48-49 reads it and :61 passes it to buildExecutionCoverage(live), so GET /v1/system reports live once POST /v1/tasks has built the plane and declared before that<br/>ADR-2041 records this wiring as staged until management-api restarts — that a running container reports live is not shown by source"]
     COV --- DRIFTNOTE
 ```
 
@@ -417,7 +419,7 @@ sequenceDiagram
     RM->>BC20: crossActivityOutbound(urn) management-api/lib/receipt-minter.js:95,105
     Note over RM,BC20: fail-open — a crossOutbound failure is logged to stderr and never blocks the caller<br/>management-api/lib/receipt-minter.js:103-112
 
-    Note over WRITER,AC: separately, each JSONL record written gets hash = SHA256(prev_hash || canonical_json(record minus<br/>prev_hash,hash)) management-api/lib/audit-chain.js:7,68-72
+    Note over WRITER,AC: separately, each JSONL record written gets hash = SHA256(prev_hash || canonical_json(record minus<br/>prev_hash,hash)) management-api/lib/audit-chain.js:6,68-72
     WRITER->>AC: verifyLines(lines, {expectedPrev}) audit-chain.js:89
     loop each JSONL line management-api/lib/audit-chain.js:102-132
         alt record has neither hash nor prev_hash and chain not yet started
@@ -474,7 +476,7 @@ sequenceDiagram
         Note over RC: INVARIANT — applied requires a committed mutation acknowledgement,<br/>and the terminal stages are a closed set applied, not-applied, unknown,<br/>applied-manually (governance-application-receipts.js:83-84)
     end
     OP->>GB: governance_manual_continue {case_id, executed_by, evidence} (mcp/servers/governance-bridge.js:218)
-    GB->>GB: validate executed_by is a non-empty string up to 128 chars (mcp/servers/governance-bridge.js:377)
+    GB->>GB: validate executed_by is a non-empty string up to 128 chars (mcp/servers/governance-bridge.js:378)
     GB->>GB: manualContinue requires a well-formed did:nostr (management-api/lib/governance-manual-continue.js:110-111)
     alt executed_by names an agent identity
         GB-->>OP: refused — a manual continuation must be attributed to a HUMAN operator<br/>(management-api/lib/governance-manual-continue.js:120)
@@ -483,7 +485,7 @@ sequenceDiagram
         Note over GB,RC: the PROV-O activity carries prov:wasAssociatedWith = the human did:nostr<br/>(management-api/lib/governance-manual-continue.js:178)
     end
     Note over GB,RP: this diagram REPLACES the precedent match, promote and retire sequence.<br/>precedent-service.js and precedent-bridge.js were deleted at commit 70d017a3b<br/>and colloquy took the ground — see AB-22.7 and AB-09.5
-    Note over TP,GATE: DEBT — the classification table names payment_settlement zero-tolerance<br/>(agentbox.toml:1405) but no production path passes that actionClass. The only<br/>call sites are tests, and management-api/lib/authority.js:226 never sees it. see AB-15
+    Note over TP,GATE: DEBT — the classification table names payment_settlement zero-tolerance<br/>(agentbox.toml:1429) but no production path passes that actionClass. The only<br/>call sites are tests, and management-api/lib/authority.js:226 never sees it. see AB-15
 ```
 
 ## AB-14.12 project-tracker.js publish path and /v1/projects
@@ -530,7 +532,7 @@ sequenceDiagram
 ADR-2108 deleted the agentbox-local ontology write path (`ontology-local.cjs`, `ontology-authoring-authority.js`); the
 governed door is now `vault propose`/`vault edit --expect`, argv built by `lib/ontology-propose.js` and carried in the
 31402 as `propose_command`/`propose_iri` instead of the retired HTTP `propose_request` descriptor.
-**Drift (2026-10-30 close-out):** the code still builds and spawns `vault edit` for the decision end, but the baked `vault 0.1.0` no longer carries `find`, `retrieve`, `tree`, `edit`, `create` or `apply`, which moved to the `ontomark` CLI (`../project/agentbox/docs/adr/ADR-2108-ontology-bridge-retired-vault-baked-by-nix.md:238`). `vault propose`, the verb this section draws, is not in that list.
+**Drift (resolved at the pin):** the 2026-10-30 close-out found the decision end still spawning `vault edit` after the baked `vault 0.1.0` had dropped `find`, `retrieve`, `tree`, `edit`, `create` and `apply` (`../project/agentbox/docs/adr/ADR-2108-ontology-bridge-retired-vault-baked-by-nix.md:247`). By the 2026-10-31 owner decision `ontomark` owns those verbs and `vault` keeps only the governance transport, `propose` and `panel publish` (`../project/agentbox/docs/adr/ADR-2108-ontology-bridge-retired-vault-baked-by-nix.md:253`, `../project/agentbox/flake.nix:951-953`), so `vault propose`, the verb this section draws, is one of the two `vault` still carries.
 
 ```mermaid
 sequenceDiagram
@@ -566,7 +568,7 @@ sequenceDiagram
     alt publish throws
         EP-->>KGE: {published:false, reason: err.message} :224-230, federation is additive
     else published
-        opt AGENTBOX_JEV_GOVERNANCE_RUBRIC is on (off in code, opted in by system_one.consumers.governance_rubric, agentbox.toml:918, staged until a rebuild, projected GOVERNANCE_RUBRIC_LOCAL_ONLY=0 unless the consumer is in [system_one].local_only, system_one.rs:522-577)
+        opt AGENTBOX_JEV_GOVERNANCE_RUBRIC is on (off in code, opted in by system_one.consumers.governance_rubric, agentbox.toml:922, staged until a rebuild, projected GOVERNANCE_RUBRIC_LOCAL_ONLY=0 unless the consumer is in [system_one].local_only, system_one.rs:538-593)
             EP->>RUB: assess(unsigned, {env}) :218, after the card is built and signed
             RUB-->>EP: advisory signal, authority 'none', governance-evidence-rubric.js:135
             EP->>RUB: recordSignal(signal, event_id, env) :220, sidecar file, then result.evidence_signal :221
@@ -590,7 +592,7 @@ sequenceDiagram
     participant AAP as new AgentActionPipeline<br/>action-plane.js:185, classifier='local' :103-105
     participant DTS as dispatchTaskSpawn<br/>action-plane.js:254
 
-    RT->>DTS: dispatchTaskSpawn({agent, task, provider, ...}, {processManager, logger}) :252
+    RT->>DTS: dispatchTaskSpawn({agent, task, provider, ...}, {processManager, logger}) :57
     DTS->>AP: getActionPlane({logger, processManager}) :255
     alt singleton already built
         AP-->>DTS: cached {ready, journal, pipeline}
@@ -624,7 +626,7 @@ sequenceDiagram
     Note over RT,DTS: NARROWS but does not close GOVERNANCE-capabilities.md's TOP OPEN RISK (AB-14.1<br/>DIVERGENCE1) — exactly one surface (POST /v1/tasks) is now wired — every other agent-initiated<br/>side-effect surface still bypasses AgentActionPipeline entirely
 ```
 
-**Invariant:** `resolveAgentDid` is the identity every journalled task-spawn is attributed to, and its header step delegates to the shared `proxyVerifiedPubkey`, so a `MANAGEMENT_API_KEY` holder on the docker network (`server.js` binds `0.0.0.0`, `agentbox/management-api/server.js:49`) cannot put another `did:nostr` into `agent_did` and the journal; the precedence is `auth.pubkey`, header, `AGENTBOX_AGENT_DID`, null (`agentbox/management-api/lib/action-plane.js:222-233`, `agentbox/management-api/lib/agent-event-auth.js:117`).
+**Invariant:** `resolveAgentDid` is the identity every journalled task-spawn is attributed to, and its header step delegates to the shared `proxyVerifiedPubkey`, so a `MANAGEMENT_API_KEY` holder on the docker network (`server.js` binds `0.0.0.0`, `agentbox/management-api/server.js:50`) cannot put another `did:nostr` into `agent_did` and the journal; the precedence is `auth.pubkey`, header, `AGENTBOX_AGENT_DID`, null (`agentbox/management-api/lib/action-plane.js:222-233`, `agentbox/management-api/lib/agent-event-auth.js:117`).
 
 **Debt:** a same-container process still passes the loopback test and can stamp any pubkey into the journalled `agent_did` (the same-UID boundary, TODO-unified X-1; `agentbox/management-api/lib/action-plane.js:222-233`).
 
@@ -646,14 +648,14 @@ at `c4ed3ec65`.
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SRV as server.js boot block<br/>management-api/server.js:1201
+    participant SRV as server.js boot block<br/>management-api/server.js:1223
     participant BRP as bootReceiptPublisher<br/>management-api/lib/governance-receipt-publisher.js:471
     participant BB as broker-bridge decide<br/>management-api/routes/broker-bridge.js:509
     participant LLM as POST /v1/llm/revoke<br/>management-api/routes/llm-marketplace.js:438
     participant GB as governance-bridge entrypoint<br/>agentbox/mcp/servers/governance-bridge.js:553
     participant CHK as adr-2087-check.sh<br/>agentbox/scripts/activation/adr-2087-check.sh:12-18
 
-    SRV->>BRP: bootReceiptPublisher({manifest, logger, journal: authorityDenyJournal})<br/>management-api/server.js:1201-1203
+    SRV->>BRP: bootReceiptPublisher({manifest, logger, journal: authorityDenyJournal})<br/>management-api/server.js:1223-1225
     BRP->>BRP: log governance.receipt-replay.boot with configured true or false<br/>(management-api/lib/governance-receipt-publisher.js:494)
     BRP->>BRP: initialFlush, then publisher.start with the same replay tick every 60 s<br/>(management-api/lib/governance-receipt-publisher.js:500-501)
     Note over BRP: INVARIANT one replay at a time — a second tick returns the in-flight promise,<br/>so a hanging forum never posts an entry twice<br/>(management-api/lib/governance-receipt-publisher.js:480-491)
@@ -662,7 +664,7 @@ sequenceDiagram
     else forum_auth_api set (agentbox.toml:200, the auth worker since 60b60b48d)
         BRP->>BRP: post each queued entry, log governance.receipt-posted at info<br/>(management-api/lib/governance-receipt-publisher.js:407)
     end
-    SRV->>SRV: decorate governanceReceiptPublisher, stop it onClose (management-api/server.js:1204-1205)
+    SRV->>SRV: decorate governanceReceiptPublisher, stop it onClose (management-api/server.js:1226-1227)
 
     BB->>BB: authorityGate() resolves options, then fastify.authorityGate, per request<br/>(management-api/routes/broker-bridge.js:286)
     alt nothing decorated yet
@@ -676,7 +678,7 @@ sequenceDiagram
     LLM->>LLM: gate journal is a per-denial shim onto fastify.authorityDenyJournal<br/>(management-api/routes/llm-marketplace.js:78-87)
     Note over LLM: an unwired journal throws, which the gate reports as authority.deny-unjournalled<br/>(management-api/lib/authority.js:313) — loud, never a silent success
     LLM-->>LLM: 403 carries {code: no-decision-surface, hint: governance_manual_continue}<br/>(management-api/routes/llm-marketplace.js:512-513)
-    Note over LLM: an authority.deny row carries a did:nostr actor and a string target, and /v1/agent-events<br/>now serialises both<br/>(management-api/routes/agent-events.js:160-161, fc56e7a97)
+    Note over LLM: an authority.deny row carries a did:nostr actor and a string target, and /v1/agent-events<br/>now serialises both<br/>(management-api/routes/agent-events.js:163-168, fc56e7a97)
 
     GB->>GB: compare realpath of argv[1] with realpath of the module URL<br/>(agentbox/mcp/servers/governance-bridge.js:550-554)
     Note over GB: path.resolve compared a /opt symlink with the /nix/store path Node hands an ES module,<br/>so the server exited 0 without connecting until b18a52f03
@@ -695,7 +697,7 @@ sequenceDiagram
 
 **Invariant:** ADR-2071 clause (c) cannot pass on a night of failed journal posts alone: C3 also requires the one-shot's state file to record a clean stop and a `night-record` or `deadline` restart, and an `interrupted` night fails (`scripts/activation/adr-2087-check.sh:403-413`, `scripts/activation/adr-2071-api-down-night.sh:136-145`). AB-23.19 draws the one-shot.
 
-**Open:** the EXP-B8 tick takes two outward side effects when its stopping rule fires, a signed forum post (`scripts/experiments/exp-b8-label-log.cjs:550-563`) and a pull request opened with `gh` (`scripts/experiments/exp-b8-label-log.cjs:573-606`), and records neither through `POST /v1/exec/record` or the authority journal; no record says whether an unattended experiment tick is meant to sit outside the governance journal that ADR-2071 put round the dream night.
+**Open:** the EXP-B8 tick takes two outward side effects when its stopping rule fires, a signed forum post (`scripts/experiments/exp-b8-label-log.cjs:546-559`) and a pull request opened with `gh` (`scripts/experiments/exp-b8-label-log.cjs:569-602`), and records neither through `POST /v1/exec/record` or the authority journal; no record says whether an unattended experiment tick is meant to sit outside the governance journal that ADR-2071 put round the dream night.
 
 **Open:** ADR-2087 reaches `live` only on the first real governance response after the rebuild (B7, `scripts/activation/adr-2087-check.sh:332-344`); the record does not say who is expected to produce that response, or when.
 
@@ -713,7 +715,7 @@ flowchart TB
     end
     subgraph ON["role_isolation = true: one process holds the keys and signs named operations"]
         direction TB
-        PROG["serve-identity runs under ab-identity in the isolated config,<br/>env -i so PID 1's inherited environment never reaches it, flake.nix:2821-2846"]
+        PROG["serve-identity runs under ab-identity in the isolated config,<br/>env -i so PID 1's inherited environment never reaches it, flake.nix:2822-2847"]
         SOCK["socket /run/secrets/ab-identity-port/identity.sock, mode 0660 in group ab-identity-port<br/>services/nostr-pod-bridge/src/identity_port/server.rs:17, config/role-accounts.json:130-134"]
         PEER["the peer uid comes from SO_PEERCRED on every connection, never from the socket mode<br/>server.rs:104-111"]
         GATE{"uid in the ACL, op in the closed list, op granted to that uid<br/>services/nostr-pod-bridge/src/identity_port/port.rs:361-379"}
@@ -731,7 +733,7 @@ flowchart TB
     GATE -.-> INV1["INVARIANT: kinds 27235, 22242, 31401, 31403-31405 and 38414 can never be granted to sign_event or forum_event.<br/>31400 and 31402 are grantable only on forum_event, only to a key declared agent_governance, which may not<br/>share a grant, take another operation or be the mirror_root (ER-6, ADR-2122). The ACL loader refuses a file<br/>that tries, so a container key never signs a human decision or a graduation,<br/>services/nostr-pod-bridge/src/identity_port/acl.rs:71-73,84,209-210,287-308"]
     REC -.-> INV2["INVARIANT: nothing is signed off the record. An admitted request whose receipt line<br/>cannot be written is answered as a refusal, port.rs:320-326"]
     DEV -.-> WIRE["pods NIP-98 is the one wired client: the flag forces the port, then<br/>nostr-pod-bridge sign-request nip98 over the socket, management-api/lib/pod-signer.js:132-136,<br/>pod-signer.js:152-170, services/nostr-pod-bridge/src/main.rs:81"]
-    WIRE -.-> OPEN1["OPEN: sign_event, forum_event and nip42_auth have no client at this revision. JunkieJarvis,<br/>forum suggestions, colloquy publish and the gateway still read ab-identity key files<br/>that devuser cannot open under the flag, so they fail closed until the W3b cutover,<br/>docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:244-245"]
+    WIRE -.-> OPEN1["OPEN: sign_event, forum_event and nip42_auth have no client at this revision. JunkieJarvis,<br/>forum suggestions, colloquy publish and the gateway still read ab-identity key files<br/>that devuser cannot open under the flag, so they fail closed until the W3b cutover,<br/>docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:253-254"]
 ```
 
 **What it shows.** Flag off, nothing changes: `serve-identity` exits at once and every governance-adjacent signer reads its own key as before. Flag on, `nostr-pod-bridge serve-identity` is the only holder of the core and JunkieJarvis keys. It authorises each connection by the kernel's peer uid, admits only a closed set of operations per uid, writes a receipt for every admit and refusal, and refuses outright any ACL that would let a container key sign a human governance decision or a graduation; only a separately marked agent-governance key may be granted the panel and case kinds.
@@ -740,8 +742,8 @@ flowchart TB
 
 **Invariant (under role_isolation):** the human-decision governance kinds 31401 and 31403-31405 and the graduation kind 38414 cannot be signed by any container process through the port, because no ACL that grants them loads; the agent-authored panel and case kinds 31400 and 31402 load only as a `forum_event` grant to a key marked `agent_governance` (`../project/agentbox/services/nostr-pod-bridge/src/identity_port/acl.rs:71-73`, `../project/agentbox/services/nostr-pod-bridge/src/identity_port/acl.rs:84`, `../project/agentbox/services/nostr-pod-bridge/src/identity_port/acl.rs:304-307`). With the flag off the port does not run (`../project/agentbox/services/nostr-pod-bridge/src/identity_port/mod.rs:92-96`) and this says nothing about the env-key signers.
 
-**Open:** under the flag the JunkieJarvis agent reads its key through role-secret and gets nothing it can open (`../project/agentbox/management-api/lib/junkiejarvis-agent.js:92-99`), so forum replies and governance-panel posts signed as JunkieJarvis stop until the W3b consumer cutover lands (`../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:244-245`); the port's `forum_event` grant (`../project/agentbox/config/custody/identity-port-acl.json:40`) has no caller yet.
+**Open:** under the flag the JunkieJarvis agent reads its key through role-secret and gets nothing it can open (`../project/agentbox/management-api/lib/junkiejarvis-agent.js:92-99`), so forum replies and governance-panel posts signed as JunkieJarvis stop until the W3b consumer cutover lands (`../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:253-254`); the port's `forum_event` grant (`../project/agentbox/config/custody/identity-port-acl.json:40`) has no caller yet.
 
-**Open:** ADR-2122 ER-6 chose an agent-governance signer so dream-engine can publish panels and cases through the port, but the shipped ACL grants no such key because the key does not exist yet, and dream-engine still reads its own key file (`../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:643`, `../project/agentbox/config/custody/identity-port-acl.json:40`).
+**Open:** ADR-2122 ER-6 chose an agent-governance signer so dream-engine can publish panels and cases through the port, but the shipped ACL grants no such key because the key does not exist yet, and dream-engine still reads its own key file (`../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:652`, `../project/agentbox/config/custody/identity-port-acl.json:40`).
 
 **Drift (identity-port-acl.json vs acl.rs):** the shipped ACL's own note still says kinds 31400-31405 cannot be granted (`../project/agentbox/config/custody/identity-port-acl.json:13`), while the loader now admits 31400 and 31402 to an `agent_governance` key on `forum_event` (`../project/agentbox/services/nostr-pod-bridge/src/identity_port/acl.rs:84`, `../project/agentbox/services/nostr-pod-bridge/src/identity_port/acl.rs:304-307`).

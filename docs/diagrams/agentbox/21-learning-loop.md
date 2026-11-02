@@ -4,11 +4,13 @@ title: Learning loop — capture, judge, distil, consume
 area: agentbox
 governing:
   - ../project/agentbox/docs/LEARNING-memory.md
-adrs: [ADR-2015, ADR-2016, ADR-2017, ADR-2018, ADR-2051, ADR-2052]
+adrs: [ADR-2015, ADR-2016, ADR-2017, ADR-2018, ADR-2051, ADR-2052, ADR-2164]
 sources:
   - ../project/agentbox/config/hooks/trajectory-recorder.cjs
   - ../project/agentbox/config/hooks/lib/trajectory-util.cjs
   - ../project/agentbox/management-api/lib/failure-taxonomy.js
+  - ../project/agentbox/management-api/routes/agent-events.js
+  - ../project/agentbox/management-api/lib/trajectory-store.js
   - ../project/agentbox/scripts/ruvector-aggregate-sweep.mjs
   - ../project/agentbox/scripts/ruvector-pattern-distill.mjs
   - ../project/agentbox/mcp/servers/lib/aggregate-effectiveness.js
@@ -25,7 +27,7 @@ sources:
   - ../project/agentbox/config/hooks/lib/jev-option.cjs
   - ../project/agentbox/config/hooks/nostr-live-mirror.cjs
   - ../project/agentbox/mcp/servers/ruvector-mcp.cjs
-verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
+verified_commit: c57d9c0508f4
 ---
 
 ## AB-21.1 Capture — transcript-driven grading
@@ -33,88 +35,101 @@ verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
 ```mermaid
 sequenceDiagram
     autonumber
+    participant BOOT as entrypoint hook registration<br/>agentbox/config/entrypoint-unified.sh:2039
     participant CC as Claude Code<br/>Stop / SubagentStop
     participant HK as trajectory-recorder.cjs<br/>agentbox/config/hooks/trajectory-recorder.cjs:1
-    participant G as gates
     participant STASH as per-session stash<br/>line watermark
     participant TR as transcript JSONL
-    participant U as trajectory-util.cjs<br/>agentbox/config/hooks/lib/trajectory-util.cjs
+    participant U as gradeResult<br/>agentbox/config/hooks/lib/trajectory-util.cjs:285
     participant FT as failure-taxonomy.js<br/>agentbox/management-api/lib/failure-taxonomy.js
 
+    alt [memory_learning] enabled AND record_trajectories both true
+        BOOT->>CC: register the hook on Stop and SubagentStop in settings.json (:2039-2040)
+    else either false — the DEFAULT-OFF posture
+        BOOT->>CC: strip any prior registration, byte-identical to pre-learning behaviour (:2075-2078)
+    end
+    Note over BOOT,HK: ENABLEMENT IS REGISTRATION — the hook reads no gate variable and holds no database client<br/>(config/hooks/trajectory-recorder.cjs:32-36, config/hooks/trajectory-recorder.cjs:14-17)
     CC->>HK: hook fires
-    HK->>G: read RUVECTOR_MEMORY_LEARNING_ENABLED and RUVECTOR_RECORD_TRAJECTORIES
-    alt either off — the DEFAULT-OFF posture
-        G-->>HK: off
-        HK-->>CC: silent exit 0 — byte-identical to pre-learning behaviour (:28-30)
-    else BOTH on ('1' or 'true')
-        HK->>STASH: read the per-session line watermark
-        HK->>TR: scan from the watermark — INCREMENTAL
-        Note over HK,TR: WHY TRANSCRIPT-DRIVEN, not per-PostToolUse: on this Claude Code build a successful Bash<br/>tool_response carries NO exit code or error flag, and PostToolUse does NOT fire at all<br/>for non-zero-exit commands — so per-tool grading is blind to EVERY FAILURE. The<br/>transcript is the only source recording both outcomes via tool_result.is_error (:22-27)
-        loop each Bash tool_use / tool_result pair
-            HK->>U: gradeResult(is_error, stderr, interrupted)
-            alt is_error absent (undetermined) or the call was user-interrupted
-                U-->>HK: null
-                HK->>HK: NOTHING is written for this step
-                Note over U: INVARIANT I04 OUTCOME HONESTY — the outcome is a real graded signal or nothing is<br/>written. Never default an undetermined or interrupted call to success (config/hooks/lib/trajectory-util.cjs:31-32)
-            else graded
-                U-->>HK: {success, quality, signal} — quality 1.0 clean success, 0.85 success with stderr noise,<br/>0.0 failure
-            end
-            HK->>U: redact(use.command)
-            alt redaction returns null
-                U-->>HK: null
-                HK->>HK: log "redaction failed — skipping step (fail-closed, I10)" then continue (:362)
-                Note over U: INVARIANT I10 PRIVACY FAIL-CLOSED — an un-redactable command is SKIPPED, never persisted<br/>raw. REDACTORS conservatively over-redact URI creds, *KEY/TOKEN/SECRET assignments,<br/>bearer tokens, 40+-char base64 and 32+-char hex runs
-            else redacted
-                U-->>HK: redacted string
-            end
-            HK->>U: commandPattern(command)
-            U-->>HK: low-cardinality "<verb>[ <sub>] [args:N flags:N markers]" — NO raw args, NO secrets
-            HK->>HK: durationMs from transcript timestamps (:364-366)
-            Note over HK: null when either timestamp is unparseable OR t1 < t0. A ZERO duration (both rounding to<br/>the same ms) is a VALID 0 — the step is pushed regardless of durationMs
-            opt graded FAILURE with stderr
-                HK->>U: redact(stderr) then slice(0, 400) as failureHint (:372-375)
-                HK->>FT: MAST classifier, fail-open to 'unmapped'
-                Note over HK,FT: the hint is used IN-MEMORY ONLY for tagging and is NEVER persisted to the step result —<br/>I10: the durable result carries the redacted command, not stderr (:368-371)
-            end
+    HK->>STASH: read the per-session line watermark
+    HK->>TR: scan from the watermark — INCREMENTAL
+    Note over HK,TR: WHY TRANSCRIPT-DRIVEN, not per-PostToolUse: on this Claude Code build a successful Bash<br/>tool_response carries NO exit code or error flag, and PostToolUse does NOT fire at all<br/>for non-zero-exit commands — so per-tool grading is blind to EVERY FAILURE. The<br/>transcript is the only source recording both outcomes via tool_result.is_error (:26-30)
+    loop each Bash tool_use / tool_result pair
+        HK->>U: gradeResult(is_error, stderr, interrupted) (config/hooks/trajectory-recorder.cjs:365)
+        alt is_error absent (undetermined) or the call was user-interrupted
+            U-->>HK: null
+            HK->>HK: NOTHING is written for this step
+            Note over U: INVARIANT I04 OUTCOME HONESTY — the outcome is a real graded signal or nothing is<br/>written. Never default an undetermined or interrupted call to success (config/hooks/lib/trajectory-util.cjs:285-295)
+        else graded
+            U-->>HK: {success, quality, signal} — quality 1.0 clean success, 0.85 success with stderr noise,<br/>0.0 failure (config/hooks/lib/trajectory-util.cjs:221-222)
+        end
+        HK->>HK: commandPattern(command) — low-cardinality "<verb>[ <sub>] [args:N flags:N markers]",<br/>NO raw args, NO secrets. A null pattern skips the step (config/hooks/trajectory-recorder.cjs:367-368)
+        HK->>HK: redact(use.command)
+        alt redaction returns null
+            HK->>HK: log "redaction failed — skipping step (fail-closed, I10)" then continue (:371)
+            Note over HK: INVARIANT I10 PRIVACY FAIL-CLOSED — an un-redactable command is SKIPPED, never persisted<br/>raw. REDACTORS conservatively over-redact URI creds, *KEY/TOKEN/SECRET assignments,<br/>bearer tokens, 40+-char base64 and 32+-char hex runs
+        end
+        HK->>HK: durationMs from transcript timestamps (:373-375)
+        Note over HK: null when either timestamp is unparseable OR t1 < t0. A ZERO duration (both rounding to<br/>the same ms) is a VALID 0 — the step is pushed regardless of durationMs
+        opt graded FAILURE with stderr
+            HK->>HK: redact(stderr) then slice(0, 400) as failureHint (:381-385)
+            HK->>FT: MAST classifier, fail-open to 'unmapped'
+            Note over HK,FT: the hint is used IN-MEMORY ONLY for tagging and is NEVER persisted to the step result —<br/>I10: the durable result carries the redacted command, not stderr (:377-380)
         end
     end
-    Note over HK: INVARIANT FAIL-OPEN — any error exits 0 and never blocks Claude, mirroring<br/>nostr-live-mirror.cjs (ADR-2015)
+    Note over HK: INVARIANT FAIL-OPEN — any error exits 0 and never blocks Claude, mirroring<br/>nostr-live-mirror.cjs (ADR-2015). An 8 s kill-switch bounds the run (config/hooks/trajectory-recorder.cjs:587-592)
 ```
 
-## AB-21.2 Capture — persistence
+**Drift:** the recorder's header still lists "a zero duration is a bug → skip" among its hard rules (`../project/agentbox/config/hooks/trajectory-recorder.cjs:40-41`), but the code keeps a zero duration whenever `t1 >= t0` and pushes the step regardless (`../project/agentbox/config/hooks/trajectory-recorder.cjs:373-375`). The code is what runs; the header is stale.
+
+## AB-21.2 Capture — persistence through the Management API (ADR-2164)
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant HK as trajectory-recorder.cjs<br/>agentbox/config/hooks/trajectory-recorder.cjs
-    participant PROBE as hasDurationColumn<br/>agentbox/config/hooks/trajectory-recorder.cjs:292
+    participant HK as postTrajectory<br/>agentbox/config/hooks/trajectory-recorder.cjs:276
+    participant RT as POST /v1/agent-events/trajectory<br/>agentbox/management-api/routes/agent-events.js:571
+    participant ST as persistTrajectory<br/>agentbox/management-api/lib/trajectory-store.js:113
+    participant PROBE as hasDurationColumn<br/>agentbox/management-api/lib/trajectory-store.js:53
     participant PG as ruvector-postgres
-    participant U as trajectory-util.cjs
-    participant EV as agent-events
+    participant EV as /v1/agent-events/emit
 
-    HK->>PG: INSERT INTO trajectories (id, task, agent, status, started_at, metadata) VALUES<br/>($1,$2,$3,'recording',CURRENT_TIMESTAMP,$4::jsonb) ON CONFLICT (id) DO NOTHING<br/>(config/hooks/trajectory-recorder.cjs:458-461)
-    Note over HK,PG: task is "claude-code-session:<first 12 of session>", agent is AGENTBOX_AGENT or<br/>'claude-code'. metadata carries session, owner_did, trajectory_urn, handoff_id<br/>(config/hooks/trajectory-recorder.cjs:450-456)
-    HK->>PROBE: hasDurationColumn(client)
-    alt cached verdict exists
-        PROBE-->>HK: cached boolean (config/hooks/trajectory-recorder.cjs:293)
-    else first call
-        PROBE->>PG: SELECT 1 FROM information_schema.columns WHERE table_name='trajectory_steps' AND<br/>column_name='duration_ms' LIMIT 1 (config/hooks/trajectory-recorder.cjs:295-298)
-        PG-->>PROBE: rowCount
-        PROBE->>PROBE: cache the verdict, catch to false (config/hooks/trajectory-recorder.cjs:299-300)
-    end
-    loop each graded step
-        HK->>HK: stepId = "<trajectoryId>:step-<sha12(toolUseId)>" (config/hooks/trajectory-recorder.cjs:469)
-        Note over HK: DETERMINISTIC, content-addressed step ids make repeated Stop firings IDEMPOTENT (config/hooks/trajectory-recorder.cjs:19-20)
-        HK->>PG: parameterised INSERT INTO trajectory_steps — duration_ms written ONLY when the column<br/>exists
-        Note over HK,PG: result JSON carries outcome success|failure, signal, the REDACTED command, an optional<br/>MAST failure_mode on failures, a failure_jev object only when the Jev option judged an unmapped failure<br/>(config/hooks/trajectory-recorder.cjs:478-481), and the CTC fields token_count / duration_ms
-        opt CTC emit
-            HK->>U: ctcEmitBodyFromStep — tokenCountOf(usage) sums the WHOLE assistant turn's token burden,<br/>handoffIdFrom resolves the chain-correlation id
-            HK->>EV: best-effort emit
-            Note over HK,EV: the emit is FAIL-OPEN — DB persistence is already done, so a failed emit loses<br/>telemetry, never data
+    HK->>HK: build the rows from the stash: step id "<trajectoryId>:step-<sha12(toolUseId)>",<br/>step_order, quality, result JSON, and the cumulative rollup (config/hooks/trajectory-recorder.cjs:459-526)
+    Note over HK: task is "claude-code-session:<first 12 of session>", agent is AGENTBOX_AGENT or 'claude-code'.<br/>metadata carries type, session, owner_did, trajectory_urn, handoff_id (config/hooks/trajectory-recorder.cjs:452-458, :509-513)
+    alt no MANAGEMENT_API_KEY and no TASK_ACTION_TOKEN
+        HK->>HK: cannot persist, resolve false (:282)
+    else credential present
+        HK->>RT: POST {trajectory, steps, rollup}, Bearer credential, 5 s timeout (:285-295)
+        alt no external-pg memory adapter
+            RT-->>HK: 503 (agentbox/management-api/routes/agent-events.js:626-632)
+        else
+            RT->>ST: persistTrajectory(pool, body, taskId when a task token posted) (agentbox/management-api/routes/agent-events.js:635-636)
+            ST->>ST: validate — every step id must start with "<trajectory id>:step-" (trajectory-store.js:74-85)
+            ST->>PROBE: hasDurationColumn(pool)
+            PROBE->>PG: SELECT 1 FROM information_schema.columns ... duration_ms (trajectory-store.js:56-59)
+            PROBE->>PROBE: cache only a DEFINITE answer per pool, a failed lookup returns false uncached (trajectory-store.js:60-65)
+            ST->>PG: BEGIN, INSERT trajectories ... ON CONFLICT (id) DO NOTHING (trajectory-store.js:118-128)
+            opt task-token post
+                ST->>PG: re-read the owner under FOR UPDATE, refuse a trajectory another task or the operator owns (trajectory-store.js:130-141)
+            end
+            ST->>PG: INSERT each step ON CONFLICT (id) DO NOTHING — duration_ms column when present, else in result (trajectory-store.js:144-164)
+            ST->>PG: UPDATE the rollup — ended_at, status complete, success, metadata counters (trajectory-store.js:167-187)
+            ST->>PG: COMMIT, or ROLLBACK on any error so nothing is written (trajectory-store.js:189-193)
+            RT-->>HK: 200, or 400 / 403 / 500 (agentbox/management-api/routes/agent-events.js:637-646)
         end
     end
-    HK->>HK: advance the per-session line watermark in the stash
+    alt 2xx
+        HK->>HK: advance the watermark, step order and quality counters in the stash (:529-536)
+    else anything else
+        HK->>HK: leave the watermark — the lines are retried on the next Stop (:537-543)
+        Note over HK: THE WATERMARK FOLLOWS DURABILITY (ADR-2015). Re-scanning is safe because step ids<br/>are content-addressed and inserts are ON CONFLICT DO NOTHING (:418-432)
+    end
+    opt CTC emit, best-effort, after the persist attempt
+        HK->>EV: per-step token_count and handoff_id, capped at 200 per run, overflow queued in the stash (:548-561)
+        Note over HK,EV: the emit is FAIL-OPEN. After a failed persist only the carried backlog is drained, so a retry never<br/>double-counts token burden (:537-543)
+    end
 ```
+
+**Invariant:** the hook holds no SQL and no connection string; the API owns the trajectory tables (`../project/agentbox/config/hooks/trajectory-recorder.cjs:44-45`, `../project/agentbox/management-api/lib/trajectory-store.js:4-19`), and one post is one transaction (`../project/agentbox/management-api/lib/trajectory-store.js:87-90`).
 
 ## AB-21.3 Trajectory schema
 
@@ -126,13 +141,23 @@ classDiagram
         +text agent
         +text status
         +timestamptz started_at
+        +timestamptz ended_at
+        +bool success
         +jsonb metadata
     }
     class TrajectoryMetadata {
+        +String type
         +String session
         +String owner_did
         +String trajectory_urn
         +String handoff_id "chain correlation"
+        +String task_id "task-token posts only"
+        +int step_count
+        +float mean_quality
+        +String outcome
+        +int handoff_count
+        +int ctc_emit_queued
+        +int ctc_emit_carried_in
     }
     class trajectory_steps {
         +text id
@@ -141,7 +166,7 @@ classDiagram
         +jsonb result
         +real quality
         +int step_order
-        +int duration_ms
+        +float duration_ms
     }
     class StepResult {
         +String outcome
@@ -155,9 +180,9 @@ classDiagram
     trajectories --> TrajectoryMetadata : metadata
     trajectories "1" --> "*" trajectory_steps : has
     trajectory_steps --> StepResult : result
-    note for trajectory_steps "id is the PK, content-addressed as trajId-step-sha12(toolUseId) so re-fires are<br/>idempotent. trajectory_id is the FK. action is the durable low-cardinality<br/>commandPattern — verb, optional subcommand, then args:N flags:N markers — carrying NO<br/>raw args and NO secrets, and it is the grouping key the sweep aggregates on. quality is<br/>1.0 clean success, 0.85 success with stderr noise, 0.0 failure. duration_ms is nullable,<br/>may legitimately be 0, and is written only when the column probe finds it"
-    note for trajectories "id is the PK. task is claude-code-session then the first 12 chars of the session id.<br/>agent is AGENTBOX_AGENT or claude-code. status is 'recording' at insert. started_at is<br/>CURRENT_TIMESTAMP"
-    note for StepResult "outcome is success or failure. command is the REDACTED command, never raw. failure_mode<br/>is the MAST tag, fail-open to 'unmapped' and refined only by the opt-in Jev judge, which then adds failure_jev (config/hooks/trajectory-recorder.cjs:121-129,478-481). token_count and duration_ms are the CTC<br/>fields. stderr is NEVER persisted here — the redacted stderr hint exists in-memory only,<br/>capped at 400 chars, purely so the MAST classifier can tag failure_mode (I10)"
+    note for trajectory_steps "id is the PK, content-addressed as trajId-step-sha12(toolUseId) so re-fires are<br/>idempotent. trajectory_id is the FK. action is the durable low-cardinality<br/>commandPattern — verb, optional subcommand, then args:N flags:N markers — carrying NO<br/>raw args and NO secrets, and it is the grouping key the sweep aggregates on. quality is<br/>1.0 clean success, 0.85 success with stderr noise, 0.0 failure. duration_ms is nullable,<br/>may legitimately be 0, and is a column only when the migration added it, else it rides in result"
+    note for trajectories "id is the PK. task is claude-code-session then the first 12 chars of the session id.<br/>agent is AGENTBOX_AGENT or claude-code. status is 'recording' at insert and 'complete'<br/>after the rollup UPDATE, which also sets ended_at, success and the metadata counters"
+    note for StepResult "outcome is success or failure. command is the REDACTED command, never raw. failure_mode<br/>is the MAST tag, fail-open to 'unmapped' and refined only by the opt-in Jev judge, which then adds failure_jev (config/hooks/trajectory-recorder.cjs:115-123,471-476). token_count and duration_ms are the CTC<br/>fields. stderr is NEVER persisted here — the redacted stderr hint exists in-memory only,<br/>capped at 400 chars, purely so the MAST classifier can tag failure_mode (I10)"
 ```
 
 ## AB-21.4 Judge — the aggregate sweep
@@ -165,7 +190,7 @@ classDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SUP as supervisord<br/>agentbox/flake.nix:2392
+    participant SUP as supervisord<br/>agentbox/flake.nix:2393
     participant SW as ruvector-aggregate-sweep.mjs<br/>agentbox/scripts/ruvector-aggregate-sweep.mjs:1
     participant G as gates
     participant MT as governed memStore/memRetrieve<br/>agentbox/mcp/servers/lib/memory-tools.js
@@ -174,35 +199,39 @@ sequenceDiagram
     participant AGG as ns memory-learning-aggregates
 
     Note over SUP,SW: [program:ruvector-aggregate-sweep] — launched UNCONDITIONALLY and self-gating, so a<br/>default-off manifest is byte-identical to the pre-learning product
-    loop every aggregate_sweep_interval_mins 30 (agentbox/agentbox.toml:492)
-        SW->>G: aggregate_sweep gate (agentbox/agentbox.toml:491)
+    loop every aggregate_sweep_interval_mins 30 (agentbox/agentbox.toml:491)
+        SW->>G: aggregate_sweep gate (agentbox/agentbox.toml:490)
         alt off
             G-->>SW: fast exit
         else on
-            SW->>MT: memRetrieve('__aggregation_sweep_cursor__', 'memory-learning-aggregates') (:105, :300)
-            Note over SW,MT: the cursor is ORDINARY GOVERNED MEMORY tagged 'sweep:cursor' (:106) so consumers<br/>filtering on action:* tags never surface it as an aggregate. Written through memStore,<br/>NEVER raw SQL (I03)
+            SW->>MT: memRetrieve('__aggregation_sweep_cursor__', 'memory-learning-aggregates') (:106, :290)
+            Note over SW,MT: the cursor is ORDINARY GOVERNED MEMORY tagged 'sweep:cursor' (:107) so consumers<br/>filtering on action:* tags never surface it as an aggregate. Written through memStore,<br/>NEVER raw SQL (I03)
             MT-->>SW: last high-water mark
-            SW->>PG: AGG_SQL since the cursor, grouped by action
-            Note over SW,PG: the cursor binds on max(created_at) (I21) because trajectory_steps.id is text and<br/>NON-MONOTONIC — extract(epoch FROM max(created_at)) and an ISO hwm_ts are both recorded<br/>(:286-287)
+            SW->>PG: read the high-water mark max(created_at) (:273-287)
+            alt hwm not past the cursor
+                SW-->>G: skip — no new steps, nothing advanced (:334-344)
+            end
+            Note over SW,PG: the cursor binds on max(created_at) (I21) because trajectory_steps.id is text and<br/>NON-MONOTONIC. It GATES a FULL recompute — the recency-weighted Wilson bound needs each<br/>pattern's whole history, so a delta-only recompute would be wrong (:334-338, :346-349)
+            SW->>PG: AGG_SQL over every step younger than RUVECTOR_AGGREGATE_MAX_AGE_DAYS, default 90,<br/>grouped by action (mcp/servers/lib/aggregate-effectiveness.js:207-210, mcp/servers/lib/aggregate-effectiveness.js:218-233)
             PG-->>AE: grouped rows
             loop each action pattern
                 AE->>AE: weight_i = 0.5 ^ (age_days_i / RUVECTOR_RECENCY_HALF_LIFE_DAYS) (mcp/servers/lib/aggregate-effectiveness.js:16)
-                Note over AE: recency_half_life_days default 14 (agentbox/agentbox.toml:479). Successes are steps with<br/>quality >= 0.5
+                Note over AE: recency_half_life_days default 14 (agentbox/agentbox.toml:478). A success is a CLEAN step,<br/>quality >= RUVECTOR_AGGREGATE_SUCCESS_QUALITY default 0.9. Stderr-noisy 0.85 successes count only<br/>in the denominator as n_ambiguous (mcp/servers/lib/aggregate-effectiveness.js:197-200, mcp/servers/lib/aggregate-effectiveness.js:224-227)
                 AE->>AE: wilsonLower(effSucc, effTotal, Z) with Z = 1.96 (mcp/servers/lib/aggregate-effectiveness.js:49, mcp/servers/lib/aggregate-effectiveness.js:73, mcp/servers/lib/aggregate-effectiveness.js:334)
                 Note over AE: the stored bound uses trajectory independence deflation of the recency-weighted sample.<br/>aggregate-effectiveness.js:311-319 scales effective successes and count equally.<br/>The uncorrected bound remains a separate diagnostic at aggregate-effectiveness.js:333
-                alt raw n < aggregate_min_samples 20 (agentbox/agentbox.toml:478)
-                    AE->>AE: SKIP
-                    Note over AE: INVARIANT I06 / ADR-2016 — the sample floor gates on the RAW OBSERVATION COUNT, not the<br/>recency-weighted effective size
+                alt not attributable, raw n < aggregate_min_samples 20 (agentbox/agentbox.toml:477),<br/>or fewer than RUVECTOR_AGGREGATE_MIN_TRAJECTORIES 3 distinct trajectories
+                    AE->>AE: SKIP (mcp/servers/lib/aggregate-effectiveness.js:244-256)
+                    Note over AE: INVARIANT I06 / ADR-2016 — the sample floor gates on the RAW OBSERVATION COUNT, not the<br/>recency-weighted effective size, and a pattern must also come from enough independent sessions
                 else survives the floor
-                    AE->>AE: eligible rows pass trajectoryJev.annotateRows, off unless AGENTBOX_JEV_TRAJECTORY_CLASSIFY=1,<br/>which the manifest projects from consumers.trajectory_classify = true (configured, takes effect at the next image activation, ADR-2155 staged),<br/>with TRAJECTORY_LOCAL_ONLY projected 0 unless it is listed in [system_one].local_only (empty), so by default it takes the proxy and TypeSafe (jev-option.cjs:72-77, system_one.rs:451, :530, :564-577)<br/>(agentbox.toml:911, entrypoint-unified.sh:1259-1263, mcp/servers/lib/aggregate-effectiveness.js:428-430, mcp/servers/lib/trajectory-pattern-jev.js:134-137)
-                    Note over AE: the Jev option only ATTACHES a semantic object, an action class and a coherence score, to a row<br/>that was already eligible, capped at AGENTBOX_JEV_TRAJECTORY_MAX_PATTERNS 40 per sweep<br/>(mcp/servers/lib/trajectory-pattern-jev.js:140,145), and the stored value spreads it in<br/>(mcp/servers/lib/aggregate-effectiveness.js:473, mcp/servers/lib/trajectory-pattern-jev.js:156-158)
-                    AE->>MT: memStore through the GOVERNED path (mcp/servers/lib/aggregate-effectiveness.js:24, mcp/servers/lib/aggregate-effectiveness.js:478)
-                    Note over AE,AGG: key effectiveness-sha256-12-<hash(pattern)> (mcp/servers/lib/aggregate-effectiveness.js:88), namespace memory-learning-aggregates<br/>(mcp/servers/lib/aggregate-effectiveness.js:47), typed metadata {importance: wilson, tags: ['action:<pattern>'], memory_type:<br/>'semantic'} (mcp/servers/lib/aggregate-effectiveness.js:28-29, runtime mcp/servers/lib/aggregate-effectiveness.js:479-481)
-                    Note over AE: the tags and importance are LOAD-BEARING — feed_retrieval keys on metadata.tags and<br/>feed_routing surfaces importance — so the typed-metadata gate is FORCED ON for this<br/>process (mcp/servers/lib/aggregate-effectiveness.js:402-408)
+                    AE->>AE: eligible rows pass trajectoryJev.annotateRows, off unless AGENTBOX_JEV_TRAJECTORY_CLASSIFY=1,<br/>which the manifest projects from consumers.trajectory_classify = true (configured, takes effect at the next image activation, ADR-2155 staged),<br/>with TRAJECTORY_LOCAL_ONLY projected 0 unless it is listed in [system_one].local_only (empty), so by default it takes the proxy and TypeSafe (jev-option.cjs:72-77, system_one.rs:466-472, :546, :580-593)<br/>(agentbox.toml:915, entrypoint-unified.sh:1269-1273, mcp/servers/lib/aggregate-effectiveness.js:417-419, mcp/servers/lib/trajectory-pattern-jev.js:134-137)
+                    Note over AE: the Jev option only ATTACHES a semantic object, an action class and a coherence score, to a row<br/>that was already eligible, capped at AGENTBOX_JEV_TRAJECTORY_MAX_PATTERNS 40 per sweep<br/>(mcp/servers/lib/trajectory-pattern-jev.js:140,145), and the stored value spreads it in<br/>(mcp/servers/lib/aggregate-effectiveness.js:462, mcp/servers/lib/trajectory-pattern-jev.js:156-158)
+                    AE->>MT: memStore through the GOVERNED path (mcp/servers/lib/aggregate-effectiveness.js:24, mcp/servers/lib/aggregate-effectiveness.js:467)
+                    Note over AE,AGG: key effectiveness-sha256-12-<hash(pattern)> (mcp/servers/lib/aggregate-effectiveness.js:88), namespace memory-learning-aggregates<br/>(mcp/servers/lib/aggregate-effectiveness.js:47), typed metadata {importance: wilson, tags: ['action:<pattern>'], memory_type:<br/>'semantic'} (mcp/servers/lib/aggregate-effectiveness.js:28-29, runtime mcp/servers/lib/aggregate-effectiveness.js:468-470)
+                    Note over AE: the tags and importance are LOAD-BEARING — feed_retrieval keys on metadata.tags and<br/>feed_routing surfaces importance — so the typed-metadata gate is FORCED ON for this<br/>process (mcp/servers/lib/aggregate-effectiveness.js:391-397)
                     MT->>AGG: upsert
                 end
             end
-            SW->>MT: writeCursor {cursor_after: hwmTs, stepsProcessed, aggregatesWritten, urn} (:307-309)
+            SW->>MT: writeCursor {cursor_after: hwmTs, stepsProcessed, aggregatesWritten, urn}, only after the apply (:297-311, :366-369)
         end
     end
     Note over AE: embeddings are 384-dim and a dimension mismatch is a hard reject — "dimension mismatch:<br/>got N, expected 384" (mcp/servers/lib/aggregate-effectiveness.js:120-121). See AB-20
@@ -210,14 +239,16 @@ sequenceDiagram
 
 **Invariant:** the Jev option never regroups, re-keys, re-grades or drops a pattern: it returns the same array when the flag is off or no endpoint resolves, and a row it could not classify comes back as the very same object (`../project/agentbox/mcp/servers/lib/trajectory-pattern-jev.js:137-139`, `../project/agentbox/mcp/servers/lib/trajectory-pattern-jev.js:148-149`).
 
-**Resolved:** the Jev pattern annotation stated that the recorder's own taint handling was not verified for it and left the safe default to an operator flag, `AGENTBOX_JEV_TRAJECTORY_LOCAL_ONLY` (`../project/agentbox/mcp/servers/lib/trajectory-pattern-jev.js:30-33`, `:138`); since 2026-10-30 (ADR-2139 amendment) the manifest projects it 0 unless `trajectory_classify` is in `[system_one].local_only`, empty by default (`../project/agentbox/services/agentbox-manifest/src/system_one.rs:564-577`).
+**Resolved:** the Jev pattern annotation stated that the recorder's own taint handling was not verified for it and left the safe default to an operator flag, `AGENTBOX_JEV_TRAJECTORY_LOCAL_ONLY` (`../project/agentbox/mcp/servers/lib/trajectory-pattern-jev.js:30-33`, `:138`); since 2026-10-30 (ADR-2139 amendment) the manifest projects it 0 unless `trajectory_classify` is in `[system_one].local_only`, empty by default (`../project/agentbox/services/agentbox-manifest/src/system_one.rs:580-593`).
+
+**Drift:** the module header still says "successes = steps with quality >= 0.5" (`../project/agentbox/mcp/servers/lib/aggregate-effectiveness.js:15`), but the query counts a success only at `quality >= $2`, the clean-exit threshold defaulting to 0.9 (`../project/agentbox/mcp/servers/lib/aggregate-effectiveness.js:197-200`, `../project/agentbox/mcp/servers/lib/aggregate-effectiveness.js:224-227`). Separately, the sweep logs "aggregates will store without embeddings" when Xinference is unreachable (`../project/agentbox/mcp/servers/lib/aggregate-effectiveness.js:425-427`). The governed `memStore` it calls instead REJECTS an unembedded write unless `RUVECTOR_EMBED_REPAIR` is set (`../project/agentbox/mcp/servers/lib/memory-tools.js:277-294`), and nothing in this process sets it, so those stores fail and are counted as failures.
 
 ## AB-21.5 Distil — patterns table
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SUP as supervisord<br/>agentbox/flake.nix:2423
+    participant SUP as supervisord<br/>agentbox/flake.nix:2424
     participant DS as ruvector-pattern-distill.mjs<br/>agentbox/scripts/ruvector-pattern-distill.mjs:1
     participant G as gates
     participant PG as trajectory_steps
@@ -225,24 +256,25 @@ sequenceDiagram
     participant PAT as patterns TABLE
 
     Note over SUP,DS: [program:ruvector-pattern-distill]
-    DS->>G: pattern_distillation gate (agentbox/agentbox.toml:493)
+    DS->>G: pattern_distillation gate (agentbox/agentbox.toml:492)
     alt off
         G-->>DS: fast exit
     else on
-        DS->>DS: read cursor '__pattern_distill_cursor__' (scripts/ruvector-pattern-distill.mjs:105) tagged distill:cursor
+        DS->>DS: read cursor '__pattern_distill_cursor__' (scripts/ruvector-pattern-distill.mjs:106) tagged distill:cursor
         Note over DS: a DISTINCT key from the sweep and SONA cursors, so the three loops never trample each<br/>other
-        DS->>PG: judged steps since the cursor
-        loop each action pattern
-            DS->>DS: build the embed text — deduped, front-loaded arg/flag/pipe descriptors, capped and<br/>per-token length-bounded so a NULL or huge blob never reaches the embedder (scripts/ruvector-pattern-distill.mjs:277, scripts/ruvector-pattern-distill.mjs:295)
-            DS->>XI: POST /v1/embeddings (scripts/ruvector-pattern-distill.mjs:202)
+        DS->>PG: DISTILL_SQL — its OWN grouping of all judged steps by action, success at quality >= 0.5,<br/>no independence deflation and no age window (scripts/ruvector-pattern-distill.mjs:350-362)
+        DS->>DS: keep clusters whose raw n clears the sample floor (scripts/ruvector-pattern-distill.mjs:417-421)
+        loop each qualifying action pattern
+            DS->>DS: build the embed text — deduped, front-loaded arg/flag/pipe descriptors, capped and<br/>per-token length-bounded so a NULL or huge blob never reaches the embedder (scripts/ruvector-pattern-distill.mjs:265-280, scripts/ruvector-pattern-distill.mjs:283-286)
+            DS->>XI: POST /v1/embeddings (scripts/ruvector-pattern-distill.mjs:192)
             alt embedding fails
                 XI--xDS: error
-                DS->>DS: SKIP THE ROW (scripts/ruvector-pattern-distill.mjs:22)
+                DS->>DS: SKIP THE ROW (scripts/ruvector-pattern-distill.mjs:445-456)
                 Note over DS: INVARIANT: EMBED BEFORE INSERT — never write a NULL-embedding, HNSW-invisible pattern.<br/>I03-faithful even though this table is not memory_entries (scripts/ruvector-pattern-distill.mjs:18-22)
             else embedding ok
                 XI-->>DS: 384-dim vector
-                DS->>PAT: INSERT ... ON CONFLICT (id) DO UPDATE (scripts/ruvector-pattern-distill.mjs:28)
-                Note over DS,PAT: id = distilled-sha256-12-<hash(action)> (scripts/ruvector-pattern-distill.mjs:260) — content-addressed, so a second tick<br/>over an unchanged action is a no-op update, not a duplicate
+                DS->>PAT: INSERT ... ON CONFLICT (id) DO UPDATE (scripts/ruvector-pattern-distill.mjs:371-379)
+                Note over DS,PAT: id = distilled-sha256-12-<hash(action)> (scripts/ruvector-pattern-distill.mjs:250) — content-addressed, so a second tick<br/>over an unchanged action is a no-op update, not a duplicate
                 Note over PAT: metadata.provenance = 'judge:trajectory' (I18, scripts/ruvector-pattern-distill.mjs:9). A PROVENANCE FIREWALL keeps W-E<br/>legacy-mining candidates carrying proxy:legacy-mining out of this feeder's output — they<br/>share the table and are separated by the metadata stamp (scripts/ruvector-pattern-distill.mjs:32-33)
             end
         end
@@ -251,28 +283,32 @@ sequenceDiagram
     Note over PAT: the promoted-set consumer filters on metadata->>'provenance' = 'judge:trajectory' (scripts/ruvector-pattern-distill.mjs:11).<br/>A memory_entries shortcut would FAIL acceptance, which is why this script owns a new<br/>embed-then-insert path (scripts/ruvector-pattern-distill.mjs:18-19)
 ```
 
+**Tension:** the distiller's header says it reuses "the same recency-weighted grouping AGG_SQL uses" (`../project/agentbox/scripts/ruvector-pattern-distill.mjs:35-38`). Its own query now differs from the aggregate sweep: success at `quality >= 0.5`, with no 90-day window, no attributable-action filter and no independent-trajectory floor (`../project/agentbox/scripts/ruvector-pattern-distill.mjs:350-362`). The sweep counts only clean exits, deflates by independence and requires three trajectories (`../project/agentbox/mcp/servers/lib/aggregate-effectiveness.js:218-233`, `../project/agentbox/mcp/servers/lib/aggregate-effectiveness.js:244-256`, `../project/agentbox/mcp/servers/lib/aggregate-effectiveness.js:311-319`). The same action can therefore carry one Wilson figure in `patterns` and a lower one in `memory-learning-aggregates`.
+
 ## AB-21.6 Consume — the feed_retrieval re-rank
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant AG as Agent
-    participant HY as memory-hybrid<br/>agentbox/mcp/servers/lib/memory-hybrid.js:57
+    participant HY as applyEffectivenessBonus<br/>agentbox/mcp/servers/lib/memory-hybrid.js:121
     participant ADM as consumerAdmission<br/>agentbox/mcp/servers/lib/ruvector-gates.js:90
     participant AGG as ns memory-learning-aggregates
     participant RES as result rows
 
-    AG->>HY: memory_hybrid_search(query, namespace, limit)
+    AG->>HY: memory_hybrid_search(query, namespace, limit), blend fusion only — under rrf the bonus is withheld (memory-hybrid.js:356-362)
+    HY->>ADM: preflight consumerAdmission('feed_retrieval') with no corpus observation (:132-137)
+    Note over HY,ADM: every refusal except freshness-unknown ends here without touching the database.<br/>Otherwise the aggregates are read and admission is decided AGAIN on the observed corpus (:156-167)
     HY->>ADM: consumerAdmission('feed_retrieval', {corpusLastUpdated, corpusSize})
     alt consumer gate off
-        ADM-->>HY: {admitted: false, reason: 'consumer-gate-off'} (:89)
+        ADM-->>HY: {admitted: false, reason: 'consumer-gate-off'} (:91-92)
     else master learning gate off
-        ADM-->>HY: {admitted: false, reason: 'master-learning-off'} (:91-95)
+        ADM-->>HY: {admitted: false, reason: 'master-learning-off'} (:93-97)
         Note over ADM: the master gate is the OUTER BOUNDARY — a consumer gate left on behind an off master<br/>must not act
     else producer currently capturing
         ADM-->>HY: {admitted: true, reason: 'active-capture'} (ruvector-gates.js:98)
     else producer off and no receipt
-        ADM-->>HY: {admitted: false, reason: 'producer-off-and-retained-corpus-not-accepted'} (:98-103)
+        ADM-->>HY: {admitted: false, reason: 'producer-off-and-retained-corpus-not-accepted'} (:100-106)
     else receipt present but corpus empty
         ADM-->>HY: {admitted: false, reason: 'retained-corpus-empty'} (ruvector-gates.js:118)
         Note over ADM: emptiness is diagnosed FIRST — an empty corpus is also undateable, and "there is nothing<br/>here" is the more useful answer than "I cannot date it" (ruvector-gates.js:115-116)
@@ -285,7 +321,7 @@ sequenceDiagram
         ADM-->>HY: {admitted: true, reason: 'retained-corpus-accepted', receipt, corpus_age_days} (ruvector-gates.js:128)
     end
     alt admitted
-        HY->>AGG: ONE bounded read, LIMIT 500 (:57-101)
+        HY->>AGG: ONE bounded read, LIMIT 500 (:139-148)
         AGG-->>HY: rows
         HY->>HY: build action:<pattern> to MAX wilson map
         loop each result row
@@ -294,13 +330,13 @@ sequenceDiagram
             end
         end
     else not admitted
-        HY->>RES: base ranking untouched
+        HY->>RES: base ranking untouched, each row marked effectiveness_bonus_withheld with the reason (:160-166)
     end
     alt any error anywhere
         HY->>RES: FAIL-OPEN — base ranking untouched
     end
     HY-->>AG: ranked results
-    Note over HY: feed_retrieval = true since 2026-08-31 (agentbox/agentbox.toml:480). feed_routing =<br/>false (:481) — aggregates surface only as advisory [INTELLIGENCE] hints
+    Note over HY: feed_retrieval = true since 2026-08-31 (agentbox/agentbox.toml:479). feed_routing =<br/>false (:480) — aggregates surface only as advisory [INTELLIGENCE] hints
 ```
 
 ## AB-21.7 ADR-2017 producer-before-consumer
@@ -364,16 +400,19 @@ stateDiagram-v2
         I10 fail-closed — an un-redactable command is skipped,
         never persisted raw.
     end note
-    Observed --> Recorded : graded and redacted
+    Observed --> Posted : graded and redacted
+    Posted --> Recorded : the API answers 2xx
+    Posted --> Retried : any other answer, watermark held
+    Retried --> Observed : next Stop re-scans the same lines
     Recorded --> Aggregated : sweep groups it by action pattern
-    Aggregated --> BelowFloor : raw n < aggregate_min_samples 20
+    Aggregated --> BelowFloor : raw n < 20, under 3 trajectories, or not attributable
     note right of BelowFloor
         I06 / ADR-2016 — the floor is the RAW count, not the
         recency-weighted effective size. The pattern waits for
         more observations.
     end note
     Aggregated --> Judged : Wilson lower bound computed, floor cleared
-    Judged --> Distilled : embed-then-insert into the patterns table
+    Recorded --> Distilled : distiller groups the raw steps itself, embed-then-insert into patterns
     Distilled --> EmbedFailed : embedding transport failed
     note right of EmbedFailed
         The row is SKIPPED, not written NULL — no HNSW-invisible
@@ -394,21 +433,21 @@ stateDiagram-v2
 
 ```mermaid
 flowchart LR
-    subgraph toml["agentbox.toml [memory_learning] — block at agentbox.toml:475"]
+    subgraph toml["agentbox.toml [memory_learning] — block at agentbox.toml:474"]
         direction TB
-        M["enabled = true agentbox.toml:476<br/>master gate"]
-        P["record_trajectories = true agentbox.toml:477<br/>PRODUCER"]
-        F1["aggregate_min_samples = 20 agentbox.toml:478"]
-        F2["recency_half_life_days = 14 agentbox.toml:479"]
-        C1["feed_retrieval = true agentbox.toml:480<br/>CONSUMER, enabled 2026-08-31"]
-        C2["feed_routing = false agentbox.toml:481<br/>CONSUMER, advisory only"]
-        S1["aggregate_sweep = true agentbox.toml:491"]
-        S2["aggregate_sweep_interval_mins = 30 agentbox.toml:492"]
-        S3["pattern_distillation = true agentbox.toml:493"]
+        M["enabled = true agentbox.toml:475<br/>master gate"]
+        P["record_trajectories = true agentbox.toml:476<br/>PRODUCER"]
+        F1["aggregate_min_samples = 20 agentbox.toml:477"]
+        F2["recency_half_life_days = 14 agentbox.toml:478"]
+        C1["feed_retrieval = true agentbox.toml:479<br/>CONSUMER, enabled 2026-08-31"]
+        C2["feed_routing = false agentbox.toml:480<br/>CONSUMER, advisory only"]
+        S1["aggregate_sweep = true agentbox.toml:490"]
+        S2["aggregate_sweep_interval_mins = 30 agentbox.toml:491"]
+        S3["pattern_distillation = true agentbox.toml:492"]
     end
     subgraph env["ruvector-gates.js env resolution"]
         direction TB
-        E1["RUVECTOR_MEMORY_LEARNING_ENABLED mcp/servers/lib/ruvector-gates.js:39"]
+        E1["RUVECTOR_MEMORY_LEARNING_ENABLED mcp/servers/lib/ruvector-gates.js:39<br/>projected into the MCP env, config/entrypoint-unified.sh:1629-1631"]
         E2["RUVECTOR_RECORD_TRAJECTORIES mcp/servers/lib/ruvector-gates.js:40"]
         E3["RUVECTOR_FEED_RETRIEVAL mcp/servers/lib/ruvector-gates.js:41"]
         E4["RUVECTOR_FEED_ROUTING mcp/servers/lib/ruvector-gates.js:42"]
@@ -418,22 +457,25 @@ flowchart LR
     subgraph proc["Self-gating processes"]
         direction TB
         H["trajectory-recorder.cjs<br/>Stop hook"]
-        A["ruvector-aggregate-sweep.mjs<br/>agentbox/flake.nix:2392"]
-        D["ruvector-pattern-distill.mjs<br/>agentbox/flake.nix:2423"]
+        A["ruvector-aggregate-sweep.mjs<br/>agentbox/flake.nix:2393"]
+        D["ruvector-pattern-distill.mjs<br/>agentbox/flake.nix:2424"]
         HY["memory-hybrid re-rank"]
     end
     M --> E1
     P --> E2
     C1 --> E3
     C2 --> E4
-    E1 --> H
-    E2 --> H
+    M --> REG["entrypoint registration<br/>agentbox/config/entrypoint-unified.sh:2039"]
+    P --> REG
+    REG --> H
+    E2 --> HY
     S1 --> A
     S3 --> D
+    E1 --> HY
     E3 --> HY
     E5 --> HY
     E6 --> HY
-    N1["INVARIANT byte-identical-when-off: master gate off = no hook registered, no aggregation,<br/>no consumers (agentbox.toml:472). Each script is launched unconditionally and exits fast<br/>when its gate is off"]
+    N1["INVARIANT byte-identical-when-off: master gate off = no hook registered, no aggregation,<br/>no consumers (agentbox.toml:471). The hook reads no env gate — registration is the gate.<br/>Each script is launched unconditionally and exits fast when its gate is off"]
     proc --- N1
 ```
 
@@ -458,12 +500,12 @@ sequenceDiagram
     else FAIL
         H-->>OP: the gate stays shut
     end
-    Note over TOML: attention_rerank stays OFF BY MEASUREMENT, not caution — attention_score = cos/sqrt(384)<br/>on an L2-normalised corpus gives a max diff of 4e-7, so the blend is a mathematical<br/>IDENTITY with zero benefit (agentbox.toml:494)
-    Note over TOML: RESERVED default-off keys, each harness-gated before it may flip — sona_learn_enabled<br/>agentbox.toml:495, sona_apply_enabled agentbox.toml:496, param_tuning_enabled agentbox.toml:497 (HNSW ef_search/probes<br/>auto-tuner), embedding_dual_write agentbox.toml:463, embedding_active_column agentbox.toml:464, graph_backbone<br/>agentbox.toml:465. DIVERGENCE D6
+    Note over TOML: attention_rerank stays OFF BY MEASUREMENT, not caution — attention_score = cos/sqrt(384)<br/>on an L2-normalised corpus gives a max diff of 4e-7, so the blend is a mathematical<br/>IDENTITY with zero benefit (agentbox.toml:493)
+    Note over TOML: RESERVED default-off keys, each harness-gated before it may flip — sona_learn_enabled<br/>agentbox.toml:494, sona_apply_enabled agentbox.toml:495, param_tuning_enabled agentbox.toml:496 (HNSW ef_search/probes<br/>auto-tuner), embedding_dual_write agentbox.toml:462, embedding_active_column agentbox.toml:463, graph_backbone<br/>agentbox.toml:464. DIVERGENCE D6
     Note over TOML: RESOLVED ADR-2052: governing docs now cite agentbox.toml by [section].key, not by<br/>line number, because every line citation had drifted. The live keys are<br/>[memory_learning] feed_retrieval, feed_routing, aggregate_min_samples,<br/>recency_half_life_days, aggregate_sweep, aggregate_sweep_interval_mins,<br/>pattern_distillation.
-    Note over TOML: DIVERGENCE D2: agentbox.toml:480 justifies the feed_retrieval flip with 78 aggregates<br/>>=20 samples (2026-08-31) while<br/>agentbox/docs/reference/claude-context/ruvector-memory-state.md records 12 from the<br/>2026-07-21 sweep. The toml is the running config and the more recent number
-    Note over TOML: DIVERGENCE D4: agentbox/README.md still lists feed_retrieval / feed_routing as open<br/>gates (false) — the README lags the toml
-    Note over CONS: the sweep and the recall harness are NOT MCP tools — they run OUT-OF-PROCESS, and the<br/>MCP server registers no tool for them so tool registration stays byte-identical<br/>(ruvector-mcp.cjs:12-18). See AB-20
+    Note over TOML: DIVERGENCE D2: agentbox.toml:479 justifies the feed_retrieval flip with 78 aggregates<br/>>=20 samples (2026-08-31) while<br/>agentbox/docs/reference/claude-context/ruvector-memory-state.md records 12 from the<br/>2026-07-21 sweep. The toml is the running config and the more recent number
+    Note over TOML: D4 RESOLVED at this stamp — agentbox/README.md no longer lists feed_retrieval / feed_routing<br/>as open gates
+    Note over CONS: the sweep and the recall harness are NOT MCP tools — they run OUT-OF-PROCESS, and the<br/>MCP server registers no tool for them so tool registration stays byte-identical<br/>(ruvector-mcp.cjs:14-19). See AB-20
     Note over OP: privacy note — redaction happens BEFORE persistence in the producer (see AB-21.1). The<br/>adapters observability then privacy-filter then JSON-LD middleware chain is AB-04
 ```
 

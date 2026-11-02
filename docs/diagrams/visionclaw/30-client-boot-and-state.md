@@ -61,8 +61,10 @@ sources:
   - ../project/client/src/features/graph/components/NodeDetailPanel.tsx
   - ../project/client/src/features/graph/components/TimelineScrubber.tsx
   - ../project/client/src/features/control-center/ControlCenter.tsx
+  - ../project/client/src/features/control-center/status/StatusSurface.tsx
   - ../project/client/src/features/control-center/hooks/useSettingField.ts
-  - ../project/client/src/features/bots/components/BotsVisualization.tsx
+  - ../project/client/src/features/bots/components/AgentOverlay.tsx
+  - ../project/client/src/features/bots/agentMarkerPass.ts
   - ../project/client/src/store/agentTargetStore.ts
   - ../project/client/src/features/visualisation/components/VirtualAgentMarkers.tsx
   - ../project/client/src/features/graph/contexts/NodePositionContext.tsx
@@ -71,14 +73,13 @@ sources:
   - ../project/client/src/features/visualisation/hooks/useTransientBeams.ts
   - ../project/client/src/features/graph/components/GemNodes.tsx
   - ../project/client/src/features/graph/components/GlassEdges.tsx
-  - ../project/client/src/features/bots/components/BotsNode.tsx
   - ../project/client/src/features/visualisation/components/TransientBeamsLayer.tsx
   - ../project/client/src/store/websocket/binaryProtocol.ts
   - ../project/client/src/features/control-center/hooks/useRevealSetting.ts
   - ../project/client/src/features/control-center/primitives/NostrAuthControl.tsx
   - ../project/client/src/features/control-center/status/StatusFlyout.tsx
   - ../project/client/src/services/nostrAuthService.ts
-verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4}
+verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724}
 ---
 ## VC-30.1 Provider nesting and top-level render states
 ```mermaid
@@ -91,7 +92,7 @@ sequenceDiagram
     participant Help as HelpProvider<br/>client/src/app/App.tsx:168
     participant Onb as OnboardingProvider<br/>client/src/app/App.tsx:169
     participant EB as ErrorBoundary<br/>client/src/app/App.tsx:170
-    participant AMP as ApplicationModeProvider<br/>client/src/contexts/ApplicationModeContext.tsx:43
+    participant AMP as ApplicationModeProvider<br/>client/src/contexts/ApplicationModeContext.tsx:41
     participant AI as AppInitializer<br/>client/src/app/AppInitializer.tsx:70
     participant ML as MainLayout<br/>client/src/app/MainLayout.tsx:131
 
@@ -173,7 +174,7 @@ sequenceDiagram
     else outer try throws (e.g. Set.initialize rejects)
         AI->>App: onError(error)<br/>AppInitializer.tsx:186
     end
-    Note over AI: INVARIANT (ADR-2141): the client sends NO subscribe message. The connection-status handler only<br/>enables binary updates, the server streams position chunks to every registered session and<br/>sends the next chunk when this client acknowledges the last (binaryProtocol.ts:403-407).<br/>The hasSubscribedToPositions flag and subscribe_position_updates are deleted<br/>AppInitializer.tsx:260-278
+    Note over AI: INVARIANT (ADR-2141): the client sends NO subscribe message. The connection-status handler only<br/>enables binary updates, the server streams position chunks to every registered session and<br/>sends the next chunk when this client acknowledges the last (binaryProtocol.ts:404-408).<br/>The hasSubscribedToPositions flag and subscribe_position_updates are deleted<br/>AppInitializer.tsx:260-278
 ```
 ## VC-30.3 Zustand store catalogue
 ```mermaid
@@ -254,12 +255,12 @@ classDiagram
       DEFAULT_DOMAIN_LOOKBACK_MS = 30d timelineStore.ts:33
     }
     class useTransientBeamStore {
-      client/src/store/transientBeamStore.ts:64
-      beams TransientBeam[] transientBeamStore.ts:65
-      +pushBeams(events) transientBeamStore.ts:67
-      +pruneExpired() transientBeamStore.ts:90
-      +clear() transientBeamStore.ts:103
-      DEFAULT_BEAM_DURATION_MS=1500 MAX_TRANSIENT_BEAMS=256 MIN_BEAM_DURATION_MS=400<br/>transientBeamStore.ts:23-27
+      client/src/store/transientBeamStore.ts:65
+      beams TransientBeam[] transientBeamStore.ts:66
+      +pushBeams(events) transientBeamStore.ts:68
+      +pruneExpired() transientBeamStore.ts:94
+      +clear() transientBeamStore.ts:107
+      DEFAULT_BEAM_DURATION_MS=1500 MAX_TRANSIENT_BEAMS=256 MIN_BEAM_DURATION_MS=400<br/>transientBeamStore.ts:24-28
     }
     class useWorkerErrorStore {
       client/src/store/workerErrorStore.ts:23
@@ -334,7 +335,7 @@ sequenceDiagram
 
     Note over ASM: after DEBOUNCE_DELAY=500ms, flushPendingChanges() fires<br/>autoSaveManager.ts:97-99,112
     ASM->>API: settingsApi.updateSettingsByPaths(updates)<br/>autoSaveManager.ts:124
-    Note over API: a path under visualisation.graphs.*.physics. becomes a NESTED partial via physicsPatchEntry<br/>(physics.semantic.dag.levelAttraction becomes {semantic:{dag:{levelAttraction}}}) and mergeInto<br/>deep-merges entries, so two sliders of one group in the same debounce window both survive,<br/>then updatePhysics GETs and PUTs the merged document<br/>endpoints.ts:312-321,336-340,365 and physicsPatch.ts:10-18
+    Note over API: a path under visualisation.graphs.*.physics. becomes a NESTED partial via physicsPatchEntry<br/>(physics.semantic.dag.levelAttraction becomes {semantic:{dag:{levelAttraction}}}) and mergeInto<br/>deep-merges entries, so two sliders of one group in the same debounce window both survive,<br/>then updatePhysics GETs and PUTs the merged document<br/>endpoints.ts:316-325, :340-344, :369 and physicsPatch.ts:10-18
     alt API resolves
         API-->>ASM: SUCCESS - pendingChanges already cleared pre-send<br/>autoSaveManager.ts:118-125
     else API rejects
@@ -360,7 +361,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant Graph as websocket/index.ts connect()<br/>client/src/store/websocket/index.ts:154
-    participant Voice as VoiceWebSocketService<br/>client/src/services/VoiceWebSocketService.ts:87
+    participant Voice as VoiceWebSocketService<br/>client/src/services/VoiceWebSocketService.ts:89
     participant Solid as solidWebSocket store adapter<br/>client/src/store/websocket/solidWebSocket.ts:71
     participant Pod as podNotificationManager<br/>client/src/services/solidPod/podNotifications.ts:92
     participant Reg as webSocketRegistry<br/>client/src/services/WebSocketRegistry.ts:22
@@ -369,19 +370,19 @@ sequenceDiagram
 
     Note over Reg: connections Map~string,RegistryEntry~ keyed by name - WebSocketRegistry.ts:23
     Graph->>Reg: register("graph", url, socket)<br/>websocket/index.ts:178
-    Voice->>Reg: register(REGISTRY_NAME="voice", url, socket)<br/>VoiceWebSocketService.ts:87
+    Voice->>Reg: register(REGISTRY_NAME="voice", url, socket)<br/>VoiceWebSocketService.ts:14,89
     Solid->>Pod: connect() - the adapter registers nothing of its own<br/>solidWebSocket.ts:81
     Pod->>Reg: register(REGISTRY_NAME="solid-pod", url, socket)<br/>podNotifications.ts:20,92
     alt name already registered
         Reg->>Reg: unregister(name) first - removes old listeners, prevents orphaned handlers<br/>WebSocketRegistry.ts:33-35
     end
-    Reg->>Reg: attach open/close/error listeners updating state label<br/>readyStateLabel() CONNECTING|OPEN|CLOSING|CLOSED|unknown<br/>WebSocketRegistry.ts:44-58,150-163
+    Reg->>Reg: attach open/close/error listeners updating state label<br/>readyStateLabel() connecting|open|closing|closed|unknown<br/>WebSocketRegistry.ts:37-58, :121-134
     Reg->>Bus: emit("registry:registered",{name,url})<br/>WebSocketRegistry.ts:63
 
     par each socket also emits directly
         Graph->>Bus: emit("connection:open",{name:"graph",url})<br/>websocket/index.ts:179
     and
-        Voice->>Bus: emit("connection:open",{name:"voice",url})<br/>VoiceWebSocketService.ts:88
+        Voice->>Bus: emit("connection:open",{name:"voice",url})<br/>VoiceWebSocketService.ts:90
     and
         Pod->>Bus: emit("connection:open",{name:"solid-pod",url})<br/>podNotifications.ts:93
         Pod-->>Solid: onLifecycle{type:"open"} -> isSolidConnected, emit("solid-connected")<br/>podNotifications.ts:94, solidWebSocket.ts:36-41
@@ -389,12 +390,12 @@ sequenceDiagram
     Note over Solid,Pod: INVARIANT: ADR-2100 - the store adapter is NOT a fourth registrant. It opened its own<br/>socket to the same VITE_JSS_WS_URL and registered as "solid-store" with a 10-attempt ladder -<br/>both are deleted. One socket, one registry entry ("solid-pod"), one 5-attempt ladder - see VC-32.16
 
     Bots->>Bus: emit("message:bots",{data:message})<br/>BotsWebSocketIntegration.ts:53
-    Voice->>Bus: emit("message:voice",{data:message})<br/>VoiceWebSocketService.ts:141
+    Voice->>Bus: emit("message:voice",{data:message})<br/>VoiceWebSocketService.ts:178
     Pod->>Bus: emit("message:pod",{data:msg})<br/>podNotifications.ts:99
     Note over Bus: RESOLVED ADR-2077: the message:graph event type is DELETED. It was<br/>declared in the union and payload map but never emitted, so a switch over<br/>the bus events is now exhaustive over events that actually fire.
 
-    Bus->>Bus: on(event,handler) adds to handlers Map~string,Set~Handler~~<br/>WebSocketEventBus.ts:47-54, returns unsubscribe closure calling off()
-    Bus->>Bus: emit(event,data) iterates handlers Set, try/catch per handler,<br/>logs and continues on throw - WebSocketEventBus.ts:80-93
+    Bus->>Bus: on(event,handler) adds to handlers Map~string,Set~Handler~~<br/>WebSocketEventBus.ts:45-57, returns unsubscribe closure calling off() :62-73
+    Bus->>Bus: emit(event,data) iterates handlers Set, try/catch per handler,<br/>logs and continues on throw - WebSocketEventBus.ts:78-92
 
     alt connection error (any socket)
         Voice->>Bus: emit("connection:error",{name,error})<br/>VoiceWebSocketService.ts:116
@@ -418,7 +419,7 @@ sequenceDiagram
     participant Win as window resize listener<br/>client/src/services/platformManager.ts:133-137
 
     Caller->>Store: initialize()<br/>platformManager.ts:85
-    Store->>Store: detectPlatform()<br/>platformManager.ts:154,166
+    Store->>Store: detectPlatform()<br/>call platformManager.ts:89, fn :154
     Store->>Store: userAgent = navigator.userAgent<br/>platformManager.ts:155
     alt userAgent includes "Quest"
         alt includes "Quest 3"
@@ -489,7 +490,7 @@ sequenceDiagram
     loop every flushInterval=1000ms while buffer non-empty
         Timer->>RL: flush()<br/>remoteLogger.ts:142-146
     end
-    RL->>RL: logs = buffer.splice, payload={logs,sessionId,timestamp}<br/>remoteLogger.ts:161-169
+    RL->>RL: logs = copy of buffer, buffer = [], payload={logs,sessionId,timestamp}<br/>remoteLogger.ts:161-169
     alt sync=true (beforeunload path)
         RL->>Srv: navigator.sendBeacon(serverEndpoint, blob) if available<br/>remoteLogger.ts:173-176
     else async flush
@@ -499,7 +500,7 @@ sequenceDiagram
             alt status==404 && consecutiveFailures >= maxConsecutiveFailures=3
                 RL->>RL: setEnabled(false) - auto-disable, endpoint unavailable<br/>remoteLogger.ts:189-192,220-228
             else status!=404
-                RL->>RL: console.warn "Failed to send logs" (non-recursive - raw console, not intercepted)<br/>remoteLogger.ts:193-194
+                RL->>RL: console.warn "Failed to send logs" - the INTERCEPTED console.warn, so the warning is buffered<br/>and posted on the next flush (remoteLogger.ts:193-194, wrapper :74-77). The failed batch itself is dropped, not re-queued
             end
         else response ok
             RL->>RL: consecutiveFailures = 0<br/>remoteLogger.ts:197
@@ -508,6 +509,7 @@ sequenceDiagram
             RL->>RL: buffer = logs.concat(buffer) - re-queue for next flush<br/>remoteLogger.ts:200-206
         end
     end
+    Note over RL,Srv: DEBT: while the endpoint keeps answering non-404 errors, each failed flush buffers one more warning about itself<br/>(remoteLogger.ts:194 through the wrapper :74-77 into log() :110-135), so the logger posts at least one entry a second<br/>indefinitely. setEnabled(false) stops log() (:117) but never restores the original console methods (:220-228).
     Note over RL: sessionId persisted in sessionStorage key remote-logger-session,<br/>format session-{Date.now()}-{random36}<br/>remoteLogger.ts:210-217
 
     Mod->>RL: setTimeout(() => logXRInfo(), 1000) on module load<br/>remoteLogger.ts:320-324
@@ -522,31 +524,31 @@ sequenceDiagram
     autonumber
     participant Mod as main.tsx bootstrap<br/>client/src/app/main.tsx:28-29
     participant UAC as unifiedApiClient<br/>client/src/services/api/UnifiedApiClient.ts:68,466
-    participant AuthI as authInterceptor<br/>client/src/services/api/authInterceptor.ts:81,52
+    participant AuthI as authInterceptor<br/>client/src/services/api/authInterceptor.ts:80,51
     participant Nostr as nostrAuth<br/>client/src/services/nostrAuthService.ts
     participant Fetch as window.fetch<br/>UnifiedApiClient.ts:226
     participant Ax as axios (global instance)<br/>client/src/api/settings/endpoints.ts:4,39
 
-    Mod->>UAC: initializeAuthInterceptor(unifiedApiClient)<br/>main.tsx:28, authInterceptor.ts:132-139
-    UAC->>UAC: setInterceptors({onRequest:authRequestInterceptor,<br/>onResponse:authResponseInterceptor})<br/>authInterceptor.ts:133-136, UnifiedApiClient.ts:116-118
+    Mod->>UAC: initializeAuthInterceptor(unifiedApiClient)<br/>main.tsx:28, authInterceptor.ts:131-138
+    UAC->>UAC: setInterceptors({onRequest:authRequestInterceptor,<br/>onResponse:authResponseInterceptor}) - no onError<br/>authInterceptor.ts:132-135, UnifiedApiClient.ts:116-118
 
     Note over UAC: request(method,url,data,config) sets body via JSON.stringify<br/>for POST/PUT/PATCH unless string/ArrayBuffer/FormData<br/>UnifiedApiClient.ts:316-343
     UAC->>UAC: executeWithRetry(url,config,attempt=0)<br/>UnifiedApiClient.ts:151
     UAC->>AuthI: interceptors.onRequest(finalConfig,fullUrl)<br/>UnifiedApiClient.ts:186-188
-    AuthI->>AuthI: headers['X-Request-ID']=uuidv4()<br/>authInterceptor.ts:90-91
+    AuthI->>AuthI: headers['X-Request-ID']=generateRequestId()<br/>authInterceptor.ts:89-90
     alt nostrAuth.isAuthenticated()
-        AuthI->>AuthI: computeAuthHeaders(fullUrl,method,body)<br/>authInterceptor.ts:100 calling :52-79 (RESOLVED ADR-2074 -<br/>the single shared decision point, see the Ax note below)
+        AuthI->>AuthI: computeAuthHeaders(fullUrl,method,body)<br/>authInterceptor.ts:99 calling :51-78 (RESOLVED ADR-2074 -<br/>the single shared decision point, see the Ax note below)
         alt isDevMode()
-            AuthI->>AuthI: Authorization: Bearer dev-session-token<br/>+ X-Nostr-Pubkey if known<br/>authInterceptor.ts:63-70
+            AuthI->>AuthI: Authorization: Bearer dev-session-token<br/>+ X-Nostr-Pubkey if known<br/>authInterceptor.ts:62-70
         else not dev mode, pubkey known
-            AuthI->>Nostr: signRequest(fullUrl,method,body) NIP-98<br/>authInterceptor.ts:77
+            AuthI->>Nostr: signRequest(fullUrl,method,body) NIP-98<br/>authInterceptor.ts:76
             Nostr-->>AuthI: token
             AuthI->>AuthI: Authorization: Nostr {token}<br/>authInterceptor.ts:77
         else no pubkey
-            AuthI-->>AuthI: {} - no auth headers<br/>authInterceptor.ts:73-75
+            AuthI-->>AuthI: {} - no auth headers<br/>authInterceptor.ts:72-74
         end
     else not authenticated
-        Note over AuthI: computeAuthHeaders returns {} immediately<br/>authInterceptor.ts:57-58 - no auth headers sent
+        Note over AuthI: computeAuthHeaders returns {} immediately<br/>authInterceptor.ts:56-58 - no auth headers sent
     end
     UAC->>Fetch: fetch(fullUrl,{headers,signal:abortController.signal})<br/>UnifiedApiClient.ts:211-226
     Note over UAC: per-request AbortController, setTimeout(timeoutMs=DEFAULT_TIMEOUT=30000ms)<br/>aborts on timeout<br/>UnifiedApiClient.ts:202-209
@@ -556,25 +558,26 @@ sequenceDiagram
         UAC->>UAC: createApiError('Network error: ...',0,'Network Error')<br/>UnifiedApiClient.ts:239-244
     end
     alt !response.ok
-        UAC->>AuthI: interceptors.onError(apiError)<br/>UnifiedApiClient.ts:288-294
-        AuthI->>AuthI: authResponseInterceptor: warnIfServerInReleaseMode(status,sentDevToken)<br/>one-shot console.warn on 401+dev-token (ADR-06 sD1)<br/>authInterceptor.ts:27-39,122-130
+        UAC->>UAC: createApiError(message,status) - interceptors.onError is unset, so it is thrown as is<br/>UnifiedApiClient.ts:276-296
         alt retryCondition true (attempt<3, status>=500 or 0, not 401/403)
-            UAC->>UAC: delay = retryDelay(1000) * 2^attempt, retry<br/>UnifiedApiClient.ts:47-58,170-173
+            UAC->>UAC: delay = retryDelay(1000) * 2^attempt, retry<br/>UnifiedApiClient.ts:47-58, :161-173
         else
             UAC-->>Mod: throw apiError
         end
     else response.ok
-        UAC->>AuthI: interceptors.onResponse(apiResponse)<br/>UnifiedApiClient.ts:301-303
+        UAC->>AuthI: interceptors.onResponse(apiResponse) - no config argument<br/>UnifiedApiClient.ts:301-303
+        AuthI->>AuthI: authResponseInterceptor: warnIfServerInReleaseMode(status,sentDevToken)<br/>authInterceptor.ts:121-129, :27-38
         UAC-->>Mod: ApiResponse~T~{data,status,statusText,headers}
     end
+    Note over UAC,AuthI: DEBT: the one-shot "server is a release build" warning (ADR-06 sD1, authInterceptor.ts:27-38) can never fire.<br/>It needs status 401 and a sent dev token, but authResponseInterceptor is registered as onResponse, which runs only<br/>on response.ok (UnifiedApiClient.ts:276-303), and is called without config, so sentDevToken is always false (authInterceptor.ts:125-126).
 
     rect rgb(252,242,225)
-    Note over Ax: RESOLVED ADR-2074: settingsApi still uses its own global axios instance<br/>(a transport choice), but its interceptor no longer reimplements the auth<br/>branch - it calls the shared computeAuthHeaders from authInterceptor.ts:52.<br/>All four HTTP transports now share one signing helper. endpoints.ts:39
+    Note over Ax: RESOLVED ADR-2074: settingsApi still uses its own global axios instance<br/>(a transport choice), but its interceptor no longer reimplements the auth<br/>branch - it calls the shared computeAuthHeaders from authInterceptor.ts:51.<br/>All four HTTP transports now share one signing helper. endpoints.ts:39
     Ax->>Ax: axios.interceptors.request.use: await computeAuthHeaders(fullUrl,method,body),<br/>Object.assign onto config.headers<br/>endpoints.ts:39-54
     Ax->>Ax: axios.get/put(`${API_BASE}/api/settings/...`)<br/>API_BASE='' - relative, proxied by Vite/nginx<br/>endpoints.ts:33,77,82
     end
 
-    Note over Mod: Endpoint modules on UnifiedApiClient: analyticsApi.ts (AnalyticsAPI class, includes getCycles),<br/>exportApi.ts (exportGraph/shareGraph), graphExpandApi.ts (fetchNodeRelations/expandNode),<br/>workspaceApi.ts (WorkspaceApiError): client/src/api/analyticsApi.ts:134,409, exportApi.ts:69,106,<br/>graphExpandApi.ts:69,84, workspaceApi.ts:62,80,136. constraintsApi.ts and layoutApi.ts import the global axios<br/>instead (constraintsApi.ts:5,86, layoutApi.ts:5,88), and layoutApi.setMode translates the quality-gate<br/>layout name to the engine name through toEngineLayoutMode (layoutApi.ts:80,97)
+    Note over Mod: Endpoint modules on UnifiedApiClient: analyticsApi.ts (AnalyticsAPI class, includes getCycles),<br/>exportApi.ts (exportGraph/shareGraph), graphExpandApi.ts (fetchNodeRelations/expandNode),<br/>workspaceApi.ts (WorkspaceApiError): client/src/api/analyticsApi.ts:134,409, exportApi.ts:69,106,<br/>graphExpandApi.ts:69,84, workspaceApi.ts:62,80,136. constraintsApi.ts and layoutApi.ts import the global axios<br/>instead (constraintsApi.ts:5,86, layoutApi.ts:5,66). layoutApi.setMode posts the engine's own LayoutMode name with no<br/>remapping layer - toEngineLayoutMode is gone (ADR-2140, layoutApi.ts:47-60, :70-77)
 ```
 ## VC-30.9 graphDataManager — fetchInitialData, setGraphData, id maps, cache
 ```mermaid
@@ -637,8 +640,8 @@ sequenceDiagram
     participant Frame as handleBinaryFrame<br/>client/src/features/graph/managers/dataManager/wsClient.ts:19
     participant WP as graphWorkerProxy.processBinaryFrame<br/>client/src/features/graph/managers/dataManager/wsClient.ts:43
     participant Sub as useGraphDataSubscription<br/>client/src/features/graph/hooks/useGraphDataSubscription.ts:23
-    participant GM as GraphManager<br/>client/src/features/graph/components/GraphManager.tsx:331
-    participant BP as handleLegacyBinaryData<br/>client/src/store/websocket/binaryProtocol.ts:351
+    participant GM as GraphManager<br/>client/src/features/graph/components/GraphManager.tsx:300
+    participant BP as handleLegacyBinaryData<br/>client/src/store/websocket/binaryProtocol.ts:352
 
     WS->>GDM: updateNodePositions(positionData: ArrayBuffer)<br/>graphDataManager.ts:497
     GDM->>Heal: maybeSelfHealUnknownNodes(positionData) - sampled every 120 frames<br/>graphDataManager.ts:499,515-516
@@ -660,17 +663,17 @@ sequenceDiagram
     end
 
     rect rgb(255,245,230)
-    Note over GDM,BP: ADR-2141 acknowledgement: processBinaryData routes<br/>V3 and V5 frames to handleLegacyBinaryData first, which awaits<br/>updateNodePositions and only then sends BroadcastAck naming the<br/>sequence the frame carried. A failed apply returns without an ack,<br/>so the server rebuilds the chunk after its timeout, and a frame<br/>with no sequence is not acknowledged<br/>binaryProtocol.ts:463-465,392-408
-    BP->>GDM: await updateNodePositions(data)<br/>binaryProtocol.ts:393
-    BP->>BP: sendPositionAck(get, frame.broadcastSequence, parsedNodes.length)<br/>binaryProtocol.ts:406-407,126-139
-    Note over Frame,BP: TENSION: handleBinaryFrame returns without applying when under<br/>16ms have passed since the last frame (wsClient.ts:26-27),<br/>updateNodePositions then resolves and the chunk is acknowledged<br/>(binaryProtocol.ts:393,407), while ADR-2141 decision 5 acknowledges<br/>a chunk only after it has been applied
+    Note over GDM,BP: ADR-2141 acknowledgement: processBinaryData routes<br/>V3 and V5 frames to handleLegacyBinaryData first, which awaits<br/>updateNodePositions and only then sends BroadcastAck naming the<br/>sequence the frame carried. A failed apply returns without an ack,<br/>so the server rebuilds the chunk after its timeout, and a frame<br/>with no sequence is not acknowledged<br/>binaryProtocol.ts:469-471, :393-409
+    BP->>GDM: await updateNodePositions(data)<br/>binaryProtocol.ts:394
+    BP->>BP: sendPositionAck(get, frame.broadcastSequence, parsedNodes.length)<br/>binaryProtocol.ts:407-408, sendPositionAck :127-139
+    Note over Frame,BP: TENSION: handleBinaryFrame returns without applying when under<br/>16ms have passed since the last frame (wsClient.ts:26-27),<br/>updateNodePositions then resolves and the chunk is acknowledged<br/>(binaryProtocol.ts:394,408), while ADR-2141 decision 5 acknowledges<br/>a chunk only after it has been applied
     Note over Frame,WP: DRIFT: the wsClient.ts:40-41 comment still says newest-wins<br/>discipline lives in processBinaryFrame, graphWorkerProxy.ts:27-33<br/>and :212-226 now queue frames in order
     end
 
     rect rgb(230,250,230)
     Note over Sub,GM: INVARIANT (historical bug, now fixed): useGraphDataSubscription's<br/>handleGraphUpdate builds dataWithPositions (String()-coerced ids,<br/>getPositionForNode() fallback for (0,0,0) nodes, edge source/target<br/>recovery) and the caller MUST forward THAT object, not the original<br/>data, onward - useGraphDataSubscription.ts:69-100,117
     Sub->>Sub: onGraphData(dataWithPositions)<br/>useGraphDataSubscription.ts:117
-    Sub->>GM: setGraphData(dataWithPositions) via onGraphData callback<br/>GraphManager.tsx:331-332
+    Sub->>GM: setGraphData(dataWithPositions) via onGraphData callback<br/>GraphManager.tsx:300-301
     Note over Sub: this React graphData state feeds RENDER only - the worker's topology<br/>comes from GraphDataManager.setGraphData -> graphWorkerProxy.setGraphTopology<br/>directly (VC-30.9), an entirely separate path from this hook
     end
     Note over Sub: 5000ms fallback timer seeds 3 synthetic nodes if no real data<br/>arrived by then (lastProcessedGraphRef still null)<br/>useGraphDataSubscription.ts:141-155
@@ -709,7 +712,7 @@ sequenceDiagram
     Proxy->>Proxy: isInitialized=true<br/>graphWorkerProxy.ts:194
 
     Note over Proxy: D7 surface is EXACTLY 4 methods - processBinaryFrame, getPositions,<br/>setGraphTopology, dispose. Legacy methods (tick,getGraphData,<br/>getAnalyticsBuffer,reheatSimulation,updateForcePhysicsSettings) throw<br/>deprecation shims - graphWorkerProxy.ts:1-15,355-472
-    AI->>Proxy: setGraphTopology(graph)<br/>graphWorkerProxy.ts:315
+    AI->>Proxy: setGraphTopology(graph) - the caller is GraphDataManager.setGraphData (graphDataManager.ts:336), not AppInitializer<br/>graphWorkerProxy.ts:315
     Proxy->>W: workerApi.setGraphData(graph)<br/>graphWorkerProxy.ts:319, graph.worker.ts:115
     W->>W: ensureNodeHasValidPosition per node, String()-coerce node.id,<br/>build nodeIdMap/reverseNodeIdMap/nodeIndexMap, edge adjacency maps<br/>graph.worker.ts:117,132-157
     W->>W: initPositionBuffers preserving old positions by nodeIndexMap match<br/>graph.worker.ts:159-166
@@ -735,7 +738,7 @@ sequenceDiagram
 
     Note over Proxy: getPositionsSync() - SAB mode returns sharedPositionView directly,<br/>Comlink mode returns lastTransferredView - called from useFrame per-frame<br/>render, avoids Promise allocation<br/>graphWorkerProxy.ts:301-305
     Note over Proxy,W: DEBT: the worker takes tweening settings (responseMs, default 120) only through setTweeningSettings, reached from its<br/>updateSettings (graph.worker.ts:44-47,254,474-479), the proxy exposes setTweeningSettings as a throwing shim<br/>(graphWorkerProxy.ts:479-484) and the tweeningSettingsUpdated event dispatched by the settings store has no listener in client/src<br/>(physicsSlice.ts:200-209)
-    AI->>Proxy: dispose()<br/>graphWorkerProxy.ts:324
+    AI->>Proxy: dispose() - no production caller in client/src at this revision, only a unit test tears it down<br/>graphWorkerProxy.ts:324
     Proxy->>W: worker.terminate() - no graceful worker-side RPC, hard terminate<br/>graphWorkerProxy.ts:325-328
     Proxy->>Proxy: clear sharedBuffer/sharedPositionView/lastTransferredView,<br/>reject every still-queued frame job with "worker disposed", reset isInitialized/initPromise<br/>graphWorkerProxy.ts:329-338
 ```
@@ -745,13 +748,13 @@ flowchart LR
     settingsStore["useSettingsStore<br/>client/src/store/settingsStore.ts:26"]
     websocketStore["useWebSocketStore<br/>client/src/store/websocketStore.ts:9"]
     timelineStore["useTimelineStore<br/>client/src/store/timelineStore.ts:88"]
-    beamStore["useTransientBeamStore<br/>client/src/store/transientBeamStore.ts:64"]
-    agentTargetStore["useAgentTargetStore<br/>client/src/store/agentTargetStore.ts:27"]
-    nodePosCtx["NodePositionContext module singleton<br/>client/src/features/graph/contexts/NodePositionContext.tsx:8"]
+    beamStore["useTransientBeamStore<br/>client/src/store/transientBeamStore.ts:65"]
+    agentTargetStore["useAgentTargetStore<br/>client/src/store/agentTargetStore.ts:43"]
+    nodePosCtx["NodePositionContext module singleton<br/>client/src/features/graph/contexts/NodePositionContext.tsx:8<br/>written by GraphManager.tsx:424"]
     workerErrStore["useWorkerErrorStore<br/>client/src/store/workerErrorStore.ts:23"]
 
-    GraphManager["GraphManager<br/>client/src/features/graph/components/GraphManager.tsx:47-64"]
-    GraphCanvas["GraphCanvas<br/>client/src/features/graph/components/GraphCanvas.tsx:103"]
+    GraphManager["GraphManager<br/>client/src/features/graph/components/GraphManager.tsx:50-67"]
+    GraphCanvas["GraphCanvas<br/>client/src/features/graph/components/GraphCanvas.tsx:105"]
     NodeDetailPanel["NodeDetailPanel<br/>client/src/features/graph/components/NodeDetailPanel.tsx:61"]
     GemNodes["GemNodes<br/>client/src/features/graph/components/GemNodes.tsx"]
     GlassEdges["GlassEdges<br/>client/src/features/graph/components/GlassEdges.tsx"]
@@ -761,15 +764,15 @@ flowchart LR
     RevealSetting["useRevealSetting hook<br/>client/src/features/control-center/hooks/useRevealSetting.ts"]
     NostrAuthControl["NostrAuthControl<br/>client/src/features/control-center/primitives/NostrAuthControl.tsx"]
     StatusFlyout["StatusFlyout<br/>client/src/features/control-center/status/StatusFlyout.tsx"]
-    BotsVisualization["BotsVisualization<br/>client/src/features/bots/components/BotsVisualization.tsx:39"]
-    VirtualAgentMarkers["VirtualAgentMarkers<br/>client/src/features/visualisation/components/VirtualAgentMarkers.tsx:36, mounted at client/src/features/graph/components/GraphManager.tsx:723"]
-    BotsNode["BotsNode<br/>client/src/features/bots/components/BotsNode.tsx:152"]
+    AgentOverlay["AgentOverlay<br/>nameplates, trails, collab edges, payment labels<br/>client/src/features/bots/components/AgentOverlay.tsx:23<br/>mounted at GraphCanvas.tsx:484"]
+    VirtualAgentMarkers["VirtualAgentMarkers<br/>client/src/features/visualisation/components/VirtualAgentMarkers.tsx:35<br/>mounted at GraphManager.tsx:710"]
+    MarkerPass["agentMarkers - the one agent-position writer<br/>client/src/features/bots/agentMarkerPass.ts:71,144<br/>stepped by GraphManager.tsx:457, reads agentTargetStore"]
     WorkerErrorModal["WorkerErrorModal<br/>client/src/components/WorkerErrorModal.tsx:7"]
     AppInitializer["AppInitializer<br/>client/src/app/AppInitializer.tsx:108,118"]
     EmbeddingCloudLayer["EmbeddingCloudLayer<br/>client/src/features/visualisation/components/EmbeddingCloudLayer.tsx:148,333"]
     useTransientBeams["useTransientBeams hook<br/>client/src/features/visualisation/hooks/useTransientBeams.ts:25-26"]
     TransientBeamsLayer["TransientBeamsLayer<br/>client/src/features/visualisation/components/TransientBeamsLayer.tsx"]
-    binaryProtocol["binaryProtocol.ts handleAgentActionTagged<br/>client/src/store/websocket/binaryProtocol.ts:426, routed at :470"]
+    binaryProtocol["binaryProtocol.ts handleAgentActionTagged<br/>client/src/store/websocket/binaryProtocol.ts:427, routed at :476"]
 
     settingsStore --> GraphManager
     settingsStore --> GraphCanvas
@@ -779,7 +782,8 @@ flowchart LR
     settingsStore --> SettingField
     settingsStore --> RevealSetting
     settingsStore --> NostrAuthControl
-    settingsStore --> BotsVisualization
+    settingsStore --> AgentOverlay
+    settingsStore --> VirtualAgentMarkers
     settingsStore --> AppInitializer
 
     websocketStore --> EmbeddingCloudLayer
@@ -791,14 +795,15 @@ flowchart LR
     useTransientBeams --> TransientBeamsLayer
     binaryProtocol -->|pushTransientBeams| beamStore
     binaryProtocol -->|pushActions| agentTargetStore
-    GraphCanvas -->|"mounts BotsVisualization, GraphCanvas.tsx:482"| BotsVisualization
-    agentTargetStore --> BotsVisualization
-    agentTargetStore -->|"seenAt presence and targets for the shared-demo agents, ADR-2142"| VirtualAgentMarkers
-    nodePosCtx --> BotsVisualization
-    BotsVisualization -->|"nudgeTargetsRef, agent id to target world position"| BotsNode
-    NudgeNote["2026-09-11: BotsVisualization resolves each agent's target node to a<br/>world position every frame and BotsNode lerps its target 0.35 of the way<br/>toward it, so agents cluster over the area they are working on.<br/>BotsVisualization.tsx:146, :143, BotsNode.tsx:267, :270"]
-    BotsNode --- NudgeNote
-    NudgeDebt["DEBT: the reader takes the live SAB view and the id map from a<br/>module-level mutable singleton rather than a React context, so nothing<br/>invalidates a stale reader after a remount.<br/>client/src/features/graph/contexts/NodePositionContext.tsx:13"]
+    GraphCanvas -->|"mounts AgentOverlay, GraphCanvas.tsx:484"| AgentOverlay
+    agentTargetStore -->|"seenAt ids, AgentOverlay.tsx:27"| AgentOverlay
+    agentTargetStore --> VirtualAgentMarkers
+    nodePosCtx -->|"drawn positions and id map"| EmbeddingCloudLayer
+    MarkerPass -->|"agentMarkers positions"| VirtualAgentMarkers
+    MarkerPass -->|"agentMarkerPosition per wire id"| AgentOverlay
+    PassNote["ADR-2142: agents are not graph nodes. Once a frame, after<br/>GraphManager copies the drawn-positions array, the marker pass<br/>walks agentTargetStore and fills one wire-id to world-position map<br/>that markers, beams, nameplates, trails, collab edges and payment<br/>labels all read - client/src/features/bots/agentMarkerPass.ts:1-19<br/>RESOLVED: BotsVisualization, BotsNode and their per-agent nudge<br/>are deleted (VisionClaw 15acb9219, 6cc5c153d)"]
+    MarkerPass --- PassNote
+    NudgeDebt["DEBT: GraphManager publishes the drawn-positions array and<br/>the id map through module-level mutable exports rather than a<br/>React context, so nothing invalidates a stale reader after a remount.<br/>client/src/features/graph/contexts/NodePositionContext.tsx:7-19"]
     nodePosCtx --- NudgeDebt
 
     workerErrStore --> WorkerErrorModal
@@ -813,6 +818,7 @@ flowchart LR
     subgraph ControlCenterTree["Control Center tree"]
         ControlCenter --> SettingField
         ControlCenter --> RevealSetting
-        ControlCenter --> StatusFlyout
     end
+    StatusSurface["StatusSurface<br/>client/src/features/control-center/status/StatusSurface.tsx:49<br/>mounted at MainLayout.tsx:113, not by ControlCenter"]
+    StatusSurface --> StatusFlyout
 ```

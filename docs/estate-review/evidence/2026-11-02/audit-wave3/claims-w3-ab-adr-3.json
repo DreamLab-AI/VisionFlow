@@ -1,0 +1,210 @@
+[
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2030-permissive-licensing-for-publishable-service-crates.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; licence fields and texts of 11 services packages checked; laya-engine and openjev-engine undeclared; gate not run, no registry lookup."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2031-consultant-model-manifest-projection.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; projection, TUI carry-forward and tariff code checked; Decision line citation stale; runtime override receipts not reproducible."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2032-daemon-identification-argv-boundaries.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; argv allowlist, PID bound and Hermes/teammate-gc identity checks traced; no live signalling or tests run."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2033-deepsec-security-gate.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; package pin, gates, validator, gate script and workflow traced; paid scans, CI runs and image receipts not reproducible."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2034-resource-topology-hook-shim-mcp-hub.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; hook shim, hub, envelope and reaper traced; hub list narrower than Decision; measured numbers runtime-only."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2035-adapter-connect-per-slot-deadline-quarantine.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; lifecycle policy traced line by line; contract tests not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2036-dispatch-two-layer-encoder-is-a-gated-surface.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; two-layer wrap and marker assertion traced; assertion is a no-op when OPF_MODE=off (unstated); tests not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2037-health-exit-code-reads-adapters-not-services.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; cmd_health derivation traced, extended by speech_failed; harness not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2038-cli-surface-truth-shell-path-and-ruvector-recall.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; cmd_shell path and usage text traced."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2039-baseline-cites-program-names-not-line-numbers.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; BASELINE table uses names but three stale flake.nix line citations and an empty verified_commit remain."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2040-no-unauthenticated-supervised-listener.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; code-server and Jupyter auth traced; three VNC listeners and system-one-proxy unauthenticated on non-loopback; no live probe."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2041-wire-execution-journal-and-action-pipeline.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; action-plane, route and /v1/system wiring traced; jest and restart not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2042-attribute-actions-to-the-proxy-verified-caller.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; two-path identity, peer check and proxy header handling traced; tests not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2046-seccomp-gate-protects-every-denial.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; seccomp BASELINE set-equal to profile; Docker default-profile stacking not checkable from source; gate not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2047-correct-the-ingress-door-inventory-and-stale-bullets.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; sanctioned list and INGRESS text traced; AoE-plane wording and /aoe routes stale."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2049-withdraw-unreachable-410-and-scope-the-501-claim.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; resolver and admin-users routes traced."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2051-learning-invariants-match-enforcement.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; memory-tools fail-closed and consumerAdmission traced; scope limited to feed consumers."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2052-cite-manifest-by-key-not-line.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; seven bare manifest line citations remain in governing docs; checker never built."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2054-every-ontology-authoring-caller-crosses-the-gate.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; superseded record; removal of gate and files confirmed."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2055-baseline-must-not-conflate-privacy-filter-with-loom.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; opf-router row and port traced; Consequences contradict ADR-2036; live ss probe not reproducible."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2056-skill-directory-facts-and-router-fixture.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; fixture consumer, lint skip sets and count checker traced."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2057-close-the-capability-gate-gaps.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; podcast, harness and template_dir gates traced; gate-off boot not exercised."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2058-clear-verification-anchors-stale-in-the-uncommitted-tree.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; three governed records restored; 19 records in this group keep inert verified_paths."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2059-reasoner-preflight-on-the-email-gateway.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; proposed record; gateway source outside repository; documentation claims checked."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2060-cross-store-erasure-needs-a-reverse-tombstone.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4 and VisionClaw 86cdd7635582; every section assessed; proposed and deferred record; VisionClaw 86cdd7635582 Pod deletion and absent RuVector client traced; backup context overtaken."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2061-federation-kind-map-parity.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4 and VisionClaw 86cdd7635582; every section assessed; artefact, JS derivation and VisionClaw 86cdd7635582 Rust derivation traced; Rust half not CI-gated; tests not run."
+  }
+]

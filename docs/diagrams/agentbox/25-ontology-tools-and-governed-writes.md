@@ -21,12 +21,14 @@ sources:
   - ../project/agentbox/services/agentbox-ops/src/voyager/mod.rs
   - ../project/agentbox/management-api/lib/uris.js
   - ../project/agentbox/management-api/lib/ontology-apply.js
-verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
+  - ../project/agentbox/mcp/servers/lib/ontology-local.js
+  - ../project/agentbox/mcp/servers/lib/ontology-workingset.js
+verified_commit: c57d9c0508f4044915f9aecea4b9aa5629cc6a35
 ---
 
-Note: `ontology-bridge.js`, `ontology-propose.js`, `ontology-local.cjs`, `ontology-authoring-authority.js`
-and `vault-frontmatter.js` — the whole MCP-tool authoring-authority surface this topic previously covered
-(AB-25.1–.6, .10) — are deleted. At this topic's historical revision, the corpus verbs still used the `vault` binary. Current create/amend guards are mapped in [OM-07](../ontomark/07-governed-create-and-amend.md). The governed write door is reached from a signed
+Note: `ontology-bridge.js`, `ontology-local.cjs`, `ontology-authoring-authority.js`
+and `vault-frontmatter.js` — the MCP-tool authoring-authority surface this topic previously covered
+(AB-25.1–.6, .10) — are deleted; `ontology-propose.js` was not deleted but relocated to `management-api/lib/` by ADR-2108 and re-pointed at `vault propose`. At this revision the corpus verbs (find, edit, create, apply, validate) run through the `ontomark` binary and only the governance transport (`propose`, `panel`) stays on `vault` (`management-api/lib/ontology-apply.js:153-160`). Current create/amend guards are mapped in [OM-07](../ontomark/07-governed-create-and-amend.md). The governed write door is reached from a signed
 kind-31403 forum decision through `applyOntologyDecision` (`management-api/lib/ontology-apply.js`); see
 **AB-04.13** for the full sequence and **AB-14** for the 31402/31403 forum round-trip that precedes it.
 
@@ -39,29 +41,30 @@ sequenceDiagram
     participant GATE as manifest gates
     participant CORP as authored corpus<br/>VAULT_PAGES
     participant OUT as condense output
-    participant REF as ontology-condense-refresh.sh<br/>agentbox/scripts/ontology-condense-refresh.sh:105
+    participant REF as ontology-condense-refresh.sh<br/>agentbox/scripts/ontology-condense-refresh.sh:79
     participant IDX as ontology-index-build.js
-    participant LLM as Loom facade<br/>agentbox/agentbox.toml:1120 — see AB-24
+    participant LLM as Loom facade<br/>agentbox/agentbox.toml:1125 — see AB-24
     participant RV as RuVector ns ontology-classes<br/>see AB-20
 
-    Note over SCH: supervised as [program:ontology-condense-scheduler] (agentbox/flake.nix:2441) — launched<br/>unconditionally, exits fast when its gate is off
-    loop tick — schedule_interval_mins 60, jittered plus or minus 20 percent (agentbox.toml:1133)
+    Note over SCH: supervised as [program:ontology-condense-scheduler] (agentbox/flake.nix:2442) — launched<br/>unconditionally, exits fast when its gate is off
+    loop tick — schedule_interval_mins 60, jittered plus or minus 20 percent (agentbox.toml:1138)
         SCH->>GATE: require BOTH ONTOLOGY_CONDENSE_ENABLED and ONTOLOGY_CONDENSE_SCHEDULE
         alt either off
             SCH-->>SCH: no-op — byte-identical-when-off until an operator opts in and the container reboots
         else both on
             SCH->>CORP: newest page mtime
             SCH->>OUT: last condense output mtime
-            alt corpus newer OR output missing OR older than schedule_max_age_hours 24 (agentbox.toml:1134)
+            alt corpus newer OR output missing OR older than schedule_max_age_hours 24 (agentbox.toml:1139)
                 SCH->>REF: exec the refresh
-                Note over REF: flock-serialised (ontology-condense-refresh.sh:57-59) — SKIPS if a refresh already holds<br/>the lock. Stages overwrite/resume deterministically, so the scheduler is idempotent
-                REF->>IDX: parse the corpus into classes (ontology-condense-refresh.sh:105,111)
-                loop each KG class, max_concurrency 2 (agentbox.toml:1123)
-                    REF->>LLM: POST /v1/chat/completions — one retrieval sentence + a synonym list<br/>(ontology-condense-refresh.sh:108)
-                    Note over LLM: model qwen3.8-27B style openai (agentbox.toml:1121-1122). The model runs BEHIND the Loom<br/>facade so it is swappable with zero change here
+                Note over REF: flock-serialised (ontology-condense-refresh.sh:49-51) — SKIPS if a refresh already holds<br/>the lock. Stages overwrite/resume deterministically, so the scheduler is idempotent
+                REF->>IDX: parse the corpus into classes, stage 1 (ontology-condense-refresh.sh:79)
+                loop each KG class, max_concurrency 2 (agentbox.toml:1128)
+                    REF->>LLM: POST /v1/chat/completions — one retrieval sentence + a synonym list<br/>(ontology-condense-refresh.sh:82)
+                    Note over LLM: model qwen3.8-27B style openai (agentbox.toml:1126-1127). The model runs BEHIND the Loom<br/>facade so it is swappable with zero change here
                 end
-                REF->>OUT: PUSH Class-Summary cache
-                REF->>RV: condensed store ns ontology-classes
+                REF->>IDX: stage 3 re-run folds the aliases (ontology-condense-refresh.sh:85)
+                REF->>OUT: PUSH Class-Summary cache plus the condensed-text JSON
+                Note over REF,RV: the refresh does NOT write RuVector: the condensed JSON is the payload a caller stores<br/>into ns ontology-classes through the embedding pipeline (ontology-condense-refresh.sh:11-12)
             else fresh
                 SCH-->>SCH: writes NOTHING — no LLM load, no cache churn
             end
@@ -81,7 +84,7 @@ sequenceDiagram
     participant CHILD as detached child<br/>ontology-monitor.cjs:258
     participant LOC as local ontology route<br/>VisionClaw-free
     participant ZAI as Z.AI GLM worker
-    participant JEV as Jev proposal verifier<br/>optional, opted in by system_one.consumers.ontology_proposals (agentbox.toml:916), staged
+    participant JEV as Jev proposal verifier<br/>optional, opted in by system_one.consumers.ontology_proposals (agentbox.toml:920), staged
     participant JSONL as ontology-proposals.jsonl<br/>AGENTBOX_STATE
     participant RELAY as forum broker gate<br/>Nostr relay
     participant H as Human approver
@@ -91,7 +94,7 @@ sequenceDiagram
     alt AGENTBOX_ONTOLOGY_MONITOR not 1, then no Z.AI key, then publish mode missing<br/>MANAGEMENT_API_KEY/NOSTR_RELAYS
         MON-->>CC: silent no-op — fail-open on any miss (:78-80)
     else all gates pass
-        alt AGENTBOX_ONTOLOGY_MONITOR_FOREGROUND not set (:245-247)
+        alt AGENTBOX_ONTOLOGY_MONITOR_FOREGROUND not set (ontology-monitor.cjs:245-247)
             MON->>CHILD: spawn detached, own session, unref'd,<br/>stdin payload carried via env (:258-264)
             MON-->>CC: exit at once — SessionEnd never waits on the review (:274)
             CHILD->>CHILD: gather the session's concept-bearing work
@@ -99,7 +102,7 @@ sequenceDiagram
             CHILD->>ZAI: ONE review call
             ZAI-->>CHILD: proposals where the corpus looks stale, wrong or missing
             CHILD->>CHILD: drop proposals already in the seen-ledger (fingerprint dedup, :287-289)
-            opt AGENTBOX_JEV_ONTOLOGY_PROPOSALS=1 (off in code, configured and staged until a rebuild: the projector exports PROPOSALS_LOCAL_ONLY=0 unless listed in [system_one].local_only, system_one.rs:533,564-577, so the proxy and TypeSafe are allowed, while a tainted transcript still forces local, ontology-proposal-jev.cjs:152-153)
+            opt AGENTBOX_JEV_ONTOLOGY_PROPOSALS=1 (off in code, configured and staged until a rebuild: the projector exports PROPOSALS_LOCAL_ONLY=0 unless listed in [system_one].local_only, system_one.rs:549,580-593, so the proxy and TypeSafe are allowed, while a tainted transcript still forces local, ontology-proposal-jev.cjs:152-153)
                 CHILD->>JEV: ontology-proposal-jev.cjs verify — one request, every fresh proposal (ontology-proposal-jev.cjs:145)
                 JEV-->>CHILD: advisory verdicts to ontology-proposals-jev.jsonl, never inside the signed 31402 (ontology-monitor.cjs:296-299)
                 Note over CHILD,JEV: a proposal is held back into the local review queue only if<br/>AGENTBOX_JEV_PROPOSAL_HOLD_BELOW is set in 0 to 0.5 and supported is below it (ontology-proposal-jev.cjs:175-186).<br/>Jev unavailable means the proposals pass through unchanged (ontology-monitor.cjs:298)
@@ -154,7 +157,8 @@ stateDiagram-v2
         Resolution order is the repo lib first, then the baked /opt copy —
         the same pattern as continual-harness.cjs. ontology-local.js is now
         READ-ONLY (its write path was deleted with ontology-bridge.js; the
-        governed write door is `vault edit`, see AB-04.13).
+        governed write door is `ontomark edit`, see AB-04.13).
+        ontology-workingset.js:128-140 is the revalidate drift check
     end note
 ```
 
@@ -190,7 +194,7 @@ classDiagram
     DecisionRecord --> TemporalWindow : has
     note for DecisionRecord "INVARIANT (ADR-047 EL-safety, ttl:5-12): the vocabulary MUST stay in the OWL 2 EL<br/>profile so Whelk can classify it in polynomial time — no owl:inverseOf,<br/>owl:FunctionalProperty or owl:InverseFunctionalProperty anywhere in the file"
     note for RelationalProperties "caused and precedentFor are deliberately NOT transitive: reachability must stay<br/>query-derived, distinguishable from directly-asserted evidence"
-    note for ExternalLinks "decision-layer.ofn:8-19 is a hand-kept functional-syntax PROJECTION of the same<br/>TTL for the horned-owl/Whelk loader — ofn:2 says 'keep in sync with the TTL'.<br/>No generator ties the two files together"
+    note for ExternalLinks "decision-layer.ofn:8-19 is a hand-kept functional-syntax PROJECTION of the same<br/>TTL for the horned-owl/Whelk loader — ofn:8 says 'keep in sync with the TTL'.<br/>No generator ties the two files together"
 ```
 
 ## AB-25.12 Where this vocabulary is actually exercised — and where it is not
@@ -202,11 +206,11 @@ flowchart TB
         OFN["decision-layer.ofn<br/>39 lines, functional-syntax projection"]
     end
     subgraph tested["The only automated consumer found"]
-        PYTEST["test_decision_layer.py<br/>rdflib.Graph#40;#41;.parse#40;TTL#41;<br/>ontology/test_decision_layer.py:23"]
-        ELGUARD["EL-SAFETY GUARD: asserts NO triple in the graph uses<br/>owl:inverseOf / owl:FunctionalProperty / owl:InverseFunctionalProperty<br/>ontology/test_decision_layer.py:9-11"]
+        PYTEST["test_decision_layer.py<br/>rdflib.Graph#40;#41;.parse#40;TTL#41;<br/>ontology/test_decision_layer.py:23-24"]
+        ELGUARD["EL-SAFETY GUARD: asserts NO triple in the graph uses<br/>owl:inverseOf / owl:FunctionalProperty / owl:InverseFunctionalProperty<br/>ontology/test_decision_layer.py:55-70"]
     end
     subgraph runtime["Runtime governance-write path (ADR-2109) — see AB-04.13"]
-        APPLY["Historical vault corpus dispatch; current split in OM-07<br/>pathspec-limited commit, then ordinary branch push<br/>(commit failure recorded, never thrown)<br/>management-api/lib/ontology-apply.js:365,821"]
+        APPLY["applyOntologyDecision: guarded ontomark edit, then commitPage<br/>pathspec-limited commit, push only when it is the sole commit ahead<br/>(commit failure recorded, never thrown)<br/>management-api/lib/ontology-apply.js:372,828,872"]
         URIS["management-api/lib/uris.js — the ONE URN minter for<br/>all 21 kinds, incl. decision (agentbox/CLAUDE.md URI/URN scheme)"]
     end
     TTL --> PYTEST
@@ -217,9 +221,11 @@ flowchart TB
     subgraph notes["Invariants and drift"]
         direction TB
         N1["DIVERGENCE: decision-layer.ttl/.ofn are a formal, EL-profile-safe OWL vocabulary for<br/>agent decisions (ADR-047/048/049) with ONE automated consumer — a standalone Python<br/>structural test. No Rust or JS code under services/ or mcp/ parses, loads or reasons<br/>against either file (grep-verified across the whole repo). The 'governed ontology writes<br/>checked against formal OWL semantics' framing describes an aspiration this repo documents<br/>but does not itself execute — reasoning happens estate-side (VisionClaw Oxigraph/Whelk,<br/>see VC-20), not inside agentbox at write time"]
-        N2["EXTERNAL: code-harness.ttl #40;the sibling OWL file in the same directory#41; IS referenced<br/>from Rust doc-comments at services/agentbox-ops/src/voyager/mod.rs:3 and<br/>services/agentbox-ops/src/bin/voyager-gate.rs:3 as the<br/>CONCEPTUAL SPEC the ported voyager-gate logic implements — see AB-28.9 (M9) for the<br/>voyager skill-library gate module. That reference is documentation, not a runtime TTL load"]
+        N2["EXTERNAL: code-harness.ttl #40;the sibling OWL file in the same directory#41; IS referenced<br/>from Rust doc-comments at services/agentbox-ops/src/voyager/mod.rs:3-4 and<br/>services/agentbox-ops/src/bin/voyager-gate.rs:3-4 as the vocabulary<br/>that references the Python gate this Rust code was ported from — see AB-28.9 (M9) for the<br/>voyager skill-library gate module. That reference is documentation, not a runtime TTL load"]
         N1 ~~~ N2
     end
 ```
 
-**Tension (publication scope, 2026-10-31):** A pathspec-limited commit does not constrain the later branch push to that commit. A second writer after the ahead-count check was [reproduced with real local Git](../../estate-review/2026-10-31-corpus-consumer.md#commit-and-attestation-boundaries). This qualifies AB-25.12; other panels retain their historical source stamp.
+**Tension (publication scope, 2026-10-31):** A pathspec-limited commit does not constrain the later branch push to that commit. `commitPage` counts commits ahead of the upstream and pushes only when the governed commit is the sole one (`../project/agentbox/management-api/lib/ontology-apply.js:868-879`), but a second writer between that count and the push still rides along; this was [reproduced with real local Git](../../estate-review/2026-10-31-corpus-consumer.md#commit-and-attestation-boundaries). This qualifies AB-25.12.
+
+**Debt:** `ontology-local.js` still carries its pre-ADR-2107 header describing "a real WRITE path that edits the markdown in place" directly under the new note that the write path was deleted (`../project/agentbox/mcp/servers/lib/ontology-local.js:2-8`, `../project/agentbox/mcp/servers/lib/ontology-local.js:21-26`); the file's own comment is self-contradictory, and only `module.exports` (`../project/agentbox/mcp/servers/lib/ontology-local.js:374`) shows what survives.

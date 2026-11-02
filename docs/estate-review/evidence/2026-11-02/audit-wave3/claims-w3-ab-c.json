@@ -1,0 +1,38 @@
+[
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/agentbox/07-daemons-reapers-cron-backups.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-c.md",
+    "coverage": "selected-panels",
+    "panels": ["AB-07.1", "AB-07.2", "AB-07.3", "AB-07.4", "AB-07.5", "AB-07.6", "AB-07.7", "AB-07.8", "AB-07.9", "AB-07.10", "AB-07.11"],
+    "basis": "Source tracing at agentbox c57d9c0508f4; restamped from 6500582 with every diagram citation re-resolved and read; four panels corrected; strict cite-check and render pass; supervisord restart semantics (startsecs=0, FATAL) and backup/restore behaviour not run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/agentbox/08-hooks-pipeline.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-c.md",
+    "coverage": "selected-panels",
+    "panels": ["AB-08.1", "AB-08.2", "AB-08.5", "AB-08.6", "AB-08.7", "AB-08.8", "AB-08.10", "AB-08.11", "AB-08.12", "AB-08.13", "AB-08.14", "AB-08.15", "AB-08.16"],
+    "basis": "Source tracing at agentbox c57d9c0508f4; restamped from 6500582 with every diagram and prose citation re-resolved and read; AB-08.13 redrawn for the ADR-2164 Management API write path; seven panels corrected; strict cite-check and render pass; no hook was executed and the factrail repository is not mapped."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/agentbox/09-mcp-servers-catalogue.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-c.md",
+    "coverage": "selected-panels",
+    "panels": ["AB-09.1", "AB-09.2", "AB-09.3", "AB-09.4", "AB-09.5", "AB-09.7", "AB-09.8"],
+    "basis": "Source tracing at agentbox c57d9c0508f4; restamped from 6500582 with every citation re-resolved and read; registry counts recomputed from skills/mcp.json and mcp/mcp.json at the pin; AB-09.5 corrected; strict cite-check and render pass; projector and hub not run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/agentbox/10-ingress-nip98-proxy-and-aoe.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-c.md",
+    "coverage": "selected-panels",
+    "panels": ["AB-10.1", "AB-10.2", "AB-10.3", "AB-10.4", "AB-10.5", "AB-10.6", "AB-10.7", "AB-10.8", "AB-10.9", "AB-10.10", "AB-10.11", "AB-10.12", "AB-10.14"],
+    "basis": "Source tracing at agentbox c57d9c0508f4; restamped from 6500582 with every diagram and prose citation re-resolved and read; ADR-2164 task-token credential added to AB-10.7 and AB-10.14; strict cite-check and render pass; selftest.mjs not run, no live ingress probed."
+  }
+]

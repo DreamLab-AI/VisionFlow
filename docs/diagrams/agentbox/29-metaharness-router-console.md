@@ -25,7 +25,7 @@ sources:
   - ../project/agentbox/services/agentbox-manifest/src/tui_sections.rs
   - ../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md
   - ../project/agentbox/docs/adr/ADR-2079-aoe-is-the-dispatch-plane-of-a-fleet-model-router.md
-verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
+verified_commit: c57d9c0508f4044915f9aecea4b9aa5629cc6a35
 ---
 
 ## AB-29.1 Composition — what is baked, and why the npm tarball lacks it
@@ -47,7 +47,7 @@ flowchart TB
         FETCH["scripts/model-router-fetch.sh<br/>reads m.files, sha256sum-verifies, curl -fL, refuses hash mismatch"]
     end
     subgraph outputs["Two possible artefact locations"]
-        BAKED["/opt/agentbox/model-router<br/>flake.nix:2245-2246 — rebuild class, byte-identical-when-off"]
+        BAKED["/opt/agentbox/model-router<br/>flake.nix:2246-2247 — rebuild class, byte-identical-when-off"]
         FALLBACK["$WORKSPACE/.agentbox/model-router<br/>pre-rebuild fallback"]
     end
     T1 --> ART
@@ -58,7 +58,7 @@ flowchart TB
     FILES --> FETCH --> FALLBACK
     subgraph notes["Invariants"]
         direction TB
-        N1["INVARIANT: never edit hashes by hand — re-pin with a new upstream ref and recompute (artefacts.json:2 purpose string)"]
+        N1["INVARIANT: never edit hashes by hand — re-pin with a new upstream ref and recompute (artefacts.json:3 purpose string)"]
         N2["INVARIANT: fetch refuses any file whose recomputed sha256 differs from the manifest (model-router-fetch.sh hash-mismatch branch)"]
         N1 ~~~ N2
     end
@@ -69,10 +69,10 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant TOML as agentbox.toml<br/>[model_routing.neural]<br/>agentbox.toml:1736-1746
-    participant EP as entrypoint-unified.sh<br/>config/entrypoint-unified.sh:2308
+    participant TOML as agentbox.toml<br/>[model_routing.neural]<br/>agentbox.toml:1774-1784
+    participant EP as entrypoint-unified.sh<br/>config/entrypoint-unified.sh:2305
     participant DISK as /opt/agentbox/model-router<br/>or $WORKSPACE/.agentbox/model-router
-    participant ENV as runtime-env file<br/>config/entrypoint-unified.sh:3811
+    participant ENV as runtime-env file<br/>config/entrypoint-unified.sh:4047
 
     EP->>TOML: _ab_toml_bool model_routing.neural enabled
     alt enabled = false
@@ -81,10 +81,10 @@ sequenceDiagram
         EP->>TOML: read assets_dir, provider, quality_bar, cost_ceiling_usd_per_mtok, privacy_tier, trajectory
         EP->>DISK: test -f $_MRN_DIR/seed-router.krr.json
         alt baked dir missing the artefact
-            EP->>DISK: fall back to $WORKSPACE/.agentbox/model-router<br/>config/entrypoint-unified.sh:2311-2313
+            EP->>DISK: fall back to $WORKSPACE/.agentbox/model-router<br/>config/entrypoint-unified.sh:2309-2311
         end
-        EP->>ENV: export AGENTBOX_MODEL_ROUTER_ENABLED=1, _DIR, _PROVIDER,<br/>_QUALITY_BAR, _COST_CEILING_USD_PER_MTOK, _PRIVACY_TIER,<br/>_TRAJECTORY, _STATE_DIR<br/>config/entrypoint-unified.sh:2320-2327
-        EP->>EP: echo readiness line naming artefact dir + provider + bar<br/>config/entrypoint-unified.sh:2329
+        EP->>ENV: export AGENTBOX_MODEL_ROUTER_ENABLED=1, _DIR, _PROVIDER,<br/>_QUALITY_BAR, _COST_CEILING_USD_PER_MTOK, _PRIVACY_TIER,<br/>_TRAJECTORY, _STATE_DIR<br/>config/entrypoint-unified.sh:2317-2324
+        EP->>EP: echo readiness line naming artefact dir + provider + bar<br/>config/entrypoint-unified.sh:2325-2329
     end
     Note over EP,ENV: DELIBERATELY NOT exported: CLAUDE_FLOW_ROUTER_* — the console sets those<br/>in its own process only (ADR-2080 D3), so this boot path can never re-route<br/>other ruflo work to an external provider
 ```
@@ -101,7 +101,7 @@ sequenceDiagram
     participant WRAP as router.sh<br/>config/harness-wrappers/router.sh:24
     participant CONS as console.mjs<br/>config/model-router/console.mjs
 
-    PLANE->>CON: plan_for(seed) resolves the [[interaction_plane.session_seeds]] entry slug=router, tool=custom:router<br/>(agentbox.toml:2185-2189, plane.rs:200-201)
+    PLANE->>CON: plan_for(seed) resolves the [[interaction_plane.session_seeds]] entry slug=router, tool=custom:router<br/>(agentbox.toml:2223-2227, plane.rs:200-201)
     CON->>CON: harness-wrappers/router.sh exists AND tool == custom:router, so kind = wrapper<br/>contract.rs:69-71, and a wrapper never receives a model (contract.rs:85)
     CON->>LJ: wrapper template argv = [{wrapper}], so the launch is router.sh itself<br/>launch.json:13-15
     PLANE->>TMUX: Plan.name = session_name(slug) = abs_router, owned by the plane<br/>plane.rs:220, tmux.rs:27-28
@@ -124,9 +124,9 @@ sequenceDiagram
     Note over WRAP,CONS: HARD-FAIL WRAPPER SEMANTICS: every precondition failure is a loud _die with a<br/>fix instruction, never a silent no-op or a fallback to a different billing key
 ```
 
-**Drift:** the Agent of Empires seeder this topic first drew (`scripts/aoe-seed-sessions.mjs`, `custom_agents.router`) is deleted, yet the wrapper header still says AoE registers and execs it (`../project/agentbox/config/harness-wrappers/router.sh:5-6`), as does the flake comment (`../project/agentbox/flake.nix:2244`) and the `agentbox.toml` seed comment "resolved by the seeder's WRAPPER_SLUGS" (`../project/agentbox/agentbox.toml:2187`).
+**Drift:** the Agent of Empires seeder this topic first drew (`scripts/aoe-seed-sessions.mjs`, `custom_agents.router`) is deleted, yet the wrapper header still says AoE registers and execs it (`../project/agentbox/config/harness-wrappers/router.sh:5-6`), as does the flake comment (`../project/agentbox/flake.nix:2245`) and the `agentbox.toml` seed comment "resolved by the seeder's WRAPPER_SLUGS" (`../project/agentbox/agentbox.toml:2225`), and the manifest gate catalogue still names it the "AoE `router` session" (`../project/agentbox/management-api/lib/system-manifest.js:118`).
 
-**Tension (ADR-2079 vs ADR-2153):** ADR-2079, the AoE dispatch-plane record, is `superseded` by ADR-2153 (`../project/agentbox/docs/adr/ADR-2079-aoe-is-the-dispatch-plane-of-a-fleet-model-router.md:5-9`), which is now `accepted`, `implementation_status: partial`, `activation_status: live` and makes the router an ordinary seed (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`, `../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:82`), but its acceptance round trip excludes `router`, so only the clean launch above is evidenced, not a routed task (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:72`).
+**Tension (ADR-2079 vs ADR-2153):** ADR-2079, the AoE dispatch-plane record, is `superseded` by ADR-2153 (`../project/agentbox/docs/adr/ADR-2079-aoe-is-the-dispatch-plane-of-a-fleet-model-router.md:5-9`), which is now `accepted`, `implementation_status: partial`, `activation_status: live` and makes the router an ordinary seed (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`, `../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:91`), but its acceptance round trip excludes `router`, so only the clean launch above is evidenced, not a routed task (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:81`, `../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:112`).
 
 ## AB-29.4 Routing decision flow — embed, KRR predict, availability preflight, execute
 
@@ -170,7 +170,7 @@ sequenceDiagram
         end
         EXEC-->>OP: printResult — output, tokens, cost, duration
         EXEC->>LEDGER: append {type:"result", tier, modelId, ok, usage, costUsd}
-        RTR->>RTR: recordModelOutcome / recordModelOutcomeByModelId (bandit priors)<br/>console.mjs recordOutcome()
+        RTR->>RTR: recordModelOutcome / recordModelOutcomeByModelId (bandit priors), console.mjs:335-339<br/>automatic with --once (console.mjs:383), otherwise on the operator's verdict (console.mjs:442-448)
     end
     Note over KRR: INVARIANT: the query embedding MUST come from the same model the seed<br/>corpus was embedded with (Xenova/all-MiniLM-L6-v2) or every KRR prediction<br/>is meaningless (artefacts.json:12-19 "why")
 ```
@@ -234,7 +234,7 @@ stateDiagram-v2
     note right of Refused
         Manifest schema also constrains this at the config layer:
         privacy_tier accepts only "public" (ADR-2080 Decision §4,
-        agentbox.toml:1744 comment "the ONLY accepted value")
+        agentbox.toml:1782 comment "the ONLY accepted value")
     end note
     note right of NormalRun
         ADR-2079 §4: privacy tier is the FIRST routing axis, before cost.
@@ -281,13 +281,13 @@ flowchart TD
 ```mermaid
 flowchart TB
     subgraph cli["./agentbox.sh model-router <sub>"]
-        CMD["cmd_model_router<br/>agentbox.sh:2390"]
-        FETCH2["fetch runs model-router-fetch.sh<br/>agentbox.sh:2395"]
-        CHECK2["check runs model-router-fetch.sh --check<br/>agentbox.sh:2396"]
-        STATUS2["status runs node console.mjs --status<br/>agentbox.sh:2397"]
-        ROUTE2["route 'task' runs node console.mjs --once<br/>agentbox.sh:2398-2399"]
-        CONSOLE2["console runs harness-wrappers/router.sh<br/>agentbox.sh:2400"]
-        DISPATCH["top-level case dispatch<br/>agentbox.sh:2895"]
+        CMD["cmd_model_router<br/>agentbox.sh:2391"]
+        FETCH2["fetch runs model-router-fetch.sh<br/>agentbox.sh:2396"]
+        CHECK2["check runs model-router-fetch.sh --check<br/>agentbox.sh:2397"]
+        STATUS2["status runs node console.mjs --status<br/>agentbox.sh:2398"]
+        ROUTE2["route 'task' runs node console.mjs --once<br/>agentbox.sh:2399-2400"]
+        CONSOLE2["console runs harness-wrappers/router.sh<br/>agentbox.sh:2401"]
+        DISPATCH["top-level case dispatch<br/>agentbox.sh:2896"]
     end
     subgraph catalogue["Manifest gate catalogue"]
         GATE["id: model-routing-neural<br/>gate: model_routing.neural.enabled<br/>apply_class: rebuild<br/>management-api/lib/system-manifest.js:118-120"]
@@ -336,6 +336,6 @@ sequenceDiagram
     Note over RET: every cost is AGENT-LEVEL, the whole agentic loop per run, which is why<br/>per-token list price is a poor proxy for per-task cost<br/>(retort-benchmarks.json:8)
 ```
 
-**Invariant:** the Retort file changes only which tier is chosen; the quality bar, the cost ceiling and the privacy tier stay manifest values projected through `AGENTBOX_MODEL_ROUTER_*` (`../project/agentbox/agentbox.toml:1739`, `../project/agentbox/agentbox.toml:1743`, `../project/agentbox/agentbox.toml:1744`).
+**Invariant:** the Retort file changes only which tier is chosen; the quality bar, the cost ceiling and the privacy tier stay manifest values projected through `AGENTBOX_MODEL_ROUTER_*` (`../project/agentbox/agentbox.toml:1777`, `../project/agentbox/agentbox.toml:1781`, `../project/agentbox/agentbox.toml:1782`).
 
-**Open:** the manifest now carries Retort's measured guidance as a comment on `quality_bar` (`../project/agentbox/agentbox.toml:1740-1742`) while the shipped default stays 0.50 (`../project/agentbox/agentbox.toml:1739`); nothing records whether the 0.25 to 0.35 band that comment recommends for routine work has been run against this estate's own corpus.
+**Open:** the manifest now carries Retort's measured guidance as a comment on `quality_bar` (`../project/agentbox/agentbox.toml:1778-1780`) while the shipped default stays 0.50 (`../project/agentbox/agentbox.toml:1777`); nothing records whether the 0.25 to 0.35 band that comment recommends for routine work has been run against this estate's own corpus.

@@ -19,7 +19,7 @@ sources:
   - ../project/xr-client/materials/edge_flow_common.gdshaderinc
   - ../project/xr-client/materials/edge_flow.tres
   - ../project/xr-client/scripts/node_lod.gd
-verified_commit: {visionclaw: d6c091f0ffb6d1af04ce011836c45ace6f4dafd9}
+verified_commit: {visionclaw: 86cdd7635582}
 ---
 
 ## For developers
@@ -49,8 +49,8 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    SCENE["Count named graph and volume calls<br/>graph_scene.gd:3157,3167"] --> CALLS["Add agent, link and hull calls<br/>graph_scene.gd:3173,3177,3179"]
-    CALLS --> INPUT["Pass assembled call demand to allocator<br/>graph_scene.gd:3180,3183"]
+    SCENE["Count named graph and volume calls<br/>graph_scene.gd:3161,3171"] --> CALLS["Add agent, link and hull calls<br/>graph_scene.gd:3177,3181,3183"]
+    CALLS --> INPUT["Pass assembled call demand to allocator<br/>graph_scene.gd:3184,3187"]
     OTHER["Measured other triangles, but no other-call remainder<br/>frame_budget_pass.gd:102,125"] --> INPUT
     BENCH["Benchmark separately calibrates other calls<br/>benchmark.gd:230,572"]
     VISIBLE["Controller counts every visible frame<br/>eye_candy.gd:462,466,469"] --> PRICE["Cost clamps at eight frames<br/>frame_budget.rs:170"]
@@ -78,10 +78,10 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    TARGET["Recorded target: Godot 4.8-beta2<br/>XR-client.md:95,96"] --> CONTROLLER["AUDIT: isolated headless tests on both engines<br/>18 retained tests per engine; no native extension"]
-    ROLLBACK["4.6.1 rollback remains separate<br/>XR-client.md:129"]
+    TARGET["Recorded target: Godot 4.8-beta2<br/>XR-client.md:97,98"] --> CONTROLLER["AUDIT: isolated headless tests on both engines<br/>18 retained tests per engine; no native extension"]
+    ROLLBACK["4.6.1 rollback remains separate<br/>XR-client.md:131"]
     API["godot crate 0.2; minimum engine 4.3<br/>Cargo.toml:21<br/>visionclaw_xr_gdext.gdextension:4"] --> LOAD["Historical full extension-load evidence<br/>current audit does not rerun it"]
-    RENDER["Compatibility renderer; MSAA disabled in project<br/>project.godot:56,59"] --> STEREO["Both-eye headset qualification still partial<br/>XR-client.md:120"]
+    RENDER["Compatibility renderer; MSAA disabled in project<br/>project.godot:56,59"] --> STEREO["Both-eye headset qualification still partial<br/>XR-client.md:122"]
     CONTROLLER -.-> STEREO
     LOAD -.-> STEREO
     STEREO -.-> ROLLBACK

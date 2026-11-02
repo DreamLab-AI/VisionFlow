@@ -1,0 +1,2262 @@
+OpenAI Codex v0.165.0
+--------
+workdir: /home/devuser/workspace/VisionFlow
+model: gpt-6-astra
+provider: openai
+approval: never
+sandbox: read-only
+reasoning effort: medium
+reasoning summaries: none
+session id: 01a19c41-b8b9-7662-b9ac-80a4f2cda2df
+--------
+user
+You are an independent cross-vendor auditor of an estate code audit. Below are 12 diagram panels from a documentation corpus, each followed by the exact source lines it cites, read with git show at the revision the topic declares. Other reviewers have already marked each panel accurate or corrected it. For EACH panel, judge only from the source lines shown: does every mechanism claim in the panel that carries a citation match the cited lines? Answer per panel with one of: HOLDS, WRONG (say which claim and which line contradicts it), or CANNOT-JUDGE (the cited lines are not enough). Do not use tools. Do not judge uncited prose. Finish with a one-line count: N HOLDS, N WRONG, N CANNOT-JUDGE.
+
+======================================================================
+PANEL AB-28.9  (docs/diagrams/agentbox/28-agentbox-services-and-manifest-binary.md)
+## AB-28.9 Service crate publishing posture
+
+```mermaid
+classDiagram
+    class PublishableServiceCrate {
+        <<ADR-2030>>
+        +LICENSE-APACHE
+        +LICENSE-MIT
+        +README.md
+        +Cargo.toml with repository metadata
+        +inline rustdoc on every public item
+    }
+    class agentbox_manifest {
+        boot-time TOML/JSON projection
+        clap subcommands
+        golden tests
+    }
+    class agentbox_ops {
+        retired-Python tool suite
+        15 binaries
+        12 shared modules
+    }
+    class agentbox_mcp {
+        3 stdio MCP servers plus the hub
+        rmcp transport
+    }
+    class skill_tools {
+        uiux · wardley · docs_alignment
+        12 binaries
+    }
+    class podcast_ingest {
+        corpus ingest
+        see AB-27
+    }
+    class explainer_tools {
+        explainer-loom-draft
+        LICENSE-APACHE and LICENSE-MIT
+        see AB-28.13
+    }
+    class AgplException {
+        <<NOT dual-licensed>>
+        +LICENSE with the full AGPL-3.0 text
+        +README stating it is not dual-licensed
+    }
+    class dream_engine {
+        nightly cycle, AGPL-3.0-only
+        links nostr-bbs-core
+        see AB-23
+    }
+    class headroom_napi {
+        NAPI compression addon
+        crates/headroom-napi, AGPL-3.0-only
+        see AB-26
+    }
+    PublishableServiceCrate <|-- agentbox_manifest
+    PublishableServiceCrate <|-- agentbox_ops
+    PublishableServiceCrate <|-- agentbox_mcp
+    PublishableServiceCrate <|-- skill_tools
+    PublishableServiceCrate <|-- podcast_ingest
+    PublishableServiceCrate <|-- explainer_tools
+    AgplException <|-- dream_engine
+    AgplException <|-- headroom_napi
+    note for PublishableServiceCrate "ADR-2030 permissive licensing for publishable service crates. Dual LICENSE-APACHE +<br/>LICENSE-MIT with a README are recorded for agentbox-manifest, agentbox-mcp, agentbox-ops,<br/>explainer-tools, podcast-ingest and skill-tools (LICENSING-NOTICE.md:42-51).<br/>ontology-tools left the set with its crate, deleted by ADR-2119 (2026-10-01)"
+    note for AgplException "dream-engine is AGPL-3.0-only because it links nostr-bbs-core (LICENSING-NOTICE.md:14-20, :46);<br/>headroom-napi lives under crates/, outside services/, and its manifest also declares<br/>AGPL-3.0-only (crates/headroom-napi/Cargo.toml:8). Neither inherits the ADR-2030 posture"
+    note for agentbox_manifest "Nix packaging for each crate lives in agentbox/lib — agentbox-manifest.nix,<br/>agentbox-ops.nix, agentbox-mcp.nix, skill-tools.nix, explainer-tools.nix,<br/>podcast-ingest.nix, dream-engine.nix, headroom-compress.nix. Only dream-engine is<br/>manifest-gated out of the package set (flake.nix:1761-1768); agentbox-manifest,<br/>agentbox-ops and the knowledge-tool crates are UNGATED and always baked<br/>(flake.nix:1749-1752, flake.nix:1770-1774, flake.nix:1793-1812)"
+    note for agentbox_ops "Each binary replaces a Python script retired by the 2026-09-02 estate legacy audit;<br/>the modules hold the behaviour worth unit-testing independently of the CLI shell<br/>(agentbox-ops/src/lib.rs:1-5)"
+    note for skill_tools "docs_check_mermaid is the skill-side mermaid validator, now shelling pele-render --check not mmdc (docs_alignment/mermaid.rs:1-6, ADR-2154);<br/>this diagrams tree is validated instead, and more strictly, by VisionFlow's<br/>scripts/diagram-index-gen.cjs --render, which renders every block in-process with the pinned Pele"
+```
+
+**Drift (corrected 2026-11-02):** this panel had `dream-engine` and `headroom-napi` inheriting the ADR-2030 permissive posture, but both declare `AGPL-3.0-only` (`../project/agentbox/services/LICENSING-NOTICE.md:46`, `../project/agentbox/crates/headroom-napi/Cargo.toml:8`); it counted 12 binaries and 9 modules for `agentbox-ops` where the pin has 15 and 12; and it said every crate is in the package set only when its gate is on, where only `dream-engine` is gated (`../project/agentbox/flake.nix:1761-1768`) and the rest are baked unconditionally (`../project/agentbox/flake.nix:1749-1750`).
+--- cited source lines at the declared revision
+../project/agentbox/services/LICENSING-NOTICE.md @ c57d9c0508f4 lines 41-52:
+     41  |---|---|---|---|
+     42  | `agentbox-manifest` | MIT OR Apache-2.0 | `LICENSE-MIT`, `LICENSE-APACHE` | yes |
+     43  | `agentbox-mcp` | MIT OR Apache-2.0 | `LICENSE-MIT`, `LICENSE-APACHE` | yes |
+     44  | `agentbox-ops` | MIT OR Apache-2.0 | `LICENSE-MIT`, `LICENSE-APACHE` | yes |
+     45  | `agentbox-sessions` | MIT OR Apache-2.0 | `LICENSE-MIT`, `LICENSE-APACHE` | yes (`publish = false`: session-plane infrastructure for this image, not offered on crates.io) |
+     46  | `dream-engine` | **AGPL-3.0-only** (since 2026-09-25) | `LICENSE` (AGPL-3.0 full text) | yes — states NOT dual-licensed |
+     47  | `explainer-tools` | MIT OR Apache-2.0 | `LICENSE-MIT`, `LICENSE-APACHE` | yes |
+     48  | `nostr-pod-bridge` | **AGPL-3.0-only** | `LICENSE` (AGPL-3.0 full text) | yes — states NOT dual-licensed |
+     49  | `podcast-ingest` | MIT OR Apache-2.0 | `LICENSE-MIT`, `LICENSE-APACHE` | yes |
+     50  | `secret-backup` | **AGPL-3.0-only** | `LICENSE` (AGPL-3.0 full text) | yes — states NOT dual-licensed |
+     51  | `skill-tools` | MIT OR Apache-2.0 | `LICENSE-MIT`, `LICENSE-APACHE` | yes |
+     52  | `agentbox-vex` | MIT OR Apache-2.0 | `LICENSE-MIT`, `LICENSE-APACHE` | yes (`publish = false`: host tooling, not published) |
+../project/agentbox/services/LICENSING-NOTICE.md @ c57d9c0508f4 lines 13-21:
+     13  
+     14  Three exceptions, for two different reasons. A crate that links an AGPL-licensed
+     15  library cannot grant permissive terms and declares `AGPL-3.0-only` in its own
+     16  manifest (`nostr-pod-bridge`, which links `solid-pod-rs-nostr`; `dream-engine`,
+     17  which links `nostr-bbs-core` for Nostr signing and the forum governance wire
+     18  types — operator decision 2026-09-25, ADR-2115; since ADR-2141 it is only the
+     19  adapter, and the gate and loop crates it consumes are a separate permissive
+     20  repository, `DreamLab-AI/dream-engine`). A crate that is
+     21  deliberately not offered for reuse declares `AGPL-3.0-only` with
+../project/agentbox/crates/headroom-napi/Cargo.toml @ c57d9c0508f4 lines 7-9:
+      7  rust-version = "1.85"
+      8  license = "AGPL-3.0-only"
+      9  description = "N-API native addon for context compression (CCR, smart-crush, log/diff compressors)"
+../project/agentbox/flake.nix @ c57d9c0508f4 lines 1760-1769:
+   1760          # ---------------------------------------------------------------------------
+   1761          dreamMachineCfg = agentboxConfig.dream_machine or {};
+   1762          dreamEngineEnabled = let v = dreamMachineCfg.enabled or false; in builtins.isBool v && v;
+   1763          dreamEnginePkg =
+   1764            if dreamEngineEnabled
+   1765            then (import ./lib/dream-engine.nix { inherit lib; pkgs = rustPkgs; })
+   1766            else null;
+   1767          secretBackupPkg = import ./lib/secret-backup.nix { inherit lib; pkgs = rustPkgs; };
+   1768          dreamEnginePackages = lib.optionals dreamEngineEnabled [ dreamEnginePkg ];
+   1769  
+../project/agentbox/flake.nix @ c57d9c0508f4 lines 1748-1753:
+   1748          # python3 in config/entrypoint-unified.sh and the four manifest scripts).
+   1749          # UNGATED and unconditional: the entrypoint cannot boot without it, so
+   1750          # there is no meaningful "off" state to gate. See lib/agentbox-manifest.nix.
+   1751          # ---------------------------------------------------------------------------
+   1752          agentboxManifestPkg = import ./lib/agentbox-manifest.nix { inherit lib; pkgs = rustPkgs; };
+   1753  
+../project/agentbox/flake.nix @ c57d9c0508f4 lines 1769-1775:
+   1769  
+   1770          # agentbox-ops — operational CLI suite (Rust port of the Python scripts
+   1771          # retired by the 2026-09-02 legacy audit). Ungated: it replaces baseline
+   1772          # tooling that was always present. See lib/agentbox-ops.nix.
+   1773          agentboxOpsPkg = import ./lib/agentbox-ops.nix { inherit lib; pkgs = rustPkgs; };
+   1774          agentboxOpsPackages = [ agentboxOpsPkg ];
+   1775          # agentbox-sessions — the session plane (ADR-2153) that replaces Agent of
+../project/agentbox/flake.nix @ c57d9c0508f4 lines 1792-1813:
+   1792          # retired by the 2026-09-02 Python-legacy audit (sections 2b/2c).
+   1793          # Ungated on purpose: the Python these replace was unconditional, baked
+   1794          # into every image alongside the skills themselves, so the faithful
+   1795          # replacement is unconditional too. No new manifest gate, and therefore
+   1796          # no system-manifest.js catalogue entry (ADR-039 applies to *optional*
+   1797          # features).
+   1798          #   podcast-ingest  <- skills/podcast-{knowledge,bulk}-ingest (weekly cron)
+   1799          #   agentbox-mcp    <- the imagemagick / web-summary / gemini-url-context
+   1800          #                      Python MCP servers (one rmcp binary, 3 subcommands)
+   1801          #   skill-tools     <- ui-ux-pro-max BM25, wardley-maps, docs-alignment
+   1802          #   explainer-tools <- the explainer skill's Node scripts; talks to the
+   1803          #                      Loom façade through the published loom-client crate
+   1804          # Each crate is a self-contained [workspace] on crates.io deps with
+   1805          # reqwest pinned to rustls-tls, so none of them add an openssl closure.
+   1806          # ---------------------------------------------------------------------------
+   1807          podcastIngestPkg = import ./lib/podcast-ingest.nix { inherit lib; pkgs = rustPkgs; };
+   1808          # Bound by name as well as listed: the supervised [program:imagemagick-mcp]
+   1809          # block below runs this same derivation's binary.
+   1810          agentboxMcpPkg   = import ./lib/agentbox-mcp.nix   { inherit lib; pkgs = rustPkgs; };
+   1811          skillToolsPkg    = import ./lib/skill-tools.nix    { inherit lib; pkgs = rustPkgs; };
+   1812          explainerToolsPkg = import ./lib/explainer-tools.nix { inherit lib; pkgs = rustPkgs; };
+   1813          # colloquy — the cq shared-learning model (ADR-2085). Always baked, like
+../project/agentbox/services/agentbox-ops/src/lib.rs @ c57d9c0508f4 lines 1-6:
+      1  //! Shared logic for the `agentbox-ops` tool suite.
+      2  //!
+      3  //! Each binary in this crate replaces a Python script retired by the
+      4  //! 2026-09-02 estate legacy audit. The modules here hold the behaviour that
+      5  //! is worth unit-testing independently of the CLI shell around it.
+      6  
+../project/agentbox/services/skill-tools/src/docs_alignment/mermaid.rs @ c57d9c0508f4 lines 1-7:
+      1  //! Port of `check_mermaid.py`'s `MermaidValidator`: fenced-block extraction
+      2  //! (via `pulldown-cmark` instead of the Python regex, per the port brief),
+      3  //! syntax heuristics, and — when `pele-render` is on `PATH` — real validation by
+      4  //! shelling out to it (`pele-render --check --quiet -i <tmp>`, ADR-2154), with the
+      5  //! same 5s/10s timeouts via `tokio::time::timeout`. The `has_mmdc` /
+      6  //! `mmdc_available` names are kept because they are part of the report's JSON shape.
+      7  
+../project/agentbox/services/LICENSING-NOTICE.md @ c57d9c0508f4 lines 45-47:
+     45  | `agentbox-sessions` | MIT OR Apache-2.0 | `LICENSE-MIT`, `LICENSE-APACHE` | yes (`publish = false`: session-plane infrastructure for this image, not offered on crates.io) |
+     46  | `dream-engine` | **AGPL-3.0-only** (since 2026-09-25) | `LICENSE` (AGPL-3.0 full text) | yes — states NOT dual-licensed |
+     47  | `explainer-tools` | MIT OR Apache-2.0 | `LICENSE-MIT`, `LICENSE-APACHE` | yes |
+../project/agentbox/flake.nix @ c57d9c0508f4 lines 1748-1751:
+   1748          # python3 in config/entrypoint-unified.sh and the four manifest scripts).
+   1749          # UNGATED and unconditional: the entrypoint cannot boot without it, so
+   1750          # there is no meaningful "off" state to gate. See lib/agentbox-manifest.nix.
+   1751          # ---------------------------------------------------------------------------
+======================================================================
+PANEL AB-13.4  (docs/diagrams/agentbox/13-nostr-relay-gateway-bridge-mirror.md)
+## AB-13.4 Event-kind map part 1 — transport, auth and reference kinds
+
+```mermaid
+classDiagram
+    class Kind1059_GiftWrap {
+        kind = 1059
+        producer nostr-live-mirror.cjs:500 nip59.wrapEvent
+        producer gateway.cjs:260 buildWrap
+        consumer lib.rs:278 effective_message unwrap_gift
+        consumer gateway.cjs:666 handleWrap
+        signer mirror child key HMAC derived, nostr-live-mirror.cjs:211-214
+    }
+    class Kind14_DmRumor {
+        kind = 14 NIP-17 rumor inside the gift wrap
+        producer nostr-live-mirror.cjs:491 rumor
+        producer gateway.cjs:261 rumor
+        consumer nostr-pod-bridge unwrap_gift lib.rs:278-279
+        signer sealed sender see AB-13.9
+    }
+    class Kind22242_NIP42Auth {
+        kind = 22242 KIND_AUTH relay session AUTH
+        producer gateway.cjs:629 authenticate finalizeEvent
+        consumer cloud relay and embedded relay AUTH check
+        signer operator or derived child key gateway.cjs:148-150
+    }
+    class Kind27235_NIP98 {
+        kind = 27235 nostr-bridge.js:55 kinds.AUTH
+        producer nostr-bridge.js verifyNip98 callers see AB-10.4
+        consumer management-api HTTP auth middleware see AB-10.4
+        note see AB-10.4 for full verification path
+    }
+    class Kind30078_AgentState {
+        kind = 30078 nostr-bridge.js:57 AGENT_STATE
+        producer see AB-17.x agent-event publishing
+        consumer nostr-bridge.js:288-292 default subscribeKinds
+    }
+    class Kind30000_30001_Refs {
+        kind = 30000 BRIEF_REF nostr-bridge.js:58
+        kind = 30001 BEAD_REF nostr-bridge.js:59
+        federated agentbox.toml:279 federated_kinds
+    }
+    class Kind30910_Invite {
+        kind = 30910 NIP-58 invite agentbox.toml multi_user invite_kind
+        federated agentbox.toml:279
+    }
+    Kind1059_GiftWrap --> Kind14_DmRumor : unwraps to
+    note for Kind27235_NIP98 "per-profile identity minting is AB-11.2, the sovereign signer AB-11.13 and AB-13.14. Full NIP-98 verification is AB-10.4."
+```
+--- cited source lines at the declared revision
+../project/agentbox/config/hooks/nostr-live-mirror.cjs @ c57d9c0508f4 lines 499-501:
+    499      // Recipient FIRST in the wrap's ["p"] tag → passes the relay whitelist gate.
+    500      wrap = tools.nip59.wrapEvent(rumor, sk, recipient);
+    501      if (!wrap || wrap.kind !== KIND_GIFT_WRAP) return 0;
+../project/agentbox/config/nostr-gateway/gateway.cjs @ c57d9c0508f4 lines 259-261:
+    259  // ── crypto: reply on the live authed socket ─────────────────────────────────
+    260  function buildWrap(text) {
+    261    const rumor = { kind: KIND_DM_RUMOR, created_at: nowSec(), tags: [['p', replyTo], ['client', 'agentbox-nostr-gateway']], content: String(text).slice(0, MAX_BODY), pubkey: pub };
+../project/agentbox/services/nostr-pod-bridge/src/lib.rs @ c57d9c0508f4 lines 277-279:
+    277      let core = to_core_event(ev)?;
+    278      let unwrapped =
+    279          unwrap_gift(&core, &cfg.recipient_sk).map_err(|e| IngressError::Unwrap(e.to_string()))?;
+../project/agentbox/config/nostr-gateway/gateway.cjs @ c57d9c0508f4 lines 665-667:
+    665  
+    666  function handleWrap(ws, wrap) {
+    667    if (!wrap || wrap.kind !== KIND_GIFT_WRAP) return;
+../project/agentbox/config/hooks/nostr-live-mirror.cjs @ c57d9c0508f4 lines 210-215:
+    210  let _childCache;
+    211  function deriveChildKey() {
+    212    if (_childCache !== undefined) return _childCache;
+    213    if (String(process.env.AGENTBOX_MIRROR_CHILD || '').trim() === '0') { _childCache = null; return null; }
+    214    const hex = operatorKeyHex({ log });
+    215    if (!/^[0-9a-f]{64}$/i.test(hex)) { _childCache = null; return null; }
+../project/agentbox/config/hooks/nostr-live-mirror.cjs @ c57d9c0508f4 lines 490-492:
+    490      const rumor = {
+    491        kind: KIND_DM_RUMOR,
+    492        content: body,
+../project/agentbox/config/nostr-gateway/gateway.cjs @ c57d9c0508f4 lines 260-262:
+    260  function buildWrap(text) {
+    261    const rumor = { kind: KIND_DM_RUMOR, created_at: nowSec(), tags: [['p', replyTo], ['client', 'agentbox-nostr-gateway']], content: String(text).slice(0, MAX_BODY), pubkey: pub };
+    262    return tools.nip59.wrapEvent(rumor, sk, replyTo); // gateway → operator (your phone)
+../project/agentbox/services/nostr-pod-bridge/src/lib.rs @ c57d9c0508f4 lines 277-280:
+    277      let core = to_core_event(ev)?;
+    278      let unwrapped =
+    279          unwrap_gift(&core, &cfg.recipient_sk).map_err(|e| IngressError::Unwrap(e.to_string()))?;
+    280      let rumor = unwrapped.rumor;
+../project/agentbox/config/nostr-gateway/gateway.cjs @ c57d9c0508f4 lines 628-630:
+    628  function subscribe(ws, quiet) { ws.send(JSON.stringify(['REQ', SUB, { kinds: [KIND_GIFT_WRAP], '#p': [pub], since: nowSec() - WRAP_LOOKBACK }])); if (!quiet) log('REQ sent'); }
+    629  function authenticate(ws, challenge) {
+    630    try {
+../project/agentbox/config/nostr-gateway/gateway.cjs @ c57d9c0508f4 lines 147-151:
+    147  // the operator (your phone).
+    148  const OP_HEX = operatorKeyHex({ log: log });
+    149  if (!/^[0-9a-f]{64}$/i.test(OP_HEX)) { log('no operator key (AGENTBOX_PRIVKEY_HEX) — exiting'); process.exit(0); }
+    150  const rawSk = Uint8Array.from(Buffer.from(OP_HEX, 'hex'));
+    151  const adminPub = tools.getPublicKey(rawSk).toLowerCase();
+../project/agentbox/mcp/servers/nostr-bridge.js @ c57d9c0508f4 lines 54-56:
+     54  const kinds = Object.freeze({
+     55    AUTH:            27235,  // NIP-98 HTTP auth
+     56    CLIENT_AUTH:     22242,  // NIP-42 relay session auth (ephemeral)
+../project/agentbox/mcp/servers/nostr-bridge.js @ c57d9c0508f4 lines 56-58:
+     56    CLIENT_AUTH:     22242,  // NIP-42 relay session auth (ephemeral)
+     57    AGENT_STATE:     30078,  // parameterised replaceable — agent state events
+     58    BRIEF_REF:       30000,  // NIP-33 addressable — brief references
+../project/agentbox/mcp/servers/nostr-bridge.js @ c57d9c0508f4 lines 287-293:
+    287  
+    288      this._subscribeKinds = options.subscribeKinds ?? [
+    289        kinds.AUTH,
+    290        kinds.AGENT_STATE,
+    291        kinds.BRIEF_REF,
+    292        kinds.BEAD_REF,
+    293      ];
+../project/agentbox/mcp/servers/nostr-bridge.js @ c57d9c0508f4 lines 57-59:
+     57    AGENT_STATE:     30078,  // parameterised replaceable — agent state events
+     58    BRIEF_REF:       30000,  // NIP-33 addressable — brief references
+     59    BEAD_REF:        30001,  // NIP-33 addressable — bead/receipt references
+../project/agentbox/mcp/servers/nostr-bridge.js @ c57d9c0508f4 lines 58-60:
+     58    BRIEF_REF:       30000,  // NIP-33 addressable — brief references
+     59    BEAD_REF:        30001,  // NIP-33 addressable — bead/receipt references
+     60    // Agent Control Surface Protocol (kinds 31400-31405)
+../project/agentbox/agentbox.toml @ c57d9c0508f4 lines 278-280:
+    278  peer_relays = []
+    279  federated_kinds = [1, 1059, 30001, 30050, 30078, 30910, 31400, 31401, 31402, 31403, 31404, 31405, 38000, 38100, 38300, 38301, 38302, 38304]
+    280  allowed_remote_dids = []                 # did:nostr:<hex> of trusted peers
+======================================================================
+PANEL AB-31.7  (docs/diagrams/agentbox/31-sovereign-settlement.md)
+## AB-31.7 PROPOSED - key separation and the account binding
+
+```mermaid
+flowchart TB
+    KID["k_id, the sovereign identity key<br/>INGRESS-identity.md:506 - signs identity events and the binding.<br/>NEVER spends, NEVER seals a block"]
+    KID -->|"PROPOSED derive_subkey with a sidestr/spend domain; BUILT as an independent key minted beside k_id"| KSP["k_spend(chain)<br/>INGRESS-identity.md:507 - spends UTXOs on EXACTLY that chain<br/>built: a second secp256k1 key from an independent random seed, NEVER derived<br/>from k_id (sidestr-spend-key.js:7-12, ADR-2097-sidestr-rail-supersedes-lightning-first.md:101-102)"]
+    KID -->|"derive_subkey with a sidestr/sign domain"| KSG["k_sign(chain)<br/>INGRESS-identity.md:508 - federated instance operators only,<br/>seals blocks on EXACTLY that chain"]
+    KSP --> BIND["PROPOSED kind 38420 sidestr-account-binding (ADR-2105 moved it off<br/>38110, which sat inside the agent-response reservation)<br/>addressable, d is chain id plus did hex, content is the spend<br/>pubkey, signed by k_id, built in management-api/lib/sidestr-spend-key.js<br/>PROTOCOL-registry.md:174"]
+    BIND --> REG["PROPOSED: allocated from the agentbox band 38400 to 38499, the<br/>first hundred no record reserves, so NOTHING outside this repo<br/>moves for it - PROTOCOL-registry.md:92, PROTOCOL-registry.md:174"]
+    subgraph external["Sibling records, asserted by this repo about others"]
+        direction TB
+        E1["EXTERNAL: solid-pod-rs ADR-2008 - the rust-bitcoin port and the<br/>ledger becoming a view - sovereign-settlement-domain.md:8"]
+        E2["EXTERNAL: VisionFlow host ADR-2111 - the file payment store retired<br/>sovereign-settlement-domain.md:8"]
+        E3["EXTERNAL: nostr-rust-forum ADR-2012 - the D1 ledger becomes a view,<br/>derive_subkey as the domain-separation primitive<br/>sovereign-settlement-domain.md:8"]
+        E4["EXTERNAL: VisionFlow canon ADR-2012 - canon alignment<br/>sovereign-settlement-domain.md:8"]
+        E1 ~~~ E2 ~~~ E3 ~~~ E4
+    end
+    KSG --> external
+```
+
+**Invariant (proposed):** the identity key never spends and never seals, which is what keeps a compromised wallet from being a compromised identity (`../project/agentbox/docs/INGRESS-identity.md:506`).
+--- cited source lines at the declared revision
+../project/agentbox/docs/INGRESS-identity.md @ c57d9c0508f4 lines 505-507:
+    505  |---|---|---|---|
+    506  | `k_id` | the sovereign identity key (`services/nostr-pod-bridge/src/identity.rs:130-158`) | the identity binary | sign identity events, sign the 38420 binding. **Never spends, never seals a block.**
+    507  | `k_spend(chain)` | `derive_subkey(k_id, "sidestr/spend/" ‖ chain_id)` | the wallet path | spend UTXOs on exactly that chain |
+../project/agentbox/docs/INGRESS-identity.md @ c57d9c0508f4 lines 506-508:
+    506  | `k_id` | the sovereign identity key (`services/nostr-pod-bridge/src/identity.rs:130-158`) | the identity binary | sign identity events, sign the 38420 binding. **Never spends, never seals a block.**
+    507  | `k_spend(chain)` | `derive_subkey(k_id, "sidestr/spend/" ‖ chain_id)` | the wallet path | spend UTXOs on exactly that chain |
+    508  | `k_sign(chain)` | `derive_subkey(k_id, "sidestr/sign/" ‖ chain_id)` | federated instance operators only | seal blocks on exactly that chain |
+../project/agentbox/management-api/lib/sidestr-spend-key.js @ c57d9c0508f4 lines 6-13:
+      6   *
+      7   * `k_id` is the agent's did:nostr key (agent-identity.js). It never spends.
+      8   * `k_spend` is a second secp256k1 key, minted at spawn beside `k_id` from an
+      9   * independent random seed (nostr-tools `generateSecretKey`), never derived
+     10   * from `k_id`: a leaked spend key reveals nothing about the identity, and an
+     11   * identity key reachable by every supervised program cannot reach the coins.
+     12   * It is stored the way `k_id` is stored: 64 hex in a 0600 file in the identity
+     13   * directory, one per chain:
+../project/agentbox/docs/adr/ADR-2097-sidestr-rail-supersedes-lightning-first.md @ c57d9c0508f4 lines 100-103:
+    100    URN.
+    101  - `k_spend` minted at spawn beside `k_id` from an independent key, never derived from it. A
+    102    kind-38420 binding signed by `k_id` ties them, with a known-answer test.
+    103  - `GET /v1/chain/payments`, and `GET /v1/chain/sessions`, which returns `[]` until there are
+../project/agentbox/docs/INGRESS-identity.md @ c57d9c0508f4 lines 507-509:
+    507  | `k_spend(chain)` | `derive_subkey(k_id, "sidestr/spend/" ‖ chain_id)` | the wallet path | spend UTXOs on exactly that chain |
+    508  | `k_sign(chain)` | `derive_subkey(k_id, "sidestr/sign/" ‖ chain_id)` | federated instance operators only | seal blocks on exactly that chain |
+    509  
+../project/agentbox/docs/PROTOCOL-registry.md @ c57d9c0508f4 lines 173-175:
+    173  | `33502` | external (sidestr) | sub | **dual-schema**: peg record *or* desk pledge. The decoder returns `PegRecord \| Pledge \| Ambiguous` and **never guesses** |
+    174  | `38420` | **agentbox** | pub | `sidestr-account-binding`: addressable, `d` = `<chain id>:<did hex>`, content = the spend pubkey (an independent key minted beside `k_id`, never derived from it: ADR-2
+    175  | `38421`-`38425` | **agentbox** | pub | settlement domain events: `38421` PegOutDefaulted, `38422` ChildChainOpened, `38423` ChildChainClosing, `38424` ChainTombstoned, `38425` SettlementRecorded (DD
+../project/agentbox/docs/PROTOCOL-registry.md @ c57d9c0508f4 lines 91-93:
+     91  | `38416`-`38419` | free | — |
+     92  | `38420`-`38425` | **allocated (proposed)**, sidestr account binding and settlement domain events | ADR-2098, ADR-2101, moved here by ADR-2105 |
+     93  | `38426`-`38499` | free | — |
+../project/agentbox/docs/proposals/sovereign-settlement-domain.md @ c57d9c0508f4 lines 7-9:
+      7  **Cross-references**: [PRD-024](../proposals/sovereign-settlement.md) (the product case this domain models). Decisions: [ADR-2096](../adr/) (sidestr sidechains are the sole value instrument: licensing
+      8  **Sibling records in other repos**: solid-pod-rs ADR-2008 (the rust-bitcoin port and the ledger becoming a view), VisionFlow host ADR-2111 (`FsPaymentStore` retired, the ADR-124/128 re-sequencing reco
+      9  **Amends or supersedes**: [ADR-032](../archive/adr/ADR-032-402-scheme-grammar.md) (revision plus fixtures for the `sidestr` scheme), PRD-015 C10 (Lightning-first, dropped) with C11 (no native EVM rail
+======================================================================
+PANEL AB-02.3  (docs/diagrams/agentbox/02-boot-sequence-and-readiness.md)
+## AB-02.3 boot phases 7-8 — ruflo plugins, manifest projection, runtime-env publish
+```mermaid
+sequenceDiagram
+    autonumber
+    participant B as [program:bootstrap] Stage B<br/>entrypoint-unified.sh:1461
+    participant AM as agentbox-manifest<br/>entrypoint-unified.sh:2267
+    participant MCP as .mcp.json<br/>entrypoint-unified.sh:1554
+    participant FS as rootfs/tmpfs
+    participant RT as runtime-env.sh<br/>entrypoint-unified.sh:4005
+    participant TS as trust-seed.cjs<br/>run once from entrypoint-unified.sh:1812
+
+    B-->>B: echo "[7/8] Bootstrapping ruflo plugins..." (:1461)
+    B->>FS: mkdir ~/.claude-flow/plugins, /var/cache/ruflo-plugins (:1463-1467)
+    Note over B: the claude-flow config template that carried the Postgres password is gone<br/>(entrypoint-unified.sh:1469-1472), nothing writes ~/.claude-flow/config.json's memory block now
+    Note over B: PRD-018/ADR-036 D6 — read RuVector memory gate flags<br/>via _ab_toml_bool memory_learning.* (:1492-1504), fail-open all-off
+    B->>MCP: ensure .mcp.json points at ruvector-mcp.cjs with RUVECTOR_PG_HOST/PORT/DATABASE/USER<br/>and RUVECTOR_PG_PASSWORD_FILE, never a password, idempotent (:1522-1587)
+    B->>MCP: inject PRD-018 RuVector memory gate env (:1589-1664)
+    opt browser-gpu sidecar reachable (entrypoint-unified.sh:2242-2243)
+        B->>AM: agentbox-manifest mcp-set-server --name browser-gpu (:2245)
+    end
+    B->>AM: agentbox-manifest mcp-reconcile-aqe --provider "$_MR_PROVIDER_ARG" (:2267)
+    opt _MR_ENABLED=1 — ADR-041 model routing (entrypoint-unified.sh:2277)
+        B->>AM: run_as_devuser agentbox-manifest model-routing-project --manifest AGENTBOX_CONFIG --workspace WORKSPACE (:2277-2281)
+        Note right of AM: projects [model_routing.routes] into every<br/>.agentic-qe/llm-config.json under the workspace,<br/>a runtime file the repository does not track
+    end
+    Note over B: ADR-069 — interaction_plane.proxy projected every boot (:2332-2343)
+    opt AGENTBOX_CONFIG exists and agentbox-manifest present (entrypoint-unified.sh:2338)
+        B->>AM: agentbox-manifest nip98-config --manifest AGENTBOX_CONFIG --out .agentbox/nip98-proxy-config.json (:2339)
+        B->>FS: chown 1000:1000, chmod 600 nip98-proxy-config.json (:2341-2342)
+    end
+    Note over B: hook registration reconciled into root settings.json every boot, each fail-open (|| true)
+    B->>FS: decline-recorder on Stop, SubagentStop and UserPromptSubmit when claude_code.floor is on, default on (:2095-2154, ADR-2144)
+    B->>FS: voice-paned record on Stop and Notification when voicelink.enabled and record_events (:2156-2198, ADR-2151)
+    B->>FS: session-state.cjs hook on UserPromptSubmit, Stop and Notification into root settings.json when interaction_plane.enabled, pruned when off (:1944-1956, ADR-2153)
+    B->>FS: Codex config.toml notify line set to session-state.cjs codex, keeping --voice when voicelink records, restored when off (:1921-1940)
+    B->>FS: activity-sink hooks when [integrations.activity_sink] has a usable url (:2872-2958, ADR-2146)
+    B->>AM: agentbox-manifest instructions-project, with --managed-out /etc/claude-code/CLAUDE.md when the floor is on, --no-managed otherwise (:3013-3015, ADR-2144)
+    Note over B: ADR-2139 vendor slot — _ab_toml_bool system_one enabled (entrypoint-unified.sh:2675) selects system-one-project (:2678-2688), else sso-project (:2705-2707)
+    opt [system_one].enabled and the projection is non-empty (entrypoint-unified.sh:2677, :2680)
+        B->>AM: agentbox-manifest system-one-project --format json, then shell and plugin-config (:2678, :2686-2688)
+        B->>FS: atomic tmp-and-mv /run/agentbox/system-one.json, the proxy's only config (:2683-2684)
+    end
+    Note over B: unusable slot writes a disabled stub and falls back to sso-project, so the seal's promised file always exists (entrypoint-unified.sh:2690-2698)
+    Note over B: RESOLVED — the ontology-bridge MCP registration that used to sit<br/>here (gated ENABLE_ONTOLOGY) is GONE (ADR-2107/2108): agents reach the<br/>corpus only through the vault CLI and the Loom over HTTP (:2349-2352)
+    opt AGENTBOX_TRUST_SEED not 0 and node present (entrypoint-unified.sh:1812)
+        B->>TS: node trust-seed.cjs marks workspace root and worktrees trusted, once (:1812-1814)
+        Note right of TS: DOC-DRIFT resolved — deliberately NOT a SessionStart hook any<br/>more (it walked ~1,170 paths per session start, avg 3.2s, and raced<br/>Claude Code's own ~/.claude.json writes) — hook shim reconcile below prunes<br/>any stale registration
+    end
+    Note over B: after the hub projection (see AB-02.17) the claude-flow entry is mirrored into user scope (entrypoint-unified.sh:3408-3416)
+    B->>AM: agentbox-manifest mcp-mirror-server --from .mcp.json --to ~/.claude/.claude.json --name claude-flow (:3414-3415, mcp.rs:143)
+    B->>FS: RuVector credential scrub - every boot removes any RUVECTOR_PG_CONNINFO or memory.password an earlier boot<br/>left in .mcp.json, ~/.claude.json, Codex config.toml, ~/.claude-flow/config.json and their backups,<br/>atomic rewrite, fail-open (entrypoint-unified.sh:3829-3987)
+    B-->>B: echo "[8/8] Publishing environment hints..." (:3992)
+    B->>RT: cat RUNTIME_ENV_FILE=/run/agentbox/runtime-env.sh heredoc (:4005-4090)
+    Note right of RT: role_isolation on adds DOCKER_HOST=unix:///run/docker-ro.sock,<br/>the GET-only read proxy, to devuser shells (entrypoint-unified.sh:4000-4003)
+    Note right of RT: exports WORKSPACE, RUVECTOR_PG_HOST/PORT/DATABASE/USER/PASSWORD_FILE (:4010-4014),<br/>VAULT_ROOT/PAGES/FORMAT/TUI/WORKING_ROOT/TRANSCRIPTS, AGENTBOX_INTERACTION_PLANE_*,<br/>CUDA_PATH and friends are appended after the heredoc (:4136-4146) (see AB-02.11)
+    B->>FS: _ab_quarantine_stale_cargo_bins, ELF bins in WORKSPACE/.cargo/bin whose<br/>/nix/store loader was collected move to .stale-loader/, numbered, never deleted (:4099-4117)
+    Note right of FS: ADR-2029 D4 follow-up (2026-10-01) - .cargo/bin outlives rebuilds, so a dead loader<br/>once shadowed baked rune and agentbox-hook. Custody W0 now APPENDS it, devuser shells only,<br/>never root (entrypoint-unified.sh:4083-4085). Loader path read from bytes, nothing executed (:4105-4107)
+    B->>FS: ln -sf RUNTIME_ENV_FILE /etc/profile.d/agentbox-runtime.sh best-effort (:4163)
+    B->>FS: cp RUNTIME_ENV_FILE to durable WORKSPACE/.agentbox-runtime-env.sh (:4166)
+    B->>FS: write fish conf.d/agentbox-runtime.fish sourcing the env file (:4172-4191)
+```
+--- cited source lines at the declared revision
+../project/agentbox/config/entrypoint-unified.sh @ c57d9c0508f4 lines 1460-1462:
+   1460  # Memory backend config propagated from [plugins.memory] to config.json.
+   1461  echo "[7/8] Bootstrapping ruflo plugins..."
+   1462  
+../project/agentbox/config/entrypoint-unified.sh @ c57d9c0508f4 lines 2266-2268:
+   2266    [ "$_MR_ENABLED" = "1" ] && _MR_PROVIDER_ARG="$_MR_AQE_PROVIDER"
+   2267    agentbox-manifest mcp-reconcile-aqe --file "$_MCP_JSON" --provider "$_MR_PROVIDER_ARG" \
+   2268      2>/dev/null && echo "  [mcp] Reconciled agentic-qe → aqe mcp (routing env: ${_MR_ENABLED})" || true
+../project/agentbox/config/entrypoint-unified.sh @ c57d9c0508f4 lines 1553-1555:
+   1553    if [ ! -f "$_MCP_JSON" ] || ! grep -q "ruvector-mcp" "$_MCP_JSON" 2>/dev/null; then
+   1554      cat > "$_MCP_JSON" <<MCPEOF
+   1555  {
+../project/agentbox/config/entrypoint-unified.sh @ c57d9c0508f4 lines 4004-4006:
+   4004  fi
+   4005  cat > "$RUNTIME_ENV_FILE" <<EOF
+   4006  export WORKSPACE="$WORKSPACE"
+../project/agentbox/config/entrypoint-unified.sh @ c57d9c0508f4 lines 1811-1813:
+   1811  # Idempotent, fail-open. Off: AGENTBOX_TRUST_SEED=0.
+   1812  _TRUST_HOOK="/opt/agentbox/config/hooks/trust-seed.cjs"
+   1813  if [ "${AGENTBOX_TRUST_SEED:-1}" != "0" ] && [ -f "$_TRUST_HOOK" ] && command -v node >/dev/null 2>&1; then
+../project/agentbox/config/entrypoint-unified.sh @ c57d9c0508f4 lines 1468-1473:
+   1468  
+   1469  # The claude-flow plugin config template (Q26/Q6) carried the Postgres password;
+   1470  # nothing reads ~/.claude-flow/config.json's memory block (the governed
+   1471  # ruvector-mcp.cjs replaced `claude-flow mcp start`), so the template is gone and
+   1472  # the credential scrub below removes any password a previous boot wrote there.
+   1473  
+../project/agentbox/config/entrypoint-unified.sh @ c57d9c0508f4 lines 2241-2244:
+   2241  _BROWSER_MCP_URL="http://browsercontainer:8931/sse"
+   2242  if [ -f "$_MCP_JSON" ] && ! grep -q "browser-gpu" "$_MCP_JSON" 2>/dev/null; then
+   2243    if curl -fsS --max-time 3 "http://browsercontainer:8931/health" >/dev/null 2>&1; then
+   2244      # Patch the browser-gpu SSE server into the existing .mcp.json.
+../project/agentbox/config/entrypoint-unified.sh @ c57d9c0508f4 lines 2276-2278:
+   2276    # written files stay workspace-owned.
+   2277    if [ "$_MR_ENABLED" = "1" ]; then
+   2278      run_as_devuser env WORKSPACE="$WORKSPACE" \
+../project/agentbox/config/entrypoint-unified.sh @ c57d9c0508f4 lines 2337-2339:
+   2337  _NIP98_CFG="/home/devuser/workspace/.agentbox/nip98-proxy-config.json"
+   2338  if [ -f "$AGENTBOX_CONFIG" ] && command -v agentbox-manifest >/dev/null 2>&1; then
+   2339    agentbox-manifest nip98-config --manifest "$AGENTBOX_CONFIG" --out "$_NIP98_CFG" 2>&1 \
+../project/agentbox/config/entrypoint-unified.sh @ c57d9c0508f4 lines 2674-2676:
+   2674  # consumers keep the cloud path.
+   2675  _SO_ON="$(_ab_toml_bool system_one enabled)"
+   2676  _SO_PROJECTION="${AGENTBOX_RUN_DIR:-/run/agentbox}/system-one.json"
+../project/agentbox/config/entrypoint-unified.sh @ c57d9c0508f4 lines 2676-2678:
+   2676  _SO_PROJECTION="${AGENTBOX_RUN_DIR:-/run/agentbox}/system-one.json"
+   2677  if [ "$_SO_ON" = "1" ] && command -v agentbox-manifest >/dev/null 2>&1; then
+   2678    _SO_JSON="$(agentbox-manifest system-one-project \
+../project/agentbox/config/entrypoint-unified.sh @ c57d9c0508f4 lines 2689-2699:
+   2689        --manifest "${AGENTBOX_CONFIG:-/etc/agentbox.toml}" --format plugin-config 2>/dev/null || true)"
+   2690    else
+   2691      # The seal promises this file whenever the gate is on (seal-bootstrap.sh), so
+   2692      # an unusable slot must still produce it: a disabled stub, which the proxy
+   2693      # answers with one line and exit 0, while the consumers fall back below.
+   2694      mkdir -p "$(dirname "$_SO_PROJECTION")"
+   2695      printf '{"version":1,"enabled":false,"reason":"[system_one] is enabled but unusable; see the boot log"}\n' > "$_SO_PROJECTION.tmp" \
+   2696        && mv -f "$_SO_PROJECTION.tmp" "$_SO_PROJECTION"
+   2697      chmod 0644 "$_SO_PROJECTION" 2>/dev/null || true
+   2698      echo "  [system-one] [system_one].enabled but the slot is unusable (see stderr above) — disabled stub written, consumers fall back to sso-project"
+   2699      _SSO_EXPORTS="$(agentbox-manifest sso-project \
+../project/agentbox/config/entrypoint-unified.sh @ c57d9c0508f4 lines 3407-3417:
+   3407  
+   3408  # ── RuVector memory is always on: mirror claude-flow to user scope ──
+   3409  # .mcp.json is only found by walking up from the cwd, so a session started
+   3410  # outside $WORKSPACE (e.g. in $HOME) had no memory tools. The user-level
+   3411  # ~/.claude/.claude.json loads from every cwd. Runs after the hub projection so
+   3412  # it copies the FINAL entry (gate env included); idempotent, fail-open.
+   3413  if [ -f "$_MCP_JSON" ] && command -v agentbox-manifest >/dev/null 2>&1; then
+   3414    agentbox-manifest mcp-mirror-server --from "$_MCP_JSON" --to "/home/devuser/.claude/.claude.json" \
+   3415      --name claude-flow 2>&1 | sed 's/^/  /' || true
+   3416    chown 1000:1000 /home/devuser/.claude/.claude.json 2>/dev/null || true
+   3417  fi
+../project/agentbox/services/agentbox-manifest/src/mcp.rs @ c57d9c0508f4 lines 142-144:
+    142  /// the destination is made owner-only because the entry carries the conninfo.
+    143  pub fn mirror_server(from: &Path, to: &Path, name: &str) -> Result<(), String> {
+    144      let src = load_strict(from)?;
+../project/agentbox/config/entrypoint-unified.sh @ c57d9c0508f4 lines 3828-3988:
+   3828  
+   3829  # ── RuVector Postgres credential scrub (every boot, idempotent, fail-open) ──────
+   3830  # Files that outlive the image (the workspace .mcp.json, ~/.codex/config.toml,
+   3831  # ~/.claude-flow/config.json) were written by earlier boots with a conninfo that
+   3832  # carried the password, and the first-write guards above never rewrite them. This
+   3833  # pass removes every RUVECTOR_PG_CONNINFO / memory.password it finds and projects
+   3834  # the public parts plus the password FILE PATH in its place, for each MCP server
+   3835  # that held a conninfo. Same single credential source as everything else: the
+   3836  # 0600 file written by _ab_pg_credential_prepare.
+   3837  if command -v node >/dev/null 2>&1; then
+   3838    PGS_MCP_JSON="$_MCP_JSON" PGS_CODEX="${CODEX_HOME:-/home/devuser/.codex}/config.toml" \
+   3839    PGS_CF="${HOME}/.claude-flow/config.json" PGS_FILE="${RUVECTOR_PG_PASSWORD_FILE:-}" \
+   3840    PGS_CLAUDE_JSON="${CLAUDE_CONFIG_DIR:-/home/devuser/.claude}/.claude.json:/home/devuser/.claude.json" \
+   3841    PGS_SNAP_DIRS="${CLAUDE_CONFIG_DIR:-/home/devuser/.claude}:${CLAUDE_CONFIG_DIR:-/home/devuser/.claude}/backups:${HOME}:${WORKSPACE:-/home/devuser/workspace}:${WORKSPACE:-/home/devuser/workspace}/.cl
+   3842    PGS_ANY_DIRS="${CLAUDE_CONFIG_DIR:-/home/devuser/.claude}:${CLAUDE_CONFIG_DIR:-/home/devuser/.claude}/backups" \
+   3843    node <<'PGSCRUBJS' || true
+   3844  // PGSCRUB_MARKER
+   3845  const fs = require('fs');
+   3846  const path = require('path');
+   3847  const e = process.env;
+   3848  const pwFile = e.PGS_FILE || '/run/secrets/ruvector-pg/password';
+   3849  const parts = {
+   3850    RUVECTOR_PG_HOST: e.RUVECTOR_PG_HOST || 'ruvector-postgres',
+   3851    RUVECTOR_PG_PORT: e.RUVECTOR_PG_PORT || '5432',
+   3852    RUVECTOR_PG_DATABASE: e.RUVECTOR_PG_DATABASE || 'ruvector',
+   3853    RUVECTOR_PG_USER: e.RUVECTOR_PG_USER || 'ruvector',
+   3854    RUVECTOR_PG_PASSWORD_FILE: pwFile,
+   3855  };
+   3856  const MAX_BYTES = 32 * 1024 * 1024;
+   3857  let scrubbed = 0;
+   3858  let failed = 0;
+   3859  
+   3860  // Atomic rewrite: a sibling temp file (0600, same directory), fsync, rename over the
+   3861  // original. A kill before the rename leaves the original untouched; the temp file only
+   3862  // ever holds the already-scrubbed text, so it never carries the password.
+   3863  function atomicWrite(f, data, mode, uid, gid) {
+   3864    const tmp = path.join(path.dirname(f), `.${path.basename(f)}.pgscrub.${process.pid}`);
+   3865    let fd = null;
+   3866    try {
+   3867      fs.rmSync(tmp, { force: true });
+   3868      fd = fs.openSync(tmp, 'wx', 0o600);
+   3869      fs.writeSync(fd, data);
+   3870      fs.fsyncSync(fd);
+   3871      // The rename replaces the inode, so carry the original owner across (this runs as root at boot).
+   3872      if (uid !== undefined) { try { fs.fchownSync(fd, uid, gid); } catch { /* not permitted: keep the writer's owner */ } }
+   3873      fs.fchmodSync(fd, mode);
+   3874      fs.closeSync(fd); fd = null;
+   3875      if (e.PGS_TEST_FAIL_BEFORE_RENAME === '1') throw new Error('injected failure before rename');
+   3876      fs.renameSync(tmp, f);
+   3877      try { const dfd = fs.openSync(path.dirname(f), 'r'); try { fs.fsyncSync(dfd); } finally { fs.closeSync(dfd); } } catch { /* best effort */ }
+   3878    } catch (err) {
+   3879      if (fd !== null) { try { fs.closeSync(fd); } catch { /* ignore */ } }
+   3880      try { fs.rmSync(tmp, { force: true }); } catch { /* ignore */ }
+   3881      throw err;
+   3882    }
+   3883  }
+   3884  // Read a regular (non-symlink) file of sane size; null if it is anything else.
+   3885  function readRegular(f) {
+   3886    try {
+   3887      const st = fs.lstatSync(f);
+   3888      if (!st.isFile() || st.size > MAX_BYTES) return null;
+   3889      const text = fs.readFileSync(f, 'utf8');
+   3890      return text.includes('\u0000') ? null : { text, mode: st.mode & 0o777, uid: st.uid, gid: st.gid };
+   3891    } catch { return null; }
+   3892  }
+   3893  // Text-level removal of the RuVector password from one string (hook command, URL, conninfo, raw
+   3894  // file text). Scoped to RuVector's own parts so another database's credentials in the same file
+   3895  // (an operator's unrelated MCP server) are left alone.
+   3896  const esc = (v) => String(v).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+   3897  const CONN_ASSIGN = /RUVECTOR_PG_CONNINFO=(?:"[^"]*"|'[^']*'|[^\s"';&|]+)/g;
+   3898  const URL_PW = /(postgres(?:ql)?:\/\/)([^\s:\/@"']*):([^\s@"']+)@([^\s\/:?"']+)(:\d+)?(\/[^\s?"']*)?/gi;
+   3899  const KV_PW = /[ \t]*\bpassword=(?:'[^']*'|"[^"]*"|[^\s"']+)/gi;
+   3900  const RV_KV = new RegExp(`\\b(?:host=${esc(parts.RUVECTOR_PG_HOST)}|user=${esc(parts.RUVECTOR_PG_USER)}|dbname=${esc(parts.RUVECTOR_PG_DATABASE)})(?![\\w.-])`);
+   3901  function cleanText(s) {
+   3902    let o = s.replace(CONN_ASSIGN, `RUVECTOR_PG_PASSWORD_FILE=${pwFile}`);
+   3903    o = o.replace(URL_PW, (m, pre, user, _pw, host, port, db) => {
+   3904      const dbn = String(db || '').replace(/^\//, '');
+   3905      const ours = host === parts.RUVECTOR_PG_HOST || user === parts.RUVECTOR_PG_USER || dbn === parts.RUVECTOR_PG_DATABASE;
+   3906      return ours ? `${pre}${user}@${host}${port || ''}${db || ''}` : m;
+   3907    });
+   3908    if (RV_KV.test(o)) o = o.replace(KV_PW, '');
+   3909    return o;
+   3910  }
+   3911  // 1. A parsed JSON document (.mcp.json, Claude Code's per-user state and its backups, settings
+   3912  //    snapshots): every mcpServers entry whose env holds a conninfo, memory.password, and any string
+   3913  //    value (hook commands) carrying a conninfo or credentialled URL. Returns the entries changed.
+   3914  function scrubDoc(node, top, isCf) {
+   3915    let n = 0;
+   3916    if (!node || typeof node !== 'object') return 0;
+   3917    if (top && isCf && node.memory && typeof node.memory === 'object' && Object.prototype.hasOwnProperty.call(node.memory, 'password')) {
+   3918      delete node.memory.password; n++;
+   3919    }
+   3920    for (const [k, v] of Object.entries(node)) {
+   3921      if (k === 'mcpServers' && v && typeof v === 'object') {
+   3922        for (const srv of Object.values(v)) {
+   3923          if (srv && srv.env && Object.prototype.hasOwnProperty.call(srv.env, 'RUVECTOR_PG_CONNINFO')) {
+   3924            delete srv.env.RUVECTOR_PG_CONNINFO;
+   3925            Object.assign(srv.env, parts);
+   3926            n++;
+   3927          }
+   3928        }
+   3929      }
+   3930      if (typeof v === 'string') {
+   3931        const c = cleanText(v);
+   3932        if (c !== v) { node[k] = c; n++; }
+   3933      } else {
+   3934        n += scrubDoc(v, false, false);
+   3935      }
+   3936    }
+   3937    return n;
+   3938  }
+   3939  function scrubFile(f, forceMode) {
+   3940    const r = readRegular(f);
+   3941    if (r === null) return;
+   3942    const mode = forceMode === undefined ? r.mode : forceMode;
+   3943    let out = null;
+   3944    let n = 0;
+   3945    try {
+   3946      const j = JSON.parse(r.text);
+   3947      n = scrubDoc(j, true, f === e.PGS_CF || path.basename(path.dirname(f)) === '.claude-flow');
+   3948      if (n) out = JSON.stringify(j, null, 2);
+   3949    } catch {
+   3950      // TOML (Codex) or unparsable text: the conninfo line becomes the parts + the file path
+   3951      let t = r.text;
+   3952      if (/^RUVECTOR_PG_CONNINFO\s*=/m.test(t)) {
+   3953        const lines = Object.entries(parts).map(([k, v]) => `${k} = ${JSON.stringify(v)}`).join('\n');
+   3954        t = t.replace(/^RUVECTOR_PG_CONNINFO\s*=.*$/m, lines);
+   3955      }
+   3956      t = cleanText(t);
+   3957      if (t !== r.text) { out = t; n = 1; }
+   3958    }
+   3959    if (out === null) return;
+   3960    try { atomicWrite(f, out, mode, r.uid, r.gid); scrubbed += n; } catch { failed++; }
+   3961  }
+   3962  // Live targets
+   3963  const live = [e.PGS_MCP_JSON, ...String(e.PGS_CLAUDE_JSON || '').split(':'), e.PGS_CODEX, e.PGS_CF].filter(Boolean);
+   3964  for (const f of live) scrubFile(f, f === e.PGS_CODEX || f === e.PGS_CF ? undefined : 0o600);
+   3965  // 2. Snapshots of the projected config: Claude Code's rolling .claude.json backups, and the
+   3966  //    operator/reconcile copies (*.pre-*, *.bak*). Content scrubbed, files kept.
+   3967  const SNAP_SUFFIX = /\.(?:pre-[^/]+|bak[^/]*|backup[^/]*)$/;
+   3968  const KNOWN_BASE = /^(?:settings(?:\.local)?\.json|\.claude\.json|\.mcp\.json|config\.(?:json|toml)|claude_desktop_config\.json)\./;
+   3969  const anyDirs = new Set(String(e.PGS_ANY_DIRS || '').split(':').filter(Boolean));
+   3970  const dirs = new Set([...String(e.PGS_SNAP_DIRS || '').split(':').filter(Boolean), ...live.map((f) => path.dirname(f))]);
+   3971  const liveSet = new Set(live);
+   3972  for (const d of dirs) {
+   3973    let names = [];
+   3974    try { names = fs.readdirSync(d); } catch { continue; }
+   3975    for (const nm of names.sort()) {
+   3976      if (nm.includes('.pgscrub.') || !SNAP_SUFFIX.test(nm)) continue;
+   3977      if (!(anyDirs.has(d) || KNOWN_BASE.test(nm))) continue;
+   3978      const f = path.join(d, nm);
+   3979      if (!liveSet.has(f)) scrubFile(f);
+   3980    }
+   3981  }
+   3982  console.log(scrubbed ? `  [security] removed a stored Postgres password/conninfo from ${scrubbed} config entr${scrubbed === 1 ? 'y' : 'ies'}` : '  [security] no stored Postgres password/conninfo found
+   3983  if (failed) console.log(`  [security] WARNING: ${failed} file(s) could not be rewritten; rotate the RuVector password`);
+   3984  PGSCRUBJS
+   3985    chown 1000:1000 "$_MCP_JSON" "${CODEX_HOME:-/home/devuser/.codex}/config.toml" "${HOME}/.claude-flow/config.json" \
+   3986      "${CLAUDE_CONFIG_DIR:-/home/devuser/.claude}/.claude.json" /home/devuser/.claude.json 2>/dev/null || true
+   3987  fi
+   3988  
+../project/agentbox/config/entrypoint-unified.sh @ c57d9c0508f4 lines 3999-4004:
+   3999  # Custody W0: under [security].role_isolation devuser's docker CLI talks to the
+   4000  # GET-only proxy (ps/logs/inspect); exec/run move to the host shell (Q1).
+   4001  _ROLE_ISO_EXPORTS=""
+   4002  if [ "${AGENTBOX_ROLE_ISOLATION:-0}" = 1 ]; then
+   4003    _ROLE_ISO_EXPORTS='export DOCKER_HOST="unix:///run/docker-ro.sock"'
+   4004  fi
+../project/agentbox/config/entrypoint-unified.sh @ c57d9c0508f4 lines 4082-4086:
+   4082  # ADR-2029 D4: cargo-installed binaries (cargo-audit, cargo-deny ...). Custody W0:
+   4083  # devuser shells only, and APPENDED, so a planted or stale workspace binary can
+   4084  # never shadow an image tool. A root shell sourcing this file is left alone.
+   4085  if [ "\$(id -u)" != 0 ] && [ -d "/home/devuser/workspace/.cargo/bin" ]; then
+   4086    case ":\$PATH:" in *":/home/devuser/workspace/.cargo/bin:"*) : ;;
+======================================================================
+PANEL AB-36.3  (docs/diagrams/agentbox/36-role-isolation-and-identity-port.md)
+## AB-36.3 /run/secrets: its own root mount, one sealed directory per role
+
+```mermaid
+flowchart TB
+    MNT["/run/secrets tmpfs mode=711 uid=0 gid=0 noexec nosuid nodev<br/>docker-compose.yml:111, flake.nix:3723<br/>its OWN mount: devuser owns /run but cannot rename a mount point"]
+    MNT --> MODE{"[security].role_isolation"}
+    MODE -->|"off"| OFF["chown 1000:1000, chmod 0700 as before (entrypoint-unified.sh:359)<br/>devuser's /run/secrets/nostr.key is written as today"]
+    MODE -->|"on"| PREP["ab_secrets_root_prepare: root 0711 (role-custody.sh:89)<br/>not a mount point: ROLE-ISOLATION-DEGRADED secrets-mount (role-custody.sh:99)"]
+    PREP --> CAP["_ab_role_env_capture: each ROLE variable to /run/secrets/role/NAME 0400,<br/>then unset from PID 1 (entrypoint-unified.sh:460, list at entrypoint-unified.sh:382)"]
+    CAP --> DEL["ab_role_secrets_deliver runs the plan (entrypoint-unified.sh:1284, role-custody.sh:218)"]
+    subgraph PLAN["plan rows written by isolate"]
+        P1["root (role_accounts.rs:1034)"]
+        P2["role: dir 0500 plus home 0700 (role_accounts.rs:1036)"]
+        P3["env: write PID 1's VAR, 0400, unset (role_accounts.rs:1039)"]
+        P4["file: copy an at-rest source, 0400 (role_accounts.rs:1041)"]
+        P5["sockdir ab-identity-port 0750, devuser-owned ab-sessions skipped (role_accounts.rs:1048-1050)"]
+        P6["dir: receipts dir outside the mount (role_accounts.rs:1057)"]
+        P1 --> P2 --> P3 --> P4 --> P5 --> P6
+    end
+    DEL --> PLAN
+    PLAN --> SEAL["seal each role dir last: 0500 owned by the role (role-custody.sh:351-353)"]
+    SEAL --> SCRUB["_ab_role_env_scrub: any ROLE variable still present is a LEAK, unset (entrypoint-unified.sh:1295)"]
+    SCRUB --> X["exec supervisord (entrypoint-unified.sh:1296)"]
+    MNT --> PG["BOTH modes, outside the role plan: _ab_pg_credential_prepare makes a devuser-owned<br/>ruvector-pg/ 0700 with the RuVector password 0600 inside this mount<br/>(entrypoint-unified.sh:473-475, entrypoint-unified.sh:486-488, entrypoint-unified.sh:507)<br/>OPEN: the rehearsal was not re-run with it present<br/>(ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:772)"]
+```
+
+**What it shows.** Under the flag, Stage A turns every role secret into a 0400 file in a 0500 directory owned by its role, inside a mount only root can write. The variables it came from leave PID 1's environment before supervisord starts, so no child inherits them. With the flag off, the same mount is handed to devuser as before. **Why it is this way.** `/run` is a tmpfs owned by uid 1000, so devuser can rename anything directly under it, root's entries included. Only a separate mount point is safe (ADR-2122's correction, `ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:357-364`). Delivery runs before supervisord, so no devuser process exists yet to race it, and it fails open with a counted, grep-able marker, leaving a role program with no secret to fail closed under supervisord (`config/lib/role-custody.sh:11-14`).
+
+**Invariant:** under role_isolation, the runtime copy of each role secret is readable only by its role. The directory is sealed `0500` to the role (`config/lib/role-custody.sh:353`) inside a root `0711` mount (`docker-compose.yml:111`).
+
+**Invariant (role_isolation vs the at-rest volume):** the flag confines the at-rest copies as well as the runtime ones. Under it the boot skips the devuser chown of the `agentbox-secrets` volume root (`config/entrypoint-unified.sh:567`) and calls `ab_custody_migrate` on the baked plan (`config/entrypoint-unified.sh:742`). The plan's `atrest` rows are every resolved file source plus each role's `at_rest` entries, and its `atrestdir` rows the table's `at_rest_dirs` (`role_accounts.rs:1066-1083`, `config/role-accounts.json:146-149`). `ab_custody_migrate` (`config/lib/role-custody.sh:447`) copies a missing canonical copy once from its legacy twin, hands every copy to its role at 0400 (`config/lib/role-custody.sh:556`) and each volume dir to root (`config/lib/role-custody.sh:567`); with the flag off `ab_custody_revert` (`config/lib/role-custody.sh:586`) hands them back (`config/entrypoint-unified.sh:744`). The faucets' sources are now the volume copies, the workspace files their legacy twins (`config/role-accounts.json:78`). Those twins are never deleted and stay devuser-readable by design until a manual purge (`ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:241-244`).
+--- cited source lines at the declared revision
+../project/agentbox/docker-compose.yml @ c57d9c0508f4 lines 110-112:
+    110        - /run:mode=755,size=256M,uid=1000,gid=1000
+    111        - /run/secrets:mode=711,size=8M,uid=0,gid=0,noexec,nosuid,nodev
+    112        - /var/run:mode=755,size=16M,uid=1000,gid=1000
+../project/agentbox/flake.nix @ c57d9c0508f4 lines 3722-3724:
+   3722            # devuser 0700 exactly as before.
+   3723            "/run/secrets:mode=711,size=8M,uid=0,gid=0,noexec,nosuid,nodev"
+   3724            "/var/run:mode=755,size=16M,uid=1000,gid=1000"
+../project/agentbox/config/entrypoint-unified.sh @ c57d9c0508f4 lines 358-360:
+    358  # supervisord starts (ab_role_secrets_deliver, just before the exec).
+    359  if [ "$AGENTBOX_ROLE_ISOLATION" != 1 ]; then
+    360    chmod 0700 /run/secrets 2>/dev/null || true
+../project/agentbox/config/lib/role-custody.sh @ c57d9c0508f4 lines 88-90:
+     88  # is not a mount point: then devuser, owner of /run, could rename it after boot.
+     89  ab_secrets_root_prepare() {
+     90    local root="$1" chown_cmd="${AB_RC_CHOWN:-chown}"
+../project/agentbox/config/lib/role-custody.sh @ c57d9c0508f4 lines 98-100:
+     98    if ! _ab_rc_is_mountpoint "$root"; then
+     99      echo "[security] ROLE-ISOLATION-DEGRADED secrets-mount: ${root} is not its own mount (compose tmpfs missing; regenerate docker-compose.yml). devuser owns /run and can rename it." >&2
+    100      return 1
+../project/agentbox/config/entrypoint-unified.sh @ c57d9c0508f4 lines 459-461:
+    459  
+    460  _ab_role_env_capture "$AGENTBOX_ROLE_ISOLATION" /run/secrets
+    461  
+../project/agentbox/config/entrypoint-unified.sh @ c57d9c0508f4 lines 381-383:
+    381  # receives is byte-identical to before (tests/runtime-contract/RC-X1-06.sh).
+    382  _AB_ROLE_ENV_VARS="AGENTBOX_AGENT_PRIVKEY_HEX:ab-identity AGENTBOX_BRIDGE_SK:ab-identity AGENTBOX_NSEC:ab-identity AGENTBOX_PRIVKEY_HEX:ab-identity AGENT_PRIVKEY_HEX:ab-identity CONCIERGE_PRIVKEY_HEX:
+    383  
+../project/agentbox/config/entrypoint-unified.sh @ c57d9c0508f4 lines 1283-1285:
+   1283    AB_RC_FAILURES=0
+   1284    ab_role_secrets_deliver /etc/agentbox/role-secrets.tsv || true
+   1285    {
+../project/agentbox/config/lib/role-custody.sh @ c57d9c0508f4 lines 217-219:
+    217  # reaches supervisord (PID 1) or any child. Sets AB_RC_DELIVERED, AB_RC_FAILURES.
+    218  ab_role_secrets_deliver() {
+    219    local plan="$1" override="${2:-}" root="" kind name a b uid gid dir dest tmp size
+../project/agentbox/services/agentbox-manifest/src/role_accounts.rs @ c57d9c0508f4 lines 1033-1035:
+   1033      );
+   1034      plan.push_str(&format!("root\t{}\n", t.secrets_root));
+   1035      for r in &t.roles {
+../project/agentbox/services/agentbox-manifest/src/role_accounts.rs @ c57d9c0508f4 lines 1035-1037:
+   1035      for r in &t.roles {
+   1036          plan.push_str(&format!("role\t{}\t{}\t{}\n", r.name, r.uid, r.uid));
+   1037          for sec in &r.secrets {
+../project/agentbox/services/agentbox-manifest/src/role_accounts.rs @ c57d9c0508f4 lines 1038-1040:
+   1038              if let Some(var) = &sec.from_env {
+   1039                  plan.push_str(&format!("env\t{}\t{}\t{var}\n", r.name, sec.file));
+   1040              } else if let Some(src) = sources.get(&r.name).and_then(|m| m.get(&sec.file)) {
+../project/agentbox/services/agentbox-manifest/src/role_accounts.rs @ c57d9c0508f4 lines 1040-1042:
+   1040              } else if let Some(src) = sources.get(&r.name).and_then(|m| m.get(&sec.file)) {
+   1041                  plan.push_str(&format!("file\t{}\t{}\t{src}\n", r.name, sec.file));
+   1042              }
+../project/agentbox/services/agentbox-manifest/src/role_accounts.rs @ c57d9c0508f4 lines 1047-1051:
+   1047      // devuser owns, so it gets no directory inside the root-owned secrets mount.
+   1048      for g in t.groups.iter().filter(|g| g.owner != DEVUSER) {
+   1049          let owner = t.user_id(&g.owner).unwrap_or_default();
+   1050          plan.push_str(&format!("sockdir\t{}\t{owner}\t{}\n", g.name, g.gid));
+   1051      }
+../project/agentbox/services/agentbox-manifest/src/role_accounts.rs @ c57d9c0508f4 lines 1056-1058:
+   1056          );
+   1057          plan.push_str(&format!("dir\t{}\t{u}:{g}\t{}\n", d.path, d.mode));
+   1058          for sd in &d.seed {
+../project/agentbox/config/lib/role-custody.sh @ c57d9c0508f4 lines 350-354:
+    350    done <"$plan"
+    351    # Seal each role dir last: 0500 owned by the role (read and traverse only).
+    352    for name in "${!role_uid[@]}"; do
+    353      chmod 0500 "${root}/${name}" 2>/dev/null || true
+    354      "$chown_cmd" "${role_uid[$name]}:${role_gid[$name]}" "${root}/${name}" 2>/dev/null \
+../project/agentbox/config/entrypoint-unified.sh @ c57d9c0508f4 lines 1294-1296:
+   1294  # Custody W2: nothing between here and exec may export a ROLE variable.
+   1295  _ab_role_env_scrub "$AGENTBOX_ROLE_ISOLATION"
+   1296  exec supervisord -c "$_AB_SUPERVISORD_CONF" -n
+../project/agentbox/config/entrypoint-unified.sh @ c57d9c0508f4 lines 1295-1297:
+   1295  _ab_role_env_scrub "$AGENTBOX_ROLE_ISOLATION"
+   1296  exec supervisord -c "$_AB_SUPERVISORD_CONF" -n
+   1297  
+../project/agentbox/config/entrypoint-unified.sh @ c57d9c0508f4 lines 472-476:
+    472  # then refuse to start (they read the same file).
+    473  _ab_pg_credential_prepare() { # _ab_pg_credential_prepare <secrets-root> <uid:gid of the reader>
+    474    local root="${1:-/run/secrets}" owner="${2:-1000:1000}" dir file tmp
+    475    dir="${root}/ruvector-pg"; file="${dir}/password"
+    476    # Exported first, so the projections below never expand an unset name under
+../project/agentbox/config/entrypoint-unified.sh @ c57d9c0508f4 lines 485-489:
+    485      if [ -L "$dir" ] || { [ -e "$dir" ] && [ ! -d "$dir" ]; }; then rm -f -- "$dir"; fi
+    486      mkdir -p -- "$root"; [ -d "$dir" ] || mkdir -m 0700 -- "$dir"
+    487      chown "$owner" "$dir" 2>/dev/null || true
+    488      chmod 0700 "$dir"
+    489      tmp="${file}.tmp.$$"
+../project/agentbox/config/entrypoint-unified.sh @ c57d9c0508f4 lines 506-508:
+    506  }
+    507  _ab_pg_credential_prepare /run/secrets 1000:1000 || true
+    508  
+../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md @ c57d9c0508f4 lines 771-773:
+    771  
+    772  **Specific to this record (ADR-2164 amendment 2).** The generic note above understates one thing: the change adds a devuser-owned directory, `/run/secrets/ruvector-pg/` (0700, file 0600), inside the `
+    773  
+../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md @ c57d9c0508f4 lines 356-365:
+    356  
+    357  ## Correction to the integration disposition: the socket's directory — 2026-10-03
+    358  
+    359  The queen's integration disposition (design §13) placed the identity socket in a root-owned
+    360  `/run/agentbox`. That does not hold, because `/run` is devuser's. It is a tmpfs mounted
+    361  `uid=1000,gid=1000` (`docker-compose.yml:109`, `flake.nix:3533`). A non-root owner of a
+    362  directory can rename any entry in it, so devuser can move a root-owned `/run/agentbox` aside and
+    363  plant a directory with its own socket. Ownership of the entry does not matter; ownership of the
+    364  parent does. `/run/secrets` is safe for the same reason in reverse: it is its own tmpfs,
+    365  `uid=0,gid=0,mode=711` (`docker-compose.yml:110`, `flake.nix:3538`), so it is a mount point
+../project/agentbox/config/lib/role-custody.sh @ c57d9c0508f4 lines 10-15:
+     10  # Contract (the entrypoint relies on all of it):
+     11  #   * fail-open: no function returns non-zero to a `set -e` caller for a
+     12  #     delivery problem; failures are counted in AB_RC_FAILURES and logged with a
+     13  #     grep-able [security] marker. A missing secret makes its role program fail
+     14  #     closed under supervisord, which is where it belongs, not the boot.
+     15  #   * no secret VALUE is ever printed, logged, or passed on argv. File sources go
+../project/agentbox/config/lib/role-custody.sh @ c57d9c0508f4 lines 352-354:
+    352    for name in "${!role_uid[@]}"; do
+    353      chmod 0500 "${root}/${name}" 2>/dev/null || true
+    354      "$chown_cmd" "${role_uid[$name]}:${role_gid[$name]}" "${root}/${name}" 2>/dev/null \
+../project/agentbox/config/entrypoint-unified.sh @ c57d9c0508f4 lines 566-568:
+    566    # root:root 0700 (ab_custody_migrate, before Phase 3); never hand it back here.
+    567    [ "$AGENTBOX_ROLE_ISOLATION" = 1 ] && [ "$_vol_root" = /var/lib/agentbox/secrets ] && continue
+    568    if [ -d "$_vol_root" ]; then
+../project/agentbox/config/entrypoint-unified.sh @ c57d9c0508f4 lines 741-743:
+    741    if [ "$AGENTBOX_ROLE_ISOLATION" = 1 ]; then
+    742      ab_custody_migrate /etc/agentbox/role-secrets.tsv /run/secrets/role-isolation.migrated
+    743    else
+../project/agentbox/services/agentbox-manifest/src/role_accounts.rs @ c57d9c0508f4 lines 1065-1084:
+   1065      // source, so a plan without a file row (chain off) migrates nothing for it.
+   1066      for d in &t.at_rest_dirs {
+   1067          plan.push_str(&format!("atrestdir\t{}\t{}\n", d.path, d.mode));
+   1068      }
+   1069      for r in &t.roles {
+   1070          for sec in &r.secrets {
+   1071              if let Some(src) = sources.get(&r.name).and_then(|m| m.get(&sec.file)) {
+   1072                  let legacy = match (&sec.source, &sec.legacy) {
+   1073                      (Some(canon), Some(l)) if canon == src => l.as_str(),
+   1074                      _ => "-",
+   1075                  };
+   1076                  plan.push_str(&format!("atrest\t{}\t{src}\t{legacy}\n", r.name));
+   1077              }
+   1078          }
+   1079          for a in &r.at_rest {
+   1080              let legacy = a.legacy.as_deref().unwrap_or("-");
+   1081              plan.push_str(&format!("atrest\t{}\t{}\t{legacy}\n", r.name, a.path));
+   1082          }
+   1083      }
+   1084  
+../project/agentbox/config/role-accounts.json @ c57d9c0508f4 lines 145-150:
+    145    ],
+    146    "at_rest_dirs": [
+    147      { "path": "/var/lib/agentbox/secrets", "mode": "700", "purpose": "The agentbox-secrets volume. Flag on: root:root 0700, so devuser cannot list or open any at-rest copy; root copies each role's fil
+    148      { "path": "/var/lib/agentbox/identities", "mode": "711", "purpose": "The sovereign-identities volume. Flag on: root:root 0711, not 0700, because the pay402/Hitch spend keys (management-api/lib/sid
+    149    ],
+    150    "dirs": [
+../project/agentbox/config/lib/role-custody.sh @ c57d9c0508f4 lines 446-448:
+    446  # Sets AB_RC_MIGRATED (copies made this run), AB_RC_MIG_FAILURES, AB_RC_REFUSED.
+    447  ab_custody_migrate() {
+    448    local plan="$1" record="${2:-/run/secrets/role-isolation.migrated}"
+../project/agentbox/config/lib/role-custody.sh @ c57d9c0508f4 lines 555-557:
+    555      _ab_rc_note "$p" f "$uid" "$gid" "$mode" || AB_RC_MIG_FAILURES=$((AB_RC_MIG_FAILURES + 1))
+    556      if ! _ab_rc_set "$R$p" "${role_uid[$a]}:${role_uid[$a]}" 400; then
+    557        echo "[security] ROLE-ISOLATION-ERROR: custody migrate: cannot hand ${p} to ${a} 0400" >&2
+../project/agentbox/config/lib/role-custody.sh @ c57d9c0508f4 lines 566-568:
+    566      [ -n "${is_dir[$dir]}" ] || continue
+    567      _ab_rc_set "$R$dir" 0:0 "${is_dir[$dir]}" \
+    568        || { echo "[security] ROLE-ISOLATION-ERROR: custody migrate: cannot make ${dir} root ${is_dir[$dir]}" >&2; AB_RC_MIG_FAILURES=$((AB_RC_MIG_FAILURES + 1)); }
+../project/agentbox/config/lib/role-custody.sh @ c57d9c0508f4 lines 585-587:
+    585  # Sets AB_RC_REVERTED.
+    586  ab_custody_revert() {
+    587    local plan="$1" R="${AB_RC_ROOT:-}" kind a b c modes="" p kindc ids mode n=0
+../project/agentbox/config/entrypoint-unified.sh @ c57d9c0508f4 lines 743-745:
+    743    else
+    744      ab_custody_revert /etc/agentbox/role-secrets.tsv
+    745    fi
+../project/agentbox/config/role-accounts.json @ c57d9c0508f4 lines 77-79:
+     77        "secrets": [
+     78          { "file": "treasury.key", "env": "SIDESTR_FAUCET_KEY", "source": "/var/lib/agentbox/secrets/sidestr-faucet-dreamlab.key", "legacy": "/home/devuser/workspace/sidestr/agents/treasury.key" }
+     79        ]
+../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md @ c57d9c0508f4 lines 240-245:
+    240  
+    241  - ~~**W2 custody.** It locks the at-rest volumes, with an idempotent migrate/revert.~~ Built
+    242    (W2b, `f93586b9e`; see the dated section below). It is unproven in an image. **The
+    243    legacy copies stay readable to devuser by design (Q5)**: the workspace treasury keys and
+    244    `zone-keys.json` remain on the bind until a manual purge.
+    245  - **W2 other items.**
+======================================================================
+PANEL VC-06.6  (docs/diagrams/visionclaw/06-settings-round-trip.md)
+## VC-06.6 ProtectedSettingsActor — API keys, client tokens and user records
+```mermaid
+sequenceDiagram
+    autonumber
+    participant HG as GET /api/auth/nostr/api-keys<br/>src/handlers/nostr_handler.rs:310
+    participant HP as POST /api/auth/nostr/api-keys<br/>src/handlers/nostr_handler.rs:277
+    participant AS as AppState::get_api_keys<br/>src/app_state.rs:1578
+    participant PS as ProtectedSettingsActor<br/>src/actors/protected_settings_actor.rs:7
+    participant NS as NostrService users map<br/>src/services/nostr_service.rs:484
+
+    Note over PS: started with ProtectedSettings::default() — src/app_state.rs:1157-1159, Addr src/app_state.rs:326
+    HG->>AS: state.get_api_keys(caller) (nostr_handler.rs:319)
+    AS->>PS: send(GetApiKeys) (app_state.rs:1579-1583)
+    PS-->>AS: settings.get_api_keys(pubkey) (src/actors/protected_settings_actor.rs:33-38)
+    Note over PS: the users map is empty from boot (Default impl crates/visionclaw-domain/src/models/protected_settings.rs:132),<br/>so this answers default_api_keys (crates/visionclaw-domain/src/models/protected_settings.rs:223-236)
+    HP->>NS: nostr_service.update_user_api_keys(caller, keys) (nostr_handler.rs:293)
+    NS->>NS: user.api_keys = api_keys, persisted to Redis when the feature is on (nostr_service.rs:495-502)
+    Note over HP,NS: the POST writes NostrService, the GET reads ProtectedSettingsActor — the two stores never meet
+    Note over PS: handlers with NO sender anywhere in src or crates at this revision: ValidateClientToken (src/actors/protected_settings_actor.rs:49),<br/>StoreClientToken (:65), UpdateUserApiKeys (:81), CleanupExpiredTokens (:97), MergeSettings (:112),<br/>SaveSettings (:127), GetUser (:142)
+    Note over PS: DEBT — a second copy of the actor lives at crates/visionclaw-actors/src/protected_settings_actor.rs:7,<br/>AppState starts the src/actors copy. Session-token realm and get_session expiry see VC-03.5 and VC-05
+```
+
+**Tension:** `POST /api/auth/nostr/api-keys` stores keys on the `NostrService` user record (`../project/src/handlers/nostr_handler.rs:293`, `../project/src/services/nostr_service.rs:495`). `GET` on the same resource reads `ProtectedSettingsActor` (`../project/src/handlers/nostr_handler.rs:319`, `../project/src/app_state.rs:1578-1586`), which starts from `ProtectedSettings::default()` (`../project/src/app_state.rs:1159`), whose `users` map is empty (`../project/crates/visionclaw-domain/src/models/protected_settings.rs:132`), and has no writer. On source evidence a non-power user never reads back the keys they saved. This needs a runtime check to confirm.
+
+**Drift:** the panel this replaces drew the api-keys routes driving all eight actor messages. At this revision only `GetApiKeys` has a sender, and seven handlers are unreachable.
+--- cited source lines at the declared revision
+../project/src/handlers/nostr_handler.rs @ 86cdd7635582 lines 309-311:
+    309  
+    310  async fn get_api_keys(
+    311      req: HttpRequest,
+../project/src/handlers/nostr_handler.rs @ 86cdd7635582 lines 276-278:
+    276  
+    277  async fn update_api_keys(
+    278      http_req: HttpRequest,
+../project/src/app_state.rs @ 86cdd7635582 lines 1577-1579:
+   1577  
+   1578      pub async fn get_api_keys(&self, pubkey: &str) -> ApiKeys {
+   1579          use crate::actors::protected_settings_actor::GetApiKeys;
+../project/src/actors/protected_settings_actor.rs @ 86cdd7635582 lines 6-8:
+      6  
+      7  pub struct ProtectedSettingsActor {
+      8      settings: ProtectedSettings,
+../project/src/services/nostr_service.rs @ 86cdd7635582 lines 483-485:
+    483  
+    484      pub async fn update_user_api_keys(
+    485          &self,
+../project/src/app_state.rs @ 86cdd7635582 lines 1156-1160:
+   1156  
+   1157          info!("[AppState::new] Starting ProtectedSettingsActor");
+   1158          let protected_settings_addr =
+   1159              ProtectedSettingsActor::new(ProtectedSettings::default()).start();
+   1160  
+../project/src/app_state.rs @ 86cdd7635582 lines 325-327:
+    325      pub settings_addr: Addr<OptimizedSettingsActor>,
+    326      pub protected_settings_addr: Addr<ProtectedSettingsActor>,
+    327      pub metadata_addr: Addr<MetadataActor>,
+../project/src/handlers/nostr_handler.rs @ 86cdd7635582 lines 318-320:
+    318  
+    319      let api_keys = state.get_api_keys(&caller).await;
+    320      ok_json!(api_keys)
+../project/src/app_state.rs @ 86cdd7635582 lines 1578-1584:
+   1578      pub async fn get_api_keys(&self, pubkey: &str) -> ApiKeys {
+   1579          use crate::actors::protected_settings_actor::GetApiKeys;
+   1580          self.protected_settings_addr
+   1581              .send(GetApiKeys {
+   1582                  pubkey: pubkey.to_string(),
+   1583              })
+   1584              .await
+../project/src/actors/protected_settings_actor.rs @ 86cdd7635582 lines 32-39:
+     32  
+     33  impl Handler<GetApiKeys> for ProtectedSettingsActor {
+     34      type Result = MessageResult<GetApiKeys>;
+     35  
+     36      fn handle(&mut self, msg: GetApiKeys, _ctx: &mut Self::Context) -> Self::Result {
+     37          MessageResult(self.settings.get_api_keys(&msg.pubkey))
+     38      }
+     39  }
+../project/crates/visionclaw-domain/src/models/protected_settings.rs @ 86cdd7635582 lines 131-133:
+    131              },
+    132              users: std::collections::HashMap::new(),
+    133              default_api_keys: ApiKeys::default(),
+../project/crates/visionclaw-domain/src/models/protected_settings.rs @ 86cdd7635582 lines 222-237:
+    222  
+    223      pub fn get_api_keys(&self, pubkey: &str) -> ApiKeys {
+    224          if let Some(user) = self.users.get(pubkey) {
+    225              if user.is_power_user {
+    226                  ApiKeys {
+    227                      perplexity: std::env::var("PERPLEXITY_API_KEY").ok(),
+    228                      openai: std::env::var("OPENAI_API_KEY").ok(),
+    229                      ragflow: std::env::var("RAGFLOW_API_KEY").ok(),
+    230                  }
+    231              } else {
+    232                  user.api_keys.clone()
+    233              }
+    234          } else {
+    235              self.default_api_keys.clone()
+    236          }
+    237      }
+../project/src/handlers/nostr_handler.rs @ 86cdd7635582 lines 292-294:
+    292  
+    293      match nostr_service.update_user_api_keys(&caller, api_keys).await {
+    294          Ok(user) => {
+../project/src/services/nostr_service.rs @ 86cdd7635582 lines 494-503:
+    494              }
+    495              user.api_keys = api_keys;
+    496              user.last_seen = time::timestamp_seconds();
+    497              let updated_user = user.clone();
+    498              drop(users);
+    499  
+    500              // Persist updated user to Redis
+    501              #[cfg(feature = "redis")]
+    502              self.persist_session(&updated_user).await;
+    503  
+../project/src/actors/protected_settings_actor.rs @ 86cdd7635582 lines 48-50:
+     48  
+     49  impl Handler<ValidateClientToken> for ProtectedSettingsActor {
+     50      type Result = bool;
+../project/crates/visionclaw-actors/src/protected_settings_actor.rs @ 86cdd7635582 lines 6-8:
+      6  
+      7  pub struct ProtectedSettingsActor {
+      8      settings: ProtectedSettings,
+../project/src/services/nostr_service.rs @ 86cdd7635582 lines 494-496:
+    494              }
+    495              user.api_keys = api_keys;
+    496              user.last_seen = time::timestamp_seconds();
+../project/src/app_state.rs @ 86cdd7635582 lines 1577-1587:
+   1577  
+   1578      pub async fn get_api_keys(&self, pubkey: &str) -> ApiKeys {
+   1579          use crate::actors::protected_settings_actor::GetApiKeys;
+   1580          self.protected_settings_addr
+   1581              .send(GetApiKeys {
+   1582                  pubkey: pubkey.to_string(),
+   1583              })
+   1584              .await
+   1585              .unwrap_or_else(|_| ApiKeys::default())
+   1586      }
+   1587  
+../project/src/app_state.rs @ 86cdd7635582 lines 1158-1160:
+   1158          let protected_settings_addr =
+   1159              ProtectedSettingsActor::new(ProtectedSettings::default()).start();
+   1160  
+======================================================================
+PANEL VC-04.5  (docs/diagrams/visionclaw/04-handlers-graph-and-state.md)
+## VC-04.5 `bots` scope — data, initialize-swarm, spawn-agent-hybrid, submit/interrupt/status/remove task
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Client / AgentDetailPanel
+    participant GD as get_bots_data<br/>src/handlers/bots_handler.rs:138
+    participant UD as update_bots_graph<br/>bots_handler.rs:110
+    participant IH as initialize_hive_mind_swarm<br/>bots_handler.rs:160
+    participant SA as spawn_agent_hybrid<br/>bots_handler.rs:290
+    participant ST as submit_task / interrupt_task / get_task_status / remove_task<br/>bots_handler.rs:589,681,779,486
+    participant GS as GraphServiceSupervisor<br/>src/actors/graph_service_supervisor.rs:1815<br/>GetBotsGraphData, :2031 UpdateBotsGraph
+    participant AB as AgentBeamActor<br/>src/actors/agent_beam_actor.rs:246<br/>UpdateBotsGraph, :267 GetBotsGraphData
+    participant TO as TaskOrchestratorActor<br/>state.get_task_orchestrator_addr()
+
+    Note over C,TO: routes registered at src/handlers/api_handler/bots/mod.rs:11-28, including<br/>POST /settings-command (process_settings_command, bots_handler.rs:397), not expanded here
+    C->>GD: GET /api/bots/data
+    GD->>GD: agent_monitor_addr.send(GetChainPaymentsView),<br/>default on error (bots_handler.rs:142-146)
+    GD->>GS: graph_service_addr.send(GetBotsGraphData) (bots_handler.rs:148)
+    GS->>AB: forward when AgentBeamActor is registered,<br/>else Err AgentBeamActor not registered (graph_service_supervisor.rs:1823-1834)
+    AB-->>GS: roster view from the feed,<br/>payment edges applied (agent_beam_actor.rs:272-284)
+    alt Ok(Ok(view))
+        GD-->>C: 200 {success, nodes, edges, chain} (bots_handler.rs:152-157)
+    else any error
+        GD-->>C: 200 with an empty GraphData view (bots_handler.rs:148-151),<br/>never a static fallback
+    end
+    C->>UD: POST /api/bots/data or /api/bots/update (AuthenticatedUser required)
+    UD->>GS: do_send(UpdateBotsGraph{source: Rest, agents, targets: []})<br/>fire-and-forget (bots_handler.rs:117-121)
+    GS->>AB: do_send, or warn when AgentBeamActor is not registered<br/>(graph_service_supervisor.rs:2035-2038)
+    AB->>AB: feed.apply then broadcast 0x23<br/>presence/state frames (agent_beam_actor.rs:249-264)
+    UD->>GS: send(GetBotsGraphData), empty view on error (bots_handler.rs:122-125)
+    UD-->>C: 200 BotsResponse{success, "Roster accepted", nodes, edges} (bots_handler.rs:127-132)
+    C->>IH: POST /api/bots/initialize-swarm (AuthenticatedUser)
+    IH->>IH: build task string from custom_prompt or<br/>topology/strategy/max_agents/agent_types/enable_neural (bots_handler.rs:170-199)
+    IH->>TO: send(CreateTask{agent, task, provider: PRIMARY_PROVIDER env default gemini,<br/>claude_flow_agent_id:None}) (bots_handler.rs:210-224)
+    alt Ok(Ok(task_response))
+        IH->>IH: CURRENT_SWARM_ID.write() = Some(task_id) (bots_handler.rs:233-234)
+        IH-->>C: 202 Accepted {task_id, topology, strategy, agent_types, ...}
+    else Ok(Err(e)) or mailbox Err
+        IH-->>C: 500 Failed to create task / Actor communication error
+    end
+    C->>SA: POST /api/bots/spawn-agent-hybrid (AuthenticatedUser)
+    SA->>TO: send(CreateTask{agent: agent_type, task, provider,<br/>claude_flow_agent_id:None}) (bots_handler.rs:300)
+    SA-->>C: 202 Accepted or 500 (same Ok/Err split as initialize-swarm)
+    C->>ST: POST /api/bots/submit-task (AuthenticatedUser)
+    alt task empty after trim
+        ST-->>C: 400 "task is empty" (bots_handler.rs:595-600)
+    else
+        ST->>TO: send(CreateTask) then observe CANARY-VC-D2-STEER<br/>(bots_handler.rs:616-647)
+        ST-->>C: 202 {success, taskId, agentType, provider} or 500
+    end
+    C->>ST: POST /api/bots/interrupt {agentId} (AuthenticatedUser)
+    ST->>TO: send(InterruptAgentTask{id}) resolves a task id<br/>or a swarm agent id (bots_handler.rs:700-704)
+    alt Ok(Ok(resolved_task_id))
+        ST-->>C: 200 {success, taskId, requestedId}
+    else Ok(Err(InterruptError::Unresolved))
+        ST-->>C: 422 {interruptible:false, resolution:unresolved}<br/>(bots_handler.rs:732-752)
+    else other error
+        ST-->>C: 500
+    end
+    C->>ST: GET /api/bots/task-status/{id}
+    ST->>TO: send(GetTaskStatus{task_id})
+    alt Ok(Ok(status))
+        ST-->>C: 200 status
+    else Ok(Err(e))
+        ST-->>C: 404 {status:not_found, error} (bots_handler.rs:793-800)
+    end
+    C->>ST: DELETE /api/bots/remove-task/{id} (AuthenticatedUser)
+    ST->>TO: send(StopTask{task_id}) (bots_handler.rs:494-498)
+    alt Ok(Ok(()))
+        ST-->>C: 200 TaskResponse{success:true}
+    else Ok(Err(e)) or mailbox Err
+        ST-->>C: 500 TaskResponse{success:false, error}
+    end
+    Note over GD,ST: GET /api/bots/status -> get_bots_connection_status (bots_handler.rs:268,<br/>reads state.bots_client.get_status())<br/>GET /api/bots/agents -> get_bots_agents (bots_handler.rs:275) -> fetch_hive_mind_agents reads<br/>state.bots_client.get_agents_snapshot() (bots_handler.rs:92-95), not AgentMonitorActor
+```
+
+**Drift (RESOLVED at 86cdd7635):** the `BOTS_GRAPH` static fallback store this panel used to draw is gone. `GET /api/bots/data` and the REST roster write both go through `GraphServiceSupervisor` to `AgentBeamActor` (ADR-2142 amendment, project commit `15acb9219`): the write is fire-and-forget and the read answers with an empty view on any error (`src/handlers/bots_handler.rs:117-125`, `:148-151`).
+--- cited source lines at the declared revision
+../project/src/handlers/bots_handler.rs @ 86cdd7635582 lines 137-139:
+    137  /// panels and docks; agents are drawn from `0x23` frames, never from this (ADR-2142).
+    138  pub async fn get_bots_data(state: web::Data<AppState>) -> Result<impl Responder> {
+    139      // S5: the sidechain payment projection rides alongside the roster: the payments
+../project/src/handlers/bots_handler.rs @ 86cdd7635582 lines 109-111:
+    109  /// real-agent producer (ADR-2142 amendment 2026-11-01); the reply is the roster view.
+    110  pub async fn update_bots_graph(
+    111      _auth: crate::settings::auth_extractor::AuthenticatedUser,
+../project/src/handlers/bots_handler.rs @ 86cdd7635582 lines 159-161:
+    159  
+    160  pub async fn initialize_hive_mind_swarm(
+    161      _auth: crate::settings::auth_extractor::AuthenticatedUser,
+../project/src/handlers/bots_handler.rs @ 86cdd7635582 lines 289-291:
+    289  
+    290  pub async fn spawn_agent_hybrid(
+    291      _auth: crate::settings::auth_extractor::AuthenticatedUser,
+../project/src/handlers/bots_handler.rs @ 86cdd7635582 lines 588-590:
+    588  /// `CANARY-VC-D2-STEER` on a live invocation.
+    589  pub async fn submit_task(
+    590      _auth: crate::settings::auth_extractor::AuthenticatedUser,
+../project/src/actors/graph_service_supervisor.rs @ 86cdd7635582 lines 1814-1816:
+   1814  
+   1815  impl Handler<msgs::GetBotsGraphData> for GraphServiceSupervisor {
+   1816      type Result = ResponseActFuture<
+../project/src/actors/agent_beam_actor.rs @ 86cdd7635582 lines 245-247:
+    245  
+    246  impl Handler<UpdateBotsGraph> for AgentBeamActor {
+    247      type Result = ();
+../project/src/handlers/api_handler/bots/mod.rs @ 86cdd7635582 lines 10-29:
+     10      cfg.service(
+     11          web::scope("/bots")
+     12              .route("/data", web::get().to(bots_get))
+     13              .route("/data", web::post().to(bots_update))
+     14              .route("/update", web::post().to(bots_update))
+     15              .route("/initialize-swarm", web::post().to(initialize_swarm))
+     16              .route(
+     17                  "/settings-command",
+     18                  web::post().to(process_settings_command),
+     19              )
+     20              .route("/status", web::get().to(get_bots_connection_status))
+     21              .route("/agents", web::get().to(get_bots_agents))
+     22              .route("/spawn-agent-hybrid", web::post().to(spawn_agent_hybrid))
+     23              // D2 steering surface (PRD-023 WP-3): per-agent submit-task /
+     24              // interrupt, plus the task-status poll the panel drives.
+     25              .route("/submit-task", web::post().to(submit_task))
+     26              .route("/interrupt", web::post().to(interrupt_task))
+     27              .route("/task-status/{id}", web::get().to(get_task_status))
+     28              .route("/remove-task/{id}", web::delete().to(remove_task)),
+     29      );
+../project/src/handlers/bots_handler.rs @ 86cdd7635582 lines 396-398:
+    396  
+    397  pub async fn process_settings_command(
+    398      _auth: crate::settings::auth_extractor::AuthenticatedUser,
+../project/src/handlers/bots_handler.rs @ 86cdd7635582 lines 141-147:
+    141      // all read this one object.
+    142      let chain = state
+    143          .agent_monitor_addr
+    144          .send(crate::actors::messages::GetChainPaymentsView)
+    145          .await
+    146          .unwrap_or_default();
+    147  
+../project/src/handlers/bots_handler.rs @ 86cdd7635582 lines 147-149:
+    147  
+    148      let view = match state.graph_service_addr.send(GetBotsGraphData).await {
+    149          Ok(Ok(view)) => view,
+../project/src/actors/graph_service_supervisor.rs @ 86cdd7635582 lines 1822-1835:
+   1822      fn handle(&mut self, msg: msgs::GetBotsGraphData, _ctx: &mut Self::Context) -> Self::Result {
+   1823          let Some(addr) = self.agent_beam.clone() else {
+   1824              warn!("GetBotsGraphData: AgentBeamActor not registered");
+   1825              return Box::pin(actix::fut::ready(Err(
+   1826                  "AgentBeamActor not registered".to_string()
+   1827              )));
+   1828          };
+   1829          Box::pin(
+   1830              async move {
+   1831                  addr.send(msg)
+   1832                      .await
+   1833                      .map_err(|e| format!("Message forwarding failed: {}", e))?
+   1834              }
+   1835              .into_actor(self),
+../project/src/actors/agent_beam_actor.rs @ 86cdd7635582 lines 271-285:
+    271      /// payment edges between them. Not a position source.
+    272      fn handle(&mut self, _msg: GetBotsGraphData, _ctx: &mut Self::Context) -> Self::Result {
+    273          let mut view = self
+    274              .feed
+    275              .lock()
+    276              .map_err(|_| "roster lock poisoned".to_string())?
+    277              .view();
+    278          crate::services::chain_payments::apply_to_bots_graph(
+    279              &mut view,
+    280              self.chain_payments.as_deref(),
+    281          );
+    282          Ok(Arc::new(view))
+    283      }
+    284  }
+    285  
+../project/src/handlers/bots_handler.rs @ 86cdd7635582 lines 151-158:
+    151      };
+    152      ok_json!(json!({
+    153          "success": true,
+    154          "nodes": &view.nodes,
+    155          "edges": &view.edges,
+    156          "chain": chain,
+    157      }))
+    158  }
+../project/src/handlers/bots_handler.rs @ 86cdd7635582 lines 147-152:
+    147  
+    148      let view = match state.graph_service_addr.send(GetBotsGraphData).await {
+    149          Ok(Ok(view)) => view,
+    150          _ => Arc::new(GraphData::new()),
+    151      };
+    152      ok_json!(json!({
+../project/src/handlers/bots_handler.rs @ 86cdd7635582 lines 116-122:
+    116  
+    117      state.graph_service_addr.do_send(UpdateBotsGraph {
+    118          source: RosterSource::Rest,
+    119          agents: request.into_inner().nodes,
+    120          targets: Vec::new(),
+    121      });
+    122      let view = match state.graph_service_addr.send(GetBotsGraphData).await {
+../project/src/actors/graph_service_supervisor.rs @ 86cdd7635582 lines 2034-2039:
+   2034      fn handle(&mut self, msg: msgs::UpdateBotsGraph, _ctx: &mut Self::Context) -> Self::Result {
+   2035          match self.agent_beam {
+   2036              Some(ref addr) => addr.do_send(msg),
+   2037              None => warn!("Cannot forward UpdateBotsGraph: AgentBeamActor not registered"),
+   2038          }
+   2039      }
+../project/src/actors/agent_beam_actor.rs @ 86cdd7635582 lines 248-265:
+    248  
+    249      fn handle(&mut self, msg: UpdateBotsGraph, _ctx: &mut Self::Context) -> Self::Result {
+    250          let events = match self.feed.lock() {
+    251              Ok(mut f) => {
+    252                  let events = f.apply(msg.source, &msg.agents, &msg.targets, now_wire_ts());
+    253                  info!(
+    254                      "AgentBeamActor: roster from {:?}: {} live agents, {} frame(s)",
+    255                      msg.source,
+    256                      f.len(),
+    257                      events.len()
+    258                  );
+    259                  events
+    260              }
+    261              Err(_) => return,
+    262          };
+    263          self.broadcast(events);
+    264      }
+    265  }
+../project/src/handlers/bots_handler.rs @ 86cdd7635582 lines 121-126:
+    121      });
+    122      let view = match state.graph_service_addr.send(GetBotsGraphData).await {
+    123          Ok(Ok(view)) => view,
+    124          _ => Arc::new(GraphData::new()),
+    125      };
+    126  
+../project/src/handlers/bots_handler.rs @ 86cdd7635582 lines 126-133:
+    126  
+    127      ok_json!(BotsResponse {
+    128          success: true,
+    129          message: "Roster accepted".to_string(),
+    130          nodes: Some(view.nodes.clone()),
+    131          edges: Some(view.edges.clone()),
+    132      })
+    133  }
+../project/src/handlers/bots_handler.rs @ 86cdd7635582 lines 169-200:
+    169  
+    170      let base_task = if let Some(custom_prompt) = &request.custom_prompt {
+    171          if !custom_prompt.trim().is_empty() {
+    172              custom_prompt.trim().to_string()
+    173          } else {
+    174              format!(
+    175                  "Initialize {} swarm with {} strategy and {} agents. Agent types: {}. Neural enabled: {}",
+    176                  request.topology,
+    177                  request.strategy,
+    178                  request.max_agents,
+    179                  request.agent_types.join(", "),
+    180                  request.enable_neural
+    181              )
+    182          }
+    183      } else {
+    184          format!(
+    185              "Initialize {} swarm with {} strategy and {} agents. Agent types: {}. Neural enabled: {}",
+    186              request.topology,
+    187              request.strategy,
+    188              request.max_agents,
+    189              request.agent_types.join(", "),
+    190              request.enable_neural
+    191          )
+    192      };
+    193  
+    194      let task = format!(
+    195          "{}\n\n**IMPORTANT COMMUNICATION PROTOCOL:**\n\
+    196          Messages will be displayed in the user's telemetry panel in real-time.\n\
+    197          Use this for progress updates, decisions, questions, results, and errors.",
+    198          base_task
+    199      );
+    200  
+../project/src/handlers/bots_handler.rs @ 86cdd7635582 lines 209-225:
+    209  
+    210      let provider = std::env::var("PRIMARY_PROVIDER").unwrap_or_else(|_| "gemini".to_string());
+    211  
+    212      let create_task_msg = CreateTask {
+    213          agent: agent_type.to_string(),
+    214          task: task.clone(),
+    215          provider: provider.clone(),
+    216          // Hive-mind init spawns by role; no distinct claude-flow agent id exists
+    217          // at creation time. None (do not fabricate).
+    218          claude_flow_agent_id: None,
+    219      };
+    220  
+    221      match state
+    222          .get_task_orchestrator_addr()
+    223          .send(create_task_msg)
+    224          .await
+    225      {
+../project/src/handlers/bots_handler.rs @ 86cdd7635582 lines 232-235:
+    232              {
+    233                  let mut current_id = CURRENT_SWARM_ID.write().await;
+    234                  *current_id = Some(task_response.task_id.clone());
+    235              }
+../project/src/handlers/bots_handler.rs @ 86cdd7635582 lines 299-301:
+    299  
+    300      let create_task_msg = CreateTask {
+    301          agent: req.agent_type.clone(),
+../project/src/handlers/bots_handler.rs @ 86cdd7635582 lines 594-601:
+    594      let task = req.task.trim().to_string();
+    595      if task.is_empty() {
+    596          return Ok(HttpResponse::BadRequest().json(json!({
+    597              "success": false,
+    598              "error": "task is empty",
+    599          })));
+    600      }
+    601  
+../project/src/handlers/bots_handler.rs @ 86cdd7635582 lines 615-648:
+    615  
+    616      let create_task_msg = CreateTask {
+    617          agent: agent_type.clone(),
+    618          task: task.clone(),
+    619          provider: provider.clone(),
+    620          // Steer submit-task spawns by role/strategy; no distinct claude-flow agent
+    621          // id is known at creation time. None (do not fabricate).
+    622          claude_flow_agent_id: None,
+    623      };
+    624  
+    625      match state
+    626          .get_task_orchestrator_addr()
+    627          .send(create_task_msg)
+    628          .await
+    629      {
+    630          Ok(Ok(task_response)) => {
+    631              info!(
+    632                  "Steer submit-task dispatched via Management API - Task ID: {}",
+    633                  task_response.task_id
+    634              );
+    635  
+    636              // D2 canary: a steer action reached the server from a mounted panel.
+    637              let evidence = format!(
+    638                  "submit-task agent={agent_type} priority={:?} swarm={:?} task_id={}",
+    639                  req.priority, req.swarm_id, task_response.task_id
+    640              );
+    641              if let Err(e) = state
+    642                  .liveness_harness
+    643                  .observe(CANARY_D2_STEER, &evidence)
+    644                  .await
+    645              {
+    646                  log::debug!("[bots/submit-task] D2 canary observe skipped: {e}");
+    647              }
+    648  
+../project/src/handlers/bots_handler.rs @ 86cdd7635582 lines 699-705:
+    699      // Resolve the id (task_id OR swarm agent_id) to a concrete task_id, then stop.
+    700      let interrupt_msg = InterruptAgentTask {
+    701          id: requested_id.clone(),
+    702      };
+    703  
+    704      match state.get_task_orchestrator_addr().send(interrupt_msg).await {
+    705          Ok(Ok(resolved_task_id)) => {
+../project/src/handlers/bots_handler.rs @ 86cdd7635582 lines 731-753:
+    731          }
+    732          Ok(Err(InterruptError::Unresolved(msg))) => {
+    733              // Honest capability boundary (D2 final close): the id resolved to NO
+    734              // task in the registry and to no task's claude_flow_agent_id, so this is
+    735              // an externally-spawned / MCP-native claude-flow agent. The MCP surface
+    736              // (`utils/mcp_tcp_client.rs`) has NO terminate verb — it cannot be
+    737              // stopped from here. Return 422 (the client does NOT retry 4xx, so the
+    738              // panel no longer spins a dead retrying button) with a DISTINCT
+    739              // `resolution: "unresolved"` + `interruptible: false` so the panel
+    740              // discloses a disabled explanatory state.
+    741              log::warn!(
+    742                  "Interrupt id {requested_id} unresolved — externally-spawned / MCP-native agent \
+    743                   (no terminate verb on the MCP surface): {msg}"
+    744              );
+    745              Ok(HttpResponse::UnprocessableEntity().json(json!({
+    746                  "success": false,
+    747                  "interruptible": false,
+    748                  "resolution": "unresolved",
+    749                  "requestedId": requested_id,
+    750                  "error": msg,
+    751                  "message": "externally spawned — not interruptible from here",
+    752              })))
+    753          }
+../project/src/handlers/bots_handler.rs @ 86cdd7635582 lines 792-801:
+    792          Ok(Ok(status)) => Ok(HttpResponse::Ok().json(status)),
+    793          Ok(Err(e)) => {
+    794              log::debug!("[bots/task-status] {task_id} not resolvable: {e}");
+    795              Ok(HttpResponse::NotFound().json(json!({
+    796                  "success": false,
+    797                  "taskId": task_id,
+    798                  "status": "not_found",
+    799                  "error": e,
+    800              })))
+    801          }
+../project/src/handlers/bots_handler.rs @ 86cdd7635582 lines 493-499:
+    493  
+    494      let stop_task_msg = StopTask {
+    495          task_id: task_id.clone(),
+    496      };
+    497  
+    498      match state.get_task_orchestrator_addr().send(stop_task_msg).await {
+    499          Ok(Ok(())) => {
+../project/src/handlers/bots_handler.rs @ 86cdd7635582 lines 267-269:
+    267  
+    268  pub async fn get_bots_connection_status(state: web::Data<AppState>) -> Result<impl Responder> {
+    269      match state.bots_client.get_status().await {
+../project/src/handlers/bots_handler.rs @ 86cdd7635582 lines 274-276:
+    274  
+    275  pub async fn get_bots_agents(state: web::Data<AppState>) -> Result<impl Responder> {
+    276      match fetch_hive_mind_agents(&state).await {
+../project/src/handlers/bots_handler.rs @ 86cdd7635582 lines 91-96:
+     91  
+     92  pub async fn fetch_hive_mind_agents(
+     93      state: &AppState,
+     94  ) -> Result<Vec<Agent>, Box<dyn std::error::Error>> {
+     95      match state.bots_client.get_agents_snapshot().await {
+     96          Ok(agents) => {
+../project/src/handlers/bots_handler.rs @ 86cdd7635582 lines 116-126:
+    116  
+    117      state.graph_service_addr.do_send(UpdateBotsGraph {
+    118          source: RosterSource::Rest,
+    119          agents: request.into_inner().nodes,
+    120          targets: Vec::new(),
+    121      });
+    122      let view = match state.graph_service_addr.send(GetBotsGraphData).await {
+    123          Ok(Ok(view)) => view,
+    124          _ => Arc::new(GraphData::new()),
+    125      };
+    126  
+======================================================================
+PANEL VC-15.3  (docs/diagrams/visionclaw/15-gpu-analytics.md)
+## VC-15.3 POST /analytics/community/detect — sent to ForceComputeActor, which refuses
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Client
+    participant RT as Route<br/>analytics/mod.rs:179
+    participant RCD as run_community_detection<br/>analytics/mod.rs:68
+    participant GC as run_gpu_community_detection<br/>community.rs:51
+    participant FCA as ForceComputeActor<br/>get_gpu_compute_addr app_state.rs:1672
+    participant CA as ClusteringActor<br/>clustering_actor.rs:1176
+
+    C->>RT: POST /analytics/community/detect {algorithm}
+    RT->>RCD: run_community_detection(request), AuthenticatedUser extractor analytics/mod.rs:69
+    RCD->>GC: run_gpu_community_detection(app_state, request) analytics/mod.rs:75
+    alt cfg not(feature = gpu)
+        GC-->>RCD: Err GPU features not enabled in this build (community.rs:263-268)
+    else app_state.get_gpu_compute_addr() is None
+        GC-->>RCD: Err GPU compute actor not available (community.rs:61-64)
+    else unsupported algorithm string
+        GC-->>RCD: Err Unsupported community detection algorithm (community.rs:70-75)
+    else
+        GC->>GC: map algorithm string to CommunityDetectionAlgorithm (community.rs:66-69), validate_community_params (community.rs:87)
+        GC->>FCA: RunCommunityDetection{params} (community.rs:91)
+        FCA-->>GC: Err Community detection should be handled by ClusteringActor (force_compute_actor.rs:3347-3352)
+        GC-->>RCD: Err
+    end
+    RCD-->>C: 500 success=false communities=[] modularity=0.0 (analytics/mod.rs:77-88)
+    Note over FCA,CA: DEBT the working chain GPUManagerActor (gpu_manager_actor.rs:375)<br/>to AnalyticsSupervisor (analytics_supervisor.rs:520) to ClusteringActor exists<br/>but this route never uses it - anomaly.rs:35-38 routes through gpu_manager_addr for this reason
+    Note over CA: if reached, perform_community_detection clustering_actor.rs:332<br/>refuses below MIN_NODES_FOR_CLUSTERING :368-377, runs label propagation :384<br/>Louvain :395 or Leiden :409, records the kernel per branch :390
+    Note over CA: modularity gate - apply_modularity_gate writes node_analytics.community_id<br/>only when modularity reaches 0.3 (clustering_actor.rs:472)<br/>else community_id is reset (clustering_actor.rs:477-483), single writer per ADR-031 D3
+    Note over GC: the response converter convert_gpu_result_to_communities (community.rs:97)<br/>is reachable only on an Ok that this route cannot receive
+```
+--- cited source lines at the declared revision
+../project/src/handlers/api_handler/analytics/mod.rs @ 86cdd7635582 lines 178-180:
+    178              .route("/clustering/dbscan", web::post().to(run_dbscan_clustering))
+    179              .route("/community/detect", web::post().to(run_community_detection))
+    180              // Graph-structural anomaly (GPU LOF / Z-score) -> node_analytics.anomaly
+../project/src/handlers/api_handler/analytics/mod.rs @ 86cdd7635582 lines 67-69:
+     67  
+     68  pub async fn run_community_detection(
+     69      _auth: crate::settings::auth_extractor::AuthenticatedUser,
+../project/src/handlers/api_handler/analytics/community.rs @ 86cdd7635582 lines 50-52:
+     50  #[cfg(feature = "gpu")]
+     51  pub async fn run_gpu_community_detection(
+     52      app_state: &actix_web::web::Data<AppState>,
+../project/src/app_state.rs @ 86cdd7635582 lines 1671-1673:
+   1671      /// a stopped one is replaced by asking the GPU manager for the current one.
+   1672      pub async fn get_gpu_compute_addr(&self) -> Option<Addr<gpu::ForceComputeActor>> {
+   1673          let cached = self.gpu_compute_addr.read().await.clone();
+../project/src/actors/gpu/clustering_actor.rs @ 86cdd7635582 lines 1175-1177:
+   1175  
+   1176  impl Handler<RunCommunityDetection> for ClusteringActor {
+   1177      type Result = actix::ResponseFuture<Result<CommunityDetectionResult, String>>;
+../project/src/handlers/api_handler/analytics/mod.rs @ 86cdd7635582 lines 68-70:
+     68  pub async fn run_community_detection(
+     69      _auth: crate::settings::auth_extractor::AuthenticatedUser,
+     70      app_state: web::Data<crate::AppState>,
+../project/src/handlers/api_handler/analytics/mod.rs @ 86cdd7635582 lines 74-76:
+     74  
+     75      match community::run_gpu_community_detection(&app_state, &request).await {
+     76          Ok(response) => ok_json!(response),
+../project/src/handlers/api_handler/analytics/community.rs @ 86cdd7635582 lines 262-269:
+    262  
+    263  #[cfg(not(feature = "gpu"))]
+    264  pub async fn run_gpu_community_detection(
+    265      _app_state: &actix_web::web::Data<crate::AppState>,
+    266      _request: &CommunityDetectionRequest,
+    267  ) -> Result<CommunityDetectionResponse, String> {
+    268      Err("GPU features not enabled in this build".to_string())
+    269  }
+../project/src/handlers/api_handler/analytics/community.rs @ 86cdd7635582 lines 60-65:
+     60  
+     61      let gpu_addr = app_state
+     62          .get_gpu_compute_addr()
+     63          .await
+     64          .ok_or_else(|| "GPU compute actor not available".to_string())?;
+     65  
+../project/src/handlers/api_handler/analytics/community.rs @ 86cdd7635582 lines 69-76:
+     69          "leiden" | "communities" => CommunityDetectionAlgorithm::Leiden,
+     70          _ => {
+     71              return Err(format!(
+     72                  "Unsupported community detection algorithm: {}",
+     73                  request.algorithm
+     74              ))
+     75          }
+     76      };
+../project/src/handlers/api_handler/analytics/community.rs @ 86cdd7635582 lines 65-70:
+     65  
+     66      let algorithm = match request.algorithm.as_str() {
+     67          "label_propagation" | "lp" => CommunityDetectionAlgorithm::LabelPropagation,
+     68          "louvain" => CommunityDetectionAlgorithm::Louvain,
+     69          "leiden" | "communities" => CommunityDetectionAlgorithm::Leiden,
+     70          _ => {
+../project/src/handlers/api_handler/analytics/community.rs @ 86cdd7635582 lines 86-88:
+     86  
+     87      validate_community_params(&params)?;
+     88  
+../project/src/handlers/api_handler/analytics/community.rs @ 86cdd7635582 lines 90-92:
+     90  
+     91      match gpu_addr.send(msg).await {
+     92          Ok(Ok(result)) => {
+../project/src/actors/gpu/force_compute_actor.rs @ 86cdd7635582 lines 3346-3353:
+   3346  
+   3347  impl Handler<RunCommunityDetection> for ForceComputeActor {
+   3348      type Result = Result<CommunityDetectionResult, String>;
+   3349  
+   3350      fn handle(&mut self, _msg: RunCommunityDetection, _ctx: &mut Self::Context) -> Self::Result {
+   3351          Err("Community detection should be handled by ClusteringActor".to_string())
+   3352      }
+   3353  }
+../project/src/handlers/api_handler/analytics/mod.rs @ 86cdd7635582 lines 76-89:
+     76          Ok(response) => ok_json!(response),
+     77          Err(e) => {
+     78              log::error!("Community detection failed: {}", e);
+     79              Ok(
+     80                  actix_web::HttpResponse::InternalServerError().json(serde_json::json!({
+     81                      "success": false,
+     82                      "error": e,
+     83                      "communities": [],
+     84                      "total_communities": 0,
+     85                      "modularity": 0.0
+     86                  })),
+     87              )
+     88          }
+     89      }
+../project/src/actors/gpu/gpu_manager_actor.rs @ 86cdd7635582 lines 374-376:
+    374  /// Community detection - routes to AnalyticsSupervisor
+    375  impl Handler<RunCommunityDetection> for GPUManagerActor {
+    376      type Result = ResponseActFuture<Self, Result<CommunityDetectionResult, String>>;
+../project/src/actors/gpu/analytics_supervisor.rs @ 86cdd7635582 lines 519-521:
+    519  
+    520  impl Handler<RunCommunityDetection> for AnalyticsSupervisor {
+    521      type Result = ResponseActFuture<Self, Result<CommunityDetectionResult, String>>;
+../project/src/handlers/api_handler/analytics/anomaly.rs @ 86cdd7635582 lines 34-39:
+     34  
+     35      // Route through GPUManagerActor → AnalyticsSupervisor → AnomalyDetectionActor
+     36      // (not ForceComputeActor which only stubs anomaly detection)
+     37      let gpu_addr = app_state
+     38          .gpu_manager_addr
+     39          .as_ref()
+../project/src/actors/gpu/clustering_actor.rs @ 86cdd7635582 lines 331-333:
+    331  
+    332      async fn perform_community_detection(
+    333          &mut self,
+../project/src/actors/gpu/clustering_actor.rs @ 86cdd7635582 lines 471-473:
+    471              if let Ok(mut map) = analytics_map.write() {
+    472                  if apply_modularity_gate(&mut map, &node_ids, &node_labels, modularity) {
+    473                      info!(
+../project/src/actors/gpu/clustering_actor.rs @ 86cdd7635582 lines 476-484:
+    476                      );
+    477                  } else {
+    478                      info!(
+    479                          "ClusteringActor: community partition rejected (modularity {:.4} < {:.2}); \
+    480                           node_analytics.community_id reset to 0",
+    481                          modularity, MODULARITY_GATE
+    482                      );
+    483                  }
+    484              }
+../project/src/handlers/api_handler/analytics/community.rs @ 86cdd7635582 lines 96-98:
+     96  
+     97              let communities = convert_gpu_result_to_communities(result.clone())?;
+     98  
+======================================================================
+PANEL VC-34.9  (docs/diagrams/visionclaw/34-client-features.md)
+## VC-34.9 bots — adaptive REST polling of the agent population
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Ctx as BotsDataContext<br/>client/src/features/bots/contexts/BotsDataContext.tsx
+    participant Hook as useAgentPolling<br/>client/src/features/bots/hooks/useAgentPolling.ts:128
+    participant Svc as AgentPollingService<br/>client/src/features/bots/services/AgentPollingService.ts:79
+    participant UAC as unifiedApiClient
+    participant SRV as GraphServiceSupervisor to AgentBeamActor
+
+    Ctx->>Hook: mount
+    Hook->>Svc: subscribe(callback) then start()
+    Svc->>Svc: subscriberCount++ - only subscriber 1 begins poll() AgentPollingService.ts:126-128, useAgentPolling.ts:245-248
+    loop poll every currentInterval (2000ms active / 10000ms idle) AgentPollingService.ts:97-98
+        Svc->>UAC: getData GET /bots/data AgentPollingService.ts:221
+        UAC->>SRV: HTTP GET
+        Note right of SRV: ADR-2142 amendment - GetBotsGraphData forwarded by the supervisor<br/>graph_service_supervisor.rs:1815 to AgentBeamActor agent_beam_actor.rs:267<br/>the roster stays SEPARATE from the main graph, /graph/data?graph_type=agent stays empty
+        SRV-->>Svc: envelope {success, data:{nodes, edges}} or bare body (older builds)
+        Svc->>Svc: unwrap envelope.data ?? envelope defensively AgentPollingService.ts:227-228
+        Svc->>Svc: hashData(data) - skip callback fan-out if unchanged AgentPollingService.ts:235
+        Svc->>Svc: updateActivityLevel - activeRatio>0.2 or hasChanged or tasks pending -> active 2000ms else idle 10000ms AgentPollingService.ts:284, AgentPollingService.ts:293
+        alt hasChanged
+            Svc->>Hook: callback(data) fan-out to all subscribers
+            Hook->>Hook: transformAgentData(data) / isGenuineAgentNode filter useAgentPolling.ts:18, useAgentPolling.ts:24-28, useAgentPolling.ts:149
+        end
+        alt request throws
+            Svc->>Svc: handlePollingError - retryCount++, errorCallbacks, retryDelay 2000 times 2 pow (n-1) AgentPollingService.ts:308-336
+            break retryCount >= maxRetries (3) AgentPollingService.ts:100, AgentPollingService.ts:324
+                Svc->>Svc: stop() and no retry timer, polling halts AgentPollingService.ts:326-327
+            end
+        end
+    end
+    Hook-->>Ctx: unmount -> Svc.stop() - subscriberCount-- only clears timer at zero AgentPollingService.ts:141-152, useAgentPolling.ts:267-270
+    Note over Svc: DEBT: the max-retry stop() releases a subscriber slot no subscriber gave up. With two subscribers the count drops to one,<br/>isPolling stays true and no timer runs, so polling is dead, and a later start() sees count 2, not 1, and never restarts it<br/>(AgentPollingService.ts:126-128, AgentPollingService.ts:141-143, AgentPollingService.ts:324-327)
+```
+--- cited source lines at the declared revision
+../project/client/src/features/bots/hooks/useAgentPolling.ts @ 86cdd7635582 lines 127-129:
+    127  
+    128  export function useAgentPolling(options: UseAgentPollingOptions = {}) {
+    129    const { enabled = true, config, onError } = options;
+../project/client/src/features/bots/services/AgentPollingService.ts @ 86cdd7635582 lines 78-80:
+     78  
+     79  export class AgentPollingService {
+     80    private static instance: AgentPollingService;
+../project/client/src/features/bots/services/AgentPollingService.ts @ 86cdd7635582 lines 125-129:
+    125  
+    126    public start(): void {
+    127      this.subscriberCount++;
+    128      if (this.subscriberCount === 1) {
+    129        if (this.isPolling) {
+../project/client/src/features/bots/hooks/useAgentPolling.ts @ 86cdd7635582 lines 244-249:
+    244      
+    245      const unsubscribe = agentPollingService.subscribe(updateState, handleError);
+    246  
+    247      
+    248      agentPollingService.start();
+    249      setState(prev => ({ ...prev, isPolling: true }));
+../project/client/src/features/bots/services/AgentPollingService.ts @ 86cdd7635582 lines 96-99:
+     96      this.config = {
+     97        activePollingInterval: 2000,  
+     98        idlePollingInterval: 10000,   
+     99        enableSmartPolling: true,
+../project/client/src/features/bots/services/AgentPollingService.ts @ 86cdd7635582 lines 220-222:
+    220        // can only match main-graph nodes).
+    221        const raw = await unifiedApiClient.getData<Record<string, unknown>>('/bots/data');
+    222        // The server wraps responses in the accepted! envelope
+../project/src/actors/graph_service_supervisor.rs @ 86cdd7635582 lines 1814-1816:
+   1814  
+   1815  impl Handler<msgs::GetBotsGraphData> for GraphServiceSupervisor {
+   1816      type Result = ResponseActFuture<
+../project/src/actors/agent_beam_actor.rs @ 86cdd7635582 lines 266-268:
+    266  
+    267  impl Handler<GetBotsGraphData> for AgentBeamActor {
+    268      type Result = Result<Arc<visionclaw_domain::models::graph::GraphData>, String>;
+../project/client/src/features/bots/services/AgentPollingService.ts @ 86cdd7635582 lines 226-229:
+    226        // so the pipeline reports zero agents forever.
+    227        const envelope = raw as unknown as { data?: AgentSwarmData } & AgentSwarmData;
+    228        const data: AgentSwarmData = envelope.data?.nodes ? envelope.data : envelope;
+    229        
+../project/client/src/features/bots/services/AgentPollingService.ts @ 86cdd7635582 lines 234-236:
+    234        
+    235        const dataHash = this.hashData(data);
+    236        const hasChanged = dataHash !== this.lastDataHash;
+../project/client/src/features/bots/services/AgentPollingService.ts @ 86cdd7635582 lines 283-285:
+    283      const totalAgents = data.metadata?.total_agents || 0;
+    284      const activeRatio = totalAgents > 0 ? activeAgents / totalAgents : 0;
+    285  
+../project/client/src/features/bots/services/AgentPollingService.ts @ 86cdd7635582 lines 292-294:
+    292      
+    293      if (activeRatio > 0.2 || hasChanged || (data.metadata?.total_tasks || 0) > (data.metadata?.completed_tasks || 0)) {
+    294        this.activityLevel = 'active';
+../project/client/src/features/bots/hooks/useAgentPolling.ts @ 86cdd7635582 lines 17-19:
+     17   */
+     18  export function isGenuineAgentNode(node: AgentSwarmData['nodes'][number]): boolean {
+     19    if (node.metadata?.agent_type) return true;
+../project/client/src/features/bots/hooks/useAgentPolling.ts @ 86cdd7635582 lines 23-29:
+     23  /** Transform the agent-population poll response into BotsAgents and edges. */
+     24  export function transformAgentData(data: AgentSwarmData): {
+     25    agents: BotsAgent[];
+     26    edges: BotsEdge[];
+     27  } {
+     28    const agentNodes = (data.nodes || []).filter(isGenuineAgentNode);
+     29  
+../project/client/src/features/bots/hooks/useAgentPolling.ts @ 86cdd7635582 lines 148-150:
+    148    updateStateRef.current = (data: AgentSwarmData) => {
+    149      const { agents, edges } = transformAgentData(data);
+    150      const now = Date.now();
+../project/client/src/features/bots/services/AgentPollingService.ts @ 86cdd7635582 lines 307-337:
+    307    
+    308    private handlePollingError(error: Error): void {
+    309      this.retryCount++;
+    310      logger.error('Polling error:', error, { retryCount: this.retryCount });
+    311      
+    312      
+    313      this.performanceMonitor.recordError();
+    314  
+    315      
+    316      this.errorCallbacks.forEach(callback => {
+    317        try {
+    318          callback(error);
+    319        } catch (err) {
+    320          logger.error('Error in error callback:', err);
+    321        }
+    322      });
+    323  
+    324      if (this.retryCount >= this.config.maxRetries) {
+    325        logger.error('Max retries reached, stopping polling');
+    326        this.stop();
+    327        return;
+    328      }
+    329  
+    330      
+    331      const retryDelay = this.config.retryDelay * Math.pow(2, this.retryCount - 1);
+    332      logger.info(`Retrying poll in ${retryDelay}ms`);
+    333      
+    334      if (this.isPolling) {
+    335        this.pollingTimer = setTimeout(() => this.poll(), retryDelay);
+    336      }
+    337    }
+../project/client/src/features/bots/services/AgentPollingService.ts @ 86cdd7635582 lines 99-101:
+     99        enableSmartPolling: true,
+    100        maxRetries: 3,
+    101        retryDelay: 2000
+../project/client/src/features/bots/services/AgentPollingService.ts @ 86cdd7635582 lines 323-325:
+    323  
+    324      if (this.retryCount >= this.config.maxRetries) {
+    325        logger.error('Max retries reached, stopping polling');
+../project/client/src/features/bots/services/AgentPollingService.ts @ 86cdd7635582 lines 325-328:
+    325        logger.error('Max retries reached, stopping polling');
+    326        this.stop();
+    327        return;
+    328      }
+../project/client/src/features/bots/services/AgentPollingService.ts @ 86cdd7635582 lines 140-153:
+    140  
+    141    public stop(): void {
+    142      this.subscriberCount = Math.max(0, this.subscriberCount - 1);
+    143      if (this.subscriberCount === 0) {
+    144        if (this.pollingTimer) {
+    145          clearTimeout(this.pollingTimer);
+    146          this.pollingTimer = null;
+    147        }
+    148        this.isPolling = false;
+    149        logger.debug('Agent swarm polling stopped');
+    150      } else {
+    151        logger.debug(`Polling subscriber removed (count: ${this.subscriberCount})`);
+    152      }
+    153    }
+../project/client/src/features/bots/hooks/useAgentPolling.ts @ 86cdd7635582 lines 266-271:
+    266  
+    267      return () => {
+    268        unsubscribe();
+    269        agentPollingService.stop();
+    270        clearInterval(statusInterval);
+    271      };
+../project/client/src/features/bots/services/AgentPollingService.ts @ 86cdd7635582 lines 140-144:
+    140  
+    141    public stop(): void {
+    142      this.subscriberCount = Math.max(0, this.subscriberCount - 1);
+    143      if (this.subscriberCount === 0) {
+    144        if (this.pollingTimer) {
+../project/client/src/features/bots/services/AgentPollingService.ts @ 86cdd7635582 lines 323-328:
+    323  
+    324      if (this.retryCount >= this.config.maxRetries) {
+    325        logger.error('Max retries reached, stopping polling');
+    326        this.stop();
+    327        return;
+    328      }
+======================================================================
+PANEL VC-36.4  (docs/diagrams/visionclaw/36-godot-xr-client.md)
+## VC-36.4 Per-socket independent reconnect backoff
+
+```mermaid
+stateDiagram-v2
+    [*] --> Disconnected
+    Disconnected --> Connecting: open() or retry timer fires
+    Connecting --> Backoff: connect error or failed topology-request send, both surface as Disconnected
+    Connecting --> Subscribed: requestInitialData sent, only then connection_changed true
+    Subscribed --> Backoff: socket closed or recv error, surfaced as Disconnected
+    Backoff --> Connecting: timer expires
+    Backoff --> Backoff: presence only, kicked from presence calls the scheduler directly
+    Subscribed --> Closed: close() - no reconnect
+    note right of Subscribed
+        The client has no Authenticated state.
+        NIP-98 authenticate is sent after Connected
+        and its acceptance is never read back, transport.rs:113-120
+    end note
+    note right of Backoff
+        GRAPH, per BackendConnection: backoff_delay backend_connection.gd:83-84
+        min(RECONNECT_BASE_DELAY_SEC * 2^(max(attempts,1)-1), RECONNECT_MAX_DELAY_SEC)
+        base 2.0 s backend_connection.gd:26, cap 60.0 s backend_connection.gd:27
+        scheduled on a drop only while open backend_connection.gd:355-356, :340-343
+        timer counted down in poll backend_connection.gd:137-142
+        attempts reset on connected true backend_connection.gd:347-349
+        PRESENCE, on the scene: _backoff_delay graph_scene.gd:4169-4173
+        same 2.0 s / 60.0 s constants graph_scene.gd:36, :37
+        presence timer graph_scene.gd:4178, kicked entry graph_scene.gd:4553
+        INVARIANT every socket backs off INDEPENDENTLY: one
+        BackendConnection per source plus the presence socket
+        graph_scene.gd:890-892, backend_connection.gd:8-10
+    end note
+```
+
+**Debt:** the presence socket keeps its own copy of the backoff (`xr-client/scripts/graph_scene.gd:4169-4180`) beside `BackendConnection.backoff_delay` (`xr-client/scripts/backend_connection.gd:83-84`). The two formulas differ only at `attempts` 0, which the presence path never passes.
+**Drift:** the comment in `_on_client_connection_changed` says a drag-end pin persists across a reconnect (`xr-client/scripts/backend_connection.gd:353-354`), but a drag end records no pin since ADR-2172 F3 (`xr-client/scripts/backend_connection.gd:273-275`).
+--- cited source lines at the declared revision
+../project/xr-client/rust/src/transport.rs @ 86cdd7635582 lines 112-121:
+    112                  // streaming still works without it.
+    113                  if !nostr_secret_hex.trim().is_empty() {
+    114                      match build_signer(&nostr_secret_hex)
+    115                          .map(|s| s.nip98_authenticate_json(&url, "GET"))
+    116                      {
+    117                          Ok(auth_msg) => {
+    118                              if sink.send(Message::Text(auth_msg)).await.is_err() {
+    119                                  warn!("graph stream: failed to send authenticate message");
+    120                              }
+    121                          }
+../project/xr-client/scripts/backend_connection.gd @ 86cdd7635582 lines 82-85:
+     82  ## Pure: the reconnect delay after `attempts` failures (2 s doubling to 60 s).
+     83  static func backoff_delay(attempts: int) -> float:
+     84  	return minf(RECONNECT_BASE_DELAY_SEC * pow(2.0, float(maxi(attempts, 1) - 1)), RECONNECT_MAX_DELAY_SEC)
+     85  
+../project/xr-client/scripts/backend_connection.gd @ 86cdd7635582 lines 25-27:
+     25  const CODESCAPE_PATH := "/codescape"
+     26  const RECONNECT_BASE_DELAY_SEC: float = 2.0
+     27  const RECONNECT_MAX_DELAY_SEC: float = 60.0
+../project/xr-client/scripts/backend_connection.gd @ 86cdd7635582 lines 26-28:
+     26  const RECONNECT_BASE_DELAY_SEC: float = 2.0
+     27  const RECONNECT_MAX_DELAY_SEC: float = 60.0
+     28  const BACKEND_NAMES := {"visionclaw": "VisionClaw", "codescape": "Codescape"}
+../project/xr-client/scripts/backend_connection.gd @ 86cdd7635582 lines 354-357:
+    354  	# reconnect to the same server, so it is still ours to release on close().
+    355  	if _open and _reconnect_timer < 0.0:
+    356  		_schedule_reconnect()
+    357  
+../project/xr-client/scripts/backend_connection.gd @ 86cdd7635582 lines 136-143:
+    136  		client.poll()
+    137  	if _reconnect_timer >= 0.0:
+    138  		_reconnect_timer -= delta
+    139  		if _reconnect_timer <= 0.0:
+    140  			_reconnect_timer = -1.0
+    141  			if _open:
+    142  				_dial()
+    143  
+../project/xr-client/scripts/backend_connection.gd @ 86cdd7635582 lines 346-350:
+    346  func _on_client_connection_changed(on: bool) -> void:
+    347  	if on:
+    348  		_reconnect_attempts = 0
+    349  		_reconnect_timer = -1.0
+    350  		_set_connected(true)
+../project/xr-client/scripts/graph_scene.gd @ 86cdd7635582 lines 4168-4174:
+   4168  
+   4169  func _backoff_delay(attempts: int) -> float:
+   4170  	return minf(
+   4171  		RECONNECT_BASE_DELAY_SEC * pow(2.0, float(attempts - 1)),
+   4172  		RECONNECT_MAX_DELAY_SEC
+   4173  	)
+   4174  
+../project/xr-client/scripts/graph_scene.gd @ 86cdd7635582 lines 35-37:
+     35  # build ships) must rejoin when it wakes, however long that takes.
+     36  const RECONNECT_BASE_DELAY_SEC: float = 2.0
+     37  const RECONNECT_MAX_DELAY_SEC: float = 60.0
+../project/xr-client/scripts/graph_scene.gd @ 86cdd7635582 lines 4177-4179:
+   4177  	_presence_reconnect_attempts += 1
+   4178  	_presence_reconnect_timer = _backoff_delay(_presence_reconnect_attempts)
+   4179  	push_warning("GraphScene: presence reconnect attempt %d in %.1fs" % [
+../project/xr-client/scripts/graph_scene.gd @ 86cdd7635582 lines 4552-4554:
+   4552  	push_warning("GraphScene: kicked from presence -- %s" % reason)
+   4553  	_schedule_presence_reconnect()
+   4554  
+../project/xr-client/scripts/graph_scene.gd @ 86cdd7635582 lines 889-893:
+    889  # Presence (/ws/presence) reconnect state. Each graph connection owns its own
+    890  # backoff inside BackendConnection, so no socket's retry can disturb another's.
+    891  var _presence_reconnect_attempts: int = 0
+    892  var _presence_reconnect_timer: float = -1.0
+    893  
+../project/xr-client/scripts/backend_connection.gd @ 86cdd7635582 lines 7-11:
+      7  ##
+      8  ## GraphScene holds one of these per source (`&"visionclaw"`, `&"codescape"`),
+      9  ## each with its own BinaryProtocolClient, so two backends stream side by side
+     10  ## and never share wire ids, caps, reconnect backoff, pins or HTTP requests. The
+     11  ## P3-pre preflight (`rust/tests/two_clients.rs`) showed two clients share the
+../project/xr-client/scripts/graph_scene.gd @ 86cdd7635582 lines 4168-4181:
+   4168  
+   4169  func _backoff_delay(attempts: int) -> float:
+   4170  	return minf(
+   4171  		RECONNECT_BASE_DELAY_SEC * pow(2.0, float(attempts - 1)),
+   4172  		RECONNECT_MAX_DELAY_SEC
+   4173  	)
+   4174  
+   4175  
+   4176  func _schedule_presence_reconnect() -> void:
+   4177  	_presence_reconnect_attempts += 1
+   4178  	_presence_reconnect_timer = _backoff_delay(_presence_reconnect_attempts)
+   4179  	push_warning("GraphScene: presence reconnect attempt %d in %.1fs" % [
+   4180  		_presence_reconnect_attempts, _presence_reconnect_timer])
+   4181  
+../project/xr-client/scripts/backend_connection.gd @ 86cdd7635582 lines 352-355:
+    352  	_set_connected(false)
+    353  	# Pins are kept: a drag-end pin persists server-side (fx/fy/fz) across a
+    354  	# reconnect to the same server, so it is still ours to release on close().
+    355  	if _open and _reconnect_timer < 0.0:
+../project/xr-client/scripts/backend_connection.gd @ 86cdd7635582 lines 272-276:
+    272  	client.send_drag_end(id)
+    273  	# ADR-2172 F3: a drag end records nothing. The server releases the node into the
+    274  	# simulation (it does not pin it), so there is no pin for close() to undo; a
+    275  	# recorded id made every teardown send a nodeUnpin (and a reheat) per node ever dragged.
+    276  	return true
+======================================================================
+PANEL VC-22.2  (docs/diagrams/visionclaw/22-data-authority-provenance-erasure.md)
+## VC-22.2 SQLite schemas (four write-master databases)
+
+```mermaid
+erDiagram
+    SETTINGS {
+        text key PK
+        text owner_pubkey PK
+        text value
+        text description
+        integer updated_at
+    }
+    PHYSICS_PROFILES {
+        text profile_name PK
+        text owner_pubkey PK
+        text settings_json
+        integer updated_at
+    }
+    AUDIT_LOG {
+        integer id PK
+        integer occurred_at
+        text actor_pubkey
+        text request_method
+        text request_path
+        integer status_code
+        text detail_json
+    }
+    SYNC_FILE_METADATA {
+        text file_name PK
+        text sha1
+        integer updated_at
+    }
+    USER_ROLES {
+        text pubkey PK
+        text role
+        text assigned_by
+        integer updated_at
+    }
+    LIVENESS_CANARIES {
+        text canary_id PK
+        text description
+        text kind
+        text owner_repo
+        text wave
+        text sha_at_registration
+        integer registered_at_ms
+    }
+    CANARY_FIRES {
+        integer id PK
+        text canary_id FK
+        text evidence
+        text sha
+        integer fired_at_ms
+    }
+    KPI_AGENT_EVENTS {
+        integer id PK
+        integer event_id
+        integer source_agent_id
+        integer action_type
+        integer observed_at_ms
+        text agent_did
+        text handoff_id
+        integer token_count
+    }
+    KPI_SNAPSHOTS {
+        integer id PK
+        text kpi
+        real value
+        real confidence
+        integer sample_count
+        integer computed_at_ms
+        text sha
+    }
+    KPI_LINEAGE {
+        integer id PK
+        integer snapshot_id FK
+        text source_kind
+        text source_ref
+        real contribution
+    }
+    ENRICHMENT_PROPOSALS {
+        text case_id PK
+        text category
+        text source_iri
+        text proposal_json
+        text status
+        integer created_at
+        integer updated_at
+    }
+    ENRICHMENT_DECISIONS {
+        integer id PK
+        text case_id FK
+        text outcome
+        integer attributed
+        text broker_pubkey
+        integer writeback_triggered
+        integer writeback_committed
+        integer writeback_committed_at_ms
+        text activity_urn
+        text owner_did
+        integer decided_at_ms
+    }
+
+    ENRICHMENT_PROPOSALS ||--o{ ENRICHMENT_DECISIONS : "case_id (sqlite_enrichment_repository.rs:96)"
+    LIVENESS_CANARIES ||--o{ CANARY_FIRES : "canary_id (sqlite_canary_repository.rs:64)"
+    KPI_SNAPSHOTS ||--o{ KPI_LINEAGE : "snapshot_id (sqlite_kpi_repository.rs:104)"
+    SETTINGS ||--|| USER_ROLES : "same settings.sqlite3 connection (role_store.rs:4-5, main.rs:783-787, settings repo opened at app_state.rs:441-447)"
+```
+--- cited source lines at the declared revision
+../project/src/adapters/sqlite_enrichment_repository.rs @ 86cdd7635582 lines 95-97:
+     95      decided_at_ms        INTEGER NOT NULL,
+     96      FOREIGN KEY(case_id) REFERENCES enrichment_proposals(case_id)
+     97  );
+../project/src/adapters/sqlite_canary_repository.rs @ 86cdd7635582 lines 63-65:
+     63      fired_at_ms  INTEGER NOT NULL,
+     64      FOREIGN KEY(canary_id) REFERENCES liveness_canaries(canary_id)
+     65  );
+../project/src/adapters/sqlite_kpi_repository.rs @ 86cdd7635582 lines 103-105:
+    103      id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    104      snapshot_id   INTEGER NOT NULL,
+    105      source_kind   TEXT    NOT NULL,
+../project/src/services/role_store.rs @ 86cdd7635582 lines 3-6:
+      3  //! Backs [`crate::models::rbac::UserRole`] with a dedicated `user_roles` SQLite
+      4  //! table. The table lives in the same database file as settings (it shares the
+      5  //! already-open [`tokio_rusqlite::Connection`]) but is a **separate, isolated
+      6  //! table** — deliberately *not* the user-writable `settings` owner layer — so a
+../project/src/main.rs @ 86cdd7635582 lines 782-788:
+    782          };
+    783          let conn = app_state_data
+    784              .sqlite_settings_repository
+    785              .connection()
+    786              .clone();
+    787          match RoleStore::new(conn).await {
+    788              Ok(store) => {
+../project/src/app_state.rs @ 86cdd7635582 lines 440-448:
+    440          // SQLite settings repository (ADR-11 §D5)
+    441          let settings_db_path = std::path::Path::new(&data_dir).join("settings.sqlite3");
+    442          let sqlite_settings_repo = Arc::new(
+    443              SqliteSettingsRepository::open(&settings_db_path)
+    444                  .await
+    445                  .map_err(|e| format!("Failed to open SQLite settings: {}", e))?,
+    446          );
+    447          let settings_repository: Arc<dyn SettingsRepository> = sqlite_settings_repo.clone();
+    448          let sqlite_settings_repository = sqlite_settings_repo;
+======================================================================
+PANEL AB-17.1  (docs/diagrams/agentbox/17-agent-events-and-provenance-bridge.md)
+## AB-17.1 The agent-event wire envelope — single canonical builder
+
+```mermaid
+classDiagram
+    class AgentEventPublisher {
+        <<agentbox/management-api/utils/agent-event-publisher.js:26 extends EventEmitter>>
+        +Set subscribers
+        +List~object~ eventBuffer
+        +int maxBufferSize
+        +int nextEventId
+        +subscribe(callback) unsubscribe
+        +emitAgentAction(event)
+        +createMcpNotification(event)
+    }
+    class AgentActionType {
+        <<plain object, not frozen, agent-event-publisher.js:17>>
+        QUERY 0 blue
+        UPDATE 1 yellow
+        CREATE 2 green
+        DELETE 3 red
+        LINK 4 purple
+        TRANSFORM 5 cyan
+    }
+    class WireEvent {
+        <<params.event in createMcpNotification:305>>
+        +int version
+        +int id
+        +string source_agent_id
+        +string target_node_id
+        +int action_type
+        +string action_type_name
+        +int timestamp
+        +int duration_ms
+        +string source_urn
+        +string target_urn
+        +string pubkey
+        +string failure_mode
+        +int token_count
+        +string handoff_id
+        +object verification
+        +string authority_class
+        +object metadata
+    }
+    class Notification {
+        <<JSON-RPC 2.0 frame>>
+        +string jsonrpc
+        +string method
+        +object params
+        +int message_type
+        +int protocol_version
+        +string timestamp
+    }
+    AgentEventPublisher --> AgentActionType : numeric action_type, string name derived by reverse lookup
+    AgentEventPublisher --> WireEvent : builds
+    WireEvent --* Notification : params.event
+    note for AgentEventPublisher "INVARIANT — createMcpNotification is the SINGLE canonical wire-envelope builder (agent-event-publisher.js:296-303).<br/>The /v1/agent-events/stream WebSocket and the deprecated MCP-TCP bridge emit through here,<br/>so ADR-013 identity attribution (source_urn / target_urn / pubkey) is kept on those paths.<br/>DRIFT - the live outbound forwarder does NOT: it sends the bare event (agent-event-ws-subscriber.js:147),<br/>which VisionClaw ingest rejects as Malformed. see ES-02, finding W2-01<br/>agentbox is the canonical schema source. VisionClaw mirrors this shape in src/agent_events/schema.rs, PARTIALLY:<br/>that struct has no failure_mode or authority_class field. see ES-02"
+    note for Notification "method notifications/agent_action. message_type 0x23 AGENT_ACTION for binary-frame parity (agent-event-publisher.js:338).<br/>protocol_version 2. version 3 inside the event. eventBuffer is a ring capped at maxBufferSize 1000 — the oldest event is shift()ed out,<br/>but every event is first appended to the durable agentEventArchive, fail-open (agent-event-publisher.js:154-160). see AB-14"
+    note for WireEvent "BYTE-COMPATIBILITY DISCIPLINE — every additive field (failure_mode REC-5, token_count/handoff_id/verification REC-3 CTC,<br/>authority_class REC-6 AC4) is emitted as null when absent, so an existing success-only consumer sees an unchanged frame.<br/>DIVERGENCE — source_urn/target_urn/pubkey are OPTIONAL in Phase 1 and only become required under fail-closed attribution in Phase 5. Phase 5 is not here."
+```
+
+**Drift:** the publisher comment says VisionClaw mirrors this envelope in `src/agent_events/schema.rs` (`agentbox/management-api/utils/agent-event-publisher.js:296-298`), but at VisionClaw `86cdd7635582` `AgentActionEnvelope` carries `source_urn`, `target_urn`, `pubkey`, `token_count`, `handoff_id` and `verification` and no `failure_mode` or `authority_class` field, so serde drops those two wire fields on ingest. The mirror covers the identity and CTC fields only (`agentbox/management-api/utils/agent-event-publisher.js:326`, `agentbox/management-api/utils/agent-event-publisher.js:335`).
+--- cited source lines at the declared revision
+../project/agentbox/management-api/utils/agent-event-publisher.js @ c57d9c0508f4 lines 25-27:
+     25  
+     26  class AgentEventPublisher extends EventEmitter {
+     27    constructor(logger) {
+../project/agentbox/management-api/utils/agent-event-publisher.js @ c57d9c0508f4 lines 16-18:
+     16  // Agent action types matching the Rust binary protocol
+     17  const AgentActionType = {
+     18    QUERY: 0,      // blue - agent querying data
+../project/agentbox/management-api/utils/agent-event-publisher.js @ c57d9c0508f4 lines 295-304:
+    295     *
+    296     * This is the SINGLE canonical wire-envelope builder (ADR-059 §2: agentbox
+    297     * is the canonical schema source; VisionClaw mirrors this shape in
+    298     * src/agent_events/schema.rs). Every transport — the /v1/agent-events/stream
+    299     * WebSocket and the deprecated MCP-TCP bridge — emits through here, so the
+    300     * ADR-013 identity attribution (source_urn / target_urn / pubkey) is never
+    301     * dropped at the federation boundary. The legacy numeric ids are retained for
+    302     * backward compatibility; the URN/pubkey fields are optional in Phase 1 and
+    303     * become required under fail-closed attribution in Phase 5.
+    304     */
+../project/agentbox/management-api/utils/agent-event-ws-subscriber.js @ c57d9c0508f4 lines 146-148:
+    146      try {
+    147        this.ws.send(JSON.stringify(event));
+    148      } catch (err) {
+../project/agentbox/management-api/utils/agent-event-publisher.js @ c57d9c0508f4 lines 337-339:
+    337          },
+    338          message_type: 0x23,   // AGENT_ACTION — binary-frame parity (ADR-059 §1)
+    339          protocol_version: 2,
+../project/agentbox/management-api/utils/agent-event-publisher.js @ c57d9c0508f4 lines 153-161:
+    153      // Buffer the event
+    154      this.eventBuffer.push(fullEvent);
+    155      // Durably archive BEFORE eviction can occur, so the retained record and the
+    156      // archived one never diverge. Fail-open: archiving never breaks an emit.
+    157      try { agentEventArchive.append(fullEvent); } catch { /* archive is best-effort */ }
+    158      if (this.eventBuffer.length > this.maxBufferSize) {
+    159        this.eventBuffer.shift();
+    160      }
+    161  
+../project/agentbox/management-api/utils/agent-event-publisher.js @ c57d9c0508f4 lines 295-299:
+    295     *
+    296     * This is the SINGLE canonical wire-envelope builder (ADR-059 §2: agentbox
+    297     * is the canonical schema source; VisionClaw mirrors this shape in
+    298     * src/agent_events/schema.rs). Every transport — the /v1/agent-events/stream
+    299     * WebSocket and the deprecated MCP-TCP bridge — emits through here, so the
+../project/agentbox/management-api/utils/agent-event-publisher.js @ c57d9c0508f4 lines 325-327:
+    325            // REC-5: MAST failure tag forwarded on the wire (null on success).
+    326            failure_mode: event.failure_mode || null,
+    327            // REC-3: CTC fields on the wire — token burden, handoff-chain id, and
+../project/agentbox/management-api/utils/agent-event-publisher.js @ c57d9c0508f4 lines 334-336:
+    334            // action never ran through the gate (byte-compatible, same discipline).
+    335            authority_class: event.authority_class || null,
+    336            metadata: event.metadata || {}
+
+codex
+- **AB-28.9 — CANNOT-JUDGE.** The excerpts do not establish all cited packaging claims, including `headroom-compress.nix`.
+- **AB-13.4 — WRONG.** The reference-kind group claims federation of both 30000 and 30001; `agentbox.toml:279` includes 30001 but excludes 30000.
+- **AB-31.7 — CANNOT-JUDGE.** The truncated registry and sibling-record excerpts cannot establish the allocation rationale or all external-record claims.
+- **AB-02.3 — CANNOT-JUDGE.** Numerous cited mechanisms lack their implementation excerpts, including hook registration, environment capture and stale-binary quarantine.
+- **AB-36.3 — CANNOT-JUDGE.** Function declarations and calls do not establish the claimed capture, unset, copy-once and revert behaviour.
+- **VC-06.6 — CANNOT-JUDGE.** The excerpts establish different GET/POST stores, but cannot establish repository-wide absence of writers or message senders.
+- **VC-04.5 — CANNOT-JUDGE.** The hybrid-spawn excerpt stops before the claimed message fields and dispatch; the broadcast excerpt does not establish frame type `0x23`.
+- **VC-15.3 — CANNOT-JUDGE.** The refusal is supported, but the excerpts do not establish the clustering algorithms, minimum-node check or numerical modularity threshold.
+- **VC-34.9 — WRONG.** “Unwrap `envelope.data ?? envelope`” contradicts `AgentPollingService.ts:228`: it selects `envelope.data` only when `envelope.data?.nodes` is truthy, not merely when `data` is non-nullish.
+- **VC-36.4 — CANNOT-JUDGE.** `transport.rs:113-120` shows authentication sending, but cannot establish its ordering after Connected or that acceptance is never read.
+- **VC-22.2 — CANNOT-JUDGE.** Sharing a connection does not establish the drawn one-to-one relationship. `sqlite_kpi_repository.rs:104` also does not establish a foreign-key constraint.
+- **AB-17.1 — CANNOT-JUDGE.** No VisionClaw schema or ingest excerpts establish dropped fields or Malformed rejection; the buffer limit of 1000 is also unshown.
+
+0 HOLDS, 2 WRONG, 10 CANNOT-JUDGE.
+tokens used
+49,216
+- **AB-28.9 — CANNOT-JUDGE.** The excerpts do not establish all cited packaging claims, including `headroom-compress.nix`.
+- **AB-13.4 — WRONG.** The reference-kind group claims federation of both 30000 and 30001; `agentbox.toml:279` includes 30001 but excludes 30000.
+- **AB-31.7 — CANNOT-JUDGE.** The truncated registry and sibling-record excerpts cannot establish the allocation rationale or all external-record claims.
+- **AB-02.3 — CANNOT-JUDGE.** Numerous cited mechanisms lack their implementation excerpts, including hook registration, environment capture and stale-binary quarantine.
+- **AB-36.3 — CANNOT-JUDGE.** Function declarations and calls do not establish the claimed capture, unset, copy-once and revert behaviour.
+- **VC-06.6 — CANNOT-JUDGE.** The excerpts establish different GET/POST stores, but cannot establish repository-wide absence of writers or message senders.
+- **VC-04.5 — CANNOT-JUDGE.** The hybrid-spawn excerpt stops before the claimed message fields and dispatch; the broadcast excerpt does not establish frame type `0x23`.
+- **VC-15.3 — CANNOT-JUDGE.** The refusal is supported, but the excerpts do not establish the clustering algorithms, minimum-node check or numerical modularity threshold.
+- **VC-34.9 — WRONG.** “Unwrap `envelope.data ?? envelope`” contradicts `AgentPollingService.ts:228`: it selects `envelope.data` only when `envelope.data?.nodes` is truthy, not merely when `data` is non-nullish.
+- **VC-36.4 — CANNOT-JUDGE.** `transport.rs:113-120` shows authentication sending, but cannot establish its ordering after Connected or that acceptance is never read.
+- **VC-22.2 — CANNOT-JUDGE.** Sharing a connection does not establish the drawn one-to-one relationship. `sqlite_kpi_repository.rs:104` also does not establish a foreign-key constraint.
+- **AB-17.1 — CANNOT-JUDGE.** No VisionClaw schema or ingest excerpts establish dropped fields or Malformed rejection; the buffer limit of 1000 is also unshown.
+
+0 HOLDS, 2 WRONG, 10 CANNOT-JUDGE.
+exit=0

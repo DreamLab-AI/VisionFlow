@@ -1,0 +1,18 @@
+[
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/visionclaw/06-settings-round-trip.md",
+   "report": "docs/estate-review/2026-11-02-w3-vc-c.md", "coverage": "selected-panels",
+   "panels": ["VC-06.1", "VC-06.2", "VC-06.3", "VC-06.4", "VC-06.6", "VC-06.7", "VC-06.8", "VC-06.9"],
+   "basis": "Source tracing at VisionClaw 86cdd76; restamped from 8692b12, every citation re-resolved; strict cite-check and render pass; api-key split-brain, reset-layout snapshot staleness and GPU-refusal divergence are source-only and need runtime confirmation."},
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/visionclaw/07-hexagonal-ports-and-crates.md",
+   "report": "docs/estate-review/2026-11-02-w3-vc-c.md", "coverage": "selected-panels",
+   "panels": ["VC-07.1", "VC-07.2", "VC-07.5", "VC-07.6", "VC-07.7", "VC-07.8", "VC-07.9", "VC-07.12", "VC-07.13"],
+   "basis": "Source tracing at VisionClaw 86cdd76; restamped from 8692b12, every citation re-resolved; strict cite-check and render pass; contracts-crate zero-consumer claim limited to this checkout, crate tests not run."},
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/visionclaw/08-observability-health-and-dev-loop.md",
+   "report": "docs/estate-review/2026-11-02-w3-vc-c.md", "coverage": "selected-panels",
+   "panels": ["VC-08.1", "VC-08.2", "VC-08.3", "VC-08.4", "VC-08.5", "VC-08.9", "VC-08.10", "VC-08.11", "VC-08.12"],
+   "basis": "Source tracing at VisionClaw 86cdd76; restamped from 8692b12, every citation re-resolved; strict cite-check and render pass; probe, watchdog, tap and dev-loop behaviour not exercised at runtime; no image built."},
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/visionclaw/09-config-and-env-flags.md",
+   "report": "docs/estate-review/2026-11-02-w3-vc-c.md", "coverage": "selected-panels",
+   "panels": ["VC-09.1", "VC-09.2", "VC-09.3", "VC-09.4", "VC-09.5", "VC-09.6", "VC-09.7", "VC-09.8", "VC-09.9", "VC-09.10", "VC-09.11", "VC-09.12", "VC-09.13", "VC-09.14", "VC-09.15", "VC-09.16"],
+   "basis": "Source tracing at VisionClaw 86cdd76; restamped from 8692b12, every citation re-resolved; strict cite-check and render pass; env register checked line by line against each read site, Jev proxy routing depends on the deployed image."}
+]

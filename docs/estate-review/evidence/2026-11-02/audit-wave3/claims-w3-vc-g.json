@@ -1,0 +1,68 @@
+[
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/24-acsp-decision-elevation.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-g.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VC-24.1",
+      "VC-24.2",
+      "VC-24.3",
+      "VC-24.4",
+      "VC-24.5",
+      "VC-24.6",
+      "VC-24.8",
+      "VC-24.9",
+      "VC-24.10",
+      "VC-24.11",
+      "VC-24.12",
+      "VC-24.13"
+    ],
+    "basis": "Source tracing at VisionClaw 86cdd7635582 and agentbox c57d9c0508f4; restamped from 8692b12/6500582 with every citation re-resolved and read at the pin; 3 accurate, 1 accurate with limits, 8 corrected (ElevationActor reconciles pending rows only, approved PR-tracking cases lost on restart; expired transition added; DEA and voice producer lines); strict cite-check and render pass (250 citations); relay acceptance, restarts and nostr-sdk reconnect not run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/25-insight-kpi-nlq-semantics.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-g.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VC-25.1",
+      "VC-25.2",
+      "VC-25.3",
+      "VC-25.4",
+      "VC-25.6",
+      "VC-25.7",
+      "VC-25.8",
+      "VC-25.9",
+      "VC-25.10",
+      "VC-25.12",
+      "VC-25.13"
+    ],
+    "basis": "Source tracing at VisionClaw 86cdd7635582; restamped from 8692b12 with every citation re-resolved and read at the pin; 7 accurate, 1 accurate with limits, 3 corrected (NLQ refusals answer 500 not 200, KPI tap and handler lines, MetadataActor start); strict cite-check and render pass (159 citations); no NLQ request or Management API call made."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/26-solid-pod-and-jss.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-g.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VC-26.1",
+      "VC-26.2",
+      "VC-26.3",
+      "VC-26.4",
+      "VC-26.5",
+      "VC-26.6",
+      "VC-26.7",
+      "VC-26.8",
+      "VC-26.9",
+      "VC-26.10",
+      "VC-26.12",
+      "VC-26.13",
+      "VC-26.14"
+    ],
+    "basis": "Source tracing at VisionClaw 86cdd7635582; restamped from 8692b12 with every citation re-resolved and read at the pin; 2 accurate, 11 corrected (nip98 replay path via claim_signed_id with admission cap, /solid writes not bound to the signed payload hash, ldpClient lines, generation-pinned schemaParser redrawn, default features); strict cite-check and render pass (215 citations); pod runtime, WebSocket protocol and fsync durability not exercised."
+  }
+]

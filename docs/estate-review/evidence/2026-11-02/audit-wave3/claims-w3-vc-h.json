@@ -1,0 +1,84 @@
+[
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/27-agent-integration-mcp-relay.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-h.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VC-27.1",
+      "VC-27.2",
+      "VC-27.3",
+      "VC-27.4",
+      "VC-27.5",
+      "VC-27.6",
+      "VC-27.7",
+      "VC-27.8",
+      "VC-27.11",
+      "VC-27.13",
+      "VC-27.14"
+    ],
+    "basis": "Source tracing at VisionClaw 86cdd7635582; restamped from 8692b12 with every citation re-resolved and read at the pin; 7 panels corrected (relay-manager breaker bypass and dead health loop, unreachable orchestrator-unhealthy branch, dead MultiMcpVisualizationActor, stale AgentMonitorActor anchors, ?token= accepted in release on /wss/agent-events), 2 accurate, 2 accurate with limits (no live MCP hub observed); strict cite-check and render pass (394 citations); no runtime, test or deployment evidence."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/28-external-services.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-h.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VC-28.1",
+      "VC-28.2",
+      "VC-28.3",
+      "VC-28.4",
+      "VC-28.5",
+      "VC-28.6",
+      "VC-28.7",
+      "VC-28.9"
+    ],
+    "basis": "Source tracing at VisionClaw 86cdd7635582 and agentbox c57d9c0508f4; restamped from 8692b12/6500582 with every citation re-resolved and read at the pins; 5 panels corrected (three JEV advisories confirmed and fixed in the RAGFlow panels, configuration.md drift, uncited image-gen node labels), 3 accurate; strict cite-check and render pass (283 citations); Jev activation rests on the ADR-2148 close-out, not runtime evidence."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/30-client-boot-and-state.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-h.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VC-30.1",
+      "VC-30.2",
+      "VC-30.3",
+      "VC-30.4",
+      "VC-30.5",
+      "VC-30.6",
+      "VC-30.7",
+      "VC-30.8",
+      "VC-30.9",
+      "VC-30.10",
+      "VC-30.11",
+      "VC-30.12"
+    ],
+    "basis": "Source tracing at VisionClaw 86cdd7635582; restamped from 8692b12 with every citation re-resolved and read at the pin, including range-then-comma tails the gate does not check; 9 panels corrected (dead release-mode auth warning, self-feeding remoteLogger, deleted BotsVisualization/BotsNode replaced by the ADR-2142 marker pass, worker topology and dispose callers), 2 accurate, 1 accurate with limits (runtime stub count); strict cite-check and render pass (495 citations); no browser or test run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/31-client-graph-render-pipeline.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-h.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VC-31.1",
+      "VC-31.2",
+      "VC-31.3",
+      "VC-31.4",
+      "VC-31.5",
+      "VC-31.6",
+      "VC-31.7",
+      "VC-31.8",
+      "VC-31.9",
+      "VC-31.10",
+      "VC-31.11"
+    ],
+    "basis": "Source tracing at VisionClaw 86cdd7635582; restamped from 8692b12 with every citation re-resolved and read at the pin; 9 panels corrected (drawn-positions copy and marker pass replace the SAB-direct hot loop and the deleted agentWorkTargets nudge, useFrame priorities -2/-1/-0.5, flag-based WebGPU gate, three JEV advisories settled), 1 accurate, 1 accurate with limits (WASM view reuse is runtime); strict cite-check and render pass (198 citations); no renderer or WebGPU runtime check."
+  }
+]

@@ -5,7 +5,7 @@ area: visionclaw
 governing:
   - ../project/docs/PROTOCOL-registry.md
   - ../project/docs/BASELINE-architecture.md
-adrs: [ADR-2002, ADR-2019, ADR-2020, ADR-2047, ADR-2057, ADR-2078, ADR-2080, ADR-2139, ADR-2141]
+adrs: [ADR-2002, ADR-2019, ADR-2020, ADR-2047, ADR-2057, ADR-2078, ADR-2080, ADR-2139, ADR-2141, ADR-2142, ADR-2169]
 sources:
   - ../project/docs/BASELINE-architecture.md
   - ../project/docs/PROTOCOL-registry.md
@@ -24,11 +24,13 @@ sources:
   - ../project/client/src/services/BinaryWebSocketProtocol.ts
   - ../project/client/src/services/binaryProtocol/frameTypes.ts
   - ../project/client/src/services/binaryProtocol/agentMessages.ts
+  - ../project/client/src/services/binaryProtocol/agentActionPayload.ts
   - ../project/client/src/services/binaryProtocol/backpressure.ts
   - ../project/client/src/services/binaryProtocol/ssspVoice.ts
   - ../project/client/src/services/nostrAuthService.ts
   - ../project/client/src/types/binaryProtocol.ts
   - ../project/client/src/features/graph/hooks/useGraphEventHandlers.ts
+  - ../project/client/src/features/graph/hooks/dragHeartbeat.ts
   - ../project/client/src/app/AppInitializer.tsx
   - ../project/client/src/store/transientBeamStore.ts
   - ../project/xr-client/rust/src/binary_protocol.rs
@@ -37,6 +39,7 @@ sources:
   - ../project/src/handlers/socket_flow_handler/binary_protocol.rs
   - ../project/crates/visionclaw-domain/src/types/physics_config.rs
   - ../project/src/actors/client_coordinator_actor.rs
+  - ../project/src/handlers/socket_flow_handler/actor_messages.rs
   - ../project/docs/IDENTIFIER-taxonomy.md
   - ../project/client/src/utils/validation.ts
   - ../project/src/handlers/socket_flow_handler/http_handler.rs
@@ -51,7 +54,7 @@ sources:
   - ../project/src/handlers/socket_flow_handler/types.rs
   - ../project/src/handlers/socket_flow_handler/message_routing.rs
   - ../project/src/handlers/socket_flow_handler/position_updates.rs
-verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4}
+verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724}
 ---
 ## VC-32.1 Connect: signed-subprotocol upgrade, dev-mode authenticate message
 ```mermaid
@@ -90,7 +93,7 @@ sequenceDiagram
         end
     end
     S->>S: ws_server.pubkey and is_power_user set from signed_user http_handler.rs:412-415
-    S-->>WS: 101 Switching Protocols, only visionclaw and permessage-deflate are echoed http_handler.rs:8, http_handler.rs:447-450
+    S-->>WS: 101 Switching Protocols, only visionclaw and permessage-deflate are echoed http_handler.rs:10, http_handler.rs:447-450
     WS->>C: onopen index.ts:172
     C->>C: webSocketRegistry.register(graph,url,socket) index.ts:178
     alt signedUpgrade
@@ -107,10 +110,10 @@ sequenceDiagram
     C->>C: notifyConnectionStatusHandlers(true) index.ts:193
     C->>C: startHeartbeat(get) index.ts:194
     C->>C: processMessageQueue(get,set) index.ts:195
-    Note over S: DRIFT: PROTOCOL-registry.md:306-309 says the Authorization header is now the only accepted carrier in a release build.<br/>http_handler.rs:151-169 also accepts the signed Sec-WebSocket-Protocol NIP-98 subprotocol, and that is the carrier this client<br/>uses in every non-dev build (index.ts:165-169). ADR-2058 removed only the ?token= query fallback, which is compiled out of release<br/>(http_handler.rs:186-214). BASELINE-architecture.md:297 still lists the query token as an open divergence, written before ADR-2058 landed.
+    Note over S: DRIFT: PROTOCOL-registry.md:327-330 says the Authorization header is now the only accepted carrier in a release build.<br/>http_handler.rs:151-169 also accepts the signed Sec-WebSocket-Protocol NIP-98 subprotocol, and that is the carrier this client<br/>uses in every non-dev build (index.ts:165-169). ADR-2058 removed only the ?token= query fallback, which is compiled out of release<br/>(http_handler.rs:186-214). BASELINE-architecture.md:320 still lists the query token as an open divergence, written before ADR-2058 landed.
     Note over S: RESOLVED 0d636fd0e (S-7f, accounted for in VC-03.2): a validated Authorization-header session is now carried into signed_user<br/>(http_handler.rs:258-262), so pubkey and is_power_user are set for a header-token client exactly as for the signed-subprotocol client<br/>(http_handler.rs:412-415). Before it the session was checked then dropped and that client stayed anonymous
-    Note over AH: DEBT: the NIP-98 authenticate event branch of sendAuthOnConnect (connectionManager.ts:338-348) is unreachable from its only caller.<br/>index.ts:185 calls it only when signedUpgrade is false, which is exactly when isDevMode() is true, so the dev branch (connectionManager.ts:330)<br/>always wins. The server still handles authenticate (message_routing.rs:34-36), the client just no longer sends the event form
-    Note over S: INVARIANT: the credential subprotocol is never echoed back, only PUBLIC_WS_PROTOCOLS (http_handler.rs:8, http_handler.rs:447-450)
+    Note over AH: DEBT: the NIP-98 authenticate event branch of sendAuthOnConnect (connectionManager.ts:338-348) is unreachable from its only caller.<br/>index.ts:185 calls it only when signedUpgrade is false, which is exactly when isDevMode() is true, so the dev branch (connectionManager.ts:330)<br/>always wins. The server still handles authenticate (message_routing.rs:36-38), the client just no longer sends the event form
+    Note over S: INVARIANT: the credential subprotocol is never echoed back, only PUBLIC_WS_PROTOCOLS (http_handler.rs:10, http_handler.rs:447-450)
 ```
 ## VC-32.2 Reconnect backoff and ping/pong heartbeat (binary silence is not a failure signal)
 ```mermaid
@@ -119,7 +122,7 @@ sequenceDiagram
     participant WS as WebSocket
     participant C as store<br/>websocket/index.ts:211
     participant HB as heartbeat<br/>connectionManager.ts:209
-    participant SRV as SocketFlowServer<br/>types.rs:383
+    participant SRV as SocketFlowServer<br/>types.rs:402
 
     WS-->>C: onclose(event) index.ts:211
     alt event.code in 1000,1001 and event.wasClean index.ts:230-233
@@ -136,15 +139,15 @@ sequenceDiagram
     Note over HB: HEARTBEAT_INTERVAL_MS=30000, HEARTBEAT_TIMEOUT_MS=45000 connectionManager.ts:25-26
     loop every 30000ms after startHeartbeat(get) connectionManager.ts:209-216
         HB->>SRV: socket.send(ping) as a plain text frame connectionManager.ts:250
-        SRV-->>HB: text frame pong, message_routing.rs:18-21
+        SRV-->>HB: text frame pong, message_routing.rs:20-23
         HB->>HB: pong -> handleHeartbeatResponse() binaryFrameDispatcher.ts:127-130, connectionManager.ts:266
         opt no pong within 45000ms
             HB->>WS: handleHeartbeatTimeout closes the socket with 4000 Heartbeat timeout connectionManager.ts:277-283
         end
     end
     Note over C: INVARIANT. liveness is ping/pong only. Binary silence is NOT a failure signal: with acknowledged streaming (ADR-2141) a client that holds the latest positions is sent nothing at all, so the old binary-silence watchdog (probe subscribe, request_full_snapshot, recycle after two unanswered probes) is removed connectionManager.ts:205-207
-    Note over SRV: server side, a second watchdog the client does not see. Since 8d17f1800 the server pings every system.websocket.heartbeatInterval<br/>(types.rs:434-445) and closes with code 1001 once no inbound frame of any kind has arrived for heartbeatTimeout (heartbeat.rs:84-90, types.rs:446-456).<br/>Text and binary frames count as inbound (mod.rs:27-35), so the client text ping above keeps the socket alive. Defaults are 10 s and 60 s (heartbeat.rs:106-112),<br/>a timeout under two intervals is raised to two (heartbeat.rs:35-39)
-    Note over SRV: a connected peer that stops reading is a third case. The server evicts it after the same heartbeat timeout of congestion and closes the socket<br/>from outside the session actor through a dup of the connection fd (types.rs:389-406, transport.rs:10-15), since a blocked write<br/>stops the actor, its heartbeat timer included. A merely full mailbox no longer evicts, it skips one frame (d90064950, VC-13.3), and the chunk it carried is rebuilt after the ack timeout (VC-32.8)
+    Note over SRV: server side, a second watchdog the client does not see. Since 8d17f1800 the server pings every system.websocket.heartbeatInterval<br/>(types.rs:453-464) and closes with code 1001 once no inbound frame of any kind has arrived for heartbeatTimeout (heartbeat.rs:84-90, types.rs:465-475).<br/>Text and binary frames count as inbound (mod.rs:27-35), so the client text ping above keeps the socket alive. Defaults are 10 s and 60 s (heartbeat.rs:106-112),<br/>a timeout under two intervals is raised to two (heartbeat.rs:35-39)
+    Note over SRV: a connected peer that stops reading is a third case. The server evicts it after the same heartbeat timeout of congestion and closes the socket<br/>from outside the session actor through a dup of the connection fd (types.rs:408-425, transport.rs:10-15), since a blocked write<br/>stops the actor, its heartbeat timer included. A merely full mailbox no longer evicts, it skips one frame (d90064950, VC-13.3), and the chunk it carried is rebuilt after the ack timeout (VC-32.8)
 ```
 ## VC-32.3 Binary frame demux: onmessage tag dispatch and the ordered frame queue
 ```mermaid
@@ -152,9 +155,9 @@ sequenceDiagram
     autonumber
     participant WS as WebSocket
     participant MH as createMessageHandler<br/>binaryFrameDispatcher.ts:101
-    participant VB as validateBinaryData<br/>store/websocket/binaryProtocol.ts:182
+    participant VB as validateBinaryData<br/>store/websocket/binaryProtocol.ts:183
     participant SF as BinaryFrameDispatcher<br/>binaryFrameDispatcher.ts:47
-    participant PB as processBinaryData<br/>store/websocket/binaryProtocol.ts:450
+    participant PB as processBinaryData<br/>store/websocket/binaryProtocol.ts:456
 
     WS->>MH: onmessage(event) binaryFrameDispatcher.ts:124
     alt event.data equals pong
@@ -166,11 +169,11 @@ sequenceDiagram
     else text frame
         MH->>MH: JSON.parse then handleTextMessage(message) binaryFrameDispatcher.ts:171-178
     end
-    VB->>VB: read firstByte = view.getUint8(0) store/websocket/binaryProtocol.ts:192
-    alt firstByte is 3(V3), 5(V5) or 0x23(AGENT_ACTION) store/websocket/binaryProtocol.ts:196
+    VB->>VB: read firstByte = view.getUint8(0) store/websocket/binaryProtocol.ts:193
+    alt firstByte is 3(V3), 5(V5) or 0x23(AGENT_ACTION) store/websocket/binaryProtocol.ts:197
         VB-->>SF: dispatcher.handle(buffer) binaryFrameDispatcher.ts:141,157
     else unknown lead byte
-        VB-->>MH: reject, log warn, drop frame store/websocket/binaryProtocol.ts:196, :197
+        VB-->>MH: reject, log warn, drop frame store/websocket/binaryProtocol.ts:197, :198
     end
     SF->>SF: handle(buffer) pushes onto an ordered queue, MAX_QUEUED_FRAMES=256 binaryFrameDispatcher.ts:28,71-80
     opt queue already holds 256 frames
@@ -182,10 +185,11 @@ sequenceDiagram
         SF->>PB: processBinaryData(queue.shift(),get,set) binaryFrameDispatcher.ts:57-60
     end
     Note over SF,PB: the graph worker proxy applies the same rule, an ordered FIFO with a 256-frame backstop where each call resolves when THAT frame has been applied, replacing its newest-wins slot (ADR-2141)<br/>graphWorkerProxy.ts:43, graphWorkerProxy.ts:212, graphWorkerProxy.ts:228
-    PB->>PB: firstByte switch: PROTOCOL_V3/V5 only -> handleLegacyBinaryData store/websocket/binaryProtocol.ts:463, :464
+    PB->>PB: firstByte switch: PROTOCOL_V3/V5 only -> handleLegacyBinaryData store/websocket/binaryProtocol.ts:469, :470
     Note over PB: RESOLVED ADR-2078: PROTOCOL_V2 removed from the accept list. The server<br/>rejects V2 outright (src/utils/binary_protocol.rs:610) so a 0x02 lead byte can<br/>only be a stale sender or a mis-routed payload - it is no longer routed here
-    PB->>PB: firstByte MessageType.AGENT_ACTION(0x23) -> handleAgentActionTagged store/websocket/binaryProtocol.ts:470, :471
-    PB->>PB: else parseHeader(data) then switch(header.type) store/websocket/binaryProtocol.ts:476, :482
+    PB->>PB: firstByte MessageType.AGENT_ACTION(0x23) -> handleAgentActionTagged store/websocket/binaryProtocol.ts:476, :477
+    PB->>PB: else parseHeader(data) then switch(header.type) store/websocket/binaryProtocol.ts:482, :488
+    Note over VB,PB: DEBT: the parseHeader switch is unreachable from the socket. Its only caller is the dispatcher (binaryFrameDispatcher.ts:60), which is fed<br/>only frames validateBinaryData passed, and that accepts lead bytes 3, 5 and 0x23 alone (store/websocket/binaryProtocol.ts:197). The 0x23 and V3/V5 branches<br/>return first (:469-479), so GRAPH_UPDATE, VOICE_DATA, POSITION_UPDATE, AGENT_POSITIONS and the default arm (:488-504) never run. Delete them or admit their tags
     PB-->>SF: promise settles -> finally clears inFlight and re-pumps the queue via queueMicrotask binaryFrameDispatcher.ts:64-68
     Note over PB: ADR-2019 tag byte is registry-governed: byte 0 selects the codec, unknown tags rejected not reinterpreted (docs/PROTOCOL-registry.md tag registry, src/utils/binary_protocol.rs:610, :620)
 ```
@@ -234,11 +238,12 @@ classDiagram
     }
     FramedMessageHeader --> MessageType : selects codec
     FramedMessageHeader --> GraphTypeFlag : graphTypeFlag field
-    note for FramedMessageHeader "createMessage/parseHeader BinaryWebSocketProtocol.ts:73-116. Header size<br/>MESSAGE_HEADER_SIZE=6, GRAPH_UPDATE_HEADER_SIZE=7 (frameTypes.ts:225-226). Used<br/>only for client-to-server encode calls: encodePositionUpdates, encodeAgentState,<br/>encodeSSSPData, encodeControlBits, encodeVoiceChunk, createBroadcastAck,<br/>encodeAgentAction (BinaryWebSocketProtocol.ts:129-295)."
+    note for FramedMessageHeader "createMessage/parseHeader BinaryWebSocketProtocol.ts:73-116. Header size<br/>MESSAGE_HEADER_SIZE=6, GRAPH_UPDATE_HEADER_SIZE=7 (frameTypes.ts:225-226). Used<br/>only by client-to-server encoders: encodePositionUpdates, encodeAgentState,<br/>encodeSSSPData, encodeControlBits, encodeVoiceChunk, flushPositionUpdates and<br/>encodeAgentAction (BinaryWebSocketProtocol.ts:129-224, :293-295). createBroadcastAck is NOT framed:<br/>it writes a bare [0x34] then the 20-byte payload (BinaryWebSocketProtocol.ts:245-255)."
+    note for FramedMessageHeader "DEBT: no client code sends a framed message. The six encode* methods have no caller in client/src<br/>outside tests, and flushPositionUpdates drains pendingPositionUpdates, which only<br/>encodePositionUpdates fills (BinaryWebSocketProtocol.ts:136, :213-216), so the flush sent on<br/>interaction end is always null (graphDataManager.ts:611-614). The envelope is dead outbound as well."
     note for MessageType "RESOLVED ADR-2078. The framed header's version byte is written from<br/>PROTOCOL_VERSION (BinaryWebSocketProtocol.ts:86), which is PROTOCOL_V3=3 (frameTypes.ts:30), and the<br/>comment above it now says so (BinaryWebSocketProtocol.ts:81-84). The old header-local PROTOCOL_V4=4 is<br/>deleted from frameTypes.ts (frameTypes.ts:33-37) so PROTOCOL_V4 now names only the delta node<br/>encoding of VC-32.5, and SUPPORTED_HEADER_VERSIONS is V3 and V5 (frameTypes.ts:39). ADR-2078 also<br/>deleted five enum members with no reference anywhere in client/src: VELOCITY_UPDATE 0x12,<br/>AGENT_STATE_DELTA 0x21, AGENT_HEALTH 0x22, HANDSHAKE 0x32 and HEARTBEAT 0x33 (frameTypes.ts:59-63)."
-    note for MessageType "The enum is frameTypes.ts:65-101. The server's own MessageType has only five tags and this client decodes<br/>just AGENT_ACTION and BROADCAST_ACK from the wire, every other member is client-outbound<br/>only and no evidence the server emits it (frameTypes.ts:45-57). Live position frames are unframed and<br/>lead with a bare 0x03 or 0x05 byte, so they never carry a MessageType at all."
-    note for FramedMessageHeader "DOC-DRIFT. docs/PROTOCOL-registry.md frame tag registry lists only<br/>0x03,0x05,0x23,0x43,0x44 as live server-to-client tags; this client-only outbound<br/>envelope and its MessageType space (0x01,0x02,0x10-0x54) do not appear in that<br/>registry at all."
-    note for MessageType "BROADCAST_ACK 0x34 payload (encodeBroadcastAckPayload/decodeBroadcastAck<br/>backpressure.ts:18-69): BROADCAST_ACK_PAYLOAD_SIZE=20 bytes - sequenceId split<br/>low/high uint32 offset0/4, nodesReceived uint32 offset8, timestamp split<br/>low/high uint32 offset12/16, all littleEndian to avoid BigInt64<br/>(backpressure.ts:26-29,36-39). Ack cadence (ACK_BATCH_SIZE=10) is in VC-32.8."
+    note for MessageType "The enum is frameTypes.ts:65-101. The server's own MessageType has only five tags. The code comment says this client decodes<br/>AGENT_ACTION and BROADCAST_ACK from the wire (frameTypes.ts:45-57). Only AGENT_ACTION is decoded:<br/>decodeBroadcastAck (backpressure.ts:47) has no caller but its own wrapper (BinaryWebSocketProtocol.ts:260),<br/>since 0x34 travels client to server. Every other member is client-outbound only. Live position frames are unframed and<br/>lead with a bare 0x03 or 0x05 byte, so they never carry a MessageType at all."
+    note for FramedMessageHeader "DOC-DRIFT. The docs/PROTOCOL-registry.md frame tag registry lists 0x03, the retired 0x04, 0x05,<br/>0x34 (client to server, no generic header), 0x23, 0x43 and 0x44 (PROTOCOL-registry.md:56-65). This<br/>client-only framed envelope and the rest of its MessageType space (0x01, 0x02, 0x10-0x54) do not<br/>appear in that registry at all."
+    note for MessageType "BROADCAST_ACK 0x34 payload (encodeBroadcastAckPayload/decodeBroadcastAck<br/>backpressure.ts:18-69): BROADCAST_ACK_PAYLOAD_SIZE=20 bytes - sequenceId split<br/>low/high uint32 offset0/4, nodesReceived uint32 offset8, timestamp split<br/>low/high uint32 offset12/16, all littleEndian to avoid BigInt64<br/>(backpressure.ts:26-29,36-39). Every applied V5 chunk is acknowledged, there is no batch<br/>cadence (VC-32.8)."
     note for MessageType "SSSP_DATA 0x31 and VOICE_CHUNK 0x40 payloads (ssspVoice.ts:8-91).<br/>SSSPDataRecord: uint32 nodeId, float32 distance, uint32 parentId, uint16 flags<br/>= 14 bytes (SSSP_DATA_SIZE_V2 frameTypes.ts:230, layout ssspVoice.ts:8-21). VoiceChunkHeader: uint16<br/>agentId, uint16 chunkId, uint8 format, uint16 dataLength = 7 bytes<br/>(VOICE_HEADER_SIZE frameTypes.ts:237) then raw audioData (ssspVoice.ts:49-65). Voice agentId is<br/>uint16 (max 65535) - a wire format separate from the uint32 flag-bit node/agent<br/>id of VC-32.6, no alignment issue (ssspVoice.ts:54-56,82-84)."
 ```
 ## VC-32.5 Server-to-client position wire records: V3, V5 envelope (V4 delta retired, V2 declined)
@@ -283,10 +288,10 @@ classDiagram
     }
     V5Envelope --> V3NodeRecord : wraps
     V4DeltaFrame_RETIRED --> DeltaItem : contained
-    note for V3NodeRecord "CROSS-CHECK OK. client/src/types/binaryProtocol.ts:84-94 offsets match<br/>xr-client/rust/src/binary_protocol.rs:8-11,893-915 exactly: id, pos, vel,<br/>sssp_distance, sssp_parent, cluster_id, anomaly, community_id, centrality. Godot<br/>NODE_RECORD_BYTES=52 (:32) equals client BINARY_NODE_SIZE_V3=52<br/>(types/binaryProtocol.ts:79). No DIVERGENCE."
+    note for V3NodeRecord "CROSS-CHECK OK. client/src/types/binaryProtocol.ts:84-94 offsets match<br/>xr-client/rust/src/binary_protocol.rs:8-11,891-913 exactly: id, pos, vel,<br/>sssp_distance, sssp_parent, cluster_id, anomaly, community_id, centrality. Godot<br/>NODE_RECORD_BYTES=52 (:32) equals client BINARY_NODE_SIZE_V3=52<br/>(types/binaryProtocol.ts:79). No DIVERGENCE."
     note for V2NodeRecord "Declined, not live. The server answers a 0x02 lead byte with Err (src/utils/binary_protocol.rs:610),<br/>its 36-byte stride constant is deleted, and the client declares no 36-byte stride at all (ADR-2057,<br/>types/binaryProtocol.ts:76-79). The shape is kept here only to show what the 52-byte V3 record replaced."
     note for V5Envelope "types/binaryProtocol.ts:328-349 parseV5Nodes reads seqLow at offset1 and seqHigh<br/>at offset5, reconstructs a V3 buffer at offset9. Matches Godot PROTOCOL_V5=0x05<br/>and V5_SEQ_BYTES=8, docs/PROTOCOL-registry.md 0x05 row<br/>(xr-client/rust/src/binary_protocol.rs:29-30)."
-    note for V4DeltaFrame_RETIRED "RETIRED (ADR-2139, ADR-2141). No encoder exists on the server and every decoder refuses the tag: the web parser logs a<br/>decline and applies nothing (client/src/types/binaryProtocol.ts:190-198), the registry keeps 0x04 reserved, never to be reused<br/>(docs/PROTOCOL-registry.md:58). Every position frame is an absolute chunk, so there is nothing to add offsets to.<br/>PROTOCOL_V4 now means only the retired delta tag (client/src/services/binaryProtocol/frameTypes.ts:37)."
+    note for V4DeltaFrame_RETIRED "RETIRED (ADR-2139, ADR-2141). No encoder exists on the server and every decoder refuses the tag: the web parser logs a<br/>decline and applies nothing (client/src/types/binaryProtocol.ts:190-198), the registry keeps 0x04 reserved, never to be reused<br/>(docs/PROTOCOL-registry.md:59). Every position frame is an absolute chunk, so there is nothing to add offsets to.<br/>PROTOCOL_V4 now means only the retired delta tag (client/src/services/binaryProtocol/frameTypes.ts:37)."
 ```
 ## VC-32.6 Wire node-id: type flag bits over the 26-bit id
 ```mermaid
@@ -306,7 +311,8 @@ classDiagram
     WireNodeId --> OntologySubtype : bits26to28 when ontology
     note for WireNodeId "INVARIANT, no DIVERGENCE. Client client/src/types/binaryProtocol.ts:96-107, Godot<br/>decoder xr-client/rust/src/binary_protocol.rs:41-47, and<br/>docs/IDENTIFIER-taxonomy.md:125-130 all agree exactly on mask and flag hex values.<br/>getActualNodeId(nodeId) is nodeId AND NODE_ID_MASK<br/>(types/binaryProtocol.ts:133-135)."
     note for WireNodeId "docs/IDENTIFIER-taxonomy.md:132-142: ids are sequential u32 from a NEXT_NODE_ID<br/>atomic counter. Every encoder branch, the untyped one included, routes through<br/>enforce_wire_id_bounds (src/utils/binary_protocol.rs:185-206): debug_assert fails fast in<br/>development (:186-193) but release does NOT truncate silently. remap_wire_id masks the id into<br/>26 bits and an error! log names the class and both ids (:194-204, ADR-2024). The masked id<br/>still aliases another node, so an over-range id is loud, not harmless."
-    note for WireNodeId "INVARIANT (2026-09-08, 6c47b9833): an id that ALREADY carries a recognised<br/>class pattern is forwarded unchanged by the encoder's last branch, because<br/>position_updates.rs and actor_messages.rs stamp the flag themselves and pass<br/>empty class sets. Running the 26-bit bound check on a stamped id panicked<br/>every broadcast in debug builds - each XR client saw a 2 s connection-reset<br/>loop - and would have stripped the class flag in release<br/>(src/utils/binary_protocol.rs:475-484). Only a high bit that is NOT a class<br/>pattern is still an overflow, handled by the untyped branch (src/utils/binary_protocol.rs:490)."
+    note for WireNodeId "INVARIANT (2026-09-08, 6c47b9833): an id that ALREADY carries a recognised<br/>class pattern is forwarded unchanged by the encoder's last branch. Running the 26-bit<br/>bound check on a stamped id panicked every broadcast in debug builds - each XR client<br/>saw a 2 s connection-reset loop - and would have stripped the class flag in release<br/>(src/utils/binary_protocol.rs:475-484). Only a high bit that is NOT a class<br/>pattern is still an overflow, handled by the untyped branch (src/utils/binary_protocol.rs:490)."
+    note for WireNodeId "DRIFT: the comment at src/utils/binary_protocol.rs:476-480 still says position_updates.rs and<br/>actor_messages.rs stamp the flag themselves. Neither does at this revision: the stamping<br/>requestSwarmTelemetry handler was removed (ADR-2142, message_routing.rs:11-13), and the one live<br/>position encoder passes real class sets (client_coordinator_actor.rs:544-555). The branch is now defensive."
 ```
 ## VC-32.7 getNodeType(): flag precedence decision order
 ```mermaid
@@ -322,7 +328,7 @@ flowchart TD
     E -- no --> F{"nodeId AND ONTOLOGY_TYPE_MASK == PROPERTY_FLAG?<br/>types/binaryProtocol.ts:127"}
     F -- yes --> OP["NodeType.OntologyProperty"]
     F -- no --> UN["NodeType.Unknown  types/binaryProtocol.ts:130"]
-    AG --> G["updateNodeTypeMapFromParsed caches actualId to type<br/>evicting oldest past MAX_NODE_TYPE_ENTRIES=65536<br/>websocket/binaryProtocol.ts:150, :167"]
+    AG --> G["updateNodeTypeMapFromParsed caches actualId to type<br/>evicting oldest past MAX_NODE_TYPE_ENTRIES=65536<br/>websocket/binaryProtocol.ts:151, :168"]
     KN --> G
     OC --> G
     OI --> G
@@ -332,34 +338,34 @@ flowchart TD
 ```mermaid
 sequenceDiagram
     autonumber
-    participant PB as processBinaryData<br/>store/websocket/binaryProtocol.ts:450
+    participant PB as processBinaryData<br/>store/websocket/binaryProtocol.ts:456
     participant FR as parseBinaryFrameData<br/>types/binaryProtocol.ts:357
     participant AN as nodeAnalyticsStore<br/>features/analytics/store/nodeAnalyticsStore
     participant GDM as graphDataManager<br/>features/graph/managers/graphDataManager
     participant SRV as Server /wss
 
-    PB->>PB: handleLegacyBinaryData(data,get,set) store/websocket/binaryProtocol.ts:351
-    PB->>FR: parseBinaryFrameData(data) store/websocket/binaryProtocol.ts:358
-    FR-->>PB: ParsedBinaryFrame nodes, broadcastSequence (V5 only) store/websocket/binaryProtocol.ts:364
-    alt protoByte is PROTOCOL_V3 or PROTOCOL_V5 store/websocket/binaryProtocol.ts:369-370
-        PB->>AN: nodeAnalyticsStore.ingest(parsedNodes) store/websocket/binaryProtocol.ts:371
-    else frame without analytics
-        Note over PB: V2 omits cluster_id/anomaly/community offsets 36/40/44 and must NOT overwrite live analytics store/websocket/binaryProtocol.ts:366-368
+    PB->>PB: handleLegacyBinaryData(data,get,set) store/websocket/binaryProtocol.ts:352
+    PB->>FR: parseBinaryFrameData(data) store/websocket/binaryProtocol.ts:359
+    FR-->>PB: ParsedBinaryFrame nodes, broadcastSequence (V5 only) store/websocket/binaryProtocol.ts:365
+    alt protoByte is PROTOCOL_V3 or PROTOCOL_V5 store/websocket/binaryProtocol.ts:370-371
+        PB->>AN: nodeAnalyticsStore.ingest(parsedNodes) store/websocket/binaryProtocol.ts:372
+    else frame without analytics, reachable only from the dead default arm (VC-32.3)
+        Note over PB: V2 omits cluster_id/anomaly/community offsets 36/40/44 and must NOT overwrite live analytics store/websocket/binaryProtocol.ts:367-369
     end
-    PB->>PB: updateNodeTypeMapFromParsed(parsedNodes,set) store/websocket/binaryProtocol.ts:374
-    opt hasBotsData: any node isAgentNode() store/websocket/binaryProtocol.ts:376
-        PB->>PB: emit(bots-position-update, data) store/websocket/binaryProtocol.ts:378, :379
+    PB->>PB: updateNodeTypeMapFromParsed(parsedNodes,set) store/websocket/binaryProtocol.ts:375
+    opt hasBotsData: any node isAgentNode() store/websocket/binaryProtocol.ts:377
+        PB->>PB: emit(bots-position-update, data) store/websocket/binaryProtocol.ts:379, :380
     end
-    PB->>GDM: graphDataManager.updateNodePositions(data) store/websocket/binaryProtocol.ts:393
+    PB->>GDM: graphDataManager.updateNodePositions(data) store/websocket/binaryProtocol.ts:394
     alt updateNodePositions rejected
-        PB-->>PB: log the error and return WITHOUT acknowledging, the server rebuilds this chunk after its ack timeout store/websocket/binaryProtocol.ts:397-401
+        PB-->>PB: log the error and return WITHOUT acknowledging, the server rebuilds this chunk after its ack timeout store/websocket/binaryProtocol.ts:398-402
     else applied
-        opt frame.broadcastSequence defined (V5) store/websocket/binaryProtocol.ts:406
-            PB->>SRV: sendPositionAck(frame.broadcastSequence, parsedNodes.length) -> createBroadcastAck, [0x34][u64 seq][u32 nodes][u64 ts] with no generic header store/websocket/binaryProtocol.ts:407, :126-137, client/src/services/BinaryWebSocketProtocol.ts:245
+        opt frame.broadcastSequence defined (V5) store/websocket/binaryProtocol.ts:407
+            PB->>SRV: sendPositionAck(frame.broadcastSequence, parsedNodes.length) -> createBroadcastAck, [0x34][u64 seq][u32 nodes][u64 ts] with no generic header store/websocket/binaryProtocol.ts:408, :127-138, client/src/services/BinaryWebSocketProtocol.ts:245
         end
-        Note over PB,SRV: a bare V3 frame carries no sequence and so nothing to name, it is not acknowledged store/websocket/binaryProtocol.ts:403-405
+        Note over PB,SRV: a bare V3 frame carries no sequence and so nothing to name, it is not acknowledged store/websocket/binaryProtocol.ts:404-406
     end
-    Note over PB: framed-header path handlePositionUpdate (MessageType.POSITION_UPDATE/AGENT_POSITIONS, store/websocket/binaryProtocol.ts:302, :491) shares the analytics-cache flow but sends NO acknowledgement, it carries no stream sequence store/websocket/binaryProtocol.ts:347-348
+    Note over PB: framed-header path handlePositionUpdate (MessageType.POSITION_UPDATE/AGENT_POSITIONS, store/websocket/binaryProtocol.ts:303, :497) updates the node-type cache and emits bots-position-update (:320-329)<br/>but ingests NO analytics and sends NO acknowledgement, it carries no stream sequence (:348-349). It is unreachable from the socket, see the VC-32.3 DEBT
 ```
 ## VC-32.9 Position stream start (no subscribe message), de-duplicated filter sync, REST-aware shrink-guard
 ```mermaid
@@ -416,75 +422,88 @@ sequenceDiagram
         GDM->>GDM: setGraphData(data) graphDataManager.ts:270
         TH->>TH: emit graphDataUpdated source websocket_filter textMessageHandler.ts:320-326
     end
-    Note over TH: the connect-time initialGraphLoad is capped at 3,000 nodes, which is why a smaller payload needs the guard textMessageHandler.ts:243-248
+    Note over TH: the connect-time initialGraphLoad is capped at 3,000 nodes, which is why a smaller payload needs the guard textMessageHandler.ts:243-248.<br/>The cap is server-side: physics initialNodeLimit, 0 meaning INITIAL_NODE_LIMIT_DEFAULT 3000, clamped to 100000 (types.rs:251-256, types.rs:551)
+    Note over FS: DRIFT: the filterSync header comment still calls it a 200-node connect-time payload (filterSync.ts:25)
 ```
-## VC-32.10 Drag / pin send path: server-authoritative pin over JSON control frames
+## VC-32.10 Drag send path: a drag is a server-side hold over JSON control frames (ADR-2169)
 ```mermaid
 sequenceDiagram
     autonumber
     participant U as PointerEvent
-    participant EH as useGraphEventHandlers<br/>features/graph/hooks/useGraphEventHandlers.ts:78
-    participant WSS as webSocketService<br/>graphDataManager.webSocketService
-    participant SRV as Server /wss
+    participant EH as useGraphEventHandlers<br/>features/graph/hooks/useGraphEventHandlers.ts:87
+    participant HB as startDragHeartbeat<br/>features/graph/hooks/dragHeartbeat.ts:11
+    participant SRV as SocketFlowServer drag handlers<br/>socket_flow_handler/position_updates.rs:192
 
-    U->>EH: handlePointerDown(event) useGraphEventHandlers.ts:78
-    EH->>EH: dragDataRef.current = pointerDown,nodeId,startNodePos3D useGraphEventHandlers.ts:95-104
-    EH->>EH: startInteraction(node.id) useGraphEventHandlers.ts:120
-    U->>EH: handlePointerMove(event) useGraphEventHandlers.ts:127
-    alt distance greater than DRAG_THRESHOLD(5) useGraphEventHandlers.ts:136
-        EH->>EH: drag.isDragging = true useGraphEventHandlers.ts:137
-        alt graphDataManager.webSocketService.isReady() useGraphEventHandlers.ts:149
-            EH->>SRV: sendMessage(nodeDragStart, nodeId, startPosition) useGraphEventHandlers.ts:150-157
+    U->>EH: handlePointerDown(event) useGraphEventHandlers.ts:87
+    EH->>EH: dragDataRef.current = pointerDown,nodeId,startNodePos3D,currentNodePos3D useGraphEventHandlers.ts:104-113
+    EH->>EH: startInteraction(node.id) useGraphEventHandlers.ts:129
+    U->>EH: handlePointerMove(event) useGraphEventHandlers.ts:136
+    alt distance greater than DRAG_THRESHOLD(5) useGraphEventHandlers.ts:16, useGraphEventHandlers.ts:145
+        EH->>EH: drag.isDragging = true useGraphEventHandlers.ts:146
+        alt graphDataManager.webSocketService.isReady() useGraphEventHandlers.ts:158
+            EH->>SRV: sendMessage(nodeDragStart, nodeId, startPosition) useGraphEventHandlers.ts:159-166
+            SRV->>SRV: authenticated, a free hand (two per connection), then HoldNodes and nodeDragStartAck position_updates.rs:198-201, position_updates.rs:214-220, position_updates.rs:227-241
+            SRV->>SRV: arm check_drag_timeout after drag_timeout_ms (2000) plus 100 position_updates.rs:243-249, types.rs:23
         else not connected or not server-ready
-            Note over EH: send skipped, caught by try/catch - drag state machine still proceeds useGraphEventHandlers.ts:148,159-161
+            Note over EH: send skipped, caught by try/catch - drag state machine still proceeds useGraphEventHandlers.ts:157,168-170
         end
+        EH->>HB: startDragHeartbeat re-sends nodeDragUpdate at currentNodePos3D every 500ms useGraphEventHandlers.ts:171-184, dragHeartbeat.ts:9, dragHeartbeat.ts:15
     end
-    opt drag.isDragging useGraphEventHandlers.ts:170
-        EH->>EH: updateNodePosition(nodeId,intersection) local optimistic move useGraphEventHandlers.ts:207-211
-        EH->>WSS: throttledWebSocketUpdate(nodeId,position) throttle 100ms useGraphEventHandlers.ts:17,54-76,214-218
-        alt shouldSendPositionUpdates() and webSocketService.isReady() useGraphEventHandlers.ts:57-59
-            WSS->>SRV: sendMessage(nodeDragUpdate, nodeId, position, timestamp) useGraphEventHandlers.ts:64-68
+    opt drag.isDragging useGraphEventHandlers.ts:193
+        EH->>EH: updateNodePosition(nodeId,intersection) local optimistic move useGraphEventHandlers.ts:224, useGraphEventHandlers.ts:230-234
+        EH->>SRV: throttledWebSocketUpdate(nodeId,position) throttle 100ms useGraphEventHandlers.ts:18,55-77,237-241
+        alt shouldSendPositionUpdates() and webSocketService.isReady() useGraphEventHandlers.ts:58-60
+            EH->>SRV: sendMessage(nodeDragUpdate, nodeId, position, timestamp) useGraphEventHandlers.ts:65-69
         end
+        SRV->>SRV: an update for an unheld node is an implicit start, one inside MIN_DRAG_INTERVAL_MS is coalesced, not dropped position_updates.rs:282-284, position_updates.rs:306-318
     end
-    U->>EH: handlePointerUp(event) useGraphEventHandlers.ts:223
-    alt drag.isDragging useGraphEventHandlers.ts:241
-        EH->>EH: flushPositionUpdates() useGraphEventHandlers.ts:251
-        alt webSocketService.isReady() useGraphEventHandlers.ts:254
-            EH->>SRV: sendMessage(nodeDragEnd, nodeId) useGraphEventHandlers.ts:255-257
+    U->>EH: handlePointerUp(event) useGraphEventHandlers.ts:246
+    alt drag.isDragging useGraphEventHandlers.ts:264
+        EH->>EH: flushPositionUpdates() useGraphEventHandlers.ts:274
+        alt webSocketService.isReady() useGraphEventHandlers.ts:277
+            EH->>SRV: sendMessage(nodeDragEnd, nodeId) useGraphEventHandlers.ts:278-280
+            SRV->>SRV: land the last pending position, then release_holds, the node rejoins the simulation position_updates.rs:389-401
         end
     else click, not a drag
-        EH->>EH: onNodeSelect(nodeId) useGraphEventHandlers.ts:265-268
+        EH->>EH: onNodeSelect(nodeId) useGraphEventHandlers.ts:288-291
     end
-    Note over SRV: ADR-03 D7 (legacy). pin state is server-authoritative - nodeDragStart pins, nodeDragEnd unpins and runs final settle. the old binary sendNodePositionUpdates second-frame path was removed 2026-06-03 useGraphEventHandlers.ts:60-63,142-144,246-247
+    EH->>HB: stopHeartbeat() useGraphEventHandlers.ts:296
+    Note over SRV: INVARIANT (ADR-2169): a drag is a HOLD, not a pin. nodeDragEnd, a 2 s update gap or a disconnect releases the node back into<br/>the simulation (position_updates.rs:82-85, position_updates.rs:520-544). A lasting anchor is the separate nodePin and nodeUnpin pair<br/>(position_updates.rs:422, position_updates.rs:474, message_routing.rs:60-65), which this web client never sends.<br/>ADR-2169 is accepted with implementation partial and activation inactive, so the hold is source-true, not yet runtime-proven
+    Note over EH: DRIFT: the client comments still describe the retired model, nodeDragStart pins the node server-side and nodeDragEnd unpins<br/>it (useGraphEventHandlers.ts:151-155, useGraphEventHandlers.ts:269-276). The server pins nothing on a drag (position_updates.rs:182-186)
+    Note over EH: the old binary sendNodePositionUpdates second-frame path was removed 2026-06-03 useGraphEventHandlers.ts:61-64
 ```
-## VC-32.11 Agent frame 0x23 (AGENT_ACTION): decode and beam dispatch
+## VC-32.11 Agent frame 0x23 (AGENT_ACTION): decode, state-frame split, beam and registry dispatch
 ```mermaid
 sequenceDiagram
     autonumber
-    participant PB as processBinaryData<br/>store/websocket/binaryProtocol.ts:450
+    participant PB as processBinaryData<br/>store/websocket/binaryProtocol.ts:456
     participant DEC as decodeAgentActions<br/>binaryProtocol/agentMessages.ts:183
     participant BEAM as pushTransientBeams<br/>store/transientBeamStore
-    participant AT as useAgentTargetStore.pushActions<br/>client/src/store/agentTargetStore.ts:31
+    participant AT as useAgentTargetStore.pushActions<br/>client/src/store/agentTargetStore.ts:48
 
-    PB->>PB: firstByte equals MessageType.AGENT_ACTION 0x23 store/websocket/binaryProtocol.ts:470
-    PB->>PB: handleAgentActionTagged(data) store/websocket/binaryProtocol.ts:471 calling fn def :426
-    Note over PB: shipping wire is a bare tag, not a 6-byte framed header - [0x23][u16 count]([u16 len][event])... store/websocket/binaryProtocol.ts:411-416
-    alt data.byteLength greater-or-equal 18 store/websocket/binaryProtocol.ts:427
-        PB->>DEC: decodeAgentActions(data.slice(1)) store/websocket/binaryProtocol.ts:428
+    PB->>PB: firstByte equals MessageType.AGENT_ACTION 0x23 store/websocket/binaryProtocol.ts:476
+    PB->>PB: handleAgentActionTagged(data) store/websocket/binaryProtocol.ts:477 calling fn def :427
+    Note over PB: shipping wire is a bare tag, not a 6-byte framed header - [0x23][u16 count]([u16 len][event])... store/websocket/binaryProtocol.ts:412-417
+    alt data.byteLength greater-or-equal 18 store/websocket/binaryProtocol.ts:428
+        PB->>DEC: decodeAgentActions(data.slice(1)) store/websocket/binaryProtocol.ts:429
     else too small
-        PB->>PB: actions = empty array store/websocket/binaryProtocol.ts:429
+        PB->>PB: actions = empty array store/websocket/binaryProtocol.ts:430
     end
     DEC->>DEC: eventCount = view.getUint16(0) agentMessages.ts:192
     loop for each event, offset advances by 2 plus eventLen agentMessages.ts:195-215
         DEC->>DEC: eventLen = view.getUint16(offset) agentMessages.ts:201
         DEC->>DEC: decodeAgentAction(eventPayload) sourceAgentId,targetNodeId,actionType,timestamp,durationMs agentMessages.ts:153-181,210
     end
-    DEC-->>PB: AgentActionEvent[] passed to dispatchAgentActions store/websocket/binaryProtocol.ts:430
-    opt actions.length greater than 0 store/websocket/binaryProtocol.ts:434
-        PB->>PB: emit(agent-action, actions) live transcript and attention heat store/websocket/binaryProtocol.ts:436
-        PB->>BEAM: pushTransientBeams(actions) TransientBeamsLayer sink store/websocket/binaryProtocol.ts:439
-        PB->>AT: useAgentTargetStore.getState().pushActions(actions)<br/>store/websocket/binaryProtocol.ts:441
-        Note over PB,AT: 2026-09-11 (dcf5a1069): a THIRD sink on the same decoded batch,<br/>feeding the desktop momentum nudge in BotsVisualization. Each sink is<br/>pushed in parallel so none can starve the others.<br/>client/src/store/agentTargetStore.ts:19, :27
+    DEC-->>PB: AgentActionEvent[] passed to dispatchAgentActions store/websocket/binaryProtocol.ts:431
+    opt actions.length greater than 0 store/websocket/binaryProtocol.ts:435
+        PB->>PB: work = the batch minus state frames (payload carries a lifecycle state) store/websocket/binaryProtocol.ts:438, agentActionPayload.ts:52-55
+        opt work.length greater than 0 store/websocket/binaryProtocol.ts:439
+            PB->>PB: emit(agent-action, work) live transcript and attention heat store/websocket/binaryProtocol.ts:441
+            PB->>BEAM: pushTransientBeams(work) TransientBeamsLayer sink, which filters state frames again store/websocket/binaryProtocol.ts:444, transientBeamStore.ts:119, transientBeamStore.ts:70-72
+        end
+        PB->>AT: useAgentTargetStore.getState().pushActions(actions), the WHOLE batch state frames included<br/>store/websocket/binaryProtocol.ts:447
+        Note over PB,AT: the agent registry (ADR-2142, ADR-2135): per source id the latest target node, presence time and lifecycle.<br/>A retired state frame removes the agent at once, the 30 s presence window is the backstop<br/>agentTargetStore.ts:1-13, agentTargetStore.ts:55-57, agentTargetStore.ts:62-65
+        Note over PB,AT: a state frame (the 5 s keep-alive) reaches the registry only, never a beam, heat, drift credit or transcript line store/websocket/binaryProtocol.ts:436-437
     end
     Note over PB: AGENT_ACTION_HEADER_SIZE=15 bytes: sourceAgentId u32@0, targetNodeId u32@4, actionType u8@8, timestamp u32@9, durationMs u16@13, optional payload from @15 frameTypes.ts:215,agentMessages.ts:161-165
 ```
@@ -494,7 +513,7 @@ sequenceDiagram
     autonumber
     participant CC as ClientCoordinator.pump_one<br/>src/actors/client_coordinator_actor.rs:442
     participant CS as ClientStream<br/>src/actors/position_stream.rs:79
-    participant CL as web client<br/>store/websocket/binaryProtocol.ts:351
+    participant CL as web client<br/>store/websocket/binaryProtocol.ts:352
     participant DEC as decode_broadcast_ack<br/>src/utils/binary_protocol.rs:1866
 
     CC->>CS: is_waiting(now, ack_timeout)? src/actors/position_stream.rs:104
@@ -507,12 +526,12 @@ sequenceDiagram
         CC->>CL: V5 frame [0x05][u64 sequence][52-byte records], absolute positions, fresh sequence src/actors/client_coordinator_actor.rs:530
         CC->>CS: record_sent(seq, positions) -- a still-unacknowledged earlier chunk lengthens the backoff src/actors/position_stream.rs:185
     end
-    CL->>CL: apply the chunk in arrival order (VC-32.3, VC-32.8) store/websocket/binaryProtocol.ts:392
-    CL->>DEC: 0x34 acknowledgement of that sequence, only after the chunk was applied store/websocket/binaryProtocol.ts:406-407
+    CL->>CL: apply the chunk in arrival order (VC-32.3, VC-32.8) store/websocket/binaryProtocol.ts:393
+    CL->>DEC: 0x34 acknowledgement of that sequence, only after the chunk was applied store/websocket/binaryProtocol.ts:407-408
     DEC->>CC: ClientBroadcastAck { sequence } src/handlers/socket_flow_handler/binary_protocol.rs:67-81
     CC->>CS: acknowledge(seq) -- the chunk's nodes become the client's held state, never moving it backwards src/actors/position_stream.rs:225
     Note over CS: LATE ACKS: the last 8 sent chunks stay on the in-flight list so a slow client's acknowledgement still commits (IN_FLIGHT_HISTORY=8 src/actors/position_stream.rs:64).<br/>BACKOFF: each consecutive timeout doubles the wait up to 8x, any acknowledgement resets it (MAX_BACKOFF_DOUBLINGS=3, effective_timeout src/actors/position_stream.rs:68, :99)
-    Note over CC,CL: settings physics.streamChunkNodes 2500, streamMoveThreshold 0.05, streamAckTimeoutMs 500 are the stored defaults crates/visionclaw-domain/src/types/physics_config.rs:24, :37, :46
+    Note over CC,CL: settings physics.streamChunkNodes 2500, streamMoveThreshold 0.05, streamAckTimeoutMs 500 are the stored defaults crates/visionclaw-domain/src/types/physics_config.rs:25, :38, :47
     Note over CC,CL: INVARIANT. there is no connect-time position frame and no deltas. A new or reconnecting client has acknowledged nothing, so its first sync is this same mechanism. Delivery stops entirely once every client is current. ADR-2141 is accepted and complete with activation_status staged
     Note over CL: DEBT. the web queue is bounded at 256 frames and drops the OLDEST on overflow (binaryFrameDispatcher.ts:28,72-76), so "clients drop none" in ADR-2141 decision 6 is not literally true. The dropped chunk is unacknowledged and the server rebuilds it after the timeout
 ```
@@ -523,16 +542,16 @@ classDiagram
     class ClientToServer {
       authenticate  token/pubkey/ephemeral in dev mode only, the event form is unreachable from the client since the signed subprotocol (VC-32.1)  connectionManager.ts:332-343
       filter_update  enabled,quality_threshold,authority_threshold,filter_by_quality,filter_by_authority,filter_mode,include_linked_pages  index.ts:360-383
-      BroadcastAck (binary 0x34, not JSON)  [0x34][u64 sequence][u32 nodes][u64 timestamp_ms], sent after a chunk is applied  BinaryWebSocketProtocol.ts:245, store/websocket/binaryProtocol.ts:407
-      REMOVED ADR-2141  subscribe_position_updates and request_full_snapshot have no sender or handler, message_routing.rs:13-14 states there is no position request message
-      nodeDragStart  nodeId,position  useGraphEventHandlers.ts:150-157
-      nodeDragUpdate  nodeId,position,timestamp  useGraphEventHandlers.ts:64-68
-      nodeDragEnd  nodeId  useGraphEventHandlers.ts:255-257
-      ping  raw string, not JSON, answered by a raw pong  connectionManager.ts:250, message_routing.rs:18-21
+      BroadcastAck (binary 0x34, not JSON)  [0x34][u64 sequence][u32 nodes][u64 timestamp_ms], sent after a chunk is applied  BinaryWebSocketProtocol.ts:245, store/websocket/binaryProtocol.ts:408
+      REMOVED ADR-2141  subscribe_position_updates and request_full_snapshot have no sender or handler, message_routing.rs:15-16 states there is no position request message
+      nodeDragStart  nodeId,position  useGraphEventHandlers.ts:159-166
+      nodeDragUpdate  nodeId,position,timestamp  useGraphEventHandlers.ts:65-69
+      nodeDragEnd  nodeId  useGraphEventHandlers.ts:278-280
+      ping  raw string, not JSON, answered by a raw pong  connectionManager.ts:250, message_routing.rs:20-23
     }
     class ServerToClient {
       connection_established  sets isServerReady  textMessageHandler.ts:90-95
-      error  category:validation|server|protocol|auth|rate_limit, code, retryable, retryAfter  types.ts:14-23,store/websocket/binaryProtocol.ts:206, dispatched textMessageHandler.ts:97-104
+      error  category:validation|server|protocol|auth|rate_limit, code, retryable, retryAfter  types.ts:14-23,store/websocket/binaryProtocol.ts:207, dispatched textMessageHandler.ts:97-104
       filter_update_success  data.visible_nodes,data.total_nodes  textMessageHandler.ts:106-114
       initialGraphLoad  nodes,edges  textMessageHandler.ts:116-118,226-330
       memory_flash  data forwarded to memoryFlash event  textMessageHandler.ts:121-123
@@ -543,7 +562,7 @@ classDiagram
     ClientToServer --> ServerToClient : request/response over one socket
     note for ClientToServer "sent via store websocket/index.ts sendMessage(type,data) JSON.stringify(type,data)<br/>index.ts:301-330. Queued to messageQueue (MAX_QUEUE_SIZE=100) when not connected,<br/>connectionManager.ts:27,149-168."
     note for ServerToClient "dispatched by handleTextMessage after JSON.parse and validateMessage(type is<br/>nonempty string, length less-or-equal 100)<br/>websocket/binaryFrameDispatcher.ts:86-94,textMessageHandler.ts:80-143."
-    note for ServerToClient "RESOLVED ADR-2080 settingsUpdated now HAS a consumer. The server emitted<br/>it from src/settings/api/settings_routes.rs:450,1003 while the only client knowledge was<br/>validation.ts:274 case settings_update (snake_case, different shape) - every broadcast fell<br/>through to the default arm and did nothing, so two viewers saw different physics until one<br/>reloaded. nodeFilter applies the supplied settings directly. other categories re-read via<br/>getSectionPaths plus getSettingsByPaths. own-write echo and stale timestamps are dropped.<br/>Contract fixed by vc-core ADR-2047. settings_update is dead on the wire and left in place"
+    note for ServerToClient "RESOLVED ADR-2080 settingsUpdated now HAS a consumer. The server emitted<br/>it from src/settings/api/settings_routes.rs:444,1112 while the only client knowledge was<br/>validation.ts:274 case settings_update (snake_case, different shape) - every broadcast fell<br/>through to the default arm and did nothing, so two viewers saw different physics until one<br/>reloaded. nodeFilter applies the supplied settings directly. other categories re-read via<br/>getSectionPaths plus getSettingsByPaths. own-write echo and stale timestamps are dropped.<br/>Contract fixed by vc-core ADR-2047. settings_update is dead on the wire and left in place"
     note for ServerToClient "GRAPH_UPDATED shrink-guard: a smaller initialGraphLoad is discarded unless<br/>isFilterResponseExpected() is true within the 15000ms window, armed only for an<br/>enabled filter, and a REST load in flight defers the whole payload - see VC-32.9.<br/>textMessageHandler.ts:232-267,filterSync.ts:29-42,124-128"
 ```
 ## VC-32.16 solidWebSocket: JSS resource-notification boundary

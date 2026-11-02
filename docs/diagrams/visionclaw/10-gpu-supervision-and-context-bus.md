@@ -26,21 +26,21 @@ sources:
   - ../project/src/actors/gpu/connected_components_actor.rs
   - ../project/src/actors/physics_orchestrator_actor.rs
   - ../project/src/app_state.rs
-verified_commit: 8692b12ba987ecb87165566beb7c320a2446e4b4
+verified_commit: 86cdd76355823a51bb64d503c005fe277726e724
 ---
 
 ## VC-10.1 GPU supervision tree
 
 ```mermaid
 flowchart TD
-    APP["AppState::new<br/>src/app_state.rs:943 starts GPUManagerActor"]
+    APP["AppState::new<br/>src/app_state.rs:958 starts GPUManagerActor"]
     GM["GPUManagerActor<br/>gpu_manager_actor.rs:57 struct, :146 impl Actor"]
     RS["ResourceSupervisor<br/>resource_supervisor.rs:40 struct, :353 impl Actor"]
     PS["PhysicsSupervisor<br/>physics_supervisor.rs"]
     AS["AnalyticsSupervisor<br/>analytics_supervisor.rs"]
     GAS["GraphAnalyticsSupervisor<br/>graph_analytics_supervisor.rs"]
     GRA["GPUResourceActor<br/>gpu_resource_actor.rs:451 InitializeGPU"]
-    FCA["ForceComputeActor<br/>force_compute_actor.rs:1746 ComputeForces"]
+    FCA["ForceComputeActor<br/>force_compute_actor.rs:1779 ComputeForces"]
     SMA["StressMajorizationActor<br/>stress_majorization_actor.rs:311"]
     CA["ConstraintActor<br/>constraint_actor.rs:199"]
     OCA["OntologyConstraintActor<br/>ontology_constraint_actor.rs:374"]
@@ -87,7 +87,7 @@ flowchart TD
 ```mermaid
 sequenceDiagram
     autonumber
-    participant APP as AppState::new<br/>src/app_state.rs:943
+    participant APP as AppState::new<br/>src/app_state.rs:958
     participant GM as GPUManagerActor<br/>gpu_manager_actor.rs:259
     participant RS as ResourceSupervisor<br/>resource_supervisor.rs:40
     participant GRA as GPUResourceActor<br/>gpu_resource_actor.rs:451
@@ -159,14 +159,14 @@ sequenceDiagram
         rect rgb(250,235,220)
             Note over RS,BUS: SECONDARY PATH - comment reads "the bus is a SUPPLEMENTARY broadcast" (resource_supervisor.rs:235-237)
             RS->>BUS: context_bus.publish(context) (resource_supervisor.rs:238)
-            BUS-->>RS: receiver_count (context_bus.rs:102, a send Err when nobody subscribed maps to 0 via unwrap_or_default on the same line)
+            BUS-->>RS: receiver_count (context_bus.rs:103, sender.send - a send Err when nobody subscribed maps to 0 via unwrap_or_default)
         end
         RS->>RS: pending_graph_data = None (resource_supervisor.rs:252)
     end
     Note over RS,BUS: RESOLVED ADR-2053: direct point-to-point delivery is now the DECLARED authoritative mechanism - the bus is a supplementary broadcast for non-supervisor observers and a zero receiver count is normal
     Note over RS,BUS: RESOLVED ADR-2053 + ADR-2060: BASELINE said "not a central handle" - corrected to describe the code, which delivers direct-first and publishes to the bus as a supplement
     Note over RS: RESOLVED ADR-2053: try_send results are now inspected - a failure logs error!, is recorded in context_delivery_failures, and forces get_health to report Degraded instead of Healthy
-    Note over RS,BUS: RECORDED in the ADR-2053 addendum of 2026-10-12 (commit 31c87da5e): the supervisor chain is the<br/>authoritative path but NOT the only one - ForceComputeActor::initialize_own_gpu_context (force_compute_actor.rs:649) builds a SharedGPUContext<br/>itself when none has arrived, a deliberate bounded fallback for boot-time message races, see VC-10.6
+    Note over RS,BUS: RECORDED in the ADR-2053 addendum of 2026-10-12 (commit 31c87da5e): the supervisor chain is the<br/>authoritative path but NOT the only one - ForceComputeActor::initialize_own_gpu_context (force_compute_actor.rs:667) builds a SharedGPUContext<br/>itself when none has arrived, a deliberate bounded fallback for boot-time message races, see VC-10.6
 ```
 
 ## VC-10.4 GPU readiness lifecycle
@@ -183,7 +183,7 @@ stateDiagram-v2
     NotStarted --> InProgress: InitializeGPU handler (resource_supervisor.rs:388-391)
     InProgress --> Completed: Ok(_) within timeouts.total 60s (resource_supervisor.rs:444)
     InProgress --> TimedOut: Err(e), e contains "timed out" (resource_supervisor.rs:455-457)
-    InProgress --> Failed: Err(e), any other error e.g. mailbox (resource_supervisor.rs:455-456,460)
+    InProgress --> Failed: Err(e), any other error e.g. mailbox (resource_supervisor.rs:455-456, :460)
     TimedOut --> Failed: handle_init_failure (resource_supervisor.rs:256-259)
     Failed --> NotStarted: ctx.run_later(delay) re-spawns GPUResourceActor (resource_supervisor.rs:286-290)
     Failed --> [*]: failure_count > policy.max_restarts - give up (resource_supervisor.rs:265-271)
@@ -197,7 +197,8 @@ stateDiagram-v2
     end note
     note right of Completed
         get_health (resource_supervisor.rs:294) maps state to SubsystemStatus
-        Completed AND has_context to Healthy (:304-306)
+        Completed AND has_context AND no context_delivery_failures to Healthy (:304-306)
+        Completed AND has_context with a delivery failure to Degraded (:307)
         InProgress or NotStarted to Initializing (:308-309)
         Failed or TimedOut to Degraded (:310-312)
     end note
@@ -238,36 +239,36 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant FCA as ForceComputeActor<br/>force_compute_actor.rs:649 initialize_own_gpu_context
+    participant FCA as ForceComputeActor<br/>force_compute_actor.rs:667 initialize_own_gpu_context
     participant RS as ResourceSupervisor<br/>resource_supervisor.rs:129
     participant PS as PhysicsSupervisor<br/>physics_supervisor.rs:805
 
-    Note over FCA: Fields gpu_self_init_attempts :162, gpu_self_init_max_retries :164 (initialised to 3 at :259), gpu_self_init_last_attempt :166
-    Note over FCA: Self-init is attempted from three sites - Actor::started (force_compute_actor.rs:1719), the first ComputeForces step while shared_context is None (:1807), and the UpdateGPUGraphData path (:3133)
-    alt shared_context already present (force_compute_actor.rs:650)
-        Note over FCA: trace "GPU context already present, skipping self-init" - supervisor-supplied context wins (:651)
-    else attempts >= max_retries (force_compute_actor.rs:656)
-        Note over FCA: trace "GPU self-init exhausted all 3 retries, skipping" (:657-660) - actor stays without a context permanently
-    else backoff not elapsed (force_compute_actor.rs:666-675)
-        Note over FCA: backoff_secs = 1u64 << (attempts - 1) (:668) giving 1s then 2s then 4s
+    Note over FCA: Fields gpu_self_init_attempts :176, gpu_self_init_max_retries :178 (initialised to 3 at :276), gpu_self_init_last_attempt :180
+    Note over FCA: Self-init is attempted from four sites - Actor::started (force_compute_actor.rs:1752), the first ComputeForces step while shared_context is None (:1840),<br/>the InitializeGPU handler (:3108) and the UpdateGPUGraphData path (:3175)
+    alt shared_context already present (force_compute_actor.rs:668)
+        Note over FCA: trace "GPU context already present, skipping self-init" - supervisor-supplied context wins (:669)
+    else attempts >= max_retries (force_compute_actor.rs:674)
+        Note over FCA: trace "GPU self-init exhausted all 3 retries, skipping" (:675-678) - actor stays without a context permanently
+    else backoff not elapsed (force_compute_actor.rs:684-693)
+        Note over FCA: backoff_secs = 1u64 << (attempts - 1) (:686) giving 1s then 2s then 4s
     else proceed
-        FCA->>FCA: gpu_self_init_attempts += 1 :679, gpu_self_init_last_attempt = now :680
+        FCA->>FCA: gpu_self_init_attempts += 1 :697, gpu_self_init_last_attempt = now :698
         FCA->>FCA: create its own CUDA context
     end
     RS->>PS: SetSharedGPUContext resource_supervisor.rs:151
-    PS->>FCA: SetSharedGPUContext (force_compute_actor.rs:3496, impl Handler)
-    alt had_context true (force_compute_actor.rs:3500)
-        Note over FCA: info "Received SharedGPUContext from supervisor chain (replacing self-initialized context)" (force_compute_actor.rs:3502)
+    PS->>FCA: SetSharedGPUContext (force_compute_actor.rs:3538, impl Handler)
+    alt had_context true (force_compute_actor.rs:3542)
+        Note over FCA: info "Received SharedGPUContext from supervisor chain (replacing self-initialized context)" (force_compute_actor.rs:3544)
     else first context
-        Note over FCA: info "Received SharedGPUContext from supervisor chain" (force_compute_actor.rs:3504)
+        Note over FCA: info "Received SharedGPUContext from supervisor chain" (force_compute_actor.rs:3546)
     end
-    FCA->>FCA: shared_context = Some(msg.context) (force_compute_actor.rs:3511) then gpu_state.is_initialized = true (force_compute_actor.rs:3520)
-    opt pending_graph_data is Some (force_compute_actor.rs:3525)
-        FCA->>FCA: try_upload_pending_graph_data (force_compute_actor.rs:3527)
+    FCA->>FCA: shared_context = Some(msg.context) (force_compute_actor.rs:3553), constraints_dirty = true (:3554) then gpu_state.is_initialized = true (force_compute_actor.rs:3563)
+    opt pending_graph_data is Some (force_compute_actor.rs:3568)
+        FCA->>FCA: try_upload_pending_graph_data (force_compute_actor.rs:3570)
     end
-    Note over FCA,PS: INVARIANT: the externally supplied context always replaces a self-created one so every GPU actor shares one CUDA device and stream force_compute_actor.rs:3507-3510
-    Note over FCA: DIVERGENCE, RECORDED as deliberate by the ADR-2053 addendum of 2026-10-12 (commit 31c87da5e): self-init is a second,<br/>unsupervised path to a CUDA context that bypasses ResourceSupervisor timeouts and backoff. It runs only while shared_context is None and a delivered<br/>context always wins (force_compute_actor.rs:650-651), it is bounded by 3 retries with 1s 2s 4s backoff (force_compute_actor.rs:656-675), and the ADR<br/>states that a context built this way is invisible to ResourceSupervisor accounting and GetSubsystemHealth, so the boot line "GPU context<br/>self-initialized successfully" (force_compute_actor.rs:829) means the supervisor path failed. The ADR sets a review trigger: remove the fallback once<br/>delivery has been boot-reliable across a release
-    Note over FCA: InitializeGPU (force_compute_actor.rs:3036) deliberately does NOT set gpu_state.num_nodes - that happens only after a successful upload, preventing ComputeForces on uninitialised buffers and CUDA mutex poisoning (force_compute_actor.rs:3048-3050)
+    Note over FCA,PS: INVARIANT: the externally supplied context always replaces a self-created one so every GPU actor shares one CUDA device and stream force_compute_actor.rs:3549-3552
+    Note over FCA: DIVERGENCE, RECORDED as deliberate by the ADR-2053 addendum of 2026-10-12 (commit 31c87da5e): self-init is a second,<br/>unsupervised path to a CUDA context that bypasses ResourceSupervisor timeouts and backoff. It runs only while shared_context is None and a delivered<br/>context always wins (force_compute_actor.rs:668-669), it is bounded by 3 retries with 1s 2s 4s backoff (force_compute_actor.rs:674-693), and the ADR<br/>states that a context built this way is invisible to ResourceSupervisor accounting and GetSubsystemHealth, so the boot line "GPU context<br/>self-initialized successfully" (force_compute_actor.rs:848) means the supervisor path failed. The ADR sets a review trigger: remove the fallback once<br/>delivery has been boot-reliable across a release
+    Note over FCA: InitializeGPU (force_compute_actor.rs:3078) deliberately does NOT set gpu_state.num_nodes - that happens only after a successful upload, preventing ComputeForces on uninitialised buffers and CUDA mutex poisoning (force_compute_actor.rs:3090-3092)
 ```
 
 ## VC-10.7 PhysicsSupervisor AllForOne restart and re-attachment of the ForceComputeActor
@@ -275,13 +276,13 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant APP as AppState::new<br/>src/app_state.rs:1024
+    participant APP as AppState::new<br/>src/app_state.rs:1039
     participant GM as GPUManagerActor<br/>gpu_manager_actor.rs:714
     participant PS as PhysicsSupervisor<br/>physics_supervisor.rs:380 restart_actor
-    participant FCA as ForceComputeActor (new)<br/>force_compute_actor.rs:1713
-    participant PO as PhysicsOrchestratorActor<br/>src/actors/physics_orchestrator_actor.rs:1214
+    participant FCA as ForceComputeActor (new)<br/>force_compute_actor.rs:1746
+    participant PO as PhysicsOrchestratorActor<br/>src/actors/physics_orchestrator_actor.rs:1246
 
-    APP->>GM: SetPhysicsSettingsSource (app_state.rs:1024)
+    APP->>GM: SetPhysicsSettingsSource (app_state.rs:1039)
     GM->>PS: do_send(SetPhysicsSettingsSource) (gpu_manager_actor.rs:717-719)
     PS->>PS: settings_source = Some(repo), restore_saved_physics (physics_supervisor.rs:787-790)
     Note over GM,PS: SubscribeForceComputeReplaced is forwarded the same way (gpu_manager_actor.rs:696-707) and appended to replacement_subscribers (physics_supervisor.rs:776-777)
@@ -289,10 +290,10 @@ sequenceDiagram
     PS->>PS: restart_actor drops every child address and marks them stopped (physics_supervisor.rs:380-409), AllForOne because the children share one SharedGPUContext mutex (:374-379)
     PS->>FCA: Actor::create via force_compute_factory, mailbox capacity 2048 (physics_supervisor.rs:418-423)
     PS->>PS: re-spawn StressMajorization, Constraint and OntologyConstraint actors, re-wire SetForceComputeAddr (physics_supervisor.rs:428-450)
-    FCA->>FCA: started calls initialize_own_gpu_context (force_compute_actor.rs:1719), the new actor starts on compiled-in defaults
+    FCA->>FCA: started calls initialize_own_gpu_context (force_compute_actor.rs:1752), the new actor starts on compiled-in defaults
     PS->>FCA: restore_saved_physics loads the saved physics row and pushes it (physics_supervisor.rs:456, :203-213)
     PS->>PO: ForceComputeActorReplaced{addr} to each live subscriber (physics_supervisor.rs:461-465)
-    PO->>PO: gpu_initialized = false, gpu_compute_addr = new addr, initialize_gpu_if_needed re-sends the graph (physics_orchestrator_actor.rs:1222-1227)
+    PO->>PO: gpu_initialized = false, gpu_compute_addr = new addr, initialize_gpu_if_needed re-sends the graph (physics_orchestrator_actor.rs:1254-1259)
     Note over PS: INVARIANT: every ForceComputeActor replacement is announced to all subscribers so no holder keeps the dead address (physics_supervisor.rs:459-468)
     Note over PS: DEBT: the restart log line says "all 5 physics actors re-spawned" (physics_supervisor.rs:453) but the supervisor now manages four, since SemanticForcesActor was removed (physics_supervisor.rs:154-185)
 ```
@@ -302,8 +303,8 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant PO as PhysicsOrchestratorActor<br/>src/actors/physics_orchestrator_actor.rs:368
-    participant FCA as ForceComputeActor<br/>force_compute_actor.rs:1573
+    participant PO as PhysicsOrchestratorActor<br/>src/actors/physics_orchestrator_actor.rs:383
+    participant FCA as ForceComputeActor<br/>force_compute_actor.rs:1592
     participant SMA as StressMajorizationActor<br/>stress_majorization_actor.rs:95
     participant CCA as ConnectedComponentsActor<br/>connected_components_actor.rs:82
     participant OCA as OntologyConstraintActor<br/>ontology_constraint_actor.rs:256
@@ -311,18 +312,18 @@ sequenceDiagram
 
     Note over PO,GRA: There is NO single system-wide CPU fallback - each actor degrades differently, so "GPU absent" is not one branch
     PO->>PO: physics step with no GPU
-    alt cpu_fallback_warned is false src/actors/physics_orchestrator_actor.rs:585
-        Note over PO: warn "CPU physics fallback not implemented - GPU compute is mandatory" once<br/>then cpu_fallback_warned = true :587 (field declared :115-116, initialised false :230)
+    alt cpu_fallback_warned is false src/actors/physics_orchestrator_actor.rs:600
+        Note over PO: warn "CPU physics fallback not implemented - GPU compute is mandatory" once<br/>then cpu_fallback_warned = true :602 (field declared :119-120, initialised false :235)
     end
-    Note over PO: on the CPU path no PhysicsStepCompleted message comes back<br/>(physics_orchestrator_actor.rs:368) so the orchestrator re-schedules the next step itself
+    Note over PO: on the CPU path no PhysicsStepCompleted message comes back<br/>(physics_orchestrator_actor.rs:383) so the orchestrator re-schedules the next step itself
     FCA->>FCA: ComputeForces with no context
-    Note over FCA: initialize_own_gpu_context is retried, and if there is still no context<br/>the handler tells the orchestrator the step was skipped and returns<br/>Err "GPU context not initialized" (force_compute_actor.rs:1807-1822)<br/>the frame is DROPPED, not computed on CPU
+    Note over FCA: initialize_own_gpu_context is retried, and if there is still no context<br/>the handler tells the orchestrator the step was skipped and returns<br/>Err "GPU context not initialized" (force_compute_actor.rs:1840-1857)<br/>the frame is DROPPED, not computed on CPU
     FCA->>FCA: recover_from_divergence with no context
-    Note over FCA: warn "recover_from_divergence called with no GPU context" (force_compute_actor.rs:1573)
+    Note over FCA: warn "recover_from_divergence called with no GPU context" (force_compute_actor.rs:1592)
     SMA->>SMA: stress majorization requested
     Note over SMA: returns Err "GPU not available for stress majorization" (stress_majorization_actor.rs:95) - hard failure, no CPU path
     CCA->>CCA: GPU kernel failed
-    Note over CCA: DOC-DRIFT — the CPU fallback described here and in the struct's own doc comment<br/>(connected_components_actor.rs:52-55) was REMOVED under ADR-2054 (:213-220): it ran<br/>compute_components_cpu against cached_edges, a field only ever populated by the<br/>UpdateComponentEdges message, which had zero senders tree-wide — a fabricated singleton-<br/>per-node result, not a real fallback. GPU failure now returns Err directly (:221-224),<br/>same hard-fail posture as StressMajorization, not a degrade
+    Note over CCA: DOC-DRIFT — the CPU fallback described here and in the execution_path doc comment<br/>of ConnectedComponentsResult (connected_components_actor.rs:52-55) was REMOVED under ADR-2054 (:213-220): it ran<br/>compute_components_cpu against cached_edges, a field only ever populated by the<br/>UpdateComponentEdges message, which had zero senders tree-wide — a fabricated singleton-<br/>per-node result, not a real fallback. GPU failure now returns Err directly (:221-224),<br/>same hard-fail posture as StressMajorization, not a degrade
     OCA->>OCA: constraints arrive before GPU
     Note over OCA: debug "GPU not available, constraints cached for next physics step" (ontology_constraint_actor.rs:255-257) and cpu_fallback_count += 1 (:251, :258) surfaced via GetOntologyConstraintStats (:488, field :94)
     GRA->>GRA: APSP PTX load fails

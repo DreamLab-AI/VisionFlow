@@ -42,7 +42,8 @@ sources:
   - ../project/src/test_helpers.rs
   - ../project/src/adapters/actix_semantic_adapter.rs
   - ../project/src/services/schema_service.rs
-verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4}
+  - ../project/src/utils/response_macros.rs
+verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724}
 ---
 
 ## VC-25.1 Insight loop trace assembly (REC-10, compute-on-read)
@@ -157,7 +158,7 @@ sequenceDiagram
     Note over K: mesh_tile alone still reports status awaiting_data_source with no value -<br/>never fabricated. src/services/kpi_compute.rs:330, :545
 
     Note over KR: separate passive tap task (not this request path):
-    loop rx.recv().await on /wss/agent-events hub - src/services/kpi_compute.rs:630, :650
+    loop rx.recv().await on /wss/agent-events hub - run_agent_event_tap src/services/kpi_compute.rs:646, :650
         KR->>KR: record_agent_trajectory - INSERT kpi_agent_events with event_id,<br/>source_agent_id, action_type, agent_did, handoff_id and the<br/>ADR-2110 intent column<br/>src/adapters/sqlite_kpi_repository.rs:334, :245
     end
 ```
@@ -237,7 +238,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant H as natural_language_query_handler<br/>src/handlers/natural_language_query_handler.rs:90
+    participant H as translate_query<br/>src/handlers/natural_language_query_handler.rs:92
     participant S as NaturalLanguageQueryService<br/>src/services/natural_language_query_service.rs:36
     participant SC as SchemaService<br/>src/services/schema_service.rs
     participant P as PerplexityService::chat_completion<br/>src/services/perplexity_service.rs:77
@@ -245,7 +246,7 @@ sequenceDiagram
     Note over S,P: config-driven, not an env flag - api_url/api_key/model read from<br/>AppFullSettings.perplexity at call time (src/services/perplexity_service.rs:103-113)
     C->>H: POST /nl-query/translate {query, suggestAlternatives}
     H->>S: translate_to_sparql(query) or suggest_queries(query)<br/>src/services/natural_language_query_service.rs:72,101
-    Note over S: Jev option, opt-in and off unless VISIONCLAW_JEV is set (src/main.rs:517-522): translate_to_sparql first calls try_jev_plan,<br/>an enumerated read-only template chosen by Jev with a code-extracted entity, accepted only above<br/>VISIONCLAW_JEV_AUTO_MIN_CONFIDENCE and re-checked by validate_read_only_sparql, else the generative route below runs unchanged<br/>src/services/natural_language_query_service.rs:65,76-78 src/services/jev_nlq.rs:148,209. suggest_queries has no Jev path (:101)
+    Note over S: Jev option, opt-in and off unless VISIONCLAW_JEV is set (src/main.rs:517-522): translate_to_sparql first calls try_jev_plan,<br/>an enumerated read-only template chosen by Jev with a code-extracted entity, accepted only above<br/>VISIONCLAW_JEV_AUTO_MIN_CONFIDENCE and re-checked by validate_read_only_sparql, else the generative route below runs unchanged<br/>src/services/natural_language_query_service.rs:65,76-78 src/services/jev_nlq.rs:148, :209 - suggest_queries has no Jev path (src/services/natural_language_query_service.rs:101)
     S->>SC: get_llm_context() - schema for the prompt
     SC-->>S: schema_context
     S->>S: get_system_prompt() then build_translation_prompt(query, schema_context)<br/>src/services/natural_language_query_service.rs:163,225
@@ -254,19 +255,19 @@ sequenceDiagram
     alt perplexity_config missing (api_url/api_key/model None)
         P-->>S: Err("Perplexity API URL/Key/model not configured")
         S-->>H: Err("LLM service error: ...")
-        H-->>C: 200 {error: "Translation failed", message}
+        H-->>C: 500 {error: "Translation failed", message} via error_json<br/>src/handlers/natural_language_query_handler.rs:119, src/utils/response_macros.rs:82
     else config present
         P-->>S: response text
         S->>S: extract_sparql_block(response) - find fenced sparql block or fallback fence<br/>src/services/natural_language_query_service.rs:300
         alt no fenced block found
             S-->>H: Err - no SPARQL query found in response
-            H-->>C: 200 {error: "Translation failed", message}
+            H-->>C: 500 {error: "Translation failed", message}
         else block found
             S->>S: validate_sparql(sparql) - delegates to the shared read-only validator<br/>src/services/natural_language_query_service.rs:129
             S->>S: validate_read_only_sparql - SELECT/ASK/CONSTRUCT/DESCRIBE only<br/>src/handlers/ontology_handler.rs:820
             alt mutating form (INSERT/DELETE/DROP/CLEAR/LOAD)
                 S-->>H: Err - rejected, not a read-only query
-                H-->>C: 200 {error: "Translation failed", message}
+                H-->>C: 500 {error: "Translation failed", message}
             else valid read-only SPARQL
                 S-->>H: QueryTranslation{sparql_query, explanation, confidence, warnings}
                 H-->>C: 200 {translations: [...]}
@@ -275,12 +276,12 @@ sequenceDiagram
     end
     Note over S,H: INVARIANT one validator - the NLQ path reuses ontology_handler::validate_read_only_sparql<br/>rather than defining a second read-only policy (ADR-2063)
     C->>H: POST /nl-query/validate {sparql}
-    H->>S: validate_sparql(sparql)<br/>src/handlers/natural_language_query_handler.rs:196
+    H->>S: validate_sparql(sparql)<br/>src/handlers/natural_language_query_handler.rs:212
     H-->>C: 200 {valid, errors}
     C->>H: POST /nl-query/explain {sparql}
     H->>S: validate_sparql then explain_sparql(sparql)<br/>src/handlers/natural_language_query_handler.rs:170
     alt rejected by the read-only validator
-        H-->>C: 200 {error: "Invalid SPARQL", message}
+        H-->>C: 500 {error: "Invalid SPARQL syntax", message}<br/>src/handlers/natural_language_query_handler.rs:178
     else valid
         S->>P: chat_completion - explain prompt<br/>src/services/natural_language_query_service.rs:134
         H-->>C: 200 {sparql, explanation}
@@ -289,6 +290,8 @@ sequenceDiagram
     H-->>C: 200 {examples: QueryPatterns::examples()}
     Note over H: routes registered by configure_nl_query_routes - translate, examples, explain, validate<br/>src/handlers/natural_language_query_handler.rs:236-244
 ```
+
+**Tension:** every refusal on the NLQ routes is reported as a server fault. `translate_query` and `explain_sparql` answer a failed translation, an LLM reply with no SPARQL block, a mutating query and an invalid query through `error_json!` (`../project/src/handlers/natural_language_query_handler.rs:119`, `:178`), which builds `HttpResponse::InternalServerError` (`../project/src/utils/response_macros.rs:82`). A caller cannot tell "your query was refused" from "the service broke" by status; only `/nl-query/validate` answers 200 with `{valid, errors}`. Earlier stamps of this panel showed these as 200.
 
 ## VC-25.8 SemanticProcessorActor message handling
 
@@ -422,7 +425,7 @@ sequenceDiagram
     participant Caller as AppState / handler
     participant MA as MetadataActor<br/>src/actors/metadata_actor.rs:23
 
-    Note over MA: replaces Arc<RwLock<MetadataStore>> - started at src/app_state.rs:777 (BASELINE-architecture.md "Actor system topology")
+    Note over MA: replaces Arc<RwLock<MetadataStore>> - started at src/app_state.rs:791 (BASELINE-architecture.md "Actor system topology")
     Caller->>MA: GetMetadata<br/>crates/visionclaw-actors/src/messages/graph_messages.rs:221
     MA-->>Caller: Ok(MetadataStore clone)<br/>src/actors/metadata_actor.rs:58-64
     Caller->>MA: UpdateMetadata{metadata}<br/>crates/visionclaw-actors/src/messages/graph_messages.rs:225
@@ -430,6 +433,8 @@ sequenceDiagram
     MA-->>Caller: Ok(())
     Note right of MA: RESOLVED ADR-2097 (2026-09-05): RefreshMetadata and refresh_metadata are deleted - the message had no senders<br/>and the actor holds no source. metadata.json is owned by FileService, which pushes rebuilt stores in via UpdateMetadata
 ```
+
+**Drift:** the governing baseline places MetadataActor's start at `app_state.rs:802` (`../project/docs/BASELINE-architecture.md:167`); at this revision the actor starts at `../project/src/app_state.rs:791`, with its log line at `:790`.
 
 ## VC-25.13 file_service + graph_serialization + empty-graph guard
 

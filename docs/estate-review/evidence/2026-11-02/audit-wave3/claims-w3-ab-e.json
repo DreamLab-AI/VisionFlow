@@ -1,0 +1,14 @@
+[
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/agentbox/14-governance-journal-actions-approvals.md",
+   "report": "docs/estate-review/2026-11-02-w3-ab-e.md", "coverage": "selected-panels",
+   "panels": ["AB-14.1", "AB-14.2", "AB-14.3", "AB-14.4", "AB-14.5", "AB-14.6", "AB-14.7", "AB-14.8", "AB-14.9", "AB-14.11", "AB-14.12", "AB-14.13", "AB-14.14", "AB-14.15", "AB-14.16"],
+   "basis": "Source tracing at agentbox c57d9c0508f4; restamped from 6500582 with every citation (diagram and prose) re-resolved; strict cite-check and render pass; runtime activation (live /v1/system, ADR-2087 B7, role_isolation flag-on) not verified."},
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/agentbox/15-capability-gating-spend-consultants.md",
+   "report": "docs/estate-review/2026-11-02-w3-ab-e.md", "coverage": "selected-panels",
+   "panels": ["AB-15.1", "AB-15.2", "AB-15.3", "AB-15.4", "AB-15.5", "AB-15.6", "AB-15.7", "AB-15.8", "AB-15.9", "AB-15.10", "AB-15.11", "AB-15.12", "AB-15.13", "AB-15.14", "AB-15.15"],
+   "basis": "Source tracing at agentbox c57d9c0508f4; restamped from 6500582 with every citation re-resolved; strict cite-check and render pass; egress destinations and staged system_one projection are configuration intent, not runtime-verified."},
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/agentbox/16-secrets-custody-seccomp-profiles.md",
+   "report": "docs/estate-review/2026-11-02-w3-ab-e.md", "coverage": "selected-panels",
+   "panels": ["AB-16.1", "AB-16.2", "AB-16.3", "AB-16.4", "AB-16.5", "AB-16.6", "AB-16.7", "AB-16.8", "AB-16.9", "AB-16.10", "AB-16.11", "AB-16.12", "AB-16.13", "AB-16.14"],
+   "basis": "Source tracing at agentbox c57d9c0508f4 and VisionClaw 86cdd7635582; restamped from 6500582/8692b12 with every citation re-resolved; strict cite-check and render pass; no running seccomp filter, deployed secret or role_isolation boot inspected."}
+]

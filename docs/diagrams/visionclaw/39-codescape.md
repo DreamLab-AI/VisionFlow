@@ -61,7 +61,7 @@ sources:
   - ../project/xr-client/scripts/backend_connection.gd
   - ../project/docs/adr/ADR-2148-enable-local-typed-decisions.md
   - ../project/agentbox/config/hooks/activity-sink.cjs
-verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, agentbox: 6500582dfae23bf8a38a6942916d208154e43625, codescape: 13e056d9aa90d6f1b4aaf3b72d69a8cb29446ad1}
+verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35, codescape: 13e056d9aa90d6f1b4aaf3b72d69a8cb29446ad1}
 ---
 
 Codescape is a separate section: a near-real-time 3D view of a codebase that humans and agents share by voice, with its own Cargo workspace, its own compose service and tested dependency-isolation checks (ADR-2143). It reuses the frozen V3/V5 position wire and is intended to exclude corpus access, RuVector access and signing keys. The [deployment observation and isolation assessment](../../estate-review/2026-11-01-codescape-runtime-boundary.md) distinguishes the verified mount and port metadata from the still-open process filesystem and network guarantees. The agentbox hook is on agentbox `main` (ADR-2146, activity-sink.cjs:5), and the standalone repository now exists: `gh repo view DreamLab-AI/codescape` resolves as a public repository on 2026-10-29. Since the previous stamp the voice path gained an opt-in System One (Jev) pick between grammar and Loom (codescape-server/src/voice/jev.rs:375) and the compose service serves the whole estate as one scene.
@@ -127,7 +127,7 @@ flowchart TB
         ASR["nemotron-asr, streaming ASR websocket<br/>codescape-server/src/config.rs:129-134"]
         TTS["pocket-tts<br/>codescape-server/src/config.rs:137-142"]
         LOOM["Loom door, optional out-of-grammar fallback<br/>docker-compose.unified.yml:511"]
-        JEV["System One through the shared agentbox proxy agentbox:8094, never published, opt-in CODESCAPE_JEV=1, proxy/API fallback requires local or cloud permission, which compose now grants, but an explicit endpoint returns before that check<br/>the laya systemone:8097 pins are gone, so the selected backend (typesafe, agentbox.toml:892) is the route. CONFIGURED: effective once the new agentbox image is active and codescape recreated<br/>docker-compose.unified.yml:7-11 docker-compose.unified.yml:504-508 voice/jev.rs:156-205<br/>the laya facade stays only as the opt-in local backend, agentbox docker-compose.system-one.yml:3 and :106"]
+        JEV["System One through the shared agentbox proxy agentbox:8094, never published, opt-in CODESCAPE_JEV=1, proxy/API fallback requires local or cloud permission, which compose now grants, but an explicit endpoint returns before that check<br/>the laya systemone:8097 pins are gone, so the selected backend (typesafe, agentbox.toml:891) is the route. CONFIGURED: effective once the new agentbox image is active and codescape recreated<br/>docker-compose.unified.yml:7-11 docker-compose.unified.yml:504-508 voice/jev.rs:156-205<br/>the laya facade stays only as the opt-in local backend, agentbox docker-compose.system-one.yml:3 and :106"]
     end
     LAN -->|"http port 3001 /codescape/"| NGX
     LAN -.->|"direct, only with CODESCAPE_PUBLISH_ADDR set"| LOOP
@@ -139,8 +139,8 @@ flowchart TB
     ENG -.-> LOOM
     ENG -.->|"Jev URL joins the allowlist only when enabled and resolved<br/>codescape-server/src/config.rs:281-282"| JEV
     DESK["desktop client: base from a /codescape first path segment, ?server= override<br/>codescape/client/src/net/config.ts:15-18 codescape/client/src/net/config.ts:32-57"]
-    XR["Godot XR client: no Backend toggle at this pin - GraphScene opens a second BackendConnection for Codescape at start (ADR-2159), and _cs_base takes XR_CODESCAPE_WS else XR_BACKEND_WS and appends /codescape once<br/>xr-client/scripts/graph_scene.gd:1269-1282 xr-client/scripts/graph_scene.gd:2358-2362 xr-client/scripts/backend_connection.gd:25 xr-client/scripts/backend_connection.gd:73-77"]
-    XRN["see VC-40.1 - the XR client gates every server-bound request on the connection's capability table (ADR-2143 A6); the switch-and-abandon path of VC-40.2 no longer exists at this pin, both connections stay open<br/>xr-client/scripts/backend_connection.gd:162-167"]
+    XR["Godot XR client: no Backend toggle at this pin - GraphScene opens a second BackendConnection for Codescape at start (ADR-2159), and _cs_base takes XR_CODESCAPE_WS else XR_BACKEND_WS and appends /codescape once<br/>xr-client/scripts/graph_scene.gd:1368-1381 xr-client/scripts/graph_scene.gd:2540-2545 xr-client/scripts/backend_connection.gd:25 xr-client/scripts/backend_connection.gd:74-79"]
+    XRN["see VC-40.1 - the XR client gates every server-bound request on the connection's capability table (ADR-2143 A6); the switch-and-abandon path of VC-40.2 no longer exists at this pin, both connections stay open<br/>xr-client/scripts/backend_connection.gd:161-169"]
     DESK --- LAN
     XR --- LAN
     XR -.- XRN
@@ -345,7 +345,7 @@ flowchart TB
     end
     subgraph JEVG["OPEN: Jev option and estate scene"]
         direction TB
-        J1["TENSION: enabled in compose with threshold 1.0, which accepts a valid offered command at confidence exactly 1.0, compose leaves it empty, README states wiring and fallback tests only, no measured uplift, and VisionClaw ADR-2148 is accepted / complete / live after the agentbox rebuild and host recreate (docs/adr/ADR-2148-enable-local-typed-decisions.md:5-7, matching the VisionClaw baseline), ALLOW_CLOUD=1 sends the utterance via the proxy to the selected backend (agentbox.toml:892)<br/>codescape-server/src/voice/jev.rs:166-171 codescape-server/src/voice/jev.rs:349-354 docker-compose.unified.yml:505 docker-compose.unified.yml:507-508 codescape/README.md:296 docs/BASELINE-architecture.md:50-51"]
+        J1["TENSION: enabled in compose with threshold 1.0, which accepts a valid offered command at confidence exactly 1.0, compose leaves it empty, README states wiring and fallback tests only, no measured uplift, and VisionClaw ADR-2148 is accepted / complete / live after the agentbox rebuild and host recreate (docs/adr/ADR-2148-enable-local-typed-decisions.md:5-7, matching the VisionClaw baseline), ALLOW_CLOUD=1 sends the utterance via the proxy to the selected backend (agentbox.toml:891)<br/>codescape-server/src/voice/jev.rs:166-171 codescape-server/src/voice/jev.rs:349-354 docker-compose.unified.yml:505 docker-compose.unified.yml:507-508 codescape/README.md:296 docs/BASELINE-architecture.md:51-53"]
         J2["DEBT: the estate mounts default to an absolute host volume path, overridable only by CODESCAPE_ESTATE_ROOT<br/>docker-compose.unified.yml:564"]
         J1 --- J2
     end
@@ -358,7 +358,7 @@ flowchart TB
     end
     subgraph XRG["OPEN: XR"]
         direction TB
-        X1["OPEN: empty agent hover label in the headset, actor ids carry AGENT_FLAG but the headset<br/>names agents from its label table, else a demo role, else agent N<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:114 xr-client/scripts/graph_scene.gd:3386-3394"]
+        X1["OPEN: empty agent hover label in the headset, actor ids carry AGENT_FLAG but the headset<br/>names agents from its label table, else a demo role, else agent N<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:114 xr-client/scripts/graph_scene.gd:3757-3767"]
         X2["P4 records partly landed XR support, including the registered /ws/presence shim<br/>A4.5 describes its handshake<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:114 codescape-server/src/routes/mod.rs:454 ADR-2143-codescape-section-separate-workspace-and-port.md:217-218"]
         X3["OPEN: /wss ignores nodePin, nodeUnpin and nodeDrag and there is no physics write, so the headset greys<br/>those controls (see VC-40.1); whether Codescape should honour drag and pin is undecided"]
         X1 --- X2 --- X3
@@ -380,6 +380,6 @@ flowchart TB
     end
 ```
 
-**What it shows.** Every known gap at the stamp, each anchored to the code or the ADR line that records it; ADR-2143 is `implementation_status: partial` and `activation_status: inactive` (ADR-2143-codescape-section-separate-workspace-and-port.md:6-7), with P0 done and P2 to P6 open (ADR-2143-codescape-section-separate-workspace-and-port.md:296). **Verified.** Citations read at visionclaw `e74bcddc7`, agentbox `0b0f79189` and codescape `c742770` on 2026-10-29; the `/codescape/` prod path is untouched and prod's SPA fallback answers 200 there, not 404 (ADR-2143-codescape-section-separate-workspace-and-port.md:196-198).
+**What it shows.** Every known gap at the stamp, each anchored to the code or the ADR line that records it; ADR-2143 is `implementation_status: partial` and `activation_status: inactive` (ADR-2143-codescape-section-separate-workspace-and-port.md:6-7), with P0 done and P2 to P6 open (ADR-2143-codescape-section-separate-workspace-and-port.md:296). **Verified.** Citations re-read on 2026-11-02 (estate audit wave 3) at visionclaw `86cdd7635`, agentbox `c57d9c050` and codescape `13e056d`; codescape stays at `13e056d`, one documentation-only commit ahead of the submodule gitlink `e3b76f6` that VisionClaw `86cdd7635` records, and this topic cites neither file that commit changed. The `/codescape/` prod path is untouched and prod's SPA fallback answers 200 there, not 404 (ADR-2143-codescape-section-separate-workspace-and-port.md:196-198).
 
 **Drift (31 October audit):** The historical source already returned explicit endpoints before the locality gate and accepted confidence exactly one. Those policy labels are corrected here; [VC-42](42-codescape-command-policy-and-runtime-artefacts.md) and the [dated audit](../../estate-review/2026-10-31-codescape-boundaries.md) record current probes. Unrelated mechanisms retain this topic's historical pins.

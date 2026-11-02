@@ -1,0 +1,18 @@
+[
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/agentbox/17-agent-events-and-provenance-bridge.md",
+   "report": "docs/estate-review/2026-11-02-w3-ab-f.md", "coverage": "selected-panels",
+   "panels": ["AB-17.1", "AB-17.2", "AB-17.4", "AB-17.5", "AB-17.6", "AB-17.7", "AB-17.8", "AB-17.10"],
+   "basis": "Source tracing at agentbox c57d9c0508f4 (VisionClaw 86cdd7635582 for the envelope mirror and cross_from_agentbox); restamped from 6500582 and every citation re-derived; strict cite-check and render pass; no runtime evidence."},
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/agentbox/20-ruvector-memory-path.md",
+   "report": "docs/estate-review/2026-11-02-w3-ab-f.md", "coverage": "selected-panels",
+   "panels": ["AB-20.1", "AB-20.2", "AB-20.3", "AB-20.4", "AB-20.5", "AB-20.6", "AB-20.7", "AB-20.8", "AB-20.9", "AB-20.10", "AB-20.11", "AB-20.12", "AB-20.13"],
+   "basis": "Source tracing at agentbox c57d9c0508f4; restamped from 6500582 and every citation re-derived; strict cite-check and render pass; recall, HNSW and SONA figures are documentary receipts, not re-measured; memory_entries DDL not in repo."},
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/agentbox/21-learning-loop.md",
+   "report": "docs/estate-review/2026-11-02-w3-ab-f.md", "coverage": "selected-panels",
+   "panels": ["AB-21.1", "AB-21.2", "AB-21.3", "AB-21.4", "AB-21.5", "AB-21.6", "AB-21.7", "AB-21.8", "AB-21.9", "AB-21.10"],
+   "basis": "Source tracing at agentbox c57d9c0508f4; restamped from 6500582, AB-21.1/21.2 redrawn for the ADR-2164 API persistence path; strict cite-check and render pass; validator E066/W066 not traced; no runtime evidence."},
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/agentbox/22-skills-and-routing.md",
+   "report": "docs/estate-review/2026-11-02-w3-ab-f.md", "coverage": "selected-panels",
+   "panels": ["AB-22.1", "AB-22.2", "AB-22.3", "AB-22.4", "AB-22.5", "AB-22.7", "AB-22.8", "AB-22.9", "AB-22.10", "AB-22.12", "AB-22.13", "AB-22.14"],
+   "basis": "Source tracing at agentbox c57d9c0508f4; restamped from 6500582 and every citation re-derived; strict cite-check and render pass (one JEV advisory settled by hand); signing and router egress behaviour not exercised at runtime."}
+]

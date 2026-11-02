@@ -1,0 +1,186 @@
+[
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2093-jev-verbatim-compaction.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; stale Claude Code literal; factrail plugin internals not pinned; image and residency unverified."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2094-local-capacity-adapting-typed-decision-facade.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; Verification section stale (gate and compose exist); laya and openjev facts external."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2095-measure-typed-decision-seams-against-a-copy-ceiling.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; measurements live in loom (not pinned); eval rig read, not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2096-sidestr-sidechains-are-the-sole-value-instrument.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; sidestr-rs not pinned; solid-pod-rs port confirmed done at 9b6143ce55b2; D6 contradicted."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2097-sidestr-rail-supersedes-lightning-first.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; live acceptance receipt not reproducible; demo-a funding unverified."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2098-chain-and-asset-urn-kinds-and-the-chain-nostr-plane.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; asset URN, sidestr-node and /v1/wallet absent; D3 program shape contradicted."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2099-the-chain-is-the-ledger-of-record.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; proposed, not implemented; solid-pod-rs, VisionClaw and forum read at their pins."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2100-every-settlement-passes-the-authority-gate.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; proposed; /v1/chain/pay settles without the payment_settlement gate (E1)."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2101-federation-topology-and-key-separation.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; proposed; k_spend construction contradicted by the independent-key implementation."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2102-assets-are-bridged-in-rgb-as-a-wrapped-asset.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; proposed, nothing built; scaffold claim contradicted."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; P21 gate is a genesis test only; sidestr-rs and live chains not checked."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2104-direct-control-over-mcp.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; fail-hard half confirmed in source; port half not started; live receipts not reproducible."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2105-agentbox-kind-bands-and-the-colloquy-move.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; kinds, bands, lint and fixture confirmed; VisionClaw twin not checked."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2106-sidestr-crates-are-agpl-derivatives-of-siding-published-and-consumed.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; crate manifests live in sidestr-rs (not pinned); agentbox consumption checked."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2107-no-mcp-for-the-corpus-agents-use-the-vault-cli.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; substrate-tools MCP reads the corpus through ontology-local.js (E6); live Loom /mcp not probed."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2108-ontology-bridge-retired-vault-baked-by-nix.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; bake and deletions confirmed; running-image receipts not reproducible."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2109-governance-decisions-apply-through-vault-edit.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; ontomark re-point confirmed; e2e and test counts not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2110-routing-teacher-labels-from-main-model-use.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; rejected record; gate off confirmed; banner stale."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2111-govern-the-claude-code-session-prefix-and-per-turn-context.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; verified_paths empty; agents-md-embed retired; measurements not reproducible."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2112-sidestr-crates-live-in-sidestr-rs.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; sidestr-agent baked from a sidestr-rs git rev (E9); sidestr-rs not pinned."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2116-claude-code-permission-posture-from-the-manifest.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; posture and deny floor confirmed; Claude Code probe behaviour not reproducible."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2117-private-owner-usd-unit-bridged-through-rgb-into-sidestr.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; proposed, nothing built in agentbox; sidestr-rs reserve and bridge crates not pinned."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2118-own-the-instruction-tiers-and-claude-home-in-the-repo.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-5.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; projection, volume and cred-sync confirmed; deployment receipts not reproducible."
+  }
+]

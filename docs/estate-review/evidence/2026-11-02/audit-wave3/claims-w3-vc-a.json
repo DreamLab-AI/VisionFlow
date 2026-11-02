@@ -1,0 +1,14 @@
+[
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/visionclaw/01-boot-and-app-state.md",
+   "report": "docs/estate-review/2026-11-02-w3-vc-a.md", "coverage": "selected-panels",
+   "panels": ["VC-01.1", "VC-01.2", "VC-01.3", "VC-01.4", "VC-01.5", "VC-01.7", "VC-01.8", "VC-01.10", "VC-01.11", "VC-01.12", "VC-01.13", "VC-01.14", "VC-01.15"],
+   "basis": "Source tracing at VisionClaw 86cdd7635582; restamped from 8692b12, every citation re-resolved; strict cite-check and render pass; limits: actix wrap order and /api/health precedence are runtime, Jev activation is deployment state."},
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/visionclaw/02-actor-supervision.md",
+   "report": "docs/estate-review/2026-11-02-w3-vc-a.md", "coverage": "selected-panels",
+   "panels": ["VC-02.1", "VC-02.2", "VC-02.3", "VC-02.4", "VC-02.5", "VC-02.6", "VC-02.7", "VC-02.9", "VC-02.10", "VC-02.12", "VC-02.15", "VC-02.18", "VC-02.19", "VC-02.20"],
+   "basis": "Source tracing at VisionClaw 86cdd7635582; restamped from 8692b12, every citation re-resolved, bots-roster routing corrected to AgentBeamActor (ADR-2142 amendment); strict cite-check and render pass; limits: restart/backoff behaviour traced from source, not exercised."},
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/visionclaw/03-request-lifecycle-and-rbac.md",
+   "report": "docs/estate-review/2026-11-02-w3-vc-a.md", "coverage": "selected-panels",
+   "panels": ["VC-03.1", "VC-03.2", "VC-03.3", "VC-03.4", "VC-03.5", "VC-03.6", "VC-03.7", "VC-03.8", "VC-03.9", "VC-03.11", "VC-03.12", "VC-03.15", "VC-03.16", "VC-03.17"],
+   "basis": "Source tracing at VisionClaw 86cdd7635582; restamped from 8692b12, every citation re-resolved; strict cite-check and render pass; limits: WebSocket upgrade outcomes, session TTL and browser signing are runtime behaviour."}
+]

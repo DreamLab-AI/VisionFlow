@@ -1,0 +1,114 @@
+{
+  "source_report": "docs/estate-review/2026-11-02-audit-wave3.md",
+  "source_revisions": {
+    "agentbox": "c57d9c0508f4044915f9aecea4b9aa5629cc6a35",
+    "VisionClaw (project)": "86cdd76355823a51bb64d503c005fe277726e724"
+  },
+  "counting": "Each record is one finding. `lead_verified` means the lead re-read the cited source at the pin; otherwise the finding rests on the worker report named in `report`. Evidence class throughout is source tracing; nothing here was run.",
+  "records": [
+    {
+      "id": "W3-01",
+      "repo": "agentbox",
+      "severity": "high",
+      "class": "security",
+      "lead_verified": true,
+      "summary": "management-api's RelayConsumer admits every signed author when its allowlist is empty, and the shipped flake never sets AGENTBOX_RELAY_ALLOWED_PUBKEYS, so by default it dispatches governance, intent and payment events from any signer that passes the relay gate. The relay gate itself denies on an empty list, which limits exposure, but the two allowlists have opposite empty-list semantics and the consumer contradicts ADR-2012.",
+      "evidence": ["mcp/nostr-bridge/relay-consumer.js:764-768", "management-api/server.js:1426-1440"],
+      "report": "docs/estate-review/2026-11-02-w3-ab-adr-1.md",
+      "proposed_fix": "Pass the baked AGENTBOX_ALLOWED_PUBKEYS through to the consumer, make an empty list deny, accept hex keys only."
+    },
+    {
+      "id": "W3-02",
+      "repo": "VisionClaw",
+      "severity": "medium",
+      "class": "defect",
+      "lead_verified": true,
+      "summary": "Saved API keys can never be read back. POST /api/auth/nostr/api-keys writes through NostrService; GET reads ProtectedSettingsActor, which starts empty and is never sent a write message by anything in src. A user saving Perplexity, OpenAI or RAGFlow keys never sees them returned.",
+      "evidence": ["src/handlers/nostr_handler.rs:62-63", "src/handlers/nostr_handler.rs:293", "src/handlers/nostr_handler.rs:319", "src/app_state.rs:1579-1581"],
+      "report": "docs/estate-review/2026-11-02-w3-vc-c.md"
+    },
+    {
+      "id": "W3-03",
+      "repo": "agentbox",
+      "severity": "medium",
+      "class": "licensing",
+      "lead_verified": true,
+      "summary": "Panel AB-28.9 drew agentbox's services/dream-engine and crates/headroom-napi under MIT/Apache; both declare AGPL-3.0-only. The panel is corrected. The separate dream-engine repository's crates are MIT OR Apache-2.0, so the estate README and ES-05 are right about that repository.",
+      "evidence": ["services/dream-engine/Cargo.toml", "crates/headroom-napi/Cargo.toml"],
+      "report": "docs/estate-review/2026-11-02-w3-ab-h.md"
+    },
+    {
+      "id": "W3-04",
+      "repo": "agentbox",
+      "severity": "low",
+      "class": "drift",
+      "lead_verified": true,
+      "summary": "The licensing document says scripts/ci/check-crate-licensing.sh enforces the rule that sidestr crates come from crates.io only. The script checks only each crate's own package fields and licence files and never inspects dependencies; the image fetches sidestr-agent from GitHub at a pinned commit and CI passes.",
+      "evidence": ["scripts/ci/check-crate-licensing.sh:15-20", "scripts/ci/check-crate-licensing.sh:67-84"],
+      "report": "docs/estate-review/2026-11-02-w3-ab-i.md"
+    },
+    {
+      "id": "W3-05",
+      "repo": "agentbox",
+      "severity": "medium",
+      "class": "security",
+      "lead_verified": false,
+      "summary": "The NIP-98 door is not fully fail-closed: if the boot step writing the proxy config fails (it ends in `|| true`) the allowlist is empty and any validly signed key is accepted; if the verifier cannot load, a valid session cookie still passes, not only break-glass as ADR-2009 says.",
+      "report": "docs/estate-review/2026-11-02-w3-ab-adr-1.md"
+    },
+    {
+      "id": "W3-06",
+      "repo": "agentbox",
+      "severity": "medium",
+      "class": "security",
+      "lead_verified": false,
+      "summary": "Boot now creates a devuser-owned /run/secrets/ruvector-pg/ inside the role-only secrets mount in both modes, outside the role plan; ADR-2122 records that the activation rehearsal was not re-run with it present.",
+      "report": "docs/estate-review/2026-11-02-w3-ab-i.md"
+    },
+    {
+      "id": "W3-07",
+      "repo": "agentbox",
+      "severity": "low",
+      "class": "drift",
+      "lead_verified": false,
+      "summary": "k_spend is minted as an independent key, not derived from k_id; INGRESS-identity.md and ADR-2101 still describe the derivation.",
+      "report": "docs/estate-review/2026-11-02-w3-ab-h.md"
+    },
+    {
+      "id": "W3-08",
+      "repo": "agentbox",
+      "severity": "low",
+      "class": "debt",
+      "lead_verified": false,
+      "summary": "ADR-2007's review trigger has fired: router.sh is a third harness wrapper with no profile pin, absent from verified_paths, and a missing wrapper silently launches plain `claude` instead of failing.",
+      "report": "docs/estate-review/2026-11-02-w3-ab-adr-1.md"
+    },
+    {
+      "id": "W3-09",
+      "repo": "VisionClaw",
+      "severity": "low",
+      "class": "defect",
+      "lead_verified": false,
+      "summary": "A layout reset is undone by the next physics change, because the reset updates SQLite and the GPU but not the settings actor; and when the GPU refuses a physics update the actor already holds the new value while SQLite does not.",
+      "report": "docs/estate-review/2026-11-02-w3-vc-c.md"
+    },
+    {
+      "id": "W3-10",
+      "repo": "VisionClaw",
+      "severity": "low",
+      "class": "debt",
+      "lead_verified": false,
+      "summary": "The ADR-2049 production Dockerfile stage pipes the build into `tail` without pipefail, so a dependency that stops compiling cannot fail the stage; NVCC_CCBIN and CUDAHOSTCXX are missing from the build-input environment list.",
+      "report": "docs/estate-review/2026-11-02-w3-vc-c.md"
+    },
+    {
+      "id": "W3-11",
+      "repo": "VisionClaw",
+      "severity": "low",
+      "class": "drift",
+      "lead_verified": false,
+      "summary": "docs/BASELINE-architecture.md still routes positions through PhysicsOrchestratorActor; a types.rs comment calls the visibility filter off by default when it is on; an exported event-coordination function has no callers.",
+      "report": "docs/estate-review/2026-11-02-w3-vc-a.md"
+    }
+  ]
+}

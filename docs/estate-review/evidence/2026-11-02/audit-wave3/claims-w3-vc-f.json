@@ -1,0 +1,79 @@
+[
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/20-ontology-pipeline-oxigraph-whelk.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-f.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VC-20.1",
+      "VC-20.2",
+      "VC-20.5",
+      "VC-20.3",
+      "VC-20.4",
+      "VC-20.6",
+      "VC-20.7",
+      "VC-20.8",
+      "VC-20.13",
+      "VC-20.14",
+      "VC-20.15"
+    ],
+    "basis": "Source tracing at VisionClaw 86cdd7635582 and ontomark 4b9d15df4805; restamped from 8692b12/560e50c with every citation re-resolved and read at the pins; 5 panels corrected (ontology-agent scope is RbacGate-gated, not anonymous; ontology_physics bool gates no endpoint; pipeline PATH B skips the vacuous-axiom filter; certify/propose re-anchored), 5 accurate, 1 accurate with limits; strict cite-check and render pass (148 citations); RBAC behaviour, nested-runtime panic and oo-cert timings not run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/21-corpus-ingest-and-vault.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-f.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VC-21.1",
+      "VC-21.2",
+      "VC-21.3",
+      "VC-21.6",
+      "VC-21.12"
+    ],
+    "basis": "Source tracing at VisionClaw 86cdd7635582; restamped from 8692b12 with every citation re-resolved and read at the pin; 3 panels corrected (default shared-corpus-layout root and symlink checks, classify_node re-anchored with a Tension that owl-class plain pages classify as knowledge, non-string class-marker path), 2 accurate, drift paragraphs re-anchored; strict cite-check and render pass (87 citations); sync and Oxigraph metadata round trip not run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/22-data-authority-provenance-erasure.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-f.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VC-22.1",
+      "VC-22.2",
+      "VC-22.3",
+      "VC-22.4",
+      "VC-22.5",
+      "VC-22.6",
+      "VC-22.7",
+      "VC-22.8",
+      "VC-22.9",
+      "VC-22.10",
+      "VC-22.11"
+    ],
+    "basis": "Source tracing at VisionClaw 86cdd7635582 and agentbox c57d9c0508f4; restamped from 8692b12/6500582 with every citation re-resolved and read at the pins; 9 panels corrected (decision fan-out writes no GRAPH_PROVENANCE, clear_inferred_graph test-only, clear_graph drops agent graph too, backup-script and client delete-path citations), 1 accurate, 1 accurate with limits; three JEV advisories checked by hand and re-anchored; strict cite-check and render pass (190 citations); backups, RBAC and erasure not run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/23-identifiers-urn-did-sha12.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-f.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "VC-23.1",
+      "VC-23.2",
+      "VC-23.3",
+      "VC-23.4",
+      "VC-23.5",
+      "VC-23.6",
+      "VC-23.7",
+      "VC-23.8",
+      "VC-23.9",
+      "VC-23.10"
+    ],
+    "basis": "Source tracing at VisionClaw 86cdd7635582 and agentbox c57d9c0508f4; restamped from 8692b12/6500582 with every citation re-resolved and read at the pins; 7 panels corrected (node/edge IRI divergence resolved, uri/mod.rs parse and crossing re-anchored, Concept has no production mint, RoomId::parse runs in production), 3 accurate; strict cite-check and render pass (138 citations); federation parity tests and wire encoding not run."
+  }
+]

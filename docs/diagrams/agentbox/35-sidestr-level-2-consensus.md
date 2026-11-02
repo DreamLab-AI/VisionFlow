@@ -13,7 +13,7 @@ sources:
   - ../project/agentbox/docs/INGRESS-identity.md
   - ../project/agentbox/docs/PROTOCOL-registry.md
   - ../sidestr-rs/sidestr-round/Cargo.toml
-verified_commit: {agentbox: 6500582dfae23bf8a38a6942916d208154e43625, sidestr-rs: d8ace3aad2f23eb1d11bd72af4ab0b74d599f618}
+verified_commit: {agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35, sidestr-rs: d8ace3aad2f23eb1d11bd72af4ab0b74d599f618}
 ---
 
 ## For developers
@@ -48,7 +48,7 @@ flowchart TB
 
 **Invariant:** the safety inequality and the liveness inequality must both hold, which is what forces `n` at least `3f + 1`; assuming only the safety one produces a model with neither property (`../project/agentbox/docs/proposals/sovereign-settlement-research/REVIEW-kofn-consensus-gpt6-astra.md:46`).
 
-**Open:** PRD-024 question 13 defers the fault model itself — how many Byzantine signers, and how independent the operators, credentials, release channels and parent nodes behind the `n` keys actually are (`../project/agentbox/docs/proposals/sovereign-settlement.md:495-497`).
+**Open:** PRD-024 question 13 defers the fault model itself — how many Byzantine signers, and how independent the operators, credentials, release channels and parent nodes behind the `n` keys actually are (`../project/agentbox/docs/proposals/sovereign-settlement.md:500-502`).
 
 ## AB-35.2 Two decisions per block — authorise the template, then finalise the block
 
@@ -83,7 +83,7 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     subgraph have["What exists as codecs: kinds 23510-23514, external since 2026-09-23"]
-        C1["kinds 23510 to 23514, the level-2 signing round, ported and<br/>published as sidestr-nostr on crates.io - no longer in this repo<br/>PROTOCOL-registry.md:167, see AB-33.7"]
+        C1["kinds 23510 to 23514, the level-2 signing round, ported and<br/>published as sidestr-nostr on crates.io - no longer in this repo<br/>PROTOCOL-registry.md:169, see AB-33.7"]
     end
     subgraph broken["Why those kinds cannot carry it"]
         B1["23510 to 23514 are EPHEMERAL under NIP-01: relays are not<br/>expected to retain them<br/>REVIEW-kofn-consensus-gpt6-astra.md:217"]
@@ -101,9 +101,9 @@ flowchart TB
     want --> BAND["the estate band for this is unallocated: 38420 to 38425 are<br/>spent on the binding and the five domain events<br/>see AB-34.4"]
 ```
 
-**Debt:** the registry still allocates the ephemeral `23510`-`23514` band to "level-2 signing round" without recording that the review rejected the shape those kinds were built for (`../project/agentbox/docs/PROTOCOL-registry.md:167`), and the corrected wire profile below has no allocation of its own (`../project/agentbox/docs/adr/ADR-2101-federation-topology-and-key-separation.md:162-168`).
+**Debt:** the registry still allocates the ephemeral `23510`-`23514` band to "level-2 signing round" without recording that the review rejected the shape those kinds were built for (`../project/agentbox/docs/PROTOCOL-registry.md:169`), and the corrected wire profile below has no allocation of its own (`../project/agentbox/docs/adr/ADR-2101-federation-topology-and-key-separation.md:162-168`).
 
-**Open:** the stored kinds the review requires have no allocation in the registry, whose sidestr section still records only the external `2xxxx`/`3xxxx` set and `38420`-`38425` (`../project/agentbox/docs/PROTOCOL-registry.md:163-173`).
+**Open:** the stored kinds the review requires have no allocation in the registry, whose sidestr section still records only the external `2xxxx`/`3xxxx` set and `38420`-`38425` (`../project/agentbox/docs/PROTOCOL-registry.md:165-175`).
 
 ## AB-35.4 What a finality proof is, and what a quorum certificate is not
 

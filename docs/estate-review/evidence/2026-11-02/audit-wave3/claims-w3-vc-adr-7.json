@@ -1,0 +1,130 @@
+[
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2134-relay-the-memory-explorer-beat-clock-and-route-to-the-same-users-sessions.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-7.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; operative; dev-bypass release claim is a Tension (dev-runtime enables debug-assertions); headset snapshotId cap absent; test and headset receipts not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2135-graph-separation-opens-a-three-body-triangle-with-agents-at-the-centre.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-7.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; operative, amended; done-rule table row contradicts the inscribed-sphere edge; GUT, browser and headset receipts not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2136-the-memory-cloud-query-response-carries-the-query-point.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-7.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; operative; projection, wire and headset/desktop route hold; test and HP benchmark receipts not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2137-consume-shared-ontology-workspace.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-7.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; proposed, not implemented beyond the ADR-2168 layout slice; corpus input-set fact stale; VC-60 gates unmet."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2138-directed-cycles-are-a-server-analysis-with-one-adjacency.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-7.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; operative; tab count drift (ten tabs); live endpoint response and headset not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2139-position-frames-are-full-snapshots-of-the-entitled-set.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-7.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; superseded in part by ADR-2141 (decisions 1, 3, 5, 9); no-delta, entitlement, fail-closed and class-flag rules hold."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2140-physics-forces-have-one-stored-definition-and-no-scale-factors.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-7.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; operative; decision 2 narrowed by own amendment and ADR-2169; R14 N1/N2 still open; GPU receipts not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2141-positions-are-streamed-per-client-until-acknowledged.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-7.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; operative; 'drop none' qualified by the 256-frame dispatcher bound; stale comments name removed messages; runtime rates not measured."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2142-the-agents-demo-is-one-server-producer-both-clients-control.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-7.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; operative, amended; mock-agents doc comment stale; agentbox live join outside this repository; suites not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2147-inferences-carry-a-re-checkable-certificate-and-proposals-carry-a-consequence-delta.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-7.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; operative; Lean oo-cert check and real-corpus parity not re-run; agentbox pin not checked."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2148-enable-local-typed-decisions.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-7.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; operative, amended to the shared proxy default; runtime provenance and live route not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2156-dev-runtime-profile-builds-incrementally-without-lto.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-7.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; operative; profile line citations drifted; rebuild timing not measured."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2168-consume-ontomark-filesystem-layout-checks.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-7.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; operative; tests and server link not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2170-gaussian-splat-scenes-are-their-own-volume-on-both-clients.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-7.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; proposed, not implemented apart from the three 0.187 bump; Context version stale."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2171-desktop-catches-up-on-webgpurenderer-not-meshlets.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-7.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; proposed; ledger says none but decision 2 has shipped with a unit test; decisions 3-5 not done."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2173-force-pass-reads-a-per-node-constraint-index.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-7.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; operative; PTX arity and GPU timings not rebuilt or re-run; direct-writer open item accurate."
+  }
+]

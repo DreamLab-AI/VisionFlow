@@ -19,7 +19,7 @@ sources:
   - ../project/agentbox/comfyui-sidecar/nodes/agentbox_video/identity.py
   - ../project/agentbox/comfyui-sidecar/nodes/agentbox_video/staging.py
   - ../project/agentbox/comfyui-sidecar/verify-spede.sh
-verified_commit: {agentbox: 9dfc27b16e82e9786535a55e790710493dd51fdf}
+verified_commit: {agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35}
 ---
 
 ## For developers
@@ -48,7 +48,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    INPUT["Local-file decode and frame allocation cap<br/>media.rs:24,28,33"] --> JOIN["Trim and blend assembly<br/>stitch.rs:153,402"]
+    INPUT["Local-file decode and frame allocation cap<br/>media.rs:24,29,34"] --> JOIN["Trim and blend assembly<br/>stitch.rs:153,402"]
     JOIN --> GATE["Check frames, rate, canvas, colour and audio<br/>stitch.rs:286,290,293,308"]
     GATE --> BAD["Discard rejected output<br/>stitch.rs:314"]
     GATE --> SEAM["Resolve colour and measure seams<br/>seam_qa.rs:703,711"]
@@ -82,7 +82,7 @@ flowchart TD
     MAP --> CHECK["Post-build required-node list<br/>verify-spede.sh:33,34,35"]
     CHECK --> OMIT["GAP: load-image node omitted from check<br/>staging.py:206"]
     IDENTITY["Identity scores explicitly editorial<br/>identity.py:368"] --> REVIEW["REQUIRED real-face and workflow qualification"]
-    DRIFT["GAP: drift report omits two measurement fields<br/>identity.py:424,425"] --> REVIEW
+    DRIFT["GAP: drift report omits provisional and acceptance_backing<br/>identity.py:424,425"] --> REVIEW
     CHECK --> GPU["GPU smoke is optional<br/>verify-spede.sh:54"]
     GPU --> REVIEW
 ```

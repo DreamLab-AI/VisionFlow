@@ -26,7 +26,7 @@ sources:
   - ../project/src/gpu/mod.rs
   - ../project/src/physics/mod.rs
   - ../project/docs/adr/ADR-2054-remove-dead-gpu-and-analytics-code.md
-verified_commit: 8692b12ba987ecb87165566beb7c320a2446e4b4
+verified_commit: 86cdd76355823a51bb64d503c005fe277726e724
 ---
 ## VC-12.1 SimParams full 212-byte repr(C) layout
 ```mermaid
@@ -91,7 +91,7 @@ classDiagram
         +cuda_assert_visionclaw_unified_cu_118
         +manifest_simulation_params_rs_330_688
         +verify_fn_simulation_params_rs_696_739
-        +tail_append_test_simulation_params_rs_1087_1106
+        +tail_append_test_simulation_params_rs_1006_1026
     }
     class ForceChannelBacking {
         +Repulsion_repel_k_off24_bit0
@@ -133,20 +133,20 @@ classDiagram
         +uint ENABLE_SSSP_SPRING_ADJUST = 1_lsh_6
     }
     class KernelGateSites {
-        +bit0_force_pass_L443
-        +bit1_spring_L543
-        +bit1_bit6_linlog_sssp_blend_L549
-        +bit2_centering_L601
-        +bit4_constraint_loop_L614
-        +stability_path_mirror_L2277_2402
+        +bit0_force_pass_L518
+        +bit1_spring_L618
+        +bit1_bit6_linlog_sssp_blend_L624
+        +bit2_centering_L654
+        +bit4_constraint_loop_L667
+        +stability_path_mirror_L2306_2417
     }
     FeatureFlags_Rust ..> FeatureFlags_CUDA
     FeatureFlags_CUDA --> KernelGateSites
-    note for FeatureFlags_Rust "crates/visionclaw-domain/src/models/simulation_params.rs:96-104"
-    note for FeatureFlags_CUDA "crates/visionclaw-gpu/src/cuda_sources/visionclaw_unified.cu:124-130"
+    note for FeatureFlags_Rust "crates/visionclaw-domain/src/models/simulation_params.rs:117-125"
+    note for FeatureFlags_CUDA "crates/visionclaw-gpu/src/cuda_sources/visionclaw_unified.cu:124-129"
     note for FeatureFlags_Rust "ADR-2060: bit3/bit5 are RESERVED Rust-side<br/>zero hits in CUDA, not a defect"
-    note for FeatureFlags_Rust "DRIFT: docs/GPU-wire-abi.md:70 places the bit constants at<br/>lines 113-119 of the domain file, they are at crates/visionclaw-domain/src/models/simulation_params.rs:96-104"
-    note for FeatureFlags_Rust "KEYSTONE: ENABLE_CONSTRAINTS is<br/>residency-owned (execution.rs:1069-1072)"
+    note for FeatureFlags_Rust "DRIFT: docs/GPU-wire-abi.md:75 places the bit constants at<br/>lines 113-119 of the domain file, they are at crates/visionclaw-domain/src/models/simulation_params.rs:117-125"
+    note for FeatureFlags_Rust "KEYSTONE: ENABLE_CONSTRAINTS is<br/>residency-owned (execution.rs:1141-1144)"
 ```
 
 ## VC-12.3 GPU core physics buffers: per-node, per-edge, per-grid-cell
@@ -210,13 +210,14 @@ classDiagram
         +i32 edge_row_offsets
         +i32 edge_col_indices
         +f32 edge_weights
+        +f32 edge_rest_snapshot
     }
     class PerGridCellBuffers {
         +i32 cell_start
         +i32 cell_end
     }
     class UnifiedGPUCompute {
-        production struct construction.rs:30-245
+        production struct construction.rs:30-265
     }
     class PhysicsV2Gated {
         +REMOVED_ADR_2055_PhysicsGpuBuffers
@@ -236,13 +237,14 @@ classDiagram
     PhysicsV2Gated ..> DeletedManager
     DeletedManager ..> MemoryBudgetTracker
 
-    note for PerNodeBuffers "stride 4B all fields except rand_states 48B<br/>count=allocated_nodes (construction.rs:45-243)"
-    note for PerEdgeBuffers "row_offsets=num_nodes+1<br/>col/weights=num_edges (construction.rs:357-359)"
-    note for PerGridCellBuffers "max_grid_cells = 32768 fixed<br/>(construction.rs:374-376)"
-    note for UnifiedGPUCompute "production per-node buffer owner<br/>(construction.rs:30-245)<br/>also owns semantic Option SemanticGpu and semantic_active, ADR-2140 (construction.rs:221-224)"
+    note for PerNodeBuffers "stride 4B all fields except rand_states 48B<br/>count=allocated_nodes (construction.rs:45-263)"
+    note for PerEdgeBuffers "row_offsets=num_nodes+1<br/>col/weights/edge_rest_snapshot=num_edges (construction.rs:377-380)<br/>edge_rest_snapshot holds the hold-overlay rest lengths, ADR-2169"
+    note for PerEdgeBuffers "per-node constraint index CSR (ADR-2173), constraint_node_offsets<br/>allocated_nodes+1 and constraint_node_ids, read by the force kernels<br/>through g_constraint_index (construction.rs:141-144, visionclaw_unified.cu:157)"
+    note for PerGridCellBuffers "max_grid_cells = 32768 fixed<br/>(construction.rs:395-397)"
+    note for UnifiedGPUCompute "production per-node buffer owner<br/>(construction.rs:30-265)<br/>also owns semantic Option SemanticGpu and semantic_active, ADR-2140 (construction.rs:241-244)"
     note for PhysicsV2Gated "DOC-DRIFT — no buffers.rs exists. REMOVED under ADR-2055 (src/gpu/mod.rs:10-15):<br/>PhysicsGpuBuffers was gated behind the physics-v2 feature, itself retired<br/>(src/physics/mod.rs:69-73). Never shipped in a build; UnifiedGPUCompute was<br/>always the sole per-node GPU buffer owner"
     note for DeletedManager "DRIFT: module deleted (src/gpu/mod.rs:24-27 lists only memory_manager,<br/>ADR-2054:172) yet memory_manager.rs:5 still names it as a consolidated source"
-    note for MemoryBudgetTracker "memory_manager.rs:127-152 GpuBuffer, :382 GpuMemoryManager<br/>force_compute_actor.rs:776-812"
+    note for MemoryBudgetTracker "memory_manager.rs:127-152 GpuBuffer, :382 GpuMemoryManager<br/>force_compute_actor.rs:794-830"
 ```
 
 ## VC-12.4 GPU analytics-adjacent buffers: cluster, community, block, scalar
@@ -274,15 +276,15 @@ classDiagram
         +f32 system_kinetic_energy
     }
     class UnifiedGPUCompute {
-        production struct construction.rs:30-245, see VC-12.3
+        production struct construction.rs:30-265, see VC-12.3
     }
     UnifiedGPUCompute *-- PerClusterBuffers
     UnifiedGPUCompute *-- PerCommunityBuffers
     UnifiedGPUCompute *-- PerBlockBuffers
     UnifiedGPUCompute *-- ScalarBuffers
 
-    note for PerClusterBuffers "stride 4B, max_clusters = 50 fixed (construction.rs:383)"
-    note for PerCommunityBuffers "stride 4B, count=num_nodes.max(1), Louvain exceeds 50 (construction.rs:393-395)"
+    note for PerClusterBuffers "stride 4B, max_clusters = 50 fixed (construction.rs:404)"
+    note for PerCommunityBuffers "stride 4B, count=num_nodes.max(1), Louvain exceeds 50 (construction.rs:414-416)"
     note for PerBlockBuffers "stride 4B, count = ceil(num_nodes/256) per reduction block"
     note for ScalarBuffers "stride 4B, count = 1 (single-element buffers)"
     note for UnifiedGPUCompute "same struct as VC-12.3, split here only for diagram width"
@@ -337,11 +339,12 @@ sequenceDiagram
         else Ok
             BR->>BR: push PtxArtefact module,source,provenance,isa,original_tag,rewritten_tag (build.rs:261-268)
             BR->>Cargo: cargo:rustc-env=NAME_PTX_PATH=OUT/NAME.ptx (build.rs:270-271)
+            BR->>Cargo: cargo:rustc-env=NAME_PTX_TAG=content_tag(final_text), the ADR-2030 runtime identity (build.rs:272-278, ptx_policy.rs:295)
         end
     end
     end
-    BR->>FS: write ptx-build-manifest.txt, one manifest_line per module (build.rs:276-281)
-    BR->>Cargo: cargo:rustc-env=VISIONCLAW_PTX_MANIFEST=OUT/ptx-build-manifest.txt (build.rs:282-285)
+    BR->>FS: write ptx-build-manifest.txt, one manifest_line per module (build.rs:283-288)
+    BR->>Cargo: cargo:rustc-env=VISIONCLAW_PTX_MANIFEST=OUT/ptx-build-manifest.txt (build.rs:289-292)
     Note right of BR: INVARIANT - PTX downgraded to .version 9.0 before load<br/>fallback-PTX path exists for nvcc-less builds<br/>GPU-wire-abi.md Invariant 5, ADR-2030
     Note right of Policy: DIVERGENCE - the rewrite is a declared-ISA text splice only<br/>it does not prove every instruction is supported by that ISA<br/>only a real driver load settles that (ADR-2030 Consequences)
     Note over BR,FS: DRIFT: docs/README.md:38 states 82 CUDA __global__ kernels across 9 .cu files<br/>a count of __global__ definitions at this stamp gives 88: visionclaw_unified.cu 29 (26 plain plus 3 extern C),<br/>gpu_clustering_kernels.cu 24, semantic_forces.cu 20, pagerank.cu 7, gpu_connected_components.cu 3,<br/>gpu_landmark_apsp.cu 2, sssp_compact.cu 2, gpu_aabb_reduction.cu 1, dynamic_grid.cu 0<br/>semantic_forces.cu grew from 15 to 20 when the sf_ launch kernels landed (crates/visionclaw-gpu/src/cuda_sources/semantic_forces.cu:934-973), and only 8 of the 9 files are built to PTX (build.rs:32-43)
@@ -352,27 +355,27 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant GRA as GPUResourceActor<br/>gpu_resource_actor.rs:41
-    participant Loader as ptx_loader<br/>ptx_loader.rs:372
-    participant Downgrade as downgrade_ptx_isa_if_needed<br/>ptx_loader.rs:311-336
-    participant UGC as UnifiedGPUCompute<br/>construction.rs:252
+    participant Loader as ptx_loader<br/>ptx_loader.rs:464
+    participant Downgrade as downgrade_ptx_isa_if_needed<br/>ptx_loader.rs:328-353
+    participant UGC as UnifiedGPUCompute<br/>construction.rs:272
     participant Cust as cust::module::Module<br/>CUDA driver JIT
 
     GRA->>Loader: load_ptx_module_sync(PTXModule::VisionflowUnified) (gpu_resource_actor.rs:89-91)
-    Loader->>Loader: load_ptx_module_sync_raw - source selection, see VC-12.7<br/>(ptx_loader.rs:379)
+    Loader->>Loader: load_ptx_module_sync_raw - source selection, see VC-12.7<br/>(ptx_loader.rs:471)
     Loader-->>Loader: raw PTX string
-    Loader->>Downgrade: downgrade_ptx_isa_if_needed(raw) (ptx_loader.rs:376)
+    Loader->>Downgrade: downgrade_ptx_isa_if_needed(raw) (ptx_loader.rs:468)
     Downgrade->>Downgrade: detect_max_ptx_isa() via nvidia-smi driver_version<br/>(ptx_loader.rs:91-121)
     alt driver query succeeds, CUDA header probe or approximate driver mapping resolves
         Downgrade-->>Downgrade: RUNTIME_MAX_PTX_ISA OnceLock get_or_init caches the result (ptx_loader.rs:23 static, :92 get_or_init)
     else driver query fails or mapping is unavailable
         Downgrade-->>Downgrade: fallback (9,0) (ptx_loader.rs:103-118)
     end
-    Downgrade->>Downgrade: build target PtxVersion, call ptx_policy::rewrite_ptx_version(&ptx, target)<br/>(ptx_loader.rs:338-342)
+    Downgrade->>Downgrade: build target PtxVersion, call ptx_policy::rewrite_ptx_version(&ptx, target)<br/>(ptx_loader.rs:355-359)
     alt VersionRewrite::Rewritten { from, to, text }
-        Downgrade->>Downgrade: info! ISA downgrade log, return the rewritten text (ptx_loader.rs:343-349)
+        Downgrade->>Downgrade: info! ISA downgrade log, return the rewritten text (ptx_loader.rs:360-366)
         Note right of Downgrade: RESOLVED ADR-2056 - no longer a second impl<br/>downgrade_ptx_isa_if_needed now delegates the actual span-parsed splice<br/>to ptx_policy::rewrite_ptx_version (ptx_policy.rs:233-243, :245-253) -<br/>it retains only the runtime driver-ISA probe
     else VersionRewrite::Unchanged | VersionRewrite::Defective
-        Downgrade-->>Loader: ptx text unchanged (ptx_loader.rs:353-354)
+        Downgrade-->>Loader: ptx text unchanged (ptx_loader.rs:370-371)
     end
     Downgrade-->>GRA: Ok(ptx_content) (gpu_resource_actor.rs:89-95)
     opt clustering PTX (PTXModule::GpuClusteringKernels)
@@ -391,78 +394,80 @@ sequenceDiagram
             Loader-->>GRA: Some(content) (gpu_resource_actor.rs:129-135)
         end
     end
-    Note over Loader,GRA: PTXModule::SemanticForces is the ninth loadable module (ptx_loader.rs:221, all_modules at :274-285)<br/>but GPUResourceActor does not load it, ForceComputeActor::refresh_semantic does on each graph upload<br/>(force_compute_actor.rs:4056-4059) and hands the PTX to UnifiedGPUCompute::enable_semantic (execution.rs:1016)
-    GRA->>UGC: new_with_modules(num_nodes, num_edges, ptx, clustering_ptx, apsp_ptx)<br/>(gpu_resource_actor.rs:143) delegates to new_with_all_modules (construction.rs:252-259, :266-272)
-    UGC->>UGC: validate_ptx_content(ptx_content) (construction.rs:273, gpu_diagnostics.rs:185)
+    Note over Loader,GRA: PTXModule::SemanticForces is the ninth loadable module (ptx_loader.rs:221, all_modules at :291-302)<br/>but GPUResourceActor does not load it, ForceComputeActor::refresh_semantic does on each graph upload<br/>(force_compute_actor.rs:4764-4767) and hands the PTX to UnifiedGPUCompute::enable_semantic (execution.rs:1064)
+    GRA->>UGC: new_with_modules(num_nodes, num_edges, ptx, clustering_ptx, apsp_ptx)<br/>(gpu_resource_actor.rs:143) delegates to new_with_all_modules (construction.rs:272-279, :286-292)
+    UGC->>UGC: validate_ptx_content(ptx_content) (construction.rs:293, gpu_diagnostics.rs:185)
     alt primary PTX fails structural validation
-        UGC-->>GRA: Err PTX validation failed, plus diagnose_ptx_error()<br/>(construction.rs:274-276)
+        UGC-->>GRA: Err PTX validation failed, plus diagnose_ptx_error()<br/>(construction.rs:294-296)
     else Ok
-        UGC->>Cust: Module::from_ptx(ptx_content, empty_options) (construction.rs:281)
+        UGC->>Cust: Module::from_ptx(ptx_content, empty_options) (construction.rs:301)
         alt module load fails
-            UGC-->>GRA: Err Module::from_ptx() failed, plus diagnosis (construction.rs:282-285)
+            UGC-->>GRA: Err Module::from_ptx() failed, plus diagnosis (construction.rs:302-305)
         else module loads
             opt clustering_ptx is Some
-                UGC->>UGC: validate_ptx_content(clustering_ptx_content) (construction.rs:291-294)
+                UGC->>UGC: validate_ptx_content(clustering_ptx_content) (construction.rs:311-314)
                 alt validation fails
-                    UGC->>UGC: error! GPU DEGRADED, clustering_module=None<br/>(construction.rs:295-300)
+                    UGC->>UGC: error! GPU DEGRADED, clustering_module=None<br/>(construction.rs:315-320)
                 else validation ok
-                    UGC->>Cust: Module::from_ptx(clustering_ptx, opts)<br/>(construction.rs:302)
+                    UGC->>Cust: Module::from_ptx(clustering_ptx, opts)<br/>(construction.rs:322)
                     alt secondary load fails
-                        UGC->>UGC: error! GPU DEGRADED, clustering_module=None<br/>(construction.rs:307-314)
+                        UGC->>UGC: error! GPU DEGRADED, clustering_module=None<br/>(construction.rs:327-334)
                     else ok
-                        UGC->>UGC: clustering_module=Some(module) (construction.rs:303-306)
+                        UGC->>UGC: clustering_module=Some(module) (construction.rs:323-326)
                     end
                 end
             end
         end
     end
-    Note over UGC: DOC-DRIFT (predates this window, commit da2f5cac7) - apsp_ptx is NO LONGER loaded<br/>into a module. REMOVED under ADR-2054: apsp_module had zero read sites (nothing ever<br/>resolved a kernel from it), so the load cost a startup PTX parse and logged a false<br/>"GPU APSP is DISABLED" about a capability NFR-7 forbids permanently. The parameter is<br/>retained and ignored (let _ = apsp_ptx, construction.rs:321-327) so callers need not<br/>change shape. See VC-15 for ShortestPathActor::ComputeAPSP, which never used this module.
-    Note over UGC,Cust: get_function(name) resolves a kernel by string<br/>e.g. force_pass/integrate_pass_kernel (execution.rs:657, :943)<br/>a Rust ? propagates the error if absent
-    Note right of UGC: INVARIANT - fallback-PTX for nvcc-less builds<br/>secondary-module failures DEGRADE, not crash<br/>docs/GPU-wire-abi.md Invariant 5 at :258-259
-    Note right of UGC: DIVERGENCE - get_function by name, ONLY symbol check<br/>unguarded if build-time symbol gate bypassed<br/>e.g. a cached OUT_DIR artefact
+    Note over UGC: DOC-DRIFT (predates this window, commit da2f5cac7) - apsp_ptx is NO LONGER loaded<br/>into a module. REMOVED under ADR-2054: apsp_module had zero read sites (nothing ever<br/>resolved a kernel from it), so the load cost a startup PTX parse and logged a false<br/>"GPU APSP is DISABLED" about a capability NFR-7 forbids permanently. The parameter is<br/>retained and ignored (let _ = apsp_ptx, construction.rs:341-347) so callers need not<br/>change shape. See VC-15 for ShortestPathActor::ComputeAPSP, which never used this module.
+    Note over UGC,Cust: get_function(name) resolves a kernel by string<br/>e.g. force_pass/integrate_pass_kernel (execution.rs:666, :989)<br/>a Rust ? propagates the error if absent
+    Note right of UGC: INVARIANT - fallback-PTX for nvcc-less builds<br/>secondary-module failures DEGRADE, not crash<br/>Invariant 5 at docs/GPU-wire-abi.md:283
+    Note right of UGC: DIVERGENCE - get_function by name, ONLY symbol check<br/>unguarded if build-time symbol gate bypassed<br/>e.g. a cached OUT_DIR artefact<br/>NARROWED by ADR-2030: a baked artefact whose bytes changed after the build<br/>is refused (ptx_loader.rs:452-462), a missing tag or file skips the check
 ```
 
 ## VC-12.7 PTX source selection: compiled vs pre-shipped vs runtime-compiled
 ```mermaid
 flowchart TD
-    Start["load_ptx_module_sync_raw(module)<br/>ptx_loader.rs:379"] --> DockerCheck{"DOCKER_ENV set?<br/>ptx_loader.rs:380"}
-    DockerCheck -->|yes| DockerPre["load_precompiled_ptx(module)<br/>ptx_loader.rs:383"]
+    Start["load_ptx_module_sync_raw(module)<br/>ptx_loader.rs:471"] --> Identity{"check_baked_artefact - baked file present<br/>and its content tag differs from NAME_PTX_TAG?<br/>ptx_loader.rs:472, fn at ptx_loader.rs:452-462"}
+    Identity -->|yes| ErrIdentity["Err PtxIdentityMismatch - rebuild, never a silent substitute<br/>ptx_loader.rs:423-446"]
+    Identity -->|"no, or no baked path, tag or file"| DockerCheck{"DOCKER_ENV set?<br/>ptx_loader.rs:474"}
+    DockerCheck -->|yes| DockerPre["load_precompiled_ptx(module)<br/>ptx_loader.rs:477"]
     DockerPre --> DockerPreOk{"found and valid?"}
-    DockerPreOk -->|yes| ReturnA["Ok(content)<br/>ptx_loader.rs:383-384"]
-    DockerPreOk -->|no| DockerCompile["compile_ptx_fallback_sync_module(module)<br/>ptx_loader.rs:388"]
+    DockerPreOk -->|yes| ReturnA["Ok(content)<br/>ptx_loader.rs:477-478"]
+    DockerPreOk -->|no| DockerCompile["compile_ptx_fallback_sync_module(module)<br/>ptx_loader.rs:482"]
     DockerCompile --> ReturnB["Ok/Err from nvcc runtime compile"]
 
-    DockerCheck -->|no| BakedCheck{"get_compiled_ptx_path(module) resolves?<br/>ptx_loader.rs:391, fn at 292-299"}
-    BakedCheck -->|"option_env! baked path (build.rs cargo:rustc-env)"| ReadBaked["fs::read_to_string(path)<br/>ptx_loader.rs:392"]
-    BakedCheck -->|"or std::env::var(module.env_var()) runtime override<br/>ptx_loader.rs:298"| ReadBaked
-    ReadBaked --> ValidBaked{"validate_ptx ok?<br/>ptx_loader.rs:394"}
-    ValidBaked -->|yes| ReturnC["Ok(content) - fastest path, fresh OUT_DIR PTX<br/>ptx_loader.rs:401-402"]
+    DockerCheck -->|no| BakedCheck{"get_compiled_ptx_path(module) resolves?<br/>ptx_loader.rs:485, fn at ptx_loader.rs:309-316"}
+    BakedCheck -->|"option_env! baked path (build.rs cargo:rustc-env)"| ReadBaked["fs::read_to_string(path)<br/>ptx_loader.rs:486"]
+    BakedCheck -->|"or std::env::var(module.env_var()) runtime override<br/>ptx_loader.rs:315"| ReadBaked
+    ReadBaked --> ValidBaked{"validate_ptx ok?<br/>ptx_loader.rs:488"}
+    ValidBaked -->|yes| ReturnC["Ok(content) - fastest path, fresh OUT_DIR PTX<br/>ptx_loader.rs:495-496"]
     ValidBaked -->|no| PreCompiled
-    BakedCheck -->|"neither set"| PreCompiled["load_precompiled_ptx(module)<br/>ptx_loader.rs:415"]
+    BakedCheck -->|"neither set"| PreCompiled["load_precompiled_ptx(module)<br/>ptx_loader.rs:509"]
 
-    PreCompiled --> C1["1. baked compiled_ptx_path option_env!<br/>ptx_loader.rs:440-442"]
-    C1 --> C2["1b. runtime env var override module.env_var()<br/>ptx_loader.rs:445-447"]
-    C2 --> C3["2. target/release-or-debug/build/star/out/NAME.ptx<br/>newest mtime first<br/>ptx_loader.rs:457-476"]
-    C3 --> C4["3a. crates/visionclaw-gpu/src/ptx/NAME.ptx<br/>ptx_loader.rs:482"]
-    C4 --> C5["3b. ../visionclaw-gpu/src/ptx/NAME.ptx<br/>ptx_loader.rs:483-485"]
-    C5 --> C6["3c. /app/crates/visionclaw-gpu/src/ptx/NAME.ptx<br/>ptx_loader.rs:486"]
-    C6 --> C7["3d. legacy /app/src/utils/ptx/NAME.ptx<br/>ptx_loader.rs:488"]
-    C7 --> C8["3e. legacy ./src/utils/ptx/NAME.ptx<br/>ptx_loader.rs:489"]
-    C8 --> AnyValid{"first candidate that reads and validate_ptx ok?<br/>ptx_loader.rs:492-499"}
-    AnyValid -->|yes| ReturnD["Ok(content)<br/>ptx_loader.rs:494-497"]
-    AnyValid -->|no candidate found| RuntimeCompile["compile_ptx_fallback_sync_module(module)<br/>ptx_loader.rs:423"]
+    PreCompiled --> C1["1. baked compiled_ptx_path option_env!<br/>ptx_loader.rs:534-536"]
+    C1 --> C2["1b. runtime env var override module.env_var()<br/>ptx_loader.rs:539-541"]
+    C2 --> C3["2. target/release-or-debug/build/star/out/NAME.ptx<br/>newest mtime first<br/>ptx_loader.rs:551-570"]
+    C3 --> C4["3a. crates/visionclaw-gpu/src/ptx/NAME.ptx<br/>ptx_loader.rs:576"]
+    C4 --> C5["3b. ../visionclaw-gpu/src/ptx/NAME.ptx<br/>ptx_loader.rs:577-579"]
+    C5 --> C6["3c. /app/crates/visionclaw-gpu/src/ptx/NAME.ptx<br/>ptx_loader.rs:580"]
+    C6 --> C7["3d. legacy /app/src/utils/ptx/NAME.ptx<br/>ptx_loader.rs:582"]
+    C7 --> C8["3e. legacy ./src/utils/ptx/NAME.ptx<br/>ptx_loader.rs:583"]
+    C8 --> AnyValid{"first candidate that reads and validate_ptx ok?<br/>ptx_loader.rs:586-593"}
+    AnyValid -->|yes| ReturnD["Ok(content)<br/>ptx_loader.rs:588-591"]
+    AnyValid -->|no candidate found| RuntimeCompile["compile_ptx_fallback_sync_module(module)<br/>ptx_loader.rs:517"]
 
-    RuntimeCompile --> Arch["effective_cuda_arch(): delegates to detect_runtime_cuda_arch()<br/>ptx_loader.rs:307-309"]
-    Arch --> CuSrc{"src/utils/NAME.cu exists under CARGO_MANIFEST_DIR?<br/>ptx_loader.rs:560-566"}
-    CuSrc -->|no| ErrNoSrc["Err CUDA source not found<br/>ptx_loader.rs:567-571"]
-    CuSrc -->|yes| SpawnNvcc["nvcc -ptx -std=c++17 -arch=sm_ARCH NAME.cu -o TMP.ptx<br/>ptx_loader.rs:588-608"]
+    RuntimeCompile --> Arch["effective_cuda_arch(): delegates to detect_runtime_cuda_arch()<br/>ptx_loader.rs:324-326"]
+    Arch --> CuSrc{"src/utils/NAME.cu exists under CARGO_MANIFEST_DIR?<br/>ptx_loader.rs:654-660"}
+    CuSrc -->|no| ErrNoSrc["Err CUDA source not found<br/>ptx_loader.rs:661-665"]
+    CuSrc -->|yes| SpawnNvcc["nvcc -ptx -std=c++17 -arch=sm_ARCH NAME.cu -o TMP.ptx<br/>ptx_loader.rs:682-702"]
     SpawnNvcc --> NvccOk{"spawn ok and exit 0?"}
-    NvccOk -->|no| ErrNvcc["Err nvcc failed, includes stdout/stderr<br/>ptx_loader.rs:610-623"]
-    NvccOk -->|yes| ReadTmp["fs::read_to_string(TMP.ptx)<br/>ptx_loader.rs:625-631"]
-    ReadTmp --> ValidateTmp["validate_ptx(ptx_content)<br/>ptx_loader.rs:633"]
-    ValidateTmp --> ReturnE["Ok(content)<br/>ptx_loader.rs:634-639"]
+    NvccOk -->|no| ErrNvcc["Err nvcc failed, includes stdout/stderr<br/>ptx_loader.rs:704-717"]
+    NvccOk -->|yes| ReadTmp["fs::read_to_string(TMP.ptx)<br/>ptx_loader.rs:719-725"]
+    ReadTmp --> ValidateTmp["validate_ptx(ptx_content)<br/>ptx_loader.rs:727"]
+    ValidateTmp --> ReturnE["Ok(content)<br/>ptx_loader.rs:728-733"]
 
-    ReturnA --> Downgrade["downgrade_ptx_isa_if_needed(raw) - see VC-12.5<br/>ptx_loader.rs:376"]
+    ReturnA --> Downgrade["downgrade_ptx_isa_if_needed(raw) - see VC-12.5<br/>ptx_loader.rs:468"]
     ReturnB --> Downgrade
     ReturnC --> Downgrade
     ReturnD --> Downgrade

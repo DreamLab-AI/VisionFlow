@@ -1,0 +1,114 @@
+[
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2028-simparams-212-byte-abi.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; size lock, manifest and PTX arity test traced; no cargo/nvcc/GPU run; cross-language offset comparison absent (C11)."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2029-force-channel-flag-derivation.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; single flag authority and read-only Constraints traced; GPU tests read in source only, not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2030-ptx-isa-downgrade.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; build policy and loader traced; Decision omits runtime rewrite and lower-only rule (C2); identity check inert in images (C3); no nvcc/driver run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2031-withdrawn-reserved.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; support tombstone; number unreused at pin."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2032-godot-native-compatibility-renderer.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; project settings traced; WebXR wording drift (C9); no verified_paths (C8); no Godot/headset run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2033-hud-buttons-fire-on-press.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; hud.gd compliant; RadialMenu release-mode buttons contradict the Decision (C1); no Godot/headset run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2034-renderstore-instance-math-stride-16.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; stride and agent-evidence contract traced; stride-12 plane buffer makes the foreclosure over-broad (C4); no headset run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2035-dag-rank-accepts-hierarchical-label.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; amended provenance rule and domain-root reconciliation traced; Consequences/Verification stale (C10); live census historical."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2036-defensive-openxr-boot.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; xr_boot query and deferred swap traced; action map has no gaze binding; no headset run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2037-production-build-excludes-dev-auth.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; proposed; build lines, source-grep CI gate and boot refusal traced; no emitted-binary/digest receipt (C6); no image built."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2038-boot-time-profile-assertion.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; pre-bind evaluator traced; implicit multi-user-locked default not implemented, undeclared deployments refused instead (C5); no listener run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2039-visionclaw-dev-mode-lan-local-bypass.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; proposed; bypass sites, compile gate and boot refusal traced; Default-OFF text stale and two mirror sites unlisted (C7); no runtime receipt."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2040-obsidian-vault-frontmatter-gate.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; superseded record (ADR-2112); current gate traced; no corpus sync run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2041-graph-settings-key-knowledge.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-3.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; superseded record (ADR-2115); rename holds, alias gone, client shim remains (C12); no client/server run."
+  }
+]

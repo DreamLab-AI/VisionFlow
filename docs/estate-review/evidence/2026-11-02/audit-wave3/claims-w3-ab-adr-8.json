@@ -1,0 +1,26 @@
+[
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "skills/ruvector-catalog/docs/adr/ADR-007-cli-search-engine-fix.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-8.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; imported copy (mamd69/ruvector-catalog), not adopted; closeout claims assessed true against vendored search source; no CLI or benchmark run."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "skills/ruvector-catalog/docs/adr/ADR-008-data-model-extensions.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-8.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; imported copy (mamd69/ruvector-catalog), not adopted; closeout claims assessed true against vendored types and data; field coverage by string count, TypeScript not executed."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "skills/ruvector-catalog/docs/adr/ADR-009-benchmark-comparison-all-approaches.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-8.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; imported copy (mamd69/ruvector-catalog), not adopted; closeout claims assessed true (no tests directory); benchmark queries not run."
+  }
+]

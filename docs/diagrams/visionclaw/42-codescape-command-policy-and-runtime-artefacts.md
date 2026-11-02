@@ -19,7 +19,7 @@ sources:
   - ../codescape/crates/codescape-layout/src/lib.rs
   - ../project/docker-compose.unified.yml
   - ../project/docs/adr/ADR-2148-enable-local-typed-decisions.md
-verified_commit: {codescape: 58108c0357bd0dbf6588f8b6adf6e044f4c04556, visionclaw: 75b72416bac176ca8fde715cac3bd7c77657b3e7}
+verified_commit: {codescape: 58108c0357bd0dbf6588f8b6adf6e044f4c04556, visionclaw: 86cdd7635582}
 ---
 
 ## For developers
@@ -38,7 +38,7 @@ flowchart TD
     ISO --> PATH["Reject VisionClaw git sources and external path packages<br/>codescape-server/tests/isolation.rs:215"]
     PATH --> LIC["Inspect normal and build dependency licences<br/>codescape-server/tests/isolation.rs:324"]
     DEC --> GPU["PTX crosses at runtime with manifest and ABI checks<br/>ADR-0001-extraction-from-visionclaw.md:34"]
-    GPU --> LOAD["Read pair from configured directory<br/>codescape-layout/src/ptx_source.rs:95,107"]
+    GPU --> LOAD["Read pair from configured directory<br/>codescape-layout/src/ptx_source.rs:93,105"]
 ```
 
 **What it shows.** Cargo isolation and runtime artefact provenance have separate enforcement paths. The audit's eight isolation tests pass, including their forbidden-package control. **Why it is this way.** ADR-0001 removes build-time coupling while retaining a shared wire contract and runtime GPU input. These checks do not establish network isolation or current deployment identity.
@@ -56,7 +56,7 @@ flowchart TD
     FALL -->|found| RES
     FALL -->|none usable| NO
     RES --> LIST["Same resolver supplies allowlist URL<br/>voice/jev.rs:231; codescape-server/src/config.rs:282"]
-    LIST --> SEND["Check origin before request and on redirects<br/>voice/jev.rs:314; codescape-server/src/egress.rs:98"]
+    LIST --> SEND["Check origin before request and on redirects<br/>voice/jev.rs:315; codescape-server/src/egress.rs:103"]
 ```
 
 **What it shows.** An explicit remote endpoint can resolve while every local/cloud permission flag is false. The implicit proxy branch is refused under those same permissions. The current host intentionally enables cloud routing (`docker-compose.unified.yml:505`).

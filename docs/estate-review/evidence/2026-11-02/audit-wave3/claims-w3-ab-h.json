@@ -1,0 +1,22 @@
+[
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/agentbox/28-agentbox-services-and-manifest-binary.md",
+   "report": "docs/estate-review/2026-11-02-w3-ab-h.md", "coverage": "selected-panels",
+   "panels": ["AB-28.1", "AB-28.2", "AB-28.3", "AB-28.4", "AB-28.6", "AB-28.8", "AB-28.9", "AB-28.10", "AB-28.11", "AB-28.13"],
+   "basis": "Source tracing at agentbox c57d9c0508f4; restamped from 6500582, every citation re-resolved; strict cite-check and render pass; golden-test and runtime claims not exercised."},
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/agentbox/29-metaharness-router-console.md",
+   "report": "docs/estate-review/2026-11-02-w3-ab-h.md", "coverage": "selected-panels",
+   "panels": ["AB-29.1", "AB-29.2", "AB-29.3", "AB-29.4", "AB-29.5", "AB-29.6", "AB-29.7", "AB-29.8", "AB-29.9"],
+   "basis": "Source tracing at agentbox c57d9c0508f4; restamped from 6500582, every citation re-resolved; strict cite-check and render pass; ruflo closure and OpenRouter behaviour not exercised."},
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/agentbox/30-supporting-services-secret-backup-setup-https-bridge.md",
+   "report": "docs/estate-review/2026-11-02-w3-ab-h.md", "coverage": "selected-panels",
+   "panels": ["AB-30.2", "AB-30.3", "AB-30.4"],
+   "basis": "Source tracing at agentbox c57d9c0508f4; restamped from 6500582, every citation re-resolved; strict cite-check and render pass; no secret-backup panel exists; browser CORS behaviour not exercised."},
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/agentbox/31-sovereign-settlement.md",
+   "report": "docs/estate-review/2026-11-02-w3-ab-h.md", "coverage": "selected-panels",
+   "panels": ["AB-31.1", "AB-31.4", "AB-31.5", "AB-31.6", "AB-31.7", "AB-31.8", "AB-31.9"],
+   "basis": "Source tracing at agentbox c57d9c0508f4; restamped from 6500582, every citation re-resolved; strict cite-check and render pass; design-record panels, sibling-repo records not checked."},
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/agentbox/32-sidechain-root-seal.md",
+   "report": "docs/estate-review/2026-11-02-w3-ab-h.md", "coverage": "selected-panels",
+   "panels": ["AB-32.1", "AB-32.2", "AB-32.3", "AB-32.4", "AB-32.5"],
+   "basis": "Source tracing at agentbox c57d9c0508f4; restamped from 6500582, every citation re-resolved; strict cite-check and render pass; live chain and block-file state not checked."}
+]

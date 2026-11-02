@@ -12,7 +12,7 @@ sources:
   - ../project/xr-client/rust/src/webrtc_audio.rs
   - ../project/crates/visionclaw-domain/src/config/services.rs
   - ../project/src/services/audio_router.rs
-verified_commit: {visionclaw: 75b72416bac176ca8fde715cac3bd7c77657b3e7}
+verified_commit: {visionclaw: 86cdd7635582}
 ---
 
 ## For developers
@@ -31,7 +31,7 @@ flowchart TD
     ROUTER["Audio router stores optional participant id<br/>audio_router.rs:39,160,420"]
     TRACKS["Voice core: track positions and mute flags<br/>webrtc_audio.rs:43,62,88,99"] --> SNAP["Return track snapshot<br/>webrtc_audio.rs:113,115"]
     LISTENER["Store listener transform<br/>webrtc_audio.rs:103,105"] --> READ["Return listener snapshot<br/>webrtc_audio.rs:120,123"]
-    GAP["Documented media transport gap<br/>XR-client.md:864,866"]
+    GAP["Documented media transport gap<br/>XR-client.md:875,877"]
 ```
 
 **What it shows.** These are existing fields and state operations, not a connected media pipeline. **Why it is this way.** The native media transport remains unwired; passing state tests do not establish HRTF, microphone capture or a server token issuer.

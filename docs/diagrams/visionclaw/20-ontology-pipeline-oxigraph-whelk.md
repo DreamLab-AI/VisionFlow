@@ -48,7 +48,10 @@ sources:
   - ../project/src/actors/gpu/physics_supervisor.rs
   - ../project/src/settings/models.rs
   - ../project/tests/integration/pipeline_test.rs
-verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, ontomark: 560e50c1a35bb9486b9f43ebf074b816c1e01349}
+  - ../project/Cargo.toml
+  - ../project/src/middleware/rbac_gate.rs
+  - ../project/src/settings/api/settings_routes.rs
+verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724, ontomark: 4b9d15df48056971321a62b8c4e905f4536c74db}
 ---
 
 ## VC-20.1 load_ontology bin - CorpusSource-backed corpus loader
@@ -56,7 +59,7 @@ verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, ontomark
 sequenceDiagram
     autonumber
     participant Bin as main<br/>src/bin/load_ontology.rs:46
-    participant Src as CorpusSource LocalDirectorySource<br/>src/services/corpus_source/local.rs:200
+    participant Src as CorpusSource LocalDirectorySource<br/>src/services/corpus_source/local.rs:234
     participant Parser as parse_page project_ontology<br/>src/services/page_parser.rs:73
     participant Repo as OxigraphOntologyRepository<br/>crates/visionclaw-adapters/src/oxigraph_ontology_repository.rs:1664
     participant Extr as OwlExtractorService<br/>src/services/owl_extractor_service.rs:52
@@ -64,9 +67,10 @@ sequenceDiagram
     Bin->>Src: LocalDirectorySource::new(cli_root, base_paths) or from_env() (lines 55-56, defn local.rs:60,74)
     Bin->>Src: list_pages() (line 70)
     Src-->>Bin: Vec of CorpusPage
+    Bin->>Src: vocabulary(), missing ontology/vocabulary.yaml is an error (lines 75-78)
     loop each page
         Bin->>Bin: source.fetch_page(page) (line 85)
-        Bin->>Parser: parse_page(content, path) (line 93, defn 73)
+        Bin->>Parser: parse_page(content, path, base_paths) (line 93, defn 73)
         Bin->>Bin: visionclaw_domain::vault::parse(content).is_kg_included() gate (line 96, see VC-21)
     end
     Bin->>Parser: project_ontology(ontology_pages, vocabulary) (line 108, defn 170)
@@ -78,6 +82,7 @@ sequenceDiagram
     Repo-->>Bin: Vec of OwlClass
     Bin->>Bin: exit(1) when ontology_files_parsed==0 or classes_persisted==0 (line 186)
     Note over Bin,Src: RESOLVED ADR-2114 - the bin now reads through the same CorpusSource port as live sync<br/>(LocalDirectorySource over VAULT_ROOT, ADR-2064), instead of a bespoke root-resolution scheme.<br/>The five hardcoded sample OwlClass literals and the per-class add_owl_class loop are gone.
+    Note over Src: shared-corpus-layout is a DEFAULT feature (Cargo.toml:279, :281): list_pages validates the roots<br/>through ontomark_compile::profile::resolve_roots first (local.rs:247-249, checked_roots :139-143),<br/>the walk skips child symlinks (local.rs:192-199) and fetch_page refuses a canonical path<br/>outside the roots (local.rs:281-296). Built without the feature, the legacy walk follows links.
 ```
 
 ## VC-20.2 Oxigraph named-graph layout — ontology and knowledge graphs
@@ -199,7 +204,7 @@ sequenceDiagram
     Sel->>Mat: build_inferred_edge tags edge_type hierarchical,<br/>owl-property rdfs:subClassOf, metadata inferred=true (line<br/>1182, defn line 68)
     Sel-->>Sync: InferredEdgeSelection edges considered_axioms<br/>immediate_pairs unresolved_endpoints
     Sync->>KG: batch_add_edges(inferred_edges) (line 1309)
-    Note over Sync,Sel: RESOLVED ADR-2071 - select_inferred_edges_for_sync is now<br/>the SHARED pure function (docstring<br/>line 1113-1125): the per-child cap of 8, asserted-pair<br/>suppression and the transitive-to-immediate<br/>reduction apply identically to PATH B, so the two paths<br/>cannot drift. Every edge carries<br/>metadata inferred=true, so edge_is_inferred classifies<br/>sync-produced edges onto the inferred channel.
+    Note over Sync,Sel: ADR-2071 - select_inferred_edges_for_sync delegates every rule to<br/>inferred_edge_materialiser (docstring line 1113-1125). Every edge carries<br/>metadata inferred=true, so edge_is_inferred classifies<br/>sync-produced edges onto the inferred channel.
     end
     rect rgb(255,245,225)
     Note over Pipeline,Mat: PATH B - OntologyPipelineService, gated OFF by default
@@ -210,8 +215,9 @@ sequenceDiagram
         Pipeline->>Mat: materialise(candidates, current.edges, cfg) (line 538,<br/>defn line 202)
         Mat->>Mat: select_inferred_edges drops self-loops, asserted pairs,<br/>caps per child at max_inferred_parents_per_child=8 (lines<br/>127-153, DEFAULT_MAX_INFERRED_PARENTS_PER_CHILD line 37)
         Pipeline->>Pipeline: graph_repo.batch_add_edges(edges) (line 544)
+        Note over Pipeline,Mat: DRIFT vs the docstring claim that the paths cannot drift (github_sync_service.rs:1121):<br/>PATH B builds its own ancestor map (ontology_pipeline_service.rs:492-505) and calls<br/>immediate_inferred_parents directly (line 506), not the front door<br/>immediate_parents_from_subclass_pairs (inferred_edge_materialiser.rs:181), so the owl#Nothing /<br/>owl#Thing filter (inferred_edge_materialiser.rs:169-171) never runs here. It resolves IRIs<br/>through get_nodes_by_owl_class_iri (cross-product of ids) rather than IriNodeResolver, and its<br/>edges carry no source_iri / target_iri. Only select_inferred_edges and build_inferred_edge are shared.
     end
-    Note over Pipeline: SemanticPhysicsConfig (ontology_pipeline_service.rs:27)<br/>defaults: constraint_strength 1.0,<br/>use_gpu_constraints true, materialise_inferred_edges false<br/>(lines 61-63). RESOLVED ADR-2068 - the repo-root<br/>ontology_physics.toml was read by no Rust code and has<br/>been deleted — the live toggle is the<br/>Settings.ontology_physics bool<br/>(src/settings/models.rs:58), gating POST<br/>/api/ontology-physics/enable|disable<br/>(api_handler/ontology_physics/mod.rs:107,387) which drives<br/>OntologyConstraintActor - see VC-04.7, VC-11.5
+    Note over Pipeline: SemanticPhysicsConfig (ontology_pipeline_service.rs:27)<br/>defaults: constraint_strength 1.0,<br/>use_gpu_constraints true, materialise_inferred_edges false<br/>(lines 61-63). RESOLVED ADR-2068 - the repo-root<br/>ontology_physics.toml was read by no Rust code and has<br/>been deleted. CORRECTED - the Settings.ontology_physics<br/>bool (src/settings/models.rs:58) does NOT gate POST<br/>/api/ontology-physics/enable|disable<br/>(api_handler/ontology_physics/mod.rs:107,387): their<br/>feature check returns Ok unconditionally (:80-81).<br/>The bool only gates the quality-gate weight push<br/>(settings_routes.rs:1352) - see VC-04.7, VC-11.5
     end
     Sync->>Idx: maybe_refresh_after_sync(classes)<br/>(github_sync_service.rs:663, sync_graphs_with, defn line<br/>468)
     alt ONTOLOGY_CLASS_INDEX_ENABLED unset (default, ontology_class_index.rs:75)
@@ -220,6 +226,10 @@ sequenceDiagram
         Idx->>Idx: refresh_class_index condense_class RuVector memory_store<br/>namespace ontology-classes (line 495, defn 378,<br/>DEFAULT_NAMESPACE line 33)
     end
 ```
+
+**Debt:** `POST /api/ontology-physics/enable|disable` call `check_ontology_feature`, which returns `Ok(())` unconditionally (`src/handlers/api_handler/ontology_physics/mod.rs:80-81`); the `Settings.ontology_physics` bool (`src/settings/models.rs:58`) is read only to push constraint weights from the quality-gate route (`src/settings/api/settings_routes.rs:1352`), so the endpoints are always live.
+
+**Drift:** `OntologyPipelineService::materialise_inferred_edges_from_axioms` builds its own ancestor map and calls `immediate_inferred_parents` (`src/services/ontology_pipeline_service.rs:492-506`) instead of `immediate_parents_from_subclass_pairs` (`src/services/inferred_edge_materialiser.rs:181`), so the vacuous-axiom filter (`src/services/inferred_edge_materialiser.rs:169-171`) never runs on PATH B, contrary to the claim that the two paths cannot drift (`src/services/github_sync_service.rs:1121`).
 
 ## VC-20.6 SPARQL read path - /ontology/query
 ```mermaid
@@ -268,11 +278,12 @@ sequenceDiagram
     participant AgentScope as /api/ontology-agent scope<br/>src/handlers/ontology_agent_handler.rs:386
 
     Client->>Rbac: any /api/* request
+    Note over Rbac: required_level (rbac_gate.rs:147-189): safe GETs are public only when RBAC_PUBLIC_READS=1<br/>(fail-closed default, rbac_gate.rs:135-141), every other POST PUT DELETE needs WriteGraph (rbac_gate.rs:188)<br/>BEFORE any scope below is reached. Only /api/auth, client-logs and health probes are exempt (rbac_gate.rs:55-61)
     rect rgb(230,255,230)
-    Note over OntScope: registration order matters (ontology/mod.rs:1619-1630) - derived and class-count scopes register before this broader /ontology scope
+    Note over OntScope: registration order matters - derived and class-count scopes register before this broader /ontology scope<br/>(project/src/main.rs:1147-1162), the single-scope collapse is recorded at ontology/mod.rs:1610-1626
     OntScope->>OntScope: POST graph classes properties axioms inference query sparql load load-axioms validate mapping apply, PUT classes iri and properties iri, DELETE cache axioms iri classes iri (lines 1647-1667)
     OntScope->>OntScope: GET graph inferred classes properties axioms inference validate metrics inferences hierarchy state-at provenance reports id report health ws (lines 1669-1694)
-    Note over OntScope: power_user().mutations_only() gate line 1645 - POST PUT DELETE gated, all GET public
+    Note over OntScope: power_user().mutations_only() gate line 1645 - POST PUT DELETE gated at power_user, GETs pass this scope<br/>(still subject to the RbacGate read rule, state-at and provenance also take the AuthenticatedUser extractor, lines 1684-1690)
     end
     rect rgb(255,230,230)
     DerivedScope->>DerivedScope: POST derived, POST derived/regenerate, GET derived which (line 189-191)
@@ -280,18 +291,20 @@ sequenceDiagram
     end
     rect rgb(230,230,255)
     CountScope->>CountScope: GET class-count (line 77)
-    Note over CountScope: unauthenticated by design (ontology_class_count_handler.rs:25)
+    Note over CountScope: no scope-level auth by design (ontology_class_count_handler.rs:25) - public only while RbacGate public reads are on
     end
     rect rgb(255,245,230)
     AgentScope->>AgentScope: POST discover read query traverse validate check, GET status (lines 389-395)
     AgentScope->>AgentScope: POST ontology-agent/propose, always 410 Gone (line 399, handler defn line 239)
-    Note over AgentScope: RESOLVED ADR-2116 - every route on this scope is now anonymous. The /propose sub-scope and its<br/>RequireAuth+RateLimit middleware are gone with the write path they guarded (ontology_agent_handler.rs:239-240, :382-386) —<br/>propose() answers 410 Gone naming vault propose as the replacement, needing no auth to reach no service. The governed<br/>write door moved to POST /decisions/record - see VC-24. ADR-2127 added /check with the tri-valued<br/>relation check and open-world scope fields on every answer.
+    Note over AgentScope: ADR-2116 - the scope carries no auth middleware of its own. The /propose sub-scope and its<br/>RequireAuth+RateLimit middleware are gone with the write path they guarded (ontology_agent_handler.rs:239-240, :381-386) —<br/>propose() answers 410 Gone naming vault propose as the replacement. The governed<br/>write door moved to POST /decisions/record - see VC-24. ADR-2127 added /check with the tri-valued<br/>relation check and open-world scope fields on every answer.
+    Note over Rbac,AgentScope: CORRECTED - not anonymous: the scope is mounted inside the RbacGate-wrapped /api scope<br/>(project/src/main.rs:1137, :1199), so every POST here, /propose included, needs WriteGraph (Editor+) before the<br/>handler runs (rbac_gate.rs:188), and GET /status is public only while RBAC_PUBLIC_READS=1
     end
     rect rgb(245,245,245)
-    InfScope->>InfScope: POST run batch validate, GET results ontology_id classify ontology_id, DELETE cache ontology_id (formerly inference_handler.rs, deleted)
-    Note over OntScope: RESOLVED ADR-2066 - the /api/inference scope is gone. Its seven handlers extracted a web::Data InferenceService<br/>that was never constructed or registered, so every route 500'd at the extractor. inference_handler.rs,<br/>application/inference_service.rs, events/inference_triggers.rs and the main.rs registration were all removed.<br/>The live reasoning path is GitHubSyncService::run_post_sync_reasoning - see VC-20.3
+    Note over OntScope: RESOLVED ADR-2066 - the /api/inference scope is gone. Its seven handlers extracted a web::Data InferenceService<br/>that was never constructed or registered, so every route 500'd at the extractor. inference_handler.rs,<br/>application/inference_service.rs, events/inference_triggers.rs and the main.rs registration were all removed<br/>(project/src/main.rs:1178-1182). The live reasoning path is GitHubSyncService::run_post_sync_reasoning - see VC-20.3
     end
 ```
+
+**Drift:** ADR-2116 and the handler comment call every `/ontology-agent` route anonymous (`src/handlers/ontology_agent_handler.rs:381-385`), but the scope is mounted inside the `RbacGate`-wrapped `/api` scope (`src/main.rs:1137`, `src/main.rs:1199`) and `required_level` demands `WriteGraph` for every non-safe method outside the auth/health allowlist (`src/middleware/rbac_gate.rs:179-189`). In practice an unsigned caller is refused, while any signed caller passes, because an unassigned pubkey defaults to Editor (`src/services/role_store.rs:366`). Two comments disagree with the code: `src/middleware/rbac_gate.rs:200` calls `RBAC_PUBLIC_READS` default-on against the fail-closed `src/middleware/rbac_gate.rs:135-141`, and `src/main.rs:1202` still says `/decisions/record` is authed like `/propose`.
 
 ## VC-20.8 OntologyActor message set
 
@@ -363,7 +376,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant CLI as vault certify<br/>crates/vault/src/main.rs:515
+    participant CLI as vault certify<br/>crates/vault/src/main.rs:537
     participant G as build_graph_attributed<br/>crates/vault/src/build/turtle.rs:216
     participant AD as certificate::certify (adapter)<br/>crates/vault/src/certificate.rs:45
     participant CR as rdfs-certificate crate (crates.io 0.1.0)<br/>../ontomark/crates/rdfs-certificate/src/lib.rs:432
@@ -373,16 +386,16 @@ sequenceDiagram
     CLI->>G: the graph vault build publishes (knowledge vault, projected, attributed, public only)
     CLI->>AD: certify(&graph)
     AD->>AD: spell() — every Subject/Term as an N-Triples string crates/vault/src/certificate.rs:21
-    AD->>CR: certify(triples) — the same engine ontomark build --certificate-out runs<br/>../ontomark/crates/ontomark-compile/src/certificate.rs:51, build/mod.rs:695
+    AD->>CR: certify(triples) — the same engine ontomark build --certificate-out runs<br/>../ontomark/crates/ontomark-compile/src/certificate.rs:51, build/mod.rs:703
     loop until the worklist is empty
         CR->>CR: insert() indexes and queues a new fact, a derived one is ONE step lib.rs:249<br/>consequences_of() — rdfs2/3/5/7/9/11 in both premise positions lib.rs:287, run_to_fixpoint lib.rs:411
         Note over CR: rule TAB conclusion TAB premise1 TAB premise2 — premises are asserted or EARLIER lines<br/>pinned at lib.rs:879 (ordering) and lib.rs:910 (premise order per rule)
     end
     CR-->>CLI: Certificate (asserted, steps)
     CLI->>CR: write(out, generation) — asserted.tsv, derivations.tsv, asserted.sha256, scope.tsv lib.rs:585<br/>push_line refuses any field carrying a separator lib.rs:790
-    CLI->>W: reason(&graph).inferred
+    CLI->>W: reason(&graph).inferred - Err before reasoning when RELEVANT_TRANSITIVE_CAP is exceeded, crates/vault/src/whelk.rs:514
     CLI->>CR: named_subclass_closure() lib.rs:515
-    Note over CLI,W: INVARIANT whelk_parity: certified named closure == Whelk's, exit 1 otherwise<br/>crates/vault/src/main.rs:548. Structural today: the emitter puts restrictions only on the<br/>superclass side, so every named entailment is rdfs11. Pinned at crates/vault/src/certificate.rs:92,<br/>ontomark enforces the same parity as a build refusal, build/mod.rs:101
+    Note over CLI,W: INVARIANT whelk_parity: certified named closure == Whelk's, exit 1 otherwise<br/>crates/vault/src/main.rs:570, :606-610. Structural today: the emitter puts restrictions only on the<br/>superclass side, so every named entailment is rdfs11. Pinned at crates/vault/src/certificate.rs:92,<br/>ontomark enforces the same parity as a build refusal, ../ontomark/crates/ontomark-compile/src/build/mod.rs:101, :705-710
     CLI->>OO: oo-cert asserted.tsv derivations.tsv (reviewer / CI, OO_CERT_BIN)
     OO-->>CLI: {"ok":true,"theorem":"OOCert.certificate_sound"} or exit 1 naming the first bad line and rule
     Note over OO: Measured 2026-10-20 on visionGraph 1ec5774ad: 351,421 asserted, 731,141 derivations,<br/>certify 1.2 s, oo-cert 9.5 s accept, a forged line refused. tests/certificate_oo_cert.rs:72, :91
@@ -390,12 +403,12 @@ sequenceDiagram
 
 ## VC-20.15 vault propose — the consequence delta on the PatchProposal (ADR-2147)
 
-Current construction and consumer limits are assessed in [VC-41](41-proposal-construction-and-consumer-scope.md), including version metadata in consequence counts and grouped proposals that cannot reach application. This sequence retains its historical source pins.
+Current construction and consumer limits are assessed in [VC-41](41-proposal-construction-and-consumer-scope.md), including version metadata in consequence counts and grouped proposals that cannot reach application. This sequence is re-pinned to the stamped revision; the measurements in its last notes are historical.
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant P as vault propose<br/>crates/vault/src/main.rs:250
+    participant P as vault propose<br/>crates/vault/src/main.rs:438
     participant B as build_with_certificates<br/>crates/vault/src/propose.rs:524
     participant A as Assessment::of (base, then patched)<br/>crates/vault/src/propose.rs:118
     participant D as consequence_delta<br/>../ontomark/crates/rdfs-certificate/src/lib.rs:630
@@ -407,8 +420,8 @@ sequenceDiagram
     B->>A: Assessment::of(patched) — the same four, once
     B->>D: consequence_delta(&before.certificate, &after.certificate)
     Note over D: compares the CLOSURE (asserted ∪ derived) with blank-node-bearing triples counted, not compared<br/>lib.rs:630. Derived-only misreports a consequence that becomes asserted —<br/>cross-vendor audit finding, pinned at lib.rs:1055
-    D-->>B: ConsequenceDelta — verdict word, new/lost, by predicate, examples, proposal asserted.sha256<br/>crates/vault-core/src/proposal.rs:176
-    B->>PP: with_consequences(delta) propose.rs:611
+    D-->>B: ConsequenceDelta — verdict word, new/lost, by predicate, examples, proposal asserted.sha256<br/>re-exported at crates/vault-core/src/proposal.rs:159
+    B->>PP: with_consequences(delta) propose.rs:615, defn crates/vault-core/src/proposal.rs:259
     opt --certificate-dir
         B->>B: Built::write_certificates — base/, proposed/, consequences.json propose.rs:502
     end

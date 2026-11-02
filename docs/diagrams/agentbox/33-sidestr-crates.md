@@ -11,16 +11,17 @@ sources:
   - ../project/agentbox/docs/adr/ADR-2112-sidestr-crates-live-in-sidestr-rs.md
   - ../project/agentbox/docs/adr/ADR-2106-sidestr-crates-are-agpl-derivatives-of-siding-published-and-consumed.md
   - ../project/agentbox/docs/developer/licensing.md
+  - ../project/agentbox/scripts/ci/check-crate-licensing.sh
   - ../project/agentbox/docs/BASELINE-container.md
   - ../project/agentbox/lib/sidestr-agent.nix
-verified_commit: {agentbox: 6500582dfae23bf8a38a6942916d208154e43625, sidestr-rs: d8ace3aad2f23eb1d11bd72af4ab0b74d599f618}
+verified_commit: {agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35, sidestr-rs: d8ace3aad2f23eb1d11bd72af4ab0b74d599f618}
 ---
 
 ## For developers
 
-On 2026-09-23 the four `sidestr-*` crates split out with their history to `DreamLab-AI/sidestr-rs` (now five, with `sidestr-round`); `crates/sidestr/` here holds only a pointer README (ADR-2112), and agentbox keeps the chain **instance** in `config/sidechain/` (see AB-31, AB-32, AB-34).
+On 2026-09-23 the five `sidestr-*` crates (`header`, `core`, `nostr`, `wallet`, `round`) split out with their history to `DreamLab-AI/sidestr-rs` (`../project/agentbox/docs/adr/ADR-2112-sidestr-crates-live-in-sidestr-rs.md:23-24`), whose workspace has since grown to eleven members; `crates/sidestr/` here holds only a pointer README (ADR-2112), and agentbox keeps the chain **instance** in `config/sidechain/` (see AB-31, AB-32, AB-34).
 
-**Drift (this topic vs agentbox since ad45e7bf8):** the crates this topic cites under `crates/sidestr/` no longer live in agentbox — on 2026-09-23 ADR-2112 moved them with their history and their CI to `DreamLab-AI/sidestr-rs`, leaving a pointer README; the pointer names five (`sidestr-header`, `sidestr-core`, `sidestr-nostr`, `sidestr-wallet`, `sidestr-round`) (`../project/agentbox/crates/sidestr/README.md:5-13`), and the image additionally bakes the standalone `sidestr-agent` binary from sidestr-rs at a pinned commit (`../project/agentbox/lib/sidestr-agent.nix:29-30`). Crate versions past what agentbox records here are not verifiable from this repository. The current crate graph, oracle ladder and level status are SR-01.
+**Drift (this topic vs agentbox since ad45e7bf8):** the crates this topic cites under `crates/sidestr/` no longer live in agentbox — on 2026-09-23 ADR-2112 moved them with their history and their CI to `DreamLab-AI/sidestr-rs`, leaving a pointer README; the pointer says five crates used to live here and now lists eight published ones, adding `sidestr-hitch`, `sidestr-agent` and `webledgers-teller` (`../project/agentbox/crates/sidestr/README.md:5-17`), and the image additionally bakes the standalone `sidestr-agent` binary from sidestr-rs at a pinned commit (`../project/agentbox/lib/sidestr-agent.nix:29-32`). Crate versions past what agentbox records here are not verifiable from this repository. The current crate graph, oracle ladder and level status are SR-01.
 
 ## For the business
 
@@ -33,7 +34,7 @@ flowchart TB
     OLD["crates/sidestr/ used to hold the sidestr crates and their own CI<br/>crates/sidestr/README.md:5-6"]
     PTR["crates/sidestr/README.md — pointer only<br/>crates/sidestr/README.md:1"]
     REPO["github.com/DreamLab-AI/sidestr-rs<br/>source, issues, CI, releases<br/>ADR-2112-sidestr-crates-live-in-sidestr-rs.md:34"]
-    FIVE["eight published crates: header, core, nostr, wallet, round, hitch, agent, webledgers-teller<br/>of eleven workspace members, three publish = false, all AGPL<br/>../sidestr-rs/Cargo.toml:7-43, crates/sidestr/README.md:8-16"]
+    FIVE["eight published crates: header, core, nostr, wallet, round, hitch, agent, webledgers-teller<br/>of eleven workspace members, three publish = false, all AGPL<br/>../sidestr-rs/Cargo.toml:7-43, crates/sidestr/README.md:9-19"]
     CHAIN["config/sidechain/ — the chain instance agentbox keeps<br/>sealed sidestr:dreamlab document, interim producer, mirror sync<br/>ADR-2112-sidestr-crates-live-in-sidestr-rs.md:36"]
     OLD --> PTR
     PTR --> REPO
@@ -41,20 +42,20 @@ flowchart TB
     PTR -.->|"agentbox hosts the chain, not the crates"| CHAIN
 ```
 
-**Invariant:** nothing under `config/`, `scripts/`, `flake.nix`, `lib/` or `.github/` names `crates/sidestr`, and no `services/*/Cargo.toml` links a `sidestr-*` crate, so no agentbox build links the published crates today (`../project/agentbox/docs/adr/ADR-2112-sidestr-crates-live-in-sidestr-rs.md:61-65`). 
+**Invariant:** nothing under `config/`, `scripts/`, `flake.nix`, `lib/` or `.github/` names `crates/sidestr`, and no `services/*/Cargo.toml` links a `sidestr-*` crate (`../project/agentbox/docs/adr/ADR-2112-sidestr-crates-live-in-sidestr-rs.md:61-65`); both greps are still empty at this revision. No agentbox service links the crates; the one sidestr-rs build in the image is the standalone `sidestr-agent` binary (Tension under AB-33.8).
 
 ## AB-33.8 The AGPL consumption boundary
 
 ```mermaid
 flowchart TB
     R1["consume from crates.io only, never by path or git dependency<br/>ADR-2112-sidestr-crates-live-in-sidestr-rs.md:39"]
-    R2["a component that links one is AGPL-3.0 in effect and<br/>declares it<br/>docs/developer/licensing.md:46-47"]
-    R3["never under services/, so ADR-2030's permissive<br/>default is untouched<br/>docs/developer/licensing.md:49-50"]
-    R4["no permissive crate on a crates.io path may<br/>depend on them<br/>docs/developer/licensing.md:50"]
-    R5["scripts/ci/check-crate-licensing.sh enforces this<br/>on every push and pull request<br/>docs/developer/licensing.md:53-54"]
+    R2["a consumer is AGPL-3.0 in effect and declares it;<br/>no agentbox component links one today<br/>docs/developer/licensing.md:64, docs/developer/licensing.md:68"]
+    R3["never under services/, so ADR-2030's permissive<br/>default is untouched<br/>docs/developer/licensing.md:66-67"]
+    R4["no permissive crate may depend on them<br/>docs/developer/licensing.md:67"]
+    R5["the doc says check-crate-licensing.sh enforces this<br/>docs/developer/licensing.md:70-71<br/>but the gate only checks services/ crates carry the<br/>licence texts they declare - check-crate-licensing.sh:15-23, check-crate-licensing.sh:61"]
     R1 --> R2 --> R3 --> R4 --> R5
 ```
 
 **Open:** `solid-pod-rs` becomes AGPL-3.0 in effect the moment it links `sidestr-core` for `AnchorConfirmer`, and its manifest must say so before that edge is added — the edge does not exist yet (`../project/agentbox/docs/adr/ADR-2106-sidestr-crates-are-agpl-derivatives-of-siding-published-and-consumed.md:65-67`).
 
-**Tension (ADR-2112 vs lib/sidestr-agent.nix):** the record says agentbox consumes the sidestr crates from crates.io only, never by path or git dependency (`../project/agentbox/docs/adr/ADR-2112-sidestr-crates-live-in-sidestr-rs.md:39-41`); since `d0fa1b80b` the image bakes the `sidestr-agent` binary for the faucet by fetching sidestr-rs from GitHub at a pinned commit — 0.6.0 at `a7aadd68` at this revision (`../project/agentbox/lib/sidestr-agent.nix:29-30`). It links no agentbox crate, so the permissive boundary holds, but the build source is a git revision, not crates.io.
+**Tension (ADR-2112 and licensing.md vs what enforces them):** the record says agentbox consumes the sidestr crates from crates.io only, never by path or git dependency (`../project/agentbox/docs/adr/ADR-2112-sidestr-crates-live-in-sidestr-rs.md:39-41`); since `d0fa1b80b` the image bakes the `sidestr-agent` binary for the faucet by fetching sidestr-rs from GitHub at a pinned commit — 0.6.0 at `a7aadd68` at this revision (`../project/agentbox/lib/sidestr-agent.nix:29-32`). It links no agentbox crate, so the permissive boundary holds, but the build source is a git revision, not crates.io. Separately, the licensing doc says the CI gate enforces the sidestr rule, that no permissive crate may depend on the crates and a linking component declares AGPL (`../project/agentbox/docs/developer/licensing.md:66-71`). The gate only walks `services/*/Cargo.toml` and checks that each crate's declared licence matches the texts and README beside it (`../project/agentbox/scripts/ci/check-crate-licensing.sh:15-23`, `../project/agentbox/scripts/ci/check-crate-licensing.sh:61`). It never inspects dependencies. A `services/` crate that declared `MIT OR Apache-2.0` and took a `sidestr-*` dependency would pass it. Nothing enforces the crates.io-only rule either: the `sidestr-agent` git fetch above passes CI.

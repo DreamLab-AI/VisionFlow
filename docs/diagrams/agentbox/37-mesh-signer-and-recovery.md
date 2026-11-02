@@ -18,7 +18,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-mesh/src/envelope.rs
   - ../nostr-rust-forum/crates/nostr-bbs-mesh/src/transport.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/gift_wrap.rs
-verified_commit: {agentbox: 9dfc27b16e82e9786535a55e790710493dd51fdf, nostr-rust-forum: c39f41f104b114d6a3fa29013daaf6fa58b45080}
+verified_commit: {agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35, nostr-rust-forum: c39f41f104b114d6a3fa29013daaf6fa58b45080}
 ---
 
 ## For developers
@@ -33,7 +33,7 @@ Sharing spaces across nodes still needs compatible configuration, limited signin
 
 ```mermaid
 flowchart TD
-    MAN["Agentbox moderation is boolean<br/>agentbox.toml:282"] --> FAIL["Library requires a list of DIDs<br/>config.rs:72"]
+    MAN["Agentbox moderation is boolean<br/>agentbox.toml:282"] --> FAIL["Library honor_remote_moderation is a list of DIDs<br/>config.rs:67-69"]
     SCHEMA["Schema modes: standalone or client<br/>agentbox.toml.schema.json:2585,2586"]
     PEERS["PROPOSED pinned peer records and projection<br/>PROTOCOL-registry.md:253,254"] -.-> SCHEMA
     PEERS -.-> LIB["Current roster uses peer_relays<br/>transport.rs:642,643"]
@@ -48,7 +48,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     SOCKET["Kernel peer credentials<br/>server.rs:106"] --> UID["Authorise uid and named operation<br/>port.rs:361,362,378"]
-    UID --> GRANT["Kind must be in grant<br/>port.rs:537"]
+    UID --> GRANT["Kind must be in grant<br/>port.rs:534-536"]
     GRANT --> SIGN["Caller tags, content and timestamp passed through<br/>port.rs:559,562,563,564"]
     SIGN --> RECEIPT["Append receipt before returning result<br/>port.rs:320,326,328<br/>receipts.rs:132,136"]
     CLOSED["Checked-in grants omit kind 30078<br/>identity-port-acl.json:39,40"]
@@ -67,7 +67,7 @@ flowchart TD
     FILTER --> AGE["Selected files become encrypted tar stream<br/>main.rs:248,253,256,260,262"]
     FILTER --> OMIT["Other basenames are skipped<br/>main.rs:179"]
     AGE --> NAMES["Optional names-only sidecar<br/>main.rs:264,266,272"]
-    AGE --> RESTORE["Decrypt and extract; harden each entry<br/>main.rs:309,356,369,371"]
+    AGE --> RESTORE["Decrypt, refuse unsafe paths, extract and harden each entry<br/>main.rs:309,362,369,372"]
 ```
 
 **What it shows.** Synthetic federation-key filenames are omitted even inside the scan root; selected configuration files still round-trip. **Why it is this way.** The backup tool deliberately uses a small allowlist. The proposed key needs explicit inclusion, recovery-state inventory and an off-host restore rehearsal.

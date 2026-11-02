@@ -32,6 +32,8 @@ sources:
   - ../project/src/services/semantic_pathfinding_service.rs
   - ../project/src/gpu/visual_analytics.rs
   - ../project/src/gpu/mod.rs
+  - ../project/src/utils/gpu_safety.rs
+  - ../project/src/actors/gpu/force_compute_actor.rs
   - ../project/crates/visionclaw-analytics-oracle/src/lib.rs
   - ../project/crates/visionclaw-gpu/src/cuda_sources/gpu_clustering_kernels.cu
   - ../project/crates/visionclaw-gpu/src/cuda_sources/pagerank.cu
@@ -41,7 +43,7 @@ sources:
   - ../project/src/main.rs
   - ../project/src/handlers/api_handler/analytics/params_handlers.rs
   - ../project/src/handlers/api_handler/analytics/types.rs
-verified_commit: 8692b12ba987ecb87165566beb7c320a2446e4b4
+verified_commit: 86cdd76355823a51bb64d503c005fe277726e724
 ---
 
 ## VC-15.1 POST /analytics/clustering/run — spectral/kmeans/louvain/default dispatch with CPU fallback
@@ -50,7 +52,7 @@ verified_commit: 8692b12ba987ecb87165566beb7c320a2446e4b4
 sequenceDiagram
     autonumber
     participant C as Client
-    participant RT as Route<br/>analytics/mod.rs:177
+    participant RT as Route<br/>analytics/mod.rs:175
     participant RC as run_clustering<br/>clustering_handlers.rs:20
     participant PC as perform_clustering<br/>clustering_handlers.rs:332
     participant RG as real_gpu_functions<br/>real_gpu_functions.rs:100-269
@@ -61,29 +63,29 @@ sequenceDiagram
     C->>RT: POST /analytics/clustering/run
     RT->>RC: run_clustering(ClusteringRequest)
     RC->>RC: CLUSTERING_TASKS.insert(task_id, status=running) :33-46
-    RC-->>C: 200 ClusteringResponse task_id (async, result not ready yet)
     RC->>PC: tokio::spawn perform_clustering :52-53
+    RC-->>C: 200 ClusteringResponse task_id, clusters none (clustering_handlers.rs:91-98)
     PC->>PC: graph_service_addr.send(GetGraphData) :340
-    PC->>PC: mcp_client.query_agent_list() :354
+    PC->>PC: mcp_client.query_agent_list() :354, an MCP failure yields an empty agent list :362-368
     alt request.method == spectral
         PC->>RG: perform_gpu_spectral_clustering :373
     else request.method == kmeans
         PC->>RG: perform_gpu_kmeans_clustering :376
     else request.method == louvain
         PC->>RG: perform_gpu_louvain_clustering :379
-    else unrecognised method
+    else any other method, dbscan included
         PC->>RG: perform_gpu_default_clustering :381
         Note right of RG: node_count under 100 kmeans<br/>100 to 999 spectral<br/>else louvain (real_gpu_functions.rs:260-268)
     end
-    RG->>GM: PerformGPUClustering{method,params,task_id}
+    RG->>GM: PerformGPUClustering{method,params,task_id}<br/>via gpu_manager_addr (real_gpu_functions.rs:111-122)
     GM->>AS: PerformGPUClustering forward (gpu_manager_actor.rs:444-465)
     AS->>CA: PerformGPUClustering forward (analytics_supervisor.rs:654-672)
     alt method == dbscan
-        CA->>CA: perform_dbscan_clustering :515
+        CA->>CA: perform_dbscan_clustering :515<br/>unreachable from this route, real_gpu_functions sends<br/>spectral, kmeans or louvain only
     else method in [louvain,leiden,communities]
-        CA->>CA: perform_community_detection :332
+        CA->>CA: perform_community_detection :332<br/>louvain un-refined, leiden and communities refined<br/>(clustering_actor.rs:1317-1326)
     else
-        CA->>CA: perform_kmeans_clustering :175 (kmeans/spectral share the k-means path)
+        CA->>CA: perform_kmeans_clustering :175<br/>kmeans and spectral share the k-means path<br/>(clustering_actor.rs:1359-1368)
     end
     alt gpu_manager_addr present and GPU call Ok
         CA-->>AS: Ok(cluster list)
@@ -95,15 +97,15 @@ sequenceDiagram
         alt agents non-empty
             RG->>RG: generate_agent_based_clusters (clustering_handlers.rs:393)
         else
-            RG->>RG: generate_label_propagation_clusters (real topology CPU fallback)
+            RG->>RG: generate_label_propagation_clusters (real topology CPU fallback, real_gpu_functions.rs:290)
         end
     end
     PC->>GM: WriteClusterAnalytics{clusters} do_send (clustering_handlers.rs:69)
-    GM->>AS: WriteClusterAnalytics forward
+    GM->>AS: WriteClusterAnalytics forward (gpu_manager_actor.rs:981)
     AS->>CA: WriteClusterAnalytics (clustering_actor.rs:1222)
     CA->>CA: write_cluster_id_from_assignments (ADR-031 D3 single writer)
     PC->>PC: CLUSTERING_TASKS[task_id].status = completed :79-81
-    Note over PC,RG: DEAD CODE - clustering.rs:6 perform_clustering (a second, unused PerformGPUClustering-only dispatcher with validate_clustering_params) has no caller anywhere in the tree, clustering_handlers.rs:332 is the live perform_clustering
+    Note over PC,RG: DEAD CODE - clustering.rs:6 perform_clustering, a second PerformGPUClustering-only<br/>dispatcher with validate_clustering_params, has no caller anywhere in the tree<br/>clustering_handlers.rs:332 is the live perform_clustering
 ```
 
 ## VC-15.2 POST /analytics/clustering/dbscan — direct RunDBSCAN, GPU-only, precondition refusals
@@ -112,7 +114,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant RT as Route<br/>analytics/mod.rs:180
+    participant RT as Route<br/>analytics/mod.rs:178
     participant RD as run_dbscan_clustering<br/>clustering_handlers.rs:211
     participant GM as GPUManagerActor<br/>gpu_manager_actor.rs:398
     participant AS as AnalyticsSupervisor<br/>analytics_supervisor.rs:544
@@ -127,7 +129,7 @@ sequenceDiagram
     else gpu_manager_addr is None
         RD-->>C: 200 success=false GPU compute not available :325-328
     else
-        RD->>GM: RunDBSCAN{epsilon,min_points}
+        RD->>GM: RunDBSCAN{epsilon,min_points} (clustering_handlers.rs:251)
         GM->>AS: RunDBSCAN forward (gpu_manager_actor.rs:398-418)
         AS->>CA: RunDBSCAN forward (analytics_supervisor.rs:544-572)
         CA->>CA: perform_dbscan_clustering :515
@@ -154,268 +156,264 @@ sequenceDiagram
     end
 ```
 
-## VC-15.3 POST /analytics/community/detect — LabelPropagation/Louvain/Leiden with the modularity gate
+## VC-15.3 POST /analytics/community/detect — sent to ForceComputeActor, which refuses
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Client
+    participant RT as Route<br/>analytics/mod.rs:179
+    participant RCD as run_community_detection<br/>analytics/mod.rs:68
+    participant GC as run_gpu_community_detection<br/>community.rs:51
+    participant FCA as ForceComputeActor<br/>get_gpu_compute_addr app_state.rs:1672
+    participant CA as ClusteringActor<br/>clustering_actor.rs:1176
+
+    C->>RT: POST /analytics/community/detect {algorithm}
+    RT->>RCD: run_community_detection(request), AuthenticatedUser extractor analytics/mod.rs:69
+    RCD->>GC: run_gpu_community_detection(app_state, request) analytics/mod.rs:75
+    alt cfg not(feature = gpu)
+        GC-->>RCD: Err GPU features not enabled in this build (community.rs:263-268)
+    else app_state.get_gpu_compute_addr() is None
+        GC-->>RCD: Err GPU compute actor not available (community.rs:61-64)
+    else unsupported algorithm string
+        GC-->>RCD: Err Unsupported community detection algorithm (community.rs:70-75)
+    else
+        GC->>GC: map algorithm string to CommunityDetectionAlgorithm (community.rs:66-69), validate_community_params (community.rs:87)
+        GC->>FCA: RunCommunityDetection{params} (community.rs:91)
+        FCA-->>GC: Err Community detection should be handled by ClusteringActor (force_compute_actor.rs:3347-3352)
+        GC-->>RCD: Err
+    end
+    RCD-->>C: 500 success=false communities=[] modularity=0.0 (analytics/mod.rs:77-88)
+    Note over FCA,CA: DEBT the working chain GPUManagerActor (gpu_manager_actor.rs:375)<br/>to AnalyticsSupervisor (analytics_supervisor.rs:520) to ClusteringActor exists<br/>but this route never uses it - anomaly.rs:35-38 routes through gpu_manager_addr for this reason
+    Note over CA: if reached, perform_community_detection clustering_actor.rs:332<br/>refuses below MIN_NODES_FOR_CLUSTERING :368-377, runs label propagation :384<br/>Louvain :395 or Leiden :409, records the kernel per branch :390
+    Note over CA: modularity gate - apply_modularity_gate writes node_analytics.community_id<br/>only when modularity reaches 0.3 (clustering_actor.rs:472)<br/>else community_id is reset (clustering_actor.rs:477-483), single writer per ADR-031 D3
+    Note over GC: the response converter convert_gpu_result_to_communities (community.rs:97)<br/>is reachable only on an Ok that this route cannot receive
+```
+
+## VC-15.4 POST /analytics/anomaly/detect — LOF / Z-score structural anomaly
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant C as Client
     participant RT as Route<br/>analytics/mod.rs:181
-    participant RCD as run_community_detection<br/>analytics/mod.rs:70
-    participant GC as run_gpu_community_detection<br/>community.rs:51
-    participant GM as GPUManagerActor<br/>gpu_manager_actor.rs:375
-    participant AS as AnalyticsSupervisor<br/>analytics_supervisor.rs:520
-    participant CA as ClusteringActor<br/>clustering_actor.rs:1176
-
-    C->>RT: POST /analytics/community/detect {algorithm}
-    RT->>RCD: run_community_detection(request)
-    RCD->>GC: run_gpu_community_detection(app_state, request)
-    alt cfg not(feature = gpu)
-        GC-->>RCD: Err GPU features not enabled in this build (community.rs:263-268)
-    else app_state.get_gpu_compute_addr() is None
-        GC-->>RCD: Err GPU compute actor not available :64
-    else
-        GC->>GC: map algorithm string to CommunityDetectionAlgorithm :66-76
-        GC->>GM: RunCommunityDetection{params}
-        GM->>AS: RunCommunityDetection forward (gpu_manager_actor.rs:375-395)
-        AS->>CA: RunCommunityDetection forward (analytics_supervisor.rs:520-542)
-        CA->>CA: perform_community_detection :332
-        alt unified_compute.num_nodes < MIN_NODES_FOR_CLUSTERING (3)
-            CA-->>AS: Err community detection refused too few nodes :368-377
-        else algorithm == LabelPropagation
-            CA->>CA: run_community_detection_label_propagation :384
-        else algorithm == Louvain
-            CA->>CA: run_louvain_community_detection :395
-        else algorithm == Leiden
-            CA->>CA: run_leiden_community_detection :409
-        end
-        CA->>CA: record_execution(kernel, Gpu) per-branch :390/402/415
-        alt modularity >= MODULARITY_GATE (0.3)
-            CA->>CA: apply_modularity_gate writes node_analytics.community_id :472
-            Note over CA: INVARIANT ADR-031 D3 - community detection is the single writer of community_id, cluster_id is untouched here
-        else modularity < 0.3
-            CA->>CA: partition rejected, community_id reset to 0 :477-483
-        end
-        CA-->>AS: Ok(CommunityDetectionResult)
-        AS-->>GM: propagate
-        GM-->>GC: propagate
-        GC->>GC: convert_gpu_result_to_communities :97
-        GC-->>RCD: Ok(CommunityDetectionResponse)
-    end
-    alt Ok
-        RCD-->>C: 200 CommunityDetectionResponse
-    else Err(e)
-        RCD-->>C: 500 success=false communities=[] modularity=0.0 (analytics/mod.rs:79-89)
-    end
-```
-
-## VC-15.4 POST /analytics/anomaly/detect — LOF / Z-score / DBSCAN-noise structural anomaly
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant C as Client
-    participant RT as Route<br/>analytics/mod.rs:183
-    participant RAD as run_anomaly_detection<br/>analytics/mod.rs:94
+    participant RAD as run_anomaly_detection<br/>analytics/mod.rs:92
     participant GA as run_gpu_anomaly_detection<br/>anomaly.rs:25
-    participant GM as GPUManagerActor (gpu_manager_addr)
+    participant GM as GPUManagerActor<br/>gpu_manager_actor.rs:421
     participant AS as AnalyticsSupervisor<br/>analytics_supervisor.rs:574
     participant ADA as AnomalyDetectionActor<br/>anomaly_detection_actor.rs:118
 
     C->>RT: POST /analytics/anomaly/detect {method,kNeighbors,threshold}
     RT->>RAD: run_anomaly_detection(request)
-    RAD->>GA: run_gpu_anomaly_detection(method,k_neighbors,radius,threshold)
+    RAD->>GA: run_gpu_anomaly_detection(method,k_neighbors,radius,threshold) analytics/mod.rs:99
     alt app_state.gpu_manager_addr is None
-        GA-->>RAD: Err GPU manager actor not available :40
-    else unsupported method string
-        GA-->>RAD: Err Unsupported anomaly detection method :45
+        GA-->>RAD: Err GPU manager actor not available anomaly.rs:40
+    else method not lof, local_outlier_factor, zscore or z_score
+        GA-->>RAD: Err Unsupported anomaly detection method anomaly.rs:42-46
     else
-        GA->>GA: validate_anomaly_params :59
-        GA->>GM: RunAnomalyDetection{params}
-        GM->>AS: RunAnomalyDetection forward
+        GA->>GA: validate_anomaly_params anomaly.rs:59
+        GA->>GM: RunAnomalyDetection{params} anomaly.rs:63
+        GM->>AS: RunAnomalyDetection forward (gpu_manager_actor.rs:421)
         AS->>ADA: RunAnomalyDetection forward (analytics_supervisor.rs:574-597)
         alt ADA.shared_context is None
-            ADA-->>AS: Err GPU not initialized :127-132
+            ADA-->>AS: Err GPU not initialized (anomaly_detection_actor.rs:127-132)
         else ADA.gpu_state.num_nodes == 0
-            ADA-->>AS: Err No nodes available for anomaly detection :137-140
+            ADA-->>AS: Err No nodes available for anomaly detection (anomaly_detection_actor.rs:137-140)
         else k_neighbors >= num_nodes
-            ADA-->>AS: Err k_neighbors must be less than total nodes :147-152
+            ADA-->>AS: Err k_neighbors must be less than total nodes (anomaly_detection_actor.rs:147-152)
         else
             alt method == LocalOutlierFactor
-                ADA->>ADA: run_lof_anomaly_detection(k,threshold) :207
-                ADA->>ADA: record_execution(Lof, Gpu) :212
+                ADA->>ADA: run_lof_anomaly_detection(k,threshold) (anomaly_detection_actor.rs:207)
+                ADA->>ADA: record_execution(Lof, Gpu) (anomaly_detection_actor.rs:212)
             else method == ZScore
-                ADA->>ADA: get_node_positions then run_zscore_anomaly_detection :237-252
-            else method == DBSCAN (internal, spatial-outlier heuristic)
-                ADA->>ADA: run_dbscan_clustering(eps,min_pts=3), label==-1 is anomaly :281-295
+                ADA->>ADA: get_node_positions then run_zscore_anomaly_detection (anomaly_detection_actor.rs:237-252)
             end
-            ADA->>ADA: node_analytics.anomaly = anomaly_score (single writer) :387-418
+            ADA->>ADA: node_analytics.anomaly = anomaly_score (single writer) (anomaly_detection_actor.rs:387-418)
             ADA-->>AS: Ok(AnomalyResult)
         end
         AS-->>GM: propagate
         GM-->>GA: propagate
         alt Ok(result)
-            GA->>GA: convert_gpu_anomaly_result_to_anomalies :74
+            GA->>GA: convert_gpu_anomaly_result_to_anomalies anomaly.rs:74
             GA-->>RAD: Ok(Vec anomalies)
         else Err(e)
-            GA-->>RAD: Err(e) :81
+            GA-->>RAD: Err(e) anomaly.rs:81
         end
     end
     alt Ok
         RAD-->>C: 200 success=true anomalies, total, method
     else Err(e)
-        RAD-->>C: 500 success=false anomalies=[] total=0 (analytics/mod.rs:120-130)
+        RAD-->>C: 500 success=false anomalies=[] total=0 (analytics/mod.rs:120-127)
     end
+    Note over ADA: the actor also has an internal DBSCAN noise arm (anomaly_detection_actor.rs:277-295), unreachable here because the public AnomalyMethod maps only to LOF and ZScore (anomaly_detection_actor.rs:155-160)
 ```
 
-## VC-15.5 PageRank compute / cached result / cache clear — direct-addr, bypasses AnalyticsSupervisor
+## VC-15.5 PageRank compute / cached result / cache clear — the AppState address is never set
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant C as Client
-    participant RTc as Route POST /pagerank/compute<br/>analytics/mod.rs:207
-    participant RTr as Route GET /pagerank/result<br/>analytics/mod.rs:268
-    participant RTx as Route POST /pagerank/clear<br/>analytics/mod.rs:211
+    participant RTc as Route POST /pagerank/compute<br/>analytics/mod.rs:210
+    participant RTr as Route GET /pagerank/result<br/>analytics/mod.rs:271
+    participant RTx as Route POST /pagerank/clear<br/>analytics/mod.rs:214
     participant CP as compute_pagerank<br/>pagerank_handlers.rs:112
     participant GP as get_pagerank_result<br/>pagerank_handlers.rs:181
     participant CL as clear_pagerank_cache<br/>pagerank_handlers.rs:236
     participant PRA as PageRankActor (data.analytics.pagerank)<br/>pagerank_actor.rs:361
 
+    Note over CP,PRA: AppState builds AnalyticsSubsystem with pagerank None (app_state.rs:1296-1300) and nothing assigns it afterwards, so every branch below that needs PRA is unreachable at this pin
     C->>RTc: POST /analytics/pagerank/compute {dampingFactor,maxIterations}
     RTc->>CP: compute_pagerank(payload)
-    alt data.analytics.pagerank is None
-        CP-->>C: 500 success=false PageRank actor not available :163-169
-    else
-        CP->>PRA: ComputePageRank{params} (direct Addr, no GPUManagerActor hop)
+    alt data.analytics.pagerank is None (pagerank_handlers.rs:121)
+        CP-->>C: 500 success=false PageRank actor not available pagerank_handlers.rs:163-169
+    else unreachable here
+        CP->>PRA: ComputePageRank{params}
         PRA->>PRA: run_pagerank_centrality(damping,max_iter,epsilon,normalize,use_optimized) :406
         PRA->>PRA: record_execution(Pagerank, Gpu) :414
         PRA->>PRA: calculate_statistics, extract_top_nodes(10) :454-462
         PRA->>PRA: last_result cache = Some(result) :474
-        PRA->>PRA: publish_centrality (ADR-031 D3 single writer of centrality slot 48) :478
+        PRA->>PRA: publish_centrality (ADR-031 D3 single writer of centrality) :478
         PRA-->>CP: Ok(PageRankResult)
-        CP-->>C: 200 PageRankResponse success=true
     end
     C->>RTr: GET /analytics/pagerank/result
     RTr->>GP: get_pagerank_result
-    GP->>PRA: GetPageRankResult
-    alt cached=Some
-        PRA-->>GP: Some(PageRankResult) (get_cached_result :332)
-        GP-->>C: 200 cached=true result
-    else cached=None
-        PRA-->>GP: None
-        GP-->>C: 200 cached=false result=null :198-206
+    alt data.analytics.pagerank is None (pagerank_handlers.rs:184)
+        GP-->>C: error, PageRank actor not available
+    else unreachable here
+        GP->>PRA: GetPageRankResult, cached Some (get_cached_result pagerank_actor.rs:332) or None (pagerank_handlers.rs:198-206)
     end
     C->>RTx: POST /analytics/pagerank/clear
     RTx->>CL: clear_pagerank_cache
-    CL->>PRA: ClearPageRankCache
-    PRA->>PRA: clear_cache sets last_result=None :337
-    PRA-->>CL: ()
-    CL-->>C: 200 PageRank cache cleared
-    Note over CP,PRA: DIVERGENCE - PageRank never routes through GPUManagerActor/AnalyticsSupervisor at runtime even though gpu_manager_actor.rs:850 and analytics_supervisor.rs:599 define Handler-ComputePageRank, nothing sends ComputePageRank to those addresses, only data.analytics.pagerank is used
+    alt data.analytics.pagerank is None (pagerank_handlers.rs:239)
+        CL-->>C: error, PageRank actor not available
+    else unreachable here
+        CL->>PRA: ClearPageRankCache, clear_cache sets last_result=None pagerank_actor.rs:337
+    end
+    Note over CP,PRA: DEBT the supervised path exists - GPUManagerActor Handler-ComputePageRank gpu_manager_actor.rs:850 forwards to AnalyticsSupervisor analytics_supervisor.rs:599, which holds the running PageRankActor it spawned (analytics_supervisor.rs:132) - but no route sends ComputePageRank there
 ```
 
-## VC-15.6 POST /analytics/pathfinding/sssp and /pathfinding/apsp — GPU ShortestPathActor, direct-addr
+## VC-15.6 POST /analytics/pathfinding/sssp and /pathfinding/apsp — supervised ShortestPathActor
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant C as Client
-    participant RTs as Route POST /pathfinding/sssp<br/>analytics/mod.rs:215
-    participant RTa as Route POST /pathfinding/apsp<br/>analytics/mod.rs:219
-    participant CS as compute_sssp<br/>pathfinding.rs:134
-    participant CAp as compute_apsp<br/>pathfinding.rs:189-203
-    participant SPA as ShortestPathActor (data.shortest_path_actor)<br/>shortest_path_actor.rs:213
+    participant RTs as Route POST /pathfinding/sssp<br/>analytics/mod.rs:218
+    participant RTa as Route POST /pathfinding/apsp<br/>analytics/mod.rs:222
+    participant CS as compute_sssp<br/>pathfinding.rs:135
+    participant CAp as compute_apsp<br/>pathfinding.rs:203
+    participant GM as GPUManagerActor<br/>gpu_manager_actor.rs:763
+    participant GAS as GraphAnalyticsSupervisor<br/>graph_analytics_supervisor.rs:430
+    participant SPA as ShortestPathActor (supervised)<br/>shortest_path_actor.rs:213
 
     C->>RTs: POST /analytics/pathfinding/sssp {sourceIdx,maxDistance,delta}
     RTs->>CS: compute_sssp(payload)
-    alt data.shortest_path_actor is None
-        CS-->>C: 500 Shortest path actor not available :181-186
+    alt data.gpu_manager_addr is None
+        CS-->>C: 500 Shortest path actor not available pathfinding.rs:180-186
     else
-        CS->>SPA: ComputeSSP{source_idx,max_distance,delta}
-        alt SPA.shared_context is None
-            SPA-->>CS: Err GPU context not initialized :229-231
+        CS->>GM: ComputeSSP{source_idx,max_distance,delta} pathfinding.rs:144-151
+        GM->>GAS: forward_to_graph_analytics ComputeSSP (gpu_manager_actor.rs:786-789)
+        alt child absent or not running
+            GAS-->>GM: Err ShortestPathActor not available (graph_analytics_supervisor.rs:434-440)
         else
-            SPA->>SPA: unified_compute.run_sssp(source_idx,delta) :238
-            SPA->>SPA: record_execution(Sssp, Gpu) :246
-            SPA->>SPA: publish distances to node_sssp map, parent=-1 always (no predecessor array) :309-329
-            SPA-->>CS: Ok(SSSPResult{distances,nodes_reached,max_distance})
+            GAS->>SPA: ComputeSSP (graph_analytics_supervisor.rs:442-448)
+            alt SPA.shared_context is None
+                SPA-->>GAS: Err GPU context not initialized (shortest_path_actor.rs:229-231)
+            else
+                SPA->>SPA: unified_compute.run_sssp(source_idx,delta) (shortest_path_actor.rs:238)
+                SPA->>SPA: record_execution(Sssp, Gpu) (shortest_path_actor.rs:246)
+                SPA->>SPA: optional max_distance filter (shortest_path_actor.rs:283-290)
+                SPA->>SPA: publish distances to node_sssp map, parent=-1 always (no predecessor array) (shortest_path_actor.rs:309-329)
+                SPA-->>GAS: Ok(SSSPResult{distances,nodes_reached,max_distance})
+            end
         end
-        CS-->>C: 200/500 SSSPResponse
+        CS-->>C: 200 or 500 SSSPResponse (pathfinding.rs:152-178)
     end
     C->>RTa: POST /analytics/pathfinding/apsp {numLandmarks,seed}
     RTa->>CAp: compute_apsp(payload)
-    CAp->>SPA: ComputeAPSP{num_landmarks,seed}
+    CAp->>GM: ComputeAPSP{num_landmarks,seed} pathfinding.rs:210-219
+    GM->>GAS: forward ComputeAPSP (gpu_manager_actor.rs:790-793, graph_analytics_supervisor.rs:529)
+    GAS->>SPA: ComputeAPSP
     SPA-->>CAp: Err APSP disabled by NFR-7, O(n^2) memory forbidden, use SSSP per source (shortest_path_actor.rs:358-363)
-    CAp-->>C: 500 APSPResponse success=false
-    Note over SPA: RESOLVED ADR-2054 - the #if 0 quarantined APSP kernel body is REMOVED. ComputeAPSP is retained and still refuses explicitly under NFR-7, so the documented route returns a clear error rather than 404
-    Note over CS,SPA: RESOLVED ADR-2053 - the standalone spawn is gone and the route now sends<br/>ComputeSSP to data.gpu_manager_addr, forwarded GPUManagerActor to GraphAnalyticsSupervisor<br/>to the SUPERVISED ShortestPathActor, which does receive SetSharedGPUContext.<br/>The supervisor gained Handler-ComputeSSP and Handler-ComputeAPSP because the routes send<br/>those, not ComputeShortestPaths. Landed by vc-core.
+    CAp-->>C: 500 APSPResponse success=false (pathfinding.rs:231-237)
+    Note over SPA: RESOLVED ADR-2054 - the APSP kernel is removed (crates/visionclaw-gpu/src/cuda_sources/gpu_landmark_apsp.cu:13-25), ComputeAPSP is retained and refuses explicitly under NFR-7
+    Note over CS,GAS: RESOLVED ADR-2053 - the routes address data.gpu_manager_addr, and the supervisor's children receive SetSharedGPUContext (graph_analytics_supervisor.rs:342)
 ```
 
-## VC-15.7 POST /analytics/sssp/compute — CPU Dijkstra via GraphServiceSupervisor, bypasses the GPU actor entirely
+## VC-15.7 POST /analytics/sssp/compute — CPU Dijkstra via GraphServiceSupervisor, result discarded
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant C as Client
-    participant RT as Route<br/>analytics/mod.rs:187
-    participant CS as compute_sssp<br/>sssp_handlers.rs:209
-    participant GSS as GraphServiceSupervisor (graph_service_addr)<br/>graph_service_supervisor.rs:1684
-    participant GSA as GraphStateActor<br/>graph_state_actor.rs:1318
+    participant RT as Route<br/>analytics/mod.rs:184
+    participant CS as compute_sssp<br/>sssp_handlers.rs:205
+    participant GSS as GraphServiceSupervisor (graph_service_addr)<br/>graph_service_supervisor.rs:1689
+    participant GSA as GraphStateActor<br/>graph_state_actor.rs:1160
 
     C->>RT: POST /analytics/sssp/compute {sourceNode}
-    RT->>CS: compute_sssp(request)
-    CS->>GSS: ComputeShortestPaths{source_node_id}
-    GSS->>GSA: forward to graph_state (graph_service_supervisor.rs:1693-1703)
-    GSA->>GSA: compute_shortest_paths(source_node_id) :747, plain Dijkstra over self.graph_data.edges with a BTreeSet frontier
+    RT->>CS: compute_sssp(request), sourceNode defaults to 0 (sssp_handlers.rs:212-216)
+    CS->>GSS: ComputeShortestPaths{source_node_id} (sssp_handlers.rs:219-223)
+    GSS->>GSA: forward to graph_state (graph_service_supervisor.rs:1698-1708)
+    GSA->>GSA: compute_shortest_paths(source_node_id) (graph_state_actor.rs:764)<br/>Dijkstra with a BTreeSet frontier that rescans every edge<br/>in both directions per pop (graph_state_actor.rs:787-814)
     alt source_node_id not in node_map
-        GSA-->>GSS: Err Source node not found :770-772
+        GSA-->>GSS: Err Source node not found (graph_state_actor.rs:768-770)
     else
-        GSA->>GSA: reconstruct predecessor chain into path_map :825-841
-        GSA-->>GSS: Ok(PathfindingResult{distances,paths,computation_time_ms})
+        GSA->>GSA: reconstruct predecessor chain into path (graph_state_actor.rs:819-836)
+        GSA-->>GSS: Ok(PathfindingResult{distances,paths,computation_time_ms}) (graph_state_actor.rs:1185-1190)
     end
     GSS-->>CS: propagate
     alt Ok
-        CS-->>C: 200 success=true SSSP computation started
+        CS-->>C: 200 success=true SSSP computation started (sssp_handlers.rs:226-232)
+        Note over CS: DEBT the computed distances and paths are dropped<br/>Ok(Ok(_)) at sssp_handlers.rs:226 discards them<br/>and the reply says started for a finished computation
     else Err(e)
-        CS-->>C: 500 success=false error (sssp_handlers.rs:238-244)
+        CS-->>C: 500 success=false error (sssp_handlers.rs:234-240)
     end
-    Note over GSA: DIVERGENCE - this is a second, independent CPU-only SSSP implementation, it never touches ShortestPathActor or the GPU kernel used by VC-15.6, and unlike GPU ComputeSSP it does return reconstructed hop paths
-    Note over GSS,GSA: DEAD CODE - GPUManagerActor::Handler-ComputeShortestPaths (gpu_manager_actor.rs:804) and GraphAnalyticsSupervisor::Handler-ComputeShortestPaths (graph_analytics_supervisor.rs:552, converts to ComputeSSP) are unreachable, only sssp_handlers.rs:225 sends ComputeShortestPaths and it targets graph_service_addr, not gpu_manager_addr
+    Note over GSA: DIVERGENCE - a second, independent CPU-only SSSP implementation<br/>it never touches ShortestPathActor or the GPU kernel used by VC-15.6<br/>and unlike GPU ComputeSSP it does reconstruct hop paths
+    Note over GSS,GSA: DEAD CODE - GPUManagerActor Handler-ComputeShortestPaths (gpu_manager_actor.rs:804)<br/>and GraphAnalyticsSupervisor Handler-ComputeShortestPaths (graph_analytics_supervisor.rs:552)<br/>are unreachable, the only sender is sssp_handlers.rs:221 and it targets graph_service_addr
 ```
 
-## VC-15.8 POST /analytics/pathfinding/connected-components — GPU with CPU fallback, direct-addr
+## VC-15.8 POST /analytics/pathfinding/connected-components — supervised GPU actor, no CPU fallback
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant C as Client
-    participant RT as Route<br/>analytics/mod.rs:227
-    participant CC as compute_connected_components<br/>pathfinding.rs:257-270
-    participant CCA as ConnectedComponentsActor (data.connected_components_actor)<br/>connected_components_actor.rs:179
+    participant RT as Route<br/>analytics/mod.rs:230
+    participant CC as compute_connected_components<br/>pathfinding.rs:270
+    participant GM as GPUManagerActor<br/>gpu_manager_actor.rs:827
+    participant GAS as GraphAnalyticsSupervisor<br/>graph_analytics_supervisor.rs:611
+    participant CCA as ConnectedComponentsActor (supervised)<br/>connected_components_actor.rs:179
 
     C->>RT: POST /analytics/pathfinding/connected-components {maxIterations}
     RT->>CC: compute_connected_components(payload)
-    alt data.connected_components_actor is None
-        CC-->>C: 500 Connected components actor not available :315-321
+    alt data.gpu_manager_addr is None
+        CC-->>C: 500 Connected components actor not available pathfinding.rs:315-321
     else
-        CC->>CCA: ComputeConnectedComponents{max_iterations}
-        alt CCA.shared_context is None
-            CCA-->>CC: Err GPU context not initialized :229
+        CC->>GM: ComputeConnectedComponents{max_iterations} pathfinding.rs:277-283
+        GM->>GAS: forward (gpu_manager_actor.rs:836-845)
+        alt child absent or not running
+            GAS-->>GM: Err ConnectedComponentsActor not available (graph_analytics_supervisor.rs:619-627)
         else
-            CCA->>CCA: unified_compute.run_connected_components_gpu(max_iterations) :202
-            alt GPU call Ok
-                CCA->>CCA: record_execution(ConnectedComponents, Gpu) :205-208
-            else GPU call Err(e)
-                CCA-->>CC: Err "GPU path failed and no CPU fallback is available" :221-224
+            GAS->>CCA: ComputeConnectedComponents (graph_analytics_supervisor.rs:629-633)
+            alt CCA.shared_context is None
+                CCA-->>GAS: Err GPU context not initialized (connected_components_actor.rs:228-229)
+            else
+                CCA->>CCA: unified_compute.run_connected_components_gpu(max_iterations) (connected_components_actor.rs:202)
+                alt GPU call Ok
+                    CCA->>CCA: record_execution(ConnectedComponents, Gpu) (connected_components_actor.rs:205-208)
+                    CCA->>CCA: analyze_components(labels) (connected_components_actor.rs:233-234)
+                    CCA-->>GAS: Ok(ConnectedComponentsResult{execution_path}) (connected_components_actor.rs:246-255)
+                else GPU call Err(e)
+                    CCA-->>GAS: Err GPU path failed and no CPU fallback is available (connected_components_actor.rs:221-224)
+                end
             end
-            CCA->>CCA: analyze_components(labels) :234
-            CCA-->>CC: Ok(ConnectedComponentsResult{execution_path})
         end
-        CC-->>C: 200/500 ConnectedComponentsResponse
+        CC-->>C: 200 or 500 ConnectedComponentsResponse (pathfinding.rs:284-313)
     end
-    Note over CCA: RESOLVED ADR-2053 - the standalone spawn is gone and the route now sends<br/>ComputeConnectedComponents to data.gpu_manager_addr, forwarded to the SUPERVISED<br/>ConnectedComponentsActor. Stats reads use GetSupervisedComponentsStats, a Result-returning<br/>wrapper, because the bare stats message has no Default and absence must stay explicit.
-    Note over CCA: RESOLVED ADR-2054 - the CPU fallback (compute_components_cpu against cached_edges,<br/>populated only by UpdateComponentEdges which had zero senders) always silently returned every<br/>node as its own singleton component. Both the fallback fn and UpdateComponentEdges/cached_edges<br/>are REMOVED (connected_components_actor.rs:212-224) - a GPU Err now propagates as a hard error<br/>instead of a fabricated result — DOC-DRIFT fixed, the sequence above previously still showed the<br/>removed CPU-fallback branch.
+    Note over GM,CCA: RESOLVED ADR-2053 - stats reads use GetSupervisedComponentsStats (pathfinding.rs:350), a Result-returning wrapper, because the bare stats message has no Default and absence must stay explicit
+    Note over CCA: RESOLVED ADR-2054 - the CPU fallback that returned every node as a singleton component is removed, a GPU Err propagates as a hard error (connected_components_actor.rs:212-224)
 ```
 
 ## VC-15.9 POST /analytics/pathfinding/path — point-to-point A* / Bidirectional Dijkstra / Semantic / SSSP dispatch
@@ -424,37 +422,37 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant RT as Route<br/>analytics/mod.rs:223
+    participant RT as Route<br/>analytics/mod.rs:226
     participant PTP as compute_point_to_point<br/>pathfinding.rs:413-414
     participant GR as graph_repository<br/>pathfinding.rs:424
     participant AS as AStarPathfinder<br/>services/pathfinding.rs
     participant BD as BidirectionalDijkstra<br/>services/pathfinding.rs
     participant SEM as SemanticPathfinder (word-level Jaccard similarity)<br/>services/pathfinding.rs
-    participant SPA as ShortestPathActor (data.shortest_path_actor)
+    participant GM as GPUManagerActor to supervised ShortestPathActor
 
     C->>RT: POST /analytics/pathfinding/path {sourceId,targetId,algorithm,query}
     RT->>PTP: compute_point_to_point(payload)
-    PTP->>GR: graph_repository.get_graph() :424
+    PTP->>GR: graph_repository.get_graph() pathfinding.rs:424
     alt graph fetch Err
-        PTP-->>C: 500 Failed to retrieve graph data :428-432
+        PTP-->>C: 500 Failed to retrieve graph data pathfinding.rs:428-432
     else
         alt algorithm == Astar
-            PTP->>AS: AStarPathfinder::find_path(graph,source,target) :438
+            PTP->>AS: AStarPathfinder::find_path(graph,source,target) pathfinding.rs:438
         else algorithm == Bidirectional
-            PTP->>BD: BidirectionalDijkstra::find_path(graph,source,target) :464
+            PTP->>BD: BidirectionalDijkstra::find_path(graph,source,target) pathfinding.rs:464
         else algorithm == Semantic
             alt query is empty or missing
-                PTP-->>C: 500 Query string is required for semantic pathfinding :497-504
+                PTP-->>C: 500 Query string is required for semantic pathfinding pathfinding.rs:497-504
             else
-                PTP->>SEM: SemanticPathfinder(alpha).find_path(graph,source,target,query) :507-510
+                PTP->>SEM: SemanticPathfinder(alpha).find_path(graph,source,target,query) pathfinding.rs:507-510
             end
         else algorithm == Sssp
-            PTP->>PTP: locate source_idx by node id in graph_data.nodes :541-545
+            PTP->>PTP: locate source_idx by node id in graph_data.nodes pathfinding.rs:541-545
             alt source not found
-                PTP-->>C: 500 Source node not found in graph :547-556
+                PTP-->>C: 500 Source node not found in graph pathfinding.rs:547-556
             else
-                PTP->>SPA: ComputeSSP{source_idx} :559-565
-                SPA-->>PTP: SSSPResult (GPU path, same actor and same DIVERGENCE as VC-15.6)
+                PTP->>GM: ComputeSSP{source_idx} via gpu_manager_addr pathfinding.rs:539, message pathfinding.rs:559-565
+                GM-->>PTP: SSSPResult (same supervised path as VC-15.6)
             end
         end
         PTP-->>C: 200 PointToPointResponse result (json_val per algorithm)
@@ -471,47 +469,47 @@ sequenceDiagram
     participant FSP as find_semantic_path<br/>semantic_pathfinding_handler.rs:29
     participant QT as query_traversal<br/>semantic_pathfinding_handler.rs:60
     participant CT as chunk_traversal<br/>semantic_pathfinding_handler.rs:90
-    participant GSA as GraphServiceSupervisor (web::Data Addr)<br/>graph_service_supervisor.rs
+    participant GSA as GraphServiceSupervisor (web::Data Addr)<br/>graph_service_supervisor.rs:1490
     participant SVC as SemanticPathfindingService<br/>semantic_pathfinding_service.rs:86
 
     Note over CFG: mounted at web-scope pathfinding by main.rs:1176, distinct from the analytics-scope path family in VC-15.6 to VC-15.9
-    Note over CFG: the scope is wrapped in one process-wide rate limiter, 30 requests per minute keyed on the verified pubkey (semantic_pathfinding_handler.rs:148, PATHFINDING_REQUESTS_PER_MINUTE :119)
+    Note over CFG: the scope is wrapped in one process-wide rate limiter, 30 requests per minute keyed on the verified pubkey with an IP fallback for unauthenticated reads (semantic_pathfinding_handler.rs:121-139, :148, PATHFINDING_REQUESTS_PER_MINUTE :119)
     Note over QT,CT: traversal_budget defaults max_nodes to 50 and caps it at MAX_TRAVERSAL_NODES = 1000 (semantic_pathfinding_handler.rs:117, :141-142)
 
     C->>CFG: POST /pathfinding/semantic-path {startId,endId,query}
     CFG->>FSP: find_semantic_path(request)
-    FSP->>GSA: GetGraphData
+    FSP->>GSA: GetGraphData (semantic_pathfinding_handler.rs:39-41)
     alt Ok(graph_data)
-        FSP->>SVC: find_semantic_path(graph,start_id,end_id,query) :98
-        SVC->>SVC: A* over build_adjacency_list with calculate_semantic_cost per edge :108-193
+        FSP->>SVC: find_semantic_path(graph,start_id,end_id,query) (semantic_pathfinding_handler.rs:45, semantic_pathfinding_service.rs:98)
+        SVC->>SVC: A* over build_adjacency_list with calculate_semantic_cost per edge (semantic_pathfinding_service.rs:108-193)
         alt max_explored (1000) reached before goal
-            SVC-->>FSP: None :136-138
+            SVC-->>FSP: None (semantic_pathfinding_service.rs:136-138)
         else path found
-            SVC-->>FSP: Some(PathResult{path,cost,relevance,explanation}) :128-133
+            SVC-->>FSP: Some(PathResult{path,cost,relevance,explanation}) (semantic_pathfinding_service.rs:128-133)
         end
         alt Some(path)
             FSP-->>C: 200 path
         else None
-            FSP-->>C: error_json No path found :52
+            FSP-->>C: error_json No path found (semantic_pathfinding_handler.rs:52)
         end
     else Err(e)
-        FSP-->>C: error_json Graph error :55
+        FSP-->>C: error_json Graph error (semantic_pathfinding_handler.rs:55)
     end
 
     C->>CFG: POST /pathfinding/query-traversal {startId,query,maxNodes}
     CFG->>QT: query_traversal(request)
-    QT->>GSA: GetGraphData
+    QT->>GSA: GetGraphData (semantic_pathfinding_handler.rs:67-69)
     alt query is None
-        QT-->>C: error_json Query parameter required :82
+        QT-->>C: error_json Query parameter required (semantic_pathfinding_handler.rs:82)
     else
-        QT->>SVC: query_traversal(graph,start_id,query,traversal_budget(max_nodes)) (semantic_pathfinding_handler.rs:141, semantic_pathfinding_service.rs:202)
+        QT->>SVC: query_traversal(graph,start_id,query,traversal_budget(max_nodes)) (semantic_pathfinding_handler.rs:74-79, semantic_pathfinding_service.rs:202)
         SVC-->>QT: results
         QT-->>C: 200 results
     end
 
     C->>CFG: POST /pathfinding/chunk-traversal {startId,maxNodes}
     CFG->>CT: chunk_traversal(request)
-    CT->>GSA: GetGraphData
+    CT->>GSA: GetGraphData (semantic_pathfinding_handler.rs:97-99)
     CT->>SVC: chunk_traversal(graph,start_id,traversal_budget(max_nodes)) (semantic_pathfinding_service.rs:299)
     SVC-->>CT: results
     CT-->>C: 200 results
@@ -529,7 +527,7 @@ classDiagram
         new(x,y,z,t) Result~Vec4,GPUSafetyError~
         validate() Result~(),GPUSafetyError~
     }
-    note for Vec4 "line 13, rejects non-finite components and abs greater than 1e6 (MAX_VAL, line 28)"
+    note for Vec4 "visual_analytics.rs:13, new at :21 rejects non-finite components and abs greater than 1e6 (MAX_VAL :28), validate at :50"
 
     class IsolationLayer {
         layer_id: i32
@@ -542,7 +540,7 @@ classDiagram
         new(layer_id) IsolationLayer
         validate() Result~(),GPUSafetyError~
     }
-    note for IsolationLayer "line 75, new() at 95, validate at 113 rejects opacity/edge_opacity outside 0..1 and a negative layer_id"
+    note for IsolationLayer "visual_analytics.rs:75, new() at :95, validate at :113 rejects opacity/edge_opacity outside 0..1 and a negative layer_id"
 
     class VisualAnalyticsParams {
         total_nodes: i32
@@ -556,26 +554,27 @@ classDiagram
         viewport_bounds: Vec4
         validate() Result~(),GPUSafetyError~
     }
-    note for VisualAnalyticsParams "line 207 (35 fields), Default impl at 257, validate() covers node/edge counts and force scales"
+    note for VisualAnalyticsParams "visual_analytics.rs:207 (38 fields), Default impl at :257, validate() at :312 covers node/edge counts and force scales"
 
     class VisualAnalyticsBuilder {
         <<builder, live external consumer>>
     }
-    note for VisualAnalyticsBuilder "used by src/handlers/api_handler/analytics/params_handlers.rs:347"
+    note for VisualAnalyticsBuilder "visual_analytics.rs:537, used by src/handlers/api_handler/analytics/params_handlers.rs:347"
 
     class PerformanceMetrics {
         <<live external consumer>>
     }
-    note for PerformanceMetrics "used by src/handlers/api_handler/analytics/types.rs:4"
+    note for PerformanceMetrics "visual_analytics.rs:500, used by src/handlers/api_handler/analytics/types.rs:4"
 
     class GPUSafetyError {
-        <<enum>>
+        <<enum, subset shown>>
         InvalidKernelParams
         BufferBoundsExceeded
         ResourceExhaustion
         InvalidBufferSize
         DeviceError
     }
+    note for GPUSafetyError "src/utils/gpu_safety.rs:176, twelve variants in all, the five above are the ones these validators and allocations name"
 
     IsolationLayer --> Vec4
     VisualAnalyticsParams --> Vec4
@@ -583,7 +582,7 @@ classDiagram
     IsolationLayer ..> GPUSafetyError
     VisualAnalyticsParams ..> GPUSafetyError
 
-    note "RESOLVED ADR-2054 (src/gpu/mod.rs:32-35): TSNode, TSEdge, VisualAnalyticsGPU and<br/>VisualAnalyticsEngine are REMOVED entirely from visual_analytics.rs - dead code, never<br/>instantiated outside their own module. Only Vec4, IsolationLayer, VisualAnalyticsParams,<br/>VisualAnalyticsBuilder and PerformanceMetrics remain, because each has a live external<br/>consumer (physics_messages.rs, params_handlers.rs, types.rs). This diagram previously<br/>described the removed types as live - DOC-DRIFT fixed."
+    note "RESOLVED ADR-2054 (src/gpu/mod.rs:32-37): TSNode, TSEdge, VisualAnalyticsGPU and<br/>VisualAnalyticsEngine are REMOVED - dead code, never instantiated outside their<br/>own module. Vec4, IsolationLayer, VisualAnalyticsParams, VisualAnalyticsBuilder<br/>and PerformanceMetrics remain, each with a live external consumer<br/>(physics_messages.rs, params_handlers.rs, types.rs)."
 ```
 
 ## VC-15.13 Analytics kernel trust status and the CPU reference oracle
@@ -591,15 +590,15 @@ classDiagram
 ```mermaid
 flowchart TD
     subgraph LIVE["Live GPU kernels (crates/visionclaw-gpu/src/cuda_sources)"]
-        LOUV["Louvain community detection TRUSTED<br/>gpu_clustering_kernels.cu:581 D1 fix marker, output-verified by ADR-2061"]
+        LOUV["Louvain community detection TRUSTED<br/>gpu_clustering_kernels.cu:606 D1 fix marker, output-verified by ADR-2061"]
         PR["PageRank TRUSTED<br/>pagerank.cu:263 D8 fix marker, global two-kernel dangling-mass path, output-verified by ADR-2061"]
         DBS["DBSCAN TRUSTED<br/>gpu_clustering_kernels.cu:1104 border handling in propagate/finalise, output-verified by ADR-2061"]
-        LOF["LOF local outlier factor<br/>lof_lrd_from_neighbors uses neighbour k-distance<br/>lof_gather_neighbors includes kth-distance ties; bounded32 neighbourhood - ADR-2061"]
+        LOF["LOF local outlier factor TRUSTED on the fixture<br/>lof_gather_neighbors gpu_clustering_kernels.cu:326 includes kth-distance ties<br/>lof_lrd_from_neighbors gpu_clustering_kernels.cu:418 uses neighbour k-distance"]
         ONT["Ontology constraints<br/>fixed and live, keystone wiring"]
     end
 
-    subgraph QUARANTINED["Compile-quarantined / absent"]
-        APSP["Landmark APSP<br/>gpu_landmark_apsp.cu:25 #if 0 guard, not shipped enabled"]
+    subgraph QUARANTINED["Removed / absent"]
+        APSP["Landmark APSP kernel REMOVED<br/>gpu_landmark_apsp.cu:13-25 records the removal, the file keeps only landmark selection and stress kernels"]
         EMB["Node embeddings<br/>no embedding kernels exist in the tree"]
     end
 
@@ -612,12 +611,20 @@ flowchart TD
         CPULOF["CPU reference lof lib.rs:441"]
     end
 
-    LOUV -.->|"conformance test PASSES"| CPUMOD
-    PR -.->|"conformance test PASSES"| CPUPR
-    DBS -.->|"conformance test PASSES"| CPUDB
-    LOF -.->|"GPU oracle PASS: max delta4.759e-7 below1e-3"| CPULOF
+    LOUV -.->|"conformance test recorded PASS"| CPUMOD
+    PR -.->|"conformance test recorded PASS"| CPUPR
+    DBS -.->|"conformance test recorded PASS"| CPUDB
+    LOF -.->|"recorded PASS: max delta 4.759e-7 below 1e-3"| CPULOF
 
-    NOTE["ADR-2061 (2026-09-07): all4 actual GPU oracle tests PASS, zero skips<br/>PageRank max delta 3.4e-11 and DBSCAN exact and Louvain 16 of 16 communities all TRUSTED<br/>LOF corrected from measured0.702 to4.759e-7; original1e-3 bar retained<br/>Test crates/visionclaw-gpu/tests/analytics_oracle_conformance.rs and see docs/GPU-wire-abi.md trust table"]
+    NOTE["Trust table docs/GPU-wire-abi.md:189-202 (ADR-2061, 2026-09-07): PageRank max delta 3.4e-11,<br/>DBSCAN exact, Louvain 16 of 16 communities, LOF corrected from 0.702 to 4.759e-7 on the 1e-3 bar<br/>Test crates/visionclaw-gpu/tests/analytics_oracle_conformance.rs - these are recorded results, not re-run here"]
     LIVE -.-> NOTE
     ORACLE -.->|"fixture crate only, not wired into any runtime request path"| LIVE
+    TEL["Runtime reach: PageRank and community detection have no working HTTP route at this pin, see VC-15.3 and VC-15.5"]
+    LIVE -.-> TEL
 ```
+
+**Debt:** two analytics routes cannot reach a GPU kernel at the pin. `POST /analytics/community/detect` sends `RunCommunityDetection` to `ForceComputeActor` (`src/handlers/api_handler/analytics/community.rs:61-64`, `:91`), whose handler only returns an error (`src/actors/gpu/force_compute_actor.rs:3347-3352`). The PageRank routes read `AppState.analytics.pagerank` (`src/handlers/api_handler/analytics/pagerank_handlers.rs:121`), which is built as `None` (`src/app_state.rs:1296-1300`) and never assigned. Both have working supervised paths through `GPUManagerActor` (`src/actors/gpu/gpu_manager_actor.rs:375`, `:850`), the pattern ADR-2053 already applied to the pathfinding routes. Closing this needs both routes moved to `gpu_manager_addr`, plus route-level tests that fail on the stub replies.
+
+**Debt:** `POST /analytics/sssp/compute` computes a full CPU Dijkstra and then discards it, answering `SSSP computation started` (`src/handlers/api_handler/analytics/sssp_handlers.rs:226-232`).
+
+**Drift:** before this restamp the topic placed the Louvain D1 marker at `gpu_clustering_kernels.cu:581` (a loop line; the marker is at `:606`) and described the APSP kernel as `#if 0`-guarded, but ADR-2054 had already removed it (`crates/visionclaw-gpu/src/cuda_sources/gpu_landmark_apsp.cu:13-25`).

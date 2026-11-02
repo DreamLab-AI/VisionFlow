@@ -1,0 +1,106 @@
+[
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2001-corpus-consolidation.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-1.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; index gate and template checked; CI runs and corpus routes not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2002-aoe-token-auth-boundary.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-1.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; superseded record; AoE retirement confirmed in source; historical runtime receipts not reproducible."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2003-nix-flake-composition.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-1.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; apply-class catalogue and TOML read checked; no Nix evaluation or build."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2004-five-adapter-slots.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-1.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; slot list and lifecycle quarantine checked; no sidecar or fault injection."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2005-dispatch-middleware-order.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-1.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; superseded record; wrap order and privacy filter checked; no redactor or encoder run."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2006-nixgl-gpu-wrap.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-1.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; suffix wrap and local-cuda gate checked; no image build, driver or CUDA workload."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2007-profile-isolation.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-1.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; wrapper pins and URL parser checked; router.sh third wrapper and file-existence launch selection noted; no provider launch."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2008-mcp-projector-reconcile.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-1.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; projector reconcile and ledger checked; no boot or MCP launch."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2009-nip98-proxy-identity-boundary.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-1.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; strip/re-inject, verifier fail-closed and boot-fatal config checked; AoE clauses contradicted; empty-allowlist and cookie-on-verifier-loss gaps; no deployment."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2010-bearer-gated-behind-nip98.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-1.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; bearer gating on HTTP/WS checked; AoE exception retired; downstream re-verification not traced."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2011-hex-canonical-identity.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-1.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; hex canonicalisation and mint checked; did:nostr:local residual found closed; no pod-tier lookup."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2012-relay-allowlist-only-ingress.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-1.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; relay admission gate and baked allowlist checked; JS consumer empty-allowlist admits all; no relay send."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2013-loopback-publish-except-9096.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-1.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; gate wrapper, SANCTIONED tuples and compose publishes checked; gate not executed; no deployment."
+  }
+]
