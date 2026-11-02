@@ -1,0 +1,20 @@
+[
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/solid-pod-rs/03-ldp-request-lifecycle.md",
+    "report": "docs/estate-review/2026-11-02-solid-ldp-and-wac.md",
+    "coverage": "selected-panels",
+    "panels": ["SP-03.1", "SP-03.2", "SP-03.3", "SP-03.4", "SP-03.5", "SP-03.6", "SP-03.8", "SP-03.9", "SP-03.10", "SP-03.11", "SP-03.12"],
+    "basis": "Source tracing at solid-pod-rs 9b6143c; topic restamped from 09ec90f with every citation re-resolved by content; strict cite-check (Mermaid citations) and render pass (exit 0); prose register citations checked separately against pinned blobs; full JEV coverage with no advisories. Previously credited SP-03.1/.2/.3/.12 re-assessed because the restamp changed their bodies. No tests, HTTP probes or deployment; the RDF-PATCH-on-ACL refusal, JSON Patch overwrite and POST name race are source-traced only."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/solid-pod-rs/04-wac-authorisation.md",
+    "report": "docs/estate-review/2026-11-02-solid-ldp-and-wac.md",
+    "coverage": "selected-panels",
+    "panels": ["SP-04.1", "SP-04.2", "SP-04.3", "SP-04.4", "SP-04.5", "SP-04.6", "SP-04.7", "SP-04.8", "SP-04.9", "SP-04.10", "SP-04.13", "SP-04.14", "SP-04.15"],
+    "basis": "Source tracing at solid-pod-rs 9b6143c; topic restamped from 09ec90f with every citation re-resolved; strict cite-check (Mermaid citations) and render pass (exit 0); prose register citations checked separately against pinned blobs; full JEV coverage with no advisories. Previously credited SP-04.2-.6, .9, .10 re-assessed; SP-04.6 rewritten for the daff10d guard. No tests or HTTP probes; daff10d's closure of the wrong-target lockout and the document-wide origin gate are not runtime-verified."
+  }
+]

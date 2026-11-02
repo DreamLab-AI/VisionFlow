@@ -1,0 +1,6 @@
+[
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/solid-pod-rs/10-failure-modes-and-invariants.md",
+   "report": "docs/estate-review/2026-11-02-solid-failure-modes.md", "coverage": "selected-panels",
+   "panels": ["SP-10.1", "SP-10.2", "SP-10.3", "SP-10.4", "SP-10.5", "SP-10.6", "SP-10.7", "SP-10.8", "SP-10.9", "SP-10.10", "SP-10.11", "SP-10.12"],
+   "basis": "Source tracing at solid-pod-rs 9b6143c; topic restamped and every citation re-resolved; strict cite-check and render pass (exit 0, 134 citations); all 12 panels corrected; no runtime, test or consumer-build evidence (crash/replica windows, middleware order and forge-full builds not observed); nostr-rust-forum halves of D5/D6 and the VisionClaw metrics binder not traced."}
+]

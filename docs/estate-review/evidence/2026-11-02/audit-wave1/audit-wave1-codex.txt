@@ -1,0 +1,354 @@
+Reading additional input from stdin...
+OpenAI Codex v0.165.0
+--------
+workdir: /home/devuser/workspace/VisionFlow
+model: gpt-6-astra
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: medium
+reasoning summaries: none
+session id: 01a19bc7-8244-7c73-b21b-e845137bac8c
+--------
+user
+You are an independent cross-vendor auditor. Everything you need is on stdin: six claims from a source-tracing audit, each followed by the exact source lines at the pinned revision (numbered relative to the shown range; the header gives the absolute start line). Do not use tools. For each sample give a verdict SUPPORTED, PARTLY SUPPORTED or NOT SUPPORTED, one or two sentences of reasoning grounded only in the shown lines, and note anything the claim overstates or that the shown lines cannot settle. End with one line: OVERALL <n>/6 supported.
+
+<stdin>
+=== SAMPLE 1: Solid ADR-2010 finding F1 (from 2026-11-02-solid-forge-adrs.md)
+### F1. The mirror is not given the operator relay policy that ADR-2010 promises
+
+- **Trigger:** ADR-2010 Decision says a loopback or private-network relay "is admitted only when the operator lists it (`OperatorRelays`)", for both the mirror and announce.
+- **Source:**
+  - The server wraps only the announce relays in `OperatorRelays` (`crates/solid-pod-rs-server/src/lib.rs:5022-5024`).
+  - The server builds the mirror with `Mirror::new` (`lib.rs:5038`), which hard-wires `DefaultSsrfCheck` (`crates/solid-pod-rs-forge/src/mirror.rs:2303-2311`).
+  - `relay_session` checks the relay host through that policy before connecting (`mirror.rs:3198-3200`).
+  - The policy refuses loopback and private classes (`crates/solid-pod-rs/src/security/ssrf.rs:540-555`).
+  - Agentbox at `c57d9c0508f4` defaults `FORGE_MIRROR_RELAYS` to `ws://127.0.0.1:7777` (`flake.nix:1619`, `agentbox.toml:615`).
+  - The same wiring is present at `76ab7aa` (`lib.rs:5011`, `:5025`), the revision agentbox pins (`lib/solid-pod-rs.nix:54,58`).
+- **Consequence:** with the shipped defaults and a follow entry added, the mirror would log "relay host refused" and back off for ever. ADR-2010's Close-out explains the missing relay session only by the empty follow list. By source there is a second, independent cause.
+- **Limit:** source tracing only. I did not run the server.
+- **What would close it:**
+  - Pass `OperatorRelays::new(&mirror_relays)` through `Mirror::with_parts` (`OperatorRelays` admits listed hosts and defers everything else to `DefaultSsrfCheck`, `crates/solid-pod-rs-forge/src/publish.rs:125-140`), so clone hosts stay on the default policy.
+  - Add a server-level test with a listed loopback relay, or correct the ADR text.
+
+
+--- /home/devuser/workspace/solid-pod-rs@9b6143ce55b2 lines 2296,2312
+       1	    }
+       2	}
+       3	
+       4	impl Mirror {
+       5	    /// An engine over `git`, `store`, the wall clock and the workspace's
+       6	    /// default SSRF policy ([`DefaultSsrfCheck`]).
+       7	    #[must_use]
+       8	    pub fn new(cfg: MirrorConfig, store: MirrorStore, git: Arc<dyn MirrorGit>) -> Self {
+       9	        Self::with_parts(
+      10	            cfg,
+      11	            store,
+      12	            git,
+      13	            Arc::new(SystemClock),
+      14	            Arc::new(DefaultSsrfCheck),
+      15	        )
+      16	    }
+      17	
+--- /home/devuser/workspace/solid-pod-rs@9b6143ce55b2 lines 5015,5042
+       1	    let mut reg = reg
+       2	        .lock()
+       3	        .unwrap_or_else(std::sync::PoisonError::into_inner);
+       4	    if let Some(rt) = reg.get(&plugin_dir) {
+       5	        return Ok(Arc::clone(&rt.service));
+       6	    }
+       7	    let cfg = forge_config();
+       8	    #[cfg(feature = "forge-announce")]
+       9	    let relay_policy: Arc<dyn solid_pod_rs_forge::publish::SsrfCheck> = Arc::new(
+      10	        solid_pod_rs_forge::publish::OperatorRelays::new(&cfg.announce_relays),
+      11	    );
+      12	    let loopback: Arc<dyn solid_pod_rs_forge::LoopbackFetch> = Arc::new(ServerLoopback {
+      13	        client: reqwest::Client::new(),
+      14	    });
+      15	    let svc =
+      16	        solid_pod_rs_forge::ForgeService::new(cfg, plugin_dir.clone())?.with_loopback(loopback);
+      17	    #[cfg(feature = "forge-announce")]
+      18	    let svc = svc.with_announce_ssrf(relay_policy);
+      19	    let service = Arc::new(svc);
+      20	    #[cfg(feature = "forge-mirror")]
+      21	    let mirror = mirror_config().map(|mcfg| {
+      22	        use solid_pod_rs_forge::mirror::{GitCli, Mirror, MirrorStore};
+      23	        let git = Arc::new(GitCli::new(plugin_dir.join("repos")));
+      24	        let engine = Arc::new(Mirror::new(mcfg, MirrorStore::new(&plugin_dir), git));
+      25	        tracing::info!("forge: mirror on kind-30618 started");
+      26	        engine.start()
+      27	    });
+      28	    reg.insert(
+=== SAMPLE 2: LWS CID iat window (lead-confirmed bug)
+Claim: validate_time_bounds never rejects an old or future iat, because the two
+saturating_sub checks are joined with && and at most one can be non-zero.
+Claim: nothing outside the module constructs LwsCidVerifier at this revision.
+--- /home/devuser/workspace/solid-pod-rs@9b6143ce55b2 lines 325,352
+       1	}
+       2	
+       3	fn is_url_with_fragment(kid: &str) -> bool {
+       4	    (kid.starts_with("https://") || kid.starts_with("http://")) && kid.contains('#')
+       5	}
+       6	
+       7	fn split_kid_url(kid: &str) -> Option<(String, String)> {
+       8	    let hash_pos = kid.rfind('#')?;
+       9	    let base = &kid[..hash_pos];
+      10	    let fragment = &kid[hash_pos + 1..];
+      11	    if base.is_empty() || fragment.is_empty() {
+      12	        return None;
+      13	    }
+      14	    Some((base.to_string(), fragment.to_string()))
+      15	}
+      16	
+      17	fn validate_time_bounds(claims: &JwtClaims, now: u64, skew: u64) -> Result<(), SelfSignedError> {
+      18	    // iat must be within skew window.
+      19	    if now.saturating_sub(claims.iat) > skew && claims.iat.saturating_sub(now) > skew {
+      20	        return Err(SelfSignedError::OutOfTimeWindow(format!(
+      21	            "iat={} outside skew={}s from now={}",
+      22	            claims.iat, skew, now
+      23	        )));
+      24	    }
+      25	    // exp must not be past.
+      26	    if let Some(exp) = claims.exp {
+      27	        if exp + skew < now {
+      28	            return Err(SelfSignedError::OutOfTimeWindow(format!(
+=== SAMPLE 3: loom ADR-135 D7 (from 2026-11-02-loom-and-dream-machine-adrs.md)
+Claim: VisionClaw's /ontology/derived write door checks power_user and nothing
+else; ADR-135 D7 requires a signed distiller envelope plus an allow-list.
+--- /home/devuser/workspace/project@86cdd7635582 lines 25,40
+       1	use crate::settings::auth_extractor::AuthenticatedUser;
+       2	use crate::AppState;
+       3	
+       4	/// Forbidden graphs — mirrored locally for the early 400. Must match
+       5	/// `DERIVED_FENCE` in `oxigraph_ontology_repository.rs`.
+       6	const FORBIDDEN_GRAPHS: [&str; 2] = [
+       7	    "urn:ngm:graph:ontology:assert",
+       8	    "urn:ngm:graph:ontology:inferred",
+       9	];
+      10	
+      11	/// The only writable derived graphs.
+      12	const ALLOWED_GRAPHS: [&str; 2] = [
+      13	    "urn:ngm:graph:ontology:summary",
+      14	    "urn:ngm:graph:ontology:observed",
+      15	];
+      16	
+--- /home/devuser/workspace/project@86cdd7635582 lines 180,195
+       1	    }
+       2	}
+       3	
+       4	/// Mounts `/ontology/derived` under the caller's scope (registered at `/api`).
+       5	/// `power_user`-gated — same posture as the privileged ontology mutators.
+       6	pub fn configure_routes(cfg: &mut web::ServiceConfig) {
+       7	    cfg.service(
+       8	        web::scope("/ontology/derived")
+       9	            .wrap(RequireAuth::power_user())
+      10	            .route("", web::post().to(write_derived))
+      11	            .route("/regenerate", web::post().to(regenerate))
+      12	            .route("/{which}", web::get().to(read_derived)),
+      13	    );
+      14	}
+=== SAMPLE 4: panel SP-04.7 (topic text as now committed)
+## SP-04.7 evaluate_access_ctx_inner — the decision loop
+
+```mermaid
+flowchart TD
+    START["evaluate_access_ctx_inner<br/>solid-pod-rs/src/wac/evaluator.rs:255"]
+    NODOC["acl_doc None or graph None -> DENY<br/>solid-pod-rs/src/wac/evaluator.rs:264"]
+    INH["honour_access_to = NOT doc.inherited<br/>solid-pod-rs/src/wac/evaluator.rs:275"]
+    LOOP["for each acl:Authorization in the graph"]
+    MODE["get_modes contains the required mode?<br/>solid-pod-rs/src/wac/evaluator.rs:108"]
+    AGENT["agent_matches_with_groups?<br/>solid-pod-rs/src/wac/evaluator.rs:116"]
+    PATHA["acl:accessTo matches — only when NOT inherited<br/>solid-pod-rs/src/wac/evaluator.rs:287"]
+    PATHD["else acl:default matches<br/>solid-pod-rs/src/wac/evaluator.rs:295"]
+    COND["conjunctive condition gate — ALL must be Satisfied<br/>solid-pod-rs/src/wac/evaluator.rs:309"]
+    GRANT["base_grant = true, break<br/>solid-pod-rs/src/wac/evaluator.rs:325"]
+    CTRL["required_mode == Control -> return true, skip the origin gate<br/>solid-pod-rs/src/wac/evaluator.rs:335"]
+    ORG["origin::check_origin (feature acl-origin)<br/>solid-pod-rs/src/wac/evaluator.rs:343"]
+    ALLOW["GRANT"]
+    DENY["DENY"]
+
+    START --> NODOC
+    START --> INH --> LOOP --> MODE
+    MODE -- no --> LOOP
+    MODE -- yes --> AGENT
+    AGENT -- no --> LOOP
+    AGENT -- yes --> PATHA
+    PATHA -- no --> PATHD
+    PATHD -- no --> LOOP
+    PATHA -- yes --> COND
+    PATHD -- yes --> COND
+    COND -- "NotApplicable or Denied" --> LOOP
+    COND -- all Satisfied --> GRANT
+    LOOP -- exhausted --> DENY
+    GRANT --> CTRL
+    CTRL -- Control --> ALLOW
+    CTRL -- not Control --> ORG
+    ORG -- "NoPolicySet or Permitted, or feature off<br/>solid-pod-rs/src/wac/evaluator.rs:344" --> ALLOW
+    ORG -- "RejectedMismatch or RejectedNoOrigin<br/>solid-pod-rs/src/wac/evaluator.rs:345" --> DENY
+
+    N["INVARIANT (WAC 4.2): an ACL resolved from an ANCESTOR honours ONLY acl:default.<br/>acl:accessTo names an exact resource and must not inherit to descendants —<br/>without this gate an ancestor accessTo-only grant leaks to every child."]
+    INH -.-> N
+    N2["INVARIANT (WAC 4.3): Control bypasses the origin gate so an owner can always<br/>repair a mis-configured ACL from any origin."]
+    CTRL -.-> N2
+```
+
+## SP-04.8 The origin gate — off in the library, on in the server
+--- /home/devuser/workspace/solid-pod-rs@9b6143ce55b2 lines 325,350
+       1	        base_grant = true;
+       2	        break;
+       3	    }
+       4	    if !base_grant {
+       5	        return false;
+       6	    }
+       7	
+       8	    // WAC §4.3 invariant 4: Control mode bypasses the origin gate so
+       9	    // that an owner can always fix a mis-configured ACL from any
+      10	    // origin.
+      11	    if matches!(required_mode, AccessMode::Control) {
+      12	        return true;
+      13	    }
+      14	
+      15	    // F4 — origin gate. Only active behind the `acl-origin` feature;
+      16	    // otherwise behave exactly as pre-F4 to preserve backward compat.
+      17	    #[cfg(feature = "acl-origin")]
+      18	    {
+      19	        match origin::check_origin(doc, request_origin) {
+      20	            origin::OriginDecision::NoPolicySet | origin::OriginDecision::Permitted => true,
+      21	            origin::OriginDecision::RejectedMismatch | origin::OriginDecision::RejectedNoOrigin => {
+      22	                crate::wac::metrics::ACL_ORIGIN_REJECTED_TOTAL
+      23	                    .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+      24	                false
+      25	            }
+      26	        }
+=== SAMPLE 5: panel SP-10.1 (topic text as now committed)
+## SP-10.1 The eight baseline invariants and where each lives in code
+
+```mermaid
+flowchart TD
+    I1["1. NIP-98 is SINGLE-SOURCED — one verifier, siblings delegate<br/>solid-pod-rs/src/auth/nip98.rs:120"]
+    I2["2. Replay protection keeps BOTH layers — freshness window and a<br/>single-use claim — and never evicts an unexpired entry<br/>solid-pod-rs/src/auth/replay.rs:275"]
+    I3["3. Pod-label '..' scrubbing stays ITERATIVE<br/>solid-pod-rs/src/multitenant.rs:199"]
+    I4["4. ACL parsing stays SIZE-CAPPED at the parse boundary<br/>solid-pod-rs/src/wac/parser.rs:40"]
+    I4b["4b. ONLY an absent policy inherits<br/>solid-pod-rs/src/wac/resolver.rs:153"]
+    I5["5. Provenance never changes a write's HTTP status —<br/>but the failure is no longer swallowed<br/>solid-pod-rs/src/provenance.rs:514"]
+    I6["6. Discovery metadata must MATCH the crypto path<br/>solid-pod-rs/src/oidc/mod.rs:184"]
+    I7["7. A private response is never advertised as publicly cacheable<br/>solid-pod-rs/src/ldp.rs:1949"]
+    I8["8. The mirror is ON in shipped builds and fails closed (ADR-2010) —<br/>shipped means built with forge-full; the server's cargo default is empty<br/>crates/solid-pod-rs-server/Cargo.toml:172"]
+
+    I1 --> SUR["the compliance surface"]
+    I2 --> SUR
+    I3 --> SUR
+    I4 --> SUR
+    I4b --> SUR
+    I5 --> SUR
+    I6 --> SUR
+    I7 --> SUR
+    I8 --> SUR
+
+    N["Invariant 6 is the one currently BROKEN in the shipped direction: the verifier<br/>accepts EdDSA (solid-pod-rs/src/oidc/mod.rs:549) and discovery does not<br/>advertise it. Closing the gap must move both halves together. See SP-05.8."]
+    I6 -.-> N
+    N2["Each invariant names a specific regression, not a general principle — reverting<br/>any one of them re-opens a named, previously-fixed bug."]
+    SUR -.-> N2
+```
+
+- **Drift:** the baseline lists eight invariants, the eighth being the mirror (../solid-pod-rs/crates/solid-pod-rs/docs/BASELINE-solid-pod-rs.md:291); this panel used to say seven. Invariant 8 was already present at the previous stamp.
+- **Open:** nothing in this repository builds forge-full apart from a test; the feature is defined at ../solid-pod-rs/crates/solid-pod-rs-server/Cargo.toml:172 and the default stays empty at ../solid-pod-rs/crates/solid-pod-rs-server/Cargo.toml:127. "Shipped builds" therefore means consumer builds, which this topic does not trace.
+- **Invariant:** invariant 1 survived the empty-body fix: the one verifier now binds any supplied body, empty included (solid-pod-rs/src/auth/nip98.rs:191), so SP-ID-01 is closed in source.
+
+## SP-10.2 Fail-closed boundaries, in request order
+--- /home/devuser/workspace/solid-pod-rs@9b6143ce55b2 lines 115,125
+       1	    )
+       2	}
+       3	
+       4	/// `verify_at` with an explicit [`MatchPolicy`]. The git push bridge
+       5	/// passes [`MatchPolicy::GitLenient`]; everything else uses `verify_at`.
+       6	pub fn verify_at_with_policy(
+       7	    header: &str,
+       8	    expected_url: &str,
+       9	    expected_method: &str,
+      10	    body: Option<&[u8]>,
+      11	    now: u64,
+--- /home/devuser/workspace/solid-pod-rs@9b6143ce55b2 lines 186,196
+       1	// under the core crate's `nip98-schnorr` feature. Referencing it in const
+       2	// context here makes this binary impossible to build if BIP-340 signature
+       3	// verification is ever dropped from the NIP-98 verifier — a dependency
+       4	// change or a feature-unification regression that removed it becomes a
+       5	// compile error rather than a server that silently accepts any forged
+       6	// pubkey after structural checks alone.
+       7	const _: () = solid_pod_rs::auth::nip98::assert_schnorr_verification_enabled();
+       8	
+       9	/// Process-local NIP-98 single-use replay guard (F3). Shared across every
+      10	/// request in this server process; a captured token cannot be replayed
+      11	/// within the ~120s NIP-98 tolerance window. TTL/size are overridable via
+=== SAMPLE 6: stale rebind of ADR-2164 (from 2026-11-02-stale-claim-rebind.md)
+ADR-2164, D8's endpoint refresh moves from 10 Hz to "every frame". ADR-2169 gains items 8 to 10: the held-only elastic overlay, the ×20 gain with the force cap scaled with it, the release that places the node, and constraints that are not part of the hold. The mechanism claims in both match the code at the pin. The main finding is that three ADRs (ADR-2002, ADR-2143 and ADR-2169) carry the same boilerplate `ff849f2ba` re-stamp from commit `ef6ebba13`. It misstates what changed on their governed paths and is dated a day early. Two re-verification notes also contradict themselves or the code in small ways. None of this changes a decision.
+
+## Findings
+
+**ST-1 — the `ff849f2ba` re-stamp misdescribes the governed delta (Drift).**
+- **Trigger:** commit `ef6ebba13` appended an identical paragraph to ADR-2002, ADR-2143 and ADR-2169. The paragraph says the delta is "the ADR-sprint work recorded in ADR-2169, 2172, 2173, 2174 and the 2026-11-01 consolidation commits".
+- **What the governed paths actually contain:**
+  - ADR-2002: from `2107637d6` to `ff849f2ba`, the only change is the nine-line payment-authentication paragraph that `5fa0e1325` added to `docs/SECURITY-profiles.md` (`fix: bind payment authentication to body and shared replay cache`). That is unrelated to the sprint, and it is the same commit the claimed bytes come from.
+  - ADR-2143: from `f1fa1862c` to `ff849f2ba`, the only change is one line of `docs/PROTOCOL-registry.md`, the VisionClaw hold rule. Codescape's gitlink is unchanged.
+  - ADR-2169: from `e2afd65d6` to `ff849f2ba`, the only change is the 95 lines `15acb9219` deleted from `position_updates.rs`. The `3f25181a2` note just above it already accounts for those lines.
+- **Dating:** all three paragraphs are headed "2026-10-31". `ff849f2ba` was committed at 2026-11-01T23:33Z.
+- **Consequence:** the stamps are formally correct, since nothing changes any of the three decisions. But a reader cannot rebuild the delta from the text, and for ADR-2002 the text points at the wrong body of work.
+- **Evidence:** `git diff --stat 2107637d6 ff849f2ba -- src/utils/nip98.rs docs/SECURITY-profiles.md` gives `SECURITY-profiles.md | 9 +`. `git diff --stat f1fa1862c ff849f2ba -- codescape docs/PROTOCOL-registry.md` gives `1 file changed`. `git diff --stat e2afd65d6 ff849f2ba -- <ADR-2169 verified_paths>` gives `position_updates.rs | 95 -`.
+- **To close:** replace each paragraph with the actual per-path delta and the commit date.
+
+**ST-2 — ADR-2166 annexes: wrong d
+--- /home/devuser/workspace/project@86cdd7635582 lines 728,745
+       1			hud.set_link_counts(drawn, unresolved, overflow)
+       2	
+       3	
+       4	# §7.4/§7.5: the layer rebuilds its endpoints on every tick, after the volumes and packs
+       5	# have moved this frame; the records are rebuilt when their inputs moved.
+       6	func _tick_links(delta: float) -> void:
+       7		if _link_layer == null:
+       8			return
+       9		_link_join_accum += delta
+      10		if _link_join_accum >= LINK_JOIN_SEC:
+      11			_link_join_accum = 0.0
+      12			_rebuild_links()
+      13		var slots: Dictionary = {}
+      14		for vid: Variant in _sources:
+      15			slots[vid] = int(_sources[vid].slot)
+      16		_link_layer.tick(delta, _volumes, _conns, slots)
+      17	
+      18	
+--- /home/devuser/workspace/project@86cdd7635582 lines 49,53
+       1	[physics]
+       2	
+       3	common/physics_ticks_per_second=90
+       4	common/max_physics_steps_per_frame=8
+       5	
+</stdin>
+codex
+1. **PARTLY SUPPORTED.** The shown server wiring gives `OperatorRelays` to announce and constructs the mirror through `Mirror::new`, which selects `DefaultSsrfCheck`. The excerpts do not establish the ADR promise, policy rejection behaviour, shipped relay defaults, older pin, or indefinite backoff consequence.
+
+2. **PARTLY SUPPORTED.** The `iat` rejection condition cannot succeed: at least one saturating subtraction is zero, which cannot exceed unsigned `skew`. The excerpts cannot establish that no external code constructs `LwsCidVerifier`; rejection through other time checks, such as `exp`, remains possible.
+
+3. **PARTLY SUPPORTED.** The route explicitly applies `RequireAuth::power_user()`, but “nothing else” is unproven because the handlers and other authentication layers are absent. An allowed-graphs list is declared, although its enforcement is not shown; neither the ADR requirement nor the absence of signed-envelope verification can be established.
+
+4. **PARTLY SUPPORTED.** The excerpt confirms denial without a base grant, Control bypass after a base grant, and the stated origin decisions when `acl-origin` is enabled. It does not show the earlier authorisation loop, inheritance or condition checks, the feature-disabled return, or library/server feature defaults.
+
+5. **NOT SUPPORTED.** The excerpts show a verifier signature accepting an optional body and a server compile-time assertion requiring Schnorr verification, but no body-validation implementation or repository-wide delegation evidence. They cannot establish empty-body binding, the eight invariants, discovery drift, or mirror build configuration; the second excerpt is visibly unrelated to the claimed body-binding source.
+
+6. **PARTLY SUPPORTED.** `_tick_links` calls `_link_layer.tick` on each invocation when the layer exists, while `_rebuild_links` remains interval-gated. Without the caller and layer implementation, this does not establish endpoint refresh “every frame”; the 90 Hz physics setting also cannot establish that cadence, and none of the ADR history, dating, or hold-mechanism claims is evidenced here.
+
+OVERALL 0/6 supported.
+tokens used
+14,370
+1. **PARTLY SUPPORTED.** The shown server wiring gives `OperatorRelays` to announce and constructs the mirror through `Mirror::new`, which selects `DefaultSsrfCheck`. The excerpts do not establish the ADR promise, policy rejection behaviour, shipped relay defaults, older pin, or indefinite backoff consequence.
+
+2. **PARTLY SUPPORTED.** The `iat` rejection condition cannot succeed: at least one saturating subtraction is zero, which cannot exceed unsigned `skew`. The excerpts cannot establish that no external code constructs `LwsCidVerifier`; rejection through other time checks, such as `exp`, remains possible.
+
+3. **PARTLY SUPPORTED.** The route explicitly applies `RequireAuth::power_user()`, but “nothing else” is unproven because the handlers and other authentication layers are absent. An allowed-graphs list is declared, although its enforcement is not shown; neither the ADR requirement nor the absence of signed-envelope verification can be established.
+
+4. **PARTLY SUPPORTED.** The excerpt confirms denial without a base grant, Control bypass after a base grant, and the stated origin decisions when `acl-origin` is enabled. It does not show the earlier authorisation loop, inheritance or condition checks, the feature-disabled return, or library/server feature defaults.
+
+5. **NOT SUPPORTED.** The excerpts show a verifier signature accepting an optional body and a server compile-time assertion requiring Schnorr verification, but no body-validation implementation or repository-wide delegation evidence. They cannot establish empty-body binding, the eight invariants, discovery drift, or mirror build configuration; the second excerpt is visibly unrelated to the claimed body-binding source.
+
+6. **PARTLY SUPPORTED.** `_tick_links` calls `_link_layer.tick` on each invocation when the layer exists, while `_rebuild_links` remains interval-gated. Without the caller and layer implementation, this does not establish endpoint refresh “every frame”; the 90 Hz physics setting also cannot establish that cadence, and none of the ADR history, dating, or hold-mechanism claims is evidenced here.
+
+OVERALL 0/6 supported.

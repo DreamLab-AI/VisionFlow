@@ -1,0 +1,66 @@
+[
+  {
+    "kind": "adr",
+    "repo": "solid-pod-rs",
+    "path": "crates/solid-pod-rs/docs/adr/ADR-2009-forge-plugins-comparator-and-default-off-mirror.md",
+    "report": "docs/estate-review/2026-11-02-solid-forge-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at solid-pod-rs 9b6143c; every section assessed; runtime, test and release claims not checkable from source; hideRefs mechanism superseded by store isolation; mirror SSRF wiring contradicts ADR-2010 (F1)."
+  },
+  {
+    "kind": "adr",
+    "repo": "solid-pod-rs",
+    "path": "crates/solid-pod-rs/docs/adr/ADR-2010-forge-and-mirror-are-on-in-shipped-builds.md",
+    "report": "docs/estate-review/2026-11-02-solid-forge-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at solid-pod-rs 9b6143c; every section assessed; agentbox c57d9c0 read for consumer defaults; OperatorRelays and default-follow claims contradicted; runtime and release claims not checked."
+  },
+  {
+    "kind": "adr",
+    "repo": "solid-pod-rs",
+    "path": "crates/solid-pod-rs/docs/adr/ADR-2011-extensions-are-compile-time-crates-route-ownership-is-the-exemption.md",
+    "report": "docs/estate-review/2026-11-02-solid-forge-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at solid-pod-rs 9b6143c; every section assessed; rules 1-3 traced, rule 5 and all three follow-ons open; runtime results and JSS upstream citations not checkable."
+  },
+  {
+    "kind": "adr",
+    "repo": "solid-pod-rs",
+    "path": "crates/solid-pod-rs/docs/archive/adr/ADR-057-lws10-oidc-delta.md",
+    "report": "docs/estate-review/2026-11-02-solid-forge-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at solid-pod-rs 9b6143c; every section assessed; historical; each port ticket marked open, implemented or contradicted; A.3 not traced."
+  },
+  {
+    "kind": "adr",
+    "repo": "solid-pod-rs",
+    "path": "crates/solid-pod-rs/docs/archive/adr/ADR-058-jss-v060-v071-drift.md",
+    "report": "docs/estate-review/2026-11-02-solid-forge-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at solid-pod-rs 9b6143c; every section assessed; historical; drift rows checked for closure; JSS release facts and some AP and error-page details not traced."
+  },
+  {
+    "kind": "adr",
+    "repo": "solid-pod-rs",
+    "path": "crates/solid-pod-rs/docs/archive/adr/ADR-059-provenance-primitives-block-trails-git-marks.md",
+    "report": "docs/estate-review/2026-11-02-solid-forge-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at solid-pod-rs 9b6143c; every section assessed; historical; mapped to ADR-2004/2006/2007/2008; Updates-via emission and deposit-path replay calls not traced."
+  },
+  {
+    "kind": "adr",
+    "repo": "solid-pod-rs",
+    "path": "crates/solid-pod-rs/docs/archive/adr/ADR-060-gap-close-solid-pod-slice.md",
+    "report": "docs/estate-review/2026-11-02-solid-forge-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at solid-pod-rs 9b6143c; every section assessed; historical; mapped to ADR-2004/2006 and BASELINE; receipts, canaries and render gate not checkable."
+  },
+  {
+    "kind": "adr",
+    "repo": "solid-pod-rs",
+    "path": "crates/solid-pod-rs/docs/archive/adr/ADR-061-lan-bitcoin-node.md",
+    "report": "docs/estate-review/2026-11-02-solid-forge-adrs.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at solid-pod-rs 9b6143c; every section assessed; historical; crate side mapped to ADR-2007; infrastructure and acceptance checklist not checkable from source."
+  }
+]

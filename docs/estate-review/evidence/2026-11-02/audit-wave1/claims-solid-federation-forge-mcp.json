@@ -1,0 +1,11 @@
+[
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/solid-pod-rs/08-federation-notifications-forge-mcp.md",
+    "report": "docs/estate-review/2026-11-02-solid-federation-forge-mcp.md",
+    "coverage": "selected-panels",
+    "panels": ["SP-08.1", "SP-08.2", "SP-08.3", "SP-08.4", "SP-08.5", "SP-08.6", "SP-08.8", "SP-08.9", "SP-08.10", "SP-08.11", "SP-08.12", "SP-08.13", "SP-08.14", "SP-08.15", "SP-08.18", "SP-08.16", "SP-08.17"],
+    "basis": "Source tracing at solid-pod-rs 9b6143c and agentbox c57d9c0 (topic restamped, every citation re-resolved); strict cite-check and render pass (exit 0, 275 citations); 2 accurate, 2 accurate-with-limits, 13 corrected; no runtime, test or deployment evidence; forum and website consumer claims in SP-08.16 unchecked."
+  }
+]

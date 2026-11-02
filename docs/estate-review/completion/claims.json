@@ -263,21 +263,21 @@
     "kind": "adr",
     "repo": "VisionClaw",
     "path": "docs/adr/ADR-2164-code-graph-entities-link-to-knowledge-and-ontology-nodes-resolved-at-runtime.md",
-    "source_sha256": "9de4974c531a5e6dc4b458dffcc33674473374f1696d1cc599189ca25d67dc48",
-    "report": "docs/estate-review/2026-10-31-xr-volumes-and-code-links.md",
-    "report_sha256": "8aec3364bad5e71f204f77bbbb7f14dc3d06b0392ff70f2e30766c5774f93d1a",
+    "source_sha256": "0babf7aa915e0c4b7f615f8e1e72703526012895cd293c9705053806dadf2484",
+    "report": "docs/estate-review/2026-11-02-stale-claim-rebind.md",
+    "report_sha256": "91a891e51be4c7b27f99b4392764ba6d592b2671de41a577c2df15377d7c0732",
     "coverage": "whole-document",
-    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+    "basis": "Source tracing at VisionClaw 86cdd76; changed sections assessed in this report, unchanged sections carried from the named earlier report with the governed-path delta recorded; changed D8 endpoint bullet assessed (Rust pack true; 'every frame' is the 90 Hz physics tick; marker budget breach still holds); other sections carried from 2026-10-31-xr-volumes-and-code-links; timings not checkable."
   },
   {
     "kind": "adr",
     "repo": "VisionClaw",
     "path": "docs/adr/ADR-2143-codescape-section-separate-workspace-and-port.md",
-    "source_sha256": "e0642f79c5aa4f50d96384f37ffe5242a2371d8f4f2dc5cf8f4a89eb70cbf3eb",
-    "report": "docs/estate-review/2026-11-01-codescape-runtime-boundary.md",
-    "report_sha256": "a6c170cabfeaebb7bcc59b51f56f59473afe35321be0ee8b8202e6623c3a3b5f",
+    "source_sha256": "8a648209276110897d0662815292cf1eca69c05dfd816deefd28e4f41a2ce0e3",
+    "report": "docs/estate-review/2026-11-02-stale-claim-rebind.md",
+    "report_sha256": "91a891e51be4c7b27f99b4392764ba6d592b2671de41a577c2df15377d7c0732",
     "coverage": "whole-document",
-    "basis": "Whole-document refresh incorporates the prior explicit section table, assesses the appended re-verification and changed governed paths, and adds bounded live Docker metadata. Historical tests and open presence, isolation, publication and XR acceptance gaps remain explicit; no product tests rerun."
+    "basis": "Source tracing at VisionClaw 86cdd76; changed sections assessed in this report, unchanged sections carried from the named earlier report with the governed-path delta recorded; stamp and ff849f2ba annex assessed (conclusion true; delta description and date inaccurate, ST-1); other sections carried from 2026-11-01-codescape-runtime-boundary, governed delta since 531df5ef7 one registry line."
   },
   {
     "kind": "adr",
@@ -293,11 +293,11 @@
     "kind": "adr",
     "repo": "VisionClaw",
     "path": "docs/adr/ADR-2166-spatial-volumes-can-be-entered-the-others-become-portals.md",
-    "source_sha256": "c2756c3a15fe6560eb05b612b737dadb70933cc5a0cb15341b913ecbfbe92528",
-    "report": "docs/estate-review/2026-10-31-portals-and-federation.md",
-    "report_sha256": "378f6e5911fa5745caab5d5b8f772d5a3c21e39dc5891228959b9837bfddf16a",
+    "source_sha256": "d41afc504a2f700a5ca22a2b14f919479bcb0dcb59ccd242a8a943ebf24bbefc",
+    "report": "docs/estate-review/2026-11-02-stale-claim-rebind.md",
+    "report_sha256": "91a891e51be4c7b27f99b4392764ba6d592b2671de41a577c2df15377d7c0732",
     "coverage": "whole-document",
-    "basis": "Prior whole-section assessment plus scoped grab-amendment refresh at 531df5ef7; six of eight governed files unchanged, scene delta traced. Open findings preserved; old portal executions and headset limits remain historical."
+    "basis": "Source tracing at VisionClaw 86cdd76; changed sections assessed in this report, unchanged sections carried from the named earlier report with the governed-path delta recorded; stamp and seven annexes assessed against source (ef021a41d formula superseded in-document, date drift, ST-2); other sections carried from 2026-10-31-portals-and-federation; portal code byte-identical since 531df5ef7; no GUT or headset run."
   },
   {
     "kind": "adr",
@@ -353,11 +353,11 @@
     "kind": "adr",
     "repo": "agentbox",
     "path": "docs/adr/ADR-2071-journal-the-nightly-dream-cycle.md",
-    "source_sha256": "e1e811d89adcc977eb1c5a54b1b70ae32df57d065a347598f2f39c0f701d3243",
-    "report": "docs/estate-review/2026-11-01-dream-journal-and-api-down.md",
-    "report_sha256": "f941bf42fee409eff3a10de0a6a9f9b766005974a19873fed293e0a13cf8e422",
+    "source_sha256": "75b2b3b346d9a0aec85b67889aa595fda6e3fcff74832774d110d714f865cadd",
+    "report": "docs/estate-review/2026-11-02-stale-claim-rebind.md",
+    "report_sha256": "91a891e51be4c7b27f99b4392764ba6d592b2671de41a577c2df15377d7c0732",
     "coverage": "whole-document",
-    "basis": "Explicit section assessment in the named report; documentary assessment only, with its stated source/runtime limitations. Source document matches the earlier census hash."
+    "basis": "Source tracing at agentbox c57d9c0; changed sections assessed in this report, unchanged sections carried from the named earlier report with the governed-path delta recorded; stamp and cc949bb79 annex accurate (single test literal over all governed paths); other sections carried from 2026-11-01-dream-journal-and-api-down, delta since 9dfc27b16 that one line."
   },
   {
     "kind": "adr",
@@ -733,31 +733,31 @@
     "kind": "adr",
     "repo": "agentbox",
     "path": "docs/adr/ADR-2081-annexe-depth-law-and-honest-evaluator-receipts.md",
-    "source_sha256": "64b8a62c6259ceb48260da07943cde69c2c02fe693db165a375da44e4dced15f",
-    "report": "docs/estate-review/2026-11-01-dream-annexe-and-receipts.md",
-    "report_sha256": "5bdb3dad8c59add3457b02f45836aed5acfaf01b83ae0d31fd3ea999974d6245",
+    "source_sha256": "88d3648b0d6783b151626e6dfae4130e3e74d2a110a2f8855aed668ef7f611e7",
+    "report": "docs/estate-review/2026-11-02-stale-claim-rebind.md",
+    "report_sha256": "91a891e51be4c7b27f99b4392764ba6d592b2671de41a577c2df15377d7c0732",
     "coverage": "whole-document",
-    "basis": "Report explicitly assesses the complete named ADR section by section; source document matches earlier census bytes. Deployment and implementation findings retain their report limits."
+    "basis": "Source tracing at agentbox c57d9c0; changed sections assessed in this report, unchanged sections carried from the named earlier report with the governed-path delta recorded; stamp and cc949bb79 annex accurate; other sections carried from 2026-11-01-dream-annexe-and-receipts, delta since 9dfc27b16 one test line."
   },
   {
     "kind": "adr",
     "repo": "agentbox",
     "path": "docs/adr/ADR-2114-dream-candidate-diffs-against-engine-read-source.md",
-    "source_sha256": "acf9e364153027410acb4619e1252af74cdcf95119b1e84b66489e1ae521d272",
-    "report": "docs/estate-review/2026-11-01-dream-execution-and-triage.md",
-    "report_sha256": "9c97aa19db70fa7c2ae186c2b4d35bb9746d359ce762d43dad2101f96fd37941",
+    "source_sha256": "7ed05fc03b8659b76e9cdd6c7b34ae5f8c6381be516a04b6577101e6afa604a6",
+    "report": "docs/estate-review/2026-11-02-stale-claim-rebind.md",
+    "report_sha256": "91a891e51be4c7b27f99b4392764ba6d592b2671de41a577c2df15377d7c0732",
     "coverage": "whole-document",
-    "basis": "Report explicitly assesses the complete named ADR section by section; source document matches earlier census bytes. Deployment and implementation findings retain their report limits."
+    "basis": "Source tracing at agentbox c57d9c0; changed sections assessed in this report, unchanged sections carried from the named earlier report with the governed-path delta recorded; stamp and cc949bb79 annex accurate; other sections carried from 2026-11-01-dream-execution-and-triage, delta since 9dfc27b16 one test line."
   },
   {
     "kind": "adr",
     "repo": "agentbox",
     "path": "docs/adr/ADR-2115-dream-decisions-surface-on-the-forum-governance-panel.md",
-    "source_sha256": "7d4dc0345f5e3b89951426ae11d17bfe8948be848206d61659a97c3b1ee77294",
-    "report": "docs/estate-review/2026-11-01-dream-governance-and-delivery.md",
-    "report_sha256": "fe0e9fa55201a383ecb314270075055831d911292bbd86cb36d6691078ba8841",
+    "source_sha256": "8d177327216bac9ad3f63e43b299bffade4df2dd8eb39fd82b73d032c20c63f9",
+    "report": "docs/estate-review/2026-11-02-stale-claim-rebind.md",
+    "report_sha256": "91a891e51be4c7b27f99b4392764ba6d592b2671de41a577c2df15377d7c0732",
     "coverage": "whole-document",
-    "basis": "Report explicitly assesses the complete named ADR section by section; source document matches earlier census bytes. Deployment and implementation findings retain their report limits."
+    "basis": "Source tracing at agentbox c57d9c0; changed sections assessed in this report, unchanged sections carried from the named earlier report with the governed-path delta recorded; stamp and cc949bb79 annex accurate (dream-inbox-surface.cjs unchanged); other sections carried from 2026-11-01-dream-governance-and-delivery, delta since 9dfc27b16 one test line."
   },
   {
     "kind": "topic",
@@ -1926,11 +1926,11 @@
     "kind": "adr",
     "repo": "agentbox",
     "path": "docs/adr/ADR-2153-session-plane-replaces-aoe.md",
-    "source_sha256": "23773e4b516bb9bdbb57d1927d5ca54470834ab7730dcd8448cdfd39ea97eb41",
-    "report": "docs/estate-review/2026-11-01-agentbox-session-lifecycle.md",
-    "report_sha256": "5c238722cb020aea7a98a3967dd3a7bca7fc8eaa06390ea779a000ad8196fad7",
+    "source_sha256": "fb148d42df8fae0b45c2cf251d0095dd944ec192281dc20005d532a7a4014848",
+    "report": "docs/estate-review/2026-11-02-stale-claim-rebind.md",
+    "report_sha256": "91a891e51be4c7b27f99b4392764ba6d592b2671de41a577c2df15377d7c0732",
     "coverage": "whole-document",
-    "basis": "All ADR-2153 sections and dated verification appendices assessed with source, private-tmux probes and explicitly bounded runtime evidence. Superseded ADRs receive no whole-document credit."
+    "basis": "Source tracing at agentbox c57d9c0; changed sections assessed in this report, unchanged sections carried from the named earlier report with the governed-path delta recorded; stamp and four annexes accurate per-range over all 26 governed paths (credential custody and scrub only); other sections carried from 2026-11-01-agentbox-session-lifecycle; no session-plane lines in the delta."
   },
   {
     "kind": "topic",
@@ -2137,11 +2137,11 @@
     "kind": "adr",
     "repo": "VisionClaw",
     "path": "docs/adr/ADR-2169-a-drag-is-a-hold-the-released-node-rejoins-the-simulation-and-the-graph-settles.md",
-    "source_sha256": "1f72d848d805b355a47b30d5f91bfbc590d32a2422f8dfd69fd8af23e352e9b2",
-    "report": "docs/estate-review/2026-11-01-drag-holds-and-acceptance.md",
-    "report_sha256": "26405839aa053f666c42eb64dd68bb18a46a7582e049d5dfacec174471a73edb",
+    "source_sha256": "0b167a73d4fbcb028682ba36b46565f1abc19d749e3b7cf1c26e0ab30cf1e5b4",
+    "report": "docs/estate-review/2026-11-02-stale-claim-rebind.md",
+    "report_sha256": "91a891e51be4c7b27f99b4392764ba6d592b2671de41a577c2df15377d7c0732",
     "coverage": "whole-document",
-    "basis": "Section-by-section ADR-2169 assessment, actual registry tests, explicit model boundary and reproduced full-script false acceptance; no live server/headset or fresh GPU claim."
+    "basis": "Source tracing at VisionClaw 86cdd76; changed sections assessed in this report, unchanged sections carried from the named earlier report with the governed-path delta recorded; items 8-10, frontmatter and six stamps assessed: overlay, x20 gain, springs_active cap, placement, constraint sync implemented; 2.0 floor inert (ST-5); ff849f2ba stamp misdescribed (ST-1); measured figures and PTX not checked; items 1-7 carried from 2026-11-01-drag-holds-and-acceptance with DH anchors rechecked."
   },
   {
     "kind": "topic",
@@ -2164,11 +2164,11 @@
     "kind": "adr",
     "repo": "VisionClaw",
     "path": "docs/adr/ADR-2172-a-node-is-grabbed-with-either-hand-in-any-visionclaw-volume.md",
-    "source_sha256": "9c53d920de82b832f1978e7c4d6cbd954b58fc9ac3ea869759140b1cc9b75a84",
-    "report": "docs/estate-review/2026-11-01-xr-grab-boundaries.md",
-    "report_sha256": "3b6a10787e6d4774b364b3a77abd86626d307608863e01cd434e76f60da8416e",
+    "source_sha256": "fd217d2d87dde866904f18fd06be42c0d85e99dde15286385b35438761f79115",
+    "report": "docs/estate-review/2026-11-02-stale-claim-rebind.md",
+    "report_sha256": "91a891e51be4c7b27f99b4392764ba6d592b2671de41a577c2df15377d7c0732",
     "coverage": "whole-document",
-    "basis": "All ADR-2172 sections assessed with source trace, exact-method headless counterexamples and native Rust interaction tests; full GUT scene, controllers, GPU, shader and headset are not freshly qualified."
+    "basis": "Source tracing at VisionClaw 86cdd76; changed sections assessed in this report, unchanged sections carried from the named earlier report with the governed-path delta recorded; stamp and seven annexes assessed ('hunt_grabs unchanged' literally false, behaviour-preserving, ST-3); other sections carried from 2026-11-01-xr-grab-boundaries, grab code unchanged since 531df5ef7; no GUT or headset run."
   },
   {
     "kind": "topic",
@@ -2401,32 +2401,49 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/solid-pod-rs/03-ldp-request-lifecycle.md",
-    "source_sha256": "422a54a252a3b1ca331fd8bd087cb9a7a6b0d3629ce76409e00a545f98a357d8",
-    "report": "docs/estate-review/2026-11-01-solid-http-delivery.md",
-    "report_sha256": "c46f2ec24d30366816924dc1d0089c5595a413df98b7c5d0d24d7b02c631ceeb",
+    "source_sha256": "cb83cb5c1245eb7340c337ba829f215421b212acf4294c82c8e78b089986aa02",
+    "report": "docs/estate-review/2026-11-02-solid-ldp-and-wac.md",
+    "report_sha256": "65bbaf312af2ccaafbe0722916dafba2dc0ab6804601fd3ca8f0508c2fa363a1",
     "coverage": "selected-panels",
     "panels": [
       "SP-03.1",
       "SP-03.2",
       "SP-03.3",
+      "SP-03.4",
+      "SP-03.5",
+      "SP-03.6",
+      "SP-03.8",
+      "SP-03.9",
+      "SP-03.10",
+      "SP-03.11",
       "SP-03.12"
     ],
-    "basis": "Selected GET/PUT, cache, read gate, sidecar mapping and lockout semantics assessed against source and local HTTP controls; no deployment or rendered-sibling credit."
+    "basis": "Source tracing at solid-pod-rs 9b6143c; topic restamped from 09ec90f with every citation re-resolved by content; strict cite-check (Mermaid citations) and render pass (exit 0); prose register citations checked separately against pinned blobs; full JEV coverage with no advisories. Previously credited SP-03.1/.2/.3/.12 re-assessed because the restamp changed their bodies. No tests, HTTP probes or deployment; the RDF-PATCH-on-ACL refusal, JSON Patch overwrite and POST name race are source-traced only."
   },
   {
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/solid-pod-rs/04-wac-authorisation.md",
-    "source_sha256": "572e5c105445b537adb32684590976c7c4990dfb7d9bff59d70d9e84866d69c9",
-    "report": "docs/estate-review/2026-11-01-solid-http-delivery.md",
-    "report_sha256": "c46f2ec24d30366816924dc1d0089c5595a413df98b7c5d0d24d7b02c631ceeb",
+    "source_sha256": "16d685b7794f02750640f83ff14bf2b8b66f9b9adf923502de36d688d5b4e05c",
+    "report": "docs/estate-review/2026-11-02-solid-ldp-and-wac.md",
+    "report_sha256": "65bbaf312af2ccaafbe0722916dafba2dc0ab6804601fd3ca8f0508c2fa363a1",
     "coverage": "selected-panels",
     "panels": [
+      "SP-04.1",
       "SP-04.2",
+      "SP-04.3",
+      "SP-04.4",
       "SP-04.5",
-      "SP-04.6"
+      "SP-04.6",
+      "SP-04.7",
+      "SP-04.8",
+      "SP-04.9",
+      "SP-04.10",
+      "SP-04.13",
+      "SP-04.14",
+      "SP-04.15"
     ],
-    "basis": "Selected GET/PUT, cache, read gate, sidecar mapping and lockout semantics assessed against source and local HTTP controls; no deployment or rendered-sibling credit."
+    "basis": "Source tracing at solid-pod-rs 9b6143c; topic restamped from 09ec90f with every citation re-resolved; strict cite-check (Mermaid citations) and render pass (exit 0); prose register citations checked separately against pinned blobs; full JEV coverage with no advisories. Previously credited SP-04.2-.6, .9, .10 re-assessed; SP-04.6 rewritten for the daff10d guard. No tests or HTTP probes; daff10d's closure of the wrong-target lockout and the document-wide origin gate are not runtime-verified."
   },
   {
     "kind": "adr",
@@ -2495,18 +2512,32 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/solid-pod-rs/07-provenance-and-payments.md",
-    "source_sha256": "bc99baafd93e038317c3f2b9c0db5a2f9688e32365fe4047656065357402041e",
-    "report": "docs/estate-review/2026-11-01-solid-payment-delivery.md",
-    "report_sha256": "333ed29b4207a047bf66d7e02539d68344661032e8a1b0dd11527ceddc8a7563",
+    "source_sha256": "bbb048ff9b8ca40d68d14594b3de93b443826ba647320250e16e64a167035e33",
+    "report": "docs/estate-review/2026-11-02-solid-payments-and-release.md",
+    "report_sha256": "a0db047c565960beb4ac9cf7c767b874b2366c64f907b6097d05c759209515b5",
     "coverage": "selected-panels",
     "panels": [
+      "SP-07.1",
+      "SP-07.2",
+      "SP-07.3",
+      "SP-07.4",
+      "SP-07.5",
       "SP-07.6",
+      "SP-07.7",
+      "SP-07.9",
       "SP-07.10",
+      "SP-07.11",
+      "SP-07.12",
       "SP-07.13",
+      "SP-07.14",
       "SP-07.15",
-      "SP-07.18"
+      "SP-07.16",
+      "SP-07.17",
+      "SP-07.18",
+      "SP-07.19",
+      "SP-07.20"
     ],
-    "basis": "Query access, sidecar binding, retry charges, primitive port and local ledger authority assessed against code and disposable HTTP fixtures. Rendered siblings receive no new credit."
+    "basis": "Source tracing at solid-pod-rs 9b6143c (VisionClaw 86cdd76 and nostr-rust-forum 1b27f79 lockfiles for the SP-07.18 D8 Open); topic restamped to 9b6143c, strict cite-check and render pass (exit 0, 232 citations, 19/19). 19 panels: 8 accurate (07.1-.7, .11), 11 corrected (07.9, .10, .12-.20). The five unreconciled panels were traced in full, including an open one-string stateStrings deposit-verification gap (source only, no probe). The other 14 were re-checked after the restamp: only README.md and lib.rs changed among sources, all 161 citations are byte-identical across the remap, and eleven pre-existing citations that sat one to four lines off their claim, or on a blank line, were fixed. No runtime, mempool or deployment credit; SP-07.20's earlier probe result not re-run."
   },
   {
     "kind": "topic",
@@ -2525,11 +2556,11 @@
     "kind": "adr",
     "repo": "VisionClaw",
     "path": "docs/adr/ADR-2002-nip98-single-use-replay-cache.md",
-    "source_sha256": "993d6ca1c46daf5167e98830fedceadc9e643f3db2cc4f3a7f9b09f380e9f9a1",
-    "report": "docs/estate-review/2026-11-01-visionclaw-payment-auth.md",
-    "report_sha256": "22e83d884a35c71991e426fe5e4afa9485a90174912f887a88d48c4af0adfdb4",
+    "source_sha256": "57f4c39012071ef22e6939a7a88cced58332af113801a47ec3a72c97cace05a4",
+    "report": "docs/estate-review/2026-11-02-stale-claim-rebind.md",
+    "report_sha256": "91a891e51be4c7b27f99b4392764ba6d592b2671de41a577c2df15377d7c0732",
     "coverage": "whole-document",
-    "basis": "All dated sections assessed, including the payment adoption supplement. Six route and46 shared-verifier tests; deployed, restart/replica and fresh-token idempotency guarantees remain open."
+    "basis": "Source tracing at VisionClaw 86cdd76; changed sections assessed in this report, unchanged sections carried from the named earlier report with the governed-path delta recorded; stamp and ff849f2ba annex assessed (conclusion true; delta is the 5fa0e1325 payment paragraph, not sprint work, ST-1); other sections carried from 2026-11-01-visionclaw-payment-auth, governed delta since 5fa0e1325 empty."
   },
   {
     "kind": "topic",
@@ -2611,16 +2642,31 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/solid-pod-rs/05-identity-nip98-did-oidc.md",
-    "source_sha256": "a0e322db8de5866a3047d7f0eda59a4a4a070ede912987a5e5ae9ad01b1022af",
-    "report": "docs/estate-review/2026-11-01-solid-oidc-boundaries.md",
-    "report_sha256": "d1ece8711bb93bf0b2f41f86dd6d25478930ba3ddc949a0668a07dd25d7922c1",
+    "source_sha256": "a744f597ab7a036209c97af663fe6cfed4b96e5435e098fe3573a2d9dc65ddfc",
+    "report": "docs/estate-review/2026-11-02-solid-identity-and-storage.md",
+    "report_sha256": "0f3df02d420491e085411e6c04a0f704bf61b729c11a446b9fe3280cc0b2f7ed",
     "coverage": "selected-panels",
     "panels": [
+      "SP-05.1",
+      "SP-05.2",
+      "SP-05.3",
+      "SP-05.4",
+      "SP-05.5",
       "SP-05.7",
       "SP-05.8",
-      "SP-05.10"
+      "SP-05.10",
+      "SP-05.12",
+      "SP-05.13",
+      "SP-05.14",
+      "SP-05.15",
+      "SP-05.16",
+      "SP-05.17",
+      "SP-05.18",
+      "SP-05.19",
+      "SP-05.21",
+      "SP-05.22"
     ],
-    "basis": "Source, bounded observation probes, revision citations and visual render inspection. Other rendered panels receive no new assessment credit."
+    "basis": "Source tracing at solid-pod-rs 9b6143c; topic restamped and strict cite-check and render pass; SP-05.2 and SP-05.10 re-traced after the post-assessment fixes 8f2df86 and fcc624a. No runtime, test or deployment evidence; LWS-CID iat defect and IdP drift recorded, not repaired; previously credited SP-05.1, 05.3, 05.4, 05.5, 05.7 and 05.8 re-checked at 9b6143c after the restamp (SP-05.3 fully re-traced and corrected)."
   },
   {
     "kind": "topic",
@@ -2664,28 +2710,509 @@
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/solid-pod-rs/06-storage-quota-and-git-pods.md",
-    "source_sha256": "895039a21bf474bd134c37b60cbf24f4e9a7a85744014389a711a39aab55214a",
-    "report": "docs/estate-review/2026-11-01-solid-git-export-and-baseline.md",
-    "report_sha256": "1fe57c64add33eec980ad79399f2ffa723da56fb511cfc75f2ca32e50cd8480b",
+    "source_sha256": "0acf4064ba8f96d3d6c320d6ae657f3bf522c23a0a31e285111769e36734939e",
+    "report": "docs/estate-review/2026-11-02-solid-identity-and-storage.md",
+    "report_sha256": "0f3df02d420491e085411e6c04a0f704bf61b729c11a446b9fe3280cc0b2f7ed",
     "coverage": "selected-panels",
     "panels": [
+      "SP-06.1",
+      "SP-06.2",
+      "SP-06.3",
+      "SP-06.4",
+      "SP-06.6",
+      "SP-06.7",
+      "SP-06.8",
+      "SP-06.9",
+      "SP-06.10",
+      "SP-06.11",
       "SP-06.12"
     ],
-    "basis": "Revision-pinned source, native production-route reproduction, direct hidden-tip red-to-green HTTP regression, citation checks and visual render inspection. Whole-history authority, mirror object-publication isolation and deployment remain open."
+    "basis": "Source tracing at solid-pod-rs 9b6143c; topic restamped and strict cite-check and render pass. No runtime evidence: crash atomicity, concurrent quota drift, fresh-pod ACL inheritance and admin-pod git marking remain open; previously credited SP-06.7 re-checked and SP-06.12 fully re-traced at 9b6143c after the restamp (missing pod-absent 404 step added)."
   },
   {
     "kind": "topic",
     "repo": "VisionFlow",
     "path": "docs/diagrams/solid-pod-rs/14-git-export-boundaries.md",
-    "source_sha256": "6f9759217b9bfcb75f9f5a2ec8e0a8b95f20627010eb49455270d1da158ee9fa",
-    "report": "docs/estate-review/2026-11-01-solid-git-export-and-baseline.md",
-    "report_sha256": "1fe57c64add33eec980ad79399f2ffa723da56fb511cfc75f2ca32e50cd8480b",
+    "source_sha256": "155e9d2b2de8549ac15176b3559b3dd335b3b73662e2b13a2573aab0ca00b8a2",
+    "report": "docs/estate-review/2026-11-02-solid-mirror-publication.md",
+    "report_sha256": "cd441f0d62bc46021ba023345d2c21462fe9819f138e5d86ebd2ac22f17ca2f4",
     "coverage": "selected-panels",
     "panels": [
       "SP-14.1",
       "SP-14.2",
-      "SP-14.3"
+      "SP-14.3",
+      "SP-14.4"
     ],
-    "basis": "Revision-pinned source, native production-route reproduction, direct hidden-tip red-to-green HTTP regression, citation checks and visual render inspection. Whole-history authority, mirror object-publication isolation and deployment remain open."
+    "basis": "Source tracing at solid-pod-rs 9b6143c with every cited line read; strict cite-check and Pele render pass; SP-14.3/14.4 also backed by native red-to-green regressions, mutations and cross-vendor review. Deployment and multi-instance behaviour remain unverified."
+  },
+  {
+    "kind": "adr",
+    "repo": "solid-pod-rs",
+    "path": "crates/solid-pod-rs/docs/adr/ADR-2009-forge-plugins-comparator-and-default-off-mirror.md",
+    "source_sha256": "34316b0bd845da62964d19422a7ea187ea4f4a4c7836fd0d039a746f3da889da",
+    "report": "docs/estate-review/2026-11-02-solid-forge-adrs.md",
+    "report_sha256": "d64a04ac1cb3a161bf2e447658669ae7542dd7511ba4046609199cbfa3300c80",
+    "coverage": "whole-document",
+    "basis": "Source tracing at solid-pod-rs 9b6143c; every section assessed; runtime, test and release claims not checkable from source; hideRefs mechanism superseded by store isolation; mirror SSRF wiring contradicts ADR-2010 (F1)."
+  },
+  {
+    "kind": "adr",
+    "repo": "solid-pod-rs",
+    "path": "crates/solid-pod-rs/docs/adr/ADR-2010-forge-and-mirror-are-on-in-shipped-builds.md",
+    "source_sha256": "9b4e55f5cec114667396baa279bcd5758246e6ba41921e7d7ee1eaed3761ae39",
+    "report": "docs/estate-review/2026-11-02-solid-forge-adrs.md",
+    "report_sha256": "d64a04ac1cb3a161bf2e447658669ae7542dd7511ba4046609199cbfa3300c80",
+    "coverage": "whole-document",
+    "basis": "Source tracing at solid-pod-rs 9b6143c; every section assessed; agentbox c57d9c0 read for consumer defaults; OperatorRelays and default-follow claims contradicted; runtime and release claims not checked."
+  },
+  {
+    "kind": "adr",
+    "repo": "solid-pod-rs",
+    "path": "crates/solid-pod-rs/docs/adr/ADR-2011-extensions-are-compile-time-crates-route-ownership-is-the-exemption.md",
+    "source_sha256": "6e0f435813ce328163c3e1d076b303846b3e92764a38fbd33509ef5ad4a1302f",
+    "report": "docs/estate-review/2026-11-02-solid-forge-adrs.md",
+    "report_sha256": "d64a04ac1cb3a161bf2e447658669ae7542dd7511ba4046609199cbfa3300c80",
+    "coverage": "whole-document",
+    "basis": "Source tracing at solid-pod-rs 9b6143c; every section assessed; rules 1-3 traced, rule 5 and all three follow-ons open; runtime results and JSS upstream citations not checkable."
+  },
+  {
+    "kind": "adr",
+    "repo": "solid-pod-rs",
+    "path": "crates/solid-pod-rs/docs/archive/adr/ADR-057-lws10-oidc-delta.md",
+    "source_sha256": "9de85f070657ddc9799d19222b4c3fc696957c7f3a5e5f9ec9542156a810e4b8",
+    "report": "docs/estate-review/2026-11-02-solid-forge-adrs.md",
+    "report_sha256": "d64a04ac1cb3a161bf2e447658669ae7542dd7511ba4046609199cbfa3300c80",
+    "coverage": "whole-document",
+    "basis": "Source tracing at solid-pod-rs 9b6143c; every section assessed; historical; each port ticket marked open, implemented or contradicted; A.3 not traced."
+  },
+  {
+    "kind": "adr",
+    "repo": "solid-pod-rs",
+    "path": "crates/solid-pod-rs/docs/archive/adr/ADR-058-jss-v060-v071-drift.md",
+    "source_sha256": "3a576da17dc24df423aae479d44676b294a13f6f63c71fa92a0cdb134a1dbe4d",
+    "report": "docs/estate-review/2026-11-02-solid-forge-adrs.md",
+    "report_sha256": "d64a04ac1cb3a161bf2e447658669ae7542dd7511ba4046609199cbfa3300c80",
+    "coverage": "whole-document",
+    "basis": "Source tracing at solid-pod-rs 9b6143c; every section assessed; historical; drift rows checked for closure; JSS release facts and some AP and error-page details not traced."
+  },
+  {
+    "kind": "adr",
+    "repo": "solid-pod-rs",
+    "path": "crates/solid-pod-rs/docs/archive/adr/ADR-059-provenance-primitives-block-trails-git-marks.md",
+    "source_sha256": "cb1f1dfdd0e72bec8e86fd3aebe297880ee4497fc55306c443f75d581170655a",
+    "report": "docs/estate-review/2026-11-02-solid-forge-adrs.md",
+    "report_sha256": "d64a04ac1cb3a161bf2e447658669ae7542dd7511ba4046609199cbfa3300c80",
+    "coverage": "whole-document",
+    "basis": "Source tracing at solid-pod-rs 9b6143c; every section assessed; historical; mapped to ADR-2004/2006/2007/2008; Updates-via emission and deposit-path replay calls not traced."
+  },
+  {
+    "kind": "adr",
+    "repo": "solid-pod-rs",
+    "path": "crates/solid-pod-rs/docs/archive/adr/ADR-060-gap-close-solid-pod-slice.md",
+    "source_sha256": "404e88cb82ce72489cd0c8905336fa50a39832b144da5638ef3ef522b9b1543d",
+    "report": "docs/estate-review/2026-11-02-solid-forge-adrs.md",
+    "report_sha256": "d64a04ac1cb3a161bf2e447658669ae7542dd7511ba4046609199cbfa3300c80",
+    "coverage": "whole-document",
+    "basis": "Source tracing at solid-pod-rs 9b6143c; every section assessed; historical; mapped to ADR-2004/2006 and BASELINE; receipts, canaries and render gate not checkable."
+  },
+  {
+    "kind": "adr",
+    "repo": "solid-pod-rs",
+    "path": "crates/solid-pod-rs/docs/archive/adr/ADR-061-lan-bitcoin-node.md",
+    "source_sha256": "6620f22908f0838489051d0eb2807f61cc54679ad6205fcf5c5d06ea102bb377",
+    "report": "docs/estate-review/2026-11-02-solid-forge-adrs.md",
+    "report_sha256": "d64a04ac1cb3a161bf2e447658669ae7542dd7511ba4046609199cbfa3300c80",
+    "coverage": "whole-document",
+    "basis": "Source tracing at solid-pod-rs 9b6143c; every section assessed; historical; crate side mapped to ADR-2007; infrastructure and acceptance checklist not checkable from source."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2136-pin-the-shared-ontology-toolchain.md",
+    "source_sha256": "3257df2a8fb2ea0c87e897d64309e1aca529449efc02acf2bc83249189bf7df1",
+    "report": "docs/estate-review/2026-10-31-corpus-consumer.md",
+    "report_sha256": "048e9116b3e662ae4c826d9888a9621eb9f7c6a97797c219869608ed75e25f47",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; ADR bytes at agentbox 9dfc27b equal the wave-1 snapshot hash; every heading mapped to a report row. Documentary/source assessment only; proposed/partial/inactive status and activation limits stand. Reconciled by 2026-11-02-earlier-review-reconciliation."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionFlow",
+    "path": "docs/adr/ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md",
+    "source_sha256": "1d7b84b53eba17b86a484b2bb524c43d6742dbb980fe042b9b64fdbd9b0aa06c",
+    "report": "docs/estate-review/2026-10-31-diagram-drift-and-health.md",
+    "report_sha256": "e41eef83119194fd768ee444079f7e082455ebd9030a4c1b4a2918d1bd1ba1b8",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; ADR bytes at report commit de1fd11 equal the wave-1 snapshot hash; every heading mapped. No live workflow run or published-snapshot equality; malformed-snapshot findings open. Reconciled by 2026-11-02-earlier-review-reconciliation."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionFlow",
+    "path": "docs/adr/ADR-2006-canon-owns-crossrepo-view-not-implementation.md",
+    "source_sha256": "e7f50fc1326468858240a9eaa1a84734d34891bf2bc94a30c02351f88d8289e7",
+    "report": "docs/estate-review/2026-10-31-release-evidence.md",
+    "report_sha256": "8a85952d667dd9bb7d09b4e4d7d3b5e3f2783297e88245180819b61316e35b48",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; ADR bytes at report commit 38323b0 equal the wave-1 snapshot hash; every heading mapped. Source and bounded probes only; release-fixture provenance findings open. Reconciled by 2026-11-02-earlier-review-reconciliation."
+  },
+  {
+    "kind": "adr",
+    "repo": "nostr-rust-forum",
+    "path": "docs/adr/ADR-2013-ontology-governance-panel-promote-demote-expiry.md",
+    "source_sha256": "36919877874e22d00ffefeb2076dd0e295ccc7263f0ad98b6b49443d03a3466a",
+    "report": "docs/estate-review/2026-10-31-governance-ingress.md",
+    "report_sha256": "0015a99a228ff3ea31051a7059f31f4bbfd2d28aeaa23853fad330f93980a570",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; ADR bytes at forum c39f41f equal the wave-1 snapshot hash; every heading mapped, close-outs included. Source and signed consumer probes; no deployed panel or live relay journey. Reconciled by 2026-11-02-earlier-review-reconciliation."
+  },
+  {
+    "kind": "adr",
+    "repo": "ontomark",
+    "path": "docs/adr/ADR-OM-007-vault-root-is-the-content-root.md",
+    "source_sha256": "35619bfa78de4d20c459a03727a7955839abaab01212cfac682540e829a4f542",
+    "report": "docs/estate-review/2026-10-31-proposal-application.md",
+    "report_sha256": "6daf93e87a32772200e8b9787d683faa2908c0f7cb420e6fc7b877aea41a7cee",
+    "coverage": "whole-document",
+    "basis": "Explicit section assessment in the named report; ADR bytes at ontomark 0caae5d equal the wave-1 snapshot hash; every heading mapped. Layout probe and source only; no current full-corpus parity run. Reconciled by 2026-11-02-earlier-review-reconciliation."
+  },
+  {
+    "kind": "adr",
+    "repo": "knowledgeGraph",
+    "path": "archive/logseq-era-2026-09-22/pages/ADR-008.md",
+    "source_sha256": "afce747389457921ed40af486ad041f52ac64bfed721bf19c4d2ab57ee13ebfb",
+    "report": "docs/estate-review/2026-11-01-knowledgegraph-inventory-and-live-receipt.md",
+    "report_sha256": "e5f6127d27c9867d6d2b12a368b60334b031b3865a67f7a4cd0bbd6d4018e9d9",
+    "coverage": "whole-document",
+    "basis": "Historical archived content page, not governance; full section assessment in the named report at knowledgeGraph 4ed9ac1, bytes equal its inventory and the wave-1 snapshot hash. Findings not inherited by published pages. Reconciled by 2026-11-02-earlier-review-reconciliation."
+  },
+  {
+    "kind": "adr",
+    "repo": "knowledgeGraph",
+    "path": "archive/logseq-era-2026-09-22/pages/ADR-012.md",
+    "source_sha256": "4fa1e11b9616549b78416d374e57bd63d4215356f74b6e5bbaec9879adfceb91",
+    "report": "docs/estate-review/2026-11-01-knowledgegraph-inventory-and-live-receipt.md",
+    "report_sha256": "e5f6127d27c9867d6d2b12a368b60334b031b3865a67f7a4cd0bbd6d4018e9d9",
+    "coverage": "whole-document",
+    "basis": "Historical archived content page, not governance; full section assessment in the named report at knowledgeGraph 4ed9ac1, bytes equal its inventory and the wave-1 snapshot hash. Findings not inherited by published pages. Reconciled by 2026-11-02-earlier-review-reconciliation."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionflow/08-compatibility-and-dependency-direction.md",
+    "source_sha256": "db560bcd1f949a268b4c69b28c75175c932341dd3ed7cbf0b940215ebdc0eab9",
+    "report": "docs/estate-review/2026-10-31-corpus-consumer.md",
+    "report_sha256": "048e9116b3e662ae4c826d9888a9621eb9f7c6a97797c219869608ed75e25f47",
+    "coverage": "selected-panels",
+    "panels": [
+      "VF-08.1"
+    ],
+    "basis": "Panel redrawn against agentbox 9dfc27b source in the named report; strict citation check (22 revision citations) and render passed there. Panel body and verified_commit unchanged since report commit ed5e8eb. Historical sibling panels receive no credit. Reconciled by 2026-11-02-earlier-review-reconciliation."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionflow/03-estate-health.md",
+    "source_sha256": "0a5247ee1548503fe4c15c575d3b85241d5dd98c61e2f884896b91b2e3cd9e72",
+    "report": "docs/estate-review/2026-10-31-diagram-drift-and-health.md",
+    "report_sha256": "e41eef83119194fd768ee444079f7e082455ebd9030a4c1b4a2918d1bd1ba1b8",
+    "coverage": "selected-panels",
+    "panels": [
+      "VF-03.6"
+    ],
+    "basis": "Check-gate panel corrected against estate-health.mjs alongside the full ADR-2008 reading; structural/render validation only, no strict citation run. Body and verified_commit unchanged since report commit de1fd11. Siblings receive no credit. Reconciled by 2026-11-02-earlier-review-reconciliation."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionflow/07-pitch-presentation-reports.md",
+    "source_sha256": "dde904f5a53336eacb70a3be63436592c3cde9d0257b270e352cb38ff0827190",
+    "report": "docs/estate-review/2026-10-31-release-evidence.md",
+    "report_sha256": "8a85952d667dd9bb7d09b4e4d7d3b5e3f2783297e88245180819b61316e35b48",
+    "coverage": "selected-panels",
+    "panels": [
+      "VF-07.3"
+    ],
+    "basis": "Fixtures-block panel reworked to the reproduced digest/commit-binding/missing-fixture findings; structural/render validation only. Body and verified_commit unchanged since report commit 38323b0. Pitch/report siblings receive no credit. Reconciled by 2026-11-02-earlier-review-reconciliation."
+  },
+  {
+    "kind": "adr",
+    "repo": "loom",
+    "path": "docs/design/ADR-135-ontology-loom-node.md",
+    "source_sha256": "e8ed4c507f44b03b3e2c91f465458d9a23f731298bbc05edb64cafe88a8e70f7",
+    "report": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md",
+    "report_sha256": "e2817f658155f73b8587e4e41e3202b81a8a5dbd5cd25d576ca123901c6df2a6",
+    "coverage": "whole-document",
+    "basis": "Source tracing at loom ba21a68, VisionClaw 86cdd76 and agentbox c57d9c0; all 29 sections assessed; /loom/v1 contract, distillation (D4/D5) and D7 signature door unimplemented, D2.3 contradicted by VisionClaw CLEAR+INSERT; live HP state not checked."
+  },
+  {
+    "kind": "adr",
+    "repo": "loom",
+    "path": "docs/design/ADR-136-loom-tooling-allocation.md",
+    "source_sha256": "566caa696057e7040db0c8a3bf107b31fc5afc512a4016abfbf4a20e4261cd4d",
+    "report": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md",
+    "report_sha256": "e2817f658155f73b8587e4e41e3202b81a8a5dbd5cd25d576ca123901c6df2a6",
+    "coverage": "whole-document",
+    "basis": "Source tracing at loom ba21a68; all 31 sections assessed; domain predicates (D5) absent from loom and no CI gate; RuVector source, recall and benchmark figures not reproduced."
+  },
+  {
+    "kind": "adr",
+    "repo": "loom",
+    "path": "docs/design/ADR-137-loom-rust-replatform.md",
+    "source_sha256": "ba03db44262e7773c16429e9fb3b0047fa84fdca4f7f434d4d321106edb91ac6",
+    "report": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md",
+    "report_sha256": "e2817f658155f73b8587e4e41e3202b81a8a5dbd5cd25d576ca123901c6df2a6",
+    "coverage": "whole-document",
+    "basis": "Source tracing at loom ba21a68; all 34 sections assessed; musl (D1), tower-layer clamps (D2) and sqlx (D6) contradicted by source; deployment parity and test results not reproduced."
+  },
+  {
+    "kind": "adr",
+    "repo": "loom",
+    "path": "docs/design/ADR-138-confidence-surfacing-contract.md",
+    "source_sha256": "3987320a5a1e63125bc9bc1935f3013a3fe5485c7fc8da90920be0547a358cd7",
+    "report": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md",
+    "report_sha256": "e2817f658155f73b8587e4e41e3202b81a8a5dbd5cd25d576ca123901c6df2a6",
+    "coverage": "whole-document",
+    "basis": "Source tracing at loom ba21a68; all 15 sections assessed; wire contract implemented, status count since grown to eight; live node and consumer handling not checked."
+  },
+  {
+    "kind": "adr",
+    "repo": "loom",
+    "path": "docs/design/ADR-139-per-request-scaffold-opt-out.md",
+    "source_sha256": "a4f3a67d01e723369403d10fed1692b3d968bfb7cf02e3543136eb5102335039",
+    "report": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md",
+    "report_sha256": "e2817f658155f73b8587e4e41e3202b81a8a5dbd5cd25d576ca123901c6df2a6",
+    "coverage": "whole-document",
+    "basis": "Source tracing at loom ba21a68; all 6 sections assessed; opt-out and streaming passthrough implemented as described; live qualification not reproduced."
+  },
+  {
+    "kind": "adr",
+    "repo": "loom",
+    "path": "docs/design/ADR-140-loom-v2-agent-drivable-grounding.md",
+    "source_sha256": "9355b479e5fd1a334df9171b40a8b8aba8b2f3e71bcd8cbb12267376038ced31",
+    "report": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md",
+    "report_sha256": "e2817f658155f73b8587e4e41e3202b81a8a5dbd5cd25d576ca123901c6df2a6",
+    "coverage": "whole-document",
+    "basis": "Source tracing at loom ba21a68; all 35 sections assessed; P0 (/mcp, six tools, manifest, Navigated) implemented, P2-P4 machinery absent, Mapping/AttestedComputation not in CanonicalUnit header; runtime probes and pilot numbers not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "loom",
+    "path": "docs/design/ADR-141-loom-consumes-the-vault-build.md",
+    "source_sha256": "a5bc1df3be42a402f02163c95be2b4848e66b346cf36e5c0d8f69d3297b800f7",
+    "report": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md",
+    "report_sha256": "e2817f658155f73b8587e4e41e3202b81a8a5dbd5cd25d576ca123901c6df2a6",
+    "coverage": "whole-document",
+    "basis": "Source tracing at loom ba21a68; all 8 sections assessed; two-shape reader, stale reporting, OKF vocabulary and attest route implemented; D6 content-digest refusal contradicted by reload.rs:207; live-node claims not checked."
+  },
+  {
+    "kind": "adr",
+    "repo": "loom",
+    "path": "docs/design/ADR-142-consume-versioned-shared-ontology-contracts.md",
+    "source_sha256": "f39030bd1492a14e0f0d7ba6f3a0e052ee16a7ef041ef43cc82eba4080fdaac8",
+    "report": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md",
+    "report_sha256": "e2817f658155f73b8587e4e41e3202b81a8a5dbd5cd25d576ca123901c6df2a6",
+    "coverage": "whole-document",
+    "basis": "Source tracing at loom ba21a68; all 7 sections assessed; step-10 index aliasing and CLI pin implemented, version-IRI reporting and unsupported-version rejection absent, front matter contradicts body; deployment and external licence not checked."
+  },
+  {
+    "kind": "adr",
+    "repo": "dream-machine",
+    "path": "docs/adrs/ADR-0001-dream-machine-engine.md",
+    "source_sha256": "e201ce16b94683d99aa317de739466baec6780c882cfb4e7723b4e14ee0c034c",
+    "report": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md",
+    "report_sha256": "e2817f658155f73b8587e4e41e3202b81a8a5dbd5cd25d576ca123901c6df2a6",
+    "coverage": "whole-document",
+    "basis": "Source tracing at dream-machine b77093e (consumer checks at agentbox c57d9c0); all 13 sections assessed; external routines, backends and nightly runtime not source-checkable; closeout extension stale against the agentbox adapter."
+  },
+  {
+    "kind": "adr",
+    "repo": "dream-machine",
+    "path": "docs/adrs/ADR-0002-dream-cycle-security-adversarial-entrypoint-liveness.md",
+    "source_sha256": "78cb0cf4f5f96cfbd3b3563dda03dbdba0dedf66a3c68aa70f7973d5e480c23a",
+    "report": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md",
+    "report_sha256": "e2817f658155f73b8587e4e41e3202b81a8a5dbd5cd25d576ca123901c6df2a6",
+    "coverage": "whole-document",
+    "basis": "Source tracing at dream-machine b77093e (agentbox c57d9c0 for the service); all 8 sections assessed; live receipts and dream-gate classification outside the pinned set; Status still Proposed although shipped."
+  },
+  {
+    "kind": "adr",
+    "repo": "dream-machine",
+    "path": "docs/adrs/ADR-0003-darwin-bound-guard.md",
+    "source_sha256": "e0b4eb22839bdfd21d2b7ee3c07426e1c3fb748bb6b4eee36ef047ec8590789b",
+    "report": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md",
+    "report_sha256": "e2817f658155f73b8587e4e41e3202b81a8a5dbd5cd25d576ca123901c6df2a6",
+    "coverage": "whole-document",
+    "basis": "Source tracing at dream-machine b77093e; all 8 sections assessed as amended by ADR-0005 to ADR-0007; receipts and the annexe gate not in this repository."
+  },
+  {
+    "kind": "adr",
+    "repo": "dream-machine",
+    "path": "docs/adrs/ADR-0004-ledger-verdict-vocabulary.md",
+    "source_sha256": "63ae2dad6911330a94d76f44aa61f3a76b6df2472f3461bd2e7fce9f4c502d36",
+    "report": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md",
+    "report_sha256": "e2817f658155f73b8587e4e41e3202b81a8a5dbd5cd25d576ca123901c6df2a6",
+    "coverage": "whole-document",
+    "basis": "Source tracing at dream-machine b77093e (agentbox c57d9c0 for the dry streak); all 7 sections assessed; OPERATOR streak handling is in external dream-core; append write path unvalidated."
+  },
+  {
+    "kind": "adr",
+    "repo": "dream-machine",
+    "path": "docs/adrs/ADR-0005-darwin-bound-five.md",
+    "source_sha256": "1c908116d2b4f6c383f76c6cf8c643bd87235b2eac2fefc7180af3eabe977590",
+    "report": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md",
+    "report_sha256": "e2817f658155f73b8587e4e41e3202b81a8a5dbd5cd25d576ca123901c6df2a6",
+    "coverage": "whole-document",
+    "basis": "Source tracing at dream-machine b77093e (agentbox c57d9c0); all 10 sections assessed; cited agentbox readiness.rs admission absent at pin, Test Contract item 2 superseded by ADR-0006; gate veto is runtime and external."
+  },
+  {
+    "kind": "adr",
+    "repo": "dream-machine",
+    "path": "docs/adrs/ADR-0006-darwin-score-uniformity.md",
+    "source_sha256": "76927eb305d5cfe7be05e314853d6cf921d0e125d20a42ddc7fbe8b1e8e4150d",
+    "report": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md",
+    "report_sha256": "e2817f658155f73b8587e4e41e3202b81a8a5dbd5cd25d576ca123901c6df2a6",
+    "coverage": "whole-document",
+    "basis": "Source tracing at dream-machine b77093e; all 5 sections assessed; diagnosis corrected and rule amended by ADR-0007; receipts not checked."
+  },
+  {
+    "kind": "adr",
+    "repo": "dream-machine",
+    "path": "docs/adrs/ADR-0007-darwin-mutator-loom-shim.md",
+    "source_sha256": "8be5ff66709131ae640f30f107722c22bb8e9c0a7fd7074b27d9eeb6a7bd1269",
+    "report": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md",
+    "report_sha256": "e2817f658155f73b8587e4e41e3202b81a8a5dbd5cd25d576ca123901c6df2a6",
+    "coverage": "whole-document",
+    "basis": "Source tracing at dream-machine b77093e; all 9 sections assessed; darwin@0.10.2 internals, the 3a measurements and annexe time budget not source-checkable; Loom door URL deployment-dependent."
+  },
+  {
+    "kind": "adr",
+    "repo": "dream-machine",
+    "path": "docs/dream-engine/ADR-DL-001-meta-harness-optimisation.md",
+    "source_sha256": "08aff7268a58f49dbc678b0bf38d7445d8443150d76c2db63ac6c3ae50d98885",
+    "report": "docs/estate-review/2026-11-02-loom-and-dream-machine-adrs.md",
+    "report_sha256": "e2817f658155f73b8587e4e41e3202b81a8a5dbd5cd25d576ca123901c6df2a6",
+    "coverage": "whole-document",
+    "basis": "Source tracing at dream-machine b77093e; all 9 sections assessed; proposal (1) implemented, (2) partly, (3) and (4) absent; paper summary and outer-loop efficacy not checkable."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/solid-pod-rs/01-workspace-composition.md",
+    "source_sha256": "45d1d251230046d031c997db4bfa94c3c86430b3fc0f0700bafa8ea56903c331",
+    "report": "docs/estate-review/2026-11-02-solid-composition-and-boot.md",
+    "report_sha256": "7469113d173d48fe5a3054af7369dc769b72a9e0446e23c0d1317c0377703f2d",
+    "coverage": "selected-panels",
+    "panels": [
+      "SP-01.1",
+      "SP-01.3",
+      "SP-01.4",
+      "SP-01.5",
+      "SP-01.6",
+      "SP-01.7",
+      "SP-01.8",
+      "SP-01.9",
+      "SP-01.10",
+      "SP-01.11",
+      "SP-01.12",
+      "SP-01.13"
+    ],
+    "basis": "Source tracing at solid-pod-rs 9b6143c; restamped, strict cite-check and render pass (143 citations); all 12 panels assessed (2 accurate, 8 corrected, 2 with limits); consumer-repo claims and cargo-deny release gating not verified; no runtime evidence."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/solid-pod-rs/02-server-boot-and-routes.md",
+    "source_sha256": "be530afd697460f8680ec3dcc18df6b380cf64408e6b2a68463f0250609d10a4",
+    "report": "docs/estate-review/2026-11-02-solid-composition-and-boot.md",
+    "report_sha256": "7469113d173d48fe5a3054af7369dc769b72a9e0446e23c0d1317c0377703f2d",
+    "coverage": "selected-panels",
+    "panels": [
+      "SP-02.1",
+      "SP-02.2",
+      "SP-02.3",
+      "SP-02.5",
+      "SP-02.6",
+      "SP-02.7",
+      "SP-02.8",
+      "SP-02.9",
+      "SP-02.10",
+      "SP-02.11",
+      "SP-02.13"
+    ],
+    "basis": "Source tracing at solid-pod-rs 9b6143c; restamped, strict cite-check and render pass (149 citations); all 11 panels assessed (1 accurate, 9 corrected, 1 with limits); middleware ordering rests on actix-web 4.14.1 docs, not a request run; no runtime evidence."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/solid-pod-rs/09-ci-release-and-consumer-pins.md",
+    "source_sha256": "3c519326595001230bb33447bd75dc71e24dbe7693fff78f529626ff3c25f276",
+    "report": "docs/estate-review/2026-11-02-solid-payments-and-release.md",
+    "report_sha256": "a0db047c565960beb4ac9cf7c767b874b2366c64f907b6097d05c759209515b5",
+    "coverage": "selected-panels",
+    "panels": [
+      "SP-09.2",
+      "SP-09.3",
+      "SP-09.4",
+      "SP-09.6",
+      "SP-09.7",
+      "SP-09.9",
+      "SP-09.10",
+      "SP-09.11",
+      "SP-09.12"
+    ],
+    "basis": "Source tracing at solid-pod-rs 9b6143c, agentbox c57d9c0, VisionClaw 86cdd76 and nostr-rust-forum 1b27f79 (no wave pin; cited files unchanged to its HEAD c39f41f); every citation re-derived, strict cite-check and render pass (exit 0); 7 corrected, 2 accurate-with-limits. No GitHub Actions run, branch-protection, environment-reviewer, Dependabot or deployment state observed."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/solid-pod-rs/08-federation-notifications-forge-mcp.md",
+    "source_sha256": "7cc467c8b7c6086b17e6a715daec2fc76e45212c5732c72d1350de74c16d6f3b",
+    "report": "docs/estate-review/2026-11-02-solid-federation-forge-mcp.md",
+    "report_sha256": "228dcdc9c77db7def07ade1e033e8a955278c94555ee00905705629e35f08738",
+    "coverage": "selected-panels",
+    "panels": [
+      "SP-08.1",
+      "SP-08.2",
+      "SP-08.3",
+      "SP-08.4",
+      "SP-08.5",
+      "SP-08.6",
+      "SP-08.8",
+      "SP-08.9",
+      "SP-08.10",
+      "SP-08.11",
+      "SP-08.12",
+      "SP-08.13",
+      "SP-08.14",
+      "SP-08.15",
+      "SP-08.18",
+      "SP-08.16",
+      "SP-08.17"
+    ],
+    "basis": "Source tracing at solid-pod-rs 9b6143c and agentbox c57d9c0 (topic restamped, every citation re-resolved); strict cite-check and render pass (exit 0, 275 citations); 2 accurate, 2 accurate-with-limits, 13 corrected; no runtime, test or deployment evidence; forum and website consumer claims in SP-08.16 unchecked."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/solid-pod-rs/10-failure-modes-and-invariants.md",
+    "source_sha256": "2a1a7ba1d2fa9cc0bfb7db2e34738b902b82dbf48e5b271f363c646837b322f1",
+    "report": "docs/estate-review/2026-11-02-solid-failure-modes.md",
+    "report_sha256": "8087d6a697fb70eee1e655a64f20234404443b0a9209d86b8ed2fc77afb9b42d",
+    "coverage": "selected-panels",
+    "panels": [
+      "SP-10.1",
+      "SP-10.2",
+      "SP-10.3",
+      "SP-10.4",
+      "SP-10.5",
+      "SP-10.6",
+      "SP-10.7",
+      "SP-10.8",
+      "SP-10.9",
+      "SP-10.10",
+      "SP-10.11",
+      "SP-10.12"
+    ],
+    "basis": "Source tracing at solid-pod-rs 9b6143c; topic restamped and every citation re-resolved; strict cite-check and render pass (exit 0, 134 citations); all 12 panels corrected; no runtime, test or consumer-build evidence (crash/replica windows, middleware order and forge-full builds not observed); nostr-rust-forum halves of D5/D6 and the VisionClaw metrics binder not traced."
   }
 ]

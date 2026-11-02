@@ -26,7 +26,10 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/examples/webhook_receiver.rs
   - ../solid-pod-rs/crates/solid-pod-rs/examples/wac_admin.rs
   - ../solid-pod-rs/crates/solid-pod-rs/examples/oidc_client.rs
-verified_commit: 09ec90f26aa573731460292d0e80343914cb43d9
+  - ../solid-pod-rs/crates/solid-pod-rs-server/src/cli/install.rs
+  - ../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2010-forge-and-mirror-are-on-in-shipped-builds.md
+  - ../solid-pod-rs/.github/workflows/ci.yml
+verified_commit: 9b6143ce55b242c322c92d8c6bcc0c1a5371b451
 ---
 
 ## SP-01.1 Eight workspace members and the library-first split
@@ -67,6 +70,8 @@ flowchart TD
     CORE -.-> N2
 ```
 
+**Tension:** the one-way shape holds for `[dependencies]` only. The core takes `solid-pod-rs-server` as a path-only dev-dependency for its integration tests (`crates/solid-pod-rs/Cargo.toml:307`), and siblings also depend on each other: the server on the IdP unconditionally (`crates/solid-pod-rs-server/Cargo.toml:48`), the forge on the git crate (`crates/solid-pod-rs-forge/Cargo.toml:22`).
+
 ## SP-01.3 Core library module surface
 
 ```mermaid
@@ -104,6 +109,8 @@ classDiagram
     AlwaysCompiled <.. FeatureGated
     note for AlwaysCompiled "The always-compiled half is pure logic plus the crypto and protocol primitives,\nwhich is what makes the core wasm/edge surface in SP-01.4 possible: storage,\nnotifications, provision, quota and oidc — everything that needs I/O or a\nruntime — sit behind a feature. blocktrail (new in 0.5.0-alpha.12) is always compiled for the shared\nBlocktrail type and TXO URIs, but its walk and per-link verification sit behind mrc20\n(solid-pod-rs/src/blocktrail.rs:896)."
 ```
+
+**Drift:** `bitcoin_tx` is declared in the always-compiled block, but its doc comment records an inner `cfg(all(feature = "mrc20", not(target_arch = "wasm32")))`, so it compiles to nothing without `mrc20` or on wasm (`solid-pod-rs/src/lib.rs:135`).
 
 ## SP-01.4 `core` — the no-IO wasm/edge subset
 
@@ -150,11 +157,13 @@ flowchart LR
     LWSE --> LWSF
     OIDCF --> DPOPR
 
-    G1["INVARIANT: without nip98-schnorr the verifier is a fail-CLOSED stub,<br/>never a structural-only accept<br/>solid-pod-rs/src/auth/nip98.rs:376"]
+    G1["INVARIANT: without nip98-schnorr the verifier is a fail-CLOSED stub,<br/>never a structural-only accept<br/>solid-pod-rs/src/auth/nip98.rs:381"]
     NIP98S -.-> G1
     G2["DIVERGENCE: dpop-symmetric-test compiles the HS256 oct arm; a symmetric DPoP alg<br/>is an RFC 9449 alg-confusion vector production must reject<br/>crates/solid-pod-rs/Cargo.toml:179"]
     DPOPT -.-> G2
 ```
+
+**Drift:** the doc comment above the stub calls it a "No-op" (`solid-pod-rs/src/auth/nip98.rs:379`), while the body returns `Err(PodError::Unsupported)`; the panel's fail-closed reading is the code's.
 
 ## SP-01.6 Core feature graph — JSS-parity umbrella
 
@@ -183,9 +192,11 @@ flowchart TD
     DNT --> DN
     SP --> DN
 
-    O1["DIVERGENCE: acl-origin is NOT in the default set, so a default build ignores<br/>the Origin header entirely — see SP-04.8"]
+    O1["acl-origin is NOT in the core default set, so a default LIBRARY build ignores<br/>the Origin header — see SP-04.8. The server binary always turns it on<br/>crates/solid-pod-rs-server/Cargo.toml:44"]
     ORG -.-> O1
 ```
+
+**Drift:** the core manifest comment says the server build does not enable `acl-origin` (`crates/solid-pod-rs/Cargo.toml:142`), but the server's core dependency lists it (`crates/solid-pod-rs-server/Cargo.toml:44`).
 
 ## SP-01.7 Default feature set versus the empty server default
 
@@ -196,8 +207,9 @@ flowchart LR
 
     LIBD --> R1["a default library build has FS + memory storage,<br/>the tokio runtime and the notifications stack"]
     SRVD --> R2["a default server build has NO tls, NO git, NO forge,<br/>NO quota, NO did-nostr, NO export, NO nip05"]
+    SRVD --> R3["but its core dependency always carries ten features: fs and memory backends,<br/>config-loader, legacy-notifications, dpop-replay-cache, embedded-docs,<br/>mrc20, nip98-schnorr, nip98-replay, acl-origin<br/>crates/solid-pod-rs-server/Cargo.toml:44"]
 
-    D1["INVARIANT (ADR-2004): the empty server default means git_mark_write compiles to<br/>the no-op shim, so a default build records ZERO provenance marks<br/>solid-pod-rs-server/src/lib.rs:4110"]
+    D1["INVARIANT (ADR-2004): the empty server default means git_mark_write compiles to<br/>the no-op shim, so a default build records ZERO provenance marks<br/>solid-pod-rs-server/src/lib.rs:4123"]
     SRVD -.-> D1
 ```
 
@@ -221,6 +233,7 @@ flowchart TD
     FFU["forge-full = forge + anchoring + announce + mirror, for builds that run the forge (ADR-2010)<br/>crates/solid-pod-rs-server/Cargo.toml:172"]
     APF["activitypub = solid-pod-rs-activitypub, default-off<br/>crates/solid-pod-rs-server/Cargo.toml:130"]
     INS["install = solid-pod-rs/nip98-schnorr<br/>crates/solid-pod-rs-server/Cargo.toml:178"]
+    DEVB["dev-bearer — HMAC bearer tokens, never in production<br/>crates/solid-pod-rs-server/Cargo.toml:133"]
 
     GITF --> FRG
     FRG --> FA
@@ -232,9 +245,11 @@ flowchart TD
 
     K1["INVARIANT: provision-keys mints an nsec, so no HTTP route exposes it —<br/>it stays a library surface by design<br/>crates/solid-pod-rs-server/Cargo.toml:150"]
     PK -.-> K1
-    K2["The cargo defaults do not change: a library user who depends on the forge crate still gets<br/>nothing optional. Only consumers that build with forge-full ship the forge and mirror<br/>(ADR-2010, accepted, implementation partial, activation inactive).<br/>crates/solid-pod-rs-server/Cargo.toml:172"]
+    K2["The cargo defaults do not change: a library user who depends on the forge crate still gets<br/>nothing optional. Only consumers that build with forge-full ship the forge and mirror<br/>(ADR-2010: accepted, implementation complete, activation staged).<br/>crates/solid-pod-rs/docs/adr/ADR-2010-forge-and-mirror-are-on-in-shipped-builds.md:5"]
     FFU -.-> K2
 ```
+
+**Drift:** the `install` feature is vestigial. The server's core dependency already enables `nip98-schnorr` (`crates/solid-pod-rs-server/Cargo.toml:44`), no source tests `feature = "install"`, and `build_auth_header` calls `nip98::mint` unconditionally, so the "rebuild with `--features solid-pod-rs-server/install`" hint describes a build that cannot occur (`solid-pod-rs-server/src/cli/install.rs:141`).
 
 ## SP-01.9 Sibling crate feature surfaces
 
@@ -291,11 +306,11 @@ classDiagram
 ```mermaid
 flowchart LR
     ADV["[advisories] yanked = deny<br/>../solid-pod-rs/deny.toml:37"]
-    LIC["[licenses] allow-list<br/>../solid-pod-rs/deny.toml:73"]
+    LIC["[licenses] allow-list<br/>../solid-pod-rs/deny.toml:74"]
     BANS["[bans] wildcards = deny<br/>../solid-pod-rs/deny.toml:124"]
     MULTI["multiple-versions = warn<br/>../solid-pod-rs/deny.toml:123"]
     SRC["[sources] unknown-registry = deny<br/>../solid-pod-rs/deny.toml:148"]
-    GITS["unknown-git = deny, allow-git = []<br/>../solid-pod-rs/deny.toml:149"]
+    GITS["unknown-git = deny (deny.toml:149), allow-git = []<br/>../solid-pod-rs/deny.toml:151"]
     REG["allow-registry = crates.io only<br/>../solid-pod-rs/deny.toml:150"]
 
     DEBT["DEBT: the advisory ignore list gained RUSTSEC-2026-0387 on 2026-10-29: crypto-bigint 0.5.5 survives only via openidconnect to p256 0.13, so the oidc feature is exposed and unassessed until openidconnect moves to the 0.14 line<br/>../solid-pod-rs/deny.toml:57-63"]
@@ -313,6 +328,8 @@ flowchart LR
     X["EXCEPTION: the licences gate carries one scoped exception — hex_lit (a dep of<br/>rust-bitcoin per ADR-2008) is allowed under MITNFA, MIT plus a<br/>no-false-attribution clause, crate-scoped not workspace-wide.<br/>../solid-pod-rs/deny.toml:109"]
     LIC -.-> X
 ```
+
+**Open:** the invariant holds only where the cargo-deny job gates a build; the configuration states the policy, and source alone cannot show that every release build runs it.
 
 ## SP-01.12 The `examples/` integration surface — the library-first contract
 
@@ -363,10 +380,12 @@ flowchart LR
     D6 --> C1
     D7 --> C2
 
-    N["Without the oidc feature, oidc_client compiles to a stub that prints a hint and<br/>exits — it stays registered so the NAME remains discoverable.<br/>crates/solid-pod-rs/docs/examples-index.md:39"]
+    N["required-features = oidc: without the feature cargo SKIPS oidc_client,<br/>so the stub main is never built through cargo<br/>crates/solid-pod-rs/Cargo.toml:360"]
     D7 -.-> N
     N2["INVARIANT: examples-index.md states there is no standalone example, the quickest working<br/>pod being the solid-pod-rs-server binary, and the manifest declares exactly the seven above.<br/>crates/solid-pod-rs/docs/examples-index.md:10"]
     C1 -.-> N2
-    N3["DIVERGENCE: neither cargo check line is a CI job — SP-09.10 shows the matrix<br/>never builds --examples, so this gate is documentation an author must run by<br/>hand."]
+    N3["CI covers it: the build-test matrix runs cargo check --all-targets, which<br/>includes examples, in crates/solid-pod-rs for the default, oidc and<br/>all-features sets<br/>.github/workflows/ci.yml:84"]
     C1 -.-> N3
 ```
+
+**Drift:** `examples-index.md` says that without `oidc` the example "compiles to a stub that prints a hint" (`crates/solid-pod-rs/docs/examples-index.md:39`). The stub exists (`crates/solid-pod-rs/examples/oidc_client.rs:224`), but `required-features` means cargo never compiles it, so the documented behaviour does not occur.

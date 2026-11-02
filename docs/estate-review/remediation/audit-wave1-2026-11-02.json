@@ -1,0 +1,133 @@
+{
+  "source_report": "docs/estate-review/2026-11-02-audit-wave1.md",
+  "source_revisions": {
+    "solid-pod-rs": "9b6143ce55b242c322c92d8c6bcc0c1a5371b451",
+    "agentbox": "c57d9c0508f4044915f9aecea4b9aa5629cc6a35",
+    "VisionClaw": "86cdd76355823a51bb64d503c005fe277726e724",
+    "loom": "ba21a689a57d"
+  },
+  "counting": "One record per independent defect or decision conflict found by audit wave 1. Evidence is source tracing at the pinned revisions; nothing was compiled, run or deployed. `verified_by` says whether the lead re-read the cited code (lead) or the record rests on one worker's report (worker).",
+  "records": [
+    {
+      "id": "AW1-01",
+      "repo": "solid-pod-rs",
+      "slug": "mirror-ignores-operator-relays",
+      "title": "The mirror is built with DefaultSsrfCheck, so it refuses the operator's loopback relay that ADR-2010 says it admits",
+      "severity": "high",
+      "status": "open",
+      "verified_by": "lead",
+      "disposition": "Mirror::new hard-wires DefaultSsrfCheck (mirror.rs:2309); only announce receives OperatorRelays. agentbox's default mirror relay is ws://127.0.0.1:7777, so with shipped defaults and any follow entry the mirror cannot reach its own relay. Independent of the empty default follow list.",
+      "acceptance": "The server passes the operator relay policy to the mirror engine (for example through Mirror::with_parts), with a composed-server test that a follow entry on the default loopback relay connects."
+    },
+    {
+      "id": "AW1-02",
+      "repo": "agentbox",
+      "slug": "solid-pin-predates-sp-git-02",
+      "title": "agentbox pins solid-pod-rs 76ab7aab, which predates the SP-GIT-02 publication repair",
+      "severity": "high",
+      "status": "open",
+      "verified_by": "lead",
+      "disposition": "lib/solid-pod-rs.nix:58 pins rev 76ab7aab3e88; 30135fec (Commit A) is not an ancestor of it. The repaired Solid code is on local main only and is not what agentbox builds.",
+      "acceptance": "After SP-GIT-02 is pushed upstream, agentbox moves its pin to a revision containing 30135fec, ff8048b and their merges, with the store migration exercised on a real upgrade."
+    },
+    {
+      "id": "AW1-03",
+      "repo": "solid-pod-rs",
+      "slug": "lws-cid-iat-window-never-enforced",
+      "title": "LwsCidVerifier never rejects an old or future iat",
+      "severity": "medium",
+      "status": "open",
+      "verified_by": "lead",
+      "disposition": "validate_time_bounds joins two saturating_sub comparisons with && (auth/lws_cid.rs:343); at most one can be non-zero, so the iat window never fires and a token without exp has no time limit. Library API only: nothing outside the module constructs LwsCidVerifier at this revision, so the shipped server is not exposed.",
+      "acceptance": "The comparison uses ||, with tests for an iat past the skew in each direction, before any consumer wires the verifier."
+    },
+    {
+      "id": "AW1-04",
+      "repo": "solid-pod-rs",
+      "slug": "relay-store-unverified-put",
+      "title": "Relay::store() exposes an EventStore whose put() stores events without verification",
+      "severity": "low",
+      "status": "open",
+      "verified_by": "lead",
+      "disposition": "relay.rs:377 returns &dyn EventStore publicly; EventStore::put (relay.rs:227) takes an Event with no verification, so an embedder can bypass the ingest_verified typestate. Library API weakness, not a server path.",
+      "acceptance": "The store accessor is narrowed (crate-private or read-only), or put takes the verified typestate."
+    },
+    {
+      "id": "AW1-05",
+      "repo": "solid-pod-rs",
+      "slug": "dpop-cache-lru-replay",
+      "title": "The OIDC DPoP replay cache is a plain LRU and can evict a still-valid proof",
+      "severity": "medium",
+      "status": "open",
+      "verified_by": "worker",
+      "disposition": "Reported by w-solid-c and already described in SP-05: when full, the DPoP cache evicts a valid entry, which can then be replayed. The NIP-98 store refuses new IDs when full instead. Not re-read by the lead.",
+      "acceptance": "The DPoP cache refuses or rejects when full rather than evicting unexpired entries, with a capacity-exhaustion replay test."
+    },
+    {
+      "id": "AW1-06",
+      "repo": "solid-pod-rs",
+      "slug": "idp-advertises-refused-grants",
+      "title": "IdP discovery advertises grant types and endpoints the server does not serve",
+      "severity": "low",
+      "status": "open",
+      "verified_by": "worker",
+      "disposition": "Reported by w-solid-adr and w-solid-c: discovery lists refresh_token and client_credentials, while the token endpoint accepts only authorization_code. Not re-read by the lead.",
+      "acceptance": "Discovery advertises exactly the grants and endpoints that are served, with a test comparing the two."
+    },
+    {
+      "id": "AW1-07",
+      "repo": "solid-pod-rs",
+      "slug": "error-logger-is-innermost",
+      "title": "The 5xx error logger is the innermost middleware, not the outermost its comment claims",
+      "severity": "low",
+      "status": "open",
+      "verified_by": "lead",
+      "disposition": "ErrorLoggingMiddleware is registered first (server lib.rs:5211); in actix-web the last .wrap() is outermost, so 5xx responses and short-circuits from the outer dotfile and path-traversal guards are never logged. Found independently by w-solid-a and w-solid-f; SP-02.8 carries a Drift marker.",
+      "acceptance": "The logger is registered last (or the comment and the observability claim are corrected), with a test that a guard-level 5xx is logged."
+    },
+    {
+      "id": "AW1-08",
+      "repo": "solid-pod-rs",
+      "slug": "adr-2011-follow-ons-open",
+      "title": "ADR-2011's three follow-ons are all still open",
+      "severity": "low",
+      "status": "open",
+      "verified_by": "worker",
+      "disposition": "Reported by w-solid-adr: the dotfile guard does not exempt /forge paths, MirrorHandle::stop is only called from a test, and a forge start failure is logged rather than fatal.",
+      "acceptance": "Each follow-on is either implemented with a test or recorded in ADR-2011 as deliberately deferred."
+    },
+    {
+      "id": "AW1-09",
+      "repo": "VisionClaw",
+      "slug": "derived-write-door-power-user-only",
+      "title": "The /ontology/derived write door checks power_user only; ADR-135 D7 requires a signed distiller envelope and an allow-list",
+      "severity": "high",
+      "status": "open",
+      "verified_by": "lead",
+      "disposition": "ontology_derived_handler.rs:188 at 86cdd76 gates the route with RequireAuth::power_user() and no signature or distiller allow-list check exists on that path, so any power user can write distilled knowledge into :summary. A cross-repository trust-boundary gap between loom's ADR-135 and VisionClaw.",
+      "acceptance": "Writes to the derived-knowledge door verify a signed distiller envelope against an allow-list, or ADR-135 D7 is revised with the reason; a test shows an unsigned power-user write is refused."
+    },
+    {
+      "id": "AW1-10",
+      "repo": "VisionClaw",
+      "slug": "corpus-reload-decision-conflict",
+      "title": "ADR-135 D2.3 retires the CLEAR+INSERT corpus reload, which VisionClaw ADR-2017 re-affirms and still runs",
+      "severity": "medium",
+      "status": "open",
+      "verified_by": "worker",
+      "disposition": "Reported by w-loom-dm: github_sync_service.rs:406-407 still performs CLEAR+INSERT. Two repositories' decisions disagree; this is a decision conflict for the owners, not an implementation bug.",
+      "acceptance": "One of the two ADRs is superseded and the code follows the surviving decision."
+    },
+    {
+      "id": "AW1-11",
+      "repo": "loom",
+      "slug": "bundle-digest-not-compared",
+      "title": "The Rust reload port carries a bundle's declared content digest but never compares it, contrary to ADR-141 decision 6",
+      "severity": "medium",
+      "status": "open",
+      "verified_by": "worker",
+      "disposition": "Reported by w-loom-dm at reload.rs:207-210: the declared digest is read and dropped, so a bundle whose files disagree with its manifest is accepted.",
+      "acceptance": "Reload refuses a bundle whose computed digest differs from the declared one, with a test using a tampered bundle."
+    }
+  ]
+}

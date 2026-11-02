@@ -1,0 +1,50 @@
+[
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/solid-pod-rs/07-provenance-and-payments.md",
+    "report": "docs/estate-review/2026-11-02-solid-payments-and-release.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "SP-07.1",
+      "SP-07.2",
+      "SP-07.3",
+      "SP-07.4",
+      "SP-07.5",
+      "SP-07.6",
+      "SP-07.7",
+      "SP-07.9",
+      "SP-07.10",
+      "SP-07.11",
+      "SP-07.12",
+      "SP-07.13",
+      "SP-07.14",
+      "SP-07.15",
+      "SP-07.16",
+      "SP-07.17",
+      "SP-07.18",
+      "SP-07.19",
+      "SP-07.20"
+    ],
+    "basis": "Source tracing at solid-pod-rs 9b6143c (VisionClaw 86cdd76 and nostr-rust-forum 1b27f79 lockfiles for the SP-07.18 D8 Open); topic restamped to 9b6143c, strict cite-check and render pass (exit 0, 232 citations, 19/19). 19 panels: 8 accurate (07.1-.7, .11), 11 corrected (07.9, .10, .12-.20). The five unreconciled panels were traced in full, including an open one-string stateStrings deposit-verification gap (source only, no probe). The other 14 were re-checked after the restamp: only README.md and lib.rs changed among sources, all 161 citations are byte-identical across the remap, and eleven pre-existing citations that sat one to four lines off their claim, or on a blank line, were fixed. No runtime, mempool or deployment credit; SP-07.20's earlier probe result not re-run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/solid-pod-rs/09-ci-release-and-consumer-pins.md",
+    "report": "docs/estate-review/2026-11-02-solid-payments-and-release.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "SP-09.2",
+      "SP-09.3",
+      "SP-09.4",
+      "SP-09.6",
+      "SP-09.7",
+      "SP-09.9",
+      "SP-09.10",
+      "SP-09.11",
+      "SP-09.12"
+    ],
+    "basis": "Source tracing at solid-pod-rs 9b6143c, agentbox c57d9c0, VisionClaw 86cdd76 and nostr-rust-forum 1b27f79 (no wave pin; cited files unchanged to its HEAD c39f41f); every citation re-derived, strict cite-check and render pass (exit 0); 7 corrected, 2 accurate-with-limits. No GitHub Actions run, branch-protection, environment-reviewer, Dependabot or deployment state observed."
+  }
+]
