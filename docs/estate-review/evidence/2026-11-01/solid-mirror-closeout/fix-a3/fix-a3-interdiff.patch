@@ -1,0 +1,708 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 67fe538..f4f2386 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -30,6 +30,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+   `--git-dir`, so a damaged store is rebuilt instead of git resolving an
+   enclosing repository, and errors saved in the public mirror record no
+   longer contain plugin-directory paths.
++- Forge: nothing but the mirror's publication writes into a mirrored
++  repository. A compare or new pull request whose head is another
++  repository is refused (409) instead of fetching that head into the
++  mirror's served store, where its objects would have been readable by SHA;
++  an existing pull request's view reads only a head already held. Merging,
++  web edits and forking onto a mirror's name are refused (409) too.
++- Forge mirror: an existing repository is marked for publication only when
++  every object in it is reachable from its refs; one holding an unreachable
++  object stays unmarked and refused, like the pre-isolation layout. The
++  quarantine sweep removes only quarantines old enough to be a killed
++  push's leftovers, and after a failed publication only those that push
++  created, so a concurrent push is not broken.
+ - Git HTTP no longer permits direct requests for hidden or unadvertised
+   object hashes, including when repository-local configuration enables them.
+   Advertised-tip fetches remain supported. This closes a direct fetch path
+diff --git a/crates/solid-pod-rs-forge/src/compare.rs b/crates/solid-pod-rs-forge/src/compare.rs
+index 145b2d3..e13e9db 100644
+--- a/crates/solid-pod-rs-forge/src/compare.rs
++++ b/crates/solid-pod-rs-forge/src/compare.rs
+@@ -522,6 +522,17 @@ pub(crate) async fn resolve_head(
+         if !may_fetch {
+             return Ok(None);
+         }
++        // Never fetch a foreign head into a mirror's served store (Codex
++        // High 1). A caller asking to compare or open a pull request is told
++        // why; an existing pull request's view reads only what is held.
++        if self.has_mirror_record(base_owner, name).await {
++            return match access {
++                HeadAccess::Caller(_) => Err(ForgeError::Conflict(format!(
++                    "'{base_owner}/{name}' is a mirror: a head from another repository cannot be fetched into it"
++                ))),
++                _ => Ok(prgit::rev_parse(&dir, &local).await.map(make)),
++            };
++        }
+         // The head is another repository: an unmigrated mirror there is
+         // refused like any reader of it, never fetched into the base.
+         let head_dir = match self.gated_git_dir(&owner, name).await {
+@@ -616,6 +627,10 @@ pub(crate) async fn release_head_ref(
+         if shared || !valid_owner(&pr.head.owner) || !valid_ref(&pr.head.ref_name) {
+             return;
+         }
++        // A mirror's served store is written by its publication alone.
++        if self.has_mirror_record(base_owner, name).await {
++            return;
++        }
+         let Ok(dir) = self.gated_git_dir(base_owner, name).await else {
+             return;
+         };
+diff --git a/crates/solid-pod-rs-forge/src/forks.rs b/crates/solid-pod-rs-forge/src/forks.rs
+index 074467c..f25d4f1 100644
+--- a/crates/solid-pod-rs-forge/src/forks.rs
++++ b/crates/solid-pod-rs-forge/src/forks.rs
+@@ -281,6 +281,8 @@ pub(crate) async fn h_api_fork(
+             }
+         }
+         let dest = repo::repo_git_dir(&self.repo_root, caller, &target)?;
++        // A fork onto a followed mirror's name would become its served store.
++        self.refuse_mirror_write(caller, &target).await?;
+         if tokio::fs::metadata(&dest).await.is_ok() {
+             return Ok(ForgeResponse::error(
+                 409,
+diff --git a/crates/solid-pod-rs-forge/src/lib.rs b/crates/solid-pod-rs-forge/src/lib.rs
+index ed5a815..fbb716e 100644
+--- a/crates/solid-pod-rs-forge/src/lib.rs
++++ b/crates/solid-pod-rs-forge/src/lib.rs
+@@ -587,6 +587,13 @@ async fn unpublished_mirror(&self, owner: &str, repo: &str, dir: &Path) -> bool
+         {
+             return false;
+         }
++        self.has_mirror_record(owner, repo).await
++    }
++
++    /// Whether `<owner>/<repo>` has a mirror record, marked or not. The path
++    /// is `mirror::MirrorStore`'s layout, checked without the `mirror`
++    /// feature. `owner` and `repo` must already be validated path segments.
++    pub(crate) async fn has_mirror_record(&self, owner: &str, repo: &str) -> bool {
+         let record = self
+             .plugin_dir
+             .join("mirror")
+@@ -595,6 +602,24 @@ async fn unpublished_mirror(&self, owner: &str, repo: &str, dir: &Path) -> bool
+         tokio::fs::metadata(record).await.is_ok()
+     }
+ 
++    /// Refuse (409) any forge write into a mirror's served store: a foreign
++    /// compare or pull request head fetched into it, a merge, a web edit, a
++    /// fork onto its name. Only the mirror's publication writes there, and
++    /// only approved history (Codex High 1); anything else would put objects
++    /// in served that are readable by SHA and never passed a verdict.
++    pub(crate) async fn refuse_mirror_write(
++        &self,
++        owner: &str,
++        repo: &str,
++    ) -> Result<(), ForgeError> {
++        if self.has_mirror_record(owner, repo).await {
++            return Err(ForgeError::Conflict(format!(
++                "'{owner}/{repo}' is a mirror: only its publication writes to it"
++            )));
++        }
++        Ok(())
++    }
++
+     /// The bare git-dir of `<owner>/<repo>` for a reader that does not enter
+     /// through [`Self::resolve_repo`] (smart-HTTP, a listing's summary, the
+     /// pull request and compare internals, the head of a cross-repository
+diff --git a/crates/solid-pod-rs-forge/src/merge.rs b/crates/solid-pod-rs-forge/src/merge.rs
+index 77ded9a..cbb95fe 100644
+--- a/crates/solid-pod-rs-forge/src/merge.rs
++++ b/crates/solid-pod-rs-forge/src/merge.rs
+@@ -292,6 +292,8 @@ pub(crate) async fn merge_pull(
+             ));
+         }
+         self.resolve_repo(owner, name).await?;
++        // A merge writes a commit and moves a branch in served (Codex High 1).
++        self.refuse_mirror_write(owner, name).await?;
+         let _g = prgit::pull_locks().lock(&format!("{owner}/{name}")).await;
+         let mut idx = pulls::load_pull_index(self.spine.as_ref(), owner, name).await?;
+         let Some(pr) = idx.pulls.get(&number).cloned() else {
+diff --git a/crates/solid-pod-rs-forge/src/mirror.rs b/crates/solid-pod-rs-forge/src/mirror.rs
+index 2af00b9..6be3faf 100644
+--- a/crates/solid-pod-rs-forge/src/mirror.rs
++++ b/crates/solid-pod-rs-forge/src/mirror.rs
+@@ -1151,8 +1151,8 @@ pub struct RefUpdate {
+ pub enum Prepared {
+     /// Absent, or marked with [`PUBLICATION_MARKER`]: ready to be followed.
+     Ready,
+-    /// The pre-isolation layout (`refs/mirror`, or `hideRefs` of them). It
+-    /// stays unmarked, so every reader refuses it, and [`Mirror::apply`]
++    /// The pre-isolation layout (`refs/mirror`, or `hideRefs` of them), or a
++    /// store holding an object no ref reaches. It stays unmarked, so every reader refuses it, and [`Mirror::apply`]
+     /// neither fetches for it nor retries it until migration rebuilds it.
+     AwaitsMigration,
+ }
+@@ -1493,8 +1493,47 @@ async fn build_served(&self, staging: &Path, served: &Path) -> Result<(), String
+     /// Locked decision 3: a served store without the marker is marked (with
+     /// the fixed config) only when it shows no trace of the old shared
+     /// layout. One that has `refs/mirror` or hides them predates publication
+-    /// isolation and may already hold held objects: refuse, so it stays
++    /// isolation and may already hold held objects, and so does one holding
++    /// any object no ref reaches (Codex High 2): refuse, so it stays
+     /// unmarked (and gated) until migration rebuilds it.
++    /// Whether the store holds any object that no ref outside `refs/mirror`
++    /// reaches (Codex High 2). Such an object (a held blob left by the old
++    /// shared layout, a dangling commit) is readable by SHA, so a store with
++    /// one is not marked. Every object listed by `cat-file
++    /// --batch-all-objects` must appear in `rev-list --objects --all`.
++    async fn holds_unreachable_objects(&self, served: &Path) -> Result<bool, String> {
++        let slow = Duration::from_secs(120);
++        let reachable = self
++            .run(
++                served,
++                &["rev-list", "--objects", "--exclude=refs/mirror/*", "--all"],
++                None,
++                slow,
++            )
++            .await?;
++        let reachable: std::collections::HashSet<&[u8]> = reachable
++            .split(|b| *b == b'\n')
++            .filter_map(|l| l.split(|b| *b == b' ').next())
++            .filter(|id| !id.is_empty())
++            .collect();
++        let all = self
++            .run(
++                served,
++                &[
++                    "cat-file",
++                    "--batch-all-objects",
++                    "--batch-check=%(objectname)",
++                ],
++                None,
++                slow,
++            )
++            .await?;
++        Ok(all
++            .split(|b| *b == b'\n')
++            .filter(|id| !id.is_empty())
++            .any(|id| !reachable.contains(id)))
++    }
++
+     async fn mark_clean_store(&self, served: &Path) -> Result<Prepared, String> {
+         if tokio::fs::metadata(served.join(PUBLICATION_MARKER))
+             .await
+@@ -1531,7 +1570,7 @@ async fn mark_clean_store(&self, served: &Path) -> Result<Prepared, String> {
+                 legacy |= String::from_utf8_lossy(&v).contains("refs/mirror");
+             }
+         }
+-        if legacy {
++        if legacy || self.holds_unreachable_objects(served).await? {
+             return Ok(Prepared::AwaitsMigration);
+         }
+         self.write_served_config(served).await?;
+@@ -1723,17 +1762,12 @@ async fn is_bare_store(dir: &Path) -> bool {
+ /// The prefix receive-pack gives its quarantine directory in `objects/`.
+ const QUARANTINE_PREFIX: &str = "tmp_objdir-incoming-";
+ 
+-/// Remove receive-pack quarantine directories (`objects/tmp_objdir-incoming-*`)
+-/// from a served store. receive-pack removes its own on every graceful exit;
+-/// one survives only a killed push (timeout, size cap, crash). It holds
+-/// approved objects only and no reader looks inside it, but it counts against
+-/// the store's size. Called under the repository lock, before a publication
+-/// and after a failed one. An owner push into the same store in the window
+-/// before its first mirror record exists would lose its quarantine and fail;
+-/// after that, pushes to a mirror are refused.
+-async fn sweep_quarantine(served: &Path) {
++/// The receive-pack quarantine directories (`objects/tmp_objdir-incoming-*`)
++/// in a served store, by name.
++async fn quarantines_in(served: &Path) -> Vec<(std::ffi::OsString, PathBuf)> {
++    let mut out = Vec::new();
+     let Ok(mut entries) = tokio::fs::read_dir(served.join("objects")).await else {
+-        return;
++        return out;
+     };
+     while let Ok(Some(e)) = entries.next_entry().await {
+         if e.file_name()
+@@ -1741,7 +1775,68 @@ async fn sweep_quarantine(served: &Path) {
+             .starts_with(QUARANTINE_PREFIX)
+             && e.file_type().await.is_ok_and(|t| t.is_dir())
+         {
+-            remove_store(&e.path()).await;
++            out.push((e.file_name(), e.path()));
++        }
++    }
++    out
++}
++
++/// The newest modification time of a quarantine directory, its entries and
++/// theirs (receive-pack writes into `pack/` below it). `None` when none of
++/// them can be read.
++async fn newest_mtime(dir: &Path) -> Option<SystemTime> {
++    let mut newest = tokio::fs::metadata(dir).await.ok()?.modified().ok();
++    let mut level = vec![dir.to_path_buf()];
++    for _ in 0..2 {
++        let mut next = Vec::new();
++        for d in level {
++            let Ok(mut entries) = tokio::fs::read_dir(&d).await else {
++                continue;
++            };
++            while let Ok(Some(e)) = entries.next_entry().await {
++                // `DirEntry::metadata` does not follow symlinks.
++                if let Ok(m) = e.metadata().await {
++                    newest = newest.max(m.modified().ok());
++                    if m.is_dir() {
++                        next.push(e.path());
++                    }
++                }
++            }
++        }
++        level = next;
++    }
++    newest
++}
++
++/// Remove the quarantine directories in a served store that are leftovers
++/// of a killed push (timeout, size cap, crash): those last written more than
++/// [`PUBLISH_TIMEOUT`] ago. receive-pack removes its own on every graceful
++/// exit, and a publication's push is killed at that timeout, so a younger
++/// one may belong to a push still in flight (an owner push in the window
++/// before the first mirror record exists) and is left alone (security delta
++/// N3). It holds approved objects only and no reader looks inside it, but it
++/// counts against the store's size. Called under the repository lock,
++/// before a publication.
++async fn sweep_stale_quarantines(served: &Path) {
++    let now = SystemTime::now();
++    for (_, path) in quarantines_in(served).await {
++        let stale = newest_mtime(&path)
++            .await
++            .and_then(|t| now.duration_since(t).ok())
++            .is_some_and(|age| age > PUBLISH_TIMEOUT);
++        if stale {
++            remove_store(&path).await;
++        }
++    }
++}
++
++/// After a failed publication: remove the quarantine directories that were
++/// not there when its push started (`before`), which are what the killed or
++/// failed push left. One that was already there is not this push's.
++async fn sweep_new_quarantines(served: &Path, before: &[std::ffi::OsString]) {
++    for (name, path) in quarantines_in(served).await {
++        if !before.contains(&name) {
++            remove_store(&path).await;
+         }
+     }
+ }
+@@ -1980,7 +2075,12 @@ async fn publish_inner(
+         // total is bounded by the ceiling instead, checked before any push
+         // starts, so a store past it is refused rather than killed mid-push
+         // on every try (security delta N1).
+-        sweep_quarantine(&served).await;
++        sweep_stale_quarantines(&served).await;
++        let before: Vec<std::ffi::OsString> = quarantines_in(&served)
++            .await
++            .into_iter()
++            .map(|(name, _)| name)
++            .collect();
+         let baseline = tokio::task::spawn_blocking({
+             let d = served.clone();
+             move || dir_size(&d)
+@@ -2012,7 +2112,7 @@ async fn publish_inner(
+                 },
+             );
+         if pushed.is_err() {
+-            sweep_quarantine(&served).await;
++            sweep_new_quarantines(&served, &before).await;
+         }
+         pushed.map_err(PublishError::from)?;
+         // HEAD only after a successful push, and only to a ref that was in
+@@ -4205,7 +4305,7 @@ fn upload_pack_want(sha: &str) -> bytes::Bytes {
+     }
+ 
+     /// Row 5: smart-HTTP neither advertises the held commit nor sends it when
+-    /// asked for by id. Skipped (with a log line) without `git-http-backend`.
++    /// asked for by id. Needs `git-http-backend`, and fails without it.
+     ///
+     /// Defence in depth, not proof of publication isolation: this also
+     /// passes on the pre-isolation code, because the earlier Git HTTP fix
+@@ -4214,10 +4314,9 @@ fn upload_pack_want(sha: &str) -> bytes::Bytes {
+     /// 8) are the evidence that held objects are absent from served.
+     #[tokio::test]
+     async fn held_side_commit_is_not_fetchable_over_smart_http() {
+-        let Some(backend) = http_backend() else {
+-            eprintln!("SKIP held_side_commit_is_not_fetchable_over_smart_http: no git-http-backend under `git --exec-path`");
+-            return;
+-        };
++        let backend = http_backend().expect(
++            "git-http-backend not found under `git --exec-path`; this test needs it and does not skip",
++        );
+         let s = side_fixture(34).await;
+         let mut forge = forge_at(s.tmp.path());
+         forge.git = Arc::new(
+@@ -6015,6 +6114,18 @@ fn plant_quarantine(served: &Path) {
+                 .join("pack");
+             std::fs::create_dir_all(&q).unwrap();
+             std::fs::write(q.join("leftover"), b"x").unwrap();
++            // Old enough to be a killed push's leftover (round 3, N3).
++            let old = std::time::SystemTime::now() - PUBLISH_TIMEOUT - Duration::from_secs(60);
++            for path in [
++                q.join("leftover"),
++                q.clone(),
++                q.parent().unwrap().to_path_buf(),
++            ] {
++                std::fs::File::open(&path)
++                    .unwrap()
++                    .set_modified(old)
++                    .unwrap();
++            }
+         }
+ 
+         fn quarantines(served: &Path) -> Vec<String> {
+@@ -6600,9 +6711,13 @@ async fn a_receiver_ref_lock_failure_is_recorded_and_lands_only_approved_history
+                 !has_object(&served, &blob_id(home, HELD_BYTES)),
+                 "held blob in served"
+             );
+-            eprintln!(
+-                "receiver ref-lock failure: approved commit present in served after the failed transaction: {}",
+-                has_object(&served, &main2)
++            // The failure was the receiver's ref lock, after the quarantine
++            // was migrated, not an earlier step that would satisfy the
++            // negative assertions above by never pushing at all.
++            assert!(seen.reason.contains("cannot lock ref"), "{}", seen.reason);
++            assert!(
++                has_object(&served, &main2),
++                "the approved commit did not land: the push never reached the ref transaction"
+             );
+         }
+ 
+@@ -6870,6 +6985,319 @@ async fn a_replay_does_not_inherit_the_newest_state_retry() {
+             );
+         }
+ 
++        // --- round 3 -------------------------------------------------------
++
++        fn json_req(method: &str, path: String, body: &serde_json::Value) -> crate::ForgeRequest {
++            crate::ForgeRequest {
++                method: method.into(),
++                path,
++                query: String::new(),
++                headers: vec![("content-type".into(), "application/json".into())],
++                raw_body: bytes::Bytes::from(body.to_string()),
++                host_url: Some("https://pod.example".into()),
++            }
++        }
++
++        fn pod_agent(user: &str) -> crate::ForgeAgent {
++            crate::ForgeAgent::Pod {
++                webid: format!("https://pod.example/{user}/profile/card#me"),
++                username: user.to_string(),
++            }
++        }
++
++        /// `repos/dana/sample.git`, owned by the caller `dana`, with a
++        /// `feature` branch whose commit carries a blob found nowhere else.
++        /// Returns the blob id.
++        fn caller_head_repo(plugin: &Path, home: &Path, seed: u8) -> String {
++            let work = home.join(format!("dana-work-{seed}"));
++            std::fs::create_dir(&work).unwrap();
++            git_ok(&work, home, &["init", "--quiet", "-b", "feature"]);
++            let body = format!("dana-injected-{seed}\n");
++            commit_file(&work, home, "dana.txt", &body, "dana's head");
++            let bare = plugin.join("repos").join("dana").join("sample.git");
++            std::fs::create_dir_all(bare.parent().unwrap()).unwrap();
++            let b = bare.to_str().unwrap();
++            git_ok(home, home, &["init", "--bare", "--quiet", b]);
++            git_ok(&work, home, &["push", "--quiet", b, "feature:feature"]);
++            blob_id(home, &body)
++        }
++
++        fn forge_heads(served: &Path, home: &Path) -> String {
++            git_ok(
++                served,
++                home,
++                &["for-each-ref", "--format=%(refname)", "refs/forge/heads/"],
++            )
++        }
++
++        /// Codex High 1: a compare whose head is another repository the
++        /// caller owns would fetch that head into the base's served store.
++        /// For a mirror that plants the caller's objects in served, readable
++        /// by SHA. Refused (409), and nothing is fetched.
++        #[tokio::test]
++        async fn a_compare_into_a_mirror_never_fetches_a_foreign_head() {
++            let p = published(80).await;
++            let blob = caller_head_repo(&p.plugin, p.home(), 80);
++            let forge = forge_at(&p.plugin);
++            let r = forge
++                .handle(
++                    forge_req(
++                        "GET",
++                        format!(
++                            "/forge/api/repos/{}/sample/compare/main...dana:feature",
++                            p.owner
++                        ),
++                        "",
++                    ),
++                    pod_agent("dana"),
++                )
++                .await
++                .unwrap();
++            assert!(
++                !has_object(&p.served(), &blob),
++                "a foreign blob reached served"
++            );
++            assert_eq!(
++                forge_heads(&p.served(), p.home()),
++                "",
++                "a foreign head ref was written"
++            );
++            assert_eq!(r.status, 409, "{}", String::from_utf8_lossy(&r.body));
++        }
++
++        /// Codex High 1, the pull request path: opening a pull request on a
++        /// mirror with a foreign head is refused before the head is fetched.
++        #[tokio::test]
++        async fn a_pull_request_into_a_mirror_never_fetches_a_foreign_head() {
++            let p = published(81).await;
++            let blob = caller_head_repo(&p.plugin, p.home(), 81);
++            let forge = forge_at(&p.plugin);
++            let body = serde_json::json!({
++                "title": "inject",
++                "base": "main",
++                "head": "dana:feature",
++                "resourceUrl": "https://pod.example/dana/pr.jsonld",
++            });
++            let r = forge
++                .handle(
++                    json_req(
++                        "POST",
++                        format!("/forge/api/repos/{}/sample/pulls", p.owner),
++                        &body,
++                    ),
++                    pod_agent("dana"),
++                )
++                .await
++                .unwrap();
++            assert!(
++                !has_object(&p.served(), &blob),
++                "a foreign blob reached served"
++            );
++            assert_eq!(
++                forge_heads(&p.served(), p.home()),
++                "",
++                "a foreign head ref was written"
++            );
++            assert_eq!(r.status, 409, "{}", String::from_utf8_lossy(&r.body));
++        }
++
++        /// Codex High 1, other writers: a web edit by the mirror's own key
++        /// would commit into served outside publication. Refused (409).
++        #[tokio::test]
++        async fn a_web_edit_into_a_mirror_is_refused() {
++            let p = published(82).await;
++            let forge = forge_at(&p.plugin);
++            let body = serde_json::json!({"path": "edit.txt", "content": "edited\n"});
++            let r = forge
++                .handle(
++                    json_req(
++                        "POST",
++                        format!("/forge/api/repos/{}/sample/edit", p.owner),
++                        &body,
++                    ),
++                    crate::ForgeAgent::Nostr {
++                        pubkey_hex: p.owner.clone(),
++                    },
++                )
++                .await
++                .unwrap();
++            assert_eq!(r.status, 409, "{}", String::from_utf8_lossy(&r.body));
++            assert_eq!(rev(&p.served(), p.home(), "refs/heads/main"), p.approved);
++        }
++
++        /// Codex High 1, other writers: a pull request opened before the
++        /// repository became a mirror cannot be merged into it (the merge
++        /// commit would be written into served outside publication).
++        #[tokio::test]
++        async fn a_pull_request_cannot_be_merged_into_a_mirror() {
++            let tmp = tempfile::tempdir().unwrap();
++            let home = tmp.path();
++            let plugin = home.join("plugin");
++            let up = new_upstream(home);
++            commit_file(&up, home, "public.txt", APPROVED_BYTES, APPROVED_SUBJECT);
++            let sk = key(83);
++            let owner = pubhex(&sk);
++            let served = owner_pushed(&plugin, &owner, &up, home);
++            git_ok(&up, home, &["checkout", "--quiet", "-b", "feature"]);
++            commit_file(&up, home, "feature.txt", "feature\n", "feature");
++            git_ok(
++                &up,
++                home,
++                &[
++                    "push",
++                    "--quiet",
++                    served.to_str().unwrap(),
++                    "feature:feature",
++                ],
++            );
++            let main = rev(&served, home, "refs/heads/main");
++            let forge = forge_at(&plugin);
++            let agent = || crate::ForgeAgent::Nostr {
++                pubkey_hex: owner.clone(),
++            };
++            let body = serde_json::json!({
++                "title": "feature", "base": "main", "head": "feature", "body": "please merge",
++            });
++            let r = forge
++                .handle(
++                    json_req(
++                        "POST",
++                        format!("/forge/api/repos/{owner}/sample/pulls"),
++                        &body,
++                    ),
++                    agent(),
++                )
++                .await
++                .unwrap();
++            assert_eq!(
++                r.status,
++                201,
++                "control: {}",
++                String::from_utf8_lossy(&r.body)
++            );
++            // It becomes a followed, marked mirror.
++            MirrorStore::new(&plugin)
++                .save(&MirrorRecord::new(&owner, "sample", None))
++                .unwrap();
++            std::fs::write(served.join(MARKER_FILE), "").unwrap();
++            let r = forge
++                .handle(
++                    json_req(
++                        "POST",
++                        format!("/forge/api/repos/{owner}/sample/pulls/1/merge"),
++                        &serde_json::json!({}),
++                    ),
++                    agent(),
++                )
++                .await
++                .unwrap();
++            assert_eq!(r.status, 409, "{}", String::from_utf8_lossy(&r.body));
++            assert_eq!(
++                rev(&served, home, "refs/heads/main"),
++                main,
++                "the merge moved main"
++            );
++        }
++
++        /// Codex High 2: a store with no `refs/mirror` and no `hideRefs`, but
++        /// holding an object no ref reaches (here a held blob), may still
++        /// serve it by SHA. It is not marked, and readers keep refusing it.
++        /// The same layout without the extra object is marked.
++        #[tokio::test]
++        async fn a_store_holding_an_unreachable_object_is_not_marked() {
++            let tmp = tempfile::tempdir().unwrap();
++            let home = tmp.path();
++            let plugin = home.join("plugin");
++            let up = new_upstream(home);
++            let approved = commit_file(&up, home, "public.txt", APPROVED_BYTES, APPROVED_SUBJECT);
++            let git = GitCli::new(plugin.join("repos"));
++
++            let dirty = pubhex(&key(84));
++            let served = owner_pushed(&plugin, &dirty, &up, home);
++            let loose = home.join("held-blob.txt");
++            std::fs::write(&loose, HELD_BYTES).unwrap();
++            let held = git_ok(
++                &served,
++                home,
++                &["hash-object", "-w", loose.to_str().unwrap()],
++            );
++            assert!(
++                has_object(&served, &held),
++                "control: the held blob is in served"
++            );
++            MirrorStore::new(&plugin)
++                .save(&MirrorRecord::new(&dirty, "sample", None))
++                .unwrap();
++            assert_eq!(
++                git.prepare(&dirty, "sample").await,
++                Ok(Prepared::AwaitsMigration)
++            );
++            assert!(
++                !served.join(MARKER_FILE).exists(),
++                "a store with an unreachable object was marked"
++            );
++            let forge = forge_at(&plugin);
++            let r = get(
++                &forge,
++                format!("/forge/{dirty}/sample/raw/{approved}/public.txt"),
++            )
++            .await;
++            assert_eq!(r.status, 503, "{}", String::from_utf8_lossy(&r.body));
++
++            let clean = pubhex(&key(85));
++            let served = owner_pushed(&plugin, &clean, &up, home);
++            MirrorStore::new(&plugin)
++                .save(&MirrorRecord::new(&clean, "sample", None))
++                .unwrap();
++            assert_eq!(git.prepare(&clean, "sample").await, Ok(Prepared::Ready));
++            assert!(
++                served.join(MARKER_FILE).is_file(),
++                "control: a clean store is marked"
++            );
++        }
++
++        /// Security delta N3: the sweep removes only quarantines old enough
++        /// to be leftovers of a killed push. A fresh one (a concurrent push
++        /// in flight) survives the sweep before a publish and the sweep after
++        /// a failed one; an old one is removed.
++        #[tokio::test]
++        async fn a_fresh_quarantine_survives_both_sweeps_and_an_old_one_does_not() {
++            let p = published(86).await;
++            let served = p.served();
++            let approved2 = commit_file(&p.up, p.home(), "two.txt", "two\n", "approved two");
++            let git = GitCli::new(p.plugin.join("repos"));
++            git.fetch(&p.owner, "sample", &p.url(), true, None)
++                .await
++                .unwrap();
++            let fresh = served.join("objects").join("tmp_objdir-incoming-fresh");
++            std::fs::create_dir_all(fresh.join("pack")).unwrap();
++            std::fs::write(fresh.join("pack").join("partial"), b"x").unwrap();
++            plant_quarantine(&served);
++            let to = |expected: &str| RefUpdate {
++                git_ref: "refs/heads/main".into(),
++                sha: approved2.clone(),
++                expected: Some(expected.to_string()),
++            };
++            let failed = git
++                .publish(&p.owner, "sample", &[to(&"0".repeat(40))], None)
++                .await;
++            assert!(failed.is_err(), "control: a stale lease fails");
++            assert_eq!(
++                quarantines(&served),
++                vec!["tmp_objdir-incoming-fresh".to_string()],
++                "after a failed publish"
++            );
++            git.publish(&p.owner, "sample", &[to(&p.approved)], None)
++                .await
++                .unwrap();
++            assert_eq!(
++                quarantines(&served),
++                vec!["tmp_objdir-incoming-fresh".to_string()],
++                "after a successful publish"
++            );
++            assert!(fresh.join("pack").join("partial").is_file());
++        }
++
+         /// Code delta D2: a short plugin root is not replaced inside
+         /// unrelated text (here a URL); the store roots are.
+         #[test]
+diff --git a/crates/solid-pod-rs-forge/src/web_edit.rs b/crates/solid-pod-rs-forge/src/web_edit.rs
+index 19f75f5..c825b98 100644
+--- a/crates/solid-pod-rs-forge/src/web_edit.rs
++++ b/crates/solid-pod-rs-forge/src/web_edit.rs
+@@ -598,6 +598,10 @@ pub(crate) async fn h_api_edit(
+             Ok(d) => d,
+             Err(e) => return Self::edit_failure(&e, "web edit"),
+         };
++        // An edit commits into served outside publication (Codex High 1).
++        if let Err(e) = self.refuse_mirror_write(owner, name).await {
++            return Self::edit_failure(&e, "web edit");
++        }
+         let branch = match resolve_branch(&dir, ed.branch.as_ref()).await {
+             Ok(b) => b,
+             Err(resp) => return resp,

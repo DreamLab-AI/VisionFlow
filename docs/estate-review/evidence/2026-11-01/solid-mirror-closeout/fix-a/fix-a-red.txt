@@ -1,0 +1,60 @@
+# Commit A fix round: red-to-green notes
+# Worktree /home/devuser/workspace/wt/solid-pod-rs-mirror-publication, base 31fe898 + uncommitted Commit A.
+# Target dir /home/devuser/workspace/.tmp/solid-mirror-target (binary: .../debug/deps/solid_pod_rs_forge-d229dc2d13dcc7a9).
+# Baseline before any change: mirror:: 43 passed, 0 failed.
+# RED run 1 (new tests only, production code untouched): 6 passed, 11 failed. Full log: fix-a-red-run1.log
+
+item 1  a_followed_in_sync_owner_pushed_repo_is_marked_and_served                RED  "a clean followed store was left unmarked" (mirror.rs:5281)
+item 1  a_followed_owner_pushed_repo_whose_first_state_is_all_held_is_served    RED  "a clean followed store was left unmarked" (mirror.rs:5335)
+item 2  repeated_publish_failures_escalate_the_failure_count                     RED  "failures after 2 failed publishes" left 1, right 2
+item 3  a_transiently_failed_publish_is_retried_for_the_same_state              RED  "no retry was scheduled"
+item 4  an_announcement_waits_for_the_repository_lock_and_marks_a_clean_store   RED  "the announcement updated the record without the repository lock"
+item 5  a_small_publish_succeeds_into_a_served_store_already_over_the_cap       GREEN pre-fix: the watcher's first measurement is at 500 ms and a tiny local push finishes first (timing, not correctness). See the item 5 note below.
+item 5  publication_leaves_no_receive_quarantine_behind                          RED  "a failed publish left a quarantine" left ["tmp_objdir-incoming-planted"]
+item 6  a_candidate_missing_its_objects_is_rebuilt_not_resolved_to_a_parent_repo RED "a broken candidate let git write into the parent repository" left "refs/mirror/main"
+item 7  an_adapter_error_names_no_store_path                                     RED  "a store path leaked: fatal: cannot change to '<abs plugin>/mirror-work/candidates/<owner>/sample.git'"
+item 7  a_failed_publication_keeps_the_plugin_path_out_of_the_saved_record      GREEN pre-fix: git reported "could not lock config file config" relative to cwd. Once item 6 passes an absolute --git-dir the message carries the absolute path; re-run red after item 6 (below).
+item 8  an_unmarked_mirror_is_refused_on_its_summary_and_left_out_of_the_listing RED  status left 404, right 503 ({"error":"not found"})
+item 8  last_push_is_read_from_branches_and_tags_only                            RED  lastPush left 1750000000 (the refs/mirror tip), right 1700000000
+item 8  a_compare_never_reads_a_head_from_an_unmarked_mirror                     RED  status left 200 (aheadBy 1, the mirror's head fetched into the base), right 503
+item 11 an_apply_aborted_while_its_fetch_runs_leaves_served_untouched           GREEN pre-fix (coverage of existing behaviour, no defect to fix)
+item 11 readers_during_an_in_flight_fetch_see_only_served                        GREEN pre-fix (coverage)
+item 12 an_atomic_two_branch_publish_with_one_stale_lease_moves_neither         GREEN pre-fix (coverage)
+item 12 a_receiver_ref_lock_failure_is_recorded_and_lands_only_approved_history GREEN pre-fix (coverage)
+item 13 held_side_commit_is_not_fetchable_over_smart_http: the held want returns Ok((200, "0049ERR upload-pack: not our ref <held>")), so requiring Ok matches current behaviour. No SKIP line: git-http-backend is present (git 2.56.0).
+
+# RED run 2 (adapter changes only: explicit --git-dir, candidate rebuild, quarantine sweep, measure-first watcher;
+# publish cap still absolute (baseline 0) and redaction a pass-through): 49 passed, 11 failed. Log: fix-a-red-run2.log
+item 6  a_candidate_missing_its_objects_is_rebuilt_not_resolved_to_a_parent_repo  GREEN (fix: GitCli::run_in passes --git-dir=<abs>; ensure_candidate rebuilds via is_bare_store)
+item 5  publication_leaves_no_receive_quarantine_behind                             GREEN (fix: sweep_quarantine before the push and after a failed one)
+item 5  a_small_publish_succeeds_into_a_served_store_already_over_the_cap          RED now deterministic: "fetched; the state carries no mark; publish failed: repository grew past the size cap"
+        (the watcher now measures before its first sleep, so the absolute cap is seen at once)
+item 7  a_failed_publication_keeps_the_plugin_path_out_of_the_saved_record         RED now: "the plugin path is in the public record" (git names the absolute <served>/config once --git-dir is absolute)
+item 7  an_adapter_error_names_no_store_path                                        RED: "fatal: not a git repository: '<abs plugin>/mirror-work/candidates/<owner>/sample.git'"
+All 43 baseline tests still pass.
+
+# GREEN run (all fixes): mirror:: 60 passed, 0 failed (43 baseline + 17 new). Log: fix-a-green-run.log
+item 1  both owner-pushed tests GREEN. Fix: MirrorGit::prepare (trait, no default) -> GitCli::mark_clean_store; Mirror::prepare_served called under lock_repo
+        in apply_locked (before the skew/replay/plan saves) and in on_event's 30617 path.
+item 2  repeated_publish_failures_escalate_the_failure_count GREEN (1,2,3 then 0). Fix: removed the reset on fetch success; failures = 0 only when publish succeeds or nothing passed.
+item 3  a_transiently_failed_publish_is_retried_for_the_same_state GREEN through enqueue/drain. Fix: on publish_error last_event unchanged, retry_at = now + backoff_interval(min_interval_ms, failures).
+item 4  an_announcement_waits_for_the_repository_lock_and_marks_a_clean_store GREEN. Fix: on_event takes lock_repo (under the in-process mutex) for both kinds; apply() = lock_repo + apply_locked (no nested flock).
+item 5  a_small_publish_succeeds_into_a_served_store_already_over_the_cap GREEN. Fix: publish limit = dir_size(served) baseline (spawn_blocking) + MAX_REPO_BYTES.
+item 5  publication_leaves_no_receive_quarantine_behind GREEN. Fix: sweep_quarantine before the push and after any failed push (under the apply lock).
+item 6  GREEN (run 2). item 7: both GREEN. Fix: GitCli::redact (<served>, <candidate>, <plugin>) applied at the trait boundary for materialise, prepare, fetch, publish.
+item 8  three reader tests GREEN. Fix: ForgeService::gated_git_dir; repo_summary (gated, for-each-ref refs/heads refs/tags), h_api_repo propagates Busy,
+        resolve_head base + head repo, release_head_ref, compare_data, pulls (3 sites), merge (2 sites), h_git_smart reuses it.
+item 13 held_side_commit_is_not_fetchable_over_smart_http now .expect()s Ok; doc says it also passes pre-fix (defence in depth).
+
+# Mutation checks for the coverage-only tests (items 11, 12), each reverted afterwards (sha256 equal to the pre-mutation copy). Detail: fix-a-mutations.txt
+M1 drop --atomic                         -> an_atomic_two_branch_publish_with_one_stale_lease_moves_neither FAILED "the branch with a current lease moved alone"
+M2 publish held branches too             -> a_receiver_ref_lock_failure_... FAILED "held side commit in served"; in-flight fixtures fail their control; owner-pushed all-held fails its control
+M3 served alternates onto the candidate  -> readers_during_an_in_flight_fetch_see_only_served FAILED (held raw read returned "synthetic-held-mirror-content");
+                                            an_apply_aborted_while_its_fetch_runs_leaves_served_untouched FAILED "held commit in served";
+                                            a_receiver_ref_lock_failure_... FAILED "held side commit in served"; atomic test FAILED "refused main commit in served"
+
+== non-behavioural items (no red test; verified by gates 5 and 7) ==
+item 9  lib.rs: unpublished_mirror_error moved above the `/// Current wall-clock time…` doc, which sits on now_secs again.
+item 10 mirror.rs module docs, MirrorGit::publish and RefUpdate rustdoc: approval publishes the approved commit's whole history; "held" = not reachable from any approved tip, not "never served".
+item 14 ci.yml msrv job: added `cargo check -p solid-pod-rs-forge --features mirror --all-targets` (File::lock user). comparison-vs-jss.md and 01-your-first-pod.md now say 1.89. UNVERIFIED on 1.89: only rustc 1.99.1 is available offline. clippy.toml lock-floor comment and the CHANGELOG history line deliberately left saying 1.88.
+gates: run 1 failed 4/5/6 (my regressions: bare repo:: under cfg(anchoring) at merge.rs:441; clippy type_complexity). Fixed; run 2 all exit 0.

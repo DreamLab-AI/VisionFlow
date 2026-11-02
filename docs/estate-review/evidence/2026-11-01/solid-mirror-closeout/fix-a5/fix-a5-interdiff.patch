@@ -1,0 +1,1811 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 93024b1..d6acf9d 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -39,11 +39,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+   mirror record path that cannot be checked (any error but "not found")
+   counts as a mirror: writes are refused (503) and the reader gate stays
+   closed.
+-- Forge mirror: an existing repository is marked for publication only when
+-  every object in it is reachable from its branches and tags (not `HEAD`,
+-  not other ref namespaces) and it has no `objects/info/alternates` or
+-  `http-alternates`; otherwise it stays unmarked and refused, like the
+-  pre-isolation layout. Publication into a marked repository that has since
++- Forge mirror: an existing repository is marked for publication when it is
++  first followed unless it shows the old shared layout (`refs/mirror`, or
++  `hideRefs` of them) or has `objects/info/alternates` or `http-alternates`.
++  A repository whose mirror record predates this release is also scanned
++  once, streamed, for objects no branch or tag reaches (`HEAD` and other ref
++  namespaces are not roots); any such object leaves it unmarked and refused,
++  like the pre-isolation layout. An owner's repository first followed now is
++  not scanned, so commits a force push left behind do not take it offline.
++  The awaits-migration verdict is kept in the record, and a replayed state
++  never re-examines the store. Publication into a marked repository that has since
+   gained alternates is refused. Only receive-pack quarantines older than the
+   publication timeout (120 s) are removed, before a publication; a failed
+   publication's own leftover waits for a later one. An owner push stalled
+@@ -83,12 +88,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+   head)`; `RefUpdate` and `PUBLICATION_MARKER` are new public items. The
+   verdict reads (`has_commit`, `is_ancestor`, `read_trail`) now evaluate the
+   candidate store. Approved branches in one state now move together or not
+-  at all. `MirrorGit` also gains a required `prepare(owner, name)`, which the
++  at all. `MirrorGit` also gains a required `prepare(owner, name, scan)`, which the
+   engine calls under the repository lock before saving any record for an
+   existing served store and which returns the new `Prepared` (`Ready`, or
+   `AwaitsMigration` for a store in the pre-isolation layout). `publish`
+-  returns the new `PublishError` (a path-free reason, and whether a retry
+-  may succeed). `Mirror::apply` and `Mirror::on_event` (both event
++  returns the new `PublishError` (a path-free reason, whether a retry may
++  succeed, and whether the push timed out). `MirrorRecord` gains `isolated`,
++  `awaitsMigration` and `publishTimeouts`; `MAX_PUBLISH_TIMEOUTS` is new. `Mirror::apply` and `Mirror::on_event` (both event
+   kinds) hold a cross-process file lock per repository
+   (`plugin_dir/mirror-work/locks/`). `GitCli::new` must be given
+   `plugin_dir/repos`.
+@@ -99,9 +105,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+   refusal that cannot pass on a retry is not retried. The failure count is
+   reset only by a completed apply, so repeated publication failures back
+   off. The publication size cap now bounds what one push adds to the served
+-  repository, and a new ceiling (`MAX_SERVED_BYTES`, 2 GiB) bounds its total:
+-  a served repository past it refuses publication. Leftover receive-pack
+-  quarantine directories are removed.
++  repository. A new admission threshold (`MAX_SERVED_BYTES`, 2 GiB, not
++  counting receive-pack quarantines) refuses publication into a served
++  repository already past it; an admitted publication may still add up to
++  `MAX_REPO_BYTES` (512 MiB), measured by polling, so a store can reach
++  about 2.5 GiB. Stale receive-pack quarantine directories (older than the
++  publish timeout, 120 s) are removed.
++- Forge mirror retries: only a verified event can replace a queued or
++  pending state, and a pending retry is put back over an older state when
++  its timer fires. A fetch or materialise failure that may pass (a network
++  error, a timeout) is retried too; a fetch past the size cap or a refused
++  clone URL is not. The retry delay counts from the failure, not from the
++  start of the attempt. A push killed by the growth cap, and an unmarked or
++  unreadable served store, are terminal for the state; publish timeouts stop
++  being retried after `MAX_PUBLISH_TIMEOUTS` (3) in a row. Two states at
++  the same second are ordered by id for "acted on" as for "seen", so the
++  lower-id one (the NIP-01 winner) is applied even after its sibling.
+ - Forge mirror: a followed repository in the pre-isolation layout is no
+   longer fetched (its state is recorded as skipped, awaiting migration).
+ - Forge: a repository's `lastPush` is read from branches and tags only.
+diff --git a/crates/solid-pod-rs-forge/src/mirror.rs b/crates/solid-pod-rs-forge/src/mirror.rs
+index 4fb37cf..e3e4d3b 100644
+--- a/crates/solid-pod-rs-forge/src/mirror.rs
++++ b/crates/solid-pod-rs-forge/src/mirror.rs
+@@ -118,16 +118,24 @@
+ /// pushes the candidate store past this is killed and the candidate removed;
+ /// a publication that grows the served store by more than this is killed.
+ pub const MAX_REPO_BYTES: u64 = 512 * 1024 * 1024;
+-/// Largest a served store may be, in bytes, before publication into it is
+-/// refused. [`MAX_REPO_BYTES`] bounds what one publication adds; served
+-/// never shrinks (commits orphaned by approved force moves stay), so this
+-/// ceiling is what bounds its total. A refusal is not retried: it needs an
+-/// operator, or a newer state once the store has been pruned.
++/// The admission threshold for publication, in bytes: a served store
++/// already larger than this (receive-pack quarantine directories not
++/// counted) refuses publication before any push starts. It is not a hard
++/// cap on the total: an admitted publication may still grow the store by
++/// up to [`MAX_REPO_BYTES`] past it, and that growth is measured by polling
++/// (every 500 ms), so a push can finish between two measurements. Served
++/// never shrinks (commits orphaned by approved force moves stay). A refusal
++/// is not retried: it needs an operator, or a newer state once the store
++/// has been pruned.
+ pub const MAX_SERVED_BYTES: u64 = 4 * MAX_REPO_BYTES;
+ /// Fetches that may run at once across all followed repositories.
+ pub const MAX_CONCURRENT_FETCHES: usize = 4;
+ /// Longest the failure backoff stretches the fetch floor to, in milliseconds.
+ pub const MAX_BACKOFF_MS: u64 = 3_600_000;
++/// Consecutive publish timeouts of the newest state after which it is no
++/// longer retried: a push that keeps outrunning its 120 s budget needs a
++/// newer state or an operator, not another identical attempt.
++pub const MAX_PUBLISH_TIMEOUTS: u32 = 3;
+ /// The relay subscription id this module uses.
+ pub const SUBSCRIPTION_ID: &str = "forge-mirror";
+ /// The trail document a marked commit must list.
+@@ -1000,18 +1008,40 @@ pub struct MirrorRecord {
+     /// a sibling that loses the tie-break is dropped.
+     #[serde(default)]
+     pub newest_seen_id: String,
+-    /// Consecutive failed applies: a failed fetch or a failed publication.
++    /// Consecutive failed applies: a failed materialise, fetch or
++    /// publication.
+     /// The floor between fetches doubles for each, up to [`MAX_BACKOFF_MS`],
+     /// and only a completed apply resets it.
+     #[serde(default)]
+     pub failures: u32,
+     /// Millisecond clock at which the latest state is worth applying again:
+-    /// set when the rate limit held it back, or when its publication failed
+-    /// in a way that may pass on a retry (never sooner than [`backoff_delay`]
+-    /// of [`Self::failures`]). Unset when nothing is waiting, or when the
+-    /// refusal needs an operator (see [`PublishError::retryable`]).
++    /// set when the rate limit held it back, or when its materialise, fetch
++    /// or publication failed in a way that may pass on a retry (never sooner
++    /// than [`backoff_delay`] of [`Self::failures`] after the failure).
++    /// Unset when nothing is waiting, or when the refusal will not pass on a
++    /// retry: a fetch past the size cap, a refused clone URL, a terminal
++    /// [`PublishError`], or [`MAX_PUBLISH_TIMEOUTS`] timeouts in a row.
+     #[serde(default, skip_serializing_if = "Option::is_none")]
+     pub retry_at: Option<u64>,
++    /// Whether this record was first written under publication isolation.
++    /// A record without it predates this release, so its served store may
++    /// hold content the old shared layout fetched but never approved.
++    #[serde(default)]
++    pub isolated: bool,
++    /// Whether the served store was found in the pre-isolation layout and
++    /// waits for migration. Persisted so the store is examined once, not on
++    /// every event.
++    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
++    pub awaits_migration: bool,
++    /// Consecutive publish timeouts of the newest state seen; reset when a
++    /// newer state arrives or an apply completes.
++    #[serde(default, skip_serializing_if = "is_zero")]
++    pub publish_timeouts: u32,
++}
++
++#[allow(clippy::trivially_copy_pass_by_ref)] // serde's skip_serializing_if signature
++fn is_zero(n: &u32) -> bool {
++    *n == 0
+ }
+ 
+ impl MirrorRecord {
+@@ -1031,6 +1061,9 @@ fn new(pubkey: &str, name: &str, clone: Option<String>) -> Self {
+             newest_seen_id: String::new(),
+             failures: 0,
+             retry_at: None,
++            isolated: true,
++            awaits_migration: false,
++            publish_timeouts: 0,
+         }
+     }
+ }
+@@ -1143,6 +1176,12 @@ pub struct RefUpdate {
+     pub sha: String,
+     /// The served sha the move was planned against, or `None` when the
+     /// branch must not exist yet. Publication fails if served has moved.
++    ///
++    /// The lease gives atomicity, not preservation: a stale lease is a
++    /// retryable failure, and the retry leases on the value served then has,
++    /// so a branch moved behind the engine (a merge or web edit on the
++    /// served store) is overwritten by the retry. Upstream is authoritative
++    /// for a mirror.
+     pub expected: Option<String>,
+ }
+ 
+@@ -1151,14 +1190,24 @@ pub struct RefUpdate {
+ pub enum Prepared {
+     /// Absent, or marked with [`PUBLICATION_MARKER`]: ready to be followed.
+     Ready,
+-    /// The pre-isolation layout (`refs/mirror`, or `hideRefs` of them), or a
+-    /// store holding an object no ref reaches. It stays unmarked, so every reader refuses it, and [`Mirror::apply`]
+-    /// neither fetches for it nor retries it until migration rebuilds it.
++    /// The pre-isolation layout (`refs/mirror`, or `hideRefs` of them), a
++    /// store borrowing objects through alternates, or a store with mirror
++    /// history from before this release holding an object no branch or tag
++    /// reaches. It stays unmarked, so every reader refuses it, and
++    /// [`Mirror::apply`] neither fetches for it nor retries it until
++    /// migration rebuilds it; the verdict is kept in
++    /// [`MirrorRecord::awaits_migration`].
+     AwaitsMigration,
+ }
+ 
+ /// Why [`MirrorGit::publish`] failed. On any failure no branch has moved.
+ ///
++/// A stale lease is retryable: the retry leases on served's current value,
++/// so a branch moved behind the engine is overwritten then (see
++/// [`RefUpdate::expected`]). A push killed by the growth cap, an unmarked
++/// or unreadable served store, and a store past [`MAX_SERVED_BYTES`] are
++/// terminal.
++///
+ /// ```
+ /// use solid_pod_rs_forge::mirror::PublishError;
+ ///
+@@ -1178,6 +1227,10 @@ pub struct PublishError {
+     /// awaiting migration, or one past [`MAX_SERVED_BYTES`]) waits for a
+     /// newer state instead.
+     pub retryable: bool,
++    /// Whether the push ran out of its time budget (120 s). A timeout is
++    /// retryable, but [`Mirror::apply`] stops retrying one state after
++    /// [`MAX_PUBLISH_TIMEOUTS`] of them in a row.
++    pub timed_out: bool,
+ }
+ 
+ impl PublishError {
+@@ -1187,6 +1240,7 @@ pub fn terminal(reason: impl Into<String>) -> Self {
+         Self {
+             reason: reason.into(),
+             retryable: false,
++            timed_out: false,
+         }
+     }
+ }
+@@ -1197,6 +1251,7 @@ fn from(reason: String) -> Self {
+         Self {
+             reason,
+             retryable: true,
++            timed_out: false,
+         }
+     }
+ }
+@@ -1243,20 +1298,25 @@ pub trait MirrorGit: Send + Sync {
+     async fn materialise(&self, owner: &str, name: &str) -> Result<(), String>;
+     /// Make an existing served store ready to be followed, before any record
+     /// for it is saved. [`GitCli`] marks a clean store (no `refs/mirror`, no
+-    /// `hideRefs` of them) with [`PUBLICATION_MARKER`] and the fixed served
+-    /// config, and reports one in the pre-isolation layout as
++    /// `hideRefs` of them, no alternates) with [`PUBLICATION_MARKER`] and the
++    /// fixed served config, and reports one in the pre-isolation layout as
+     /// [`Prepared::AwaitsMigration`]; that store stays unmarked and so
+-    /// refused (503) by every reader until it is migrated.
+-    /// [`Mirror`] calls this under the repository lock whenever the served
+-    /// store exists, so a followed clean repository is not gated by its own
+-    /// record. There is deliberately no default: an adapter that did nothing
++    /// refused (503) by every reader until it is migrated. With `scan`,
++    /// which [`Mirror`] sets only for a store whose record predates this
++    /// release, a store holding any object no branch or tag reaches is
++    /// reported the same way; an owner's store is never scanned.
++    /// [`Mirror`] calls this under the repository lock for an existing
++    /// served store before a first record is saved beside it, and otherwise
++    /// once an event has passed the replay check and no awaits-migration
++    /// verdict is recorded, so a followed clean repository is not gated by
++    /// its own record. There is deliberately no default: an adapter that did nothing
+     /// here would leave every followed clean repository at 503.
+     ///
+     /// # Errors
+     ///
+     /// A human-readable reason for a failure that may pass on a later try
+     /// (a git timeout, a config lock); the store is left as it was.
+-    async fn prepare(&self, owner: &str, name: &str) -> Result<Prepared, String>;
++    async fn prepare(&self, owner: &str, name: &str, scan: bool) -> Result<Prepared, String>;
+     /// Fetch every branch of `clone` into the private candidate store's
+     /// `refs/mirror/*`; the served store is not touched. `operator` is
+     /// `true` when the URL came from operator configuration (and so may be
+@@ -1341,6 +1401,30 @@ fn now_ms(&self) -> u64 {
+ /// Wall-clock budget for one publication push.
+ const PUBLISH_TIMEOUT: Duration = Duration::from_secs(120);
+ 
++/// [`GitCli::run_in`]'s error when git outran its deadline.
++const GIT_TIMED_OUT: &str = "git timed out";
++/// [`GitCli::run_in`]'s (and the fetch's) error when a store grew past its
++/// size cap.
++const GREW_PAST_CAP: &str = "repository grew past the size cap";
++
++/// How a failed publication push is classified: a growth-cap kill is
++/// terminal (the same push grows the same way again), a timeout is
++/// retryable and flagged, and anything else (a stale lease, a receiver ref
++/// lock) is retryable.
++fn push_failure(reason: String) -> PublishError {
++    if reason == GREW_PAST_CAP {
++        PublishError::terminal(reason)
++    } else if reason == GIT_TIMED_OUT {
++        PublishError {
++            reason,
++            retryable: true,
++            timed_out: true,
++        }
++    } else {
++        PublishError::from(reason)
++    }
++}
++
+ /// Config every served store carries, written when it is created or first
+ /// marked: no hooks, objects checked on receipt, no ref deletion.
+ const SERVED_CONFIG: [(&str, &str); 3] = [
+@@ -1379,6 +1463,10 @@ pub struct GitCli {
+     /// starts, to stand in for a concurrent owner push.
+     #[cfg(test)]
+     during_push: Option<fn(&Path)>,
++    /// Test seam: the size measure the publication watcher polls, in place
++    /// of the real directory walk.
++    #[cfg(test)]
++    push_measure: Option<DirMeasure>,
+ }
+ 
+ impl GitCli {
+@@ -1396,6 +1484,8 @@ pub fn new(repo_root: impl Into<PathBuf>) -> Self {
+             work_root,
+             #[cfg(test)]
+             during_push: None,
++            #[cfg(test)]
++            push_measure: None,
+         }
+     }
+ 
+@@ -1498,67 +1588,134 @@ async fn build_served(&self, staging: &Path, served: &Path) -> Result<(), String
+ 
+     /// Whether the store holds any object that no branch or tag reaches
+     /// (Codex High 2). Such an object (a held blob left by the old shared
+-    /// layout, a dangling commit) is readable by SHA, so a store with one is
+-    /// not marked. Every object listed by `cat-file --batch-all-objects`
+-    /// must appear in `rev-list --objects --branches --tags`.
++    /// layout, a dangling commit) is readable by SHA. Only run for a store
++    /// with mirror history from before publication isolation (see
++    /// [`MirrorGit::prepare`]); an owner's own store is never scanned.
+     ///
+     /// The roots are `refs/heads/*` and `refs/tags/*` only. `HEAD` is not a
+     /// root (a detached `HEAD` would otherwise vouch for any commit), nor is
+     /// any other namespace: `refs/mirror/*`, `refs/forge/heads/*` (pull
+-    /// request heads), `refs/notes/*`, `refs/stash` and the rest. A store
+-    /// whose objects only such a ref reaches is left unmarked and gated
+-    /// until migration.
++    /// request heads), `refs/notes/*`, `refs/stash` and the rest. So a
++    /// detached `HEAD`, or any ref outside branches and tags, counts as
++    /// holding such an object; then `git fsck --unreachable --no-reflogs
++    /// --connectivity-only` (whose roots are `HEAD` and every ref, here
++    /// exactly the branches and tags) must report nothing. Every command is
++    /// streamed and stops at the first line that decides it, so nothing is
++    /// buffered whole (security R1).
+     async fn holds_unreachable_objects(&self, served: &Path) -> Result<bool, String> {
+         let slow = Duration::from_secs(120);
+-        let reachable = self
++        let head = self
+             .run(
+                 served,
+-                &["rev-list", "--objects", "--branches", "--tags"],
++                &["symbolic-ref", "-q", "HEAD"],
+                 None,
++                Duration::from_secs(15),
++            )
++            .await
++            .map(|o| String::from_utf8_lossy(&o).trim().to_string());
++        if !head.is_ok_and(|h| h.starts_with("refs/heads/")) {
++            return Ok(true);
++        }
++        let other_ref = self
++            .first_line(
++                served,
++                &["for-each-ref", "--format=%(refname)"],
+                 slow,
++                |l| !(l.starts_with("refs/heads/") || l.starts_with("refs/tags/")),
+             )
+             .await?;
+-        let reachable: std::collections::HashSet<&[u8]> = reachable
+-            .split(|b| *b == b'\n')
+-            .filter_map(|l| l.split(|b| *b == b' ').next())
+-            .filter(|id| !id.is_empty())
+-            .collect();
+-        let all = self
+-            .run(
++        if other_ref.is_some() {
++            return Ok(true);
++        }
++        let unreachable = self
++            .first_line(
+                 served,
+                 &[
+-                    "cat-file",
+-                    "--batch-all-objects",
+-                    "--batch-check=%(objectname)",
++                    "fsck",
++                    "--unreachable",
++                    "--no-reflogs",
++                    "--connectivity-only",
++                    "--no-progress",
+                 ],
+-                None,
+                 slow,
++                |l| l.starts_with("unreachable ") || l.starts_with("dangling "),
+             )
+             .await?;
+-        Ok(all
+-            .split(|b| *b == b'\n')
+-            .filter(|id| !id.is_empty())
+-            .any(|id| !reachable.contains(id)))
+-    }
+-
+-    /// Locked decision 3: a served store without the marker is marked (with
+-    /// the fixed config) only when it shows no trace of the old shared
+-    /// layout. One that has `refs/mirror` or hides them predates publication
+-    /// isolation and may already hold held objects, and so does one holding
+-    /// any object no branch or tag reaches (Codex High 2, see
+-    /// [`Self::holds_unreachable_objects`]) or one that borrows objects
+-    /// through alternates (Codex round 3): refuse, so it stays unmarked (and
+-    /// gated) until migration rebuilds it.
+-    async fn mark_clean_store(&self, served: &Path) -> Result<Prepared, String> {
+-        if tokio::fs::metadata(served.join(PUBLICATION_MARKER))
+-            .await
+-            .is_ok_and(|m| m.is_file())
+-        {
+-            return Ok(Prepared::Ready);
+-        }
+-        if has_alternates(served).await {
+-            return Ok(Prepared::AwaitsMigration);
++        Ok(unreachable.is_some())
++    }
++
++    /// Run git on the store at `git_dir` and read its stdout line by line,
++    /// returning the first line `pick` accepts (git is then killed), or
++    /// `None` once git has exited successfully without one. stderr is
++    /// discarded; a failure is reported as `git <command> failed`.
++    async fn first_line(
++        &self,
++        git_dir: &Path,
++        args: &[&str],
++        timeout: Duration,
++        pick: impl Fn(&str) -> bool,
++    ) -> Result<Option<String>, String> {
++        use tokio::io::AsyncBufReadExt;
++        let mut explicit = std::ffi::OsString::from("--git-dir=");
++        explicit.push(git_dir);
++        let mut cmd = solid_pod_rs_git::hardened_git_async();
++        cmd.arg(explicit)
++            .args(args)
++            .current_dir(git_dir)
++            .env_remove("HOME")
++            .env_remove("XDG_CONFIG_HOME")
++            .stdin(std::process::Stdio::null())
++            .stdout(std::process::Stdio::piped())
++            .stderr(std::process::Stdio::null())
++            .kill_on_drop(true);
++        #[cfg(unix)]
++        cmd.process_group(0);
++        let mut child = cmd
++            .spawn()
++            .map_err(|e| format!("git could not start: {e}"))?;
++        let pid = child.id();
++        let what = args.first().copied().unwrap_or("git");
++        let stdout = child.stdout.take().ok_or("git has no stdout")?;
++        let mut lines = tokio::io::BufReader::new(stdout).lines();
++        let read = async {
++            while let Some(line) = lines
++                .next_line()
++                .await
++                .map_err(|e| format!("git {what} output unreadable: {e}"))?
++            {
++                if pick(&line) {
++                    return Ok(Some(line));
++                }
++            }
++            Ok(None)
++        };
++        let started = tokio::time::Instant::now();
++        match tokio::time::timeout(timeout, read).await {
++            Err(_) => {
++                kill_group(pid).await;
++                Err(GIT_TIMED_OUT.to_string())
++            }
++            Ok(Ok(None)) => {
++                let left = timeout.saturating_sub(started.elapsed());
++                match tokio::time::timeout(left, child.wait()).await {
++                    Ok(Ok(st)) if st.success() => Ok(None),
++                    Ok(_) => Err(format!("git {what} failed")),
++                    Err(_) => {
++                        kill_group(pid).await;
++                        Err(GIT_TIMED_OUT.to_string())
++                    }
++                }
++            }
++            Ok(found) => {
++                kill_group(pid).await;
++                found
++            }
+         }
++    }
++
++    /// Whether the store shows the old shared layout: `refs/mirror/*`, or
++    /// `hideRefs` naming them.
++    async fn legacy_traces(&self, served: &Path) -> Result<bool, String> {
+         let quick = Duration::from_secs(15);
+         let mirror_refs = self
+             .run(
+@@ -1588,7 +1745,32 @@ async fn mark_clean_store(&self, served: &Path) -> Result<Prepared, String> {
+                 legacy |= String::from_utf8_lossy(&v).contains("refs/mirror");
+             }
+         }
+-        if legacy || self.holds_unreachable_objects(served).await? {
++        Ok(legacy)
++    }
++
++    /// Locked decision 3, as revised in round 5: a served store without the
++    /// marker is marked (with the fixed config) unless it shows the old
++    /// shared layout. Refused (left unmarked and gated until migration):
++    /// one that borrows objects through alternates; one that has
++    /// `refs/mirror` or hides them; and, only when `scan` is set (the store
++    /// has mirror history from before this release), one holding any object
++    /// no branch or tag reaches ([`Self::holds_unreachable_objects`]). An
++    /// owner's store first followed under publication isolation is not
++    /// scanned: its unreachable objects (a force push, a deleted branch)
++    /// are the owner's own (security R1, overturning locked decision 13).
++    async fn mark_clean_store(&self, served: &Path, scan: bool) -> Result<Prepared, String> {
++        if tokio::fs::metadata(served.join(PUBLICATION_MARKER))
++            .await
++            .is_ok_and(|m| m.is_file())
++        {
++            return Ok(Prepared::Ready);
++        }
++        if has_alternates(served).await {
++            return Ok(Prepared::AwaitsMigration);
++        }
++        if self.legacy_traces(served).await?
++            || (scan && self.holds_unreachable_objects(served).await?)
++        {
+             return Ok(Prepared::AwaitsMigration);
+         }
+         self.write_served_config(served).await?;
+@@ -1699,8 +1881,8 @@ async fn run_in(
+         });
+         let outcome = tokio::select! {
+             out = &mut waited => Ok(out),
+-            () = &mut deadline => Err("git timed out".to_string()),
+-            Ok(()) = &mut grew => Err("repository grew past the size cap".to_string()),
++            () = &mut deadline => Err(GIT_TIMED_OUT.to_string()),
++            Ok(()) = &mut grew => Err(GREW_PAST_CAP.to_string()),
+         };
+         if let Some(w) = watcher {
+             w.abort();
+@@ -2036,7 +2218,7 @@ async fn fetch_inner(
+             remove_store(&dir).await;
+         }
+         if over {
+-            return Err("repository grew past the size cap".into());
++            return Err(GREW_PAST_CAP.into());
+         }
+         ran.map(|_| ())
+     }
+@@ -2077,8 +2259,25 @@ async fn publish_inner(
+         if !tokio::fs::metadata(&served).await.is_ok_and(|m| m.is_dir()) {
+             return Err("no served repository".into());
+         }
+-        if self.mark_clean_store(&served).await? == Prepared::AwaitsMigration {
+-            return Err(PublishError::terminal(AWAITS_MIGRATION));
++        // Publication neither scans nor marks: it has no record to tell an
++        // owner's store from one with mirror history, and `prepare` has
++        // already marked every store the engine publishes into. An unmarked
++        // store here is refused, and so is any error checking it (security
++        // R2: none of these passes on a retry).
++        if !tokio::fs::metadata(served.join(PUBLICATION_MARKER))
++            .await
++            .is_ok_and(|m| m.is_file())
++        {
++            if self
++                .legacy_traces(&served)
++                .await
++                .map_err(PublishError::terminal)?
++            {
++                return Err(PublishError::terminal(AWAITS_MIGRATION));
++            }
++            return Err(PublishError::terminal(
++                "the served repository is not marked for publication",
++            ));
+         }
+         // A marked store that has since gained alternates serves objects
+         // from outside itself; publishing into it would vouch for them.
+@@ -2114,22 +2313,38 @@ async fn publish_inner(
+         // starts, so a store past it is refused rather than killed mid-push
+         // on every try (security delta N1).
+         sweep_stale_quarantines(&served).await;
+-        let baseline = tokio::task::spawn_blocking({
++        // Quarantines are left out of the ceiling (security R5: young
++        // leftovers of killed pushes would otherwise refuse publication for
++        // content the store does not hold), but not out of the growth
++        // watcher, which measures the whole store the push writes into.
++        let quarantines = quarantines_in(&served).await;
++        let (full, quarantined) = tokio::task::spawn_blocking({
+             let d = served.clone();
+-            move || dir_size(&d)
++            move || {
++                let q = quarantines
++                    .iter()
++                    .map(|p| dir_size(p))
++                    .fold(0u64, u64::saturating_add);
++                (dir_size(&d), q)
++            }
+         })
+         .await
+-        .unwrap_or(0);
++        .unwrap_or((0, 0));
++        let baseline = full.saturating_sub(quarantined);
+         if baseline > MAX_SERVED_BYTES {
+             return Err(PublishError::terminal(format!(
+                 "the served repository is past its size ceiling ({MAX_SERVED_BYTES} bytes)"
+             )));
+         }
+-        let limit = baseline.saturating_add(MAX_REPO_BYTES);
++        let limit = full.saturating_add(MAX_REPO_BYTES);
+         #[cfg(test)]
+         if let Some(f) = self.during_push {
+             f(&served);
+         }
++        #[cfg(test)]
++        let measure: DirMeasure = self.push_measure.unwrap_or(dir_size);
++        #[cfg(not(test))]
++        let measure: DirMeasure = dir_size;
+         // git pushes from the candidate (`--git-dir`); the watcher measures
+         // served, the store the push writes into.
+         let pushed = self
+@@ -2139,7 +2354,7 @@ async fn publish_inner(
+                 &argv,
+                 Some("file"),
+                 PUBLISH_TIMEOUT,
+-                Some((limit, dir_size)),
++                Some((limit, measure)),
+             )
+             .await
+             .and_then(
+@@ -2152,7 +2367,7 @@ async fn publish_inner(
+         // tells it apart from a concurrent owner push's (Codex round 3). The
+         // stale sweep removes it on a later publication; until then the size
+         // baseline tolerates it and the ceiling counts it.
+-        pushed.map_err(PublishError::from)?;
++        pushed.map_err(push_failure)?;
+         // HEAD only after a successful push, and only to a ref that was in
+         // it. A failure here is logged and does not undo the publication.
+         if let Some(h) = head.filter(|h| updates.iter().any(|u| u.git_ref == *h)) {
+@@ -2208,12 +2423,12 @@ async fn materialise(&self, owner: &str, name: &str) -> Result<(), String> {
+             .map_err(|e| self.redact(owner, name, &e))
+     }
+ 
+-    async fn prepare(&self, owner: &str, name: &str) -> Result<Prepared, String> {
++    async fn prepare(&self, owner: &str, name: &str, scan: bool) -> Result<Prepared, String> {
+         let served = self.dir(owner, name).ok_or("unsafe repository key")?;
+         if !tokio::fs::metadata(&served).await.is_ok_and(|m| m.is_dir()) {
+             return Ok(Prepared::Ready);
+         }
+-        self.mark_clean_store(&served)
++        self.mark_clean_store(&served, scan)
+             .await
+             .map_err(|e| self.redact(owner, name, &e))
+     }
+@@ -2308,7 +2523,7 @@ async fn publish(
+             .await
+             .map_err(|e| PublishError {
+                 reason: self.redact(owner, name, &e.reason),
+-                retryable: e.retryable,
++                ..e
+             })
+     }
+ }
+@@ -2342,6 +2557,18 @@ pub struct Mirror {
+ /// milliseconds, whatever `retry_at` says.
+ const MIN_REQUEUE_MS: u64 = 1_000;
+ 
++/// The `created_at` the planner compares a state against: the last state
++/// acted on, except that a lower-id state at the same second (the NIP-01
++/// winner of the tie) counts as newer than it, the order the replay check
++/// and [`supersedes`] use (Codex C5).
++fn acted_on_at(last: Option<&EventRef>, ev: &Event) -> u64 {
++    match last {
++        Some(l) if l.created_at == ev.created_at && ev.id < l.id => l.created_at.saturating_sub(1),
++        Some(l) => l.created_at,
++        None => 0,
++    }
++}
++
+ /// Whether state `new` is newer than state `old` in the order the inbox and
+ /// the replay check use: later `created_at`, or the same second and the lower
+ /// id (NIP-01).
+@@ -2493,8 +2720,9 @@ async fn host_allowed(&self, url: &str) -> Result<Option<std::net::IpAddr>, Stri
+     ///
+     /// Both kinds save the record, so both run under the per-repository
+     /// in-process mutex and then the cross-process lock (security review M1),
+-    /// and both first [`MirrorGit::prepare`] an existing served store. A
+-    /// 30617 that cannot take the lock is dropped unsaved.
++    /// and both [`MirrorGit::prepare`] an existing served store after their
++    /// replay check (before it, for a first record). A 30617 that cannot
++    /// take the lock is dropped unsaved.
+     pub async fn on_event(&self, ev: &Event) -> Option<MirrorRecord> {
+         let entry = self.wanted(ev)?;
+         // The signature check is the expensive step; everything cheap came first.
+@@ -2514,8 +2742,7 @@ pub async fn on_event(&self, ev: &Event) -> Option<MirrorRecord> {
+                     return None;
+                 }
+             };
+-            self.prepare_served(&entry.pubkey, &entry.name).await;
+-            return self.on_announce(&entry, ev);
++            return self.on_announce(&entry, ev).await;
+         }
+         Some(self.apply_locked(&entry, ev, repo_lock).await)
+     }
+@@ -2535,22 +2762,31 @@ fn wanted(&self, ev: &Event) -> Option<FollowEntry> {
+ 
+     /// Queue an event from a relay for a per-repository worker, keeping only
+     /// the newest per `(repo, kind)`, so the socket loop never waits on git.
++    /// Only a verified event is queued, so only a verified event can take a
++    /// slot or replace a worker's pending retry.
+     fn enqueue(self: &Arc<Self>, ev: Event) {
+         let Some(entry) = self.wanted(&ev) else {
+             return;
+         };
+         let key = format!("{}/{}", entry.pubkey, entry.name);
+         let slot = format!("{key}#{}", ev.kind);
++        // A far-future stamp must not squat the slot and shadow honest
++        // events (L3).
++        if ev.created_at > self.clock.now_ms() / 1000 + MAX_FUTURE_SKEW_SECS {
++            return;
++        }
++        // Only a verified event may take the slot, and so displace a queued
++        // or pending verified one (Codex C1): a relay's forgery would
++        // otherwise cancel a pending retry and then fail `on_event`.
++        if !verify_event(&ev) {
++            return;
++        }
+         {
+             let mut inbox = self
+                 .inbox
+                 .lock()
+                 .unwrap_or_else(std::sync::PoisonError::into_inner);
+-            // A far-future stamp must not squat the slot and shadow honest
+-            // events (L3), and a tie at the same second keeps the lowest id.
+-            if ev.created_at > self.clock.now_ms() / 1000 + MAX_FUTURE_SKEW_SECS {
+-                return;
+-            }
++            // A tie at the same second keeps the lowest id.
+             match inbox.get(&slot) {
+                 Some(have)
+                     if have.created_at > ev.created_at
+@@ -2583,9 +2819,11 @@ fn enqueue(self: &Arc<Self>, ev: Event) {
+     /// limit or a failed publication held back once its `retry_at` is due.
+     ///
+     /// While it waits for a retry the worker holds no permit and no lock,
+-    /// and it wakes for any new event for its repository: a newer state
+-    /// replaces the pending retry and is applied at once, and an
+-    /// announcement is applied without giving the retry up.
++    /// and it wakes for any new event for its repository: a newer (and, like
++    /// everything in the inbox, verified) state replaces the pending retry
++    /// and is applied at once, and an announcement is applied without giving
++    /// the retry up. When the timer fires, the pending state goes back into
++    /// its slot unless the slot holds one that supersedes it.
+     async fn drain(self: Arc<Self>, key: String) {
+         let mut guard = BusyGuard {
+             mirror: Arc::clone(&self),
+@@ -2616,11 +2854,20 @@ async fn drain(self: Arc<Self>, key: String) {
+                     tokio::select! {
+                         () = tokio::time::sleep_until(due) => {
+                             if let Some((ev, _)) = pending.take() {
+-                                self.inbox
++                                // Back into the slot unless it already holds
++                                // a state that supersedes it (or is it): an
++                                // older one there must not displace the retry
++                                // (Codex C2, security R3).
++                                let mut inbox = self
++                                    .inbox
+                                     .lock()
+-                                    .unwrap_or_else(std::sync::PoisonError::into_inner)
+-                                    .entry(state_slot.clone())
+-                                    .or_insert(ev);
++                                    .unwrap_or_else(std::sync::PoisonError::into_inner);
++                                let keep = inbox
++                                    .get(&state_slot)
++                                    .is_some_and(|have| !supersedes(&ev, have));
++                                if !keep {
++                                    inbox.insert(state_slot.clone(), ev);
++                                }
+                             }
+                         }
+                         () = &mut woken => {}
+@@ -2678,18 +2925,34 @@ async fn drain(self: Arc<Self>, key: String) {
+         }
+     }
+ 
+-    fn on_announce(&self, entry: &FollowEntry, ev: &Event) -> Option<MirrorRecord> {
++    /// Record a 30617's clone URLs. The replay check comes first, so a
++    /// replayed announcement costs no store examination; then the served
++    /// store is prepared, before a first record is saved beside it.
++    async fn on_announce(&self, entry: &FollowEntry, ev: &Event) -> Option<MirrorRecord> {
+         let clones = read_clones(ev);
+         if clones.is_empty() {
+             return None;
+         }
+-        let mut rec = self
+-            .store
+-            .read(&entry.pubkey, &entry.name)
+-            .unwrap_or_else(|| MirrorRecord::new(&entry.pubkey, &entry.name, entry.clone.clone()));
+-        if rec.announce_at.is_some_and(|a| a >= ev.created_at) {
++        let existing = self.store.read(&entry.pubkey, &entry.name);
++        if existing
++            .as_ref()
++            .is_some_and(|r| r.announce_at.is_some_and(|a| a >= ev.created_at))
++        {
+             return None;
+         }
++        let mut rec = existing
++            .clone()
++            .unwrap_or_else(|| MirrorRecord::new(&entry.pubkey, &entry.name, entry.clone.clone()));
++        match self
++            .prepare_served(&entry.pubkey, &entry.name, existing.as_ref())
++            .await
++        {
++            Ok(Prepared::AwaitsMigration) => rec.awaits_migration = true,
++            Ok(Prepared::Ready) => {}
++            // A first record beside an unprepared store would gate it.
++            Err(_) if existing.is_none() => return None,
++            Err(_) => {}
++        }
+         rec.clone = Some(clones[0].clone());
+         rec.announce_at = Some(ev.created_at);
+         rec.clones = clones;
+@@ -2700,66 +2963,115 @@ fn on_announce(&self, entry: &FollowEntry, ev: &Event) -> Option<MirrorRecord> {
+     /// Check the clone host and fetch from it. A remote URL is normalised
+     /// first and the address the SSRF policy approves is pinned into git;
+     /// an operator `file://` clone is neither resolved nor pinned.
++    ///
++    /// Errors carry whether the same fetch may pass on a retry: a git
++    /// failure may (the network, a timeout), except one past the size cap;
++    /// a clone URL or host the policy refuses does not.
+     async fn fetch_checked(
+         &self,
+         owner: &str,
+         name: &str,
+         clone: &str,
+         operator: bool,
+-    ) -> Result<(), String> {
++    ) -> Result<(), (String, bool)> {
++        let refused = |why: String| (why, false);
++        let git = |why: String| {
++            let retryable = why != GREW_PAST_CAP;
++            (why, retryable)
++        };
+         if clone.to_ascii_lowercase().starts_with("file://") {
+-            return self.git.fetch(owner, name, clone, operator, None).await;
++            return self
++                .git
++                .fetch(owner, name, clone, operator, None)
++                .await
++                .map_err(git);
+         }
+         let (url, host, port) = if operator {
+-            let u = url::Url::parse(clone).map_err(|e| format!("bad URL: {e}"))?;
++            let u = url::Url::parse(clone).map_err(|e| refused(format!("bad URL: {e}")))?;
+             (
+                 u.as_str().to_string(),
+-                u.host_str().ok_or("URL has no host")?.to_string(),
+-                u.port_or_known_default().ok_or("URL has no port")?,
++                u.host_str()
++                    .ok_or_else(|| refused("URL has no host".into()))?
++                    .to_string(),
++                u.port_or_known_default()
++                    .ok_or_else(|| refused("URL has no port".into()))?,
+             )
+         } else {
+-            normalise_remote_clone(clone).ok_or_else(|| "clone URL refused".to_string())?
++            normalise_remote_clone(clone).ok_or_else(|| refused("clone URL refused".into()))?
+         };
+         let ip = self
+             .host_allowed(&url)
+             .await
+-            .map_err(|why| format!("clone host refused: {why}"))?;
++            .map_err(|why| refused(format!("clone host refused: {why}")))?;
+         let pin = ip.map(|ip| ClonePin { host, port, ip });
+         self.git
+             .fetch(owner, name, &url, operator, pin.as_ref())
+             .await
++            .map_err(git)
+     }
+ 
+     /// Let the adapter prepare an existing served store (mark a clean one)
+-    /// before any record for it is saved, so following a clean repository
+-    /// never gates it. A refusal (a store in the pre-isolation layout) is
+-    /// logged; that store stays unmarked and refused until migrated.
+-    async fn prepare_served(&self, owner: &str, name: &str) -> Prepared {
++    /// before a first record for it is saved, so following a clean
++    /// repository never gates it. `rec` is the record already on disk:
++    ///
++    /// - a persisted awaits-migration verdict is returned without looking
++    ///   at the store again;
++    /// - a record from before this release (not [`MirrorRecord::isolated`])
++    ///   asks for the unreachable-object scan; a store first followed now is
++    ///   an owner's store and is not scanned;
++    /// - a scan that fails counts as awaiting migration (fail closed);
++    ///   any other failure is returned, and terminal for the state.
++    async fn prepare_served(
++        &self,
++        owner: &str,
++        name: &str,
++        rec: Option<&MirrorRecord>,
++    ) -> Result<Prepared, String> {
++        if rec.is_some_and(|r| r.awaits_migration) {
++            return Ok(Prepared::AwaitsMigration);
++        }
+         if !self.git.exists(owner, name).await {
+-            return Prepared::Ready;
++            return Ok(Prepared::Ready);
+         }
+-        match self.git.prepare(owner, name).await {
++        let scan = rec.is_some_and(|r| !r.isolated);
++        match self.git.prepare(owner, name, scan).await {
+             Ok(Prepared::AwaitsMigration) => {
+                 tracing::warn!(pubkey = %owner, name = %name, "forge: mirror store awaits migration; not followed");
+-                Prepared::AwaitsMigration
++                Ok(Prepared::AwaitsMigration)
++            }
++            Ok(Prepared::Ready) => Ok(Prepared::Ready),
++            Err(e) if scan => {
++                tracing::warn!(pubkey = %owner, name = %name, error = %e, "forge: mirror store could not be examined; treated as awaiting migration");
++                Ok(Prepared::AwaitsMigration)
+             }
+-            Ok(Prepared::Ready) => Prepared::Ready,
+             Err(e) => {
+-                // Transient: publication marks the store again, or fails.
+                 tracing::warn!(pubkey = %owner, name = %name, error = %e, "forge: mirror store not prepared");
+-                Prepared::Ready
++                Err(e)
+             }
+         }
+     }
+ 
++    /// Schedule a retry of the newest state after a failure that may pass:
++    /// the backoff floor, never less than [`backoff_delay`] of the failure
++    /// count, counted from a clock reading taken now, after the failure
++    /// (Codex C4), not from when the attempt started.
++    fn schedule_retry(&self, rec: &mut MirrorRecord) {
++        let floor = backoff_interval(self.cfg.min_interval_ms, rec.failures);
++        let least = u64::try_from(backoff_delay(rec.failures).as_millis()).unwrap_or(u64::MAX);
++        rec.retry_at = Some(self.clock.now_ms().saturating_add(floor.max(least)));
++    }
++
+     fn save(&self, rec: &MirrorRecord) {
+         if let Err(e) = self.store.save(rec) {
+             tracing::warn!(pubkey = %rec.pubkey, name = %rec.name, error = %e, "forge: mirror record not saved");
+         }
+     }
+ 
+-    /// Apply one verified kind-30618 to one followed repository: prepare an
+-    /// existing served store ([`MirrorGit::prepare`]), plan, fetch into the
++    /// Apply one verified kind-30618 to one followed repository: check it is
++    /// not stamped far ahead or a replay, prepare an existing served store
++    /// ([`MirrorGit::prepare`]; for a first record this comes before the
++    /// checks, so no record is saved beside an unprepared store), plan,
++    /// fetch into the
+     /// private candidate store, give each changed branch its verdict there,
+     /// then publish only the approved commits into the served store in one
+     /// atomic, leased push ([`MirrorGit::publish`]), and save the record.
+@@ -2814,11 +3126,18 @@ async fn apply_locked(
+                 return rec;
+             }
+         };
+-        let prepared = self.prepare_served(owner, name).await;
++        let existing = self.store.read(owner, name);
++        // A first record is saved only once its store is prepared: a record
++        // beside an unmarked store gates it (503). Otherwise preparation
++        // waits for the replay check, so a replay costs no examination.
++        let early = if existing.is_none() {
++            Some(self.prepare_served(owner, name, None).await)
++        } else {
++            None
++        };
+         let state = read_state(ev);
+-        let mut rec = self
+-            .store
+-            .read(owner, name)
++        let mut rec = existing
++            .clone()
+             .unwrap_or_else(|| MirrorRecord::new(owner, name, entry.clone.clone()));
+         let local = if self.git.exists(owner, name).await {
+             self.git.local_heads(owner, name).await
+@@ -2864,10 +3183,38 @@ async fn apply_locked(
+                 self.save(&rec);
+                 return rec;
+             }
++            if rec.newest_seen_id != ev.id {
++                rec.publish_timeouts = 0;
++            }
+             rec.newest_seen_at = st.created_at;
+             rec.newest_seen_id = ev.id.clone();
+         }
++        let prepared = match early {
++            Some(p) => p,
++            None => self.prepare_served(owner, name, existing.as_ref()).await,
++        };
++        let prepared = match prepared {
++            Ok(p) => p,
++            Err(e) => {
++                // Terminal for this state (security R2): the same check would
++                // fail the same way. Not acted on, so a redelivery can pass.
++                rec.events += 1;
++                rec.retry_at = None;
++                rec.last_seen = Some(LastSeen {
++                    id: ev.id.clone(),
++                    created_at: ev.created_at,
++                    at: now,
++                    action: SeenAction::Skip,
++                    reason: format!("the served repository could not be prepared: {e}"),
++                });
++                if existing.is_some() {
++                    self.save(&rec);
++                }
++                return rec;
++            }
++        };
+         if prepared == Prepared::AwaitsMigration {
++            rec.awaits_migration = true;
+             // Nothing can be published into it, so do not fetch for it, and
+             // do not retry: the same state redelivered after migration still
+             // passes the replay check above. `last_event` stays unset.
+@@ -2886,7 +3233,7 @@ async fn apply_locked(
+         let plan = plan_mirror(&PlanInput {
+             state: state.as_ref(),
+             local: &local,
+-            last_seen_at: rec.last_event.as_ref().map_or(0, |e| e.created_at),
++            last_seen_at: acted_on_at(rec.last_event.as_ref(), ev),
+             last_fetch_at: rec.last_fetch_at.unwrap_or(0),
+             now,
+             min_interval_ms: backoff_interval(self.cfg.min_interval_ms, rec.failures),
+@@ -2930,6 +3277,8 @@ async fn apply_locked(
+         };
+         if !self.git.exists(owner, name).await {
+             if let Err(e) = self.git.materialise(owner, name).await {
++                rec.failures = rec.failures.saturating_add(1);
++                self.schedule_retry(&mut rec);
+                 seen.action = SeenAction::FetchFailed;
+                 seen.reason = format!("could not create the mirror: {e}");
+                 rec.last_seen = Some(seen);
+@@ -2941,8 +3290,13 @@ async fn apply_locked(
+         // `failures` is reset only once the state is fully applied (below):
+         // a good fetch followed by a failed publish is still a failure.
+         let fetched = self.fetch_checked(owner, name, &clone, operator).await;
+-        if let Err(why) = fetched {
++        if let Err((why, retryable)) = fetched {
+             rec.failures = rec.failures.saturating_add(1);
++            // A network error or timeout may pass (Codex C3); a fetch past
++            // the size cap or a refused clone URL will not.
++            if retryable {
++                self.schedule_retry(&mut rec);
++            }
+             seen.action = SeenAction::FetchFailed;
+             seen.reason = why;
+             tracing::warn!(pubkey = %owner, name = %name, reason = %seen.reason, "forge: mirror fetch failed");
+@@ -3032,17 +3386,28 @@ async fn apply_locked(
+             // rate limit the fetch floor is 0, and the retry would spin). A
+             // terminal refusal waits for a newer state instead.
+             rec.failures = rec.failures.saturating_add(1);
+-            if retryable {
+-                let floor = backoff_interval(self.cfg.min_interval_ms, rec.failures);
+-                let least =
+-                    u64::try_from(backoff_delay(rec.failures).as_millis()).unwrap_or(u64::MAX);
+-                rec.retry_at = Some(now.saturating_add(floor.max(least)));
++            rec.publish_timeouts = if e.timed_out {
++                rec.publish_timeouts.saturating_add(1)
++            } else {
++                0
++            };
++            let gave_up = e.timed_out && rec.publish_timeouts >= MAX_PUBLISH_TIMEOUTS;
++            if retryable && !gave_up {
++                self.schedule_retry(&mut rec);
+             }
+             seen.action = SeenAction::FetchFailed;
+-            seen.reason = format!("publish failed: {e}");
++            seen.reason = if gave_up {
++                format!(
++                    "publish failed: {e} ({} timeouts in a row; not retried)",
++                    rec.publish_timeouts
++                )
++            } else {
++                format!("publish failed: {e}")
++            };
+         } else {
+             // Applied (published, or nothing passed): the state is done.
+             rec.failures = 0;
++            rec.publish_timeouts = 0;
+             rec.last_event = Some(EventRef {
+                 id: ev.id.clone(),
+                 created_at: ev.created_at,
+@@ -5146,8 +5511,13 @@ async fn local_heads(&self, owner: &str, name: &str) -> BTreeMap<String, String>
+             async fn materialise(&self, owner: &str, name: &str) -> Result<(), String> {
+                 self.inner.materialise(owner, name).await
+             }
+-            async fn prepare(&self, owner: &str, name: &str) -> Result<Prepared, String> {
+-                self.inner.prepare(owner, name).await
++            async fn prepare(
++                &self,
++                owner: &str,
++                name: &str,
++                scan: bool,
++            ) -> Result<Prepared, String> {
++                self.inner.prepare(owner, name, scan).await
+             }
+             async fn fetch(
+                 &self,
+@@ -6176,8 +6546,9 @@ fn quarantines(served: &Path) -> Vec<String> {
+         }
+ 
+         /// A killed receive-pack leaves `objects/tmp_objdir-incoming-*` in
+-        /// served. Publication sweeps any it finds, so neither a failed nor
+-        /// a successful publish leaves one behind.
++        /// served. Publication sweeps those older than its push timeout
++        /// before it pushes, so a stale leftover is gone after a failed and
++        /// after a successful publish alike.
+         #[tokio::test]
+         async fn publication_leaves_no_receive_quarantine_behind() {
+             let p = published(66).await;
+@@ -7279,7 +7650,7 @@ async fn a_store_holding_an_unreachable_object_is_not_marked() {
+                 .save(&MirrorRecord::new(&dirty, "sample", None))
+                 .unwrap();
+             assert_eq!(
+-                git.prepare(&dirty, "sample").await,
++                git.prepare(&dirty, "sample", true).await,
+                 Ok(Prepared::AwaitsMigration)
+             );
+             assert!(
+@@ -7299,7 +7670,10 @@ async fn a_store_holding_an_unreachable_object_is_not_marked() {
+             MirrorStore::new(&plugin)
+                 .save(&MirrorRecord::new(&clean, "sample", None))
+                 .unwrap();
+-            assert_eq!(git.prepare(&clean, "sample").await, Ok(Prepared::Ready));
++            assert_eq!(
++                git.prepare(&clean, "sample", true).await,
++                Ok(Prepared::Ready)
++            );
+             assert!(
+                 served.join(MARKER_FILE).is_file(),
+                 "control: a clean store is marked"
+@@ -7311,7 +7685,8 @@ async fn a_store_holding_an_unreachable_object_is_not_marked() {
+         /// in flight) survives the sweep before a publish and the sweep after
+         /// a failed one; an old one is removed.
+         #[tokio::test]
+-        async fn a_fresh_quarantine_survives_both_sweeps_and_an_old_one_does_not() {
++        async fn a_fresh_quarantine_survives_a_failed_and_a_later_publish_and_an_old_one_does_not()
++        {
+             let p = published(86).await;
+             let served = p.served();
+             let approved2 = commit_file(&p.up, p.home(), "two.txt", "two\n", "approved two");
+@@ -7479,7 +7854,7 @@ async fn a_detached_head_at_an_unreferenced_commit_is_not_marked() {
+                 .unwrap();
+             let git = GitCli::new(plugin.join("repos"));
+             assert_eq!(
+-                git.prepare(&owner, "sample").await,
++                git.prepare(&owner, "sample", true).await,
+                 Ok(Prepared::AwaitsMigration)
+             );
+             assert!(!served.join(MARKER_FILE).exists(), "marked");
+@@ -7514,7 +7889,7 @@ async fn a_store_with_alternates_is_not_marked() {
+                     .save(&MirrorRecord::new(&owner, "sample", None))
+                     .unwrap();
+                 assert_eq!(
+-                    git.prepare(&owner, "sample").await,
++                    git.prepare(&owner, "sample", true).await,
+                     Ok(Prepared::AwaitsMigration),
+                     "{file}"
+                 );
+@@ -7587,5 +7962,654 @@ async fn a_quarantine_that_cannot_be_scanned_has_no_age() {
+                 "a quarantine that could not be fully scanned was given an age"
+             );
+         }
++
++        // --- round 5 -------------------------------------------------------
++
++        /// Wait until the record shows `ev` failed and scheduled a retry.
++        async fn until_retry_scheduled(p: &Published, ev: &Event) -> MirrorRecord {
++            let store = MirrorStore::new(&p.plugin);
++            let id = ev.id.clone();
++            until("the state to fail with a retry scheduled", || {
++                let r = store.read(&p.owner, "sample").filter(|r| {
++                    r.retry_at.is_some() && r.last_seen.as_ref().is_some_and(|s| s.id == id)
++                });
++                async move { r }
++            })
++            .await
++        }
++
++        async fn until_main_is(p: &Published, want: &str, what: &str) {
++            let served = p.served();
++            let home = p.home().to_path_buf();
++            until(what, || {
++                let main = rev(&served, &home, "refs/heads/main");
++                let ok = main == want;
++                async move { ok.then_some(()) }
++            })
++            .await;
++        }
++
++        /// Item 1 (Codex C1): a forged newer state (its tags tampered after
++        /// signing) neither cancels the pending retry nor takes its place;
++        /// the retry still fires and publishes.
++        #[tokio::test]
++        async fn a_forged_newer_state_does_not_cancel_a_pending_retry() {
++            let p = published(100).await;
++            let lock = plant_ref_lock(&p.served());
++            let s2 = commit_file(&p.up, p.home(), "s2.txt", "s2\n", "s2");
++            let ev2 = state_event(&p.sk, "sample", &[("refs/heads/main", &s2)], None, T2);
++            p.m.enqueue(ev2.clone());
++            until_retry_scheduled(&p, &ev2).await;
++            let mut forged = state_event(
++                &p.sk,
++                "sample",
++                &[("refs/heads/main", &"f".repeat(40))],
++                None,
++                T3,
++            );
++            forged.tags.push(vec!["x".into(), "tampered".into()]);
++            assert!(
++                !verify_event(&forged),
++                "control: the forgery fails verification"
++            );
++            p.m.enqueue(forged);
++            std::fs::remove_file(&lock).unwrap();
++            until_main_is(&p, &s2, "the pending retry of S2 to publish").await;
++        }
++
++        /// Item 2 (Codex C2, security R3): when the retry timer fires while
++        /// the slot holds an older state (here placed without a wake), the
++        /// pending newer state is put back over it, not dropped.
++        #[tokio::test]
++        async fn a_pending_retry_is_not_lost_to_an_older_state_in_the_slot() {
++            let p = published(101).await;
++            let lock = plant_ref_lock(&p.served());
++            let s2 = commit_file(&p.up, p.home(), "s2.txt", "s2\n", "s2");
++            let ev2 = state_event(&p.sk, "sample", &[("refs/heads/main", &s2)], None, T3);
++            p.m.enqueue(ev2.clone());
++            until_retry_scheduled(&p, &ev2).await;
++            let older = state_event(
++                &p.sk,
++                "sample",
++                &[("refs/heads/main", &p.approved)],
++                None,
++                T2,
++            );
++            p.m.inbox
++                .lock()
++                .unwrap()
++                .insert(format!("{}/sample#{KIND_STATE}", p.owner), older);
++            std::fs::remove_file(&lock).unwrap();
++            until_main_is(&p, &s2, "the pending retry of S2 to publish").await;
++        }
++
++        /// Item 3 (Codex C3, security R4): a fetch that fails for a reason
++        /// that can pass (here the upstream is briefly gone) is retried by
++        /// the worker once it is back, with no new event.
++        #[tokio::test]
++        async fn a_transiently_failed_fetch_is_retried() {
++            let p = published(102).await;
++            let s2 = commit_file(&p.up, p.home(), "s2.txt", "s2\n", "s2");
++            let away = p.home().join("upstream-away");
++            std::fs::rename(&p.up, &away).unwrap();
++            let ev2 = state_event(&p.sk, "sample", &[("refs/heads/main", &s2)], None, T2);
++            p.m.enqueue(ev2.clone());
++            let failed = until_retry_scheduled(&p, &ev2).await;
++            assert_eq!(
++                failed.last_seen.as_ref().unwrap().action,
++                SeenAction::FetchFailed,
++                "control: {}",
++                failed.last_seen.as_ref().unwrap().reason
++            );
++            std::fs::rename(&away, &p.up).unwrap();
++            until_main_is(&p, &s2, "the retried fetch to publish S2").await;
++        }
++
++        /// Item 3: a materialise failure (the owner directory under `repos/`
++        /// is a file) schedules a retry too.
++        #[tokio::test]
++        async fn a_failed_materialise_schedules_a_retry() {
++            let tmp = tempfile::tempdir().unwrap();
++            let home = tmp.path();
++            let plugin = home.join("plugin");
++            let up = new_upstream(home);
++            let approved = commit_file(&up, home, "public.txt", APPROVED_BYTES, APPROVED_SUBJECT);
++            let sk = key(103);
++            let owner = pubhex(&sk);
++            std::fs::create_dir_all(plugin.join("repos")).unwrap();
++            std::fs::write(plugin.join("repos").join(&owner), b"in the way").unwrap();
++            let entry = follow_sample(&owner, &up);
++            let m = engine(&plugin, quiet_cfg(&entry));
++            let r = apply_state(&m, &entry, &sk, &[("refs/heads/main", &approved)], None, T1).await;
++            let seen = r.last_seen.clone().unwrap();
++            assert!(
++                seen.reason.contains("could not create"),
++                "control: {}",
++                seen.reason
++            );
++            assert!(r.retry_at.is_some(), "a failed materialise was not retried");
++        }
++
++        /// A test clock that moves on by `step` ms at every reading.
++        struct StepClock {
++            at: std::sync::atomic::AtomicU64,
++            step: u64,
++        }
++
++        impl MirrorClock for StepClock {
++            fn now_ms(&self) -> u64 {
++                self.at.fetch_add(self.step, Ordering::SeqCst)
++            }
++        }
++
++        /// Item 4 (Codex C4): the retry floor counts from when the attempt
++        /// failed, not from when it started. With a clock that advances at
++        /// every reading, the attempt takes at least one step.
++        #[tokio::test]
++        async fn the_retry_floor_counts_from_the_failure() {
++            let p = published(104).await;
++            plant_ref_lock(&p.served());
++            let s2 = commit_file(&p.up, p.home(), "s2.txt", "s2\n", "s2");
++            let step = 5_000;
++            let m = Mirror::with_parts(
++                quiet_cfg(&p.entry),
++                MirrorStore::new(&p.plugin),
++                Arc::new(GitCli::new(p.plugin.join("repos"))),
++                Arc::new(StepClock {
++                    at: std::sync::atomic::AtomicU64::new(SystemClock.now_ms()),
++                    step,
++                }),
++                Arc::new(AllowAll),
++            );
++            let r = apply_state(&m, &p.entry, &p.sk, &[("refs/heads/main", &s2)], None, T2).await;
++            assert_eq!(r.failures, 1, "control: {:?}", r.last_seen);
++            let started = r.last_fetch_at.unwrap();
++            let gap = r.retry_at.unwrap().saturating_sub(started);
++            assert!(
++                gap >= step + 2_000,
++                "the retry is {gap} ms after the attempt started, not 2000 ms after the failure"
++            );
++        }
++
++        /// Item 5 (Codex C5): two states at the same second are ordered by
++        /// id for "acted on" as for "seen". After the higher-id sibling is
++        /// applied, the lower-id one (the NIP-01 winner) is applied too.
++        #[tokio::test]
++        async fn a_lower_id_sibling_of_an_applied_state_is_applied() {
++            let p = published(105).await;
++            let a = commit_file(&p.up, p.home(), "a.txt", "a\n", "a");
++            let b = commit_file(&p.up, p.home(), "b.txt", "b\n", "b");
++            let ea = state_event(&p.sk, "sample", &[("refs/heads/main", &a)], None, T2);
++            let eb = state_event(&p.sk, "sample", &[("refs/heads/main", &b)], None, T2);
++            let ((hi, hi_sha), (lo, lo_sha)) = if ea.id > eb.id {
++                ((ea, a), (eb, b))
++            } else {
++                ((eb, b), (ea, a))
++            };
++            let r = p.m.apply(&p.entry, &hi).await;
++            assert_eq!(
++                rev(&p.served(), p.home(), "refs/heads/main"),
++                hi_sha,
++                "control: {:?}",
++                r.last_seen
++            );
++            let r = p.m.apply(&p.entry, &lo).await;
++            assert_eq!(
++                rev(&p.served(), p.home(), "refs/heads/main"),
++                lo_sha,
++                "the lower-id sibling was not applied: {:?}",
++                r.last_seen
++            );
++            assert_eq!(r.last_event.map(|e| e.id), Some(lo.id));
++        }
++
++        fn fetched_cli(p: &Published) -> GitCli {
++            GitCli::new(p.plugin.join("repos"))
++        }
++
++        fn main_to(p: &Published, sha: &str) -> RefUpdate {
++            RefUpdate {
++                git_ref: "refs/heads/main".into(),
++                sha: sha.to_string(),
++                expected: Some(p.approved.clone()),
++            }
++        }
++
++        /// Item 6 (Codex C6, security R2): a push killed by the growth cap is
++        /// terminal for the state. The measure seam reports a huge store at
++        /// the first poll, so the kill does not depend on timing.
++        #[tokio::test]
++        async fn a_push_killed_by_the_growth_cap_is_terminal() {
++            let p = published(106).await;
++            let s2 = commit_file(&p.up, p.home(), "s2.txt", "s2\n", "s2");
++            let git = fetched_cli(&p);
++            git.fetch(&p.owner, "sample", &p.url(), true, None)
++                .await
++                .unwrap();
++            fn huge(_: &Path) -> u64 {
++                u64::MAX
++            }
++            let capped = GitCli {
++                push_measure: Some(huge),
++                ..git.clone()
++            };
++            let e = capped
++                .publish(&p.owner, "sample", &[main_to(&p, &s2)], None)
++                .await
++                .expect_err("control: the capped push fails");
++            assert!(e.reason.contains("size cap"), "control: {}", e.reason);
++            assert!(!e.retryable, "a growth-cap kill was classed retryable");
++            assert_eq!(rev(&p.served(), p.home(), "refs/heads/main"), p.approved);
++        }
++
++        /// Item 6: a served store that git cannot read (its `refs/` is gone)
++        /// fails publication's store check terminally, not as a retry.
++        #[tokio::test]
++        async fn a_store_check_error_in_publish_is_terminal() {
++            let p = published(107).await;
++            let s2 = commit_file(&p.up, p.home(), "s2.txt", "s2\n", "s2");
++            let git = fetched_cli(&p);
++            git.fetch(&p.owner, "sample", &p.url(), true, None)
++                .await
++                .unwrap();
++            let served = p.served();
++            std::fs::remove_file(served.join(MARKER_FILE)).unwrap();
++            std::fs::remove_dir_all(served.join("refs")).unwrap();
++            let e = git
++                .publish(&p.owner, "sample", &[main_to(&p, &s2)], None)
++                .await
++                .expect_err("control: publication into a broken store fails");
++            assert!(
++                !e.retryable,
++                "a store check error was classed retryable: {}",
++                e.reason
++            );
++        }
++
++        /// A `MirrorGit` over [`GitCli`] that counts `prepare` calls and can
++        /// make every publication time out.
++        struct Spy {
++            inner: GitCli,
++            prepares: std::sync::atomic::AtomicU32,
++            time_out: bool,
++        }
++
++        #[async_trait]
++        impl MirrorGit for Spy {
++            async fn exists(&self, owner: &str, name: &str) -> bool {
++                self.inner.exists(owner, name).await
++            }
++            async fn local_heads(&self, owner: &str, name: &str) -> BTreeMap<String, String> {
++                self.inner.local_heads(owner, name).await
++            }
++            async fn materialise(&self, owner: &str, name: &str) -> Result<(), String> {
++                self.inner.materialise(owner, name).await
++            }
++            async fn prepare(
++                &self,
++                owner: &str,
++                name: &str,
++                scan: bool,
++            ) -> Result<Prepared, String> {
++                self.prepares.fetch_add(1, Ordering::SeqCst);
++                self.inner.prepare(owner, name, scan).await
++            }
++            async fn fetch(
++                &self,
++                owner: &str,
++                name: &str,
++                clone: &str,
++                operator: bool,
++                pin: Option<&ClonePin>,
++            ) -> Result<(), String> {
++                self.inner.fetch(owner, name, clone, operator, pin).await
++            }
++            async fn has_commit(&self, owner: &str, name: &str, sha: &str) -> bool {
++                self.inner.has_commit(owner, name, sha).await
++            }
++            async fn is_ancestor(&self, owner: &str, name: &str, a: &str, d: &str) -> bool {
++                self.inner.is_ancestor(owner, name, a, d).await
++            }
++            async fn read_trail(&self, owner: &str, name: &str, sha: &str) -> Option<String> {
++                self.inner.read_trail(owner, name, sha).await
++            }
++            async fn publish(
++                &self,
++                owner: &str,
++                name: &str,
++                updates: &[RefUpdate],
++                head: Option<&str>,
++            ) -> Result<(), PublishError> {
++                if self.time_out {
++                    return Err(PublishError {
++                        reason: "git timed out".into(),
++                        retryable: true,
++                        timed_out: true,
++                    });
++                }
++                self.inner.publish(owner, name, updates, head).await
++            }
++        }
++
++        fn spy_engine(
++            plugin: &Path,
++            entry: &FollowEntry,
++            time_out: bool,
++        ) -> (Arc<Mirror>, Arc<Spy>) {
++            let spy = Arc::new(Spy {
++                inner: GitCli::new(plugin.join("repos")),
++                prepares: std::sync::atomic::AtomicU32::new(0),
++                time_out,
++            });
++            let m = Arc::new(Mirror::with_parts(
++                quiet_cfg(entry),
++                MirrorStore::new(plugin),
++                spy.clone(),
++                Arc::new(SystemClock),
++                Arc::new(AllowAll),
++            ));
++            (m, spy)
++        }
++
++        /// Item 6: publish timeouts of one state stop being retried after
++        /// [`MAX_PUBLISH_TIMEOUTS`] in a row.
++        #[tokio::test]
++        async fn repeated_publish_timeouts_of_one_state_become_terminal() {
++            let tmp = tempfile::tempdir().unwrap();
++            let home = tmp.path();
++            let plugin = home.join("plugin");
++            let up = new_upstream(home);
++            let approved = commit_file(&up, home, "public.txt", APPROVED_BYTES, APPROVED_SUBJECT);
++            let sk = key(108);
++            let owner = pubhex(&sk);
++            let entry = follow_sample(&owner, &up);
++            let (m, _) = spy_engine(&plugin, &entry, true);
++            let ev = state_event(&sk, "sample", &[("refs/heads/main", &approved)], None, T1);
++            for i in 1..MAX_PUBLISH_TIMEOUTS {
++                let r = m.apply(&entry, &ev).await;
++                assert!(
++                    r.retry_at.is_some(),
++                    "control: timeout {i} is retried: {:?}",
++                    r.last_seen
++                );
++            }
++            let r = m.apply(&entry, &ev).await;
++            let seen = r.last_seen.clone().unwrap();
++            assert!(
++                seen.reason.contains("timed out"),
++                "control: {}",
++                seen.reason
++            );
++            assert_eq!(
++                r.retry_at, None,
++                "timeout {MAX_PUBLISH_TIMEOUTS} of the same state was retried"
++            );
++        }
++
++        /// Item 7 (security R1): an owner-pushed repository holding a commit
++        /// a force push left behind is followed, marked and stays readable:
++        /// its unreachable objects are the owner's own.
++        #[tokio::test]
++        async fn an_owner_repo_with_a_force_pushed_away_commit_is_followed_and_served() {
++            let tmp = tempfile::tempdir().unwrap();
++            let home = tmp.path();
++            let plugin = home.join("plugin");
++            let up = new_upstream(home);
++            let first = commit_file(&up, home, "public.txt", APPROVED_BYTES, APPROVED_SUBJECT);
++            let sk = key(109);
++            let owner = pubhex(&sk);
++            let served = owner_pushed(&plugin, &owner, &up, home);
++            git_ok(&up, home, &["checkout", "--quiet", "--orphan", "rewrite"]);
++            let second = commit_file(&up, home, "public.txt", APPROVED_BYTES, "rewritten");
++            let s = served.to_str().unwrap();
++            git_ok(
++                &up,
++                home,
++                &["push", "--quiet", "--force", s, "rewrite:main"],
++            );
++            assert!(
++                has_object(&served, &first),
++                "control: the old commit is still in served"
++            );
++            let entry = follow_sample(&owner, &up);
++            let m = engine(&plugin, quiet_cfg(&entry));
++            let r = apply_state(&m, &entry, &sk, &[("refs/heads/main", &second)], None, T1).await;
++            let seen = r.last_seen.clone().unwrap();
++            assert!(!seen.reason.contains("awaits migration"), "{}", seen.reason);
++            assert!(
++                served.join(MARKER_FILE).is_file(),
++                "not marked: {}",
++                seen.reason
++            );
++            let forge = forge_at(&plugin);
++            let raw = get(
++                &forge,
++                format!("/forge/{owner}/sample/raw/{second}/public.txt"),
++            )
++            .await;
++            assert_eq!(raw.status, 200, "{}", String::from_utf8_lossy(&raw.body));
++        }
++
++        /// A served store with a mirror record written before this release
++        /// (no `isolated` field), unmarked and holding an object no branch or
++        /// tag reaches: the shape the old shared layout may leave.
++        fn legacy_record_store(
++            plugin: &Path,
++            home: &Path,
++            seed: u8,
++        ) -> (String, SigningKey, PathBuf, PathBuf, String) {
++            let up = home.join(format!("up-{seed}"));
++            std::fs::create_dir(&up).unwrap();
++            git_ok(&up, home, &["init", "--quiet", "-b", "main"]);
++            let approved = commit_file(&up, home, "public.txt", APPROVED_BYTES, APPROVED_SUBJECT);
++            let sk = key(seed);
++            let owner = pubhex(&sk);
++            let served = owner_pushed(plugin, &owner, &up, home);
++            let loose = home.join(format!("held-{seed}.txt"));
++            std::fs::write(&loose, HELD_BYTES).unwrap();
++            git_ok(
++                &served,
++                home,
++                &["hash-object", "-w", loose.to_str().unwrap()],
++            );
++            let mut v = serde_json::to_value(MirrorRecord::new(&owner, "sample", None)).unwrap();
++            v.as_object_mut().unwrap().remove("isolated");
++            let dir = plugin.join("mirror").join(&owner);
++            std::fs::create_dir_all(&dir).unwrap();
++            std::fs::write(dir.join("sample.json"), v.to_string()).unwrap();
++            (owner, sk, served, up, approved)
++        }
++
++        /// Item 7: a legacy-style store (a pre-release record, unmarked,
++        /// with an unreachable object) still waits for migration.
++        #[tokio::test]
++        async fn a_legacy_record_store_with_an_unreachable_object_awaits_migration() {
++            let tmp = tempfile::tempdir().unwrap();
++            let home = tmp.path();
++            let plugin = home.join("plugin");
++            let (owner, sk, served, up, approved) = legacy_record_store(&plugin, home, 110);
++            let entry = follow_sample(&owner, &up);
++            let m = engine(&plugin, quiet_cfg(&entry));
++            let r = apply_state(&m, &entry, &sk, &[("refs/heads/main", &approved)], None, T1).await;
++            let seen = r.last_seen.clone().unwrap();
++            assert!(seen.reason.contains("awaits migration"), "{}", seen.reason);
++            assert!(!served.join(MARKER_FILE).exists(), "marked");
++            let forge = forge_at(&plugin);
++            let raw = get(
++                &forge,
++                format!("/forge/{owner}/sample/raw/{approved}/public.txt"),
++            )
++            .await;
++            assert_eq!(raw.status, 503, "{}", String::from_utf8_lossy(&raw.body));
++        }
++
++        /// Item 7: the store is examined once. A replayed (older) state and
++        /// a newer state after the verdict do not call `prepare` again.
++        #[tokio::test]
++        async fn the_store_is_examined_once_and_never_for_a_replay() {
++            let tmp = tempfile::tempdir().unwrap();
++            let home = tmp.path();
++            let plugin = home.join("plugin");
++            let (owner, sk, _, up, approved) = legacy_record_store(&plugin, home, 111);
++            let entry = follow_sample(&owner, &up);
++            let (m, spy) = spy_engine(&plugin, &entry, false);
++            let r = apply_state(&m, &entry, &sk, &[("refs/heads/main", &approved)], None, T2).await;
++            assert!(
++                r.last_seen.unwrap().reason.contains("awaits migration"),
++                "control"
++            );
++            let after_first = spy.prepares.load(Ordering::SeqCst);
++            assert_eq!(after_first, 1, "control: one examination");
++            let r = apply_state(&m, &entry, &sk, &[("refs/heads/main", &approved)], None, T1).await;
++            assert!(r.last_seen.unwrap().reason.contains("replay"), "control");
++            assert_eq!(
++                spy.prepares.load(Ordering::SeqCst),
++                1,
++                "a replay examined the store"
++            );
++            let r = apply_state(&m, &entry, &sk, &[("refs/heads/main", &approved)], None, T3).await;
++            assert!(
++                r.last_seen.unwrap().reason.contains("awaits migration"),
++                "control"
++            );
++            assert_eq!(
++                spy.prepares.load(Ordering::SeqCst),
++                1,
++                "the persisted verdict was not used"
++            );
++        }
++
++        /// Item 8 (security R5): quarantine directories do not count towards
++        /// the ceiling (a young one larger than the ceiling does not refuse
++        /// publication), and the growth watcher still measures from the full
++        /// size, so it does not kill the push either.
++        #[tokio::test]
++        async fn young_quarantines_do_not_count_towards_the_ceiling() {
++            let p = published(112).await;
++            let s2 = commit_file(&p.up, p.home(), "s2.txt", "s2\n", "s2");
++            let git = fetched_cli(&p);
++            git.fetch(&p.owner, "sample", &p.url(), true, None)
++                .await
++                .unwrap();
++            let q = p.served().join("objects").join("tmp_objdir-incoming-young");
++            std::fs::create_dir_all(&q).unwrap();
++            std::fs::File::create(q.join("big"))
++                .unwrap()
++                .set_len(MAX_SERVED_BYTES + 1)
++                .unwrap();
++            git.publish(&p.owner, "sample", &[main_to(&p, &s2)], None)
++                .await
++                .unwrap();
++            assert_eq!(rev(&p.served(), p.home(), "refs/heads/main"), s2);
++        }
++
++        /// Item 3: a fetch past the size cap is not retried (the same fetch
++        /// would grow the same way). Both cap paths report [`GREW_PAST_CAP`].
++        #[tokio::test]
++        async fn an_oversize_fetch_is_not_retried() {
++            let p = published(113).await;
++            let candidate = candidate_of(&p.plugin, &p.owner);
++            assert!(candidate.is_dir(), "control: a candidate after state 1");
++            std::fs::File::create(candidate.join("objects").join("bloat"))
++                .unwrap()
++                .set_len(MAX_REPO_BYTES + 1)
++                .unwrap();
++            let s2 = commit_file(&p.up, p.home(), "s2.txt", "s2\n", "s2");
++            let r = apply_state(&p.m, &p.entry, &p.sk, &[("refs/heads/main", &s2)], None, T2).await;
++            let seen = r.last_seen.clone().unwrap();
++            assert_eq!(seen.reason, GREW_PAST_CAP, "control");
++            assert_eq!(
++                r.retry_at, None,
++                "an oversize fetch was scheduled for retry"
++            );
++        }
++
++        /// A pre-release-record store whose only extra object is a commit
++        /// `reach` (run in served with that commit) makes reachable.
++        async fn scan_with_extra_root(
++            seed: u8,
++            reach: impl Fn(&Path, &Path, &str),
++        ) -> Result<Prepared, String> {
++            let tmp = tempfile::tempdir().unwrap();
++            let home = tmp.path();
++            let plugin = home.join("plugin");
++            let (owner, _, served, _, _) = {
++                let up = home.join(format!("up-{seed}"));
++                std::fs::create_dir(&up).unwrap();
++                git_ok(&up, home, &["init", "--quiet", "-b", "main"]);
++                let approved =
++                    commit_file(&up, home, "public.txt", APPROVED_BYTES, APPROVED_SUBJECT);
++                let sk = key(seed);
++                let owner = pubhex(&sk);
++                let served = owner_pushed(&plugin, &owner, &up, home);
++                (owner, sk, served, up, approved)
++            };
++            let tree = git_ok(&served, home, &["rev-parse", "refs/heads/main^{tree}"]);
++            let stray = git_ok(
++                &served,
++                home,
++                &[
++                    "-c",
++                    "user.name=Agent",
++                    "-c",
++                    "user.email=agent@example.org",
++                    "commit-tree",
++                    &tree,
++                    "-m",
++                    "held",
++                ],
++            );
++            reach(&served, home, &stray);
++            GitCli::new(plugin.join("repos"))
++                .prepare(&owner, "sample", true)
++                .await
++        }
++
++        /// Item 7: `FETCH_HEAD` (which the old shared layout's fetches into
++        /// served could leave naming a held tip) is not a root of the scan.
++        #[tokio::test]
++        async fn fetch_head_is_not_a_root_of_the_scan() {
++            let r = scan_with_extra_root(114, |served, _, stray| {
++                std::fs::write(
++                    served.join("FETCH_HEAD"),
++                    format!("{stray}\t\tbranch 'side' of /elsewhere\n"),
++                )
++                .unwrap();
++            })
++            .await;
++            assert_eq!(r, Ok(Prepared::AwaitsMigration));
++        }
++
++        /// Item 7: a ref outside branches and tags is not a root either.
++        #[tokio::test]
++        async fn a_notes_ref_is_not_a_root_of_the_scan() {
++            let r = scan_with_extra_root(115, |served, home, stray| {
++                git_ok(served, home, &["update-ref", "refs/notes/x", stray]);
++            })
++            .await;
++            assert_eq!(r, Ok(Prepared::AwaitsMigration));
++        }
++
++        /// Control for the two above: with no extra root the commit is
++        /// unreachable, and a store with nothing extra is marked.
++        #[tokio::test]
++        async fn the_scan_marks_a_store_with_nothing_unreachable() {
++            let r = scan_with_extra_root(116, |served, home, stray| {
++                git_ok(served, home, &["update-ref", "refs/heads/kept", stray]);
++            })
++            .await;
++            assert_eq!(r, Ok(Prepared::Ready));
++        }
++
++        /// Item 6: the real push classification, as `run_in` reports.
++        #[test]
++        fn push_failures_are_classified() {
++            let t = push_failure(GIT_TIMED_OUT.to_string());
++            assert!(t.retryable && t.timed_out, "{t:?}");
++            let g = push_failure(GREW_PAST_CAP.to_string());
++            assert!(!g.retryable && !g.timed_out, "{g:?}");
++            let l = push_failure("refs/heads/main stale info".to_string());
++            assert!(l.retryable && !l.timed_out, "{l:?}");
++        }
+     }
+ }

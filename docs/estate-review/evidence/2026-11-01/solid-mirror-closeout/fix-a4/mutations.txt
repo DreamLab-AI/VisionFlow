@@ -1,0 +1,8 @@
+## MO: a refused write stores an unreachable object in served before refusing (refuse_mirror_write)
+test mirror::tests::fix_a::a_web_edit_into_a_mirror_is_refused ... FAILED
+test mirror::tests::fix_a::a_pull_request_cannot_be_merged_into_a_mirror ... FAILED
+thread 'mirror::tests::fix_a::a_web_edit_into_a_mirror_is_refused' (2864164) panicked at crates/solid-pod-rs-forge/src/mirror.rs:7165:13:
+assertion `left == right` failed: a refused web edit wrote objects into served
+thread 'mirror::tests::fix_a::a_pull_request_cannot_be_merged_into_a_mirror' (2864163) panicked at crates/solid-pod-rs-forge/src/mirror.rs:7245:13:
+assertion `left == right` failed: a refused merge wrote objects into served
+test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 306 filtered out; finished in 0.48s

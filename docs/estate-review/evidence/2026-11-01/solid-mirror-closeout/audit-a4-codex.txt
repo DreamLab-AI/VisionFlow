@@ -1,0 +1,1024 @@
+OpenAI Codex v0.165.0
+--------
+workdir: /home/devuser/workspace/.tmp/claude-1000/-home-devuser-workspace-VisionFlow/3bacf5e1-eb41-460b-9c59-dcbf9490e95d/scratchpad
+model: gpt-6-astra
+provider: openai
+approval: never
+sandbox: read-only
+reasoning effort: medium
+reasoning summaries: none
+session id: 01a199e8-659f-7b41-b600-119947471059
+--------
+user
+You are the cross-vendor evidence auditor for a Rust security fix. Use no tools; everything you need is below. Answer in UK English, outcome first.
+
+Round 4 claims to close the gaps you left open in round 3 on High 1 (writes into a repository with a mirror record) and High 2 (stamping a store that holds unreachable objects).
+
+For each of High 1 and High 2 give a final verdict: FIXED, PARTLY FIXED, or NOT FIXED, with file:line from the interdiff. Then:
+1. Does has_mirror_record now fail closed on every caller?
+2. Are the reachability roots exactly heads and tags, and are alternates refused before marking?
+3. Is the quarantine sweep now limited to stale directories, with nothing deleted after a failed push?
+4. Do the writer tests assert the object set is unchanged?
+5. Is any new regression introduced?
+Then list anything else you find, ranked by severity. Say plainly if nothing material remains.
+
+=== ROUND-4 BRIEF ===
+# Commit A fix round 4: brief
+
+Same rules as round 3:
+- Write each test first, capture it red, then make the fix and show it green.
+- Use `CARGO_TARGET_DIR=/home/devuser/workspace/.tmp/solid-mirror-target`.
+- Run all seven gates on the final tree.
+- Put the evidence in `fix-a4/`, with a round-4-only interdiff.
+- Do not commit, push, or create or remove any worktree.
+- Do not change existing assertions.
+
+Source: the Codex round-3 audit, `audit-a3-codex.txt` (read its final block).
+
+## Items
+
+1. **`has_mirror_record` fails open** (`lib.rs:596`).
+   - **Problem:** `metadata().is_ok()` treats permission or I/O errors as "no record".
+   - **Fix:** return `Result<bool>`. `NotFound` means false. Any other error must refuse the write (409 or 503) in every writer guard, and in `unpublished_mirror` it must keep the gate closed.
+   - **Test:** make the record path unreadable without relying on chmod (root ignores modes). For example, make the record path's parent a file, or inject an error through a seam. Assert the write is refused.
+
+2. **The reachability roots include `HEAD`** (`mirror.rs:1504`).
+   - **Problem:** `rev-list --all` counts `HEAD`, so a detached `HEAD` at an unreferenced commit passes the check.
+   - **Fix:** walk only `refs/heads/*` and `refs/tags/*`, plus any other non-`refs/mirror` refs you decide to keep (list them in the rustdoc). Do not include `HEAD`.
+   - **Test:** detach `HEAD` at an otherwise unreferenced commit. Assert `AwaitsMigration`.
+
+3. **No check for alternates.**
+   - **Fix:** `mark_clean_store` returns `AwaitsMigration` when served has `objects/info/alternates` or `objects/info/http-alternates`. Also have `publish` refuse a served store that has gained an alternates file (terminal).
+   - **Test:** add one for each.
+
+4. **The post-failure sweep cannot tell which quarantine is ours** (`sweep_new_quarantines`, `mirror.rs:1836`).
+   - **Fix:** delete `sweep_new_quarantines` entirely. Leftovers from a failed push are cleaned only by the pre-push stale sweep on a later run. The size baseline already tolerates them, and the hard ceiling counts them, which is acceptable.
+   - Also make `newest_mtime` treat an unreadable entry as "fresh", not skip it.
+   - Correct the CHANGELOG line that claims a concurrent push "cannot be broken". The honest statement: only quarantines older than `PUBLISH_TIMEOUT` are removed; an owner push stalled longer than that may lose its quarantine and fail (availability only, nothing is exposed).
+   - **Tests:**
+     - Update the round-3 test so that the fresh quarantine is created during a failed publication (through the existing test seam or a hook-free injection) and survives.
+     - Change `publication_leaves_no_receive_quarantine_behind` only if its assertion now has to describe the stale sweep. That is allowed, as long as you explain the change in the report.
+
+5. **The writer tests don't prove nothing was written.**
+   - The web-edit and merge-into-mirror tests must also assert that the served object set is unchanged: compare the `cat-file --batch-all-objects --batch-check` output before and after.
+
+6. **Rustdoc in the wrong place:** the "Locked decision 3" doc belongs on `mark_clean_store`, not on `holds_unreachable_objects` (`mirror.rs:1493`).
+
+7. **Record as a decision; no code change.** `pull_merge_info` runs `merge-tree --write-tree` in the base store, but for a mirror base the head can only be a ref already held. Anything written is derived from approved content only. Say this in the `has_mirror_record` or `resolve_head` rustdoc in one sentence.
+
+## Report
+
+Write `fix-a4/fix-a4-report.md`. For each item, give the red output and the fix location, plus the gate results. Reply with only the report path.
+=== ROUND-4 REPORT ===
+# Commit A fix round 4: report
+
+All seven items are done, and all seven gates exit 0 on the final tree. Nothing is committed: the worktree /home/devuser/workspace/wt/solid-pod-rs-mirror-publication is at HEAD 31fe898, with rounds 1 to 4 uncommitted.
+
+- **Round 4 only:** `fix-a4-interdiff.patch` (683 lines, 5 files). I built it from a scratch index of HEAD plus `../fix-a3/fix-a3.patch`, which applied cleanly.
+- **Full diff against HEAD:** `fix-a4.patch`.
+- **Toolchain:** rustc 1.99.1 and git 2.56.0, with `CARGO_TARGET_DIR=/home/devuser/workspace/.tmp/solid-mirror-target`.
+- **Red output:** `red-raw.log` (items 1 to 4) and `red-raw-scan.log` (`newest_mtime`). Green: `green-forge.log` and gate 2. Mutation: `mutations.txt`.
+- **Existing assertions:** none changed or removed.
+  - Item 4 changes the setup of the round-3 quarantine test only: the fresh quarantine is now created during the failed publication.
+  - Item 5 adds assertions to two tests.
+  - `publication_leaves_no_receive_quarantine_behind` needed no change. Its planted quarantine is backdated, so the stale sweep before the push removes it in both the failed and the successful case. Its doc comment still says "sweeps any it finds", which is slightly loose now; I left the text alone.
+
+## Item 1: `has_mirror_record` fails open
+
+### Fix
+
+- **`lib.rs:606`:** `has_mirror_record` now returns `Result<bool, ForgeError>`. `NotFound` means `false`. Any other error is logged and becomes `ForgeError::Busy` (503).
+- **Callers:**
+  - `refuse_mirror_write` passes the error on with `?`, so merge, web edit and fork all refuse.
+  - `resolve_head` (`compare.rs:532`) passes it on as well.
+  - `release_head_ref` (`compare.rs:637`) treats an error as a mirror and writes nothing.
+  - `unpublished_mirror` (`lib.rs:585`) uses `unwrap_or(true)`, so the reader gate stays closed.
+- **`web_edit.rs:574`:** `edit_failure` now maps `Busy` to 503.
+  - **Side effect:** a web edit into an unmarked mirror used to return a generic 500 "edit failed". It now returns the gate's 503.
+
+### Test and red output
+
+`an_unreadable_record_path_refuses_writes_and_keeps_the_gate_closed` (`mirror.rs:7405`) replaces `plugin/mirror/<owner>` with a file, so `stat` fails with ENOTDIR. This does not depend on file modes.
+
+- **Write:** the owner's web edit must return 409 or 503, with `main` and the object set unchanged. Red: `a write went ahead with an unreadable record: 200 {"changed":true,"commit":"8d94f1b…","ok":true,…}`.
+- **Gate:** after the marker is removed, a raw read must return 503.
+
+## Item 2: reachability roots
+
+### Fix
+
+- **`holds_unreachable_objects` (`mirror.rs:1511`):** now walks `rev-list --objects --branches --tags`.
+- **Rustdoc:** the roots are `refs/heads/*` and `refs/tags/*` only. Not `HEAD`, `refs/mirror/*`, `refs/forge/heads/*`, `refs/notes/*`, `refs/stash` or anything else.
+  - A store whose objects only those refs reach stays unmarked.
+  - That includes an owner repository that holds pull request heads.
+
+### Test and red output
+
+`a_detached_head_at_an_unreferenced_commit_is_not_marked` (`mirror.rs:7453`) uses `commit-tree`, then `update-ref --no-deref HEAD`. Red: `left: Ok(Ready) right: Ok(AwaitsMigration)`.
+
+## Item 3: alternates
+
+### Fix
+
+- **New `has_alternates` (`mirror.rs:1785`):** returns true when `objects/info/alternates` or `objects/info/http-alternates` exists. It uses `symlink_metadata` and fails closed: any error other than "not found" counts as present.
+- **`mark_clean_store` (`mirror.rs:1552`):** returns `AwaitsMigration` when an unmarked store has alternates.
+- **`publish` (`mirror.rs:2087`):** refuses a marked store that has gained alternates, as a terminal failure: "the served repository borrows objects through alternates". The check runs after `mark_clean_store` and before the sweep and the push.
+
+### Tests and red output
+
+| Test | Red output |
+|---|---|
+| `a_store_with_alternates_is_not_marked` (`mirror.rs:7492`), local and HTTP variants | `left: Ok(Ready) right: Ok(AwaitsMigration)` |
+| `a_marked_store_that_gains_alternates_refuses_publication` (`mirror.rs:7528`), which also asserts `!retryable` and `main` unchanged | `published into a store with alternates: ()` |
+
+## Item 4: the post-failure sweep
+
+### Fix
+
+- **Removed:** `sweep_new_quarantines` and the snapshot taken before the push are deleted.
+- **Comment at `mirror.rs:2151`:** a failed push's leftover is not swept. The stale sweep removes it on a later publication; until then the size baseline tolerates it and the ceiling counts it.
+- **`sweep_stale_quarantines` rustdoc (`mirror.rs:1862`):** says age is a heuristic, and that an owner push stalled longer than `PUBLISH_TIMEOUT` may lose its quarantine and fail. That affects availability only.
+- **`newest_mtime` (`mirror.rs:1823`):** returns `None` (no age, so the quarantine counts as fresh) if any `read_dir`, entry or `modified()` in the scan fails, instead of skipping that entry.
+- **CHANGELOG:** I replaced the "concurrent push is not broken" line with the wording from the brief.
+
+### Test seam
+
+I added a `#[cfg(test)] during_push: Option<fn(&Path)>` field on `GitCli` (`mirror.rs:1381`). It is called just before the publication push (`mirror.rs:2130`), and compiled out of release builds.
+
+I added it before capturing the red output, so the red run is against round-3 behaviour. There was no seam inside `GitCli::publish` before this, and a real concurrent owner push cannot be timed deterministically.
+
+### Tests and red output
+
+- **`a_fresh_quarantine_survives_both_sweeps_and_an_old_one_does_not` (`mirror.rs:7314`):** the fresh quarantine is now created through the seam during the failed publication. Red: `after a failed publish  left: []  right: ["tmp_objdir-incoming-fresh"]`.
+- **`a_quarantine_that_cannot_be_scanned_has_no_age` (`mirror.rs:7567`):** sets `pack/` to mode 000 and calls `newest_mtime` directly. Red: `left: Some(SystemTime { tv_sec: 1793582953, … }) right: None`.
+  - **Why it asks `newest_mtime` directly:** my first version checked the sweep's outcome and passed vacuously on the old code, because `remove_dir_all` also fails on the unreadable directory.
+  - **Under root:** root reads through mode 000, so the test prints `NOT RUN …` and returns. It ran here, as devuser.
+
+## Item 5: the writer tests prove nothing was written
+
+- **New helper:** `object_set` (`mirror.rs:7392`) returns the output of `cat-file --batch-all-objects --batch-check`.
+- **Assertions added:** `a_web_edit_into_a_mirror_is_refused` and `a_pull_request_cannot_be_merged_into_a_mirror` now assert the object set is the same before and after the request. The unreadable-record test does too.
+- **Red:** none, because the code already refused before writing.
+- **Mutation MO** makes `refuse_mirror_write` `hash-object -w` an unreachable blob into served and then refuse. It kills both tests on the new assertions: "a refused web edit wrote objects into served" and "a refused merge wrote objects into served".
+
+## Item 6: rustdoc placement
+
+The "Locked decision 3" doc is now on `mark_clean_store` (`mirror.rs:1552`), extended to cover reachability and alternates. `holds_unreachable_objects` keeps its own doc.
+
+## Item 7: decision recorded
+
+The comment in `resolve_head` (`compare.rs:526-532`) now says: for a mirror base, `pull_merge_info` still runs `merge-tree --write-tree` in served, but only against a head ref it already holds, so whatever that writes is derived from approved content alone.
+
+There is no code change for this item.
+
+## Gates (`fix-a4-gates.txt`, logs in `gate-logs/`, script in `run-gates.sh`)
+
+| # | Command | Result |
+|---|---|---|
+| 1 | `cargo fmt --all --check` | exit 0 |
+| 2 | `cargo test --locked --offline -p solid-pod-rs-forge --features mirror` | exit 0: 308 lib + 13 + 18 + 65 doc tests |
+| 3 | `cargo test --locked --offline -p solid-pod-rs-forge` | exit 0: 228 + 13 + 18 + 51 |
+| 4 | `cargo test --locked --offline -p solid-pod-rs-server --features forge-full forge` | exit 0 |
+| 5 | `cargo clippy … -p solid-pod-rs-forge --features mirror --all-targets -- -D warnings` | exit 0 |
+| 6 | `cargo clippy … -p solid-pod-rs-server --features forge-full --all-targets -- -D warnings` | exit 0 |
+| 7 | `RUSTDOCFLAGS=-D warnings cargo doc … --no-deps -p solid-pod-rs-forge --features mirror` | exit 0 |
+=== YOUR ROUND-3 AUDIT ANSWER ===
+codex
+**High 1: PARTLY FIXED. High 2: PARTLY FIXED.** The interdiff closes the demonstrated compare/PR injection and rejects ordinary dangling objects, but does not establish the unconditional claims about all writers and reachability.
+
+References are relative to `crates/solid-pod-rs-forge/src/`. No tools were used.
+
+1. **High 1 — PARTLY FIXED.**
+
+   The direct foreign-head import is blocked at `compare.rs:528`: a record-bearing base returns 409 for `HeadAccess::Caller`; other access modes resolve an existing local ref without fetching. `release_head_ref` also stops before deleting refs (`compare.rs:630`).
+
+   Additional guards cover merge execution (`merge.rs:296`), web edits (`web_edit.rs:602`) and fork destinations (`forks.rs:285`). The compare and PR tests assert both foreign-blob absence and absence of `refs/forge/heads/*`.
+
+   Two limitations prevent an unconditional FIXED verdict:
+
+   - **Record detection fails open on filesystem errors.** `has_mirror_record` uses `metadata(...).await.is_ok()` (`lib.rs:596–602`). Permission or I/O errors are treated as “no mirror record”, allowing the guarded writer to proceed despite an existing record. Return a fallible result and distinguish `NotFound` from other errors.
+   - **This is not an exhaustive writer audit.** The supplied code does not include the bodies of `pull_merge_info`, preview handling, release handling or every other repository mutation path. In particular, mergeability computation must be checked for `merge-tree --write-tree`: blocking `merge_pull` alone would not block objects created by a read-like mergeability endpoint. This is an unresolved coverage question, not a demonstrated bypass in the supplied text.
+
+   **409 ordering:** the merge guard visibly precedes the pull lock; the web-edit guard precedes branch resolution; the fork guard precedes the shown destination handling. The compare insertion precedes the reported fetch, but the interdiff omits the subsequent lock/fetch body and upstream PR locking. Consequently, “before **any** lock, fetch or write” is not fully demonstrated. Unmarked mirrors can return the existing **503 before reaching 409**, because repository gating runs first; that remains a safe refusal.
+
+2. **High 2 — PARTLY FIXED.**
+
+   `holds_unreachable_objects` (`mirror.rs:1504`) compares every non-empty object-ID line from `cat-file --batch-all-objects` with the reachable set. `mark_clean_store` propagates errors with `?` and returns `AwaitsMigration` on a mismatch before config or marker writes (`mirror.rs:1573`).
+
+   **For objects actually enumerated, the comparison has no packed/loose/promisor exemption.** An enumerated ID absent from the reachable set causes refusal. Alternate-store objects enumerated by Git receive the same comparison. Neither subprocess failure is explicitly converted into a clean result.
+
+   However, **the roots are broader than the required non-mirror refs**: `rev-list --all` includes `HEAD`. A detached `HEAD` pointing to an otherwise unreferenced commit makes that commit and its closure pass this check despite no non-`refs/mirror/*` ref reaching them (`mirror.rs:1504`, the `rev-list` argv). Enumerate the permitted refs explicitly and walk those roots.
+
+   There is also no rejection of an existing served-store alternate. An alternate containing only currently reachable objects can pass; later additions to that external object store become readable without another marking check. The set comparison establishes a snapshot, not permanent object-store isolation. This matters because already-marked stores bypass the check.
+
+Other findings, ranked:
+
+1. **Medium — The post-failure sweep still cannot identify ownership.**  
+   `sweep_new_quarantines` (`mirror.rs:1836`) deletes every quarantine absent from the pre-push snapshot (`mirror.rs:2079`). A concurrent owner receive-pack that creates its quarantine **after that snapshot** loses it when mirror publication fails. “Created since our snapshot” does not mean “created by our push”.
+
+   The new test plants its fresh quarantine **before publication**, so it only proves preservation of pre-existing names. The changelog’s claim that a concurrent push cannot be broken is unsupported (`CHANGELOG.md:41`).
+
+2. **Medium — Age does not establish that an owner push has stopped.**  
+   `sweep_stale_quarantines` (`mirror.rs:1820`) applies the mirror publication timeout to all quarantines. An owner push stalled longer than that timeout can still be active. No equivalent owner-push deadline or shared exclusion mechanism is supplied. Moreover, `newest_mtime` skips unreadable entries (`mirror.rs:1787`), so an incomplete scan can still classify a directory as stale. These are remaining weaknesses in the sweep fix.
+
+3. **Low — The report overstates the new test assertions.**  
+   It says each writer test checks blob absence and no forge-head refs. The web-edit and merge tests in the `mirror.rs:6985` hunk check 409 and unchanged `main`; they do **not** assert object-store equality or absence of newly created objects. An implementation that writes an unreachable object before refusing could pass them.
+
+4. **Low — Rustdoc attaches to the wrong function.**  
+   The existing “Locked decision 3” description now precedes `holds_unreachable_objects`, leaving `mark_clean_store` without that attached documentation (`mirror.rs:1493`).
+
+The two requested test tightenings are correctly present: receiver failure now requires both `cannot lock ref` and approved-object presence (`mirror.rs:6715`), and a missing HTTP backend now panics (`mirror.rs:4317`). The seven passing gates are reported evidence; they do not resolve the cases above.
+tokens used
+118,021
+**High 1: PARTLY FIXED. High 2: PARTLY FIXED.** The interdiff closes the demonstrated compare/PR injection and rejects ordinary dangling objects, but does not establish the unconditional claims about all writers and reachability.
+
+References are relative to `crates/solid-pod-rs-forge/src/`. No tools were used.
+
+1. **High 1 — PARTLY FIXED.**
+
+   The direct foreign-head import is blocked at `compare.rs:528`: a record-bearing base returns 409 for `HeadAccess::Caller`; other access modes resolve an existing local ref without fetching. `release_head_ref` also stops before deleting refs (`compare.rs:630`).
+
+   Additional guards cover merge execution (`merge.rs:296`), web edits (`web_edit.rs:602`) and fork destinations (`forks.rs:285`). The compare and PR tests assert both foreign-blob absence and absence of `refs/forge/heads/*`.
+
+   Two limitations prevent an unconditional FIXED verdict:
+
+   - **Record detection fails open on filesystem errors.** `has_mirror_record` uses `metadata(...).await.is_ok()` (`lib.rs:596–602`). Permission or I/O errors are treated as “no mirror record”, allowing the guarded writer to proceed despite an existing record. Return a fallible result and distinguish `NotFound` from other errors.
+   - **This is not an exhaustive writer audit.** The supplied code does not include the bodies of `pull_merge_info`, preview handling, release handling or every other repository mutation path. In particular, mergeability computation must be checked for `merge-tree --write-tree`: blocking `merge_pull` alone would not block objects created by a read-like mergeability endpoint. This is an unresolved coverage question, not a demonstrated bypass in the supplied text.
+
+   **409 ordering:** the merge guard visibly precedes the pull lock; the web-edit guard precedes branch resolution; the fork guard precedes the shown destination handling. The compare insertion precedes the reported fetch, but the interdiff omits the subsequent lock/fetch body and upstream PR locking. Consequently, “before **any** lock, fetch or write” is not fully demonstrated. Unmarked mirrors can return the existing **503 before reaching 409**, because repository gating runs first; that remains a safe refusal.
+
+2. **High 2 — PARTLY FIXED.**
+
+   `holds_unreachable_objects` (`mirror.rs:1504`) compares every non-empty object-ID line from `cat-file --batch-all-objects` with the reachable set. `mark_clean_store` propagates errors with `?` and returns `AwaitsMigration` on a mismatch before config or marker writes (`mirror.rs:1573`).
+
+   **For objects actually enumerated, the comparison has no packed/loose/promisor exemption.** An enumerated ID absent from the reachable set causes refusal. Alternate-store objects enumerated by Git receive the same comparison. Neither subprocess failure is explicitly converted into a clean result.
+
+   However, **the roots are broader than the required non-mirror refs**: `rev-list --all` includes `HEAD`. A detached `HEAD` pointing to an otherwise unreferenced commit makes that commit and its closure pass this check despite no non-`refs/mirror/*` ref reaching them (`mirror.rs:1504`, the `rev-list` argv). Enumerate the permitted refs explicitly and walk those roots.
+
+   There is also no rejection of an existing served-store alternate. An alternate containing only currently reachable objects can pass; later additions to that external object store become readable without another marking check. The set comparison establishes a snapshot, not permanent object-store isolation. This matters because already-marked stores bypass the check.
+
+Other findings, ranked:
+
+1. **Medium — The post-failure sweep still cannot identify ownership.**  
+   `sweep_new_quarantines` (`mirror.rs:1836`) deletes every quarantine absent from the pre-push snapshot (`mirror.rs:2079`). A concurrent owner receive-pack that creates its quarantine **after that snapshot** loses it when mirror publication fails. “Created since our snapshot” does not mean “created by our push”.
+
+   The new test plants its fresh quarantine **before publication**, so it only proves preservation of pre-existing names. The changelog’s claim that a concurrent push cannot be broken is unsupported (`CHANGELOG.md:41`).
+
+2. **Medium — Age does not establish that an owner push has stopped.**  
+   `sweep_stale_quarantines` (`mirror.rs:1820`) applies the mirror publication timeout to all quarantines. An owner push stalled longer than that timeout can still be active. No equivalent owner-push deadline or shared exclusion mechanism is supplied. Moreover, `newest_mtime` skips unreadable entries (`mirror.rs:1787`), so an incomplete scan can still classify a directory as stale. These are remaining weaknesses in the sweep fix.
+
+3. **Low — The report overstates the new test assertions.**  
+   It says each writer test checks blob absence and no forge-head refs. The web-edit and merge tests in the `mirror.rs:6985` hunk check 409 and unchanged `main`; they do **not** assert object-store equality or absence of newly created objects. An implementation that writes an unreachable object before refusing could pass them.
+
+4. **Low — Rustdoc attaches to the wrong function.**  
+   The existing “Locked decision 3” description now precedes `holds_unreachable_objects`, leaving `mark_clean_store` without that attached documentation (`mirror.rs:1493`).
+
+The two requested test tightenings are correctly present: receiver failure now requires both `cannot lock ref` and approved-object presence (`mirror.rs:6715`), and a missing HTTP backend now panics (`mirror.rs:4317`). The seven passing gates are reported evidence; they do not resolve the cases above.
+exit=0
+=== ROUND-4 INTERDIFF ===
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index f4f2386..93024b1 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -35,13 +35,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+   repository is refused (409) instead of fetching that head into the
+   mirror's served store, where its objects would have been readable by SHA;
+   an existing pull request's view reads only a head already held. Merging,
+-  web edits and forking onto a mirror's name are refused (409) too.
++  web edits and forking onto a mirror's name are refused (409) too. A
++  mirror record path that cannot be checked (any error but "not found")
++  counts as a mirror: writes are refused (503) and the reader gate stays
++  closed.
+ - Forge mirror: an existing repository is marked for publication only when
+-  every object in it is reachable from its refs; one holding an unreachable
+-  object stays unmarked and refused, like the pre-isolation layout. The
+-  quarantine sweep removes only quarantines old enough to be a killed
+-  push's leftovers, and after a failed publication only those that push
+-  created, so a concurrent push is not broken.
++  every object in it is reachable from its branches and tags (not `HEAD`,
++  not other ref namespaces) and it has no `objects/info/alternates` or
++  `http-alternates`; otherwise it stays unmarked and refused, like the
++  pre-isolation layout. Publication into a marked repository that has since
++  gained alternates is refused. Only receive-pack quarantines older than the
++  publication timeout (120 s) are removed, before a publication; a failed
++  publication's own leftover waits for a later one. An owner push stalled
++  for longer than that may lose its quarantine and fail; this affects
++  availability only, and nothing is exposed.
+ - Git HTTP no longer permits direct requests for hidden or unadvertised
+   object hashes, including when repository-local configuration enables them.
+   Advertised-tip fetches remain supported. This closes a direct fetch path
+diff --git a/crates/solid-pod-rs-forge/src/compare.rs b/crates/solid-pod-rs-forge/src/compare.rs
+index e13e9db..fb1d9ba 100644
+--- a/crates/solid-pod-rs-forge/src/compare.rs
++++ b/crates/solid-pod-rs-forge/src/compare.rs
+@@ -524,8 +524,12 @@ pub(crate) async fn resolve_head(
+         }
+         // Never fetch a foreign head into a mirror's served store (Codex
+         // High 1). A caller asking to compare or open a pull request is told
+-        // why; an existing pull request's view reads only what is held.
+-        if self.has_mirror_record(base_owner, name).await {
++        // why; an existing pull request's view reads only what is held. A
++        // record that cannot be checked refuses (503). For a mirror base,
++        // `pull_merge_info` still runs `merge-tree --write-tree` in served,
++        // but only against a head ref it already holds, so whatever that
++        // writes is derived from approved content alone (round 4 decision).
++        if self.has_mirror_record(base_owner, name).await? {
+             return match access {
+                 HeadAccess::Caller(_) => Err(ForgeError::Conflict(format!(
+                     "'{base_owner}/{name}' is a mirror: a head from another repository cannot be fetched into it"
+@@ -627,8 +631,13 @@ pub(crate) async fn release_head_ref(
+         if shared || !valid_owner(&pr.head.owner) || !valid_ref(&pr.head.ref_name) {
+             return;
+         }
+-        // A mirror's served store is written by its publication alone.
+-        if self.has_mirror_record(base_owner, name).await {
++        // A mirror's served store is written by its publication alone; a
++        // record that cannot be checked counts as one.
++        if self
++            .has_mirror_record(base_owner, name)
++            .await
++            .unwrap_or(true)
++        {
+             return;
+         }
+         let Ok(dir) = self.gated_git_dir(base_owner, name).await else {
+diff --git a/crates/solid-pod-rs-forge/src/lib.rs b/crates/solid-pod-rs-forge/src/lib.rs
+index fbb716e..d2f9db3 100644
+--- a/crates/solid-pod-rs-forge/src/lib.rs
++++ b/crates/solid-pod-rs-forge/src/lib.rs
+@@ -580,6 +580,8 @@ async fn resolve_repo(&self, owner: &str, repo: &str) -> Result<PathBuf, ForgeEr
+     /// `mirror::MirrorStore`'s layout, checked without the `mirror` feature
+     /// so a plugin directory that was mirrored once stays gated. `owner` and
+     /// `repo` are already validated path segments (`repo::repo_git_dir`).
++    /// A record path that cannot be checked (any error but "not found")
++    /// keeps the gate closed.
+     async fn unpublished_mirror(&self, owner: &str, repo: &str, dir: &Path) -> bool {
+         if tokio::fs::metadata(dir.join(PUBLICATION_MARKER))
+             .await
+@@ -587,19 +589,40 @@ async fn unpublished_mirror(&self, owner: &str, repo: &str, dir: &Path) -> bool
+         {
+             return false;
+         }
+-        self.has_mirror_record(owner, repo).await
++        self.has_mirror_record(owner, repo).await.unwrap_or(true)
+     }
+ 
+     /// Whether `<owner>/<repo>` has a mirror record, marked or not. The path
+     /// is `mirror::MirrorStore`'s layout, checked without the `mirror`
+     /// feature. `owner` and `repo` must already be validated path segments.
+-    pub(crate) async fn has_mirror_record(&self, owner: &str, repo: &str) -> bool {
++    ///
++    /// Fails closed: only "not found" means no record. Any other error
++    /// (permissions, I/O, a parent that is not a directory) is returned, and
++    /// every caller treats it as "may be a mirror" (Codex round 3).
++    ///
++    /// # Errors
++    ///
++    /// The `stat` error, when it is anything but "not found".
++    pub(crate) async fn has_mirror_record(
++        &self,
++        owner: &str,
++        repo: &str,
++    ) -> Result<bool, ForgeError> {
+         let record = self
+             .plugin_dir
+             .join("mirror")
+             .join(owner)
+             .join(format!("{repo}.json"));
+-        tokio::fs::metadata(record).await.is_ok()
++        match tokio::fs::metadata(&record).await {
++            Ok(_) => Ok(true),
++            Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(false),
++            Err(e) => {
++                tracing::warn!(owner = %owner, repo = %repo, error = %e, "forge: mirror record unreadable; treated as a mirror");
++                Err(ForgeError::Busy(format!(
++                    "'{owner}/{repo}' cannot be checked for a mirror record"
++                )))
++            }
++        }
+     }
+ 
+     /// Refuse (409) any forge write into a mirror's served store: a foreign
+@@ -612,7 +635,7 @@ pub(crate) async fn refuse_mirror_write(
+         owner: &str,
+         repo: &str,
+     ) -> Result<(), ForgeError> {
+-        if self.has_mirror_record(owner, repo).await {
++        if self.has_mirror_record(owner, repo).await? {
+             return Err(ForgeError::Conflict(format!(
+                 "'{owner}/{repo}' is a mirror: only its publication writes to it"
+             )));
+diff --git a/crates/solid-pod-rs-forge/src/mirror.rs b/crates/solid-pod-rs-forge/src/mirror.rs
+index 6be3faf..4fb37cf 100644
+--- a/crates/solid-pod-rs-forge/src/mirror.rs
++++ b/crates/solid-pod-rs-forge/src/mirror.rs
+@@ -1375,6 +1375,10 @@ pub struct GitCli {
+     /// `plugin_dir/mirror-work`; `None` when `repo_root` has no parent, in
+     /// which case every candidate operation fails closed.
+     work_root: Option<PathBuf>,
++    /// Test seam: run on the served path just before the publication push
++    /// starts, to stand in for a concurrent owner push.
++    #[cfg(test)]
++    during_push: Option<fn(&Path)>,
+ }
+ 
+ impl GitCli {
+@@ -1390,6 +1394,8 @@ pub fn new(repo_root: impl Into<PathBuf>) -> Self {
+         Self {
+             repo_root,
+             work_root,
++            #[cfg(test)]
++            during_push: None,
+         }
+     }
+ 
+@@ -1490,23 +1496,24 @@ async fn build_served(&self, staging: &Path, served: &Path) -> Result<(), String
+             .map_err(|e| format!("could not place the served repository: {e}"))
+     }
+ 
+-    /// Locked decision 3: a served store without the marker is marked (with
+-    /// the fixed config) only when it shows no trace of the old shared
+-    /// layout. One that has `refs/mirror` or hides them predates publication
+-    /// isolation and may already hold held objects, and so does one holding
+-    /// any object no ref reaches (Codex High 2): refuse, so it stays
+-    /// unmarked (and gated) until migration rebuilds it.
+-    /// Whether the store holds any object that no ref outside `refs/mirror`
+-    /// reaches (Codex High 2). Such an object (a held blob left by the old
+-    /// shared layout, a dangling commit) is readable by SHA, so a store with
+-    /// one is not marked. Every object listed by `cat-file
+-    /// --batch-all-objects` must appear in `rev-list --objects --all`.
++    /// Whether the store holds any object that no branch or tag reaches
++    /// (Codex High 2). Such an object (a held blob left by the old shared
++    /// layout, a dangling commit) is readable by SHA, so a store with one is
++    /// not marked. Every object listed by `cat-file --batch-all-objects`
++    /// must appear in `rev-list --objects --branches --tags`.
++    ///
++    /// The roots are `refs/heads/*` and `refs/tags/*` only. `HEAD` is not a
++    /// root (a detached `HEAD` would otherwise vouch for any commit), nor is
++    /// any other namespace: `refs/mirror/*`, `refs/forge/heads/*` (pull
++    /// request heads), `refs/notes/*`, `refs/stash` and the rest. A store
++    /// whose objects only such a ref reaches is left unmarked and gated
++    /// until migration.
+     async fn holds_unreachable_objects(&self, served: &Path) -> Result<bool, String> {
+         let slow = Duration::from_secs(120);
+         let reachable = self
+             .run(
+                 served,
+-                &["rev-list", "--objects", "--exclude=refs/mirror/*", "--all"],
++                &["rev-list", "--objects", "--branches", "--tags"],
+                 None,
+                 slow,
+             )
+@@ -1534,6 +1541,14 @@ async fn holds_unreachable_objects(&self, served: &Path) -> Result<bool, String>
+             .any(|id| !reachable.contains(id)))
+     }
+ 
++    /// Locked decision 3: a served store without the marker is marked (with
++    /// the fixed config) only when it shows no trace of the old shared
++    /// layout. One that has `refs/mirror` or hides them predates publication
++    /// isolation and may already hold held objects, and so does one holding
++    /// any object no branch or tag reaches (Codex High 2, see
++    /// [`Self::holds_unreachable_objects`]) or one that borrows objects
++    /// through alternates (Codex round 3): refuse, so it stays unmarked (and
++    /// gated) until migration rebuilds it.
+     async fn mark_clean_store(&self, served: &Path) -> Result<Prepared, String> {
+         if tokio::fs::metadata(served.join(PUBLICATION_MARKER))
+             .await
+@@ -1541,6 +1556,9 @@ async fn mark_clean_store(&self, served: &Path) -> Result<Prepared, String> {
+         {
+             return Ok(Prepared::Ready);
+         }
++        if has_alternates(served).await {
++            return Ok(Prepared::AwaitsMigration);
++        }
+         let quick = Duration::from_secs(15);
+         let mirror_refs = self
+             .run(
+@@ -1759,12 +1777,28 @@ async fn is_bare_store(dir: &Path) -> bool {
+             .is_ok_and(|m| m.is_dir())
+ }
+ 
++/// Whether a store borrows objects from elsewhere: `objects/info/alternates`
++/// or `objects/info/http-alternates` is present. Objects reached that way
++/// are readable through served but live outside it, so neither marking nor
++/// publication can vouch for them. Fails closed: a path that cannot be
++/// checked (any error but "not found") counts as present.
++async fn has_alternates(served: &Path) -> bool {
++    let info = served.join("objects").join("info");
++    for file in ["alternates", "http-alternates"] {
++        match tokio::fs::symlink_metadata(info.join(file)).await {
++            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
++            _ => return true,
++        }
++    }
++    false
++}
++
+ /// The prefix receive-pack gives its quarantine directory in `objects/`.
+ const QUARANTINE_PREFIX: &str = "tmp_objdir-incoming-";
+ 
+ /// The receive-pack quarantine directories (`objects/tmp_objdir-incoming-*`)
+-/// in a served store, by name.
+-async fn quarantines_in(served: &Path) -> Vec<(std::ffi::OsString, PathBuf)> {
++/// in a served store.
++async fn quarantines_in(served: &Path) -> Vec<PathBuf> {
+     let mut out = Vec::new();
+     let Ok(mut entries) = tokio::fs::read_dir(served.join("objects")).await else {
+         return out;
+@@ -1775,37 +1809,40 @@ async fn quarantines_in(served: &Path) -> Vec<(std::ffi::OsString, PathBuf)> {
+             .starts_with(QUARANTINE_PREFIX)
+             && e.file_type().await.is_ok_and(|t| t.is_dir())
+         {
+-            out.push((e.file_name(), e.path()));
++            out.push(e.path());
+         }
+     }
+     out
+ }
+ 
+ /// The newest modification time of a quarantine directory, its entries and
+-/// theirs (receive-pack writes into `pack/` below it). `None` when none of
+-/// them can be read.
++/// theirs (receive-pack writes into `pack/` below it). `None` when any part
++/// of that scan cannot be read: an incomplete scan gives no age, so the
++/// sweep treats the directory as fresh rather than judging it by the
++/// entries it happened to see (Codex round 3).
+ async fn newest_mtime(dir: &Path) -> Option<SystemTime> {
+-    let mut newest = tokio::fs::metadata(dir).await.ok()?.modified().ok();
++    let mut newest = tokio::fs::symlink_metadata(dir)
++        .await
++        .ok()?
++        .modified()
++        .ok()?;
+     let mut level = vec![dir.to_path_buf()];
+     for _ in 0..2 {
+         let mut next = Vec::new();
+         for d in level {
+-            let Ok(mut entries) = tokio::fs::read_dir(&d).await else {
+-                continue;
+-            };
+-            while let Ok(Some(e)) = entries.next_entry().await {
++            let mut entries = tokio::fs::read_dir(&d).await.ok()?;
++            while let Some(e) = entries.next_entry().await.ok()? {
+                 // `DirEntry::metadata` does not follow symlinks.
+-                if let Ok(m) = e.metadata().await {
+-                    newest = newest.max(m.modified().ok());
+-                    if m.is_dir() {
+-                        next.push(e.path());
+-                    }
++                let m = e.metadata().await.ok()?;
++                newest = newest.max(m.modified().ok()?);
++                if m.is_dir() {
++                    next.push(e.path());
+                 }
+             }
+         }
+         level = next;
+     }
+-    newest
++    Some(newest)
+ }
+ 
+ /// Remove the quarantine directories in a served store that are leftovers
+@@ -1816,10 +1853,15 @@ async fn newest_mtime(dir: &Path) -> Option<SystemTime> {
+ /// before the first mirror record exists) and is left alone (security delta
+ /// N3). It holds approved objects only and no reader looks inside it, but it
+ /// counts against the store's size. Called under the repository lock,
+-/// before a publication.
++/// before a publication; it is the only sweep, so what a failed publication
++/// leaves is removed by a later one once it is stale.
++///
++/// Age is a heuristic, not proof that a push has stopped: an owner push
++/// stalled for longer than [`PUBLISH_TIMEOUT`] may lose its quarantine and
++/// fail. That costs availability only; nothing is exposed.
+ async fn sweep_stale_quarantines(served: &Path) {
+     let now = SystemTime::now();
+-    for (_, path) in quarantines_in(served).await {
++    for path in quarantines_in(served).await {
+         let stale = newest_mtime(&path)
+             .await
+             .and_then(|t| now.duration_since(t).ok())
+@@ -1830,17 +1872,6 @@ async fn sweep_stale_quarantines(served: &Path) {
+     }
+ }
+ 
+-/// After a failed publication: remove the quarantine directories that were
+-/// not there when its push started (`before`), which are what the killed or
+-/// failed push left. One that was already there is not this push's.
+-async fn sweep_new_quarantines(served: &Path, before: &[std::ffi::OsString]) {
+-    for (name, path) in quarantines_in(served).await {
+-        if !before.contains(&name) {
+-            remove_store(&path).await;
+-        }
+-    }
+-}
+-
+ /// The first update `git push --porcelain` did not report as accepted.
+ /// Lines are `<flag>\t<from>:<to>\t<summary>`; `!` is a rejection.
+ fn porcelain_rejection(out: &str, updates: &[RefUpdate]) -> Option<String> {
+@@ -2049,6 +2080,13 @@ async fn publish_inner(
+         if self.mark_clean_store(&served).await? == Prepared::AwaitsMigration {
+             return Err(PublishError::terminal(AWAITS_MIGRATION));
+         }
++        // A marked store that has since gained alternates serves objects
++        // from outside itself; publishing into it would vouch for them.
++        if has_alternates(&served).await {
++            return Err(PublishError::terminal(
++                "the served repository borrows objects through alternates",
++            ));
++        }
+         let served_s = served
+             .to_str()
+             .ok_or_else(|| PublishError::terminal("non-UTF-8 store path"))?;
+@@ -2076,11 +2114,6 @@ async fn publish_inner(
+         // starts, so a store past it is refused rather than killed mid-push
+         // on every try (security delta N1).
+         sweep_stale_quarantines(&served).await;
+-        let before: Vec<std::ffi::OsString> = quarantines_in(&served)
+-            .await
+-            .into_iter()
+-            .map(|(name, _)| name)
+-            .collect();
+         let baseline = tokio::task::spawn_blocking({
+             let d = served.clone();
+             move || dir_size(&d)
+@@ -2093,6 +2126,10 @@ async fn publish_inner(
+             )));
+         }
+         let limit = baseline.saturating_add(MAX_REPO_BYTES);
++        #[cfg(test)]
++        if let Some(f) = self.during_push {
++            f(&served);
++        }
+         // git pushes from the candidate (`--git-dir`); the watcher measures
+         // served, the store the push writes into.
+         let pushed = self
+@@ -2111,9 +2148,10 @@ async fn publish_inner(
+                     None => Ok(()),
+                 },
+             );
+-        if pushed.is_err() {
+-            sweep_new_quarantines(&served, &before).await;
+-        }
++        // A failed push's leftover quarantine is not swept here: nothing
++        // tells it apart from a concurrent owner push's (Codex round 3). The
++        // stale sweep removes it on a later publication; until then the size
++        // baseline tolerates it and the ceiling counts it.
+         pushed.map_err(PublishError::from)?;
+         // HEAD only after a successful push, and only to a ref that was in
+         // it. A failure here is logged and does not undo the publication.
+@@ -7106,6 +7144,7 @@ async fn a_pull_request_into_a_mirror_never_fetches_a_foreign_head() {
+         #[tokio::test]
+         async fn a_web_edit_into_a_mirror_is_refused() {
+             let p = published(82).await;
++            let objects_before = object_set(&p.served(), p.home());
+             let forge = forge_at(&p.plugin);
+             let body = serde_json::json!({"path": "edit.txt", "content": "edited\n"});
+             let r = forge
+@@ -7123,6 +7162,11 @@ async fn a_web_edit_into_a_mirror_is_refused() {
+                 .unwrap();
+             assert_eq!(r.status, 409, "{}", String::from_utf8_lossy(&r.body));
+             assert_eq!(rev(&p.served(), p.home(), "refs/heads/main"), p.approved);
++            assert_eq!(
++                object_set(&p.served(), p.home()),
++                objects_before,
++                "a refused web edit wrote objects into served"
++            );
+         }
+ 
+         /// Codex High 1, other writers: a pull request opened before the
+@@ -7180,6 +7224,7 @@ async fn a_pull_request_cannot_be_merged_into_a_mirror() {
+                 .save(&MirrorRecord::new(&owner, "sample", None))
+                 .unwrap();
+             std::fs::write(served.join(MARKER_FILE), "").unwrap();
++            let objects_before = object_set(&served, home);
+             let r = forge
+                 .handle(
+                     json_req(
+@@ -7197,6 +7242,11 @@ async fn a_pull_request_cannot_be_merged_into_a_mirror() {
+                 main,
+                 "the merge moved main"
+             );
++            assert_eq!(
++                object_set(&served, home),
++                objects_before,
++                "a refused merge wrote objects into served"
++            );
+         }
+ 
+         /// Codex High 2: a store with no `refs/mirror` and no `hideRefs`, but
+@@ -7270,15 +7320,27 @@ async fn a_fresh_quarantine_survives_both_sweeps_and_an_old_one_does_not() {
+                 .await
+                 .unwrap();
+             let fresh = served.join("objects").join("tmp_objdir-incoming-fresh");
+-            std::fs::create_dir_all(fresh.join("pack")).unwrap();
+-            std::fs::write(fresh.join("pack").join("partial"), b"x").unwrap();
++            // A concurrent owner push whose quarantine appears while the
++            // failing publication runs (round 4: after any snapshot it took).
++            fn owner_push_starts(served: &Path) {
++                let pack = served
++                    .join("objects")
++                    .join("tmp_objdir-incoming-fresh")
++                    .join("pack");
++                std::fs::create_dir_all(&pack).unwrap();
++                std::fs::write(pack.join("partial"), b"x").unwrap();
++            }
++            let failing = GitCli {
++                during_push: Some(owner_push_starts),
++                ..git.clone()
++            };
+             plant_quarantine(&served);
+             let to = |expected: &str| RefUpdate {
+                 git_ref: "refs/heads/main".into(),
+                 sha: approved2.clone(),
+                 expected: Some(expected.to_string()),
+             };
+-            let failed = git
++            let failed = failing
+                 .publish(&p.owner, "sample", &[to(&"0".repeat(40))], None)
+                 .await;
+             assert!(failed.is_err(), "control: a stale lease fails");
+@@ -7322,5 +7384,208 @@ fn redaction_leaves_unrelated_text_alone_under_a_short_plugin_root() {
+                 "unable to open <plugin>/mirror-work/locks/x.lock"
+             );
+         }
++
++        // --- round 4 -------------------------------------------------------
++
++        /// Every object in a store, as `cat-file --batch-all-objects
++        /// --batch-check` lists them (round 4, item 5).
++        fn object_set(dir: &Path, home: &Path) -> String {
++            git_ok(
++                dir,
++                home,
++                &["cat-file", "--batch-all-objects", "--batch-check"],
++            )
++        }
++
++        /// Round 4 item 1: a mirror record path that cannot be read (here
++        /// its parent is a file, so `stat` fails with ENOTDIR; no reliance
++        /// on modes, which root ignores) is not "no record". Writers refuse,
++        /// and the reader gate stays closed for an unmarked store.
++        #[tokio::test]
++        async fn an_unreadable_record_path_refuses_writes_and_keeps_the_gate_closed() {
++            let p = published(90).await;
++            let served = p.served();
++            let owner_dir = p.plugin.join("mirror").join(&p.owner);
++            std::fs::remove_dir_all(&owner_dir).unwrap();
++            std::fs::write(&owner_dir, b"not a directory").unwrap();
++            let objects_before = object_set(&served, p.home());
++            let forge = forge_at(&p.plugin);
++            let body = serde_json::json!({"path": "edit.txt", "content": "edited\n"});
++            let r = forge
++                .handle(
++                    json_req(
++                        "POST",
++                        format!("/forge/api/repos/{}/sample/edit", p.owner),
++                        &body,
++                    ),
++                    crate::ForgeAgent::Nostr {
++                        pubkey_hex: p.owner.clone(),
++                    },
++                )
++                .await
++                .unwrap();
++            assert!(
++                matches!(r.status, 409 | 503),
++                "a write went ahead with an unreadable record: {} {}",
++                r.status,
++                String::from_utf8_lossy(&r.body)
++            );
++            assert_eq!(rev(&served, p.home(), "refs/heads/main"), p.approved);
++            assert_eq!(object_set(&served, p.home()), objects_before);
++
++            std::fs::remove_file(served.join(MARKER_FILE)).unwrap();
++            let raw = get(
++                &forge,
++                format!("/forge/{}/sample/raw/{}/public.txt", p.owner, p.approved),
++            )
++            .await;
++            assert_eq!(
++                raw.status,
++                503,
++                "the gate opened on an unreadable record: {}",
++                String::from_utf8_lossy(&raw.body)
++            );
++        }
++
++        /// Round 4 item 2: `HEAD` is not a root. A detached `HEAD` at a
++        /// commit no branch or tag reaches leaves the store unmarked.
++        #[tokio::test]
++        async fn a_detached_head_at_an_unreferenced_commit_is_not_marked() {
++            let tmp = tempfile::tempdir().unwrap();
++            let home = tmp.path();
++            let plugin = home.join("plugin");
++            let up = new_upstream(home);
++            commit_file(&up, home, "public.txt", APPROVED_BYTES, APPROVED_SUBJECT);
++            let owner = pubhex(&key(91));
++            let served = owner_pushed(&plugin, &owner, &up, home);
++            let tree = git_ok(&served, home, &["rev-parse", "refs/heads/main^{tree}"]);
++            let stray = git_ok(
++                &served,
++                home,
++                &[
++                    "-c",
++                    "user.name=Agent",
++                    "-c",
++                    "user.email=agent@example.org",
++                    "commit-tree",
++                    &tree,
++                    "-m",
++                    "stray",
++                ],
++            );
++            git_ok(&served, home, &["update-ref", "--no-deref", "HEAD", &stray]);
++            MirrorStore::new(&plugin)
++                .save(&MirrorRecord::new(&owner, "sample", None))
++                .unwrap();
++            let git = GitCli::new(plugin.join("repos"));
++            assert_eq!(
++                git.prepare(&owner, "sample").await,
++                Ok(Prepared::AwaitsMigration)
++            );
++            assert!(!served.join(MARKER_FILE).exists(), "marked");
++        }
++
++        /// Round 4 item 3: a store that borrows objects through alternates
++        /// (local or HTTP) is not marked, since what it serves is not
++        /// confined to its own object store.
++        #[tokio::test]
++        async fn a_store_with_alternates_is_not_marked() {
++            let tmp = tempfile::tempdir().unwrap();
++            let home = tmp.path();
++            let plugin = home.join("plugin");
++            let up = new_upstream(home);
++            commit_file(&up, home, "public.txt", APPROVED_BYTES, APPROVED_SUBJECT);
++            let git = GitCli::new(plugin.join("repos"));
++            let elsewhere = up.join(".git").join("objects");
++            for (seed, file, line) in [
++                (92u8, "alternates", elsewhere.to_str().unwrap().to_string()),
++                (
++                    95u8,
++                    "http-alternates",
++                    "https://example.invalid/objects".into(),
++                ),
++            ] {
++                let owner = pubhex(&key(seed));
++                let served = owner_pushed(&plugin, &owner, &up, home);
++                let info = served.join("objects").join("info");
++                std::fs::create_dir_all(&info).unwrap();
++                std::fs::write(info.join(file), format!("{line}\n")).unwrap();
++                MirrorStore::new(&plugin)
++                    .save(&MirrorRecord::new(&owner, "sample", None))
++                    .unwrap();
++                assert_eq!(
++                    git.prepare(&owner, "sample").await,
++                    Ok(Prepared::AwaitsMigration),
++                    "{file}"
++                );
++                assert!(!served.join(MARKER_FILE).exists(), "{file}: marked");
++            }
++        }
++
++        /// Round 4 item 3: a marked store that later gains an alternates
++        /// file is refused publication, terminally, and nothing moves.
++        #[tokio::test]
++        async fn a_marked_store_that_gains_alternates_refuses_publication() {
++            let p = published(93).await;
++            let served = p.served();
++            let approved2 = commit_file(&p.up, p.home(), "two.txt", "two\n", "approved two");
++            let git = GitCli::new(p.plugin.join("repos"));
++            git.fetch(&p.owner, "sample", &p.url(), true, None)
++                .await
++                .unwrap();
++            let info = served.join("objects").join("info");
++            std::fs::create_dir_all(&info).unwrap();
++            let elsewhere = p.up.join(".git").join("objects");
++            std::fs::write(
++                info.join("alternates"),
++                format!("{}\n", elsewhere.display()),
++            )
++            .unwrap();
++            let r = git
++                .publish(
++                    &p.owner,
++                    "sample",
++                    &[RefUpdate {
++                        git_ref: "refs/heads/main".into(),
++                        sha: approved2.clone(),
++                        expected: Some(p.approved.clone()),
++                    }],
++                    None,
++                )
++                .await;
++            let e = r.expect_err("published into a store with alternates");
++            assert!(!e.retryable, "{}", e.reason);
++            assert_eq!(rev(&served, p.home(), "refs/heads/main"), p.approved);
++        }
++
++        /// Round 4 item 4: a quarantine whose scan cannot be completed (an
++        /// unreadable `pack/`) has no age (so the sweep treats it as fresh),
++        /// instead of being judged by the entries that could be read. Needs a non-root user: root reads
++        /// through mode 000, so the test reports that and returns.
++        #[cfg(unix)]
++        #[tokio::test]
++        async fn a_quarantine_that_cannot_be_scanned_has_no_age() {
++            use std::os::unix::fs::PermissionsExt;
++            let tmp = tempfile::tempdir().unwrap();
++            let served = tmp.path().join("served.git");
++            std::fs::create_dir_all(served.join("objects")).unwrap();
++            plant_quarantine(&served);
++            let q = served.join("objects").join("tmp_objdir-incoming-planted");
++            let pack = q.join("pack");
++            std::fs::set_permissions(&pack, std::fs::Permissions::from_mode(0o000)).unwrap();
++            if std::fs::read_dir(&pack).is_ok() {
++                std::fs::set_permissions(&pack, std::fs::Permissions::from_mode(0o755)).unwrap();
++                eprintln!("NOT RUN a_quarantine_that_cannot_be_scanned_has_no_age: mode 000 is readable (root)");
++                return;
++            }
++            // Asked of the age scan itself: the sweep's removal would also
++            // fail on the unreadable directory, which would hide the verdict.
++            let seen = newest_mtime(&q).await;
++            std::fs::set_permissions(&pack, std::fs::Permissions::from_mode(0o755)).unwrap();
++            assert_eq!(
++                seen, None,
++                "a quarantine that could not be fully scanned was given an age"
++            );
++        }
+     }
+ }
+diff --git a/crates/solid-pod-rs-forge/src/web_edit.rs b/crates/solid-pod-rs-forge/src/web_edit.rs
+index c825b98..447bab5 100644
+--- a/crates/solid-pod-rs-forge/src/web_edit.rs
++++ b/crates/solid-pod-rs-forge/src/web_edit.rs
+@@ -571,6 +571,7 @@ fn edit_failure(e: &ForgeError, what: &str) -> ForgeResponse {
+             ForgeError::NotFound(_) | ForgeError::PathTraversal(_) => cors_err(404, "not found"),
+             ForgeError::Conflict(m) => cors_err(409, m),
+             ForgeError::BadRequest(m) => cors_err(400, m),
++            ForgeError::Busy(m) => cors_err(503, m),
+             other => {
+                 tracing::warn!("forge: {what} failed: {other}");
+                 cors_err(500, "edit failed")
+
+codex
+**High 1: FIXED. High 2: FIXED**, for the identified defects and the agreed scope. The interdiff closes the record-check error bypass, excludes detached `HEAD` from reachability roots and rejects alternates. No new material regression is demonstrated.
+
+References below are relative to `crates/solid-pod-rs-forge/src/`. No tools were used; gate and mutation results are reported evidence, not independently verified.
+
+- **High 1 — FIXED:** `has_mirror_record` now distinguishes `NotFound` from other errors (`lib.rs:606`). Writer guards propagate failures (`lib.rs:638`, `compare.rs:532`), and ref cleanup refuses on error (`compare.rs:637`). The approved-content exception for mergeability computation is explicitly recorded (`compare.rs:526`). This closes the identified bypass; the supplied interdiff does not constitute an exhaustive audit of every repository writer.
+- **High 2 — FIXED:** reachability uses `--branches --tags` (`mirror.rs:1511`), and unmarked stores with alternates are refused before marking (`mirror.rs:1559`). Publication separately rejects alternates in an already-marked store (`mirror.rs:2085`).
+
+1. **Does record detection fail closed on every caller?**  
+   Yes, for every caller shown: `refuse_mirror_write` and `resolve_head` propagate errors; `release_head_ref` and `unpublished_mirror` use `unwrap_or(true)` (`lib.rs:592`, `lib.rs:638`, `compare.rs:532`, `compare.rs:637`). The reader gate still deliberately accepts an existing publication marker before checking the record; the error-closes-gate guarantee applies to unmarked stores.
+
+2. **Are roots exactly heads and tags, with alternates refused before marking?**  
+   Yes. `rev-list --objects --branches --tags` excludes `HEAD` and other ref namespaces (`mirror.rs:1511`). Both alternate filenames are checked using `symlink_metadata`, with errors other than `NotFound` treated as present (`mirror.rs:1785`). Marking and publication enforce the refusal separately.
+
+3. **Is sweeping limited to stale directories, with nothing deleted after a failed push?**  
+   Yes, for the application's quarantine sweep. Directory filtering remains, incomplete age scans return `None`, and `sweep_new_quarantines` is deleted (`mirror.rs:1809`, `mirror.rs:1823`, `mirror.rs:1862`, `mirror.rs:2148`). There is no longer application cleanup triggered by push failure. Git may still clean up its own quarantine.
+
+4. **Do writer tests assert an unchanged object set?**  
+   Yes. Web-edit and merge tests compare before/after `cat-file --batch-all-objects --batch-check` output (`mirror.rs:7165`, `mirror.rs:7245`), using `object_set` (`mirror.rs:7392`). The unreadable-record test does likewise. The reported mutation results support the assertions’ effectiveness.
+
+5. **Is a new regression introduced?**  
+   None is demonstrated. Refusing stores whose objects are reachable only through other namespaces is intentional. Mapping web-edit `Busy` errors to 503 is appropriate (`web_edit.rs:574`). The new injection seam is test-only.
+
+Remaining findings, ranked:
+
+- **Medium — Accepted availability limitation:** age still cannot prove that an owner push has stopped. A quarantine older than `PUBLISH_TIMEOUT` may belong to an active, stalled push and be removed (`mirror.rs:1859`). This is now accurately documented, not eliminated.
+- **Low — Conditional test coverage:** the unreadable-quarantine test returns successfully without exercising its assertion when mode `000` remains readable (`mirror.rs:7567`). The report says it executed as a non-root user.
+- **Low — Stale test wording:** the reported “sweeps any it finds” comment and the surviving “both sweeps” test name no longer describe the single stale sweep accurately (`mirror.rs:7314`).
+
+**Nothing material remains open in High 1 or High 2 within the agreed scope.** The documented stale-quarantine availability risk remains.
+tokens used
+23,474
+**High 1: FIXED. High 2: FIXED**, for the identified defects and the agreed scope. The interdiff closes the record-check error bypass, excludes detached `HEAD` from reachability roots and rejects alternates. No new material regression is demonstrated.
+
+References below are relative to `crates/solid-pod-rs-forge/src/`. No tools were used; gate and mutation results are reported evidence, not independently verified.
+
+- **High 1 — FIXED:** `has_mirror_record` now distinguishes `NotFound` from other errors (`lib.rs:606`). Writer guards propagate failures (`lib.rs:638`, `compare.rs:532`), and ref cleanup refuses on error (`compare.rs:637`). The approved-content exception for mergeability computation is explicitly recorded (`compare.rs:526`). This closes the identified bypass; the supplied interdiff does not constitute an exhaustive audit of every repository writer.
+- **High 2 — FIXED:** reachability uses `--branches --tags` (`mirror.rs:1511`), and unmarked stores with alternates are refused before marking (`mirror.rs:1559`). Publication separately rejects alternates in an already-marked store (`mirror.rs:2085`).
+
+1. **Does record detection fail closed on every caller?**  
+   Yes, for every caller shown: `refuse_mirror_write` and `resolve_head` propagate errors; `release_head_ref` and `unpublished_mirror` use `unwrap_or(true)` (`lib.rs:592`, `lib.rs:638`, `compare.rs:532`, `compare.rs:637`). The reader gate still deliberately accepts an existing publication marker before checking the record; the error-closes-gate guarantee applies to unmarked stores.
+
+2. **Are roots exactly heads and tags, with alternates refused before marking?**  
+   Yes. `rev-list --objects --branches --tags` excludes `HEAD` and other ref namespaces (`mirror.rs:1511`). Both alternate filenames are checked using `symlink_metadata`, with errors other than `NotFound` treated as present (`mirror.rs:1785`). Marking and publication enforce the refusal separately.
+
+3. **Is sweeping limited to stale directories, with nothing deleted after a failed push?**  
+   Yes, for the application's quarantine sweep. Directory filtering remains, incomplete age scans return `None`, and `sweep_new_quarantines` is deleted (`mirror.rs:1809`, `mirror.rs:1823`, `mirror.rs:1862`, `mirror.rs:2148`). There is no longer application cleanup triggered by push failure. Git may still clean up its own quarantine.
+
+4. **Do writer tests assert an unchanged object set?**  
+   Yes. Web-edit and merge tests compare before/after `cat-file --batch-all-objects --batch-check` output (`mirror.rs:7165`, `mirror.rs:7245`), using `object_set` (`mirror.rs:7392`). The unreadable-record test does likewise. The reported mutation results support the assertions’ effectiveness.
+
+5. **Is a new regression introduced?**  
+   None is demonstrated. Refusing stores whose objects are reachable only through other namespaces is intentional. Mapping web-edit `Busy` errors to 503 is appropriate (`web_edit.rs:574`). The new injection seam is test-only.
+
+Remaining findings, ranked:
+
+- **Medium — Accepted availability limitation:** age still cannot prove that an owner push has stopped. A quarantine older than `PUBLISH_TIMEOUT` may belong to an active, stalled push and be removed (`mirror.rs:1859`). This is now accurately documented, not eliminated.
+- **Low — Conditional test coverage:** the unreadable-quarantine test returns successfully without exercising its assertion when mode `000` remains readable (`mirror.rs:7567`). The report says it executed as a non-root user.
+- **Low — Stale test wording:** the reported “sweeps any it finds” comment and the surviving “both sweeps” test name no longer describe the single stale sweep accurately (`mirror.rs:7314`).
+
+**Nothing material remains open in High 1 or High 2 within the agreed scope.** The documented stale-quarantine availability risk remains.
+exit=0

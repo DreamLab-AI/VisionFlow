@@ -1,0 +1,51 @@
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 11.25s
+     Running unittests src/lib.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/solid_pod_rs_forge-d229dc2d13dcc7a9)
+
+running 43 tests
+test mirror::tests::a_garbled_mark_makes_the_state_unusable_not_markless ... ok
+test mirror::tests::backoff_interval_doubles_and_caps ... ok
+test mirror::tests::branch_refs_and_clone_urls_refuse_injection ... ok
+test mirror::tests::branch_verdict_unfetched_never_moves_no_mark_moves_a_mark_needs_a_listing_trail ... ok
+test mirror::tests::plan_mirror_skips_older_in_sync_and_rate_limited_otherwise_names_moved_branches ... ok
+test mirror::tests::publication_api::publication_marker_is_the_documented_file_name ... ok
+test mirror::tests::frames_backoff_resets_on_answer_and_notices_are_logged ... ok
+test mirror::tests::publication_api::receive_pack_command_is_a_fixed_hardened_constant ... ok
+test mirror::tests::remote_clone_urls_are_normalised_and_stripped_of_ambiguity ... ok
+test mirror::tests::config_off_unless_relays_and_follow_capped_keyed_by_pubkey_and_name ... ok
+test mirror::tests::read_clones_http_s_in_order_and_file_never ... ok
+test mirror::tests::verify_event_id_and_signature_must_check_out_and_a_tampered_tag_fails ... ok
+test mirror::tests::read_state_d_head_branch_refs_and_the_mark_only_with_all_three_tags ... ok
+test mirror::tests::dir_size_sums_files_and_ignores_symlinks ... ok
+test mirror::tests::a_30617_supplies_the_clone_url_and_a_forged_event_is_dropped ... ok
+test mirror::tests::records_round_trip_in_the_camel_case_shape_the_jss_forge_serves ... ok
+test mirror::tests::a_followed_repo_without_a_clone_url_still_records_why ... ok
+test mirror::tests::enqueue_drops_far_future_events ... ok
+test mirror::tests::drain_releases_the_busy_slot_when_it_cannot_run ... ok
+test mirror::tests::far_future_state_is_refused_and_does_not_freeze_the_clock ... ok
+test mirror::tests::equal_timestamps_resolve_by_event_id ... ok
+test mirror::tests::a_materialised_mirror_is_a_clean_served_store_beside_its_candidate ... ok
+test mirror::tests::the_default_ssrf_policy_refuses_a_loopback_clone_from_a_remote_announcement ... ok
+test mirror::tests::a_fetch_past_the_size_cap_is_killed_and_the_mirror_cleaned ... ok
+test mirror::tests::slow_size_walk_cannot_starve_the_deadline ... ok
+test mirror::tests::a_failed_fetch_removes_the_candidate_and_leaves_served_untouched ... ok
+test mirror::tests::publication_api::publish_with_an_empty_lease_refuses_a_branch_that_exists ... ok
+test mirror::tests::an_oversize_candidate_is_removed_and_served_is_untouched ... ok
+test mirror::tests::publication_api::an_apply_cancelled_after_fetch_leaves_served_untouched ... ok
+test mirror::tests::held_mirror_commit_is_not_published_through_raw_route ... ok
+test mirror::tests::publication_api::publish_with_a_stale_lease_moves_nothing_and_lands_no_objects ... ok
+test mirror::tests::fetched_refs_live_in_the_candidate_under_mirror_work_not_in_served ... ok
+test mirror::tests::publication_api::publish_with_a_current_lease_moves_the_branch ... ok
+test mirror::tests::reads_between_fetch_and_publish_never_see_the_fetched_commit ... ok
+test mirror::tests::publication_never_runs_hooks_planted_in_the_served_store ... ok
+test mirror::tests::held_side_commit_is_not_fetchable_over_smart_http ... ok
+test mirror::tests::served_store_holds_no_held_objects_and_no_alternates ... ok
+test mirror::tests::approved_mirror_commit_is_served_on_every_reader ... ok
+test mirror::tests::held_side_commit_is_denied_on_html_json_and_archive_readers ... ok
+test mirror::tests::a_ref_moved_behind_the_engine_before_publish_is_not_overwritten ... ok
+test mirror::tests::a_mixed_state_publishes_the_approved_branch_and_withholds_the_held_one ... ok
+test mirror::tests::repeated_updates_with_a_non_fast_forward_move_never_publish_held ... ok
+test mirror::tests::mirrors_a_repo_on_its_agents_state_through_a_relay ... ok
+
+test result: ok. 43 passed; 0 failed; 0 ignored; 0 measured; 230 filtered out; finished in 8.68s
+

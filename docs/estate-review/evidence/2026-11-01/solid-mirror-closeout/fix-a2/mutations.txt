@@ -1,0 +1,9 @@
+## MW: drain ignores the wake (sleep through the retry)
+thread 'mirror::tests::fix_a::a_newer_state_wakes_a_worker_waiting_to_retry' (2688399) panicked at crates/solid-pod-rs-forge/src/mirror.rs:3642:13:
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 295 filtered out; finished in 14.98s
+## MR: redact is the identity
+test mirror::tests::fix_a::redaction_leaves_unrelated_text_alone_under_a_short_plugin_root ... FAILED
+test mirror::tests::fix_a::a_failed_publication_keeps_the_plugin_path_out_of_the_saved_record ... FAILED
+thread 'mirror::tests::fix_a::redaction_leaves_unrelated_text_alone_under_a_short_plugin_root' (2689362) panicked at crates/solid-pod-rs-forge/src/mirror.rs:6786:13:
+thread 'mirror::tests::fix_a::a_failed_publication_keeps_the_plugin_path_out_of_the_saved_record' (2689361) panicked at crates/solid-pod-rs-forge/src/mirror.rs:6130:13:
+test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 294 filtered out; finished in 4.88s

@@ -1,0 +1,93 @@
+# Commit A fix round 2 gates, 2026-11-02T01:01:59Z, CARGO_TARGET_DIR=/home/devuser/workspace/.tmp/solid-mirror-target
+# HEAD 31fe898 + uncommitted diff; rustc 1.99.1 (58cf8f9c3 2026-10-13); git version 2.56.0
+$ cargo fmt --all --check
+exit=0  (log: gate-logs/gate1.log)
+
+$ cargo test --locked --offline -p solid-pod-rs-forge --features mirror
+exit=0  (log: gate-logs/gate2.log)
+    test result: ok. 296 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.85s
+    test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+    test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.29s
+    test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.23s
+    test result: ok. 65 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 36.78s
+
+$ cargo test --locked --offline -p solid-pod-rs-forge
+exit=0  (log: gate-logs/gate3.log)
+    test result: ok. 228 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.26s
+    test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+    test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.06s
+    test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.22s
+    test result: ok. 51 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 10.61s
+
+$ cargo test --locked --offline -p solid-pod-rs-server --features forge-full forge
+exit=0  (log: gate-logs/gate4.log)
+    test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 120 filtered out; finished in 0.01s
+    test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+    test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.00s
+    test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+    test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.00s
+    test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 13 filtered out; finished in 0.00s
+    test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+    test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
+    test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+    test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.00s
+    test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+    test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+$ cargo clippy --locked --offline -p solid-pod-rs-forge --features mirror --all-targets -- -D warnings
+exit=0  (log: gate-logs/gate5.log)
+
+$ cargo clippy --locked --offline -p solid-pod-rs-server --features forge-full --all-targets -- -D warnings
+exit=0  (log: gate-logs/gate6.log)
+
+$ env RUSTDOCFLAGS=-D warnings cargo doc --locked --offline --no-deps -p solid-pod-rs-forge --features mirror
+exit=0  (log: gate-logs/gate7.log)
+
+# done
+# RUN 1 (above) passed; a final review then found a stale-retry_at re-arm in drain (replay inherits the newest state's retry_at). Red test a_replay_does_not_inherit_the_newest_state_retry (red-replay-retry.log), fixed. RUN 2 follows.
+# Commit A fix round 2 gates, 2026-11-02T01:09:54Z, CARGO_TARGET_DIR=/home/devuser/workspace/.tmp/solid-mirror-target
+# HEAD 31fe898 + uncommitted diff; rustc 1.99.1 (58cf8f9c3 2026-10-13); git version 2.56.0
+$ cargo fmt --all --check
+exit=0  (log: gate-logs/gate1.log)
+
+$ cargo test --locked --offline -p solid-pod-rs-forge --features mirror
+exit=0  (log: gate-logs/gate2.log)
+    test result: ok. 297 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.23s
+    test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+    test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.97s
+    test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.62s
+    test result: ok. 65 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 44.73s
+
+$ cargo test --locked --offline -p solid-pod-rs-forge
+exit=0  (log: gate-logs/gate3.log)
+    test result: ok. 228 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.30s
+    test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+    test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.13s
+    test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.23s
+    test result: ok. 51 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 28.72s
+
+$ cargo test --locked --offline -p solid-pod-rs-server --features forge-full forge
+exit=0  (log: gate-logs/gate4.log)
+    test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 120 filtered out; finished in 0.01s
+    test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+    test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.00s
+    test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+    test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.00s
+    test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 13 filtered out; finished in 0.00s
+    test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+    test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
+    test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+    test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.00s
+    test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+    test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+$ cargo clippy --locked --offline -p solid-pod-rs-forge --features mirror --all-targets -- -D warnings
+exit=0  (log: gate-logs/gate5.log)
+
+$ cargo clippy --locked --offline -p solid-pod-rs-server --features forge-full --all-targets -- -D warnings
+exit=0  (log: gate-logs/gate6.log)
+
+$ env RUSTDOCFLAGS=-D warnings cargo doc --locked --offline --no-deps -p solid-pod-rs-forge --features mirror
+exit=0  (log: gate-logs/gate7.log)
+
+# done

@@ -1,0 +1,231 @@
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+   Compiling solid-pod-rs-server v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 50.47s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_server-9007557725cd23b0)
+
+running 3 tests
+test forge_env_tests::mirror_config_comes_from_the_environment ... ok
+test mempool::tests::block_anchorer_verify_false_when_address_forged ... ok
+test forge_env_tests::the_forge_service_is_built_once_per_data_directory ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 120 filtered out; finished in 0.01s
+
+     Running unittests src/main.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_server-960cf90c574cf3a6)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests/acl_candidate_control.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/acl_candidate_control-639b1ee35321391f)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.00s
+
+     Running tests/admin_provision.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/admin_provision-aae4955bce769db6)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+     Running tests/cache_control_policy.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/cache_control_policy-efe46d4018f87fee)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.00s
+
+     Running tests/cli_comprehensive.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/cli_comprehensive-be0605a3d5ea6a53)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 13 filtered out; finished in 0.00s
+
+     Running tests/cli_invite_persist.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/cli_invite_persist-dcae475e162ac107)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+
+     Running tests/cli_ops_sprint11.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/cli_ops_sprint11-f27b7c89ae19f2a1)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
+
+     Running tests/container_index_acl.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/container_index_acl-93cbaf90a07aed04)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+
+     Running tests/core_rows_parity.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/core_rows_parity-2fd9e467ac6ff671)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.00s
+
+     Running tests/er22_acl_copy_glob.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/er22_acl_copy_glob-08d03dfbd09b6b48)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/er22_ledger_guard.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/er22_ledger_guard-00927db825a1371e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/er22_mcp_dotfiles.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/er22_mcp_dotfiles-ac445db8dc6ed8e6)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/er22_path_clean.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/er22_path_clean-2863ce54f0baf65a)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/error_logging_middleware.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/error_logging_middleware-b99ddc6e2dd50636)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+     Running tests/forge_prefix_precedence.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/forge_prefix_precedence-59abcbf907b6ef6c)
+
+running 1 test
+test forge_receive_pack_is_not_swallowed_by_the_pod_push_refusal ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/get_content_negotiation_integration.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/get_content_negotiation_integration-94d6f007e7ac5ba6)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+     Running tests/git_marks.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/git_marks-4dabed835d58d3fe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+     Running tests/git_wac_gating.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/git_wac_gating-4582b66d4c4135a5)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+     Running tests/host_origin.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/host_origin-94b565c48e516f43)
+
+running 2 tests
+test replay_with_forged_x_forwarded_host_is_refused ... ok
+test replay_with_forged_forwarded_header_is_refused ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.01s
+
+     Running tests/jev_forge.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/jev_forge-66a9d7044abb418a)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/mcp_enforcement.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/mcp_enforcement-c4038edb33e260d3)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/mcp_wac_security.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/mcp_wac_security-23e1955d76413688)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+     Running tests/mempool_selection.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/mempool_selection-e24ae39d4d1b9522)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 13 filtered out; finished in 0.00s
+
+     Running tests/mempool_timeout.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/mempool_timeout-c204ab208eb955b3)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests/middleware_guards.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/middleware_guards-32cbe3df59331a8c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 21 filtered out; finished in 0.00s
+
+     Running tests/nip05_endpoint_integration.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/nip05_endpoint_integration-178090702ba2abcf)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/nip98_empty_body.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/nip98_empty_body-fef4ae585e5d3551)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests/patch_non_destructive_integration.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/patch_non_destructive_integration-7c18550200c775fb)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+     Running tests/pay_mrc20_routes.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/pay_mrc20_routes-f84457ee8623f559)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 11 filtered out; finished in 0.00s
+
+     Running tests/pay_phase4_routes.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/pay_phase4_routes-b72a1bd76eddec23)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.00s
+
+     Running tests/pay_routes.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/pay_routes-12c5049f443a1e48)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
+
+     Running tests/payment_atomicity.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/payment_atomicity-f2603081dc240daf)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests/prov_phase5_routes.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/prov_phase5_routes-35cb01ff4ed36c9b)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.00s
+
+     Running tests/proxy_endpoint.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/proxy_endpoint-a2b9626a8553fa09)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 17 filtered out; finished in 0.00s
+
+     Running tests/quota_enforcement.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/quota_enforcement-6c331e6a4abc4640)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/registration_security.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/registration_security-a4c769496b34e844)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.00s
+

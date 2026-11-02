@@ -1,0 +1,19 @@
+# green run
+test mirror::tests::fix_a::a_newer_state_is_retried_after_an_older_one_gave_up ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 345 filtered out; finished in 0.89s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 13 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.00s
+exit=0
+# mutated lines:
+3424:                // mutated
+3646:            // mutated
+# mutation run (expect FAIL)
+test mirror::tests::fix_a::a_newer_state_is_retried_after_an_older_one_gave_up ... FAILED
+thread 'mirror::tests::fix_a::a_newer_state_is_retried_after_an_older_one_gave_up' (3430646) panicked at crates/solid-pod-rs-forge/src/mirror.rs:9494:13:
+assertion `left == right` failed: the newer state did not start its own count
+  left: 4
+ right: 1
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 345 filtered out; finished in 0.77s
+exit=101
+0

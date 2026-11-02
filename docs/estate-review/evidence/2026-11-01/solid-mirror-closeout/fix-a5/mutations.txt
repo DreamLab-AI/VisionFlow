@@ -1,0 +1,22 @@
+## M1: every fetch error is retryable (the size-cap rule removed)
+test mirror::tests::fix_a::an_oversize_fetch_is_not_retried ... FAILED
+thread 'mirror::tests::fix_a::an_oversize_fetch_is_not_retried' (3029272) panicked at crates/solid-pod-rs-forge/src/mirror.rs:8503:13:
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 325 filtered out; finished in 0.64s
+
+## M2: the ref-namespace pre-check removed (only fsck decides)
+test mirror::tests::fix_a::a_notes_ref_is_not_a_root_of_the_scan ... FAILED
+thread 'mirror::tests::fix_a::a_notes_ref_is_not_a_root_of_the_scan' (3029778) panicked at crates/solid-pod-rs-forge/src/mirror.rs:8570:13:
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 325 filtered out; finished in 0.24s
+
+## M3: the engine never asks for the scan
+test mirror::tests::fix_a::the_store_is_examined_once_and_never_for_a_replay ... FAILED
+test mirror::tests::fix_a::a_legacy_record_store_with_an_unreachable_object_awaits_migration ... FAILED
+thread 'mirror::tests::fix_a::the_store_is_examined_once_and_never_for_a_replay' (3030168) panicked at crates/solid-pod-rs-forge/src/mirror.rs:8439:13:
+thread 'mirror::tests::fix_a::a_legacy_record_store_with_an_unreachable_object_awaits_migration' (3030167) panicked at crates/solid-pod-rs-forge/src/mirror.rs:8417:13:
+test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 324 filtered out; finished in 0.43s
+
+## M4: the detached-HEAD pre-check removed
+test mirror::tests::fix_a::a_detached_head_at_an_unreferenced_commit_is_not_marked ... FAILED
+thread 'mirror::tests::fix_a::a_detached_head_at_an_unreferenced_commit_is_not_marked' (3030633) panicked at crates/solid-pod-rs-forge/src/mirror.rs:7836:13:
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 325 filtered out; finished in 0.48s
+

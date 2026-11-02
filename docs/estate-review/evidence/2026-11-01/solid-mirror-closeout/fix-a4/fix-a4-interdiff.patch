@@ -1,0 +1,683 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index f4f2386..93024b1 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -35,13 +35,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+   repository is refused (409) instead of fetching that head into the
+   mirror's served store, where its objects would have been readable by SHA;
+   an existing pull request's view reads only a head already held. Merging,
+-  web edits and forking onto a mirror's name are refused (409) too.
++  web edits and forking onto a mirror's name are refused (409) too. A
++  mirror record path that cannot be checked (any error but "not found")
++  counts as a mirror: writes are refused (503) and the reader gate stays
++  closed.
+ - Forge mirror: an existing repository is marked for publication only when
+-  every object in it is reachable from its refs; one holding an unreachable
+-  object stays unmarked and refused, like the pre-isolation layout. The
+-  quarantine sweep removes only quarantines old enough to be a killed
+-  push's leftovers, and after a failed publication only those that push
+-  created, so a concurrent push is not broken.
++  every object in it is reachable from its branches and tags (not `HEAD`,
++  not other ref namespaces) and it has no `objects/info/alternates` or
++  `http-alternates`; otherwise it stays unmarked and refused, like the
++  pre-isolation layout. Publication into a marked repository that has since
++  gained alternates is refused. Only receive-pack quarantines older than the
++  publication timeout (120 s) are removed, before a publication; a failed
++  publication's own leftover waits for a later one. An owner push stalled
++  for longer than that may lose its quarantine and fail; this affects
++  availability only, and nothing is exposed.
+ - Git HTTP no longer permits direct requests for hidden or unadvertised
+   object hashes, including when repository-local configuration enables them.
+   Advertised-tip fetches remain supported. This closes a direct fetch path
+diff --git a/crates/solid-pod-rs-forge/src/compare.rs b/crates/solid-pod-rs-forge/src/compare.rs
+index e13e9db..fb1d9ba 100644
+--- a/crates/solid-pod-rs-forge/src/compare.rs
++++ b/crates/solid-pod-rs-forge/src/compare.rs
+@@ -524,8 +524,12 @@ pub(crate) async fn resolve_head(
+         }
+         // Never fetch a foreign head into a mirror's served store (Codex
+         // High 1). A caller asking to compare or open a pull request is told
+-        // why; an existing pull request's view reads only what is held.
+-        if self.has_mirror_record(base_owner, name).await {
++        // why; an existing pull request's view reads only what is held. A
++        // record that cannot be checked refuses (503). For a mirror base,
++        // `pull_merge_info` still runs `merge-tree --write-tree` in served,
++        // but only against a head ref it already holds, so whatever that
++        // writes is derived from approved content alone (round 4 decision).
++        if self.has_mirror_record(base_owner, name).await? {
+             return match access {
+                 HeadAccess::Caller(_) => Err(ForgeError::Conflict(format!(
+                     "'{base_owner}/{name}' is a mirror: a head from another repository cannot be fetched into it"
+@@ -627,8 +631,13 @@ pub(crate) async fn release_head_ref(
+         if shared || !valid_owner(&pr.head.owner) || !valid_ref(&pr.head.ref_name) {
+             return;
+         }
+-        // A mirror's served store is written by its publication alone.
+-        if self.has_mirror_record(base_owner, name).await {
++        // A mirror's served store is written by its publication alone; a
++        // record that cannot be checked counts as one.
++        if self
++            .has_mirror_record(base_owner, name)
++            .await
++            .unwrap_or(true)
++        {
+             return;
+         }
+         let Ok(dir) = self.gated_git_dir(base_owner, name).await else {
+diff --git a/crates/solid-pod-rs-forge/src/lib.rs b/crates/solid-pod-rs-forge/src/lib.rs
+index fbb716e..d2f9db3 100644
+--- a/crates/solid-pod-rs-forge/src/lib.rs
++++ b/crates/solid-pod-rs-forge/src/lib.rs
+@@ -580,6 +580,8 @@ async fn resolve_repo(&self, owner: &str, repo: &str) -> Result<PathBuf, ForgeEr
+     /// `mirror::MirrorStore`'s layout, checked without the `mirror` feature
+     /// so a plugin directory that was mirrored once stays gated. `owner` and
+     /// `repo` are already validated path segments (`repo::repo_git_dir`).
++    /// A record path that cannot be checked (any error but "not found")
++    /// keeps the gate closed.
+     async fn unpublished_mirror(&self, owner: &str, repo: &str, dir: &Path) -> bool {
+         if tokio::fs::metadata(dir.join(PUBLICATION_MARKER))
+             .await
+@@ -587,19 +589,40 @@ async fn unpublished_mirror(&self, owner: &str, repo: &str, dir: &Path) -> bool
+         {
+             return false;
+         }
+-        self.has_mirror_record(owner, repo).await
++        self.has_mirror_record(owner, repo).await.unwrap_or(true)
+     }
+ 
+     /// Whether `<owner>/<repo>` has a mirror record, marked or not. The path
+     /// is `mirror::MirrorStore`'s layout, checked without the `mirror`
+     /// feature. `owner` and `repo` must already be validated path segments.
+-    pub(crate) async fn has_mirror_record(&self, owner: &str, repo: &str) -> bool {
++    ///
++    /// Fails closed: only "not found" means no record. Any other error
++    /// (permissions, I/O, a parent that is not a directory) is returned, and
++    /// every caller treats it as "may be a mirror" (Codex round 3).
++    ///
++    /// # Errors
++    ///
++    /// The `stat` error, when it is anything but "not found".
++    pub(crate) async fn has_mirror_record(
++        &self,
++        owner: &str,
++        repo: &str,
++    ) -> Result<bool, ForgeError> {
+         let record = self
+             .plugin_dir
+             .join("mirror")
+             .join(owner)
+             .join(format!("{repo}.json"));
+-        tokio::fs::metadata(record).await.is_ok()
++        match tokio::fs::metadata(&record).await {
++            Ok(_) => Ok(true),
++            Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(false),
++            Err(e) => {
++                tracing::warn!(owner = %owner, repo = %repo, error = %e, "forge: mirror record unreadable; treated as a mirror");
++                Err(ForgeError::Busy(format!(
++                    "'{owner}/{repo}' cannot be checked for a mirror record"
++                )))
++            }
++        }
+     }
+ 
+     /// Refuse (409) any forge write into a mirror's served store: a foreign
+@@ -612,7 +635,7 @@ pub(crate) async fn refuse_mirror_write(
+         owner: &str,
+         repo: &str,
+     ) -> Result<(), ForgeError> {
+-        if self.has_mirror_record(owner, repo).await {
++        if self.has_mirror_record(owner, repo).await? {
+             return Err(ForgeError::Conflict(format!(
+                 "'{owner}/{repo}' is a mirror: only its publication writes to it"
+             )));
+diff --git a/crates/solid-pod-rs-forge/src/mirror.rs b/crates/solid-pod-rs-forge/src/mirror.rs
+index 6be3faf..4fb37cf 100644
+--- a/crates/solid-pod-rs-forge/src/mirror.rs
++++ b/crates/solid-pod-rs-forge/src/mirror.rs
+@@ -1375,6 +1375,10 @@ pub struct GitCli {
+     /// `plugin_dir/mirror-work`; `None` when `repo_root` has no parent, in
+     /// which case every candidate operation fails closed.
+     work_root: Option<PathBuf>,
++    /// Test seam: run on the served path just before the publication push
++    /// starts, to stand in for a concurrent owner push.
++    #[cfg(test)]
++    during_push: Option<fn(&Path)>,
+ }
+ 
+ impl GitCli {
+@@ -1390,6 +1394,8 @@ pub fn new(repo_root: impl Into<PathBuf>) -> Self {
+         Self {
+             repo_root,
+             work_root,
++            #[cfg(test)]
++            during_push: None,
+         }
+     }
+ 
+@@ -1490,23 +1496,24 @@ async fn build_served(&self, staging: &Path, served: &Path) -> Result<(), String
+             .map_err(|e| format!("could not place the served repository: {e}"))
+     }
+ 
+-    /// Locked decision 3: a served store without the marker is marked (with
+-    /// the fixed config) only when it shows no trace of the old shared
+-    /// layout. One that has `refs/mirror` or hides them predates publication
+-    /// isolation and may already hold held objects, and so does one holding
+-    /// any object no ref reaches (Codex High 2): refuse, so it stays
+-    /// unmarked (and gated) until migration rebuilds it.
+-    /// Whether the store holds any object that no ref outside `refs/mirror`
+-    /// reaches (Codex High 2). Such an object (a held blob left by the old
+-    /// shared layout, a dangling commit) is readable by SHA, so a store with
+-    /// one is not marked. Every object listed by `cat-file
+-    /// --batch-all-objects` must appear in `rev-list --objects --all`.
++    /// Whether the store holds any object that no branch or tag reaches
++    /// (Codex High 2). Such an object (a held blob left by the old shared
++    /// layout, a dangling commit) is readable by SHA, so a store with one is
++    /// not marked. Every object listed by `cat-file --batch-all-objects`
++    /// must appear in `rev-list --objects --branches --tags`.
++    ///
++    /// The roots are `refs/heads/*` and `refs/tags/*` only. `HEAD` is not a
++    /// root (a detached `HEAD` would otherwise vouch for any commit), nor is
++    /// any other namespace: `refs/mirror/*`, `refs/forge/heads/*` (pull
++    /// request heads), `refs/notes/*`, `refs/stash` and the rest. A store
++    /// whose objects only such a ref reaches is left unmarked and gated
++    /// until migration.
+     async fn holds_unreachable_objects(&self, served: &Path) -> Result<bool, String> {
+         let slow = Duration::from_secs(120);
+         let reachable = self
+             .run(
+                 served,
+-                &["rev-list", "--objects", "--exclude=refs/mirror/*", "--all"],
++                &["rev-list", "--objects", "--branches", "--tags"],
+                 None,
+                 slow,
+             )
+@@ -1534,6 +1541,14 @@ async fn holds_unreachable_objects(&self, served: &Path) -> Result<bool, String>
+             .any(|id| !reachable.contains(id)))
+     }
+ 
++    /// Locked decision 3: a served store without the marker is marked (with
++    /// the fixed config) only when it shows no trace of the old shared
++    /// layout. One that has `refs/mirror` or hides them predates publication
++    /// isolation and may already hold held objects, and so does one holding
++    /// any object no branch or tag reaches (Codex High 2, see
++    /// [`Self::holds_unreachable_objects`]) or one that borrows objects
++    /// through alternates (Codex round 3): refuse, so it stays unmarked (and
++    /// gated) until migration rebuilds it.
+     async fn mark_clean_store(&self, served: &Path) -> Result<Prepared, String> {
+         if tokio::fs::metadata(served.join(PUBLICATION_MARKER))
+             .await
+@@ -1541,6 +1556,9 @@ async fn mark_clean_store(&self, served: &Path) -> Result<Prepared, String> {
+         {
+             return Ok(Prepared::Ready);
+         }
++        if has_alternates(served).await {
++            return Ok(Prepared::AwaitsMigration);
++        }
+         let quick = Duration::from_secs(15);
+         let mirror_refs = self
+             .run(
+@@ -1759,12 +1777,28 @@ async fn is_bare_store(dir: &Path) -> bool {
+             .is_ok_and(|m| m.is_dir())
+ }
+ 
++/// Whether a store borrows objects from elsewhere: `objects/info/alternates`
++/// or `objects/info/http-alternates` is present. Objects reached that way
++/// are readable through served but live outside it, so neither marking nor
++/// publication can vouch for them. Fails closed: a path that cannot be
++/// checked (any error but "not found") counts as present.
++async fn has_alternates(served: &Path) -> bool {
++    let info = served.join("objects").join("info");
++    for file in ["alternates", "http-alternates"] {
++        match tokio::fs::symlink_metadata(info.join(file)).await {
++            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
++            _ => return true,
++        }
++    }
++    false
++}
++
+ /// The prefix receive-pack gives its quarantine directory in `objects/`.
+ const QUARANTINE_PREFIX: &str = "tmp_objdir-incoming-";
+ 
+ /// The receive-pack quarantine directories (`objects/tmp_objdir-incoming-*`)
+-/// in a served store, by name.
+-async fn quarantines_in(served: &Path) -> Vec<(std::ffi::OsString, PathBuf)> {
++/// in a served store.
++async fn quarantines_in(served: &Path) -> Vec<PathBuf> {
+     let mut out = Vec::new();
+     let Ok(mut entries) = tokio::fs::read_dir(served.join("objects")).await else {
+         return out;
+@@ -1775,37 +1809,40 @@ async fn quarantines_in(served: &Path) -> Vec<(std::ffi::OsString, PathBuf)> {
+             .starts_with(QUARANTINE_PREFIX)
+             && e.file_type().await.is_ok_and(|t| t.is_dir())
+         {
+-            out.push((e.file_name(), e.path()));
++            out.push(e.path());
+         }
+     }
+     out
+ }
+ 
+ /// The newest modification time of a quarantine directory, its entries and
+-/// theirs (receive-pack writes into `pack/` below it). `None` when none of
+-/// them can be read.
++/// theirs (receive-pack writes into `pack/` below it). `None` when any part
++/// of that scan cannot be read: an incomplete scan gives no age, so the
++/// sweep treats the directory as fresh rather than judging it by the
++/// entries it happened to see (Codex round 3).
+ async fn newest_mtime(dir: &Path) -> Option<SystemTime> {
+-    let mut newest = tokio::fs::metadata(dir).await.ok()?.modified().ok();
++    let mut newest = tokio::fs::symlink_metadata(dir)
++        .await
++        .ok()?
++        .modified()
++        .ok()?;
+     let mut level = vec![dir.to_path_buf()];
+     for _ in 0..2 {
+         let mut next = Vec::new();
+         for d in level {
+-            let Ok(mut entries) = tokio::fs::read_dir(&d).await else {
+-                continue;
+-            };
+-            while let Ok(Some(e)) = entries.next_entry().await {
++            let mut entries = tokio::fs::read_dir(&d).await.ok()?;
++            while let Some(e) = entries.next_entry().await.ok()? {
+                 // `DirEntry::metadata` does not follow symlinks.
+-                if let Ok(m) = e.metadata().await {
+-                    newest = newest.max(m.modified().ok());
+-                    if m.is_dir() {
+-                        next.push(e.path());
+-                    }
++                let m = e.metadata().await.ok()?;
++                newest = newest.max(m.modified().ok()?);
++                if m.is_dir() {
++                    next.push(e.path());
+                 }
+             }
+         }
+         level = next;
+     }
+-    newest
++    Some(newest)
+ }
+ 
+ /// Remove the quarantine directories in a served store that are leftovers
+@@ -1816,10 +1853,15 @@ async fn newest_mtime(dir: &Path) -> Option<SystemTime> {
+ /// before the first mirror record exists) and is left alone (security delta
+ /// N3). It holds approved objects only and no reader looks inside it, but it
+ /// counts against the store's size. Called under the repository lock,
+-/// before a publication.
++/// before a publication; it is the only sweep, so what a failed publication
++/// leaves is removed by a later one once it is stale.
++///
++/// Age is a heuristic, not proof that a push has stopped: an owner push
++/// stalled for longer than [`PUBLISH_TIMEOUT`] may lose its quarantine and
++/// fail. That costs availability only; nothing is exposed.
+ async fn sweep_stale_quarantines(served: &Path) {
+     let now = SystemTime::now();
+-    for (_, path) in quarantines_in(served).await {
++    for path in quarantines_in(served).await {
+         let stale = newest_mtime(&path)
+             .await
+             .and_then(|t| now.duration_since(t).ok())
+@@ -1830,17 +1872,6 @@ async fn sweep_stale_quarantines(served: &Path) {
+     }
+ }
+ 
+-/// After a failed publication: remove the quarantine directories that were
+-/// not there when its push started (`before`), which are what the killed or
+-/// failed push left. One that was already there is not this push's.
+-async fn sweep_new_quarantines(served: &Path, before: &[std::ffi::OsString]) {
+-    for (name, path) in quarantines_in(served).await {
+-        if !before.contains(&name) {
+-            remove_store(&path).await;
+-        }
+-    }
+-}
+-
+ /// The first update `git push --porcelain` did not report as accepted.
+ /// Lines are `<flag>\t<from>:<to>\t<summary>`; `!` is a rejection.
+ fn porcelain_rejection(out: &str, updates: &[RefUpdate]) -> Option<String> {
+@@ -2049,6 +2080,13 @@ async fn publish_inner(
+         if self.mark_clean_store(&served).await? == Prepared::AwaitsMigration {
+             return Err(PublishError::terminal(AWAITS_MIGRATION));
+         }
++        // A marked store that has since gained alternates serves objects
++        // from outside itself; publishing into it would vouch for them.
++        if has_alternates(&served).await {
++            return Err(PublishError::terminal(
++                "the served repository borrows objects through alternates",
++            ));
++        }
+         let served_s = served
+             .to_str()
+             .ok_or_else(|| PublishError::terminal("non-UTF-8 store path"))?;
+@@ -2076,11 +2114,6 @@ async fn publish_inner(
+         // starts, so a store past it is refused rather than killed mid-push
+         // on every try (security delta N1).
+         sweep_stale_quarantines(&served).await;
+-        let before: Vec<std::ffi::OsString> = quarantines_in(&served)
+-            .await
+-            .into_iter()
+-            .map(|(name, _)| name)
+-            .collect();
+         let baseline = tokio::task::spawn_blocking({
+             let d = served.clone();
+             move || dir_size(&d)
+@@ -2093,6 +2126,10 @@ async fn publish_inner(
+             )));
+         }
+         let limit = baseline.saturating_add(MAX_REPO_BYTES);
++        #[cfg(test)]
++        if let Some(f) = self.during_push {
++            f(&served);
++        }
+         // git pushes from the candidate (`--git-dir`); the watcher measures
+         // served, the store the push writes into.
+         let pushed = self
+@@ -2111,9 +2148,10 @@ async fn publish_inner(
+                     None => Ok(()),
+                 },
+             );
+-        if pushed.is_err() {
+-            sweep_new_quarantines(&served, &before).await;
+-        }
++        // A failed push's leftover quarantine is not swept here: nothing
++        // tells it apart from a concurrent owner push's (Codex round 3). The
++        // stale sweep removes it on a later publication; until then the size
++        // baseline tolerates it and the ceiling counts it.
+         pushed.map_err(PublishError::from)?;
+         // HEAD only after a successful push, and only to a ref that was in
+         // it. A failure here is logged and does not undo the publication.
+@@ -7106,6 +7144,7 @@ async fn a_pull_request_into_a_mirror_never_fetches_a_foreign_head() {
+         #[tokio::test]
+         async fn a_web_edit_into_a_mirror_is_refused() {
+             let p = published(82).await;
++            let objects_before = object_set(&p.served(), p.home());
+             let forge = forge_at(&p.plugin);
+             let body = serde_json::json!({"path": "edit.txt", "content": "edited\n"});
+             let r = forge
+@@ -7123,6 +7162,11 @@ async fn a_web_edit_into_a_mirror_is_refused() {
+                 .unwrap();
+             assert_eq!(r.status, 409, "{}", String::from_utf8_lossy(&r.body));
+             assert_eq!(rev(&p.served(), p.home(), "refs/heads/main"), p.approved);
++            assert_eq!(
++                object_set(&p.served(), p.home()),
++                objects_before,
++                "a refused web edit wrote objects into served"
++            );
+         }
+ 
+         /// Codex High 1, other writers: a pull request opened before the
+@@ -7180,6 +7224,7 @@ async fn a_pull_request_cannot_be_merged_into_a_mirror() {
+                 .save(&MirrorRecord::new(&owner, "sample", None))
+                 .unwrap();
+             std::fs::write(served.join(MARKER_FILE), "").unwrap();
++            let objects_before = object_set(&served, home);
+             let r = forge
+                 .handle(
+                     json_req(
+@@ -7197,6 +7242,11 @@ async fn a_pull_request_cannot_be_merged_into_a_mirror() {
+                 main,
+                 "the merge moved main"
+             );
++            assert_eq!(
++                object_set(&served, home),
++                objects_before,
++                "a refused merge wrote objects into served"
++            );
+         }
+ 
+         /// Codex High 2: a store with no `refs/mirror` and no `hideRefs`, but
+@@ -7270,15 +7320,27 @@ async fn a_fresh_quarantine_survives_both_sweeps_and_an_old_one_does_not() {
+                 .await
+                 .unwrap();
+             let fresh = served.join("objects").join("tmp_objdir-incoming-fresh");
+-            std::fs::create_dir_all(fresh.join("pack")).unwrap();
+-            std::fs::write(fresh.join("pack").join("partial"), b"x").unwrap();
++            // A concurrent owner push whose quarantine appears while the
++            // failing publication runs (round 4: after any snapshot it took).
++            fn owner_push_starts(served: &Path) {
++                let pack = served
++                    .join("objects")
++                    .join("tmp_objdir-incoming-fresh")
++                    .join("pack");
++                std::fs::create_dir_all(&pack).unwrap();
++                std::fs::write(pack.join("partial"), b"x").unwrap();
++            }
++            let failing = GitCli {
++                during_push: Some(owner_push_starts),
++                ..git.clone()
++            };
+             plant_quarantine(&served);
+             let to = |expected: &str| RefUpdate {
+                 git_ref: "refs/heads/main".into(),
+                 sha: approved2.clone(),
+                 expected: Some(expected.to_string()),
+             };
+-            let failed = git
++            let failed = failing
+                 .publish(&p.owner, "sample", &[to(&"0".repeat(40))], None)
+                 .await;
+             assert!(failed.is_err(), "control: a stale lease fails");
+@@ -7322,5 +7384,208 @@ fn redaction_leaves_unrelated_text_alone_under_a_short_plugin_root() {
+                 "unable to open <plugin>/mirror-work/locks/x.lock"
+             );
+         }
++
++        // --- round 4 -------------------------------------------------------
++
++        /// Every object in a store, as `cat-file --batch-all-objects
++        /// --batch-check` lists them (round 4, item 5).
++        fn object_set(dir: &Path, home: &Path) -> String {
++            git_ok(
++                dir,
++                home,
++                &["cat-file", "--batch-all-objects", "--batch-check"],
++            )
++        }
++
++        /// Round 4 item 1: a mirror record path that cannot be read (here
++        /// its parent is a file, so `stat` fails with ENOTDIR; no reliance
++        /// on modes, which root ignores) is not "no record". Writers refuse,
++        /// and the reader gate stays closed for an unmarked store.
++        #[tokio::test]
++        async fn an_unreadable_record_path_refuses_writes_and_keeps_the_gate_closed() {
++            let p = published(90).await;
++            let served = p.served();
++            let owner_dir = p.plugin.join("mirror").join(&p.owner);
++            std::fs::remove_dir_all(&owner_dir).unwrap();
++            std::fs::write(&owner_dir, b"not a directory").unwrap();
++            let objects_before = object_set(&served, p.home());
++            let forge = forge_at(&p.plugin);
++            let body = serde_json::json!({"path": "edit.txt", "content": "edited\n"});
++            let r = forge
++                .handle(
++                    json_req(
++                        "POST",
++                        format!("/forge/api/repos/{}/sample/edit", p.owner),
++                        &body,
++                    ),
++                    crate::ForgeAgent::Nostr {
++                        pubkey_hex: p.owner.clone(),
++                    },
++                )
++                .await
++                .unwrap();
++            assert!(
++                matches!(r.status, 409 | 503),
++                "a write went ahead with an unreadable record: {} {}",
++                r.status,
++                String::from_utf8_lossy(&r.body)
++            );
++            assert_eq!(rev(&served, p.home(), "refs/heads/main"), p.approved);
++            assert_eq!(object_set(&served, p.home()), objects_before);
++
++            std::fs::remove_file(served.join(MARKER_FILE)).unwrap();
++            let raw = get(
++                &forge,
++                format!("/forge/{}/sample/raw/{}/public.txt", p.owner, p.approved),
++            )
++            .await;
++            assert_eq!(
++                raw.status,
++                503,
++                "the gate opened on an unreadable record: {}",
++                String::from_utf8_lossy(&raw.body)
++            );
++        }
++
++        /// Round 4 item 2: `HEAD` is not a root. A detached `HEAD` at a
++        /// commit no branch or tag reaches leaves the store unmarked.
++        #[tokio::test]
++        async fn a_detached_head_at_an_unreferenced_commit_is_not_marked() {
++            let tmp = tempfile::tempdir().unwrap();
++            let home = tmp.path();
++            let plugin = home.join("plugin");
++            let up = new_upstream(home);
++            commit_file(&up, home, "public.txt", APPROVED_BYTES, APPROVED_SUBJECT);
++            let owner = pubhex(&key(91));
++            let served = owner_pushed(&plugin, &owner, &up, home);
++            let tree = git_ok(&served, home, &["rev-parse", "refs/heads/main^{tree}"]);
++            let stray = git_ok(
++                &served,
++                home,
++                &[
++                    "-c",
++                    "user.name=Agent",
++                    "-c",
++                    "user.email=agent@example.org",
++                    "commit-tree",
++                    &tree,
++                    "-m",
++                    "stray",
++                ],
++            );
++            git_ok(&served, home, &["update-ref", "--no-deref", "HEAD", &stray]);
++            MirrorStore::new(&plugin)
++                .save(&MirrorRecord::new(&owner, "sample", None))
++                .unwrap();
++            let git = GitCli::new(plugin.join("repos"));
++            assert_eq!(
++                git.prepare(&owner, "sample").await,
++                Ok(Prepared::AwaitsMigration)
++            );
++            assert!(!served.join(MARKER_FILE).exists(), "marked");
++        }
++
++        /// Round 4 item 3: a store that borrows objects through alternates
++        /// (local or HTTP) is not marked, since what it serves is not
++        /// confined to its own object store.
++        #[tokio::test]
++        async fn a_store_with_alternates_is_not_marked() {
++            let tmp = tempfile::tempdir().unwrap();
++            let home = tmp.path();
++            let plugin = home.join("plugin");
++            let up = new_upstream(home);
++            commit_file(&up, home, "public.txt", APPROVED_BYTES, APPROVED_SUBJECT);
++            let git = GitCli::new(plugin.join("repos"));
++            let elsewhere = up.join(".git").join("objects");
++            for (seed, file, line) in [
++                (92u8, "alternates", elsewhere.to_str().unwrap().to_string()),
++                (
++                    95u8,
++                    "http-alternates",
++                    "https://example.invalid/objects".into(),
++                ),
++            ] {
++                let owner = pubhex(&key(seed));
++                let served = owner_pushed(&plugin, &owner, &up, home);
++                let info = served.join("objects").join("info");
++                std::fs::create_dir_all(&info).unwrap();
++                std::fs::write(info.join(file), format!("{line}\n")).unwrap();
++                MirrorStore::new(&plugin)
++                    .save(&MirrorRecord::new(&owner, "sample", None))
++                    .unwrap();
++                assert_eq!(
++                    git.prepare(&owner, "sample").await,
++                    Ok(Prepared::AwaitsMigration),
++                    "{file}"
++                );
++                assert!(!served.join(MARKER_FILE).exists(), "{file}: marked");
++            }
++        }
++
++        /// Round 4 item 3: a marked store that later gains an alternates
++        /// file is refused publication, terminally, and nothing moves.
++        #[tokio::test]
++        async fn a_marked_store_that_gains_alternates_refuses_publication() {
++            let p = published(93).await;
++            let served = p.served();
++            let approved2 = commit_file(&p.up, p.home(), "two.txt", "two\n", "approved two");
++            let git = GitCli::new(p.plugin.join("repos"));
++            git.fetch(&p.owner, "sample", &p.url(), true, None)
++                .await
++                .unwrap();
++            let info = served.join("objects").join("info");
++            std::fs::create_dir_all(&info).unwrap();
++            let elsewhere = p.up.join(".git").join("objects");
++            std::fs::write(
++                info.join("alternates"),
++                format!("{}\n", elsewhere.display()),
++            )
++            .unwrap();
++            let r = git
++                .publish(
++                    &p.owner,
++                    "sample",
++                    &[RefUpdate {
++                        git_ref: "refs/heads/main".into(),
++                        sha: approved2.clone(),
++                        expected: Some(p.approved.clone()),
++                    }],
++                    None,
++                )
++                .await;
++            let e = r.expect_err("published into a store with alternates");
++            assert!(!e.retryable, "{}", e.reason);
++            assert_eq!(rev(&served, p.home(), "refs/heads/main"), p.approved);
++        }
++
++        /// Round 4 item 4: a quarantine whose scan cannot be completed (an
++        /// unreadable `pack/`) has no age (so the sweep treats it as fresh),
++        /// instead of being judged by the entries that could be read. Needs a non-root user: root reads
++        /// through mode 000, so the test reports that and returns.
++        #[cfg(unix)]
++        #[tokio::test]
++        async fn a_quarantine_that_cannot_be_scanned_has_no_age() {
++            use std::os::unix::fs::PermissionsExt;
++            let tmp = tempfile::tempdir().unwrap();
++            let served = tmp.path().join("served.git");
++            std::fs::create_dir_all(served.join("objects")).unwrap();
++            plant_quarantine(&served);
++            let q = served.join("objects").join("tmp_objdir-incoming-planted");
++            let pack = q.join("pack");
++            std::fs::set_permissions(&pack, std::fs::Permissions::from_mode(0o000)).unwrap();
++            if std::fs::read_dir(&pack).is_ok() {
++                std::fs::set_permissions(&pack, std::fs::Permissions::from_mode(0o755)).unwrap();
++                eprintln!("NOT RUN a_quarantine_that_cannot_be_scanned_has_no_age: mode 000 is readable (root)");
++                return;
++            }
++            // Asked of the age scan itself: the sweep's removal would also
++            // fail on the unreadable directory, which would hide the verdict.
++            let seen = newest_mtime(&q).await;
++            std::fs::set_permissions(&pack, std::fs::Permissions::from_mode(0o755)).unwrap();
++            assert_eq!(
++                seen, None,
++                "a quarantine that could not be fully scanned was given an age"
++            );
++        }
+     }
+ }
+diff --git a/crates/solid-pod-rs-forge/src/web_edit.rs b/crates/solid-pod-rs-forge/src/web_edit.rs
+index c825b98..447bab5 100644
+--- a/crates/solid-pod-rs-forge/src/web_edit.rs
++++ b/crates/solid-pod-rs-forge/src/web_edit.rs
+@@ -571,6 +571,7 @@ fn edit_failure(e: &ForgeError, what: &str) -> ForgeResponse {
+             ForgeError::NotFound(_) | ForgeError::PathTraversal(_) => cors_err(404, "not found"),
+             ForgeError::Conflict(m) => cors_err(409, m),
+             ForgeError::BadRequest(m) => cors_err(400, m),
++            ForgeError::Busy(m) => cors_err(503, m),
+             other => {
+                 tracing::warn!("forge: {what} failed: {other}");
+                 cors_err(500, "edit failed")

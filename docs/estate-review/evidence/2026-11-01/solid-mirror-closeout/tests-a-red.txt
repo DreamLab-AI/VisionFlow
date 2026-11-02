@@ -1,0 +1,145 @@
+# tests-a-red: solid-pod-rs-forge mirror publication isolation, Commit A acceptance tests
+# worktree: /home/devuser/workspace/wt/solid-pod-rs-mirror-publication @ 31fe898 + uncommitted tests (mirror.rs only)
+# cmd: CARGO_HOME=/home/devuser/workspace/.cargo CARGO_TARGET_DIR=/home/devuser/workspace/solid-pod-rs/target CARGO_BUILD_JOBS=4 cargo test --locked --offline -p solid-pod-rs-forge --features mirror mirror::tests -- --nocapture
+# fmt --check: clean. clippy --tests -D warnings (publication_api gated): clean.
+
+## RUN 1: final file with 'mod publication_api' temporarily gated #[cfg(any())] (gate since removed) -> assertion red
+test mirror::tests::a_followed_repo_without_a_clone_url_still_records_why ... ok
+test mirror::tests::a_garbled_mark_makes_the_state_unusable_not_markless ... ok
+test mirror::tests::a_30617_supplies_the_clone_url_and_a_forged_event_is_dropped ... ok
+test mirror::tests::a_fetch_past_the_size_cap_is_killed_and_the_mirror_cleaned ... ok
+test mirror::tests::a_materialised_mirror_is_a_clean_served_store_beside_its_candidate ... FAILED
+test mirror::tests::a_failed_fetch_removes_the_candidate_and_leaves_served_untouched ... FAILED
+test mirror::tests::an_oversize_candidate_is_removed_and_served_is_untouched ... FAILED
+test mirror::tests::backoff_interval_doubles_and_caps ... ok
+test mirror::tests::branch_refs_and_clone_urls_refuse_injection ... ok
+test mirror::tests::branch_verdict_unfetched_never_moves_no_mark_moves_a_mark_needs_a_listing_trail ... ok
+test mirror::tests::config_off_unless_relays_and_follow_capped_keyed_by_pubkey_and_name ... ok
+test mirror::tests::dir_size_sums_files_and_ignores_symlinks ... ok
+test mirror::tests::drain_releases_the_busy_slot_when_it_cannot_run ... ok
+test mirror::tests::enqueue_drops_far_future_events ... ok
+test mirror::tests::equal_timestamps_resolve_by_event_id ... ok
+test mirror::tests::far_future_state_is_refused_and_does_not_freeze_the_clock ... ok
+test mirror::tests::a_ref_moved_behind_the_engine_before_publish_is_not_overwritten ... FAILED
+test mirror::tests::frames_backoff_resets_on_answer_and_notices_are_logged ... ok
+test mirror::tests::a_mixed_state_publishes_the_approved_branch_and_withholds_the_held_one ... FAILED
+test mirror::tests::approved_mirror_commit_is_served_on_every_reader ... ok
+test mirror::tests::fetched_refs_live_in_the_candidate_under_mirror_work_not_in_served ... FAILED
+test mirror::tests::held_mirror_commit_is_not_published_through_raw_route ... FAILED
+test mirror::tests::plan_mirror_skips_older_in_sync_and_rate_limited_otherwise_names_moved_branches ... ok
+test mirror::tests::held_side_commit_is_denied_on_html_json_and_archive_readers ... FAILED
+test mirror::tests::mirrors_a_repo_on_its_agents_state_through_a_relay ... FAILED
+test mirror::tests::read_state_d_head_branch_refs_and_the_mark_only_with_all_three_tags ... ok
+test mirror::tests::records_round_trip_in_the_camel_case_shape_the_jss_forge_serves ... ok
+test mirror::tests::remote_clone_urls_are_normalised_and_stripped_of_ambiguity ... ok
+test mirror::tests::held_side_commit_is_not_fetchable_over_smart_http ... ok
+test mirror::tests::publication_never_runs_hooks_planted_in_the_served_store ... ok
+test mirror::tests::reads_between_fetch_and_publish_never_see_the_fetched_commit ... FAILED
+test mirror::tests::repeated_updates_with_a_non_fast_forward_move_never_publish_held ... FAILED
+test mirror::tests::verify_event_id_and_signature_must_check_out_and_a_tampered_tag_fails ... ok
+test mirror::tests::the_default_ssrf_policy_refuses_a_loopback_clone_from_a_remote_announcement ... ok
+test mirror::tests::served_store_holds_no_held_objects_and_no_alternates ... FAILED
+test mirror::tests::slow_size_walk_cannot_starve_the_deadline ... ok
+test result: FAILED. 25 passed; 12 failed; 0 ignored; 0 measured; 230 filtered out; finished in 7.57s
+
+### failure messages
+thread 'mirror::tests::a_materialised_mirror_is_a_clean_served_store_beside_its_candidate' (2330075) panicked at crates/solid-pod-rs-forge/src/mirror.rs:2579:9:
+assertion `left == right` failed
+  left: ""
+ right: "/dev/null"
+thread 'mirror::tests::a_failed_fetch_removes_the_candidate_and_leaves_served_untouched' (2330067) panicked at crates/solid-pod-rs-forge/src/mirror.rs:3913:9:
+no candidate at /home/devuser/workspace/.tmp/.tmpcgwOAR/mirror-work/candidates/ba72a6e8ba53e8b971ad0c9823968aef4d78ce8af255ab43dff83003c902fb8d/sample.git after a good fetch
+thread 'mirror::tests::an_oversize_candidate_is_removed_and_served_is_untouched' (2330162) panicked at crates/solid-pod-rs-forge/src/mirror.rs:3962:9:
+no candidate at /home/devuser/workspace/.tmp/.tmpK7ofyK/mirror-work/candidates/5c4e0dec7215e26833938730e5e505aa62504da85ba57106a46b5a2404fc9d8e/sample.git after a good fetch
+thread 'mirror::tests::a_ref_moved_behind_the_engine_before_publish_is_not_overwritten' (2330140) panicked at crates/solid-pod-rs-forge/src/mirror.rs:3871:9:
+a stale lease still published: fetched; the state carries no mark
+thread 'mirror::tests::a_mixed_state_publishes_the_approved_branch_and_withholds_the_held_one' (2330081) panicked at crates/solid-pod-rs-forge/src/mirror.rs:3577:9:
+held side commit entered served
+thread 'mirror::tests::fetched_refs_live_in_the_candidate_under_mirror_work_not_in_served' (2330333) panicked at crates/solid-pod-rs-forge/src/mirror.rs:3347:9:
+no candidate at /home/devuser/workspace/.tmp/.tmporzFuM/mirror-work/candidates/8d7500dd4c12685d1f568b4c2b5048e8534b873319f3a8daa612b469132ec7f7/sample.git
+thread 'mirror::tests::held_mirror_commit_is_not_published_through_raw_route' (2330345) panicked at crates/solid-pod-rs-forge/src/mirror.rs:2957:9:
+assertion `left == right` failed: held verdict still served bytes: synthetic-held-mirror-content
+
+  left: 200
+thread 'mirror::tests::held_side_commit_is_denied_on_html_json_and_archive_readers' (2330349) panicked at crates/solid-pod-rs-forge/src/mirror.rs:3292:9:
+held commit served:
+/forge/505f234a81fe3af88625ebda259dbaec44c72b181e2f64735f8b8ec8d7cf7377/sample/raw/a95ff352ba06514d399bb2dcfb25b83391130888/held.txt -> 200 (held bytes in body: true)
+/forge/505f234a81fe3af88625ebda259dbaec44c72b181e2f64735f8b8ec8d7cf7377/sample/blob/a95ff352ba06514d399bb2dcfb25b83391130888/held.txt -> 200 (held bytes in body: true)
+thread 'mirror::tests::mirrors_a_repo_on_its_agents_state_through_a_relay' (2330526) panicked at crates/solid-pod-rs-forge/src/mirror.rs:4348:9:
+assertion `left == right` failed: served carries refs/mirror
+  left: "refs/mirror/main"
+ right: ""
+thread 'mirror::tests::reads_between_fetch_and_publish_never_see_the_fetched_commit' (2330661) panicked at crates/solid-pod-rs-forge/src/mirror.rs:3493:9:
+assertion `left == right` failed: held readable mid-validation: synthetic-held-mirror-content
+
+  left: 200
+thread 'mirror::tests::repeated_updates_with_a_non_fast_forward_move_never_publish_held' (2330669) panicked at crates/solid-pod-rs-forge/src/mirror.rs:3630:9:
+held entered served after state 2
+thread 'mirror::tests::served_store_holds_no_held_objects_and_no_alternates' (2330718) panicked at crates/solid-pod-rs-forge/src/mirror.rs:3332:9:
+served store holds ["held commit", "held tree path", "held blob"]
+
+## RUN 2 (LAST RUN): final file as delivered, publication_api enabled -> compile red
+error[E0407]: method `publish` is not a member of trait `MirrorGit`
+    --> crates/solid-pod-rs-forge/src/mirror.rs:4206:13
+error[E0425]: cannot find value `PUBLICATION_MARKER` in this scope
+    --> crates/solid-pod-rs-forge/src/mirror.rs:4003:24
+error[E0425]: cannot find value `RECEIVE_PACK` in this scope
+    --> crates/solid-pod-rs-forge/src/mirror.rs:4012:30
+error[E0425]: cannot find type `RefUpdate` in this scope
+    --> crates/solid-pod-rs-forge/src/mirror.rs:4085:58
+error[E0422]: cannot find struct, variant or union type `RefUpdate` in this scope
+    --> crates/solid-pod-rs-forge/src/mirror.rs:4086:13
+error[E0425]: cannot find type `RefUpdate` in this scope
+    --> crates/solid-pod-rs-forge/src/mirror.rs:4210:28
+error[E0046]: not all trait items implemented, missing: `update_ref`, `set_head`
+    --> crates/solid-pod-rs-forge/src/mirror.rs:4172:9
+error[E0599]: no method named `publish` found for struct `mirror::GitCli` in the current scope
+    --> crates/solid-pod-rs-forge/src/mirror.rs:4097:17
+error[E0599]: no method named `publish` found for struct `mirror::GitCli` in the current scope
+    --> crates/solid-pod-rs-forge/src/mirror.rs:4120:18
+error[E0599]: no method named `publish` found for struct `mirror::GitCli` in the current scope
+    --> crates/solid-pod-rs-forge/src/mirror.rs:4144:18
+error[E0599]: no method named `publish` found for struct `mirror::GitCli` in the current scope
+    --> crates/solid-pod-rs-forge/src/mirror.rs:4213:28
+error: could not compile `solid-pod-rs-forge` (lib test) due to 11 previous errors
+--- raw tail ---
+
+error[E0599]: no method named `publish` found for struct `mirror::GitCli` in the current scope
+    --> crates/solid-pod-rs-forge/src/mirror.rs:4120:18
+     |
+1177 |   pub struct GitCli {
+     |   ----------------- method `publish` not found for this struct
+...
+4119 |               let r = git
+     |  _____________________-
+4120 | |                 .publish(
+     | |                 -^^^^^^^ method not found in `mirror::GitCli`
+     | |_________________|
+     |
+
+error[E0599]: no method named `publish` found for struct `mirror::GitCli` in the current scope
+    --> crates/solid-pod-rs-forge/src/mirror.rs:4144:18
+     |
+1177 |   pub struct GitCli {
+     |   ----------------- method `publish` not found for this struct
+...
+4143 |               let r = git
+     |  _____________________-
+4144 | |                 .publish(
+     | |                 -^^^^^^^ method not found in `mirror::GitCli`
+     | |_________________|
+     |
+
+error[E0599]: no method named `publish` found for struct `mirror::GitCli` in the current scope
+    --> crates/solid-pod-rs-forge/src/mirror.rs:4213:28
+     |
+1177 | pub struct GitCli {
+     | ----------------- method `publish` not found for this struct
+...
+4213 |                 self.inner.publish(owner, name, updates, head).await
+     |                            ^^^^^^^ method not found in `mirror::GitCli`
+
+Some errors have detailed explanations: E0046, E0407, E0422, E0425, E0599.
+For more information about an error, try `rustc --explain E0046`.
+error: could not compile `solid-pod-rs-forge` (lib test) due to 11 previous errors
+warning: build failed, waiting for other jobs to finish...

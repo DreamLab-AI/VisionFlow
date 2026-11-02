@@ -1,0 +1,50 @@
+== M1 (drop --atomic from the publish argv)
+test mirror::tests::fix_a::an_atomic_two_branch_publish_with_one_stale_lease_moves_neither ... FAILED
+test mirror::tests::fix_a::publication_leaves_no_receive_quarantine_behind ... ok
+thread 'mirror::tests::fix_a::an_atomic_two_branch_publish_with_one_stale_lease_moves_neither' (2581409) panicked at crates/solid-pod-rs-forge/src/mirror.rs:6237:13:
+assertion `left == right` failed: the branch with a current lease moved alone
+test result: FAILED. 16 passed; 1 failed; 0 ignored; 0 measured; 273 filtered out; finished in 8.49s
+
+
+== M2 (publish every judged branch, held included: drop the move_branch filter)
+test mirror::tests::fix_a::a_followed_owner_pushed_repo_whose_first_state_is_all_held_is_served ... FAILED
+test mirror::tests::fix_a::a_small_publish_succeeds_into_a_served_store_already_over_the_cap ... ok
+test mirror::tests::fix_a::a_receiver_ref_lock_failure_is_recorded_and_lands_only_approved_history ... FAILED
+test mirror::tests::fix_a::an_adapter_error_names_no_store_path ... ok
+test mirror::tests::fix_a::an_apply_aborted_while_its_fetch_runs_leaves_served_untouched ... FAILED
+test mirror::tests::fix_a::an_unmarked_mirror_is_refused_on_its_summary_and_left_out_of_the_listing ... ok
+test mirror::tests::fix_a::readers_during_an_in_flight_fetch_see_only_served ... FAILED
+test mirror::tests::fix_a::repeated_publish_failures_escalate_the_failure_count ... ok
+thread 'mirror::tests::fix_a::a_followed_owner_pushed_repo_whose_first_state_is_all_held_is_served' (2582662) panicked at crates/solid-pod-rs-forge/src/mirror.rs:5557:13:
+assertion `left == right` failed: control: nothing passes
+thread 'mirror::tests::fix_a::a_receiver_ref_lock_failure_is_recorded_and_lands_only_approved_history' (2582704) panicked at crates/solid-pod-rs-forge/src/mirror.rs:6297:13:
+held side commit in served
+thread 'mirror::tests::fix_a::an_apply_aborted_while_its_fetch_runs_leaves_served_untouched' (2583069) panicked at crates/solid-pod-rs-forge/src/mirror.rs:3773:9:
+assertion `left == right` failed: nothing in state 2 passes
+thread 'mirror::tests::fix_a::readers_during_an_in_flight_fetch_see_only_served' (2583297) panicked at crates/solid-pod-rs-forge/src/mirror.rs:3773:9:
+assertion `left == right` failed: nothing in state 2 passes
+test result: FAILED. 13 passed; 4 failed; 0 ignored; 0 measured; 273 filtered out; finished in 8.49s
+
+
+== M3 (served gets objects/info/alternates onto the candidate: the shared-store shape)
+test mirror::tests::fix_a::a_followed_owner_pushed_repo_whose_first_state_is_all_held_is_served ... FAILED
+test mirror::tests::fix_a::a_small_publish_succeeds_into_a_served_store_already_over_the_cap ... ok
+test mirror::tests::fix_a::a_receiver_ref_lock_failure_is_recorded_and_lands_only_approved_history ... FAILED
+test mirror::tests::fix_a::a_transiently_failed_publish_is_retried_for_the_same_state ... ok
+test mirror::tests::fix_a::an_apply_aborted_while_its_fetch_runs_leaves_served_untouched ... FAILED
+test mirror::tests::fix_a::an_atomic_two_branch_publish_with_one_stale_lease_moves_neither ... FAILED
+test mirror::tests::fix_a::last_push_is_read_from_branches_and_tags_only ... ok
+test mirror::tests::fix_a::readers_during_an_in_flight_fetch_see_only_served ... FAILED
+test mirror::tests::fix_a::repeated_publish_failures_escalate_the_failure_count ... ok
+thread 'mirror::tests::fix_a::a_followed_owner_pushed_repo_whose_first_state_is_all_held_is_served' (2584289) panicked at crates/solid-pod-rs-forge/src/mirror.rs:5587:13:
+assertion `left == right` failed: synthetic-held-mirror-content
+thread 'mirror::tests::fix_a::a_receiver_ref_lock_failure_is_recorded_and_lands_only_approved_history' (2584327) panicked at crates/solid-pod-rs-forge/src/mirror.rs:6302:13:
+held side commit in served
+thread 'mirror::tests::fix_a::an_apply_aborted_while_its_fetch_runs_leaves_served_untouched' (2584698) panicked at crates/solid-pod-rs-forge/src/mirror.rs:6132:13:
+held commit in served
+thread 'mirror::tests::fix_a::an_atomic_two_branch_publish_with_one_stale_lease_moves_neither' (2584712) panicked at crates/solid-pod-rs-forge/src/mirror.rs:6247:13:
+refused main commit in served
+thread 'mirror::tests::fix_a::readers_during_an_in_flight_fetch_see_only_served' (2584930) panicked at crates/solid-pod-rs-forge/src/mirror.rs:6168:13:
+assertion `left == right` failed: synthetic-held-mirror-content
+test result: FAILED. 12 passed; 5 failed; 0 ignored; 0 measured; 273 filtered out; finished in 8.16s
+

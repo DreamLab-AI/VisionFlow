@@ -1,0 +1,56 @@
+diff --git a/home/devuser/workspace/.tmp/claude-1000/-home-devuser-workspace-VisionFlow/e6f5832d-b8a8-460c-876b-d6c9e5ddd231/scratchpad/t-base.rs b/home/devuser/workspace/.tmp/claude-1000/-home-devuser-workspace-VisionFlow/e6f5832d-b8a8-460c-876b-d6c9e5ddd231/scratchpad/t-now.rs
+index cb81bef..4f4ec73 100644
+--- a/home/devuser/workspace/.tmp/claude-1000/-home-devuser-workspace-VisionFlow/e6f5832d-b8a8-460c-876b-d6c9e5ddd231/scratchpad/t-base.rs
++++ b/home/devuser/workspace/.tmp/claude-1000/-home-devuser-workspace-VisionFlow/e6f5832d-b8a8-460c-876b-d6c9e5ddd231/scratchpad/t-now.rs
+@@ -1168,4 +1168,10 @@ mod tests {
+     /// Row 5: smart-HTTP neither advertises the held commit nor sends it when
+     /// asked for by id. Skipped (with a log line) without `git-http-backend`.
++    ///
++    /// Defence in depth, not proof of publication isolation: this also
++    /// passes on the pre-isolation code, because the earlier Git HTTP fix
++    /// already refuses wants for unadvertised objects (upload-pack answers
++    /// `ERR upload-pack: not our ref`). The object-store tests (rows 4, 7,
++    /// 8) are the evidence that held objects are absent from served.
+     #[tokio::test]
+     async fn held_side_commit_is_not_fetchable_over_smart_http() {
+@@ -1221,14 +1227,13 @@ mod tests {
+             "control: approved want returns a pack"
+         );
+-        let held = forge
++        let r = forge
+             .handle(fetch(&s.held), crate::ForgeAgent::Anonymous)
+-            .await;
+-        if let Ok(r) = held {
+-            assert!(
+-                !contains_bytes(&r.body, b"PACK"),
+-                "upload-pack sent a pack for the held commit (status {})",
+-                r.status
+-            );
+-        }
++            .await
++            .expect("the held want request itself failed");
++        assert!(
++            !contains_bytes(&r.body, b"PACK"),
++            "upload-pack sent a pack for the held commit (status {})",
++            r.status
++        );
+     }
+ 
+@@ -1966,4 +1971,7 @@ mod tests {
+                 self.inner.materialise(owner, name).await
+             }
++            async fn prepare(&self, owner: &str, name: &str) -> Result<(), String> {
++                self.inner.prepare(owner, name).await
++            }
+             async fn fetch(
+                 &self,
+@@ -2569,3 +2577,8 @@ mod tests {
+         );
+     }
+-}
++
++    /// Commit A fix round: the code and security review findings and the
++    /// cross-vendor audit's coverage gaps, each through real git and the
++    /// real `GitCli` and forge readers. The plugin directory sits beside
++    /// the upstream (`<tmp>/plugin`, `<tmp>/upstream`) where a test asserts
++    /// on paths, so the operator's own clone URL never masks a leak.

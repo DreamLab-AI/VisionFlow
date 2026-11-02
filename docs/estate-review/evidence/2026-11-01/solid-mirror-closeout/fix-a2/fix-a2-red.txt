@@ -1,0 +1,21 @@
+test mirror::tests::fix_a::redaction_leaves_unrelated_text_alone_under_a_short_plugin_root ... FAILED
+test mirror::tests::fix_a::a_legacy_store_is_neither_fetched_nor_retried ... FAILED
+test mirror::tests::fix_a::a_failed_publication_keeps_the_plugin_path_out_of_the_saved_record ... ok
+test mirror::tests::fix_a::a_served_store_past_the_ceiling_refuses_publication_without_retry ... FAILED
+test mirror::tests::fix_a::a_failed_publish_waits_before_its_retry_even_with_no_rate_limit ... FAILED
+test mirror::tests::fix_a::an_older_state_during_a_publish_retry_is_refused_as_a_replay ... ok
+test mirror::tests::fix_a::a_newer_state_wakes_a_worker_waiting_to_retry ... FAILED
+thread 'mirror::tests::fix_a::redaction_leaves_unrelated_text_alone_under_a_short_plugin_root' (2678695) panicked at crates/solid-pod-rs-forge/src/mirror.rs:6565:13:
+assertion `left == right` failed
+  left: "unable to access 'https://host<plugin>/x.git': 404"
+ right: "unable to access 'https://host/d/x.git': 404"
+thread 'mirror::tests::fix_a::a_legacy_store_is_neither_fetched_nor_retried' (2678680) panicked at crates/solid-pod-rs-forge/src/mirror.rs:6433:13:
+assertion `left == right` failed: publish failed: the served repository predates publication isolation and awaits migration
+  left: FetchFailed
+ right: Skip
+thread 'mirror::tests::fix_a::a_served_store_past_the_ceiling_refuses_publication_without_retry' (2678683) panicked at crates/solid-pod-rs-forge/src/mirror.rs:6521:13:
+1 of 1 moved
+thread 'mirror::tests::fix_a::a_failed_publish_waits_before_its_retry_even_with_no_rate_limit' (2678677) panicked at crates/solid-pod-rs-forge/src/mirror.rs:6407:13:
+retry scheduled 0 ms after the failure
+thread 'mirror::tests::fix_a::a_newer_state_wakes_a_worker_waiting_to_retry' (2678681) panicked at crates/solid-pod-rs-forge/src/mirror.rs:6480:13:
+control: the retry is only 0 ms out

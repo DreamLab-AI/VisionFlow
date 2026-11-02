@@ -1,0 +1,8 @@
+# 2026-11-02T00:47:31Z HEAD 31fe898 + diff sha 53292d3b0b623f87
+$ cargo test -p solid-pod-rs-forge --features mirror,anchoring,announce
+test result: ok. 351 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.41s
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.93s
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.51s
+test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.39s
+test result: ok. 83 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 53.89s
+exit=0

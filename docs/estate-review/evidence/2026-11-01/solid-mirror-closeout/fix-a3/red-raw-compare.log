@@ -1,0 +1,77 @@
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.86s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d229dc2d13dcc7a9)
+
+running 1 test
+test mirror::tests::fix_a::a_compare_into_a_mirror_never_fetches_a_foreign_head ... FAILED
+
+failures:
+
+---- mirror::tests::fix_a::a_compare_into_a_mirror_never_fetches_a_foreign_head stdout ----
+
+thread 'mirror::tests::fix_a::a_compare_into_a_mirror_never_fetches_a_foreign_head' (2761381) panicked at crates/solid-pod-rs-forge/src/mirror.rs:6946:13:
+a foreign blob reached served
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: solid_pod_rs_forge::mirror::tests::fix_a::a_compare_into_a_mirror_never_fetches_a_foreign_head::{closure#0}
+             at ./src/mirror.rs:6946:13
+   3: <core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>> as core::future::future::Future>::poll
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/future/future.rs:133:9
+   4: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:830:70
+   5: tokio::task::coop::with_budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/coop/mod.rs:167:5
+   6: tokio::task::coop::budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/coop/mod.rs:133:5
+   7: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:830:25
+   8: <tokio::runtime::scheduler::current_thread::Context>::enter::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:486:19
+   9: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:829:44
+  10: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}, core::option::Option<()>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:906:68
+  11: <tokio::runtime::context::scoped::Scoped<tokio::runtime::scheduler::Context>>::set::<<tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}, core::option::Option<()>>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/scoped.rs:40:9
+  12: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context.rs:186:38
+  13: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::try_with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:463:12
+  14: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:427:20
+  15: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}, core::option::Option<()>>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context.rs:186:17
+  16: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}, core::option::Option<()>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:906:27
+  17: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:819:24
+  18: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:216:33
+  19: tokio::runtime::context::runtime::enter_runtime::<<tokio::runtime::scheduler::current_thread::CurrentThread>::block_on<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}, ()>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/runtime.rs:65:16
+  20: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:204:9
+  21: <tokio::runtime::runtime::Runtime>::block_on_inner::<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/runtime.rs:379:52
+  22: <tokio::runtime::runtime::Runtime>::block_on::<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/runtime.rs:348:18
+  23: solid_pod_rs_forge::mirror::tests::fix_a::a_compare_into_a_mirror_never_fetches_a_foreign_head
+             at ./src/mirror.rs:6948:78
+  24: solid_pod_rs_forge::mirror::tests::fix_a::a_compare_into_a_mirror_never_fetches_a_foreign_head::{closure#0}
+             at ./src/mirror.rs:6931:72
+  25: <solid_pod_rs_forge::mirror::tests::fix_a::a_compare_into_a_mirror_never_fetches_a_foreign_head::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+  26: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+
+failures:
+    mirror::tests::fix_a::a_compare_into_a_mirror_never_fetches_a_foreign_head
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.61s
+
+error: test failed, to rerun pass `-p solid-pod-rs-forge --lib`

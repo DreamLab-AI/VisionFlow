@@ -1,0 +1,342 @@
+   Compiling solid-pod-rs-forge v0.5.0-alpha.18 (/home/devuser/workspace/wt/solid-pod-rs-mirror-publication/crates/solid-pod-rs-forge)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.67s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/solid_pod_rs_forge-d447461302ae6d2c)
+
+running 228 tests
+test api_issues::tests::helpers ... ok
+test bodies::tests::own_area_accepts_valid_and_rejects_others ... ok
+test compare::tests::content_that_looks_like_a_header_stays_content ... ok
+test compare::tests::head_spec_parsing ... ok
+test compare::tests::parses_files_hunks_and_counts ... ok
+test compare::tests::render_escapes_and_marks_rows ... ok
+test compare::tests::validators_match_jss_rules ... ok
+test compare::tests::spec_split ... ok
+test config::tests::chain_hrp_table_matches_jss ... ok
+test config::tests::defaults_are_testnet_and_bounded ... ok
+test config::tests::mainnet_guard_fails_closed ... ok
+test config::tests::mainnet_guard_opens_when_allowed ... ok
+test config::tests::new_anchoring_keys_default_off ... ok
+test config::tests::prefix_normalisation ... ok
+test config::tests::validate_chain_refuses_mainnet_and_unknown_like_jss_activate ... ok
+test config_file::tests::keys_map_and_origin_resolution ... ok
+test diff::tests::empty_patch_and_preamble_are_ignored ... ok
+test diff::tests::parses_modify_add_delete_and_binary ... ok
+test diff::tests::json_shape_uses_type_and_camel_case ... ok
+test error::tests::git_error_status_propagates ... ok
+test error::tests::status_mapping ... ok
+test forks::tests::hidden_check_needs_both_sections ... ok
+test forks::tests::injection_and_banner ... ok
+test forks::tests::parent_parsing_is_strict ... ok
+test gitmark::tests::a_trail_with_no_onchain_mark_names_no_anchor ... ok
+test gitmark::tests::did_short_is_eight_chars_and_an_ellipsis ... ok
+test gitmark::tests::explorer_table_matches_the_git_mark_chains ... ok
+test gitmark::tests::anchor_tags_name_the_latest_mark_and_the_genesis ... ok
+test gitmark::tests::drops_malformed_states_and_tolerates_bad_txo_entries ... ok
+test gitmark::tests::parses_the_committed_document ... ok
+test gitmark::tests::without_anchoring_nothing_is_derived ... ok
+test guard::tests::decoded_nul_backslash_and_controls_are_refused ... ok
+test guard::tests::dot_segments_are_refused_but_dotted_names_are_not ... ok
+test guard::tests::ordinary_paths_and_other_escapes_pass ... ok
+test guard::tests::percent_forms_are_refused_case_insensitively ... ok
+test guard::tests::validators_mirror_jss ... ok
+test hosted::tests::parse_ref_accepts_the_jss_url_spelling ... ok
+test gitmark::tests::refuses_what_is_not_a_repo_held_gitmark_trail ... ok
+test html::extra::tests::index_filter_states_and_escaping ... ok
+test html::extra::tests::repo_extras_has_search_box_description_and_badge ... ok
+test html::extra::tests::injection_lands_after_header_once ... ok
+test html::tests::crumbs_last_is_plain_text ... ok
+test html::tests::agent_label_shortens_only_nostr_keys ... ok
+test html::tests::page_escapes_title ... ok
+test html::views::tests::index_empty_shows_hint ... ok
+test html::views::tests::index_lists_repos_escaped ... ok
+test html::views::tests::a_did_nostr_owner_is_shown_short_but_linked_by_hex ... ok
+test html::views::tests::owner_page_renders ... ok
+test labels::tests::chips_use_luminance_text_and_escape ... ok
+test markdown::tests::escaped_pipes_in_cells ... ok
+test markdown::tests::nul_and_control_markers_are_stripped ... ok
+test markdown::tests::hostile_targets_are_refused ... ok
+test markdown::tests::lists_quotes_and_emphasis ... ok
+test markdown::tests::table_cells_are_escaped ... ok
+test merge::tests::identity_is_sanitised ... ok
+test markdown::tests::table_with_alignment_and_inline_cells ... ok
+test markdown::tests::readme_fixture_renders_heading_code_and_escapes_script ... ok
+test merge::tests::merge_tree_output_parsing ... ok
+test merge::tests::version_parsing_and_gate ... ok
+test ownership::tests::anonymous_cannot_write ... ok
+test ownership::tests::classify_distinguishes_hex_from_username ... ok
+test ownership::tests::name_segment_validation ... ok
+test ownership::tests::namespace_guard_matches_own_namespace_only ... ok
+test ownership::tests::nostr_agent_owner_and_author ... ok
+test ownership::tests::pod_agent_owner_and_author ... ok
+test bodies::tests::render_thread_without_resolver_is_unavailable ... ok
+test auth::tests::malformed_nip98_is_anonymous ... ok
+test bodies::tests::too_large_and_error_map_through ... ok
+test bodies::tests::render_thread_honours_thread_cap ... ok
+test bodies::tests::render_thread_fetches_present_and_removed_in_order ... ok
+test auth::tests::non_forge_bearer_is_anonymous ... ok
+test auth::tests::valid_forge_token_resolves ... ok
+test config_file::tests::explicit_wins_over_file_defaults ... ok
+test config_file::tests::missing_or_bad_file_is_a_no_op ... ok
+test auth::tests::expired_or_tampered_token_is_anonymous ... ok
+test locks::tests::read_modify_write_does_not_lose_updates ... ok
+test hosted::tests::rejects_invalid_pubkey_and_traversal ... ok
+test pulls::tests::author_ids ... ok
+test pulls::tests::body_html_escapes ... ok
+test auth::tests::no_header_is_anonymous ... ok
+test pulls::tests::number_rules ... ok
+test pulls::tests::index_roundtrips_with_jss_shape ... ok
+test prgit::tests::run_reports_exit_code_without_erroring ... ok
+test repo::browse::tests::parse_ls_tree_classifies_entries ... ok
+test repo::browse::tests::valid_repo_path_rejects_dotdot_and_absolute ... ok
+test repo::browse::tests::valid_rev_rejects_injection_and_traversal ... ok
+test auth::tests::nip98_event_is_single_use ... ok
+test repo::tests::repo_git_dir_appends_dot_git ... ok
+test repo::tests::list_all_scans_two_levels ... ok
+test repo::tests::repo_git_dir_rejects_traversal ... ok
+test request::tests::esc_escapes_ampersand_once ... ok
+test request::tests::esc_escapes_quotes ... ok
+test request::tests::esc_neutralises_script_payload ... ok
+test request::tests::header_lookup_is_case_insensitive ... ok
+test request::tests::looks_textual_rejects_nul ... ok
+test request::tests::percent_decode_and_form ... ok
+test request::tests::query_param_parses_first_and_plus ... ok
+test request::tests::raw_bytes_binary_is_attachment ... ok
+test request::tests::raw_bytes_text_is_plain ... ok
+test request::tests::sanitize_filename_strips_path_and_quotes ... ok
+test router::tests::api_mirror_route ... ok
+test router::tests::api_routes ... ok
+test router::tests::blocktrails_json_route ... ok
+test router::tests::commit_and_commits ... ok
+test router::tests::edit_and_preview_routes_parse ... ok
+test router::tests::git_smart_routes_take_priority ... ok
+test router::tests::index_route ... ok
+test router::tests::issues_routes ... ok
+test router::tests::marks_routes_parse ... ok
+test router::tests::nip34_routes ... ok
+test router::tests::owner_and_repo_overview ... ok
+test router::tests::readfeat_routes ... ok
+test router::tests::strip_prefix_variants ... ok
+test router::tests::tree_blob_raw_split_rev_and_path ... ok
+test router::tests::unknown_is_not_found ... ok
+test forks::tests::listing_annotation_matches_real_index_markup ... ok
+test search::tests::grep_parser_caps_hits_and_excerpts ... ok
+test hosted_edit::tests::public_url_uses_base_url_override ... ok
+test readfeat_tests::csp_connect_config_is_honoured_and_xlogin_route_works ... ok
+test prgit::tests::keyed_locks_serialise_same_key ... ok
+test locks::tests::same_key_serialises_and_other_keys_do_not ... ok
+test prgit::tests::lock_within_times_out_as_busy ... ok
+test spine::issues::tests::allocate_is_sequential_and_sets_number ... ok
+test spine::issues::tests::by_state_and_count ... ok
+test sizecap::tests::work_under_the_cap_completes ... ok
+test search::tests::empty_repo_search_is_empty ... ok
+test spine::issues::tests::state_serialises_camel_case ... ok
+test spine::issues::tests::thread_pointer_hosted_flag_omitted_when_false ... ok
+test spine::tests::load_absent_is_none ... ok
+test gitrun::timeout_tests::gated_runs_fail_busy_when_every_permit_is_taken ... ok
+test spine::tests::store_rejects_traversal ... ok
+test hosted::tests::written_file_is_0600 ... ok
+test hosted::tests::write_read_delete_roundtrip ... ok
+test hosted_edit::tests::bad_segments_and_methods ... ok
+test hosted::tests::reader_trait_maps_outcomes ... ok
+test hosted_edit::tests::other_agents_cannot_edit ... ok
+test hosted_edit::tests::private_forge_hosted_get_needs_an_agent ... ok
+test tests::api_mirror_is_404_for_a_repo_that_is_not_a_mirror ... ok
+test hosted_edit::tests::delete_is_author_only_and_returns_200_json ... ok
+test gitrun::timeout_tests::slow_git_is_cut_off_by_the_wall_clock ... ok
+test tests::index_lists_pushed_repo ... ok
+test tests::index_renders_empty ... ok
+test spine::issues::tests::corrupt_index_surfaces_error ... ok
+test spine::tests::store_then_load_roundtrips ... ok
+test tests::namespace_push_guard_allows_own_push ... ok
+test spine::issues::tests::persist_roundtrip_via_store ... ok
+test tests::namespace_push_guard_blocks_foreign_push ... ok
+test tests::new_creates_layout ... ok
+test tests::empty_repo_overview_renders ... ok
+test tests::options_preflight ... ok
+test tests::outside_prefix_is_404 ... ok
+test sizecap::tests::growth_past_the_cap_aborts_the_work ... ok
+test tests::token_mint_anonymous_is_401 ... ok
+test tests::token_mint_then_resolves ... ok
+test tests::nip98_url_comes_from_base_url_not_a_forged_host ... ok
+test tests::unimplemented_route_is_404_for_now ... ok
+test tests::unknown_owner_is_404 ... ok
+test tests::widget_pages_keep_the_widget_csp_and_others_get_a_nonce ... ok
+test token::tests::anonymous_mints_nothing ... ok
+test token::tests::expired_token_rejected ... ok
+test token::tests::malformed_tokens_rejected ... ok
+test token::tests::mint_verify_roundtrip_nostr ... ok
+test token::tests::mint_verify_roundtrip_pod ... ok
+test token::tests::tampered_claims_fail_mac ... ok
+test token::tests::wrong_key_fails_mac ... ok
+test web_edit::tests::message_rules ... ok
+test hosted::tests::replace_overwrites_only_existing ... ok
+test web_edit::tests::path_rules ... ok
+test hosted_edit::tests::legacy_raw_bodies_are_upgraded_on_edit ... ok
+test xlogin::tests::csp_admits_widget_and_keeps_connect_self ... ok
+test xlogin::tests::csp_connect_origins_are_filtered ... ok
+test xlogin::tests::served_bytes_are_identical_and_headers_match ... ok
+test xlogin::tests::strict_csp_has_no_inline_or_cdn_and_sanitises_the_nonce ... ok
+test tests::hosted_api_get_and_owner_only_delete ... ok
+test api::tests::options_allows_patch ... ok
+test readfeat_tests::config_file_defaults_drive_a_private_service ... ok
+test labels::tests::default_set_is_served_untouched ... ok
+test api::tests::commit_returns_structured_diff ... ok
+test api::tests::unknown_repo_and_traversal_are_clean_json_4xx ... ok
+test search::tests::search_miss_is_empty_not_error ... ok
+test readfeat_tests::base_url_overrides_the_request_host_and_the_guard_runs_first ... ok
+test spine::tests::overwrite_is_atomic_replace ... ok
+test api::tests::repo_list_has_stable_shape ... ok
+test hosted_edit::tests::author_edit_changes_only_body ... ok
+test tests::issue_create_rejects_foreign_area_and_ssrf ... ok
+test tests::browse_rejects_bad_ref_and_missing_repo ... ok
+test tests::issue_create_without_loopback_fails_closed ... ok
+test privacy::tests::xlogin_and_token_are_exempt ... ok
+test api_issues::tests::list_pagination_shape ... ok
+test privacy::tests::git_reads_are_owner_only ... ok
+test privacy::tests::api_prefixed_git_path_is_gated_as_git ... ok
+test gitmark::tests::reads_the_trail_from_a_bare_repository_and_ignores_its_absence ... ok
+test api::tests::commits_paginate_with_has_more ... ok
+test tests::commits_branches_tags_commit_view ... ok
+test tests::overview_lists_tree_and_readme ... ok
+test privacy::tests::html_reads_are_owner_only ... ok
+test releases::tests::zip_headers_and_bogus_refs ... ok
+test tests::tree_blob_raw_roundtrip ... ok
+test api_issues::tests::create_and_comment_validation ... ok
+test tests::issue_create_list_detail_and_deletion ... ok
+test api::tests::repo_patch_description_is_owner_only ... ok
+test search::tests::query_is_literal_bounded_and_option_safe ... ok
+test api::tests::tree_entries_are_typed_sized_sorted_with_last_commits ... ok
+test releases::tests::tar_gz_archive_round_trips_a_file ... ok
+test privacy::tests::public_forge_is_unchanged ... ok
+test api::tests::repo_meta_carries_branches_tags_readme_html ... ok
+test search::tests::html_search_page_is_escaped_and_line_anchored ... ok
+test readfeat_tests::html_pages_carry_the_csp_and_json_does_not ... ok
+test labels::tests::crud_is_owner_only_validates_and_409s ... ok
+test search::tests::api_search_finds_line_and_path ... ok
+test api::tests::blob_returns_content_for_text_and_flags_binary ... ok
+test privacy::tests::repo_list_q_filters_by_name_and_description ... ok
+test privacy::tests::json_reads_are_owner_only_and_the_index_is_filtered ... ok
+test api_issues::tests::retitle_rules ... ok
+test api_issues::tests::thread_cap_leaves_no_orphan_body ... ok
+test web_edit::tests::new_branch_must_not_exist_when_old_is_none ... ok
+test tests::comment_appends_to_thread ... ok
+test labels::tests::pull_labels_via_put_item_labels ... ok
+test api_issues::tests::nostr_issue_comment_and_thread_json ... ok
+test tests::podless_nostr_issue_uses_hosted_store ... ok
+test web_edit::tests::stale_tip_is_a_conflict_and_leaves_the_ref_alone ... ok
+test api_issues::tests::close_reopen_rules_and_list_split ... ok
+test labels::tests::assignment_resolution_filter_and_authorisation ... ok
+test api_issues::tests::issue_author_may_moderate_without_owning_the_repo ... ok
+test tests::blocktrails_json_serves_a_repo_held_trail_with_cors ... ok
+test labels::tests::rename_and_delete_cascade_over_issues_and_pulls ... ok
+test readfeat_tests::concurrent_creates_and_comments_do_not_race ... ok
+test releases::tests::releases_list_newest_first_with_links ... ok
+
+test result: ok. 228 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.53s
+
+     Running tests/nip34.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/nip34-d454a2d6352aef1a)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/pr_flow.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/pr_flow-3bae1888cbcf6a9c)
+
+running 13 tests
+test fork_create_lineage_and_negatives ... ok
+test lineage_and_fork_count_render ... ok
+test private_repos_cross_owner_head_does_not_leak ... ok
+test comments_are_bounded_and_authenticated ... ok
+test tampered_spine_cannot_reach_git_argv ... ok
+test cross_fork_fetch_needs_head_owner_or_an_open_pr ... ok
+test open_pr_authorises_base_owner_and_close_prunes ... ok
+test nostr_agent_forks_into_hex_namespace_and_opens_hosted_pr ... ok
+test merge_is_gated_on_git_version ... ok
+test pr_create_validation_and_negatives ... ok
+test compare_json_and_html ... ok
+test hidden_refs_leak_without_config_and_heal_lazily ... ok
+test full_pr_story_merge_conflict_close_ff_and_cas ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.94s
+
+     Running tests/web_edit.rs (/home/devuser/workspace/.tmp/solid-mirror-target/debug/deps/web_edit-ea92b11facbcd352)
+
+running 18 tests
+test open_edit_defaults_off_and_reads_from_the_json_layer ... ok
+test bad_requests_and_methods ... ok
+test anonymous_is_401_and_a_non_owner_is_403 ... ok
+test options_preflight_is_answered_with_the_cors_grant ... ok
+test unsafe_paths_are_400_and_change_nothing ... ok
+test an_empty_repository_gets_a_root_commit ... ok
+test content_is_stored_verbatim_without_filters ... ok
+test owner_edit_commits_and_is_cors_readable ... ok
+test subdir_path_creates_parents ... ok
+test same_content_makes_no_commit ... ok
+test an_executable_keeps_its_mode ... ok
+test open_edit_lets_an_anonymous_edit_through_but_paths_are_still_checked ... ok
+test oversized_content_is_413_and_the_cap_is_inclusive ... ok
+test a_changed_edit_calls_the_tip_hook_and_a_noop_does_not ... ok
+test a_new_branch_starts_from_the_default_branch_and_main_is_untouched ... ok
+test option_injection_through_branch_path_and_message_is_inert ... ok
+test symlink_directory_and_file_conflicts_are_refused ... ok
+test parallel_edits_lose_no_commit ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.20s
+
+   Doc-tests solid_pod_rs_forge
+
+running 51 tests
+test crates/solid-pod-rs-forge/src/gitrun.rs - gitrun::run_heavy (line 93) ... ok
+test crates/solid-pod-rs-forge/src/lib.rs - PUBLICATION_MARKER (line 114) ... ok
+test crates/solid-pod-rs-forge/src/preview.rs - preview (line 24) ... ok
+test crates/solid-pod-rs-forge/src/hosted_edit.rs - hosted_edit::iso8601 (line 28) ... ok
+test crates/solid-pod-rs-forge/src/forks.rs - forks (line 13) ... ok
+test crates/solid-pod-rs-forge/src/guard.rs - guard::ok_ref (line 138) ... ok
+test crates/solid-pod-rs-forge/src/xlogin.rs - xlogin::xlogin_response (line 121) ... ok
+test crates/solid-pod-rs-forge/src/xlogin.rs - xlogin::build_csp (line 44) ... ok
+test crates/solid-pod-rs-forge/src/config.rs - config::ForgeConfig::validate_chain (line 214) ... ok
+test crates/solid-pod-rs-forge/src/releases.rs - releases::parse_releases (line 50) ... ok
+test crates/solid-pod-rs-forge/src/router.rs - router::Route::owner (line 301) ... ok
+test crates/solid-pod-rs-forge/src/labels.rs - labels::valid_label_name (line 80) ... ok
+test crates/solid-pod-rs-forge/src/releases.rs - releases::split_archive_spec (line 113) ... ok
+test crates/solid-pod-rs-forge/src/gitmark.rs - gitmark::network_for_chain (line 128) ... ok
+test crates/solid-pod-rs-forge/src/labels.rs - labels::text_color (line 151) ... ok
+test crates/solid-pod-rs-forge/src/api_issues.rs - api_issues::parse_issue_number (line 47) ... ok
+test crates/solid-pod-rs-forge/src/api_issues.rs - api_issues::author_meta (line 123) ... ok
+test crates/solid-pod-rs-forge/src/bodies.rs - bodies::body_of_doc (line 134) ... ok
+test crates/solid-pod-rs-forge/src/labels.rs - labels::default_labels (line 59) ... ok
+test crates/solid-pod-rs-forge/src/gitmark.rs - gitmark::anchor_tags (line 243) ... ok
+test crates/solid-pod-rs-forge/src/locks.rs - locks::RepoLocks (line 22) ... ok
+test crates/solid-pod-rs-forge/src/guard.rs - guard::reserved_owner (line 78) ... ok
+test crates/solid-pod-rs-forge/src/markdown.rs - markdown (line 18) ... ok
+test crates/solid-pod-rs-forge/src/guard.rs - guard::ok_owner (line 57) ... ok
+test crates/solid-pod-rs-forge/src/gitmark.rs - gitmark::explorer_web (line 75) ... ok
+test crates/solid-pod-rs-forge/src/guard.rs - guard::ok_repo (line 94) ... ok
+test crates/solid-pod-rs-forge/src/merge.rs - merge (line 14) ... ok
+test crates/solid-pod-rs-forge/src/markdown.rs - markdown::render (line 49) ... ok
+test crates/solid-pod-rs-forge/src/markdown.rs - markdown::safe_href (line 64) ... ok
+test crates/solid-pod-rs-forge/src/config_file.rs - config_file::merge_defaults (line 47) ... ok
+test crates/solid-pod-rs-forge/src/gitmark.rs - gitmark::explorer_tx_url (line 101) ... ok
+test crates/solid-pod-rs-forge/src/api_issues.rs - api_issues::owner_from_webid (line 70) ... ok
+test crates/solid-pod-rs-forge/src/labels.rs - labels::valid_label_color (line 97) ... ok
+test crates/solid-pod-rs-forge/src/xlogin.rs - xlogin::build_strict_csp (line 97) ... ok
+test crates/solid-pod-rs-forge/src/search.rs - search::parse_grep (line 66) ... ok
+test crates/solid-pod-rs-forge/src/diff.rs - diff::parse_patch (line 80) ... ok
+test crates/solid-pod-rs-forge/src/guard.rs - guard::is_sha (line 162) ... ok
+test crates/solid-pod-rs-forge/src/config.rs - config::chain_hrp (line 152) ... ok
+test crates/solid-pod-rs-forge/src/guard.rs - guard::ok_segment (line 119) ... ok
+test crates/solid-pod-rs-forge/src/gitmark.rs - gitmark::did_short (line 52) ... ok
+test crates/solid-pod-rs-forge/src/guard.rs - guard::percent_guard (line 21) ... ok
+test crates/solid-pod-rs-forge/src/api_issues.rs - api_issues::npub_encode (line 103) ... ok
+test crates/solid-pod-rs-forge/src/labels.rs - labels::resolve_labels (line 124) ... ok
+test crates/solid-pod-rs-forge/src/config.rs - config::AnnounceKey (line 80) ... ok
+test crates/solid-pod-rs-forge/src/markdown.rs - markdown::render_with (line 328) ... ok
+test crates/solid-pod-rs-forge/src/config_file.rs - config_file::ForgeConfig::from_json (line 91) ... ok
+test crates/solid-pod-rs-forge/src/web_edit.rs - web_edit::clean_edit_path (line 114) ... ok
+test crates/solid-pod-rs-forge/src/web_edit.rs - web_edit (line 41) ... ok
+test crates/solid-pod-rs-forge/src/gitmark.rs - gitmark::parse_repo_trail (line 301) ... ok
+test crates/solid-pod-rs-forge/src/web_edit.rs - web_edit::clean_message (line 148) ... ok
+test crates/solid-pod-rs-forge/src/html/mod.rs - html::agent_label (line 58) ... ok
+
+test result: ok. 51 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 10.23s
+

@@ -1,0 +1,342 @@
+diff --git a/crates/solid-pod-rs-forge/src/lib.rs b/crates/solid-pod-rs-forge/src/lib.rs
+index f1a6d8e..291642e 100644
+--- a/crates/solid-pod-rs-forge/src/lib.rs
++++ b/crates/solid-pod-rs-forge/src/lib.rs
+@@ -618,7 +618,8 @@ pub(crate) async fn has_mirror_record(
+             .join("mirror")
+             .join(owner)
+             .join(format!("{repo}.json"));
+-        match tokio::fs::metadata(&record).await {
++        // `symlink_metadata`: a dangling symlink is an entry, so a record.
++        match tokio::fs::symlink_metadata(&record).await {
+             Ok(_) => Ok(true),
+             Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(false),
+             Err(e) => {
+diff --git a/crates/solid-pod-rs-forge/src/mirror.rs b/crates/solid-pod-rs-forge/src/mirror.rs
+index e981115..53bf2c6 100644
+--- a/crates/solid-pod-rs-forge/src/mirror.rs
++++ b/crates/solid-pod-rs-forge/src/mirror.rs
+@@ -1157,7 +1157,9 @@ pub fn read(&self, owner: &str, name: &str) -> Option<MirrorRecord> {
+     /// exists but cannot be read or parsed. An owner or name that is not a
+     /// safe record key (a 64-hex owner, a valid repository name) has no
+     /// record path, so no record can exist for it: [`StoredRecord::Missing`],
+-    /// as the reader gate's own path check also finds.
++    /// as the reader gate's own path check also finds. Otherwise `Missing`
++    /// means no directory entry exists; a symlink at the path, dangling or
++    /// not, is [`StoredRecord::Unreadable`].
+     ///
+     /// # Examples
+     ///
+@@ -1178,9 +1180,19 @@ pub fn load(&self, owner: &str, name: &str) -> StoredRecord {
+         let Some(path) = self.file(owner, name) else {
+             return StoredRecord::Missing;
+         };
++        // Missing only when no directory entry exists. An entry that is a
++        // symlink, dangling or not, is not a record this store wrote.
++        match std::fs::symlink_metadata(&path) {
++            Ok(m) if m.file_type().is_symlink() => {
++                return StoredRecord::Unreadable("is a symbolic link".into());
++            }
++            Ok(_) => {}
++            Err(e) if e.kind() == std::io::ErrorKind::NotFound => return StoredRecord::Missing,
++            Err(e) => return StoredRecord::Unreadable(format!("cannot be read: {}", e.kind())),
++        }
+         let bytes = match std::fs::read(path) {
+             Ok(b) => b,
+-            Err(e) if e.kind() == std::io::ErrorKind::NotFound => return StoredRecord::Missing,
++            // The entry existed a moment ago: not "no record".
+             Err(e) => return StoredRecord::Unreadable(format!("cannot be read: {}", e.kind())),
+         };
+         match serde_json::from_slice(&bytes) {
+@@ -1708,17 +1720,38 @@ async fn build_served(&self, staging: &Path, served: &Path) -> Result<(), String
+     /// buffered whole (security R1).
+     async fn holds_unreachable_objects(&self, served: &Path) -> Result<bool, String> {
+         let slow = Duration::from_secs(120);
++        // `symbolic-ref -q` exits 1, silently, for a detached HEAD: that is
++        // evidence. Any other failure (a timeout, git not starting, a fatal
++        // exit) is not, and is returned so the store is retried, not judged
++        // (security S6).
+         let head = self
+-            .run(
++            .run_output(
++                served,
+                 served,
+                 &["symbolic-ref", "-q", "HEAD"],
+                 None,
+                 Duration::from_secs(15),
++                None,
+             )
+-            .await
+-            .map(|o| String::from_utf8_lossy(&o).trim().to_string());
+-        if !head.is_ok_and(|h| h.starts_with("refs/heads/")) {
+-            return Ok(true);
++            .await?;
++        match head.status.code() {
++            Some(0) => {
++                if !String::from_utf8_lossy(&head.stdout)
++                    .trim()
++                    .starts_with("refs/heads/")
++                {
++                    return Ok(true);
++                }
++            }
++            Some(1) => return Ok(true),
++            _ => {
++                let err = String::from_utf8_lossy(&head.stderr);
++                return Err(err
++                    .lines()
++                    .next()
++                    .unwrap_or("git symbolic-ref failed")
++                    .to_string());
++            }
+         }
+         let other_ref = self
+             .first_line(
+@@ -1940,6 +1973,30 @@ async fn run_in(
+         timeout: Duration,
+         cap: Option<(u64, DirMeasure)>,
+     ) -> Result<Vec<u8>, String> {
++        let out = self
++            .run_output(git_dir, watch, args, allow, timeout, cap)
++            .await?;
++        if out.status.success() {
++            Ok(out.stdout)
++        } else {
++            let err = String::from_utf8_lossy(&out.stderr);
++            Err(err.lines().next().unwrap_or("git failed").to_string())
++        }
++    }
++
++    /// [`Self::run_in`] without the exit-status check: git's whole output,
++    /// for a caller that must tell one non-zero status from another.
++    /// `Err` only when git could not be run to completion (it could not
++    /// start, it timed out, the cap killed it).
++    async fn run_output(
++        &self,
++        git_dir: &Path,
++        watch: &Path,
++        args: &[&str],
++        allow: Option<&str>,
++        timeout: Duration,
++        cap: Option<(u64, DirMeasure)>,
++    ) -> Result<std::process::Output, String> {
+         let mut explicit = std::ffi::OsString::from("--git-dir=");
+         explicit.push(git_dir);
+         let mut cmd = solid_pod_rs_git::hardened_git_async();
+@@ -1990,18 +2047,12 @@ async fn run_in(
+         if let Some(w) = watcher {
+             w.abort();
+         }
+-        let out = match outcome {
+-            Ok(out) => out.map_err(|e| format!("git failed: {e}"))?,
++        match outcome {
++            Ok(out) => out.map_err(|e| format!("git failed: {e}")),
+             Err(why) => {
+                 kill_group(pid).await;
+-                return Err(why);
++                Err(why)
+             }
+-        };
+-        if out.status.success() {
+-            Ok(out.stdout)
+-        } else {
+-            let err = String::from_utf8_lossy(&out.stderr);
+-            Err(err.lines().next().unwrap_or("git failed").to_string())
+         }
+     }
+ }
+@@ -2065,8 +2116,9 @@ async fn is_bare_store(dir: &Path) -> bool {
+ /// Whether a store borrows objects from elsewhere: `objects/info/alternates`
+ /// or `objects/info/http-alternates` is present. Objects reached that way
+ /// are readable through served but live outside it, so neither marking nor
+-/// publication can vouch for them. Fails closed: a path that cannot be
+-/// checked (any error but "not found") counts as present.
++/// publication can vouch for them. A path that cannot be checked (any
++/// error but "not found") is returned as `Err`: neither presence nor
++/// absence, so the caller neither marks the store nor records a verdict.
+ async fn has_alternates(served: &Path) -> Result<bool, String> {
+     let info = served.join("objects").join("info");
+     for file in ["alternates", "http-alternates"] {
+@@ -2667,10 +2719,6 @@ pub struct Mirror {
+ /// milliseconds, whatever `retry_at` says.
+ const MIN_REQUEUE_MS: u64 = 1_000;
+ 
+-/// The `created_at` the planner compares a state against: the last state
+-/// acted on, except that a lower-id state at the same second (the NIP-01
+-/// winner of the tie) counts as newer than it, the order the replay check
+-/// and [`supersedes`] use (Codex C5).
+ /// Whether a failed attempt at the newest state may be retried.
+ #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+ enum Retry {
+@@ -2692,6 +2740,10 @@ fn with_limit(reason: String, gave_up: bool, timeouts: u32) -> String {
+     }
+ }
+ 
++/// The `created_at` the planner compares a state against: the last state
++/// acted on, except that a lower-id state at the same second (the NIP-01
++/// winner of the tie) counts as newer than it, the order the replay check
++/// and [`supersedes`] use (Codex C5).
+ fn acted_on_at(last: Option<&EventRef>, ev: &Event) -> u64 {
+     match last {
+         Some(l) if l.created_at == ev.created_at && ev.id < l.id => l.created_at.saturating_sub(1),
+@@ -3210,14 +3262,17 @@ fn schedule_retry(&self, rec: &mut MirrorRecord) {
+ 
+     /// After a failure of the newest state: count it towards the backoff,
+     /// count it towards [`MAX_TIMEOUTS`] when it is `Counted`, and schedule
+-    /// the retry unless it is `No` or the limit is reached. Returns whether
+-    /// the limit stopped the retry.
++    /// the retry unless it is `No` or the state has reached the limit (by
++    /// this failure or an earlier one). Returns whether the limit stopped
++    /// the retry.
+     fn failed(&self, rec: &mut MirrorRecord, retry: Retry) -> bool {
+         rec.failures = rec.failures.saturating_add(1);
+         if retry == Retry::Counted {
+             rec.timeouts = rec.timeouts.saturating_add(1);
+         }
+-        let gave_up = retry == Retry::Counted && rec.timeouts >= MAX_TIMEOUTS;
++        // Once the state has reached the limit it stays given up, whatever
++        // kind of failure comes next (Codex round 6).
++        let gave_up = retry != Retry::No && rec.timeouts >= MAX_TIMEOUTS;
+         if retry != Retry::No && !gave_up {
+             self.schedule_retry(rec);
+         }
+@@ -9271,6 +9326,139 @@ async fn a_prepare_error_is_retried_and_its_timeouts_are_bounded() {
+             );
+         }
+ 
++        /// Round 7 item 1: a record path that is a symlink, dangling or
++        /// not, is a directory entry, so it is not "no record".
++        #[cfg(unix)]
++        #[tokio::test]
++        async fn a_record_symlink_is_unreadable_not_missing() {
++            let tmp = tempfile::tempdir().unwrap();
++            let plugin = tmp.path().join("plugin");
++            let owner = pubhex(&key(140));
++            let f = record_file(&plugin, &owner);
++            std::fs::create_dir_all(f.parent().unwrap()).unwrap();
++            std::os::unix::fs::symlink(tmp.path().join("nowhere.json"), &f).unwrap();
++            let store = MirrorStore::new(&plugin);
++            assert!(
++                matches!(store.load(&owner, "sample"), StoredRecord::Unreadable(_)),
++                "a dangling record symlink loaded as {:?}",
++                store.load(&owner, "sample")
++            );
++            let forge = forge_at(&plugin);
++            let r = get(&forge, format!("/forge/api/repos/{owner}/sample/mirror")).await;
++            assert_eq!(r.status, 503, "{}", String::from_utf8_lossy(&r.body));
++            let real = tmp.path().join("real.json");
++            std::fs::write(
++                &real,
++                serde_json::to_vec(&MirrorRecord::new(&owner, "sample", None)).unwrap(),
++            )
++            .unwrap();
++            std::fs::remove_file(&f).unwrap();
++            std::os::unix::fs::symlink(&real, &f).unwrap();
++            assert!(
++                matches!(store.load(&owner, "sample"), StoredRecord::Unreadable(_)),
++                "a record symlink to a valid file was followed"
++            );
++        }
++
++        /// Round 7 item 1: the reader gate also counts a dangling record
++        /// symlink as a record, so the unmarked store beside it stays shut.
++        #[cfg(unix)]
++        #[tokio::test]
++        async fn a_dangling_record_symlink_keeps_the_gate_closed() {
++            let tmp = tempfile::tempdir().unwrap();
++            let home = tmp.path();
++            let plugin = home.join("plugin");
++            let up = new_upstream(home);
++            let approved = commit_file(&up, home, "public.txt", APPROVED_BYTES, APPROVED_SUBJECT);
++            let owner = pubhex(&key(141));
++            owner_pushed(&plugin, &owner, &up, home);
++            let f = record_file(&plugin, &owner);
++            std::fs::create_dir_all(f.parent().unwrap()).unwrap();
++            std::os::unix::fs::symlink(home.join("nowhere.json"), &f).unwrap();
++            let forge = forge_at(&plugin);
++            let raw = get(
++                &forge,
++                format!("/forge/{owner}/sample/raw/{approved}/public.txt"),
++            )
++            .await;
++            assert_eq!(raw.status, 503, "{}", String::from_utf8_lossy(&raw.body));
++        }
++
++        /// Round 7 item 2: a `symbolic-ref` that fails (here: not a
++        /// repository) is an error, not a detached HEAD.
++        #[tokio::test]
++        async fn a_failed_head_check_is_an_error_not_evidence() {
++            let tmp = tempfile::tempdir().unwrap();
++            let not_a_repo = tmp.path().join("plain");
++            std::fs::create_dir_all(&not_a_repo).unwrap();
++            let git = GitCli::new(tmp.path().join("repos"));
++            let r = git.holds_unreachable_objects(&not_a_repo).await;
++            assert!(
++                r.is_err(),
++                "a failed HEAD check was taken as evidence: {r:?}"
++            );
++        }
++
++        /// Round 7 item 2, control: a detached HEAD is still evidence.
++        #[tokio::test]
++        async fn a_detached_head_is_still_evidence() {
++            let tmp = tempfile::tempdir().unwrap();
++            let home = tmp.path();
++            let plugin = home.join("plugin");
++            let up = new_upstream(home);
++            let approved = commit_file(&up, home, "public.txt", APPROVED_BYTES, APPROVED_SUBJECT);
++            let owner = pubhex(&key(142));
++            let served = owner_pushed(&plugin, &owner, &up, home);
++            git_ok(
++                &served,
++                home,
++                &["update-ref", "--no-deref", "HEAD", &approved],
++            );
++            let git = GitCli::new(plugin.join("repos"));
++            assert_eq!(git.holds_unreachable_objects(&served).await, Ok(true));
++        }
++
++        /// Round 7 item 3: once a state has reached [`MAX_TIMEOUTS`], a later
++        /// failure of another retryable kind does not re-arm its retries.
++        #[tokio::test]
++        async fn a_state_that_gave_up_stays_given_up() {
++            let tmp = tempfile::tempdir().unwrap();
++            let home = tmp.path();
++            let plugin = home.join("plugin");
++            let up = new_upstream(home);
++            let approved = commit_file(&up, home, "public.txt", APPROVED_BYTES, APPROVED_SUBJECT);
++            let sk = key(143);
++            let owner = pubhex(&sk);
++            let entry = follow_sample(&owner, &up);
++            let (m, git) = scripted_engine(&plugin, &entry, Arc::new(AllowAll));
++            {
++                let mut q = git.publish_errs.lock().unwrap();
++                for _ in 0..MAX_TIMEOUTS {
++                    q.push_back(PublishError {
++                        reason: GIT_TIMED_OUT.into(),
++                        retryable: true,
++                        timed_out: true,
++                    });
++                }
++                q.push_back(PublishError::from(
++                    "refs/heads/main: stale info".to_string(),
++                ));
++            }
++            let ev = state_event(&sk, "sample", &[("refs/heads/main", &approved)], None, T1);
++            let mut r = None;
++            for _ in 0..MAX_TIMEOUTS {
++                r = Some(m.apply(&entry, &ev).await);
++            }
++            assert_eq!(r.unwrap().retry_at, None, "control: the limit was reached");
++            let r = m.apply(&entry, &ev).await;
++            assert!(
++                r.last_seen.as_ref().unwrap().reason.contains("stale info"),
++                "control: {:?}",
++                r.last_seen
++            );
++            assert_eq!(r.retry_at, None, "a state past the limit was re-armed");
++        }
++
+         /// Round 6 item 8 (I5): another failure between timeouts of one
+         /// state does not reset the count.
+         #[tokio::test]

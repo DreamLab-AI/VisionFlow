@@ -1,0 +1,59 @@
+fix(forge): isolate mirror fetches from the served store (SP-GIT-02, commit A)
+
+A held mirror commit was readable anonymously. Forge raw returned 200 for
+a held SHA, because GitCli::fetch filled the bare store that Forge serves,
+and branch_verdict only gated the ref moves.
+
+Fetch and validation now happen in a private candidate store under
+plugin_dir/mirror-work/, outside repos/. Only approved commits are
+published into the served store: one atomic local push per state, with a
+per-ref lease, explicit SHAs and no "+", run through a fixed, hardened
+receive-pack (hooks off, fsck on). A served store must carry the
+mirror-publication-v1 marker before any reader or writer serves it. A
+mirror without the marker returns 503, and listings leave it out.
+Compare, PR, merge, web edit and fork into a mirror are refused (409).
+
+"Held" here means not reachable from any approved tip. Approving a commit
+publishes its whole history.
+
+Commit B (migration of pre-release served stores) is still outstanding.
+Until it lands, a pre-release mirror is not followed and stays at 503.
+
+Evidence:
+VisionFlow docs/estate-review/evidence/2026-11-01/solid-mirror-closeout/
+- tree diff: final-a8.patch
+- gate runs: lead-gates-*.txt
+- reviews and audits: review-a*-*.md, audit-*-codex.txt
+- locked decisions 1-20: publication-design.md
+
+Verified:
+- the native red regression turns green;
+- 345+ forge library tests pass under three feature sets;
+- the server tests (forge-full), clippy -D warnings and rustdoc -D warnings
+  pass;
+- mutation runs show the denial tests catch a revert;
+- two Opus reviews, security and code, and six cross-vendor Codex rounds.
+
+Residuals (accepted, recorded):
+- Conditional: a legacy store whose record was deleted and whose
+  refs/mirror and hideRefs were all removed is treated as a first follow
+  and marked without a scan (decision 18). Commit B must detect such
+  stores some other way.
+- The marker means "publication allowed; legacy layout not detected", not
+  "every object reachable" (decision 19).
+- The smart-HTTP held-denial test is defence in depth only: the older Git
+  HTTP fix already refuses that request.
+- MSRV 1.89 (File::lock) has not been built with a 1.89 toolchain.
+- The quarantine of a push stalled longer than PUBLISH_TIMEOUT can be
+  swept.
+- I4: a push error is not reconciled with the served refs.
+- Errors preparing a store on announcement are not retried.
+- First-follow prepare errors are not bounded by MAX_TIMEOUTS.
+- Permanent scan errors retry at the capped backoff.
+- No limit yet on verification CPU per relay event or on scan memory.
+- An identical redelivery costs one more attempt.
+
+Breaking: the MirrorGit trait (prepare, publish -> PublishError) and
+RefUpdate, the GitCli layout, MSRV 1.88 -> 1.89. See CHANGELOG.
+
+Co-Authored-By: jjohare <github@thedreamlab.uk>

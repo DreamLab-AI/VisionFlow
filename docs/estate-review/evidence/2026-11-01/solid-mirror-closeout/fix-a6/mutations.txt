@@ -1,0 +1,27 @@
+## MP: a prepare error is terminal again (round-5 behaviour)
+thread 'mirror::tests::fix_a::a_prepare_error_is_retried_and_its_timeouts_are_bounded' (3179961) panicked at crates/solid-pod-rs-forge/src/mirror.rs:9205:13:
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 337 filtered out; finished in 0.75s
+error: test failed, to rerun pass `-p solid-pod-rs-forge --lib`
+## MA: an alternates check error is evidence again
+thread 'mirror::tests::fix_a::an_alternates_check_error_is_retried_and_not_persisted' (3180351) panicked at crates/solid-pod-rs-forge/src/mirror.rs:9172:13:
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 337 filtered out; finished in 0.55s
+error: test failed, to rerun pass `-p solid-pod-rs-forge --lib`
+## MH (run 1, fix_a:: only): survived; the hideRefs tests are outside fix_a. Re-run on the whole lib below.
+## MR (run 1): invalid mutant (did not compile); replaced below.
+## MH: the config parser never finds hideRefs (whole lib)
+test result: ok. 338 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.96s
+## MR: an unparseable record file loads as Missing
+thread 'mirror::tests::fix_a::the_record_api_refuses_an_unreadable_record' (3193873) panicked at crates/solid-pod-rs-forge/src/mirror.rs:8942:13:
+thread 'mirror::tests::fix_a::an_unreadable_record_awaits_migration_and_is_left_in_place' (3193334) panicked at crates/solid-pod-rs-forge/src/mirror.rs:8909:13:
+thread 'tests::an_unreadable_mirror_record_still_refuses_the_owners_push' (3196271) panicked at crates/solid-pod-rs-forge/src/lib.rs:2340:9:
+test result: FAILED. 335 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.88s
+error: test failed, to rerun pass `-p solid-pod-rs-forge --lib`
+restored: 1 hash(es)
+## MH (run 2, after adding hide_refs_alone_is_a_legacy_trace): the config parser never finds hideRefs (whole lib)
+thread 'mirror::tests::fix_a::hide_refs_alone_is_a_legacy_trace' (3201903) panicked at crates/solid-pod-rs-forge/src/mirror.rs:8995:17:
+test result: FAILED. 338 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.79s
+error: test failed, to rerun pass `-p solid-pod-rs-forge --lib`
+## MC: keys compared case-sensitively
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 338 filtered out; finished in 0.66s
+restored: 1 hash(es)
+  (MC is an equivalent mutant: `git config --list` prints section and variable names in lower case, so the lowering is defence in depth only.)
