@@ -67,6 +67,14 @@ for f in sorted(glob.glob(os.path.join(w4, "w4-*.json"))):
         if isinstance(r, dict):
             rows.append(norm(r, "audit-wave4/" + os.path.basename(f), ""))
 
+# Lead confirmations recorded after the worker data files were written.
+lead_file = os.path.join(os.path.dirname(w4), "audit-close", "lead-verified.json")
+if os.path.exists(lead_file):
+    lead_ids = {r["id"] for r in json.load(open(lead_file))["records"]}
+    for r in rows:
+        if r["id"] in lead_ids:
+            r["verified"] = "lead"
+
 print("| ID | Repository | Severity | Status | Verified by | Summary | Queue |")
 print("|---|---|---|---|---|---|---|")
 for r in rows:

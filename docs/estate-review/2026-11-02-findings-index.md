@@ -94,9 +94,9 @@
 | COMPARE-F4 | - | low | open | worker | prose-sanitiser and diagram-ir have no primary-source comparison of any kind. dream-machine has only its own ADR Alternatives sections. Loom, codescape runtime and the agentbox platform have partial coverage. | `audit-wave4/w4-compare.json` |
 | COMPARE-F5 | - | low | open | worker | Most external comparators are cited by a moving URL (latest, main or master) with a consultation date. A minority pin a commit or version. Commit pins: NIPs 400d157 (forum-spaces-and-replication.md:112), Teller 7c00cea ( | `audit-wave4/w4-compare.json` |
 | COMPARE-F6 | - | medium | open | worker | This re-confirms DE-F2 at the pin; it is not a new defect. enable_automerge receives no evaluated SHA. It runs `gh pr ready` and then `gh pr merge --auto --squash` without `--match-head-commit`, the option dream-forge-an | `audit-wave4/w4-compare.json` |
-| CONTRACTS-F1 | - | high | open | worker | The live agent-event forwarder never authenticates, so a release VisionClaw refuses the socket before W2-01 is reached | `audit-wave4/w4-contracts.json` |
-| CONTRACTS-F2 | - | high | open | worker | W2-01 still holds at the pins, the rejection is silent, and agentbox's own test asserts the defective shape | `audit-wave4/w4-contracts.json` |
-| CONTRACTS-F3 | - | high | open | worker | GET /v1/tasks strips three fields VisionClaw requires, so list_tasks always fails | `audit-wave4/w4-contracts.json` |
+| CONTRACTS-F1 | - | high | open | lead | The live agent-event forwarder never authenticates, so a release VisionClaw refuses the socket before W2-01 is reached | `audit-wave4/w4-contracts.json` |
+| CONTRACTS-F2 | - | high | open | lead | W2-01 still holds at the pins, the rejection is silent, and agentbox's own test asserts the defective shape | `audit-wave4/w4-contracts.json` |
+| CONTRACTS-F3 | - | high | open | lead | GET /v1/tasks strips three fields VisionClaw requires, so list_tasks always fails | `audit-wave4/w4-contracts.json` |
 | CONTRACTS-F4 | - | medium | open | worker | GET /v1/tasks/:taskId strips taskDir and logFile, which TaskStatus requires | `audit-wave4/w4-contracts.json` |
 | CONTRACTS-F6 | - | medium | open | worker | Kind 31402 priority is a label on every producer and an integer on the relay | `audit-wave4/w4-contracts.json` |
 | CONTRACTS-F7 | - | medium | open | worker | The agentbox governance-bridge writes 31402 events without the tags the relay projects | `audit-wave4/w4-contracts.json` |
@@ -127,8 +127,8 @@
 | COV-A-F9 | - | low | open | worker |  | `audit-wave4/w4-cov-a.json` |
 | COV-A-F10 | - | low | open | worker |  | `audit-wave4/w4-cov-a.json` |
 | COV-A-F11 | - | medium | open | worker |  | `audit-wave4/w4-cov-a.json` |
-| COV-B-F1 | - | medium | open | worker | the SPARQL write-verb clamp refuses ordinary label searches | `audit-wave4/w4-cov-b.json` |
-| COV-B-F2 | - | medium | open | worker | a non-ASCII Xinference error body can abort the façade | `audit-wave4/w4-cov-b.json` |
+| COV-B-F1 | - | medium | open | lead | the SPARQL write-verb clamp refuses ordinary label searches | `audit-wave4/w4-cov-b.json` |
+| COV-B-F2 | - | medium | open | lead | a non-ASCII Xinference error body can abort the façade | `audit-wave4/w4-cov-b.json` |
 | COV-B-F3 | - | medium | open | worker | the model engine listens on every host interface with no key | `audit-wave4/w4-cov-b.json` |
 | COV-B-F4 | - | low | open | worker | loom-client can report a stale transient error instead of `Truncated` | `audit-wave4/w4-cov-b.json` |
 | COV-B-F5 | - | low | open | worker | the attestation chain detects corruption, not a capable tamperer | `audit-wave4/w4-cov-b.json` |
@@ -148,7 +148,7 @@
 | W4COVC-F8 | - | low | open | worker |  | `audit-wave4/w4-cov-c.json` |
 | CD-F1 | - | medium | open | worker |  | `audit-wave4/w4-cov-d.json` |
 | CD-F2 | - | low | open | worker |  | `audit-wave4/w4-cov-d.json` |
-| CD-F3 | - | medium | open | worker |  | `audit-wave4/w4-cov-d.json` |
+| CD-F3 | - | medium | open | lead |  | `audit-wave4/w4-cov-d.json` |
 | CD-F4 | - | medium | open | worker |  | `audit-wave4/w4-cov-d.json` |
 | CD-F5 | - | low | open | worker |  | `audit-wave4/w4-cov-d.json` |
 | CD-F6 | - | low | open | worker |  | `audit-wave4/w4-cov-d.json` |

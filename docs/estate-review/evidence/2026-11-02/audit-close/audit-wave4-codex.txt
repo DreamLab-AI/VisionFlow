@@ -1,0 +1,417 @@
+OpenAI Codex v0.165.0
+--------
+workdir: /home/devuser/workspace/VisionFlow
+model: gpt-6-astra
+provider: openai
+approval: never
+sandbox: read-only
+reasoning effort: medium
+reasoning summaries: none
+session id: 01a19c5e-f875-7720-9bb8-738d86e438e1
+--------
+user
+You are a cross-vendor auditor. For each of the four CLAIMS below, judge it only from the source excerpts given (read at pinned revisions). Answer HOLDS, WRONG (say exactly why), or CANNOT-JUDGE (say what is missing). Do not use tools.
+
+CLAIM CONTRACTS-F1: agentbox's live agent-event forwarder opens its WebSocket with no credential, and a release VisionClaw build refuses an unauthenticated agent-events socket (401), because is_insecure_defaults_allowed() is false in release.
+CLAIM CONTRACTS-F2: the forwarder sends the bare event, not the JSON-RPC notifications/agent_action envelope VisionClaw's ingest requires, so each frame is rejected as malformed.
+CLAIM CONTRACTS-F3: agentbox's GET /v1/tasks response omits task, provider and status, which VisionClaw's TaskInfo requires, so deserialising list_tasks fails.
+CLAIM SIDESTR-E2: sidestr-evm stores contract code under its declared code_hash without rehashing, and snapshot restore checks only version, config and the state root, so code bytes are never verified against their hash.
+
+=== agentbox forwarder
+--- management-api/utils/agent-event-ws-subscriber.js:40-50 @ c57d9c0508f4
+    40	      process.env.AGENTBOX_INBOUND_EVENTS_LOG ||
+    41	      '/var/lib/agentbox/events/inbound.jsonl';
+    42	    this._unsubscribePublisher = null;
+    43	
+    44	    // Subscribe to outbound events from the publisher; forward over WS
+    45	    // so agents → VisionClaw still works on the same socket.
+    46	    this._unsubscribePublisher = agentEventPublisher.subscribe((event) => {
+    47	      if (event.direction === 'inbound') return; // don't echo back
+    48	      this._forwardOutbound(event);
+    49	    });
+    50	  }
+--- management-api/utils/agent-event-ws-subscriber.js:90-100 @ c57d9c0508f4
+    90	  }
+    91	
+    92	  _connect() {
+    93	    try {
+    94	      this.ws = new WebSocket(this.url, [SUBPROTOCOL]);
+    95	    } catch (err) {
+    96	      this.logger.error(`[agent-events-ws] WebSocket construction failed: ${err.message}`);
+    97	      this._scheduleReconnect();
+    98	      return;
+    99	    }
+   100	
+--- management-api/utils/agent-event-ws-subscriber.js:140-150 @ c57d9c0508f4
+   140	      this._connect();
+   141	    }, delay);
+   142	  }
+   143	
+   144	  _forwardOutbound(event) {
+   145	    if (!this.connected || !this.ws) return;
+   146	    try {
+   147	      this.ws.send(JSON.stringify(event));
+   148	    } catch (err) {
+   149	      this.logger.warn(`[agent-events-ws] send failed: ${err.message}`);
+   150	    }
+=== agentbox publisher
+--- management-api/utils/agent-event-publisher.js:158-168 @ c57d9c0508f4
+   158	    if (this.eventBuffer.length > this.maxBufferSize) {
+   159	      this.eventBuffer.shift();
+   160	    }
+   161	
+   162	    // Notify all subscribers
+   163	    this.subscribers.forEach(callback => {
+   164	      try {
+   165	        callback(fullEvent);
+   166	      } catch (err) {
+   167	        this.logger.error('Agent event subscriber error:', err);
+   168	      }
+=== VisionClaw ingest
+--- src/agent_events/ingest.rs:56-70 @ 86cdd7635582
+    56	/// Check whether insecure defaults are allowed (ADR-06 §D1). Compile-gated:
+    57	/// honoured only in `debug_assertions` / `--features dev-auth` builds with
+    58	/// `ALLOW_INSECURE_DEFAULTS` set; a const-`false` stub in release builds.
+    59	#[cfg(any(debug_assertions, feature = "dev-auth"))]
+    60	fn is_insecure_defaults_allowed() -> bool {
+    61	    std::env::var("ALLOW_INSECURE_DEFAULTS").is_ok()
+    62	}
+    63	
+    64	#[cfg(not(any(debug_assertions, feature = "dev-auth")))]
+    65	#[inline(always)]
+    66	fn is_insecure_defaults_allowed() -> bool {
+    67	    false
+    68	}
+    69	
+    70	/// Outcome of processing one inbound text frame. Pure and deterministic so the
+--- src/agent_events/ingest.rs:95-105 @ 86cdd7635582
+    95	    Malformed,
+    96	}
+    97	
+    98	/// Parse → validate → publish one inbound frame. The single source of truth for
+    99	/// the ingest contract; the actor's `StreamHandler` is a thin adapter over it.
+   100	pub(crate) fn process_frame(text: &str) -> IngestOutcome {
+   101	    match serde_json::from_str::<AgentActionNotification>(text) {
+   102	        Ok(notif) if notif.is_canonical() => {
+   103	            let event = notif.params.event;
+   104	            let action = event.action_type_name.clone();
+   105	
+--- src/agent_events/ingest.rs:140-152 @ 86cdd7635582
+   140	                action,
+   141	                attributed,
+   142	                provenance_status,
+   143	                crossings_recorded,
+   144	                ctc_present,
+   145	                receivers,
+   146	            }
+   147	        }
+   148	        Ok(_) => IngestOutcome::NonCanonical,
+   149	        Err(_) => IngestOutcome::Malformed,
+   150	    }
+   151	}
+   152	
+--- src/agent_events/ingest.rs:258-306 @ 86cdd7635582
+   258	    req: &HttpRequest,
+   259	    app_state: &AppState,
+   260	) -> Result<Option<String>, HttpResponse> {
+   261	    let token = req
+   262	        .headers()
+   263	        .get("Authorization")
+   264	        .and_then(|h| h.to_str().ok())
+   265	        .and_then(|s| s.strip_prefix("Bearer "))
+   266	        .map(str::to_string)
+   267	        .or_else(|| {
+   268	            url::form_urlencoded::parse(req.query_string().as_bytes())
+   269	                .find(|(k, _)| k == "token")
+   270	                .map(|(_, v)| v.to_string())
+   271	        });
+   272	
+   273	    match (token.as_deref(), app_state.nostr_service.as_ref()) {
+   274	        (Some(t), Some(ns)) if !t.is_empty() => match ns.get_session(t).await {
+   275	            Some(user) => Ok(Some(user.pubkey)),
+   276	            None if is_insecure_defaults_allowed() => {
+   277	                warn!(
+   278	                    "agent-events: token failed validation but ALLOW_INSECURE_DEFAULTS \
+   279	                     set — accepting unauthenticated (dev build)"
+   280	                );
+   281	                Ok(None)
+   282	            }
+   283	            None => {
+   284	                Err(HttpResponse::Unauthorized().body("Invalid or expired authentication token"))
+   285	            }
+   286	        },
+   287	        _ if is_insecure_defaults_allowed() => {
+   288	            warn!("agent-events: unauthenticated ingest accepted (dev / insecure defaults)");
+   289	            Ok(None)
+   290	        }
+   291	        _ => Err(HttpResponse::Unauthorized()
+   292	            .body("Authentication required for the agent-events socket")),
+   293	    }
+   294	}
+   295	
+   296	/// HTTP upgrade handler for `/wss/agent-events`.
+   297	pub async fn agent_events_ws(
+   298	    req: HttpRequest,
+   299	    stream: web::Payload,
+   300	    app_state: web::Data<AppState>,
+   301	) -> Result<HttpResponse, actix_web::Error> {
+   302	    let session_pubkey = match authenticate(&req, &app_state).await {
+   303	        Ok(pk) => pk,
+   304	        Err(resp) => return Ok(resp),
+   305	    };
+   306	
+=== VisionClaw schema
+--- src/agent_events/schema.rs:1-40 @ 86cdd7635582
+     1	//! Canonical agent-action wire-envelope schema (ADR-059 §2 mirror).
+     2	//!
+     3	//! agentbox `management-api/utils/agent-event-publisher.js` is the **canonical
+     4	//! schema source** (ADR-059 Consequences). This module mirrors that one shape
+     5	//! byte-for-field so the `/wss/agent-events` ingest (ADR-059 Phase 2)
+     6	//! deserialises exactly what agentbox emits — including the ADR-013 identity
+     7	//! attribution (`source_urn` / `target_urn` / `pubkey`) that the deprecated
+     8	//! MCP-TCP bridge used to drop at the federation boundary.
+     9	//!
+    10	//! Phasing (ADR-059 §5):
+    11	//!   * Phase 1 (this module): schema + cross-repo fixture tests. No transport.
+    12	//!   * Phase 2: the `/wss/agent-events` handler consumes `AgentActionNotification`
+    13	//!     and projects it onto the identity-blind binary `0x23` frame
+    14	//!     (`crate::utils::binary_protocol`) after resolving `source_urn` /
+    15	//!     `target_urn` → numeric ids. Identity is carried in this JSON ingest
+    16	//!     envelope; the GPU binary frame stays numeric-only by design.
+    17	//!   * Phase 5: `source_urn` / `pubkey` become mandatory (fail-closed NIP-26).
+    18	
+    19	use serde::{Deserialize, Serialize};
+    20	use serde_json::Value;
+    21	
+    22	use crate::utils::binary_protocol::{AgentActionEvent, AgentActionType};
+    23	
+    24	/// Top-level JSON-RPC 2.0 notification: `notifications/agent_action`.
+    25	#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+    26	pub struct AgentActionNotification {
+    27	    pub jsonrpc: String,
+    28	    pub method: String,
+    29	    pub params: AgentActionParams,
+    30	}
+    31	
+    32	impl AgentActionNotification {
+    33	    pub const METHOD: &'static str = "notifications/agent_action";
+    34	
+    35	    /// True when this is a well-formed canonical agent-action notification.
+    36	    pub fn is_canonical(&self) -> bool {
+    37	        self.jsonrpc == "2.0"
+    38	            && self.method == Self::METHOD
+    39	            && self.params.kind == "agent_action"
+    40	            && self.params.event.version >= 3
+=== agentbox tasks route
+--- management-api/routes/tasks.js:160-200 @ c57d9c0508f4
+   160	  /**
+   161	   * List all active tasks
+   162	   */
+   163	  fastify.get('/v1/tasks', {
+   164	    schema: {
+   165	      response: {
+   166	        200: {
+   167	          type: 'object',
+   168	          properties: {
+   169	            activeTasks: {
+   170	              type: 'array',
+   171	              items: {
+   172	                type: 'object',
+   173	                properties: {
+   174	                  taskId: { type: 'string' },
+   175	                  agent: { type: 'string' },
+   176	                  startTime: { type: 'number' },
+   177	                  duration: { type: 'number' },
+   178	                  // D2 (PRD-023 WP-3): echoed claude-flow join key (null when the
+   179	                  // task carried none). Must be in the schema or fastify strips it.
+   180	                  claudeFlowAgentId: { type: ['string', 'null'] },
+   181	                  // The did:nostr the task was dispatched as (ADR-2097 render contract).
+   182	                  didNostr: { type: ['string', 'null'] }
+   183	                }
+   184	              }
+   185	            },
+   186	            count: { type: 'number' }
+   187	          }
+   188	        }
+   189	      }
+   190	    }
+   191	  }, async (request, reply) => {
+   192	    const activeTasks = processManager.getActiveTasks();
+   193	
+   194	    reply.send({
+   195	      activeTasks,
+   196	      count: activeTasks.length
+   197	    });
+   198	  });
+   199	
+   200	  /**
+=== VisionClaw TaskInfo
+--- src/services/management_api_client.rs:70-100 @ 86cdd7635582
+    70	pub enum TaskState {
+    71	    Running,
+    72	    Completed,
+    73	    Failed,
+    74	}
+    75	
+    76	#[derive(Debug, Clone, Serialize, Deserialize)]
+    77	#[serde(rename_all = "camelCase")]
+    78	pub struct TaskInfo {
+    79	    pub task_id: String,
+    80	    pub agent: String,
+    81	    pub task: String,
+    82	    pub provider: String,
+    83	    pub status: TaskState,
+    84	    pub start_time: u64,
+    85	    pub duration: u64,
+    86	    /// D2 (PRD-023 WP-3): the claude-flow swarm `agent_id` this task was created
+    87	    /// for, when the creator knew one — echoed back by the Management API's
+    88	    /// `GET /v1/tasks`. This is the ONLY field the interrupt resolver joins on: the
+    89	    /// `agent` field carries a role label ("coder"/"researcher"/…) and can never
+    90	    /// equal a claude-flow agent id, so matching `agent` was a false-positive
+    91	    /// hazard. `None` for role-only spawns (no interruptible-by-agent-id join).
+    92	    #[serde(default)]
+    93	    pub claude_flow_agent_id: Option<String>,
+    94	    /// The task's agent `did:nostr`, when the Management API echoes one
+    95	    /// (`didNostr`, or `did_nostr` as on the spawn response). Unvalidated here;
+    96	    /// the monitor carries it only after the `uri::did_nostr()` round-trip, and
+    97	    /// sidechain payment edges attach only to agents that have one (S5).
+    98	    #[serde(default, alias = "did_nostr")]
+    99	    pub did_nostr: Option<String>,
+   100	}
+=== sidestr world
+--- sidestr-evm/src/world.rs:100-125 @ 814b9e54cd16
+   100	    /// A storage slot's value; zero for none.
+   101	    pub fn storage(&self, address: &Address, slot: U256) -> U256 {
+   102	        self.accounts
+   103	            .get(address)
+   104	            .and_then(|a| a.storage.get(&slot))
+   105	            .copied()
+   106	            .unwrap_or_default()
+   107	    }
+   108	
+   109	    /// The state root: `keccak256(RLP(""))` for no accounts.
+   110	    pub fn root(&self) -> B256 {
+   111	        root::state_root_unhashed(self.accounts.iter().map(|(a, acct)| {
+   112	            (
+   113	                *a,
+   114	                TrieAccount {
+   115	                    nonce: acct.nonce,
+   116	                    balance: acct.balance,
+   117	                    storage_root: acct.storage_root(),
+   118	                    code_hash: acct.code_hash,
+   119	                },
+   120	            )
+   121	        }))
+   122	    }
+   123	
+   124	    /// Add `wei` to an account, creating it (`evm.mjs`: a deposit's
+   125	    /// `getAccount(addr) ?? new Account()`, then `putAccount`).
+--- sidestr-evm/src/world.rs:150-205 @ 814b9e54cd16
+   150	            }
+   151	            let entry = self.accounts.entry(address).or_default();
+   152	            if account.is_created() {
+   153	                entry.storage.clear();
+   154	            }
+   155	            entry.nonce = account.info.nonce;
+   156	            entry.balance = account.info.balance;
+   157	            entry.code_hash = account.info.code_hash;
+   158	            if let Some(code) = &account.info.code {
+   159	                if account.info.code_hash != KECCAK_EMPTY {
+   160	                    self.code
+   161	                        .entry(account.info.code_hash)
+   162	                        .or_insert_with(|| code.original_bytes());
+   163	                }
+   164	            }
+   165	            for (slot, value) in account.storage {
+   166	                let v = value.present_value();
+   167	                if v.is_zero() {
+   168	                    entry.storage.remove(&slot);
+   169	                } else {
+   170	                    entry.storage.insert(slot, v);
+   171	                }
+   172	            }
+   173	        }
+   174	    }
+   175	}
+   176	
+   177	/// The world as revm reads it. `BLOCKHASH` answers zero for every height,
+   178	/// as ethereumjs's mock blockchain does under `createVM` without one.
+   179	pub(crate) struct Db<'a>(pub(crate) &'a World);
+   180	
+   181	impl Database for Db<'_> {
+   182	    type Error = Infallible;
+   183	
+   184	    fn basic(&mut self, address: Address) -> Result<Option<AccountInfo>, Infallible> {
+   185	        Ok(self.0.accounts.get(&address).map(|a| {
+   186	            let code = self
+   187	                .0
+   188	                .code
+   189	                .get(&a.code_hash)
+   190	                .map(|b| Bytecode::new_raw(b.clone()))
+   191	                .unwrap_or_default();
+   192	            AccountInfo::new(a.balance, a.nonce, a.code_hash, code)
+   193	        }))
+   194	    }
+   195	
+   196	    fn code_by_hash(&mut self, code_hash: B256) -> Result<Bytecode, Infallible> {
+   197	        Ok(self
+   198	            .0
+   199	            .code
+   200	            .get(&code_hash)
+   201	            .map(|b| Bytecode::new_raw(b.clone()))
+   202	            .unwrap_or_default())
+   203	    }
+   204	
+   205	    fn storage(&mut self, address: Address, index: U256) -> Result<U256, Infallible> {
+=== sidestr restore
+--- sidestr-evm/src/state.rs:300-330 @ 814b9e54cd16
+   300	        }
+   301	    }
+   302	
+   303	    /// Restore durable state at `height` from a snapshot (`evm.mjs
+   304	    /// restore`). Candidate verdicts are cleared and must be prepared again.
+   305	    pub fn restore(&mut self, snapshot: &EvmSnapshot, height: u32) -> Result<(), String> {
+   306	        if snapshot.version != 1 {
+   307	            return Err(format!(
+   308	                "unsupported evm snapshot version {}",
+   309	                snapshot.version
+   310	            ));
+   311	        }
+   312	        if snapshot.config != self.config {
+   313	            return Err("evm snapshot parameters do not match this chain".into());
+   314	        }
+   315	        let world = snapshot
+   316	            .worlds
+   317	            .get(&height)
+   318	            .cloned()
+   319	            .ok_or_else(|| format!("no evm state at height {height}"))?;
+   320	        let block = snapshot
+   321	            .blocks
+   322	            .get(&height)
+   323	            .ok_or_else(|| format!("no evm block record at height {height}"))?;
+   324	        if world.root() != block.root {
+   325	            return Err(format!(
+   326	                "evm snapshot state root at height {height} does not match its block record"
+   327	            ));
+   328	        }
+   329	        let time = snapshot
+   330	            .times
+
+codex
+- **CONTRACTS-F1 — CANNOT-JUDGE.** The constructor supplies no explicit credential header, but `this.url` could contain the accepted `?token=…`; its construction is missing. Also, “false in release” is not unconditional: a release build with `dev-auth` can honour `ALLOW_INSECURE_DEFAULTS`. Without either enabling compile condition, an unauthenticated request receives 401.
+
+- **CONTRACTS-F2 — CANNOT-JUDGE.** The forwarder serialises the publisher’s `fullEvent` unchanged. Its construction is missing, so it might already contain the required envelope. Deserialisation errors produce `Malformed`; successfully parsed but noncanonical notifications produce `NonCanonical`.
+
+- **CONTRACTS-F3 — HOLDS for a nonempty response deserialised into `TaskInfo`.** The response schema omits `task`, `provider` and `status`, while `TaskInfo` requires all three without defaults. Each returned item therefore fails that deserialisation. An empty array does not encounter this failure; the actual `list_tasks` implementation is not shown.
+
+- **SIDESTR-E2 — CANNOT-JUDGE.** The shown insertion trusts the declared hash, and `world.root()` commits to that hash rather than checking code bytes. However, `restore` is truncated at line 330, and snapshot loading/validation is absent. These excerpts establish no rehashing in the shown operations, but cannot establish that code bytes are **never** verified.
+tokens used
+13,583
+- **CONTRACTS-F1 — CANNOT-JUDGE.** The constructor supplies no explicit credential header, but `this.url` could contain the accepted `?token=…`; its construction is missing. Also, “false in release” is not unconditional: a release build with `dev-auth` can honour `ALLOW_INSECURE_DEFAULTS`. Without either enabling compile condition, an unauthenticated request receives 401.
+
+- **CONTRACTS-F2 — CANNOT-JUDGE.** The forwarder serialises the publisher’s `fullEvent` unchanged. Its construction is missing, so it might already contain the required envelope. Deserialisation errors produce `Malformed`; successfully parsed but noncanonical notifications produce `NonCanonical`.
+
+- **CONTRACTS-F3 — HOLDS for a nonempty response deserialised into `TaskInfo`.** The response schema omits `task`, `provider` and `status`, while `TaskInfo` requires all three without defaults. Each returned item therefore fails that deserialisation. An empty array does not encounter this failure; the actual `list_tasks` implementation is not shown.
+
+- **SIDESTR-E2 — CANNOT-JUDGE.** The shown insertion trusts the declared hash, and `world.root()` commits to that hash rather than checking code bytes. However, `restore` is truncated at line 330, and snapshot loading/validation is absent. These excerpts establish no rehashing in the shown operations, but cannot establish that code bytes are **never** verified.
+exit=0

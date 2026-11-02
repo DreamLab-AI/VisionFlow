@@ -1,0 +1,14 @@
+{
+  "note": "Wave 4 findings the lead verified against source at the pinned revisions on 2026-11-02, with the line evidence used. Worker data files are unchanged; this file records lead confirmation separately.",
+  "pins": {"agentbox": "c57d9c0508f4", "VisionClaw": "86cdd7635582", "loom": "ba21a68", "sidestr-rs": "814b9e54cd16"},
+  "records": [
+    {"id": "CONTRACTS-F1", "evidence": "agent-event-ws-subscriber.js:94 opens with subprotocol only; server.js:377-390 builds the URL from visionclaw_api_url + /wss/agent-events with no token; ingest.rs:64-68 is_insecure_defaults_allowed() false without dev-auth; Cargo.toml:279 default features omit dev-auth; ingest.rs:261-292 returns 401", "qualifier": "an operator-set AGENTBOX_HOST_WS_URL with ?token= could pass"},
+    {"id": "CONTRACTS-F2", "evidence": "agent-event-publisher.js:51-57 fullEvent is {version,id,timestamp,type,...}, not a JSON-RPC envelope; subscriber sends it unwrapped (:147); ingest.rs:101,149 rejects as Malformed"},
+    {"id": "CONTRACTS-F3", "evidence": "routes/tasks.js:169-186 schema omits task, provider, status; management_api_client.rs:76-85 TaskInfo requires them", "cross_vendor": "Codex HOLDS"},
+    {"id": "CD-F3", "evidence": "isaac_runner.py has no auth check; :278 env = dict(os.environ); docker-compose.isaac-sim.yml:42-44 expose 9890 on visionclaw network only"},
+    {"id": "COV-B-F1", "evidence": "loom-graph-oxigraph/src/lib.rs:50 case-insensitive word-boundary regex over the whole query includes ADD, LOAD, COPY, CREATE, SERVICE"},
+    {"id": "COV-B-F2", "evidence": "loom-embed-xinference/src/lib.rs:130-136 &s[..200] with no char-boundary check; Cargo.toml:72 panic = abort; loom-client/src/error.rs:138-140 shows the safe pattern"},
+    {"id": "SIDESTR-B2", "evidence": "sidestr-agent/src/hitch/mod.rs:34-37 host gated all(cli, unix), store gated unix only"},
+    {"id": "SIDESTR-E2", "evidence": "sidestr-evm/src/world.rs:157-162 stores code under the declared hash; state.rs:305-328 restore checks version, config and world.root() only; keccak256 used only in tests (:217-228)", "cross_vendor": "Codex CANNOT-JUDGE (restore excerpt truncated); lead-verified only"}
+  ]
+}
