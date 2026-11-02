@@ -34,7 +34,8 @@ sources:
   - ../project/agentbox/mcp/servers/nostr-bridge.js
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/management-api/lib/bc20-provenance-bridge.js
-verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
+  - ../project/agentbox/management-api/routes/sessions-boundary.js
+verified_commit: c57d9c0508f4044915f9aecea4b9aa5629cc6a35
 ---
 
 ## AB-11.1 Identity, URN and mandate type model
@@ -61,6 +62,7 @@ classDiagram
         +bool scopeRequired
         +bool contentAddressed
         +string resolvableSurface
+        +RegExp localGrammar (chain only)
     }
     class MandateRecord {
         <<lib/mandate.js:99 createMandate>>
@@ -80,26 +82,28 @@ classDiagram
         +guard(actionClass, ctx)
     }
     class CapabilityScope {
-        <<capability-scope.js:320 export>>
+        <<capability-scope.js:28,33,37 module constants>>
         +List~string~ EFFECT_TYPES
         +List~string~ TRUST_CLASSES
-        +int DEFAULT_DISPOSE_TIMEOUT_MS
+        -int DEFAULT_DISPOSE_TIMEOUT_MS
     }
     AgentIdentity --> MULTIKEY : multikeyFromXonly
     UrnKindSpec <-- MandateRecord : kind mandate ownerScope+scopeRequired+contentAddressed
     MandateRecord --> AgentIdentity : issuer and agent are did nostr
-    AuthorityGate --> CapabilityScope : narrows what a granted action may touch
+    AuthorityGate .. CapabilityScope : no code link at this revision
     note for MULTIKEY "MULTIKEY_PREFIX = fe70102 -> f base16-lower + e701 varint multicodec + 02 compressed-point tag<br/>Fixed 71-char publicKeyMultibase. agent-identity.js:61 notes the derivation always yields even-y so 02 is invariant."
-    note for AgentIdentity "INVARIANT ADR-2011 hex-canonical: lowercase 64-hex BIP-340 x-only pubkey is the single storage and URL identity<br/>did is did:nostr:hex. npub bech32 is display or symlink form only. privHex NEVER leaves agent-identity.js (agent-identity.js:68-70)."
-    note for UrnKindSpec "19 kinds at uris.js:88 — pod envelope credential mandate receipt activity event decision mcp memory skill adr prd ddd thing dataset bead agent meta<br/>decision IS-A prov:Activity (legacy ADR-048) and mirrors activity plumbing. bead is content-addressed to match urn:visionclaw:bead so BC20 can cross it (audit 2026-06-09 A3)."
+    note for AgentIdentity "INVARIANT ADR-2011 hex-canonical: lowercase 64-hex BIP-340 x-only pubkey is the single storage and URL identity<br/>did is did:nostr:hex. npub bech32 is display or symlink form only. privHex NEVER leaves agent-identity.js (agent-identity.js:160-161, return shape :173-180)."
+    note for UrnKindSpec "21 kinds at uris.js:88-129 — pod envelope credential mandate receipt activity event decision mcp memory skill adr prd ddd thing dataset bead knowledge agent meta chain<br/>decision IS-A prov:Activity (legacy ADR-048) and mirrors activity plumbing. bead is content-addressed to match urn:visionclaw:bead so BC20 can cross it (audit 2026-06-09 A3).<br/>knowledge (ADR-2085) is scoped and content-addressed (uris.js:115). chain (ADR-2098) is unscoped and its local part must be the full 64-hex chain id (uris.js:128)."
 ```
+
+**Tension (capability scope vs authority):** the trust classes are validated on registration (`agentbox/management-api/lib/capability-scope.js:113-114`) and reported (`agentbox/management-api/lib/execution-coverage.js:59`), but neither the authority gate nor the mandate code reads them; a granted mandate or an approved action is not narrowed by a capability's trust class at this revision. The dotted edge records that the two concepts sit side by side, not that one constrains the other.
 
 ## AB-11.2 loadOrMint — private-key precedence and 0600 persistence
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant CALLER as caller<br/>agentbox/management-api/server.js
+    participant CALLER as caller<br/>agentbox/management-api/routes/sessions-boundary.js:214
     participant AI as loadOrMint<br/>agentbox/management-api/lib/agent-identity.js:128
     participant ENV as process.env
     participant FS as profile key file<br/>profileKeyPath opts
@@ -133,7 +137,7 @@ sequenceDiagram
     AI->>AI: xOnly = deriveXonly(privHex)
     alt xOnly falsy or not HEX64
         AI-->>CALLER: return null
-        Note over AI,CALLER: the CLI exits non-zero and the entrypoint aborts boot (entrypoint-unified.sh:1422), no placeholder identity survives. see AB-11.3
+        Note over AI,CALLER: the CLI exits non-zero and the entrypoint aborts boot (entrypoint-unified.sh:1431-1433), no placeholder identity survives. see AB-11.3
     else derived
         critical persist so the DID survives a restart
             AI->>FS: mkdirSync(dirname, recursive) then writeFileSync(privHex, mode 0o600) then chmodSync 0o600 (agent-identity.js:164-166)
@@ -144,7 +148,7 @@ sequenceDiagram
         end
         AI-->>CALLER: {did, pubkey, multikey, keyPath, minted, persisted}
     end
-    Note over AI,FS: INVARIANT ADR-2011 — privHex is never returned, logged or printed. Only did / x-only pubkey / multikey are emitted (agent-identity.js exports at :173).
+    Note over AI,FS: INVARIANT ADR-2011 — privHex is never returned, logged or printed. Only did / x-only pubkey / multikey are returned (agent-identity.js:173-180).
 ```
 
 ## AB-11.3 agent-identity CLI mint — ADR-2044 fail-CLOSED entrypoint export contract
@@ -153,52 +157,54 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant EP as entrypoint<br/>agentbox/config/entrypoint-unified.sh
-    participant CLI as agent-identity.js main<br/>agentbox/management-api/lib/agent-identity.js:201
+    participant CLI as agent-identity.js main<br/>agentbox/management-api/lib/agent-identity.js:298
     participant LM as loadOrMint<br/>agentbox/management-api/lib/agent-identity.js:128
     participant SHELL as supervised programs and tmux windows
 
     EP->>CLI: node agent-identity.js mint
     alt argv[2] not 'mint'
-        CLI-->>EP: stderr "agent-identity: unknown command '<cmd>' (expected mint)" then exit 1<br/>agent-identity.js:203-206
+        CLI-->>EP: stderr "agent-identity: unknown command '<cmd>' (expected mint)" then exit 1<br/>agent-identity.js:300-303
     else mint
-        CLI->>LM: loadOrMint() agent-identity.js:207
+        CLI->>LM: loadOrMint() agent-identity.js:304
         alt loadOrMint returned null
             LM-->>CLI: null
-            CLI-->>EP: stderr FATAL "could not derive a did:nostr. Refusing to proceed with a<br/>placeholder identity (INGRESS-identity.md Invariant 5)" then exit 1, NO export lines<br/>agent-identity.js:208-214
+            CLI-->>EP: stderr FATAL "could not derive a did:nostr. Refusing to proceed with a<br/>placeholder identity (INGRESS-identity.md Invariant 5)" then exit 1, NO export lines<br/>agent-identity.js:305-311
         else id.persisted is false — RESOLVED ADR-2044
             LM-->>CLI: {did, pubkey, multikey, persisted false, keyPath}
-            CLI-->>EP: stderr FATAL — minted the did but could NOT persist the key at keyPath<br/>(0600). An unpersisted key produces a different did:nostr on every restart<br/>then exit 1, NO export lines — agent-identity.js:215-224
+            CLI-->>EP: stderr FATAL — minted the did but could NOT persist the key at keyPath<br/>(0600). An unpersisted key produces a different did:nostr on every restart<br/>then exit 1, NO export lines — agent-identity.js:312-321
         else identity derived and persisted
             LM-->>CLI: {did, pubkey, multikey, persisted true, keyPath}
-            CLI-->>EP: stdout export AGENTBOX_AGENT_DID / AGENTBOX_AGENT_PUBKEY / AGENTBOX_AGENT_DID_MULTIKEY<br/>agent-identity.js:225-229
-            CLI-->>EP: stderr agent-identity: minted or loaded the did (persisted=true, keyfile=path)<br/>agent-identity.js:230-233
-            EP->>EP: parse AGENTBOX_AGENT_DID with sed and require the exact expected three export lines, never eval (entrypoint-unified.sh:1425-1432)
-            EP->>SHELL: export AGENTBOX_AGENT_DID, AGENTBOX_AGENT_PUBKEY, AGENTBOX_AGENT_DID_MULTIKEY (entrypoint-unified.sh:1432-1440)
+            CLI-->>EP: stdout export AGENTBOX_AGENT_DID / AGENTBOX_AGENT_PUBKEY / AGENTBOX_AGENT_DID_MULTIKEY<br/>agent-identity.js:322-326
+            CLI-->>EP: stderr agent-identity: minted or loaded the did (persisted=true, keyfile=path)<br/>agent-identity.js:327-330
+            EP->>EP: parse AGENTBOX_AGENT_DID with sed and require the exact expected three export lines, never eval (entrypoint-unified.sh:1435-1441)
+            EP->>SHELL: export AGENTBOX_AGENT_DID, then derive and export AGENTBOX_AGENT_PUBKEY and AGENTBOX_AGENT_DID_MULTIKEY itself (entrypoint-unified.sh:1442-1450)
             CLI-->>EP: exit 0 agent-identity.js:331
         end
     end
-    Note over EP,SHELL: RESOLVED ADR-2044 (2026-09-05, was DIVERGENCE) - the CLI's own fail-open<br/>path is GONE: a failed mint OR a mint that could not persist its key now exits<br/>non-zero with NO export lines, agent-identity.js:31-46. The entrypoint now treats that as<br/>FATAL too: no mint runtime, a failed mint, or output that is not exactly the three<br/>expected export lines aborts boot with exit 1 (entrypoint-unified.sh:1418-1429), so no<br/>did:nostr:local placeholder is exported. see AB-11.13
+    Note over EP,SHELL: RESOLVED ADR-2044 (2026-09-05, was DIVERGENCE) - the CLI's own fail-open<br/>path is GONE: a failed mint OR a mint that could not persist its key now exits<br/>non-zero with NO export lines, agent-identity.js:31-39. The entrypoint now treats that as<br/>FATAL too: no mint runtime, a failed mint, or output that is not exactly the three<br/>expected export lines aborts boot with exit 1 (entrypoint-unified.sh:1424-1441), and a configured<br/>DID that is not canonical is refused (entrypoint-unified.sh:1445-1448), so no<br/>did:nostr:local placeholder is exported. see AB-11.13
 ```
 
-**Drift (INGRESS-identity vs entrypoint):** `docs/INGRESS-identity.md` still names a `did:nostr:local` placeholder fallback that lets a degraded boot produce a non-sovereign identity (`agentbox/docs/INGRESS-identity.md:225-226`), and the `agent-identity.js` header says the entrypoint's `${AGENTBOX_AGENT_DID:-did:nostr:local}` fallback runs unconditionally (`agentbox/management-api/lib/agent-identity.js:41-46`), while the entrypoint aborts boot on a failed or inconsistent mint (`agentbox/config/entrypoint-unified.sh:1422-1429`).
+**Drift (INGRESS-identity vs entrypoint):** `docs/INGRESS-identity.md` still names a `did:nostr:local` placeholder fallback in `agent-identity.js:175` that lets a degraded boot produce a non-sovereign identity (`agentbox/docs/INGRESS-identity.md:229-231`), and the `agent-identity.js` header says the entrypoint's `${AGENTBOX_AGENT_DID:-did:nostr:local}` fallback runs unconditionally (`agentbox/management-api/lib/agent-identity.js:41-46`), while the entrypoint aborts boot on a failed or inconsistent mint (`agentbox/config/entrypoint-unified.sh:1424-1441`) and treats `did:nostr:local` only as a trigger to mint (`agentbox/config/entrypoint-unified.sh:1424`). Line 175 of `agent-identity.js` is the `pubkey` field of the return object, not a fallback.
 
 ## AB-11.4 URN kind table — scope, content addressing and resolvable surface
 
 ```mermaid
 flowchart TB
-    K["uris.js:88 KINDS Object.freeze — 19 kinds"]
+    K["uris.js:88 KINDS Object.freeze — 21 kinds"]
     K --> POD["pod / envelope / credential / mandate / receipt<br/>ownerScope=true scopeRequired=true contentAddressed=true<br/>surface: pods"]
     K --> ACT["activity / event / decision<br/>ownerScope=true scopeRequired=true contentAddressed=true<br/>surface: agent-events"]
-    K --> BEAD["bead<br/>ownerScope=true scopeRequired=true contentAddressed=true<br/>surface: beads"]
+    K --> BEAD["bead / knowledge<br/>ownerScope=true scopeRequired=true contentAddressed=true<br/>surfaces: beads / memory (uris.js:110,115)"]
     K --> DSET["dataset<br/>ownerScope=true scopeRequired=true contentAddressed=false<br/>surface: memory"]
     K --> OPT["memory / thing / agent<br/>ownerScope=true scopeRequired=FALSE contentAddressed=false<br/>surfaces: memory / things / agents"]
     K --> UNS["mcp / skill / adr / prd / ddd / meta<br/>ownerScope=false scopeRequired=false contentAddressed=false<br/>surfaces: things / skills / docs / meta"]
+    K --> CHN["chain<br/>ownerScope=false contentAddressed=false<br/>localGrammar = 64 lowercase hex, never slugged<br/>surface: chains (uris.js:128)"]
     POD --> R["resolveCanonical -> base + /v1/uri/{urn}?surface={resolvableSurface}<br/>uris.js:273"]
     ACT --> R
     BEAD --> R
     DSET --> R
     OPT --> R
     UNS --> R
+    CHN --> R
     K -.-> RE["URN_RE = ^urn:agentbox:([a-z]+):([^:]+(?::[^:]+)?)$<br/>PUBKEY_HEX_RE = ^[0-9a-f]{64}$<br/>DID_NOSTR_RE = ^did:nostr:([0-9a-f]{64})$"]
     R -.-> N1["INVARIANT agentbox/CLAUDE.md: every durable identifier is minted through uris.js mint. Ad-hoc format!() or template-literal URNs are prohibited."]
     OPT -.-> N2["scopeRequired=false is the ADR-048 optional-scope form: thing and memory may mint unscoped (urn:agentbox:thing:mcp-foo) OR owner-scoped.<br/>The WS6 elevation path MUST supply the owner pubkey so the thing proposal can cross to urn:visionclaw:kg:<pubkey> through BC20 — bc20-provenance-bridge.js drops an unscoped thing. see AB-17"]
@@ -230,6 +236,8 @@ sequenceDiagram
             CA->>CA: crypto.createHash('sha256').update(canon, 'utf8').digest('hex')
             CA-->>M: local = sha256-12-<first 12 hex>
         end
+    else localId supplied and spec.localGrammar (chain)
+        M->>M: lowercase the id, throw MalformedUri unless it matches the grammar, never slug it (uris.js:191-200)
     else localId supplied
         M->>M: local = _slug(localId) — [^A-Za-z0-9._-] to underscore, sliced to 96 chars (uris.js:479)
     else neither
@@ -272,6 +280,8 @@ sequenceDiagram
     C->>P: parse(uri)
     alt DID_NOSTR_RE matches
         P-->>C: {scheme did, method nostr, pubkey}
+    else URN_RE matches but a localGrammar kind has a non-matching local
+        P-->>C: null (uris.js:304)
     else URN_RE matches
         P->>P: rest.split(':')
         alt parts.length === 1
@@ -283,7 +293,7 @@ sequenceDiagram
         P-->>C: null
     end
     C->>IC: isCanonical(uri)
-    IC-->>C: DID_NOSTR_RE.test(uri) || URN_RE.test(uri)
+    IC-->>C: DID_NOSTR_RE.test(uri), or URN_RE.test(uri) and the kind's localGrammar holds (uris.js:313-318)
     C->>RC: resolveCanonical(uri, {managementApiBase, podBase})
     alt uri is a did:nostr
         alt podBase missing
@@ -291,9 +301,9 @@ sequenceDiagram
         else
             RC-->>C: <podBase>/.well-known/did.json
         end
-    else uri is a urn with a known kind
+    else uri is a urn with a known kind and a local that passes any localGrammar (uris.js:284-286)
         RC-->>C: <managementApiBase>/v1/uri/<encodeURIComponent(uri)>?surface=<spec.resolvableSurface>
-        Note over RC: every agentbox URI routes through management-api so auth, content negotiation and CORS live in one place (uris.js:273 comment)
+        Note over RC: every agentbox URI routes through management-api so auth, content negotiation and CORS live in one place (uris.js:288-289 comment)
     else unknown kind or non-matching
         RC-->>C: null
     end
@@ -314,38 +324,46 @@ sequenceDiagram
     participant REG as registry.json<br/>agentbox/management-api/routes/mandate.js:52
     participant ACL as pod WAC .acl
 
-OP->>RT: POST /v1/mandate {issuer, agent, container, modes,<br/>expiresAt}
-    RT->>CS: createSignedMandate(args)
-CS->>CM: createMandate({issuer, agent, container, modes,<br/>issuedAt, expiresAt})
-CM->>CM: normalisePubkey(issuer) then normalisePubkey(agent) —<br/>did:nostr:<hex> or bare 64-hex
+OP->>RT: POST /v1/mandate {agent, container, modes,<br/>expires_at, optional issuer} (routes/mandate.js:310-325)
+    RT->>RT: preHandler requireOperator — any other principal is refused 403 (routes/mandate.js:311)
+    alt body.issuer present and not equal to the authenticated operator
+        RT-->>OP: 400 {error issuer_mismatch} (routes/mandate.js:350-364)
+    end
+    RT->>CS: createSignedMandate({issuer = authenticated operator, ...}) (routes/mandate.js:366-376)
+CS->>CM: createMandate({issuer, agent, container, modes,<br/>expiresAt}) (routes/mandate.js:196-202)
+CM->>CM: normalisePubkey(issuer) then normalisePubkey(agent) —<br/>did:nostr:<hex> or bare 64-hex (lib/mandate.js:100-103)
     alt either identity unparseable
         CM-->>RT: throw MandateError "bad issuer|agent identity"
-        RT-->>OP: 400 {error mandate, message} (routes/mandate.js:380)
+        RT-->>OP: 400 {error mandate, message} (routes/mandate.js:379-381)
     end
-CM->>CM: normaliseContainer(container) then<br/>normaliseModes(modes)
+CM->>CM: normaliseContainer(container) then<br/>normaliseModes(modes) (lib/mandate.js:105-106)
 Note over CM: ALLOWED_MODES = Read Write Append Control<br/>(lib/mandate.js:39). DEFAULT_MODES = Read Write Append<br/>(lib/mandate.js:40) — Control is never a default.
     alt expiresAt not null and (not integer or <= issuedAt)
-CM-->>RT: throw MandateError "expiresAt must be a Unix-seconds<br/>integer after issuedAt, or null"
+CM-->>RT: throw MandateError "expiresAt must be a Unix-seconds<br/>integer after issuedAt, or null" (lib/mandate.js:109-111)
     end
-    CM->>U: mint({kind mandate, pubkey issuerHex, payload record})
-Note over U: kind mandate is<br/>ownerScope+scopeRequired+contentAddressed — the URN is scoped to<br/>the ISSUER and content-addresses the record. see AB-11.4
+    CM->>U: mint({kind mandate, pubkey issuerHex, payload record}) (lib/mandate.js:124)
+Note over U: kind mandate is<br/>ownerScope+scopeRequired+contentAddressed — the URN is scoped to<br/>the ISSUER and content-addresses the record, issued_at included. see AB-11.4
     U-->>CM: urn:agentbox:mandate:<issuerHex>:sha256-12-<12hex>
     CM-->>CS: {urn, record}
-    CS->>SG: _loadSigner(manifest, logger)
+    CS->>SG: _loadSigner(manifest, logger) (routes/mandate.js:206)
     alt signer available
-        CS->>SM: signMandate(record, signer)
-SM->>SM: build kind 30078 with tags d=<urn> p=<agentHex><br/>t=agent-mandate expiration=<expires_at>
-Note over SM: MANDATE_EVENT_KIND = 30078 (lib/mandate.js:36) —<br/>NIP-33 parameterised-replaceable. The (pubkey, kind, d-tag)<br/>triple IS the revocation mechanism. Reuses nostr-bridge<br/>AGENT_STATE kind, not a new primitive.
+        CS->>SM: signMandate(record, signer) (routes/mandate.js:209)
+SM->>SM: build kind 30078 with tags d=<urn> p=<agentHex><br/>t=agent-mandate expiration=<expires_at> (lib/mandate.js:168-178)
+Note over SM: MANDATE_EVENT_KIND = 30078 (lib/mandate.js:36) —<br/>NIP-33 parameterised-replaceable. The (pubkey, kind, d-tag)<br/>triple is the intended revocation mechanism. Reuses nostr-bridge<br/>AGENT_STATE kind, not a new primitive.
         SM-->>CS: signed event
     else no signer resolvable
-        CS-->>CS: registry write proceeds unsigned
-Note over CS,REG: routes/mandate.js:152 — the registry write is<br/>never blocked purely by a missing relay signer
+        CS-->>CS: warn mandate.unsigned-mint, registry write proceeds unsigned (routes/mandate.js:214-219)
+Note over CS,REG: routes/mandate.js:150-153 — the registry write is<br/>never blocked purely by a missing relay signer
     end
-CS->>REG: reg[_registryKey(agent, container)] = entry then<br/>_saveRegistry (routes/mandate.js:222,65)
-    RT-->>OP: 201 {urn, record, event} (routes/mandate.js:377)
-    OP->>ACL: PUT mandateToAclTurtle(record) to <container>.acl
+CS->>REG: reg[_registryKey(agent, container)] = entry then<br/>_saveRegistry (routes/mandate.js:221-228, :65)
+    RT-->>OP: 201 {urn, record, acl_turtle, signed, signed_event} (routes/mandate.js:230, :377)
+    OP->>ACL: PUT acl_turtle to <container>.acl — the caller does this, management-api does not
 Note over ACL: lib/mandate.js:137 emits acl:Authorization with<br/>acl:agent <did:nostr:hex> acl:accessTo + acl:default <container><br/>acl:mode acl:Read, acl:Write …<br/>Mirrors the owner-ACL shape solid-pod-rs writes at provision<br/>time.
 ```
+
+**Open (signed mandate distribution):** the signed kind-30078 event is returned to the caller in `signed_event` (`agentbox/management-api/routes/mandate.js:230`), and no code in agentbox at this revision publishes a mandate event to a relay: outside the two mandate modules, kind 30078 appears only in relay kind lists and the voice-intent route that consumes a mandate the caller supplies (`agentbox/management-api/routes/voice-intent.js:108`). Whether operators publish it themselves cannot be seen from source.
+
+**Tension (grant enforcement vs registry):** the pod enforces the `.acl` the caller PUTs, while revocation (AB-11.8) only rewrites the local registry and re-signs the record; nothing in agentbox removes or rewrites the `.acl`, so a revoked mandate's WAC grant stays in force at the pod until someone replaces it (`agentbox/management-api/routes/mandate.js:238-281`, `agentbox/management-api/lib/mandate.js:129-152`).
 
 ## AB-11.8 Mandate revoke and list
 
@@ -359,25 +377,25 @@ sequenceDiagram
     participant RELAY as nostr relay (see AB-13)
     participant LS as GET /v1/mandate<br/>agentbox/management-api/routes/mandate.js:436
 
-    OP->>RV: POST /v1/mandate/revoke {urn} or {agent, container}
+    OP->>RV: POST /v1/mandate/revoke {urn} or {agent, container}, operator-only preHandler (routes/mandate.js:389)
     alt neither urn nor (agent and container)
         RV-->>OP: 400 {error validation, message "provide urn, or both agent and container"} (routes/mandate.js:420)
     end
     RV->>RM: revokeMandate(args)
-    RM->>REG: _registryKey(agent, container) lookup (routes/mandate.js:249,76)
+    RM->>REG: urn scan, or _registryKey(agent, container) lookup (routes/mandate.js:244-251, :76)
     alt no matching entry
         RM-->>RV: null
         RV-->>OP: 404 {error not-found, message "no matching mandate in the registry"} (routes/mandate.js:429)
     else found
-        RM->>RM: re-sign the SAME d tag with record.revoked = true
-        Note over RM,RELAY: NIP-33 replaceable semantics — kind 30078 with an identical (pubkey, kind, d=<urn>) triple REPLACES the grant at every relay. There is no delete.
-        RM->>RELAY: publish replacement event
-        RM->>REG: mark the registry entry revoked then _saveRegistry
+        RM->>RM: re-sign the SAME d tag with record.revoked = true, when a signer loads (routes/mandate.js:254-263)
+        Note over RM,RELAY: NIP-33 replaceable semantics — a kind 30078 with an identical (pubkey, kind, d=<urn>) triple would REPLACE the grant at a relay that holds it. There is no delete.
+        RM-->>RELAY: nothing is sent — the revoking event is only returned in signed_event, unsigned when no signer loads (routes/mandate.js:264-269, :280)
+        RM->>REG: write the revoked record and revoked_at, then _saveRegistry (routes/mandate.js:271-278)
         RM-->>OP: 200 result (routes/mandate.js:430)
     end
     OP->>LS: GET /v1/mandate
     Note over LS: OPERATOR-ONLY (routes/mandate.js:434 "the mandate registry enumerates every delegation") — the listing is an authority-disclosure surface, not public
-    LS-->>OP: 200 {mandates, count} (routes/mandate.js:457)
+    LS-->>OP: 200 {mandates, count} — every recorded record, revoked ones included, no activity filter (routes/mandate.js:453-457)
 ```
 
 ## AB-11.9 Mandate lifecycle
@@ -387,14 +405,17 @@ stateDiagram-v2
     [*] --> Requested
     Requested --> Minted : createMandate lib/mandate.js:99 mints urn:agentbox:mandate:issuerHex:sha256-12
     Minted --> SignedActive : signMandate lib/mandate.js:163 kind 30078 d=urn p=agentHex expiration
-    Minted --> UnsignedRegistered : no signer resolvable — registry write still proceeds
-    UnsignedRegistered --> SignedActive : signer becomes available and the grant is re-published
+    Minted --> UnsignedRegistered : no signer resolvable — registry write still proceeds (routes/mandate.js:221-228)
+    UnsignedRegistered --> UnsignedRegistered : ensureMandate reuses the active entry, signed or not (routes/mandate.js:171)
     SignedActive --> Expired : isMandateActive lib/mandate.js:191 now >= expires_at
-    SignedActive --> Revoked : revokeMandate re-signs the same d tag with revoked true
-    SignedActive --> Superseded : a new kind-30078 event on the same pubkey+kind+d triple replaces it
-    Superseded --> SignedActive
+    UnsignedRegistered --> Expired : isMandateActive lib/mandate.js:191
+    SignedActive --> Revoked : revokeMandate re-signs the same d tag with revoked true (routes/mandate.js:254-263)
+    UnsignedRegistered --> Revoked : revokeMandate marks the registry entry revoked (routes/mandate.js:271-278)
+    SignedActive --> Overwritten : a later POST for the same agent and container mints a NEW urn and replaces the registry key
+    UnsignedRegistered --> Overwritten : same — routes/mandate.js:221-228
     Expired --> [*]
     Revoked --> [*]
+    Overwritten --> [*]
     note right of SignedActive
         isMandateActive checks ONLY revoked and expires_at.
         Signature authenticity is a SEPARATE concern — lib/mandate.js:191 doc
@@ -404,10 +425,13 @@ stateDiagram-v2
     end note
     note right of UnsignedRegistered
         DIVERGENCE — an entry can sit in registry.json with no signed
-        replaceable event behind it, so the local registry and the relay
-        can disagree about what is granted. routes/mandate.js:152.
+        replaceable event behind it, and no code re-signs it later:
+        ensureMandate keeps returning it while it is active.
+        routes/mandate.js:150-153,171.
     end note
 ```
+
+**Drift (unsigned re-mint):** the unsigned-mint warning tells the operator to "re-mint once the signer is restored" (`agentbox/management-api/routes/mandate.js:214-219`), but a re-mint through `POST /v1/mandate` content-addresses a record that carries a fresh `issued_at` (`agentbox/management-api/lib/mandate.js:107`, `agentbox/management-api/lib/mandate.js:113-124`), so it produces a new URN and `d` tag rather than signing the old one; the previous record is simply overwritten in the registry. The earlier drawing showed the unsigned grant being re-published under the same identity, which no code does.
 
 ## AB-11.10 Authority gate — signed request binds the operation
 
@@ -424,8 +448,8 @@ sequenceDiagram
     else escalation required
         Gate->>Gate: canonicalise operation and SHA256 digest
         Gate->>Forum: sign 31402 fields containing operation and digest
-        Gate->>Gate: reject producer if signed content changed
-        Forum-->>Gate: verified 31403 with exact request e reference
+        Gate->>Gate: reject producer if signed content changed (authority.js:454-458)
+        Forum-->>Gate: 31403 with exact request e reference, Schnorr re-verified by the gate (authority.js:478-481)
         Gate->>Gate: require optional case and panel agreement
         alt approval bound to this request
             Gate-->>Owner: released plus request ID, response ID, operation digest
@@ -441,7 +465,7 @@ sequenceDiagram
         end
     end
     Note over Gate: ADR-2087 — the gate derives a task-property triple from the action class and<br/>stamps it on its own 31402 as tp- tags and inside fields (authority.js:378, :438).<br/>INVARIANT: a caller may pass taskProperties to TIGHTEN it, nothing can loosen it (authority.js:52)
-    Note over Gate,Caller: ADR-2087 — every deny path appends a hash-chained authority.deny record<br/>{agent_did, stage, reason, action_class, operation_sha256} through the injected<br/>journal (authority.js:303). Without a journal the gate denies identically and leaves<br/>no durable record, and a journal failure never converts a deny into an exception. see AB-14.11
+    Note over Gate,Caller: ADR-2087 — every deny path appends a hash-chained authority.deny record<br/>{agent_did, stage, reason, action_class, operation_sha256} through the injected<br/>journal (authority.js:294-316). Without a journal the gate denies identically and leaves<br/>no durable record, and a journal failure never converts a deny into an exception. see AB-14.11
     Note over Owner,Journal: Timeout or crash is unknown, never proof of application. Local receipt is unsigned and does not prove deployment.
 ```
 
@@ -464,9 +488,10 @@ flowchart TD
 ```mermaid
 classDiagram
     class CapabilityScope {
-        <<agentbox/management-api/lib/capability-scope.js>>
-        +register(capability)
-        +dispose()
+        <<agentbox/management-api/lib/capability-scope.js:61>>
+        +register(effect)
+        +createChild(id)
+        +close()
     }
     class ServiceRegistry {
         <<agentbox/management-api/lib/capability-scope.js:320 export>>
@@ -500,63 +525,65 @@ classDiagram
     CapabilityScope --> ServiceRegistry : resolves shared services
     CapabilityScope --> CapabilityError : throws on malformed or unknown declarations
     CapabilityError <|-- DuplicateCapabilityIdentity
-    note for CapabilityScope "DEFAULT_DISPOSE_TIMEOUT_MS = 5000 (capability-scope.js:37) bounds teardown of listeners and timers so a scope cannot leak a live effect past disposal."
-    note for TrustClass "The trust class is the narrowing axis a granted mandate or authority decision applies to — secrets / subprocess / writes / network are the classes that carry real blast radius. pure carries none."
+    note for CapabilityScope "DEFAULT_DISPOSE_TIMEOUT_MS = 5000 (capability-scope.js:37) bounds each teardown. An effect whose dispose does not settle in time is reported in leaked, not forced (capability-scope.js:300-307)."
+    note for TrustClass "Declared per effect, default pure, unknown values throw (capability-scope.js:113-114).<br/>secrets / subprocess / writes / network carry real blast radius. No mandate or authority<br/>decision reads this class at this revision — see the Tension under AB-11.1."
 note for EffectType "DIVERGENCE GOVERNANCE-capabilities: this classification is declarative.<br/>Nothing forces a code-mode sub-call, MCP plugin tool, consultant action or background job<br/>through a scope — the acknowledged bypasses. see AB-14 and AB-15"
 ```
 
-## AB-11.13 pod-signer — signing a pod write as the agent's own did:nostr
+## AB-11.13 pod-signer — signing a pod write, sovereign identity by default
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant BOOT as management-api boot<br/>agentbox/management-api/server.js
+    participant BOOT as adapter config for the pods slot<br/>agentbox/management-api/adapters/index.js:62
     participant PS as buildPodNip98<br/>agentbox/management-api/lib/pod-signer.js:70
     participant MF as agentbox.toml<br/>[integrations.solid_pod_rs]
     participant ENV as process.env
-    participant NB as nostr-bridge loadSigner / buildNip98Header
-    participant ADP as pods adapter (ADR-005 pods slot)
+    participant NB as signing source<br/>loadSovereignSigner, loadSigner or identity port
+    participant ADP as pods adapter _signedFetch<br/>agentbox/management-api/adapters/pods/_solid-http-base.js:78
     participant POD as solid-pod-rs
 
-    BOOT->>PS: buildPodNip98(manifest, deps)
-    PS->>MF: manifest.integrations.solid_pod_rs.sign_requests
+    BOOT->>BOOT: requireSigned = sign_requests === true (adapters/index.js:73-74)
+    BOOT->>PS: buildPodNip98(manifest, {onError}) (adapters/index.js:75-84)
+    PS->>MF: manifest.integrations.solid_pod_rs.sign_requests (pod-signer.js:71-73)
     alt sign_requests falsy
-        PS-->>BOOT: return null
-        Note over PS,ADP: INVARIANT pod-signer.js:33-35 — with sign_requests OFF<br/>the originator returns null without touching key material and the<br/>adapter goes out unsigned, byte-identical. Enabling the flag is the ONLY<br/>behavioural change. Compare ADR-2020 byte-identical-when-off, see AB-15
-    else enabled
-        PS->>ENV: AGENTBOX_STACK then AGENTBOX_PROFILE then integ.sign_stack
-        alt no stack resolves
-            PS->>BOOT: deps.onError("sign_requests is on but no stack resolved")
-            PS-->>BOOT: return null — but requireSigned still rides with the config<br/>(adapters/index.js:64-65,76-79), so the adapter FAILS CLOSED
-        else stack resolved
-            PS-->>BOOT: async nip98(method, url, body)
-        end
+        PS-->>BOOT: return null without touching key material (pod-signer.js:73)
+        Note over PS,ADP: INVARIANT pod-signer.js:33-35 — with sign_requests OFF the adapter goes out unsigned,<br/>byte-identical to the pre-signing baseline. Compare ADR-2020 byte-identical-when-off, see AB-15
+    else role_isolation on, or sign_source = identity-port
+        PS-->>BOOT: port originator, nostr-pod-bridge sign-request nip98 over the unix socket,<br/>the ONLY source, no key file read (pod-signer.js:76-77,132-136)
+    else AGENTBOX_STACK or integ.sign_stack names a stack
+        PS-->>BOOT: originator over nostr-bridge loadSigner(stack) (pod-signer.js:79,96-97)
+    else no stack named (the default)
+        PS-->>BOOT: originator over loadSovereignSigner, the bootstrap identity file (pod-signer.js:98-99)
+        Note over PS,ENV: AGENTBOX_PROFILE no longer selects a stack — an ambient session hint must not<br/>divert pod writes away from the identity the pod trusts (pod-signer.js:21-26,79)
     end
-    ADP->>PS: nip98('PUT', url, body) on every pod request
-    PS->>PS: getSigner() — lazy, cached, one-shot loadFailed latch
-    alt signer not yet loaded
-        PS->>NB: loadSigner(stack, signerOpts)
-        alt throws (key undecryptable / stack missing)
-            NB-->>PS: error
-            PS->>BOOT: deps.onError(err) — fired ONCE (loadFailed latch)
-            PS-->>ADP: null header
-            alt sign_requests ON (requireSigned)
-                ADP--xADP: throw SigningUnavailable — no bytes reach the pod<br/>_solid-http-base.js:87-90
-            else flag off
-                ADP->>POD: request goes out UNSIGNED — the pre-signing baseline
-            end
-            Note over ADP,POD: RESOLVED ADR-2064, closed by ADR-2078 (2026-10-02).<br/>A null header no longer means "go out unsigned":<br/>pod-signer.js:12-37 selects the signing source<br/>deterministically — the sovereign identity<br/>loadSovereignSigner returns (agent-identity.js:232),<br/>per-stack only when a stack is named — and a null<br/>originator hands the outcome to the adapter, which<br/>throws SigningUnavailable per request when<br/>sign_requests is on (_solid-http-base.js:84-91,104-106).<br/>Unsigned is reachable ONLY with the flag off, where it<br/>is the byte-identical pre-signing baseline.
+    BOOT->>BOOT: config carries nip98 plus requireSigned, or requireSigned alone (adapters/index.js:85-88)
+    ADP->>ADP: caller already set Authorization — sent as is, never re-signed (_solid-http-base.js:81-82)
+    ADP->>PS: nip98(method, url, body) on every other pod request (_solid-http-base.js:95)
+    PS->>NB: getSigner() — lazy, cached, one-shot loadFailed latch (pod-signer.js:104-122)
+    alt load throws (file absent, malformed, secret does not derive the recorded pubkey)
+        NB-->>PS: error
+        PS->>BOOT: deps.onError(wrapped) — fired ONCE, names the source, never the key (pod-signer.js:110-119)
+        PS-->>ADP: null header
+        alt requireSigned (sign_requests ON)
+            ADP--xADP: throw SigningUnavailable — no bytes reach the pod (_solid-http-base.js:103-106)
+        else flag off
+            ADP->>POD: request goes out UNSIGNED — the pre-signing baseline (_solid-http-base.js:107)
         end
-    end
-    alt signer available
-        PS->>NB: buildNip98Header(signer, method, url, {body})
+    else signer available
+        PS->>NB: buildNip98Header(signer, method, url, {body}) (pod-signer.js:124-128)
         NB-->>PS: Authorization: Nostr base64(kind-27235) — body sha256 in the payload tag
         PS-->>ADP: header
-        ADP->>POD: request signed under the agent's OWN did:nostr
-        POD-->>ADP: 2xx — WAC checks acl:agent <did:nostr:hex> from the mandate. see AB-11.7
+        ADP->>POD: request signed under the container's sovereign did:nostr (_solid-http-base.js:109)
+        POD-->>ADP: 2xx when WAC admits the key. see AB-11.7 for mandate ACLs
     end
-    Note over PS,NB: nostr-bridge is vendored into lib/ at build time<br/>(flake buildPhaseExtra) — require('./nostr-bridge') first,<br/>falling back to '../../mcp/servers/nostr-bridge'<br/>which only resolves in a source checkout.
+    Note over ADP: RESOLVED ADR-2064, closed by ADR-2078 (2026-10-02): a missing originator with requireSigned<br/>also throws, before any request (_solid-http-base.js:84-91). Unsigned is reachable ONLY with the flag off
+    Note over PS,NB: nostr-bridge is vendored into lib/ at build time (flake buildPhaseExtra) — require('./nostr-bridge')<br/>first, falling back to '../../mcp/servers/nostr-bridge', which only resolves in a source checkout (pod-signer.js:85-89)
 ```
+
+**Tension (signing identity vs mandate grantee):** the default signer is the container's sovereign identity minted by `nostr-pod-bridge bootstrap` (`agentbox/management-api/lib/agent-identity.js:186-192`, `agentbox/management-api/lib/agent-identity.js:232`), not the per-profile key `loadOrMint` writes (AB-11.2). A pod write therefore carries the container's DID unless a stack is named, so the per-session mandate grantee (`agentbox/management-api/routes/sessions-boundary.js:294`) is not the key the pods adapter signs with by default, and the adapter's writes succeed or fail on the ACL the bootstrap wrote for its own identity (`agentbox/management-api/lib/pod-signer.js:14-20`) rather than on a mandate. The earlier drawing showed the agent's own profile DID and an abort when no stack resolved; neither holds at this revision.
+
+**Open (caller-supplied Authorization):** a request that already carries an `Authorization` header bypasses the originator entirely, in both modes (`agentbox/management-api/adapters/pods/_solid-http-base.js:73-74`, `agentbox/management-api/adapters/pods/_solid-http-base.js:81-82`). Which callers pass one is not traced here.
 
 ## AB-11.14 agent-event-auth — proving source_urn instead of trusting it
 
@@ -569,41 +596,44 @@ sequenceDiagram
     participant ENV as AGENTBOX_AGENT_EVENT_AUTH
     participant NB as NostrBridge.verifyNip98<br/>agentbox/mcp/servers/nostr-bridge.js
     participant PVP as proxyVerifiedPubkey<br/>agent-event-auth.js:116
-    participant RSU as reconcileSourceUrn<br/>agentbox/management-api/lib/agent-event-auth.js:196
+    participant RSU as reconcileSourceUrn<br/>agentbox/management-api/lib/agent-event-auth.js:204
 
     CALLER->>RT: POST /v1/agent-events/emit {source_urn, ...}
     RT->>AEA: verifyAgentEventRequest(request, deps)
     AEA->>ENV: resolvePolicy(env) (agent-event-auth.js:73-74)
-    alt policy 'off' (explicit opt-in only)
-        AEA-->>RT: {ok true, did null, pubkey null} agent-event-auth.js:139
+    alt request.auth.mode is task-token (already verified by middleware/auth.js, emit and batch only)
+        AEA-->>RT: {ok true, did null, pubkey null, taskId} under EVERY policy (agent-event-auth.js:143-145)
+        Note over AEA,RT: a task token proves a task, not a Nostr identity — reconcileTaskScope then refuses any<br/>other taskId and any asserted source_urn or pubkey (agent-event-auth.js:224-230, routes/agent-events.js:385-389)
+    else policy 'off' (explicit opt-in only)
+        AEA-->>RT: {ok true, did null, pubkey null} agent-event-auth.js:147
 Note over AEA,RT: RESOLVED ADR-2044 (was DIVERGENCE) — DEFAULT_POLICY flipped from off to<br/>nip98 (agent-event-auth.js:66), off is now an explicit dev-only opt-in via the env<br/>var, not the shipped default. The agentbox.toml setting agent_event_auth = nip98<br/>already matched this default, so no manifest-driven deployment behaviour changed<br/>— only a boot that never set the env var now gets the hardened behaviour (agent-event-auth.js:56-65)
     else policy neither off nor nip98
-        AEA-->>RT: {ok false, status 500, error "unknown AGENTBOX_AGENT_EVENT_AUTH policy"} agent-event-auth.js:140-141
+        AEA-->>RT: {ok false, status 500, error "unknown AGENTBOX_AGENT_EVENT_AUTH policy"} agent-event-auth.js:148-149
     else policy 'nip98' (default, ADR-2042/2044)
-        AEA->>AEA: authHeaderOf(request) — headers.authorization or headers.Authorization<br/>agent-event-auth.js:144-145
+        AEA->>AEA: authHeaderOf(request) — headers.authorization or headers.Authorization<br/>agent-event-auth.js:152-153
         alt Authorization starts with 'Nostr ' — path 1, direct signature
-            AEA->>AEA: pathOnly = request.url.split('?')[0] agent-event-auth.js:165
+            AEA->>AEA: pathOnly = request.url.split('?')[0] agent-event-auth.js:173
             Note over AEA,NB: the originator strips the query string from the signed u tag, so the comparison is path-only — verifyNip98 accepts urlTag.endsWith(url). see AB-10.4
-            AEA->>NB: verifyNip98(authHeader, 'POST', pathOnly) agent-event-auth.js:169
+            AEA->>NB: verifyNip98(authHeader, 'POST', pathOnly) agent-event-auth.js:177
             alt verify throws
                 NB-->>AEA: exception
-                AEA-->>RT: {ok false, status 401, error "NIP-98 verification failed: <msg>"} agent-event-auth.js:170-172
+                AEA-->>RT: {ok false, status 401, error "NIP-98 verification failed: <msg>"} agent-event-auth.js:178-180
             else result.valid false
                 NB-->>AEA: {valid false, error}
-                AEA-->>RT: {ok false, status 401, error} agent-event-auth.js:173-175
+                AEA-->>RT: {ok false, status 401, error} agent-event-auth.js:181-183
             else valid
                 NB-->>AEA: {valid true, pubkey}
-                AEA-->>RT: {ok true, did "did:nostr:<pubkey>", pubkey} agent-event-auth.js:176
+                AEA-->>RT: {ok true, did "did:nostr:<pubkey>", pubkey} agent-event-auth.js:184
             end
         else no Nostr-prefixed header — path 2, ADR-2042 proxy-injected identity
-            AEA->>PVP: proxyVerifiedPubkey(request, env) — null unless peerIsProxy(request, env), then X-Agentbox-Pubkey,<br/>must be exactly 64 lowercase hex or is rejected (agent-event-auth.js:116-122,184)
+            AEA->>PVP: proxyVerifiedPubkey(request, env) — null unless peerIsProxy(request, env), then X-Agentbox-Pubkey,<br/>must be exactly 64 lowercase hex or is rejected (agent-event-auth.js:116-122,192)
             alt header present and well-formed
                 PVP-->>AEA: pubkey
-                AEA-->>RT: {ok true, did "did:nostr:<pubkey>", pubkey} agent-event-auth.js:185-186
+                AEA-->>RT: {ok true, did "did:nostr:<pubkey>", pubkey} agent-event-auth.js:193-194
                 Note over AEA,PVP: this path trusts the SOLE identity ingress at port 9096 (nip98-proxy) to have<br/>already verified the caller and stripped/re-injected the header, see AB-10.3.<br/>INVARIANT: the header counts only from a loopback TCP peer, peerIsProxy accepts 127.0.0.1, ::1,<br/>::ffff:127.0.0.1 or AGENTBOX_PROXY_PEERS and fails closed with no socket (agent-event-auth.js:98-105)
             else header absent or malformed
                 PVP-->>AEA: null
-                AEA-->>RT: {ok false, status 401, error "NIP-98 Authorization header required"} agent-event-auth.js:189
+                AEA-->>RT: {ok false, status 401, error "NIP-98 Authorization header required"} agent-event-auth.js:197
             end
         end
     end
@@ -615,11 +645,11 @@ Note over AEA,RT: RESOLVED ADR-2044 (was DIVERGENCE) — DEFAULT_POLICY flipped 
         RT-->>CALLER: 403
     else matches or unset
         RSU-->>RT: {ok true}
-        RT-->>CALLER: 202 — source_urn is provable, derived from the SIGNATURE. see AB-17
+        RT-->>CALLER: 200 {success, event_id, broadcast_count} — source_urn is provable, derived from the SIGNATURE (routes/agent-events.js:445-449). see AB-17
     end
 ```
 
-**Invariant:** `proxyVerifiedPubkey(request, env)` returns null unless `peerIsProxy` holds, so a cross-container caller holding `MANAGEMENT_API_KEY` that reaches the `0.0.0.0` bind (`agentbox/management-api/server.js:49`) cannot assert a `did:nostr` through the header; a request with no socket information is refused (`agentbox/management-api/lib/agent-event-auth.js:98-105`, `agentbox/management-api/lib/agent-event-auth.js:117`). The function is exported and `action-plane.js` `resolveAgentDid` shares it (`agentbox/management-api/lib/agent-event-auth.js:208`, `agentbox/management-api/lib/action-plane.js:229`).
+**Invariant:** `proxyVerifiedPubkey(request, env)` returns null unless `peerIsProxy` holds, so a cross-container caller holding `MANAGEMENT_API_KEY` that reaches the `0.0.0.0` bind (`agentbox/management-api/server.js:50`) cannot assert a `did:nostr` through the header; a request with no socket information is refused (`agentbox/management-api/lib/agent-event-auth.js:98-105`, `agentbox/management-api/lib/agent-event-auth.js:117`). The function is exported and `action-plane.js` `resolveAgentDid` shares it (`agentbox/management-api/lib/agent-event-auth.js:238`, `agentbox/management-api/lib/action-plane.js:229`).
 
 **Debt:** a process inside the container reaches management-api over loopback and so passes `peerIsProxy`; the path-2 identity is therefore as strong as the same-UID boundary (TODO-unified X-1), not as strong as the signature path 1 verifies (`agentbox/management-api/lib/agent-event-auth.js:37-39`).
 
@@ -630,7 +660,7 @@ sequenceDiagram
     autonumber
     participant C as client
     participant UR as uri-resolver<br/>agentbox/management-api/routes/uri-resolver.js
-    participant K as uris.parse + KINDS<br/>agentbox/management-api/lib/uris.js:296,87
+    participant K as uris.parse + KINDS<br/>agentbox/management-api/lib/uris.js:296,88
     participant POD as pod base (solid-pod-rs)
     participant AE as /v1/agent-events
     participant WK as well-known x402<br/>agentbox/management-api/routes/well-known.js:64
@@ -646,13 +676,17 @@ sequenceDiagram
         C->>POD: follow redirect — the DID document lives on the POD, not on management-api
     else kind not in KINDS
         UR-->>C: 404 {error unknown-kind, kind, urn} (uri-resolver.js:83)
-    else owner-scoped kind with a pubkey
-        UR-->>C: 307 Location <podBase>/agents/<pubkey>/<kind>/<local> (uri-resolver.js:100)
-    else owner-scoped kind with NO pubkey
+    else pod, envelope, credential, mandate or receipt with a pubkey
+        UR-->>C: 307 Location <podBase>/agents/<pubkey>/<kind>/<local> (uri-resolver.js:91-100)
+    else one of those five with NO pubkey
         UR-->>C: 404 {error not-resolvable, reason "kind requires owner scope", urn} (uri-resolver.js:102)
     else activity or event
-        UR-->>C: 307 Location /v1/agent-events?id=<urn> (uri-resolver.js:108)
+        UR-->>C: 307 Location /v1/agent-events?id=<urn> (uri-resolver.js:106-108)
         C->>AE: follow redirect
+    else mcp, thing, memory, dataset, skill, adr, prd, ddd, meta, bead or chain
+        UR-->>C: 307 to the kind's own management-api or docs route (uri-resolver.js:111-153)
+    else decision, knowledge or agent — in KINDS but with no case
+        UR-->>C: 404 {error not-resolvable, reason "kind has no resolver mapping"} (uri-resolver.js:155-162)
     end
 Note over UR,C: contract at uri-resolver.js:12-18 — 200 or 307 means resolvable, 404 means<br/>unknown name. RESOLVED ADR-2049: the 410 Gone state once documented here is WITHDRAWN —<br/>there is no tombstone store and no reply.code(410) anywhere in this handler<br/>(uri-resolver.js:20-25). Resolvability is BEST-EFFORT (agentbox/CLAUDE.md) — a valid URN<br/>is a name first and a locator second.
     C->>WK: GET /.well-known/x402.json
@@ -663,6 +697,8 @@ Note over UR,C: contract at uri-resolver.js:12-18 — 200 or 307 means resolvabl
 Note over WK: cached once at BOOT in a closure — generatedAt is plugin-registration time, not<br/>per-request. No auth: public discovery per the x402 spec, and the auth-skip is hand-added to<br/>the server.js onRequest hook (well-known.js:16-19) rather than being declarative. see AB-15
     end
 ```
+
+**Tension (advertised vs resolvable surface):** `resolveCanonical` hands out `/v1/uri/<urn>?surface=agent-events` for `decision`, `?surface=memory` for `knowledge` and `?surface=agents` for `agent` (`agentbox/management-api/lib/uris.js:98`, `agentbox/management-api/lib/uris.js:115-116`, `agentbox/management-api/lib/uris.js:290-292`), but the resolver has no case for any of the three and answers 404 (`agentbox/management-api/routes/uri-resolver.js:155-162`). That is inside the best-effort contract (`agentbox/management-api/routes/uri-resolver.js:12-18`), but the minted locator for those kinds never resolves.
 
 ## AB-11.16 Key custody at boot — what exists versus what ADR-2027 proposes
 
@@ -678,7 +714,7 @@ sequenceDiagram
 
     rect rgb(240,255,240)
     Note over BOOT,KF: IMPLEMENTED — what the code actually does
-    BOOT->>AI: mint or load the per-profile agent key<br/>ADR-2044 (2026-09-05): the CLI now exits non-zero on mint or persist failure<br/>and the entrypoint aborts boot (entrypoint-unified.sh:1418-1429) instead of tolerating did:nostr:local — see AB-11.3
+    BOOT->>AI: mint or load the per-profile agent key<br/>ADR-2044 (2026-09-05): the CLI now exits non-zero on mint or persist failure<br/>and the entrypoint aborts boot (entrypoint-unified.sh:1424-1441) instead of tolerating did:nostr:local — see AB-11.3
     AI->>KF: writeFileSync mode 0o600 then chmodSync 0o600 (agent-identity.js:164-166)
     KF-->>AI: readable only by this uid
     BOOT->>BR: load bridge identity from AGENTBOX_BRIDGE_SK_FILE, legacy environment fallback remains
@@ -690,6 +726,6 @@ sequenceDiagram
     ADR-->>BR: per-consumer key split — the 31403 governance decisions are signed by the operator's NIP-07 signer, while visionclaw-server signs 31402 under its own key (Q15, 2026-10-03, relay allowlist entry agentbox.toml:159-160 and legacy ADR-040 D3)
     ADR-->>AI: rotation cadence, revocation procedure, named custodian, maximum response window — every row is UNCONFIRMED
     end
-Note over ADR: DIVERGENCE SECURITY-profiles provisional custody register 2026-09-04 — seven<br/>credential roles are identified as ROLES TO ASSIGN, not accepted custodians. "No cadence is<br/>invented here." No dated failure/recovery receipt exists for any row. Since 2026-10-03 the same<br/>doc also carries a generated prompt-egress register (31 routes, devuser-class credentials<br/>under Q8) - it catalogues egress routes, it does not settle custody<br/>
-Note over BOOT,KF: DIVERGENCE — a 0600 file is a same-uid boundary only. Every agentbox process<br/>runs as devuser, so co-resident code can read the agent key, the bridge key and the AoE daemon<br/>token alike. Per-process isolation is named future work in GOVERNANCE-capabilities item 5. see<br/>AB-16
+Note over ADR: DIVERGENCE SECURITY-profiles provisional custody register 2026-09-04 — seven<br/>credential roles are identified as ROLES TO ASSIGN, not accepted custodians. "No cadence is<br/>invented here." No dated failure/recovery receipt exists for any row. Since 2026-10-03 the same<br/>doc also carries a generated prompt-egress register (46 routes at this revision, devuser-class<br/>credentials under Q8) - it catalogues egress routes, it does not settle custody<br/>
+Note over BOOT,KF: DIVERGENCE — a 0600 file is a same-uid boundary only. With the shipped<br/>[security].role_isolation = false (agentbox.toml:2543) every agentbox process runs as devuser,<br/>so co-resident code can read the agent key and the bridge key alike. Role isolation is the<br/>staged remedy (SECURITY-profiles, Role isolation 2026-10-03). see AB-16 and AB-36
 ```

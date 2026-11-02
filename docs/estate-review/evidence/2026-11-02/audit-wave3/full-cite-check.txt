@@ -1,0 +1,16 @@
+parsed 212 topic files, 1750 mermaid diagrams
+  ~ nostr-rust-forum/28-nip171-owner-recovery-and-ticket-contracts.md: 6 source(s) exist at the declared revision but not in the working tree
+cite-check: 0 warning(s)
+citations: 28219 verified at the declared revision, 0 unverified (working-tree fallback), 0 unresolvable, 5 allowlisted (unverifiable)
+wrote VERIFICATION.md
+  ~ visionflow/07-pitch-presentation-reports.md:VF-07.1 — texput.log:1 allowlisted (unverifiable): Gitignored LaTeX run log (.gitignore:50); written by the LaTeX engine (XeTeX here), exists in no commit, so no declared revision can contain it.
+  ~ visionflow/07-pitch-presentation-reports.md:VF-07.8 — texput.log:1 allowlisted (unverifiable): Gitignored LaTeX run log (.gitignore:50); written by the LaTeX engine (XeTeX here), exists in no commit, so no declared revision can contain it.
+  ~ visionflow/07-pitch-presentation-reports.md:VF-07.8 — texput.log:5 allowlisted (unverifiable): Gitignored LaTeX run log (.gitignore:50); written by the LaTeX engine (XeTeX here), exists in no commit, so no declared revision can contain it.
+  ~ visionflow/07-pitch-presentation-reports.md:VF-07.8 — texput.log:10 allowlisted (unverifiable): Gitignored LaTeX run log (.gitignore:50); written by the LaTeX engine (XeTeX here), exists in no commit, so no declared revision can contain it.
+  ~ visionflow/07-pitch-presentation-reports.md:VF-07.8 — texput.log:21 allowlisted (unverifiable): Gitignored LaTeX run log (.gitignore:50); written by the LaTeX engine (XeTeX here), exists in no commit, so no declared revision can contain it.
+jev: reviewing 120 of 28219 citations (raise with --jev-max N requests of 24)
+jev: accepted set=vf-06-s1-02/citation-check/v1 model=jev-1.14.0
+jev: accepted set=vf-06-s1-02/citation-check/v1 model=jev-1.14.0
+jev: accepted set=vf-06-s1-02/citation-check/v1 model=jev-1.14.0
+jev: accepted set=vf-06-s1-02/citation-check/v1 model=jev-1.14.0
+jev: accepted set=vf-06-s1-02/citation-check/v1 model=jev-1.14.0

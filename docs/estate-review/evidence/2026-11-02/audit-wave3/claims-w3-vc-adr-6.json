@@ -1,0 +1,154 @@
+[
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2107-compatible-xr-visual-experience.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; governed paths unchanged since f1fa1862c; tab-count and reduced-motion breathe drift; headset comfort and GUT counts not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2108-dev-profile-arms-visionclaw-dev-mode-by-default.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; proposed record; R2 known defect closed by ADR-2119 (contradicted); runtime receipt not reproduced."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2109-xr-agent-embodiment-single-pose-owner-and-demo-via-ingest.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; governed paths unchanged since 69b16867d; stale test name and circumscribed-sphere sentence; headset not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2110-augmentation-conditions-visionclaw-substrate.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; governed paths unchanged since c75004696; FR2.2 code outside verified_paths; activation receipts and security follow-ons not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; proposed and unbuilt as stated; solid-pod-rs pin and lockstep claims stale; agentbox side not traced."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2112-vault-corpus-format-v2-frontmatter-only-okf.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; corpus read at visionGraph 556a0156b5c3; D5 (three constructs unruled), D7 immutability and D11 contradicted; validator not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2113-crates-vault-is-the-single-corpus-parser-and-build.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; command surface drifted (verbs moved to ontomark); RVDB and relay paths not exercised."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2114-corpus-ingest-is-a-corpussource.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; governed paths unchanged since 974daf5d2; default base paths drifted; live sync not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2115-github-sync-is-optional-and-off.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; verified_paths empty with stale comment; prod service falls back to GitHub without VAULT_ROOT; tests not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2116-ontology-proposals-are-forum-action-requests-not-prs.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; governed paths unchanged since 974daf5d2; live 410 answer not reproduced."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2117-retire-corpus-format-migration.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; governed paths unchanged since 974daf5d2; installed-binary answer not reproduced."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2118-append-space-earth-domain-identities.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; domains.rs unchanged since 772039bd1; deployment and graph-data receipts not reproduced."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2119-prod-ingress-is-declared-lan-or-tunnel.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; governed paths unchanged since c75004696; prod_ingress tests present, not run; no Trust host start."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2124-visiongraph-admits-curated-el-defined-classes.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; no corpus page uses defines-as at visionGraph 556a015; timings not reproduced."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2125-the-whelk-consistency-gate-is-proven-armed.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; three corpus pages declare disjoint-with at visionGraph 556a015; owed host test run unrecorded."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2126-corpus-integrity-is-closed-world-validation-not-owl.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; shacl.rs/shacl_lite description tension; tests not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2127-ontology-agent-answers-distinguish-not-asserted-from-false.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; types and routes present; generated .ts is gitignored; owed integration run unrecorded."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2128-published-ontology-carries-a-version-iri-and-scoped-property-signatures.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; D2 open on Loom side (loom ba21a68); builds not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2133-live-memory-cloud-serves-a-stratified-sidecar-snapshot.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; governed paths unchanged since 15acb9219; Jev cloud egress tension; live sidecar not queried."
+  }
+]

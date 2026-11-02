@@ -1,0 +1,14 @@
+[
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/visionclaw/37-browser-xr-and-desktop-input.md",
+   "report": "docs/estate-review/2026-11-02-w3-vc-k.md", "coverage": "selected-panels",
+   "panels": ["VC-37.1", "VC-37.2", "VC-37.3", "VC-37.4", "VC-37.5", "VC-37.6", "VC-37.7", "VC-37.8", "VC-37.9", "VC-37.10", "VC-37.11"],
+   "basis": "Source tracing at VisionClaw 86cdd7635582; restamped from d6c091f, every citation re-resolved, VC-37.1-37.10 redrawn (mounted SpaceMouse path is SpacePilotSimpleIntegration, platformManager/remoteLogger unimported, BotsVisualization retired); strict cite-check and render pass; limits: WebHID, MediaPipe, projection-nudge accumulation and auto-init/mount race are runtime."},
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/visionclaw/38-xr-memory-cloud-internals.md",
+   "report": "docs/estate-review/2026-11-02-w3-vc-k.md", "coverage": "selected-panels",
+   "panels": ["VC-38.1", "VC-38.2", "VC-38.3", "VC-38.4", "VC-38.5", "VC-38.6", "VC-38.7", "VC-38.8", "VC-38.9", "VC-38.10", "VC-38.11", "VC-38.12", "VC-38.13", "VC-38.14", "VC-38.15", "VC-38.16", "VC-38.17", "VC-38.18", "VC-38.19"],
+   "basis": "Source tracing at VisionClaw 86cdd7635582; restamped from 8692b12, every citation re-resolved, VC-38.7 Drift narrowed; strict cite-check and render pass; limits: server namespace order and query response shape not traced, mic worker timing is runtime."},
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/visionclaw/39-codescape.md",
+   "report": "docs/estate-review/2026-11-02-w3-vc-k.md", "coverage": "selected-panels",
+   "panels": ["VC-39.1", "VC-39.2", "VC-39.3", "VC-39.4", "VC-39.5", "VC-39.6", "VC-39.7"],
+   "basis": "Source tracing at VisionClaw 86cdd7635582, agentbox c57d9c0508f4 and codescape 13e056d (kept; docs-only ahead of gitlink e3b76f6); every citation re-resolved; strict cite-check and render pass; limits: compose/Jev activation, voice service outcomes and the external repository are deployment or runtime state."}
+]

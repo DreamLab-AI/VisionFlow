@@ -48,7 +48,8 @@ sources:
   - ../project/agentbox/scripts/dream-machine-nightly.mjs
   - ../project/agentbox/services/agentbox-manifest/src/system_one.rs
   - ../project/agentbox/docs/GOVERNANCE-capabilities.md
-verified_commit: {agentbox: 6500582dfae23bf8a38a6942916d208154e43625, visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, loom: 5ad860863b588c0cdb2290e31c69e39d82755aeb}
+  - ../loom/.gitignore
+verified_commit: {agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35, visionclaw: 86cdd76355823a51bb64d503c005fe277726e724, loom: ba21a689a57dc67dc68ad22e52b058da34a7fb05}
 ---
 
 ## AB-24.1 Two deployments of one facade contract — topology
@@ -57,9 +58,9 @@ verified_commit: {agentbox: 6500582dfae23bf8a38a6942916d208154e43625, visionclaw
 flowchart TB
     subgraph consumers["Consumers hold a DOOR, never a raw model port (ADR-2023)"]
         RET["ontology-retrieval brain<br/>agentbox/mcp/servers/lib/ontology-retrieval.js:776"]
-        COND["ontology condense<br/>agentbox/agentbox.toml:1120"]
-        DREAM["dream-engine loom_url<br/>agentbox/agentbox.toml:2572"]
-        SEEDRAW["agentbox-sessions seed slug=loom-raw #40;the only Loom seed left#41;<br/>agentbox/agentbox.toml:2179"]
+        COND["ontology condense<br/>agentbox/agentbox.toml:1125"]
+        DREAM["dream-engine loom_url<br/>agentbox/agentbox.toml:2609"]
+        SEEDRAW["agentbox-sessions seed slug=loom-raw #40;the only Loom seed left#41;<br/>agentbox/agentbox.toml:2217"]
         EMAIL["email gateway REASONER_BASE_URL<br/>see AB-27"]
     end
     subgraph depA["Deployment A — LAN facade on machinelearn .132"]
@@ -84,14 +85,14 @@ flowchart TB
     SIDE -->|"entrypoint copies .rvdb off :ro — opening redb mutates it"| TMPFS
     subgraph notes["Invariants and drift"]
         direction TB
-        N1["WITHDRAWN in code: the loom-raw SEED no longer holds a raw model door. openCodeConfig<br/>gives loom-lan, loom-agent and loom-raw the SAME LOOM_BASE_URL #40;session-provision.mjs:104,<br/>session-provision.mjs:131-147#41; and declines the scaffold per request<br/>instead #40;session-provision.mjs:118#41;, the ADR-139 answer to what the raw port was for.<br/>LOOM_RAW_BASE_URL survives only as a compose default #40;flake.nix:3961#41; that nothing seeds"]
+        N1["WITHDRAWN in code: the loom-raw SEED no longer holds a raw model door. openCodeConfig<br/>gives loom-lan, loom-agent and loom-raw the SAME LOOM_BASE_URL #40;session-provision.mjs:104,<br/>session-provision.mjs:131-147#41; and declines the scaffold per request<br/>instead #40;session-provision.mjs:118#41;, the ADR-139 answer to what the raw port was for.<br/>LOOM_RAW_BASE_URL survives only as a compose default #40;flake.nix:3963#41; that nothing seeds"]
         N2["RESOLVED ADR-2055: opf-router is the PRIVACY-FILTER redaction sidecar on OPF_PORT<br/>9092 (agentbox.toml [privacy_filter].port, scripts/opf-router.py:41, flake.nix<br/>[program:opf-router]). BASELINE-container previously described it as an<br/>OpenAI-compatible facade on port 8084 — corrected. No agentbox program serves<br/>port 8084 — that is the Loom facade on machinelearn"]
         N3["The loom-facade implementation lives OUTSIDE this repo at /home/devuser/workspace/loom.<br/>This repo holds the deployment contract only (loom/README.md:8-15)"]
         N1 ~~~ N2 ~~~ N3
     end
 ```
 
-**Drift:** the scaffolded `loom` session seed (`loom-lan/qwen3.8-27B`) was dropped from the manifest, leaving `loom-raw` as the only Loom seed, and the new session plane asserts exactly that roster (`../project/agentbox/agentbox.toml:2178-2182`, `../project/agentbox/services/agentbox-sessions/src/manifest.rs:167-168`); `openCodeConfig` in the provisioner still defines the `loom-lan` provider, so the unscaffolded and scaffolded doors both stay configured (`../project/agentbox/scripts/session-provision.mjs:131-135`). The manifest comment on the neighbouring `deepseek` seed still says "AoE" (`../project/agentbox/agentbox.toml:2178-2182`), and GOVERNANCE-capabilities still describes both a scaffolded `slug = "loom"` seed and a raw `loom-raw/qwen3.8-27B` path via `:8085` (`../project/agentbox/docs/GOVERNANCE-capabilities.md:316-318`).
+**Drift:** the scaffolded `loom` session seed (`loom-lan/qwen3.8-27B`) was dropped from the manifest, leaving `loom-raw` as the only Loom seed, and the new session plane asserts exactly that roster (`../project/agentbox/agentbox.toml:2216-2220`, `../project/agentbox/services/agentbox-sessions/src/manifest.rs:167-168`); `openCodeConfig` in the provisioner still defines the `loom-lan` provider, so the unscaffolded and scaffolded doors both stay configured (`../project/agentbox/scripts/session-provision.mjs:131-135`). The manifest comment on the neighbouring `deepseek` seed still says "AoE" (`../project/agentbox/agentbox.toml:2209-2214`), as does the comment over `openCodeConfig` (`../project/agentbox/scripts/session-provision.mjs:100-101`), and GOVERNANCE-capabilities still describes both a scaffolded `slug = "loom"` seed and a raw `loom-raw/qwen3.8-27B` path via `:8085` (`../project/agentbox/docs/GOVERNANCE-capabilities.md:336-338`).
 
 **Resolved:** the replacement of Agent of Empires is no longer proposed: ADR-2153 is `accepted`, implementation `partial`, activation `live` (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`), so the `loom-raw` seed is hosted by the owned `agentbox-sessions` plane and its OpenCode provider config comes from `scripts/session-provision.mjs`, not from `aoe-seed-sessions.mjs`, which is deleted.
 
@@ -122,6 +123,7 @@ sequenceDiagram
     else loomUrl unset
         SEL-->>CALL: name=visionclaw reason=LOOM_URL_UNSET
         CALL->>VF: makeVcFetch(opts) — DEFAULT_API http://visionclaw-server:4000
+        CALL->>TEL: canary() on this path too (ontology-retrieval.js:798)
     end
     Note over SEL: INVARIANT: an unset LOOM_FACADE_URL is the ordinary VisionClaw path and NOT a fault — a<br/>CONFIGURED Loom that is unreachable is an operational fault
     Note over CALL: One brain = this module plus the shared backing stores, NOT one process
@@ -154,7 +156,7 @@ sequenceDiagram
             ASK->>ASK: require matching response bundle and maturity/domain gates
             opt Jev option configured and the request did not decline the scaffold (ontology-retrieval.js:317)
                 ASK->>ASK: jev.evaluate over the admitted candidates, annotation only unless a confidence threshold is set (ontology-retrieval.js:435-445)
-                Note over ASK: a failed evaluation leaves the flag-off result and is not cached under the Jev key (ontology-retrieval.js:437).<br/>The evaluator is local-only only when AGENTBOX_JEV_ONTOLOGY_LOCAL_ONLY=1 (ontology-jev.js:147), which the<br/>projector exports 0 unless listed in [system_one].local_only (agentbox-manifest/src/system_one.rs:564-577)
+                Note over ASK: a failed evaluation leaves the flag-off result and is not cached under the Jev key (ontology-retrieval.js:437).<br/>The evaluator is local-only only when AGENTBOX_JEV_ONTOLOGY_LOCAL_ONLY=1 (ontology-jev.js:147), which the<br/>projector exports 0 unless listed in [system_one].local_only (agentbox-manifest/src/system_one.rs:580-593)
             end
             opt expansion requested
                 ASK->>FETCH: child then outgoing POST /loom/sparql
@@ -276,14 +278,14 @@ sequenceDiagram
     CONS->>FAC: unchanged calls
     FAC-->>CONS: unchanged contract
     Note over OP,CONS: INVARIANT ADR-2023: swapping the deployed model must NOT touch any consumer — the model<br/>is an operational detail behind port 8084
-    Note over CFG: history — Gemma then Muse then Qwen3.8-27B. Since 2026-10-01 the manifest pins NO model:<br/>loom_model is empty, meaning the single model the Loom advertises at /models (agentbox.toml:2573-2575),<br/>loom_max_tokens = 32768 (agentbox.toml:2579). The nightly script discovers it (dream-machine-nightly.mjs:229)
-    Note over CFG: INVARIANT: the Rust dream engine does not discover — the supervisor exports LOOM_MODEL empty<br/>(flake.nix:2900) and llm_config passes it through as the request model (estate.rs:106), so a loom night<br/>sends an empty model name and depends on the Loom answering an empty name with its loaded model. Observed by a live<br/>request to the Loom door on 2026-10-02: it answered with a loom.generation block. The serde default<br/>qwen3.8-27B (config.rs:171) applies only when the key is absent, and the night provider defaults<br/>to zai (agentbox.toml:2585, config.rs:184), so loom is an opt-in
-    Note over FAC: RESOLVED — GOVERNANCE-capabilities now cites agentbox.toml by [section].key rather than<br/>raw line (ADR-2052 changelog 0.1.1) and correctly states ".loom_max_tokens = 32768, raised<br/>from 16384" — the manifest has loom_url at agentbox.toml:2572 and loom_max_tokens at<br/>agentbox.toml:2579 — the cap was raised after glm-5.3 burned ~16k reasoning tokens and hit the old 16384<br/>cap with empty content twice (agentbox.toml comment at :2576-2578)
-    Note over FAC: the manifest keeps one Loom session seed under [[interaction_plane.session_seeds]]:<br/>slug=loom-raw at agentbox.toml:2179 (the scaffolded slug=loom seed was dropped)
+    Note over CFG: history — Gemma then Muse then Qwen3.8-27B. Since 2026-10-01 the manifest pins NO model:<br/>loom_model is empty, meaning the single model the Loom advertises at /models (agentbox.toml:2610-2612),<br/>loom_max_tokens = 32768 (agentbox.toml:2616). The nightly script discovers it (dream-machine-nightly.mjs:229)
+    Note over CFG: INVARIANT: the Rust dream engine does not discover — the supervisor exports LOOM_MODEL empty<br/>(flake.nix:2902) and llm_config passes it through as the request model (estate.rs:106), so a loom night<br/>sends an empty model name and depends on the Loom answering an empty name with its loaded model. Observed by a live<br/>request to the Loom door on 2026-10-02: it answered with a loom.generation block. The serde default<br/>qwen3.8-27B (config.rs:171) applies only when the key is absent, and the night provider defaults<br/>to zai (agentbox.toml:2622, config.rs:184), so loom is an opt-in
+    Note over FAC: RESOLVED — GOVERNANCE-capabilities now cites agentbox.toml by [section].key rather than<br/>raw line (ADR-2052 changelog 0.1.1) and correctly states ".loom_max_tokens = 32768, raised<br/>from 16384" — the manifest has loom_url at agentbox.toml:2609 and loom_max_tokens at<br/>agentbox.toml:2616 — the cap was raised after glm-5.3 burned ~16k reasoning tokens and hit the old 16384<br/>cap with empty content twice (agentbox.toml comment at agentbox.toml:2613-2615)
+    Note over FAC: the manifest keeps one Loom session seed under [[interaction_plane.session_seeds]]:<br/>slug=loom-raw at agentbox.toml:2217 (the scaffolded slug=loom seed was dropped)
     Note over NEW: DIVERGENCE: HP's old 192.168.2.48 is DEAD — a stale model-backend route black-holes<br/>every synthesis while /health still answers
 ```
 
-**Drift:** `../project/agentbox/docs/GOVERNANCE-capabilities.md:320` still names **Qwen3.8-27B** as the current model by `[dream_machine].loom_model`, which has been empty since `878f23311` (`../project/agentbox/agentbox.toml:2575`): the manifest now leaves the model to whatever the Loom advertises.
+**Drift:** `../project/agentbox/docs/GOVERNANCE-capabilities.md:340` still names **Qwen3.8-27B** as the current model by `[dream_machine].loom_model`, which has been empty since `878f23311` (`../project/agentbox/agentbox.toml:2612`): the manifest now leaves the model to whatever the Loom advertises.
 
 ## AB-24.8 Deployment B bring-up and the staging traps
 
@@ -338,21 +340,21 @@ flowchart LR
     subgraph doors["Doors"]
         D84["LAN facade port 8084/v1"]
         D80["sidecar loom:8080/v1"]
-        D85["raw model port 8085, compose default only<br/>agentbox/flake.nix:3961, seeded by nothing"]
+        D85["raw door LOOM_RAW_BASE_URL, compose default http://loom-raw:8080/v1<br/>agentbox/flake.nix:3963, passed into sessions by the plane env list but read by no provider config"]
     end
     RET["ontology-retrieval brain<br/>LOOM_FACADE_URL<br/>agentbox/mcp/servers/lib/ontology-retrieval.js:533"] --> D84
-    COND["ontology condense endpoint<br/>agentbox/agentbox.toml:1120<br/>model qwen3.8-27B style openai max_concurrency 2 #40;agentbox.toml:1121-1123#41;"] --> D84
-    DREAM["dream_machine loom_url<br/>agentbox/agentbox.toml:2572"] --> D84
-    SEEDR["session seed slug=loom-raw<br/>agentbox/agentbox.toml:2179<br/>model loom-agent/current agentbox.toml:2181, model-agnostic passthrough"] --> D84
+    COND["ontology condense endpoint<br/>agentbox/agentbox.toml:1125<br/>model qwen3.8-27B style openai max_concurrency 2 #40;agentbox.toml:1126-1128#41;"] --> D84
+    DREAM["dream_machine loom_url<br/>agentbox/agentbox.toml:2609"] --> D84
+    SEEDR["session seed slug=loom-raw<br/>agentbox/agentbox.toml:2217<br/>model loom-agent/current agentbox.toml:2219, model-agnostic passthrough"] --> D84
     EMAIL["email gateway<br/>REASONER_BASE_URL http://loom:8080/v1<br/>loom/README.md:19-21"] --> D80
-    CUST["security.deepsec custom ai_base_url<br/>agentbox/agentbox.toml:2531 #40;deepsec#39;s own AI-reviewer<br/>backend, NOT the #91;consultants#93; tier#41;"] --> D80
+    CUST["security.deepsec custom ai_base_url<br/>agentbox/agentbox.toml:2568 #40;deepsec#39;s own AI-reviewer<br/>backend, NOT the #91;consultants#93; tier#41;"] --> D80
     D84 --> M["qwen3.8-27B"]
     D80 --> M
     D85 --> M
     subgraph notes["Invariants and drift"]
         direction TB
         N1["RESOLVED ADR-2053: the dream engine's default provider is Z.AI by deliberate<br/>choice — GOVERNANCE-capabilities now states this and names the egress posture.<br/>loom_url/loom_model select the LAN-only path when llm_provider = loom. See AB-23"]
-        N2["PROPOSED ADR-2074: the ADR-051 deferred-distillation tools become a discrete<br/>manifest-gated MCP server with a job URN kind and distill plus recombine beads<br/>ADR-2023 remaining is the ORIGIN of this gap, not its resolution (see AB-26)"]
+        N2["REJECTED ADR-2074: a discrete deferred-distillation MCP server is not being built<br/>(decision_status rejected, though its Decision section still opens Proposed).<br/>ADR-2023 remaining is the ORIGIN of this gap, not its resolution (see AB-26)"]
         N3["STAGED ADR-2075: GET generation before cache lookup<br/>bind loaded digest, semantic generation and bge 384 cosine<br/>response identity headers must match; old live server is rejected"]
         N4["PROPOSED ADR-2076: benchmark /loom/search plus /loom/sparql on its own terms with a<br/>frozen recall band in the shape of the RuVector recall gate - scaffold and chat numbers<br/>are never cited as evidence for this path"]
         N5["app/ontology-mcp is a standalone stdio MCP server left in place with no build or run<br/>path from this repo, pending a decision on where it should live (loom/README.md:108-115)"]
@@ -449,7 +451,7 @@ sequenceDiagram
         CT->>TH: neighbours/paths over the reasoned graph<br/>mcp_host.rs:199,222
     end
     TH-->>CT: ToolOutcome{payload, grounding}
-    CT-->>DISP: isError distinguishes no-match from could-not-look<br/>(loom-mcp/src/lib.rs:212-214)
+    CT-->>DISP: no-match is a success with isError false and grounding no-match,<br/>could-not-look is a JSON-RPC RETRIEVAL_ERROR (loom-mcp/src/lib.rs:211-218, lib.rs:234)
     DISP-->>MCP: JSON-RPC response
     MCP-->>AG: structuredContent plus grounding envelope
     Note over CHAT: the injection plane is UNCHANGED - single-turn and non-agentic<br/>consumers still get one static scaffold merge per request
@@ -482,7 +484,7 @@ flowchart TB
     subgraph notes["Invariants and drift"]
         direction TB
         N1["INVARIANT ADR-141 D2: a generation past stale_after is STILL SERVED, honestly<br/>labelled - staleness is carried, never enforced (loom-domain/src/model.rs:459-462)"]
-        N2["INVARIANT attest.rs:20-25: passed=true means this decision ADMITTED content -<br/>true only for Promote, false for Demote/Reject/Expired; a demotion is a change,<br/>not an admission"]
+        N2["INVARIANT attest.rs:24-28: passed=true means this decision ADMITTED content -<br/>true only for Promote, false for Demote/Reject/Expired; a demotion is a change,<br/>not an admission"]
         N3["RESOLVED ADR-141 D5: loom-mcp-stdio deleted - inside the estate agents use the<br/>vault CLI and loom-client; #47;mcp stays HTTP-only, for hosts outside the estate"]
         N4["Status: Proposed, 2026-09-22. Not yet reflected in this topic's governing doc<br/>(GOVERNANCE-capabilities.md) or in ADR-2084 - see AB-24.10 for the crate this<br/>generation identity change does not yet touch"]
         N1 ~~~ N2 ~~~ N3 ~~~ N4
@@ -503,9 +505,9 @@ flowchart TB
         R3["zai-night: the dream engine's DEFAULT provider is Z.AI, a vendor;<br/>marker no-accepted-record, nothing accepts the corpus leaving<br/>config/egress-policy.json:346-361"]
     end
     subgraph cls["Env classes - config/custody/env-classes.json"]
-        C1["LOOM_BASE_URL, LOOM_FACADE_URL, LOOM_HP_HOST, LOOM_MODEL, LOOM_RAW_BASE_URL, LOOM_URL:<br/>NON_SECRET - env-classes.json:537-542"]
-        C2["ZAI_ANTHROPIC_API_KEY: DEVUSER_CLASS, a Q8 exception, stays in<br/>devuser's environment this step - env-classes.json:227-230"]
-        C3["no Loom or provider variable is in the ROLE set, so<br/>[security].role_isolation scrubs nothing on this path<br/>env-classes.json:33, env-classes.json:90"]
+        C1["LOOM_BASE_URL, LOOM_FACADE_URL, LOOM_HP_HOST, LOOM_MODEL, LOOM_RAW_BASE_URL, LOOM_URL:<br/>NON_SECRET - env-classes.json:530-535"]
+        C2["ZAI_ANTHROPIC_API_KEY: DEVUSER_CLASS, a Q8 exception, stays in<br/>devuser's environment this step - env-classes.json:225-228"]
+        C3["no Loom or provider variable is in the ROLE set, so<br/>[security].role_isolation scrubs nothing on this path<br/>env-classes.json:35, env-classes.json:92"]
     end
     R1 --> C1
     R2 --> C1
@@ -513,20 +515,20 @@ flowchart TB
     C1 --> C3
     C2 --> C3
     C3 --> SAME["the door, its consumers and AB-24.9's register are the same with the flag<br/>on or off: the Loom path holds no key, only a URL"]
-    reg -.-> DR["DRIFT: the register declares 0919dc39a and cites manifest lines 2179<br/>and 2163 and flake line 3438; at this revision those lines are<br/>the loom-raw seed's slug key, an empty line and an empty line - llm_provider is now agentbox.toml:2585 and the LOOM_BASE_URL default<br/>is now flake.nix:3957 - while its renderer checks bounds only<br/>scripts/ci/render-egress-register.js:110-119"]
+    reg -.-> DR["DRIFT: the register declares 0919dc39a and cites manifest lines 2179<br/>and 2163 and flake line 3438. At this revision those lines are<br/>a session-seed comment, a proxy route target and a compose security_opt key - llm_provider is now agentbox.toml:2622 and the LOOM_BASE_URL default<br/>is now flake.nix:3959 - while its renderer checks bounds only<br/>scripts/ci/render-egress-register.js:110-119"]
 ```
 
-**Invariant:** the Loom path carries no secret: every Loom variable is classified `NON_SECRET`, and the only credential beside it, the Z.AI key the dream engine falls back to, is `DEVUSER_CLASS` by the Q8 exception (`../project/agentbox/config/custody/env-classes.json:537-542`, `../project/agentbox/config/custody/env-classes.json:227-230`). So custody X-1 step 1 changes nothing at this door in either mode.
+**Invariant:** the Loom path carries no secret: every Loom variable is classified `NON_SECRET`, and the only credential beside it, the Z.AI key the dream engine falls back to, is `DEVUSER_CLASS` by the Q8 exception (`../project/agentbox/config/custody/env-classes.json:530-535`, `../project/agentbox/config/custody/env-classes.json:225-228`). So custody X-1 step 1 changes nothing at this door in either mode.
 
-**Drift (egress register vs the integration head):** the register is stamped `0919dc39a` (`../project/agentbox/config/egress-policy.json:51`), and its loom-door and zai-night rows cite manifest lines 2179 and 2163 and flake line 3438 (`../project/agentbox/config/egress-policy.json:231-232`, `../project/agentbox/config/egress-policy.json:355`). Those were the right lines at that stamp. At this revision the manifest has grown by more than three hundred lines since: line 2179 is the `loom-raw` seed's `slug` key, line 2163 is an empty line between two seeds and `[dream_machine].llm_provider` is `agentbox.toml:2585` (`../project/agentbox/agentbox.toml:2585`); the façade default moved to `flake.nix:3957` (`../project/agentbox/flake.nix:3957`). The renderer's `--check` only tests that a cited line falls inside the file, so it cannot see the shift (`../project/agentbox/scripts/ci/render-egress-register.js:110-119`).
+**Drift (egress register vs the integration head):** the register is stamped `0919dc39a` (`../project/agentbox/config/egress-policy.json:51`), and its loom-door and zai-night rows cite manifest lines 2179 and 2163 and flake line 3438 (`../project/agentbox/config/egress-policy.json:231-232`, `../project/agentbox/config/egress-policy.json:355`). Those were the right lines at that stamp. At this revision `[dream_machine].llm_provider` has moved down by 443 lines: line 2179 is a comment in the session-seed preamble (`../project/agentbox/agentbox.toml:2178-2181`), line 2163 is the `/feed` proxy route's `target` (`../project/agentbox/agentbox.toml:2161-2163`), and `llm_provider` is `agentbox.toml:2622` (`../project/agentbox/agentbox.toml:2622`); flake line 3438 is a compose `security_opt:` key and the façade default moved to `flake.nix:3959` (`../project/agentbox/flake.nix:3959`). The same rows' other manifest cites are stale too: the condense gate `agentbox.toml:860` is now `agentbox.toml:1124` and the loom-raw row's seed cite `agentbox.toml:1810` is now `agentbox.toml:2217` (`../project/agentbox/config/egress-policy.json:232`, `../project/agentbox/config/egress-policy.json:246`). The register itself was partly re-pointed in this interval (the skill-routing row's cites moved) but its `verified_commit` was not. The renderer's `--check` only tests that a cited line falls inside the file, so it cannot see the shift (`../project/agentbox/scripts/ci/render-egress-register.js:110-119`).
 
 ## AB-24.15 ADR-2140 — the vault stays here, the HP Loom serves a built generation reconciled at every boot
 
 ```mermaid
 flowchart TB
     subgraph here["This host — the vault is canonical"]
-        VAULT["visionGraph repository, [vault].repo<br/>HEAD is the only thing ever published<br/>agentbox/agentbox.toml:1184-1186"]
-        BOOT["boot Phase 5d, background, timeout 1800, fail-open<br/>agentbox/config/entrypoint-unified.sh:1209-1219"]
+        VAULT["visionGraph repository, [vault].repo agentbox/agentbox.toml:1163<br/>HEAD is the only thing ever published<br/>loom_sync, loom_url, loom_host agentbox/agentbox.toml:1189-1191"]
+        BOOT["boot Phase 5d, background, timeout 1800, fail-open<br/>agentbox/config/entrypoint-unified.sh:1219-1229"]
         REC["hp-loom-reconcile.sh --mode off, check or full<br/>agentbox/scripts/hp-loom-reconcile.sh:91"]
         WT["clean detached worktree at HEAD, so uncommitted edits are never served<br/>agentbox/scripts/hp-loom-reconcile.sh:142"]
         VAL["ontomark validate --vault all, then ontomark build<br/>refused on errors, nothing built or sent<br/>agentbox/scripts/hp-loom-reconcile.sh:146, agentbox/scripts/hp-loom-reconcile.sh:152"]
@@ -545,15 +547,17 @@ flowchart TB
     DOOR -->|"GET /loom/generation compared with HEAD"| REC
     subgraph notes["Invariants and drift"]
         direction TB
-        N1["INVARIANT ADR-2140: the HP never reads the vault, it serves a built bundle whose identity is in the bundle,<br/>so the consumers of AB-24.1 see no change; the HP agentbox overlay and its compose file are retired<br/>docs/adr/ADR-2140-vault-canonical-here-hp-is-a-loom-host.md:1-15"]
-        N2["a failure is recorded in the receipt and exits 0: unreachable, deferred, refused and failed<br/>never stop a container; --strict turns them into a non-zero exit<br/>agentbox/scripts/hp-loom-reconcile.sh:13-15"]
+        N1["INVARIANT ADR-2140: the HP never reads the vault, it serves a built bundle whose identity is in the bundle,<br/>so the consumers of AB-24.1 see no change; the HP agentbox overlay and its compose file are retired<br/>docs/adr/ADR-2140-vault-canonical-here-hp-is-a-loom-host.md:63-90"]
+        N2["a failure is recorded in the receipt and exits 0: unreachable, deferred, refused and failed<br/>never stop a container; --strict turns them into a non-zero exit<br/>agentbox/scripts/hp-loom-reconcile.sh:15-17"]
         N1 ~~~ N2
     end
 ```
 
-**What it shows:** how the generation behind the Loom door reaches the HP. Every boot starts `hp-loom-reconcile.sh` in the background; it compares the committed vault HEAD with the id `/loom/generation` reports and, in `full` mode only, builds that HEAD from a clean worktree, promotes and verifies the bundle, streams it to the HP, swaps it under an in-flight marker and waits for the door to report the new id (`../project/agentbox/scripts/hp-loom-reconcile.sh:119-120`). **Why it is this way:** on 2026-10-13 the HP held only the Loom's built bundle plus a second agentbox that had drifted from this node; ADR-2140 makes the vault canonical on this host and the reconcile the one publisher, so a vault change cannot silently leave the door serving yesterday's corpus (`../project/agentbox/docs/adr/ADR-2140-vault-canonical-here-hp-is-a-loom-host.md:1-15`). The Python reloader on the HP is gone: the Loom's verifying reload is the Rust `reload_published_generation` binary, and the served bundle under `data/` is no longer tracked in the Loom repository.
+**What it shows:** how the generation behind the Loom door reaches the HP. Every boot starts `hp-loom-reconcile.sh` in the background; it compares the committed vault HEAD with the id `/loom/generation` reports and, in `full` mode only, builds that HEAD from a clean worktree, promotes and verifies the bundle, streams it to the HP, swaps it under an in-flight marker and waits for the door to report the new id (`../project/agentbox/scripts/hp-loom-reconcile.sh:119-120`). **Why it is this way:** on 2026-10-13 the HP held only the Loom's built bundle plus a second agentbox that had drifted from this node; ADR-2140 makes the vault canonical on this host and the reconcile the one publisher, so a vault change cannot silently leave the door serving yesterday's corpus (`../project/agentbox/docs/adr/ADR-2140-vault-canonical-here-hp-is-a-loom-host.md:43-77`). The Python reloader on the HP is gone: the Loom's verifying reload is the Rust `reload_published_generation` binary, and the served bundle under `data/` is no longer tracked in the Loom repository (`../loom/.gitignore:25-28`).
 
-**Drift:** ADR-2140 is `accepted`, `complete` and `live` (`../project/agentbox/docs/adr/ADR-2140-vault-canonical-here-hp-is-a-loom-host.md:5-7`), but the governing document never mentions the boot reconcile, the `[vault].loom_sync` key or the retired HP agentbox, and its model-swap section still reads as if the generation were staged by hand (`../project/agentbox/docs/GOVERNANCE-capabilities.md:313-315`).
+**Drift:** ADR-2140's Consequences still say the Loom repository tracks `data/ontology-corpus.rvdb*` and that untracking it is a loom change not yet made (`../project/agentbox/docs/adr/ADR-2140-vault-canonical-here-hp-is-a-loom-host.md:112-114`); at the loom pin only `data/.gitkeep` is tracked and the rest of `data/` is ignored (`../loom/.gitignore:25-28`).
+
+**Drift:** ADR-2140 is `accepted`, `complete` and `live` (`../project/agentbox/docs/adr/ADR-2140-vault-canonical-here-hp-is-a-loom-host.md:5-7`), but the governing document never mentions the boot reconcile, the `[vault].loom_sync` key or the retired HP agentbox, and its model-swap bullet speaks only of the model behind the door, not of who publishes the generation (`../project/agentbox/docs/GOVERNANCE-capabilities.md:335-339`).
 
 ## Audit qualification - 2026-09-07
 

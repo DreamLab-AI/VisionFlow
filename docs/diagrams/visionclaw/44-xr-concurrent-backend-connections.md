@@ -12,12 +12,12 @@ sources:
   - ../project/xr-client/scripts/frame_budget_pass.gd
   - ../project/xr-client/tests/unit/test_backend_switch.gd
   - ../project/xr-client/rust/tests/two_clients.rs
-verified_commit: {visionclaw: 75b72416bac176ca8fde715cac3bd7c77657b3e7}
+verified_commit: {visionclaw: 86cdd7635582}
 ---
 
 ## For developers
 
-This is the current source arrangement replacing [VC-40's historical exclusive switch](40-xr-two-backends-capability-gating.md). The [audit](../../estate-review/2026-10-31-codescape-presence-and-xr.md) distinguishes Rust transport evidence, inspected GDScript and unmeasured headset acceptance.
+This is the current source arrangement that replaced the exclusive switch; [VC-40](40-xr-two-backends-capability-gating.md) draws the capability table, the retired switch and the palette at the same pin. The [audit](../../estate-review/2026-10-31-codescape-presence-and-xr.md) distinguishes Rust transport evidence, inspected GDScript and unmeasured headset acceptance.
 
 The subsequent [headless volume/link audit](46-spatial-volume-fit-and-link-budget.md) qualifies fit cadence and highlight budgets with executed Godot fixtures; transport and headset acceptance remain separate.
 
@@ -31,14 +31,14 @@ Knowledge, ontology and code can be fed by concurrent connections. Source separa
 
 ```mermaid
 flowchart TD
-    SC["GraphScene builds two BackendConnections<br/>graph_scene.gd:1282"] --> VC["VisionClaw client<br/>graph_scene.gd:1284"]
-    SC --> CS["Codescape client with empty signing secret<br/>graph_scene.gd:1285"]
+    SC["GraphScene builds two BackendConnections<br/>graph_scene.gd:1371"] --> VC["VisionClaw client<br/>graph_scene.gd:1373"]
+    SC --> CS["Codescape client with empty signing secret<br/>graph_scene.gd:1374"]
     VC --> K["Knowledge volume<br/>test_backend_switch.gd:26"]
     VC --> O["Ontology volume<br/>test_backend_switch.gd:27"]
     CS --> C["Codescape volume<br/>test_backend_switch.gd:28"]
-    SC --> SRC["Each binding creates ConnectionVolumeSource<br/>graph_scene.gd:1313,1314"]
-    SC --> PR["Presence URL derives from VisionClaw base<br/>graph_scene.gd:2424,2428"]
-    CS --> OWN["Each instance owns its client, caps, pins, HTTP and backoff<br/>backend_connection.gd:36,47,50,51,57"]
+    SC --> SRC["Each binding creates ConnectionVolumeSource<br/>graph_scene.gd:1402,1403"]
+    SC --> PR["Presence URL derives from VisionClaw base<br/>graph_scene.gd:2519,2523"]
+    CS --> OWN["Each instance owns its client, caps, pins, HTTP and backoff<br/>backend_connection.gd:36,47,52,53,59"]
     VC --> OWN
 ```
 
@@ -48,11 +48,11 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    FOCUS["Focused volume resolves connection<br/>graph_scene.gd:1753,1778"] --> CAP["Connection supports and gate<br/>backend_connection.gd:155,162"]
-    REQ["Request helpers use gate_for_volume<br/>graph_scene.gd:1764"] --> CAP
-    DRAG["Drag start, update and end call DRAG gate<br/>backend_connection.gd:247,256,265"] --> CAP
-    CAP -->|unsupported| NO["Emit refused and return false<br/>backend_connection.gd:165,167"]
-    CAP -->|supported drag| SEND["Call this client's drag method<br/>backend_connection.gd:252,261,270"]
+    FOCUS["Focused volume resolves connection<br/>graph_scene.gd:1847,1872"] --> CAP["Connection supports and gate<br/>backend_connection.gd:157,164"]
+    REQ["Request helpers use _gate_for_volume<br/>graph_scene.gd:1857"] --> CAP
+    DRAG["Drag start, update and end call DRAG gate<br/>backend_connection.gd:249,258,267"] --> CAP
+    CAP -->|unsupported| NO["Emit refused and return false<br/>backend_connection.gd:167,169"]
+    CAP -->|supported drag| SEND["Call this client's drag method<br/>backend_connection.gd:254,263,272"]
     TEST["GUT cases: no exclusive switch, focused fold refusal, no Codescape drag<br/>test_backend_switch.gd:18,37,53"] --> CAP
 ```
 
@@ -63,12 +63,12 @@ flowchart TD
 ```mermaid
 flowchart TD
     VIS["Visible volume demand summed<br/>frame_budget_pass.gd:20"] --> BUD["Allocate once and split caps<br/>frame_budget_pass.gd:125,137"]
-    BUD --> PACK["Pack each visible connected volume with its caps<br/>graph_scene.gd:1506,1524,1529"]
-    PACK --> HIDE["Hidden or offline clears instances and overlay slot<br/>graph_scene.gd:1524,1525,1527"]
+    BUD --> PACK["Pack each visible connected volume with its caps<br/>graph_scene.gd:1598,1616,1621"]
+    PACK --> HIDE["Hidden or offline clears instances and overlay slot<br/>graph_scene.gd:1616,1617,1619"]
     PRE["Rust loopback preflight drives production graph transport<br/>two_clients.rs:410,419"] --> ACK["Independent frame and ack sequences, stall and pump timing checks<br/>two_clients.rs:506,511,512,523,524"]
-    ACK --> LIMIT["Test thread substitutes for Godot pump<br/>no engine or render-store load measurement<br/>two_clients.rs:7,10,38"]
+    ACK --> LIMIT["Test thread substitutes for Godot pump<br/>no engine or render-store load measurement<br/>two_clients.rs:7,11,38"]
 ```
 
 **What it shows.** Budget allocation, transport fairness and headset frame time are separate claims. **Why it is this way.** The preflight exercises real transport with simulated main-thread pumping; ADR-2159 still requires E8 on the headset before activation.
 
-**Drift:** ADR-2159's verification says no BackendConnection exists; current construction is wired into the scene (`graph_scene.gd:1282`). Its inactive status is not overturned by this source observation.
+**Drift:** ADR-2159's verification says no BackendConnection exists; current construction is wired into the scene (`graph_scene.gd:1371`). Its inactive status is not overturned by this source observation.

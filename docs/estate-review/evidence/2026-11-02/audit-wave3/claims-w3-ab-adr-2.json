@@ -1,0 +1,130 @@
+[
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2014-memory-mcp-only-fail-closed.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-2.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; external-pg adapter writes unembedded rows (contradicts Decision); DB-side triggers, production repair and recall runs not checked."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2015-trajectory-recorder-transcript-driven.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-2.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; env-flag gate overtaken by hook registration; test counts and live recorder-to-dashboard flow not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2016-wilson-lower-bound-raw-floor.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-2.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; Wilson, raw floor and independence deflation traced in source; live aggregate corpus not inspected."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2017-consumer-behind-producer-w066.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-2.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; E066/E067 and runtime admission traced; memOrient path and live gate state not checked."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2018-recall-harness-merge-gate.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-2.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; harness, band and gate traced, not wired into CI; recall runs and DB settings not reproduced."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2019-model-lifecycle-384-dim-freeze.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-2.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; freeze and identity pin traced; live fingerprint and SONA engine behaviour not measured."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2020-capability-gating.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-2.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; spend cap traced; never-auto-routed contradicted by the runtime router candidate map; build off-state not checked."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2021-skills-jit-context-lint.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-2.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; lint and CI wiring traced, no rebuild-path invocation; lint not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2022-governed-ontology-writes.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-2.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; superseded record (ADR-2108); deletion of the write path confirmed in source; historical tests not reproducible."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2023-loom-facade.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-2.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; facade config and retrieval client traced; no live Loom call; raw door tension noted."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2024-dream-cycle-gating.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-2.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; config declarations traced; acceptance gate lives in external dream-gate/dream-core crates not inspectable at this pin."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2025-cross-repo-federation-contract.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-2.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; agentbox side traced and VisionClaw read at 86cdd7635582; fixture not run in VisionClaw; checks not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2026-session-mirror-egress-boundary.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-2.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; four clauses traced in Node and Rust; no relay send, deployed config or retention checked."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2027-secret-custody-rotation-break-glass.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-2.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; break-glass bounds and age backup traced; custody lifecycle unbuilt and not checkable from source."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2028-vault-manifest-path-authority.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-2.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; resolver, consumers and CI gate traced; booted runtime-env not checked; tests not re-run."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2029-rune-markdown-tui-notes-window.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-2.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; package gate, Notes launcher and tmux settings traced; image bake and Rune journal recovery not checked."
+  }
+]

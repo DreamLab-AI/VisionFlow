@@ -1,0 +1,10 @@
+[
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/visionclaw/35-voice-end-to-end.md",
+   "report": "docs/estate-review/2026-11-02-w3-vc-j.md", "coverage": "selected-panels",
+   "panels": ["VC-35.1", "VC-35.2", "VC-35.3", "VC-35.4", "VC-35.6", "VC-35.7", "VC-35.9", "VC-35.10", "VC-35.11", "VC-35.12", "VC-35.13", "VC-35.14"],
+   "basis": "Source tracing at VisionClaw 86cdd7635582 (agentbox c57d9c0508f4, unmute e348e567c702); restamped from 8692b12, every citation re-resolved, ten panels corrected; strict cite-check and render pass; limits: STT/TTS service reachability, push-to-talk timing and MCP_HOST are runtime, Whisper-WebUI source absent (dangling symlink)."},
+  {"kind": "topic", "repo": "VisionFlow", "path": "docs/diagrams/visionclaw/36-godot-xr-client.md",
+   "report": "docs/estate-review/2026-11-02-w3-vc-j.md", "coverage": "selected-panels",
+   "panels": ["VC-36.1", "VC-36.2", "VC-36.3", "VC-36.4", "VC-36.5", "VC-36.6", "VC-36.7", "VC-36.8", "VC-36.9", "VC-36.10", "VC-36.11", "VC-36.12", "VC-36.13", "VC-36.14", "VC-36.15", "VC-36.16", "VC-36.18", "VC-36.19", "VC-36.20", "VC-36.21", "VC-36.22", "VC-36.23", "VC-36.24", "VC-36.25", "VC-36.26", "VC-36.27", "VC-36.28"],
+   "basis": "Source tracing at VisionClaw 86cdd7635582; restamped from e4ba5eb across the spatial-volume merge, every citation re-resolved, fourteen panels corrected; strict cite-check and render pass; limits: headset rendering, fade rate, agent motion and quoted test counts are not verified."}
+]

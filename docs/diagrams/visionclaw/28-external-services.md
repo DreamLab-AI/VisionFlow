@@ -28,7 +28,7 @@ sources:
   - ../project/agentbox/services/agentbox-manifest/src/system_one.rs
   - ../project/crates/visionclaw-jev/src/config.rs
   - ../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md
-verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, agentbox: 6500582dfae23bf8a38a6942916d208154e43625}
+verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35}
 ---
 ## VC-28.1 ragflow_service — outbound RAGFlow agent API
 ```mermaid
@@ -78,7 +78,7 @@ sequenceDiagram
             RS-->>H: Err ParseError Answer not found in non-streamed RAGFlow response - :403-405
         end
         Note right of RS: DOC-CORRECTED 2026-09-05: the missing-answer ParseError branch is now drawn<br/>code at ragflow_service.rs:397-406 was already correct - the diagram omitted it
-    else stream_preference=true - :420
+    else stream_preference=true - :419-422
         RF-->>RS: SSE bytes_stream "data: {...}"
         loop each SSE line - :428
             RS->>RS: parse JSON, extract data.answer chunk - :447-457
@@ -114,16 +114,20 @@ sequenceDiagram
         H-->>C: 413 PayloadTooLarge - :231
     else missing X-Nostr-Pubkey - :245
         H-->>C: 401 Unauthorized - :251
-    else missing Authorization Bearer - :383
-        H-->>C: 401 Unauthorized - :393
+    else missing Authorization header (any value is taken, Bearer prefix trimmed if present) - :259-262
+        H-->>C: 401 Unauthorized - :266-269
     else nostr_service.validate_session fails - :275
         H->>N: validate_session(pubkey,token) - :275
         N-->>H: false
         H-->>C: 401 invalid_session - :280
     else no ragflow access and not power user - :289
         H-->>C: 403 insufficient_permissions - :294
+    else NostrService absent - :299-301
+        H-->>C: 503 Authentication service is not available - :301
+    else payload fails validate_ragflow_chat or validate_question_content - :304-313, :340
+        H-->>C: validation error response - :311
     else state.ragflow_service is None - :342
-        H-->>C: 503 RAGFlow service unavailable
+        H-->>C: 503 RAGFlow service unavailable - :346
     else ok
         H->>RS: create_session or send_chat_message (see VC-28.1)
         RS-->>H: ChatResponse
@@ -168,7 +172,7 @@ sequenceDiagram
         end
     end
     end
-    Note over PS: DOC-CORRECTED 2026-09-05: endpoint config is read from AppFullSettings.perplexity - api_url, api_key, model at :99-120<br/>not from PERPLEXITY_* env vars - only PERPLEXITY_ENABLED_PUBKEYS gates feature access at feature_access.rs:20 and<br/>PERPLEXITY_API_KEY is read solely as a readiness expectation signal at app_state.rs:1473 - configuration.md:220 and<br/>how-to/agent-orchestration.md:449 corrected
+    Note over PS: DOC-CORRECTED 2026-09-05: endpoint config is read from AppFullSettings.perplexity - api_url, api_key, model at :99-120<br/>not from PERPLEXITY_* env vars - only PERPLEXITY_ENABLED_PUBKEYS gates feature access at feature_access.rs:20 and<br/>PERPLEXITY_API_KEY is read solely as a readiness expectation signal at app_state.rs:1488 - configuration.md:233-234,251 and<br/>how-to/agent-orchestration.md:449 corrected. DRIFT: configuration.md:233 still points the readiness read at app_state line 1516
 ```
 ## VC-28.4 image_gen_handler — ComfyUI submit path (user session)
 ```mermaid
@@ -234,9 +238,9 @@ sequenceDiagram
     ENV-->>AS: agent_key_authorised() reads VISIONCLAW_AGENT_KEY, constant-time compare<br/>fails closed if unset/empty - NO changeme-agent-key default (ADR-2093) - :50-55<br/>dev or dev-auth builds bypass to always-true - :60-63
     A->>AS: POST /image-gen/agent-submit - configure_routes :908<br/>header X-Agent-Key - :707
     alt X-Agent-Key missing or wrong - :709-716
-        AS-->>A: 401 Invalid or missing X-Agent-Key - :710-715
+        AS-->>A: 401 Invalid or missing X-Agent-Key - :710-712
     else authed
-        AS->>AS: user_npub defaults to agent - :717-719<br/>build_workflow from IMAGE_GEN_MODEL - :738-740
+        AS->>AS: user_npub defaults to agent - :715-718<br/>build_workflow from IMAGE_GEN_MODEL - :738-740
         Note over AS,CF: CHANGED 2026-10 (af3dff3f): the ComfyUI Salad wrapper is deleted<br/>- COMFYUI_SALAD_URL is gone from the file - and the agent path now runs<br/>the SAME native ComfyUI pipeline as /submit via run_comfyui_job - :747, fn :458<br/>(doc comment :694-698 records why: the wrapper on port 3000 was never reached)
         AS->>CF: POST {comfyui_base}/prompt, poll /history, GET /view - :747
         CF-->>AS: ComfyJob prompt_id + filename + bytes - :459-563
@@ -255,15 +259,15 @@ sequenceDiagram
     alt request errors - :861-866
         GJ-->>A: 503 ComfyUI unreachable - :861-864
     else body has job_id key - :843
-        GJ-->>A: 200 status completed + outputs - :843-850
-    else not found yet - :852-861
-        GJ-->>A: 200 status pending or unknown by HTTP status - :852-861
+        GJ-->>A: 200 status completed + outputs - :843-848
+    else not found yet - :849-859
+        GJ-->>A: 200 status pending or unknown by HTTP status - :850-858
     end
 
     participant HL as health<br/>src/handlers/image_gen_handler.rs:869-873
     A->>HL: GET /image-gen/health - configure_routes :906
     HL->>CF: GET {comfyui_base}/system_stats - :875-877 (timeout 5s :870-873)
-    alt 2xx - :878
+    alt 2xx - :880
         HL-->>A: 200 status ok, vram_free/total - :878-886
     else non-2xx or unreachable - :889,893
         HL-->>A: 200 status degraded (never a 5xx) - :889-898
@@ -363,7 +367,7 @@ sequenceDiagram
 
     rect rgb(225,230,250)
     Note over SS,MCP: voice command intents relay to the multi-agent swarm over MCP TCP<br/>src/services/speech_service.rs:1062
-    SS->>MCP: call_swarm_init, call_agent_spawn, call_agent_list, call_task_orchestrate<br/>host MCP_HOST default multi-agent-container, port MCP_TCP_PORT default 9500<br/>src/services/speech_service.rs:1067, :1068, :1079, :1086, :1118
+    SS->>MCP: call_swarm_init, call_agent_spawn, call_agent_list, call_task_orchestrate<br/>host MCP_HOST default multi-agent-container, port MCP_TCP_PORT default 9500<br/>src/services/speech_service.rs:1067, :1068, :1079, :1086, :1118, :1187
     alt call fails
         MCP-->>SS: error
         SS-->>SS: "Failed to ... Error" spoken back to the user<br/>src/services/speech_service.rs:1133, :1171, :1209
@@ -377,7 +381,7 @@ sequenceDiagram
     Note over SS: DRIFT CLOSED 2026-09-13 (ab5724422): TTSProvider is now a ONE-variant<br/>enum, PocketTts. The OpenAI branch and its api.openai.com call are deleted<br/>and Kokoro is gone, so this boundary no longer reaches any paid TTS API.<br/>visionclaw-domain/src/types/speech.rs:66, default at speech_service.rs:74
     Note over SS: DRIFT: the note above is true of TTS only. STTProvider declares Whisper and OpenAI (the unimplemented TurboWhisper variant<br/>and its two warnings were deleted after af3dff3f2) and the default is Whisper, but SetSTTProvider(OpenAI) is live: ProcessAudioChunk then POSTs<br/>the audio to https://api.openai.com/v1/audio/transcriptions when settings.openai holds an API key, so a third-party speech edge exists on demand.<br/>visionclaw-domain/src/types/speech.rs:71-74, speech_service.rs:75, :689-699, :722
     Note over SS: TextToSpeechForUser, TextToSpeechSpatial, ProcessAudioChunkForUser and AgentSpatialInfo were logged no-ops with no sender and are deleted<br/>(VisionClaw cefd9d1d7 under ER-24), so SpeechCommand carries no user-scoped or spatial entry point.<br/>visionclaw-domain/src/types/speech.rs:77-87
-    Note over SS: TENSION (ADR-2151 vs manifest): the agentbox VoiceLink edge voice slot runs voice on the operator's client and reaches the container over an ssh stdio<br/>voice-paned process, never through SpeechService. ADR-2151 is decision_status proposed with implementation_status none and activation inactive,<br/>yet the manifest sets [voicelink] enabled = true. agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7, agentbox/agentbox.toml:2221-2226
+    Note over SS: TENSION (ADR-2151 vs manifest): the agentbox VoiceLink edge voice slot runs voice on the operator's client and reaches the container over an ssh stdio<br/>voice-paned process, never through SpeechService. ADR-2151 is decision_status proposed with implementation_status none and activation inactive,<br/>yet the manifest sets [voicelink] enabled = true. agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7, agentbox/agentbox.toml:2259-2264
 ```
 ## VC-28.9 consolidated external-dependency map
 ```mermaid
@@ -385,8 +389,8 @@ flowchart LR
     subgraph app["visionclaw_container"]
         RS["RAGFlowService<br/>ragflow_service.rs:102"]
         PS["PerplexityService<br/>perplexity_service.rs:35"]
-        IG["image_gen_handler<br/>submit_image_job:628"]
-        AG["image_gen_handler<br/>agent_submit_image_job:732"]
+        IG["image_gen_handler<br/>submit_image_job image_gen_handler.rs:596"]
+        AG["image_gen_handler<br/>agent_submit_image_job image_gen_handler.rs:700"]
         GH["GitHubPRService<br/>github_pr_service.rs:21"]
         SS["SpeechService<br/>speech_service.rs:32"]
     end
@@ -409,10 +413,10 @@ flowchart LR
     SS -->|"TTS - degraded: audio chunk skipped, chat continues"| PT
     SS -->|"STT - degraded: transcription dropped"| WHI
     SS -->|"voice-command relay - degraded: spoken error reply"| MCPS
-    JV["Jev hub (opt-in)<br/>12 decision items: library default off, but the supplied Compose environment sets VISIONCLAW_JEV=1 for every item<br/>docs/reference/configuration.md:411-413, docker-compose.unified.yml:21<br/>RESOLVED 2026-10-30 (activation): configured and live - VisionClaw ADR-2148 is accepted / complete / live after the agentbox rebuild and the host recreate (close-out docs/adr/ADR-2148-enable-local-typed-decisions.md:81-91); docs/BASELINE-architecture.md:50-52 agrees<br/> docs/adr/ADR-2148-enable-local-typed-decisions.md:7"]
+    JV["Jev hub (opt-in)<br/>12 decision items: library default off, but the supplied Compose environment sets VISIONCLAW_JEV=1 for every item<br/>docs/reference/configuration.md:411-413, docker-compose.unified.yml:21<br/>RESOLVED 2026-10-30 (activation): configured and live - VisionClaw ADR-2148 is accepted / complete / live after the agentbox rebuild and the host recreate (close-out docs/adr/ADR-2148-enable-local-typed-decisions.md:81-91); docs/BASELINE-architecture.md:51-53 agrees<br/> docs/adr/ADR-2148-enable-local-typed-decisions.md:7"]
     JEP["System One endpoint, first match wins:<br/>VISIONCLAW_JEV_ENDPOINT (an override only: Compose supplies none and the laya systemone:8097 pins are gone), else the agentbox proxy<br/>agentbox:8094, model jev-latest, BACKEND_LOCAL=0 (docker-compose.unified.yml:7-11), else api.typesafe.ai with TYPESAFE_API_KEY, else none<br/>docs/reference/configuration.md:461-466, crates/visionclaw-jev/src/config.rs:308-357<br/>the four local-only items (memory rerank, patch rank, ingest suggest, proposal triage) take the proxy because ALLOW_CLOUD=1 (docker-compose.unified.yml:22, crates/visionclaw-jev/src/config.rs:303-305, :326)<br/>DOC-DRIFT: configuration.md:464 still calls the proxy loopback, while compose reaches it over visionclaw_network (docs/reference/configuration.md:418-421)"]
-    AB["agentbox System One proxy - holds the vendor key, no Authorization sent by consumers<br/>bind 0.0.0.0:8094 with network = true: private docker networks only, never published, agentbox.toml:893-894<br/>refuses any request with an Origin header or a non-JSON content type, system-one-proxy/src/server.rs:151-170<br/>backend = typesafe (cloud), laya stays the opt-in local_backend, local_only = [], agentbox.toml:891-895"]
-    TS["api.typesafe.ai - the selected cloud backend<br/>agentbox's own consumers listed in [system_one].local_only are routed to laya or switched off, never sent here (services/agentbox-manifest/src/system_one.rs:518-562)<br/>a VisionClaw item stays local only with ALLOW_CLOUD=0, JEV_LOCAL=1 and a local endpoint (docs/reference/configuration.md:423-426)"]
+    AB["agentbox System One proxy - holds the vendor key, no Authorization sent by consumers<br/>bind 0.0.0.0:8094 with network = true: private docker networks only, never published, agentbox.toml:892-893<br/>refuses any request with an Origin header or a non-JSON content type, system-one-proxy/src/server.rs:151-170<br/>backend = typesafe (cloud), laya stays the opt-in local_backend, local_only = [], agentbox.toml:890-894"]
+    TS["api.typesafe.ai - the selected cloud backend<br/>agentbox's own consumers listed in [system_one].local_only are routed to laya or switched off, never sent here (services/agentbox-manifest/src/system_one.rs:534-578)<br/>a VisionClaw item stays local only with ALLOW_CLOUD=0, JEV_LOCAL=1 and a local endpoint (docs/reference/configuration.md:423-426)"]
     JV -->|"POST /v1/systemone - degraded: every fallback returns to the deterministic path, no egress when nothing is set<br/>docs/reference/configuration.md:484"| JEP
     JEP -->|"agentbox:8094 over visionclaw_network"| AB
     AB -->|"forward to the selected backend"| TS

@@ -19,8 +19,10 @@ sources:
   - ../project/agentbox/services/secret-backup/src/main.rs
   - ../project/agentbox/docs/archive/adr/ADR-024-setup-dashboard.md
   - ../project/agentbox/docs/BASELINE-container.md
-verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
+verified_commit: c57d9c0508f4044915f9aecea4b9aa5629cc6a35
 ---
+
+**Debt (title vs panels):** the title names secret-backup and `sources:` lists `../project/agentbox/services/secret-backup/src/main.rs`, but no panel draws it; the topic starts at AB-30.2. Either a secret-backup panel is owed or the title and source entry should go.
 
 ## AB-30.2 setup/server — compiled binary or nothing (legacy-ADR-024 D1 superseded in the launcher)
 
@@ -95,32 +97,32 @@ sequenceDiagram
     AX-->>AX: tokio::select! resolves the shutdown branch, process exits<br/>setup/server/src/main.rs:296-308
 ```
 
-**Drift (default seed vs its own claim):** the seed comment says every learning and hygiene gate ships off (`../project/agentbox/setup/server/src/main.rs:70-72`, repeated in the file header `../project/agentbox/setup/agentbox.default.toml:5-6`), but the shipped default sets `[memory_learning] enabled = true` (`../project/agentbox/setup/agentbox.default.toml:451`) and `[seo_watch] enabled = true` (`../project/agentbox/setup/agentbox.default.toml:845`), so a fresh-install operator is offered both already on.
+**Drift (default seed vs its own claim):** the seed comment says every learning and hygiene gate ships off (`../project/agentbox/setup/server/src/main.rs:70-72`, repeated in the file header `../project/agentbox/setup/agentbox.default.toml:5-6`), but the shipped default sets `[memory_learning] enabled = true` (`../project/agentbox/setup/agentbox.default.toml:450`) and `[seo_watch] enabled = true` (`../project/agentbox/setup/agentbox.default.toml:844`), so a fresh-install operator is offered both already on.
 
 ## AB-30.4 https-bridge — self-signed TLS termination in front of a plain-HTTP target
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SUP as supervisord [program:https-bridge]<br/>flake.nix:2697-2706
-    participant BOOT as entrypoint root phase<br/>flake.nix:4245-4260
+    participant SUP as supervisord [program:https-bridge]<br/>flake.nix:2698-2707
+    participant BOOT as entrypoint root phase<br/>flake.nix:4241-4256
     participant OSSL as openssl req -x509
     participant NODE as https-proxy.js<br/>process.env-driven config
     participant BROWSER as Browser client
     participant TARGET as http://HOST_IP:TARGET_PORT
 
-    BOOT->>BOOT: mkdir -p /var/lib/https-bridge/certs (tmpfs, uid 1000)<br/>flake.nix:4251, flake.nix:3728
+    BOOT->>BOOT: mkdir -p /var/lib/https-bridge/certs (tmpfs, uid 1000)<br/>flake.nix:4247, flake.nix:3730
     alt server.key already present
         BOOT-->>NODE: skip generation — cert persists for the tmpfs lifetime
     else missing
-        BOOT->>OSSL: openssl req -x509 -newkey rsa:2048 -days 365 -nodes -subj "/CN=localhost"<br/>flake.nix:4253-4256
-        OSSL-->>BOOT: server.key #40;0600#41;, server.crt #40;0644#41; — flake.nix:4258-4259
+        BOOT->>OSSL: openssl req -x509 -newkey rsa:2048 -days 365 -nodes -subj "/CN=localhost"<br/>flake.nix:4249-4252
+        OSSL-->>BOOT: server.key #40;0600#41;, server.crt #40;0644#41; — flake.nix:4253-4255
     end
-    Note over SUP,BOOT: GATE — the program block is emitted only when [sovereign_mesh].enabled AND https_bridge are both true (flake.nix:2695, setup/agentbox.default.toml:44,47),<br/>while the certificate pre-generation above is not gated on either (flake.nix:4252), so a container without the program still carries the cert files
-    SUP->>NODE: node https-proxy.js<br/>CERT_DIR=/var/lib/https-bridge/certs, MANAGEMENT_API_PORT env — flake.nix:2701
-    Note over SUP,NODE: flake.nix:2173 copies ./https-bridge into the built image. SUP's full<br/>environment= is HOME, MANAGEMENT_API_PORT, CERT_DIR, SSL_KEY, SSL_CERT #40;flake.nix:2701#41;,<br/>stdout/stderr logged to /var/log/https-bridge.log + .error.log #40;flake.nix:2705-2706#41;.<br/>Its tmpfs #40;mode=755 size=8M uid/gid=1000#41; is declared in BOTH docker-compose.yml:115<br/>AND flake.nix:3728 — keep the two in sync
+    Note over SUP,BOOT: GATE — the program block is emitted only when [sovereign_mesh].enabled AND https_bridge are both true (flake.nix:2696, setup/agentbox.default.toml:44,47),<br/>while the certificate pre-generation above is not gated on either (flake.nix:4248), so a container without the program still carries the cert files
+    SUP->>NODE: node https-proxy.js<br/>CERT_DIR=/var/lib/https-bridge/certs, MANAGEMENT_API_PORT env — flake.nix:2702
+    Note over SUP,NODE: flake.nix:2174 copies ./https-bridge into the built image. SUP's full<br/>environment= is HOME, MANAGEMENT_API_PORT, CERT_DIR, SSL_KEY, SSL_CERT #40;flake.nix:2702#41;,<br/>stdout/stderr logged to /var/log/https-bridge.log + .error.log #40;flake.nix:2706-2707#41;.<br/>Its tmpfs #40;mode=755 size=8M uid/gid=1000#41; is declared in BOTH docker-compose.yml:115<br/>AND flake.nix:3730 — keep the two in sync
     NODE->>NODE: ensureCertificates#40;#41; — fs.existsSync check, hand-rolled node:crypto<br/>X.509 builder ONLY IF openssl's boot-time generation is somehow absent<br/>https-proxy.js:48-49,67 — buildSelfSignedX509 at :79
-    Note over BOOT,NODE: DESIGN: the trusted path is openssl #40;flake.nix#41; — the hand-rolled builder in<br/>https-proxy.js is a fail-open FALLBACK only, per the boot-script's own comment<br/>#40;flake.nix:4245-4250#41; — not the primary certificate source
+    Note over BOOT,NODE: DESIGN: the trusted path is openssl #40;flake.nix#41; — the hand-rolled builder in<br/>https-proxy.js is a fail-open FALLBACK only, per the boot-script's own comment<br/>#40;flake.nix:4241-4246#41; — not the primary certificate source
     NODE->>NODE: https.createServer#40;{key, cert}#41;.listen#40;HTTPS_PORT, HTTPS_HOST#41;<br/>https-proxy.js:190,262 — HTTPS_HOST defaults 0.0.0.0, published loopback-only<br/>via compose #40;R-003 comment, https-proxy.js:31-33#41;
     BROWSER->>NODE: HTTPS request to localhost:HTTPS_PORT
     NODE->>NODE: detectGatewayIP#40;#41; if HOST_IP unset — `ip route | grep default`<br/>https-proxy.js:21-28, falls back to 192.168.0.51 on any failure

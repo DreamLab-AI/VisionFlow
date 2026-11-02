@@ -49,6 +49,7 @@ sources:
   - ../project/src/handlers/utils.rs
   - ../project/src/handlers/ontology_handler.rs
   - ../project/src/handlers/api_handler/mod.rs
+  - ../project/src/handlers/enrichment_proposals_handler.rs
   - ../project/crates/visionclaw-contracts/src/lib.rs
   - ../project/crates/visionclaw-contracts/src/agent_action.rs
   - ../project/crates/visionclaw-contracts/src/telemetry.rs
@@ -60,14 +61,14 @@ sources:
   - ../project/src/services/corpus_source/mod.rs
   - ../project/src/services/corpus_source/local.rs
   - ../project/src/services/corpus_source/github.rs
-verified_commit: 8692b12ba987ecb87165566beb7c320a2446e4b4
+verified_commit: 86cdd76355823a51bb64d503c005fe277726e724
 ---
 
 ## VC-07.1 The hexagon — ports, adapters and where each canonical type lives
 ```mermaid
 flowchart TB
     subgraph PORTS["src/ports — trait side"]
-        P1["graph_repository::GraphRepository<br/>src/ports/graph_repository.rs — 88 lines, LEGACY"]
+        P1["graph_repository::GraphRepository<br/>src/ports/graph_repository.rs — 86 lines, LEGACY<br/>get_bots_graph removed after 8692b12"]
         P2["physics_simulator::PhysicsSimulator<br/>src/ports/physics_simulator.rs — 63 lines, LEGACY"]
         P3["REMOVED — semantic_analyzer::SemanticAnalyzer<br/>was src/ports/semantic_analyzer.rs, deleted by vc-knowledge<br/>the live seam is visionclaw_domain gpu_semantic_analyzer"]
         P4["knowledge_graph_repository::KnowledgeGraphRepository<br/>src/ports/knowledge_graph_repository.rs — 115 lines"]
@@ -90,6 +91,7 @@ flowchart TB
         A8["ActixSemanticAdapter"]
         A9["GpuSemanticAnalyzerAdapter — cfg(feature gpu)"]
         A10["PhysicsOrchestratorAdapter"]
+        A11["DecisionElevationStore — typed facade over data/enrichment.sqlite3 (ADR-2101)<br/>src/adapters/mod.rs:53-55"]
     end
     subgraph XCRATE["shims into visionclaw-adapters — src/adapters/mod.rs:22-35"]
         X1["whelk_inference_engine::WhelkInferenceEngine"]
@@ -103,7 +105,7 @@ flowchart TB
     ADAPT --- N1
     N2["src/repositories/mod.rs is documentation only — all legacy Neo4j and SQL repositories<br/>were removed. Canonical adapters named there are OxigraphOntologyRepository,<br/>OxigraphGraphRepository, SqliteSettingsRepository (ADR-2004)."]
     ADAPT --- N2
-    N3["Workspace — the orphan crates/graph-cognition-extract directory has been removed<br/>(docs/BASELINE-architecture.md:129) and is absent from the tree. solid-pod-rs is a crates.io<br/>version requirement, not a git rev (Cargo.toml:245) — the former rev=main resolution error no longer applies.<br/>The workspace now also lists visionclaw-wire, memory-cloud, tri-layout and jev (Cargo.toml:7,17-19).<br/>Codescape is a separate repository mounted as the codescape/ submodule, never a root member (AGENTS.md:15, ADR-2143 A5)"]
+    N3["Workspace — the orphan crates/graph-cognition-extract directory has been removed<br/>(docs/BASELINE-architecture.md:130) and is absent from the tree. solid-pod-rs is a crates.io<br/>version requirement, not a git rev (Cargo.toml:246, comment :27-28) — the former rev=main resolution error no longer applies.<br/>The workspace now also lists visionclaw-wire, memory-cloud, tri-layout and jev (Cargo.toml:7,17-19).<br/>Codescape is a separate repository mounted as the codescape/ submodule, never a root member (AGENTS.md:15, ADR-2143 A5)"]
     XCRATE --- N3
     N4["DOC-DRIFT — the adapters module doc src/adapters/mod.rs:8-15 lists seven modules as<br/>still in webxr, resolved in Phase A3; they are still there at this commit, so Phase A3<br/>has not landed. The dev build feature set is gpu,ontology,dev-auth — see VC-08."]
     ADAPT --- N4
@@ -134,8 +136,8 @@ sequenceDiagram
     SH->>CR: pub use visionclaw_domain::ports::* (src/ports/mod.rs:26-45)
     Note over SH: module-path aliases kept so legacy call sites keep resolving
     Note over C,CR: project/src/lib.rs:51-59 re-exports ClientCoordinatorActor, MetadataActor,<br/>OptimizedSettingsActor, AppState, UserSettings from the root crate itself, plus ADR-090<br/>compatibility aliases MetadataStore, ProtectedSettings, SimulationParams from<br/>visionclaw_domain::models — preserving the old visionclaw_server:: API for external callers
-    Note over C,CR: DIVERGENCE (BASELINE-architecture.md:133) — actor extraction incomplete, 25 src/actors/*.rs<br/>vs 11 in crates/visionclaw-actors. The live tree runs from src/. See VC-02.
-    Note over C,CR: DIVERGENCE (BASELINE 2026-09-04 crate and supervision closeout, BASELINE-architecture.md:361) — ADR-2005<br/>remains partial. The workspace adds converter and integration-test members to the census.
+    Note over C,CR: DIVERGENCE (BASELINE-architecture.md:325-326, detail :140-145) — actor extraction incomplete, 25 src/actors/*.rs<br/>vs 11 in crates/visionclaw-actors. The live tree runs from src/. See VC-02.
+    Note over C,CR: DIVERGENCE (BASELINE 2026-09-04 crate and supervision closeout, BASELINE-architecture.md:389) — ADR-2005<br/>remains partial. The workspace adds converter and integration-test members to the census.
 ```
 
 ## VC-07.5 CQRS application layer — settings and knowledge-graph domains
@@ -228,7 +230,6 @@ classDiagram
     class GraphQueries {
       <<src/application/graph/queries.rs>>
       GetGraphData
-      GetBotsGraphData
       GetNodeMap
       GetPhysicsState
       GetConstraints
@@ -258,6 +259,8 @@ classDiagram
     InferenceService ..> DomainEvent
 ```
 
+**Drift:** `GetBotsGraphData` and its handler were deleted from `src/application/graph/queries.rs` after `8692b12`, together with `GraphRepository::get_bots_graph` and the `application/mod.rs` re-export. The graph query set at this revision is `GetGraphData`, `GetNodeMap`, `GetPhysicsState`, `GetAutoBalanceNotifications`, `GetConstraints`, `GetEquilibriumStatus` and `ComputeShortestPaths` (`../project/src/application/graph/queries.rs:21`, `:56`, `:91`, `:129`, `:176`, `:207`, `:241`).
+
 ## VC-07.7 A CQRS call in flight — GET /api/config
 ```mermaid
 sequenceDiagram
@@ -271,16 +274,20 @@ sequenceDiagram
 
     CL->>H: GET /api/config
     H->>QH: LoadAllSettingsHandler::new(state.settings_repository.clone()) (src/handlers/api_handler/mod.rs:43)
-    Note over H,QH: state.settings_repository is Arc<dyn SettingsRepository> — src/app_state.rs:287
+    Note over H,QH: state.settings_repository is Arc<dyn SettingsRepository> — src/app_state.rs:284
     H->>EX: execute_in_thread(move || handler.handle(LoadAllSettings)) (api_handler/mod.rs:45, error boxed with map_err(Box::new))
     Note over EX: hexser QueryHandler trait — the direct dispatch path, no CQRS bus
     EX->>QH: handle(LoadAllSettings)
     QH->>PT: port call
     PT->>AD: SQLite read
     alt Ok(Ok(Some(settings)))
-        AD-->>H: 200 with version, features{ragflow, perplexity, openai, pocketTts, whisper},<br/>websocket{minUpdateRate, maxUpdateRate, motionThreshold, motionDamping},<br/>rendering{ambientLightIntensity, enableAmbientOcclusion, backgroundColor},<br/>xr{enabled, roomScale, spaceType} (api_handler/mod.rs:48-67)
+        AD-->>H: 200 with version, features{ragflow, perplexity, openai, pocketTts, whisper},<br/>rendering{ambientLightIntensity, enableAmbientOcclusion, backgroundColor},<br/>xr{enabled, roomScale, spaceType} (api_handler/mod.rs:48-67) — no websocket block
     else Ok(Ok(None))
-        AD-->>H: warn "No settings found, using defaults" then AppFullSettings::default() (api_handler/mod.rs:68-73)
+        AD-->>H: warn "No settings found, using defaults" then the same shape from AppFullSettings::default() (api_handler/mod.rs:68-93)
+    else Ok(Err) from the handler
+        AD-->>H: 500 "Failed to retrieve configuration" (api_handler/mod.rs:95-98)
+    else Err from the blocking thread
+        AD-->>H: 500 "Internal server error" (api_handler/mod.rs:99-102)
     end
     Note over H,AD: comment src/application/mod.rs:71 — application services were removed,<br/>handlers use actors directly via CQRS or direct messaging. There is no dispatcher bus.
     Note over EX: INVARIANT — every sync hexser handler enters a nested block_on, so calling one<br/>straight from an actix worker panics with the nested-runtime error Cannot start a runtime from within a runtime.<br/>execute_in_thread (spawn_blocking) is what makes the sync handler safe, and its Ok(Ok)/Ok(Err)/Err<br/>triple is the shape every call site must match — src/handlers/utils.rs
@@ -311,8 +318,16 @@ classDiagram
       StoredDecision
       EnrichmentStoreError
     }
-    SqliteEnrichmentRepository ..> BrokerDecision
+    class EnrichmentProposalsHandler {
+      <<src/handlers/enrichment_proposals_handler.rs:41>>
+      imports BrokerCase, DecisionOrchestrator, DecisionOutcome
+    }
+    EnrichmentProposalsHandler ..> BrokerCase
+    EnrichmentProposalsHandler ..> BrokerDecision
+    EnrichmentProposalsHandler ..> SqliteEnrichmentRepository
 ```
+
+**Drift:** the panel drew `SqliteEnrichmentRepository` depending on `BrokerDecision`. The adapter imports nothing from `crate::domain::broker`. The handler is what joins kernel and store: it imports the kernel at `../project/src/handlers/enrichment_proposals_handler.rs:41-43` and the store's `StoredDecision` at `:38-40`. That matches the inward-only rule in `../project/src/domain/mod.rs:1-5`.
 
 ## VC-07.9 Broker kernel placement and the never-merged BrokerActor
 ```mermaid
@@ -329,8 +344,8 @@ sequenceDiagram
     H->>AD: persist StoredDecision / EnrichmentProposal
     H->>AC: emit ACSP event
     Note over AC: stateless producer — there is no BrokerActor
-    Note over H,AC: DIVERGENCE (BASELINE-architecture.md:304) — BrokerActor was never merged. main uses a stateless<br/>ACSP producer plus a cherry-picked storage-agnostic domain broker kernel (~936 LOC).<br/>Measured here: broker_case.rs 490 + broker_decision.rs 437 = 927 lines, 1071 including<br/>mod.rs and precedent_registry.rs — consistent with the doc's ~936.
-    Note over H,AC: DIVERGENCE (BASELINE ACSP workflow closeout 2026-09-04, BASELINE-architecture.md:359) — the retained kernel's<br/>presence does not prove integration into the elevation actor or the inbox DTO.<br/>Current source review does not certify a complete human-approval journey. See VC-05.
+    Note over H,AC: DIVERGENCE (BASELINE-architecture.md:327-328) — BrokerActor was never merged. main uses a stateless<br/>ACSP producer plus a cherry-picked storage-agnostic domain broker kernel (~936 LOC).<br/>Measured here: broker_case.rs 490 + broker_decision.rs 437 = 927 lines, 1071 including<br/>mod.rs and precedent_registry.rs — consistent with the doc's ~936.
+    Note over H,AC: DIVERGENCE (BASELINE ACSP workflow closeout 2026-09-04, BASELINE-architecture.md:385) — the retained kernel's<br/>presence does not prove integration into the elevation actor or the inbox DTO.<br/>Current source review does not certify a complete human-approval journey. See VC-05.
     Note over K,AD: ADR-2016 provenance append-only applies to the decision record — see VC-22
 ```
 
@@ -363,15 +378,17 @@ flowchart TB
 ```mermaid
 flowchart TB
     T["trait CorpusSource — src/services/corpus_source/mod.rs:96<br/>describe, base_paths, list_pages, list_pages_under, fetch_page,<br/>vocabulary (default Ok(None))"]
-    T --> L["LocalDirectorySource — src/services/corpus_source/local.rs:48,200<br/>walks VAULT_ROOT (src/services/corpus_source/local.rs:14), default source"]
+    T --> L["LocalDirectorySource — src/services/corpus_source/local.rs:48,234<br/>walks VAULT_ROOT (src/services/corpus_source/local.rs:14), default source"]
     T --> G["GitHubSource — src/services/corpus_source/github.rs:15,47<br/>wraps EnhancedContentAPI, pre-existing remote pull"]
     B["source_from_env_with_github — src/services/corpus_source/mod.rs:157<br/>selects by corpus_source_kind() (src/services/corpus_source/mod.rs:193)<br/>over CORPUS_SOURCE, defaulting to local when VAULT_ROOT is set"]
     B --> T
-    AS["AppState::new — src/app_state.rs:557-560<br/>corpus_source = source_from_env_with_github(enhanced_content_api)<br/>GitHubSyncService::new(corpus_source, ...)"]
+    AS["AppState::new — src/app_state.rs:556-559<br/>corpus_source = source_from_env_with_github(enhanced_content_api)<br/>GitHubSyncService::new(corpus_source, ...)"]
     B --> AS
-    N1["INVARIANT — change_marker differs by source: SHA1 blob hash for<br/>GitHub (src/services/corpus_source/github.rs:40), mtime:size on disk for local<br/>(src/services/corpus_source/local.rs:145)<br/>— equal markers across two listings mean unchanged"]
+    N1["INVARIANT — change_marker differs by source: SHA1 blob hash for<br/>GitHub (src/services/corpus_source/github.rs:40), mtime:size on disk for local<br/>(src/services/corpus_source/local.rs:170)<br/>— equal markers across two listings mean unchanged"]
     L --- N1
     G --- N1
     N2["GitHubSyncService::new took EnhancedContentAPI directly before<br/>ADR-2114; the port now sits between it and the sync pipeline so<br/>parse -> dual graph -> Whelk reasoning runs unchanged over either source"]
     AS --- N2
+    N3["shared-corpus-layout, a DEFAULT feature (Cargo.toml:279, :281) — LocalDirectorySource resolves prefixes and roots<br/>through ontomark_compile::profile::resolve_roots, refuses a prefix outside the configured roots<br/>(src/services/corpus_source/local.rs:112-124, checked_roots :139-143) and skips symlinks (local.rs:192-196)"]
+    L --- N3
 ```

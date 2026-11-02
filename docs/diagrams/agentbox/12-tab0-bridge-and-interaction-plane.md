@@ -46,25 +46,25 @@ sources:
   - ../project/agentbox/config/tmux-autostart.sh
   - ../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md
   - ../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md
-verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
+verified_commit: c57d9c0508f4044915f9aecea4b9aa5629cc6a35
 ---
 
 ## AB-12.2 Bridge boot — reconcile, listen, coordinator resolve
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Sup as Supervisor<br/>agentbox/flake.nix:2953
+    participant Sup as Supervisor<br/>agentbox/flake.nix:2955
     participant Dep as deploy.sh<br/>agentbox/config/tab0-bridge/deploy.sh:1
     participant Node as server.mjs<br/>agentbox/config/tab0-bridge/server.mjs:35
     participant Sock as agentbox-sessions socket<br/>agentbox/config/session-plane/client.cjs:4
 
-    Sup->>Dep: bash deploy.sh reconcile, one supervisor command line (flake.nix:2954)
+    Sup->>Dep: bash deploy.sh reconcile, one supervisor command line (flake.nix:2956)
     Dep->>Dep: copy server.mjs, turn-sink.cjs, start.sh, package.json via md5 compare (deploy.sh:27-35)
     opt node_modules/ws missing
         Dep->>Dep: npm install --omit=dev (deploy.sh:37-39)
     end
     Dep-->>Sup: exit 0, reconcile-only mode, no launch (deploy.sh:44-46)
-    Sup->>Node: exec node server.mjs, foreground, autorestart, same command line (flake.nix:2954)
+    Sup->>Node: exec node server.mjs, foreground, autorestart, same command line (flake.nix:2956)
     Node->>Node: read BRIDGE_PORT, default 8971 (server.mjs:35)
     Node->>Node: read BRIDGE_TMUX_SESSION, default agentbox (server.mjs:37)
     Node->>Node: read BRIDGE_TOKEN, default empty string (server.mjs:39)
@@ -207,7 +207,7 @@ sequenceDiagram
 
     rect rgb(255,240,240)
     Note over Mic,UBE: trust boundary — LAN door 1, port 8444 published 0.0.0.0
-    Note over Mic,Cad: TENSION resolved in the manifest's own terms — [voice].enabled is now TRUE<br/>(agentbox.toml:2210), descriptive sidecar state for /v1/system. The gate stays apply-class<br/>sidecar, so the voice compose overlay still has its own lifecycle and `agentbox up`<br/>never consults the flag (docker-compose.voice.yml:1) - the manifest describes the<br/>surface, the overlay governs it
+    Note over Mic,Cad: TENSION resolved in the manifest's own terms — [voice].enabled is now TRUE<br/>(agentbox.toml:2248), descriptive sidecar state for /v1/system. The gate stays apply-class<br/>sidecar, so the voice compose overlay still has its own lifecycle and `agentbox up`<br/>never consults the flag (docker-compose.voice.yml:1-5) - the manifest describes the<br/>surface, the overlay governs it
     Mic->>Cad: HTTPS, mic audio via /embed and /api/* (Caddyfile handle /embed*, handle_path /api/*)
     Cad->>UFE: reverse_proxy frontend:3000 (Caddyfile handle /embed*)
     Cad->>UBE: reverse_proxy backend:80, /v1/realtime (Caddyfile handle_path /api/*)
@@ -242,20 +242,20 @@ sequenceDiagram
     participant Ca as REST caller
     participant M as management-api<br/>routes/voice-intent.js:85
     participant VI as lib/voice-intent.js<br/>parseIntent:112
-    participant Ma as lib/mandate.js<br/>see AB-11.10
+    participant Ma as lib/mandate.js<br/>see AB-11.7 to AB-11.9
     participant ACS as agent-control-surface.js<br/>buildActionRequest:176
-    participant D as dispatchActionRequest<br/>server.js:902
+    participant D as dispatchActionRequest<br/>server.js:910
 
 Note over Ca,M: SCOPE — this route is not reached from the tab0-bridge cockpit or the Unmute<br/>voice loop, grep confirmed no reference to voice-intent.js under config/tab0-bridge. It is an<br/>independent management-api REST surface, included because the brief named it as an entry point.
     Ca->>M: POST /v1/voice-intent, transcript, actor_did, mandate (routes/voice-intent.js:85-112)
-    M->>M: verifyAgentEventRequest(request), see AB-11.12 (routes/voice-intent.js:155)
+    M->>M: verifyAgentEventRequest(request), see AB-11.14 (routes/voice-intent.js:155)
     alt speaker auth not ok
         M-->>Ca: reply auth.status, error (routes/voice-intent.js:156-158)
     end
     alt mandate missing or not an object
         M-->>Ca: 403, mandate-required (routes/voice-intent.js:164-169)
     end
-    M->>Ma: recordFromSignedMandate(mandate), see AB-11.10 (routes/voice-intent.js:172)
+    M->>Ma: recordFromSignedMandate(mandate), see AB-11.9 (routes/voice-intent.js:172)
     alt recordFromSignedMandate throws
         M-->>Ca: 403, mandate-invalid (routes/voice-intent.js:174)
     end
@@ -268,7 +268,7 @@ Note over Ca,M: SCOPE — this route is not reached from the tab0-bridge cockpit
         M-->>Ca: 403, mandate-inactive (routes/voice-intent.js:183-186)
     end
     opt auth.did is present
-        M->>Ma: reconcileSourceUrn(mandateRecord.agent, auth.did) (routes/voice-intent.js:192)
+        M->>M: reconcileSourceUrn(mandateRecord.agent, auth.did), the agent-event-auth helper (routes/voice-intent.js:192)
         alt grantee does not match verified speaker
             M-->>Ca: 403, mandate-speaker-mismatch (routes/voice-intent.js:193-198)
         end
@@ -290,7 +290,7 @@ Note over Ca,M: SCOPE — this route is not reached from the tab0-bridge cockpit
     alt no dispatchActionRequest wired
         M-->>Ca: 503, dispatch-unavailable (routes/voice-intent.js:237-242)
     end
-    M->>D: dispatchActionRequest(unsigned), see AB-11.x for the authority gate (routes/voice-intent.js:269)
+    M->>D: dispatchActionRequest(unsigned), see AB-11.10 for the authority gate (routes/voice-intent.js:269)
     alt dispatch throws
         M-->>Ca: 503, dispatch-failed (routes/voice-intent.js:270-276)
     end
@@ -386,6 +386,8 @@ sequenceDiagram
     end
 ```
 
+**Drift (retired board still named):** the console's own header comments still describe the AoE session board: the Caddyfile route list names `/aoe/*` via the NIP-98 proxy (`voice/console/Caddyfile:5`, `voice/console/Caddyfile:16`) though no `/aoe` handle exists, the compose overlay's header calls it the "AoE operator console" (`docker-compose.voice.yml:1`, `docker-compose.voice.yml:9`), and the voice README still says the console authenticates to `/aoe/*` (`voice/README.md:101`).
+
 ## AB-12.11 junkiejarvis-agent.js listen, zone-key grants and reply flow
 ```mermaid
 sequenceDiagram
@@ -419,9 +421,13 @@ Note over R,Ag: SCOPE — junkiejarvis-agent.js has no reference to tab0-bridge,
             Note over Ag: never falls through to _handleDm — a grant is never treated as a DM message
         else rumor.kind is KIND_DM_RUMOR
             Ag->>Ag: _shouldIgnore(rumor.pubkey), _dedup(rumor.id), backlog floor (lib/junkiejarvis-agent.js:873-883)
-            Ag->>Llm: callLlm(userText), brisk professional personality (lib/junkiejarvis-agent.js:887,442)
-            Llm-->>Ag: reply text, or apology on outage, fail-open
-            Ag->>R: _sendDm → sendGiftWrappedDm, nip59, to the asker (lib/junkiejarvis-agent.js:898,981-993)
+            Ag->>Llm: _think(userText) calls this.llm, callLlm by default, with SYSTEM_PROMPT (lib/junkiejarvis-agent.js:887,1093-1097)
+            Llm-->>Ag: reply text, or null when the brain is down
+            alt reply is null
+                Ag->>R: one canned apology per asker per APOLOGY_COOLDOWN_MS, else silence (lib/junkiejarvis-agent.js:888-896)
+            else reply
+                Ag->>R: _sendDm → sendGiftWrappedDm, nip59, to the asker (lib/junkiejarvis-agent.js:898,981-993)
+            end
         end
     else kind is 42, channel message
         Ag->>Ag: _shouldIgnore(pubkey), backlog floor (lib/junkiejarvis-agent.js:1001-1002)
@@ -434,12 +440,12 @@ Note over R,Ag: SCOPE — junkiejarvis-agent.js has no reference to tab0-bridge,
             end
         end
         Ag->>Ag: isChannelMention, p-tag or at-junkiejarvis text (lib/junkiejarvis-agent.js:146,1026)
-        Ag->>Llm: callLlm(userText), brisk professional personality (lib/junkiejarvis-agent.js:1034,442)
-        Llm-->>Ag: reply text, or apology on outage, fail-open
+        Ag->>Llm: _think(userText, zone) calls callLlm (lib/junkiejarvis-agent.js:1034,1093-1097)
+        Llm-->>Ag: reply text, or null — a null reply stays SILENT in the channel, no apology (lib/junkiejarvis-agent.js:1035-1037)
         Ag->>Ag: _replyZone(srcEvent, channelId) — zk tag first, else cached kind-40 section lookup (lib/junkiejarvis-agent.js:1068,962-978)
         Ag->>R: _sendChannelReply — e-tag root preserved, p-tag asker, zoneKeys.writePlan encrypts when the target zone is set (lib/junkiejarvis-agent.js:1039,1042-1076)
     end
-    Ag->>Ag: truncateReply to maxReply, default 280 chars (lib/junkiejarvis-agent.js:267,1140-1141)
+    Note over Ag: inside _think, before either send — truncateReply to maxReply, default 280 chars, or at least 1000 when the member asks for detail (lib/junkiejarvis-agent.js:267,728,1140-1141)
 Note over Ag,R: INVARIANT ADR-2088 — sendGiftWrappedDm is the ONE gift-wrap site in the repo<br/>(lib/junkiejarvis-agent.js:654). _sendDm delegates to it so the nightly forum-suggestions<br/>tenant, which has a bridge and a signer but no agent instance, sends through the identical<br/>envelope instead of hand-rolling a second one
 Note over Ag: hasSchedulingIntent may buildCalendarEvent, kind-31923 NIP-52, on behalf of forum members (lib/junkiejarvis-agent.js:371,1121)
 ```
@@ -543,6 +549,6 @@ flowchart TD
 
 **Trust boundary.** Trust seeding visits the root and existing wrapper profile stores. Missing profile files are not created (`services/agentbox-sessions/src/trust.rs:34-43`). The old root-only comment is stale relative to `config/hooks/trust-seed.cjs:78-86`.
 
-**Review scope.** Only AB-12.15 is reassessed here. Its implementation files match the topic's existing verified revision; sibling panels retain their original evidence boundaries. AB-39 details the new probes and lifecycle findings.
+**Review scope.** Wave 3 (2026-11-02) reassessed every panel in this topic at agentbox `c57d9c0508f4` by source tracing; the session-plane files cited here are unchanged from the previous stamp. AB-39 details the lifecycle probes; the runtime liveness statements above are not re-tested here.
 
-**Tension (ADR-2151 vs manifest):** ADR-2151 (its pin commit 11dafbde9 landed after d9477245d held it proposed) records the VoiceLink edge voice slot as proposed, implementation none, inactive (`docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`), while the live manifest sets `[voicelink] enabled = true` and `record_events = true` (`agentbox.toml:2226,2233`); that path reaches the container by `voice-paned --stdio` over ssh and bypasses tab0-bridge and the Unmute loop (`agentbox.toml:2218-2222`).
+**Tension (ADR-2151 vs manifest):** ADR-2151 (its pin commit 11dafbde9 landed after d9477245d held it proposed) records the VoiceLink edge voice slot as proposed, implementation none, inactive (`docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`), while the live manifest sets `[voicelink] enabled = true` and `record_events = true` (`agentbox.toml:2264,2271`); that path reaches the container by `voice-paned --stdio` over ssh and bypasses tab0-bridge and the Unmute loop (`agentbox.toml:2254-2258`).

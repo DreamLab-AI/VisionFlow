@@ -42,7 +42,7 @@ sources:
   - ../project/src/app_state.rs
   - ../project/src/actors/graph_state_actor.rs
   - ../project/src/services/ontology_mutation_service.rs
-verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, agentbox: 6500582dfae23bf8a38a6942916d208154e43625}
+verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35}
 ---
 
 ## VC-22.1 Write-master per data class
@@ -51,13 +51,13 @@ verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, agentbox
 flowchart LR
     AuthContent["Authored content<br/>public: true / owl-class markdown"] --> CorpusSrc["CorpusSource port (ADR-2114)<br/>local vault default (VAULT_ROOT set), GitHub opt-in<br/>corpus_source/mod.rs:193 corpus_source_kind<br/>github_sync_service.rs:1587 ingest"]
     CorpusSrc -->|"github_sync_service.rs:969, :1026 rebuild_assert_graph CLEAR+INSERT"| AssertGraph["GRAPH_ONTOLOGY :assert<br/>oxigraph_ontology_repository.rs:48"]
-    CorpusSrc -->|"oxigraph_graph_repository.rs:1233 clear_graph"| KnowledgeGraph["GRAPH_KNOWLEDGE<br/>oxigraph_ontology_repository.rs:50"]
+    CorpusSrc -->|"oxigraph_graph_repository.rs:1212 clear_graph drops knowledge and agent graphs"| KnowledgeGraph["GRAPH_KNOWLEDGE<br/>oxigraph_ontology_repository.rs:50"]
 
     VisIntent["Visibility intent<br/>visibility + owner_pubkey"] --> SettingsDB["settings.sqlite3 settings table<br/>sqlite_settings_repository.rs:61-68"]
-    SettingsDB -->|"projected by"| VisFilter["is_dropped_for, private nodes fail closed<br/>visibility_filter.rs:93<br/>filter_enabled visibility_filter.rs:38, PUBKEY_VISIBILITY_FILTER default ON (:26)<br/>position stream position_updates.rs:13"]
-    GraphActor["GraphStateActor snapshot<br/>private_nodes from node metadata public and owner_pubkey<br/>graph_state_actor.rs:179-193"] -->|"feeds"| VisFilter
+    SettingsDB -->|"projected by"| VisFilter["is_dropped_for, private nodes fail closed<br/>visibility_filter.rs:93<br/>filter_enabled visibility_filter.rs:38, PUBKEY_VISIBILITY_FILTER default ON (:26)<br/>position stream position_updates.rs:11"]
+    GraphActor["GraphStateActor snapshot<br/>private_nodes from node metadata public and owner_pubkey<br/>graph_state_actor.rs:174-188"] -->|"feeds"| VisFilter
 
-    AssertGraph -.->|"reasoner run: clear_inferred_graph:696"| InferredGraph["GRAPH_ONTOLOGY_INFERRED<br/>oxigraph_ontology_repository.rs:49 derived, never primary"]
+    AssertGraph -.->|"reasoner run: store_inference_results DELETE+INSERT oxigraph_ontology_repository.rs:2507, :2601-2606"| InferredGraph["GRAPH_ONTOLOGY_INFERRED<br/>oxigraph_ontology_repository.rs:49 derived, never primary"]
 
     OpState["Operational state"] --> SqliteFour["4x SQLite WAL: settings/enrichment/kpi/liveness<br/>src/adapters/sqlite_*_repository.rs"]
 
@@ -67,7 +67,7 @@ flowchart LR
 
     AuditRBAC["Audit evidence RBAC/auth"] --> RoleTable["user_roles table in settings.sqlite3<br/>role_store.rs:46-52"]
 
-    Sessions["Session cache<br/>NostrService users map"] --> RedisGate{"redis feature AND REDIS_URL?<br/>Cargo.toml:281, nostr_service.rs:149"}
+    Sessions["Session cache<br/>NostrService users map"] --> RedisGate{"redis feature AND REDIS_URL?<br/>Cargo.toml:284, nostr_service.rs:149"}
     RedisGate -->|yes| Redis["Optional Redis session persistence<br/>SETEX (set_ex) with token-expiry TTL<br/>nostr_service.rs:287"]
     RedisGate -->|no| Memory["In-memory sessions only<br/>nostr_service.rs:164"]
     Redis -.->|"restore at initialisation"| Sessions
@@ -84,6 +84,9 @@ flowchart LR
 
     DivCreds["PROPOSED ADR-2104: execute the SOPS rollout or formally withdraw ADR-109 - plaintext .env is documented as the interim state either way<br/>a 43MB scripts/sops binary dated 2026-05-09 is present and gitignored, but no .sops.yaml, secrets.enc.yaml or sops-env.sh exists<br/>docs/DATA-authority-erasure.md:113"]
     DotEnv -.-> DivCreds
+
+    DebtClear["DEBT: clear_inferred_graph oxigraph_ontology_repository.rs:696 has no production caller, only its test :3511"]
+    InferredGraph -.-> DebtClear
 
     DivWorkspace["OPEN: which row of this matrix moves, and when, if ADR-2137 (proposed, implementation none, activation inactive) makes<br/>Oxigraph and the other query stores optional rebuildable projections of authored Markdown?<br/>docs/DATA-authority-erasure.md:242"]
     AssertGraph -.-> DivWorkspace
@@ -194,7 +197,7 @@ erDiagram
     ENRICHMENT_PROPOSALS ||--o{ ENRICHMENT_DECISIONS : "case_id (sqlite_enrichment_repository.rs:96)"
     LIVENESS_CANARIES ||--o{ CANARY_FIRES : "canary_id (sqlite_canary_repository.rs:64)"
     KPI_SNAPSHOTS ||--o{ KPI_LINEAGE : "snapshot_id (sqlite_kpi_repository.rs:104)"
-    SETTINGS ||--|| USER_ROLES : "same settings.sqlite3 connection (role_store.rs:5, main.rs:783-787, settings repo opened at app_state.rs:441-447)"
+    SETTINGS ||--|| USER_ROLES : "same settings.sqlite3 connection (role_store.rs:4-5, main.rs:783-787, settings repo opened at app_state.rs:441-447)"
 ```
 
 ## VC-22.3 Derived-writeback fence (`POST /api/ingest/writeback`, ADR-2015)
@@ -202,13 +205,13 @@ erDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant GB as GitBridge<br/>agentbox management-api/routes/git-bridge.js:733
+    participant GB as GitBridge<br/>agentbox management-api/routes/git-bridge.js:773
     participant WBH as writeback handler<br/>src/handlers/ingest_writeback_handler.rs:75
     participant APD as apply_decision<br/>src/handlers/enrichment_proposals_handler.rs:473
     participant REPO as SqliteEnrichmentRepository::record_decision<br/>src/adapters/sqlite_enrichment_repository.rs:608
     participant ONTO as append_derived_quads<br/>oxigraph_ontology_repository.rs:733
 
-    GB->>WBH: POST /api/ingest/writeback decision block (route at ingest_writeback_handler.rs:103)
+    GB->>WBH: POST /api/ingest/writeback decision block, approve actions only (git-bridge.js:750), route at ingest_writeback_handler.rs:103
     WBH->>WBH: attribution_pubkey approvedBy did:nostr or hex (ingest_writeback_handler.rs:62-70)
     WBH->>APD: apply_decision(case_id, BrokerDecisionRequest, effective_tier None) (ingest_writeback_handler.rs:88-99)
     APD->>APD: gate_tier(declared tier, effective_tier) stricter wins, then check_rationale 422 when refused (enrichment_proposals_handler.rs:508-510, gate_tier :382)
@@ -285,9 +288,9 @@ sequenceDiagram
     TH-->>C: 200 JSON ProvenanceTrace
     Note over SVC,ENR: this trace reads only the two SQLite-backed sources - it does NOT query the Oxigraph GRAPH_PROVENANCE<br/>append-only graph ADR-2016 covers (ADR-2016 consumer closeout 2026-09-05)
     JOIN->>JOIN: intent_match(declared intent, action type, target urn)<br/>src/services/intent_match.rs:221
-    Note over JOIN: ADR-2110 FR5.2: an agent-event record now carries the DECLARED<br/>intent verbatim and a three-valued verdict. null means NO CLAIM WAS MADE,<br/>which is not the same as a failed claim. Decision and git-mark records<br/>carry neither. provenance_trace.rs:203, :219, :231
-    Note over KPI: INVARIANT: the declaration is persisted verbatim on kpi_agent_events<br/>rather than re-derived at read time, so a later reading cannot soften it.<br/>migrations/sqlite/0006_kpi_agent_event_intent.sql:1, row field at<br/>src/adapters/sqlite_kpi_repository.rs:245
-    Note over JOIN: pod_git_mark source is hardcoded pod_source_available false, always reported sources_absent here (provenance_trace.rs:243)
+    Note over JOIN: ADR-2110 FR5.2: an agent-event record now carries the DECLARED<br/>intent verbatim and a three-valued verdict. null means NO CLAIM WAS MADE,<br/>which is not the same as a failed claim. Decision and git-mark records<br/>carry neither. provenance_trace.rs:206-211, :222-223, :234-235
+    Note over KPI: INVARIANT: the declaration is persisted verbatim on kpi_agent_events<br/>rather than re-derived at read time, so a later reading cannot soften it.<br/>migrations/sqlite/0006_kpi_agent_event_intent.sql:5-9, :16, row field at<br/>src/adapters/sqlite_kpi_repository.rs:245
+    Note over JOIN: pod_git_mark source is hardcoded pod_source_available false (provenance_trace.rs:357-358), always reported sources_absent here (:243)
 ```
 
 ## VC-22.6 Erasure — `deleteAgentMemory` Pod path (RuVector tombstone gap)
@@ -297,25 +300,25 @@ sequenceDiagram
     autonumber
     participant UI as SolidPodService.deleteAgentMemory<br/>client/src/services/SolidPodService.ts:366
     participant MEM as agentMemory.deleteAgentMemory<br/>client/src/services/solidPod/agentMemory.ts:191
-    participant LDP as deleteResource<br/>client/src/services/solidPod/ldpClient.ts:206
+    participant LDP as deleteResource<br/>client/src/services/solidPod/ldpClient.ts:201
     participant POD as Solid Pod HTTP server
 
     UI->>MEM: deleteAgentMemory(podPath, agentId, key) (SolidPodService.ts:368)
-    MEM->>MEM: sanitizePreferenceKey(key), build container path (agentMemory.ts:192-193)
-    MEM->>LDP: deleteResource(containerPath + safeKey + .jsonld) (agentMemory.ts:194)
+    MEM->>MEM: sanitizePreferenceKey(key), build container path (agentMemory.ts:196-197)
+    MEM->>LDP: deleteResource(containerPath + safeKey + .jsonld) (agentMemory.ts:198)
     LDP->>POD: fetchWithAuth method DELETE (ldpClient.ts:203)
     alt response ok or 404
         POD-->>LDP: 2xx or 404 (already absent)
         LDP-->>MEM: true
     else other error status
         POD-->>LDP: 4xx/5xx
-        LDP-->>MEM: false, logs DELETE failed (ldpClient.ts:210-212)
+        LDP-->>MEM: false, logs DELETE failed (ldpClient.ts:205-207)
     end
     MEM-->>UI: boolean deleted-or-absent
     rect rgb(255, 230, 230)
         Note over MEM,POD: DIVERGENCE: no reverse tombstone to RuVector - embedding row persists and stays searchable (docs/DATA-authority-erasure.md:88)
         Note over MEM: this Pod-side delete never calls mcp__claude-flow__memory_delete or any RuVector endpoint - RuVector is<br/>external Postgres reached only via MCP, no delete-propagation hook exists in this path
-        Note over MEM: DRIFT: the server now also holds a direct read-only RuVector client (tokio-postgres from RUVECTOR_PG_CONNINFO, crate visionclaw-memory-cloud),<br/>so MCP-only access holds for writes and deletes but no longer for reads, and the embedding row this path leaves behind has a second consumer Cargo.toml:143-145
+        Note over MEM: DRIFT: the server now also holds a direct read-only RuVector client (tokio-postgres from RUVECTOR_PG_CONNINFO, crate visionclaw-memory-cloud),<br/>so MCP-only access holds for writes and deletes but no longer for reads, and the embedding row this path leaves behind has a second consumer Cargo.toml:141-146
     end
 ```
 
@@ -330,7 +333,7 @@ sequenceDiagram
     participant SQL as sqlite3 CLI in container
 
     OP->>SH: scripts/backup-sqlite.sh (scripts/backup-sqlite.sh:1)
-    SH->>SH: detect_mode docker or host (backup-sqlite.sh line ~130)
+    SH->>SH: detect_mode docker or host (backup-sqlite.sh:137, :146)
     loop for each db in REQUIRED_DBS + OPTIONAL_DBS (backup-sqlite.sh:75-76)
         SH->>CT: docker exec test -f db (backup_one_docker, backup-sqlite.sh:172)
         alt db present
@@ -344,7 +347,7 @@ sequenceDiagram
             alt is_required(db) (backup-sqlite.sh:88)
                 SH->>SH: record missing_required (backup-sqlite.sh:222-223)
             else optional db missing
-                SH->>SH: log absent, continue (backup-sqlite.sh:229)
+                SH->>SH: record missing_optional, continue (backup-sqlite.sh:225-227), logged after the loop (:247)
             end
         end
     end
@@ -379,10 +382,13 @@ sequenceDiagram
     critical decision fan-out (enrichment_proposals_handler.rs:561-594)
         APD->>SQ: record_decision INSERT+UPDATE one transaction (sqlite_enrichment_repository.rs:608-680)
         APD->>SUM: append_derived_summary INSERT DATA :summary (enrichment_proposals_handler.rs:576, oxigraph_ontology_repository.rs:785-789)
-        SUM->>PROV: prov:wasGeneratedBy marker on each subject (oxigraph_ontology_repository.rs:821-827)
+        SUM->>SUM: prov:wasGeneratedBy marker on each subject, written INTO :summary (oxigraph_ontology_repository.rs:821-827)
+        Note over SUM,PROV: CORRECTED - this fan-out writes nothing to GRAPH_PROVENANCE: append_derived_summary routes only<br/>through append_derived_quads (oxigraph_ontology_repository.rs:841), and the decision handler emits no PROV activity
     end
     Note over APD,SUM: no cross-store 2PC - the durable decision commits in SQLite first (writeback_triggered=true) - the Oxigraph<br/>write is best-effort, writeback_committed flips only on Ok (enrichment_proposals_handler.rs:576, :589)
 ```
+
+**Drift:** the approved-decision fan-out leaves nothing in the append-only `GRAPH_PROVENANCE` ledger ADR-2016 describes: the `prov:wasGeneratedBy` marker is a quad in `:summary` (`crates/visionclaw-adapters/src/oxigraph_ontology_repository.rs:821-827`), `append_derived_summary` writes only through `append_derived_quads` (`crates/visionclaw-adapters/src/oxigraph_ontology_repository.rs:841`), and `apply_decision` (`src/handlers/enrichment_proposals_handler.rs:473`) emits no PROV activity.
 
 ## VC-22.9 RBAC open-by-default posture on a read
 
@@ -433,7 +439,7 @@ sequenceDiagram
     autonumber
     participant OP as Operator (force_full_sync)
     participant SYNC as GitHubSyncService.sync_graphs<br/>src/services/github_sync_service.rs:245
-    participant KGREPO as kg_repo.clear_graph<br/>src/adapters/oxigraph_graph_repository.rs:1233
+    participant KGREPO as kg_repo.clear_graph<br/>src/adapters/oxigraph_graph_repository.rs:1212
     participant REBUILD as rebuild_assert_graph<br/>src/services/github_sync_service.rs:969
     participant AG as GRAPH_ONTOLOGY assert
     participant DECREB as rematerialise_decisions<br/>src/services/github_sync_service.rs:1065
@@ -441,7 +447,7 @@ sequenceDiagram
 
     OP->>SYNC: FORCE_FULL_SYNC=1
     alt force_full_sync true (github_sync_service.rs:370, :625)
-        SYNC->>KGREPO: clear_graph() wipes GRAPH_KNOWLEDGE (github_sync_service.rs:406-410)
+        SYNC->>KGREPO: clear_graph() drops GRAPH_KNOWLEDGE and GRAPH_AGENT (github_sync_service.rs:406-410, oxigraph_graph_repository.rs:1215-1216)
         SYNC->>REBUILD: rebuild_assert_graph(stats) (github_sync_service.rs:625-627)
         REBUILD->>REBUILD: filter KG nodes to ontology-typed only, ONTOLOGY_TYPE_KEY metadata (github_sync_service.rs:985)
         REBUILD->>AG: CLEAR GRAPH assert then INSERT DATA class nodes + class-relation edges (save_ontology_graph, atomic) (github_sync_service.rs:1026)
@@ -462,11 +468,11 @@ sequenceDiagram
 ```mermaid
 flowchart TD
     Script["backup-sqlite.sh<br/>REQUIRED_DBS default: settings.sqlite3 enrichment.sqlite3 kpi.sqlite3<br/>scripts/backup-sqlite.sh:75"] --> Req["REQUIRED - missing member fails whole run, no manifest written<br/>scripts/backup-sqlite.sh:242-245"]
-    Script --> Opt["OPTIONAL_DBS default: liveness.sqlite3 - missing is logged, run still succeeds<br/>scripts/backup-sqlite.sh:76,229"]
-    Req --> Verify["VERIFY_RESTORE=1 default: scratch-restore + SELECT count on expected_tables_for<br/>scripts/backup-sqlite.sh:91-102,110-129"]
+    Script --> Opt["OPTIONAL_DBS default: liveness.sqlite3 - missing is logged, run still succeeds<br/>scripts/backup-sqlite.sh:76,247"]
+    Req --> Verify["VERIFY_RESTORE=1 default: scratch-restore + SELECT count on expected_tables_for<br/>scripts/backup-sqlite.sh:97-105,110-131"]
     Verify --> Manifest["MANIFEST.txt sha256 per db<br/>scripts/backup-sqlite.sh:251-263"]
-    Opt -.-> Missing["missing_optional logged, count still gt 0 required<br/>scripts/backup-sqlite.sh:233"]
+    Opt -.-> Missing["missing_optional logged, count still gt 0 required<br/>scripts/backup-sqlite.sh:247-248"]
 
-    DriftNote["RESOLVED ADR-2069: the required/optional membership contract is ratified as the design and DATA-authority-erasure.md now describes it - a missing REQUIRED_DBS member (settings/enrichment/kpi, backup-sqlite.sh:75) aborts the run and publishes no manifest (:242-245), a missing OPTIONAL_DBS member (liveness, :76) is logged and the run continues (:229). Oxigraph still has NO point-in-time backup - that bullet stands."]
+    DriftNote["RESOLVED ADR-2069: the required/optional membership contract is ratified as the design and DATA-authority-erasure.md now describes it - a missing REQUIRED_DBS member (settings/enrichment/kpi, backup-sqlite.sh:75) aborts the run and publishes no manifest (:242-245), a missing OPTIONAL_DBS member (liveness, :76) is recorded (:225-227), logged and the run continues (:247). Oxigraph still has NO point-in-time backup - that bullet stands. DRIFT: DATA-authority-erasure.md:110 cites :229 for that, which is the rc check"]
     Req -.-> DriftNote
 ```

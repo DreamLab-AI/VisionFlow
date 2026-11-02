@@ -42,7 +42,7 @@ sources:
   - ../project/src/actors/client_filter.rs
   - ../project/src/uri/mod.rs
   - ../project/src/config/security_profile.rs
-verified_commit: 8692b12ba987ecb87165566beb7c320a2446e4b4
+verified_commit: 86cdd76355823a51bb64d503c005fe277726e724
 ---
 
 ## VC-03.1 REST request end-to-end — nginx to handler, real middleware order
@@ -50,7 +50,7 @@ verified_commit: 8692b12ba987ecb87165566beb7c320a2446e4b4
 sequenceDiagram
     autonumber
     participant NG as nginx (port 3001)
-    participant AC as actix HttpServer<br/>src/main.rs:959-1243
+    participant AC as actix HttpServer<br/>src/main.rs:972-1260
     participant LG as Logger<br/>wrap #1 src/main.rs:1048
     participant CO as cors<br/>wrap #2 src/main.rs:1049
     participant CP as Compress<br/>wrap #3 src/main.rs:1050
@@ -448,7 +448,7 @@ sequenceDiagram
     end
     RS-->>C: Ok(new_role) or RoleStoreError
     Note over RS: remove_checked (:500) runs the SAME atomic pattern — ADR-2010 —<br/>removal is NOT revocation: deleting the row drops the target to their AMBIENT<br/>authority (Admin if power-user, else configured_default), never denies outright.<br/>Genuine revocation requires an explicit Viewer assignment.
-    Note over RS: ownerless resolution — bootstrap_owner_from_env (:643) grants Owner to<br/>RBAC_OWNER_PUBKEY idempotently at boot if unassigned — see VC-03.11 for the boot-fail path
+    Note over RS: ownerless resolution — bootstrap_owner_from_env (:643) grants Owner to<br/>RBAC_OWNER_PUBKEY idempotently at boot if unassigned — see VC-01.2 for the boot-fail path
 ```
 
 ## VC-03.9 `PUBKEY_VISIBILITY_FILTER` — per-client entitlement on the position stream and the initial load
@@ -458,11 +458,11 @@ sequenceDiagram
     participant EF as filter_enabled<br/>crates/visionclaw-domain/src/utils/visibility_filter.rs:38
     participant CC as ClientCoordinator pump_all / pump_one<br/>src/actors/client_coordinator_actor.rs:400 / :442
     participant VF as compute_private_opaque_ids<br/>crates/visionclaw-domain/src/utils/visibility_filter.rs:110
-    participant SY as send_full_state_sync<br/>src/handlers/socket_flow_handler/types.rs:158
-    participant PU as pubkey_visibility_filter_enabled<br/>src/handlers/socket_flow_handler/position_updates.rs:13
+    participant SY as send_full_state_sync<br/>src/handlers/socket_flow_handler/types.rs:177
+    participant PU as pubkey_visibility_filter_enabled<br/>src/handlers/socket_flow_handler/position_updates.rs:11
 
-    Note over EF: parse_visibility_flag (:26-35) — default ON — only explicit<br/>"0"/"false"/"off"/"no" (case-insensitive, trimmed) disables.<br/>The env is read ONCE via OnceLock and cached for the process lifetime (:38-44),<br/>so toggling PUBKEY_VISIBILITY_FILTER at runtime has NO effect.
-    PU->>EF: delegates, one definition for every path (position_updates.rs:13-15)
+    Note over EF: parse_visibility_flag (:26-34) — default ON — only explicit<br/>"0"/"false"/"off"/"no" (case-insensitive, trimmed) disables.<br/>The env is read ONCE via OnceLock and cached for the process lifetime (:38-43),<br/>so toggling PUBKEY_VISIBILITY_FILTER at runtime has NO effect.
+    PU->>EF: delegates, one definition for every path (position_updates.rs:11-13)
     CC->>EF: policy_on = filter_enabled() (client_coordinator_actor.rs:407)
     alt policy_on and node classification not yet loaded (!cx.nta.loaded)
         CC-->>CC: warn and send nothing — fail closed, "no classification" must not read as "nothing private" (:408-413)
@@ -475,10 +475,10 @@ sequenceDiagram
             CC->>CC: plan the chunk from visible ids only, serialise V5 frame (:498-510)
         end
     end
-    SY->>PU: visibility_filter_on (types.rs:166)
-    SY->>SY: initial graph load keeps public nodes plus nodes whose owner_pubkey equals the caller (types.rs:257-276)
+    SY->>PU: visibility_filter_on (types.rs:185)
+    SY->>SY: initial graph load keeps public nodes plus nodes whose owner_pubkey equals the caller (types.rs:276-295)
     Note over CC: INVARIANT: a frame is planned only from the visible set, so a private node the caller does not own cannot be in a position chunk, client_coordinator_actor.rs:474-476
-    Note over SY: DRIFT: the comment at types.rs:255 says the filter is "Default OFF"<br/>while filter_enabled defaults ON (visibility_filter.rs:26-35)
+    Note over SY: DRIFT: the comment at types.rs:274 says the filter is "Default OFF"<br/>while filter_enabled defaults ON (visibility_filter.rs:26-34)
     Note over CC: src/actors/client_filter.rs::recompute_filtered_nodes is a DIFFERENT filter —<br/>quality/authority-threshold + linked_page inclusion, NOT pubkey ownership.<br/>It feeds client.filter.filtered_node_ids, which pump_one ANDs with the entitlement set.
 ```
 
@@ -558,7 +558,7 @@ sequenceDiagram
 
     K->>U: pubkey (64-char lowercase hex, Schnorr)
     U->>U: did_nostr(pubkey) -> "did:nostr:{pubkey}" (DID_NOSTR_PREFIX, uri/mod.rs:47)
-    Note over U: parse() round-trips did:nostr:* to ParsedUri::DidNostr (uri/mod.rs:520-528)<br/>cross_from_agentbox treats an already-converged did:nostr:* as identity, structural passthrough (:811-818)
+    Note over U: parse() round-trips did:nostr:* to ParsedUri::DidNostr (uri/mod.rs:523-531)<br/>cross_from_agentbox treats an already-converged did:nostr:* as identity, structural passthrough (:814-821)
     K->>NS: sign kind-27235 NIP-98 event (see VC-03.4)
     NS-->>K: NostrUser{pubkey, is_power_user}
     opt Solid pod provisioning

@@ -14,7 +14,7 @@ sources:
   - ../project/crates/visionclaw-xr-presence/src/ports/mod.rs
   - ../project/src/handlers/presence_handler.rs
   - ../project/src/actors/presence_actor.rs
-verified_commit: {visionclaw: 75b72416bac176ca8fde715cac3bd7c77657b3e7}
+verified_commit: {visionclaw: 86cdd7635582}
 ---
 
 ## For developers
@@ -33,7 +33,7 @@ flowchart TD
     PARSE --> REG["Get or create actor; replace disconnected address<br/>presence_handler.rs:281,290"]
     REG --> JOIN["Send verified DID in JoinRoom<br/>presence_handler.rs:305,306"]
     JOIN --> DUP["Aggregate rejects duplicate DID<br/>room.rs:42,45"]
-    DUP --> MEMBERS["Insert member and subscriber<br/>room.rs:53,57<br/>presence_actor.rs:684"]
+    DUP --> MEMBERS["Insert member and subscriber<br/>room.rs:51,52<br/>presence_actor.rs:681"]
 ```
 
 **What it shows.** The current join path has identity and duplicate checks but no membership gate or cap. **Why it is this way.** It implements the earlier legacy presence contract; the isolated actor accepted 33 distinct members and refused a duplicate.

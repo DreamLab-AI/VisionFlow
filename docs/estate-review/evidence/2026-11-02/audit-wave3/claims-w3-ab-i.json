@@ -1,0 +1,90 @@
+[
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/agentbox/33-sidestr-crates.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-i.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "AB-33.7",
+      "AB-33.8"
+    ],
+    "basis": "Source tracing at agentbox c57d9c0 and sidestr-rs d8ace3a (no wave pin; declared revision kept); strict cite-check and render pass; licensing gate claim corrected; crates.io release state not checked."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/agentbox/34-sidestr-interim-producer-and-mirror.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-i.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "AB-34.1",
+      "AB-34.2",
+      "AB-34.3",
+      "AB-34.4",
+      "AB-34.5",
+      "AB-34.6"
+    ],
+    "basis": "Source tracing at agentbox c57d9c0; strict cite-check and render pass; supervised/running status rows are the PRD's record, not observed; sidestr-nostr mirror-trust logic is external."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/agentbox/35-sidestr-level-2-consensus.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-i.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "AB-35.1",
+      "AB-35.2",
+      "AB-35.3",
+      "AB-35.4",
+      "AB-35.5"
+    ],
+    "basis": "Source tracing at agentbox c57d9c0 and sidestr-rs d8ace3a (no wave pin; declared revision kept); strict cite-check and render pass; design-record panels, nothing built to execute."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/agentbox/36-role-isolation-and-identity-port.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-i.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "AB-36.1",
+      "AB-36.2",
+      "AB-36.3",
+      "AB-36.4",
+      "AB-36.5",
+      "AB-36.6",
+      "AB-36.7"
+    ],
+    "basis": "Source tracing at agentbox c57d9c0; strict cite-check and render pass; flag-off image only, no rehearsal or env-secret-inventory run; boundaries asserted from source."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/agentbox/37-mesh-signer-and-recovery.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-i.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "AB-37.1",
+      "AB-37.2",
+      "AB-37.3",
+      "AB-37.4"
+    ],
+    "basis": "Source tracing at agentbox c57d9c0 and nostr-rust-forum c39f41f; strict cite-check and render pass; deserialisation and delivery-ordering outcomes not executed."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/agentbox/38-video-measurements-and-provider-boundaries.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-i.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "AB-38.1",
+      "AB-38.2",
+      "AB-38.3",
+      "AB-38.4"
+    ],
+    "basis": "Source tracing at agentbox c57d9c0; strict cite-check and render pass; seam overflow, ComfyUI interrupt race and GPU workflow not executed; upstream ComfyUI external."
+  }
+]

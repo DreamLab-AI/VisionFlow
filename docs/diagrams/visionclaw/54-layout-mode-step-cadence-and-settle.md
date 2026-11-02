@@ -18,12 +18,12 @@ sources:
   - ../project/src/utils/unified_gpu_compute/execution.rs
   - ../project/src/actors/gpu/test_fixtures/live_physics_settings.json
   - ../project/crates/visionclaw-gpu/src/cuda_sources/visionclaw_unified.cu
-verified_commit: {visionclaw: d6c091f0ffb6d1af04ce011836c45ace6f4dafd9}
+verified_commit: {visionclaw: 86cdd7635582}
 ---
 
 ## For developers
 
-Drawn for the [2026-11-01 duplication audit](52-drag-holds-and-observation-gates.md). It covers ADR-2140's single `physics.layoutMode` write path, what bounds the step rate as opposed to the ack-paced position stream (ADR-2141), and the three separate mechanisms called "settle". `live_physics_settings.json` is a test fixture captured from the live store, not the store itself. Code is identical at `531df5ef7`.
+Drawn for the [2026-11-01 duplication audit](52-drag-holds-and-observation-gates.md). It covers ADR-2140's single `physics.layoutMode` write path, what bounds the step rate as opposed to the ack-paced position stream (ADR-2141), and the three separate mechanisms called "settle". `live_physics_settings.json` is a test fixture captured from the live store, not the store itself. Restamped on 2026-11-02 at the VisionClaw pin, after the ADR-2169 spring-mode amendment merged; VC-54.4 is redrawn for it.
 
 ## For the business
 
@@ -40,7 +40,7 @@ flowchart TD
     MERGE --> STORE["Write the settings snapshot<br/>settings_routes.rs:675"]
     STORE --> RESOLVE["Stored zero becomes the active mode's default here only<br/>settings_routes.rs:684,685<br/>visionclaw-domain/src/models/simulation_params.rs:450,453,470"]
     RESOLVE --> GPU["UpdateSimulationParams to the GPU actor<br/>settings_routes.rs:690,694"]
-    GPU --> ACTOR["Actor neither preserves nor fills the mode<br/>force_compute_actor.rs:2595,2596,2597"]
+    GPU --> ACTOR["Actor neither preserves nor fills the mode<br/>force_compute_actor.rs:2618,2619,2620"]
     BOOT["Boot: legacy qualityGates string migrates once<br/>sqlite_settings_repository.rs:1050,1058<br/>physics_restore.rs:33,39,42"] --> STORE
 ```
 
@@ -51,12 +51,12 @@ flowchart TD
 ```mermaid
 flowchart TD
     MODE["Cadence 16 ms in Continuous, 0 in FastSettle<br/>physics_orchestrator_actor.rs:113,272,276"] --> EFF["Any held node makes the cadence 0<br/>physics_orchestrator_actor.rs:310,314"]
-    STEP["GPU step: gate, mutex, kernels, readback<br/>force_compute_actor.rs:1958,1992,1995,2002"] --> DONE["PhysicsStepCompleted back to the orchestrator<br/>force_compute_actor.rs:2384"]
+    STEP["GPU step: gate, mutex, kernels, readback<br/>force_compute_actor.rs:1979,2013,2018,2025"] --> DONE["PhysicsStepCompleted back to the orchestrator<br/>force_compute_actor.rs:2407"]
     DONE --> NEXT["Next step after cadence minus step time<br/>physics_orchestrator_actor.rs:1888,1890"]
     EFF --> NEXT
     NEXT --> RUN["run_later then physics_step<br/>physics_orchestrator_actor.rs:289,296,304"]
-    TIMING["StepTiming logs phases every 120 steps<br/>force_compute_actor.rs:4784"] -.-> STEP
-    BENCH["Ignored stage-timing test at live size<br/>execution.rs:1804"] -.-> STEP
+    TIMING["StepTiming logs phases every 120 steps<br/>force_compute_actor.rs:4871"] -.-> STEP
+    BENCH["Ignored stage-timing test at live size<br/>execution.rs:2133"] -.-> STEP
     STREAM["Per client: next chunk only on ack or timeout<br/>position_stream.rs:17,18,19"] --> RATE["Delivery rate set by that client's round trip<br/>position_stream.rs:19,20"]
     CFG["Fixture: chunk 2500 nodes, ack timeout 500 ms<br/>live_physics_settings.json:1"] --> STREAM
     DONE -.-> STREAM
@@ -64,43 +64,41 @@ flowchart TD
 
 **What it shows.** The step rate and the per-client stream rate are independent clocks. On the live graph the 16 ms cadence does nothing, because a step takes longer than that. **Why it is this way.** The sequential pipeline avoids queued steps. ADR-2141 made delivery ack-paced so that a slow client cannot stall the step.
 
-**Open:** ADR-2169 records the step at 9–10 Hz and leaves ack-paced delivery unmeasured. A rate observed at a client is a stream rate, so the step rate and the per-client stream rate need separate measurements (`position_stream.rs:19`; `force_compute_actor.rs:4784`).
+**Open:** ADR-2169 records the step at 9–10 Hz and leaves ack-paced delivery unmeasured. A rate observed at a client is a stream rate, so the step rate and the per-client stream rate need separate measurements (`position_stream.rs:19`; `force_compute_actor.rs:4871`).
 
 ## VC-54.3 Three mechanisms are called settle
 
 ```mermaid
 flowchart TD
     FS["FastSettle mode: damping override burst, then latch off<br/>visionclaw-domain/src/models/simulation_params.rs:88,90<br/>physics_orchestrator_actor.rs:359"] --> DEF["Default and always-defaulted mode is Continuous<br/>visionclaw-domain/src/models/simulation_params.rs:83,84<br/>project/src/models/simulation_params.rs:181"]
-    WIN["Hold settle window: 2 s of forced steps after last release<br/>force_compute_actor.rs:4439"]
-    TEL["Settlement telemetry: 180 ticks below KE epsilon<br/>force_compute_actor.rs:287,292"]
+    WIN["Hold settle window: 2 s of forced steps after last release<br/>force_compute_actor.rs:4516"]
+    TEL["Settlement telemetry: 180 ticks below KE epsilon<br/>force_compute_actor.rs:291,296"]
     EQ["Orchestrator equilibrium auto-pause, held guard<br/>physics_orchestrator_actor.rs:655,673,714"] --> OFF["Fixture: pauseOnEquilibrium false<br/>live_physics_settings.json:1"]
-    FS --> FA2["FA2 branch sets velocity from force, never reads damping<br/>visionclaw_unified.cu:983,997"]
-    FA2 -.-> D1["DEBT: FastSettle damping override is inert<br/>under the stored adaptive integrator<br/>visionclaw_unified.cu:1013"]
+    FS --> FA2["FA2 branch sets velocity from force, never reads damping<br/>visionclaw_unified.cu:1059,1073"]
+    FA2 -.-> D1["DEBT: FastSettle damping override is inert<br/>under the stored adaptive integrator<br/>visionclaw_unified.cu:1089"]
 ```
 
 **What it shows.** A burst mode, a 2 s time box and a KE detector share one word, and a fourth judge (the auto-pause) is configured off. **Why it is this way.** Each was added for a different consumer: layout passes, ADR-2169 holds, and the REST `/api/layout/status`.
 
-**Debt:** "settle" names three unrelated mechanisms (`physics_orchestrator_actor.rs:359`; `force_compute_actor.rs:4439,287`), and only the Verlet branch reads damping (`visionclaw_unified.cu:1013`).
+**Debt:** "settle" names three unrelated mechanisms (`physics_orchestrator_actor.rs:359`; `force_compute_actor.rs:4516,291`), and only the Verlet branch reads damping (`visionclaw_unified.cu:1089`). Since spring mode merged, that branch runs throughout every hold window (`execution.rs:1159,1160`), so damping is live there and inert only at rest under the stored adaptive integrator.
 
-## VC-54.4 How strongly a held node's neighbours follow it is set by the stored force style
+## VC-54.4 How strongly a held node's neighbours follow it: stored force style at rest, spring mode while held
 
 ```mermaid
 flowchart TD
-    PIN["Held node skips integration but stays in neighbours' spring loops<br/>visionclaw_unified.cu:942"] --> ATT{"Stored linLogMode<br/>live_physics_settings.json:1"}
-    ATT -->|true, fixture| LOG["Attraction log1p of distance, ignores spring_k<br/>visionclaw_unified.cu:574,2385"]
-    ATT -->|false| HOOKE["Hooke around one global rest length<br/>visionclaw_unified.cu:577,590,2387,2397"]
-    LOG --> CAP["Total force capped at max_force<br/>visionclaw_unified.cu:968"]
-    HOOKE --> CAP
-    CAP --> INT{"Stored adaptiveSpeed<br/>live_physics_settings.json:1"}
-    INT -->|true, fixture| AD["Speed is global_speed over 1 plus root swing<br/>visionclaw_unified.cu:983,997"]
-    INT -->|false| VER["Verlet with dt and damping<br/>visionclaw_unified.cu:1012,1013"]
-    FLOOR["Hold floor raises global_speed to 2.0<br/>force_compute_actor.rs:4455,4496"] --> AD
-    FLOOR -.-> GAP["OPEN: a Verlet span while held would leave<br/>the floor with no reader<br/>visionclaw_unified.cu:1012"]
-    SEL["Kernel chosen by stability_threshold<br/>execution.rs:652,653,655"] -.-> TWIN["DEBT: the spring loop is written twice, in<br/>force_pass_kernel and force_pass_with_stability_kernel<br/>visionclaw_unified.cu:385,2211"]
+    PIN["Held node skips integration but stays in neighbours' spring loops<br/>visionclaw_unified.cu:1018"] --> ATT{"Stored linLogMode<br/>live_physics_settings.json:1"}
+    ATT -->|true, fixture| LOG["Attraction log1p of distance, ignores spring_k<br/>visionclaw_unified.cu:434,437"]
+    ATT -->|false| HOOKE["Hooke around one global rest length<br/>visionclaw_unified.cu:440,451"]
+    LOG --> OVL["While held: plus spring_k times stretch from the grab snapshot<br/>visionclaw_unified.cu:454,455; execution.rs:718"]
+    HOOKE --> OVL
+    OVL --> CAP["Total force capped at max_force, raised with spring_k by the hold gain<br/>visionclaw_unified.cu:1044; execution.rs:1165,1166"]
+    CAP --> INT{"Overlay on, or stored adaptiveSpeed false?<br/>execution.rs:1159,1160; live_physics_settings.json:1"}
+    INT -->|no: at rest, fixture| AD["Speed is global_speed over 1 plus root swing<br/>visionclaw_unified.cu:1059,1073"]
+    INT -->|yes: held or settling| VER["Verlet with dt and damping<br/>visionclaw_unified.cu:1088,1089"]
+    FLOOR["Hold floor raises global_speed to 2.0<br/>force_compute_actor.rs:4532,4581"] -.-> GAP["DEBT: only the adaptive branch reads it, and the overlay<br/>turns that branch off for the same span<br/>visionclaw_unified.cu:1073"]
+    SEL["Kernel chosen by stability_threshold<br/>execution.rs:661,662,664"] -.-> ONE["Both force kernels call one spring helper<br/>visionclaw_unified.cu:422,645,2400"]
 ```
 
-**What it shows.** The fixture's LinLog plus adaptive pairing gives a weak, swing-damped pull. Turning LinLog off globally would move every edge to one rest length, and the resting layout with it. **Why it is this way.** LinLog is the modularity layout, and the ADR-2169 floor was the first attempt to answer the hand inside it.
+**What it shows.** At rest, the fixture's LinLog plus adaptive pairing gives a weak, swing-damped pull. Turning LinLog off globally would move every edge to one rest length, and the resting layout with it. While a node is held, the merged ADR-2169 amendment adds a linear spring around each edge's length at the moment of grab. It strengthens that spring by the hold gain and integrates with Verlet, so the pull no longer depends on the stored force style or on swing. **Why it is this way.** LinLog is the modularity layout. The `HOLD_GLOBAL_SPEED` floor was the first attempt to answer the hand inside it. The spring overlay is the second attempt, and it replaced the first without removing it.
 
-**Debt:** the attraction and Hooke branches exist in both force kernels, so any change to the spring force has to be made twice (`visionclaw_unified.cu:574,2385`).
-
-**Open:** an in-flight change (HS, not merged) adds a snapshot rest-length overlay and runs Verlet while held. That would make the `HOLD_GLOBAL_SPEED` floor unread over the same span (`force_compute_actor.rs:4455,4496`; `visionclaw_unified.cu:1012`).
+**Debt:** the speed floor is computed for exactly the span in which the overlay disables its only reader (`force_compute_actor.rs:4581`; `execution.rs:1160`; `visionclaw_unified.cu:1073`). The earlier debt that the spring force was written twice is closed: both kernels now call `edge_spring_scale` (`visionclaw_unified.cu:422`), although each kernel still has its own neighbour loop.

@@ -41,7 +41,7 @@ sources:
   - ../project/src/app_state.rs
   - ../project/src/services/ontology_mutation_service.rs
   - ../project/src/services/voice_intent_client.rs
-verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4, agentbox: 6500582dfae23bf8a38a6942916d208154e43625}
+verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35}
 ---
 
 ## VC-24.1 Enrichment-proposal lifecycle (real status values)
@@ -54,6 +54,8 @@ stateDiagram-v2
     pending --> reviewed: status_for_outcome fallback amend delegate etc<br/>sqlite_enrichment_repository.rs:233
     approved --> elevated: ElevationActor GOV-2 terminal_for_pr_state Merged<br/>elevation_actor.rs:914, 1644 repo.set_status
     approved --> abandoned: ElevationActor GOV-2 terminal_for_pr_state ClosedUnmerged<br/>elevation_actor.rs:914, 1644 repo.set_status
+    pending --> expired: ElevationActor boot Reconcile past OPEN_CASE_TTL<br/>elevation_actor.rs:1385 EXPIRED_STORE_STATUS :72
+    expired --> [*]
     elevated --> [*]
     abandoned --> [*]
     rejected --> [*]
@@ -65,7 +67,8 @@ stateDiagram-v2
       table (category=decision-elevation), decision_elevation_store.rs:60,
       202. Its terminal statuses reuse pending/approved/rejected/reviewed
       here but diverge past approved - published (not elevated) and
-      applying/publish_failed/expired have no equivalent on this branch.
+      applying/publish_failed have no equivalent on this branch; expired
+      is shared (ElevationActor writes it too, see the pending edge).
       decision_elevation_store.rs:68-90. See VC-24.6
     end note
 ```
@@ -101,7 +104,7 @@ sequenceDiagram
     participant AD as apply_decision<br/>handlers/enrichment_proposals_handler.rs:473
     participant REPO as SqliteEnrichmentRepository
     participant OXI as append_derived_summary call site<br/>handlers/enrichment_proposals_handler.rs:576
-    participant ACSPC as AppState.acsp_client<br/>app_state.rs:301
+    participant ACSPC as AppState.acsp_client<br/>app_state.rs:300
     BR->>H: POST /api/enrichment-proposals/:id/decide X-Agent-Key
     H->>AUTH: require_agent_key compares X-Agent-Key to VISIONCLAW_AGENT_KEY<br/>via constant-time check_agent_key (subtle ct_eq, ADR-2093)<br/>utils/agent_key.rs:13, :15, handlers/enrichment_proposals_handler.rs:141, :146, :432
     alt key invalid or missing
@@ -238,8 +241,10 @@ sequenceDiagram
             POLL->>POLL: resolved.push(case_id) - remove from elevating map<br/>elevation_actor.rs:1653
         end
     end
-    Note over POLL,REPO: RESOLVED ADR-2101 (2026-09-05) in part: the durable case-state<br/>authority ADR-2006 left unnamed is THIS store - enrichment.sqlite3 - reached for<br/>decision-elevation cases through DecisionElevationStore, and decision rows now<br/>carry the ADR-2006 signed-event correlation on both elevation paths.<br/>STILL OPEN on this path: the ElevationActor poll shown here persists set_status<br/>but has no boot reconciliation, so a case lost between publish and persist is not<br/>reloaded on restart. ADR-2101 adds that to DecisionElevationActor only - see VC-24.6
+    Note over POLL,REPO: RESOLVED ADR-2101 (2026-09-05) in part: the durable case-state<br/>authority ADR-2006 left unnamed is THIS store - enrichment.sqlite3 - reached for<br/>decision-elevation cases through DecisionElevationStore, and decision rows now<br/>carry the ADR-2006 signed-event correlation on both elevation paths.<br/>STILL OPEN on this path: the ADR-2110 boot Reconcile reloads only rows still pending<br/>(elevation_actor.rs:1351 list Some pending). The approved case whose PR this poll tracks<br/>lives only in the in-memory elevating map (elevation_actor.rs:1572) and its PR url is never<br/>persisted, so after a restart the merge poll never fires for it. DecisionElevationActor persists<br/>the PR url and re-arms the poll at boot - see VC-24.6
 ```
+
+**Debt:** ElevationActor's boot reconciliation covers only the waiting half of a case. `Reconcile` reads rows with status `pending` (`../project/src/actors/elevation_actor.rs:1351`). An approved case whose draft PR is open is held only in the in-memory `elevating` map (`../project/src/actors/elevation_actor.rs:1572`), and no store write records its PR url. A restart therefore drops it, and `concept_elevated` and the `elevated` status never land even if the PR later merges. DecisionElevationActor closes the same gap by persisting the PR url before tracking it (`../project/src/actors/decision_elevation_actor.rs:363`). What would close it: persist the PR url on the case row and reload `approved` rows that carry one.
 
 ## VC-24.6 DecisionElevationActor — parallel path vs ElevationActor
 
@@ -276,13 +281,13 @@ sequenceDiagram
     loop every PR_POLL_INTERVAL=120s
         DEA->>DEA: PollPrs calls terminal_for_pr_state<br/>decision_elevation_actor.rs:901, :921, :949
         alt Merged
-            DEA->>ACSP: publish build_case_status_update decision_elevated kind 31404<br/>decision_elevation_actor.rs:948
-            Note right of DEA: terminal_case_status maps decision_elevated to case_status::PUBLISHED<br/>(not elevated - the enrichment-proposal vocabulary), decision_elevation_actor.rs:905<br/>decision_elevation_store.rs:79. See VC-24.1 for the two vocabularies sharing one column
+            DEA->>ACSP: publish build_case_status_update decision_elevated kind 31404<br/>decision_elevation_actor.rs:953
+            Note right of DEA: terminal_case_status maps decision_elevated to case_status::PUBLISHED<br/>(not elevated - the enrichment-proposal vocabulary), decision_elevation_actor.rs:910<br/>decision_elevation_store.rs:79. See VC-24.1 for the two vocabularies sharing one column
         else ClosedUnmerged
             DEA->>ACSP: publish decision_abandoned kind 31404
         end
     end
-    Note over DEA: RESOLVED ADR-2101 (2026-09-05): the actor now holds a<br/>DecisionElevationStore, a typed facade over the SAME data/enrichment.sqlite3<br/>SqliteEnrichmentRepository the ElevationActor uses (decision_elevation_store.rs:60,<br/>202) - case rows tagged category=decision-elevation, decision rows carrying the<br/>ADR-2006 signed-event correlation. Every transition is durable and ordered - the<br/>case row is written BEFORE the 31402 publish, the PR url BEFORE the in-memory<br/>tracking insert (decision_elevation_actor.rs:363, :381), and the GOV-2 terminal<br/>status BEFORE the case leaves the map. At boot plan_reconciliation reloads every<br/>non-terminal case and re-arms the merge poll, re-opens a PR whose approval crashed<br/>before it landed, re-arms a case still awaiting a human, or expires it past a<br/>14-day TTL with a 31404 receipt (decision_elevation_actor.rs:819). A case tracking<br/>an open PR is never expired. Remaining gap - a resumed approval can open a<br/>duplicate PR, recorded as follow-on 1 in ADR-2101
+    Note over DEA: RESOLVED ADR-2101 (2026-09-05): the actor now holds a<br/>DecisionElevationStore, a typed facade over the SAME data/enrichment.sqlite3<br/>SqliteEnrichmentRepository the ElevationActor uses (decision_elevation_store.rs:60,<br/>202) - case rows tagged category=decision-elevation, decision rows carrying the<br/>ADR-2006 signed-event correlation. Every transition is durable and ordered - the<br/>case row is written BEFORE the 31402 publish, the PR url BEFORE the in-memory<br/>tracking insert (decision_elevation_actor.rs:363, :381), and the GOV-2 terminal<br/>status BEFORE the case leaves the map. At boot plan_reconciliation reloads every<br/>non-terminal case and re-arms the merge poll, re-opens a PR whose approval crashed<br/>before it landed, re-arms a case still awaiting a human, or expires it past a<br/>14-day TTL with a 31404 receipt (decision_elevation_actor.rs:824). A case tracking<br/>an open PR is never expired. Remaining gap - a resumed approval can open a<br/>duplicate PR, recorded as follow-on 1 in ADR-2101
 ```
 
 ## VC-24.8 nostr_bead_publisher / nostr_bridge — governance event publish
@@ -322,9 +327,9 @@ flowchart LR
     end
     B31400["build_panel_definition<br/>acsp/events.rs:210"] -->|producer| K31400
     B31401["build_panel_state<br/>acsp/events.rs:219"] -->|producer| K31401
-    B31402A["ElevationActor RunCycle publish<br/>elevation_actor.rs:1293"] -->|producer| K31402
+    B31402A["ElevationActor RunCycle publish<br/>elevation_actor.rs:1293, voice-commanded case :1173"] -->|producer| K31402
     B31402B["DecisionElevationActor handle ElevateDecision then acsp.publish<br/>decision_elevation_actor.rs:692"] -->|producer| K31402
-    B31402C["voice_intent_client.build_action_request<br/>voice_intent_client.rs:304"] -->|producer| K31402
+    B31402C["voice_intent_client.build_voice_action_request<br/>voice_intent_client.rs:297, calls build_action_request :316"] -->|producer| K31402
     B31403A["build_action_response<br/>acsp/events.rs:288 enrichment_proposals_handler.rs:642"] -->|producer| K31403
     B31404A["build_case_status_update<br/>acsp/events.rs:237 elevation_actor.rs:1633"] -->|producer| K31404
     B31404B["build_panel_update<br/>acsp/events.rs:228"] -->|producer| K31404
@@ -369,7 +374,7 @@ flowchart TB
     VF -->|4 walk EVERY mark not tip only - each output key x of P_i recomputed,<br/>each mark spends its predecessor, each confirmed - reordered states derive<br/>different keys so the walk refuses| BT
     CH -->|3-gate registry| VF
     TL -->|capability gate| VF
-    Note1["Note: this is the ADR-124/128 web-ledger contract<br/>layer (legacy numbering, not in the 20xx governing<br/>pack) - the deploy/verify ritual for gitmark.json /<br/>blocktrails.json payment contracts. It is NOT part of<br/>the ACSP proposal/case state machine (VC-24.1-24.7);<br/>included here only because the brief names it as a<br/>governance-adjacent entry point under src/"]
+    Note1["Note: this is the ADR-124/128 web-ledger contract<br/>layer (legacy numbering, not in the 20xx governing<br/>pack) - the deploy/verify ritual for gitmark.json /<br/>blocktrails.json payment contracts. It is NOT part of<br/>the ACSP proposal/case state machine (VC-24.1-24.6;<br/>there is no VC-24.7);<br/>included here only because the brief names it as a<br/>governance-adjacent entry point under src/"]
 ```
 
 ## VC-24.11 ACSP decision-projection client — app_state.rs boot + relay connect
@@ -377,27 +382,27 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant BOOT as AppState::new<br/>app_state.rs:1307-1334
+    participant BOOT as AppState::new<br/>app_state.rs:1322-1349
     participant ENV as env FORUM_RELAY_URL + panel key:<br/>KEY_FILE vars or privkey vars (acsp/key_file.rs:13-15)
     participant ACSP as AcspClient::connect<br/>acsp/client.rs:78
     participant RELAY as forum relay (nostr_sdk Client, auto-reconnect)
-    BOOT->>ENV: read FORUM_RELAY_URL :1308, then panel secret via<br/>key_file::load_panel_secret (file first, env fallback)<br/>app_state.rs:1308-1315 acsp/key_file.rs:310
+    BOOT->>ENV: read FORUM_RELAY_URL :1323, then panel secret via<br/>key_file::load_panel_secret (file first, env fallback)<br/>app_state.rs:1323-1330 acsp/key_file.rs:310
     alt relay and secret both Some
         BOOT->>ACSP: connect(secret, relay)
         ACSP->>RELAY: add_relay + connect (nostr_sdk relay pool)<br/>acsp/client.rs:83-89
         alt connect Ok
             RELAY-->>ACSP: relay added, nostr-sdk connects in the background and keeps retrying (acsp/client.rs:87-89)
             ACSP-->>BOOT: Arc AcspClient
-            BOOT->>BOOT: acsp_client = Some(client)<br/>app_state.rs:1320 log relay set - REST/bridge decisions project as kind-31403
+            BOOT->>BOOT: acsp_client = Some(client)<br/>app_state.rs:1335 log relay set - REST/bridge decisions project as kind-31403
         else connect Err
             ACSP-->>BOOT: Err(e)
-            BOOT->>BOOT: acsp_client = None, warn FAILED to connect - degraded, visible<br/>app_state.rs:1324
+            BOOT->>BOOT: acsp_client = None, warn FAILED to connect - degraded, visible<br/>app_state.rs:1339
         end
     else unconfigured or key unusable
-        BOOT->>BOOT: acsp_client = None, info OFF (key_file load error logs error!) -<br/>decisions record forum_projection=skipped<br/>app_state.rs:1330
+        BOOT->>BOOT: acsp_client = None, info OFF (key_file load error logs error!) -<br/>decisions record forum_projection=skipped<br/>app_state.rs:1345
     end
     Note over BOOT,RELAY: DEBT: connect Ok does not prove the relay is reachable - an unreachable relay surfaces later as a publish error,<br/>i.e. forum_projection=failed at decide time, not as the FAILED-to-connect branch above. acsp/client.rs:87-89, handlers/enrichment_proposals_handler.rs:654
-    Note over BOOT,RELAY: this is the SAME AcspClient type ElevationActor and<br/>DecisionElevationActor each construct independently at their own<br/>startup (elevation_actor.rs:1056, decision_elevation_actor.rs:521) -<br/>three separate relay connections under three different panel<br/>identities can exist concurrently, all using the same bridge secret
+    Note over BOOT,RELAY: this is the SAME AcspClient type ElevationActor and<br/>DecisionElevationActor each construct independently at their own<br/>startup (elevation_actor.rs:1056, decision_elevation_actor.rs:510) -<br/>three separate relay connections under three panel ids can exist<br/>concurrently, all signing with the same panel secret from<br/>key_file::load_panel_secret (elevation_actor.rs:199, decision_elevation_actor.rs:183)
 ```
 
 ## VC-24.12 Decision-page OKF/vault frontmatter — draft, wikilinks and the read-back
@@ -441,6 +446,6 @@ sequenceDiagram
     end
     H-->>BR: 200 {cases, total} - total is the unfiltered proposal count<br/>broker_inbox_handler.rs:210, :224
     Note over JV,H: INVARIANT: Jev annotates and orders only - it never approves, rejects or promotes, and the decide route (VC-24.3), signed decisions and receipts are untouched.<br/>crates/visionclaw-jev/src/proposal_triage.rs:8-10
-    Note over TR,JV: RESOLVED 2026-10-30 (routing, configured): the laya declaration is gone. PROPOSAL_TRIAGE is still local-only in code (Item::local_only<br/>crates/visionclaw-jev/src/config.rs:155-160, refusal :326-328), but ALLOW_CLOUD=1 (docker-compose.unified.yml:22, config.rs:303-305) and the shared block's<br/>agentbox:8094 with BACKEND_LOCAL=0 (docker-compose.unified.yml:7-11) send the private proposal text via the proxy to the selected backend, typesafe (agentbox.toml:892),<br/>by operator decision (docs/adr/ADR-2148-enable-local-typed-decisions.md:65-66, docs/reference/configuration.md:417-427, :468).<br/>RESOLVED 2026-10-30 (activation): VisionClaw ADR-2148 is accepted / complete / live (docs/adr/ADR-2148-enable-local-typed-decisions.md:5-7), the agentbox rebuild and the host recreate both happened (docs/adr/ADR-2148-enable-local-typed-decisions.md:81-91) - docs/BASELINE-architecture.md:50-52 agrees, live since the host recreate,<br/>ALLOW_CLOUD=0 with JEV_LOCAL=1 and a local endpoint keeps it on a LAN model
+    Note over TR,JV: RESOLVED 2026-10-30 (routing, configured): the laya declaration is gone. PROPOSAL_TRIAGE is still local-only in code (Item::local_only<br/>crates/visionclaw-jev/src/config.rs:155-160, refusal :326-328), but ALLOW_CLOUD=1 (docker-compose.unified.yml:22, config.rs:303-305) and the shared block's<br/>agentbox:8094 with BACKEND_LOCAL=0 (docker-compose.unified.yml:7-11) send the private proposal text via the proxy to the selected backend, typesafe (agentbox.toml:891),<br/>by operator decision (docs/adr/ADR-2148-enable-local-typed-decisions.md:65-66, docs/reference/configuration.md:417-427, :468).<br/>RESOLVED 2026-10-30 (activation): VisionClaw ADR-2148 is accepted / complete / live (docs/adr/ADR-2148-enable-local-typed-decisions.md:5-7), the agentbox rebuild and the host recreate both happened (docs/adr/ADR-2148-enable-local-typed-decisions.md:81-91) - docs/BASELINE-architecture.md:51-53 agrees, live since the host recreate,<br/>ALLOW_CLOUD=0 with JEV_LOCAL=1 and a local endpoint keeps it on a LAN model
     Note over H,ST: DEBT: total is proposals.len() after store::all, which is capped at ALL_LIMIT 500 rows newest-updated first, so total is not the table size once more than 500 proposals exist<br/>handlers/enrichment_proposals_handler.rs:738-745, handlers/broker_inbox_handler.rs:194
 ```

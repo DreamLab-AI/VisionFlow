@@ -26,9 +26,10 @@ sources:
   - ../project/client/src/store/websocket/binaryProtocol.ts
   - ../project/src/actors/client_coordinator_actor.rs
   - ../project/src/handlers/socket_flow_handler/position_updates.rs
+  - ../project/src/handlers/socket_flow_handler/message_routing.rs
   - ../project/src/handlers/socket_flow_handler/binary_protocol.rs
   - ../project/client/src/features/graph/managers/dataManager/wsClient.ts
-verified_commit: 8692b12ba987ecb87165566beb7c320a2446e4b4
+verified_commit: 86cdd76355823a51bb64d503c005fe277726e724
 ---
 
 ## VC-14.1 V3 position record — 52 bytes, little-endian
@@ -115,7 +116,7 @@ flowchart TD
         T34["0x34 BroadcastAck client to server, 21 bytes with no generic header, one per applied position chunk (ADR-2141)<br/>MessageType::BroadcastAck :1788, decode_message arm :1853"]
         T02["0x02 VoiceData :1782"]
         T03c["0x03 ControlFrame in MessageType :1784"]
-        T04["0x04 RETIRED V4 delta frame, reserved and never reused<br/>no encoder exists, every decoder refuses it (ADR-2139)<br/>docs/PROTOCOL-registry.md:58"]
+        T04["0x04 RETIRED V4 delta frame, reserved and never reused<br/>no encoder exists, every decoder refuses it (ADR-2139)<br/>docs/PROTOCOL-registry.md:59"]
     end
     subgraph PRESENCE["/ws/presence socket - tag space A sibling"]
         T43["0x43 OPCODE_AVATAR_POSE<br/>crates/visionclaw-xr-presence/src/wire.rs:9"]
@@ -133,7 +134,7 @@ flowchart TD
     N5["OPEN: the settings binary protocol is still not fully enumerated in the registry - unchanged by the 2026-09-05 remediation"]
     N6["RESOLVED ADR-2060: the legacy 48B/28B ADR figures are marked retired in the governing docs - the wire is 52B, now compile-time locked"]
     N7["RESOLVED ADR-2139: tag 0x04 (V4 delta) is now an explicit RETIRED row in the registry, so nothing can be allocated over it"]
-    N8["INVARIANT ADR-2143: Codescape is recorded as a second, independent producer of the frozen 0x03, 0x05, 0x23 and 0x34 contract (its encoders exist, serving on port 4100 is phased) and allocates no tag byte and no flag bit, so this registry stays the only allocator - docs/PROTOCOL-registry.md:191-197"]
+    N8["INVARIANT ADR-2143: Codescape is recorded as a second, independent producer of the frozen 0x03, 0x05, 0x23 and 0x34 contract (its encoders exist, serving on port 4100 is phased) and allocates no tag byte and no flag bit, so this registry stays the only allocator - docs/PROTOCOL-registry.md:212-218"]
     T05 -.- N2
     T03 -.- N3
     T05 -.- N4
@@ -222,31 +223,31 @@ sequenceDiagram
     participant FCA as ClientCoordinatorActor serialize_positions<br/>src/actors/client_coordinator_actor.rs:532
     participant ENC as encode_node_data_extended_with_sssp<br/>src/utils/binary_protocol.rs:426
     participant WS as WebSocket /wss
-    participant RS as XR Rust decoder<br/>xr-client/rust/src/binary_protocol.rs:595
+    participant RS as XR Rust decoder<br/>xr-client/rust/src/binary_protocol.rs:593
     participant TS as Web TS decoder<br/>client/src/types/binaryProtocol.ts:328
 
     FCA->>ENC: the coordinator pump encodes each client's chunk, node tuples plus the NodeClassIds<br/>sets, src/actors/client_coordinator_actor.rs:540-554
     ENC->>ENC: per node stamp type flag bits (utils/binary_protocol.rs:465-474) then<br/>enforce_wire_id_bounds (utils/binary_protocol.rs:490), to_wire_id_v2<br/>(utils/binary_protocol.rs:508)
     ENC->>ENC: PRE-STAMPED ids forwarded unchanged (utils/binary_protocol.rs:475-484) when get_node_type is not Unknown
-    Note over ENC: INVARIANT (2026-09-08, 6c47b9833) — a caller that stamps the class flag itself and<br/>passes EMPTY class sets, for example the swarm telemetry encode in<br/>position_updates.rs:118,152, reaches the<br/>untyped fall-through with bits 26-31 already set. The chunk path passes real class<br/>sets instead. A compact raw id (ADR-2024) never carries<br/>those bits, so a recognised class pattern means stamped and the encoder forwards it.<br/>Running the 26-bit bound check on a stamped id panicked every broadcast in the<br/>dev-runtime<br/>build — each /wss client saw Connection reset without closing handshake on a 2 s loop<br/>—<br/>and a release build would have silently stripped the class flag instead.<br/>Regression reads the id back off the wire, utils/binary_protocol.rs:1241<br/>DRIFT the encoder comment still names actor_messages.rs as a pre-stamping caller, that file no longer calls<br/>any encoder, its position broadcast handler was removed by ADR-2141, utils/binary_protocol.rs:476-478
+    Note over ENC: INVARIANT (2026-09-08, 6c47b9833) — a caller that stamps the class flag itself and<br/>passes EMPTY class sets reaches the<br/>untyped fall-through with bits 26-31 already set. The chunk path passes real class<br/>sets instead. A compact raw id (ADR-2024) never carries<br/>those bits, so a recognised class pattern means stamped and the encoder forwards it.<br/>Running the 26-bit bound check on a stamped id panicked every broadcast in the<br/>dev-runtime<br/>build — each /wss client saw Connection reset without closing handshake on a 2 s loop<br/>—<br/>and a release build would have silently stripped the class flag instead.<br/>Regression reads the id back off the wire, utils/binary_protocol.rs:1241<br/>the caller that motivated it, the swarm telemetry encode, is gone with requestSwarmTelemetry (agents reach clients only<br/>as 0x23 frames, ADR-2142, src/handlers/socket_flow_handler/message_routing.rs:11-13), the forwarding branch stays as a guard<br/>DRIFT the encoder comment still names actor_messages.rs as a pre-stamping caller, that file no longer calls<br/>any encoder, its position broadcast handler was removed by ADR-2141, utils/binary_protocol.rs:476-478
     ENC->>ENC: strip flag bits before SSSP and analytics map lookups
     ENC->>ENC: write 52-byte record - id@0 pos@4 vel@16 sssp_dist@28 sssp_parent@32 cluster@36<br/>anomaly@40 community@44 centrality@48
     Note over ENC: sssp_distance defaults to f32::INFINITY and sssp_parent to -1 when absent
     ENC->>WS: [tag][records...]
     par XR Rust client
         WS->>RS: bytes
-        RS->>RS: decode_position_frame_with_sequence :595
-        alt lead byte == PROTOCOL_V5 (0x05) rust/src/binary_protocol.rs:610
-            RS->>RS: need = HEADER_BYTES + V5_SEQ_BYTES :611 then read u64 seq :618-620
+        RS->>RS: decode_position_frame_with_sequence :593
+        alt lead byte == PROTOCOL_V5 (0x05) rust/src/binary_protocol.rs:608
+            RS->>RS: need = HEADER_BYTES + V5_SEQ_BYTES :609 then read u64 seq :616-618
         end
-        RS->>RS: mask each id with NODE_ID_MASK :896
+        RS->>RS: mask each id with NODE_ID_MASK :894
         Note over RS: constants PROTOCOL_V5 :29, V5_SEQ_BYTES 8 :30, NODE_RECORD_BYTES 52 :32, NODE_ID_MASK :41
     and Web TS client
         WS->>TS: bytes
         TS->>TS: parseBinaryNodeData dispatch on lead byte :174-215
         alt lead byte == PROTOCOL_V5 (0x05) types/binaryProtocol.ts:199-202
             TS->>TS: parseV5Nodes :328 - reject if byteLength < 9 :330, read u64 seq LE :335-337, decode body from offset 9 :340
-            TS->>TS: surface broadcastSequence :368 - handleLegacyBinaryData acknowledges that sequence<br/>after applying the chunk store/websocket/binaryProtocol.ts:406-408
+            TS->>TS: surface broadcastSequence :368 - handleLegacyBinaryData acknowledges that sequence<br/>after applying the chunk store/websocket/binaryProtocol.ts:407-409
         else lead byte == 0x02 (V2)
             TS->>TS: DECLINED with a diagnostic - the server rejects V2 at utils/binary_protocol.rs:610
         else lead byte == 0x04 (V4 delta)
@@ -255,7 +256,7 @@ sequenceDiagram
             TS->>TS: DECLINED - no size autodetection
         end
         Note over TS: CORRECTED ADR-2078. ADR-2057 Finding 1 was WRONG: the live TS path always<br/>had V5, including the short-payload guard that mirrors the server at<br/>utils/binary_protocol.rs:615.<br/>client/src/services/binaryProtocol/ is NOT the live position path - it has no<br/>52-byte decoding at all, so a V5 branch there would have been a SECOND decoder.<br/>The real defect was Finding 2 and it was worse than reported - see the next note
-        Note over TS: RESOLVED ADR-2078. V2 was DECODED, not merely advertised (36-byte records, the<br/>V2 case at client/src/types/binaryProtocol.ts:175-185, routed in at<br/>client/src/store/websocket/binaryProtocol.ts:463-467),<br/>and the default arm re-read any unknown frame from offset 0 as 36-byte records<br/>whenever its length divided by 36 - fabricating nodes from arbitrary payloads.<br/>Both now decline. BINARY_NODE_SIZE_V2 and the size-swap heuristic are deleted
+        Note over TS: RESOLVED ADR-2078. V2 was DECODED, not merely advertised (36-byte records, the<br/>V2 case at client/src/types/binaryProtocol.ts:175-185, routed in at<br/>client/src/store/websocket/binaryProtocol.ts:469-473),<br/>and the default arm re-read any unknown frame from offset 0 as 36-byte records<br/>whenever its length divided by 36 - fabricating nodes from arbitrary payloads.<br/>Both now decline. BINARY_NODE_SIZE_V2 and the size-swap heuristic are deleted
         Note over TS: RESOLVED ADR-2078. The TS decoder now has the fixture cross-check the two Rust<br/>decoders always had - client/src/types/__tests__/wireFixtures.test.ts, 12 tests<br/>pinning the same constants as wire_fixtures.rs plus a synthetic V5 round-trip
     end
     Note over ENC,TS: Shared fixtures (crates/visionclaw-protocol/src/wire_fixtures.rs:1-6 now only<br/>re-exports visionclaw_wire, whose node-record and ack constants are at<br/>crates/visionclaw-wire/src/lib.rs:83,92-95) pin the format for both decoders -<br/>utils/binary_protocol.rs:960-965 asserts fx::NODE_RECORD_BYTES == WIRE_V3_ITEM_SIZE<br/>and fx::NODE_ID_MASK == NODE_ID_MASK, and :968 guards the shared 0x23 fixture against<br/>encoder drift
@@ -355,7 +356,7 @@ classDiagram
     }
     TagsDeclaredClientSide --> ServerMessageTypeEnum : only 3 of 18 share a value with a server tag
 
-    note for V4FramedHeader "Shape at BinaryWebSocketProtocol.ts:81 - 6-byte header"
+    note for V4FramedHeader "Shape at BinaryWebSocketProtocol.ts:81-87, a 6-byte header"
     note for V4FramedHeader "By design: V4 is not the wire format - live streams are UNFRAMED"
     note for V4FramedHeader "RESOLVED ADR-2141: the BROADCAST_ACK is no longer sent through this header, createBroadcastAck builds [0x34][20-byte payload] by hand because the server's decode_message reads no generic header - client/src/services/BinaryWebSocketProtocol.ts:245-255 and utils/binary_protocol.rs:1853"
     note for TagsDeclaredClientSide "OPEN: the client declares 18 tags, the server enum defines 5, and the file's own comment says the rest are client-outbound only - routed to vc-clients, client/src/services/binaryProtocol/frameTypes.ts:43-57"
@@ -412,26 +413,26 @@ sequenceDiagram
     autonumber
     participant SRV as ClientCoordinatorActor<br/>src/actors/client_coordinator_actor.rs:617
     participant WS as WebSocket /wss
-    participant WEB as Web client<br/>client/src/store/websocket/binaryProtocol.ts:351
-    participant XR as XR Rust client<br/>xr-client/rust/src/binary_protocol.rs:838
+    participant WEB as Web client<br/>client/src/store/websocket/binaryProtocol.ts:352
+    participant XR as XR Rust client<br/>xr-client/rust/src/binary_protocol.rs:836
     participant HDL as SocketFlowServer binary handler<br/>src/handlers/socket_flow_handler/binary_protocol.rs:30
 
     SRV->>WS: V5 chunk [0x05][u64 seq][52 B per node], seq is the chunk's own number<br/>src/actors/client_coordinator_actor.rs:532-563
     par web client
         WS->>WEB: chunk bytes
-        WEB->>WEB: apply through graphDataManager.updateNodePositions, an exception returns WITHOUT an ack<br/>client/src/store/websocket/binaryProtocol.ts:392-401
-        WEB->>WEB: sendPositionAck(seq, node count) after the apply, a V3 frame has no sequence and is never acknowledged<br/>client/src/store/websocket/binaryProtocol.ts:406-408
+        WEB->>WEB: apply through graphDataManager.updateNodePositions, an exception returns WITHOUT an ack<br/>client/src/store/websocket/binaryProtocol.ts:393-402
+        WEB->>WEB: sendPositionAck(seq, node count) after the apply, a V3 frame has no sequence and is never acknowledged<br/>client/src/store/websocket/binaryProtocol.ts:407-409
         WEB->>WS: createBroadcastAck builds [0x34][u64 seq][u32 nodes][u64 timestamp_ms], 21 bytes, no 6-byte header<br/>client/src/services/BinaryWebSocketProtocol.ts:245-255
     and XR client
         WS->>XR: chunk bytes
-        XR->>XR: freshness gate admits the frame, only Accept and AcceptResync name a sequence<br/>xr-client/rust/src/binary_protocol.rs:665-670
-        XR->>WS: encode_broadcast_ack after the records are applied, a stale or duplicate frame is not acknowledged<br/>xr-client/rust/src/binary_protocol.rs:652-659,838-849
+        XR->>XR: freshness gate admits the frame, only Accept and AcceptResync name a sequence<br/>xr-client/rust/src/binary_protocol.rs:663-668
+        XR->>WS: encode_broadcast_ack after the records are applied, a stale or duplicate frame is not acknowledged<br/>xr-client/rust/src/binary_protocol.rs:650-657, :836-847
     end
     WS->>HDL: binary frame
-    HDL->>HDL: is_stream_ack, the first byte 0x34, is exempt from the per-IP message rate limiter<br/>src/handlers/socket_flow_handler/binary_protocol.rs:10-12,22-24,35
+    HDL->>HDL: is_stream_ack, the first byte 0x34, is exempt from the per-IP message rate limiter<br/>src/handlers/socket_flow_handler/binary_protocol.rs:10-12, :22-24, :35
     HDL->>HDL: BinaryProtocol::decode_message, the 0x34 arm reads the 20-byte payload with no generic header<br/>src/utils/binary_protocol.rs:1853,1866-1892
     HDL->>SRV: ClientBroadcastAck{sequence_id, nodes_received, timestamp, client_id}<br/>src/handlers/socket_flow_handler/binary_protocol.rs:67-86
     Note over SRV: the ack commits that chunk's nodes as held by this client and the next chunk is built at once, see VC-13.4<br/>src/actors/client_coordinator_actor.rs:1365-1396
-    Note over WS,SRV: INVARIANT the ack bytes are asserted against one golden frame by the server, the web client and the XR client<br/>crates/visionclaw-wire/src/lib.rs:92-95,334 and src/utils/binary_protocol.rs:2159-2178
-    Note over WEB: TENSION ADR-2141 decision 5 says a chunk that was not applied is not acknowledged, but handleBinaryFrame returns normally when a frame<br/>arrives within 16 ms of the last accepted one, so the ack is still sent for a chunk the worker never saw, VC-13.7<br/>docs/adr/ADR-2141-positions-are-streamed-per-client-until-acknowledged.md:32 and client/src/features/graph/managers/dataManager/wsClient.ts:26-28 and client/src/store/websocket/binaryProtocol.ts:392-408
+    Note over WS,SRV: INVARIANT the ack bytes are asserted against one golden frame by the server, the web client and the XR client<br/>crates/visionclaw-wire/src/lib.rs:92-95, :334 and src/utils/binary_protocol.rs:2159-2178
+    Note over WEB: TENSION ADR-2141 decision 5 says a chunk that was not applied is not acknowledged, but handleBinaryFrame returns normally when a frame<br/>arrives within 16 ms of the last accepted one, so the ack is still sent for a chunk the worker never saw, VC-13.7<br/>docs/adr/ADR-2141-positions-are-streamed-per-client-until-acknowledged.md:32 and client/src/features/graph/managers/dataManager/wsClient.ts:26-28 and client/src/store/websocket/binaryProtocol.ts:393-409
 ```

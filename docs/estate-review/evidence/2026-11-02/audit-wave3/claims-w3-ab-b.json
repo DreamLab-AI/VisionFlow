@@ -1,0 +1,78 @@
+[
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/agentbox/03-management-api-request-lifecycle.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-b.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "AB-03.1",
+      "AB-03.2",
+      "AB-03.3",
+      "AB-03.4",
+      "AB-03.5",
+      "AB-03.6",
+      "AB-03.7",
+      "AB-03.8",
+      "AB-03.9",
+      "AB-03.10",
+      "AB-03.11",
+      "AB-03.12",
+      "AB-03.13",
+      "AB-03.14",
+      "AB-03.15",
+      "AB-03.16",
+      "AB-03.18"
+    ],
+    "basis": "Source tracing at agentbox c57d9c0508f4; restamped from 6500582 with every citation re-resolved by symbol and read at the pin; 2 accurate, 1 accurate-with-limits, 14 corrected; strict cite-check and render pass (418 citations); the NIP-98 re-verify behind /mgmt/ and all route behaviour are not exercised at runtime."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/agentbox/04-adapter-spine.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-b.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "AB-04.1",
+      "AB-04.2",
+      "AB-04.3",
+      "AB-04.4",
+      "AB-04.5",
+      "AB-04.6",
+      "AB-04.7",
+      "AB-04.8",
+      "AB-04.9",
+      "AB-04.10",
+      "AB-04.11",
+      "AB-04.13",
+      "AB-04.14",
+      "AB-04.15",
+      "AB-04.16"
+    ],
+    "basis": "Source tracing at agentbox c57d9c0508f4; restamped from 6500582 with every citation re-resolved by symbol and read at the pin; 3 accurate, 12 corrected (memory adapter redrawn, gauge never set, schema rejects connect_timeout_ms); strict cite-check and render pass (321 citations); no adapter connected or contract test run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/agentbox/06-sidecars-and-compose-overlays.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-b.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "AB-06.1",
+      "AB-06.2",
+      "AB-06.3",
+      "AB-06.4",
+      "AB-06.5",
+      "AB-06.6",
+      "AB-06.7",
+      "AB-06.8",
+      "AB-06.9",
+      "AB-06.10",
+      "AB-06.11",
+      "AB-06.12",
+      "AB-06.13",
+      "AB-06.14"
+    ],
+    "basis": "Source tracing at agentbox c57d9c0508f4; restamped from 6500582 with every citation re-resolved by symbol and read at the pin; 2 accurate, 12 corrected; strict cite-check and render pass (213 citations); no compose stack, port binding or sidecar health loop exercised."
+  }
+]

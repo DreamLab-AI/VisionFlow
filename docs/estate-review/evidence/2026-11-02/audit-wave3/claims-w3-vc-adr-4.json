@@ -1,0 +1,218 @@
+[
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2042-vault-migrate-converter.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-4.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; superseded by ADR-2113; converter deleted, so modes and report schema have no live code; dated test counts not reproducible."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2043-reject-full-disclosure-flag-pair-at-boot.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-4.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; pair rule and readers confirmed; last Consequences bullet contradicted (undeclared profile now fatal); staged, no production boot observed."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2044-session-credentials-fail-closed.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-4.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; shared freshness rule and fail-closed WS upgrades confirmed; session realm now default-off; re-login effect not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2045-remove-dead-supervision-machinery.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-4.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; deletions and Escalate arm confirmed; uncompiled tests/actors residue remains; build and test counts historical."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2046-remove-dead-settings-and-orphaned-config.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-4.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; deletions confirmed; one stale SettingsActor comment and no removal comment in src/config/mod.rs; builds historical."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2047-single-settings-broadcast-emitter.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-4.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; single emitter and client consumer confirmed; reset-layout sends a non-pubkey updatedBy; runtime fan-out not observed."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2048-correct-drifted-governing-doc-citations.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-4.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; corrected citations have re-drifted onto unrelated lines and both docs have blank verified_commit; Decision contradicted at the pin."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2049-production-image-build-must-be-able-to-fail.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-4.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; fetch --locked gate confirmed; build line pipes through tail without pipefail so the fallback is unreachable; staged, no image build run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2053-gpu-context-delivery-and-actor-residency.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-4.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; direct delivery, failure accounting, single residency and self-init fallback confirmed; GPU behaviour at runtime not observed."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2054-remove-dead-gpu-and-analytics-code.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-4.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; all removals, markers and retained handlers confirmed; build runs historical."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2055-retire-physics-v2-layout-engines.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-4.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; physics-v2 removal and 400-on-unparseable confirmed; SetLayoutMode replaced per the 2026-10-31 amendment."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2056-single-ptx-isa-rewrite-implementation.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-4.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; single span-parsed rewrite on all PTX paths confirmed; driver/symbol validation still open; GPU runs historical."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2057-compile-time-wire-size-lock.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-4.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; const asserts and V5 tag confirmed; stale 48-byte test comments remain; client amendment confirmed."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2058-websocket-auth-header-only.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-4.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; all four sites dev-gated with release rejection warnings; client migration impact not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2059-remove-inert-analytics-feature-flags.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-4.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; seven flags removed; sssp_integration now derived from stored physics; fail-open ontology_validation toggle still open."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2060-correct-gpu-and-wire-doc-citations.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-4.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; GPU-wire-abi and registry corrections confirmed; BASELINE V5 repoint not done (Decision contradicted); AgentAction cite drifted."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2061-validate-analytics-kernels-against-oracle.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-4.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; suite, four tests and LOF fix present in source; GPU results are historical receipts; APSP #if 0 citation stale; staged."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2063-nlq-sparql-against-oxigraph.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-4.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; SPARQL translation and shared validator confirmed; Cypher validator follow-on still open; build runs historical."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2064-ontology-loader-real-corpus.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-4.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; real-corpus loader and non-zero exit confirmed; parser mechanism drifted to frontmatter projection; no real-corpus run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2065-remove-dead-ontology-validation-code.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-4.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; three removals and SemanticAnalyzer port deletion confirmed; cited file_service guard line drifted."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2066-remove-unreachable-handler-surfaces.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-4.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; dead surfaces removed and pause/resume addendum confirmed; 404 outcome not observed at runtime."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2067-solid-feature-off-registers-no-routes.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-4.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; feature-off configure_routes registers nothing; stubs removed; runtime 404 not observed."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2068-remove-superseded-vendored-assets.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-4.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; both paths absent at the pin; vendored tree was never tracked so its deletion is not visible in git."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2069-backup-membership-required-optional.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-4.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; required/optional backup contract confirmed in script and doc; Oxigraph point-in-time gap still open."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2070-correct-identifier-and-vault-doc-drift.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-4.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; code facts confirmed; IDENTIFIER Invariant 6 still claims silent truncation (contradicted); owl-class half overtaken by VAULT 2.0."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2071-consolidate-inferred-edge-materialisation.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-4.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; sync path delegates to shared module and tests present; stale proposed sentence in Decision; live-corpus activation not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "VisionClaw",
+    "path": "docs/adr/ADR-2072-cross-from-agentbox-maps-bead.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-adr-4.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at VisionClaw 86cdd7635582; every section assessed; bead arm and metrics removal confirmed; shared kind map now landed (Consequences overtaken); synthetic performance history still open."
+  }
+]

@@ -1,0 +1,29 @@
+[
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/agentbox/01-nix-flake-composition.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-a.md",
+    "coverage": "selected-panels",
+    "panels": ["AB-01.1", "AB-01.2", "AB-01.3", "AB-01.4", "AB-01.5", "AB-01.6", "AB-01.8", "AB-01.9", "AB-01.10", "AB-01.11"],
+    "basis": "Source tracing at agentbox c57d9c0508f4; restamped from 6500582 with every citation re-resolved and read at the pin; all ten panels corrected, including both generator advisories (AB-01.3 runtime-delivery.sh:11-12, AB-01.5 npm-cli.nix:186); strict cite-check and render pass (194 citations); GPU enumeration and image builds not run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/agentbox/02-boot-sequence-and-readiness.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-a.md",
+    "coverage": "selected-panels",
+    "panels": ["AB-02.1", "AB-02.2", "AB-02.3", "AB-02.4", "AB-02.6", "AB-02.7", "AB-02.8", "AB-02.9", "AB-02.10", "AB-02.11", "AB-02.12", "AB-02.13", "AB-02.14", "AB-02.16", "AB-02.17", "AB-02.18", "AB-02.19", "AB-02.20", "AB-02.22", "AB-02.23", "AB-02.24"],
+    "basis": "Source tracing at agentbox c57d9c0508f4; restamped from 6500582 with every citation re-resolved and read at the pin; 17 panels corrected (vault resolver without the legacy override, Postgres credential custody, wrapper and program-block lines), 2 accurate, 2 accurate with limits; strict cite-check and render pass (510 citations); boot, supervisord retry, session reconcile and seccomp enforcement not run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/agentbox/05-manifest-gates-and-cli.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-a.md",
+    "coverage": "selected-panels",
+    "panels": ["AB-05.1", "AB-05.2", "AB-05.3", "AB-05.4", "AB-05.5", "AB-05.6", "AB-05.7", "AB-05.8", "AB-05.9", "AB-05.10", "AB-05.11", "AB-05.13", "AB-05.14", "AB-05.15", "AB-05.16", "AB-05.17"],
+    "basis": "Source tracing at agentbox c57d9c0508f4; restamped from 6500582 with every citation re-resolved and read at the pin; 8 panels corrected (catalogue now 123 entries, vault pages default, /health and /v1/system fields, Decision 5 budget, bypass_projects), 7 accurate, 1 accurate with limits; strict cite-check and render pass (418 citations); CLI, /v1/system and credential sync not exercised."
+  }
+]

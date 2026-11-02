@@ -26,7 +26,8 @@ sources:
   - ../project/crates/visionclaw-domain/src/vault/link.rs
   - ../project/crates/visionclaw-domain/src/models/node.rs
   - ../project/scripts/pre-commit-validate.sh
-verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4}
+  - ../project/Cargo.toml
+verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724}
 ---
 
 ## VC-21.1 Corpus sync entry points and the CorpusSource ingest path
@@ -36,7 +37,7 @@ verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4}
 sequenceDiagram
     autonumber
     participant Admin as admin_sync_handler::trigger_sync<br/>src/handlers/admin_sync_handler.rs:66
-    participant Boot as boot sync task<br/>src/app_state.rs:585
+    participant Boot as boot sync task<br/>src/app_state.rs:584
     participant Bin as sync_corpus.rs::main<br/>src/bin/sync_corpus.rs:25
     participant Svc as GitHubSyncService::sync_graphs_with<br/>src/services/github_sync_service.rs:253
     participant Src as CorpusSource::list_pages<br/>src/services/corpus_source/mod.rs:106
@@ -50,8 +51,9 @@ sequenceDiagram
     Bin->>Svc: sync_graphs() - sync_corpus binary
     Note over Bin: CORPUS_SOURCE=local or github selects LocalDirectorySource /<br/>GitHubSource - sync_corpus.rs:56-64
     Svc->>Src: list_pages()
-    Note over Src: GitHubSource delegates to the Trees API with a Contents API fallback<br/>(corpus_source/github.rs:60)<br/>LocalDirectorySource walks base_paths on disk, default<br/>knowledge,working with no pages/ folder (corpus_source/local.rs:213,<br/>local.rs:21)
-    Note over Src: GitHub listing excludes /bak/ /.recycle/ /journals/ /.obsidian/<br/>/.trash/ (ADR-2040 D6) - content_enhanced.rs:127-131 (files) :245-249<br/>(dirs)<br/>the local walk skips SKIP_DIRS: templates bases assets journals _misc<br/>bak and every dot-folder - local.rs:31-42, :140<br/>Path authority: VAULT_ROOT is the single root (agentbox vault<br/>manifest, see AB-05)
+    Note over Src: shared-corpus-layout, a DEFAULT feature (Cargo.toml:279, :281): the local source validates its roots<br/>through ontomark_compile::profile::resolve_roots (local.rs:139-143, :248-249), skips child symlinks<br/>(local.rs:192-199) and refuses to fetch a page whose canonical path leaves the roots (local.rs:281-296)
+    Note over Src: GitHubSource delegates to the Trees API with a Contents API fallback<br/>(corpus_source/github.rs:60)<br/>LocalDirectorySource walks base_paths on disk, default<br/>knowledge,working with no pages/ folder (corpus_source/local.rs:247,<br/>local.rs:21)
+    Note over Src: GitHub listing excludes /bak/ /.recycle/ /journals/ /.obsidian/<br/>/.trash/ (ADR-2040 D6) - content_enhanced.rs:127-131 (files) :245-249<br/>(dirs)<br/>the local walk skips SKIP_DIRS: templates bases assets journals _misc<br/>bak and every dot-folder - local.rs:31-42, :164-165<br/>Path authority: VAULT_ROOT is the single root (agentbox vault<br/>manifest, see AB-05)
     Svc->>Svc: keep only listed files that resolve to a V1 identity:<br/>page_name_from_repo_path is Some - github_sync_service.rs:290-308<br/>under a configured base and outside VAULT_FURNITURE_DIRS or a<br/>dot-folder - vault/mod.rs:334-391
     Note over Svc: identity = path under the base without .md, nested folders kept,<br/>legacy Namespace___Title and %2F/%2f folded to / -<br/>vault::page_name_from_path vault/mod.rs:416
     Svc->>Svc: VaultIndex::from_identities(files) - full filtered listing,<br/>github_sync_service.rs:320
@@ -128,13 +130,13 @@ sequenceDiagram
     Note over Caller: DRIFT: ADR-2014's ontology bypass is superseded post-ADR-2114 - an ontology-declaring page (VC-21.1) is gated here too, not exempted
 ```
 
-**Drift:** `docs/VAULT-corpus-format.md:236-238` (V4) says every `knowledge/` page with valid frontmatter is a KG node with "no `owl-class` bypass and no OR", while the gate the sync runs is still the disjunction `self.public || self.owl_class.is_some()` (`crates/visionclaw-domain/src/vault/mod.rs:162-163`, reached through `src/services/github_sync_service.rs:2114`).
+**Drift:** `docs/VAULT-corpus-format.md:248-252` (V4) says every `knowledge/` page with valid frontmatter is a KG node with "no `owl-class` bypass and no OR", while the gate the sync runs is still the disjunction `self.public || self.owl_class.is_some()` (`crates/visionclaw-domain/src/vault/mod.rs:162-163`, reached through `src/services/github_sync_service.rs:2114`).
 
-**Drift:** `docs/VAULT-corpus-format.md:244` says `working/` is never ingested into the governed graph, while the local source's default base paths are `knowledge,working` (`src/services/corpus_source/local.rs:21`) and the sync keeps a working page as its own node unless a knowledge page owns the same id (`src/services/github_sync_service.rs:2156`).
+**Drift:** `docs/VAULT-corpus-format.md:256` says `working/` is never ingested into the governed graph, while the local source's default base paths are `knowledge,working` (`src/services/corpus_source/local.rs:21`) and the sync keeps a working page as its own node unless a knowledge page owns the same id (`src/services/github_sync_service.rs:2156`).
 
 ## VC-21.3 Node-type derivation: file to page / linked_page / ontology-typed
 
-<!-- 2026-09-29: the JSON-LD Page/Class fence entry is gone (ADR-2112/2113); ontology classification now reads frontmatter `type: Class|Property|Individual` under knowledge/ via page_parser::parse_page. The downstream classify/population-type path (knowledge_graph_parser.rs, graph_state_actor.rs, node.rs, vault/link.rs) is unchanged and its citations still land on the same lines -->
+<!-- 2026-09-29: the JSON-LD Page/Class fence entry is gone (ADR-2112/2113); ontology classification now reads frontmatter `type: Class|Property|Individual` under knowledge/ via page_parser::parse_page. The downstream classify/population-type path (knowledge_graph_parser.rs, graph_state_actor.rs, node.rs, vault/link.rs) was unchanged at that date; 2026-11-02 restamp moved classify_node to :253 -->
 ```mermaid
 flowchart TD
     F["markdown file (post source fetch)"] --> PP{"page_parser::parse_page<br/>src/services/page_parser.rs:73"}
@@ -143,7 +145,7 @@ flowchart TD
     GATE1 -->|false| SKIP1["page skipped - see VC-21.2"]
     PP -->|Ok None - plain vault page| KP["KnowledgeGraphParser::create_page_node<br/>knowledge_graph_parser.rs:145"]
     KP --> OC{"meta.owl_class.is_some()?<br/>vault::parse(content).owl_class"}
-    OC -->|yes| ON["node_type = ontology_node<br/>owl_class_iri set<br/>knowledge_graph_parser.rs:198"]
+    OC -->|yes| ON["node_type = ontology_node<br/>owl_class_iri set<br/>knowledge_graph_parser.rs:198<br/>but metadata type stays page, knowledge_graph_parser.rs:149"]
     OC -->|no| PG["node_type = page<br/>metadata public=true"]
     KP --> WL["outbound [[wikilink]] targets"]
     WL --> VR{"VaultContext::resolve target<br/>crates/visionclaw-domain/src/vault/link.rs:222"}
@@ -152,7 +154,7 @@ flowchart TD
     VR -->|bare target, several matches| RES3["same-folder wins, else first in sorted path order"]
     VR -->|no match anywhere| STUB["linked_page stub id"]
     STUB -.->|DIVERGENCE| DROP["dropped at ingest - stub nodes never materialise, fold into wikilink_count plus co-citation weight instead"]
-    PN --> CLS["GraphStateActor::classify_node<br/>src/actors/graph_state_actor.rs:259"]
+    PN --> CLS["GraphStateActor::classify_node<br/>src/actors/graph_state_actor.rs:253"]
     ON --> CLS
     PG --> CLS
     CLS --> POP["Node::population_type()<br/>crates/visionclaw-domain/src/models/node.rs:271"]
@@ -163,7 +165,10 @@ flowchart TD
     POP -->|agent or bot| AGSET["agent_node_ids"]
     POP -->|unknown, owl_class_iri set| OCSET
     POP -->|unknown, no owl_class_iri| KGSET
+    ON -.->|"TENSION: population_type reads metadata type first (node.rs:271-276)"| KGSET
 ```
+
+**Tension:** a plain vault page carrying a valid `owl-class` is built with `node_type = ontology_node` (`src/services/parsers/knowledge_graph_parser.rs:198-202`) but `metadata["type"] = "page"` (`src/services/parsers/knowledge_graph_parser.rs:149`), and `Node::population_type()` returns `metadata["type"]` before `node_type` (`crates/visionclaw-domain/src/models/node.rs:271-276`), so `classify_node` puts it in `knowledge_node_ids` (`src/actors/graph_state_actor.rs:261-265`), not `ontology_class_ids`. The comment that such pages are reclassified as ontology nodes downstream (`src/services/parsers/knowledge_graph_parser.rs:164-165`) describes the `owl_class_iri` fallback arm, which a page whose metadata type is `page` never reaches. Source tracing only: whether the persisted metadata keeps `type = page` after the Oxigraph round trip was not checked at runtime.
 
 ## VC-21.6 validate_md binary (JSON-LD validator CLI)
 ```mermaid
@@ -227,7 +232,7 @@ sequenceDiagram
     else CURIE prefix:local - prefix starts with a letter then letters digits _ - . and local non-empty
         CM-->>PM: accepted, meta.owl_class = Some(v) (vault/mod.rs:470, :567-568)
     else bare word with no colon, or a coerced YAML boolean or number
-        CM-->>PM: rejected, meta.owl_class_rejected = Some(v) retained verbatim (vault/mod.rs:471, :569-570)
+        CM-->>PM: rejected, meta.owl_class_rejected = Some(v) retained verbatim (vault/mod.rs:471, :569-570, non-string YAML at :558-562)
     end
     PM->>G: is_kg_included()
     alt public true or owl_class is Some

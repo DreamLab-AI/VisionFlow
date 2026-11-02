@@ -16,7 +16,9 @@ sources:
   - ../project/agentbox/docs/BASELINE-container.md
   - ../project/agentbox/schema/agentbox.toml.schema.json
   - ../project/agentbox/agentbox.toml
-verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
+  - ../project/agentbox/management-api/lib/uris.js
+  - ../project/agentbox/management-api/lib/sidestr-spend-key.js
+verified_commit: c57d9c0508f4044915f9aecea4b9aa5629cc6a35
 ---
 
 ## For developers
@@ -25,7 +27,7 @@ On 2026-09-22 the estate stopped proposing a settlement chain and sealed one: `s
 
 **Drift (this topic vs ADR-2112):** the crates this topic points to in AB-33 moved to `DreamLab-AI/sidestr-rs` on 2026-09-23 (ADR-2112); the sealed chain document and its tests stay in agentbox `config/sidechain/`. See SR-01.
 
-**Drift (this topic vs the directory it catalogues):** `sidestr:dreamlab` is no longer the only seal — `sidestr:dreamlab-txbt4` beside BLAKE2b testnet4 was sealed 2026-10-02 and its table says `enabled = true` (`config/sidechain/README.md:11`, `../project/agentbox/agentbox.toml:1936-1937`), and the parent `[sidechain].enabled`, which dominates both tables, now ships `true` after the validated prefixes were recovered following an ENOSPC block-persistence failure (`../project/agentbox/agentbox.toml:1920-1921`, `../project/agentbox/agentbox.toml:1932-1933`), so both producers are baked at this revision; the genesis test now runs one pass per committed document, so it covers both chains. Neither chain is anchored: no producer writes checkpoints into its parent (`config/sidechain/README.md:13-18`).
+**Drift (this topic vs the directory it catalogues):** `sidestr:dreamlab` is no longer the only seal — `sidestr:dreamlab-txbt4` beside BLAKE2b testnet4 was sealed 2026-10-02 and its table says `enabled = true` (`config/sidechain/README.md:11`, `../project/agentbox/agentbox.toml:1974-1975`), and the parent `[sidechain].enabled`, which dominates both tables, now ships `true` after the validated prefixes were recovered following an ENOSPC block-persistence failure (`../project/agentbox/agentbox.toml:1958-1959`, `../project/agentbox/agentbox.toml:1970-1971`), so both producers are baked at this revision; the genesis test now runs one pass per committed document, so it covers both chains. Neither chain is anchored: no producer writes checkpoints into its parent (`config/sidechain/README.md:13-18`).
 
 ## For the business
 
@@ -134,7 +136,7 @@ sequenceDiagram
     else absent in CI
         T->>T: skip, the block file is not in the repository<br/>.github/workflows/manifest-validate.yml:155-156
     end
-    T-->>CI: exit non-zero if any case failed (:137, :140)
+    T-->>CI: exit non-zero if any case failed (:137, :141)
 ```
 
 
@@ -175,7 +177,7 @@ flowchart TB
         D1["the chain minted and replayed cold by the engine<br/>sovereign-settlement.md:336"]
         D2["block 0's header hashed independently to the document<br/>sovereign-settlement.md:336"]
         D3["the testnet4 peg wallet funded with 0.001 tBTC<br/>sovereign-settlement.md:336"]
-        D4["the interim producer live, announcing to five relays; enabled in the manifest after prefix recovery<br/>see AB-34.1, agentbox.toml:1920-1921"]
+        D4["the interim producer live, announcing to five relays; enabled in the manifest after prefix recovery<br/>see AB-34.1, agentbox.toml:1958-1959"]
         D5["2026-09-30: producer, Git mirror and DREAM faucet supervised<br/>behind [sidechain] - sovereign-settlement.md:337, see AB-34"]
     end
     subgraph missing["Not yet, named by the same row"]
@@ -188,8 +190,8 @@ flowchart TB
     end
     subgraph gate["The manifest block, half landed"]
         G1["schema/agentbox.toml.schema.json sets<br/>additionalProperties false at the top level<br/>schema/agentbox.toml.schema.json:7"]
-        G2["a sidechain entry now exists for the interim supervision keys:<br/>enabled, announce_mirror, mirror, mirror_checkout, faucet, faucet_key_file,<br/>faucet_units, faucet_sats, plus a named dreamlab-txbt4 table<br/>schema/agentbox.toml.schema.json:3971-4096"]
-        G3["it is closed too, additionalProperties false, and names no header_profile; the<br/>per-chain table repeats the sealed parent only so the runner can refuse a<br/>disagreement - schema/agentbox.toml.schema.json:3973, :4023"]
+        G2["a sidechain entry now exists for the interim supervision keys:<br/>enabled, announce_mirror, mirror, mirror_checkout, faucet, faucet_key_file,<br/>faucet_units, faucet_sats, plus a named dreamlab-txbt4 table<br/>schema/agentbox.toml.schema.json:4014-4139"]
+        G3["it is closed too, additionalProperties false, and names no header_profile; the<br/>per-chain table repeats the sealed parent only so the runner can refuse a<br/>disagreement - schema/agentbox.toml.schema.json:4016, :4066"]
         G1 --> G2 --> G3
     end
     done --> STATUS["implementation_status partial: the seal exists and is<br/>verifiable, D1, D3's pin and boot check, D4's CI receipt<br/>check and the faucet compile-out are not built<br/>ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:228-231"]
@@ -198,10 +200,12 @@ flowchart TB
 ```
 
 
-**Drift (ADR-2103 vs the schema):** the record's first-seal snapshot says `schema/agentbox.toml.schema.json` has no `sidechain` entry (`../project/agentbox/docs/adr/ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:215-217`); since `d0fa1b80b` it has one, for the interim supervision keys, `faucet_units` and `faucet_sats`, and a named `dreamlab-txbt4` table (`../project/agentbox/schema/agentbox.toml.schema.json:3971-4096`). The conclusion still holds for D1: the entry is closed (`../project/agentbox/schema/agentbox.toml.schema.json:3973`), it names no `header_profile`, and the only `parent` it carries is the per-chain table's repeat of the sealed document's value, an enum of `txbt4` that exists so the runner can refuse a disagreement (`../project/agentbox/schema/agentbox.toml.schema.json:4023`). Its `mirror_checkout` description still says "A GitHub Pages checkout" although the mirror is now a plain Git checkout (`../project/agentbox/schema/agentbox.toml.schema.json:3990`, `../project/agentbox/agentbox.toml:1923`).
+**Drift (ADR-2103 vs the schema):** the record's first-seal snapshot says `schema/agentbox.toml.schema.json` has no `sidechain` entry (`../project/agentbox/docs/adr/ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:215-217`); since `d0fa1b80b` it has one, for the interim supervision keys, `faucet_units` and `faucet_sats`, and a named `dreamlab-txbt4` table (`../project/agentbox/schema/agentbox.toml.schema.json:4014-4139`). The conclusion still holds for D1: the entry is closed (`../project/agentbox/schema/agentbox.toml.schema.json:4016`), it names no `header_profile`, and the only `parent` it carries is the per-chain table's repeat of the sealed document's value, an enum of `txbt4` that exists so the runner can refuse a disagreement (`../project/agentbox/schema/agentbox.toml.schema.json:4066`). Its `mirror_checkout` description still says "A GitHub Pages checkout" although the mirror is now a plain Git checkout (`../project/agentbox/schema/agentbox.toml.schema.json:4033`, `../project/agentbox/agentbox.toml:1962`).
 
-**Drift (config/sidechain/README.md vs the manifest):** the README says the `[sidechain.dreamlab-txbt4]` table ships `enabled = false` (`../project/agentbox/config/sidechain/README.md:188`) and the manifest comment above it says "Off until the lead starts it" (`../project/agentbox/agentbox.toml:1933`), but the table itself ships `enabled = true`, live since 2026-10-03 (`../project/agentbox/agentbox.toml:1937`).
+**Drift (README "not yet built" vs the code):** the README and the P1 status rows still list the `chain` and `asset` URN kinds and the kind-38420 account binding as unbuilt (`../project/agentbox/config/sidechain/README.md:190-194`, `../project/agentbox/docs/proposals/sovereign-settlement.md:337`), but at the pin `uris.js` carries a `chain` kind (`../project/agentbox/management-api/lib/uris.js:128`) and `sidestr-spend-key.js` builds the 38420 binding (`../project/agentbox/management-api/lib/sidestr-spend-key.js:16-19`); the `asset` kind is still absent. M3 and M4 above are therefore half and wholly stale as code claims, and stay drawn because the record that names them has not been amended.
 
-**Debt:** the specified `[sidechain]` gate, with its catalogue entry, apply class and supervised program set (`../project/agentbox/docs/BASELINE-container.md:346`, `../project/agentbox/docs/BASELINE-container.md:388-393`), is still not expressible: what landed is an interim block of eight supervision keys and a per-chain table, and the specified keys (header profile, signer and bridge children) wait on a schema change (`../project/agentbox/schema/agentbox.toml.schema.json:3973`). See AB-05.13 for where it would appear in the gate catalogue.
+**Drift (config/sidechain/README.md vs the manifest):** the README says the `[sidechain.dreamlab-txbt4]` table ships `enabled = false` (`../project/agentbox/config/sidechain/README.md:188`) and the manifest comment above it says "Off until the lead starts it" (`../project/agentbox/agentbox.toml:1971`), but the table itself ships `enabled = true`, live since 2026-10-03 (`../project/agentbox/agentbox.toml:1975`).
+
+**Debt:** the specified `[sidechain]` gate, with its catalogue entry, apply class and supervised program set (`../project/agentbox/docs/BASELINE-container.md:347`, `../project/agentbox/docs/BASELINE-container.md:387-394`), is still not expressible: what landed is an interim block of eight supervision keys and a per-chain table, and the specified keys (header profile, signer and bridge children) wait on a schema change (`../project/agentbox/schema/agentbox.toml.schema.json:4016`). See AB-05.13 for where it would appear in the gate catalogue.
 
 **Open:** PRD-024's question 9 is answered — the first seal is `tbtc4` with stock headers, sealed 2026-09-22 (`../project/agentbox/docs/proposals/sovereign-settlement.md:486-491`) — but questions 8, 13, 14 and 15 remain, question 19 (the next chain's parent, beside `txbt4`) was added on 2026-09-30 (`../project/agentbox/docs/proposals/sovereign-settlement.md:527`), and each changes what gets built (`../project/agentbox/docs/proposals/sovereign-settlement.md:495`).

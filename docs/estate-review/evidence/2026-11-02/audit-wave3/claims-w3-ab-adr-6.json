@@ -1,0 +1,122 @@
+[
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2119-remove-retired-outliner-ontology-runtime.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; removal holds; Decision's vault-CLI clause overtaken by ontomark; re-verification receipts and live-image claims not reproducible."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2120-codex-daemon-package-volume.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; package volume and compose refresh hold; Context's tmpfs parent overtaken by ADR-2147; live mount receipts not reproducible."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2121-factrail-implements-jev-compaction.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; pin, gate and projection hold; verified_paths names a deleted lockfile; factrail internals external; soak and image not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; proposed and flag off, so flag-on behaviour is source-only; W3b and role-exec still owed; rehearsal not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2123-govern-the-ruflo-memory-cli-on-the-sidecar.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; governed wrapper and refusals hold; version-split clarification overtaken; live sidecar receipts not reproducible."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2129-ontology-grounding-treats-silence-as-unknown-and-cites-its-generation.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; envelope semantics hold in the skill script; SKILL.md line cites drifted; grounding test not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2130-diagram-work-routes-by-activity-with-measured-tiers.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; routes and host arms hold; sealmap-side refusal and tiers reader are external and not checked."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2131-diagram-review-runs-on-a-ledgered-cadence-with-a-gated-gemini-audit.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; gate, cadence, budget reservation and ledger hold in source; no live GLM or Gemini call."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2132-incremental-image-delivery.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; prepare/activate mechanism holds; live activation rests on a host receipt not reproducible from source."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2133-rebuild-the-sidecar-hnsw-index-by-swap-and-give-readers-their-own-role.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; reindex, reader-role and hba-harden hold in the script; live sidecar operations not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2134-model-roles-sonnet-lead-opus-advisor-haiku-explore.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; manifest keys, projector and Explore agent hold; settings at boot not observed."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2135-jev-checkpoints-time-the-advisor.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; plugin, gates, clamps and email fence hold in source; soak and image not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2137-image-scoped-vex-evidence.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; evidence output, emitter rule, scan gate and CI binding hold; no scanner run against an image."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2138-idle-cargo-target-sweeper.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; gate, criteria and validator rules hold; E080 code overloaded; binary not run."
+  },
+  {
+    "kind": "adr",
+    "repo": "agentbox",
+    "path": "docs/adr/ADR-2139-system-one-judge-as-a-vendor-slot.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-adr-6.md",
+    "coverage": "whole-document",
+    "basis": "Source tracing at agentbox c57d9c0508f4; every section assessed; slot, key pairing, locality fence and state budget hold; running backend amended to typesafe; vendor measurements not reproducible."
+  }
+]

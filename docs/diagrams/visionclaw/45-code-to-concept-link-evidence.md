@@ -12,7 +12,7 @@ sources:
   - ../project/xr-client/rust/src/link_index.rs
   - ../project/xr-client/rust/src/binary_protocol.rs
   - ../project/xr-client/scripts/graph_scene.gd
-verified_commit: {codescape: 58108c0357bd0dbf6588f8b6adf6e044f4c04556, visionclaw: 75b72416bac176ca8fde715cac3bd7c77657b3e7}
+verified_commit: {codescape: 58108c0357bd0dbf6588f8b6adf6e044f4c04556, visionclaw: 86cdd7635582}
 ---
 
 ## For developers
@@ -45,7 +45,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     CS["Parse ontology_refs into code-node refs<br/>link_index.rs:91,118"] --> PICK["Deduplicate IRI, path and line<br/>symbol wins over file roll-up<br/>link_index.rs:237,252"]
-    VC["Build IRI to wire-id lists from topology metadata<br/>binary_protocol.rs:206,1298"] --> JOIN["Join targets and filter by knowledge or ontology class<br/>link_index.rs:260"]
+    VC["Build IRI to wire-id lists from topology metadata<br/>binary_protocol.rs:206,1353"] --> JOIN["Join targets and filter by knowledge or ontology class<br/>link_index.rs:260"]
     PICK --> JOIN
     JOIN --> REC["Emit one record per eligible target<br/>link_index.rs:265"]
     REC --> GEN["Retain both stream generations<br/>link_index.rs:285"]
@@ -62,9 +62,9 @@ flowchart TD
     ALL["Bound annotation table retains all rows<br/>annotations.rs:369"] --> CUT["Only first 32 sorted refs per node reach wire metadata<br/>annotations.rs:239"]
     CUT --> JOIN["Join sees only received refs<br/>link_index.rs:237"]
     JOIN --> COUNT["Missing targets count as unresolved<br/>link_index.rs:290"]
-    TOPO["Topology replaces cached IRI and annotation tables<br/>binary_protocol.rs:1298,1299"] --> REBUILD["Scene joins on generation and population-count changes<br/>graph_scene.gd:677,685"]
-    DISC["Disconnect drops records for that connection<br/>graph_scene.gd:3922,3923"] --> REBUILD
-    NEW["Topology callback drops old-generation records<br/>graph_scene.gd:3929,3940"] --> REBUILD
+    TOPO["Topology replaces cached IRI and annotation tables<br/>binary_protocol.rs:1353,1354"] --> REBUILD["Scene joins on generation and population-count changes<br/>graph_scene.gd:746,754"]
+    DISC["Disconnect drops records for that connection<br/>graph_scene.gd:4217,4218"] --> REBUILD
+    NEW["Topology callback drops old-generation records<br/>graph_scene.gd:4224,4235"] --> REBUILD
 ```
 
 **What it shows.** With 33 bound refs and every target available, the probe receives 32 refs, emits 32 links and reports zero unresolved. Generation-change cleanup is a separate mechanism. **Why it is this way.** The cap is documented, but omitted producer refs cannot be counted by a consumer that never receives them.

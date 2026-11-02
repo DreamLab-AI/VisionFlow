@@ -15,7 +15,7 @@ sources:
   - ../project/crates/visionclaw-domain/src/utils/visibility_filter.rs
   - ../project/xr-client/rust/src/transport.rs
   - ../project/xr-client/scripts/backend_connection.gd
-verified_commit: {visionclaw: 75b72416bac176ca8fde715cac3bd7c77657b3e7}
+verified_commit: {visionclaw: 86cdd7635582}
 ---
 
 ## For developers
@@ -30,7 +30,7 @@ Local portals and concurrent graph connections do not provide cross-node data sh
 
 ```mermaid
 flowchart TD
-    DIAL["BackendConnection passes URL and signing secret<br/>backend_connection.gd:316,322"] --> URL["Transport opens socket with URL string<br/>transport.rs:95"]
+    DIAL["BackendConnection passes URL and signing secret<br/>backend_connection.gd:318,324"] --> URL["Transport opens socket with URL string<br/>transport.rs:95"]
     URL --> ORIGIN["Server requires Origin in release<br/>http_handler.rs:67,129,131,139"]
     ORIGIN --> AUTH["Verify signed subprotocol or legacy bearer at upgrade<br/>http_handler.rs:146,151,181,183"]
     AUTH --> DENY["Unauthenticated release upgrade refused<br/>http_handler.rs:314,321,322"]
@@ -45,12 +45,14 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    FLAG["Visibility flag defaults ON<br/>explicit false tokens opt out<br/>visibility_filter.rs:26,30,32,38"] --> FILTER["Initial load filters by public or caller owner key<br/>types.rs:258,261,270,276"]
+    FLAG["Visibility flag defaults ON<br/>explicit false tokens opt out<br/>visibility_filter.rs:26,30,32,38"] --> FILTER["Initial load filters by public or caller owner key<br/>types.rs:277,280,289,295"]
     KINDS["Current typed URN kind set has no Dataspace arm<br/>uri/mod.rs:54,86,94"] --> SHARED["Compile shared agentbox crossing-kind artefact<br/>uri/mod.rs:665"]
-    SPEC["PROPOSED: viewer bound to one dataspace with selector and ACL<br/>PROTOCOL-registry.md:352"] --> RECHECK["PROPOSED: re-evaluate and close access-losing connections<br/>PROTOCOL-registry.md:352"]
+    SPEC["PROPOSED: viewer bound to one dataspace with selector and ACL<br/>PROTOCOL-registry.md:373"] --> RECHECK["PROPOSED: re-evaluate and close access-losing connections<br/>PROTOCOL-registry.md:373"]
 ```
 
 **What it shows.** Eighteen production visibility tests pass; the actual bridge refuses the proposed dataspace kind. Neither result proves the proposed connection mode. **Why it is this way.** Existing owner/public filtering and closed identifier translation predate dataspace selectors, ACLs and revocation.
+
+**Drift:** the initial-load filter's comment says the flag defaults OFF (`types.rs:274`), while the flag parser defaults it ON and fails closed (`visibility_filter.rs:21,32`).
 
 ## VC-48.3 Proposed reference lifetimes distinguish authored data from received copies
 

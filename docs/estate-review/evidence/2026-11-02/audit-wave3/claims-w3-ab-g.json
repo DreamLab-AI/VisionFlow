@@ -1,0 +1,84 @@
+[
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/agentbox/24-loom-facade.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-g.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "AB-24.1",
+      "AB-24.2",
+      "AB-24.3",
+      "AB-24.4",
+      "AB-24.6",
+      "AB-24.7",
+      "AB-24.8",
+      "AB-24.9",
+      "AB-24.10",
+      "AB-24.11",
+      "AB-24.12",
+      "AB-24.13",
+      "AB-24.14",
+      "AB-24.15"
+    ],
+    "basis": "Source tracing at agentbox c57d9c0, VisionClaw 86cdd76 and loom ba21a68; topic restamped on all three, every citation re-resolved; strict cite-check and render pass; runtime Loom behaviour (injection, served generation, live model) not verified."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/agentbox/25-ontology-tools-and-governed-writes.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-g.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "AB-25.7",
+      "AB-25.8",
+      "AB-25.9",
+      "AB-25.11",
+      "AB-25.12"
+    ],
+    "basis": "Source tracing at agentbox c57d9c0; restamped, every citation re-resolved; strict cite-check and render pass; scheduler, hook and governed-write runtime not exercised."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/agentbox/26-headroom-beads-spawn-brain.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-g.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "AB-26.1",
+      "AB-26.2",
+      "AB-26.3",
+      "AB-26.4",
+      "AB-26.5",
+      "AB-26.6",
+      "AB-26.7",
+      "AB-26.8",
+      "AB-26.9"
+    ],
+    "basis": "Source tracing at agentbox c57d9c0; restamped, every citation re-resolved; strict cite-check and render pass; spawn-tool persistence defect and unregistered headroom tools found by source only, no tool calls made."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/agentbox/27-media-gpu-capability-services.md",
+    "report": "docs/estate-review/2026-11-02-w3-ab-g.md",
+    "coverage": "selected-panels",
+    "panels": [
+      "AB-27.1",
+      "AB-27.2",
+      "AB-27.3",
+      "AB-27.4",
+      "AB-27.5",
+      "AB-27.6",
+      "AB-27.7",
+      "AB-27.8",
+      "AB-27.9",
+      "AB-27.10",
+      "AB-27.11",
+      "AB-27.12",
+      "AB-27.13",
+      "AB-27.14"
+    ],
+    "basis": "Source tracing at agentbox c57d9c0; restamped, every citation re-resolved; strict cite-check and render pass; sidecar, GPU and voice runtime not exercised."
+  }
+]

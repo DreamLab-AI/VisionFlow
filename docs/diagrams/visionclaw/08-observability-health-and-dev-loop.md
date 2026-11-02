@@ -30,8 +30,9 @@ sources:
   - ../project/Dockerfile.production
   - ../project/src/config/security_profile.rs
   - ../project/crates/visionclaw-gpu/build.rs
+  - ../project/build.rs
   - ../project/docker-compose.unified.yml
-verified_commit: 8692b12ba987ecb87165566beb7c320a2446e4b4
+verified_commit: 86cdd76355823a51bb64d503c005fe277726e724
 ---
 
 ## VC-08.1 Health and readiness — what each probe actually asserts
@@ -84,6 +85,8 @@ sequenceDiagram
             Note over V: a non-2xx or transport error is backend loss so an outage cannot latch the gauge UP
         else 2xx with status == "unhealthy"
             V-->>W: DOWN
+        else 2xx with an unparseable body
+            V-->>W: DOWN (src/services/liveness_harness.rs:517)
         else 2xx with status present and not "unhealthy"
             V-->>W: UP
         else 2xx, valid JSON, no status field
@@ -129,7 +132,7 @@ sequenceDiagram
     Note over LH: current_sha() (:278) stamps each observation, from VISIONCLAW_GIT_SHA (:279)
     Note over API: VISIONCLAW_AGENT_KEY is read by the handler at src/handlers/liveness_harness_handler.rs:39 and checked by<br/>crate::utils::agent_key::check_agent_key (handler :44, src/utils/agent_key.rs:13) — fail closed, subtle::ConstantTimeEq (ADR-2093).<br/>The handler's former local constant_time_eq fold is gone. Env register see VC-09.10
     Note over API: OPT-IN — when the Jev health-triage item is on (VISIONCLAW_JEV_HEALTH_TRIAGE, crates/visionclaw-jev/src/config.rs:134) and the state<br/>is degraded and Jev answers confidently, status_body (:209) adds a jev_triage field beside the unchanged probe fields.<br/>It is labelled a hypothesis for an operator, never a verdict (jev_health in liveness_harness_handler.rs:173, off in the library, on under Compose via docker-compose.unified.yml:21 and routed through the shared agentbox proxy (:7-11), ADR-2148)
-    Note over B: sibling boot-time singleton — AgentTelemetryLogger (src/telemetry/agent_telemetry.rs:20) lives<br/>in a OnceCell (:303), init_telemetry_logger(log_dir, 100) called once from main.rs:282 (returns early without creating<br/>a sink when TELEMETRY_ENABLED is set to anything but 1 or true, :309-311, telemetry_enabled in agent_telemetry.rs:326), and every<br/>caller reaches it via src/telemetry/agent_telemetry.rs:335-336 get_telemetry_logger() Option —<br/>client_coordinator_actor.rs, gpu/gpu_manager_actor.rs, gpu/force_compute_actor.rs,<br/>services/mcp_relay_manager.rs and handlers/client_log_handler.rs all silently no-op if it is never initialised or telemetry is disabled
+    Note over B: sibling boot-time singleton — AgentTelemetryLogger (src/telemetry/agent_telemetry.rs:20) lives<br/>in a OnceCell (:303), init_telemetry_logger(log_dir, 100) called once from main.rs:282 (returns early without creating<br/>a sink when TELEMETRY_ENABLED is set to anything but 1 or true, src/telemetry/agent_telemetry.rs:309-311, telemetry_enabled :326), and every<br/>caller reaches it via src/telemetry/agent_telemetry.rs:335-336 get_telemetry_logger() Option —<br/>client_coordinator_actor.rs, gpu/gpu_manager_actor.rs, gpu/force_compute_actor.rs,<br/>services/mcp_relay_manager.rs and handlers/client_log_handler.rs all silently no-op if it is never initialised or telemetry is disabled
     Note over API: GET /api/metrics (handlers/metrics_handler.rs:34) composes uptime + collect_event_bus_metrics<br/>(:63, walks the event-bus middleware list for a registered MetricsMiddleware — empty maps if none is)<br/>plus a circuit_breakers field that is HARDCODED EMPTY (:47-49) — no global breaker registry is wired<br/>into AppState yet, so that part of the response can never be non-empty today
 ```
 
@@ -218,10 +221,10 @@ sequenceDiagram
     WR->>WR: RUST_BINARY = $APP_ROOT/target/dev-runtime/visionclaw-server (scripts/rust-backend-wrapper.sh:39)
     WR->>WR: export CARGO_PROFILE_DEV_RUNTIME_DEBUG_ASSERTIONS=true (scripts/rust-backend-wrapper.sh:45)
     WR->>WR: BUILD_STAMP = $APP_ROOT/target/.visionclaw-dev-runtime-build-stamp (scripts/rust-backend-wrapper.sh:46)
-    Note over WR: INVARIANT (2026-09-07, ADR-2038) — the dev launcher builds profile dev-runtime<br/>(Cargo.toml:328-331, inherits release but keeps debug-assertions and overflow-checks, ADR-2156 also sets lto off, codegen-units 256 and incremental, Cargo.toml:332-334),<br/>NOT --release. Optimisation without letting a dev-auth artefact present itself as a<br/>production build to the boot-time profile assertion. The assertion override is exported<br/>so the identity is pinned rather than inherited
+    Note over WR: INVARIANT (2026-09-07, ADR-2038) — the dev launcher builds profile dev-runtime<br/>(Cargo.toml:331-334, inherits release but keeps debug-assertions and overflow-checks, ADR-2156 also sets lto off, codegen-units 256 and incremental, Cargo.toml:335-337),<br/>NOT --release. Optimisation without letting a dev-auth artefact present itself as a<br/>production build to the boot-time profile assertion. The assertion override is exported<br/>so the identity is pinned rather than inherited
     alt SKIP_RUST_REBUILD != true
         WR->>DI: dev_inputs_install (scripts/rust-backend-wrapper.sh:91)
-        Note over WR,DI: ADR-2008 2026-10-07 amendment — Cargo.toml, Cargo.lock, build.rs and the Vite root files reach /app by COPY<br/>from the read-only /app/.dev-inputs mount that the host publishes and stamps with launch.sh (scripts/lib/dev-inputs.sh:12-17),<br/>never by a single-file bind mount that pins a stale inode after a git operation. A missing or mismatched stamp makes the wrapper<br/>log FATAL and exit 1 (:92-93) rather than build something stale. The stamp's source_sha is logged (:95)
+        Note over WR,DI: ADR-2008 2026-10-07 amendment — Cargo.toml, Cargo.lock, build.rs and the Vite root files reach /app by COPY<br/>from the read-only /app/.dev-inputs mount that the host publishes and stamps with launch.sh (scripts/lib/dev-inputs.sh:12-17),<br/>never by a single-file bind mount that pins a stale inode after a git operation. A missing or mismatched stamp makes the wrapper<br/>log FATAL and exit 1 (scripts/rust-backend-wrapper.sh:91-94) rather than build something stale. The stamp's source_sha is logged (scripts/rust-backend-wrapper.sh:95)
         WR->>BI: needs_rebuild(RUST_BINARY, /app, BUILD_STAMP, BUILD_FEATURES)
         BI-->>WR: 0 build / 1 skip, plus a one-line reason
         alt skip
@@ -268,7 +271,7 @@ flowchart TB
     C6 -->|yes| SK["SKIP — 'binary is up to date, environment unchanged'"]
     GLOB["BUILD_INPUT_NAME_GLOBS :44<br/>*.rs (incl. every crate build.rs) · *.cu *.cuh *.ptx<br/>Cargo.toml (root AND crate manifests) · Cargo.lock<br/>rust-toolchain · rust-toolchain.toml · config.toml"]
     PRUNE["BUILD_INPUT_PRUNE_DIRS :35 — target node_modules .git .venv dist .dev-inputs<br/>(the published copies are installed into /app, so walking the directory would double-count them)"]
-    ENVV["BUILD_INPUT_ENV_VARS :48 — CUDA_ARCH CUDA_PATH DOCKER_ENV CARGO_BUILD_FEATURES<br/>plus CARGO_PROFILE_DEV_RUNTIME_DEBUG_ASSERTIONS, added 2026-09-07 so a flipped<br/>assertion override invalidates the binary with no file touched<br/>declared rerun-if-env-changed by build.rs and crates/visionclaw-gpu/build.rs"]
+    ENVV["BUILD_INPUT_ENV_VARS :48 — CUDA_ARCH CUDA_PATH DOCKER_ENV CARGO_BUILD_FEATURES<br/>plus CARGO_PROFILE_DEV_RUNTIME_DEBUG_ASSERTIONS, added 2026-09-07 so a flipped<br/>assertion override invalidates the binary with no file touched.<br/>DRIFT — the comment (:46-47) says the build scripts declare all of these, they do not — see the Drift note below"]
     C2 --- GLOB
     C2 --- PRUNE
     C6 --- ENVV
@@ -276,9 +279,11 @@ flowchart TB
     ENVV --- SIG
     HOLES["the two holes this file closed (:9-13) — the original heuristic globbed only the ROOT<br/>Cargo.toml/Cargo.lock/build.rs so a CRATE manifest edit left a stale binary running,<br/>and globbed *.cu under /app/src only so a crate CUDA kernel edit was missed"]
     GLOB --- HOLES
-    DIV["DIVERGENCE (BASELINE 2026-09-04 development acceptance, BASELINE-architecture.md:367) — ADR-2008 is PARTIAL.<br/>Normal development startup uses this timestamp-gated wrapper, with demonstrated<br/>misses for crate CUDA and manifest edits. The 2026-09-04 text predates the .dev-inputs<br/>publish-and-verify path (VC-08.9), which the doc does not mention."]
+    DIV["DIVERGENCE (BASELINE 2026-09-04 development acceptance, BASELINE-architecture.md:393) — ADR-2008 is PARTIAL.<br/>Normal development startup uses this timestamp-gated wrapper, with demonstrated<br/>misses for crate CUDA and manifest edits. The 2026-09-04 text predates the .dev-inputs<br/>publish-and-verify path (VC-08.9), which the doc does not mention."]
     NR --- DIV
 ```
+
+**Drift:** `BUILD_INPUT_ENV_VARS` is introduced as the variables "the build scripts declare as `rerun-if-env-changed`" (`../project/scripts/lib/build-inputs.sh:46-48`), and the header says both build scripts declare `CUDA_ARCH`, `DOCKER_ENV` and `CARGO_FEATURE_GPU` (`:15-17`). At this revision the root `build.rs` declares `CARGO_FEATURE_GPU`, `CUDA_ARCH` and `DOCKER_ENV` (`../project/build.rs:43-45`). `crates/visionclaw-gpu/build.rs` declares `CUDA_ARCH`, `CUDA_PATH`, `NVCC_CCBIN`, `CUDAHOSTCXX` and `DOCKER_ENV` (`../project/crates/visionclaw-gpu/build.rs:50-54`), so the GPU crate does not declare `CARGO_FEATURE_GPU`. No build script declares `CARGO_BUILD_FEATURES` or `CARGO_PROFILE_DEV_RUNTIME_DEBUG_ASSERTIONS`. Those two are the wrapper's own identity inputs, and putting them in the stamp is still correct.
 
 ## VC-08.11 Image builds and the dev-auth exclusion (ADR-2037)
 ```mermaid
@@ -303,14 +308,14 @@ sequenceDiagram
     rect rgb(244,236,236)
     Note over DP,SP: production image
     DP->>DP: cargo build --release (Dockerfile.production:164) — NO --features, so no dev-auth
-    DP->>SP: COPY supervisord.production.conf (Dockerfile.unified:414)
+    DU->>SP: COPY supervisord.production.conf in the unified file's production stage (Dockerfile.unified:414) — Dockerfile.production copies no supervisord config
     DP->>RT: the shipped binary is a production artefact
     Note over RT: ADR-2037 — with dev-auth absent, every bypass codepath is #[cfg]-stripped.<br/>enforce_release_env_hygiene becomes the real impl (src/main.rs:118) rather than the stub (:169)
     end
     RT->>RT: enforce_release_env_hygiene() at src/main.rs:209 — see VC-09.3
     RT->>RT: assert_effective_profile_or_exit() at src/main.rs:952 — see VC-09.4
-    Note over RT: ADR-2038 — BuildIdentity::current() reports dev_auth true for a dev-auth artefact, which is<br/>itself the finding DevAuthFeatureInArtefact (src/config/security_profile.rs:275). A dev-auth<br/>binary promoted to production refuses to bind at all.
-    Note over DU,RT: RESOLVED ADR-2049 — the warm-up stage used to run cargo build --release || true twice,<br/>which shell precedence made unfailable, so a broken lockfile or an uncompilable dependency<br/>produced a green layer. It now gates on cargo fetch --locked (must succeed) and tolerates<br/>only the crate compile, which legitimately fails against the stub build.rs.
+    Note over RT: ADR-2038 — BuildIdentity::current() reports dev_auth true for a dev-auth artefact, which is<br/>itself the finding DevAuthFeatureInArtefact (src/config/security_profile.rs:275) when the artefact is NOT a debug build<br/>(src/config/security_profile.rs:519-520). A release dev-auth binary promoted to production refuses to bind at all.
+    Note over DP,RT: PARTLY RESOLVED ADR-2049 — the production warm-up stage used to run cargo build --release || true twice,<br/>so a broken lockfile or an uncompilable dependency produced a green layer. It now gates on<br/>cargo fetch --locked (Dockerfile.production:100, must succeed). The stub-stage build pipes into tail with no pipefail<br/>(Dockerfile.production:101-102), so it still cannot fail, whether the crate or a DEPENDENCY breaks.<br/>The comment at Dockerfile.production:89-93 says the dependency build must succeed
 ```
 
 ## VC-08.12 Degraded-state and boot-receipt observability
@@ -341,3 +346,7 @@ sequenceDiagram
     end
     Note over B,O: the boot receipt is one-shot at start — the degraded reason is the only continuous<br/>readiness signal. There is no endpoint that re-reports the effective profile after boot.
 ```
+
+**Tension:** ADR-2049's stated intent, written into `../project/Dockerfile.production:89-93`, is that the stub stage fails when a dependency fails to compile. The command that implements it is `cargo build --release 2>&1 | tail -40 || echo ...` (`../project/Dockerfile.production:101-102`). The file sets no `SHELL` with `pipefail`, so the pipeline's status is `tail`'s and the stage passes for any compile result. Only `cargo fetch --locked` (`:100`) gates the layer.
+
+**Debt:** `NVCC_CCBIN` and `CUDAHOSTCXX` are declared `rerun-if-env-changed` by `../project/crates/visionclaw-gpu/build.rs:52-53` but are missing from `BUILD_INPUT_ENV_VARS` (`../project/scripts/lib/build-inputs.sh:48`). A change to either one does not invalidate the wrapper's stamp, so the timestamp gate can skip cargo when cargo itself would have rebuilt.

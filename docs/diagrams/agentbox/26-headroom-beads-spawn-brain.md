@@ -30,7 +30,11 @@ sources:
   - ../project/agentbox/mcp/servers/lib/ontology-local.js
   - ../project/agentbox/management-api/lib/headroom-evidence.js
   - ../project/agentbox/services/agentbox-manifest/src/system_one.rs
-verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
+  - ../project/agentbox/management-api/routes/memory.js
+  - ../project/agentbox/management-api/server.js
+  - ../project/agentbox/mcp/mcp.json
+  - ../project/agentbox/management-api/adapters/contract-versions.js
+verified_commit: c57d9c0508f4044915f9aecea4b9aa5629cc6a35
 ---
 
 ## AB-26.1 headroom — lazy native load and slot gating
@@ -38,26 +42,27 @@ verified_commit: 6500582dfae23bf8a38a6942916d208154e43625
 ```mermaid
 sequenceDiagram
     autonumber
-    participant MW as adapter dispatch middleware<br/>see AB-04
+    participant MW as memory search route, the ONLY compress#40;#41; caller<br/>agentbox/management-api/routes/memory.js:276
     participant H as headroom.compress<br/>agentbox/management-api/lib/headroom.js:193
     participant LN as _loadNative<br/>agentbox/management-api/lib/headroom.js:40
     participant CFG as _readManifestConfig<br/>agentbox/management-api/lib/headroom.js:56
     participant ADDON as headroom_napi.node<br/>/opt/agentbox/lib/headroom/headroom_napi.node
     participant CR as _detectContentType (JS-local)<br/>agentbox/management-api/lib/headroom.js:159
 
-    MW->>H: compress(content, slot, opts)
+    Note over MW,H: init#40;#41; runs once at management-api boot (management-api/server.js:1507-1508), until it succeeds compress#40;#41;<br/>passes through (headroom.js:206)
+    MW->>H: compress(JSON of the ranked results, "memory", opts)
     alt slot == events
         H-->>MW: input UNCHANGED
-        Note over H: HARD-CODED regardless of manifest config — the AUDIT TRAIL MUST NEVER BE COMPRESSED<br/>(headroom.js:15-17). agentbox.toml:2470 events = false agrees, but the code does not<br/>trust it
+        Note over H: HARD-CODED regardless of manifest config — the AUDIT TRAIL MUST NEVER BE COMPRESSED<br/>(headroom.js:15-17). agentbox.toml:2507 events = false agrees, but the code does not<br/>trust it
     else slot not enabled in [compression.slots]
         H->>CFG: read the manifest
-        Note over CFG: agentbox.toml:2467-2472 — memory true, pods true, events false, beads true, orchestrator<br/>false
+        Note over CFG: agentbox.toml:2504-2509 — memory true, pods true, events false, beads true, orchestrator<br/>false
         H-->>MW: input UNCHANGED — fail-open
-    else compression.enabled false (agentbox.toml:2461)
+    else compression.enabled false (agentbox.toml:2498)
         H-->>MW: input UNCHANGED — fail-open
     else enabled and slot on
         H->>LN: load the addon on FIRST CALL, not at require() time
-        Note over LN: lazy so management-api startup is unaffected when the addon is not installed. Sentinels<br/>— null not yet attempted, false unavailable, object loaded (headroom.js:30-33)
+        Note over LN: lazy so management-api startup is unaffected when the addon is not installed. Sentinels<br/>— null not yet attempted, false unavailable, object loaded (headroom.js:29-32)
         alt addon absent
             LN-->>H: false
             H-->>MW: input UNCHANGED — fail-open (headroom.js:12-14)
@@ -74,7 +79,9 @@ sequenceDiagram
     Note over H: INVARIANT: fail-open everywhere — when the native addon is absent or compression is off,<br/>compress() returns the input unchanged (headroom.js:12-14)
 ```
 
-**Open:** since this stamp `headroom.js` also exports `compressSelected`, a lazy-loaded Jev option (off in code, opted in by `[system_one.consumers].headroom_evidence` at `../project/agentbox/agentbox.toml:917`, staged until a rebuild, so not live; local-only only on request, `AGENTBOX_JEV_HEADROOM_LOCAL_ONLY` is exported 0 unless the consumer is listed in `[system_one].local_only`, empty by default, so it takes the proxy and TypeSafe: `../project/agentbox/management-api/lib/headroom-evidence.js:27-29,116`, `../project/agentbox/services/agentbox-manifest/src/system_one.rs:528,564-577`) that ranks authorised excerpts for the task before running the same `compress()` over them (`../project/agentbox/management-api/lib/headroom.js:407-409`, `../project/agentbox/management-api/lib/headroom-evidence.js:3-8`); it reorders and never drops, and is not drawn here.
+**Open:** since this stamp `headroom.js` also exports `compressSelected`, a lazy-loaded Jev option (off in code, opted in by `[system_one.consumers].headroom_evidence` at `../project/agentbox/agentbox.toml:921`, staged until a rebuild, so not live; local-only only on request, `AGENTBOX_JEV_HEADROOM_LOCAL_ONLY` is exported 0 unless the consumer is listed in `[system_one].local_only`, empty by default, so it takes the proxy and TypeSafe: `../project/agentbox/management-api/lib/headroom-evidence.js:27-29,116`, `../project/agentbox/services/agentbox-manifest/src/system_one.rs:544,580-593`) that ranks authorised excerpts for the task before running the same `compress()` over them (`../project/agentbox/management-api/lib/headroom.js:407-409`, `../project/agentbox/management-api/lib/headroom-evidence.js:3-8`); it reorders and never drops, and is not drawn here.
+
+**Tension:** `[compression.slots]` enables `pods` and `beads` (`../project/agentbox/agentbox.toml:2506`, `../project/agentbox/agentbox.toml:2508`), and `headroom.js` describes slot gating for every adapter slot (`../project/agentbox/management-api/lib/headroom.js:13-14`), but the only caller of `compress()` in management-api is the memory search route (`../project/agentbox/management-api/routes/memory.js:269-280`). No adapter middleware compresses pod writes or bead payloads, so those two switches have nothing to switch.
 
 ## AB-26.2 The three content-aware compressors and the CCR store
 
@@ -95,7 +102,7 @@ sequenceDiagram
     alt json_array
         JS->>SC: smart_crush(input, SmartCrushOptions)
         SC->>SC: analyse the schema, preserve ANCHORS and OUTLIERS, sample the rest
-        Note over SC: target_ratio default 0.3 in-crate (smart_crusher.rs:11), min_items default 2.<br/>agentbox.toml:2465 sets an aggressive target_ratio = 0.15 — keep about 15 percent
+        Note over SC: target_ratio default 0.3 in-crate (smart_crusher.rs:11), min_items default 2.<br/>agentbox.toml:2502 sets an aggressive target_ratio = 0.15 — keep about 15 percent
         SC->>CCR: emit a CCR sentinel per DROPPED row
     else log_output
         JS->>LC: compress_log(input, LogCompressOptions)
@@ -109,7 +116,7 @@ sequenceDiagram
     end
     CCR->>DB: ccr_store_entry(hash, original) — lib.rs:61
     Note over CCR,DB: BLAKE3 hash prefix, 24 hex chars, identifies the stored content (types.rs:5-12).<br/>Process-global singleton via OnceLock (ccr_store.rs:11-12), DashMap over a rusqlite<br/>Connection
-    Note over DB: backend sqlite (memory also supported, redis DEFERRED), ttl_minutes 30, max_entries 1000<br/>with LRU eviction (agentbox.toml:2462-2464)
+    Note over DB: backend sqlite (memory also supported, redis DEFERRED), ttl_minutes 30, max_entries 1000<br/>with LRU eviction (agentbox.toml:2499-2501)
     JS-->>JS: CompressResult {compressed, original_bytes, ...}
 ```
 
@@ -127,7 +134,8 @@ sequenceDiagram
     alt headroom_compress (headroom-mcp-tools.js:65)
         AG->>T: headroom_compress {content, content_type}
         Note over T: content_type enum json_array | log_output | unified_diff | auto
-        T->>H: compress / smartCrush / compressLog / compressDiff (headroom.js:355,365,375)
+        T->>H: smartCrush / compressLog / compressDiff directly, never compress#40;#41;, so no slot gate applies (headroom.js:355,365,375)
+        Note over T,H: auto routes on the native detectContentType, and unknown, code and prose fall to smartCrush<br/>(headroom-mcp-tools.js:166-186)
         H->>N: the matching compressor
         N->>DB: originals stored in the CCR cache for later retrieval
         N-->>AG: compressed payload with CCR sentinels
@@ -150,8 +158,10 @@ sequenceDiagram
         H->>N: ccr_stats() (lib.rs:78)
         N-->>AG: CcrStoreStats — entry count, bytes stored, hit and miss counts, hit rate
     end
-    Note over H,N: init_compression(CompressionConfig) (lib.rs:87) is called from headroom.js init<br/>(headroom.js:118) with the manifest overrides
+    Note over H,N: init_compression(CompressionConfig) (lib.rs:87) is called from headroom.js init<br/>(headroom.js:118, headroom.js:141) with the manifest overrides. retrieve#40;#41; answers null until init has run,<br/>which the tool reports as expired (headroom.js:287, headroom-mcp-tools.js:124-125)
 ```
+
+**Debt:** the three headroom tools are defined and exported, but no MCP server or route loads `headroom-mcp-tools.js` at this revision: the only reference to it outside the file is an archived ADR. An agent cannot reach `headroom_retrieve`, so a CCR sentinel in a compressed memory result has no agent-facing way back to its original (`../project/agentbox/management-api/lib/headroom-mcp-tools.js:89-93`, `../project/agentbox/management-api/lib/headroom-mcp-tools.js:111`). Closing it means registering the tools on a served MCP surface, or deleting the module.
 
 ## AB-26.4 The beads adapter contract
 
@@ -195,7 +205,7 @@ classDiagram
     note for BeadsAdapter "One of the FIVE adapter slots (beads, pods, memory, events, orchestrator — legacy<br/>ADR-005). Every slot resolves to local-*, external or off, and tests/contract must pass<br/>for ALL THREE implementation classes per slot. Never a client-only or standalone-only<br/>feature"
     note for LocalSqliteBeadsAdapter "CONTRACT_VERSIONS.beads is asserted valid semver AND matched against a canonical fixture<br/>value by the contract spec (beads.contract.spec.js:70-79). addDependency/dep-aware<br/>getReady were resurrected in beads 1.1.0"
     note for OffBeadsAdapter "the off class raises AdapterDisabled on EVERY method — asserted by<br/>beads.contract.spec.js:81"
-    note for BeadsAdapterPlaceholder "DOC-DRIFT: this is the GENERIC cross-slot 'off' fallback (adapters/index.js:111-125), not a<br/>beads-specific class — requireImpl only reaches placeholder.js when off.js is absent for a<br/>slot. Since beads/off.js exists, this class is DEAD for the beads slot today"
+    note for BeadsAdapterPlaceholder "DOC-DRIFT: this is the GENERIC cross-slot 'off' fallback (adapters/index.js:120-134), not a<br/>beads-specific class — requireImpl only reaches placeholder.js when off.js is absent for a<br/>slot. Since beads/off.js exists, this class is DEAD for the beads slot today"
 ```
 
 ## AB-26.5 Work-DAG readiness semantics
@@ -270,7 +280,7 @@ sequenceDiagram
         alt unknown
             ONT-->>VAL: error
             VAL-->>AG: throw "input references unknown ontology IRIs: ..."
-            Note over VAL: INVARIANT: an unknown IRI is REJECTED BEFORE ANY WORK IS SPAWNED (:15-16, :81)
+            Note over VAL: INVARIANT: an unknown IRI is REJECTED BEFORE ANY WORK IS SPAWNED (:15-16, :83)
         else known
             ONT-->>VAL: canonical IRI
         end
@@ -282,8 +292,10 @@ sequenceDiagram
     end
     CTX-->>AG: {beadId, epicId, owner, skill, typedInput, status}
     Note over AG,CTX: prime-agent's rlm() spawns ANONYMOUS, UNTYPED children — the adoptable here is the<br/>CONTRACT prime lacks: a child bead under the parent epic, typed IRIs, and inherited DID<br/>ownership (:7-20)
-    Note over CTX: the heavy lifting — retrieval, reasoning, actual agent execution — stays with the<br/>ORCHESTRATOR. This is a thin typing+attribution+ownership skin over a spawn (:21-22).<br/>Dispatch is AB-04
+    Note over CTX: the heavy lifting — retrieval, reasoning, actual agent execution — stays with the<br/>ORCHESTRATOR. This is a thin typing+attribution+ownership skin over a spawn (:20-21).<br/>Dispatch is AB-04
 ```
+
+**Drift:** the module header still says the child "inherits the parent's DID/Nostr identity as its actor" (`../project/agentbox/mcp/servers/lib/typed-spawn.js:17-18`), while the code deliberately leaves `actor` null and carries the owner in tags (`../project/agentbox/mcp/servers/lib/typed-spawn.js:68-72`, `../project/agentbox/mcp/servers/lib/typed-spawn.js:87-89`). The code is the intended design; the header predates it.
 
 ## AB-26.7 spawn_ready and spawn_complete
 
@@ -304,7 +316,7 @@ sequenceDiagram
         BEADS-->>CTX: only children whose blockers are ALL closed and whose actor IS NULL
         CTX-->>AG: [{beadId, title, actor}]
     else spawn_complete (substrate-tools.js:130)
-        AG->>ST: spawn_complete {bead_id, output_iris, outcome}
+        AG->>ST: spawn_complete {bead_id, epic_id, output_iris, outcome}, both ids required (substrate-tools.js:141)
         ST->>CTX: completeChild(beadId, {outputIris, outcome})
         CTX->>VAL: validateIris(ontology, outputIris, "output")
         alt any unknown output IRI
@@ -317,8 +329,11 @@ sequenceDiagram
         end
     end
     Note over ST: the substrate-tools server also exposes refine mcp/servers/substrate-tools.js:34, refine_validate mcp/servers/substrate-tools.js:51, refine_rollback<br/>mcp/servers/substrate-tools.js:56, refine_history mcp/servers/substrate-tools.js:61, refine_list mcp/servers/substrate-tools.js:70 and the working-set family ws_note mcp/servers/substrate-tools.js:77, ws_get<br/>mcp/servers/substrate-tools.js:86, ws_list mcp/servers/substrate-tools.js:91, ws_drop mcp/servers/substrate-tools.js:96, ws_revalidate mcp/servers/substrate-tools.js:101 — see AB-22 and AB-25
-    Note over ST: PROPOSED ADR-2074: build the ADR-051 distillation tools as a discrete manifest-gated MCP server that holds the<br/>harness signing key, rather than as tools on the fail-open ontology-bridge - none of D2 or D3 exists today, so there is<br/>no distill tool, no job URN kind and no job_urn field. See AB-24
+    Note over ST,BEADS: every call builds a NEW spawn context with dbPath AGENTBOX_BEADS_DB (substrate-tools.js:169,174,178)<br/>mcp.json:224 defaults it to empty, and typed-spawn.js:34 turns empty into :memory: — see the Tension below
+    Note over ST: REJECTED ADR-2074 (decision_status rejected): the ADR-051 distillation tools are not to become a discrete MCP server<br/>holding the harness signing key - none of D2 or D3 exists, so there is<br/>no distill tool, no job URN kind and no job_urn field. See AB-24
 ```
+
+**Tension:** the handler comment says the spawn tools use a "persistent beads.db so ready/complete see prior state" (`../project/agentbox/mcp/servers/substrate-tools.js:167`), but the MCP registration passes `AGENTBOX_BEADS_DB` through with an empty default (`../project/agentbox/mcp/mcp.json:224`) and `loadDeps` maps an empty path to `:memory:` before the adapter's own `$WORKSPACE/beads.db` default can apply (`../project/agentbox/mcp/servers/lib/typed-spawn.js:31-35`, `../project/agentbox/management-api/adapters/beads/local-sqlite.js:63-64`). Each tool call opens a fresh connection, so with the shipped default `spawn_ready` sees no children and `spawn_complete` cannot find the bead `spawn_child` made. Source tracing only; no runtime call was made. Closing it means defaulting the path to the workspace database in `loadDeps`, or setting `AGENTBOX_BEADS_DB` in the registration.
 
 ## AB-26.8 RuvNet Brain grounding — three-tier trigger and sentence scope
 
@@ -328,7 +343,7 @@ sequenceDiagram
     participant U as User prompt
     participant CC as Claude Code UserPromptSubmit
     participant HK as analyse<br/>agentbox/config/hooks/ruvnet-brain-ground.cjs:90
-    participant MCP as ruvnet-brain server<br/>agentbox/mcp/ruvnet-brain/server.js:212
+    participant MCP as ruvnet-brain server<br/>agentbox/mcp/ruvnet-brain/server.js:193
     participant KB as ruvnet-kb namespace<br/>see AB-20
 
     U->>CC: prompt text
@@ -348,14 +363,14 @@ sequenceDiagram
     else parts non-empty
         HK->>HK: emitContext(ctx) — lib/hook-output.cjs (:123-124)
         HK-->>CC: hookSpecificOutput.additionalContext — a GROUNDING directive to call search_ruvnet<br/>before asserting, plus up to two REDIRECT lines for classical substitutes
-        CC->>MCP: search_ruvnet (server.js:220)
+        CC->>MCP: search_ruvnet (ruvnet-brain/server.js:201)
         MCP->>KB: semantic search over the reference corpus
         KB-->>MCP: hits
         MCP-->>CC: grounded evidence
         opt status probe
-            CC->>MCP: ruvnet_brain_status (server.js:236)
+            CC->>MCP: ruvnet_brain_status (ruvnet-brain/server.js:217)
         end
-        Note over MCP: status now also reports ingest release provenance — content_addressed,<br/>archive/receipt sha256, sig presence and verification (server.js:194-204).<br/>Pre-2026-10-03 ingests carry none
+        Note over MCP: status now also reports ingest release provenance — content_addressed,<br/>archive/receipt sha256, sig presence and verification (ruvnet-brain/server.js:175-185).<br/>Pre-2026-10-03 ingests carry none
     end
     Note over HK: FAIL-OPEN: unparseable stdin JSON returns before analyse runs (:120) — main() always<br/>exits 0 via .finally (:128)
     Note over HK: INVARIANT: an ESTATE name or a CLASSICAL_SUBS term only counts alongside its cue in the<br/>SAME sentence — a long pasted log cannot pair words from unrelated lines (:85-87)
@@ -367,19 +382,19 @@ sequenceDiagram
 
 ```mermaid
 flowchart TB
-    subgraph man["agentbox.toml [compression] — line 2460"]
-        E["enabled = true agentbox.toml:2461<br/>headroom-napi crate built, compression active"]
-        B["backend = sqlite agentbox.toml:2462<br/>sqlite or memory, redis DEFERRED"]
-        T["ttl_minutes = 30 agentbox.toml:2463"]
-        M["max_entries = 1000 agentbox.toml:2464<br/>LRU eviction"]
-        R["target_ratio = 0.15 agentbox.toml:2465<br/>aggressive default, keep about 15 percent"]
+    subgraph man["agentbox.toml [compression] — line 2497"]
+        E["enabled = true agentbox.toml:2498<br/>headroom-napi crate built, compression active"]
+        B["backend = sqlite agentbox.toml:2499<br/>sqlite or memory, redis DEFERRED"]
+        T["ttl_minutes = 30 agentbox.toml:2500"]
+        M["max_entries = 1000 agentbox.toml:2501<br/>LRU eviction"]
+        R["target_ratio = 0.15 agentbox.toml:2502<br/>aggressive default, keep about 15 percent"]
     end
-    subgraph slots["[compression.slots] — line 2467"]
-        S1["memory = true agentbox.toml:2468<br/>compress memory search results"]
-        S2["pods = true agentbox.toml:2469<br/>compress pod writes"]
-        S3["events = false agentbox.toml:2470<br/>NEVER compress audit trail"]
-        S4["beads = true agentbox.toml:2471<br/>compress bead payloads"]
-        S5["orchestrator = false agentbox.toml:2472<br/>skip orchestrator coordination"]
+    subgraph slots["[compression.slots] — line 2504"]
+        S1["memory = true agentbox.toml:2505<br/>compress memory search results"]
+        S2["pods = true agentbox.toml:2506<br/>compress pod writes"]
+        S3["events = false agentbox.toml:2507<br/>NEVER compress audit trail"]
+        S4["beads = true agentbox.toml:2508<br/>compress bead payloads"]
+        S5["orchestrator = false agentbox.toml:2509<br/>skip orchestrator coordination"]
     end
     subgraph adapters["The five adapter slots (legacy ADR-005) — dispatch in AB-04"]
         A1["memory → RuVector, see AB-20"]
@@ -402,7 +417,7 @@ flowchart TB
         direction TB
         N1["INVARIANT: the events slot ALWAYS returns input unchanged regardless of manifest config<br/>— hard-coded in agentbox/management-api/lib/headroom.js:15-17. The manifest value is<br/>belt-and-braces, not the control"]
         N2["The addon is loaded from /opt/agentbox/lib/headroom/headroom_napi.node (headroom.js:27),<br/>built from agentbox/crates/headroom-napi and packaged by<br/>agentbox/lib/headroom-compress.nix. Absent addon = fail-open passthrough, so a disabled<br/>build leaves no runtime trace"]
-        N3["Three middleware layers wrap EVERY adapter dispatch in order: observability (ADR-005)<br/>then privacy filter (ADR-008) then JSON-LD encoder (ADR-012). Compression rides inside<br/>that chain — see AB-04"]
+        N3["Compression is NOT in the adapter middleware chain: no management-api/middleware file<br/>references headroom. Only the memory search route compresses, slot memory<br/>(management-api/routes/memory.js:276), so the pods and beads switches have no caller"]
         N1 ~~~ N2 ~~~ N3
     end
 ```

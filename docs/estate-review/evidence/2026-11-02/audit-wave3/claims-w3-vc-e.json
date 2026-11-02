@@ -1,0 +1,38 @@
+[
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/15-gpu-analytics.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-e.md",
+    "coverage": "selected-panels",
+    "panels": ["VC-15.1", "VC-15.2", "VC-15.3", "VC-15.4", "VC-15.5", "VC-15.6", "VC-15.7", "VC-15.8", "VC-15.9", "VC-15.10", "VC-15.12", "VC-15.13"],
+    "basis": "Source tracing at VisionClaw 86cdd7635582; restamped from 8692b12 with every citation re-resolved and read at the pin; all twelve panels corrected (community detection sent to a ForceComputeActor stub, PageRank AppState address never set, pathfinding bodies redrawn through gpu_manager_addr, Louvain D1 line and APSP removal); strict cite-check and render pass (266 citations); kernels, conformance tests and routes not run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/16-interaction-drag-pin-layout.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-e.md",
+    "coverage": "selected-panels",
+    "panels": ["VC-16.1", "VC-16.2", "VC-16.3", "VC-16.4", "VC-16.5", "VC-16.6", "VC-16.7", "VC-16.8"],
+    "basis": "Source tracing at VisionClaw 86cdd7635582; restamped from 8692b12 with every citation re-resolved and read at the pin; all eight panels corrected (drag redrawn as the ADR-2169 hold model with explicit nodePin/nodeUnpin, layout mode via apply_physics_patch, constraint routes reach ForceComputeActor or nothing); strict cite-check and render pass (204 citations); no client drag, GPU step or layout route exercised."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/17-xr-presence-crate.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-e.md",
+    "coverage": "selected-panels",
+    "panels": ["VC-17.1", "VC-17.2", "VC-17.3", "VC-17.6"],
+    "basis": "Source tracing at VisionClaw 86cdd7635582 (sources byte-identical to 8692b12); restamped with every citation read at the pin; all four panels corrected, including the JEV advisory presence_actor.rs:35 (wrong-file binding), decode in the actor, the replay and skew checks, and no production sender for the 0x44 channel; strict cite-check and render pass (113 citations); no presence session or headset run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/18-analytics-support-handlers.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-e.md",
+    "coverage": "selected-panels",
+    "panels": ["VC-18.1", "VC-18.2", "VC-18.3", "VC-18.4", "VC-18.5", "VC-18.6", "VC-18.7", "VC-18.8", "VC-18.9", "VC-18.10"],
+    "basis": "Source tracing at VisionClaw 86cdd7635582; restamped from 8692b12 with every citation re-resolved and read at the pin; all ten panels corrected (stress routes hit ForceComputeActor stubs, params/constraints no-op and masked-error replies, feature flags read sssp from the store, WebSocket interval not re-armed, JEV advisory params_handlers.rs:172 confirmed and fixed); strict cite-check and render pass (210 citations); no route or WebSocket exercised."
+  }
+]

@@ -16,7 +16,7 @@ sources:
   - ../project/agentbox/management-api/lib/ontology-apply.js
   - ../ontomark/crates/rdfs-certificate/src/lib.rs
   - ../ontomark/crates/ontomark-compile/src/write/apply.rs
-verified_commit: {visionclaw: 75b72416bac176ca8fde715cac3bd7c77657b3e7, agentbox: 9dfc27b16e82e9786535a55e790710493dd51fdf, ontomark: 0caae5d4b695cb720942b9b9212017c00a80ad41}
+verified_commit: {visionclaw: 86cdd7635582, agentbox: c57d9c0508f4, ontomark: 4b9d15df4805}
 ---
 
 ## For developers
@@ -38,8 +38,8 @@ flowchart TD
     L --> C["Escalate created pages with unknown/provisional keys<br/>amendments do not enter this loop<br/>vault/src/propose.rs:369,577,586"]
     B --> P["Assemble proposal and attach advisory consequences<br/>vault/src/propose.rs:599,611,615"]
     C --> P
-    P -->|no blockers| T["Task stakes follow selected level<br/>nostr.rs:84; vault/src/main.rs:478"]
-    T --> S["Sign complete request<br/>vault/src/main.rs:492,494"]
+    P -->|no blockers| T["Task stakes follow selected level<br/>nostr.rs:84; vault/src/main.rs:500"]
+    T --> S["Sign complete request<br/>vault/src/main.rs:514,516"]
 ```
 
 **What it shows.** Both corpus states are assessed, but validation blockers are deltas on touched pages. Consequences do not automatically raise the level. The audit's taxonomy and definition amendments remain content-level.
@@ -50,11 +50,11 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A["Level, IRI, page, hypothesis, diff<br/>plus group set and create kind<br/>vault-core/src/proposal.rs:364"] --> C["Stable case digest<br/>vault-core/src/proposal.rs:388"]
+    A["Level, IRI, page, hypothesis, diff<br/>plus group set and create kind<br/>vault-core/src/proposal.rs:365"] --> C["Stable case digest<br/>vault-core/src/proposal.rs:388"]
     BASE["Base and patched emitted graphs<br/>vault/src/propose.rs:118,555"] --> V["Graphs include content-derived versionIRI<br/>build/turtle.rs:495,513"]
     V --> R["Compare non-blank asserted and derived triples<br/>rdfs-certificate/src/lib.rs:603,630"]
     R --> META["Restriction filler probe: only versionIRI differs<br/>one added and one lost triple<br/>rdfs-certificate/src/lib.rs:642"]
-    R --> E["Consequences and generation outside case digest<br/>vault-core/src/proposal.rs:260,364"]
+    R --> E["Consequences and generation outside case digest<br/>vault-core/src/proposal.rs:260,365"]
     C --> FULL["Complete proposal serialised into signed event<br/>nostr.rs:151,189,190"]
     E --> FULL
 ```
@@ -69,7 +69,7 @@ flowchart TD
 flowchart TD
     M["Several changed pages in manifest<br/>vault/src/propose.rs:551"] --> G["Group subject is proposal IRI<br/>page repeats IRI and pages lists notes<br/>vault-core/src/proposal.rs:225,234"]
     G --> K["Any new page makes group kind create<br/>vault/src/propose.rs:590"]
-    G --> S["Postable group can be signed<br/>vault/src/main.rs:478,494"]
+    G --> S["Postable group can be signed<br/>vault/src/main.rs:500,516"]
     K --> S
     S --> A["Consumer dispatches create or amend<br/>ontology-apply.js:384,391"]
     A --> F["Require note-page slug to answer to subject IRI<br/>ontology-apply.js:570,699"]
@@ -87,7 +87,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    B["Existing Alpha resource is original IRI<br/>proposed page changes it<br/>vault/src/propose.rs:468"] --> P["Assess before and after without continuity comparison<br/>vault/src/propose.rs:557,558,568"]
+    B["Existing Alpha resource is original IRI<br/>proposed page changes it<br/>vault/src/propose.rs:463"] --> P["Assess before and after without continuity comparison<br/>vault/src/propose.rs:557,558,568"]
     P --> S["Proposal subject remains original resource<br/>vault/src/propose.rs:663,665"]
     S --> OLD["Writer checks current resource against proposal IRI<br/>write/apply.rs:229,230"]
     OLD --> PATCH["Apply approved patch then parse new page<br/>write/apply.rs:242,258"]

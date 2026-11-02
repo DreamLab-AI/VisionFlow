@@ -1,0 +1,47 @@
+[
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/10-gpu-supervision-and-context-bus.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-d.md",
+    "coverage": "selected-panels",
+    "panels": ["VC-10.1", "VC-10.2", "VC-10.3", "VC-10.4", "VC-10.5", "VC-10.6", "VC-10.7", "VC-10.10"],
+    "basis": "Source tracing at VisionClaw 86cdd7635582; restamped from 8692b12 with every citation re-resolved and read at the pin; 7 panels corrected (four self-init sites, delivery-failure Degraded health branch, context_bus.rs:103, renumbering), 1 accurate; strict cite-check and render pass (227 citations); GPU boot, timeouts and backoff not run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/11-physics-step-and-force-channels.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-d.md",
+    "coverage": "selected-panels",
+    "panels": ["VC-11.1", "VC-11.2", "VC-11.3", "VC-11.4", "VC-11.5", "VC-11.7", "VC-11.9", "VC-11.10"],
+    "basis": "Source tracing at VisionClaw 86cdd7635582; restamped from 8692b12 with every citation re-resolved and read at the pin; all 8 panels corrected (step_overrides and holds, kernel argument attribution, Path B delegation, constraint upload-on-change, VC-11.9 rewritten with checked citations); strict cite-check and render pass (194 citations); GPU numerics and settle timings not measured."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/12-simparams-abi-and-ptx.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-d.md",
+    "coverage": "selected-panels",
+    "panels": ["VC-12.1", "VC-12.2", "VC-12.3", "VC-12.4", "VC-12.5", "VC-12.6", "VC-12.7"],
+    "basis": "Source tracing at VisionClaw 86cdd7635582; restamped from 8692b12 with every citation re-resolved and read at the pin; all 7 panels corrected (ADR-2030 runtime PTX identity check, new hold-overlay and constraint-index buffers, kernel gate lines, mis-bound Invariant 5 citation); strict cite-check and render pass (156 citations); no build, nvcc or driver load run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/13-broadcast-pipeline-and-websocket.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-d.md",
+    "coverage": "selected-panels",
+    "panels": ["VC-13.1", "VC-13.2", "VC-13.3", "VC-13.4", "VC-13.6", "VC-13.7", "VC-13.8", "VC-13.9"],
+    "basis": "Source tracing at VisionClaw 86cdd7635582; restamped from 8692b12 with every citation re-resolved and read at the pin; all 8 panels corrected (VC-13.2 and the VC-13.8 drag lane redrawn for ADR-2169 server-side holds, 26 range-then-comma citation lists split so the gate checks every item); strict cite-check and render pass (341 citations); hold concurrency, stream pacing and socket lifecycle not run."
+  },
+  {
+    "kind": "topic",
+    "repo": "VisionFlow",
+    "path": "docs/diagrams/visionclaw/14-wire-frames-and-tag-registry.md",
+    "report": "docs/estate-review/2026-11-02-w3-vc-d.md",
+    "coverage": "selected-panels",
+    "panels": ["VC-14.1", "VC-14.2", "VC-14.3", "VC-14.4", "VC-14.5", "VC-14.6", "VC-14.7", "VC-14.8", "VC-14.9", "VC-14.10"],
+    "basis": "Source tracing at VisionClaw 86cdd7635582; restamped from 8692b12 with every citation re-resolved and read at the pin; 4 panels corrected (registry lines, XR decoder and ack lines, removed swarm-telemetry example, the 81-6 misparse), 6 accurate; message_routing.rs added to sources; strict cite-check and render pass (119 citations); no wire round-trip run."
+  }
+]

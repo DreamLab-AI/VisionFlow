@@ -35,15 +35,15 @@ sources:
   - ../project/client/src/features/solid/components/PodSettings.tsx
   - ../project/client/src/features/solid/components/ResourceEditor.tsx
   - ../project/src/handlers/image_gen_handler.rs
-verified_commit: {visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4}
+verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724}
 ---
 
 ## VC-26.1 Deployment topology — embedded pod vs feature-off stub
 ```mermaid
 flowchart TB
     subgraph cargo["Cargo.toml"]
-        DEFAULT["default = [gpu, ontology, persistence-oxigraph, solid-pod-embed]<br/>Cargo.toml:278"]
-        FEAT["solid-pod-embed feature<br/>Cargo.toml:307-309<br/>deps: solid-pod-rs, -nostr, -idp, -server"]
+        DEFAULT["default = [gpu, ontology, persistence-oxigraph, solid-pod-embed,<br/>shared-corpus-layout]<br/>Cargo.toml:279"]
+        FEAT["solid-pod-embed feature<br/>Cargo.toml:310-316<br/>deps: solid-pod-rs, -nostr, -idp, -server"]
     end
     DEFAULT --> FEAT
     FEAT -->|"cfg(feature = solid-pod-embed)"| ON["ON: embedded solid-pod-rs"]
@@ -73,13 +73,13 @@ flowchart TB
     STUBROUTES -.-> Note1
 
     Legacy["/JavaScriptSolidServer (repo root)"]
-    Note2["RESOLVED ADR-2068: the vendored JavaScriptSolidServer/ tree (63 MB) has been deleted. It was a third-party upstream project superseded by the embedded Rust solid-pod-rs, with no import, path or compose reference anywhere; its only mention was a doc-comment URL at src/utils/nip98.rs:5, left intact. Removed rather than archived - docs/archive/ is for our own superseded documents, and the upstream is recoverable from its own public repo."]
+    Note2["RESOLVED ADR-2068: the vendored JavaScriptSolidServer/ tree (63 MB) has been deleted. It was a third-party upstream project superseded by the embedded Rust solid-pod-rs, with no import, path or compose reference anywhere; its remaining mentions are the doc-comment URL at src/utils/nip98.rs:5, ignore-file entries and attribution in NOTICE and MAINTAINERS.md. Removed rather than archived - docs/archive/ is for our own superseded documents, and the upstream is recoverable from its own public repo."]
     Legacy -.-> Note2
 
     Note3["RESOLVED ADR-2098 (2026-09-05): SOLID_POD_URL's default in ontology-publish.yml and env.example<br/>was http://jss:3030 / http://visionclaw-jss:3030 - both DNS-dead JSS-sidecar names, a leftover<br/>from before ADR-032 M3 embedded solid-pod-rs. Both now default to http://localhost:4000/solid,<br/>the SYSTEM_NETWORK_PORT (default 4000, main.rs:872) this diagram's own INIT/APPDATA/CFG path<br/>actually serves. The /.notifications POST the workflow still sends is a documented no-op there -<br/>the embedded pod's /.notifications is a GET WebSocket upgrade (see VC-26.9), not a POST trigger."]
     ON -.-> Note3
 
-    Note4["PROPOSED, not live (ADR-2111, decision_status proposed, implementation_status none,<br/>still at HEAD): this repo already depends on the PUBLISHED solid-pod-rs crate -<br/>now resolved from the caret range 0.5.0-alpha.17 (no longer an exact = pin - ER-35 owner decision 2026-10-18,<br/>Cargo.toml:135-137) for all four solid-pod-rs crates, Cargo.toml:245-248, which adds the mrc20 feature whose blocktrails walker<br/>src/web_contract verifies trails with. ADR-2111's own review trigger - the<br/>solid-pod-rs post-port version landing - has now FIRED; what remains proposed is<br/>deleting the extraction/solid-pod-rs mirror and the payment-store rework. The<br/>embedded-pod path shown above is unchanged.<br/>docs/adr/ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:7-8"]
+    Note4["PROPOSED, not live (ADR-2111, decision_status proposed, implementation_status none,<br/>still at HEAD): this repo already depends on the PUBLISHED solid-pod-rs crate -<br/>now resolved from the caret range 0.5.0-alpha.17 (no longer an exact = pin - ER-35 owner decision 2026-10-18,<br/>Cargo.toml:136-138) for all four solid-pod-rs crates, Cargo.toml:246-249, which adds the mrc20 feature whose blocktrails walker<br/>src/web_contract verifies trails with. ADR-2111's own review trigger - the<br/>solid-pod-rs post-port version landing - has now FIRED; what remains proposed is<br/>deleting the extraction/solid-pod-rs mirror and the payment-store rework. The<br/>embedded-pod path shown above is unchanged.<br/>docs/adr/ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:5-7"]
     FEAT -.-> Note4
 ```
 
@@ -91,13 +91,13 @@ sequenceDiagram
     participant H as handle_solid_proxy<br/>solid_proxy_handler.rs:311-318
     participant AUTH as authenticate_request<br/>solid_proxy_handler.rs:246-248
     participant ACL as load_acl_for_path<br/>solid_proxy_handler.rs:891
-    participant WAC as evaluate_access<br/>solid_pod_rs::wac (imported :55)
-    participant FS as FsBackend<br/>solid_pod_rs::storage::fs (imported :53)
+    participant WAC as evaluate_access<br/>solid_pod_rs::wac (imported :63)
+    participant FS as FsBackend = PublishedStorage<br/>alias solid_proxy_handler.rs:48 over solid_pod_rs FsBackend<br/>ontology_generation.rs:33-35
 
     C->>H: METHOD /solid/{tail} (cfg solid-pod-embed ON)
     H->>AUTH: extract_user_identity(req)
     alt Authorization: Nostr <token>
-        AUTH->>AUTH: validate_nip98_token(token, url, method)<br/>nip98.rs:330 - see VC-26.4
+        AUTH->>AUTH: validate_nip98_token(token, url, method)<br/>nip98.rs:428 - see VC-26.4
         AUTH-->>H: Ok(Some(did:nostr:pubkey))
     else no Authorization and allow_anonymous
         AUTH-->>H: Ok(None)
@@ -105,7 +105,7 @@ sequenceDiagram
         AUTH-->>H: Err(401 Authentication required)
         H-->>C: 401 solid_proxy_handler.rs:250-253
     end
-    H->>ACL: load_acl_for_path(storage, storage_path)
+    H->>ACL: load_acl_for_path(storage, authorization_path) - a pinned @generation<br/>ontology URL is mapped to its canonical path first, so it keeps the canonical ACL<br/>solid_proxy_handler.rs:339-340 ontology_generation.rs:44
     ACL->>FS: get(/<res>.acl or /<container>/.acl)<br/>walk parents to /.acl (rs:896-927)
     FS-->>ACL: AclDocument or None
     H->>WAC: evaluate_access(acl, agent, path, method_to_mode(method))
@@ -132,7 +132,7 @@ sequenceDiagram
     participant U as useSolidPod<br/>hooks/useSolidPod.ts:32
     participant NA as nostrAuth<br/>services/nostrAuthService
     participant S as SolidPodService<br/>services/SolidPodService.ts:115
-    participant L as ldpClient.fetchWithAuth<br/>solidPod/ldpClient.ts:91
+    participant L as ldpClient.fetchWithAuth<br/>solidPod/ldpClient.ts:92
     participant B as init_pod / init_pod_nip98<br/>solid_proxy_handler.rs:1285,1331
 
     U->>U: useEffect - authenticated and nostrAuth.isAuthenticated()<br/>useSolidPod.ts:115-121
@@ -174,31 +174,35 @@ sequenceDiagram
     end
     NA-->>ldp: Authorization: Nostr <token>
 
-    participant ldp as fetchWithAuth<br/>ldpClient.ts:91
+    participant ldp as fetchWithAuth<br/>ldpClient.ts:92
     participant AUTH as extract_user_identity<br/>solid_proxy_handler.rs:188-190
     participant VAL as validate_nip98_token<br/>nip98.rs:428
-    participant CACHE as REPLAY_CACHE<br/>nip98.rs:215 (Mutex<HashMap>)
+    participant CACHE as REPLAY_CACHE<br/>nip98.rs:221 (OnceLock Mutex ReplayState)
 
     ldp->>AUTH: HTTP request, Authorization: Nostr <token>
     rect rgb(236,236,236)
     Note over AUTH,CACHE: server trust boundary - Schnorr verify happens here, not the proxy edge
     AUTH->>AUTH: reconstruct expected_url from X-Forwarded-Proto/Host/URI<br/>(rs:196-218)
     AUTH->>VAL: validate_nip98_token(token, expected_url, method, None)
-    VAL->>VAL: base64/utf8/json decode (nip98.rs:337-343)
-    VAL->>VAL: kind == 27235 check (nip98.rs:346-348)
-    alt age > TOKEN_MAX_AGE_SECONDS (60s, nip98.rs:169,362)
+    VAL->>VAL: base64/utf8/json decode (nip98.rs:451-459)
+    VAL->>VAL: kind == 27235 check (nip98.rs:462-464)
+    alt age > TOKEN_MAX_AGE_SECONDS (60s, nip98.rs:169, :476)
         VAL-->>AUTH: Err(TokenExpired)
-    else age < -TOKEN_MAX_AGE_SECONDS
+    else age < -TOKEN_MAX_AGE_SECONDS (nip98.rs:481)
         VAL-->>AUTH: Err(TokenFromFuture)
     else within window
-        VAL->>VAL: extract u/method tags, urls_match(expected, actual)<br/>nip98.rs:510
+        VAL->>VAL: extract u/method tags, urls_match(expected, actual), method match<br/>nip98.rs:491-503, :510, :518
         alt url or method mismatch
             VAL-->>AUTH: Err(UrlMismatch)
         else match
-            VAL->>VAL: Schnorr signature verify (nip98.rs ~365)
-            VAL->>CACHE: claim_event_id(event_id, now)<br/>nip98.rs:234
-            alt event_id already claimed (within 2x window, nip98.rs:178)
+            VAL->>VAL: payload binding is a no-op on this route - request_body is None under<br/>RequiredWhenTagged (nip98.rs:439, :556, caller solid_proxy_handler.rs:225),<br/>then Schnorr signature verify nip98.rs:563-565
+            VAL->>CACHE: claim_signed_id(event_id, pubkey, Instant::now)<br/>nip98.rs:573, fn :227, admit_signed_in :237
+            alt signer over REPLAY_CACHE_MAX_PER_PUBKEY live ids (nip98.rs:215, :259)
+                CACHE-->>VAL: Err(PubkeyAdmissionExceeded)
+            else event_id already claimed (within 2x window, nip98.rs:178, :307)
                 CACHE-->>VAL: Err(TokenReplayed)
+            else cache at hard capacity after pruning (nip98.rs:323)
+                CACHE-->>VAL: Err(ReplayCacheFull)
             else first use
                 CACHE-->>VAL: Ok(())
                 VAL-->>AUTH: Ok(Nip98ValidationResult{pubkey})
@@ -207,8 +211,10 @@ sequenceDiagram
     end
     end
     AUTH-->>ldp: Some(UserIdentity{pubkey}) or None (401)
-    Note over VAL,CACHE: RESOLVED ADR-2070 - IDENTITY-authority-chain.md now cites nip98.rs:330. vc-core re-verified<br/>and corrected every citation in that section, not just this one (kind check, TOKEN_MAX_AGE_SECONDS, the<br/>past/future window, tag match, urls_match, payload hash, signature verify, replay claim and the cache TTL).
+    Note over VAL,CACHE: DRIFT (was RESOLVED ADR-2070): the governing IDENTITY-authority-chain.md section still places<br/>validate_nip98_token at nip98.rs:330 and the claim at claim_event_id :234 under a Mutex HashMap. At this revision<br/>the validator is at :428, claim_event_id is test-only, and production claims through claim_signed_id with a<br/>per-signer admission cap (nip98.rs:227, :259). The section's line numbers need a refresh.
 ```
+
+**Tension:** the embedded pod never binds a write body to its signature. `extract_user_identity` calls `validate_nip98_token(token, &expected_url, expected_method, None)` (`../project/src/handlers/solid_proxy_handler.rs:225`). The public wrapper selects `BodyBinding::RequiredWhenTagged` (`../project/src/utils/nip98.rs:439`), and with no body that policy matches the catch-all `(RequiredWhenTagged, _, _) => {}` (`../project/src/utils/nip98.rs:556`). A `payload` tag is therefore never compared on `/solid` PUT, POST or PATCH, and the `/solid` scope adds no other body check (`../project/src/handlers/solid_proxy_handler.rs:1773-1807`). Someone holding an unused token for one write can send different bytes to the same URL and method inside the 60-second window; the single-use claim (`:573`) limits this to one substitution. Source tracing only; no request was sent. It parallels SP-ID-01 in `docs/estate-review/2026-11-01-solid-identity-boundaries.md`. What would close it: pass the received body and use `BodyBinding::Required` on write methods, with a route-level test that a body differing from the signed hash is refused.
 
 ## VC-26.5 ldpClient CRUD — LDP resource operations
 ```mermaid
@@ -216,7 +222,7 @@ sequenceDiagram
     autonumber
     participant App as caller (agentMemory / typeIndex / wacManager)
     participant L as ldpClient<br/>solidPod/ldpClient.ts
-    participant F as fetchWithAuth<br/>ldpClient.ts:91
+    participant F as fetchWithAuth<br/>ldpClient.ts:92
     participant P as handle_solid_proxy<br/>solid_proxy_handler.rs:311-318
 
     App->>L: fetchJsonLd(path) / fetchTurtle(path)<br/>ldpClient.ts:125,139
@@ -229,39 +235,39 @@ sequenceDiagram
         L->>L: throw Error(status) (ldpClient.ts:132,146)
     end
 
-    App->>L: putResource(path, data, contentType)<br/>ldpClient.ts:158
+    App->>L: putResource(path, data, contentType)<br/>ldpClient.ts:153
     L->>F: PUT body=JSON.stringify(data)|string
     F->>P: PUT /solid/{tail}
     alt response.ok
         P-->>L: 201/200 + ETag
         L-->>App: true
     else !ok
-        L->>L: logger.error, return false (ldpClient.ts:172-175)
+        L->>L: logger.error, return false (ldpClient.ts:167-170)
     end
 
-    App->>L: postResource(containerPath, data, slug?)<br/>ldpClient.ts:182
+    App->>L: postResource(containerPath, data, slug?)<br/>ldpClient.ts:177
     L->>F: POST, Slug header if provided
     F->>P: POST /solid/{tail}
     alt response.ok
         P-->>L: 201 + Location header
         L-->>App: Location string
     else !ok
-        L-->>App: null (ldpClient.ts:197-200)
+        L-->>App: null (ldpClient.ts:192-195)
     end
 
-    App->>L: deleteResource(path)<br/>ldpClient.ts:206
+    App->>L: deleteResource(path)<br/>ldpClient.ts:201
     L->>F: DELETE
     F->>P: DELETE /solid/{tail}
     alt response.ok
         L-->>App: true
     else status == 404
-        Note over L: INVARIANT: deleteResource treats 404 as success -<br/>already-absent is not an error (ldpClient.ts:210,215)
+        Note over L: INVARIANT: deleteResource treats 404 as success -<br/>already-absent is not an error (ldpClient.ts:205, :210)
         L-->>App: true
     else other non-2xx
         L-->>App: false (ldpClient.ts:206-207)
     end
 
-    App->>L: resourceExists(path)<br/>ldpClient.ts:219
+    App->>L: resourceExists(path)<br/>ldpClient.ts:214
     L->>F: HEAD
     alt ok or network throw
         L-->>App: response.ok / false on catch (ldpClient.ts:217-221)
@@ -321,7 +327,7 @@ sequenceDiagram
     participant Caller as agentMemory / feature code
     participant WAC as writeContainerAcl<br/>wacManager.ts:69
     participant B as buildAclTurtle<br/>wacManager.ts:30
-    participant F as fetchWithAuth (PUT .acl)<br/>ldpClient.ts:91
+    participant F as fetchWithAuth (PUT .acl)<br/>ldpClient.ts:92
     participant H as handle_solid_proxy<br/>solid_proxy_handler.rs:311-318
     participant R as load_acl_for_path<br/>solid_proxy_handler.rs:891
 
@@ -381,7 +387,7 @@ sequenceDiagram
         TI->>L: fetchJsonLd(typeIndexUrl)
         TI-->>Caller: DiscoveredView[] / DiscoveredAgent[] filtered by forClass
     else no publicTypeIndex link or fetch fails
-        TI-->>Caller: [] (typeIndex.ts:231-234,300-301)
+        TI-->>Caller: [] (typeIndex.ts:231-234, resolveRemoteTypeIndex null :301)
     end
 ```
 
@@ -416,38 +422,50 @@ sequenceDiagram
     Note over SW,WS: RESOLVED ADR-2100 (2026-09-05): there is ONE client. solidWebSocket.ts no longer opens<br/>its own socket - it is a thin store adapter over the podNotificationManager singleton<br/>(podNotifications.ts:300), registered once as solid-pod. The 10-vs-5 retry divergence is gone:<br/>both consumers share SOLID_MAX_RECONNECT_ATTEMPTS and SOLID_RECONNECT_DELAY_MS
     SW->>PN: connectSolidWebSocket(set) - delegates, no second WebSocket<br/>solidWebSocket.ts:71
     SW->>PN: subscribeSolidResource - podNotificationManager.subscribe<br/>solidWebSocket.ts:107
-    PN-->>SW: onLifecycle event mirrored to store state + emit('solid-resource-changed')<br/>podNotifications.ts:186, solidWebSocket.ts:32
+    PN-->>SW: onLifecycle event mirrored to store state + emit('solid-resource-changed')<br/>podNotifications.ts:186, solidWebSocket.ts:32, :56
     Note over SW: state.solidSubscriptions is a BOOKKEEPING MIRROR only - it backs getSolidSubscriptions()<br/>and is never dispatched through, so a store callback fires exactly once
 ```
 
-## VC-26.10 jss schemaParser — JSON-LD context load with cache
+## VC-26.10 jss schemaParser — generation-pinned JSON-LD load with cache
 ```mermaid
 sequenceDiagram
     autonumber
     participant Caller as ontology jss consumer
-    participant SP as fetchJsonLd<br/>jss/schemaParser.ts:64
-    participant CL as contextLoader<br/>jss/contextLoader.ts
+    participant SP as fetchJsonLd<br/>jss/schemaParser.ts:99
+    participant PIN as pinnedUrl<br/>jss/schemaParser.ts:73
+    participant CL as contextLoader<br/>jss/contextLoader.ts:18
     participant F as fetchWithAuth<br/>contextLoader.ts:37
 
     Caller->>SP: fetchJsonLd(cache, metrics, {skipCache, timeout})
-    alt !skipCache and isCacheValid(cache)<br/>schemaParser.ts:71 (ttlMs window)
+    alt !skipCache and isCacheValid(cache) - jsonLd present and inside ttlMs 60000<br/>schemaParser.ts:106, :56-58, :53
         SP-->>Caller: cache.jsonLd (cache hit, metrics.cacheHitCount++)
     else cache miss or skipCache
-        SP->>CL: getOntologyJsonLdUrl() = getOntologyUrl() + "/ontology.jsonld"<br/>contextLoader.ts:18-31 (ADR-2106)
-        SP->>SP: AbortController, setTimeout(timeout) default 30000ms<br/>schemaParser.ts:79-80
-        SP->>F: fetchWithAuth(url, Accept ld+json, signal)
+        SP->>SP: AbortController, setTimeout(timeout) default 30000ms<br/>schemaParser.ts:104, :114-115
+        SP->>PIN: pinnedUrl(cache, ontology.jsonld, skipCache, signal)<br/>schemaParser.ts:118
+        PIN->>CL: getOntologyUrl() = SOLID_POD_BASE_URL + /public/ontology<br/>schemaParser.ts:74, contextLoader.ts:18-20
+        opt no generation pinned yet (refresh or TTL expiry invalidates first, schemaParser.ts:76)
+            PIN->>F: GET base/index.jsonld, Accept ld+json<br/>schemaParser.ts:80
+            F-->>PIN: manifest
+            PIN->>PIN: require visionflow:generation as 32 hex, and the cache epoch unchanged<br/>schemaParser.ts:83-85
+        end
+        PIN-->>SP: base/@generation/ontology.jsonld<br/>schemaParser.ts:96
+        SP->>F: fetchWithAuth(url, Accept ld+json, signal)<br/>schemaParser.ts:119
         alt response.ok
             F-->>SP: JSON body
-            SP->>SP: cache.jsonLd = data - cache.timestamp = now()<br/>schemaParser.ts:132
+            SP->>SP: cache only if the url is still the pinned generation<br/>schemaParser.ts:130-133
             SP-->>Caller: JsonLdOntology
         else !response.ok
-            SP-->>Caller: throw Error(status) (schemaParser.ts:89-90)
+            SP-->>Caller: throw Error(status) (schemaParser.ts:125-126)
         else AbortError (timeout fired)
-            SP-->>Caller: throw Error(ontology fetch timeout) (schemaParser.ts:109-110)
+            SP-->>Caller: throw Error(ontology fetch timeout) (schemaParser.ts:147-148)
         end
     end
-    Note over SP,CL: RESOLVED ADR-2106 (2026-09-06): the embedded pod serves /public/ontology/<br/>as an LDP CONTAINER (a bare GET is a listing, not the ontology) - the JSS-era<br/>single Accept-negotiated URL contract does not exist here. fetchJsonLd and<br/>fetchTurtle (schemaParser.ts:131) now request the two NAMED resources<br/>directly via getOntologyJsonLdUrl / getOntologyTurtleUrl - see VC-26.13.
+    Note over SP,CL: ADR-2106 named resources, now read through one immutable generation: fetchJsonLd and<br/>fetchTurtle (schemaParser.ts:155, :174) both resolve through pinnedUrl, so JSON-LD and Turtle<br/>come from the same generation the server published (VC-26.13, VC-26.14). The contextLoader<br/>helpers getOntologyJsonLdUrl and getOntologyTurtleUrl (contextLoader.ts:29, :33) have no caller.
 ```
+
+**Debt:** `getOntologyJsonLdUrl` and `getOntologyTurtleUrl` (`../project/client/src/features/ontology/services/jss/contextLoader.ts:29`, `:33`) are exported but nothing in `client/src` calls them since `schemaParser.ts` moved to generation-pinned URLs (`../project/client/src/features/ontology/services/jss/schemaParser.ts:73-97`). Their doc comment still describes them as the way to fetch the ontology. Delete them, or point the comment at `pinnedUrl`.
+
+**Drift:** earlier stamps of this panel showed `fetchJsonLd` requesting `getOntologyJsonLdUrl()` directly; the client now fetches `index.jsonld` first and reads `@<generation>/` paths.
 
 ## VC-26.12 Client component/hook tree
 ```mermaid
@@ -496,7 +514,7 @@ sequenceDiagram
     participant GH as GitHub release<br/>ontology-latest (DEFAULT_RELEASE_URL, ontology_pull.rs:42)
     participant ST as Storage (FsBackend)<br/>solid_pod_rs::Storage
 
-    M->>SB: spawn_boot_pull(Arc::clone(&solid_state.storage))
+    M->>SB: spawn_boot_pull(Arc::clone(&solid_state.storage))<br/>main.rs:917
     SB->>SB: OntologyPullConfig::from_env()<br/>ontology_pull.rs:77-102
     Note over SB: ONTOLOGY_PULL_URL (default DEFAULT_RELEASE_URL), _ENABLED (default true),<br/>_TIMEOUT_SECS (default 120), _INTERVAL_SECS (default 3600, 0 = boot-only)
     alt cfg.enabled == false
@@ -517,8 +535,8 @@ sequenceDiagram
                 else all verified
                     PO->>ST: create /public/, /public/ontology/ containers if absent
                     PO->>ST: PUT /public/ontology/.acl (public-read WAC)<br/>ONLY IF ABSENT - operator edits survive<br/>ontology_pull.rs:361-366
-                    PO->>ST: publish_ontology: stage all five resources and sidecars<br/>ontology_generation.rs:127
-                    ST->>ST: fsync staged generation and atomically replace active pointer<br/>ontology_generation.rs:127
+                    PO->>ST: publish_ontology ontology_pull.rs:378 - PublishedStorage stages all five<br/>resources and sidecars ontology_generation.rs:216, :127
+                    ST->>ST: fsync staged generation and atomically replace active pointer<br/>ontology_generation.rs:178-204
                     PO-->>SB: "PullOutcome::Updated(build_sha, classes, triples)"
                 end
             end
@@ -534,7 +552,7 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    Fetch["Fetch and verify all release hashes<br/>ontology_pull.rs:294"] --> Probe{"ACL existence succeeds?"}
+    Fetch["Fetch and verify all release hashes<br/>ontology_pull.rs:295, :320-339"] --> Probe{"ACL existence succeeds?"}
     Probe -->|error| Abort["Abort without changing ACL"]
     Probe -->|yes| ACL["Preserve existing ACL; initialise only when absent"]
     ACL --> Stage["Stage immutable files plus manifest generation<br/>ontology_generation.rs:127"]
