@@ -336,7 +336,7 @@ _212 topic files, 1750 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | NF-26 | [Sealed history migration and reader contracts](nostr-rust-forum/26-sealed-history-migration-and-reader-contracts.md) | 6 | flowchart, sequenceDiagram | [ADR-2017-sealed-original-history-migration.md](../../../nostr-rust-forum/docs/adr/ADR-2017-sealed-original-history-migration.md) | ADR-2017 |
 | NF-27 | [Zone key distribution, rotation and recovery](nostr-rust-forum/27-zone-key-distribution-and-recovery.md) | 5 | flowchart, sequenceDiagram | [ADR-2016-end-to-end-encrypted-zones.md](../../../nostr-rust-forum/docs/adr/ADR-2016-end-to-end-encrypted-zones.md), [ADR-2026-zone-key-recovery-master.md](../../../nostr-rust-forum/docs/adr/ADR-2026-zone-key-recovery-master.md) | ADR-2016, ADR-2026 |
 | NF-28 | [NIP-171 owner recovery and ticket contracts](nostr-rust-forum/28-nip171-owner-recovery-and-ticket-contracts.md) | 6 | flowchart | [ADR-2028-zones-adopt-nip171-key-plane.md](../../../nostr-rust-forum/docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md) | ADR-2028 |
-| NF-29 | [External-review repair boundaries and deployment limits](nostr-rust-forum/29-external-review-repairs.md) | 3 | flowchart | [external-fixes-2026-11-03.md](../../../nostr-rust-forum/docs/adr/external-fixes-2026-11-03.md) | ADR-2003, ADR-2006, ADR-2014 |
+| NF-29 | [External-review repair boundaries and deployment limits](nostr-rust-forum/29-external-review-repairs.md) | 4 | flowchart | [external-fixes-2026-11-03.md](../../../nostr-rust-forum/docs/adr/external-fixes-2026-11-03.md) | ADR-2003, ADR-2006, ADR-2014 |
 
 ### dreamlab-ai-website
 

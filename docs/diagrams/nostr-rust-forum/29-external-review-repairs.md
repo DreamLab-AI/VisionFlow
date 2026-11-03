@@ -4,7 +4,7 @@ title: External-review repair boundaries and deployment limits
 area: nostr-rust-forum
 governing:
   - ../nostr-rust-forum/docs/adr/external-fixes-2026-11-03.md
-adrs: [ADR-2003, ADR-2006, ADR-2014]
+adrs: [ADR-2003, ADR-2006, ADR-2009, ADR-2014]
 sources:
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/webauthn.rs
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs
@@ -17,7 +17,9 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/agent_disclosure.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/lib.rs
-verified_commit: {nostr-rust-forum: 7852fe8014a224338d97f3ec16bf49ca9f99d6bf}
+  - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/acl.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-rate-limit/src/replay.rs
+verified_commit: {nostr-rust-forum: a3812b8e79846b569c1f19054f0774e94fed1248}
 ---
 
 ## For developers
@@ -99,6 +101,26 @@ The push drain/bump/logout source findings and NF-24 bounded-prefix starvation a
 
 ## Validation and remaining boundaries
 
-At the declared revision, 1,120 native tests pass across auth, BBS, pod and relay; all three workers pass warning-denied native Clippy and rustdoc; all workers and both browser clients compile to WASM. The two browser clients have four pre-existing WASM Clippy warnings, so no blanket client Clippy pass is claimed. The optional bounded Deepsec gate timed out without a verdict and is not counted as passing evidence.
+At the first repair revision, 7852fe8, 1,120 native tests passed across auth, BBS, pod and relay; all three workers passed warning-denied native Clippy and rustdoc; all workers and both browser clients compiled to WASM. The two browser clients had four pre-existing WASM Clippy warnings, so no blanket client Clippy pass is claimed. The optional bounded Deepsec gate timed out without a verdict and is not counted as passing evidence.
 
-The shared Solid replay/classifier adoption is a subsequent revision and is deliberately outside this stamp. NF-19 signer retention, sealed-history migration, NIP-171 owner ceremonies, remaining cache/transport findings and live rollout are not closed here.
+## NF-29.4 Forum workers consume the shared Solid denial and nonce contracts
+
+```mermaid
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/acl.rs:40
+    A["Shared classifier plus kit 64 KiB policy cap"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/acl.rs:314
+    B["R2 and KV reads: only absent policy ascends; invalid or unavailable settles deny"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-rate-limit/src/replay.rs:88
+    C["D1 adapter implements shared ReplayStore; duplicate nonce returns Replayed"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-rate-limit/src/replay.rs:47
+    D["Unknown write metadata or backend error refuses authentication"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-rate-limit/src/replay.rs:106
+    E["Existing kit verifier delegates to the shared contract"]
+    A --> B
+    E --> C --> D
+```
+
+The a3812b8 delta adds shared Solid alpha.19 adoption. The first three panels' sources are byte-identical to their 7852fe8 evidence revision. Cargo resolves alpha.19 from the registry with a checksum; no workspace patch remains. Production SQL fixtures prove that a duplicate nonce cannot refresh its expiry and unknown write metadata is not first-seen success. Classifier fixtures prove invalid-child terminal denial and absent-child inheritance.
+
+Final adoption gates pass 1,123 native library tests, existing integration/doc tests, four workers' native all-target Clippy and WASM library Clippy with warnings denied, plus both client WASM builds. The repaired nonce module and pod were retested after recovery from a local disk-space failure. NF-19 signer retention, sealed-history migration, NIP-171 owner ceremonies, remaining cache/transport findings and live rollout are not closed here.
