@@ -1,0 +1,6 @@
+parsed 223 topic files, 1780 mermaid diagrams
+  ~ agentbox/42-custody-callers-and-consumer-pins.md: 1 source(s) exist at the declared revision but not in the working tree
+  ~ nostr-rust-forum/28-nip171-owner-recovery-and-ticket-contracts.md: 6 source(s) exist at the declared revision but not in the working tree
+jev: citation review needs --cite-check (it reviews the citations the gate resolved)
+verification: fresh — VERIFICATION.md records all 74 declared revision(s)
+allowlist: 5 well-formed entries

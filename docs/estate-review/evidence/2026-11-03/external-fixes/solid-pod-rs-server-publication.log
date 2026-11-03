@@ -1,0 +1,16 @@
+    Updating crates.io index
+   Packaging solid-pod-rs-server v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/crates/solid-pod-rs-server)
+    Updating crates.io index
+    Packaged 63 files, 1.2MiB (313.0KiB compressed)
+   Verifying solid-pod-rs-server v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/crates/solid-pod-rs-server)
+ Downloading crates ...
+  Downloaded solid-pod-rs-idp v0.5.0-alpha.19
+   Compiling solid-pod-rs v0.5.0-alpha.19
+   Compiling solid-pod-rs-idp v0.5.0-alpha.19
+   Compiling solid-pod-rs-server v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/target/package/solid-pod-rs-server-0.5.0-alpha.19)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 24.33s
+   Uploading solid-pod-rs-server v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/crates/solid-pod-rs-server)
+    Uploaded solid-pod-rs-server v0.5.0-alpha.19 to registry `crates-io`
+note: waiting for solid-pod-rs-server v0.5.0-alpha.19 to be available at registry `crates-io`
+help: you may press ctrl-c to skip waiting; the crate should be available shortly
+   Published solid-pod-rs-server v0.5.0-alpha.19 at registry `crates-io`

@@ -1,0 +1,817 @@
+[
+  {
+    "title": "[HIGH] MRC20 deposit credits the proof presenter, not the on-chain recipient; deposits to the shared generic address are claimable by any authenticated caller",
+    "description": "**File:** [`crates/solid-pod-rs-server/src/handlers/pay.rs`](https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/external-findings/blob/fix/crates/solid-pod-rs-server/src/handlers/pay.rs#L591-L584) (lines 591, 629, 677, 584)\n**Project:** solid-pod-rs-external-fixes\n**Severity:** HIGH  •  **Confidence:** medium  •  **Slug:** `cross-tenant-id`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\n`handle_mrc20_deposit` derives the deposit target as the generic pod address `bt_address(&issuer, &[], &network)` (pay.rs:591) — note the empty states slice, i.e. NO per-user tweak — then verifies the anchor with `verify_mrc20_anchor` (pay.rs:629-642). That verifier (mrc20.rs:1034-1119) is never given `did`: it only proves that some transfer reached `to_address` and that the trail verifies link-by-link. The credit is then applied to `did` = the authenticated caller presenting the proof (pay.rs:677-683). Because every user's MRC20 deposit lands on the same generic address and the proof (state/prevState/anchor + stateStrings) is portable/derivable from public on-chain data, a different authenticated user can present the proof first and be credited for a deposit they did not make; the state-hash and outpoint replay guards (pay.rs:618-623, 647-656) then lock out the genuine depositor. `handle_address`'s own documentation (pay.rs:752-757) states the per-user `[did]` tweak is what makes funds attributable — but the deposit path omits it. Additionally `network` is taken from the request body (pay.rs:584-588) and is never validated against `pay_config.chains`.\n\n## Recommendation\n\nBind the deposit to the presenter: derive and require the per-user address `bt_address(issuer, &[did], network)` (matching handle_address), or otherwise cryptographically bind the credited `did` to the on-chain transfer, so the proof is not a bearer instrument. Validate the body `network`/chain against pay_config.chains.\n\n## Revalidation\n\n**Verdict:** fixed\n\nHEAD 644d393e; the specific MRC20 binding fix corresponds to history commit f7c29f3 'bind MRC20 deposits to the pod's issuer and ticker, credit by outpoint receipt'. The deposit target is no longer the generic address: handle_mrc20_deposit derives to_address = bt_address(&issuer, &[did.to_string()], &network) (pay.rs:610) — the per-user tweak, matching handle_address. verify_mrc20_anchor (mrc20.rs:1043) passes to_address into verify_mrc20_deposit, which computes amount = total_transferred_to(state, to_address) and returns InvalidState when amount == 0 (mrc20.rs:271-276). Therefore the proof only verifies if the on-chain transfer actually targeted the presenter's per-user address; a different authenticated caller presenting the same proof derives a different to_address from their did, yielding amount 0 and a 400, so the proof is no longer a portable bearer credit. The body network is also now validated against pay_config.chains (pay.rs:598-607), and the credit is applied by outpoint receipt (credit_by_outpoint, pay.rs:696-711). Both halves of the finding are addressed.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-11-03)",
+    "severity": "HIGH",
+    "labels": [
+      "security",
+      "project:solid-pod-rs-external-fixes",
+      "severity:HIGH",
+      "slug:cross-tenant-id",
+      "confidence:medium",
+      "revalidation:fixed"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "solid-pod-rs-external-fixes",
+      "filePath": "crates/solid-pod-rs-server/src/handlers/pay.rs",
+      "lineNumbers": [
+        591,
+        629,
+        677,
+        584
+      ],
+      "severity": "HIGH",
+      "vulnSlug": "cross-tenant-id",
+      "confidence": "medium",
+      "discoveredAt": "2026-11-03T06:46:16.859Z",
+      "runId": "20261103063807-cc085d7f039f86d9",
+      "revalidation": {
+        "verdict": "fixed",
+        "reasoning": "HEAD 644d393e; the specific MRC20 binding fix corresponds to history commit f7c29f3 'bind MRC20 deposits to the pod's issuer and ticker, credit by outpoint receipt'. The deposit target is no longer the generic address: handle_mrc20_deposit derives to_address = bt_address(&issuer, &[did.to_string()], &network) (pay.rs:610) — the per-user tweak, matching handle_address. verify_mrc20_anchor (mrc20.rs:1043) passes to_address into verify_mrc20_deposit, which computes amount = total_transferred_to(state, to_address) and returns InvalidState when amount == 0 (mrc20.rs:271-276). Therefore the proof only verifies if the on-chain transfer actually targeted the presenter's per-user address; a different authenticated caller presenting the same proof derives a different to_address from their did, yielding amount 0 and a 400, so the proof is no longer a portable bearer credit. The body network is also now validated against pay_config.chains (pay.rs:598-607), and the credit is applied by outpoint receipt (credit_by_outpoint, pay.rs:696-711). Both halves of the finding are addressed."
+      },
+      "githubUrl": "https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/external-findings/blob/fix/crates/solid-pod-rs-server/src/handlers/pay.rs#L591-L584",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-11-03T06:43:19Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[HIGH] acl:PaymentCondition debit writes the non-authoritative ledger mirror, so paid access is never actually charged",
+    "description": "**File:** [`crates/solid-pod-rs-server/src/lib.rs`](https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/external-findings/blob/fix/crates/solid-pod-rs-server/src/lib.rs#L1282-L1055) (lines 1282, 1288, 1290, 1301, 775, 982, 1055)\n**Project:** solid-pod-rs-external-fixes\n**Severity:** HIGH  •  **Confidence:** high  •  **Slug:** `other-payment-bypass`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\nThe WAC payment gate for sat-priced resources debits through `debit_ledger` (lib.rs:1282-1304), which does a raw `storage.get`/`put` on `WEBLEDGER_PATH` (/.well-known/webledgers/webledgers.json). But the balance the gate checks is read via `resolve_balance_sats` (lib.rs:775-783) → `StoragePaymentStore::read_ledger()`, which reads the authoritative `state.json` (PAYMENT_STATE_PATH) first (pay.rs:182-203, 317-319). The two paths target different documents. Worse, `StoragePaymentStore::commit_state` (pay.rs:205-240) treats `state.json` as authoritative and rewrites the WEBLEDGER_PATH mirror from it on every `/pay/*` commit. Consequences: (1) the authoritative balance in state.json is never decremented by a payment-gated read/write, so a caller with a one-time balance can access an `acl:PaymentCondition`-gated resource an unlimited number of times; (2) the 'spent' sats remain fully present in state.json and are withdrawable via `/pay/.withdraw`/`.withdraw-sats`, i.e. pay-walled content is obtained for free and the money is kept; (3) any `.sell` call (which needs no balance) triggers a commit that resets the drained mirror. `debit_ledger` also deserialises WebLedger directly, bypassing the `check_genesis` identity check that `read_state` enforces.\n\n## Recommendation\n\nRoute `debit_ledger`/`charge_granted_payment` through the same `StoragePaymentStore` (read_state → mutate ledger → commit_state) used by `/pay/*`, so the authoritative state.json is the single ledger of record for both the balance check and the debit. Hold PAYMENT_STATE_LOCK across the read-check-debit as the pay handlers do.\n\n## Revalidation\n\n**Verdict:** fixed\n\nCommit status verified via the worktree reflog (/home/devuser/workspace/solid-pod-rs/.git/worktrees/solid-pod-rs-external-fixes/logs/HEAD): HEAD is 644d393e 'fix: close canonical payment and split ACL review findings', one commit past the 72d3f45 baseline the finding cites. In the current code debit_ledger (lib.rs:1280-1288) no longer does a raw get/put on WEBLEDGER_PATH; it calls StoragePaymentStore::charge_access (pay.rs:137-142), which takes PAYMENT_STATE_LOCK, reads the authoritative state.json via read_state() (enforcing check_genesis), calls state.ledger.charge(did, cost), and commits through commit_state — which writes state.json authoritatively and only mirrors WEBLEDGER_PATH best-effort afterward. The balance check (resolve_balance_sats → read_ledger → read_state → state.json) and the debit now share the one authoritative document, so a payment-gated access decrements the canonical balance exactly once, the spent sats are gone from state.json (not withdrawable), and check_genesis is no longer bypassed. The TOCTOU concern (check at lib.rs:982/1195 runs outside the lock) is closed because charge()→debit() returns PaymentError::InsufficientBalance when current<amount (payments.rs:588-593) rather than saturating, so a second concurrent request re-reads the debited state under the lock and is denied. Was real at the baseline; patched now.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-11-03)",
+    "severity": "HIGH",
+    "labels": [
+      "security",
+      "project:solid-pod-rs-external-fixes",
+      "severity:HIGH",
+      "slug:other-payment-bypass",
+      "confidence:high",
+      "revalidation:fixed"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "solid-pod-rs-external-fixes",
+      "filePath": "crates/solid-pod-rs-server/src/lib.rs",
+      "lineNumbers": [
+        1282,
+        1288,
+        1290,
+        1301,
+        775,
+        982,
+        1055
+      ],
+      "severity": "HIGH",
+      "vulnSlug": "other-payment-bypass",
+      "confidence": "high",
+      "discoveredAt": "2026-11-03T06:46:16.859Z",
+      "runId": "20261103063807-cc085d7f039f86d9",
+      "revalidation": {
+        "verdict": "fixed",
+        "reasoning": "Commit status verified via the worktree reflog (/home/devuser/workspace/solid-pod-rs/.git/worktrees/solid-pod-rs-external-fixes/logs/HEAD): HEAD is 644d393e 'fix: close canonical payment and split ACL review findings', one commit past the 72d3f45 baseline the finding cites. In the current code debit_ledger (lib.rs:1280-1288) no longer does a raw get/put on WEBLEDGER_PATH; it calls StoragePaymentStore::charge_access (pay.rs:137-142), which takes PAYMENT_STATE_LOCK, reads the authoritative state.json via read_state() (enforcing check_genesis), calls state.ledger.charge(did, cost), and commits through commit_state — which writes state.json authoritatively and only mirrors WEBLEDGER_PATH best-effort afterward. The balance check (resolve_balance_sats → read_ledger → read_state → state.json) and the debit now share the one authoritative document, so a payment-gated access decrements the canonical balance exactly once, the spent sats are gone from state.json (not withdrawable), and check_genesis is no longer bypassed. The TOCTOU concern (check at lib.rs:982/1195 runs outside the lock) is closed because charge()→debit() returns PaymentError::InsufficientBalance when current<amount (payments.rs:588-593) rather than saturating, so a second concurrent request re-reads the debited state under the lock and is denied. Was real at the baseline; patched now."
+      },
+      "githubUrl": "https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/external-findings/blob/fix/crates/solid-pod-rs-server/src/lib.rs#L1282-L1055",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-11-03T06:43:19Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[HIGH_BUG] AMM add-liquidity debits the wrong currencies when the request's currency order differs from the pool's stored order",
+    "description": "**File:** [`crates/solid-pod-rs-server/src/handlers/pay.rs`](https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/external-findings/blob/fix/crates/solid-pod-rs-server/src/handlers/pay.rs#L1090-L1102) (lines 1090, 1095, 1102)\n**Project:** solid-pod-rs-external-fixes\n**Severity:** HIGH_BUG  •  **Confidence:** high  •  **Slug:** `other-logic-bug`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\n`handle_pool_post` resolves the pool via `exchange.get_or_create_pool(&body.currency_a, &body.currency_b, fee_bps)` (pay.rs:1090-1094). `get_or_create_pool` (trading.rs:582-592) canonicalises the HashMap key (sorted pair) but, for an already-existing pool, returns the pool object carrying the FIRST creator's `(currency_a, currency_b)` field order. `AmmPool::add_liquidity` then debits `self.currency_a`/`self.currency_b` by `amount_a`/`amount_b` (trading.rs:381-382) — the POOL's order, not the request's. So a caller who submits the pair in the opposite order to how the pool was first created has `amount_a` (intended for their `body.currency_a`) debited against the other currency, and vice-versa. The depositor can lose funds (amounts applied to the wrong balances), pool reserves are polluted for all other LPs/traders, and the `deposited`/`withdrawn` response maps (pay.rs:1102-1104, 1134-1136) mislabel the result. The same mismatch affects remove-liquidity/swap response labelling.\n\n## Recommendation\n\nNormalise the currency pair to the pool's canonical order before mapping amounts (or have add_liquidity/remove_liquidity/swap accept currency-tagged amounts and map them to reserve_a/reserve_b by matching currency name rather than positional order).\n\n## Revalidation\n\n**Verdict:** fixed\n\nHEAD 644d393e. The headline fund-loss bug is fixed: handle_pool_post now normalises the request amounts to the pool's canonical currency order before debiting — `let (amount_a, amount_b) = if pool.currency_a == body.currency_a { (body.amount_a, body.amount_b) } else { (body.amount_b, body.amount_a) }` (pay.rs:1162-1166) — and AmmPool::add_liquidity debits self.currency_a/self.currency_b by amount_a/amount_b (trading.rs:381-382), so the depositor's body.currency_a amount now lands on the correct reserve regardless of the order the pair was first created in. The add-liquidity `deposited` response map is also correctly labelled (body.currency_a→body.amount_a, request order, pay.rs:1170-1171). One residual, non-exploitable: the remove-liquidity response `withdrawn` map (pay.rs:1202-1203) inserts got_a/got_b (returned in pool order) under body.currency_a/body.currency_b (request order), so when the request reverses the pool's order the two labels are swapped in the JSON — but the ledger credits themselves are made by pool currency name (trading.rs:452-453) and are correct, so this is a cosmetic reporting mismatch, not fund loss. The security-relevant HIGH_BUG is patched; the residual warrants a minor follow-up only.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-11-03)",
+    "severity": "HIGH_BUG",
+    "labels": [
+      "security",
+      "project:solid-pod-rs-external-fixes",
+      "severity:HIGH_BUG",
+      "slug:other-logic-bug",
+      "confidence:high",
+      "revalidation:fixed"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "solid-pod-rs-external-fixes",
+      "filePath": "crates/solid-pod-rs-server/src/handlers/pay.rs",
+      "lineNumbers": [
+        1090,
+        1095,
+        1102
+      ],
+      "severity": "HIGH_BUG",
+      "vulnSlug": "other-logic-bug",
+      "confidence": "high",
+      "discoveredAt": "2026-11-03T06:46:16.859Z",
+      "runId": "20261103063807-cc085d7f039f86d9",
+      "revalidation": {
+        "verdict": "fixed",
+        "reasoning": "HEAD 644d393e. The headline fund-loss bug is fixed: handle_pool_post now normalises the request amounts to the pool's canonical currency order before debiting — `let (amount_a, amount_b) = if pool.currency_a == body.currency_a { (body.amount_a, body.amount_b) } else { (body.amount_b, body.amount_a) }` (pay.rs:1162-1166) — and AmmPool::add_liquidity debits self.currency_a/self.currency_b by amount_a/amount_b (trading.rs:381-382), so the depositor's body.currency_a amount now lands on the correct reserve regardless of the order the pair was first created in. The add-liquidity `deposited` response map is also correctly labelled (body.currency_a→body.amount_a, request order, pay.rs:1170-1171). One residual, non-exploitable: the remove-liquidity response `withdrawn` map (pay.rs:1202-1203) inserts got_a/got_b (returned in pool order) under body.currency_a/body.currency_b (request order), so when the request reverses the pool's order the two labels are swapped in the JSON — but the ledger credits themselves are made by pool currency name (trading.rs:452-453) and are correct, so this is a cosmetic reporting mismatch, not fund loss. The security-relevant HIGH_BUG is patched; the residual warrants a minor follow-up only."
+      },
+      "githubUrl": "https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/external-findings/blob/fix/crates/solid-pod-rs-server/src/handlers/pay.rs#L1090-L1102",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-11-03T06:43:19Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[MEDIUM] rsa 0.9.10 affected by RUSTSEC-2023-0071 (Marvin timing side-channel), no fix in 0.9 line",
+    "description": "**File:** [`Cargo.lock`](https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/external-findings/blob/fix/Cargo.lock#L3649-L3650) (lines 3649, 3650)\n**Project:** solid-pod-rs-external-fixes\n**Severity:** MEDIUM  •  **Confidence:** low  •  **Slug:** `insecure-crypto`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\nThe lockfile pins rsa = 0.9.10, which is subject to RUSTSEC-2023-0071 (the 'Marvin Attack' key-recovery timing side-channel in RSA private-key operations). No fixed release exists in the 0.9.x series. The dependency is pulled by solid-pod-rs-activitypub for ActivityPub HTTP Signatures (RSA-SHA256 signing/verification of the Digest/Signature header set). The advisory's attack model requires a decryption or blinding oracle with attacker-chosen ciphertexts performing RSA private-key operations; HTTP-Signature signing/verification does not expose such an oracle, so this is effectively non-exploitable in the present usage. Flagged for awareness because any future use of this crate for RSA decryption/key-exchange would make it exploitable.\n\n## Recommendation\n\nTrack RUSTSEC-2023-0071; prefer the Ed25519 signing path already used by core notifications::signing and avoid introducing any RSA decryption/key-unwrap operations with this crate. Add a cargo-deny/cargo-audit advisory ignore with a documented rationale so the known advisory is acknowledged in CI rather than silently present.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-11-03)\n- Dr John O'Hare <github@xrsystems.uk> (2026-10-29)\n- Claude Code <anthropic@xrsystems.uk> (2026-10-23)",
+    "severity": "MEDIUM",
+    "labels": [
+      "security",
+      "project:solid-pod-rs-external-fixes",
+      "severity:MEDIUM",
+      "slug:insecure-crypto",
+      "confidence:low"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "solid-pod-rs-external-fixes",
+      "filePath": "Cargo.lock",
+      "lineNumbers": [
+        3649,
+        3650
+      ],
+      "severity": "MEDIUM",
+      "vulnSlug": "insecure-crypto",
+      "confidence": "low",
+      "discoveredAt": "2026-11-03T06:26:01.956Z",
+      "runId": "20261103062436-73f447ddd428207d",
+      "githubUrl": "https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/external-findings/blob/fix/Cargo.lock#L3649-L3650",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-11-03T06:24:32Z"
+          },
+          {
+            "name": "Dr John O'Hare",
+            "email": "github@xrsystems.uk",
+            "date": "2026-10-29T22:25:06Z"
+          },
+          {
+            "name": "Claude Code",
+            "email": "anthropic@xrsystems.uk",
+            "date": "2026-10-23T09:40:34Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[MEDIUM] Caller-controlled AMM fee_bps is never bounded, underflowing swap math",
+    "description": "**File:** [`crates/solid-pod-rs-server/src/handlers/pay.rs`](https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/external-findings/blob/fix/crates/solid-pod-rs-server/src/handlers/pay.rs#L1067-L1071) (lines 1067, 1071)\n**Project:** solid-pod-rs-external-fixes\n**Severity:** MEDIUM  •  **Confidence:** high  •  **Slug:** `other-integer-underflow`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\nhandle_pool_post reads `fee_bps = body.fee_bps.unwrap_or(AmmPool::DEFAULT_FEE_BPS)` with no upper bound (line 1067) and passes it into `get_or_create_pool`, which stores it on the pool on first `add-liquidity`. The pool's stored fee is then used in `AmmPool::swap` (crates/solid-pod-rs/src/trading.rs:491) as `let fee_factor = 10_000u128 - (self.fee_bps as u128);`. There is no check that `fee_bps <= 10000`. The release profile (root Cargo.toml [profile.release], lines 31-34) does NOT set `overflow-checks = true`, so for any attacker-supplied `fee_bps > 10000` the subtraction wraps to a ~2^128 value. With that huge `fee_factor`, `amount_out = numerator/denominator` tends toward the full output reserve for a trivial `amount_in` (and the u128 products can themselves wrap), so a trader swapping against such a pool can draw out far more than the constant-product invariant allows — a drain that harms other liquidity providers in the same pool. In a debug build the same subtraction panics, giving an availability (DoS) vector instead. An attacker needs only to be the first to create the currency pair (POST /pay/.pool add-liquidity) with a malicious fee.\n\n## Recommendation\n\nReject `fee_bps >= 10000` (e.g. cap at a few hundred bps) in handle_pool_post before get_or_create_pool, and defensively use `checked_sub`/`saturating_sub` with an explicit bound inside AmmPool::new and AmmPool::swap. Consider enabling `overflow-checks = true` in the release profile for this financial crate.\n\n## Revalidation\n\n**Verdict:** fixed\n\nHEAD 644d393e. The caller-supplied fee is now bounded at the handler: handle_pool_post rejects fee_bps >= 10_000 with a 400 before any get_or_create_pool call (pay.rs:1149-1153), so a malicious >10000 fee can never be stored on a pool. Defense-in-depth is also present in the library: AmmPool::swap computes fee_factor via 10_000u128.checked_sub(self.fee_bps as u128) (trading.rs:496-497), which cannot wrap, and AmmPool::add_liquidity rejects self.fee_bps >= 10_000 (trading.rs:369). The underflow/panic path the finding described (plain 10_000 - fee_bps with no bound, release profile lacking overflow-checks) no longer exists on any reachable path. The shifted line numbers (finding cites 1067/1071; current logic at 1149-1153) confirm the code changed since the finding was written.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-11-03)",
+    "severity": "MEDIUM",
+    "labels": [
+      "security",
+      "project:solid-pod-rs-external-fixes",
+      "severity:MEDIUM",
+      "slug:other-integer-underflow",
+      "confidence:high",
+      "revalidation:fixed"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "solid-pod-rs-external-fixes",
+      "filePath": "crates/solid-pod-rs-server/src/handlers/pay.rs",
+      "lineNumbers": [
+        1067,
+        1071
+      ],
+      "severity": "MEDIUM",
+      "vulnSlug": "other-integer-underflow",
+      "confidence": "high",
+      "discoveredAt": "2026-11-03T06:46:16.859Z",
+      "runId": "20261103063807-cc085d7f039f86d9",
+      "revalidation": {
+        "verdict": "fixed",
+        "reasoning": "HEAD 644d393e. The caller-supplied fee is now bounded at the handler: handle_pool_post rejects fee_bps >= 10_000 with a 400 before any get_or_create_pool call (pay.rs:1149-1153), so a malicious >10000 fee can never be stored on a pool. Defense-in-depth is also present in the library: AmmPool::swap computes fee_factor via 10_000u128.checked_sub(self.fee_bps as u128) (trading.rs:496-497), which cannot wrap, and AmmPool::add_liquidity rejects self.fee_bps >= 10_000 (trading.rs:369). The underflow/panic path the finding described (plain 10_000 - fee_bps with no bound, release profile lacking overflow-checks) no longer exists on any reachable path. The shifted line numbers (finding cites 1067/1071; current logic at 1149-1153) confirm the code changed since the finding was written."
+      },
+      "githubUrl": "https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/external-findings/blob/fix/crates/solid-pod-rs-server/src/handlers/pay.rs#L1067-L1071",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-11-03T06:43:19Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[MEDIUM] Unbounded order-book growth via /pay/.sell degrades every authenticated request pod-wide",
+    "description": "**File:** [`crates/solid-pod-rs-server/src/handlers/pay.rs`](https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/external-findings/blob/fix/crates/solid-pod-rs-server/src/handlers/pay.rs#L915-L1785) (lines 915, 1785)\n**Project:** solid-pod-rs-external-fixes\n**Severity:** MEDIUM  •  **Confidence:** high  •  **Slug:** `other-resource-exhaustion`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\n`handle_sell` (pay.rs:885-929) creates a sell order with no balance check and no escrow (OrderBook::create_order explicitly does not escrow, trading.rs:179-203), so any authenticated caller can create unlimited phantom orders. Orders are persisted into the authoritative state.json. No cancel route is registered (pay.rs:1785-1798 wires no cancel handler, though OrderBook::cancel_order exists), so unfilled orders accumulate permanently. Because the order book lives inside the single state.json that `read_state` deserialises, and `resolve_balance_sats` (lib.rs:775) calls read_state on EVERY authenticated WAC check anywhere on the pod, a bloated order book degrades every authenticated request pod-wide, not merely /pay/* — an amplification DoS. There is no rate limiting on /pay/.sell.\n\n## Recommendation\n\nRequire the seller to hold (and ideally escrow) the offered balance before listing; cap orders per DID; register a cancel route and expire stale orders; and consider storing the order book separately from the hot ledger state so unrelated requests are not penalised.\n\n## Revalidation\n\n**Verdict:** fixed\n\nHEAD 644d393e. All three gaps the finding named are closed in handle_sell. (1) Unbounded growth: orders are now capped — `if orders.len() >= 1024 || orders.iter().filter(|o| o.seller == seller).count() >= 32 { return 429 }` (pay.rs:935-938). (2) No balance check / no escrow: the handler now sums the seller's already-listed amounts for the currency plus the new amount and rejects with 402 if it exceeds the seller's actual currency balance (pay.rs:939-951), so phantom orders beyond held balance cannot be created. (3) No cancel route: handle_cancel exists (pay.rs:977-1005) and is registered at `.route(\"/pay/.cancel\", web::post().to(handle_cancel))` (pay.rs:1858), so unfilled orders can be removed. The amplification-DoS premise (unbounded book bloating every authenticated read via read_state) is mitigated by the caps and the required-balance gate.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-11-03)",
+    "severity": "MEDIUM",
+    "labels": [
+      "security",
+      "project:solid-pod-rs-external-fixes",
+      "severity:MEDIUM",
+      "slug:other-resource-exhaustion",
+      "confidence:high",
+      "revalidation:fixed"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "solid-pod-rs-external-fixes",
+      "filePath": "crates/solid-pod-rs-server/src/handlers/pay.rs",
+      "lineNumbers": [
+        915,
+        1785
+      ],
+      "severity": "MEDIUM",
+      "vulnSlug": "other-resource-exhaustion",
+      "confidence": "high",
+      "discoveredAt": "2026-11-03T06:46:16.859Z",
+      "runId": "20261103063807-cc085d7f039f86d9",
+      "revalidation": {
+        "verdict": "fixed",
+        "reasoning": "HEAD 644d393e. All three gaps the finding named are closed in handle_sell. (1) Unbounded growth: orders are now capped — `if orders.len() >= 1024 || orders.iter().filter(|o| o.seller == seller).count() >= 32 { return 429 }` (pay.rs:935-938). (2) No balance check / no escrow: the handler now sums the seller's already-listed amounts for the currency plus the new amount and rejects with 402 if it exceeds the seller's actual currency balance (pay.rs:939-951), so phantom orders beyond held balance cannot be created. (3) No cancel route: handle_cancel exists (pay.rs:977-1005) and is registered at `.route(\"/pay/.cancel\", web::post().to(handle_cancel))` (pay.rs:1858), so unfilled orders can be removed. The amplification-DoS premise (unbounded book bloating every authenticated read via read_state) is mitigated by the caps and the required-balance gate."
+      },
+      "githubUrl": "https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/external-findings/blob/fix/crates/solid-pod-rs-server/src/handlers/pay.rs#L915-L1785",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-11-03T06:43:19Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[MEDIUM] Malformed acl:costSats silently defaults to 0, turning a paywall free",
+    "description": "**File:** [`crates/solid-pod-rs/src/wac/parser.rs`](https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/external-findings/blob/fix/crates/solid-pod-rs/src/wac/parser.rs#L412-L443) (lines 412, 443)\n**Project:** solid-pod-rs-external-fixes\n**Severity:** MEDIUM  •  **Confidence:** medium  •  **Slug:** `acl-check`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\nIn parse_turtle_condition_body, `cost_sats = first.parse::<u64>().ok()` (lines 411-414) keeps `None` on any unparseable literal (e.g. `1.5`, `1e3`, an out-of-range value, or a value accidentally torn by the `.` statement splitter), and the PaymentCondition is then built with `cost_sats: cost_sats.unwrap_or(0)` (line 443). A cost of 0 is satisfied by any authenticated principal (resolve_balance_sats returns Some(0)), so a resource the operator intended to charge for becomes free. This silently fails OPEN, directly contradicting the module's stated invariant and its own test `restrictive_condition_cannot_disappear` (line 629): a malformed restrictive condition must invalidate the document (422), not degrade to a permissive default. Because ACL bodies are Control-gated to write, the realistic trigger is an operator typo rather than an external attacker, but the consequence is an unintended loss of the payment restriction.\n\n## Recommendation\n\nWhen `acl:costSats` is present but does not parse as u64, return `Err(PodError::AclParse(...))` so the document is rejected, exactly as other malformed conditions are. Never substitute a permissive default (0) for a failed parse of a security-relevant field.\n\n## Revalidation\n\n**Verdict:** fixed\n\nThe finding described `cost_sats: cost_sats.unwrap_or(0)`, which turned an unparseable `acl:costSats` into a free (cost-0) resource. In the current source that construct is gone: parser.rs line 533 builds the PaymentCondition with `cost_sats: cost_sats?`. Because `cost_sats` is still `None` on an unparseable literal (line 503, `first.parse::<u64>().ok()`), the `?` propagates `None` out of `parse_turtle_condition_body`, which makes `parse_turtle_condition_objects` hit `.ok_or_else(...)` at lines 412-414 and return `Err(PodError::AclParse)`. I then verified the only path that could re-open the paywall — the downstream handling in wac/resolver.rs `classify_policy_read` (lines 318-324): a Turtle parse `Err` maps to `invalid(InvalidPolicyReason::Malformed(...))` → `PolicyStep::Settled(PolicyOutcome::Invalid{..})`, which is terminal. Inheritance (`PolicyStep::Ascend`) is reachable only from `PolicyRead::Absent` (line 272), so a present-but-malformed ACL never falls through to the parent container. The fix therefore fails closed, not merely differently. A regression test (`restrictive_condition_cannot_disappear`) encodes exactly this attack, asserting both `acl:costSats \"not-a-number\"` and a cost-less `[ a acl:PaymentCondition ]` error out and that `classify_policy_read` settles `Invalid`. I could not run git or the tests here (bubblewrap failed to initialise), but the current source and the reflog entry for commit c27cdfe (\"fix: close canonical payment and split ACL review findings\") corroborate the change.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-11-03)\n- jjohare <github@thedreamlab.uk> (2026-06-13)\n- DreamLab-AI contributors <anthropic@xrsystems.uk> (2026-05-11)",
+    "severity": "MEDIUM",
+    "labels": [
+      "security",
+      "project:solid-pod-rs-external-fixes",
+      "severity:MEDIUM",
+      "slug:acl-check",
+      "confidence:medium",
+      "revalidation:fixed"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "solid-pod-rs-external-fixes",
+      "filePath": "crates/solid-pod-rs/src/wac/parser.rs",
+      "lineNumbers": [
+        412,
+        443
+      ],
+      "severity": "MEDIUM",
+      "vulnSlug": "acl-check",
+      "confidence": "medium",
+      "discoveredAt": "2026-11-03T06:52:05.935Z",
+      "runId": "20261103064638-0c46c644dd9384d5",
+      "revalidation": {
+        "verdict": "fixed",
+        "reasoning": "The finding described `cost_sats: cost_sats.unwrap_or(0)`, which turned an unparseable `acl:costSats` into a free (cost-0) resource. In the current source that construct is gone: parser.rs line 533 builds the PaymentCondition with `cost_sats: cost_sats?`. Because `cost_sats` is still `None` on an unparseable literal (line 503, `first.parse::<u64>().ok()`), the `?` propagates `None` out of `parse_turtle_condition_body`, which makes `parse_turtle_condition_objects` hit `.ok_or_else(...)` at lines 412-414 and return `Err(PodError::AclParse)`. I then verified the only path that could re-open the paywall — the downstream handling in wac/resolver.rs `classify_policy_read` (lines 318-324): a Turtle parse `Err` maps to `invalid(InvalidPolicyReason::Malformed(...))` → `PolicyStep::Settled(PolicyOutcome::Invalid{..})`, which is terminal. Inheritance (`PolicyStep::Ascend`) is reachable only from `PolicyRead::Absent` (line 272), so a present-but-malformed ACL never falls through to the parent container. The fix therefore fails closed, not merely differently. A regression test (`restrictive_condition_cannot_disappear`) encodes exactly this attack, asserting both `acl:costSats \"not-a-number\"` and a cost-less `[ a acl:PaymentCondition ]` error out and that `classify_policy_read` settles `Invalid`. I could not run git or the tests here (bubblewrap failed to initialise), but the current source and the reflog entry for commit c27cdfe (\"fix: close canonical payment and split ACL review findings\") corroborate the change."
+      },
+      "githubUrl": "https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/external-findings/blob/fix/crates/solid-pod-rs/src/wac/parser.rs#L412-L443",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-11-03T06:43:19Z"
+          },
+          {
+            "name": "jjohare",
+            "email": "github@thedreamlab.uk",
+            "date": "2026-06-13T12:07:57Z"
+          },
+          {
+            "name": "DreamLab-AI contributors",
+            "email": "anthropic@xrsystems.uk",
+            "date": "2026-05-11T19:08:30Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[MEDIUM] Condition on a separate triple about the same subject is silently dropped, leaving an unconditional grant (fail-open)",
+    "description": "**File:** [`crates/solid-pod-rs/src/wac/parser.rs`](https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/external-findings/blob/fix/crates/solid-pod-rs/src/wac/parser.rs#L158-L232) (lines 158, 161, 229, 232)\n**Project:** solid-pod-rs-external-fixes\n**Severity:** MEDIUM  •  **Confidence:** high  •  **Slug:** `auth-bypass`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\nThe subject of each statement is discarded (`let Some((_subject, body))` at line 158, and `id` is hard-coded to `None` at line 161). Each statement is parsed into an independent `AclAuthorization`, and downstream (wac/document.rs, resolver, evaluator) there is no merging of authorizations by subject or id. Turtle legitimately permits one node's triples to be spread across several statements. Consider:\n\n    <#r> a acl:Authorization; acl:agentClass foaf:Agent; acl:accessTo </x>; acl:mode acl:Read .\n    <#r> acl:condition [ a acl:PaymentCondition; acl:costSats 100 ] .\n\nThe second statement has no `a acl:Authorization`, so `any_authz` stays false (line 229) and `parse_turtle_authorization` returns `Ok(None)` — the PaymentCondition is silently discarded. The first statement yields an unconditional public read. In RDF `<#r>` carries the condition, so the intended restriction is lost and access is granted without it. Conditions are conjunctive and gate the grant (conditions.rs lines 16-17), so dropping one is a fail-open, not fail-closed. This is exactly the invariant the `restrictive_condition_cannot_disappear` test claims to protect, but that test only exercises the single-statement form.\n\n## Recommendation\n\nParse the subject and merge authorizations that share the same subject IRI before building the graph (or reject a non-empty statement that fails to parse as a complete authorization rather than returning Ok(None)). At minimum, a statement that carries acl:* predicates about a subject must not be silently dropped when that subject also appears elsewhere as an Authorization.\n\n## Revalidation\n\n**Verdict:** fixed\n\nThe finding's fail-open was that each statement was parsed independently, so a condition carried on a second triple about the same subject (`<#r> acl:condition [...]`) was dropped while the first triple's unconditional grant survived. The current source closes this at parser.rs lines 76-104: before any authorization is built, statements are split and merged by subject key — `expand_curie_or_iri(&subject, &prefixes)` indexes into a `subject_indices` map, and predicates of a repeated subject are appended (`body.push_str(\" ; \")`) so the full predicate list is parsed as one authorization. The exact scenario from the finding is covered by the new test `split_subject_and_https_restrictions_are_preserved`, which splits the authorization and the PaymentCondition across two `<#r>` statements and asserts a single merged authorization carrying the cost-100 condition. One residual gap, which does not block the verdict: the merge key is the raw `expand_curie_or_iri` output with no base-IRI or `@base` resolution, so `<#r>` (keyed `#r`) and an absolute `<https://pod/res.acl#r>` (keyed as the full IRI) are the same RDF node but become two parser subjects — the condition-only one lacks `a acl:Authorization`, returns `Ok(None)`, and its condition is dropped. That re-opens the same class of fail-open, but only for an operator who mixes relative and absolute spellings of one subject, and authoring the ACL already requires Control. The finding as written (same-spelling multi-statement) is fixed and tested; the spelling-mismatch edge is a narrower follow-up worth noting rather than a surviving instance of this finding.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-11-03)\n- jjohare <github@thedreamlab.uk> (2026-06-13)\n- DreamLab-AI contributors <anthropic@xrsystems.uk> (2026-05-11)",
+    "severity": "MEDIUM",
+    "labels": [
+      "security",
+      "project:solid-pod-rs-external-fixes",
+      "severity:MEDIUM",
+      "slug:auth-bypass",
+      "confidence:high",
+      "revalidation:fixed"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "solid-pod-rs-external-fixes",
+      "filePath": "crates/solid-pod-rs/src/wac/parser.rs",
+      "lineNumbers": [
+        158,
+        161,
+        229,
+        232
+      ],
+      "severity": "MEDIUM",
+      "vulnSlug": "auth-bypass",
+      "confidence": "high",
+      "discoveredAt": "2026-11-03T06:52:05.935Z",
+      "runId": "20261103064638-0c46c644dd9384d5",
+      "revalidation": {
+        "verdict": "fixed",
+        "reasoning": "The finding's fail-open was that each statement was parsed independently, so a condition carried on a second triple about the same subject (`<#r> acl:condition [...]`) was dropped while the first triple's unconditional grant survived. The current source closes this at parser.rs lines 76-104: before any authorization is built, statements are split and merged by subject key — `expand_curie_or_iri(&subject, &prefixes)` indexes into a `subject_indices` map, and predicates of a repeated subject are appended (`body.push_str(\" ; \")`) so the full predicate list is parsed as one authorization. The exact scenario from the finding is covered by the new test `split_subject_and_https_restrictions_are_preserved`, which splits the authorization and the PaymentCondition across two `<#r>` statements and asserts a single merged authorization carrying the cost-100 condition. One residual gap, which does not block the verdict: the merge key is the raw `expand_curie_or_iri` output with no base-IRI or `@base` resolution, so `<#r>` (keyed `#r`) and an absolute `<https://pod/res.acl#r>` (keyed as the full IRI) are the same RDF node but become two parser subjects — the condition-only one lacks `a acl:Authorization`, returns `Ok(None)`, and its condition is dropped. That re-opens the same class of fail-open, but only for an operator who mixes relative and absolute spellings of one subject, and authoring the ACL already requires Control. The finding as written (same-spelling multi-statement) is fixed and tested; the spelling-mismatch edge is a narrower follow-up worth noting rather than a surviving instance of this finding."
+      },
+      "githubUrl": "https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/external-findings/blob/fix/crates/solid-pod-rs/src/wac/parser.rs#L158-L232",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-11-03T06:43:19Z"
+          },
+          {
+            "name": "jjohare",
+            "email": "github@thedreamlab.uk",
+            "date": "2026-06-13T12:07:57Z"
+          },
+          {
+            "name": "DreamLab-AI contributors",
+            "email": "anthropic@xrsystems.uk",
+            "date": "2026-05-11T19:08:30Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[MEDIUM] https:// acl:condition predicate not recognised while condition type normaliser accepts https — condition dropped, grant kept",
+    "description": "**File:** [`crates/solid-pod-rs/src/wac/parser.rs`](https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/external-findings/blob/fix/crates/solid-pod-rs/src/wac/parser.rs#L216-L476) (lines 216, 226, 471, 476)\n**Project:** solid-pod-rs-external-fixes\n**Severity:** MEDIUM  •  **Confidence:** medium  •  **Slug:** `other-namespace-parity-bypass`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\nEvery predicate match arm (lines 195-225) matches only the `http://www.w3.org/ns/auth/acl#...` full IRI (plus the `acl:` CURIE), e.g. line 216 only has `\"http://www.w3.org/ns/auth/acl#condition\" | \"acl:condition\"`. However `normalise_condition_type` (lines 471-485) deliberately accepts the `https://www.w3.org/ns/auth/acl#...` forms for condition *types*, demonstrating an intent to tolerate the https namespace variant. An ACL authored with an http-prefixed `a acl:Authorization` (which matches at line 188) but whose condition predicate is written as the full IRI `<https://www.w3.org/ns/auth/acl#condition> [ ... ]` falls into the `_ => {}` arm (line 226): the condition is silently discarded while the authorization and its mode/accessTo survive — fail-open. The asymmetry (type side tolerates https, predicate side does not) makes this reachable without the whole rule collapsing.\n\n## Recommendation\n\nNormalise predicate IRIs through the same http/https folding used for condition types before matching (or canonicalise the acl namespace to a single scheme for both predicates and types). Alternatively, reject documents using the https acl namespace rather than partially honouring it.\n\n## Revalidation\n\n**Verdict:** fixed\n\nThe finding was an http/https asymmetry: condition *types* were folded across schemes by `normalise_condition_type`, but the `acl:condition` *predicate* match arm only recognised the `http://` IRI and the `acl:` CURIE, so a condition predicate written as `<https://www.w3.org/ns/auth/acl#condition>` fell into the `_ => {}` arm and was silently dropped while the grant survived. The current source removes the asymmetry at parser.rs lines 232-235 (and the mirror at 472-475 inside `parse_turtle_condition_body`): every expanded predicate IRI now has `https://www.w3.org/ns/auth/acl#` folded to `http://www.w3.org/ns/auth/acl#` before the match, so the `acl:condition` arm (line 269) is reached regardless of scheme. The test `split_subject_and_https_restrictions_are_preserved` iterates over both `\"acl:condition\"` and `\"<https://www.w3.org/ns/auth/acl#condition>\"` and asserts the PaymentCondition is preserved in both, directly exercising this path. I verified statically only; the tests exist and encode the attack but I could not execute them. This matches the \"split ACL review findings\" scope of commit c27cdfe. Fixed.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-11-03)\n- jjohare <github@thedreamlab.uk> (2026-06-13)\n- DreamLab-AI contributors <anthropic@xrsystems.uk> (2026-05-11)",
+    "severity": "MEDIUM",
+    "labels": [
+      "security",
+      "project:solid-pod-rs-external-fixes",
+      "severity:MEDIUM",
+      "slug:other-namespace-parity-bypass",
+      "confidence:medium",
+      "revalidation:fixed"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "solid-pod-rs-external-fixes",
+      "filePath": "crates/solid-pod-rs/src/wac/parser.rs",
+      "lineNumbers": [
+        216,
+        226,
+        471,
+        476
+      ],
+      "severity": "MEDIUM",
+      "vulnSlug": "other-namespace-parity-bypass",
+      "confidence": "medium",
+      "discoveredAt": "2026-11-03T06:52:05.935Z",
+      "runId": "20261103064638-0c46c644dd9384d5",
+      "revalidation": {
+        "verdict": "fixed",
+        "reasoning": "The finding was an http/https asymmetry: condition *types* were folded across schemes by `normalise_condition_type`, but the `acl:condition` *predicate* match arm only recognised the `http://` IRI and the `acl:` CURIE, so a condition predicate written as `<https://www.w3.org/ns/auth/acl#condition>` fell into the `_ => {}` arm and was silently dropped while the grant survived. The current source removes the asymmetry at parser.rs lines 232-235 (and the mirror at 472-475 inside `parse_turtle_condition_body`): every expanded predicate IRI now has `https://www.w3.org/ns/auth/acl#` folded to `http://www.w3.org/ns/auth/acl#` before the match, so the `acl:condition` arm (line 269) is reached regardless of scheme. The test `split_subject_and_https_restrictions_are_preserved` iterates over both `\"acl:condition\"` and `\"<https://www.w3.org/ns/auth/acl#condition>\"` and asserts the PaymentCondition is preserved in both, directly exercising this path. I verified statically only; the tests exist and encode the attack but I could not execute them. This matches the \"split ACL review findings\" scope of commit c27cdfe. Fixed."
+      },
+      "githubUrl": "https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/external-findings/blob/fix/crates/solid-pod-rs/src/wac/parser.rs#L216-L476",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-11-03T06:43:19Z"
+          },
+          {
+            "name": "jjohare",
+            "email": "github@thedreamlab.uk",
+            "date": "2026-06-13T12:07:57Z"
+          },
+          {
+            "name": "DreamLab-AI contributors",
+            "email": "anthropic@xrsystems.uk",
+            "date": "2026-05-11T19:08:30Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[BUG] Unchecked u64 multiplication when pricing .buy / .withdraw",
+    "description": "**File:** [`crates/solid-pod-rs-server/src/handlers/pay.rs`](https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/external-findings/blob/fix/crates/solid-pod-rs-server/src/handlers/pay.rs#L1443-L1536) (lines 1443, 1536)\n**Project:** solid-pod-rs-external-fixes\n**Severity:** BUG  •  **Confidence:** high  •  **Slug:** `other-integer-overflow`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\nhandle_buy computes `sat_cost = a * pay_rate` (line 1443) and handle_withdraw computes `sat_cost = t * pay_rate` (line 1536) with plain `*` on u64 and no overflow-checks in release. A caller-chosen `amount`/`tokens` above `u64::MAX / pay_rate` wraps `sat_cost` to a small value, which would pass the subsequent `balance < sat_cost` check cheaply. Impact is limited to a BUG rather than theft because `execute_token_transfer` calls `transfer_token_with_key` BEFORE the ledger debit, and that function refuses any `amount` exceeding the issuer's holdings (crates/solid-pod-rs/src/bitcoin_tx.rs:656 `InsufficientBalance`). Since wrapping requires a token_amount astronomically larger than any possible supply, the transfer always fails first and no debit occurs — so the net effect is a confusing error path and incorrect intermediate accounting, not free tokens. Still a latent correctness defect that becomes exploitable if the ordering or the supply check ever changes.\n\n## Recommendation\n\nUse `checked_mul` and return a 400 on overflow in both handlers.\n\n## Revalidation\n\n**Verdict:** fixed\n\nHEAD 644d393e. Both pricing sites now use checked_mul with a 400 on overflow. handle_buy: `let Some(cost) = a.checked_mul(pay_rate) else { return BadRequest 'token price overflow' }` (pay.rs:1528-1532). handle_withdraw: the tokens path uses `t.checked_mul(pay_rate)` with the same guard (pay.rs:1625-1629). The plain u64 `*` the finding flagged (its lines 1443/1536) is gone. Since the finding itself rated this a BUG (not exploitable for theft because transfer_token_with_key refuses amounts above issuer holdings before any debit), and the wrap can no longer occur, it is fully resolved.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-11-03)",
+    "severity": "BUG",
+    "labels": [
+      "security",
+      "project:solid-pod-rs-external-fixes",
+      "severity:BUG",
+      "slug:other-integer-overflow",
+      "confidence:high",
+      "revalidation:fixed"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "solid-pod-rs-external-fixes",
+      "filePath": "crates/solid-pod-rs-server/src/handlers/pay.rs",
+      "lineNumbers": [
+        1443,
+        1536
+      ],
+      "severity": "BUG",
+      "vulnSlug": "other-integer-overflow",
+      "confidence": "high",
+      "discoveredAt": "2026-11-03T06:46:16.859Z",
+      "runId": "20261103063807-cc085d7f039f86d9",
+      "revalidation": {
+        "verdict": "fixed",
+        "reasoning": "HEAD 644d393e. Both pricing sites now use checked_mul with a 400 on overflow. handle_buy: `let Some(cost) = a.checked_mul(pay_rate) else { return BadRequest 'token price overflow' }` (pay.rs:1528-1532). handle_withdraw: the tokens path uses `t.checked_mul(pay_rate)` with the same guard (pay.rs:1625-1629). The plain u64 `*` the finding flagged (its lines 1443/1536) is gone. Since the finding itself rated this a BUG (not exploitable for theft because transfer_token_with_key refuses amounts above issuer holdings before any debit), and the wrap can no longer occur, it is fully resolved."
+      },
+      "githubUrl": "https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/external-findings/blob/fix/crates/solid-pod-rs-server/src/handlers/pay.rs#L1443-L1536",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-11-03T06:43:19Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[BUG] Issuer private key persisted inside payment state intents",
+    "description": "**File:** [`crates/solid-pod-rs-server/src/handlers/pay.rs`](https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/external-findings/blob/fix/crates/solid-pod-rs-server/src/handlers/pay.rs#L1347-L1352) (lines 1347, 1352)\n**Project:** solid-pod-rs-external-fixes\n**Severity:** BUG  •  **Confidence:** medium  •  **Slug:** `secrets-exposure`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\nPaymentIntent.trail is a full StoredTrail (lines 105-112, pushed at 1347-1352), and StoredTrail carries `privkey` (the issuer secret, see fixture at line 1934). An ambiguous broadcast outcome leaves the intent — including the private key — persisted in /.well-known/webledgers/state.json, potentially indefinitely. This is NOT directly exploitable over HTTP: guarded_acl_target forces `acl:Control` on all /.well-known/webledgers/* paths (lib.rs:819-840, trail_store::is_server_state_path), confirmed by the test vector at lib.rs:6019, so only the pod owner can read it. The key already lives in the Control-gated trail file. The finding is defense-in-depth: broadening where the issuer secret is stored at rest increases the blast radius of any future ACL-guard regression or storage-backend misconfiguration.\n\n## Recommendation\n\nStore only the public StoredTrail projection (or a trail reference/ticker) in the recovery intent, and reload the secret from the Control-gated trail file during recovery, rather than embedding privkey in state.json.\n\n## Revalidation\n\n**Verdict:** fixed\n\nHEAD 644d393e. commit_state now scrubs the issuer secret before serialising state.json: `for intent in &mut state.intents { if let Some(trail) = &mut intent.trail { trail.privkey.clear(); } }` (pay.rs:216-220), with the comment 'Recovery snapshots carry public state only. Signing material remains in the separately Control-gated issuer trail store.' Recovery reloads the secret from the Control-gated trail file rather than from state.json: recover_payment_intents loads the current trail and sets restored.privkey = current.privkey (pay.rs:281-293). This is exactly the finding's recommendation (store only the public projection in the recovery intent, reload the secret from the trail file). The defense-in-depth concern is resolved.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-11-03)",
+    "severity": "BUG",
+    "labels": [
+      "security",
+      "project:solid-pod-rs-external-fixes",
+      "severity:BUG",
+      "slug:secrets-exposure",
+      "confidence:medium",
+      "revalidation:fixed"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "solid-pod-rs-external-fixes",
+      "filePath": "crates/solid-pod-rs-server/src/handlers/pay.rs",
+      "lineNumbers": [
+        1347,
+        1352
+      ],
+      "severity": "BUG",
+      "vulnSlug": "secrets-exposure",
+      "confidence": "medium",
+      "discoveredAt": "2026-11-03T06:46:16.859Z",
+      "runId": "20261103063807-cc085d7f039f86d9",
+      "revalidation": {
+        "verdict": "fixed",
+        "reasoning": "HEAD 644d393e. commit_state now scrubs the issuer secret before serialising state.json: `for intent in &mut state.intents { if let Some(trail) = &mut intent.trail { trail.privkey.clear(); } }` (pay.rs:216-220), with the comment 'Recovery snapshots carry public state only. Signing material remains in the separately Control-gated issuer trail store.' Recovery reloads the secret from the Control-gated trail file rather than from state.json: recover_payment_intents loads the current trail and sets restored.privkey = current.privkey (pay.rs:281-293). This is exactly the finding's recommendation (store only the public projection in the recovery intent, reload the secret from the trail file). The defense-in-depth concern is resolved."
+      },
+      "githubUrl": "https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/external-findings/blob/fix/crates/solid-pod-rs-server/src/handlers/pay.rs#L1347-L1352",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-11-03T06:43:19Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[BUG] sats/all paths in .buy and .withdraw silently drop the integer-division remainder",
+    "description": "**File:** [`crates/solid-pod-rs-server/src/handlers/pay.rs`](https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/external-findings/blob/fix/crates/solid-pod-rs-server/src/handlers/pay.rs#L1468-L1554) (lines 1468, 1554)\n**Project:** solid-pod-rs-external-fixes\n**Severity:** BUG  •  **Confidence:** high  •  **Slug:** `other-logic-bug`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\nIn `handle_buy` the `sats` path computes `(s / pay_rate, s)` (pay.rs:1468) and in `handle_withdraw` the `all`/`sats` paths compute `balance / pay_rate` / `s / pay_rate` (pay.rs:1554-1556). The sat cost charged is the full `s` (or full balance) while the token amount is floored by integer division, so the remainder `s % pay_rate` is charged but yields no tokens — the caller silently overpays. Not a security issue but a correctness/fairness bug.\n\n## Recommendation\n\nCharge only `token_amount * pay_rate` sats (recompute sat_cost from the floored token amount), or reject amounts that are not a whole multiple of the rate.\n\n## Revalidation\n\n**Verdict:** fixed\n\nHEAD 644d393e. The integer-division remainder is no longer charged. In handle_buy the sats path now returns (s / pay_rate, (s / pay_rate) * pay_rate) (pay.rs:1535) — sat_cost is recomputed from the floored token amount, so s % pay_rate is never charged. In handle_withdraw the `all` path returns (balance / pay_rate, (balance / pay_rate) * pay_rate) (pay.rs:1622) and the sats path (s / pay_rate, (s / pay_rate) * pay_rate) (pay.rs:1624). The caller is charged exactly token_amount * pay_rate, matching the finding's recommendation. The fairness bug is patched.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-11-03)",
+    "severity": "BUG",
+    "labels": [
+      "security",
+      "project:solid-pod-rs-external-fixes",
+      "severity:BUG",
+      "slug:other-logic-bug",
+      "confidence:high",
+      "revalidation:fixed"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "solid-pod-rs-external-fixes",
+      "filePath": "crates/solid-pod-rs-server/src/handlers/pay.rs",
+      "lineNumbers": [
+        1468,
+        1554
+      ],
+      "severity": "BUG",
+      "vulnSlug": "other-logic-bug",
+      "confidence": "high",
+      "discoveredAt": "2026-11-03T06:46:16.859Z",
+      "runId": "20261103063807-cc085d7f039f86d9",
+      "revalidation": {
+        "verdict": "fixed",
+        "reasoning": "HEAD 644d393e. The integer-division remainder is no longer charged. In handle_buy the sats path now returns (s / pay_rate, (s / pay_rate) * pay_rate) (pay.rs:1535) — sat_cost is recomputed from the floored token amount, so s % pay_rate is never charged. In handle_withdraw the `all` path returns (balance / pay_rate, (balance / pay_rate) * pay_rate) (pay.rs:1622) and the sats path (s / pay_rate, (s / pay_rate) * pay_rate) (pay.rs:1624). The caller is charged exactly token_amount * pay_rate, matching the finding's recommendation. The fairness bug is patched."
+      },
+      "githubUrl": "https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/external-findings/blob/fix/crates/solid-pod-rs-server/src/handlers/pay.rs#L1468-L1554",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-11-03T06:43:19Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[BUG] handle_anchor's 403 'not the pod owner' branch is unreachable because the NIP-98 replay guard consumes the token on the first verification",
+    "description": "**File:** [`crates/solid-pod-rs-server/src/handlers/prov.rs`](https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/external-findings/blob/fix/crates/solid-pod-rs-server/src/handlers/prov.rs#L472-L478) (lines 472, 476, 478)\n**Project:** solid-pod-rs-external-fixes\n**Severity:** BUG  •  **Confidence:** high  •  **Slug:** `other-logic-bug`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\n`handle_anchor` (prov.rs:472-481) first calls `require_pod_owner_with_body` → `extract_pubkey_with_body`, which records the token's event id in the process-wide NIP98_REPLAY cache (lib.rs:641-652) before the owner comparison (lib.rs:4134-4138). When the caller is authenticated but not the owner, require_pod_owner returns None, and the error branch calls `extract_pubkey_with_body` a SECOND time to decide between 401 and 403 — but the event id is now already recorded, so the replay guard rejects it and returns None, yielding 401 'NIP-98 authentication required' instead of the intended 403 'not the pod owner'. The 403 arm is dead code and a legitimate non-owner receives a misleading 401 (and has their one-shot token consumed).\n\n## Recommendation\n\nCapture the pubkey once (a single extract_pubkey_with_body call), then branch on owner-equality in memory to choose 401 vs 403, rather than re-verifying the already-consumed token.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-11-03)",
+    "severity": "BUG",
+    "labels": [
+      "security",
+      "project:solid-pod-rs-external-fixes",
+      "severity:BUG",
+      "slug:other-logic-bug",
+      "confidence:high"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "solid-pod-rs-external-fixes",
+      "filePath": "crates/solid-pod-rs-server/src/handlers/prov.rs",
+      "lineNumbers": [
+        472,
+        476,
+        478
+      ],
+      "severity": "BUG",
+      "vulnSlug": "other-logic-bug",
+      "confidence": "high",
+      "discoveredAt": "2026-11-03T06:32:25.157Z",
+      "runId": "20261103062436-73f447ddd428207d",
+      "githubUrl": "https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/external-findings/blob/fix/crates/solid-pod-rs-server/src/handlers/prov.rs#L472-L478",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-11-03T06:24:32Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[BUG] WAC PaymentCondition reads the best-effort legacy ledger mirror, not authoritative state",
+    "description": "**File:** [`crates/solid-pod-rs-server/src/lib.rs`](https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/external-findings/blob/fix/crates/solid-pod-rs-server/src/lib.rs#L775-L791) (lines 775, 791)\n**Project:** solid-pod-rs-external-fixes\n**Severity:** BUG  •  **Confidence:** low  •  **Slug:** `other-consistency`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\nThe payment handlers treat /.well-known/webledgers/state.json as authoritative and write /.well-known/webledgers/webledgers.json (WEBLEDGER_PATH) only as a best-effort mirror with the result discarded (`let _ = ... put(...)`, pay.rs commit_state lines 216-220). But the WAC `acl:PaymentCondition` evaluator sources the caller's balance via `resolve_balance_sats`, which reads WEBLEDGER_PATH (lib.rs:775-791), not state.json. If a mirror write fails after a debit (e.g. a transient storage error on just that put), the auth path can see a stale, higher balance than the authoritative ledger, letting a PaymentCondition pass when the true balance is insufficient (fail-open). The window is narrow (requires the mirror put to fail while the authoritative commit succeeded).\n\n## Recommendation\n\nHave resolve_balance_sats read the authoritative state.json (via StoragePaymentStore::read_ledger) so the WAC gate and the /pay/* handlers share one source of truth, or make the mirror write failure fail the whole commit.\n\n## Revalidation\n\n**Verdict:** false-positive\n\nThe finding's premise is that resolve_balance_sats reads the legacy mirror WEBLEDGER_PATH. It does not, and the evidence that it never did is internal to the same scan: F9 (HIGH, high-confidence) states 'resolve_balance_sats (lib.rs:775-783) → StoragePaymentStore::read_ledger(), which reads the authoritative state.json (PAYMENT_STATE_PATH) first', and F9's entire vulnerability depends on the check reading state.json while the debit wrote webledgers.json — if the check had also read the mirror, the two would agree and F9 could not exist. So at scan time the read path already used the authoritative document. The current code confirms it: resolve_balance_sats calls StoragePaymentStore::new(storage).read_ledger() (lib.rs:778-782) → read_state() → read_state_unchecked(), which reads PAYMENT_STATE_PATH and only falls back to read_legacy_ledger(WEBLEDGER_PATH) when state.json is entirely absent (pay.rs:190-211) — a first-run bootstrap, not a post-debit state. Hence the described 'mirror write fails after a debit → auth sees a stale higher balance' window cannot occur once state.json exists. The mitigation is read_ledger→read_state preferring the authoritative document. Not a duplicate of F9: different code location (read path vs debit path) and F8 mis-describes the read path rather than restating F9's debit-path mismatch.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-11-03)",
+    "severity": "BUG",
+    "labels": [
+      "security",
+      "project:solid-pod-rs-external-fixes",
+      "severity:BUG",
+      "slug:other-consistency",
+      "confidence:low",
+      "revalidation:false-positive"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "solid-pod-rs-external-fixes",
+      "filePath": "crates/solid-pod-rs-server/src/lib.rs",
+      "lineNumbers": [
+        775,
+        791
+      ],
+      "severity": "BUG",
+      "vulnSlug": "other-consistency",
+      "confidence": "low",
+      "discoveredAt": "2026-11-03T06:46:16.859Z",
+      "runId": "20261103063807-cc085d7f039f86d9",
+      "revalidation": {
+        "verdict": "false-positive",
+        "reasoning": "The finding's premise is that resolve_balance_sats reads the legacy mirror WEBLEDGER_PATH. It does not, and the evidence that it never did is internal to the same scan: F9 (HIGH, high-confidence) states 'resolve_balance_sats (lib.rs:775-783) → StoragePaymentStore::read_ledger(), which reads the authoritative state.json (PAYMENT_STATE_PATH) first', and F9's entire vulnerability depends on the check reading state.json while the debit wrote webledgers.json — if the check had also read the mirror, the two would agree and F9 could not exist. So at scan time the read path already used the authoritative document. The current code confirms it: resolve_balance_sats calls StoragePaymentStore::new(storage).read_ledger() (lib.rs:778-782) → read_state() → read_state_unchecked(), which reads PAYMENT_STATE_PATH and only falls back to read_legacy_ledger(WEBLEDGER_PATH) when state.json is entirely absent (pay.rs:190-211) — a first-run bootstrap, not a post-debit state. Hence the described 'mirror write fails after a debit → auth sees a stale higher balance' window cannot occur once state.json exists. The mitigation is read_ledger→read_state preferring the authoritative document. Not a duplicate of F9: different code location (read path vs debit path) and F8 mis-describes the read path rather than restating F9's debit-path mismatch."
+      },
+      "githubUrl": "https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/external-findings/blob/fix/crates/solid-pod-rs-server/src/lib.rs#L775-L791",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-11-03T06:43:19Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[BUG] Comment stripping does not track quoted string literals; a '#' inside a literal truncates the statement",
+    "description": "**File:** [`crates/solid-pod-rs/src/wac/parser.rs`](https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/external-findings/blob/fix/crates/solid-pod-rs/src/wac/parser.rs#L96-L108) (lines 96, 108)\n**Project:** solid-pod-rs-external-fixes\n**Severity:** BUG  •  **Confidence:** high  •  **Slug:** `other-parser-desync`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\n`strip_turtle_comments` (lines 93-116) tracks IRI `<...>` context via `in_iri` but ignores string-literal context. A Turtle string literal may legally contain an unescaped '#', e.g. `acl:anchorTicker \"a#b\"` or `acl:clientClass \"web#app\"`. The '#' is treated as a comment start (line 108) and everything after it on the line — including the rest of the blank node, the closing ']' and the statement-terminating '.' — is dropped. The stray opening '\"' then leaves the downstream splitters with `in_str` stuck true and/or an unbalanced '[', so statements merge or `parse_turtle_condition_objects` returns an 'unbalanced ACL condition' error. In the traced cases this fails closed (deny / parse error), but it corrupts otherwise-valid ACLs and desynchronises the tokeniser, which is fragile in auth-critical code.\n\n## Recommendation\n\nTrack quoted-string state in strip_turtle_comments the same way split_predicate_list/turtle_pop_term do (honouring \\\" escapes), so a '#' inside a string literal is not treated as a comment.\n\n## Revalidation\n\n**Verdict:** fixed\n\nThe finding was that `strip_turtle_comments` tracked IRI (`<...>`) context but not string-literal context, so a legal unescaped `#` inside a quoted literal (e.g. `acl:anchorTicker \"a#b\"`) was treated as a comment start and truncated the statement, desynchronising the tokeniser. The current implementation (parser.rs lines 112-152) now tracks `in_str` with escape handling: a `\"` outside an IRI sets `in_str` (lines 132-135), characters inside a string are emitted verbatim while honouring `\\` escapes (lines 120-130), and the `'#' if !in_iri => break` arm (line 144) is only reached when not inside a string, so a `#` within a literal is preserved. The test `quoted_hash_and_iri_semicolon_are_not_delimiters` asserts both that a `\"a#b\"` ticker survives end-to-end and, at the unit level, that `strip_turtle_comments(\"\\\"a\\\\\\\"#b\\\" # real comment\")` yields `\"a\\\"#b\"` — i.e. the in-literal `#` is kept and the trailing real comment is stripped. This was flagged as a BUG (fail-closed) rather than an auth bypass, and the fix is complete for the flagged case. Known-but-out-of-scope literal edges (single-quoted / triple-quoted Turtle strings) still aren't handled, but those fail closed and were not part of this finding. Verified by source inspection only. Fixed.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-11-03)\n- jjohare <github@thedreamlab.uk> (2026-06-13)\n- DreamLab-AI contributors <anthropic@xrsystems.uk> (2026-05-11)",
+    "severity": "BUG",
+    "labels": [
+      "security",
+      "project:solid-pod-rs-external-fixes",
+      "severity:BUG",
+      "slug:other-parser-desync",
+      "confidence:high",
+      "revalidation:fixed"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "solid-pod-rs-external-fixes",
+      "filePath": "crates/solid-pod-rs/src/wac/parser.rs",
+      "lineNumbers": [
+        96,
+        108
+      ],
+      "severity": "BUG",
+      "vulnSlug": "other-parser-desync",
+      "confidence": "high",
+      "discoveredAt": "2026-11-03T06:52:05.935Z",
+      "runId": "20261103064638-0c46c644dd9384d5",
+      "revalidation": {
+        "verdict": "fixed",
+        "reasoning": "The finding was that `strip_turtle_comments` tracked IRI (`<...>`) context but not string-literal context, so a legal unescaped `#` inside a quoted literal (e.g. `acl:anchorTicker \"a#b\"`) was treated as a comment start and truncated the statement, desynchronising the tokeniser. The current implementation (parser.rs lines 112-152) now tracks `in_str` with escape handling: a `\"` outside an IRI sets `in_str` (lines 132-135), characters inside a string are emitted verbatim while honouring `\\` escapes (lines 120-130), and the `'#' if !in_iri => break` arm (line 144) is only reached when not inside a string, so a `#` within a literal is preserved. The test `quoted_hash_and_iri_semicolon_are_not_delimiters` asserts both that a `\"a#b\"` ticker survives end-to-end and, at the unit level, that `strip_turtle_comments(\"\\\"a\\\\\\\"#b\\\" # real comment\")` yields `\"a\\\"#b\"` — i.e. the in-literal `#` is kept and the trailing real comment is stripped. This was flagged as a BUG (fail-closed) rather than an auth bypass, and the fix is complete for the flagged case. Known-but-out-of-scope literal edges (single-quoted / triple-quoted Turtle strings) still aren't handled, but those fail closed and were not part of this finding. Verified by source inspection only. Fixed."
+      },
+      "githubUrl": "https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/external-findings/blob/fix/crates/solid-pod-rs/src/wac/parser.rs#L96-L108",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-11-03T06:43:19Z"
+          },
+          {
+            "name": "jjohare",
+            "email": "github@thedreamlab.uk",
+            "date": "2026-06-13T12:07:57Z"
+          },
+          {
+            "name": "DreamLab-AI contributors",
+            "email": "anthropic@xrsystems.uk",
+            "date": "2026-05-11T19:08:30Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[BUG] split_predicate_list does not track <IRI> context, so ';' inside an IRI mis-splits the predicate list",
+    "description": "**File:** [`crates/solid-pod-rs/src/wac/parser.rs`](https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/external-findings/blob/fix/crates/solid-pod-rs/src/wac/parser.rs#L244-L263) (lines 244, 263)\n**Project:** solid-pod-rs-external-fixes\n**Severity:** BUG  •  **Confidence:** medium  •  **Slug:** `other-parser-desync`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\n`split_predicate_list` (lines 244-274) tracks string literals and '[...]' bracket depth but not '<...>' IRI context, unlike `split_turtle_statements` which does track angle brackets. Semicolons are legal in IRIs (e.g. query strings). An object such as `acl:accessTo <https://example/r?a=1;b=2>` is split at the ';' inside the IRI, mangling the accessTo value and producing a stray fragment pair. In isolation this fails closed (the accessTo becomes empty/invalid), but the inconsistency between the three tokenisers about what delimits a statement/term is a latent desync hazard.\n\n## Recommendation\n\nTrack '<...>' IRI depth in split_predicate_list (and keep string/bracket handling consistent across all three tokenisers), so delimiters inside IRIs are not treated as separators.\n\n## Revalidation\n\n**Verdict:** fixed\n\nThe finding was that `split_predicate_list` tracked string and `[...]` bracket context but not `<...>` IRI context, so a legal `;` inside an IRI (e.g. a query string `<https://example/r?a=1;b=2>`) was treated as a predicate-object separator, mangling the object. The current implementation (parser.rs lines 297-351) adds an `in_iri` flag: `<` sets it (lines 324-327), characters are buffered verbatim until the closing `>` (lines 316-322), and the `';' if !in_str && depth == 0` split arm (line 340) is only reachable outside an IRI, so semicolons within an IRI no longer split. This brings the three tokenisers (`split_turtle_statements`, `split_predicate_list`, `turtle_pop_term`) into agreement on IRI boundaries. The test `quoted_hash_and_iri_semicolon_are_not_delimiters` asserts the `access_to` value is preserved exactly as `https://example/r?a=1;b=2`. This is a distinct function and root cause from F4 (which is `strip_turtle_comments`), so despite the shared `other-parser-desync` slug it is not a duplicate. Flagged as a BUG with fail-closed impact; the fix is complete for the flagged case (a `]` inside an IRI within a condition bracket remains a narrower untracked edge but fails closed and was not flagged). Verified statically; tests exist but were not run. Fixed.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-11-03)\n- jjohare <github@thedreamlab.uk> (2026-06-13)\n- DreamLab-AI contributors <anthropic@xrsystems.uk> (2026-05-11)",
+    "severity": "BUG",
+    "labels": [
+      "security",
+      "project:solid-pod-rs-external-fixes",
+      "severity:BUG",
+      "slug:other-parser-desync",
+      "confidence:medium",
+      "revalidation:fixed"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "solid-pod-rs-external-fixes",
+      "filePath": "crates/solid-pod-rs/src/wac/parser.rs",
+      "lineNumbers": [
+        244,
+        263
+      ],
+      "severity": "BUG",
+      "vulnSlug": "other-parser-desync",
+      "confidence": "medium",
+      "discoveredAt": "2026-11-03T06:52:05.935Z",
+      "runId": "20261103064638-0c46c644dd9384d5",
+      "revalidation": {
+        "verdict": "fixed",
+        "reasoning": "The finding was that `split_predicate_list` tracked string and `[...]` bracket context but not `<...>` IRI context, so a legal `;` inside an IRI (e.g. a query string `<https://example/r?a=1;b=2>`) was treated as a predicate-object separator, mangling the object. The current implementation (parser.rs lines 297-351) adds an `in_iri` flag: `<` sets it (lines 324-327), characters are buffered verbatim until the closing `>` (lines 316-322), and the `';' if !in_str && depth == 0` split arm (line 340) is only reachable outside an IRI, so semicolons within an IRI no longer split. This brings the three tokenisers (`split_turtle_statements`, `split_predicate_list`, `turtle_pop_term`) into agreement on IRI boundaries. The test `quoted_hash_and_iri_semicolon_are_not_delimiters` asserts the `access_to` value is preserved exactly as `https://example/r?a=1;b=2`. This is a distinct function and root cause from F4 (which is `strip_turtle_comments`), so despite the shared `other-parser-desync` slug it is not a duplicate. Flagged as a BUG with fail-closed impact; the fix is complete for the flagged case (a `]` inside an IRI within a condition bracket remains a narrower untracked edge but fails closed and was not flagged). Verified statically; tests exist but were not run. Fixed."
+      },
+      "githubUrl": "https://github.com/DreamLab-AI/solid-pod-rs/blob/fix/external-findings/blob/fix/crates/solid-pod-rs/src/wac/parser.rs#L244-L263",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-11-03T06:43:19Z"
+          },
+          {
+            "name": "jjohare",
+            "email": "github@thedreamlab.uk",
+            "date": "2026-06-13T12:07:57Z"
+          },
+          {
+            "name": "DreamLab-AI contributors",
+            "email": "anthropic@xrsystems.uk",
+            "date": "2026-05-11T19:08:30Z"
+          }
+        ]
+      }
+    }
+  }
+]

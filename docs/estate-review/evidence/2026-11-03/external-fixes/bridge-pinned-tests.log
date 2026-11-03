@@ -1,0 +1,523 @@
+   Compiling unicode-ident v1.0.26
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling libc v0.2.189
+   Compiling cfg-if v1.0.5
+   Compiling typenum v1.20.1
+   Compiling subtle v2.6.1
+   Compiling version_check v0.9.5
+   Compiling generic-array v0.14.7
+   Compiling syn v2.0.119
+   Compiling syn v3.0.6
+   Compiling rand_core v0.10.1
+   Compiling getrandom v0.4.3
+   Compiling getrandom v0.2.17
+   Compiling rand_core v0.6.4
+   Compiling cmov v0.5.4
+   Compiling const-oid v0.10.2
+   Compiling ctutils v0.4.7
+   Compiling serde_core v1.0.229
+   Compiling const-oid v0.9.6
+   Compiling stable_deref_trait v1.2.1
+   Compiling shlex v2.0.1
+   Compiling find-msvc-tools v0.1.14
+   Compiling itoa v1.0.18
+   Compiling cc v1.5.1
+   Compiling bytes v1.12.1
+   Compiling synstructure v0.14.0
+   Compiling synstructure v0.13.2
+   Compiling pin-project-lite v0.2.17
+   Compiling zerocopy v0.8.59
+   Compiling autocfg v1.5.1
+   Compiling once_cell v1.21.4
+   Compiling num-traits v0.2.19
+   Compiling smallvec v1.16.2
+   Compiling futures-core v0.3.34
+   Compiling http v1.5.0
+   Compiling zerofrom-derive v0.1.8
+   Compiling zeroize_derive v1.5.0
+   Compiling yoke-derive v0.8.2
+   Compiling zeroize v1.9.0
+   Compiling crypto-common v0.1.7
+   Compiling hybrid-array v0.4.15
+   Compiling zerofrom v0.1.8
+   Compiling zerovec-derive v0.11.6
+   Compiling yoke v0.8.3
+   Compiling crypto-common v0.2.2
+   Compiling block-buffer v0.12.1
+   Compiling displaydoc v0.2.7
+   Compiling zerovec v0.11.8
+   Compiling digest v0.11.3
+   Compiling block-buffer v0.10.4
+   Compiling errno v0.3.14
+   Compiling digest v0.10.7
+   Compiling writeable v0.6.4
+   Compiling cpufeatures v0.2.17
+   Compiling tinystr v0.8.4
+   Compiling litemap v0.8.3
+   Compiling serde v1.0.229
+   Compiling potential_utf v0.1.6
+   Compiling ppv-lite86 v0.2.21
+   Compiling signal-hook-registry v1.4.8
+   Compiling icu_locale_core v2.3.0
+   Compiling zerotrie v0.2.5
+   Compiling serde_derive v1.0.229
+   Compiling tokio-macros v2.7.2
+   Compiling mio v1.2.3
+   Compiling socket2 v0.6.5
+   Compiling httparse v1.10.1
+   Compiling icu_properties_data v2.3.0
+   Compiling icu_normalizer_data v2.3.0
+   Compiling utf8_iter v1.0.4
+   Compiling tokio v1.53.1
+   Compiling icu_collections v2.3.0
+   Compiling icu_provider v2.3.1
+   Compiling rand_chacha v0.3.1
+   Compiling cpubits v0.1.1
+   Compiling percent-encoding v2.3.2
+   Compiling crypto-bigint v0.7.10
+   Compiling rand v0.8.8
+   Compiling der v0.8.3
+   Compiling futures-macro v0.3.34
+   Compiling ring v0.17.14
+   Compiling ff v0.14.0
+   Compiling futures-sink v0.3.34
+   Compiling slab v0.4.12
+   Compiling cpufeatures v0.3.1
+   Compiling thiserror v2.0.21
+   Compiling futures-task v0.3.34
+   Compiling futures-util v0.3.34
+   Compiling icu_properties v2.3.0
+   Compiling icu_normalizer v2.3.0
+   Compiling hmac v0.13.0
+   Compiling thiserror-impl v2.0.21
+   Compiling log v0.4.34
+   Compiling idna_adapter v1.2.2
+   Compiling group v0.14.0
+   Compiling spki v0.8.1
+   Compiling form_urlencoded v1.2.2
+   Compiling block-padding v0.3.3
+   Compiling rustls-pki-types v1.15.1
+   Compiling http-body v1.1.0
+   Compiling tracing-core v0.1.36
+   Compiling zmij v1.0.23
+   Compiling untrusted v0.9.0
+   Compiling base16ct v1.0.0
+   Compiling sec1 v0.8.1
+   Compiling inout v0.1.4
+   Compiling pkcs8 v0.11.0
+   Compiling idna v1.1.0
+   Compiling hkdf v0.13.0
+   Compiling tracing-attributes v0.1.31
+   Compiling rustls v0.23.45
+   Compiling equivalent v1.0.2
+   Compiling serde_json v1.0.151
+   Compiling try-lock v0.2.5
+   Compiling tower-service v0.3.3
+   Compiling memchr v2.8.3
+   Compiling wasm-bindgen-shared v0.2.129
+   Compiling hashbrown v0.17.1
+   Compiling want v0.3.1
+   Compiling tracing v0.1.44
+   Compiling rustls-webpki v0.103.15
+   Compiling indexmap v2.14.2
+   Compiling url v2.5.8
+   Compiling elliptic-curve v0.14.3
+   Compiling cipher v0.4.4
+   Compiling primefield v0.14.0
+   Compiling der v0.7.10
+   Compiling futures-channel v0.3.34
+   Compiling thiserror v1.0.69
+   Compiling data-encoding v2.11.1
+   Compiling atomic-waker v1.1.2
+   Compiling bitflags v2.13.2
+   Compiling rustversion v1.0.23
+   Compiling hyper v1.11.1
+   Compiling wnaf v0.14.1
+   Compiling rfc6979 v0.6.0
+   Compiling hmac v0.12.1
+   Compiling signature v3.0.0
+   Compiling thiserror-impl v1.0.69
+   Compiling sync_wrapper v1.0.2
+   Compiling secp256k1-sys v0.10.1
+   Compiling oxilangtag v0.1.6
+   Compiling peg-runtime v0.8.6
+   Compiling base64 v0.22.1
+   Compiling tower-layer v0.3.3
+   Compiling oxiri v0.2.11
+   Compiling ipnet v2.12.2
+   Compiling unicase v2.9.0
+   Compiling base64 v0.23.1
+   Compiling bitcoin-io v0.1.101
+   Compiling mime_guess v2.0.5
+   Compiling hyper-util v0.1.21
+   Compiling oxrdf v0.2.4
+   Compiling tower v0.5.3
+   Compiling peg-macros v0.8.6
+   Compiling tokio-rustls v0.26.5
+   Compiling ecdsa v0.17.0
+   Compiling spki v0.7.3
+   Compiling primeorder v0.14.0
+   Compiling webpki-roots v1.0.9
+   Compiling sha2 v0.11.1
+   Compiling sha1 v0.10.7
+   Compiling sha2 v0.10.9
+   Compiling ff v0.13.1
+   Compiling bumpalo v3.20.3
+   Compiling arrayvec v0.7.8
+   Compiling base16ct v0.2.0
+   Compiling utf-8 v0.7.6
+   Compiling byteorder v1.5.0
+   Compiling ryu v1.0.23
+   Compiling hex v0.4.3
+   Compiling tungstenite v0.24.0
+   Compiling peg v0.8.6
+   Compiling serde_urlencoded v0.7.1
+   Compiling sec1 v0.7.3
+   Compiling hex-conservative v0.2.3
+   Compiling wasm-bindgen-macro-support v0.2.129
+   Compiling group v0.13.0
+   Compiling k256 v0.14.0
+   Compiling hyper-rustls v0.27.10
+   Compiling wasm-bindgen v0.2.129
+   Compiling pkcs8 v0.10.2
+   Compiling tower-http v0.6.11
+   Compiling chacha20 v0.9.1
+   Compiling http-body-util v0.1.5
+   Compiling chacha20 v0.10.2
+   Compiling universal-hash v0.5.1
+   Compiling crypto-bigint v0.5.5
+   Compiling async-trait v0.1.92
+   Compiling regex-syntax v0.8.11
+   Compiling opaque-debug v0.3.1
+   Compiling iana-time-zone v0.1.65
+   Compiling mime v0.3.17
+   Compiling regex-automata v0.4.18
+   Compiling elliptic-curve v0.13.8
+   Compiling chrono v0.4.45
+   Compiling poly1305 v0.8.0
+   Compiling rand v0.10.3
+   Compiling reqwest v0.12.28
+   Compiling secp256k1 v0.29.1
+   Compiling wasm-bindgen-macro v0.2.129
+   Compiling bitcoin_hashes v0.14.101
+   Compiling tokio-tungstenite v0.24.0
+   Compiling spargebra v0.3.5
+   Compiling oxttl v0.1.8
+   Compiling rfc6979 v0.4.0
+   Compiling cbc v0.1.2
+   Compiling aes v0.8.4
+   Compiling sha1 v0.11.0
+   Compiling signature v2.2.0
+   Compiling aead v0.5.2
+   Compiling uuid v1.26.1
+   Compiling anyhow v1.0.104
+   Compiling winnow v1.0.4
+   Compiling bech32 v0.11.1
+   Compiling lazy_static v1.5.0
+   Compiling sharded-slab v0.1.7
+   Compiling toml_parser v1.1.3+spec-1.1.0
+   Compiling nostr v0.44.8
+   Compiling solid-pod-rs v0.5.0-alpha.19 (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/solid-pod-rs/crates/solid-pod-rs)
+   Compiling chacha20poly1305 v0.10.1
+   Compiling ecdsa v0.16.9
+   Compiling tungstenite v0.30.0
+   Compiling matchers v0.2.0
+   Compiling hkdf v0.12.4
+   Compiling tracing-log v0.2.0
+   Compiling serde_spanned v1.1.1
+   Compiling toml_datetime v1.1.1+spec-1.1.0
+   Compiling thread_local v1.1.10
+   Compiling rustix v1.1.5
+   Compiling toml_writer v1.1.2+spec-1.1.0
+   Compiling nu-ansi-term v0.50.3
+   Compiling toml v1.1.6+spec-1.1.0
+   Compiling tracing-subscriber v0.3.23
+   Compiling solid-pod-rs-nostr v0.5.0-alpha.19 (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/solid-pod-rs/crates/solid-pod-rs-nostr)
+   Compiling nostr-bbs-core v1.0.0-beta.19 (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/nostr-rust-forum/crates/nostr-bbs-core)
+   Compiling tokio-tungstenite v0.30.0
+   Compiling k256 v0.13.4
+   Compiling linux-raw-sys v0.12.1
+   Compiling fastrand v2.5.0
+   Compiling bech32 v0.12.0
+   Compiling tempfile v3.27.0
+   Compiling nostr-pod-bridge v0.1.0 (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/services/nostr-pod-bridge)
+    Finished `test` profile [unoptimized] target(s) in 39.45s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/services/nostr-pod-bridge/target/debug/deps/nostr_pod_bridge-0bff68ef7e2d1975)
+
+running 108 tests
+test admission::tests::author_match_is_case_insensitive_and_canonical ... ok
+test admission::tests::deny_all_reject_message_is_distinct_from_a_plain_miss ... ok
+test admission::tests::empty_allowlist_denies_every_remote_author ... ok
+test admission::tests::listed_author_is_admitted ... ok
+test admission::tests::missing_author_is_malformed_not_admitted ... ok
+test admission::tests::inspect_frame_ignores_non_publish_frames ... ok
+test admission::tests::inspect_frame_classifies_publishes ... ok
+test admission::tests::self_author_is_admitted_even_under_deny_all ... ok
+test admission::tests::reject_frame_is_a_nip20_negative_ok ... ok
+test admission::tests::unlisted_author_is_rejected ... ok
+test blocktrail::tests::txo_uri_rejects_malformed ... ok
+test colloquy_publish::tests::a_graduation_is_refused_and_says_why ... ok
+test colloquy_publish::tests::a_malformed_request_is_an_error_not_a_default ... ok
+test blocktrail::tests::txo_uri_round_trips_in_git_mark_order ... ok
+test colloquy_publish::tests::a_request_cannot_name_its_author ... ok
+test colloquy_publish::tests::an_unknown_future_kind_is_refused_by_default ... ok
+test colloquy_publish::tests::created_at_is_optional_and_tags_default_to_empty ... ok
+test blocktrail::tests::legacy_trail_round_trips_unchanged ... ok
+test colloquy_publish::tests::every_colloquy_kind_except_graduation_is_admitted ... ok
+test colloquy_publish::tests::governance_kinds_are_unreachable_through_this_door ... ok
+test colloquy_publish::tests::identity_and_messaging_kinds_are_refused ... ok
+test egress_policy::tests::a_quoted_multi_word_secret_is_consumed_whole ... ok
+test egress_policy::tests::absent_identity_is_a_named_skip_not_a_silent_return ... ok
+test egress_policy::tests::disabling_redaction_disables_egress_rather_than_sending_raw ... ok
+test egress_policy::tests::global_switch_disables_the_digest_path ... ok
+test egress_policy::tests::outcome_vocabulary_matches_the_policy_document ... ok
+test egress_policy::tests::per_path_switch_disables_only_this_path ... ok
+test egress_policy::tests::permitted_when_nothing_forbids_it ... ok
+test egress_policy::tests::prose_containing_a_keyword_survives_intact ... ok
+test envmap::tests::first_skips_empty_and_missing ... ok
+test envmap::tests::get_distinguishes_unset_from_empty ... ok
+test envmap::tests::non_empty_collapses_the_empty_string ... ok
+test envmap::tests::or_falls_back_for_empty_and_missing ... ok
+test egress_policy::tests::matches_the_paired_cross_language_fixture ... ok
+test identity_port::acl::tests::an_agent_governance_key_may_sign_panels_and_cases_on_forum_event ... ok
+test identity_port::acl::tests::a_valid_acl_loads ... ok
+test colloquy_publish::tests::event_kind_artefact_rows_sit_in_the_agentbox_band_only ... ok
+test identity_port::acl::tests::an_unknown_operation_fails_to_load ... ok
+test identity_port::acl::tests::an_agent_governance_key_is_usable_for_forum_event_alone_and_never_mixed ... ok
+test identity_port::acl::tests::a_never_grantable_kind_fails_to_load ... ok
+test identity_port::acl::tests::panel_and_case_kinds_stay_refused_without_the_agent_key ... ok
+test identity_port::acl::tests::url_prefix_matching_is_segment_bounded_and_origin_exact ... ok
+test identity_port::acl::tests::manifest_references_resolve_or_grant_nothing ... ok
+test colloquy_publish::tests::spent_artefact_rows_match_signable_kinds_plus_graduation ... ok
+test identity_port::acl::tests::kinds_on_the_wrong_op_or_missing_kinds_fail ... ok
+test identity_port::acl::tests::non_numeric_uid_and_path_like_key_file_fail ... ok
+test identity_port::acl::tests::the_agent_exception_refuses_every_other_never_grantable_kind ... ok
+test pyjson::tests::compact_uses_python_separators ... ok
+test pyjson::tests::pretty_empty_containers_stay_inline ... ok
+test identity_port::port::tests::a_missing_required_key_or_a_bad_key_file_fails_without_echoing_it ... ok
+test pyjson::tests::key_insertion_order_is_preserved ... ok
+test role_secret::tests::flag_off_env_var_is_honoured ... ok
+test pyjson::tests::astral_plane_uses_surrogate_pairs ... ok
+test role_secret::tests::flag_on_empty_env_var_still_counts_as_present ... ok
+test pyjson::tests::control_characters_keep_serde_escapes ... ok
+test pyjson::tests::compact_empty_containers_match_python ... ok
+test role_secret::tests::flag_on_env_var_is_ignored_and_reported ... ok
+test pyjson::tests::non_ascii_is_escaped_like_ensure_ascii ... ok
+test role_secret::tests::unreadable_file_var_is_an_error_naming_the_path_not_a_fallback ... ok
+test tests::addressed_via_inner_p_tag ... ok
+test role_secret::tests::flag_must_be_exactly_one ... ok
+test tests::addressed_via_outer_p_tag ... ok
+test tests::delegation_tag_no_longer_grants_access ... ok
+test tests::direct_allowlist_authorizes ... ok
+test role_secret::tests::flag_on_file_var_is_read_and_a_present_env_var_is_still_a_leak ... ok
+test pyjson::tests::pretty_matches_python_indent_two ... ok
+test role_secret::tests::oversized_file_is_refused ... ok
+test role_secret::tests::file_var_wins_over_env_var_with_flag_off ... ok
+test role_secret::tests::read_first_returns_the_first_value_and_its_name ... ok
+test identity_port::receipts::tests::utc_dates ... ok
+test tests::project_digest_deserializes_with_optional_fields_defaulted ... ok
+test tests::render_project_content_includes_status_facts ... ok
+test tests::render_summary_content_includes_present_sections_only ... ok
+test tests::render_summary_content_includes_provenance_when_present ... ok
+test role_secret::tests::role_secrets_dir_is_consulted_after_the_file_var ... ok
+test tests::rfc3339_known_epoch ... ok
+test role_secret::tests::a_directory_is_not_a_secret_file ... ok
+test tests::session_summary_deserializes_with_activity_urn ... ok
+test tests::session_summary_deserializes_with_optional_fields_defaulted ... ok
+test role_secret::tests::default_file_is_used_when_no_file_var ... ok
+test tests::unknown_pubkey_rejected ... ok
+test tests::relay_admission_and_inbox_authorisation_are_independent_boundaries ... ok
+test tests::non_publish_frames_bypass_the_gate_untouched ... ok
+test identity_port::port::tests::malformed_requests_are_refused_and_receipted ... ok
+test identity_port::port::tests::governance_and_graduation_kinds_are_refused_even_when_asked_directly ... ok
+test identity_port::port::tests::a_uid_outside_the_acl_is_refused_for_every_op_and_nothing_is_signed ... ok
+test identity_port::port::tests::shipped_policy_keeps_child_secrets_inside_and_gateway_derivation_compatible ... ok
+test tests::empty_allowlist_denies_all_at_the_relay_boundary ... ok
+test identity_port::port::tests::an_unwritable_receipt_refuses_an_admission ... ok
+test tests::refused_publishes_and_inbox_rejections_are_audited_durably ... ok
+test tests::delegation_tag_author_is_refused_at_the_relay_boundary ... ok
+test identity_port::port::tests::mirror_key_matches_the_w8_derivation_without_exporting_the_secret ... ok
+test identity_port::port::tests::a_key_not_granted_or_not_held_is_refused ... ok
+test tests::self_authored_event_is_admitted_even_under_deny_all ... ok
+test tests::signed_summary_converts_to_relay_event_and_verifies ... ok
+test tests::signed_project_digest_is_addressable_and_verifies ... ok
+test tests::unlisted_author_is_refused_before_store_broadcast_or_ack ... ok
+test identity_port::port::tests::nip42_names_only_configured_relays ... ok
+test identity_port::port::tests::nip98_signs_only_allowlisted_urls_and_strips_the_query ... ok
+test tests::listed_author_is_admitted_stored_broadcast_and_acked ... ok
+test identity_port::port::tests::forum_events_default_to_the_forum_key_and_refuse_zones ... ok
+test identity_port::port::tests::the_kind_allowlist_is_per_caller ... ok
+test identity_port::port::tests::an_odd_y_supplied_key_signs_as_its_x_only_identity_and_keeps_the_phone_child ... ok
+test identity_port::port::tests::the_sovereign_secret_is_in_no_response_and_no_receipt ... ok
+test tests::gift_wrap_for_other_recipient_fails_unwrap ... ok
+test tests::gift_wrap_unwraps_through_effective_message ... ok
+test identity_port::port::tests::mirror_wrap_is_self_addressed_and_zone_seal_is_only_kind42 ... ok
+test identity_port::port::tests::typed_dm_roundtrip_is_bounded_and_cannot_sign_governance ... ok
+
+test result: ok. 108 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running unittests src/main.rs (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/services/nostr-pod-bridge/target/debug/deps/nostr_pod_bridge-722642e0ce48bbc1)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/bootstrap.rs (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/services/nostr-pod-bridge/target/debug/deps/bootstrap-431966a672dc7b68)
+
+running 11 tests
+test run_is_a_no_op_when_the_sovereign_mesh_is_disabled ... ok
+test run_fails_loudly_when_the_manifest_is_missing ... ok
+test identity_env_exports_the_expected_variables_in_order ... ok
+test ensure_acl_provisions_the_canonical_hex_pod ... ok
+test git_provenance_alias_rejects_a_non_hex_pubkey ... ok
+test identity_env_is_written_at_mode_0600 ... ok
+test ensure_acl_writes_profile_and_did_with_the_configured_port ... ok
+test acl_json_key_order_matches_the_python_writer ... ok
+test git_provenance_alias_points_at_the_pod_directory ... ok
+test run_honours_an_explicit_agent_repo_root ... ok
+test run_provisions_every_artefact_end_to_end ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running tests/contract.rs (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/services/nostr-pod-bridge/target/debug/deps/contract-3374d497bc4ea879)
+
+running 20 tests
+test s3_walker_verifies_the_anchored_trail_mark_by_mark ... ok
+test read_anchor_marks_ignores_what_a_verifier_would_have_to_guess_at ... ok
+test gitmark_is_exactly_five_key_ground_truth ... ok
+test i2_public_key_multibase_round_trips ... ok
+test did_document_is_canonical_multikey_form ... ok
+test also_known_as_is_emitted_last_when_present ... ok
+test golden_unanchored_blocktrails_json_matches_solid_pod_rs_s3_byte_for_byte ... ok
+test golden_anchored_blocktrails_json_matches_solid_pod_rs_s3_byte_for_byte ... ok
+test golden_gitmark_json_matches_solid_pod_rs_s3_byte_for_byte ... ok
+test s3_walker_accepts_the_unanchored_trail_in_confirmed_mode ... ok
+test i1_i4_drops_2019_suite_keeps_id ... ok
+test pubkey_base_is_the_identity_as_a_full_compressed_point ... ok
+test docs_do_not_speak_of_single_use_seals ... ok
+test blocktrail_has_exactly_the_section_5_2_field_set ... ok
+test bootstrap_carries_recorded_marks_one_state_per_mark ... ok
+test write_agent_repo_identity_inits_pod_git_when_missing ... ok
+test agent_did_json_and_key_at_pod_git_root ... ok
+test blocktrail_states_are_real_pod_commit_shas ... ok
+test old_shape_pod_files_are_rewritten_only_by_bootstrap ... ok
+test idempotent_on_rerun ... ok
+
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+     Running tests/identity.rs (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/services/nostr-pod-bridge/target/debug/deps/identity-10953c49cb6ed545)
+
+running 15 tests
+test rejects_malformed_secret_keys ... ok
+test derives_the_bip340_x_only_vector ... ok
+test env_privkey_ignores_blank_and_malformed_values ... ok
+test env_privkey_prefers_hex_over_nsec ... ok
+test a_current_identity_file_is_not_rewritten ... ok
+test npub_encodes_the_32_byte_x_only_key_not_the_sec1_form ... ok
+test env_privkey_decodes_nsec_when_hex_absent ... ok
+test identity_file_field_order_matches_the_python_writer ... ok
+test migration_is_idempotent ... ok
+test odd_y_secret_is_negated_to_the_canonical_even_y_scalar ... ok
+test migration_preserves_unknown_fields_and_key_order ... ok
+test migrates_a_legacy_sec1_npub_in_place ... ok
+test generated_identity_is_valid_and_even_y ... ok
+test persisted_identity_is_reused_verbatim ... ok
+test env_key_overwrites_a_persisted_identity ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/identity_port.rs (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/services/nostr-pod-bridge/target/debug/deps/identity_port-a4f72eccc74d8535)
+
+running 8 tests
+test no_socket_exits_2_and_says_so ... ok
+test with_the_flag_off_serve_identity_reads_nothing_and_binds_nothing ... ok
+test the_checked_in_acl_loads_and_grants_what_the_rehearsal_needs ... ok
+test malformed_stdin_is_forwarded_and_refused ... ok
+test a_uid_outside_the_acl_is_refused_through_the_real_peer_credentials ... ok
+test a_world_writable_socket_directory_is_refused ... ok
+test the_rehearsal_c_contract_holds_against_the_real_port ... ok
+test socket_mode_and_group_and_no_secret_on_argv_or_environ ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+     Running tests/mirror_key.rs (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/services/nostr-pod-bridge/target/debug/deps/mirror_key-5ee93242222306ad)
+
+running 7 tests
+test a_custom_tag_rotates_the_child ... ok
+test absent_or_blank_tag_is_the_default_tag ... ok
+test child_secret_matches_the_javascript_byte_for_byte ... ok
+test hex_case_does_not_change_the_child ... ok
+test malformed_operator_keys_are_refused ... ok
+test odd_y_key_must_use_the_raw_env_hex_not_the_normalised_scalar ... ok
+test child_pubkey_matches_the_javascript_fixture ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/role_isolation.rs (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/services/nostr-pod-bridge/target/debug/deps/role_isolation-8dd7fcaec378198c)
+
+running 9 tests
+test bridge_configured_ignores_the_bare_sk_under_the_flag ... ok
+test operator_pin_env_var_is_honoured_with_the_flag_off ... ok
+test operator_pin_file_wins_over_the_env_var_with_the_flag_off ... ok
+test operator_pin_env_vars_are_ignored_under_the_flag ... ok
+test nsec_file_is_decoded_under_the_flag ... ok
+test flag_on_identity_env_carries_no_secret ... ok
+test flag_off_identity_env_is_byte_identical_and_no_key_file_is_written ... ok
+test flag_on_secret_goes_to_the_key_file_and_the_identity_file_only ... ok
+test flag_on_rerun_replaces_the_key_file_and_never_follows_a_symlink ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+     Running tests/session_summary.rs (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/services/nostr-pod-bridge/target/debug/deps/session_summary-0b134e5a38508412)
+
+running 35 tests
+test activity_urn_is_none_without_a_session_id ... ok
+test anthropic_text_empty_when_no_list ... ok
+test activity_urn_derives_the_scope_from_a_did_and_falls_back_to_zeroes ... ok
+test bridge_configured_false_when_any_is_missing ... ok
+test anthropic_text_joins_text_blocks ... ok
+test activity_urn_is_scoped_and_content_addressed ... ok
+test bridge_configured_true_when_all_present ... ok
+test bridge_configured_treats_empty_string_as_unset ... ok
+test bridge_configured_accepts_the_sec003_key_file_without_the_env_var ... ok
+test content_text_non_list_non_string_is_empty ... ok
+test content_text_bare_strings_in_list ... ok
+test content_text_plain_string ... ok
+test content_text_text_blocks_concatenated ... ok
+test digest_carries_the_activity_urn ... ok
+test digest_defaults_the_three_fields_and_takes_the_hook_session_id ... ok
+test parse_json_object_ignores_surrounding_prose ... ok
+test digest_preserves_model_supplied_actions ... ok
+test parse_json_object_plain ... ok
+test parse_json_object_strips_bare_fence ... ok
+test extract_transcript_leaves_short_sessions_untouched ... ok
+test parse_json_object_raises_on_array_only_output ... ok
+test extract_transcript_skips_noise ... ok
+test parse_json_object_raises_without_object ... ok
+test parse_json_object_strips_json_fence ... ok
+test extract_transcript_trims_long_sessions ... ok
+test extract_transcript_flattens_user_and_assistant ... ok
+test run_returns_ok_on_invalid_stdin ... ok
+test run_short_circuits_on_a_missing_transcript ... ok
+test run_short_circuits_when_the_bridge_is_unconfigured ... ok
+test run_short_circuits_without_a_zai_key ... ok
+test zai_key_falls_back_between_both_names ... ok
+test zai_request_collapses_a_trailing_slash_and_appends_v1_messages ... ok
+test zai_request_defaults_model_and_endpoint ... ok
+test run_returns_ok_on_an_empty_transcript ... ok
+test run_swallows_an_unreachable_zai_endpoint ... ok
+
+test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests nostr_pod_bridge
+
+running 5 tests
+test src/blocktrail.rs - blocktrail::is_gitmark_commit (line 61) ... ok
+test src/blocktrail.rs - blocktrail::BlocktrailTxo (line 103) ... ok
+test src/mirror_key.rs - mirror_key::child_secret (line 51) ... ok
+test src/contract.rs - contract::pod_pubkey_base (line 150) ... ok
+test src/blocktrail.rs - blocktrail::Blocktrail (line 381) ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.38s
+

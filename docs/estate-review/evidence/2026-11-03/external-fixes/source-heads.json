@@ -1,0 +1,84 @@
+{
+  "observed_at_utc": "2026-11-03T07:02:00.175708+00:00",
+  "note": "Snapshot during final integration, not deployment evidence. Foreign worktrees are inventoried, not owned or removed.",
+  "repositories": [
+    {
+      "repo": "agentbox",
+      "main": "6dbaaddc8a9d0070f793c845ea0cf03380f7c9f2",
+      "head": "6dbaaddc8a9d0070f793c845ea0cf03380f7c9f2",
+      "worktrees": "/home/devuser/workspace/project/.git/modules/agentbox                 6dbaaddc8 [main]\n/home/devuser/workspace/.ab-notes                                     ebca7d62e [notes-daily-driver]\n/home/devuser/workspace/project/.git/ontomark-visionflow-drift-source b859b37d2 (detached HEAD)\n/home/devuser/workspace/wt-ontomark/agentbox/cli-publish              879ef03f2 [ontomark/cli-publish]\n/home/devuser/workspace/wt-ontomark/agentbox/iri                      46ad4f8d1 [ontomark/iri]\n/home/devuser/workspace/wt-ontomark/agentbox/parse                    dcedb2fed [ontomark/parse]\n/home/devuser/workspace/wt-ontomark/agentbox/validate                 76e439d56 [ontomark/validate]\n/home/devuser/workspace/wt-ontomark/agentbox/write                    a2352e717 [ontomark/write]\n/home/devuser/workspace/wt/agentbox-custody-w3b                       ba798738f [fix/custody-w3b]\n/home/devuser/workspace/wt/agentbox-external-fixes                    c157489c9 [fix/external-review-20261103]\n/home/devuser/workspace/wt/agentbox-ltx-bbox-20261022                 02064e69d [media/ltx-bbox-20261022]\n/home/devuser/workspace/wt/agentbox-reindex-screen                    a627b3e2e [feat/reindex-preswap-screen]"
+    },
+    {
+      "repo": "nostr-rust-forum",
+      "main": "a3812b8e79846b569c1f19054f0774e94fed1248",
+      "head": "a3812b8e79846b569c1f19054f0774e94fed1248",
+      "worktrees": "/home/devuser/workspace/nostr-rust-forum a3812b8 [main]"
+    },
+    {
+      "repo": "dream-engine",
+      "main": "bf3a11d1a131eeba0f375ad8164c973bccb3faf5",
+      "head": "bf3a11d1a131eeba0f375ad8164c973bccb3faf5",
+      "worktrees": "/home/devuser/workspace/dream-engine            bf3a11d [main]\n/home/devuser/workspace/wt/dream-engine-release d81fc71 [release/0.4.0]\n/home/devuser/workspace/wt/jev-dream-engine     a5f4628 [feat/jev-option-p1]"
+    },
+    {
+      "repo": "dreamlab-ai-website",
+      "main": "c3849abb8a2a289fbb013c721dfc0c5544c74b16",
+      "head": "c3849abb8a2a289fbb013c721dfc0c5544c74b16",
+      "worktrees": "/home/devuser/workspace/dreamlab-ai-website c3849abb [main]"
+    },
+    {
+      "repo": "solid-pod-rs",
+      "main": "7718095da307dfcaaf0d3ffe86a9d7829a193f29",
+      "head": "7718095da307dfcaaf0d3ffe86a9d7829a193f29",
+      "worktrees": "/home/devuser/workspace/solid-pod-rs                                                                                                        7718095 [main]\n/home/devuser/workspace/.tmp/claude-1000/-home-devuser-workspace-VisionFlow/46f6a985-95a0-4718-a9ed-79373e272dc5/scratchpad/review-combined 6dbb423 (detached HEAD)\n/home/devuser/workspace/wt/solid-pod-rs-parity-fixes                                                                                        fe4f2ec [fix/parity-p0-p1]"
+    },
+    {
+      "repo": "sidestr-rs",
+      "main": "7f04644411220ba0d3b9c7bdba58bbf56be790fa",
+      "head": "7f04644411220ba0d3b9c7bdba58bbf56be790fa",
+      "worktrees": "/home/devuser/workspace/sidestr-rs 7f046444 [main]"
+    },
+    {
+      "repo": "ontomark",
+      "main": "6c3f693b36301ee95c8b684a000b5aeec3ac9bbd",
+      "head": "6c3f693b36301ee95c8b684a000b5aeec3ac9bbd",
+      "worktrees": "/home/devuser/workspace/ontomark 6c3f693 [main]"
+    },
+    {
+      "repo": "vowl-wasm",
+      "main": "2aff199e2de06f4bba512301acf7023477c492ac",
+      "head": "2aff199e2de06f4bba512301acf7023477c492ac",
+      "worktrees": "/home/devuser/workspace/vowl-wasm 2aff199 [main]"
+    },
+    {
+      "repo": "visionGraph",
+      "main": "f7186a7d2d7d9913b569e316ee6708fa4e3b4b7e",
+      "head": "f7186a7d2d7d9913b569e316ee6708fa4e3b4b7e",
+      "worktrees": "/home/devuser/workspace/visionGraph                                                                                                 f7186a7d2 [main]\n/home/devuser/workspace/.tmp/claude-1000/-home-devuser-workspace-VisionFlow/46f6a985-95a0-4718-a9ed-79373e272dc5/scratchpad/vg-er19 f0c6aea0a [fix/er19-contract-gaps]\n/home/devuser/workspace/.tmp/claude-1000/-home-devuser-workspace-ontomark/79281e39-c254-4664-8caf-56bdb664ff40/scratchpad/vg-clean  45976a8c7 (detached HEAD)\n/home/devuser/workspace/wt-ontomark/visionGraph/attribution                                                                         867b0f366 [ontomark/attribution]\n/home/devuser/workspace/wt-ontomark/visionGraph/iri                                                                                 da5a9e4ec [ontomark/iri]\n/home/devuser/workspace/wt-ontomark/visionGraph/parse                                                                               0c0d8b340 [ontomark/parse]\n/home/devuser/workspace/wt-ontomark/visionGraph/rdf                                                                                 786f0d1ed [ontomark/rdf]\n/home/devuser/workspace/wt-ontomark/visionGraph/reason                                                                              56611f79a [ontomark/reason]\n/home/devuser/workspace/wt-ontomark/visionGraph/taxonomy                                                                            3eaca0ae2 [ontomark/taxonomy]\n/home/devuser/workspace/wt-ontomark/visionGraph/validate                                                                            f52395fae [ontomark/validate]\n/home/devuser/workspace/wt/visionGraph-landing-20261030                                                                             87751f5ef [landing/adr-closeout-20261030]"
+    },
+    {
+      "repo": "knowledgeGraph",
+      "main": "4809ea9772e61766058cf20d38e7527082e78fed",
+      "head": "4809ea9772e61766058cf20d38e7527082e78fed",
+      "worktrees": "/home/devuser/workspace/knowledgeGraph 4809ea9772e [main]"
+    },
+    {
+      "repo": "VisionFlow",
+      "main": "472675f8f2bd1d3e9e2cb8a71f5deac7d3149b0f",
+      "head": "472675f8f2bd1d3e9e2cb8a71f5deac7d3149b0f",
+      "worktrees": "/home/devuser/workspace/VisionFlow                                                                                                     472675f [main]\n/home/devuser/workspace/.tmp/claude-1000/-home-devuser-workspace-VisionFlow/46f6a985-95a0-4718-a9ed-79373e272dc5/scratchpad/VisionFlow 56d29c5 [fix/er5-VisionFlow]\n/home/devuser/workspace/wt-ontomark/VisionFlow/docs                                                                                    c0fdb59 [ontomark/docs]\n/home/devuser/workspace/wt/VisionFlow-external-fixes                                                                                   8d58427 [fix/external-review-20261103]\n/home/devuser/workspace/wt/jev-visionflow                                                                                              592cbe2 [feat/jev-option-p1]"
+    },
+    {
+      "repo": "project",
+      "main": "221d8b5599fc8d6ed931b8ca6337bb6f2b8f8f6a",
+      "head": "221d8b5599fc8d6ed931b8ca6337bb6f2b8f8f6a",
+      "worktrees": "/home/devuser/workspace/project                         221d8b559 [main]\n/home/devuser/workspace/wt-ontomark/project/attribution 6078873d7 [ontomark/attribution]\n/home/devuser/workspace/wt-ontomark/project/cli-publish 9039756ab [ontomark/cli-publish]\n/home/devuser/workspace/wt-ontomark/project/iri         2067d1e9c [ontomark/iri]\n/home/devuser/workspace/wt-ontomark/project/ngg1        c597e064c [ontomark/ngg1]\n/home/devuser/workspace/wt-ontomark/project/parse       cc29b82be [ontomark/parse]\n/home/devuser/workspace/wt-ontomark/project/rdf         4cdadff93 [ontomark/rdf]\n/home/devuser/workspace/wt-ontomark/project/reason      a493c1c26 [ontomark/reason]\n/home/devuser/workspace/wt-ontomark/project/taxonomy    4fe6eba13 [ontomark/taxonomy]\n/home/devuser/workspace/wt-ontomark/project/validate    da4bc4b99 [ontomark/validate]\n/home/devuser/workspace/wt-ontomark/project/write       6cbe16a3b [ontomark/write]\n/home/devuser/workspace/wt/aoe-antigravity              52beafa2d [session-plane/antigravity]\n/home/devuser/workspace/wt/aoe-codex                    52beafa2d [session-plane/codex]\n/home/devuser/workspace/wt/aoe-deepseek                 52beafa2d [session-plane/deepseek]\n/home/devuser/workspace/wt/aoe-loom-raw                 52beafa2d [session-plane/loom-raw]\n/home/devuser/workspace/wt/mainthread-fix               c32af1085 [fix/mainthread-fix]\n/home/devuser/workspace/wt/tri-sep                      0304e1764 [feat/tri-separation]\n/home/devuser/workspace/wt/visionclaw-external-fixes    6b811f7a1 [fix/external-audit]\n/home/devuser/workspace/wt/xr-parity                    716c66e4d [evidence/xr-live-2026-10-07]"
+    },
+    {
+      "repo": "project/codescape",
+      "main": "e300451cfdca8bd2368d64d75d9de177ff4a5125",
+      "head": "e3b76f63e801c6a8460110b93e88a0b420e9b0b4",
+      "worktrees": "/home/devuser/workspace/project/.git/modules/codescape e3b76f6 (detached HEAD)"
+    }
+  ]
+}

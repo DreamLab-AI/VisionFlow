@@ -1,0 +1,7 @@
+
+Test Suites: 3 passed, 3 total
+Tests:       105 passed, 105 total
+Snapshots:   0 total
+Time:        0.657 s, estimated 1 s
+Ran all test suites matching tests/sovereign/junkiejarvis-agent.test.js|tests/sovereign/junkiejarvis-dm-send.test.js|tests/sovereign/nostr-live-mirror-provenance.test.js.
+Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?

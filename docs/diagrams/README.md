@@ -169,7 +169,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_212 topic files, 1750 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_223 topic files, 1780 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -284,6 +284,8 @@ _212 topic files, 1750 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | AB-38 | [Video measurements and provider qualification boundaries](agentbox/38-video-measurements-and-provider-boundaries.md) | 4 | flowchart | [GOVERNANCE-capabilities.md](../../../project/agentbox/docs/GOVERNANCE-capabilities.md) | ADR-2150, ADR-2163 |
 | AB-39 | [Session reconciliation and delivery boundaries](agentbox/39-session-reconciliation-and-delivery.md) | 5 | flowchart | [ADR-2153-session-plane-replaces-aoe.md](../../../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md) | ADR-2153 |
 | AB-40 | [Relay signature rejection and governance dispatch](agentbox/40-relay-signature-rejection.md) | 1 | flowchart | [GOVERNANCE-capabilities.md](../../../project/agentbox/docs/GOVERNANCE-capabilities.md) | ADR-2009 |
+| AB-41 | [Process identity, promotion and Dream adapter repairs](agentbox/41-process-governance-and-dream-repairs.md) | 3 | flowchart | [ADR-2032-daemon-identification-argv-boundaries.md](../../../project/agentbox/docs/adr/ADR-2032-daemon-identification-argv-boundaries.md), [ADR-2109-governance-decisions-apply-through-vault-edit.md](../../../project/agentbox/docs/adr/ADR-2109-governance-decisions-apply-through-vault-edit.md), [ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md](../../../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md) | ADR-2032, ADR-2109, ADR-2141 |
+| AB-42 | [Typed custody callers and immutable consumer sources](agentbox/42-custody-callers-and-consumer-pins.md) | 3 | sequenceDiagram, flowchart | [ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md](../../../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md), [ADR-2145-the-solid-pod-forge-and-mirror-are-compiled-in-and-inert-until-named.md](../../../project/agentbox/docs/adr/ADR-2145-the-solid-pod-forge-and-mirror-are-compiled-in-and-inert-until-named.md) | ADR-2122, ADR-2145 |
 
 ### solid-pod-rs
 
@@ -303,6 +305,7 @@ _212 topic files, 1750 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | SP-12 | [OIDC consumer admission and guarded document fetching](solid-pod-rs/12-oidc-admission-and-fetching.md) | 2 | flowchart | [BASELINE-solid-pod-rs.md](../../../solid-pod-rs/crates/solid-pod-rs/docs/BASELINE-solid-pod-rs.md) | ADR-2003 |
 | SP-13 | [Candidate ACL control and truthful discovery](solid-pod-rs/13-acl-control-and-discovery.md) | 2 | flowchart | [BASELINE-solid-pod-rs.md](../../../solid-pod-rs/crates/solid-pod-rs/docs/BASELINE-solid-pod-rs.md) | ADR-2005 |
 | SP-14 | [Git repository selection and export authority](solid-pod-rs/14-git-export-boundaries.md) | 4 | flowchart | [BASELINE-solid-pod-rs.md](../../../solid-pod-rs/crates/solid-pod-rs/docs/BASELINE-solid-pod-rs.md) | ADR-2001, ADR-2004, ADR-2009, ADR-2010 |
+| SP-15 | [Resource authority and payment state after the external review](solid-pod-rs/15-authority-and-payment-repairs.md) | 5 | flowchart |  | ADR-2004, ADR-2005, ADR-2006, ADR-2008, ADR-2010 |
 
 ### nostr-rust-forum
 
@@ -336,7 +339,7 @@ _212 topic files, 1750 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | NF-26 | [Sealed history migration and reader contracts](nostr-rust-forum/26-sealed-history-migration-and-reader-contracts.md) | 6 | flowchart, sequenceDiagram | [ADR-2017-sealed-original-history-migration.md](../../../nostr-rust-forum/docs/adr/ADR-2017-sealed-original-history-migration.md) | ADR-2017 |
 | NF-27 | [Zone key distribution, rotation and recovery](nostr-rust-forum/27-zone-key-distribution-and-recovery.md) | 5 | flowchart, sequenceDiagram | [ADR-2016-end-to-end-encrypted-zones.md](../../../nostr-rust-forum/docs/adr/ADR-2016-end-to-end-encrypted-zones.md), [ADR-2026-zone-key-recovery-master.md](../../../nostr-rust-forum/docs/adr/ADR-2026-zone-key-recovery-master.md) | ADR-2016, ADR-2026 |
 | NF-28 | [NIP-171 owner recovery and ticket contracts](nostr-rust-forum/28-nip171-owner-recovery-and-ticket-contracts.md) | 6 | flowchart | [ADR-2028-zones-adopt-nip171-key-plane.md](../../../nostr-rust-forum/docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md) | ADR-2028 |
-| NF-29 | [External-review repair boundaries and deployment limits](nostr-rust-forum/29-external-review-repairs.md) | 4 | flowchart | [external-fixes-2026-11-03.md](../../../nostr-rust-forum/docs/adr/external-fixes-2026-11-03.md) | ADR-2003, ADR-2006, ADR-2014 |
+| NF-29 | [External-review repair boundaries and deployment limits](nostr-rust-forum/29-external-review-repairs.md) | 4 | flowchart | [external-fixes-2026-11-03.md](../../../nostr-rust-forum/docs/adr/external-fixes-2026-11-03.md) | ADR-2003, ADR-2006, ADR-2009, ADR-2014 |
 
 ### dreamlab-ai-website
 
@@ -352,6 +355,7 @@ _212 topic files, 1750 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | DW-08 | [Nightly SEO watch — receipts, advice and proposal boundaries](dreamlab-ai-website/08-nightly-seo-watch.md) | 6 | flowchart | [ADR-2010-seo-watch-nightly.md](../../../dreamlab-ai-website/docs/adr/ADR-2010-seo-watch-nightly.md) | ADR-2010 |
 | DW-09 | [Website information identity — disclosure, monitoring and digest delivery](dreamlab-ai-website/09-information-identity-and-inbox.md) | 5 | flowchart | [ADR-2011-website-information-identity.md](../../../dreamlab-ai-website/docs/adr/ADR-2011-website-information-identity.md) | ADR-2011 |
 | DW-10 | [Poker tables — deployment, credit, recovery and verification](dreamlab-ai-website/10-poker-tables-credit-and-recovery.md) | 6 | flowchart | [ADR-2009-dream-poker-table-house-seat.md](../../../dreamlab-ai-website/docs/adr/ADR-2009-dream-poker-table-house-seat.md), [ADR-2020-dream-poker-table-house-seat-and-dealt-member-hands.md](../../../nostr-rust-forum/docs/adr/ADR-2020-dream-poker-table-house-seat-and-dealt-member-hands.md) | ADR-2009, nostr-rust-forum:ADR-2020 |
+| DW-11 | [Watch publication and inbox repair boundaries](dreamlab-ai-website/11-watch-publication-and-inbox-repairs.md) | 2 | flowchart | [ADR-2010-seo-watch-nightly.md](../../../dreamlab-ai-website/docs/adr/ADR-2010-seo-watch-nightly.md), [ADR-2011-website-information-identity.md](../../../dreamlab-ai-website/docs/adr/ADR-2011-website-information-identity.md) | ADR-2010, ADR-2011 |
 
 ### vowl-wasm
 
@@ -362,6 +366,7 @@ _212 topic files, 1750 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | VW-03 | [Force layout — Barnes-Hut, SIMD and CSR simulation lifecycle](vowl-wasm/03-force-layout-lifecycle.md) | 9 | sequenceDiagram, flowchart, stateDiagram-v2 | [README.md](../../../vowl-wasm/README.md), [ADR-001-shared-ontology-rendering-contract.md](../../../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md) | vowl-wasm:ADR-001 |
 | VW-04 | [JS API surface, examples and downstream consumers](vowl-wasm/04-js-api-examples-and-consumers.md) | 7 | flowchart, sequenceDiagram | [README.md](../../../vowl-wasm/README.md), [ADR-001-shared-ontology-rendering-contract.md](../../../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md) | vowl-wasm:ADR-001 |
 | VW-05 | [Build, test, bench and the npm publish pipeline](vowl-wasm/05-build-test-bench-and-publish.md) | 6 | flowchart | [README.md](../../../vowl-wasm/README.md), [ADR-001-shared-ontology-rendering-contract.md](../../../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md) | vowl-wasm:ADR-001 |
+| VW-06 | [Layout termination, reload state and release retry repairs](vowl-wasm/06-layout-and-release-repairs.md) | 3 | flowchart |  | vowl-wasm:ADR-001 |
 
 ### knowledgegraph
 
@@ -372,6 +377,7 @@ _212 topic files, 1750 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | KG-05 | [Publication — released compiler, assembled site and final-gate limits](knowledgegraph/05-ci-cd-and-publish.md) | 2 | sequenceDiagram, flowchart | [build-and-gates.md](../../../knowledgeGraph/docs/ci-cd/build-and-gates.md) | ADR-2003, ADR-2013 |
 | KG-06 | [Current corpus consumers and the archived RDF import boundary](knowledgegraph/06-consumers-and-integration.md) | 3 | flowchart | [ecosystem.md](../../../knowledgeGraph/docs/ecosystem.md) |  |
 | KG-07 | [Historical invariants — obligations, dated evidence and publication limits](knowledgegraph/07-invariants-register.md) | 4 | flowchart | [BASELINE-narrativegoldmine.md](../../../knowledgeGraph/docs/BASELINE-narrativegoldmine.md) | ADR-2001, ADR-2002, ADR-2003, ADR-2004 |
+| KG-08 | [Retained explorer transferable-buffer repair](knowledgegraph/08-transfer-pool-repair.md) | 1 | flowchart |  | ADR-2002 |
 
 ### visiongraph
 
@@ -383,6 +389,7 @@ _212 topic files, 1750 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | VG-05 | [Publication policies and the still-proposed generation acceptance contract](visiongraph/05-invariants-register.md) | 4 | flowchart | [PUBLICATION-contract.md](../../../visionGraph/docs/PUBLICATION-contract.md) | ADR-VG-001, ADR-VG-002 |
 | VG-06 | [Publishing explorer — shared renderer, corpus adapters and retained-copy drift](visiongraph/06-shipping-explorer-duplication.md) | 6 | flowchart | [PUBLICATION-contract.md](../../../visionGraph/docs/PUBLICATION-contract.md) | ADR-VG-007 |
 | VG-07 | [Reviewed source admission, header staging and importer limits](visiongraph/07-reviewed-source-admission-and-header-import.md) | 5 | flowchart | [ADR-VG-005-licensed-source-admission.md](../../../visionGraph/docs/adr/ADR-VG-005-licensed-source-admission.md), [ADR-VG-006-ontology-to-obsidian.md](../../../visionGraph/docs/adr/ADR-VG-006-ontology-to-obsidian.md) | ADR-VG-005, ADR-VG-006 |
+| VG-08 | [Publisher consumes the promoted certificate generation](visiongraph/08-promoted-certificate-consumption.md) | 1 | flowchart |  | ADR-VG-002 |
 
 ### sidestr-rs
 
@@ -393,6 +400,7 @@ _212 topic files, 1750 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | SR-03 | [In-chain EVM execution, withdrawal matching and snapshot trust boundaries](sidestr-rs/03-evm-overlay-and-retained-state.md) | 4 | flowchart, sequenceDiagram | [ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md](../../../sidestr-rs/docs/adr/ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md), [ADR-2012-sidestr-settlement-is-ecosystem-canon.md](../../docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md), [ADR-2096-sidestr-sidechains-are-the-sole-value-instrument.md](../../../project/agentbox/docs/adr/ADR-2096-sidestr-sidechains-are-the-sole-value-instrument.md) | ADR-2012, ADR-2096 |
 | SR-04 | [Hitch channel finality, recovery snapshots, routing, and host boundaries](sidestr-rs/04-hitch-channel-kernel-and-host-gap.md) | 5 | flowchart, sequenceDiagram | [ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md](../../../sidestr-rs/docs/adr/ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md), [ADR-2012-sidestr-settlement-is-ecosystem-canon.md](../../docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md), [ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md](../../../project/docs/adr/ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md) | ADR-2012, ADR-2111 |
 | SR-05 | [Origin-neutral reserve attestations and the private Liquid adapter](sidestr-rs/05-reserve-attestation-and-liquid-adapter.md) | 3 | flowchart | [ADR-0003-keep-reserve-attestations-origin-neutral-and-private.md](../../../sidestr-rs/docs/adr/ADR-0003-keep-reserve-attestations-origin-neutral-and-private.md), [ADR-2117-private-owner-usd-unit-bridged-through-rgb-into-sidestr.md](../../../project/agentbox/docs/adr/ADR-2117-private-owner-usd-unit-bridged-through-rgb-into-sidestr.md) | ADR-0003, ADR-2117 |
+| SR-06 | [Withdrawal multiplicity, code commitments and producer failure scope](sidestr-rs/06-withdrawal-snapshot-and-producer-repairs.md) | 3 | flowchart |  | ADR-0002 |
 
 ### ontomark
 
@@ -411,6 +419,7 @@ _212 topic files, 1750 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | OM-10 | [Reasoning refusals and derivation-certificate publication](ontomark/10-reasoning-and-certificate-boundaries.md) | 4 | flowchart | [ADR-OM-004-owl2-el-as-the-local-reasoning-profile.md](../../../ontomark/docs/adr/ADR-OM-004-owl2-el-as-the-local-reasoning-profile.md), [ADR-OM-009-every-published-closure-carries-a-derivation-certificate.md](../../../ontomark/docs/adr/ADR-OM-009-every-published-closure-carries-a-derivation-certificate.md) | ADR-OM-004, ADR-OM-009 |
 | OM-11 | [Machine bundle identity and disclosure boundaries](ontomark/11-machine-bundle-identity-and-disclosure.md) | 3 | flowchart | [ADR-OM-005-estate-alignment-one-producer-explicit-projections.md](../../../ontomark/docs/adr/ADR-OM-005-estate-alignment-one-producer-explicit-projections.md) | ADR-OM-005 |
 | OM-12 | [Shared filesystem checks and consumer features](ontomark/12-shared-layout-checks.md) | 4 | flowchart | [ADR-OM-011-shared-filesystem-layout-checks.md](../../../ontomark/docs/adr/ADR-OM-011-shared-filesystem-layout-checks.md), [VAULT-corpus-format.md](../../../project/docs/VAULT-corpus-format.md) | ADR-OM-008, ADR-OM-011, ADR-2168 |
+| OM-13 | [Certificate publication and amendment identity repairs](ontomark/13-certificate-transaction-and-identity-repairs.md) | 3 | flowchart |  | ADR-OM-005, ADR-OM-009 |
 
 ### dream-engine
 
@@ -421,6 +430,7 @@ _212 topic files, 1750 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | DE-03 | [Night recovery and requested-source accounting](dream-engine/03-recovery-and-source-supply.md) | 3 | flowchart | [ADR-DE-007-a-night-is-identified-by-its-directory.md](../../../dream-engine/docs/adr/ADR-DE-007-a-night-is-identified-by-its-directory.md), [ADR-DE-008-requested-sources-are-honoured-first.md](../../../dream-engine/docs/adr/ADR-DE-008-requested-sources-are-honoured-first.md) | dream-engine:ADR-DE-007, dream-engine:ADR-DE-008 |
 | DE-04 | [Host seam contracts and publication policy](dream-engine/04-forge-and-seam-contracts.md) | 3 | flowchart | [ADR-DE-005-seams.md](../../../dream-engine/docs/adr/ADR-DE-005-seams.md), [ADR-DE-006-automerge-is-an-option.md](../../../dream-engine/docs/adr/ADR-DE-006-automerge-is-an-option.md) | dream-engine:ADR-DE-005, dream-engine:ADR-DE-006 |
 | DE-05 | [Migration evidence and package boundaries](dream-engine/05-migration-and-package-boundaries.md) | 2 | flowchart | [ADR-DE-001-standalone-rust-engine.md](../../../dream-engine/docs/adr/ADR-DE-001-standalone-rust-engine.md), [ADR-DE-002-licence-and-provenance.md](../../../dream-engine/docs/adr/ADR-DE-002-licence-and-provenance.md) | dream-engine:ADR-DE-001, dream-engine:ADR-DE-002 |
+| DE-06 | [Confined formatting and post-evaluation evidence repairs](dream-engine/06-formatting-and-evidence-repairs.md) | 2 | flowchart | [ADR-DE-003-protected-path-guard.md](../../../dream-engine/docs/adr/ADR-DE-003-protected-path-guard.md), [ADR-DE-008-requested-sources-are-honoured-first.md](../../../dream-engine/docs/adr/ADR-DE-008-requested-sources-are-honoured-first.md), [ADR-DE-009-candidates-are-formatted-before-the-gate.md](../../../dream-engine/docs/adr/ADR-DE-009-candidates-are-formatted-before-the-gate.md) | dream-engine:ADR-DE-003, dream-engine:ADR-DE-008, dream-engine:ADR-DE-009 |
 
 ### visiontouch-rs
 

@@ -1,0 +1,122 @@
+    Blocking waiting for file lock on build directory
+   Compiling syn v2.0.119
+   Compiling serde_core v1.0.229
+   Compiling memchr v2.8.3
+   Compiling once_cell v1.21.4
+   Compiling smallvec v1.16.2
+   Compiling tokio v1.53.1
+   Compiling percent-encoding v2.3.2
+   Compiling form_urlencoded v1.2.2
+   Compiling rand v0.8.8
+   Compiling log v0.4.34
+   Compiling futures-core v0.3.34
+   Compiling futures-util v0.3.34
+   Compiling serde v1.0.229
+   Compiling serde_json v1.0.151
+   Compiling synstructure v0.13.2
+   Compiling secp256k1 v0.29.1
+   Compiling bitcoin_hashes v0.14.101
+   Compiling wasm-bindgen v0.2.129
+   Compiling zeroize_derive v1.5.0
+   Compiling yoke-derive v0.8.2
+   Compiling tempfile v3.27.0
+   Compiling zeroize v1.9.0
+   Compiling generic-array v0.14.7
+   Compiling hybrid-array v0.4.15
+   Compiling der v0.8.3
+   Compiling crypto-common v0.1.7
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.2.2
+   Compiling digest v0.10.7
+   Compiling yoke v0.8.3
+   Compiling sha2 v0.10.9
+   Compiling block-buffer v0.12.1
+   Compiling zerovec v0.11.8
+   Compiling colloquy-core v0.1.1 (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/crates/colloquy/colloquy-core)
+   Compiling digest v0.11.3
+   Compiling tinystr v0.8.4
+   Compiling potential_utf v0.1.6
+   Compiling icu_locale_core v2.3.0
+   Compiling zerotrie v0.2.5
+   Compiling block-padding v0.3.3
+   Compiling crypto-bigint v0.7.10
+   Compiling inout v0.1.4
+   Compiling icu_collections v2.3.0
+   Compiling hmac v0.13.0
+   Compiling cipher v0.4.4
+   Compiling spki v0.8.1
+   Compiling der v0.7.10
+   Compiling icu_provider v2.3.1
+   Compiling pkcs8 v0.11.0
+   Compiling icu_normalizer v2.3.0
+   Compiling icu_properties v2.3.0
+   Compiling hkdf v0.13.0
+   Compiling sec1 v0.8.1
+   Compiling hmac v0.12.1
+   Compiling spki v0.7.3
+   Compiling colloquy-nostr v0.2.1 (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/crates/colloquy/colloquy-nostr)
+   Compiling elliptic-curve v0.14.3
+   Compiling idna_adapter v1.2.2
+   Compiling primefield v0.14.0
+   Compiling idna v1.1.0
+   Compiling rfc6979 v0.6.0
+   Compiling pkcs8 v0.10.2
+   Compiling wnaf v0.14.1
+   Compiling sec1 v0.7.3
+   Compiling chacha20 v0.9.1
+   Compiling signature v3.0.0
+   Compiling universal-hash v0.5.1
+   Compiling crypto-bigint v0.5.5
+   Compiling ecdsa v0.17.0
+   Compiling poly1305 v0.8.0
+   Compiling url v2.5.8
+   Compiling primeorder v0.14.0
+   Compiling rfc6979 v0.4.0
+   Compiling cbc v0.1.2
+   Compiling aes v0.8.4
+   Compiling sha1 v0.11.0
+   Compiling sha2 v0.11.1
+   Compiling elliptic-curve v0.13.8
+   Compiling signature v2.2.0
+   Compiling aead v0.5.2
+   Compiling nostr v0.44.8
+   Compiling chacha20poly1305 v0.10.1
+   Compiling ecdsa v0.16.9
+   Compiling tungstenite v0.30.0
+   Compiling k256 v0.14.0
+   Compiling colloquy-store v0.2.1 (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/crates/colloquy/colloquy-store)
+   Compiling hkdf v0.12.4
+   Compiling tokio-tungstenite v0.30.0
+   Compiling k256 v0.13.4
+   Compiling colloquy-view v0.1.1 (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/crates/colloquy/colloquy-view)
+   Compiling nostr-bbs-core v1.0.0-beta.19 (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/nostr-rust-forum/crates/nostr-bbs-core)
+   Compiling colloquy-backends v0.1.0 (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/crates/colloquy/colloquy-backends)
+error[E0308]: mismatched types
+   --> colloquy-backends/src/relay_ws.rs:171:48
+    |
+171 |             sign_event(to_bbs_unsigned(event), &self.signing_key)
+    |             ----------                         ^^^^^^^^^^^^^^^^^ expected `k256::schnorr::signing::SigningKey`, found `SigningKey`
+    |             |
+    |             arguments to this function are incorrect
+    |
+note: there are multiple different versions of crate `k256` in the dependency graph
+   --> /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/k256-0.14.0/src/schnorr/signing.rs:33:1
+    |
+ 33 | pub struct SigningKey {
+    | ^^^^^^^^^^^^^^^^^^^^^ this is the expected type
+    |
+   ::: /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/k256-0.13.4/src/schnorr/signing.rs:29:1
+    |
+ 29 | pub struct SigningKey {
+    | --------------------- this is the found type
+    = help: you can use `cargo tree` to explore your dependency tree
+note: function defined here
+   --> /home/devuser/workspace/.tmp/external-pinned-consumers-20261103/nostr-rust-forum/crates/nostr-bbs-core/src/event.rs:122:8
+    |
+122 | pub fn sign_event(
+    |        ^^^^^^^^^^
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `colloquy-backends` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `colloquy-backends` (lib test) due to 1 previous error

@@ -1,0 +1,18 @@
+    Updating crates.io index
+   Packaging solid-pod-rs-nostr v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/crates/solid-pod-rs-nostr)
+    Updating crates.io index
+    Packaged 49 files, 354.8KiB (98.0KiB compressed)
+   Verifying solid-pod-rs-nostr v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/crates/solid-pod-rs-nostr)
+   Compiling tokio-rustls v0.26.4
+   Compiling tokio-tungstenite v0.24.0
+   Compiling tower-http v0.6.11
+   Compiling hyper-rustls v0.27.9
+   Compiling reqwest v0.12.28
+   Compiling solid-pod-rs v0.5.0-alpha.19
+   Compiling solid-pod-rs-nostr v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/target/package/solid-pod-rs-nostr-0.5.0-alpha.19)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.60s
+   Uploading solid-pod-rs-nostr v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/crates/solid-pod-rs-nostr)
+    Uploaded solid-pod-rs-nostr v0.5.0-alpha.19 to registry `crates-io`
+note: waiting for solid-pod-rs-nostr v0.5.0-alpha.19 to be available at registry `crates-io`
+help: you may press ctrl-c to skip waiting; the crate should be available shortly
+   Published solid-pod-rs-nostr v0.5.0-alpha.19 at registry `crates-io`

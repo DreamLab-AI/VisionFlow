@@ -1,0 +1,84 @@
+   Compiling solid-pod-rs v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/crates/solid-pod-rs)
+   Compiling solid-pod-rs-git v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/crates/solid-pod-rs-git)
+   Compiling solid-pod-rs-nostr v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/crates/solid-pod-rs-nostr)
+   Compiling solid-pod-rs-idp v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/crates/solid-pod-rs-idp)
+   Compiling solid-pod-rs-forge v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/crates/solid-pod-rs-forge)
+   Compiling solid-pod-rs-server v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/crates/solid-pod-rs-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 37.54s
+     Running tests/git_wac_gating.rs (target/debug/deps/git_wac_gating-36bd5dd69c0c3d50)
+
+running 5 tests
+test anonymous_push_to_private_pod_is_denied ... ok
+test anonymous_clone_of_private_pod_is_denied ... ok
+test public_root_read_does_not_authorise_whole_history_export ... ok
+test push_is_refused_even_where_wac_would_allow_it ... ok
+test owner_can_export_a_single_pod_path ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running tests/pay_mrc20_routes.rs (target/debug/deps/pay_mrc20_routes-cd1a74130affbf83)
+
+running 11 tests
+test address_rejects_malformed_did ... ok
+test address_mainnet_chain_yields_bc1p ... ok
+test address_generic_and_per_user_are_deterministic_and_distinct ... ok
+test mrc20_self_issued_trail_is_refused ... ok
+test mrc20_wrong_ticker_is_refused ... ok
+test mrc20_self_issued_trail_from_an_accepted_issuer_is_credited ... ok
+test mrc20_deposit_rejected_when_no_utxo ... ok
+test mrc20_credit_leaves_the_sat_balance_unchanged ... ok
+test mrc20_deposit_credits_when_utxo_present ... ok
+test mrc20_same_anchor_outpoint_twice_credits_once ... ok
+test mrc20_deposit_replay_is_rejected ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+     Running tests/pay_phase4_routes.rs (target/debug/deps/pay_phase4_routes-30b4c7eebd3fd7a1)
+
+running 7 tests
+test buy_requires_nip98 ... ok
+test withdraw_sats_rejects_insufficient_funding ... ok
+test buy_rejects_insufficient_balance ... ok
+test withdraw_sats_mints_a_voucher ... ok
+test withdraw_all_moves_tokens_and_zeroes_balance ... ok
+test buy_moves_tokens_and_debits_sats ... ok
+test whole_token_pricing_keeps_the_satoshi_remainder ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+
+     Running tests/pay_routes.rs (target/debug/deps/pay_routes-9a535c0f77122790)
+
+running 8 tests
+test balance_requires_auth ... ok
+test balance_for_authed_did_zero_then_credited ... ok
+test excessive_fees_and_overflowing_token_prices_are_rejected ... ok
+test pool_add_liquidity_then_swap ... ok
+test reversed_pool_pair_maps_amounts_to_named_currencies ... ok
+test sell_balance_reservations_and_cancellation_bound_listing ... ok
+test offers_sell_swap_round_trip ... ok
+test txo_deposit_is_gone_and_credits_nothing ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+     Running tests/payment_read_failure.rs (target/debug/deps/payment_read_failure-71104e85c47e0c02)
+
+running 1 test
+test unavailable_canonical_state_does_not_become_an_empty_legacy_book ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+     Running tests/prov_phase5_routes.rs (target/debug/deps/prov_phase5_routes-f081888952aea363)
+
+running 9 tests
+test cheap_write_records_git_mark_only ... ok
+test high_value_write_records_both_tiers ... ok
+test prov_resolve_maps_commit_to_resource ... ok
+test prov_anchor_upgrade_is_payment_gated_and_owner_only ... ok
+test prov_anchor_upgrade_402_on_insufficient_balance ... ok
+test epoch_policy_batches_then_anchors_once ... ok
+test prov_anchor_with_lost_broadcast_is_pending_and_keeps_the_charge ... ok
+test prov_anchor_failing_before_broadcast_still_refunds ... ok
+test anchor_and_withdraw_race_never_overdraw_the_ledger ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.20s
+

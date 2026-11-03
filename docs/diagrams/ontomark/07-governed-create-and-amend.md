@@ -14,11 +14,9 @@ sources:
 verified_commit: {agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35, ontomark: 4b9d15df48056971321a62b8c4e905f4536c74db}
 ---
 
-**Repair note — 2026-11-03:** selected counterexamples below have a [scoped successor verification](13-certificate-transaction-and-identity-repairs.md). This historical topic retains its declared source revision; the successor states the repaired contracts and acceptance boundaries.
-
 ## For developers
 
-This topic follows the mutation consumer after a governance decision reaches Agentbox. It distinguishes a proposal's own digest from the decision's case tag, and a proposal's page from the filename selected by creation. The [31 October audit](../../estate-review/2026-10-31-proposal-application.md) includes real-CLI probes and explains which upstream checks were not exercised. Source pins identify the inspected implementation; they do not certify a deployed forum journey.
+**Repair note — 2026-11-03:** selected counterexamples below have a [scoped successor verification](13-certificate-transaction-and-identity-repairs.md). This historical topic retains its declared source revision; the successor states the repaired contracts and acceptance boundaries. This topic follows the mutation consumer after a governance decision reaches Agentbox. It distinguishes a proposal's own digest from the decision's case tag, and a proposal's page from the filename selected by creation. The [31 October audit](../../estate-review/2026-10-31-proposal-application.md) includes real-CLI probes and explains which upstream checks were not exercised. Source pins identify the inspected implementation; they do not certify a deployed forum journey.
 
 ## For the business
 

@@ -1,0 +1,23 @@
+    Updating crates.io index
+   Packaging solid-pod-rs-idp v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/crates/solid-pod-rs-idp)
+    Updating crates.io index
+    Packaged 31 files, 416.7KiB (105.4KiB compressed)
+   Verifying solid-pod-rs-idp v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/crates/solid-pod-rs-idp)
+    Blocking waiting for file lock on package cache
+   Compiling tokio-rustls v0.26.4
+   Compiling tungstenite v0.24.0
+   Compiling serde_with v3.22.0
+   Compiling tower-http v0.6.11
+   Compiling hyper-rustls v0.27.9
+   Compiling reqwest v0.12.28
+   Compiling tokio-tungstenite v0.24.0
+   Compiling oauth2 v5.0.0
+   Compiling openidconnect v4.0.1
+   Compiling solid-pod-rs v0.5.0-alpha.19
+   Compiling solid-pod-rs-idp v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/target/package/solid-pod-rs-idp-0.5.0-alpha.19)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 15.59s
+   Uploading solid-pod-rs-idp v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/crates/solid-pod-rs-idp)
+    Uploaded solid-pod-rs-idp v0.5.0-alpha.19 to registry `crates-io`
+note: waiting for solid-pod-rs-idp v0.5.0-alpha.19 to be available at registry `crates-io`
+help: you may press ctrl-c to skip waiting; the crate should be available shortly
+   Published solid-pod-rs-idp v0.5.0-alpha.19 at registry `crates-io`

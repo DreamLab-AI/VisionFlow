@@ -1,0 +1,24 @@
+[1mRevalidating[0m findings for project [1msolid-pod-rs-external-fixes[0m
+  Agent: claude-agent-sdk (claude-opus-4-8)
+  Min severity: BUG
+  [33mForce re-checking all findings[0m
+  Filter: crates/solid-pod-rs/src/wac/parser.rs
+
+[1m[1/1][0m Revalidating batch 1/1 (1 files, 5 findings, 1 in flight)
+  [36mtool:[0m Glob: **/wac/parser.rs
+  [36mtool:[0m Read: src/wac/parser.rs
+  [36mtool:[0m Bash
+  [36mtool:[0m Bash
+  [36mtool:[0m Bash
+  [36mtool:[0m Glob: **/wac/resolver.rs
+  [36mtool:[0m Grep: fn classify_policy_read
+  [36mtool:[0m Read: wt/solid-pod-rs-external-fixes/.git
+  [36mtool:[0m Read: worktrees/solid-pod-rs-external-fixes/HEAD
+  [36mtool:[0m Read: solid-pod-rs-external-fixes/logs/HEAD
+  [32mRevalidation complete (314.1s, 28 turns $1.926, 5 verdicts)[0m
+  [2mBatch 1/1: requested 5, returned 5, matched 5, persisted 5 (0 in flight, 1/1 done)[0m
+[2mRevalidation complete: 5/5 findings — TP: 0, FP: 0, Fixed: 5, Uncertain: 0, Dupe: 0[0m
+
+[32mRevalidation complete.[0m Run: [1m20261103064638-0c46c644dd9384d5[0m
+  [32mTP: 0[0m  [31mFP: 0[0m  [36mFixed: 5[0m  [33mUncertain: 0[0m
+  [2mPersisted 5/5 requested verdicts[0m

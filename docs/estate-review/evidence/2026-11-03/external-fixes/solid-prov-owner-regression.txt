@@ -1,0 +1,13 @@
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+   Compiling solid-pod-rs-server v0.5.0-alpha.19 (/home/devuser/workspace/wt/solid-pod-rs-external-fixes/crates/solid-pod-rs-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.03s
+     Running tests/prov_phase5_routes.rs (target/debug/deps/prov_phase5_routes-e3ff9ebfec0a0e92)
+
+running 1 test
+test prov_anchor_upgrade_is_payment_gated_and_owner_only ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 1.28s
+

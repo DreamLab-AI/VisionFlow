@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: the server stays at or above the ER-22 security release
+ok 1 - the server stays at or above the ER-22 security release
+  ---
+  duration_ms: 1.093415
+  type: 'test'
+  ...
+# Subtest: the server and bridge fetch the same immutable upstream snapshot
+ok 2 - the server and bridge fetch the same immutable upstream snapshot
+  ---
+  duration_ms: 0.540469
+  type: 'test'
+  ...
+# Subtest: bridge and Colloquy consume the same forum source and core version
+ok 3 - bridge and Colloquy consume the same forum source and core version
+  ---
+  duration_ms: 32.90282
+  type: 'test'
+  ...
+# Subtest: vendored and bridge path packages resolve the server release
+ok 4 - vendored and bridge path packages resolve the server release
+  ---
+  duration_ms: 28.469316
+  type: 'test'
+  ...
+# Subtest: dream-engine manifest and lockfile agree on the patched dependency chain
+ok 5 - dream-engine manifest and lockfile agree on the patched dependency chain
+  ---
+  duration_ms: 9.419104
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 193.090674

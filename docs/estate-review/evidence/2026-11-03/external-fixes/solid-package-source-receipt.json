@@ -1,0 +1,94 @@
+{
+  "date": "2026-11-03",
+  "note": "Downloaded published registry archives. c27cdfed is product repair commit; 7718095 adds only explicit non-owner provenance regression. No runtime activation recorded.",
+  "packages": [
+    {
+      "crate": "solid-pod-rs",
+      "url": "https://static.crates.io/crates/solid-pod-rs/solid-pod-rs-0.5.0-alpha.19.crate",
+      "sha256": "34d78d76e62681e6ae3f54ffd91f92e917ce5cf94342c889a21533bf1f2d3a27",
+      "vcs": {
+        "git": {
+          "sha1": "c27cdfed1d96fc12dc2c7db5df866e9bed75524a"
+        },
+        "path_in_vcs": "crates/solid-pod-rs"
+      }
+    },
+    {
+      "crate": "solid-pod-rs-git",
+      "url": "https://static.crates.io/crates/solid-pod-rs-git/solid-pod-rs-git-0.5.0-alpha.19.crate",
+      "sha256": "77d353bf5b415eb148fecb12dd55baa37fb486e2fea2863876d13cba7396f5e4",
+      "vcs": {
+        "git": {
+          "sha1": "c27cdfed1d96fc12dc2c7db5df866e9bed75524a"
+        },
+        "path_in_vcs": "crates/solid-pod-rs-git"
+      }
+    },
+    {
+      "crate": "solid-pod-rs-nostr",
+      "url": "https://static.crates.io/crates/solid-pod-rs-nostr/solid-pod-rs-nostr-0.5.0-alpha.19.crate",
+      "sha256": "57c3ab87fe6a17898bea36502e12d7830cb976b6a95d48e6107fdd00d430aace",
+      "vcs": {
+        "git": {
+          "sha1": "c27cdfed1d96fc12dc2c7db5df866e9bed75524a"
+        },
+        "path_in_vcs": "crates/solid-pod-rs-nostr"
+      }
+    },
+    {
+      "crate": "solid-pod-rs-idp",
+      "url": "https://static.crates.io/crates/solid-pod-rs-idp/solid-pod-rs-idp-0.5.0-alpha.19.crate",
+      "sha256": "c941a302563f39b171fbf79cadc931df2ea5a96fe231ed8fd6b6b9f4acc64b07",
+      "vcs": {
+        "git": {
+          "sha1": "c27cdfed1d96fc12dc2c7db5df866e9bed75524a"
+        },
+        "path_in_vcs": "crates/solid-pod-rs-idp"
+      }
+    },
+    {
+      "crate": "solid-pod-rs-activitypub",
+      "url": "https://static.crates.io/crates/solid-pod-rs-activitypub/solid-pod-rs-activitypub-0.5.0-alpha.19.crate",
+      "sha256": "e8ee78eb88bf21e7bf1366f94a95901bb5aeee12f5b6ddc1ea1f66a035bc4741",
+      "vcs": {
+        "git": {
+          "sha1": "c27cdfed1d96fc12dc2c7db5df866e9bed75524a"
+        },
+        "path_in_vcs": "crates/solid-pod-rs-activitypub"
+      }
+    },
+    {
+      "crate": "solid-pod-rs-didkey",
+      "url": "https://static.crates.io/crates/solid-pod-rs-didkey/solid-pod-rs-didkey-0.5.0-alpha.19.crate",
+      "sha256": "2723699525d8ee02b8cbb3100982bb99ab61708056fde6567ff0460b4f69d359",
+      "vcs": {
+        "git": {
+          "sha1": "c27cdfed1d96fc12dc2c7db5df866e9bed75524a"
+        },
+        "path_in_vcs": "crates/solid-pod-rs-didkey"
+      }
+    },
+    {
+      "crate": "solid-pod-rs-forge",
+      "url": "https://static.crates.io/crates/solid-pod-rs-forge/solid-pod-rs-forge-0.5.0-alpha.19.crate",
+      "sha256": "9820d518a1b740557d687aaa3ca5107c8b614a27e4668e87c8f0a3d88225f762",
+      "vcs": {
+        "git": {
+          "sha1": "c27cdfed1d96fc12dc2c7db5df866e9bed75524a"
+        },
+        "path_in_vcs": "crates/solid-pod-rs-forge"
+      }
+    },
+    {
+      "crate": "solid-pod-rs-server",
+      "url": "https://static.crates.io/crates/solid-pod-rs-server/solid-pod-rs-server-0.5.0-alpha.19.crate",
+      "sha256": "ca6e8e58d402ba25454939828eaa10024b9c257664946d485f853f67aff187bd",
+      "vcs": {
+        "git": {
+          "sha1": "7718095da307dfcaaf0d3ffe86a9d7829a193f29"
+        },
+        "path_in_vcs": "crates/solid-pod-rs-server"
+      }
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+    Updating crates.io index
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+   Packaging solid-pod-rs-didkey v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/crates/solid-pod-rs-didkey)
+    Blocking waiting for file lock on package cache
+    Updating crates.io index
+    Blocking waiting for file lock on package cache
+    Packaged 47 files, 246.0KiB (67.7KiB compressed)
+   Verifying solid-pod-rs-didkey v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/crates/solid-pod-rs-didkey)
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+   Compiling zeroize v1.9.0
+   Compiling signature v2.2.0
+   Compiling tokio-tungstenite v0.24.0
+   Compiling ed25519 v2.2.3
+   Compiling hybrid-array v0.4.14
+   Compiling der v0.8.3
+   Compiling curve25519-dalek v4.1.3
+   Compiling solid-pod-rs v0.5.0-alpha.19
+   Compiling crypto-common v0.2.2
+   Compiling block-buffer v0.12.1
+   Compiling crypto-bigint v0.7.10
+   Compiling ed25519-dalek v2.2.0
+   Compiling spki v0.8.1
+   Compiling sec1 v0.8.1
+   Compiling pkcs8 v0.11.0
+   Compiling digest v0.11.3
+   Compiling hmac v0.13.0
+   Compiling signature v3.0.0
+   Compiling sha2 v0.11.1
+   Compiling primefield v0.14.0
+   Compiling elliptic-curve v0.14.3
+   Compiling rfc6979 v0.6.0
+   Compiling wnaf v0.14.1
+   Compiling primeorder v0.14.0
+   Compiling ecdsa v0.17.0
+   Compiling k256 v0.14.0
+   Compiling p256 v0.14.0
+   Compiling solid-pod-rs-didkey v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/target/package/solid-pod-rs-didkey-0.5.0-alpha.19)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 7.75s
+   Uploading solid-pod-rs-didkey v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/crates/solid-pod-rs-didkey)
+    Uploaded solid-pod-rs-didkey v0.5.0-alpha.19 to registry `crates-io`
+note: waiting for solid-pod-rs-didkey v0.5.0-alpha.19 to be available at registry `crates-io`
+help: you may press ctrl-c to skip waiting; the crate should be available shortly
+   Published solid-pod-rs-didkey v0.5.0-alpha.19 at registry `crates-io`

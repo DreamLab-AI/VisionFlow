@@ -1,0 +1,17 @@
+    Updating crates.io index
+   Packaging solid-pod-rs-forge v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/crates/solid-pod-rs-forge)
+    Updating crates.io index
+    Packaged 63 files, 1.7MiB (418.6KiB compressed)
+   Verifying solid-pod-rs-forge v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/crates/solid-pod-rs-forge)
+ Downloading crates ...
+  Downloaded solid-pod-rs-git v0.5.0-alpha.19
+   Compiling tokio-tungstenite v0.24.0
+   Compiling solid-pod-rs v0.5.0-alpha.19
+   Compiling solid-pod-rs-git v0.5.0-alpha.19
+   Compiling solid-pod-rs-forge v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/target/package/solid-pod-rs-forge-0.5.0-alpha.19)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 13.92s
+   Uploading solid-pod-rs-forge v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/crates/solid-pod-rs-forge)
+    Uploaded solid-pod-rs-forge v0.5.0-alpha.19 to registry `crates-io`
+note: waiting for solid-pod-rs-forge v0.5.0-alpha.19 to be available at registry `crates-io`
+help: you may press ctrl-c to skip waiting; the crate should be available shortly
+   Published solid-pod-rs-forge v0.5.0-alpha.19 at registry `crates-io`

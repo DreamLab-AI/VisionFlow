@@ -1,0 +1,16 @@
+    Updating crates.io index
+   Packaging solid-pod-rs-git v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/crates/solid-pod-rs-git)
+    Updating crates.io index
+    Packaged 21 files, 275.5KiB (75.9KiB compressed)
+   Verifying solid-pod-rs-git v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/crates/solid-pod-rs-git)
+ Downloading crates ...
+  Downloaded solid-pod-rs v0.5.0-alpha.19
+   Compiling tokio-tungstenite v0.24.0
+   Compiling solid-pod-rs v0.5.0-alpha.19
+   Compiling solid-pod-rs-git v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/target/package/solid-pod-rs-git-0.5.0-alpha.19)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 7.86s
+   Uploading solid-pod-rs-git v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/crates/solid-pod-rs-git)
+    Uploaded solid-pod-rs-git v0.5.0-alpha.19 to registry `crates-io`
+note: waiting for solid-pod-rs-git v0.5.0-alpha.19 to be available at registry `crates-io`
+help: you may press ctrl-c to skip waiting; the crate should be available shortly
+   Published solid-pod-rs-git v0.5.0-alpha.19 at registry `crates-io`

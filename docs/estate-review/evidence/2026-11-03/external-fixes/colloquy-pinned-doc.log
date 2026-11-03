@@ -1,0 +1,15 @@
+    Checking colloquy-core v0.1.1 (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/crates/colloquy/colloquy-core)
+    Checking once_cell v1.21.4
+ Documenting colloquy-core v0.1.1 (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/crates/colloquy/colloquy-core)
+    Checking wasm-bindgen v0.2.129
+    Checking colloquy-nostr v0.2.1 (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/crates/colloquy/colloquy-nostr)
+ Documenting colloquy-nostr v0.2.1 (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/crates/colloquy/colloquy-nostr)
+ Documenting colloquy-view v0.1.1 (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/crates/colloquy/colloquy-view)
+    Checking colloquy-store v0.2.1 (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/crates/colloquy/colloquy-store)
+ Documenting colloquy-store v0.2.1 (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/crates/colloquy/colloquy-store)
+    Checking nostr-bbs-core v1.0.0-beta.19 (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/nostr-rust-forum/crates/nostr-bbs-core)
+    Checking colloquy-backends v0.1.0 (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/crates/colloquy/colloquy-backends)
+ Documenting colloquy-backends v0.1.0 (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/crates/colloquy/colloquy-backends)
+ Documenting colloquy-mcp v0.1.0 (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/crates/colloquy/colloquy-mcp)
+    Finished `dev` profile [unoptimized] target(s) in 2.67s
+   Generated /home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/services/nostr-pod-bridge/target/doc/colloquy_backends/index.html and 5 other files

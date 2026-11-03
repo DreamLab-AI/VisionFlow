@@ -1,0 +1,7 @@
+     Locking 4 packages to highest compatible versions
+      Adding hkdf v0.13.0
+    Updating nostr-bbs-core v1.0.0-beta.11 (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/nostr-rust-forum/crates/nostr-bbs-core) -> v1.0.0-beta.19
+    Updating solid-pod-rs v0.5.0-alpha.18 (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/solid-pod-rs/crates/solid-pod-rs) -> v0.5.0-alpha.19
+    Removing solid-pod-rs v0.5.0-alpha.7
+    Updating solid-pod-rs-nostr v0.5.0-alpha.18 (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/solid-pod-rs/crates/solid-pod-rs-nostr) -> v0.5.0-alpha.19
+note: pass `--verbose` to see 51 unchanged dependencies behind latest

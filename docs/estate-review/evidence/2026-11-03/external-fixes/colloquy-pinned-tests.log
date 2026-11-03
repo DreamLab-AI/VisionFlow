@@ -1,0 +1,300 @@
+   Compiling colloquy-backends v0.1.0 (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/crates/colloquy/colloquy-backends)
+   Compiling colloquy-mcp v0.1.0 (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/crates/colloquy/colloquy-mcp)
+    Finished `test` profile [unoptimized] target(s) in 1.37s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/services/nostr-pod-bridge/target/debug/deps/colloquy_backends-6e604ed0512e0e05)
+
+running 21 tests
+test compat::tests::a_signed_event_survives_the_round_trip_unchanged ... ok
+test compat::tests::the_seam_is_lossless_at_the_json_level_too ... ok
+test compat::tests::a_template_carries_neither_id_nor_signature_across ... ok
+test relay_ws::tests::a_bad_key_fails_at_construction_not_at_publish_time ... ok
+test relay_ws::tests::a_zero_limit_is_omitted_so_the_relay_applies_its_own_default ... ok
+test relay_ws::tests::empty_tag_filters_are_omitted_not_sent_as_empty_arrays ... ok
+test relay_ws::tests::populated_tag_filters_use_the_nip01_spelling ... ok
+test ruvector::tests::a_degraded_ilike_fallback_still_parses ... ok
+test ruvector::tests::a_value_stored_as_json_comes_back_as_text_either_way ... ok
+test ruvector::tests::an_empty_result_set_is_empty_not_an_error ... ok
+test ruvector::tests::payload_keys_round_trip_and_are_distinguishable ... ok
+test ruvector::tests::search_rows_reads_the_governed_servers_shape ... ok
+test relay_ws::tests::debug_never_renders_the_key ... ok
+test mcp_client::tests::a_server_that_dies_is_reported_not_hung ... ok
+test relay_ws::tests::the_pubkey_is_derived_from_the_secret_not_supplied ... ok
+test mcp_client::tests::non_json_content_is_a_shape_error ... ok
+test mcp_client::tests::stray_stdout_noise_does_not_desynchronise_the_stream ... ok
+test mcp_client::tests::is_error_content_is_an_error_not_a_result ... ok
+test mcp_client::tests::a_success_false_body_is_an_error_too ... ok
+test mcp_client::tests::a_real_child_process_completes_the_handshake_and_answers ... ok
+test mcp_client::tests::a_jsonrpc_error_is_surfaced_with_its_code ... ok
+
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/services/nostr-pod-bridge/target/debug/deps/colloquy_core-c9b28bbfacf67e7d)
+
+running 59 tests
+test cluster::tests::only_workarounds_participate ... ok
+test cluster::tests::one_operators_swarm_is_not_a_gap ... ok
+test confidence::tests::a_flag_disputes_but_never_suppresses ... ok
+test cluster::tests::ordering_is_stable_and_strongest_first ... ok
+test cluster::tests::three_independent_principals_make_a_gap ... ok
+test confidence::tests::apply_will_not_resurrect_a_retired_unit ... ok
+test confidence::tests::apply_writes_principals_into_contributing_orgs ... ok
+test confidence::tests::score_ranks_below_confidence_once_a_unit_ages ... ok
+test cluster::tests::superseded_workarounds_are_evidence_the_gap_closed ... ok
+test confidence::tests::staleness_reads_the_latest_confirmation_and_one_more_revives_it ... ok
+test decay::tests::defaults_follow_the_ladder ... ok
+test confidence::tests::the_curve_hits_its_documented_landmarks ... ok
+test confidence::tests::doubt_cannot_drive_weight_negative ... ok
+test decay::tests::freshness_is_half_at_the_period_and_zero_at_twice_it ... ok
+test decay::tests::staleness_flips_exactly_after_the_period ... ok
+test decay::tests::tokens_match_the_cq_spelling ... ok
+test decay::tests::zero_days_switches_decay_off ... ok
+test graduation::tests::a_disputed_unit_is_not_promoted ... ok
+test graduation::tests::a_human_plus_an_independent_agent_promotes_to_shared ... ok
+test graduation::tests::a_retired_unit_is_not_promotable ... ok
+test graduation::tests::agents_alone_cannot_promote_however_many_principals ... ok
+test graduation::tests::one_trusted_human_cannot_promote_alone ... ok
+test graduation::tests::promotion_only_moves_up ... ok
+test graduation::tests::public_needs_three_principals_and_a_signed_approval ... ok
+test id::tests::domain_order_and_duplicates_do_not_change_identity ... ok
+test id::tests::field_boundaries_cannot_be_forged_by_concatenation ... ok
+test id::tests::independent_proposers_of_the_same_insight_get_distinct_ids ... ok
+test id::tests::malformed_ids_are_refused ... ok
+test id::tests::minting_is_deterministic_and_shape_correct ... ok
+test kind::tests::a_gap_signal_is_not_advice ... ok
+test kind::tests::every_kind_admits_a_correction_from_its_own_kind ... ok
+test kind::tests::levels_are_the_cq_levels ... ok
+test kind::tests::only_tooling_replaces_a_workaround_across_kinds ... ok
+test kind::tests::wire_tokens_round_trip ... ok
+test principal::tests::a_human_under_a_principal_upgrades_that_principals_class ... ok
+test principal::tests::collapse_is_order_independent ... ok
+test principal::tests::cross_principal_agents_draw_full_weight ... ok
+test principal::tests::repeat_attestations_from_one_member_do_not_accrue ... ok
+test principal::tests::the_human_cap_is_worth_exactly_three_agent_operators ... ok
+test time::tests::elapsed_saturates_rather_than_going_negative ... ok
+test time::tests::epoch_and_leap_days_are_exact ... ok
+test time::tests::round_trips_the_schema_example_instants ... ok
+test time::tests::truncates_fractional_seconds_and_rejects_offsets ... ok
+test unit::tests::disputed_and_stale_units_are_still_served ... ok
+test unit::tests::a_fresh_unit_is_local ... ok
+test unit::tests::domain_is_normalised_and_insight_trimmed ... ok
+test unit::tests::proposing_does_not_confirm ... ok
+test unit::tests::the_authorising_event_is_omitted_when_absent ... ok
+test unit::tests::tier_wire_tokens_are_cqs ... ok
+test unit::tests::round_trips_through_json ... ok
+test validate::tests::a_tampered_insight_breaks_the_content_address ... ok
+test validate::tests::a_well_formed_unit_passes ... ok
+test validate::tests::every_problem_is_reported_at_once ... ok
+test validate::tests::overflow_is_zero_for_a_unit_that_fits ... ok
+test validate::tests::the_embedding_budget_is_enforced_with_the_remedy_in_the_message ... ok
+test confidence::tests::confidence_follows_principals_not_attestation_count ... ok
+test validate::tests::multibyte_text_is_counted_in_characters_not_bytes ... ok
+test principal::tests::three_principals_outrank_eight_hundred_accounts_under_two ... ok
+test principal::tests::a_swarm_under_one_principal_collapses_to_one ... ok
+
+test result: ok. 59 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/cq_interop.rs (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/services/nostr-pod-bridge/target/debug/deps/cq_interop-81ee6d66fa97284b)
+
+running 4 tests
+test a_disputed_unit_is_still_legible_to_a_cq_reader_as_a_status_it_can_reject ... ok
+test the_cq_example_parses_into_our_types ... ok
+test our_additive_fields_do_not_appear_unless_used ... ok
+test a_round_trip_preserves_every_cq_defined_field ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/services/nostr-pod-bridge/target/debug/deps/colloquy_mcp-e3edf58fdf6e3289)
+
+running 19 tests
+test protocol::tests::a_notification_is_a_request_without_an_id ... ok
+test protocol::tests::missing_params_default_to_null_rather_than_failing_the_parse ... ok
+test protocol::tests::a_tool_failure_is_content_not_a_transport_error ... ok
+test protocol::tests::responses_omit_the_half_they_do_not_carry ... ok
+test server::tests::a_notification_gets_no_response ... ok
+test server::tests::an_unknown_method_is_a_transport_error ... ok
+test server::tests::a_tool_failure_comes_back_as_content_the_model_can_read ... ok
+test server::tests::an_unknown_tool_is_refused_by_name ... ok
+test server::tests::initialize_declares_tools_and_a_protocol_version ... ok
+test verbs::tests::a_human_identity_attests_as_its_own_principal ... ok
+test verbs::tests::a_malformed_id_is_refused_before_it_reaches_the_store ... ok
+test verbs::tests::a_flag_requires_a_reason ... ok
+test server::tests::all_six_verbs_are_declared_with_schemas ... ok
+test server::tests::a_full_propose_confirm_query_round_trip_works_over_the_wire ... ok
+test verbs::tests::propose_files_a_draft_and_does_not_confirm_it ... ok
+test verbs::tests::query_returns_the_evidence_alongside_the_advice ... ok
+test verbs::tests::reflect_files_what_is_new_and_reports_what_is_known ... ok
+test verbs::tests::status_reports_the_ladder_by_level ... ok
+test verbs::tests::reflect_reports_a_refusal_rather_than_dropping_the_candidate ... ok
+
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/services/nostr-pod-bridge/target/debug/deps/colloquy_mcp-1e4c440836282761)
+
+running 4 tests
+test tests::a_malformed_disclosure_document_is_refused ... ok
+test tests::a_row_with_no_registrar_is_a_person_and_their_own_principal ... ok
+test tests::a_disclosure_document_maps_agents_to_their_authorising_principal ... ok
+test tests::a_wrapped_disclosure_document_is_accepted_too ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/services/nostr-pod-bridge/target/debug/deps/colloquy_nostr-51a562ce816ecbcd)
+
+running 32 tests
+test decode::tests::a_bad_tier_token_is_named_not_defaulted ... ok
+test decode::tests::a_d_tag_that_disagrees_with_the_content_is_refused ... ok
+test decode::tests::a_graduation_reports_whether_it_is_checkable ... ok
+test decode::tests::a_supersession_reports_both_ends ... ok
+test decode::tests::attestations_round_trip_with_their_polarity ... ok
+test decode::tests::a_unit_survives_the_round_trip ... ok
+test encode::tests::a_flag_and_a_confirmation_thread_identically ... ok
+test decode::tests::the_wrong_kind_is_refused_rather_than_coerced ... ok
+test encode::tests::a_graduation_without_a_signed_decision_omits_the_tag ... ok
+test encode::tests::a_supersession_marks_which_way_round_it_goes ... ok
+test encode::tests::domain_tags_are_relay_indexable_singles ... ok
+test event::tests::an_event_from_any_implementation_parses ... ok
+test encode::tests::the_unit_event_carries_the_whole_unit_in_its_content ... ok
+test event::tests::round_trips_through_json ... ok
+test event::tests::the_json_shape_is_nip01_field_for_field ... ok
+test event::tests::to_unsigned_drops_exactly_the_id_and_signature ... ok
+test kinds::tests::every_kind_is_named_and_nothing_else_is ... ok
+test decode::tests::a_tampered_content_is_caught_by_its_own_address ... ok
+test kinds::tests::evidence_kinds_are_append_only_and_units_are_not ... ok
+test kinds::tests::only_the_two_replaceable_kinds_are_addressable ... ok
+test kinds::tests::the_block_does_not_collide_with_any_reserved_range ... ok
+test ledger::tests::a_malformed_unit_is_rejected_loudly_and_others_still_load ... ok
+test tags::tests::a_malformed_address_is_refused_rather_than_half_read ... ok
+test ledger::tests::a_swarm_and_a_person_read_as_two_principals ... ok
+test ledger::tests::flags_land_on_the_flag_side_of_the_ledger ... ok
+test tags::tests::addresses_round_trip_and_tolerate_colons_in_the_identifier ... ok
+test ledger::tests::revoking_an_agent_retracts_its_past_confirmations ... ok
+test tags::tests::extractors_read_what_is_there_and_ignore_malformed_tags ... ok
+test tags::tests::markers_disambiguate_the_two_e_tags_of_a_supersession ... ok
+test ledger::tests::unrelated_kinds_pass_through_without_comment ... ok
+test ledger::tests::unregistered_pubkeys_are_dropped_and_reported_not_self_authorised ... ok
+test kinds::tests::the_range_is_exactly_the_allocated_kinds ... ok
+
+test result: ok. 32 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/services/nostr-pod-bridge/target/debug/deps/colloquy_store-6825b920638f8440)
+
+running 35 tests
+test local::tests::attesting_to_an_absent_unit_says_so ... ok
+test local::tests::confirming_moves_a_draft_to_active_and_flagging_disputes_it ... ok
+test local::tests::a_unit_round_trips_and_is_found_by_keyword ... ok
+test local::tests::rewriting_a_unit_preserves_the_evidence_against_it ... ok
+test local::tests::an_invalid_unit_is_refused_with_every_reason ... ok
+test local::tests::ranking_puts_the_better_evidenced_unit_first ... ok
+test local::tests::stats_report_the_ladder_and_the_principals ... ok
+test query::tests::gap_signals_are_withheld_from_agents_by_default ... ok
+test query::tests::domain_filtering_is_any_of_not_all_of ... ok
+test query::tests::rank_needs_both_halves ... ok
+test query::tests::retired_units_are_never_served_whatever_the_filters ... ok
+test query::tests::the_confidence_floor_is_inclusive ... ok
+test local::tests::a_corrupt_log_refuses_to_open_rather_than_half_loading ... ok
+test relay::tests::a_published_unit_projects_back ... ok
+test shared::tests::a_corrupt_payload_is_reported_not_skipped ... ok
+test relay::tests::querying_an_absent_unit_is_not_an_error ... ok
+test shared::tests::a_namespace_is_its_own ... ok
+test relay::tests::domain_filtering_uses_the_relay_indexed_t_tag ... ok
+test relay::tests::a_flag_disputes_a_public_unit_without_removing_it ... ok
+test relay::tests::confirmations_from_registered_members_accrue ... ok
+test relay::tests::a_swarm_on_the_public_relay_still_collapses_to_one_principal ... ok
+test shared::tests::an_empty_query_lists_rather_than_searching_nothing ... ok
+test store::tests::an_empty_query_matches_everything_rather_than_nothing ... ok
+test store::tests::domain_tags_are_searchable ... ok
+test store::tests::matching_ignores_case_and_punctuation ... ok
+test store::tests::searchable_text_is_what_validation_bounded ... ok
+test shared::tests::flagging_disputes_a_unit_and_it_stays_retrievable ... ok
+test shared::tests::the_embedded_text_is_the_validated_text_and_the_payload_is_everything ... ok
+test store::tests::relevance_is_the_proportion_of_query_words_found ... ok
+test shared::tests::a_rewrite_preserves_the_ledger_here_too ... ok
+test store::tests::summarise_counts_by_ladder_level ... ok
+test local::tests::the_log_replays_into_the_same_state ... ok
+test shared::tests::search_ranks_by_relevance_and_evidence_together ... ok
+test shared::tests::bulk_put_writes_everything_and_is_the_one_place_to_notice_the_rebuild ... ok
+test relay::tests::an_unregistered_publisher_buys_nothing ... ok
+
+test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/services/nostr-pod-bridge/target/debug/deps/colloquy_view-6806163b1d3aca39)
+
+running 16 tests
+test tests::a_gap_row_says_how_many_people_keep_hitting_it ... ok
+test tests::a_gap_signal_is_badged_as_not_advice ... ok
+test tests::a_disputed_unit_tells_the_reader_to_read_the_objection ... ok
+test tests::a_person_among_the_confirmers_is_said_out_loud ... ok
+test tests::a_principal_that_already_confirmed_is_told_why_not_ignored ... ok
+test tests::a_proposer_is_not_offered_the_confirm_control ... ok
+test tests::a_retired_unit_offers_no_controls ... ok
+test tests::a_signed_out_reader_is_offered_nothing_but_a_reason ... ok
+test tests::an_unconfirmed_unit_says_so_plainly ... ok
+test tests::every_kind_and_status_has_a_badge_with_a_meaning ... ok
+test tests::later_attestations_from_a_counted_principal_are_marked_uncounted ... ok
+test tests::replies_are_in_time_order_with_flags_interleaved ... ok
+test tests::reply_text_is_attached_by_member_and_time ... ok
+test tests::singular_and_plural_read_correctly ... ok
+test tests::the_raw_count_is_hidden_when_it_adds_nothing ... ok
+test tests::evidence_leads_with_principals_not_the_raw_count ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+   Doc-tests colloquy_backends
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests colloquy_core
+
+running 13 tests
+test colloquy-core/src/kind.rs - kind (line 15) ... ok
+test colloquy-core/src/decay.rs - decay (line 15) ... ok
+test colloquy-core/src/time.rs - time (line 13) ... ok
+test colloquy-core/src/confidence.rs - confidence (line 13) ... ok
+test colloquy-core/src/id.rs - id (line 13) ... ok
+test colloquy-core/src/lib.rs - Readme (line 198) ... ok
+test colloquy-core/src/principal.rs - principal (line 19) ... ok
+test colloquy-core/src/validate.rs - validate (line 20) ... ok
+test colloquy-core/src/lib.rs - Readme (line 157) ... ok
+test colloquy-core/src/graduation.rs - graduation (line 13) ... ok
+test colloquy-core/src/unit.rs - unit (line 15) ... ok
+test colloquy-core/src/lib.rs - (line 45) ... ok
+test colloquy-core/src/cluster.rs - cluster (line 15) ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.34s
+
+   Doc-tests colloquy_mcp
+
+running 1 test
+test colloquy-mcp/src/lib.rs - (line 11) ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.18s
+
+   Doc-tests colloquy_nostr
+
+running 6 tests
+test colloquy-nostr/src/lib.rs - Readme (line 136) ... ok
+test colloquy-nostr/src/ledger.rs - ledger (line 20) ... ok
+test colloquy-nostr/src/event.rs - event (line 19) ... ok
+test colloquy-nostr/src/lib.rs - (line 26) ... ok
+test colloquy-nostr/src/lib.rs - Readme (line 110) ... ok
+test colloquy-nostr/src/encode.rs - encode (line 5) ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.20s
+
+   Doc-tests colloquy_store
+
+running 1 test
+test colloquy-store/src/lib.rs - Readme (line 72) ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.27s
+
+   Doc-tests colloquy_view
+
+running 2 tests
+test colloquy-view/src/lib.rs - (line 22) ... ok
+test colloquy-view/src/lib.rs - Readme (line 759) ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s
+
