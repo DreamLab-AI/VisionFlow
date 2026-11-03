@@ -269,7 +269,7 @@ flowchart LR
 
 **Tension (status moved 2026-11-02):** at the previous agentbox stamp (`c57d9c0`) ADR-2151 read `decision_status: proposed`, `implementation_status: none`, `activation_status: inactive`. Its 2026-11-02 external review reconciliation moves implementation to `partial` because the source and the bake exist (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`, `../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:21`); the decision stays proposed and activation inactive, and the ADR says acceptance is not inferred from the enabled flag (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:21`), yet the running manifest sets `[voicelink] enabled = true` and `record_events = true` (`../project/agentbox/agentbox.toml:2264,2271`).
 
-**Open:** Isaac Sim (ADR-2149) is `proposed`, `partial`, `staged`: the overlay exists but publishes no port and is gated by environment variables, not by the manifest (`../project/agentbox/docs/adr/ADR-2149-isaac-sim-sidecar.md:5-7,29`).
+**Open:** Isaac Sim (ADR-2149) is `proposed`, `partial`, `staged`: the overlay exists but publishes no port and is gated by environment variables, not by the manifest (`../project/agentbox/docs/adr/ADR-2149-isaac-sim-sidecar.md:5-7,35`).
 
 ## ES-01.6 Repositories on disk — what is a checkout, what is a stub, what is external
 ```mermaid

@@ -34,7 +34,7 @@ An enabled model can choose a bounded view action even before anyone calibrates 
 
 ```mermaid
 flowchart TD
-    DEC["Separate repository and published wire dependency<br/>ADR-0001-extraction-from-visionclaw.md:42,33"] --> ISO["Check default and cuda resolution<br/>only visionclaw-wire prefix exception<br/>codescape-server/tests/isolation.rs:106,121,139"]
+    DEC["Separate repository and published wire dependency<br/>ADR-0001-extraction-from-visionclaw.md:42,47"] --> ISO["Check default and cuda resolution<br/>only visionclaw-wire prefix exception<br/>codescape-server/tests/isolation.rs:106,121,139"]
     ISO --> PATH["Reject VisionClaw git sources and external path packages<br/>codescape-server/tests/isolation.rs:215"]
     PATH --> LIC["Inspect normal and build dependency licences<br/>codescape-server/tests/isolation.rs:324"]
     DEC --> GPU["PTX crosses at runtime with manifest and ABI checks<br/>ADR-0001-extraction-from-visionclaw.md:48"]

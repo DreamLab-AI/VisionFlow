@@ -15,6 +15,7 @@ sources:
   - ../project/agentbox/config/sidechain/dreamlab-txbt4/chain.json
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/flake.nix
+  - ../project/agentbox/lib/sidestr-agent.nix
   - ../sidestr-rs/sidestr-core/Cargo.toml
   - ../sidestr-rs/sidestr-header/Cargo.toml
   - ../sidestr-rs/sidestr-wallet/Cargo.toml
@@ -116,7 +117,7 @@ flowchart TB
     PUB -. "does not prove" .-> ACT
     DEPLOY --> LIFE
     BOUND["INVARIANT, ADR-0002 reconciliation 2026-11-02: crate boundaries are an<br/>architectural property, not a consensus-integrity certificate, and an<br/>optional-library defect is not estate-chain exposure without activation evidence<br/>ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md:23, :25"]
-    REP["OPEN, ADR-0002 repair 2026-11-03: withdrawal outputs consumed once, snapshot<br/>code hashes checked on restore, header failures no longer evict valid txs.<br/>It rejects formerly accepted blocks, so consumers must adopt together<br/>before activation, and no adoption receipt is recorded<br/>ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md:19"]
+    REP["OPEN, ADR-0002 repair 2026-11-03: withdrawal outputs consumed once, snapshot<br/>code hashes checked on restore, header failures no longer evict valid txs.<br/>It rejects formerly accepted blocks, so consumers must adopt together<br/>before activation. agentbox source now pins sidestr-agent at that repair<br/>revision, sidestr-agent.nix:30, ADR-0002 records no rebuild or activation receipt<br/>ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md:19"]
     SOURCE -.-> BOUND
     REP -. "adoption needed" .-> LIFE
 ```

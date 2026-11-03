@@ -216,7 +216,7 @@ sequenceDiagram
         SC->>H: run_recall_harness (:1265) runs env ENVP node "$RECALL_HARNESS" "$@" (:1210), default scripts/ruvector-recall-harness.mjs (:1201)
         H-->>OP: harness sets its own exit code — PASS 0, FAIL non-zero (ruvector-sidecar-update.sh:1259)
     else reindex | reader-role | hba-harden (ruvector-sidecar-update.sh:1852-1854, ADR-2133)
-        SC-->>OP: serial HNSW rebuild with recall gate before and after, reader role, pg_hba hardening
+        SC-->>OP: serial HNSW rebuild with recall gate before and after, reader role, pg_hba hardening<br/>since d09926697 a pre-swap screen scores each index with the other hidden and keeps the current one<br/>unless a rebuild scores no worse, two build attempts (ruvector-sidecar-update.sh:1322, :1406, :1421-1434, :1438-1442)
     else anything else
         SC-->>OP: die unknown subcommand (:1858)
     end
@@ -620,6 +620,6 @@ flowchart TB
 
 **Open (status moved 2026-10-30):** ADR-2146 is now `decision_status: accepted` with `implementation_status: complete` and `activation_status: inactive` (`../project/agentbox/docs/adr/ADR-2146-activity-sink-hook.md:5-7`); the decision question is closed, but is the activity sink meant to stay off until a consumer sets the endpoint? The manifest ships `enabled = false` with an empty `url` (`../project/agentbox/agentbox.toml:528`).
 
-**Open:** ADR-2149 (Isaac Sim) is proposed and staged, yet the catalogue already carries an ungated `live` entry for it (`../project/agentbox/docs/adr/ADR-2149-isaac-sim-sidecar.md:5`, `../project/agentbox/management-api/lib/system-manifest.js:178`).
+**Open:** ADR-2149 (Isaac Sim) is proposed and staged, yet the catalogue already carries an ungated `live` entry for it (`../project/agentbox/docs/adr/ADR-2149-isaac-sim-sidecar.md:5`, `../project/agentbox/management-api/lib/system-manifest.js:178`). ADR-2149's 2026-11-02 reconciliation keeps that shape on purpose: Decision 1 holds the sidecar live-class and outside agentbox.toml, the record stays proposed/partial/staged pending the named build and simulator fixtures, and no isaac-sim container was running at its read-only inventory (`../project/agentbox/docs/adr/ADR-2149-isaac-sim-sidecar.md:21`).
 
 **Open:** ADR-2152 (Mermaid rendering in browsercontainer) is `superseded` by ADR-2154, which is `accepted`, `implementation_status: partial` and `activation_status: staged` (`../project/agentbox/docs/adr/ADR-2152-render-mermaid-in-browsercontainer.md:5`, `../project/agentbox/docs/adr/ADR-2154-pele-renders-mermaid-in-the-image.md:5-7`); the artifact probe already runs the Pele check rather than `mmdc` (`../project/agentbox/config/artifact-probes.json:75-78`).
