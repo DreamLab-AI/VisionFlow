@@ -18,6 +18,8 @@ verified_commit: {nostr-rust-forum: c39f41f104b114d6a3fa29013daaf6fa58b45080}
 
 ## For developers
 
+The registration proof/list-number and re-enrolment findings below have a [scoped source-repair successor, NF-29](29-external-review-repairs.md#nf-292-device-lifecycle-and-dynamic-administration-settle-at-their-owners). This topic retains its declared audit revision; cache/transport findings remain separate.
+
 [ADR-2004 section review](../../estate-review/2026-11-01-forum-device-keys.md) records 76 selected checks, including producer-consumer mismatches, actual SQLite statements and extracted cache methods. Mocked lookup fixtures do not certify deployed Workers or browser behaviour.
 
 ## For the business

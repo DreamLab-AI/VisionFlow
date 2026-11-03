@@ -17,6 +17,8 @@ verified_commit: {nostr-rust-forum: c39f41f104b114d6a3fa29013daaf6fa58b45080}
 
 ## For developers
 
+The historical drain/bump/logout findings below have a [scoped source-repair successor, NF-29](29-external-review-repairs.md#nf-293-notification-claims-and-bounded-sweeps-retain-concurrent-work). This topic retains its declared audit revision; remaining device/runtime boundaries are unchanged.
+
 The [ADR-2023 section audit](../../estate-review/2026-11-01-forum-web-push.md) records 85 selected native/worker checks, revision differences and untested device boundaries. These panels describe current code and demonstrated interleavings, not a deployed push receipt.
 
 ## For the business

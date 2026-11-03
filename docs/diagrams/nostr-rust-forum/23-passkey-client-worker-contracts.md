@@ -20,6 +20,8 @@ verified_commit: {nostr-rust-forum: c39f41f104b114d6a3fa29013daaf6fa58b45080}
 
 ## For developers
 
+NF-23.1/23.2 have a [scoped source-repair successor, NF-29](29-external-review-repairs.md#nf-291-registration-keeps-the-issued-salt-and-proves-the-derived-identity). This topic retains its declared audit revision. Other discovery, recovery and authenticator boundaries below are not restamped or closed.
+
 [The passkey review](../../estate-review/2026-11-01-forum-passkey-contracts.md) adds 10 audit cases to the actual worker's 65 passing native WebAuthn tests, plus four isolated SQLite scenarios. No live Worker, browser ceremony or authenticator ran. Request/header findings are source composition; the salt probe holds PRF output constant to isolate downstream derivation drift.
 
 ## For the business

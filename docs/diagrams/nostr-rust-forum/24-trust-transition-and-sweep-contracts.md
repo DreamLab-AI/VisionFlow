@@ -17,6 +17,8 @@ verified_commit: {nostr-rust-forum: c39f41f104b114d6a3fa29013daaf6fa58b45080}
 
 ## For developers
 
+The bounded-prefix starvation finding has a [scoped source-repair successor, NF-29](29-external-review-repairs.md#nf-293-notification-claims-and-bounded-sweeps-retain-concurrent-work). This topic retains its declared audit revision; other trust consistency findings remain separate.
+
 [The trust-transition audit](../../estate-review/2026-11-01-forum-trust-transitions.md) records 32 native trust cases, five existing demotion SQL tests and six promotion SQL scenarios. Native cases call the actual policy/engine through its existing in-memory store. Promotion probes execute extracted SQL with chosen interleavings, not the async Worker handler or live D1.
 
 ## For the business
