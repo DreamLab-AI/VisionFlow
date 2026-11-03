@@ -1,0 +1,11 @@
+Repository: /home/devuser/workspace/wt/solid-pod-rs-parity-rescue. Read-only: do not edit, build or run tests.
+You (or a peer) reviewed `git diff main...fix/parity-rescue` at commit 653b0fd and reported findings. Fix commits since then: 73967a2 and the commit after it (HEAD). Review `git diff 653b0fd..HEAD` in full, reading surrounding source as needed, and judge (1) whether each fix is correct and complete, (2) whether it introduces any new defect or weakens WAC enforcement / main's 3 Nov repairs (malformed-ACL denial, condition preservation, payment read-failure denial, did:nostr-bound export/provenance, ACL lockout guard).
+Prior findings and their dispositions:
+- N3 where unbounded join: fixed (caps + early exit in n3_patch.rs solutions).
+- IRI-space mismatch between seed and patch: fixed (seed parsed as Turtle with base first; lenient N-Triples last resort).
+- Write-only agent probing via where/deletes: fixed (enforce_read_inner(.., charge=false) when N3 patch is not insert-only). SPARQL not covered (deliberately deferred).
+- Conditional ACL round-trip: found to fail closed already (409 via validate_acl_document); pinned by a test, documented.
+- MCP write_acl unlocked: fixed. MCP container mint key: fixed. Mint loop amplification: stop on repeated candidate. Provisioning order: ACLs first. PayloadTooLarge -> 413. N-Triples trailing comment accepted. Control-strip test strengthened.
+- Deliberately NOT done: releasing the write lock before git_mark_write (would let another writer's bytes be committed under this request's agent, undermining provenance-to-authority binding); Host-derived WebID on /.pods; 422 vs 400/409 codes; #[non_exhaustive]; preconditions on container PUT/COPY/MCP; predictable stripe hasher; untouched same-origin ACL targets rewritten to path form on PATCH (needs a Control holder).
+Report: numbered findings with severity, file:line, concrete scenario, fix; mark CONFIRMED or SUSPECTED. Also state, in one line each, whether you disagree with any "deliberately not done" item being deferred, and why. No praise.
+Role: senior Rust code reviewer (correctness, tests prove what they claim, rustdoc accuracy, API impact).

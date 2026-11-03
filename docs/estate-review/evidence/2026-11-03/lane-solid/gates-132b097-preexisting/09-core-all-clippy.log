@@ -1,0 +1,6 @@
+== 09-core-all-clippy: cargo clippy --all-targets --all-features -- -D warnings
+    Checking solid-pod-rs v0.5.0-alpha.19 (/home/devuser/workspace/wt/solid-pod-rs-preexisting/crates/solid-pod-rs)
+    Checking solid-pod-rs-idp v0.5.0-alpha.19 (/home/devuser/workspace/wt/solid-pod-rs-preexisting/crates/solid-pod-rs-idp)
+    Checking solid-pod-rs-server v0.5.0-alpha.19 (/home/devuser/workspace/wt/solid-pod-rs-preexisting/crates/solid-pod-rs-server)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 14.14s
+EXIT 0

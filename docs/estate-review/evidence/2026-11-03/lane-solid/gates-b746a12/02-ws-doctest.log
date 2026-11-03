@@ -1,0 +1,245 @@
+== 02-ws-doctest: cargo test --workspace --doc --no-fail-fast
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.69s
+   Doc-tests solid_pod_rs
+
+running 43 tests
+test crates/solid-pod-rs/src/handlers/legacy_notifications.rs - handlers::legacy_notifications (line 24) ... ignored
+test crates/solid-pod-rs/src/notifications/legacy.rs - notifications::legacy::LegacyNotificationChannel (line 201) ... ignored
+test crates/solid-pod-rs/src/oidc/replay.rs - oidc::replay::ReplayRejectedCounter (line 244) ... ignored
+test crates/solid-pod-rs/src/lib.rs - (line 144) - compile ... ok
+test crates/solid-pod-rs/src/config/mod.rs - config (line 20) - compile ... ok
+test crates/solid-pod-rs/src/config/loader.rs - config::loader::ConfigLoader (line 42) - compile ... ok
+test crates/solid-pod-rs/src/payments.rs - payments::WebLedger (line 263) - compile fail ... ok
+test crates/solid-pod-rs/src/payments.rs - payments::WebLedger (line 268) - compile fail ... ok
+test crates/solid-pod-rs/src/lib.rs - (line 93) - compile ... ok
+test crates/solid-pod-rs/src/payments.rs - payments::WebLedger (line 278) - compile fail ... ok
+test crates/solid-pod-rs/src/payments.rs - payments::WebLedger (line 273) - compile fail ... ok
+test crates/solid-pod-rs/src/bitcoin_tx.rs - bitcoin_tx::build_transaction (line 255) ... ok
+test crates/solid-pod-rs/src/blocktrail.rs - blocktrail::Blocktrail (line 466) has been running for over 60 seconds
+test crates/solid-pod-rs/src/blocktrail.rs - blocktrail::BlocktrailTxo (line 167) has been running for over 60 seconds
+test crates/solid-pod-rs/src/blocktrail.rs - blocktrail::is_gitmark_commit (line 124) has been running for over 60 seconds
+test crates/solid-pod-rs/src/blocktrail.rs - blocktrail::network_for_txo_chain (line 100) has been running for over 60 seconds
+test crates/solid-pod-rs/src/blocktrail.rs - blocktrail::txo_chain_for_network (line 75) has been running for over 60 seconds
+test crates/solid-pod-rs/src/did_nostr_types.rs - did_nostr_types::NostrPubkey::from_public_key (line 95) has been running for over 60 seconds
+test crates/solid-pod-rs/src/did_nostr_types.rs - did_nostr_types::NostrPubkey::to_even_public_key (line 120) has been running for over 60 seconds
+test crates/solid-pod-rs/src/did_nostr_types.rs - did_nostr_types::format_multibase_public_key (line 449) has been running for over 60 seconds
+test crates/solid-pod-rs/src/did_nostr_types.rs - did_nostr_types::format_multibase_schnorr (line 427) has been running for over 60 seconds
+test crates/solid-pod-rs/src/did_nostr_types.rs - did_nostr_types::format_multibase_sec1 (line 477) has been running for over 60 seconds
+test crates/solid-pod-rs/src/did_nostr_types.rs - did_nostr_types::parse_multibase_schnorr (line 546) has been running for over 60 seconds
+test crates/solid-pod-rs/src/did_nostr_types.rs - did_nostr_types::parse_multibase_sec1 (line 570) has been running for over 60 seconds
+test crates/solid-pod-rs/src/did_nostr_types.rs - did_nostr_types::render_did_document_published (line 248) has been running for over 60 seconds
+test crates/solid-pod-rs/src/ldp.rs - ldp::accept_post_for (line 98) has been running for over 60 seconds
+test crates/solid-pod-rs/src/ldp.rs - ldp::apply_n3_patch (line 1183) has been running for over 60 seconds
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::anchor::bt_address (line 755) has been running for over 60 seconds
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::anchor::bt_base_point (line 512) has been running for over 60 seconds
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::anchor::bt_derive_chained_privkey (line 709) has been running for over 60 seconds
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::anchor::bt_derive_chained_pubkey (line 547) has been running for over 60 seconds
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::anchor::bt_normalize_privkey (line 668) has been running for over 60 seconds
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::anchor::bt_trail_addresses (line 788) has been running for over 60 seconds
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::anchor::bt_trail_outputs (line 581) has been running for over 60 seconds
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::anchor::bt_verify_trail_outputs (line 615) has been running for over 60 seconds
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::bt_state_string (line 94) has been running for over 60 seconds
+test crates/solid-pod-rs/src/n3_patch.rs - n3_patch::N3Patch (line 67) has been running for over 60 seconds
+test crates/solid-pod-rs/src/payments.rs - payments::LedgerGenesis (line 109) has been running for over 60 seconds
+test crates/solid-pod-rs/src/payments.rs - payments::WebLedger::credit_by_outpoint (line 434) has been running for over 60 seconds
+test crates/solid-pod-rs/src/rdf_input.rs - rdf_input (line 28) has been running for over 60 seconds
+test crates/solid-pod-rs/src/rdf_input.rs - rdf_input::RdfInputSyntax::from_content_type (line 72) has been running for over 60 seconds
+test crates/solid-pod-rs/src/security/dotfile.rs - security::dotfile::fold_case (line 299) has been running for over 60 seconds
+test crates/solid-pod-rs/src/security/rate_limit.rs - security::rate_limit::lru_impl::LruRateLimiter::check_at (line 276) has been running for over 60 seconds
+test crates/solid-pod-rs/src/ldp.rs - ldp::accept_post_for (line 98) ... ok
+test crates/solid-pod-rs/src/did_nostr_types.rs - did_nostr_types::NostrPubkey::to_even_public_key (line 120) ... ok
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::anchor::bt_verify_trail_outputs (line 615) ... ok
+test crates/solid-pod-rs/src/blocktrail.rs - blocktrail::txo_chain_for_network (line 75) ... ok
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::bt_state_string (line 94) ... ok
+test crates/solid-pod-rs/src/did_nostr_types.rs - did_nostr_types::parse_multibase_schnorr (line 546) ... ok
+test crates/solid-pod-rs/src/n3_patch.rs - n3_patch::N3Patch (line 67) ... ok
+test crates/solid-pod-rs/src/did_nostr_types.rs - did_nostr_types::NostrPubkey::from_public_key (line 95) ... ok
+test crates/solid-pod-rs/src/blocktrail.rs - blocktrail::BlocktrailTxo (line 167) ... ok
+test crates/solid-pod-rs/src/ldp.rs - ldp::apply_n3_patch (line 1183) ... ok
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::anchor::bt_address (line 755) ... ok
+test crates/solid-pod-rs/src/security/dotfile.rs - security::dotfile::fold_case (line 299) ... ok
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::anchor::bt_derive_chained_pubkey (line 547) ... ok
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::anchor::bt_trail_addresses (line 788) ... ok
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::anchor::bt_normalize_privkey (line 668) ... ok
+test crates/solid-pod-rs/src/rdf_input.rs - rdf_input::RdfInputSyntax::from_content_type (line 72) ... ok
+test crates/solid-pod-rs/src/did_nostr_types.rs - did_nostr_types::format_multibase_sec1 (line 477) ... ok
+test crates/solid-pod-rs/src/blocktrail.rs - blocktrail::Blocktrail (line 466) ... ok
+test crates/solid-pod-rs/src/rdf_input.rs - rdf_input (line 28) ... ok
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::anchor::bt_base_point (line 512) ... ok
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::anchor::bt_derive_chained_privkey (line 709) ... ok
+test crates/solid-pod-rs/src/payments.rs - payments::WebLedger::credit_by_outpoint (line 434) ... ok
+test crates/solid-pod-rs/src/did_nostr_types.rs - did_nostr_types::parse_multibase_sec1 (line 570) ... ok
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::anchor::bt_trail_outputs (line 581) ... ok
+test crates/solid-pod-rs/src/security/rate_limit.rs - security::rate_limit::lru_impl::LruRateLimiter::check_at (line 276) ... ok
+test crates/solid-pod-rs/src/blocktrail.rs - blocktrail::network_for_txo_chain (line 100) ... ok
+test crates/solid-pod-rs/src/blocktrail.rs - blocktrail::is_gitmark_commit (line 124) ... ok
+test crates/solid-pod-rs/src/did_nostr_types.rs - did_nostr_types::format_multibase_public_key (line 449) ... ok
+test crates/solid-pod-rs/src/did_nostr_types.rs - did_nostr_types::render_did_document_published (line 248) ... ok
+test crates/solid-pod-rs/src/did_nostr_types.rs - did_nostr_types::format_multibase_schnorr (line 427) ... ok
+test crates/solid-pod-rs/src/payments.rs - payments::LedgerGenesis (line 109) ... ok
+
+test result: ok. 40 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 219.99s
+
+   Doc-tests solid_pod_rs_activitypub
+
+running 1 test
+test crates/solid-pod-rs-activitypub/src/lib.rs - (line 19) ... ignored
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests solid_pod_rs_didkey
+
+running 2 tests
+test crates/solid-pod-rs-didkey/src/lib.rs - (line 56) - compile ... ok
+test crates/solid-pod-rs-didkey/src/lib.rs - (line 17) - compile ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+   Doc-tests solid_pod_rs_forge
+
+running 54 tests
+test crates/solid-pod-rs-forge/src/preview.rs - preview (line 24) ... ok
+test crates/solid-pod-rs-forge/src/mirror_record.rs - mirror_record::MirrorStore::load (line 312) ... ok
+test crates/solid-pod-rs-forge/src/gitrun.rs - gitrun::run_heavy (line 93) ... ok
+test crates/solid-pod-rs-forge/src/mirror_record.rs - mirror_record::MirrorStore::read (line 278) ... ok
+test crates/solid-pod-rs-forge/src/lib.rs - PUBLICATION_MARKER (line 116) ... ok
+test crates/solid-pod-rs-forge/src/api_issues.rs - api_issues::author_meta (line 123) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/api_issues.rs - api_issues::npub_encode (line 103) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/api_issues.rs - api_issues::owner_from_webid (line 70) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/api_issues.rs - api_issues::parse_issue_number (line 47) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/bodies.rs - bodies::body_of_doc (line 134) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/config.rs - config::AnnounceKey (line 80) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/config.rs - config::ForgeConfig::validate_chain (line 214) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/config.rs - config::chain_hrp (line 152) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/config_file.rs - config_file::ForgeConfig::from_json (line 91) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/config_file.rs - config_file::merge_defaults (line 47) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/diff.rs - diff::parse_patch (line 80) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/forks.rs - forks (line 13) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/gitmark.rs - gitmark::anchor_tags (line 243) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/gitmark.rs - gitmark::did_short (line 52) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/gitmark.rs - gitmark::explorer_tx_url (line 101) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/gitmark.rs - gitmark::explorer_web (line 75) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/gitmark.rs - gitmark::network_for_chain (line 128) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/gitmark.rs - gitmark::parse_repo_trail (line 301) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/guard.rs - guard::is_sha (line 162) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/guard.rs - guard::ok_owner (line 57) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/guard.rs - guard::ok_ref (line 138) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/guard.rs - guard::ok_repo (line 94) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/guard.rs - guard::ok_segment (line 119) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/guard.rs - guard::percent_guard (line 21) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/guard.rs - guard::reserved_owner (line 78) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/hosted_edit.rs - hosted_edit::iso8601 (line 28) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/html/mod.rs - html::agent_label (line 58) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/labels.rs - labels::default_labels (line 59) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/labels.rs - labels::resolve_labels (line 124) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/labels.rs - labels::text_color (line 151) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/labels.rs - labels::valid_label_color (line 97) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/labels.rs - labels::valid_label_name (line 80) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/locks.rs - locks::RepoLocks (line 22) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/markdown.rs - markdown (line 18) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/markdown.rs - markdown::render (line 49) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/markdown.rs - markdown::render_with (line 328) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/markdown.rs - markdown::safe_href (line 64) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/merge.rs - merge (line 14) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/migrate.rs - migrate (line 74) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/releases.rs - releases::parse_releases (line 50) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/releases.rs - releases::split_archive_spec (line 113) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/router.rs - router::Route::owner (line 301) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/search.rs - search::parse_grep (line 66) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/web_edit.rs - web_edit (line 41) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/web_edit.rs - web_edit::clean_edit_path (line 114) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/web_edit.rs - web_edit::clean_message (line 148) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/xlogin.rs - xlogin::build_csp (line 44) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/xlogin.rs - xlogin::build_strict_csp (line 97) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/xlogin.rs - xlogin::xlogin_response (line 121) has been running for over 60 seconds
+test crates/solid-pod-rs-forge/src/labels.rs - labels::default_labels (line 59) ... ok
+test crates/solid-pod-rs-forge/src/xlogin.rs - xlogin::build_csp (line 44) ... ok
+test crates/solid-pod-rs-forge/src/config_file.rs - config_file::ForgeConfig::from_json (line 91) ... ok
+test crates/solid-pod-rs-forge/src/guard.rs - guard::is_sha (line 162) ... ok
+test crates/solid-pod-rs-forge/src/forks.rs - forks (line 13) ... ok
+test crates/solid-pod-rs-forge/src/bodies.rs - bodies::body_of_doc (line 134) ... ok
+test crates/solid-pod-rs-forge/src/web_edit.rs - web_edit::clean_edit_path (line 114) ... ok
+test crates/solid-pod-rs-forge/src/config.rs - config::AnnounceKey (line 80) ... ok
+test crates/solid-pod-rs-forge/src/html/mod.rs - html::agent_label (line 58) ... ok
+test crates/solid-pod-rs-forge/src/gitmark.rs - gitmark::explorer_web (line 75) ... ok
+test crates/solid-pod-rs-forge/src/guard.rs - guard::ok_owner (line 57) ... ok
+test crates/solid-pod-rs-forge/src/web_edit.rs - web_edit::clean_message (line 148) ... ok
+test crates/solid-pod-rs-forge/src/gitmark.rs - gitmark::explorer_tx_url (line 101) ... ok
+test crates/solid-pod-rs-forge/src/api_issues.rs - api_issues::parse_issue_number (line 47) ... ok
+test crates/solid-pod-rs-forge/src/markdown.rs - markdown::safe_href (line 64) ... ok
+test crates/solid-pod-rs-forge/src/diff.rs - diff::parse_patch (line 80) ... ok
+test crates/solid-pod-rs-forge/src/search.rs - search::parse_grep (line 66) ... ok
+test crates/solid-pod-rs-forge/src/merge.rs - merge (line 14) ... ok
+test crates/solid-pod-rs-forge/src/gitmark.rs - gitmark::parse_repo_trail (line 301) ... ok
+test crates/solid-pod-rs-forge/src/config.rs - config::ForgeConfig::validate_chain (line 214) ... ok
+test crates/solid-pod-rs-forge/src/labels.rs - labels::valid_label_color (line 97) ... ok
+test crates/solid-pod-rs-forge/src/config.rs - config::chain_hrp (line 152) ... ok
+test crates/solid-pod-rs-forge/src/markdown.rs - markdown::render (line 49) ... ok
+test crates/solid-pod-rs-forge/src/labels.rs - labels::resolve_labels (line 124) ... ok
+test crates/solid-pod-rs-forge/src/config_file.rs - config_file::merge_defaults (line 47) ... ok
+test crates/solid-pod-rs-forge/src/locks.rs - locks::RepoLocks (line 22) ... ok
+test crates/solid-pod-rs-forge/src/api_issues.rs - api_issues::owner_from_webid (line 70) ... ok
+test crates/solid-pod-rs-forge/src/gitmark.rs - gitmark::anchor_tags (line 243) ... ok
+test crates/solid-pod-rs-forge/src/guard.rs - guard::ok_segment (line 119) ... ok
+test crates/solid-pod-rs-forge/src/guard.rs - guard::reserved_owner (line 78) ... ok
+test crates/solid-pod-rs-forge/src/markdown.rs - markdown (line 18) ... ok
+test crates/solid-pod-rs-forge/src/guard.rs - guard::percent_guard (line 21) ... ok
+test crates/solid-pod-rs-forge/src/api_issues.rs - api_issues::author_meta (line 123) ... ok
+test crates/solid-pod-rs-forge/src/web_edit.rs - web_edit (line 41) ... ok
+test crates/solid-pod-rs-forge/src/labels.rs - labels::text_color (line 151) ... ok
+test crates/solid-pod-rs-forge/src/guard.rs - guard::ok_ref (line 138) ... ok
+test crates/solid-pod-rs-forge/src/hosted_edit.rs - hosted_edit::iso8601 (line 28) ... ok
+test crates/solid-pod-rs-forge/src/gitmark.rs - gitmark::network_for_chain (line 128) ... ok
+test crates/solid-pod-rs-forge/src/releases.rs - releases::parse_releases (line 50) ... ok
+test crates/solid-pod-rs-forge/src/migrate.rs - migrate (line 74) ... ok
+test crates/solid-pod-rs-forge/src/api_issues.rs - api_issues::npub_encode (line 103) ... ok
+test crates/solid-pod-rs-forge/src/labels.rs - labels::valid_label_name (line 80) ... ok
+test crates/solid-pod-rs-forge/src/guard.rs - guard::ok_repo (line 94) ... ok
+test crates/solid-pod-rs-forge/src/markdown.rs - markdown::render_with (line 328) ... ok
+test crates/solid-pod-rs-forge/src/releases.rs - releases::split_archive_spec (line 113) ... ok
+test crates/solid-pod-rs-forge/src/xlogin.rs - xlogin::build_strict_csp (line 97) ... ok
+test crates/solid-pod-rs-forge/src/xlogin.rs - xlogin::xlogin_response (line 121) ... ok
+test crates/solid-pod-rs-forge/src/gitmark.rs - gitmark::did_short (line 52) ... ok
+test crates/solid-pod-rs-forge/src/router.rs - router::Route::owner (line 301) ... ok
+
+test result: ok. 54 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 377.64s
+
+   Doc-tests solid_pod_rs_git
+
+running 3 tests
+test crates/solid-pod-rs-git/src/init.rs - init::GitAutoInit (line 38) ... ignored
+test crates/solid-pod-rs-git/src/lib.rs - (line 18) - compile ... ok
+test crates/solid-pod-rs-git/src/hardened.rs - hardened (line 17) ... ok
+
+test result: ok. 2 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 1.59s
+
+   Doc-tests solid_pod_rs_idp
+
+running 2 tests
+test crates/solid-pod-rs-idp/src/lib.rs - (line 34) ... ignored
+test crates/solid-pod-rs-idp/src/lib.rs - (line 166) - compile ... ok
+
+test result: ok. 1 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+   Doc-tests solid_pod_rs_nostr
+
+running 2 tests
+test crates/solid-pod-rs-nostr/src/lib.rs - (line 35) - compile ... ok
+test crates/solid-pod-rs-nostr/src/typestate.rs - typestate (line 40) ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.35s
+
+   Doc-tests solid_pod_rs_server
+
+running 7 tests
+test crates/solid-pod-rs-server/src/cli/invite_store.rs - cli::invite_store::FileInviteStore::consume (line 302) - compile ... ok
+test crates/solid-pod-rs-server/src/scheme.rs - scheme::normalise_origin (line 98) ... ok
+test crates/solid-pod-rs-server/src/scheme.rs - scheme::effective_scheme_with (line 65) ... ok
+test crates/solid-pod-rs-server/src/scheme.rs - scheme::host_allowed (line 248) ... ok
+test crates/solid-pod-rs-server/src/scheme.rs - scheme::request_url (line 230) ... ok
+test crates/solid-pod-rs-server/src/scheme.rs - scheme::request_host (line 197) ... ok
+test crates/solid-pod-rs-server/src/scheme.rs - scheme::host_with (line 167) ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.86s
+
+EXIT 0

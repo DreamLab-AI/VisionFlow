@@ -1,0 +1,279 @@
+   Compiling solid-pod-rs v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/crates/solid-pod-rs)
+   Compiling solid-pod-rs-git v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/crates/solid-pod-rs-git)
+   Compiling solid-pod-rs-idp v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/crates/solid-pod-rs-idp)
+   Compiling solid-pod-rs-server v0.5.0-alpha.19 (/home/devuser/workspace/solid-pod-rs/crates/solid-pod-rs-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 21.67s
+     Running unittests src/lib.rs (target/debug/deps/solid_pod_rs_server-7b00cc67d3eb0e81)
+
+running 124 tests
+test cli::install::tests::bare_name_resolves_to_solid_apps_org ... ok
+test cli::install::tests::empty_spec_errors ... ok
+test cli::install::tests::full_url_is_verbatim_and_strips_dot_git ... ok
+test cli::install::tests::org_repo_resolves_to_github ... ok
+test cli::install::tests::ref_only_keeps_default_dest ... ok
+test cli::install::tests::ref_pin_and_rename_parse ... ok
+test cross_identity::tests::linked_identities_filters ... ok
+test cross_identity::tests::malformed_pubkey_never_resolves ... ok
+test cross_identity::tests::local_profile_link_resolves ... ok
+test dev_bearer_tests::simple_bearer_verifies_signature_and_expiry ... ok
+test cli::invite_store::tests::file_is_owner_only ... ok
+test dev_bearer_tests::dev_bearer_enforces_audience_and_max_lifetime ... ok
+test live_reload_tests::injects_before_body_close_and_is_disabled_by_default ... ok
+test handlers::pay::intent_recovery_tests::txid_of_a_witness_transaction_excludes_the_witness ... ok
+test mcp::tools::tests::forwardable_auth_header_rejects_dangerous_names ... ok
+test mempool::tests::already_known_reads_only_node_statements_about_the_same_tx ... ok
+test handlers::prov::tests::lost_epoch_reset_does_not_anchor_the_same_batch_twice ... ok
+test mcp::skills::tests::conventional_skill_paths_are_exact ... ok
+test mcp::tools::tests::forwardable_auth_header_allowlist_is_case_insensitive ... ok
+test mempool::tests::empty_utxo_set_parses_to_empty_vec ... ok
+test mempool::tests::live_address_utxos_smoke ... ignored, hits live mempool.space; opt-in only
+test mempool::tests::from_env_defaults_to_testnet4 ... ok
+test mempool::tests::new_trims_trailing_slash ... ok
+test mempool::tests::tx_wire_reads_inputs ... ok
+test mempool::tests::tx_wire_flattens_outputs_and_status ... ok
+test mempool::tests::utxo_wire_flattens_status ... ok
+test cli::invite_store::tests::corrupt_file_is_an_error_not_a_silent_reset ... ok
+test payment_gating_tests::canonical_pod_path_vectors ... ok
+test mempool::tests::http_client_presence_check_reaches_the_inherent_method ... ok
+test payment_gating_tests::enforce_read_denies_anonymous ... ok
+test payment_gating_tests::enforce_read_denies_other_principal ... ok
+test payment_gating_tests::fixtures_use_teller_accounts_and_grant_the_principal ... ok
+test payment_gating_tests::enforce_read_grants_owner ... ok
+test payment_gating_tests::guarded_acl_target_vectors ... ok
+test payment_gating_tests::free_read_does_not_debit ... ok
+test payment_gating_tests::meta_put_denied_for_writer_without_control ... ok
+test mempool::tests::block_anchorer_anchor_rejects_unminted_ticker ... ok
+test handlers::prov::tests::build_anchorer_mrc20_trail_read_error_does_not_fall_through ... ok
+test handlers::prov::tests::build_anchorer_storage_error_is_not_silent_git_only ... ok
+test mempool::tests::block_anchorer_anchor_requires_storage ... ok
+test handlers::prov::tests::concurrent_epoch_pushes_both_survive ... ok
+test cli::invite_store::tests::stale_lock_file_is_broken ... ok
+test cli::invite_store::tests::insert_is_idempotent_and_empty_store_lists_nothing ... ok
+test payment_gating_tests::protected_resource_for_acl_strips_suffixes ... ok
+test payment_gating_tests::acl_put_allowed_for_control_holder ... ok
+test payment_gating_tests::acl_put_denied_for_writer_without_control ... ok
+test handlers::prov::tests::failed_epoch_close_keeps_the_commit_that_filled_it ... ok
+test handlers::prov::tests::epoch_read_error_keeps_the_pending_batch ... ok
+test handlers::prov::tests::epoch_corrupt_batch_is_not_overwritten ... ok
+test payment_gating_tests::resolve_balance_reads_ledger_entry ... ok
+test payment_gating_tests::paid_write_anonymous_denied ... ok
+test scheme::tests::allow_list_matches_host_and_authority ... ok
+test payment_gating_tests::resolve_balance_none_when_anonymous ... ok
+test payment_gating_tests::paid_write_denied_below_balance ... ok
+test scheme::tests::configured_origin_beats_every_header ... ok
+test scheme::tests::forwarded_host_is_ignored_without_trust_proxy ... ok
+test scheme::tests::forwarded_host_is_honoured_behind_trust_proxy ... ok
+test payment_gating_tests::resolve_balance_zero_when_no_entry ... ok
+test scheme::tests::forwarded_proto_comma_list_takes_first_hop ... ok
+test payment_gating_tests::wac_balance_uses_authoritative_state_after_a_stale_mirror ... ok
+test handlers::pay::intent_recovery_tests::ledger_with_a_tampered_genesis_is_refused ... ok
+test scheme::tests::hostile_host_values_are_not_reflected ... ok
+test scheme::tests::trusted_forwarded_proto_wins_over_cf_visitor ... ok
+test scheme::tests::oversized_cf_visitor_is_ignored ... ok
+test scheme::tests::garbage_values_fall_back_to_transport ... ok
+test scheme::tests::trusted_cf_visitor_used_when_no_forwarded_proto ... ok
+test scheme::tests::untrusted_headers_are_ignored ... ok
+test scheme::tests::unusable_forwarded_proto_falls_through_to_cf_visitor ... ok
+test trail_store::tests::secret_and_prov_paths_compare_whole_segments ... ok
+test trail_store::tests::stored_trail_uses_camelcase_keys ... ok
+test trail_store::tests::trail_path_lowercases ... ok
+test trail_store::tests::to_public_drops_privkey ... ok
+test handlers::prov::tests::failing_anchor_cannot_grow_the_epoch_without_bound ... ok
+test handlers::pay::intent_recovery_tests::recovery_never_rolls_the_stored_trail_back ... ok
+test handlers::pay::intent_recovery_tests::recovery_still_moves_a_stale_trail_forward ... ok
+test handlers::pay::intent_recovery_tests::known_transaction_keeps_debit_and_clears_intent ... ok
+test mempool::tests::block_anchorer_verify_false_without_pubkey ... ok
+test handlers::prov::tests::a_full_backlog_still_drains_once_anchoring_recovers ... ok
+test nip98_request_binding_tests::authentication_binds_the_exact_raw_body ... ok
+test mempool::tests::block_anchorer_anchor_round_trip_and_self_verifies ... ok
+test mempool::tests::block_anchorer_verify_false_when_the_anchor_tx_is_absent ... ok
+test mempool::tests::block_anchorer_verify_false_when_address_forged ... ok
+test nip98_request_binding_tests::authentication_binds_the_complete_query_string ... ok
+test mempool::tests::block_anchorer_verify_true_when_every_link_is_on_chain ... ok
+test mempool::tests::block_anchorer_verify_false_when_an_earlier_mark_does_not_commit ... ok
+test trail_store::tests::merge_public_keeps_secret ... ok
+test trail_store::tests::load_missing_trail_is_none ... ok
+test trail_store::tests::loaders_propagate_storage_errors_and_only_not_found_is_absent ... ok
+test mempool::tests::block_anchorer_refuses_an_intent_whose_txid_is_not_its_transaction ... ok
+test trail_store::tests::gitmark_trail_round_trips_and_publishes_no_secret ... ok
+test trail_store::tests::save_then_load_round_trips ... ok
+test mcp::tools::tests::remote_bodies_are_capped ... ok
+test handlers::pay::intent_recovery_tests::ambiguous_server_failure_retains_debit_and_intent ... ok
+test handlers::pay::intent_recovery_tests::not_found_without_payout_receipt_retains_intent ... ok
+test handlers::pay::intent_recovery_tests::definite_not_found_compensates_and_clears_intent ... ok
+test mempool::tests::block_anchorer_accepted_broadcast_with_failed_save_is_not_a_failed_anchor ... ok
+test mempool::tests::block_anchorer_rejected_resend_with_an_unspent_head_drops_the_intent ... ok
+test mempool::tests::concurrent_anchors_build_on_each_others_head ... ok
+test cli::invite_store::tests::revoke_accepts_a_unique_id_prefix ... ok
+test cli::invite_store::tests::legacy_plaintext_file_is_migrated ... ok
+test cli::invite_store::tests::concurrent_consumers_cannot_both_redeem_a_single_use_invite ... ok
+test mempool::tests::rejected_resend_with_an_unspent_head_drops_the_intent ... ok
+test mempool::tests::unresolved_resend_keeps_the_intent_and_refuses_to_advance ... ok
+test mempool::tests::rejected_resend_without_proof_of_an_unspent_head_keeps_refusing ... ok
+test mempool::tests::broadcast_then_failed_save_is_ok_and_recovered_by_the_next_anchor ... ok
+test mempool::tests::dropped_broadcast_is_resent_by_the_next_anchor ... ok
+test cli::invite_store::tests::create_list_revoke_round_trip_across_instances ... ok
+test cli::invite_store::tests::tokens_are_hashed_at_rest ... ok
+test cli::invite_store::tests::consume_enforces_the_use_cap_and_expiry ... ok
+test mempool::tests::accepted_but_unindexed_mark_is_not_orphaned_by_the_next_anchor ... ok
+test mempool::tests::gitmark_anchorer_refusals ... ok
+test mempool::tests::gitmark_anchorer_genesis_anchor_verify ... ok
+test payment_gating_tests::paid_read_debits_ledger ... ok
+test payment_gating_tests::paid_write_allowed_above_balance ... ok
+test handlers::prov::tests::concurrent_debits_do_not_lose_an_update ... ok
+test handlers::prov::tests::concurrent_debits_cannot_overspend ... ok
+test payment_gating_tests::paid_write_allowed_at_balance ... ok
+test payment_gating_tests::paid_write_debits_ledger ... ok
+test handlers::pay::intent_recovery_tests::token_transfer_behind_a_slow_anchor_answers_503_and_frees_the_payment_lock ... ok
+test payment_gating_tests::uncharged_read_skips_pay_per_read_resource ... ok
+test handlers::prov::tests::concurrent_debit_and_refund_keep_both_effects ... ok
+test handlers::prov::tests::failed_refund_is_logged_and_retained ... ok
+test payment_gating_tests::paid_write_debits_each_grant ... ok
+test handlers::pay::intent_recovery_tests::token_transfer_waits_for_the_trail_lock ... ok
+
+test result: ok. 123 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 2.32s
+
+     Running tests/git_marks.rs (target/debug/deps/git_marks-b3a0005929f8a660)
+
+running 4 tests
+test acl_write_is_not_marked ... ok
+test non_git_pod_write_is_unaffected ... ok
+test sidecar_write_is_not_recursively_marked ... ok
+test put_to_git_backed_pod_commits_and_writes_prov_sidecar ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+     Running tests/git_wac_gating.rs (target/debug/deps/git_wac_gating-746c31706da7e40a)
+
+running 5 tests
+test anonymous_push_to_private_pod_is_denied ... ok
+test push_is_refused_even_where_wac_would_allow_it ... ok
+test anonymous_clone_of_private_pod_is_denied ... ok
+test public_root_read_does_not_authorise_whole_history_export ... ok
+test owner_can_export_a_single_pod_path ... FAILED
+
+failures:
+
+---- owner_can_export_a_single_pod_path stdout ----
+
+thread 'owner_can_export_a_single_pod_path' (2243105) panicked at crates/solid-pod-rs-server/tests/git_wac_gating.rs:247:5:
+assertion `left == right` failed: owner export failed: {"error":"git-http-backend binary not available: spawn /usr/lib/git-core/git-http-backend: No such file or directory (os error 2)"}
+  left: 500
+ right: 200
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::panicking::assert_failed_inner
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:447:23
+   3: core::panicking::assert_failed::<u16, u16>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/panicking.rs:407:5
+   4: git_wac_gating::owner_can_export_a_single_pod_path::{closure#0}
+             at ./tests/git_wac_gating.rs:247:5
+   5: <tokio::task::local::RunUntil<git_wac_gating::owner_can_export_a_single_pod_path::{closure#0}> as core::future::future::Future>::poll::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:1072:44
+   6: <tokio::task::local::LocalSet>::with::<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<git_wac_gating::owner_can_export_a_single_pod_path::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:823:13
+   7: <std::thread::local::LocalKey<tokio::task::local::LocalData>>::try_with::<<tokio::task::local::LocalSet>::with<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<git_wac_gating::owner_can_export_a_single_pod_path::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}, core::task::poll::Poll<()>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:463:12
+   8: <std::thread::local::LocalKey<tokio::task::local::LocalData>>::with::<<tokio::task::local::LocalSet>::with<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<git_wac_gating::owner_can_export_a_single_pod_path::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}, core::task::poll::Poll<()>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:427:20
+   9: <tokio::task::local::LocalSet>::with::<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<git_wac_gating::owner_can_export_a_single_pod_path::{closure#0}> as core::future::future::Future>::poll::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:821:17
+  10: <tokio::task::local::RunUntil<git_wac_gating::owner_can_export_a_single_pod_path::{closure#0}> as core::future::future::Future>::poll
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:1062:22
+  11: <tokio::task::local::LocalSet>::run_until::<git_wac_gating::owner_can_export_a_single_pod_path::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:719:19
+  12: <core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<git_wac_gating::owner_can_export_a_single_pod_path::{closure#0}>::{closure#0}>> as core::future::future::Future>::poll
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/future/future.rs:133:9
+  13: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<git_wac_gating::owner_can_export_a_single_pod_path::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:830:70
+  14: tokio::task::coop::with_budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<git_wac_gating::owner_can_export_a_single_pod_path::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/coop/mod.rs:167:5
+  15: tokio::task::coop::budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<git_wac_gating::owner_can_export_a_single_pod_path::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/coop/mod.rs:133:5
+  16: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<git_wac_gating::owner_can_export_a_single_pod_path::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:830:25
+  17: <tokio::runtime::scheduler::current_thread::Context>::enter::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<git_wac_gating::owner_can_export_a_single_pod_path::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:486:19
+  18: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<git_wac_gating::owner_can_export_a_single_pod_path::{closure#0}>::{closure#0}>>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:829:44
+  19: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<git_wac_gating::owner_can_export_a_single_pod_path::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:906:68
+  20: <tokio::runtime::context::scoped::Scoped<tokio::runtime::scheduler::Context>>::set::<<tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<git_wac_gating::owner_can_export_a_single_pod_path::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/scoped.rs:40:9
+  21: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<git_wac_gating::owner_can_export_a_single_pod_path::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context.rs:186:38
+  22: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::try_with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<git_wac_gating::owner_can_export_a_single_pod_path::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:463:12
+  23: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<git_wac_gating::owner_can_export_a_single_pod_path::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:427:20
+  24: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<git_wac_gating::owner_can_export_a_single_pod_path::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context.rs:186:17
+  25: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<git_wac_gating::owner_can_export_a_single_pod_path::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:906:27
+  26: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<git_wac_gating::owner_can_export_a_single_pod_path::{closure#0}>::{closure#0}>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:819:24
+  27: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<git_wac_gating::owner_can_export_a_single_pod_path::{closure#0}>::{closure#0}>>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:216:33
+  28: tokio::runtime::context::runtime::enter_runtime::<<tokio::runtime::scheduler::current_thread::CurrentThread>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<git_wac_gating::owner_can_export_a_single_pod_path::{closure#0}>::{closure#0}>>>::{closure#0}, ()>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/runtime.rs:65:16
+  29: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<git_wac_gating::owner_can_export_a_single_pod_path::{closure#0}>::{closure#0}>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:204:9
+  30: <tokio::runtime::runtime::Runtime>::block_on_inner::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<git_wac_gating::owner_can_export_a_single_pod_path::{closure#0}>::{closure#0}>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/runtime.rs:379:52
+  31: <tokio::runtime::runtime::Runtime>::block_on::<<tokio::task::local::LocalSet>::run_until<git_wac_gating::owner_can_export_a_single_pod_path::{closure#0}>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/runtime.rs:346:18
+  32: <tokio::task::local::LocalSet>::block_on::<git_wac_gating::owner_can_export_a_single_pod_path::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:676:12
+  33: <actix_rt::runtime::Runtime>::block_on::<git_wac_gating::owner_can_export_a_single_pod_path::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-rt-2.11.0/src/runtime.rs:138:20
+  34: <actix_rt::system::SystemRunner>::block_on::<git_wac_gating::owner_can_export_a_single_pod_path::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-rt-2.11.0/src/system.rs:240:17
+  35: git_wac_gating::owner_can_export_a_single_pod_path
+             at ./tests/git_wac_gating.rs:212:1
+  36: git_wac_gating::owner_can_export_a_single_pod_path::{closure#0}
+             at ./tests/git_wac_gating.rs:213:46
+  37: <git_wac_gating::owner_can_export_a_single_pod_path::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+  38: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+
+failures:
+    owner_can_export_a_single_pod_path
+
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+error: test failed, to rerun pass `-p solid-pod-rs-server --test git_wac_gating`
+     Running tests/mcp_enforcement.rs (target/debug/deps/mcp_enforcement-40a4216f3a28ec70)
+
+running 6 tests
+test mcp_write_acl_past_quota_is_refused ... ok
+test mcp_write_to_missing_target_does_not_borrow_the_parent_grant ... ok
+test mcp_write_past_quota_is_refused ... ok
+test mcp_create_resource_past_quota_is_refused ... ok
+test mcp_read_of_pay_per_read_resource_debits_the_account ... ok
+test mcp_skill_readers_debit_pay_per_read ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/prov_phase5_routes.rs (target/debug/deps/prov_phase5_routes-8b79baac354b20dd)
+
+running 9 tests
+test cheap_write_records_git_mark_only ... ok
+test high_value_write_records_both_tiers ... ok
+test prov_anchor_with_lost_broadcast_is_pending_and_keeps_the_charge ... ok
+test prov_anchor_upgrade_402_on_insufficient_balance ... ok
+test prov_resolve_maps_commit_to_resource ... ok
+test epoch_policy_batches_then_anchors_once ... ok
+test prov_anchor_upgrade_is_payment_gated_and_owner_only ... ok
+test prov_anchor_failing_before_broadcast_still_refunds ... ok
+test anchor_and_withdraw_race_never_overdraw_the_ledger ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.63s
+
+error: 1 target failed:
+    `-p solid-pod-rs-server --test git_wac_gating`

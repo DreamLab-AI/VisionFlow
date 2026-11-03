@@ -1,0 +1,1697 @@
+== 06-core-oidc-test: cargo test --no-default-features --features memory-backend,fs-backend,oidc --all-targets --no-fail-fast
+   Compiling solid-pod-rs v0.5.0-alpha.19 (/home/devuser/workspace/wt/solid-pod-rs-parity-rescue/crates/solid-pod-rs)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 14s
+     Running unittests src/lib.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/solid_pod_rs-aa07f84bbdaa39a8)
+
+running 509 tests
+test auth::nip98::tests::compute_event_id_matches_canonical_hash ... ok
+test auth::nip98::tests::rejects_missing_prefix ... ok
+test auth::replay::tests::clones_share_storage ... ok
+test auth::replay::tests::capacity_pressure_refuses_new_ids_and_never_evicts_unexpired ... ok
+test auth::replay::tests::concurrent_first_sightings_admit_exactly_one ... ok
+test auth::replay::tests::evict_expired_frees_the_store_for_reuse ... ok
+test auth::replay::tests::capacity_one_cannot_be_made_to_accept_a_replay ... ok
+test auth::replay::tests::expired_entry_treated_as_fresh ... ok
+test auth::replay::tests::sizing_floor_covers_the_offered_rate ... ok
+test auth::replay::tests::expired_entries_are_reclaimed_to_admit_a_new_id ... ok
+test auth::replay::tests::concurrent_distinct_ids_never_exceed_capacity ... ok
+test auth::replay::tests::restart_semantics_reopen_the_window ... ok
+test auth::replay::tests::re_presenting_an_expired_id_reuses_its_slot_at_capacity ... ok
+test auth::replay::tests::first_sighting_accepts_replay_rejects ... ok
+test auth::replay::tests::trait_object_dispatch_rejects_replay ... ok
+test auth::self_signed::tests::broken_matching_verifier_short_circuits ... ok
+test auth::self_signed::tests::registered_lists_names ... ok
+test auth::self_signed::tests::no_matching_verifier_returns_unrecognised ... ok
+test auth::self_signed::tests::empty_dispatcher_returns_unrecognised ... ok
+test auth::self_signed::tests::first_matching_wins ... ok
+test bitcoin_tx::tests::build_rejects_empty_inputs ... ok
+test bitcoin_tx::tests::checked_output_rejects_dust ... ok
+test bitcoin_tx::tests::build_rejects_short_privkey_without_panicking ... ok
+test bitcoin_tx::tests::p2tr_script_rejects_wrong_length ... ok
+test bitcoin_tx::tests::p2tr_script_rejects_non_point ... ok
+test bitcoin_tx::tests::p2tr_script_shape ... ok
+test bitcoin_tx::tests::parse_voucher_full_form ... ok
+test bitcoin_tx::tests::parse_voucher_no_chain_prefix ... ok
+test bitcoin_tx::tests::bip341_keypath_default_sighash_vector ... ok
+test bitcoin_tx::tests::parse_voucher_rejects_bad_key ... ok
+test bitcoin_tx::tests::golden_raw_decodes_and_txid_matches_unsigned_hash ... ok
+test bitcoin_tx::tests::bip341_official_output_key_vector ... ok
+test bitcoin_tx::tests::parse_voucher_rejects_missing_amount ... ok
+test bitcoin_tx::tests::bip341_scriptpubkey_vectors ... ok
+test blocktrail::tests::chain_names_map_both_ways ... ok
+test blocktrail::tests::state_strings_follow_blocktrails_verify ... ok
+test blocktrail::tests::txo_uri_empty_values_are_absent_and_percent_decoded ... ok
+test blocktrail::tests::legacy_entry_round_trips_as_written ... ok
+test blocktrail::tests::txo_uri_rejects_malformed ... ok
+test blocktrail::tests::txo_uri_round_trips_in_git_mark_order ... ok
+test blocktrail::tests::verdicts_follow_blocktrails_verify ... ok
+test bitcoin_tx::tests::bip341_keypath_default_signature_vector ... ok
+test bitcoin_tx::tests::verify_rejects_non_32_byte_sighash ... ok
+test config::sources::tests::env_csv_parses_to_array ... ok
+test config::sources::tests::env_fs_storage_from_jss_root_alias ... ok
+test config::sources::tests::env_host_port ... ok
+test config::sources::tests::env_memory_storage_ignores_root ... ok
+test bitcoin_tx::tests::bip341_keypath_tweaked_privkey_vector ... ok
+test config::sources::tests::env_unsupported_storage_is_preserved_for_validation_error ... ok
+test config::sources::tests::flat_file_shape_normalised_to_nested ... ok
+test config::sources::tests::merge_nested_objects_preserves_siblings ... ok
+test config::sources::tests::nested_file_shape_passes_through ... ok
+test handlers::legacy_notifications::tests::handle_line_blank_is_noop ... ok
+test handlers::legacy_notifications::tests::handle_line_sub_emits_ack ... ok
+test handlers::legacy_notifications::tests::handle_line_sub_over_cap_emits_err ... ok
+test handlers::legacy_notifications::tests::handle_line_unknown_opcode_closes ... ok
+test handlers::legacy_notifications::tests::handle_line_unsub_is_silent ... ok
+test interop::tests::dev_session_stores_admin_flag ... ok
+test interop::tests::nip05_root_name_resolves_via_underscore ... ok
+test interop::tests::nip05_verify_rejects_malformed_pubkey ... ok
+test interop::tests::nip05_verify_returns_pubkey ... ok
+test interop::tests::webfinger_rejects_unknown_scheme ... ok
+test interop::tests::webfinger_returns_links_for_acct ... ok
+test interop::tests::well_known_solid_advertises_oidc_and_storage ... ok
+test ldp::guess_content_type_tests::dotfiles_resolve_to_jsonld ... ok
+test ldp::guess_content_type_tests::mime_db_covers_media_and_web ... ok
+test ldp::guess_content_type_tests::solid_overrides_take_priority ... ok
+test ldp::guess_content_type_tests::unknown_extension_falls_back_to_octet_stream ... ok
+test ldp::infer_dotfile_tests::infer_dotfile_content_type_acl_file_returns_jsonld ... ok
+test ldp::infer_dotfile_tests::infer_dotfile_content_type_dotted_midname_returns_none ... ok
+test ldp::infer_dotfile_tests::infer_dotfile_content_type_meta_file_returns_jsonld ... ok
+test ldp::infer_dotfile_tests::infer_dotfile_content_type_substring_only_returns_none ... ok
+test ldp::infer_dotfile_tests::infer_dotfile_content_type_trailing_slash_stripped ... ok
+test ldp::tests::cache_control_absent_for_image_png ... ok
+test ldp::tests::blank_node_subjects_survive_ntriples_and_jsonld_round_trip ... ok
+test ldp::tests::cache_control_absent_for_octet_stream ... ok
+test ldp::tests::cache_control_not_found_headers_conneg_disabled_omits_directive ... ok
+test ldp::tests::cache_control_not_found_headers_conneg_enabled_emits_rdf_directive ... ok
+test ldp::tests::cache_control_present_for_jsonld ... ok
+test ldp::tests::cache_control_present_for_ntriples ... ok
+test ldp::tests::cache_control_present_for_turtle ... ok
+test ldp::tests::find_illegal_server_managed_flags_ldp_contains ... ok
+test ldp::tests::is_container_detects_trailing_slash ... ok
+test ldp::tests::json_patch_add_and_replace ... ok
+test ldp::tests::json_patch_dialect_detection ... ok
+test ldp::tests::json_patch_remove ... ok
+test ldp::tests::json_patch_test_failure_returns_precondition ... ok
+test ldp::tests::link_headers_include_acl_and_describedby ... ok
+test ldp::tests::link_headers_root_exposes_pim_storage ... ok
+test ldp::tests::link_headers_skip_acl_on_acl ... ok
+test ldp::tests::link_headers_skip_describedby_on_meta ... ok
+test ldp::tests::negotiate_falls_back_to_turtle ... ok
+test ldp::tests::negotiate_picks_jsonld_when_highest ... ok
+test ldp::tests::negotiate_prefers_explicit_turtle ... ok
+test ldp::tests::ntriples_roundtrip ... ok
+test bitcoin_tx::tests::golden_case_c_multi_input_matches_jss ... ok
+test ldp::tests::n3_patch_where_failure_is_a_conflict ... ok
+test ldp::tests::n3_patch_insert_and_delete ... ok
+test ldp::tests::ntriples_trailing_comment_is_valid_but_trailing_triples_are_not ... ok
+test ldp::tests::options_container_includes_post_and_accept_post ... ok
+test ldp::tests::options_resource_includes_put_patch_no_post ... ok
+test ldp::tests::patch_dialect_detection ... ok
+test ldp::tests::preconditions_if_match_mismatch_412 ... ok
+test ldp::tests::preconditions_if_match_star_fails_when_resource_absent ... ok
+test ldp::tests::preconditions_if_match_star_passes_when_resource_exists ... ok
+test ldp::tests::preconditions_if_none_match_match_on_get_returns_304 ... ok
+test ldp::tests::preconditions_if_none_match_on_put_when_absent_passes ... ok
+test ldp::tests::preconditions_if_none_match_on_put_when_exists_fails ... ok
+test ldp::tests::prefer_contained_iris_parsed ... ok
+test ldp::tests::prefer_minimal_container_parsed ... ok
+test ldp::tests::range_parses_open_ended ... ok
+test ldp::tests::range_content_range_header_value ... ok
+test ldp::tests::range_parses_start_end ... ok
+test ldp::tests::range_rejects_unsatisfiable ... ok
+test ldp::tests::range_parses_suffix ... ok
+test ldp::tests::render_container_minimal_omits_contains ... ok
+test ldp::tests::render_container_turtle_emits_types ... ok
+test ldp::tests::render_container_shapes_jsonld ... ok
+test ldp::tests::server_managed_triples_include_ldp_contains ... ok
+test ldp::tests::slug_accepts_dotted_names_without_traversal ... ok
+test ldp::tests::slug_rejects_bare_dot ... ok
+test ldp::tests::slug_rejects_slashes ... ok
+test ldp::tests::slug_uses_valid_value ... ok
+test bitcoin_tx::tests::golden_case_a_full_hex_matches_jss ... ok
+test mashlib::tests::accepts_absent_sec_fetch_dest ... ok
+test mashlib::tests::accepts_jsonld_content_type ... ok
+test ldp::tests::sparql_insert_data ... ok
+test auth::nip98::tests::mint_with_payload_binds_body ... ok
+test mashlib::tests::accepts_markdown_content_type ... ok
+test mashlib::tests::cdn_mode_references_unpkg ... ok
+test ldp::tests::sparql_delete_data ... ok
+test mashlib::tests::embeds_data_island_when_provided ... ok
+test auth::nip98::tests::rejects_wrong_kind ... ok
+test mashlib::tests::escapes_angle_brackets ... ok
+test mashlib::tests::island_contains_json_ld_type ... ok
+test mashlib::tests::island_empty_when_none ... ok
+test mashlib::tests::local_mode_uses_root_relative_paths ... ok
+test mashlib::tests::module_mode_emits_mashlib_div ... ok
+test mashlib::tests::rejects_no_html_in_accept ... ok
+test mashlib::tests::island_empty_when_oversized ... ok
+test mashlib::tests::rejects_rdf_preferred_over_html ... ok
+test mashlib::tests::rejects_non_renderable_content_type ... ok
+test mashlib::tests::rejects_when_disabled ... ok
+test mashlib::tests::rejects_xhr_fetch ... ok
+test mashlib::tests::round_trip_script_absent_when_disabled ... ok
+test bitcoin_tx::tests::golden_signing_key_matches_jss ... ok
+test mashlib::tests::round_trip_script_present_by_default ... ok
+test bitcoin_tx::tests::golden_case_b_tweaked_full_hex_matches_jss ... ok
+test mashlib::tests::serves_html_for_browser_navigation ... ok
+test bitcoin_tx::tests::txid_hex_case_is_insignificant ... ok
+test auth::nip98::tests::requires_payload_tag_for_supplied_empty_body ... ok
+test auth::nip98::tests::rejects_url_mismatch ... ok
+test auth::nip98::tests::rejects_payload_removal_to_empty_body ... ok
+test mrc20::anchor::vector_tests::scalar_mod_n_reduces_and_refuses_zero ... ok
+test auth::nip98::tests::rejects_payload_mismatch ... ok
+test auth::nip98::tests::git_lenient_rejects_foreign_repo_prefix ... ok
+test mrc20::anchor::vector_tests::base_point_forms ... ok
+test auth::nip98::tests::accepts_trailing_slash_variation ... ok
+test mrc20::anchor::vector_tests::bip350_address_vectors ... ok
+test mrc20::tests::extract_transfers_ignores_zero_amount ... ok
+test auth::nip98::tests::accepts_well_formed_event_no_body ... ok
+test mrc20::tests::extract_transfers_finds_matching ... ok
+test mrc20::tests::extract_transfers_ignores_wrong_recipient ... ok
+test mrc20::tests::jcs_array ... ok
+test auth::nip98::tests::rejects_expired_timestamp ... ok
+test mrc20::tests::jcs_empty_object_and_array ... ok
+test mrc20::tests::jcs_deterministic ... ok
+test mrc20::tests::jcs_nested_objects ... ok
+test mrc20::tests::anchor_tests::bt_address_mainnet_format ... ok
+test mrc20::tests::jcs_null_bool ... ok
+test mrc20::tests::jcs_sorts_keys ... ok
+test mrc20::tests::anchor_tests::bt_address_testnet_format ... ok
+test mrc20::tests::jcs_string_escaping ... ok
+test mrc20::tests::sha256_hex_deterministic ... ok
+test mrc20::tests::jcs_state_is_deterministic_across_serializations ... ok
+test mrc20::tests::sha256_hex_known_vector ... ok
+test mrc20::tests::anchor_tests::verify_anchor_rejects_bad_pubkey_length ... ok
+test mrc20::tests::total_transferred_sums_multiple_ops ... ok
+test auth::nip98::tests::rejects_body_without_payload_tag ... ok
+test mrc20::tests::anchor_tests::bt_derive_chained_pubkey_single_state ... ok
+test mrc20::tests::validate_rejects_empty_prev ... ok
+test mrc20::tests::validate_rejects_wrong_profile ... ok
+test mrc20::tests::validate_valid_state ... ok
+test mrc20::tests::anchor_tests::bt_address_differs_per_network ... ok
+test mrc20::tests::anchor_tests::bt_derive_chained_pubkey_multiple_states ... ok
+test mrc20::tests::verify_deposit_fails_chain_break ... ok
+test mrc20::tests::verify_deposit_fails_no_transfers ... ok
+test mrc20::tests::verify_state_link_detects_break ... ok
+test multitenant::tests::is_file_like_label_matches_known_extensions ... ok
+test mrc20::tests::trail_roundtrip ... ok
+test multitenant::tests::path_resolver_ignores_host ... ok
+test mrc20::tests::verify_deposit_success ... ok
+test mrc20::tests::anchor_tests::verify_anchor_rejects_empty_state_strings ... ok
+test multitenant::tests::scrub_dotdot_is_double_pass ... ok
+test mrc20::tests::verify_state_link_detects_sequence_gap ... ok
+test mrc20::tests::verify_state_link_valid_chain ... ok
+test multitenant::tests::subdomain_file_like_label_passes_through ... ok
+test multitenant::tests::scrub_dotdot_iterative_defeats_bypass ... ok
+test mrc20::tests::anchor_tests::bt_address_deterministic ... ok
+test multitenant::tests::subdomain_matching_is_ascii_case_insensitive ... ok
+test multitenant::tests::subdomain_rejects_dotdot_bypass_as_pod ... ok
+test auth::nip98::tests::git_lenient_accepts_wildcard_method_and_prefix_url ... ok
+test multitenant::tests::subdomain_base_domain_root ... ok
+test mrc20::tests::anchor_tests::bt_derive_chained_privkey_roundtrip ... ok
+test notifications::legacy::session_tests::ancestor_containers_relative_path_climbs ... ok
+test notifications::legacy::session_tests::ancestor_containers_absolute_url_stops_at_origin_root ... ok
+test notifications::legacy::session_tests::ancestor_containers_root_path_has_none ... ok
+test multitenant::tests::subdomain_extracts_pod_name ... ok
+test multitenant::tests::strip_port_handles_missing_port ... ok
+test multitenant::tests::subdomain_html_label_passes_through ... ok
+test notifications::legacy::session_tests::legacy_frame_to_wire_roundtrip ... ok
+test notifications::legacy::session_tests::ancestor_containers_trailing_slash_treated_as_container ... ok
+test notifications::legacy::tests::ack_and_err_lines ... ok
+test notifications::legacy::tests::matches_subscription_prefix_and_exact ... ok
+test notifications::legacy::tests::opcode_wire_names ... ok
+test notifications::legacy::tests::parse_subscribe_rejects_malformed ... ok
+test notifications::legacy::tests::parse_subscribe_trims_whitespace_and_crlf ... ok
+test notifications::legacy::tests::parse_subscribe_valid ... ok
+test notifications::legacy::tests::parse_unsubscribe_valid ... ok
+test notifications::legacy::tests::subscription_cap_rejects_over_limit ... ok
+test notifications::legacy::tests::to_legacy_line_created ... ok
+test notifications::legacy::tests::to_legacy_line_updated_and_deleted_also_map_to_pub ... ok
+test mrc20::tests::anchor_tests::bt_derive_chained_pubkey_differs_per_state ... ok
+test notifications::legacy::tests::url_cap_rejects_over_limit ... ok
+test notifications::legacy::tests::unsubscribe_removes_target ... ok
+test notifications::tests::discovery_lists_both_channels ... ok
+test notifications::tests::change_notification_maps_event_types ... ok
+test notifications::tests::inmemory_unsubscribe_decrements_total_count ... ok
+test notifications::tests::inmemory_bounded_evicts_oldest_at_capacity ... ok
+test notifications::tests::subscribe_unsubscribe_roundtrip ... ok
+test oidc::jwks::tests::canonical_issuer_strips_trailing_slash ... ok
+test notifications::tests::webhook_manager_default_retries ... ok
+test oidc::jwks::tests::config_cache_hits_within_ttl ... ok
+test auth::nip98::tests::mint_roundtrips_through_verify ... ok
+test oidc::jwks::tests::config_cache_misses_when_empty ... ok
+test oidc::jwks::tests::default_cache_ttl_is_900_seconds ... ok
+test notifications::tests::websocket_active_subscriptions_count ... ok
+test notifications::tests::websocket_manager_broadcasts_events ... ok
+test oidc::jwks::tests::jwks_cache_hits_within_ttl ... ok
+test mrc20::tests::anchor_tests::bt_derive_chained_pubkey_deterministic ... ok
+test oidc::jwks::tests::jwks_cache_misses_when_empty ... ok
+test oidc::jwks::tests::short_cache_ttl_is_300_seconds ... ok
+test oidc::replay::tests::counter_increments ... ok
+test mrc20::tests::anchor_tests::verify_anchor_false_when_utxo_at_wrong_address ... ok
+test mrc20::tests::anchor_tests::bt_address_non_mainnet_uses_tb ... ok
+test oidc::replay::tests::default_config_matches_constants ... ok
+test oidc::replay::tests::max_size_clamped_to_at_least_one ... ok
+test oidc::replay::tests::replay_within_ttl_is_rejected ... ok
+test mrc20::tests::anchor_tests::verify_anchor_false_when_utxo_absent ... ok
+test mrc20::tests::anchor_tests::gitmark_swapped_commits_refused ... ok
+test oidc::replay::tests::first_seen_jti_is_accepted ... ok
+test oidc::tests::discovery_contains_standard_endpoints ... ok
+test oidc::tests::access_token_rejects_expired ... ok
+test oidc::tests::access_token_rejects_wrong_jkt ... ok
+test oidc::tests::extract_webid_fails_when_no_webid ... ok
+test oidc::tests::dynamic_registration_returns_client_id ... ok
+test oidc::tests::access_token_binds_to_dpop_jkt ... ok
+test oidc::tests::extract_webid_falls_back_to_sub_when_url ... ok
+test oidc::tests::extract_webid_from_explicit_claim ... ok
+test oidc::tests::introspection_active_contains_webid ... ok
+test oidc::tests::introspection_inactive_is_minimal ... ok
+test oidc::tests::issuer_binding_requires_declared_issuer ... ok
+test oidc::tests::jwk_ec_thumbprint_is_stable ... ok
+test oidc::tests::issuer_binding_uses_the_supplied_source ... ok
+test payments::tests::agent_agent_payment ... ok
+test mrc20::anchor::vector_tests::scalar_mod_n_matches_keys_mjs ... ok
+test oidc::tests::kid_resolving_to_wrong_key_family_is_rejected ... ok
+test payments::tests::charge_and_refund ... ok
+test payments::tests::credit_accumulates ... ok
+test payments::tests::credit_by_outpoint_credits_once ... ok
+test oidc::tests::audience_must_match_policy ... ok
+test payments::tests::credit_by_outpoint_reads_accounts_as_teller_does ... ok
+test payments::tests::credit_by_outpoint_refuses_bad_outpoints_and_amounts ... ok
+test payments::tests::credit_creates_entry ... ok
+test payments::tests::debit_by_payout_applies_once_and_reverses ... ok
+test payments::tests::debit_reduces_balance ... ok
+test payments::tests::debit_rejects_insufficient ... ok
+test payments::tests::debit_rejects_unknown_did ... ok
+test payments::tests::default_config_disabled ... ok
+test payments::tests::multi_currency_balance ... ok
+test payments::tests::ledger_serialization_roundtrip ... ok
+test payments::tests::new_ledger_empty ... ok
+test mrc20::tests::anchor_tests::verify_anchor_false_when_head_has_no_history ... ok
+test payments::tests::parse_txo_bare ... ok
+test payments::tests::genesis_identity ... ok
+test payments::tests::parse_txo_bitcoin_prefix ... ok
+test payments::tests::parse_txo_rejects_short_txid ... ok
+test payments::tests::parse_txo_with_chain ... ok
+test payments::tests::pay_info_basic ... ok
+test payments::tests::pay_info_with_token ... ok
+test payments::tests::payment_response_headers_returns_three_headers ... ok
+test payments::tests::payment_response_headers_zero_balance ... ok
+test payments::tests::pubkey_did_roundtrip ... ok
+test payments::tests::token_config_accepts_its_issuers_only ... ok
+test payments::tests::token_credit_lands_in_its_ticker_never_sats ... ok
+test provenance::tests::anchor_policy_inline_matrix ... ok
+test provenance::tests::anchor_policy_round_trips ... ok
+test bitcoin_tx::tests::bip340_official_vectors_sign_and_verify ... ok
+test provenance::tests::block_trail_anchor_defaults_state_strings ... ok
+test provenance::tests::empty_epoch_close_is_none ... ok
+test provenance::tests::epoch_threshold_and_len_tracking ... ok
+test provenance::tests::git_mark_round_trips ... ok
+test provenance::tests::gitmark_envelope_has_exactly_five_keys ... ok
+test provenance::tests::gitmark_envelope_projection_values ... ok
+test provenance::tests::epoch_inclusion_proof_rejects_wrong_root_and_tampered_leaf ... ok
+test auth::nip98::tests::mint_with_payload_binds_empty_body ... ok
+test provenance::tests::gitmark_json_matches_carvalho_shape ... ok
+test provenance::tests::epoch_root_matches_close_root ... ok
+test provenance::tests::legacy_blocktrail_envelope_still_parses_and_round_trips ... ok
+test provenance::tests::merkle_proof_round_trips ... ok
+test provenance::tests::merkle_root_empty_and_single ... ok
+test provenance::tests::merkle_root_is_deterministic_and_order_sensitive ... ok
+test provenance::tests::prov_ttl_contains_core_triples ... ok
+test provenance::tests::new_blocktrail_envelope_has_the_section_5_2_shape ... ok
+test provenance::tests::prov_ttl_emits_anchor_block_when_present ... ok
+test provenance::tests::prov_ttl_escapes_quotes_and_backslashes ... ok
+test provenance::tests::prov_ttl_omits_parent_when_absent ... ok
+test provenance::tests::provenance_error_display ... ok
+test provenance::tests::provenance_mark_round_trips_without_anchor ... ok
+test provenance::tests::provenance_mark_round_trips_with_anchor ... ok
+test provenance::tests::record_cheap_write_is_git_mark_only ... ok
+test provenance::tests::record_always_anchors_every_write ... ok
+test provenance::tests::record_high_value_flag_false_is_git_only ... ok
+test provenance::tests::xsd_datetime_known_epoch ... ok
+test provenance::tests::record_epoch_defers_anchoring_to_accumulator ... ok
+test provision::tests::admin_override_matches_only_exact ... ok
+test provenance::tests::record_without_anchorer_degrades_to_git_only ... ok
+test provision::tests::quota_tracker_none_means_unlimited ... ok
+test provenance::tests::record_high_value_write_carries_git_mark_and_anchor ... ok
+test provision::tests::quota_tracker_release_frees_space ... ok
+test provision::tests::quota_tracker_respects_limit ... ok
+test rdf_input::tests::bad_base_is_bad_request ... ok
+test rdf_input::tests::content_type_mapping ... ok
+test rdf_input::tests::invalid_utf8_is_bad_request ... ok
+test bitcoin_tx::tests::every_golden_signature_verifies ... ok
+test rdf_input::tests::n3_literal_subject_is_bad_request ... ok
+test rdf_input::tests::n3_formula_is_unsupported ... ok
+test mrc20::tests::anchor_tests::verify_anchor_false_when_an_earlier_mark_does_not_commit ... ok
+test rdf_input::tests::n3_plain_triples_parse ... ok
+test rdf_input::tests::n3_variable_is_unsupported ... ok
+test rdf_input::tests::n3_rule_is_unsupported ... ok
+test oidc::jwks::tests::config_cache_expires_after_ttl ... ok
+test rdf_input::tests::syntax_error_is_bad_request ... ok
+test security::cors::tests::default_wildcard_no_credentials_emits_star ... ok
+test rdf_input::tests::turtle_resolves_relative_against_request_url ... ok
+test security::cors::tests::exact_rejects_unlisted_origin ... ok
+test rdf_input::tests::turtle_prefixes_literals_and_lists ... ok
+test provenance::tests::epoch_inclusion_proof_verifies_for_every_leaf ... ok
+test provision::tests::type_index_bootstrap::private_type_index_has_no_sibling_acl ... ok
+test oidc::jwks::tests::jwks_cache_expires_after_ttl ... ok
+test provision::tests::type_index_bootstrap::provision_writes_private_type_index_with_unlisted_document ... ok
+test security::cors::tests::parse_origins_wildcard_and_list ... ok
+test provision::tests::type_index_bootstrap::provision_writes_public_read_acl_on_public_type_index ... ok
+test security::cors::tests::wildcard_with_credentials_falls_back_to_origin ... ok
+test security::dotfile::tests::account_in_default_allowed_constant ... ok
+test provision::tests::type_index_bootstrap::provision_writes_public_type_index_with_listed_document ... ok
+test security::cors::tests::normalise_header_list_collapses_whitespace ... ok
+test security::dotfile::tests::allows_account_path_free_function ... ok
+test security::dotfile::tests::allows_acl_file ... ok
+test security::dotfile::tests::allows_meta_file ... ok
+test security::dotfile::tests::allows_normal_path ... ok
+test security::dotfile::tests::allows_quota_sidecar ... ok
+test provision::tests::type_index_bootstrap::public_type_index_acl_grants_foaf_agent_read ... ok
+test security::dotfile::tests::allows_resource_specific_acl ... ok
+test security::dotfile::tests::allows_well_known_subtree ... ok
+test security::dotfile::tests::blocks_double_dot ... ok
+test mrc20::tests::anchor_tests::gitmark_live_trail_pin ... ok
+test security::dotfile::tests::blocks_env_file ... ok
+test security::dotfile::tests::blocks_git_dir ... ok
+test security::dotfile::tests::blocks_hidden_file_anywhere ... ok
+test mrc20::tests::anchor_tests::verify_anchor_accepts_a_pending_head ... ok
+test security::dotfile::tests::default_blocks_env ... ok
+test security::dotfile::tests::case_variants_of_guarded_names_are_refused ... ok
+test security::dotfile::tests::default_permits_account ... ok
+test security::dotfile::tests::default_permits_acl_and_meta ... ok
+test security::dotfile::tests::entry_without_dot_prefix_is_normalised ... ok
+test mrc20::tests::anchor_tests::verify_anchor_true_when_utxo_present ... ok
+test security::dotfile::tests::explicit_allowlist_accepts_listed_entries ... ok
+test security::dotfile::tests::nested_dotfile_rejected ... ok
+test security::dotfile::tests::parent_dir_rejected ... ok
+test security::dotfile::tests::path_without_dotfiles_accepted ... ok
+test security::rate_limit::lru_impl::tests::canonical_key_format_is_exact ... ok
+test security::rate_limit::lru_impl::tests::canonical_keys_separate_routes ... ok
+test security::rate_limit::lru_impl::tests::canonical_keys_separate_subjects ... ok
+test security::rate_limit::lru_impl::tests::ceil_secs_rounds_up_fractional ... ok
+test security::ssrf::tests::allows_public_ipv6 ... ok
+test security::ssrf::tests::allows_public_ipv4 ... ok
+test security::ssrf::tests::blocks_6to4_in_url ... ok
+test security::rate_limit::lru_impl::tests::default_policy_used_when_route_unknown ... ok
+test security::ssrf::tests::blocks_ipv4_compatible_in_url ... ok
+test security::ssrf::tests::blocks_aws_metadata_ip ... ok
+test security::ssrf::tests::blocks_aws_metadata_hostname ... ok
+test security::ssrf::tests::blocks_link_local ... ok
+test security::ssrf::tests::blocks_loopback ... ok
+test security::ssrf::tests::classify_6to4_loopback ... ok
+test security::ssrf::tests::classify_6to4_metadata ... ok
+test security::ssrf::tests::classify_6to4_private ... ok
+test security::ssrf::tests::classify_6to4_public ... ok
+test security::ssrf::tests::classify_cloud_metadata ... ok
+test security::ssrf::tests::blocks_rfc1918_addresses ... ok
+test rdf_input::tests::oversize_body_is_rejected_before_parsing ... ok
+test security::ssrf::tests::classify_ipv4_compatible_link_local_metadata ... ok
+test security::ssrf::tests::classify_ipv4_compatible_private_10 ... ok
+test security::ssrf::tests::classify_ipv4_compatible_public ... ok
+test security::ssrf::tests::default_policy_blocks_private ... ok
+test security::ssrf::tests::classify_ipv6_link_local ... ok
+test security::ssrf::tests::classify_ipv6_public ... ok
+test security::ssrf::tests::classify_ipv6_ula ... ok
+test security::ssrf::tests::rejects_http_without_host ... ok
+test security::ssrf::tests::classify_loopback ... ok
+test security::ssrf::tests::classify_ipv4_compatible_loopback ... ok
+test security::ssrf::tests::classify_public ... ok
+test security::ssrf::tests::classify_rfc1918_private ... ok
+test security::ssrf::tests::rejects_malformed_url ... ok
+test trading::tests::test_amm_add_liquidity_first ... ok
+test storage::memory::tests::put_get_roundtrip ... ok
+test trading::tests::test_amm_add_liquidity_subsequent ... ok
+test storage::memory::tests::list_direct_children_only ... ok
+test trading::tests::test_amm_remove_liquidity ... ok
+test trading::tests::test_amm_swap_constant_product ... ok
+test trading::tests::test_amm_swap_empty_pool ... ok
+test storage::memory::tests::watch_receives_created_event ... ok
+test trading::tests::test_amm_swap_fee_collection ... ok
+test trading::tests::test_exchange_multi_pool ... ok
+test trading::tests::test_integer_overflow_safety ... ok
+test trading::tests::test_isqrt ... ok
+test trading::tests::test_exchange_serialization_roundtrip ... ok
+test trading::tests::test_order_execute_swap ... ok
+test trading::tests::test_order_cancel_by_seller ... ok
+test trading::tests::test_order_create_and_list ... ok
+test storage::fs::tests::rejects_path_traversal ... ok
+test trading::tests::test_pool_info ... ok
+test trading::tests::untrusted_pool_fees_and_large_arithmetic_fail_without_mutation ... ok
+test trading::tests::test_order_swap_insufficient_balance ... ok
+test wac::anchor::tests::anchor_mode_of_absent_is_none ... ok
+test wac::anchor::tests::anchor_mode_of_finds_marker ... ok
+test wac::anchor::tests::deserialize_from_json_empty_body ... ok
+test wac::anchor::tests::deserialize_from_json_with_mode_and_ticker ... ok
+test wac::anchor::tests::evaluator_always_satisfied_even_anonymous ... ok
+test wac::anchor::tests::mode_defaults_to_epoch ... ok
+test wac::anchor::tests::mode_inline_synonyms ... ok
+test wac::anchor::tests::mode_unknown_falls_back_to_epoch ... ok
+test wac::anchor::tests::serialize_roundtrip ... ok
+test wac::conditions::anchor_condition_tests::provenance_anchor_dispatch_is_satisfied_never_blocks ... ok
+test wac::conditions::anchor_condition_tests::provenance_anchor_is_recognised_no_422 ... ok
+test wac::conditions::anchor_condition_tests::provenance_anchor_parses_from_jsonld_into_known_variant ... ok
+test wac::conditions::anchor_condition_tests::provenance_anchor_parses_full_iri_forms ... ok
+test wac::conditions::anchor_condition_tests::provenance_anchor_serialize_roundtrip_through_condition ... ok
+test mrc20::anchor::vector_tests::bt_address_gitmark_uses_gm ... ok
+test wac::conditions::anchor_condition_tests::unknown_condition_still_422_fail_closed ... ok
+test wac::origin::tests::origin_parse_preserves_non_default_port ... ok
+test wac::origin::tests::origin_parse_lowercases_host_and_scheme ... ok
+test wac::origin::tests::origin_parse_rejects_empty_and_opaque ... ok
+test storage::fs::tests::fs_backend_serves_acl_as_jsonld_without_sidecar ... ok
+test wac::origin::tests::origin_parse_strips_default_https_port ... ok
+test wac::origin::tests::pattern_any_matches_everything ... ok
+test wac::origin::tests::pattern_exact_requires_canonical_input ... ok
+test wac::origin::tests::pattern_wildcard_rejects_bare_apex ... ok
+test wac::parser::tests::default_limit_is_one_mib ... ok
+test wac::parser::tests::parse_turtle_acl_with_limit_rejects_oversized_doc ... ok
+test wac::parser::tests::parse_turtle_acl_with_limit_boundary ... ok
+test wac::parser::tests::parse_turtle_acl_with_limit_accepts_small_doc ... ok
+test wac::parser::tests::quoted_hash_and_iri_semicolon_are_not_delimiters ... ok
+test wac::payment::tests::deserialize_cost_as_string ... ok
+test wac::payment::tests::deserialize_from_json ... ok
+test wac::payment::tests::evaluator_denied_when_balance_insufficient ... ok
+test wac::payment::tests::evaluator_denied_when_no_payment_context ... ok
+test wac::parser::tests::statements_about_one_subject_merge_into_one_authorization ... ok
+test wac::payment::tests::evaluator_satisfied_when_balance_exceeds_cost ... ok
+test wac::parser::tests::split_subject_and_https_restrictions_are_preserved ... ok
+test wac::payment::tests::evaluator_satisfied_when_balance_sufficient ... ok
+test wac::payment::tests::evaluator_zero_cost_always_satisfied ... ok
+test wac::payment::tests::serialize_roundtrip ... ok
+test wac::payment::tests::total_payment_cost_sums_conditions ... ok
+test wac::payment::tests::total_payment_cost_zero_when_no_payment_conditions ... ok
+test wac::tests::effective_acl_target_golden_conformance_vectors ... ok
+test wac::tests::effective_acl_target_non_sidecar_is_identity ... ok
+test wac::tests::jsonld_acl_with_limits_accepts_within_bounds ... ok
+test wac::tests::jsonld_acl_with_limits_rejects_oversized ... ok
+test wac::tests::method_mapping ... ok
+test wac::tests::no_acl_denies_all ... ok
+test wac::tests::protected_resource_for_acl_strips_suffixes ... ok
+test wac::tests::public_read_grants_anonymous ... ok
+test wac::tests::serialize_turtle_acl_emits_prefixes_and_rules ... ok
+test wac::tests::wac_allow_shape ... ok
+test wac::tests::turtle_acl_round_trip_parses_basic_rules ... ok
+test wac::tests::write_implies_append ... ok
+test wac::tests::turtle_acl_with_owner_grants_write ... ok
+test wac::parser::tests::restrictive_condition_cannot_disappear ... ok
+test webid::tests::contains_pubkey ... ok
+test webid::tests::emits_cid_service_when_issuer_present ... ok
+test webid::tests::validate_rejects_missing_jsonld ... ok
+test webid::tests::emits_primary_topic_of_and_main_entity_of_page ... ok
+test webid::tests::extract_cid_openid_provider_absent_returns_none ... ok
+test webid::tests::extract_cid_openid_provider_returns_endpoint ... ok
+test webid::tests::extract_oidc_issuer_absent_returns_none ... ok
+test webid::tests::generate_with_issuer_embeds_oidc_triple ... ok
+test webid::tests::extract_oidc_issuer_returns_issuer_id ... ok
+test webid::tests::omits_cid_service_when_no_issuer ... ok
+test webid::tests::validate_accepts_valid ... ok
+test webid::tests::json_ld_body_is_valid_json ... ok
+test security::ssrf::tests::policy_dns_failure_blocks_request ... ok
+test security::ssrf::tests::dns_failure_blocks_request ... ok
+test mrc20::tests::anchor_tests::chained_derivation_matches_pinned_golden ... ok
+test storage::fs::tests::delete_removes_resource_and_sidecar ... ok
+test storage::fs::tests::list_skips_meta_sidecar ... ok
+test storage::fs::tests::put_get_roundtrip ... ok
+test storage::fs::tests::symlink_cannot_escape_root_for_read_write_or_delete ... ok
+test storage::fs::tests::concurrent_reads_observe_complete_body_metadata_pairs ... ok
+
+test result: ok. 509 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.91s
+
+     Running tests/acl_origin_sprint9.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/acl_origin_sprint9-2dc94a4dc5668691)
+
+running 4 tests
+test authz_with_non_matching_origin_denies ... ok
+test authz_with_matching_origin_allows ... ok
+test authz_with_origin_but_missing_request_origin_denies ... ok
+test authz_without_origin_constraint_allowed_anywhere ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/acl_origin_test.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/acl_origin_test-7c23f220e9cd59ee)
+
+running 16 tests
+test f4a_origin_strips_default_http_port ... ok
+test f4a_origin_strips_default_https_port ... ok
+test f4b_origin_preserves_non_default_port ... ok
+test f4d_pattern_wildcard_subdomain_match ... ok
+test f4e_pattern_global_wildcard ... ok
+test f4c_pattern_exact_is_port_sensitive ... ok
+test f4c_pattern_exact_match ... ok
+test f4e_pattern_rejects_trailing_slash ... ok
+test f4f_no_policies_yields_no_policy_set ... ok
+test f4g_matching_origin_permitted ... ok
+test f4i_no_origin_header_with_policies_rejected ... ok
+test f4j_control_mode_bypasses_origin_gate ... ok
+test f4k_from_url_extracts_origin ... ok
+test f4k_legacy_acl_without_origin_unchanged_by_feature_flag ... ok
+test f4h_mismatched_origin_rejected ... ok
+test f4j_evaluate_access_denies_on_origin_mismatch ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/bip340_vectors.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/bip340_vectors-a409453ebe35e216)
+
+running 1 test
+test bip340_published_vectors ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/bitcoin_tx_chain.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/bitcoin_tx_chain-934edb6bb2ab0dbb)
+
+running 5 tests
+test anchor_state_notarises_a_state_hash ... ok
+test gitmark_advance_refuses_what_it_must_not_extend ... ok
+test verify_mrc20_anchor_accepts_a_produced_transfer_state ... ok
+test gitmark_genesis_and_advance_build_a_trail_that_verifies_link_by_link ... ok
+test mint_then_transfer_twice_is_a_valid_hash_chained_trail ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/blocktrails_keys_walk.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/blocktrails_keys_walk-a1d67d6ef8c88769)
+
+running 5 tests
+test upstream_generator_reproduces_the_vendored_vectors ... ok
+test bare_x_reads_as_the_even_point ... ok
+test vendored_vectors_cover_the_brief ... ok
+test swapped_trail_is_refused_against_the_live_outputs ... ok
+test rust_reproduces_every_upstream_walk ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+     Running tests/blocktrails_verify_walk.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/blocktrails_verify_walk-4c71b47570147d89)
+
+running 6 tests
+test upstream_generator_reproduces_the_vendored_vectors ... ok
+test txo_uris_follow_git_mark ... ok
+test git_mark_trail_files_parse_and_walk ... ok
+test string_and_object_states_hash_as_blocktrails_verify_hashes_them ... ok
+test live_git_mark_trail_verifies_and_a_swap_is_refused ... ok
+test reproduces_blocktrails_verify_on_every_case ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/ci_doctest_gate.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/ci_doctest_gate-06733aa8ab31e1ed)
+
+running 1 test
+test ci_runs_core_and_workspace_doctests ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/cid_verifier_sprint11.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/cid_verifier_sprint11-49ef6e27d506db29)
+
+running 4 tests
+test wac_issuer_condition_dispatches_to_cid_verifier ... ok
+test cid_verifier_accepts_did_key_proof ... ok
+test cid_verifier_rejects_unknown_proof ... ok
+test cid_verifier_accepts_nip98_proof ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/config_size_parsing.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/config_size_parsing-ffbcbdc3ebabed58)
+
+running 6 tests
+test parse_size_bytes_no_suffix ... ok
+test parse_size_decimal_gb ... ok
+test parse_size_invalid_returns_err ... ok
+test parse_size_kb ... ok
+test parse_size_mb ... ok
+test parse_size_gb ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/config_sprint11.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/config_sprint11-df6e797c92956037)
+
+running 12 tests
+test parse_size_bytes_bare_is_1024 ... ok
+test parse_size_gib ... ok
+test parse_size_mib ... ok
+test parse_size_kib_is_1024 ... ok
+test parse_size_si_still_works ... ok
+test config_env_extras_populate ... ok
+test parse_size_tib ... ok
+test config_cli_overrides_env ... ok
+test config_cli_storage_root_sets_fs ... ok
+test config_yaml_loader ... ok
+test config_toml_loader ... ok
+test config_json_loader_from_file ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/config_test.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/config_test-0f69ff16a625d665)
+
+running 9 tests
+test f6c_env_var_overrides_file ... ok
+test f6d_jss_example_config_boots ... ok
+test f6b_json_file_overrides_defaults ... ok
+test f6e_invalid_port_in_file_is_error ... ok
+test f6f_unknown_json_field_is_tolerated ... ok
+test f6a_defaults_produce_valid_config ... ok
+test f6h_memory_type_with_root_warns_memory_wins ... ok
+test full_precedence_chain ... ok
+test f6g_missing_required_field_errors_with_clear_message ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/container_index_html.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/container_index_html-766f84e1d4927a8c)
+
+running 5 tests
+test container_get_jsonld_ignores_index_html ... ok
+test container_get_html_with_index_serves_index_html ... ok
+test container_get_browser_accept_with_index_serves_html ... ok
+test container_get_turtle_ignores_index_html ... ok
+test container_get_html_without_index_falls_through_to_rdf ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/cors_preflight.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/cors_preflight-0c80e84fbe0a2340)
+
+running 6 tests
+test cors_preflight_advertises_required_request_headers ... ok
+test cors_from_env_reads_all_three_vars ... ok
+test cors_preflight_blocks_unlisted_origin ... ok
+test cors_preflight_echoes_allowed_origin ... ok
+test cors_response_emits_expose_headers ... ok
+test cors_wildcard_with_credentials_falls_back_to_origin ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/did_nostr_resolver.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/did_nostr_resolver-3a84aaa56d68b469)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/did_nostr_vectors.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/did_nostr_vectors-21068d33c7626e2b)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/doc_vocabulary.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/doc_vocabulary-1e91a067d98857a2)
+
+running 2 tests
+test the_check_sees_every_spelling ... ok
+test no_crate_documents_single_use_seals ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.18s
+
+     Running tests/dpop_replay_test.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/dpop_replay_test-d79b6e2845357a83)
+
+running 9 tests
+test defaults_match_ddd_contract ... ok
+test f5a_first_seen_jti_is_accepted ... ok
+test f5b_replay_within_ttl_is_rejected ... ok
+test f5d_max_size_eviction_drops_oldest ... ok
+test f5e_concurrent_same_jti_exactly_one_wins ... ok
+test f5f_verify_dpop_with_none_cache_is_pre_f5_behaviour ... ok
+test f5g_verify_dpop_with_cache_rejects_replay ... ok
+test evict_expired_removes_stale_entries ... ok
+test f5c_replay_after_ttl_is_accepted ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/export_jsonld_smoke.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/export_jsonld_smoke-eda9e53f311aad77)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/interop_jss.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/interop_jss-c27eee8baea39955)
+
+running 43 tests
+test jss_admin_override_matches_constant_time ... ok
+test jss_acl_document_can_be_fetched_via_get ... ok
+test jss_accept_turtle_returns_turtle ... ok
+test jss_acl_blocks_unauthenticated_read ... ok
+test jss_container_get_links_have_consistent_header_order ... ok
+test jss_delete_missing_returns_404 ... ok
+test jss_dev_session_carries_admin_flag ... ok
+test jss_delete_resource_returns_204 ... ok
+test jss_header_catalog_sanity ... ok
+test jss_get_missing_returns_404 ... ok
+test jss_get_resource_jsonld_content_type ... ok
+test jss_if_match_preconditions_block_concurrent_update ... ok
+test jss_json_patch_applies_over_pod_resource ... ok
+test jss_get_non_container_emits_etag ... ok
+test jss_forbidden_write_returns_403 ... ok
+test jss_link_header_exposes_describedby ... ok
+test jss_ldp_container_contains_member_iris ... ok
+test jss_options_container_advertises_accept_post_and_ranges ... ok
+test jss_nip05_lookup_binds_pubkey_to_name ... ok
+test jss_options_resource_surfaces_patch_dialects ... ok
+test jss_patch_dialect_includes_json_patch ... ok
+test jss_options_container_lists_accept_post ... ok
+test jss_meta_sidecar_link_always_present_on_non_meta_resources ... ok
+test jss_prefer_compose_include_minimal_and_contained_iris ... ok
+test jss_pod_root_exposes_pim_storage_link ... ok
+test jss_prefer_contained_iris_only_returns_iri_list ... ok
+test jss_put_existing_returns_204 ... ok
+test jss_prefer_minimal_container_omits_contains ... ok
+test jss_put_to_container_without_link_returns_405 ... ok
+test jss_put_to_container_with_basic_container_link_creates_container ... ok
+test jss_quota_reserves_and_releases_consistently ... ok
+test jss_put_resource_returns_201_with_location ... ok
+test jss_slug_safe_names_pass_through_unchanged ... ok
+test jss_range_request_returns_slice ... ok
+test jss_response_always_has_type_link ... ok
+test jss_webfinger_acct_resolves_webid ... ok
+test jss_unsupported_method_returns_405 ... ok
+test jss_turtle_acl_control_grants_acl_rw ... ok
+test jss_provision_pod_seeds_profile_and_containers ... ok
+test jss_well_known_solid_exposes_storage_and_issuer ... ok
+test jss_turtle_acl_fallback_grants_public_read ... ok
+test jss_webid_includes_oidc_issuer_for_follow_your_nose ... ok
+test jss_get_container_link_headers_match ... FAILED
+
+failures:
+
+---- jss_get_container_link_headers_match stdout ----
+
+thread 'jss_get_container_link_headers_match' (2138620) panicked at crates/solid-pod-rs/tests/interop_jss.rs:338:9:
+missing Link header: </container/.acl>; rel="acl"
+actual: ["<http://www.w3.org/ns/ldp#BasicContainer>; rel=\"type\"", "<http://www.w3.org/ns/ldp#Container>; rel=\"type\"", "<http://www.w3.org/ns/ldp#Resource>; rel=\"type\"", "</container.acl>; rel=\"acl\"", "</container/.meta>; rel=\"describedby\""]
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: interop_jss::jss_get_container_link_headers_match::{closure#0}
+             at ./tests/interop_jss.rs:338:9
+   3: <core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>> as core::future::future::Future>::poll
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/future/future.rs:133:9
+   4: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:830:70
+   5: tokio::task::coop::with_budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/coop/mod.rs:167:5
+   6: tokio::task::coop::budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/coop/mod.rs:133:5
+   7: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:830:25
+   8: <tokio::runtime::scheduler::current_thread::Context>::enter::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:486:19
+   9: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:829:44
+  10: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}, core::option::Option<()>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:906:68
+  11: <tokio::runtime::context::scoped::Scoped<tokio::runtime::scheduler::Context>>::set::<<tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}, core::option::Option<()>>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/scoped.rs:40:9
+  12: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context.rs:186:38
+  13: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::try_with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:463:12
+  14: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:427:20
+  15: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}, core::option::Option<()>>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context.rs:186:17
+  16: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}, core::option::Option<()>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:906:27
+  17: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:819:24
+  18: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:216:33
+  19: tokio::runtime::context::runtime::enter_runtime::<<tokio::runtime::scheduler::current_thread::CurrentThread>::block_on<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}, ()>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/runtime.rs:65:16
+  20: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:204:9
+  21: <tokio::runtime::runtime::Runtime>::block_on_inner::<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/runtime.rs:379:52
+  22: <tokio::runtime::runtime::Runtime>::block_on::<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/runtime.rs:348:18
+  23: interop_jss::jss_get_container_link_headers_match
+             at ./tests/interop_jss.rs:345:67
+  24: interop_jss::jss_get_container_link_headers_match::{closure#0}
+             at ./tests/interop_jss.rs:318:48
+  25: <interop_jss::jss_get_container_link_headers_match::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+  26: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+
+failures:
+    jss_get_container_link_headers_match
+
+test result: FAILED. 42 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+error: test failed, to rerun pass `--test interop_jss`
+     Running tests/jti_replay_sprint9.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/jti_replay_sprint9-7389e2417cdec137)
+
+running 5 tests
+test capacity_evicts_oldest ... ok
+test first_insert_succeeds ... ok
+test second_insert_same_jti_fails_with_replay_error ... ok
+test thread_safe_concurrent_inserts ... ok
+test expired_jti_allows_reuse ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/ldp_headers_jss.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/ldp_headers_jss-b68db234edbfcd6c)
+
+running 9 tests
+test accept_ranges_container_is_none ... ok
+test accept_ranges_resource_is_bytes ... ok
+test not_found_headers_container_includes_accept_post ... ok
+test discovery_uses_the_same_container_sidecar_on_success_and_not_found ... ok
+test not_found_headers_include_acl_link ... ok
+test not_found_headers_include_allow_without_delete ... ok
+test not_found_headers_resource_omits_accept_post ... ok
+test vary_conneg_off_omits_accept ... ok
+test vary_conneg_on_includes_accept ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/ldp_patch_create_jss.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/ldp_patch_create_jss-ab211f53722e51c2)
+
+running 4 tests
+test json_patch_against_absent_resource_returns_unsupported ... ok
+test sparql_insert_data_against_absent_resource_seeds_empty_graph ... ok
+test n3_delete_only_patch_against_absent_is_empty_create ... ok
+test n3_patch_against_absent_resource_returns_created ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/ldp_range_jss.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/ldp_range_jss-35c1372e1bc02b34)
+
+running 5 tests
+test range_against_empty_body_returns_not_satisfiable ... ok
+test range_full_resource_returns_partial ... ok
+test range_no_header_returns_full ... ok
+test range_suffix_request_returns_partial ... ok
+test range_past_end_returns_not_satisfiable ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/ldp_slug_jss.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/ldp_slug_jss-a4df0bfd467a32a1)
+
+running 9 tests
+test slug_absent_falls_back_to_uuid ... ok
+test slug_over_255_bytes_returns_bad_request ... ok
+test slug_empty_falls_back_to_uuid ... ok
+test slug_rejects_non_ascii_whitespace ... ok
+test slug_valid_allows_dot_underscore_dash ... ok
+test slug_valid_lowercase_preserved ... ok
+test slug_with_dotdot_returns_bad_request ... ok
+test slug_with_null_byte_returns_bad_request ... ok
+test slug_with_slash_returns_bad_request ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/legacy_notifications_sprint11.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/legacy_notifications_sprint11-db9fc1db55c2781a)
+
+running 11 tests
+test ancestor_containers_dedups_trailing_slash ... ok
+test ancestor_containers_handles_leaf ... ok
+test ancestor_containers_handles_root ... ok
+test pub_emits_for_exact_match ... ok
+test pub_fans_out_to_ancestor_containers ... ok
+test sub_registers_subscription_and_acks ... ok
+test unknown_command_returns_err ... ok
+test per_sub_wac_read_check_denies_forbidden ... ok
+test rejects_url_over_2kib ... ok
+test unsub_removes_subscription_and_acks ... ok
+test caps_at_100_subs_per_connection ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/legacy_notifications_test.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/legacy_notifications_test-67b115e2a1e463a3)
+
+running 7 tests
+test f3a_to_legacy_line_created_is_pub_uri ... ok
+test f3b_parse_subscribe_valid_line ... ok
+test f3c_parse_subscribe_rejects_malformed ... ok
+test f3d_subscription_prefix_match ... ok
+test unknown_opcode_closes_connection ... ok
+test f3d_end_to_end_pub_fanout_to_container_subscriber ... ok
+test f3e_heartbeat_emits_blank_line_on_interval ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running tests/legacy_wac_check.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/legacy_wac_check-380df22fa06d3994)
+
+running 4 tests
+test legacy_default_authorizer_is_deny_all_failclosed ... ok
+test legacy_cross_origin_subscription_rejected ... ok
+test legacy_wac_allowed_subscription_succeeds ... ok
+test legacy_wac_denial_emits_forbidden_frame ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/n3_patch_quads.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/n3_patch_quads-86fe3b9fd9d38fd1)
+
+running 20 tests
+test a_document_without_a_patch_resource_is_rejected ... ok
+test an_unbound_variable_is_a_conflict ... ok
+test deleting_an_absent_triple_is_a_conflict ... ok
+test insert_keeps_existing_triples ... ok
+test ntriples_reader_refuses_turtle_lists_instead_of_dropping_triples ... ok
+test empty_formulas_are_no_ops ... ok
+test legacy_wrapper_still_applies_ground_patches ... ok
+test non_ascii_literals_round_trip_through_patch_and_storage ... ok
+test prefixed_names_typed_literals_multiline_strings_and_relative_iris_survive ... ok
+test ntriples_reader_decodes_utf8_and_unicode_escapes ... ok
+test patch_blank_nodes_never_merge_with_the_documents_own ... ok
+test where_clause_that_matches_more_than_once_is_a_conflict ... ok
+test where_clause_that_does_not_match_is_a_conflict ... ok
+test where_clause_binds_variables_once ... ok
+test where_evaluation_is_bounded ... ok
+test long_equal_length_terms_do_not_slow_the_join ... ok
+test the_match_step_budget_is_enforced ... ok
+test a_large_bound_literal_is_not_copied_per_step ... ok
+test a_rare_pattern_with_fewer_constants_is_joined_first ... ok
+test a_selective_where_succeeds_in_either_pattern_order ... ok
+
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.47s
+
+     Running tests/nip05_endpoint_smoke.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/nip05_endpoint_smoke-b2f63923f7476ad8)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/nip98_extended.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/nip98_extended-d6e336dc1a507e00)
+
+running 4 tests
+test nip98_skew_window_enforced ... ok
+test nip98_method_tag_mismatch_rejected ... ok
+test nip98_payload_hash_required_when_present ... ok
+test nip98_skew_within_window_accepted ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/nodeinfo_jss.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/nodeinfo_jss-6f4451974d7e5678)
+
+running 7 tests
+test nodeinfo_2_1_advertises_activitypub_protocol ... ok
+test nodeinfo_2_1_user_count_in_usage ... ok
+test nodeinfo_2_1_software_name_and_version_round_trip ... ok
+test nodeinfo_2_1_open_registrations_flag_round_trips ... ok
+test nodeinfo_2_1_advertises_solid_protocol ... ok
+test nodeinfo_discovery_strips_trailing_slash ... ok
+test nodeinfo_discovery_emits_link_to_2_1 ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/notifications_mod_direct.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/notifications_mod_direct-d5506691f4379514)
+
+running 11 tests
+test discovery_document_serialises_to_jsonld ... ok
+test discovery_document_advertises_all_channels ... ok
+test change_notification_serialises_with_activity_streams_envelope ... ok
+test inmemory_notifications_drops_subscription_on_close ... ok
+test inmemory_notifications_emits_to_subscribers ... ok
+test inmemory_notifications_filters_unrelated_resources ... ok
+test webhook_channel_manager_constructs_with_default_config ... ok
+test websocket_channel_manager_broadcasts_via_trait ... ok
+test subscription_matches_exact_resource_uri ... ok
+test subscription_prefix_matches_container_subtree ... ok
+test websocket_channel_manager_smoke ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/oidc_access_token_alg.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/oidc_access_token_alg-074bacb3fbdc7f28)
+
+running 3 tests
+test oidc_access_token_rs256_rejected_when_hs256_only_configured ... ok
+test oidc_access_token_alg_none_rejected ... ok
+test oidc_access_token_dispatches_es256_against_jwks ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/oidc_compat_matrix.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/oidc_compat_matrix-7dc1e8b5711b388b)
+
+running 28 tests
+test a3_discovery_endpoints_are_absolute_and_issuer_prefixed ... ok
+test a1_discovery_emits_exactly_the_documented_field_set ... ok
+test a2_discovery_normalises_trailing_slashes_on_the_issuer ... ok
+test a4_discovery_advertises_the_adr2003_algorithm_lists ... ok
+test b1_issuer_match_verifies ... ok
+test b3_discovery_normalised_issuer_round_trips_into_the_verifier ... ok
+test c2_audience_member_is_structurally_required ... ok
+test d11_asymmetric_token_against_a_symmetric_keyset_is_refused ... ok
+test d12_a_tampered_signature_is_refused ... ok
+test b2_issuer_comparison_is_exact_string_equality ... ok
+test d1_missing_webid_claim_with_non_url_sub_is_refused ... ok
+test d4_non_http_identity_schemes_are_not_webids ... ok
+test d3_blank_webid_and_non_url_sub_is_refused ... ok
+test d7_unsupported_jwk_key_types_have_no_thumbprint ... ok
+test d5_cnf_absent_is_refused ... ok
+test d2_blank_webid_claim_falls_back_to_a_url_shaped_sub ... ok
+test d8_alg_none_is_refused_under_every_keyset ... ok
+test d9_symmetric_alg_is_refused_against_an_asymmetric_keyset ... ok
+test d6_cnf_jkt_must_equal_the_presented_dpop_key_thumbprint ... ok
+test c1_audience_must_name_solid ... ok
+test d10_unsupported_asymmetric_algs_are_refused_by_dispatch ... ok
+test e1_expired_token_is_refused ... ok
+test e2_expiry_boundary_is_exp_less_than_now ... ok
+test f1_deprecated_hs256_shim_delegates_to_the_dispatching_form ... ok
+test e3_expiry_is_checked_before_the_cnf_binding ... ok
+test dpop_stitch::g3_dpop_typ_must_be_dpop_jwt ... ok
+test dpop_stitch::g1_dpop_jkt_is_the_binding_the_access_token_must_carry ... ok
+test dpop_stitch::g2_dpop_claims_htm_htu_iat_and_ath_are_enforced ... ok
+
+test result: ok. 28 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/oidc_dpop_signature.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/oidc_dpop_signature-996099752b6ec467)
+
+running 5 tests
+test oidc_dpop_alg_none_is_rejected ... ok
+test oidc_dpop_rejects_hs256_with_ec_jwk ... ok
+test oidc_dpop_rejects_unsigned_proof ... ok
+test oidc_dpop_es256_valid_proof_authenticates ... ok
+test oidc_dpop_ath_binding_enforced ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/oidc_integration.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/oidc_integration-6ec58a0ecdd85e1c)
+
+running 5 tests
+test oidc_e2e_dynamic_registration_round_trip ... ok
+test acl_serialise_round_trip_evaluates_identically ... ok
+test oidc_e2e_discovery_to_evaluate ... ok
+test oidc_dpop_proof_replay_cache_blocks_second_use ... ok
+test nip98_to_wac_bridge ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/oidc_jwks_ssrf.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/oidc_jwks_ssrf-3f398050bf54d499)
+
+running 7 tests
+test oidc_jwks_fetch_blocks_metadata_ip ... ok
+test oidc_jwks_issuer_fixation_check ... ok
+test oidc_jwks_fetch_runs_ssrf_twice ... ok
+test oidc_config_cache_returns_cached_within_ttl ... ok
+test oidc_discovery_refuses_redirect_to_denied_host ... ok
+test oidc_jwks_refuses_redirect_to_denied_host ... ok
+test oidc_jwks_accepts_direct_approved_endpoints ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/oidc_mod_direct.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/oidc_mod_direct-ab33ecb8e18ead59)
+
+running 13 tests
+test access_token_verified_carries_all_fields ... ok
+test cnf_claim_jkt_round_trips ... ok
+test discovery_for_emits_minimum_required_metadata ... ok
+test extract_webid_errors_when_neither_present ... ok
+test extract_webid_falls_back_to_sub ... ok
+test extract_webid_prefers_explicit_webid_claim ... ok
+test discovery_for_serialises_to_well_known_shape ... ok
+test introspection_response_round_trips ... ok
+test register_client_round_trips_via_serde ... ok
+test verify_dpop_proof_rejects_iat_outside_skew ... ok
+test verify_dpop_proof_rejects_wrong_htm ... ok
+test verify_dpop_proof_rejects_wrong_htu ... ok
+test verify_dpop_proof_happy_path_returns_jkt ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/oidc_thumbprint_rfc7638.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/oidc_thumbprint_rfc7638-1ae64e5836441e3b)
+
+running 3 tests
+test oidc_jwk_thumbprint_ec_is_canonical ... ok
+test oidc_jwk_thumbprint_matches_rfc7638_test_vector ... ok
+test oidc_jwk_thumbprint_field_order_invariant ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/parity_close.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/parity_close-a15e734375e2c1e9)
+
+running 22 tests
+test admin_override_rejects_length_mismatch ... ok
+test dev_session_default_is_not_admin ... ok
+test if_none_match_star_creates_only_when_absent ... ok
+test if_none_match_on_get_304 ... ok
+test if_match_concurrent_update_fails_with_412 ... ok
+test json_patch_move_op_reshapes_document ... ok
+test json_patch_copy_duplicates_value ... ok
+test json_patch_array_append_with_dash ... ok
+test options_advertises_accept_patch_and_ranges ... ok
+test nip05_verify_happy_path ... ok
+test quota_rejects_over_limit_writes ... ok
+test range_slice_matches_parsed_bounds ... ok
+test range_suffix_returns_tail ... ok
+test range_unsatisfiable_yields_error ... ok
+test provision_inner_only_acl_is_invisible_to_resolver ... ok
+test webfinger_acct_lookup_returns_links ... ok
+test well_known_solid_embeds_storage_and_issuer ... ok
+test turtle_acl_round_trip_preserves_modes ... ok
+test provision_sibling_acl_grants_owner_write_on_deep_pod_path ... ok
+test turtle_acl_resolver_reads_ttl_sidecar ... ok
+test webid_with_issuer_round_trips_issuer ... ok
+test provision_pod_creates_webid_and_containers ... ok
+
+test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/parity_sprint12.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/parity_sprint12-0c9728890d3fd135)
+
+running 6 tests
+test default_allowed_constant_includes_account ... ok
+test dotfile_allowlist_with_defaults_includes_account ... ok
+test is_path_allowed_function_exists ... ok
+test max_acl_bytes_is_one_mib ... ok
+test parse_turtle_acl_with_limit_exists_and_rejects_oversized ... ok
+test pod_error_payload_too_large_variant_exists ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/provenance_receipts.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/provenance_receipts-6c7c211b4ecd3ef1)
+
+running 14 tests
+test excluded_control_plane_paths_have_their_own_skip_reason ... ok
+test an_anchor_policy_with_no_anchorer_is_reported_not_silently_degraded ... ok
+test a_failed_anchor_never_suppresses_a_successful_mark ... ok
+test a_confirmed_anchor_is_a_distinct_stronger_result ... ok
+test a_failed_mark_is_surfaced_not_swallowed ... ok
+test default_build_reaches_local_mark_committed ... ok
+test an_unconfirmed_anchor_is_not_reported_as_confirmed ... ok
+test skipped_receipts_are_not_failures ... ok
+test stage_identifiers_are_stable ... ok
+test high_value_anchors_only_when_flagged ... ok
+test the_anchor_is_not_attempted_when_the_policy_does_not_ask_for_it ... ok
+test the_summary_is_header_safe ... ok
+test the_summary_is_bounded ... ok
+test the_receipt_round_trips_through_json ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/quota_fs.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/quota_fs-ce0fb9c08347ffa4)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/quota_race.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/quota_race-8b6c4c4d371a0c48)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/rate_limit_lru.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/rate_limit_lru-83e8b864b638f61a)
+
+running 7 tests
+test lru_limiter_allows_under_threshold ... ok
+test lru_limiter_denies_at_threshold ... ok
+test lru_limiter_recovers_after_window ... ok
+test lru_limiter_denies_per_subject_independently ... ok
+test lru_limiter_route_isolation ... ok
+test lru_limiter_async_check_delegates ... ok
+test lru_limiter_window_slides_per_hit ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/rdf_input_jss_differential.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/rdf_input_jss_differential-83827d7ec8b964e6)
+
+running 3 tests
+test comparator_distinguishes_graphs ... ok
+test n3_restricted_constructs_are_never_stored ... ok
+test corpus_matches_jss_parser ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/schnorr_nip98.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/schnorr_nip98-86da6f73fb6efa34)
+
+running 2 tests
+test schnorr_verify_rejects_tampered_event_id ... ok
+test schnorr_verify_rejects_fake_signature ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/security_primitives_test.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/security_primitives_test-b0df595da34c2b9c)
+
+running 17 tests
+test f1a_classify_cloud_metadata_is_reserved ... ok
+test f1a_classify_loopback_and_public ... ok
+test f1a_classify_rfc1918_private ... ok
+test f1b_classify_ipv6_link_local ... ok
+test f1b_classify_ipv6_loopback ... ok
+test f1_missing_host_is_rejected ... ok
+test f1b_classify_ipv6_public ... ok
+test f1b_classify_ipv6_ula_private ... ok
+test f1c_allowlist_permits_loopback ... ok
+test f1c_no_allowlist_blocks_loopback ... ok
+test f2_env_without_dot_prefix_is_normalised ... ok
+test f1d_denylist_overrides_public ... ok
+test f2a_default_allowlist_permits_acl_and_meta ... ok
+test f2b_default_allowlist_blocks_env ... ok
+test f1e_loopback_url_rejected_when_default ... ok
+test f2c_env_allowlist_permits_listed_entries ... ok
+test f2d_nested_dotfile_rejected ... ok
+
+test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/server_routes_jss.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/server_routes_jss-276f641536d2ba40)
+
+running 14 tests
+test server_post_to_container_creates_child_with_slug ... ok
+test server_well_known_solid_returns_jsonld ... ok
+test server_patch_unknown_dialect_returns_415 ... ok
+test server_post_pods_creates_pod_and_returns_jss_shape ... ok
+test server_post_pods_is_limited_to_one_per_ip_per_day ... ok
+test server_options_container_advertises_accept_post_and_accept_patch ... ok
+test server_patch_n3_mutates_existing_resource ... ok
+test server_well_known_webfinger_returns_jrd ... ok
+test server_post_to_container_returns_201_with_location ... ok
+test server_well_known_nodeinfo_advertises_2_1 ... ok
+test server_post_with_invalid_slug_returns_400 ... ok
+test server_well_known_nodeinfo_2_1_includes_solid_and_activitypub ... ok
+test server_options_resource_omits_accept_post ... ok
+test server_patch_sparql_inserts_into_empty_resource_returns_201 ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/server_security.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/server_security-a7dcebc45d4747fe)
+
+running 7 tests
+test server_dotfile_block_unless_allowlisted ... ok
+test server_normalises_percent_encoded_dotdot ... ok
+test server_anonymous_put_to_protected_resource_returns_401 ... ok
+test server_put_over_body_cap_returns_413 ... ok
+test server_normalises_double_percent_encoded_dotdot ... ok
+test server_authenticated_put_with_no_acl_grant_returns_403 ... ok
+test server_put_under_body_cap_succeeds ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/sparql_fuzzing.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/sparql_fuzzing-9753453f8c798578)
+
+running 6 tests
+test sparql_empty_input_returns_zero_mutations ... ok
+test sparql_null_bytes_do_not_panic ... ok
+test sparql_update_rejects_oversized_input ... ok
+test sparql_update_accepts_input_at_exact_limit ... ok
+test sparql_structured_variants_do_not_panic ... ok
+test sparql_random_ascii_does_not_panic ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/sprint12_security.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/sprint12_security-e0028d5b8d35800b)
+
+running 15 tests
+test dotdot_bypass_attempt_rejected_by_free_function ... ok
+test acl_max_bytes_is_one_mib ... ok
+test dotfile_filter_allows_account ... ok
+test dotfile_filter_allows_solid_sidecars ... ok
+test dotdot_traversal_rejected_by_dotfile_allowlist ... ok
+test dotfile_filter_blocks_env ... ok
+test free_function_allows_account ... ok
+test empty_and_root_paths_allowed ... ok
+test free_function_blocks_env ... ok
+test nested_hidden_file_blocked ... ok
+test turtle_acl_one_byte_over_limit_rejected ... ok
+test turtle_acl_exactly_at_limit_passes ... ok
+test turtle_acl_valid_within_limits_parses ... ok
+test jsonld_acl_oversized_returns_payload_too_large ... ok
+test turtle_acl_oversized_returns_payload_too_large ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/storage_trait.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/storage_trait-98625a2d98f1103d)
+
+running 15 tests
+test memory_delete_then_get_404 ... ok
+test memory_etag_changes_on_update ... ok
+test memory_head_without_body ... ok
+test memory_exists ... ok
+test memory_put_get_roundtrip ... ok
+test memory_list_direct_children ... ok
+test memory_concurrent_writes ... ok
+test fs_head_without_body ... ok
+test fs_delete_then_get_404 ... ok
+test fs_exists ... ok
+test fs_put_get_roundtrip ... ok
+test fs_etag_changes_on_update ... ok
+test memory_watch_receives_event ... ok
+test fs_list_direct_children ... ok
+test fs_concurrent_writes ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.11s
+
+     Running tests/teller_ledger_oracle.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/teller_ledger_oracle-599b9f4adb2c3138)
+
+running 3 tests
+test ledger_hash_matches_teller ... ok
+test receipts_apply_as_teller_applies_them ... ok
+test teller_cache_document_reads_and_checks ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/tenancy_subdomain.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/tenancy_subdomain-f35deaf110e0f6d8)
+
+running 6 tests
+test path_resolver_passes_through ... ok
+test subdomain_resolver_maps_alice_example_org ... ok
+test subdomain_resolver_root_when_host_equals_base ... ok
+test subdomain_resolver_rejects_dotdot_in_pod ... ok
+test subdomain_resolver_strips_port ... ok
+test subdomain_resolver_unknown_subdomain_falls_back_to_path ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/wac2_conditions.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/wac2_conditions-a03a963d40b258ee)
+
+running 8 tests
+test condition_outcome_variants_are_distinct ... ok
+test wac2_acl_condition_client_mismatch_denies ... ok
+test wac2_acl_condition_client_matches_permits ... ok
+test wac2_acl_condition_issuer_group_membership ... ok
+test wac2_unknown_condition_type_fails_closed ... ok
+test wac2_wac_allow_header_omits_gated_modes ... ok
+test wac2_monotonicity_invariant ... ok
+test wac2_conjunctive_conditions_and_gate ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/wac2_conditions_sprint9.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/wac2_conditions_sprint9-7992c93a7ccb454b)
+
+running 13 tests
+test authz_with_unknown_condition_is_skipped_fail_closed ... ok
+test issuer_condition_evaluation_matches_exact_issuer ... ok
+test client_condition_evaluation_matches_exact_client_id ... ok
+test provenance_anchor_does_not_block_authorisation ... ok
+test parses_client_condition_with_single_client ... ok
+test parses_issuer_condition_with_multiple_issuers ... ok
+test provenance_anchor_turtle_defaults_to_epoch ... ok
+test serializer_round_trip_preserves_conditions ... ok
+test validate_accepts_provenance_anchor_no_422 ... ok
+test serializer_round_trip_preserves_provenance_anchor ... ok
+test unknown_condition_type_is_parsed_and_retained ... ok
+test parses_provenance_anchor_condition_from_turtle ... ok
+test validate_rejects_acl_with_unknown_condition ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/wac_basic.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/wac_basic-46ad80f4243e098a)
+
+running 6 tests
+test no_acl_denies_by_default ... ok
+test agent_without_grant_is_denied ... ok
+test public_foaf_agent_read_allows_anonymous ... ok
+test container_default_inherits_to_children ... ok
+test specific_agent_read_grants_that_agent ... ok
+test write_implies_append ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/wac_concurrent.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/wac_concurrent-31361960e6be417b)
+
+running 9 tests
+test ancestor_access_to_does_not_inherit_to_child ... ok
+test ancestor_default_does_inherit_to_child ... ok
+test watch_events_fire_for_acl_mutations ... ok
+test concurrent_delete_and_write_no_panic ... ok
+test contended_rwlock_many_spawned_tasks ... ok
+test resolver_walk_up_under_concurrent_mutations ... ok
+test two_writers_same_acl_no_corruption ... ok
+test rapid_sequential_mutations_verify_final_state ... ok
+test writer_reader_concurrency_consistent_reads ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/wac_inheritance.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/wac_inheritance-a867a49062108cdf)
+
+running 31 tests
+test access_to_does_not_inherit_by_itself ... ok
+test access_to_on_container_covers_direct_children ... ok
+test access_to_applies_to_resource_itself ... ok
+test access_to_and_default_both_apply_to_own_container ... ok
+test append_does_not_imply_write ... ok
+test authenticated_agent_excludes_anonymous ... ok
+test authenticated_agent_full_iri_accepted ... ok
+test child_explicit_acl_replaces_parent_default ... ok
+test child_explicit_without_mode_denies_even_if_parent_grants ... ok
+test default_does_not_apply_when_agent_unknown ... ok
+test default_mode_does_not_grant_unspecified_mode ... ok
+test control_does_not_imply_read ... ok
+test default_on_container_inherits_to_child_resource ... ok
+test empty_graph_denies_everyone ... ok
+test dot_prefixed_path_resolves ... ok
+test default_on_container_inherits_to_deep_descendant ... ok
+test foaf_agent_iri_full_form_accepted ... ok
+test group_membership_grants_access ... ok
+test empty_group_grants_nobody ... ok
+test missing_graph_treated_as_no_acl ... ok
+test group_without_resolver_denies ... ok
+test foaf_agent_covers_anonymous ... ok
+test multiple_agents_all_granted ... ok
+test multiple_modes_in_one_authorization ... ok
+test read_does_not_imply_append ... ok
+test root_default_covers_everything ... ok
+test struct_literal_authorization_works ... ok
+test trailing_slash_normalisation_on_container ... ok
+test unrelated_authorization_does_not_grant_unrelated_resource ... ok
+test union_of_authorizations_is_effective_permission ... ok
+test write_implies_append ... ok
+
+test result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/wac_parser_bounds.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/wac_parser_bounds-d22a1844a73a3a05)
+
+running 5 tests
+test wac_acl_recursion_bombs_rejected ... ok
+test wac_constants_are_sensible ... ok
+test wac_acl_depth_within_limit_succeeds ... ok
+test wac_turtle_acl_under_limit_succeeds ... ok
+test wac_turtle_acl_oversize_rejected ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/wac_payment_condition.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/wac_payment_condition-07dc4fe2d7b52d4d)
+
+running 12 tests
+test parse_payment_condition_full_iri ... ok
+test parse_payment_condition_json_numeric_cost ... ok
+test parse_payment_condition_json_string_cost ... ok
+test payment_condition_denies_without_payment_context ... ok
+test payment_condition_grants_with_sufficient_balance ... ok
+test payment_condition_on_write_mode ... ok
+test payment_condition_denies_insufficient_balance ... ok
+test payment_plus_client_condition_conjunctive ... ok
+test total_payment_cost_extracts_from_authorization ... ok
+test parse_payment_condition_turtle ... ok
+test validate_for_write_accepts_payment_condition ... ok
+test turtle_roundtrip_payment_condition ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/wac_policy_outcomes.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/wac_policy_outcomes-4b97fe0c5ac26893)
+
+running 20 tests
+test classifier_ascends_only_on_absence ... ok
+test classifier_settles_on_a_failed_read ... ok
+test classifier_settles_on_an_unparseable_body ... ok
+test backend_read_failure_is_unavailable_not_a_miss ... ok
+test an_invalid_ancestor_policy_also_stops_the_walk ... ok
+test classifier_stamps_the_inherited_flag ... ok
+test a_direct_policy_is_not_tagged_inherited ... ok
+test a_failing_ancestor_read_also_denies ... ok
+test classifier_accepts_turtle_by_content_type_and_by_sniff ... ok
+test depth_bombed_policy_is_invalid_not_inherited ... ok
+test malformed_specific_policy_denies_and_never_inherits ... ok
+test no_policy_anywhere_is_missing_not_a_failure ... ok
+test legacy_find_effective_acl_stays_fail_closed ... ok
+test missing_specific_policy_inherits_from_the_ancestor ... ok
+test non_utf8_policy_denies_and_never_inherits ... ok
+test trait_default_resolve_policy_adapts_a_legacy_implementor ... ok
+test revocation_to_no_policy_at_all_denies_by_default ... ok
+test revoking_a_specific_policy_falls_back_to_the_ancestor ... ok
+test oversized_policy_is_invalid_not_inherited ... ok
+test broken_turtle_policy_denies_and_never_inherits ... FAILED
+
+failures:
+
+---- broken_turtle_policy_denies_and_never_inherits stdout ----
+
+thread 'broken_turtle_policy_denies_and_never_inherits' (2139164) panicked at crates/solid-pod-rs/tests/wac_policy_outcomes.rs:279:18:
+expected a terminating Found, got Invalid { policy_path: "/secret.acl", reason: Malformed("ACL parse error: malformed ACL statement") }
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: wac_policy_outcomes::broken_turtle_policy_denies_and_never_inherits::{closure#0}
+             at ./tests/wac_policy_outcomes.rs:279:18
+   3: <core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>> as core::future::future::Future>::poll
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/future/future.rs:133:9
+   4: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:830:70
+   5: tokio::task::coop::with_budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/coop/mod.rs:167:5
+   6: tokio::task::coop::budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/coop/mod.rs:133:5
+   7: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:830:25
+   8: <tokio::runtime::scheduler::current_thread::Context>::enter::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:486:19
+   9: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:829:44
+  10: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}, core::option::Option<()>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:906:68
+  11: <tokio::runtime::context::scoped::Scoped<tokio::runtime::scheduler::Context>>::set::<<tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}, core::option::Option<()>>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/scoped.rs:40:9
+  12: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context.rs:186:38
+  13: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::try_with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:463:12
+  14: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:427:20
+  15: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}, core::option::Option<()>>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context.rs:186:17
+  16: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}, core::option::Option<()>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:906:27
+  17: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:819:24
+  18: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:216:33
+  19: tokio::runtime::context::runtime::enter_runtime::<<tokio::runtime::scheduler::current_thread::CurrentThread>::block_on<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>::{closure#0}, ()>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/runtime.rs:65:16
+  20: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:204:9
+  21: <tokio::runtime::runtime::Runtime>::block_on_inner::<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/runtime.rs:379:52
+  22: <tokio::runtime::runtime::Runtime>::block_on::<core::pin::Pin<&mut dyn core::future::future::Future<Output = ()>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/runtime.rs:348:18
+  23: wac_policy_outcomes::broken_turtle_policy_denies_and_never_inherits
+             at ./tests/wac_policy_outcomes.rs:290:59
+  24: wac_policy_outcomes::broken_turtle_policy_denies_and_never_inherits::{closure#0}
+             at ./tests/wac_policy_outcomes.rs:251:58
+  25: <wac_policy_outcomes::broken_turtle_policy_denies_and_never_inherits::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+  26: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+
+failures:
+    broken_turtle_policy_denies_and_never_inherits
+
+test result: FAILED. 19 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+error: test failed, to rerun pass `--test wac_policy_outcomes`
+     Running tests/wac_validate_for_write.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/wac_validate_for_write-f4afc5eab3eba035)
+
+running 3 tests
+test wac_validate_for_write_accepts_known_conditions ... ok
+test wac_validate_for_write_accepts_no_conditions ... ok
+test wac_validate_for_write_rejects_unknown_with_iri ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/webhook_retry.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/webhook_retry-fc699f07346cac72)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/webhook_signing.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/webhook_signing-c6c94df9c525eaae)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running benches/dpop_replay_bench.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/dpop_replay_bench-e26362d4c42e5eba)
+Gnuplot not found, using plotters backend
+Testing dpop_replay_fresh/check_and_record_hot
+Success
+
+Testing dpop_replay_concurrent/1
+Success
+Testing dpop_replay_concurrent/4
+Success
+Testing dpop_replay_concurrent/10
+Success
+
+     Running benches/ldp_content_negotiation_bench.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/ldp_content_negotiation_bench-bd6ade7dbcee891d)
+Gnuplot not found, using plotters backend
+Testing negotiate_format_realistic
+Success
+
+Testing parse_ntriples_100_triples
+Success
+
+Testing roundtrip_ntriples_to_jsonld_container
+Success
+
+     Running benches/nip98_verify_bench.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/nip98_verify_bench-392c46fecabf0943)
+Gnuplot not found, using plotters backend
+Testing nip98_verify_valid_no_body
+Success
+
+Testing nip98_verify_valid_with_body
+Success
+
+Testing nip98_verify_tampered_body
+Success
+
+     Running benches/storage_backend_bench.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/storage_backend_bench-b66b0e2b1cc4fe93)
+Gnuplot not found, using plotters backend
+Testing storage_put_1mb/memory
+Success
+Testing storage_put_1mb/fs
+Success
+
+Testing storage_random_get/memory
+Success
+Testing storage_random_get/fs
+Success
+
+Testing storage_list_10k/memory
+Success
+Testing storage_list_10k/fs
+Success
+
+     Running benches/wac_eval_bench.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/wac_eval_bench-03194abc92b211f6)
+Gnuplot not found, using plotters backend
+Testing wac_simple_1_rule
+Success
+
+Testing wac_inherited_10_deep
+Success
+
+Testing wac_group_1k_members
+Success
+
+     Running unittests examples/custom_storage.rs (/home/devuser/workspace/solid-pod-rs/target/debug/examples/custom_storage-c5ac8ad1719fa3ba)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests examples/embed_in_actix.rs (/home/devuser/workspace/solid-pod-rs/target/debug/examples/embed_in_actix-f1ebde76851d252a)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests examples/nip98_client.rs (/home/devuser/workspace/solid-pod-rs/target/debug/examples/nip98_client-28102c12304c3262)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests examples/notifications_consumer.rs (/home/devuser/workspace/solid-pod-rs/target/debug/examples/notifications_consumer-8973484007c2353d)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests examples/oidc_client.rs (/home/devuser/workspace/solid-pod-rs/target/debug/examples/oidc_client-0fe1e54bc4af8c5e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests examples/wac_admin.rs (/home/devuser/workspace/solid-pod-rs/target/debug/examples/wac_admin-e6ca819a7a2e02d4)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests examples/webhook_receiver.rs (/home/devuser/workspace/solid-pod-rs/target/debug/examples/webhook_receiver-d53ae952b9a882b2)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: 2 targets failed:
+    `--test interop_jss`
+    `--test wac_policy_outcomes`
+EXIT 101

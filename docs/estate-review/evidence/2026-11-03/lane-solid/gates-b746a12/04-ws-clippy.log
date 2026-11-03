@@ -1,0 +1,3 @@
+== 04-ws-clippy: cargo clippy --workspace --all-targets -- -D warnings
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.43s
+EXIT 0

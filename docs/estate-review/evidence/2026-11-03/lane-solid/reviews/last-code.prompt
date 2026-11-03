@@ -1,0 +1,4 @@
+Repository: /home/devuser/workspace/wt/solid-pod-rs-parity-rescue. Read-only: do not edit, build or run tests.
+Commit b746a12 (HEAD) answers the previous review of 2bedceb: term interning and a selectivity-ranked join in crates/solid-pod-rs/src/n3_patch.rs (solutions/extend), Term derives Hash, the PATCH seed falls back to the lenient N-Triples reader on any Turtle failure again (as main did), and CHANGELOG corrections.
+Review `git show HEAD` with whatever surrounding code you need. Report ONLY defects of Medium severity or higher that this commit introduces or fails to fix (correctness of the join: soundness, completeness, early-exit-at-two logic, repeated variables within one pattern, unbound UNBOUND sentinel handling, u32 overflow; authorisation; regressions of main's 3 Nov repairs). Numbered, with file:line, scenario, fix, CONFIRMED/SUSPECTED. If none, say "No Medium-or-higher findings." in one line. No praise.
+Role: senior Rust code reviewer.

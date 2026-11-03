@@ -1,0 +1,5 @@
+== 12-core-all-doc: cargo doc --no-deps --all-features
+ Documenting solid-pod-rs v0.5.0-alpha.19 (/home/devuser/workspace/wt/solid-pod-rs-preexisting/crates/solid-pod-rs)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.23s
+   Generated /home/devuser/workspace/solid-pod-rs/target/doc/solid_pod_rs/index.html
+EXIT 0

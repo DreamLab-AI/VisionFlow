@@ -1,0 +1,695 @@
+== 03-server-devbearer: cargo test -p solid-pod-rs-server --features dev-bearer --all-targets --no-fail-fast
+   Compiling solid-pod-rs-server v0.5.0-alpha.19 (/home/devuser/workspace/wt/solid-pod-rs-parity-rescue/crates/solid-pod-rs-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2m 16s
+     Running unittests src/lib.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/solid_pod_rs_server-e25c1dbb5ef635a4)
+
+running 111 tests
+test cli::install::tests::full_url_is_verbatim_and_strips_dot_git ... ok
+test cli::install::tests::bare_name_resolves_to_solid_apps_org ... ok
+test cli::install::tests::org_repo_resolves_to_github ... ok
+test cli::install::tests::empty_spec_errors ... ok
+test cli::install::tests::ref_only_keeps_default_dest ... ok
+test cli::install::tests::ref_pin_and_rename_parse ... ok
+test cross_identity::tests::linked_identities_filters ... ok
+test cross_identity::tests::malformed_pubkey_never_resolves ... ok
+test cross_identity::tests::local_profile_link_resolves ... ok
+test dev_bearer_tests::dev_bearer_enforces_audience_and_max_lifetime ... ok
+test cli::invite_store::tests::corrupt_file_is_an_error_not_a_silent_reset ... ok
+test live_reload_tests::injects_before_body_close_and_is_disabled_by_default ... ok
+test mcp::tools::tests::forwardable_auth_header_allowlist_is_case_insensitive ... ok
+test mcp::skills::tests::conventional_skill_paths_are_exact ... ok
+test handlers::pay::intent_recovery_tests::txid_of_a_witness_transaction_excludes_the_witness ... ok
+test dev_bearer_tests::simple_bearer_verifies_signature_and_expiry ... ok
+test mcp::tools::tests::forwardable_auth_header_rejects_dangerous_names ... ok
+test mempool::tests::already_known_reads_only_node_statements_about_the_same_tx ... ok
+test mempool::tests::empty_utxo_set_parses_to_empty_vec ... ok
+test mempool::tests::live_address_utxos_smoke ... ignored, hits live mempool.space; opt-in only
+test mempool::tests::tx_wire_flattens_outputs_and_status ... ok
+test mempool::tests::from_env_defaults_to_testnet4 ... ok
+test mempool::tests::tx_wire_reads_inputs ... ok
+test mempool::tests::new_trims_trailing_slash ... ok
+test mempool::tests::utxo_wire_flattens_status ... ok
+test payment_gating_tests::canonical_pod_path_vectors ... ok
+test payment_gating_tests::fixtures_use_teller_accounts_and_grant_the_principal ... ok
+test payment_gating_tests::guarded_acl_target_vectors ... ok
+test cli::invite_store::tests::stale_lock_file_is_broken ... ok
+test payment_gating_tests::protected_resource_for_acl_strips_suffixes ... ok
+test payment_gating_tests::resolve_balance_none_when_anonymous ... ok
+test payment_gating_tests::resolve_balance_reads_ledger_entry ... ok
+test payment_gating_tests::resolve_balance_zero_when_no_entry ... ok
+test payment_gating_tests::uncharged_read_skips_pay_per_read_resource ... ok
+test payment_gating_tests::wac_balance_uses_authoritative_state_after_a_stale_mirror ... ok
+test scheme::tests::allow_list_matches_host_and_authority ... ok
+test scheme::tests::configured_origin_beats_every_header ... ok
+test scheme::tests::forwarded_host_is_honoured_behind_trust_proxy ... ok
+test scheme::tests::forwarded_host_is_ignored_without_trust_proxy ... ok
+test scheme::tests::forwarded_proto_comma_list_takes_first_hop ... ok
+test scheme::tests::garbage_values_fall_back_to_transport ... ok
+test scheme::tests::hostile_host_values_are_not_reflected ... ok
+test scheme::tests::oversized_cf_visitor_is_ignored ... ok
+test scheme::tests::trusted_cf_visitor_used_when_no_forwarded_proto ... ok
+test scheme::tests::trusted_forwarded_proto_wins_over_cf_visitor ... ok
+test scheme::tests::untrusted_headers_are_ignored ... ok
+test scheme::tests::unusable_forwarded_proto_falls_through_to_cf_visitor ... ok
+test trail_store::tests::gitmark_trail_round_trips_and_publishes_no_secret ... ok
+test trail_store::tests::load_missing_trail_is_none ... ok
+test trail_store::tests::loaders_propagate_storage_errors_and_only_not_found_is_absent ... ok
+test trail_store::tests::merge_public_keeps_secret ... ok
+test trail_store::tests::save_then_load_round_trips ... ok
+test trail_store::tests::secret_and_prov_paths_compare_whole_segments ... ok
+test trail_store::tests::stored_trail_uses_camelcase_keys ... ok
+test trail_store::tests::to_public_drops_privkey ... ok
+test trail_store::tests::trail_path_lowercases ... ok
+test mempool::tests::block_anchorer_anchor_requires_storage ... ok
+test mempool::tests::block_anchorer_anchor_rejects_unminted_ticker ... ok
+test payment_gating_tests::enforce_read_denies_anonymous ... ok
+test payment_gating_tests::meta_put_denied_for_writer_without_control ... ok
+test payment_gating_tests::enforce_read_grants_owner ... ok
+test cli::invite_store::tests::file_is_owner_only ... ok
+test payment_gating_tests::enforce_read_denies_other_principal ... ok
+test payment_gating_tests::paid_write_anonymous_denied ... ok
+test payment_gating_tests::acl_put_allowed_for_control_holder ... ok
+test payment_gating_tests::acl_put_denied_for_writer_without_control ... ok
+test payment_gating_tests::free_read_does_not_debit ... ok
+test payment_gating_tests::paid_write_denied_below_balance ... ok
+test mempool::tests::http_client_presence_check_reaches_the_inherent_method ... ok
+test payment_gating_tests::paid_read_debits_ledger ... ok
+test cli::invite_store::tests::insert_is_idempotent_and_empty_store_lists_nothing ... ok
+test payment_gating_tests::paid_write_allowed_at_balance ... ok
+test handlers::pay::intent_recovery_tests::not_found_without_payout_receipt_retains_intent ... ok
+test handlers::pay::intent_recovery_tests::ledger_with_a_tampered_genesis_is_refused ... ok
+test payment_gating_tests::paid_write_allowed_above_balance ... ok
+test mcp::tools::tests::remote_bodies_are_capped ... ok
+test handlers::pay::intent_recovery_tests::known_transaction_keeps_debit_and_clears_intent ... ok
+test handlers::pay::intent_recovery_tests::ambiguous_server_failure_retains_debit_and_intent ... ok
+test payment_gating_tests::paid_write_debits_ledger ... ok
+test handlers::pay::intent_recovery_tests::definite_not_found_compensates_and_clears_intent ... ok
+test payment_gating_tests::paid_write_debits_each_grant ... ok
+test handlers::pay::intent_recovery_tests::recovery_still_moves_a_stale_trail_forward ... ok
+test handlers::pay::intent_recovery_tests::recovery_never_rolls_the_stored_trail_back ... ok
+test mempool::tests::block_anchorer_verify_false_when_the_anchor_tx_is_absent ... ok
+test nip98_request_binding_tests::authentication_binds_the_exact_raw_body ... ok
+test mempool::tests::block_anchorer_verify_false_without_pubkey ... ok
+test mempool::tests::block_anchorer_verify_false_when_address_forged ... ok
+test mempool::tests::block_anchorer_verify_false_when_an_earlier_mark_does_not_commit ... ok
+test nip98_request_binding_tests::authentication_binds_the_complete_query_string ... ok
+test mempool::tests::block_anchorer_refuses_an_intent_whose_txid_is_not_its_transaction ... ok
+test mempool::tests::block_anchorer_verify_true_when_every_link_is_on_chain ... ok
+test mempool::tests::block_anchorer_rejected_resend_with_an_unspent_head_drops_the_intent ... ok
+test mempool::tests::block_anchorer_accepted_broadcast_with_failed_save_is_not_a_failed_anchor ... ok
+test mempool::tests::block_anchorer_anchor_round_trip_and_self_verifies ... ok
+test mempool::tests::concurrent_anchors_build_on_each_others_head ... ok
+test mempool::tests::accepted_but_unindexed_mark_is_not_orphaned_by_the_next_anchor ... ok
+test mempool::tests::broadcast_then_failed_save_is_ok_and_recovered_by_the_next_anchor ... ok
+test cli::invite_store::tests::legacy_plaintext_file_is_migrated ... ok
+test cli::invite_store::tests::tokens_are_hashed_at_rest ... ok
+test cli::invite_store::tests::revoke_accepts_a_unique_id_prefix ... ok
+test cli::invite_store::tests::consume_enforces_the_use_cap_and_expiry ... ok
+test cli::invite_store::tests::create_list_revoke_round_trip_across_instances ... ok
+test mempool::tests::rejected_resend_without_proof_of_an_unspent_head_keeps_refusing ... ok
+test mempool::tests::dropped_broadcast_is_resent_by_the_next_anchor ... ok
+test mempool::tests::rejected_resend_with_an_unspent_head_drops_the_intent ... ok
+test mempool::tests::unresolved_resend_keeps_the_intent_and_refuses_to_advance ... ok
+test cli::invite_store::tests::concurrent_consumers_cannot_both_redeem_a_single_use_invite ... ok
+test mempool::tests::gitmark_anchorer_refusals ... ok
+test mempool::tests::gitmark_anchorer_genesis_anchor_verify ... ok
+test handlers::pay::intent_recovery_tests::token_transfer_waits_for_the_trail_lock ... ok
+test handlers::pay::intent_recovery_tests::token_transfer_behind_a_slow_anchor_answers_503_and_frees_the_payment_lock ... ok
+
+test result: ok. 110 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 2.31s
+
+     Running unittests src/main.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/solid_pod_rs_server-f9266488b9aadd17)
+
+running 1 test
+test port_tests::busy_port_shifts_and_zero_uses_ephemeral_port ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/acl_candidate_control.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/acl_candidate_control-03e1bca17fa0ecc1)
+
+running 9 tests
+test ordinary_metadata_requires_control_but_is_not_an_acl_document ... ok
+test following_the_container_acl_link_changes_actual_child_access ... ok
+test candidate_control_preserves_a_verified_linked_identity ... ok
+test candidate_control_requires_satisfied_conditions ... ok
+test copy_checks_turtle_syntax_even_with_a_recognisable_control_rule ... ok
+test copying_resource_does_not_install_a_policy_for_the_wrong_target ... ok
+test json_patch_checks_resulting_acl_before_committing_it ... ok
+test post_and_copy_refuse_invalid_acl_bodies_before_storage ... ok
+test put_refuses_unparseable_and_misdirected_policies_without_lockout ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running tests/admin_provision.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/admin_provision-47f9abb4249e9091)
+
+running 4 tests
+test provision_requires_admin_key ... ok
+test provision_writes_pod_into_pods_namespace_with_sibling_acl ... ok
+test stranger_cannot_put_into_provisioned_pod ... ok
+test provisioned_owner_can_put_into_pod ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/cache_control_policy.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/cache_control_policy-019ea0347ed3c10d)
+
+running 10 tests
+test the_policy_function_never_leaves_a_private_response_unmarked ... ok
+test public_rdf_keeps_the_rdf_policy ... ok
+test public_binary_is_left_to_ordinary_caching ... ok
+test private_responses_vary_on_authorization ... ok
+test private_pdf_response_is_not_publicly_cacheable ... ok
+test a_private_container_listing_is_not_publicly_cacheable ... ok
+test an_acl_sidecar_read_is_always_private ... ok
+test private_rdf_response_is_no_store_not_merely_no_cache ... ok
+test an_authenticated_read_of_a_public_resource_stays_public ... ok
+test private_binary_response_is_not_publicly_cacheable ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/cli_comprehensive.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/cli_comprehensive-3e90c47c78408af2)
+
+running 13 tests
+test account_delete_nonexistent_user_returns_false ... ok
+test invite_create_tokens_are_unique ... ok
+test invite_create_strips_trailing_slash_from_base_url ... ok
+test invite_create_bad_expiry_returns_error ... ok
+test invite_create_unlimited_uses ... ok
+test quota_reconcile_args_defaults ... ok
+test invite_create_url_structure ... ok
+test reconcile_outcome_eq_and_clone ... ok
+test reconcile_outcome_ne_on_different_fields ... ok
+test invite_create_with_30s_expiry ... ok
+test quota_reconcile_without_feature_returns_error ... ok
+test account_delete_with_correct_confirmation_succeeds ... ok
+test account_delete_trims_confirmation_whitespace ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.55s
+
+     Running tests/cli_invite_persist.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/cli_invite_persist-25fef432b76ae35e)
+
+running 2 tests
+test revoke_accepts_a_token_beginning_with_a_hyphen ... ok
+test create_list_revoke_persist_between_processes ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+     Running tests/cli_ops_sprint11.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/cli_ops_sprint11-2e9877756cca6da9)
+
+running 5 tests
+test cli_invite_create_stores_max_uses ... ok
+test cli_invite_create_without_uses_stores_none ... ok
+test cli_invite_create_prints_token_url ... ok
+test cli_account_delete_with_yes_removes_account ... ok
+test cli_account_delete_requires_confirmation_without_yes_flag ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.47s
+
+     Running tests/concurrent_writes.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/concurrent_writes-06ac971fb922391a)
+
+running 4 tests
+test if_none_match_with_the_current_etag_refuses_put ... ok
+test delete_honours_if_match ... ok
+test concurrent_posts_with_one_slug_never_overwrite_each_other ... ok
+test concurrent_patch_inserts_with_full_iris_all_land ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.99s
+
+     Running tests/container_index_acl.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/container_index_acl-1e2f4c60ec02b66d)
+
+running 2 tests
+test readable_index_is_still_served ... ok
+test owner_only_index_is_not_served_to_a_container_reader ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/core_rows_parity.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/core_rows_parity-8935c127861642b3)
+
+running 8 tests
+test post_turtle_is_validated_with_the_new_resource_as_base ... ok
+test accept_post_lists_n3_only_with_conneg ... ok
+test turtle_body_must_parse ... ok
+test n3_body_needs_conneg_and_rejects_formulas ... ok
+test webid_acl_matches_a_nostr_caller_with_a_verified_link ... ok
+test forwarded_proto_counts_only_behind_a_trusted_proxy ... ok
+test cf_visitor_counts_only_behind_a_trusted_proxy ... ok
+test webid_acl_does_not_match_without_a_link ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/er22_acl_copy_glob.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/er22_acl_copy_glob-29d27c57a394a59d)
+
+running 19 tests
+test mcp_read_resource_denies_trail_secret_under_public_read_root ... ok
+test copy_well_known_trail_source_is_denied ... ok
+test copy_source_same_host_absolute_url_is_denied ... ok
+test copy_source_same_host_absolute_url_readable_is_copied ... ok
+test copy_source_other_host_is_rejected ... ok
+test copy_does_not_install_acl_without_control ... ok
+test glob_get_filters_children_memory_backend ... ok
+test copy_by_owner_still_works ... ok
+test step0_gitmark_trail_secret_not_served_under_public_read_root_acl ... ok
+test copy_source_traversal_is_denied ... ok
+test copy_acl_source_is_denied ... ok
+test copy_installs_acl_when_destination_control_is_preserved ... ok
+test copy_without_source_read_is_denied ... ok
+test step0_token_trail_secret_not_served_under_public_read_root_acl ... ok
+test step0_owner_reads_trail_and_blocktrails_stays_public ... ok
+test step0_trail_secret_not_served_with_no_root_acl ... ok
+test step0_trail_files_unreadable_under_owner_only_root_acl ... ok
+test percent_encoded_trail_paths_do_not_leak_on_fs_backend ... ok
+test glob_get_filters_children_fs_backend ... ok
+
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+     Running tests/er22_ledger_guard.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/er22_ledger_guard-cbb360765d6c0256)
+
+running 7 tests
+test writer_cannot_patch_ledger ... ok
+test writer_cannot_write_ledger_over_mcp ... ok
+test owner_can_still_write_ledger_and_spelling_variants_are_guarded ... ok
+test writer_cannot_copy_into_ledger ... ok
+test writer_cannot_create_or_delete_in_ledger_directory ... ok
+test writer_cannot_put_over_ledger_documents ... ok
+test ledger_documents_are_not_readable_without_control ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/er22_mcp_dotfiles.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/er22_mcp_dotfiles-baab9516f81eea36)
+
+running 3 tests
+test create_resource_refuses_dotfile_slugs ... ok
+test ordinary_paths_still_work_over_mcp ... ok
+test path_tools_refuse_every_dotfile_class ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running tests/er22_path_clean.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/er22_path_clean-d6a74005d5279bfd)
+
+running 8 tests
+test percent_encoded_names_are_addressed_by_their_decoded_key ... ok
+test mcp_list_denies_trail_and_prov_containers ... ok
+test copy_source_cannot_reach_prov_state ... ok
+test mcp_ordinary_paths_still_work_with_messy_spellings ... ok
+test http_get_and_put_cannot_reach_protected_files ... ok
+test copy_source_spellings_cannot_reach_trail_secret ... ok
+test mcp_read_and_head_deny_every_trail_spelling ... ok
+test mcp_write_create_delete_cannot_touch_protected_files ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.29s
+
+     Running tests/error_logging_middleware.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/error_logging_middleware-16d1e3055ad8730c)
+
+running 3 tests
+test middleware_does_not_log_4xx ... ok
+test middleware_passthrough_on_2xx ... ok
+test middleware_logs_5xx_with_full_chain ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s
+
+     Running tests/forge_migration_runtime.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/forge_migration_runtime-815e2156017a6ddb)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/forge_prefix_precedence.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/forge_prefix_precedence-8cba35183e98d4d3)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/get_content_negotiation_integration.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/get_content_negotiation_integration-f8fc3f8e2c32c69b)
+
+running 4 tests
+test get_serves_verbatim_for_non_rdf_resource ... ok
+test get_serves_verbatim_for_wildcard_accept ... ok
+test get_transcodes_ntriples_to_turtle ... ok
+test get_transcodes_ntriples_to_jsonld ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/git_marks.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/git_marks-9b817487224c9f75)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/git_wac_gating.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/git_wac_gating-3f00ca5388cbf717)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/host_origin.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/host_origin-e17326759cbc16e7)
+
+running 6 tests
+test host_outside_the_allow_list_gets_421 ... ok
+test replay_with_forged_x_forwarded_host_is_refused ... ok
+test replay_with_forged_forwarded_header_is_refused ... ok
+test trusted_proxy_may_set_the_host ... ok
+test control_token_for_the_real_host_is_accepted ... ok
+test configured_public_origin_beats_a_trusted_header_too ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/jev_forge.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/jev_forge-793aa132c2c1bcc7)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/mcp_enforcement.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/mcp_enforcement-34df310a6d303f42)
+
+running 4 tests
+test mcp_create_container_never_reuses_an_existing_child ... ok
+test mcp_write_to_missing_target_does_not_borrow_the_parent_grant ... ok
+test mcp_read_of_pay_per_read_resource_debits_the_account ... ok
+test mcp_skill_readers_debit_pay_per_read ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/mcp_wac_security.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/mcp_wac_security-8e5ea1e0572666d0)
+
+running 3 tests
+test anonymous_get_skill_cannot_read_arbitrary_private_resource ... ok
+test conventional_skill_still_requires_its_effective_read_acl ... ok
+test generic_resource_tools_require_control_for_acl_sidecars ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/mempool_selection.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/mempool_selection-581c49f17b30a4b2)
+
+running 13 tests
+test explicit_config_is_marked_explicit_and_trimmed ... ok
+test infer_network_classifies_known_bases ... ok
+test explicit_default_url_is_still_explicit ... ok
+test absent_config_yields_defaulted_testnet4 ... ok
+test infer_network_treats_loopback_as_regtest ... ok
+test manifest_json_carries_url_network_and_source ... ok
+test infer_network_never_guesses_mainnet ... ok
+test whitespace_only_config_is_treated_as_absent ... ok
+test client_records_its_selection ... ok
+test unreachable_explorer_is_ambiguous ... ok
+test ok_response_reports_the_transaction_as_known ... ok
+test service_unavailable_is_ambiguous_not_a_definite_negative ... ok
+test not_found_is_a_definite_negative_but_server_error_is_not ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/mempool_timeout.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/mempool_timeout-f131f086b50b3367)
+
+running 1 test
+test silent_backend_times_out_instead_of_hanging ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.01s
+
+     Running tests/middleware_guards.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/middleware_guards-912487341121a53b)
+
+running 21 tests
+test body_cap_default_is_50mb ... ok
+test app_state_new_sets_defaults ... ok
+test body_cap_from_env_returns_default_on_missing_var ... ok
+test nodeinfo_meta_default_values ... ok
+test body_cap_from_env_parses_valid_value ... ok
+test body_cap_from_env_falls_back_on_invalid_value ... ok
+test cors_wildcard_mode_does_not_reflect_origin_with_credentials ... ok
+test cors_non_allowlisted_origin_gets_no_headers ... ok
+test dotfile_guard_blocks_git_path ... ok
+test dotfile_guard_allows_meta_path ... ok
+test cors_allowlisted_origin_gets_reflection_and_credentials ... ok
+test traversal_guard_blocks_dot_dot_slash ... ok
+test dotfile_guard_allows_well_known_paths ... ok
+test traversal_guard_allows_normal_paths ... ok
+test dotfile_guard_blocks_env_path ... ok
+test traversal_guard_blocks_double_encoded_dot_dot ... ok
+test dotfile_guard_allows_account_path ... ok
+test dotfile_guard_blocks_nested_dotfile ... ok
+test dotfile_guard_allows_acl_path ... ok
+test traversal_guard_allows_root ... ok
+test traversal_guard_blocks_encoded_dot_dot ... ok
+
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/named_pod_owner_access.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/named_pod_owner_access-03e2094a1b264471)
+
+running 8 tests
+test owner_can_read_and_write_their_new_pod ... ok
+test an_operator_root_acl_granting_public_write_does_not_leak_into_new_pods ... ok
+test inbox_accepts_public_append_but_not_reads ... ok
+test patching_a_provisioned_acl_keeps_the_owner_in ... ok
+test concurrent_creations_of_one_pod_name_admit_exactly_one ... ok
+test patching_away_the_owners_control_is_refused ... ok
+test public_surfaces_match_jss_and_private_ones_stay_private ... ok
+test pod_creation_refuses_when_the_existence_probe_fails ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.22s
+
+     Running tests/nip05_endpoint_integration.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/nip05_endpoint_integration-ef945e01206b8666)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/nip98_empty_body.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/nip98_empty_body-f6f7e4cf0213a31c)
+
+running 1 test
+test put_binds_empty_content_before_consuming_the_token ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/patch_iri_space.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/patch_iri_space-be63fdafb7e11913)
+
+running 8 tests
+test authorisation_precedes_patch_syntax_errors ... ok
+test json_patch_needs_read ... ok
+test deleting_a_triple_put_with_relative_iris ... ok
+test patching_an_acl_with_a_condition_is_refused_not_degraded ... ok
+test where_and_deletes_need_read ... ok
+test where_and_insert_see_stored_relative_iris ... ok
+test a_second_acl_patch_can_delete_a_stored_target ... ok
+test an_explosive_where_clause_is_refused_promptly ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/patch_non_destructive_integration.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/patch_non_destructive_integration-45eb1ddd688e9e8c)
+
+running 3 tests
+test patch_refuses_unparseable_body_rather_than_destroying_it ... ok
+test sparql_patch_preserves_existing_triples ... ok
+test n3_patch_preserves_existing_triples ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/patch_quads_server.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/patch_quads_server-1ef0b493a3c626bf)
+
+running 5 tests
+test a_resource_put_as_prefixed_turtle_can_be_patched_without_losing_triples ... ok
+test jss_chat_bodies_create_append_edit_and_conflict ... ok
+test stale_if_match_and_if_none_match_star_are_refused ... ok
+test non_ascii_text_survives_repeated_patches ... ok
+test concurrent_inserts_are_all_kept ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s
+
+     Running tests/pay_mrc20_routes.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/pay_mrc20_routes-d1a98cc5bca3e812)
+
+running 11 tests
+test address_rejects_malformed_did ... ok
+test address_mainnet_chain_yields_bc1p ... ok
+test address_generic_and_per_user_are_deterministic_and_distinct ... ok
+test mrc20_self_issued_trail_from_an_accepted_issuer_is_credited ... ok
+test mrc20_self_issued_trail_is_refused ... ok
+test mrc20_deposit_rejected_when_no_utxo ... ok
+test mrc20_wrong_ticker_is_refused ... ok
+test mrc20_deposit_replay_is_rejected ... ok
+test mrc20_credit_leaves_the_sat_balance_unchanged ... ok
+test mrc20_deposit_credits_when_utxo_present ... ok
+test mrc20_same_anchor_outpoint_twice_credits_once ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running tests/pay_phase4_routes.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/pay_phase4_routes-554412ecf38e1ce8)
+
+running 7 tests
+test buy_requires_nip98 ... ok
+test withdraw_sats_mints_a_voucher ... ok
+test withdraw_all_moves_tokens_and_zeroes_balance ... ok
+test withdraw_sats_rejects_insufficient_funding ... ok
+test buy_rejects_insufficient_balance ... ok
+test buy_moves_tokens_and_debits_sats ... ok
+test whole_token_pricing_keeps_the_satoshi_remainder ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+     Running tests/pay_routes.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/pay_routes-e7d0cd81f6cdf20f)
+
+running 8 tests
+test balance_requires_auth ... ok
+test balance_for_authed_did_zero_then_credited ... ok
+test pool_add_liquidity_then_swap ... ok
+test reversed_pool_pair_maps_amounts_to_named_currencies ... ok
+test excessive_fees_and_overflowing_token_prices_are_rejected ... ok
+test offers_sell_swap_round_trip ... ok
+test sell_balance_reservations_and_cancellation_bound_listing ... ok
+test txo_deposit_is_gone_and_credits_nothing ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+     Running tests/payment_atomicity.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/payment_atomicity-b76ea959d291847e)
+
+running 1 test
+test concurrent_payment_state_writes_lose_no_update ... FAILED
+
+failures:
+
+---- concurrent_payment_state_writes_lose_no_update stdout ----
+
+thread 'concurrent_payment_state_writes_lose_no_update' (2126936) panicked at crates/solid-pod-rs-server/tests/payment_atomicity.rs:97:5:
+assertion `left == right` failed
+  left: 402
+ right: 200
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::panicking::assert_failed_inner
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:452:17
+   3: core::panicking::assert_failed::<u16, u16>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/panicking.rs:407:5
+   4: payment_atomicity::concurrent_payment_state_writes_lose_no_update::{closure#0}
+             at ./tests/payment_atomicity.rs:97:5
+   5: <tokio::task::local::RunUntil<payment_atomicity::concurrent_payment_state_writes_lose_no_update::{closure#0}> as core::future::future::Future>::poll::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:1072:44
+   6: <tokio::task::local::LocalSet>::with::<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<payment_atomicity::concurrent_payment_state_writes_lose_no_update::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:823:13
+   7: <std::thread::local::LocalKey<tokio::task::local::LocalData>>::try_with::<<tokio::task::local::LocalSet>::with<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<payment_atomicity::concurrent_payment_state_writes_lose_no_update::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}, core::task::poll::Poll<()>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:463:12
+   8: <std::thread::local::LocalKey<tokio::task::local::LocalData>>::with::<<tokio::task::local::LocalSet>::with<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<payment_atomicity::concurrent_payment_state_writes_lose_no_update::{closure#0}> as core::future::future::Future>::poll::{closure#0}>::{closure#0}, core::task::poll::Poll<()>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:427:20
+   9: <tokio::task::local::LocalSet>::with::<core::task::poll::Poll<()>, <tokio::task::local::RunUntil<payment_atomicity::concurrent_payment_state_writes_lose_no_update::{closure#0}> as core::future::future::Future>::poll::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:821:17
+  10: <tokio::task::local::RunUntil<payment_atomicity::concurrent_payment_state_writes_lose_no_update::{closure#0}> as core::future::future::Future>::poll
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:1062:22
+  11: <tokio::task::local::LocalSet>::run_until::<payment_atomicity::concurrent_payment_state_writes_lose_no_update::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:719:19
+  12: <core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<payment_atomicity::concurrent_payment_state_writes_lose_no_update::{closure#0}>::{closure#0}>> as core::future::future::Future>::poll
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/future/future.rs:133:9
+  13: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<payment_atomicity::concurrent_payment_state_writes_lose_no_update::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:830:70
+  14: tokio::task::coop::with_budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<payment_atomicity::concurrent_payment_state_writes_lose_no_update::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/coop/mod.rs:167:5
+  15: tokio::task::coop::budget::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<payment_atomicity::concurrent_payment_state_writes_lose_no_update::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/coop/mod.rs:133:5
+  16: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<payment_atomicity::concurrent_payment_state_writes_lose_no_update::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:830:25
+  17: <tokio::runtime::scheduler::current_thread::Context>::enter::<core::task::poll::Poll<()>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<payment_atomicity::concurrent_payment_state_writes_lose_no_update::{closure#0}>::{closure#0}>>>::{closure#0}::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:486:19
+  18: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<payment_atomicity::concurrent_payment_state_writes_lose_no_update::{closure#0}>::{closure#0}>>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:829:44
+  19: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<payment_atomicity::concurrent_payment_state_writes_lose_no_update::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:906:68
+  20: <tokio::runtime::context::scoped::Scoped<tokio::runtime::scheduler::Context>>::set::<<tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<payment_atomicity::concurrent_payment_state_writes_lose_no_update::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/scoped.rs:40:9
+  21: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<payment_atomicity::concurrent_payment_state_writes_lose_no_update::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context.rs:186:38
+  22: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::try_with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<payment_atomicity::concurrent_payment_state_writes_lose_no_update::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:463:12
+  23: <std::thread::local::LocalKey<tokio::runtime::context::Context>>::with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<payment_atomicity::concurrent_payment_state_writes_lose_no_update::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>)>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/std/src/thread/local.rs:427:20
+  24: tokio::runtime::context::set_scheduler::<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<()>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<payment_atomicity::concurrent_payment_state_writes_lose_no_update::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context.rs:186:17
+  25: <tokio::runtime::scheduler::current_thread::CoreGuard>::enter::<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<payment_atomicity::concurrent_payment_state_writes_lose_no_update::{closure#0}>::{closure#0}>>>::{closure#0}, core::option::Option<()>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:906:27
+  26: <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<payment_atomicity::concurrent_payment_state_writes_lose_no_update::{closure#0}>::{closure#0}>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:819:24
+  27: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<payment_atomicity::concurrent_payment_state_writes_lose_no_update::{closure#0}>::{closure#0}>>>::{closure#0}
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:216:33
+  28: tokio::runtime::context::runtime::enter_runtime::<<tokio::runtime::scheduler::current_thread::CurrentThread>::block_on<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<payment_atomicity::concurrent_payment_state_writes_lose_no_update::{closure#0}>::{closure#0}>>>::{closure#0}, ()>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/runtime.rs:65:16
+  29: <tokio::runtime::scheduler::current_thread::CurrentThread>::block_on::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<payment_atomicity::concurrent_payment_state_writes_lose_no_update::{closure#0}>::{closure#0}>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:204:9
+  30: <tokio::runtime::runtime::Runtime>::block_on_inner::<core::pin::Pin<alloc::boxed::Box<<tokio::task::local::LocalSet>::run_until<payment_atomicity::concurrent_payment_state_writes_lose_no_update::{closure#0}>::{closure#0}>>>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/runtime.rs:379:52
+  31: <tokio::runtime::runtime::Runtime>::block_on::<<tokio::task::local::LocalSet>::run_until<payment_atomicity::concurrent_payment_state_writes_lose_no_update::{closure#0}>::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/runtime.rs:346:18
+  32: <tokio::task::local::LocalSet>::block_on::<payment_atomicity::concurrent_payment_state_writes_lose_no_update::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/task/local.rs:676:12
+  33: <actix_rt::runtime::Runtime>::block_on::<payment_atomicity::concurrent_payment_state_writes_lose_no_update::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-rt-2.11.0/src/runtime.rs:138:20
+  34: <actix_rt::system::SystemRunner>::block_on::<payment_atomicity::concurrent_payment_state_writes_lose_no_update::{closure#0}>
+             at /home/devuser/workspace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/actix-rt-2.11.0/src/system.rs:240:17
+  35: payment_atomicity::concurrent_payment_state_writes_lose_no_update
+             at ./tests/payment_atomicity.rs:76:1
+  36: payment_atomicity::concurrent_payment_state_writes_lose_no_update::{closure#0}
+             at ./tests/payment_atomicity.rs:77:58
+  37: <payment_atomicity::concurrent_payment_state_writes_lose_no_update::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+  38: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+
+failures:
+    concurrent_payment_state_writes_lose_no_update
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+error: test failed, to rerun pass `-p solid-pod-rs-server --test payment_atomicity`
+     Running tests/payment_read_failure.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/payment_read_failure-495596a5276e5859)
+
+running 1 test
+test unavailable_canonical_state_does_not_become_an_empty_legacy_book ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running tests/prov_phase5_routes.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/prov_phase5_routes-ed2bc17453892549)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/proxy_endpoint.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/proxy_endpoint-0078fef9027039a5)
+
+running 17 tests
+test default_proxy_byte_cap_is_50mib ... ok
+test ssrf_allows_public_domain_shape ... ok
+test ssrf_blocks_10_x_private ... ok
+test ssrf_allows_public_ip ... ok
+test ssrf_blocks_ipv6_loopback ... ok
+test ssrf_blocks_cloud_metadata ... ok
+test ssrf_blocks_file_scheme ... ok
+test ssrf_blocks_172_16_private ... ok
+test ssrf_blocks_192_168_private ... ok
+test ssrf_blocks_link_local ... ok
+test stripped_headers_include_sensitive_names ... ok
+test ssrf_blocks_loopback_127_other ... ok
+test ssrf_blocks_loopback_127 ... ok
+test proxy_returns_401_without_auth ... ok
+test proxy_returns_401_for_loopback_url ... ok
+test proxy_route_exists ... ok
+test proxy_returns_400_without_url_param ... ok
+
+test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/quota_enforcement.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/quota_enforcement-141ceaf53f320ccd)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/registration_security.rs (/home/devuser/workspace/solid-pod-rs/target/debug/deps/registration_security-0de5cd69db8e4caf)
+
+running 6 tests
+test account_route_validates_names_before_touching_storage ... ok
+test an_invite_does_nothing_without_a_data_root ... ok
+test public_provisioning_is_closed_by_default_on_both_routes ... ok
+test admin_key_overrides_closed_registration_without_root_pollution ... ok
+test both_routes_share_the_same_per_ip_rate_limit ... ok
+test a_valid_invite_opens_closed_registration_for_its_allowed_uses ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+error: 1 target failed:
+    `-p solid-pod-rs-server --test payment_atomicity`
+EXIT 101

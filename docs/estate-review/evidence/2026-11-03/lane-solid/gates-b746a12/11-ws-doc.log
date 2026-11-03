@@ -1,0 +1,50 @@
+== 11-ws-doc: cargo doc --workspace --no-deps
+    Checking uuid v1.24.1
+    Checking futures-util v0.3.34
+   Compiling ring v0.17.14
+   Compiling crossbeam-utils v0.8.22
+    Checking chrono v0.4.45
+    Checking hyper v1.11.0
+    Checking serde-value v0.7.0
+    Checking num-bigint-dig v0.8.6
+    Checking jsonwebtoken v9.3.1
+   Compiling libsqlite3-sys v0.30.1
+    Checking tokio-stream v0.1.19
+    Checking crossbeam-queue v0.3.13
+    Checking atoi v2.0.0
+    Checking actix-router v0.5.4
+   Compiling actix-web-codegen v4.3.0
+    Checking tracing-subscriber v0.3.23
+    Checking rsa v0.9.10
+    Checking tower v0.5.3
+    Checking hyper-util v0.1.20
+    Checking tokio-tungstenite v0.24.0
+    Checking futures-executor v0.3.34
+    Checking sqlx-core v0.8.6
+    Checking actix-server v2.7.0
+    Checking tower-http v0.6.11
+    Checking actix-web v4.14.1
+    Checking hyper-rustls v0.27.9
+    Checking reqwest v0.12.28
+    Checking oauth2 v5.0.0
+    Checking sqlx-sqlite v0.8.6
+   Compiling rustls v0.23.46
+    Checking openidconnect v4.0.1
+   Compiling rustls-webpki v0.103.16
+    Checking solid-pod-rs v0.5.0-alpha.19 (/home/devuser/workspace/wt/solid-pod-rs-parity-rescue/crates/solid-pod-rs)
+ Documenting solid-pod-rs v0.5.0-alpha.19 (/home/devuser/workspace/wt/solid-pod-rs-parity-rescue/crates/solid-pod-rs)
+    Checking solid-pod-rs-idp v0.5.0-alpha.19 (/home/devuser/workspace/wt/solid-pod-rs-parity-rescue/crates/solid-pod-rs-idp)
+    Checking solid-pod-rs-git v0.5.0-alpha.19 (/home/devuser/workspace/wt/solid-pod-rs-parity-rescue/crates/solid-pod-rs-git)
+ Documenting solid-pod-rs-nostr v0.5.0-alpha.19 (/home/devuser/workspace/wt/solid-pod-rs-parity-rescue/crates/solid-pod-rs-nostr)
+ Documenting solid-pod-rs-didkey v0.5.0-alpha.19 (/home/devuser/workspace/wt/solid-pod-rs-parity-rescue/crates/solid-pod-rs-didkey)
+ Documenting solid-pod-rs-idp v0.5.0-alpha.19 (/home/devuser/workspace/wt/solid-pod-rs-parity-rescue/crates/solid-pod-rs-idp)
+ Documenting solid-pod-rs-git v0.5.0-alpha.19 (/home/devuser/workspace/wt/solid-pod-rs-parity-rescue/crates/solid-pod-rs-git)
+ Documenting solid-pod-rs-forge v0.5.0-alpha.19 (/home/devuser/workspace/wt/solid-pod-rs-parity-rescue/crates/solid-pod-rs-forge)
+ Documenting solid-pod-rs-server v0.5.0-alpha.19 (/home/devuser/workspace/wt/solid-pod-rs-parity-rescue/crates/solid-pod-rs-server)
+   Compiling sqlx-macros-core v0.8.6
+   Compiling sqlx-macros v0.8.6
+    Checking sqlx v0.8.6
+ Documenting solid-pod-rs-activitypub v0.5.0-alpha.19 (/home/devuser/workspace/wt/solid-pod-rs-parity-rescue/crates/solid-pod-rs-activitypub)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 15.75s
+   Generated /home/devuser/workspace/solid-pod-rs/target/doc/solid_pod_rs/index.html and 7 other files
+EXIT 0

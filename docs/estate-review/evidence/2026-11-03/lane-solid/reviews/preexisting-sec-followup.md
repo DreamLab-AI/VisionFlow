@@ -1,0 +1,7 @@
+No Medium-or-higher findings.
+
+`★ Insight ─────────────────────────────────────`
+- **If-Match `*` (50bf3ce):** the wildcard now applies only when the whole trimmed field is `*` (`ldp.rs:1491`). The list branch at `ldp.rs:1502` compares strong tags only. A quoted `"*"` becomes the opaque tag `*`, which no real ETag equals. That matches RFC 9110's grammar, `If-Match = "*" / #entity-tag`. The server reads the header in `check_write_preconditions` (`lib.rs:295`), which takes the first header line only. A `*` sent as a second `If-Match` line is therefore never seen, so the server errs towards a 412, which is the safe direction.
+- **Oversell guard (132b097):** the test exercises a real lock scope. `handle_sell` takes `PAYMENT_STATE_LOCK` (`pay.rs:913`) before `read_state` and keeps it through the balance check and `commit_state`. The test only works because `YieldingStorage` yields before each read. Without that yield, the in-memory backend never suspends mid-request, the two sells can't interleave, and a missing lock would pass unnoticed.
+- **`Once` guard (58f84da):** `std::env::set_var` now runs once per test binary, so two tests in the same binary can't both write the variable at the same time. If the first call panics because `git` is missing, the `Once` is poisoned and later callers panic as well. That fits the doc's "a missing backend is a failure".
+`─────────────────────────────────────────────────`

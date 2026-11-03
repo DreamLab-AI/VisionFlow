@@ -1,0 +1,84 @@
+== 10-core-all-doctest: cargo test --all-features --doc
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.35s
+   Doc-tests solid_pod_rs
+
+running 43 tests
+test crates/solid-pod-rs/src/handlers/legacy_notifications.rs - handlers::legacy_notifications (line 24) ... ignored
+test crates/solid-pod-rs/src/notifications/legacy.rs - notifications::legacy::LegacyNotificationChannel (line 201) ... ignored
+test crates/solid-pod-rs/src/oidc/replay.rs - oidc::replay::ReplayRejectedCounter (line 244) ... ignored
+test crates/solid-pod-rs/src/config/loader.rs - config::loader::ConfigLoader (line 42) - compile ... ok
+test crates/solid-pod-rs/src/lib.rs - (line 144) - compile ... ok
+test crates/solid-pod-rs/src/config/mod.rs - config (line 20) - compile ... ok
+test crates/solid-pod-rs/src/payments.rs - payments::WebLedger (line 278) - compile fail ... ok
+test crates/solid-pod-rs/src/lib.rs - (line 93) - compile ... ok
+test crates/solid-pod-rs/src/payments.rs - payments::WebLedger (line 268) - compile fail ... ok
+test crates/solid-pod-rs/src/payments.rs - payments::WebLedger (line 263) - compile fail ... ok
+test crates/solid-pod-rs/src/payments.rs - payments::WebLedger (line 273) - compile fail ... ok
+test crates/solid-pod-rs/src/bitcoin_tx.rs - bitcoin_tx::build_transaction (line 255) has been running for over 60 seconds
+test crates/solid-pod-rs/src/blocktrail.rs - blocktrail::Blocktrail (line 466) has been running for over 60 seconds
+test crates/solid-pod-rs/src/blocktrail.rs - blocktrail::BlocktrailTxo (line 167) has been running for over 60 seconds
+test crates/solid-pod-rs/src/blocktrail.rs - blocktrail::is_gitmark_commit (line 124) has been running for over 60 seconds
+test crates/solid-pod-rs/src/blocktrail.rs - blocktrail::network_for_txo_chain (line 100) has been running for over 60 seconds
+test crates/solid-pod-rs/src/blocktrail.rs - blocktrail::txo_chain_for_network (line 75) has been running for over 60 seconds
+test crates/solid-pod-rs/src/did_nostr_types.rs - did_nostr_types::NostrPubkey::from_public_key (line 95) has been running for over 60 seconds
+test crates/solid-pod-rs/src/did_nostr_types.rs - did_nostr_types::NostrPubkey::to_even_public_key (line 120) has been running for over 60 seconds
+test crates/solid-pod-rs/src/did_nostr_types.rs - did_nostr_types::format_multibase_public_key (line 449) has been running for over 60 seconds
+test crates/solid-pod-rs/src/did_nostr_types.rs - did_nostr_types::format_multibase_schnorr (line 427) has been running for over 60 seconds
+test crates/solid-pod-rs/src/did_nostr_types.rs - did_nostr_types::format_multibase_sec1 (line 477) has been running for over 60 seconds
+test crates/solid-pod-rs/src/did_nostr_types.rs - did_nostr_types::parse_multibase_schnorr (line 546) has been running for over 60 seconds
+test crates/solid-pod-rs/src/did_nostr_types.rs - did_nostr_types::parse_multibase_sec1 (line 570) has been running for over 60 seconds
+test crates/solid-pod-rs/src/did_nostr_types.rs - did_nostr_types::render_did_document_published (line 248) has been running for over 60 seconds
+test crates/solid-pod-rs/src/ldp.rs - ldp::accept_post_for (line 98) has been running for over 60 seconds
+test crates/solid-pod-rs/src/ldp.rs - ldp::apply_n3_patch (line 1183) has been running for over 60 seconds
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::anchor::bt_address (line 755) has been running for over 60 seconds
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::anchor::bt_base_point (line 512) has been running for over 60 seconds
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::anchor::bt_derive_chained_privkey (line 709) has been running for over 60 seconds
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::anchor::bt_derive_chained_pubkey (line 547) has been running for over 60 seconds
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::anchor::bt_normalize_privkey (line 668) has been running for over 60 seconds
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::anchor::bt_trail_addresses (line 788) has been running for over 60 seconds
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::anchor::bt_trail_outputs (line 581) has been running for over 60 seconds
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::anchor::bt_verify_trail_outputs (line 615) has been running for over 60 seconds
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::bt_state_string (line 94) has been running for over 60 seconds
+test crates/solid-pod-rs/src/n3_patch.rs - n3_patch::N3Patch (line 67) has been running for over 60 seconds
+test crates/solid-pod-rs/src/payments.rs - payments::LedgerGenesis (line 109) has been running for over 60 seconds
+test crates/solid-pod-rs/src/payments.rs - payments::WebLedger::credit_by_outpoint (line 434) has been running for over 60 seconds
+test crates/solid-pod-rs/src/rdf_input.rs - rdf_input (line 28) has been running for over 60 seconds
+test crates/solid-pod-rs/src/rdf_input.rs - rdf_input::RdfInputSyntax::from_content_type (line 72) has been running for over 60 seconds
+test crates/solid-pod-rs/src/security/dotfile.rs - security::dotfile::fold_case (line 299) has been running for over 60 seconds
+test crates/solid-pod-rs/src/security/rate_limit.rs - security::rate_limit::lru_impl::LruRateLimiter::check_at (line 276) has been running for over 60 seconds
+test crates/solid-pod-rs/src/blocktrail.rs - blocktrail::network_for_txo_chain (line 100) ... ok
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::anchor::bt_trail_addresses (line 788) ... ok
+test crates/solid-pod-rs/src/ldp.rs - ldp::accept_post_for (line 98) ... ok
+test crates/solid-pod-rs/src/did_nostr_types.rs - did_nostr_types::NostrPubkey::to_even_public_key (line 120) ... ok
+test crates/solid-pod-rs/src/payments.rs - payments::WebLedger::credit_by_outpoint (line 434) ... ok
+test crates/solid-pod-rs/src/blocktrail.rs - blocktrail::txo_chain_for_network (line 75) ... ok
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::anchor::bt_derive_chained_pubkey (line 547) ... ok
+test crates/solid-pod-rs/src/did_nostr_types.rs - did_nostr_types::format_multibase_schnorr (line 427) ... ok
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::bt_state_string (line 94) ... ok
+test crates/solid-pod-rs/src/did_nostr_types.rs - did_nostr_types::format_multibase_public_key (line 449) ... ok
+test crates/solid-pod-rs/src/security/rate_limit.rs - security::rate_limit::lru_impl::LruRateLimiter::check_at (line 276) ... ok
+test crates/solid-pod-rs/src/n3_patch.rs - n3_patch::N3Patch (line 67) ... ok
+test crates/solid-pod-rs/src/did_nostr_types.rs - did_nostr_types::render_did_document_published (line 248) ... ok
+test crates/solid-pod-rs/src/did_nostr_types.rs - did_nostr_types::NostrPubkey::from_public_key (line 95) ... ok
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::anchor::bt_derive_chained_privkey (line 709) ... ok
+test crates/solid-pod-rs/src/rdf_input.rs - rdf_input::RdfInputSyntax::from_content_type (line 72) ... ok
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::anchor::bt_base_point (line 512) ... ok
+test crates/solid-pod-rs/src/did_nostr_types.rs - did_nostr_types::parse_multibase_schnorr (line 546) ... ok
+test crates/solid-pod-rs/src/blocktrail.rs - blocktrail::Blocktrail (line 466) ... ok
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::anchor::bt_address (line 755) ... ok
+test crates/solid-pod-rs/src/bitcoin_tx.rs - bitcoin_tx::build_transaction (line 255) ... ok
+test crates/solid-pod-rs/src/did_nostr_types.rs - did_nostr_types::format_multibase_sec1 (line 477) ... ok
+test crates/solid-pod-rs/src/did_nostr_types.rs - did_nostr_types::parse_multibase_sec1 (line 570) ... ok
+test crates/solid-pod-rs/src/blocktrail.rs - blocktrail::is_gitmark_commit (line 124) ... ok
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::anchor::bt_verify_trail_outputs (line 615) ... ok
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::anchor::bt_normalize_privkey (line 668) ... ok
+test crates/solid-pod-rs/src/blocktrail.rs - blocktrail::BlocktrailTxo (line 167) ... ok
+test crates/solid-pod-rs/src/security/dotfile.rs - security::dotfile::fold_case (line 299) ... ok
+test crates/solid-pod-rs/src/payments.rs - payments::LedgerGenesis (line 109) ... ok
+test crates/solid-pod-rs/src/mrc20.rs - mrc20::anchor::bt_trail_outputs (line 581) ... ok
+test crates/solid-pod-rs/src/ldp.rs - ldp::apply_n3_patch (line 1183) ... ok
+test crates/solid-pod-rs/src/rdf_input.rs - rdf_input (line 28) ... ok
+
+test result: ok. 40 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 178.69s
+
+EXIT 0

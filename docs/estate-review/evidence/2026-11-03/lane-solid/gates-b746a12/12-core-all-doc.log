@@ -1,0 +1,17 @@
+== 12-core-all-doc: cargo doc --no-deps --all-features
+    Checking indexmap v2.14.0
+    Checking tokio-rustls v0.26.4
+    Checking tungstenite v0.24.0
+    Checking js-sys v0.3.104
+    Checking hyper-rustls v0.27.9
+    Checking tokio-tungstenite v0.24.0
+    Checking reqwest v0.12.28
+    Checking toml_edit v0.22.27
+    Checking serde_norway v0.9.42
+    Checking oauth2 v5.0.0
+    Checking toml v0.8.23
+    Checking openidconnect v4.0.1
+ Documenting solid-pod-rs v0.5.0-alpha.19 (/home/devuser/workspace/wt/solid-pod-rs-parity-rescue/crates/solid-pod-rs)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.75s
+   Generated /home/devuser/workspace/solid-pod-rs/target/doc/solid_pod_rs/index.html
+EXIT 0

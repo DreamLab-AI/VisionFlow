@@ -1,0 +1,8 @@
+Repository: /home/devuser/workspace/wt/solid-pod-rs-preexisting (Rust, Solid pod server). Read-only: do not edit, build or run tests.
+Role: application security reviewer. Review `git diff main..HEAD` (five commits, `git log main..HEAD`) in full, reading surrounding code as needed. These fix pre-existing test failures and one RFC defect on main:
+- b57bea4: wac_policy_outcomes test now asserts a broken Turtle ACL settles Invalid (deny, no inherit) instead of an empty Found.
+- 8f69aa1: interop_jss test expects the advertised rel="acl" link to be exactly the resolver-enforced sidecar (acl_sidecar_key), not JSS's /container/.acl.
+- 3c63a76: payment_atomicity test seeds the seller's tbtc3 balance via the legacy webledgers.json bootstrap.
+- f137d1c: If-Match uses strong comparison (weak W/ tags dropped) in ldp::evaluate_preconditions; If-None-Match unchanged.
+- 055a47a: git_wac_gating owner-export test sets GIT_HTTP_BACKEND_PATH from `git --exec-path`.
+Judge: does any test change weaken or stop guarding a security property (malformed-ACL denial, no-inherit, advertised ACL = enforced ACL, payment lock atomicity, owner-only export)? Does f137d1c open any bypass (e.g. lists mixing weak and strong tags, "*", empty lists after dropping weak tags, If-None-Match interplay)? Could the env var in 055a47a leak into or mask other tests in the same binary? Report numbered findings with severity, file:line, scenario, fix, CONFIRMED/SUSPECTED, or "No findings." No praise.

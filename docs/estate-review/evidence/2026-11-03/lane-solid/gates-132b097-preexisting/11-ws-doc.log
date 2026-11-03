@@ -1,0 +1,16 @@
+== 11-ws-doc: cargo doc --workspace --no-deps
+    Blocking waiting for file lock on package cache
+    Checking solid-pod-rs v0.5.0-alpha.19 (/home/devuser/workspace/wt/solid-pod-rs-preexisting/crates/solid-pod-rs)
+ Documenting solid-pod-rs v0.5.0-alpha.19 (/home/devuser/workspace/wt/solid-pod-rs-preexisting/crates/solid-pod-rs)
+    Checking solid-pod-rs-git v0.5.0-alpha.19 (/home/devuser/workspace/wt/solid-pod-rs-preexisting/crates/solid-pod-rs-git)
+    Checking solid-pod-rs-idp v0.5.0-alpha.19 (/home/devuser/workspace/wt/solid-pod-rs-preexisting/crates/solid-pod-rs-idp)
+ Documenting solid-pod-rs-didkey v0.5.0-alpha.19 (/home/devuser/workspace/wt/solid-pod-rs-preexisting/crates/solid-pod-rs-didkey)
+ Documenting solid-pod-rs-idp v0.5.0-alpha.19 (/home/devuser/workspace/wt/solid-pod-rs-preexisting/crates/solid-pod-rs-idp)
+ Documenting solid-pod-rs-git v0.5.0-alpha.19 (/home/devuser/workspace/wt/solid-pod-rs-preexisting/crates/solid-pod-rs-git)
+ Documenting solid-pod-rs-nostr v0.5.0-alpha.19 (/home/devuser/workspace/wt/solid-pod-rs-preexisting/crates/solid-pod-rs-nostr)
+ Documenting solid-pod-rs-activitypub v0.5.0-alpha.19 (/home/devuser/workspace/wt/solid-pod-rs-preexisting/crates/solid-pod-rs-activitypub)
+ Documenting solid-pod-rs-forge v0.5.0-alpha.19 (/home/devuser/workspace/wt/solid-pod-rs-preexisting/crates/solid-pod-rs-forge)
+ Documenting solid-pod-rs-server v0.5.0-alpha.19 (/home/devuser/workspace/wt/solid-pod-rs-preexisting/crates/solid-pod-rs-server)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 7.37s
+   Generated /home/devuser/workspace/solid-pod-rs/target/doc/solid_pod_rs/index.html and 7 other files
+EXIT 0
