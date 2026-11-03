@@ -43,7 +43,7 @@ sources:
   - ../project/agentbox/lib/factrail.nix
   - ../project/agentbox/scripts/factrail-store-migrate.mjs
   - ../project/agentbox/docs/adr/ADR-2121-factrail-implements-jev-compaction.md
-verified_commit: c57d9c0508f4044915f9aecea4b9aa5629cc6a35
+verified_commit: 5a6c165483545dfaf97df72787e3d0107259b24f
 ---
 
 Registration ground truth (2026-09-29): `~/.claude/settings.json` is boot-generated and never tracked, so AB-08.1–AB-08.7
@@ -60,7 +60,7 @@ flowchart TB
     direction TB
     M1["block entrypoint-unified.sh:1695, baked /opt hook path :1696"]
     M2["entrypoint-unified.sh:1705 events SessionStart, UserPromptSubmit, Stop, SessionEnd<br/>idempotent marker test on the command string :1707"]
-    M3["entrypoint-unified.sh:1710 push node HOOK EVENT, timeout 8 SECONDS<br/>each event registered, but bodyForEvent skips any event outside<br/>AGENTBOX_LIVE_MIRROR_EVENTS (default Stop only) nostr-live-mirror.cjs:278-279"]
+    M3["entrypoint-unified.sh:1710 push node HOOK EVENT, timeout 8 SECONDS<br/>each event registered, but bodyForEvent skips any event outside<br/>AGENTBOX_LIVE_MIRROR_EVENTS (default Stop only) nostr-live-mirror.cjs:279-280"]
     M1 --> M2 --> M3
     end
     subgraph FLT["fleet-session-start.sh — SessionStart"]
@@ -157,7 +157,7 @@ flowchart TB
 sequenceDiagram
     autonumber
     participant U as User turn
-    participant NM as nostr-live-mirror.cjs<br/>agentbox/config/hooks/nostr-live-mirror.cjs:394
+    participant NM as nostr-live-mirror.cjs<br/>agentbox/config/hooks/nostr-live-mirror.cjs:395
     participant RBG as ruvnet-brain-ground.cjs<br/>agentbox/config/hooks/ruvnet-brain-ground.cjs:115
     participant TS as turn-sink.cjs<br/>agentbox/config/tab0-bridge/turn-sink.cjs:1
     participant DI as dream-inbox-surface.cjs<br/>agentbox/config/hooks/dream-inbox-surface.cjs:34
@@ -166,8 +166,8 @@ sequenceDiagram
 
     Note over U,M: root registrations: entrypoint-unified.sh:1705 mirror, :1910 turn-sink,<br/>:2207 dream-inbox, :2629 brain-ground, :2767 skill-route — five on this one event, plus the gated decline-recorder, session-state :1952 (ADR-2153) and activity-sink (AB-08.16).<br/>INVARIANT: stacks.rs learning_hooks registers no per-profile UserPromptSubmit route hook<br/>(stacks.rs:31-33, test :530-531) and only those gated additions add one — skill-route.cjs is the sole per-turn router (ADR-2091)
     U->>NM: node HOOK UserPromptSubmit, timeout 8 seconds<br/>entrypoint-unified.sh:1710
-    NM->>NM: bodyForEvent#40;#41; checks mirroredEvents#40;#41; first, returns null if not listed<br/>nostr-live-mirror.cjs:290-291
-    NM-->>U: DEFAULT: null body on UserPromptSubmit, egress skipped — only Stop is<br/>mirrored by default, DEFAULT_MIRROR_EVENTS :278, widen via AGENTBOX_LIVE_MIRROR_EVENTS :279-282, see AB-13.9
+    NM->>NM: bodyForEvent#40;#41; checks mirroredEvents#40;#41; first, returns null if not listed<br/>nostr-live-mirror.cjs:291-292
+    NM-->>U: DEFAULT: null body on UserPromptSubmit, egress skipped — only Stop is<br/>mirrored by default, DEFAULT_MIRROR_EVENTS :279, widen via AGENTBOX_LIVE_MIRROR_EVENTS :280-283, see AB-13.9
     par independent root groups, unordered wrt each other
         U->>RBG: node HOOK #124;#124; true, timeout 5 seconds<br/>entrypoint-unified.sh:2642
         RBG->>RBG: analyse#40;prompt#41;: DISTINCTIVE name fires alone,<br/>an ESTATE name needs an upstream-intent cue in the SAME sentence<br/>ruvnet-brain-ground.cjs:90-98
@@ -196,13 +196,13 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant CC as Claude Code core
-    participant NM as nostr-live-mirror.cjs<br/>agentbox/config/hooks/nostr-live-mirror.cjs:394
+    participant NM as nostr-live-mirror.cjs<br/>agentbox/config/hooks/nostr-live-mirror.cjs:395
     participant FS as fleet-session-start.sh<br/>agentbox/config/hooks/fleet-session-start.sh:13
     participant FTN as fleet-tab-name.sh<br/>agentbox/config/hooks/fleet-tab-name.sh:13
     participant AD as claude-flow-hook-adapter.cjs<br/>agentbox/config/hooks/claude-flow-hook-adapter.cjs:132
 
     CC->>NM: node HOOK SessionStart, timeout 8 seconds<br/>entrypoint-unified.sh:1710
-    NM-->>CC: DEFAULT: null body, skipped — SessionStart is not in the default<br/>mirroredEvents set, nostr-live-mirror.cjs:278 and :290-291, see AB-13.9
+    NM-->>CC: DEFAULT: null body, skipped — SessionStart is not in the default<br/>mirroredEvents set, nostr-live-mirror.cjs:279 and :291-292, see AB-13.9
     CC->>FS: bash HOOK #124;#124; true, timeout 8 seconds<br/>entrypoint-unified.sh:1730
     FS->>FTN: bash fleet-tab-name.sh, errors swallowed<br/>fleet-session-start.sh:17
     Note over FTN: no TMUX or no tmux binary → exit 0<br/>fleet-tab-name.sh:14-15
@@ -221,7 +221,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant CC as Claude Code core
-    participant NM as nostr-live-mirror.cjs<br/>agentbox/config/hooks/nostr-live-mirror.cjs:394
+    participant NM as nostr-live-mirror.cjs<br/>agentbox/config/hooks/nostr-live-mirror.cjs:395
     participant OM as ontology-monitor.cjs<br/>agentbox/config/hooks/ontology-monitor.cjs:271
     participant TS as turn-sink.cjs Stop<br/>agentbox/config/tab0-bridge/turn-sink.cjs:1
     participant TR as trajectory-recorder.cjs<br/>agentbox/config/hooks/trajectory-recorder.cjs:570
@@ -230,7 +230,7 @@ sequenceDiagram
     rect rgb(240,240,255)
     Note over CC,OM: SessionEnd
     CC->>NM: node HOOK SessionEnd, timeout 8 seconds<br/>entrypoint-unified.sh:1710
-    NM-->>CC: DEFAULT: null body, skipped — SessionEnd is not in the default<br/>mirroredEvents set, nostr-live-mirror.cjs:278 and :290-291, see AB-13.9
+    NM-->>CC: DEFAULT: null body, skipped — SessionEnd is not in the default<br/>mirroredEvents set, nostr-live-mirror.cjs:279 and :291-292, see AB-13.9
     CC->>OM: node HOOK #124;#124; true, timeout 10 seconds when the gate is on<br/>entrypoint-unified.sh:1770 — the review itself budgets 180s but runs DETACHED,<br/>ontology-monitor.cjs:38
     OM->>OM: not runInForeground: fork a detached child via spawn, stdio ignored<br/>except a logfile, unref, exit 0 at once — ontology-monitor.cjs:249-266
     Note over OM: master switch AGENTBOX_ONTOLOGY_MONITOR seeded by entrypoint-unified.sh:1775<br/>so the hook is never a registered no-op — see AB-08.11
@@ -239,7 +239,7 @@ sequenceDiagram
     rect rgb(255,245,235)
     Note over CC,TR: Stop and SubagentStop
     CC->>NM: node HOOK Stop, timeout 8 seconds<br/>entrypoint-unified.sh:1710
-    NM-->>CC: body is the last assistant text from transcript_path — Stop IS the default<br/>mirroredEvents entry, nostr-live-mirror.cjs:303-306, scan at :251-264, see AB-13.9
+    NM-->>CC: body is the last assistant text from transcript_path — Stop IS the default<br/>mirroredEvents entry, nostr-live-mirror.cjs:304-307, scan at :252-265, see AB-13.9
     CC->>TS: node HOOK Stop #124;#124; true, timeout 5 seconds<br/>entrypoint-unified.sh:1913
     CC->>TR: optional public identity prefix + node HOOK EVENT, timeout 10 seconds<br/>entrypoint-unified.sh:2066, prefix built at :2049-2051, no gate and no database reach
     TR->>TR: Stop or SubagentStop runs handleClose, any other event returns 0<br/>trajectory-recorder.cjs:579-582, see AB-08.13
@@ -625,7 +625,7 @@ flowchart TB
     GATE --> ROOT
     NOTE1["INVARIANT: decline-recorder never blocks a turn, it exits 0 with nothing on stdout<br/>decline-recorder.cjs:42-44"]
     NOTE2["INVARIANT: activity-sink prints nothing on stdout, exits 0 always, under a hard deadline<br/>activity-sink.cjs:43-45, :327"]
-    NOTE3["TENSION: ADR-2151 is decision_status proposed, implementation none, activation inactive<br/>ADR-2151-voicelink-edge-voice.md:5-7, yet voicelink enabled = true registers hooks on every boot<br/>agentbox.toml:2264"]
+    NOTE3["TENSION: ADR-2151 is decision_status proposed, activation inactive, implementation partial<br/>since the 2026-11-02 reconciliation (was none), ADR-2151-voicelink-edge-voice.md:5-7,<br/>yet voicelink enabled = true registers hooks on every boot, agentbox.toml:2264"]
     NOTE4["OPEN: ADR-2146 is decision_status accepted (was proposed) with implementation complete, activation inactive<br/>ADR-2146-activity-sink-hook.md:5-7, and the shipped manifest leaves the gate off agentbox.toml:528"]
     ROOT --> NOTE1
     PROF --> NOTE2
@@ -637,7 +637,9 @@ flowchart TB
 
 **Why it is this way.** Isolated profiles replace `CLAUDE_CONFIG_DIR`, so root settings are not inherited and the floor's recording promise has to be repeated per profile (`../project/agentbox/services/agentbox-manifest/src/stacks.rs:291-292`); the profile file is rewritten whole on every projection, which is why a stale command self-heals there without a reconcile step (`../project/agentbox/services/agentbox-manifest/src/stacks.rs:309-310`). The token value of the activity sink is never written into `settings.json`, only the file path or the environment variable name (`../project/agentbox/config/entrypoint-unified.sh:2877-2878`).
 
-**Tension (ADR-2151 vs manifest):** ADR-2151 is `decision_status: proposed`, `implementation_status: none` and `activation_status: inactive` (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`) while `[voicelink] enabled = true` and `record_events = true` register the recorder hooks on every boot (`../project/agentbox/agentbox.toml:2264`, `../project/agentbox/agentbox.toml:2271`).
+**Tension (ADR-2151 vs manifest, status moved 2026-11-02):** at the previous stamp (`c57d9c0`) ADR-2151 read `decision_status: proposed`, `implementation_status: none`, `activation_status: inactive`. Its 2026-11-02 external review reconciliation moves implementation to `partial` because the source and the bake exist (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`, `../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:21`), which closes the implementation half; the decision is still proposed and activation inactive, and the ADR says acceptance is not inferred from the enabled flag (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:21`). Yet `[voicelink] enabled = true` and `record_events = true` register the recorder hooks on every boot (`../project/agentbox/agentbox.toml:2264`, `../project/agentbox/agentbox.toml:2271`).
+
+**Tension (ADR-2151 reconciliation vs its own Verification section):** the Verification section still says `implementation_status` becomes `partial` only once the bake and the hook spool are verified by the voicelink end-to-end link test against a live grouped session (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:43`); the 2026-11-02 reconciliation sets `partial` from a read-only inspection of the bake and records that end-to-end test as not run (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:21`).
 
 **Open (status moved 2026-10-30):** ADR-2146 is now `decision_status: accepted` with `implementation_status: complete` and `activation_status: inactive` (`../project/agentbox/docs/adr/ADR-2146-activity-sink-hook.md:5-7`), so only activation remains open; is the sink meant to ship enabled anywhere, given the manifest leaves it off with an empty `url` (`../project/agentbox/agentbox.toml:528`)?
 

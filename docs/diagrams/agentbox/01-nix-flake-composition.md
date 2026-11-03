@@ -31,7 +31,7 @@ sources:
   - ../project/agentbox/lib/pele.nix
   - ../project/agentbox/docs/adr/ADR-2155-system-one-consumer-activation.md
   - ../project/agentbox/docs/adr/ADR-2154-pele-renders-mermaid-in-the-image.md
-verified_commit: c57d9c0508f4044915f9aecea4b9aa5629cc6a35
+verified_commit: 5a6c165483545dfaf97df72787e3d0107259b24f
 ---
 
 ## AB-01.1 agentbox.toml gates to flake.nix conditionals to package set and supervisord text
@@ -98,7 +98,9 @@ flowchart TB
     SUPTEXT --- note1
 ```
 
-**Tension (ADR-2151 vs manifest):** ADR-2151 is `decision_status: proposed`, `implementation_status: none`, `activation_status: inactive` (`docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`), yet `[voicelink] enabled = true` (`agentbox.toml:2264`) makes `voicelinkOn` bake `voice-paned` into the package set and `/opt/agentbox/bin` (`flake.nix:1848-1850`, `flake.nix:2129`).
+**Tension (ADR-2151 vs manifest, status moved 2026-11-02):** at the previous stamp (`c57d9c0`) ADR-2151 read `decision_status: proposed`, `implementation_status: none`, `activation_status: inactive`. Its 2026-11-02 external review reconciliation moves implementation to `partial` because the source and the bake exist (`docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`, `docs/adr/ADR-2151-voicelink-edge-voice.md:21`), which closes the implementation half; the decision is still proposed and activation inactive, and the ADR says acceptance is not inferred from the enabled flag (`docs/adr/ADR-2151-voicelink-edge-voice.md:21`). Yet `[voicelink] enabled = true` (`agentbox.toml:2264`) makes `voicelinkOn` bake `voice-paned` into the package set and `/opt/agentbox/bin` (`flake.nix:1848-1850`, `flake.nix:2129`).
+
+**Tension (ADR-2151 reconciliation vs its own Verification section):** the Verification section still says `implementation_status` becomes `partial` only once the bake and the hook spool are verified by the voicelink end-to-end link test against a live grouped session (`docs/adr/ADR-2151-voicelink-edge-voice.md:43`); the 2026-11-02 reconciliation sets `partial` from a read-only inspection of the bake and records that end-to-end test as not run (`docs/adr/ADR-2151-voicelink-edge-voice.md:21`).
 **Invariant:** the voicelink gate is the one rebuild-class gate that adds a package and a catalogue entry (`management-api/lib/system-manifest.js:184`) but no supervisor block, by design: `voice-paned` runs per ssh connection (`management-api/lib/system-manifest.js:186`).
 **Open:** ADR-2154 (accepted, partial, staged; supersedes ADR-2152 and its browsercontainer `mmdc` shim) puts the pinned Pele renderer and an `mmdc` compatibility shim into the package set when `docsCfg.mermaid` is on (`flake.nix:689`, `flake.nix:768`, `lib/pele.nix:61`, `lib/pele.nix:67`); the record's activation status is still staged. ADR-2155 (`accepted`, `complete`, `staged`, `../project/agentbox/docs/adr/ADR-2155-system-one-consumer-activation.md:5-7`) likewise records the System One consumer activation as staged while `[system_one.consumers]` already sets all nineteen true, three of them rebuild-class (`../project/agentbox/agentbox.toml:906-927`).
 

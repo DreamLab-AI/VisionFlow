@@ -45,7 +45,7 @@ sources:
   - ../project/agentbox/management-api/lib/junkiejarvis-clarify.js
   - ../project/agentbox/services/agentbox-manifest/tests/golden/live-agentbox.toml
   - ../project/agentbox/scripts/experiments/exp-b8-label-log.cjs
-verified_commit: c57d9c0508f4044915f9aecea4b9aa5629cc6a35
+verified_commit: 5a6c165483545dfaf97df72787e3d0107259b24f
 ---
 
 ## AB-05.1 GET /v1/system — catalogue plus live introspection
@@ -196,34 +196,34 @@ sequenceDiagram
     autonumber
     participant OP as operator
     participant AB as cmd_ruvector<br/>agentbox.sh:1041
-    participant SC as ruvector-sidecar-update.sh<br/>scripts/ruvector-sidecar-update.sh:1782-1802 dispatch
+    participant SC as ruvector-sidecar-update.sh<br/>scripts/ruvector-sidecar-update.sh:1839-1859 dispatch
     participant H as scripts/ruvector-recall-harness.mjs
 
     OP->>AB: ./agentbox.sh ruvector <subcmd> [args]
     AB->>SC: exec bash SCRIPT_DIR/scripts/ruvector-sidecar-update.sh "$@" (agentbox.sh:1048)
     Note over AB: image pin lives in agentbox.toml [integrations.ruvector_external] and is mirrored into docker-compose.yml (agentbox.sh:1042-1047)
-    alt status | check | test (ruvector-sidecar-update.sh:1783-1785)
+    alt status | check | test (ruvector-sidecar-update.sh:1840-1842)
         SC-->>OP: sidecar state, pinned-vs-Docker-Hub comparison
-    else update (ruvector-sidecar-update.sh:1786)
+    else update (ruvector-sidecar-update.sh:1843)
         SC->>SC: dump then pg_basebackup snapshot then candidate rehearsal then swap
-    else rollback (ruvector-sidecar-update.sh:1787)
+    else rollback (ruvector-sidecar-update.sh:1844)
         SC->>SC: restore previous image plus datadir from the recorded snapshot
-    else migrate-trajectories | repair-namespaces | backfill-embeddings | archive-legacy | aggregate-effectiveness | build-metadata-gin (ruvector-sidecar-update.sh:1788-1793)
+    else migrate-trajectories | repair-namespaces | backfill-embeddings | archive-legacy | aggregate-effectiveness | build-metadata-gin (ruvector-sidecar-update.sh:1845-1850)
         SC-->>OP: DRY-RUN by default — each needs --yes plus its manifest flag
-    else recall (ruvector-sidecar-update.sh:1794)
+    else recall (ruvector-sidecar-update.sh:1851)
         SC->>SC: cmd_recall (:1248) — require_prod_running then node present
         SC->>SC: resolve governed MCP env via mcp_env_pairs from .mcp.json (:1254)
         SC->>H: run_recall_harness (:1265) runs env ENVP node "$RECALL_HARNESS" "$@" (:1210), default scripts/ruvector-recall-harness.mjs (:1201)
         H-->>OP: harness sets its own exit code — PASS 0, FAIL non-zero (ruvector-sidecar-update.sh:1259)
-    else reindex | reader-role | hba-harden (ruvector-sidecar-update.sh:1795-1797, ADR-2133)
+    else reindex | reader-role | hba-harden (ruvector-sidecar-update.sh:1852-1854, ADR-2133)
         SC-->>OP: serial HNSW rebuild with recall gate before and after, reader role, pg_hba hardening
     else anything else
-        SC-->>OP: die unknown subcommand (:1801)
+        SC-->>OP: die unknown subcommand (:1858)
     end
     Note over SC,H: recall is READ-ONLY, no gate of its own — fixture scripts/recall-fixtures/recall-fixture.v1.json is frozen and checked in (:1257)
     Note over H: classes self-recall@10, true-recall@10 vs forced exact scan, exact-token — median-of-3 no-regression band (ruvector-sidecar-update.sh:1258-1259)
     Note over H: artefact lands in backups/ruvector-sidecar/recall-runs/<utc>.json (ruvector-sidecar-update.sh:1260) — retrieval-geometry gate boundary, see AB-20
-    Note over AB,SC: DOC-DRIFT — RESOLVED: the usage text at agentbox.sh:51 lists recall,<br/>which ruvector-sidecar-update.sh:1794 implements and :1801 advertises
+    Note over AB,SC: DOC-DRIFT — RESOLVED: the usage text at agentbox.sh:51 lists recall,<br/>which ruvector-sidecar-update.sh:1851 implements and :1858 advertises
     Note over AB,SC: RESOLVED ADR-2038: recall is in the ruvector subcommand list at<br/>agentbox.sh:51 and has a usage example at agentbox.sh:104
 ```
 
@@ -588,7 +588,7 @@ flowchart TB
 flowchart TB
     TOML["agentbox.toml"]
     TOML --> G1["[claude_code] floor = true<br/>agentbox.toml:739, ADR-2144 accepted and live"]
-    TOML --> G2["[voicelink] enabled = true, record_events = true<br/>agentbox.toml:2264, :2271, ADR-2151 proposed, none, inactive"]
+    TOML --> G2["[voicelink] enabled = true, record_events = true<br/>agentbox.toml:2264, :2271, ADR-2151 proposed, partial since 2026-11-02, inactive"]
     TOML --> G3["[integrations.activity_sink] enabled = false<br/>agentbox.toml:528, ADR-2146 accepted, complete, inactive"]
     TOML --> G4["[integrations.solid_pod_rs] trust_proxy = true and .forge enable = true<br/>agentbox.toml:552, :607, ADR-2145 accepted and live"]
     TOML --> G5["[skills.spatial_and_3d] blender_local = false<br/>agentbox.toml:634, sidecar-first Blender"]
@@ -611,10 +611,12 @@ flowchart TB
     C6 --> B6["every boot runs hp-loom-reconcile.sh in the background, fail-open<br/>entrypoint-unified.sh:1219-1229"]
 ```
 
-**What it shows.** The gate families that arrived between the previous stamp and this one, from manifest key through catalogue entry and apply class to the code that consumes it. Ten entries joined the catalogue in that window (one surface, nine modules); with later additions such as `user-cron` it now holds 123 entries, 14 surfaces and 109 modules (`../project/agentbox/management-api/lib/system-manifest.js:39-439`). The apply class follows where the gate is consumed: the voicelink binary is baked at image composition, so `voicelink` is rebuild-class, while the hook registration that feeds its event spool is reconciled every boot.
+**What it shows.** The gate families that arrived in October 2026, from manifest key through catalogue entry and apply class to the code that consumes it. Ten entries joined the catalogue in that window (one surface, nine modules); with later additions such as `user-cron` it now holds 123 entries, 14 surfaces and 109 modules (`../project/agentbox/management-api/lib/system-manifest.js:39-439`). The apply class follows where the gate is consumed: the voicelink binary is baked at image composition, so `voicelink` is rebuild-class, while the hook registration that feeds its event spool is reconciled every boot.
 **Why it is this way.** ADR-039's honesty rule again: each entry carries the class of its consumer. ADR-2144 (accepted, live) and ADR-2145 (accepted, live) are drawn as live. ADR-2146 is accepted but inactive and ADR-2149 is proposed, so the activity sink is drawn off (its manifest key is false) and the Isaac sidecar is shown only as an opt-in CLI path with no manifest gate.
 
-**Tension (ADR-2151 vs manifest):** ADR-2151 is `proposed`, implementation `none`, activation `inactive` (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5`), while the live manifest sets `[voicelink].enabled = true` and `record_events = true` (`../project/agentbox/agentbox.toml:2264`, `:2271`), so the image bakes voice-paned and boot registers its hooks (`../project/agentbox/flake.nix:1848`, `../project/agentbox/config/entrypoint-unified.sh:2165`).
+**Tension (ADR-2151 vs manifest, status moved 2026-11-02):** at the previous stamp (`c57d9c0`) ADR-2151 read `proposed`, implementation `none`, activation `inactive` while the live manifest already enabled it. Its 2026-11-02 external review reconciliation moves implementation to `partial` (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`) because the source and the bake exist, which closes the implementation half of the tension (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:21`). The other half stands: the decision is still `proposed` and activation `inactive`, and the ADR itself says acceptance is not inferred from the enabled flag (same line), yet the manifest sets `[voicelink].enabled = true` and `record_events = true` (`../project/agentbox/agentbox.toml:2264`, `:2271`), so the image bakes voice-paned and boot registers its hooks (`../project/agentbox/flake.nix:1848`, `../project/agentbox/config/entrypoint-unified.sh:2165`).
+
+**Tension (ADR-2151 reconciliation vs its own Verification section):** the Verification section still says `implementation_status` becomes `partial` only when the bake and the hook spool are verified by the voicelink end-to-end link test against a live grouped session (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:43`); the reconciliation sets `partial` from a read-only inspection of the bake and records that end-to-end test as not run (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:21`).
 
 **Open (status moved 2026-10-30):** ADR-2146 is now `decision_status: accepted` with `implementation_status: complete` and `activation_status: inactive` (`../project/agentbox/docs/adr/ADR-2146-activity-sink-hook.md:5-7`); the decision question is closed, but is the activity sink meant to stay off until a consumer sets the endpoint? The manifest ships `enabled = false` with an empty `url` (`../project/agentbox/agentbox.toml:528`).
 
