@@ -2,72 +2,94 @@
 id: ADR-2022
 title: Hold one bi-temporal contract for ontology history across the estate, and show history in visualisation through as-of projections, never a versioned reasoning graph
 date: 2026-11-03
-decision_status: proposed
-implementation_status: none
-activation_status: inactive
+decision_status: accepted
+implementation_status: complete
+activation_status: staged
 supersedes: []
 superseded_by: []
 depends_on: [ADR-2013, ADR-2014, ADR-2015]
-verified_commit: 307cdc5
-verified_paths: []
+verified_commit: ab1e636ff
+verified_paths: [visionclaw:src/services/corpus_history.rs, visionclaw:src/services/temporal_contract_tests.rs, visionclaw:src/services/github_sync_service.rs, visionclaw:src/handlers/api_handler/ontology/mod.rs, visionclaw:crates/visionclaw-adapters/src/oxigraph_ontology_repository.rs, visionclaw:client/src/store/timelineStore.ts, visionclaw:client/src/features/graph/components/GemNodes.tsx, visionclaw:client/src/features/graph/utils/timelineTint.ts, ontomark:conformance/temporal/README.md, ontomark:conformance/temporal/vectors.json]
 owner: jjohare
-review_trigger: Reopen when any of these happens — ADR-2015's typed model fixes its temporal fields; federation (VisionClaw VC-48) starts implementing leases or tombstones; a graph client asks for a time view; or VisionClaw ADR-2102 (erasure) is decided
+review_trigger: Activation — a deployed VisionClaw built from ab1e636ff or later, with the panel key present, runs an operator force_full sync, and `GET /api/ontology/state-at?t=<now>` returns versions whose activity starts `urn:visionclaw:execution:corpus-sync-`, with no assert_digest or corpus_history errors in that sync. Reopen P5 on the first multi-writer path (federation write-back or offline clients). Reopen the erasure boundary when VisionClaw ADR-2102 is decided.
 repo: visionflow
 domain: BASELINE-visionflow.md
-evidence_class: source
-acceptance_boundary: A source reading of VisionClaw afe3cb574 and of adrianco/the-goodies (README as of 2026-11-02). It establishes what the bi-temporal provenance code provides and what it does not cover. It does not establish that any proposal below is wanted, sized or safe under erasure. Every proposal here is an idea to come back to, not a commitment.
+evidence_class: source+test
+acceptance_boundary: Established at VisionClaw ab1e636ff and ontomark 28330ce by unit and repository-level tests in in-memory Oxigraph stores and by client vitest. Not established — no deployed instance has run the new sync, so production volume, state-at latency over the full corpus and the panel key's presence in the deployed environment are unmeasured. P1 adoption by ADR-2015 and VC-48 is not established; those records are unimplemented.
 ---
 
 # ADR-2022 — Hold one bi-temporal contract for ontology history across the estate, and show history in visualisation through as-of projections, never a versioned reasoning graph
 
 ## Context
 
-This review was prompted by [adrianco/the-goodies](https://github.com/adrianco/the-goodies). It is a knowledge graph for a house, and it never overwrites anything. Entities are stored as immutable `(id, version)` rows. Edges are half-open `[valid_from, valid_to)` intervals. Valid time (when an edit was made) is kept separate from transaction time (`server_seq`, when the server learned of it). A write that loses a conflict is still stored and acknowledged, and replicas compare a sha256 digest to prove they hold the same data. Its `snapshot(T)` and `diff(T1,T2)` are marked "designed, not built".
+This decision was prompted by [adrianco/the-goodies](https://github.com/adrianco/the-goodies), a knowledge graph for a house that never overwrites anything:
+- entities are immutable `(id, version)` rows, and edges are half-open `[valid_from, valid_to)` intervals;
+- valid time is kept apart from transaction time;
+- a write that loses a conflict is kept;
+- replicas compare a sha256 digest to prove they hold the same data.
 
-VisionClaw already has the core of that model. `provenance_writer.rs:15-22` makes `urn:ngm:graph:provenance` the append-only historical source of truth, and makes the asserted graph its `state_at(now)` projection. Retraction closes `[validFrom, validTo)` and deletes nothing. Recorded time is held separately as `prov:generatedAtTime`. `GET /api/ontology/state-at?t=&recorded_as_of=` answers both questions (`handlers/api_handler/ontology/mod.rs:1370-1420`, `:1686`).
+VisionClaw already had the core of that model. The append-only `urn:ngm:graph:provenance` holds assertion-versions with `[dl:validFrom, dl:validTo)` and a separate `prov:generatedAtTime` (`provenance_writer.rs`, legacy ADR-049). `GET /api/ontology/state-at` answers both "true at T" and "known at T". A client `TimelineScrubber` called it.
 
-There are gaps. The only production writer of assertion-versions is `decision_service.rs:595`. The authored corpus reaches `:assert` through a `CLEAR+INSERT` rebuild (`github_sync_service.rs:969`) that writes no versions, so `state-at` sees governed decisions but not the history of the corpus itself. No graph client uses `state-at`. And neither ontomark nor federation has adopted the contract.
+The gaps were:
+- only governed decisions wrote versions;
+- the authored corpus reached `:assert` through a `CLEAR+INSERT` rebuild with no history;
+- the scrubber's overlay had no render caller, and matched node ids against IRI subjects, so it could never fire;
+- nothing checked that the rebuild landed;
+- no other consumer shared the contract.
 
 ## Decision
 
-**Proposed, not yet adopted.** Five ideas, recorded so they can be picked up one at a time.
-
-**P1: one temporal contract.** Make VisionClaw's model (legacy ADR-049, PRD-022 WS-2) the estate contract for any time-qualified ontology fact:
-- valid time is `dl:validFrom` / `dl:validTo`, read as the half-open interval `[from, to)`;
+**P1: one temporal contract.** `estate-temporal-v1` is the estate's meaning of a time-qualified ontology fact:
+- valid time is `dl:validFrom` / `dl:validTo` as the half-open `[from, to)`;
 - recorded time is `prov:generatedAtTime`;
-- queries in valid time never read recorded time, and replication never reads valid time.
+- retraction appends a `validTo` and deletes nothing;
+- as-of queries never read the replication order, and a reasoned view at T is a projection at T that is then saturated.
 
-ADR-2015's typed model and ontomark's graph contracts would reuse these names and meanings. Federation (VC-48 leases, retraction tombstones) would express expiry and retraction as `validTo` on the same model, not as a second scheme.
+ontomark owns the spec and the vectors (`conformance/temporal/`). Consumers vendor the vectors, pinned by SHA-256. VisionClaw is the reference implementation, and its pure `state_at`, its `state-at` SPARQL and the `view=subjects` SPARQL all conform. A record that adds time to ontology facts (ADR-2015's typed model, VC-48's leases and tombstones) cites this contract instead of defining its own.
 
-**P2: corpus history in the as-of view.** Let `state-at` answer for authored content as well as governed decisions. Two candidate ways, not yet chosen:
-- (a) project the visionGraph vault at the last commit at or before T, using commit time as recorded time;
-- (b) have the sync emit assertion-versions from the diff between the previous and the new `:assert` graph.
+**P2: corpus history, recorded from the sync's diff (option b).** On each full sync, the public corpus IRI triples are diffed against the corpus writer's *own* open versions: those generated by a `urn:visionclaw:execution:corpus-sync-…` activity. The change is appended to the provenance graph in one transaction, attributed to VisionClaw's panel identity (`src/services/corpus_history.rs`). The rules:
+- Diffing against the writer's own versions, not against `:assert`, means decision instances and governed mutations are never closed or duplicated, and an unchanged re-sync writes nothing.
+- `save_ontology_graph` and the history writer share one IRI-triple projection, `ontology_graph_iri_triples`, so they cannot drift.
+- Only pages marked `public: true` are recorded (9,151 of the 9,163 class pages in visionGraph at 6267d0dd0), and only IRI triples. Nothing private enters a store that cannot yet delete.
+- Neither corpus source supplies a commit time, so valid time and recorded time are both the sync instant. History starts at the first full sync with the writer enabled, at full-sync granularity.
+- A missing panel key is reported as "history NOT recorded" with its reason. A misconfigured key is a sync error. `VISIONCLAW_CORPUS_HISTORY=0` stops the writer.
 
-Option (a) adds no stored state. Option (b) puts corpus history in the same graph as decisions.
+Option (a), rebuilding from the vault's git history, was not chosen. The deployed corpus source is not guaranteed to be a git checkout, and option (b) puts corpus history in the same graph and query path as decisions.
 
-**P3: a time view in visualisation.** Add a time slider to the graph clients, served by `state-at` (P2 for content, provenance for decisions). Reasoning runs only on a single-instant projection. A reasoned view at T means rebuilding the projection at T and saturating that. Whelk is never run over the union of versions, because OWL has no time semantics: a class that moved from parent A to parent B would end up under both.
+**P3: a time view in visualisation.** The existing scrubber now reaches the render:
+- `GemNodes` tints each node by `nodeTimelineStatus`: faded when not valid at T, green when added, red when retracted.
+- Nodes now match on class IRI as well as node id.
+- The store fetches `state-at?view=subjects`, one row per subject rather than one per version.
 
-**P4: convergence digests.** Check agreement instead of assuming it. Each projection (vault → Oxigraph `:assert`, server → graph client, and later each federation peer) publishes a sha256 over the sorted current `(IRI, content hash)` set. A mismatch triggers a full rebuild and is reported. visionGraph's publish marker already carries content and ontology digests, which is the starting point.
+The scrubber stays opt-in through `provenance.enableTimeline`. The overlay works per node: a class whose parent moves keeps its type triples, so it reads as valid throughout. An edge move is visible through `state-at` but is not drawn on the graph. Reasoning only ever runs on a single-instant projection.
 
-**P5: losing writes are kept.** If federation or offline clients ever allow concurrent writers, a write that loses resolution is stored as a non-current version and acknowledged, never dropped. This is the-goodies' "a concurrent write can lose prominence; it can never lose existence".
+**P4: convergence digests between source and projection.** After each assert rebuild:
+- the SHA-256 of the corpus IRI triples the rebuild meant to write is compared with that of the triples `:assert` holds for those subjects and predicates;
+- after history is recorded, the open corpus versions are compared with the public set.
 
-**Out of scope.** Versioning the Oxigraph `:assert` graph, the GPU graph state or RuVector memory. These stay disposable projections that can be rebuilt. Authored Markdown in git, plus the provenance graph, remains where history lives.
+A mismatch is a sync error (`assert_digest_mismatch`, `corpus_history_digest_mismatch`), and an operator `force_full` is the repair. `SyncStatistics.assert_digest` records the matching digest. Server-to-client and federation-peer digests are not built; they become relevant when those copies hold triples rather than render nodes.
+
+**P5: keep losing concurrent writes. Withdrawn.** No path today has concurrent writers: governed proposals serialise writes. It reopens with the first multi-writer path.
+
+**Out of scope.** Versioning the `:assert` or `:inferred` graphs, GPU graph state or RuVector memory. These stay disposable projections that can be rebuilt.
 
 ## Consequences
 
-- P1 costs nothing until a second consumer needs time. It stops ontomark and federation from inventing incompatible interval or tombstone semantics, the drift pattern ADR-2014 exists to remove.
-- P2 widens what the append-only store holds, and so widens the erasure surface. Under option (b), any personal data in authored content inherits the problem VisionClaw ADR-2102 (crypto-shred or declare out of scope) has not yet resolved. Option (a) relies on git history, which has its own erasure limits (history rewrite).
-- P3 needs P2 to be useful for content. Rebuilding a projection at T costs a sync and a saturation per distinct T, so it suits stepping through a slider, not continuous scrubbing, unless snapshots are cached.
-- P4 would have caught the PATH B / PATH A materialiser drift (VC-20.4) mechanically rather than by review.
-- P5 only matters once there are multiple writers; today, governed proposals serialise writes.
-- Supersedes nothing. Changes none of the invariants in `BASELINE-visionflow.md`. Implementations would belong to VisionClaw, ontomark and visionGraph (ADR-2006).
+- Every full sync now appends to a graph that cannot shrink. On the first enabled sync this is roughly one version per public class type triple plus one per class relation, about 9 quads each. After that it is proportional to what changed. Volume and `state-at` latency over the full corpus have not been measured on a deployed store.
+- The erasure surface grows by public class IRIs and relations only. VisionClaw ADR-2102 still owns erasure, and `docs/DATA-authority-erasure.md` (VisionClaw) records the boundary.
+- `/api/ontology/state-at` gains an optional `view=subjects`. The default response is unchanged.
+- P4 checks the asserted projection only. Drift between the inferred-edge materialisers (VC-20.4 PATH A and PATH B) is outside it.
+- Diagram drift for the next re-stamp: VisionClaw VC-22.4 says "two producers" for the provenance graph, and there are now three. Line citations into `github_sync_service.rs` after the rebuild function have shifted. Both diagrams are pinned to a revision, so nothing is broken yet.
 
 ## Verification
 
-Nothing is implemented. The facts in Context were read at VisionClaw `afe3cb574`:
-- `src/services/provenance_writer.rs:15-60`: interval, two clocks, `state_at` at `:506-518`;
-- `src/handlers/api_handler/ontology/mod.rs:1370-1420`, `:1686`: the `state-at` route;
-- `grep -rn build_assertion_version src crates`: the only caller outside the writer is `src/services/decision_service.rs:595`;
-- `src/services/github_sync_service.rs:969`: `rebuild_assert_graph`.
+At VisionClaw `ab1e636ff` (merged to main), built and tested in a worktree with `CARGO_TARGET_DIR` shared:
 
-the-goodies features and their status come from its README, fetched 2026-11-03.
+- `cargo test --lib -- corpus_history temporal_contract github_sync_service provenance_writer api_handler::ontology`: all pass. That includes 10 corpus-history tests (first sync, idempotent re-sync, one edge move closing one version and opening one with `state_at` on both sides, other writers untouched, duplicates collapsed, digests, kill switch, and three through `OxigraphOntologyRepository`: clean rebuild, stray triple gives a mismatch, no or bad identity) and 4 contract tests (pin, pure, SPARQL, subjects view).
+- `cargo test -p visionclaw-adapters --lib`: 78 pass.
+- `cargo test --lib`: 1,820 pass, 1 fails. The failure, `prod_lan_headset_wss_authenticate_validates_through_nginx`, parses `nginx.production.conf`, which this change does not touch, so it fails identically on the prior main.
+- Client: `vitest run src/features/graph src/store` gives 38 files and 359 tests passing, including `timelineTint.test.ts` (6). `tsc --noEmit` reports only the existing `GlassEdgeMaterial.ts` error, also present on prior main. ESLint finds no new warnings in the changed files.
+
+At ontomark `28330ce` (merged to main): `conformance/temporal/vectors.json` SHA-256 `6973aeef…6f75` matches VisionClaw's vendored pin.
+
+Activation is `staged`. No host build or force_full sync has been run, because the first enabled full sync writes history that cannot be removed. The review trigger names the runtime check that moves this to `live`.
