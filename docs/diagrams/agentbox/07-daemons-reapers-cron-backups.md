@@ -23,6 +23,8 @@ sources:
 verified_commit: c57d9c0508f4044915f9aecea4b9aa5629cc6a35
 ---
 
+Repair follow-up, 2026-11-03: [AB-41.1](41-process-governance-and-dream-repairs.md#ab-411-pin-a-process-before-signalling-it) records captured identity and pidfd signalling in the repaired reaper. This topic retains its historical source stamp.
+
 ## AB-07.1 Supervised process classes by lifecycle shape
 ```mermaid
 flowchart TD

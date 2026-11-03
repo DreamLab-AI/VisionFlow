@@ -94,6 +94,8 @@ sources:
   - ../dream-engine/docs/adr/ADR-DE-007-a-night-is-identified-by-its-directory.md
 verified_commit: {agentbox: 6500582dfae23bf8a38a6942916d208154e43625, dream-engine: 59a3e215e826aa1e9ebe157d49c1ac504f7f39c9}
 ---
+Repair follow-up, 2026-11-03: [AB-41.3](41-process-governance-and-dream-repairs.md#ab-413-supply-the-reusable-core-with-verifiable-host-inputs) and [DE-06](../dream-engine/06-formatting-and-evidence-repairs.md) record the adapter's registry adoption and core formatting/source/integrity repairs. This topic retains its historical source stamp.
+
 This topic draws the adapter and the boundary after the 2026-10-15 extraction (agentbox ADR-2141). The judgement and the loop mechanism moved to the permissive repository DreamLab-AI/dream-engine, mapped in DE-01 and in its own corpus at `../dream-engine/docs/diagrams/README.md`, which is not duplicated here. AB-23.9 onward are adapter-owned and re-cited at the new revision.
 
 State at this stamp: the adapter pins `dream-core =0.4.0` and `dream-gate =0.3.0` from the registry (`../project/agentbox/services/dream-engine/Cargo.toml:26-27`), and the extraction is live: ADR-2141 is `accepted`, `complete`, `live`, with the operator's rebuild activated on 2026-10-16 and later releases adopted since (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:6-8`). Three adapter-owned changes since the first stamp are drawn here: source supply as plumbing (AB-23.21, ADR-2143), the opt-in Jev triage before the candidate build (AB-23.22, AB-23-S1-01) and the formatter step inside the core's candidate run (AB-23.4, ADR-DE-009). The crates.io versions are recorded in DE-01.

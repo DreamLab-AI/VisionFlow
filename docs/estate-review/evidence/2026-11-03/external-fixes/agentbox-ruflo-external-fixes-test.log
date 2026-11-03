@@ -1,0 +1,10 @@
+   Compiling agentbox-ops v0.1.0 (/home/devuser/workspace/wt/agentbox-external-fixes/services/agentbox-ops)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.75s
+     Running unittests src/bin/ruflo-daemon-gc.rs (services/agentbox-ops/target/debug/deps/ruflo_daemon_gc-91e68bb94e786c9d)
+
+running 2 tests
+test tests::registry_pid_rejects_zero_negative_casts_and_truncation ... ok
+test tests::a_reused_identity_is_refused_and_a_matching_child_is_signalled_by_pidfd ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

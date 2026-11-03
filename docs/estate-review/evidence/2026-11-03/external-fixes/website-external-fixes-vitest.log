@@ -1,0 +1,99 @@
+
+ RUN  v2.1.9 /home/devuser/workspace/wt/dreamlab-ai-website-external-fixes
+
+ ✓ scripts/__tests__/gate-aggregation.test.mjs (4 tests) 5ms
+ ✓ scripts/__tests__/toml-lite.test.mjs (4 tests) 10ms
+ ✓ scripts/__tests__/nip05-auth-mirror.test.mjs (2 tests) 5ms
+ ✓ scripts/__tests__/inbox-digest.test.mjs (19 tests) 13ms
+ ✓ scripts/__tests__/bbs-branding-mirrors.test.mjs (5 tests) 6ms
+ ✓ scripts/__tests__/workers-url-mirrors.test.mjs (3 tests) 31ms
+ ✓ scripts/__tests__/website-info.test.mjs (30 tests) 64ms
+ ✓ scripts/__tests__/deploy-subset-of-ci.test.mjs (5 tests) 61ms
+stdout | scripts/__tests__/jev-option.test.mjs > DW-02 enquiry topic tag > fallback equivalence: off / no endpoint / non-local / error / timeout / malformed / low confidence => digest identical
+[jev] dw02-enquiry-topic-v1 no-endpoint
+[jev] dw02-enquiry-topic-v1 no-endpoint
+[jev] dw02-enquiry-topic-v1 no-endpoint
+[jev] dw02-enquiry-topic-v1 http-500
+[jev] dw02-enquiry-topic-v1 http-500
+[jev] dw02-enquiry-topic-v1 http-429
+[jev] dw02-enquiry-topic-v1 http-429
+[jev] dw02-enquiry-topic-v1 timeout
+[jev] dw02-enquiry-topic-v1 timeout
+
+ ✓ scripts/__tests__/content-generators.test.mjs (1 test) 175ms
+stdout | scripts/__tests__/jev-option.test.mjs > DW-02 enquiry topic tag > fallback equivalence: off / no endpoint / non-local / error / timeout / malformed / low confidence => digest identical
+[jev] dw02-enquiry-topic-v1 timeout
+
+stdout | scripts/__tests__/jev-option.test.mjs > DW-02 enquiry topic tag > fallback equivalence: off / no endpoint / non-local / error / timeout / malformed / low confidence => digest identical
+[jev] dw02-enquiry-topic-v1 timeout
+[jev] dw02-enquiry-topic-v1 malformed
+[jev] dw02-enquiry-topic-v1 malformed
+[jev] dw02-enquiry-topic-v1 malformed
+[jev] dw02-enquiry-topic-v1 malformed
+[jev] dw02-enquiry-topic-v1 malformed
+[jev] dw02-enquiry-topic-v1 malformed
+[jev] dw02-enquiry-topic-v1 low-confidence
+[jev] dw02-enquiry-topic-v1 low-confidence
+
+stdout | scripts/__tests__/jev-option.test.mjs > DW-02 enquiry topic tag > default is not local-only: proxy and vendor are used; DREAMLAB_JEV_TOPIC_LOCAL_ONLY=1 refuses them
+[jev] dw02-enquiry-topic-v1 accepted
+[jev] dw02-enquiry-topic-v1 accepted
+[jev] dw02-enquiry-topic-v1 accepted
+[jev] dw02-enquiry-topic-v1 accepted
+[jev] dw02-enquiry-topic-v1 no-endpoint
+[jev] dw02-enquiry-topic-v1 no-endpoint
+
+stdout | scripts/__tests__/jev-option.test.mjs > DW-02 enquiry topic tag > accept path: only enquiries are tagged, the sender's own choice is untouched
+[jev] dw02-enquiry-topic-v1 accepted
+[jev] dw02-enquiry-topic-v1 accepted
+
+stdout | scripts/__tests__/jev-option.test.mjs > DW-02 enquiry topic tag > a hostile model key cannot inject text: only catalogue keys are accepted
+[jev] dw02-enquiry-topic-v1 malformed
+[jev] dw02-enquiry-topic-v1 malformed
+
+stdout | scripts/__tests__/jev-option.test.mjs > DW-06 claim checker > fallback equivalence: results and report equal the flag-off run for every trigger
+[jev] dw06-claim-evidence-v1 no-endpoint
+[jev] dw06-claim-evidence-v1 http-500
+[jev] dw06-claim-evidence-v1 http-500
+[jev] dw06-claim-evidence-v1 timeout
+[jev] dw06-claim-evidence-v1 timeout
+
+stdout | scripts/__tests__/jev-option.test.mjs > DW-06 claim checker > fallback equivalence: results and report equal the flag-off run for every trigger
+[jev] dw06-claim-evidence-v1 timeout
+
+ ✓ scripts/__tests__/seo-watch.test.mjs (34 tests) 155ms
+stdout | scripts/__tests__/jev-option.test.mjs > DW-06 claim checker > fallback equivalence: results and report equal the flag-off run for every trigger
+[jev] dw06-claim-evidence-v1 timeout
+[jev] dw06-claim-evidence-v1 malformed
+[jev] dw06-claim-evidence-v1 malformed
+[jev] dw06-claim-evidence-v1 malformed
+[jev] dw06-claim-evidence-v1 malformed
+[jev] dw06-claim-evidence-v1 low-confidence
+[jev] dw06-claim-evidence-v1 low-confidence
+
+stdout | scripts/__tests__/jev-option.test.mjs > DW-06 claim checker > no feature notes in the register => no request is made (ungrounded)
+[jev] dw06-claim-evidence-v1 no-evidence
+
+stdout | scripts/__tests__/jev-option.test.mjs > DW-06 claim checker > insufficient evidence suppresses the advisory
+[jev] dw06-claim-evidence-v1 low-confidence
+[jev] dw06-claim-evidence-v1 low-confidence
+
+ ✓ scripts/__tests__/jev-option.test.mjs (29 tests) 177ms
+ ✓ scripts/__tests__/operator-var-mirrors.test.mjs (9 tests) 944ms
+   ✓ checkOperatorVarMirrors > flags a federated kind present on one side only 922ms
+ ✓ scripts/__tests__/config-mirrors.test.mjs (26 tests) 1118ms
+   ✓ a rotation that misses a mirror is rejected > catches an admin key rotated in the TOML but not the relay worker 902ms
+ ✓ scripts/__tests__/effective-endpoints.test.mjs (17 tests) 1144ms
+   ✓ broken endpoint configuration is rejected > rejects a VITE_* variable the React build step never supplies 931ms
+ ✓ scripts/__tests__/pin-parity.test.mjs (27 tests) 1173ms
+   ✓ deliberately inconsistent pins are rejected > rejects a KIT_REF that differs between workflows 941ms
+ ✓ scripts/__tests__/seo-publish.test.mjs (2 tests) 1311ms
+   ✓ publishes the verified patch and report after committing, with an empty index 1291ms
+ ✓ scripts/__tests__/dream-kit-pin-guard.test.mjs (10 tests) 1542ms
+   ✓ verdict contract > accepts an exact `=` pin against a bare CANONICAL_KIT_VERSION 984ms
+
+ Test Files  17 passed (17)
+      Tests  227 passed (227)
+   Start at  06:17:49
+   Duration  2.98s (transform 1.08s, setup 3.57s, collect 2.31s, tests 7.93s, environment 7.61s, prepare 3.93s)
+

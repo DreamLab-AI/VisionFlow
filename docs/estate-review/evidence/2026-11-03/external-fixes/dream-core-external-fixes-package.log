@@ -1,0 +1,18 @@
+    Updating crates.io index
+   Packaging dream-core v0.4.1 (/home/devuser/workspace/wt/dream-engine-external-fixes/crates/dream-core)
+warning: ignoring test `ts_parity` as `tests/ts_parity.rs` is not included in the published package
+    Updating crates.io index
+    Packaged 40 files, 577.5KiB (153.8KiB compressed)
+   Verifying dream-core v0.4.1 (/home/devuser/workspace/wt/dream-engine-external-fixes/crates/dream-core)
+   Compiling serde v1.0.229
+   Compiling ontomark-parse v0.1.3
+   Compiling serde_yaml v0.9.34+deprecated
+   Compiling pairwise-gate v0.1.0
+   Compiling rdfs-certificate v0.1.0
+   Compiling failure-fingerprint v0.1.0
+   Compiling dream-gate v0.3.0
+   Compiling ontomark-compile v0.6.3
+   Compiling dream-core v0.4.1 (/home/devuser/workspace/wt/dream-engine-external-fixes/target/package/dream-core-0.4.1)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 11.76s
+   Uploading dream-core v0.4.1 (/home/devuser/workspace/wt/dream-engine-external-fixes/crates/dream-core)
+warning: aborting upload due to dry run

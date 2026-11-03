@@ -1,0 +1,28 @@
+{
+  "mode": "diff-working",
+  "diff_ref": "",
+  "files_from": "",
+  "root": "/home/devuser/workspace/wt/agentbox-external-fixes",
+  "project_id": "agentbox-external-fixes",
+  "workspace": "/home/devuser/workspace/wt/agentbox-external-fixes/.deepsec-gate",
+  "report_dir": "/home/devuser/workspace/wt/agentbox-external-fixes/.deepsec-gate/reports/20261103T062632Z",
+  "revision": "b36abb6cbe9e71bbe48fc1c5d46a4f8ced44c1bd",
+  "dirty": "true",
+  "deepsec_version": "2.3.10",
+  "policy_source": "/etc/agentbox.toml",
+  "agent": "claude",
+  "model_auth": "local",
+  "model": "",
+  "thinking_level": "minimal",
+  "fail_on": "HIGH",
+  "max_duration": "20m",
+  "batch_size": "5",
+  "concurrency": "2",
+  "ai_provider": "",
+  "ai_api_key_env": "",
+  "ai_base_url": "",
+  "route": {
+    "mode": "local",
+    "provider": "local"
+  }
+}

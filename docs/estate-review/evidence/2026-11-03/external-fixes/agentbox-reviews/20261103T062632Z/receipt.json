@@ -1,0 +1,24 @@
+{
+  "gate": "deepsec",
+  "adr": "ADR-2033",
+  "result": "PASS",
+  "mode": "diff-working",
+  "fail_on": "HIGH",
+  "revision": "b36abb6cbe9e71bbe48fc1c5d46a4f8ced44c1bd",
+  "dirty": true,
+  "deepsec_version": "2.3.10",
+  "policy_source": "/etc/agentbox.toml",
+  "deepsec_exit": 1,
+  "candidates": 13,
+  "findings_by_severity": {
+    "CRITICAL": 0,
+    "HIGH": 0,
+    "MEDIUM": 2,
+    "HIGH_BUG": 0,
+    "BUG": 1,
+    "LOW": 0
+  },
+  "blocking": [],
+  "net_new_reported_by_deepsec": true,
+  "at": "2026-11-03T06:33:25.010436+00:00"
+}

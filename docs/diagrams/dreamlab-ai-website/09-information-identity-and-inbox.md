@@ -23,6 +23,10 @@ verified_commit: {dreamlab-ai-website: b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5,
 
 ## For developers
 
+**Repair follow-up, 2026-11-03:** [DW-11](11-watch-publication-and-inbox-repairs.md)
+records registry-presence, privilege-health and seen/display accounting repairs.
+The source stamp below remains historical and unrelated findings remain open.
+
 Separate configured admission, public disclosure, stored registration and delivery acknowledgement. The dated estate audit exercises the actual watcher and provisioner with synthetic encrypted messages and fully mocked transport.
 
 ## For the business

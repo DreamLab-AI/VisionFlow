@@ -1,0 +1,9 @@
+{
+  "gate": "deepsec",
+  "result": "TIMEOUT",
+  "mode": "diff",
+  "revision": "c3849abb8a2a289fbb013c721dfc0c5544c74b16",
+  "dirty": false,
+  "deepsec_exit": 124,
+  "at": "2026-11-03T06:21:47.776726+00:00"
+}

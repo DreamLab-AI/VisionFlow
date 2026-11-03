@@ -1,0 +1,51 @@
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	﻿2026-11-03T06:28:03.3335506Z ##[group]Run set -euo pipefail
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:03.3335716Z ^[[36;1mset -euo pipefail^[[0m
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:03.3335923Z ^[[36;1mif npm view "@dreamlab-ai/vowl-wasm@${VERSION}" version >/dev/null 2>&1; then^[[0m
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:03.3336212Z ^[[36;1m  echo "@dreamlab-ai/vowl-wasm@${VERSION} is already published; skipping"^[[0m
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:03.3336419Z ^[[36;1m  exit 0^[[0m
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:03.3336532Z ^[[36;1mfi^[[0m
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:03.3336692Z ^[[36;1mnpm publish "vowl-wasm-${VERSION}-pkg.tgz" --access public^[[0m
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:03.3336940Z ^[[36;1mnpm view "@dreamlab-ai/vowl-wasm@${VERSION}" version dist.integrity^[[0m
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:03.3360736Z shell: /usr/bin/bash -e {0}
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:03.3360879Z env:
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:03.3360991Z   CARGO_TERM_COLOR: always
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:03.3361119Z   CARGO_NET_RETRY: 10
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:03.3361253Z   CARGO_HOME: /home/runner/.cargo
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:03.3361392Z   CARGO_INCREMENTAL: 0
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:03.3361651Z   CACHE_ON_FAILURE: false
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:03.3361805Z   NPM_CONFIG_USERCONFIG: /home/runner/work/_temp/.npmrc
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:03.3362013Z   VERSION: 0.2.3
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:03.3362123Z   RELEASE_TAG: v0.2.3
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:03.3362244Z ##[endgroup]
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:04.2357031Z npm notice
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:04.2360154Z npm notice 📦  @dreamlab-ai/vowl-wasm@0.2.3
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:04.2360498Z npm notice Tarball Contents
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:04.2362155Z npm notice 2.7kB LICENSE
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:04.2362317Z npm notice 13.1kB README.md
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:04.2362598Z npm notice 293.9kB THIRD-PARTY-NOTICES.md
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:04.2362894Z npm notice 18.3kB docs/UPSTREAMS.md
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:04.2363247Z npm notice 788B package.json
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:04.2363565Z npm notice 269.2kB vowl_wasm_bg.wasm
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:04.2363768Z npm notice 26.1kB vowl_wasm.d.ts
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:04.2363947Z npm notice 60.7kB vowl_wasm.js
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:04.2364238Z npm notice Tarball Details
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:04.2364602Z npm notice name: @dreamlab-ai/vowl-wasm
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:04.2364961Z npm notice version: 0.2.3
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:04.2365388Z npm notice filename: dreamlab-ai-vowl-wasm-0.2.3.tgz
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:04.2365719Z npm notice package size: 161.3 kB
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:04.2365915Z npm notice unpacked size: 684.9 kB
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:04.2366168Z npm notice shasum: a1d1525e894cc097cbd68dd1a66bbf10112a14e2
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:04.2366480Z npm notice integrity: sha512-CK3E7HsNksUSn[...]8fundIK1YQAww==
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:04.2366729Z npm notice total files: 8
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:04.2366879Z npm notice
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:05.2749118Z npm notice npm tokens that bypass 2FA are being restricted for account changes and direct publishing. Learn how to prepare: https://gh.io/npm-gat-bypass2fa-deprecation
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:05.5378546Z npm notice Publishing to https://registry.npmjs.org/ with tag latest and public access
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:05.7103651Z npm error code E404
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:05.7104422Z npm error 404 Not Found - PUT https://registry.npmjs.org/@dreamlab-ai%2fvowl-wasm - Not found
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:05.7104779Z npm error 404
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:05.7106132Z npm error 404  The requested resource '@dreamlab-ai/vowl-wasm@0.2.3' could not be found or you do not have permission to access it.
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:05.7106841Z npm error 404
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:05.7107540Z npm error 404 Note that you can also install from a
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:05.7108112Z npm error 404 tarball, folder, http url, or git url.
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:05.7115406Z npm error A complete log of this run can be found in: /home/runner/.npm/_logs/2026-11-03T06_28_04_004Z-debug-0.log
+Build bundle, attach release asset, publish to npm	Publish to npm (OIDC trusted publishing)	2026-11-03T06:28:05.7218907Z ##[error]Process completed with exit code 1.

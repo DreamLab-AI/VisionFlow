@@ -1,0 +1,58 @@
+[1mDirect process[0m project [1mdream-engine-external-fixes[0m
+  Source: git-diff:9483469
+  Files: 4
+  Agent: claude-agent-sdk (claude-opus-4-8)
+  Root: /home/devuser/workspace/wt/dream-engine-external-fixes
+
+[1mScanning 4 file(s)…[0m
+  [2m0 candidate(s) across 4 file(s)[0m
+
+[1mBatch 1/1[0m: Processing batch 1/1 (4 files, 1 in flight)
+  [32m>[0m Investigating 4 file(s) with Claude Agent SDK (claude-opus-4-8)
+  [2m  Turn 1 (11s, 0 tool calls)[0m
+  [2m  Turn 2 (11s, 0 tool calls)[0m
+  [36m  tool:[0m Read: dream-core/src/candidate.rs
+  [2m  Turn 4 (14s, 1 tool calls)[0m
+  [2m  Turn 5 (15s, 1 tool calls)[0m
+  [36m  tool:[0m Read: dream-core/src/source.rs
+  [2m  Turn 7 (37s, 2 tool calls)[0m
+  [2m  Turn 8 (37s, 2 tool calls)[0m
+  [36m  tool:[0m Read: crates/dream-core/Cargo.toml
+  [2m  Turn 10 (58s, 3 tool calls)[0m
+  [2m  Turn 11 (59s, 3 tool calls)[0m
+  [36m  tool:[0m Grep: source = "git\+|source = "(?!registry)
+  [36m  tool:[0m Grep: source = "git\+
+  [2m  Turn 14 (79s, 5 tool calls)[0m
+  [2m  Turn 15 (79s, 5 tool calls)[0m
+  [2m  Turn 16 (79s, 5 tool calls)[0m
+  [2m  Turn 17 (201s, 5 tool calls)[0m
+  [2m  Turn 18 (201s, 5 tool calls)[0m
+  [2m  Turn 19 (202s, 5 tool calls)[0m
+  [36m  tool:[0m Glob: dream-gate/src/*.rs
+  [36m  tool:[0m Read: dream-gate/src/guard.rs
+  [2m  Turn 22 (222s, 7 tool calls)[0m
+  [2m  Turn 23 (223s, 7 tool calls)[0m
+  [36m  tool:[0m Grep: fn shell_quote
+  [2m  Turn 25 (305s, 8 tool calls)[0m
+  [2m  Turn 26 (331s, 8 tool calls)[0m
+  [32m  Investigation complete (332.6s, 26 turns, 8 tool calls $2.596 13320 tokens)[0m
+  Batch 1/1 complete: 4 analyses, 1 findings (0 in flight, 1/1 done)
+
+  [2mProcessing complete: 4 analyses, 1 findings[0m
+[32mProcessing complete.[0m Run: [1m20261103062441-fb58fd41b460006a[0m
+  Analyses: 4
+  Findings: 1
+  [2mWrote PR comment to /home/devuser/workspace/wt/dream-engine-external-fixes/.deepsec-gate/reports/20261103T062438Z/comment.md[0m
+
+[31m1 new finding(s) — exiting 1[0m
+[1mExporting findings (json)[0m
+  Projects: dream-engine-external-fixes
+  Min severity: LOW
+  Filter: hiding resolved verdicts (fixed/false-positive/accepted-risk)
+  [dream-engine-external-fixes] 4 finding(s)
+
+[32mExported 4 finding(s)[0m → [1m/home/devuser/workspace/wt/dream-engine-external-fixes/.deepsec-gate/reports/20261103T062438Z/findings.json[0m
+
+[1mOwnership coverage:[0m
+  with assignee:    4/4 (100%)
+  with owning team: 0/4 (0%)

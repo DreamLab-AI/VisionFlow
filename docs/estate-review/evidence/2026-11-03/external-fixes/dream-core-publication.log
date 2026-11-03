@@ -1,0 +1,13 @@
+    Updating crates.io index
+   Packaging dream-core v0.4.1 (/home/devuser/workspace/wt/dream-engine-external-fixes/crates/dream-core)
+warning: ignoring test `ts_parity` as `tests/ts_parity.rs` is not included in the published package
+    Updating crates.io index
+    Packaged 40 files, 578.2KiB (154.0KiB compressed)
+   Verifying dream-core v0.4.1 (/home/devuser/workspace/wt/dream-engine-external-fixes/crates/dream-core)
+   Compiling dream-core v0.4.1 (/home/devuser/workspace/wt/dream-engine-external-fixes/target/package/dream-core-0.4.1)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.73s
+   Uploading dream-core v0.4.1 (/home/devuser/workspace/wt/dream-engine-external-fixes/crates/dream-core)
+    Uploaded dream-core v0.4.1 to registry `crates-io`
+note: waiting for dream-core v0.4.1 to be available at registry `crates-io`
+help: you may press ctrl-c to skip waiting; the crate should be available shortly
+   Published dream-core v0.4.1 at registry `crates-io`

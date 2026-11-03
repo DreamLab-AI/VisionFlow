@@ -1,0 +1,39 @@
+
+ RUN  v2.1.9 /home/devuser/workspace/wt/dreamlab-ai-website-external-fixes
+
+ ❯ scripts/__tests__/seo-watch.test.mjs (34 tests | 1 failed) 200ms
+   × patch extraction and validation > counts hunk content that resembles a diff header 15ms
+     → expected { ok: true, …(2) } to match object { ok: false, changed: 72 }
+(1 matching property omitted from actual)
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  scripts/__tests__/seo-watch.test.mjs > patch extraction and validation > counts hunk content that resembles a diff header
+AssertionError: expected { ok: true, …(2) } to match object { ok: false, changed: 72 }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  Object {
+-   "changed": 72,
+-   "ok": false,
++   "changed": 2,
++   "ok": true,
+  }
+
+ ❯ scripts/__tests__/seo-watch.test.mjs:192:70
+    190|   test('counts hunk content that resembles a diff header', () => {
+    191|     const patch = `diff --git a/public/llms.txt b/public/llms.txt\n---…
+    192|     expect(validatePatch(patch, { allowlist, maxChangedLines: 60 })).t…
+       |                                                                      ^
+    193|   });
+    194| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 33 passed (34)
+   Start at  06:06:52
+   Duration  2.43s (transform 356ms, setup 379ms, collect 140ms, tests 200ms, environment 429ms, prepare 66ms)
+

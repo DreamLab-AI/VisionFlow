@@ -1,0 +1,15 @@
+    Updating crates.io index
+   Packaging rdfs-certificate v0.1.1 (/home/devuser/workspace/ontomark/crates/rdfs-certificate)
+    Updating crates.io index
+    Packaged 10 files, 68.6KiB (19.7KiB compressed)
+   Verifying rdfs-certificate v0.1.1 (/home/devuser/workspace/ontomark/crates/rdfs-certificate)
+    Blocking waiting for file lock on package cache
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling syn v3.0.8
+   Compiling serde_derive v1.0.229
+   Compiling serde v1.0.229
+   Compiling rdfs-certificate v0.1.1 (/home/devuser/workspace/ontomark/target/package/rdfs-certificate-0.1.1)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.90s
+   Uploading rdfs-certificate v0.1.1 (/home/devuser/workspace/ontomark/crates/rdfs-certificate)
+warning: aborting upload due to dry run

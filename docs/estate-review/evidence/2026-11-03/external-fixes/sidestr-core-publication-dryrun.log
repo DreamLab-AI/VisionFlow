@@ -1,0 +1,33 @@
+    Blocking waiting for file lock on package cache
+    Updating crates.io index
+    Blocking waiting for file lock on package cache
+   Packaging sidestr-core v0.4.3 (/home/devuser/workspace/sidestr-rs/sidestr-core)
+    Updating crates.io index
+    Packaged 75 files, 980.0KiB (286.8KiB compressed)
+   Verifying sidestr-core v0.4.3 (/home/devuser/workspace/sidestr-rs/sidestr-core)
+   Compiling serde_core v1.0.229
+   Compiling serde v1.0.229
+   Compiling generic-array v0.14.7
+   Compiling arrayvec v0.7.8
+   Compiling typenum v1.20.1
+   Compiling hashbrown v0.17.1
+   Compiling serde_json v1.0.151
+   Compiling syn v3.0.6
+   Compiling hex-conservative v0.2.3
+   Compiling indexmap v2.14.2
+   Compiling crypto-common v0.1.7
+   Compiling block-buffer v0.10.4
+   Compiling digest v0.10.7
+   Compiling sha2 v0.10.9
+   Compiling serde_derive v1.0.229
+   Compiling thiserror-impl v2.0.20
+   Compiling thiserror v2.0.20
+   Compiling bitcoin_hashes v0.14.101
+   Compiling bitcoin-units v0.1.101
+   Compiling secp256k1 v0.29.1
+   Compiling base58ck v0.1.101
+   Compiling bitcoin v0.32.102
+   Compiling sidestr-core v0.4.3 (/home/devuser/workspace/sidestr-rs/target/package/sidestr-core-0.4.3)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 12.83s
+   Uploading sidestr-core v0.4.3 (/home/devuser/workspace/sidestr-rs/sidestr-core)
+warning: aborting upload due to dry run

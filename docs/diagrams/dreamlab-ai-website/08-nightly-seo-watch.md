@@ -24,6 +24,10 @@ verified_commit: {dreamlab-ai-website: b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5,
 
 ## For developers
 
+**Repair follow-up, 2026-11-03:** [DW-11](11-watch-publication-and-inbox-repairs.md)
+records the publisher, line-cap and error-scrubbing repairs at their new source
+revision. This topic retains the historical observations and anchors below.
+
 Follow the mounted cron through deterministic receipts, optional model advice and the publication gate. The dated estate review reproduces the publisher, accounting, policy and evidence gaps with local fixtures.
 
 ## For the business

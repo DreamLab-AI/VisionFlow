@@ -1,0 +1,213 @@
+   Compiling subtle v2.6.1
+   Compiling zeroize v1.9.0
+   Compiling bitcoin v0.32.102
+   Compiling bytes v1.12.1
+   Compiling untrusted v0.9.0
+   Compiling rustls v0.23.45
+   Compiling httparse v1.10.1
+   Compiling base64 v0.21.7
+   Compiling serde_json v1.0.151
+   Compiling log v0.4.34
+   Compiling once_cell v1.21.4
+   Compiling utf8parse v0.2.2
+   Compiling slab v0.4.12
+   Compiling is_terminal_polyfill v1.70.2
+   Compiling utf-8 v0.7.6
+   Compiling futures-sink v0.3.34
+   Compiling futures-core v0.3.34
+   Compiling anstyle-query v1.1.5
+   Compiling data-encoding v2.11.1
+   Compiling futures-task v0.3.34
+   Compiling rustix v1.1.5
+   Compiling base64 v0.23.1
+   Compiling colorchoice v1.0.5
+   Compiling anstyle v1.0.14
+   Compiling utf8-zero v0.8.1
+   Compiling percent-encoding v2.3.2
+   Compiling strsim v0.11.1
+   Compiling clap_lex v1.1.1
+   Compiling ring v0.17.14
+   Compiling syn v3.0.6
+   Compiling getrandom v0.2.17
+   Compiling errno v0.3.14
+   Compiling mio v1.2.3
+   Compiling socket2 v0.6.5
+   Compiling anstyle-parse v1.0.0
+   Compiling digest v0.10.7
+   Compiling rustls-pki-types v1.15.1
+   Compiling rand_chacha v0.9.0
+   Compiling futures-util v0.3.34
+   Compiling signal-hook-registry v1.4.8
+   Compiling anstream v1.0.0
+   Compiling sha2 v0.10.9
+   Compiling sha1 v0.10.7
+   Compiling blake2 v0.10.6
+   Compiling hmac v0.12.1
+   Compiling clap_builder v4.6.7
+   Compiling webpki-roots v1.0.9
+   Compiling rand v0.9.5
+   Compiling webpki-roots v0.26.11
+   Compiling http v1.5.0
+   Compiling ureq-proto v0.6.4
+   Compiling serde_derive v1.0.229
+   Compiling thiserror-impl v2.0.20
+   Compiling tokio-macros v2.7.2
+   Compiling clap_derive v4.6.7
+   Compiling tokio v1.53.1
+   Compiling thiserror v2.0.20
+   Compiling clap v4.6.7
+   Compiling serde v1.0.229
+   Compiling bitcoin_hashes v0.14.101
+   Compiling bitcoin-units v0.1.101
+   Compiling rustls-webpki v0.103.15
+   Compiling base58ck v0.1.101
+   Compiling secp256k1 v0.29.1
+   Compiling tokio-rustls v0.26.5
+   Compiling tungstenite v0.26.2
+   Compiling ureq v3.4.2
+   Compiling tokio-tungstenite v0.26.2
+   Compiling sidestr-core v0.4.3 (/home/devuser/workspace/sidestr-rs/sidestr-core)
+   Compiling miniscript v12.3.7
+   Compiling sidestr-nostr v0.6.0 (/home/devuser/workspace/sidestr-rs/sidestr-nostr)
+   Compiling sidestr-header v0.3.1 (/home/devuser/workspace/sidestr-rs/sidestr-header)
+   Compiling sidestr-hitch v0.2.1 (/home/devuser/workspace/sidestr-rs/sidestr-hitch)
+   Compiling sidestr-wallet v0.5.3 (/home/devuser/workspace/sidestr-rs/sidestr-wallet)
+   Compiling sidestr-round v0.5.0 (/home/devuser/workspace/sidestr-rs/sidestr-round)
+   Compiling sidestr-agent v0.6.0 (/home/devuser/workspace/sidestr-rs/sidestr-agent)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 21.96s
+     Running unittests src/lib.rs (target/debug/deps/sidestr_agent-bc7c05e6b31cc16a)
+
+running 15 tests
+test hitch::host::tests::nothing_is_sent_before_its_locks ... ok
+test hitch::host::tests::a_command_travels_as_json ... ok
+test hitch::binding::tests::a_minted_spend_key_is_the_entropy_given ... ok
+test hitch::follow::tests::the_live_dreamlab_txbt4_genesis_is_followed ... ok
+test hitch::binding::tests::a_binding_for_another_chain_or_genesis_is_refused ... ok
+test chain::tests::the_file_is_written_as_siding_writes_it ... ok
+test chain::tests::only_the_chain_s_signer_signs_its_document ... ok
+test hitch::envelope::tests::a_tampered_or_mislabelled_message_is_refused ... ok
+test chain::tests::a_level_2_document_is_signed_by_one_of_its_signers ... ok
+test hitch::binding::tests::the_newest_valid_binding_wins ... ok
+test hitch::follow::tests::a_forged_or_unlinked_block_is_refused_and_nothing_changes ... ok
+test hitch::follow::tests::a_reorganisation_is_found_measured_and_undone ... ok
+test hitch::store::tests::a_leaky_file_or_a_path_outside_is_refused ... ok
+test hitch::store::tests::a_spend_key_is_written_once_and_never_replaced ... ok
+test hitch::store::tests::files_are_owner_only_and_replaced_whole ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.65s
+
+     Running unittests src/main.rs (target/debug/deps/sidestr_agent-43bf99ed285d72a4)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/announced_peg.rs (target/debug/deps/announced_peg-355483c33798f8bb)
+
+running 1 test
+test the_newest_announcement_by_the_chain_s_signer_names_the_peg ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+     Running tests/audit_regressions_0_0_3.rs (target/debug/deps/audit_regressions_0_0_3-27cb96ed8a3831d7)
+
+running 2 tests
+test nip19_is_bech32_not_bech32m ... ok
+test a_secret_is_never_a_destination_and_never_echoed ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/audit_regressions_0_2_0.rs (target/debug/deps/audit_regressions_0_2_0-68d88a19bb9e25d3)
+
+running 6 tests
+test item5_live_fixture_derivation_and_input_sensitivity ... ok
+test item3_opt_in_varied_timelocks_checksum_and_cli_conflict ... ok
+test item2_federated_cli_default_is_challenge_independent_of_refund ... ok
+test secret_refusal_covers_every_parser_form ... ok
+test item4_secret_refusal_precedes_other_errors_and_never_echoes ... ok
+test item1_level1_without_signer_requires_and_preserves_explicit_address ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.03s
+
+     Running tests/chain_event.rs (target/debug/deps/chain_event-7e87e9f91719d54a)
+
+running 4 tests
+test chain_event_refuses_a_key_that_is_not_the_chain_s_signer ... ok
+test chain_event_writes_the_event_beside_the_document ... ok
+test a_chain_made_before_0_0_5_resolves_by_its_mirror ... ok
+test a_chain_is_found_by_its_alias_or_its_hash ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.47s
+
+     Running tests/evm_deposit.rs (target/debug/deps/evm_deposit-96b0453a1ad39c4a)
+
+running 2 tests
+test the_library_keeps_the_deposit_off_an_asset ... ok
+test send_evm_dry_run ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.38s
+
+     Running tests/hitch_binding_kat.rs (target/debug/deps/hitch_binding_kat-066922f1b4e895b8)
+
+running 4 tests
+test the_identity_is_never_bound_as_its_own_spend_key ... ok
+test an_agentbox_minted_binding_verifies ... ok
+test the_binding_matches_the_independent_vector_byte_for_byte ... ok
+test the_host_refuses_to_spend_with_k_id ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+     Running tests/hitch_loopback.rs (target/debug/deps/hitch_loopback-e3daa6476500ac1c)
+
+running 8 tests
+test a_force_closes_and_sweeps_after_the_delay ... ok
+test a_refused_broadcast_is_resent_with_a_fresh_witness_and_never_early ... ok
+test a_reorganisation_during_a_cooperative_close_is_survived ... ok
+test a_revoked_commitment_is_punished_within_the_csv_window ... ok
+test an_unanswered_htlc_is_refunded_on_the_chain_after_its_expiry ... ok
+test b_force_closes_and_sweeps_after_the_delay ... ok
+test open_pay_and_close_cooperatively ... ok
+test open_pay_and_close_cooperatively_beside_txbt4 ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/offline.rs (target/debug/deps/offline-1c29548aaded71c7)
+
+running 4 tests
+test keys_and_names ... ok
+test the_pegin_plan ... ok
+test two_agents_trade_and_one_pegs_out ... ok
+test the_binary_offline ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.10s
+
+     Running tests/pegin_tweak.rs (target/debug/deps/pegin_tweak-5302e52c8b082fdc)
+
+running 3 tests
+test the_marker_plan_is_unchanged ... ok
+test the_tweak_form_is_opt_in_and_needs_a_chain_hash ... ok
+test the_tweak_plan_pays_what_the_reveal_rebuilds ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+   Doc-tests sidestr_agent
+
+running 15 tests
+test sidestr-agent/src/lib.rs - parse_pubkey (line 273) ... ok
+test sidestr-agent/src/hitch/follow.rs - hitch::follow (line 28) ... ok
+test sidestr-agent/src/lib.rs - pegin_tweak_plan (line 744) ... ok
+test sidestr-agent/src/chain.rs - chain (line 16) ... ok
+test sidestr-agent/src/lib.rs - parent_refusal_hint (line 912) ... ok
+test sidestr-agent/src/hitch/binding.rs - hitch::binding (line 22) ... ok
+test sidestr-agent/src/lib.rs - announced_peg_address (line 841) ... ok
+test sidestr-agent/src/lib.rs - AgentKey::parse (line 209) ... ok
+test sidestr-agent/src/lib.rs - prepare_evm_deposit (line 436) ... ok
+test sidestr-agent/src/lib.rs - read_assets (line 485) ... ok
+test sidestr-agent/src/lib.rs - (line 44) ... ok
+test sidestr-agent/src/lib.rs - pegin_plan (line 982) ... ok
+test sidestr-agent/src/lib.rs - destination (line 337) ... ok
+test sidestr-agent/src/hitch/envelope.rs - hitch::envelope (line 11) ... ok
+test sidestr-agent/src/hitch/store.rs - hitch::store (line 32) ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.74s
+

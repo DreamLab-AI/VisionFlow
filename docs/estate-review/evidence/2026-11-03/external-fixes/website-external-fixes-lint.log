@@ -1,0 +1,24 @@
+
+/home/devuser/workspace/wt/dreamlab-ai-website-external-fixes/scripts/generate-workshop-list.mjs
+  0:0  warning  File ignored because of a matching ignore pattern. Use "--no-ignore" to disable file ignore settings or use "--no-warn-ignored" to suppress this warning
+
+/home/devuser/workspace/wt/dreamlab-ai-website-external-fixes/scripts/inbox-watch/run.mjs
+  0:0  warning  File ignored because of a matching ignore pattern. Use "--no-ignore" to disable file ignore settings or use "--no-warn-ignored" to suppress this warning
+
+/home/devuser/workspace/wt/dreamlab-ai-website-external-fixes/scripts/lib/digest.mjs
+  0:0  warning  File ignored because of a matching ignore pattern. Use "--no-ignore" to disable file ignore settings or use "--no-warn-ignored" to suppress this warning
+
+/home/devuser/workspace/wt/dreamlab-ai-website-external-fixes/scripts/lib/website-info.mjs
+  0:0  warning  File ignored because of a matching ignore pattern. Use "--no-ignore" to disable file ignore settings or use "--no-warn-ignored" to suppress this warning
+
+/home/devuser/workspace/wt/dreamlab-ai-website-external-fixes/scripts/seed/provision-website-info.mjs
+  0:0  warning  File ignored because of a matching ignore pattern. Use "--no-ignore" to disable file ignore settings or use "--no-warn-ignored" to suppress this warning
+
+/home/devuser/workspace/wt/dreamlab-ai-website-external-fixes/scripts/seo-watch/lib/propose.mjs
+  0:0  warning  File ignored because of a matching ignore pattern. Use "--no-ignore" to disable file ignore settings or use "--no-warn-ignored" to suppress this warning
+
+/home/devuser/workspace/wt/dreamlab-ai-website-external-fixes/scripts/seo-watch/run.mjs
+  0:0  warning  File ignored because of a matching ignore pattern. Use "--no-ignore" to disable file ignore settings or use "--no-warn-ignored" to suppress this warning
+
+✖ 7 problems (0 errors, 7 warnings)
+

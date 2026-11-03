@@ -1,0 +1,165 @@
+
+> dreamlab-ai-website@1.0.0 prebuild
+> node scripts/generate-workshop-list.mjs && node scripts/generate-testimonials.mjs
+
+Manifest generated for vscode-learning-pathway: /home/devuser/workspace/wt/dreamlab-ai-website-external-fixes/public/data/workshops/vscode-learning-pathway/manifest.json
+Manifest generated for workshop-00-infra: /home/devuser/workspace/wt/dreamlab-ai-website-external-fixes/public/data/workshops/workshop-00-infra/manifest.json
+Manifest generated for workshop-01-afternoon-visual-version-control: /home/devuser/workspace/wt/dreamlab-ai-website-external-fixes/public/data/workshops/workshop-01-afternoon-visual-version-control/manifest.json
+Manifest generated for workshop-01-morning-vscode-setup: /home/devuser/workspace/wt/dreamlab-ai-website-external-fixes/public/data/workshops/workshop-01-morning-vscode-setup/manifest.json
+Manifest generated for workshop-02-afternoon-vibe-coding: /home/devuser/workspace/wt/dreamlab-ai-website-external-fixes/public/data/workshops/workshop-02-afternoon-vibe-coding/manifest.json
+Manifest generated for workshop-02-morning-ai-api-access: /home/devuser/workspace/wt/dreamlab-ai-website-external-fixes/public/data/workshops/workshop-02-morning-ai-api-access/manifest.json
+Manifest generated for workshop-03-afternoon-rag-system: /home/devuser/workspace/wt/dreamlab-ai-website-external-fixes/public/data/workshops/workshop-03-afternoon-rag-system/manifest.json
+Manifest generated for workshop-03-morning-local-ai: /home/devuser/workspace/wt/dreamlab-ai-website-external-fixes/public/data/workshops/workshop-03-morning-local-ai/manifest.json
+Manifest generated for workshop-04-afternoon-orchestration: /home/devuser/workspace/wt/dreamlab-ai-website-external-fixes/public/data/workshops/workshop-04-afternoon-orchestration/manifest.json
+Manifest generated for workshop-04-morning-ai-agents: /home/devuser/workspace/wt/dreamlab-ai-website-external-fixes/public/data/workshops/workshop-04-morning-ai-agents/manifest.json
+Manifest generated for workshop-05-afternoon-publishing: /home/devuser/workspace/wt/dreamlab-ai-website-external-fixes/public/data/workshops/workshop-05-afternoon-publishing/manifest.json
+Manifest generated for workshop-05-morning-qa-automation: /home/devuser/workspace/wt/dreamlab-ai-website-external-fixes/public/data/workshops/workshop-05-morning-qa-automation/manifest.json
+Manifest generated for workshop-06-codex: /home/devuser/workspace/wt/dreamlab-ai-website-external-fixes/public/data/workshops/workshop-06-codex/manifest.json
+Manifest generated for workshop-07-docker-containers: /home/devuser/workspace/wt/dreamlab-ai-website-external-fixes/public/data/workshops/workshop-07-docker-containers/manifest.json
+Manifest generated for workshop-08-claude-code: /home/devuser/workspace/wt/dreamlab-ai-website-external-fixes/public/data/workshops/workshop-08-claude-code/manifest.json
+Manifest generated for workshop-10-seo-ai-discoverability: /home/devuser/workspace/wt/dreamlab-ai-website-external-fixes/public/data/workshops/workshop-10-seo-ai-discoverability/manifest.json
+Main workshop list generated successfully: /home/devuser/workspace/wt/dreamlab-ai-website-external-fixes/src/data/workshop-list.json
+Generated 6 testimonials: /home/devuser/workspace/wt/dreamlab-ai-website-external-fixes/src/data/testimonials.json
+
+> dreamlab-ai-website@1.0.0 build
+> vite build
+
+vite v5.4.21 building for production...
+transforming...
+Browserslist: browsers data (caniuse-lite) is 6 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+✓ 2287 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                           7.31 kB │ gzip:   2.60 kB
+dist/assets/index-BFM-Erye.css                          157.24 kB │ gzip:  25.50 kB
+dist/assets/RVARI57O-CXmrUIiS.js                          0.16 kB │ gzip:   0.15 kB
+dist/assets/clock-9xpgKDOJ.js                             0.34 kB │ gzip:   0.27 kB
+dist/assets/arrow-right-lJpD0P5X.js                       0.34 kB │ gzip:   0.27 kB
+dist/assets/search-OP1ZS5ec.js                            0.34 kB │ gzip:   0.27 kB
+dist/assets/circle-check-Bn8-f3Qx.js                      0.35 kB │ gzip:   0.27 kB
+dist/assets/D5TW5CPZ-Adka_d-d.js                          0.38 kB │ gzip:   0.29 kB
+dist/assets/SlashLink-BE_RTDRM.js                         0.39 kB │ gzip:   0.30 kB
+dist/assets/target-Cnc0yeH-.js                            0.39 kB │ gzip:   0.26 kB
+dist/assets/site-facts-DtlVbMFr.js                        0.41 kB │ gzip:   0.28 kB
+dist/assets/globe-BrgloKOn.js                             0.41 kB │ gzip:   0.29 kB
+dist/assets/database-DAYMHqfP.js                          0.42 kB │ gzip:   0.30 kB
+dist/assets/chart-column-C6t0FNeV.js                      0.42 kB │ gzip:   0.30 kB
+dist/assets/map-pin-CIsuUgnt.js                           0.43 kB │ gzip:   0.32 kB
+dist/assets/zap-BSxzWcJD.js                               0.44 kB │ gzip:   0.31 kB
+dist/assets/shield-DVD_J0du.js                            0.44 kB │ gzip:   0.33 kB
+dist/assets/git-branch-CooRC2eS.js                        0.45 kB │ gzip:   0.32 kB
+dist/assets/use-mobile-BzfLqsBq.js                        0.46 kB │ gzip:   0.27 kB
+dist/assets/5THPTBWS-D57irc_4.js                          0.47 kB │ gzip:   0.30 kB
+dist/assets/users-Cr0YFLTS.js                             0.48 kB │ gzip:   0.33 kB
+dist/assets/markdown-zwQYmZp0.js                          0.49 kB │ gzip:   0.30 kB
+dist/assets/shield-check-CnJ1iVja.js                      0.49 kB │ gzip:   0.35 kB
+dist/assets/PDMLSE6I-DYGlndwR.js                          0.49 kB │ gzip:   0.34 kB
+dist/assets/graduation-cap-CTkgOJOH.js                    0.51 kB │ gzip:   0.35 kB
+dist/assets/glasses-BPCojEn-.js                           0.53 kB │ gzip:   0.34 kB
+dist/assets/building-2-SZ0EsWO3.js                        0.56 kB │ gzip:   0.34 kB
+dist/assets/G3MDBVQH-EkdejvdW.js                          0.56 kB │ gzip:   0.34 kB
+dist/assets/layers-DIyFV5Ed.js                            0.59 kB │ gzip:   0.34 kB
+dist/assets/TR4WJQGX-7KhfG7oX.js                          0.60 kB │ gzip:   0.43 kB
+dist/assets/handshake-V0pMEQRF.js                         0.62 kB │ gzip:   0.39 kB
+dist/assets/rocket-Cby9DDYh.js                            0.63 kB │ gzip:   0.42 kB
+dist/assets/star-DlLHIJ5-.js                              0.65 kB │ gzip:   0.40 kB
+dist/assets/palette-xga9z_9o.js                           0.68 kB │ gzip:   0.37 kB
+dist/assets/badge-wMadpb91.js                             0.74 kB │ gzip:   0.38 kB
+dist/assets/brain-LonIBUmf.js                             0.75 kB │ gzip:   0.42 kB
+dist/assets/trending-up-Cv9kK0sU.js                       0.76 kB │ gzip:   0.39 kB
+dist/assets/DKTLEL5E-B7ILCVTH.js                          0.83 kB │ gzip:   0.40 kB
+dist/assets/FadeCarousel-TQqN4F6N.js                      0.83 kB │ gzip:   0.57 kB
+dist/assets/XLHPVVFU-CVaCdtSo.js                          0.95 kB │ gzip:   0.49 kB
+dist/assets/YUPSMAUO-ozULmSfB.js                          0.98 kB │ gzip:   0.59 kB
+dist/assets/card-CUtA7l7x.js                              1.00 kB │ gzip:   0.39 kB
+dist/assets/fingerprint-pattern-BnvX2ZrO.js               1.24 kB │ gzip:   0.58 kB
+dist/assets/MobileActionBar-BOvO1ITy.js                   1.28 kB │ gzip:   0.62 kB
+dist/assets/NotFound-Ktq153_-.js                          1.40 kB │ gzip:   0.62 kB
+dist/assets/label-BOILlnd7.js                             1.42 kB │ gzip:   0.77 kB
+dist/assets/OU2GIT2H-Frgic2Tt.js                          1.52 kB │ gzip:   0.84 kB
+dist/assets/workshop-list-OYS3UPJx.js                     1.90 kB │ gzip:   0.52 kB
+dist/assets/7WLXJQOR-CHhKreq0.js                          1.96 kB │ gzip:   0.95 kB
+dist/assets/NDSCUZ25-DjPqvKo4.js                          2.00 kB │ gzip:   1.09 kB
+dist/assets/OHJ2EJXK-O2gebSmK.js                          2.13 kB │ gzip:   1.06 kB
+dist/assets/FTXIJQGB-nrHdCfp7.js                          2.58 kB │ gzip:   1.09 kB
+dist/assets/EmailSignupForm-CVZd5XGX.js                   3.78 kB │ gzip:   1.52 kB
+dist/assets/2CHDFZHC-BGhrkqgJ.js                          3.81 kB │ gzip:   1.95 kB
+dist/assets/IU7WZTP6-CfNggDUB.js                          3.96 kB │ gzip:   1.86 kB
+dist/assets/workshop-meta-CVhVISAV.js                     4.03 kB │ gzip:   1.45 kB
+dist/assets/SXSLPWUD-CU9G1APT.js                          4.13 kB │ gzip:   1.94 kB
+dist/assets/YNX532HU-BjoKaQvs.js                          5.37 kB │ gzip:   2.62 kB
+dist/assets/ZZDR4CN3-DDNabvbH.js                          5.54 kB │ gzip:   2.79 kB
+dist/assets/ChainMirror-uk3ED0W9.js                       5.58 kB │ gzip:   2.30 kB
+dist/assets/useOGMeta-BngC5sKL.js                         5.72 kB │ gzip:   2.38 kB
+dist/assets/Privacy-SjQhAXl9.js                           6.07 kB │ gzip:   2.17 kB
+dist/assets/6DDU7VKX-Cw_SaAAN.js                          6.22 kB │ gzip:   3.08 kB
+dist/assets/ZFRCZTLK-f4g88lOF.js                          6.87 kB │ gzip:   3.27 kB
+dist/assets/HX3UMAK7-C6ZFkzMv.js                          7.55 kB │ gzip:   3.46 kB
+dist/assets/WM7NR6YK-CLZ0vori.js                          7.84 kB │ gzip:   3.59 kB
+dist/assets/CUSPXG5M-CGnzBO5q.js                          7.92 kB │ gzip:   3.56 kB
+dist/assets/45MVAN6X-C43gww6y.js                          8.88 kB │ gzip:   3.99 kB
+dist/assets/Testimonials-D9HTcr4g.js                      8.96 kB │ gzip:   3.48 kB
+dist/assets/D3L7O4X2-MOIr1eB1.js                          9.27 kB │ gzip:   4.30 kB
+dist/assets/PJ7X32S5-DTS5-1Ac.js                          9.86 kB │ gzip:   4.51 kB
+dist/assets/43YPWK3Q-BHE4zTnn.js                         11.74 kB │ gzip:   5.11 kB
+dist/assets/HyperdimensionalHeroBackground-Bncj86VO.js   11.82 kB │ gzip:   4.69 kB
+dist/assets/JRCWTJEL-DIx8YLSR.js                         12.12 kB │ gzip:   5.34 kB
+dist/assets/VSWIZJ7B-DHhj5iBx.js                         12.39 kB │ gzip:   3.20 kB
+dist/assets/Header-Bs7ZZl3O.js                           12.42 kB │ gzip:   3.72 kB
+dist/assets/LFFXNLRS-DjAumelQ.js                         12.64 kB │ gzip:   5.78 kB
+dist/assets/46GJKBLZ-DnGaLNPO.js                         12.98 kB │ gzip:   5.61 kB
+dist/assets/KHUP5TOH-Dkqexk5X.js                         13.52 kB │ gzip:   6.31 kB
+dist/assets/Contact-DXdC77xQ.js                          13.55 kB │ gzip:   4.59 kB
+dist/assets/LLLWOAQD-9z1d24j_.js                         13.72 kB │ gzip:   5.92 kB
+dist/assets/EGADTWYV-QbJy7Av-.js                         13.82 kB │ gzip:   5.69 kB
+dist/assets/WXKV2YEK-Coqkls-n.js                         15.19 kB │ gzip:   6.55 kB
+dist/assets/NY5A6PPW-DBQ5ZaDy.js                         15.40 kB │ gzip:   6.49 kB
+dist/assets/RLLQ44NJ-DBEvaXJR.js                         15.52 kB │ gzip:   6.22 kB
+dist/assets/STIOTUT7-BxcnrXhX.js                         17.37 kB │ gzip:   7.37 kB
+dist/assets/ClickThrough-q9VNqvTj.js                     18.65 kB │ gzip:   5.70 kB
+dist/assets/GXJ2T77W-C6oajtyZ.js                         19.88 kB │ gzip:   7.80 kB
+dist/assets/vendor-DX5wExID.js                           20.92 kB │ gzip:   7.78 kB
+dist/assets/J5J2NR2G-9MHmsoop.js                         21.16 kB │ gzip:   8.00 kB
+dist/assets/G2OEIG6X-wTX1eP-V.js                         21.71 kB │ gzip:   9.12 kB
+dist/assets/CoCreate-CvI6v9DI.js                         22.37 kB │ gzip:   6.35 kB
+dist/assets/Research-BnH0nnx4.js                         23.39 kB │ gzip:   6.28 kB
+dist/assets/S6DWMCK5-Bnr3x_b1.js                         24.69 kB │ gzip:  10.11 kB
+dist/assets/Ecosystem-D1dYbTDm.js                        28.22 kB │ gzip:   8.68 kB
+dist/assets/LAV4ZXOS-CNUOnCyP.js                         28.40 kB │ gzip:  11.87 kB
+dist/assets/LBIZYCRR-Bbmy45i2.js                         28.58 kB │ gzip:  11.75 kB
+dist/assets/EOJSJZXM-CsU8wSjS.js                         29.57 kB │ gzip:  11.59 kB
+dist/assets/L74FQTH5-BCeSAyo3.js                         31.13 kB │ gzip:  11.82 kB
+dist/assets/Programmes-DG2pgsTw.js                       31.57 kB │ gzip:   9.65 kB
+dist/assets/WorkshopIndex-CewIAgMQ.js                    31.86 kB │ gzip:   9.31 kB
+dist/assets/Ventures-BdzRxcap.js                         31.99 kB │ gzip:   9.29 kB
+dist/assets/NMN3IKWL-CZNut1IG.js                         32.77 kB │ gzip:  12.80 kB
+dist/assets/Index-d3MKixRV.js                            33.66 kB │ gzip:   9.47 kB
+dist/assets/LTYQZ5U5-DKrVpStI.js                         35.93 kB │ gzip:  13.38 kB
+dist/assets/UWRPUF3N-DFOhAEJJ.js                         37.99 kB │ gzip:  16.41 kB
+dist/assets/lazy-CDc0mfhF.js                             42.04 kB │ gzip:  17.14 kB
+dist/assets/CLQLV5VT-CmuzJvz7.js                         42.56 kB │ gzip:  16.07 kB
+dist/assets/Team-BhTc6B6j.js                             43.33 kB │ gzip:  13.87 kB
+dist/assets/63WH7YNF-CLroj13z.js                         43.79 kB │ gzip:  16.51 kB
+dist/assets/NMUA3R2D-sj4CLOOp.js                         45.47 kB │ gzip:  16.86 kB
+dist/assets/nostr-DNm1EWM8.js                            46.08 kB │ gzip:  17.87 kB
+dist/assets/zod-C5ICf4em.js                              84.50 kB │ gzip:  23.29 kB
+dist/assets/index-jwf7xK9r.js                           101.24 kB │ gzip:  31.82 kB
+dist/assets/ui-7667gALw.js                              258.90 kB │ gzip:  80.90 kB
+dist/assets/WorkshopPage-DNp91-Nb.js                    381.45 kB │ gzip: 121.19 kB
+✓ built in 10.54s
+
+> dreamlab-ai-website@1.0.0 postbuild
+> node scripts/prerender.mjs && node scripts/generate-llms-full.mjs && node scripts/check-discovery.mjs && node scripts/check-claims.mjs
+
+Prerendered 200 canonical pages, 16 workshop entry points and 6 legacy redirects.
+llms-full.txt: 9 pages, 74 KB
+Discovery check passed: 199 canonical HTML pages, 188 lessons, metadata, schema and agent links.
+[jev] dw06-claim-evidence-v1 low-confidence
+[jev] dw06-claim-evidence-v1 low-confidence
+[jev] dw06-claim-evidence-v1 low-confidence
+[jev] dw06-claim-evidence-v1 low-confidence
+[jev] dw06-claim-evidence-v1 low-confidence
+claims: 5 checked · 2 supported_here, 3 unclassified
+jev (advisory only, never a verdict; on): 0 note(s)

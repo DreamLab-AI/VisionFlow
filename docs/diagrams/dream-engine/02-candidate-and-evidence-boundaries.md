@@ -23,6 +23,8 @@ verified_commit: 815f963b1cbd6999e78144ce5475005ae1dd1d8e
 
 ## For developers
 
+**Repair follow-up, 2026-11-03:** [DE-06](06-formatting-and-evidence-repairs.md) records explicit-file formatting and post-evaluator tree checks. This topic keeps its historical stamp; other gate and persistence observations are not closed.
+
 Candidate construction and receipt checking are separate contracts. The pure gate checks command identity, requiredness and the supplied patch; it trusts the caller's candidate tree and typed outcome. Readiness and replay add checks but do not make those inputs intrinsically authentic. The [1 November audit](../../estate-review/2026-11-01-dream-candidate-and-evidence.md) records executed counterexamples and distinguishes direct API behaviour from the agentbox integration.
 
 ## For the business

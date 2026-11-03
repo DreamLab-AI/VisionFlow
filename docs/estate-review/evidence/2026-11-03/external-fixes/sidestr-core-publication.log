@@ -1,0 +1,15 @@
+    Blocking waiting for file lock on package cache
+    Updating crates.io index
+    Blocking waiting for file lock on package cache
+   Packaging sidestr-core v0.4.3 (/home/devuser/workspace/sidestr-rs/sidestr-core)
+    Blocking waiting for file lock on package cache
+    Updating crates.io index
+    Packaged 75 files, 980.0KiB (286.8KiB compressed)
+   Verifying sidestr-core v0.4.3 (/home/devuser/workspace/sidestr-rs/sidestr-core)
+   Compiling sidestr-core v0.4.3 (/home/devuser/workspace/sidestr-rs/target/package/sidestr-core-0.4.3)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.70s
+   Uploading sidestr-core v0.4.3 (/home/devuser/workspace/sidestr-rs/sidestr-core)
+    Uploaded sidestr-core v0.4.3 to registry `crates-io`
+note: waiting for sidestr-core v0.4.3 to be available at registry `crates-io`
+help: you may press ctrl-c to skip waiting; the crate should be available shortly
+   Published sidestr-core v0.4.3 at registry `crates-io`

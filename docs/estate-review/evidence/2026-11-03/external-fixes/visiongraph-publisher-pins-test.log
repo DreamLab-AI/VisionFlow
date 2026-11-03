@@ -1,0 +1,24 @@
+test_claude_md_gate_names_ontomark (test_publish_cli.GateInstructions.test_claude_md_gate_names_ontomark) ... ok
+test_readme_names_ontomark (test_publish_cli.GateInstructions.test_readme_names_ontomark) ... ok
+test_ontomark_journals_are_never_committed (test_publish_cli.MigrationJournals.test_ontomark_journals_are_never_committed)
+`ontomark migrate apply` journals hold original page bytes, private pages included. ... ok
+test_body_residue_check_runs_ontomark (test_publish_cli.PublishWorkflow.test_body_residue_check_runs_ontomark) ... ok
+test_build_runs_ontomark_with_the_full_argument_set (test_publish_cli.PublishWorkflow.test_build_runs_ontomark_with_the_full_argument_set) ... ok
+test_contract_tests_run_first_and_can_fail_the_run (test_publish_cli.PublishWorkflow.test_contract_tests_run_first_and_can_fail_the_run) ... ok
+test_digest_check_is_strict (test_publish_cli.PublishWorkflow.test_digest_check_is_strict) ... ok
+test_failed_download_fails_the_step (test_publish_cli.PublishWorkflow.test_failed_download_fails_the_step) ... ok
+test_gates_follow_the_fetch_in_order (test_publish_cli.PublishWorkflow.test_gates_follow_the_fetch_in_order) ... ok
+test_mismatched_digest_never_runs_the_download (test_publish_cli.PublishWorkflow.test_mismatched_digest_never_runs_the_download) ... ok
+test_no_step_invokes_vault (test_publish_cli.PublishWorkflow.test_no_step_invokes_vault)
+Every run block, tokenised as the shell would (quotes removed, comments dropped). ... ok
+test_no_visionclaw_producer (test_publish_cli.PublishWorkflow.test_no_visionclaw_producer) ... ok
+test_pins_live_only_in_the_workflow_env (test_publish_cli.PublishWorkflow.test_pins_live_only_in_the_workflow_env) ... ok
+test_release_tag_and_digest_pinned (test_publish_cli.PublishWorkflow.test_release_tag_and_digest_pinned) ... ok
+test_unpinned_release_fails_before_download (test_publish_cli.PublishWorkflow.test_unpinned_release_fails_before_download) ... ok
+test_validate_gate_runs_ontomark_and_fails_on_errors (test_publish_cli.PublishWorkflow.test_validate_gate_runs_ontomark_and_fails_on_errors) ... ok
+test_verified_download_is_the_binary_on_path (test_publish_cli.PublishWorkflow.test_verified_download_is_the_binary_on_path) ... ok
+
+----------------------------------------------------------------------
+Ran 17 tests in 0.481s
+
+OK

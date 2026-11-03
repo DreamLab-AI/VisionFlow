@@ -1,0 +1,92 @@
+[
+  {
+    "title": "[HIGH_BUG] treeIntegrity rejects its own build: prebuild regenerates tracked files not in the patch",
+    "description": "**File:** [`scripts/seo-watch/lib/propose.mjs`](https://github.com/DreamLab-AI/dreamlab-ai-website/blob/fix/external-review-20261103/blob/fix/scripts/seo-watch/lib/propose.mjs#L172-L207) (lines 172, 184, 193, 200, 207)\n**Project:** dreamlab-ai-website-external-fixes\n**Severity:** HIGH_BUG  •  **Confidence:** medium  •  **Slug:** `other-logic-bug`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\napplyAndVerify runs `npm run build` (propose.mjs:172), whose `prebuild` script (package.json:23) executes `scripts/generate-workshop-list.mjs` and `scripts/generate-testimonials.mjs`. These regenerate tracked, non-gitignored files: `src/data/workshop-list.json`, `src/data/testimonials.json`, and `public/data/workshops/*/manifest.json` (generate-workshop-list.mjs:112,118). treeIntegrity (propose.mjs:193-209) then requires the post-build working tree to equal the patch exactly — the loop only tolerates ' M' entries whose path is in `expectedFiles` (the allowlisted patch files, e.g. public/robots.txt) and '??' entries in `extraUntracked`. Any regenerated tracked file appears as ' M <path>' not in expectedFiles, so treeIntegrity returns `{ok:false, reason:'unexpected tree entry after build: M src/data/workshop-list.json'}`, failing applyAndVerify at the `tree-integrity` stage (propose.mjs:184-185). This is made worse by generate-workshop-list.mjs building `mainWorkshopList` from `fs.readdir` iteration order (line 33) with no sort before `JSON.stringify`/write (lines 48, 118): the array order is filesystem-dependent, so the regenerated file can differ from the committed one even when the source workshops are unchanged. Net effect: the nightly proposal pipeline can never publish a PR on affected filesystems / whenever the committed generated files are even slightly stale — every run dies at tree-integrity. It fails closed (no bad PR, no data loss), so this is a reliability/outage-of-feature bug, not a security hole.\n\n## Recommendation\n\nDon't hold the build to an exact-tree equality that the build itself violates. Options: (a) run the verify build with prebuild's generated outputs treated as expected churn — pass the known generated paths (src/data/workshop-list.json, src/data/testimonials.json, public/data/workshops/*/manifest.json) as an allowed-churn set to treeIntegrity and `git checkout -- ` them before the final diff comparison; (b) make the generators deterministic (sort readdir output in generate-workshop-list.mjs before building the list/manifests) and commit fresh output, then still exclude them from the integrity set; or (c) run a build step that skips `prebuild` for the verify pass.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-11-03)",
+    "severity": "HIGH_BUG",
+    "labels": [
+      "security",
+      "project:dreamlab-ai-website-external-fixes",
+      "severity:HIGH_BUG",
+      "slug:other-logic-bug",
+      "confidence:medium"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "dreamlab-ai-website-external-fixes",
+      "filePath": "scripts/seo-watch/lib/propose.mjs",
+      "lineNumbers": [
+        172,
+        184,
+        193,
+        200,
+        207
+      ],
+      "severity": "HIGH_BUG",
+      "vulnSlug": "other-logic-bug",
+      "confidence": "medium",
+      "discoveredAt": "2026-11-03T06:26:45.522Z",
+      "runId": "20261103062441-99edb387fafa15a7",
+      "githubUrl": "https://github.com/DreamLab-AI/dreamlab-ai-website/blob/fix/external-review-20261103/blob/fix/scripts/seo-watch/lib/propose.mjs#L172-L207",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-11-03T06:18:45Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[BUG] validatePatch line-counter misparses hunk-body lines that look like diff file headers, undercounting maxChangedLines",
+    "description": "**File:** [`scripts/seo-watch/lib/propose.mjs`](https://github.com/DreamLab-AI/dreamlab-ai-website/blob/fix/external-review-20261103/blob/fix/scripts/seo-watch/lib/propose.mjs#L56-L70) (lines 56, 59, 61, 64, 70)\n**Project:** dreamlab-ai-website-external-fixes\n**Severity:** BUG  •  **Confidence:** medium  •  **Slug:** `other-parser-bug`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\nThe `maxChangedLines` cap is enforced ONLY in validatePatch (propose.mjs:70); applyAndVerify never re-checks the count. The changed-line counter at line 64 (`if (/^[+-]/.test(line)) changed++`) is skipped for any line already matched as a file header by the regex at line 56 (`/^(---|\\+\\+\\+) (a|b)\\/(.+)$/`). But a hunk body line removing or adding a line whose content begins with `-- a/<path>` or `++ b/<path>` renders in unified diff as `--- a/<path>` / `+++ b/<path>` and is matched as a header: it hits `continue` (line 61) and is never counted. A crafted patch could thus smuggle changed lines past the 60-line cap. It does not enable a path-allowlist bypass (those forged header paths are themselves run through pathAllowed at line 59 and fail closed if off-allowlist, and git's numstat/post-apply checks re-enforce paths), so impact is limited to defeating the line-count limit — but since that limit is the only size guard, a patch far larger than intended could reach the (expensive) build/test stage.\n\n## Recommendation\n\nTrack hunk state: only treat `---`/`+++` as file headers when they immediately follow a `diff --git`/`index` line (i.e., before the first `@@` of a file), and count every `^[+-]` line inside hunk bodies. Alternatively, re-enforce the changed-line cap in applyAndVerify using the `git apply --numstat` totals (already parsed at propose.mjs:148), which report the true counts.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-11-03)",
+    "severity": "BUG",
+    "labels": [
+      "security",
+      "project:dreamlab-ai-website-external-fixes",
+      "severity:BUG",
+      "slug:other-parser-bug",
+      "confidence:medium"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "dreamlab-ai-website-external-fixes",
+      "filePath": "scripts/seo-watch/lib/propose.mjs",
+      "lineNumbers": [
+        56,
+        59,
+        61,
+        64,
+        70
+      ],
+      "severity": "BUG",
+      "vulnSlug": "other-parser-bug",
+      "confidence": "medium",
+      "discoveredAt": "2026-11-03T06:26:45.522Z",
+      "runId": "20261103062441-99edb387fafa15a7",
+      "githubUrl": "https://github.com/DreamLab-AI/dreamlab-ai-website/blob/fix/external-review-20261103/blob/fix/scripts/seo-watch/lib/propose.mjs#L56-L70",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-11-03T06:18:45Z"
+          }
+        ]
+      }
+    }
+  }
+]

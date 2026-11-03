@@ -1,0 +1,59 @@
+[1mDirect process[0m project [1mdream-engine-external-fixes[0m
+  Source: git-diff:ce94bbc
+  Files: 4
+  Agent: claude-agent-sdk (claude-opus-4-8)
+  Root: /home/devuser/workspace/wt/dream-engine-external-fixes
+
+[1mScanning 4 file(s)…[0m
+  [2m0 candidate(s) across 4 file(s)[0m
+
+[1mBatch 1/1[0m: Processing batch 1/1 (4 files, 1 in flight)
+  [32m>[0m Investigating 4 file(s) with Claude Agent SDK (claude-opus-4-8)
+  [2m  Turn 1 (11s, 0 tool calls)[0m
+  [2m  Turn 2 (11s, 0 tool calls)[0m
+  [36m  tool:[0m Read: dream-core/src/candidate.rs
+  [2m  Turn 4 (21s, 1 tool calls)[0m
+  [2m  Turn 5 (21s, 1 tool calls)[0m
+  [36m  tool:[0m Read: dream-core/src/source.rs
+  [2m  Turn 7 (42s, 2 tool calls)[0m
+  [2m  Turn 8 (43s, 2 tool calls)[0m
+  [36m  tool:[0m Bash: rg -n "pub fn shell_quote" -A 25 crates/
+  [2m  Turn 10 (46s, 3 tool calls)[0m
+  [36m  tool:[0m Grep: pub fn shell_quote
+  [2m  Turn 12 (49s, 4 tool calls)[0m
+  [2m  Turn 13 (50s, 4 tool calls)[0m
+  [36m  tool:[0m Read: crates/dream-core/Cargo.toml
+  [2m  Turn 15 (100s, 5 tool calls)[0m
+  [2m  Turn 16 (100s, 5 tool calls)[0m
+  [36m  tool:[0m Grep: ^(pub (async )?fn|pub fn|fn )
+  [36m  tool:[0m Grep: ^\s*(pub )?(async )?fn 
+  [2m  Turn 19 (132s, 7 tool calls)[0m
+  [2m  Turn 20 (133s, 7 tool calls)[0m
+  [2m  Turn 21 (133s, 7 tool calls)[0m
+  [2m  Turn 22 (232s, 7 tool calls)[0m
+  [2m  Turn 23 (234s, 7 tool calls)[0m
+  [2m  Turn 24 (234s, 7 tool calls)[0m
+  [36m  tool:[0m Grep: rust-toolchain|toolchain
+  [2m  Turn 26 (262s, 8 tool calls)[0m
+  [2m  Turn 27 (264s, 8 tool calls)[0m
+  [36m  tool:[0m Grep: struct LocalRunner|impl EvaluatorRunner for LocalRunner|Command::new|bash|-c
+  [2m  Turn 29 (278s, 9 tool calls)[0m
+  [2m  Turn 30 (280s, 9 tool calls)[0m
+  [36m  tool:[0m Grep: source = "git\+|source = "(?!registry)
+  [36m  tool:[0m Grep: source = "git\+
+  [2m  Turn 33 (305s, 11 tool calls)[0m
+  [2m  Turn 34 (305s, 11 tool calls)[0m
+  [36m  tool:[0m Grep: worktree|fn build_branch_worktree|fn remove_worktree
+  [2m  Turn 36 (316s, 12 tool calls)[0m
+  [2m  Turn 37 (358s, 12 tool calls)[0m
+  [32m  Investigation complete (358.9s, 37 turns, 12 tool calls $2.722 16015 tokens)[0m
+  Batch 1/1 complete: 4 analyses, 3 findings (0 in flight, 1/1 done)
+
+  [2mProcessing complete: 4 analyses, 3 findings[0m
+[32mProcessing complete.[0m Run: [1m20261103060425-6a06b0670bc2482b[0m
+  Analyses: 4
+  Findings: 3
+  [2mWrote PR comment to /home/devuser/workspace/wt/dream-engine-external-fixes/.deepsec-gate/reports/20261103T060422Z/comment.md[0m
+
+[31m3 new finding(s) — exiting 1[0m
+deepsec-gate: PASS — 3 finding(s) {'CRITICAL': 0, 'HIGH': 0, 'MEDIUM': 3, 'HIGH_BUG': 0, 'BUG': 0, 'LOW': 0}, 0 at/above HIGH; candidates=0; receipt /home/devuser/workspace/wt/dream-engine-external-fixes/.deepsec-gate/reports/20261103T060422Z/receipt.json

@@ -1,0 +1,333 @@
+   Compiling agentbox-ops v0.1.0 (/home/devuser/workspace/wt/agentbox-external-fixes/services/agentbox-ops)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.97s
+     Running unittests src/lib.rs (services/agentbox-ops/target/debug/deps/agentbox_ops-7b78b55dd8f6e0e2)
+
+running 212 tests
+test cost_cap::mod_tests::a_disabled_capability_refuses_every_reservation ... ok
+test cost_cap::mod_tests::a_single_over_cap_invocation_is_refused ... ok
+test cost_cap::mod_tests::absent_cap_falls_back_to_the_documented_default_not_infinity ... ok
+test cost_cap::mod_tests::an_abandoned_reservation_expires_and_is_charged_at_estimate ... ok
+test cost_cap::mod_tests::an_overrun_actual_cost_tightens_the_remaining_budget ... ok
+test cost_cap::mod_tests::candidate_limit_is_enforced_independently_of_spend ... ok
+test cost_cap::mod_tests::concurrent_reservations_admit_exactly_the_ones_that_fit ... ok
+test cost_cap::mod_tests::concurrent_reservations_never_overshoot_a_ragged_cap ... ok
+test cost_cap::mod_tests::double_settle_is_refused_so_a_hold_cannot_be_released_twice ... ok
+test cost_cap::mod_tests::in_flight_reservations_are_held_against_the_cap ... ok
+test cost_cap::mod_tests::manifest_block_is_parsed_verbatim ... ok
+test cost_cap::mod_tests::negative_and_non_finite_amounts_are_refused ... ok
+test cost_cap::mod_tests::per_branch_wall_clock_is_enforced ... ok
+test cost_cap::mod_tests::runs_are_accounted_independently_and_reset_clears_one ... ok
+test cost_cap::mod_tests::spend_exactly_at_the_cap_is_admitted_and_the_next_dollar_is_not ... ok
+test cost_cap::mod_tests::the_real_manifest_declares_an_enforceable_cap ... ok
+test cost_cap::mod_tests::under_cap_invocation_succeeds_and_settles ... ok
+test distil::tests::activity_record_serialises_in_the_python_field_order ... ok
+test distil::tests::activity_urns_are_unique_per_call ... ok
+test distil::tests::did_resolution_follows_the_documented_precedence ... ok
+test distil::tests::dry_run_extraction_returns_the_documented_example ... ok
+test distil::tests::jwt_shaped_tokens_are_redacted ... ok
+test distil::tests::lesson_urn_is_content_addressed_and_stable ... ok
+test distil::tests::long_base64_runs_are_redacted ... ok
+test distil::tests::prompt_renders_every_placeholder ... ok
+test distil::tests::scope_strips_the_did_prefix_and_defaults_to_local ... ok
+test distil::tests::sha256_12_matches_python_hashlib ... ok
+test distil::tests::short_strings_survive_redaction_untouched ... ok
+test distil::tests::timestamps_use_the_python_utc_offset_form ... ok
+test distil::tests::truncation_is_character_safe ... ok
+test hermes::jobs::tests::a_badly_stale_recurring_job_fast_forwards_instead_of_running ... ok
+test hermes::jobs::tests::a_completed_one_shot_is_disabled_when_it_is_not_removed ... ok
+test hermes::jobs::tests::a_disabled_job_is_never_due ... ok
+test hermes::jobs::tests::a_failed_run_records_the_error ... ok
+test hermes::jobs::tests::a_future_job_is_not_due ... ok
+test hermes::jobs::tests::a_job_is_removed_once_its_repeat_count_is_exhausted ... ok
+test hermes::jobs::tests::a_job_without_overrides_runs_on_the_default_model_and_effort_with_full_mcp ... ok
+test hermes::jobs::tests::a_jobs_file_without_the_run_fields_loads_and_saves_without_inventing_them ... ok
+test hermes::jobs::tests::a_just_due_job_is_returned ... ok
+test hermes::jobs::tests::a_new_job_is_enabled_and_scheduled ... ok
+test hermes::jobs::tests::a_non_positive_repeat_means_forever ... ok
+test hermes::jobs::tests::a_one_shot_defaults_to_a_single_repeat ... ok
+test hermes::jobs::tests::a_python_written_jobs_file_still_loads ... ok
+test hermes::jobs::tests::a_stale_one_shot_is_not_fast_forwarded ... ok
+test hermes::jobs::tests::a_successful_run_clears_the_last_error ... ok
+test hermes::jobs::tests::advance_moves_a_recurring_job_but_not_a_one_shot ... ok
+test hermes::jobs::tests::blank_overrides_fall_back_to_the_defaults ... ok
+test hermes::jobs::tests::loading_a_corrupt_file_yields_no_jobs_rather_than_failing ... ok
+test hermes::jobs::tests::loading_a_missing_file_yields_no_jobs ... ok
+test hermes::jobs::tests::operations_on_an_unknown_id_report_failure ... ok
+test hermes::jobs::tests::output_files_are_timestamped_per_job ... ok
+test hermes::jobs::tests::pause_and_resume_flip_enabled_and_state ... ok
+test hermes::jobs::tests::per_job_overrides_reach_the_argv_and_an_mcp_override_is_strict ... ok
+test hermes::jobs::tests::remove_deletes_the_named_job_only ... ok
+test hermes::jobs::tests::run_fields_in_the_jobs_file_are_typed_not_left_in_extra ... ok
+test hermes::jobs::tests::store_round_trips_through_disk ... ok
+test hermes::jobs::tests::the_name_defaults_to_the_truncated_prompt ... ok
+test hermes::jobs::tests::trigger_makes_a_job_due_immediately ... ok
+test hermes::jobs::tests::unknown_fields_survive_a_load_save_cycle ... ok
+test hermes::schedule::tests::a_one_shot_inside_the_grace_window_still_runs ... ok
+test hermes::schedule::tests::a_one_shot_past_the_grace_window_is_dropped ... ok
+test hermes::schedule::tests::a_one_shot_that_already_ran_never_runs_again ... ok
+test hermes::schedule::tests::bare_duration_becomes_a_one_shot_from_now ... ok
+test hermes::schedule::tests::cron_next_run_is_in_the_future ... ok
+test hermes::schedule::tests::cron_parsing_matches_croner_2_semantics ... ok
+test hermes::schedule::tests::daily_accepts_both_documented_spellings ... ok
+test hermes::schedule::tests::daily_rolls_to_tomorrow_once_the_hour_has_passed ... ok
+test hermes::schedule::tests::daily_stays_today_when_the_hour_is_still_ahead ... ok
+test hermes::schedule::tests::durations_cover_every_documented_unit ... ok
+test hermes::schedule::tests::every_prefix_makes_a_recurring_interval ... ok
+test hermes::schedule::tests::five_field_cron_is_recognised ... ok
+test hermes::schedule::tests::grace_is_half_a_period_within_the_clamp ... ok
+test hermes::schedule::tests::interval_next_run_chains_off_the_last_run ... ok
+test hermes::schedule::tests::interval_without_a_last_run_starts_one_period_from_now ... ok
+test hermes::schedule::tests::invalid_durations_are_rejected ... ok
+test hermes::schedule::tests::iso_round_trips_through_the_parser ... ok
+test hermes::schedule::tests::iso_timestamps_become_one_shots ... ok
+test hermes::schedule::tests::malformed_cron_is_rejected_not_silently_accepted ... ok
+test hermes::schedule::tests::nonsense_schedules_produce_the_help_text ... ok
+test hermes::schedule::tests::out_of_range_daily_times_are_rejected ... ok
+test hermes::schedule::tests::schedule_json_matches_the_python_shape ... ok
+test hermes::schedule::tests::schedule_json_round_trips_every_kind ... ok
+test hermes::stop_tests::a_daemon_that_exits_is_confirmed_and_its_records_are_cleared ... ok
+test hermes::stop_tests::a_daemon_that_ignores_sigterm_is_reported_as_signalled_not_stopped ... ok
+test hermes::stop_tests::a_failed_signal_is_reported_and_leaves_recoverable_state ... ok
+test hermes::stop_tests::a_record_without_an_identity_is_unverifiable_and_is_never_signalled ... ok
+test hermes::stop_tests::a_reused_pid_is_refused_and_never_signalled ... ok
+test hermes::stop_tests::a_stale_record_for_a_dead_pid_reports_not_running_and_clears ... ok
+test hermes::stop_tests::an_empty_store_reports_not_running_without_signalling ... ok
+test hermes::stop_tests::an_identity_recorded_for_another_pid_is_unverifiable ... ok
+test hermes::stop_tests::an_identity_round_trips_through_the_store_and_probes_as_running ... ok
+test hermes::stop_tests::an_unknown_wrapper_argv_is_refused_even_at_the_same_pid ... ok
+test hermes::stop_tests::is_running_is_conservative_when_proc_cannot_be_read ... ok
+test hermes::stop_tests::unreadable_proc_data_is_an_explicit_refusal_not_an_assumed_match ... ok
+test hermes::tests::a_missing_claude_binary_is_reported_not_panicked_on ... ok
+test hermes::tests::a_stale_pid_file_does_not_report_running ... ok
+test hermes::tests::a_tick_with_no_jobs_executes_nothing ... ok
+test hermes::tests::is_running_detects_this_live_process ... ok
+test hermes::tests::is_running_is_false_without_a_pid_file ... ok
+test hermes::tests::the_tick_lock_is_exclusive ... ok
+test hookspool::tests::append_then_drain_round_trips ... ok
+test hookspool::tests::capture_reads_command_and_derives_success ... ok
+test hookspool::tests::capture_tolerates_garbage_payload ... ok
+test hookspool::tests::discover_skips_hidden_and_vendor_dirs ... ok
+test hookspool::tests::drain_counts_malformed_lines_without_stopping ... ok
+test hookspool::tests::kinds_are_recognised ... ok
+test hookspool::tests::reconcile_file_is_atomic_and_preserves_mode ... ok
+test hookspool::tests::reconcile_handles_claude_flow_npx_and_aqe_spellings ... ok
+test hookspool::tests::reconcile_leaves_unrelated_documents_alone ... ok
+test hookspool::tests::reconcile_rewrites_tool_hooks_drops_route_keeps_lifecycle ... ok
+test hookspool::tests::safety_blocks_catastrophic_and_allows_ordinary ... ok
+test hookspool::tests::summary_is_bounded ... ok
+test hookspool::tests::workspace_key_uses_nearest_checkout_root ... ok
+test process_identity::tests::a_recognised_owned_process_verifies_against_its_recorded_identity ... ok
+test process_identity::tests::a_recorded_identity_without_argv_can_never_match ... ok
+test process_identity::tests::a_reused_pid_is_a_mismatch_not_a_match ... ok
+test process_identity::tests::a_stale_pid_is_no_such_process_after_the_child_is_reaped ... ok
+test process_identity::tests::a_zombie_pid_reports_a_mismatch_rather_than_a_match ... ok
+test process_identity::tests::argv_splits_on_nul_and_drops_the_terminator ... ok
+test process_identity::tests::missing_proc_access_is_an_explicit_refusal_not_an_assumed_match ... ok
+test process_identity::tests::starttime_is_counted_from_the_last_paren_not_by_splitting_the_line ... ok
+test process_identity::tests::the_hermes_launcher_allowlist_refuses_unknown_wrappers ... ok
+test process_identity::tests::the_ruflo_launcher_allowlist_is_unchanged_by_the_move ... ok
+test procs::tests::daemon_invocations_require_known_launcher_and_separate_arguments ... ok
+test procs::tests::etime_matches_ps_shape ... ok
+test procs::tests::workspace_preserves_argument_boundaries ... ok
+test pyjson::tests::astral_plane_uses_surrogate_pairs ... ok
+test pyjson::tests::compact_empty_containers_match_python ... ok
+test pyjson::tests::compact_uses_python_separators ... ok
+test pyjson::tests::control_characters_keep_serde_escapes ... ok
+test pyjson::tests::key_insertion_order_is_preserved ... ok
+test pyjson::tests::non_ascii_is_escaped_like_ensure_ascii ... ok
+test pyjson::tests::pretty_empty_containers_stay_inline ... ok
+test pyjson::tests::pretty_matches_python_indent_two ... ok
+test solar::tests::fixed_url_carries_angle_and_aspect ... ok
+test solar::tests::gcr_cap_widens_the_pitch ... ok
+test solar::tests::land_mode_clamps_into_the_uk_band ... ok
+test solar::tests::optimal_url_omits_the_explicit_angles ... ok
+test solar::tests::pvgis_mode_falls_back_to_forty_degrees ... ok
+test solar::tests::row_pitch_at_zero_tilt_is_the_slant_length ... ok
+test solar::tests::row_pitch_grows_as_the_sun_drops ... ok
+test solar::tests::summarise_projects_the_pvgis_payload ... ok
+test solar::tests::summarise_tolerates_a_missing_payload ... ok
+test solar::tests::tilt_mode_parses_all_three_forms ... ok
+test solar::tests::uncapped_packing_keeps_the_no_shade_geometry ... ok
+test solar::tests::winter_altitude_matches_the_documented_formula ... ok
+test target_gc::tests::a_cargo_target_is_recognised_and_other_caches_are_not ... ok
+test target_gc::tests::a_read_only_pass_deletes_nothing_and_reports_the_reclaimable_size ... ok
+test target_gc::tests::a_recently_modified_target_is_kept ... ok
+test target_gc::tests::a_target_with_a_held_cargo_lock_is_kept_even_when_idle ... ok
+test target_gc::tests::an_idle_target_is_removed_and_its_siblings_are_untouched ... ok
+test target_gc::tests::excluded_paths_are_not_searched ... ok
+test target_gc::tests::nested_targets_are_not_searched_for_and_skipped_dirs_are_not_entered ... ok
+test target_gc::tests::symlinks_are_not_followed ... ok
+test target_gc::tests::the_manifest_sets_the_policy_and_a_broken_one_keeps_the_defaults ... ok
+test teammates::tests::cpu_ticks_parse_after_comm_with_spaces_and_parens ... ok
+test teammates::tests::identifies_teammates_by_argv_elements_only ... ok
+test teammates::tests::scan_then_assess_marks_idle_after_window_only_with_baseline ... ok
+test teammates::tests::state_round_trips_and_tolerates_corruption ... ok
+test teammates::tests::window_zero_disables_idleness ... ok
+test token_audit::counter::tests::an_empty_counter_reports_empty ... ok
+test token_audit::counter::tests::counts_accumulate_per_key ... ok
+test token_audit::counter::tests::float_counter_orders_by_weight ... ok
+test token_audit::counter::tests::most_common_respects_the_limit ... ok
+test token_audit::counter::tests::most_common_sorts_by_count_descending ... ok
+test token_audit::counter::tests::ties_break_on_first_insertion_like_python ... ok
+test token_audit::tests::an_empty_root_produces_an_empty_audit ... ok
+test token_audit::tests::collect_aggregates_assistant_messages ... ok
+test token_audit::tests::collect_honours_the_lookback_window ... ok
+test token_audit::tests::collect_ignores_non_assistant_and_usage_free_lines ... ok
+test token_audit::tests::fmt_switches_units_at_the_python_thresholds ... ok
+test token_audit::tests::model_families_cover_every_priced_tier ... ok
+test token_audit::tests::one_hour_cache_writes_are_priced_above_five_minute_ones ... ok
+test token_audit::tests::project_label_is_capped_at_42_characters ... ok
+test token_audit::tests::project_label_strips_the_development_active_prefix ... ok
+test token_audit::tests::server_side_web_tool_requests_are_tallied ... ok
+test token_audit::tests::session_label_joins_project_and_short_id ... ok
+test token_audit::tests::sidechain_messages_are_attributed_to_subagents ... ok
+test token_audit::tests::the_first_message_of_a_session_records_the_startup_tax ... ok
+test token_audit::tests::the_human_report_renders_the_headline_sections ... ok
+test token_audit::tests::the_json_report_carries_every_documented_section ... ok
+test token_audit::tests::tool_and_mcp_calls_are_counted_and_grouped_by_server ... ok
+test token_audit::tests::unknown_models_are_priced_as_opus_not_free ... ok
+test voyager::bridge::tests::a_dry_run_kernel_exec_reports_no_exception ... ok
+test voyager::bridge::tests::a_dry_run_store_never_shells_out ... ok
+test voyager::bridge::tests::an_empty_override_falls_back_to_the_search_path ... ok
+test voyager::bridge::tests::an_explicit_override_wins_over_the_search_path ... ok
+test voyager::bridge::tests::dry_run_reads_return_nothing ... ok
+test voyager::bridge::tests::imports_and_comments_do_not_confuse_extraction ... ok
+test voyager::bridge::tests::source_without_a_function_yields_none ... ok
+test voyager::bridge::tests::the_first_top_level_function_name_is_extracted ... ok
+test voyager::bridge::tests::unparseable_source_yields_none_rather_than_failing ... ok
+test voyager::tests::a_body_at_exactly_the_limit_passes_the_line_budget ... ok
+test voyager::tests::a_candidate_keeps_its_explicit_fields ... ok
+test voyager::tests::a_candidate_missing_its_body_is_rejected_before_any_gate_runs ... ok
+test voyager::tests::a_candidate_takes_the_documented_defaults ... ok
+test voyager::tests::a_dry_run_skips_the_evidence_freshness_check ... ok
+test voyager::tests::a_malformed_evidence_urn_is_not_treated_as_stale ... ok
+test voyager::tests::a_missing_sandbox_check_is_a_configuration_error_not_a_pass ... ok
+test voyager::tests::a_new_skill_starts_at_version_zero_when_nothing_is_stored ... ok
+test voyager::tests::a_non_json_value_yields_no_record ... ok
+test voyager::tests::a_rejection_renders_the_documented_json_shape ... ok
+test voyager::tests::a_value_without_a_delimiter_is_parsed_whole ... ok
+test voyager::tests::an_activity_urn_is_minted_per_emission ... ok
+test voyager::tests::an_oversized_body_is_rejected_on_the_line_budget ... ok
+test voyager::tests::body_lines_are_counted_the_python_way ... ok
+test voyager::tests::quarantine_is_a_no_op_for_a_passing_step ... ok
+test voyager::tests::retrieval_without_a_urn_or_name_is_an_argument_error ... ok
+test voyager::tests::retrieving_an_unknown_name_reports_not_found ... ok
+test voyager::tests::retrieving_an_unknown_urn_reports_not_found ... ok
+test voyager::tests::the_context_derives_its_scope_from_the_did ... ok
+test voyager::tests::the_inner_record_is_recovered_from_the_pipe_delimited_value ... ok
+
+test result: ok. 212 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.14s
+
+     Running unittests src/bin/agentbox-hook.rs (services/agentbox-ops/target/debug/deps/agentbox_hook-c5b82ec920e0ca60)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/comfyui-generate.rs (services/agentbox-ops/target/debug/deps/comfyui_generate-479eda43b1cc9d14)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/expel-distil.rs (services/agentbox-ops/target/debug/deps/expel_distil-b21e605d10f8e00d)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/hermes-scheduler.rs (services/agentbox-ops/target/debug/deps/hermes_scheduler-8d01e8ccb9ea2066)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/mcp-call.rs (services/agentbox-ops/target/debug/deps/mcp_call-9a8e5e16b0ca5b02)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/pvgis-fetch.rs (services/agentbox-ops/target/debug/deps/pvgis_fetch-8378fbe72ca9e232)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/report-preflight.rs (services/agentbox-ops/target/debug/deps/report_preflight-9702003e52a5a6bf)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/ruflo-daemon-gc.rs (services/agentbox-ops/target/debug/deps/ruflo_daemon_gc-91e68bb94e786c9d)
+
+running 2 tests
+test tests::a_reused_identity_is_refused_and_a_matching_child_is_signalled_by_pidfd ... ok
+test tests::registry_pid_rejects_zero_negative_casts_and_truncation ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/bin/solar-optimize.rs (services/agentbox-ops/target/debug/deps/solar_optimize-474cab4cca4a3767)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/target-gc.rs (services/agentbox-ops/target/debug/deps/target_gc-8a1c150015d9ec13)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/teammate-gc.rs (services/agentbox-ops/target/debug/deps/teammate_gc-0b7fcc4d01f28160)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/token-audit.rs (services/agentbox-ops/target/debug/deps/token_audit-fb6248439e330468)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/tree-search-cap.rs (services/agentbox-ops/target/debug/deps/tree_search_cap-8d6387ba2bb39c8c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/voyager-gate.rs (services/agentbox-ops/target/debug/deps/voyager_gate-252c43890b7c391a)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/yt-transcript-archive.rs (services/agentbox-ops/target/debug/deps/yt_transcript_archive-cd353a7a71d2276e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/reaper_default_is_read_only.rs (services/agentbox-ops/target/debug/deps/reaper_default_is_read_only-ae191c2768560a9d)
+
+running 1 test
+test the_reaper_signals_nothing_without_an_explicit_kill_flag ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.88s
+
+     Running tests/target_gc_default_is_read_only.rs (services/agentbox-ops/target/debug/deps/target_gc_default_is_read_only-ca5f23087b1a0826)
+
+running 1 test
+test nothing_is_removed_without_the_delete_flag ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+   Doc-tests agentbox_ops
+
+running 1 test
+test src/cost_cap/mod.rs - cost_cap (line 14) - compile ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+

@@ -1,0 +1,12 @@
+    Updating crates.io index
+   Packaging rdfs-certificate v0.1.1 (/home/devuser/workspace/ontomark/crates/rdfs-certificate)
+    Updating crates.io index
+    Packaged 10 files, 68.6KiB (19.7KiB compressed)
+   Verifying rdfs-certificate v0.1.1 (/home/devuser/workspace/ontomark/crates/rdfs-certificate)
+   Compiling rdfs-certificate v0.1.1 (/home/devuser/workspace/ontomark/target/package/rdfs-certificate-0.1.1)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.47s
+   Uploading rdfs-certificate v0.1.1 (/home/devuser/workspace/ontomark/crates/rdfs-certificate)
+    Uploaded rdfs-certificate v0.1.1 to registry `crates-io`
+note: waiting for rdfs-certificate v0.1.1 to be available at registry `crates-io`
+help: you may press ctrl-c to skip waiting; the crate should be available shortly
+   Published rdfs-certificate v0.1.1 at registry `crates-io`

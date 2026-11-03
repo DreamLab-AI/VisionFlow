@@ -1,0 +1,141 @@
+[
+  {
+    "title": "[MEDIUM] Post-evaluation integrity check can be defeated by candidate code manipulating the git index, and the worktree shares the operator's .git",
+    "description": "**File:** [`crates/dream-core/src/candidate.rs`](https://github.com/DreamLab-AI/dream-engine/blob/fix/external-review-20261103/blob/fix/crates/dream-core/src/candidate.rs#L562-L589) (lines 562, 572, 589)\n**Project:** dream-engine-external-fixes\n**Severity:** MEDIUM  •  **Confidence:** low  •  **Slug:** `other-integrity-bypass`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\nrun() guarantees via the integrity_command (lines 562-575) that the evaluated tree did not change during evaluation: it asserts `git status --porcelain` is empty and `HEAD^{tree}` equals the recorded tree_hash. Evaluators, by the engine's design, compile and run the candidate's own (untrusted, model-authored) code; that code executes with the worktree as cwd. A malicious patch whose code runs during an evaluator (e.g. a test that shells out) can run `git update-index --skip-worktree`/`--assume-unchanged` on files it then modifies on disk: `git status --porcelain` reports clean and `HEAD^{tree}` is unchanged, so both integrity assertions pass while the bytes the evaluator actually ran diverge from the committed/shipped tree — the receipt is then bound to a tree that was not what passed. Worse, because build_branch_worktree (persist.rs) uses `git worktree add`, the candidate worktree shares the common .git with the operator's checkout; candidate-executed `git config core.hooksPath <dir>` or an alias write persists into the operator's repo config, giving code execution on the operator's next git invocation. The integrity check does not inspect index flags or git config, and the existing test (evaluator_source_mutation_cannot_receive_an_applied_tree_receipt) only covers a naive overwrite. This is only reachable on the local-execution path (relocate = None); a host that relocates evaluators to a sandbox is not exposed.\n\n## Recommendation\n\nRun untrusted evaluators in an isolated environment (relocation / container) rather than the shared-.git worktree. As defense in depth, verify integrity with content hashes independent of the index (e.g. a fresh `git -c core.fsmonitor= ... diff --no-index` against a pristine export, or hash the working-tree bytes directly) and reset/ignore per-candidate git config; audit that the shared .git config/hooksPath is unchanged after each attempt.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-11-03)",
+    "severity": "MEDIUM",
+    "labels": [
+      "security",
+      "project:dream-engine-external-fixes",
+      "severity:MEDIUM",
+      "slug:other-integrity-bypass",
+      "confidence:low"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "dream-engine-external-fixes",
+      "filePath": "crates/dream-core/src/candidate.rs",
+      "lineNumbers": [
+        562,
+        572,
+        589
+      ],
+      "severity": "MEDIUM",
+      "vulnSlug": "other-integrity-bypass",
+      "confidence": "low",
+      "discoveredAt": "2026-11-03T06:10:39.855Z",
+      "runId": "20261103060425-6a06b0670bc2482b",
+      "githubUrl": "https://github.com/DreamLab-AI/dream-engine/blob/fix/external-review-20261103/blob/fix/crates/dream-core/src/candidate.rs#L562-L589",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-11-03T06:04:22Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[MEDIUM] has_secret_content misses common secret formats, so secrets in innocuously-named tracked files are sent to the LLM provider",
+    "description": "**File:** [`crates/dream-core/src/source.rs`](https://github.com/DreamLab-AI/dream-engine/blob/fix/external-review-20261103/blob/fix/crates/dream-core/src/source.rs#L752-L813) (lines 752, 777, 813)\n**Project:** dream-engine-external-fixes\n**Severity:** MEDIUM  •  **Confidence:** medium  •  **Slug:** `secrets-exposure`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\nrender_section relies on has_secret_content() as the content-based backstop that withholds a whole file carrying key material, since the name-based denylist (is_denied) cannot see a secret inside an ordinary-looking file — the doc comment at lines 744-751 states exactly this guarantee and even admits 'a redactor typically only rewrites paths'. But has_secret_content only detects three shapes: a PEM '-----...PRIVATE KEY-----' marker, a bech32 'nsec1'+58 run, and a 64-char hex run on a line whose text contains privkey/private_key/secret/seckey/nsec. It misses almost every other high-value credential: AWS access key IDs (AKIA...) and secret keys, GitHub tokens (ghp_/github_pat_), Slack/Stripe/Google API keys, JWTs, base64 high-entropy secrets, DB/connection-string passwords, and any hex secret that is not exactly 64 chars or sits on a line without a key-looking word. An attacker who can influence the model's source plan (or merely a repo that tracks such a secret in a file not matching the name denylist, e.g. config/settings.toml or tests/fixtures/sample.json) causes that file to be inlined by gather() and transmitted verbatim to the third-party LLM provider, defeating the module's stated whole-file withholding guarantee. redact() is the only other filter and the comment concedes it generally only rewrites paths.\n\n## Recommendation\n\nTreat has_secret_content as high-recall: add entropy-based detection (e.g. flag long base64/hex runs above an entropy threshold) and provider-token regexes (AWS AKIA/ASIA, ghp_/github_pat_, xox[baprs]-, sk_live_, AIza..., eyJ JWT headers, 'BEGIN OPENSSH PRIVATE KEY'), and widen the hex rule beyond exactly-64 on keyish lines. Make the redact callback mandatory (not identity) in production wiring, and consider a conservative default that withholds any file whose tracked path the host has not explicitly allow-listed for inlining.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-11-03)\n- Dr John O'Hare <github@xrsystems.uk> (2026-10-17)",
+    "severity": "MEDIUM",
+    "labels": [
+      "security",
+      "project:dream-engine-external-fixes",
+      "severity:MEDIUM",
+      "slug:secrets-exposure",
+      "confidence:medium"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "dream-engine-external-fixes",
+      "filePath": "crates/dream-core/src/source.rs",
+      "lineNumbers": [
+        752,
+        777,
+        813
+      ],
+      "severity": "MEDIUM",
+      "vulnSlug": "secrets-exposure",
+      "confidence": "medium",
+      "discoveredAt": "2026-11-03T06:10:39.330Z",
+      "runId": "20261103060425-6a06b0670bc2482b",
+      "githubUrl": "https://github.com/DreamLab-AI/dream-engine/blob/fix/external-review-20261103/blob/fix/crates/dream-core/src/source.rs#L752-L813",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-11-03T06:04:22Z"
+          },
+          {
+            "name": "Dr John O'Hare",
+            "email": "github@xrsystems.uk",
+            "date": "2026-10-17T09:50:24Z"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "title": "[MEDIUM] Evaluator command lines are placed in the planner prompt without passing through redact()",
+    "description": "**File:** [`crates/dream-core/src/source.rs`](https://github.com/DreamLab-AI/dream-engine/blob/fix/external-review-20261103/blob/fix/crates/dream-core/src/source.rs#L1112-L1126) (lines 1112, 1116, 1126)\n**Project:** dream-engine-external-fixes\n**Severity:** MEDIUM  •  **Confidence:** medium  •  **Slug:** `secret-in-log`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\nIn gather() the evidence excerpt is redacted before being embedded in the planner prompt (redact(evidence_tail), line 1116), but `commands` (the required evaluator command lines) is forwarded raw to source_plan_prompt and rendered verbatim as a bulleted list (source_plan_prompt lines 593-601, 605-607), then sent to the LLM provider. If an evaluator command line embeds a credential — a common anti-pattern, e.g. `curl -H 'Authorization: Bearer <token>' ... | grep ok` or `PGPASSWORD=... psql ...` — that secret reaches the provider unredacted, inconsistent with the deliberate redaction applied to the evidence on the same prompt. commands is also concatenated into the mentioned_paths scan (line 1126), but the prompt disclosure is the exposure path.\n\n## Recommendation\n\nApply redact() to each command string (and to scans/deep if they can carry host data) before building the planner prompt, matching the treatment already given to evidence.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-11-03)\n- Dr John O'Hare <github@xrsystems.uk> (2026-10-17)",
+    "severity": "MEDIUM",
+    "labels": [
+      "security",
+      "project:dream-engine-external-fixes",
+      "severity:MEDIUM",
+      "slug:secret-in-log",
+      "confidence:medium"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "dream-engine-external-fixes",
+      "filePath": "crates/dream-core/src/source.rs",
+      "lineNumbers": [
+        1112,
+        1116,
+        1126
+      ],
+      "severity": "MEDIUM",
+      "vulnSlug": "secret-in-log",
+      "confidence": "medium",
+      "discoveredAt": "2026-11-03T06:10:39.330Z",
+      "runId": "20261103060425-6a06b0670bc2482b",
+      "githubUrl": "https://github.com/DreamLab-AI/dream-engine/blob/fix/external-review-20261103/blob/fix/crates/dream-core/src/source.rs#L1112-L1126",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-11-03T06:04:22Z"
+          },
+          {
+            "name": "Dr John O'Hare",
+            "email": "github@xrsystems.uk",
+            "date": "2026-10-17T09:50:24Z"
+          }
+        ]
+      }
+    }
+  }
+]

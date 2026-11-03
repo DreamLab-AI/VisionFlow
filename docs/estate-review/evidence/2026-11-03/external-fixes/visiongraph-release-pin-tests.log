@@ -1,0 +1,34 @@
+
+> webvowl-modern@0.2.0 pretest
+> npm run build:notices
+
+
+> webvowl-modern@0.2.0 build:notices
+> cargo build --locked --release --manifest-path tools/runtime-notices/Cargo.toml
+
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.26
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling serde v1.0.229
+   Compiling serde_json v1.0.154
+   Compiling itoa v1.0.18
+   Compiling memchr v2.8.3
+   Compiling syn v3.0.8
+   Compiling serde_derive v1.0.229
+   Compiling ontomark-runtime-notices v0.1.0 (/home/devuser/workspace/wt/visionGraph-external-release-pins/publishing-tools/WasmVOWL/modern/tools/runtime-notices)
+    Finished `release` profile [optimized] target(s) in 4.90s
+
+> webvowl-modern@0.2.0 test
+> vitest run tests/migration/ontomark-step5-ngg1.test.ts
+
+
+ RUN  v4.1.10 /home/devuser/workspace/wt/visionGraph-external-release-pins/publishing-tools/WasmVOWL/modern
+
+
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+   Start at  06:36:03
+   Duration  2.20s (transform 289ms, setup 218ms, import 801ms, tests 413ms, environment 542ms)
+
