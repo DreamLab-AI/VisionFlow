@@ -401,6 +401,18 @@ Its headline metric is signal-to-action latency. The record is proposed, unimple
 inactive and changes none of the invariants above; implementations belong to agentbox and
 nostr-rust-forum (ADR-2006).
 
+## Proposed temporal knowledge contract (2026-11-03)
+
+[ADR-2022](adr/ADR-2022-temporal-knowledge-contract.md) records ideas to revisit, prompted
+by adrianco/the-goodies. VisionClaw's provenance already uses half-open
+`[validFrom, validTo)` valid time with a separate recorded time (`prov:generatedAtTime`),
+and serves `state-at` over both. The proposals are to make that model the estate contract,
+let `state-at` cover the history of the authored corpus, add an as-of time view in graph
+clients, publish convergence digests between projections, and keep losing concurrent
+writes. Reasoning stays on single-instant projections, and the `:assert` graph, GPU state
+and RuVector stay disposable. The record is proposed, unimplemented and inactive, and
+changes none of the invariants above.
+
 ## Proposed estate closeout extension (2026-09-04)
 
 [ADR-2007](adr/ADR-2007-estate-closeout-evidence-roadmap.md) proposes an
