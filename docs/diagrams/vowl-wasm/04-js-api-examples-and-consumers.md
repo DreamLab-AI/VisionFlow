@@ -26,6 +26,8 @@ sources:
 verified_commit: {vowl-wasm: 28af4365a68d9aacfd7c04f63299cc96ad717ce3, visiongraph: 7b0875f2c26b9e69dc5c97e9c88166acc14c47dc}
 ---
 
+**Repair note — 2026-11-03:** selected counterexamples below have a [scoped successor verification](06-layout-and-release-repairs.md). This historical topic retains its declared source revision; the successor states the repaired contracts and acceptance boundaries.
+
 ## VW-04.1 `WebVowl` — the frozen 0.1.0 JS surface
 ```mermaid
 flowchart TB

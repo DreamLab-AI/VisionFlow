@@ -25,6 +25,8 @@ sources:
 verified_commit: 9b6143ce55b242c322c92d8c6bcc0c1a5371b451
 ---
 
+**Repair note — 2026-11-03:** selected counterexamples below have a [scoped successor verification](15-authority-and-payment-repairs.md). This historical topic retains its declared source revision; the successor states the repaired contracts and acceptance boundaries.
+
 ## SP-07.1 The two provenance tiers
 
 ```mermaid

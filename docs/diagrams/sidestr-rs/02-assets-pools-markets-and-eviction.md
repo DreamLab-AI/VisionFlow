@@ -20,6 +20,8 @@ sources:
 verified_commit: {sidestr-rs: 9c6de86c657a25ec2f2a189baf63db7dedad40eb, agentbox: 9dfc27b16e82e9786535a55e790710493dd51fdf, visionflow: c146f8b90f698bde23c75c58a40fc1eba57e346d}
 ---
 
+**Repair note — 2026-11-03:** selected counterexamples below have a [scoped successor verification](06-withdrawal-snapshot-and-producer-repairs.md). This historical topic retains its declared source revision; the successor states the repaired contracts and acceptance boundaries.
+
 ## For developers
 
 The canonical compositor orders assets, pool, then markets. Applied views change after successful block validation; candidate checks also retain caches. The composed producer first discards overlay sequencing failures, then uses exact-byte eviction if final block validation fails. These are different retry policies.

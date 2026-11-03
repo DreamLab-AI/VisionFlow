@@ -21,6 +21,8 @@ sources:
 verified_commit: {ontomark: 0caae5d4b695cb720942b9b9212017c00a80ad41}
 ---
 
+**Repair note — 2026-11-03:** selected counterexamples below have a [scoped successor verification](13-certificate-transaction-and-identity-repairs.md). This historical topic retains its declared source revision; the successor states the repaired contracts and acceptance boundaries.
+
 ## For developers
 
 The shared typed facade distinguishes unsupported constructs. The compiler's graph extractor selects a narrower input first. The certificate then checks one named-subsumption set, and its files have a separate publication path from the bundle. The [source review and nine executable probes](../../estate-review/2026-11-01-ontomark-reasoning-and-certificates.md) establish these boundaries, including actual execution of the checksum-pinned independent checker.

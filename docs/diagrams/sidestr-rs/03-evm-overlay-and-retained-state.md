@@ -22,6 +22,8 @@ sources:
 verified_commit: {sidestr-rs: 9c6de86c657a25ec2f2a189baf63db7dedad40eb, visionflow: baae32a, agentbox: 9dfc27b16e82e9786535a55e790710493dd51fdf}
 ---
 
+**Repair note — 2026-11-03:** selected counterexamples below have a [scoped successor verification](06-withdrawal-snapshot-and-producer-repairs.md). This historical topic retains its declared source revision; the successor states the repaired contracts and acceptance boundaries.
+
 ## For developers
 
 The optional `evm` rule executes carried Ethereum transactions with revm alongside the UTXO ledger. Applied EVM state moves after the enclosing block passes. Candidate caches, withdrawal multiplicity and snapshot validation have separate limits; the [audit](../../estate-review/2026-11-01-sidestr-evm-accounting-and-snapshots.md) reproduces them through production libraries.

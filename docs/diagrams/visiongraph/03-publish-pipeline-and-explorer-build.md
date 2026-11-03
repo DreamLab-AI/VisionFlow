@@ -16,6 +16,8 @@ sources:
 verified_commit: {visiongraph: 556a0156b5c326fb61141ed2ab1760dd8d9c4dd6, ontomark: 0caae5d4b695cb720942b9b9212017c00a80ad41}
 ---
 
+**Repair note — 2026-11-03:** selected counterexamples below have a [scoped successor verification](08-promoted-certificate-consumption.md). This historical topic retains its declared source revision; the successor states the repaired contracts and acceptance boundaries.
+
 ## For developers
 
 Follow the configured publisher from its released compiler to the final site and downstream dispatch; the [publication and identity audit](../../estate-review/2026-11-01-visiongraph-publication-and-identity.md) separates source checks, staging receipts and consumer acceptance.

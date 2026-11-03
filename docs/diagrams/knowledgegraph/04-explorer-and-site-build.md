@@ -27,6 +27,8 @@ sources:
 verified_commit: {knowledgegraph: 4ed9ac159daf402b4fb252ce559dbeb894a8d91e, visiongraph: 556a0156b5c326fb61141ed2ab1760dd8d9c4dd6}
 ---
 
+**Repair note — 2026-11-03:** selected counterexamples below have a [scoped successor verification](08-transfer-pool-repair.md). This historical topic retains its declared source revision; the successor states the repaired contracts and acceptance boundaries.
+
 ## For developers
 
 This topic distinguishes the retained knowledgeGraph viewer from visionGraph's configured publication copy. Follow the scope, transfer and page-content boundaries before reusing it; [the dated assessment](../../estate-review/2026-11-01-knowledgegraph-explorer-contracts.md) records probes and the knowledgeGraph ADR-2001 section dispositions.

@@ -22,6 +22,8 @@ sources:
 verified_commit: 28af4365a68d9aacfd7c04f63299cc96ad717ce3
 ---
 
+**Repair note — 2026-11-03:** selected counterexamples below have a [scoped successor verification](06-layout-and-release-repairs.md). This historical topic retains its declared source revision; the successor states the repaired contracts and acceptance boundaries.
+
 ## VW-05.1 CI — job graph on push/PR/weekly cron
 ```mermaid
 flowchart TB
