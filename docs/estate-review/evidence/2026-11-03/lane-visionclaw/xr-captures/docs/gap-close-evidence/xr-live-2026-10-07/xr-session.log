@@ -1,0 +1,26 @@
+# Godot XR session log excerpt (/home/john/mce-xr/live/live-180202.log)
+OpenXR: Falling back to OpenXR 1.0
+OpenXR: Running on OpenXR runtime:  SteamVR/OpenXR   2.17.10
+OpenGL API 3.3.0 NVIDIA 580.178.04 - Compatibility - Using Device: NVIDIA - Quadro RTX 6000
+OpenXR: Requested OpenGL version does not meet the minimum version this runtime supports.
+OpenXR EVENT: session state changed to XR_SESSION_STATE_IDLE
+On state idle
+OpenXR EVENT: session state changed to XR_SESSION_STATE_READY
+On state ready
+GraphScene: eye-gaze unsupported by this OpenXR runtime -- head-gaze primary
+OpenXR EVENT: session state changed to XR_SESSION_STATE_SYNCHRONIZED
+On state synchronized
+OpenXR EVENT: session state changed to XR_SESSION_STATE_VISIBLE
+On state visible
+OpenXR EVENT: session state changed to XR_SESSION_STATE_FOCUSED
+On state focused
+
+# --print-fps (runtime-paced; no live compositor)
+Project FPS: 5 (200.00 mspf)
+Project FPS: 4 (250.00 mspf)
+Project FPS: 5 (200.00 mspf)
+...
+Project FPS: 4 (250.00 mspf)
+Project FPS: 5 (200.00 mspf)
+Project FPS: 4 (250.00 mspf)
+(81 samples)

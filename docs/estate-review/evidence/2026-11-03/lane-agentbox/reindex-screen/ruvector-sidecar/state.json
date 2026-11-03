@@ -1,0 +1,13 @@
+{
+  "reindex": {
+    "phase": "building",
+    "started_at": "2026-10-31T15:41:03Z",
+    "index_def_before": "CREATE INDEX idx_memory_embedding_hnsw ON public.memory_entries USING hnsw (embedding ruvector_cosine_ops) WITH (m='16', ef_construction='128')",
+    "index_size_before": "2078 MB",
+    "pre_self": "183",
+    "pre_true": "108",
+    "pre_verdict": "PASS",
+    "pre_artifact": "/home/devuser/workspace/wt/agentbox-reindex-screen/backups/ruvector-sidecar/recall-runs/2026-10-31T15-43-31-260Z.json",
+    "build_attempt": "1"
+  }
+}

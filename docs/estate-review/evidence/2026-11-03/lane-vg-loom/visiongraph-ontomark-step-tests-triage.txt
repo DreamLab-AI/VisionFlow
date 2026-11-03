@@ -1,0 +1,99 @@
+ × tests/migration/ontomark-step7-validate.test.ts > ontomark step 7: validate > VG-21: scripts/ontology-hygiene/collision_lint.py is deleted
+ × tests/migration/ontomark-step7-validate.test.ts > ontomark step 7: validate > VG-21: the content of collision_lint.py did not move to another path under a new name
+ × tests/migration/ontomark-step7-validate.test.ts > ontomark step 7: validate > VG-22: scripts/ontology-hygiene/merge_plan.py is deleted
+ × tests/migration/ontomark-step7-validate.test.ts > ontomark step 7: validate > VG-22: the content of merge_plan.py did not move to another path under a new name
+ × tests/migration/ontomark-step7-validate.test.ts > ontomark step 7: validate > VG-23: scripts/ontology-hygiene/apply_decisions.py is deleted
+ × tests/migration/ontomark-step7-validate.test.ts > ontomark step 7: validate > VG-23: the content of apply_decisions.py did not move to another path under a new name
+ × tests/migration/ontomark-step7-validate.test.ts > ontomark step 7: validate > D7: scripts/ontology-hygiene/asset_audit.py is deleted
+ × tests/migration/ontomark-step8-attribution.test.ts > ontomark step 8: attribution > VG-28: scripts/ontology-hygiene/attribute.py (roster reader :12, actor grammar :53-57) is deleted
+ × tests/migration/ontomark-step8-attribution.test.ts > ontomark step 8: attribution > VG-28: the content of attribute.py did not move to another path under a new name
+ × tests/migration/ontomark-step4-reason.test.ts > ontomark step 4: reason > VG-26: scripts/ontology-hygiene/resolve_conflicts.py (hand-listed cycle drops and orphan parents) is deleted
+ × tests/migration/ontomark-step4-reason.test.ts > ontomark step 4: reason > VG-26: the content of resolve_conflicts.py did not move to another path under a new name
+ × tests/migration/ontomark-step4-reason.test.ts > ontomark step 4: reason > VG-27: scripts/ontology-hygiene/apply_bridges.py (bridge application against the cached closure (:26)) is deleted
+ × tests/migration/ontomark-step4-reason.test.ts > ontomark step 4: reason > VG-27: the content of apply_bridges.py did not move to another path under a new name
+ × tests/migration/ontomark-step4-reason.test.ts > ontomark step 4: reason > VG-27: scripts/ontology-hygiene/bridge_candidates.py (bridge candidate search (:52)) is deleted
+ × tests/migration/ontomark-step1-parse.test.ts > ontomark step 1: parse > VG-P4: [dependencies] resolves ontomark-parse to a registry version (renames resolved; no path, git or metadata)
+ × tests/migration/ontomark-step1-parse.test.ts > ontomark step 1: parse > VG-P4: Cargo.lock locks ontomark-parse from a registry, with a checksum, under the root package
+ × tests/migration/ontomark-step1-parse.test.ts > ontomark step 1: parse > VG-P4: space-corpus code calls into ontomark-parse (lexed code, not comments or strings)
+ × tests/migration/ontomark-step1-parse.test.ts > ontomark step 1: parse > VG-P4: [dependencies] resolves ontomark-model to a registry version (renames resolved; no path, git or metadata)
+ × tests/migration/ontomark-step1-parse.test.ts > ontomark step 1: parse > VG-P4: Cargo.lock locks ontomark-model from a registry, with a checksum, under the root package
+ × tests/migration/ontomark-step1-parse.test.ts > ontomark step 1: parse > VG-P4: space-corpus code calls into ontomark-model (lexed code, not comments or strings)
+ × tests/migration/ontomark-step1-parse.test.ts > ontomark step 1: parse > VG-P4: nothing in the manifest or the lock resolves to vault-core, under any rename or table
+ × tests/migration/ontomark-step1-parse.test.ts > ontomark step 1: parse > VG-P4: no dependency is a sibling-path dependency that leaves this repository
+ × tests/migration/ontomark-step1-parse.test.ts > ontomark step 1: parse > VG-P4: lexed space-corpus code no longer names vault_core
+ ✓ tests/migration/ontomark-step1-parse.test.ts > ontomark step 1: parse > VG-P4: the importer keeps its four #[test] functions (guards against gutting the consumer)
+ × tests/migration/ontomark-step8-attribution.test.ts > ontomark step 8: attribution > VG-28: no surviving hygiene script builds a human:/agent:/process: actor string from variables
+ × tests/migration/ontomark-step8-attribution.test.ts > ontomark step 8: attribution > VG-28: no surviving hygiene script writes a `by:` attribution line from a variable
+ × tests/migration/ontomark-step3-taxonomy.test.ts > ontomark step 3: taxonomy > VG-03: src/generated/ holds a registry module (ts, js, mjs or json)
+ × tests/migration/ontomark-step3-taxonomy.test.ts > ontomark step 3: taxonomy > VG-03: the registry names ontomark and a release version in its leading comment header
+ × tests/migration/ontomark-step3-taxonomy.test.ts > ontomark step 3: taxonomy > VG-03: the registry header version is the pinned ontomark release
+ × tests/migration/ontomark-step3-taxonomy.test.ts > ontomark step 3: taxonomy > VG-03: the registry is usable: eight slugs in domain-id order and their labels
+ × tests/migration/ontomark-step3-taxonomy.test.ts > ontomark step 3: taxonomy > VG-03: src/types/scope.ts imports a value from src/generated/ and uses it
+ × tests/migration/ontomark-step3-taxonomy.test.ts > ontomark step 3: taxonomy > VG-04: src/site/domains.ts imports a value from src/generated/ and uses it
+ × tests/migration/ontomark-step3-taxonomy.test.ts > ontomark step 3: taxonomy > VG-04: src/components/Canvas/palette.ts imports a value from src/generated/ and uses it
+ × tests/migration/ontomark-step3-taxonomy.test.ts > ontomark step 3: taxonomy > VG-05: scripts/check-space-domains.mjs reads the generated registry file
+ × tests/migration/ontomark-step7-validate.test.ts > ontomark step 7: validate > D7: the content of asset_audit.py did not move to another path under a new name
+ × tests/migration/ontomark-step7-validate.test.ts > ontomark step 7: validate > VG-20: scripts/ontology-hygiene/fmlib.py is deleted
+ × tests/migration/ontomark-step7-validate.test.ts > ontomark step 7: validate > VG-20: the content of fmlib.py did not move to another path under a new name
+ × tests/migration/ontomark-step7-validate.test.ts > ontomark step 7: validate > D7: no Python left behind under a validation-script name
+ × tests/migration/ontomark-step3-taxonomy.test.ts > ontomark step 3: taxonomy > VG-03/04/05: no table of the domain slugs outside src/generated/ (array, union, enum, set, or untyped object)
+ × tests/migration/ontomark-step3-taxonomy.test.ts > ontomark step 3: taxonomy > VG-03: scope.ts no longer declares DomainSlug as a union of string literals
+ × tests/migration/ontomark-step3-taxonomy.test.ts > ontomark step 3: taxonomy > VG-04: palette.ts no longer lists the --ng-domain-N tints or their fallback colours
+ × tests/migration/ontomark-step3-taxonomy.test.ts > ontomark step 3: taxonomy > VG-05: check-space-domains.mjs no longer hard-codes the expected domain ids and labels
+ ✓ tests/migration/ontomark-step3-taxonomy.test.ts > ontomark step 3: taxonomy > release pin: publish.yml consumes a released ontomark (publish-cli convention) > ONTOMARK_RELEASE_TAG is a v<semver> value in the parsed top-level env (a comment is not a pin)
+ ✓ tests/migration/ontomark-step3-taxonomy.test.ts > ontomark step 3: taxonomy > release pin: publish.yml consumes a released ontomark (publish-cli convention) > ONTOMARK_SHA256 is 64 hex digits in the parsed top-level env
+ ✓ tests/migration/ontomark-step3-taxonomy.test.ts > ontomark step 3: taxonomy > release pin: publish.yml consumes a released ontomark (publish-cli convention) > a run step verifies the downloaded asset against ONTOMARK_SHA256 with sha256sum --check
+ ✓ tests/migration/ontomark-step3-taxonomy.test.ts > ontomark step 3: taxonomy > release pin: publish.yml consumes a released ontomark (publish-cli convention) > a run step invokes the ontomark CLI
+ ✓ tests/migration/ontomark-step3-taxonomy.test.ts > ontomark step 3: taxonomy > release pin: publish.yml consumes a released ontomark (publish-cli convention) > no run step invokes the legacy vault CLI and no VAULT_* pin remains
+ × tests/migration/ontomark-step6-rdf.test.ts > ontomark step 6: rdf > VG-09: no explorer source builds JSON-LD terms (@context/@id/@type, prov:/rdfs:/owl:/skos:/ngg: keys), however written
+ × tests/migration/ontomark-step6-rdf.test.ts > ontomark step 6: rdf > VG-09: no explorer source mints IRIs under the published ns/ namespace (the @context URL)
+ × tests/migration/ontomark-step6-rdf.test.ts > ontomark step 6: rdf > VG-09: static/ns/v2.jsonld is generated by ontomark build, so the tracked hand-authored file is gone
+ ✓ tests/migration/ontomark-step6-rdf.test.ts > ontomark step 6: rdf > VG-09: publish.yml still hard-gates the generated site-data/ns/v2.jsonld (the context must be produced, not dropped)
+ ✓ tests/migration/ontomark-step6-rdf.test.ts > ontomark step 6: rdf > release pin: publish.yml consumes a released ontomark (publish-cli convention) > ONTOMARK_RELEASE_TAG is a v<semver> value in the parsed top-level env (a comment is not a pin)
+ ✓ tests/migration/ontomark-step6-rdf.test.ts > ontomark step 6: rdf > release pin: publish.yml consumes a released ontomark (publish-cli convention) > ONTOMARK_SHA256 is 64 hex digits in the parsed top-level env
+ ✓ tests/migration/ontomark-step6-rdf.test.ts > ontomark step 6: rdf > release pin: publish.yml consumes a released ontomark (publish-cli convention) > a run step verifies the downloaded asset against ONTOMARK_SHA256 with sha256sum --check
+ ✓ tests/migration/ontomark-step6-rdf.test.ts > ontomark step 6: rdf > release pin: publish.yml consumes a released ontomark (publish-cli convention) > a run step invokes the ontomark CLI
+ ✓ tests/migration/ontomark-step6-rdf.test.ts > ontomark step 6: rdf > release pin: publish.yml consumes a released ontomark (publish-cli convention) > no run step invokes the legacy vault CLI and no VAULT_* pin remains
+ ✓ tests/migration/ontomark-step8-attribution.test.ts > ontomark step 8: attribution > surviving consumers: remaining hygiene scripts import nothing that was deleted, and nothing invokes attribute.py
+ ✓ tests/migration/ontomark-step8-attribution.test.ts > ontomark step 8: attribution > release pin: publish.yml consumes a released ontomark (publish-cli convention) > ONTOMARK_RELEASE_TAG is a v<semver> value in the parsed top-level env (a comment is not a pin)
+ ✓ tests/migration/ontomark-step8-attribution.test.ts > ontomark step 8: attribution > release pin: publish.yml consumes a released ontomark (publish-cli convention) > ONTOMARK_SHA256 is 64 hex digits in the parsed top-level env
+ ✓ tests/migration/ontomark-step8-attribution.test.ts > ontomark step 8: attribution > release pin: publish.yml consumes a released ontomark (publish-cli convention) > a run step verifies the downloaded asset against ONTOMARK_SHA256 with sha256sum --check
+ ✓ tests/migration/ontomark-step8-attribution.test.ts > ontomark step 8: attribution > release pin: publish.yml consumes a released ontomark (publish-cli convention) > a run step invokes the ontomark CLI
+ ✓ tests/migration/ontomark-step8-attribution.test.ts > ontomark step 8: attribution > release pin: publish.yml consumes a released ontomark (publish-cli convention) > no run step invokes the legacy vault CLI and no VAULT_* pin remains
+ × tests/migration/ontomark-step4-reason.test.ts > ontomark step 4: reason > VG-27: the content of bridge_candidates.py did not move to another path under a new name
+ ✓ tests/migration/ontomark-step7-validate.test.ts > ontomark step 7: validate > surviving consumers: no surviving hygiene script imports fmlib or any other module that no longer exists
+ × tests/migration/ontomark-step2-iri.test.ts > ontomark step 2: iri > VG-06: no explorer source carries a did:nostr author literal (the AUTHOR_DID constant, any name)
+ × tests/migration/ontomark-step4-reason.test.ts > ontomark step 4: reason > VG-27: no hygiene script reads the gitignored .research-scratch/closure-supers.json (any concatenation)
+ × tests/migration/ontomark-step7-validate.test.ts > ontomark step 7: validate > surviving consumers: no surviving hygiene script imports fmlib under any spelling
+ × tests/migration/ontomark-step7-validate.test.ts > ontomark step 7: validate > surviving consumers: the workflow run steps no longer point at a deleted script
+ × tests/migration/ontomark-step7-validate.test.ts > ontomark step 7: validate > VG-21: CLAUDE.md gate calls `ontomark lint collisions` as visible text, not collision_lint.py
+ × tests/migration/ontomark-step7-validate.test.ts > ontomark step 7: validate > D7: CLAUDE.md asset audit is `ontomark assets` as visible text, not asset_audit.py
+ × tests/migration/ontomark-step7-validate.test.ts > ontomark step 7: validate > VG-22/23: CLAUDE.md no longer names the deleted merge planner or decision applier
+ ✓ tests/migration/ontomark-step7-validate.test.ts > ontomark step 7: validate > release pin: publish.yml consumes a released ontomark (publish-cli convention) > ONTOMARK_RELEASE_TAG is a v<semver> value in the parsed top-level env (a comment is not a pin)
+ ✓ tests/migration/ontomark-step7-validate.test.ts > ontomark step 7: validate > release pin: publish.yml consumes a released ontomark (publish-cli convention) > ONTOMARK_SHA256 is 64 hex digits in the parsed top-level env
+ ✓ tests/migration/ontomark-step7-validate.test.ts > ontomark step 7: validate > release pin: publish.yml consumes a released ontomark (publish-cli convention) > a run step verifies the downloaded asset against ONTOMARK_SHA256 with sha256sum --check
+ ✓ tests/migration/ontomark-step7-validate.test.ts > ontomark step 7: validate > release pin: publish.yml consumes a released ontomark (publish-cli convention) > a run step invokes the ontomark CLI
+ ✓ tests/migration/ontomark-step7-validate.test.ts > ontomark step 7: validate > release pin: publish.yml consumes a released ontomark (publish-cli convention) > no run step invokes the legacy vault CLI and no VAULT_* pin remains
+ ✓ tests/migration/ontomark-step5-ngg1.test.ts > ontomark NGG1 ownership > deletes the old codec and catches renamed binary readers and writers
+ ✓ tests/migration/ontomark-step5-ngg1.test.ts > ontomark NGG1 ownership > the adapter calls imported Rust decoder, encoder and constants
+ ✓ tests/migration/ontomark-step5-ngg1.test.ts > ontomark NGG1 ownership > mounts the shared renderer and removes the former embedded rendering modules
+ ✓ tests/migration/ontomark-step4-reason.test.ts > ontomark step 4: reason > surviving hygiene scripts still resolve every import (no deleted sibling is imported)
+ ✓ tests/migration/ontomark-step4-reason.test.ts > ontomark step 4: reason > release pin: publish.yml consumes a released ontomark (publish-cli convention) > ONTOMARK_RELEASE_TAG is a v<semver> value in the parsed top-level env (a comment is not a pin)
+ ✓ tests/migration/ontomark-step4-reason.test.ts > ontomark step 4: reason > release pin: publish.yml consumes a released ontomark (publish-cli convention) > ONTOMARK_SHA256 is 64 hex digits in the parsed top-level env
+ ✓ tests/migration/ontomark-step4-reason.test.ts > ontomark step 4: reason > release pin: publish.yml consumes a released ontomark (publish-cli convention) > a run step verifies the downloaded asset against ONTOMARK_SHA256 with sha256sum --check
+ ✓ tests/migration/ontomark-step4-reason.test.ts > ontomark step 4: reason > release pin: publish.yml consumes a released ontomark (publish-cli convention) > a run step invokes the ontomark CLI
+ ✓ tests/migration/ontomark-step4-reason.test.ts > ontomark step 4: reason > release pin: publish.yml consumes a released ontomark (publish-cli convention) > no run step invokes the legacy vault CLI and no VAULT_* pin remains
+ ✓ tests/migration/ontomark-step5-ngg1.test.ts > ontomark NGG1 ownership > every relative production/test import still resolves after deleting the codec
+ ✓ tests/migration/ontomark-step5-ngg1.test.ts > ontomark NGG1 ownership > pins the immutable 0.2.3 release with matching manifest, lock version and integrity
+ ✓ tests/migration/ontomark-step5-ngg1.test.ts > ontomark NGG1 ownership > pins the shared graph release without a local tree or floating source dependency
+ ✓ tests/migration/ontomark-step5-ngg1.test.ts > ontomark NGG1 ownership > ships the exact frozen engine notice and the renderer package licences
+ × tests/migration/ontomark-step2-iri.test.ts > ontomark step 2: iri > VG-06: no explorer source builds or parses the urn:ngm:class: IRI (literal, template or regex)
+ × tests/migration/ontomark-step2-iri.test.ts > ontomark step 2: iri > VG-06: no explorer source slices an IRI by splitting or searching for ':' (slugFromClassIri, any name)
+ × tests/migration/ontomark-step2-iri.test.ts > ontomark step 2: iri > VG-24: no hygiene script builds `urn:ngm:class:<value>` from a variable (any spelling of the resource rewrite)
+ × tests/migration/ontomark-step2-iri.test.ts > ontomark step 2: iri > VG-24: no hygiene script rewrites the `resource:` frontmatter key (a .sub/.replace over it, or a resource: line built from a variable)
+ ✓ tests/migration/ontomark-step2-iri.test.ts > ontomark step 2: iri > the hygiene scripts parse (a syntax error would hide a construct from the checks above)
+ ✓ tests/migration/ontomark-step2-iri.test.ts > ontomark step 2: iri > release pin: publish.yml consumes a released ontomark (publish-cli convention) > ONTOMARK_RELEASE_TAG is a v<semver> value in the parsed top-level env (a comment is not a pin)
+ ✓ tests/migration/ontomark-step2-iri.test.ts > ontomark step 2: iri > release pin: publish.yml consumes a released ontomark (publish-cli convention) > ONTOMARK_SHA256 is 64 hex digits in the parsed top-level env
+ ✓ tests/migration/ontomark-step2-iri.test.ts > ontomark step 2: iri > release pin: publish.yml consumes a released ontomark (publish-cli convention) > a run step verifies the downloaded asset against ONTOMARK_SHA256 with sha256sum --check
+ ✓ tests/migration/ontomark-step2-iri.test.ts > ontomark step 2: iri > release pin: publish.yml consumes a released ontomark (publish-cli convention) > a run step invokes the ontomark CLI
+ ✓ tests/migration/ontomark-step2-iri.test.ts > ontomark step 2: iri > release pin: publish.yml consumes a released ontomark (publish-cli convention) > no run step invokes the legacy vault CLI and no VAULT_* pin remains

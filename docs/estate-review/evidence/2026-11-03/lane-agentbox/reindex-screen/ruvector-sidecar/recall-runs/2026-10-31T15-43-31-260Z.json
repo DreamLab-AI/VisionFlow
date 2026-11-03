@@ -1,0 +1,2217 @@
+{
+  "schema": "ruvector-recall-harness/run@1",
+  "ran_at": "2026-10-31T15:43:31.260Z",
+  "fixture": {
+    "path_version": 1,
+    "built_at": "2026-10-31T14:33:03.935Z",
+    "fixture_hash": "sha256-55832e9f582a60b43042ca853f0c8b62b1f7c14062bc0811a8c2d6fdf7acc1fd",
+    "hash_ok": true,
+    "sizes": {
+      "self_recall": 200,
+      "true_recall": 120,
+      "exact_token": 26
+    }
+  },
+  "config": {
+    "runs": 3,
+    "k": 10,
+    "embedding_model": "bge-small-en-v1.5",
+    "xinference": "up",
+    "gates": {
+      "RUVECTOR_FEED_RETRIEVAL": "1",
+      "RUVECTOR_HYBRID_SEARCH": "1"
+    }
+  },
+  "binding": {
+    "embedding": {
+      "state": "accepted",
+      "ok": true,
+      "model": "bge-small-en-v1.5",
+      "fingerprint": "emb1-384-cd25d147dcb748fd",
+      "preprocessing": {
+        "embed_prefix_chars": 2000,
+        "normalisation": "none (transport returns L2-normalised bge vectors)",
+        "probe_version": 1,
+        "quant_decimals": 4
+      },
+      "pinned_fingerprint": "emb1-384-cd25d147dcb748fd",
+      "message": null
+    },
+    "corpus": {
+      "memory_entries": 266039,
+      "embedded": 266039,
+      "pending_embeddings": 0,
+      "namespaces": 466,
+      "newest_entry": "2026-10-31T15:17:47.546Z",
+      "hnsw_index": "idx_memory_embedding_hnsw",
+      "hnsw_indexdef": "CREATE INDEX idx_memory_embedding_hnsw ON public.memory_entries USING hnsw (embedding ruvector_cosine_ops) WITH (m='16', ef_construction='128')",
+      "revision": "corpus-f90f6804f31b"
+    },
+    "filters": {
+      "self_recall": {
+        "namespaces": [
+          "agent-assignments",
+          "commands",
+          "coordination",
+          "dream-cycle",
+          "file-history",
+          "hooks:notify",
+          "hooks:post-edit",
+          "hooks:post-task",
+          "hooks:pre-edit",
+          "hooks:pre-task",
+          "knowledge/fashion",
+          "knowledge/journals",
+          "knowledge/ontology",
+          "knowledge/pages",
+          "memory-learning-aggregates",
+          "ontology-corpus",
+          "patterns",
+          "projects/exchange",
+          "projects/fairfield-nostr-other",
+          "projects/funding_platform",
+          "projects/nostr-BBS",
+          "projects/OntologyDesign",
+          "projects/report-Pete",
+          "projects/ruvector",
+          "projects/RuView",
+          "project-state",
+          "projects/unreal2gaussian",
+          "projects/WasmVOWL",
+          "ruvnet-kb",
+          "session-metrics",
+          "sessions",
+          "session-states",
+          "swarms",
+          "task-index"
+        ],
+        "plan": "unfiltered kNN over the whole index (no namespace predicate)"
+      },
+      "true_recall": {
+        "namespaces": [
+          "agent-assignments",
+          "code-harness-survey",
+          "commands",
+          "coordination",
+          "default",
+          "docs-alignment",
+          "dream-cycle",
+          "file-history",
+          "hooks:notify",
+          "hooks:post-edit",
+          "hooks:post-task",
+          "hooks:pre-edit",
+          "hooks:pre-task",
+          "knowledge/fashion",
+          "knowledge/journals",
+          "knowledge/ontology",
+          "knowledge/pages",
+          "memory-learning-aggregates",
+          "ontology-corpus",
+          "patterns",
+          "personal-context",
+          "projects/agentbox",
+          "projects/ai-3d-fusion",
+          "projects/bridges",
+          "projects/dreamlab-ai-website-locked",
+          "projects/exchange",
+          "projects/fairfield-nostr-other",
+          "projects/funding_platform",
+          "projects/gitnexus",
+          "projects/hackathon-tv5",
+          "projects/JavaScriptSolidServer",
+          "projects/nostr-BBS",
+          "projects/OntologyDesign",
+          "projects/PeteStrategyDoc",
+          "projects/report-Pete",
+          "projects/Research",
+          "projects/ruvector",
+          "projects/RuView",
+          "project-state",
+          "projects/unreal2gaussian",
+          "projects/WasmVOWL",
+          "projects/waterworks",
+          "projects/website-giw",
+          "ruvnet-kb",
+          "session-metrics",
+          "sessions",
+          "session-states",
+          "swarm-prose-sanitiser",
+          "swarms",
+          "task-index"
+        ],
+        "plan": "unfiltered kNN vs a forced exact scan"
+      },
+      "exact_token": {
+        "namespaces": [
+          "projects/ruvector",
+          "patterns",
+          "project-state",
+          "memory-learning-aggregates",
+          "knowledge/journals",
+          "knowledge/ontology"
+        ],
+        "source_type": null,
+        "plan": "namespace-scoped memSearch / memHybridSearch (materialised subset, exact rank)"
+      }
+    },
+    "gates": {
+      "RUVECTOR_BACKEND": "ruvector-embedded",
+      "RUVECTOR_DATA_DIR": "/var/lib/ruvector",
+      "RUVECTOR_HYBRID_SEARCH": "1",
+      "RUVECTOR_PORT": "9700",
+      "RUVECTOR_TYPED_METADATA": "1",
+      "RUVECTOR_PROTECTED_NAMESPACES": "governance-precedents,ruvnet-kb",
+      "RUVECTOR_USE_EXTERNAL": "true",
+      "RUVECTOR_ADMIN_WRITE": "false",
+      "RUVECTOR_METADATA_GIN": "1",
+      "RUVECTOR_HEALTH_TOOL": "1",
+      "RUVECTOR_EPISODIC_TTL_SWEEP": "1",
+      "RUVECTOR_MEMORY_ORIENT": "1",
+      "RUVECTOR_MEMORY_LEARNING_ENABLED": "1",
+      "RUVECTOR_RECORD_TRAJECTORIES": "1",
+      "RUVECTOR_FEED_RETRIEVAL": "1",
+      "RUVECTOR_FEED_ROUTING": "0",
+      "RUVECTOR_AGGREGATE_MIN_SAMPLES": "20",
+      "RUVECTOR_RECENCY_HALF_LIFE_DAYS": "14",
+      "RUVECTOR_AGGREGATE_SWEEP": "1",
+      "RUVECTOR_AGGREGATE_SWEEP_INTERVAL_MINS": "30",
+      "RUVECTOR_ATTENTION_RERANK": "0",
+      "RUVECTOR_SONA_LEARN_ENABLED": "0",
+      "RUVECTOR_SONA_APPLY_ENABLED": "0",
+      "RUVECTOR_PARAM_TUNING_ENABLED": "0",
+      "RUVECTOR_PATTERN_DISTILLATION": "1",
+      "RUVECTOR_RETAINED_CORPUS_ACCEPTED": "",
+      "RUVECTOR_RETAINED_CORPUS_MAX_AGE_DAYS": "30",
+      "RUVECTOR_ORCHESTRATION_PROXY": "1",
+      "RUVECTOR_ORCHESTRATION_TOOLS": "swarm,agent,rure"
+    }
+  },
+  "baseline": {
+    "self_recall": [
+      188,
+      200
+    ],
+    "true_recall": [
+      119,
+      120
+    ],
+    "status": "provisional-spec-reference",
+    "note": "v1 documented baseline; the operative baseline for THIS fixture is frozen in the ops phase, not asserted at build time."
+  },
+  "band": {
+    "self_recall_min": 175,
+    "self_recall_of": 200,
+    "true_recall_min": 102,
+    "true_recall_of": 120,
+    "exact_token_hybrid_delta_min": 0,
+    "median_of": 3,
+    "k": 10
+  },
+  "medians": {
+    "self_recall": 183,
+    "true_recall": 108,
+    "exact_token_delta": 2.5
+  },
+  "verdict": {
+    "pass": true,
+    "reasons": []
+  },
+  "per_namespace_self_recall": {
+    "agent-assignments": {
+      "hits": 1,
+      "total": 1
+    },
+    "commands": {
+      "hits": 0,
+      "total": 1
+    },
+    "coordination": {
+      "hits": 2,
+      "total": 3
+    },
+    "dream-cycle": {
+      "hits": 1,
+      "total": 1
+    },
+    "file-history": {
+      "hits": 2,
+      "total": 3
+    },
+    "hooks:notify": {
+      "hits": 1,
+      "total": 1
+    },
+    "hooks:post-edit": {
+      "hits": 2,
+      "total": 3
+    },
+    "hooks:post-task": {
+      "hits": 1,
+      "total": 1
+    },
+    "hooks:pre-edit": {
+      "hits": 2,
+      "total": 3
+    },
+    "hooks:pre-task": {
+      "hits": 1,
+      "total": 1
+    },
+    "knowledge/fashion": {
+      "hits": 0,
+      "total": 1
+    },
+    "knowledge/journals": {
+      "hits": 1,
+      "total": 1
+    },
+    "knowledge/ontology": {
+      "hits": 1,
+      "total": 1
+    },
+    "knowledge/pages": {
+      "hits": 65,
+      "total": 71
+    },
+    "memory-learning-aggregates": {
+      "hits": 1,
+      "total": 1
+    },
+    "ontology-corpus": {
+      "hits": 9,
+      "total": 9
+    },
+    "patterns": {
+      "hits": 1,
+      "total": 1
+    },
+    "projects/exchange": {
+      "hits": 1,
+      "total": 1
+    },
+    "projects/fairfield-nostr-other": {
+      "hits": 0,
+      "total": 1
+    },
+    "projects/funding_platform": {
+      "hits": 0,
+      "total": 1
+    },
+    "projects/nostr-BBS": {
+      "hits": 0,
+      "total": 1
+    },
+    "projects/OntologyDesign": {
+      "hits": 1,
+      "total": 1
+    },
+    "projects/report-Pete": {
+      "hits": 1,
+      "total": 1
+    },
+    "projects/ruvector": {
+      "hits": 1,
+      "total": 1
+    },
+    "projects/RuView": {
+      "hits": 1,
+      "total": 1
+    },
+    "project-state": {
+      "hits": 2,
+      "total": 2
+    },
+    "projects/unreal2gaussian": {
+      "hits": 1,
+      "total": 1
+    },
+    "projects/WasmVOWL": {
+      "hits": 1,
+      "total": 1
+    },
+    "ruvnet-kb": {
+      "hits": 79,
+      "total": 80
+    },
+    "session-metrics": {
+      "hits": 1,
+      "total": 1
+    },
+    "sessions": {
+      "hits": 0,
+      "total": 1
+    },
+    "session-states": {
+      "hits": 1,
+      "total": 1
+    },
+    "swarms": {
+      "hits": 1,
+      "total": 1
+    },
+    "task-index": {
+      "hits": 1,
+      "total": 1
+    }
+  },
+  "runs_detail": [
+    {
+      "run": 1,
+      "self_recall": {
+        "count": 183,
+        "of": 200,
+        "per_namespace": {
+          "agent-assignments": {
+            "hits": 1,
+            "total": 1
+          },
+          "commands": {
+            "hits": 0,
+            "total": 1
+          },
+          "coordination": {
+            "hits": 2,
+            "total": 3
+          },
+          "dream-cycle": {
+            "hits": 1,
+            "total": 1
+          },
+          "file-history": {
+            "hits": 2,
+            "total": 3
+          },
+          "hooks:notify": {
+            "hits": 1,
+            "total": 1
+          },
+          "hooks:post-edit": {
+            "hits": 2,
+            "total": 3
+          },
+          "hooks:post-task": {
+            "hits": 1,
+            "total": 1
+          },
+          "hooks:pre-edit": {
+            "hits": 2,
+            "total": 3
+          },
+          "hooks:pre-task": {
+            "hits": 1,
+            "total": 1
+          },
+          "knowledge/fashion": {
+            "hits": 0,
+            "total": 1
+          },
+          "knowledge/journals": {
+            "hits": 1,
+            "total": 1
+          },
+          "knowledge/ontology": {
+            "hits": 1,
+            "total": 1
+          },
+          "knowledge/pages": {
+            "hits": 65,
+            "total": 71
+          },
+          "memory-learning-aggregates": {
+            "hits": 1,
+            "total": 1
+          },
+          "ontology-corpus": {
+            "hits": 9,
+            "total": 9
+          },
+          "patterns": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/exchange": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/fairfield-nostr-other": {
+            "hits": 0,
+            "total": 1
+          },
+          "projects/funding_platform": {
+            "hits": 0,
+            "total": 1
+          },
+          "projects/nostr-BBS": {
+            "hits": 0,
+            "total": 1
+          },
+          "projects/OntologyDesign": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/report-Pete": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/ruvector": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/RuView": {
+            "hits": 1,
+            "total": 1
+          },
+          "project-state": {
+            "hits": 2,
+            "total": 2
+          },
+          "projects/unreal2gaussian": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/WasmVOWL": {
+            "hits": 1,
+            "total": 1
+          },
+          "ruvnet-kb": {
+            "hits": 79,
+            "total": 80
+          },
+          "session-metrics": {
+            "hits": 1,
+            "total": 1
+          },
+          "sessions": {
+            "hits": 0,
+            "total": 1
+          },
+          "session-states": {
+            "hits": 1,
+            "total": 1
+          },
+          "swarms": {
+            "hits": 1,
+            "total": 1
+          },
+          "task-index": {
+            "hits": 1,
+            "total": 1
+          }
+        }
+      },
+      "true_recall": {
+        "count": 108,
+        "of": 120,
+        "mean_intersection_recall": 0.8975000000000002,
+        "per_namespace": {
+          "agent-assignments": {
+            "hits": 1,
+            "total": 1
+          },
+          "code-harness-survey": {
+            "hits": 1,
+            "total": 1
+          },
+          "commands": {
+            "hits": 0,
+            "total": 1
+          },
+          "coordination": {
+            "hits": 0,
+            "total": 1
+          },
+          "default": {
+            "hits": 0,
+            "total": 1
+          },
+          "docs-alignment": {
+            "hits": 1,
+            "total": 1
+          },
+          "dream-cycle": {
+            "hits": 1,
+            "total": 1
+          },
+          "file-history": {
+            "hits": 1,
+            "total": 1
+          },
+          "hooks:notify": {
+            "hits": 1,
+            "total": 1
+          },
+          "hooks:post-edit": {
+            "hits": 1,
+            "total": 1
+          },
+          "hooks:post-task": {
+            "hits": 1,
+            "total": 1
+          },
+          "hooks:pre-edit": {
+            "hits": 1,
+            "total": 1
+          },
+          "hooks:pre-task": {
+            "hits": 1,
+            "total": 1
+          },
+          "knowledge/fashion": {
+            "hits": 0,
+            "total": 1
+          },
+          "knowledge/journals": {
+            "hits": 1,
+            "total": 1
+          },
+          "knowledge/ontology": {
+            "hits": 1,
+            "total": 1
+          },
+          "knowledge/pages": {
+            "hits": 20,
+            "total": 23
+          },
+          "memory-learning-aggregates": {
+            "hits": 1,
+            "total": 1
+          },
+          "ontology-corpus": {
+            "hits": 2,
+            "total": 2
+          },
+          "patterns": {
+            "hits": 1,
+            "total": 1
+          },
+          "personal-context": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/agentbox": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/ai-3d-fusion": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/bridges": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/dreamlab-ai-website-locked": {
+            "hits": 0,
+            "total": 1
+          },
+          "projects/exchange": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/fairfield-nostr-other": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/funding_platform": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/gitnexus": {
+            "hits": 0,
+            "total": 1
+          },
+          "projects/hackathon-tv5": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/JavaScriptSolidServer": {
+            "hits": 0,
+            "total": 1
+          },
+          "projects/nostr-BBS": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/OntologyDesign": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/PeteStrategyDoc": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/report-Pete": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/Research": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/ruvector": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/RuView": {
+            "hits": 0,
+            "total": 1
+          },
+          "project-state": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/unreal2gaussian": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/WasmVOWL": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/waterworks": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/website-giw": {
+            "hits": 1,
+            "total": 1
+          },
+          "ruvnet-kb": {
+            "hits": 48,
+            "total": 48
+          },
+          "session-metrics": {
+            "hits": 1,
+            "total": 1
+          },
+          "sessions": {
+            "hits": 0,
+            "total": 1
+          },
+          "session-states": {
+            "hits": 1,
+            "total": 1
+          },
+          "swarm-prose-sanitiser": {
+            "hits": 1,
+            "total": 1
+          },
+          "swarms": {
+            "hits": 1,
+            "total": 1
+          },
+          "task-index": {
+            "hits": 1,
+            "total": 1
+          }
+        }
+      },
+      "exact_token": {
+        "median_delta": 2.5,
+        "deltas": [
+          6,
+          10,
+          9,
+          10,
+          3,
+          0,
+          7,
+          2,
+          0,
+          4,
+          10,
+          6,
+          -1,
+          1,
+          -1,
+          -2,
+          4,
+          10,
+          -1,
+          -3,
+          -4,
+          0,
+          2,
+          9,
+          -4,
+          5
+        ],
+        "per_token": [
+          {
+            "token": "HNSW",
+            "namespace": "projects/ruvector",
+            "gt_size": 154,
+            "pure_hits": 4,
+            "hybrid_hits": 10,
+            "delta": 6,
+            "error": null
+          },
+          {
+            "token": "ef_construction",
+            "namespace": "projects/ruvector",
+            "gt_size": 18,
+            "pure_hits": 0,
+            "hybrid_hits": 10,
+            "delta": 10,
+            "error": null
+          },
+          {
+            "token": "ef_search",
+            "namespace": "projects/ruvector",
+            "gt_size": 15,
+            "pure_hits": 1,
+            "hybrid_hits": 10,
+            "delta": 9,
+            "error": null
+          },
+          {
+            "token": "pgvector",
+            "namespace": "projects/ruvector",
+            "gt_size": 13,
+            "pure_hits": 0,
+            "hybrid_hits": 10,
+            "delta": 10,
+            "error": null
+          },
+          {
+            "token": "tsvector",
+            "namespace": "projects/ruvector",
+            "gt_size": 3,
+            "pure_hits": 0,
+            "hybrid_hits": 3,
+            "delta": 3,
+            "error": null
+          },
+          {
+            "token": "CUDA_ARCH",
+            "namespace": "patterns",
+            "gt_size": 5,
+            "pure_hits": 2,
+            "hybrid_hits": 2,
+            "delta": 0,
+            "error": null
+          },
+          {
+            "token": "bge-small-en-v1.5",
+            "namespace": "project-state",
+            "gt_size": 14,
+            "pure_hits": 2,
+            "hybrid_hits": 9,
+            "delta": 7,
+            "error": null
+          },
+          {
+            "token": "Micro-LoRA",
+            "namespace": "projects/ruvector",
+            "gt_size": 2,
+            "pure_hits": 0,
+            "hybrid_hits": 2,
+            "delta": 2,
+            "error": null
+          },
+          {
+            "token": "Wilson",
+            "namespace": "memory-learning-aggregates",
+            "gt_size": 150,
+            "pure_hits": 10,
+            "hybrid_hits": 10,
+            "delta": 0,
+            "error": null
+          },
+          {
+            "token": "GraphSAGE",
+            "namespace": "projects/ruvector",
+            "gt_size": 6,
+            "pure_hits": 1,
+            "hybrid_hits": 5,
+            "delta": 4,
+            "error": null
+          },
+          {
+            "token": "neuromorphic",
+            "namespace": "projects/ruvector",
+            "gt_size": 12,
+            "pure_hits": 0,
+            "hybrid_hits": 10,
+            "delta": 10,
+            "error": null
+          },
+          {
+            "token": "QuDAG",
+            "namespace": "projects/ruvector",
+            "gt_size": 7,
+            "pure_hits": 0,
+            "hybrid_hits": 6,
+            "delta": 6,
+            "error": null
+          },
+          {
+            "token": "SHACL",
+            "namespace": "project-state",
+            "gt_size": 15,
+            "pure_hits": 3,
+            "hybrid_hits": 2,
+            "delta": -1,
+            "error": null
+          },
+          {
+            "token": "Oxigraph",
+            "namespace": "project-state",
+            "gt_size": 44,
+            "pure_hits": 2,
+            "hybrid_hits": 3,
+            "delta": 1,
+            "error": null
+          },
+          {
+            "token": "Whelk",
+            "namespace": "project-state",
+            "gt_size": 74,
+            "pure_hits": 8,
+            "hybrid_hits": 7,
+            "delta": -1,
+            "error": null
+          },
+          {
+            "token": "SPARQL",
+            "namespace": "project-state",
+            "gt_size": 42,
+            "pure_hits": 4,
+            "hybrid_hits": 2,
+            "delta": -2,
+            "error": null
+          },
+          {
+            "token": "GraphRAG",
+            "namespace": "knowledge/journals",
+            "gt_size": 5,
+            "pure_hits": 0,
+            "hybrid_hits": 4,
+            "delta": 4,
+            "error": null
+          },
+          {
+            "token": "ReasoningBank",
+            "namespace": "projects/ruvector",
+            "gt_size": 13,
+            "pure_hits": 0,
+            "hybrid_hits": 10,
+            "delta": 10,
+            "error": null
+          },
+          {
+            "token": "Nostr",
+            "namespace": "project-state",
+            "gt_size": 300,
+            "pure_hits": 8,
+            "hybrid_hits": 7,
+            "delta": -1,
+            "error": null
+          },
+          {
+            "token": "Taproot",
+            "namespace": "project-state",
+            "gt_size": 19,
+            "pure_hits": 3,
+            "hybrid_hits": 0,
+            "delta": -3,
+            "error": null
+          },
+          {
+            "token": "provenance",
+            "namespace": "project-state",
+            "gt_size": 161,
+            "pure_hits": 9,
+            "hybrid_hits": 5,
+            "delta": -4,
+            "error": null
+          },
+          {
+            "token": "trajectory_steps",
+            "namespace": "patterns",
+            "gt_size": 2,
+            "pure_hits": 1,
+            "hybrid_hits": 1,
+            "delta": 0,
+            "error": null
+          },
+          {
+            "token": "memory_entries",
+            "namespace": "project-state",
+            "gt_size": 7,
+            "pure_hits": 0,
+            "hybrid_hits": 2,
+            "delta": 2,
+            "error": null
+          },
+          {
+            "token": "Byzantine",
+            "namespace": "knowledge/ontology",
+            "gt_size": 12,
+            "pure_hits": 0,
+            "hybrid_hits": 9,
+            "delta": 9,
+            "error": null
+          },
+          {
+            "token": "websocket",
+            "namespace": "project-state",
+            "gt_size": 60,
+            "pure_hits": 6,
+            "hybrid_hits": 2,
+            "delta": -4,
+            "error": null
+          },
+          {
+            "token": "quantization",
+            "namespace": "projects/ruvector",
+            "gt_size": 74,
+            "pure_hits": 4,
+            "hybrid_hits": 9,
+            "delta": 5,
+            "error": null
+          }
+        ]
+      }
+    },
+    {
+      "run": 2,
+      "self_recall": {
+        "count": 183,
+        "of": 200,
+        "per_namespace": {
+          "agent-assignments": {
+            "hits": 1,
+            "total": 1
+          },
+          "commands": {
+            "hits": 0,
+            "total": 1
+          },
+          "coordination": {
+            "hits": 2,
+            "total": 3
+          },
+          "dream-cycle": {
+            "hits": 1,
+            "total": 1
+          },
+          "file-history": {
+            "hits": 2,
+            "total": 3
+          },
+          "hooks:notify": {
+            "hits": 1,
+            "total": 1
+          },
+          "hooks:post-edit": {
+            "hits": 2,
+            "total": 3
+          },
+          "hooks:post-task": {
+            "hits": 1,
+            "total": 1
+          },
+          "hooks:pre-edit": {
+            "hits": 2,
+            "total": 3
+          },
+          "hooks:pre-task": {
+            "hits": 1,
+            "total": 1
+          },
+          "knowledge/fashion": {
+            "hits": 0,
+            "total": 1
+          },
+          "knowledge/journals": {
+            "hits": 1,
+            "total": 1
+          },
+          "knowledge/ontology": {
+            "hits": 1,
+            "total": 1
+          },
+          "knowledge/pages": {
+            "hits": 65,
+            "total": 71
+          },
+          "memory-learning-aggregates": {
+            "hits": 1,
+            "total": 1
+          },
+          "ontology-corpus": {
+            "hits": 9,
+            "total": 9
+          },
+          "patterns": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/exchange": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/fairfield-nostr-other": {
+            "hits": 0,
+            "total": 1
+          },
+          "projects/funding_platform": {
+            "hits": 0,
+            "total": 1
+          },
+          "projects/nostr-BBS": {
+            "hits": 0,
+            "total": 1
+          },
+          "projects/OntologyDesign": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/report-Pete": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/ruvector": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/RuView": {
+            "hits": 1,
+            "total": 1
+          },
+          "project-state": {
+            "hits": 2,
+            "total": 2
+          },
+          "projects/unreal2gaussian": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/WasmVOWL": {
+            "hits": 1,
+            "total": 1
+          },
+          "ruvnet-kb": {
+            "hits": 79,
+            "total": 80
+          },
+          "session-metrics": {
+            "hits": 1,
+            "total": 1
+          },
+          "sessions": {
+            "hits": 0,
+            "total": 1
+          },
+          "session-states": {
+            "hits": 1,
+            "total": 1
+          },
+          "swarms": {
+            "hits": 1,
+            "total": 1
+          },
+          "task-index": {
+            "hits": 1,
+            "total": 1
+          }
+        }
+      },
+      "true_recall": {
+        "count": 108,
+        "of": 120,
+        "mean_intersection_recall": 0.8975000000000002,
+        "per_namespace": {
+          "agent-assignments": {
+            "hits": 1,
+            "total": 1
+          },
+          "code-harness-survey": {
+            "hits": 1,
+            "total": 1
+          },
+          "commands": {
+            "hits": 0,
+            "total": 1
+          },
+          "coordination": {
+            "hits": 0,
+            "total": 1
+          },
+          "default": {
+            "hits": 0,
+            "total": 1
+          },
+          "docs-alignment": {
+            "hits": 1,
+            "total": 1
+          },
+          "dream-cycle": {
+            "hits": 1,
+            "total": 1
+          },
+          "file-history": {
+            "hits": 1,
+            "total": 1
+          },
+          "hooks:notify": {
+            "hits": 1,
+            "total": 1
+          },
+          "hooks:post-edit": {
+            "hits": 1,
+            "total": 1
+          },
+          "hooks:post-task": {
+            "hits": 1,
+            "total": 1
+          },
+          "hooks:pre-edit": {
+            "hits": 1,
+            "total": 1
+          },
+          "hooks:pre-task": {
+            "hits": 1,
+            "total": 1
+          },
+          "knowledge/fashion": {
+            "hits": 0,
+            "total": 1
+          },
+          "knowledge/journals": {
+            "hits": 1,
+            "total": 1
+          },
+          "knowledge/ontology": {
+            "hits": 1,
+            "total": 1
+          },
+          "knowledge/pages": {
+            "hits": 20,
+            "total": 23
+          },
+          "memory-learning-aggregates": {
+            "hits": 1,
+            "total": 1
+          },
+          "ontology-corpus": {
+            "hits": 2,
+            "total": 2
+          },
+          "patterns": {
+            "hits": 1,
+            "total": 1
+          },
+          "personal-context": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/agentbox": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/ai-3d-fusion": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/bridges": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/dreamlab-ai-website-locked": {
+            "hits": 0,
+            "total": 1
+          },
+          "projects/exchange": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/fairfield-nostr-other": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/funding_platform": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/gitnexus": {
+            "hits": 0,
+            "total": 1
+          },
+          "projects/hackathon-tv5": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/JavaScriptSolidServer": {
+            "hits": 0,
+            "total": 1
+          },
+          "projects/nostr-BBS": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/OntologyDesign": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/PeteStrategyDoc": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/report-Pete": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/Research": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/ruvector": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/RuView": {
+            "hits": 0,
+            "total": 1
+          },
+          "project-state": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/unreal2gaussian": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/WasmVOWL": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/waterworks": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/website-giw": {
+            "hits": 1,
+            "total": 1
+          },
+          "ruvnet-kb": {
+            "hits": 48,
+            "total": 48
+          },
+          "session-metrics": {
+            "hits": 1,
+            "total": 1
+          },
+          "sessions": {
+            "hits": 0,
+            "total": 1
+          },
+          "session-states": {
+            "hits": 1,
+            "total": 1
+          },
+          "swarm-prose-sanitiser": {
+            "hits": 1,
+            "total": 1
+          },
+          "swarms": {
+            "hits": 1,
+            "total": 1
+          },
+          "task-index": {
+            "hits": 1,
+            "total": 1
+          }
+        }
+      },
+      "exact_token": {
+        "median_delta": 2.5,
+        "deltas": [
+          6,
+          10,
+          9,
+          10,
+          3,
+          0,
+          7,
+          2,
+          0,
+          4,
+          10,
+          6,
+          -1,
+          1,
+          -1,
+          -2,
+          4,
+          10,
+          -1,
+          -3,
+          -4,
+          0,
+          2,
+          9,
+          -4,
+          5
+        ],
+        "per_token": [
+          {
+            "token": "HNSW",
+            "namespace": "projects/ruvector",
+            "gt_size": 154,
+            "pure_hits": 4,
+            "hybrid_hits": 10,
+            "delta": 6,
+            "error": null
+          },
+          {
+            "token": "ef_construction",
+            "namespace": "projects/ruvector",
+            "gt_size": 18,
+            "pure_hits": 0,
+            "hybrid_hits": 10,
+            "delta": 10,
+            "error": null
+          },
+          {
+            "token": "ef_search",
+            "namespace": "projects/ruvector",
+            "gt_size": 15,
+            "pure_hits": 1,
+            "hybrid_hits": 10,
+            "delta": 9,
+            "error": null
+          },
+          {
+            "token": "pgvector",
+            "namespace": "projects/ruvector",
+            "gt_size": 13,
+            "pure_hits": 0,
+            "hybrid_hits": 10,
+            "delta": 10,
+            "error": null
+          },
+          {
+            "token": "tsvector",
+            "namespace": "projects/ruvector",
+            "gt_size": 3,
+            "pure_hits": 0,
+            "hybrid_hits": 3,
+            "delta": 3,
+            "error": null
+          },
+          {
+            "token": "CUDA_ARCH",
+            "namespace": "patterns",
+            "gt_size": 5,
+            "pure_hits": 2,
+            "hybrid_hits": 2,
+            "delta": 0,
+            "error": null
+          },
+          {
+            "token": "bge-small-en-v1.5",
+            "namespace": "project-state",
+            "gt_size": 14,
+            "pure_hits": 2,
+            "hybrid_hits": 9,
+            "delta": 7,
+            "error": null
+          },
+          {
+            "token": "Micro-LoRA",
+            "namespace": "projects/ruvector",
+            "gt_size": 2,
+            "pure_hits": 0,
+            "hybrid_hits": 2,
+            "delta": 2,
+            "error": null
+          },
+          {
+            "token": "Wilson",
+            "namespace": "memory-learning-aggregates",
+            "gt_size": 150,
+            "pure_hits": 10,
+            "hybrid_hits": 10,
+            "delta": 0,
+            "error": null
+          },
+          {
+            "token": "GraphSAGE",
+            "namespace": "projects/ruvector",
+            "gt_size": 6,
+            "pure_hits": 1,
+            "hybrid_hits": 5,
+            "delta": 4,
+            "error": null
+          },
+          {
+            "token": "neuromorphic",
+            "namespace": "projects/ruvector",
+            "gt_size": 12,
+            "pure_hits": 0,
+            "hybrid_hits": 10,
+            "delta": 10,
+            "error": null
+          },
+          {
+            "token": "QuDAG",
+            "namespace": "projects/ruvector",
+            "gt_size": 7,
+            "pure_hits": 0,
+            "hybrid_hits": 6,
+            "delta": 6,
+            "error": null
+          },
+          {
+            "token": "SHACL",
+            "namespace": "project-state",
+            "gt_size": 15,
+            "pure_hits": 3,
+            "hybrid_hits": 2,
+            "delta": -1,
+            "error": null
+          },
+          {
+            "token": "Oxigraph",
+            "namespace": "project-state",
+            "gt_size": 44,
+            "pure_hits": 2,
+            "hybrid_hits": 3,
+            "delta": 1,
+            "error": null
+          },
+          {
+            "token": "Whelk",
+            "namespace": "project-state",
+            "gt_size": 74,
+            "pure_hits": 8,
+            "hybrid_hits": 7,
+            "delta": -1,
+            "error": null
+          },
+          {
+            "token": "SPARQL",
+            "namespace": "project-state",
+            "gt_size": 42,
+            "pure_hits": 4,
+            "hybrid_hits": 2,
+            "delta": -2,
+            "error": null
+          },
+          {
+            "token": "GraphRAG",
+            "namespace": "knowledge/journals",
+            "gt_size": 5,
+            "pure_hits": 0,
+            "hybrid_hits": 4,
+            "delta": 4,
+            "error": null
+          },
+          {
+            "token": "ReasoningBank",
+            "namespace": "projects/ruvector",
+            "gt_size": 13,
+            "pure_hits": 0,
+            "hybrid_hits": 10,
+            "delta": 10,
+            "error": null
+          },
+          {
+            "token": "Nostr",
+            "namespace": "project-state",
+            "gt_size": 300,
+            "pure_hits": 8,
+            "hybrid_hits": 7,
+            "delta": -1,
+            "error": null
+          },
+          {
+            "token": "Taproot",
+            "namespace": "project-state",
+            "gt_size": 19,
+            "pure_hits": 3,
+            "hybrid_hits": 0,
+            "delta": -3,
+            "error": null
+          },
+          {
+            "token": "provenance",
+            "namespace": "project-state",
+            "gt_size": 161,
+            "pure_hits": 9,
+            "hybrid_hits": 5,
+            "delta": -4,
+            "error": null
+          },
+          {
+            "token": "trajectory_steps",
+            "namespace": "patterns",
+            "gt_size": 2,
+            "pure_hits": 1,
+            "hybrid_hits": 1,
+            "delta": 0,
+            "error": null
+          },
+          {
+            "token": "memory_entries",
+            "namespace": "project-state",
+            "gt_size": 7,
+            "pure_hits": 0,
+            "hybrid_hits": 2,
+            "delta": 2,
+            "error": null
+          },
+          {
+            "token": "Byzantine",
+            "namespace": "knowledge/ontology",
+            "gt_size": 12,
+            "pure_hits": 0,
+            "hybrid_hits": 9,
+            "delta": 9,
+            "error": null
+          },
+          {
+            "token": "websocket",
+            "namespace": "project-state",
+            "gt_size": 60,
+            "pure_hits": 6,
+            "hybrid_hits": 2,
+            "delta": -4,
+            "error": null
+          },
+          {
+            "token": "quantization",
+            "namespace": "projects/ruvector",
+            "gt_size": 74,
+            "pure_hits": 4,
+            "hybrid_hits": 9,
+            "delta": 5,
+            "error": null
+          }
+        ]
+      }
+    },
+    {
+      "run": 3,
+      "self_recall": {
+        "count": 183,
+        "of": 200,
+        "per_namespace": {
+          "agent-assignments": {
+            "hits": 1,
+            "total": 1
+          },
+          "commands": {
+            "hits": 0,
+            "total": 1
+          },
+          "coordination": {
+            "hits": 2,
+            "total": 3
+          },
+          "dream-cycle": {
+            "hits": 1,
+            "total": 1
+          },
+          "file-history": {
+            "hits": 2,
+            "total": 3
+          },
+          "hooks:notify": {
+            "hits": 1,
+            "total": 1
+          },
+          "hooks:post-edit": {
+            "hits": 2,
+            "total": 3
+          },
+          "hooks:post-task": {
+            "hits": 1,
+            "total": 1
+          },
+          "hooks:pre-edit": {
+            "hits": 2,
+            "total": 3
+          },
+          "hooks:pre-task": {
+            "hits": 1,
+            "total": 1
+          },
+          "knowledge/fashion": {
+            "hits": 0,
+            "total": 1
+          },
+          "knowledge/journals": {
+            "hits": 1,
+            "total": 1
+          },
+          "knowledge/ontology": {
+            "hits": 1,
+            "total": 1
+          },
+          "knowledge/pages": {
+            "hits": 65,
+            "total": 71
+          },
+          "memory-learning-aggregates": {
+            "hits": 1,
+            "total": 1
+          },
+          "ontology-corpus": {
+            "hits": 9,
+            "total": 9
+          },
+          "patterns": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/exchange": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/fairfield-nostr-other": {
+            "hits": 0,
+            "total": 1
+          },
+          "projects/funding_platform": {
+            "hits": 0,
+            "total": 1
+          },
+          "projects/nostr-BBS": {
+            "hits": 0,
+            "total": 1
+          },
+          "projects/OntologyDesign": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/report-Pete": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/ruvector": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/RuView": {
+            "hits": 1,
+            "total": 1
+          },
+          "project-state": {
+            "hits": 2,
+            "total": 2
+          },
+          "projects/unreal2gaussian": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/WasmVOWL": {
+            "hits": 1,
+            "total": 1
+          },
+          "ruvnet-kb": {
+            "hits": 79,
+            "total": 80
+          },
+          "session-metrics": {
+            "hits": 1,
+            "total": 1
+          },
+          "sessions": {
+            "hits": 0,
+            "total": 1
+          },
+          "session-states": {
+            "hits": 1,
+            "total": 1
+          },
+          "swarms": {
+            "hits": 1,
+            "total": 1
+          },
+          "task-index": {
+            "hits": 1,
+            "total": 1
+          }
+        }
+      },
+      "true_recall": {
+        "count": 108,
+        "of": 120,
+        "mean_intersection_recall": 0.8975000000000002,
+        "per_namespace": {
+          "agent-assignments": {
+            "hits": 1,
+            "total": 1
+          },
+          "code-harness-survey": {
+            "hits": 1,
+            "total": 1
+          },
+          "commands": {
+            "hits": 0,
+            "total": 1
+          },
+          "coordination": {
+            "hits": 0,
+            "total": 1
+          },
+          "default": {
+            "hits": 0,
+            "total": 1
+          },
+          "docs-alignment": {
+            "hits": 1,
+            "total": 1
+          },
+          "dream-cycle": {
+            "hits": 1,
+            "total": 1
+          },
+          "file-history": {
+            "hits": 1,
+            "total": 1
+          },
+          "hooks:notify": {
+            "hits": 1,
+            "total": 1
+          },
+          "hooks:post-edit": {
+            "hits": 1,
+            "total": 1
+          },
+          "hooks:post-task": {
+            "hits": 1,
+            "total": 1
+          },
+          "hooks:pre-edit": {
+            "hits": 1,
+            "total": 1
+          },
+          "hooks:pre-task": {
+            "hits": 1,
+            "total": 1
+          },
+          "knowledge/fashion": {
+            "hits": 0,
+            "total": 1
+          },
+          "knowledge/journals": {
+            "hits": 1,
+            "total": 1
+          },
+          "knowledge/ontology": {
+            "hits": 1,
+            "total": 1
+          },
+          "knowledge/pages": {
+            "hits": 20,
+            "total": 23
+          },
+          "memory-learning-aggregates": {
+            "hits": 1,
+            "total": 1
+          },
+          "ontology-corpus": {
+            "hits": 2,
+            "total": 2
+          },
+          "patterns": {
+            "hits": 1,
+            "total": 1
+          },
+          "personal-context": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/agentbox": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/ai-3d-fusion": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/bridges": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/dreamlab-ai-website-locked": {
+            "hits": 0,
+            "total": 1
+          },
+          "projects/exchange": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/fairfield-nostr-other": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/funding_platform": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/gitnexus": {
+            "hits": 0,
+            "total": 1
+          },
+          "projects/hackathon-tv5": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/JavaScriptSolidServer": {
+            "hits": 0,
+            "total": 1
+          },
+          "projects/nostr-BBS": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/OntologyDesign": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/PeteStrategyDoc": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/report-Pete": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/Research": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/ruvector": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/RuView": {
+            "hits": 0,
+            "total": 1
+          },
+          "project-state": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/unreal2gaussian": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/WasmVOWL": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/waterworks": {
+            "hits": 1,
+            "total": 1
+          },
+          "projects/website-giw": {
+            "hits": 1,
+            "total": 1
+          },
+          "ruvnet-kb": {
+            "hits": 48,
+            "total": 48
+          },
+          "session-metrics": {
+            "hits": 1,
+            "total": 1
+          },
+          "sessions": {
+            "hits": 0,
+            "total": 1
+          },
+          "session-states": {
+            "hits": 1,
+            "total": 1
+          },
+          "swarm-prose-sanitiser": {
+            "hits": 1,
+            "total": 1
+          },
+          "swarms": {
+            "hits": 1,
+            "total": 1
+          },
+          "task-index": {
+            "hits": 1,
+            "total": 1
+          }
+        }
+      },
+      "exact_token": {
+        "median_delta": 2.5,
+        "deltas": [
+          6,
+          10,
+          9,
+          10,
+          3,
+          0,
+          7,
+          2,
+          0,
+          4,
+          10,
+          6,
+          -1,
+          1,
+          -1,
+          -2,
+          4,
+          10,
+          -1,
+          -3,
+          -4,
+          0,
+          2,
+          9,
+          -4,
+          5
+        ],
+        "per_token": [
+          {
+            "token": "HNSW",
+            "namespace": "projects/ruvector",
+            "gt_size": 154,
+            "pure_hits": 4,
+            "hybrid_hits": 10,
+            "delta": 6,
+            "error": null
+          },
+          {
+            "token": "ef_construction",
+            "namespace": "projects/ruvector",
+            "gt_size": 18,
+            "pure_hits": 0,
+            "hybrid_hits": 10,
+            "delta": 10,
+            "error": null
+          },
+          {
+            "token": "ef_search",
+            "namespace": "projects/ruvector",
+            "gt_size": 15,
+            "pure_hits": 1,
+            "hybrid_hits": 10,
+            "delta": 9,
+            "error": null
+          },
+          {
+            "token": "pgvector",
+            "namespace": "projects/ruvector",
+            "gt_size": 13,
+            "pure_hits": 0,
+            "hybrid_hits": 10,
+            "delta": 10,
+            "error": null
+          },
+          {
+            "token": "tsvector",
+            "namespace": "projects/ruvector",
+            "gt_size": 3,
+            "pure_hits": 0,
+            "hybrid_hits": 3,
+            "delta": 3,
+            "error": null
+          },
+          {
+            "token": "CUDA_ARCH",
+            "namespace": "patterns",
+            "gt_size": 5,
+            "pure_hits": 2,
+            "hybrid_hits": 2,
+            "delta": 0,
+            "error": null
+          },
+          {
+            "token": "bge-small-en-v1.5",
+            "namespace": "project-state",
+            "gt_size": 14,
+            "pure_hits": 2,
+            "hybrid_hits": 9,
+            "delta": 7,
+            "error": null
+          },
+          {
+            "token": "Micro-LoRA",
+            "namespace": "projects/ruvector",
+            "gt_size": 2,
+            "pure_hits": 0,
+            "hybrid_hits": 2,
+            "delta": 2,
+            "error": null
+          },
+          {
+            "token": "Wilson",
+            "namespace": "memory-learning-aggregates",
+            "gt_size": 150,
+            "pure_hits": 10,
+            "hybrid_hits": 10,
+            "delta": 0,
+            "error": null
+          },
+          {
+            "token": "GraphSAGE",
+            "namespace": "projects/ruvector",
+            "gt_size": 6,
+            "pure_hits": 1,
+            "hybrid_hits": 5,
+            "delta": 4,
+            "error": null
+          },
+          {
+            "token": "neuromorphic",
+            "namespace": "projects/ruvector",
+            "gt_size": 12,
+            "pure_hits": 0,
+            "hybrid_hits": 10,
+            "delta": 10,
+            "error": null
+          },
+          {
+            "token": "QuDAG",
+            "namespace": "projects/ruvector",
+            "gt_size": 7,
+            "pure_hits": 0,
+            "hybrid_hits": 6,
+            "delta": 6,
+            "error": null
+          },
+          {
+            "token": "SHACL",
+            "namespace": "project-state",
+            "gt_size": 15,
+            "pure_hits": 3,
+            "hybrid_hits": 2,
+            "delta": -1,
+            "error": null
+          },
+          {
+            "token": "Oxigraph",
+            "namespace": "project-state",
+            "gt_size": 44,
+            "pure_hits": 2,
+            "hybrid_hits": 3,
+            "delta": 1,
+            "error": null
+          },
+          {
+            "token": "Whelk",
+            "namespace": "project-state",
+            "gt_size": 74,
+            "pure_hits": 8,
+            "hybrid_hits": 7,
+            "delta": -1,
+            "error": null
+          },
+          {
+            "token": "SPARQL",
+            "namespace": "project-state",
+            "gt_size": 42,
+            "pure_hits": 4,
+            "hybrid_hits": 2,
+            "delta": -2,
+            "error": null
+          },
+          {
+            "token": "GraphRAG",
+            "namespace": "knowledge/journals",
+            "gt_size": 5,
+            "pure_hits": 0,
+            "hybrid_hits": 4,
+            "delta": 4,
+            "error": null
+          },
+          {
+            "token": "ReasoningBank",
+            "namespace": "projects/ruvector",
+            "gt_size": 13,
+            "pure_hits": 0,
+            "hybrid_hits": 10,
+            "delta": 10,
+            "error": null
+          },
+          {
+            "token": "Nostr",
+            "namespace": "project-state",
+            "gt_size": 300,
+            "pure_hits": 8,
+            "hybrid_hits": 7,
+            "delta": -1,
+            "error": null
+          },
+          {
+            "token": "Taproot",
+            "namespace": "project-state",
+            "gt_size": 19,
+            "pure_hits": 3,
+            "hybrid_hits": 0,
+            "delta": -3,
+            "error": null
+          },
+          {
+            "token": "provenance",
+            "namespace": "project-state",
+            "gt_size": 161,
+            "pure_hits": 9,
+            "hybrid_hits": 5,
+            "delta": -4,
+            "error": null
+          },
+          {
+            "token": "trajectory_steps",
+            "namespace": "patterns",
+            "gt_size": 2,
+            "pure_hits": 1,
+            "hybrid_hits": 1,
+            "delta": 0,
+            "error": null
+          },
+          {
+            "token": "memory_entries",
+            "namespace": "project-state",
+            "gt_size": 7,
+            "pure_hits": 0,
+            "hybrid_hits": 2,
+            "delta": 2,
+            "error": null
+          },
+          {
+            "token": "Byzantine",
+            "namespace": "knowledge/ontology",
+            "gt_size": 12,
+            "pure_hits": 0,
+            "hybrid_hits": 9,
+            "delta": 9,
+            "error": null
+          },
+          {
+            "token": "websocket",
+            "namespace": "project-state",
+            "gt_size": 60,
+            "pure_hits": 6,
+            "hybrid_hits": 2,
+            "delta": -4,
+            "error": null
+          },
+          {
+            "token": "quantization",
+            "namespace": "projects/ruvector",
+            "gt_size": 74,
+            "pure_hits": 4,
+            "hybrid_hits": 9,
+            "delta": 5,
+            "error": null
+          }
+        ]
+      }
+    }
+  ]
+}

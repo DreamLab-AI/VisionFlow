@@ -1,0 +1,66 @@
+# vrcompositor.txt: every start and its outcome since 10 Sep (HP clock, BST)
+Thu Sep 10 2026 16:50:43.505054 [Info] -  - Vulkan output 0: 2560x1440 resolution, 600x340 dimensions - DELL U2715H (DP-2)
+Thu Sep 10 2026 16:50:43.505074 [Info] -  - Vulkan output 1: 2880x1600 resolution, 120x70 dimensions - HTC Corporation VIVE Pro (DP-6)
+Thu Sep 10 2026 16:50:43.582614 [Info] - Direct mode surface: 0x55f7bfcb5a60
+Thu Sep 10 2026 16:50:44.066544 [Info] - Headset is using direct mode
+Thu Sep 10 2026 16:50:44.125852 [Error] - vkGetPhysicalDeviceFormatProperties2 returned zero modifiers for DRM format 0x30313050
+Thu Sep 10 2026 16:50:44.178524 [Error] - vkGetPhysicalDeviceFormatProperties2 returned zero modifiers for DRM format 0x30313050
+Thu Sep 10 2026 16:50:44.500224 [Info] - Tracked Camera: Failed to create static GPU resources.
+Thu Sep 10 2026 16:55:54.770807 [Info] -  - Vulkan output 0: 2560x1440 resolution, 600x340 dimensions - DELL U2715H (DP-2)
+Thu Sep 10 2026 16:55:54.770833 [Info] -  - Vulkan output 1: 2880x1600 resolution, 120x70 dimensions - HTC Corporation VIVE Pro (DP-6)
+Thu Sep 10 2026 16:55:54.854097 [Info] - Direct mode surface: 0x5616f9269a40
+Thu Sep 10 2026 16:55:55.127971 [Info] - Headset is using direct mode
+Thu Sep 10 2026 16:55:55.187094 [Error] - vkGetPhysicalDeviceFormatProperties2 returned zero modifiers for DRM format 0x30313050
+Thu Sep 10 2026 16:55:55.237533 [Error] - vkGetPhysicalDeviceFormatProperties2 returned zero modifiers for DRM format 0x30313050
+Thu Sep 10 2026 16:55:55.615265 [Info] - Tracked Camera: Failed to create static GPU resources.
+Sun Oct 04 2026 17:47:51.277286 [Info] -  - Vulkan output 0: 2560x1440 resolution, 600x340 dimensions - DELL U2715H (DP-2)
+Sun Oct 04 2026 17:47:51.277347 [Info] -  - Vulkan output 1: 2880x1600 resolution, 120x70 dimensions - HTC Corporation VIVE Pro (DP-6)
+Sun Oct 04 2026 17:47:51.363472 [Info] - Direct mode surface: 0x5628dd007690
+Sun Oct 04 2026 17:47:51.640239 [Info] - Headset is using direct mode
+Sun Oct 04 2026 17:47:51.694738 [Error] - vkGetPhysicalDeviceFormatProperties2 returned zero modifiers for DRM format 0x30313050
+Sun Oct 04 2026 17:47:51.727548 [Error] - vkGetPhysicalDeviceFormatProperties2 returned zero modifiers for DRM format 0x30313050
+Sun Oct 04 2026 17:50:58.286693 [Info] -  - Vulkan output 0: 2560x1440 resolution, 600x340 dimensions - DELL U2715H (DP-2)
+Sun Oct 04 2026 17:50:58.286719 [Info] -  - Vulkan output 1: 2880x1600 resolution, 120x70 dimensions - HTC Corporation VIVE Pro (DP-6)
+Sun Oct 04 2026 17:50:58.373361 [Info] - Direct mode surface: 0x55957a088690
+Sun Oct 04 2026 17:50:58.619888 [Info] - Headset is using direct mode
+Sun Oct 04 2026 17:50:58.652934 [Error] - vkGetPhysicalDeviceFormatProperties2 returned zero modifiers for DRM format 0x30313050
+Sun Oct 04 2026 17:50:58.686235 [Error] - vkGetPhysicalDeviceFormatProperties2 returned zero modifiers for DRM format 0x30313050
+Wed Oct 07 2026 17:58:11.599036 [Info] -  - Vulkan output 0: 2560x1440 resolution, 600x340 dimensions - DELL U2715H (DP-2)
+Wed Oct 07 2026 17:58:11.599066 [Info] -  - Vulkan output 1: 2880x1600 resolution, 120x70 dimensions - HTC Corporation VIVE Pro (DP-6)
+Wed Oct 07 2026 17:58:11.702374 [Info] - Direct mode surface: 0x5653ee6e46b0
+Wed Oct 07 2026 17:58:12.009517 [Info] - Headset is using direct mode
+Wed Oct 07 2026 17:58:12.063515 [Error] - vkGetPhysicalDeviceFormatProperties2 returned zero modifiers for DRM format 0x30313050
+Wed Oct 07 2026 17:58:12.106951 [Error] - vkGetPhysicalDeviceFormatProperties2 returned zero modifiers for DRM format 0x30313050
+Wed Oct 07 2026 17:58:12.379224 [Info] - Tracked Camera: Failed to create static GPU resources.
+Wed Oct 07 2026 17:58:12.489463 [Error] - WaitForPendingPresent: failed to wait for present
+Wed Oct 07 2026 17:58:12.507019 [Error] - WaitForPendingPresent: failed to wait for present
+Wed Oct 07 2026 17:58:12.522356 [Error] - WaitForPendingPresent: failed to wait for present
+Wed Oct 07 2026 17:58:12.537704 [Error] - WaitForPendingPresent: failed to wait for present
+Wed Oct 07 2026 17:58:12.585224 [Error] - WaitForPendingPresent: failed to wait for present
+Wed Oct 07 2026 17:58:18.508325 [Info] - Failed Watchdog timeout in thread Render in WaitForPresent after 5.814929 seconds. Aborting.
+Wed Oct 07 2026 18:01:40.066581 [Info] -  - Vulkan output 0: 2560x1440 resolution, 600x340 dimensions - DELL U2715H (DP-2)
+Wed Oct 07 2026 18:01:40.066608 [Info] -  - Vulkan output 1: 2880x1600 resolution, 120x70 dimensions - HTC Corporation VIVE Pro (DP-6)
+Wed Oct 07 2026 18:01:40.160281 [Info] - Direct mode surface: 0x5615ebb6a070
+Wed Oct 07 2026 18:01:40.405322 [Info] - Headset is using direct mode
+Wed Oct 07 2026 18:01:40.435942 [Error] - vkGetPhysicalDeviceFormatProperties2 returned zero modifiers for DRM format 0x30313050
+Wed Oct 07 2026 18:01:40.468645 [Error] - vkGetPhysicalDeviceFormatProperties2 returned zero modifiers for DRM format 0x30313050
+Wed Oct 07 2026 18:01:40.704380 [Info] - Tracked Camera: Failed to create static GPU resources.
+Wed Oct 07 2026 18:01:40.742221 [Error] - WaitForPendingPresent: failed to wait for present
+Wed Oct 07 2026 18:01:40.757538 [Error] - WaitForPendingPresent: failed to wait for present
+Wed Oct 07 2026 18:01:40.773056 [Error] - WaitForPendingPresent: failed to wait for present
+Wed Oct 07 2026 18:01:40.797154 [Error] - WaitForPendingPresent: failed to wait for present
+Wed Oct 07 2026 18:01:40.812435 [Error] - WaitForPendingPresent: failed to wait for present
+Wed Oct 07 2026 18:01:46.771020 [Info] - Failed Watchdog timeout in thread Render in WaitForPresent after 5.912097 seconds. Aborting.
+Wed Oct 07 2026 18:02:04.147743 [Info] -  - Vulkan output 0: 2560x1440 resolution, 600x340 dimensions - DELL U2715H (DP-2)
+Wed Oct 07 2026 18:02:04.147772 [Info] -  - Vulkan output 1: 2880x1600 resolution, 120x70 dimensions - HTC Corporation VIVE Pro (DP-6)
+Wed Oct 07 2026 18:02:04.238056 [Info] - Direct mode surface: 0x55ce8b727c10
+Wed Oct 07 2026 18:02:04.492779 [Info] - Headset is using direct mode
+Wed Oct 07 2026 18:02:04.524097 [Error] - vkGetPhysicalDeviceFormatProperties2 returned zero modifiers for DRM format 0x30313050
+Wed Oct 07 2026 18:02:04.556247 [Error] - vkGetPhysicalDeviceFormatProperties2 returned zero modifiers for DRM format 0x30313050
+Wed Oct 07 2026 18:02:04.817239 [Info] - Tracked Camera: Failed to create static GPU resources.
+Wed Oct 07 2026 18:02:04.877518 [Error] - WaitForPendingPresent: failed to wait for present
+Wed Oct 07 2026 18:02:04.904524 [Error] - WaitForPendingPresent: failed to wait for present
+Wed Oct 07 2026 18:02:04.922668 [Error] - WaitForPendingPresent: failed to wait for present
+Wed Oct 07 2026 18:02:04.950676 [Error] - WaitForPendingPresent: failed to wait for present
+Wed Oct 07 2026 18:02:04.967604 [Error] - WaitForPendingPresent: failed to wait for present
+Wed Oct 07 2026 18:02:10.906444 [Info] - Failed Watchdog timeout in thread Render in WaitForPresent after 5.871202 seconds. Aborting.

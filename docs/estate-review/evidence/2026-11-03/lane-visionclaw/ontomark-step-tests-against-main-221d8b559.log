@@ -1,0 +1,1335 @@
+
+running 19 tests
+test common::self_tests::helper_defines_finds_definitions_not_uses ... ok
+test common::self_tests::helper_fn_bodies_return_bodies_with_literals ... ok
+test common::self_tests::helper_lexer_drops_comments_and_keeps_code ... ok
+test common::self_tests::helper_enum_variants_skip_attributes_and_payloads ... ok
+test common::self_tests::helper_lexer_handles_raw_strings_chars_and_lifetimes ... ok
+test common::self_tests::helper_manifest_resolves_renames_and_target_tables ... ok
+test common::self_tests::helper_migration_files_are_never_scanned ... ok
+test common::self_tests::helper_manifest_metadata_and_comments_are_not_dependencies ... ok
+test common::self_tests::helper_ontomark_use_requires_a_real_path ... ok
+test common::self_tests::helper_paths_ignore_spacing_and_find_brace_form ... ok
+test common::self_tests::helper_path_git_and_optional_dependencies_are_not_registry_releases ... ok
+test common::self_tests::helper_script_comments_are_not_code ... ok
+test common::self_tests::helper_slug_rule_is_recognised_by_logic_not_name ... ok
+test common::workflow::self_tests::helper_shell_ignores_comments_and_quoted_text ... ok
+test common::workflow::self_tests::helper_shell_joins_continuations_and_splits_pipelines ... ok
+test common::workflow::self_tests::helper_shell_skips_heredoc_bodies_and_subshells ... ok
+test common::workflow::self_tests::helper_tag_and_digest_shapes ... ok
+test step6_rdf_consumers_on_ontomark_compile ... FAILED
+test step6_rdf_legacy_is_gone ... FAILED
+
+failures:
+
+---- step6_rdf_consumers_on_ontomark_compile stdout ----
+
+thread 'step6_rdf_consumers_on_ontomark_compile' (1103045) panicked at crates/visionclaw-domain/tests/common/mod.rs:56:5:
+ontomark step 6 (rdf), consumers not landed (3 failing):
+  step 6, VC-19/20/22/28 RDF compile: `crates/vault/Cargo.toml` does not depend on ["ontomark-compile"] (`ontomark-compile`: optional dependency)
+  step 6, VC-50/52 open-world reader and SHACL: `crates/visionclaw-ontology/Cargo.toml` does not depend on ["ontomark-compile"] (`ontomark-compile` is not under [dependencies])
+  VC-50: `crates/visionclaw-ontology/src/open_world.rs` has no real `use`/path of an ontomark crate in code
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: ontomark_step06_rdf::common::finish
+             at ./tests/common/mod.rs:56:5
+   3: ontomark_step06_rdf::step6_rdf_consumers_on_ontomark_compile
+             at ./tests/ontomark_step06_rdf.rs:44:5
+   4: ontomark_step06_rdf::step6_rdf_consumers_on_ontomark_compile::{closure#0}
+             at ./tests/ontomark_step06_rdf.rs:38:45
+   5: <ontomark_step06_rdf::step6_rdf_consumers_on_ontomark_compile::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   6: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+---- step6_rdf_legacy_is_gone stdout ----
+
+thread 'step6_rdf_legacy_is_gone' (1103046) panicked at crates/visionclaw-domain/tests/common/mod.rs:56:5:
+ontomark step 6 (rdf), legacy not landed (129 failing):
+  VC-19: `crates/vault/src/build/turtle.rs` must be deleted
+  VC-19: `crates/vault/src/build/mod.rs` still declares `mod turtle`
+  VC-19: `build::turtle` still referenced in crates/vault/src/certificate.rs, crates/vault/src/gate.rs, crates/vault/src/main.rs, crates/vault/src/propose.rs, crates/vault/src/whelk.rs, crates/vault/tests/certificate_oo_cert.rs, crates/vault/tests/defined_classes.rs, crates/vault/tests/el_profile.rs, crates/vault/tests/probe_consistency.rs, crates/vault/tests/whelk_scaling.rs
+  VC-19: `super::turtle` still referenced in crates/vault/src/build/okf.rs
+  VC-20: `crates/vault/src/build/webvowl.rs` must be deleted
+  VC-20: `crates/vault/src/build/mod.rs` still declares `mod webvowl`
+  VC-20: `super::webvowl` still referenced in crates/vault/src/build/graph_tiers.rs
+  VC-22: `crates/vault/src/build/indexes.rs` must be deleted
+  VC-22: `crates/vault/src/build/mod.rs` still declares `mod indexes`
+  VC-22: `build::indexes` still referenced in crates/vault/src/build/okf.rs, crates/vault/src/build/page_api.rs
+  VC-22: `crates/vault/src/build/page_api.rs` must be deleted
+  VC-22: `crates/vault/src/build/mod.rs` still declares `mod page_api`
+  VC-22: `crates/vault/src/build/okf.rs` must be deleted
+  VC-22: `crates/vault/src/build/mod.rs` still declares `mod okf`
+  VC-28: `crates/vault/src/projection.rs` must be deleted
+  VC-28: `crates/vault/src/lib.rs` still declares `mod projection`
+  VC-28: `vault::projection` still referenced in crates/vault/src/main.rs
+  VC-28: `crate::projection` still referenced in crates/vault/src/build/mod.rs
+  VC-19: `DCTERMS` is still defined in crates/vault/src/build/turtle.rs
+  VC-19: `VERSION_INFO` is still defined in crates/vault/src/build/turtle.rs
+  VC-19: `MATURITY_LEVELS` is still defined in crates/vault/src/build/turtle.rs
+  VC-19: `ACRONYMS` is still defined in crates/vault/src/build/turtle.rs
+  VC-19: `build_graph` is still defined in crates/vault/src/build/turtle.rs
+  VC-19: `build_graph_attributed` is still defined in crates/vault/src/build/turtle.rs
+  VC-19: `definition_members` is still defined in crates/vault/src/build/turtle.rs
+  VC-19: `class_expression` is still defined in crates/vault/src/build/turtle.rs
+  VC-19: `ontology_digest` is still defined in crates/vault/src/build/turtle.rs
+  VC-19: `version_iri` is still defined in crates/vault/src/build/turtle.rs
+  VC-20: `DOMAIN_COLOURS` is still defined in crates/vault/src/build/webvowl.rs
+  VC-20: `DEFAULT_COLOUR` is still defined in crates/vault/src/build/webvowl.rs
+  VC-20: `INDIVIDUAL_COLOUR` is still defined in crates/vault/src/build/webvowl.rs
+  VC-20: `BASE_CLASS_IRI` is still defined in crates/vault/src/build/webvowl.rs
+  VC-20: `BASE_INDIVIDUAL_IRI` is still defined in crates/vault/src/build/webvowl.rs
+  VC-20: `REL_MAP` is still defined in crates/vault/src/build/webvowl.rs
+  VC-20: `remap_iri` is still defined in crates/vault/src/build/webvowl.rs
+  VC-22: `DEFINITION_CAP` is still defined in crates/vault/src/build/indexes.rs
+  VC-22: `BACKLINK_CAP` is still defined in crates/vault/src/build/indexes.rs
+  VC-22: `LANDSCAPE_CAP` is still defined in crates/vault/src/build/indexes.rs
+  VC-22: `SCAFFOLD_REL_ORDER` is still defined in crates/vault/src/build/indexes.rs
+  VC-22: `backlink_index` is still defined in crates/vault/src/build/indexes.rs
+  VC-22: `truncate_definition` is still defined in crates/vault/src/build/indexes.rs
+  VC-22: `truncate_chars` is still defined in crates/vault/src/build/indexes.rs
+  VC-22: `scaffold_index` is still defined in crates/vault/src/build/indexes.rs
+  VC-22: `landscape_regexes` is still defined in crates/vault/src/build/indexes.rs
+  VC-22: `extract_current_landscape` is still defined in crates/vault/src/build/indexes.rs
+  VC-22: `PAGE_API_REL_ORDER` is still defined in crates/vault/src/build/page_api.rs
+  VC-22: `PageDocument` is still defined in crates/vault/src/build/page_api.rs
+  VC-22: `build_attributed` is still defined in crates/vault/src/build/page_api.rs
+  VC-22: `BundleFile` is still defined in crates/vault/src/build/okf.rs
+  VC-22: `concept_file` is still defined in crates/vault/src/build/okf.rs
+  VC-28: `PublicationBlocked` is still defined in crates/vault/src/projection.rs
+  VC-28: `Redactor` is still defined in crates/vault/src/projection.rs
+  VC-28: `URN_TO_HTTP` is still defined in crates/vault/src/projection.rs
+  VC-28: `inspect_inputs` is still defined in crates/vault/src/projection.rs
+  VC-28: `excluded_identities` is still defined in crates/vault/src/projection.rs
+  VC-50: `crates/visionclaw-ontology/src/open_world.rs` must not define `turtle_statements`
+  VC-50: `crates/visionclaw-ontology/src/open_world.rs` must not define `version_iri_from_turtle`
+  VC-52: `crates/visionclaw-ontology/src/services/jsonld_validator` must be deleted
+  VC-52: `crates/visionclaw-ontology/src/services/jsonld_validator/mod.rs` must be deleted
+  VC-52: `crates/visionclaw-ontology/src/services/mod.rs` still declares `mod jsonld_validator`
+  VC-52: `services::jsonld_validator` still referenced in crates/visionclaw-ontology/src/services/jsonld_ingest/shacl_gate.rs, src/bin/validate_md.rs, src/services/jsonld_validator/mod.rs, tests/jsonld_validator_test.rs
+  VC-52: `crates/visionclaw-ontology/src/services/jsonld_validator/shacl_lite.rs` must be deleted
+  VC-52: `crates/visionclaw-ontology/src/services/jsonld_validator/mod.rs` still declares `mod shacl_lite`
+  VC-52: `super::shacl_lite` still referenced in crates/visionclaw-ontology/src/services/jsonld_validator/class_bit.rs, crates/visionclaw-ontology/src/services/jsonld_validator/shacl.rs
+  VC-52: `crates/visionclaw-ontology/src/services/jsonld_validator/owl_el_profile.rs` must be deleted
+  VC-52: `crates/visionclaw-ontology/src/services/jsonld_validator/mod.rs` still declares `mod owl_el_profile`
+  VC-52: `crates/visionclaw-ontology/src/services/jsonld_validator/class_bit.rs` must be deleted
+  VC-52: `crates/visionclaw-ontology/src/services/jsonld_validator/mod.rs` still declares `mod class_bit`
+  VC-52: `crates/visionclaw-ontology/src/services/jsonld_validator/frame.rs` must be deleted
+  VC-52: `crates/visionclaw-ontology/src/services/jsonld_validator/mod.rs` still declares `mod frame`
+  VC-52: `crates/visionclaw-ontology/src/services/jsonld_validator/shacl.rs` must be deleted
+  VC-52: `crates/visionclaw-ontology/src/services/jsonld_validator/mod.rs` still declares `mod shacl`
+  VC-52: `jsonld_validator::shacl` still referenced in crates/visionclaw-ontology/src/services/jsonld_ingest/shacl_gate.rs
+  VC-52: `crates/visionclaw-ontology/src/services/jsonld_validator/iri.rs` must be deleted
+  VC-52: `crates/visionclaw-ontology/src/services/jsonld_validator/mod.rs` still declares `mod iri`
+  VC-52: `super::iri` still referenced in crates/visionclaw-ontology/src/services/jsonld_validator/class_bit.rs, crates/visionclaw-ontology/src/services/jsonld_validator/frame.rs, crates/visionclaw-ontology/src/services/jsonld_validator/shacl_lite.rs
+  VC-52: `crates/visionclaw-ontology/src/services/jsonld_validator/errors.rs` must be deleted
+  VC-52: `crates/visionclaw-ontology/src/services/jsonld_validator/mod.rs` still declares `mod errors`
+  VC-52: `jsonld_validator::errors` still referenced in tests/jsonld_validator_test.rs
+  VC-52: `super::errors` still referenced in crates/visionclaw-ontology/src/services/jsonld_ingest/expander.rs, crates/visionclaw-ontology/src/services/jsonld_validator/class_bit.rs, crates/visionclaw-ontology/src/services/jsonld_validator/frame.rs, crates/visionclaw-ontology/src/services/jsonld_validator/owl_el_profile.rs, crates/visionclaw-ontology/src/services/jsonld_validator/shacl_lite.rs
+  VC-52 (section 9.1): `crates/visionclaw-ontology/src/services/jsonld_validator/context-v1.jsonld` must be deleted
+  VC-52: `validate_entry_shape` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/shacl_lite.rs
+  VC-52: `collect_types` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/shacl_lite.rs
+  VC-52: `has_any_key` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/shacl_lite.rs
+  VC-52: `is_ontology_class_type` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/shacl_lite.rs
+  VC-52: `is_bridge_type` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/shacl_lite.rs
+  VC-52: `extract_iri_reference` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/shacl_lite.rs
+  VC-52: `FORBIDDEN_CONSTRUCTS` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/owl_el_profile.rs
+  VC-52: `scan_for_forbidden` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/owl_el_profile.rs
+  VC-52: `scan_type_for_forbidden` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/owl_el_profile.rs
+  VC-52: `validate_entry_profile` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/owl_el_profile.rs
+  VC-52: `class_bit_for_type` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/class_bit.rs
+  VC-52: `class_bit_for_iri_scheme` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/class_bit.rs
+  VC-52: `validate_class_bit_consistency` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/class_bit.rs
+  VC-52: `describe_scheme` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/class_bit.rs
+  VC-52: `ACCEPTED_CONTEXT_URLS` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/frame.rs
+  VC-52: `FrameIssues` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/frame.rs
+  VC-52: `VERSION_1_1_MARKERS` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/frame.rs
+  VC-52: `uses_jsonld_1_1_feature` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/frame.rs
+  VC-52: `declares_version_1_1` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/frame.rs
+  VC-52: `validate_block_frame` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/frame.rs
+  VC-52: `collect_graph_entries` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/frame.rs
+  VC-52: `validate_single_entry` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/frame.rs
+  VC-52: `entry_has_context` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/frame.rs
+  VC-52: `SHAPE_FILES` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/shacl.rs
+  VC-52: `ShaclSeverity` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/shacl.rs
+  VC-52: `ShapeFinding` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/shacl.rs
+  VC-52: `ShaclLoadError` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/shacl.rs
+  VC-52: `ShapeTarget` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/shacl.rs
+  VC-52: `parse_shapes` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/shacl.rs
+  VC-52: `build_node_shape` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/shacl.rs
+  VC-52: `build_property_shape` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/shacl.rs
+  VC-52: `read_rdf_list` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/shacl.rs
+  VC-52: `ValidationIssue` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/mod.rs
+  VC-52: `OwlProfile` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/mod.rs
+  VC-52: `CanonicalContext` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/mod.rs
+  VC-52: `ValidatorInitError` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/mod.rs
+  VC-52: `extract_jsonld_blocks` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/mod.rs
+  VC-52: `contains_unfenced_jsonld` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/mod.rs
+  VC-52: `IriScheme` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/iri.rs
+  VC-52: `is_linked_page_iri` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/iri.rs
+  VC-52: `ErrorCategory` is still defined in crates/visionclaw-ontology/src/services/jsonld_validator/errors.rs
+  VC-53: `crates/visionclaw-ontology/src/inference/owl_parser.rs` must be deleted
+  VC-53: `crates/visionclaw-ontology/src/inference/mod.rs` still declares `mod owl_parser`
+  VC-53: `inference::owl_parser` still referenced in tests/inference/owl_parsing_tests.rs
+  VC-53: `OWLFormat` is still defined in crates/visionclaw-ontology/src/inference/owl_parser.rs
+  VC-53: `ParseResult` is still defined in crates/visionclaw-ontology/src/inference/owl_parser.rs
+  VC-53: `ParseStatistics` is still defined in crates/visionclaw-ontology/src/inference/owl_parser.rs
+  VC-53: `OWLParser` is still defined in crates/visionclaw-ontology/src/inference/owl_parser.rs
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: ontomark_step06_rdf::common::finish
+             at ./tests/common/mod.rs:56:5
+   3: ontomark_step06_rdf::step6_rdf_legacy_is_gone
+             at ./tests/ontomark_step06_rdf.rs:82:5
+   4: ontomark_step06_rdf::step6_rdf_legacy_is_gone::{closure#0}
+             at ./tests/ontomark_step06_rdf.rs:48:30
+   5: <ontomark_step06_rdf::step6_rdf_legacy_is_gone::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   6: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+
+failures:
+    step6_rdf_consumers_on_ontomark_compile
+    step6_rdf_legacy_is_gone
+
+test result: FAILED. 17 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.85s
+
+
+running 19 tests
+test common::self_tests::helper_defines_finds_definitions_not_uses ... ok
+test common::self_tests::helper_lexer_drops_comments_and_keeps_code ... ok
+test common::self_tests::helper_enum_variants_skip_attributes_and_payloads ... ok
+test common::self_tests::helper_fn_bodies_return_bodies_with_literals ... ok
+test common::self_tests::helper_lexer_handles_raw_strings_chars_and_lifetimes ... ok
+test common::self_tests::helper_manifest_metadata_and_comments_are_not_dependencies ... ok
+test common::self_tests::helper_migration_files_are_never_scanned ... ok
+test common::self_tests::helper_ontomark_use_requires_a_real_path ... ok
+test common::self_tests::helper_paths_ignore_spacing_and_find_brace_form ... ok
+test common::self_tests::helper_path_git_and_optional_dependencies_are_not_registry_releases ... ok
+test common::self_tests::helper_script_comments_are_not_code ... ok
+test common::self_tests::helper_manifest_resolves_renames_and_target_tables ... ok
+test common::self_tests::helper_slug_rule_is_recognised_by_logic_not_name ... ok
+test common::workflow::self_tests::helper_shell_ignores_comments_and_quoted_text ... ok
+test common::workflow::self_tests::helper_shell_joins_continuations_and_splits_pipelines ... ok
+test common::workflow::self_tests::helper_shell_skips_heredoc_bodies_and_subshells ... ok
+test common::workflow::self_tests::helper_tag_and_digest_shapes ... ok
+test step7_validate_consumers_on_ontomark_compile ... FAILED
+test step7_validate_legacy_is_gone ... FAILED
+
+failures:
+
+---- step7_validate_consumers_on_ontomark_compile stdout ----
+
+thread 'step7_validate_consumers_on_ontomark_compile' (1103124) panicked at crates/visionclaw-domain/tests/common/mod.rs:56:5:
+ontomark step 7 (validate), consumers not landed (2 failing):
+  step 7, VC-25/26/27 validation, conflicts, gate: `crates/vault/Cargo.toml` does not depend on ["ontomark-compile"] (`ontomark-compile`: optional dependency)
+  step 7, VC-51 validation (never infers, ADR-2126/2128): `crates/visionclaw-ontology/Cargo.toml` does not depend on ["ontomark-compile"] (`ontomark-compile` is not under [dependencies])
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: ontomark_step07_validate::common::finish
+             at ./tests/common/mod.rs:56:5
+   3: ontomark_step07_validate::step7_validate_consumers_on_ontomark_compile
+             at ./tests/ontomark_step07_validate.rs:40:5
+   4: ontomark_step07_validate::step7_validate_consumers_on_ontomark_compile::{closure#0}
+             at ./tests/ontomark_step07_validate.rs:36:50
+   5: <ontomark_step07_validate::step7_validate_consumers_on_ontomark_compile::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   6: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+---- step7_validate_legacy_is_gone stdout ----
+
+thread 'step7_validate_legacy_is_gone' (1103125) panicked at crates/visionclaw-domain/tests/common/mod.rs:56:5:
+ontomark step 7 (validate), legacy not landed (59 failing):
+  VC-09: `crates/vault-core/src/okf.rs` must be deleted
+  VC-09: `crates/vault-core/src/lib.rs` still declares `mod okf`
+  VC-09: `vault_core::okf` still referenced in crates/vault/src/build/attribution.rs, crates/vault/src/model.rs, crates/vault/src/validate.rs
+  VC-09: `crate::okf` still referenced in crates/vault-core/src/page.rs, crates/vault-core/src/promotion.rs
+  VC-10: `crates/vault-core/src/promotion.rs` must be deleted
+  VC-10: `crates/vault-core/src/lib.rs` still declares `mod promotion`
+  VC-10: `vault_core::promotion` still referenced in crates/vault/src/conflicts.rs, crates/vault/src/nostr.rs, crates/vault/src/propose.rs, crates/vault/src/validate.rs
+  VC-10: `crate::promotion` still referenced in crates/vault-core/src/consistency.rs, crates/vault-core/src/proposal.rs
+  VC-12: `crates/vault-core/src/secrets.rs` must be deleted
+  VC-12: `crates/vault-core/src/lib.rs` still declares `mod secrets`
+  VC-12: `vault_core::secrets` still referenced in crates/vault/src/build/publish.rs, crates/vault/src/validate.rs, crates/vault/tests/publish_gate.rs
+  VC-25: `crates/vault/src/validate.rs` must be deleted
+  VC-25: `crates/vault/src/lib.rs` still declares `mod validate`
+  VC-25: `vault::validate` still referenced in crates/vault/src/main.rs, crates/vault/tests/defined_classes.rs, crates/vault/tests/golden_parity.rs
+  VC-25: `crate::validate` still referenced in crates/vault/src/build/mod.rs, crates/vault/src/gate.rs, crates/vault/src/propose.rs
+  VC-26: `crates/vault/src/conflicts.rs` must be deleted
+  VC-26: `crates/vault/src/lib.rs` still declares `mod conflicts`
+  VC-26: `vault::conflicts` still referenced in crates/vault/src/main.rs
+  VC-26: `crate::conflicts` still referenced in crates/vault/src/gate.rs, crates/vault/src/propose.rs
+  VC-27: `crates/vault/src/gate.rs` must be deleted
+  VC-27: `crates/vault/src/lib.rs` still declares `mod gate`
+  VC-27: `vault::gate` still referenced in crates/vault/src/main.rs
+  VC-09: `OkfBlock` is still defined in crates/vault-core/src/okf.rs
+  VC-10: `PromotionState` is still defined in crates/vault-core/src/promotion.rs
+  VC-10: `PromotionError` is still defined in crates/vault-core/src/promotion.rs
+  VC-12: `CredentialKind` is still defined in crates/vault-core/src/secrets.rs
+  VC-12: `has_secret` is still defined in crates/vault-core/src/secrets.rs
+  VC-25: `FALLBACK_DOMAINS` is still defined in crates/vault/src/validate.rs
+  VC-25: `ResiduePatterns` is still defined in crates/vault/src/validate.rs
+  VC-25: `page_level_checks` is still defined in crates/vault/src/validate.rs
+  VC-25: `check_definition` is still defined in crates/vault/src/validate.rs
+  VC-25: `check_disjointness` is still defined in crates/vault/src/validate.rs
+  VC-25: `validate_okf` is still defined in crates/vault/src/validate.rs
+  VC-26: `normalise_label` is still defined in crates/vault/src/conflicts.rs
+  VC-26: `duplicate_concepts` is still defined in crates/vault/src/conflicts.rs
+  VC-26: `subclass_cycles` is still defined in crates/vault/src/conflicts.rs
+  VC-26: `relation_contradictions` is still defined in crates/vault/src/conflicts.rs
+  VC-26: `type_conflicts` is still defined in crates/vault/src/conflicts.rs
+  VC-27: `CAVEAT` is still defined in crates/vault/src/gate.rs
+  VC-51: `crates/visionclaw-ontology/src/services/owl_validator.rs` must be deleted
+  VC-51: `crates/visionclaw-ontology/src/services/mod.rs` still declares `mod owl_validator`
+  VC-51: `services::owl_validator` still referenced in crates/visionclaw-ontology/src/ontology/services/owl_validator.rs, src/actors/messages/ontology_messages.rs, src/actors/ontology_actor.rs, src/handlers/api_handler/ontology/mod.rs, src/handlers/api_handler/ontology_physics/mod.rs, src/services/owl_validator.rs
+  VC-51 (second validator, section 9.1): `crates/visionclaw-ontology/src/ontology/services/owl_validator.rs` must be deleted
+  VC-51 (second validator, section 9.1): `crates/visionclaw-ontology/src/ontology/services/mod.rs` still declares `mod owl_validator`
+  VC-51 (second validator, section 9.1): `services::owl_validator` still referenced in crates/visionclaw-ontology/src/ontology/services/owl_validator.rs, src/actors/messages/ontology_messages.rs, src/actors/ontology_actor.rs, src/handlers/api_handler/ontology/mod.rs, src/handlers/api_handler/ontology_physics/mod.rs, src/services/owl_validator.rs
+  VC-51: `RdfTriple` is still defined in crates/visionclaw-ontology/src/services/owl_validator.rs
+  VC-51: `ConstraintSummary` is still defined in crates/visionclaw-ontology/src/services/owl_validator.rs
+  VC-51: `ValidationStatistics` is still defined in crates/visionclaw-ontology/src/services/owl_validator.rs
+  VC-51: `PropertyGraph` is still defined in crates/visionclaw-ontology/src/services/owl_validator.rs
+  VC-51: `CachedOntology` is still defined in crates/visionclaw-ontology/src/services/owl_validator.rs
+  VC-51: `MappingConfig` is still defined in crates/visionclaw-ontology/src/ontology/services/owl_validator.rs
+  VC-51: `MappingMetadata` is still defined in crates/visionclaw-ontology/src/ontology/services/owl_validator.rs
+  VC-51: `GlobalConfig` is still defined in crates/visionclaw-ontology/src/ontology/services/owl_validator.rs
+  VC-51: `DefaultsConfig` is still defined in crates/visionclaw-ontology/src/ontology/services/owl_validator.rs
+  VC-51: `ClassMapping` is still defined in crates/visionclaw-ontology/src/ontology/services/owl_validator.rs
+  VC-51: `ObjectPropertyMapping` is still defined in crates/visionclaw-ontology/src/ontology/services/owl_validator.rs
+  VC-51: `DataPropertyMapping` is still defined in crates/visionclaw-ontology/src/ontology/services/owl_validator.rs
+  VC-51: `PropertyDomain` is still defined in crates/visionclaw-ontology/src/ontology/services/owl_validator.rs
+  VC-51: `validate_domain_range` is still defined in crates/visionclaw-ontology/src/services/owl_validator.rs
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: ontomark_step07_validate::common::finish
+             at ./tests/common/mod.rs:56:5
+   3: ontomark_step07_validate::step7_validate_legacy_is_gone
+             at ./tests/ontomark_step07_validate.rs:64:5
+   4: ontomark_step07_validate::step7_validate_legacy_is_gone::{closure#0}
+             at ./tests/ontomark_step07_validate.rs:44:35
+   5: <ontomark_step07_validate::step7_validate_legacy_is_gone::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   6: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+
+failures:
+    step7_validate_consumers_on_ontomark_compile
+    step7_validate_legacy_is_gone
+
+test result: FAILED. 17 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.65s
+
+
+running 19 tests
+test common::self_tests::helper_defines_finds_definitions_not_uses ... ok
+test common::self_tests::helper_enum_variants_skip_attributes_and_payloads ... ok
+test common::self_tests::helper_fn_bodies_return_bodies_with_literals ... ok
+test common::self_tests::helper_lexer_handles_raw_strings_chars_and_lifetimes ... ok
+test common::self_tests::helper_lexer_drops_comments_and_keeps_code ... ok
+test common::self_tests::helper_migration_files_are_never_scanned ... ok
+test common::self_tests::helper_manifest_metadata_and_comments_are_not_dependencies ... ok
+test common::self_tests::helper_manifest_resolves_renames_and_target_tables ... ok
+test common::self_tests::helper_ontomark_use_requires_a_real_path ... ok
+test common::self_tests::helper_paths_ignore_spacing_and_find_brace_form ... ok
+test common::self_tests::helper_script_comments_are_not_code ... ok
+test common::self_tests::helper_slug_rule_is_recognised_by_logic_not_name ... ok
+test common::self_tests::helper_path_git_and_optional_dependencies_are_not_registry_releases ... ok
+test common::workflow::self_tests::helper_shell_ignores_comments_and_quoted_text ... ok
+test common::workflow::self_tests::helper_shell_joins_continuations_and_splits_pipelines ... ok
+test common::workflow::self_tests::helper_tag_and_digest_shapes ... ok
+test common::workflow::self_tests::helper_shell_skips_heredoc_bodies_and_subshells ... ok
+test step8_attribution_consumers_on_ontomark ... FAILED
+test step8_attribution_legacy_is_gone ... FAILED
+
+failures:
+
+---- step8_attribution_consumers_on_ontomark stdout ----
+
+thread 'step8_attribution_consumers_on_ontomark' (1103204) panicked at crates/visionclaw-domain/tests/common/mod.rs:56:5:
+ontomark step 8 (attribution), consumers not landed (4 failing):
+  step 8, VC-21/18 attribution roster via profiles/estate: `crates/vault/Cargo.toml` does not depend on ["ontomark-compile"] (`ontomark-compile`: optional dependency)
+  step 8, VC-44 generator stamp via the estate profile: `Cargo.toml` does not depend on ["ontomark-model"] (`ontomark-model` is not under [dependencies])
+  VC-44: `src/services/decision_elevation.rs` has no real `use`/path of an ontomark crate in code
+  VC-44/45: `src/actors/elevation_actor.rs` has no real `use`/path of an ontomark crate in code
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: ontomark_step08_attribution::common::finish
+             at ./tests/common/mod.rs:56:5
+   3: ontomark_step08_attribution::step8_attribution_consumers_on_ontomark
+             at ./tests/ontomark_step08_attribution.rs:24:5
+   4: ontomark_step08_attribution::step8_attribution_consumers_on_ontomark::{closure#0}
+             at ./tests/ontomark_step08_attribution.rs:17:45
+   5: <ontomark_step08_attribution::step8_attribution_consumers_on_ontomark::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   6: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+---- step8_attribution_legacy_is_gone stdout ----
+
+thread 'step8_attribution_legacy_is_gone' (1103205) panicked at crates/visionclaw-domain/tests/common/mod.rs:56:5:
+ontomark step 8 (attribution), legacy not landed (13 failing):
+  VC-21: `crates/vault/src/build/attribution.rs` must be deleted
+  VC-21: `crates/vault/src/build/mod.rs` still declares `mod attribution`
+  VC-21: `build::attribution` still referenced in crates/vault/src/main.rs
+  VC-21: `super::attribution` still referenced in crates/vault/src/build/page_api.rs, crates/vault/src/build/turtle.rs
+  VC-21: `Roster` is still defined in crates/vault/src/build/attribution.rs
+  VC-18: `ATTRIBUTED_TO` is still defined in crates/vault/src/build/graph_tiers.rs
+  VC-18: `ATTRIBUTED_LABEL` is still defined in crates/vault/src/build/graph_tiers.rs
+  VC-18: `CORPUS_NATURE` is still defined in crates/vault/src/build/graph_tiers.rs
+  VC-18: `CORPUS_DESCRIPTION` is still defined in crates/vault/src/build/graph_tiers.rs
+  VC-18 (hard-coded director did:nostr): `did:nostr:d598abc6edefc37e` is still in crates/vault/src/build/graph_tiers.rs
+  VC-18 (corpus nature): `synthetic-ai-generated-human-directed` is still in crates/vault/src/build/graph_tiers.rs
+  VC-44: `src/services/decision_elevation.rs` must not contain `process:visionclaw/` outside tests
+  VC-44/45: `src/actors/elevation_actor.rs` must not contain `process:visionclaw/` outside tests
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: ontomark_step08_attribution::common::finish
+             at ./tests/common/mod.rs:56:5
+   3: ontomark_step08_attribution::step8_attribution_legacy_is_gone
+             at ./tests/ontomark_step08_attribution.rs:42:5
+   4: ontomark_step08_attribution::step8_attribution_legacy_is_gone::{closure#0}
+             at ./tests/ontomark_step08_attribution.rs:28:38
+   5: <ontomark_step08_attribution::step8_attribution_legacy_is_gone::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   6: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+
+failures:
+    step8_attribution_consumers_on_ontomark
+    step8_attribution_legacy_is_gone
+
+test result: FAILED. 17 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.40s
+
+
+running 19 tests
+test common::self_tests::helper_defines_finds_definitions_not_uses ... ok
+test common::self_tests::helper_fn_bodies_return_bodies_with_literals ... ok
+test common::self_tests::helper_enum_variants_skip_attributes_and_payloads ... ok
+test common::self_tests::helper_lexer_drops_comments_and_keeps_code ... ok
+test common::self_tests::helper_lexer_handles_raw_strings_chars_and_lifetimes ... ok
+test common::self_tests::helper_manifest_metadata_and_comments_are_not_dependencies ... ok
+test common::self_tests::helper_migration_files_are_never_scanned ... ok
+test common::self_tests::helper_ontomark_use_requires_a_real_path ... ok
+test common::self_tests::helper_manifest_resolves_renames_and_target_tables ... ok
+test common::self_tests::helper_path_git_and_optional_dependencies_are_not_registry_releases ... ok
+test common::self_tests::helper_paths_ignore_spacing_and_find_brace_form ... ok
+test common::self_tests::helper_script_comments_are_not_code ... ok
+test common::self_tests::helper_slug_rule_is_recognised_by_logic_not_name ... ok
+test common::workflow::self_tests::helper_shell_ignores_comments_and_quoted_text ... ok
+test common::workflow::self_tests::helper_shell_joins_continuations_and_splits_pipelines ... ok
+test common::workflow::self_tests::helper_shell_skips_heredoc_bodies_and_subshells ... ok
+test common::workflow::self_tests::helper_tag_and_digest_shapes ... ok
+test step9_write_consumers_on_ontomark_parse ... FAILED
+test step9_write_legacy_is_gone ... FAILED
+
+failures:
+
+---- step9_write_consumers_on_ontomark_parse stdout ----
+
+thread 'step9_write_consumers_on_ontomark_parse' (1103240) panicked at crates/visionclaw-domain/tests/common/mod.rs:56:5:
+ontomark step 9 (write), consumers not landed (8 failing):
+  step 9, VC-29/30 guarded patch: `crates/vault/Cargo.toml` does not depend on ["ontomark-parse"] (`ontomark-parse` is not under [dependencies])
+  step 9, VC-43/44/45 page generation and patch: `Cargo.toml` does not depend on ["ontomark-parse"] (`ontomark-parse` is not under [dependencies])
+  VC-29/D4 apply re-wiring: `crates/vault/src/apply.rs` is missing
+  VC-30/D4 propose re-wiring: `crates/vault/src/propose.rs` has no real `use`/path of an ontomark crate in code
+  VC-43 page generation and patch: `src/services/ontology_mutation_service.rs` has no real `use`/path of an ontomark crate in code
+  VC-43 consistency gate: `src/services/ontology_mutation_service.rs` has no real `use`/path of an ontomark crate in code
+  VC-44 slug: `src/services/decision_elevation.rs` has no real `use`/path of an ontomark crate in code
+  VC-45 slug: `src/actors/elevation_actor.rs` has no real `use`/path of an ontomark crate in code
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: ontomark_step09_write::common::finish
+             at ./tests/common/mod.rs:56:5
+   3: ontomark_step09_write::step9_write_consumers_on_ontomark_parse
+             at ./tests/ontomark_step09_write.rs:41:5
+   4: ontomark_step09_write::step9_write_consumers_on_ontomark_parse::{closure#0}
+             at ./tests/ontomark_step09_write.rs:28:45
+   5: <ontomark_step09_write::step9_write_consumers_on_ontomark_parse::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   6: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+---- step9_write_legacy_is_gone stdout ----
+
+thread 'step9_write_legacy_is_gone' (1103241) panicked at crates/visionclaw-domain/tests/common/mod.rs:56:5:
+ontomark step 9 (write), legacy not landed (29 failing):
+  VC-29: `crates/vault/src/diff.rs` must be deleted
+  VC-29: `crates/vault/src/lib.rs` still declares `mod diff`
+  VC-29: `crate::diff` still referenced in crates/vault/src/propose.rs
+  VC-31: `crates/vault/src/repair.rs` must be deleted
+  VC-31: `crates/vault/src/lib.rs` still declares `mod repair`
+  VC-31: `vault::repair` still referenced in crates/vault/src/main.rs
+  VC-31: `crate::repair` still referenced in crates/vault/src/bodies.rs
+  VC-31: `crates/vault/src/bodies.rs` must be deleted
+  VC-31: `crates/vault/src/lib.rs` still declares `mod bodies`
+  VC-31: `vault::bodies` still referenced in crates/vault/src/main.rs
+  VC-31: `crate::bodies` still referenced in crates/vault/src/build/indexes.rs
+  VC-29 diff.rs: `unified_diff` is still defined in crates/vault/src/diff.rs
+  VC-31 repair.rs: `Ambiguity` is still defined in crates/vault/src/repair.rs
+  VC-31 repair.rs: `CODE_KEYWORDS` is still defined in crates/vault/src/repair.rs
+  VC-31 repair.rs: `looks_like_code` is still defined in crates/vault/src/repair.rs
+  VC-31 repair.rs: `scopes_for` is still defined in crates/vault/src/repair.rs
+  VC-31 bodies.rs: `TAB_WIDTH` is still defined in crates/vault/src/bodies.rs
+  VC-31 bodies.rs: `stable_body` is still defined in crates/vault/src/bodies.rs
+  VC-31 bodies.rs: `fence_open` is still defined in crates/vault/src/bodies.rs
+  VC-31 bodies.rs: `fence_closes` is still defined in crates/vault/src/bodies.rs
+  VC-31 bodies.rs: `indent_of` is still defined in crates/vault/src/bodies.rs
+  VC-31 bodies.rs: `strip_cols` is still defined in crates/vault/src/bodies.rs
+  VC-31 bodies.rs: `unclosed_below` is still defined in crates/vault/src/bodies.rs
+  VC-30: `crates/vault/src/propose.rs` must not reference `vault_core`
+  VC-43: `src/services/ontology_mutation_service.rs` must not define `generate_vault_markdown`
+  VC-43: `src/services/ontology_mutation_service.rs` must not define `check_consistency`
+  VC-43 legacy prefix map: `src/services/ontology_mutation_service.rs` must not contain `"ai" => "AI"` outside tests
+  VC-44/45: `src/services/decision_elevation.rs` fn `slugify` still implements a slug rule
+  VC-44/45: `src/actors/elevation_actor.rs` fn `slugify` still implements a slug rule
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: ontomark_step09_write::common::finish
+             at ./tests/common/mod.rs:56:5
+   3: ontomark_step09_write::step9_write_legacy_is_gone
+             at ./tests/ontomark_step09_write.rs:78:5
+   4: ontomark_step09_write::step9_write_legacy_is_gone::{closure#0}
+             at ./tests/ontomark_step09_write.rs:45:32
+   5: <ontomark_step09_write::step9_write_legacy_is_gone::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   6: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+
+failures:
+    step9_write_consumers_on_ontomark_parse
+    step9_write_legacy_is_gone
+
+test result: FAILED. 17 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.60s
+
+
+running 20 tests
+test common::self_tests::helper_defines_finds_definitions_not_uses ... ok
+test common::self_tests::helper_lexer_drops_comments_and_keeps_code ... ok
+test common::self_tests::helper_fn_bodies_return_bodies_with_literals ... ok
+test common::self_tests::helper_lexer_handles_raw_strings_chars_and_lifetimes ... ok
+test common::self_tests::helper_enum_variants_skip_attributes_and_payloads ... ok
+test common::self_tests::helper_migration_files_are_never_scanned ... ok
+test common::self_tests::helper_ontomark_use_requires_a_real_path ... ok
+test common::self_tests::helper_manifest_metadata_and_comments_are_not_dependencies ... ok
+test common::self_tests::helper_manifest_resolves_renames_and_target_tables ... ok
+test common::self_tests::helper_paths_ignore_spacing_and_find_brace_form ... ok
+test common::self_tests::helper_script_comments_are_not_code ... ok
+test common::self_tests::helper_path_git_and_optional_dependencies_are_not_registry_releases ... ok
+test common::workflow::self_tests::helper_shell_ignores_comments_and_quoted_text ... ok
+test common::self_tests::helper_slug_rule_is_recognised_by_logic_not_name ... ok
+test common::workflow::self_tests::helper_shell_joins_continuations_and_splits_pipelines ... ok
+test common::workflow::self_tests::helper_shell_skips_heredoc_bodies_and_subshells ... ok
+test common::workflow::self_tests::helper_tag_and_digest_shapes ... ok
+test step10_publish_workflow_builds_with_the_released_ontomark_cli ... FAILED
+test step10_vault_is_a_governance_adapter_on_ontomark ... FAILED
+test step10_vault_core_and_legacy_vault_are_deleted_everywhere ... FAILED
+
+failures:
+
+---- step10_publish_workflow_builds_with_the_released_ontomark_cli stdout ----
+
+thread 'step10_publish_workflow_builds_with_the_released_ontomark_cli' (1103306) panicked at crates/visionclaw-domain/tests/common/mod.rs:56:5:
+ontomark step 10 (cli-publish), publish workflow not landed (4 failing):
+  VC-60: .github/workflows/ontology-publish.yml still runs the legacy vault build: job `build-ontology`: cargo build --release --locked -p vault
+  VC-60: .github/workflows/ontology-publish.yml still runs the legacy vault build: job `build-ontology`: ./target/release/vault --repo vault-source build --vault knowledge --out $GITHUB_WORKSPACE/output/vault
+  VC-60: .github/workflows/ontology-publish.yml still runs the legacy vault build: job `build-ontology`: ./target/release/vault --repo vault-source --json certify --out $GITHUB_WORKSPACE/output/certificate
+  VC-60: .github/workflows/ontology-publish.yml: job `build-ontology`: no download of the pinned release naming ONTOMARK_RELEASE_TAG
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: ontomark_step10_cli_publish::common::finish
+             at ./tests/common/mod.rs:56:5
+   3: ontomark_step10_cli_publish::step10_publish_workflow_builds_with_the_released_ontomark_cli
+             at ./tests/ontomark_step10_cli_publish.rs:167:5
+   4: ontomark_step10_cli_publish::step10_publish_workflow_builds_with_the_released_ontomark_cli::{closure#0}
+             at ./tests/ontomark_step10_cli_publish.rs:159:67
+   5: <ontomark_step10_cli_publish::step10_publish_workflow_builds_with_the_released_ontomark_cli::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   6: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+---- step10_vault_is_a_governance_adapter_on_ontomark stdout ----
+
+thread 'step10_vault_is_a_governance_adapter_on_ontomark' (1103308) panicked at crates/visionclaw-domain/tests/common/mod.rs:56:5:
+ontomark step 10 (cli-publish), adapter not landed (46 failing):
+  D4 adapter built on ontomark: `crates/vault/Cargo.toml` does not depend on ["ontomark-parse"] (`ontomark-parse` is not under [dependencies])
+  D4 adapter built on ontomark: `crates/vault/Cargo.toml` does not depend on ["ontomark-model"] (`ontomark-model` is not under [dependencies])
+  D4 adapter carries no legacy dependency: `crates/vault/Cargo.toml` must not depend on `vault-core`
+  D4 adapter carries no legacy dependency: `crates/vault/Cargo.toml` must not depend on `whelk`
+  D4 adapter carries no legacy dependency: `crates/vault/Cargo.toml` must not depend on `horned-owl`
+  D4 adapter carries no legacy dependency: `crates/vault/Cargo.toml` must not depend on `oxttl`
+  D4 adapter carries no legacy dependency: `crates/vault/Cargo.toml` must not depend on `oxrdf`
+  D4: `crates/vault/src/apply.rs` is missing; the adapter needs ["main.rs", "nostr.rs", "propose.rs", "apply.rs"]
+  VC-23/24/32: `crates/vault/src/bodies.rs` is outside the adapter shape ["lib.rs", "main.rs", "nostr.rs", "propose.rs", "apply.rs"]
+  VC-23/24/32: `crates/vault/src/build` is outside the adapter shape ["lib.rs", "main.rs", "nostr.rs", "propose.rs", "apply.rs"]
+  VC-23/24/32: `crates/vault/src/certificate.rs` is outside the adapter shape ["lib.rs", "main.rs", "nostr.rs", "propose.rs", "apply.rs"]
+  VC-23/24/32: `crates/vault/src/closure.rs` is outside the adapter shape ["lib.rs", "main.rs", "nostr.rs", "propose.rs", "apply.rs"]
+  VC-23/24/32: `crates/vault/src/conflicts.rs` is outside the adapter shape ["lib.rs", "main.rs", "nostr.rs", "propose.rs", "apply.rs"]
+  VC-23/24/32: `crates/vault/src/diff.rs` is outside the adapter shape ["lib.rs", "main.rs", "nostr.rs", "propose.rs", "apply.rs"]
+  VC-23/24/32: `crates/vault/src/gate.rs` is outside the adapter shape ["lib.rs", "main.rs", "nostr.rs", "propose.rs", "apply.rs"]
+  VC-23/24/32: `crates/vault/src/jev_rank.rs` is outside the adapter shape ["lib.rs", "main.rs", "nostr.rs", "propose.rs", "apply.rs"]
+  VC-23/24/32: `crates/vault/src/model.rs` is outside the adapter shape ["lib.rs", "main.rs", "nostr.rs", "propose.rs", "apply.rs"]
+  VC-23/24/32: `crates/vault/src/projection.rs` is outside the adapter shape ["lib.rs", "main.rs", "nostr.rs", "propose.rs", "apply.rs"]
+  VC-23/24/32: `crates/vault/src/repair.rs` is outside the adapter shape ["lib.rs", "main.rs", "nostr.rs", "propose.rs", "apply.rs"]
+  VC-23/24/32: `crates/vault/src/validate.rs` is outside the adapter shape ["lib.rs", "main.rs", "nostr.rs", "propose.rs", "apply.rs"]
+  VC-23/24/32: `crates/vault/src/whelk.rs` is outside the adapter shape ["lib.rs", "main.rs", "nostr.rs", "propose.rs", "apply.rs"]
+  D4: crates/vault/tests/apply_cli.rs is missing
+  VC-32: crates/vault/tests/build_cli.rs tests a retired verb or fixture
+  VC-32: crates/vault/tests/certificate_oo_cert.rs tests a retired verb or fixture
+  VC-32: crates/vault/tests/defined_classes.rs tests a retired verb or fixture
+  VC-32: crates/vault/tests/el_profile.rs tests a retired verb or fixture
+  VC-32: crates/vault/tests/golden tests a retired verb or fixture
+  VC-32: crates/vault/tests/golden_parity.rs tests a retired verb or fixture
+  VC-32: crates/vault/tests/probe_consistency.rs tests a retired verb or fixture
+  VC-32: crates/vault/tests/publish_gate.rs tests a retired verb or fixture
+  VC-32: crates/vault/tests/shared_layout.rs tests a retired verb or fixture
+  VC-32: crates/vault/tests/whelk_scaling.rs tests a retired verb or fixture
+  D4 propose on ontomark: `crates/vault/src/propose.rs` has no real `use`/path of an ontomark crate in code
+  D4 apply on ontomark: `crates/vault/src/apply.rs` is missing
+  D4: vault subcommands must be exactly Apply, Panel, Propose; found ["Build", "Certify", "Conflicts", "Gate", "Panel", "Propose", "Rank", "Repair", "Validate"]
+  VC-23/24/32: `crates/vault/src/lib.rs` still declares `mod build`
+  VC-23/24/32: `crates/vault/src/lib.rs` still declares `mod model`
+  VC-23/24/32: `crates/vault/src/lib.rs` still declares `mod diff`
+  VC-23/24/32: `crates/vault/src/lib.rs` still declares `mod repair`
+  VC-23/24/32: `crates/vault/src/lib.rs` still declares `mod bodies`
+  VC-23/24/32: `crates/vault/src/lib.rs` still declares `mod whelk`
+  VC-23/24/32: `crates/vault/src/lib.rs` still declares `mod closure`
+  VC-23/24/32: `crates/vault/src/lib.rs` still declares `mod validate`
+  VC-23/24/32: `crates/vault/src/lib.rs` still declares `mod conflicts`
+  VC-23/24/32: `crates/vault/src/lib.rs` still declares `mod gate`
+  VC-23/24/32: `crates/vault/src/lib.rs` still declares `mod projection`
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: ontomark_step10_cli_publish::common::finish
+             at ./tests/common/mod.rs:56:5
+   3: ontomark_step10_cli_publish::step10_vault_is_a_governance_adapter_on_ontomark
+             at ./tests/ontomark_step10_cli_publish.rs:121:5
+   4: ontomark_step10_cli_publish::step10_vault_is_a_governance_adapter_on_ontomark::{closure#0}
+             at ./tests/ontomark_step10_cli_publish.rs:49:54
+   5: <ontomark_step10_cli_publish::step10_vault_is_a_governance_adapter_on_ontomark::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   6: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+---- step10_vault_core_and_legacy_vault_are_deleted_everywhere stdout ----
+
+thread 'step10_vault_core_and_legacy_vault_are_deleted_everywhere' (1103307) panicked at crates/visionclaw-domain/tests/common/mod.rs:56:5:
+ontomark step 10 (cli-publish), deletion not landed (64 failing):
+  VC-01..13: `crates/vault-core` must be deleted
+  VC-01..13: the workspace still lists crates/vault-core
+  VC-01..13: `Cargo.toml` must not depend on `vault-core`
+  VC-01..13: `crates/vault/Cargo.toml` must not depend on `vault-core`
+  VC-01..13: .github/workflows/ci.yml still names vault-core: `-p visionclaw-contracts -p visionclaw-domain -p visionclaw-protocol -p visionclaw-adapters -p visionclaw-ontology -p visionclaw-actors -p visionclaw-xr-presence -p visionclaw-analytics-oracle -p vault-core -p vault`
+  VC-01..13: `vault_core` still referenced in crates/vault/src/bodies.rs, crates/vault/src/build/attribution.rs, crates/vault/src/build/graph_tiers.rs, crates/vault/src/build/indexes.rs, crates/vault/src/build/mod.rs, crates/vault/src/build/okf.rs, crates/vault/src/build/page_api.rs, crates/vault/src/build/publish.rs, crates/vault/src/build/turtle.rs, crates/vault/src/build/webvowl.rs, crates/vault/src/closure.rs, crates/vault/src/conflicts.rs, crates/vault/src/gate.rs, crates/vault/src/jev_rank.rs, crates/vault/src/main.rs, crates/vault/src/model.rs, crates/vault/src/nostr.rs, crates/vault/src/projection.rs, crates/vault/src/propose.rs, crates/vault/src/repair.rs, crates/vault/src/validate.rs, crates/vault/src/whelk.rs, crates/vault/tests/defined_classes.rs, crates/vault/tests/el_profile.rs, crates/vault/tests/golden_parity.rs, crates/vault/tests/probe_consistency.rs, crates/vault/tests/publish_gate.rs, crates/vault/tests/whelk_scaling.rs, crates/vault-core/tests/real_vocabulary.rs, src/actors/elevation_actor.rs, src/actors/gpu/force_compute_actor.rs, src/actors/gpu/gpu_resource_actor.rs, src/services/corpus_source/local.rs, src/services/corpus_source/mod.rs, src/services/github_sync_service.rs, src/services/jev_ingest.rs, src/services/page_parser.rs
+  VC-11: `crates/vault-core/src/proposal.rs` must be deleted
+  VC-14: `crates/vault/src/model.rs` must be deleted
+  VC-14: `crates/vault/src/lib.rs` still declares `mod model`
+  VC-14: `vault::model` still referenced in crates/vault/src/main.rs, crates/vault/tests/defined_classes.rs, crates/vault/tests/probe_consistency.rs, crates/vault/tests/whelk_scaling.rs
+  VC-14: `crate::model` still referenced in crates/vault/src/build/graph_tiers.rs, crates/vault/src/build/indexes.rs, crates/vault/src/build/mod.rs, crates/vault/src/build/okf.rs, crates/vault/src/build/page_api.rs, crates/vault/src/build/turtle.rs, crates/vault/src/build/webvowl.rs, crates/vault/src/closure.rs, crates/vault/src/conflicts.rs, crates/vault/src/gate.rs, crates/vault/src/projection.rs, crates/vault/src/propose.rs, crates/vault/src/validate.rs
+  VC-23: `crates/vault/src/build/generation.rs` must be deleted
+  VC-23: `crates/vault/src/build/mod.rs` still declares `mod generation`
+  VC-23: `build::generation` still referenced in crates/vault/src/main.rs
+  VC-23: `super::generation` still referenced in crates/vault/src/build/turtle.rs
+  VC-23/24: `crates/vault/src/build` must be deleted
+  VC-11: `PROPOSAL_NAMESPACE` is still defined in crates/vault-core/src/proposal.rs
+  VC-11: `ProposalKind` is still defined in crates/vault-core/src/proposal.rs
+  VC-11: `PatchProposal` is still defined in crates/vault-core/src/proposal.rs
+  VC-11: `STALE_AFTER_DAYS` is still defined in crates/vault-core/src/proposal.rs
+  VC-14: `RELATION_KEYS` is still defined in crates/vault/src/model.rs
+  VC-14: `IS_A_KEY` is still defined in crates/vault/src/model.rs
+  VC-14: `INSTANCE_OF_KEY` is still defined in crates/vault/src/model.rs
+  VC-14: `DISJOINT_WITH_JSON_KEY` is still defined in crates/vault/src/model.rs
+  VC-14: `EntityType` is still defined in crates/vault/src/model.rs
+  VC-14: `ClassRecord` is still defined in crates/vault/src/model.rs
+  VC-14: `NameIndex` is still defined in crates/vault/src/model.rs
+  VC-14: `disambiguate_public_slugs` is still defined in crates/vault/src/model.rs
+  VC-14: `definition_of` is still defined in crates/vault/src/model.rs
+  VC-23: `generation_id` is still defined in crates/vault/src/build/generation.rs
+  VC-23: `git_dirty` is still defined in crates/vault/src/build/generation.rs
+  VC-23: `content_digest` is still defined in crates/vault/src/build/generation.rs
+  VC-24: `OutputCollision` is still defined in crates/vault/src/build/mod.rs
+  VC-24: `BUILD_OWNER` is still defined in crates/vault/src/build/mod.rs
+  VC-24: `alias_map` is still defined in crates/vault/src/build/mod.rs
+  VC-24: `unsatisfiable_message` is still defined in crates/vault/src/build/mod.rs
+  VC-24: `read_artifact` is still defined in crates/vault/src/build/mod.rs
+  VC-24: `SecretFinding` is still defined in crates/vault/src/build/publish.rs
+  VC-24: `SecretsFound` is still defined in crates/vault/src/build/publish.rs
+  VC-24: `VaultPublished` is still defined in crates/vault/src/build/publish.rs
+  VC-24: `StagedPage` is still defined in crates/vault/src/build/publish.rs
+  VC-24: `HELD_BACK_DIRS` is still defined in crates/vault/src/build/publish.rs
+  VC-24: `held_back` is still defined in crates/vault/src/build/publish.rs
+  VC-24: `index_page` is still defined in crates/vault/src/build/publish.rs
+  VC-24: `sibling_working` is still defined in crates/vault/src/build/publish.rs
+  VC-24: `MODEL_ID` is still defined in crates/vault/src/build/rvdb.rs
+  VC-24: `DIMENSIONS` is still defined in crates/vault/src/build/rvdb.rs
+  VC-24: `DEFAULT_ENDPOINT` is still defined in crates/vault/src/build/rvdb.rs, crates/visionclaw-jev/src/config.rs
+  VC-24: `RECORDS_PATH` is still defined in crates/vault/src/build/rvdb.rs
+  VC-24: `ConceptRecord` is still defined in crates/vault/src/build/rvdb.rs
+  VC-24: `Xinference` is still defined in crates/vault/src/build/rvdb.rs
+  VC-24: `concept_records` is still defined in crates/vault/src/build/rvdb.rs
+  VC-24: `concept_text` is still defined in crates/vault/src/build/rvdb.rs
+  VC-24: `embed_all` is still defined in crates/vault/src/build/rvdb.rs
+  VC-24: `PIPELINE_VERSION` is still defined in crates/vault/src/build/graph_tiers.rs
+  VC-24: `NGM_NS_BASE` is still defined in crates/vault/src/build/graph_tiers.rs
+  VC-24: `RELATION_TOPK` is still defined in crates/vault/src/build/graph_tiers.rs
+  VC-24: `DOMAIN_LABELS` is still defined in crates/vault/src/build/graph_tiers.rs
+  VC-24: `domain_index` is still defined in crates/vault/src/build/graph_tiers.rs
+  VC-24: `category_index` is still defined in crates/vault/src/build/graph_tiers.rs
+  VC-24: `resolve_domain` is still defined in crates/vault/src/build/graph_tiers.rs
+  VC-24: `build_model` is still defined in crates/vault/src/build/graph_tiers.rs
+  VC-24: `order_source_edges` is still defined in crates/vault/src/build/graph_tiers.rs
+  VC-24: `build_tier` is still defined in crates/vault/src/build/graph_tiers.rs
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: ontomark_step10_cli_publish::common::finish
+             at ./tests/common/mod.rs:56:5
+   3: ontomark_step10_cli_publish::step10_vault_core_and_legacy_vault_are_deleted_everywhere
+             at ./tests/ontomark_step10_cli_publish.rs:155:5
+   4: ontomark_step10_cli_publish::step10_vault_core_and_legacy_vault_are_deleted_everywhere::{closure#0}
+             at ./tests/ontomark_step10_cli_publish.rs:125:63
+   5: <ontomark_step10_cli_publish::step10_vault_core_and_legacy_vault_are_deleted_everywhere::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   6: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+
+failures:
+    step10_publish_workflow_builds_with_the_released_ontomark_cli
+    step10_vault_core_and_legacy_vault_are_deleted_everywhere
+    step10_vault_is_a_governance_adapter_on_ontomark
+
+test result: FAILED. 17 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.51s
+
+
+running 19 tests
+test common::self_tests::helper_defines_finds_definitions_not_uses ... ok
+test common::self_tests::helper_lexer_handles_raw_strings_chars_and_lifetimes ... ok
+test common::self_tests::helper_lexer_drops_comments_and_keeps_code ... ok
+test common::self_tests::helper_enum_variants_skip_attributes_and_payloads ... ok
+test common::self_tests::helper_migration_files_are_never_scanned ... ok
+test common::self_tests::helper_fn_bodies_return_bodies_with_literals ... ok
+test common::self_tests::helper_manifest_metadata_and_comments_are_not_dependencies ... ok
+test common::self_tests::helper_ontomark_use_requires_a_real_path ... ok
+test common::self_tests::helper_manifest_resolves_renames_and_target_tables ... ok
+test common::self_tests::helper_paths_ignore_spacing_and_find_brace_form ... ok
+test common::self_tests::helper_path_git_and_optional_dependencies_are_not_registry_releases ... ok
+test common::self_tests::helper_script_comments_are_not_code ... ok
+test common::self_tests::helper_slug_rule_is_recognised_by_logic_not_name ... ok
+test common::workflow::self_tests::helper_shell_ignores_comments_and_quoted_text ... ok
+test common::workflow::self_tests::helper_tag_and_digest_shapes ... ok
+test common::workflow::self_tests::helper_shell_skips_heredoc_bodies_and_subshells ... ok
+test common::workflow::self_tests::helper_shell_joins_continuations_and_splits_pipelines ... ok
+test step1_parse_consumers_on_ontomark_parse ... FAILED
+test step1_parse_legacy_is_gone ... FAILED
+
+failures:
+
+---- step1_parse_consumers_on_ontomark_parse stdout ----
+
+thread 'step1_parse_consumers_on_ontomark_parse' (1103337) panicked at crates/visionclaw-domain/tests/common/mod.rs:56:5:
+ontomark step 1 (parse), consumers not landed (2 failing):
+  step 1: crates/vault repin: `crates/vault/Cargo.toml` does not depend on ["ontomark-parse"] (`ontomark-parse` is not under [dependencies])
+  step 1: root server crate (VC-42/57): `Cargo.toml` does not depend on ["ontomark-parse"] (`ontomark-parse` is not under [dependencies])
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: ontomark_step1_parse::common::finish
+             at ./tests/common/mod.rs:56:5
+   3: ontomark_step1_parse::step1_parse_consumers_on_ontomark_parse
+             at ./tests/ontomark_step1_parse.rs:39:5
+   4: ontomark_step1_parse::step1_parse_consumers_on_ontomark_parse::{closure#0}
+             at ./tests/ontomark_step1_parse.rs:33:45
+   5: <ontomark_step1_parse::step1_parse_consumers_on_ontomark_parse::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   6: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+---- step1_parse_legacy_is_gone stdout ----
+
+thread 'step1_parse_legacy_is_gone' (1103338) panicked at crates/visionclaw-domain/tests/common/mod.rs:56:5:
+ontomark step 1 (parse), legacy not landed (99 failing):
+  VC-01: `crates/vault-core/src/page.rs` must be deleted
+  VC-01: `crates/vault-core/src/lib.rs` still declares `mod page`
+  VC-01: `vault_core::page` still referenced in crates/vault/src/build/mod.rs, crates/vault/src/build/publish.rs, crates/vault/src/closure.rs, crates/vault/src/conflicts.rs, crates/vault/src/gate.rs, crates/vault/src/main.rs, crates/vault/src/model.rs, crates/vault/src/projection.rs, crates/vault/src/propose.rs, crates/vault/src/repair.rs, crates/vault/src/validate.rs, crates/vault/tests/defined_classes.rs, crates/vault/tests/el_profile.rs, crates/vault/tests/golden_parity.rs, crates/vault/tests/probe_consistency.rs, crates/vault/tests/publish_gate.rs, crates/vault/tests/whelk_scaling.rs, src/services/jev_ingest.rs, src/services/page_parser.rs
+  VC-01: `crate::page` still referenced in crates/vault-core/src/graph.rs
+  VC-02: `crates/vault-core/src/frontmatter.rs` must be deleted
+  VC-02: `crates/vault-core/src/lib.rs` still declares `mod frontmatter`
+  VC-02: `vault_core::frontmatter` still referenced in crates/vault/src/bodies.rs, crates/vault/src/projection.rs, crates/vault/tests/golden_parity.rs, src/services/jev_ingest.rs
+  VC-02: `crate::frontmatter` still referenced in crates/vault-core/src/definition.rs, crates/vault-core/src/okf.rs, crates/vault-core/src/page.rs, crates/vault-core/src/promotion.rs
+  VC-03: `crates/vault-core/src/vocabulary.rs` must be deleted
+  VC-03: `crates/vault-core/src/lib.rs` still declares `mod vocabulary`
+  VC-03: `vault_core::vocabulary` still referenced in crates/vault/src/build/mod.rs, crates/vault/src/build/okf.rs, crates/vault/src/build/turtle.rs, crates/vault/src/closure.rs, crates/vault/src/conflicts.rs, crates/vault/src/gate.rs, crates/vault/src/main.rs, crates/vault/src/model.rs, crates/vault/src/propose.rs, crates/vault/src/validate.rs, crates/vault/tests/defined_classes.rs, crates/vault/tests/el_profile.rs, crates/vault/tests/golden_parity.rs, crates/vault/tests/probe_consistency.rs, crates/vault/tests/publish_gate.rs, crates/vault/tests/whelk_scaling.rs, crates/vault-core/tests/real_vocabulary.rs, src/services/corpus_source/local.rs, src/services/corpus_source/mod.rs, src/services/github_sync_service.rs, src/services/jev_ingest.rs, src/services/page_parser.rs
+  VC-03: `crate::vocabulary` still referenced in crates/vault-core/src/definition.rs, crates/vault-core/src/graph.rs
+  VC-07: `crates/vault-core/src/definition.rs` must be deleted
+  VC-07: `crates/vault-core/src/lib.rs` still declares `mod definition`
+  VC-07: `vault_core::definition` still referenced in crates/vault/src/build/turtle.rs, crates/vault/src/model.rs, crates/vault/src/validate.rs, crates/vault/src/whelk.rs
+  VC-08: `crates/vault-core/src/graph.rs` must be deleted
+  VC-08: `crates/vault-core/src/lib.rs` still declares `mod graph`
+  VC-13: `crates/vault-core/src/code.rs` must be deleted
+  VC-13: `crates/vault-core/src/lib.rs` still declares `mod code`
+  VC-13: `vault_core::code` still referenced in crates/vault/src/repair.rs, crates/vault/src/validate.rs
+  VC-13: `crates/vault-core/src/json.rs` must be deleted
+  VC-13: `crates/vault-core/src/lib.rs` still declares `mod json`
+  VC-13: `vault_core::json` still referenced in crates/vault/src/build/graph_tiers.rs, crates/vault/src/build/mod.rs
+  VC-13: `crates/vault-core/src/error.rs` must be deleted
+  VC-13: `crates/vault-core/src/lib.rs` still declares `mod error`
+  VC-13: `vault_core::error` still referenced in crates/vault/src/build/publish.rs
+  VC-13: `crate::error` still referenced in crates/vault-core/src/page.rs, crates/vault-core/src/vocabulary.rs
+  VC-01: `UNPUBLISHED_DIRS` is still defined in crates/vault-core/src/page.rs
+  VC-01: `JOURNAL_TYPE` is still defined in crates/vault-core/src/page.rs
+  VC-01: `SkipReason` is still defined in crates/vault-core/src/page.rs
+  VC-01: `PageWalk` is still defined in crates/vault-core/src/page.rs
+  VC-01: `VaultKind` is still defined in crates/vault-core/src/page.rs
+  VC-01: `journal_date` is still defined in crates/vault-core/src/page.rs
+  VC-01: `wikilink_tokens` is still defined in crates/vault-core/src/page.rs
+  VC-01: `walk_pages` is still defined in crates/vault-core/src/page.rs
+  VC-01: `page_files` is still defined in crates/vault-core/src/page.rs
+  VC-01: `is_unpublished` is still defined in crates/vault-core/src/page.rs
+  VC-01: `load_vault` is still defined in crates/vault-core/src/page.rs
+  VC-02: `Wikilink` is still defined in crates/vault-core/src/frontmatter.rs
+  VC-02: `Frontmatter` is still defined in crates/vault-core/src/frontmatter.rs
+  VC-02: `CANONICAL_ORDER` is still defined in crates/vault-core/src/frontmatter.rs
+  VC-02: `yaml_to_string` is still defined in crates/vault-core/src/frontmatter.rs
+  VC-03: `BUILTIN_PREFIXES` is still defined in crates/vault-core/src/vocabulary.rs
+  VC-03: `NON_EL_VOCABULARY` is still defined in crates/vault-core/src/vocabulary.rs
+  VC-03: `SIGNATURE_ON_LOGICAL_RELATION` is still defined in crates/vault-core/src/vocabulary.rs
+  VC-03: `NOT_AN_EXISTENTIAL` is still defined in crates/vault-core/src/vocabulary.rs
+  VC-03: `DEFINITION_OVER_TRANSITIVE` is still defined in crates/vault-core/src/vocabulary.rs
+  VC-03: `LOGICAL_NAMESPACES` is still defined in crates/vault-core/src/vocabulary.rs
+  VC-03: `NON_EL_OWL_TERMS` is still defined in crates/vault-core/src/vocabulary.rs
+  VC-03: `TypeDef` is still defined in crates/vault-core/src/vocabulary.rs
+  VC-03: `default_namespace` is still defined in crates/vault-core/src/vocabulary.rs
+  VC-03: `default_individual_namespace` is still defined in crates/vault-core/src/vocabulary.rs
+  VC-03: `default_reserved` is still defined in crates/vault-core/src/vocabulary.rs
+  VC-03: `camel_case` is still defined in crates/vault-core/src/vocabulary.rs
+  VC-07: `DEFINES_AS_KEY` is still defined in crates/vault-core/src/definition.rs
+  VC-07: `NON_EL_DEFINITION` is still defined in crates/vault-core/src/definition.rs
+  VC-07: `NON_EL_KEYWORDS` is still defined in crates/vault-core/src/definition.rs
+  VC-07: `refusal_code` is still defined in crates/vault-core/src/definition.rs
+  VC-07: `strip_code` is still defined in crates/vault-core/src/definition.rs
+  VC-08: `LINK_PREDICATE` is still defined in crates/vault-core/src/graph.rs
+  VC-08: `Expansion` is still defined in crates/vault-core/src/graph.rs
+  VC-08: `Retrieval` is still defined in crates/vault-core/src/graph.rs
+  VC-08: `TreeNode` is still defined in crates/vault-core/src/graph.rs
+  VC-08: `VaultGraph` is still defined in crates/vault-core/src/graph.rs
+  VC-13: `CodeMap` is still defined in crates/vault-core/src/code.rs
+  VC-13: `overlaps_any` is still defined in crates/vault-core/src/code.rs
+  VC-13: `fenced_regions` is still defined in crates/vault-core/src/code.rs
+  VC-13: `inline_regions` is still defined in crates/vault-core/src/code.rs
+  VC-13: `EnsureAscii` is still defined in crates/vault-core/src/json.rs
+  VC-13: `PythonDefault` is still defined in crates/vault-core/src/json.rs
+  VC-13: `to_compact` is still defined in crates/vault-core/src/json.rs
+  VC-13: `to_indented` is still defined in crates/vault-core/src/json.rs
+  VC-13: `to_default_ascii` is still defined in crates/vault-core/src/json.rs
+  VC-13: `to_default_utf8` is still defined in crates/vault-core/src/json.rs
+  VC-13: `to_compact_utf8` is still defined in crates/vault-core/src/json.rs
+  VC-13: `VaultError` is still defined in crates/vault-core/src/error.rs
+  VC-40: `crates/visionclaw-domain/src/vault/mod.rs` must be deleted
+  VC-40: `crates/visionclaw-domain/src/lib.rs` still declares `mod vault`
+  VC-40: `visionclaw_domain::vault` still referenced in crates/visionclaw-domain/tests/flat_vault_parity.rs, crates/visionclaw-domain/tests/vault_fixtures.rs, src/actors/elevation_actor.rs, src/bin/load_ontology.rs, src/services/decision_elevation.rs, src/services/file_service.rs, src/services/github_sync_service.rs, src/services/ontology_mutation_service.rs, src/services/page_parser.rs, src/services/parsers/knowledge_graph_parser.rs, tests/vault_gate_test.rs
+  VC-40: `crate::vault` still referenced in crates/visionclaw-domain/src/vault/link.rs
+  VC-40: `crates/visionclaw-domain/src/vault` must be deleted
+  VC-40: `PageFormat` is still defined in crates/visionclaw-domain/src/vault/mod.rs
+  VC-40: `PageMeta` is still defined in crates/visionclaw-domain/src/vault/mod.rs
+  VC-40: `GeneratedStamp` is still defined in crates/visionclaw-domain/src/vault/mod.rs
+  VC-40: `InclusionReason` is still defined in crates/visionclaw-domain/src/vault/mod.rs
+  VC-40: `string_sequence` is still defined in crates/visionclaw-domain/src/vault/mod.rs
+  VC-40: `render_page` is still defined in crates/visionclaw-domain/src/vault/mod.rs
+  VC-40: `page_name_from_repo_path` is still defined in crates/visionclaw-domain/src/vault/mod.rs
+  VC-40: `page_name_from_path` is still defined in crates/visionclaw-domain/src/vault/mod.rs
+  VC-40: `split_frontmatter` is still defined in crates/visionclaw-domain/src/vault/mod.rs
+  VC-40: `parse_frontmatter` is still defined in crates/visionclaw-domain/src/vault/mod.rs
+  VC-41: `src/services/ontology_enrichment_service.rs` must be deleted
+  VC-41: `src/services/mod.rs` still declares `mod ontology_enrichment_service`
+  VC-41: `services::ontology_enrichment_service` still referenced in src/test_helpers.rs
+  VC-41: `OntologyEnrichmentService` is still defined in src/services/ontology_enrichment_service.rs
+  VC-42: `src/services/page_parser.rs` must not reference `vault_core`
+  VC-42: `src/services/page_parser.rs` still holds a local constant initialised from `urn:ngm:`
+  VC-57: `src/services/parsers/knowledge_graph_parser.rs` must not reference `PageMeta`
+  VC-58: `crates/visionclaw-contracts/src/github_adapter.rs` must not contain `jsonld_blocks`
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: ontomark_step1_parse::common::finish
+             at ./tests/common/mod.rs:56:5
+   3: ontomark_step1_parse::step1_parse_legacy_is_gone
+             at ./tests/ontomark_step1_parse.rs:88:5
+   4: ontomark_step1_parse::step1_parse_legacy_is_gone::{closure#0}
+             at ./tests/ontomark_step1_parse.rs:43:32
+   5: <ontomark_step1_parse::step1_parse_legacy_is_gone::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   6: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+
+failures:
+    step1_parse_consumers_on_ontomark_parse
+    step1_parse_legacy_is_gone
+
+test result: FAILED. 17 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.72s
+
+
+running 19 tests
+test common::self_tests::helper_defines_finds_definitions_not_uses ... ok
+test common::self_tests::helper_enum_variants_skip_attributes_and_payloads ... ok
+test common::self_tests::helper_lexer_handles_raw_strings_chars_and_lifetimes ... ok
+test common::self_tests::helper_fn_bodies_return_bodies_with_literals ... ok
+test common::self_tests::helper_lexer_drops_comments_and_keeps_code ... ok
+test common::self_tests::helper_migration_files_are_never_scanned ... ok
+test common::self_tests::helper_ontomark_use_requires_a_real_path ... ok
+test common::self_tests::helper_manifest_metadata_and_comments_are_not_dependencies ... ok
+test common::self_tests::helper_path_git_and_optional_dependencies_are_not_registry_releases ... ok
+test common::self_tests::helper_script_comments_are_not_code ... ok
+test common::self_tests::helper_manifest_resolves_renames_and_target_tables ... ok
+test common::self_tests::helper_paths_ignore_spacing_and_find_brace_form ... ok
+test common::self_tests::helper_slug_rule_is_recognised_by_logic_not_name ... ok
+test common::workflow::self_tests::helper_shell_ignores_comments_and_quoted_text ... ok
+test common::workflow::self_tests::helper_shell_joins_continuations_and_splits_pipelines ... ok
+test common::workflow::self_tests::helper_tag_and_digest_shapes ... ok
+test common::workflow::self_tests::helper_shell_skips_heredoc_bodies_and_subshells ... ok
+test step2_iri_consumers_on_ontomark_model ... FAILED
+test step2_iri_legacy_is_gone ... FAILED
+
+failures:
+
+---- step2_iri_consumers_on_ontomark_model stdout ----
+
+thread 'step2_iri_consumers_on_ontomark_model' (1103431) panicked at crates/visionclaw-domain/tests/common/mod.rs:56:5:
+ontomark step 2 (iri), consumers not landed (5 failing):
+  step 2 (I): `Cargo.toml` does not depend on ["ontomark-model"] (`ontomark-model` is not under [dependencies])
+  step 2 (I): `crates/vault/Cargo.toml` does not depend on ["ontomark-model"] (`ontomark-model` is not under [dependencies])
+  step 2 (I): `crates/visionclaw-domain/Cargo.toml` does not depend on ["ontomark-model"] (`ontomark-model` is not under [dependencies])
+  step 2 (I): `crates/visionclaw-ontology/Cargo.toml` does not depend on ["ontomark-model"] (`ontomark-model` is not under [dependencies])
+  step 2 (I): `crates/visionclaw-adapters/Cargo.toml` does not depend on ["ontomark-model"] (`ontomark-model` is not under [dependencies])
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: ontomark_step2_iri::common::finish
+             at ./tests/common/mod.rs:56:5
+   3: ontomark_step2_iri::step2_iri_consumers_on_ontomark_model
+             at ./tests/ontomark_step2_iri.rs:31:5
+   4: ontomark_step2_iri::step2_iri_consumers_on_ontomark_model::{closure#0}
+             at ./tests/ontomark_step2_iri.rs:17:43
+   5: <ontomark_step2_iri::step2_iri_consumers_on_ontomark_model::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   6: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+---- step2_iri_legacy_is_gone stdout ----
+
+thread 'step2_iri_legacy_is_gone' (1103432) panicked at crates/visionclaw-domain/tests/common/mod.rs:56:5:
+ontomark step 2 (iri), legacy not landed (31 failing):
+  VC-04: `crates/vault-core/src/slug.rs` must be deleted
+  VC-04: `crates/vault-core/src/lib.rs` still declares `mod slug`
+  VC-04: `vault_core::slug` still referenced in crates/vault/src/build/graph_tiers.rs, crates/vault/src/build/indexes.rs, crates/vault/src/build/okf.rs, crates/vault/src/build/page_api.rs, crates/vault/src/build/turtle.rs, crates/vault/src/build/webvowl.rs, crates/vault/src/closure.rs, crates/vault/src/model.rs, crates/vault/src/projection.rs, crates/vault/src/propose.rs, crates/vault/src/validate.rs, src/services/page_parser.rs
+  VC-04: `crate::slug` still referenced in crates/vault-core/src/page.rs, crates/vault-core/src/proposal.rs
+  VC-04: `non_slug_re` is still defined in crates/vault-core/src/slug.rs
+  VC-04: `target_slug` is still defined in crates/vault-core/src/slug.rs
+  VC-54: `src/uri/mod.rs` must not contain `pub fn slugify`
+  VC-54: `crates/visionclaw-ontology/src/services/canonical_iri.rs` must not contain `pub fn slugify`
+  VC-54: `crates/visionclaw-ontology/src/services/jsonld_ingest/expander.rs` must not contain `pub fn slugify`
+  VC-54: `src/services/parsers/knowledge_graph_parser.rs` must not contain `pub fn slugify`
+  VC-54: `crates/visionclaw-adapters/src/oxigraph_ontology_repository.rs` must not contain `fn slug(s: &str)`
+  VC-54: `client/src/features/graph/utils/pageLinks.ts` must not contain `export function slugifyLabel`
+  VC-54: `src/uri/mod.rs` fn `slugify` still implements a slug rule (case fold, alphanumeric test, hyphen)
+  VC-54: `crates/visionclaw-ontology/src/services/canonical_iri.rs` fn `slugify` still implements a slug rule (case fold, alphanumeric test, hyphen)
+  VC-54: `src/services/parsers/knowledge_graph_parser.rs` fn `slugify` still implements a slug rule (case fold, alphanumeric test, hyphen)
+  VC-54: `crates/visionclaw-adapters/src/oxigraph_ontology_repository.rs` fn `slug` still implements a slug rule (case fold, alphanumeric test, hyphen)
+  VC-54: `crates/visionclaw-adapters/src/oxigraph_ontology_repository.rs` fn `slug` still implements a slug rule
+  VC-54: `crates/visionclaw-ontology/src/services/canonical_iri.rs` fn `slugify` still implements a slug rule
+  VC-54: `src/actors/elevation_actor.rs` fn `slugify` still implements a slug rule
+  VC-54: `src/services/decision_elevation.rs` fn `slugify` still implements a slug rule
+  VC-54: `src/services/parsers/knowledge_graph_parser.rs` fn `slugify` still implements a slug rule
+  VC-54: `src/uri/mod.rs` fn `slugify` still implements a slug rule
+  VC-55: `crates/visionclaw-domain/src/uri.rs` holds a local constant initialised from `urn:ngm:class:`
+  VC-55: `src/uri/mod.rs` holds a local constant initialised from `urn:ngm`
+  VC-55: `crates/visionclaw-adapters/src/rdf_serializer.rs` holds a local constant initialised from `https://narrativegoldmine.com/ns/v1#`
+  VC-55: `crates/visionclaw-adapters/src/provenance_emitter.rs` holds a local constant initialised from `https://narrativegoldmine.com/ns/v1#`
+  VC-55: `crates/visionclaw-adapters/src/sparql_migrations.rs` holds a local constant initialised from `urn:ngm:graph:migrations`
+  VC-55a: a local constant is initialised from `http://www.w3.org/ns/prov#` in crates/vault/src/build/turtle.rs, crates/visionclaw-adapters/src/provenance_emitter.rs, crates/visionclaw-ontology/src/services/jsonld_ingest/expander.rs, src/services/decision_service.rs, src/services/provenance_writer.rs
+  VC-55 drift (differs from VC_NS .../ns/v1#): `client/src/services/solidPod/typeIndex.ts` must not contain `narrativegoldmine.com/ontology#`
+  VC-55: `client/src/features/ontology/services/inferredAxiomsService.ts` must not contain `urn:ngm:graph:ontology:inferred`
+  VC-55: `scripts/ontology/pack-pod-resources.py` must not contain `narrativegoldmine.com/ns/v1#`
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: ontomark_step2_iri::common::finish
+             at ./tests/common/mod.rs:56:5
+   3: ontomark_step2_iri::step2_iri_legacy_is_gone
+             at ./tests/ontomark_step2_iri.rs:87:5
+   4: ontomark_step2_iri::step2_iri_legacy_is_gone::{closure#0}
+             at ./tests/ontomark_step2_iri.rs:35:30
+   5: <ontomark_step2_iri::step2_iri_legacy_is_gone::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   6: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+
+failures:
+    step2_iri_consumers_on_ontomark_model
+    step2_iri_legacy_is_gone
+
+test result: FAILED. 17 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.50s
+
+
+running 19 tests
+test common::self_tests::helper_defines_finds_definitions_not_uses ... ok
+test common::self_tests::helper_enum_variants_skip_attributes_and_payloads ... ok
+test common::self_tests::helper_fn_bodies_return_bodies_with_literals ... ok
+test common::self_tests::helper_lexer_drops_comments_and_keeps_code ... ok
+test common::self_tests::helper_lexer_handles_raw_strings_chars_and_lifetimes ... ok
+test common::self_tests::helper_ontomark_use_requires_a_real_path ... ok
+test common::self_tests::helper_migration_files_are_never_scanned ... ok
+test common::self_tests::helper_manifest_metadata_and_comments_are_not_dependencies ... ok
+test common::self_tests::helper_paths_ignore_spacing_and_find_brace_form ... ok
+test common::self_tests::helper_manifest_resolves_renames_and_target_tables ... ok
+test common::self_tests::helper_script_comments_are_not_code ... ok
+test common::self_tests::helper_path_git_and_optional_dependencies_are_not_registry_releases ... ok
+test common::self_tests::helper_slug_rule_is_recognised_by_logic_not_name ... ok
+test common::workflow::self_tests::helper_shell_ignores_comments_and_quoted_text ... ok
+test common::workflow::self_tests::helper_shell_joins_continuations_and_splits_pipelines ... ok
+test common::workflow::self_tests::helper_shell_skips_heredoc_bodies_and_subshells ... ok
+test common::workflow::self_tests::helper_tag_and_digest_shapes ... ok
+test step3_taxonomy_consumers_on_the_estate_registry ... FAILED
+test step3_taxonomy_legacy_is_gone ... FAILED
+
+failures:
+
+---- step3_taxonomy_consumers_on_the_estate_registry stdout ----
+
+thread 'step3_taxonomy_consumers_on_the_estate_registry' (1103473) panicked at crates/visionclaw-domain/tests/common/mod.rs:56:5:
+ontomark step 3 (taxonomy), consumers not landed (2 failing):
+  step 3 (T), estate profile: `crates/vault/Cargo.toml` does not depend on ["ontomark-model"] (`ontomark-model` is not under [dependencies])
+  step 3 (T), VC-56 classifier: `Cargo.toml` does not depend on ["ontomark-model"] (`ontomark-model` is not under [dependencies])
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: ontomark_step3_taxonomy::common::finish
+             at ./tests/common/mod.rs:56:5
+   3: ontomark_step3_taxonomy::step3_taxonomy_consumers_on_the_estate_registry
+             at ./tests/ontomark_step3_taxonomy.rs:49:5
+   4: ontomark_step3_taxonomy::step3_taxonomy_consumers_on_the_estate_registry::{closure#0}
+             at ./tests/ontomark_step3_taxonomy.rs:43:53
+   5: <ontomark_step3_taxonomy::step3_taxonomy_consumers_on_the_estate_registry::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   6: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+---- step3_taxonomy_legacy_is_gone stdout ----
+
+thread 'step3_taxonomy_legacy_is_gone' (1103474) panicked at crates/visionclaw-domain/tests/common/mod.rs:56:5:
+ontomark step 3 (taxonomy), legacy not landed (17 failing):
+  VC-05: `crates/vault-core/src/domains.rs` must be deleted
+  VC-05: `crates/vault-core/src/lib.rs` still declares `mod domains`
+  VC-05: `vault_core::domains` still referenced in crates/vault/src/build/graph_tiers.rs, src/actors/gpu/force_compute_actor.rs, src/actors/gpu/gpu_resource_actor.rs, src/services/github_sync_service.rs
+  VC-05: `crate::domains` still referenced in crates/vault-core/src/consistency.rs
+  VC-05: `DOMAIN_ROOTS` is still defined in crates/vault-core/src/domains.rs
+  VC-05: `DOMAIN_SLUGS` is still defined in crates/vault-core/src/domains.rs
+  VC-05: `domain_class_id` is still defined in crates/vault-core/src/domains.rs
+  D2/VC-06/VC-18: `crates/vault/src/build/graph_tiers.rs` still holds a local category-slug table (53 of 53 entries)
+  D2/VC-06/VC-18: `crates/vault-core/src/consistency.rs` still holds a local category-slug table (53 of 53 entries)
+  VC-05/VC-06/VC-56: `crates/vault-core/src/consistency.rs` still holds a local domain-slug table (8 of 8 entries)
+  VC-05/VC-06/VC-56: `crates/vault/src/build/graph_tiers.rs` still holds a local domain-slug table (4 of 8 entries)
+  VC-05/VC-06/VC-56: `src/services/github_sync_service.rs` still holds a local domain-slug table (6 of 8 entries)
+  VC-06 tables (D2): `crates/vault-core/src/consistency.rs` must not contain `CATEGORY_SLUGS`
+  VC-06 tables: `crates/vault-core/src/consistency.rs` must not contain `DOMAIN_ROOT_SLUGS`
+  VC-18 tables (D2): `crates/vault/src/build/graph_tiers.rs` must not contain `CATEGORY_ORDER`
+  VC-56: `src/services/github_sync_service.rs` must not contain `DOMAIN_TABLE`
+  VC-56: `src/services/github_sync_service.rs` must not contain `fn derive_source_domain`
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: ontomark_step3_taxonomy::common::finish
+             at ./tests/common/mod.rs:56:5
+   3: ontomark_step3_taxonomy::step3_taxonomy_legacy_is_gone
+             at ./tests/ontomark_step3_taxonomy.rs:76:5
+   4: ontomark_step3_taxonomy::step3_taxonomy_legacy_is_gone::{closure#0}
+             at ./tests/ontomark_step3_taxonomy.rs:53:35
+   5: <ontomark_step3_taxonomy::step3_taxonomy_legacy_is_gone::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   6: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+
+failures:
+    step3_taxonomy_consumers_on_the_estate_registry
+    step3_taxonomy_legacy_is_gone
+
+test result: FAILED. 17 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.51s
+
+
+running 19 tests
+test common::self_tests::helper_enum_variants_skip_attributes_and_payloads ... ok
+test common::self_tests::helper_defines_finds_definitions_not_uses ... ok
+test common::self_tests::helper_fn_bodies_return_bodies_with_literals ... ok
+test common::self_tests::helper_lexer_drops_comments_and_keeps_code ... ok
+test common::self_tests::helper_lexer_handles_raw_strings_chars_and_lifetimes ... ok
+test common::self_tests::helper_migration_files_are_never_scanned ... ok
+test common::self_tests::helper_manifest_metadata_and_comments_are_not_dependencies ... ok
+test common::self_tests::helper_manifest_resolves_renames_and_target_tables ... ok
+test common::self_tests::helper_ontomark_use_requires_a_real_path ... ok
+test common::self_tests::helper_script_comments_are_not_code ... ok
+test common::self_tests::helper_paths_ignore_spacing_and_find_brace_form ... ok
+test common::self_tests::helper_slug_rule_is_recognised_by_logic_not_name ... ok
+test common::workflow::self_tests::helper_shell_joins_continuations_and_splits_pipelines ... ok
+test common::workflow::self_tests::helper_shell_ignores_comments_and_quoted_text ... ok
+test common::self_tests::helper_path_git_and_optional_dependencies_are_not_registry_releases ... ok
+test common::workflow::self_tests::helper_shell_skips_heredoc_bodies_and_subshells ... ok
+test common::workflow::self_tests::helper_tag_and_digest_shapes ... ok
+test step4_reason_consumers_on_ontomark_reason ... FAILED
+test step4_reason_legacy_is_gone ... FAILED
+
+failures:
+
+---- step4_reason_consumers_on_ontomark_reason stdout ----
+
+thread 'step4_reason_consumers_on_ontomark_reason' (1103495) panicked at crates/visionclaw-domain/tests/common/mod.rs:56:5:
+ontomark step 4 (reason), consumers not landed (9 failing):
+  step 4 (R), VC-15/16 vault reasoning: `crates/vault/Cargo.toml` does not depend on ["ontomark-reason"] (`ontomark-reason` is not under [dependencies])
+  step 4 (R), VC-46 InferenceEngine port: `crates/visionclaw-adapters/Cargo.toml` does not depend on ["ontomark-reason"] (`ontomark-reason` is not under [dependencies])
+  step 4 (R), VC-47 closure (D5): `crates/visionclaw-ontology/Cargo.toml` does not depend on ["ontomark-reason"] (`ontomark-reason` is not under [dependencies])
+  step 4 (R), VC-48/49 root closure and projection (D5): `Cargo.toml` does not depend on ["ontomark-reason"] (`ontomark-reason` is not under [dependencies])
+  VC-15/46 (reasoning only through ontomark-reason): `Cargo.toml` must not depend on `whelk`
+  VC-15/46 (reasoning only through ontomark-reason): `crates/vault/Cargo.toml` must not depend on `whelk`
+  VC-15/46 (reasoning only through ontomark-reason): `crates/visionclaw-adapters/Cargo.toml` must not depend on `whelk`
+  VC-15/46 (reasoning only through ontomark-reason): `crates/visionclaw-ontology/Cargo.toml` must not depend on `whelk`
+  VC-49 (D5): `src/services/inferred_edge_materialiser.rs` has no real `use`/path of an ontomark crate in code
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: ontomark_step4_reason::common::finish
+             at ./tests/common/mod.rs:56:5
+   3: ontomark_step4_reason::step4_reason_consumers_on_ontomark_reason
+             at ./tests/ontomark_step4_reason.rs:43:5
+   4: ontomark_step4_reason::step4_reason_consumers_on_ontomark_reason::{closure#0}
+             at ./tests/ontomark_step4_reason.rs:25:47
+   5: <ontomark_step4_reason::step4_reason_consumers_on_ontomark_reason::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   6: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+---- step4_reason_legacy_is_gone stdout ----
+
+thread 'step4_reason_legacy_is_gone' (1103496) panicked at crates/visionclaw-domain/tests/common/mod.rs:56:5:
+ontomark step 4 (reason), legacy not landed (41 failing):
+  VC-15: `crates/vault/src/whelk.rs` must be deleted
+  VC-15: `crates/vault/src/lib.rs` still declares `mod whelk`
+  VC-15: `vault::whelk` still referenced in crates/vault/src/main.rs, crates/vault/tests/defined_classes.rs, crates/vault/tests/whelk_scaling.rs
+  VC-15: `crate::whelk` still referenced in crates/vault/src/build/mod.rs, crates/vault/src/certificate.rs, crates/vault/src/gate.rs, crates/vault/src/propose.rs
+  VC-16: `crates/vault/src/closure.rs` must be deleted
+  VC-16: `crates/vault/src/lib.rs` still declares `mod closure`
+  VC-16: `crate::closure` still referenced in crates/vault/src/build/indexes.rs, crates/vault/src/build/mod.rs, crates/vault/src/build/page_api.rs
+  VC-15: `OWL_THING` is still defined in crates/vault/src/whelk.rs
+  VC-15: `OWL_ON_PROPERTY` is still defined in crates/vault/src/whelk.rs
+  VC-15: `OWL_SOME_VALUES_FROM` is still defined in crates/vault/src/whelk.rs
+  VC-15: `OWL_OBJECT_PROPERTY` is still defined in crates/vault/src/whelk.rs
+  VC-15: `OWL_TRANSITIVE_PROPERTY` is still defined in crates/vault/src/whelk.rs
+  VC-15: `OWL_INTERSECTION_OF` is still defined in crates/vault/src/whelk.rs
+  VC-15: `RDF_NIL` is still defined in crates/vault/src/whelk.rs
+  VC-15: `resolve_definitions` is still defined in crates/vault/src/whelk.rs
+  VC-15: `reason_capped` is still defined in crates/vault/src/whelk.rs
+  VC-15: `reason_with` is still defined in crates/vault/src/whelk.rs
+  VC-15: `operand_expression` is still defined in crates/vault/src/whelk.rs
+  VC-15: `reason_axioms` is still defined in crates/vault/src/whelk.rs
+  VC-15: `inferred_turtle` is still defined in crates/vault/src/whelk.rs
+  VC-16: `INHERITED_RELATION_CAP` is still defined in crates/vault/src/closure.rs
+  VC-16: `compute_inherited` is still defined in crates/vault/src/closure.rs
+  VC-46: `crates/visionclaw-adapters/src/whelk_inference_engine.rs` must be deleted
+  VC-46: `crates/visionclaw-adapters/src/lib.rs` still declares `mod whelk_inference_engine`
+  VC-46: `visionclaw_adapters::whelk_inference_engine` still referenced in src/adapters/mod.rs
+  VC-46: `WhelkInferenceEngine` is still defined in crates/visionclaw-adapters/src/whelk_inference_engine.rs
+  VC-46: `ConsistencyOutcome` is still defined in crates/visionclaw-adapters/src/whelk_inference_engine.rs
+  VC-46 port repinned: `WhelkInferenceEngine` still referenced in crates/visionclaw-adapters/src/lib.rs, crates/visionclaw-adapters/src/whelk_inference_engine.rs, src/actors/elevation_actor.rs, src/adapters/mod.rs, src/main.rs, src/services/decision_service.rs, src/services/github_sync_service.rs, src/services/ontology_mutation_service.rs, src/services/ontology_query_service.rs, tests/inference/classification_tests.rs, tests/inference/consistency_tests.rs, tests/inference/explanation_tests.rs, tests/inference/performance_tests.rs, tests/ontology_agent_integration_test.rs
+  VC-47 (D5): `crates/visionclaw-ontology/src/reasoning/custom_reasoner.rs` must be deleted
+  VC-47 (D5): `crates/visionclaw-ontology/src/reasoning/mod.rs` still declares `mod custom_reasoner`
+  VC-47 (D5): `reasoning::custom_reasoner` still referenced in src/services/ontology_pipeline_service.rs, tests/fixtures/ontology/test_ontologies.rs, tests/integration/pipeline_test.rs, tests/integration/semantic_physics_integration_test.rs, tests/performance/reasoning_benchmark.rs
+  VC-47: `OWLClass` is still defined in crates/visionclaw-ontology/src/reasoning/custom_reasoner.rs
+  VC-47: `CustomReasoner` is still defined in crates/visionclaw-ontology/src/reasoning/custom_reasoner.rs
+  VC-47 (D5): `CustomReasoner` still referenced in crates/visionclaw-ontology/src/reasoning/custom_reasoner.rs, crates/visionclaw-ontology/src/reasoning/mod.rs, src/services/ontology_pipeline_service.rs, tests/integration/pipeline_test.rs, tests/integration/semantic_physics_integration_test.rs, tests/performance/reasoning_benchmark.rs
+  VC-48 (D5): `src/services/ontology_reasoner.rs` must be deleted
+  VC-48 (D5): `src/services/mod.rs` still declares `mod ontology_reasoner`
+  VC-48 (D5): `services::ontology_reasoner` still referenced in src/services/ontology_enrichment_service.rs, src/test_helpers.rs
+  VC-06/48/49: `check_disjoint_pair` is still defined in crates/vault-core/src/consistency.rs
+  VC-06/48/49: `whelk_inconsistent` is still defined in crates/vault-core/src/consistency.rs
+  VC-06/48/49: `precompute_transitive_closure` is still defined in src/services/ontology_reasoner.rs
+  VC-06/48/49: `immediate_inferred_parents` is still defined in src/services/inferred_edge_materialiser.rs
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: ontomark_step4_reason::common::finish
+             at ./tests/common/mod.rs:56:5
+   3: ontomark_step4_reason::step4_reason_legacy_is_gone
+             at ./tests/ontomark_step4_reason.rs:72:5
+   4: ontomark_step4_reason::step4_reason_legacy_is_gone::{closure#0}
+             at ./tests/ontomark_step4_reason.rs:47:33
+   5: <ontomark_step4_reason::step4_reason_legacy_is_gone::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   6: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+
+failures:
+    step4_reason_consumers_on_ontomark_reason
+    step4_reason_legacy_is_gone
+
+test result: FAILED. 17 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.52s
+
+
+running 19 tests
+test common::self_tests::helper_enum_variants_skip_attributes_and_payloads ... ok
+test common::self_tests::helper_fn_bodies_return_bodies_with_literals ... ok
+test common::self_tests::helper_defines_finds_definitions_not_uses ... ok
+test common::self_tests::helper_lexer_drops_comments_and_keeps_code ... ok
+test common::self_tests::helper_lexer_handles_raw_strings_chars_and_lifetimes ... ok
+test common::self_tests::helper_manifest_metadata_and_comments_are_not_dependencies ... ok
+test common::self_tests::helper_manifest_resolves_renames_and_target_tables ... ok
+test common::self_tests::helper_migration_files_are_never_scanned ... ok
+test common::self_tests::helper_ontomark_use_requires_a_real_path ... ok
+test common::self_tests::helper_paths_ignore_spacing_and_find_brace_form ... ok
+test common::self_tests::helper_path_git_and_optional_dependencies_are_not_registry_releases ... ok
+test common::self_tests::helper_script_comments_are_not_code ... ok
+test common::workflow::self_tests::helper_shell_ignores_comments_and_quoted_text ... ok
+test common::self_tests::helper_slug_rule_is_recognised_by_logic_not_name ... ok
+test common::workflow::self_tests::helper_shell_joins_continuations_and_splits_pipelines ... ok
+test common::workflow::self_tests::helper_shell_skips_heredoc_bodies_and_subshells ... ok
+test common::workflow::self_tests::helper_tag_and_digest_shapes ... ok
+test step5_ngg1_consumer_on_the_shared_codec ... FAILED
+test step5_ngg1_encoder_is_gone ... FAILED
+
+failures:
+
+---- step5_ngg1_consumer_on_the_shared_codec stdout ----
+
+thread 'step5_ngg1_consumer_on_the_shared_codec' (1103579) panicked at crates/visionclaw-domain/tests/common/mod.rs:56:5:
+ontomark step 5 (ngg1), consumer not landed (1 failing):
+  step 5 (N), NGG1: `crates/vault/Cargo.toml` does not depend on ["ontomark-compile", "ontomark-ngg1"] (`ontomark-compile`: optional dependency; `ontomark-ngg1` is not under [dependencies])
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: ontomark_step5_ngg1::common::finish
+             at ./tests/common/mod.rs:56:5
+   3: ontomark_step5_ngg1::step5_ngg1_consumer_on_the_shared_codec
+             at ./tests/ontomark_step5_ngg1.rs:21:5
+   4: ontomark_step5_ngg1::step5_ngg1_consumer_on_the_shared_codec::{closure#0}
+             at ./tests/ontomark_step5_ngg1.rs:16:45
+   5: <ontomark_step5_ngg1::step5_ngg1_consumer_on_the_shared_codec::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   6: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+---- step5_ngg1_encoder_is_gone stdout ----
+
+thread 'step5_ngg1_encoder_is_gone' (1103580) panicked at crates/visionclaw-domain/tests/common/mod.rs:56:5:
+ontomark step 5 (ngg1), legacy not landed (14 failing):
+  VC-17: `crates/vault/src/build/ngg1.rs` must be deleted
+  VC-17: `crates/vault/src/build/mod.rs` still declares `mod ngg1`
+  VC-17: `super::ngg1` still referenced in crates/vault/src/build/graph_tiers.rs
+  VC-17: `HEADER_SIZE` is still defined in crates/vault/src/build/ngg1.rs
+  VC-17: `NODE_STRIDE` is still defined in crates/vault/src/build/ngg1.rs
+  VC-17: `EDGE_SUBCLASS` is still defined in crates/vault/src/build/ngg1.rs
+  VC-17: `EDGE_RELATION` is still defined in crates/vault/src/build/ngg1.rs
+  VC-17: `FLAG_DOMAIN_ROOT` is still defined in crates/vault/src/build/ngg1.rs
+  VC-17: `FLAG_CATEGORY_ROOT` is still defined in crates/vault/src/build/ngg1.rs
+  VC-17: `FLAG_HAS_PAGE` is still defined in crates/vault/src/build/ngg1.rs
+  VC-17: `FLAG_BRIDGE` is still defined in crates/vault/src/build/ngg1.rs
+  VC-17: `force_layout` is still defined in crates/vault/src/build/ngg1.rs
+  VC-17: `bake_positions` is still defined in crates/vault/src/build/ngg1.rs
+  VC-17 (NGG1 magic outside ontomark): `b"NGG1"` is still in crates/vault/src/build/ngg1.rs
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: ontomark_step5_ngg1::common::finish
+             at ./tests/common/mod.rs:56:5
+   3: ontomark_step5_ngg1::step5_ngg1_encoder_is_gone
+             at ./tests/ontomark_step5_ngg1.rs:33:5
+   4: ontomark_step5_ngg1::step5_ngg1_encoder_is_gone::{closure#0}
+             at ./tests/ontomark_step5_ngg1.rs:25:32
+   5: <ontomark_step5_ngg1::step5_ngg1_encoder_is_gone::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   6: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+
+failures:
+    step5_ngg1_consumer_on_the_shared_codec
+    step5_ngg1_encoder_is_gone
+
+test result: FAILED. 17 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.49s
+

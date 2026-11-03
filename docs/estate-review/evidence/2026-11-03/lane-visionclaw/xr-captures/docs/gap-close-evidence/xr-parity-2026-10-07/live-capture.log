@@ -1,0 +1,99 @@
+Initialize godot-rust (API v4.3.stable.official, runtime v4.6.1.stable.official)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+TextServer: Added interface "Dummy"
+TextServer: Added interface "ICU / HarfBuzz / Graphite (Built-in)"
+Unrecognized output string "misc2" in mapping:
+030000000d0f0000ab01000011010000,Horipad Steam,a:b0,b:b1,back:b10,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,dpup:h0.1,guide:b12,leftshoulder:b6,leftstick:b13,lefttrigger:a5,leftx:a0,lefty:a1,misc2:b2,paddle1:b19,paddle2:b18,paddle3:b15,paddle4:b5,rightshoulder:b7,rightstick:b14,righttrigger:a4,rightx:a2,righty:a3,start:b11,x:b3,y:b4,platform:Linux,
+Unrecognized output string "misc2" in mapping:
+050000000d0f00009601000091000000,Horipad Steam,a:b0,b:b1,back:b10,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,dpup:h0.1,guide:b12,leftshoulder:b6,leftstick:b13,lefttrigger:a5,leftx:a0,lefty:a1,misc2:b2,paddle1:b19,paddle2:b18,paddle3:b15,paddle4:b5,rightshoulder:b7,rightstick:b14,righttrigger:a4,rightx:a2,righty:a3,start:b11,x:b3,y:b4,platform:Linux,
+Unrecognized output string "misc2" in mapping:
+030000007e0500006920000011010000,Nintendo Switch 2 Pro Controller,a:b0,b:b1,back:b14,dpdown:b8,dpleft:b10,dpright:b9,dpup:b11,guide:b16,leftshoulder:b12,leftstick:b15,lefttrigger:b13,leftx:a0,lefty:a1~,misc1:b17,misc2:b20,paddle1:b18,paddle2:b19,rightshoulder:b4,rightstick:b7,righttrigger:b5,rightx:a2,righty:a3~,start:b6,x:b2,y:b3,platform:Linux,
+SDL: Init OK!
+Xshape 1.1 detected.
+Xinerama 1.1 detected.
+Xrandr 1.6 detected.
+Xrender 0.11 detected.
+Xinput 2.2 detected.
+XInput: Refreshing devices.
+XInput: No touch devices found.
+Detecting GPUs, set DRI_PRIME in the environment to override GPU detection logic.
+Only one GPU found, using default.
+Failed loading custom cursor: crossed_circle
+DBus 1.16.2 detected.
+Requested V-Sync mode: Disabled
+Using "default" pen tablet driver...
+Shader 'CanvasSdfShaderGLES3' SHA256: 3917cfbf2e3cb6ab115fd4817bf0d50c670506fb95c29aeb92082427b2fd88fc
+Shader 'SkeletonShaderGLES3' SHA256: 901a9f77b7e55796e494b46736afb67c5a1590272a1e1997d11ddd18aca38f30
+Shader 'ParticlesShaderGLES3' SHA256: fdeeed965d360f52d49cf7d6b5e2d2a17ea2ad1d8ab08cd2ccffa28127192625
+Shader 'ParticlesCopyShaderGLES3' SHA256: b03bd2210e57a428eecc407f40fde146ba0439a1e305228dd58f042faa838e78
+Shader 'CopyShaderGLES3' SHA256: 6452e7b44d0609fb1c7c6aa8035920580bad8d469359122f88b2c52d5f593186
+Shader 'CubemapFilterShaderGLES3' SHA256: 831fba3ce3cc4f2123e7aa20d1070d16023881d0158101f5c6fcc682d5dcca19
+Shader 'GlowShaderGLES3' SHA256: 3da97b34876c0fe0f811b344d53d6c27acfd22eb360ffb534c5b43dcb9f480bf
+Shader 'PostShaderGLES3' SHA256: 8fb1c197af4959dcdb163ac239b58bb81615b7bb3378f7ce7fb0f8e08146743d
+Shader 'FeedShaderGLES3' SHA256: 830e3c3a214f716daf8cbf1396ed84744530b1edc2e7ea93c7051fd8deb4c5b3
+Shader 'CanvasShaderGLES3' SHA256: 54ce02ad2fe38ef32c9b8f87e5e6df5ccdd003bdfe09b86c5d3ef99d16f5ac23
+Shader 'CanvasOcclusionShaderGLES3' SHA256: ff049a796618b924de5b2d525d6154056549fa3d4009f73e093d437c7f7e6e63
+Shader 'SceneShaderGLES3' SHA256: 5923153636fa253096309698c1f106c033321385df8d2db510e5d3b42b3950e4
+Shader 'SkyShaderGLES3' SHA256: 4d072f96c24f23330ecdf61489c99afb481885a491491d93438db645bec1e03d
+OpenGL API 3.3.0 NVIDIA 580.178.04 - Compatibility - Using Device: NVIDIA - Quadro RTX 6000
+
+TextServer: Primary interface set to: "ICU / HarfBuzz / Graphite (Built-in)".
+CORE API HASH: 75400357
+EDITOR API HASH: 3012763406
+Loading resource: res://tests/visual/live_parity_capture.gd
+SceneTreeFTI: traversal method DEFAULT
+Loaded system CA certificates
+Loading resource: res://scenes/GraphScene.tscn
+Loading resource: res://scripts/graph_scene.gd
+Loading resource: res://materials/cluster_hull.gdshader
+Loading resource: res://materials/node_impostor.gdshader
+Loading resource: res://materials/edge_ribbon.gdshader
+Loading resource: res://materials/edge_flow_common.gdshaderinc
+Loading resource: res://materials/memory_point.gdshader
+Loading resource: res://materials/memory_route.gdshader
+Loading resource: res://materials/memory_ring.gdshader
+Loading resource: res://materials/memory_bead.gdshader
+Loading resource: res://scenes/Avatar.tscn
+Loading resource: res://scripts/avatar.gd
+Loading resource: res://materials/gem.tres
+Loading resource: res://materials/crystal_orb.tres
+Loading resource: res://materials/node_halo.tres
+Loading resource: res://materials/node_halo.gdshader
+Loading resource: res://materials/agent_capsule.tres
+Loading resource: res://scenes/HUD.tscn
+Loading resource: res://scripts/hud.gd
+Loading resource: res://scripts/dwell_reticle.gd
+Loading resource: res://materials/edge_flow.tres
+Loading resource: res://materials/edge_flow.gdshader
+Loading resource: res://materials/agent_beam.tres
+Loading resource: res://materials/agent_beam.gdshader
+Loading resource: res://materials/gem_faded.tres
+Loading resource: res://scripts/spatial_environment.gd
+Loading resource: res://materials/spatial_floor.gdshader
+Loading resource: res://materials/focus_ring.gdshader
+Loading resource: res://materials/node_halo_quad.tres
+Loading resource: res://materials/node_halo_quad.gdshader
+Loading resource: res://fonts/HudSans-SemiBold.ttf
+Loading resource: res://.godot/imported/HudSans-SemiBold.ttf-2ea8d9c2ff8993ccea2779ff9e1219e7.fontdata
+Loading resource: res://scenes/RadialMenu.tscn
+Loading resource: res://scripts/radial_menu.gd
+GraphScene: eye-gaze unsupported by this OpenXR runtime -- head-gaze primary
+[2m2026-10-07T15:27:41.572062Z[0m [32m INFO[0m [2mvisionclaw_xr_gdext::presence[0m[2m:[0m presence joined [3mroom[0m[2m=[0murn:visionclaw:room:sha256-12-deadbeefcafe [3mmembers[0m[2m=[0m1
+GraphScene DEBUG: topology arrived edges=13958 nodes=2628 positions_known=0 budgets=2628/13958
+GraphScene DEBUG: topology arrived edges=13958 nodes=2628 positions_known=9473 budgets=2628/13958
+XR_PARITY graph nodes=9473
+Project FPS: 2645 (0.37 mspf)
+Project FPS: 2719 (0.36 mspf)
+Project FPS: 2751 (0.36 mspf)
+XR_PARITY route verdict=apply
+Project FPS: 2528 (0.39 mspf)
+Project FPS: 2616 (0.38 mspf)
+XR_PARITY_STATE {"agreement":"Route: 3 of 5 sidecar hits are in the sample · 2 of 3 sampled agree with the local top-k","budget":{"cloud_draw_calls":1,"cloud_triangles":6000,"route_draw_calls":3,"route_triangles":6650,"sprites":6000},"cloud_bounds":[-12.5808658599854,22.9451370239258,-14.0863094329834,112.008399963379],"cue_alpha":1.0,"file":"/home/john/.local/share/godot/app_userdata/VisionClaw XR/xr-parity-cue.png","graph_bounds":[-2.71694564819336,-5.18629455566406,-27.5153503417969,78.5799331665039],"placement":"{ \"position\": (-2.716946, -5.186295, -27.51535), \"scale\": 0.70155394077301, \"offset\": (12.58087, -22.94514, 14.08631) }","view":"cue","xr":false}
+Project FPS: 1840 (0.54 mspf)
+Project FPS: 2521 (0.39 mspf)
+Project FPS: 2729 (0.36 mspf)
+Project FPS: 2554 (0.39 mspf)
+XR_PARITY_STATE {"agreement":"Route: 3 of 5 sidecar hits are in the sample · 2 of 3 sampled agree with the local top-k","budget":{"cloud_draw_calls":1,"cloud_triangles":6000,"route_draw_calls":3,"route_triangles":6650,"sprites":6000},"cloud_bounds":[-12.5808658599854,22.9451370239258,-14.0863094329834,112.008399963379],"cue_alpha":0.0,"file":"/home/john/.local/share/godot/app_userdata/VisionClaw XR/xr-parity-converged.png","graph_bounds":[-2.97102546691895,-6.80080986022949,-28.3985843658447,71.5421600341797],"placement":"{ \"position\": (-2.971025, -6.80081, -28.39858), \"scale\": 0.63872140645981, \"offset\": (12.58087, -22.94514, 14.08631) }","view":"converged","xr":false}
+XR: Clearing primary interface
+XR: Removed interface "Native mobile"
+XR: Removed interface "OpenXR"
