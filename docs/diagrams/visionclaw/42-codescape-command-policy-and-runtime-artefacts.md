@@ -19,7 +19,7 @@ sources:
   - ../codescape/crates/codescape-layout/src/lib.rs
   - ../project/docker-compose.unified.yml
   - ../project/docs/adr/ADR-2148-enable-local-typed-decisions.md
-verified_commit: {codescape: 58108c0357bd0dbf6588f8b6adf6e044f4c04556, visionclaw: 86cdd7635582}
+verified_commit: {codescape: 4db47bac633984285c43a3ca3ae9bf7c69696def, visionclaw: 86cdd7635582}
 ---
 
 ## For developers
@@ -34,10 +34,10 @@ An enabled model can choose a bounded view action even before anyone calibrates 
 
 ```mermaid
 flowchart TD
-    DEC["Separate repository and published wire dependency<br/>ADR-0001-extraction-from-visionclaw.md:28,33"] --> ISO["Check default and cuda resolution<br/>only visionclaw-wire prefix exception<br/>codescape-server/tests/isolation.rs:106,121,139"]
+    DEC["Separate repository and published wire dependency<br/>ADR-0001-extraction-from-visionclaw.md:42,33"] --> ISO["Check default and cuda resolution<br/>only visionclaw-wire prefix exception<br/>codescape-server/tests/isolation.rs:106,121,139"]
     ISO --> PATH["Reject VisionClaw git sources and external path packages<br/>codescape-server/tests/isolation.rs:215"]
     PATH --> LIC["Inspect normal and build dependency licences<br/>codescape-server/tests/isolation.rs:324"]
-    DEC --> GPU["PTX crosses at runtime with manifest and ABI checks<br/>ADR-0001-extraction-from-visionclaw.md:34"]
+    DEC --> GPU["PTX crosses at runtime with manifest and ABI checks<br/>ADR-0001-extraction-from-visionclaw.md:48"]
     GPU --> LOAD["Read pair from configured directory<br/>codescape-layout/src/ptx_source.rs:93,105"]
 ```
 
