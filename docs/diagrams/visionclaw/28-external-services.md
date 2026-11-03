@@ -28,7 +28,7 @@ sources:
   - ../project/agentbox/services/agentbox-manifest/src/system_one.rs
   - ../project/crates/visionclaw-jev/src/config.rs
   - ../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md
-verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35}
+verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724, agentbox: 5cffdd1d926a9d10c393ec6d6c7a0f4e74ab2925}
 ---
 ## VC-28.1 ragflow_service — outbound RAGFlow agent API
 ```mermaid
@@ -381,7 +381,7 @@ sequenceDiagram
     Note over SS: DRIFT CLOSED 2026-09-13 (ab5724422): TTSProvider is now a ONE-variant<br/>enum, PocketTts. The OpenAI branch and its api.openai.com call are deleted<br/>and Kokoro is gone, so this boundary no longer reaches any paid TTS API.<br/>visionclaw-domain/src/types/speech.rs:66, default at speech_service.rs:74
     Note over SS: DRIFT: the note above is true of TTS only. STTProvider declares Whisper and OpenAI (the unimplemented TurboWhisper variant<br/>and its two warnings were deleted after af3dff3f2) and the default is Whisper, but SetSTTProvider(OpenAI) is live: ProcessAudioChunk then POSTs<br/>the audio to https://api.openai.com/v1/audio/transcriptions when settings.openai holds an API key, so a third-party speech edge exists on demand.<br/>visionclaw-domain/src/types/speech.rs:71-74, speech_service.rs:75, :689-699, :722
     Note over SS: TextToSpeechForUser, TextToSpeechSpatial, ProcessAudioChunkForUser and AgentSpatialInfo were logged no-ops with no sender and are deleted<br/>(VisionClaw cefd9d1d7 under ER-24), so SpeechCommand carries no user-scoped or spatial entry point.<br/>visionclaw-domain/src/types/speech.rs:77-87
-    Note over SS: TENSION (ADR-2151 vs manifest): the agentbox VoiceLink edge voice slot runs voice on the operator's client and reaches the container over an ssh stdio<br/>voice-paned process, never through SpeechService. ADR-2151 is decision_status proposed with implementation_status none and activation inactive,<br/>yet the manifest sets [voicelink] enabled = true. agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7, agentbox/agentbox.toml:2259-2264
+    Note over SS: TENSION (ADR-2151 vs manifest): the agentbox VoiceLink edge voice slot runs voice on the operator's client and reaches the container over an ssh stdio<br/>voice-paned process, never through SpeechService. ADR-2151 is decision_status proposed and activation inactive, implementation_status moved none to partial<br/>in its 2026-11-02 reconciliation (source and bake exist, acceptance not inferred from the flag), agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7, :21,<br/>yet the manifest sets [voicelink] enabled = true. agentbox/agentbox.toml:2259-2264
 ```
 ## VC-28.9 consolidated external-dependency map
 ```mermaid

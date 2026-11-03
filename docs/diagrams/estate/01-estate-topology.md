@@ -57,7 +57,7 @@ sources:
   - ../project/agentbox/scripts/ci/check-ports-loopback.mjs
   - ../project/agentbox/config/entrypoint-unified.sh
   - scripts/estate-health/roster.json
-verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35, visionflow: 5f8b1da92ce5d9e6b32a0bd90ec3630c66619083}
+verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724, agentbox: 5cffdd1d926a9d10c393ec6d6c7a0f4e74ab2925, visionflow: 5f8b1da92ce5d9e6b32a0bd90ec3630c66619083}
 ---
 ## ES-01.1 Substrate map — the VisionClaw checkout's neighbourhood, not the whole estate
 ```mermaid
@@ -73,12 +73,12 @@ flowchart TB
 
     subgraph CRATE["Embedded as a Cargo dependency, not a checkout"]
         SPR["solid-pod-rs 0.5.0-alpha.17<br/>crates.io version, Cargo.toml:246<br/>feature solid-pod-embed (ADR-032 M3)"]
-        SPRN["solid-pod-rs 0.5.0-alpha.18 workspace<br/>agentbox Nix pin, solid-pod-rs.nix:54<br/>rev 76ab7aab, RustCrypto 0.14 and SOLID_POD_JEV_ALLOW_CLOUD<br/>solid-pod-rs.nix:56-58"]
+        SPRN["solid-pod-rs 0.5.0-alpha.19 workspace<br/>agentbox Nix pin, solid-pod-rs.nix:55<br/>rev c27cdfed, external-review follow-up, existing Jev gate kept<br/>solid-pod-rs.nix:57-58"]
     end
     VC -->|"Cargo dep: fs-backend, nip98-schnorr,<br/>did-nostr, quota, rate-limit"| SPR
     AB -->|"lib/solid-pod-rs.nix pin<br/>supervised solid-pod program on port 8484<br/>native-pod-mesh.md:3"| SPRN
 
-    DIVSP["DIVERGENCE re-opened 2026-10-30 — the estate's TWO solid-pod-rs pins no longer<br/>agree. VisionClaw still compiles crates.io 0.5.0-alpha.17 in-process<br/>(Cargo.toml:246); agentbox builds the 0.5.0-alpha.18 workspace from the<br/>fetchFromGitHub rev 76ab7aab (solid-pod-rs.nix:54,58) for the<br/>supervised port 8484 pod. The agentbox pin carries the<br/>SOLID_POD_JEV_ALLOW_CLOUD opt-in (solid-pod-rs.nix:56-58). The DOC<br/>lags too: native-pod-mesh.md:3-4 says Shipped at alpha.15 and that the Nix pin<br/>is v0.5.0-alpha.9, and its topology figure labels<br/>the server v0.4.0-alpha.17 (native-pod-mesh.md:30) — DOC-DRIFT<br/>inside it. see ES-08.1"]
+    DIVSP["DIVERGENCE re-opened 2026-10-30 — the estate's TWO solid-pod-rs pins no longer<br/>agree. VisionClaw still compiles crates.io 0.5.0-alpha.17 in-process<br/>(Cargo.toml:246); agentbox builds the 0.5.0-alpha.19 workspace from the<br/>fetchFromGitHub rev c27cdfed (solid-pod-rs.nix:55,58) for the<br/>supervised port 8484 pod. The agentbox pin comment says it<br/>keeps the existing Jev gate (solid-pod-rs.nix:57-58). The DOC<br/>lags too: native-pod-mesh.md:3-4 says Shipped at alpha.15 and that the Nix pin<br/>is v0.5.0-alpha.9, and its topology figure labels<br/>the server v0.4.0-alpha.17 (native-pod-mesh.md:30) — DOC-DRIFT<br/>inside it. see ES-08.1"]
     SPRN --> DIVSP
     SPR --> DIVSP
 
@@ -267,9 +267,9 @@ flowchart LR
     VF -.-> VL
 ```
 
-**Tension:** ADR-2151 is `decision_status: proposed`, `implementation_status: none`, `activation_status: inactive` (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`), yet the running manifest sets `[voicelink] enabled = true` and `record_events = true` (`../project/agentbox/agentbox.toml:2264,2271`).
+**Tension (status moved 2026-11-02):** at the previous agentbox stamp (`c57d9c0`) ADR-2151 read `decision_status: proposed`, `implementation_status: none`, `activation_status: inactive`. Its 2026-11-02 external review reconciliation moves implementation to `partial` because the source and the bake exist (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`, `../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:21`); the decision stays proposed and activation inactive, and the ADR says acceptance is not inferred from the enabled flag (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:21`), yet the running manifest sets `[voicelink] enabled = true` and `record_events = true` (`../project/agentbox/agentbox.toml:2264,2271`).
 
-**Open:** Isaac Sim (ADR-2149) is `proposed`, `partial`, `staged`: the overlay exists but publishes no port and is gated by environment variables, not by the manifest (`../project/agentbox/docs/adr/ADR-2149-isaac-sim-sidecar.md:5-7,29`).
+**Open:** Isaac Sim (ADR-2149) is `proposed`, `partial`, `staged`: the overlay exists but publishes no port and is gated by environment variables, not by the manifest (`../project/agentbox/docs/adr/ADR-2149-isaac-sim-sidecar.md:5-7,35`).
 
 ## ES-01.6 Repositories on disk — what is a checkout, what is a stub, what is external
 ```mermaid

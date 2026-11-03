@@ -15,6 +15,7 @@ sources:
   - ../project/agentbox/config/sidechain/dreamlab-txbt4/chain.json
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/flake.nix
+  - ../project/agentbox/lib/sidestr-agent.nix
   - ../sidestr-rs/sidestr-core/Cargo.toml
   - ../sidestr-rs/sidestr-header/Cargo.toml
   - ../sidestr-rs/sidestr-wallet/Cargo.toml
@@ -37,7 +38,7 @@ sources:
   - ../project/agentbox/config/sidechain/README.md
   - ../project/agentbox/config/sidechain/dreamlab/chain.json
   - ../project/docs/TODO-unified.md
-verified_commit: {sidestr-rs: 9c6de86c657a25ec2f2a189baf63db7dedad40eb, visionflow: 9cc2266a3f797321e2314741557dbc06061cb4b6, visionclaw: 531df5ef74453a2ed320bff968c203a9b91faed7, agentbox: 9dfc27b16e82e9786535a55e790710493dd51fdf}
+verified_commit: {sidestr-rs: 7f04644411220ba0d3b9c7bdba58bbf56be790fa, visionflow: 9cc2266a3f797321e2314741557dbc06061cb4b6, visionclaw: 531df5ef74453a2ed320bff968c203a9b91faed7, agentbox: 5cffdd1d926a9d10c393ec6d6c7a0f4e74ab2925}
 ---
 
 ## For developers
@@ -115,11 +116,15 @@ flowchart TB
     LIFE["Per-capability acceptance receipt"] -. "needed to promote activation" .-> ACT
     PUB -. "does not prove" .-> ACT
     DEPLOY --> LIFE
+    BOUND["INVARIANT, ADR-0002 reconciliation 2026-11-02: crate boundaries are an<br/>architectural property, not a consensus-integrity certificate, and an<br/>optional-library defect is not estate-chain exposure without activation evidence<br/>ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md:23, :25"]
+    REP["OPEN, ADR-0002 repair 2026-11-03: withdrawal outputs consumed once, snapshot<br/>code hashes checked on restore, header failures no longer evict valid txs.<br/>It rejects formerly accepted blocks, so consumers must adopt together<br/>before activation. agentbox source now pins sidestr-agent at that repair<br/>revision, sidestr-agent.nix:30, ADR-0002 records no rebuild or activation receipt<br/>ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md:19"]
+    SOURCE -.-> BOUND
+    REP -. "adoption needed" .-> LIFE
 ```
 
 **What it shows.** ADR-2012's recorded decision, implementation and activation axes are independent (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:115`, `docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:130`). Source, package publication, runtime processes and a successful capability lifecycle are different evidence. The matrix does not promote the ecosystem proposal merely because research producers run.
 
-**Why it is this way.** N-9 closes historical source/release work while N-10 asks for activation receipts (`../project/docs/TODO-unified.md:102`, `../project/docs/TODO-unified.md:103`). Its claim that Hitch has no host is now stale: `sidestr-agent::hitch::host` exists; that still does not establish an accepted deployed channel lifecycle (`../sidestr-rs/docs/adr/ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md:144`).
+**Why it is this way.** N-9 closes historical source/release work while N-10 asks for activation receipts (`../project/docs/TODO-unified.md:102`, `../project/docs/TODO-unified.md:103`). Its claim that Hitch has no host is now stale: `sidestr-agent::hitch::host` exists; that still does not establish an accepted deployed channel lifecycle (`../sidestr-rs/docs/adr/ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md:154`).
 
 **Invariant:** source evidence may promote implementation status; it cannot by itself promote activation status.
 
@@ -127,7 +132,7 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    AB["agentbox supervisor<br/>../project/agentbox/flake.nix:3126"]
+    AB["agentbox supervisor<br/>../project/agentbox/flake.nix:3127"]
     AB --> P1["dreamlab / tbtc4<br/>JavaScript producer port 3450"]
     AB --> P2["dreamlab-txbt4 / txbt4<br/>JavaScript producer port 3451"]
     F1["sidestr-agent faucet"] --> P1
@@ -138,7 +143,7 @@ flowchart TB
     ROUTE -.-> F2
 ```
 
-**What it shows.** At 14:15:29 UTC on 1 November, all six named programmes were running; both producer endpoints served documents equal to their sealed checkout documents. The producers execute baked `siding.mjs`; the faucet binaries differ as the runner specifies (`../project/agentbox/config/sidechain/run-producer.sh:167`, `../project/agentbox/config/sidechain/run-faucet.sh:59`). [Runtime receipt](../../estate-review/evidence/2026-11-01/crate-boundary/runtime.json). The second table is enabled despite the README's older disabled-default statement (`../project/agentbox/agentbox.toml:1976`, `../project/agentbox/config/sidechain/README.md:188`).
+**What it shows.** At 14:15:29 UTC on 1 November, all six named programmes were running; both producer endpoints served documents equal to their sealed checkout documents. The producers execute baked `siding.mjs`; the faucet binaries differ as the runner specifies (`../project/agentbox/config/sidechain/run-producer.sh:167`, `../project/agentbox/config/sidechain/run-faucet.sh:59`). [Runtime receipt](../../estate-review/evidence/2026-11-01/crate-boundary/runtime.json). The second table is enabled despite the README's older disabled-default statement (`../project/agentbox/agentbox.toml:1975`, `../project/agentbox/config/sidechain/README.md:188`).
 
 **Why it is this way.** Each chain has its own producer, mirror and faucet; the BLAKE2b family chooses the forum-kit faucet. A responding tip is not evidence of current block progress, mirror freshness, successful grants or Hitch activation. The observed producers have no checkpoint arguments, consistent with default-zero configuration (`../project/agentbox/config/sidechain/run-producer.sh:148`); historical anchoring was not inspected.
 

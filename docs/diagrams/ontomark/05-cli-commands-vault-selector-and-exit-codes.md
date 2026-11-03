@@ -25,7 +25,7 @@ sources:
   - ../visionGraph/.github/workflows/publish.yml
   - ../project/.github/workflows/ontology-publish.yml
   - docs/engineering/sovereign-corpus-contracts.md
-verified_commit: {ontomark: 4b9d15df48056971321a62b8c4e905f4536c74db, visiongraph: 556a0156b5c326fb61141ed2ab1760dd8d9c4dd6, visionclaw: 86cdd76355823a51bb64d503c005fe277726e724, visionflow: 5f8b1da92ce5d9e6b32a0bd90ec3630c66619083}
+verified_commit: {ontomark: 6c3f693b36301ee95c8b684a000b5aeec3ac9bbd, visiongraph: 556a0156b5c326fb61141ed2ab1760dd8d9c4dd6, visionclaw: 86cdd76355823a51bb64d503c005fe277726e724, visionflow: 5f8b1da92ce5d9e6b32a0bd90ec3630c66619083}
 ---
 
 Restamped at ontomark 4b9d15d on 2026-11-02. The `ingest` verb is now in the command tree (`ontomark-cli/src/main.rs:137-140`) and is shown in OM-05.1; its pipeline is mapped in [OM-08](08-external-source-ingest.md).
@@ -77,8 +77,8 @@ flowchart TD
     ROOT["vault_root = the profile layout places the vault under the repo root:<br/>root_of refuses a role the layout lacks or a missing folder<br/>ontomark-cli/src/main.rs:555-557, profile.rs:573-588"]
     MISS["MissingVault, or a LayoutError from the layout check, a refused request: exit 2 from main<br/>ontomark-cli/src/main.rs:457-466, profile.rs:635, profile/layout.rs:11"]
     WWP["with_working_publish =<br/>kinds contains Working AND kind is Knowledge<br/>true ONLY for all<br/>ontomark-cli/src/main.rs:815-816"]
-    PUB["build: sibling_vault(Working) loaded and added to publish_vaults<br/>build/mod.rs:612-618"]
-    MS["scope machine reads knowledge and working itself and refuses vault working or all, see OM-06.1<br/>ontomark-cli/src/main.rs:393-401, build/mod.rs:476-523"]
+    PUB["build: sibling_vault(Working) loaded and added to publish_vaults<br/>build/mod.rs:698-704"]
+    MS["scope machine reads knowledge and working itself and refuses vault working or all, see OM-06.1<br/>ontomark-cli/src/main.rs:393-401, build/mod.rs:557-604"]
     ART["ontology projections stay on vault_root alone:<br/>OWL membership is not a per-page decision<br/>ontomark-cli/src/main.rs:799-803, build/mod.rs:76-77"]
     FLAG --> VK
     VK --> W
@@ -149,9 +149,9 @@ flowchart LR
     TWO --- n1
     ONE --- n2
 ```
-- `SecretsFound` is checked before validation on purpose so a credential is a code-2 refusal and never swallowed by the generic code-1 validation message (`build/mod.rs:587-597`).
+- `SecretsFound` is checked before validation on purpose so a credential is a code-2 refusal and never swallowed by the generic code-1 validation message (`build/mod.rs:673-683`).
 - The `0/1/2` contract is declared in the crate doc, with `1` also covering execution errors, and the doc lists the unsatisfiable class, the machine-scope refusals, a `--vault working|all` on a layout without that vault, the `create`/`apply` guards and the `ingest` refusals under 2 (`ontomark-cli/src/main.rs:31-42`). **Drift:** the doc does not name the `LayoutError` refusals (escaping or overlapping role roots) that `main` also maps to 2 (`ontomark-cli/src/main.rs:460-463`).
-- An unsatisfiable corpus exits 2 through the typed `build::Unsatisfiable`; before the OM-00 reconcile it was an untyped error at exit 1 (`build/mod.rs:751-757`, `ontomark-cli/src/main.rs:874-877`).
+- An unsatisfiable corpus exits 2 through the typed `build::Unsatisfiable`; before the OM-00 reconcile it was an untyped error at exit 1 (`build/mod.rs:858-864`, `ontomark-cli/src/main.rs:874-877`).
 
 ## OM-05.4 Repo-root discovery and profile resolution — before any verb runs
 
@@ -223,14 +223,14 @@ flowchart LR
     BIN["ontomark build — ontomark-cli/src/main.rs:798-910"]
     VGBUILD -->|"vault_kinds all -> with_working_publish true"| BIN
     VCRUN -.->|"different binary"| BIN
-    n1["EXTERNAL: the two consumers differ — visionGraph uses ontomark with<br/>--vault all, VisionClaw still uses its own vault crate with<br/>--vault knowledge; ADR-OM-005 records this and routes VisionClaw to build --scope machine, see OM-06.1,<br/>publish.yml:175-176, ontology-publish.yml:168-173, ADR-OM-005-estate-alignment-one-producer-explicit-projections.md:30"]
-    n2["EXTERNAL: this VisionClaw workflow never invokes ontomark; vault build output<br/>feeds pack-pod-resources.py, ontology-publish.yml:247. ADR-OM-005 decision 2<br/>retires this job, gated, so it keeps running — ADR-OM-005-estate-alignment-one-producer-explicit-projections.md:28"]
+    n1["EXTERNAL: the two consumers differ — visionGraph uses ontomark with<br/>--vault all, VisionClaw still uses its own vault crate with<br/>--vault knowledge; ADR-OM-005 records this and routes VisionClaw to build --scope machine, see OM-06.1,<br/>publish.yml:175-176, ontology-publish.yml:168-173, ADR-OM-005-estate-alignment-one-producer-explicit-projections.md:40"]
+    n2["EXTERNAL: this VisionClaw workflow never invokes ontomark; vault build output<br/>feeds pack-pod-resources.py, ontology-publish.yml:247. ADR-OM-005 decision 2<br/>retires this job, gated, so it keeps running — ADR-OM-005-estate-alignment-one-producer-explicit-projections.md:38"]
     n3["INVARIANT: visionGraph treats the staging tree as wrong unless both<br/>pages/ and working/ exist, because ontomark silently accepts a<br/>knowledge-only build — publish.yml:199-205"]
     VG --- n1
     VC --- n2
     VGBUILD --- n3
 ```
-- Redaction is not a flag in either workflow: visionGraph gets it from the estate profile (`estate/profile.yaml:226`, `build/mod.rs:623-625`) and never passes `--no-redact-private-links`; the legacy `vault` build kept private links (`ontomark-cli/src/main.rs:443-450`).
+- Redaction is not a flag in either workflow: visionGraph gets it from the estate profile (`estate/profile.yaml:226`, `build/mod.rs:709-711`) and never passes `--no-redact-private-links`; the legacy `vault` build kept private links (`ontomark-cli/src/main.rs:443-450`).
 - The consumer does not pass `--generated-at`, `--source-commit` or `--stale-after`, so `.generation.json` takes the clock and git (`build/mod.rs:63-67`, `publish.yml:175-181`).
 
 ## OM-05.6 C2 contract versus the shipped CLI — what C2 lists that ontomark and vault now split between them
@@ -278,3 +278,7 @@ flowchart LR
 - The verbs ontomark leaves out are the forum transport only: `propose` and `panel publish` stay in VisionClaw (`ontomark-cli/src/main.rs:52-53`, `DEPRECATION.md:95`).
 - No `BuildArgs` option is parsed and left unused: all fourteen reach `build::Options`, the embedder or the report (`ontomark-cli/src/main.rs:382-451,814-837,888`).
 - DIVERGENCE: `--no-redact-private-links` overlays the profile setting `publication.redact_private_links` as a `Some(false)` override rather than a separate behaviour (`ontomark-cli/src/main.rs:828`, `build/mod.rs:84`, `profile.rs:427`).
+
+**Tension (ontomark 6c3f693 vs this topic's visionGraph stamp):** since 6c3f693, released in v0.7.3, `build` refuses a `--certificate-out` that is not a directory inside `--out`, because certificate files are now staged into the bundle and share its commit point (`../ontomark/crates/ontomark-compile/src/build/mod.rs:436-472`). The visionGraph workflow drawn in the consumer diagram is stamped at `556a015`, where it pins release v0.7.0 and passes `--certificate-out "$RUNNER_TEMP/certificate"`, outside `--out site-data` (`publish.yml:49`, `publish.yml:180`). That pairing runs only because the pinned release predates the guard. visionGraph is changing this workflow in a lane today, so the visionGraph key is left for phase 2.
+
+**Open (ADR-OM-005 reconciliation, 2026-11-02):** the record now says its "sole producer" wording is about publication ownership, not a claim that every consumer is current, and that Agentbox's grouped-proposal adapter and VisionClaw's retained `vault propose` are distinct consumers: a signed multi-page proposal is not evidence that the single-page `apply` path can execute it (`../ontomark/docs/adr/ADR-OM-005-estate-alignment-one-producer-explicit-projections.md:25`). Its 2026-11-03 repair adds a resource-identity guard to single-page apply and leaves grouped signing, admission and digest checks to the consumers (`{ADR}:21`); see OM-00.

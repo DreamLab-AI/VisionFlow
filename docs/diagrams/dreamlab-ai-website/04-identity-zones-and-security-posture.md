@@ -21,7 +21,8 @@ sources:
   - ../dreamlab-ai-website/scripts/seed/provision-website-info.mjs
   - ../dreamlab-ai-website/forum-config/dreamlab.toml
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs
-verified_commit: {dreamlab-ai-website: 0e1572801d03a1af6d8bc8861f928da087d69eed, nostr-rust-forum: c39f41f104b114d6a3fa29013daaf6fa58b45080}
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/agent_disclosure.rs
+verified_commit: {dreamlab-ai-website: c3849abb8a2a289fbb013c721dfc0c5544c74b16, nostr-rust-forum: a3812b8e79846b569c1f19054f0774e94fed1248}
 ---
 
 ## DW-04.1 Identity is raw-hex Schnorr, not a DID document
@@ -136,11 +137,12 @@ flowchart TB
     %% Source: ../dreamlab-ai-website/forum-config/dreamlab.toml:435
     A --> D["Ingress copy role admits addressed wraps<br/>without requiring a whitelist row"]
     %% Source: ../dreamlab-ai-website/scripts/seed/provision-website-info.mjs:97
-    A --> E["Setup skips registration if public<br/>disclosure already lists the key"]
+    A --> E["Setup skips registration only when public<br/>disclosure reports registered true for the key"]
     %% Source: ../dreamlab-ai-website/scripts/lib/website-info.mjs:100
     A --> F["Setup checks reject admin flag<br/>or nonempty cohort array"]
 ```
-- ADR-2011 decides the key is named but unprivileged because the `agent` cohort would receive the zone4 key (`docs/adr/ADR-2011-website-information-identity.md:35-37`); the relay reads only wraps addressed to the viewer, which is why a co-recipient copy exists rather than a second look at the admin's (`src/lib/nostr.ts:342-347`).
-- **Open:** the registry's `registered_by` is the agentbox operator key that signs the registration while the roster says `operator-jjohare`; ADR-2011 leaves that gap open until the kit exports config to the registry (`docs/adr/ADR-2011-website-information-identity.md:56-57`).
-- **Drift:** ADR-2011 says the watch reports missing registry/whitelist rows, but configuration-backed ingress and merged disclosure can keep its checks green after row loss. The provisioner also skips registration when that merged response lists the key (`scripts/seed/provision-website-info.mjs:97`). DW-09 and the [dated review](../../estate-review/2026-11-01-website-information-and-inbox.md) trace the consumed kit and reproduce the consumer behaviour.
+- ADR-2011 decides the key is named but unprivileged because the `agent` cohort would receive the zone4 key (`docs/adr/ADR-2011-website-information-identity.md:54-56`); the relay reads only wraps addressed to the viewer, which is why a co-recipient copy exists rather than a second look at the admin's (`src/lib/nostr.ts:342-347`).
+- **Open:** the registry's `registered_by` is the agentbox operator key that signs the registration while the roster says `operator-jjohare`; ADR-2011 leaves that gap open until the kit exports config to the registry (`docs/adr/ADR-2011-website-information-identity.md:75-76`).
+- **Drift (repaired at source 2026-11-03, adoption not evidenced):** at the previous stamp (`0e15728`) ADR-2011 said the watch reports missing registry/whitelist rows, but configuration-backed ingress and merged disclosure could keep its checks green after row loss, and the provisioner skipped registration whenever the merged response merely listed the key. The website now requires the disclosure's explicit `registered` flag in both the nightly check and the provisioner (`scripts/lib/website-info.mjs:83`, `scripts/lib/website-info.mjs:89`, `scripts/seed/provision-website-info.mjs:97`, `scripts/seed/provision-website-info.mjs:119`), and the forum disclosure marks a registry row `registered: true` and a config-merged ingress entry `registered: false` (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/agent_disclosure.rs:57`, `../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/agent_disclosure.rs:88`). ADR-2011's 2026-11-03 repair evidence records that the fix needs the matching forum response deployed, that an older response now fails the registry check, and that no provisioning or live messaging was performed (`docs/adr/ADR-2011-website-information-identity.md:26-37`). DW-09 and the [dated review](../../estate-review/2026-11-01-website-information-and-inbox.md) trace the consumed kit and reproduce the earlier consumer behaviour.
+- **Open:** ADR-2011 now points at a 2026-11-02 dated source reconciliation of the external review that supplements the decision without changing its status (`docs/adr/ADR-2011-website-information-identity.md:20-24`); ADR-2011 records no deployment of a forum revision that serves the `registered` field, so the repair is source-complete and adoption-pending.
 - The old cryptographic-impossibility wording in DW-04.5 was too broad: current NIP-59 recommends recipient-authorised deletion, whereas the inspected kit deletion handler permits author matching or privileged deletion. The dated review separates protocol capability from this implementation; no deletion was executed.

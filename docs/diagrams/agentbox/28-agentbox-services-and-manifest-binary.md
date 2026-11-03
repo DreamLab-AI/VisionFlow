@@ -66,7 +66,7 @@ sources:
   - ../project/agentbox/services/skill-tools/src/docs_alignment/mermaid.rs
   - ../project/agentbox/services/LICENSING-NOTICE.md
   - ../project/agentbox/crates/headroom-napi/Cargo.toml
-verified_commit: {agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35, visionflow: 4d361b58ce2b3ee17e1570361eaf78270b630012}
+verified_commit: {agentbox: 5a6c165483545dfaf97df72787e3d0107259b24f, visionflow: 4d361b58ce2b3ee17e1570361eaf78270b630012}
 ---
 
 ## AB-28.1 agentbox-manifest — the boot-time projection surface
@@ -129,7 +129,7 @@ flowchart TB
 
 **Open:** ADR-2146 (the activity-sink hook that `provision-stacks` registers per profile) is recorded `accepted` with `implementation_status: complete` and `activation_status: inactive` (`../project/agentbox/docs/adr/ADR-2146-activity-sink-hook.md:5-7`), and the manifest ships the gate off (`../project/agentbox/agentbox.toml:528`); it is registered only when `[integrations.activity_sink]` is enabled.
 
-**Tension (ADR-2151 vs manifest):** ADR-2151 records `proposed`, `implementation_status: none`, `activation_status: inactive` (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`), yet `provision-stacks` writes the voicelink Stop and Notification recorder hooks into every profile whenever `[voicelink].record_events` is true, and the manifest sets it true (`../project/agentbox/services/agentbox-manifest/src/stacks.rs:311-323`, `../project/agentbox/agentbox.toml:2271`).
+**Tension (ADR-2151 vs manifest, status moved 2026-11-02):** at the previous stamp (`c57d9c0`) ADR-2151 read `decision_status: proposed`, `implementation_status: none`, `activation_status: inactive`. Its 2026-11-02 external review reconciliation moves implementation to `partial` because the source and the bake exist (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`, `../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:21`), which closes the implementation half; the decision is still proposed and activation inactive, and the ADR says acceptance is not inferred from the enabled flag (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:21`). Yet `provision-stacks` writes the voicelink Stop and Notification recorder hooks into every profile whenever `[voicelink].record_events` is true, and the manifest sets it true (`../project/agentbox/services/agentbox-manifest/src/stacks.rs:311-323`, `../project/agentbox/agentbox.toml:2271`).
 
 ## AB-28.2 Boot projection sequence
 
@@ -324,7 +324,7 @@ flowchart LR
         N3["RESOLVED since AB-22.13 was written: the [skills.harness] block now reads the<br/>manifest gate, agentbox-manifest toml-bool --path skills.harness.enabled,<br/>config/entrypoint-unified.sh:2471-2475. Its [skills.precedent] twin was removed from<br/>agentbox.toml with the precedent bridge, so no stanza is left unguarded"]
         N4["INVARIANT: the colloquy binary is symlinked as /opt/agentbox/bin/colloquy-mcp<br/>(agentbox/flake.nix:2097) and NEVER as a /nix/store path, because a store path is<br/>content-addressed and garbage-collected, which is how the registration came to fail<br/>ENOENT against a path no longer on disk (flake.nix:2088-2095)"]
         N5["OPEN: ADR-2104 is recorded decision_status: proposed, implementation_status: partial<br/>(docs/adr/ADR-2104-direct-control-over-mcp.md:5-7), so its rule that an MCP server is a<br/>disposable adapter over a crate, never the control surface (:36-38), is not yet a<br/>compliance surface for this fleet"]
-        N6["DRIFT (open): flake.nix's default hub server roster (mcpHubServers, used only when<br/>[resources.mcp_hub].servers is unset) no longer names ontology-bridge (flake.nix:231-234),<br/>matching S2's deletion — but it still names precedent-bridge, the server AB-28.11 records<br/>as DELETED; agentbox.toml sets its own roster explicitly, so the default is dormant"]
+        N6["DRIFT RESOLVED at ba4e8cc2a: flake.nix's default hub server roster (mcpHubServers,<br/>used only when [resources.mcp_hub].servers is unset) names neither ontology-bridge<br/>nor precedent-bridge (flake.nix:231-234); at c57d9c0 it still named precedent-bridge,<br/>the server AB-28.11 records as DELETED. agentbox.toml sets its own roster explicitly"]
         N1 ~~~ N2 ~~~ N3 ~~~ N4 ~~~ N5 ~~~ N6
     end
 ```

@@ -20,7 +20,7 @@ sources:
   - ../knowledgeGraph/archive/logseq-era-2026-09-22/pages/ADR-012.md
   - ../visionGraph/.github/workflows/publish.yml
   - ../visionGraph/quartz/scripts/check-urls.sh
-verified_commit: {knowledgegraph: 4ed9ac159daf402b4fb252ce559dbeb894a8d91e, visiongraph: 556a0156b5c326fb61141ed2ab1760dd8d9c4dd6}
+verified_commit: {knowledgegraph: 4809ea9772e61766058cf20d38e7527082e78fed, visiongraph: 556a0156b5c326fb61141ed2ab1760dd8d9c4dd6}
 ---
 
 ## For developers
@@ -56,7 +56,7 @@ flowchart TB
 ```mermaid
 flowchart TB
     OLD["September acceptance reports census, strict flags,<br/>visibility fixtures and export generation checks<br/>ADR-2002, September acceptance"]
-    %% Source: ADR-2002-corpus-is-the-ontology.md:90-138
+    %% Source: ADR-2002-corpus-is-the-ontology.md:100-148
     SET["Archived gate compares exact class identities<br/>release_gate.py:127-148"]
     HASH["Archived manifest inventories and re-hashes output<br/>manifest.py:87-135,173-197"]
     ARCH["Pipeline retired to historical archive<br/>logseq-era-2026-09-22/README.md:1-4"]
@@ -68,6 +68,8 @@ flowchart TB
 **What it shows:** The archived identity set and generation verifier are distinct from the current workflow's checks. A notes-page count can agree even when the intended page is absent.
 
 **Why it is this way:** The successor has a different assembly path. Retirement neither proves that all previous obligations transferred nor makes their unresolved acceptance conditions moot.
+
+**Open (ADR-2002 reconciliation, 2026-11-02 and 2026-11-03):** the account above was purely historical at the previous stamp (`4ed9ac1`). ADR-2002 now records that a legacy explorer is retained independently of the authored-vault publisher and pinned to the vowl-wasm v0.1.1 release, and asks for an explicit choice between retiring it and a tested consumer upgrade (`../knowledgeGraph/docs/adr/ADR-2002-corpus-is-the-ontology.md:26`, `../knowledgeGraph/docs/adr/ADR-2002-corpus-is-the-ontology.md:28`). Its 2026-11-03 repair entry says the retained copy's DoubleBuffer now counts outstanding transfers, and claims neither a renderer upgrade nor a remote publication (`../knowledgeGraph/docs/adr/ADR-2002-corpus-is-the-ontology.md:22`). ADR-2002 records no retire-or-upgrade decision yet.
 
 ## KG-07.3 Historical gaps and continuing decision tensions
 

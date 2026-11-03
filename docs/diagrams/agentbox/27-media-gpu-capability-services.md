@@ -51,7 +51,7 @@ sources:
   - ../project/agentbox/docker-compose.voice.yml
   - ../project/agentbox/docker-compose.speech.yml
   - ../project/agentbox/scripts/qgis_mcp_standalone.py
-verified_commit: c57d9c0508f4044915f9aecea4b9aa5629cc6a35
+verified_commit: 5a6c165483545dfaf97df72787e3d0107259b24f
 ---
 
 The [video measurement and provider audit](38-video-measurements-and-provider-boundaries.md) adds ADR-2150/2163 boundaries; the service traces below are re-read at this topic's own stamp and are not requalified by that audit.
@@ -263,7 +263,7 @@ sequenceDiagram
     Note over Caddy: if the Unmute clone is absent, console still starts —<br/>/embed and /api 502 until the speech stack is present (voice/README.md)
 ```
 
-**Tension (ADR-2151 vs manifest):** ADR-2151 records edge voice as `decision_status: proposed`, `implementation_status: none`, `activation_status: inactive` (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`), while the live manifest sets `[voicelink] enabled = true` and `record_events = true` (`../project/agentbox/agentbox.toml:2264`, `../project/agentbox/agentbox.toml:2271`); it is a separate path from the cockpit drawn here and is mapped in AB-12.
+**Tension (ADR-2151 vs manifest, status moved 2026-11-02):** at the previous stamp (`c57d9c0`) ADR-2151 recorded edge voice as `decision_status: proposed`, `implementation_status: none`, `activation_status: inactive`. Its 2026-11-02 external review reconciliation moves implementation to `partial` because the source and the bake exist (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`, `../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:21`), which closes the implementation half; the decision is still proposed and activation inactive, and the ADR says acceptance is not inferred from the enabled flag (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:21`). The live manifest sets `[voicelink] enabled = true` and `record_events = true` (`../project/agentbox/agentbox.toml:2264`, `../project/agentbox/agentbox.toml:2271`); it is a separate path from the cockpit drawn here and is mapped in AB-12.
 
 **Drift (AoE naming after ADR-2153):** the voice console's Caddyfile header still lists an `/aoe/*` route that no `handle` block serves (`../project/agentbox/voice/console/Caddyfile:16`), the catalogue still names the entry "Voice + AoE operator console" with an "AoE session board" (`../project/agentbox/management-api/lib/system-manifest.js:181-183`), and `agentbox.sh` still introduces the sidecar as the "Voice + AoE operator console" (`../project/agentbox/agentbox.sh:595`). `voice/README.md` alone records the retirement (`../project/agentbox/voice/README.md:1-4`).
 
@@ -559,6 +559,6 @@ flowchart TB
     CAT -.-> SVC
 ```
 
-**Open:** ADR-2149 is recorded as `decision_status: proposed`, `implementation_status: partial`, `activation_status: staged`, so this sidecar is drawn as an opt-in design, not a running service; health beyond the control level becomes true only from a succeeded smoke job (`../project/agentbox/docs/adr/ADR-2149-isaac-sim-sidecar.md:5-7`, `../project/agentbox/docs/adr/ADR-2149-isaac-sim-sidecar.md:47-48`).
+**Open:** ADR-2149 is recorded as `decision_status: proposed`, `implementation_status: partial`, `activation_status: staged`, so this sidecar is drawn as an opt-in design, not a running service; health beyond the control level becomes true only from a succeeded smoke job (`../project/agentbox/docs/adr/ADR-2149-isaac-sim-sidecar.md:5-7`, `../project/agentbox/docs/adr/ADR-2149-isaac-sim-sidecar.md:53-54`).
 
-**Tension (ADR-2149 vs catalogue):** the ADR says the sidecar is live-class and ungated with no manifest section (`../project/agentbox/docs/adr/ADR-2149-isaac-sim-sidecar.md:29`), and the catalogue lists it as `apply_class: 'live'` with `gate: null` (`../project/agentbox/management-api/lib/system-manifest.js:178-180`); the decision itself is still `proposed`, so the catalogue already advertises a capability its record has not accepted.
+**Tension (ADR-2149 vs catalogue):** the ADR says the sidecar is live-class and ungated with no manifest section (`../project/agentbox/docs/adr/ADR-2149-isaac-sim-sidecar.md:35`), and the catalogue lists it as `apply_class: 'live'` with `gate: null` (`../project/agentbox/management-api/lib/system-manifest.js:178-180`); the decision itself is still `proposed`, so the catalogue already advertises a capability its record has not accepted. ADR-2149's 2026-11-02 reconciliation keeps that shape on purpose: Decision 1 holds the sidecar live-class and outside agentbox.toml, the record stays proposed/partial/staged pending the named build and simulator fixtures, and no isaac-sim container was running at its read-only inventory (`../project/agentbox/docs/adr/ADR-2149-isaac-sim-sidecar.md:21`).
