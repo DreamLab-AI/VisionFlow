@@ -1,7 +1,7 @@
 ---
 title: External estate review repairs and release handoff
 date: 2026-11-03
-status: in-progress
+status: source-checkpoint
 type: reference
 ---
 
@@ -19,15 +19,15 @@ diagram and ADR verification stamps have not been swept forward.
 | 1 Passkeys | Forum `7852fe8`: both clients sign registration; registration and login retain the issued PRF salt. | Deploy workers/clients. Existing broken registrations require re-enrolment; no speculative identity migration ran. |
 | 2 Device keys | Forum `7852fe8`: device proof, integer response types and guarded re-enrolment implemented. | Deploy and exercise an actual browser ceremony. |
 | 3 SEO publisher | Website `c3849abb`: inspect committed paths after commit, scrub errors before logging, and enforce changed-line limits using Git's parsed patch statistics. | Activate the nightly source. |
-| 4 Dream engine | Dream-core `bf3a11d`: stdin-only formatting, confined explicit writes, post-evaluator tree checks with a fresh index, denied-path/whole-blob withholding in repair, shared Ontomark credential detection and NUL-delimited tracked-path parsing. Core 0.4.1 published and adopted by Agentbox `ba4e8cc2a`. | Image rebuild. Final-state identity checks do not sandbox arbitrary evaluator execution. |
-| 5 Solid | Solid product `c27cdfed` (test-only follow-up `7718095`): owner-only whole-history Git export with correct routing, provenance WAC/SHA binding, malformed ACL denial and canonical-payment read failure handling. Canonical payment debits, beneficiary-bound deposits, numeric bounds, condition preservation and credential-copy findings repaired. All eight alpha.19 crates published. Forum `a3812b8` adopts shared replay/policy contracts; Agentbox `c157489c9` exact-source pins pass native acceptance (awaiting main integration). | VisionClaw adoption remains held. Rebuild/deployment remains separate. Existing generic-address deposits need explicit recovery; historical backups are not erased. |
+| 4 Dream engine | Dream-core `bf3a11d`: stdin-only formatting, confined explicit writes, post-evaluator tree checks with a fresh index, denied-path/whole-blob withholding in repair, shared Ontomark credential detection and NUL-delimited tracked-path parsing. Core 0.4.1 published and adopted by Agentbox `ba4e8cc2a`; host follow-up `e95d183cd` shares the escaped-pipe ledger parser and honours configured ledger paths. | Image rebuild. Final-state identity checks do not sandbox arbitrary evaluator execution. |
+| 5 Solid | Solid product `c27cdfed` (test-only follow-up `7718095`): owner-only whole-history Git export with correct routing, provenance WAC/SHA binding, malformed ACL denial and canonical-payment read failure handling. Canonical payment debits, beneficiary-bound deposits, numeric bounds, condition preservation and credential-copy findings repaired. All eight alpha.19 crates published. Forum `a3812b8` adopts shared replay/policy contracts; Agentbox `c157489c9` exact-source pins pass native acceptance, included in Agentbox main `b83771c21` (source `e923658ff`, final review documentation thereafter). | VisionClaw adoption remains held. Rebuild/deployment remains separate. Existing generic-address deposits need explicit recovery; historical backups are not erased. |
 | 6 SideStr | `7f046444`: duplicate withdrawals require sufficient independent payment, snapshot bytecode hashes are checked, and header/clock failures do not evict otherwise valid mempool transactions. Core 0.4.3 published; Agentbox source pin `6dbaaddc8` adopts the producer repair. | Rebuild the chain consumers and private EVM application. No running chain was changed. |
 | 7 Ontology contracts | Ontomark `6c3f693`: resource IRIs remain immutable and versionIRI metadata is excluded from consequence deltas. Agentbox explicit promote digest guard merged in `ba4e8cc2a`. VisionClaw's tested branch refuses to sign unsupported grouped proposals. | Finish VisionClaw consumer pins and merge its held branch after the outstanding review boundary is resolved. Grouped application is not implemented. |
 | 8 Membership/push | Forum `7852fe8`: relay authority, invite lookup/cohort updates, atomic drain/sequence accounting and logout registration state repaired; trust sweep uses a persisted cursor. | Deploy and validate migrations/real subscriptions. This does not promote every part of ADR-2014 to complete. |
 | 9 Inbox | Website `c3849abb` plus forum `7852fe8`: registry presence is distinct from configuration disclosure, privilege drift is checked, and only successfully displayed wraps are marked seen. | Deploy both sides of the additive `registered` response field. |
 | 10 XR/presence | VisionClaw `6b811f7a1` and Codescape `d2c3c3b`: release upgrade, drag/ack, holder, link-budget/provenance, portal scaling, topology grab and reliable presence-transition fixes tested in isolated worktrees. | Branches held: registry pins and review follow-up remain. The review worker requires hardware-key re-authentication. Live HMD and operator spring work were not changed. |
 | 11 VOWL/explorer | VOWL `2aff199`: bounded legacy subdivision, finite parameters, reload reset and retryable immutable npm publication. KG `4809ea9772e`: transferred-view accounting repaired. Official Rust 1.99.0 build/tests passed; GitHub release bundle uploaded and adopted by VG `f7186a7d2`. | npm publication failed with E404 (package/permission boundary). Owner must correct registry publishing configuration, then rerun the release against the existing immutable bundle. Local 1.99.1 bundle is test evidence only. |
-| 12 Custody | Agentbox W3b source `ba798738f` uses typed, receipt-governed identity-port calls for Jarvis, mirror, gateway and Dream consumers. Exact-source bridge tests pass; source review remains in progress. | Owner-run browser-key ceremony, custody provisioning, host socket permissions, flag-on rehearsal and activation remain. No key export, key mint or running-container cutover performed. |
+| 12 Custody | Agentbox W3b source `ba798738f`, amended in `85c6b8ffd` and integrated as `e923658ff`, uses typed, receipt-governed identity-port calls. Governance-key delivery is inventoried, calendar creates have request-scoped identities, and unsupported encrypted calendar metadata stays unpublished. Exact-source bridge tests pass; final revalidation is complete; merged on Agentbox main `b83771c21`. | Owner-run browser-key ceremony, custody provisioning, host socket permissions, flag-on rehearsal and activation remain. No key export, key mint or running-container cutover performed. |
 | 13 Pins/certificates | Ontomark `6c3f693` stages certificates inside the generation transaction; VG `fa7604d65` consumes nested certificates. `rdfs-certificate` 0.1.1, `ontomark-compile` 0.6.4 and CLI 0.7.3 published. VG `f7186a7d2` and Agentbox `ba4e8cc2a` pin the released CLI bytes. | Solid alpha.19 is published and forum adoption is merged; Agentbox pins are verified against immutable sources. VisionClaw registry adoption remains held; deployment is separate. Certificate output outside the generation is now refused early. |
 | 14 ADR hygiene | Owning repair notes retain historical anchors and qualify activation. Agentbox's retired precedent-bridge packaging fallback removed in `ba4e8cc2a`. Review skill lessons in `cb08c91a8` and `e2033dc78` cover honest reviewer receipts, exact packaged consumers and recovery from interrupted writes (131-skill lint passes, 29 warnings/33 existing suppressions). | Eleven focused successor topics add 30 panels. Historical verification stamps remain intact; scoped repair pointers identify later source changes. Owner decision authority is unchanged. |
 
@@ -63,10 +63,13 @@ snapshot, not whether every historical finding is still true today.
   registry Dream consumer passes its full suite (including 11 whole-night
   tests), Clippy and rustdoc. Nix source parsing and release-byte checks pass;
   no image build was performed. The reviewer reports two MEDIUM and one BUG
-  outside the repaired mechanisms: existing unauthenticated desktop listeners,
+  outside the initial repaired mechanisms: existing unauthenticated desktop listeners,
   missing general-dispatch signer-roster admission, and fallback governance
   persistence paths/overwritten case provenance. These are explicit follow-ups,
-  not new regressions attributed to the small changed hunks.
+  not new regressions attributed to the small changed hunks. The final Dream
+  ledger follow-up passes 196 unit and 11 integration tests, Clippy and rustdoc;
+  its external review passes the HIGH threshold while retaining the existing
+  relay-authority concern as a MEDIUM finding.
 - Forum: final shared-Solid acceptance passes 1,123 library tests, existing
   integration/doc gates, worker native/WASM Clippy and both WASM clients. Its
   initial external review timed out and is not a security PASS.
@@ -79,7 +82,7 @@ snapshot, not whether every historical finding is still true today.
   is retained. The RSA dependency risk remains explicitly accepted in deny.toml.
   Agentbox's shipped Solid feature combination passes 41 added route checks.
 - Exact Agentbox source assemblies: bridge 213 native plus five doc tests;
-  Colloquy 190 native plus 23 doc tests. Colloquy formatting, Clippy and rustdoc pass. The first paired
+  Colloquy 190 native plus 23 doc tests. The later URL repair adds one bridge regression (214 native plus five doc tests). Integrated source passes 16 real IPC tests without skips, five paired dependency checks and the 720-name credential inventory (12 role, 35 devuser-class and 673 non-secret names). Colloquy formatting, Clippy and rustdoc pass. The first paired
   build caught a k256 type-version mismatch, repaired by aligning the internal
   transport with the pinned forum signer. A sibling workspace build alone would
   not have demonstrated this consumer compatibility.
@@ -112,8 +115,8 @@ authorise merging balances without the settlement/reconciliation contract.
 
 ## Runtime observation
 
-The latest read-only check reported CPU packages at 42/44 C and GPUs at 71/42/42 C.
-The busy A6000 reported 83% utilisation; all GPUs reported thermal slowdown
+At 07:13:59 UTC the CPU package sensors reported 37/42 C and GPUs 71/43/42 C.
+The busy A6000 reported 82% utilisation; all GPUs reported thermal slowdown
 inactive. This was a read-only thermal check, not deployment acceptance. No
 runtime rebuild, HMD restart, live funds movement or custody cutover occurred.
 The temporary Nix fetch/parse containers had no workspace bind mounts and were
@@ -146,3 +149,35 @@ operator worktree was removed to recover space.
 5. Keep the named source-review follow-ups and unresolved settlement/LOOM
    contracts in the audit register. A missing contract needs an agreed source of
    authority; the release tests do not supply one.
+
+The held source is preserved in `~/workspace/wt/visionclaw-external-fixes`
+(branch `fix/external-audit`, commit `6b811f7a1`) and `~/workspace/wt/codescape-external-fixes`
+(branch `fix/external-audit`, commit `d2c3c3b`). These are intentionally not force-removed or merged
+while authentication and the recorded review follow-up remain outstanding.
+Completed task worktrees are removed after evidence preservation;
+foreign worktrees and the primary VisionFlow review ledger are retained.
+
+The final W3b review produced a BLOCK receipt with one CRITICAL, eight MEDIUM
+and three BUG findings. Its CRITICAL unwrap claim and the analogous exported
+helper claim were contradicted by the locked `nostr-tools` 2.25.2 source and
+real signed-message rejection controls. The NIP-98 parser differential was
+reproduced and repaired in `5cb6589bf`; literal backslash/control bytes are now
+refused before allowlist parsing. Delivery inventory checks independently caught
+a missing governance-key projection, and Dream ledger tests reproduced escaped
+pipe and configured-path inconsistencies. Their final integration receipts and
+[per-finding dispositions](evidence/2026-11-03/external-fixes/custody-w3b-review/dispositions.md) are retained; the initial BLOCK is not
+rewritten as a clean scan.
+
+Final W3b revalidation run `20261103071614-2b9e97988bce9c77` returned all eleven
+requested verdicts: five fixed, two false positives, three true positives and
+one uncertain. The true positives are relay-only decision authority, anonymous
+contact forwarding and sender-spend limits; zone delegation remains uncertain.
+The twelfth original finding, signed reply-content policy, was outside that
+revalidation and remains open. These are not a clean estate security verdict.
+
+Agentbox main `b83771c21` contains the reviewed source and scoped ADRs. Final
+contract acceptance includes 79 Node tests, 106 Jest tests, 25 supervisor tests
+and the 720-name inventory; root additionally ran the final 16 real IPC tests
+and five paired pin checks. The encrypted-calendar refusal is a confidentiality
+constraint, not a new encrypted calendar implementation. Owner activation and
+the held VisionClaw/Codescape work remain as listed above.

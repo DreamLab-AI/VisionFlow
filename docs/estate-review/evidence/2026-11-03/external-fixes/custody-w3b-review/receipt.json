@@ -1,0 +1,31 @@
+{
+  "gate": "deepsec",
+  "adr": "ADR-2033",
+  "result": "BLOCK",
+  "mode": "diff",
+  "fail_on": "HIGH",
+  "revision": "ba798738f79b08787c445bdd5f68f1aa06f31c81",
+  "dirty": false,
+  "deepsec_version": "2.3.10",
+  "policy_source": "/etc/agentbox.toml",
+  "deepsec_exit": 1,
+  "candidates": 27,
+  "findings_by_severity": {
+    "CRITICAL": 1,
+    "HIGH": 0,
+    "MEDIUM": 8,
+    "HIGH_BUG": 0,
+    "BUG": 3,
+    "LOW": 0
+  },
+  "blocking": [
+    {
+      "severity": "CRITICAL",
+      "file": null,
+      "title": "[CRITICAL] Commander gate trusts unauthenticated rumor.pubkey from bare nip59.unwrapEvent \u2192 RCE into tab 0",
+      "lines": null
+    }
+  ],
+  "net_new_reported_by_deepsec": true,
+  "at": "2026-11-03T07:07:35.290411+00:00"
+}

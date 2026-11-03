@@ -1,0 +1,28 @@
+{
+  "mode": "diff",
+  "diff_ref": "6dbaaddc8",
+  "files_from": "",
+  "root": "/home/devuser/workspace/wt/agentbox-custody-w3b",
+  "project_id": "agentbox-custody-w3b",
+  "workspace": "/home/devuser/workspace/wt/agentbox-custody-w3b/.deepsec-gate",
+  "report_dir": "/tmp/custody-w3b-deepsec",
+  "revision": "ba798738f79b08787c445bdd5f68f1aa06f31c81",
+  "dirty": "false",
+  "deepsec_version": "2.3.10",
+  "policy_source": "/etc/agentbox.toml",
+  "agent": "claude",
+  "model_auth": "local",
+  "model": "",
+  "thinking_level": "minimal",
+  "fail_on": "HIGH",
+  "max_duration": "20m",
+  "batch_size": "5",
+  "concurrency": "2",
+  "ai_provider": "",
+  "ai_api_key_env": "",
+  "ai_base_url": "",
+  "route": {
+    "mode": "local",
+    "provider": "local"
+  }
+}

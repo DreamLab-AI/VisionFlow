@@ -1,0 +1,29 @@
+   Compiling nostr-bbs-core v1.0.0-beta.19 (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/nostr-rust-forum/crates/nostr-bbs-core)
+   Compiling nostr-pod-bridge v0.1.0 (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/services/nostr-pod-bridge)
+    Finished `test` profile [unoptimized] target(s) in 4.94s
+     Running unittests src/lib.rs (/home/devuser/workspace/.tmp/external-pinned-consumers-20261103/project/agentbox/services/nostr-pod-bridge/target/debug/deps/nostr_pod_bridge-0bff68ef7e2d1975)
+
+running 1 test
+test identity_port::port::tests::nip98_refuses_ambiguous_url_bytes_before_signing ... FAILED
+
+failures:
+
+---- identity_port::port::tests::nip98_refuses_ambiguous_url_bytes_before_signing stdout ----
+
+thread 'identity_port::port::tests::nip98_refuses_ambiguous_url_bytes_before_signing' (767468) panicked at src/identity_port/port.rs:1271:13:
+ambiguous URL was signed: "https://pod.example\\@evil.example/x"
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+   1: core::panicking::panic_fmt
+   2: nostr_pod_bridge::identity_port::port::tests::nip98_refuses_ambiguous_url_bytes_before_signing
+   3: nostr_pod_bridge::identity_port::port::tests::nip98_refuses_ambiguous_url_bytes_before_signing::{closure#0}
+   4: <nostr_pod_bridge::identity_port::port::tests::nip98_refuses_ambiguous_url_bytes_before_signing::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+
+failures:
+    identity_port::port::tests::nip98_refuses_ambiguous_url_bytes_before_signing
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 108 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `--lib`

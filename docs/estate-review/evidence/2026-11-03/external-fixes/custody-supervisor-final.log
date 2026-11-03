@@ -1,0 +1,27 @@
+ok 1 - role-accounts isolate renders the isolated config and the plan from the fixture
+ok 2 - with user= and environment= removed, the two configs are byte-identical
+ok 3 - every added or changed line is a user= or environment= line
+ok 4 - 8 role programs run as their table role; 31 other programs are byte-identical
+ok 5 - root programs (bootstrap, docker-read-proxy, tailscale-up) keep no user= in the isolated config
+ok 6 - no program names another role's /run/secrets/<role>/ path; non-role programs name none
+ok 7 - no at-rest secret source path survives in the isolated config
+ok 8 - each rendered role program reads every secret path from its own role dir
+ok 9 - no classified secret value appears in either config, the plan or the log (8 values planted)
+ok 10 - the transform is deterministic and ignores the environment
+ok 11 - no environment= line in either config assigns a classified variable (they travel as *_FILE paths)
+ok 12 - an unmapped secret-bearing program fails the build, names the fix, writes nothing
+ok 13 - serve-identity runs as ab-identity with AGENTBOX_SECRETS_DIR and the socket gid (969) from the table
+ok 14 - flake.nix: serve-identity is a devuser program that passes only the role's dir and gid through env -i
+ok 15 - compose group_add gid(s) 965 are reserved and held by no role
+ok 16 - every role has its own primary group with no members (devuser joins none)
+ok 17 - shared group lines carry exactly the table's members (ab-identity-port,ab-sessions)
+ok 18 - passwd lines: uid = gid in 960-979, home under the role's own secrets dir, nologin
+ok 19 - no role line names gid 0, gid 1000 or devuser
+ok 20 - flake.nix derives supervisord.roles.conf and the plan from the baked supervisord.conf
+ok 21 - flake.nix appends the role passwd and group lines from the table
+ok 22 - flake.nix ships the table at /etc/agentbox/role-accounts.json (the rehearsal reads it)
+ok 23 - /run/secrets is its own root-owned tmpfs in flake.nix and the generated docker-compose.yml
+ok 24 - every program in flake.nix that names a key variable has a role (49 programs judged)
+ok 25 - without its role the poker house seat fails the build, alone and by name (the red the rule was written against)
+1..25
+# role-isolation-supervisor: 25 passed, 0 failed

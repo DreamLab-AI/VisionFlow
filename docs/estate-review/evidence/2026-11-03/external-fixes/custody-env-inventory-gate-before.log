@@ -1,0 +1,5 @@
+FAIL (env-secret-inventory): 4 violation(s)
+  ROLE DREAM_GOVERNANCE_PRIVKEY_HEX: its file var DREAM_GOVERNANCE_PRIVKEY_HEX_FILE must be NON_SECRET
+  ROLE DREAM_GOVERNANCE_PRIVKEY_HEX is not read by any scanned source (stale entry or missing source)
+  W1-PARITY ROLE DREAM_GOVERNANCE_PRIVKEY_HEX is in neither W1's plan nor w1_plan.w2_only
+  entrypoint _AB_ROLE_ENV_VARS lacks DREAM_GOVERNANCE_PRIVKEY_HEX:ab-identity

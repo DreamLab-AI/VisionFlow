@@ -1,0 +1,29 @@
+{
+  "observed_at_utc": "2026-11-03T07:13:59.819949+00:00",
+  "cpu_packages": [
+    {
+      "sensor": "coretemp",
+      "label": "Package id 1",
+      "celsius": 42.0
+    },
+    {
+      "sensor": "coretemp",
+      "label": "Package id 0",
+      "celsius": 37.0
+    }
+  ],
+  "gpu_csv_columns": "name,temperature_C,utilisation,power_W",
+  "gpus": [
+    "NVIDIA RTX A6000, 71, 82 %, 126.96 W",
+    "NVIDIA RTX 6000 Ada Generation, 43, 0 %, 65.23 W",
+    "NVIDIA RTX 6000 Ada Generation, 42, 0 %, 28.21 W"
+  ],
+  "thermal_throttling": [
+    "HW Thermal Slowdown                        : Not Active",
+    "SW Thermal Slowdown                            : Not Active",
+    "HW Thermal Slowdown                        : Not Active",
+    "SW Thermal Slowdown                            : Not Active",
+    "HW Thermal Slowdown                        : Not Active",
+    "SW Thermal Slowdown                            : Not Active"
+  ]
+}

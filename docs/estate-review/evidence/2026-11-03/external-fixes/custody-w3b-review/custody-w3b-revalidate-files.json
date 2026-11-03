@@ -1,0 +1,7 @@
+[
+  "config/nostr-gateway/gateway.cjs",
+  "management-api/lib/junkiejarvis-agent.js",
+  "services/dream-engine/src/digest.rs",
+  "services/dream-engine/src/governance.rs",
+  "services/nostr-pod-bridge/src/identity_port/port.rs"
+]

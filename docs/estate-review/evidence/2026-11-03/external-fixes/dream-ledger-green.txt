@@ -1,0 +1,11 @@
+   Compiling dream-engine v0.1.0 (/home/devuser/workspace/wt/agentbox-ledger-repairs/services/dream-engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.34s
+     Running unittests src/lib.rs (/home/devuser/workspace/agentbox/services/dream-engine/target/debug/deps/dream_engine-e82eb3f2b2c5980b)
+
+running 3 tests
+test digest::tests::ledger_contract_escaped_finding_keeps_verdict_and_witness_columns ... ok
+test governance::tests::ledger_contract_case_uses_configured_path_over_default_decoy ... ok
+test governance::tests::ledger_contract_invalid_config_does_not_select_default_decoy ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 193 filtered out; finished in 0.00s
+

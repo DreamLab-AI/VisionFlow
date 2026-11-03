@@ -1,0 +1,1621 @@
+diff --git a/config/custody/env-classes.json b/config/custody/env-classes.json
+index b0cd3bb80..4c8e2ca0c 100644
+--- a/config/custody/env-classes.json
++++ b/config/custody/env-classes.json
+@@ -68,6 +68,11 @@
+         "reason": "JunkieJarvis forum agent key (keyring id junkiejarvis): management-api JJ agent, dream-engine governance and digest, dream-forum-suggestions, run-junkiejarvis, run-per-user-agent fallback.",
+         "file_var": "JUNKIEJARVIS_PRIVKEY_HEX_FILE"
+       },
++      "DREAM_GOVERNANCE_PRIVKEY_HEX": {
++        "role": "ab-identity",
++        "reason": "Independent agent-governance key for panel/case authorship and withdrawal; never the operator or JunkieJarvis identity.",
++        "file_var": "DREAM_GOVERNANCE_PRIVKEY_HEX_FILE"
++      },
+       "NIP98_PROXY_ALLOW_BEARER": {
+         "role": "ab-ingress",
+         "reason": "The LAN-door break-glass bearer at the nip98-proxy (ADR-2027). W1 delivers it to ab-ingress (config/role-accounts.json). 2026-10-03: it is still the SAME VALUE as BRIDGE_TOKEN (management-api/lib/system-manifest.js:79), which stays devuser-class, so isolating this copy protects nothing until the Q4 split mints a separate bearer.",
+diff --git a/config/custody/identity-port-acl.json b/config/custody/identity-port-acl.json
+index 88f357f7d..04d2922a3 100644
+--- a/config/custody/identity-port-acl.json
++++ b/config/custody/identity-port-acl.json
+@@ -10,9 +10,10 @@
+     "operator hex exactly as AGENTBOX_PRIVKEY_HEX supplies it (not the even-y normalised scalar): the mirror child",
+     "is derived from it (src/mirror_key.rs), and an odd-y house key would otherwise hand the phone a different key.",
+     "`manifest:a.b.c` resolves from /etc/agentbox.toml at start; an unresolved reference grants nothing.",
+-    "Kinds 27235, 22242, 31400-31405 and 38414 cannot be granted (the loader refuses the file).",
+-    "mirror_key `secret: true` returns the live-mirror CHILD secret (the key the phone holds) because",
+-    "config/hooks/nostr-live-mirror.cjs:487 signs the self-DM wrap with it; the sovereign secret never crosses."
++    "Human governance kinds 31401, 31403-31405 and 38414 remain forbidden. Only an independently marked",
++    "agent_governance signer can author panels/cases; auth operations have their own relay/URL checks.",
++    "mirror_key returns public identity only in this policy; mirror_wrap signs bounded self-DMs inside custody.",
++    "Optional agent_governance material must be independently provisioned and admitted by the operator before use."
+   ],
+   "keys": {
+     "core": {
+@@ -27,26 +28,46 @@
+     },
+     "junkiejarvis": {
+       "file": "JUNKIEJARVIS_PRIVKEY_HEX",
+-      "required": false
++      "required": false,
++      "relays": ["ws://127.0.0.1:7777", "wss://dreamlab-nostr-relay.solitary-paper-764d.workers.dev"]
++    },
++    "gateway": {
++      "file": "derived-gateway",
++      "gateway_child": true,
++      "relays": ["ws://127.0.0.1:7777", "wss://dreamlab-nostr-relay.solitary-paper-764d.workers.dev"]
++    },
++    "agent_governance": {
++      "file": "DREAM_GOVERNANCE_PRIVKEY_HEX",
++      "required": false,
++      "agent_governance": true,
++      "relays": ["ws://127.0.0.1:7777", "wss://dreamlab-nostr-relay.solitary-paper-764d.workers.dev"]
+     }
+   },
+   "callers": {
+     "1000": {
+       "name": "devuser",
+       "ops": {
+-        "pubkey": { "keys": ["core", "junkiejarvis"] },
++        "pubkey": { "keys": ["core", "junkiejarvis", "agent_governance"] },
+         "nip98": { "keys": ["core"] },
+         "sign_event": { "keys": ["core"], "kinds": [38410, 38411, 38412, 38413, 38415, 30840, 30841] },
+-        "forum_event": { "keys": ["junkiejarvis"], "kinds": [1, 42, 31923] },
+-        "nip42_auth": { "keys": ["core"] },
+-        "mirror_key": { "secret": true }
++        "forum_event": { "keys": ["junkiejarvis"], "kinds": [0, 1, 42, 31923] },
++        "governance_event": { "keys": ["agent_governance"], "kinds": [31400, 31402, 5] },
++        "nip42_auth": { "keys": ["core", "junkiejarvis", "agent_governance"] },
++        "nip17_wrap": { "keys": ["junkiejarvis"] },
++        "nip17_unwrap": { "keys": ["junkiejarvis"] },
++        "forum_grant_unwrap": { "keys": ["junkiejarvis"] },
++        "forum_seal": { "keys": ["junkiejarvis"], "kinds": [42] },
++        "mirror_key": {},
++        "mirror_wrap": {}
+       }
+     },
+     "961": {
+       "name": "ab-gateway",
+       "ops": {
+-        "pubkey": { "keys": ["core"] },
+-        "nip42_auth": { "keys": ["core"] },
++        "pubkey": { "keys": ["core", "gateway"] },
++        "nip42_auth": { "keys": ["core", "gateway"] },
++        "nip17_wrap": { "keys": ["core", "gateway"] },
++        "nip17_unwrap": { "keys": ["core", "gateway"] },
+         "mirror_key": {}
+       }
+     }
+diff --git a/config/hooks/nostr-live-mirror.cjs b/config/hooks/nostr-live-mirror.cjs
+index 18e884938..2e11c3b65 100755
+--- a/config/hooks/nostr-live-mirror.cjs
++++ b/config/hooks/nostr-live-mirror.cjs
+@@ -45,6 +45,7 @@ const crypto = require('crypto');
+ // decision table and redaction contract the Rust digest path implements.
+ const egress = require('./lib/egress-policy.cjs');
+ const { operatorKeyHex } = require('./lib/operator-key.cjs');
++const identityPort = require('../../management-api/lib/identity-port');
+ const fs = require('fs');
+ const path = require('path');
+ 
+@@ -413,10 +414,12 @@ async function main() {
+     log(`egress ${egress.OUTCOME.SKIPPED}: recipient-allowlist-missing-or-invalid`);
+     return 0;
+   }
+-  const childSk = deriveChildKey();
++  const portSelected = identityPort.selected(null, process.env);
++  const portIdentity = portSelected ? await identityPort.request('mirror_key', {}) : null;
++  const childSk = portSelected ? null : deriveChildKey();
+   const explicitRecipient = recipientPubkey();
+   const pre = egress.egressDecision('live-mirror', {
+-    identityPresent: !!(childSk || explicitRecipient),
++    identityPresent: !!(portIdentity?.pubkey || childSk || explicitRecipient),
+   });
+   if (!pre.allowed) {
+     // Say which of the three states this is. Exit zero alone never distinguished
+@@ -428,7 +431,7 @@ async function main() {
+   const tools = loadNostrTools();
+   if (childSk && !tools) { log('egress skipped: recipient-derivation-unavailable'); return 0; }
+   let recipient;
+-  try { recipient = childSk ? tools.getPublicKey(childSk) : explicitRecipient; }
++  try { recipient = portSelected ? portIdentity.pubkey : (childSk ? tools.getPublicKey(childSk) : explicitRecipient); }
+   catch { log('egress skipped: recipient-derivation-failed'); return 0; }
+   const rDecision = egress.egressDecision('live-mirror', { recipient, identityPresent: true });
+   if (!rDecision.allowed) {
+@@ -475,13 +478,16 @@ async function main() {
+   }
+ 
+   const WS = loadWs();
+-  if (!tools || !tools.nip59 || typeof tools.nip59.wrapEvent !== 'function' || !WS) {
++  if ((!portSelected && (!tools || !tools.nip59 || typeof tools.nip59.wrapEvent !== 'function')) || !WS) {
+     log('nostr-tools/ws unavailable; skipping mirror');
+     return 0;
+   }
+ 
+   let wrap;
+   try {
++    if (portSelected) {
++      wrap = (await identityPort.request('mirror_wrap', { recipient, content: body })).event;
++    } else {
+     // Default: a SELF-DM on the derived child identity — the root operator key
+     // never reaches the phone. Legacy fallback: operator-signed DM to an
+     // explicit recipient pubkey.
+@@ -498,6 +504,7 @@ async function main() {
+     };
+     // Recipient FIRST in the wrap's ["p"] tag → passes the relay whitelist gate.
+     wrap = tools.nip59.wrapEvent(rumor, sk, recipient);
++    }
+     if (!wrap || wrap.kind !== KIND_GIFT_WRAP) return 0;
+   } catch (err) {
+     log(`wrap failed (non-fatal): ${err && err.message}`);
+diff --git a/config/nostr-gateway/gateway.cjs b/config/nostr-gateway/gateway.cjs
+index 3df0a0bd6..38c471dc6 100755
+--- a/config/nostr-gateway/gateway.cjs
++++ b/config/nostr-gateway/gateway.cjs
+@@ -145,15 +145,30 @@ function envFirst(...ks) { for (const k of ks) { const v = process.env[k]; if (v
+ // 'agentbox-gateway-v1') if you ever want a dedicated bot contact instead.
+ // In both modes the sole authorised commander is the operator, and replies go to
+ // the operator (your phone).
+-const OP_HEX = operatorKeyHex({ log: log });
+-if (!/^[0-9a-f]{64}$/i.test(OP_HEX)) { log('no operator key (AGENTBOX_PRIVKEY_HEX) — exiting'); process.exit(0); }
+-const rawSk = Uint8Array.from(Buffer.from(OP_HEX, 'hex'));
+-const adminPub = tools.getPublicKey(rawSk).toLowerCase();
++const identityPort = require(path.join(AB, 'management-api', 'lib', 'identity-port'));
++const PORT_SELECTED = identityPort.selected(null, process.env);
+ const IDENTITY = (envFirst('AGENTBOX_GATEWAY_IDENTITY') || 'operator').toLowerCase();
+-const sk = IDENTITY === 'gateway'
+-  ? Uint8Array.from(crypto.createHmac('sha256', Buffer.from(OP_HEX, 'hex')).update(envFirst('AGENTBOX_GATEWAY_KEY_TAG') || 'agentbox-gateway-v1').digest())
+-  : rawSk;
+-const pub = tools.getPublicKey(sk);                                    // identity we AUTH + receive as
++const PORT_KEY = IDENTITY === 'gateway' ? 'gateway' : 'core';
++let sk, adminPub, pub;
++if (PORT_SELECTED) {
++  if (IDENTITY === 'gateway' && envFirst('AGENTBOX_GATEWAY_KEY_TAG') && envFirst('AGENTBOX_GATEWAY_KEY_TAG') !== 'agentbox-gateway-v1') {
++    log('custom gateway derivation is not admitted by the identity port'); process.exit(0);
++  }
++  try {
++    adminPub = identityPort.requestSync('pubkey', { key: 'core' }).pubkey;
++    pub = identityPort.requestSync('pubkey', { key: PORT_KEY }).pubkey;
++    if (!/^[0-9a-f]{64}$/.test(adminPub) || !/^[0-9a-f]{64}$/.test(pub)) throw new Error('invalid public identity');
++  } catch { log('identity port unavailable — exiting'); process.exit(0); }
++} else {
++  const operatorHex = operatorKeyHex({ log });
++  if (!/^[0-9a-f]{64}$/i.test(operatorHex)) { log('no operator key — exiting'); process.exit(0); }
++  const rawSk = Uint8Array.from(Buffer.from(operatorHex, 'hex'));
++  adminPub = tools.getPublicKey(rawSk).toLowerCase();
++  sk = IDENTITY === 'gateway'
++    ? Uint8Array.from(crypto.createHmac('sha256', Buffer.from(operatorHex, 'hex')).update(envFirst('AGENTBOX_GATEWAY_KEY_TAG') || 'agentbox-gateway-v1').digest())
++    : rawSk;
++  pub = tools.getPublicKey(sk);
++}
+ const commanderPub = adminPub;                                          // only the operator may command
+ const replyTo = (envFirst('AGENTBOX_GATEWAY_REPLY_TO') || adminPub).toLowerCase(); // replies → your phone
+ const relayUrl = /^wss?:\/\//i.test(process.env.NOSTR_MIRROR_RELAY || '') ? process.env.NOSTR_MIRROR_RELAY.trim() : DEFAULT_RELAY;
+@@ -258,6 +273,7 @@ function sendKeys(idx, text) {
+ 
+ // ── crypto: reply on the live authed socket ─────────────────────────────────
+ function buildWrap(text) {
++  if (PORT_SELECTED) return identityPort.requestSync('nip17_wrap', { key: PORT_KEY, recipient: replyTo, content: String(text).slice(0, MAX_BODY) }).event;
+   const rumor = { kind: KIND_DM_RUMOR, created_at: nowSec(), tags: [['p', replyTo], ['client', 'agentbox-nostr-gateway']], content: String(text).slice(0, MAX_BODY), pubkey: pub };
+   return tools.nip59.wrapEvent(rumor, sk, replyTo); // gateway → operator (your phone)
+ }
+@@ -628,7 +644,9 @@ const SUB = 'ctrl';
+ function subscribe(ws, quiet) { ws.send(JSON.stringify(['REQ', SUB, { kinds: [KIND_GIFT_WRAP], '#p': [pub], since: nowSec() - WRAP_LOOKBACK }])); if (!quiet) log('REQ sent'); }
+ function authenticate(ws, challenge) {
+   try {
+-    const evt = tools.finalizeEvent({ kind: KIND_AUTH, created_at: nowSec(), tags: [['relay', relayUrl], ['challenge', String(challenge)]], content: '' }, sk);
++    const evt = PORT_SELECTED
++      ? identityPort.requestSync('nip42_auth', { key: PORT_KEY, relay: relayUrl, challenge: String(challenge) }).event
++      : tools.finalizeEvent({ kind: KIND_AUTH, created_at: nowSec(), tags: [['relay', relayUrl], ['challenge', String(challenge)]], content: '' }, sk);
+     ws.send(JSON.stringify(['AUTH', evt]));
+     log('AUTH sent'); setTimeout(() => subscribe(ws), 200); // re-REQ after auth
+   } catch (e) { log('AUTH failed', e.message); }
+@@ -666,7 +684,7 @@ function notifyEnquiry(ws, wrap, rumor) {
+ function handleWrap(ws, wrap) {
+   if (!wrap || wrap.kind !== KIND_GIFT_WRAP) return;
+   if (!markSeen(wrap.id)) return;                                     // already handled
+-  let rumor; try { rumor = tools.nip59.unwrapEvent(wrap, sk); } catch { return; } // not ours to decrypt — silent
++  let rumor; try { rumor = PORT_SELECTED ? identityPort.requestSync('nip17_unwrap', { key: PORT_KEY, event: wrap }).rumor : tools.nip59.unwrapEvent(wrap, sk); } catch { return; }
+   if (!rumor) return;
+   if (rumor.kind === 21453) return; // zone-key grant (forum ADR-2016): key material, never a command or a forwarded message
+   if (notifyEnquiry(ws, wrap, rumor)) return;                          // website form → phone, never a command
+diff --git a/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md b/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md
+index bbb849927..4285568a1 100644
+--- a/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md
++++ b/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md
+@@ -794,3 +794,14 @@ Governed path `config/custody/env-classes.json` changed since `09067b095` by thr
+ ## Re-verification — 2026-11-01 (`4f3bd5325`)
+ 
+ Governed-path delta since `3d717c40f`: `config/entrypoint-unified.sh`: the credential-scrub block (`PGSCRUB_MARKER`) now also rewrites Claude Code's backups and the `*.pre-*`/`*.bak*` snapshots of the projected config, writes atomically (sibling temp file, fsync, rename) keeping owner and mode, and scopes its text rules to RuVector's own values (ADR-2164 amendment 4). This record's decision does not concern these changes. Decision unchanged; `verified_commit` bumped. Re-run: `git diff 3d717c40f..4f3bd5325 -- config/entrypoint-unified.sh`.
++# W3b source readiness — 2026-11-03
++
++The external-review repair adds the remaining isolation-aware consumers: JunkieJarvis, its nightly suggestions tenant, live mirror, gateway, and Dream governance/digest. With the boot flag on they request purpose-bound operations and never fall back to a local key reader on refusal. Flag-off compatibility retains the existing local paths. This is source readiness, not a flag-on or deployed custody result; this ADR's adoption statuses remain unchanged.
++
++The closed port now admits bounded NIP-17 wrap/open, authenticated forum grant open, fixed kind-42 zone sealing, mirror self-wrap and a separate `governance_event`. These use maintained `nostr-bbs-core` NIP-44/NIP-59/signing primitives and the existing receipt-before-return boundary. Callers cannot supply a generic signing kind through DM/zone operations. Outer recipients must identify the held key exactly once; bodies are capped at 16 KiB. Mirror lookup is public-only: legacy `secret: true` ACLs now fail validation and must migrate to `mirror_wrap`.
++
++The independently marked, optional `agent_governance` key can author 31400/31402 and its own kind-5 withdrawals, plus public-key lookup and allowlisted NIP-42 authentication. It cannot sign as JunkieJarvis or author human decisions (31401, 31403–31405, 38414). The same devuser UID holds both capabilities, so the dedicated operation enforces purpose/key selection rather than claiming isolation between same-UID callers. The gateway's fixed legacy child derivation stays inside custody; arbitrary caller-selected derivation tags remain refused under isolation.
++
++Operator steps remain: independently provision `DREAM_GOVERNANCE_PRIVKEY_HEX` into identity-role delivery, admit its public identity and governance role at the forum, rebuild with matching pinned forum/Solid source and lockfiles, and run the full flag-on boot rehearsal. Browser key minting, historical secret purging, host Docker permissions and activation are separate outstanding custody boundaries. No key was minted, read from a live role secret, or changed by this repair.
++
++Validation: bridge library 108 tests, Dream host 191 tests, 105 focused JavaScript regressions and four bounded-client Node tests passed during development; both Rust crates passed all-target Clippy with warnings denied. These source gates do not establish a live forum ceremony, receipt filesystem ownership or a rebuilt image. Exact fetched-source validation is required before the coordinated dependency pins are accepted.
+diff --git a/docs/developer/role-isolation-runbook.md b/docs/developer/role-isolation-runbook.md
+index 741e4510b..71b2a2337 100644
+--- a/docs/developer/role-isolation-runbook.md
++++ b/docs/developer/role-isolation-runbook.md
+@@ -186,3 +186,10 @@ In order:
+    for the passphrase without echo. The vault survives on the `browsercontainer-profile`
+    volume. Never run `down -v` on the sidecar, because that deletes the volume and the sealed
+    key with it.
++## W3b consumer preparation (2026-11-03)
++
++Isolation-aware callers now use the identity port for Jarvis, nightly forum suggestions, mirror self-DMs, gateway control DMs, and Dream governance/digest. A missing/refused port stops that operation; it never enables the flag-off secret reader. The checked-in ACL returns public mirror identity only and uses `mirror_wrap` for self-DMs. Old local policies with `mirror_key.secret = true` must be replaced before boot; the loader rejects them.
++
++Before a flag-on rehearsal, the operator must independently provision the optional `DREAM_GOVERNANCE_PRIVKEY_HEX` identity-role secret and admit its public key for agent panel/case authorship at the forum. Do not reuse a human decision key. Missing material refuses Dream governance publication; digest retains the independently provisioned Jarvis identity. Keep 31401, 31403–31405 and 38414 forbidden for every port key. The source change does not perform key generation, registry admission, flag activation, host socket changes or browser Podkey ceremonies.
++
++Use the exact pinned forum/Solid sources and committed locks for the rebuild: the old forum pin `fe36bf36` lacks the shared authenticated grant-opening API used here. After building, verify real port receipts and both plaintext/encrypted-zone caller journeys before treating W3b as operationally complete. Source tests are recorded in [ADR-2122](../adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md#w3b-source-readiness--2026-11-03).
+diff --git a/management-api/lib/identity-port.js b/management-api/lib/identity-port.js
+new file mode 100644
+index 000000000..4d37220a8
+--- /dev/null
++++ b/management-api/lib/identity-port.js
+@@ -0,0 +1,73 @@
++'use strict';
++
++// One bounded client for the port's typed operations. Params travel on stdin,
++// never argv; neither a refusal nor a missing port falls back to a key file.
++const { spawn, spawnSync } = require('child_process');
++const MAX_REPLY = 256 * 1024;
++const DEADLINE_MS = 2000;
++
++function selected(manifest, env = process.env) {
++  return String(env.AGENTBOX_ROLE_ISOLATION || '') === '1' || manifest?.security?.role_isolation === true;
++}
++
++function answer(result) {
++  let doc;
++  try { doc = JSON.parse(result.out || ''); } catch { throw new Error('identity port returned no valid response'); }
++  if (result.code !== 0 || doc.refused || doc.unavailable) throw new Error('identity port refused or unavailable');
++  return doc;
++}
++
++function requestSync(op, params, opts = {}) {
++  const env = opts.env || process.env;
++  const result = (opts.spawnSync || spawnSync)(env.AGENTBOX_POD_BRIDGE_BIN || 'nostr-pod-bridge', ['sign-request', op], {
++    env, input: JSON.stringify(params), encoding: 'utf8', timeout: DEADLINE_MS,
++    maxBuffer: MAX_REPLY, stdio: ['pipe', 'pipe', 'ignore'],
++  });
++  return answer({ code: result.status, out: result.stdout });
++}
++
++function request(op, params, opts = {}) {
++  const env = opts.env || process.env;
++  return new Promise((resolve, reject) => {
++    let child;
++    try { child = (opts.spawn || spawn)(env.AGENTBOX_POD_BRIDGE_BIN || 'nostr-pod-bridge', ['sign-request', op], { env, stdio: ['pipe', 'pipe', 'ignore'] }); }
++    catch { reject(new Error('identity port unavailable')); return; }
++    let out = '';
++    let settled = false;
++    const finish = (err, value) => { if (!settled) { settled = true; clearTimeout(timer); err ? reject(err) : resolve(value); } };
++    const timer = setTimeout(() => { child.kill('SIGKILL'); finish(new Error('identity port deadline exceeded')); }, DEADLINE_MS);
++    child.stdout.on('data', chunk => { out += chunk; if (out.length > MAX_REPLY) { child.kill('SIGKILL'); finish(new Error('identity port response too large')); } });
++    child.on('error', () => finish(new Error('identity port unavailable')));
++    child.on('close', code => { try { finish(null, answer({ code, out })); } catch (err) { finish(err); } });
++    child.stdin.on('error', () => {});
++    child.stdin.end(JSON.stringify(params));
++  });
++}
++
++function signer(key, opts = {}) {
++  const call = opts.request || ((op, params) => request(op, params, opts));
++  const callSync = opts.requestSync || ((op, params) => requestSync(op, params, opts));
++  const info = callSync('pubkey', { key });
++  const pubkey = info.pubkey;
++  if (typeof pubkey !== 'string' || !/^[0-9a-f]{64}$/.test(pubkey)) throw new Error('identity port omitted public identity');
++  return {
++    pubkey,
++    async sign(event) {
++      if (event.kind === 22242) {
++        const tag = name => event.tags?.find(t => t[0] === name)?.[1];
++        return (await call('nip42_auth', { key, relay: tag('relay'), challenge: tag('challenge') })).event;
++      }
++      return (await call('forum_event', { key, kind: event.kind, content: event.content || '', tags: event.tags || [] })).event;
++    },
++    async wrapDm(recipient, content) { return (await call('nip17_wrap', { key, recipient, content })).event; },
++    async unwrapAny(event) {
++      try { return await call('nip17_unwrap', { key, event }); }
++      catch { return call('forum_grant_unwrap', { key, event }); }
++    },
++    async sealChannel(event, plan) {
++      return (await call('forum_seal', { key, content: event.content, tags: event.tags || [], zone: { id: plan.key.zone, epoch: plan.key.epoch, pubkey: plan.key.pubkey } })).event;
++    },
++  };
++}
++
++module.exports = { selected, request, requestSync, signer };
+diff --git a/management-api/lib/junkiejarvis-agent.js b/management-api/lib/junkiejarvis-agent.js
+index 7d438193c..0077e345d 100644
+--- a/management-api/lib/junkiejarvis-agent.js
++++ b/management-api/lib/junkiejarvis-agent.js
+@@ -44,6 +44,7 @@
+ const crypto = require('crypto');
+ const zoneKeys = require('./zone-keys');
+ const { readRoleSecretFirst } = require('./role-secret');
++const identityPort = require('./identity-port');
+ const { junkiejarvisEnabled } = require('./junkiejarvis-clarify');
+ 
+ let nostrTools = null;
+@@ -654,11 +655,17 @@ function signerFromHex(privHex) {
+ async function sendGiftWrappedDm({ bridge, signer, recipientPubkey, text, createdAt } = {}) {
+   try {
+     if (!bridge || typeof bridge.publish !== 'function') return null;
+-    if (!signer || !signer.skBytes) return null;
++    if (!signer || (!signer.skBytes && typeof signer.wrapDm !== 'function')) return null;
+     if (typeof recipientPubkey !== 'string' || !recipientPubkey.trim()) return null;
+     const body = typeof text === 'string' ? text : '';
+     if (!body.trim()) return null;
+ 
++    if (typeof signer.wrapDm === 'function') {
++      const wrapped = await signer.wrapDm(recipientPubkey, body);
++      await bridge.publish(wrapped, { sign: event => event });
++      return wrapped;
++    }
++
+     const { nip59 } = getNostrTools();
+     const rumor = {
+       kind: KIND_DM_RUMOR,
+@@ -857,7 +864,7 @@ class JunkieJarvisAgent {
+   async _handleDm(wrap) {
+     let rumor;
+     try {
+-      ({ rumor } = zoneKeys.unwrapAny(wrap, this.signer.skBytes));
++      ({ rumor } = this.signer.unwrapAny ? await this.signer.unwrapAny(wrap) : zoneKeys.unwrapAny(wrap, this.signer.skBytes));
+     } catch (err) {
+       this._logErr('dm-unwrap', err);
+       return;
+@@ -911,7 +918,7 @@ class JunkieJarvisAgent {
+     }
+     let opened;
+     try {
+-      opened = zoneKeys.unwrapAny(wrap, this.signer.skBytes);
++      opened = this.signer.unwrapAny ? await this.signer.unwrapAny(wrap) : zoneKeys.unwrapAny(wrap, this.signer.skBytes);
+     } catch (err) {
+       this._logErr('grant-unwrap', err);
+       return;
+@@ -1075,6 +1082,11 @@ class JunkieJarvisAgent {
+           this.logger.warn({ zone: target.zone }, `junkiejarvis not replying: ${plan.reason}`);
+           return;
+         }
++        if (plan.type === 'encrypt' && this.signer.sealChannel) {
++          const signed = await this.signer.sealChannel(unsigned, plan);
++          await this.bridge.publish(signed, { sign: event => event });
++          return;
++        }
+         unsigned = zoneKeys.applyWritePlan(unsigned, plan, this.signer.skBytes);
+       }
+       await this.bridge.publish(unsigned, this.signer);
+@@ -1222,13 +1234,16 @@ function startJunkieJarvis(deps = {}) {
+       logger.warn('junkiejarvis: no connected bridge available — not starting');
+       return null;
+     }
+-    const privHex = readPrivHex();
+-    if (!privHex) {
++    const portSelected = identityPort.selected(deps.manifest, deps.env || process.env);
++    const privHex = portSelected ? null : readPrivHex();
++    if (!portSelected && !privHex) {
+       logger.warn('junkiejarvis: manifest gate is on but JUNKIEJARVIS_PRIVKEY_HEX is unset — not starting');
+       return null;
+     }
+     const makeSigner = deps.signerFactory || signerFromHex;
+-    const signer = makeSigner(privHex);
++    const signer = portSelected
++      ? (deps.portSignerFactory || identityPort.signer)('junkiejarvis', { env: deps.env || process.env })
++      : makeSigner(privHex);
+     if (!signer) {
+       logger.warn('junkiejarvis: JUNKIEJARVIS_PRIVKEY_HEX is not 64 hex chars — not starting');
+       return null;
+diff --git a/scripts/dream-forum-suggestions.mjs b/scripts/dream-forum-suggestions.mjs
+index 954693dff..5eb39be89 100644
+--- a/scripts/dream-forum-suggestions.mjs
++++ b/scripts/dream-forum-suggestions.mjs
+@@ -213,19 +213,23 @@ async function main() {
+   // The loader ships beside this script (same checkout / same /opt/agentbox),
+   // never from AGENTBOX_DIR, which may point at another tree.
+   const { readRoleSecretFirst } = require(join(dirname(fileURLToPath(import.meta.url)), '..', 'management-api/lib/role-secret.js'));
++  const identityPort = require(join(dirname(fileURLToPath(import.meta.url)), '..', 'management-api/lib/identity-port.js'));
++  const usePort = identityPort.selected(null, process.env);
+   let privHex = '';
+   try {
+-    privHex = readRoleSecretFirst(['JUNKIEJARVIS_PRIVKEY_HEX', 'CONCIERGE_PRIVKEY_HEX'],
++    if (!usePort) privHex = readRoleSecretFirst(['JUNKIEJARVIS_PRIVKEY_HEX', 'CONCIERGE_PRIVKEY_HEX'],
+       { log: (m) => log('WARN', m) }).value;
+   } catch (err) { log('ERROR', err.message); return; }
+-  if (!privHex) { log('ERROR', 'JUNKIEJARVIS_PRIVKEY_HEX (or its _FILE) not set — skipping'); return; }
++  if (!usePort && !privHex) { log('ERROR', 'JUNKIEJARVIS_PRIVKEY_HEX (or its _FILE) not set — skipping'); return; }
+ 
+   const { NostrBridge } = require(join(AGENTBOX_DIR, 'mcp/servers/nostr-bridge.js'));
+   const { signerFromHex, sendGiftWrappedDm, unwrapDmRumor } =
+     require(join(AGENTBOX_DIR, 'management-api/lib/junkiejarvis-agent.js'));
+   const clarify = require(join(AGENTBOX_DIR, 'management-api/lib/junkiejarvis-clarify.js'));
+   const zoneKeys = require(join(AGENTBOX_DIR, 'management-api/lib/zone-keys.js'));
+-  const signer = signerFromHex(privHex);
++  let signer;
++  try { signer = usePort ? identityPort.signer('junkiejarvis') : signerFromHex(privHex); }
++  catch { log('ERROR', 'identity port unavailable — skipping'); return; }
+   if (signer.pubkey !== JJ_PUBKEY) log('WARN', `signer pubkey ${signer.pubkey.slice(0, 8)}… is not the canonical JunkieJarvis key`);
+ 
+   const state = loadState();
+@@ -273,7 +277,7 @@ async function main() {
+       let granted = 0;
+       for (const wrap of wraps) {
+         let opened;
+-        try { opened = zoneKeys.unwrapAny(wrap, signer.skBytes); } catch { continue; }
++        try { opened = signer.unwrapAny ? await signer.unwrapAny(wrap) : zoneKeys.unwrapAny(wrap, signer.skBytes); } catch { continue; }
+         const res = await zoneKeys.acceptGrant(opened, { store: zc.store, isAdmin: zc.isAdmin });
+         if (res.status === 'granted') { granted += 1; log('INFO', `stored zone key ${res.key.zone}:${res.key.epoch}`); }
+         if (res.status === 'rejected') log('WARN', `refused a zone-key grant: ${res.error}`);
+@@ -350,7 +354,8 @@ async function main() {
+         const wraps = await collect(bridge, { kinds: [1059], '#p': [JJ_PUBKEY], since, limit: 500 });
+         log('INFO', `${wraps.length} gift wrap(s) to check against ${awaiting.length} parked item(s)`);
+         for (const wrap of wraps) {
+-          const rumor = unwrapDmRumor(wrap, signer.skBytes);
++          let rumor;
++          try { rumor = signer.unwrapAny ? (await signer.unwrapAny(wrap)).rumor : unwrapDmRumor(wrap, signer.skBytes); } catch { continue; }
+           if (!rumor) continue;
+           const itemId = clarify.matchReplyToPending(clarifyState, rumor);
+           if (!itemId) continue;
+@@ -488,8 +493,12 @@ async function main() {
+         created_at: Math.floor(Date.now() / 1000),
+       };
+       try {
+-        const unsigned = zoneKeys.applyWritePlan(plain, replyPlan, signer.skBytes);
+-        await bridge.publish(unsigned, signer);
++        if (replyPlan.type === 'encrypt' && signer.sealChannel) {
++          await bridge.publish(await signer.sealChannel(plain, replyPlan), { sign: event => event });
++        } else {
++          const unsigned = zoneKeys.applyWritePlan(plain, replyPlan, signer.skBytes);
++          await bridge.publish(unsigned, signer);
++        }
+         replied.add(post.id);
+         log('INFO', `replied to ${post.id.slice(0, 12)} (${verdict.reply.length} chars)`);
+       } catch (err) {
+diff --git a/services/dream-engine/src/digest.rs b/services/dream-engine/src/digest.rs
+index 273dd849b..79df9b8f6 100644
+--- a/services/dream-engine/src/digest.rs
++++ b/services/dream-engine/src/digest.rs
+@@ -401,7 +401,11 @@ pub async fn run(workspace: &Path, date: &str, dry_run: bool) -> String {
+ }
+ 
+ async fn publish(content: String) -> String {
+-    let key = match relay::load_signing_key(governance::KEY_VAR, &governance::env_file()) {
++    let key = match relay::load_publishing_key(
++        governance::KEY_VAR,
++        &governance::env_file(),
++        "junkiejarvis",
++    ) {
+         Ok(k) => k,
+         Err(e) => return format!("digest: key unavailable ({e}) — skipped (fail-open)"),
+     };
+@@ -427,12 +431,8 @@ async fn publish(content: String) -> String {
+     if let WritePlan::Refuse(reason) = &plan {
+         return format!("{SKIPPED_NO_ZONE_KEY} ({reason}; not posted in plaintext)");
+     }
+-    let author_sk: [u8; 32] = key.to_bytes().into();
+-    let (content, tags) = match zone_crypto::apply(&plan, &author_sk, content, tags) {
+-        Ok(v) => v,
+-        Err(e) => return format!("digest: encryption failed ({e}) — skipped"),
+-    };
+-    let event = match relay::sign(
++    let event = match key.sign_digest(
++        &plan,
+         UnsignedEvent {
+             pubkey: author,
+             created_at: relay::now_secs(),
+@@ -440,7 +440,6 @@ async fn publish(content: String) -> String {
+             tags,
+             content,
+         },
+-        &key,
+     ) {
+         Ok(ev) => ev,
+         Err(e) => return format!("digest: signing failed ({e}) — skipped"),
+diff --git a/services/dream-engine/src/governance.rs b/services/dream-engine/src/governance.rs
+index 2651f8329..95e84d4cd 100644
+--- a/services/dream-engine/src/governance.rs
++++ b/services/dream-engine/src/governance.rs
+@@ -54,7 +54,9 @@ use serde_json::json;
+ use tracing::{info, warn};
+ 
+ use crate::inbox::{self, InboxItem};
+-use crate::relay::{self, NostrEvent, RelaySession, SigningKey, UnsignedEvent};
++#[cfg(test)]
++use crate::relay::SigningKey;
++use crate::relay::{self, NostrEvent, PublishingKey, RelaySession, UnsignedEvent};
+ 
+ /// `d` tag of the dream-machine panel.
+ pub const PANEL_D: &str = "dream-machine";
+@@ -660,7 +662,7 @@ fn print_withdrawals(pubkey: &str, plan: &[Withdrawal]) -> usize {
+ /// next sweep retries it); a transport error stops the run (fail-open).
+ async fn send_withdrawals(
+     session: &mut RelaySession,
+-    key: &SigningKey,
++    key: &impl relay::EventSigner,
+     inbox_path: &Path,
+     plan: &[Withdrawal],
+     report: &mut Report,
+@@ -917,8 +919,8 @@ pub fn plan_decisions(
+     out
+ }
+ 
+-fn load_key() -> Option<SigningKey> {
+-    match relay::load_signing_key(KEY_VAR, &env_file()) {
++fn load_key() -> Option<PublishingKey> {
++    match relay::load_publishing_key(KEY_VAR, &env_file(), "agent_governance") {
+         Ok(k) => Some(k),
+         Err(e) => {
+             warn!(error = %e, "governance: agent key unavailable — skipped (fail-open)");
+diff --git a/services/dream-engine/src/relay.rs b/services/dream-engine/src/relay.rs
+index e6fb59ef1..cac24d43b 100644
+--- a/services/dream-engine/src/relay.rs
++++ b/services/dream-engine/src/relay.rs
+@@ -28,6 +28,172 @@ use tracing::{debug, warn};
+ /// secp256k1 Schnorr signing key, as `nostr_bbs_core::sign_event` takes it.
+ pub type SigningKey = k256::schnorr::SigningKey;
+ 
++/// Signing capability implemented by local compatibility keys and the custody port.
++pub trait EventSigner {
++    /// Public Nostr identity; never returns a held secret.
++    fn public_key(&self) -> String;
++    /// Sign only an operation admitted for this identity.
++    fn sign_event(&self, event: UnsignedEvent) -> Result<NostrEvent, RelayError>;
++}
++
++impl EventSigner for SigningKey {
++    fn public_key(&self) -> String {
++        hex::encode(self.verifying_key().to_bytes())
++    }
++    fn sign_event(&self, event: UnsignedEvent) -> Result<NostrEvent, RelayError> {
++        nostr_bbs_core::sign_event(event, self).map_err(|e| RelayError::Sign(e.to_string()))
++    }
++}
++
++/// A local compatibility key or a purpose-bound identity-port capability.
++pub enum PublishingKey {
++    /// Used only with role isolation disabled.
++    Local(SigningKey),
++    /// Public identity and approved port alias.
++    Port { key: String, pubkey: String },
++}
++
++fn port_request(op: &str, params: Value) -> Result<Value, RelayError> {
++    use std::io::{BufRead, BufReader, Read, Write};
++    use std::os::unix::net::UnixStream;
++    // The governed socket remains the authority: SO_PEERCRED and its ACL decide.
++    let socket_path = std::env::var("AGENTBOX_IDENTITY_SOCK")
++        .unwrap_or_else(|_| "/run/secrets/ab-identity-port/identity.sock".into());
++    let mut socket = UnixStream::connect(socket_path)
++        .map_err(|_| RelayError::Key("identity port unavailable".into()))?;
++    socket
++        .set_read_timeout(Some(Duration::from_secs(2)))
++        .map_err(|_| RelayError::Key("identity port timeout unavailable".into()))?;
++    socket
++        .set_write_timeout(Some(Duration::from_secs(2)))
++        .map_err(|_| RelayError::Key("identity port timeout unavailable".into()))?;
++    let request = serde_json::to_vec(&json!({"op":op,"params":params}))
++        .map_err(|_| RelayError::Sign("identity request encoding".into()))?;
++    if request.len() > 64 * 1024 {
++        return Err(RelayError::Sign("identity request too large".into()));
++    }
++    socket
++        .write_all(&request)
++        .and_then(|_| socket.write_all(b"\n"))
++        .map_err(|_| RelayError::Key("identity port write failed".into()))?;
++    let mut line = String::new();
++    BufReader::new(socket)
++        .take(256 * 1024 + 1)
++        .read_line(&mut line)
++        .map_err(|_| RelayError::Key("identity port read failed".into()))?;
++    if line.len() > 256 * 1024 {
++        return Err(RelayError::Sign("identity response too large".into()));
++    }
++    let value: Value = serde_json::from_str(&line)
++        .map_err(|_| RelayError::Sign("identity response invalid".into()))?;
++    if value.get("refused").is_some() || value.get("unavailable").is_some() {
++        return Err(RelayError::Sign(
++            "identity port refused or unavailable".into(),
++        ));
++    }
++    Ok(value)
++}
++
++impl EventSigner for PublishingKey {
++    fn public_key(&self) -> String {
++        match self {
++            Self::Local(key) => key.public_key(),
++            Self::Port { pubkey, .. } => pubkey.clone(),
++        }
++    }
++    fn sign_event(&self, event: UnsignedEvent) -> Result<NostrEvent, RelayError> {
++        match self {
++            Self::Local(key) => key.sign_event(event),
++            Self::Port { key, .. } => {
++                let (op, params) = port_sign_request(key, &event)?;
++                port_event(op, params)
++            }
++        }
++    }
++}
++
++fn port_event(op: &str, params: Value) -> Result<NostrEvent, RelayError> {
++    let answer = port_request(op, params)?;
++    serde_json::from_value(answer.get("event").cloned().unwrap_or(Value::Null))
++        .map_err(|_| RelayError::Sign("identity response omitted event".into()))
++}
++
++fn port_sign_request(
++    key: &str,
++    event: &UnsignedEvent,
++) -> Result<(&'static str, Value), RelayError> {
++    if event.kind == 22242 {
++        let tag = |name: &str| {
++            event
++                .tags
++                .iter()
++                .find(|t| t.first().is_some_and(|v| v == name))
++                .and_then(|t| t.get(1))
++        };
++        return Ok((
++            "nip42_auth",
++            json!({"key":key,"relay":tag("relay"),"challenge":tag("challenge")}),
++        ));
++    }
++    let op = if key == "agent_governance" {
++        "governance_event"
++    } else {
++        "forum_event"
++    };
++    Ok((
++        op,
++        json!({"key":key,"kind":event.kind,"tags":event.tags,"content":event.content}),
++    ))
++}
++
++/// Load a purpose-bound port capability under isolation; never open a key file there.
++pub fn load_publishing_key(
++    var: &str,
++    env_file: &Path,
++    purpose: &str,
++) -> Result<PublishingKey, RelayError> {
++    if std::env::var(ROLE_ISOLATION_VAR).as_deref() != Ok("1") {
++        return load_signing_key(var, env_file).map(PublishingKey::Local);
++    }
++    let answer = port_request("pubkey", json!({"key":purpose}))?;
++    let pubkey = answer
++        .get("pubkey")
++        .and_then(Value::as_str)
++        .filter(|p| p.len() == 64 && p.bytes().all(|b| b.is_ascii_hexdigit()))
++        .ok_or_else(|| RelayError::Key("identity response omitted public identity".into()))?;
++    Ok(PublishingKey::Port {
++        key: purpose.into(),
++        pubkey: pubkey.into(),
++    })
++}
++
++impl PublishingKey {
++    /// Sign a digest, preserving the encrypted-zone refusal contract without exporting its author key.
++    pub fn sign_digest(
++        &self,
++        plan: &crate::zone_crypto::WritePlan,
++        mut event: UnsignedEvent,
++    ) -> Result<NostrEvent, RelayError> {
++        if let Self::Port { key, .. } = self {
++            if let crate::zone_crypto::WritePlan::Encrypt(zone) = plan {
++                return port_event(
++                    "forum_seal",
++                    json!({"key":key,"content":event.content,"tags":event.tags,"zone":{"id":zone.zone,"epoch":zone.epoch,"pubkey":zone.pubkey}}),
++                );
++            }
++        }
++        if let crate::zone_crypto::WritePlan::Refuse(_) = plan {
++            return Err(RelayError::Sign("zone key unavailable".into()));
++        }
++        if let Self::Local(key) = self {
++            (event.content, event.tags) =
++                crate::zone_crypto::apply(plan, &key.to_bytes().into(), event.content, event.tags)
++                    .map_err(RelayError::Sign)?;
++        }
++        self.sign_event(event)
++    }
++}
++
+ /// The live forum relay (DreamLab Cloudflare worker).
+ pub const DEFAULT_RELAY: &str = "wss://dreamlab-nostr-relay.solitary-paper-764d.workers.dev";
+ 
+@@ -143,14 +309,14 @@ fn read_key_file(path: &Path) -> Result<String, RelayError> {
+ }
+ 
+ /// Lower-case hex x-only public key of `key`.
+-pub fn pubkey_hex(key: &SigningKey) -> String {
+-    hex::encode(key.verifying_key().to_bytes())
++pub fn pubkey_hex(key: &impl EventSigner) -> String {
++    key.public_key()
+ }
+ 
+ /// Sign `unsigned` with `key`. The event's `pubkey` must be the key's
+ /// (core refuses a mismatch rather than produce a self-invalid event).
+-pub fn sign(unsigned: UnsignedEvent, key: &SigningKey) -> Result<NostrEvent, RelayError> {
+-    nostr_bbs_core::sign_event(unsigned, key).map_err(|e| RelayError::Sign(e.to_string()))
++pub fn sign(unsigned: UnsignedEvent, key: &impl EventSigner) -> Result<NostrEvent, RelayError> {
++    key.sign_event(unsigned)
+ }
+ 
+ /// Whether `event`'s id and BIP-340 signature are valid (strict: the id must
+@@ -188,7 +354,7 @@ const OK_WAIT: Duration = Duration::from_secs(15);
+ impl RelaySession {
+     /// Connect to `url` and answer the relay's NIP-42 challenge with `key`.
+     /// A relay that sends no challenge within a few seconds is used as-is.
+-    pub async fn connect(url: &str, key: &SigningKey) -> Result<Self, RelayError> {
++    pub async fn connect(url: &str, key: &impl EventSigner) -> Result<Self, RelayError> {
+         let (ws, _) = tokio::time::timeout(
+             Duration::from_secs(15),
+             tokio_tungstenite::connect_async(url),
+@@ -341,6 +507,33 @@ impl RelaySession {
+ mod tests {
+     use super::*;
+ 
++    #[test]
++    fn custody_requests_keep_governance_separate_from_forum_and_auth() {
++        let mut event = UnsignedEvent {
++            pubkey: "a".repeat(64),
++            created_at: 1,
++            kind: 31402,
++            tags: vec![],
++            content: "fixture".into(),
++        };
++        let (op, params) = port_sign_request("agent_governance", &event).unwrap();
++        assert_eq!(op, "governance_event");
++        assert_eq!(params["key"], "agent_governance");
++        assert_eq!(
++            port_sign_request("junkiejarvis", &event).unwrap().0,
++            "forum_event"
++        );
++        event.kind = 22242;
++        event.tags = vec![
++            vec!["relay".into(), "wss://relay.test".into()],
++            vec!["challenge".into(), "fixture".into()],
++        ];
++        let (op, params) = port_sign_request("agent_governance", &event).unwrap();
++        assert_eq!(op, "nip42_auth");
++        assert_eq!(params["relay"], "wss://relay.test");
++        assert!(params.get("content").is_none());
++    }
++
+     #[test]
+     fn key_loads_from_env_file_and_signs_verifiably() {
+         let dir = tempfile::tempdir().unwrap();
+diff --git a/services/nostr-pod-bridge/src/identity_port/acl.rs b/services/nostr-pod-bridge/src/identity_port/acl.rs
+index 913315b14..3ee9c42ea 100644
+--- a/services/nostr-pod-bridge/src/identity_port/acl.rs
++++ b/services/nostr-pod-bridge/src/identity_port/acl.rs
+@@ -24,7 +24,7 @@
+ //!         "pubkey": { "keys": ["core"] },
+ //!         "nip98": { "keys": ["core"] },
+ //!         "sign_event": { "keys": ["core"], "kinds": [38410] },
+-//!         "mirror_key": { "secret": true }
++//!         "mirror_key": {}
+ //!       }
+ //!     }
+ //!   }
+@@ -47,6 +47,12 @@ pub const OPERATIONS: &[&str] = &[
+     OP_FORUM_EVENT,
+     OP_NIP42_AUTH,
+     OP_MIRROR_KEY,
++    OP_NIP17_WRAP,
++    OP_NIP17_UNWRAP,
++    OP_FORUM_GRANT_UNWRAP,
++    OP_FORUM_SEAL,
++    OP_MIRROR_WRAP,
++    OP_GOVERNANCE_EVENT,
+ ];
+ 
+ /// Public key of a held key: x-only hex, npub and `did:nostr`.
+@@ -61,6 +67,18 @@ pub const OP_FORUM_EVENT: &str = "forum_event";
+ pub const OP_NIP42_AUTH: &str = "nip42_auth";
+ /// The live-mirror child key (the phone's key), derived by [`crate::mirror_key`].
+ pub const OP_MIRROR_KEY: &str = "mirror_key";
++/// Produce a kind-14 NIP-17 message through the standard NIP-59 envelope.
++pub const OP_NIP17_WRAP: &str = "nip17_wrap";
++/// Open a verified NIP-59 envelope containing a kind-14 message.
++pub const OP_NIP17_UNWRAP: &str = "nip17_unwrap";
++/// Open only a forum zone-key grant or NIP-171 epoch ticket.
++pub const OP_FORUM_GRANT_UNWRAP: &str = "forum_grant_unwrap";
++/// Encrypt and sign a kind-42 forum message for an explicit zone public key.
++pub const OP_FORUM_SEAL: &str = "forum_seal";
++/// Send a provenance-tagged self-DM using the live-mirror child, never its secret.
++pub const OP_MIRROR_WRAP: &str = "mirror_wrap";
++/// Author agent panels/cases or withdraw that key's own events; never a human decision.
++pub const OP_GOVERNANCE_EVENT: &str = "governance_event";
+ 
+ /// Kinds no ACL may grant to `sign_event` or `forum_event`.
+ ///
+@@ -78,10 +96,10 @@ pub const NEVER_GRANTABLE_KINDS: &[u64] = &[
+ /// (31402); the human-decision kinds (31401, 31403-31405) and graduations
+ /// (38414) stay refused for every key.
+ ///
+-/// They are grantable only to `forum_event`, and only when every key the grant
++/// They are grantable only to `forum_event` or `governance_event`, and only when every key the grant
+ /// names is declared [`KeySpec::agent_governance`]. Such a key signs nothing
+ /// else, so the forum can tell agent authorship from human by the key alone.
+-pub const AGENT_GOVERNANCE_KINDS: &[u64] = &[31_400, 31_402];
++pub const AGENT_GOVERNANCE_KINDS: &[u64] = &[31_400, 31_402, 5];
+ 
+ /// One grant: an operation a caller may run.
+ #[derive(Debug, Clone, Default, Deserialize)]
+@@ -93,8 +111,7 @@ pub struct OpGrant {
+     /// Event kinds this caller may sign (only `sign_event` and `forum_event`).
+     #[serde(default)]
+     pub kinds: Vec<u64>,
+-    /// `mirror_key` only: whether the child *secret* is returned, not just the
+-    /// child's public key.
++    /// Retired compatibility field: `true` is rejected at load; secrets never leave custody.
+     #[serde(default)]
+     pub secret: bool,
+ }
+@@ -135,6 +152,10 @@ pub struct KeySpec {
+     /// never derived from the sovereign key (ADR-2101 Decision 3).
+     #[serde(default)]
+     pub agent_governance: bool,
++    /// The fixed legacy gateway child, derived inside the port from mirror_root.
++    /// Its file field is a descriptive name and is never opened.
++    #[serde(default)]
++    pub gateway_child: bool,
+ }
+ 
+ #[derive(Debug, Deserialize)]
+@@ -206,9 +227,12 @@ impl Acl {
+             if spec.mirror_root {
+                 mirror_roots += 1;
+             }
+-            if spec.agent_governance && spec.mirror_root {
++            if spec.agent_governance && (spec.mirror_root || spec.gateway_child) {
+                 bail!("key {name}: an agent_governance key cannot be the mirror_root");
+             }
++            if spec.gateway_child && spec.mirror_root {
++                bail!("gateway_child cannot be the mirror root");
++            }
+             let mut url_prefixes = Vec::new();
+             for p in resolve_refs(&spec.nip98_url_prefixes, manifest, &mut unresolved) {
+                 let u = Url::parse(&p)
+@@ -277,7 +301,10 @@ fn validate_grant(
+             "caller {uid}: {op:?} is not an identity-port operation (closed list: {OPERATIONS:?})"
+         );
+     }
+-    let takes_kinds = op == OP_SIGN_EVENT || op == OP_FORUM_EVENT;
++    let takes_kinds = op == OP_SIGN_EVENT
++        || op == OP_FORUM_EVENT
++        || op == OP_FORUM_SEAL
++        || op == OP_GOVERNANCE_EVENT;
+     if takes_kinds && g.kinds.is_empty() {
+         bail!("caller {uid}: {op} needs a non-empty kinds allowlist");
+     }
+@@ -294,22 +321,39 @@ fn validate_grant(
+         .iter()
+         .filter(|k| keys[k.as_str()].spec.agent_governance)
+         .count();
+-    if marked > 0 && marked < g.keys.len() {
++    if marked > 0 && marked < g.keys.len() && op != OP_PUBKEY && op != OP_NIP42_AUTH {
+         bail!("caller {uid}: {op} mixes agent_governance and other keys in one grant");
+     }
+     let agent_grant = marked > 0;
+-    if agent_grant && op != OP_FORUM_EVENT {
+-        bail!("caller {uid}: an agent_governance key may be granted forum_event only, not {op}");
++    if agent_grant
++        && ![
++            OP_FORUM_EVENT,
++            OP_GOVERNANCE_EVENT,
++            OP_PUBKEY,
++            OP_NIP42_AUTH,
++        ]
++        .contains(&op)
++    {
++        bail!("caller {uid}: agent_governance permits only purpose-bound events and public/auth operations, not {op}");
++    }
++    if op == OP_GOVERNANCE_EVENT && !agent_grant {
++        bail!("caller {uid}: governance_event requires an independently marked agent key");
++    }
++    if agent_grant && takes_kinds && g.kinds.iter().any(|k| !AGENT_GOVERNANCE_KINDS.contains(k)) {
++        bail!("caller {uid}: agent key may author panels/cases and withdraw its own events only");
++    }
++    if op == OP_FORUM_SEAL && g.kinds != [42] {
++        bail!("caller {uid}: forum_seal may grant only kind 42");
+     }
+     if let Some(k) = g.kinds.iter().find(|k| {
+         NEVER_GRANTABLE_KINDS.contains(k) && !(agent_grant && AGENT_GOVERNANCE_KINDS.contains(k))
+     }) {
+         bail!("caller {uid}: kind {k} may never be granted (see NEVER_GRANTABLE_KINDS)");
+     }
+-    if g.secret && op != OP_MIRROR_KEY {
+-        bail!("caller {uid}: `secret` applies to mirror_key only");
++    if g.secret {
++        bail!("caller {uid}: secret export is retired; use mirror_wrap");
+     }
+-    if op == OP_MIRROR_KEY {
++    if op == OP_MIRROR_KEY || op == OP_MIRROR_WRAP {
+         if !g.keys.is_empty() {
+             bail!("caller {uid}: mirror_key derives from the mirror_root key; it takes no keys");
+         }
+@@ -372,7 +416,7 @@ mod tests {
+     const MIN: &str = r#"{"version":1,"keys":{"core":{"file":"core.key","required":true,"mirror_root":true,
+         "nip98_url_prefixes":["https://pod.example/base/"],"relays":["ws://127.0.0.1:7777/"]}},
+         "callers":{"1000":{"name":"devuser","ops":{"pubkey":{"keys":["core"]},
+-        "sign_event":{"keys":["core"],"kinds":[38410]},"mirror_key":{"secret":true}}}}}"#;
++        "sign_event":{"keys":["core"],"kinds":[38410]},"mirror_key":{}}}}}"#;
+ 
+     fn with_ops(ops: &str) -> String {
+         format!(
+@@ -445,7 +489,10 @@ mod tests {
+ 
+     #[test]
+     fn panel_and_case_kinds_stay_refused_without_the_agent_key() {
+-        for k in AGENT_GOVERNANCE_KINDS {
++        for k in AGENT_GOVERNANCE_KINDS
++            .iter()
++            .filter(|k| NEVER_GRANTABLE_KINDS.contains(k))
++        {
+             for op in ["forum_event", "sign_event"] {
+                 let ops = format!(r#"{{"{op}":{{"keys":["core"],"kinds":[{k}]}}}}"#);
+                 assert!(
+@@ -461,7 +508,6 @@ mod tests {
+         for ops in [
+             r#"{"sign_event":{"keys":["agent"],"kinds":[31400]}}"#,
+             r#"{"sign_event":{"keys":["agent"],"kinds":[1]}}"#,
+-            r#"{"pubkey":{"keys":["agent"]}}"#,
+             r#"{"forum_event":{"keys":["agent","core"],"kinds":[31400]}}"#,
+             r#"{"forum_event":{"keys":["agent","core"],"kinds":[1]}}"#,
+         ] {
+@@ -470,6 +516,10 @@ mod tests {
+                 "{ops} loaded"
+             );
+         }
++        assert!(
++            Acl::parse(&with_agent_key(r#"{"pubkey":{"keys":["agent"]}}"#), None).is_ok(),
++            "public identity lookup grants no signing authority"
++        );
+         let root = with_agent_key(r#"{"pubkey":{"keys":["core"]}}"#).replace(
+             r#""agent_governance":true"#,
+             r#""agent_governance":true,"mirror_root":true"#,
+diff --git a/services/nostr-pod-bridge/src/identity_port/mod.rs b/services/nostr-pod-bridge/src/identity_port/mod.rs
+index cec2fea89..bc74ef076 100644
+--- a/services/nostr-pod-bridge/src/identity_port/mod.rs
++++ b/services/nostr-pod-bridge/src/identity_port/mod.rs
+@@ -11,7 +11,9 @@
+ //!   The socket's file mode (0660, group = the callers' group) only narrows who
+ //!   can connect; it is never the authorisation.
+ //! - **Operations** are a closed list ([`acl::OPERATIONS`]): `pubkey`, `nip98`,
+-//!   `sign_event`, `forum_event`, `nip42_auth`, `mirror_key`. Anything else is
++//!   `sign_event`, `forum_event`, `nip42_auth`, `mirror_key`, typed NIP-17
++//!   wrap/open, zone-grant open, zone sealing, mirror self-wrap and agent governance.
++//!   The ACL module lists their exact names. Anything else is
+ //!   refused with `{"refused": {"op", "reason"}}`.
+ //! - **Receipts**: one JSONL line per decision ([`receipts`]).
+ //! - **Crypto**: signing is `nostr-bbs-core`'s `sign_event`; the mirror child is
+diff --git a/services/nostr-pod-bridge/src/identity_port/port.rs b/services/nostr-pod-bridge/src/identity_port/port.rs
+index c389ade2b..6efbeccf4 100644
+--- a/services/nostr-pod-bridge/src/identity_port/port.rs
++++ b/services/nostr-pod-bridge/src/identity_port/port.rs
+@@ -36,6 +36,7 @@ use super::receipts::{Receipt, Receipts};
+ pub const MAX_REQUEST_BYTES: usize = 64 * 1024;
+ /// Longest accepted NIP-42 challenge.
+ const MAX_CHALLENGE: usize = 512;
++const MAX_MESSAGE_BYTES: usize = 16 * 1024;
+ /// HTTP methods a NIP-98 header may name.
+ const METHODS: &[&str] = &["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"];
+ /// NIP-98 HTTP Auth kind.
+@@ -99,6 +100,9 @@ impl KeyRing {
+         let mut keys = BTreeMap::new();
+         let mut mirror = None;
+         for (name, policy) in &acl.keys {
++            if policy.spec.gateway_child {
++                continue;
++            }
+             let path = dir.join(&policy.spec.file);
+             let hex_sk = match std::fs::read_to_string(&path) {
+                 Ok(s) => Zeroizing::new(s),
+@@ -135,6 +139,24 @@ impl KeyRing {
+             }
+             keys.insert(name.clone(), held);
+         }
++        for (name, policy) in &acl.keys {
++            if !policy.spec.gateway_child {
++                continue;
++            }
++            let root = acl
++                .keys
++                .iter()
++                .find(|(_, p)| p.spec.mirror_root)
++                .and_then(|(n, _)| keys.get(n))
++                .ok_or_else(|| anyhow!("gateway child requires a held mirror root"))?;
++            let root_hex = Zeroizing::new(hex::encode(*root.sk));
++            let secret = Zeroizing::new(
++                crate::mirror_key::child_secret(&root_hex, Some("agentbox-gateway-v1"))
++                    .map_err(|_| anyhow!("gateway child derivation failed"))?,
++            );
++            let child_hex = Zeroizing::new(hex::encode(*secret));
++            keys.insert(name.clone(), held_key(&child_hex)?);
++        }
+         Ok(Self { keys, mirror })
+     }
+ 
+@@ -255,6 +277,41 @@ struct Nip42Req {
+ #[serde(deny_unknown_fields)]
+ struct MirrorKeyReq {}
+ 
++#[derive(Deserialize)]
++#[serde(deny_unknown_fields)]
++struct DmWrapReq {
++    #[serde(default)]
++    key: Option<String>,
++    recipient: String,
++    content: String,
++}
++
++#[derive(Deserialize)]
++#[serde(deny_unknown_fields)]
++struct DmOpenReq {
++    #[serde(default)]
++    key: Option<String>,
++    event: NostrEvent,
++}
++
++#[derive(Deserialize)]
++#[serde(deny_unknown_fields)]
++struct ZoneRecipient {
++    id: String,
++    epoch: u64,
++    pubkey: String,
++}
++
++#[derive(Deserialize)]
++#[serde(deny_unknown_fields)]
++struct ForumSealReq {
++    #[serde(default)]
++    key: Option<String>,
++    tags: Vec<Vec<String>>,
++    content: String,
++    zone: ZoneRecipient,
++}
++
+ /// An event before signing; the author is always the held key.
+ struct Draft {
+     kind: u64,
+@@ -397,7 +454,25 @@ impl Port {
+                 self.op_sign_event(grant, serde_json::from_value(params).map_err(bad)?)
+             }
+             acl::OP_FORUM_EVENT => {
+-                self.op_forum_event(grant, serde_json::from_value(params).map_err(bad)?)
++                self.op_forum_event(op, grant, serde_json::from_value(params).map_err(bad)?)
++            }
++            acl::OP_GOVERNANCE_EVENT => {
++                self.op_forum_event(op, grant, serde_json::from_value(params).map_err(bad)?)
++            }
++            acl::OP_NIP17_WRAP => {
++                self.op_dm_wrap(grant, serde_json::from_value(params).map_err(bad)?)
++            }
++            acl::OP_NIP17_UNWRAP => {
++                self.op_dm_open(grant, serde_json::from_value(params).map_err(bad)?, false)
++            }
++            acl::OP_FORUM_GRANT_UNWRAP => {
++                self.op_dm_open(grant, serde_json::from_value(params).map_err(bad)?, true)
++            }
++            acl::OP_FORUM_SEAL => {
++                self.op_forum_seal(grant, serde_json::from_value(params).map_err(bad)?)
++            }
++            acl::OP_MIRROR_WRAP => {
++                self.op_mirror_wrap(serde_json::from_value(params).map_err(bad)?)
+             }
+             acl::OP_NIP42_AUTH => {
+                 self.op_nip42(grant, serde_json::from_value(params).map_err(bad)?)
+@@ -566,15 +641,24 @@ impl Port {
+         self.signed_event(op, grant, name, held, d)
+     }
+ 
+-    fn op_forum_event(&self, grant: &OpGrant, req: ForumEventReq) -> Result<Admitted, Refused> {
+-        let op = acl::OP_FORUM_EVENT;
++    fn op_forum_event(
++        &self,
++        op: &str,
++        grant: &OpGrant,
++        req: ForumEventReq,
++    ) -> Result<Admitted, Refused> {
+         if req.zone.is_some() {
+             return Err(Refused::new(
+                 op,
+                 "zone sealing is not an identity-port operation; nothing was signed",
+             ));
+         }
+-        let (name, held) = self.key(op, grant, req.key, DEFAULT_FORUM_KEY)?;
++        let default = if op == acl::OP_GOVERNANCE_EVENT {
++            "agent_governance"
++        } else {
++            DEFAULT_FORUM_KEY
++        };
++        let (name, held) = self.key(op, grant, req.key, default)?;
+         let d = Draft {
+             kind: req.kind,
+             tags: req.tags,
+@@ -624,17 +708,171 @@ impl Port {
+         })
+     }
+ 
+-    fn op_mirror_key(&self, grant: &OpGrant) -> Result<Admitted, Refused> {
++    fn wrapped_message(
++        &self,
++        op: &str,
++        name: String,
++        secret: &[u8; 32],
++        sender: &str,
++        req: DmWrapReq,
++    ) -> Result<Admitted, Refused> {
++        let recipient = nostr_bbs_core::PublicKey::from_hex(&req.recipient)
++            .map_err(|_| Refused::new(op, "recipient is not a valid public key"))?;
++        if req.content.is_empty() || req.content.len() > MAX_MESSAGE_BYTES {
++            return Err(Refused::new(
++                op,
++                "message body exceeds the bounded DM contract",
++            ));
++        }
++        let mut rumor =
++            nostr_bbs_core::gift_wrap::create_rumor(sender, &recipient.to_hex(), &req.content);
++        rumor.created_at = (self.now)();
++        rumor.tags.push(vec![
++            "client".into(),
++            if op == acl::OP_MIRROR_WRAP {
++                "agentbox-live-mirror"
++            } else {
++                "agentbox-identity-port"
++            }
++            .into(),
++        ]);
++        let seal = nostr_bbs_core::gift_wrap::seal_rumor(&rumor, secret, recipient.as_bytes())
++            .map_err(|_| Refused::new(op, "DM sealing failed"))?;
++        let event = nostr_bbs_core::gift_wrap::wrap_seal(&seal, &recipient.to_hex())
++            .map_err(|_| Refused::new(op, "DM wrapping failed"))?;
++        Ok(Admitted {
++            event_id: Some(event.id.clone()),
++            response: json!({"event":event}),
++            key: Some(name),
++            kind: Some(1059),
++            url_host: None,
++        })
++    }
++
++    fn op_dm_wrap(&self, grant: &OpGrant, req: DmWrapReq) -> Result<Admitted, Refused> {
++        let op = acl::OP_NIP17_WRAP;
++        let (name, held) = self.key(op, grant, req.key.clone(), DEFAULT_FORUM_KEY)?;
++        self.wrapped_message(op, name, &held.sk, &held.xonly, req)
++    }
++
++    fn op_mirror_wrap(&self, req: DmWrapReq) -> Result<Admitted, Refused> {
++        let op = acl::OP_MIRROR_WRAP;
++        let child = self
++            .keys
++            .mirror
++            .as_ref()
++            .ok_or_else(|| Refused::new(op, "mirror child unavailable"))?;
++        if req.key.is_some() || req.recipient != child.xonly {
++            return Err(Refused::new(
++                op,
++                "mirror messages must address the derived child itself",
++            ));
++        }
++        self.wrapped_message(op, "mirror".into(), &child.secret, &child.xonly, req)
++    }
++
++    fn op_dm_open(
++        &self,
++        grant: &OpGrant,
++        req: DmOpenReq,
++        grant_message: bool,
++    ) -> Result<Admitted, Refused> {
++        let op = if grant_message {
++            acl::OP_FORUM_GRANT_UNWRAP
++        } else {
++            acl::OP_NIP17_UNWRAP
++        };
++        let (name, held) = self.key(op, grant, req.key, DEFAULT_FORUM_KEY)?;
++        let recipients: Vec<_> = req
++            .event
++            .tags
++            .iter()
++            .filter(|t| t.first().map(String::as_str) == Some("p"))
++            .collect();
++        if recipients.len() != 1 || recipients[0].get(1) != Some(&held.xonly) {
++            return Err(Refused::new(
++                op,
++                "gift wrap must name the held recipient exactly once",
++            ));
++        }
++        let kinds: &[u64] = if grant_message { &[21453, 1014] } else { &[14] };
++        let opened = kinds
++            .iter()
++            .find_map(|kind| nostr_bbs_core::unwrap_gift_kind(&req.event, &held.sk, *kind).ok())
++            .ok_or_else(|| Refused::new(op, "gift wrap failed authenticated message validation"))?;
++        if opened.rumor.content.len() > MAX_MESSAGE_BYTES {
++            return Err(Refused::new(
++                op,
++                "opened message exceeds the bounded contract",
++            ));
++        }
++        // Keep the signed inner epoch ticket's fields for its existing validator.
++        // Envelope authenticity and supported kind were established above by core.
++        let sender = nostr_bbs_core::PublicKey::from_hex(&opened.sender_pubkey)
++            .map_err(|_| Refused::new(op, "invalid authenticated sender"))?;
++        let raw = nostr_bbs_core::nip44::decrypt(&held.sk, sender.as_bytes(), &opened.seal.content)
++            .map_err(|_| Refused::new(op, "validated message could not be reopened"))?;
++        let rumor: Value = serde_json::from_str(&raw)
++            .map_err(|_| Refused::new(op, "invalid opened message JSON"))?;
++        Ok(Admitted {
++            response: json!({"rumor":rumor,"sealer":opened.sender_pubkey}),
++            key: Some(name),
++            kind: Some(opened.rumor.kind),
++            event_id: Some(req.event.id),
++            url_host: None,
++        })
++    }
++
++    fn op_forum_seal(&self, grant: &OpGrant, req: ForumSealReq) -> Result<Admitted, Refused> {
++        let op = acl::OP_FORUM_SEAL;
++        let (name, held) = self.key(op, grant, req.key, DEFAULT_FORUM_KEY)?;
++        if req.content.is_empty()
++            || req.content.len() > MAX_MESSAGE_BYTES
++            || req.zone.id.is_empty()
++            || req.zone.id.len() > 100
++            || req.zone.epoch == 0
++            || !req
++                .zone
++                .id
++                .bytes()
++                .all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_')
++        {
++            return Err(Refused::new(op, "invalid bounded zone message"));
++        }
++        let recipient = nostr_bbs_core::PublicKey::from_hex(&req.zone.pubkey)
++            .map_err(|_| Refused::new(op, "invalid zone public key"))?;
++        let content = nostr_bbs_core::nip44::encrypt(&held.sk, recipient.as_bytes(), &req.content)
++            .map_err(|_| Refused::new(op, "zone encryption failed"))?;
++        let mut tags = req.tags;
++        tags.retain(|t| t.first().map(String::as_str) != Some("zk"));
++        tags.push(vec![
++            "zk".into(),
++            req.zone.id,
++            req.zone.epoch.to_string(),
++            recipient.to_hex(),
++        ]);
++        self.signed_event(
++            op,
++            grant,
++            name,
++            held,
++            Draft {
++                kind: 42,
++                tags,
++                content,
++                created_at: (self.now)(),
++            },
++        )
++    }
++
++    fn op_mirror_key(&self, _grant: &OpGrant) -> Result<Admitted, Refused> {
+         let op = acl::OP_MIRROR_KEY;
+         let m = self
+             .keys
+             .mirror
+             .as_ref()
+             .ok_or_else(|| Refused::new(op, "the mirror root key is not held by this port"))?;
+-        let mut response = json!({ "pubkey": m.xonly, "npub": m.npub });
+-        if grant.secret {
+-            response["secret_hex"] = Value::String(hex::encode(*m.secret));
+-        }
++        let response = json!({ "pubkey": m.xonly, "npub": m.npub });
+         Ok(Admitted {
+             response,
+             key: Some("mirror".into()),
+@@ -697,7 +935,7 @@ mod tests {
+           "sign_event":{"keys":["core"],"kinds":[38410,30840]},
+           "forum_event":{"keys":["junkiejarvis"],"kinds":[1,42]},
+           "nip42_auth":{"keys":["core"]},
+-          "mirror_key":{"secret":true}}},
++          "mirror_key":{}}},
+         "961":{"name":"ab-gateway","ops":{
+           "nip42_auth":{"keys":["core"]},
+           "sign_event":{"keys":["core"],"kinds":[1]},
+@@ -729,6 +967,130 @@ mod tests {
+         fx_with(ACL, true)
+     }
+ 
++    fn dm_fx() -> Fx {
++        let mut acl: Value = serde_json::from_str(ACL).unwrap();
++        for op in [
++            acl::OP_NIP17_WRAP,
++            acl::OP_NIP17_UNWRAP,
++            acl::OP_FORUM_GRANT_UNWRAP,
++        ] {
++            acl["callers"]["1000"]["ops"][op] = json!({"keys":["junkiejarvis"]});
++        }
++        acl["callers"]["1000"]["ops"][acl::OP_FORUM_SEAL] =
++            json!({"keys":["junkiejarvis"],"kinds":[42]});
++        acl["callers"]["1000"]["ops"][acl::OP_MIRROR_WRAP] = json!({});
++        fx_with(&acl.to_string(), true)
++    }
++
++    #[test]
++    fn shipped_policy_keeps_child_secrets_inside_and_gateway_derivation_compatible() {
++        let policy = include_str!("../../../../config/custody/identity-port-acl.json");
++        let mut policy: Value = serde_json::from_str(policy).unwrap();
++        policy["keys"]["core"]["file"] = json!("core.key");
++        let f = fx_with(&policy.to_string(), false);
++        let expected = crate::mirror_key::child_secret(CORE, Some("agentbox-gateway-v1")).unwrap();
++        let expected = held_key(&hex::encode(expected)).unwrap();
++        assert_eq!(f.port.keys.pubkey("gateway"), Some(expected.xonly.as_str()));
++        assert!(!f.port.acl.grant(1000, acl::OP_MIRROR_KEY).unwrap().secret);
++        for kind in [31401, 31403, 31404, 31405, 38414] {
++            let out = f.port.handle(
++                DEV,
++                &req(
++                    acl::OP_GOVERNANCE_EVENT,
++                    json!({"key":"agent_governance","kind":kind,"content":"fixture"}),
++                ),
++            );
++            assert!(out.get("refused").is_some());
++        }
++    }
++
++    #[test]
++    fn typed_dm_roundtrip_is_bounded_and_cannot_sign_governance() {
++        let f = dm_fx();
++        let recipient = f.port.keys.pubkey("junkiejarvis").unwrap();
++        let out = f.port.handle(
++            DEV,
++            &req(
++                acl::OP_NIP17_WRAP,
++                json!({"recipient":recipient,"content":"private bounded fixture"}),
++            ),
++        );
++        let event: NostrEvent = serde_json::from_value(out["event"].clone()).unwrap();
++        nostr_bbs_core::verify_event_strict(&event).unwrap();
++        let opened = f
++            .port
++            .handle(DEV, &req(acl::OP_NIP17_UNWRAP, json!({"event":event})));
++        assert_eq!(opened["rumor"]["content"], "private bounded fixture");
++        assert_eq!(opened["rumor"]["kind"], 14);
++        for params in [
++            json!({"recipient":recipient,"content":"x","kind":31403}),
++            json!({"recipient":recipient,"content":"x".repeat(MAX_MESSAGE_BYTES+1)}),
++            json!({"recipient":"not-a-key","content":"x"}),
++        ] {
++            assert!(f
++                .port
++                .handle(DEV, &req(acl::OP_NIP17_WRAP, params))
++                .get("refused")
++                .is_some());
++        }
++        let mut secret = [0u8; 32];
++        hex::decode_to_slice(JJ, &mut secret).unwrap();
++        let forbidden =
++            nostr_bbs_core::gift_wrap_kind(&secret, recipient, recipient, 31403, "human decision")
++                .unwrap();
++        for op in [acl::OP_NIP17_UNWRAP, acl::OP_FORUM_GRANT_UNWRAP] {
++            assert!(f
++                .port
++                .handle(DEV, &req(op, json!({"event":forbidden})))
++                .get("refused")
++                .is_some());
++        }
++        let receipt_bytes = std::fs::read_dir(f.dir.path().join("receipts"))
++            .unwrap()
++            .filter_map(Result::ok)
++            .map(|e| std::fs::read_to_string(e.path()).unwrap())
++            .collect::<String>();
++        assert!(!receipt_bytes.contains("private bounded fixture"));
++    }
++
++    #[test]
++    fn mirror_wrap_is_self_addressed_and_zone_seal_is_only_kind42() {
++        let f = dm_fx();
++        let child = f.port.keys.mirror.as_ref().unwrap();
++        let out = f.port.handle(
++            DEV,
++            &req(
++                acl::OP_MIRROR_WRAP,
++                json!({"recipient":child.xonly,"content":"mirror fixture"}),
++            ),
++        );
++        let event: NostrEvent = serde_json::from_value(out["event"].clone()).unwrap();
++        let opened = nostr_bbs_core::unwrap_gift(&event, &child.secret).unwrap();
++        assert_eq!(opened.rumor.content, "mirror fixture");
++        assert!(f
++            .port
++            .handle(
++                DEV,
++                &req(
++                    acl::OP_MIRROR_WRAP,
++                    json!({"recipient":f.port.keys.pubkey("core"),"content":"x"})
++                )
++            )
++            .get("refused")
++            .is_some());
++        let recipient = f.port.keys.pubkey("junkiejarvis").unwrap();
++        let sealed=f.port.handle(DEV,&req(acl::OP_FORUM_SEAL,json!({"tags":[["e","channel","","root"]],"content":"zone fixture","zone":{"id":"zone2","epoch":1,"pubkey":recipient}})));
++        let event: NostrEvent = serde_json::from_value(sealed["event"].clone()).unwrap();
++        assert_eq!(event.kind, 42);
++        let mut secret = [0u8; 32];
++        hex::decode_to_slice(JJ, &mut secret).unwrap();
++        let pk = nostr_bbs_core::PublicKey::from_hex(recipient).unwrap();
++        assert_eq!(
++            nostr_bbs_core::nip44::decrypt(&secret, pk.as_bytes(), &event.content).unwrap(),
++            "zone fixture"
++        );
++    }
++
+     const DEV: Peer = Peer {
+         uid: 1000,
+         gid: 1000,
+@@ -1006,17 +1368,14 @@ mod tests {
+     }
+ 
+     #[test]
+-    fn mirror_key_matches_the_w8_derivation_and_the_secret_is_per_grant() {
++    fn mirror_key_matches_the_w8_derivation_without_exporting_the_secret() {
+         let f = fx();
+         let v = f.port.handle(DEV, &req("mirror_key", json!({})));
+         assert_eq!(
+             v["pubkey"],
+             crate::mirror_key::child_xonly_pubkey_hex(CORE, None).unwrap()
+         );
+-        assert_eq!(
+-            v["secret_hex"], "a25935d1bb6782faa0ceaca1dce34bb23bf45a507e8e19b8973de836cbdcab72",
+-            "W8's synthetic vector for the aaaa key"
+-        );
++        assert!(v.get("secret_hex").is_none());
+         let v = f.port.handle(GW, &req("mirror_key", json!({})));
+         assert!(v.get("pubkey").is_some());
+         assert!(
+diff --git a/tests/sovereign/identity-consumers.node-test.js b/tests/sovereign/identity-consumers.node-test.js
+new file mode 100644
+index 000000000..443d24d01
+--- /dev/null
++++ b/tests/sovereign/identity-consumers.node-test.js
+@@ -0,0 +1,58 @@
++'use strict';
++
++const { test } = require('node:test');
++const assert = require('node:assert/strict');
++const { EventEmitter } = require('node:events');
++const identity = require('../../management-api/lib/identity-port');
++
++test('isolation selects port from the boot flag or manifest', () => {
++  assert.equal(identity.selected(null, {}), false);
++  assert.equal(identity.selected(null, { AGENTBOX_ROLE_ISOLATION: '1' }), true);
++  assert.equal(identity.selected({ security: { role_isolation: true } }, {}), true);
++});
++
++test('port signer has no secret and uses narrow operations for every consumer flow', async () => {
++  const calls = [];
++  const signer = identity.signer('junkiejarvis', {
++    requestSync: (op, params) => { calls.push([op, params]); return { pubkey: 'a'.repeat(64) }; },
++    request: async (op, params) => { calls.push([op, params]); return { event: { kind: 1059 }, rumor: { kind: 14 } }; },
++  });
++  assert.equal('skBytes' in signer, false);
++  await signer.sign({ kind: 22242, tags: [['relay', 'wss://relay.test'], ['challenge', 'fixture']] });
++  await signer.sign({ kind: 42, content: 'fixture' });
++  await signer.wrapDm('b'.repeat(64), 'fixture');
++  await signer.unwrapAny({ kind: 1059 });
++  await signer.sealChannel({ content: 'fixture' }, { key: { zone: 'staff', epoch: 2, pubkey: 'c'.repeat(64) } });
++  assert.deepEqual(calls.map(([op]) => op), ['pubkey', 'nip42_auth', 'forum_event', 'nip17_wrap', 'nip17_unwrap', 'forum_seal']);
++  assert.deepEqual(calls.at(-1)[1].zone, { id: 'staff', epoch: 2, pubkey: 'c'.repeat(64) });
++});
++
++test('port refusal never falls back to local secret loading or another signer', async () => {
++  const signer = identity.signer('junkiejarvis', {
++    requestSync: () => ({ pubkey: 'a'.repeat(64) }),
++    request: async () => { throw new Error('refused'); },
++  });
++  await assert.rejects(signer.sign({ kind: 31403 }), /refused/);
++  await assert.rejects(signer.wrapDm('b'.repeat(64), 'fixture'), /refused/);
++  assert.throws(() => identity.signer('junkiejarvis', { requestSync: () => { throw new Error('absent'); } }), /absent/);
++});
++
++test('bounded CLI parameters travel on stdin and error output is withheld', async () => {
++  let invocation;
++  const fakeSpawn = (bin, argv, opts) => {
++    invocation = { bin, argv, opts };
++    const child = new EventEmitter();
++    child.stdout = new EventEmitter();
++    child.stdin = new EventEmitter();
++    child.stdin.end = input => {
++      invocation.input = input;
++      queueMicrotask(() => { child.stdout.emit('data', JSON.stringify({ refused: { reason: 'sensitive' } })); child.emit('close', 1); });
++    };
++    child.kill = () => {};
++    return child;
++  };
++  await assert.rejects(identity.request('nip17_wrap', { content: 'private fixture' }, { spawn: fakeSpawn, env: {} }), /^Error: identity port refused or unavailable$/);
++  assert.deepEqual(invocation.argv, ['sign-request', 'nip17_wrap']);
++  assert.equal(invocation.input, '{"content":"private fixture"}');
++  assert.equal(invocation.opts.stdio[2], 'ignore');
++});
+diff --git a/tests/sovereign/identity-port.node-test.js b/tests/sovereign/identity-port.node-test.js
+index ffcb5281b..2ba94a831 100644
+--- a/tests/sovereign/identity-port.node-test.js
++++ b/tests/sovereign/identity-port.node-test.js
+@@ -39,6 +39,9 @@ const { resolveAdapters } = require('../../management-api/adapters');
+ const { ExternalPodsAdapter } = require('../../management-api/adapters/pods/external');
+ const { SigningUnavailable } = require('../../management-api/adapters/errors');
+ const { buildPodNip98 } = require('../../management-api/lib/pod-signer');
++// Keep the bounded caller contract in the existing npm test:node gate, even
++// when this file's real-port suite is skipped because no Rust binary exists.
++require('./identity-consumers.node-test');
+ 
+ const CRATE = path.join(__dirname, '../../services/nostr-pod-bridge');
+ function findBin() {
+@@ -74,6 +77,7 @@ async function startPort(tmp) {
+     keys: { core: { file: 'core.key', required: true, nip98_url_prefixes: [POD] } },
+     callers: { [String(process.getuid())]: { name: 'node-test', ops: {
+       pubkey: { keys: ['core'] }, nip98: { keys: ['core'] },
++      nip17_wrap: { keys: ['core'] }, nip17_unwrap: { keys: ['core'] },
+     } } },
+   }));
+   const sock = path.join(run, 'identity.sock');
+@@ -189,6 +193,22 @@ describe('identity port: NIP-98 via serve-identity', { skip: SKIP }, () => {
+     assert.equal(r.valid, true, `verifier unavailable: ${r.error} (set NODE_PATH)`);
+   });
+ 
++  test('shared custody client opens a real typed self-DM without receiving a key', async () => {
++    const identityPort = require('../../management-api/lib/identity-port');
++    const signer = identityPort.signer('core');
++    assert.equal(signer.pubkey, ctx.port.pubkey);
++    assert.equal(signer.skBytes, undefined);
++    const wrap = await signer.wrapDm(ctx.port.pubkey, 'typed IPC fixture');
++    const opened = await signer.unwrapAny(wrap);
++    assert.equal(opened.rumor.kind, 14);
++    assert.equal(opened.rumor.content, 'typed IPC fixture');
++    assert.equal(opened.sealer, ctx.port.pubkey);
++    const receiptDir = path.join(ctx.tmp, 'receipts');
++    for (const name of fs.readdirSync(receiptDir)) {
++      assert.equal(fs.readFileSync(path.join(receiptDir, name), 'utf8').includes('typed IPC fixture'), false);
++    }
++  });
++
+   test('case 1: sign-request nip98 verifies as the port key with the body bound', () => {
+     const body = '<a> <b> <c> .';
+     const url = `${POD}/kg/a?ignored=1`;
+diff --git a/tests/sovereign/junkiejarvis-agent.test.js b/tests/sovereign/junkiejarvis-agent.test.js
+index 2efb27d3f..afb5dc5fe 100644
+--- a/tests/sovereign/junkiejarvis-agent.test.js
++++ b/tests/sovereign/junkiejarvis-agent.test.js
+@@ -691,6 +691,26 @@ describe('startJunkieJarvis gating', () => {
+   // deps.manifest; JUNKIEJARVIS_ENABLED is not read (owner decision 2026-10-02, R1).
+   const ON = { sovereign_mesh: { junkiejarvis: true } };
+ 
++  test('isolation starts with only a port signer, without consulting the local signer', () => {
++    const local = jest.fn(() => { throw new Error('local signer must not run'); });
++    const port = jest.fn(() => ({ pubkey: 'd'.repeat(64), sign: async e => e, wrapDm: async () => ({ kind: 1059 }) }));
++    const agent = startJunkieJarvis({ bridge: makeBridge(), logger: silentLogger, manifest: ON,
++      env: { AGENTBOX_ROLE_ISOLATION: '1' }, signerFactory: local, portSignerFactory: port, zoneCrypto: null });
++    expect(agent).not.toBeNull();
++    expect(local).not.toHaveBeenCalled();
++    expect(port).toHaveBeenCalledWith('junkiejarvis', expect.anything());
++    agent.stop();
++  });
++
++  test('port failure under isolation leaves the agent stopped even with a local key present', () => {
++    process.env.JUNKIEJARVIS_PRIVKEY_HEX = '1'.repeat(64);
++    const local = jest.fn(fakeFactory);
++    expect(startJunkieJarvis({ bridge: makeBridge(), logger: silentLogger, manifest: ON,
++      env: { AGENTBOX_ROLE_ISOLATION: '1' }, signerFactory: local,
++      portSignerFactory: () => { throw new Error('unavailable'); }, zoneCrypto: null })).toBeNull();
++    expect(local).not.toHaveBeenCalled();
++  });
++
+   test('disabled by default → returns null, no throw', () => {
+     expect(startJunkieJarvis({ bridge: makeBridge(), logger: silentLogger, signerFactory: fakeFactory })).toBeNull();
+   });

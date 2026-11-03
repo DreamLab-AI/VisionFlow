@@ -1,0 +1,28 @@
+{
+  "mode": "diff",
+  "diff_ref": "e2033dc787bb9b516a7a98b36a45b57e14c90ae9",
+  "files_from": "",
+  "root": "/home/devuser/workspace/wt/agentbox-ledger-repairs",
+  "project_id": "agentbox-ledger-repairs",
+  "workspace": "/home/devuser/workspace/wt/agentbox-ledger-repairs/.deepsec-gate",
+  "report_dir": "/home/devuser/workspace/wt/agentbox-ledger-repairs/.deepsec-gate/reports/20261103T071244Z",
+  "revision": "e95d183cd4978c22da992eb715f1a47fb0f560da",
+  "dirty": "false",
+  "deepsec_version": "2.3.10",
+  "policy_source": "/etc/agentbox.toml",
+  "agent": "claude",
+  "model_auth": "local",
+  "model": "",
+  "thinking_level": "minimal",
+  "fail_on": "HIGH",
+  "max_duration": "20m",
+  "batch_size": "5",
+  "concurrency": "2",
+  "ai_provider": "",
+  "ai_api_key_env": "",
+  "ai_base_url": "",
+  "route": {
+    "mode": "local",
+    "provider": "local"
+  }
+}

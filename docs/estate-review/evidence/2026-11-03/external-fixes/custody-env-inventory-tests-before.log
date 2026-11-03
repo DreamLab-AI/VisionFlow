@@ -1,0 +1,194 @@
+TAP version 13
+# Subtest: the table has exactly the three classes
+ok 1 - the table has exactly the three classes
+  ---
+  duration_ms: 2.767011
+  type: 'test'
+  ...
+# Subtest: the brief's ROLE secrets are ROLE, each with a role and a <NAME>_FILE
+ok 2 - the brief's ROLE secrets are ROLE, each with a role and a <NAME>_FILE
+  ---
+  duration_ms: 0.324533
+  type: 'test'
+  ...
+# Subtest: the brief's devuser-class credentials are DEVUSER_CLASS exceptions with reasons
+ok 3 - the brief's devuser-class credentials are DEVUSER_CLASS exceptions with reasons
+  ---
+  duration_ms: 0.168571
+  type: 'test'
+  ...
+# Subtest: BRIDGE_TOKEN records the break-glass double, dated, pointing at ADR-2027
+ok 4 - BRIDGE_TOKEN records the break-glass double, dated, pointing at ADR-2027
+  ---
+  duration_ms: 0.37873
+  type: 'test'
+  ...
+# Subtest: every name the scanned code reads is classified, once (--check on the repo)
+not ok 5 - every name the scanned code reads is classified, once (--check on the repo)
+  ---
+  duration_ms: 140.169881
+  type: 'test'
+  location: '/home/devuser/workspace/wt/agentbox-external-fixes/tests/security/env-secret-inventory.node-test.js:55:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    FAIL (env-secret-inventory): 4 violation(s)
+      ROLE DREAM_GOVERNANCE_PRIVKEY_HEX: its file var DREAM_GOVERNANCE_PRIVKEY_HEX_FILE must be NON_SECRET
+      ROLE DREAM_GOVERNANCE_PRIVKEY_HEX is not read by any scanned source (stale entry or missing source)
+      W1-PARITY ROLE DREAM_GOVERNANCE_PRIVKEY_HEX is in neither W1's plan nor w1_plan.w2_only
+      entrypoint _AB_ROLE_ENV_VARS lacks DREAM_GOVERNANCE_PRIVKEY_HEX:ab-identity
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/home/devuser/workspace/wt/agentbox-external-fixes/tests/security/env-secret-inventory.node-test.js:57:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: an unclassified name read by the code fails the check
+ok 6 - an unclassified name read by the code fails the check
+  ---
+  duration_ms: 3.145735
+  type: 'test'
+  ...
+# Subtest: a secret-shaped name cannot ride a NON_SECRET pattern
+ok 7 - a secret-shaped name cannot ride a NON_SECRET pattern
+  ---
+  duration_ms: 1.37766
+  type: 'test'
+  ...
+# Subtest: a name in two classes is ambiguous
+ok 8 - a name in two classes is ambiguous
+  ---
+  duration_ms: 1.214977
+  type: 'test'
+  ...
+# Subtest: the entrypoint scrub list equals the ROLE set (NAME:role)
+not ok 9 - the entrypoint scrub list equals the ROLE set (NAME:role)
+  ---
+  duration_ms: 2.774467
+  type: 'test'
+  location: '/home/devuser/workspace/wt/agentbox-external-fixes/tests/security/env-secret-inventory.node-test.js:88:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+        AGENTBOX_AGENT_PRIVKEY_HEX: 'ab-identity',
+        AGENTBOX_BRIDGE_SK: 'ab-identity',
+        AGENTBOX_NSEC: 'ab-identity',
+        AGENTBOX_PRIVKEY_HEX: 'ab-identity',
+        AGENT_PRIVKEY_HEX: 'ab-identity',
+        CONCIERGE_PRIVKEY_HEX: 'ab-identity',
+    -   DREAM_GOVERNANCE_PRIVKEY_HEX: 'ab-identity',
+        JUNKIEJARVIS_PRIVKEY_HEX: 'ab-identity',
+        NIP98_PROXY_ALLOW_BEARER: 'ab-ingress',
+        NIP98_PROXY_SESSION_SECRET: 'ab-ingress',
+        OPERATOR_NOSTR_PRIVKEY: 'ab-identity',
+        TAILSCALE_AUTHKEY: 'root'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    AGENTBOX_AGENT_PRIVKEY_HEX: 'ab-identity'
+    AGENTBOX_BRIDGE_SK: 'ab-identity'
+    AGENTBOX_NSEC: 'ab-identity'
+    AGENTBOX_PRIVKEY_HEX: 'ab-identity'
+    AGENT_PRIVKEY_HEX: 'ab-identity'
+    CONCIERGE_PRIVKEY_HEX: 'ab-identity'
+    JUNKIEJARVIS_PRIVKEY_HEX: 'ab-identity'
+    DREAM_GOVERNANCE_PRIVKEY_HEX: 'ab-identity'
+    NIP98_PROXY_ALLOW_BEARER: 'ab-ingress'
+    NIP98_PROXY_SESSION_SECRET: 'ab-ingress'
+    OPERATOR_NOSTR_PRIVKEY: 'ab-identity'
+    TAILSCALE_AUTHKEY: 'root'
+  actual:
+    AGENTBOX_AGENT_PRIVKEY_HEX: 'ab-identity'
+    AGENTBOX_BRIDGE_SK: 'ab-identity'
+    AGENTBOX_NSEC: 'ab-identity'
+    AGENTBOX_PRIVKEY_HEX: 'ab-identity'
+    AGENT_PRIVKEY_HEX: 'ab-identity'
+    CONCIERGE_PRIVKEY_HEX: 'ab-identity'
+    JUNKIEJARVIS_PRIVKEY_HEX: 'ab-identity'
+    NIP98_PROXY_ALLOW_BEARER: 'ab-ingress'
+    NIP98_PROXY_SESSION_SECRET: 'ab-ingress'
+    OPERATOR_NOSTR_PRIVKEY: 'ab-identity'
+    TAILSCALE_AUTHKEY: 'root'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/home/devuser/workspace/wt/agentbox-external-fixes/tests/security/env-secret-inventory.node-test.js:92:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: extraction: shell, nix, compose, js and rust readers
+ok 10 - extraction: shell, nix, compose, js and rust readers
+  ---
+  duration_ms: 1.744209
+  type: 'test'
+  ...
+# Subtest: the inventory reads code, never an env file
+ok 11 - the inventory reads code, never an env file
+  ---
+  duration_ms: 0.940252
+  type: 'test'
+  ...
+# Subtest: the report prints names only (no values, no assignments)
+ok 12 - the report prints names only (no values, no assignments)
+  ---
+  duration_ms: 239.160202
+  type: 'test'
+  ...
+# Subtest: the ROLE set agrees with W1's delivery plan (config/role-accounts.json)
+not ok 13 - the ROLE set agrees with W1's delivery plan (config/role-accounts.json)
+  ---
+  duration_ms: 2.187912
+  type: 'test'
+  location: '/home/devuser/workspace/wt/agentbox-external-fixes/tests/security/env-secret-inventory.node-test.js:134:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   "W1-PARITY ROLE DREAM_GOVERNANCE_PRIVKEY_HEX is in neither W1's plan nor w1_plan.w2_only"
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: "W1-PARITY ROLE DREAM_GOVERNANCE_PRIVKEY_HEX is in neither W1's plan nor w1_plan.w2_only"
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/home/devuser/workspace/wt/agentbox-external-fixes/tests/security/env-secret-inventory.node-test.js:137:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 10
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 507.877029

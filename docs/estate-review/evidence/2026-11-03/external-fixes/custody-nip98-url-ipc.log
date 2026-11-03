@@ -1,0 +1,128 @@
+TAP version 13
+# Subtest: isolation selects port from the boot flag or manifest
+ok 1 - isolation selects port from the boot flag or manifest
+  ---
+  duration_ms: 1.061738
+  type: 'test'
+  ...
+# Subtest: port signer has no secret and uses narrow operations for every consumer flow
+ok 2 - port signer has no secret and uses narrow operations for every consumer flow
+  ---
+  duration_ms: 1.338223
+  type: 'test'
+  ...
+# Subtest: port refusal never falls back to local secret loading or another signer
+ok 3 - port refusal never falls back to local secret loading or another signer
+  ---
+  duration_ms: 0.829135
+  type: 'test'
+  ...
+# Subtest: bounded CLI parameters travel on stdin and error output is withheld
+ok 4 - bounded CLI parameters travel on stdin and error output is withheld
+  ---
+  duration_ms: 0.858287
+  type: 'test'
+  ...
+# Subtest: identity port: NIP-98 via serve-identity
+    # Subtest: the production verifier can run Schnorr here (guards against a vacuous pass)
+    ok 1 - the production verifier can run Schnorr here (guards against a vacuous pass)
+      ---
+      duration_ms: 14.890141
+      type: 'test'
+      ...
+    # Subtest: shared custody client opens a real typed self-DM without receiving a key
+    ok 2 - shared custody client opens a real typed self-DM without receiving a key
+      ---
+      duration_ms: 44.620977
+      type: 'test'
+      ...
+    # Subtest: case 1: sign-request nip98 verifies as the port key with the body bound
+    ok 3 - case 1: sign-request nip98 verifies as the port key with the body bound
+      ---
+      duration_ms: 23.749516
+      type: 'test'
+      ...
+# {"ts":"2026-11-03T07:14:23.518Z","level":"info","msg":"adapter_dispatch","slot":"pods","method":"write","impl":"local-solid-rs","duration_ms":13,"session_id":"unknown","execution_id":"urn:agentbox:event:11ed64225dd5e2c5e18f61ad43d5ad9272d08739d3a20dd25886197b0738663c:sha256-12-125821492bcc","outcome":"success"}
+# {"ts":"2026-11-03T07:14:23.533Z","level":"info","msg":"adapter_dispatch","slot":"pods","method":"read","impl":"local-solid-rs","duration_ms":11,"session_id":"unknown","execution_id":"urn:agentbox:event:11ed64225dd5e2c5e18f61ad43d5ad9272d08739d3a20dd25886197b0738663c:sha256-12-d92d597c87a2","outcome":"success"}
+# {"ts":"2026-11-03T07:14:23.550Z","level":"info","msg":"adapter_dispatch","slot":"pods","method":"probeCapabilities","impl":"local-solid-rs","duration_ms":12,"session_id":"unknown","execution_id":"urn:agentbox:event:11ed64225dd5e2c5e18f61ad43d5ad9272d08739d3a20dd25886197b0738663c:sha256-12-9a5799f3abc8","outcome":"success"}
+# {"ts":"2026-11-03T07:14:23.561Z","level":"info","msg":"adapter_dispatch","slot":"pods","method":"patch","impl":"local-solid-rs","duration_ms":24,"session_id":"unknown","execution_id":"urn:agentbox:event:11ed64225dd5e2c5e18f61ad43d5ad9272d08739d3a20dd25886197b0738663c:sha256-12-ed3e05d41b78","outcome":"success"}
+# {"ts":"2026-11-03T07:14:23.578Z","level":"info","msg":"adapter_dispatch","slot":"pods","method":"del","impl":"local-solid-rs","duration_ms":13,"session_id":"unknown","execution_id":"urn:agentbox:event:11ed64225dd5e2c5e18f61ad43d5ad9272d08739d3a20dd25886197b0738663c:sha256-12-a8ec29f2753c","outcome":"success"}
+# {"ts":"2026-11-03T07:14:23.583Z","level":"info","msg":"adapter_dispatch","slot":"pods","method":"probeCapabilities","impl":"local-solid-rs","duration_ms":0,"session_id":"unknown","execution_id":"urn:agentbox:event:11ed64225dd5e2c5e18f61ad43d5ad9272d08739d3a20dd25886197b0738663c:sha256-12-defbbddd51be","outcome":"success"}
+# {"ts":"2026-11-03T07:14:23.595Z","level":"info","msg":"adapter_dispatch","slot":"pods","method":"list","impl":"local-solid-rs","duration_ms":13,"session_id":"unknown","execution_id":"urn:agentbox:event:11ed64225dd5e2c5e18f61ad43d5ad9272d08739d3a20dd25886197b0738663c:sha256-12-c88e5f37fca4","outcome":"success"}
+    # Subtest: case 2 (local-solid-rs): under role_isolation every pods op is signed by the port, and only by it
+    ok 4 - case 2 (local-solid-rs): under role_isolation every pods op is signed by the port, and only by it
+      ---
+      duration_ms: 98.792548
+      type: 'test'
+      ...
+# {"ts":"2026-11-03T07:14:23.609Z","level":"error","msg":"adapter_dispatch_error","slot":"pods","method":"write","impl":"local-solid-rs","duration_ms":9,"session_id":"unknown","execution_id":"urn:agentbox:event:11ed64225dd5e2c5e18f61ad43d5ad9272d08739d3a20dd25886197b0738663c:sha256-12-d2b4528313ad","outcome":"error","error":"Signing unavailable for 'pods' slot: origination failed for PUT http://pod.test/kg/a: identity port unavailable: cannot connect: entity not found","stack":"SigningUnavailable: Signing unavailable for 'pods' slot: origination failed for PUT http://pod.test/kg/a: identity port unavailable: cannot connect: entity not found\\n    at LocalSolidRsPodsAdapter._signedFetch (/home/devuser/workspace/wt/agentbox-external-fixes/management-api/adapters/pods/_solid-http-base.js:98:15)\\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\\n    at async LocalSolidRsPodsAdapter.write (/home/devuser/workspace/wt/agentbox-external-fixes/management-api/adapters/pods/_solid-http-base.js:120:17)\\n    at async LocalSolidRsPodsAdapter.instrumentedDispatch [as write] (/home/devuser/workspace/wt/agentbox-external-fixes/management-api/observability/metrics.js:140:22)\\n    at async waitForActual (node:assert:644:5)\\n    at async Function.rejects (node:assert:767:25)\\n    at async TestContext.<anonymous> (/home/devuser/workspace/wt/agentbox-external-fixes/tests/sovereign/identity-port.node-test.js:252:9)\\n    at async Test.run (node:internal/test_runner/test:1054:7)\\n    at async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)"}
+# {"ts":"2026-11-03T07:14:23.619Z","level":"error","msg":"adapter_dispatch_error","slot":"pods","method":"read","impl":"local-solid-rs","duration_ms":9,"session_id":"unknown","execution_id":"urn:agentbox:event:11ed64225dd5e2c5e18f61ad43d5ad9272d08739d3a20dd25886197b0738663c:sha256-12-161940020a6f","outcome":"error","error":"Signing unavailable for 'pods' slot: origination failed for GET http://pod.test/kg/a: identity port unavailable: cannot connect: entity not found","stack":"SigningUnavailable: Signing unavailable for 'pods' slot: origination failed for GET http://pod.test/kg/a: identity port unavailable: cannot connect: entity not found\\n    at LocalSolidRsPodsAdapter._signedFetch (/home/devuser/workspace/wt/agentbox-external-fixes/management-api/adapters/pods/_solid-http-base.js:98:15)\\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\\n    at async LocalSolidRsPodsAdapter.read (/home/devuser/workspace/wt/agentbox-external-fixes/management-api/adapters/pods/_solid-http-base.js:136:17)\\n    at async LocalSolidRsPodsAdapter.instrumentedDispatch [as read] (/home/devuser/workspace/wt/agentbox-external-fixes/management-api/observability/metrics.js:140:22)\\n    at async waitForActual (node:assert:644:5)\\n    at async Function.rejects (node:assert:767:25)\\n    at async TestContext.<anonymous> (/home/devuser/workspace/wt/agentbox-external-fixes/tests/sovereign/identity-port.node-test.js:252:9)\\n    at async Test.run (node:internal/test_runner/test:1054:7)\\n    at async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)"}
+# {"ts":"2026-11-03T07:14:23.627Z","level":"info","msg":"adapter_dispatch","slot":"pods","method":"probeCapabilities","impl":"local-solid-rs","duration_ms":8,"session_id":"unknown","execution_id":"urn:agentbox:event:11ed64225dd5e2c5e18f61ad43d5ad9272d08739d3a20dd25886197b0738663c:sha256-12-381fa841face","outcome":"success"}
+# {"ts":"2026-11-03T07:14:23.635Z","level":"error","msg":"adapter_dispatch_error","slot":"pods","method":"patch","impl":"local-solid-rs","duration_ms":16,"session_id":"unknown","execution_id":"urn:agentbox:event:11ed64225dd5e2c5e18f61ad43d5ad9272d08739d3a20dd25886197b0738663c:sha256-12-67c0f60e4946","outcome":"error","error":"Signing unavailable for 'pods' slot: origination failed for PATCH http://pod.test/kg/a: identity port unavailable: cannot connect: entity not found","stack":"SigningUnavailable: Signing unavailable for 'pods' slot: origination failed for PATCH http://pod.test/kg/a: identity port unavailable: cannot connect: entity not found\\n    at LocalSolidRsPodsAdapter._signedFetch (/home/devuser/workspace/wt/agentbox-external-fixes/management-api/adapters/pods/_solid-http-base.js:98:15)\\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\\n    at async LocalSolidRsPodsAdapter.patch (/home/devuser/workspace/wt/agentbox-external-fixes/management-api/adapters/pods/_solid-http-base.js:151:17)\\n    at async LocalSolidRsPodsAdapter.instrumentedDispatch [as patch] (/home/devuser/workspace/wt/agentbox-external-fixes/management-api/observability/metrics.js:140:22)\\n    at async waitForActual (node:assert:644:5)\\n    at async Function.rejects (node:assert:767:25)\\n    at async TestContext.<anonymous> (/home/devuser/workspace/wt/agentbox-external-fixes/tests/sovereign/identity-port.node-test.js:252:9)\\n    at async Test.run (node:internal/test_runner/test:1054:7)\\n    at async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)"}
+# {"ts":"2026-11-03T07:14:23.644Z","level":"error","msg":"adapter_dispatch_error","slot":"pods","method":"del","impl":"local-solid-rs","duration_ms":8,"session_id":"unknown","execution_id":"urn:agentbox:event:11ed64225dd5e2c5e18f61ad43d5ad9272d08739d3a20dd25886197b0738663c:sha256-12-3b6651fc1361","outcome":"error","error":"Signing unavailable for 'pods' slot: origination failed for DELETE http://pod.test/kg/a: identity port unavailable: cannot connect: entity not found","stack":"SigningUnavailable: Signing unavailable for 'pods' slot: origination failed for DELETE http://pod.test/kg/a: identity port unavailable: cannot connect: entity not found\\n    at LocalSolidRsPodsAdapter._signedFetch (/home/devuser/workspace/wt/agentbox-external-fixes/management-api/adapters/pods/_solid-http-base.js:98:15)\\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\\n    at async LocalSolidRsPodsAdapter.del (/home/devuser/workspace/wt/agentbox-external-fixes/management-api/adapters/pods/_solid-http-base.js:166:17)\\n    at async LocalSolidRsPodsAdapter.instrumentedDispatch [as del] (/home/devuser/workspace/wt/agentbox-external-fixes/management-api/observability/metrics.js:140:22)\\n    at async waitForActual (node:assert:644:5)\\n    at async Function.rejects (node:assert:767:25)\\n    at async TestContext.<anonymous> (/home/devuser/workspace/wt/agentbox-external-fixes/tests/sovereign/identity-port.node-test.js:252:9)\\n    at async Test.run (node:internal/test_runner/test:1054:7)\\n    at async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)"}
+# {"ts":"2026-11-03T07:14:23.644Z","level":"info","msg":"adapter_dispatch","slot":"pods","method":"probeCapabilities","impl":"local-solid-rs","duration_ms":0,"session_id":"unknown","execution_id":"urn:agentbox:event:11ed64225dd5e2c5e18f61ad43d5ad9272d08739d3a20dd25886197b0738663c:sha256-12-f74bdc1d566a","outcome":"success"}
+# {"ts":"2026-11-03T07:14:23.658Z","level":"error","msg":"adapter_dispatch_error","slot":"pods","method":"list","impl":"local-solid-rs","duration_ms":14,"session_id":"unknown","execution_id":"urn:agentbox:event:11ed64225dd5e2c5e18f61ad43d5ad9272d08739d3a20dd25886197b0738663c:sha256-12-83ffd2a65af1","outcome":"error","error":"Signing unavailable for 'pods' slot: origination failed for GET http://pod.test/kg/: identity port unavailable: cannot connect: entity not found","stack":"SigningUnavailable: Signing unavailable for 'pods' slot: origination failed for GET http://pod.test/kg/: identity port unavailable: cannot connect: entity not found\\n    at LocalSolidRsPodsAdapter._signedFetch (/home/devuser/workspace/wt/agentbox-external-fixes/management-api/adapters/pods/_solid-http-base.js:98:15)\\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\\n    at async LocalSolidRsPodsAdapter.list (/home/devuser/workspace/wt/agentbox-external-fixes/management-api/adapters/pods/local-solid-rs.js:79:17)\\n    at async LocalSolidRsPodsAdapter.instrumentedDispatch [as list] (/home/devuser/workspace/wt/agentbox-external-fixes/management-api/observability/metrics.js:140:22)\\n    at async waitForActual (node:assert:644:5)\\n    at async Function.rejects (node:assert:767:25)\\n    at async TestContext.<anonymous> (/home/devuser/workspace/wt/agentbox-external-fixes/tests/sovereign/identity-port.node-test.js:252:9)\\n    at async Test.run (node:internal/test_runner/test:1054:7)\\n    at async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)"}
+    # Subtest: case 3 (local-solid-rs): no socket → SigningUnavailable, zero requests
+    ok 5 - case 3 (local-solid-rs): no socket → SigningUnavailable, zero requests
+      ---
+      duration_ms: 59.689433
+      type: 'test'
+      ...
+# {"ts":"2026-11-03T07:14:23.669Z","level":"error","msg":"adapter_dispatch_error","slot":"pods","method":"write","impl":"local-solid-rs","duration_ms":9,"session_id":"unknown","execution_id":"urn:agentbox:event:11ed64225dd5e2c5e18f61ad43d5ad9272d08739d3a20dd25886197b0738663c:sha256-12-1e2a6ee25aa2","outcome":"error","error":"Signing unavailable for 'pods' slot: origination failed for PUT http://elsewhere.test/kg/a: identity port refused: url host \\"elsewhere.test\\" is outside key \\"core\\"'s NIP-98 allowlist","stack":"SigningUnavailable: Signing unavailable for 'pods' slot: origination failed for PUT http://elsewhere.test/kg/a: identity port refused: url host \\"elsewhere.test\\" is outside key \\"core\\"'s NIP-98 allowlist\\n    at LocalSolidRsPodsAdapter._signedFetch (/home/devuser/workspace/wt/agentbox-external-fixes/management-api/adapters/pods/_solid-http-base.js:98:15)\\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\\n    at async LocalSolidRsPodsAdapter.write (/home/devuser/workspace/wt/agentbox-external-fixes/management-api/adapters/pods/_solid-http-base.js:120:17)\\n    at async LocalSolidRsPodsAdapter.instrumentedDispatch [as write] (/home/devuser/workspace/wt/agentbox-external-fixes/management-api/observability/metrics.js:140:22)\\n    at async waitForActual (node:assert:644:5)\\n    at async Function.rejects (node:assert:767:25)\\n    at async TestContext.<anonymous> (/home/devuser/workspace/wt/agentbox-external-fixes/tests/sovereign/identity-port.node-test.js:260:9)\\n    at async Test.run (node:internal/test_runner/test:1054:7)\\n    at async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)"}
+# {"ts":"2026-11-03T07:14:23.678Z","level":"error","msg":"adapter_dispatch_error","slot":"pods","method":"read","impl":"local-solid-rs","duration_ms":8,"session_id":"unknown","execution_id":"urn:agentbox:event:11ed64225dd5e2c5e18f61ad43d5ad9272d08739d3a20dd25886197b0738663c:sha256-12-56e432c61c91","outcome":"error","error":"Signing unavailable for 'pods' slot: origination failed for GET http://elsewhere.test/kg/a: identity port refused: url host \\"elsewhere.test\\" is outside key \\"core\\"'s NIP-98 allowlist","stack":"SigningUnavailable: Signing unavailable for 'pods' slot: origination failed for GET http://elsewhere.test/kg/a: identity port refused: url host \\"elsewhere.test\\" is outside key \\"core\\"'s NIP-98 allowlist\\n    at LocalSolidRsPodsAdapter._signedFetch (/home/devuser/workspace/wt/agentbox-external-fixes/management-api/adapters/pods/_solid-http-base.js:98:15)\\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\\n    at async LocalSolidRsPodsAdapter.read (/home/devuser/workspace/wt/agentbox-external-fixes/management-api/adapters/pods/_solid-http-base.js:136:17)\\n    at async LocalSolidRsPodsAdapter.instrumentedDispatch [as read] (/home/devuser/workspace/wt/agentbox-external-fixes/management-api/observability/metrics.js:140:22)\\n    at async waitForActual (node:assert:644:5)\\n    at async Function.rejects (node:assert:767:25)\\n    at async TestContext.<anonymous> (/home/devuser/workspace/wt/agentbox-external-fixes/tests/sovereign/identity-port.node-test.js:260:9)\\n    at async Test.run (node:internal/test_runner/test:1054:7)\\n    at async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)"}
+# {"ts":"2026-11-03T07:14:23.688Z","level":"info","msg":"adapter_dispatch","slot":"pods","method":"probeCapabilities","impl":"local-solid-rs","duration_ms":10,"session_id":"unknown","execution_id":"urn:agentbox:event:11ed64225dd5e2c5e18f61ad43d5ad9272d08739d3a20dd25886197b0738663c:sha256-12-65298e5ab604","outcome":"success"}
+# {"ts":"2026-11-03T07:14:23.698Z","level":"error","msg":"adapter_dispatch_error","slot":"pods","method":"patch","impl":"local-solid-rs","duration_ms":19,"session_id":"unknown","execution_id":"urn:agentbox:event:11ed64225dd5e2c5e18f61ad43d5ad9272d08739d3a20dd25886197b0738663c:sha256-12-f842ca5622ae","outcome":"error","error":"Signing unavailable for 'pods' slot: origination failed for PATCH http://elsewhere.test/kg/a: identity port refused: url host \\"elsewhere.test\\" is outside key \\"core\\"'s NIP-98 allowlist","stack":"SigningUnavailable: Signing unavailable for 'pods' slot: origination failed for PATCH http://elsewhere.test/kg/a: identity port refused: url host \\"elsewhere.test\\" is outside key \\"core\\"'s NIP-98 allowlist\\n    at LocalSolidRsPodsAdapter._signedFetch (/home/devuser/workspace/wt/agentbox-external-fixes/management-api/adapters/pods/_solid-http-base.js:98:15)\\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\\n    at async LocalSolidRsPodsAdapter.patch (/home/devuser/workspace/wt/agentbox-external-fixes/management-api/adapters/pods/_solid-http-base.js:151:17)\\n    at async LocalSolidRsPodsAdapter.instrumentedDispatch [as patch] (/home/devuser/workspace/wt/agentbox-external-fixes/management-api/observability/metrics.js:140:22)\\n    at async waitForActual (node:assert:644:5)\\n    at async Function.rejects (node:assert:767:25)\\n    at async TestContext.<anonymous> (/home/devuser/workspace/wt/agentbox-external-fixes/tests/sovereign/identity-port.node-test.js:260:9)\\n    at async Test.run (node:internal/test_runner/test:1054:7)\\n    at async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)"}
+# {"ts":"2026-11-03T07:14:23.708Z","level":"error","msg":"adapter_dispatch_error","slot":"pods","method":"del","impl":"local-solid-rs","duration_ms":10,"session_id":"unknown","execution_id":"urn:agentbox:event:11ed64225dd5e2c5e18f61ad43d5ad9272d08739d3a20dd25886197b0738663c:sha256-12-adf2c20ea890","outcome":"error","error":"Signing unavailable for 'pods' slot: origination failed for DELETE http://elsewhere.test/kg/a: identity port refused: url host \\"elsewhere.test\\" is outside key \\"core\\"'s NIP-98 allowlist","stack":"SigningUnavailable: Signing unavailable for 'pods' slot: origination failed for DELETE http://elsewhere.test/kg/a: identity port refused: url host \\"elsewhere.test\\" is outside key \\"core\\"'s NIP-98 allowlist\\n    at LocalSolidRsPodsAdapter._signedFetch (/home/devuser/workspace/wt/agentbox-external-fixes/management-api/adapters/pods/_solid-http-base.js:98:15)\\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\\n    at async LocalSolidRsPodsAdapter.del (/home/devuser/workspace/wt/agentbox-external-fixes/management-api/adapters/pods/_solid-http-base.js:166:17)\\n    at async LocalSolidRsPodsAdapter.instrumentedDispatch [as del] (/home/devuser/workspace/wt/agentbox-external-fixes/management-api/observability/metrics.js:140:22)\\n    at async waitForActual (node:assert:644:5)\\n    at async Function.rejects (node:assert:767:25)\\n    at async TestContext.<anonymous> (/home/devuser/workspace/wt/agentbox-external-fixes/tests/sovereign/identity-port.node-test.js:260:9)\\n    at async Test.run (node:internal/test_runner/test:1054:7)\\n    at async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)"}
+# {"ts":"2026-11-03T07:14:23.708Z","level":"info","msg":"adapter_dispatch","slot":"pods","method":"probeCapabilities","impl":"local-solid-rs","duration_ms":0,"session_id":"unknown","execution_id":"urn:agentbox:event:11ed64225dd5e2c5e18f61ad43d5ad9272d08739d3a20dd25886197b0738663c:sha256-12-389aac7ee3d0","outcome":"success"}
+# {"ts":"2026-11-03T07:14:23.717Z","level":"error","msg":"adapter_dispatch_error","slot":"pods","method":"list","impl":"local-solid-rs","duration_ms":9,"session_id":"unknown","execution_id":"urn:agentbox:event:11ed64225dd5e2c5e18f61ad43d5ad9272d08739d3a20dd25886197b0738663c:sha256-12-91afbf4308c7","outcome":"error","error":"Signing unavailable for 'pods' slot: origination failed for GET http://elsewhere.test/kg/: identity port refused: url host \\"elsewhere.test\\" is outside key \\"core\\"'s NIP-98 allowlist","stack":"SigningUnavailable: Signing unavailable for 'pods' slot: origination failed for GET http://elsewhere.test/kg/: identity port refused: url host \\"elsewhere.test\\" is outside key \\"core\\"'s NIP-98 allowlist\\n    at LocalSolidRsPodsAdapter._signedFetch (/home/devuser/workspace/wt/agentbox-external-fixes/management-api/adapters/pods/_solid-http-base.js:98:15)\\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\\n    at async LocalSolidRsPodsAdapter.list (/home/devuser/workspace/wt/agentbox-external-fixes/management-api/adapters/pods/local-solid-rs.js:79:17)\\n    at async LocalSolidRsPodsAdapter.instrumentedDispatch [as list] (/home/devuser/workspace/wt/agentbox-external-fixes/management-api/observability/metrics.js:140:22)\\n    at async waitForActual (node:assert:644:5)\\n    at async Function.rejects (node:assert:767:25)\\n    at async TestContext.<anonymous> (/home/devuser/workspace/wt/agentbox-external-fixes/tests/sovereign/identity-port.node-test.js:260:9)\\n    at async Test.run (node:internal/test_runner/test:1054:7)\\n    at async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)"}
+    # Subtest: case 4 (local-solid-rs): a URL outside the port's allowlist is refused, zero requests
+    ok 6 - case 4 (local-solid-rs): a URL outside the port's allowlist is refused, zero requests
+      ---
+      duration_ms: 58.23994
+      type: 'test'
+      ...
+    # Subtest: case 2 (external): under role_isolation every pods op is signed by the port, and only by it
+    ok 7 - case 2 (external): under role_isolation every pods op is signed by the port, and only by it
+      ---
+      duration_ms: 80.067553
+      type: 'test'
+      ...
+    # Subtest: case 3 (external): no socket → SigningUnavailable, zero requests
+    ok 8 - case 3 (external): no socket → SigningUnavailable, zero requests
+      ---
+      duration_ms: 45.81882
+      type: 'test'
+      ...
+    # Subtest: case 4 (external): a URL outside the port's allowlist is refused, zero requests
+    ok 9 - case 4 (external): a URL outside the port's allowlist is refused, zero requests
+      ---
+      duration_ms: 47.377969
+      type: 'test'
+      ...
+    # Subtest: case 5: flag off and no sign_source → the port is never consulted
+    ok 10 - case 5: flag off and no sign_source → the port is never consulted
+      ---
+      duration_ms: 1.726619
+      type: 'test'
+      ...
+    # Subtest: sign_source = "identity-port" selects the port without the flag
+    ok 11 - sign_source = "identity-port" selects the port without the flag
+      ---
+      duration_ms: 0.87256
+      type: 'test'
+      ...
+    1..11
+ok 5 - identity port: NIP-98 via serve-identity
+  ---
+  duration_ms: 552.845727
+  type: 'suite'
+  ...
+1..5
+# tests 15
+# suites 1
+# pass 15
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 754.316156

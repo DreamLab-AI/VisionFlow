@@ -1,0 +1,28 @@
+[1mDirect process[0m project [1magentbox-ledger-repairs[0m
+  Source: git-diff:e2033dc787bb9b516a7a98b36a45b57e14c90ae9
+  Files: 2
+  Agent: claude-agent-sdk (claude-opus-4-8)
+  Root: /home/devuser/workspace/wt/agentbox-ledger-repairs
+
+[1mScanning 2 file(s)…[0m
+  [2m0 candidate(s) across 2 file(s)[0m
+
+[1mBatch 1/1[0m: Processing batch 1/1 (2 files, 1 in flight)
+  [32m>[0m Investigating 2 file(s) with Claude Agent SDK (claude-opus-4-8)
+  [2m  Turn 1 (11s, 0 tool calls)[0m
+  [2m  Turn 2 (11s, 0 tool calls)[0m
+  [36m  tool:[0m Read: dream-engine/src/digest.rs
+  [36m  tool:[0m Read: dream-engine/src/governance.rs
+  [2m  Turn 5 (40s, 2 tool calls)[0m
+  [2m  Turn 6 (58s, 2 tool calls)[0m
+  [32m  Investigation complete (58.7s, 6 turns, 2 tool calls $0.890 3193 tokens)[0m
+  Batch 1/1 complete: 2 analyses, 1 findings (0 in flight, 1/1 done)
+
+  [2mProcessing complete: 2 analyses, 1 findings[0m
+[32mProcessing complete.[0m Run: [1m20261103071247-793c5612f58a822a[0m
+  Analyses: 2
+  Findings: 1
+  [2mWrote PR comment to /home/devuser/workspace/wt/agentbox-ledger-repairs/.deepsec-gate/reports/20261103T071244Z/comment.md[0m
+
+[31m1 new finding(s) — exiting 1[0m
+deepsec-gate: PASS — 1 finding(s) {'CRITICAL': 0, 'HIGH': 0, 'MEDIUM': 1, 'HIGH_BUG': 0, 'BUG': 0, 'LOW': 0}, 0 at/above HIGH; candidates=0; receipt /home/devuser/workspace/wt/agentbox-ledger-repairs/.deepsec-gate/reports/20261103T071244Z/receipt.json

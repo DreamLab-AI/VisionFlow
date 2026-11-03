@@ -1,0 +1,45 @@
+[
+  {
+    "title": "[MEDIUM] Governance decision authorization relies on relay ACL, not an engine-side admin check",
+    "description": "**File:** [`services/dream-engine/src/governance.rs`](https://github.com/DreamLab-AI/agentbox/blob/fix/dream-ledger-followup/blob/fix/services/dream-engine/src/governance.rs#L853-L884) (lines 853, 863, 884)\n**Project:** agentbox-ledger-repairs\n**Severity:** MEDIUM  •  **Confidence:** medium  •  **Slug:** `acl-check`\n\n## Owners\n\n**Suggested assignee:** `noreply@anthropic.com` _(via last-committer)_\n\n## Finding\n\nplan_decisions() accepts any kind-31403 (ACTION_RESPONSE) event as a valid operator decision provided only that (a) its Schnorr signature verifies, (b) it is not signed by the agent's own key (no self-review), and (c) its `e` tag binds the currently-published request. It never checks that the signer's pubkey belongs to a forum admin. The module doc explicitly states the admin constraint is enforced elsewhere: 'the relay already admits 31403 only from admins; the signature is re-verified here'. Signature verification in Nostr only proves key ownership, not role membership, so the admin trust boundary is entirely the relay's subscription-time ACL — a front-of-stack filter, exactly the kind the review guidance warns is insufficient on its own. If the engine ever queries a relay that does not enforce admin-only on 31403 (misconfiguration, relay swap via relay::relay_url(), a permissive fallback, or an attacker who obtains any keypair the relay happens to admit), an attacker can forge Approve/Reject/Amend decisions. Impact is bounded by design (decisions steer the next night's hypothesis, mark the inbox item answered/dismissed, and withdraw the case; nothing is auto-merged and TaskProperties declares the work Reversible/Bounded), which is why this is MEDIUM rather than HIGH — but an attacker could silently dismiss alerts, inject Amend free-text that becomes the next night's LLM guidance (prompt steering), and resolve/withdraw cases the operator never saw.\n\n## Recommendation\n\nAdd a defence-in-depth admin allowlist check inside plan_decisions: carry the set of authorised admin pubkeys (from config/env) and require ev.pubkey to be a member before accepting a DecisionOutcome, rather than trusting the relay alone. Verify the resolution is derived only from admin-signed events, and log/ignore valid-but-unauthorised signatures.\n\n## Recent committers (`git log`)\n\n- Claude Code <noreply@anthropic.com> (2026-11-03)",
+    "severity": "MEDIUM",
+    "labels": [
+      "security",
+      "project:agentbox-ledger-repairs",
+      "severity:MEDIUM",
+      "slug:acl-check",
+      "confidence:medium"
+    ],
+    "assignee": "noreply@anthropic.com",
+    "metadata": {
+      "projectId": "agentbox-ledger-repairs",
+      "filePath": "services/dream-engine/src/governance.rs",
+      "lineNumbers": [
+        853,
+        863,
+        884
+      ],
+      "severity": "MEDIUM",
+      "vulnSlug": "acl-check",
+      "confidence": "medium",
+      "discoveredAt": "2026-11-03T07:13:57.482Z",
+      "runId": "20261103071247-793c5612f58a822a",
+      "githubUrl": "https://github.com/DreamLab-AI/agentbox/blob/fix/dream-ledger-followup/blob/fix/services/dream-engine/src/governance.rs#L853-L884",
+      "owners": {
+        "assignee": "noreply@anthropic.com",
+        "assigneeSource": "last-committer",
+        "teams": [],
+        "oncall": [],
+        "managers": [],
+        "contributors": [],
+        "recentCommitters": [
+          {
+            "name": "Claude Code",
+            "email": "noreply@anthropic.com",
+            "date": "2026-11-03T07:12:44Z"
+          }
+        ]
+      }
+    }
+  }
+]

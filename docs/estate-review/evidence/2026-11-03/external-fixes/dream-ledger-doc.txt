@@ -1,0 +1,9 @@
+    Checking bitflags v2.13.2
+    Checking tower-http v0.6.11
+    Checking sqlx-postgres v0.9.0
+    Checking reqwest v0.12.28
+    Checking loom-client v0.1.0
+    Checking sqlx v0.9.0
+ Documenting dream-engine v0.1.0 (/home/devuser/workspace/wt/agentbox-ledger-repairs/services/dream-engine)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.49s
+   Generated /home/devuser/workspace/agentbox/services/dream-engine/target/doc/dream_engine/index.html

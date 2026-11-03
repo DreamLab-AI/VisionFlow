@@ -1,0 +1,68 @@
+   Compiling dream-engine v0.1.0 (/home/devuser/workspace/wt/agentbox-ledger-repairs/services/dream-engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 8.20s
+     Running unittests src/lib.rs (/home/devuser/workspace/agentbox/services/dream-engine/target/debug/deps/dream_engine-e82eb3f2b2c5980b)
+
+running 2 tests
+test digest::tests::ledger_contract_escaped_finding_keeps_verdict_and_witness_columns ... FAILED
+test governance::tests::ledger_contract_case_uses_configured_path_over_default_decoy ... FAILED
+
+failures:
+
+---- digest::tests::ledger_contract_escaped_finding_keeps_verdict_and_witness_columns stdout ----
+
+thread 'digest::tests::ledger_contract_escaped_finding_keeps_verdict_and_witness_columns' (771444) panicked at src/digest.rs:533:9:
+assertion `left == right` failed
+  left: [LedgerLine { deep: "parser", finding: "parity a \\", verdict: "https://example.test/pr/1", witness: "ACCEPT" }]
+ right: [LedgerLine { deep: "parser", finding: "parity a | b and c | d", verdict: "ACCEPT", witness: "sha256-abc" }]
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::panicking::assert_failed_inner
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:452:17
+   3: core::panicking::assert_failed::<alloc::vec::Vec<dream_engine::digest::LedgerLine>, alloc::vec::Vec<dream_engine::digest::LedgerLine>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/panicking.rs:407:5
+   4: dream_engine::digest::tests::ledger_contract_escaped_finding_keeps_verdict_and_witness_columns
+             at ./src/digest.rs:533:9
+   5: dream_engine::digest::tests::ledger_contract_escaped_finding_keeps_verdict_and_witness_columns::{closure#0}
+             at ./src/digest.rs:531:75
+   6: <dream_engine::digest::tests::ledger_contract_escaped_finding_keeps_verdict_and_witness_columns::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   7: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+---- governance::tests::ledger_contract_case_uses_configured_path_over_default_decoy stdout ----
+
+thread 'governance::tests::ledger_contract_case_uses_configured_path_over_default_decoy' (771445) panicked at src/governance.rs:1342:9:
+assertion `left == right` failed
+  left: Some("wrong default ledger")
+ right: Some("configured a | b")
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/std/src/panicking.rs:679:5
+   1: core::panicking::panic_fmt
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:80:14
+   2: core::panicking::assert_failed_inner
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panicking.rs:452:17
+   3: core::panicking::assert_failed::<core::option::Option<&str>, core::option::Option<&str>>
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/panicking.rs:407:5
+   4: dream_engine::governance::tests::ledger_contract_case_uses_configured_path_over_default_decoy
+             at ./src/governance.rs:1342:9
+   5: dream_engine::governance::tests::ledger_contract_case_uses_configured_path_over_default_decoy::{closure#0}
+             at ./src/governance.rs:1333:70
+   6: <dream_engine::governance::tests::ledger_contract_case_uses_configured_path_over_default_decoy::{closure#0} as core::ops::function::FnOnce<()>>::call_once
+             at /nix/store/qr3bwsb64hi9m01r8gw0iad97wc4bqcm-rust-minimal-1.99.1/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+   7: <fn() -> core::result::Result<(), alloc::string::String> as core::ops::function::FnOnce<()>>::call_once
+             at /rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+
+
+failures:
+    digest::tests::ledger_contract_escaped_finding_keeps_verdict_and_witness_columns
+    governance::tests::ledger_contract_case_uses_configured_path_over_default_decoy
+
+test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 193 filtered out; finished in 0.08s
+
+error: test failed, to rerun pass `--lib`
