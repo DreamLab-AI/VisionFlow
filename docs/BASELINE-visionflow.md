@@ -401,6 +401,22 @@ Its headline metric is signal-to-action latency. The record is proposed, unimple
 inactive and changes none of the invariants above; implementations belong to agentbox and
 nostr-rust-forum (ADR-2006).
 
+## Adapted from NVIDIA auto-ontology (2026-11-04)
+
+[ADR-2023](adr/ADR-2023-adapt-nvidia-auto-ontology.md) adapts three ideas from
+NVIDIA auto-ontology, implemented and staged:
+- **Certification per field.** A `verified` stamp may name the keys it certifies,
+  and ingest never patches a certified key.
+- **Question coverage grading** with `ontomark ground`, which the
+  `ontology-augment` skill now uses before answering.
+- **Per-question directions** in `loom-bench score`.
+
+The corpus header moves to vocabulary v2 with a generated, closed JSON-LD context
+(`context/v2.jsonld`, also served at `ns/v2.jsonld`). `context/v1` keeps its exact
+bytes, and no page needed a retrofit. VisionClaw's frontmatter writer no longer
+drops `verified`, `sources` or `generated.process`. Going live needs an ontomark
+release, a bump to the publisher pin and an agentbox image rebuild.
+
 ## Temporal knowledge contract (2026-11-03)
 
 [ADR-2022](adr/ADR-2022-temporal-knowledge-contract.md) makes `estate-temporal-v1` the

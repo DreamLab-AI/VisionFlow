@@ -26,7 +26,7 @@ precisely because it drifted from the code; see
 
 The [estate status/evidence contract](../architecture/adr-status-contract.md) defines the independent decision, implementation and activation axes and distinguishes lineage from supersession (2026-09-07).
 
-_22 record(s). Regenerate with_ `node scripts/adr-index-gen.cjs docs/adr`.
+_23 record(s). Regenerate with_ `node scripts/adr-index-gen.cjs docs/adr`.
 
 | ID | Title | Date | Decision | Impl | Activation | Supersedes | Superseded by | Owner | Repo |
 |----|-------|------|----------|------|------------|------------|---------------|-------|------|
@@ -52,3 +52,4 @@ _22 record(s). Regenerate with_ `node scripts/adr-index-gen.cjs docs/adr`.
 | [ADR-2020](ADR-2020-pele-renders-every-estate-diagram.md) | Render every estate diagram with a pinned Pele; Mermaid stays the source syntax | 2026-10-29 | accepted | complete | live | ADR-2004 | — | jjohare | visionflow |
 | [ADR-2021](ADR-2021-closed-loop-agent-operations-and-18-month-roadmap.md) | DreamLab runs closed-loop agent fleets on VisionFlow, first on its own estate and then as an operated service on client hardware, with hard human gates for every regulated action | 2026-10-30 | proposed | none | inactive | — | — | jjohare | visionflow |
 | [ADR-2022](ADR-2022-temporal-knowledge-contract.md) | Hold one bi-temporal contract for ontology history across the estate, and show history in visualisation through as-of projections, never a versioned reasoning graph | 2026-11-03 | accepted | complete | staged | — | — | jjohare | visionflow |
+| [ADR-2023](ADR-2023-adapt-nvidia-auto-ontology.md) | Adapt three ideas from NVIDIA auto-ontology — field-level certification, question coverage grading and per-question benchmark directions — and upgrade the corpus header to carry them | 2026-11-04 | accepted | partial | staged | — | — | jjohare | visionflow |
