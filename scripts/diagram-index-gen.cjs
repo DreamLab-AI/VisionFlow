@@ -74,9 +74,17 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const AREAS = new Set(['visionflow', 'visionclaw', 'agentbox', 'solid-pod-rs', 'nostr-rust-forum', 'dreamlab-ai-website', 'vowl-wasm', 'knowledgegraph', 'visiongraph', 'sidestr-rs', 'ontomark', 'dream-engine', 'visiontouch-rs', 'estate']);
+const AREAS = new Set(['visionflow', 'visionclaw', 'agentbox', 'solid-pod-rs', 'nostr-rust-forum', 'dreamlab-ai-website', 'vowl-wasm', 'knowledgegraph', 'visiongraph', 'sidestr-rs', 'ontomark', 'dream-engine', 'visiontouch-rs', 'sealmap', 'codescape', 'visioncraft', 'estate']);
+// Areas imported from a repository's own narrative corpus (the diagrams-as-code
+// skill dialect: "For developers" / "For the business" sections and register
+// paragraphs around each diagram). The diagrams-only prose limit does not apply
+// to them; instead every `path:line` in their prose is cite-checked exactly as a
+// diagram's is, so the narrative is never less verified than the diagrams.
+const NARRATIVE_AREAS = new Set(['sealmap', 'dream-engine']);
 const SKIP_DIRS = new Set(['hero', 'archive', 'rendered', 'src', 'upgraded', 'regen-2026-06-14', 'triptych-src', '.claude-flow', 'node_modules']);
 const SKIP_FILES = new Set(['README.md', 'COVERAGE.md']);
+// Hand-written, non-topic files an area may carry beside its topics.
+const AREA_SKIP_FILES = new Set(['README.md', 'DECISIONS-TIMELINE.md']);
 const MAX_WIDTH = 4500; // px — wider renders are illegible at any zoom
 const REQUIRED = ['id', 'title', 'area', 'governing', 'adrs', 'sources', 'verified_commit'];
 
@@ -120,6 +128,7 @@ function walk(dir, out) {
     } else if (ent.isFile() && ent.name.endsWith('.md')) {
       if (dir === root && SKIP_FILES.has(ent.name)) continue;
       if (dir === root) continue; // topic files live in area subdirs only
+      if (AREA_SKIP_FILES.has(ent.name)) continue;
       out.push(path.join(dir, ent.name));
     }
   }
@@ -243,15 +252,32 @@ function parseTopic(file, errors) {
   let currentH2 = null;
   let inFence = false, fenceLang = null, fenceStart = 0, buf = [];
   let proseLines = 0;
+  // Narrative areas only: prose is cut into units (a paragraph; each list item
+  // and table row starts a new one) so a bare `:N` continues the last path in
+  // its own unit, never one from an unrelated paragraph.
+  const narrative = NARRATIVE_AREAS.has(fm.area);
+  const prose = [];
+  let unit = null;
+  const closeUnit = () => { if (unit) prose.push(unit); unit = null; };
   for (let i = 0; i < lines.length; i++) {
     const ln = lines[i];
     if (!inFence) {
       const f = ln.match(/^```(\w*)/);
-      if (f) { inFence = true; fenceLang = f[1]; fenceStart = i; buf = []; continue; }
+      if (f) { closeUnit(); inFence = true; fenceLang = f[1]; fenceStart = i; buf = []; continue; }
       const h = ln.match(/^##\s+(\S+)\s*(.*)$/);
-      if (h) { currentH2 = { id: h[1], title: h[2].trim(), line: i }; continue; }
-      if (ln.startsWith('#')) continue;
+      if (h) { closeUnit(); currentH2 = { id: h[1], title: h[2].trim(), line: i }; continue; }
+      if (ln.startsWith('#')) { closeUnit(); continue; }
       if (ln.trim() && !ln.trim().startsWith('<!--')) proseLines++;
+      if (narrative) {
+        if (!ln.trim()) { closeUnit(); continue; }
+        if (/^\s*(?:[-*+]|\d+\.|\|)\s/.test(ln) || /^\s*\|/.test(ln)) closeUnit();
+        // A range written across two code spans (`P:a`-`b`) is one range, and a
+        // sentence's full stop after a line number (`at :12.`) is not a version
+        // suffix: without the split the bare-ref matcher skips it unchecked.
+        const text = ln.replace(/`([^`\s]+:\d+)`\s*(?:-|–|to)\s*`(\d+)`/g, '$1-$2').replace(/:(\d+)\.(?=\s|$)/g, ':$1 .');
+        if (!unit) unit = { id: `${fm.id}.prose@L${i + 1}`, title: 'prose', src: text, line: i + 1, kind: 'prose' };
+        else unit.src += '\n' + text;
+      }
     } else {
       if (ln.startsWith('```')) {
         inFence = false;
@@ -274,10 +300,11 @@ function parseTopic(file, errors) {
       buf.push(ln);
     }
   }
+  closeUnit();
   if (inFence) errors.push(`${rel}: unterminated code fence`);
   if (diagrams.length === 0) errors.push(`${rel}: no mermaid diagrams`);
-  if (proseLines > diagrams.length * 3) errors.push(`${rel}: ${proseLines} prose lines for ${diagrams.length} diagrams — this tree is diagrams-only (max 3 lines per diagram)`);
-  return { file, rel, fm, diagrams };
+  if (!narrative && proseLines > diagrams.length * 3) errors.push(`${rel}: ${proseLines} prose lines for ${diagrams.length} diagrams — this tree is diagrams-only (max 3 lines per diagram; narrative areas: ${[...NARRATIVE_AREAS].join(', ')})`);
+  return { file, rel, fm, diagrams, prose };
 }
 
 // ---------------------------------------------------------------- citation check
@@ -313,12 +340,14 @@ const REPO_PREFIXES = [
   { key: 'loom', prefix: '../loom/' },
   { key: 'sidestr-rs', prefix: '../sidestr-rs/' },
   { key: 'dream-engine', prefix: '../dream-engine/' },
+  { key: 'sealmap', prefix: '../sealmap/' },
+  { key: 'visioncraft', prefix: '../visioncraft/' },
   { key: 'dream-machine', prefix: '../dream-machine/' },
   { key: 'prose-sanitiser', prefix: '../prose-sanitiser/' },
   { key: 'diagram-ir', prefix: '../diagram-ir/' },
   { key: 'visionflow', prefix: '' },
 ];
-const AREA_REPO = { visionflow: 'visionflow', visionclaw: 'visionclaw', agentbox: 'agentbox', 'solid-pod-rs': 'solid-pod-rs', 'nostr-rust-forum': 'nostr-rust-forum', 'dreamlab-ai-website': 'dreamlab-ai-website', 'vowl-wasm': 'vowl-wasm', knowledgegraph: 'knowledgegraph', visiongraph: 'visiongraph', 'sidestr-rs': 'sidestr-rs', ontomark: 'ontomark', 'dream-engine': 'dream-engine' , 'visiontouch-rs': 'visiontouch-rs' };
+const AREA_REPO = { visionflow: 'visionflow', visionclaw: 'visionclaw', agentbox: 'agentbox', 'solid-pod-rs': 'solid-pod-rs', 'nostr-rust-forum': 'nostr-rust-forum', 'dreamlab-ai-website': 'dreamlab-ai-website', 'vowl-wasm': 'vowl-wasm', knowledgegraph: 'knowledgegraph', visiongraph: 'visiongraph', 'sidestr-rs': 'sidestr-rs', ontomark: 'ontomark', 'dream-engine': 'dream-engine' , 'visiontouch-rs': 'visiontouch-rs', sealmap: 'sealmap', codescape: 'codescape', visioncraft: 'visioncraft' };
 function repoOf(p) {
   const clean = p.replace(/^\.\//, '');
   for (const r of REPO_PREFIXES) if (r.prefix && clean.startsWith(r.prefix)) return { key: r.key, rel: clean.slice(r.prefix.length), abs: path.join(repoRoot, r.prefix) };
@@ -511,7 +540,7 @@ function citeCheck(topics) {
   const BARE_RE = /(^|[^A-Za-z0-9_./:-]):(\d+)(?:\s*-\s*(\d+))?(?![\d.])/g;
   for (const t of topics) {
     CURRENT_TOPIC = t;
-    for (const d of t.diagrams) {
+    for (const d of [...t.diagrams, ...(t.prose || [])]) {
       const check = (cited, a, b) => {
         if (/^\d+(\.\d+)+$/.test(cited)) return; // host:port such as 127.0.0.1:8080, not a citation
         // An allowlisted citation is waived, counted apart and printed as such.

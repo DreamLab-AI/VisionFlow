@@ -166,6 +166,56 @@ try {
   assert.equal(restamped.status, 1, 'a re-stamped topic must invalidate VERIFICATION.md');
   assert.ok(/VERIFICATION\.md is stale/.test(restamped.stdout + restamped.stderr), 'the refusal must name VERIFICATION.md as stale');
 
+  // ── narrative areas ────────────────────────────────────────────────────────
+  // An area imported in the skill dialect keeps its prose, so the prose limit is
+  // waived there; in exchange every `path:line` in that prose is cite-checked,
+  // or a green run would count the diagrams and silently skip the narrative.
+  {
+    const nbase = fs.mkdtempSync(path.join(os.tmpdir(), 'visionflow-diagram-narrative-'));
+    try {
+      const nroot = path.join(nbase, 'docs/diagrams');
+      const ngit = (...args) => {
+        const r = spawnSync('git', ['-C', nbase, ...args], { encoding: 'utf8' });
+        assert.equal(r.status, 0, r.stderr);
+        return r.stdout.trim();
+      };
+      fs.writeFileSync(path.join(nbase, 'fixture.js'), 'const a = 1;\nconst b = 2;\n');
+      ngit('init', '-q');
+      ngit('add', 'fixture.js');
+      ngit('-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', '-c', 'commit.gpgsign=false', 'commit', '-qm', 'reference bytes');
+      const sha = ngit('rev-parse', 'HEAD');
+      const topic = (area, id, prose) => `---\nid: ${id}\ntitle: Narrative\narea: ${area}\ngoverning: []\nadrs: []\nsources: [fixture.js]\nverified_commit: {visionflow: ${sha}}\n---\n## For developers\n\n${prose}\n\n## ${id}.1 Shape\n\x60\x60\x60mermaid\nflowchart TB\n    A["fixture.js:1"] --> B["Evidence"]\n\x60\x60\x60\n`;
+      const long = ['The first line names `fixture.js:1` and continues at :2.', 'Line two.', 'Line three.', 'Line four.', 'Line five.'].join('\n');
+      const write = (area, id, prose) => {
+        fs.mkdirSync(path.join(nroot, area), { recursive: true });
+        fs.writeFileSync(path.join(nroot, area, '01-narrative.md'), topic(area, id, prose));
+      };
+      const nrun = (...flags) => spawnSync(process.execPath, ['scripts/diagram-index-gen.cjs', nroot, '--check', ...flags], { encoding: 'utf8' });
+      write('sealmap', 'SM-01', long);
+      fs.writeFileSync(path.join(nroot, 'sealmap', 'DECISIONS-TIMELINE.md'), '# Decisions timeline\n\nHand-written, no frontmatter.\n');
+      const good = nrun('--strict-citations');
+      assert.equal(good.status, 0, 'a narrative topic with resolving prose citations must pass strict mode: ' + good.stdout + good.stderr);
+      assert.ok(/citations: 3 verified/.test(good.stdout), 'prose citations must be counted with the diagram ones: ' + good.stdout);
+      write('sealmap', 'SM-01', long.replace('`fixture.js:1`', '`fixture.js:99`'));
+      const dead = nrun('--strict-citations');
+      assert.equal(dead.status, 1, 'a dead citation in narrative prose must fail strict mode');
+      assert.ok(/SM-01\.prose@L\d+ — fixture\.js:99 past EOF/.test(dead.stdout + dead.stderr), 'the refusal must locate the prose citation');
+      write('sealmap', 'SM-01', 'A range across code spans, `fixture.js:1`-`9`.');
+      assert.equal(nrun('--strict-citations').status, 1, 'a range split across code spans must be checked at both ends');
+      write('sealmap', 'SM-01', 'Cites `fixture.js:1`.\n\nA new paragraph continues at :2 with no path of its own.');
+      const bare = nrun('--strict-citations');
+      assert.equal(bare.status, 1, 'a bare :N must not borrow a path from another paragraph');
+      assert.ok(/bare :2 has no path/.test(bare.stdout + bare.stderr), 'the refusal must name the orphaned bare ref');
+      fs.rmSync(path.join(nroot, 'sealmap'), { recursive: true });
+      write('visionflow', 'VF-01', long);
+      const limited = nrun('--no-source-paths');
+      assert.equal(limited.status, 1, 'a diagrams-only area must keep the prose limit');
+      assert.ok(/this tree is diagrams-only/.test(limited.stdout + limited.stderr), 'the refusal must cite the prose limit');
+    } finally {
+      fs.rmSync(nbase, { recursive: true, force: true });
+    }
+  }
+
   console.log('DIAGRAM-INDEX-TEST-OK');
 } finally {
   fs.rmSync(base, { recursive: true, force: true });
