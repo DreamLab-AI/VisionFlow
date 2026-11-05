@@ -1,7 +1,7 @@
 # Repository Map
 
 **Status:** Source-reviewed map; deployment acceptance is separate
-**Reviewed:** 2026-10-17 (initial map 2026-05-20; sidestr row refreshed 2026-10-01; dream-engine and dream-machine rows refreshed 2026-10-15; visiontouch-rs row added 2026-10-17; Codescape row and edges added 2026-10-19)
+**Reviewed:** 2026-10-17 (initial map 2026-05-20; sidestr row refreshed 2026-10-01; dream-engine and dream-machine rows refreshed 2026-10-15; visiontouch-rs row added 2026-10-17; Codescape row and edges added 2026-10-19; sealmap and VisionCraft rows added and Dream Engine corpus note updated 2026-11-05)
 
 VisionFlow is a federated ecosystem. No single repository contains the whole runtime.
 
@@ -27,7 +27,7 @@ The [health roster](../../scripts/estate-health/roster.json) is the authoritativ
 | Repository | Local path | Scope |
 |---|---|---|
 | Loom | `../loom` | Roster component: Rust grounding facade; declared sibling RuVector dependency and generation-identity consumer contract |
-| Dream Engine | `../dream-engine` | Roster component: the extracted Rust judgement and loop crates (`pairwise-gate`, `failure-fingerprint`, `dream-gate`, `dream-core`, `dream-cli`), MIT OR Apache-2.0, with its own diagram corpus. Public (`main` 5578a24 on 2026-10-16) with all five crates published on crates.io at 0.1.0; Agentbox's AGPL-3.0-only `services/dream-engine` adapter consumes `dream-core` and `dream-gate` at `=0.1.0` from the registry (agentbox ADR-2141), merged on agentbox main (PR 28, aa9b094c3); the image rebuild is pending. The roster row still describes the former fork until it is corrected |
+| Dream Engine | `../dream-engine` | Roster component: the extracted Rust judgement and loop crates (`pairwise-gate`, `failure-fingerprint`, `dream-gate`, `dream-core`, `dream-cli`), MIT OR Apache-2.0, whose diagram corpus moved into the estate master record (`docs/diagrams/dream-engine/`, DE-07 to DE-14) on 2026-11-05. Public (`main` 5578a24 on 2026-10-16) with all five crates published on crates.io at 0.1.0; Agentbox's AGPL-3.0-only `services/dream-engine` adapter consumes `dream-core` and `dream-gate` at `=0.1.0` from the registry (agentbox ADR-2141), merged on agentbox main (PR 28, aa9b094c3); the image rebuild is pending. The roster row still describes the former fork until it is corrected |
 | dream-machine | `../dream-machine` | Archived: the former TypeScript fork of ruvnet/dream-machine, renamed from DreamLab-AI/dream-engine; toolkit and Darwin evaluator history only, not the running engine |
 | WasmVOWL | `../WasmVOWL` | Roster component: retained standalone demo, not an alias for the published vowl-wasm engine or embedded explorers |
 | prose-sanitiser | `../prose-sanitiser` | Roster tool package; invocation and publication integration must be traced separately |
@@ -35,6 +35,8 @@ The [health roster](../../scripts/estate-health/roster.json) is the authoritativ
 | RuVector | `../ruvector` | Consumed dependency source; local core, registry crates and Agentbox Postgres image are distinct identities |
 | RuView | `../RuView` | Optional sensing product/dependency review; simulation and firmware source do not establish hardware acceptance |
 | Codescape | `../codescape` | Public code-graph repository, born as a VisionClaw section and extracted under [ADR-2143](https://github.com/DreamLab-AI/VisionClaw/blob/main/docs/adr/ADR-2143-codescape-section-separate-workspace-and-port.md) (mounted back into VisionClaw as the `codescape/` submodule). Five crates: `codescape-model` and `codescape-collab` are MIT OR Apache-2.0 and published on crates.io at 0.1.0; ingest, layout, server and the desktop client are AGPL-3.0-only. The CPU layout runs standalone; the CUDA engine drives VisionClaw's `visionclaw_unified` PTX, and the deploy contract is VisionClaw-shaped. The agent-activity hook (agentbox ADR-2144) is on branch `feat/codescape-activity-sink`, not agentbox `main`. Source and CI do not establish headset or GPU acceptance |
+| sealmap | `../sealmap` | Roster component: public Rust code maps and review evidence for diagrams-as-code corpora (`sealmap` 0.4.0 and its crates on crates.io), used by the estate's diagram review (agentbox ADR-2131) and VisionCraft's CI. Its own diagram corpus moved into the estate master record (`docs/diagrams/sealmap/`, SM-01 to SM-21) on 2026-11-05 |
+| VisionCraft | `../visioncraft` | Roster component: public expectation-driven development method, contracts and skill (`visioncraft` 0.2.0 on crates.io), pinned and baked by agentbox; browser-targeted logic defaults to Rust compiled to WebAssembly. Diagrams: `docs/diagrams/visioncraft/` (VK-NN); its own `docs/diagrams/generated/` is `sealmap generate` output |
 | visiontouch-rs | `../visiontouch-rs` | Private supporting study (proof of principle, no economic use): clean-room Rust host stack for a lawfully owned haptic arm; source and offline tests do not establish hardware acceptance or delivered force; node-grab input into VisionClaw is a future integration ([ADR-2017](../adr/ADR-2017-haptic-input-device-is-a-supporting-study.md)) |
 | Logseq history | `../project4` (`../logseq` alias) | Archived publisher lineage; current authoring/publishing owner is visionGraph |
 

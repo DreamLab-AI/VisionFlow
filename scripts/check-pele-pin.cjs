@@ -61,8 +61,7 @@ const surfaces = [
       const dep = (pj.dependencies || {}).pele || (pj.devDependencies || {}).pele;
       return { version: dep, integrity: lock && lock.integrity, lockVersion: lock && lock.version };
     } },
-  { name: 'sealmap docs/diagrams/tools/vendor/pele/VERSION', file: path.join(ws, 'sealmap/docs/diagrams/tools/vendor/pele/VERSION'), read: fromVersionFile, vendored: path.join(ws, 'sealmap/docs/diagrams/tools/vendor/pele/pele.js') },
-  { name: 'dream-engine docs/diagrams/tools/vendor/pele/VERSION', file: path.join(ws, 'dream-engine/docs/diagrams/tools/vendor/pele/VERSION'), read: fromVersionFile, vendored: path.join(ws, 'dream-engine/docs/diagrams/tools/vendor/pele/pele.js') },
+  { name: 'sealmap tools/vendor/pele/VERSION', file: path.join(ws, 'sealmap/tools/vendor/pele/VERSION'), read: fromVersionFile, vendored: path.join(ws, 'sealmap/tools/vendor/pele/pele.js') },
   { name: 'agentbox skills/diagrams-as-code vendored Pele', file: path.join(ws, 'project/agentbox/skills/diagrams-as-code/scripts/vendor/pele/VERSION'), read: fromVersionFile, vendored: path.join(ws, 'project/agentbox/skills/diagrams-as-code/scripts/vendor/pele/pele.js') },
   // Quartz serves the dist/esm build, so there is no single pele.js to hash:
   // version and integrity must agree, and SHA256SUMS must match every served file.

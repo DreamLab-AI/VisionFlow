@@ -1,9 +1,18 @@
 # Diagrams as code
 
-Machine-readable diagrams for the VisionFlow estate. The primary topic directories cover nine repositories; estate topics also cover shared services and supporting repositories. Revision labels declare the source baseline and are not automatic semantic verification. The [2026-09-07 audit](../estate-review/2026-09-07-estate-audit.md) records source findings, working-tree hashes and evidence limits. Sequence diagrams first; no narrative —
-every fact lives inside a diagram as a participant `path:line`, a message, or a `Note`. This tree lives in the
-estate canon (VisionFlow) so that cross-repo edges are first-class; it was moved here from VisionClaw
-`docs/diagrams` on 2026-09-07 (history there up to 4d1a698e7).
+Machine-readable diagrams for the VisionFlow estate: the single diagram corpus for every estate member. The area directories cover sixteen repositories; estate topics also cover shared services and supporting repositories. Revision labels declare the source baseline and are not automatic semantic verification. The [2026-09-07 audit](../estate-review/2026-09-07-estate-audit.md) records source findings, working-tree hashes and evidence limits. Sequence diagrams first; no narrative —
+every fact lives inside a diagram as a participant `path:line`, a message, or a `Note`. The two exceptions are
+the narrative areas below. This tree lives in the estate canon (VisionFlow) so that cross-repo edges are
+first-class; it was moved here from VisionClaw `docs/diagrams` on 2026-09-07 (history there up to 4d1a698e7),
+and the sealmap and dream-engine corpora joined it on 2026-11-05 (id maps in each repository's
+`docs/diagrams/README.md`).
+
+**Narrative areas.** `sealmap/` and `dream-engine/` came from repositories that wrote their corpora in the
+diagrams-as-code skill dialect: "For developers" and "For the business" sections and `**Tension:**` /
+`**Debt:**` register paragraphs around each diagram, with `path:line` citations in the prose. The
+diagrams-only prose limit does not apply to those areas. Their prose is cite-checked exactly as diagrams are:
+each paragraph, list item and table row is one unit, a bare `:N` continues the last path in its own unit,
+and a range split across two code spans (`` `P:a`-`b` ``) is one range. New areas are diagrams-only.
 
 All `sources:` / `governing:` paths are relative to the VisionFlow repo root and reach sibling checkouts through
 the local layout in [`docs/architecture/repository-map.md`](../architecture/repository-map.md) (`../project`,
@@ -22,11 +31,17 @@ fragment) and resolve by suffix against the file's own `sources:`.
 | `knowledgegraph/NN-*.md` | `KG-NN` | knowledgeGraph — published corpus and build pipeline (`../knowledgeGraph`) |
 | `visiongraph/NN-*.md` | `VG-NN` | visionGraph — authoring vault and publishing pipeline (`../visionGraph`) |
 | `ontomark/NN-*.md` | `OM-NN` | ontomark — the shared Markdown-ontology toolchain: parser, typed model, EL reasoner, compiler/build, assisted ingest, WASM engine (`../ontomark`) |
-| `dream-engine/NN-*.md` | `DE-NN` | dream-engine — the extracted permissive judgement and loop crates (MIT OR Apache-2.0), seen from the estate: crate DAG, licence fence, published crates and open items. The repository's own eight-topic corpus is linked, not duplicated (`../dream-engine`, public, `main` 5578a24). The estate adapter is `AB-23` |
+| `dream-engine/NN-*.md` | `DE-NN` | dream-engine — the extracted permissive judgement and loop crates (MIT OR Apache-2.0). DE-01 to DE-06 are the estate's view: crate DAG, licence fence, published crates and open items. DE-07 to DE-14 are the repository's own corpus, moved here on 2026-11-05 (narrative area): nightly loop, gate verdicts, crate seams, selection policies. The estate adapter is `AB-23` (`../dream-engine`) |
+| `sidestr-rs/NN-*.md` | `SR-NN` | sidestr-rs — Rust sidechain port: reference-oracle ladder, assets and markets, EVM overlay, Hitch channels, reserve attestation (`../sidestr-rs`) |
+| `visiontouch-rs/NN-*.md` | `VT-NN` | visiontouch-rs — haptic device study: clean-room method, transport, SDK and force guard, calibration (`../visiontouch-rs`, private) |
+| `sealmap/NN-*.md` | `SM-NN` | sealmap — code maps and review evidence for diagrams-as-code corpora: symbol model, extraction, Mermaid writers, corpus and seals, delivery, dense projection. Moved here from the repository on 2026-11-05 (narrative area) (`../sealmap`) |
+| `codescape/NN-*.md` | `CS-NN` | Codescape — code-graph 3D view: crates and licence split, ingest → model → layout, server and presence, deploy contract. VisionClaw's view of it is `VC-39`, `VC-42`, `VC-43` (`../codescape`) |
+| `visioncraft/NN-*.md` | `VK-NN` | VisionCraft — expectation-driven development method and skill: contracts, method lifecycle, evidence adapters, CI and release, browser-WASM default and agentbox consumption (`../visioncraft`) |
 | `estate/NN-*.md` | `ES-NN` | cross-repo and infrastructure interfaces; `verified_commit` is a `{repo: sha}` map |
 | `COVERAGE.md` | | generated inverted indexes: diagram → file, ADR → files, governing doc → files, source path → files |
 | `hero/` | | marketing hero images and their Mermaid → Nano Banana pipeline; not part of the coverage tree |
 | `rendered/` | | mmdc SVG output, gitignored, regenerable |
+| `<area>/DECISIONS-TIMELINE.md` | | hand-written decision history a narrative area brought with it; not a topic file |
 
 The pre-2026-09-05 technical diagrams and narrative docs are history only, kept in VisionClaw at
 [`docs/archive/diagrams/2026-09-pre-overhaul/`](https://github.com/DreamLab-AI/VisionClaw/tree/main/docs/archive/diagrams/2026-09-pre-overhaul).
@@ -169,7 +184,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_223 topic files, 1780 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_261 topic files, 1960 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -431,6 +446,14 @@ _223 topic files, 1780 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | DE-04 | [Host seam contracts and publication policy](dream-engine/04-forge-and-seam-contracts.md) | 3 | flowchart | [ADR-DE-005-seams.md](../../../dream-engine/docs/adr/ADR-DE-005-seams.md), [ADR-DE-006-automerge-is-an-option.md](../../../dream-engine/docs/adr/ADR-DE-006-automerge-is-an-option.md) | dream-engine:ADR-DE-005, dream-engine:ADR-DE-006 |
 | DE-05 | [Migration evidence and package boundaries](dream-engine/05-migration-and-package-boundaries.md) | 2 | flowchart | [ADR-DE-001-standalone-rust-engine.md](../../../dream-engine/docs/adr/ADR-DE-001-standalone-rust-engine.md), [ADR-DE-002-licence-and-provenance.md](../../../dream-engine/docs/adr/ADR-DE-002-licence-and-provenance.md) | dream-engine:ADR-DE-001, dream-engine:ADR-DE-002 |
 | DE-06 | [Confined formatting and post-evaluation evidence repairs](dream-engine/06-formatting-and-evidence-repairs.md) | 2 | flowchart | [ADR-DE-003-protected-path-guard.md](../../../dream-engine/docs/adr/ADR-DE-003-protected-path-guard.md), [ADR-DE-008-requested-sources-are-honoured-first.md](../../../dream-engine/docs/adr/ADR-DE-008-requested-sources-are-honoured-first.md), [ADR-DE-009-candidates-are-formatted-before-the-gate.md](../../../dream-engine/docs/adr/ADR-DE-009-candidates-are-formatted-before-the-gate.md) | dream-engine:ADR-DE-003, dream-engine:ADR-DE-008, dream-engine:ADR-DE-009 |
+| DE-07 | [The nightly loop and the run-state machine](dream-engine/07-the-nightly-loop-and-run-state.md) | 4 | stateDiagram-v2, flowchart, sequenceDiagram | [concepts.md](../../../dream-engine/docs/concepts.md) | ADR-DE-007 |
+| DE-08 | [Replay capture and verify](dream-engine/08-replay-capture-and-verify.md) | 2 | flowchart, sequenceDiagram | [ADR-DE-003-protected-path-guard.md](../../../dream-engine/docs/adr/ADR-DE-003-protected-path-guard.md) | ADR-DE-003 |
+| DE-09 | [The automerge policy decision tree](dream-engine/09-automerge-policy-decision-tree.md) | 2 | flowchart, sequenceDiagram | [ADR-DE-006-automerge-is-an-option.md](../../../dream-engine/docs/adr/ADR-DE-006-automerge-is-an-option.md) | ADR-DE-006 |
+| DE-10 | [Verdict classes and the decide flow](dream-engine/10-verdict-classes-and-the-decide-flow.md) | 5 | flowchart, sequenceDiagram | [concepts.md](../../../dream-engine/docs/concepts.md), [ADR-DE-003-protected-path-guard.md](../../../dream-engine/docs/adr/ADR-DE-003-protected-path-guard.md) | ADR-DE-003, ADR-DE-009 |
+| DE-11 | [The crate dependency DAG and the licence boundary](dream-engine/11-crate-dependency-dag-and-the-licence-boundary.md) | 2 | flowchart | [ADR-DE-002-licence-and-provenance.md](../../../dream-engine/docs/adr/ADR-DE-002-licence-and-provenance.md), [ADR-DE-001-standalone-rust-engine.md](../../../dream-engine/docs/adr/ADR-DE-001-standalone-rust-engine.md) | ADR-DE-001, ADR-DE-002 |
+| DE-12 | [Seams and what implements them](dream-engine/12-seams-and-what-implements-them.md) | 2 | classDiagram, sequenceDiagram | [ADR-DE-005-seams.md](../../../dream-engine/docs/adr/ADR-DE-005-seams.md) | ADR-DE-005 |
+| DE-13 | [Pairwise selection policies and the fault mapping](dream-engine/13-pairwise-policies-and-the-fault-mapping.md) | 3 | flowchart | [ADR-DE-004-pairwise-selection-and-fingerprints.md](../../../dream-engine/docs/adr/ADR-DE-004-pairwise-selection-and-fingerprints.md) | ADR-DE-004 |
+| DE-14 | [The failure-fingerprint lifecycle](dream-engine/14-failure-fingerprint-lifecycle.md) | 4 | flowchart, sequenceDiagram | [ADR-DE-004-pairwise-selection-and-fingerprints.md](../../../dream-engine/docs/adr/ADR-DE-004-pairwise-selection-and-fingerprints.md) | ADR-DE-004 |
 
 ### visiontouch-rs
 
@@ -444,6 +467,51 @@ _223 topic files, 1780 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | VT-06 | [Tools and the evidence path](visiontouch-rs/06-tools-and-evidence-path.md) | 4 | flowchart, sequenceDiagram | [BASELINE-visiontouch-rs.md](../../../visiontouch-rs/docs/BASELINE-visiontouch-rs.md), [ADR-0005-build-with-quality-retrofit.md](../../../visiontouch-rs/docs/adr/ADR-0005-build-with-quality-retrofit.md) | visiontouch-rs:ADR-0005 |
 | VT-07 | [Estate position and the future VisionClaw grab path](visiontouch-rs/07-estate-position-and-future-visionclaw-grab-path.md) | 4 | flowchart, sequenceDiagram | [ADR-0006-estate-membership-lab-evaluation.md](../../../visiontouch-rs/docs/adr/ADR-0006-estate-membership-lab-evaluation.md), [ADR-2017-haptic-input-device-is-a-supporting-study.md](../../docs/adr/ADR-2017-haptic-input-device-is-a-supporting-study.md), [repository-map.md](../../docs/architecture/repository-map.md) | visiontouch-rs:ADR-0006, visionflow:ADR-2017 |
 | VT-08 | [Calibration Studio and the verification ladder](visiontouch-rs/08-calibration-studio-and-verification-ladder.md) | 7 | sequenceDiagram, flowchart, classDiagram | [BASELINE-visiontouch-rs.md](../../../visiontouch-rs/docs/BASELINE-visiontouch-rs.md), [ADR-0003-staged-force-verification-ladder.md](../../../visiontouch-rs/docs/adr/ADR-0003-staged-force-verification-ladder.md), [ADR-0004-reset-pose-registration.md](../../../visiontouch-rs/docs/adr/ADR-0004-reset-pose-registration.md) | visiontouch-rs:ADR-0003, visiontouch-rs:ADR-0004 |
+
+### sealmap
+
+| ID | Topic | Diagrams | Kinds | Governing | ADRs |
+|----|-------|----------|-------|-----------|------|
+| SM-01 | [The sym id grammar](sealmap/01-the-sym-id-grammar.md) | 6 | classDiagram, flowchart, sequenceDiagram | [DESIGN.md](../../../sealmap/docs/DESIGN.md), [README.md](../../../sealmap/README.md) |  |
+| SM-02 | [Content hashes and per-symbol fingerprints](sealmap/02-content-hashes-and-fingerprints.md) | 5 | classDiagram, flowchart, sequenceDiagram, stateDiagram-v2 | [DESIGN.md](../../../sealmap/docs/DESIGN.md), [README.md](../../../sealmap/README.md) |  |
+| SM-03 | [The codebase model, its sources and schema v2](sealmap/03-the-codebase-model-and-schema-v2.md) | 5 | classDiagram, flowchart, sequenceDiagram | [DESIGN.md](../../../sealmap/docs/DESIGN.md), [README.md](../../../sealmap/README.md) |  |
+| SM-04 | [The language-adapter pipeline](sealmap/04-the-adapter-pipeline.md) | 5 | sequenceDiagram, flowchart, stateDiagram-v2 | [DESIGN.md](../../../sealmap/docs/DESIGN.md), [README.md](../../../sealmap/README.md) |  |
+| SM-05 | [Minting ids for Rust definitions](sealmap/05-minting-ids-for-definitions.md) | 5 | flowchart, sequenceDiagram | [DESIGN.md](../../../sealmap/docs/DESIGN.md), [README.md](../../../sealmap/README.md) |  |
+| SM-06 | [The flow walker and the raw flow IR](sealmap/06-the-flow-walker-and-raw-ir.md) | 7 | classDiagram, sequenceDiagram, flowchart, stateDiagram-v2 | [DESIGN.md](../../../sealmap/docs/DESIGN.md), [README.md](../../../sealmap/README.md) |  |
+| SM-07 | [Lowering, confidence and labels](sealmap/07-lowering-confidence-and-labels.md) | 5 | sequenceDiagram, flowchart | [DESIGN.md](../../../sealmap/docs/DESIGN.md), [README.md](../../../sealmap/README.md) |  |
+| SM-08 | [Workspace-wide name resolution](sealmap/08-workspace-name-resolution.md) | 6 | classDiagram, flowchart, sequenceDiagram | [DESIGN.md](../../../sealmap/docs/DESIGN.md), [README.md](../../../sealmap/README.md) |  |
+| SM-09 | [Signature and body fingerprints from token streams](sealmap/09-signature-and-body-fingerprints.md) | 6 | classDiagram, sequenceDiagram, flowchart | [DESIGN.md](../../../sealmap/docs/DESIGN.md), [README.md](../../../sealmap/README.md) |  |
+| SM-10 | [Typed Mermaid writers and escaping](sealmap/10-typed-writers-and-escaping.md) | 5 | classDiagram, flowchart, sequenceDiagram | [DESIGN.md](../../../sealmap/docs/DESIGN.md), [README.md](../../../sealmap/README.md) |  |
+| SM-11 | [Injective diagram ids from symbol ids](sealmap/11-injective-diagram-ids.md) | 5 | flowchart, sequenceDiagram | [DESIGN.md](../../../sealmap/docs/DESIGN.md), [README.md](../../../sealmap/README.md) |  |
+| SM-12 | [Generating the 1:1 corpus and its index](sealmap/12-generating-the-corpus-and-index.md) | 5 | sequenceDiagram, flowchart, classDiagram | [DESIGN.md](../../../sealmap/docs/DESIGN.md), [README.md](../../../sealmap/README.md) |  |
+| SM-13 | [Structure, sequence and overview projections](sealmap/13-structure-sequence-and-overview-projections.md) | 5 | sequenceDiagram, flowchart | [DESIGN.md](../../../sealmap/docs/DESIGN.md), [README.md](../../../sealmap/README.md) |  |
+| SM-14 | [Generate --check, write and the command line](sealmap/14-generate-check-write-and-the-cli.md) | 5 | sequenceDiagram, flowchart, stateDiagram-v2 | [DESIGN.md](../../../sealmap/docs/DESIGN.md), [README.md](../../../sealmap/README.md) |  |
+| SM-15 | [Seals, the lock and the checks](sealmap/15-seals-the-lock-and-the-checks.md) | 6 | classDiagram, flowchart, sequenceDiagram | [DESIGN.md](../../../sealmap/docs/DESIGN.md), [README.md](../../../sealmap/README.md) |  |
+| SM-16 | [The seal commands, resolve, verify, stale and sign](sealmap/16-the-seal-commands.md) | 4 | sequenceDiagram, flowchart | [DESIGN.md](../../../sealmap/docs/DESIGN.md), [README.md](../../../sealmap/README.md) |  |
+| SM-17 | [Review packs](sealmap/17-review-packs.md) | 4 | flowchart, sequenceDiagram | [DESIGN.md](../../../sealmap/docs/DESIGN.md), [README.md](../../../sealmap/README.md) |  |
+| SM-18 | [Conservative review selection and evidence receipts](sealmap/18-review-evidence-and-selection.md) | 2 | flowchart | [DESIGN.md](../../../sealmap/docs/DESIGN.md), [REVIEW-EVIDENCE.md](../../../sealmap/docs/REVIEW-EVIDENCE.md), [REVIEW-EXPECTATIONS.md](../../../sealmap/docs/REVIEW-EXPECTATIONS.md) |  |
+| SM-19 | [CI, the MSRV job and the determinism guarantees](sealmap/19-ci-msrv-and-determinism.md) | 5 | flowchart, sequenceDiagram | [DESIGN.md](../../../sealmap/docs/DESIGN.md), [README.md](../../../sealmap/README.md) |  |
+| SM-20 | [Design versus code after the evidence programme](sealmap/20-design-versus-code.md) | 6 | flowchart, stateDiagram-v2 | [DESIGN.md](../../../sealmap/docs/DESIGN.md), [README.md](../../../sealmap/README.md) |  |
+| SM-21 | [The dense agent projection](sealmap/21-the-dense-agent-projection.md) | 6 | flowchart, sequenceDiagram | [DESIGN.md](../../../sealmap/docs/DESIGN.md), [README.md](../../../sealmap/README.md) |  |
+
+### codescape
+
+| ID | Topic | Diagrams | Kinds | Governing | ADRs |
+|----|-------|----------|-------|-----------|------|
+| CS-01 | [Workspace composition, licence split and the isolation fence](codescape/01-workspace-composition-and-licence-split.md) | 5 | flowchart | [BASELINE-codescape.md](../../../codescape/docs/BASELINE-codescape.md), [ADR-0001-extraction-from-visionclaw.md](../../../codescape/docs/adr/ADR-0001-extraction-from-visionclaw.md) | codescape:ADR-0001, visionclaw:ADR-2143 |
+| CS-02 | [Ingest to model to layout pipeline](codescape/02-ingest-model-layout-pipeline.md) | 6 | sequenceDiagram, flowchart | [BASELINE-codescape.md](../../../codescape/docs/BASELINE-codescape.md), [ADR-0001-extraction-from-visionclaw.md](../../../codescape/docs/adr/ADR-0001-extraction-from-visionclaw.md) | codescape:ADR-0001, visionclaw:ADR-2143 |
+| CS-03 | [Server listeners, route surface and XR presence](codescape/03-server-listeners-and-presence.md) | 6 | flowchart, sequenceDiagram | [BASELINE-codescape.md](../../../codescape/docs/BASELINE-codescape.md), [AGENTS.md](../../../codescape/AGENTS.md), [ADR-0001-extraction-from-visionclaw.md](../../../codescape/docs/adr/ADR-0001-extraction-from-visionclaw.md) | codescape:ADR-0001, visionclaw:ADR-2143 |
+| CS-04 | [Deploy contract, entrypoint and CI](codescape/04-deploy-contract-and-ci.md) | 6 | flowchart | [README.md](../../../codescape/deploy/README.md), [ADR-0001-extraction-from-visionclaw.md](../../../codescape/docs/adr/ADR-0001-extraction-from-visionclaw.md) | codescape:ADR-0001, visionclaw:ADR-2143 |
+
+### visioncraft
+
+| ID | Topic | Diagrams | Kinds | Governing | ADRs |
+|----|-------|----------|-------|-----------|------|
+| VK-01 | [Crate, skill and contract composition](visioncraft/01-crate-skill-composition-and-contracts.md) | 5 | flowchart | [0001-portable-quality-contract.md](../../../visioncraft/docs/adr/0001-portable-quality-contract.md), [0002-specialist-upstream-boundaries.md](../../../visioncraft/docs/adr/0002-specialist-upstream-boundaries.md), [architecture.md](../../../visioncraft/skills/visioncraft/references/architecture.md) | visioncraft:ADR-0001, visioncraft:ADR-0002 |
+| VK-02 | [Method lifecycle from expectation to gate](visioncraft/02-method-lifecycle-expectation-to-gate.md) | 6 | flowchart, sequenceDiagram | [edd.md](../../../visioncraft/skills/visioncraft/references/edd.md), [quality-gates.md](../../../visioncraft/skills/visioncraft/references/quality-gates.md), [0001-portable-quality-contract.md](../../../visioncraft/docs/adr/0001-portable-quality-contract.md) | visioncraft:ADR-0001 |
+| VK-03 | [Bounded execution, receipts and the Deepsec adapter](visioncraft/03-execution-evidence-and-security-adapter.md) | 5 | sequenceDiagram, flowchart | [0001-portable-quality-contract.md](../../../visioncraft/docs/adr/0001-portable-quality-contract.md), [0002-specialist-upstream-boundaries.md](../../../visioncraft/docs/adr/0002-specialist-upstream-boundaries.md), [deepsec.md](../../../visioncraft/skills/visioncraft/references/deepsec.md) | visioncraft:ADR-0001, visioncraft:ADR-0002 |
+| VK-04 | [CI, release and the Sealmap diagram gate](visioncraft/04-ci-release-and-diagram-gates.md) | 4 | flowchart, sequenceDiagram | [README.md](../../../visioncraft/docs/diagrams/README.md), [0001-portable-quality-contract.md](../../../visioncraft/docs/adr/0001-portable-quality-contract.md) | visioncraft:ADR-0001, visioncraft:ADR-0002 |
+| VK-05 | [Browser WebAssembly default and agentbox consumption](visioncraft/05-browser-wasm-default-and-agentbox-consumption.md) | 5 | sequenceDiagram, flowchart | [browser-wasm.md](../../../visioncraft/skills/visioncraft/references/rust/browser-wasm.md), [ecosystem-agentbox.md](../../../visioncraft/skills/visioncraft/references/ecosystem-agentbox.md), [ADR-2165-visioncraft-owns-the-portable-quality-method.md](../../../project/agentbox/docs/adr/ADR-2165-visioncraft-owns-the-portable-quality-method.md), [visioncraft-consumption.md](../../../project/agentbox/docs/developer/visioncraft-consumption.md) | ADR-2165, visioncraft:ADR-0002 |
 
 ### estate
 

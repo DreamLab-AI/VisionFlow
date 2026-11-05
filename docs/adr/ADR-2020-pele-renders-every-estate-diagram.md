@@ -85,3 +85,11 @@ Version, npm integrity and the `dist/pele.js` sha256 agree wherever a surface ca
 The record's own verification was re-run at this commit: `node scripts/diagram-index-gen.cjs docs/diagrams --check --no-source-paths --render` reports `rendered 1526/1526 diagrams via pele` (the 21 failures noted above were fixed in the corpus refresh), and `node scripts/diagram-render/render.mjs` rendered all 10 report diagrams, `check-diagram-text.js` passed 10 of 10, with no change to the committed RES-b baseline.
 
 Boundary: source and local-run evidence only. The checker is not wired into a hosted workflow, agentbox's running image and its browser sidecar were not re-inspected (the browsercontainer build carries no mermaid-cli in source; it takes effect at its next rebuild), and a default run from outside the workspace skips absent siblings and says how many. A Pele bump must change all seven surfaces together.
+
+## Amendment 2026-11-05 — corpus surfaces follow the corpora into the master record
+
+The sealmap and dream-engine diagram corpora moved into this repository's master record (`docs/diagrams/sealmap/`, SM-01 to SM-21; `docs/diagrams/dream-engine/`, DE-07 to DE-14), rendered and gated by `scripts/diagram-index-gen.cjs` with the reference pin.
+- **dream-engine:** its corpus generator and vendored Pele (`docs/diagrams/tools/`) had no other consumer and were removed; the surface is retired.
+- **sealmap:** the corpus generator was removed, but sealmap's CI job `mermaid` renders its freshly generated corpus through `tools/validate-mermaid.mjs`, which loads the vendored Pele. That copy moved unchanged with its loader to `tools/lib/pele-static.cjs` and `tools/vendor/pele/`, and the surface is checked there.
+
+`tests/gates/pele-pin.test.sh` uses the agentbox skill's vendored copy as its agreeing-sibling fixture in place of dream-engine's. A Pele bump now changes six surfaces together.

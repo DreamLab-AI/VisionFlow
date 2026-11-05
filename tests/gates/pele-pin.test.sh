@@ -6,7 +6,7 @@ chk="$root/scripts/check-pele-pin.cjs"
 tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
 fails=0
 expect() { if [ "$2" = "$3" ]; then echo "ok   $1"; else echo "FAIL $1 (exit $2, want $3)"; fails=$((fails+1)); fi; }
-d="$tmp/dream-engine/docs/diagrams/tools/vendor/pele"; mkdir -p "$d"
+d="$tmp/project/agentbox/skills/diagrams-as-code/scripts/vendor/pele"; mkdir -p "$d"
 cp "$root/scripts/vendor/pele/VERSION" "$root/scripts/vendor/pele/pele.js" "$d/"
 node "$chk" --workspace "$tmp" >/dev/null 2>&1; expect "agreeing sibling passes (others skipped)" $? 0
 node "$chk" --workspace "$tmp" --strict >/dev/null 2>&1; expect "--strict fails on absent siblings" $? 1
