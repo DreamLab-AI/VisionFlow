@@ -1,20 +1,20 @@
 {
   "schema": "visionflow.estate-health/1",
-  "generated_at": "2026-11-05T09:40:21.820Z",
+  "generated_at": "2026-11-06T09:34:40.984Z",
   "generator": {
-    "revision": "a71e777b8257b07e8f161cb46db28024f9a80d57",
-    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/42004232873",
+    "revision": "79984f99d1deb50afc10b14c1a6afb776ec7e4aa",
+    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/42196056369",
     "collector": "scripts/estate-health.mjs"
   },
   "summary": {
-    "repos": 18,
-    "green": 5,
-    "red": 8,
-    "amber": 1,
+    "repos": 21,
+    "green": 10,
+    "red": 7,
+    "amber": 0,
     "none": 1,
     "exempt": 1,
     "unreadable": 2,
-    "open_prs": 6,
+    "open_prs": 4,
     "surfaces_ok": 6,
     "surfaces_total": 6
   },
@@ -30,35 +30,35 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "a71e777b8257b07e8f161cb46db28024f9a80d57",
-        "short": "a71e777",
-        "date": "2026-11-04T10:19:49Z",
-        "message": "docs(adr): ADR-2023 complete; activation staged on the agentbox image",
-        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/a71e777b8257b07e8f161cb46db28024f9a80d57"
+        "sha": "79984f99d1deb50afc10b14c1a6afb776ec7e4aa",
+        "short": "79984f9",
+        "date": "2026-11-05T22:24:26Z",
+        "message": "docs(diagrams): sealmap and dream-engine corpora join the master record; codescape and visioncraft become areas",
+        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/79984f99d1deb50afc10b14c1a6afb776ec7e4aa"
       },
       "ci": {
-        "state": "red",
+        "state": "green",
         "runs": [
           {
             "workflow": "ADR frontmatter gate",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/41813516375",
-            "updated_at": "2026-11-04T10:20:46Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/42121256973",
+            "updated_at": "2026-11-05T22:24:56Z"
           },
           {
             "workflow": "Copyright Source Guard",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/41813516382",
-            "updated_at": "2026-11-04T10:20:47Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/42121256971",
+            "updated_at": "2026-11-05T22:24:54Z"
           },
           {
             "workflow": "Deploy to GitHub Pages",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/41813516529",
-            "updated_at": "2026-11-04T10:21:12Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/42121256966",
+            "updated_at": "2026-11-05T22:25:21Z"
           },
           {
             "workflow": "Diagram render gate (RES-b)",
@@ -69,29 +69,29 @@
           },
           {
             "workflow": "Diagrams-as-code index gate",
-            "conclusion": "failure",
+            "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/41662631725",
-            "updated_at": "2026-11-03T15:20:02Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/42121257069",
+            "updated_at": "2026-11-05T22:25:09Z"
           },
           {
             "workflow": "Harness Fitness Gates",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/41363489126",
-            "updated_at": "2026-11-01T23:43:56Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/42121257036",
+            "updated_at": "2026-11-05T22:25:09Z"
           },
           {
             "workflow": "Nightly estate health",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/41808309743",
-            "updated_at": "2026-11-04T09:33:14Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/42004232873",
+            "updated_at": "2026-11-05T09:40:29Z"
           }
         ]
       },
       "open_prs": 0,
-      "open_issues": 1,
+      "open_issues": 2,
       "release": null,
       "pages": {
         "url": "https://www.visionflow.info/",
@@ -113,11 +113,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "ac0d68913a2a3184b236c5199d965d3abb293d98",
-        "short": "ac0d689",
-        "date": "2026-11-04T17:57:59Z",
-        "message": "feat(xr): splat on/off toggle in the HUD volume row; visible load state (ADR-2170 amendment)",
-        "url": "https://github.com/DreamLab-AI/VisionClaw/commit/ac0d68913a2a3184b236c5199d965d3abb293d98"
+        "sha": "3f63c55c0bf17bb2688db996874c090e8ac53b29",
+        "short": "3f63c55",
+        "date": "2026-11-05T13:34:31Z",
+        "message": "chore(agentbox): retain browser identity during secure-origin activation",
+        "url": "https://github.com/DreamLab-AI/VisionClaw/commit/3f63c55c0bf17bb2688db996874c090e8ac53b29"
       },
       "ci": {
         "state": "none",
@@ -154,7 +154,7 @@
         "build_type": "workflow"
       },
       "notes": [
-        "no qualifying run on HEAD ac0d689; the latest runs are on older commits (52851ce, b06ef57) and were green, reported none"
+        "no qualifying run on HEAD 3f63c55; the latest runs are on older commits (52851ce, b06ef57) and were green, reported none"
       ]
     },
     {
@@ -168,11 +168,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "f80b65a74f8253ee093e569814e6942d4448664f",
-        "short": "f80b65a",
-        "date": "2026-11-05T02:35:13Z",
-        "message": "docs(adr): ADR-2165, ADR-2033, ADR-2089, ADR-2091 verified at 83637b7c",
-        "url": "https://github.com/DreamLab-AI/agentbox/commit/f80b65a74f8253ee093e569814e6942d4448664f"
+        "sha": "0b287d7c16cae07faa243c471552f11fbb3e316c",
+        "short": "0b287d7",
+        "date": "2026-11-05T13:34:28Z",
+        "message": "docs(adr): verify durable legacy browser profile compatibility",
+        "url": "https://github.com/DreamLab-AI/agentbox/commit/0b287d7c16cae07faa243c471552f11fbb3e316c"
       },
       "ci": {
         "state": "red",
@@ -185,25 +185,32 @@
             "updated_at": "2026-11-01T23:35:07Z"
           },
           {
+            "workflow": "Browsercontainer",
+            "conclusion": "failure",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/42036968883",
+            "updated_at": "2026-11-05T13:34:49Z"
+          },
+          {
             "workflow": "CI",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/41956205533",
-            "updated_at": "2026-11-05T02:37:28Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/42036968293",
+            "updated_at": "2026-11-05T13:35:30Z"
           },
           {
             "workflow": "Contract tests",
             "conclusion": "failure",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/41662426915",
-            "updated_at": "2026-11-03T15:19:31Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/42030574400",
+            "updated_at": "2026-11-05T12:52:16Z"
           },
           {
             "workflow": "Manifest validate",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/41635779809",
-            "updated_at": "2026-11-03T12:28:19Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/42030574190",
+            "updated_at": "2026-11-05T12:51:38Z"
           },
           {
             "workflow": "nix-flake-update",
@@ -216,22 +223,22 @@
             "workflow": "Secret Scan",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/41956205560",
-            "updated_at": "2026-11-05T02:37:04Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/42036968656",
+            "updated_at": "2026-11-05T13:35:09Z"
           },
           {
             "workflow": "Security Invariants",
-            "conclusion": "failure",
+            "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/41956205499",
-            "updated_at": "2026-11-05T02:38:12Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/42036968483",
+            "updated_at": "2026-11-05T13:37:08Z"
           },
           {
             "workflow": "Security VEX contracts",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/41635779662",
-            "updated_at": "2026-11-03T12:27:25Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/42036511797",
+            "updated_at": "2026-11-05T13:32:01Z"
           },
           {
             "workflow": "ShellCheck",
@@ -244,8 +251,8 @@
             "workflow": "TUI helper tests",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/41635779508",
-            "updated_at": "2026-11-03T12:27:40Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/42030574319",
+            "updated_at": "2026-11-05T12:51:16Z"
           }
         ]
       },
@@ -266,11 +273,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "051954cff2227c0c767ed6854c5f5a1b8db41630",
-        "short": "051954c",
-        "date": "2026-11-05T01:43:19Z",
-        "message": "dream-cycle: 2026-11-05-solid-pod-rs ledger row (ACCEPT)",
-        "url": "https://github.com/DreamLab-AI/solid-pod-rs/commit/051954cff2227c0c767ed6854c5f5a1b8db41630"
+        "sha": "805b524659614fb902d4c5ecc856af93fd4f6a93",
+        "short": "805b524",
+        "date": "2026-11-05T11:54:40Z",
+        "message": "dream(wac-evaluator): NIP-98 GitLenient byte-prefix URL match accepted sibling… (#14)",
+        "url": "https://github.com/DreamLab-AI/solid-pod-rs/commit/805b524659614fb902d4c5ecc856af93fd4f6a93"
       },
       "ci": {
         "state": "red",
@@ -279,15 +286,15 @@
             "workflow": ".github/workflows/adr.yml",
             "conclusion": "failure",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/solid-pod-rs/actions/runs/41995348625",
-            "updated_at": "2026-11-05T08:33:11Z"
+            "url": "https://github.com/DreamLab-AI/solid-pod-rs/actions/runs/42022763042",
+            "updated_at": "2026-11-05T11:54:43Z"
           },
           {
             "workflow": "CI",
-            "conclusion": "failure",
+            "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/solid-pod-rs/actions/runs/41656581683",
-            "updated_at": "2026-11-03T15:01:10Z"
+            "url": "https://github.com/DreamLab-AI/solid-pod-rs/actions/runs/42022765162",
+            "updated_at": "2026-11-05T12:12:50Z"
           },
           {
             "workflow": "Release",
@@ -298,7 +305,7 @@
           }
         ]
       },
-      "open_prs": 3,
+      "open_prs": 0,
       "open_issues": 1,
       "release": null,
       "pages": null,
@@ -558,30 +565,30 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "ff6b27193efeebe1880b2eb595bbcb8f7d8da797",
-        "short": "ff6b271",
-        "date": "2026-11-05T09:37:28Z",
-        "message": "docs(evidence): keep the WP-E run at 6f79f58 beside the 03d7187 receipts",
-        "url": "https://github.com/DreamLab-AI/ontomark/commit/ff6b27193efeebe1880b2eb595bbcb8f7d8da797"
+        "sha": "cf0695c557e109a11a6f4626e76fcebbaa8bb694",
+        "short": "cf0695c",
+        "date": "2026-11-05T10:48:19Z",
+        "message": "docs(review): plugin 0.5.0 repinned to v0.8.1; rows L and gate 7",
+        "url": "https://github.com/DreamLab-AI/ontomark/commit/cf0695c557e109a11a6f4626e76fcebbaa8bb694"
       },
       "ci": {
-        "state": "amber",
+        "state": "green",
         "runs": [
           {
             "workflow": "ci",
-            "conclusion": null,
-            "status": "in_progress",
-            "url": "https://github.com/DreamLab-AI/ontomark/actions/runs/42003921612",
-            "updated_at": "2026-11-05T09:37:47Z"
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/ontomark/actions/runs/42013745934",
+            "updated_at": "2026-11-05T10:51:38Z"
           }
         ]
       },
       "open_prs": 0,
       "open_issues": 0,
       "release": {
-        "tag": "v0.8.0",
-        "date": "2026-11-04T08:59:22Z",
-        "url": "https://github.com/DreamLab-AI/ontomark/releases/tag/v0.8.0"
+        "tag": "v0.8.1",
+        "date": "2026-11-05T10:40:39Z",
+        "url": "https://github.com/DreamLab-AI/ontomark/releases/tag/v0.8.1"
       },
       "pages": null,
       "notes": []
@@ -597,11 +604,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "2a6c44e024121ec055329d37915e0ce5a05f75f2",
-        "short": "2a6c44e",
-        "date": "2026-11-01T09:54:07Z",
-        "message": "release: 0.4.2 — directory scan fixes",
-        "url": "https://github.com/DreamLab-AI/ontomark-obsidian/commit/2a6c44e024121ec055329d37915e0ce5a05f75f2"
+        "sha": "db8e6b590fdf6a2e364c8661ec090918b57285c0",
+        "short": "db8e6b5",
+        "date": "2026-11-05T10:48:29Z",
+        "message": "docs: point to the 5 November external review register",
+        "url": "https://github.com/DreamLab-AI/ontomark-obsidian/commit/db8e6b590fdf6a2e364c8661ec090918b57285c0"
       },
       "ci": {
         "state": "green",
@@ -610,17 +617,17 @@
             "workflow": "Plugin checks",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/ontomark-obsidian/actions/runs/41295109993",
-            "updated_at": "2026-11-01T09:54:38Z"
+            "url": "https://github.com/DreamLab-AI/ontomark-obsidian/actions/runs/42013767464",
+            "updated_at": "2026-11-05T10:48:57Z"
           }
         ]
       },
       "open_prs": 0,
       "open_issues": 1,
       "release": {
-        "tag": "0.4.2",
-        "date": "2026-11-01T09:55:28Z",
-        "url": "https://github.com/DreamLab-AI/ontomark-obsidian/releases/tag/0.4.2"
+        "tag": "0.5.0",
+        "date": "2026-11-05T10:47:59Z",
+        "url": "https://github.com/DreamLab-AI/ontomark-obsidian/releases/tag/0.5.0"
       },
       "pages": null,
       "notes": []
@@ -745,7 +752,7 @@
           }
         ]
       },
-      "open_prs": 0,
+      "open_prs": 1,
       "open_issues": 0,
       "release": {
         "tag": "v0.1.5",
@@ -805,11 +812,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "bf3a11d1a131eeba0f375ad8164c973bccb3faf5",
-        "short": "bf3a11d",
-        "date": "2026-11-03T06:32:56Z",
-        "message": "fix(core): preserve tracked UTF-8 paths in source gathering",
-        "url": "https://github.com/DreamLab-AI/dream-engine/commit/bf3a11d1a131eeba0f375ad8164c973bccb3faf5"
+        "sha": "0aaa4f3a13db71c47571396ea186967d9caa37e8",
+        "short": "0aaa4f3",
+        "date": "2026-11-05T22:18:26Z",
+        "message": "chore(review): commit nightly GLM review artefacts left in the primary checkout",
+        "url": "https://github.com/DreamLab-AI/dream-engine/commit/0aaa4f3a13db71c47571396ea186967d9caa37e8"
       },
       "ci": {
         "state": "red",
@@ -818,8 +825,8 @@
             "workflow": "ci",
             "conclusion": "failure",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/dream-engine/actions/runs/41590729407",
-            "updated_at": "2026-11-03T06:35:25Z"
+            "url": "https://github.com/DreamLab-AI/dream-engine/actions/runs/42121290775",
+            "updated_at": "2026-11-05T22:25:47Z"
           }
         ]
       },
@@ -851,6 +858,119 @@
       "notes": [
         "repository not readable: HTTP 404 with both tokens (ESTATE_READ_TOKEN also tried)"
       ]
+    },
+    {
+      "name": "codescape",
+      "full_name": "DreamLab-AI/codescape",
+      "url": "https://github.com/DreamLab-AI/codescape",
+      "provenance": "first-party",
+      "role": "code-graph 3D view extracted from VisionClaw (ADR-2143); model and collab crates published",
+      "visibility": "public",
+      "archived": false,
+      "readable": true,
+      "default_branch": "main",
+      "head": {
+        "sha": "d66bcab80fc0ce1f57deb6a0b6fa74e56ee8e298",
+        "short": "d66bcab",
+        "date": "2026-11-05T22:18:43Z",
+        "message": "docs: link Codescape's diagram area in the VisionFlow master record",
+        "url": "https://github.com/DreamLab-AI/codescape/commit/d66bcab80fc0ce1f57deb6a0b6fa74e56ee8e298"
+      },
+      "ci": {
+        "state": "green",
+        "runs": [
+          {
+            "workflow": "ci",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/codescape/actions/runs/42121276154",
+            "updated_at": "2026-11-05T22:27:40Z"
+          }
+        ]
+      },
+      "open_prs": 0,
+      "open_issues": 0,
+      "release": null,
+      "pages": null,
+      "notes": []
+    },
+    {
+      "name": "sealmap",
+      "full_name": "DreamLab-AI/sealmap",
+      "url": "https://github.com/DreamLab-AI/sealmap",
+      "provenance": "first-party",
+      "role": "code maps and review evidence for diagrams-as-code corpora; published crates",
+      "visibility": "public",
+      "archived": false,
+      "readable": true,
+      "default_branch": "main",
+      "head": {
+        "sha": "2b351367cab241aa7304d364aa37b52e65bb71f2",
+        "short": "2b35136",
+        "date": "2026-11-05T22:22:35Z",
+        "message": "chore(review): commit nightly GLM review artefacts left in the primary checkout",
+        "url": "https://github.com/DreamLab-AI/sealmap/commit/2b351367cab241aa7304d364aa37b52e65bb71f2"
+      },
+      "ci": {
+        "state": "green",
+        "runs": [
+          {
+            "workflow": "ci",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/sealmap/actions/runs/42121286408",
+            "updated_at": "2026-11-05T22:26:46Z"
+          }
+        ]
+      },
+      "open_prs": 0,
+      "open_issues": 0,
+      "release": {
+        "tag": "v0.4.0",
+        "date": "2026-11-03T10:11:20Z",
+        "url": "https://github.com/DreamLab-AI/sealmap/releases/tag/v0.4.0"
+      },
+      "pages": null,
+      "notes": []
+    },
+    {
+      "name": "visioncraft",
+      "full_name": "DreamLab-AI/visioncraft",
+      "url": "https://github.com/DreamLab-AI/visioncraft",
+      "provenance": "first-party",
+      "role": "expectation-driven development method and skill; published crate, pinned by agentbox",
+      "visibility": "public",
+      "archived": false,
+      "readable": true,
+      "default_branch": "main",
+      "head": {
+        "sha": "5d1c1bcbedba8697632aa533ec3363269884c1a0",
+        "short": "5d1c1bc",
+        "date": "2026-11-05T22:18:43Z",
+        "message": "docs(diagrams): point to the VisionFlow master record's visioncraft area",
+        "url": "https://github.com/DreamLab-AI/visioncraft/commit/5d1c1bcbedba8697632aa533ec3363269884c1a0"
+      },
+      "ci": {
+        "state": "green",
+        "runs": [
+          {
+            "workflow": "CI",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/visioncraft/actions/runs/42121297843",
+            "updated_at": "2026-11-05T22:26:08Z"
+          }
+        ]
+      },
+      "open_prs": 0,
+      "open_issues": 0,
+      "release": {
+        "tag": "v0.2.0",
+        "date": "2026-11-05T02:31:53Z",
+        "url": "https://github.com/DreamLab-AI/visioncraft/releases/tag/v0.2.0"
+      },
+      "pages": null,
+      "notes": []
     }
   ],
   "surfaces": [
@@ -860,7 +980,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 198,
+      "latency_ms": 195,
       "note": null
     },
     {
@@ -869,7 +989,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 200,
+      "latency_ms": 113,
       "note": null
     },
     {
@@ -878,7 +998,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/ld+json",
-      "latency_ms": 208,
+      "latency_ms": 133,
       "note": null
     },
     {
@@ -887,7 +1007,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/json; charset=utf-8",
-      "latency_ms": 212,
+      "latency_ms": 169,
       "note": "classes=9595 pages=9593 nodes=9595"
     },
     {
@@ -896,7 +1016,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 611,
+      "latency_ms": 208,
       "note": null
     },
     {
@@ -905,7 +1025,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/octet-stream",
-      "latency_ms": 393,
+      "latency_ms": 219,
       "note": null
     }
   ],
@@ -1076,6 +1196,38 @@
       "version": "0.2.0",
       "published_at": "2026-10-02T23:53:20.947488Z",
       "url": "https://crates.io/crates/webledgers-teller",
+      "note": null
+    },
+    {
+      "registry": "crates.io",
+      "name": "codescape-model",
+      "version": "0.1.0",
+      "published_at": "2026-10-18T16:25:01.032112Z",
+      "url": "https://crates.io/crates/codescape-model",
+      "note": null
+    },
+    {
+      "registry": "crates.io",
+      "name": "codescape-collab",
+      "version": "0.1.0",
+      "published_at": "2026-10-18T16:25:07.541902Z",
+      "url": "https://crates.io/crates/codescape-collab",
+      "note": null
+    },
+    {
+      "registry": "crates.io",
+      "name": "sealmap",
+      "version": "0.4.0",
+      "published_at": "2026-11-03T10:10:21.986066Z",
+      "url": "https://crates.io/crates/sealmap",
+      "note": null
+    },
+    {
+      "registry": "crates.io",
+      "name": "visioncraft",
+      "version": "0.2.0",
+      "published_at": "2026-11-05T02:31:45.784999Z",
+      "url": "https://crates.io/crates/visioncraft",
       "note": null
     },
     {
