@@ -40,46 +40,61 @@ sources:
   - ../project/src/handlers/speech_socket_handler.rs
   - ../project/src/handlers/solid_proxy_handler.rs
   - ../project/src/actors/client_filter.rs
+  - ../project/src/actors/graph_state_actor.rs
+  - ../project/client/src/features/graph/explore/nodeFilter.ts
+  - ../project/client/src/features/graph/explore/__tests__/nodeFilter.test.ts
+  - ../project/xr-client/rust/src/settings_sync.rs
   - ../project/src/uri/mod.rs
   - ../project/src/config/security_profile.rs
-verified_commit: 86cdd76355823a51bb64d503c005fe277726e724
+  - ../project/docs/adr/ADR-2012-dev-bypass-triple-gated.md
+verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
 ---
+
+## For developers
+
+This topic follows a request from nginx to a handler: the actix middleware order, the WebSocket upgrade routes, the two identity carriers (NIP-98 and the ADR-2009 session bearer), the `RbacGate` decision and the Owner > Admin > Editor > Viewer lattice, the dev bypass gates and the rate limiter. VC-03.9 covers the position stream's per-session entitlement only. The one visibility policy that REST, `initialGraphLoad` and analytics share (`visible_subgraph`, `caller_view`, `caller_gate`) is drawn in VC-19, and settings auth is in VC-06.
+
+Since the last stamp the server node filter removes nodes for a predicate only when the client opts in with `serverRemove` (ADR-2183). An unscored node is neutral on the client, the server and the headset, and one fixture pins all three. ADR-2012 now records the dev-token loopback-behind-proxy weakness as an operator-accepted residual risk.
+
+## For the business
+
+Every request is identified before it reaches data: a signed Nostr request or a session token, then a role. A visitor who is not signed in sees only public pages, live positions included. Developer shortcuts exist only in development builds. One of them trusts anything that appears to come from the same machine. The operator accepted that for development, so a development host must not sit behind a reverse proxy on the same machine.
 
 ## VC-03.1 REST request end-to-end — nginx to handler, real middleware order
 ```mermaid
 sequenceDiagram
     autonumber
     participant NG as nginx (port 3001)
-    participant AC as actix HttpServer<br/>src/main.rs:972-1260
-    participant LG as Logger<br/>wrap #1 src/main.rs:1048
-    participant CO as cors<br/>wrap #2 src/main.rs:1049
-    participant CP as Compress<br/>wrap #3 src/main.rs:1050
-    participant TO as TimeoutMiddleware<br/>wrap #4 src/main.rs:1051
-    participant SC as scope /api<br/>src/main.rs:1126
-    participant PD as PublicDemoGuard::from_env<br/>src/main.rs:1130
-    participant RG as RbacGate::from_env<br/>src/main.rs:1137
-    participant RL as RateLimit::per_minute 60<br/>src/main.rs:1144 (scope /api/settings only)
+    participant AC as actix HttpServer<br/>src/main.rs:979-1271
+    participant LG as Logger<br/>wrap #1 src/main.rs:1055
+    participant CO as cors<br/>wrap #2 src/main.rs:1056
+    participant CP as Compress<br/>wrap #3 src/main.rs:1057
+    participant TO as TimeoutMiddleware<br/>wrap #4 src/main.rs:1058
+    participant SC as scope /api<br/>src/main.rs:1134
+    participant PD as PublicDemoGuard::from_env<br/>src/main.rs:1138
+    participant RG as RbacGate::from_env<br/>src/main.rs:1145
+    participant RL as RateLimit::per_minute 60<br/>src/main.rs:1152 (scope /api/settings only)
     participant H as route handler
 
     Note over LG,RG: actix applies .wrap() in REVERSE registration order at request time<br/>last .wrap() call = outermost layer that sees the request first
-    Note over LG,TO: registration order in main.rs is Logger,cors,Compress,TimeoutMiddleware (src/main.rs:1048-1051)<br/>so the REAL request-time order is TimeoutMiddleware,Compress,cors,Logger,then routing
+    Note over LG,TO: registration order in main.rs is Logger,cors,Compress,TimeoutMiddleware (src/main.rs:1055-1058)<br/>so the REAL request-time order is TimeoutMiddleware,Compress,cors,Logger,then routing
     NG->>AC: HTTP request
     AC->>TO: enter (outermost of the four)
-    TO->>TO: get_timeout(path) — default 30s, override 600s for "/api/admin/sync" (src/main.rs:1051-1053)
-    Note over TO: TimeoutConfig::new(30s).with_override(...) constructed src/main.rs:1052-1053 —<br/>get_timeout (timeout.rs:37-41) looks up an exact-path HashMap (endpoint_overrides) —<br/>no prefix/glob matching, so only "/api/admin/sync" itself gets 600s
-    Note over LG,TO: DEBT: src/middleware/validation.rs (the old ValidationMiddleware) is deleted, so no request-size or content-type<br/>layer exists in this .wrap() chain. The nearest remaining guard, RequestSizeLimit<br/>(src/utils/validation/middleware.rs:17, default cap MAX_REQUEST_SIZE 16MiB at src/utils/validation/mod.rs:14),<br/>is not registered by any .wrap() in src/main.rs:1048-1051
+    TO->>TO: get_timeout(path) — default 30s, override 600s for "/api/admin/sync" (src/main.rs:1058-1060)
+    Note over TO: TimeoutConfig::new(30s).with_override(...) constructed src/main.rs:1059-1060 —<br/>get_timeout (timeout.rs:37-41) looks up an exact-path HashMap (endpoint_overrides) —<br/>no prefix/glob matching, so only "/api/admin/sync" itself gets 600s
+    Note over LG,TO: DEBT: src/middleware/validation.rs (the old ValidationMiddleware) is deleted, so no request-size or content-type<br/>layer exists in this .wrap() chain. The nearest remaining guard, RequestSizeLimit<br/>(src/utils/validation/middleware.rs:17, default cap MAX_REQUEST_SIZE 16MiB at src/utils/validation/mod.rs:14),<br/>is not registered by any .wrap() in src/main.rs:1055-1058
     TO->>CP: enter
     CP->>CO: enter
     CO->>LG: enter
     LG->>SC: enter /api scope
     rect rgb(225,225,245)
-    SC->>RG: RbacGate, wrapped LAST at src/main.rs:1137 so it is the outermost of the two /api wraps
+    SC->>RG: RbacGate, wrapped LAST at src/main.rs:1145 so it is the outermost of the two /api wraps
     alt required_level present (not public route)
         RG->>RG: verify_access then record the identity in request extensions (see VC-03.6)
     else public route
         RG->>RG: pass straight through
     end
-    RG->>PD: PublicDemoGuard, wrapped first at src/main.rs:1130 so it sees the request after the gate
+    RG->>PD: PublicDemoGuard, wrapped first at src/main.rs:1138 so it sees the request after the gate
     Note over PD: PublicDemoGuard::from_env() reads PUBLIC_DEMO ONCE at app start<br/>(public_demo.rs:49-53) — not re-read per request, so toggling the env var at<br/>runtime has no effect until restart. Truthy tokens (trim+lowercase):<br/>"read-only","readonly","1","true","on" (:26-31). DEFAULT OFF — unset means inert<br/>passthrough (:11-12)
     alt PUBLIC_DEMO read-only AND method not GET/HEAD/OPTIONS
         PD-->>NG: 403 read_only_demo
@@ -101,7 +116,7 @@ sequenceDiagram
     participant NS as NostrService::get_session<br/>src/services/nostr_service.rs:611
     participant NV as NostrService::verify_nip98_auth<br/>src/services/nostr_service.rs:648
 
-    Note over WS: routes registered src/main.rs:1111-1119 — /wss, /wss/agent-events,<br/>/ws/speech, /ws/mcp-relay, /ws/client-messages, /ws/presence
+    Note over WS: routes registered src/main.rs:1119-1127 — /wss, /wss/agent-events,<br/>/ws/speech, /ws/mcp-relay, /ws/client-messages, /ws/presence
     C->>WS: GET /wss (Upgrade: websocket)
     WS->>WS: WEBSOCKET_RATE_LIMITER.is_allowed(client_ip), else 429 (http_handler.rs:56-58)
     alt Origin header present
@@ -451,36 +466,38 @@ sequenceDiagram
     Note over RS: ownerless resolution — bootstrap_owner_from_env (:643) grants Owner to<br/>RBAC_OWNER_PUBKEY idempotently at boot if unassigned — see VC-01.2 for the boot-fail path
 ```
 
-## VC-03.9 `PUBKEY_VISIBILITY_FILTER` — per-client entitlement on the position stream and the initial load
+## VC-03.9 `PUBKEY_VISIBILITY_FILTER` on the position stream — per-client entitlement and the node filter
 ```mermaid
 sequenceDiagram
     autonumber
-    participant EF as filter_enabled<br/>crates/visionclaw-domain/src/utils/visibility_filter.rs:38
-    participant CC as ClientCoordinator pump_all / pump_one<br/>src/actors/client_coordinator_actor.rs:400 / :442
-    participant VF as compute_private_opaque_ids<br/>crates/visionclaw-domain/src/utils/visibility_filter.rs:110
-    participant SY as send_full_state_sync<br/>src/handlers/socket_flow_handler/types.rs:177
-    participant PU as pubkey_visibility_filter_enabled<br/>src/handlers/socket_flow_handler/position_updates.rs:11
+    participant EF as filter_enabled<br/>crates/visionclaw-domain/src/utils/visibility_filter.rs:46
+    participant GS as GraphStateActor get_node_type_arrays<br/>src/actors/graph_state_actor.rs:165
+    participant CC as ClientCoordinator pump_all / pump_one<br/>src/actors/client_coordinator_actor.rs:406, :448
+    participant VF as compute_private_opaque_ids<br/>crates/visionclaw-domain/src/utils/visibility_filter.rs:144
+    participant CF as recompute_filtered_nodes<br/>src/actors/client_filter.rs:26
 
-    Note over EF: parse_visibility_flag (:26-34) — default ON — only explicit<br/>"0"/"false"/"off"/"no" (case-insensitive, trimmed) disables.<br/>The env is read ONCE via OnceLock and cached for the process lifetime (:38-43),<br/>so toggling PUBKEY_VISIBILITY_FILTER at runtime has NO effect.
-    PU->>EF: delegates, one definition for every path (position_updates.rs:11-13)
-    CC->>EF: policy_on = filter_enabled() (client_coordinator_actor.rs:407)
-    alt policy_on and node classification not yet loaded (!cx.nta.loaded)
-        CC-->>CC: warn and send nothing — fail closed, "no classification" must not read as "nothing private" (:408-413)
+    Note over EF: parse_visibility_flag (visibility_filter.rs:34-42) is default ON, only "0", "false", "off" or "no" disables.<br/>The env is read once through OnceLock (visibility_filter.rs:46-51), so a runtime change has no effect.
+    GS->>GS: private_nodes = every node whose NodeVisibility::of_node is not public (graph_state_actor.rs:173-179)
+    CC->>EF: policy_on = filter_enabled() (client_coordinator_actor.rs:413)
+    alt policy_on and node classification not yet loaded
+        CC-->>CC: warn and send nothing, fail closed (client_coordinator_actor.rs:414-419)
     else classification in hand
         loop each client due a chunk (ADR-2141, until it acknowledges)
-            CC->>VF: compute_private_opaque_ids(private_nodes, client.pubkey) — once per distinct pubkey per pump (:458-470)
-            Note over VF: fail-closed — pubkey None (unauthenticated session) drops ALL private nodes<br/>is_dropped_for (visibility_filter.rs:93)
+            CC->>VF: drop set for client.pubkey, once per distinct pubkey per pump (client_coordinator_actor.rs:466-474)
+            Note over VF: an anonymous session or an unowned private node drops (is_dropped_for, visibility_filter.rs:127-137)
             VF-->>CC: hidden id set
-            CC->>CC: visible(id) = client filter allows AND not hidden (:474-476), retain_nodes forgets ids no longer visible (:496)
-            CC->>CC: plan the chunk from visible ids only, serialise V5 frame (:498-510)
+            CF-->>CC: filtered_node_ids, the ADR-2183 scope and opt-in predicate removal, not ownership (client_filter.rs:26-28)
+            CC->>CC: visible(id) = node filter allows AND not hidden (client_coordinator_actor.rs:480-482)
+            CC->>CC: retain_nodes forgets what is no longer visible, plan from visible ids only (client_coordinator_actor.rs:500-506)
         end
     end
-    SY->>PU: visibility_filter_on (types.rs:185)
-    SY->>SY: initial graph load keeps public nodes plus nodes whose owner_pubkey equals the caller (types.rs:276-295)
-    Note over CC: INVARIANT: a frame is planned only from the visible set, so a private node the caller does not own cannot be in a position chunk, client_coordinator_actor.rs:474-476
-    Note over SY: DRIFT: the comment at types.rs:274 says the filter is "Default OFF"<br/>while filter_enabled defaults ON (visibility_filter.rs:26-34)
-    Note over CC: src/actors/client_filter.rs::recompute_filtered_nodes is a DIFFERENT filter —<br/>quality/authority-threshold + linked_page inclusion, NOT pubkey ownership.<br/>It feeds client.filter.filtered_node_ids, which pump_one ANDs with the entitlement set.
+    Note over CC: INVARIANT: a chunk is planned only from the visible set, so a private node the caller does not own<br/>never reaches a position frame (client_coordinator_actor.rs:480-482, :504-506)
+    Note over CC: The initialGraphLoad, the REST reads and the analytics routes take the same policy through<br/>visible_subgraph and caller_view. That shared gate is drawn in VC-19.
 ```
+
+**What it shows.** The live position stream's per-session entitlement, and how it is combined with the separate server node filter. **Why it is this way.** ADR-2003 makes the filter default on and fail-closed. ADR-2141 streams each client its own unacknowledged set, so the drop set is applied per client at planning time.
+
+**Debt (parallel):** the node-filter predicate is written three times, in the client (`client/src/features/graph/explore/nodeFilter.ts:108`), the server (`src/actors/client_filter.rs:74-93`) and the headset (`xr-client/rust/src/settings_sync.rs:94`). The copies agree today and all three tests load one fixture (`client_filter.rs:311`, `settings_sync.rs:624`, `nodeFilter.test.ts:14`), so a copy that drifts from the fixture fails its own suite. A behaviour change still has to be made three times.
 
 ## VC-03.11 Dev bypass triple gate (ADR-2012 / ADR-2039) — nested conditions
 ```mermaid
@@ -518,6 +535,10 @@ sequenceDiagram
     Note over B: ADR-2039 — VISIONCLAW_DEV_MODE full bypass is PEER-AGNOSTIC by design (Docker SNAT<br/>hides the real LAN headset address) — the loopback+opt-in gate above applies only to the<br/>SEPARATE Bearer dev-session-token path, not to VISIONCLAW_DEV_MODE itself — three gates<br/>(compile-time, runtime opt-in, boot-refusal in release) substitute for a peer check there.
 ```
 
+**Tension (risk):** the dev-token gate tests the TCP peer (`src/utils/auth.rs:147`), not the original client. Behind a same-host reverse proxy every client is loopback, so with `DEV_AUTH_LOOPBACK=1` any client can claim any pubkey and read that owner's private nodes. The operator accepted this for dev on 2026-11-06 (`docs/adr/ADR-2012-dev-bypass-triple-gated.md:169-173`). Release builds compile the path out.
+
+**Drift (ADR-2012 vs tree):** the accepted-risk note cites `src/middleware/auth_extractor.rs:36-56` and `:200-220` (`ADR-2012-dev-bypass-triple-gated.md:171`). That file does not exist. The two dev-token branches are in `src/settings/auth_extractor.rs:36` and `:200`.
+
 ## VC-03.12 `RateLimit` middleware — sliding window per identifier
 ```mermaid
 sequenceDiagram
@@ -542,7 +563,7 @@ sequenceDiagram
     else allowed
         RL->>R: service.call(req)
     end
-    Note over RL: applied at src/main.rs:1144 as RateLimit::per_minute(60) on the /api/settings<br/>scope only (rate_limit.rs:171) — 60 requests / 60s window, keyed by realip (use_user_id off by default). RateLimit is Clone and its state sits behind an Arc (rate_limit.rs:84-87), so clones share one request history
+    Note over RL: applied at src/main.rs:1152 as RateLimit::per_minute(60) on the /api/settings<br/>scope only (rate_limit.rs:171) — 60 requests / 60s window, keyed by realip (use_user_id off by default). RateLimit is Clone and its state sits behind an Arc (rate_limit.rs:84-87), so clones share one request history
 ```
 
 ## VC-03.15 Identity authority chain end-to-end — Nostr key to role

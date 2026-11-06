@@ -4,7 +4,7 @@ title: React client boot sequence and state layer
 area: visionclaw
 governing:
   - ../project/docs/BASELINE-architecture.md
-adrs: [ADR-2074, ADR-2077, ADR-2139, ADR-2141, ADR-2142]
+adrs: [ADR-2074, ADR-2077, ADR-2139, ADR-2141, ADR-2142, ADR-2181, ADR-2189]
 sources:
   - ../project/client/src/app/main.tsx
   - ../project/client/src/app/App.tsx
@@ -15,8 +15,8 @@ sources:
   - ../project/client/src/store/settings/coreSlice.ts
   - ../project/client/src/store/settings/physicsSlice.ts
   - ../project/client/src/store/settings/persistenceSlice.ts
-  - ../project/client/src/store/settings/settingsTypes.ts
   - ../project/client/src/store/settings/subscriberTrie.ts
+  - ../project/client/src/store/settings/retiredPaths.ts
   - ../project/client/src/store/websocketStore.ts
   - ../project/client/src/store/websocket/storeState.ts
   - ../project/client/src/store/timelineStore.ts
@@ -78,9 +78,18 @@ sources:
   - ../project/client/src/features/control-center/hooks/useRevealSetting.ts
   - ../project/client/src/features/control-center/primitives/NostrAuthControl.tsx
   - ../project/client/src/features/control-center/status/StatusFlyout.tsx
+  - ../project/client/src/features/control-center/drawer/RightDrawer.tsx
   - ../project/client/src/services/nostrAuthService.ts
-verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724}
+verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
 ---
+## For developers
+
+The React client boots through `AppInitializer`: graph worker first, then the settings store, then the graph socket and the REST topology in parallel; the stores below it (settings, websocket, timeline, beams, worker errors) are what every surface reads. At ec785afa9 three mechanisms changed. The binary path no longer drops frames under 16 ms, so every acknowledged chunk is applied first (ADR-2141, VC-30.10). The worker's position buffer now grows with the delivered graph and reports a shortfall on the canvas (ADR-2181 D4, VC-30.11). The menus' retired settings are stripped when a persisted blob is loaded and again when a server document is read (ADR-2189, VC-30.3, VC-30.8). Node detail moved into the control centre drawer, and the layout-mode and voice readouts into the Status flyout (VC-30.12).
+
+## For the business
+
+Opening the app loads the graph engine, the person's saved preferences and the live graph together. Every live position update the server sends is now drawn before the server is told it arrived, so a slow machine sees a smoother, complete picture instead of skipped updates. Very large graphs no longer silently lose their outer nodes: the space grows, and if it cannot, the canvas says how many are missing. Settings removed from the menus no longer come back from an old browser profile or from the server.
+
 ## VC-30.1 Provider nesting and top-level render states
 ```mermaid
 sequenceDiagram
@@ -94,7 +103,7 @@ sequenceDiagram
     participant EB as ErrorBoundary<br/>client/src/app/App.tsx:170
     participant AMP as ApplicationModeProvider<br/>client/src/contexts/ApplicationModeContext.tsx:41
     participant AI as AppInitializer<br/>client/src/app/AppInitializer.tsx:70
-    participant ML as MainLayout<br/>client/src/app/MainLayout.tsx:131
+    participant ML as MainLayout<br/>client/src/app/MainLayout.tsx:120
 
     Main->>App: ReactDOM.createRoot().render(<StrictMode><App/></StrictMode>)<br/>main.tsx:31-35
     App->>Auth: useNostrAuth()<br/>App.tsx:36
@@ -180,11 +189,11 @@ sequenceDiagram
 ```mermaid
 classDiagram
     class useSettingsStore {
-      client/src/store/settingsStore.ts:26
+      client/src/store/settingsStore.ts:27
       persist middleware name="graph-viz-settings-v2"
-      storage localStorage via createJSONStorage settingsStore.ts:35
-      partialize authenticated,user,isPowerUser,partialSettings settingsStore.ts:36-45
-      merge() deep-merges persisted.partialSettings over current settingsStore.ts:46-68
+      storage localStorage via createJSONStorage settingsStore.ts:36
+      partialize authenticated,user,isPowerUser,partialSettings settingsStore.ts:37-46
+      merge() strips ADR-2189 retired paths then restores persisted.partialSettings settingsStore.ts:47-73
     }
     class CoreSlice {
       partialSettings DeepPartial~Settings~ coreSlice.ts:67
@@ -230,7 +239,7 @@ classDiagram
     }
     class useWebSocketStore {
       client/src/store/websocketStore.ts:9-16 re-export shim (36 lines)
-      real impl client/src/store/websocket/index.ts:514 lines
+      real impl client/src/store/websocket/index.ts:515 lines
       socket WebSocket~null~ storeState.ts:48
       isConnected bool storeState.ts:49
       isServerReady bool storeState.ts:50
@@ -242,17 +251,18 @@ classDiagram
       reconnectInterval=1000 maxReconnectAttempts=10 storeState.ts:69-71
     }
     class useTimelineStore {
-      client/src/store/timelineStore.ts:88
-      active bool timelineStore.ts:91
-      diffMode bool timelineStore.ts:92
-      t,t1,t2 string~null~ timelineStore.ts:93-95
-      domainMinMs,domainMaxMs number timelineStore.ts:96-97
-      validSubjects,addedSubjects,retractedSubjects,knownSubjects Set~string~ timelineStore.ts:98-101
+      client/src/store/timelineStore.ts:87
+      active bool timelineStore.ts:90
+      diffMode bool timelineStore.ts:91
+      t,t1,t2 string~null~ timelineStore.ts:92-94
+      domainMinMs,domainMaxMs number timelineStore.ts:95-96
+      validSubjects,addedSubjects,retractedSubjects,knownSubjects Set~string~ timelineStore.ts:97-100
+      version number, bumped on every derived-set change timelineStore.ts:103,181
       +loadStateAt(t,recordedAsOf) timelineStore.ts:105
-      +loadDiff(t1,t2,recordedAsOf) timelineStore.ts:132
-      +setDiffMode(on) timelineStore.ts:173
-      +reset() timelineStore.ts:187
-      DEFAULT_DOMAIN_LOOKBACK_MS = 30d timelineStore.ts:33
+      +loadDiff(t1,t2,recordedAsOf) timelineStore.ts:133
+      +setDiffMode(on) timelineStore.ts:175
+      +reset() timelineStore.ts:190
+      DEFAULT_DOMAIN_LOOKBACK_MS = 30d timelineStore.ts:34
     }
     class useTransientBeamStore {
       client/src/store/transientBeamStore.ts:65
@@ -335,7 +345,7 @@ sequenceDiagram
 
     Note over ASM: after DEBOUNCE_DELAY=500ms, flushPendingChanges() fires<br/>autoSaveManager.ts:97-99,112
     ASM->>API: settingsApi.updateSettingsByPaths(updates)<br/>autoSaveManager.ts:124
-    Note over API: a path under visualisation.graphs.*.physics. becomes a NESTED partial via physicsPatchEntry<br/>(physics.semantic.dag.levelAttraction becomes {semantic:{dag:{levelAttraction}}}) and mergeInto<br/>deep-merges entries, so two sliders of one group in the same debounce window both survive,<br/>then updatePhysics GETs and PUTs the merged document<br/>endpoints.ts:316-325, :340-344, :369 and physicsPatch.ts:10-18
+    Note over API: a path under visualisation.graphs.*.physics. becomes a NESTED partial via physicsPatchEntry<br/>(physics.semantic.dag.levelAttraction becomes {semantic:{dag:{levelAttraction}}}) and mergeInto<br/>deep-merges entries, so two sliders of one group in the same debounce window both survive,<br/>then updatePhysics GETs and PUTs the merged document<br/>endpoints.ts:320-329, :344-348, :373 and physicsPatch.ts:10-18
     alt API resolves
         API-->>ASM: SUCCESS - pendingChanges already cleared pre-send<br/>autoSaveManager.ts:118-125
     else API rejects
@@ -527,7 +537,7 @@ sequenceDiagram
     participant AuthI as authInterceptor<br/>client/src/services/api/authInterceptor.ts:80,51
     participant Nostr as nostrAuth<br/>client/src/services/nostrAuthService.ts
     participant Fetch as window.fetch<br/>UnifiedApiClient.ts:226
-    participant Ax as axios (global instance)<br/>client/src/api/settings/endpoints.ts:4,39
+    participant Ax as axios (global instance)<br/>client/src/api/settings/endpoints.ts:4,40
 
     Mod->>UAC: initializeAuthInterceptor(unifiedApiClient)<br/>main.tsx:28, authInterceptor.ts:131-138
     UAC->>UAC: setInterceptors({onRequest:authRequestInterceptor,<br/>onResponse:authResponseInterceptor}) - no onError<br/>authInterceptor.ts:132-135, UnifiedApiClient.ts:116-118
@@ -572,13 +582,17 @@ sequenceDiagram
     Note over UAC,AuthI: DEBT: the one-shot "server is a release build" warning (ADR-06 sD1, authInterceptor.ts:27-38) can never fire.<br/>It needs status 401 and a sent dev token, but authResponseInterceptor is registered as onResponse, which runs only<br/>on response.ok (UnifiedApiClient.ts:276-303), and is called without config, so sentDevToken is always false (authInterceptor.ts:125-126).
 
     rect rgb(252,242,225)
-    Note over Ax: RESOLVED ADR-2074: settingsApi still uses its own global axios instance<br/>(a transport choice), but its interceptor no longer reimplements the auth<br/>branch - it calls the shared computeAuthHeaders from authInterceptor.ts:51.<br/>All four HTTP transports now share one signing helper. endpoints.ts:39
-    Ax->>Ax: axios.interceptors.request.use: await computeAuthHeaders(fullUrl,method,body),<br/>Object.assign onto config.headers<br/>endpoints.ts:39-54
-    Ax->>Ax: axios.get/put(`${API_BASE}/api/settings/...`)<br/>API_BASE='' - relative, proxied by Vite/nginx<br/>endpoints.ts:33,77,82
+    Note over Ax: RESOLVED ADR-2074: settingsApi still uses its own global axios instance<br/>(a transport choice), but its interceptor no longer reimplements the auth<br/>branch - it calls the shared computeAuthHeaders from authInterceptor.ts:51.<br/>All four HTTP transports now share one signing helper. endpoints.ts:40
+    Ax->>Ax: axios.interceptors.request.use: await computeAuthHeaders(fullUrl,method,body),<br/>Object.assign onto config.headers<br/>endpoints.ts:40-55
+    Ax->>Ax: axios.get/put(`${API_BASE}/api/settings/...`)<br/>API_BASE='' - relative, proxied by Vite/nginx<br/>endpoints.ts:34,78,83
+    Ax->>Ax: getSettingsByPaths strips ADR-2189 retired paths from /api/settings/all before caching<br/>so a server document still carrying them never re-enters the store<br/>endpoints.ts:220,230-236
     end
 
     Note over Mod: Endpoint modules on UnifiedApiClient: analyticsApi.ts (AnalyticsAPI class, includes getCycles),<br/>exportApi.ts (exportGraph/shareGraph), graphExpandApi.ts (fetchNodeRelations/expandNode),<br/>workspaceApi.ts (WorkspaceApiError): client/src/api/analyticsApi.ts:134,409, exportApi.ts:69,106,<br/>graphExpandApi.ts:69,84, workspaceApi.ts:62,80,136. constraintsApi.ts and layoutApi.ts import the global axios<br/>instead (constraintsApi.ts:5,86, layoutApi.ts:5,66). layoutApi.setMode posts the engine's own LayoutMode name with no<br/>remapping layer - toEngineLayoutMode is gone (ADR-2140, layoutApi.ts:47-60, :70-77)
 ```
+**Drift (retiredPaths comment vs code):** `retiredPaths.ts:11-12` places the server-load strip in the settings store and on a `/visual` response; it runs in `getSettingsByPaths` on `/api/settings/all` (`endpoints.ts:230-234`).
+**Invariant:** every settings load goes through `getSettingsByPaths` (`coreSlice.ts:100`, `coreSlice.ts:278`, `persistenceSlice.ts:102`), so a retired path cannot reach the store from the server (`endpoints.ts:234`).
+
 ## VC-30.9 graphDataManager — fetchInitialData, setGraphData, id maps, cache
 ```mermaid
 sequenceDiagram
@@ -589,7 +603,7 @@ sequenceDiagram
     participant Gate as dropLinkedPageStubs<br/>client/src/features/graph/managers/dataManager/nodeUtils.ts
     participant Topo as buildNodeIdMaps/setDataAndNotify<br/>client/src/features/graph/managers/dataManager/topology.ts
     participant WP as graphWorkerProxy<br/>client/src/features/graph/managers/graphDataManager.ts:6
-    participant WSH as handleInitialGraphLoad<br/>client/src/store/websocket/textMessageHandler.ts:226
+    participant WSH as handleInitialGraphLoad<br/>client/src/store/websocket/textMessageHandler.ts:227
 
     Caller->>GDM: fetchInitialData() - counts restLoadsInFlight++ then runs _fetchInitialDataInner<br/>graphDataManager.ts:202-206,217
     GDM->>GDM: includeLinkedPages = settings.nodeFilter.includeLinkedPages ?? false<br/>graphDataManager.ts:220-221
@@ -604,8 +618,8 @@ sequenceDiagram
     Note over GDM: finally: restLoadsInFlight-- and, when it returns to 0, resolveHeldServerLoad(restSucceeded)<br/>graphDataManager.ts:209-214
 
     rect rgb(235,245,255)
-    Note over WSH,GDM: INVARIANT: REST topology is authoritative during the startup race. A server-pushed initialGraphLoad<br/>(capped at connect time) is held while a REST load is in flight and never seeds or replaces the topology first<br/>textMessageHandler.ts:232-240, graphDataManager.ts:58-64
-    WSH->>GDM: offerServerGraphLoad(data,{isFilterResponse})<br/>textMessageHandler.ts:316-318, graphDataManager.ts:258
+    Note over WSH,GDM: INVARIANT: REST topology is authoritative during the startup race. A server-pushed initialGraphLoad<br/>(capped at connect time) is held while a REST load is in flight and never seeds or replaces the topology first<br/>textMessageHandler.ts:233-241, graphDataManager.ts:58-64
+    WSH->>GDM: offerServerGraphLoad(data,{isFilterResponse})<br/>textMessageHandler.ts:317-319, graphDataManager.ts:258
     alt isRestLoadInFlight()
         GDM-->>WSH: deferred - the latest load is kept in heldServerLoad<br/>graphDataManager.ts:262-268
         Note over GDM: when REST settles the held load is DROPPED on REST success unless it answers our own filter_update,<br/>and APPLIED through setGraphData on REST failure<br/>graphDataManager.ts:274-287
@@ -638,57 +652,55 @@ sequenceDiagram
     participant GDM as GraphDataManager.updateNodePositions<br/>client/src/features/graph/managers/graphDataManager.ts:497
     participant Heal as maybeSelfHealUnknownNodes<br/>client/src/features/graph/managers/graphDataManager.ts:515
     participant Frame as handleBinaryFrame<br/>client/src/features/graph/managers/dataManager/wsClient.ts:19
-    participant WP as graphWorkerProxy.processBinaryFrame<br/>client/src/features/graph/managers/dataManager/wsClient.ts:43
+    participant WP as graphWorkerProxy.processBinaryFrame<br/>client/src/features/graph/managers/dataManager/wsClient.ts:42
     participant Sub as useGraphDataSubscription<br/>client/src/features/graph/hooks/useGraphDataSubscription.ts:23
-    participant GM as GraphManager<br/>client/src/features/graph/components/GraphManager.tsx:300
+    participant GM as GraphManager<br/>client/src/features/graph/components/GraphManager.tsx:321
     participant BP as handleLegacyBinaryData<br/>client/src/store/websocket/binaryProtocol.ts:352
 
     WS->>GDM: updateNodePositions(positionData: ArrayBuffer)<br/>graphDataManager.ts:497
     GDM->>Heal: maybeSelfHealUnknownNodes(positionData) - sampled every 120 frames<br/>graphDataManager.ts:499,515-516
-    opt sample frame && nodeIdMap non-empty && no active quality/authority filter
+    opt sample frame && nodeIdMap non-empty && no opted-in serverRemove quality/authority filter
         Heal->>Heal: parseBinaryNodeData, check reverseNodeIdMap.has(getActualNodeId(id))<br/>graphDataManager.ts:528-529
         alt unknown ids found && cooldown (30000ms) elapsed
-            Heal->>GDM: fetchInitialData() - topology hash makes false-positive refetch a no-op<br/>graphDataManager.ts:525-535
+            Heal->>GDM: fetchInitialData() - topology hash makes false-positive refetch a no-op,<br/>skipped only when nodeFilter.serverRemove narrowed the graph (grey-out keeps every id)<br/>graphDataManager.ts:524-535
         end
     end
     GDM->>Frame: handleBinaryFrame(positionData,lastBinaryUpdateTime,onUpdateTime)<br/>graphDataManager.ts:500-504
-    alt now - lastUpdateTime < 16ms
-        Frame-->>GDM: throttled, skip (~60fps cap)<br/>wsClient.ts:27
-    else
-        Frame->>WP: processBinaryFrame(new Uint8Array(positionData)) - zero-copy transfer,<br/>frames wait in the proxy FIFO in arrival order and none<br/>is collapsed (ADR-2141), the promise resolves once the worker<br/>has applied this frame<br/>wsClient.ts:42-43, graphWorkerProxy.ts:212-226
-        Frame->>Frame: resetTransientErrors() on success<br/>wsClient.ts:44
+    Frame->>Frame: onUpdateTime(Date.now()) - no throttle, every ack-paced chunk is applied<br/>wsClient.ts:26-27
+        Frame->>WP: processBinaryFrame(new Uint8Array(positionData)) - zero-copy transfer,<br/>frames wait in the proxy FIFO in arrival order and none<br/>is collapsed (ADR-2141), the promise resolves once the worker<br/>has applied this frame<br/>wsClient.ts:41-42, graphWorkerProxy.ts:227-241
+        Frame->>Frame: resetTransientErrors() on success<br/>wsClient.ts:43
         alt processBinaryFrame throws
-            Frame->>Frame: recordTransientError('updateNodePositions')<br/>wsClient.ts:64
+            Frame->>Frame: recordTransientError('updateNodePositions')<br/>wsClient.ts:63
         end
-    end
 
     rect rgb(255,245,230)
     Note over GDM,BP: ADR-2141 acknowledgement: processBinaryData routes<br/>V3 and V5 frames to handleLegacyBinaryData first, which awaits<br/>updateNodePositions and only then sends BroadcastAck naming the<br/>sequence the frame carried. A failed apply returns without an ack,<br/>so the server rebuilds the chunk after its timeout, and a frame<br/>with no sequence is not acknowledged<br/>binaryProtocol.ts:469-471, :393-409
     BP->>GDM: await updateNodePositions(data)<br/>binaryProtocol.ts:394
     BP->>BP: sendPositionAck(get, frame.broadcastSequence, parsedNodes.length)<br/>binaryProtocol.ts:407-408, sendPositionAck :127-139
-    Note over Frame,BP: TENSION: handleBinaryFrame returns without applying when under<br/>16ms have passed since the last frame (wsClient.ts:26-27),<br/>updateNodePositions then resolves and the chunk is acknowledged<br/>(binaryProtocol.ts:394,408), while ADR-2141 decision 5 acknowledges<br/>a chunk only after it has been applied
-    Note over Frame,WP: DRIFT: the wsClient.ts:40-41 comment still says newest-wins<br/>discipline lives in processBinaryFrame, graphWorkerProxy.ts:27-33<br/>and :212-226 now queue frames in order
+    Note over Frame,BP: INVARIANT: the 16ms skip is gone, so a chunk resolves updateNodePositions<br/>only after processBinaryFrame applied it and only then is acknowledged<br/>(wsClient.ts:39-42, binaryProtocol.ts:394,408), as ADR-2141 decision 5 requires
     end
 
     rect rgb(230,250,230)
     Note over Sub,GM: INVARIANT (historical bug, now fixed): useGraphDataSubscription's<br/>handleGraphUpdate builds dataWithPositions (String()-coerced ids,<br/>getPositionForNode() fallback for (0,0,0) nodes, edge source/target<br/>recovery) and the caller MUST forward THAT object, not the original<br/>data, onward - useGraphDataSubscription.ts:69-100,117
     Sub->>Sub: onGraphData(dataWithPositions)<br/>useGraphDataSubscription.ts:117
-    Sub->>GM: setGraphData(dataWithPositions) via onGraphData callback<br/>GraphManager.tsx:300-301
+    Sub->>GM: setGraphData(dataWithPositions) via onGraphData callback<br/>GraphManager.tsx:321-322
     Note over Sub: this React graphData state feeds RENDER only - the worker's topology<br/>comes from GraphDataManager.setGraphData -> graphWorkerProxy.setGraphTopology<br/>directly (VC-30.9), an entirely separate path from this hook
     end
     Note over Sub: 5000ms fallback timer seeds 3 synthetic nodes if no real data<br/>arrived by then (lastProcessedGraphRef still null)<br/>useGraphDataSubscription.ts:141-155
 ```
+**Debt (loose end):** with the 16 ms throttle gone, `handleBinaryFrame` keeps an unused `_lastUpdateTime` parameter (`wsClient.ts:21`) and `updateNodePositions` still passes `lastBinaryUpdateTime` into it (`graphDataManager.ts:502`).
+
 ## VC-30.11 graph worker handoff — proxy init, SAB-vs-Comlink capability, dispose
 ```mermaid
 sequenceDiagram
     autonumber
     participant AI as AppInitializer<br/>client/src/app/AppInitializer.tsx:86
-    participant Proxy as GraphWorkerProxy<br/>client/src/features/graph/managers/graphWorkerProxy.ts:113
-    participant Comlink as comlink wrap/transfer<br/>client/src/features/graph/managers/graphWorkerProxy.ts:36,167,255
-    participant W as GraphWorker<br/>client/src/features/graph/workers/graph.worker.ts:17,570-571
+    participant Proxy as GraphWorkerProxy<br/>client/src/features/graph/managers/graphWorkerProxy.ts:128
+    participant Comlink as comlink wrap/transfer<br/>client/src/features/graph/managers/graphWorkerProxy.ts:37,182,270
+    participant W as GraphWorker<br/>client/src/features/graph/workers/graph.worker.ts:17,580-581
     participant Test as sabOrTransferDetection.test.ts<br/>client/src/features/graph/__tests__/sabOrTransferDetection.test.ts:16
 
-    Note over Proxy: WORKER_USES_SAB = SAB_CAPABLE && !FORCE_COMLINK, computed ONCE at<br/>module load - SAB_CAPABLE = typeof SharedArrayBuffer!=='undefined' &&<br/>self.crossOriginIsolated===true, FORCE_COMLINK = VITE_FORCE_COMLINK==='1'<br/>graphWorkerProxy.ts:77-88
+    Note over Proxy: WORKER_USES_SAB = SAB_CAPABLE && !FORCE_COMLINK, computed ONCE at<br/>module load - SAB_CAPABLE = typeof SharedArrayBuffer!=='undefined' &&<br/>self.crossOriginIsolated===true, FORCE_COMLINK = VITE_FORCE_COMLINK==='1'<br/>graphWorkerProxy.ts:78-89
     Test->>Proxy: import('../managers/graphWorkerProxy') under mocked globals<br/>via vi.resetModules() per case<br/>sabOrTransferDetection.test.ts:17-19,36,45,58
     alt crossOriginIsolated=false
         Test->>Test: expect(WORKER_USES_SAB).toBe(false)<br/>sabOrTransferDetection.test.ts:30-38
@@ -698,75 +710,77 @@ sequenceDiagram
         Test->>Test: expect(WORKER_USES_SAB).toBe(true)<br/>sabOrTransferDetection.test.ts:52-60
     end
 
-    AI->>Proxy: graphWorkerProxy.initialize()<br/>graphWorkerProxy.ts:145
-    Proxy->>Comlink: new Worker(new URL('../workers/graph.worker.ts',import.meta.url),<br/>{type:'module'})<br/>graphWorkerProxy.ts:158-161
-    Proxy->>Comlink: workerApi = wrap~GraphWorkerType~(worker)<br/>graphWorkerProxy.ts:167
-    Proxy->>W: workerApi.initialize() - handshake, resolves immediately<br/>graphWorkerProxy.ts:170, graph.worker.ts:103-106
+    AI->>Proxy: graphWorkerProxy.initialize()<br/>graphWorkerProxy.ts:160
+    Proxy->>Comlink: new Worker(new URL('../workers/graph.worker.ts',import.meta.url),<br/>{type:'module'})<br/>graphWorkerProxy.ts:173-176
+    Proxy->>Comlink: workerApi = wrap~GraphWorkerType~(worker)<br/>graphWorkerProxy.ts:182
+    Proxy->>W: workerApi.initialize() - handshake, resolves immediately<br/>graphWorkerProxy.ts:185, graph.worker.ts:103-106
     alt WORKER_USES_SAB
-        Proxy->>Proxy: sharedBuffer = new SharedArrayBuffer(POSITION_BUFFER_BYTES)<br/>MAX_NODES=50000 * POSITION_FLOATS_PER_NODE=4 * 4 bytes<br/>graphWorkerProxy.ts:108-111,178-179
-        Proxy->>W: workerApi.setupSharedPositions(sharedBuffer)<br/>graphWorkerProxy.ts:180, graph.worker.ts:199-203
+        Proxy->>Proxy: sharedBuffer = new SharedArrayBuffer(POSITION_BUFFER_BYTES)<br/>INITIAL_NODES=50000 * POSITION_FLOATS_PER_NODE=4 * 4 bytes, an initial size not a ceiling<br/>graphWorkerProxy.ts:111-114,193-194
+        Proxy->>W: workerApi.setupSharedPositions(sharedBuffer)<br/>graphWorkerProxy.ts:195, graph.worker.ts:199-205
         alt SAB attach throws
-            Proxy->>Proxy: degrade to Comlink transfer path, sharedBuffer=null<br/>graphWorkerProxy.ts:184-191
+            Proxy->>Proxy: degrade to Comlink transfer path, sharedBuffer=null<br/>graphWorkerProxy.ts:199-206
         end
     end
-    Proxy->>Proxy: isInitialized=true<br/>graphWorkerProxy.ts:194
+    Proxy->>Proxy: isInitialized=true<br/>graphWorkerProxy.ts:209
 
-    Note over Proxy: D7 surface is EXACTLY 4 methods - processBinaryFrame, getPositions,<br/>setGraphTopology, dispose. Legacy methods (tick,getGraphData,<br/>getAnalyticsBuffer,reheatSimulation,updateForcePhysicsSettings) throw<br/>deprecation shims - graphWorkerProxy.ts:1-15,355-472
-    AI->>Proxy: setGraphTopology(graph) - the caller is GraphDataManager.setGraphData (graphDataManager.ts:336), not AppInitializer<br/>graphWorkerProxy.ts:315
-    Proxy->>W: workerApi.setGraphData(graph)<br/>graphWorkerProxy.ts:319, graph.worker.ts:115
+    Note over Proxy: D7 surface is EXACTLY 4 methods - processBinaryFrame, getPositions,<br/>setGraphTopology, dispose. Legacy methods (tick,getGraphData,<br/>getAnalyticsBuffer,reheatSimulation,updateForcePhysicsSettings) throw<br/>deprecation shims - graphWorkerProxy.ts:1-15,399-472
+    AI->>Proxy: setGraphTopology(graph) - the caller is GraphDataManager.setGraphData (graphDataManager.ts:336), not AppInitializer<br/>graphWorkerProxy.ts:330
+    Proxy->>Proxy: ensureSharedCapacity(nodes.length) - ADR-2181 D4, grow the SAB to the next power of two<br/>via sharedCapacityFor and publishNodeBufferReport(total,drawn,truncated) for the in-canvas notice<br/>graphWorkerProxy.ts:334,121-126,344-364
+    Proxy->>W: setupSharedPositions(grown buffer) - the worker refills it at once<br/>graphWorkerProxy.ts:352-353, graph.worker.ts:203-204
+    Proxy->>W: workerApi.setGraphData(graph)<br/>graphWorkerProxy.ts:335, graph.worker.ts:115
     W->>W: ensureNodeHasValidPosition per node, String()-coerce node.id,<br/>build nodeIdMap/reverseNodeIdMap/nodeIndexMap, edge adjacency maps<br/>graph.worker.ts:117,132-157
     W->>W: initPositionBuffers preserving old positions by nodeIndexMap match<br/>graph.worker.ts:159-166
     W->>W: syncToSharedBuffer(), graphDataLoaded=true<br/>graph.worker.ts:185,188
     opt pendingBinaryFrames queued (FIX 4 race guard)
-        W->>W: replay each queued frame via processBinaryData()<br/>graph.worker.ts:189-196,263-269
+        W->>W: replay each queued frame via processBinaryData()<br/>graph.worker.ts:189-196,273-279
     end
 
     rect rgb(235,235,252)
-    Note over Proxy,W: processBinaryFrame ordered single-flight (ADR-03 D2, amended by ADR-2141): at most one Comlink call in flight,<br/>frames arriving meanwhile wait in _frameQueue in arrival order and NONE is collapsed, each promise resolves when its own<br/>frame has been applied, a backstop of 256 queued frames rejects and drops the oldest (MAX_QUEUED_FRAMES)<br/>graphWorkerProxy.ts:43,128-130,212-248
-    Proxy->>Comlink: transfer(frame.buffer,[frame.buffer]) - neuters caller's ArrayBuffer<br/>graphWorkerProxy.ts:255
+    Note over Proxy,W: processBinaryFrame ordered single-flight (ADR-03 D2, amended by ADR-2141): at most one Comlink call in flight,<br/>frames arriving meanwhile wait in _frameQueue in arrival order and NONE is collapsed, each promise resolves when its own<br/>frame has been applied, a backstop of 256 queued frames rejects and drops the oldest (MAX_QUEUED_FRAMES)<br/>graphWorkerProxy.ts:44,143-145,227-263
+    Proxy->>Comlink: transfer(frame.buffer,[frame.buffer]) - neuters caller's ArrayBuffer<br/>graphWorkerProxy.ts:270
     alt WORKER_USES_SAB
-        Proxy->>W: workerApi.processBinaryFrame(transferable) - returns void,<br/>renderer reads SAB view directly<br/>graphWorkerProxy.ts:257-262, graph.worker.ts:214-218
+        Proxy->>W: workerApi.processBinaryFrame(transferable) - returns void,<br/>renderer reads SAB view directly<br/>graphWorkerProxy.ts:272-277, graph.worker.ts:216-220
     else Comlink transfer mode
-        Proxy->>W: workerApi.processBinaryFrame(transferable)<br/>graphWorkerProxy.ts:266-268
-        W-->>Proxy: transfer(out,[out]) - full stride-3 currentPositions,<br/>NOT the stride-4 [nodeId,x,y,z] update array<br/>graph.worker.ts:219-223
-        Proxy->>Proxy: lastTransferredView = new Float32Array(returned)<br/>graphWorkerProxy.ts:269-271
+        Proxy->>W: workerApi.processBinaryFrame(transferable)<br/>graphWorkerProxy.ts:281-283
+        W-->>Proxy: transfer(out,[out]) - full stride-3 currentPositions,<br/>NOT the stride-4 [nodeId,x,y,z] update array<br/>graph.worker.ts:221-225
+        Proxy->>Proxy: lastTransferredView = new Float32Array(returned)<br/>graphWorkerProxy.ts:284-286
     end
     loop _frameQueue not empty
-        Proxy->>Proxy: _drain shifts the next job, awaits its dispatch, resolves it, then yields a microtask<br/>so the render loop gets a turn<br/>graphWorkerProxy.ts:228-248
+        Proxy->>Proxy: _drain shifts the next job, awaits its dispatch, resolves it, then yields a microtask<br/>so the render loop gets a turn<br/>graphWorkerProxy.ts:243-263
     end
     end
 
-    Note over Proxy: getPositionsSync() - SAB mode returns sharedPositionView directly,<br/>Comlink mode returns lastTransferredView - called from useFrame per-frame<br/>render, avoids Promise allocation<br/>graphWorkerProxy.ts:301-305
-    Note over Proxy,W: DEBT: the worker takes tweening settings (responseMs, default 120) only through setTweeningSettings, reached from its<br/>updateSettings (graph.worker.ts:44-47,254,474-479), the proxy exposes setTweeningSettings as a throwing shim<br/>(graphWorkerProxy.ts:479-484) and the tweeningSettingsUpdated event dispatched by the settings store has no listener in client/src<br/>(physicsSlice.ts:200-209)
-    AI->>Proxy: dispose() - no production caller in client/src at this revision, only a unit test tears it down<br/>graphWorkerProxy.ts:324
-    Proxy->>W: worker.terminate() - no graceful worker-side RPC, hard terminate<br/>graphWorkerProxy.ts:325-328
-    Proxy->>Proxy: clear sharedBuffer/sharedPositionView/lastTransferredView,<br/>reject every still-queued frame job with "worker disposed", reset isInitialized/initPromise<br/>graphWorkerProxy.ts:329-338
+    Note over Proxy: getPositionsSync() - SAB mode returns sharedPositionView directly,<br/>Comlink mode returns lastTransferredView - called from useFrame per-frame<br/>render, avoids Promise allocation<br/>graphWorkerProxy.ts:316-320
+    Note over Proxy,W: DEBT: the worker takes tweening settings (responseMs, default 120) only through setTweeningSettings, reached from its<br/>updateSettings (graph.worker.ts:44-47,264,484-489), the proxy exposes setTweeningSettings as a throwing shim<br/>(graphWorkerProxy.ts:523-528) and the tweeningSettingsUpdated event dispatched by the settings store has no listener in client/src<br/>(physicsSlice.ts:200-209)
+    AI->>Proxy: dispose() - no production caller in client/src at this revision, only a unit test tears it down<br/>graphWorkerProxy.ts:368
+    Proxy->>W: worker.terminate() - no graceful worker-side RPC, hard terminate<br/>graphWorkerProxy.ts:369-372
+    Proxy->>Proxy: clear sharedBuffer/sharedPositionView/lastTransferredView,<br/>reject every still-queued frame job with "worker disposed", reset isInitialized/initPromise<br/>graphWorkerProxy.ts:373-382
 ```
 ## VC-30.12 Store to component dependency graph
 ```mermaid
 flowchart LR
-    settingsStore["useSettingsStore<br/>client/src/store/settingsStore.ts:26"]
+    settingsStore["useSettingsStore<br/>client/src/store/settingsStore.ts:27"]
     websocketStore["useWebSocketStore<br/>client/src/store/websocketStore.ts:9"]
-    timelineStore["useTimelineStore<br/>client/src/store/timelineStore.ts:88"]
+    timelineStore["useTimelineStore<br/>client/src/store/timelineStore.ts:87"]
     beamStore["useTransientBeamStore<br/>client/src/store/transientBeamStore.ts:65"]
     agentTargetStore["useAgentTargetStore<br/>client/src/store/agentTargetStore.ts:43"]
-    nodePosCtx["NodePositionContext module singleton<br/>client/src/features/graph/contexts/NodePositionContext.tsx:8<br/>written by GraphManager.tsx:424"]
+    nodePosCtx["NodePositionContext module singleton<br/>client/src/features/graph/contexts/NodePositionContext.tsx:8<br/>written by GraphManager.tsx:451"]
     workerErrStore["useWorkerErrorStore<br/>client/src/store/workerErrorStore.ts:23"]
 
-    GraphManager["GraphManager<br/>client/src/features/graph/components/GraphManager.tsx:50-67"]
-    GraphCanvas["GraphCanvas<br/>client/src/features/graph/components/GraphCanvas.tsx:105"]
-    NodeDetailPanel["NodeDetailPanel<br/>client/src/features/graph/components/NodeDetailPanel.tsx:61"]
+    GraphManager["GraphManager<br/>client/src/features/graph/components/GraphManager.tsx:56-73"]
+    GraphCanvas["GraphCanvas<br/>client/src/features/graph/components/GraphCanvas.tsx:180,194-200"]
+    NodeDetailPanel["NodeDetailPanel embedded in the drawer Node tab<br/>client/src/features/graph/components/NodeDetailPanel.tsx:65<br/>mounted at RightDrawer.tsx:317, no longer by MainLayout"]
     GemNodes["GemNodes<br/>client/src/features/graph/components/GemNodes.tsx"]
     GlassEdges["GlassEdges<br/>client/src/features/graph/components/GlassEdges.tsx"]
-    TimelineScrubber["TimelineScrubber<br/>client/src/features/graph/components/TimelineScrubber.tsx:77-89"]
-    ControlCenter["ControlCenter<br/>client/src/features/control-center/ControlCenter.tsx:21"]
-    SettingField["useSettingField hook<br/>client/src/features/control-center/hooks/useSettingField.ts:50"]
+    TimelineScrubber["TimelineScrubber<br/>diffMode written through useSettingField provenance.diffMode, ADR-2189<br/>client/src/features/graph/components/TimelineScrubber.tsx:77-87"]
+    ControlCenter["ControlCenter<br/>client/src/features/control-center/ControlCenter.tsx:37"]
+    SettingField["useSettingField hook<br/>client/src/features/control-center/hooks/useSettingField.ts:41"]
     RevealSetting["useRevealSetting hook<br/>client/src/features/control-center/hooks/useRevealSetting.ts"]
     NostrAuthControl["NostrAuthControl<br/>client/src/features/control-center/primitives/NostrAuthControl.tsx"]
-    StatusFlyout["StatusFlyout<br/>client/src/features/control-center/status/StatusFlyout.tsx"]
-    AgentOverlay["AgentOverlay<br/>nameplates, trails, collab edges, payment labels<br/>client/src/features/bots/components/AgentOverlay.tsx:23<br/>mounted at GraphCanvas.tsx:484"]
-    VirtualAgentMarkers["VirtualAgentMarkers<br/>client/src/features/visualisation/components/VirtualAgentMarkers.tsx:35<br/>mounted at GraphManager.tsx:710"]
-    MarkerPass["agentMarkers - the one agent-position writer<br/>client/src/features/bots/agentMarkerPass.ts:71,144<br/>stepped by GraphManager.tsx:457, reads agentTargetStore"]
+    StatusFlyout["StatusFlyout<br/>layout mode readout and voice row moved here, ADR-2189<br/>client/src/features/control-center/status/StatusFlyout.tsx:156-158,269-275"]
+    AgentOverlay["AgentOverlay<br/>nameplates, trails, collab edges, payment labels<br/>client/src/features/bots/components/AgentOverlay.tsx:23<br/>mounted at GraphCanvas.tsx:388"]
+    VirtualAgentMarkers["VirtualAgentMarkers<br/>client/src/features/visualisation/components/VirtualAgentMarkers.tsx:35<br/>mounted at GraphManager.tsx:766"]
+    MarkerPass["agentMarkers - the one agent-position writer<br/>client/src/features/bots/agentMarkerPass.ts:71,144<br/>stepped by GraphManager.tsx:484, reads agentTargetStore"]
     WorkerErrorModal["WorkerErrorModal<br/>client/src/components/WorkerErrorModal.tsx:7"]
     AppInitializer["AppInitializer<br/>client/src/app/AppInitializer.tsx:108,118"]
     EmbeddingCloudLayer["EmbeddingCloudLayer<br/>client/src/features/visualisation/components/EmbeddingCloudLayer.tsx:148,333"]
@@ -777,7 +791,8 @@ flowchart LR
     settingsStore --> GraphManager
     settingsStore --> GraphCanvas
     settingsStore --> NodeDetailPanel
-    settingsStore --> TimelineScrubber
+    SettingField --> TimelineScrubber
+    settingsStore --> StatusFlyout
     settingsStore --> ControlCenter
     settingsStore --> SettingField
     settingsStore --> RevealSetting
@@ -795,7 +810,7 @@ flowchart LR
     useTransientBeams --> TransientBeamsLayer
     binaryProtocol -->|pushTransientBeams| beamStore
     binaryProtocol -->|pushActions| agentTargetStore
-    GraphCanvas -->|"mounts AgentOverlay, GraphCanvas.tsx:484"| AgentOverlay
+    GraphCanvas -->|"mounts AgentOverlay, GraphCanvas.tsx:388"| AgentOverlay
     agentTargetStore -->|"seenAt ids, AgentOverlay.tsx:27"| AgentOverlay
     agentTargetStore --> VirtualAgentMarkers
     nodePosCtx -->|"drawn positions and id map"| EmbeddingCloudLayer
@@ -818,7 +833,10 @@ flowchart LR
     subgraph ControlCenterTree["Control Center tree"]
         ControlCenter --> SettingField
         ControlCenter --> RevealSetting
+        ControlCenter -->|"ControlCenter.tsx:134"| RightDrawer
+        RightDrawer --> NodeDetailPanel
     end
-    StatusSurface["StatusSurface<br/>client/src/features/control-center/status/StatusSurface.tsx:49<br/>mounted at MainLayout.tsx:113, not by ControlCenter"]
+    RightDrawer["RightDrawer<br/>client/src/features/control-center/drawer/RightDrawer.tsx:86"]
+    StatusSurface["StatusSurface<br/>client/src/features/control-center/status/StatusSurface.tsx:33,48<br/>mounted in the right corner row at MainLayout.tsx:97-103, not by ControlCenter"]
     StatusSurface --> StatusFlyout
 ```

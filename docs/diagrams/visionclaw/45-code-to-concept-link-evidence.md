@@ -6,13 +6,14 @@ governing:
   - ../project/docs/adr/ADR-2164-code-graph-entities-link-to-knowledge-and-ontology-nodes-resolved-at-runtime.md
 adrs: [ADR-2143, ADR-2159, ADR-2164]
 sources:
-  - ../codescape/crates/codescape-ingest/src/annotations.rs
-  - ../codescape/crates/codescape-server/src/xr.rs
-  - ../codescape/crates/codescape-server/src/engine.rs
+  - ../project/docs/adr/ADR-2164-code-graph-entities-link-to-knowledge-and-ontology-nodes-resolved-at-runtime.md
+  - ../project/codescape/crates/codescape-ingest/src/annotations.rs
+  - ../project/codescape/crates/codescape-server/src/xr.rs
+  - ../project/codescape/crates/codescape-server/src/engine.rs
   - ../project/xr-client/rust/src/link_index.rs
   - ../project/xr-client/rust/src/binary_protocol.rs
   - ../project/xr-client/scripts/graph_scene.gd
-verified_commit: {codescape: 58108c0357bd0dbf6588f8b6adf6e044f4c04556, visionclaw: 86cdd7635582}
+verified_commit: {codescape: e3b76f63e801c6a8460110b93e88a0b420e9b0b4, visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
 ---
 
 ## For developers
@@ -40,33 +41,37 @@ flowchart TD
 
 **Tension:** The contract describes a comment annotation, while the recogniser accepts comment-shaped string content (`annotations.rs:125`).
 
-## VC-45.2 The join preserves generation identity but leaves repository provenance empty
+## VC-45.2 The consumer now reads repository provenance that the pinned producer never sends
 
 ```mermaid
 flowchart TD
-    CS["Parse ontology_refs into code-node refs<br/>link_index.rs:91,118"] --> PICK["Deduplicate IRI, path and line<br/>symbol wins over file roll-up<br/>link_index.rs:237,252"]
-    VC["Build IRI to wire-id lists from topology metadata<br/>binary_protocol.rs:206,1353"] --> JOIN["Join targets and filter by knowledge or ontology class<br/>link_index.rs:260"]
+    PROD["Pinned producer metadata: source_file, domain, size, type, community, tier, no repo or revision<br/>codescape-server/src/xr.rs:42-49"] --> CS
+    CS["Parse ontology_refs into code-node refs<br/>link_index.rs:93,124"] --> READ["Read metadata.repo, else empty, and metadata.revision, else None<br/>link_index.rs:132,138"]
+    READ --> PICK["Deduplicate IRI, path and line<br/>symbol wins over file roll-up<br/>link_index.rs:253,268"]
+    VC["Build IRI to wire-id lists from topology metadata<br/>binary_protocol.rs:210,1409"] --> JOIN["Join targets and filter by knowledge or ontology class<br/>link_index.rs:276"]
     PICK --> JOIN
-    JOIN --> REC["Emit one record per eligible target<br/>link_index.rs:265"]
-    REC --> GEN["Retain both stream generations<br/>link_index.rs:285"]
-    REC --> EMPTY["Repository empty and revision None<br/>link_index.rs:281,284"]
-    JOIN -->|no eligible target| MISS["Increment unresolved once per chosen annotation<br/>link_index.rs:289,290"]
+    JOIN --> REC["Emit one record per eligible target<br/>link_index.rs:281"]
+    REC --> GEN["Retain both stream generations<br/>link_index.rs:301"]
+    REC --> PROV["Provenance repo and revision copied from the code ref<br/>link_index.rs:297,300"]
+    PROV -.-> EMPTY["TENSION: against the pinned producer both stay empty,<br/>although the field docs call that the legacy case<br/>link_index.rs:198,204"]
+    JOIN -->|no eligible target| MISS["Increment unresolved once per chosen annotation<br/>link_index.rs:305,306"]
 ```
 
-**What it shows.** Multiple target ids and symbol/file de-duplication work, but a snapshot labelled with repository and revision produces records with neither value. **Why it is this way.** The stream omits these provenance values and the join deliberately supplies empty defaults. Stream generations protect transient ids; they are not repository revisions.
+**What it shows.** VisionClaw's half of the provenance repair has landed: the join copies whatever repository and revision the code stream supplies. **Why it is this way.** The revision is a monotonic Codescape snapshot counter, not a Git commit (`link_index.rs:114`), so even when populated it does not name the source revision of a claim.
+**Tension (cross-repo):** The producer half (`repo` and `revision` in `initial_graph_load` metadata) exists only on standalone Codescape after `e3b76f6`; VisionClaw `ec785afa9` pins `e3b76f6`, whose `codescape-server/src/xr.rs:42-49` emits neither, so every deployed record is the "legacy" empty case.
 
 ## VC-45.3 Producer truncation and connection invalidation have different counters
 
 ```mermaid
 flowchart TD
     ALL["Bound annotation table retains all rows<br/>annotations.rs:369"] --> CUT["Only first 32 sorted refs per node reach wire metadata<br/>annotations.rs:239"]
-    CUT --> JOIN["Join sees only received refs<br/>link_index.rs:237"]
-    JOIN --> COUNT["Missing targets count as unresolved<br/>link_index.rs:290"]
-    TOPO["Topology replaces cached IRI and annotation tables<br/>binary_protocol.rs:1353,1354"] --> REBUILD["Scene joins on generation and population-count changes<br/>graph_scene.gd:746,754"]
-    DISC["Disconnect drops records for that connection<br/>graph_scene.gd:4217,4218"] --> REBUILD
-    NEW["Topology callback drops old-generation records<br/>graph_scene.gd:4224,4235"] --> REBUILD
+    CUT --> JOIN["Join sees only received refs<br/>link_index.rs:253"]
+    JOIN --> COUNT["Missing targets count as unresolved<br/>link_index.rs:306"]
+    TOPO["Topology replaces cached IRI and annotation tables<br/>binary_protocol.rs:1409,1410"] --> REBUILD["Scene joins on generation and population-count changes<br/>graph_scene.gd:750,758"]
+    DISC["Disconnect drops records for that connection<br/>graph_scene.gd:4633,4634"] --> REBUILD
+    NEW["Topology callback drops old-generation records<br/>graph_scene.gd:4645,4665"] --> REBUILD
 ```
 
 **What it shows.** With 33 bound refs and every target available, the probe receives 32 refs, emits 32 links and reports zero unresolved. Generation-change cleanup is a separate mechanism. **Why it is this way.** The cap is documented, but omitted producer refs cannot be counted by a consumer that never receives them.
 
-**Drift:** ADR-2164's “nothing built” verification predates the implemented producer, join and scene wiring. Live seed resolution remains unverified in this pass.
+**Drift:** ADR-2164 still records `implementation_status: none` (`ADR-2164-code-graph-entities-link-to-knowledge-and-ontology-nodes-resolved-at-runtime.md:6`) although producer, join and scene wiring exist, and its 2026-11-02 note says the join leaves repo empty at `link_index.rs:281-285` (same ADR, line 26), which the join no longer does (`link_index.rs:297`).

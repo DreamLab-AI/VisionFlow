@@ -58,11 +58,25 @@ sources:
   - ../project/crates/visionclaw-contracts/src/version.rs
   - ../project/src/agent_events/schema.rs
   - ../project/sdk/visionflow-contracts/package.json
+  - ../project/src/actors/protected_settings_actor.rs
+  - ../project/crates/visionclaw-actors/src/protected_settings_actor.rs
   - ../project/src/services/corpus_source/mod.rs
   - ../project/src/services/corpus_source/local.rs
+  - ../project/src/services/corpus_source/history.rs
+  - ../project/src/services/github_sync_service.rs
   - ../project/src/services/corpus_source/github.rs
-verified_commit: 86cdd76355823a51bb64d503c005fe277726e724
+verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
 ---
+
+## For developers
+
+The server is arranged as ports and adapters: domain types and ports live in workspace crates, adapters and the actor runtime still mostly in `src/`, and a CQRS layer sits between handlers and repositories (VC-07.1, VC-07.5 to VC-07.7). ADR-2005's extraction is partial, and several crate modules are shims or second copies of `src/` code (VC-07.2). The ADR-2114 `CorpusSource` port decouples ingest from GitHub. At ec785afa9 it gains `page_history`, which feeds the ADR-2184/2185 temporal node keys (VC-07.13).
+
+**Debt (parallel):** `ProtectedSettingsActor` exists twice, in `src/actors/protected_settings_actor.rs:7` (148 lines, the one `AppState` starts at `src/app_state.rs:1159`) and in `crates/visionclaw-actors/src/protected_settings_actor.rs:7` (349 lines), so a fix to one copy does not reach the other.
+
+## For the business
+
+This shows how the server's code is divided so that storage, GitHub and other outside systems can be swapped without rewriting the product logic. The knowledge corpus can come from a local folder or from GitHub through the same entry point. Pages now carry when they last changed and how often, where the source can say, so the timeline can show real edit history.
 
 ## VC-07.1 The hexagon — ports, adapters and where each canonical type lives
 ```mermaid
@@ -105,7 +119,7 @@ flowchart TB
     ADAPT --- N1
     N2["src/repositories/mod.rs is documentation only — all legacy Neo4j and SQL repositories<br/>were removed. Canonical adapters named there are OxigraphOntologyRepository,<br/>OxigraphGraphRepository, SqliteSettingsRepository (ADR-2004)."]
     ADAPT --- N2
-    N3["Workspace — the orphan crates/graph-cognition-extract directory has been removed<br/>(docs/BASELINE-architecture.md:130) and is absent from the tree. solid-pod-rs is a crates.io<br/>version requirement, not a git rev (Cargo.toml:246, comment :27-28) — the former rev=main resolution error no longer applies.<br/>The workspace now also lists visionclaw-wire, memory-cloud, tri-layout and jev (Cargo.toml:7,17-19).<br/>Codescape is a separate repository mounted as the codescape/ submodule, never a root member (AGENTS.md:15, ADR-2143 A5)"]
+    N3["Workspace — the orphan crates/graph-cognition-extract directory has been removed<br/>(docs/BASELINE-architecture.md:133) and is absent from the tree. solid-pod-rs is a crates.io<br/>version requirement, not a git rev (Cargo.toml:249, comment :28-29) — the former rev=main resolution error no longer applies.<br/>The workspace now also lists visionclaw-wire, memory-cloud, tri-layout and jev (Cargo.toml:7,17-19).<br/>Codescape is a separate repository mounted as the codescape/ submodule, never a root member (AGENTS.md:15, ADR-2143 A5)"]
     XCRATE --- N3
     N4["DOC-DRIFT — the adapters module doc src/adapters/mod.rs:8-15 lists seven modules as<br/>still in webxr, resolved in Phase A3; they are still there at this commit, so Phase A3<br/>has not landed. The dev build feature set is gpu,ontology,dev-auth — see VC-08."]
     ADAPT --- N4
@@ -136,8 +150,8 @@ sequenceDiagram
     SH->>CR: pub use visionclaw_domain::ports::* (src/ports/mod.rs:26-45)
     Note over SH: module-path aliases kept so legacy call sites keep resolving
     Note over C,CR: project/src/lib.rs:51-59 re-exports ClientCoordinatorActor, MetadataActor,<br/>OptimizedSettingsActor, AppState, UserSettings from the root crate itself, plus ADR-090<br/>compatibility aliases MetadataStore, ProtectedSettings, SimulationParams from<br/>visionclaw_domain::models — preserving the old visionclaw_server:: API for external callers
-    Note over C,CR: DIVERGENCE (BASELINE-architecture.md:325-326, detail :140-145) — actor extraction incomplete, 25 src/actors/*.rs<br/>vs 11 in crates/visionclaw-actors. The live tree runs from src/. See VC-02.
-    Note over C,CR: DIVERGENCE (BASELINE 2026-09-04 crate and supervision closeout, BASELINE-architecture.md:389) — ADR-2005<br/>remains partial. The workspace adds converter and integration-test members to the census.
+    Note over C,CR: DIVERGENCE (BASELINE-architecture.md:377-378, detail :143-148) — actor extraction incomplete, 25 src/actors/*.rs<br/>vs 11 in crates/visionclaw-actors. The live tree runs from src/. See VC-02.
+    Note over C,CR: DIVERGENCE (BASELINE 2026-09-04 crate and supervision closeout, BASELINE-architecture.md:441) — ADR-2005<br/>remains partial. The workspace adds converter and integration-test members to the census.
 ```
 
 ## VC-07.5 CQRS application layer — settings and knowledge-graph domains
@@ -344,8 +358,8 @@ sequenceDiagram
     H->>AD: persist StoredDecision / EnrichmentProposal
     H->>AC: emit ACSP event
     Note over AC: stateless producer — there is no BrokerActor
-    Note over H,AC: DIVERGENCE (BASELINE-architecture.md:327-328) — BrokerActor was never merged. main uses a stateless<br/>ACSP producer plus a cherry-picked storage-agnostic domain broker kernel (~936 LOC).<br/>Measured here: broker_case.rs 490 + broker_decision.rs 437 = 927 lines, 1071 including<br/>mod.rs and precedent_registry.rs — consistent with the doc's ~936.
-    Note over H,AC: DIVERGENCE (BASELINE ACSP workflow closeout 2026-09-04, BASELINE-architecture.md:385) — the retained kernel's<br/>presence does not prove integration into the elevation actor or the inbox DTO.<br/>Current source review does not certify a complete human-approval journey. See VC-05.
+    Note over H,AC: DIVERGENCE (BASELINE-architecture.md:379-380) — BrokerActor was never merged. main uses a stateless<br/>ACSP producer plus a cherry-picked storage-agnostic domain broker kernel (~936 LOC).<br/>Measured here: broker_case.rs 490 + broker_decision.rs 437 = 927 lines, 1071 including<br/>mod.rs and precedent_registry.rs — consistent with the doc's ~936.
+    Note over H,AC: DIVERGENCE (BASELINE ACSP workflow closeout 2026-09-04, BASELINE-architecture.md:437) — the retained kernel's<br/>presence does not prove integration into the elevation actor or the inbox DTO.<br/>Current source review does not certify a complete human-approval journey. See VC-05.
     Note over K,AD: ADR-2016 provenance append-only applies to the decision record — see VC-22
 ```
 
@@ -377,10 +391,10 @@ flowchart TB
 ## VC-07.13 CorpusSource — the ADR-2114 ingest port
 ```mermaid
 flowchart TB
-    T["trait CorpusSource — src/services/corpus_source/mod.rs:96<br/>describe, base_paths, list_pages, list_pages_under, fetch_page,<br/>vocabulary (default Ok(None))"]
+    T["trait CorpusSource — src/services/corpus_source/mod.rs:98<br/>describe, base_paths, list_pages, list_pages_under, fetch_page,<br/>vocabulary (default Ok(None)), page_history (default empty, src/services/corpus_source/mod.rs:132)"]
     T --> L["LocalDirectorySource — src/services/corpus_source/local.rs:48,234<br/>walks VAULT_ROOT (src/services/corpus_source/local.rs:14), default source"]
     T --> G["GitHubSource — src/services/corpus_source/github.rs:15,47<br/>wraps EnhancedContentAPI, pre-existing remote pull"]
-    B["source_from_env_with_github — src/services/corpus_source/mod.rs:157<br/>selects by corpus_source_kind() (src/services/corpus_source/mod.rs:193)<br/>over CORPUS_SOURCE, defaulting to local when VAULT_ROOT is set"]
+    B["source_from_env_with_github — src/services/corpus_source/mod.rs:167<br/>selects by corpus_source_kind() (src/services/corpus_source/mod.rs:203)<br/>over CORPUS_SOURCE, defaulting to local when VAULT_ROOT is set"]
     B --> T
     AS["AppState::new — src/app_state.rs:556-559<br/>corpus_source = source_from_env_with_github(enhanced_content_api)<br/>GitHubSyncService::new(corpus_source, ...)"]
     B --> AS
@@ -389,6 +403,13 @@ flowchart TB
     G --- N1
     N2["GitHubSyncService::new took EnhancedContentAPI directly before<br/>ADR-2114; the port now sits between it and the sync pipeline so<br/>parse -> dual graph -> Whelk reasoning runs unchanged over either source"]
     AS --- N2
-    N3["shared-corpus-layout, a DEFAULT feature (Cargo.toml:279, :281) — LocalDirectorySource resolves prefixes and roots<br/>through ontomark_compile::profile::resolve_roots, refuses a prefix outside the configured roots<br/>(src/services/corpus_source/local.rs:112-124, checked_roots :139-143) and skips symlinks (local.rs:192-196)"]
+    H["page_history, ADR-2184/2185 temporal keys, never an error<br/>local: one git log over the vault, 120 s cap (src/services/corpus_source/local.rs:318-319,<br/>src/services/corpus_source/history.rs:41, :76-77)<br/>GitHub: batched GraphQL commit_history (src/services/corpus_source/github.rs:95-97)<br/>called once per sync for the pages it builds (src/services/github_sync_service.rs:414)"]
+    L --- H
+    G --- H
+    N3["shared-corpus-layout, a DEFAULT feature (Cargo.toml:282, :284) — LocalDirectorySource resolves prefixes and roots<br/>through ontomark_compile::profile::resolve_roots, refuses a prefix outside the configured roots<br/>(src/services/corpus_source/local.rs:112-124, checked_roots :139-143) and skips symlinks (local.rs:192-196)"]
     L --- N3
 ```
+
+**What it shows.** The ingest port and its two adapters, now with a per-page commit-history read for the timeline columns. **Why it is this way.** ADR-2114 put a port between the sync pipeline and GitHub, and ADR-2184/2185 need real commit times, which neither change marker carries (`src/services/corpus_source/history.rs:1-6`).
+
+**Open (risk):** the local source reads history with a `git` binary that, by its own comment, the production images do not ship (`src/services/corpus_source/local.rs:316-317`), so a production local corpus gets no temporal keys and says so only in a warn line (`src/services/corpus_source/local.rs:324`).

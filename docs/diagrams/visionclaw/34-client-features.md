@@ -4,7 +4,7 @@ title: Client feature directories — API and WebSocket surface
 area: visionclaw
 governing:
   - ../project/docs/BASELINE-architecture.md
-adrs: [ADR-2041, ADR-2115, ADR-2006, ADR-2074, ADR-2077, ADR-2142]
+adrs: [ADR-2041, ADR-2115, ADR-2006, ADR-2074, ADR-2077, ADR-2142, ADR-2189]
 sources:
   - ../project/docs/explanation/control-center.md
   - ../project/src/actors/graph_service_supervisor.rs
@@ -114,29 +114,51 @@ sources:
   - ../project/src/services/broker_events.rs
   - ../project/src/main.rs
   - ../project/docker-compose.unified.yml
-verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724}
+  - ../project/client/src/features/control-center/state/settingWrites.ts
+  - ../project/client/src/store/settings/coreSlice.ts
+  - ../project/client/src/store/settings/retiredPaths.ts
+  - ../project/client/src/features/graph/overview/__tests__/edgeOpacity.test.ts
+  - ../project/client/src/features/control-center/drawer/RightDrawer.tsx
+verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
 ---
+## For developers
+
+`client/src/features/` holds one directory per product surface, and this topic traces what each one calls on the server: REST through `unifiedApiClient`, WebSocket through `webSocketService`, and settings through the registry and autosave chain. The ec785afa9 refresh picks up the ADR-2189 control-centre rework. Every settings change from a registry row, a dock dial, the Ask box or a Jev patch now goes through one function, `applySettingWrites` (VC-34.1, VC-34.19). The registry regroups its ten source groups into seven sections, and the emitter writes a v2.0 manifest plus two `ia.json` copies (VC-34.2). The memory explorer has moved into the right drawer (VC-34.20). The analytics store's SSSP call targets the surviving `pathfinding/sssp` route (VC-34.12). The section layout, the drawer and the scope badges belong to VC-57, and the explore layer to VC-56.
+
+**Debt (loose end):** the chat parser writes `visualisation.graphs.knowledge.nodes.opacity` (`CommandInput.tsx:313`), and no renderer reads it. Its only client touch is the server-wins merge (`coreSlice.ts:140`). ADR-2189 retired the `visionclaw` twin of this path (`retiredPaths.ts:39`) but not the knowledge one.
+
+**Debt (parallel):** `serverBucketFor` (`manifest.ts:110`) restates the prefix routing of `updateSettingsByPaths` (`endpoints.ts:344-366`) by hand, as its own comment admits (`manifest.ts:105-108`). The scope badges and manifest `server` field depend on the copy, not on the code that routes the PUT.
+
+**Debt (parallel):** shortest path has two client callers on two routes, `analyticsStore.ts:350` (`/api/analytics/pathfinding/sssp`) and `useSemanticService.ts:200` (`/api/semantic/shortest-path`).
+
+## For the business
+
+The client is a set of product surfaces: settings, ontology, governance, agents, analytics, the command bar and voice. Each one talks to the server in its own way. After this change, a setting typed into the Ask box behaves exactly like moving the slider. It is saved the same way, respects the sync switch and moves the layout when it should. "Make the edges fainter" now changes the edges. "Make it transparent" without the word edges still reports success while nothing on screen changes. The settings menu now has seven sections instead of eleven groups. The headset reads the same menu layout from a generated copy.
+
 ## VC-34.1 settings — field edit to server PUT
 ```mermaid
 sequenceDiagram
     autonumber
     participant U as User
     participant SS as SettingSlider<br/>client/src/features/control-center/primitives/SettingSlider.tsx
-    participant USF as useSettingField<br/>client/src/features/control-center/hooks/useSettingField.ts:49
+    participant USF as useSettingField<br/>client/src/features/control-center/hooks/useSettingField.ts:40
+    participant SW as applySettingWrites<br/>client/src/features/control-center/state/settingWrites.ts:42
     participant Store as useSettingsStore.updateSettings<br/>client/src/store/settingsStore.ts
     participant ASM as autoSaveManager<br/>client/src/store/autoSaveManager.ts:52
     participant LA as layoutApi.setMode<br/>client/src/api/layoutApi.ts
-    participant EP as settingsApi.updateSettingsByPaths<br/>client/src/api/settings/endpoints.ts:327
+    participant EP as settingsApi.updateSettingsByPaths<br/>client/src/api/settings/endpoints.ts:331
     participant SRV as Rust settings handlers
 
     U->>SS: drag slider
     SS->>USF: set(next)
-    USF->>Store: updateSettings(draft => draft[path]=next)
-    Note over Store: immer draft mutate, path is the FROZEN backend contract (settingsRegistry.ts:5)
+    USF->>SW: applySettingWrites([path, next]) useSettingField.ts:47
+    Note over USF,SW: ADR-2189 one writer per setting - the registry row,<br/>the dock dials (useMacro.ts:35-37) and the Ask box (CommandInput.tsx:563)<br/>all call this one function (settingWrites.ts:2-11)
+    SW->>Store: updateSettings(draft) one immer batch over every write settingWrites.ts:46-58
+    Note over Store: path is the FROZEN backend contract (settingsRegistry.ts:5)
     Store-->>ASM: queueChanges (internal, autoSaveManager.queueChange path -> value)
-    USF->>ASM: queueChange(path, next) - explicit second queue, verbatim legacy redundancy
-    alt path in LAYOUT_SETTING_PATHS (physics.layoutMode or physics.layoutAlgorithm under visualisation.graphs.knowledge) useSettingField.ts:27-30
-        USF->>LA: setMode(next, 800) useSettingField.ts:73-77
+    SW->>ASM: queueChange(path, value) per write - explicit second queue settingWrites.ts:60-64
+    alt path in LAYOUT_SETTING_PATHS, physics.layoutMode or layoutAlgorithm settingWrites.ts:29-32
+        SW->>LA: setMode(value, 800) settingWrites.ts:65-68
         LA->>SRV: POST /api/layout/mode with the name unchanged, client/src/api/layoutApi.ts:70-77
         Note over LA: the engine LayoutMode names are the stored physics.layoutMode values (ADR-2140), there is no<br/>remapping layer any more, toEngineLayoutMode is gone client/src/api/layoutApi.ts:47-60
     end
@@ -146,7 +168,7 @@ sequenceDiagram
         USF->>ASM: further edits reset the 500ms timer
     end
     ASM->>EP: updateSettingsByPaths(updates) on flush autoSaveManager.ts:124
-    EP->>EP: bucket path by prefix - physics/rendering/qualityGates/nodeFilter/constraints/visual/local-only endpoints.ts:340-362
+    EP->>EP: bucket path by prefix - physics/rendering/qualityGates/nodeFilter/constraints/visual/local-only endpoints.ts:344-366
     par physics bucket
         EP->>SRV: PUT /api/settings/physics
     and rendering bucket
@@ -160,29 +182,32 @@ sequenceDiagram
     end
     alt any bucket rejects, 401 included
         EP-->>ASM: every update of the flush goes to settingsRetryManager.addFailedUpdate(path, value, message) autoSaveManager.ts:126-136
-        ASM->>EP: a single-path retry calls updateSettingByPath, on 401 it dispatches CustomEvent settings-auth-failed<br/>settingsRetryManager.ts:104-108, endpoints.ts:283, endpoints.ts:305-306
+        ASM->>EP: a single-path retry calls updateSettingByPath, on 401 it dispatches CustomEvent settings-auth-failed<br/>settingsRetryManager.ts:104-108, endpoints.ts:287, endpoints.ts:309-310
     else PUT ok
         SRV-->>EP: 200
     end
-    Note over EP,ASM: DEBT: updateSettingByPath catches every error and never rethrows (endpoints.ts:303-311), so the single-path retry<br/>always takes its success branch and deletes the update from the queue (settingsRetryManager.ts:106-108). A failed retry is<br/>dropped silently, and settings-auth-failed has no listener anywhere in client/src. A 401 on a setting reaches no UI
+    Note over EP,ASM: DEBT: updateSettingByPath catches every error and never rethrows (endpoints.ts:307-315), so the single-path retry<br/>always takes its success branch and deletes the update from the queue (settingsRetryManager.ts:106-108). A failed retry is<br/>dropped silently, and settings-auth-failed has no listener anywhere in client/src. A 401 on a setting reaches no UI
 ```
 ## VC-34.2 settings — type generation and QA manifest (build-time, not runtime)
 ```mermaid
 flowchart TD
     RustStruct["AppFullSettings struct<br/>crates/visionclaw-domain/src/config/app_settings.rs:79"] -.->|mirrored by hand, not read| Gen["generate_typescript_interfaces()<br/>src/bin/generate_types.rs:64, a raw-string TS literal :65-568"]
     Bin["cargo run --bin generate_types<br/>main() src/bin/generate_types.rs:9"] --> Gen
-    Bin --> OntGen["write_ontology_agent_types()<br/>src/bin/generate_types.rs:768-769, client/src/types/generated/ontology-agent.ts,<br/>serialised from the real ontology enums (wire(), union_of() :591-599)"]
-    Debt1["DEBT: the settings interfaces are a hand-maintained string, not derived from AppFullSettings.<br/>A field added to the Rust struct is absent from settings.ts until someone edits the literal.<br/>Only the ontology-agent output is generated from Rust types (src/bin/generate_types.rs:591-601)"] -.-> Gen
+    Bin --> OntGen["write_ontology_agent_types()<br/>src/bin/generate_types.rs:767-768, client/src/types/generated/ontology-agent.ts,<br/>serialised from the real ontology enums (wire(), union_of() :590-598)"]
+    Debt1["DEBT: the settings interfaces are a hand-maintained string, not derived from AppFullSettings.<br/>A field added to the Rust struct is absent from settings.ts until someone edits the literal.<br/>Only the ontology-agent output is generated from Rust types (src/bin/generate_types.rs:590-600)"] -.-> Gen
     Gen -->|convert_to_camel_case| Out["client/src/types/generated/settings.ts<br/>build output written at src/bin/generate_types.rs:21, :30, gitignored (.gitignore line 151), not in the repository at this stamp"]
     Note1["settingsUIDefinition.ts and unifiedSettingsConfig.ts no longer exist. The chain is<br/>registry/settingsRegistry.ts + registry/manifest.ts (settingsRegistry.ts:6 names the old<br/>file only inside a zero-drift-test description). NOT doc drift - docs/explanation/<br/>control-center.md:88,110,296 already describes unifiedSettingsConfig.ts as deleted. It was<br/>the swarm brief that was stale, not the governing docs. Verified 2026-09-05"]
-    Groups["registry/groups/*.ts<br/>motion, look, labels, quality, atmosphere, immersion, intelligence, system, agents, decisions, provenance<br/>semanticForces.ts is not a group, it feeds motion (registry/groups/motion.ts:5-8)"] --> ManifestTs["GROUP_DATA<br/>client/src/features/control-center/registry/manifest.ts:23"]
-    ManifestTs --> Registry["settingsRegistry.ts:30 REGISTRY - icons attached"]
-    ManifestTs -->|npm run gen:manifest, ts-node| Emit["client/scripts/emit-settings-manifest.ts:18 buildManifest()"]
-    Emit --> ManifestJson["registry/settings-manifest.json - 268 fields, 11 groups"]
+    Groups["registry/groups/*.ts - ten SOURCE groups where each field is declared<br/>motion, look, labels, quality, atmosphere, intelligence, system, agents, provenance, graphView<br/>(immersion and decisions are gone, client/src/features/control-center/registry/manifest.ts:27-39)<br/>semanticForces.ts is not a group, it feeds motion (registry/groups/motion.ts:4)"] --> ManifestTs["GROUP_DATA<br/>client/src/features/control-center/registry/manifest.ts:27"]
+    ManifestTs -->|placeField per field| Sections["SECTION_DATA - the seven ADR-2189 sections, hotkeys 1..7<br/>client/src/features/control-center/registry/manifest.ts:102, buildSections :75"]
+    Sections --> Registry["settingsRegistry.ts:30 REGISTRY - SECTION_DATA with icons attached"]
+    DriftReg["DRIFT: the header still says the registry assembles GROUP_DATA (settingsRegistry.ts:4)<br/>and manifest.ts:6 says the same, while REGISTRY maps SECTION_DATA (settingsRegistry.ts:30)"] -.-> Registry
+    Sections -->|npm run gen:manifest, ts-node| Emit["client/scripts/emit-settings-manifest.ts:24 buildManifest()<br/>and buildIa() written twice, emit-settings-manifest.ts:19-21, :27"]
+    Emit --> ManifestJson["registry/settings-manifest.json - version 2.0, 247 settings, 7 sections<br/>each entry now carries section, sourceGroup, subgroup and scope (manifest.ts:136)"]
+    Emit --> Ia["registry/ia.json and xr-client/data/ia.json - section, subsection, fields<br/>built by buildIa (manifest.ts:218), see VC-57 for the parity test and scope badges"]
     ManifestJson -->|consumed by| QA["browser-automation coverage phase: assert every testid present+interactive"]
     ADR["ADR-2041 renamed logseq to knowledge, superseded by ADR-2115<br/>which retires the server-side logseq alias entirely -<br/>touches settings.ts, app_settings.rs, generate_types.rs output"] -.-> RustStruct
     ADR -.-> Out
-    Note2["settingsStore.ts:52-56 keeps a receive-side migrateGraphSettingsKey<br/>shim for stored localStorage state - ADR-2115 retired only the<br/>server alias, not this client migration"] -.-> Out
+    Note2["settingsStore.ts:59-63 keeps a receive-side migrateGraphSettingsKey<br/>shim for stored localStorage state - ADR-2115 retired only the<br/>server alias, not this client migration. ADR-2189 wraps it in<br/>stripRemovedPaths so menu-deleted paths are dropped on rehydrate"] -.-> Out
 ```
 ## VC-34.3 ontology — JSS fetch, PATCH and WebSocket refresh (contextLoader is the shared base)
 ```mermaid
@@ -274,7 +299,7 @@ sequenceDiagram
     participant WSHook as useOntologyWebSocket<br/>client/src/features/ontology/hooks/useOntologyWebSocket.ts:51
     participant Store as useOntologyStore
 
-    SRV-->>WSS: ontology_validation_update message src/handlers/socket_flow_handler/filter_auth.rs:458, src/actors/ontology_actor.rs:368
+    SRV-->>WSS: ontology_validation_update message src/handlers/socket_flow_handler/filter_auth.rs:464, src/actors/ontology_actor.rs:368
     WSS-->>WSHook: onMessage callback useOntologyWebSocket.ts:55-56
     WSHook->>Store: setValidating / setViolations / setMetrics useOntologyWebSocket.ts:60-66
     opt ontology_loaded message
@@ -286,21 +311,21 @@ sequenceDiagram
 ## VC-34.6 control-center — shell composition (SettingsPanel hosts Solid and Ontology panels)
 ```mermaid
 flowchart TD
-    CC["ControlCenter.tsx:32<br/>ControlCenter component"] --> Dock["GlassDock<br/>primitives/GlassDock.tsx"]
+    CC["ControlCenter.tsx:37<br/>ControlCenter component"] --> Dock["GlassDock<br/>primitives/GlassDock.tsx"]
     CC --> MacroBar["MacroBar<br/>macros/MacroBar.tsx"]
     CC --> CmdInput["CommandInput<br/>visualisation/components/CommandInput.tsx"]
-    CC --> SP["SettingsPanel<br/>panels/SettingsPanel.tsx:47"]
-    SP -->|REGISTRY, GROUP_BY_ID, ALL_FIELDS| Reg["settingsRegistry.ts:30"]
-    SP -->|PANELS list solid+ontology| Man["manifest.ts:38"]
+    CC --> SP["SettingsPanel<br/>panels/SettingsPanel.tsx:50"]
+    SP -->|REGISTRY, GROUP_BY_ID, ALL_FIELDS - seven sections| Reg["settingsRegistry.ts:30"]
+    SP -->|PANELS solid+ontology, each opened from a launcher in its home section| Man["manifest.ts:41, SettingsPanel.tsx:115-126, :137"]
     SP --> SolidPanel["SolidPanel<br/>panels/SolidPanel.tsx:11"]
     SP --> OntPanel["OntologyPanel<br/>panels/OntologyPanel.tsx:12"]
     SolidPanel --> SolidTab["SolidTabContent<br/>client/src/features/solid/components/SolidTabContent.tsx"]
     OntPanel --> OntTab["OntologyTabContent<br/>client/src/features/ontology/components/OntologyTabContent.tsx"]
     SP -->|SearchInput| DS["design-system SearchInput.tsx"]
-    CC --> Hotkeys["useControlCenterHotkeys<br/>hooks/useControlCenterHotkeys.ts"]
-    CC --> Reveal["useRevealSetting<br/>hooks/useRevealSetting.ts"]
+    CC --> Hotkeys["useControlCenterHotkeys, useExclusiveSidePanels, useRevealSetting<br/>client/src/features/control-center/ControlCenter.tsx:81-83"]
+    CC --> Drawer["RightDrawer, LegendSlot, ShortcutSheet mounted beside the dock<br/>client/src/features/control-center/ControlCenter.tsx:134-136 - drawer tabs and IA are VC-57"]
     CC -->|SpaceDriver| SPD["SpaceDriverService - see VC-37 for device wire protocol"]
-    Note1["AgentOpsSurface and StatusSurface are NOT children of ControlCenter: MainLayout mounts both beside it<br/>(app/MainLayout.tsx:79, :97, :113), and ControlCenter.tsx:14-15 says the status surface reads SpaceDriver and websocket state itself"]
+    Note1["AgentOpsSurface and StatusSurface are NOT children of ControlCenter: MainLayout mounts both beside it<br/>(app/MainLayout.tsx:70, :90, :103), and ControlCenter.tsx:14-15 says the status surface reads SpaceDriver and websocket state itself"]
     Note2["AgentOpsSurface hosts the shared agent-demo toggle: useAgentDemo polls GET /agents/demo (4 s) and POSTs {running} to start or stop it, so the state shown is the server's and a headset-started demo reads as running here (agentDemo.ts:56, :73, AgentOpsSurface.tsx:55)"]
 ```
 ## VC-34.7 control-center — ACSP governance case queue (ADR-2006)
@@ -358,7 +383,7 @@ sequenceDiagram
     participant SPHook as useSpacePilot (control-center)<br/>client/src/features/control-center/status/useSpacePilot.ts:33
     participant Kpi as KpiPanel/useKpiSummary<br/>client/src/features/control-center/kpi/useKpiSummary.ts:25
     participant UAC as unifiedApiClient
-    participant Macro as useMacro<br/>client/src/features/control-center/macros/useMacro.ts:65
+    participant Macro as useMacro<br/>client/src/features/control-center/macros/useMacro.ts:47
     participant Echo as echoPulseBus<br/>client/src/features/control-center/echo/echoPulseBus.ts:39
     participant WSS as websocketStore
 
@@ -369,7 +394,7 @@ sequenceDiagram
     Kpi->>UAC: getData GET /kpi/summary
     UAC-->>Kpi: raw payload
     Kpi->>Kpi: normaliseKpiSummary(raw) -> KpiTileView[]
-    Macro->>Macro: invoke() - useSettingsStore.updateSettings + autoSaveManager.queueChange (same path as VC-34.1)
+    Macro->>Macro: applyMacroWrites - delegates to applySettingWrites, the one write path of VC-34.1 (useMacro.ts:35-37)
     Macro->>Echo: emitEchoPulse(detail) - CustomEvent visionclaw:echo-pulse
     Echo-->>Status: EchoPulseLayer subscribeEchoPulse renders transient ring
     Note over Status,WSS: see VC-32 for the underlying WebSocket connection lifecycle
@@ -471,7 +496,7 @@ sequenceDiagram
     autonumber
     participant SPC as ShortestPathControls<br/>client/src/features/analytics/components/ShortestPathControls.tsx:38
     participant USS as useSemanticService<br/>client/src/features/analytics/hooks/useSemanticService.ts:85
-    participant AS as useAnalyticsStore<br/>client/src/features/analytics/store/analyticsStore.ts:268
+    participant AS as useAnalyticsStore<br/>client/src/features/analytics/store/analyticsStore.ts:286
     participant UAC as unifiedApiClient
     participant WSBin as handleLegacyBinaryData<br/>client/src/store/websocket/binaryProtocol.ts:352
     participant NAS as nodeAnalyticsStore<br/>client/src/features/analytics/store/nodeAnalyticsStore.ts:35
@@ -484,12 +509,14 @@ sequenceDiagram
     USS->>UAC: POST /api/semantic/shortest-path useSemanticService.ts:200
     USS->>UAC: POST /api/semantic/constraints/generate useSemanticService.ts:232
     USS->>UAC: POST /api/semantic/cache/invalidate useSemanticService.ts:262
-    AS->>UAC: POST /api/analytics/shortest-path (currentResult, metrics, loading, error) analyticsStore.ts:328
-    Note over AS,UAC: analyticsStore and useSemanticService hit distinct endpoints<br/>for the same shortest-path feature - not unified
-    Note over USS,UAC: DEBT (source-traced, not run): every path here and in analyticsStore leads with /api, and unifiedApiClient prepends<br/>its own /api base (client/src/services/api/UnifiedApiClient.ts:77, :182), so they resolve to /api/api/semantic/... and<br/>/api/api/analytics/shortest-path, the doubled prefix the repo records as a 404 for the ontology services it already fixed
+    AS->>UAC: POST /api/analytics/pathfinding/sssp {sourceIdx}<br/>old shortest-path route gone server-side analyticsStore.ts:346-352
+    AS->>AS: toDistanceMap(result.distances) accepts the whole-graph array<br/>or the gated id-keyed object, keeps finite values below 3.0e38,<br/>unreachable becomes Infinity analyticsStore.ts:83-93, analyticsStore.ts:363-368
+    Note over AS,UAC: analyticsStore and useSemanticService still hit distinct endpoints<br/>for the same shortest-path feature - not unified
+    Note over AS,UAC: OPEN: sourceIdx is parseInt(sourceNodeId) (analyticsStore.ts:351),<br/>so a non-numeric node id posts NaN, which JSON carries as null<br/>against the server usize sourceIdx
+    Note over USS,UAC: DEBT (source-traced, not run): every path here and in analyticsStore leads with /api, and unifiedApiClient prepends<br/>its own /api base (client/src/services/api/UnifiedApiClient.ts:77, :182), so they resolve to /api/api/semantic/... and<br/>/api/api/analytics/pathfinding/sssp, the doubled prefix the repo records as a 404 for the ontology services it already fixed
     WSBin->>NAS: ingest(parsedNodes) - V3/V5 frames only, wire offsets 36/40/44/48 plus sssp_distance@28 store/websocket/binaryProtocol.ts:371-372, nodeAnalyticsStore.ts:51
     Note right of NAS: ADR-03 D7, ADR-031 D2/D6 - stride 5 buffer<br/>[clusterId, anomalyScore, communityId, centrality, ssspDistance]
-    Gem->>NAS: getIndexedBuffer(nodeIdToIndexMap) on every 30th frame while an analytic colour scheme or quality gate is on (GemNodes.tsx:642-645),<br/>and every TICK_INTERVAL frames in ClusterHulls.tsx:242-246. nodeAnalyticsStore.ts:96
+    Gem->>NAS: getIndexedBuffer(nodeIdToIndexMap) on every 30th frame while an analytic colour scheme or quality gate is on (GemNodes.tsx:706-709),<br/>and every TICK_INTERVAL frames in ClusterHulls.tsx:241-245. nodeAnalyticsStore.ts:96
     Note over WSBin,Gem: see VC-32 for the binary frame layout, VC-15 for GPU-side computation,<br/>VC-31 for the graph feature's own render-pipeline internals (not redrawn here)
 ```
 ## VC-34.13 physics — live simulation control (distinct from settings persistence)
@@ -566,7 +593,7 @@ flowchart LR
     Anim["animations.ts<br/>client/src/features/design-system/animations.ts"]
     HD["monitoring/components/HealthDashboard.tsx:13-17<br/>Card, Label, Button, Badge, Toast"]
     SPC["analytics/components/ShortestPathControls.tsx:2-21<br/>Card, Select, Input, Tabs, Toast, ScrollArea"]
-    SP["control-center/panels/SettingsPanel.tsx:22<br/>SearchInput"]
+    SP["control-center/panels/SettingsPanel.tsx:25<br/>SearchInput"]
     DS --> HD
     DS --> SPC
     DS --> SP
@@ -602,7 +629,7 @@ sequenceDiagram
         WS-->>Hook: onclose
         Hook->>Hook: setTimeout(connectWebSocket, 5000) - manual reconnect useWorkspaces.ts:404-409
     end
-    Note over Hook,WS: DEBT: no server route serves /ws/workspaces (git grep over src finds none, while the REST scope is mounted at<br/>src/main.rs:1164), so the socket never opens and the 5 s reconnect retries forever. useWorkspaces itself has no caller in client/src
+    Note over Hook,WS: DEBT: no server route serves /ws/workspaces (git grep over src finds none, while the REST scope is mounted at<br/>src/main.rs:1172), so the socket never opens and the 5 s reconnect retries forever. useWorkspaces itself has no caller in client/src
     Comp->>Hook: createWorkspace(data)
     Hook->>API: createWorkspace - validates name length <=100 workspaceApi.ts:173-174
     API->>UAC: POST /workspace/create
@@ -644,30 +671,36 @@ sequenceDiagram
     participant Pod as SolidPodService<br/>client/src/services/SolidPodService.ts
     participant SRV as Rust handlers
 
+    participant SW as applySettingWrites<br/>client/src/features/control-center/state/settingWrites.ts:42
     U->>CI: types command, submit
-    CI->>CI: parseCommandToActions(cmd) - keyword match against lower-cased text CommandInput.tsx:137, CommandInput.tsx:696
-    alt matches save/load/list view
-        CI->>Pod: dynamic import SolidPodService then saveGraphView/loadGraphView/listGraphViews CommandInput.tsx:493, CommandInput.tsx:508, CommandInput.tsx:535
-        opt view.physics present
-            CI->>UAC: PUT /settings/physics view.physics CommandInput.tsx:512
-        end
-        opt view.nodeTypeVisibility present
-            CI->>CI: useSettingsStore.updateSettings draft mutate CommandInput.tsx:514-517
-        end
+    CI->>CI: parseCommandToActions(cmd) - keyword match against lower-cased text CommandInput.tsx:176, CommandInput.tsx:673
+    Note over CI,SW: ADR-2189 - every settings action is now a writes list, not a direct PUT or a store mutation,<br/>so chat edits honour the Sync switch and the layout side effect (settingWrites.ts:12-14, CommandInput.tsx:46-53)
+    alt matches a dial-owned or physics command (spread, springs, damping, reset, labels)
+        CI->>CI: spread and label-budget wording reuse the dock dial transfer functions MACROS_BY_ID.density and .focus,<br/>reset reads DEFAULT_PHYSICS_SETTINGS instead of restating numbers CommandInput.tsx:201-205, CommandInput.tsx:392, CommandInput.tsx:400, CommandInput.tsx:334-340
+    else edge transparency wording
+        CI->>CI: edgeOpacityFromCommand(lower) - a stated value is a fraction or percentage of the Edge Opacity slider range 0 to 0.3,<br/>transparency inverts it, bare fainter or stronger words scale the default CommandInput.tsx:148, CommandInput.tsx:158-174
+        Note over CI: INVARIANT: chat edge values stay inside the slider range - round clamps to EDGE_OPACITY_MAX (CommandInput.tsx:163),<br/>pinned by edgeOpacity.test.ts:29-37. The edge rule runs before the node rule, which used to swallow it (CommandInput.tsx:298-301)
+    else any other opacity, transparent or visible wording
+        CI->>CI: writes visualisation.graphs.knowledge.nodes.opacity CommandInput.tsx:313
+        Note over CI: DEBT: no renderer reads knowledge nodes.opacity - the only client touch is the server-wins merge (coreSlice.ts:140).<br/>The chat reports Setting node opacity and nothing on screen changes
+    else matches save/load/list view
+        CI->>Pod: dynamic import SolidPodService then saveGraphView/loadGraphView/listGraphViews CommandInput.tsx:466, CommandInput.tsx:481, CommandInput.tsx:509
+        CI->>CI: a loaded view's defined physics keys and nodeTypeVisibility become one writes list CommandInput.tsx:483-494
     else matches inject/show agent or swarm (and not node/only)
-        CI->>UAC: POST /bots/mock-agents {agents: [...]} CommandInput.tsx:556
+        CI->>UAC: POST /bots/mock-agents {agents: [...]} CommandInput.tsx:530
         UAC->>SRV: HTTP POST
-        CI->>CI: window.dispatchEvent visionclaw:status with injected count CommandInput.tsx:565
+        CI->>CI: window.dispatchEvent visionclaw:status with injected count CommandInput.tsx:539
     else no deterministic keyword match
         opt Jev command flow enabled (server-driven, jevClient.ts:122-124, on under Compose via docker-compose.unified.yml:21, server-side route is the shared agentbox proxy :7-11)
-            CI->>CI: planJevCommand(cmd, registry fields) -- a patch or intent suggestion held for the user's decision, null on flag off, error, timeout or low confidence<br/>client/src/features/visualisation/components/CommandInput.tsx:705, client/src/services/jev/commandFlow.ts:43
-            CI->>U: Apply, Run, Ask the settings assistant instead, or Dismiss -- Apply writes through the existing settings store, Jev itself writes nothing<br/>client/src/features/visualisation/components/CommandInput.tsx:751
+            CI->>CI: planJevCommand(cmd, registry fields) -- a patch or intent suggestion held for the user's decision, null on flag off, error, timeout or low confidence<br/>client/src/features/visualisation/components/CommandInput.tsx:682, client/src/services/jev/commandFlow.ts:43
+            CI->>U: Apply, Run, Ask the settings assistant instead, or Dismiss -- Apply also goes through applySettingWrites, Jev itself writes nothing<br/>client/src/features/visualisation/components/CommandInput.tsx:728-732
         end
-        CI->>CI: dispatchToSettingsLLM(command) when no review is held CommandInput.tsx:706-711
-        CI->>UAC: POST /bots/settings-command {command, settingsContext} CommandInput.tsx:109, CommandInput.tsx:119
+        CI->>CI: dispatchToSettingsLLM(command) when no review is held CommandInput.tsx:683-688
+        CI->>UAC: POST /bots/settings-command {command, settingsContext} CommandInput.tsx:119, CommandInput.tsx:129
         Note right of CI: agent applies changes back through /api/settings/* -<br/>see VC-34.1 for that write path
     end
-    CI->>CI: executeAction(action) - generic path: strip leading /api,<br/>route via unifiedApiClient.request(method, path, body) CommandInput.tsx:587, CommandInput.tsx:595-596
+    CI->>SW: executeAction(action) - writes first, then localAction CommandInput.tsx:561-566
+    CI->>CI: endpoint actions (non-setting jobs only) strip a leading /api and use<br/>unifiedApiClient.request(method, path, body) CommandInput.tsx:572-573
     Note over CI,SRV: raw fetch would send no auth and get 401 -<br/>unifiedApiClient's interceptor injects NIP-98/dev token (VC-33)
 ```
 ## VC-34.20 visualisation — EmbeddingCloudLayer and TransientBeamsLayer
@@ -688,7 +721,7 @@ sequenceDiagram
     ECL->>ECL: resolveFlashTargets -- the flashed key, else a few rows of its namespace, else counted as unmatched for the explorer HUD
     ECL->>MCS: recordFlash(match)<br/>EmbeddingCloudLayer.tsx:337
     ECL->>ECL: spawnBurst with semanticBurstColor at each matched point
-    Note over ECL,MCS: while a query route is shown the cloud stops rotating and off-route points dim.<br/>The explorer panel is mounted beside the canvas only while the cloud is on (GraphCanvas.tsx:528)
+    Note over ECL,MCS: while a query route is shown the cloud stops rotating and off-route points dim.<br/>The explorer panel is now a Memory tab of the right drawer, mounted only while the cloud is on<br/>(client/src/features/control-center/drawer/RightDrawer.tsx:91, :291, :301, see VC-57)
     Note over Store,TBH: 0x23 AGENT_ACTION frame decoded in binaryProtocol.ts<br/>pushes into transientBeamStore, state frames dropped (transientBeamStore.ts:70-72) - see VC-32.11 for the dispatch
     TBH->>Store: read beams, pruneExpired() useTransientBeams.ts:25-30
     TBL->>TBH: beams, prune() called every R3F frame TransientBeamsLayer.tsx:78-80

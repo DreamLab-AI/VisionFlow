@@ -32,8 +32,16 @@ sources:
   - ../project/crates/visionclaw-gpu/build.rs
   - ../project/build.rs
   - ../project/docker-compose.unified.yml
-verified_commit: 86cdd76355823a51bb64d503c005fe277726e724
+verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
 ---
+
+## For developers
+
+How the server reports on itself: what `/healthz` and `/readyz` actually check (VC-08.1), the knowledge-graph watchdog that drives the `kg_backend_up` gauge (VC-08.2), the liveness canary register and its Nostr tap (VC-08.3 to VC-08.5), and the ADR-2008 development restart loop with its build-input inventory (VC-08.9, VC-08.10). Image builds and the ADR-2037 dev-auth exclusion are in VC-08.11. The sources moved only by line at ec785afa9, and no mechanism changed.
+
+## For the business
+
+This is how operators know the server is alive and its knowledge graph reachable, and how each part of the estate proves it still works end to end. It also covers how a developer's code change reaches the running development server, and where that loop can miss a change and leave stale code running.
 
 ## VC-08.1 Health and readiness — what each probe actually asserts
 ```mermaid
@@ -61,21 +69,21 @@ sequenceDiagram
     K->>U: GET /api/health
     U-->>K: composed health JSON with a `status` field
     Note over U: this is the endpoint the KG watchdog self-polls — see VC-08.2
-    Note over K,U: registration — root /healthz and /readyz at src/main.rs:1109-1110 (outside /api, so no<br/>RbacGate and no PublicDemoGuard) — a second /api/healthz and /api/readyz pair for back-compat<br/>at src/handlers/consolidated_health_handler.rs:488-489. See VC-01.7
+    Note over K,U: registration — root /healthz and /readyz at src/main.rs:1117-1118 (outside /api, so no<br/>RbacGate and no PublicDemoGuard) — a second /api/healthz and /api/readyz pair for back-compat<br/>at src/handlers/consolidated_health_handler.rs:488-489. See VC-01.7
 ```
 
 ## VC-08.2 KG watchdog — the self-poll that drives kg_backend_up
 ```mermaid
 sequenceDiagram
     autonumber
-    participant M as main<br/>src/main.rs:1273-1288
+    participant M as main<br/>src/main.rs:1284-1299
     participant W as run_kg_watchdog<br/>src/services/liveness_harness.rs:444
     participant P as probe_once
     participant V as health_verdict<br/>src/services/liveness_harness.rs:505-507
     participant H as LivenessHarness::record_kg_state<br/>src/services/liveness_harness.rs:422
 
     M->>W: tokio::spawn(run_kg_watchdog(harness, self_url, period))
-    Note over M,W: VISIONCLAW_SELF_URL default http 127.0.0.1 port (src/main.rs:1275-1276)<br/>VISIONCLAW_KG_WATCHDOG_SECS default 30 (src/main.rs:1277-1280)
+    Note over M,W: VISIONCLAW_SELF_URL default http 127.0.0.1 port (src/main.rs:1286-1287)<br/>VISIONCLAW_KG_WATCHDOG_SECS default 30 (src/main.rs:1288-1291)
     loop every period (default 30s)
         W->>P: GET {self_url}/api/health
         Note over P: this server IS the KG backend — the watchdog polls itself
@@ -157,7 +165,7 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant M as main<br/>src/main.rs:1305-1312
+    participant M as main<br/>src/main.rs:1316-1323
     participant T as CanaryNostrTap::from_env<br/>src/services/canary_nostr_tap.rs:245
     participant R as Nostr relay
     participant E as TapEvent::from_value<br/>src/services/canary_nostr_tap.rs:88
@@ -167,7 +175,7 @@ sequenceDiagram
     alt CANARY_TAP_RELAY_URL is set (canary_nostr_tap.rs:246)
         M->>T: from_env(harness)
         T-->>M: Some(tap)
-        M->>T: tokio::spawn(tap.run()) (main.rs:1308)
+        M->>T: tokio::spawn(tap.run()) (main.rs:1319)
     else unset
         M->>M: log "canary Nostr tap not started"
     end
@@ -221,7 +229,7 @@ sequenceDiagram
     WR->>WR: RUST_BINARY = $APP_ROOT/target/dev-runtime/visionclaw-server (scripts/rust-backend-wrapper.sh:39)
     WR->>WR: export CARGO_PROFILE_DEV_RUNTIME_DEBUG_ASSERTIONS=true (scripts/rust-backend-wrapper.sh:45)
     WR->>WR: BUILD_STAMP = $APP_ROOT/target/.visionclaw-dev-runtime-build-stamp (scripts/rust-backend-wrapper.sh:46)
-    Note over WR: INVARIANT (2026-09-07, ADR-2038) — the dev launcher builds profile dev-runtime<br/>(Cargo.toml:331-334, inherits release but keeps debug-assertions and overflow-checks, ADR-2156 also sets lto off, codegen-units 256 and incremental, Cargo.toml:335-337),<br/>NOT --release. Optimisation without letting a dev-auth artefact present itself as a<br/>production build to the boot-time profile assertion. The assertion override is exported<br/>so the identity is pinned rather than inherited
+    Note over WR: INVARIANT (2026-09-07, ADR-2038) — the dev launcher builds profile dev-runtime<br/>(Cargo.toml:334-337, inherits release but keeps debug-assertions and overflow-checks, ADR-2156 also sets lto off, codegen-units 256 and incremental, Cargo.toml:338-340),<br/>NOT --release. Optimisation without letting a dev-auth artefact present itself as a<br/>production build to the boot-time profile assertion. The assertion override is exported<br/>so the identity is pinned rather than inherited
     alt SKIP_RUST_REBUILD != true
         WR->>DI: dev_inputs_install (scripts/rust-backend-wrapper.sh:91)
         Note over WR,DI: ADR-2008 2026-10-07 amendment — Cargo.toml, Cargo.lock, build.rs and the Vite root files reach /app by COPY<br/>from the read-only /app/.dev-inputs mount that the host publishes and stamps with launch.sh (scripts/lib/dev-inputs.sh:12-17),<br/>never by a single-file bind mount that pins a stale inode after a git operation. A missing or mismatched stamp makes the wrapper<br/>log FATAL and exit 1 (scripts/rust-backend-wrapper.sh:91-94) rather than build something stale. The stamp's source_sha is logged (scripts/rust-backend-wrapper.sh:95)
@@ -279,7 +287,7 @@ flowchart TB
     ENVV --- SIG
     HOLES["the two holes this file closed (:9-13) — the original heuristic globbed only the ROOT<br/>Cargo.toml/Cargo.lock/build.rs so a CRATE manifest edit left a stale binary running,<br/>and globbed *.cu under /app/src only so a crate CUDA kernel edit was missed"]
     GLOB --- HOLES
-    DIV["DIVERGENCE (BASELINE 2026-09-04 development acceptance, BASELINE-architecture.md:393) — ADR-2008 is PARTIAL.<br/>Normal development startup uses this timestamp-gated wrapper, with demonstrated<br/>misses for crate CUDA and manifest edits. The 2026-09-04 text predates the .dev-inputs<br/>publish-and-verify path (VC-08.9), which the doc does not mention."]
+    DIV["DIVERGENCE (BASELINE 2026-09-04 development acceptance, BASELINE-architecture.md:445) — ADR-2008 is PARTIAL.<br/>Normal development startup uses this timestamp-gated wrapper, with demonstrated<br/>misses for crate CUDA and manifest edits. The 2026-09-04 text predates the .dev-inputs<br/>publish-and-verify path (VC-08.9), which the doc does not mention."]
     NR --- DIV
 ```
 
@@ -313,7 +321,7 @@ sequenceDiagram
     Note over RT: ADR-2037 — with dev-auth absent, every bypass codepath is #[cfg]-stripped.<br/>enforce_release_env_hygiene becomes the real impl (src/main.rs:118) rather than the stub (:169)
     end
     RT->>RT: enforce_release_env_hygiene() at src/main.rs:209 — see VC-09.3
-    RT->>RT: assert_effective_profile_or_exit() at src/main.rs:952 — see VC-09.4
+    RT->>RT: assert_effective_profile_or_exit() at src/main.rs:959 — see VC-09.4
     Note over RT: ADR-2038 — BuildIdentity::current() reports dev_auth true for a dev-auth artefact, which is<br/>itself the finding DevAuthFeatureInArtefact (src/config/security_profile.rs:275) when the artefact is NOT a debug build<br/>(src/config/security_profile.rs:519-520). A release dev-auth binary promoted to production refuses to bind at all.
     Note over DP,RT: PARTLY RESOLVED ADR-2049 — the production warm-up stage used to run cargo build --release || true twice,<br/>so a broken lockfile or an uncompilable dependency produced a green layer. It now gates on<br/>cargo fetch --locked (Dockerfile.production:100, must succeed). The stub-stage build pipes into tail with no pipefail<br/>(Dockerfile.production:101-102), so it still cannot fail, whether the crate or a DEPENDENCY breaks.<br/>The comment at Dockerfile.production:89-93 says the dependency build must succeed
 ```
@@ -330,7 +338,7 @@ sequenceDiagram
 
     B->>P: evaluate the effective security profile
     P->>L: info "security profile OK — build=X declared=Y classified=Z findings=N"
-    Note over P,L: EffectiveProfile::summary() src/config/security_profile.rs:393<br/>main logs it with observed_flags at src/main.rs:958-962 — the boot receipt
+    Note over P,L: EffectiveProfile::summary() src/config/security_profile.rs:393<br/>main logs it with observed_flags at src/main.rs:965-969 — the boot receipt
     alt production artefact with findings
         P->>O: eprintln FATAL per finding then "refusing to bind a listener (ADR-2038)" then exit(2)
         Note over P,O: the remediation line names the three options — remove the offending variables,<br/>rebuild without --features dev-auth, or set VISIONCLAW_SECURITY_PROFILE to what this really is

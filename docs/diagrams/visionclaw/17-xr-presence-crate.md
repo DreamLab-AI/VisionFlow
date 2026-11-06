@@ -14,8 +14,16 @@ sources:
   - ../project/src/handlers/presence_handler.rs
   - ../project/src/actors/presence_actor.rs
   - ../project/src/main.rs
-verified_commit: 86cdd76355823a51bb64d503c005fe277726e724
+verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
 ---
+
+## For developers
+
+The `visionclaw-xr-presence` crate holds the presence wire types and validation. The server's `presence_handler` and `PresenceActor` use it to authenticate a headset session, relay its pose to peers on the 0x43 frame and carry agent co-presence on the sibling 0x44 channel. Re-stamped at ec785afa9: no presence source changed, and the only drift is in the governing XR-client and PROTOCOL-registry docs and in `main.rs` line positions.
+
+## For the business
+
+People wearing headsets in the same space see each other's head and hands move in real time, and AI agents appear beside them as present participants. A session must prove who it is before its movements are shared.
 
 ## VC-17.1 Presence session handshake and authentication
 
@@ -26,7 +34,7 @@ sequenceDiagram
     participant PS as PresenceSession<br/>src/handlers/presence_handler.rs:433
     participant PA as PresenceActor<br/>src/actors/presence_actor.rs:655
 
-    C->>PS: GET /ws/presence upgrade (src/main.rs:1119, ws_presence presence_handler.rs:501)
+    C->>PS: GET /ws/presence upgrade (src/main.rs:1127, ws_presence presence_handler.rs:501)
     PS->>PS: phase = SessionPhase::Challenged{nonce, ts_us} :156
     PS->>C: started :436 then send_challenge :163 - ServerHandshake::Challenge{nonce hex, ts}
     C->>PS: ws::Message::Text routed to handle_auth :461
@@ -195,6 +203,6 @@ classDiagram
 
 **Drift:** before this restamp the topic credited room bounds to `with_bounds`; production rooms are created with `PresenceActor::new` (`src/handlers/presence_handler.rs:285`) and keep the defaults at `src/actors/presence_actor.rs:284-285`.
 
-**Open:** the XR client gained a Codescape backend mode (ADR-2143 A6) in which the same presence socket targets a Codescape server that "serves the graph stream, presence, voice" itself (`docs/XR-client.md:1100`), so the `PresenceSession` and `PresenceActor` above are the VisionClaw backend only. See [VC-43](43-codescape-presence-lifecycle.md) for the separate Codescape lifecycle audit.
+**Open:** the XR client gained a Codescape backend mode (ADR-2143 A6) in which the same presence socket targets a Codescape server that "serves the graph stream, presence, voice" itself (`docs/XR-client.md:1318`), so the `PresenceSession` and `PresenceActor` above are the VisionClaw backend only. See [VC-43](43-codescape-presence-lifecycle.md) for the separate Codescape lifecycle audit.
 
 The [1 November admission review](../../estate-review/2026-11-01-room-admission-and-voice.md) traces the current join handler and proposed membership controls in [VC-49](49-room-admission.md). The historical nonce-authentication diagrams above do not imply membership admission or a room cap.

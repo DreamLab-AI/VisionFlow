@@ -11,7 +11,8 @@ sources:
   - ../project/xr-client/scripts/connection_volume_source.gd
   - ../project/xr-client/rust/src/interaction.rs
   - ../project/docs/XR-client.md
-verified_commit: {visionclaw: 86cdd7635582}
+  - ../project/xr-client/tests/unit/test_grab_client.gd
+verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
 ---
 
 ## For developers
@@ -20,43 +21,44 @@ The [assessment](../../estate-review/2026-11-01-xr-grab-boundaries.md) traces AD
 
 ## For the business
 
-Two hands can address separate nodes, but reliable manipulation also needs a clear end to each gesture. Refreshing data, opening a document and catching a distant node expose gaps that ordinary single-step demonstrations miss.
+Two hands can address separate nodes, but reliable manipulation also needs a clear end to each gesture. A data refresh now ends every hold cleanly; opening a document and catching a distant node still expose gaps that ordinary single-step demonstrations miss.
 
 ## VC-53.1 Per-hand holds route through their volume and share one id domain
 
 ```mermaid
 flowchart TD
-    VOL["Knowledge and ontology share VisionClaw<br/>graph_scene.gd:94,95"] --> GATE["Capability and entered-space checks<br/>graph_scene.gd:299,322,3306"]
-    GATE --> PACK["Merge each volume's own drawn candidates<br/>graph_scene.gd:3335,3345,3355"]
-    PACK --> HOLD["Record hand id, volume and exclusion set<br/>graph_scene.gd:3409,3410,3411"]
-    HOLD --> DRIVE["Invert Content transform and send on volume connection<br/>graph_scene.gd:3448,3450,3452"]
-    HOLD --> RELEASE["End one hand and update remaining exclusions<br/>graph_scene.gd:3459,3469,3476"]
+    VOL["Knowledge and ontology share VisionClaw<br/>graph_scene.gd:95,96"] --> GATE["Capability and entered-space checks,<br/>the merged-space guest also grabbable<br/>graph_scene.gd:301,324,325,3718"]
+    GATE --> PACK["Merge each volume's own drawn candidates<br/>graph_scene.gd:3747,3757,3767"]
+    PACK --> HOLD["Record hand id, volume and exclusion set<br/>graph_scene.gd:3821,3822,3823"]
+    HOLD --> DRIVE["Invert Content transform and send on volume connection<br/>graph_scene.gd:3860,3862,3864"]
+    HOLD --> RELEASE["End one hand and update remaining exclusions<br/>graph_scene.gd:3871,3881,3888"]
 ```
 
 **What it shows.** Per-hand state and per-volume transforms coexist with a shared draggable connection. **Why it is this way.** The class-filtered views share one graph and server id domain; this is not a general multi-server identity scheme.
 
-## VC-53.2 Topology invalidates selections but leaves held ids alive
+## VC-53.2 A topology change now releases the holds of that connection
 
 ```mermaid
 flowchart TD
-    GEN["Topology bumps connection generation<br/>backend_connection.gd:359,360,361"] --> SOURCE["Invalidate volume sources<br/>graph_scene.gd:4224,4227"]
-    SOURCE --> CLEAR["Clear selection and stale links<br/>graph_scene.gd:4231,4234,4235"]
-    HOLD["Hand state has id and volume, no generation<br/>graph_scene.gd:845,846"] --> UPDATE["Drive uses retained id without generation check<br/>graph_scene.gd:3441,3450,3452"]
-    CLEAR --> UPDATE
+    GEN["Topology bumps connection generation, then signals<br/>backend_connection.gd:367,368,369"] --> RELEASE["Release every hold on a volume of that connection first<br/>graph_scene.gd:4645,4646,4652,4653,4654"]
+    RELEASE --> END["_end_grab per hand sends drag end and clears the hand<br/>graph_scene.gd:166,168,169,3878,3881"]
+    END --> SOURCE["Invalidate volume sources<br/>graph_scene.gd:4655,4657"]
+    SOURCE --> CLEAR["Clear selection and stale links<br/>graph_scene.gd:4661,4664,4665"]
+    DROP["VisionClaw disconnect releases every hold<br/>graph_scene.gd:4619,4622,4623"] --> END
+    TEST["GUT: both hands released before ids are reused<br/>test_grab_client.gd:305,310,311,312"] --> RELEASE
 ```
 
-**What it shows.** The extracted callback clears selection while a subsequent drive still sends the held id. **Why it is this way.** Selection lifetime is explicitly reset; grab lifetime is not part of that callback.
-
-**Debt:** Held ids can survive the generation boundary even though the connection documents generation-scoped identity (`backend_connection.gd:18,19`; `graph_scene.gd:4224`).
+**What it shows.** Since `6b811f7a1` the topology callback ends both hands' holds before invalidating sources and selection, and a VisionClaw disconnect does the same. **Why it is this way.** Hand state carries an id and a volume but no generation (`xr-client/scripts/graph_scene.gd:849-850`), so the release has to happen at the boundary rather than at each drive.
+**Invariant:** no hand holds a wire id across a topology generation of its connection (`xr-client/scripts/graph_scene.gd:4652-4654`), pinned by `xr-client/tests/unit/test_grab_client.gd:305-312`.
 
 ## VC-53.3 Double-click consumes one callback rather than the held press
 
 ```mermaid
 flowchart TD
-    FRAME["Evaluate an unheld hand each active frame<br/>graph_scene.gd:3244,3255,3272"] --> EMIT["Active trigger emits node_grabbed<br/>interaction.rs:172,180,181"]
-    EMIT --> DOUBLE["Second same-id callback opens document<br/>graph_scene.gd:4504,4506"]
-    DOUBLE --> RESET["Clear last-click id and return<br/>graph_scene.gd:4505,4507"]
-    RESET --> NEXT["Next active callback can start a grab<br/>graph_scene.gd:4508,4513"]
+    FRAME["Evaluate an unheld hand each active frame<br/>graph_scene.gd:3656,3667,3684"] --> EMIT["Active trigger emits node_grabbed<br/>interaction.rs:172,180,181"]
+    EMIT --> DOUBLE["Second same-id callback opens document<br/>graph_scene.gd:4935,4937"]
+    DOUBLE --> RESET["Clear last-click id and return<br/>graph_scene.gd:4936,4938"]
+    RESET --> NEXT["Next active callback can start a grab<br/>graph_scene.gd:4939,4944"]
 ```
 
 **What it shows.** Replaying one more callback after document opening starts a hold in the fixture. **Why it is this way.** The callback has per-hand click history but no consumed-press latch; a real HUD may intercept some subsequent rays, which the fixture does not model.
@@ -65,9 +67,9 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    RAY["Capture accepts forward hits through 30 m<br/>interaction.rs:14,60"] --> START["Catch stores depth clamped to 0.2 through 6 m<br/>graph_scene.gd:3423,3429"]
-    START --> DRIVE["First drive uses the clamped depth<br/>graph_scene.gd:3445,3448"]
-    DRIVE --> TARGET["Target and outbound update use that new point<br/>graph_scene.gd:3449,3452"]
+    RAY["Capture accepts forward hits through 30 m<br/>interaction.rs:14,60"] --> START["Catch stores depth clamped to 0.2 through 6 m<br/>graph_scene.gd:3835,3841"]
+    START --> DRIVE["First drive uses the clamped depth<br/>graph_scene.gd:3857,3860"]
+    DRIVE --> TARGET["Target and outbound update use that new point<br/>graph_scene.gd:3861,3864"]
 ```
 
 **What it shows.** Unit observations accept a 10 m capture and convert its first hold update to 6 m, with no hand movement. **Why it is this way.** Capture reach and hand attachment have separate limits. The 1 m and 6 m controls retain their depth.
@@ -76,27 +78,27 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    HELD["Held node blocks a new box grip<br/>graph_scene.gd:643,644"] --> REVERSE["Node-start lock checks transition and ease only<br/>graph_scene.gd:3296,3299,3404"]
-    REVERSE --> LOCAL["Local hold written before send result<br/>graph_scene.gd:3409,3430"]
-    LOCAL --> SEND["Connection can return false<br/>backend_connection.gd:250,253"]
-    E7["E7 states no node centre outside box<br/>XR-client.md:949"] --> EXCLUDE["Fit excludes held ids to prevent feedback runaway<br/>connection_volume_source.gd:47,50,186"]
+    HELD["Held node blocks a new box grip<br/>graph_scene.gd:647,648"] --> REVERSE["Node-start lock checks transition and ease only<br/>graph_scene.gd:3708,3711,3816"]
+    REVERSE --> LOCAL["Local hold written before send result<br/>graph_scene.gd:3821,3842"]
+    LOCAL --> SEND["Connection can return false<br/>backend_connection.gd:258,261"]
+    E7["E7 states no node centre outside box<br/>XR-client.md:1167"] --> EXCLUDE["Fit excludes held ids to prevent feedback runaway<br/>connection_volume_source.gd:47,50,206"]
 ```
 
 **What it shows.** Reverse acquisition and send refusal are separate admission boundaries; fit containment is also qualified by intentional exclusions. **Why it is this way.** These guards were added at different entry points, while excluding held outliers avoids shrinking the content repeatedly beneath the hand.
 
-**Tension:** E7's universal wording needs to account for the intentionally excluded held nodes (`XR-client.md:949`; `connection_volume_source.gd:47,186`).
+**Tension:** E7's universal wording needs to account for the intentionally excluded held nodes (`XR-client.md:1167`; `connection_volume_source.gd:47,206`).
 
 ## VC-53.6 Two headset pin sets survive with readers but no writer
 
 ```mermaid
 flowchart TD
-    END["Grab end sends drag end and records no pin<br/>graph_scene.gd:3456,3459,3466"] --> CONN["Connection drag end records nothing<br/>backend_connection.gd:272,273"]
-    SCENE["Scene _pinned_ids: count, HUD list, CSV, Unpin All<br/>graph_scene.gd:958,2092,2105,2153,2383"] --> ACK["Removed only on unpin ack or capability loss<br/>graph_scene.gd:4145,2376"]
-    CONNSET["Connection _pinned: read, unpinned, cleared on close<br/>backend_connection.gd:52,292,299,301"] --> ACK2["Erased by send_unpin<br/>backend_connection.gd:287"]
+    END["Grab end sends drag end and records no pin<br/>graph_scene.gd:3868,3871,3878"] --> CONN["Connection drag end records nothing<br/>backend_connection.gd:280,281"]
+    SCENE["Scene _pinned_ids: count, HUD list, CSV, Unpin All<br/>graph_scene.gd:966,2497,2510,2558,2788"] --> ACK["Removed only on unpin ack or capability loss<br/>graph_scene.gd:4561,2781"]
+    CONNSET["Connection _pinned: read, unpinned, cleared on close<br/>backend_connection.gd:52,300,307,309"] --> ACK2["Erased by send_unpin<br/>backend_connection.gd:295"]
     END -.-> D1["DEBT: no path adds to either set<br/>backend_connection.gd:49,50,51"]
-    SCENE -.-> D2["DRIFT: comment still says drag-end adds<br/>graph_scene.gd:955,956"]
+    SCENE -.-> D2["DRIFT: comment still says drag-end adds<br/>graph_scene.gd:963,964"]
 ```
 
 **What it shows.** Unpin All, the HUD count and connection teardown still iterate sets that nothing fills, so after ADR-2172 F3 they are always empty. **Why it is this way.** F3 removed the writer, and the client-side Pin sender that would fill the sets is a recorded follow-up (ADR-2172 F5).
 
-**Drift:** the `_pinned_ids` comment says drag-end adds (`graph_scene.gd:955`), but `_end_grab` records nothing (`graph_scene.gd:3456`).
+**Drift:** the `_pinned_ids` comment says drag-end adds (`graph_scene.gd:963`), but `_end_grab` records nothing (`graph_scene.gd:3868`).

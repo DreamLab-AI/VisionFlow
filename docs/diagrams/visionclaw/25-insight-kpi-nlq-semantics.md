@@ -41,10 +41,20 @@ sources:
   - ../project/src/main.rs
   - ../project/src/test_helpers.rs
   - ../project/src/adapters/actix_semantic_adapter.rs
+  - ../project/src/handlers/semantic_handler.rs
+  - ../project/src/handlers/graph_access.rs
   - ../project/src/services/schema_service.rs
   - ../project/src/utils/response_macros.rs
-verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724}
+verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
 ---
+
+## For developers
+
+This topic covers the read-side analytics: the insight loop trace, KPI compute and lineage, the briefing service, natural-language queries to SPARQL, and the semantic processor and edge classifier. At ec785afa9 the `/api/semantic` routes filter their answers per caller. That filtering is sound only because the analyser behind them still returns empty results, and a tripwire test now enforces that (VC-25.14).
+
+## For the business
+
+These features turn the graph into answers: health indicators, briefings and plain-English questions. The community and importance views on the semantic routes return nothing yet, so they are safe to expose but not yet useful.
 
 ## VC-25.1 Insight loop trace assembly (REC-10, compute-on-read)
 
@@ -363,7 +373,7 @@ sequenceDiagram
     autonumber
     participant SPA as SemanticProcessorActor::process_metadata_blocking<br/>src/actors/semantic_processor_actor.rs:246
     participant SA as SemanticAnalyzer::analyze_metadata<br/>src/services/semantic_analyzer.rs:261
-    participant GS as GitHubSyncService::relation_edges<br/>src/services/github_sync_service.rs:1803
+    participant GS as GitHubSyncService::relation_edges<br/>src/services/github_sync_service.rs:1878
     participant REG as SemanticTypeRegistry<br/>src/services/semantic_type_registry.rs:90
 
     SPA->>SA: analyze_metadata(metadata)
@@ -377,8 +387,8 @@ sequenceDiagram
     end
     Note over SA: compute_similarity weights: topic 0.4 + domain 0.2 + file_type 0.1 + depth 0.1 + temporal 0.1 + importance 0.1<br/>src/services/semantic_analyzer.rs:545-580
 
-    Note over GS: one typed edge per vocab.relations key whose ParsedPage frontmatter has<br/>a wikilink target — an unmapped edge-type predicate is skipped, not defaulted<br/>src/services/github_sync_service.rs:1813-1823
-    GS->>REG: get_or_register_id(edge_type)<br/>src/services/semantic_type_registry.rs:652,src/services/github_sync_service.rs:1824
+    Note over GS: one typed edge per vocab.relations key whose ParsedPage frontmatter has<br/>a wikilink target — an unmapped edge-type predicate is skipped, not defaulted<br/>src/services/github_sync_service.rs:1888-1898
+    GS->>REG: get_or_register_id(edge_type)<br/>src/services/semantic_type_registry.rs:652,src/services/github_sync_service.rs:1899
     REG->>REG: get_id(uri) - read_uri_map lookup<br/>src/services/semantic_type_registry.rs:646-648
     alt uri already registered
         REG-->>GS: existing id
@@ -387,7 +397,7 @@ sequenceDiagram
         REG->>REG: register_internal(uri, config) - assign next_id, push uri/config<br/>src/services/semantic_type_registry.rs:612
         REG-->>GS: new id
     end
-    GS->>REG: get_config(reg_id) - strength*2.0 normalised to spring weight<br/>src/services/semantic_type_registry.rs:662,src/services/github_sync_service.rs:1826-1827
+    GS->>REG: get_config(reg_id) - strength*2.0 normalised to spring weight<br/>src/services/semantic_type_registry.rs:662,src/services/github_sync_service.rs:1901-1902
     Note over REG: version() = next_id atomic counter, used for hot-reload detection<br/>src/services/semantic_type_registry.rs:703
 ```
 
@@ -434,7 +444,7 @@ sequenceDiagram
     Note right of MA: RESOLVED ADR-2097 (2026-09-05): RefreshMetadata and refresh_metadata are deleted - the message had no senders<br/>and the actor holds no source. metadata.json is owned by FileService, which pushes rebuilt stores in via UpdateMetadata
 ```
 
-**Drift:** the governing baseline places MetadataActor's start at `app_state.rs:802` (`../project/docs/BASELINE-architecture.md:167`); at this revision the actor starts at `../project/src/app_state.rs:791`, with its log line at `:790`.
+**Drift:** the governing baseline places MetadataActor's start at `app_state.rs:802` (`../project/docs/BASELINE-architecture.md:170`); at this revision the actor starts at `../project/src/app_state.rs:791`, with its log line at `:790`.
 
 ## VC-25.13 file_service + graph_serialization + empty-graph guard
 
@@ -456,9 +466,9 @@ sequenceDiagram
         alt metadata.is_empty()
             FS-->>Boot: Ok(()) - warn "no data to load", nothing seeded<br/>src/services/file_service.rs:1116-1118
         else metadata present
-            FS->>FS: Phase 1 - build AppNode per file, classify ontology_node vs page via owl_class_iri<br/>src/services/file_service.rs:1123-1175
-            FS->>FS: Phase 2 - wikilink regex extracts AppEdge set, dedup via seen_edges<br/>src/services/file_service.rs:1180-1191
-            FS->>Repo: save_graph(&graph_data)<br/>src/services/file_service.rs:1213
+            FS->>FS: Phase 1 - build AppNode per file, classify ontology_node vs page via owl_class_iri<br/>src/services/file_service.rs:1123-1178
+            FS->>FS: Phase 2 - wikilink regex extracts AppEdge set, dedup via seen_edges<br/>src/services/file_service.rs:1183-1194
+            FS->>Repo: save_graph(&graph_data)<br/>src/services/file_service.rs:1216
             FS-->>Boot: Ok(())
         end
     end
@@ -479,3 +489,34 @@ sequenceDiagram
         GSS-->>Boot: ExportResponse{export_id, download_url, expires_at: now+24h}<br/>src/services/graph_serialization.rs:73-80
     end
 ```
+
+## VC-25.14 /api/semantic routes: per-caller filtering over an analyser that computes nothing
+
+<!-- 2026-11-06 restamp ec785afa9: new. 84ccd9aaa gates the semantic routes per caller, 14c429baf adds the M2 tripwire test -->
+```mermaid
+sequenceDiagram
+    autonumber
+    participant H as semantic_handler.detect_communities<br/>src/handlers/semantic_handler.rs:77
+    participant G as graph_access.caller_view<br/>src/handlers/graph_access.rs:23
+    participant SS as SemanticService over ActixSemanticAdapter<br/>src/main.rs:864-869
+    participant AD as ActixSemanticAdapter.detect_communities<br/>src/adapters/actix_semantic_adapter.rs:114
+    participant SP as SemanticProcessorActor port handlers<br/>src/adapters/actix_semantic_adapter.rs:264
+    Note over H: routes communities, centrality, shortest-path, constraints, statistics (semantic_handler.rs:406-414)
+    H->>G: visible_ids - None when the view removes nothing (semantic_handler.rs:245-256)
+    H->>SS: initialize(full graph) then detect_communities (semantic_handler.rs:88, :107)
+    SS->>AD: port call
+    AD->>SP: DetectCommunitiesMessage (actix_semantic_adapter.rs:119-120)
+    SP-->>AD: empty clusters, modularity 0.0 (actix_semantic_adapter.rs:267-273)
+    Note over SP: shortest paths, SSSP distances and importance also return empty (actix_semantic_adapter.rs:290-297, :309, :371)
+    AD-->>H: result over the FULL graph
+    H->>H: gate_communities - keep visible members, recount sizes (semantic_handler.rs:110, :266-282)
+    Note over H: modularity is passed through ungated (semantic_handler.rs:114)
+    Note over AD,SP: INVARIANT response filtering is sound only while every analysis is empty - tripwire test (actix_semantic_adapter.rs:460, :482-497)
+```
+
+**Invariant:** filtering per caller after the analysis is sound only while the analyser returns nothing. `semantic_analyses_still_return_nothing_so_response_filtering_is_sound` (`src/adapters/actix_semantic_adapter.rs:460`) fails as soon as communities, centrality, shortest paths or SSSP distances return data (`src/adapters/actix_semantic_adapter.rs:482-497`). Gated callers must then be computed over their visible subgraph instead.
+
+**Debt (loose end):** the port handlers return empty results for communities, shortest paths, SSSP and importance (`src/adapters/actix_semantic_adapter.rs:267-273`, `:290-297`, `:309`, `:371`). The shortest-path stub builds a `ComputeShortestPaths` message and drops it (`src/adapters/actix_semantic_adapter.rs:285-288`). The GPU-backed `ComputeShortestPaths` handler (`src/actors/semantic_processor_actor.rs:1558`) is never reached from `/api/semantic`, so every route answers 200 with empty data.
+
+**Open (risk):** `modularity` goes out ungated (`src/handlers/semantic_handler.rs:114`), and the tripwire does not assert on it. A real Louvain result would report a whole-graph score to a gated caller, and nothing would fail first.
+

@@ -33,6 +33,10 @@ sources:
   - ../project/src/main.rs
   - ../project/src/handlers/socket_flow_handler/position_updates.rs
   - ../project/crates/visionclaw-domain/src/utils/visibility_filter.rs
+  - ../project/src/handlers/graph_access.rs
+  - ../project/src/handlers/socket_flow_handler/types.rs
+  - ../project/src/handlers/api_handler/graph/mod.rs
+  - ../project/src/services/corpus_history.rs
   - ../project/client/src/services/solidPod/agentMemory.ts
   - ../project/client/src/services/solidPod/ldpClient.ts
   - ../project/client/src/services/SolidPodService.ts
@@ -42,22 +46,30 @@ sources:
   - ../project/src/app_state.rs
   - ../project/src/actors/graph_state_actor.rs
   - ../project/src/services/ontology_mutation_service.rs
-verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35}
+verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35}
 ---
+
+## For developers
+
+This topic records which store is the write master for each data class: four SQLite databases, Oxigraph named graphs, the Solid pod and RuVector. It also covers how provenance is appended, how erasure reaches each store, and how a caller's view of the graph is cut. At ec785afa9 two mechanisms were added: the visible subgraph now scrubs hidden page names out of visible metadata (VC-22.12), and full syncs append public corpus history to the provenance graph (VC-22.13).
+
+## For the business
+
+Every piece of data has one authoritative home, so a correction or a deletion has a known place to land. Private pages must not leak through the names other pages mention, and the history kept for audit contains only what was already public, because that history cannot yet be deleted.
 
 ## VC-22.1 Write-master per data class
 
 ```mermaid
 flowchart LR
-    AuthContent["Authored content<br/>public: true / owl-class markdown"] --> CorpusSrc["CorpusSource port (ADR-2114)<br/>local vault default (VAULT_ROOT set), GitHub opt-in<br/>corpus_source/mod.rs:193 corpus_source_kind<br/>github_sync_service.rs:1587 ingest"]
-    CorpusSrc -->|"github_sync_service.rs:969, :1026 rebuild_assert_graph CLEAR+INSERT"| AssertGraph["GRAPH_ONTOLOGY :assert<br/>oxigraph_ontology_repository.rs:48"]
+    AuthContent["Authored content<br/>public: true / owl-class markdown"] --> CorpusSrc["CorpusSource port (ADR-2114)<br/>local vault default (VAULT_ROOT set), GitHub opt-in<br/>corpus_source/mod.rs:203 corpus_source_kind<br/>github_sync_service.rs:1659 ingest"]
+    CorpusSrc -->|"github_sync_service.rs:991, :1048 rebuild_assert_graph CLEAR+INSERT"| AssertGraph["GRAPH_ONTOLOGY :assert<br/>oxigraph_ontology_repository.rs:48"]
     CorpusSrc -->|"oxigraph_graph_repository.rs:1212 clear_graph drops knowledge and agent graphs"| KnowledgeGraph["GRAPH_KNOWLEDGE<br/>oxigraph_ontology_repository.rs:50"]
 
     VisIntent["Visibility intent<br/>visibility + owner_pubkey"] --> SettingsDB["settings.sqlite3 settings table<br/>sqlite_settings_repository.rs:61-68"]
-    SettingsDB -->|"projected by"| VisFilter["is_dropped_for, private nodes fail closed<br/>visibility_filter.rs:93<br/>filter_enabled visibility_filter.rs:38, PUBKEY_VISIBILITY_FILTER default ON (:26)<br/>position stream position_updates.rs:11"]
-    GraphActor["GraphStateActor snapshot<br/>private_nodes from node metadata public and owner_pubkey<br/>graph_state_actor.rs:174-188"] -->|"feeds"| VisFilter
+    SettingsDB -->|"projected by"| VisFilter["is_dropped_for, private nodes fail closed<br/>visibility_filter.rs:127<br/>filter_enabled visibility_filter.rs:46, PUBKEY_VISIBILITY_FILTER default ON (:34)<br/>position stream position_updates.rs:10"]
+    GraphActor["GraphStateActor snapshot<br/>private_nodes from node metadata public and owner_pubkey<br/>graph_state_actor.rs:173-179"] -->|"feeds"| VisFilter
 
-    AssertGraph -.->|"reasoner run: store_inference_results DELETE+INSERT oxigraph_ontology_repository.rs:2507, :2601-2606"| InferredGraph["GRAPH_ONTOLOGY_INFERRED<br/>oxigraph_ontology_repository.rs:49 derived, never primary"]
+    AssertGraph -.->|"reasoner run: store_inference_results DELETE+INSERT oxigraph_ontology_repository.rs:2467, :2561-2566"| InferredGraph["GRAPH_ONTOLOGY_INFERRED<br/>oxigraph_ontology_repository.rs:49 derived, never primary"]
 
     OpState["Operational state"] --> SqliteFour["4x SQLite WAL: settings/enrichment/kpi/liveness<br/>src/adapters/sqlite_*_repository.rs"]
 
@@ -67,7 +79,7 @@ flowchart LR
 
     AuditRBAC["Audit evidence RBAC/auth"] --> RoleTable["user_roles table in settings.sqlite3<br/>role_store.rs:46-52"]
 
-    Sessions["Session cache<br/>NostrService users map"] --> RedisGate{"redis feature AND REDIS_URL?<br/>Cargo.toml:284, nostr_service.rs:149"}
+    Sessions["Session cache<br/>NostrService users map"] --> RedisGate{"redis feature AND REDIS_URL?<br/>Cargo.toml:287, nostr_service.rs:149"}
     RedisGate -->|yes| Redis["Optional Redis session persistence<br/>SETEX (set_ex) with token-expiry TTL<br/>nostr_service.rs:287"]
     RedisGate -->|no| Memory["In-memory sessions only<br/>nostr_service.rs:164"]
     Redis -.->|"restore at initialisation"| Sessions
@@ -85,7 +97,7 @@ flowchart LR
     DivCreds["PROPOSED ADR-2104: execute the SOPS rollout or formally withdraw ADR-109 - plaintext .env is documented as the interim state either way<br/>a 43MB scripts/sops binary dated 2026-05-09 is present and gitignored, but no .sops.yaml, secrets.enc.yaml or sops-env.sh exists<br/>docs/DATA-authority-erasure.md:113"]
     DotEnv -.-> DivCreds
 
-    DebtClear["DEBT: clear_inferred_graph oxigraph_ontology_repository.rs:696 has no production caller, only its test :3511"]
+    DebtClear["DEBT: clear_inferred_graph oxigraph_ontology_repository.rs:696 has no production caller, only its test :3528"]
     InferredGraph -.-> DebtClear
 
     DivWorkspace["OPEN: which row of this matrix moves, and when, if ADR-2137 (proposed, implementation none, activation inactive) makes<br/>Oxigraph and the other query stores optional rebuildable projections of authored Markdown?<br/>docs/DATA-authority-erasure.md:242"]
@@ -318,7 +330,7 @@ sequenceDiagram
     rect rgb(255, 230, 230)
         Note over MEM,POD: DIVERGENCE: no reverse tombstone to RuVector - embedding row persists and stays searchable (docs/DATA-authority-erasure.md:88)
         Note over MEM: this Pod-side delete never calls mcp__claude-flow__memory_delete or any RuVector endpoint - RuVector is<br/>external Postgres reached only via MCP, no delete-propagation hook exists in this path
-        Note over MEM: DRIFT: the server now also holds a direct read-only RuVector client (tokio-postgres from RUVECTOR_PG_CONNINFO, crate visionclaw-memory-cloud),<br/>so MCP-only access holds for writes and deletes but no longer for reads, and the embedding row this path leaves behind has a second consumer Cargo.toml:141-146
+        Note over MEM: DRIFT: the server now also holds a direct read-only RuVector client (tokio-postgres from RUVECTOR_PG_CONNINFO, crate visionclaw-memory-cloud),<br/>so MCP-only access holds for writes and deletes but no longer for reads, and the embedding row this path leaves behind has a second consumer Cargo.toml:144-149
     end
 ```
 
@@ -365,7 +377,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SYNC as GitHubSyncService<br/>src/services/github_sync_service.rs:194
+    participant SYNC as GitHubSyncService<br/>src/services/github_sync_service.rs:204
     participant KG as GRAPH_KNOWLEDGE<br/>oxigraph_ontology_repository.rs:50
     participant AG as GRAPH_ONTOLOGY assert<br/>oxigraph_ontology_repository.rs:48
     participant APD as apply_decision<br/>src/handlers/enrichment_proposals_handler.rs:473
@@ -374,8 +386,8 @@ sequenceDiagram
     participant PROV as GRAPH_PROVENANCE<br/>oxigraph_ontology_repository.rs:57
 
     critical content sync fan-out
-        SYNC->>KG: batch_add_nodes ingest corpus pages (github_sync_service.rs:1587)
-        SYNC->>AG: save_ontology_graph atomic CLEAR GRAPH assert then INSERT DATA (github_sync_service.rs:1026)
+        SYNC->>KG: batch_add_nodes ingest corpus pages (github_sync_service.rs:1659)
+        SYNC->>AG: save_ontology_graph atomic CLEAR GRAPH assert then INSERT DATA (github_sync_service.rs:1048)
     end
     Note over SYNC,AG: authoritative store (the CorpusSource, ADR-2114) commits first via sync run - the Oxigraph projection is regenerated, never hand-edited (docs/DATA-authority-erasure.md:63)
 
@@ -414,6 +426,7 @@ sequenceDiagram
     alt public_reads true (rbac_gate.rs:172-175)
         REQ-->>GATE: None - public route, no auth required
         GATE-->>C: 200 passthrough (rbac_gate.rs:264-269)
+        Note over C,GATE: since dc7fd3858 the graph handler then cuts the reply to the caller's view -<br/>visible_subgraph at src/handlers/api_handler/graph/mod.rs:316, see VC-22.12
     else public_reads false
         REQ-->>GATE: Some(ReadOnly)
         GATE->>RS: effective_role(pubkey, is_power_user) for a mutating/gated route
@@ -438,28 +451,28 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant OP as Operator (force_full_sync)
-    participant SYNC as GitHubSyncService.sync_graphs<br/>src/services/github_sync_service.rs:245
+    participant SYNC as GitHubSyncService.sync_graphs<br/>src/services/github_sync_service.rs:255
     participant KGREPO as kg_repo.clear_graph<br/>src/adapters/oxigraph_graph_repository.rs:1212
-    participant REBUILD as rebuild_assert_graph<br/>src/services/github_sync_service.rs:969
+    participant REBUILD as rebuild_assert_graph<br/>src/services/github_sync_service.rs:991
     participant AG as GRAPH_ONTOLOGY assert
-    participant DECREB as rematerialise_decisions<br/>src/services/github_sync_service.rs:1065
+    participant DECREB as rematerialise_decisions<br/>src/services/github_sync_service.rs:1137
     participant DIRECT as add_owl_class/add_axiom<br/>application/ontology/directives.rs (governed write door)
 
     OP->>SYNC: FORCE_FULL_SYNC=1
-    alt force_full_sync true (github_sync_service.rs:370, :625)
-        SYNC->>KGREPO: clear_graph() drops GRAPH_KNOWLEDGE and GRAPH_AGENT (github_sync_service.rs:406-410, oxigraph_graph_repository.rs:1215-1216)
-        SYNC->>REBUILD: rebuild_assert_graph(stats) (github_sync_service.rs:625-627)
-        REBUILD->>REBUILD: filter KG nodes to ontology-typed only, ONTOLOGY_TYPE_KEY metadata (github_sync_service.rs:985)
-        REBUILD->>AG: CLEAR GRAPH assert then INSERT DATA class nodes + class-relation edges (save_ontology_graph, atomic) (github_sync_service.rs:1026)
-        Note over REBUILD,AG: this CLEAR wipes the ENTIRE assert graph including runtime OWL classes/axioms added via the governed write door (github_sync_service.rs:952-954)
-        REBUILD->>DECREB: rematerialise_decisions() ADR-050 read-half, called AFTER the class CLEAR+INSERT (github_sync_service.rs:1042)
-        DECREB->>DECREB: list_pages_under(DECISIONS_DIR), decision_page_quads_logged per page (github_sync_service.rs:1066, :1094)
-        DECREB->>AG: insert_quads_to_store re-derived dl:DecisionRecord quads, non-fatal on failure (github_sync_service.rs:1105, :1042-1048)
+    alt force_full_sync true (github_sync_service.rs:378, :647)
+        SYNC->>KGREPO: clear_graph() drops GRAPH_KNOWLEDGE and GRAPH_AGENT (github_sync_service.rs:428-432, oxigraph_graph_repository.rs:1215-1216)
+        SYNC->>REBUILD: rebuild_assert_graph(stats) (github_sync_service.rs:647-649)
+        REBUILD->>REBUILD: filter KG nodes to ontology-typed only, ONTOLOGY_TYPE_KEY metadata (github_sync_service.rs:1007)
+        REBUILD->>AG: CLEAR GRAPH assert then INSERT DATA class nodes + class-relation edges (save_ontology_graph, atomic) (github_sync_service.rs:1048)
+        Note over REBUILD,AG: this CLEAR wipes the ENTIRE assert graph including runtime OWL classes/axioms added via the governed write door (github_sync_service.rs:974-976)
+        REBUILD->>DECREB: rematerialise_decisions() ADR-050 read-half, called AFTER the class CLEAR+INSERT (github_sync_service.rs:1064)
+        DECREB->>DECREB: list_pages_under(DECISIONS_DIR), decision_page_quads_logged per page (github_sync_service.rs:1138, :1166)
+        DECREB->>AG: insert_quads_to_store re-derived dl:DecisionRecord quads, non-fatal on failure (github_sync_service.rs:1177, :1064-1070)
     else incremental sync (SHA1 filter narrowed file list)
-        SYNC->>SYNC: clear_graph guard not entered, existing data left intact (github_sync_service.rs:406)
+        SYNC->>SYNC: clear_graph guard not entered, existing data left intact (github_sync_service.rs:428)
     end
     Note over DIRECT,AG: a class added via add_owl_class/add_axiom between full-syncs is NOT itself in GRAPH_PROVENANCE-protected history for the<br/>assert graph - only re-derivation from the corpus (the visionGraph vault via CorpusSource, ADR-2114) restores it after the next rebuild
-    Note over DECREB,AG: attribution is deliberately NOT re-materialised here - the signed PROV-O attribution stays in GRAPH_PROVENANCE (ADR-049)<br/>the corpus decision page carries only the summary (github_sync_service.rs:1034-1041)
+    Note over DECREB,AG: attribution is deliberately NOT re-materialised here - the signed PROV-O attribution stays in GRAPH_PROVENANCE (ADR-049)<br/>the corpus decision page carries only the summary (github_sync_service.rs:1056-1063)
     Note over SYNC,AG: PROPOSED ADR-2102: one durable erasure record, five store acknowledgements, and a partial erasure that is recorded<br/>and retryable rather than a silent success - agentbox ADR-2060 is the RuVector-side half and is referenced, not superseded
 ```
 
@@ -476,3 +489,62 @@ flowchart TD
     DriftNote["RESOLVED ADR-2069: the required/optional membership contract is ratified as the design and DATA-authority-erasure.md now describes it - a missing REQUIRED_DBS member (settings/enrichment/kpi, backup-sqlite.sh:75) aborts the run and publishes no manifest (:242-245), a missing OPTIONAL_DBS member (liveness, :76) is recorded (:225-227), logged and the run continues (:247). Oxigraph still has NO point-in-time backup - that bullet stands. DRIFT: DATA-authority-erasure.md:110 cites :229 for that, which is the rc check"]
     Req -.-> DriftNote
 ```
+
+## VC-22.12 Visible subgraph and hidden page-name scrub (ADR-060 M1)
+
+<!-- 2026-11-06 restamp ec785afa9: new. dc7fd3858 gates REST graph reads with the /wss policy, 395b62924 and efec9b27d scrub hidden page names -->
+```mermaid
+flowchart TB
+    CALL["Callers: caller_view_for graph_access.rs:31-36,<br/>REST graph read api_handler/graph/mod.rs:316,<br/>/wss initialGraphLoad socket_flow_handler/types.rs:505"] --> VS["visible_subgraph(graph, pubkey, filter_on)<br/>visibility_filter.rs:184"]
+    VS -->|filter off| SAME["graph returned unchanged<br/>visibility_filter.rs:189-191"]
+    VS --> KEPT["keep nodes where of_node(n).is_visible_to(caller)<br/>visibility_filter.rs:192-196, of_node :101-115"]
+    KEPT -->|"nothing removed"| SAME2["same Arc, no scrub needed<br/>visibility_filter.rs:198-209"]
+    KEPT --> PN["PageNames: hidden = removed nodes' metadata_id, label, owl_class_iri,<br/>file_name, page_iri, class_iri, plus orphan metadata rows<br/>visibility_filter.rs:271-289"]
+    PN --> IH["is_hidden: in hidden and not shared with a visible page<br/>visibility_filter.rs:295-298"]
+    IH --> SN["scrub_node: is_subclass_of and tags only<br/>visibility_filter.rs:312-313, :322-327"]
+    IH --> SR["scrub_row: is_subclass_of, belongs_to_domain<br/>visibility_filter.rs:304-305"]
+    PN --> TC["topic_counts kept only for VISIBLE page names (allow-list)<br/>visibility_filter.rs:302-303"]
+    SN --> OUT["nodes, edges with both ends kept, metadata rows of kept nodes<br/>visibility_filter.rs:213-244"]
+    SR --> OUT
+    TC --> OUT
+    SN -.-> NOT["domain and source_domain left alone by design<br/>visibility_filter.rs:308-311"]
+    OUT --> T["test hidden_page_names_are_scrubbed_from_visible_rows_and_nodes<br/>visibility_filter.rs:739"]
+```
+
+**Invariant:** a visible node or metadata row never names a removed page in a page-reference key. `scrub_node` covers `is_subclass_of` and `tags` (`crates/visionclaw-domain/src/utils/visibility_filter.rs:313`), and `scrub_row` covers `is_subclass_of`, `belongs_to_domain` and `topic_counts` (`crates/visionclaw-domain/src/utils/visibility_filter.rs:302-305`).
+
+**Tension (risk):** plain `domain` and `source_domain` text is not scrubbed, by design: these keys are frontmatter text, not links, and removing a value that matches a hidden page name would itself reveal the page (`crates/visionclaw-domain/src/utils/visibility_filter.rs:308-311`). A visible page whose `domain` text equals a hidden page's name still shows that name.
+
+**Debt (parallel):** the scrub uses two rules. `topic_counts` keeps only names on the visible allow-list (`crates/visionclaw-domain/src/utils/visibility_filter.rs:302-303`). Every other key removes only names on the hidden block-list (`crates/visionclaw-domain/src/utils/visibility_filter.rs:304-305`, `:320`), so a dangling reference to a page that does not exist survives everywhere except `topic_counts`.
+
+## VC-22.13 Corpus history in the provenance graph (VisionFlow ADR-2022 P2 and P4)
+
+<!-- 2026-11-06 restamp ec785afa9: new. 9fd0e85cc and ab1e636ff record full-sync corpus changes as assertion-versions. ADR-2022 here is the VisionFlow record. VisionClaw's own ADR-2022 is did:nostr hex identity, so it is not listed in adrs -->
+```mermaid
+sequenceDiagram
+    autonumber
+    participant RB as rebuild_assert_graph tail<br/>src/services/github_sync_service.rs:1075
+    participant VR as verify_and_record_corpus_history<br/>src/services/github_sync_service.rs:1082
+    participant CH as corpus_history.verify_and_record<br/>src/services/corpus_history.rs:398
+    participant AG as GRAPH_ASSERT
+    participant PG as GRAPH_PROVENANCE
+    RB->>VR: after the class CLEAR+INSERT and rematerialise_decisions (github_sync_service.rs:1064-1071)
+    VR->>VR: resolve_corpus_agent - kill switch, then panel key as did:nostr (corpus_history.rs:94-108)
+    VR->>CH: spawn_blocking verify_and_record(store, graph, agent, now)
+    CH->>AG: P4 - digest of what the rebuild meant to write vs what assert holds (corpus_history.rs:406-420)
+    alt agent Disabled, NoIdentity or Misconfigured
+        CH-->>VR: not_recorded_reason set, nothing written (corpus_history.rs:425-441)
+    else Ready
+        CH->>CH: public_subgraph - public true only, IRI triples only (corpus_history.rs:121-128, :444)
+        CH->>PG: diff against open corpus-sync versions this writer owns (corpus_history.rs:178, :445-446)
+        CH->>PG: apply_history - open and close assertion-versions (corpus_history.rs:359, :458)
+        CH->>PG: re-read open versions, digest vs public set (corpus_history.rs:466-474)
+    end
+    CH-->>VR: report - digest, opened, closed, errors, all non-fatal
+    Note over CH,PG: INVARIANT private content never enters - the store cannot erase until ADR-2102 lands (corpus_history.rs:19-22)
+```
+
+**Debt (parallel):** the corpus-history writer re-implements the public test inline (`src/services/corpus_history.rs:125-128`) instead of calling `NodeVisibility::of_node` (`crates/visionclaw-domain/src/utils/visibility_filter.rs:101-105`), the predicate every wire path uses. The two currently agree, but the "private content never enters an unerasable store" invariant depends on that.
+
+**Open (risk):** the writer records nothing when no panel key is configured (`src/services/corpus_history.rs:431-434`), and surfaces that only as `SyncStatistics.corpus_history_not_recorded` and a warn. Any deployment without an ACSP panel key therefore keeps no corpus history.
+

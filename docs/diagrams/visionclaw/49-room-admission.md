@@ -14,7 +14,7 @@ sources:
   - ../project/crates/visionclaw-xr-presence/src/ports/mod.rs
   - ../project/src/handlers/presence_handler.rs
   - ../project/src/actors/presence_actor.rs
-verified_commit: {visionclaw: 86cdd7635582}
+verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
 ---
 
 ## For developers
@@ -63,3 +63,5 @@ flowchart TD
 ```
 
 **What it shows.** The proposed check applies both at entry and during a session. **Why it is this way.** A successful initial identity check cannot prove continuing membership; the 90-second presence deadline still needs implementation and adversarial timing evidence.
+
+**Tension:** The proposal lets unbound rooms keep "the member cap" (`IDENTITY-authority-chain.md:244`), but `Room::join` checks only for a duplicate DID before inserting (`room.rs:42-52`), so no cap exists to keep.

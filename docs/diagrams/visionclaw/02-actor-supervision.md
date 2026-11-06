@@ -28,8 +28,16 @@ sources:
   - ../project/crates/visionclaw-actors/src/supervisor.rs
   - ../project/tests/orchestration_improvements_test.rs
   - ../project/src/actors/mod.rs
-verified_commit: 86cdd76355823a51bb64d503c005fe277726e724
+verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
 ---
+
+## For developers
+
+The graph side of the server is a tree of actix actors under `GraphServiceSupervisor`, the one live supervision path since ADR-2045 removed the generic supervisor (VC-02.4 to VC-02.7). It starts four children in a fixed order, routes every graph, physics and client message to the right one (VC-02.3) and restarts a failed child with backoff or escalates. The position path is GPU to `ForceComputeActor` to the supervisor to `ClientCoordinatorActor`, never through the physics orchestrator (ADR-2141, VC-02.12). At ec785afa9 a node interaction carries its holder, so only the connection that took a node can release it (VC-02.12).
+
+## For the business
+
+These are the server's internal workers for the graph, physics and connected viewers, and the rules for restarting one that fails. A failed worker is restarted a bounded number of times and then escalated, rather than being retried forever. Moving a node now stays smooth when two people grab the same node: one person letting go no longer stops the layout while the other is still dragging.
 
 ## VC-02.1 Supervision-tree topology — AppState::new boot order
 ```mermaid
@@ -186,7 +194,7 @@ flowchart LR
     H20 --> SELF
     H24 --> SELF
 
-    N1["H12/H13/H28 also call notify_graph_updated (debounced graphUpdated broadcast) before forwarding<br/>H24/H26/H27 default-value fallback when the target child is None (never propagate an error to caller)<br/>H22 UpdateNodePositions no longer reaches PhysicsOrchestratorActor: publish_positions (graph_service_supervisor.rs:612) sends PublishPositions to the client coordinator and forwards the original UpdateNodePositions to GraphStateActor<br/>which mutates its Arc~GraphData~ in-place (graph_state_actor.rs:899-900), so a later GetGraphData poll (H7) returns the GPU-computed layout<br/>notify_graph_updated (called by H12/H13/H28) now also pushes node-type arrays to the coordinator before its debounce (graph_service_supervisor.rs:555-560, push_node_type_arrays :1542)"]
+    N1["H12/H13/H28 also call notify_graph_updated (debounced graphUpdated broadcast) before forwarding<br/>H24/H26/H27 default-value fallback when the target child is None (never propagate an error to caller)<br/>H22 UpdateNodePositions no longer reaches PhysicsOrchestratorActor: publish_positions (graph_service_supervisor.rs:612) sends PublishPositions to the client coordinator and forwards the original UpdateNodePositions to GraphStateActor<br/>which mutates its Arc~GraphData~ in-place (graph_state_actor.rs:884-885), so a later GetGraphData poll (H7) returns the GPU-computed layout<br/>notify_graph_updated (called by H12/H13/H28) now also pushes node-type arrays to the coordinator before its debounce (graph_service_supervisor.rs:555-560, push_node_type_arrays :1542)"]
     H12 --- N1
 ```
 
@@ -341,6 +349,7 @@ classDiagram
     }
     class NodeInteractionMessage {
       +u32 node_id
+      +u64 holder
       +NodeInteractionType interaction_type
       +Option~List~f32~~ position
       result() Result~(),VisionClawError~
@@ -422,23 +431,25 @@ sequenceDiagram
     participant GSS as GraphServiceSupervisor<br/>src/actors/graph_service_supervisor.rs:763
     participant PO as PhysicsOrchestratorActor<br/>src/actors/physics_orchestrator_actor.rs
     participant GPU as GPU boundary<br/>see VC-10
-    participant CC as ClientCoordinatorActor<br/>src/actors/client_coordinator_actor.rs:1315
+    participant CC as ClientCoordinatorActor<br/>src/actors/client_coordinator_actor.rs:1321
 
     GSS->>PO: StartSimulation (src/actors/graph_service_supervisor.rs:1771)
     GSS->>PO: SimulationStep (:1788)
     GSS->>PO: UpdateSimulationParams (:1840, now boxed Box~UpdateSimulationParams~ in SupervisorMessage and BufferedMessage)
     GSS->>PO: ForceResumePhysics (:1868)
-    GSS->>PO: NodeInteractionMessage (:2067)
+    GSS->>PO: NodeInteractionMessage (:2067), now carrying the holder connection id
+    PO->>PO: track_hold_owner, Dragged records node to holder, Released clears only the same holder's hold (physics_orchestrator_actor.rs:1183-1194, :1201)
+    Note over PO: any hold zeroes the step interval and blocks the equilibrium auto-pause (physics_orchestrator_actor.rs:309-314, :673-676),<br/>so a stale release from a previous holder can no longer put the orchestrator to sleep mid-drag (drag holds see VC-52)
     GSS->>PO: StoreGPUComputeAddress (:1897 handler, do_send at :1931, from the GPUManagerActor GetForceComputeActor reply)
     GSS->>PO: ForceComputeActorReplaced (subscribed by wire_force_compute_subscribers :598, so a restarted ForceComputeActor gets the graph again)
     GPU->>GSS: UpdateNodePositions from ForceComputeActor (handler :2058)
     GSS->>CC: PublishPositions via publish_positions (:612)
-    CC->>CC: update_position_cache then pump, each client streamed its next chunk until acknowledged (client_coordinator_actor.rs:1315-1322)
+    CC->>CC: update_position_cache then pump, each client streamed its next chunk until acknowledged (client_coordinator_actor.rs:1321-1328)
     Note over PO,CC: INVARIANT (ADR-2141) — PhysicsOrchestratorActor has no UpdateNodePositions handler and<br/>no client_coordinator_addr: the position path is GPU to ForceComputeActor to GraphServiceSupervisor<br/>to ClientCoordinatorActor to WebSocket (physics_orchestrator_actor.rs:578-581)
-    Note over GSS,CC: DRIFT: docs/BASELINE-architecture.md:350-352 still routes the position broadcast<br/>through PhysicsOrchestratorActor, and its :160-162 reads the same way
+    Note over GSS,CC: DRIFT: docs/BASELINE-architecture.md:402-404 still routes the position broadcast<br/>through PhysicsOrchestratorActor, and its :163-165 reads the same way
 ```
 
-**Drift (BASELINE-architecture.md vs code):** `docs/BASELINE-architecture.md:350-352` and `:160-162` name `PhysicsOrchestratorActor` as the hop between `ForceComputeActor` and `ClientCoordinatorActor`; `src/actors/graph_service_supervisor.rs:2058-2064` hands `UpdateNodePositions` to `publish_positions` (`:612`), which sends `PublishPositions` straight to the coordinator, and the orchestrator has no handler for it (`src/actors/physics_orchestrator_actor.rs:578-581`).
+**Drift (BASELINE-architecture.md vs code):** `docs/BASELINE-architecture.md:402-404` and `:163-165` name `PhysicsOrchestratorActor` as the hop between `ForceComputeActor` and `ClientCoordinatorActor`; `src/actors/graph_service_supervisor.rs:2058-2064` hands `UpdateNodePositions` to `publish_positions` (`:612`), which sends `PublishPositions` straight to the coordinator, and the orchestrator has no handler for it (`src/actors/physics_orchestrator_actor.rs:578-581`).
 
 ## VC-02.15 SemanticProcessorActor and OptimizedSettingsActor — message surfaces
 ```mermaid
@@ -530,7 +541,7 @@ sequenceDiagram
     AB->>AB: RosterFeed.apply turns the roster into presence and state events (src/actors/agent_beam_actor.rs:246-264)
     HUB->>AB: process-global agent-event stream, each action joined to its roster agent by taskId (src/actors/agent_beam_actor.rs:186-197)
     AB->>CC: encoded 0x23 frames via BroadcastAgentActionFrame, plus a 1s roster keep-alive tick (src/actors/agent_beam_actor.rs:303-309)
-    Note over AB,GSS: Swarm agents are no longer graph nodes: GraphStateActor holds no bots graph<br/>(src/actors/graph_state_actor.rs:1072-1074) — /bots/data is the AgentBeamActor roster view (src/actors/agent_beam_actor.rs:267-283)
+    Note over AB,GSS: Swarm agents are no longer graph nodes: GraphStateActor holds no bots graph<br/>(src/actors/graph_state_actor.rs:1057-1059) — /bots/data is the AgentBeamActor roster view (src/actors/agent_beam_actor.rs:267-283)
 ```
 
-**Drift (RESOLVED in this restamp, 2026-11-02):** at 8692b12 this file routed `GetBotsGraphData`, `UpdateBotsGraph` and `UpdateChainPayments` to `GraphStateActor` and drew `AgentBeamActor` with no retained address. At 86cdd7635 all three go to `AgentBeamActor` (`src/actors/graph_service_supervisor.rs:1815`, `:2031`, `:2043`), registered by `SetAgentBeamAddr` (`src/app_state.rs:811`), and `GraphStateActor` holds no bots graph (`src/actors/graph_state_actor.rs:1072-1074`).
+**Drift (RESOLVED in this restamp, 2026-11-02):** at 8692b12 this file routed `GetBotsGraphData`, `UpdateBotsGraph` and `UpdateChainPayments` to `GraphStateActor` and drew `AgentBeamActor` with no retained address. At 86cdd7635 all three go to `AgentBeamActor` (`src/actors/graph_service_supervisor.rs:1815`, `:2031`, `:2043`), registered by `SetAgentBeamAddr` (`src/app_state.rs:811`), and `GraphStateActor` holds no bots graph (`src/actors/graph_state_actor.rs:1057-1059`).

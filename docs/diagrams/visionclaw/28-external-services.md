@@ -28,8 +28,16 @@ sources:
   - ../project/agentbox/services/agentbox-manifest/src/system_one.rs
   - ../project/crates/visionclaw-jev/src/config.rs
   - ../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md
-verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724, agentbox: 5cffdd1d926a9d10c393ec6d6c7a0f4e74ab2925}
+verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d, agentbox: 5cffdd1d926a9d10c393ec6d6c7a0f4e74ab2925}
 ---
+
+## For developers
+
+This topic lists every outbound integration the server calls: RAGFlow, Perplexity, ComfyUI image generation, the GitHub REST API for pull requests, and the speech service boundary. VC-28.9 gives the consolidated dependency map. Re-stamped at ec785afa9 with no mechanism change in the cited sources.
+
+## For the business
+
+These are the outside services the product depends on for search, image generation, code review and voice.
 ## VC-28.1 ragflow_service — outbound RAGFlow agent API
 ```mermaid
 sequenceDiagram

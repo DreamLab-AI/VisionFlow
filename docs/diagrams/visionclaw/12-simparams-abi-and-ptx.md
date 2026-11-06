@@ -6,7 +6,6 @@ governing:
   - ../project/docs/GPU-wire-abi.md
 adrs: [ADR-2028, ADR-2030, ADR-2054, ADR-2055, ADR-2056, ADR-2140]
 sources:
-  - ../project/src/models/simulation_params.rs
   - ../project/crates/visionclaw-domain/src/models/simulation_params.rs
   - ../project/crates/visionclaw-gpu/src/cuda_sources/visionclaw_unified.cu
   - ../project/crates/visionclaw-gpu/src/cuda_sources/semantic_forces.cu
@@ -25,9 +24,16 @@ sources:
   - ../project/src/utils/gpu_diagnostics.rs
   - ../project/src/gpu/mod.rs
   - ../project/src/physics/mod.rs
-  - ../project/docs/adr/ADR-2054-remove-dead-gpu-and-analytics-code.md
-verified_commit: 86cdd76355823a51bb64d503c005fe277726e724
+verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
 ---
+## For developers
+
+SimParams is a 212-byte repr(C) struct shared by Rust and CUDA. This topic lays out its fields, the feature-flag bits, the GPU buffers, and how build.rs produces the PTX the runtime loads. Any field change must move both sides together.
+
+## For the business
+
+A mismatch between the Rust and GPU copies of the parameters makes the layout physics silently wrong. These diagrams show where the two copies are pinned to each other.
+
 ## VC-12.1 SimParams full 212-byte repr(C) layout
 ```mermaid
 classDiagram
@@ -145,7 +151,7 @@ classDiagram
     note for FeatureFlags_Rust "crates/visionclaw-domain/src/models/simulation_params.rs:117-125"
     note for FeatureFlags_CUDA "crates/visionclaw-gpu/src/cuda_sources/visionclaw_unified.cu:124-129"
     note for FeatureFlags_Rust "ADR-2060: bit3/bit5 are RESERVED Rust-side<br/>zero hits in CUDA, not a defect"
-    note for FeatureFlags_Rust "DRIFT: docs/GPU-wire-abi.md:75 places the bit constants at<br/>lines 113-119 of the domain file, they are at crates/visionclaw-domain/src/models/simulation_params.rs:117-125"
+    note for FeatureFlags_Rust "DRIFT: docs/GPU-wire-abi.md:82 places the bit constants at<br/>lines 113-119 of the domain file, they are at crates/visionclaw-domain/src/models/simulation_params.rs:117-125"
     note for FeatureFlags_Rust "KEYSTONE: ENABLE_CONSTRAINTS is<br/>residency-owned (execution.rs:1141-1144)"
 ```
 
@@ -394,7 +400,7 @@ sequenceDiagram
             Loader-->>GRA: Some(content) (gpu_resource_actor.rs:129-135)
         end
     end
-    Note over Loader,GRA: PTXModule::SemanticForces is the ninth loadable module (ptx_loader.rs:221, all_modules at :291-302)<br/>but GPUResourceActor does not load it, ForceComputeActor::refresh_semantic does on each graph upload<br/>(force_compute_actor.rs:4764-4767) and hands the PTX to UnifiedGPUCompute::enable_semantic (execution.rs:1064)
+    Note over Loader,GRA: PTXModule::SemanticForces is the ninth loadable module (ptx_loader.rs:221, all_modules at :291-302)<br/>but GPUResourceActor does not load it, ForceComputeActor::refresh_semantic does on each graph upload<br/>(force_compute_actor.rs:4792-4795) and hands the PTX to UnifiedGPUCompute::enable_semantic (execution.rs:1064)
     GRA->>UGC: new_with_modules(num_nodes, num_edges, ptx, clustering_ptx, apsp_ptx)<br/>(gpu_resource_actor.rs:143) delegates to new_with_all_modules (construction.rs:272-279, :286-292)
     UGC->>UGC: validate_ptx_content(ptx_content) (construction.rs:293, gpu_diagnostics.rs:185)
     alt primary PTX fails structural validation
@@ -421,7 +427,7 @@ sequenceDiagram
     end
     Note over UGC: DOC-DRIFT (predates this window, commit da2f5cac7) - apsp_ptx is NO LONGER loaded<br/>into a module. REMOVED under ADR-2054: apsp_module had zero read sites (nothing ever<br/>resolved a kernel from it), so the load cost a startup PTX parse and logged a false<br/>"GPU APSP is DISABLED" about a capability NFR-7 forbids permanently. The parameter is<br/>retained and ignored (let _ = apsp_ptx, construction.rs:341-347) so callers need not<br/>change shape. See VC-15 for ShortestPathActor::ComputeAPSP, which never used this module.
     Note over UGC,Cust: get_function(name) resolves a kernel by string<br/>e.g. force_pass/integrate_pass_kernel (execution.rs:666, :989)<br/>a Rust ? propagates the error if absent
-    Note right of UGC: INVARIANT - fallback-PTX for nvcc-less builds<br/>secondary-module failures DEGRADE, not crash<br/>Invariant 5 at docs/GPU-wire-abi.md:283
+    Note right of UGC: INVARIANT - fallback-PTX for nvcc-less builds<br/>secondary-module failures DEGRADE, not crash<br/>Invariant 5 at docs/GPU-wire-abi.md:290
     Note right of UGC: DIVERGENCE - get_function by name, ONLY symbol check<br/>unguarded if build-time symbol gate bypassed<br/>e.g. a cached OUT_DIR artefact<br/>NARROWED by ADR-2030: a baked artefact whose bytes changed after the build<br/>is refused (ptx_loader.rs:452-462), a missing tag or file skips the check
 ```
 

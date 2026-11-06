@@ -41,8 +41,16 @@ sources:
   - ../project/src/app_state.rs
   - ../project/src/services/ontology_mutation_service.rs
   - ../project/src/services/voice_intent_client.rs
-verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35}
+verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35}
 ---
+
+## For developers
+
+ACSP is the governed path from an enrichment proposal or an agent finding to a recorded decision. The `ElevationActor` drafts a page and follows a pull request to merge, a parallel `DecisionElevationActor` handles typed decisions, and Nostr governance events (kinds 31400-31405) publish the outcome. Re-stamped at ec785afa9 with no mechanism change in the cited sources.
+
+## For the business
+
+Changes that matter to the shared knowledge base are proposed, reviewed and recorded as decisions, never applied silently. The outcome of each decision is published as a signed governance event.
 
 ## VC-24.1 Enrichment-proposal lifecycle (real status values)
 

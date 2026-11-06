@@ -34,8 +34,16 @@ sources:
   - ../project/src/actors/agent_demo_director.rs
   - ../project/src/handlers/api_handler/agents_demo.rs
   - ../project/src/main.rs
-verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724}
+verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
 ---
+
+## For developers
+
+This topic maps how VisionClaw reaches the agent estate: the legacy MCP-TCP poller, the MCP relay and multi-MCP discovery sockets, the Management API monitor, the task orchestrator, the agent visualisation streams, and the `/wss/agent-events` ingest with its provenance. At ec785afa9 `inject_mock_agents` picks its edge targets from the caller's own view of the graph. Otherwise only cited line positions moved.
+
+## For the business
+
+Agents working in the background show up in the graph as live participants, with what they touch and when. The topic also records which older integration routes are superseded.
 
 ## VC-27.1 BotsClient — legacy `:9500` MCP-TCP poller (superseded path)
 
@@ -124,7 +132,7 @@ sequenceDiagram
     participant A as MCPRelayActor<br/>mcp_relay_handler.rs:39, Actor impl :200
     participant O as Orchestrator WS<br/>ORCHESTRATOR_WS_URL default ws://multi-agent-container:3002/ws (:78-79)
 
-    Client->>H: GET /ws/mcp-relay (upgrade) - main.rs:1115
+    Client->>H: GET /ws/mcp-relay (upgrade) - main.rs:1123
     H->>H: header_token = Authorization Bearer - :475-480 (the ?token= carrier is dev-only :482-494, a release build drops it :496-505)
     alt no token
         H-->>Client: 401 "Authentication required" via the unauthorised closure - :459-467, :507-510
@@ -450,7 +458,7 @@ sequenceDiagram
     participant Proto as AgentVisualizationProtocol<br/>services/agent_visualization_protocol.rs:429, new() :451
     participant Proc as AgentVisualizationProcessor<br/>services/agent_visualization_processor.rs:162, new() :168
 
-    Client->>H: GET /api/visualization/agents/ws - configure_routes :473-489
+    Client->>H: GET /api/visualization/agents/ws - configure_routes :472-488
     H->>Ws: ws::start(AgentVisualizationWs::new) - :209
     Ws->>Ws: started() - do_send(InitConnection), start_heartbeat, start_position_updates - :96-104
     Ws->>Ws: handle(InitConnection) -> send_init_state(ctx) - :132-134
@@ -483,7 +491,7 @@ sequenceDiagram
         Ws->>Ws: warn "Unknown client action" - :180-182
     end
     Note over Ws,Proto: PROPOSED ADR-2066 addendum: send_init_state still reports an empty roster, now explicit rather than<br/>disguised - the fake get_real_agent_data() helper is deleted. A real source exists (bots_client.get_agents_snapshot,<br/>bots_client.rs:233) but Agent lacks the profile, task counts, success_rate and timestamp AgentStatus requires, so the<br/>mapping needs a decided contract rather than invented defaults.
-    Note over Client,H: OPEN: the upgrade carries no token check of its own (bots_visualization_handler.rs:204-210), unlike /ws/mcp-relay<br/>and /multi-mcp/ws - the /api RbacGate passes public reads through (src/main.rs:1131-1137), so any client can open it.<br/>Today it only ever streams an empty roster, so nothing is exposed - it matters once a real source is wired.
+    Note over Client,H: OPEN: the upgrade carries no token check of its own (bots_visualization_handler.rs:204-210), unlike /ws/mcp-relay<br/>and /multi-mcp/ws - the /api RbacGate passes public reads through (src/main.rs:1139-1145), so any client can open it.<br/>Today it only ever streams an empty roster, so nothing is exposed - it matters once a real source is wired.
     Note over Ws: RESOLVED ADR-2066 addendum: the actor now carries a paused flag - pause_updates and resume_updates<br/>set it and the 16ms run_interval returns early while it is set, so the opcodes do what they advertise.
     Note over Proto: agent_visualization_protocol::AgentVisualizationMessage is internally tagged<br/>(serde(tag="type"), agent_visualization_protocol.rs:6-23) - the wire "type" field is the serde rename, not the<br/>Rust variant name: Initialize->"init", PositionUpdate->"positions", StateUpdate->"state",<br/>ConnectionUpdate->"connections", MetricsUpdate->"metrics". AgentStateUpdate (agent_visualization_protocol.rs:107-123)<br/>is a partial differential update - every field but id is Option~T~, and its status string's recognised values<br/>(idle/busy/active/initializing/terminating/offline/error, plus XR-swarm blocked/done) map to the XR client's<br/>status halo via render_store::agent_status_code (xr-client/rust/src/render_store.rs:415-423: busy/active/working/running->working,<br/>blocked/error->blocked, done/terminating/offline->done, else idle)
 ```

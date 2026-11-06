@@ -15,7 +15,9 @@ sources:
   - ../project/crates/visionclaw-domain/src/utils/visibility_filter.rs
   - ../project/xr-client/rust/src/transport.rs
   - ../project/xr-client/scripts/backend_connection.gd
-verified_commit: {visionclaw: 86cdd7635582}
+  - ../project/src/services/corpus_history.rs
+  - ../project/src/actors/agent_demo_director.rs
+verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
 ---
 
 ## For developers
@@ -26,33 +28,36 @@ The [audit](../../estate-review/2026-10-31-portals-and-federation.md) traces cur
 
 Local portals and concurrent graph connections do not provide cross-node data sharing. Federation still needs authenticated release connections, declared projections, permission checks, replay protection and erasure handling.
 
-## VC-48.1 Current XR authentication occurs after the release upgrade gates
+## VC-48.1 The XR client now signs the release upgrade, with a first-message fallback for Codescape
 
 ```mermaid
 flowchart TD
-    DIAL["BackendConnection passes URL and signing secret<br/>backend_connection.gd:318,324"] --> URL["Transport opens socket with URL string<br/>transport.rs:95"]
-    URL --> ORIGIN["Server requires Origin in release<br/>http_handler.rs:67,129,131,139"]
+    DIAL["BackendConnection dials with URL and signing secret<br/>backend_connection.gd:326 backend_connection.gd:332"] --> REQ["graph_upgrade_request: Origin is the target's own scheme and authority<br/>transport.rs:49 transport.rs:63 transport.rs:70"]
+    REQ --> CAR["NIP-98 for the http(s) form of the socket URL, carried as nostr.base64url in Sec-WebSocket-Protocol, bare visionclaw when no secret<br/>transport.rs:71-83"]
+    CAR --> CONN["connect with the signed request<br/>transport.rs:139 transport.rs:147"]
+    CONN --> ORIGIN["Server requires Origin in release<br/>http_handler.rs:67,129,131,139"]
     ORIGIN --> AUTH["Verify signed subprotocol or legacy bearer at upgrade<br/>http_handler.rs:146,151,181,183"]
     AUTH --> DENY["Unauthenticated release upgrade refused<br/>http_handler.rs:314,321,322"]
-    URL --> AFTER["Only after upgrade: request topology then send authenticate text<br/>transport.rs:99,115,118"]
+    CONN --> FB["no subprotocol selected and a secret set: send first-message authenticate, the Codescape contract<br/>transport.rs:165-170"]
 ```
 
-**What it shows.** A secret used for the post-upgrade text message cannot satisfy earlier release Origin and authentication checks. **Why it is this way.** The client and server implement different handshake phases. This source trace does not test a deployed proxy or permissive development mode.
+**What it shows.** The upgrade-phase mismatch the earlier stamp recorded is closed: a configured identity now signs the HTTP upgrade itself, and the post-upgrade text message survives only for a server that selects no subprotocol. **Why it is this way.** One signed carrier for browsers and the headset (`transport.rs:48`); dataspace viewers must still bind one dataspace, which nothing implements.
+**Open (risk):** The native client writes its own `Origin` from the target URL (`transport.rs:63`), so the release Origin gate (`http_handler.rs:139`) separates browsers only; the signed carrier is the actual boundary for non-browser peers.
 
-**Tension:** ADR-2161's Origin prerequisite also needs upgrade-time authentication alignment (`transport.rs:95,115`).
-
-## VC-48.2 Existing visibility and identifiers are narrower than a dataspace contract
+## VC-48.2 One visibility projection, still narrower than a dataspace contract
 
 ```mermaid
 flowchart TD
-    FLAG["Visibility flag defaults ON<br/>explicit false tokens opt out<br/>visibility_filter.rs:26,30,32,38"] --> FILTER["Initial load filters by public or caller owner key<br/>types.rs:277,280,289,295"]
+    FLAG["Visibility flag defaults ON, absent or unrecognised is ON, explicit false tokens opt out<br/>visibility_filter.rs:29 visibility_filter.rs:34-40"] --> OF["of_node reads public and owner_pubkey, the stated single reading<br/>visibility_filter.rs:97-101"]
+    OF --> SUB["visible_subgraph: visible nodes, edges with both ends visible, metadata rows of visible nodes, hidden page names scrubbed<br/>visibility_filter.rs:184 visibility_filter.rs:312"]
+    SUB --> WSS["initialGraphLoad projects through visible_subgraph, then the top-N by quality<br/>types.rs:489 types.rs:505"]
     KINDS["Current typed URN kind set has no Dataspace arm<br/>uri/mod.rs:54,86,94"] --> SHARED["Compile shared agentbox crossing-kind artefact<br/>uri/mod.rs:665"]
-    SPEC["PROPOSED: viewer bound to one dataspace with selector and ACL<br/>PROTOCOL-registry.md:373"] --> RECHECK["PROPOSED: re-evaluate and close access-losing connections<br/>PROTOCOL-registry.md:373"]
+    SPEC["PROPOSED: viewer bound to one dataspace with selector and ACL<br/>PROTOCOL-registry.md:387"] --> RECHECK["PROPOSED: re-evaluate at least every 10 s and close access-losing connections<br/>PROTOCOL-registry.md:387"]
+    SUB -.->|"PROPOSED: selector and acl intersect after this"| SPEC
 ```
 
-**What it shows.** Eighteen production visibility tests pass; the actual bridge refuses the proposed dataspace kind. Neither result proves the proposed connection mode. **Why it is this way.** Existing owner/public filtering and closed identifier translation predate dataspace selectors, ACLs and revocation.
-
-**Drift:** the initial-load filter's comment says the flag defaults OFF (`types.rs:274`), while the flag parser defaults it ON and fails closed (`visibility_filter.rs:21,32`).
+**What it shows.** Owner/public filtering is now one function shared by REST reads and `/wss`; the identifier bridge still refuses a dataspace kind. **Why it is this way.** ADR-060 Phase 4 unified the gate; the earlier comment-versus-parser drift (OFF vs ON) is gone, `types.rs:184` now says default ON.
+**Tension (parallel):** `public_subgraph` (`corpus_history.rs:121`) and the demo director (`agent_demo_director.rs:501-504`) re-read the `public` key themselves despite `visibility_filter.rs:98` calling `of_node` the only reading, and neither scrubs hidden page names (`visibility_filter.rs:312`).
 
 ## VC-48.3 Proposed reference lifetimes distinguish authored data from received copies
 

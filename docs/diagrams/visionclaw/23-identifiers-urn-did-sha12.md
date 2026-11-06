@@ -25,8 +25,16 @@ sources:
   - ../project/agentbox/management-api/middleware/linked-data/surfaces/s04-did.js
   - ../project/agentbox/mcp/servers/lib/memory-tools.js
   - ../project/src/handlers/presence_handler.rs
-verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35}
+verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35}
 ---
+
+## For developers
+
+This topic maps every identifier form: typed `urn:visionclaw` kinds, `did:nostr` hex identities, sha256-12 content addresses, the agentbox federation crossing and the u32 wire node id. At ec785afa9 the legacy class-IRI fallback in the Oxigraph repository moved into one `node_class_iri` helper (VC-23.9), and the `qualityScore` key handling in `client_filter.rs` moved. No identifier grammar changed.
+
+## For the business
+
+Each thing in the system has a stable name that survives restarts and crosses safely into partner systems. A person's identity is their Nostr key, and a short display form is never used as the identity itself.
 
 ## VC-23.1 Typed URN kind taxonomy — src/uri/mod.rs
 ```mermaid
@@ -326,11 +334,11 @@ flowchart TD
     Meta --> Render["vault::render_page(meta, body) -- frontmatter-only emission, elevation_actor.rs:566"]
     Lists --> Render
     Render -.-> NoFence["NO JSON-LD fence, no key:: value lines -- content.starts_with('---\n'), asserted elevation_actor.rs:2018-2021"]
-    QS["vc:qualityScore -- provenance noted in a source comment only, src/actors/client_filter.rs:61-62 -- expanded qualityScore key is consumed, the CURIE itself is not emitted as a literal there"]
+    QS["vc:qualityScore -- provenance noted in a source comment only, src/actors/client_filter.rs:43-44 -- expanded qualityScore key is consumed, the CURIE itself is not emitted as a literal there"]
     OwnerScoped["visionclaw:owner:NPUB/kg/... -- legacy ADR-050 form"] -.-> Absent["grep across src/ and crates/ -- zero occurrences -- superseded by the hex-scoped urn:visionclaw:kg:PUBKEY:ADDRESS grammar"]
 
     DivB["DIVERGENCE: owner-scoped visionclaw:owner:{npub}/kg/... (legacy ADR-050) is not emitted anywhere in src/ or crates/"]
-    DriftX["ADR-2095 class IRI mint stands: CLASS_PREFIX, class_iri and parse_class_iri live in crates/visionclaw-domain/src/uri.rs:16-53, re-exported<br/>at src/uri/mod.rs:351-354 beside the new domain_iri. Mint sites: elevation_actor.rs:352 (case subject_id), :552 (page resource) and :597 (class_ref_iri), oxigraph_ontology_repository.rs:174, :1597, :1626"]
+    DriftX["ADR-2095 class IRI mint stands: CLASS_PREFIX, class_iri and parse_class_iri live in crates/visionclaw-domain/src/uri.rs:16-53, re-exported<br/>at src/uri/mod.rs:351-354 beside the new domain_iri. Mint sites: elevation_actor.rs:352 (case subject_id), :552 (page resource) and :597 (class_ref_iri), oxigraph_ontology_repository.rs:174, and node_class_iri :3096-3099 (called at :1601 and :3114)"]
     Refactor["DOC-DRIFT resolved: draft_class_page no longer embeds a JSON-LD fence string (superseded, ADR-2095 closeout note stale) --<br/>it emits vault YAML frontmatter via visionclaw_domain::vault::render_page; relationships move to extra_lists LISTS<br/>(PRD-sovereign-corpus Q5) rather than a comma-joined scalar, mirroring the amend path in<br/>src/services/ontology_mutation_service.rs:511-535"]
 ```
 

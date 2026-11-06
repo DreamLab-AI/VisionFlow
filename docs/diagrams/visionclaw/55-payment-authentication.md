@@ -9,7 +9,7 @@ sources:
   - ../project/src/utils/auth.rs
   - ../project/src/utils/nip98.rs
   - ../project/tests/pay_nip98_test.rs
-verified_commit: 5fa0e1325a2f903c175cfe67bbc6d644fcf38267
+verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
 ---
 
 ## For developers
@@ -50,3 +50,26 @@ flowchart TD
 ```
 
 Six route regressions and 46 shared-verifier tests pass. Separate storage commits, permissive compatibility URL matching and fresh-token operation retries remain open.
+
+## VC-55.2 The replay window is one process's memory, and URL binding is looser than the signed URL
+
+```mermaid
+flowchart TD
+    AGE["created_at within plus or minus 60 s of the server clock<br/>src/utils/nip98.rs:169"]
+    TTL["claimed ids kept 120 s, twice the window<br/>src/utils/nip98.rs:178"]
+    STORE["one static Mutex map per process, never shared or persisted<br/>src/utils/nip98.rs:221"]
+    CAP["100000 ids overall, 1000 per signer, full cache refuses new auth<br/>src/utils/nip98.rs:198 src/utils/nip98.rs:215 src/utils/nip98.rs:323"]
+    MAP["pay handler logs every verifier error and returns None, so a full cache reads as 401<br/>src/handlers/pay_handler.rs:418-423"]
+    URL["urls_match: host compared only when both URLs are absolute<br/>src/utils/nip98.rs:697"]
+    API["then a path match with or without a leading /api, both directions<br/>src/utils/nip98.rs:711 src/utils/nip98.rs:718"]
+    OPEN1["OPEN: a restart or a second replica forgets every claimed id, so a token inside its 60 s window is spendable once more there"]
+    DEBT1["DEBT: ReplayCacheFull exists so a caller can answer 503, no payment caller does<br/>src/utils/nip98.rs:187-193"]
+    AGE --> TTL --> STORE --> CAP --> MAP
+    STORE --- OPEN1
+    MAP --- DEBT1
+    URL --> API
+```
+
+**What it shows.** Single use holds only within one process for 120 s, and a full cache is indistinguishable from a bad signature at the payment boundary.
+**Open (risk):** A relative `u` tag skips the host comparison (`src/utils/nip98.rs:697`), and the `/api` strip lets one signature match both `/api/pay/...` and `/pay/...` (`src/utils/nip98.rs:711`).
+**Debt (loose end):** The capacity error is collapsed into the generic auth failure at `src/handlers/pay_handler.rs:420`, so the 503 mapping the verifier documents at `src/utils/nip98.rs:193` is unreachable for payments.

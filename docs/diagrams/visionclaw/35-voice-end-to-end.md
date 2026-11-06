@@ -44,8 +44,16 @@ sources:
   - ../project/client/src/services/WebSocketEventBus.ts
   - ../project/src/actors/elevation_actor.rs
   - ../project/client/src/components/VoiceButton.tsx
-verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724, agentbox: 5cffdd1d926a9d10c393ec6d6c7a0f4e74ab2925, unmute: e348e567c7020d40020412024f7aa03c38a3bc3e}
+verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d, agentbox: 5cffdd1d926a9d10c393ec6d6c7a0f4e74ab2925, unmute: e348e567c7020d40020412024f7aa03c38a3bc3e}
 ---
+
+## For developers
+
+Voice from the push-to-talk key to the spoken reply: microphone capture, the `/ws/speech` socket, speech-to-text, the governed voice-intent path that signs a kind-31402 event (ADR-2148), streamed text-to-speech with barge-in, the voice actors, LiveKit spatial voice, and the external voice estate in agentbox (ADR-2151). Re-read at ec785afa9: the VisionClaw side moved only in generated type lines and the BASELINE activation notes; no voice mechanism changed. The agentbox and unmute stamps are unchanged.
+
+## For the business
+
+A user holds a key, speaks, and the selected agent hears them and answers aloud; speaking again cuts the answer off. Requests that would change the shared graph are not acted on straight from speech: they go through the same signed, reviewable path as typed decisions. Headset users do not yet get the spatial voice the browser has.
 
 ## VC-35.1 Push-to-talk state machine and the agent DID binding
 
@@ -283,7 +291,7 @@ sequenceDiagram
     autonumber
     participant SS as SpeechSocket Binary arm<br/>src/handlers/speech_socket_handler.rs:956
     participant SP as SpeechService<br/>src/services/speech_service.rs:32
-    participant CFG as AppFullSettings whisper<br/>src/bin/generate_types.rs:455
+    participant CFG as AppFullSettings whisper<br/>src/bin/generate_types.rs:454
     participant WH as whisper-webui-backend
     participant TX as SpeechService transcription_tx broadcast<br/>src/services/speech_service.rs:43
 
@@ -342,7 +350,7 @@ sequenceDiagram
             PGV->>PGV: reply_abandons_pending(jev, pending, transcript) -- on a repair turn Jev may judge the reply abandons the pending request, which is then evaluated fresh instead of merged<br/>src/services/jev_voice.rs:68, speech_socket_handler.rs:393-399
         end
         PGV->>GATE: pending some ? merge(pending,transcript,confidence) : evaluate(transcript,confidence)<br/>speech_socket_handler.rs:397, :399, :402
-        PGV->>PGV: tighten(jev, outcome) -- after the gate Jev may only HOLD a dispatch it judges unclear and can never release a held utterance<br/>OPEN: the outcome-changing threshold is unset in Compose (docker-compose.unified.yml:25),<br/>which accepts nothing automatically, so neither Jev call alters a turn yet,<br/>and activation is live (VisionClaw ADR-2148 accepted / complete / live, docs/adr/ADR-2148-enable-local-typed-decisions.md:5-7, matching docs/BASELINE-architecture.md:51-53)<br/>docs/reference/configuration.md:475<br/>src/services/jev_voice.rs:99, speech_socket_handler.rs:404
+        PGV->>PGV: tighten(jev, outcome) -- after the gate Jev may only HOLD a dispatch it judges unclear and can never release a held utterance<br/>OPEN: the outcome-changing threshold is unset in Compose (docker-compose.unified.yml:25),<br/>which accepts nothing automatically, so neither Jev call alters a turn yet,<br/>and activation is live (VisionClaw ADR-2148 accepted / complete / live, docs/adr/ADR-2148-enable-local-typed-decisions.md:5-7, matching docs/BASELINE-architecture.md:54-56)<br/>docs/reference/configuration.md:475<br/>src/services/jev_voice.rs:99, speech_socket_handler.rs:404
         alt GateOutcome::Clarify {prompt, pending}
             PGV->>PGV: set_pending_clarification(session_key, pending)<br/>speech_socket_handler.rs:411-414
             PGV->>KO: speak the clarification prompt over the PocketTts path<br/>speech_socket_handler.rs:416-420 - NOT dispatched
@@ -397,7 +405,7 @@ sequenceDiagram
     SS->>SP: text_to_speech(text, SpeechOptions) sends SpeechCommand::TextToSpeech<br/>src/services/speech_service.rs:847-852, from the tts frame speech_socket_handler.rs:645-663
     Note over SS,SP: SpeechOptions voice, speed, stream src/types/speech.rs:91.<br/>The user-scoped TextToSpeechForUser and spatial variants are deleted, SpeechCommand has only TextToSpeech(String, SpeechOptions) src/types/speech.rs:77-88
     SS->>PC: read settings.pocket_tts
-    Note over PC: default_voice "alba", default_speed 1.0, stream true<br/>speech_socket_handler.rs:276-278, :279-281, :282, folded into SpeechOptions :284-289.<br/>The governed ack, clarification and actor confirmations use SpeechOptions::default()<br/>(alba, 1.0, stream) src/types/speech.rs:104-111.<br/>PocketTtsSettings api_url, default_voice, default_format,<br/>default_speed, timeout, stream<br/>crates/visionclaw-domain/src/config/services.rs:78,<br/>generated client type src/bin/generate_types.rs:444
+    Note over PC: default_voice "alba", default_speed 1.0, stream true<br/>speech_socket_handler.rs:276-278, :279-281, :282, folded into SpeechOptions :284-289.<br/>The governed ack, clarification and actor confirmations use SpeechOptions::default()<br/>(alba, 1.0, stream) src/types/speech.rs:104-111.<br/>PocketTtsSettings api_url, default_voice, default_format,<br/>default_speed, timeout, stream<br/>crates/visionclaw-domain/src/config/services.rs:78,<br/>generated client type src/bin/generate_types.rs:443
     SP->>SP: abort the in-flight tts_task, then read tts_provider<br/>src/services/speech_service.rs:288, :292
     Note over SP: DRIFT CLOSED 2026-09-13: TTSProvider is a ONE-variant enum,<br/>PocketTts. The OpenAI branch that was the only leg of this loop<br/>leaving the LAN is deleted, and Kokoro with it.<br/>src/types/speech.rs:66, default at<br/>src/services/speech_service.rs:74
     SP->>PT: POST api_url or http://pocket-tts:8000 plus /v1/audio/speech<br/>model pocket-tts, response_format pcm, stream true<br/>src/services/speech_service.rs:303-315, :318, :320-327

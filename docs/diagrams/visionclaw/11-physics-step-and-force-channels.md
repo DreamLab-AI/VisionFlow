@@ -25,12 +25,19 @@ sources:
   - ../project/src/utils/unified_gpu_compute/semantic.rs
   - ../project/crates/visionclaw-domain/src/types/semantic_config.rs
   - ../project/src/actors/gpu/domain_charge.rs
-  - ../project/crates/visionclaw-domain/src/models/simulation_params.rs
   - ../project/src/handlers/constraints_handler.rs
   - ../project/src/actors/gpu/gpu_resource_actor.rs
   - ../project/crates/vault-core/src/domains.rs
-verified_commit: 86cdd76355823a51bb64d503c005fe277726e724
+verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
 ---
+
+## For developers
+
+One physics step runs ComputeForces through ForceComputeActor: SimParams, the feature-flag word, the kernel launch, integration, and the warm-up, settle and reheat cycle. The force channels are the registry of named forces that settings and constraints switch on. Read this before changing a force, a flag or the settle behaviour.
+
+## For the business
+
+This is the engine that lays the knowledge graph out on screen. Its settle and reheat cycle decides how quickly a graph comes to rest after a change, and how much it moves when someone drags a node.
 
 ## VC-11.1 Physics tick — phase 1, params and flag word
 
@@ -38,19 +45,19 @@ verified_commit: 86cdd76355823a51bb64d503c005fe277726e724
 sequenceDiagram
     autonumber
     participant PO as PhysicsOrchestratorActor<br/>src/actors/physics_orchestrator_actor.rs
-    participant PS as PhysicsSupervisor<br/>physics_supervisor.rs:640
+    participant PS as PhysicsSupervisor<br/>physics_supervisor.rs:639
     participant FCA as ForceComputeActor<br/>force_compute_actor.rs:1779
     participant EX as UnifiedGPUCompute::execute_physics_step_with_bypass<br/>src/utils/unified_gpu_compute/execution.rs:1128
     participant FC as derive_dispatch_feature_flags<br/>src/models/force_channels.rs:488
 
     PO->>FCA: ComputeForces do_send (physics_orchestrator_actor.rs:587), the step loop holds the ForceComputeActor address directly
-    Note over PS: the supervisor forwarder is a second route to the same actor<br/>GPUManagerActor (src/actors/gpu/gpu_manager_actor.rs:335) to PhysicsSupervisor (physics_supervisor.rs:640) to ForceComputeActor (:655)<br/>the orchestrator does not use it
+    Note over PS: the supervisor forwarder is a second route to the same actor<br/>GPUManagerActor (src/actors/gpu/gpu_manager_actor.rs:335) to PhysicsSupervisor (physics_supervisor.rs:639) to ForceComputeActor (:654)<br/>the orchestrator does not use it
     alt shared_context is None
         Note over FCA: no GPU context - initialize_own_gpu_context is retried (force_compute_actor.rs:1840), if still none the frame is skipped,<br/>an error is logged every 300th skip (:1846), the orchestrator is told it was a benign skip and Err is returned (:1855)
     else GPU ready
-        FCA->>FCA: holds.expire(HOLD_EXPIRY 5 s) releases a hold nobody refreshed :1920-1933 (const at :4520)
+        FCA->>FCA: holds.expire(HOLD_EXPIRY 5 s) releases a hold nobody refreshed :1920-1933 (const at :4548)
         FCA->>FCA: step_overrides(warmup, any_held, settle window, damping, global_speed, reheat) :1934-1942
-        Note over FCA: step_overrides (force_compute_actor.rs:4568) - bypass_stability = warmup > 0 OR any node held OR inside the<br/>2 s release settle window (:4579), global_speed floored at HOLD_GLOBAL_SPEED 2.0 while held or settling (:4580-4584),<br/>reheat withheld while held or settling (:4586), elastic overlay on for hold plus settle, hold springs for the hold only (:4587-4588)
+        Note over FCA: step_overrides (force_compute_actor.rs:4596) - bypass_stability = warmup > 0 OR any node held OR inside the<br/>2 s release settle window (:4607), global_speed floored at HOLD_GLOBAL_SPEED 2.0 while held or settling (:4608-4612),<br/>reheat withheld while held or settling (:4614), elastic overlay on for hold plus settle, hold springs for the hold only (:4615-4616)
         FCA->>FCA: stability_warmup_remaining -= 1 when above 0 :1949-1951, reheat = overrides.reheat :1952
         Note over FCA: warmup reset on graph upload - 1200 frames when edge_count == 0 else 600 :1322
         FCA->>EX: set_hold_overlay and set_hold_springs :2015-2016 then execute_physics_step_with_bypass(sim_params, stability_bypass) :2017<br/>from spawn_blocking, after inject_velocity_perturbation for the reheat (:2003) and for a one-shot release impulse (:2008)
@@ -132,7 +139,7 @@ flowchart TD
     N2["RESOLVED ADR-2060: Invariant 2 formerly cited a kernel-launch line in execution.rs for the ENABLE_CONSTRAINTS rule - repointed to derive_dispatch_feature_flags at force_channels.rs:488, the ENABLE_CONSTRAINTS bit itself at force_channels.rs:504-506, which is where the rule actually lives."]
     N3["ADR-2029 test module adr_2029_dispatch_authority force_channels.rs:511 states it observes 'the word that is actually uploaded - not the converter's word, which is overwritten before every execute'"]
     N4["Converter words are therefore DEAD for dispatch - a divergence between A and B cannot reach the GPU"]
-    N5["DRIFT: docs/GPU-wire-abi.md:150 and :152 give the two converters as lines 236-317 and 319-407 of the models file and describe a separate flag derivation for Path B, the From impls are at project/src/models/simulation_params.rs:779 and :865 at this stamp and Path B no longer derives flags of its own"]
+    N5["DRIFT: docs/GPU-wire-abi.md:157 and :159 give the two converters as lines 236-317 and 319-407 of the models file and describe a separate flag derivation for Path B, the From impls are at project/src/models/simulation_params.rs:779 and :865 at this stamp and Path B no longer derives flags of its own"]
     A -.- N5
     D -.- N1
     D -.- N2
@@ -200,7 +207,7 @@ sequenceDiagram
     participant API as constraints_handler<br/>src/handlers/constraints_handler.rs:13
     participant CA as ConstraintActor<br/>constraint_actor.rs:199
     participant OCA as OntologyConstraintActor<br/>ontology_constraint_actor.rs:374
-    participant FCA as ForceComputeActor<br/>force_compute_actor.rs:3396
+    participant FCA as ForceComputeActor<br/>force_compute_actor.rs:3424
     participant EX as execution.rs:1141
 
     API->>CA: UpdateConstraints from POST /constraints/define or /apply (constraints_handler.rs:14-15), handled at constraint_actor.rs:199
@@ -210,10 +217,10 @@ sequenceDiagram
     alt GPU context absent
         Note over OCA: debug "GPU not available, constraints cached for next physics step" ontology_constraint_actor.rs:255-257 and cpu_fallback_count += 1 :251,:258
     else GPU ready
-        OCA->>FCA: UpdateOntologyConstraintBuffer (force_compute_actor.rs:3518, sent from notify_force_compute_actor ontology_constraint_actor.rs:277)
+        OCA->>FCA: UpdateOntologyConstraintBuffer (force_compute_actor.rs:3546, sent from notify_force_compute_actor ontology_constraint_actor.rs:277)
     end
     OCA->>OCA: ApplyMaterializedAxioms ontology_constraint_actor.rs:445, AdjustConstraintWeights :646
-    Note over FCA: both writers only replace the cache and mark it dirty, replace_constraint_cache (force_compute_actor.rs:1657-1662).<br/>sync_constraints uploads before a step only when dirty or the resident count differs from the cache (force_compute_actor.rs:1675-1689),<br/>so an unchanged set costs no upload, and a new GPU context re-marks it dirty (force_compute_actor.rs:3554)
+    Note over FCA: both writers only replace the cache and mark it dirty, replace_constraint_cache (force_compute_actor.rs:1657-1662).<br/>sync_constraints uploads before a step only when dirty or the resident count differs from the cache (force_compute_actor.rs:1675-1689),<br/>so an unchanged set costs no upload, and a new GPU context re-marks it dirty (force_compute_actor.rs:3582)
     FCA->>EX: execute with num_constraints = resident count
     alt num_constraints > 0
         EX->>EX: ENABLE_CONSTRAINTS set (force_channels.rs:504-506) and constraint_force_ptr bound execution.rs:259
@@ -231,35 +238,35 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant PS as PhysicsSupervisor<br/>physics_supervisor.rs:821
+    participant PS as PhysicsSupervisor<br/>physics_supervisor.rs:820
     participant FCA as ForceComputeActor<br/>force_compute_actor.rs:2875
     participant EX as UnifiedGPUCompute<br/>execution.rs:1064 enable_semantic
     participant SG as SemanticGpu<br/>src/utils/unified_gpu_compute/semantic.rs:393
     participant SMA as StressMajorizationActor<br/>stress_majorization_actor.rs:311
 
     Note over PS,SG: SemanticForcesActor was REMOVED (ADR-2140, commit 929fb32c1) - its Configure messages, kernel_bridge stubs and CPU twins are gone, the semantic forces are the physics.semantic settings group
-    PS->>FCA: UpdateSimulationParams forwarded (physics_supervisor.rs:821)
-    FCA->>FCA: idempotency gate compares the semantic group directly (force_compute_actor.rs:4681-4682)
+    PS->>FCA: UpdateSimulationParams forwarded (physics_supervisor.rs:820)
+    FCA->>FCA: idempotency gate compares the semantic group directly (force_compute_actor.rs:4709-4710)
     FCA->>EX: set_semantic_config(stored group) when it changed (force_compute_actor.rs:2709-2717, execution.rs:1084)
     EX->>SG: set_config, semantic_active = config.any_enabled() (execution.rs:1093)
-    PS->>FCA: GetHierarchyLevels (physics_supervisor.rs:967) and RecalculateHierarchy (:991) now go to ForceComputeActor (force_compute_actor.rs:2851, :2875)
-    FCA->>FCA: refresh_semantic on every graph upload (force_compute_actor.rs:1276, fn at :4753)
-    FCA->>EX: derive node type, DAG level, physicality, role, maturity, cross-domain and edge-type metadata, load PTXModule::SemanticForces, enable_semantic (force_compute_actor.rs:4762-4768)
-    PS->>FCA: SetRelationshipTable (physics_supervisor.rs:1040) replaces the ontology relationship table on the device (force_compute_actor.rs:2906)
+    PS->>FCA: GetHierarchyLevels (physics_supervisor.rs:966) and RecalculateHierarchy (:990) now go to ForceComputeActor (force_compute_actor.rs:2851, :2875)
+    FCA->>FCA: refresh_semantic on every graph upload (force_compute_actor.rs:1276, fn at :4781)
+    FCA->>EX: derive node type, DAG level, physicality, role, maturity, cross-domain and edge-type metadata, load PTXModule::SemanticForces, enable_semantic (force_compute_actor.rs:4790-4796)
+    PS->>FCA: SetRelationshipTable (physics_supervisor.rs:1039) replaces the ontology relationship table on the device (force_compute_actor.rs:2906)
     alt metadata or PTX or upload fails
-        Note over FCA: error "semantic forces UNAVAILABLE for this graph", semantic = None, semantic_active = false (force_compute_actor.rs:4786-4788) - forces are OFF, there is no CPU fallback
+        Note over FCA: error "semantic forces UNAVAILABLE for this graph", semantic = None, semantic_active = false (force_compute_actor.rs:4814-4816) - forces are OFF, there is no CPU fallback
     else ready
         EX->>SG: apply(positions, forces) each step after force_pass, before integrate (execution.rs:960-974)
         Note over SG: skipped with a warning if the metadata node count differs from the graph (execution.rs:975-983)
     end
     Note over FCA,SG: DAG layering is the semantic dag force (crates/visionclaw-gpu/src/cuda_sources/semantic_forces.cu:204, group default OFF at semantic_config.rs:55), distinct from the SimParams radial bias dag_bias_k that force_pass_kernel gates on dag_bias_k > 0 with no feature-flag bit (force_channels.rs:34-35)
-    PS->>SMA: TriggerStressMajorization (physics_supervisor.rs:670, forwarded at :686)
+    PS->>SMA: TriggerStressMajorization (physics_supervisor.rs:669, forwarded at :685)
     alt no GPU context
         Note over SMA: handler returns Err "GPU not initialized" (stress_majorization_actor.rs:321-323), perform_stress_majorization (:71) returns Err "GPU not available for stress majorization" (:95) - hard failure, no CPU degradation
     else GPU ready
         SMA->>SMA: perform_stress_majorization runs entirely on the GPU, CheckStressMajorization :365, UpdateStressMajorizationParams :343
     end
-    Note over SMA,FCA: DEBT: ForceComputeActor keeps TriggerStressMajorization, GetStressMajorizationStats and ResetStressMajorizationSafety handlers that only return Err pointing at StressMajorizationActor (force_compute_actor.rs:3437-3444, :3449-3458, :3465-3474)
+    Note over SMA,FCA: DEBT: ForceComputeActor keeps TriggerStressMajorization, GetStressMajorizationStats and ResetStressMajorizationSafety handlers that only return Err pointing at StressMajorizationActor (force_compute_actor.rs:3465-3472, :3477-3486, :3493-3502)
     Note over SMA,FCA: DIVERGENCE bit5 ENABLE_STRESS_MAJORIZATION is declared but never set by derive_dispatch_feature_flags - stress majorization is not a GPU force channel
     Note over SMA,FCA: Stress majorization params live on CPU in SemanticProcessorActor and are absent from GPU SimParams - project/src/models/simulation_params.rs:77
     Note over SMA,FCA: DIVERGENCE bit3 ENABLE_TEMPORAL_COHERENCE is likewise declared but never set - both are reserved bits, not wired force terms
@@ -273,9 +280,9 @@ stateDiagram-v2
     Warmup: Stability warmup - decremented each tick, force_compute_actor.rs:1949-1951
     Active: Integrating - mean per-node KE at or above SETTLE_KE_EPSILON
     Settling: Consecutive sub-epsilon ticks accumulating in settle_stable_frames
-    Settled: is_settled true - reported via GetSettlementState force_compute_actor.rs:3303
+    Settled: is_settled true - reported via GetSettlementState force_compute_actor.rs:3331
     Reheated: reheat_factor greater than 0 - velocity perturbation injected
-    Held: a node is held - stability bypassed, speed floor, no reheat, force_compute_actor.rs:4579-4586
+    Held: a node is held - stability bypassed, speed floor, no reheat, force_compute_actor.rs:4607-4614
 
     Warmup --> Active: warmup frames exhausted
     Active --> Settling: next_stable_frames increments when mean_ke finite and below epsilon force_compute_actor.rs:303-304
@@ -308,12 +315,12 @@ stateDiagram-v2
         UpdateSimulationParams log-ratio scaled 1.0 to 5.0 :2790 with warmup 1800 :2775
         a damping-only change applies without reheat or warmup :2664-2670
         PinNodePositions no longer reheats - msg.reheat queues RELEASE_IMPULSE 0.05 once :3013-3014
-        ResetPositions 1.0 :3683 with warmup 600 :3682
+        ResetPositions 1.0 :3711 with warmup 600 :3710
     end note
     note right of Held
-        step_overrides force_compute_actor.rs:4568 decides each tick
-        HOLD_GLOBAL_SPEED 2.0 floor :4532, RELEASE_SETTLE_WINDOW 2 s :4516
-        a hold not refreshed for HOLD_EXPIRY 5 s is released by the actor :4520, :1920-1933
+        step_overrides force_compute_actor.rs:4596 decides each tick
+        HOLD_GLOBAL_SPEED 2.0 floor :4560, RELEASE_SETTLE_WINDOW 2 s :4544
+        a hold not refreshed for HOLD_EXPIRY 5 s is released by the actor :4548, :1920-1933
     end note
     note right of Active
         Every good frame is display-projected and published

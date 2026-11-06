@@ -35,24 +35,32 @@ sources:
   - ../project/client/src/features/solid/components/PodSettings.tsx
   - ../project/client/src/features/solid/components/ResourceEditor.tsx
   - ../project/src/handlers/image_gen_handler.rs
-verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724}
+verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
 ---
+
+## For developers
+
+VisionClaw embeds a Solid pod and proxies it with NIP-98-signed requests and WAC access control. The client has its own LDP, type-index, WAC and notification stack. The ontology release is pulled from GitHub into the pod at boot. At ec785afa9 the boot pull treats a release as current only when both its build SHA and its source SHA match what the pod already holds (VC-26.13).
+
+## For the business
+
+Each user's data is kept in a Solid pod that the server embeds, with access controlled per resource. The published ontology is copied into the pod at start-up and verified, and a failed download never breaks the server.
 
 ## VC-26.1 Deployment topology — embedded pod vs feature-off stub
 ```mermaid
 flowchart TB
     subgraph cargo["Cargo.toml"]
-        DEFAULT["default = [gpu, ontology, persistence-oxigraph, solid-pod-embed,<br/>shared-corpus-layout]<br/>Cargo.toml:279"]
-        FEAT["solid-pod-embed feature<br/>Cargo.toml:310-316<br/>deps: solid-pod-rs, -nostr, -idp, -server"]
+        DEFAULT["default = [gpu, ontology, persistence-oxigraph, solid-pod-embed,<br/>shared-corpus-layout]<br/>Cargo.toml:282"]
+        FEAT["solid-pod-embed feature<br/>Cargo.toml:313-319<br/>deps: solid-pod-rs, -nostr, -idp, -server"]
     end
     DEFAULT --> FEAT
     FEAT -->|"cfg(feature = solid-pod-embed)"| ON["ON: embedded solid-pod-rs"]
     FEAT -->|"cfg(not(feature = solid-pod-embed))"| OFF["OFF: stub build"]
 
     subgraph onpath["main.rs — feature ON"]
-        INIT["init_solid_state().await<br/>main.rs:910"]
-        APPDATA["app.app_data(solid_state.clone())<br/>main.rs:1095"]
-        CFG["configure_solid_routes<br/>main.rs:1206"]
+        INIT["init_solid_state().await<br/>main.rs:917"]
+        APPDATA["app.app_data(solid_state.clone())<br/>main.rs:1103"]
+        CFG["configure_solid_routes<br/>main.rs:1214"]
         FS["FsBackend::new(SOLID_DATA_ROOT)<br/>solid_proxy_handler.rs:141,151"]
         ROUTES["Full /solid scope: health, .notifications,<br/>pods*, LDP CRUD, DID<br/>solid_proxy_handler.rs:1773-1807"]
         INIT --> FS
@@ -60,7 +68,7 @@ flowchart TB
     end
 
     subgraph offpath["main.rs — feature OFF"]
-        NOINIT["solid_state app_data block compiled out<br/>main.rs:909 and :1094"]
+        NOINIT["solid_state app_data block compiled out<br/>main.rs:916 and :1102"]
         STUBCFG["configure_routes (feature-off twin)<br/>solid_proxy_handler.rs:1821-1824"]
         STUBROUTES["RESOLVED ADR-2067 — registers nothing at all<br/>/solid/*, /.well-known/did.json and /did/* all 404<br/>in a feature-off build (was: a full table of 503 stubs)"]
         NOINIT --> STUBCFG --> STUBROUTES
@@ -79,7 +87,7 @@ flowchart TB
     Note3["RESOLVED ADR-2098 (2026-09-05): SOLID_POD_URL's default in ontology-publish.yml and env.example<br/>was http://jss:3030 / http://visionclaw-jss:3030 - both DNS-dead JSS-sidecar names, a leftover<br/>from before ADR-032 M3 embedded solid-pod-rs. Both now default to http://localhost:4000/solid,<br/>the SYSTEM_NETWORK_PORT (default 4000, main.rs:872) this diagram's own INIT/APPDATA/CFG path<br/>actually serves. The /.notifications POST the workflow still sends is a documented no-op there -<br/>the embedded pod's /.notifications is a GET WebSocket upgrade (see VC-26.9), not a POST trigger."]
     ON -.-> Note3
 
-    Note4["PROPOSED, not live (ADR-2111, decision_status proposed, implementation_status none,<br/>still at HEAD): this repo already depends on the PUBLISHED solid-pod-rs crate -<br/>now resolved from the caret range 0.5.0-alpha.17 (no longer an exact = pin - ER-35 owner decision 2026-10-18,<br/>Cargo.toml:136-138) for all four solid-pod-rs crates, Cargo.toml:246-249, which adds the mrc20 feature whose blocktrails walker<br/>src/web_contract verifies trails with. ADR-2111's own review trigger - the<br/>solid-pod-rs post-port version landing - has now FIRED; what remains proposed is<br/>deleting the extraction/solid-pod-rs mirror and the payment-store rework. The<br/>embedded-pod path shown above is unchanged.<br/>docs/adr/ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:5-7"]
+    Note4["PROPOSED, not live (ADR-2111, decision_status proposed, implementation_status none,<br/>still at HEAD): this repo already depends on the PUBLISHED solid-pod-rs crate -<br/>now resolved from the caret range 0.5.0-alpha.17 (no longer an exact = pin - ER-35 owner decision 2026-10-18,<br/>Cargo.toml:139-141) for all four solid-pod-rs crates, Cargo.toml:249-252, which adds the mrc20 feature whose blocktrails walker<br/>src/web_contract verifies trails with. ADR-2111's own review trigger - the<br/>solid-pod-rs post-port version landing - has now FIRED; what remains proposed is<br/>deleting the extraction/solid-pod-rs mirror and the payment-store rework. The<br/>embedded-pod path shown above is unchanged.<br/>docs/adr/ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:5-7"]
     FEAT -.-> Note4
 ```
 
@@ -508,39 +516,39 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant M as main.rs (solid-pod-embed)<br/>main.rs:909
-    participant SB as spawn_boot_pull<br/>ontology_pull.rs:389
-    participant PO as pull_once<br/>ontology_pull.rs:295
-    participant GH as GitHub release<br/>ontology-latest (DEFAULT_RELEASE_URL, ontology_pull.rs:42)
+    participant M as main.rs (solid-pod-embed)<br/>main.rs:916
+    participant SB as spawn_boot_pull<br/>ontology_pull.rs:403
+    participant PO as pull_once<br/>ontology_pull.rs:303
+    participant GH as GitHub release<br/>ontology-latest (DEFAULT_RELEASE_URL, ontology_pull.rs:43)
     participant ST as Storage (FsBackend)<br/>solid_pod_rs::Storage
 
-    M->>SB: spawn_boot_pull(Arc::clone(&solid_state.storage))<br/>main.rs:917
-    SB->>SB: OntologyPullConfig::from_env()<br/>ontology_pull.rs:77-102
+    M->>SB: spawn_boot_pull(Arc::clone(&solid_state.storage))<br/>main.rs:924
+    SB->>SB: OntologyPullConfig::from_env()<br/>ontology_pull.rs:78-103
     Note over SB: ONTOLOGY_PULL_URL (default DEFAULT_RELEASE_URL), _ENABLED (default true),<br/>_TIMEOUT_SECS (default 120), _INTERVAL_SECS (default 3600, 0 = boot-only)
     alt cfg.enabled == false
-        SB-->>M: return - "ontology pull disabled" (ontology_pull.rs:389-391)
+        SB-->>M: return - "ontology pull disabled" (ontology_pull.rs:403-405)
     else enabled
-        SB->>SB: tokio::spawn(async move loop)<br/>ontology_pull.rs:398 - never blocks start-up
+        SB->>SB: tokio::spawn(async move loop)<br/>ontology_pull.rs:412 - never blocks start-up
         loop every cfg.interval (re-check - None means boot-only)
             SB->>PO: pull_once(&fetch, storage, &cfg)
             PO->>GH: GET index.jsonld
-            PO->>PO: pod_build_sha(storage) vs manifest.build_sha<br/>ontology_pull.rs:312
+            PO->>PO: stored manifest build_sha AND source_sha vs release manifest<br/>ontology_pull.rs:320-327 (sourceSha parsed at :230-231)
             alt build_sha unchanged
                 PO-->>SB: PullOutcome::UpToDate - one small GET, nothing written
             else build moved
-                PO->>GH: GET SHA256SUMS + each of visionflow.ttl, context.jsonld,<br/>ontology.jsonld, visionflow.stats.json (ontology_pull.rs:53)
-                PO->>PO: sha256_hex(body) == expected for every file + the manifest itself<br/>ontology_pull.rs:320-339
+                PO->>GH: GET SHA256SUMS + each of visionflow.ttl, context.jsonld,<br/>ontology.jsonld, visionflow.stats.json (ontology_pull.rs:54)
+                PO->>PO: sha256_hex(body) == expected for every file + the manifest itself<br/>ontology_pull.rs:334-353
                 alt any digest missing or mismatched, or fetch fails
                     PO-->>SB: Err(PullError) - pod untouched, fail-open
                 else all verified
                     PO->>ST: create /public/, /public/ontology/ containers if absent
-                    PO->>ST: PUT /public/ontology/.acl (public-read WAC)<br/>ONLY IF ABSENT - operator edits survive<br/>ontology_pull.rs:361-366
-                    PO->>ST: publish_ontology ontology_pull.rs:378 - PublishedStorage stages all five<br/>resources and sidecars ontology_generation.rs:216, :127
+                    PO->>ST: PUT /public/ontology/.acl (public-read WAC)<br/>ONLY IF ABSENT - operator edits survive<br/>ontology_pull.rs:375-380
+                    PO->>ST: publish_ontology ontology_pull.rs:392 - PublishedStorage stages all five<br/>resources and sidecars ontology_generation.rs:216, :127
                     ST->>ST: fsync staged generation and atomically replace active pointer<br/>ontology_generation.rs:178-204
                     PO-->>SB: "PullOutcome::Updated(build_sha, classes, triples)"
                 end
             end
-            SB->>SB: log_outcome(result, cfg) - info! or warn!, never panics<br/>ontology_pull.rs:416
+            SB->>SB: log_outcome(result, cfg) - info! or warn!, never panics<br/>ontology_pull.rs:430
         end
     end
     Note over PO,ST: INVARIANT fail-open (module doc ontology_pull.rs:12-17): any network or<br/>verification failure is logged and the pod keeps whatever it already held -<br/>see VC-26.10/26.13 for the client read side and EXTERNAL ES-09.13 for the<br/>GitHub-hosted publish job this inverts (a hosted runner cannot reach the<br/>in-process pod, ADR-2098).
@@ -552,7 +560,7 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    Fetch["Fetch and verify all release hashes<br/>ontology_pull.rs:295, :320-339"] --> Probe{"ACL existence succeeds?"}
+    Fetch["Fetch and verify all release hashes<br/>ontology_pull.rs:303, :334-353"] --> Probe{"ACL existence succeeds?"}
     Probe -->|error| Abort["Abort without changing ACL"]
     Probe -->|yes| ACL["Preserve existing ACL; initialise only when absent"]
     ACL --> Stage["Stage immutable files plus manifest generation<br/>ontology_generation.rs:127"]
