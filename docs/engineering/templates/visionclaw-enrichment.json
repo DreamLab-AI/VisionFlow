@@ -52,12 +52,12 @@
       "description": "JSON Schema for enrichment proposals: required fields include subject IRI, predicate, object, provenance source, and confidence score. PLANNED — the proposal shape is defined in code (src/handlers/enrichment_proposals_handler.rs + migrations/sqlite/0003_enrichment_proposals.sql) but no standalone JSON Schema fixture exists yet."
     },
     {
-      "id": "ontology-bridge-mcp-constraints",
+      "id": "vault-cli-ontology-door-constraints",
       "type": "constraint",
-      "source": "agentbox:mcp/servers/ontology-bridge.js",
+      "source": "agentbox:skills/ontology-augment/SKILL.md",
       "source_status": "present",
       "applies_to": ["visionclaw"],
-      "description": "12 MCP tools constrain how agents query and propose mutations to the knowledge graph via the ontology bridge (health, search, class_get/list, axiom_add, propose, validate, graph_query, kg_node_search, kg_neighbors, kg_pathfind, ontology_ask)"
+      "description": "The governed ontology door is the vault CLI (agentbox ADR-2107, ADR-2108; the ontology-bridge MCP server is retired): agents read through vault find/retrieve/tree and propose through `vault propose`, which runs Whelk and the conflict detector as blockers and raises a forum kind-31402 that a signed kind-31403 applies. The ontology-augment skill states the budget-bounded read and propose rules."
     },
     {
       "id": "prov-o-schema",
@@ -97,13 +97,13 @@
       "description": "Enrichment gating: the decide endpoint validates attribution (hex did:nostr), runs the OWL 2 EL consistency path, and only commits a fenced Oxigraph write on attributed approval"
     },
     {
-      "id": "ontology-bridge-health",
+      "id": "vault-propose-governance",
       "type": "computational",
       "source": "agentbox:tests/sovereign/ontology-propose.test.js",
       "source_status": "present",
       "applies_to": ["visionclaw"],
       "frequency": "per_commit",
-      "description": "Ontology bridge health: the 12 MCP tools respond correctly, the SPARQL proxy reaches Oxigraph, and the propose path enforces the governance gate"
+      "description": "Governed proposal path: `vault propose` enforces Whelk and conflict blockers and a signed apply; /api/ontology-agent/propose answers 410 Gone; the ungoverned load backdoor stays disabled by default (ADR-2116)."
     },
     {
       "id": "provenance-chain-integrity",
@@ -127,8 +127,8 @@
       "validation_mode": "blocking"
     },
     {
-      "guide_id": "ontology-bridge-mcp-constraints",
-      "sensor_id": "ontology-bridge-health",
+      "guide_id": "vault-cli-ontology-door-constraints",
+      "sensor_id": "vault-propose-governance",
       "validation_mode": "blocking"
     },
     {
@@ -159,7 +159,7 @@
       "action": "block"
     },
     {
-      "sensor_id": "ontology-bridge-health",
+      "sensor_id": "vault-propose-governance",
       "threshold": "any_failure",
       "action": "block"
     },
