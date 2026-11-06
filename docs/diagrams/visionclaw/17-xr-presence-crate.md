@@ -14,7 +14,7 @@ sources:
   - ../project/src/handlers/presence_handler.rs
   - ../project/src/actors/presence_actor.rs
   - ../project/src/main.rs
-verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
+verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8}
 ---
 
 ## For developers
@@ -34,7 +34,7 @@ sequenceDiagram
     participant PS as PresenceSession<br/>src/handlers/presence_handler.rs:433
     participant PA as PresenceActor<br/>src/actors/presence_actor.rs:655
 
-    C->>PS: GET /ws/presence upgrade (src/main.rs:1127, ws_presence presence_handler.rs:501)
+    C->>PS: GET /ws/presence upgrade (src/main.rs:1152, ws_presence presence_handler.rs:501)
     PS->>PS: phase = SessionPhase::Challenged{nonce, ts_us} :156
     PS->>C: started :436 then send_challenge :163 - ServerHandshake::Challenge{nonce hex, ts}
     C->>PS: ws::Message::Text routed to handle_auth :461

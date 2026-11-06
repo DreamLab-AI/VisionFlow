@@ -28,7 +28,7 @@ sources:
   - ../project/agentbox/services/agentbox-manifest/src/system_one.rs
   - ../project/crates/visionclaw-jev/src/config.rs
   - ../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md
-verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d, agentbox: 5cffdd1d926a9d10c393ec6d6c7a0f4e74ab2925}
+verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8, agentbox: 5cffdd1d926a9d10c393ec6d6c7a0f4e74ab2925}
 ---
 
 ## For developers
@@ -180,7 +180,7 @@ sequenceDiagram
         end
     end
     end
-    Note over PS: DOC-CORRECTED 2026-09-05: endpoint config is read from AppFullSettings.perplexity - api_url, api_key, model at :99-120<br/>not from PERPLEXITY_* env vars - only PERPLEXITY_ENABLED_PUBKEYS gates feature access at feature_access.rs:20 and<br/>PERPLEXITY_API_KEY is read solely as a readiness expectation signal at app_state.rs:1488 - configuration.md:233-234,251 and<br/>how-to/agent-orchestration.md:449 corrected. DRIFT: configuration.md:233 still points the readiness read at app_state line 1516
+    Note over PS: DOC-CORRECTED 2026-09-05: endpoint config is read from AppFullSettings.perplexity - api_url, api_key, model at :99-120<br/>not from PERPLEXITY_* env vars - only PERPLEXITY_ENABLED_PUBKEYS gates feature access at feature_access.rs:20 and<br/>PERPLEXITY_API_KEY is read solely as a readiness expectation signal at app_state.rs:1434 - configuration.md:233-234,251 and<br/>how-to/agent-orchestration.md:449 corrected. DRIFT: configuration.md:233 still points the readiness read at app_state line 1516
 ```
 ## VC-28.4 image_gen_handler — ComfyUI submit path (user session)
 ```mermaid
@@ -421,7 +421,7 @@ flowchart LR
     SS -->|"TTS - degraded: audio chunk skipped, chat continues"| PT
     SS -->|"STT - degraded: transcription dropped"| WHI
     SS -->|"voice-command relay - degraded: spoken error reply"| MCPS
-    JV["Jev hub (opt-in)<br/>12 decision items: library default off, but the supplied Compose environment sets VISIONCLAW_JEV=1 for every item<br/>docs/reference/configuration.md:411-413, docker-compose.unified.yml:21<br/>RESOLVED 2026-10-30 (activation): configured and live - VisionClaw ADR-2148 is accepted / complete / live after the agentbox rebuild and the host recreate (close-out docs/adr/ADR-2148-enable-local-typed-decisions.md:81-91); docs/BASELINE-architecture.md:51-53 agrees<br/> docs/adr/ADR-2148-enable-local-typed-decisions.md:7"]
+    JV["Jev hub (opt-in)<br/>12 decision items: library default off, but the supplied Compose environment sets VISIONCLAW_JEV=1 for every item<br/>docs/reference/configuration.md:411-413, docker-compose.unified.yml:21<br/>RESOLVED 2026-10-30 (activation): configured and live - VisionClaw ADR-2148 is accepted / complete / live after the agentbox rebuild and the host recreate (close-out docs/adr/ADR-2148-enable-local-typed-decisions.md:81-91); docs/BASELINE-architecture.md:52-54 agrees<br/> docs/adr/ADR-2148-enable-local-typed-decisions.md:7"]
     JEP["System One endpoint, first match wins:<br/>VISIONCLAW_JEV_ENDPOINT (an override only: Compose supplies none and the laya systemone:8097 pins are gone), else the agentbox proxy<br/>agentbox:8094, model jev-latest, BACKEND_LOCAL=0 (docker-compose.unified.yml:7-11), else api.typesafe.ai with TYPESAFE_API_KEY, else none<br/>docs/reference/configuration.md:461-466, crates/visionclaw-jev/src/config.rs:308-357<br/>the four local-only items (memory rerank, patch rank, ingest suggest, proposal triage) take the proxy because ALLOW_CLOUD=1 (docker-compose.unified.yml:22, crates/visionclaw-jev/src/config.rs:303-305, :326)<br/>DOC-DRIFT: configuration.md:464 still calls the proxy loopback, while compose reaches it over visionclaw_network (docs/reference/configuration.md:418-421)"]
     AB["agentbox System One proxy - holds the vendor key, no Authorization sent by consumers<br/>bind 0.0.0.0:8094 with network = true: private docker networks only, never published, agentbox.toml:892-893<br/>refuses any request with an Origin header or a non-JSON content type, system-one-proxy/src/server.rs:151-170<br/>backend = typesafe (cloud), laya stays the opt-in local_backend, local_only = [], agentbox.toml:890-894"]
     TS["api.typesafe.ai - the selected cloud backend<br/>agentbox's own consumers listed in [system_one].local_only are routed to laya or switched off, never sent here (services/agentbox-manifest/src/system_one.rs:534-578)<br/>a VisionClaw item stays local only with ALLOW_CLOUD=0, JEV_LOCAL=1 and a local endpoint (docs/reference/configuration.md:423-426)"]

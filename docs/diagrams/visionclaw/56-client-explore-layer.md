@@ -2,7 +2,7 @@
 id: VC-56
 title: Client explore layer, node table, crossfilter widgets, highlight mask and column encoding
 area: visionclaw
-verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
+verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8}
 governing:
   - ../project/docs/BASELINE-architecture.md
 adrs: [ADR-2183, ADR-2184, ADR-2185, ADR-2189]
@@ -11,19 +11,16 @@ sources:
   - ../project/docs/adr/ADR-2183-interactive-filters-grey-out-through-a-highlight-mask.md
   - ../project/docs/adr/ADR-2184-a-client-side-columnar-node-table-drives-visual-encoding.md
   - ../project/docs/adr/ADR-2185-linked-timeline-histogram-and-search-widgets-write-the-highlight-mask.md
-  - ../project/client/package.json
   - ../project/client/src/features/graph/explore/index.ts
   - ../project/client/src/features/graph/explore/ExplorePanel.tsx
   - ../project/client/src/features/graph/explore/GraphLegend.tsx
-  - ../project/client/src/features/graph/explore/analyticsLayout.ts
-  - ../project/client/src/features/graph/explore/__tests__/analyticsLayout.test.ts
   - ../project/client/src/features/graph/explore/buildTable.ts
   - ../project/client/src/features/graph/explore/columnEncoder.ts
   - ../project/client/src/features/graph/explore/crossfilter.ts
   - ../project/client/src/features/graph/explore/exploreStore.ts
   - ../project/client/src/features/graph/explore/filterRegistry.ts
   - ../project/client/src/features/graph/explore/nodeFilter.ts
-  - ../project/client/src/features/graph/explore/nodeTable.ts
+  - ../project/client/src/features/graph/explore/__tests__/nodeTable.test.ts
   - ../project/client/src/features/graph/explore/nodeTable.worker.ts
   - ../project/client/src/features/graph/explore/tableBuilder.ts
   - ../project/client/src/features/graph/explore/tableSchema.ts
@@ -36,6 +33,12 @@ sources:
   - ../project/client/src/features/graph/components/GraphManager.tsx
   - ../project/client/src/features/graph/overview/useNodeEncodingSync.ts
   - ../project/client/src/features/analytics/store/nodeAnalyticsStore.ts
+  - ../project/client/src/features/analytics/analyticsLayout.ts
+  - ../project/client/src/features/analytics/__tests__/analyticsLayout.test.ts
+  - ../project/client/src/features/graph/state/analyticColours.ts
+  - ../project/client/src/features/graph/managers/graphWorkerProxy.ts
+  - ../project/client/src/features/graph/workers/graph.worker.ts
+  - ../project/client/src/features/graph/workers/lib/binary-processor.ts
   - ../project/client/src/features/control-center/ControlCenter.tsx
   - ../project/client/src/features/control-center/drawer/RightDrawer.tsx
 ---
@@ -43,7 +46,7 @@ sources:
 
 The explore layer (ADR-2183, ADR-2184, ADR-2185, landed in the 16d3bb49e suite) is everything between the delivered graph and the two render-indexed buffers that VC-31.13 draws from: a typed-array node table built in a worker, a crossfilter over it, one highlight-mask filter source per widget (`filter:explore:<widget>`) written through `filterRegistry.ts`, and a column encoder that swaps `nodeEncoding`'s encoder for colour-by and size-by. Filters grey nodes out and never remove them; only population scope and hierarchy collapse remove (ADR-2183 D4), and the `hideFiltered` opt-in turns grey back into removal. The render side of the mask and encoding (texel `w`, sprites, gems, labels) is VC-31.13; the drawer and section that host the panel are VC-57. This topic does not cover the provenance `TimelineScrubber` (VC-30) or the server copy of the node-filter predicates (`client_filter.rs`).
 
-**Tension (ADR-2184 D1 vs code):** the record has the client "build one Apache Arrow node table in a worker" (`ADR-2184-a-client-side-columnar-node-table-drives-visual-encoding.md:35`), but the worker builds and transfers plain typed arrays (`buildTable.ts:28-38`, `nodeTable.worker.ts:21-22`); the Arrow form exists only as `toArrowTable` (`nodeTable.ts:21`), which nothing calls beyond its re-export (`explore/index.ts:13`), while `apache-arrow` 21.2.0 is a shipped dependency (`client/package.json:56`).
+The node table is the typed arrays themselves: ADR-2184 D1 was amended on 2026-11-06 to say so, and the unused Arrow conversion and the `apache-arrow` dependency were deleted (`ADR-2184-a-client-side-columnar-node-table-drives-visual-encoding.md:35`, `ADR-2184-a-client-side-columnar-node-table-drives-visual-encoding.md:61`).
 
 ## For the business
 
@@ -69,7 +72,7 @@ flowchart TB
     IDX["INVARIANT: every buffer is indexed by the node's slot in graphData.nodes<br/>nodeIndex.ts:4-10, :24"] --- HM
 ```
 
-**What it shows.** Two mounts feed one shared store; only `GraphLegend`, which ControlCenter always mounts, installs the column encoder, so colour-by works with the drawer closed. **Why it is this way.** ADR-2183's implementation notes route every mask write through `filterRegistry.ts` under `filter:*` and `emph:*` names (`ADR-2183-interactive-filters-grey-out-through-a-highlight-mask.md:70`), and ADR-2189 put the panel in the drawer.
+**What it shows.** Two mounts feed one shared store; only `GraphLegend`, which ControlCenter always mounts, installs the column encoder, so colour-by works with the drawer closed. **Why it is this way.** ADR-2183's implementation notes route every mask write through `filterRegistry.ts` under `filter:*` and `emph:*` names (`ADR-2183-interactive-filters-grey-out-through-a-highlight-mask.md:71`), and ADR-2189 put the panel in the drawer.
 
 ## VC-56.2 Node table build: worker, transfer, newest-wins adoption
 
@@ -109,21 +112,20 @@ flowchart TB
     SCH --> N["node: id, label<br/>tableSchema.ts:58-59"]
     SCH --> M["metadata strings typed by the schema: type, domain, maturity, quality_score,<br/>last_commit, last_modified, change_count and more (tableSchema.ts:62-82)"]
     SCH --> W["wire analytics joined by render index: cluster, community with nullId 0,<br/>centrality, anomaly (tableSchema.ts:85-88)"]
-    W --> AL["offsets from the explore copy of the layout<br/>tableSchema.ts:21-27, analyticsLayout.ts:10-14"]
-    AL -.-> STORE["the authoritative layout, stride 5 with SSSP at 4<br/>nodeAnalyticsStore.ts:19-24"]
-    AL -.-> PIN["INVARIANT: a test pins every copied constant to the store<br/>analyticsLayout.test.ts:7"]
+    W --> AL["offsets imported from the one layout declaration, stride 5 with SSSP at 4<br/>tableSchema.ts:21-27, analyticsLayout.ts:9-14"]
+    AL -.-> STORE["the store builds its buffer from the same constants<br/>nodeAnalyticsStore.ts:4-11"]
+    AL -.-> PIN["INVARIANT: the layout imports nothing, and the store writes each field at its offset<br/>analyticsLayout.test.ts:15-18, :20-33"]
     SCH --> BNC["buildNodeColumns: rows = slotCountFor(indexMap), present = delivered<br/>tableSchema.ts:165-175"]
-    BNC --> TYP["Float64 NaN-null, Int8 boolean, Int32 dictionary codes, string arrays<br/>tableSchema.ts:97-104"]
-    TYP --> ARR["toArrowTable on demand, apache-arrow loaded by dynamic import<br/>nodeTable.ts:21-22"]
-    ARR -.-> D1["DEBT: no caller outside the index re-export<br/>explore/index.ts:13"]
+    BNC --> TYP["the typed arrays are the table: Float64 NaN-null, Int8 boolean,<br/>Int32 dictionary codes, string arrays (tableSchema.ts:97-104, :17-18)"]
+    TYP --> PINT["test pins render-index rows, an empty slot, typed columns and nulls<br/>nodeTable.test.ts:8-28"]
     SCH -.-> T1["TENSION: ADR-2184 says the schema is generated from Rust where the type exists,<br/>it is hand-declared TypeScript (ADR-2184-a-client-side-columnar-node-table-drives-visual-encoding.md:58)"]
 ```
 
-**What it shows.** Where each column comes from and why row `i` of the table is slot `i` of the mask and the encoding buffers. **Why it is this way.** ADR-2184 D2 types metadata strings by a declared schema (`ADR-2184-a-client-side-columnar-node-table-drives-visual-encoding.md:41`); the layout is copied because `nodeAnalyticsStore`'s module graph creates the settings store and cannot load in a worker (`analyticsLayout.ts:5-8`).
+**What it shows.** Where each column comes from and why row `i` of the table is slot `i` of the mask and the encoding buffers. **Why it is this way.** ADR-2184 D2 types metadata strings by a declared schema (`ADR-2184-a-client-side-columnar-node-table-drives-visual-encoding.md:41`); the layout is declared once in an import-free module because `nodeAnalyticsStore`'s module graph creates the settings store and cannot load in a worker (`analyticsLayout.ts:5-7`).
 
-**Debt (parallel):** the analytics buffer layout exists twice, in `analyticsLayout.ts:10-14` and `nodeAnalyticsStore.ts:19-23`, held together only by `analyticsLayout.test.ts:7`; the copy omits `ANALYTICS_SSSP_OFFSET` (`nodeAnalyticsStore.ts:24`), which the test cannot notice because it iterates the copy's keys.
+**Debt (parallel):** the worker still keeps its own analytics buffer at its own stride constant, `WORKER_ANALYTICS_STRIDE = 5` (`binary-processor.ts:22`), filled per frame (`binary-processor.ts:80-86`, `graph.worker.ts:171`), and answers `getAnalyticsBuffer` (`graph.worker.ts:499-500`), while the proxy's `getAnalyticsBuffer` is a deprecation stub that throws (`graphWorkerProxy.ts:493-497`): a second layout nobody on the main thread can read.
 
-**Debt (parallel):** the maturity tiers are declared twice, as `MATURITY_RANK` (`nodeFilter.ts:27-29`) and `MATURITY_ORDER` (`tableSchema.ts:55`), and the latter's comment still points at `useGraphFiltering`'s copy (`tableSchema.ts:54`), which moved to `nodeFilter.ts`.
+**Debt (parallel):** the maturity tiers are declared twice, as `MATURITY_RANK` (`nodeFilter.ts:26-28`) and `MATURITY_ORDER` (`tableSchema.ts:55`), and the latter's comment still points at `useGraphFiltering`'s copy (`tableSchema.ts:54`), which moved to `nodeFilter.ts`.
 
 ## VC-56.4 Crossfilter: one clause per widget, counts exclude their own clause
 
@@ -172,6 +174,8 @@ flowchart TB
 **What it shows.** Each widget is its own mask source, so the graph shows the intersection; selection and the settings grey-out enter the crossfilter only as counting context. **Why it is this way.** ADR-2185 D3 makes the graph a consumer of the combined selection (`ADR-2185-linked-timeline-histogram-and-search-widgets-write-the-highlight-mask.md:40`), realised as one source per widget so a single widget can be cleared alone.
 
 **Debt (loose end):** `SOURCE.EXPLORE`, the single combined `filter:explore:crossfilter` source, is declared (`filterRegistry.ts:38-39`) and re-exported (`explore/index.ts:12`) but never written: widgets write per-widget sources (`exploreStore.ts:31`).
+
+**Drift:** the explore public-API header still says mounting ExplorePanel or GraphLegend "feeds the node table" (`explore/index.ts:4`); the Arrow node table was deleted in 29cc1cd8d and nothing is fed.
 
 **Open (risk):** on a new graph load the mask adopts the new index at once (`highlightMask.ts:183-190`), but each active widget's include set is from the previous table until the worker build lands (`useExplore.ts:62-68`, `exploreStore.ts:72`), and an include source greys every mapped node missing from its set (`highlightMask.ts:213-216`), so new nodes are greyed until then.
 
@@ -223,10 +227,10 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    S["settings nodeFilter, resolved with client fallbacks, off by default at 0.4<br/>nodeFilter.ts:58-67, :74-88"]
-    S --> R1["REMOVE, population scope: linked_page while excluded<br/>nodeFilter.ts:100-102, useGraphFiltering.ts:106"]
+    S["settings nodeFilter, resolved with client fallbacks, off by default at 0.4<br/>nodeFilter.ts:57-68, :75-89"]
+    S --> R1["REMOVE, population scope: linked_page while excluded<br/>nodeFilter.ts:101-103, useGraphFiltering.ts:106"]
     S --> R2["REMOVE, hierarchy collapse: expansion state held in the hook<br/>useGraphFiltering.ts:94, :107-108"]
-    S --> G["GREY: minConnections, minMaturity, then quality and authority, only enabled<br/>predicates combine, unscored is neutral (nodeFilter.ts:108-139)"]
+    S --> G["GREY: minConnections, minMaturity, then quality and authority, only enabled<br/>predicates combine, unscored is neutral (nodeFilter.ts:109-139)"]
     R1 --> SN["scopedNodes, the render set<br/>useGraphFiltering.ts:103-112"]
     R2 --> SN
     SN --> G
@@ -234,38 +238,36 @@ flowchart TB
     GS --> HF["hideFiltered on: greyed also removed (VC-56.7)<br/>useGraphFiltering.ts:140-147"]
     R1 --> TB["the table's eligible mask applies the scope only<br/>buildTable.ts:32-36"]
     R2 -.-> GAP["OPEN: collapse is not in the table's eligibility, so widget N of M counts<br/>hidden nodes (ExplorePanel.tsx:336)"]
-    G -.-> D1["_hierarchyMap unused, still passed and a memo dependency, registered below<br/>nodeFilter.ts:112, useGraphFiltering.ts:118, :125"]
 ```
 
 **What it shows.** The ADR-2183 D4 split: scope and collapse remove, the interactive predicates grey, and only the opt-in hides. **Why it is this way.** ADR-2183 D4 keeps hierarchy collapse a removal because it "changes what a node is" (`ADR-2183-interactive-filters-grey-out-through-a-highlight-mask.md:42`); the predicate semantics and the 0.4 default come from the 2026-11-06 implementation notes (`nodeFilter.ts:13-20`, `nodeFilter.ts:51-57`).
 
-**Debt (loose end):** `isGreyedByNodeFilter` keeps an unused `_hierarchyMap` parameter "kept for callers" (`nodeFilter.ts:112`); the only caller still passes it (`useGraphFiltering.ts:118`) and lists it as a memo dependency (`useGraphFiltering.ts:125`), so a hierarchy rebuild recomputes the grey set for nothing.
-
-**Tension (crossfilter vs render set):** the crossfilter says only rows in the render set count "so counts match the screen" (`crossfilter.ts:15-16`), but hierarchy collapse lives in per-instance hook state inside GraphManager (`GraphManager.tsx:85`, `useGraphFiltering.ts:94`) that the table builder cannot see (`buildTable.ts:32-36`), so the panel has to disclaim it (`ExplorePanel.tsx:336`).
+**Tension (crossfilter vs render set):** the crossfilter says only rows in the render set count "so counts match the screen" (`crossfilter.ts:15-16`), but hierarchy collapse lives in per-instance hook state inside GraphManager (`GraphManager.tsx:86`, `useGraphFiltering.ts:94`) that the table builder cannot see (`buildTable.ts:32-36`), so the panel has to disclaim it (`ExplorePanel.tsx:336`).
 
 ## VC-56.9 Column encoder and legend
 
 ```mermaid
 flowchart TB
     SET["settings explore colorBy, sizeBy, and nodes.colorScheme<br/>useExplore.ts:157-159"]
-    SET --> CE["createColumnEncoding(table, colorBy, sizeBy)<br/>useExplore.ts:161, columnEncoder.ts:276-295"]
-    CE --> CAT["categorical: domain palette, wire community and cluster hue formulas,<br/>else frequency palette then other (columnEncoder.ts:150-223)"]
-    CE --> SEQ["sequential viridis ramp over p2 to p98, live max for centrality<br/>columnEncoder.ts:124-142, :225-240"]
-    CE --> SZ["size: default size x 0.5 to 2.5<br/>columnEncoder.ts:56-57, :246-258"]
-    CAT --> ACC["values read at encode time from metadata or the live analytics buffer,<br/>never from a table row (columnEncoder.ts:23-26, :106-115)"]
+    SET --> CE["createColumnEncoding(table, colorBy, sizeBy)<br/>useExplore.ts:161, columnEncoder.ts:277-296"]
+    CE --> CAT["categorical: domain palette, wire community and cluster hue formulas,<br/>else frequency palette then other (columnEncoder.ts:151-224)"]
+    CE --> SEQ["sequential viridis ramp over p2 to p98, live max for centrality<br/>columnEncoder.ts:125-143, :226-241"]
+    CE --> SZ["size: default size x 0.5 to 2.5<br/>columnEncoder.ts:57-58, :247-259"]
+    CAT --> HUE["community and cluster hues from the one formula module<br/>columnEncoder.ts:197, :199, analyticColours.ts:12-19"]
+    CAT --> ACC["values read at encode time from metadata or the live analytics buffer,<br/>never from a table row (columnEncoder.ts:23-26, :107-116)"]
     SEQ --> ACC
     CE --> INST["setEncoder, restored to default on unmount<br/>useExplore.ts:166-169, nodeEncoding.ts:188-195"]
-    INST --> EV["encoderVersion is part of the encode snapshot, so the one encodeAll caller re-runs<br/>useNodeEncodingSync.ts:85, :103"]
+    INST --> EV["encoderVersion is part of the encode snapshot, so the one encodeAll caller re-runs<br/>useNodeEncodingSync.ts:82, :100"]
     EV --> EA["encodeAll by render index, version++<br/>nodeEncoding.ts:206-228"]
-    SET --> SL["colorBy scheme: legend for today's look per colorScheme<br/>useExplore.ts:163-165, columnEncoder.ts:343-367"]
+    SET --> SL["colorBy scheme: legend for today's look per colorScheme<br/>useExplore.ts:163-165, columnEncoder.ts:344-368"]
     CE --> LG["GraphLegend renders entries unless showLegend is off<br/>GraphLegend.tsx:126-132"]
     SL --> LG
-    CAT -.-> CNT["OPEN: legend counts use present rows, the crossfilter eligible rows<br/>columnEncoder.ts:158-159, crossfilter.ts:79"]
+    CAT -.-> CNT["OPEN: legend counts use present rows, the crossfilter eligible rows<br/>columnEncoder.ts:159-160, crossfilter.ts:79"]
 ```
 
 **What it shows.** How a colour-by or size-by choice becomes a new encoder and a legend, and why live wire columns recolour without a table rebuild. **Why it is this way.** ADR-2184 D4: any categorical or numeric column, a clamp on size, a legend always shown, defaults reproduce today's look (`ADR-2184-a-client-side-columnar-node-table-drives-visual-encoding.md:43-48`).
 
-**Debt (parallel):** the community, cluster and centrality colour formulas, already twice in VC-31.13, are restated again in the column encoder (`columnEncoder.ts:196`, `columnEncoder.ts:198`), in its scheme legend (`columnEncoder.ts:354`, `columnEncoder.ts:357`) and as a CSS ramp (`columnEncoder.ts:330-333`), copies of `nodeEncoding.ts:94`, `nodeEncoding.ts:96` and `nodeEncoding.ts:100`.
+The community, cluster and centrality hues are written once, in `analyticColours.ts` (`analyticColours.ts:12-25`), and the encoder, its scheme legend and the CSS ramp call them (`columnEncoder.ts:197`, `columnEncoder.ts:199`, `columnEncoder.ts:332`, `columnEncoder.ts:355`), as does the default encoder (`nodeEncoding.ts:95`, `nodeEncoding.ts:97`, `nodeEncoding.ts:100`).
 
 ## VC-56.10 ExplorePanel widgets and brushing
 
@@ -298,8 +300,8 @@ flowchart TB
     RB --> XF["new Crossfilter, clauses re-evaluated, widget sources re-written<br/>exploreStore.ts:68-74"]
     XF --> DEDUP["writeFilter skips an unchanged id set<br/>filterRegistry.ts:109"]
     RB --> NEWT["new table identity re-runs createColumnEncoding<br/>useExplore.ts:161"]
-    NEWT --> SE["setEncoder bumps encoderVersion, a whole-graph encodeAll<br/>nodeEncoding.ts:188-195, useNodeEncodingSync.ts:85"]
-    RA["readAnalytics uses the shared index map when sizes agree, to keep the store's<br/>one-slot cache warm (useExplore.ts:72-83, nodeAnalyticsStore.ts:96)"] --> CMP
+    NEWT --> SE["setEncoder bumps encoderVersion, a whole-graph encodeAll<br/>nodeEncoding.ts:188-195, useNodeEncodingSync.ts:82"]
+    RA["readAnalytics uses the shared index map when sizes agree, to keep the store's<br/>one-slot cache warm (useExplore.ts:72-83, nodeAnalyticsStore.ts:97)"] --> CMP
     SE -.-> OPEN1["OPEN: with live GPU analytics every tick differs, so the whole chain runs<br/>every 5 s even when no encoding reads a wire column (useExplore.ts:161, :166-169)"]
 ```
 

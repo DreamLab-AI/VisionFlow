@@ -26,7 +26,10 @@ sources:
   - ../project/src/actors/gpu/connected_components_actor.rs
   - ../project/src/actors/physics_orchestrator_actor.rs
   - ../project/src/app_state.rs
-verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
+  - ../project/src/handlers/api_handler/analytics/community.rs
+  - ../project/src/handlers/api_handler/analytics/pathfinding.rs
+  - ../project/src/handlers/api_handler/analytics/mod.rs
+verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8}
 ---
 
 ## For developers
@@ -41,7 +44,7 @@ Physics and the graph analytics only run once the GPU is up. If it fails, layout
 
 ```mermaid
 flowchart TD
-    APP["AppState::new<br/>src/app_state.rs:958 starts GPUManagerActor"]
+    APP["AppState::new<br/>src/app_state.rs:930 starts GPUManagerActor"]
     GM["GPUManagerActor<br/>gpu_manager_actor.rs:57 struct, :146 impl Actor"]
     RS["ResourceSupervisor<br/>resource_supervisor.rs:40 struct, :353 impl Actor"]
     PS["PhysicsSupervisor<br/>physics_supervisor.rs"]
@@ -55,7 +58,7 @@ flowchart TD
     CLA["ClusteringActor<br/>clustering_actor.rs:1156 RunKMeans"]
     ADA["AnomalyDetectionActor<br/>anomaly_detection_actor.rs:118"]
     PRA["PageRankActor<br/>pagerank_actor.rs:374"]
-    SPA["ShortestPathActor<br/>shortest_path_actor.rs:218 ComputeSSP"]
+    SPA["ShortestPathActor<br/>shortest_path_actor.rs:198 ComputeSSP"]
     CCA["ConnectedComponentsActor<br/>connected_components_actor.rs:82"]
 
     APP -->|"InitializeGPU"| GM
@@ -95,7 +98,7 @@ flowchart TD
 ```mermaid
 sequenceDiagram
     autonumber
-    participant APP as AppState::new<br/>src/app_state.rs:958
+    participant APP as AppState::new<br/>src/app_state.rs:930
     participant GM as GPUManagerActor<br/>gpu_manager_actor.rs:259
     participant RS as ResourceSupervisor<br/>resource_supervisor.rs:40
     participant GRA as GPUResourceActor<br/>gpu_resource_actor.rs:451
@@ -264,17 +267,17 @@ sequenceDiagram
         FCA->>FCA: create its own CUDA context
     end
     RS->>PS: SetSharedGPUContext resource_supervisor.rs:151
-    PS->>FCA: SetSharedGPUContext (force_compute_actor.rs:3566, impl Handler)
-    alt had_context true (force_compute_actor.rs:3570)
-        Note over FCA: info "Received SharedGPUContext from supervisor chain (replacing self-initialized context)" (force_compute_actor.rs:3572)
+    PS->>FCA: SetSharedGPUContext (force_compute_actor.rs:3558, impl Handler)
+    alt had_context true (force_compute_actor.rs:3562)
+        Note over FCA: info "Received SharedGPUContext from supervisor chain (replacing self-initialized context)" (force_compute_actor.rs:3564)
     else first context
-        Note over FCA: info "Received SharedGPUContext from supervisor chain" (force_compute_actor.rs:3574)
+        Note over FCA: info "Received SharedGPUContext from supervisor chain" (force_compute_actor.rs:3566)
     end
-    FCA->>FCA: shared_context = Some(msg.context) (force_compute_actor.rs:3581), constraints_dirty = true (:3582) then gpu_state.is_initialized = true (force_compute_actor.rs:3591)
-    opt pending_graph_data is Some (force_compute_actor.rs:3596)
-        FCA->>FCA: try_upload_pending_graph_data (force_compute_actor.rs:3598)
+    FCA->>FCA: shared_context = Some(msg.context) (force_compute_actor.rs:3573), constraints_dirty = true (:3574) then gpu_state.is_initialized = true (force_compute_actor.rs:3583)
+    opt pending_graph_data is Some (force_compute_actor.rs:3588)
+        FCA->>FCA: try_upload_pending_graph_data (force_compute_actor.rs:3590)
     end
-    Note over FCA,PS: INVARIANT: the externally supplied context always replaces a self-created one so every GPU actor shares one CUDA device and stream force_compute_actor.rs:3577-3580
+    Note over FCA,PS: INVARIANT: the externally supplied context always replaces a self-created one so every GPU actor shares one CUDA device and stream force_compute_actor.rs:3569-3572
     Note over FCA: DIVERGENCE, RECORDED as deliberate by the ADR-2053 addendum of 2026-10-12 (commit 31c87da5e): self-init is a second,<br/>unsupervised path to a CUDA context that bypasses ResourceSupervisor timeouts and backoff. It runs only while shared_context is None and a delivered<br/>context always wins (force_compute_actor.rs:668-669), it is bounded by 3 retries with 1s 2s 4s backoff (force_compute_actor.rs:674-693), and the ADR<br/>states that a context built this way is invisible to ResourceSupervisor accounting and GetSubsystemHealth, so the boot line "GPU context<br/>self-initialized successfully" (force_compute_actor.rs:848) means the supervisor path failed. The ADR sets a review trigger: remove the fallback once<br/>delivery has been boot-reliable across a release
     Note over FCA: InitializeGPU (force_compute_actor.rs:3078) deliberately does NOT set gpu_state.num_nodes - that happens only after a successful upload, preventing ComputeForces on uninitialised buffers and CUDA mutex poisoning (force_compute_actor.rs:3090-3092)
 ```
@@ -284,13 +287,13 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant APP as AppState::new<br/>src/app_state.rs:1039
+    participant APP as AppState::new<br/>src/app_state.rs:997
     participant GM as GPUManagerActor<br/>gpu_manager_actor.rs:714
     participant PS as PhysicsSupervisor<br/>physics_supervisor.rs:380 restart_actor
     participant FCA as ForceComputeActor (new)<br/>force_compute_actor.rs:1746
     participant PO as PhysicsOrchestratorActor<br/>src/actors/physics_orchestrator_actor.rs:1250
 
-    APP->>GM: SetPhysicsSettingsSource (app_state.rs:1039)
+    APP->>GM: SetPhysicsSettingsSource (app_state.rs:997)
     GM->>PS: do_send(SetPhysicsSettingsSource) (gpu_manager_actor.rs:717-719)
     PS->>PS: settings_source = Some(repo), restore_saved_physics (physics_supervisor.rs:786-789)
     Note over GM,PS: SubscribeForceComputeReplaced is forwarded the same way (gpu_manager_actor.rs:696-707) and appended to replacement_subscribers (physics_supervisor.rs:775-776)
@@ -337,6 +340,8 @@ sequenceDiagram
     GRA->>GRA: APSP PTX load fails
     Note over GRA: warn "Failed to load APSP/landmark PTX" (gpu_resource_actor.rs:137), apsp_ptx = None<br/>the comment at :120-125 says there is no CPU fallback to report<br/>(ComputeAPSP refuses under NFR-7)
     Note over CCA: SemanticForcesActor no longer exists (ADR-2140, commit 929fb32c1)<br/>its kernel_bridge stubs and CPU twins were removed, and the semantic forces<br/>run in ForceComputeActor with no CPU fallback by decision (VC-11.7)
-    Note over CCA: POLICY: ComputeSSP returns Err without a GPU context or on GPU failure<br/>shortest_path_actor.rs:229-254, there is no SSSP CPU fallback.<br/>ComputeAPSP separately refuses all dense all-pairs requests under NFR-7<br/>shortest_path_actor.rs:356-373, the removed fallback named at :363 was APSP.
+    Note over CCA: POLICY: ComputeSSP returns Err without a GPU context or on GPU failure<br/>shortest_path_actor.rs:208-215, :222-226, there is no SSSP CPU fallback in the actor.<br/>ComputeAPSP separately refuses all dense all-pairs requests under NFR-7<br/>shortest_path_actor.rs:284-301, the removed fallback named at :291 was APSP.
     Note over PO,GRA: DIVERGENCE: coverage is uneven but no actor now degrades to a CPU implementation<br/>ConnectedComponents and StressMajorization hard-fail (ADR-2054 removed CC's fabricated CPU path)<br/>ComputeForces drops the frame, the orchestrator logs once and skips<br/>SSSP refuses without GPU, dense APSP is deliberately disabled
 ```
+
+**Tension (parallel):** "no SSSP CPU fallback" holds for the actors, but the analytics routes now answer a caller whose view hides nodes on the CPU over that view whether or not a GPU exists (`src/handlers/api_handler/analytics/mod.rs:83-88`, `src/handlers/api_handler/analytics/pathfinding.rs:177-195`), so without a GPU a gated caller gets communities and shortest paths while a full-access caller gets "GPU analytics not available" (`src/handlers/api_handler/analytics/community.rs:58-59`).

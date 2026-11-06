@@ -14,11 +14,13 @@ sources:
   - ../project/crates/vault/src/build/turtle.rs
   - ../project/crates/vault-core/src/proposal.rs
   - ../project/crates/vault-core/src/vocabulary.rs
+  - ../project/crates/vault-core/src/promotion.rs
+  - ../project/crates/vault-core/src/consistency.rs
   - ../project/docs/VAULT-corpus-format.md
   - ../project/agentbox/management-api/lib/ontology-apply.js
   - ../ontomark/crates/rdfs-certificate/src/lib.rs
   - ../ontomark/crates/ontomark-compile/src/write/apply.rs
-verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d, agentbox: c57d9c0508f4, ontomark: 4b9d15df4805}
+verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8, agentbox: c57d9c0508f4, ontomark: 4b9d15df4805}
 ---
 
 ## For developers
@@ -91,22 +93,25 @@ flowchart TD
 ## VC-41.4 Amendment cannot remint the resource IRI (producer only)
 
 <!-- 2026-11-06 restamp ec785afa9: redrawn. RESOURCE_IMMUTABLE blocker added in propose.rs by 6b811f7a1. The ontomark writer was not re-read (ontomark stamp unchanged) -->
+<!-- 2026-11-06 restamp 809a859aa: redrawn. 9fa159971 - one blocker code, RESOURCE_IMMUTABLE in vault_core::promotion, with RESOURCE_MUTATED an accepted alias read through canonical_blocker_code -->
 ```mermaid
 flowchart TD
     B["Existing page resource vs proposed page<br/>vault/src/propose.rs:463"] --> P["Assess before and after<br/>vault/src/propose.rs:557,558,568"]
     P --> RI["Per touched page compare old and patched resource<br/>vault/src/propose.rs:572-574"]
-    RI -->|differs| BL["RESOURCE_IMMUTABLE blocker<br/>vault/src/propose.rs:575-576, test :826-842"]
+    RI -->|differs| BL["promotion.RESOURCE_IMMUTABLE blocker<br/>vault/src/propose.rs:575-576, test :826-842"]
     BL --> NP["Not postable, refused before signing<br/>nostr.rs:108-113"]
     RI -->|same| S["Proposal subject remains original resource<br/>vault/src/propose.rs:672,674"]
     S --> OLD["Writer checks current resource against proposal IRI<br/>write/apply.rs:229,230"]
     OLD --> PATCH["Apply approved patch then parse new page<br/>write/apply.rs:242,258"]
     PATCH --> V["Check introduced errors and persist<br/>write/apply.rs:282,395"]
     V --> NEW["TENSION: writer still has no after-resource equality check<br/>write/apply.rs:280,282"]
-    VOC["Vocabulary declares the invariant as RESOURCE_MUTATED<br/>vault-core/src/vocabulary.rs:17-18, :913"] -.-> BL
+    K["the one code RESOURCE_IMMUTABLE<br/>vault-core/src/promotion.rs:134"] --> BL
+    AL["BLOCKER_CODE_ALIASES maps RESOURCE_MUTATED to it,<br/>canonical_blocker_code reads it<br/>vault-core/src/promotion.rs:140, :151-156"] --> K
+    VOC["corpus vocabulary still says RESOURCE_MUTATED,<br/>validation.blockers deserialises through the alias<br/>vault-core/src/vocabulary.rs:331, :335-343, test :1235"] --> AL
 ```
 
 **What it shows.** The producer now blocks an amendment that changes a page's resource IRI. The consumer-side writer still checks only the old resource, so the guard lives in one place.
 
-**Why it is this way.** The external audit repair (`6b811f7a1`) closed the path the previous stamp proved. Its record (`docs/VAULT-corpus-format.md:381`) credits `vault propose`, not the writer.
+**Why it is this way.** The external audit repair (`6b811f7a1`) closed the path the previous stamp proved. Its record (`docs/VAULT-corpus-format.md:388`) credits `vault propose`, not the writer, and names `BLOCKER_CODE_ALIASES` as the one place an alias lives.
 
-**Tension (parallel):** one invariant carries two blocker codes. The vocabulary lists `RESOURCE_MUTATED` (`crates/vault-core/src/vocabulary.rs:913`) and no Rust code in `src/` or `crates/` emits it, while the producer emits `RESOURCE_IMMUTABLE` (`crates/vault/src/propose.rs:575`).
+**Drift:** only the resource code has an alias. The corpus vocabulary, as the crate's test fixture reproduces it, also names `WHELK_INCONSISTENCY` in `validation.blockers` (`crates/vault-core/src/vocabulary.rs:927`, read back verbatim by the test at `:1229`), while the consistency probe emits `WHELK_INCONSISTENT` (`crates/vault-core/src/consistency.rs:43`) and `BLOCKER_CODE_ALIASES` has one entry (`crates/vault-core/src/promotion.rs:140`). Nothing gates on `validation.blockers` at this commit, so the mismatch is latent.

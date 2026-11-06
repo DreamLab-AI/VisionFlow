@@ -12,7 +12,7 @@ sources:
   - ../project/xr-client/rust/src/webrtc_audio.rs
   - ../project/crates/visionclaw-domain/src/config/services.rs
   - ../project/src/services/audio_router.rs
-verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
+verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8}
 ---
 
 ## For developers
@@ -40,10 +40,10 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    AUTH["PROPOSED: verified identity and RoomAdmission<br/>IDENTITY-authority-chain.md:240,242"] --> BOUND["PROPOSED: bound registered rooms only<br/>IDENTITY-authority-chain.md:242"]
-    BOUND --> MINT["PROPOSED: room-scoped grant, TTL at most 60 seconds<br/>IDENTITY-authority-chain.md:242"]
-    MINT --> KEY["PROPOSED: per-SFU signing key custody<br/>IDENTITY-authority-chain.md:242"]
-    REFRESH["PROPOSED: refuse removed members a refresh<br/>IDENTITY-authority-chain.md:242"] --> AUTH
+    AUTH["PROPOSED: verified identity and RoomAdmission<br/>IDENTITY-authority-chain.md:242,244"] --> BOUND["PROPOSED: bound registered rooms only<br/>IDENTITY-authority-chain.md:244"]
+    BOUND --> MINT["PROPOSED: room-scoped grant, TTL at most 60 seconds<br/>IDENTITY-authority-chain.md:244"]
+    MINT --> KEY["PROPOSED: per-SFU signing key custody<br/>IDENTITY-authority-chain.md:244"]
+    REFRESH["PROPOSED: refuse removed members a refresh<br/>IDENTITY-authority-chain.md:244"] --> AUTH
 ```
 
 **What it shows.** The intended application credential path is specified but absent from current source. **Why it is this way.** The authority document describes a proposal; the audit identifies an additional dependency refresh path that its system-wide argument must cover.
@@ -52,11 +52,11 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    VOL["PROPOSED: voluntary leave<br/>IDENTITY-authority-chain.md:242"] --> GRACE["PROPOSED: 25-second grace<br/>IDENTITY-authority-chain.md:242"]
-    KICK["PROPOSED: membership removal or staleness<br/>IDENTITY-authority-chain.md:240,242"] --> REMOVE["PROPOSED: RemoveParticipant<br/>IDENTITY-authority-chain.md:242"]
+    VOL["PROPOSED: voluntary leave<br/>IDENTITY-authority-chain.md:244"] --> GRACE["PROPOSED: 25-second grace<br/>IDENTITY-authority-chain.md:244"]
+    KICK["PROPOSED: membership removal or staleness<br/>IDENTITY-authority-chain.md:242,244"] --> REMOVE["PROPOSED: RemoveParticipant<br/>IDENTITY-authority-chain.md:244"]
     GRACE --> REMOVE
-    LOOP["PROPOSED: participant reconciler every 10 seconds<br/>IDENTITY-authority-chain.md:242"] --> REMOVE
-    PART["PROPOSED: API unreachable beyond 90 seconds<br/>IDENTITY-authority-chain.md:242"] --> ALARM["PROPOSED: stop minting and alarm<br/>connected window remains unenforced<br/>IDENTITY-authority-chain.md:242"]
+    LOOP["PROPOSED: participant reconciler every 10 seconds<br/>IDENTITY-authority-chain.md:244"] --> REMOVE
+    PART["PROPOSED: API unreachable beyond 90 seconds<br/>IDENTITY-authority-chain.md:244"] --> ALARM["PROPOSED: stop minting and alarm<br/>connected window remains unenforced<br/>IDENTITY-authority-chain.md:244"]
 ```
 
 **What it shows.** The proposal distinguishes voluntary reconnect grace, removal and an API-partition exception. **Why it is this way.** Token expiry does not disconnect an active participant; the separate 150-second rejoin claim is undercut by the issuer gap documented in the audit and must not be read as a current guarantee.

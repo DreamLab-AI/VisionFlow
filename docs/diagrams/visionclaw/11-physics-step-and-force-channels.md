@@ -5,7 +5,7 @@ area: visionclaw
 governing:
   - ../project/docs/GPU-wire-abi.md
   - ../project/docs/BASELINE-architecture.md
-adrs: [ADR-2007, ADR-2028, ADR-2029, ADR-2055, ADR-2060, ADR-2135, ADR-2140, ADR-2141]
+adrs: [ADR-2007, ADR-2028, ADR-2029, ADR-2055, ADR-2060, ADR-2135, ADR-2140, ADR-2141, ADR-2181]
 sources:
   - ../project/src/actors/gpu/force_compute_actor.rs
   - ../project/src/actors/gpu/physics_supervisor.rs
@@ -28,7 +28,15 @@ sources:
   - ../project/src/handlers/constraints_handler.rs
   - ../project/src/actors/gpu/gpu_resource_actor.rs
   - ../project/crates/vault-core/src/domains.rs
-verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
+  - ../project/crates/visionclaw-domain/src/types/physics_config.rs
+  - ../project/crates/visionclaw-domain/src/models/simulation_params.rs
+  - ../project/client/src/api/settings/defaults.ts
+  - ../project/client/src/features/control-center/registry/groups/motion.ts
+  - ../project/client/src/features/control-center/registry/settings-manifest.json
+  - ../project/docs/adr/ADR-2181-overview-edges-are-screen-space-lines-with-no-silent-cap.md
+  - ../project/src/actors/gpu/physics_bounds.rs
+  - ../project/src/settings/api/settings_routes.rs
+verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8}
 ---
 
 ## For developers
@@ -55,9 +63,9 @@ sequenceDiagram
     alt shared_context is None
         Note over FCA: no GPU context - initialize_own_gpu_context is retried (force_compute_actor.rs:1840), if still none the frame is skipped,<br/>an error is logged every 300th skip (:1846), the orchestrator is told it was a benign skip and Err is returned (:1855)
     else GPU ready
-        FCA->>FCA: holds.expire(HOLD_EXPIRY 5 s) releases a hold nobody refreshed :1920-1933 (const at :4548)
+        FCA->>FCA: holds.expire(HOLD_EXPIRY 5 s) releases a hold nobody refreshed :1920-1933 (const at :4540)
         FCA->>FCA: step_overrides(warmup, any_held, settle window, damping, global_speed, reheat) :1934-1942
-        Note over FCA: step_overrides (force_compute_actor.rs:4596) - bypass_stability = warmup > 0 OR any node held OR inside the<br/>2 s release settle window (:4607), global_speed floored at HOLD_GLOBAL_SPEED 2.0 while held or settling (:4608-4612),<br/>reheat withheld while held or settling (:4614), elastic overlay on for hold plus settle, hold springs for the hold only (:4615-4616)
+        Note over FCA: step_overrides (force_compute_actor.rs:4588) - bypass_stability = warmup > 0 OR any node held OR inside the<br/>2 s release settle window (:4599), global_speed floored at HOLD_GLOBAL_SPEED 2.0 while held or settling (:4600-4604),<br/>reheat withheld while held or settling (:4606), elastic overlay on for hold plus settle, hold springs for the hold only (:4607-4608)
         FCA->>FCA: stability_warmup_remaining -= 1 when above 0 :1949-1951, reheat = overrides.reheat :1952
         Note over FCA: warmup reset on graph upload - 1200 frames when edge_count == 0 else 600 :1322
         FCA->>EX: set_hold_overlay and set_hold_springs :2015-2016 then execute_physics_step_with_bypass(sim_params, stability_bypass) :2017<br/>from spawn_blocking, after inject_velocity_perturbation for the reheat (:2003) and for a one-shot release impulse (:2008)
@@ -207,7 +215,7 @@ sequenceDiagram
     participant API as constraints_handler<br/>src/handlers/constraints_handler.rs:13
     participant CA as ConstraintActor<br/>constraint_actor.rs:199
     participant OCA as OntologyConstraintActor<br/>ontology_constraint_actor.rs:374
-    participant FCA as ForceComputeActor<br/>force_compute_actor.rs:3424
+    participant FCA as ForceComputeActor<br/>force_compute_actor.rs:3416
     participant EX as execution.rs:1141
 
     API->>CA: UpdateConstraints from POST /constraints/define or /apply (constraints_handler.rs:14-15), handled at constraint_actor.rs:199
@@ -217,10 +225,10 @@ sequenceDiagram
     alt GPU context absent
         Note over OCA: debug "GPU not available, constraints cached for next physics step" ontology_constraint_actor.rs:255-257 and cpu_fallback_count += 1 :251,:258
     else GPU ready
-        OCA->>FCA: UpdateOntologyConstraintBuffer (force_compute_actor.rs:3546, sent from notify_force_compute_actor ontology_constraint_actor.rs:277)
+        OCA->>FCA: UpdateOntologyConstraintBuffer (force_compute_actor.rs:3538, sent from notify_force_compute_actor ontology_constraint_actor.rs:277)
     end
     OCA->>OCA: ApplyMaterializedAxioms ontology_constraint_actor.rs:445, AdjustConstraintWeights :646
-    Note over FCA: both writers only replace the cache and mark it dirty, replace_constraint_cache (force_compute_actor.rs:1657-1662).<br/>sync_constraints uploads before a step only when dirty or the resident count differs from the cache (force_compute_actor.rs:1675-1689),<br/>so an unchanged set costs no upload, and a new GPU context re-marks it dirty (force_compute_actor.rs:3582)
+    Note over FCA: both writers only replace the cache and mark it dirty, replace_constraint_cache (force_compute_actor.rs:1657-1662).<br/>sync_constraints uploads before a step only when dirty or the resident count differs from the cache (force_compute_actor.rs:1675-1689),<br/>so an unchanged set costs no upload, and a new GPU context re-marks it dirty (force_compute_actor.rs:3574)
     FCA->>EX: execute with num_constraints = resident count
     alt num_constraints > 0
         EX->>EX: ENABLE_CONSTRAINTS set (force_channels.rs:504-506) and constraint_force_ptr bound execution.rs:259
@@ -246,15 +254,15 @@ sequenceDiagram
 
     Note over PS,SG: SemanticForcesActor was REMOVED (ADR-2140, commit 929fb32c1) - its Configure messages, kernel_bridge stubs and CPU twins are gone, the semantic forces are the physics.semantic settings group
     PS->>FCA: UpdateSimulationParams forwarded (physics_supervisor.rs:820)
-    FCA->>FCA: idempotency gate compares the semantic group directly (force_compute_actor.rs:4709-4710)
+    FCA->>FCA: idempotency gate compares the semantic group directly (force_compute_actor.rs:4701-4702)
     FCA->>EX: set_semantic_config(stored group) when it changed (force_compute_actor.rs:2709-2717, execution.rs:1084)
     EX->>SG: set_config, semantic_active = config.any_enabled() (execution.rs:1093)
     PS->>FCA: GetHierarchyLevels (physics_supervisor.rs:966) and RecalculateHierarchy (:990) now go to ForceComputeActor (force_compute_actor.rs:2851, :2875)
-    FCA->>FCA: refresh_semantic on every graph upload (force_compute_actor.rs:1276, fn at :4781)
-    FCA->>EX: derive node type, DAG level, physicality, role, maturity, cross-domain and edge-type metadata, load PTXModule::SemanticForces, enable_semantic (force_compute_actor.rs:4790-4796)
+    FCA->>FCA: refresh_semantic on every graph upload (force_compute_actor.rs:1276, fn at :4773)
+    FCA->>EX: derive node type, DAG level, physicality, role, maturity, cross-domain and edge-type metadata, load PTXModule::SemanticForces, enable_semantic (force_compute_actor.rs:4782-4788)
     PS->>FCA: SetRelationshipTable (physics_supervisor.rs:1039) replaces the ontology relationship table on the device (force_compute_actor.rs:2906)
     alt metadata or PTX or upload fails
-        Note over FCA: error "semantic forces UNAVAILABLE for this graph", semantic = None, semantic_active = false (force_compute_actor.rs:4814-4816) - forces are OFF, there is no CPU fallback
+        Note over FCA: error "semantic forces UNAVAILABLE for this graph", semantic = None, semantic_active = false (force_compute_actor.rs:4806-4808) - forces are OFF, there is no CPU fallback
     else ready
         EX->>SG: apply(positions, forces) each step after force_pass, before integrate (execution.rs:960-974)
         Note over SG: skipped with a warning if the metadata node count differs from the graph (execution.rs:975-983)
@@ -266,7 +274,7 @@ sequenceDiagram
     else GPU ready
         SMA->>SMA: perform_stress_majorization runs entirely on the GPU, CheckStressMajorization :365, UpdateStressMajorizationParams :343
     end
-    Note over SMA,FCA: DEBT: ForceComputeActor keeps TriggerStressMajorization, GetStressMajorizationStats and ResetStressMajorizationSafety handlers that only return Err pointing at StressMajorizationActor (force_compute_actor.rs:3465-3472, :3477-3486, :3493-3502)
+    Note over SMA,FCA: DEBT: ForceComputeActor keeps TriggerStressMajorization, GetStressMajorizationStats and ResetStressMajorizationSafety handlers that only return Err pointing at StressMajorizationActor (force_compute_actor.rs:3457-3464, :3469-3478, :3485-3494)
     Note over SMA,FCA: DIVERGENCE bit5 ENABLE_STRESS_MAJORIZATION is declared but never set by derive_dispatch_feature_flags - stress majorization is not a GPU force channel
     Note over SMA,FCA: Stress majorization params live on CPU in SemanticProcessorActor and are absent from GPU SimParams - project/src/models/simulation_params.rs:77
     Note over SMA,FCA: DIVERGENCE bit3 ENABLE_TEMPORAL_COHERENCE is likewise declared but never set - both are reserved bits, not wired force terms
@@ -282,7 +290,7 @@ stateDiagram-v2
     Settling: Consecutive sub-epsilon ticks accumulating in settle_stable_frames
     Settled: is_settled true - reported via GetSettlementState force_compute_actor.rs:3331
     Reheated: reheat_factor greater than 0 - velocity perturbation injected
-    Held: a node is held - stability bypassed, speed floor, no reheat, force_compute_actor.rs:4607-4614
+    Held: a node is held - stability bypassed, speed floor, no reheat, force_compute_actor.rs:4599-4606
 
     Warmup --> Active: warmup frames exhausted
     Active --> Settling: next_stable_frames increments when mean_ke finite and below epsilon force_compute_actor.rs:303-304
@@ -315,12 +323,12 @@ stateDiagram-v2
         UpdateSimulationParams log-ratio scaled 1.0 to 5.0 :2790 with warmup 1800 :2775
         a damping-only change applies without reheat or warmup :2664-2670
         PinNodePositions no longer reheats - msg.reheat queues RELEASE_IMPULSE 0.05 once :3013-3014
-        ResetPositions 1.0 :3711 with warmup 600 :3710
+        ResetPositions 1.0 :3703 with warmup 600 :3702
     end note
     note right of Held
-        step_overrides force_compute_actor.rs:4596 decides each tick
-        HOLD_GLOBAL_SPEED 2.0 floor :4560, RELEASE_SETTLE_WINDOW 2 s :4544
-        a hold not refreshed for HOLD_EXPIRY 5 s is released by the actor :4548, :1920-1933
+        step_overrides force_compute_actor.rs:4588 decides each tick
+        HOLD_GLOBAL_SPEED 2.0 floor :4552, RELEASE_SETTLE_WINDOW 2 s :4536
+        a hold not refreshed for HOLD_EXPIRY 5 s is released by the actor :4540, :1920-1933
     end note
     note right of Active
         Every good frame is display-projected and published
@@ -350,3 +358,36 @@ flowchart TD
     Test["Actual CUDA fixture tests all axes and both AABBs<br/>integrate_bounds.cu:7"] -.-> Clamp
     Test -.-> Connected
 ```
+
+## VC-11.11 boundsSize: one default in three copies, and the overview slab it caused
+
+```mermaid
+flowchart TB
+    subgraph RUST["Server default, crates/visionclaw-domain"]
+        R1["default_bounds_size returns 1600.0<br/>crates/visionclaw-domain/src/types/physics_config.rs:113-115<br/>serde default for a missing key, physics_config.rs:313-314"]
+        R2["PhysicsSettings default bounds_size 1600.0<br/>physics_config.rs:549"]
+        R3["test asserts 1600.0<br/>physics_config.rs:832"]
+        R1 --> R2 --> R3
+    end
+    subgraph TS["Client copies"]
+        C1["client defaults boundsSize 1600.0<br/>client/src/api/settings/defaults.ts:57"]
+        C2["Motion slider, min 100, max 4000, description names default 1600<br/>client/src/features/control-center/registry/groups/motion.ts:41"]
+        C3["settings manifest, max 4000<br/>client/src/features/control-center/registry/settings-manifest.json:2144, :2156"]
+        C2 --> C3
+    end
+    RUST --> VB["viewport_bounds = bounds_size, the soft-cube half-extent the integrator clamps to, see VC-11.10<br/>../project/crates/visionclaw-domain/src/models/simulation_params.rs:517"]
+    TS --> VB
+    VB --> SLAB["RESOLVED 2026-11-06 b11d8cba1: at 400 a 10k-node graph was crushed into the cube,<br/>p5 and p95 on y pinned at plus or minus 400, and read as an overview edge slab<br/>docs/adr/ADR-2181-overview-edges-are-screen-space-lines-with-no-silent-cap.md:65"]
+    SLAB --> INV["INVARIANT a slab at overview zoom means a boundary-pinned layout, check the position quantiles before touching edge alpha<br/>ADR-2181-overview-edges-are-screen-space-lines-with-no-silent-cap.md:65"]
+    C2 --> VAL["server range check bounds_size 100 to 2000 in apply_physics_patch<br/>src/settings/api/settings_routes.rs:617, :262-268, :664-669<br/>src/actors/gpu/physics_bounds.rs:73-74"]
+    VAL --> T1["TENSION the slider offers 2050 to 4000, which the server refuses with Validation failed"]
+    R2 --> D1["DRIFT the comment beside the new default still says the graph sits well inside the 400u cube<br/>physics_config.rs:544-548, and BOUNDS_SIZE says canonical default 400.0, physics_bounds.rs:73"]
+```
+
+**What it shows:** the 2026-11-06 change of the soft-cube default from 400 to 1600, made in the Rust default, the client defaults and the Motion slider, and where the server's range check disagrees with the slider.
+
+**Debt (parallel):** the default lives in the Rust crate and twice in the client (`crates/visionclaw-domain/src/types/physics_config.rs:113-115`, `client/src/api/settings/defaults.ts:57`, `client/src/features/control-center/registry/groups/motion.ts:41`), and only the Rust copy is pinned by a test (`crates/visionclaw-domain/src/types/physics_config.rs:832`).
+
+**Open (risk):** the new default only fills a missing key (`crates/visionclaw-domain/src/types/physics_config.rs:313`), so a store whose `physics` row already holds 400 presumably keeps the crushed layout; not checked against the live store.
+
+**Tension (risk):** the slider's maximum of 4000 (`client/src/features/control-center/registry/groups/motion.ts:41`) exceeds the server's `BOUNDS_SIZE` ceiling of 2000 (`src/actors/gpu/physics_bounds.rs:74`), which `validate_physics_settings` enforces on the physics patch path (`src/settings/api/settings_routes.rs:262-268`, `:664-669`), so the top half of the slider is refused there.

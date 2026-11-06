@@ -5,6 +5,7 @@ area: visionclaw
 governing:
   - ../project/docs/BASELINE-architecture.md
   - ../project/docs/IDENTITY-authority-chain.md
+  - ../project/docs/SECURITY-profiles.md
 adrs: [ADR-2006, ADR-2010, ADR-2011, ADR-2013, ADR-2016, ADR-2020, ADR-2058, ADR-2067, ADR-2075, ADR-2090, ADR-2091, ADR-2093, ADR-2094, ADR-2116]
 sources:
   - ../project/src/handlers/admin_rbac_handler.rs
@@ -26,7 +27,6 @@ sources:
   - ../project/src/actors/multi_mcp_visualization_actor.rs
   - ../project/src/services/multi_mcp_agent_discovery.rs
   - ../project/src/app_state.rs
-  - ../project/src/actors/protected_settings_actor.rs
   - ../project/src/services/bots_client.rs
   - ../project/src/services/proposal_spine.rs
   - ../project/src/handlers/solid_proxy_handler.rs
@@ -59,14 +59,12 @@ sources:
   - ../project/crates/visionclaw-jev/src/config.rs
   - ../project/src/handlers/ontology_agent_handler.rs
   - ../project/src/middleware/auth.rs
-verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35}
+verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35}
 ---
 
 ## For developers
 
 The handler families that decide who someone is and what they may change: RBAC administration (ADR-2010), Nostr sessions and per-user API keys, the XR presence socket, decision records, the shared enrichment-decide path, the broker inbox, briefings, the MCP relay, the Solid pod proxy and the speech socket. Each panel cites the route registration, the auth gate and the store it writes. At ec785afa9 the API-key read path is fixed: `GET /auth/nostr/api-keys` reads the same `NostrService` record that `POST` writes and is sent `no-store` (VC-05.3).
-
-**Debt (loose end):** `AppState::get_api_keys` (`src/app_state.rs:1578`) has no caller since the handler reads `NostrService` directly (`src/handlers/nostr_handler.rs:319`), and `GetApiKeys` (`src/actors/protected_settings_actor.rs:33-37`) is reached only from tests, so the ProtectedSettings API-key store has no production reader.
 
 ## For the business
 
@@ -185,7 +183,7 @@ sequenceDiagram
     H->>NS: POST writes update_user_api_keys(caller, keys) :293, a power user gets 403 (:303-305)
     H->>NS: GET reads get_user(caller).api_keys from the SAME NostrService store (:319-321), 404 when no user (:328)
     H-->>C: GET body sent with Cache-Control no-store (:322-325)
-    Note over H,NS: FIXED by VisionClaw 6b811f7a1 — GET used to read AppState::get_api_keys, which asked ProtectedSettingsActor<br/>(GetApiKeys), a store the POST never wrote, so saved keys never came back. DEBT: AppState::get_api_keys<br/>now has no caller (src/app_state.rs:1578) and GetApiKeys only tests (src/actors/protected_settings_actor.rs:33-37)
+    Note over H,NS: FIXED by VisionClaw 6b811f7a1 — GET used to read AppState::get_api_keys, which asked ProtectedSettingsActor<br/>(GetApiKeys), a store the POST never wrote, so saved keys never came back. RESOLVED (VisionClaw 7a0674e79):<br/>ProtectedSettingsActor, AppState::get_api_keys and get_nostr_user are deleted, so NostrService (:319-321) is the only key store
     Note over H: RESOLVED ER-24 (VisionClaw cefd9d1d7) — the route used to be "/api-keys" with no {pubkey} segment<br/>while both handlers extracted web::Path~String~, so the extractor failed and the routes could not succeed<br/>they now take the pubkey from RequireAuth, and get_api_keys no longer does its own Bearer check
     Note over H: INVARIANT: the pubkey an api-keys handler acts on comes from the authenticated request, nostr_handler.rs:267-275
 ```
@@ -197,7 +195,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as XR client<br/>Godot
-    participant WS as PresenceSession<br/>src/handlers/presence_handler.rs:135 ws_presence :501 (route src/main.rs:1127)
+    participant WS as PresenceSession<br/>src/handlers/presence_handler.rs:135 ws_presence :501 (route src/main.rs:1152)
     participant NC as SeenNonces LRU<br/>presence_handler.rs:51 cap 4096
     participant IV as IdentityVerifier<br/>visionclaw_xr_presence::ports
     participant REG as PresenceRoomRegistry<br/>presence_handler.rs:41 Arc~DashMap~String,Addr~PresenceActor~~~
@@ -351,9 +349,11 @@ sequenceDiagram
     H->>H: bounded_bfs(root, max_depth, adjacency)
     H-->>C: 200 TraceResponse{derived:true, root, direction, max_depth, hops}
     Note over H: response is stamped derived:true — reachability, never a materialised<br/>or Whelk-classified transitive edge (ADR-048 Graph placement)
-    Note over DS: ADR-2116 — POST /ontology-agent/propose is retired to 410 Gone (handler src/handlers/ontology_agent_handler.rs:239,<br/>route src/handlers/ontology_agent_handler.rs:399), but OntologyMutationService and its three<br/>error-prefix consts are NOT removed: decision_service.rs:408-411 imports CONFLICT_BLOCKED_PREFIX,<br/>IDEMPOTENCY_CONFLICT_PREFIX, ENVELOPE_REJECTED_PREFIX from it directly (used above)
-    Note over DS: the 410 body names `vault propose` as the replacement (src/handlers/ontology_agent_handler.rs:240-253),<br/>and the doc comment names the callers still holding that URL — agentbox's ontology-propose.js,<br/>the ontology-augment and podcast-knowledge-ingest skills, the ontology-curator agent<br/>(src/handlers/ontology_agent_handler.rs:223-238)
+    Note over DS: ADR-2116 — POST /ontology-agent/propose is retired to 410 Gone (handler src/handlers/ontology_agent_handler.rs:300,<br/>route src/handlers/ontology_agent_handler.rs:482), but OntologyMutationService and its three<br/>error-prefix consts are NOT removed: decision_service.rs:408-411 imports CONFLICT_BLOCKED_PREFIX,<br/>IDEMPOTENCY_CONFLICT_PREFIX, ENVELOPE_REJECTED_PREFIX from it directly (used above)
+    Note over DS: the 410 body names `vault propose` as the replacement (src/handlers/ontology_agent_handler.rs:301-314),<br/>and the doc comment names the callers still holding that URL — agentbox's ontology-propose.js,<br/>the ontology-augment and podcast-knowledge-ingest skills, the ontology-curator agent<br/>(src/handlers/ontology_agent_handler.rs:284-299)
 ```
+
+The anonymous `/ontology-agent/*` reads now scrub through a per-caller deny-list (`src/handlers/ontology_agent_handler.rs:121`, routes `:469-482`), but SECURITY-profiles 0.1.6 lists what it does not filter faithfully: Whelk inferences that passed through a hidden class and ontology nodes stored under a slug-derived IRI the deny-list cannot match (`docs/SECURITY-profiles.md:111`). The deny-list and its residuals are drawn in VC-19.7.
 
 ## VC-05.7 shared enrichment-decide core (ADR-2006 / ADR-130 Decision 2) — three callers, one path
 ```mermaid
@@ -441,7 +441,7 @@ sequenceDiagram
     AD-->>WB: 200 DecideResponse
 ```
 
-**Tension (X-Agent-Key callers behind the RbacGate):** both service routes in this panel sit inside the `/api` scope (`src/main.rs:1134`, `:1145`, decide mounted `:1235`, write-back `:1246`), so the RbacGate runs before either handler. A POST there needs `WriteGraph` (`src/middleware/rbac_gate.rs:179-189`), resolved through `verify_access`, which knows only the dev bypasses, NIP-98 and the legacy `X-Nostr-Pubkey`/`X-Nostr-Token` pair (`src/utils/auth.rs:211-218`, `:259-265`, `:329-353`). The agentbox bridge sends `X-Agent-Key` and no `Authorization` header (`../project/agentbox/management-api/routes/broker-bridge.js:105-115`, decide call `:576-579`), and the git-bridge write-back sends no credential at all (`src/handlers/ingest_writeback_handler.rs:19-23`). In a release build with the gate enforcing, both are refused with 401 before `require_agent_key` or `apply_decision` runs. The production Compose service requires `VISIONCLAW_AGENT_KEY` (`docker-compose.unified.yml:288`) for exactly these callers, while the dev service arms `VISIONCLAW_DEV_MODE=1` (`docker-compose.unified.yml:116`), whose full bypass grants every request (`src/utils/auth.rs:211-218`) and so hides the gap in development. Source tracing only; not exercised against a release build. Close it by allowlisting the two service routes in the gate and keeping their handler checks, or by giving the bridge a NIP-98 signer.
+**Tension (X-Agent-Key callers behind the RbacGate):** both service routes in this panel sit inside the `/api` scope (`src/main.rs:1159`, `:1170`, decide mounted `:1262`, write-back `:1273`), so the RbacGate runs before either handler. A POST there needs `WriteGraph` (`src/middleware/rbac_gate.rs:179-189`), resolved through `verify_access`, which knows only the dev bypasses, NIP-98 and the legacy `X-Nostr-Pubkey`/`X-Nostr-Token` pair (`src/utils/auth.rs:211-218`, `:259-265`, `:329-353`). The agentbox bridge sends `X-Agent-Key` and no `Authorization` header (`../project/agentbox/management-api/routes/broker-bridge.js:105-115`, decide call `:576-579`), and the git-bridge write-back sends no credential at all (`src/handlers/ingest_writeback_handler.rs:19-23`). In a release build with the gate enforcing, both are refused with 401 before `require_agent_key` or `apply_decision` runs. The production Compose service requires `VISIONCLAW_AGENT_KEY` (`docker-compose.unified.yml:288`) for exactly these callers, while the dev service arms `VISIONCLAW_DEV_MODE=1` (`docker-compose.unified.yml:116`), whose full bypass grants every request (`src/utils/auth.rs:211-218`) and so hides the gap in development. Source tracing only; not exercised against a release build. Close it by allowlisting the two service routes in the gate and keeping their handler checks, or by giving the bridge a NIP-98 signer.
 
 ## VC-05.8 `broker_inbox_handler` — dedicated privileged read scope (WS-12)
 ```mermaid
@@ -453,7 +453,7 @@ sequenceDiagram
     participant ST as enrichment_proposals_handler::store<br/>same durable store as WS-9, no second store
 
     Note over SC: doc comment :243-247 — "Mounted as a dedicated web::scope(broker) so the<br/>privileged RequireAuth::power_user() middleware wraps exactly these read routes<br/>and nothing else, mirroring the isolated privileged scope at ontology_handler.rs lines 913-918"
-    Note over SC: DOC-DRIFT — that cross-reference is itself stale: WS-0 removed ontology_handler.rs<br/>own web::scope entirely (ontology_handler.rs:1095-1105), re-using its handlers from the single<br/>canonical scope in api_handler::ontology::config instead, see VC-20. No isolated privileged<br/>scope exists there any more — /broker is the odd one out now, not a mirror of it.
+    Note over SC: DOC-DRIFT — that cross-reference is itself stale: WS-0 removed ontology_handler.rs<br/>own web::scope entirely (ontology_handler.rs:1148-1158), re-using its handlers from the single<br/>canonical scope in api_handler::ontology::config instead, see VC-20. No isolated privileged<br/>scope exists there any more — /broker is the odd one out now, not a mirror of it.
     C->>SC: GET /api/broker/inbox (the bridge sends X-Agent-Key only, broker-bridge.js:345, :105-115)
     SC->>SC: RequireAuth::power_user()
     alt not power user
@@ -576,7 +576,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant H as mcp_relay_handler<br/>src/handlers/mcp_relay_handler.rs:438 (route src/main.rs:1123)
+    participant H as mcp_relay_handler<br/>src/handlers/mcp_relay_handler.rs:438 (route src/main.rs:1148)
     participant A as MCPRelayActor<br/>src/handlers/mcp_relay_handler.rs:39
     participant O as orchestrator WS<br/>ORCHESTRATOR_WS_URL env mcp_relay_handler.rs:78 in connect_to_orchestrator :77
 
@@ -635,7 +635,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant H as configure_multi_mcp_routes<br/>src/handlers/multi_mcp_websocket_handler.rs:867 scope /multi-mcp :869<br/>mounted inside /api, src/main.rs:1199
+    participant H as configure_multi_mcp_routes<br/>src/handlers/multi_mcp_websocket_handler.rs:867 scope /multi-mcp :869<br/>mounted inside /api, src/main.rs:1224
     participant U as multi_mcp_visualization_ws<br/>multi_mcp_websocket_handler.rs:776 upgrade guard
     participant WS as MultiMcpVisualizationWs<br/>multi_mcp_websocket_handler.rs:50 new :119, Actor::started :410
     participant DS as MultiMcpAgentDiscovery<br/>src/services/multi_mcp_agent_discovery.rs:101
@@ -655,7 +655,7 @@ sequenceDiagram
     else Ok
         Note over U: ADR-2090 (:783-790) - this upgrade previously accepted ANY non-empty<br/>string. It now resolves the token through NostrService::get_session,<br/>which per<br/>ADR-2044 enforces AUTH_TOKEN_EXPIRY. Same fix as /ws/mcp-relay, see<br/>VC-05.12
         U->>WS: ws::start(MultiMcpVisualizationWs::new(app_state.multi_mcp_discovery.clone())) :861
-        Note over U,DS: DOC-DRIFT (RESOLVED 2026-10-12, project 6a1a74b8b/4f4345503) - new()<br/>used to take (app_state, None) and never touch<br/>the discovery service. It now takes the shared<br/>Arc<MultiMcpAgentDiscovery> built at boot<br/>(src/handlers/multi_mcp_websocket_handler.rs:119, AppState field<br/>src/app_state.rs:363-364, construction src/app_state.rs:1181-1183)
+        Note over U,DS: DOC-DRIFT (RESOLVED 2026-10-12, project 6a1a74b8b/4f4345503) - new()<br/>used to take (app_state, None) and never touch<br/>the discovery service. It now takes the shared<br/>Arc<MultiMcpAgentDiscovery> built at boot<br/>(src/handlers/multi_mcp_websocket_handler.rs:119, AppState field<br/>src/app_state.rs:338-339, construction src/app_state.rs:1135-1137)
         WS->>WS: started :410 - start_heartbeat :413 (5s ping :159-169)
         WS->>DS: discovery.attach() :419 - subscriber count +1 SYNCHRONOUSLY (multi_mcp_agent_discovery.rs:170)
         WS->>DS: actix::spawn sync_running() :421 - idempotent, serialised by a mutex (multi_mcp_agent_discovery.rs:184-193)
@@ -715,7 +715,7 @@ sequenceDiagram
     participant C as Client
     participant SC as scope /solid<br/>src/handlers/solid_proxy_handler.rs:1773 configure_routes (feature solid-pod-embed), scope :1781
     participant H as solid_proxy_handler<br/>solid_proxy_handler.rs:311 handle_solid_proxy, :1331 init_pod_nip98
-    participant RG as RbacGate<br/>/api scope wrap src/main.rs:1145 (scope :1134, solid mounted :1214)
+    participant RG as RbacGate<br/>/api scope wrap src/main.rs:1170 (scope :1159, solid mounted :1241)
     participant SD as SolidPodState::extract_user_identity<br/>solid_proxy_handler.rs:188 own NIP-98 verification
 
     Note over SC: env SOLID_DATA_ROOT :130, SOLID_PROXY_SECRET_KEY :133, SOLID_ALLOW_ANONYMOUS :137
@@ -727,7 +727,7 @@ sequenceDiagram
     C->>SC: GET /pods/check :1791 -> check_pod_exists :1244
     C->>SC: POST /pods/init :1792 -> init_pod :1285
     rect rgb(255,235,235)
-    Note over C,SD: DIVERGENCE — /api/solid/pods/init-nip98 sits inside the /api scope<br/>(main.rs:1214 configure_solid_routes, under scope :1134), so it is DOUBLE-authenticated (see VC-03.15)
+    Note over C,SD: DIVERGENCE — /api/solid/pods/init-nip98 sits inside the /api scope<br/>(main.rs:1241 configure_solid_routes, under scope :1159), so it is DOUBLE-authenticated (see VC-03.15)
     C->>RG: POST /api/solid/pods/init-nip98 solid_proxy_handler.rs:1793 (Authorization: Nostr event)
     RG->>RG: RbacGate verify_access(WriteGraph) — mutating method under /api
     alt RbacGate denies
@@ -751,14 +751,14 @@ sequenceDiagram
     Note over H: full pod/LDP internals (storage backend, ACL, containers) — see VC-26
 ```
 
-**Tension (the second NIP-98 check meets the single-use replay cache):** every successful NIP-98 validation claims the event id in a process-wide cache and a second claim of the same id fails with `TokenReplayed` (`src/utils/nip98.rs:164-168`, claim `:573`). For `POST /api/solid/pods/init-nip98` the RbacGate verifies the token first through `NostrService::verify_nip98_auth` (`src/utils/auth.rs:291-295`, `src/services/nostr_service.rs:648-662`), then the handler calls `extract_user_identity`, which runs `validate_nip98_token` on the same header (`src/handlers/solid_proxy_handler.rs:188`, `:225`). The second call is a replay, returns `None`, and the handler answers 401 (`src/handlers/solid_proxy_handler.rs:1332-1338`), so a genuine caller cannot initialise a pod through this route. `verify_access` already avoids the same trap for nested `RequireAuth` by reusing the identity the gate left in the request extensions (`src/utils/auth.rs:266-280`); `extract_user_identity` does not. The same applies to every `/api/solid/*` request the gate verifies (all mutations, and reads when public reads are off), which reach `handle_solid_proxy` without an identity. The `/pay` routes are not affected: they mount at the App root and verify once (`src/main.rs:1113`). A dev build with `VISIONCLAW_DEV_MODE=1` hides this, because `verify_access` returns before any NIP-98 verification (`src/utils/auth.rs:211-218`) and the gate claims no event id. Source tracing only; not exercised at runtime. Close it by having `extract_user_identity` read `get_authenticated_user` first.
+**Tension (the second NIP-98 check meets the single-use replay cache):** every successful NIP-98 validation claims the event id in a process-wide cache and a second claim of the same id fails with `TokenReplayed` (`src/utils/nip98.rs:164-168`, claim `:573`). For `POST /api/solid/pods/init-nip98` the RbacGate verifies the token first through `NostrService::verify_nip98_auth` (`src/utils/auth.rs:291-295`, `src/services/nostr_service.rs:648-662`), then the handler calls `extract_user_identity`, which runs `validate_nip98_token` on the same header (`src/handlers/solid_proxy_handler.rs:188`, `:225`). The second call is a replay, returns `None`, and the handler answers 401 (`src/handlers/solid_proxy_handler.rs:1332-1338`), so a genuine caller cannot initialise a pod through this route. `verify_access` already avoids the same trap for nested `RequireAuth` by reusing the identity the gate left in the request extensions (`src/utils/auth.rs:266-280`); `extract_user_identity` does not. The same applies to every `/api/solid/*` request the gate verifies (all mutations, and reads when public reads are off), which reach `handle_solid_proxy` without an identity. The `/pay` routes are not affected: they mount at the App root and verify once (`src/main.rs:1138`). A dev build with `VISIONCLAW_DEV_MODE=1` hides this, because `verify_access` returns before any NIP-98 verification (`src/utils/auth.rs:211-218`) and the gate claims no event id. Source tracing only; not exercised at runtime. Close it by having `extract_user_identity` read `get_authenticated_user` first.
 
 ## VC-05.16 `speech_socket_handler` — `/ws/speech`, ADR-2075 post-upgrade NIP-98
 ```mermaid
 sequenceDiagram
     autonumber
     participant C as Client (browser voice / XR)
-    participant H as speech_socket_handler<br/>src/handlers/speech_socket_handler.rs:989 (route src/main.rs:1122)
+    participant H as speech_socket_handler<br/>src/handlers/speech_socket_handler.rs:989 (route src/main.rs:1147)
     participant SS as SpeechSocket actor<br/>speech_socket_handler.rs:82 struct, new() :103, Actor::started :479
     participant NS as NostrService::verify_nip98_auth<br/>src/services/nostr_service.rs
 
@@ -822,10 +822,10 @@ sequenceDiagram
     Note over D,DB: DIVERGENCE — the agentbox/operator/git-bridge REST path (VC-05.7) writes<br/>decision_event_id:None every time, since it never carries a signed 31403 event
     BI->>DB: store::all() / store::get(id) — reads the SAME table both producers wrote to
     BI-->>BI: projects EITHER kind of row into the SAME BrokerCase shape, indistinguishable to the bridge
-    Note over V,BI: DIVERGENCE (ADR-2006 closeout, docs/BASELINE-architecture.md:437) —<br/>"the retained domain kernel's presence does not prove integration into the elevation<br/>actor or inbox DTO. Current source review does not certify a complete human-approval journey."<br/>Verified precisely: the two producers only converge at the SQLite table, no handler route<br/>calls into either actor, and case authority/failure/restart receipts are not modelled here
+    Note over V,BI: DIVERGENCE (ADR-2006 closeout, docs/BASELINE-architecture.md:469) —<br/>"the retained domain kernel's presence does not prove integration into the elevation<br/>actor or inbox DTO. Current source review does not certify a complete human-approval journey."<br/>Verified precisely: the two producers only converge at the SQLite table, no handler route<br/>calls into either actor, and case authority/failure/restart receipts are not modelled here
 ```
 
-## VC-05.18 `src/domain/broker/` verification — BrokerActor never merged (BASELINE-architecture.md:379)
+## VC-05.18 `src/domain/broker/` verification — BrokerActor never merged (BASELINE-architecture.md:411)
 ```mermaid
 flowchart TB
     KERNEL["src/domain/broker/ — storage-agnostic kernel (ADR-130 Decision 2)<br/>broker/mod.rs:1-43, broker_case.rs 490L, broker_decision.rs 437L, precedent_registry.rs 101L"]
@@ -839,9 +839,9 @@ flowchart TB
     ABSENT["src/actors/broker_actor.rs — VERIFIED ABSENT<br/>grep -r finds no file, no Neo4j adapter under src/adapters/ (listed: sqlite_*, oxigraph_*, actix_*)"]
     KERNEL -.->|"used by derive_kernel_decision (VC-05.7)"| CALLER["enrichment_proposals_handler::apply_decision"]
     KERNEL -.->|"used by decision_record (VC-05.17)"| CALLER2["elevation_actor.rs"]
-    N1["DIVERGENCE (docs/BASELINE-architecture.md:379) — BrokerActor never merged, main uses<br/>a stateless ACSP producer + this cherry-picked storage-agnostic domain broker kernel.<br/>Confirmed against source: broker/mod.rs:11-18 states the crashbug BrokerActor + its Neo4j<br/>transport were deliberately left behind"]
+    N1["DIVERGENCE (docs/BASELINE-architecture.md:411) — BrokerActor never merged, main uses<br/>a stateless ACSP producer + this cherry-picked storage-agnostic domain broker kernel.<br/>Confirmed against source: broker/mod.rs:11-18 states the crashbug BrokerActor + its Neo4j<br/>transport were deliberately left behind"]
     ABSENT --- N1
     ACSP --- N1
-    N2["DOC-DRIFT — BASELINE-architecture.md:380 sizes the kernel at ~936 LOC, but the four files<br/>measure 1,071 lines today (490 + 437 + 101 + 43). ADR-2006 Verification (accepted) otherwise<br/>matches: src/services/acsp/mod.rs documents the producer, src/domain/broker/ holds the four<br/>listed files, broker_actor.rs and the neo4j adapters are absent"]
+    N2["DOC-DRIFT — BASELINE-architecture.md:412 sizes the kernel at ~936 LOC, but the four files<br/>measure 1,071 lines today (490 + 437 + 101 + 43). ADR-2006 Verification (accepted) otherwise<br/>matches: src/services/acsp/mod.rs documents the producer, src/domain/broker/ holds the four<br/>listed files, broker_actor.rs and the neo4j adapters are absent"]
     KERNEL --- N2
 ```

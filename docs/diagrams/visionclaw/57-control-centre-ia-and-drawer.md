@@ -2,7 +2,7 @@
 id: VC-57
 title: Control centre information architecture, scope badges, dock and right-hand drawer
 area: visionclaw
-verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
+verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8}
 governing:
   - ../project/docs/BASELINE-architecture.md
   - ../project/docs/XR-client.md
@@ -50,6 +50,18 @@ sources:
   - ../project/src/settings/models.rs
   - ../project/src/config/path_access.rs
   - ../project/crates/visionclaw-domain/src/config/visualisation.rs
+  - ../project/client/src/api/settings/__tests__/settingsRoundTrip.test.ts
+  - ../project/client/src/api/settings/defaults.ts
+  - ../project/client/src/features/control-center/registry/groups/system.ts
+  - ../project/client/src/features/control-center/registry/groups/graphView.ts
+  - ../project/client/src/features/control-center/registry/groups/atmosphere.ts
+  - ../project/client/src/features/control-center/primitives/SettingAction.tsx
+  - ../project/client/src/features/control-center/primitives/RendererInfo.tsx
+  - ../project/client/src/features/settings/config/settings.ts
+  - ../project/client/src/rendering/rendererFactory.ts
+  - ../project/src/settings/api/settings_routes.rs
+  - ../project/src/adapters/sqlite_settings_repository.rs
+  - ../project/docs/adr/ADR-2187-a-cosmos-gl-2d-overview-is-built-as-a-time-boxed-reference-spike.md
 ---
 
 ## For developers
@@ -69,23 +81,23 @@ flowchart TB
     end
     subgraph place["Placed (placement.ts)"]
         SD["SECTION_DEFS, seven sections, hotkeys 1 to 7<br/>placement.ts:28"]
-        PF["placeField(sourceGroup, field)<br/>placement.ts:199"]
+        PF["placeField(sourceGroup, field)<br/>placement.ts:210"]
     end
     subgraph built["Built (manifest.ts)"]
         BS["buildSections, sort by subsection then declaration<br/>manifest.ts:75-98"]
-        SECD["SECTION_DATA<br/>manifest.ts:102"]
+        SECD["SECTION_DATA<br/>manifest.ts:108"]
         REG["REGISTRY, icons attached<br/>settingsRegistry.ts:30"]
     end
     GD --> BS
     LOOK --> GD
     SD --> BS
-    PF -->|"section and subsection per field (placement.ts:199)"| BS
+    PF -->|"section and subsection per field (placement.ts:210)"| BS
     BS --> SECD --> REG
     REG --> RAIL["SettingsPanel rail<br/>SettingsPanel.tsx:190"]
     REG --> DOCK["dock section buttons<br/>MacroBar.tsx:322"]
     REG --> HK["digit hotkeys from registry order<br/>useControlCenterHotkeys.ts:96-99"]
-    SECD --> BM["buildManifest, test ids and buckets<br/>manifest.ts:136"]
-    SECD --> BI["buildIa, section to subsection to fields<br/>manifest.ts:218"]
+    SECD --> BM["buildManifest, test ids and buckets<br/>manifest.ts:156"]
+    SECD --> BI["buildIa, section to subsection to fields<br/>manifest.ts:238"]
     BI --> IA2["two committed ia.json copies (VC-57.3)<br/>emit-settings-manifest.ts:19-22"]
     REG --> LOAD["first open hydrates the section loadPaths<br/>useEnsureGroupLoaded.ts:24-29"]
 ```
@@ -97,34 +109,34 @@ flowchart TB
 ## VC-57.2 placeField: where one field is shown
 ```mermaid
 flowchart TB
-    IN["field plus its source group<br/>placement.ts:199"] --> P1{"path in PATH_PLACEMENT?<br/>placement.ts:200"}
-    P1 -->|yes| OV["per-path override, e.g. maxEdgesCeiling to System Performance<br/>placement.ts:175, placement.ts:179"]
-    P1 -->|no| P2{"motion group, subgroup starts Semantic?<br/>placement.ts:202"}
-    P2 -->|yes| SEM["Layout, Semantic forces then the subgroup tail<br/>placement.ts:203"]
-    P2 -->|no| P3["SUBGROUP_PLACEMENT by sourceGroup and subgroup<br/>placement.ts:112, placement.ts:205"]
-    P3 -->|"no entry (placement.ts:206)"| THROW["throw, nothing drops out of the menus<br/>placement.ts:207"]
-    OV --> CHK{"subsection declared on the section?<br/>placement.ts:210"}
+    IN["field plus its source group<br/>placement.ts:210"] --> P1{"path in PATH_PLACEMENT?<br/>placement.ts:211"}
+    P1 -->|yes| OV["per-path override, e.g. maxEdgesCeiling to System Performance<br/>placement.ts:177, placement.ts:181"]
+    P1 -->|no| P2{"motion group, subgroup starts Semantic?<br/>placement.ts:213"}
+    P2 -->|yes| SEM["Layout, Semantic forces then the subgroup tail<br/>placement.ts:214"]
+    P2 -->|no| P3["SUBGROUP_PLACEMENT by sourceGroup and subgroup<br/>placement.ts:112, placement.ts:216"]
+    P3 -->|"no entry (placement.ts:217)"| THROW["throw, nothing drops out of the menus<br/>placement.ts:218"]
+    OV --> CHK{"subsection declared on the section?<br/>placement.ts:221"}
     SEM --> CHK
     P3 --> CHK
-    CHK -->|no| THROW2["throw<br/>placement.ts:211"]
-    CHK -->|yes| OUT["section and subsection<br/>placement.ts:213"]
+    CHK -->|no| THROW2["throw<br/>placement.ts:222"]
+    CHK -->|yes| OUT["section and subsection<br/>placement.ts:224"]
     T["INVARIANT: test b2 enumerates every field through it<br/>registry.test.ts:259"] -.-> THROW
 ```
 
 **What it shows.** The three-step resolution for one field and the two throws that make an unplaced field a test failure. **Why it is this way.** ADR-2189 §7 maps old subgroups wholesale but moves a few mixed-concern paths individually; throwing keeps the "every control in exactly one place" rule mechanical.
 
-**Debt (loose end):** `maxEdgesCeiling` ("Edge memory budget") is still declared in the look group under "Lighting & Rendering" with a stale "Phase 6" description (`look.ts:23`), though it caps edge capacity (`GlassEdges.tsx:244`); only the per-path override shows it under System › Performance (`placement.ts:179`), as ADR-2189 §7 asks (`ADR-2189-desktop-and-xr-menus-share-one-seven-section-information-architecture.md:218`).
+**Debt (loose end):** `maxEdgesCeiling` ("Edge memory budget") is still declared in the look group under "Lighting & Rendering" with a stale "Phase 6" description (`look.ts:23`), though it caps edge capacity (`GlassEdges.tsx:244`); only the per-path override shows it under System › Performance (`placement.ts:181`), as ADR-2189 §7 asks (`ADR-2189-desktop-and-xr-menus-share-one-seven-section-information-architecture.md:218`).
 
 ## VC-57.3 The emitted documents and what pins each copy
 ```mermaid
 flowchart TB
     EM["npm run gen:manifest<br/>emit-settings-manifest.ts:14"] --> MAN["settings-manifest.json, browser coverage phase<br/>emit-settings-manifest.ts:16, emit-settings-manifest.ts:25"]
     EM --> IAW["the same buildIa text written twice<br/>emit-settings-manifest.ts:26-27"]
-    IAW --> C1["registry/ia.json, desktop copy<br/>registry/ia.json:1850"]
-    IAW --> C2["data/ia.json, headset copy<br/>data/ia.json:1850"]
-    B5["test b5, both copies deep-equal a fresh buildIa<br/>registry.test.ts:327-335"] -.->|pins| C1
+    IAW --> C1["registry/ia.json, desktop copy<br/>registry/ia.json:1844"]
+    IAW --> C2["data/ia.json, headset copy<br/>data/ia.json:1844"]
+    B5["test b5, both copies deep-equal a fresh buildIa<br/>registry.test.ts:329-337"] -.->|pins| C1
     B5 -.->|pins| C2
-    TE["test e, counts and per-section field counts only<br/>registry.test.ts:523, registry.test.ts:528-531"] -.->|"OPEN: labels, paths and test ids are not compared (registry.test.ts:528)"| MAN
+    TE["test e, counts and per-section field counts only<br/>registry.test.ts:525, registry.test.ts:530-533"] -.->|"OPEN: labels, paths and test ids are not compared (registry.test.ts:530)"| MAN
     C2 --> LD["HudIa.load_doc, falls back to a built-in seven<br/>hud_ia.gd:88"]
     LD --> HUD["HUD tab bar built from it<br/>hud.gd:506, hud.gd:510"]
     FB["FALLBACK_SECTIONS and FALLBACK_SCOPES, hand-kept<br/>hud_ia.gd:26, hud_ia.gd:35"] -.-> LD
@@ -136,9 +148,9 @@ flowchart TB
 
 **Debt (parallel):** the IA exists as two committed copies, `registry/ia.json` and `xr-client/data/ia.json`, written by one emitter (`emit-settings-manifest.ts:19-22`); they are generated, never hand-edited.
 
-**Invariant:** both copies deep-equal a fresh `buildIa()` or the Vitest suite fails (`registry.test.ts:327-335`).
+**Invariant:** both copies deep-equal a fresh `buildIa()` or the Vitest suite fails (`registry.test.ts:329-337`).
 
-**Debt (parallel):** the headset keeps a hand copy of the seven sections and the scope texts (`hud_ia.gd:26`, `:35`) beside `SCOPE_TEXT` (`manifest.ts:203`); only the GUT test ties them (`test_hud_ia.gd:38-47`).
+**Debt (parallel):** the headset keeps a hand copy of the seven sections and the scope texts (`hud_ia.gd:26`, `:35`) beside `SCOPE_TEXT` (`manifest.ts:223`); only the GUT test ties them (`test_hud_ia.gd:38-47`).
 
 **Tension (parallel):** the XR "Semantic forces" subsection passes the parity test only by being listed as XR-only (`hud_ia.gd:79`), though the desktop has eight "Semantic forces › …" subsections (`placement.ts:62-68`).
 
@@ -147,37 +159,50 @@ flowchart TB
 ## VC-57.4 Scope badges from the server bucket
 ```mermaid
 flowchart TB
-    PATH["field path"] --> SBF["serverBucketFor<br/>manifest.ts:110"]
-    SBF --> B1["physics, graphs and .physics.<br/>manifest.ts:112"]
-    SBF --> B2["rendering, qualityGates, nodeFilter, constraints<br/>manifest.ts:113-116"]
-    SBF --> B3["visual, other visualisation paths<br/>manifest.ts:121"]
-    SBF --> B4["null, browser only<br/>manifest.ts:122"]
-    SBF -.-> DEAD["DEBT: two branches can never fire after the dotted prefixes above<br/>manifest.ts:119-120"]
+    PATH["field path"] --> SBF["serverBucketFor<br/>manifest.ts:123"]
+    SBF --> B1["physics, graphs and .physics.<br/>manifest.ts:125"]
+    SBF --> B2["rendering only for the ten server RenderingSettings keys,<br/>other rendering paths such as agentColors go to visual<br/>SERVER_RENDERING_KEYS manifest.ts:117, manifest.ts:132"]
+    SBF --> B2D["null for the per-device budgets maxEdgesCeiling,<br/>softwareFallback, labelLayoutEvery<br/>manifest.ts:131"]
+    SBF --> B2Q["qualityGates, nodeFilter, constraints<br/>manifest.ts:134-136"]
+    SBF --> B3["visual, other visualisation paths<br/>manifest.ts:141"]
+    SBF --> B4["null, browser only<br/>manifest.ts:124, manifest.ts:142"]
+    SBF -.-> DEAD["DEBT: two branches can never fire after the dotted prefixes above<br/>manifest.ts:139-140"]
     B1 --> SF["scopeFor, physics to shared, other bucket to server, null to browser<br/>manifest.ts:55-59"]
     B2 --> SF
+    B2D --> SF
+    B2Q --> SF
     B3 --> SF
     B4 --> SF
     SF --> SFF["scopeForField, an action may override<br/>manifest.ts:62-63"]
     SFF --> BADGE["ScopeBadge text and icon<br/>SettingRow.tsx:50, SettingRow.tsx:110"]
-    TXT["SCOPE_TEXT, every server bucket reaches every viewer<br/>manifest.ts:199-207"] --> BADGE
+    TXT["SCOPE_TEXT, every server bucket reaches every viewer<br/>manifest.ts:223-227"] --> BADGE
     SF --> MAC["dial scope is the strongest of the paths it writes<br/>macros.ts:112-114"]
     MAC --> DIALS["layout dials vs view dials<br/>MacroBar.tsx:77-78"]
-    INV["INVARIANT: only physics paths are shared, dial scope equals strongest<br/>registry.test.ts:304, registry.test.ts:315"] -.-> SF
-    R1["write routing, batched, dotted prefixes<br/>endpoints.ts:345-359"] -.->|"mirrored by hand (manifest.ts:105-108)"| SBF
-    R2["write routing, single path, undotted prefixes<br/>endpoints.ts:289-299"] -.-> SBF
-    R3["isVisualSettingsPath<br/>schemaMappings.ts:126-130"] -.-> R1
+    INV["INVARIANT: only physics paths are shared, dial scope equals strongest<br/>registry.test.ts:306, registry.test.ts:317"] -.-> SF
+    R1["write routing, batched, dotted prefixes<br/>endpoints.ts:362-376"] -.->|"mirrored by hand (manifest.ts:111-114)"| SBF
+    R2["write routing, single path, undotted prefixes<br/>endpoints.ts:303-313"] -.-> SBF
+    R3["isVisualSettingsPath and isServerRenderingPath<br/>schemaMappings.ts:177-181, schemaMappings.ts:158-161"] -.-> R1
+    R4["serverBucketForPath, the routing copy in schemaMappings<br/>schemaMappings.ts:165-174"] -.-> R3
+    PIN["INVARIANT: serverBucketFor equals serverBucketForPath<br/>over every registry path, settingsRoundTrip.test.ts:117-119"] -.-> SBF
+    PIN -.-> R4
 ```
 
 **What it shows.** How a row's badge and a dial's scope derive from the bucket a path would be PUT to. **Why it is this way.** ADR-2189 §2 wants every row to say where its value is stored; the implementation note corrected the wording because every server bucket is a single global document (`ADR-2189-desktop-and-xr-menus-share-one-seven-section-information-architecture.md:305`).
 
-**Tension (parallel):** the badge's `serverBucketFor` copies the batched router's dotted prefixes (`manifest.ts:112`, `endpoints.ts:345`), but the single-path writer tests `.physics` and bare `qualityGates`/`nodeFilter` prefixes (`endpoints.ts:289`, `:293`, `:295`), so the two writers and the badge can disagree on a path such as `qualityGatesX.*`; no registered path hits the gap today.
+**Tension (parallel):** the badge's `serverBucketFor` copies the batched router's dotted prefixes (`manifest.ts:125`, `endpoints.ts:362`), but the single-path writer tests `.physics` and bare `qualityGates`/`nodeFilter` prefixes (`endpoints.ts:303`, `:307`, `:309`), so the two writers and the badge can disagree on a path such as `qualityGatesX.*`; no registered path hits the gap today.
+
+**Debt (parallel):** bucket routing is written four times: the badge's `serverBucketFor` (`manifest.ts:123`), `serverBucketForPath` (`schemaMappings.ts:165`) and the two writers (`endpoints.ts:303-313`, `:362-376`); the rendering key set is copied by hand (`manifest.ts:117` beside `schemaMappings.ts:139`) and the device-local list is an inline literal (`manifest.ts:131`) beside `DEVICE_LOCAL_RENDERING_KEYS` (`schemaMappings.ts:149`), pinned to each other only over registry paths (`settingsRoundTrip.test.ts:117-119`).
+
+**Drift (comment vs code):** `manifest.ts:127-128` says `maxEdgesCeiling`, `softwareFallback` and `labelLayoutEvery` live in `/visual`, but the next branch returns `null` for them, so they stay in the browser (`manifest.ts:131`).
+
+**Drift (comment vs code):** the `SCOPE_TEXT` header says rendering lives in the settings actor (`manifest.ts:220-221`); the rendering handler now also stores a `rendering` row (`settings_routes.rs:1004-1007`, `sqlite_settings_repository.rs:1057`).
 
 ## VC-57.5 One write path for rows, dials and the Ask box
 ```mermaid
 flowchart LR
     ROW["registry row<br/>useSettingField.ts:47, useSettingField.ts:70"] --> ASW["applySettingWrites<br/>settingWrites.ts:42"]
     DIAL["dock dial<br/>useMacro.ts:36"] --> ASW
-    ASK["Ask box keyword rules<br/>CommandInput.tsx:494, CommandInput.tsx:563"] --> ASW
+    ASK["Ask box keyword rules<br/>CommandInput.tsx:492, CommandInput.tsx:561"] --> ASW
     ASW --> BATCH["one immer batch on the settings store<br/>settingWrites.ts:46-58"]
     ASW --> Q["autoSaveManager.queueChange per path<br/>settingWrites.ts:63-64"]
     ASW --> LM["layoutApi.setMode for layout-mode paths<br/>settingWrites.ts:65-66"]
@@ -201,9 +226,11 @@ flowchart LR
     MB --> LEG["Legend toggle<br/>MacroBar.tsx:241"]
     MB --> EXP["Explore panel button, filter badge<br/>MacroBar.tsx:259, MacroBar.tsx:264"]
     MB --> SEC["seven section buttons<br/>MacroBar.tsx:322"]
-    LD -.-> IDS["DEBT: ids keep the old names density, luminosity, focus; tests pin them<br/>macros.ts:36, registry.test.ts:323-324"]
+    LD -.-> IDS["DEBT: ids keep the old names density, luminosity, focus; tests pin them<br/>macros.ts:36, registry.test.ts:325-326"]
     SEC -.-> ONE["OPEN: only the dials fold; the view and section buttons never do<br/>MacroBar.tsx:303"]
 ```
+
+**Debt (loose end):** the Atmosphere dial still drives `sceneEffects.fogOpacity` (`macros.ts:101`) and the Fog opacity row still offers it (`atmosphere.ts:26`), but nothing in the client draws fog from it since the GLSL fog plane was deleted; the only other mentions are its default and type (`defaults.ts:140`, `settings.ts:507`).
 
 **What it shows.** What the dock renders and the single point where it folds. **Why it is this way.** ADR-2189 §3 orders the dock as shared dials, view dials, physics and reset, then Fit, Legend, Explore and the sections; the audit found the old dock 74 px off-screen at 1024 px (`useDockCompact.ts:9-10`).
 
@@ -310,12 +337,12 @@ flowchart LR
 ```mermaid
 flowchart TB
     subgraph client["client: retiredPaths.ts"]
-        DP["DEAD_PATHS, 37<br/>retiredPaths.ts:21"]
-        RP["REPLACED_PATHS, 4<br/>retiredPaths.ts:67"]
-        MP["MERGED_PATHS, 3<br/>retiredPaths.ts:86-90"]
-        RN["RENAMED_PATHS, edge colour moves to agent mode<br/>retiredPaths.ts:97-99"]
-        ALL["ADR_2189_REMOVED_PATHS<br/>retiredPaths.ts:102"]
-        STRIP["stripRemovedPaths, renames first then delete and prune<br/>retiredPaths.ts:113-146"]
+        DP["DEAD_PATHS, 41: 37 from ADR-2189, 4 from the settings audit<br/>retiredPaths.ts:20-21, retiredPaths.ts:25-28"]
+        RP["REPLACED_PATHS, 9: 4 plus the five bloom paths glow replaces<br/>retiredPaths.ts:74, retiredPaths.ts:83-87"]
+        MP["MERGED_PATHS, 3<br/>retiredPaths.ts:100-104"]
+        RN["RENAMED_PATHS, edge colour moves to agent mode<br/>retiredPaths.ts:111-113"]
+        ALL["ADR_2189_REMOVED_PATHS<br/>retiredPaths.ts:116"]
+        STRIP["stripRemovedPaths, renames first then delete and prune<br/>retiredPaths.ts:127-160"]
     end
     DP --> ALL
     RP --> ALL
@@ -323,7 +350,7 @@ flowchart TB
     ALL --> STRIP
     RN --> STRIP
     STRIP --> S1["localStorage rehydrate merge<br/>settingsStore.ts:47, settingsStore.ts:59"]
-    STRIP --> S2["server load boundary<br/>endpoints.ts:234"]
+    STRIP --> S2["server load boundary<br/>endpoints.ts:247"]
     ALL --> S3["test b3, none is still a control<br/>registry.test.ts:285"]
     STRIP -.-> DR["header misnames the server-load strip site, registered once in VC-30<br/>retiredPaths.ts:11-12"]
     subgraph server["server: separate lists"]
@@ -331,11 +358,50 @@ flowchart TB
         DV["node blob drops enableMetadataShape<br/>visualisation.rs:548"]
         QG["quality gates still carry showClusters and showCommunities<br/>models.rs:64, models.rs:70"]
     end
-    QG -->|"served, then stripped (endpoints.ts:234)"| S2
+    QG -->|"served, then stripped (endpoints.ts:247)"| S2
 ```
 
-**What it shows.** How the 44 removed paths leave old data on both load paths, and the separate server-side retirements. **Why it is this way.** ADR-2189 §6 deletes paths nothing reads but promises that blobs written by older clients still load, so stripping is tolerant and happens at every boundary (`retiredPaths.ts:108-112`).
+**What it shows.** How the 53 removed paths leave old data on both load paths, and the separate server-side retirements. **Why it is this way.** ADR-2189 §6 deletes paths nothing reads but promises that blobs written by older clients still load, so stripping is tolerant and happens at every boundary (`retiredPaths.ts:122-126`).
 
-**Tension (parallel):** the client retires `qualityGates.showClusters` and `showCommunities` (`retiredPaths.ts:88-89`), but the server still models them as live quality-gate fields with no reader (`models.rs:64`, `:70`), so every load serves them and the client strips them again (`endpoints.ts:234`).
+**Tension (parallel):** the client retires `qualityGates.showClusters` and `showCommunities` (`retiredPaths.ts:102-103`), but the server still models them as live quality-gate fields with no reader (`models.rs:64`, `:70`), so every load serves them and the client strips them again (`endpoints.ts:247`); the same holds for `qualityGates.ruvectorEnabled`, retired by the settings audit (`retiredPaths.ts:26`) but still a server field (`models.rs:73`).
 
-**Debt (parallel):** retirement is three lists with no shared source: the client's `ADR_2189_REMOVED_PATHS` (`retiredPaths.ts:102`), the server's `RETIRED_SETTING_KEYS` (`path_access.rs:306`) and the domain node-blob filter (`visualisation.rs:548`).
+**Debt (parallel):** retirement is three lists with no shared source: the client's `ADR_2189_REMOVED_PATHS` (`retiredPaths.ts:116`), the server's `RETIRED_SETTING_KEYS` (`path_access.rs:306`) and the domain node-blob filter (`visualisation.rs:548`).
+
+## VC-57.12 What the settings-integrity pass changed in the menus
+```mermaid
+flowchart TB
+    subgraph edges["Look › Edges holds every edge appearance control"]
+        LE["look Edges rows, thickness, Edge Opacity (all edges), three mode colours<br/>look.ts:14-19"]
+        LP["look Edges and Graph-Type Visuals placed in Look › Edges<br/>placement.ts:124-126"]
+        OE["Overview Edges rows, Long-Edge Fade Floor among them<br/>graphView.ts:38, graphView.ts:43, placed placement.ts:168"]
+        ENC["Encode has no Edges subsection<br/>placement.ts:48"]
+    end
+    subgraph scope["Scope follows where the value is actually kept"]
+        DL["per-device budgets return null, badge reads This browser only<br/>manifest.ts:131, manifest.ts:226"]
+        AC["agentColors and other non-server rendering keys go to visual<br/>manifest.ts:132"]
+    end
+    subgraph gone["Retired and redirected"]
+        RT["node opacity, ruvectorEnabled, auth.enabled, auth.required<br/>retiredPaths.ts:25-28"]
+        BL["bloom.* replaced by glow.*<br/>retiredPaths.ts:83-87"]
+        ASKN["Ask box answers that node opacity is not a setting<br/>CommandInput.tsx:306-312"]
+        ASKG["Ask box glow or bloom writes glow.enabled only<br/>CommandInput.tsx:345, CommandInput.tsx:350"]
+    end
+    HF["Hide filtered nodes toggle in Explore › Filters<br/>graphView.ts:57, placement.ts:191"]
+    LE --> LP --> OE
+    LP --> ENC
+    ENC --> DL --> AC
+    AC --> RT --> BL --> ASKN --> ASKG
+    ASKG --> HF
+    WG["System › Performance WebGPU Renderer row says it switches WebGPU and WebGL<br/>system.ts:15, placement.ts:150"]
+    HF --> WG
+    WG --> ACT["toggle-webgpu now forces three's WebGL2 backend, then reloads<br/>SettingAction.tsx:79-82, rendererFactory.ts:59-62"]
+    WG -.-> WD["DRIFT: the label and description predate the single WebGPURenderer<br/>system.ts:15"]
+```
+
+**What it shows.** The menu side of the 2026-11-06 settings audit: edge appearance gathered under Look › Edges, scopes that match where a value is kept, the retired paths and their Ask-box redirects, and the explore hide-filtered toggle. **Why it is this way.** The audit found edge opacity split from its fade floor and per-device budgets labelled as server-saved (`placement.ts:123-124`, `schemaMappings.ts:145-150`).
+
+**Drift (registry vs renderer):** the WebGPU Renderer row still says it switches between WebGPU and WebGL renderers (`system.ts:15`); the desktop has one renderer, and the toggle forces its WebGL2 backend (`SettingAction.tsx:80-81`, `rendererFactory.ts:59-62`).
+
+**Debt (loose end):** the renderer info row shows TSL Materials and Node Bloom badges (`RendererInfo.tsx:45-46`) from flags that are now always true (`rendererFactory.ts:196-197`, `:206-207`), and the type still contrasts node bloom with EffectComposer (`settings.ts:158`).
+
+**Tension (ADR-2189 vs ADR-2187):** ADR-2189 places the ADR-2187 overview route flag under System › Developer (`ADR-2189-desktop-and-xr-menus-share-one-seven-section-information-architecture.md:104`, `:257`); ADR-2187 is rejected (`ADR-2187-a-cosmos-gl-2d-overview-is-built-as-a-time-boxed-reference-spike.md:5`) and only Debug Logging feeds Developer (`placement.ts:153`).

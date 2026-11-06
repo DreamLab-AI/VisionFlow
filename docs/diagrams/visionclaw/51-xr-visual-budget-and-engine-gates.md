@@ -33,7 +33,7 @@ sources:
   - ../project/xr-client/rust/src/render_store_pack.rs
   - ../project/xr-client/tests/unit/test_overview_lod.gd
   - ../project/xr-client/tests/unit/test_label_budget.gd
-verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
+verified_commit: {visionclaw: a950f4d8012ad6d67c32e37e5a36f24cf163d48e}
 ---
 
 ## For developers
@@ -94,10 +94,10 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    TARGET["Recorded target: Godot 4.8-beta2<br/>XR-client.md:114,115"] --> CONTROLLER["AUDIT: isolated headless tests on both engines<br/>18 retained tests per engine; no native extension"]
-    ROLLBACK["4.6.1 rollback remains separate<br/>XR-client.md:148"]
+    TARGET["Recorded target: Godot 4.8-beta2<br/>XR-client.md:115,116"] --> CONTROLLER["AUDIT: isolated headless tests on both engines<br/>18 retained tests per engine; no native extension"]
+    ROLLBACK["4.6.1 rollback remains separate<br/>XR-client.md:149"]
     API["godot crate 0.2; minimum engine 4.3<br/>Cargo.toml:21<br/>visionclaw_xr_gdext.gdextension:4"] --> LOAD["Historical full extension-load evidence<br/>current audit does not rerun it"]
-    RENDER["Compatibility renderer; MSAA disabled in project<br/>project.godot:56,59"] --> STEREO["Both-eye headset qualification still partial<br/>XR-client.md:139"]
+    RENDER["Compatibility renderer; MSAA disabled in project<br/>project.godot:56,59"] --> STEREO["Both-eye headset qualification still partial<br/>XR-client.md:140"]
     CONTROLLER -.-> STEREO
     LOAD -.-> STEREO
     STEREO -.-> ROLLBACK
@@ -138,8 +138,8 @@ flowchart TD
 
 **What it shows.** One per-second measurement drives both overview shaders through materials every volume shares, so a node never shrinks below 3 px and an edge is a 1.5 px line whose alpha falls with projected length. **Why it is this way.** ADR-2188 carries the desktop overview contract (ADR-2179, ADR-2181, ADR-2182) into the headset without bloom; headless Godot cannot compile shaders, so the maths is mirrored in GDScript for GUT (`xr-client/tests/unit/test_overview_lod.gd:79`).
 **Debt (parallel):** `overview_lod.gd` re-implements the impostor floor, ribbon width and length fade the shaders compute (`xr-client/scripts/overview_lod.gd:6-8`, `xr-client/materials/node_impostor.gdshader:60-62`, `xr-client/materials/edge_ribbon.gdshader:55-65`); GUT pins the copy and the shader defaults (`xr-client/tests/unit/test_overview_lod.gd:78-91`) but a change to a shader formula would pass it.
-**Open (risk):** `px_per_rad` is the centre-of-view value from eye 0's FOV (`xr-client/scripts/graph_scene.gd:1836-1837`), so on an asymmetric headset frustum the pixel floor and line width are approximate, as the doc concedes unverified (`docs/XR-client.md:824-825`).
-**Tension (ADR-2188 D3 vs halo):** ADR-2188 says emphasis is "never glow" (`docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:33`), yet the halo quad still draws additively (`xr-client/materials/node_halo_quad.gdshader:18`); the doc reconciles this as emissive geometry rather than post-process bloom (`docs/XR-client.md:846-848`).
+**Open (risk):** `px_per_rad` is the centre-of-view value from eye 0's FOV (`xr-client/scripts/graph_scene.gd:1836-1837`), so on an asymmetric headset frustum the pixel floor and line width are approximate, as the doc concedes unverified (`docs/XR-client.md:825-826`).
+**Tension (ADR-2188 D3 vs halo):** ADR-2188 says emphasis is "never glow" (`docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:33`), yet the halo quad still draws additively (`xr-client/materials/node_halo_quad.gdshader:18`); the doc reconciles this as emissive geometry rather than post-process bloom (`docs/XR-client.md:847-849`).
 
 ## VC-51.7 Each volume sizes its edge request from its own data and the HUD counts what it dropped (ADR-2188 D2, ADR-2179 P4)
 
@@ -183,5 +183,7 @@ flowchart TD
 
 **What it shows.** Pointer and query state reach the renderer as one byte per node slot, folded to grey, normal or emphasised at pack time, so a hover never invalidates a pack plan. **Why it is this way.** ADR-2183 makes filters grey out rather than remove, and ADR-2188 D3 rules out glow, so emphasis is colour, size and an outline (`xr-client/rust/src/highlight.rs:1-18`).
 **Debt (parallel):** the five bit values are copied into GDScript with a "must match" comment (`xr-client/scripts/highlight_writer.gd:8-21`, `xr-client/rust/src/highlight.rs:21-29`), held only by a source-text GUT check (`xr-client/tests/unit/test_label_budget.gd:162-170`); `HighlightWriter.neighbours_of` mirrors the Rust `neighbours_in` for clients without it (`xr-client/scripts/highlight_writer.gd:79-98`).
-**Drift:** the ADR-2188 section of `docs/XR-client.md` places `_update_px_per_rad` at graph_scene line 1805 and `set_edge_readout` at hud line 2266 (`docs/XR-client.md:819-820`, `docs/XR-client.md:836-837`), but at this pin they sit at `xr-client/scripts/graph_scene.gd:1820` and `xr-client/scripts/hud.gd:2538`.
-**Open:** the operator reports 90 fps on the HP on 2026-11-06 with three volumes, but ADR-2188 at this pin still lists the headset receipt as required and unverified (`docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:48`, `docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:52`); GL-gated GUT and headset legibility are not checkable from the container.
+**Drift:** the ADR-2188 section of `docs/XR-client.md` places `_update_px_per_rad` at graph_scene line 1805 and `set_edge_readout` at hud line 2266 (`docs/XR-client.md:820-821`, `docs/XR-client.md:837-838`), but at this pin they sit at `xr-client/scripts/graph_scene.gd:1820` and `xr-client/scripts/hud.gd:2538`.
+**Invariant (resolved Open):** the headset receipt is recorded. ADR-2188 notes OpenXR focused, 88-90 fps with all three volumes and zero script, shader, heartbeat or reconnect errors over 15 minutes on the HP (`docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:52`), with `activation_status: active` (`docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:7`) and the XR-client 0.1.35 changelog entry (`docs/XR-client.md:8`).
+**Drift:** ADR-2188's Verification section still opens "None yet. Required:" and lists the headset receipt as required (`docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:44`, `docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:48`), although the status section records it (`docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:52`).
+**Open:** visual legibility of the rail and pages in the headset is still a human check (`docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:52`); GL-gated GUT is not checkable from the container.

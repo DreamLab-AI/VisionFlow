@@ -87,7 +87,15 @@ sources:
   - ../project/xr-client/scripts/connection_volume_source.gd
   - ../project/src/handlers/socket_flow_handler/http_handler.rs
   - ../project/src/handlers/socket_flow_handler/position_updates.rs
-verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
+  - ../project/nginx.dev.conf
+  - ../project/src/handlers/api_handler/graph/mod.rs
+  - ../project/src/handlers/graph_access.rs
+  - ../project/src/services/ontology_visibility.rs
+  - ../project/src/settings/models.rs
+  - ../project/src/actors/client_coordinator_actor.rs
+  - ../project/client/src/features/graph/explore/nodeFilter.ts
+  - ../project/xr-client/scripts/backend_caps.gd
+verified_commit: {visionclaw: a950f4d8012ad6d67c32e37e5a36f24cf163d48e}
 ---
 
 ## For developers
@@ -95,6 +103,10 @@ verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
 Restamped at 86cdd76: the 2026-10-30 note that the spatial-volume merge 772039bd1 (ADR-2158, ADR-2159, ADR-2164) had not been re-read is closed: VC-36.3, VC-36.4, VC-36.7, VC-36.19, VC-36.22 and VC-36.24 are redrawn, and VC-36.23 has its gate line corrected, against the per-source `BackendConnection`, the per-volume `ConnectionVolumeSource` packing and the edge-run choreography at this stamp. The connections, volumes, portals, grabs and link layer themselves are drawn in VC-40, VC-44, VC-45, VC-46, VC-47 and VC-53, not here.
 
 The [visual-budget and engine-gate audit](51-xr-visual-budget-and-engine-gates.md) qualifies the later extras allowance and 4.8-beta2 target; older engine and allocator descriptions below retain their historical pins.
+
+Restamped at a950f4d80 (2026-11-06): only docs moved. The ADR-2188 headset receipt (`docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:52`, `docs/XR-client.md:8`) resolves the live-run Open, ADR-2189's amendment resolves its acceptance-boundary Drift, and the XR-client.md changelog entry moves later citations down one line.
+
+Restamped at 809a859aa (2026-11-06): the XR client's own code did not change. VC-36.10 drops the retired "nginx does not proxy presence" note. VC-36.18 now draws the caller-view gate on the pattern query. The new VC-36.31 shows what the headset's filter and query panel receive after the server visibility sweep, and why the ontology deny-list never reaches it. The `filter_auth.rs`, `force_compute_actor.rs`, `ia.json` and BASELINE citations moved with their symbols.
 
 Restamped at ec785afa9 (2026-11-06): VC-36.3 is redrawn for the signed WebSocket upgrade of `6b811f7a1`, VC-36.8 for the ADR-2189 seven-section HUD, and VC-36.29 and VC-36.30 are new for the ADR-2188 label budget and the headset preferences with Fit. The ADR-2188 overview tier, edge limit and highlight mask are drawn in [VC-51](51-xr-visual-budget-and-engine-gates.md). Evidence at this stamp is headless GUT and Rust units; shader compilation and headset legibility were not checked from the container.
 
@@ -200,10 +212,10 @@ flowchart TB
     R --> C3
     R --> C4
     A -. "DOC-DRIFT" .-> D1
-    D1["OPEN by design: project.godot:16 declares Godot 4.3 / Forward Mobile.<br/>The only build that has ever rendered on a headset is 4.6.1-stable on<br/>Compatibility. The file header now says so in text (project.godot:3-6) and<br/>leaves the array alone: config/features is EDITOR-MANAGED metadata, and its<br/>renderer tag is the Quest renderer decision (audit WP0, Invariant 1), so a hand<br/>edit would pre-empt it. docs/XR-client.md:973 and README:15-18 say the same.<br/>Header corrected 2026-10-07, assessed 2026-09-05 at ADR-2079 scope review"]
-    AUD["[audio] driver/enable_input = true<br/>project.godot:22 - the engine may open an input device;<br/>capture itself is opt-in per session, docs/XR-client.md:1249"]
+    D1["OPEN by design: project.godot:16 declares Godot 4.3 / Forward Mobile.<br/>The only build that has ever rendered on a headset is 4.6.1-stable on<br/>Compatibility. The file header now says so in text (project.godot:3-6) and<br/>leaves the array alone: config/features is EDITOR-MANAGED metadata, and its<br/>renderer tag is the Quest renderer decision (audit WP0, Invariant 1), so a hand<br/>edit would pre-empt it. docs/XR-client.md:974 and README:15-18 say the same.<br/>Header corrected 2026-10-07, assessed 2026-09-05 at ADR-2079 scope review"]
+    AUD["[audio] driver/enable_input = true<br/>project.godot:22 - the engine may open an input device;<br/>capture itself is opt-in per session, docs/XR-client.md:1250"]
     RM -. "unexercised" .-> D2
-    D2["DIVERGENCE: the .mobile override targets the Quest 3 APK,<br/>which is UNBUILT - no Android NDK is provisioned.<br/>90fps was measured only on VIVE Pro + dual RTX 6000.<br/>docs/BASELINE-architecture.md:270-271"]
+    D2["DIVERGENCE: the .mobile override targets the Quest 3 APK,<br/>which is UNBUILT - no Android NDK is provisioned.<br/>90fps was measured only on VIVE Pro + dual RTX 6000.<br/>docs/BASELINE-architecture.md:277-278"]
     RM -. "TENSION" .-> D3
     D3["TENSION: project.godot:2 header still calls the Quest 3 APK the ship<br/>target, while xr-client/scripts/graph_scene.gd:41-42 reworded Quest 3<br/>standalone as a PLANNED target and names the Vive/SteamVR rig as the<br/>currently deployed one. project.godot:2, graph_scene.gd:41-42"]
 ```
@@ -224,7 +236,7 @@ sequenceDiagram
     Note over GS,BC: _ready builds TWO connections, visionclaw with XR_NOSTR_SECRET and codescape with<br/>no secret, each with its own BinaryProtocolClient graph_scene.gd:1406-1416 (ADR-2159).<br/>GRAPH_STREAM_PATH="/wss" graph_scene.gd:88, PRESENCE_PATH="/ws/presence" graph_scene.gd:89
     GS->>GS: _vc_base() = XR_BACKEND_WS (default ws://localhost:4000), trailing "/" stripped graph_scene.gd:2941-2942
     GS->>CT: connect_to_server(base+"/wss", base+"/ws/presence", XR_ROOM_URN, XR_DISPLAY_NAME, XR_NOSTR_SECRET)
-    Note over GS,CT: graph_scene.gd:2925-2932. The graph URL argument is only logged now: each<br/>connection owns its own URL (graph_scene.gd:2968-2970, backend_connection.gd:99-100).<br/>RESOLVED ADR-2076: no token argument - NIP-98 is the only graph-socket credential.<br/>RESOLVED ADR-2058 (see VC-32.1): the server's ?token= fallback is compiled out of release.<br/>DRIFT BASELINE-architecture.md still lists it as open (docs/BASELINE-architecture.md:372)
+    Note over GS,CT: graph_scene.gd:2925-2932. The graph URL argument is only logged now: each<br/>connection owns its own URL (graph_scene.gd:2968-2970, backend_connection.gd:99-100).<br/>RESOLVED ADR-2076: no token argument - NIP-98 is the only graph-socket credential.<br/>RESOLVED ADR-2058 (see VC-32.1): the server's ?token= fallback is compiled out of release.<br/>DRIFT BASELINE-architecture.md still lists it as open (docs/BASELINE-architecture.md:404)
     CT->>BC: _connect_graph opens every connection graph_scene.gd:2992-2997
     BC->>BC: open() resets this connection's backoff, then _dial backend_connection.gd:108-112
     BC->>BP: close() then connect_to_url(graph_ws_url, secret), generation += 1<br/>backend_connection.gd:326-333
@@ -365,6 +377,8 @@ classDiagram
     FrameHeader <|-- V5Envelope
 ```
 
+**Debt (loose end):** VisionClaw now writes only the defaults `(INFINITY, -1)` into slot 28 (`docs/BASELINE-architecture.md:250-253`). The headset decodes that slot (`xr-client/rust/src/binary_protocol.rs:962`), sanitises +Inf to 0.0 (`xr-client/rust/src/binary_protocol.rs:931-932`), and no other module reads it, so on the VisionClaw volume the eight SSSP bytes per record carry nothing.
+
 ## VC-36.6 Frame ingest — drain, version dispatch, decode and sanitise, then freshness admission
 
 ```mermaid
@@ -501,7 +515,7 @@ sequenceDiagram
         IA-->>HUD: ok false with FALLBACK_SECTIONS and FALLBACK_SCOPES<br/>hud_ia.gd:26-39, hud_ia.gd:90-96, hud_ia.gd:110-112
         Note over HUD: only push_warning, which a headset wearer never sees<br/>hud.gd:511-512
     else the seven sections
-        IA-->>HUD: id, label, hotkey, subsection names and scope texts<br/>hud_ia.gd:97-118, ia.json:12, ia.json:1850
+        IA-->>HUD: id, label, hotkey, subsection names and scope texts<br/>hud_ia.gd:97-118, ia.json:12, ia.json:1844
     end
     HUD->>HUD: one tab per section, then Fit, Legend and Explore<br/>hud.gd:517, hud.gd:528-545
     Note over HUD: Agents and Governance is shortened to Agents on its button hud.gd:521.<br/>Fit emits fit_view (VC-36.30), Legend opens the key page, Explore the query page<br/>hud.gd:539-544
@@ -533,8 +547,8 @@ sequenceDiagram
 **What it shows.** Since 2026-11-06 the tab bar is the desktop's seven sections from `xr-client/data/ia.json` plus Fit, Legend and Explore, and a rail picks a section's pages, so every control is two levels deep. **Why it is this way.** ADR-2189 gives desktop and headset one information architecture, two levels deep (`docs/adr/ADR-2189-desktop-and-xr-menus-share-one-seven-section-information-architecture.md:39`, `docs/adr/ADR-2189-desktop-and-xr-menus-share-one-seven-section-information-architecture.md:108-109`); the headset takes the vocabulary from the generated file and places its own pages under it (`xr-client/scripts/hud_ia.gd:3-17`), with `test_hud_ia.gd` checking every name (`xr-client/tests/unit/test_hud_ia.gd:68`).
 **Debt (parallel):** the built-in seven sections and scope texts (`xr-client/scripts/hud_ia.gd:26-39`) duplicate the committed `xr-client/data/ia.json`, itself a byte copy of `client/src/features/control-center/registry/ia.json` (`xr-client/scripts/hud_ia.gd:6-8`); `xr-client/tests/unit/test_hud_ia.gd:38` pins the fallback to the file.
 **Open (risk):** a malformed or six-section `ia.json` silently drops the headset to the built-in menu: the only signal is `push_warning` (`xr-client/scripts/hud.gd:511-512`), the channel ADR-2108 already found invisible in a headset, not the notice strip (`xr-client/scripts/hud.gd:2085`).
-**Drift:** ADR-2189's acceptance boundary still says "The XR HUD is not built" (`docs/adr/ADR-2189-desktop-and-xr-menus-share-one-seven-section-information-architecture.md:18`), while the seven-section tab bar, rail and header buttons exist (`xr-client/scripts/hud.gd:506-545`).
-**Tension (ADR-2189 vs code):** ADR-2189 gives XR "the same five dials as ± steppers on Layout and Look" (`docs/adr/ADR-2189-desktop-and-xr-menus-share-one-seven-section-information-architecture.md:148`), but the headset has only Spread and the label budget, with no Motion, Glow or Atmosphere stepper (`docs/XR-client.md:1124-1126`).
+Resolved at a950f4d80: ADR-2189's acceptance boundary now says the XR HUD is built and reads `xr-client/data/ia.json` (`docs/adr/ADR-2189-desktop-and-xr-menus-share-one-seven-section-information-architecture.md:18`), and its 2026-11-06 amendment withdraws the earlier "not built" text (`docs/adr/ADR-2189-desktop-and-xr-menus-share-one-seven-section-information-architecture.md:361`), matching the tab bar, rail and header buttons (`xr-client/scripts/hud.gd:506-545`).
+**Tension (ADR-2189 vs code):** ADR-2189 gives XR "the same five dials as ± steppers on Layout and Look" (`docs/adr/ADR-2189-desktop-and-xr-menus-share-one-seven-section-information-architecture.md:148`), but the headset has only Spread and the label budget, with no Motion, Glow or Atmosphere stepper (`docs/XR-client.md:1125-1127`).
 **Debt (loose end):** the rail is a pool of `RAIL_MAX` 3 buttons (`xr-client/scripts/hud.gd:282`) and `_refresh_rail` labels only that many (`xr-client/scripts/hud.gd:1958-1959`); Layout and System already fill it (`xr-client/scripts/hud_ia.gd:56-60`, `xr-client/scripts/hud_ia.gd:67-71`), so a fourth page in either would be unreachable from the rail without any error.
 
 ## VC-36.9 Agent co-presence and the 0x23 work-beam data plane
@@ -588,7 +602,7 @@ sequenceDiagram
     participant PN as PresenceClientNode (gdext)<br/>xr-client/rust/src/presence.rs:448
     participant AV as Avatar.tscn / AgentAvatar.tscn
 
-    Note over GS,SV: nginx :4502 does NOT proxy /ws/presence - the client points<br/>at the LAN backend directly. docs/XR-client.md 'Transport'
+    Note over GS,SV: graph and presence dial the backend on port 4000 directly. nginx on port 3001<br/>also upgrades /ws/presence since 2026-11-06 but is the only Codescape route,<br/>so the live launch sets XR_CODESCAPE_WS alone. docs/XR-client.md:304<br/>nginx.dev.conf:56 nginx.dev.conf:168. RETIRED: the earlier 'nginx does not proxy presence' note
     GS->>PC: _connect_presence: close(), then join(presence_url, room_urn, display_name, secret)<br/>graph_scene.gd:3029-3035, client created at graph_scene.gd:1233
     SV-->>PC: {"type":"challenge","nonce":<64hex>,"ts":<u64>}
     alt first frame is not a challenge
@@ -648,7 +662,7 @@ sequenceDiagram
     else no real secret
         AH-->>GS: Authorization: PHYSICS_BEARER
         AH-->>GS: X-Nostr-Pubkey: <pubkey_hex>
-        Note over AH: DIVERGENCE the legacy dev bearer path still exists and is<br/>still constructed by the client. The server refuses it for any<br/>non-loopback peer, so the HP headset never passes it.<br/>_nostr_secret_present gates it graph_scene.gd:808, :1245, :2440.<br/>docs/XR-client.md:1033 (Dev bearer fallback)
+        Note over AH: DIVERGENCE the legacy dev bearer path still exists and is<br/>still constructed by the client. The server refuses it for any<br/>non-loopback peer, so the HP headset never passes it.<br/>_nostr_secret_present gates it graph_scene.gd:808, :1245, :2440.<br/>docs/XR-client.md:1034 (Dev bearer fallback)
     end
     AH-->>GS: Content-Type: application/json
     GS->>SV: POST /api/settings/physics/reset-layout graph_scene.gd:2860
@@ -708,8 +722,8 @@ sequenceDiagram
         DR-->>LH: ranks assigned
     end
     Note over FC: RESOLVED DOC-DRIFT: docs/XR-client.md 0.1.3 (2026-10-02) now<br/>documents the provenance keying, and the corrected doc-comment<br/>at force_compute_actor.rs:425-431 is committed at this revision -<br/>the old excludes-vs-accepts contradiction is gone from both.
-    Note over DR: RESOLVED ADR-2079, SUPERSEDED by the amendment: the closeout's<br/>predicate test is replaced by only_subsumption_provenance_ranks<br/>at force_compute_actor.rs:5255 - bare "hierarchical" with no<br/>subClassOf IRI is now REJECTED, and equivalence, sub-property,<br/>sameAs and instance-of foldings stay out of the rank space.
-    Note over FC,DR: RESOLVED DIVERGENCE: the old lossy-accept cost is gone - a<br/>domain-membership edge under "hierarchical" no longer ranks and<br/>can no longer shortcut a subclass chain (BFS lift), asserted by<br/>membership_edges_neither_rank_nor_shortcut_a_subclass_chain at<br/>force_compute_actor.rs:5335 and a_domain_root_never_ranks_below_its_own_members at :5119.
+    Note over DR: RESOLVED ADR-2079, SUPERSEDED by the amendment: the closeout's<br/>predicate test is replaced by only_subsumption_provenance_ranks<br/>at force_compute_actor.rs:5247 - bare "hierarchical" with no<br/>subClassOf IRI is now REJECTED, and equivalence, sub-property,<br/>sameAs and instance-of foldings stay out of the rank space.
+    Note over FC,DR: RESOLVED DIVERGENCE: the old lossy-accept cost is gone - a<br/>domain-membership edge under "hierarchical" no longer ranks and<br/>can no longer shortcut a subclass chain (BFS lift), asserted by<br/>membership_edges_neither_rank_nor_shortcut_a_subclass_chain at<br/>force_compute_actor.rs:5327 and a_domain_root_never_ranks_below_its_own_members at force_compute_actor.rs:5139.
 ```
 
 ## VC-36.13 gdext class surface (GDScript composes, Rust owns the wire)
@@ -839,7 +853,7 @@ sequenceDiagram
     participant MN as main (dev banner)<br/>project/src/main.rs:294
     participant RH as enforce_release_env_hygiene<br/>project/src/main.rs:118
     participant AU as verify_access<br/>src/utils/auth.rs:191
-    participant WA as handle_authenticate<br/>src/handlers/socket_flow_handler/filter_auth.rs:10
+    participant WA as handle_authenticate<br/>src/handlers/socket_flow_handler/filter_auth.rs:54
     participant SV as VisionClaw handlers
 
     rect rgb(240, 232, 210)
@@ -868,7 +882,7 @@ sequenceDiagram
         SV-->>HP: anonymous WS session in every mode
         Note over HP,SV: OPEN WS drag is dropped without a reply<br/>src/handlers/socket_flow_handler/position_updates.rs:199-201
     end
-    Note over HP,WA: DRIFT the dev-mode WS grant runs on an authenticate frame src/handlers/socket_flow_handler/filter_auth.rs:28<br/>that the comment says the Godot client always sends, src/handlers/socket_flow_handler/filter_auth.rs:20,<br/>yet against VisionClaw the headset never sends one
+    Note over HP,WA: DRIFT the dev-mode WS grant runs on an authenticate frame src/handlers/socket_flow_handler/filter_auth.rs:72<br/>that the comment says the Godot client always sends, src/handlers/socket_flow_handler/filter_auth.rs:64,<br/>yet against VisionClaw the headset never sends one
     alt dev mode on
         HP->>AU: REST write such as PUT /api/settings/physics, the single REST chokepoint
         AU-->>HP: Ok(DEV_MODE_PUBKEY) src/utils/auth.rs:211-218
@@ -911,7 +925,7 @@ sequenceDiagram
     Note over GD,SVR: ADR-2032 INVARIANT: only OpenGL3 Compat submits BOTH eyes on<br/>SteamVR + Linux + NVIDIA. Vulkan/Forward+ renders one eye or<br/>fails to composite. Re-test before any renderer change.
     par change process
         OP->>CT: cargo test -p visionclaw-xr-gdext
-        Note right of CT: 479 headless tests (361 library + 118 integration) as of 2026-10-07 per<br/>docs/XR-client.md:1256 - no headset/Godot/network. Godot-facing runtime<br/>classes are excluded by cfg(test) (xr-client/rust/src/lib.rs:64-71), so no scene/shader test runs.<br/>The count is the governing document's, not re-run for this stamp: the topic quoted 141 here and 218<br/>at VC-36.18 before the xr-graph and xr-cloud merges.
+        Note right of CT: 479 headless tests (361 library + 118 integration) as of 2026-10-07 per<br/>docs/XR-client.md:1257 - no headset/Godot/network. Godot-facing runtime<br/>classes are excluded by cfg(test) (xr-client/rust/src/lib.rs:64-71), so no scene/shader test runs.<br/>The count is the governing document's, not re-run for this stamp: the topic quoted 141 here and 218<br/>at VC-36.18 before the xr-graph and xr-cloud merges.
     and perf gate
         OP->>PR: --current run.json --baseline crates/visionclaw-xr-presence/benches/baseline.json
         Note right of PR: Flags --current --baseline --bench-name --update-baseline<br/>perf-regression/src/main.rs:45-49.<br/>Exit 0 no regression, 1 regression beyond budget, 2 bad input.<br/>Own workspace member so it does not drag in gdext<br/>(xr-client/rust/Cargo.toml:8)
@@ -921,7 +935,7 @@ sequenceDiagram
             PR-->>OP: clean
         end
     end
-    Note over OP: Debug library: the headset run loads target/debug, so xr-client/rust/Cargo.toml sets [profile.dev] opt-level = 2.<br/>Measured on HP 2026-10-07: the 13 164-node pack took 18-20 ms unoptimised against 1.8 ms optimised<br/>xr-client/rust/Cargo.toml:74-75. GUT is vendored 9.6.1, 182 pass on HP docs/XR-client.md:1262.
+    Note over OP: Debug library: the headset run loads target/debug, so xr-client/rust/Cargo.toml sets [profile.dev] opt-level = 2.<br/>Measured on HP 2026-10-07: the 13 164-node pack took 18-20 ms unoptimised against 1.8 ms optimised<br/>xr-client/rust/Cargo.toml:74-75. GUT is vendored 9.6.1, 182 pass on HP docs/XR-client.md:1263.
     Note over OP: GUT scene tests xr-client/tests/unit/: test_scene_load, test_hud_tabs,<br/>test_hud_intervention, test_swarm_tab, test_query_builder,<br/>test_graph_agents, test_agent_avatar, test_agent_beam,<br/>test_did_badge, test_xr_config - runner xr-client/tests/run_gut.gd
     Note over OP: ADR-2109 added five and three remain: test_agent_choreography.gd:31 (materialise then travel),<br/>:55 (head turns never move a working agent), :69 (explicit done starts the edge run at<br/>once and stays selectable). Its two test_agent_demo_director cases were deleted<br/>with the client-side director (ADR-2142). ADR-2108 added test_write_denied_notice.gd:16
 ```
@@ -934,7 +948,7 @@ sequenceDiagram
     participant HD as _build_query_page<br/>xr-client/scripts/hud.gd:1037
     participant QB as query_builder.gd<br/>xr-client/scripts/query_builder.gd
     participant GS as graph_scene.gd
-    participant SV as server /api/graph/query/pattern
+    participant SV as query_pattern, POST /api/graph/query/pattern<br/>src/handlers/api_handler/graph/mod.rs:1599
     participant PM as plane_manager.gd<br/>xr-client/scripts/plane_manager.gd
 
     HD->>HD: Execute button built via _press_fire hud.gd:501
@@ -944,17 +958,18 @@ sequenceDiagram
         QB-->>GS: no-op (BREAK)
     else true
         GS->>SV: POST /api/graph/query/pattern + NIP-98 headers (_auth_headers)
+        SV->>SV: fetch_graph_snapshot then caller_view - the pattern runs over the caller's view only<br/>src/handlers/api_handler/graph/mod.rs:1607 src/handlers/api_handler/graph/mod.rs:1113 src/handlers/graph_access.rs:23
         alt 2xx
             SV-->>GS: result set
             GS->>PM: build result planes
             Note over PM: Semantic-plane edges use EDGE_STRIDE = 12<br/>(uniform tint, no per-instance channel)<br/>render_store.rs:120
         else 4xx/5xx
             SV-->>GS: error
-            Note right of GS: DIVERGENCE: server correctness and the user-visible<br/>denied/error states are UNVERIFIED. Query Execute is<br/>implemented but runtime acceptance remains open.<br/>docs/XR-client.md:1022 (Query Execute is implemented)
+            Note right of GS: DIVERGENCE: server correctness and the user-visible<br/>denied/error states are UNVERIFIED. Query Execute is<br/>implemented but runtime acceptance remains open.<br/>docs/XR-client.md:1023 (Query Execute is implemented)
         end
     end
     HD->>HD: Clear button built by _action_btn hud.gd:1768
-    Note over HD,PM: DIVERGENCE: no headset/scene/shader test covers this path.<br/>The 218 library tests the 2026-09-04 closeout counted (docs/XR-client.md:1271), 361 at docs/XR-client.md:1256 now,<br/>exclude Godot-facing runtime<br/>classes by cfg(test) and source and helper results do not certify<br/>Godot execution. docs/XR-client.md closeout 2026-09-04
+    Note over HD,PM: DIVERGENCE: no headset/scene/shader test covers this path.<br/>The 218 library tests the 2026-09-04 closeout counted (docs/XR-client.md:1272), 361 at docs/XR-client.md:1257 now,<br/>exclude Godot-facing runtime<br/>classes by cfg(test) and source and helper results do not certify<br/>Godot execution. docs/XR-client.md closeout 2026-09-04
 ```
 
 ## VC-36.19 Co-proximate label fade — second MultiMesh, not a transparent gem.tres
@@ -1107,7 +1122,7 @@ stateDiagram-v2
         INVARIANT nudge targets, idle radial drift and random graph points
         are deleted and must not return, ADR-2109 Consequences
         ADR-2135 activity drift moves only the REST SLOT, never a pose:
-        graph_scene.gd:4260, Invariant 8 docs/XR-client.md:1243
+        graph_scene.gd:4260, Invariant 8 docs/XR-client.md:1244
     end note
     note left of Edge
         DONE RULE shared with the desktop (ADR-2135, ADR-2109):
@@ -1251,8 +1266,8 @@ flowchart TB
     T3 --> W1
     T2 --> W3
 
-    N1["INVARIANT: microphone capture is opt-in per session, shown by the MIC badge, analysed in memory only<br/>and never recorded or transmitted docs/XR-client.md:1249. The beat clock pings every 2 s beat_pulse.gd:32"]
-    N2["OPEN: the memory cloud, its relayed route and the beat-clock relay have been exercised by GUT and desktop<br/>screenshots, not in a headset - stereo agreement, sprite legibility and route brightness are unmeasured<br/>docs/XR-client.md:1051"]
+    N1["INVARIANT: microphone capture is opt-in per session, shown by the MIC badge, analysed in memory only<br/>and never recorded or transmitted docs/XR-client.md:1250. The beat clock pings every 2 s beat_pulse.gd:32"]
+    N2["OPEN: the memory cloud, its relayed route and the beat-clock relay have been exercised by GUT and desktop<br/>screenshots, not in a headset - stereo agreement, sprite legibility and route brightness are unmeasured<br/>docs/XR-client.md:1052"]
     N3["This topic catalogues the seams only. The internals of memory_cloud.rs, memory_route.rs, memory_query.rs,<br/>cloud_frame.rs, beat.rs and semantic.rs, about 9 300 lines at this stamp, are drawn in VC-38<br/>xr-client/rust/src/memory_route.rs:1575 xr-client/rust/src/memory_cloud.rs:883"]
     P4 --> N1
     S4 --> N2
@@ -1268,7 +1283,7 @@ and edge LOD that keeps the triangle budget. None of it changes the graph wire.
 baseline, 576 000 triangles for 1 000 gem nodes and 1.04 million at 13k nodes
 once edges were drawn, so halo quads and node and edge LOD were added; every
 benchmark run now stays under 100 000 triangles with at most six draw calls
-(`docs/XR-client.md:982`, design at `docs/XR-client.md:668`).
+(`docs/XR-client.md:983`, design at `docs/XR-client.md:669`).
 
 ## VC-36.26 The separated triangle, from the server projection to an agent's rest slot (ADR-2135)
 
@@ -1407,11 +1422,56 @@ flowchart TD
     FIT["Fit header button emits fit_view<br/>hud.gd:528,540"] --> FV["fit_focused_volume<br/>graph_scene.gd:1993,1994,2033"]
     FV --> UNDO["clear the manual and two-hand state, arrangement back to its home transform<br/>graph_scene.gd:2034,2035,2036,2038,1427"]
     UNDO --> REFIT["refit the focused volume, else the knowledge volume; physics untouched<br/>graph_scene.gd:2039,2041,2043; spatial_volume.gd:156,157"]
-    NOT["INVARIANT: layout mode is never persisted, because it POSTs<br/>the shared /api/layout/mode and a boot replay would move every viewer<br/>XR-client.md:1128,1129,1130"]
-    RS["render scale left unwired until measured on a headset<br/>XR-client.md:1133,1134,1135"]
+    NOT["INVARIANT: layout mode is never persisted, because it POSTs<br/>the shared /api/layout/mode and a boot replay would move every viewer<br/>XR-client.md:1129,1130,1131"]
+    RS["render scale left unwired until measured on a headset<br/>XR-client.md:1134,1135,1136"]
 ```
 
-**What it shows.** Every headset-local control the ADR-2189 audit added survives a restart in one per-device file, while Fit is a pure view reset: the arrangement returns home and the focused volume refits, and the physics layout is not touched. **Why it is this way.** These are viewer settings, not shared state, so they belong to the headset (`docs/XR-client.md:1106-1119`); layout mode is shared through `/api/layout/mode`, so re-applying it at boot would move every viewer's graph (`docs/XR-client.md:1128-1131`).
+**What it shows.** Every headset-local control the ADR-2189 audit added survives a restart in one per-device file, while Fit is a pure view reset: the arrangement returns home and the focused volume refits, and the physics layout is not touched. **Why it is this way.** These are viewer settings, not shared state, so they belong to the headset (`docs/XR-client.md:1107-1120`); layout mode is shared through `/api/layout/mode`, so re-applying it at boot would move every viewer's graph (`docs/XR-client.md:1129-1132`).
 **Open:** Fit resets the arrangement to its home transform without consulting the portal state (`xr-client/scripts/graph_scene.gd:2033-2043`), while entering a space snapshots and locks that arrangement (`xr-client/scripts/space_portals.gd:399`, `xr-client/scripts/space_portals.gd:411`); the Fit test covers only the ring view (`xr-client/tests/unit/test_hud_ia.gd:257`).
-**Debt (loose end):** render scale, one of the desktop's five `xr.*` settings the headset never read, is deliberately left unwired because it acts on the 90 fps budget (`docs/XR-client.md:1132-1135`); no control or preference key exists for it (`xr-client/scripts/xr_prefs.gd:155-165`).
+**Debt (loose end):** render scale, one of the desktop's five `xr.*` settings the headset never read, is deliberately left unwired because it acts on the 90 fps budget (`docs/XR-client.md:1133-1136`); no control or preference key exists for it (`xr-client/scripts/xr_prefs.gd:155-165`).
 
+## VC-36.31 What the headset's filter and query panel receive from the server at 809a859aa
+
+```mermaid
+flowchart TB
+    subgraph query["HUD Explore query panel"]
+        Q1["preview and Execute both POST /api/graph/query/pattern with NIP-98 headers<br/>xr-client/scripts/graph_scene.gd:5547 xr-client/scripts/graph_scene.gd:5614"]
+        Q2["query_pattern takes the caller as OptionalAuth<br/>src/handlers/api_handler/graph/mod.rs:1599-1602"]
+        Q3["fetch_graph_view applies caller_view before matching<br/>src/handlers/api_handler/graph/mod.rs:1096 src/handlers/api_handler/graph/mod.rs:1113"]
+        Q4["caller_view is visible_subgraph for the caller's pubkey, anonymous sees public only<br/>src/handlers/graph_access.rs:23 src/handlers/graph_access.rs:36-38"]
+        Q1 --> Q2 --> Q3 --> Q4
+    end
+    subgraph onto["Ontology deny-list, not on the headset's path"]
+        O1["every ontology read surface scrubs the caller's HiddenClasses<br/>src/services/ontology_visibility.rs:4-8"]
+        O2["the headset calls graph, layout, settings, memory-cloud, analytics, agents, splats,<br/>canary and broker-decide routes, never /api/ontology - so O1 never runs for it<br/>xr-client/scripts/backend_caps.gd:30"]
+        O1 -.-> O2
+    end
+    subgraph filt["Node filter: three default copies, one fixture"]
+        F1["server NodeFilterSettings default<br/>src/settings/models.rs:163-179"]
+        F2["filter_update_from_wire: an omitted key takes that default<br/>src/handlers/socket_flow_handler/filter_auth.rs:12 src/handlers/socket_flow_handler/filter_auth.rs:17"]
+        F3["the reply goes through visible_subgraph for the sender, then its own filter<br/>src/actors/client_coordinator_actor.rs:58 src/actors/client_coordinator_actor.rs:1688"]
+        F4["XR NodeFilter default, a third hand copy<br/>xr-client/rust/src/settings_sync.rs:44"]
+        F7["INVARIANT: the XR default is asserted equal to the fixture default case<br/>xr-client/rust/src/settings_sync.rs:653-654"]
+        F5["desktop NODE_FILTER_DEFAULTS<br/>client/src/features/graph/explore/nodeFilter.ts:57"]
+        F6["INVARIANT: server wire defaults pinned to the fixture's shipped-default case<br/>src/handlers/socket_flow_handler/filter_auth.rs:592"]
+        F1 --> F2 --> F3
+        F2 --> F6
+        F4 --> F5
+        F4 --> F7
+    end
+    subgraph ack["filter_update_success on the headset"]
+        A1["parsed as FilterAck and surfaced as filter_ack<br/>xr-client/rust/src/settings_sync.rs:251 xr-client/rust/src/binary_protocol.rs:1597"]
+        A2["DEBT: the headset never sends filter_update, so the server only<br/>ever sends this ack to the sender and the branch is unreachable<br/>src/handlers/socket_flow_handler/filter_auth.rs:324"]
+        A1 --> A2
+    end
+    query --> onto
+    filt --> ack
+```
+
+**What it shows.** Every server read the headset's Explore panel makes now runs over the caller's own view. The ontology per-caller deny-list never applies, because no headset script calls an ontology route. The node-filter defaults live in three hand copies, all pinned by one fixture. **Why it is this way.** The 2026-11-06 visibility sweep (`ab05ee9d6`) gave every graph read one caller gate. `923feef34` and `f86704227` put the filter reply through the same gate and gave the frame's omitted keys the shipped defaults.
+**Debt (parallel):** the node-filter defaults are written by hand three times: server (`src/settings/models.rs:163-179`), desktop (`client/src/features/graph/explore/nodeFilter.ts:57-68`) and headset (`xr-client/rust/src/settings_sync.rs:44-56`). The copies agree, and the shared fixture's default case pins the server wire copy (`src/handlers/socket_flow_handler/filter_auth.rs:592-595`) and the XR copy (`xr-client/rust/src/settings_sync.rs:653-654`). A new filter key still has to be added in three places.
+**Debt (loose end):** `filter_update_success` is in the headset's handled set (`xr-client/scripts/graph_parity.gd:24`), but the server sends it only to the client that sent `filter_update` (`src/handlers/socket_flow_handler/filter_auth.rs:410-416`), and the headset never sends one.
+**Open (risk):** the pattern query sees the public nodes plus those owned by the signing pubkey (`src/handlers/graph_access.rs:36-41`), and power-user status plays no part. A headset with an ephemeral signer, or one granted `DEV_MODE_PUBKEY` under dev mode (`src/settings/auth_extractor.rs:25-30`), therefore counts over the public graph only. A desktop signed in as the owner counts over more, and the query page does not say which view answered.
+Resolved at a950f4d80: the headset receipt is now on record. On 2026-11-06, on the HP at main 809a859aa, the OpenXR session was focused and ran at 88-90 fps with all three volumes (knowledge 84 nodes, ontology 9,604, Codescape 4,817), with zero script, parse, shader, heartbeat or reconnect errors over 15 minutes (`docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:52`, `docs/XR-client.md:8`). ADR-2188 activation is now active (`docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:7`).
+
+**Open:** the receipt measures frame rate and errors only. Visual legibility of the rail and pages in the headset is still a human check (`docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:52`).

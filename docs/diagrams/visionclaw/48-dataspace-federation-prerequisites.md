@@ -17,7 +17,7 @@ sources:
   - ../project/xr-client/scripts/backend_connection.gd
   - ../project/src/services/corpus_history.rs
   - ../project/src/actors/agent_demo_director.rs
-verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
+verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8}
 ---
 
 ## For developers
@@ -49,24 +49,25 @@ flowchart TD
 ```mermaid
 flowchart TD
     FLAG["Visibility flag defaults ON, absent or unrecognised is ON, explicit false tokens opt out<br/>visibility_filter.rs:29 visibility_filter.rs:34-40"] --> OF["of_node reads public and owner_pubkey, the stated single reading<br/>visibility_filter.rs:97-101"]
-    OF --> SUB["visible_subgraph: visible nodes, edges with both ends visible, metadata rows of visible nodes, hidden page names scrubbed<br/>visibility_filter.rs:184 visibility_filter.rs:312"]
-    SUB --> WSS["initialGraphLoad projects through visible_subgraph, then the top-N by quality<br/>types.rs:489 types.rs:505"]
+    OF --> SUB["visible_subgraph: visible nodes, edges with both ends visible, metadata rows of visible nodes, hidden page names scrubbed, now also wiki links to hidden pages inside definitions<br/>visibility_filter.rs:171 visibility_filter.rs:302 visibility_filter.rs:334"]
+    SUB --> WSS["initial_graph_load_projection: visible_subgraph for the caller, then the top-N by quality<br/>types.rs:492 types.rs:509"]
     KINDS["Current typed URN kind set has no Dataspace arm<br/>uri/mod.rs:54,86,94"] --> SHARED["Compile shared agentbox crossing-kind artefact<br/>uri/mod.rs:665"]
-    SPEC["PROPOSED: viewer bound to one dataspace with selector and ACL<br/>PROTOCOL-registry.md:387"] --> RECHECK["PROPOSED: re-evaluate at least every 10 s and close access-losing connections<br/>PROTOCOL-registry.md:387"]
+    SPEC["PROPOSED: viewer bound to one dataspace with selector and ACL<br/>PROTOCOL-registry.md:391"] --> RECHECK["PROPOSED: re-evaluate at least every 10 s and close access-losing connections<br/>PROTOCOL-registry.md:391"]
     SUB -.->|"PROPOSED: selector and acl intersect after this"| SPEC
 ```
 
 **What it shows.** Owner/public filtering is now one function shared by REST reads and `/wss`; the identifier bridge still refuses a dataspace kind. **Why it is this way.** ADR-060 Phase 4 unified the gate; the earlier comment-versus-parser drift (OFF vs ON) is gone, `types.rs:184` now says default ON.
-**Tension (parallel):** `public_subgraph` (`corpus_history.rs:121`) and the demo director (`agent_demo_director.rs:501-504`) re-read the `public` key themselves despite `visibility_filter.rs:98` calling `of_node` the only reading, and neither scrubs hidden page names (`visibility_filter.rs:312`).
+**Debt (parallel):** the demo director still re-reads the `public` key itself (`agent_demo_director.rs:500-504`), although `visibility_filter.rs:98-100` calls `of_node` the only reading on every wire path. The two copies agree today. `public_subgraph` was the other copy and now goes through `of_node` (`corpus_history.rs:123`, `corpus_history.rs:127`).
 
 ## VC-48.3 Proposed reference lifetimes distinguish authored data from received copies
 
 ```mermaid
 flowchart TD
-    OWN["PROPOSED: authored link is primary local data<br/>DATA-authority-erasure.md:158"] --> RENEW["Seven-day lease means re-announce, not discard local authorship<br/>DATA-authority-erasure.md:158,162"]
-    FOREIGN["PROPOSED: received link or viewer state is disposable<br/>DATA-authority-erasure.md:159"] --> RETRACT["Authoritative retraction removes display and tombstones links<br/>DATA-authority-erasure.md:161,162"]
-    RETRACT --> PURGE["Purge by earlier of receipt plus 24 hours or lease expiry<br/>DATA-authority-erasure.md:162"]
-    FOREIGN --> EXPIRE["Offline received references expire after seven days<br/>tombstones survive eight days<br/>DATA-authority-erasure.md:162"]
+    OWN["PROPOSED: authored link is primary local data<br/>DATA-authority-erasure.md:174"] --> RENEW["Seven-day lease means re-announce, not discard local authorship<br/>DATA-authority-erasure.md:174,178"]
+    FOREIGN["PROPOSED: received link or viewer state is disposable<br/>DATA-authority-erasure.md:175"] --> RETRACT["Authoritative retraction removes display and tombstones links<br/>DATA-authority-erasure.md:177,178"]
+    RETRACT --> PURGE["Purge by earlier of receipt plus 24 hours or lease expiry<br/>DATA-authority-erasure.md:178"]
+    FOREIGN --> EXPIRE["Offline received references expire after seven days<br/>tombstones survive eight days<br/>DATA-authority-erasure.md:178"]
 ```
 
 **What it shows.** The design has distinct ownership and expiry rules; the current resolver has no 410/tombstone implementation. **Why it is this way.** A received reference is reconstructible, while an authored assertion is primary data. This diagram records the proposal without asserting that its deadlines run today.
+**Open (risk):** graph shares are a durable copy of the creator's view, private nodes included, and no per-user erasure path reaches them (`DATA-authority-erasure.md:114-115`, `DATA-authority-erasure.md:124-125`). A federated render-only rule that forbids durable copies (`DATA-authority-erasure.md:177`) would need shares carved out or covered.

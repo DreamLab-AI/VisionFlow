@@ -20,6 +20,7 @@ sources:
   - ../project/client/src/hooks/useHeadTracking.ts
   - ../project/client/src/features/visualisation/components/HeadTrackedParallaxController.tsx
   - ../project/client/src/features/graph/components/GraphCanvas.tsx
+  - ../project/client/src/rendering/rendererFactory.ts
   - ../project/client/src/features/graph/hooks/useCameraAutoFit.ts
   - ../project/client/src/features/graph/components/GraphManager.tsx
   - ../project/client/src/features/graph/components/InstancedLabels.tsx
@@ -35,7 +36,7 @@ sources:
   - ../project/client/src/features/graph/hooks/dragHeartbeat.ts
   - ../project/client/src/features/graph/hooks/__tests__/dragHeartbeat.test.ts
   - ../project/src/handlers/socket_flow_handler/types.rs
-verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
+verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8}
 ---
 
 ## For developers
@@ -181,7 +182,7 @@ sequenceDiagram
     participant HID as navigator.hid (WebHID)
     participant DV as HIDDevice
     participant ST as Status surface hook<br/>client/src/features/control-center/status/useSpacePilot.ts:33
-    participant UI as SpacePilotSimpleIntegration<br/>mounted at GraphCanvas.tsx:404
+    participant UI as SpacePilotSimpleIntegration<br/>mounted at GraphCanvas.tsx:397
 
     MOD->>IN: SpaceDriver.initialize() on import, once (SpaceDriverService.ts:318, :320-323)
     IN->>IN: return if isInitialized (SpaceDriverService.ts:64)
@@ -276,7 +277,7 @@ sequenceDiagram
     Note over SI,CAM: button [1] re-targets OrbitControls at the origin SpacePilotSimpleIntegration.tsx:138-148.<br/>The tuning is a hard-coded literal SpacePilotSimpleIntegration.tsx:29-38 - see VC-37.10
 ```
 
-**What it shows.** The HID decode is unchanged and sound; what consumes it at this pin is `SpacePilotSimpleIntegration`, mounted inside the canvas (client/src/features/graph/components/GraphCanvas.tsx:404), which drives the camera directly with fixed tuning. **Why it is this way.** The integration hands off with OrbitControls lazily so releasing the puck does not snap the view level (client/src/features/visualisation/components/SpacePilotSimpleIntegration.tsx:61-71).
+**What it shows.** The HID decode is unchanged and sound; what consumes it at this pin is `SpacePilotSimpleIntegration`, mounted inside the canvas (client/src/features/graph/components/GraphCanvas.tsx:397), which drives the camera directly with fixed tuning. **Why it is this way.** The integration hands off with OrbitControls lazily so releasing the puck does not snap the view level (client/src/features/visualisation/components/SpacePilotSimpleIntegration.tsx:61-71).
 
 **Debt:** `client/src/features/visualisation/hooks/useSpacePilot.ts` (the hook with camera, object and navigation modes, client/src/features/visualisation/hooks/useSpacePilot.ts:39) has no importer at this pin, and `SpacePilotController` is imported only by that hook (client/src/features/visualisation/hooks/useSpacePilot.ts:4), so the controller has no production importer. The earlier drawing of this panel routed every event through them.
 
@@ -292,7 +293,7 @@ sequenceDiagram
     participant V as HTMLVideoElement webcam
     participant CAM as three PerspectiveCamera via useThree<br/>HeadTrackedParallaxController.tsx:14
 
-    Note over C: mounted unconditionally in the canvas GraphCanvas.tsx:407,<br/>tracking starts only when settings enable it HeadTrackedParallaxController.tsx:21-23
+    Note over C: mounted unconditionally in the canvas GraphCanvas.tsx:400,<br/>tracking starts only when settings enable it HeadTrackedParallaxController.tsx:21-23
     C->>H: useHeadTracking()
     H->>H: initialize() - skip if faceLandmarker already set
     H->>FR: forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/wasm')
@@ -341,7 +342,7 @@ sequenceDiagram
 
 **What it shows.** The webcam path, unchanged since the previous stamp. **Why it is this way.** An off-axis frustum gives a window-like parallax on a flat screen without stereo hardware.
 
-**Tension:** the non-frustum mode multiplies a translation into `camera.projectionMatrix` on every tracked frame without first rebuilding it (client/src/features/visualisation/components/HeadTrackedParallaxController.tsx:62); the only other client callers of `updateProjectionMatrix` run when the canvas size changes (client/src/features/graph/components/GraphCanvas.tsx:82-92) and on an event-driven camera fit, once on first data, on an explicit request, when the fit scope changes, or under the whole-scene scope when the memory cloud settles (client/src/features/graph/hooks/useCameraAutoFit.ts:91, client/src/features/graph/hooks/useCameraAutoFit.ts:149-242), so between those events the offsets would compound frame on frame, and stopping tracking in that mode does not restore the matrix because the reset branch runs only when `camera.view` is set (client/src/features/visualisation/components/HeadTrackedParallaxController.tsx:66-68). Not observed at runtime.
+**Tension:** the non-frustum mode multiplies a translation into `camera.projectionMatrix` on every tracked frame without first rebuilding it (client/src/features/visualisation/components/HeadTrackedParallaxController.tsx:62); the only other client callers of `updateProjectionMatrix` run when the canvas size changes (client/src/features/graph/components/GraphCanvas.tsx:83-93) and on an event-driven camera fit, once on first data, on an explicit request, when the fit scope changes, or under the whole-scene scope when the memory cloud settles (client/src/features/graph/hooks/useCameraAutoFit.ts:91, client/src/features/graph/hooks/useCameraAutoFit.ts:149-242), so between those events the offsets would compound frame on frame, and stopping tracking in that mode does not restore the matrix because the reset branch runs only when `camera.view` is set (client/src/features/visualisation/components/HeadTrackedParallaxController.tsx:66-68). Not observed at runtime.
 
 ## VC-37.7 How the desktop spatial inputs share state with the R3F path
 
@@ -356,13 +357,13 @@ flowchart LR
     end
     subgraph graph["Graph render path (VC-31)"]
         SAB["worker SharedArrayBuffer positions<br/>getPositionsSync graphWorkerProxy.ts:316"]
-        GMx["GraphManager.tsx useFrame copies the buffer once per frame<br/>into the drawn array GraphManager.tsx:436, :449-451"]
-        ILx["InstancedLabels reads the drawn array through nodePositionsRef<br/>GraphManager.tsx:775-778"]
+        GMx["GraphManager.tsx useFrame copies the buffer once per frame<br/>into the drawn array GraphManager.tsx:432, :445-447"]
+        ILx["InstancedLabels reads the drawn array through nodePositionsRef<br/>GraphManager.tsx:761-764"]
         NPC["NodePositionContext module singleton<br/>sharedNodePositions and sharedNodeIdToIndexMap<br/>client/src/features/graph/contexts/NodePositionContext.tsx:8, :11"]
-        ECL["EmbeddingCloudLayer reads both to frame the memory cloud<br/>EmbeddingCloudLayer.tsx:49, :85-90"]
+        ECL["EmbeddingCloudLayer reads both to frame the memory cloud<br/>EmbeddingCloudLayer.tsx:48, :84-89"]
     end
-    SP --> SIx["SpacePilotSimpleIntegration useThree camera<br/>SpacePilotSimpleIntegration.tsx:12, mounted GraphCanvas.tsx:404"] --> CAM
-    HT --> HPCx["HeadTrackedParallaxController useThree camera, size<br/>HeadTrackedParallaxController.tsx:14, mounted GraphCanvas.tsx:407"] --> CAM
+    SP --> SIx["SpacePilotSimpleIntegration useThree camera<br/>SpacePilotSimpleIntegration.tsx:12, mounted GraphCanvas.tsx:397"] --> CAM
+    HT --> HPCx["HeadTrackedParallaxController useThree camera, size<br/>HeadTrackedParallaxController.tsx:14, mounted GraphCanvas.tsx:400"] --> CAM
     SAB --> GMx
     CAM --> GMx
     GMx --> ILx
@@ -373,17 +374,17 @@ flowchart LR
     inputs --> NOTE2
     NOTE2["INVARIANT both spatial inputs mutate the SAME R3F camera and<br/>write nothing into the position buffers. Position data flows<br/>one way - websocket to worker buffer to drawn copy to renderer<br/>(VC-32, VC-31) - so an input device cannot desynchronise graph state."]
     NPC --> NOTE3
-    NOTE3["DEBT: NodePositionContext is named a context but is a module-level<br/>mutable singleton, not a React context. GraphManager publishes the drawn<br/>copy on every frame (GraphManager.tsx:451) and the id map on every<br/>node-set change (GraphManager.tsx:87), and the memory cloud layer reads<br/>them directly. Nothing clears them on unmount, so a reader after a<br/>remount sees the last frame. NodePositionContext.tsx:13-19"]
+    NOTE3["DEBT: NodePositionContext is named a context but is a module-level<br/>mutable singleton, not a React context. GraphManager publishes the drawn<br/>copy on every frame (GraphManager.tsx:447) and the id map on every<br/>node-set change (GraphManager.tsx:88), and the memory cloud layer reads<br/>them directly. Nothing clears them on unmount, so a reader after a<br/>remount sees the last frame. NodePositionContext.tsx:13-19"]
 ```
 
-**What it shows.** Who writes the camera and who shares the node positions at this pin. The agent overlay that used to read the singleton (`BotsVisualization.tsx`) was retired in VisionClaw `923f9ae83`; its one reader now is the memory cloud layer, which takes the graph's bounds from it. **Why it is this way.** The drawn array is a per-frame copy so drag and layout transitions write the copy, never the buffer the worker rewrites (client/src/features/graph/components/GraphManager.tsx:447-448).
+**What it shows.** Who writes the camera and who shares the node positions at this pin. The agent overlay that used to read the singleton (`BotsVisualization.tsx`) was retired in VisionClaw `923f9ae83`; its one reader now is the memory cloud layer, which takes the graph's bounds from it. **Why it is this way.** The drawn array is a per-frame copy so drag and layout transitions write the copy, never the buffer the worker rewrites (client/src/features/graph/components/GraphManager.tsx:443-444).
 
 ## VC-37.8 Browser path versus the shipped Godot path
 
 ```mermaid
 flowchart TB
     subgraph br["Browser client (client/)"]
-        B1["Three.js / R3F, WebGL2 or WebGPU<br/>see VC-31"]
+        B1["Three.js / R3F on WebGPURenderer only, three's WebGL2 backend<br/>when no adapter or forced - createGemRenderer rendererFactory.ts:106, :112-117<br/>mounted as the Canvas gl factory GraphCanvas.tsx:267, see VC-31"]
         B2["no capability probe in the bundle - platformManager.ts<br/>and remoteLogger.ts are imported by nothing, see VC-37.1"]
         B3["No requestSession, no XRButton, no XR session state<br/>(RESOLVED ADR-2081 - the shell is deleted)"]
         B4["Spatial input = WebHID SpaceMouse via SpacePilotSimpleIntegration<br/>+ MediaPipe head parallax"]
@@ -404,7 +405,7 @@ flowchart TB
     G5 --- SHARED
     B2 --> DIV
     G2 --> DIV
-    DIV["RESOLVED ADR-2081: docs/BASELINE-architecture.md:274-275 describes the<br/>React client as 'consuming the binary WebSocket position stream and the<br/>/api REST surface' - which is what the code is. The XR-mode<br/>shell and the unimported @react-three/xr dependency are deleted, so no<br/>reader can mistake the browser client for an immersive one. The immersive<br/>client is the Godot app alone. Babylon.js was already removed<br/>(client/vite.config.ts:47)."]
+    DIV["RESOLVED ADR-2081: docs/BASELINE-architecture.md:281-282 describes the<br/>React client as 'consuming the binary WebSocket position stream and the<br/>/api REST surface' - which is what the code is. The XR-mode<br/>shell and the unimported @react-three/xr dependency are deleted, so no<br/>reader can mistake the browser client for an immersive one. The immersive<br/>client is the Godot app alone. Babylon.js was already removed<br/>(client/vite.config.ts:47)."]
 ```
 
 **What it shows.** The two clients side by side: the browser one draws and accepts desktop spatial input, the Godot one is the only immersive client. **Why it is this way.** ADR-2032 put immersive XR in Godot; ADR-2081 removed the browser's unreachable XR shell.

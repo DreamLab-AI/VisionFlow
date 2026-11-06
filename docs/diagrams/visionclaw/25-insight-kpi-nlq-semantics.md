@@ -44,13 +44,17 @@ sources:
   - ../project/src/handlers/semantic_handler.rs
   - ../project/src/handlers/graph_access.rs
   - ../project/src/services/schema_service.rs
+  - ../project/src/handlers/api_handler/analytics/visible_analytics.rs
+  - ../project/src/services/pathfinding.rs
+  - ../project/src/handlers/graph_export_handler.rs
+  - ../project/docs/SECURITY-profiles.md
   - ../project/src/utils/response_macros.rs
-verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
+verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8}
 ---
 
 ## For developers
 
-This topic covers the read-side analytics: the insight loop trace, KPI compute and lineage, the briefing service, natural-language queries to SPARQL, and the semantic processor and edge classifier. At ec785afa9 the `/api/semantic` routes filter their answers per caller. That filtering is sound only because the analyser behind them still returns empty results, and a tripwire test now enforces that (VC-25.14).
+This topic covers the read-side analytics: the insight loop trace, KPI compute and lineage, the briefing service, natural-language queries to SPARQL, and the semantic processor and edge classifier. At ec785afa9 the `/api/semantic` routes filter their answers per caller. At 809a859aa a gated caller's communities and shortest paths are computed over that caller's view instead; centrality is still filtered after a whole-graph run, which is sound only while the analyser returns empty results, as a tripwire test enforces (VC-25.14).
 
 ## For the business
 
@@ -274,7 +278,7 @@ sequenceDiagram
             H-->>C: 500 {error: "Translation failed", message}
         else block found
             S->>S: validate_sparql(sparql) - delegates to the shared read-only validator<br/>src/services/natural_language_query_service.rs:129
-            S->>S: validate_read_only_sparql - SELECT/ASK/CONSTRUCT/DESCRIBE only<br/>src/handlers/ontology_handler.rs:820
+            S->>S: validate_read_only_sparql - SELECT/ASK/CONSTRUCT/DESCRIBE only<br/>src/handlers/ontology_handler.rs:812
             alt mutating form (INSERT/DELETE/DROP/CLEAR/LOAD)
                 S-->>H: Err - rejected, not a read-only query
                 H-->>C: 500 {error: "Translation failed", message}
@@ -312,16 +316,16 @@ sequenceDiagram
     participant A as SemanticProcessorActor<br/>src/actors/semantic_processor_actor.rs:171
 
     Note over A: since af3dff3f2 the actor has a production owner: main registers a SemanticService over ActixSemanticAdapter for /api/semantic/*, and the adapter starts this actor on its first initialize (estate register ER-25)<br/>src/main.rs:860-870 src/adapters/actix_semantic_adapter.rs:95-103
-    Note over A: Actor started/stopped log config.enable_ai_features and final stats<br/>src/actors/semantic_processor_actor.rs:1355-1370
+    Note over A: Actor started/stopped log config.enable_ai_features and final stats<br/>src/actors/semantic_processor_actor.rs:1361-1376
 
     Caller->>A: UpdateConstraints{constraint_data}<br/>src/actors/messages/physics_messages.rs:292
-    A-->>Caller: Result<(),String> via handle_constraint_update<br/>src/actors/semantic_processor_actor.rs:1375-1382
+    A-->>Caller: Result<(),String> via handle_constraint_update<br/>src/actors/semantic_processor_actor.rs:1381-1388
 
     Caller->>A: GetConstraints<br/>src/actors/messages/physics_messages.rs:276
-    A-->>Caller: ConstraintSet clone<br/>src/actors/semantic_processor_actor.rs:1384-1393
+    A-->>Caller: ConstraintSet clone<br/>src/actors/semantic_processor_actor.rs:1390-1399
 
     Caller->>A: TriggerStressMajorization<br/>src/actors/messages/physics_messages.rs:321
-    A->>A: web::block(stress optimisation) on thread pool<br/>src/actors/semantic_processor_actor.rs:1396
+    A->>A: web::block(stress optimisation) on thread pool<br/>src/actors/semantic_processor_actor.rs:1402
     alt thread pool Ok(Ok(()))
         A-->>Caller: Ok(())
     else Ok(Err(e)) or thread pool error
@@ -329,35 +333,35 @@ sequenceDiagram
     end
 
     Caller->>A: RegenerateSemanticConstraints<br/>src/actors/messages/physics_messages.rs:341
-    A->>A: deactivate semantic_similarity/semantic_clustering/importance_based/topic_based groups<br/>src/actors/semantic_processor_actor.rs:1432-1440
+    A->>A: deactivate semantic_similarity/semantic_clustering/importance_based/topic_based groups<br/>src/actors/semantic_processor_actor.rs:1438-1446
     A->>A: web::block(generate_semantic_constraints_blocking)
     A-->>Caller: ResponseFuture<Result<(),String>>
 
     Note over A: REMOVED since af3dff3f2: no Handler for UpdateAdvancedParams remains - the message left physics_messages.rs and the actor<br/>dropped its advanced_params, relationship_threshold and constraint_cache fields, so the solver is no longer rebuilt from AdvancedParams<br/>src/actors/semantic_processor_actor.rs:31-34 (import list)
 
-    Caller->>A: SetGraphData{graph_data}<br/>src/actors/semantic_processor_actor.rs:1484
-    Caller->>A: ProcessMetadata{metadata_id, metadata}<br/>src/actors/semantic_processor_actor.rs:1499
-    A->>A: web::block(process_metadata_blocking)<br/>src/actors/semantic_processor_actor.rs:1504-1524
+    Caller->>A: SetGraphData{graph_data}<br/>src/actors/semantic_processor_actor.rs:1490
+    Caller->>A: ProcessMetadata{metadata_id, metadata}<br/>src/actors/semantic_processor_actor.rs:1505
+    A->>A: web::block(process_metadata_blocking)<br/>src/actors/semantic_processor_actor.rs:1510-1530
 
-    Caller->>A: GetSemanticStats<br/>src/actors/semantic_processor_actor.rs:1533
+    Caller->>A: GetSemanticStats<br/>src/actors/semantic_processor_actor.rs:1539
     A-->>Caller: SemanticStats clone
 
-    Caller->>A: UpdateSemanticConfig{config}<br/>src/actors/semantic_processor_actor.rs:1545
+    Caller->>A: UpdateSemanticConfig{config}<br/>src/actors/semantic_processor_actor.rs:1551
     A-->>Caller: () via update_config
 
-    Caller->>A: ComputeShortestPaths{source_node_id}<br/>src/actors/messages/analytics_messages.rs:148
+    Caller->>A: ComputeShortestPaths{source_node_id}<br/>src/actors/messages/analytics_messages.rs:147
     alt gpu_analyzer is None
-        A-->>Caller: Err("GPU analyzer not available")<br/>src/actors/semantic_processor_actor.rs:1568-1571
+        A-->>Caller: Err("GPU analyzer not available")<br/>src/actors/semantic_processor_actor.rs:1574-1577
     else gpu_analyzer present
-        A->>A: gpu_analyzer.initialize(graph) then compute_shortest_paths(source_node_id)<br/>src/actors/semantic_processor_actor.rs:1577-1585
+        A->>A: gpu_analyzer.initialize(graph) then compute_shortest_paths(source_node_id)<br/>src/actors/semantic_processor_actor.rs:1583-1591
         A-->>Caller: Ok(PathfindingResult) / Err("Pathfinding failed")
     end
 
     Caller->>A: ComputeAllPairsShortestPaths<br/>crates/visionclaw-actors/src/messages/analytics_messages.rs:166
     alt gpu_analyzer is None
-        A-->>Caller: Err("GPU analyzer not available")<br/>src/actors/semantic_processor_actor.rs:1616-1619
+        A-->>Caller: Err("GPU analyzer not available")<br/>src/actors/semantic_processor_actor.rs:1622-1625
     else present
-        A->>A: compute_all_pairs_shortest_paths() - GPU landmark approximation<br/>src/actors/semantic_processor_actor.rs:1625-1632
+        A->>A: compute_all_pairs_shortest_paths() - GPU landmark approximation<br/>src/actors/semantic_processor_actor.rs:1631-1638
         A-->>Caller: Ok(HashMap<(u32,u32),Vec~u32~>) / Err("APSP failed")
     end
 ```
@@ -435,7 +439,7 @@ sequenceDiagram
     participant Caller as AppState / handler
     participant MA as MetadataActor<br/>src/actors/metadata_actor.rs:23
 
-    Note over MA: replaces Arc<RwLock<MetadataStore>> - started at src/app_state.rs:791 (BASELINE-architecture.md "Actor system topology")
+    Note over MA: replaces Arc<RwLock<MetadataStore>> - started at src/app_state.rs:763 (BASELINE-architecture.md "Actor system topology")
     Caller->>MA: GetMetadata<br/>crates/visionclaw-actors/src/messages/graph_messages.rs:221
     MA-->>Caller: Ok(MetadataStore clone)<br/>src/actors/metadata_actor.rs:58-64
     Caller->>MA: UpdateMetadata{metadata}<br/>crates/visionclaw-actors/src/messages/graph_messages.rs:225
@@ -444,7 +448,7 @@ sequenceDiagram
     Note right of MA: RESOLVED ADR-2097 (2026-09-05): RefreshMetadata and refresh_metadata are deleted - the message had no senders<br/>and the actor holds no source. metadata.json is owned by FileService, which pushes rebuilt stores in via UpdateMetadata
 ```
 
-**Drift:** the governing baseline places MetadataActor's start at `app_state.rs:802` (`../project/docs/BASELINE-architecture.md:170`); at this revision the actor starts at `../project/src/app_state.rs:791`, with its log line at `:790`.
+**Drift:** the governing baseline places MetadataActor's start at `app_state.rs:774` (`../project/docs/BASELINE-architecture.md:170`); at this revision the actor starts at `../project/src/app_state.rs:763`, with its log line at `:762`.
 
 ## VC-25.13 file_service + graph_serialization + empty-graph guard
 
@@ -476,47 +480,44 @@ sequenceDiagram
     Note over FS: the legacy GitHub-to-markdown mirror initialize_local_storage now returns LocalStorageSync and is skipped outright for a local corpus (ADR-2114)<br/>src/services/file_service.rs:301-316
     Note over FS: RESOLVED ADR-2065: src/services/empty_graph_check.rs (check_empty_graph) had zero call sites<br/>and has been deleted - the only live empty-graph guard is the idempotency check at file_service.rs:1095
 
-    Note over GSS: distinct empty-graph handling path - export_graph has no explicit empty check,<br/>writes whatever GraphData it is given (src/services/graph_serialization.rs:29-79)
+    Note over GSS: distinct empty-graph handling path - export_graph has no explicit empty check,<br/>writes whatever GraphData it is given, through write_export (src/services/graph_serialization.rs:29-36, :41)
     Boot->>GSS: export_graph(graph, request)
-    GSS->>GSS: serialize_to_json/gexf/graphml/csv/dot per ExportFormat<br/>src/services/graph_serialization.rs:47-52
+    GSS->>GSS: serialize_to_json/gexf/graphml/csv/dot per ExportFormat<br/>src/services/graph_serialization.rs:59-65
     opt request.compress
-        GSS->>GSS: compress_data via GzEncoder (compression_level=6)<br/>src/services/graph_serialization.rs:56-58
+        GSS->>GSS: compress_data via GzEncoder (compression_level=6)<br/>src/services/graph_serialization.rs:67-70
     end
     alt file_size > max_file_size (100 MiB)
-        GSS-->>Boot: Err("Export file size exceeds limit")<br/>src/services/graph_serialization.rs:64-68
+        GSS-->>Boot: Err("Export file size exceeds limit")<br/>src/services/graph_serialization.rs:76-81
     else within limit
         GSS->>GSS: fs::write(file_path, final_data)
-        GSS-->>Boot: ExportResponse{export_id, download_url, expires_at: now+24h}<br/>src/services/graph_serialization.rs:73-80
+        GSS-->>Boot: ExportResponse{export_id, download_url, expires_at: now+24h}<br/>src/services/graph_serialization.rs:83-88
     end
+    Note over GSS: DEBT: download_url is /api/graph/download/id (graph_serialization.rs:85), a route nothing mounts -<br/>the export scope has no download route (src/handlers/graph_export_handler.rs:351-363)
 ```
 
-## VC-25.14 /api/semantic routes: per-caller filtering over an analyser that computes nothing
+## VC-25.14 /api/semantic routes: gated callers computed over their own view
 
 <!-- 2026-11-06 restamp ec785afa9: new. 84ccd9aaa gates the semantic routes per caller, 14c429baf adds the M2 tripwire test -->
+<!-- 2026-11-06 restamp 809a859aa: redrawn. 405edcfe1 - communities and shortest paths for a gated caller are computed over the caller's view on the CPU, never a filtered whole-graph run -->
 ```mermaid
-sequenceDiagram
-    autonumber
-    participant H as semantic_handler.detect_communities<br/>src/handlers/semantic_handler.rs:77
-    participant G as graph_access.caller_view<br/>src/handlers/graph_access.rs:23
-    participant SS as SemanticService over ActixSemanticAdapter<br/>src/main.rs:864-869
-    participant AD as ActixSemanticAdapter.detect_communities<br/>src/adapters/actix_semantic_adapter.rs:114
-    participant SP as SemanticProcessorActor port handlers<br/>src/adapters/actix_semantic_adapter.rs:264
-    Note over H: routes communities, centrality, shortest-path, constraints, statistics (semantic_handler.rs:406-414)
-    H->>G: visible_ids - None when the view removes nothing (semantic_handler.rs:245-256)
-    H->>SS: initialize(full graph) then detect_communities (semantic_handler.rs:88, :107)
-    SS->>AD: port call
-    AD->>SP: DetectCommunitiesMessage (actix_semantic_adapter.rs:119-120)
-    SP-->>AD: empty clusters, modularity 0.0 (actix_semantic_adapter.rs:267-273)
-    Note over SP: shortest paths, SSSP distances and importance also return empty (actix_semantic_adapter.rs:290-297, :309, :371)
-    AD-->>H: result over the FULL graph
-    H->>H: gate_communities - keep visible members, recount sizes (semantic_handler.rs:110, :266-282)
-    Note over H: modularity is passed through ungated (semantic_handler.rs:114)
-    Note over AD,SP: INVARIANT response filtering is sound only while every analysis is empty - tripwire test (actix_semantic_adapter.rs:460, :482-497)
+flowchart TB
+    R["routes communities, centrality, shortest-path, constraints/generate, statistics, cache/invalidate<br/>src/handlers/semantic_handler.rs:401-413"]
+    R --> CG{"caller_gate: None when the view hides nothing<br/>src/handlers/semantic_handler.rs:252-260, graph_access.rs:120"}
+    CG -->|"gated, communities"| VC["visible_communities over the view: numbering, sizes, modularity<br/>src/handlers/semantic_handler.rs:89-90, :269-274, visible_analytics.rs:331"]
+    CG -->|"gated, shortest-path"| VS["Dijkstra over the view from the source slot<br/>src/handlers/semantic_handler.rs:191-192, :314-321, pathfinding.rs:180"]
+    CG -->|"gated, centrality"| CF["full-graph analysis, no top-k cut, then gate_centrality filters<br/>src/handlers/semantic_handler.rs:132, :158, :163, :294"]
+    CG -->|"ungated"| SS["SemanticService.initialize(full graph) then the adapter<br/>src/handlers/semantic_handler.rs:92, :200, src/main.rs:864-869"]
+    CF --> SS
+    SS --> AD["ActixSemanticAdapter port handlers return empty data, modularity 0.0<br/>src/adapters/actix_semantic_adapter.rs:264, :267-273"]
+    AD --> EMPTY["shortest paths, SSSP and importance also empty<br/>src/adapters/actix_semantic_adapter.rs:290-297, :309, :371"]
+    GEN["constraints/generate takes no caller and runs on the full graph<br/>src/handlers/semantic_handler.rs:220-229"] --> SS
+    AD -.-> INV["INVARIANT: centrality filtering is sound only while the analyser is empty,<br/>tripwire actix_semantic_adapter.rs:460, :482-497"]
 ```
 
-**Invariant:** filtering per caller after the analysis is sound only while the analyser returns nothing. `semantic_analyses_still_return_nothing_so_response_filtering_is_sound` (`src/adapters/actix_semantic_adapter.rs:460`) fails as soon as communities, centrality, shortest paths or SSSP distances return data (`src/adapters/actix_semantic_adapter.rs:482-497`). Gated callers must then be computed over their visible subgraph instead.
+**Invariant:** filtering per caller after the analysis is sound only while the analyser returns nothing. `semantic_analyses_still_return_nothing_so_response_filtering_is_sound` (`src/adapters/actix_semantic_adapter.rs:460`) fails as soon as communities, centrality, shortest paths or SSSP distances return data (`src/adapters/actix_semantic_adapter.rs:482-497`). Communities and shortest paths no longer depend on it for gated callers (`src/handlers/semantic_handler.rs:89-90`, `:191-192`); centrality still does (`src/handlers/semantic_handler.rs:163`).
 
-**Debt (loose end):** the port handlers return empty results for communities, shortest paths, SSSP and importance (`src/adapters/actix_semantic_adapter.rs:267-273`, `:290-297`, `:309`, `:371`). The shortest-path stub builds a `ComputeShortestPaths` message and drops it (`src/adapters/actix_semantic_adapter.rs:285-288`). The GPU-backed `ComputeShortestPaths` handler (`src/actors/semantic_processor_actor.rs:1558`) is never reached from `/api/semantic`, so every route answers 200 with empty data.
+**Debt (loose end):** the port handlers return empty results for communities, shortest paths, SSSP and importance (`src/adapters/actix_semantic_adapter.rs:267-273`, `:290-297`, `:309`, `:371`). The shortest-path stub builds a `ComputeShortestPaths` message and drops it (`src/adapters/actix_semantic_adapter.rs:285-288`). The GPU-backed `ComputeShortestPaths` handler (`src/actors/semantic_processor_actor.rs:1564`) is never reached from `/api/semantic`, so an ungated caller gets 200 with empty data while a gated caller gets real CPU results.
 
-**Open (risk):** `modularity` goes out ungated (`src/handlers/semantic_handler.rs:114`), and the tripwire does not assert on it. A real Louvain result would report a whole-graph score to a gated caller, and nothing would fail first.
+**Tension (parallel):** centrality is the one gated semantic route still filtered after a whole-graph run (`src/handlers/semantic_handler.rs:132`, `:163`), while the analytics PageRank already has a view-local `visible_pagerank` (`src/handlers/api_handler/analytics/visible_analytics.rs:408`). The day the adapter returns scores, a gated caller's visible scores will have been shaped by hidden nodes.
 
+**Open (risk):** the NLQ prompt context lists up to ten `owl_class_iri` values and a total drawn from the whole graph (`src/services/schema_service.rs:145-146`, `:83-89`), sent to the LLM for every translation (`src/services/natural_language_query_service.rs:81`), and Jev templates query the ontology graph directly (`src/services/jev_nlq.rs:56`). SECURITY-profiles 0.1.6 names `jev_nlq` and `natural_language_query_service` as outside the ontology deny-list (`docs/SECURITY-profiles.md:111`).

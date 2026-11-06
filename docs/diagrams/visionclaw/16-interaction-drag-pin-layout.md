@@ -13,6 +13,7 @@ sources:
   - ../project/src/handlers/layout_handler.rs
   - ../project/src/handlers/constraints_handler.rs
   - ../project/src/actors/agent_beam_actor.rs
+  - ../project/src/actors/client_coordinator_actor.rs
   - ../project/src/actors/gpu/force_compute_actor.rs
   - ../project/src/models/force_channels.rs
   - ../project/src/utils/unified_gpu_compute/execution.rs
@@ -25,7 +26,7 @@ sources:
   - ../project/src/main.rs
   - ../project/src/settings/api/settings_routes.rs
   - ../project/src/app_state.rs
-verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
+verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8}
 ---
 
 These panels are drawn at `86cdd7635582`, where a drag is a hold (ADR-2169): the hand's hold is released separately from an explicit pin. The [current contract audit](../../estate-review/2026-11-01-drag-holds-and-acceptance.md) and [VC-52](52-drag-holds-and-observation-gates.md) trace the hold lifecycle at their own pin. The ADR-2140 layout mode (`physics.layoutMode`), the step cadence and the three settle mechanisms are drawn at `d6c091f0f` in [VC-54](54-layout-mode-step-cadence-and-settle.md).
@@ -104,7 +105,7 @@ sequenceDiagram
     HE->>FCA: last pending position as HoldNodes, then release_holds (position_updates.rs:397-403)
     HE->>FCA: ReleaseNodes{holder, nodes} after NodeInteractionMessage Released with the holder (position_updates.rs:152-180)
     FCA->>FCA: holds.release per node then after_release (force_compute_actor.rs:3048-3058)
-    FCA->>FCA: a rejoined node refreshes the mask and gets RELEASE_IMPULSE 0.05, the RELEASE_SETTLE_WINDOW 2s opens (force_compute_actor.rs:387-395, :4544, :4565)
+    FCA->>FCA: a rejoined node refreshes the mask and gets RELEASE_IMPULSE 0.05, the RELEASE_SETTLE_WINDOW 2s opens (force_compute_actor.rs:387-395, :4536, :4557)
     HE->>C: nodeDragEndAck position_updates.rs:405-412
     Note over HE,FCA: drag end lets go - an explicit nodePin is what anchors a node past the drag, see VC-16.3
 ```
@@ -117,7 +118,7 @@ sequenceDiagram
     participant C as Client
     participant MR as message_routing<br/>message_routing.rs:60
     participant HP as handle_node_pin and handle_node_unpin<br/>position_updates.rs:423
-    participant SESS as WebSocket session stopped<br/>types.rs:425
+    participant SESS as WebSocket session stopped<br/>types.rs:429
     participant FCA as ForceComputeActor<br/>force_compute_actor.rs:2993
 
     alt explicit pin
@@ -136,12 +137,12 @@ sequenceDiagram
         HP->>HP: check_drag_timeout position_updates.rs:521 re-arms itself until no update for drag_timeout_ms (position_updates.rs:530-554)
         HP->>FCA: ReleaseNodes via release_holds (position_updates.rs:545)
     else client vanished mid-drag
-        SESS->>SESS: Actor stopped, warn when nodes were still held (types.rs:431-437)
-        SESS->>FCA: release_holds(disconnected=true) sends ReleaseHolder{holder} (types.rs:438, position_updates.rs:174-175)
+        SESS->>SESS: Actor stopped, warn when nodes were still held (types.rs:435-441)
+        SESS->>FCA: release_holds(disconnected=true) sends ReleaseHolder{holder} (types.rs:442, position_updates.rs:174-175)
         FCA->>FCA: release_holder releases every node this holder owns (force_compute_actor.rs:3062-3073)
-        SESS->>SESS: drag_pending and drag_last_update cleared (types.rs:439-440)
+        SESS->>SESS: drag_pending and drag_last_update cleared (types.rs:443-444)
     end
-    Note over SESS,FCA: INVARIANT a dropped connection cannot leave a node HELD - release is by holder id (types.rs:82), not by the client's own list, so a late hold update cannot outlive it (types.rs:428-430)
+    Note over SESS,FCA: INVARIANT a dropped connection cannot leave a node HELD - release is by holder id (types.rs:82), not by the client's own list, so a late hold update cannot outlive it (types.rs:432-434)
     Note over HP,FCA: an explicit pin is not owned by a connection and survives disconnect by design - only nodeUnpin clears it (position_updates.rs:415-417)
 ```
 
@@ -151,13 +152,13 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant HUB as agent-action hub<br/>ingest side is ES-02
-    participant ABA as AgentBeamActor<br/>src/actors/agent_beam_actor.rs:297 started
+    participant ABA as AgentBeamActor<br/>src/actors/agent_beam_actor.rs:301 started
     participant BC as BeamCoalescer<br/>agent_beam_actor.rs:129
     participant ENC as encode_agent_actions<br/>src/utils/binary_protocol.rs
     participant CC as ClientCoordinatorActor
     participant WS as Subscribed clients
 
-    HUB->>ABA: AgentActionEnvelope (subscribe agent_beam_actor.rs:299)
+    HUB->>ABA: AgentActionEnvelope (subscribe agent_beam_actor.rs:303)
     ABA->>ABA: project_joined agent_beam_actor.rs:189 - project_action :180 maps the envelope onto the identity-blind 0x23 action, then joins it to the roster agent by taskId
     ABA->>ABA: stamp_agent_flag(source_agent_id) agent_beam_actor.rs:105 sets AGENT_NODE_FLAG 0x80000000 agent_beam_actor.rs:79
     ABA->>BC: push(event) agent_beam_actor.rs:136
@@ -165,19 +166,21 @@ sequenceDiagram
         Note over BC: push evicts the oldest and returns true, dropped_total counts it (agent_beam_actor.rs:137-146), recency over completeness
         Note over ABA: backpressure warned at most every BACKPRESSURE_WARN_INTERVAL 10s agent_beam_actor.rs:101
     end
-    ABA->>BC: drain already-queued events up to MAX_COALESCE_PER_FLUSH 256 (agent_beam_actor.rs:91, :373-389)
-    ABA->>BC: encode_pending agent_beam_actor.rs:163
-    BC->>ENC: encode_agent_actions(&self.pending) agent_beam_actor.rs:167
-    Note over ENC: ONE multi-action 0x23 frame, see VC-14.5 for the header layout
-    ABA->>CC: try_send BroadcastAgentActionFrame(frame) agent_beam_actor.rs:395
+    ABA->>BC: drain already-queued events up to MAX_COALESCE_PER_FLUSH 256 (agent_beam_actor.rs:91, :377-393)
+    ABA->>BC: pending_batch, a clone of the backlog, not yet encoded agent_beam_actor.rs:163-168
+    ABA->>CC: try_send BroadcastAgentActionFrame(batch) agent_beam_actor.rs:399
+    CC->>CC: broadcast_agent_actions, nothing while the classification has not loaded<br/>src/actors/client_coordinator_actor.rs:465-474
+    CC->>CC: per identity, drop the actions whose KG target is private to someone else<br/>src/actors/client_coordinator_actor.rs:476-493
+    CC->>ENC: encode_agent_actions(kept), no frame for an empty batch<br/>src/actors/client_coordinator_actor.rs:494-496
+    Note over ENC: ONE multi-action 0x23 frame per identity, see VC-14.5 for the header layout
     alt coordinator mailbox full
-        Note over ABA: backlog is NOT cleared - retried after FLUSH_RETRY_INTERVAL 20ms (agent_beam_actor.rs:96, :352, :404-418)
+        Note over ABA: backlog is NOT cleared - retried after FLUSH_RETRY_INTERVAL 20ms (agent_beam_actor.rs:96, :356, :408-422)
     else accepted
-        ABA->>BC: clear() agent_beam_actor.rs:400
+        ABA->>BC: clear() agent_beam_actor.rs:404
     end
-    ABA->>CC: every ROSTER_TICK 1s the roster keep-alive frames, one try_send without coalescing (agent_beam_actor.rs:244, :303-309, :222-232)
+    ABA->>CC: every ROSTER_TICK 1s the roster keep-alive frames, one try_send without coalescing (agent_beam_actor.rs:248, :307-313, :222-236)
     CC->>WS: fan out on /wss
-    Note over ABA,WS: ADR-2020 the 0x23 frame is identity-blind by design - agent-id-space and KG-id-space numeric ids only (agent_beam_actor.rs:46-57)
+    Note over ABA,WS: ADR-2020 the 0x23 frame carries numeric agent-id-space and KG-id-space ids only (agent_beam_actor.rs:46-57)<br/>INVARIANT since 2026-11 its KG targets pass the same private-node drop-set as the position stream, src/actors/client_coordinator_actor.rs:461-464
 ```
 
 ## VC-16.5 Layout mode over REST — one stored field, written through the physics patch
@@ -187,10 +190,10 @@ sequenceDiagram
     autonumber
     participant C as Client
     participant LH as layout_handler<br/>src/handlers/layout_handler.rs:363
-    participant APP as apply_physics_patch<br/>src/settings/api/settings_routes.rs:609
+    participant APP as apply_physics_patch<br/>src/settings/api/settings_routes.rs:617
     participant FCA as ForceComputeActor<br/>force_compute_actor.rs:2480
 
-    Note over LH: scope /layout mounted by src/main.rs:1268
+    Note over LH: scope /layout mounted by src/main.rs:1295
     C->>LH: GET /modes layout_handler.rs:366
     LH->>C: get_layout_modes layout_handler.rs:33 - current stored mode plus seven advertised (LIVE_LAYOUT_MODES layout_handler.rs:23-31)
     C->>LH: POST /mode, RateLimit 60 per minute (layout_handler.rs:369-372)
@@ -211,7 +214,7 @@ sequenceDiagram
     LH->>FCA: set_radial_layout layout_handler.rs:199 sends SetRadialLayout{mode, focus_node} layout_handler.rs:233
     C->>LH: GET status layout_handler.rs:375, POST and GET zones layout_handler.rs:376-377, POST reset layout_handler.rs:378
     Note over LH: DEBT POST /zones answers success and forwards nothing - a TODO (layout_handler.rs:314-322), GET /zones always returns an empty list (layout_handler.rs:325-329)
-    LH->>FCA: reset_layout layout_handler.rs:331 sends ResetPositions layout_handler.rs:335, handler force_compute_actor.rs:3636 sets reheat_factor = 1.0 force_compute_actor.rs:3711
+    LH->>FCA: reset_layout layout_handler.rs:331 sends ResetPositions layout_handler.rs:335, handler force_compute_actor.rs:3628 sets reheat_factor = 1.0 force_compute_actor.rs:3703
     Note over LH: clustered is accepted and stored but not advertised, it rides the stored clusterStrength knob (layout_handler.rs:20-22)
 ```
 
@@ -223,25 +226,27 @@ sequenceDiagram
     participant C as Client
     participant CH as constraints_handler<br/>src/handlers/constraints_handler.rs:11
     participant SET as Settings actor
-    participant FCA as ForceComputeActor<br/>get_gpu_compute_addr app_state.rs:1666
+    participant FCA as ForceComputeActor<br/>get_gpu_compute_addr app_state.rs:1600
     participant EX as execution.rs flag derivation
 
     C->>CH: POST /constraints/define constraints_handler.rs:14
     CH->>CH: define_constraints constraints_handler.rs:22 validates a ConstraintSystem constraints_handler.rs:33
     CH->>SET: merge physics computeMode 2 and UpdateSettings (constraints_handler.rs:37-77)
     CH->>FCA: UpdateConstraints constraints_handler.rs:90-94, a failure is only logged (constraints_handler.rs:99-104)
-    FCA->>FCA: parse and replace_constraint_cache (force_compute_actor.rs:3404-3421)
+    FCA->>FCA: parse and replace_constraint_cache (force_compute_actor.rs:3396-3413)
     C->>CH: POST /constraints/apply constraints_handler.rs:15
     CH->>CH: apply_constraints constraints_handler.rs:126 validates constraintType constraints_handler.rs:143 and nodeIds constraints_handler.rs:148
     Note over CH: DEBT nothing is sent - the reply says recorded with a note about future integration (constraints_handler.rs:181-188)
     C->>CH: POST /constraints/remove constraints_handler.rs:16
     Note over CH: DEBT remove_constraints constraints_handler.rs:191 also only counts and replies (constraints_handler.rs:218-223)
     C->>CH: GET /constraints/list constraints_handler.rs:17
-    CH->>FCA: GetConstraints constraints_handler.rs:236
-    FCA-->>CH: always Err (force_compute_actor.rs:3396-3401)
-    CH-->>C: empty list with data_source settings (constraints_handler.rs:258-273)
+    CH->>CH: caller_gate first, an unreadable graph answers 503 (constraints_handler.rs:269-277)
+    CH->>FCA: GetConstraints constraints_handler.rs:283
+    FCA-->>CH: always Err (force_compute_actor.rs:3388-3393)
+    Note over CH: DEBT visible_constraints keeps a constraint only when every node it names is a visible position (constraints_handler.rs:230-261)<br/>but it runs on the Ok branch (constraints_handler.rs:285), which ForceComputeActor never takes
+    CH-->>C: empty list with data_source settings (constraints_handler.rs:306-321)
     C->>CH: POST /constraints/validate constraints_handler.rs:18
-    CH->>CH: validate_constraint_definition constraints_handler.rs:282 - pure validation, no actor call
+    CH->>CH: validate_constraint_definition constraints_handler.rs:330 - pure validation, no actor call
     FCA->>EX: next physics step with num_constraints
     alt num_constraints > 0
         Note over EX: ENABLE_CONSTRAINTS set by derive_dispatch_feature_flags force_channels.rs:504-506, called from execution.rs:1141
@@ -274,10 +279,10 @@ flowchart LR
         K5["POST /constraints/validate (constraints_handler.rs:18)"]
     end
     subgraph SRVPUSH["Server-initiated"]
-        B1["0x23 AGENT_ACTION beam<br/>agent_beam_actor.rs:395"]
+        B1["0x23 AGENT_ACTION beam<br/>agent_beam_actor.rs:399"]
     end
     GPU["ForceComputeActor holds, pins and pinned_mask<br/>force_compute_actor.rs:2993"]
-    STORE["apply_physics_patch<br/>settings_routes.rs:609"]
+    STORE["apply_physics_patch<br/>settings_routes.rs:617"]
     CC["ClientCoordinatorActor fan-out"]
 
     D1 -->|"HoldNodes (position_updates.rs:144)"| GPU
@@ -293,7 +298,7 @@ flowchart LR
     B1 --> CC
     CC --> WSOPS
 
-    N1["Disconnect releases every hold by holder - types.rs:438"]
+    N1["Disconnect releases every hold by holder - types.rs:442"]
     N2["apply and remove reach no actor - constraints_handler.rs:181, :218"]
     N3["Ingest side of the agent beam is estate ES-02 - this file covers fan-out only"]
     GPU -.- N1
@@ -334,6 +339,6 @@ flowchart TB
 
 **Open:** the fix moves a dependency onto provenance. A producer that writes a `hierarchical` subclass edge without `rdfs:subClassOf` in `owl_property_iri` would silently stop ranking, and so would a store path that drops `vc:owlProperty` (`src/adapters/oxigraph_graph_repository.rs:551`). The ADR names this as its review trigger; nothing at boot detects it.
 
-**Debt:** two constraint routes and one layout route answer success without effect. `POST /constraints/apply` and `/constraints/remove` reach no actor (`src/handlers/constraints_handler.rs:181-188`, `:218-223`), and `POST /layout/zones` is a TODO (`src/handlers/layout_handler.rs:318`). `GET /constraints/list` always falls back to an empty list, because `ForceComputeActor` refuses `GetConstraints` (`src/actors/gpu/force_compute_actor.rs:3396-3401`). `ConstraintActor` is not addressed by any of these routes.
+**Debt:** two constraint routes and one layout route answer success without effect. `POST /constraints/apply` and `/constraints/remove` reach no actor (`src/handlers/constraints_handler.rs:181-188`, `:218-223`), and `POST /layout/zones` is a TODO (`src/handlers/layout_handler.rs:318`). `GET /constraints/list` always falls back to an empty list, because `ForceComputeActor` refuses `GetConstraints` (`src/actors/gpu/force_compute_actor.rs:3388-3393`). `ConstraintActor` is not addressed by any of these routes.
 
 **Open:** `POST /layout/radial` and `POST /layout/reset` take no `AuthenticatedUser` extractor, unlike `POST /layout/mode` (`src/handlers/layout_handler.rs:46`). Whether the enclosing `/api` scope authenticates them is outside this source trace.

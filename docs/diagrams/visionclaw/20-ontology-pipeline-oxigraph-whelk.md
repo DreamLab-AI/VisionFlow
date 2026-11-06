@@ -4,6 +4,7 @@ title: Ontology pipeline - OWL extraction, Oxigraph, Whelk reasoning, governed m
 area: visionclaw
 governing:
   - ../project/docs/BASELINE-architecture.md
+  - ../project/docs/SECURITY-profiles.md
 adrs: [ADR-2004, ADR-2071, ADR-2064, ADR-2066, ADR-2068, ADR-2114, ADR-2116, ADR-2125, ADR-2147, ADR-OM-009]
 sources:
   - ../project/src/bin/load_ontology.rs
@@ -52,12 +53,15 @@ sources:
   - ../project/src/middleware/rbac_gate.rs
   - ../project/src/settings/api/settings_routes.rs
   - ../project/src/services/role_store.rs
-verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d, ontomark: 4b9d15df48056971321a62b8c4e905f4536c74db}
+  - ../project/src/services/ontology_visibility.rs
+  - ../project/src/handlers/graph_access.rs
+  - ../project/docs/SECURITY-profiles.md
+verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8, ontomark: 4b9d15df48056971321a62b8c4e905f4536c74db}
 ---
 
 ## For developers
 
-Corpus pages become OWL classes in Oxigraph's named graphs. Whelk runs EL++ reasoning after each sync, and inferred edges are materialised back into the graph. HTTP routes, the `OntologyActor` and the `vault certify` and `vault propose` CLI expose and govern the result. At ec785afa9 the `state-at` read gained a subjects view fed by the new corpus history (VC-20.7, VC-22.13), and the class-IRI mint for saved nodes is now one helper.
+Corpus pages become OWL classes in Oxigraph's named graphs. Whelk runs EL++ reasoning after each sync, and inferred edges are materialised back into the graph. HTTP routes, the `OntologyActor` and the `vault certify` and `vault propose` CLI expose and govern the result. At ec785afa9 the `state-at` read gained a subjects view fed by the new corpus history (VC-20.7, VC-22.13), and the class-IRI mint for saved nodes is now one helper. At 809a859aa every ontology read surface also answers a class hidden from the caller as one never stored (VC-20.16, SECURITY-profiles 0.1.6).
 
 ## For the business
 
@@ -68,12 +72,12 @@ The ontology is the structured vocabulary behind the knowledge graph. Pages are 
 sequenceDiagram
     autonumber
     participant Bin as main<br/>src/bin/load_ontology.rs:46
-    participant Src as CorpusSource LocalDirectorySource<br/>src/services/corpus_source/local.rs:234
+    participant Src as CorpusSource LocalDirectorySource<br/>src/services/corpus_source/local.rs:217
     participant Parser as parse_page project_ontology<br/>src/services/page_parser.rs:73
-    participant Repo as OxigraphOntologyRepository<br/>crates/visionclaw-adapters/src/oxigraph_ontology_repository.rs:1624
+    participant Repo as OxigraphOntologyRepository<br/>crates/visionclaw-adapters/src/oxigraph_ontology_repository.rs:1820
     participant Extr as OwlExtractorService<br/>src/services/owl_extractor_service.rs:52
 
-    Bin->>Src: LocalDirectorySource::new(cli_root, base_paths) or from_env() (lines 55-56, defn local.rs:60,74)
+    Bin->>Src: LocalDirectorySource::new(cli_root, base_paths) or from_env() (lines 55-56, defn local.rs:41, :55)
     Bin->>Src: list_pages() (line 70)
     Src-->>Bin: Vec of CorpusPage
     Bin->>Src: vocabulary(), missing ontology/vocabulary.yaml is an error (lines 75-78)
@@ -84,14 +88,14 @@ sequenceDiagram
     end
     Bin->>Parser: project_ontology(ontology_pages, vocabulary) (line 108, defn 170)
     Parser-->>Bin: OntologyProjection classes axioms
-    Bin->>Repo: persist -> save_ontology(classes, [], axioms) (line 115, persist defn 192, save_ontology defn 1664)
-    Repo->>Repo: single atomic INSERT DATA into GRAPH_ONTOLOGY, no per-item ASK dedup (lines 1675-1686)
+    Bin->>Repo: persist -> save_ontology(classes, [], axioms) (line 115, persist defn 192, save_ontology defn oxigraph_ontology_repository.rs:1820)
+    Repo->>Repo: single atomic INSERT DATA into GRAPH_ONTOLOGY, no per-item ASK dedup (oxigraph_ontology_repository.rs:1831, :1842)
     Bin->>Extr: OwlExtractorService::new(repo).extract_all_owl() (lines 130-131)
-    Bin->>Repo: get_classes() (line 135, defn 2360)
+    Bin->>Repo: get_classes() (line 135, defn oxigraph_ontology_repository.rs:2516)
     Repo-->>Bin: Vec of OwlClass
     Bin->>Bin: exit(1) when ontology_files_parsed==0 or classes_persisted==0 (line 186)
     Note over Bin,Src: RESOLVED ADR-2114 - the bin now reads through the same CorpusSource port as live sync<br/>(LocalDirectorySource over VAULT_ROOT, ADR-2064), instead of a bespoke root-resolution scheme.<br/>The five hardcoded sample OwlClass literals and the per-class add_owl_class loop are gone.
-    Note over Src: shared-corpus-layout is a DEFAULT feature (Cargo.toml:282, :284): list_pages validates the roots<br/>through ontomark_compile::profile::resolve_roots first (local.rs:247-249, checked_roots :139-143),<br/>the walk skips child symlinks (local.rs:192-199) and fetch_page refuses a canonical path<br/>outside the roots (local.rs:281-296). Built without the feature, the legacy walk follows links.
+    Note over Src: shared-corpus-layout is a DEFAULT feature (Cargo.toml:273, :275): list_pages validates the roots<br/>through ontomark_compile::profile::resolve_roots first (local.rs:230-232, checked_roots :120-124),<br/>the walk skips child symlinks (local.rs:175-182) and fetch_page refuses a canonical path<br/>outside the roots (local.rs:264-279). Built without the feature, the legacy walk follows links.
 ```
 
 ## VC-20.2 Oxigraph named-graph layout — ontology and knowledge graphs
@@ -113,8 +117,8 @@ erDiagram
         string iri "urn:ngm:graph:agent (line 51)"
         string contents "agent-flagged nodes"
     }
-    OxigraphOntologyRepository ||--o{ GRAPH_ONTOLOGY_ASSERT : "add_owl_class add_axiom lines 1693 2456"
-    OxigraphOntologyRepository ||--o{ GRAPH_ONTOLOGY_INFERRED : "store_inference_results DELETE-WHERE+INSERT DATA line 2507 ADR-2004 D9"
+    OxigraphOntologyRepository ||--o{ GRAPH_ONTOLOGY_ASSERT : "add_owl_class add_axiom, oxigraph_ontology_repository.rs:1849 and 2612"
+    OxigraphOntologyRepository ||--o{ GRAPH_ONTOLOGY_INFERRED : "store_inference_results DELETE-WHERE+INSERT DATA, oxigraph_ontology_repository.rs:2663 ADR-2004 D9"
     OxigraphGraphRepository ||--o{ GRAPH_KNOWLEDGE : "src/adapters/oxigraph_graph_repository.rs:6"
     OxigraphGraphRepository ||--o{ GRAPH_AGENT : "src/adapters/oxigraph_graph_repository.rs:16"
 ```
@@ -142,8 +146,8 @@ erDiagram
         string iri "urn:ngm:graph:migrations (sparql_migrations.rs:44)"
         string contents "applied SPARQL migration ids, ADR-101 D2"
     }
-    OxigraphOntologyRepository ||--o{ GRAPH_SHAPES : "load_shacl_shapes line 410"
-    OxigraphOntologyRepository ||--o{ GRAPH_PROVENANCE : "emit_provenance line 651 see VC-22"
+    OxigraphOntologyRepository ||--o{ GRAPH_SHAPES : "load_shacl_shapes, oxigraph_ontology_repository.rs:411"
+    OxigraphOntologyRepository ||--o{ GRAPH_PROVENANCE : "emit_provenance, oxigraph_ontology_repository.rs:652, see VC-22"
     OxigraphOntologyRepository ||--o{ GRAPH_CACHE_SSSP : "own sub-domain, atomic CLEAR GRAPH, line 73"
     OxigraphOntologyRepository ||--o{ GRAPH_CACHE_APSP : "line 74"
     SparqlMigrations ||--o{ GRAPH_MIGRATIONS : "sparql_migrations.rs:44, excluded from graph-export/GPU paths"
@@ -154,21 +158,21 @@ erDiagram
 sequenceDiagram
     autonumber
     participant Sync as GitHubSyncService::run_post_sync_reasoning<br/>src/services/github_sync_service.rs:1277
-    participant Repo as OxigraphOntologyRepository<br/>crates/visionclaw-adapters/src/oxigraph_ontology_repository.rs:2320
+    participant Repo as OxigraphOntologyRepository<br/>crates/visionclaw-adapters/src/oxigraph_ontology_repository.rs:2516
     participant Engine as WhelkInferenceEngine<br/>crates/visionclaw-adapters/src/whelk_inference_engine.rs:360
     participant Whelk as whelk-rs reasoner::assert<br/>crates/visionclaw-adapters/src/whelk_inference_engine.rs:440
 
-    Sync->>Repo: get_classes() (line 1210, defn 2360)
-    Sync->>Repo: get_axioms() (line 1215)
-    Sync->>Sync: axioms.extend(ngm_property_hierarchy_axioms()) (line 1224)
-    Sync->>Engine: load_ontology(classes, axioms) (line 1240, defn line 362)
-    Engine->>Engine: compute_ontology_checksum(ontology) (line 382)
+    Sync->>Repo: get_classes() (github_sync_service.rs:1282, defn oxigraph_ontology_repository.rs:2516)
+    Sync->>Repo: get_axioms() (github_sync_service.rs:1287)
+    Sync->>Sync: axioms.extend(ngm_property_hierarchy_axioms()) (github_sync_service.rs:1296)
+    Sync->>Engine: load_ontology(classes, axioms) (github_sync_service.rs:1312, defn whelk_inference_engine.rs:362)
+    Engine->>Engine: compute_ontology_checksum(ontology) (whelk_inference_engine.rs:382)
     alt checksum unchanged since last load
-        Engine-->>Sync: reuse cached_subsumptions (line 395-396)
+        Engine-->>Sync: reuse cached_subsumptions (whelk_inference_engine.rs:395-396)
     else checksum changed
-        Engine-->>Sync: cached_subsumptions cleared, fresh reasoning required (line 391-393)
+        Engine-->>Sync: cached_subsumptions cleared, fresh reasoning required (whelk_inference_engine.rs:391-393)
     end
-    Sync->>Engine: infer() (line 1245, defn line 412)
+    Sync->>Engine: infer() (github_sync_service.rs:1317, defn whelk_inference_engine.rs:412)
     alt cached_subsumptions present (line 421)
         Engine-->>Sync: cached InferenceResults, whelk-rs not invoked (line 422-434)
     else no cache
@@ -178,8 +182,8 @@ sequenceDiagram
         Engine-->>Sync: InferenceResults inferred_axioms inference_time_ms (line 461-466)
     end
     Note over Engine: DOC-DRIFT - module doc claims complete EL reasoning (whelk_inference_engine.rs:5) but infer() lines 412-467 has no tokio timeout or axiom-count cap
-    Sync->>Repo: store_inference_results(results) (line 1255, defn line 2507)
-    Repo->>Repo: DELETE-WHERE GRAPH_ONTOLOGY_INFERRED then atomic INSERT DATA, one SPARQL Update (ADR-2004 D9, ADR-099 D3, lines 2601-2606)
+    Sync->>Repo: store_inference_results(results) (github_sync_service.rs:1327, defn oxigraph_ontology_repository.rs:2663)
+    Repo->>Repo: DELETE-WHERE GRAPH_ONTOLOGY_INFERRED then atomic INSERT DATA, one SPARQL Update (ADR-2004 D9, ADR-099 D3, oxigraph_ontology_repository.rs:2759-2763)
     Note over Sync: RESOLVED a6de5a421 - the former DIVERGENCE (OntologyReasoningService::infer_axioms ran CustomReasoner, not Whelk)<br/>is gone: that service, its test helper and both of its test files were deleted, the type having been constructed only by<br/>its own test helper. Production reasoning in this cycle is WhelkInferenceEngine only - the engine GitHubSyncService<br/>builds at github_sync_service.rs:236 and drives at github_sync_service.rs:1312 and :1317
 ```
 
@@ -202,18 +206,18 @@ sequenceDiagram
 
     rect rgb(235,235,255)
     Note over Sync,KG: PATH A - pure selection function, called unconditionally<br/>after Whelk infer
-    Sync->>Sync: load_graph then mat::asserted_pairs(g.edges) both<br/>directions (lines 1267 1287, asserted_pairs defn line 79)
-    Sync->>Sel: select_inferred_edges_for_sync(inferred_axioms,<br/>resolver.resolve, asserted) (line 1294, defn line 1126)
-    Sel->>Mat: is_materialisable_subclass_pair drops self, owl#Nothing<br/>child, owl#Thing parent (line 1136, defn line 169)
-    Sel->>Mat: immediate_parents_from_subclass_pairs reduces transitive<br/>ancestors to immediate parents (line 1145, defn line 181)
+    Sync->>Sync: load_graph then mat::asserted_pairs(g.edges) both<br/>directions (github_sync_service.rs:1359, asserted_pairs defn inferred_edge_materialiser.rs:79)
+    Sync->>Sel: select_inferred_edges_for_sync(inferred_axioms,<br/>resolver.resolve, asserted) (github_sync_service.rs:1366, defn :1198)
+    Sel->>Mat: is_materialisable_subclass_pair drops self, owl#Nothing<br/>child, owl#Thing parent (github_sync_service.rs:1208, defn inferred_edge_materialiser.rs:169)
+    Sel->>Mat: immediate_parents_from_subclass_pairs reduces transitive<br/>ancestors to immediate parents (github_sync_service.rs:1217, defn inferred_edge_materialiser.rs:181)
     loop each immediate (child_iri, parent_iri) pair
-        Sel->>Sel: resolve(child_iri) resolve(parent_iri),<br/>unresolved_endpoints += 1 per miss (lines 1154-1168)
+        Sel->>Sel: resolve(child_iri) resolve(parent_iri),<br/>unresolved_endpoints += 1 per miss (github_sync_service.rs:1222, :1230, :1233)
     end
-    Sel->>Mat: select_inferred_edges drops self-loops, asserted pairs,<br/>caps per child at 8 (line 1174, defn line 127)
-    Sel->>Mat: build_inferred_edge tags edge_type hierarchical,<br/>owl-property rdfs:subClassOf, metadata inferred=true (line<br/>1182, defn line 68)
+    Sel->>Mat: select_inferred_edges drops self-loops, asserted pairs,<br/>caps per child at 8 (github_sync_service.rs:1246, defn inferred_edge_materialiser.rs:127)
+    Sel->>Mat: build_inferred_edge tags edge_type hierarchical,<br/>owl-property rdfs:subClassOf, metadata inferred=true<br/>(github_sync_service.rs:1254, defn inferred_edge_materialiser.rs:68)
     Sel-->>Sync: InferredEdgeSelection edges considered_axioms<br/>immediate_pairs unresolved_endpoints
-    Sync->>KG: batch_add_edges(inferred_edges) (line 1309)
-    Note over Sync,Sel: ADR-2071 - select_inferred_edges_for_sync delegates every rule to<br/>inferred_edge_materialiser (docstring line 1113-1125). Every edge carries<br/>metadata inferred=true, so edge_is_inferred classifies<br/>sync-produced edges onto the inferred channel.
+    Sync->>KG: batch_add_edges(inferred_edges) (github_sync_service.rs:1381)
+    Note over Sync,Sel: ADR-2071 - select_inferred_edges_for_sync delegates every rule to<br/>inferred_edge_materialiser (docstring github_sync_service.rs:1185-1197). Every edge carries<br/>metadata inferred=true, so edge_is_inferred classifies<br/>sync-produced edges onto the inferred channel.
     end
     rect rgb(255,245,225)
     Note over Pipeline,Mat: PATH B - OntologyPipelineService, gated OFF by default
@@ -226,7 +230,7 @@ sequenceDiagram
         Pipeline->>Pipeline: graph_repo.batch_add_edges(edges) (line 544)
         Note over Pipeline,Mat: DRIFT vs the docstring claim that the paths cannot drift (github_sync_service.rs:1193):<br/>PATH B builds its own ancestor map (ontology_pipeline_service.rs:492-505) and calls<br/>immediate_inferred_parents directly (line 506), not the front door<br/>immediate_parents_from_subclass_pairs (inferred_edge_materialiser.rs:181), so the owl#Nothing /<br/>owl#Thing filter (inferred_edge_materialiser.rs:169-171) never runs here. It resolves IRIs<br/>through get_nodes_by_owl_class_iri (cross-product of ids) rather than IriNodeResolver, and its<br/>edges carry no source_iri / target_iri. Only select_inferred_edges and build_inferred_edge are shared.
     end
-    Note over Pipeline: SemanticPhysicsConfig (ontology_pipeline_service.rs:27)<br/>defaults: constraint_strength 1.0,<br/>use_gpu_constraints true, materialise_inferred_edges false<br/>(lines 61-63). RESOLVED ADR-2068 - the repo-root<br/>ontology_physics.toml was read by no Rust code and has<br/>been deleted. CORRECTED - the Settings.ontology_physics<br/>bool (src/settings/models.rs:58) does NOT gate POST<br/>/api/ontology-physics/enable|disable<br/>(api_handler/ontology_physics/mod.rs:107,387): their<br/>feature check returns Ok unconditionally (:80-81).<br/>The bool only gates the quality-gate weight push<br/>(settings_routes.rs:1355) - see VC-04.7, VC-11.5
+    Note over Pipeline: SemanticPhysicsConfig (ontology_pipeline_service.rs:27)<br/>defaults: constraint_strength 1.0,<br/>use_gpu_constraints true, materialise_inferred_edges false<br/>(lines 61-63). RESOLVED ADR-2068 - the repo-root<br/>ontology_physics.toml was read by no Rust code and has<br/>been deleted. CORRECTED - the Settings.ontology_physics<br/>bool (src/settings/models.rs:58) does NOT gate POST<br/>/api/ontology-physics/enable|disable<br/>(api_handler/ontology_physics/mod.rs:107,387): their<br/>feature check returns Ok unconditionally (:80-81).<br/>The bool only gates the quality-gate weight push<br/>(settings_routes.rs:1392) - see VC-04.7, VC-11.5
     end
     Sync->>Idx: maybe_refresh_after_sync(classes)<br/>(github_sync_service.rs:685, sync_graphs_with, defn line<br/>468)
     alt ONTOLOGY_CLASS_INDEX_ENABLED unset (default, ontology_class_index.rs:75)
@@ -236,7 +240,7 @@ sequenceDiagram
     end
 ```
 
-**Debt:** `POST /api/ontology-physics/enable|disable` call `check_ontology_feature`, which returns `Ok(())` unconditionally (`src/handlers/api_handler/ontology_physics/mod.rs:80-81`); the `Settings.ontology_physics` bool (`src/settings/models.rs:58`) is read only to push constraint weights from the quality-gate route (`src/settings/api/settings_routes.rs:1355`), so the endpoints are always live.
+**Debt:** `POST /api/ontology-physics/enable|disable` call `check_ontology_feature`, which returns `Ok(())` unconditionally (`src/handlers/api_handler/ontology_physics/mod.rs:80-81`); the `Settings.ontology_physics` bool (`src/settings/models.rs:58`) is read only to push constraint weights from the quality-gate route (`src/settings/api/settings_routes.rs:1392`), so the endpoints are always live.
 
 **Drift:** `OntologyPipelineService::materialise_inferred_edges_from_axioms` builds its own ancestor map and calls `immediate_inferred_parents` (`src/services/ontology_pipeline_service.rs:492-506`) instead of `immediate_parents_from_subclass_pairs` (`src/services/inferred_edge_materialiser.rs:181`), so the vacuous-axiom filter (`src/services/inferred_edge_materialiser.rs:169-171`) never runs on PATH B, contrary to the claim that the two paths cannot drift (`src/services/github_sync_service.rs:1193`).
 
@@ -245,34 +249,35 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant Client
-    participant Route as POST /api/ontology/query<br/>src/handlers/api_handler/ontology/mod.rs:1738
-    participant Handler as query_ontology<br/>src/handlers/ontology_handler.rs:954
-    participant Validator as validate_read_only_sparql<br/>src/handlers/ontology_handler.rs:820
-    participant Clamp as clamp_sparql_limit<br/>src/handlers/ontology_handler.rs:901
+    participant Route as POST /api/ontology/query<br/>src/handlers/api_handler/ontology/mod.rs:1833
+    participant Handler as query_ontology<br/>src/handlers/ontology_handler.rs:946
+    participant Validator as validate_read_only_sparql<br/>src/handlers/ontology_handler.rs:812
+    participant Clamp as clamp_sparql_limit<br/>src/handlers/ontology_handler.rs:893
     participant CQRS as QueryOntologyHandler
-    participant Cap as cap_result_rows<br/>src/handlers/ontology_handler.rs:931
+    participant Cap as cap_result_rows<br/>src/handlers/ontology_handler.rs:923
 
     Client->>Route: POST /ontology/query query
-    Note over Route: gated RequireAuth::power_user().mutations_only() (api_handler/ontology/mod.rs:1727)
-    Route->>Handler: query_ontology(auth, state, request) (ontology_handler.rs:954)
-    Handler->>Validator: validate_read_only_sparql(query) (ontology_handler.rs:962, defn :820)
+    Note over Route: gated RequireAuth::power_user().mutations_only() (api_handler/ontology/mod.rs:1822)
+    Route->>Handler: query_ontology(auth, state, request) (ontology_handler.rs:946)
+    Handler->>Handler: caller_hidden_classes, 503 when the graph cannot be read, then answer_query_ontology (ontology_handler.rs:952, :962, see VC-20.16)
+    Handler->>Validator: validate_read_only_sparql(query) (ontology_handler.rs:968, defn :812)
     alt forbidden keyword INSERT DELETE DROP CLEAR LOAD CREATE ADD MOVE COPY WITH SERVICE
-        Validator-->>Handler: Err operation not permitted (ontology_handler.rs:846, :852)
+        Validator-->>Handler: Err operation not permitted (ontology_handler.rs:838, :844)
         Handler-->>Client: 400 bad_request
     else no read form present
-        Validator-->>Handler: Err only SELECT ASK CONSTRUCT DESCRIBE permitted (ontology_handler.rs:865, :867)
+        Validator-->>Handler: Err only SELECT ASK CONSTRUCT DESCRIBE permitted (ontology_handler.rs:857, :859)
         Handler-->>Client: 400 bad_request
     else valid read query
         Validator-->>Handler: Ok
-        Handler->>Clamp: clamp_sparql_limit(query) (ontology_handler.rs:973, defn :901)
-        Clamp-->>Handler: LIMIT injected or clamped to MAX_SPARQL_ROWS 10000 (ontology_handler.rs:889, :919)
-        Handler->>CQRS: QueryOntologyHandler.handle(QueryOntology query) off the worker (ontology_handler.rs:980, see VC-20.13)
+        Handler->>Clamp: clamp_sparql_limit(query) (ontology_handler.rs:979, defn :893)
+        Clamp-->>Handler: LIMIT injected or clamped to MAX_SPARQL_ROWS 10000 (ontology_handler.rs:881, :911)
+        Handler->>CQRS: QueryOntologyHandler.handle(QueryOntology query) off the worker (ontology_handler.rs:986, see VC-20.13)
         CQRS-->>Handler: Vec of HashMap string string
-        Handler->>Cap: cap_result_rows(results) (ontology_handler.rs:986, defn :931)
-        Cap-->>Handler: rows capped at 10000, byte fence MAX_SPARQL_RESULT_BYTES 8388608, truncated flag (ontology_handler.rs:891, :935, :944)
+        Handler->>Cap: cap_result_rows(hidden.query_rows(results)) - rows naming a hidden IRI dropped first (ontology_handler.rs:992, defn :923)
+        Cap-->>Handler: rows capped at 10000, byte fence MAX_SPARQL_RESULT_BYTES 8388608, truncated flag (ontology_handler.rs:883, :927, :936)
         Handler-->>Client: 200 results rowCount truncated
     end
-    Note over Handler: ADR-2004 - handler-level fence mirrors adapter fence sparql_select_json (crates/visionclaw-adapters/src/oxigraph_ontology_repository.rs:885)
+    Note over Handler: ADR-2004 - handler-level fence mirrors adapter fence sparql_select_json (crates/visionclaw-adapters/src/oxigraph_ontology_repository.rs:886)
 ```
 
 ## VC-20.7 ontology HTTP route families
@@ -280,20 +285,20 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant Client
-    participant Rbac as RbacGate on /api scope<br/>project/src/main.rs:1145
-    participant OntScope as /api/ontology scope<br/>src/handlers/api_handler/ontology/mod.rs:1724
+    participant Rbac as RbacGate on /api scope<br/>project/src/main.rs:1170
+    participant OntScope as /api/ontology scope<br/>src/handlers/api_handler/ontology/mod.rs:1819
     participant DerivedScope as /api/ontology/derived scope<br/>src/handlers/ontology_derived_handler.rs:185
     participant CountScope as /api/ontology/class-count scope<br/>src/handlers/ontology_class_count_handler.rs:76
-    participant AgentScope as /api/ontology-agent scope<br/>src/handlers/ontology_agent_handler.rs:386
+    participant AgentScope as /api/ontology-agent scope<br/>src/handlers/ontology_agent_handler.rs:469
 
     Client->>Rbac: any /api/* request
     Note over Rbac: required_level (rbac_gate.rs:147-189): safe GETs are public only when RBAC_PUBLIC_READS=1<br/>(fail-closed default, rbac_gate.rs:135-141), every other POST PUT DELETE needs WriteGraph (rbac_gate.rs:188)<br/>BEFORE any scope below is reached. Only /api/auth, client-logs and health probes are exempt (rbac_gate.rs:55-61)
     rect rgb(230,255,230)
-    Note over OntScope: registration order matters - derived and class-count scopes register before this broader /ontology scope<br/>(project/src/main.rs:1155-1170), the single-scope collapse is recorded at ontology/mod.rs:1692-1708
-    OntScope->>OntScope: POST graph classes properties axioms inference query sparql load load-axioms validate mapping apply, PUT classes iri and properties iri, DELETE cache axioms iri classes iri (lines 1647-1667)
-    OntScope->>OntScope: GET graph inferred classes properties axioms inference validate metrics inferences hierarchy state-at provenance reports id report health ws (lines 1669-1694)
-    Note over OntScope: power_user().mutations_only() gate line 1645 - POST PUT DELETE gated at power_user, GETs pass this scope<br/>(still subject to the RbacGate read rule, state-at and provenance also take the AuthenticatedUser extractor, lines 1684-1690)
-    Note over OntScope: GET state-at takes view=subjects since 9fd0e85cc and ab1e636ff (ontology/mod.rs:1386, :1592) - subject IRIs plus the<br/>earliest validFrom (build_state_at_subjects_sparql :1430, map_state_at_subjects :1481). Corpus history now feeds it, see VC-22.13
+    Note over OntScope: registration order matters - derived and class-count scopes register before this broader /ontology scope<br/>(project/src/main.rs:1180-1195), the single-scope collapse is recorded at ontology/mod.rs:1787-1803
+    OntScope->>OntScope: POST graph classes properties axioms inference query sparql load load-axioms validate mapping apply, PUT classes iri and properties iri, DELETE cache axioms iri classes iri (ontology/mod.rs:1824-1844)
+    OntScope->>OntScope: GET graph inferred classes properties axioms inference validate metrics inferences hierarchy state-at provenance reports id report health ws (ontology/mod.rs:1846-1871)
+    Note over OntScope: power_user().mutations_only() gate ontology/mod.rs:1822 - POST PUT DELETE gated at power_user, GETs pass this scope<br/>(still subject to the RbacGate read rule, state-at and provenance also take the AuthenticatedUser extractor, ontology/mod.rs:1861-1867)
+    Note over OntScope: GET state-at takes view=subjects since 9fd0e85cc and ab1e636ff (ontology/mod.rs:1446, :1652) - subject IRIs plus the<br/>earliest validFrom (build_state_at_subjects_sparql :1490, map_state_at_subjects :1541). Corpus history now feeds it, see VC-22.13
     end
     rect rgb(255,230,230)
     DerivedScope->>DerivedScope: POST derived, POST derived/regenerate, GET derived which (line 189-191)
@@ -304,17 +309,17 @@ sequenceDiagram
     Note over CountScope: no scope-level auth by design (ontology_class_count_handler.rs:25) - public only while RbacGate public reads are on
     end
     rect rgb(255,245,230)
-    AgentScope->>AgentScope: POST discover read query traverse validate check, GET status (lines 389-395)
-    AgentScope->>AgentScope: POST ontology-agent/propose, always 410 Gone (line 399, handler defn line 239)
-    Note over AgentScope: ADR-2116 - the scope carries no auth middleware of its own. The /propose sub-scope and its<br/>RequireAuth+RateLimit middleware are gone with the write path they guarded (ontology_agent_handler.rs:239-240, :381-386) —<br/>propose() answers 410 Gone naming vault propose as the replacement. The governed<br/>write door moved to POST /decisions/record - see VC-24. ADR-2127 added /check with the tri-valued<br/>relation check and open-world scope fields on every answer.
-    Note over Rbac,AgentScope: CORRECTED - not anonymous: the scope is mounted inside the RbacGate-wrapped /api scope<br/>(project/src/main.rs:1145, :1207), so every POST here, /propose included, needs WriteGraph (Editor+) before the<br/>handler runs (rbac_gate.rs:188), and GET /status is public only while RBAC_PUBLIC_READS=1
+    AgentScope->>AgentScope: POST discover read query traverse validate check, GET status (ontology_agent_handler.rs:472-478)
+    AgentScope->>AgentScope: POST ontology-agent/propose, always 410 Gone (ontology_agent_handler.rs:482, handler defn :300)
+    Note over AgentScope: ADR-2116 - the scope carries no auth middleware of its own. The /propose sub-scope and its<br/>RequireAuth+RateLimit middleware are gone with the write path they guarded (ontology_agent_handler.rs:300-301, :464-469) —<br/>propose() answers 410 Gone naming vault propose as the replacement. The governed<br/>write door moved to POST /decisions/record - see VC-24. ADR-2127 added /check with the tri-valued<br/>relation check and open-world scope fields on every answer.
+    Note over Rbac,AgentScope: CORRECTED - not anonymous: the scope is mounted inside the RbacGate-wrapped /api scope<br/>(project/src/main.rs:1170, :1234), so every POST here, /propose included, needs WriteGraph (Editor+) before the<br/>handler runs (rbac_gate.rs:188), and GET /status is public only while RBAC_PUBLIC_READS=1
     end
     rect rgb(245,245,245)
-    Note over OntScope: RESOLVED ADR-2066 - the /api/inference scope is gone. Its seven handlers extracted a web::Data InferenceService<br/>that was never constructed or registered, so every route 500'd at the extractor. inference_handler.rs,<br/>application/inference_service.rs, events/inference_triggers.rs and the main.rs registration were all removed<br/>(project/src/main.rs:1186-1190). The live reasoning path is GitHubSyncService::run_post_sync_reasoning - see VC-20.3
+    Note over OntScope: RESOLVED ADR-2066 - the /api/inference scope is gone. Its seven handlers extracted a web::Data InferenceService<br/>that was never constructed or registered, so every route 500'd at the extractor. inference_handler.rs,<br/>application/inference_service.rs, events/inference_triggers.rs and the main.rs registration were all removed<br/>(project/src/main.rs:1211-1215). The live reasoning path is GitHubSyncService::run_post_sync_reasoning - see VC-20.3
     end
 ```
 
-**Drift:** ADR-2116 and the handler comment call every `/ontology-agent` route anonymous (`src/handlers/ontology_agent_handler.rs:381-385`), but the scope is mounted inside the `RbacGate`-wrapped `/api` scope (`src/main.rs:1145`, `src/main.rs:1207`) and `required_level` demands `WriteGraph` for every non-safe method outside the auth/health allowlist (`src/middleware/rbac_gate.rs:179-189`). In practice an unsigned caller is refused, while any signed caller passes, because an unassigned pubkey defaults to Editor (`src/services/role_store.rs:366`). Two comments disagree with the code: `src/middleware/rbac_gate.rs:200` calls `RBAC_PUBLIC_READS` default-on against the fail-closed `src/middleware/rbac_gate.rs:135-141`, and `src/main.rs:1210` still says `/decisions/record` is authed like `/propose`.
+**Drift:** ADR-2116 and the handler comment call every `/ontology-agent` route anonymous (`src/handlers/ontology_agent_handler.rs:464-468`), but the scope is mounted inside the `RbacGate`-wrapped `/api` scope (`src/main.rs:1170`, `src/main.rs:1234`) and `required_level` demands `WriteGraph` for every non-safe method outside the auth/health allowlist (`src/middleware/rbac_gate.rs:179-189`). In practice an unsigned caller is refused, while any signed caller passes, because an unassigned pubkey defaults to Editor (`src/services/role_store.rs:366`). Two comments disagree with the code: `src/middleware/rbac_gate.rs:200` calls `RBAC_PUBLIC_READS` default-on against the fail-closed `src/middleware/rbac_gate.rs:135-141`, and `src/main.rs:1237` still says `/decisions/record` is authed like `/propose`.
 
 ## VC-20.8 OntologyActor message set
 
@@ -361,24 +366,24 @@ sequenceDiagram
     autonumber
     participant CL as Client
     participant AW as actix async worker thread
-    participant H as get_owl_property<br/>src/handlers/ontology_handler.rs:427
+    participant H as get_owl_property<br/>src/handlers/ontology_handler.rs:354
     participant EX as execute_in_thread<br/>src/handlers/utils.rs:1
     participant BT as tokio blocking thread pool<br/>src/handlers/utils.rs:6
-    participant QH as GetOwlPropertyHandler.handle<br/>src/handlers/ontology_handler.rs:442
+    participant QH as GetOwlPropertyHandler.handle<br/>src/handlers/ontology_handler.rs:379
 
     CL->>AW: GET /api/ontology/properties/{iri}
     AW->>H: handler future polled on the async worker
     H->>EX: execute_in_thread(move || handler.handle(GetOwlProperty))
     EX->>BT: tokio::task::spawn_blocking(f)
     BT->>QH: the sync CQRS handler runs here
-    Note over BT,QH: INVARIANT: the CQRS query handlers are sync-over-async - they<br/>enter a nested block_on. Called inline on an actix worker they panic<br/>with "Cannot start a runtime from within a runtime" and drop the<br/>connection. ontology_handler.rs:436-439, add_owl_property at :512
+    Note over BT,QH: INVARIANT: the CQRS query handlers are sync-over-async - they<br/>enter a nested block_on. Called inline on an actix worker they panic<br/>with "Cannot start a runtime from within a runtime" and drop the<br/>connection. ontology_handler.rs:373-376, add_owl_property at :461
     QH-->>BT: Result<Option<OwlProperty>, _>
     BT-->>EX: JoinHandle resolves
     EX-->>H: Ok(Ok(Some)) / Ok(Ok(None)) / Ok(Err) / Err
-    Note over H: The four-arm match is uniform across every sibling in this file -<br/>join error is distinguished from handler error. ontology_handler.rs:448-465
+    Note over H: The four-arm match is uniform across every sibling in this file -<br/>join error is distinguished from handler error. ontology_handler.rs:386-403
     H-->>CL: 200 property, 404 not found, or 500
-    Note over H,QH: get_owl_property and add_owl_property were the LAST two bare<br/>calls in this file, closed 2026-09-16 (ad8b83ad4). The same defect was<br/>fixed for one endpoint on 2026-08-10 and for add_axiom at<br/>ontology_handler.rs:632.
-    Note over QH: Regression cover: owl_property_handlers_round_trip_off_the_async_worker<br/>ontology_handler.rs:1133, and the bare call pinned as the panic it is at<br/>ontology_handler.rs:1168. DEBT: the wrapping is load-bearing only while<br/>the CQRS handlers stay sync - the test module says to delete it if they<br/>become async-direct. ontology_handler.rs:1108
+    Note over H,QH: get_owl_property and add_owl_property were the LAST two bare<br/>calls in this file, closed 2026-09-16 (ad8b83ad4). The same defect was<br/>fixed for one endpoint on 2026-08-10 and for add_axiom at<br/>ontology_handler.rs:592.
+    Note over QH: Regression cover: owl_property_handlers_round_trip_off_the_async_worker<br/>ontology_handler.rs:1186, and the bare call pinned as the panic it is at<br/>ontology_handler.rs:1221. DEBT: the wrapping is load-bearing only while<br/>the CQRS handlers stay sync - the test module says to delete it if they<br/>become async-direct. ontology_handler.rs:1161
 ```
 
 ## VC-20.14 vault certify — the derivation certificate, the shared crate and the Whelk-parity invariant (ADR-2147, ontomark ADR-OM-009)
@@ -440,3 +445,34 @@ sequenceDiagram
     Note over PP,F: The delta is advisory and never blocks. Newly unsatisfiable classes and reasoner-cap refusal block<br/>via propose.rs:199,205. Historical ADR-2147 measurements: one rdfs:domain on<br/>vc:requires = 206,476 new consequences, AI Operator is-a Robotics = 6, corpus dry-run 11.8 s
     Note over P: SHACL side-finding of the same spike: ontology-class.shacl.ttl:21 now sh:nodeKind sh:Literal,<br/>the evaluator types @language as rdf:langString shacl.rs:749 and enforces sh:Literal shacl.rs:305, :767
 ```
+
+## VC-20.16 Ontology reads answer a hidden class as one never stored (per-caller deny-list)
+
+<!-- 2026-11-06 restamp 809a859aa: new. 3d1539ef7 adds services/ontology_visibility.rs and threads HiddenClasses through every /api/ontology read, /query, /sparql and the six /api/ontology-agent read routes; SECURITY-profiles 0.1.6 records it -->
+```mermaid
+flowchart TB
+    subgraph ROUTES["Read surfaces that take the caller's HiddenClasses"]
+        OR["/api/ontology GETs: graph, classes, class, axioms, properties, inference, validate, metrics, inferred<br/>src/handlers/ontology_handler.rs:87, :167, :215, :528, :749, :1077, :1099"]
+        OM["/api/ontology report, inferences, hierarchy, reports id, state-at, provenance<br/>src/handlers/api_handler/ontology/mod.rs:624, :881, :1088, :1277, :1673, :1741"]
+        SQ["POST /query and /sparql, both power-user<br/>src/handlers/ontology_handler.rs:952, :1033"]
+        AG["/api/ontology-agent discover, read, query, traverse, validate, check<br/>src/handlers/ontology_agent_handler.rs:121, :159, :192, :232, :324, :382"]
+    end
+    ROUTES --> CH["graph_access.caller_hidden_classes<br/>src/handlers/graph_access.rs:200-208"]
+    CH --> HC["hidden_class_iris: the owl_class_iri of every node outside the caller's view<br/>src/handlers/graph_access.rs:174-181"]
+    CH -->|"graph unreadable"| F503["503, never the unfiltered store<br/>src/handlers/graph_access.rs:207"]
+    HC --> EMPTY{"HiddenClasses.is_empty: filter off or full access<br/>src/services/ontology_visibility.rs:37"}
+    EMPTY -->|"yes"| PASS["pass-through, untouched"]
+    EMPTY -->|"no"| SCRUB["drop the class and every edge, axiom, binding and triple naming it<br/>src/services/ontology_visibility.rs:1-8"]
+    SCRUB --> S1["class, classes, axioms<br/>src/services/ontology_visibility.rs:62, :72, :128"]
+    SCRUB --> S2["sparql_json drops rows with a hidden binding value, query_rows the same<br/>src/services/ontology_visibility.rs:206-224, :228-233"]
+    SCRUB --> S3["validation_report keeps whole-graph totals as computed<br/>src/services/ontology_visibility.rs:276-279"]
+    S2 -.-> R1["OPEN: ASK and aggregate replies carry no bindings to drop"]
+    HC -.-> R2["OPEN: a node without owl_class_iri never enters the deny-list,<br/>graph_access.rs:179"]
+    CC["GET /api/ontology/class-count, no caller, whole-store count<br/>src/handlers/ontology_class_count_handler.rs:40-51"] -.-> R3["TENSION: /metrics counts excluding hidden classes,<br/>ontology_handler.rs:1113-1114"]
+```
+
+**Invariant:** a hidden class reads exactly as a class never stored: every listed route resolves the caller's deny-list before touching the store and fails closed with 503 when the graph cannot be read (`src/handlers/graph_access.rs:200-208`), and an empty set is a pass-through (`src/services/ontology_visibility.rs:37`).
+
+**Tension (risk):** `GET /api/ontology/class-count` takes no caller and returns the whole-store `class_count` (`src/handlers/ontology_class_count_handler.rs:40-51`), while `GET /api/ontology/metrics` counts over the store minus the caller's hidden classes (`src/handlers/ontology_handler.rs:1113-1114`). The difference between the two is the number of classes hidden from that caller.
+
+**Open (risk):** the residuals SECURITY-profiles 0.1.6 lists are unfiltered: SPARQL `ASK`, aggregates, queries that do not project the class and literal forms; Whelk inferences that passed through a hidden class; store-wide totals in validation reports (`src/services/ontology_visibility.rs:276-278`) and the `/inferred` run id; and ontology nodes with no `owl_class_iri`, which `hidden_class_iris` skips (`src/handlers/graph_access.rs:179`). All are recorded at `docs/SECURITY-profiles.md:111`.

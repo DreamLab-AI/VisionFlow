@@ -14,7 +14,7 @@ sources:
   - ../project/crates/visionclaw-xr-presence/src/ports/mod.rs
   - ../project/src/handlers/presence_handler.rs
   - ../project/src/actors/presence_actor.rs
-verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
+verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8}
 ---
 
 ## For developers
@@ -54,14 +54,14 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    ID["PROPOSED: retain existing identity check<br/>IDENTITY-authority-chain.md:240"] --> ADMIT["PROPOSED: registered room and pinned home membership<br/>IDENTITY-authority-chain.md:240"]
-    ADMIT --> LEASE["PROPOSED: freshness lease and revision ordering<br/>IDENTITY-authority-chain.md:240"]
-    LEASE --> JOIN["PROPOSED: register then recheck admission<br/>IDENTITY-authority-chain.md:240"]
-    JOIN --> RECHECK["PROPOSED: recheck live sessions every 10 seconds<br/>IDENTITY-authority-chain.md:240"]
-    RECHECK --> CLOSE["PROPOSED: stale membership closes sessions<br/>IDENTITY-authority-chain.md:240"]
-    ID --> LEGACY["PROPOSED: unbound presence only, capped<br/>bound_only migration at P2<br/>IDENTITY-authority-chain.md:244"]
+    ID["PROPOSED: retain existing identity check<br/>IDENTITY-authority-chain.md:242"] --> ADMIT["PROPOSED: registered room and pinned home membership<br/>IDENTITY-authority-chain.md:242"]
+    ADMIT --> LEASE["PROPOSED: freshness lease and revision ordering<br/>IDENTITY-authority-chain.md:242"]
+    LEASE --> JOIN["PROPOSED: register then recheck admission<br/>IDENTITY-authority-chain.md:242"]
+    JOIN --> RECHECK["PROPOSED: recheck live sessions every 10 seconds<br/>IDENTITY-authority-chain.md:242"]
+    RECHECK --> CLOSE["PROPOSED: stale membership closes sessions<br/>IDENTITY-authority-chain.md:242"]
+    ID --> LEGACY["PROPOSED: unbound presence only, capped<br/>bound_only migration at P2<br/>IDENTITY-authority-chain.md:246"]
 ```
 
 **What it shows.** The proposed check applies both at entry and during a session. **Why it is this way.** A successful initial identity check cannot prove continuing membership; the 90-second presence deadline still needs implementation and adversarial timing evidence.
 
-**Tension:** The proposal lets unbound rooms keep "the member cap" (`IDENTITY-authority-chain.md:244`), but `Room::join` checks only for a duplicate DID before inserting (`room.rs:42-52`), so no cap exists to keep.
+**Tension:** The proposal lets unbound rooms keep "the member cap" (`IDENTITY-authority-chain.md:246`), but `Room::join` checks only for a duplicate DID before inserting (`room.rs:42-52`), so no cap exists to keep.

@@ -24,7 +24,7 @@ sources:
   - ../project/src/utils/gpu_diagnostics.rs
   - ../project/src/gpu/mod.rs
   - ../project/src/physics/mod.rs
-verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
+verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8}
 ---
 ## For developers
 
@@ -400,7 +400,7 @@ sequenceDiagram
             Loader-->>GRA: Some(content) (gpu_resource_actor.rs:129-135)
         end
     end
-    Note over Loader,GRA: PTXModule::SemanticForces is the ninth loadable module (ptx_loader.rs:221, all_modules at :291-302)<br/>but GPUResourceActor does not load it, ForceComputeActor::refresh_semantic does on each graph upload<br/>(force_compute_actor.rs:4792-4795) and hands the PTX to UnifiedGPUCompute::enable_semantic (execution.rs:1064)
+    Note over Loader,GRA: PTXModule::SemanticForces is the ninth loadable module (ptx_loader.rs:221, all_modules at :291-302)<br/>but GPUResourceActor does not load it, ForceComputeActor::refresh_semantic does on each graph upload<br/>(force_compute_actor.rs:4784-4787) and hands the PTX to UnifiedGPUCompute::enable_semantic (execution.rs:1064)
     GRA->>UGC: new_with_modules(num_nodes, num_edges, ptx, clustering_ptx, apsp_ptx)<br/>(gpu_resource_actor.rs:143) delegates to new_with_all_modules (construction.rs:272-279, :286-292)
     UGC->>UGC: validate_ptx_content(ptx_content) (construction.rs:293, gpu_diagnostics.rs:185)
     alt primary PTX fails structural validation
