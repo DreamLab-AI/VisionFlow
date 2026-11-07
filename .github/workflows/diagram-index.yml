@@ -74,4 +74,4 @@ jobs:
         run: |
           cp docs/diagrams/COVERAGE.md /tmp/COVERAGE.before
           node scripts/diagram-index-gen.cjs docs/diagrams --no-source-paths
-          diff -q /tmp/COVERAGE.before docs/diagrams/COVERAGE.md || { echo "::error::COVERAGE.md is stale — run: node scripts/diagram-index-gen.cjs docs/diagrams"; exit 1; }
+          diff -q /tmp/COVERAGE.before docs/diagrams/COVERAGE.md || { echo "::error::COVERAGE.md is stale — run: node scripts/diagram-index-gen.cjs docs/diagrams --no-source-paths (CI regenerates without sibling checkouts)"; exit 1; }
