@@ -110,6 +110,12 @@
  *      gh-pages, and a frozen repository runs nothing. "None" there is the
  *      design, not a gap, and the page should say which. A red or amber verdict
  *      on HEAD is never exempted.
+ *  11. Runs from a workflow the repository no longer defines (its file deleted,
+ *      so it is absent from /actions/workflows) are dropped before the fold and
+ *      named in a note. Measured 2026-11-07: knowledgeGraph read red from
+ *      "Build and verify", deleted on 2026-09-23, because a green adr-ledger run
+ *      on HEAD kept call 7 from applying. If the workflow list cannot be read,
+ *      nothing is dropped, so the failure mode stays red. See dropRetiredWorkflows.
  *
  * Contract additions beyond the published schema, all additive (a consumer that
  * ignores them reads the documented schema unchanged):
@@ -368,6 +374,32 @@ export function latestRunPerWorkflow(runs, selfRunId = SELF_RUN_ID) {
 }
 
 /**
+ * Judgement call 11: drop runs from workflows the repository no longer defines,
+ * BEFORE the fold. A deleted workflow file leaves its runs in /actions/runs but
+ * the workflow vanishes from /actions/workflows; its last result describes code
+ * that no longer has that check at all. Measured 2026-11-07: knowledgeGraph read
+ * red from "Build and verify" (file deleted 2026-09-23) because a green run on
+ * HEAD from another workflow kept call 7 from applying.
+ *
+ * `currentIds` null means the workflow list was unavailable: nothing is dropped,
+ * so the failure mode is a red that stays red, never a red turned green.
+ *
+ * @param {any[]} runs
+ * @param {Set<string>|null} currentIds workflow ids from /actions/workflows
+ * @returns {{runs: any[], retired: string[]}} kept runs and the names dropped
+ */
+export function dropRetiredWorkflows(runs, currentIds) {
+  if (!currentIds) return { runs, retired: [] };
+  const retired = new Set();
+  const kept = runs.filter((r) => {
+    if (r.workflow_id == null || currentIds.has(String(r.workflow_id))) return true;
+    retired.add(r.name ?? String(r.workflow_id));
+    return false;
+  });
+  return { runs: kept, retired: [...retired].sort() };
+}
+
+/**
  * Judgement call 8: keep the runs GitHub attributes to `branch`, matched on
  * `head_branch` client-side because the API's own branch filter can lag.
  *
@@ -611,7 +643,15 @@ async function collectCi(fullName, branch, token, notes) {
     notes.push(`CI runs unavailable (${res.error ?? `HTTP ${res.status}`})`);
     return { state: 'unknown', runs: [] };
   }
-  const all = runsOnBranch(res.data.workflow_runs, branch);
+  const onBranch = runsOnBranch(res.data.workflow_runs, branch);
+  // Judgement call 11: runs from workflows no longer defined are not HEAD's CI.
+  const wf = await githubJson(`/repos/${fullName}/actions/workflows?per_page=100`, token);
+  const currentIds = Array.isArray(wf.data?.workflows)
+    ? new Set(wf.data.workflows.map((w) => String(w.id)))
+    : null;
+  if (!currentIds) notes.push(`workflow list unavailable (${wf.error ?? `HTTP ${wf.status}`}); retired workflows not filtered`);
+  const { runs: all, retired } = dropRetiredWorkflows(onBranch, currentIds);
+  if (retired.length) notes.push(`ignored runs from retired workflow(s) no longer defined: ${retired.join(', ')}`);
   const latest = latestRunPerWorkflow(all);
   const runs = [...latest.values()]
     .map(runRecord)

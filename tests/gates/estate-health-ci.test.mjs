@@ -5,7 +5,7 @@
 // still read red, so the fix cannot hide a real failure.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { ciStateAtHead, ciStateFrom, isDocsOnlyChange, latestRunPerWorkflow, runsOnBranch } from '../../scripts/estate-health.mjs';
+import { ciStateAtHead, ciStateFrom, dropRetiredWorkflows, isDocsOnlyChange, latestRunPerWorkflow, runsOnBranch } from '../../scripts/estate-health.mjs';
 
 const OLD = '721d8074c0000000000000000000000000000000';
 const HEAD = '4ed9ac1590000000000000000000000000000000';
@@ -47,6 +47,22 @@ assert.equal(isDocsOnlyChange(['README.md', 'src/main.rs']), false, 'one code fi
 assert.equal(isDocsOnlyChange([]), false, 'an empty diff proves nothing');
 assert.equal(isDocsOnlyChange(['README.md'], true), false, 'a truncated file list may hide code');
 assert.equal(isDocsOnlyChange(['crates/x/docs.rs']), false, 'a path merely containing "docs" is not documentation');
+
+// 8. judgement call 11: a run from a workflow the repository no longer defines is
+// dropped before the fold. Measured 2026-11-07: knowledgeGraph read red from
+// "Build and verify" (workflow 320196274, file deleted 2026-09-23) because its
+// green adr-ledger run on HEAD kept call 7 from applying, and the fold still
+// counted the retired workflow's last failure from 721d807.
+const ledger = { ...run(9, HEAD, 'success', '2026-10-31T10:00:00Z'), workflow_id: 2, name: 'adr-ledger' };
+const retired = run(8, OLD, 'failure', '2026-09-23T07:42:48Z');
+const kept = dropRetiredWorkflows([ledger, retired], new Set(['2']));
+assert.deepEqual(kept.runs.map((r) => r.id), [9], 'the retired workflow\'s run is dropped');
+assert.deepEqual(kept.retired, ['Build and verify'], 'and named, so nothing is hidden silently');
+assert.deepEqual(stateOf(kept.runs, HEAD), { state: 'green', stale: false });
+// a live workflow's old red still counts (case 3 unchanged)
+assert.deepEqual(dropRetiredWorkflows([ledger, other], new Set(['2', '1'])).runs.length, 2);
+// the workflow list unavailable: nothing is dropped, so the fail-safe is red, not green
+assert.deepEqual(dropRetiredWorkflows([ledger, retired], null).runs.length, 2);
 
 // 5. importing the collector must not run its CLI; running it bare still prints usage and exits 2
 const bare = spawnSync(process.execPath, ['scripts/estate-health.mjs'], { encoding: 'utf8' });
