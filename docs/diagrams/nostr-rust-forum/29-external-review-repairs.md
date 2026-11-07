@@ -3,7 +3,7 @@ id: NF-29
 title: External-review repair boundaries and deployment limits
 area: nostr-rust-forum
 governing:
-  - ../nostr-rust-forum/docs/adr/external-fixes-2026-11-03.md
+  - ../nostr-rust-forum/docs/audit/external-fixes-2026-11-03.md
 adrs: [ADR-2003, ADR-2006, ADR-2009, ADR-2014]
 sources:
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/webauthn.rs
@@ -19,7 +19,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/lib.rs
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/acl.rs
   - ../nostr-rust-forum/crates/nostr-bbs-rate-limit/src/replay.rs
-verified_commit: {nostr-rust-forum: a3812b8e79846b569c1f19054f0774e94fed1248}
+verified_commit: {nostr-rust-forum: d36fac107c686321719d02b94afd71b23350eb6d}
 ---
 
 ## For developers
