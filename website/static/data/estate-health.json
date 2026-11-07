@@ -1,20 +1,20 @@
 {
   "schema": "visionflow.estate-health/1",
-  "generated_at": "2026-11-06T09:34:40.984Z",
+  "generated_at": "2026-11-07T08:58:47.562Z",
   "generator": {
-    "revision": "79984f99d1deb50afc10b14c1a6afb776ec7e4aa",
-    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/42196056369",
+    "revision": "5c285cc642b3eb02dfe0adf58afb6d6092e37286",
+    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/42357702338",
     "collector": "scripts/estate-health.mjs"
   },
   "summary": {
     "repos": 21,
-    "green": 10,
-    "red": 7,
+    "green": 9,
+    "red": 8,
     "amber": 0,
     "none": 1,
     "exempt": 1,
     "unreadable": 2,
-    "open_prs": 4,
+    "open_prs": 5,
     "surfaces_ok": 6,
     "surfaces_total": 6
   },
@@ -30,14 +30,14 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "79984f99d1deb50afc10b14c1a6afb776ec7e4aa",
-        "short": "79984f9",
-        "date": "2026-11-05T22:24:26Z",
-        "message": "docs(diagrams): sealmap and dream-engine corpora join the master record; codescape and visioncraft become areas",
-        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/79984f99d1deb50afc10b14c1a6afb776ec7e4aa"
+        "sha": "5c285cc642b3eb02dfe0adf58afb6d6092e37286",
+        "short": "5c285cc",
+        "date": "2026-11-06T21:58:02Z",
+        "message": "docs(diagrams): restamp VERIFICATION.md after the VisionClaw consolidation refresh",
+        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/5c285cc642b3eb02dfe0adf58afb6d6092e37286"
       },
       "ci": {
-        "state": "green",
+        "state": "red",
         "runs": [
           {
             "workflow": "ADR frontmatter gate",
@@ -50,43 +50,36 @@
             "workflow": "Copyright Source Guard",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/42121256971",
-            "updated_at": "2026-11-05T22:24:54Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/42301141687",
+            "updated_at": "2026-11-06T21:59:35Z"
           },
           {
             "workflow": "Deploy to GitHub Pages",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/42121256966",
-            "updated_at": "2026-11-05T22:25:21Z"
-          },
-          {
-            "workflow": "Diagram render gate (RES-b)",
-            "conclusion": "success",
-            "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/40850556687",
-            "updated_at": "2026-10-29T09:33:46Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/42301141558",
+            "updated_at": "2026-11-06T22:00:07Z"
           },
           {
             "workflow": "Diagrams-as-code index gate",
-            "conclusion": "success",
+            "conclusion": "failure",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/42121257069",
-            "updated_at": "2026-11-05T22:25:09Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/42301141696",
+            "updated_at": "2026-11-06T21:59:40Z"
           },
           {
             "workflow": "Harness Fitness Gates",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/42121257036",
-            "updated_at": "2026-11-05T22:25:09Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/42291031216",
+            "updated_at": "2026-11-06T20:45:56Z"
           },
           {
             "workflow": "Nightly estate health",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/42004232873",
-            "updated_at": "2026-11-05T09:40:29Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/42196056369",
+            "updated_at": "2026-11-06T09:34:46Z"
           }
         ]
       },
@@ -113,11 +106,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "3f63c55c0bf17bb2688db996874c090e8ac53b29",
-        "short": "3f63c55",
-        "date": "2026-11-05T13:34:31Z",
-        "message": "chore(agentbox): retain browser identity during secure-origin activation",
-        "url": "https://github.com/DreamLab-AI/VisionClaw/commit/3f63c55c0bf17bb2688db996874c090e8ac53b29"
+        "sha": "7c79105c370aa27cbd20d4864a74e192dd0cabae",
+        "short": "7c79105",
+        "date": "2026-11-07T08:49:15Z",
+        "message": "fix(graph): restore the edge breathe on desktop overview lines",
+        "url": "https://github.com/DreamLab-AI/VisionClaw/commit/7c79105c370aa27cbd20d4864a74e192dd0cabae"
       },
       "ci": {
         "state": "none",
@@ -154,7 +147,7 @@
         "build_type": "workflow"
       },
       "notes": [
-        "no qualifying run on HEAD 3f63c55; the latest runs are on older commits (52851ce, b06ef57) and were green, reported none"
+        "no qualifying run on HEAD 7c79105; the latest runs are on older commits (52851ce, b06ef57) and were green, reported none"
       ]
     },
     {
@@ -168,11 +161,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "0b287d7c16cae07faa243c471552f11fbb3e316c",
-        "short": "0b287d7",
-        "date": "2026-11-05T13:34:28Z",
-        "message": "docs(adr): verify durable legacy browser profile compatibility",
-        "url": "https://github.com/DreamLab-AI/agentbox/commit/0b287d7c16cae07faa243c471552f11fbb3e316c"
+        "sha": "f9ca9f857a4c56359d2f88b0bd21d0d32c0aa778",
+        "short": "f9ca9f8",
+        "date": "2026-11-06T12:54:22Z",
+        "message": "docs(adr): verify VisionCraft 0.3.0 pin and Rune discovery",
+        "url": "https://github.com/DreamLab-AI/agentbox/commit/f9ca9f857a4c56359d2f88b0bd21d0d32c0aa778"
       },
       "ci": {
         "state": "red",
@@ -195,8 +188,8 @@
             "workflow": "CI",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/42036968293",
-            "updated_at": "2026-11-05T13:35:30Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/42221245011",
+            "updated_at": "2026-11-06T12:55:28Z"
           },
           {
             "workflow": "Contract tests",
@@ -223,15 +216,15 @@
             "workflow": "Secret Scan",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/42036968656",
-            "updated_at": "2026-11-05T13:35:09Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/42221245041",
+            "updated_at": "2026-11-06T12:55:22Z"
           },
           {
             "workflow": "Security Invariants",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/42036968483",
-            "updated_at": "2026-11-05T13:37:08Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/42221244789",
+            "updated_at": "2026-11-06T12:56:21Z"
           },
           {
             "workflow": "Security VEX contracts",
@@ -752,7 +745,7 @@
           }
         ]
       },
-      "open_prs": 1,
+      "open_prs": 2,
       "open_issues": 0,
       "release": {
         "tag": "v0.1.5",
@@ -944,11 +937,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "5d1c1bcbedba8697632aa533ec3363269884c1a0",
-        "short": "5d1c1bc",
-        "date": "2026-11-05T22:18:43Z",
-        "message": "docs(diagrams): point to the VisionFlow master record's visioncraft area",
-        "url": "https://github.com/DreamLab-AI/visioncraft/commit/5d1c1bcbedba8697632aa533ec3363269884c1a0"
+        "sha": "2c6627ce01d0e68bb0f48fc55a209b2c674716f1",
+        "short": "2c6627c",
+        "date": "2026-11-06T12:49:23Z",
+        "message": "Merge pull request #3 from DreamLab-AI/feat/rune-ui",
+        "url": "https://github.com/DreamLab-AI/visioncraft/commit/2c6627ce01d0e68bb0f48fc55a209b2c674716f1"
       },
       "ci": {
         "state": "green",
@@ -957,8 +950,8 @@
             "workflow": "CI",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/visioncraft/actions/runs/42121297843",
-            "updated_at": "2026-11-05T22:26:08Z"
+            "url": "https://github.com/DreamLab-AI/visioncraft/actions/runs/42220610611",
+            "updated_at": "2026-11-06T12:50:45Z"
           }
         ]
       },
@@ -980,7 +973,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 195,
+      "latency_ms": 302,
       "note": null
     },
     {
@@ -989,7 +982,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 113,
+      "latency_ms": 164,
       "note": null
     },
     {
@@ -998,7 +991,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/ld+json",
-      "latency_ms": 133,
+      "latency_ms": 160,
       "note": null
     },
     {
@@ -1007,7 +1000,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/json; charset=utf-8",
-      "latency_ms": 169,
+      "latency_ms": 182,
       "note": "classes=9595 pages=9593 nodes=9595"
     },
     {
@@ -1016,7 +1009,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 208,
+      "latency_ms": 423,
       "note": null
     },
     {
@@ -1025,7 +1018,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/octet-stream",
-      "latency_ms": 219,
+      "latency_ms": 300,
       "note": null
     }
   ],
@@ -1225,8 +1218,8 @@
     {
       "registry": "crates.io",
       "name": "visioncraft",
-      "version": "0.2.0",
-      "published_at": "2026-11-05T02:31:45.784999Z",
+      "version": "0.3.0",
+      "published_at": "2026-11-06T12:49:36.319004Z",
       "url": "https://crates.io/crates/visioncraft",
       "note": null
     },
