@@ -1,9 +1,9 @@
 {
   "schema": "visionflow.estate-health/1",
-  "generated_at": "2026-11-08T08:35:12.523Z",
+  "generated_at": "2026-11-08T09:14:56.394Z",
   "generator": {
-    "revision": "0fd6fd55a17cb329b39f7c2f6dc81eb2a753e2c5",
-    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/42463538092",
+    "revision": "f495ae03738cc23c57791400bc7a39d177978b44",
+    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/42466343101",
     "collector": "scripts/estate-health.mjs"
   },
   "summary": {
@@ -15,7 +15,7 @@
     "exempt": 1,
     "unreadable": 2,
     "open_prs": 6,
-    "surfaces_ok": 6,
+    "surfaces_ok": 5,
     "surfaces_total": 6
   },
   "repos": [
@@ -30,11 +30,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "0fd6fd55a17cb329b39f7c2f6dc81eb2a753e2c5",
-        "short": "0fd6fd5",
-        "date": "2026-11-08T08:32:34Z",
-        "message": "chore(estate-health): nightly snapshot 2026-11-08 — 17/21 green",
-        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/0fd6fd55a17cb329b39f7c2f6dc81eb2a753e2c5"
+        "sha": "f495ae03738cc23c57791400bc7a39d177978b44",
+        "short": "f495ae0",
+        "date": "2026-11-08T08:35:12Z",
+        "message": "chore(estate-health): nightly snapshot 2026-11-08 — 18/21 green",
+        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/f495ae03738cc23c57791400bc7a39d177978b44"
       },
       "ci": {
         "state": "green",
@@ -57,8 +57,8 @@
             "workflow": "Deploy to GitHub Pages",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/42463378681",
-            "updated_at": "2026-11-08T08:33:22Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/42463567399",
+            "updated_at": "2026-11-08T08:35:54Z"
           },
           {
             "workflow": "Diagrams-as-code index gate",
@@ -78,8 +78,8 @@
             "workflow": "Nightly estate health",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/42463338417",
-            "updated_at": "2026-11-08T08:32:40Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/42463538092",
+            "updated_at": "2026-11-08T08:35:17Z"
           }
         ]
       },
@@ -980,7 +980,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 182,
+      "latency_ms": 324,
       "note": null
     },
     {
@@ -989,7 +989,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 127,
+      "latency_ms": 225,
       "note": null
     },
     {
@@ -998,7 +998,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/ld+json",
-      "latency_ms": 121,
+      "latency_ms": 219,
       "note": null
     },
     {
@@ -1007,7 +1007,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/json; charset=utf-8",
-      "latency_ms": 103,
+      "latency_ms": 195,
       "note": "classes=9595 pages=9593 nodes=9595"
     },
     {
@@ -1016,17 +1016,17 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 202,
+      "latency_ms": 336,
       "note": null
     },
     {
       "name": "VisionClaw ontology-latest/index.jsonld",
       "url": "https://github.com/DreamLab-AI/VisionClaw/releases/download/ontology-latest/index.jsonld",
-      "status": 200,
-      "ok": true,
-      "content_type": "application/octet-stream",
-      "latency_ms": 259,
-      "note": null
+      "status": null,
+      "ok": false,
+      "content_type": null,
+      "latency_ms": 9999,
+      "note": "timeout"
     }
   ],
   "registries": [
