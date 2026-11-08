@@ -11,7 +11,7 @@ depends_on: [ADR-2013, ADR-2014, ADR-2015]
 verified_commit: ab1e636ff
 verified_paths: [visionclaw:src/services/corpus_history.rs, visionclaw:src/services/temporal_contract_tests.rs, visionclaw:src/services/github_sync_service.rs, visionclaw:src/handlers/api_handler/ontology/mod.rs, visionclaw:crates/visionclaw-adapters/src/oxigraph_ontology_repository.rs, visionclaw:client/src/store/timelineStore.ts, visionclaw:client/src/features/graph/components/GemNodes.tsx, visionclaw:client/src/features/graph/utils/timelineTint.ts, ontomark:conformance/temporal/README.md, ontomark:conformance/temporal/vectors.json]
 owner: jjohare
-review_trigger: Activation — a deployed VisionClaw built from ab1e636ff or later, with the panel key present, runs an operator force_full sync, and `GET /api/ontology/state-at?t=<now>` returns versions whose activity starts `urn:visionclaw:execution:corpus-sync-`, with no assert_digest or corpus_history errors in that sync. Reopen P5 on the first multi-writer path (federation write-back or offline clients). Reopen the erasure boundary when VisionClaw ADR-2102 is decided.
+review_trigger: Activation — a deployed VisionClaw built from ab1e636ff or later, with the panel key present, runs an operator force_full sync, and `GET /api/ontology/state-at?t=<now>` returns versions owned by the corpus writer (an activity with the legacy `urn:visionclaw:execution:corpus-sync-` prefix, or one carrying `dl:writer "corpus-sync"`), with no assert_digest or corpus_history errors in that sync. Reopen P5 on the first multi-writer path (federation write-back or offline clients). Reopen the erasure boundary when VisionClaw ADR-2102 is decided.
 repo: visionflow
 domain: BASELINE-visionflow.md
 evidence_class: source+test
@@ -93,3 +93,17 @@ At VisionClaw `ab1e636ff` (merged to main), built and tested in a worktree with 
 At ontomark `28330ce` (merged to main): `conformance/temporal/vectors.json` SHA-256 `6973aeef…6f75` matches VisionClaw's vendored pin.
 
 Activation is `staged`. No host build or force_full sync has been run, because the first enabled full sync writes history that cannot be removed. The review trigger names the runtime check that moves this to `live`.
+
+## Amendment (2026-11-07): corpus-writer ownership is prefix or marker
+
+VisionClaw `adf382ea4` builds new corpus-sync activity ids through the canonical
+`uri::execution` constructor, so they now parse as `Execution`. Every canonical
+execution id begins `urn:visionclaw:execution:sha256-12-` whichever writer made
+it, so the `corpus-sync-` prefix in P2 no longer identifies the corpus writer
+on its own. Ownership is now: the legacy `corpus-sync-` prefix (versions already
+in the append-only graph) **or** a `dl:writer "corpus-sync"` quad written with
+each new activity (`src/services/corpus_history.rs`, writer lookup). P2's rule
+("diffed against the corpus writer's own open versions") is unchanged; only the
+test for "own" widened. The `review_trigger` is corrected to match. Tests:
+`legacy_and_canonical_versions_are_owned_together`,
+`a_canonical_activity_from_another_writer_is_not_owned`.
