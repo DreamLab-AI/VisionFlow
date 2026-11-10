@@ -14,13 +14,17 @@ sources:
   - ../knowledgeGraph/archive/logseq-era-2026-09-22/README.md
   - ../knowledgeGraph/archive/logseq-era-2026-09-22/pipeline/manifest.py
   - ../knowledgeGraph/archive/logseq-era-2026-09-22/pipeline/release_gate.py
-  - ../knowledgeGraph/scripts/adr-index-gen.js
+  - ../knowledgeGraph/scripts/adr-ledger.sh
+  - ../knowledgeGraph/explorer/modern/package.json
+  - ../knowledgeGraph/explorer/modern/src/workers/positionTransport.ts
+  - ../knowledgeGraph/.github/workflows/adr-ledger.yml
+  - ../knowledgeGraph/docs/adr/.ledger.json
   - ../knowledgeGraph/docs/adr/PREAMBLE.md
   - ../knowledgeGraph/archive/logseq-era-2026-09-22/pages/ADR-008.md
   - ../knowledgeGraph/archive/logseq-era-2026-09-22/pages/ADR-012.md
   - ../visionGraph/.github/workflows/publish.yml
   - ../visionGraph/quartz/scripts/check-urls.sh
-verified_commit: {knowledgegraph: 4809ea9772e61766058cf20d38e7527082e78fed, visiongraph: d8277151a1404b456b5c7206187f7e4b50f25be1}
+verified_commit: {knowledgegraph: 5294e88b6602a63b5afe96c79f2779d00274a05e, visiongraph: d8277151a1404b456b5c7206187f7e4b50f25be1}
 ---
 
 ## For developers
@@ -36,13 +40,13 @@ Archiving a publisher does not remove the need to preserve identity, visibility 
 ```mermaid
 flowchart TB
     PUB["1: boolean publication flag and protected projection<br/>5: disclose synthetic corpus provenance<br/>8: account for every parsed, rejected or excluded input<br/>9: exclude private identifiers from public outputs<br/>Historical baseline"]
-    %% PUB source: BASELINE-narrativegoldmine.md:184-186,195-197,202-208
+    %% PUB source: BASELINE-narrativegoldmine.md:188-190,195-197,202-208
     SHAPE["2: NGG1 24-byte record and golden fixture<br/>3: bridges.json carries multi-category membership<br/>7: SharedArrayBuffer disabled pending synchronisation<br/>Historical baseline"]
-    %% SHAPE source: BASELINE-narrativegoldmine.md:187-192,200-201
+    %% SHAPE source: BASELINE-narrativegoldmine.md:191-196,200-201
     IDENT["6: independent expected class count<br/>10: count and committed identity set change together<br/>Historical baseline"]
-    %% IDENT source: BASELINE-narrativegoldmine.md:198-199,209-212
+    %% IDENT source: BASELINE-narrativegoldmine.md:202-203,209-212
     PROV["4: verify each generation against its own manifest<br/>11: source revision, generation and artefact SHA-256<br/>Historical baseline"]
-    %% PROV source: BASELINE-narrativegoldmine.md:193-194,213-215
+    %% PROV source: BASELINE-narrativegoldmine.md:197-198,213-215
     SCOPE["INVARIANT: these are scoped historical obligations<br/>The Logseq source and pipeline are archived<br/>logseq-era-2026-09-22/README.md:1-4"]
     PUB --> SHAPE --> IDENT --> PROV --> SCOPE
 ```
@@ -56,7 +60,7 @@ flowchart TB
 ```mermaid
 flowchart TB
     OLD["September acceptance reports census, strict flags,<br/>visibility fixtures and export generation checks<br/>ADR-2002, September acceptance"]
-    %% Source: ADR-2002-corpus-is-the-ontology.md:100-148
+    %% Source: ADR-2002-corpus-is-the-ontology.md:90-138
     SET["Archived gate compares exact class identities<br/>release_gate.py:127-148"]
     HASH["Archived manifest inventories and re-hashes output<br/>manifest.py:87-135,173-197"]
     ARCH["Pipeline retired to historical archive<br/>logseq-era-2026-09-22/README.md:1-4"]
@@ -69,7 +73,7 @@ flowchart TB
 
 **Why it is this way:** The successor has a different assembly path. Retirement neither proves that all previous obligations transferred nor makes their unresolved acceptance conditions moot.
 
-**Open (ADR-2002 reconciliation, 2026-11-02 and 2026-11-03):** the account above was purely historical at the previous stamp (`4ed9ac1`). ADR-2002 now records that a legacy explorer is retained independently of the authored-vault publisher and pinned to the vowl-wasm v0.1.1 release, and asks for an explicit choice between retiring it and a tested consumer upgrade (`../knowledgeGraph/docs/adr/ADR-2002-corpus-is-the-ontology.md:26`, `../knowledgeGraph/docs/adr/ADR-2002-corpus-is-the-ontology.md:28`). Its 2026-11-03 repair entry says the retained copy's DoubleBuffer now counts outstanding transfers, and claims neither a renderer upgrade nor a remote publication (`../knowledgeGraph/docs/adr/ADR-2002-corpus-is-the-ontology.md:22`). ADR-2002 records no retire-or-upgrade decision yet.
+**Open (ADR-2002 reconciliation, 2026-11-02 and 2026-11-03):** at the previous stamp (`4809ea97`) ADR-2002 carried a reconciliation entry and a repair entry about a retained legacy explorer. Neither is on the pushed main at `5294e88b`: ADR-2002 there goes from its heading to its Context with no explorer decision (`../knowledgeGraph/docs/adr/ADR-2002-corpus-is-the-ontology.md:18-20`), and the retained explorer still pins the vowl-wasm v0.1.1 tarball (`../knowledgeGraph/explorer/modern/package.json:20`) with a DoubleBuffer that releases only buffers it owns by object identity (`../knowledgeGraph/explorer/modern/src/workers/positionTransport.ts:81-86`). The choice between retiring that explorer and a tested consumer upgrade is therefore recorded nowhere on the pushed main.
 
 ## KG-07.3 Historical gaps and continuing decision tensions
 
@@ -78,9 +82,9 @@ flowchart TB
     LINEAGE["ADR-NG-001 remains historical-absent<br/>Locator map is evidence, not reconstructed authority<br/>ADR-2001, historical-absent mapping"]
     %% Source: ADR-2001-corpus-consolidation.md:108-128
     COUNTS["Historical baseline: 7,874 prose figures were stale,<br/>three uncategorised classes and 4,383+ undeclared targets<br/>Historical baseline<br/>OPEN: these are not a current active-vault census"]
-    %% COUNTS source: BASELINE-narrativegoldmine.md:143-168
+    %% COUNTS source: BASELINE-narrativegoldmine.md:147-172
     REPRO["UUID/time and blank-node labels prevent blanket byte equality<br/>Historical baseline<br/>manifest.py:149-150<br/>Byte receipts and semantic RDF equivalence are distinct"]
-    %% REPRO source: BASELINE-narrativegoldmine.md:193-194
+    %% REPRO source: BASELINE-narrativegoldmine.md:197-198
     MOVE["TENSION: ADR-2004 forbids relocating corpus pages<br/>ADR-2004, decision<br/>The whole source tree was later archived<br/>logseq-era-2026-09-22/README.md:1-4"]
     %% Source: ADR-2004-corpus-page-identity-immutable.md:34-39
     LINEAGE --> COUNTS --> REPRO --> MOVE
@@ -99,12 +103,14 @@ flowchart TB
     %% knowledgeGraph/archive/logseq-era-2026-09-22/pages/ADR-008.md:3
     %% knowledgeGraph/archive/logseq-era-2026-09-22/pages/ADR-012.md:3
     CONTENT["ADR-008 and ADR-012 are frozen corpus pages<br/>Their labels do not confer decision authority"]
-    %% knowledgeGraph/scripts/adr-index-gen.js:113
-    CHECK["Validator checks required fields and enums<br/>List types and duplicate IDs also reject errors"]
-    %% knowledgeGraph/scripts/adr-index-gen.js:148
-    GRAPH["DEBT: missing or nonreciprocal supersession warns only<br/>A reciprocal supersession cycle passes"]
-    %% knowledgeGraph/scripts/adr-index-gen.js:205
-    LIMIT["--check validates metadata, leaving README untouched<br/>It does not establish body evidence, valid revisions,<br/>index freshness or deployed activation"]
+    %% knowledgeGraph/scripts/adr-ledger.sh:19-22
+    %% knowledgeGraph/scripts/adr-ledger.sh:29-31
+    CHECK["The validator is no longer vendored<br/>adr-ledger.sh fetches agentbox's checker at a pinned commit<br/>and refuses it unless a pinned sha256 matches"]
+    %% knowledgeGraph/docs/adr/.ledger.json:2-3
+    GRAPH["DEBT: RESOLVED at knowledgeGraph 5294e88b — the vendored copy, which warned only on supersession problems, is deleted<br/>the rules now come from the pinned agentbox checker, which this repository does not hold"]
+    %% knowledgeGraph/scripts/adr-ledger.sh:34
+    %% knowledgeGraph/.github/workflows/adr-ledger.yml:5-15,29
+    LIMIT["CI runs check on a push or pull request touching docs/adr: records valid and README in sync<br/>Index freshness is now gated, but body evidence<br/>and deployed activation are still not established"]
     LEDGER --> CHECK --> GRAPH --> LIMIT
     CONTENT --- LEDGER
 ```

@@ -36,7 +36,7 @@ sources:
   - ../project/docs/adr/ADR-2181-overview-edges-are-screen-space-lines-with-no-silent-cap.md
   - ../project/src/actors/gpu/physics_bounds.rs
   - ../project/src/settings/api/settings_routes.rs
-verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8}
+verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
 ---
 
 ## For developers
@@ -365,14 +365,14 @@ flowchart TD
 flowchart TB
     subgraph RUST["Server default, crates/visionclaw-domain"]
         R1["default_bounds_size returns 1600.0<br/>crates/visionclaw-domain/src/types/physics_config.rs:113-115<br/>serde default for a missing key, physics_config.rs:313-314"]
-        R2["PhysicsSettings default bounds_size 1600.0<br/>physics_config.rs:549"]
-        R3["test asserts 1600.0<br/>physics_config.rs:832"]
+        R2["PhysicsSettings default bounds_size 1600.0<br/>physics_config.rs:550"]
+        R3["test asserts 1600.0<br/>physics_config.rs:833"]
         R1 --> R2 --> R3
     end
     subgraph TS["Client copies"]
         C1["client defaults boundsSize 1600.0<br/>client/src/api/settings/defaults.ts:57"]
-        C2["Motion slider, min 100, max 4000, description names default 1600<br/>client/src/features/control-center/registry/groups/motion.ts:41"]
-        C3["settings manifest, max 4000<br/>client/src/features/control-center/registry/settings-manifest.json:2144, :2156"]
+        C2["Motion slider, min 100, max 2000, description names default 1600<br/>client/src/features/control-center/registry/groups/motion.ts:42"]
+        C3["settings manifest, max 2000<br/>client/src/features/control-center/registry/settings-manifest.json:2128, :2140"]
         C2 --> C3
     end
     RUST --> VB["viewport_bounds = bounds_size, the soft-cube half-extent the integrator clamps to, see VC-11.10<br/>../project/crates/visionclaw-domain/src/models/simulation_params.rs:517"]
@@ -380,14 +380,14 @@ flowchart TB
     VB --> SLAB["RESOLVED 2026-11-06 b11d8cba1: at 400 a 10k-node graph was crushed into the cube,<br/>p5 and p95 on y pinned at plus or minus 400, and read as an overview edge slab<br/>docs/adr/ADR-2181-overview-edges-are-screen-space-lines-with-no-silent-cap.md:65"]
     SLAB --> INV["INVARIANT a slab at overview zoom means a boundary-pinned layout, check the position quantiles before touching edge alpha<br/>ADR-2181-overview-edges-are-screen-space-lines-with-no-silent-cap.md:65"]
     C2 --> VAL["server range check bounds_size 100 to 2000 in apply_physics_patch<br/>src/settings/api/settings_routes.rs:617, :262-268, :664-669<br/>src/actors/gpu/physics_bounds.rs:73-74"]
-    VAL --> T1["TENSION the slider offers 2050 to 4000, which the server refuses with Validation failed"]
-    R2 --> D1["DRIFT the comment beside the new default still says the graph sits well inside the 400u cube<br/>physics_config.rs:544-548, and BOUNDS_SIZE says canonical default 400.0, physics_bounds.rs:73"]
+    VAL --> T1["TENSION RESOLVED at visionclaw 46edc196 — the slider and manifest maximum is now 2000, equal to the server ceiling, motion.ts:42, physics_bounds.rs:74"]
+    R2 --> D1["DRIFT RESOLVED at visionclaw 46edc196 for the comment beside the default, which now says it was measured under the earlier 400u bounds and the cube is 1600u, physics_config.rs:547-549<br/>BOUNDS_SIZE still says canonical default 400.0, physics_bounds.rs:73"]
 ```
 
 **What it shows:** the 2026-11-06 change of the soft-cube default from 400 to 1600, made in the Rust default, the client defaults and the Motion slider, and where the server's range check disagrees with the slider.
 
-**Debt (parallel):** the default lives in the Rust crate and twice in the client (`crates/visionclaw-domain/src/types/physics_config.rs:113-115`, `client/src/api/settings/defaults.ts:57`, `client/src/features/control-center/registry/groups/motion.ts:41`), and only the Rust copy is pinned by a test (`crates/visionclaw-domain/src/types/physics_config.rs:832`).
+**Debt (parallel):** the default lives in the Rust crate and twice in the client (`crates/visionclaw-domain/src/types/physics_config.rs:113-115`, `client/src/api/settings/defaults.ts:57`, `client/src/features/control-center/registry/groups/motion.ts:42`), and only the Rust copy is pinned by a test (`crates/visionclaw-domain/src/types/physics_config.rs:833`).
 
 **Open (risk):** the new default only fills a missing key (`crates/visionclaw-domain/src/types/physics_config.rs:313`), so a store whose `physics` row already holds 400 presumably keeps the crushed layout; not checked against the live store.
 
-**Tension (risk):** the slider's maximum of 4000 (`client/src/features/control-center/registry/groups/motion.ts:41`) exceeds the server's `BOUNDS_SIZE` ceiling of 2000 (`src/actors/gpu/physics_bounds.rs:74`), which `validate_physics_settings` enforces on the physics patch path (`src/settings/api/settings_routes.rs:262-268`, `:664-669`), so the top half of the slider is refused there.
+**Tension (risk):** RESOLVED at visionclaw 46edc196 — the slider's maximum is now 2000 (`client/src/features/control-center/registry/groups/motion.ts:42`), equal to the server's `BOUNDS_SIZE` ceiling of 2000 (`src/actors/gpu/physics_bounds.rs:74`), which `validate_physics_settings` enforces on the physics patch path (`src/settings/api/settings_routes.rs:262-268`, `:664-669`), so no slider position is refused there.

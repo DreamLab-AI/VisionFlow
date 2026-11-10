@@ -24,7 +24,7 @@ sources:
   - ../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/positionTransport.ts
   - ../visionGraph/.github/workflows/publish.yml
   - ../knowledgeGraph/archive/github-workflows/build.yml
-verified_commit: {knowledgegraph: 5294e88b6602a63b5afe96c79f2779d00274a05e, visiongraph: 556a0156b5c326fb61141ed2ab1760dd8d9c4dd6}
+verified_commit: {knowledgegraph: 5294e88b6602a63b5afe96c79f2779d00274a05e, visiongraph: d8277151a1404b456b5c7206187f7e4b50f25be1}
 ---
 
 **Repair note — 2026-11-03:** selected counterexamples below have a [scoped successor verification](08-transfer-pool-repair.md). This historical topic retains its declared source revision; the successor states the repaired contracts and acceptance boundaries.
@@ -136,14 +136,14 @@ sequenceDiagram
 flowchart TB
     KG["Retained knowledgeGraph viewer<br/>vowl-wasm v0.1.1<br/>explorer/modern/package.json:20<br/>Six domains: explorer/modern/src/types/scope.ts:73-80"]
     ARCH["Historical workflow is under archive<br/>archive/github-workflows/build.yml:1"]
-    VG["visionGraph publication copy<br/>vowl-wasm v0.2.2 and ontomark-graph v0.2.0<br/>WasmVOWL/modern/package.json:24-25<br/>Nine domains: WasmVOWL/modern/src/types/scope.ts:76-86"]
-    BUILD["Configured workflow builds visionGraph copy<br/>publish.yml:421-440"]
-    SITE["Configured destination: knowledgeGraph gh-pages<br/>narrativegoldmine.com<br/>publish.yml:528-533"]
+    VG["visionGraph publication copy<br/>vowl-wasm v0.2.3 and ontomark-graph v0.2.0<br/>WasmVOWL/modern/package.json:24-25<br/>Nine domains: WasmVOWL/modern/src/types/scope.ts:76-86"]
+    BUILD["Configured workflow builds visionGraph copy<br/>publish.yml:430-449"]
+    SITE["Configured destination: knowledgeGraph gh-pages<br/>narrativegoldmine.com<br/>publish.yml:537-542"]
     POOL["Different pool reclaims transferred objects<br/>WasmVOWL/modern/src/workers/positionTransport.ts:49-94"]
     KG -.-> ARCH
     VG --> BUILD --> SITE
     VG --> POOL
-    NOTE["INVARIANT: implementation findings belong to a source revision<br/>OPEN: workflow configuration does not prove a live deployment<br/>publish.yml:528-533"]
+    NOTE["INVARIANT: implementation findings belong to a source revision<br/>OPEN: workflow configuration does not prove a live deployment<br/>publish.yml:537-542"]
     SITE -.-> NOTE
 ```
 

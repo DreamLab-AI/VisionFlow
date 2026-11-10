@@ -2,7 +2,7 @@
 id: VC-57
 title: Control centre information architecture, scope badges, dock and right-hand drawer
 area: visionclaw
-verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8}
+verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
 governing:
   - ../project/docs/BASELINE-architecture.md
   - ../project/docs/XR-client.md
@@ -134,9 +134,9 @@ flowchart TB
     EM --> IAW["the same buildIa text written twice<br/>emit-settings-manifest.ts:26-27"]
     IAW --> C1["registry/ia.json, desktop copy<br/>registry/ia.json:1844"]
     IAW --> C2["data/ia.json, headset copy<br/>data/ia.json:1844"]
-    B5["test b5, both copies deep-equal a fresh buildIa<br/>registry.test.ts:329-337"] -.->|pins| C1
+    B5["test b5, both copies deep-equal a fresh buildIa<br/>registry.test.ts:330-338"] -.->|pins| C1
     B5 -.->|pins| C2
-    TE["test e, counts and per-section field counts only<br/>registry.test.ts:525, registry.test.ts:530-533"] -.->|"OPEN: labels, paths and test ids are not compared (registry.test.ts:530)"| MAN
+    TE["test e, counts and per-section field counts only<br/>registry.test.ts:526, registry.test.ts:531-534"] -.->|"OPEN: labels, paths and test ids are not compared (registry.test.ts:531)"| MAN
     C2 --> LD["HudIa.load_doc, falls back to a built-in seven<br/>hud_ia.gd:88"]
     LD --> HUD["HUD tab bar built from it<br/>hud.gd:506, hud.gd:510"]
     FB["FALLBACK_SECTIONS and FALLBACK_SCOPES, hand-kept<br/>hud_ia.gd:26, hud_ia.gd:35"] -.-> LD
@@ -148,13 +148,13 @@ flowchart TB
 
 **Debt (parallel):** the IA exists as two committed copies, `registry/ia.json` and `xr-client/data/ia.json`, written by one emitter (`emit-settings-manifest.ts:19-22`); they are generated, never hand-edited.
 
-**Invariant:** both copies deep-equal a fresh `buildIa()` or the Vitest suite fails (`registry.test.ts:329-337`).
+**Invariant:** both copies deep-equal a fresh `buildIa()` or the Vitest suite fails (`registry.test.ts:330-338`).
 
 **Debt (parallel):** the headset keeps a hand copy of the seven sections and the scope texts (`hud_ia.gd:26`, `:35`) beside `SCOPE_TEXT` (`manifest.ts:223`); only the GUT test ties them (`test_hud_ia.gd:38-47`).
 
 **Tension (parallel):** the XR "Semantic forces" subsection passes the parity test only by being listed as XR-only (`hud_ia.gd:79`), though the desktop has eight "Semantic forces › …" subsections (`placement.ts:62-68`).
 
-**Tension (ADR-2189 vs XR-client.md):** ADR-2189 still says the XR HUD reading `ia.json` and its GUT parity test are not built (`ADR-2189-desktop-and-xr-menus-share-one-seven-section-information-architecture.md:23`, `:314`); `XR-client.md:1061` records the XR side as built, and `hud.gd:510` loads it.
+**Tension (ADR-2189 vs XR-client.md):** RESOLVED at visionclaw 46edc196 — ADR-2189 now says the XR HUD is built and reads `xr-client/data/ia.json`, and strikes the not-built item (`ADR-2189-desktop-and-xr-menus-share-one-seven-section-information-architecture.md:23`, `:314`), in line with `XR-client.md:1062`, which records the XR side as built, and `hud.gd:510`, which loads it.
 
 ## VC-57.4 Scope badges from the server bucket
 ```mermaid
@@ -178,7 +178,7 @@ flowchart TB
     TXT["SCOPE_TEXT, every server bucket reaches every viewer<br/>manifest.ts:223-227"] --> BADGE
     SF --> MAC["dial scope is the strongest of the paths it writes<br/>macros.ts:112-114"]
     MAC --> DIALS["layout dials vs view dials<br/>MacroBar.tsx:77-78"]
-    INV["INVARIANT: only physics paths are shared, dial scope equals strongest<br/>registry.test.ts:306, registry.test.ts:317"] -.-> SF
+    INV["INVARIANT: only physics paths are shared, dial scope equals strongest<br/>registry.test.ts:307, registry.test.ts:318"] -.-> SF
     R1["write routing, batched, dotted prefixes<br/>endpoints.ts:362-376"] -.->|"mirrored by hand (manifest.ts:111-114)"| SBF
     R2["write routing, single path, undotted prefixes<br/>endpoints.ts:303-313"] -.-> SBF
     R3["isVisualSettingsPath and isServerRenderingPath<br/>schemaMappings.ts:177-181, schemaMappings.ts:158-161"] -.-> R1
@@ -226,11 +226,11 @@ flowchart LR
     MB --> LEG["Legend toggle<br/>MacroBar.tsx:241"]
     MB --> EXP["Explore panel button, filter badge<br/>MacroBar.tsx:259, MacroBar.tsx:264"]
     MB --> SEC["seven section buttons<br/>MacroBar.tsx:322"]
-    LD -.-> IDS["DEBT: ids keep the old names density, luminosity, focus; tests pin them<br/>macros.ts:36, registry.test.ts:325-326"]
+    LD -.-> IDS["DEBT: ids keep the old names density, luminosity, focus; tests pin them<br/>macros.ts:36, registry.test.ts:326-327"]
     SEC -.-> ONE["OPEN: only the dials fold; the view and section buttons never do<br/>MacroBar.tsx:303"]
 ```
 
-**Debt (loose end):** the Atmosphere dial still drives `sceneEffects.fogOpacity` (`macros.ts:101`) and the Fog opacity row still offers it (`atmosphere.ts:26`), but nothing in the client draws fog from it since the GLSL fog plane was deleted; the only other mentions are its default and type (`defaults.ts:140`, `settings.ts:507`).
+**Debt (loose end):** the Atmosphere dial still drives `sceneEffects.fogOpacity` (`macros.ts:101`) and the Fog opacity row still offers it (`atmosphere.ts:26`), but nothing in the client draws fog from it since the GLSL fog plane was deleted; the only other mentions are its default and type (`defaults.ts:140`, `settings.ts:506`).
 
 **What it shows.** What the dock renders and the single point where it folds. **Why it is this way.** ADR-2189 §3 orders the dock as shared dials, view dials, physics and reset, then Fit, Legend, Explore and the sections; the audit found the old dock 74 px off-screen at 1024 px (`useDockCompact.ts:9-10`).
 
@@ -338,11 +338,11 @@ flowchart LR
 flowchart TB
     subgraph client["client: retiredPaths.ts"]
         DP["DEAD_PATHS, 41: 37 from ADR-2189, 4 from the settings audit<br/>retiredPaths.ts:20-21, retiredPaths.ts:25-28"]
-        RP["REPLACED_PATHS, 9: 4 plus the five bloom paths glow replaces<br/>retiredPaths.ts:74, retiredPaths.ts:83-87"]
-        MP["MERGED_PATHS, 3<br/>retiredPaths.ts:100-104"]
-        RN["RENAMED_PATHS, edge colour moves to agent mode<br/>retiredPaths.ts:111-113"]
-        ALL["ADR_2189_REMOVED_PATHS<br/>retiredPaths.ts:116"]
-        STRIP["stripRemovedPaths, renames first then delete and prune<br/>retiredPaths.ts:127-160"]
+        RP["REPLACED_PATHS, 9: 4 plus the five bloom paths glow replaces<br/>retiredPaths.ts:74, retiredPaths.ts:86-90"]
+        MP["MERGED_PATHS, 3<br/>retiredPaths.ts:103-107"]
+        RN["RENAMED_PATHS, edge colour moves to agent mode<br/>retiredPaths.ts:114-116"]
+        ALL["ADR_2189_REMOVED_PATHS<br/>retiredPaths.ts:119"]
+        STRIP["stripRemovedPaths, renames first then delete and prune<br/>retiredPaths.ts:130-163"]
     end
     DP --> ALL
     RP --> ALL
@@ -361,11 +361,11 @@ flowchart TB
     QG -->|"served, then stripped (endpoints.ts:247)"| S2
 ```
 
-**What it shows.** How the 53 removed paths leave old data on both load paths, and the separate server-side retirements. **Why it is this way.** ADR-2189 §6 deletes paths nothing reads but promises that blobs written by older clients still load, so stripping is tolerant and happens at every boundary (`retiredPaths.ts:122-126`).
+**What it shows.** How the 53 removed paths leave old data on both load paths, and the separate server-side retirements. **Why it is this way.** ADR-2189 §6 deletes paths nothing reads but promises that blobs written by older clients still load, so stripping is tolerant and happens at every boundary (`retiredPaths.ts:125-129`).
 
-**Tension (parallel):** the client retires `qualityGates.showClusters` and `showCommunities` (`retiredPaths.ts:102-103`), but the server still models them as live quality-gate fields with no reader (`models.rs:64`, `:70`), so every load serves them and the client strips them again (`endpoints.ts:247`); the same holds for `qualityGates.ruvectorEnabled`, retired by the settings audit (`retiredPaths.ts:26`) but still a server field (`models.rs:73`).
+**Tension (parallel):** the client retires `qualityGates.showClusters` and `showCommunities` (`retiredPaths.ts:105-106`), but the server still models them as live quality-gate fields with no reader (`models.rs:64`, `:70`), so every load serves them and the client strips them again (`endpoints.ts:247`); the same holds for `qualityGates.ruvectorEnabled`, retired by the settings audit (`retiredPaths.ts:26`) but still a server field (`models.rs:73`).
 
-**Debt (parallel):** retirement is three lists with no shared source: the client's `ADR_2189_REMOVED_PATHS` (`retiredPaths.ts:116`), the server's `RETIRED_SETTING_KEYS` (`path_access.rs:306`) and the domain node-blob filter (`visualisation.rs:548`).
+**Debt (parallel):** retirement is three lists with no shared source: the client's `ADR_2189_REMOVED_PATHS` (`retiredPaths.ts:119`), the server's `RETIRED_SETTING_KEYS` (`path_access.rs:306`) and the domain node-blob filter (`visualisation.rs:548`).
 
 ## VC-57.12 What the settings-integrity pass changed in the menus
 ```mermaid
@@ -382,11 +382,11 @@ flowchart TB
     end
     subgraph gone["Retired and redirected"]
         RT["node opacity, ruvectorEnabled, auth.enabled, auth.required<br/>retiredPaths.ts:25-28"]
-        BL["bloom.* replaced by glow.*<br/>retiredPaths.ts:83-87"]
+        BL["bloom.* replaced by glow.*<br/>retiredPaths.ts:86-90"]
         ASKN["Ask box answers that node opacity is not a setting<br/>CommandInput.tsx:306-312"]
         ASKG["Ask box glow or bloom writes glow.enabled only<br/>CommandInput.tsx:345, CommandInput.tsx:350"]
     end
-    HF["Hide filtered nodes toggle in Explore › Filters<br/>graphView.ts:57, placement.ts:191"]
+    HF["Hide filtered nodes toggle in Explore › Filters<br/>graphView.ts:60, placement.ts:191"]
     LE --> LP --> OE
     LP --> ENC
     ENC --> DL --> AC

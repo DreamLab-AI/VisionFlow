@@ -41,7 +41,7 @@ sources:
   - ../project/src/app_state.rs
   - ../project/src/services/ontology_mutation_service.rs
   - ../project/src/services/voice_intent_client.rs
-verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
+verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
 ---
 
 ## For developers
@@ -390,24 +390,24 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant BOOT as AppState::new<br/>app_state.rs:1269-1296
+    participant BOOT as AppState::new<br/>app_state.rs:1292-1319
     participant ENV as env FORUM_RELAY_URL + panel key:<br/>KEY_FILE vars or privkey vars (acsp/key_file.rs:13-15)
     participant ACSP as AcspClient::connect<br/>acsp/client.rs:78
     participant RELAY as forum relay (nostr_sdk Client, auto-reconnect)
-    BOOT->>ENV: read FORUM_RELAY_URL :1270, then panel secret via<br/>key_file::load_panel_secret (file first, env fallback)<br/>app_state.rs:1270-1277 acsp/key_file.rs:310
+    BOOT->>ENV: read FORUM_RELAY_URL :1293, then panel secret via<br/>key_file::load_panel_secret (file first, env fallback)<br/>app_state.rs:1293-1300 acsp/key_file.rs:310
     alt relay and secret both Some
         BOOT->>ACSP: connect(secret, relay)
         ACSP->>RELAY: add_relay + connect (nostr_sdk relay pool)<br/>acsp/client.rs:83-89
         alt connect Ok
             RELAY-->>ACSP: relay added, nostr-sdk connects in the background and keeps retrying (acsp/client.rs:87-89)
             ACSP-->>BOOT: Arc AcspClient
-            BOOT->>BOOT: acsp_client = Some(client)<br/>app_state.rs:1282 log relay set - REST/bridge decisions project as kind-31403
+            BOOT->>BOOT: acsp_client = Some(client)<br/>app_state.rs:1305 log relay set - REST/bridge decisions project as kind-31403
         else connect Err
             ACSP-->>BOOT: Err(e)
-            BOOT->>BOOT: acsp_client = None, warn FAILED to connect - degraded, visible<br/>app_state.rs:1286
+            BOOT->>BOOT: acsp_client = None, warn FAILED to connect - degraded, visible<br/>app_state.rs:1309
         end
     else unconfigured or key unusable
-        BOOT->>BOOT: acsp_client = None, info OFF (key_file load error logs error!) -<br/>decisions record forum_projection=skipped<br/>app_state.rs:1292
+        BOOT->>BOOT: acsp_client = None, info OFF (key_file load error logs error!) -<br/>decisions record forum_projection=skipped<br/>app_state.rs:1315
     end
     Note over BOOT,RELAY: DEBT: connect Ok does not prove the relay is reachable - an unreachable relay surfaces later as a publish error,<br/>i.e. forum_projection=failed at decide time, not as the FAILED-to-connect branch above. acsp/client.rs:87-89, handlers/enrichment_proposals_handler.rs:654
     Note over BOOT,RELAY: this is the SAME AcspClient type ElevationActor and<br/>DecisionElevationActor each construct independently at their own<br/>startup (elevation_actor.rs:1056, decision_elevation_actor.rs:510) -<br/>three separate relay connections under three panel ids can exist<br/>concurrently, all signing with the same panel secret from<br/>key_file::load_panel_secret (elevation_actor.rs:199, decision_elevation_actor.rs:183)
@@ -437,23 +437,23 @@ flowchart TB
 sequenceDiagram
     autonumber
     participant BR as agentbox broker-bridge
-    participant H as inbox<br/>handlers/broker_inbox_handler.rs:220
+    participant H as inbox<br/>handlers/broker_inbox_handler.rs:228
     participant ST as store::all projection over SqliteEnrichmentRepository<br/>handlers/enrichment_proposals_handler.rs:742
-    participant TR as assemble_inbox<br/>handlers/broker_inbox_handler.rs:193
-    participant JV as visionclaw_jev proposal_triage<br/>broker_inbox_handler.rs:42
+    participant TR as assemble_inbox<br/>handlers/broker_inbox_handler.rs:197
+    participant JV as visionclaw_jev proposal_triage<br/>broker_inbox_handler.rs:44
 
-    BR->>H: GET /api/broker/inbox - scope wrapped in RequireAuth::power_user, service credential accepted<br/>broker_inbox_handler.rs:248-252
-    H->>ST: store::all - up to 500 proposals via repo.list, the bridge filters category and status itself<br/>broker_inbox_handler.rs:221 handlers/enrichment_proposals_handler.rs:742-753
-    H->>TR: assemble_inbox(proposals, jev_triage())<br/>broker_inbox_handler.rs:222
+    BR->>H: GET /api/broker/inbox - scope wrapped in RequireAuth::power_user, service credential accepted<br/>broker_inbox_handler.rs:259-263
+    H->>ST: store::all - up to 500 proposals via repo.list, the bridge filters category and status itself<br/>broker_inbox_handler.rs:229 handlers/enrichment_proposals_handler.rs:742-753
+    H->>TR: assemble_inbox(proposals, jev_triage())<br/>broker_inbox_handler.rs:230
     alt Jev unconfigured, item off or no endpoint - library default off, Compose sets VISIONCLAW_JEV=1 at docker-compose.unified.yml:21 (jev_triage resolves to None once via OnceLock)
-        TR-->>H: plain projection, same cases, same order, no jev key<br/>broker_inbox_handler.rs:156-168, :195-198
+        TR-->>H: plain projection, same cases, same order, no jev key<br/>broker_inbox_handler.rs:151-172, :202-205
     else triage state present
-        TR->>JV: triage_queue over facts for pending or claimed cases only<br/>broker_inbox_handler.rs:172-173, :199-200
+        TR->>JV: triage_queue over facts for pending or claimed cases only<br/>broker_inbox_handler.rs:174-177, :206-208
         JV-->>TR: ordered proposals plus per-case annotation, a fallback leaves the case unannotated
-        TR-->>H: cases ordered by triage priority within the slots annotated cases already occupy<br/>broker_inbox_handler.rs:189-192, :201-210
+        TR-->>H: cases ordered by triage priority within the slots annotated cases already occupy<br/>broker_inbox_handler.rs:193-196, :209-217
     end
-    H-->>BR: 200 {cases, total} - total is the unfiltered proposal count<br/>broker_inbox_handler.rs:210, :224
+    H-->>BR: 200 {cases, total} - total is the unfiltered proposal count<br/>broker_inbox_handler.rs:218, :235
     Note over JV,H: INVARIANT: Jev annotates and orders only - it never approves, rejects or promotes, and the decide route (VC-24.3), signed decisions and receipts are untouched.<br/>crates/visionclaw-jev/src/proposal_triage.rs:8-10
-    Note over TR,JV: RESOLVED 2026-10-30 (routing, configured): the laya declaration is gone. PROPOSAL_TRIAGE is still local-only in code (Item::local_only<br/>crates/visionclaw-jev/src/config.rs:155-160, refusal :326-328), but ALLOW_CLOUD=1 (docker-compose.unified.yml:22, config.rs:303-305) and the shared block's<br/>agentbox:8094 with BACKEND_LOCAL=0 (docker-compose.unified.yml:7-11) send the private proposal text via the proxy to the selected backend, typesafe (agentbox.toml:897),<br/>by operator decision (docs/adr/ADR-2148-enable-local-typed-decisions.md:65-66, docs/reference/configuration.md:417-427, :468).<br/>RESOLVED 2026-10-30 (activation): VisionClaw ADR-2148 is accepted / complete / live (docs/adr/ADR-2148-enable-local-typed-decisions.md:5-7), the agentbox rebuild and the host recreate both happened (docs/adr/ADR-2148-enable-local-typed-decisions.md:81-91) - docs/BASELINE-architecture.md:52-54 agrees, live since the host recreate,<br/>ALLOW_CLOUD=0 with JEV_LOCAL=1 and a local endpoint keeps it on a LAN model
-    Note over H,ST: DEBT: total is proposals.len() after store::all, which is capped at ALL_LIMIT 500 rows newest-updated first, so total is not the table size once more than 500 proposals exist<br/>handlers/enrichment_proposals_handler.rs:738-745, handlers/broker_inbox_handler.rs:194
+    Note over TR,JV: RESOLVED 2026-10-30 (routing, configured): the laya declaration is gone. PROPOSAL_TRIAGE is still local-only in code (Item::local_only<br/>crates/visionclaw-jev/src/config.rs:155-160, refusal :340-342), but ALLOW_CLOUD=1 (docker-compose.unified.yml:22, config.rs:316-318) and the shared block's<br/>agentbox:8094 with BACKEND_LOCAL=0 (docker-compose.unified.yml:7-11) send the private proposal text via the proxy to the selected backend, typesafe (agentbox.toml:897),<br/>by operator decision (docs/adr/ADR-2148-enable-local-typed-decisions.md:65-66, docs/reference/configuration.md:417-427, :468).<br/>RESOLVED 2026-10-30 (activation): VisionClaw ADR-2148 is accepted / complete / live (docs/adr/ADR-2148-enable-local-typed-decisions.md:5-7), the agentbox rebuild and the host recreate both happened (docs/adr/ADR-2148-enable-local-typed-decisions.md:81-91) - docs/BASELINE-architecture.md:53-55 agrees, live since the host recreate,<br/>ALLOW_CLOUD=0 with JEV_LOCAL=1 and a local endpoint keeps it on a LAN model
+    Note over H,ST: DEBT: total is proposals.len() after store::all, which is capped at ALL_LIMIT 500 rows newest-updated first, so total is not the table size once more than 500 proposals exist<br/>handlers/enrichment_proposals_handler.rs:738-745, handlers/broker_inbox_handler.rs:201
 ```

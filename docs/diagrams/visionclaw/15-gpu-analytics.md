@@ -44,7 +44,7 @@ sources:
   - ../project/src/handlers/api_handler/analytics/visible_analytics.rs
   - ../project/src/handlers/api_handler/analytics/visible_results.rs
   - ../project/src/handlers/graph_access.rs
-verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8}
+verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
 ---
 
 ## For developers
@@ -306,15 +306,15 @@ sequenceDiagram
         CP->>CP: visible_pagerank over the view, keyed by visible node id, top 10 (pagerank_handlers.rs:144-157, visible_analytics.rs:408-415)
         CP-->>C: 200 PageRankPayload Visible, the shared actor and its cache are never touched
     else Ok(None), full access
-        CP->>GM: ComputePageRank via whole_graph_pagerank (pagerank_handlers.rs:176, :263-268)
+        CP->>GM: ComputePageRank via whole_graph_pagerank (pagerank_handlers.rs:176, :278-283)
         alt gpu_manager_addr is None
-            CP-->>C: 500 GPU analytics not available (pagerank_handlers.rs:260-262)
+            CP-->>C: 500 GPU analytics not available (pagerank_handlers.rs:275-277)
         else
             GM->>AS: forward (gpu_manager_actor.rs:819)
             AS->>PRA: forward to the PageRankActor it spawned (analytics_supervisor.rs:132-134)
             PRA->>PRA: run_pagerank_centrality :419, record_execution(Pagerank, Gpu) :427
             PRA->>PRA: last_result = Some(result) :487, publish_centrality single writer :491
-            PRA-->>CP: Ok(PageRankResult), 200 PageRankPayload Whole (pagerank_handlers.rs:270-279)
+            PRA-->>CP: Ok(PageRankResult), 200 PageRankPayload Whole (pagerank_handlers.rs:285-294)
         end
     end
     C->>GP: GET /analytics/pagerank/result (analytics/mod.rs:299)
@@ -322,13 +322,13 @@ sequenceDiagram
     alt Ok(Some), the view hides nodes
         GP-->>C: 200 cached=false, the same reply as an empty cache (pagerank_handlers.rs:207-214)
     else Ok(None)
-        GP->>GM: GetPageRankResult (pagerank_handlers.rs:305, gpu_manager_actor.rs:843)
+        GP->>GM: GetPageRankResult (pagerank_handlers.rs:320, gpu_manager_actor.rs:843)
         GM->>AS: forward, None when PageRankActor is not running (analytics_supervisor.rs:601-610)
         AS->>PRA: GetPageRankResult, get_cached_result pagerank_actor.rs:345
         PRA-->>C: 200 cached and the whole-graph result
     end
     C->>CL: POST /analytics/pagerank/clear (analytics/mod.rs:242)
-    CL->>GM: ClearPageRankCache, no caller gate (pagerank_handlers.rs:240-246)
+    CL->>GM: ClearPageRankCache, only for a power user, anyone else gets the reply of a missing route (pagerank_handlers.rs:240-256)
     GM->>AS: forward (gpu_manager_actor.rs:858, analytics_supervisor.rs:614)
     AS->>PRA: clear_cache sets last_result None (pagerank_actor.rs:350-351)
     Note over CP,PRA: INVARIANT the shared PageRank cache only ever holds and serves a whole-graph run, a gated caller is answered over the view and told nothing is cached<br/>pagerank_handlers.rs:136-137, :197-199
@@ -338,7 +338,7 @@ sequenceDiagram
 
 **Why it is this way:** commit 405edcfe1 added the `GetPageRankResult` and `ClearPageRankCache` forwards and `gpu_routes.rs`, so the full-access path stops failing (ADR-2184).
 
-**Open (risk):** `POST /analytics/pagerank/clear` carries no caller gate (`src/handlers/api_handler/analytics/pagerank_handlers.rs:240-246`), so any authenticated user, a gated one included, can evict the whole-graph cache that full-access callers read; is that intended?
+**Open (risk):** RESOLVED at visionclaw 46edc196 — `POST /analytics/pagerank/clear` now refuses everyone but a power user, with the reply of a missing route (`src/handlers/api_handler/analytics/pagerank_handlers.rs:240-249`, `:260-262`), so only an operator can evict the whole-graph cache that full-access callers read.
 
 ## VC-15.6 POST /analytics/pathfinding/sssp and /pathfinding/apsp — supervised ShortestPathActor, gated callers over the view
 
@@ -544,7 +544,7 @@ sequenceDiagram
     participant GSA as GraphServiceSupervisor (web::Data Addr)<br/>graph_service_supervisor.rs:1490
     participant SVC as SemanticPathfindingService<br/>semantic_pathfinding_service.rs:86
 
-    Note over CFG: mounted at web-scope pathfinding by main.rs:1209, distinct from the analytics-scope path family in VC-15.6 to VC-15.9
+    Note over CFG: mounted at web-scope pathfinding by main.rs:1210, distinct from the analytics-scope path family in VC-15.6 to VC-15.9
     Note over CFG: the scope is wrapped in one process-wide rate limiter, 30 requests per minute keyed on the verified pubkey<br/>with an IP fallback for unauthenticated reads (semantic_pathfinding_handler.rs:127-145, :154, PATHFINDING_REQUESTS_PER_MINUTE :125)
     Note over QT,CT: traversal_budget defaults max_nodes to 50 and caps it at MAX_TRAVERSAL_NODES = 1000 (semantic_pathfinding_handler.rs:123, :147-148)
 

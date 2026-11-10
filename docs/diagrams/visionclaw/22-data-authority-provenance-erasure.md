@@ -48,7 +48,7 @@ sources:
   - ../project/src/app_state.rs
   - ../project/src/actors/graph_state_actor.rs
   - ../project/src/services/ontology_mutation_service.rs
-verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
+verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
 ---
 
 ## For developers
@@ -63,15 +63,15 @@ Every piece of data has one authoritative home, so a correction or a deletion ha
 
 ```mermaid
 flowchart LR
-    AuthContent["Authored content<br/>public: true / owl-class markdown"] --> CorpusSrc["CorpusSource port (ADR-2114)<br/>local vault default (VAULT_ROOT set), GitHub opt-in<br/>corpus_source/mod.rs:203 corpus_source_kind<br/>github_sync_service.rs:1659 ingest"]
-    CorpusSrc -->|"github_sync_service.rs:991, :1048 rebuild_assert_graph CLEAR+INSERT"| AssertGraph["GRAPH_ONTOLOGY :assert<br/>oxigraph_ontology_repository.rs:48"]
+    AuthContent["Authored content<br/>public: true / owl-class markdown"] --> CorpusSrc["CorpusSource port (ADR-2114)<br/>local vault default (VAULT_ROOT set), GitHub opt-in<br/>corpus_source/mod.rs:203 corpus_source_kind<br/>github_sync_service.rs:1722 ingest"]
+    CorpusSrc -->|"github_sync_service.rs:1002, :1059 rebuild_assert_graph CLEAR+INSERT"| AssertGraph["GRAPH_ONTOLOGY :assert<br/>oxigraph_ontology_repository.rs:48"]
     CorpusSrc -->|"oxigraph_graph_repository.rs:1212 clear_graph drops knowledge and agent graphs"| KnowledgeGraph["GRAPH_KNOWLEDGE<br/>oxigraph_ontology_repository.rs:50"]
 
     VisIntent["Visibility intent<br/>visibility + owner_pubkey"] --> SettingsDB["settings.sqlite3 settings table<br/>sqlite_settings_repository.rs:61-68"]
     SettingsDB -->|"projected by"| VisFilter["is_dropped_for, private nodes fail closed<br/>visibility_filter.rs:127<br/>filter_enabled visibility_filter.rs:46, PUBKEY_VISIBILITY_FILTER default ON (:34)<br/>position stream position_updates.rs:10"]
     GraphActor["GraphStateActor snapshot<br/>private_nodes from node metadata public and owner_pubkey<br/>graph_state_actor.rs:173-179"] -->|"feeds"| VisFilter
 
-    AssertGraph -.->|"reasoner run: store_inference_results DELETE+INSERT oxigraph_ontology_repository.rs:2663, :2757-2762"| InferredGraph["GRAPH_ONTOLOGY_INFERRED<br/>oxigraph_ontology_repository.rs:49 derived, never primary"]
+    AssertGraph -.->|"reasoner run: store_inference_results DELETE+INSERT oxigraph_ontology_repository.rs:2669, :2763-2768"| InferredGraph["GRAPH_ONTOLOGY_INFERRED<br/>oxigraph_ontology_repository.rs:49 derived, never primary"]
 
     OpState["Operational state"] --> SqliteFour["4x SQLite WAL: settings/enrichment/kpi/liveness<br/>src/adapters/sqlite_*_repository.rs"]
 
@@ -96,13 +96,13 @@ flowchart LR
     AssertGraph -.-> DivLegacy
     RuVector -.-> DivLegacy
 
-    DivCreds["PROPOSED ADR-2104: execute the SOPS rollout or formally withdraw ADR-109 - plaintext .env is documented as the interim state either way<br/>a 43MB scripts/sops binary dated 2026-05-09 is present and gitignored, but no .sops.yaml, secrets.enc.yaml or sops-env.sh exists<br/>docs/DATA-authority-erasure.md:129"]
+    DivCreds["PROPOSED ADR-2104: execute the SOPS rollout or formally withdraw ADR-109 - plaintext .env is documented as the interim state either way<br/>a 43MB scripts/sops binary dated 2026-05-09 is present and gitignored, but no .sops.yaml, secrets.enc.yaml or sops-env.sh exists<br/>docs/DATA-authority-erasure.md:134"]
     DotEnv -.-> DivCreds
 
-    DebtClear["DEBT: clear_inferred_graph oxigraph_ontology_repository.rs:697 has no production caller, only its test :3602"]
+    DebtClear["DEBT: clear_inferred_graph oxigraph_ontology_repository.rs:697 has no production caller, only its test :3608"]
     InferredGraph -.-> DebtClear
 
-    DivWorkspace["OPEN: which row of this matrix moves, and when, if ADR-2137 (proposed, implementation none, activation inactive) makes<br/>Oxigraph and the other query stores optional rebuildable projections of authored Markdown?<br/>docs/DATA-authority-erasure.md:258"]
+    DivWorkspace["OPEN: which row of this matrix moves, and when, if ADR-2137 (proposed, implementation none, activation inactive) makes<br/>Oxigraph and the other query stores optional rebuildable projections of authored Markdown?<br/>docs/DATA-authority-erasure.md:263"]
     AssertGraph -.-> DivWorkspace
 ```
 
@@ -211,7 +211,7 @@ erDiagram
     ENRICHMENT_PROPOSALS ||--o{ ENRICHMENT_DECISIONS : "case_id (sqlite_enrichment_repository.rs:96)"
     LIVENESS_CANARIES ||--o{ CANARY_FIRES : "canary_id (sqlite_canary_repository.rs:64)"
     KPI_SNAPSHOTS ||--o{ KPI_LINEAGE : "snapshot_id (sqlite_kpi_repository.rs:104)"
-    SETTINGS ||--|| USER_ROLES : "same settings.sqlite3 connection (role_store.rs:4-5, main.rs:783-787, settings repo opened at app_state.rs:410-416)"
+    SETTINGS ||--|| USER_ROLES : "same settings.sqlite3 connection (role_store.rs:4-5, main.rs:784-788, settings repo opened at app_state.rs:419-425)"
 ```
 
 ## VC-22.3 Derived-writeback fence (`POST /api/ingest/writeback`, ADR-2015)
@@ -347,25 +347,25 @@ sequenceDiagram
     participant SQL as sqlite3 CLI in container
 
     OP->>SH: scripts/backup-sqlite.sh (scripts/backup-sqlite.sh:1)
-    SH->>SH: detect_mode docker or host (backup-sqlite.sh:137, :146)
+    SH->>SH: detect_mode docker or host (backup-sqlite.sh:138, :147)
     loop for each db in REQUIRED_DBS + OPTIONAL_DBS (backup-sqlite.sh:75-76)
-        SH->>CT: docker exec test -f db (backup_one_docker, backup-sqlite.sh:172)
+        SH->>CT: docker exec test -f db (backup_one_docker, backup-sqlite.sh:173)
         alt db present
             SH->>SQL: sqlite3 db .backup tmp (ONLINE BACKUP API)
             SQL-->>SH: PRAGMA integrity_check = ok
             SH->>SH: docker cp tmp to DEST/db
             opt VERIFY_RESTORE=1 (default)
-                SH->>SH: verify_restore copy to scratch, SELECT count from expected tables (backup-sqlite.sh:110-129)
+                SH->>SH: verify_restore copy to scratch, SELECT count from expected tables (backup-sqlite.sh:111-130)
             end
         else db absent
             alt is_required(db) (backup-sqlite.sh:88)
-                SH->>SH: record missing_required (backup-sqlite.sh:222-223)
+                SH->>SH: record missing_required (backup-sqlite.sh:223-224)
             else optional db missing
-                SH->>SH: record missing_optional, continue (backup-sqlite.sh:225-227), logged after the loop (:247)
+                SH->>SH: record missing_optional, continue (backup-sqlite.sh:226-228), logged after the loop (:248)
             end
         end
     end
-    alt missing_required non-empty (backup-sqlite.sh:242-245)
+    alt missing_required non-empty (backup-sqlite.sh:243-246)
         SH--xOP: die required database(s) missing, refuse to publish incomplete backup set, no manifest written
     else all required present
         SH->>SH: write MANIFEST.txt with sha256 per db
@@ -379,7 +379,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SYNC as GitHubSyncService<br/>src/services/github_sync_service.rs:204
+    participant SYNC as GitHubSyncService<br/>src/services/github_sync_service.rs:216
     participant KG as GRAPH_KNOWLEDGE<br/>oxigraph_ontology_repository.rs:50
     participant AG as GRAPH_ONTOLOGY assert<br/>oxigraph_ontology_repository.rs:48
     participant APD as apply_decision<br/>src/handlers/enrichment_proposals_handler.rs:473
@@ -388,8 +388,8 @@ sequenceDiagram
     participant PROV as GRAPH_PROVENANCE<br/>oxigraph_ontology_repository.rs:57
 
     critical content sync fan-out
-        SYNC->>KG: batch_add_nodes ingest corpus pages (github_sync_service.rs:1659)
-        SYNC->>AG: save_ontology_graph atomic CLEAR GRAPH assert then INSERT DATA (github_sync_service.rs:1048)
+        SYNC->>KG: batch_add_nodes ingest corpus pages (github_sync_service.rs:1722)
+        SYNC->>AG: save_ontology_graph atomic CLEAR GRAPH assert then INSERT DATA (github_sync_service.rs:1059)
     end
     Note over SYNC,AG: authoritative store (the CorpusSource, ADR-2114) commits first via sync run - the Oxigraph projection is regenerated, never hand-edited (docs/DATA-authority-erasure.md:64)
 
@@ -412,15 +412,15 @@ sequenceDiagram
     participant C as Anonymous or unassigned client
     participant GATE as RbacGateMiddleware<br/>src/middleware/rbac_gate.rs:258
     participant REQ as required_level<br/>src/middleware/rbac_gate.rs:147
-    participant BOOT as main.rs RBAC bootstrap<br/>src/main.rs:774
+    participant BOOT as main.rs RBAC bootstrap<br/>src/main.rs:775
     participant RS as RoleStore.effective_role<br/>src/services/role_store.rs:359
 
     Note over BOOT: RBAC_PUBLIC_READS is fail-closed in code - .unwrap_or(false)<br/>(rbac_gate.rs:135-141) - and set on only by compose<br/>(docker-compose.unified.yml:132)
-    BOOT->>BOOT: RBAC_ALLOW_OWNERLESS env check (main.rs:797, const at role_store.rs:33)
-    alt no Owner assigned AND RBAC_ALLOW_OWNERLESS=1 (main.rs:797, :802)
+    BOOT->>BOOT: RBAC_ALLOW_OWNERLESS env check (main.rs:798, const at role_store.rs:33)
+    alt no Owner assigned AND RBAC_ALLOW_OWNERLESS=1 (main.rs:798, :803)
         BOOT->>BOOT: warn, run owner-less, only POWER_USER_PUBKEYS to Admin fallback applies
     else no Owner assigned and flag unset
-        BOOT--xBOOT: FATAL refuse to start, fail-closed (main.rs:809-818)
+        BOOT--xBOOT: FATAL refuse to start, fail-closed (main.rs:810-819)
     end
     C->>GATE: GET /api/graph/data (safe method)
     GATE->>REQ: required_level(GET, routed_path, public_reads=true) - the decoded routed path,<br/>not the raw URI (rbac_gate.rs:69, :262)
@@ -443,7 +443,7 @@ sequenceDiagram
         end
     end
     rect rgb(255, 230, 230)
-    Note over BOOT,RS: CORRECTED ADR-2070 (raised by estate ADR-2087) - the CODE fails closed:<br/>public_reads_enabled() ends .unwrap_or(false) (rbac_gate.rs:135-141) and<br/>main.rs:809-818 refuses to<br/>start owner-less unless RBAC_ALLOW_OWNERLESS is set. The shipped compose inverts<br/>both<br/>(docker-compose.unified.yml:132, :133, with the :-1 default), so an unassigned<br/>pubkey resolves to Editor<br/>(role_store.rs:359). The open posture is ADR-2027's deliberate demo default and<br/>stays.
+    Note over BOOT,RS: CORRECTED ADR-2070 (raised by estate ADR-2087) - the CODE fails closed:<br/>public_reads_enabled() ends .unwrap_or(false) (rbac_gate.rs:135-141) and<br/>main.rs:810-819 refuses to<br/>start owner-less unless RBAC_ALLOW_OWNERLESS is set. The shipped compose inverts<br/>both<br/>(docker-compose.unified.yml:132, :133, with the :-1 default), so an unassigned<br/>pubkey resolves to Editor<br/>(role_store.rs:359). The open posture is ADR-2027's deliberate demo default and<br/>stays.
     end
 ```
 
@@ -453,28 +453,28 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant OP as Operator (force_full_sync)
-    participant SYNC as GitHubSyncService.sync_graphs<br/>src/services/github_sync_service.rs:255
+    participant SYNC as GitHubSyncService.sync_graphs<br/>src/services/github_sync_service.rs:266
     participant KGREPO as kg_repo.clear_graph<br/>src/adapters/oxigraph_graph_repository.rs:1212
-    participant REBUILD as rebuild_assert_graph<br/>src/services/github_sync_service.rs:991
+    participant REBUILD as rebuild_assert_graph<br/>src/services/github_sync_service.rs:1002
     participant AG as GRAPH_ONTOLOGY assert
-    participant DECREB as rematerialise_decisions<br/>src/services/github_sync_service.rs:1137
+    participant DECREB as rematerialise_decisions<br/>src/services/github_sync_service.rs:1148
     participant DIRECT as add_owl_class/add_axiom<br/>application/ontology/directives.rs (governed write door)
 
     OP->>SYNC: FORCE_FULL_SYNC=1
-    alt force_full_sync true (github_sync_service.rs:378, :647)
-        SYNC->>KGREPO: clear_graph() drops GRAPH_KNOWLEDGE and GRAPH_AGENT (github_sync_service.rs:428-432, oxigraph_graph_repository.rs:1215-1216)
-        SYNC->>REBUILD: rebuild_assert_graph(stats) (github_sync_service.rs:647-649)
-        REBUILD->>REBUILD: filter KG nodes to ontology-typed only, ONTOLOGY_TYPE_KEY metadata (github_sync_service.rs:1007)
-        REBUILD->>AG: CLEAR GRAPH assert then INSERT DATA class nodes + class-relation edges (save_ontology_graph, atomic) (github_sync_service.rs:1048)
-        Note over REBUILD,AG: this CLEAR wipes the ENTIRE assert graph including runtime OWL classes/axioms added via the governed write door (github_sync_service.rs:974-976)
-        REBUILD->>DECREB: rematerialise_decisions() ADR-050 read-half, called AFTER the class CLEAR+INSERT (github_sync_service.rs:1064)
-        DECREB->>DECREB: list_pages_under(DECISIONS_DIR), decision_page_quads_logged per page (github_sync_service.rs:1138, :1166)
-        DECREB->>AG: insert_quads_to_store re-derived dl:DecisionRecord quads, non-fatal on failure (github_sync_service.rs:1177, :1064-1070)
+    alt force_full_sync true (github_sync_service.rs:389, :658)
+        SYNC->>KGREPO: clear_graph() drops GRAPH_KNOWLEDGE and GRAPH_AGENT (github_sync_service.rs:439-443, oxigraph_graph_repository.rs:1215-1216)
+        SYNC->>REBUILD: rebuild_assert_graph(stats) (github_sync_service.rs:658-660)
+        REBUILD->>REBUILD: filter KG nodes to ontology-typed only, ONTOLOGY_TYPE_KEY metadata (github_sync_service.rs:1018)
+        REBUILD->>AG: CLEAR GRAPH assert then INSERT DATA class nodes + class-relation edges (save_ontology_graph, atomic) (github_sync_service.rs:1059)
+        Note over REBUILD,AG: this CLEAR wipes the ENTIRE assert graph including runtime OWL classes/axioms added via the governed write door (github_sync_service.rs:985-987)
+        REBUILD->>DECREB: rematerialise_decisions() ADR-050 read-half, called AFTER the class CLEAR+INSERT (github_sync_service.rs:1075)
+        DECREB->>DECREB: list_pages_under(DECISIONS_DIR), decision_page_quads_logged per page (github_sync_service.rs:1149, :1177)
+        DECREB->>AG: insert_quads_to_store re-derived dl:DecisionRecord quads, non-fatal on failure (github_sync_service.rs:1188, :1075-1081)
     else incremental sync (SHA1 filter narrowed file list)
-        SYNC->>SYNC: clear_graph guard not entered, existing data left intact (github_sync_service.rs:428)
+        SYNC->>SYNC: clear_graph guard not entered, existing data left intact (github_sync_service.rs:439)
     end
     Note over DIRECT,AG: a class added via add_owl_class/add_axiom between full-syncs is NOT itself in GRAPH_PROVENANCE-protected history for the<br/>assert graph - only re-derivation from the corpus (the visionGraph vault via CorpusSource, ADR-2114) restores it after the next rebuild
-    Note over DECREB,AG: attribution is deliberately NOT re-materialised here - the signed PROV-O attribution stays in GRAPH_PROVENANCE (ADR-049)<br/>the corpus decision page carries only the summary (github_sync_service.rs:1056-1063)
+    Note over DECREB,AG: attribution is deliberately NOT re-materialised here - the signed PROV-O attribution stays in GRAPH_PROVENANCE (ADR-049)<br/>the corpus decision page carries only the summary (github_sync_service.rs:1067-1074)
     Note over SYNC,AG: PROPOSED ADR-2102: one durable erasure record, five store acknowledgements, and a partial erasure that is recorded<br/>and retryable rather than a silent success - agentbox ADR-2060 is the RuVector-side half and is referenced, not superseded
 ```
 
@@ -482,15 +482,15 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    Script["backup-sqlite.sh<br/>REQUIRED_DBS default: settings.sqlite3 enrichment.sqlite3 kpi.sqlite3 shares.sqlite3<br/>scripts/backup-sqlite.sh:75"] --> Req["REQUIRED - missing member fails whole run, no manifest written<br/>scripts/backup-sqlite.sh:242-245"]
-    Script --> Opt["OPTIONAL_DBS default: liveness.sqlite3 - missing is logged, run still succeeds<br/>scripts/backup-sqlite.sh:76,247"]
-    Req --> Verify["VERIFY_RESTORE=1 default: scratch-restore + SELECT count on expected_tables_for<br/>scripts/backup-sqlite.sh:97-105,110-131"]
-    Verify --> Manifest["MANIFEST.txt sha256 per db<br/>scripts/backup-sqlite.sh:251-263"]
-    Opt -.-> Missing["missing_optional logged, count still gt 0 required<br/>scripts/backup-sqlite.sh:247-248"]
+    Script["backup-sqlite.sh<br/>REQUIRED_DBS default: settings.sqlite3 enrichment.sqlite3 kpi.sqlite3 shares.sqlite3<br/>scripts/backup-sqlite.sh:75"] --> Req["REQUIRED - missing member fails whole run, no manifest written<br/>scripts/backup-sqlite.sh:243-246"]
+    Script --> Opt["OPTIONAL_DBS default: liveness.sqlite3 - missing is logged, run still succeeds<br/>scripts/backup-sqlite.sh:76,248"]
+    Req --> Verify["VERIFY_RESTORE=1 default: scratch-restore + SELECT count on expected_tables_for<br/>scripts/backup-sqlite.sh:97-106,110-131"]
+    Verify --> Manifest["MANIFEST.txt sha256 per db<br/>scripts/backup-sqlite.sh:252-264"]
+    Opt -.-> Missing["missing_optional logged, count still gt 0 required<br/>scripts/backup-sqlite.sh:248-249"]
 
-    DriftNote["RESOLVED ADR-2069: the required/optional membership contract is ratified as the design and DATA-authority-erasure.md now describes it - a missing REQUIRED_DBS member (settings/enrichment/kpi/shares, backup-sqlite.sh:75) aborts the run and publishes no manifest (:242-245), a missing OPTIONAL_DBS member (liveness, :76) is recorded (:225-227), logged and the run continues (:247). Oxigraph still has NO point-in-time backup - that bullet stands. DRIFT: DATA-authority-erasure.md:111 cites :245 for that, which is the rc check"]
+    DriftNote["RESOLVED ADR-2069: the required/optional membership contract is ratified as the design and DATA-authority-erasure.md now describes it - a missing REQUIRED_DBS member (settings/enrichment/kpi/shares, backup-sqlite.sh:75) aborts the run and publishes no manifest (:243-246), a missing OPTIONAL_DBS member (liveness, :76) is recorded (:226-228), logged and the run continues (:248). Oxigraph still has NO point-in-time backup - that bullet stands. DRIFT: DATA-authority-erasure.md:111 cites :250 for that, which is the rc check"]
     Req -.-> DriftNote
-    Verify -.-> NoSchema["DEBT: shares.sqlite3 has no expected_tables_for arm,<br/>so its restore check logs no declared schema and is skipped<br/>scripts/backup-sqlite.sh:97-104, :113"]
+    Verify -.-> NoSchema["DEBT: RESOLVED at visionclaw 46edc196 — shares.sqlite3 now has an expected_tables_for arm,<br/>so its restore check runs against shared_graphs and schema_migrations<br/>scripts/backup-sqlite.sh:97-106, :102, :114"]
 ```
 
 ## VC-22.12 Visible subgraph and hidden page-name scrub (ADR-060 M1)
@@ -504,21 +504,21 @@ flowchart TB
     KEPT -->|"nothing removed"| SAME2["same Arc, no scrub needed<br/>visibility_filter.rs:185-196"]
     KEPT --> PN["PageNames: hidden = removed nodes' metadata_id, label, owl_class_iri,<br/>file_name, page_iri, class_iri, plus orphan metadata rows<br/>visibility_filter.rs:258-276"]
     PN --> IH["is_hidden: in hidden and not shared with a visible page<br/>visibility_filter.rs:282-285"]
-    IH --> SN["scrub_node: is_subclass_of and tags only<br/>visibility_filter.rs:334-339, :348-353"]
+    IH --> SN["scrub_node: is_subclass_of and tags only<br/>visibility_filter.rs:367-372, :381-386"]
     IH --> SR["scrub_row: is_subclass_of, belongs_to_domain<br/>visibility_filter.rs:291-292"]
     PN --> TC["topic_counts kept only for VISIBLE page names (allow-list)<br/>visibility_filter.rs:289-290"]
     SN --> OUT["nodes, edges with both ends kept, metadata rows of kept nodes<br/>visibility_filter.rs:200-231"]
     SR --> OUT
     TC --> OUT
-    SN -.-> NOT["domain and source_domain left alone by design<br/>visibility_filter.rs:329-333"]
-    OUT --> T["test hidden_page_names_are_scrubbed_from_visible_rows_and_nodes<br/>visibility_filter.rs:773"]
+    SN -.-> NOT["domain and source_domain left alone by design<br/>visibility_filter.rs:362-366"]
+    OUT --> T["test hidden_page_names_are_scrubbed_from_visible_rows_and_nodes<br/>visibility_filter.rs:806"]
 ```
 
-**Invariant:** a visible node or metadata row never names a removed page in a page-reference key. `scrub_node` covers `is_subclass_of` and `tags` (`crates/visionclaw-domain/src/utils/visibility_filter.rs:339`), and `scrub_row` covers `is_subclass_of`, `belongs_to_domain` and `topic_counts` (`crates/visionclaw-domain/src/utils/visibility_filter.rs:289-292`).
+**Invariant:** a visible node or metadata row never names a removed page in a page-reference key. `scrub_node` covers `is_subclass_of` and `tags` (`crates/visionclaw-domain/src/utils/visibility_filter.rs:372`), and `scrub_row` covers `is_subclass_of`, `belongs_to_domain` and `topic_counts` (`crates/visionclaw-domain/src/utils/visibility_filter.rs:289-292`).
 
-**Tension (risk):** plain `domain` and `source_domain` text is not scrubbed, by design: these keys are frontmatter text, not links, and removing a value that matches a hidden page name would itself reveal the page (`crates/visionclaw-domain/src/utils/visibility_filter.rs:329-333`). A visible page whose `domain` text equals a hidden page's name still shows that name.
+**Tension (risk):** plain `domain` and `source_domain` text is not scrubbed, by design: these keys are frontmatter text, not links, and removing a value that matches a hidden page name would itself reveal the page (`crates/visionclaw-domain/src/utils/visibility_filter.rs:362-366`). A visible page whose `domain` text equals a hidden page's name still shows that name.
 
-**Debt (parallel):** the scrub uses two rules. `topic_counts` keeps only names on the visible allow-list (`crates/visionclaw-domain/src/utils/visibility_filter.rs:289-290`). Every other key removes only names on the hidden block-list (`crates/visionclaw-domain/src/utils/visibility_filter.rs:291-292`, `:346`), so a dangling reference to a page that does not exist survives everywhere except `topic_counts`.
+**Debt (parallel):** the scrub uses two rules. `topic_counts` keeps only names on the visible allow-list (`crates/visionclaw-domain/src/utils/visibility_filter.rs:289-290`). Every other key removes only names on the hidden block-list (`crates/visionclaw-domain/src/utils/visibility_filter.rs:291-292`, `:379`), so a dangling reference to a page that does not exist survives everywhere except `topic_counts`.
 
 ## VC-22.13 Corpus history in the provenance graph (VisionFlow ADR-2022 P2 and P4)
 
@@ -526,30 +526,30 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant RB as rebuild_assert_graph tail<br/>src/services/github_sync_service.rs:1075
-    participant VR as verify_and_record_corpus_history<br/>src/services/github_sync_service.rs:1082
-    participant CH as corpus_history.verify_and_record<br/>src/services/corpus_history.rs:396
+    participant RB as rebuild_assert_graph tail<br/>src/services/github_sync_service.rs:1086
+    participant VR as verify_and_record_corpus_history<br/>src/services/github_sync_service.rs:1093
+    participant CH as corpus_history.verify_and_record<br/>src/services/corpus_history.rs:441
     participant AG as GRAPH_ASSERT
     participant PG as GRAPH_PROVENANCE
-    RB->>VR: after the class CLEAR+INSERT and rematerialise_decisions (github_sync_service.rs:1064-1071)
-    VR->>VR: resolve_corpus_agent - kill switch, then panel key as did:nostr (corpus_history.rs:96-110)
+    RB->>VR: after the class CLEAR+INSERT and rematerialise_decisions (github_sync_service.rs:1075-1082)
+    VR->>VR: resolve_corpus_agent - kill switch, then panel key as did:nostr (corpus_history.rs:112-126)
     VR->>CH: spawn_blocking verify_and_record(store, graph, agent, now)
-    CH->>AG: P4 - digest of what the rebuild meant to write vs what assert holds (corpus_history.rs:404-418)
+    CH->>AG: P4 - digest of what the rebuild meant to write vs what assert holds (corpus_history.rs:449-463)
     alt agent Disabled, NoIdentity or Misconfigured
-        CH-->>VR: not_recorded_reason set, nothing written (corpus_history.rs:423-439)
+        CH-->>VR: not_recorded_reason set, nothing written (corpus_history.rs:468-484)
     else Ready
-        CH->>CH: public_subgraph - NodeVisibility.of_node public only, IRI triples only (corpus_history.rs:123-129, :442)
-        CH->>PG: diff against open corpus-sync versions this writer owns (corpus_history.rs:176, :443-444)
-        CH->>PG: apply_history - open and close assertion-versions (corpus_history.rs:357, :456)
-        CH->>PG: re-read open versions, digest vs public set (corpus_history.rs:464-472)
+        CH->>CH: public_subgraph - NodeVisibility.of_node public only, IRI triples only (corpus_history.rs:140-146, :487)
+        CH->>PG: diff against open corpus-sync versions this writer owns (corpus_history.rs:195, :488-489)
+        CH->>PG: apply_history - open and close assertion-versions (corpus_history.rs:402, :506)
+        CH->>PG: re-read open versions, digest vs public set (corpus_history.rs:514-522)
     end
     CH-->>VR: report - digest, opened, closed, errors, all non-fatal
-    Note over CH,PG: INVARIANT private content never enters - the store cannot erase until ADR-2102 lands (corpus_history.rs:20-23)
+    Note over CH,PG: INVARIANT private content never enters - the store cannot erase until ADR-2102 lands (corpus_history.rs:22-25)
 ```
 
-**Invariant:** the corpus-history writer and the wire paths share one public test: `public_subgraph` keeps the nodes `NodeVisibility::of_node` calls public (`src/services/corpus_history.rs:127`, `crates/visionclaw-domain/src/utils/visibility_filter.rs:101`), so private content cannot enter the unerasable provenance graph by a second, diverging rule.
+**Invariant:** the corpus-history writer and the wire paths share one public test: `public_subgraph` keeps the nodes `NodeVisibility::of_node` calls public (`src/services/corpus_history.rs:144`, `crates/visionclaw-domain/src/utils/visibility_filter.rs:101`), so private content cannot enter the unerasable provenance graph by a second, diverging rule.
 
-**Open (risk):** the writer records nothing when no panel key is configured (`src/services/corpus_history.rs:429-432`), and surfaces that only as `SyncStatistics.corpus_history_not_recorded` and a warn. Any deployment without an ACSP panel key therefore keeps no corpus history.
+**Open (risk):** the writer records nothing when no panel key is configured (`src/services/corpus_history.rs:474-477`), and surfaces that only as `SyncStatistics.corpus_history_not_recorded` and a warn. Any deployment without an ACSP panel key therefore keeps no corpus history.
 
 ## VC-22.14 Graph shares: one durable store, outside erasure
 
@@ -564,7 +564,7 @@ flowchart TB
         ROW -.->|"no creator"| NC["store refuses: NoCreator, answered as 500<br/>src/adapters/sqlite_share_repository.rs:110-113"]
     end
     subgraph STORE["SqliteShareRepository, data/shares.sqlite3"]
-        OPEN["opened once in AppState.new<br/>src/app_state.rs:474-481"]
+        OPEN["opened once in AppState.new<br/>src/app_state.rs:483-490"]
         TBL["shared_graphs: creator_id, expires_at_ms, access_count<br/>src/adapters/sqlite_share_repository.rs:41-50"]
         CLAIM["claim_access and delete_owned are single statements,<br/>so workers cannot race<br/>src/adapters/sqlite_share_repository.rs:164, :193, :210"]
         OPEN --> TBL --> CLAIM
@@ -572,19 +572,19 @@ flowchart TB
     ROW --> TBL
     subgraph LIFE["Retention"]
         GONE["expired: answered 410, row and file kept<br/>src/handlers/graph_export_handler.rs:235-238"]
-        SWEEP["removed with their files only at the next start-up<br/>src/main.rs:982-998, sqlite_share_repository.rs:243"]
+        SWEEP["removed with their files only at the next start-up<br/>src/main.rs:983-999, sqlite_share_repository.rs:243"]
         GONE --> SWEEP
     end
     TBL --> GONE
     TBL --> BK["backup-sqlite.sh backs up shares.sqlite3 as REQUIRED<br/>scripts/backup-sqlite.sh:75"]
-    BK -.-> NOFILES["OPEN: data/shared/ files are not in the backup<br/>docs/DATA-authority-erasure.md:126-128"]
-    TBL -.-> NOERASE["OPEN: no per-user erasure path reaches shares<br/>docs/DATA-authority-erasure.md:124-125"]
+    BK -.-> NOFILES["OPEN: data/shared/ files are not in the backup<br/>docs/DATA-authority-erasure.md:131-133"]
+    TBL -.-> NOERASE["OPEN: no per-user erasure path reaches shares<br/>docs/DATA-authority-erasure.md:129-131"]
 ```
 
-**Open (risk):** a share is a copy of its creator's view and can hold the creator's private nodes (`src/handlers/graph_export_handler.rs:188`), it now survives restarts, and no per-user erasure path reaches it, so erasing a user leaves the shares they created and their files (`docs/DATA-authority-erasure.md:114-115`, `:124-125`). A share made without an expiry is kept until its creator deletes it (`docs/DATA-authority-erasure.md:122-123`).
+**Open (risk):** a share is a copy of its creator's view and can hold the creator's private nodes (`src/handlers/graph_export_handler.rs:188`), it now survives restarts, and no per-user erasure path reaches it, so erasing a user leaves the shares they created and their files (`docs/DATA-authority-erasure.md:114-115`, `:129-131`). A share made without an expiry is kept until its creator deletes it (`docs/DATA-authority-erasure.md:122-123`).
 
 **Debt (loose end):** the refusal worded "Sharing a graph requires a signed-in caller" sits in the plain export handler (`src/handlers/graph_export_handler.rs:142-146`), while `share_graph` has no sign-in check: an anonymous share request snapshots the graph and writes the file before the store refuses it (`src/adapters/sqlite_share_repository.rs:110-113`) and is answered 500, not 401 (`src/handlers/graph_export_handler.rs:205-210`).
 
-**Debt (loose end):** an expired share is refused with 410 but its row and file stay until the next start-up sweep (`src/handlers/graph_export_handler.rs:235-238`, `src/main.rs:982-998`); a long-running server keeps every expired share's private snapshot on disk.
+**Debt (loose end):** an expired share is refused with 410 but its row and file stay until the next start-up sweep (`src/handlers/graph_export_handler.rs:235-238`, `src/main.rs:983-999`); a long-running server keeps every expired share's private snapshot on disk.
 
-**Drift:** `docs/DATA-authority-erasure.md:120` cites `src/app_state.rs:503-510` for where the share store is built; at this commit those lines are the voice confidence gate, and the store is opened at `src/app_state.rs:474-481`.
+**Drift:** `docs/DATA-authority-erasure.md:120` cites `src/app_state.rs:475-482` for where the share store is built; at this commit those lines are the KPI store opening, and the store is opened at `src/app_state.rs:483-490`.

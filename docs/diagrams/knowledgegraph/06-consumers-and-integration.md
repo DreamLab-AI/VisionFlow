@@ -18,7 +18,7 @@ sources:
   - ../project/agentbox/scripts/hp-loom-reconcile.sh
   - ../loom/crates/loom-facade/src/lib.rs
   - ../loom/crates/loom-facade/src/bundle.rs
-verified_commit: {knowledgegraph: 5294e88b6602a63b5afe96c79f2779d00274a05e, visiongraph: 556a0156b5c326fb61141ed2ab1760dd8d9c4dd6, visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, loom: 741c5dffd3253038bbe4fadea7fada7c46474a25}
+verified_commit: {knowledgegraph: 5294e88b6602a63b5afe96c79f2779d00274a05e, visiongraph: d8277151a1404b456b5c7206187f7e4b50f25be1, visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, loom: 741c5dffd3253038bbe4fadea7fada7c46474a25}
 ---
 
 ## For developers
@@ -33,11 +33,11 @@ A successful website publication does not prove that a graph consumer has refres
 
 ```mermaid
 flowchart TB
-    %% visionGraph/.github/workflows/publish.yml:175
+    %% visionGraph/.github/workflows/publish.yml:174
     VG["visionGraph vault<br/>ontomark build in the publisher"]
-    %% visionGraph/.github/workflows/publish.yml:526
+    %% visionGraph/.github/workflows/publish.yml:535
     PUB["Public website publication<br/>knowledgeGraph gh-pages"]
-    %% visionGraph/.github/workflows/publish.yml:536
+    %% visionGraph/.github/workflows/publish.yml:545
     DISPATCH["After deployment: corpus-sync event<br/>sent to VisionClaw with source SHA<br/>Request delivery, not ingestion completion"]
     %% agentbox/scripts/hp-loom-reconcile.sh:133
     SNAP["Agentbox reconciliation route<br/>Clean worktree of committed vault HEAD"]

@@ -62,7 +62,7 @@ sources:
   - docs/engineering/README.md
   - docs/engineering/ADR-004-harness-engineering-framework.md
   - docs/engineering/ADR-005-mandate-at-grant-governance.md
-verified_commit: 5f8b1da92ce5d9e6b32a0bd90ec3630c66619083
+verified_commit: a4a6c20c34c0e298bc4a6725e71e58e00685f64c
 ---
 
 ## VF-01.2 Document taxonomy — which class a file belongs to, and who owns its truth
@@ -76,7 +76,7 @@ flowchart LR
 
     subgraph LIVING["NORMATIVE — the living decision surface"]
         BASE["docs/BASELINE-visionflow.md<br/>doc_id VF-BASELINE, version 0.5.4<br/>'Invariants' section IS the compliance surface<br/>BASELINE-visionflow.md:301"]:::norm
-        LED["docs/adr/ — thin ledger, 21 records ADR-2001..2021<br/>generated index + hand-written PREAMBLE + TEMPLATE<br/>docs/adr/README.md:29"]:::norm
+        LED["docs/adr/ — thin ledger, 23 records ADR-2001..2023<br/>generated index + hand-written PREAMBLE + TEMPLATE<br/>docs/adr/README.md:29"]:::norm
     end
 
     subgraph SPECS["REQUIREMENT AND DESIGN SET"]
@@ -297,7 +297,7 @@ flowchart TB
     BASE --- A13
 ```
 
-**Drift (the `domain` field is not universal):** the ledger is meant to be a thin amendment layer over one governing document, and eighteen of the twenty-one records name `BASELINE-visionflow.md` as their `domain` (for example `docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:14`). ADR-2001, ADR-2007 and ADR-2020 carry no `domain` key at all (`docs/adr/ADR-2001-corpus-consolidation.md:1-14`, `docs/adr/ADR-2007-estate-closeout-evidence-roadmap.md:1-16`, `docs/adr/ADR-2020-pele-renders-every-estate-diagram.md:1-16`). The generator never checks the field (VF-01.6), so nothing flags the gap. Records ADR-2014 to ADR-2021 are outside this panel; their statuses are in the index at `docs/adr/README.md:46-53`.
+**Drift (the `domain` field is not universal):** the ledger is meant to be a thin amendment layer over one governing document, and twenty of the twenty-three records name `BASELINE-visionflow.md` as their `domain` (for example `docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:14`). ADR-2001, ADR-2007 and ADR-2020 carry no `domain` key at all (`docs/adr/ADR-2001-corpus-consolidation.md:1-14`, `docs/adr/ADR-2007-estate-closeout-evidence-roadmap.md:1-16`, `docs/adr/ADR-2020-pele-renders-every-estate-diagram.md:1-16`). The generator never checks the field (VF-01.6), so nothing flags the gap. Records ADR-2014 to ADR-2023 are outside this panel; their statuses are in the index at `docs/adr/README.md:46-55`.
 
 **Open:** ADR-2012 withdraws three published claims in prose while leaving `supersedes: []` empty (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:8`); nothing states how a retirement that is not a supersession is represented in the generated index.
 
@@ -350,7 +350,7 @@ flowchart TB
     INV["INVARIANT: BASELINE-visionflow.md:6 pins the document's own<br/>verified_commit; each dated subsection instead carries the commit<br/>at which ITS facts were last checked (ADR-2008 subsection: pending<br/>vs c205575, BASELINE-visionflow.md:208; ADR-2010/2011 subsection:<br/>03db671, BASELINE-visionflow.md:234) — per the change process<br/>(BASELINE-visionflow.md:349-354) this is intended per-section staging,<br/>not undetected drift, provided every subsection is re-recorded when its<br/>own facts change"]:::settled
 ```
 
-**Drift (BASELINE subsections lag the ledger):** the INVARIANT above holds only if every subsection is re-recorded when its own facts change, and at this stamp four have not been. BASELINE gives ADR-2010 as partial/staged and ADR-2011 as none/inactive (`docs/BASELINE-visionflow.md:229-233`), while both records read complete/staged (`docs/adr/README.md:42-43`). It calls ADR-2014 to ADR-2016 proposed, unimplemented and inactive (`docs/BASELINE-visionflow.md:368`), while the index shows ADR-2014 and ADR-2016 accepted/partial/staged (`docs/adr/README.md:46`, `docs/adr/README.md:48`). It says ADR-2018 and ADR-2019 are both inactive (`docs/BASELINE-visionflow.md:391`), while ADR-2019 is live (`docs/adr/README.md:51`). It still describes ADR-2007 as a staged proposal (`docs/BASELINE-visionflow.md:404-413`), while the record is accepted/complete/live (`docs/adr/README.md:39`).
+**Drift (BASELINE subsections lag the ledger):** the INVARIANT above holds only if every subsection is re-recorded when its own facts change, and at this stamp four have not been. BASELINE gives ADR-2010 as partial/staged and ADR-2011 as none/inactive (`docs/BASELINE-visionflow.md:229-233`), while both records read complete/staged (`docs/adr/README.md:42-43`). It calls ADR-2014 to ADR-2016 proposed, unimplemented and inactive (`docs/BASELINE-visionflow.md:368`), while the index shows ADR-2014 and ADR-2016 accepted/partial/staged (`docs/adr/README.md:46`, `docs/adr/README.md:48`). It says ADR-2018 and ADR-2019 are both inactive (`docs/BASELINE-visionflow.md:391`), while ADR-2019 is live (`docs/adr/README.md:51`). It still describes ADR-2007 as a staged proposal (`docs/BASELINE-visionflow.md:433-442`), while the record is accepted/complete/live (`docs/adr/README.md:39`).
 
 ## VF-01.13 The augmentation conditions enter canon — a rubric, a graded table and a gate
 ```mermaid

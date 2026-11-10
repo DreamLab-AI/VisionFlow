@@ -19,7 +19,7 @@ sources:
   - ../sidestr-rs/sidestr-evm/tests/chain.rs
   - ../sidestr-rs/.github/workflows/ci.yml
   - ../project/agentbox/config/sidechain/dreamlab/chain.json
-verified_commit: {sidestr-rs: 9c6de86c657a25ec2f2a189baf63db7dedad40eb, visionflow: baae32a, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
+verified_commit: {sidestr-rs: 60259e848795d0cd5c5718ca5d0eb658f69fd0d7, visionflow: baae32a, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
 ---
 
 ## For developers
@@ -41,16 +41,16 @@ flowchart TB
     EVM --> ROOT["state root"]
     EVM --> W["withdrawal obligations"]
     ROOT --> CB["coinbase validation"]
-    W --> MATCH["find any matching output per withdrawal<br/>sidestr-evm/src/state.rs:511-514"]
+    W --> MATCH["match each withdrawal to an output<br/>not yet consumed, then mark it consumed<br/>sidestr-evm/src/state.rs:516-526"]
     MATCH --> CB
     W --> CAP["sum withdrawal allowances"]
     CAP --> CB
-    MATCH -.-> GAP["same output can satisfy<br/>two equal obligations"]
+    MATCH -.-> MULT["two equal obligations<br/>need two outputs<br/>sidestr-evm/src/state.rs:521"]
 ```
 
-**What it shows.** Deposits credit reserve payments; carried transactions execute in order; the coinbase commits the root and must match withdrawal script/amount pairs (`../sidestr-rs/sidestr-evm/src/state.rs:384`, `../sidestr-rs/sidestr-evm/src/state.rs:501`, `../sidestr-rs/sidestr-evm/src/state.rs:511-514`). The allowance sums every obligation (`../sidestr-rs/sidestr-evm/src/state.rs:73`, `../sidestr-rs/sidestr-evm/src/rule.rs:105`).
+**What it shows.** Deposits credit reserve payments; carried transactions execute in order; the coinbase commits the root and must match withdrawal script/amount pairs (`../sidestr-rs/sidestr-evm/src/state.rs:392`, `../sidestr-rs/sidestr-evm/src/state.rs:506`, `../sidestr-rs/sidestr-evm/src/state.rs:516-526`). The allowance sums every obligation (`../sidestr-rs/sidestr-evm/src/state.rs:73`, `../sidestr-rs/sidestr-evm/src/rule.rs:105`).
 
-**Why it is this way.** Account execution and UTXO payouts meet in one validated block. The current existence test does not consume an output match, so matching each obligation is weaker than paying their full multiplicity.
+**Why it is this way.** Account execution and UTXO payouts meet in one validated block. Each matched output is now marked consumed (`../sidestr-rs/sidestr-evm/src/state.rs:516`, `:521`), so equal obligations must be paid by as many outputs; the earlier existence test let one output satisfy two equal withdrawals until sidestr-rs 7f046444 enforced the multiplicity.
 
 **Open:** a full-validator probe accepts two 10,000-sat withdrawals with one 10,000-sat recipient output and the remaining allowance paid to the signer. Complete withdrawal payment is a required invariant that the current predicate does not enforce.
 
@@ -76,7 +76,7 @@ sequenceDiagram
     Note over R,S: verdict history also survives commit
 ```
 
-**What it shows.** Coinbase allowance and rule checking share preparation; a successful EVM verdict stages a world even if another rule later rejects the block (`../sidestr-rs/sidestr-evm/src/rule.rs:100`, `../sidestr-rs/sidestr-evm/src/state.rs:531-541`). Commit clears pending candidates but leaves the verdict map; restore clears both (`../sidestr-rs/sidestr-evm/src/state.rs:561-582`, `../sidestr-rs/sidestr-evm/src/state.rs:347`).
+**What it shows.** Coinbase allowance and rule checking share preparation; a successful EVM verdict stages a world even if another rule later rejects the block (`../sidestr-rs/sidestr-evm/src/rule.rs:100`, `../sidestr-rs/sidestr-evm/src/state.rs:542-552`). Commit clears pending candidates but leaves the verdict map; restore clears both (`../sidestr-rs/sidestr-evm/src/state.rs:572-593`, `../sidestr-rs/sidestr-evm/src/state.rs:352`).
 
 **Why it is this way.** Applied balances and receipts remain separate from speculative execution. The former discard-on-refusal arrow overstated cleanup: the native probe retains 64 rejected outer candidates, then still reads all 64 verdicts after application.
 
@@ -88,14 +88,14 @@ flowchart TB
     V -->|no| REF["refuse snapshot"]
     V -->|yes, time exists| LIVE["select height and world<br/>sidestr-evm/src/state.rs:305"]
     SNAP --> CODE["code bytes keyed by claimed hash"]
-    CODE --> EXEC["execution reads supplied bytes<br/>sidestr-evm/src/world.rs:184-192"]
+    CODE --> EXEC["execution reads supplied bytes<br/>sidestr-evm/src/world.rs:202-210"]
     LIVE --> ALL["retain all snapshot histories,<br/>including heights above selection"]
     LIVE -.-> NEED["caller still needs trusted chain anchor<br/>and verified code / metadata"]
 ```
 
-**What it shows.** Restore checks schema/configuration, selected world-root equality with the snapshot's own record and time presence. It copies all histories and receipts, then clears transient caches (`../sidestr-rs/sidestr-evm/src/state.rs:305-350`). It does not authenticate that time, receipts or an external chain commitment.
+**What it shows.** Restore checks schema/configuration, selected world-root equality with the snapshot's own record and time presence. It copies all histories and receipts, then clears transient caches (`../sidestr-rs/sidestr-evm/src/state.rs:305-355`). It does not authenticate that time, receipts or an external chain commitment.
 
-**Why it is this way.** Account roots contain code hashes; execution looks up code bytes separately without rehashing them (`../sidestr-rs/sidestr-evm/src/world.rs:111`, `../sidestr-rs/sidestr-evm/src/world.rs:184-192`). A probe changes a contract answer from 42 to 43 under the same root. Selecting genesis also leaves future block/receipt records queryable; this is not a pruned active-history view.
+**Why it is this way.** Account roots contain code hashes; execution looks up code bytes separately without rehashing them (`../sidestr-rs/sidestr-evm/src/world.rs:129`, `../sidestr-rs/sidestr-evm/src/world.rs:202-210`). A probe changes a contract answer from 42 to 43 under the same root. Selecting genesis also leaves future block/receipt records queryable; this is not a pruned active-history view.
 
 ## SR-03.4 Evidence and activation boundary
 
@@ -111,6 +111,6 @@ flowchart TB
 
 **What it shows.** Fresh Rust tests replay committed fixtures; CI is configured to regenerate them against the pinned module (`../sidestr-rs/.github/workflows/ci.yml:186`, `../sidestr-rs/sidestr-evm/tests/oracle.rs:155`). Two KZG refusal cases compare the error but deliberately skip intermediate-root equality (`../sidestr-rs/sidestr-evm/tests/oracle.rs:180`).
 
-**Why it is this way.** Reference compatibility is narrower than Ethereum equivalence: the profile disables block-gas enforcement, aborts at KZG and returns zero for BLOCKHASH (`../sidestr-rs/sidestr-evm/src/exec.rs:168-170`, `../sidestr-rs/sidestr-evm/src/exec.rs:78`, `../sidestr-rs/sidestr-evm/src/world.rs:209-210`). The pinned reference also contains the withdrawal-matching gap.
+**Why it is this way.** Reference compatibility is narrower than Ethereum equivalence: the profile disables block-gas enforcement, aborts at KZG and returns zero for BLOCKHASH (`../sidestr-rs/sidestr-evm/src/exec.rs:168-170`, `../sidestr-rs/sidestr-evm/src/exec.rs:78`, `../sidestr-rs/sidestr-evm/src/world.rs:227-228`). The pinned reference also contains the withdrawal-matching gap.
 
 **Scope:** `publish = false` remains in the package configuration and the estate document lacks an EVM rule (`../sidestr-rs/sidestr-evm/Cargo.toml:16`, `../project/agentbox/config/sidechain/dreamlab/chain.json:28`). These checks neither publish the crate nor establish deployed contract use.

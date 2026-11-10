@@ -21,7 +21,7 @@ sources:
   - ../visionGraph/scripts/check-bases.sh
   - ../visionGraph/quartz/quartz/plugins/filters/explicit.ts
   - ../visionGraph/quartz/quartz.config.ts
-verified_commit: 556a0156b5c326fb61141ed2ab1760dd8d9c4dd6
+verified_commit: d8277151a1404b456b5c7206187f7e4b50f25be1
 ---
 
 ## For developers
@@ -40,7 +40,7 @@ flowchart TB
     W["working/ curator role<br/>Notes, episodes, drafts and journals<br/>vault.toml:41-50"]
     AS["One repo-level assets/ store<br/>working/assets is a symlink<br/>knowledge/assets is a synced real subset<br/>vault.toml:56-66"]
     VOC["ontology/vocabulary.yaml<br/>Vocabulary version and namespace<br/>vault.toml:17-21"]
-    %% Source: publish.yml:175-181,329-335,421-490
+    %% Source: publish.yml:174-180,329-335,421-490
     PUB["Publisher uses ontomark, Quartz and explorer<br/>Publication workflow"]
     K --> AS
     W --> AS
@@ -58,11 +58,11 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    SRC["Authored knowledge and working vaults<br/>Workflow explicitly selects --vault all<br/>publish.yml:175-181"]
+    SRC["Authored knowledge and working vaults<br/>Workflow explicitly selects --vault all<br/>publish.yml:174-180"]
     STAGE["Compiler machine outputs and Quartz staging<br/>Public working content is included by this route<br/>publish.yml:155-159"]
     QUARTZ["Quartz configured with key public<br/>quartz.config.ts:126"]
     FILTER["ExplicitPublish accepts boolean true<br/>OR the exact string true<br/>explicit.ts:23-25"]
-    SITE["www/ deployed to knowledgeGraph gh-pages<br/>Then a VisionClaw refresh request is sent<br/>publish.yml:526-542"]
+    SITE["www/ deployed to knowledgeGraph gh-pages<br/>Then a VisionClaw refresh request is sent<br/>publish.yml:535-551"]
     SRC --> STAGE --> QUARTZ --> FILTER --> SITE
     LIMIT["TENSION: README describes typed true only<br/>The downstream predicate is more permissive<br/>visionGraph/README.md:143-145<br/>Upstream compiler filtering is a separate boundary"]
     FILTER --- LIMIT
@@ -95,12 +95,12 @@ flowchart TB
     K["knowledge role declares unknown_keys=fail<br/>Required metadata and public gate<br/>vault.toml:27-39"]
     W["working role declares unknown_keys=allow<br/>publishable=false and reasoned=false<br/>vault.toml:41-50"]
     DEFAULT["Build defaults to knowledge, public_only=true<br/>Domain-root disjointness disabled<br/>vault.toml:74-80"]
-    PUBLISH["Publish section says knowledge-only content<br/>and working excluded<br/>vault.toml:143-152"]
-    ACTUAL["TENSION: active workflow passes --vault all<br/>and stages public working content too<br/>publish.yml:155-181"]
+    PUBLISH["Publish section says knowledge-only content<br/>and working excluded<br/>vault.toml:144-153"]
+    ACTUAL["TENSION: active workflow passes --vault all<br/>and stages public working content too<br/>publish.yml:155-180"]
     K --> DEFAULT
     W --> DEFAULT
     DEFAULT --> PUBLISH --> ACTUAL
-    PIN["DRIFT: README says v0.2.0, rules say v0.5.0<br/>Workflow pins ontomark v0.7.0 and SHA-256<br/>visionGraph/README.md:66, CLAUDE.md:23, publish.yml:48-51"]
+    PIN["DRIFT: README says v0.2.0, rules say v0.5.0<br/>Workflow pins ontomark v0.8.0 and SHA-256<br/>visionGraph/README.md:66, CLAUDE.md:23, publish.yml:48-51"]
     ACTUAL --- PIN
 ```
 
@@ -130,7 +130,7 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    ROOTS["Nine vocabulary roots<br/>Space and Earth appended, then supply chains<br/>vocabulary.yaml:350-353"]
+    ROOTS["Nine vocabulary roots<br/>Space and Earth appended, then supply chains<br/>vocabulary.yaml:356-359"]
     %% Source: check-space-domains.mjs:14-35,40-75
     SPACE["Space gate: IDs 6 and 7, minimum counts,<br/>root titles and catalogue-backed page checks<br/>Space domain gate"]
     %% Source: check-supply-chain-domain.mjs:31-46,62-77

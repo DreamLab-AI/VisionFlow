@@ -15,7 +15,7 @@ sources:
   - ../ontomark/crates/ontomark-compile/src/build/mod.rs
   - ../ontomark/crates/ontomark-compile/src/build/generation.rs
   - ../ontomark/crates/ontomark-compile/src/build/publish.rs
-verified_commit: {visiongraph: d8277151a1404b456b5c7206187f7e4b50f25be1, visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e, ontomark: 0caae5d4b695cb720942b9b9212017c00a80ad41}
+verified_commit: {visiongraph: d8277151a1404b456b5c7206187f7e4b50f25be1, visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e, ontomark: 6159bb6089753105ef839fd4aac46c1598a64bd2}
 ---
 
 ## For developers
@@ -39,13 +39,13 @@ flowchart TB
     LOCAL --> WHY
     %% Source: crates/ontomark-compile/src/input/page.rs:269
     %% Source: crates/ontomark-compile/src/build/publish.rs:200
-    %% Source: crates/ontomark-compile/src/build/mod.rs:615
-    %% Source: crates/ontomark-compile/src/build/mod.rs:658
-    %% Source: crates/ontomark-compile/src/build/mod.rs:678
+    %% Source: crates/ontomark-compile/src/build/mod.rs:709
+    %% Source: crates/ontomark-compile/src/build/mod.rs:752
+    %% Source: crates/ontomark-compile/src/build/mod.rs:772
     %% Source: crates/visionclaw-domain/src/vault/mod.rs:168
 ```
 
-**What it shows:** exact predicate differences and the compiler's projection order; these source functions replace the older blanket invariant list (`input/page.rs:269`, `vault/mod.rs:168`, `build/mod.rs:678`).
+**What it shows:** exact predicate differences and the compiler's projection order; these source functions replace the older blanket invariant list (`input/page.rs:269`, `vault/mod.rs:168`, `build/mod.rs:772`).
 **Why it is this way:** local structural graph inclusion and public release are different policies; ADR-VG-001 requires those differences and their diagnostics to be intentional and tested (`ADR-VG-001-publication-policy-boundaries.md:32`).
 
 ## VG-05.2 Proposed acceptance requirements remain open
@@ -79,10 +79,10 @@ flowchart TB
     SITE["Workflow then overlays static files<br/>compresses selected outputs and adds UI/notices"]
     GAP["OPEN: final bytes and loaded consumers<br/>need their own generation binding"]
     INPUT --> MARKER --> TWO --> SITE --> GAP
-    %% Source: crates/ontomark-compile/src/build/mod.rs:968
-    %% Source: crates/ontomark-compile/src/build/mod.rs:977
+    %% Source: crates/ontomark-compile/src/build/mod.rs:1084
+    %% Source: crates/ontomark-compile/src/build/mod.rs:1093
     %% Source: crates/ontomark-compile/src/build/generation.rs:90
-    %% Source: crates/ontomark-compile/src/build/mod.rs:1008
+    %% Source: crates/ontomark-compile/src/build/mod.rs:1126
     %% Source: .github/workflows/publish.yml:260
     %% Source: .github/workflows/publish.yml:359
     %% Source: .github/workflows/publish.yml:450
@@ -90,7 +90,7 @@ flowchart TB
 ```
 
 **What it shows:** a real compiler manifest now exists; it lacks the complete final-site and loaded-consumer identity contract proposed by the ADR (`generation.rs:90`, `ADR-VG-002-generation-and-consumer-identity.md:49`).
-**Why it is this way:** compiler emission precedes publication transformations; the earlier public-receipt audit found one static-context hash mismatch at that boundary without establishing malicious alteration (`build/mod.rs:1015`, `publish.yml:260`).
+**Why it is this way:** compiler emission precedes publication transformations; the earlier public-receipt audit found one static-context hash mismatch at that boundary without establishing malicious alteration (`build/mod.rs:1133`, `publish.yml:260`).
 
 ## VG-05.4 Historical failures, repairs and successor boundaries
 

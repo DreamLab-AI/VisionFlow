@@ -18,6 +18,9 @@ sources:
   - ../project/agentbox/services/dream-engine/src/engine.rs
   - ../dream-engine/crates/dream-core/src/readiness.rs
   - ../dream-engine/Cargo.toml
+  - ../dream-engine/crates/dream-core/Cargo.toml
+  - ../dream-engine/crates/dream-gate/Cargo.toml
+  - ../dream-machine/docs/adrs/ADR-0007-darwin-mutator-loom-shim.md
   - ../project/agentbox/services/dream-engine/Cargo.toml
   - ../WasmVOWL/modern/src/hooks/useWasmSimulation.ts
   - ../WasmVOWL/modern/package-lock.json
@@ -26,14 +29,14 @@ sources:
   - ../diagram-ir/Cargo.toml
   - ../loom/Cargo.toml
   - docs/estate-review/2026-09-07-estate-audit.md
-verified_commit: {visionflow: 5f8b1da92ce5d9e6b32a0bd90ec3630c66619083, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35, dream-engine: 59a3e215e826aa1e9ebe157d49c1ac504f7f39c9, WasmVOWL: 51a1484301901e817757c4cce17b1fece371652a, loom: ba21a689a57dc67dc68ad22e52b058da34a7fb05, dream-machine: b77093e564ef689923fb523b0e0b18d2bb4a21a4, prose-sanitiser: b261f65466b12bef2fd7c4957cee463cbe06190f, diagram-ir: 15cba163da7086a3ebbb5a059c8a8d0ab4ba9706}
+verified_commit: {visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, dream-engine: b40d50724bb6344dc00d57270f7166b138714406, WasmVOWL: 51a1484301901e817757c4cce17b1fece371652a, loom: ba21a689a57dc67dc68ad22e52b058da34a7fb05, dream-machine: b77093e564ef689923fb523b0e0b18d2bb4a21a4, prose-sanitiser: 9f1c67193e9164717479c0f88a611aa5f7355ca7, diagram-ir: 15cba163da7086a3ebbb5a059c8a8d0ab4ba9706}
 ---
 
 ## ES-90.1 Three scopes — health roster, source review and workspace neighbours
 ```mermaid
 flowchart TB
-    R["Declared health roster: 18 repositories<br/>scripts/estate-health/roster.json:5-22"] --> P["Primary diagram directories include:<br/>VisionFlow, VisionClaw, Agentbox, pod, forum,<br/>website, knowledgeGraph, visionGraph, vowl-wasm,<br/>sidestr-rs (roster.json:13), ontomark (roster.json:14),<br/>visiontouch-rs (roster.json:22), Dream Engine (roster.json:21)"]
-    R --> S["Also on roster: Loom, ontomark-obsidian, WasmVOWL,<br/>prose-sanitiser, diagram-ir. The Dream Engine row still<br/>describes a fork of ruvnet/dream-machine, roster.json:21<br/>(see DE-01)"]
+    R["Declared health roster: 21 repositories<br/>scripts/estate-health/roster.json:5-25"] --> P["Primary diagram directories include:<br/>VisionFlow, VisionClaw, Agentbox, pod, forum,<br/>website, knowledgeGraph, visionGraph, vowl-wasm,<br/>sidestr-rs (roster.json:13), ontomark (roster.json:14),<br/>visiontouch-rs (roster.json:22), Dream Engine (roster.json:21)"]
+    R --> S["Also on roster: Loom, ontomark-obsidian, WasmVOWL,<br/>prose-sanitiser, diagram-ir, codescape, sealmap, visioncraft. The Dream Engine row still<br/>describes a fork of ruvnet/dream-machine, roster.json:21<br/>(see DE-01)"]
     C["Git census and ADR candidate discovery<br/>scripts/estate-doc-audit.py"] --> R
     C --> D["Consumed or historical extension:<br/>RuVector, RuView, archived Logseq"]
     C --> N["Other checkouts: inventory only,<br/>no estate adoption from directory proximity"]
@@ -69,7 +72,7 @@ sequenceDiagram
     Note over A,R: EXTERNAL: the Rust judgement and loop moved to DreamLab-AI/dream-engine<br/>(DE-01, public with five crates at 0.1.0) and the estate adapter is AB-23.<br/>Toolkit tests do not identify the loaded Nix binary or prove a nightly run
 ```
 
-**Drift:** the toolkit this diagram traces is no longer the estate's dream engine. The previous TypeScript fork is renamed DreamLab-AI/dream-machine and archived, and the slug DreamLab-AI/dream-engine now belongs to the Rust repository that holds the extracted judgement and loop crates (mapped in DE-01; its workspace declares dream-core and dream-cli at 0.4.0, `../dream-engine/Cargo.toml:11`, with dream-gate at 0.3.0, `../dream-engine/crates/dream-gate/Cargo.toml:3`; the agentbox adapter pins `dream-core =0.4.0` and `dream-gate =0.3.0`, `../project/agentbox/services/dream-engine/Cargo.toml:26-27`). The Darwin path drawn above is not carried into it: the Rust core keeps only a readiness refusal for a darwin entrypoint run without a sandbox flag, a safety check that appends a problem to the admission report and mutates nothing (`../dream-engine/crates/dream-core/src/readiness.rs:228-232`). The estate adapter is AB-23.
+**Drift:** the toolkit this diagram traces is no longer the estate's dream engine. The previous TypeScript fork is renamed DreamLab-AI/dream-machine and archived, and the slug DreamLab-AI/dream-engine now belongs to the Rust repository that holds the extracted judgement and loop crates (mapped in DE-01; its workspace declares dream-cli at 0.4.0, `../dream-engine/Cargo.toml:11`, dream-core now sets its own 0.4.1, `../dream-engine/crates/dream-core/Cargo.toml:3`, and dream-gate stays at 0.3.0, `../dream-engine/crates/dream-gate/Cargo.toml:3`; the agentbox adapter pins `dream-core =0.4.1` and `dream-gate =0.3.0`, `../project/agentbox/services/dream-engine/Cargo.toml:26-27`). The Darwin path drawn above is not carried into it: the Rust core keeps only a readiness refusal for a darwin entrypoint run without a sandbox flag, a safety check that appends a problem to the admission report and mutates nothing (`../dream-engine/crates/dream-core/src/readiness.rs:228-232`). The estate adapter is AB-23.
 
 **Drift:** `darwin-entrypoint.sh` cites ADR-0008 for the exact `npx <pin>` head rule (`../dream-machine/scripts/darwin-entrypoint.sh:36,113`) while the archived repository's decision records stop at ADR-0007 (`../dream-machine/docs/adrs/ADR-0007-darwin-mutator-loom-shim.md:1`); the toolkit paths above were re-read at `b77093e`, where only the entrypoint script among them had changed since `6426583`.
 
@@ -106,11 +109,11 @@ flowchart TB
 ## ES-90.5 Evidence types do not imply one another
 ```mermaid
 flowchart TB
-    F["Source paths and ADR metadata"] --> G["Structural/index gate: writeIndexes<br/>diagram-index-gen.cjs:724"]
-    F --> C["Citation diagnostics; strict mode refuses warnings<br/>citeCheck, diagram-index-gen.cjs:502"]
-    F --> SYM["Symbol-anchor check: warns when a cited line<br/>falls outside the labelled function's body<br/>symbolCheck, diagram-index-gen.cjs:636"]
-    F --> JEV["Opt-in advisory per-citation review (--jev, or env VISIONFLOW_JEV, with --cite-check), off by default,<br/>stderr only, never changes an exit code or an index; one Noul per resolved citation,<br/>flagged only for jev-* models at p_defect 0.9 or more<br/>jevCitationReview, diagram-index-gen.cjs:807"]
-    F --> R["Optional Mermaid rendering with pinned Pele, no browser: renderAll<br/>diagram-index-gen.cjs:700"]
+    F["Source paths and ADR metadata"] --> G["Structural/index gate: writeIndexes<br/>diagram-index-gen.cjs:753"]
+    F --> C["Citation diagnostics; strict mode refuses warnings<br/>citeCheck, diagram-index-gen.cjs:531"]
+    F --> SYM["Symbol-anchor check: warns when a cited line<br/>falls outside the labelled function's body<br/>symbolCheck, diagram-index-gen.cjs:665"]
+    F --> JEV["Opt-in advisory per-citation review (--jev, or env VISIONFLOW_JEV, with --cite-check), off by default,<br/>stderr only, never changes an exit code or an index; one Noul per resolved citation,<br/>flagged only for jev-* models at p_defect 0.9 or more<br/>jevCitationReview, diagram-index-gen.cjs:836"]
+    F --> R["Optional Mermaid rendering with pinned Pele, no browser: renderAll<br/>diagram-index-gen.cjs:729"]
     F --> S["Semantic source review with file hashes<br/>scripts/estate-doc-audit.py"]
     G --> DOC["Documentation evidence"]
     C --> DOC
@@ -118,11 +121,11 @@ flowchart TB
     R --> DOC
     JEV -.->|"a pointer for a human reviewer, not evidence"| DOC
     S --> DOC
-    ALLOW["citation-allowlist.json waives a citation<br/>that exists in no commit, with a reason;<br/>a stale entry fails the run<br/>loadAllowlist, diagram-index-gen.cjs:389"] --> DOC
-    VER["VERIFICATION.md: declared-revisions anchor,<br/>records what actually resolved at HEAD<br/>writeVerificationReport, diagram-index-gen.cjs:454"] --> DOC
+    ALLOW["citation-allowlist.json waives a citation<br/>that exists in no commit, with a reason;<br/>a stale entry fails the run<br/>loadAllowlist, diagram-index-gen.cjs:418"] --> DOC
+    VER["VERIFICATION.md: declared-revisions anchor,<br/>records what actually resolved at HEAD<br/>writeVerificationReport, diagram-index-gen.cjs:483"] --> DOC
     TEST["Named local test and raw result"] --> LOCAL["Only the exercised contract"]
     RUN["Loaded binary, effective config,<br/>identity and cross-service receipt"] --> ACCEPT["Only the observed system journey"]
     DOC -.->|"does not establish"| ACCEPT
     LOCAL -.->|"does not establish"| ACCEPT
-    NOTE["INVARIANT: default citations may read declared revisions;<br/>worktree-citations explicitly checks current source.<br/>Neither mode proves behaviour or deployment.<br/>revisionLines, diagram-index-gen.cjs:352,355"] --> DOC
+    NOTE["INVARIANT: default citations may read declared revisions;<br/>worktree-citations explicitly checks current source.<br/>Neither mode proves behaviour or deployment.<br/>revisionLines, diagram-index-gen.cjs:381,384"] --> DOC
 ```

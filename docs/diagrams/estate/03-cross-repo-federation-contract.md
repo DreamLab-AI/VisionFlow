@@ -52,7 +52,7 @@ sources:
   - ../nostr-rust-forum/Cargo.toml
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/payments.rs
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/pay_ledger.rs
-verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c, solid-pod-rs: 27e18995fc20790fa956acb41f7d8420544a13ec, nostr-rust-forum: c39f41f104b114d6a3fa29013daaf6fa58b45080}
+verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c, solid-pod-rs: 27e18995fc20790fa956acb41f7d8420544a13ec, nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
 ---
 ## ES-03.1 Shared wire envelope: AgentActionNotification (agentbox emit -> VisionClaw ingest)
 ```mermaid
@@ -251,7 +251,7 @@ flowchart TD
     end
 ```
 
-**Tension:** ADR-2061 is recorded `live`, but only its JS half is CI-gated; the Rust half (`cargo test --lib uri`) is not, because the crate owning `src/uri` is outside the CPU crate list (`../project/agentbox/docs/adr/ADR-2061-federation-kind-map-parity.md:232-237`). That still holds at the VisionClaw stamp: `../project/.github/workflows/ci.yml:80-81` leaves `visionclaw-server` to the GPU job, which runs on the developer's CUDA host (`../project/.github/workflows/ci.yml:258`). A one-sided artefact edit that breaks only Rust is caught locally, not in CI.
+**Tension:** ADR-2061 is recorded `live`, but only its JS half is CI-gated; the Rust half (`cargo test --lib uri`) is not, because the crate owning `src/uri` is outside the CPU crate list (`../project/agentbox/docs/adr/ADR-2061-federation-kind-map-parity.md:232-237`). That still holds at the VisionClaw stamp: `../project/.github/workflows/ci.yml:98-99` leaves `visionclaw-server` to the GPU job, which runs on the developer's CUDA host (`../project/.github/workflows/ci.yml:279`). A one-sided artefact edit that breaks only Rust is caught locally, not in CI.
 ## ES-03.6 Content address byte-identity: sha256-12, first 6 bytes, lowercase hex (ADR-2023)
 ```mermaid
 sequenceDiagram
@@ -444,7 +444,7 @@ sequenceDiagram
     Note over Ad: CORRECTED 2026-11-02 (ADR-2035) - connectAdapters races EVERY slot against its OWN<br/>deadline (lifecycle.js:31), and failure and timeout both quarantine the adapter (lifecycle.js:273,296).<br/>They are NOT equally fatal and one slot IS privileged: orchestrator is the only fail-closed slot<br/>(lifecycle.js:75) and aborts startup (lifecycle.js:298-302,329-335). Every other failed slot gets<br/>an off stand-in whose dispatch refuses (lifecycle.js:178,312), and if that cannot be built the slot<br/>stays quarantined and dispatch throws AdapterQuarantined (lifecycle.js:318-326).<br/>toLegacyHealth feeds adapterHealth (server.js:1380), and /ready blocks on any non-off<br/>manifest slot that is not healthy (server.js:511-513).
 ```
 
-**Drift:** the governing doc's own resolution paragraph still cites `adapters/lifecycle.js:256`, `:274` and `:292-299` (`../project/agentbox/docs/BASELINE-container.md:318`); at the agentbox stamp those lines hold a readiness record, the `reason` assignment and the quarantine comment, and the replacement-failed branch is at `../project/agentbox/management-api/adapters/lifecycle.js:318-326`. It also says failure and timeout "no longer have different outcomes", which is true of quarantine but not of startup: `orchestrator` aborts (`../project/agentbox/management-api/adapters/lifecycle.js:75`).
+**Drift:** the governing doc's own resolution paragraph still cites `adapters/lifecycle.js:256`, `:274` and the range 292 to 299 (`../project/agentbox/docs/BASELINE-container.md:318`); at the agentbox stamp the first two hold a readiness record and the `reason` assignment, the range holds the late-settle callback's close and the quarantine call (`../project/agentbox/management-api/adapters/lifecycle.js:296`), and the replacement-failed branch is at `../project/agentbox/management-api/adapters/lifecycle.js:318-326`. It also says failure and timeout "no longer have different outcomes", which is true of quarantine but not of startup: `orchestrator` aborts (`../project/agentbox/management-api/adapters/lifecycle.js:75`).
 ## ES-03.10 Partial convergence: typed operational crossings and remaining RDF identity seams
 ```mermaid
 flowchart TD
@@ -462,7 +462,7 @@ flowchart TD
     G1 -. "cross_from_agentbox, ADR-2025 closed map" .-> G6
     G3 -. "structural round-trip, already converged" .-> G7
     NOTE1["PARTIAL CONVERGENCE: the shared federation-kinds.json governs operational URN crossings<br/>and both translators have typed refusal paths. RDF urn:ngm and semantic display<br/>identities remain separate seams; the historical visionclaw:owner form is not emitted.<br/>Distinct grammars alone are not evidence of a broken join; test each boundary."]
-    NOTE2["DIVERGENCE BASELINE-architecture.md:338-339 - identifier grammars unreconciled, DID doc ADR-074-D2prime vs ADR-125 conflict"]
+    NOTE2["DIVERGENCE BASELINE-architecture.md:424-425 - identifier grammars unreconciled, DID doc ADR-074-D2prime vs ADR-125 conflict"]
     NOTE3["DELIBERATE REFUSAL: memory needs an explicit ontology elevation target;<br/>unknown kinds are refused. Preserve the raw identifier and refusal reason.<br/>This is a bounded translation contract, not proof that every identifier resolves."]
     NOTE4["PROPOSED 2026-10-30, not implemented: ADR-2157 adds a space-bound room form<br/>urn:visionclaw:room:nip29-hex (IDENTIFIER-taxonomy.md, Proposed section, room table) and ADR-2161 a dataspace<br/>URN plus a federation dataspace kind that amends this closed map (IDENTIFIER-taxonomy.md:203,209,222).<br/>Neither room_from_group nor a dataspace kind exists in src/uri/mod.rs or federation-kinds.json at the stamp.<br/>Today the only live room grammar is room plus sha256-12."]
     G4 -.-> NOTE1
@@ -531,6 +531,6 @@ flowchart LR
     GATE["OPEN — the payment_settlement authority class is declared today<br/>and currently GATES NOTHING. The settlement pack is what would<br/>give it work to do.<br/>agentbox/docs/developer/economy-loop.md:270"]
     CHAIN --> GATE
 
-    SKEW["DOC-DRIFT — the forum record still reads the host at solid-pod-rs 0.4.0-alpha.15<br/>and the forum at 0.5.0-alpha.7 (ADR-2012-d1-ledger-becomes-a-chain-view.md:28-30),<br/>as does the proposal (sovereign-settlement.md:61). Both are stale: the forum workspace now<br/>requires 0.5.0-alpha.18 (nostr-rust-forum/Cargo.toml:185) and the VisionClaw checkout<br/>0.5.0-alpha.17 (project/Cargo.toml:246). The skew is narrower than recorded, still one<br/>pre-release apart, and no gate compares them. see ES-01.1"]
+    SKEW["DOC-DRIFT — the forum record still reads the host at solid-pod-rs 0.4.0-alpha.15<br/>and the forum at 0.5.0-alpha.7 (ADR-2012-d1-ledger-becomes-a-chain-view.md:28-30),<br/>as does the proposal (sovereign-settlement.md:61). Both are stale: the forum workspace now<br/>requires 0.5.0-alpha.20 (nostr-rust-forum/Cargo.toml:185) and the VisionClaw checkout<br/>0.5.0-alpha.21 (project/Cargo.toml:240). The skew is narrower than recorded, still one<br/>pre-release apart, and no gate compares them. see ES-01.1"]
     TODAY --> SKEW
 ```

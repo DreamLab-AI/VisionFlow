@@ -51,15 +51,15 @@ sources:
   - ../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md
   - ../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md
   - ../project/agentbox/config/custody/session-plane-acl.json
-verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35}
+verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
 ---
 ## ES-10.1 Three named profiles — exact flag set per profile vs the fail-closed code default
 ```mermaid
 flowchart TB
     subgraph code["Code defaults — fail-closed (ADR-2026)"]
         CD1["RBAC_PUBLIC_READS<br/>unwrap_or(false) = OFF<br/>rbac_gate.rs:135-141"]
-        CD2["RBAC_ALLOW_OWNERLESS<br/>absent = refuse boot<br/>project/src/main.rs:809-819"]
-        CD3["PUBKEY_VISIBILITY_FILTER<br/>parse_visibility_flag = ON<br/>visibility_filter.rs:26-43"]
+        CD2["RBAC_ALLOW_OWNERLESS<br/>absent = refuse boot<br/>project/src/main.rs:810-820"]
+        CD3["PUBKEY_VISIBILITY_FILTER<br/>parse_visibility_flag = ON<br/>visibility_filter.rs:34-51"]
         CD4["RBAC_DEFAULT_ROLE<br/>RBAC_DEFAULT_ROLE_ENV role_store.rs:41<br/>parse_default_role :195 = Editor<br/>fails closed to viewer on an unknown value :204"]
         CD5["RBAC_GATE_MODE<br/>enforce<br/>rbac_gate.rs:90-111"]
     end
@@ -86,7 +86,7 @@ flowchart TB
     end
     ALL["All three profiles pin<br/>APP_ENV=production<br/>RBAC_GATE_MODE=enforce<br/>SETTINGS_AUTH_BYPASS unset"]
     INV["INVARIANT ADR-2027 — a flag left unlisted takes its<br/>fail-closed code default. Any combination outside<br/>these three rows is UNSUPPORTED, a defect not a variant."]
-    DRIFT["ADR-2038 HAS LANDED — profiles are machine-selected by<br/>src/config/security_profile.rs via VISIONCLAW_SECURITY_PROFILE (security_profile.rs:54),<br/>missing intent now refuses non-debug startup. The file is now tracked<br/>and the call site is in HEAD (project/src/main.rs:944), so the record reads<br/>decision_status accepted / activation_status live. NOTE the table above<br/>is SIX flags, not four — PROFILE_FLAGS (security_profile.rs:72) adds RBAC_OWNER_PUBKEY<br/>and RBAC_GATE_MODE. ADR-2027 corrected. see ES-10.7"]
+    DRIFT["ADR-2038 HAS LANDED — profiles are machine-selected by<br/>src/config/security_profile.rs via VISIONCLAW_SECURITY_PROFILE (security_profile.rs:54),<br/>missing intent now refuses non-debug startup. The file is now tracked<br/>and the call site is in HEAD (project/src/main.rs:954), so the record reads<br/>decision_status accepted / activation_status live. NOTE the table above<br/>is SIX flags, not four — PROFILE_FLAGS (security_profile.rs:72) adds RBAC_OWNER_PUBKEY<br/>and RBAC_GATE_MODE. ADR-2027 corrected. see ES-10.7"]
 
     code --> demo
     code --> single
@@ -106,7 +106,7 @@ sequenceDiagram
     participant M as main<br/>project/src/main.rs:172
     participant EH as enforce_release_env_hygiene<br/>project/src/main.rs:118
     participant EV as env validation<br/>project/src/main.rs:59-85
-    participant RS as RoleStore bootstrap<br/>project/src/main.rs:781
+    participant RS as RoleStore bootstrap<br/>project/src/main.rs:782
     participant L as HTTP listener
 
     OS->>M: exec visionclaw binary
@@ -134,12 +134,12 @@ sequenceDiagram
     alt an Owner is assigned
         RS-->>M: ok
     else no Owner and RBAC_ALLOW_OWNERLESS=1
-        RS-->>M: warn and continue — project/src/main.rs:802-808
+        RS-->>M: warn and continue — project/src/main.rs:803-809
     else no Owner and flag unset
-        RS-->>M: FATAL PermissionDenied — project/src/main.rs:809-819
+        RS-->>M: FATAL PermissionDenied — project/src/main.rs:810-820
     end
     M->>L: bind
-    Note over M,L: RESOLVED — ADR-2038 has LANDED. assert_effective_profile_or_exit is called<br/>at project/src/main.rs:952 BEFORE HttpServer::new and .bind,<br/>exiting 2 on any finding in a non-debug artefact, including release/dev-auth<br/>(security_profile.rs:654). Only a debug build<br/>logs and continues (security_profile.rs:657-661). src/config/security_profile.rs<br/>is tracked and the call site is in HEAD, so the record now reads<br/>decision_status accepted / activation_status live. Boot receipt logged<br/>project/src/main.rs:958-962. see ES-10.7 and VC-09.4
+    Note over M,L: RESOLVED — ADR-2038 has LANDED. assert_effective_profile_or_exit is called<br/>at project/src/main.rs:962 BEFORE HttpServer::new and .bind,<br/>exiting 2 on any finding in a non-debug artefact, including release/dev-auth<br/>(security_profile.rs:654). Only a debug build<br/>logs and continues (security_profile.rs:657-661). src/config/security_profile.rs<br/>is tracked and the call site is in HEAD, so the record now reads<br/>decision_status accepted / activation_status live. Boot receipt logged<br/>project/src/main.rs:968-972. see ES-10.7 and VC-09.4
 ```
 
 ## ES-10.3 Shipped compose inverts two fail-closed code defaults
@@ -147,8 +147,8 @@ sequenceDiagram
 flowchart LR
     subgraph codeside["src/ — fail-closed defaults"]
         A1["public_reads_enabled()<br/>.unwrap_or(false)<br/>rbac_gate.rs:141"]
-        A2["RBAC_ALLOW_OWNERLESS_ENV absent<br/>refuse to start<br/>project/src/main.rs:811"]
-        A3["parse_visibility_flag<br/>defaults ON<br/>visibility_filter.rs:26"]
+        A2["RBAC_ALLOW_OWNERLESS_ENV absent<br/>refuse to start<br/>project/src/main.rs:812"]
+        A3["parse_visibility_flag<br/>defaults ON<br/>visibility_filter.rs:34"]
     end
     subgraph composeside["docker-compose.unified.yml — shipped"]
         B1["RBAC_PUBLIC_READS: ${RBAC_PUBLIC_READS:-1}<br/>docker-compose.unified.yml:132"]
@@ -188,7 +188,7 @@ flowchart TB
         H3["NODE_ENV=development plus DOCKER_ENV"]
         H3E["FATAL — project/src/main.rs:140-146"]
         H4["RBAC_ALLOW_OWNERLESS=0 with no RBAC_OWNER_PUBKEY<br/>and no prior Owner"]
-        H4E["PermissionDenied, refuses to start<br/>project/src/main.rs:811"]
+        H4E["PermissionDenied, refuses to start<br/>project/src/main.rs:812"]
     end
     subgraph launcher["Launcher pre-flight — launch.sh up prod, before docker is touched"]
         P1[".env.prod defines SETTINGS_AUTH_BYPASS, ALLOW_INSECURE_DEFAULTS,<br/>VISIONCLAW_DEV_MODE or DEV_AUTH_LOOPBACK, even as false"]
@@ -208,7 +208,7 @@ flowchart TB
         N2["VISIONCLAW_SECURITY_PROFILE unset"]
         N2E["MissingDeclaredProfile finding<br/>Non-debug builds refuse binding"]
         N3["RBAC_GATE_MODE=report in a release build,<br/>acknowledged or not"]
-        N3E["ReportModeRequested finding, security_profile.rs:523-526<br/>exit 2 before RbacGate::from_env runs at project/src/main.rs:1137"]
+        N3E["ReportModeRequested finding, security_profile.rs:523-526<br/>exit 2 before RbacGate::from_env runs at project/src/main.rs:1171"]
     end
 
     H1 --> H1E
@@ -260,7 +260,7 @@ sequenceDiagram
     Note over RG: INVARIANT — absence of a security flag must never<br/>widen access. RBAC_PUBLIC_READS may only widen reads<br/>when EXPLICITLY set (public_reads_enabled rbac_gate.rs:130-141,<br/>unwrap_or(false) at rbac_gate.rs:141)
 ```
 
-**Drift (corrected 2026-11-02):** ES-10.4 and ES-10.5 used to show a release build entering report mode with a same-day `RBAC_REPORT_MODE_ACK`. At visionclaw `86cdd76` the boot assertion records `ReportModeRequested` whenever report mode is requested, acknowledged or not (`../project/src/config/security_profile.rs:523-526`), and a release artefact exits 2 on any finding (`../project/src/config/security_profile.rs:645-654`) before `RbacGate::from_env` is built (`../project/src/main.rs:1137`). The ES-10.3 compose labels also named lines 105–135, which do not hold those flags at this revision. The flags are at `../project/docker-compose.unified.yml:116,132,133,140,146`.
+**Drift (corrected 2026-11-02):** ES-10.4 and ES-10.5 used to show a release build entering report mode with a same-day `RBAC_REPORT_MODE_ACK`. At visionclaw `86cdd76` the boot assertion records `ReportModeRequested` whenever report mode is requested, acknowledged or not (`../project/src/config/security_profile.rs:523-526`), and a release artefact exits 2 on any finding (`../project/src/config/security_profile.rs:645-654`) before `RbacGate::from_env` is built (`../project/src/main.rs:1171`). The ES-10.3 compose labels also named lines 105–135, which do not hold those flags at this revision. The flags are at `../project/docker-compose.unified.yml:116,132,133,140,146`.
 
 ## ES-10.6 VISIONCLAW_DEV_MODE — peer-agnostic LAN-local full bypass (ADR-2039)
 ```mermaid
@@ -344,14 +344,14 @@ flowchart TB
         P5[" port 5904 xr-runtime"]
     end
     FAIL["Anything else FAILS CI"]
-    INV["INVARIANT — ADR-2153 is LIVE: the port 9095 AoE listener and its aoe-serve program are gone. Session control has no TCP listener, only a 0660 unix socket in group ab-sessions<br/>authorised by SO_PEERCRED (agentbox/docs/INGRESS-identity.md:244). port 9096 stays the one identity-gated door, proxy_port at agentbox/flake.nix:420,<br/>published 9096 port 9096 at agentbox/docker-compose.yml:47 (the exception is explained at flake.nix:3529-3531)."]
+    INV["INVARIANT — ADR-2153 is LIVE: the port 9095 AoE listener and its aoe-serve program are gone. Session control has no TCP listener, only a 0660 unix socket in group ab-sessions<br/>authorised by SO_PEERCRED (agentbox/docs/INGRESS-identity.md:244). port 9096 stays the one identity-gated door, proxy_port at agentbox/flake.nix:429,<br/>published 9096 port 9096 at agentbox/docker-compose.yml:47 (the exception is explained at flake.nix:3580-3582)."]
     D1["RESOLVED ADR-2013 — the estate has TEN sanctioned LAN publishes,<br/>not one front door and not two. the main compose publishes only  port 9096<br/>(agentbox/docker-compose.yml:47) but the overlays add nine more, each with a<br/>cited rationale on the SANCTIONED list (check-ports-loopback.mjs:93-104)<br/>and CI-enforced. These are DECIDED exposures, not an admitted breach."]
     D2["RESOLVED ADR-2013 closeout 2026-09-05 — the scanner is now a<br/>strict YAML PARSER, not an awk line-walker<br/>(check-ports-loopback.mjs:8-24). It rejects the flow-mapping<br/>and JSON-flow bypasses that previously passed, plus IPv6<br/>binds and non-sequence ports values (:39-41)."]
-    D3["RESOLVED ADR-2040 — code-server still binds 0.0.0.0:8080 inside the<br/>container while compose publishes 127.0.0.1:8080:8080<br/>(agentbox/docker-compose.yml:54), and a loopback PUBLISH constrains the<br/>HOST only: agentbox also joins visionclaw_network, so a PEER CONTAINER<br/>still reaches it. The hole was closed by AUTHENTICATION, not by<br/>rebinding — the flag is now --auth password, not --auth none<br/>(agentbox/flake.nix:2859), with the password minted 0600 at boot by<br/>entrypoint-unified.sh and never baked into the generated supervisor<br/>text (agentbox/flake.nix:2852-2858)."]
+    D3["RESOLVED ADR-2040 — code-server still binds 0.0.0.0:8080 inside the<br/>container while compose publishes 127.0.0.1:8080:8080<br/>(agentbox/docker-compose.yml:54), and a loopback PUBLISH constrains the<br/>HOST only: agentbox also joins visionclaw_network, so a PEER CONTAINER<br/>still reaches it. The hole was closed by AUTHENTICATION, not by<br/>rebinding — the flag is now --auth password, not --auth none<br/>(agentbox/flake.nix:2910), with the password minted 0600 at boot by<br/>entrypoint-unified.sh and never baked into the generated supervisor<br/>text (agentbox/flake.nix:2903-2909)."]
     D5["PROPOSED ADR-2062: the gate reasons about PUBLISHED ports and<br/>is structurally blind to a container-internal 0.0.0.0 bind on a<br/>shared bridge. The invariant is to be restated in terms of<br/>LISTENERS, with each supervised program declaring its bind address."]
-    D4["RESOLVED — the stale --auth none COMMENT that used to survive at<br/>agentbox/docker-compose.yml near the port list is GONE from the<br/>generated artefact at HEAD; only the AUTO-GENERATED, do not edit by<br/>hand header remains (agentbox/docker-compose.yml:1). The generator<br/>(agentbox/flake.nix:2859 emits --auth password) and the committed<br/>artefact now agree, confirming the self-heal-on-regenerate DECISION."]
+    D4["RESOLVED — the stale --auth none COMMENT that used to survive at<br/>agentbox/docker-compose.yml near the port list is GONE from the<br/>generated artefact at HEAD; only the AUTO-GENERATED, do not edit by<br/>hand header remains (agentbox/docker-compose.yml:1). The generator<br/>(agentbox/flake.nix:2910 emits --auth password) and the committed<br/>artefact now agree, confirming the self-heal-on-regenerate DECISION."]
 
-    D6["LISTENER, not a publish — the System One proxy binds 0.0.0.0 inside the container when network is true (agentbox.toml:892-893),<br/>never published, so any container on visionclaw_network can reach it and spend the vendor key, an accepted consequence<br/>(ADR-2139-system-one-judge-as-a-vendor-slot.md:298). It is on the listener list, check-ports-loopback.mjs:740-745, and refuses an Origin<br/>header or a non-JSON content type with 403 (server.rs:151-169). CONFIGURED: effective when the new agentbox image is activated"]
+    D6["LISTENER, not a publish — the System One proxy binds 0.0.0.0 inside the container when network is true (agentbox.toml:898-899),<br/>never published, so any container on visionclaw_network can reach it and spend the vendor key, an accepted consequence<br/>(ADR-2139-system-one-judge-as-a-vendor-slot.md:330). It is on the listener list, check-ports-loopback.mjs:740-745, and refuses an Origin<br/>header or a non-JSON content type with 403 (server.rs:151-169). CONFIGURED: effective when the new agentbox image is activated"]
 
     SC --> R1
     SC --> R2
@@ -366,7 +366,7 @@ flowchart TB
     D5 --> D6
 ```
 
-**Resolved:** ADR-2153 is accepted and live (implementation `partial`): Agent of Empires, the `port 9095` listener and `aoe-serve` are removed and the `port 9096` door keeps named operator routes only; the `aoe-profiles` volume is deliberately retained, mounted but unused, for recovery (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`, `:60`, `:139`; `../project/agentbox/flake.nix:3870`).
+**Resolved:** ADR-2153 is accepted and live (implementation `partial`): Agent of Empires, the `port 9095` listener and `aoe-serve` are removed and the `port 9096` door keeps named operator routes only; the `aoe-profiles` volume is deliberately retained, mounted but unused, for recovery (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`, `:91`, `:170`; `../project/agentbox/flake.nix:3909`).
 
 ## ES-10.10 agentbox credential custody register — roles and open acceptance evidence
 ```mermaid
@@ -374,13 +374,13 @@ flowchart TB
     subgraph reg["Provisional custody register — agentbox/docs/SECURITY-profiles.md 2026-09-04"]
         C1["Bridge identity / unwrap key<br/>AGENTBOX_BRIDGE_SK_FILE default /run/secrets/nostr.key<br/>under role_isolation held by ab-identity, agentbox/config/role-accounts.json:22-26<br/>legacy env fallback only while the flag is off"]
         C2["Shared server publisher identity<br/>ADR-2012 per-consumer split PENDING<br/>relay key list is build-projected"]
-        C3["Proxy break-glass bearer<br/>NIP98_PROXY_ALLOW_BEARER read at process start<br/>under role_isolation a file of ab-ingress, role-accounts.json:46-51"]
+        C3["Proxy break-glass bearer<br/>NIP98_PROXY_ALLOW_BEARER read at process start<br/>under role_isolation a file of ab-ingress, role-accounts.json:47-52"]
         C4["Proxy browser-session signing secret<br/>NIP98_PROXY_SESSION_SECRET or per-boot random<br/>under role_isolation a file of ab-ingress"]
         C5["Session-plane socket authority (ADR-2153)<br/>no token: SO_PEERCRED ACL, uids 1000 and 961<br/>agentbox/config/custody/session-plane-acl.json:8-11"]
         C6["Dream remote-execution identity<br/>ssh/scp uses AMBIENT ssh config, no explicit identity file"]
         C7["VisionClaw legacy backup<br/>scripts/backup-secrets.sh: ZIP plus manifest"]
         C8["Agentbox Rust backup source<br/>services/secret-backup: tar inside age, owner-only output"]
-        C9["Claude Code session permission posture (ADR-2116)<br/>agentbox.toml:697-712 [claude_code] bypassPermissions default<br/>plus deny rules (docker run/compose, ssh to machinelearn)"]
+        C9["Claude Code session permission posture (ADR-2116)<br/>agentbox.toml:703-718 [claude_code] bypassPermissions default<br/>plus deny rules (docker run/compose, ssh to machinelearn)"]
     end
     ST["STATUS — proposed governing surface. Every custodian,<br/>deployed location, rotation cadence and incident response<br/>time is UNCONFIRMED. No cadence is invented."]
     D1["PARTIAL — break-glass checks optional expiry and method/path scope.<br/>Unset bounds allow unbounded use. Acceptance/refusal logs include<br/>a fingerprint and counters, but durable per-use audit is unproven."]
@@ -388,7 +388,7 @@ flowchart TB
     D3["RESOLVED Q15 2026-10-03 — agentbox/agentbox.toml:160 now names b4165401 the operator's<br/>NIP-07 signer for 31403 decisions, not visionclaw-server, which signs 31402<br/>as the house key. The house key's own split is STAGED: K_browser and K_broker<br/>have null pubkeys and no use is withdrawn yet,<br/>agentbox/config/custody/g5-key-split.json:13-32"]
     D4["RESOLVED ADR-2153 — the AoE daemon token and the proxy last-good cache<br/>retired with port 9095, so there is no daemon token to rotate. The ACL<br/>names uids, not secrets, session-plane-acl.json:8-11. The legacy register row<br/>still lists it, agentbox/docs/SECURITY-profiles.md:25."]
     D5["DIVERGENCE SOPS never executed (legacy ADR-109, accepted<br/>2026-05-09) — VisionClaw .env is PLAINTEXT today, no SOPS<br/>artifacts in tree."]
-    D6["SCOPED OUT — ADR-2116 permission posture governs WHO can run<br/>tools inside a Claude Code session, not custody of a secret<br/>value. Deny rules (agentbox.toml:712) are pattern matches a<br/>sh -c wrapper evades, so it is access control, not a vault entry."]
+    D6["SCOPED OUT — ADR-2116 permission posture governs WHO can run<br/>tools inside a Claude Code session, not custody of a secret<br/>value. Deny rules (agentbox.toml:718) are pattern matches a<br/>sh -c wrapper evades, so it is access control, not a vault entry."]
 
     reg --> ST
     C3 --> D1
@@ -411,14 +411,14 @@ flowchart TB
     end
     subgraph ON["role_isolation = true"]
         direction TB
-        A1["role programs run under their own uids 960-972, one per secret-bearing role<br/>agentbox/config/role-accounts.json:20-120"]
+        A1["role programs run under their own uids 960-972, one per secret-bearing role<br/>agentbox/config/role-accounts.json:20-121"]
         A2["the socket is NOT widened, and a degraded:docker-socket state is written<br/>with a grep-able marker when devuser can still reach it<br/>agentbox/config/entrypoint-unified.sh:615-631"]
-        A3["devuser's docker CLI points at the GET-only proxy /run/docker-ro.sock<br/>entrypoint-unified.sh:4003"]
+        A3["devuser's docker CLI points at the GET-only proxy /run/docker-ro.sock<br/>entrypoint-unified.sh:4020"]
         A4["the proxy allows GET and HEAD on ping, version, info, container list,<br/>inspect and logs only, refuses every upgrade with 403, and drops to uid 65534<br/>holding only the socket's group, agentbox/config/docker-read-proxy.cjs:39,<br/>docker-read-proxy.cjs:120-123, docker-read-proxy.cjs:130-139"]
         A1 --> A2 --> A3 --> A4
     end
     OFF --> ON
-    GR["INVARIANT, unconditional — devuser is no longer a member of group root;<br/>the baked group file lists root with no members, agentbox/flake.nix:4041-4046.<br/>Baked, so undoing it needs a rebuild"]
+    GR["INVARIANT, unconditional — devuser is no longer a member of group root;<br/>the baked group file lists root with no members, agentbox/flake.nix:4083-4088.<br/>Baked, so undoing it needs a rebuild"]
     ON --> GR
     EG["The prompt egress register: 46 routes, each with what leaves, its destination class,<br/>its gate and its accepted-egress record, agentbox/config/egress-policy.json:48-72,<br/>rendered into SECURITY-profiles and validated by<br/>agentbox/scripts/ci/render-egress-register.js:84-100"]
     GR --> EG
@@ -428,13 +428,13 @@ flowchart TB
 
 **What it shows.** The agentbox half of the estate's custody posture after step 1. The flag-independent change is that devuser leaves group root. The flag-dependent changes are per-role accounts and the end of devuser's raw Docker socket, replaced by a read-only proxy. The prompt egress register is the companion catalogue of what can leave the container and on what authority.
 
-**Why it is this way.** The custody design found three bypasses that voided any in-container boundary: host Docker access, root running devuser-influenced code, and secrets in PID 1's environment. Group-root membership was baked into the image, so its removal is unconditional. The rest ships behind `[security].role_isolation`, off by default and rebuild-class since ER-9 (the privilege change is baked, `../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:632`), until the owner's boot rehearsal (agentbox AB-36).
+**Why it is this way.** The custody design found three bypasses that voided any in-container boundary: host Docker access, root running devuser-influenced code, and secrets in PID 1's environment. Group-root membership was baked into the image, so its removal is unconditional. The rest ships behind `[security].role_isolation`, off by default and rebuild-class since ER-9 (the privilege change is baked, `../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:677`), until the owner's boot rehearsal (agentbox AB-36).
 
-**Invariant:** devuser is not a member of group root in any image built at this revision, flag on or off (`../project/agentbox/flake.nix:4041-4046`).
+**Invariant:** devuser is not a member of group root in any image built at this revision, flag on or off (`../project/agentbox/flake.nix:4083-4088`).
 
 **Open:** under `role_isolation` the entrypoint stops widening the Docker socket but cannot narrow it: the socket is the host's inode and earlier boots left it `o+rw`, so the boot records `degraded:docker-socket` and a host-side `chmod` is owed (`../project/agentbox/config/entrypoint-unified.sh:615-631`, `../project/agentbox/docker-compose.override.yml:114-116`).
 
-**Drift (egress register vs role isolation):** the `nostr-gateway` row states that the operator key is in the process environment (`../project/agentbox/config/egress-policy.json:447`); that holds only with the flag off, since under the flag the gateway takes the key from a role-secret file it does not hold (`../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:260-261`).
+**Drift (egress register vs role isolation):** the `nostr-gateway` row states that the operator key is in the process environment (`../project/agentbox/config/egress-policy.json:447`); that holds only with the flag off, since under the flag the gateway takes the key from a role-secret file it does not hold (`../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:305-306`).
 
 ## Custody audit qualification — 2026-09-07
 
@@ -467,14 +467,14 @@ flowchart TB
     INV["INVARIANT — a publish that is not on this list, in any compose<br/>file, fails CI. The parser rewrite exists because the previous<br/>walker armed only on a line whose first token was ports, so the<br/>same port written as a nested flow mapping passed.<br/>agentbox/scripts/ci/check-ports-loopback.mjs:10-18"]
     DOORS --> INV
 
-    PROP["PARTLY BUILT 2026-09-30 (d0fa1b80b) — the sidechain manifest block now<br/>gates three supervised programs, sidestr-producer, sidestr-mirror and<br/>sidestr-faucet, agentbox/flake.nix:3127,3145,3162 and agentbox/agentbox.toml:1957-1964.<br/>The chain plane is still NOT a door: no sidestr-node, no sidestr-bridge<br/>and no loopback port 9097 bind behind the nip98-proxy exist,<br/>agentbox/docs/BASELINE-container.md:234. The planned program is still<br/>agentbox/docs/adr/ADR-2098-chain-and-asset-urn-kinds-and-the-chain-nostr-plane.md:48-51"]
+    PROP["PARTLY BUILT 2026-09-30 (d0fa1b80b) — the sidechain manifest block now<br/>gates three supervised programs, sidestr-producer, sidestr-mirror and<br/>sidestr-faucet, agentbox/flake.nix:3178,3196,3213 and agentbox/agentbox.toml:1963-1970.<br/>The chain plane is still NOT a door: no sidestr-node, no sidestr-bridge<br/>and no loopback port 9097 bind behind the nip98-proxy exist,<br/>agentbox/docs/BASELINE-container.md:252. The planned program is still<br/>agentbox/docs/adr/ADR-2098-chain-and-asset-urn-kinds-and-the-chain-nostr-plane.md:48-51"]
     INV --> PROP
-    GATEDRIFT["DRIFT — ADR-2098 gates a validator-and-mirror sidestr-node on the<br/>sidechain enabled key and the producer on a separate signer key,<br/>agentbox/docs/adr/ADR-2098-chain-and-asset-urn-kinds-and-the-chain-nostr-plane.md:48-50.<br/>The build has no sidestr-node and gates the producer on the<br/>enabled key itself, agentbox/flake.nix:322,3116 and agentbox/agentbox.toml:1959, where it is now true again after the validated prefixes were recovered from the ENOSPC block-persistence failure (agentbox/agentbox.toml:1958); the key dominates mirrors, faucets and poker citizens, and a second sealed chain, dreamlab-txbt4, bakes its own per-chain programs when enabled (agentbox/agentbox.toml:1975, agentbox/flake.nix:3232)."]
+    GATEDRIFT["DRIFT — ADR-2098 gates a validator-and-mirror sidestr-node on the<br/>sidechain enabled key and the producer on a separate signer key,<br/>agentbox/docs/adr/ADR-2098-chain-and-asset-urn-kinds-and-the-chain-nostr-plane.md:48-50.<br/>The build has no sidestr-node and gates the producer on the<br/>enabled key itself, agentbox/flake.nix:331,3167 and agentbox/agentbox.toml:1965, where it is now true again after the validated prefixes were recovered from the ENOSPC block-persistence failure (agentbox/agentbox.toml:1964); the key dominates mirrors, faucets and poker citizens, and a second sealed chain, dreamlab-txbt4, bakes its own per-chain programs when enabled (agentbox/agentbox.toml:1981, agentbox/flake.nix:3283)."]
     PROP --> GATEDRIFT
 
     NARROW["PROPOSED scope change to Invariant 6 — the relay allowlist governs<br/>IDENTITY ingress; chain ingress would be authenticated by consensus<br/>instead. Recorded as a proposed note, with the live compliance<br/>surface unchanged.<br/>agentbox/docs/INGRESS-identity.md:255"]
     PROP --> NARROW
 
-    TENSION["RESOLVED at this revision — two of the ten doors, ports 8443 and 8444, are<br/>permanently sanctioned, and the manifest now records the voice plane ON<br/>(agentbox/agentbox.toml:2248), so the two no longer contradict. That key is<br/>descriptive sidecar state, flipped by voice up and down, not a boot gate,<br/>so neither answers whether voice is running. see ES-01.5"]
+    TENSION["RESOLVED at this revision — two of the ten doors, ports 8443 and 8444, are<br/>permanently sanctioned, and the manifest now records the voice plane ON<br/>(agentbox/agentbox.toml:2254), so the two no longer contradict. That key is<br/>descriptive sidecar state, flipped by voice up and down, not a boot gate,<br/>so neither answers whether voice is running. see ES-01.5"]
     D1 --> TENSION
 ```

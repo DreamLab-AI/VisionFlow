@@ -26,7 +26,7 @@ sources:
   - ../knowledgeGraph/explorer/modern/package.json
   - ../knowledgeGraph/explorer/modern/src/site/mesh.ts
   - ../knowledgeGraph/explorer/modern/src/types/scope.ts
-verified_commit: {visiongraph: 556a0156b5c326fb61141ed2ab1760dd8d9c4dd6, knowledgegraph: 5294e88b6602a63b5afe96c79f2779d00274a05e}
+verified_commit: {visiongraph: d8277151a1404b456b5c7206187f7e4b50f25be1, knowledgegraph: 5294e88b6602a63b5afe96c79f2779d00274a05e}
 ---
 
 ## For developers
@@ -41,16 +41,16 @@ Readers can explore relationships and open corpus prose, but a successful graph 
 
 ```mermaid
 flowchart TB
-    %% Source: ../visionGraph/.github/workflows/publish.yml:421
+    %% Source: ../visionGraph/.github/workflows/publish.yml:430
     A["visionGraph publisher builds<br/>publishing-tools/WasmVOWL/modern"]
-    %% Source: ../visionGraph/.github/workflows/publish.yml:441
+    %% Source: ../visionGraph/.github/workflows/publish.yml:450
     A --> B["Copy built shell/assets into www<br/>preserve authoritative machine trees"]
-    %% Source: ../visionGraph/.github/workflows/publish.yml:526
+    %% Source: ../visionGraph/.github/workflows/publish.yml:535
     B --> C["Deploy assembled site to<br/>knowledgeGraph gh-pages"]
     %% Source: ../knowledgeGraph/explorer/modern/package.json:20
     D["Retained knowledgeGraph/explorer<br/>vowl-wasm 0.1.1 and React Three Fiber"]
     %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/package.json:24
-    A --> E["Configured host uses shared graph 0.2.0<br/>and vowl-wasm 0.2.2"]
+    A --> E["Configured host uses shared graph 0.2.0<br/>and vowl-wasm 0.2.3"]
     D -.->|"different source and package contracts"| E
     %% Source: ../visionGraph/publishing-tools/WasmVOWL/Dockerfile:6
     %% Source: ../visionGraph/publishing-tools/WasmVOWL/Dockerfile:13
@@ -97,8 +97,8 @@ flowchart TB
     %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/components/Canvas/GraphCanvas.tsx:44
     B -.-> C["DRIFT: current host simulates<br/>domain and focus scopes"]
     %% Source: ../visionGraph/.github/workflows/publish.yml:48
-    %% Source: ../visionGraph/.github/workflows/publish.yml:175
-    D["Current publisher uses ontomark v0.7.0<br/>all-vault public build"]
+    %% Source: ../visionGraph/.github/workflows/publish.yml:174
+    D["Current publisher uses ontomark v0.8.0<br/>all-vault public build"]
     %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/package.json:8
     %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/package.json:24
     D --> E["npm installs released graph and WASM<br/>local Rust builds runtime-notices tool"]
