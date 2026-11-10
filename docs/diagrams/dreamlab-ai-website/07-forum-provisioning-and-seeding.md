@@ -33,7 +33,8 @@ sources:
   - ../dreamlab-ai-website/forum-config/deploy/SYSTEM-ONE.md
   - ../dreamlab-ai-website/scripts/lib/enquiry-topic.mjs
   - ../dreamlab-ai-website/scripts/lib/digest.mjs
-verified_commit: 0e1572801d03a1af6d8bc8861f928da087d69eed
+  - ../dreamlab-ai-website/scripts/lib/website-info.mjs
+verified_commit: f934e26f949f3b95171544ec8ec5bcfd7679f593
 ---
 
 ## DW-07.2 Root-level seeders — deleted 2026-10-07 (historical)
@@ -106,17 +107,17 @@ flowchart LR
 flowchart TB
     %% Source: ../dreamlab-ai-website/scripts/seo-watch/crontab:17
     A["07:15 UTC, flock and 300-second timeout"]
-    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:288
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:290
     A --> B["Check effective ingress for three keys<br/>merged disclosure and deployed bundle strings"]
-    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:297
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:299
     B --> C["Publish labelled probe to monitor<br/>read it back with the monitor inbox"]
     %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:187
-    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:314
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:316
     C --> D["Three-day window, verify seal and author<br/>deduplicate by outer wrap ID"]
-    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:349
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:353
     D --> E["New mail or problems trigger one digest<br/>optional Jev enquiry tags, operator DM"]
 ```
-- It exists because the relay rewrites every kind-1059 read to the viewer's own `#p`, so the admin inbox is unreadable to anyone else; each submission is therefore also wrapped to the monitor key (`scripts/inbox-watch/run.mjs:4-11`, DW-04.9). The digest is written to the operator and, when the DM never reached the relay, state is deliberately not persisted so the same messages surface again next run (`scripts/inbox-watch/run.mjs:376-380`). When `DREAMLAB_JEV=1` (default off) fresh enquiries also get an advisory Jev topic tag (`scripts/inbox-watch/run.mjs:354-356`), which since 2026-10-30 may reach TypeSafe and is local-only only when `DREAMLAB_JEV_TOPIC_LOCAL_ONLY=1` (`scripts/lib/enquiry-topic.mjs:27-32`, `scripts/lib/enquiry-topic.mjs:86`).
-- It judges channel health with `ingressProblem` and `disclosureProblem` from `scripts/lib/website-info.mjs` (`scripts/inbox-watch/run.mjs:35`), but these check effective ingress and public disclosure rather than proving the database rows remain. The reset-db detection claim in ADR-2011 is therefore too strong; DW-09 and the [dated review](../../estate-review/2026-11-01-website-information-and-inbox.md) record the counterexamples.
+- It exists because the relay rewrites every kind-1059 read to the viewer's own `#p`, so the admin inbox is unreadable to anyone else; each submission is therefore also wrapped to the monitor key (`scripts/inbox-watch/run.mjs:4-11`, DW-04.9). The digest is written to the operator and, when the DM never reached the relay, state is deliberately not persisted so the same messages surface again next run (`scripts/inbox-watch/run.mjs:380-384`). When `DREAMLAB_JEV=1` (default off) fresh enquiries also get an advisory Jev topic tag (`scripts/inbox-watch/run.mjs:358-360`), which since 2026-10-30 may reach TypeSafe and is local-only only when `DREAMLAB_JEV_TOPIC_LOCAL_ONLY=1` (`scripts/lib/enquiry-topic.mjs:27-32`, `scripts/lib/enquiry-topic.mjs:86`).
+- It judges channel health with `ingressProblem` and `disclosureProblem` from `scripts/lib/website-info.mjs` (`scripts/inbox-watch/run.mjs:35`), and `disclosureProblem` now needs the relay's `registered` flag (`scripts/lib/website-info.mjs:88-91`), which only a registry row sets, while `ingressProblem` checks only that the ingress declaration is effective (`scripts/lib/website-info.mjs:118-122`), so the reset-db detection claim in ADR-2011 now holds for the registry row while ingress health only proves the declaration is effective; DW-09 and the [dated review](../../estate-review/2026-11-01-website-information-and-inbox.md) record the counterexamples.
 
-- **Debt:** the digest itemises at most 25 messages (`scripts/lib/digest.mjs:18-19`) but persists all fetched IDs as seen after relay acceptance (`scripts/inbox-watch/run.mjs:327-328`); undisplayed messages do not roll forward. A sender-controlled probe phrase can also suppress classification. The dated review executes both paths with synthetic encrypted messages.
+- **Debt:** RESOLVED at dreamlab-ai-website f934e26 — the digest itemises at most 25 messages (`scripts/lib/digest.mjs:13`), but only the itemised ones are now marked seen after relay acceptance (`scripts/lib/digest.mjs:15-18`, `scripts/inbox-watch/run.mjs:387`), so undisplayed messages roll forward. **Debt:** a sender-controlled probe phrase can still suppress classification (`scripts/inbox-watch/run.mjs:200`). The dated review executes both paths with synthetic encrypted messages.

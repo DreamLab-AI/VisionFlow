@@ -16,7 +16,7 @@ sources:
   - ../visiontouch-rs/docs/spec/11-relative-pointer.md
   - ../visiontouch-rs/docs/spec/12-force-feedback.md
   - ../visiontouch-rs/docs/adr/ADR-0002-layered-software-force-envelope.md
-verified_commit: 7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d
+verified_commit: a9e52b6154b44fb7afc158230c4ec26d4213c015
 ---
 
 ## For developers
@@ -38,7 +38,7 @@ sequenceDiagram
     participant PT as Pointer send_coupling<br/>pointer.rs:590
     participant WK as worker loop<br/>pointer.rs:256
     participant SV as service<br/>pointer.rs:180
-    participant DV as Device guard<br/>crates/device/src/lib.rs:512
+    participant DV as Device guard<br/>crates/device/src/lib.rs:655
     UI->>PT: proxy position and velocity only when running at 1.00x<br/>(main.rs:105-110)
     PT->>WK: Command Coupling in registered metres with an issue time<br/>(pointer.rs:594-608)
     WK->>WK: drain consumes all currently available commands before sampling, with no<br/>count or time budget<br/>(pointer.rs:225-229)
@@ -129,8 +129,8 @@ flowchart TB
     DESC --> SPR
     SPR --> GUARD
     PX --> REAC
-    N1["DOC-DRIFT: spec says the proxy reaction is reported to the device SDK<br/>12-force-feedback.md:129 but reaction_force is read only by tests, see physics.rs:529"]
-    N2["INVARIANT: spec and code agree that 150 N/m is a default, with a 20 to 1500 slider bounded in practice by the 0.5 N, 96-count limits<br/>12-force-feedback.md:112-113 and main.rs:353"]
+    N1["DOC-DRIFT: spec says the proxy reaction is reported to the device SDK<br/>12-force-feedback.md:187 but reaction_force is read only by tests, see physics.rs:529"]
+    N2["INVARIANT: spec and code agree that 150 N/m is a default, with a 20 to 1500 slider bounded in practice by the 0.5 N, 96-count limits<br/>12-force-feedback.md:170-171 and main.rs:353"]
     N3["INVARIANT: Mass Lab sets ForceLimits::default and cannot raise limits, only the Studio ladder does<br/>pointer.rs:272-278"]
     REAC --- N1
     SPR --- N2
@@ -146,7 +146,7 @@ sequenceDiagram
     autonumber
     participant UI as Pointer buttons<br/>pointer.rs:571
     participant WK as worker commands<br/>pointer.rs:260
-    participant DV as Device<br/>crates/device/src/lib.rs:449
+    participant DV as Device<br/>crates/device/src/lib.rs:558
     UI->>WK: RegisterReset, UI clears feedback and trail<br/>(pointer.rs:579-588)
     WK->>DV: register_reset switches feedback off then records the pose<br/>(pointer.rs:294)
     WK->>WK: servo state reset so any held coupling is dropped<br/>(pointer.rs:296)
@@ -155,8 +155,8 @@ sequenceDiagram
     WK->>WK: refuse and report Feedback false when no registration<br/>(pointer.rs:268-270)
     WK->>DV: set default limits then enable_feedback<br/>(pointer.rs:275-279)
     DV-->>WK: any error drops the device and reports Error<br/>(pointer.rs:283-285)
-    Note over UI,DV: INVARIANT: feedback cannot be enabled before registration on this<br/>connection<br/>pointer.rs:268 and crates/device/src/lib.rs:515-516
-    Note over WK,DV: INVARIANT: SIGINT or SIGTERM only set a flag and the worker does the<br/>cleanup<br/>pointer.rs:257-259 and 12-force-feedback.md:145-147
+    Note over UI,DV: INVARIANT: feedback cannot be enabled before registration on this<br/>connection<br/>pointer.rs:268 and crates/device/src/lib.rs:658-661
+    Note over WK,DV: INVARIANT: SIGINT or SIGTERM only set a flag and the worker does the<br/>cleanup<br/>pointer.rs:257-259 and 12-force-feedback.md:203-205
 ```
 
 Registering always turns force off, so the operator has to enable it again deliberately after zeroing.

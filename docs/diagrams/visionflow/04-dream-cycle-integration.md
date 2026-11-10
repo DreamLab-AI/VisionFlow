@@ -28,7 +28,8 @@ sources:
   - docs/adr/ADR-2009-webgl-mesh-deep-is-sidecar-only.md
   - ./README.md
   - package.json
-verified_commit: 5f8b1da92ce5d9e6b32a0bd90ec3630c66619083
+  - ../project/agentbox/management-api/lib/dream-ledger.js
+verified_commit: {visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
 ---
 
 ## VF-04.1 dream.config.json — the whole contract this repo offers the engine
@@ -149,9 +150,9 @@ flowchart LR
     E5 --> E5X["orphans are a MEASUREMENT, never a failure: optional groups<br/>are staged deliberately for deep links<br/>dream-asset-refs-scan.sh:22"]:::odd
 
     E6["estate-health.mjs check — offline read of the committed snapshot"]
-    E6 --> E6I["an INFO snapshot-age line on every path; it changes<br/>neither precedence nor exit code — estate-health.mjs:991-1002"]:::odd
-    E6 --> E6P["ESTATE-HEALTH-OK, exit 0 — estate-health.mjs:1018"]:::pass
-    E6 --> E6F["ESTATE-HEALTH-RED or ESTATE-HEALTH-STALE, exit 1<br/>estate-health.mjs:1008 and estate-health.mjs:1014; a missing,<br/>unparseable or wrong-schema file is STALE earlier — estate-health.mjs:943-961"]:::fail
+    E6 --> E6I["an INFO snapshot-age line on every path; it changes<br/>neither precedence nor exit code — estate-health.mjs:1031-1042"]:::odd
+    E6 --> E6P["ESTATE-HEALTH-OK, exit 0 — estate-health.mjs:1058"]:::pass
+    E6 --> E6F["ESTATE-HEALTH-RED or ESTATE-HEALTH-STALE, exit 1<br/>estate-health.mjs:1048 and estate-health.mjs:1054; a missing,<br/>unparseable or wrong-schema file is STALE earlier — estate-health.mjs:983-1001"]:::fail
 ```
 
 **Drift (resolved 2026-10-12, `4159e08`):** this diagram recorded the build and link evaluators as exiting 0 on failure (`exit status is 0 either way`); `scripts/dream-build-check.sh:12-13` and `scripts/dream-link-check.sh:155-156` now print the FAIL marker and exit 1, and the script headers state that the printed marker remains the verdict the deploy gate and the dream engine read (`scripts/dream-build-check.sh:5-6`, `scripts/dream-link-check.sh:3-7`, engine side in AB-23). `deploy.yml` discards the code with an or-true and keeps the marker grep (`.github/workflows/deploy.yml:92`, `.github/workflows/deploy.yml:94`, `.github/workflows/deploy.yml:102`, `.github/workflows/deploy.yml:104`), and `tests/gates/dream-evaluator-exit.test.sh:36-65` pins marker and code together. The meta-tags and structured-data scans are unchanged and still exit 0 after printing their FAIL marker (`scripts/dream-meta-tags-scan.sh:9`, `scripts/dream-structured-data-scan.sh:9`).
@@ -321,7 +322,7 @@ flowchart LR
     DREAMONLY -.-> NOBROWSER
 ```
 
-**Drift (ledger schema note vs agentbox):** the note calls the FR6.6 writer `unmerged, not deployed` (`docs/dream-cycle/LEDGER.md:1`). In agentbox at the pinned `c57d9c0`, `19463a588` is an ancestor, and the writer declares the `reviewer` and `reviewMinutes` columns (agentbox `management-api/lib/dream-ledger.js:54-55`). The merge half of the note is stale. Whether the deployed engine writes the columns is runtime evidence this source trace does not establish, and the newest rows still carry no value in either column (`docs/dream-cycle/LEDGER.md:48-51`).
+**Drift (ledger schema note vs agentbox):** the note calls the FR6.6 writer `unmerged, not deployed` (`docs/dream-cycle/LEDGER.md:1`). In agentbox at the pinned `720e0d89`, `19463a588` is an ancestor, and the writer declares the `reviewer` and `reviewMinutes` columns (`../project/agentbox/management-api/lib/dream-ledger.js:56-57`). The merge half of the note is stale. Whether the deployed engine writes the columns is runtime evidence this source trace does not establish, and the newest rows still carry no value in either column (`docs/dream-cycle/LEDGER.md:48-51`).
 
 **Debt (ledger rows reach main by hand):** the engine writes each night's row to the working tree and never commits it; the 09-27 to 09-30 rows reached main only in a human commit (`f3d54a0`) and the 10-01 and 10-02 rows likewise in `e52dba7` (`docs/dream-cycle/LEDGER.md:29-34`); the 10-03 to 10-06 rows landed with their own ACCEPT PR merges, but only because each PR carried its row (`docs/dream-cycle/LEDGER.md:35-38`). The ledger the next night reads is therefore whatever an operator last committed, and the 09-14 to 09-26 silence cannot be told apart from rows that were written and lost.
 

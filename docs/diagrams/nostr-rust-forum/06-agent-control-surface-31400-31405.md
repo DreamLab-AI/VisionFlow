@@ -35,7 +35,7 @@ sources:
   - ../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md
   - ../nostr-rust-forum/docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md
   - ../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md
-verified_commit: {nostr-rust-forum: c39f41f104b114d6a3fa29013daaf6fa58b45080, dreamlab-ai-website: 0e1572801d03a1af6d8bc8861f928da087d69eed}
+verified_commit: {nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df, dreamlab-ai-website: f934e26f949f3b95171544ec8ec5bcfd7679f593}
 ---
 
 ## NF-06.1 The six kinds and their publishers
@@ -459,20 +459,20 @@ flowchart TB
     TABLE["P01 to P11 - NIP-11 posture, routes, effective_tier stamped high, probe tag blinding,<br/>rationale refusal, system decider refusal, withdrawal nostr-bbs-governance-probe/src/lib.rs:23-35"]
     NOTRUN["NotRun never counts as a pass nostr-bbs-governance-probe/src/lib.rs:43-45"]
     BIN["the binary reads the signing key from a named variable and never prints it<br/>nostr-bbs-governance-probe/src/main.rs:10-11"]
-    LIVE["ADR-2011 activation live: run 20261002t132144z passed 11 of 11 on the edge<br/>docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md:187"]
+    LIVE["ADR-2011 activation live: run 20261002t132144z passed 11 of 11 on the edge<br/>docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md:193"]
     REC["ADR-2010 activation staged on the same run - the refusal path is live, the commit path is not<br/>docs/adr/ADR-2010-durable-governance-outcome-receipts.md:7, docs/adr/ADR-2010-durable-governance-outcome-receipts.md:153"]
-    PIN["the edge kit pin is now 9c36b60, a descendant of 8a5cf81 and ebcfaa2 and so of the correlation fix a5b809e<br/>../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md:30"]
+    PIN["the kit pin is now 6064622, a descendant of 9c36b60, 8a5cf81 and ebcfaa2 and so of the correlation fix a5b809e<br/>../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md:30"]
 
     SUITE --> OWN --> TABLE --> NOTRUN
     SUITE --> BIN
     TABLE --> LIVE --> REC
     PIN --> REC
 
-    N1["OPEN: the requesting agent holds the admin flag, and the relay tells a human from a system by the<br/>31403's own decided_by - so the boundary is as strong as the admin list; not exercised live, on purpose<br/>docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md:195"]
+    N1["OPEN: the requesting agent holds the admin flag, and the relay tells a human from a system by the<br/>31403's own decided_by - so the boundary is as strong as the admin list; not exercised live, on purpose<br/>docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md:201"]
     N2["OPEN: no human has yet decided a high-tier case; the owner's first such 31403 at projection-committed<br/>is what closes ADR-2010 docs/adr/ADR-2010-durable-governance-outcome-receipts.md:157"]
     N3["RESOLVED 13cbe6c: ADR-2010 now records the correlation fix as on the edge, pinned through 341c5d2<br/>docs/adr/ADR-2010-durable-governance-outcome-receipts.md:155"]
-    N4["Probe cases persist as open broker_cases rows after withdrawal, identifiable by subject_kind m4-probe<br/>docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md:198"]
-    N5["RESOLVED at dreamlab 4935b6c: the kit record now pins 9c36b60 in its SHA column and CANONICAL_KIT_SHA and its branch column reads main at 9c36b60;<br/>the added paragraph describes the env-driven Jev local-only switches the pin brings<br/>../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md:26, :38"]
+    N4["Probe cases persist as open broker_cases rows after withdrawal, identifiable by subject_kind m4-probe<br/>docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md:204"]
+    N5["RESOLVED at dreamlab 4935b6c, pin since advanced to 6064622: the kit record then pinned 9c36b60 and now pins 6064622 in its SHA column and CANONICAL_KIT_SHA (branch column main at 6064622);<br/>its paragraph still describes the env-driven Jev local-only switches that 9c36b60 brought<br/>../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md:26, :42"]
 ```
 
 ## NF-06.19 The Jev rationale check — an opt-in advisory beside the decision card

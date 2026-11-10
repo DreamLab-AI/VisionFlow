@@ -12,7 +12,7 @@ sources:
   - ../dreamlab-ai-website/scripts/lib/website-info.mjs
   - ../dreamlab-ai-website/scripts/lib/digest.mjs
   - ../dreamlab-ai-website/scripts/inbox-watch/run.mjs
-verified_commit: c3849abb8a2a289fbb013c721dfc0c5544c74b16
+verified_commit: f934e26f949f3b95171544ec8ec5bcfd7679f593
 ---
 
 ## For developers

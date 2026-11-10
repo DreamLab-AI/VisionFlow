@@ -33,7 +33,7 @@ sources:
   - ../project/xr-client/rust/src/render_store_pack.rs
   - ../project/xr-client/tests/unit/test_overview_lod.gd
   - ../project/xr-client/tests/unit/test_label_budget.gd
-verified_commit: {visionclaw: a950f4d8012ad6d67c32e37e5a36f24cf163d48e}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
 ---
 
 ## For developers
@@ -65,8 +65,8 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    SCENE["Count named graph and volume calls<br/>graph_scene.gd:3569,3579"] --> CALLS["Add agent, link and hull calls<br/>graph_scene.gd:3589,3593,3595"]
-    CALLS --> INPUT["Pass assembled call demand to allocator<br/>graph_scene.gd:3596,3599"]
+    SCENE["Count named graph and volume calls<br/>graph_scene.gd:3586,3596"] --> CALLS["Add agent, link and hull calls<br/>graph_scene.gd:3606,3610,3612"]
+    CALLS --> INPUT["Pass assembled call demand to allocator<br/>graph_scene.gd:3613,3616"]
     OTHER["Measured other triangles, but no other-call remainder<br/>frame_budget_pass.gd:127,151"] --> INPUT
     BENCH["Benchmark separately calibrates other calls<br/>benchmark.gd:230,572"]
     VISIBLE["Controller counts every visible frame<br/>eye_candy.gd:462,466,469"] --> PRICE["Cost clamps at eight frames<br/>frame_budget.rs:183"]
@@ -152,15 +152,15 @@ flowchart TD
     PACK --> DRAWN["drawn_edges and dropped_edges<br/>connection_volume_source.gd:175,181"]
     DRAWN --> SUM["_update_edge_readout sums visible volumes,<br/>touches the HUD only when a count changes<br/>graph_scene.gd:1791,1797,1807,1808,1809,1814"]
     SUM --> TXT["Edges N of M drawn, empty when nothing dropped<br/>overview_lod.gd:118,119,121"]
-    TXT --> BADGE["EdgeBadge in the HUD header<br/>hud.gd:466,2538"]
-    OLD["NODE_SAFETY_CEILING and EDGE_SAFETY_CEILING 20 000<br/>graph_scene.gd:51,52"] --> BUD["_recompute_instance_budgets<br/>graph_scene.gd:4749,4750"]
-    BUD --> STATUS["status line nodes drawn at most N<br/>graph_scene.gd:2496"]
-    BUD --> RANK["_rerank_edges writes _edge_pairs, which no draw path reads<br/>graph_scene.gd:4781,4812,4836,4838"]
-    RANK -.-> D1["DEBT: dead ranked-edge path and a misleading cap warning<br/>graph_scene.gd:4823"]
+    TXT --> BADGE["EdgeBadge in the HUD header<br/>hud.gd:466,2549"]
+    OLD["NODE_SAFETY_CEILING and EDGE_SAFETY_CEILING 20 000<br/>graph_scene.gd:51,52"] --> BUD["_recompute_instance_budgets<br/>graph_scene.gd:4766,4767"]
+    BUD --> STATUS["status line nodes drawn at most N<br/>graph_scene.gd:2513"]
+    BUD --> RANK["_rerank_edges writes _edge_pairs, which no draw path reads<br/>graph_scene.gd:4798,4829,4853,4855"]
+    RANK -.-> D1["DEBT: dead ranked-edge path and a misleading cap warning<br/>graph_scene.gd:4840"]
 ```
 
 **What it shows.** The cap a viewer sees is the triangle-budget ceiling, applied per volume and reported in the header, not the old scene-wide safety constants. **Why it is this way.** ADR-2179 P4 forbids a silent cap; ribbons are 2 triangles, so 20 000 of them are 40 000 of the 100 000 budget (`xr-client/scripts/overview_lod.gd:33-38`).
-**Debt (loose end):** `NODE_SAFETY_CEILING` and `EDGE_SAFETY_CEILING` (`xr-client/scripts/graph_scene.gd:51-52`) now feed only the status text (`xr-client/scripts/graph_scene.gd:2496`) and `_rerank_edges`, whose `_edge_pairs` output has no reader (`xr-client/scripts/graph_scene.gd:4836-4838`), so its "rendering N" warning (`xr-client/scripts/graph_scene.gd:4823`) describes nothing drawn.
+**Debt (loose end):** `NODE_SAFETY_CEILING` and `EDGE_SAFETY_CEILING` (`xr-client/scripts/graph_scene.gd:51-52`) now feed only the status text (`xr-client/scripts/graph_scene.gd:2513`) and `_rerank_edges`, whose `_edge_pairs` output has no reader (`xr-client/scripts/graph_scene.gd:4853-4855`), so its "rendering N" warning (`xr-client/scripts/graph_scene.gd:4840`) describes nothing drawn.
 **Drift:** the ceiling comment says it stops a payload blowing "the MultiMesh instance buffers" (`xr-client/scripts/graph_scene.gd:45-50`), while the overview rule says there is no fixed buffer capacity to clip against (`xr-client/scripts/overview_lod.gd:103-105`); `xr-client/perf/benchmark.gd:140-143` still sizes its default edge load from the scene constant.
 
 ## VC-51.8 The highlight mask is a Rust byte per slot, applied on the pack path (ADR-2188 D4, ADR-2183)
@@ -183,7 +183,7 @@ flowchart TD
 
 **What it shows.** Pointer and query state reach the renderer as one byte per node slot, folded to grey, normal or emphasised at pack time, so a hover never invalidates a pack plan. **Why it is this way.** ADR-2183 makes filters grey out rather than remove, and ADR-2188 D3 rules out glow, so emphasis is colour, size and an outline (`xr-client/rust/src/highlight.rs:1-18`).
 **Debt (parallel):** the five bit values are copied into GDScript with a "must match" comment (`xr-client/scripts/highlight_writer.gd:8-21`, `xr-client/rust/src/highlight.rs:21-29`), held only by a source-text GUT check (`xr-client/tests/unit/test_label_budget.gd:162-170`); `HighlightWriter.neighbours_of` mirrors the Rust `neighbours_in` for clients without it (`xr-client/scripts/highlight_writer.gd:79-98`).
-**Drift:** the ADR-2188 section of `docs/XR-client.md` places `_update_px_per_rad` at graph_scene line 1805 and `set_edge_readout` at hud line 2266 (`docs/XR-client.md:820-821`, `docs/XR-client.md:837-838`), but at this pin they sit at `xr-client/scripts/graph_scene.gd:1820` and `xr-client/scripts/hud.gd:2538`.
-**Invariant (resolved Open):** the headset receipt is recorded. ADR-2188 notes OpenXR focused, 88-90 fps with all three volumes and zero script, shader, heartbeat or reconnect errors over 15 minutes on the HP (`docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:52`), with `activation_status: active` (`docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:7`) and the XR-client 0.1.35 changelog entry (`docs/XR-client.md:8`).
-**Drift:** ADR-2188's Verification section still opens "None yet. Required:" and lists the headset receipt as required (`docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:44`, `docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:48`), although the status section records it (`docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:52`).
+**Drift:** the ADR-2188 section of `docs/XR-client.md` places `_update_px_per_rad` at graph_scene line 1805 and `set_edge_readout` at hud line 2266 (`docs/XR-client.md:820-821`, `docs/XR-client.md:837-838`), but at this pin they sit at `xr-client/scripts/graph_scene.gd:1820` and `xr-client/scripts/hud.gd:2549`.
+**Invariant (resolved Open):** the headset receipt is recorded. ADR-2188 notes OpenXR focused, 88-90 fps with all three volumes and zero script, shader, heartbeat or reconnect errors over 15 minutes on the HP (`docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:52`), with `activation_status: live`, corrected on 2026-11-07 from `active`, which the ledger does not accept (`docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:7`, `docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:56`) and the XR-client 0.1.35 changelog entry (`docs/XR-client.md:8`).
+**Drift:** RESOLVED at visionclaw 46edc196 — ADR-2188's Verification section now opens "All satisfied (2026-11-06)" and lists the headset receipt as satisfied (`docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:44`, `docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:48`), matching the status section (`docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:52`).
 **Open:** visual legibility of the rail and pages in the headset is still a human check (`docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:52`); GL-gated GUT is not checkable from the container.

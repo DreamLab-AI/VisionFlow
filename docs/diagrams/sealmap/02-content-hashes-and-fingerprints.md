@@ -13,7 +13,7 @@ sources:
   - ../sealmap/crates/sealmap-extract/src/fingerprint.rs
   - ../sealmap/docs/DESIGN.md
   - ../sealmap/README.md
-verified_commit: eacc59ece21274273c6bf2c83d4642b4fa7acaf5
+verified_commit: 2b351367cab241aa7304d364aa37b52e65bb71f2
 ---
 ## For developers
 
@@ -26,15 +26,15 @@ printed `blake3-16:<32 hex>`, and every symbol carries two of them:
 (`crates/sealmap-model/src/symbol.rs:209`, `crates/sealmap-model/src/symbol.rs:212`).
 
 The model crate only stores, compares, prints, parses and merges these values
-(`crates/sealmap-model/src/hash.rs:61`-`65`). How the token streams that
+(`crates/sealmap-model/src/hash.rs:68`-`72`). How the token streams that
 feed a fingerprint are chosen per kind of symbol is the extraction core's job
 and is drawn in SM-09. After this topic you should know what each value
 means, how two `#[cfg]` twins that share an id end up with one fingerprint,
 and what the pair lets the seal check decide (built; drawn in SM-15).
 
 The fingerprints arrived in commit `0a304ba` (step 2 of the 0.2 plan,
-`docs/DESIGN.md:338`), after rustc's split between a definition's identity
-and its query fingerprints (`docs/DESIGN.md:172`).
+`docs/DESIGN.md:366`), after rustc's split between a definition's identity
+and its query fingerprints (`docs/DESIGN.md:200`).
 
 ## For the business
 
@@ -51,8 +51,8 @@ The values are deliberately blind to formatting and comments, so a
 reformatting commit never changes them. The tooling that acts on the split
 (seals, `sealmap verify` and `sealmap stale`, SM-15) exists but is frozen as
 experimental: per-symbol hashes missed about a quarter of the changes that
-made a topic wrong (`README.md:81`-`85`). The hashes themselves stay, as the
-identity and change signal of the code lens (`docs/DESIGN.md:11`-`17`).
+made a topic wrong (`README.md:356`). The hashes themselves stay, as the
+identity and change signal of the code lens (`docs/DESIGN.md:33`-`39`).
 
 ## SM-02.1 The two hash types
 
@@ -61,18 +61,18 @@ classDiagram
     direction LR
     class ContentHash {
         +String blake3 prefix and 64 hex  hash.rs:21
-        +of_text(text) normalises newlines  hash.rs:25
-        +of_bytes(bytes) raw  hash.rs:31
-        +parse(s) Option  hash.rs:38
-        +short(n) str  hash.rs:49
+        +of_text(text) normalises newlines  hash.rs:32
+        +of_bytes(bytes) raw  hash.rs:38
+        +parse(s) Option  hash.rs:45
+        +short(n) str  hash.rs:56
     }
     class Fingerprint {
-        +16 bytes  hash.rs:85
-        +PREFIX blake3-16  hash.rs:89
-        +from_blake3(hash) truncates  hash.rs:97
-        +is_unset() all zeros  hash.rs:109
-        +parse(s) Option  hash.rs:114
-        +merge(other) order independent  hash.rs:138
+        +16 bytes  hash.rs:92
+        +PREFIX blake3-16  hash.rs:96
+        +from_blake3(hash) truncates  hash.rs:104
+        +is_unset() all zeros  hash.rs:116
+        +parse(s) Option  hash.rs:121
+        +merge(other) order independent  hash.rs:145
     }
     class SourceFile {
         +hash ContentHash  source.rs:24
@@ -92,10 +92,10 @@ truncated fingerprints. Both print with a self-describing algorithm prefix.
 model and lock if it ever changes (`crates/sealmap-model/src/hash.rs:8`-`9`).
 Truncating to 128 bits keeps an accidental collision out of reach while
 halving the text a full digest costs in every model and lock
-(`crates/sealmap-model/src/hash.rs:67`-`69`).
+(`crates/sealmap-model/src/hash.rs:74`-`76`).
 
 **Invariant:** the default fingerprint is all zeros and means "not
-fingerprinted" (`crates/sealmap-model/src/hash.rs:109`-`111`); a symbol built
+fingerprinted" (`crates/sealmap-model/src/hash.rs:116`-`118`); a symbol built
 by hand starts there (`crates/sealmap-model/src/symbol.rs:244`-`245`) until an
 adapter fills it in.
 
@@ -105,16 +105,16 @@ adapter fills it in.
 flowchart TB
     subgraph FILE["file text"]
         T["source text"]
-        NL["CR LF and lone CR become LF<br/>normalise_newlines, hash.rs:171"]
-        B3["blake3 hash, full 32 bytes<br/>hash.rs:32"]
+        NL["CR LF and lone CR become LF<br/>normalise_newlines, hash.rs:178"]
+        B3["blake3 hash, full 32 bytes<br/>hash.rs:39"]
         CH["blake3 colon 64 hex"]
         T --> NL --> B3 --> CH
     end
     subgraph SYM["symbol tokens"]
         TK["token stream from an adapter"]
         KD["keyed hasher, sig or body context<br/>fingerprint.rs:129"]
-        TR["first 16 bytes kept<br/>from_blake3, hash.rs:99"]
-        FP["blake3-16 colon 32 hex<br/>Display, hash.rs:149"]
+        TR["first 16 bytes kept<br/>from_blake3, hash.rs:106"]
+        FP["blake3-16 colon 32 hex<br/>Display, hash.rs:156"]
         TK --> KD --> TR --> FP
     end
     FILE --> SYM
@@ -141,12 +141,12 @@ sequenceDiagram
     autonumber
     participant AD as adapter
     participant CB as add_symbol<br/>codebase.rs:98
-    participant FP as Fingerprint.merge<br/>hash.rs:138
+    participant FP as Fingerprint.merge<br/>hash.rs:145
     AD->>CB: first definition of an id
     CB->>CB: insert as is (codebase.rs:112)
     AD->>CB: second definition, same id, other cfg
     CB->>FP: fold sig_hash (codebase.rs:101)
-    FP->>FP: sort the pair, keyed hash of both (hash.rs:139)
+    FP->>FP: sort the pair, keyed hash of both (hash.rs:146)
     FP-->>CB: merged sig_hash
     CB->>FP: fold body_hash (codebase.rs:102)
     FP-->>CB: merged body_hash
@@ -167,7 +167,7 @@ reach the sequence and the call relations
 **Why it is this way.** A seal on a cfg-gated function has to notice an edit
 to either twin; folding both values with a dedicated key context means an
 edit to either changes the result, whichever twin was seen first
-(`crates/sealmap-model/src/hash.rs:126`-`130`).
+(`crates/sealmap-model/src/hash.rs:133`-`137`).
 
 **Debt:** the merged symbol keeps only the first twin's file, span, signature
 and doc (`crates/sealmap-model/src/codebase.rs:67`-`71`), so the second
@@ -194,11 +194,11 @@ merged with twins, and travels as text in the JSON model; text with the wrong
 prefix or length is refused on read.
 
 **Why it is this way.** Serialisation goes through `Display` and `parse`
-rather than serde's byte encoding (`crates/sealmap-model/src/hash.rs:157`-`168`),
+rather than serde's byte encoding (`crates/sealmap-model/src/hash.rs:164`-`175`),
 so the JSON is readable and identical to what a lock would hold.
 
 **Invariant:** a malformed fingerprint string fails deserialisation instead of
-reading as zeros (`crates/sealmap-model/src/hash.rs:166`).
+reading as zeros (`crates/sealmap-model/src/hash.rs:173`).
 
 ## SM-02.5 What the pair decides
 
@@ -234,13 +234,14 @@ contract, and a vanished id whose body reappears in a symbol of the same kind
 is a suspected rename. Unparsable code is decided first, so it is never
 reported as holding or absent (`crates/sealmap-corpus/src/seal/check.rs:146`,
 `crates/sealmap-corpus/src/seal/check.rs:155`); the design's table is
-`docs/DESIGN.md:141`-`149`.
+`docs/DESIGN.md:169`-`177`.
 
 **Why it is this way.** The name sits in `sig_hash` and never in `body_hash`,
 which is what makes a rename detectable by body
-(`crates/sealmap-extract/src/fingerprint.rs:26`-`27`); the README states the
-same table for users (`README.md:191`-`198`).
+(`crates/sealmap-extract/src/fingerprint.rs:26`-`27`); the README says for users
+only that the signature and body fingerprints ignore formatting and comments
+(`README.md:365`-`366`).
 
 The crate-surface table records that an optional `flow_hash` was considered
-and not built (`docs/DESIGN.md:172`); the model has only the two
+and not built (`docs/DESIGN.md:200`); the model has only the two
 (`crates/sealmap-model/src/symbol.rs:209`-`212`), as commit `0a304ba` left it.

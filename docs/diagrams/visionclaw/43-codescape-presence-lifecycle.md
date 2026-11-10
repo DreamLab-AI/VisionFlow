@@ -7,6 +7,7 @@ governing:
   - ../project/docs/adr/ADR-2143-codescape-section-separate-workspace-and-port.md
 adrs: [ADR-2143, ADR-2159]
 sources:
+  - ../project/codescape/docs/BASELINE-codescape.md
   - ../project/codescape/crates/codescape-server/src/auth.rs
   - ../project/codescape/crates/codescape-server/src/proxy.rs
   - ../project/codescape/crates/codescape-server/src/origin.rs
@@ -15,7 +16,7 @@ sources:
   - ../project/codescape/crates/codescape-server/src/xr_presence.rs
   - ../project/xr-client/rust/src/presence.rs
   - ../project/xr-client/scripts/graph_scene.gd
-verified_commit: {codescape: e3b76f63e801c6a8460110b93e88a0b420e9b0b4, visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
+verified_commit: {codescape: e3b76f63e801c6a8460110b93e88a0b420e9b0b4, visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
 ---
 
 ## For developers
@@ -24,7 +25,7 @@ The Codescape hub relays poses and roster events. The [production-library probes
 
 ## For the business
 
-An avatar label is not authenticated identity here. Reconnects and slow readers can also leave a consumer with an inconsistent roster. The default XR scene uses VisionClaw presence, not this endpoint (`graph_scene.gd:2924,2928`).
+An avatar label is not authenticated identity here. Reconnects and slow readers can also leave a consumer with an inconsistent roster. The default XR scene uses VisionClaw presence, not this endpoint (`graph_scene.gd:2941,2945`).
 
 ## VC-43.1 Admission has an origin filter but no identity verifier
 
@@ -80,6 +81,6 @@ flowchart TD
 
 **What it shows.** The probe fills a queue using poses admitted by the real rate limiter over synthetic time, loses a join announcement, then receives that member's pose. Leave and replacement-Close loss are also reproduced. **Why it is this way.** The queue has no separate reliable roster channel or resynchronisation path. The XR client's numeric-id fallback is source evidence; no headset rendering outcome was tested.
 
-**Drift:** The baseline says presence carries no avatars (`BASELINE-codescape.md:109`), although the current hub forwards them (`xr_presence.rs:668`).
+**Drift:** The baseline says presence carries no avatars (`../project/codescape/docs/BASELINE-codescape.md:109`), although the current hub forwards them (`xr_presence.rs:668`).
 
 **Tension (risk):** Both defects are fixed only upstream: standalone Codescape `d2c3c3b` adds a cancel fence and a separate control queue for roster messages, but VisionClaw `ec785afa9` still pins `e3b76f6`, where `relay` checks only room and avatar (`xr_presence.rs:668`) and `send_all` uses one `try_send` queue (`xr_presence.rs:524`).

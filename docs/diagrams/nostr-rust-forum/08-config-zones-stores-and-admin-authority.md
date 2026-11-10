@@ -38,7 +38,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/feature_gate.rs
   - ../nostr-rust-forum/docs/adr/ADR-2029-room-profile-deployment-type.md
-verified_commit: c39f41f104b114d6a3fa29013daaf6fa58b45080
+verified_commit: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df
 ---
 
 ## NF-08.1 forum.toml — the single source of access truth and its projection
@@ -165,7 +165,7 @@ flowchart TB
     PREVW["preview-worker"] --> RL
 
     N1["INVARIANT: NIP-98 replay lives in ONE database - relay, pod and search bind REPLAY_DB, and auth uses DB, all to<br/>nostr-bbs-auth so cross-worker replay is detected nostr-bbs-relay-worker/wrangler.toml:104-111<br/>auth DB is nostr-bbs-auth nostr-bbs-auth-worker/wrangler.toml:9-10. The preview worker binds no replay store."]
-    N2["ANOMALY O11 now DOCUMENTED, not removed: KV and SESSIONS are still the SAME physical namespace id<br/>nostr-bbs-auth-worker/wrangler.toml:28 and :44; the template says the key prefixes are disjoint<br/>nostr-bbs-auth-worker/wrangler.toml:22-25 and a unit test pins the admin cache key outside the rl: prefix<br/>nostr-bbs-auth-worker/src/admins.rs:372"]
+    N2["ANOMALY O11 now DOCUMENTED, not removed: KV and SESSIONS are still the SAME physical namespace id<br/>nostr-bbs-auth-worker/wrangler.toml:28 and :44; the template says the key prefixes are disjoint<br/>nostr-bbs-auth-worker/wrangler.toml:22-25 and a unit test pins the admin cache key outside the rl: prefix<br/>nostr-bbs-auth-worker/src/admins.rs:347"]
     N3["The auth-worker RELAY_DB database_id is a ZERO placeholder that every deployment must override<br/>nostr-bbs-auth-worker/wrangler.toml:20 - shipped unusable on purpose"]
     N4["PROPOSED AND PARKED: ADR-2012 demotes the pod-worker payment D1 from ledger to a height-stamped<br/>derived view over the sidestr chain, with a staleness bound that is an error<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:48-51. Status proposed, implementation partial, inactive<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:5-7, parked at P3 ADR-2012-d1-ledger-becomes-a-chain-view.md:165.<br/>The chain view is not built, so this store map is unchanged - see NF-04.11"]
 ```
@@ -175,9 +175,9 @@ flowchart TB
 ```mermaid
 flowchart TB
     subgraph authd1["nostr-bbs-auth D1 - bootstrapped by nostr-bbs-auth-worker/src/schema.rs:19"]
-        A1["challenges schema.rs:27<br/>webauthn_credentials schema.rs:32<br/>nip1984_reports schema.rs:50<br/>moderation_actions schema.rs:70"]
-        A2["mod_reports schema.rs:82<br/>wot_entries schema.rs:103<br/>members schema.rs:116<br/>invitations schema.rs:123"]
-        A3["invitation_redemptions schema.rs:136<br/>welcome_messages schema.rs:164<br/>instance_settings schema.rs:182<br/>username_reservations schema.rs:208"]
+        A1["challenges schema.rs:28<br/>webauthn_credentials schema.rs:33<br/>nip1984_reports schema.rs:51<br/>moderation_actions schema.rs:71"]
+        A2["mod_reports schema.rs:83<br/>wot_entries schema.rs:104<br/>members schema.rs:117<br/>invitations schema.rs:124"]
+        A3["invitation_redemptions schema.rs:137<br/>welcome_messages schema.rs:165<br/>instance_settings schema.rs:183<br/>username_reservations schema.rs:209"]
     end
     subgraph relayd1["nostr-bbs-relay D1 - bootstrapped by nostr-bbs-relay-worker/src/lib.rs:811"]
         RE["events lib.rs:823 and channel_creators lib.rs:827 - EVENTS_CREATE_SQL lib.rs:717 and<br/>CHANNEL_CREATORS_CREATE_SQL lib.rs:732, created before every ALTER and index"]
@@ -187,7 +187,7 @@ flowchart TB
         R3["governance_receipts lib.rs:783<br/>broker_roles lib.rs:1009<br/>pubkey_aliases lib.rs:1022<br/>case_side_receipts lib.rs:1035<br/>case_delegations lib.rs:1047<br/>device_keys - created by the AUTH worker nostr-bbs-auth-worker/src/devices.rs:123"]
     end
 
-    N1["INVARIANT: both bootstraps are idempotent, so a newly added table exists before any handler touches it.<br/>The relay runs ensure_schema ONCE PER ISOLATE, before the WebSocket branch, and latches SCHEMA_READY only<br/>when every CREATE succeeded, so a transient D1 failure is retried on the next request<br/>nostr-bbs-relay-worker/src/lib.rs:195, nostr-bbs-relay-worker/src/lib.rs:200, nostr-bbs-relay-worker/src/lib.rs:222-225<br/>CREATE TABLE IF NOT EXISTS throughout schema.rs:27 and lib.rs:927"]
+    N1["INVARIANT: both bootstraps are idempotent, so a newly added table exists before any handler touches it.<br/>The relay runs ensure_schema ONCE PER ISOLATE, before the WebSocket branch, and latches SCHEMA_READY only<br/>when every CREATE succeeded, so a transient D1 failure is retried on the next request<br/>nostr-bbs-relay-worker/src/lib.rs:195, nostr-bbs-relay-worker/src/lib.rs:200, nostr-bbs-relay-worker/src/lib.rs:222-225<br/>CREATE TABLE IF NOT EXISTS throughout schema.rs:28 and lib.rs:927"]
     N2["device_keys is the one cross-worker table: the AUTH worker creates and writes it into the RELAY's D1<br/>so the relay DO can read it at NIP-42 AUTH with no cross-worker call - see NF-02.7"]
     N3["events and channel_creators are created by the relay bootstrap since 66ca8d8, and checked in as migration 0009 - see NF-08.6"]
     N4["INVARIANT: migration 0006 is MIRRORED into ensure_schema, the live schema path, so the<br/>application-receipt and delegation tables exist on a cold start without the migration runner<br/>lib.rs:1035 lib.rs:1047"]
@@ -253,20 +253,20 @@ flowchart TB
     CANON["Canonical algorithm and SQL constants<br/>nostr-bbs-core/src/admin_shared.rs:91 ADMIN_PUBKEYS_VAR<br/>nostr-bbs-core/src/admin_shared.rs:109 is_static_admin"]
     S1["1. Static set - ADMIN_PUBKEYS env var"]
     S2["2. RELAY_DB whitelist.is_admin<br/>nostr-bbs-core/src/admin_shared.rs:72"]
-    S3["3. auth DB members.is_admin<br/>nostr-bbs-core/src/admin_shared.rs:76"]
-    AUTHIS["auth-worker is_admin - union of all three<br/>nostr-bbs-auth-worker/src/admin.rs:57<br/>static nostr-bbs-auth-worker/src/admin.rs:67<br/>RELAY_DB nostr-bbs-auth-worker/src/admin.rs:76<br/>DB nostr-bbs-auth-worker/src/admin.rs:90"]
+    S3["3. auth DB members.is_admin - still defined, no longer consulted by either resolver<br/>nostr-bbs-core/src/admin_shared.rs:76"]
+    AUTHIS["auth-worker is_admin - union of static and RELAY_DB only<br/>nostr-bbs-auth-worker/src/admin.rs:53<br/>static nostr-bbs-auth-worker/src/admin.rs:63<br/>RELAY_DB nostr-bbs-auth-worker/src/admin.rs:72"]
     RELIS["relay-worker query_is_admin<br/>nostr-bbs-relay-worker/src/auth.rs:181<br/>static nostr-bbs-relay-worker/src/auth.rs:185<br/>whitelist nostr-bbs-relay-worker/src/auth.rs:194"]
 
     CANON --> S1 & S2 & S3
-    S1 & S2 & S3 --> AUTHIS
+    S1 & S2 --> AUTHIS
     S1 & S2 --> RELIS
 
-    N1["Auth lower-cases at resolver entry nostr-bbs-auth-worker/src/admin.rs:62<br/>Relay query binds its supplied pubkey nostr-bbs-relay-worker/src/auth.rs:195"]
-    N2["A failed or missing relay lookup can fall through to auth members nostr-bbs-auth-worker/src/admin.rs:90<br/>False only after no source grants authority nostr-bbs-auth-worker/src/admin.rs:103"]
+    N1["Auth lower-cases at resolver entry nostr-bbs-auth-worker/src/admin.rs:58<br/>Relay query binds its supplied pubkey nostr-bbs-relay-worker/src/auth.rs:195"]
+    N2["RESOLVED at nostr-rust-forum 6064622: the auth resolver no longer falls through to auth members<br/>False after the static set and RELAY_DB grant nothing nostr-bbs-auth-worker/src/admin.rs:85"]
     N3["CLOSED at 66ca8d8: the relay used to query members in its OWN D1 where no migration or bootstrap creates<br/>that table, so the branch failed on every call and the error was swallowed. The query is removed, and relay<br/>authority is ADMIN_PUBKEYS union whitelist.is_admin only nostr-bbs-relay-worker/src/auth.rs:185 nostr-bbs-relay-worker/src/auth.rs:194"]
     N3B["DRIFT: the doc comment on query_is_admin still names members - its Task #7 paragraph says the relay<br/>whitelist/members tables may carry no is_admin row, below a paragraph saying the relay no longer queries it<br/>nostr-bbs-relay-worker/src/auth.rs:174 nostr-bbs-relay-worker/src/auth.rs:164"]
-    N3C["REVOCATION GAP: relay set-admin changes only whitelist nostr-bbs-relay-worker/src/whitelist.rs:450<br/>Auth members can retain its grant nostr-bbs-auth-worker/src/admin.rs:90"]
-    N4["DOC-DRIFT: ADMIN_PUBKEYS is DECLARED in exactly one wrangler template - the search worker,<br/>nostr-bbs-search-worker/wrangler.toml:41 - yet is read by the auth worker (admin.rs:67) and the relay<br/>(auth.rs:185). The relay template asserts the opposite: there is no ADMIN_PUBKEYS reader in src/<br/>nostr-bbs-relay-worker/wrangler.toml:18-21. SETUP.md:147-151 never lists it either."]
+    N3C["REVOCATION GAP: RESOLVED at nostr-rust-forum 6064622 - relay set-admin changes only whitelist nostr-bbs-relay-worker/src/whitelist.rs:450<br/>a retained auth members grant no longer confers authority nostr-bbs-auth-worker/src/admin.rs:72"]
+    N4["DOC-DRIFT: ADMIN_PUBKEYS is DECLARED in exactly one wrangler template - the search worker,<br/>nostr-bbs-search-worker/wrangler.toml:41 - yet is read by the auth worker (admin.rs:63) and the relay<br/>(auth.rs:185). The relay template asserts the opposite: there is no ADMIN_PUBKEYS reader in src/<br/>nostr-bbs-relay-worker/wrangler.toml:18-21. SETUP.md:147-151 never lists it either."]
     N5["Consequence of N4: a by-the-book deployment has NO static admin bootstrap on relay or auth,<br/>and the search worker ships a REAL non-placeholder pubkey as its default admin<br/>nostr-bbs-search-worker/wrangler.toml:41 - the only non-generic value in any template."]
 ```
 
@@ -293,7 +293,7 @@ flowchart LR
     DKC --> CLIENTPARSE
 
     N1["INVARIANT ADR-2004: each worker reads its own binding and decides ALONE - no cross-worker call.<br/>Only the parse rule is shared, so the two cannot drift on what true means<br/>nostr-bbs-auth-worker/src/devices.rs:100-107, relay delegates at nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:971"]
-    N2["INVARIANT: enables on the EXACT string true; unset, empty, padded, TRUE or 1 is off<br/>rule nostr-bbs-core/src/feature_gate.rs:65, asserted nostr-bbs-auth-worker/src/devices.rs:912"]
+    N2["INVARIANT: enables on the EXACT string true; unset, empty, padded, TRUE or 1 is off<br/>rule nostr-bbs-core/src/feature_gate.rs:65, asserted nostr-bbs-auth-worker/src/devices.rs:988"]
     N3["AUTH_MODE: anything other than allowlist resolves to the secure nip42 default<br/>nostr-bbs-relay-worker/wrangler.toml:37-39 - see NF-03"]
     N4["ESCALATION_DEFAULT_TIER is a declared SCAFFOLD - the authoritative risk-tier schema is owned by<br/>agentbox, EXTERNAL: see AB-14 and AB-15; an unrecognised tier folds to medium<br/>nostr-bbs-relay-worker/wrangler.toml:54-61"]
     N5["INVARIANT: calibration sampling is HMAC over a key the agent cannot read. The request id is the<br/>31402 d tag, which the agent chooses, so the key secrecy is the only thing stopping it grinding tags<br/>until it finds one sampling never selects nostr-bbs-relay-worker/wrangler.toml:69-74 - see NF-12"]

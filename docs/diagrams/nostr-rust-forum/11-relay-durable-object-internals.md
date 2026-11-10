@@ -35,7 +35,7 @@ sources:
   - ../nostr-rust-forum/README.md
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/auth.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/wrangler.toml
-verified_commit: c39f41f104b114d6a3fa29013daaf6fa58b45080
+verified_commit: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df
 ---
 
 ## NF-11.1 The Durable Object and its in-memory state
@@ -343,27 +343,27 @@ flowchart TB
 sequenceDiagram
     autonumber
     participant CR as cron trigger every 5 min<br/>nostr-bbs-relay-worker/wrangler.toml:123
-    participant SW as sweep_inactive_demotions<br/>trust_sweep.rs:522
-    participant RUN as run_demotion_sweep<br/>trust_sweep.rs:240
+    participant SW as sweep_inactive_demotions<br/>trust_sweep.rs:538
+    participant RUN as run_demotion_sweep<br/>trust_sweep.rs:244
     participant POL as trust::decide_demotion<br/>trust.rs:326
     participant D1 as whitelist + admin_log
 
     CR->>SW: scheduled entry, see NF-03.1
     SW->>RUN: page candidates by keyset cursor
-    RUN->>D1: page query ordered by (last_active_at, pubkey) trust_sweep.rs:363
+    RUN->>D1: page query ordered by (last_active_at, pubkey) trust_sweep.rs:379
     loop each row
-        RUN->>RUN: advance cursor before policy or commit trust_sweep.rs:275
+        RUN->>RUN: advance cursor before policy or commit trust_sweep.rs:291
         RUN->>POL: decide Hold or Demote - the SHARED pure policy
         alt Demote
-            RUN->>D1: trust UPDATE and audit INSERT in ONE batch trust_sweep.rs:488
-            RUN->>RUN: counters move only on a CONFIRMED commit trust_sweep.rs:286
+            RUN->>D1: trust UPDATE and audit INSERT in ONE batch trust_sweep.rs:504
+            RUN->>RUN: counters move only on a CONFIRMED commit trust_sweep.rs:302
         end
     end
     RUN-->>SW: DemotionSweepResult trust_sweep.rs:142
 
-    Note over RUN,POL: scanned equals demoted plus held plus failed trust_sweep.rs:167-168<br/>This accounts for visited rows, not unseen candidates
+    Note over RUN,POL: scanned equals demoted plus held plus failed trust_sweep.rs:170-171<br/>This accounts for visited rows, not unseen candidates
     Note over RUN,D1: Page failure aborts, row failure increments failed<br/>trust_sweep.rs:117-121 trust_sweep.rs:154
-    Note over RUN,POL: Held and failed rows advance this invocation trust_sweep.rs:236<br/>Next invocation restarts with no cursor trust_sweep.rs:253<br/>A cap-sized persistent prefix can starve the tail, see NF-24.2
+    Note over RUN,POL: Held and failed rows advance the cursor trust_sweep.rs:239<br/>RESOLVED at nostr-rust-forum 6064622: a capped or aborted run stores its resume cursor and the next tick reads it back trust_sweep.rs:544-557 trust_sweep.rs:560-564<br/>See NF-24.2 and NF-29
 ```
 
 ## NF-11.12 Keyset repairs and the remaining bounded-fairness gap
@@ -380,9 +380,9 @@ flowchart TB
     PROB --> OFF --> CONC --> FIX --> TIE
     PROB --> OUT
 
-    N1["OFFSET and unchecked demotion writes are historical.<br/>Current conditional audit follows the snapshot-guarded UPDATE<br/>trust_sweep.rs:418 trust_sweep.rs:425"]
-    N2["TL2 to TL0 is deliberate: one committed transition per row<br/>does not mean one rung trust_sweep.rs:231-233"]
-    N3["Capped resumption remains incomplete.<br/>Fresh cursor each invocation trust_sweep.rs:253;<br/>held/failed prefix can starve later rows - see NF-24.2"]
+    N1["OFFSET and unchecked demotion writes are historical.<br/>Current conditional audit follows the snapshot-guarded UPDATE<br/>trust_sweep.rs:434 trust_sweep.rs:441"]
+    N2["TL2 to TL0 is deliberate: one committed transition per row<br/>does not mean one rung trust_sweep.rs:234-236"]
+    N3["RESOLVED at nostr-rust-forum 6064622: capped resumption persists the cursor in trust_sweep_state<br/>trust_sweep.rs:560-564; a held or failed prefix no longer starves later rows - see NF-24.2"]
     FIX --> N1
     TIE --> N2
     OUT --> N3
@@ -444,7 +444,7 @@ flowchart TB
     MOD["moderation<br/>insert_report moderation.rs:62 | list moderation.rs:142 | resolve moderation.rs:234"]
     AUD["audit<br/>log_admin_action audit.rs:25 | list audit.rs:82"]
     PRO["profiles<br/>batch profiles.rs:96 | search profiles.rs:251 - search excludes pubkey_aliases old_pubkey rows"]
-    AGD["agent_disclosure<br/>handle_agent_disclosure agent_disclosure.rs:98"]
+    AGD["agent_disclosure<br/>handle_agent_disclosure agent_disclosure.rs:101"]
 
     UA --> AUD
     MOD --> AUD
@@ -452,7 +452,7 @@ flowchart TB
     N1["suspend and silence are the two states the admission pipeline reads at NF-03.4 step 8 -<br/>written here, enforced there"]
     N2["profiles::batch is what the forum client's ProfileCache fetches over HTTP rather than by relay REQ -<br/>see NF-05.6; profiles::search is the REST GET /api/profiles/search profiles.rs:248, separate from<br/>the relay's NIP-50 REQ search, see NF-11.6"]
     N3["agent_disclosure is a PUBLIC endpoint - the client's agent badge reads it without auth, see NF-05.10.<br/>It is how a reader can tell a human post from an agent post."]
-    N4["The user_admin and moderation mutations call log_admin_action nostr-bbs-relay-worker/src/audit.rs:25 -<br/>user_admin.rs:229 user_admin.rs:307 user_admin.rs:370 user_admin.rs:465 user_admin.rs:625 moderation.rs:351 -<br/>into admin_log, the table the trust sweep also writes trust_sweep.rs:425 - see NF-08.5.<br/>DEBT: every call discards the result, so a failed audit write never fails the mutation"]
+    N4["The user_admin and moderation mutations call log_admin_action nostr-bbs-relay-worker/src/audit.rs:25 -<br/>user_admin.rs:229 user_admin.rs:307 user_admin.rs:370 user_admin.rs:465 user_admin.rs:625 moderation.rs:351 -<br/>into admin_log, the table the trust sweep also writes trust_sweep.rs:441 - see NF-08.5.<br/>DEBT: every call discards the result, so a failed audit write never fails the mutation"]
     N5["A key REPLACED via pubkey_aliases is excluded from both search shapes - roster mode profiles.rs:307<br/>and query mode profiles.rs:318 - so a renamed pubkey never shows twice under two identities"]
     N6["INVARIANT since 1a26e51: alias_set with inherit_cohorts grants the old key's cohorts to the new one through the<br/>shared merge statement, so the successor keeps any cohort it already held user_admin.rs:602-605 user_admin.rs:612"]
 ```

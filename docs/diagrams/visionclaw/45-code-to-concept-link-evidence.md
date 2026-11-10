@@ -13,7 +13,7 @@ sources:
   - ../project/xr-client/rust/src/link_index.rs
   - ../project/xr-client/rust/src/binary_protocol.rs
   - ../project/xr-client/scripts/graph_scene.gd
-verified_commit: {codescape: e3b76f63e801c6a8460110b93e88a0b420e9b0b4, visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
+verified_commit: {codescape: e3b76f63e801c6a8460110b93e88a0b420e9b0b4, visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
 ---
 
 ## For developers
@@ -68,8 +68,8 @@ flowchart TD
     CUT --> JOIN["Join sees only received refs<br/>link_index.rs:253"]
     JOIN --> COUNT["Missing targets count as unresolved<br/>link_index.rs:306"]
     TOPO["Topology replaces cached IRI and annotation tables<br/>binary_protocol.rs:1409,1410"] --> REBUILD["Scene joins on generation and population-count changes<br/>graph_scene.gd:750,758"]
-    DISC["Disconnect drops records for that connection<br/>graph_scene.gd:4633,4634"] --> REBUILD
-    NEW["Topology callback drops old-generation records<br/>graph_scene.gd:4645,4665"] --> REBUILD
+    DISC["Disconnect drops records for that connection<br/>graph_scene.gd:4650,4651"] --> REBUILD
+    NEW["Topology callback drops old-generation records<br/>graph_scene.gd:4662,4682"] --> REBUILD
 ```
 
 **What it shows.** With 33 bound refs and every target available, the probe receives 32 refs, emits 32 links and reports zero unresolved. Generation-change cleanup is a separate mechanism. **Why it is this way.** The cap is documented, but omitted producer refs cannot be counted by a consumer that never receives them.

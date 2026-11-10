@@ -28,7 +28,7 @@ sources:
   - ../project/crates/visionclaw-actors/src/supervisor.rs
   - ../project/tests/orchestration_improvements_test.rs
   - ../project/src/actors/mod.rs
-verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
 ---
 
 ## For developers
@@ -42,23 +42,23 @@ These are the server's internal workers for the graph, physics and connected vie
 ## VC-02.1 Supervision-tree topology — AppState::new boot order
 ```mermaid
 flowchart TB
-    APP["AppState::new<br/>src/app_state.rs:361"]
-    CC["ClientCoordinatorActor<br/>src/app_state.rs:654<br/>Addr~ClientCoordinatorActor~"]
-    AB["AgentBeamActor<br/>src/app_state.rs:669<br/>Addr~AgentBeamActor~ kept and handed to GSS<br/>by SetAgentBeamAddr (src/app_state.rs:783)"]
-    MD["MetadataActor<br/>src/app_state.rs:763<br/>Addr~MetadataActor~"]
-    GSS["GraphServiceSupervisor<br/>src/app_state.rs:768<br/>Addr~GraphServiceSupervisor~"]
-    DEMO["AgentDemoDirector (ADR-2142)<br/>src/app_state.rs:803<br/>Addr~AgentDemoDirector~ — stored as AppState.agent_demo_addr"]
-    REBIND["SetClientCoordinatorAddr<br/>src/app_state.rs:778"]
-    GPU["GPUManagerActor boundary<br/>src/app_state.rs:930<br/>Note: GPU internals see VC-10"]
-    ANA["analytics actors — supervised, not started here<br/>src/app_state.rs:1250-1256<br/>ADR-2053: GraphAnalyticsSupervisor owns ShortestPathActor and<br/>ConnectedComponentsActor, AppState keeps an empty GraphSubsystem, see VC-10"]
-    SET["OptimizedSettingsActor<br/>src/app_state.rs:1072-1081<br/>Addr~OptimizedSettingsActor~"]
-    AM["AgentMonitorActor<br/>src/app_state.rs:1104<br/>Addr~AgentMonitorActor~"]
-    WS["WorkspaceActor<br/>src/app_state.rs:1116<br/>Addr~WorkspaceActor~"]
-    ONT["OntologyActor<br/>src/app_state.rs:1129<br/>Option~Addr~OntologyActor~~"]
-    TO["TaskOrchestratorActor<br/>src/app_state.rs:1183<br/>Addr~TaskOrchestratorActor~"]
-    EL["ElevationActor<br/>src/app_state.rs:1191<br/>anon start — no Addr retained"]
-    VI["VoiceInterfaceActor<br/>src/app_state.rs:1214<br/>anon start — no Addr retained"]
-    DE["DecisionElevationActor<br/>src/main.rs:575<br/>started OUTSIDE AppState::new"]
+    APP["AppState::new<br/>src/app_state.rs:368"]
+    CC["ClientCoordinatorActor<br/>src/app_state.rs:662<br/>Addr~ClientCoordinatorActor~"]
+    AB["AgentBeamActor<br/>src/app_state.rs:677<br/>Addr~AgentBeamActor~ kept and handed to GSS<br/>by SetAgentBeamAddr (src/app_state.rs:817)"]
+    MD["MetadataActor<br/>src/app_state.rs:797<br/>Addr~MetadataActor~"]
+    GSS["GraphServiceSupervisor<br/>src/app_state.rs:802<br/>Addr~GraphServiceSupervisor~"]
+    DEMO["AgentDemoDirector (ADR-2142)<br/>src/app_state.rs:837<br/>Addr~AgentDemoDirector~ — stored as AppState.agent_demo_addr"]
+    REBIND["SetClientCoordinatorAddr<br/>src/app_state.rs:812"]
+    GPU["GPUManagerActor boundary<br/>src/app_state.rs:964<br/>Note: GPU internals see VC-10"]
+    ANA["analytics actors — supervised, not started here<br/>src/app_state.rs:1284-1290<br/>ADR-2053: GraphAnalyticsSupervisor owns ShortestPathActor and<br/>ConnectedComponentsActor, AppState keeps an empty GraphSubsystem, see VC-10"]
+    SET["OptimizedSettingsActor<br/>src/app_state.rs:1106-1115<br/>Addr~OptimizedSettingsActor~"]
+    AM["AgentMonitorActor<br/>src/app_state.rs:1138<br/>Addr~AgentMonitorActor~"]
+    WS["WorkspaceActor<br/>src/app_state.rs:1150<br/>Addr~WorkspaceActor~"]
+    ONT["OntologyActor<br/>src/app_state.rs:1163<br/>Option~Addr~OntologyActor~~"]
+    TO["TaskOrchestratorActor<br/>src/app_state.rs:1217<br/>Addr~TaskOrchestratorActor~"]
+    EL["ElevationActor<br/>src/app_state.rs:1225<br/>anon start — no Addr retained"]
+    VI["VoiceInterfaceActor<br/>src/app_state.rs:1248<br/>anon start — no Addr retained"]
+    DE["DecisionElevationActor<br/>src/main.rs:576<br/>started OUTSIDE AppState::new"]
 
     APP --> CC
     CC --> AB
@@ -79,11 +79,11 @@ flowchart TB
     EL --> VI
     VI -.->|"same process, later in main()"| DE
 
-    N1["INVARIANT (BASELINE Invariants) — the live ClientCoordinatorActor clients register<br/>with must be the CC instance above, not GraphServiceSupervisor's own child.<br/>REBIND at src/app_state.rs:778 makes GSS forward broadcasts through CC's non-empty registry."]
+    N1["INVARIANT (BASELINE Invariants) — the live ClientCoordinatorActor clients register<br/>with must be the CC instance above, not GraphServiceSupervisor's own child.<br/>REBIND at src/app_state.rs:812 makes GSS forward broadcasts through CC's non-empty registry."]
     REBIND --- N1
     N2["DOC-DRIFT: EventCoordinator::initialize_event_coordinator (src/actors/event_coordination.rs:112)<br/>is re-exported at src/actors/mod.rs:87 but has no caller in app_state.rs or main.rs —<br/>the ADR-2007 event-bus coordination path is dead code; only direct Actix do_send/send is live."]
     APP --- N2
-    N3["OntologyActor wiring (src/app_state.rs:1120-1129): set_gpu_manager_addr (src/app_state.rs:1123, only if<br/>gpu_manager_addr Some) then set_client_manager_addr (:1127, unconditional) BEFORE start() (:1129)."]
+    N3["OntologyActor wiring (src/app_state.rs:1154-1163): set_gpu_manager_addr (src/app_state.rs:1157, only if<br/>gpu_manager_addr Some) then set_client_manager_addr (:1161, unconditional) BEFORE start() (:1163)."]
     ONT --- N3
     N4["ProtectedSettingsActor, its AppState field and get_api_keys / get_nostr_user are deleted (7a0674e79).<br/>API keys live in NostrService only, see VC-05.3 and VC-06.6"]
     AM --- N4
@@ -431,7 +431,7 @@ sequenceDiagram
     participant GSS as GraphServiceSupervisor<br/>src/actors/graph_service_supervisor.rs:763
     participant PO as PhysicsOrchestratorActor<br/>src/actors/physics_orchestrator_actor.rs
     participant GPU as GPU boundary<br/>see VC-10
-    participant CC as ClientCoordinatorActor<br/>src/actors/client_coordinator_actor.rs:1419
+    participant CC as ClientCoordinatorActor<br/>src/actors/client_coordinator_actor.rs:1472
 
     GSS->>PO: StartSimulation (src/actors/graph_service_supervisor.rs:1771)
     GSS->>PO: SimulationStep (:1788)
@@ -444,12 +444,12 @@ sequenceDiagram
     GSS->>PO: ForceComputeActorReplaced (subscribed by wire_force_compute_subscribers :598, so a restarted ForceComputeActor gets the graph again)
     GPU->>GSS: UpdateNodePositions from ForceComputeActor (handler :2058)
     GSS->>CC: PublishPositions via publish_positions (:612)
-    CC->>CC: update_position_cache then pump, each client streamed its next chunk until acknowledged (client_coordinator_actor.rs:1419-1426)
+    CC->>CC: update_position_cache then pump, each client streamed its next chunk until acknowledged (client_coordinator_actor.rs:1472-1479)
     Note over PO,CC: INVARIANT (ADR-2141) — PhysicsOrchestratorActor has no UpdateNodePositions handler and<br/>no client_coordinator_addr: the position path is GPU to ForceComputeActor to GraphServiceSupervisor<br/>to ClientCoordinatorActor to WebSocket (physics_orchestrator_actor.rs:578-581)
-    Note over GSS,CC: DRIFT: docs/BASELINE-architecture.md:434-436 still routes the position broadcast<br/>through PhysicsOrchestratorActor, and its :168-170 reads the same way
+    Note over GSS,CC: DRIFT: docs/BASELINE-architecture.md:436-438 still routes the position broadcast<br/>through PhysicsOrchestratorActor, and its :170-172 reads the same way
 ```
 
-**Drift (BASELINE-architecture.md vs code):** `docs/BASELINE-architecture.md:434-436` and `:168-170` name `PhysicsOrchestratorActor` as the hop between `ForceComputeActor` and `ClientCoordinatorActor`; `src/actors/graph_service_supervisor.rs:2058-2064` hands `UpdateNodePositions` to `publish_positions` (`:612`), which sends `PublishPositions` straight to the coordinator, and the orchestrator has no handler for it (`src/actors/physics_orchestrator_actor.rs:578-581`).
+**Drift (BASELINE-architecture.md vs code):** `docs/BASELINE-architecture.md:436-438` and `:170-172` name `PhysicsOrchestratorActor` as the hop between `ForceComputeActor` and `ClientCoordinatorActor`; `src/actors/graph_service_supervisor.rs:2058-2064` hands `UpdateNodePositions` to `publish_positions` (`:612`), which sends `PublishPositions` straight to the coordinator, and the orchestrator has no handler for it (`src/actors/physics_orchestrator_actor.rs:578-581`).
 
 ## VC-02.15 SemanticProcessorActor and OptimizedSettingsActor — message surfaces
 ```mermaid
@@ -457,13 +457,13 @@ sequenceDiagram
     autonumber
     participant GSS as GraphServiceSupervisor<br/>src/actors/graph_service_supervisor.rs:767-773
     participant SP as SemanticProcessorActor<br/>src/actors/semantic_processor_actor.rs
-    participant APP as AppState::new<br/>src/app_state.rs:1072
+    participant APP as AppState::new<br/>src/app_state.rs:1106
     participant SET as OptimizedSettingsActor<br/>src/actors/optimized_settings_actor.rs
     participant REDIS as REDIS_URL<br/>src/actors/optimized_settings_actor.rs:138
 
     GSS->>SP: SemanticProcessorActor::new(SemanticProcessorConfig::default()).start() (:771)
-    APP->>SET: OptimizedSettingsActor::with_actors(sqlite_settings_repository, Some(graph_service_addr), None) (:1072-1076)
-    SET->>SET: settings_actor.start() (src/app_state.rs:1081)
+    APP->>SET: OptimizedSettingsActor::with_actors(sqlite_settings_repository, Some(graph_service_addr), None) (:1106-1110)
+    SET->>SET: settings_actor.start() (src/app_state.rs:1115)
     alt REDIS_URL set (src/actors/optimized_settings_actor.rs:138)
         SET->>REDIS: connect for distributed settings cache
     else REDIS_URL unset
@@ -476,24 +476,24 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant APP as AppState::new<br/>src/app_state.rs:1191-1209
+    participant APP as AppState::new<br/>src/app_state.rs:1225-1243
     participant EL as ElevationActor<br/>src/actors/elevation_actor.rs:191
     participant EV as elevation_voice<br/>src/actors/elevation_voice.rs
-    participant MAIN as main<br/>src/main.rs:575
+    participant MAIN as main<br/>src/main.rs:576
     participant DE as DecisionElevationActor<br/>src/actors/decision_elevation_actor.rs:175
 
     alt ELEVATION_ACTOR_ENABLED gate passes (src/actors/elevation_actor.rs:191)
-        APP->>EL: ElevationActor::new(graph_adapter, sqlite_enrichment_repository, speech_service, Some(ontology_repository)).start() (:1191)
-        Note over EL,EV: voice-guided path when local speech stack (Whisper STT, PocketTts TTS) is up (app_state.rs:1186-1188) — elevation_voice.rs
+        APP->>EL: ElevationActor::new(graph_adapter, sqlite_enrichment_repository, speech_service, Some(ontology_repository)).start() (:1225)
+        Note over EL,EV: voice-guided path when local speech stack (Whisper STT, PocketTts TTS) is up (app_state.rs:1220-1222) — elevation_voice.rs
     else gate closed
-        APP->>APP: log "ElevationActor disabled" (src/app_state.rs:1207)
+        APP->>APP: log "ElevationActor disabled" (src/app_state.rs:1241)
     end
-    Note over MAIN,DE: DecisionElevationActor is started in main() src/main.rs:575, NOT in AppState::new —<br/>a second, separately-gated ACSP actor family alongside ElevationActor
+    Note over MAIN,DE: DecisionElevationActor is started in main() src/main.rs:576, NOT in AppState::new —<br/>a second, separately-gated ACSP actor family alongside ElevationActor
     alt DECISION_ELEVATION_ENABLED gate passes (src/actors/decision_elevation_actor.rs:175)
-        MAIN->>DE: DecisionElevationActor::new() then actix::Actor::start(actor) (src/main.rs:575-577)
-        MAIN->>MAIN: wrap in ActorElevationSink (src/main.rs:580), fed to DecisionService.with_elevation_sink (src/main.rs:597)
+        MAIN->>DE: DecisionElevationActor::new() then actix::Actor::start(actor) (src/main.rs:576-578)
+        MAIN->>MAIN: wrap in ActorElevationSink (src/main.rs:581), fed to DecisionService.with_elevation_sink (src/main.rs:598)
     else gate closed
-        MAIN->>MAIN: log "DecisionElevationActor disabled" (src/main.rs:584)
+        MAIN->>MAIN: log "DecisionElevationActor disabled" (src/main.rs:585)
     end
 ```
 
@@ -501,16 +501,16 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant APP as AppState::new<br/>src/app_state.rs:1214-1225
+    participant APP as AppState::new<br/>src/app_state.rs:1248-1259
     participant VI as VoiceInterfaceActor<br/>src/actors/voice_interface_actor.rs
     participant VC as voice_commands<br/>src/actors/voice_commands.rs
     participant MMV as MultiMcpVisualizationActor<br/>src/actors/multi_mcp_visualization_actor.rs
 
     alt speech_service Some
-        APP->>VI: VoiceInterfaceActor::new(task_orchestrator_addr.clone(), speech_service.clone()).start() (:1214)
+        APP->>VI: VoiceInterfaceActor::new(task_orchestrator_addr.clone(), speech_service.clone()).start() (:1248)
         VI->>VC: dispatch parsed spoken command to settings-assistant path
     else speech_service None
-        APP->>APP: log "VoiceInterfaceActor disabled (no speech service)" (:1224)
+        APP->>APP: log "VoiceInterfaceActor disabled (no speech service)" (:1258)
     end
     Note over MMV: MultiMcpVisualizationActor has no start() call found in src/app_state.rs or src/main.rs —<br/>coverage gap, reported not diagrammed further (see report)
 ```
@@ -519,7 +519,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant APP as AppState::new<br/>src/app_state.rs:1089-1104
+    participant APP as AppState::new<br/>src/app_state.rs:1123-1138
     participant AM as AgentMonitorActor<br/>src/actors/agent_monitor_actor.rs:491
     participant CFC as ClaudeFlowClient
     participant AB as AgentBeamActor<br/>src/actors/agent_beam_actor.rs:203
@@ -527,22 +527,22 @@ sequenceDiagram
     participant CC as ClientCoordinatorActor
     participant HUB as agent-events hub
 
-    APP->>CFC: ClaudeFlowClient::new(mcp_host, mcp_port) (:1102)
-    APP->>AM: AgentMonitorActor::new(claude_flow_client, graph_service_addr.clone()).start() (:1104)
+    APP->>CFC: ClaudeFlowClient::new(mcp_host, mcp_port) (:1136)
+    APP->>AM: AgentMonitorActor::new(claude_flow_client, graph_service_addr.clone()).start() (:1138)
     alt MOCK_AGENTS set (src/actors/agent_monitor_actor.rs:634)
         AM->>AM: synthesize mock agent roster, skip live MCP poll
     else unset
         AM->>CFC: poll live MCP agent roster
     end
-    APP->>AB: let agent_beam_addr = AgentBeamActor::new(client_manager_addr.clone()).start() (src/app_state.rs:669)
-    APP->>GSS: SetAgentBeamAddr { addr: agent_beam_addr } (src/app_state.rs:783)
+    APP->>AB: let agent_beam_addr = AgentBeamActor::new(client_manager_addr.clone()).start() (src/app_state.rs:677)
+    APP->>GSS: SetAgentBeamAddr { addr: agent_beam_addr } (src/app_state.rs:817)
     AM->>GSS: UpdateBotsGraph { source: ManagementApi, agents, targets } (src/actors/agent_monitor_actor.rs:714-718)
     GSS->>AB: forward UpdateBotsGraph, also GetBotsGraphData (:1815) and UpdateChainPayments (:2043)
     AB->>AB: RosterFeed.apply turns the roster into presence and state events (src/actors/agent_beam_actor.rs:250-268)
     HUB->>AB: process-global agent-event stream, each action joined to its roster agent by taskId (src/actors/agent_beam_actor.rs:186-197)
     AB->>CC: encoded 0x23 frames via BroadcastAgentActionFrame, plus a 1s roster keep-alive tick (src/actors/agent_beam_actor.rs:307-313)
-    CC->>CC: broadcast_agent_actions, one frame per identity without actions whose target that caller may not see,<br/>nothing sent before a classification arrives (src/actors/client_coordinator_actor.rs:465-501, handler :1333-1347)
+    CC->>CC: broadcast_agent_actions, one frame per identity without actions whose target that caller may not see,<br/>nothing sent before a classification arrives (src/actors/client_coordinator_actor.rs:518-554, handler :1386-1400)
     Note over AB,GSS: Swarm agents are no longer graph nodes: GraphStateActor holds no bots graph<br/>(src/actors/graph_state_actor.rs:980-982) — /bots/data is the AgentBeamActor roster view (src/actors/agent_beam_actor.rs:271-287)
 ```
 
-**Drift (RESOLVED in this restamp, 2026-11-02):** at 8692b12 this file routed `GetBotsGraphData`, `UpdateBotsGraph` and `UpdateChainPayments` to `GraphStateActor` and drew `AgentBeamActor` with no retained address. At 86cdd7635 all three go to `AgentBeamActor` (`src/actors/graph_service_supervisor.rs:1815`, `:2031`, `:2043`), registered by `SetAgentBeamAddr` (`src/app_state.rs:783`), and `GraphStateActor` holds no bots graph (`src/actors/graph_state_actor.rs:980-982`).
+**Drift (RESOLVED in this restamp, 2026-11-02):** at 8692b12 this file routed `GetBotsGraphData`, `UpdateBotsGraph` and `UpdateChainPayments` to `GraphStateActor` and drew `AgentBeamActor` with no retained address. At 86cdd7635 all three go to `AgentBeamActor` (`src/actors/graph_service_supervisor.rs:1815`, `:2031`, `:2043`), registered by `SetAgentBeamAddr` (`src/app_state.rs:817`), and `GraphStateActor` holds no bots graph (`src/actors/graph_state_actor.rs:980-982`).

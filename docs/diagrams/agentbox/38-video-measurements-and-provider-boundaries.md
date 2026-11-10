@@ -19,7 +19,7 @@ sources:
   - ../project/agentbox/comfyui-sidecar/nodes/agentbox_video/identity.py
   - ../project/agentbox/comfyui-sidecar/nodes/agentbox_video/staging.py
   - ../project/agentbox/comfyui-sidecar/verify-spede.sh
-verified_commit: {agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35}
+verified_commit: {agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
 ---
 
 ## For developers

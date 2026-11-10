@@ -18,7 +18,7 @@ sources:
   - ../dreamlab-ai-website/forum-config/dreamlab.toml
   - ../dreamlab-ai-website/forum-config/src/workers.rs
   - ../dreamlab-ai-website/src/App.tsx
-verified_commit: 0e1572801d03a1af6d8bc8861f928da087d69eed
+verified_commit: f934e26f949f3b95171544ec8ec5bcfd7679f593
 ---
 
 ## DW-01.1 Repo composition — thin operator overlay, not a protocol owner
@@ -28,7 +28,7 @@ flowchart TB
     REPO --> FCFG["forum-config/ overlay<br/>branding, zones, CF resource ids, kit pin<br/>CLAUDE.md:5-11"]
     REPO --> DOCS["docs/ — BASELINE, IDENTITY-zones,<br/>adr, api, security, deployment"]
     FCFG -. "cloned at KIT_REF" .-> KIT["nostr-rust-forum kit<br/>forum client, BBS client, 5 Workers<br/>see NF-*"]
-    REPO -. "published crates" .-> CRATES["Published kit crates<br/>core, config, mesh, rate-limit<br/>=1.0.0-beta.16<br/>forum-config/Cargo.toml:50-53"]
+    REPO -. "published crates" .-> CRATES["Published kit crates<br/>core, config, mesh, rate-limit<br/>=1.0.0-beta.19<br/>forum-config/Cargo.toml:50-53"]
     REPO -. "poker route" .-> POKER["/community/table<br/>practice + two asset tables<br/>DREAM and BLAKES7 house seats<br/>dreamlab.toml:320"]
 ```
 - "What this repo is" (BASELINE-architecture.md:35-41): a thin operator overlay — the forum source, Nostr crates, and five Workers all live upstream; this repo carries only the React site, `forum-config/`, and docs.
@@ -65,18 +65,18 @@ flowchart TB
 ## DW-01.5 The dual-pin rule — four locations that must move together
 ```mermaid
 flowchart TB
-    A["1. KIT_REF<br/>.github/workflows/deploy.yml:130"] --- SHA["9c36b6032640c89879ae52fe25da99493979a0b6"]
+    A["1. KIT_REF<br/>.github/workflows/deploy.yml:130"] --- SHA["6064622dbb1a7cc1ba2d072109f9e3e8a96157df"]
     B["2. KIT_REF<br/>.github/workflows/workers-deploy.yml:44"] --- SHA
     C["3. KIT_REF<br/>.github/workflows/rust-ci.yml:20"] --- SHA
-    D["4. rev pin, resolved version<br/>forum-config/Cargo.toml:50-53"] --- VER["1.0.0-beta.16"]
+    D["4. rev pin, resolved version<br/>forum-config/Cargo.toml:50-53"] --- VER["1.0.0-beta.19"]
     SHA -.->|"CANONICAL_KIT_SHA"| REC["kit-compatibility-record.md:30"]
     VER -.->|"CANONICAL_KIT_VERSION"| REC2["kit-compatibility-record.md:31"]
 ```
 - `workers-deploy.yml` fires on `forum-config/Cargo.lock` and `KIT_REF` changes precisely so a kit re-pin never ships a new client against old workers — the client/worker skew that "wiped the forum on 2026-06-15" (BASELINE-architecture.md:121-124).
-- **Drift:** `BASELINE-architecture.md:117` records `KIT_REF = ea7d95e7ca70833217ab543fee91b8344304a32d` ("the kit commit that released 1.0.0-beta.16") while the live pins (`deploy.yml:130`, `workers-deploy.yml:44`, `rust-ci.yml:20`, `kit-compatibility-record.md:30`) are now `9c36b6032640c89879ae52fe25da99493979a0b6` (repinned 2026-10-30 from `8a5cf81`), a different commit that moved the row's branch column to "`main` at 9c36b60" with the Jev local-only change set listed first (`kit-compatibility-record.md:26`, `kit-compatibility-record.md:38`), at the same crate version `1.0.0-beta.16` (`forum-config/Cargo.toml:50-53`, `kit-compatibility-record.md:31`). The governing doc's crate-version line (`BASELINE-architecture.md:110`) is current at `=1.0.0-beta.16`; only its SHA is a repin behind. All four pin sites and the compatibility record agree with each other.
+- **Drift:** `BASELINE-architecture.md:117` records `KIT_REF = ea7d95e7ca70833217ab543fee91b8344304a32d` ("the kit commit that released 1.0.0-beta.16", `BASELINE-architecture.md:119`) while the live pins (`deploy.yml:130`, `workers-deploy.yml:44`, `rust-ci.yml:20`, `kit-compatibility-record.md:30`) are now `6064622dbb1a7cc1ba2d072109f9e3e8a96157df`, the commit tagged `v1.0.0-beta.19`, the first pin since beta.16 that moves all four library crates (`forum-config/Cargo.toml:50-53`, `kit-compatibility-record.md:31`). The governing doc's crate-version line (`BASELINE-architecture.md:110`) still reads `=1.0.0-beta.16`, so both its version and its SHA are behind. All four pin sites and the compatibility record agree with each other.
 - **Drift:** the README's pin sentence still reads kit source `8a5cf81…` (`README.md:65`) one repin behind the three pin sites; the older "Live pin `2d693ed2…` (beta.6)" and `631c09f…` sentences are gone.
 - The pin-site comments do not restate release notes or the kit version: `rust-ci.yml:18-19`, `deploy.yml:126-129` and `workers-deploy.yml:41-43` defer provenance to the compatibility record, which pin-parity checks against the exact SHA, and `deploy.yml:129` records that the prose rots on every repin.
-- **Drift:** the deployment row's SHA column and the machine-readable field now agree at `9c36b60` (`kit-compatibility-record.md:26,30`). The History table, however, still marks `931898a` (tag `v1.0.0-beta.10`) as "Current (canonical — matches `CANONICAL_KIT_SHA` above and the `KIT_REF` pins)" (`kit-compatibility-record.md:355`), six releases behind. pin-parity compares only the SHA, so this does not fail the gate.
+- **Drift:** the deployment row's SHA column and the machine-readable field now agree at `6064622` (`kit-compatibility-record.md:26,30`). The History table, however, still marks `931898a` (tag `v1.0.0-beta.10`) as "Current (canonical — matches `CANONICAL_KIT_SHA` above and the `KIT_REF` pins)" (`kit-compatibility-record.md:359`), nine tagged releases behind (beta.10 to beta.19). pin-parity compares only the SHA, so this does not fail the gate.
 - INVARIANT: the machine-readable pin lives in exactly one place the gate reads — `CANONICAL_KIT_SHA` / `CANONICAL_KIT_VERSION` in `kit-compatibility-record.md:30-31` — and every other site is compared against it, which is why the surrounding comments can rot without the gate noticing.
 
 ## DW-01.6 Deploy job sequence — clone kit, build three frontends, merge, inject, deploy

@@ -14,7 +14,8 @@ sources:
   - ../sealmap/crates/sealmap-model/Cargo.toml
   - ../sealmap/docs/DESIGN.md
   - ../sealmap/README.md
-verified_commit: b9a6aebddd2e8379206eea6cfdd3ab84546724b4
+  - ../sealmap/crates/sealmap-rust/README.md
+verified_commit: 2b351367cab241aa7304d364aa37b52e65bb71f2
 ---
 ## For developers
 
@@ -47,7 +48,7 @@ timestamps, no machine paths, no user names.
 Two properties lower risk directly. The loader honours the repository's own
 ignore files, so vendored and generated trees do not inflate the model (the
 design measured 47,229 files walked instead of 934 before this,
-`docs/DESIGN.md:233`). And a model written by another version is refused
+`docs/DESIGN.md:303`). And a model written by another version is refused
 outright rather than half-read, so a stale artefact cannot be mistaken for a
 current one.
 
@@ -95,7 +96,8 @@ carry a flow; a relation always carries a confidence.
 **Why it is this way.** Ordered collections make serialisation deterministic
 and every query iterate in key order (`crates/sealmap-model/src/codebase.rs:13`-`15`).
 Confidence is on every relation because there is no type checker behind the
-model, and nothing is meant to be guessed silently (`README.md:321`-`323`).
+model, and the extractor's README calls this honest confidence
+(`crates/sealmap-rust/README.md:16`).
 
 **Invariant:** a relation from a symbol to itself is never stored
 (`crates/sealmap-model/src/codebase.rs:119`).
@@ -135,7 +137,7 @@ files by extension and size and stores their text with `\n` line endings.
 **Why it is this way.** Reading only what is under the root, and never the
 user's global excludes, keeps the result a function of the checkout's bytes
 (`crates/sealmap-model/src/source.rs:53`-`57`). The ignore support was the
-hardening fix for the 48-second VisionClaw walk (`docs/DESIGN.md:233`). It
+hardening fix for the 48-second VisionClaw walk (`docs/DESIGN.md:303`). It
 also makes `ignore` a dependency of the model crate
 (`crates/sealmap-model/Cargo.toml:21`), which SM-19 follows to the MSRV.
 
@@ -206,8 +208,7 @@ probe, and only then deserialises; a v1 file is reported as "found 1" rather
 than failing on a missing field.
 
 **Why it is this way.** Schema v2 changed the meaning of every id, so a v1
-model read as v2 would be wrong in every row. The README states the refusal
-for users (`README.md:205`-`208`). Every `SymbolId` inside is parsed through
+model read as v2 would be wrong in every row. Every `SymbolId` inside is parsed through
 the canonical-only parser, so a hand-edited id fails the whole read.
 
 **Invariant:** `Codebase::new` always stamps the current schema version

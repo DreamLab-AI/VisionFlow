@@ -25,7 +25,7 @@ sources:
   - ../project/agentbox/services/agentbox-manifest/src/system_one.rs
   - ../project/agentbox/mcp/servers/lib/memory-jev-rerank.js
   - ../project/agentbox/management-api/lib/pg-config.js
-verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
 ---
 ## ES-07.1 Every RuVector client and the one shared embedder
 ```mermaid
@@ -57,7 +57,7 @@ flowchart TB
     SONA --> PG
     HARNESS --> PG
     MCL -- "read-only sample and HNSW query, RUVECTOR_PG_CONNINFO<br/>memory_cloud_service.rs:43" --> PG
-    MCL -- "embeds each query itself, MEMORY_CLOUD_EMBED_URL<br/>memory_cloud_service.rs:585-587" --> XI
+    MCL -- "embeds each query itself, MEMORY_CLOUD_EMBED_URL<br/>memory_cloud_service.rs:593-595" --> XI
     PG --> HNSW
     MCP -- "client-side embed before write" --> XI
     XI --> MODEL
@@ -66,7 +66,7 @@ flowchart TB
     INV2["INVARIANT — ruvector-mcp.cjs FAILS CLOSED with no sql.js<br/>fallback: cannot reach ruvector-postgres is FATAL<br/>(ruvector-mcp.cjs:152)"]
     DIV1["DIVERGENCE — VisionClaw has NO RuVector write client. Its<br/>touchpoints are the memory-flash WS broadcast (src/handlers/<br/>memory_flash_handler.rs:50, observational, never embeds) and the<br/>memory cloud, a read-only reader that samples the store and<br/>queries its HNSW index (src/services/memory_cloud_service.rs:6-13).<br/>There is no RuVectorAdapter type in src/ or crates/ (verified by grep)."]
     SCOPE["INVARIANT — pubkey scoping: NIP-98 callers are scoped to their<br/>own pubkey namespace (user:&lt;pubkey&gt;:proj:&lt;repo-slug&gt;:&lt;ns&gt;); a<br/>session cannot read another session's per-project namespace<br/>— agentbox.toml:379-395"]
-    NS5["code-harness-lessons namespace — expel_lesson_extraction distils<br/>0-N rules per completed trajectory as ex:DistilledLesson<br/>(memory_type=semantic, durable) — agentbox.toml:685-690"]
+    NS5["code-harness-lessons namespace — expel_lesson_extraction distils<br/>0-N rules per completed trajectory as ex:DistilledLesson<br/>(memory_type=semantic, durable) — agentbox.toml:691-696"]
     DIV3["DIVERGENCE — the harness's file-based auto-memory<br/>(~/.claude/projects/.../memory/, MEMORY.md) is INVISIBLE to this<br/>path and to every other agent in the mesh."]
 
     MCP --> INV1
@@ -129,7 +129,7 @@ sequenceDiagram
         P->>H: HNSW top-k
         H-->>P: candidates
         P-->>M: ranked rows
-        opt AGENTBOX_JEV_MEMORY_RERANK=1 (Jev option, off in the code, the manifest sets memory_rerank = true at agentbox.toml:914 and system_one.rs:460 exports it, staged until the new agentbox image is activated, ADR-2155)
+        opt AGENTBOX_JEV_MEMORY_RERANK=1 (Jev option, off in the code, the manifest sets memory_rerank = true at agentbox.toml:920 and system_one.rs:460 exports it, staged until the new agentbox image is activated, ADR-2155)
             M->>M: the selected System One backend (TypeSafe by default, proxy agentbox:8094) reorders the already access-permitted shortlist, score stays the cosine, every miss returns the rows unchanged<br/>ruvector-mcp.cjs:239-243, local-only only when AGENTBOX_JEV_MEMORY_LOCAL_ONLY=1 (default 0), memory-jev-rerank.js:16-18,107
         end
         M-->>A: semantic results (~100ms typical)
@@ -147,7 +147,7 @@ sequenceDiagram
     Note over A,H: namespace "*" performs a global cross-namespace search.<br/>AVOID memory_hybrid_search on large namespaces — it<br/>materialises the whole namespace (~72s on ruvnet-kb).
 ```
 
-**Drift:** the call site still describes the reranker as a LOCAL judge (`../project/agentbox/mcp/servers/ruvector-mcp.cjs:239-240`), but local-only is now an opt-in (`AGENTBOX_JEV_MEMORY_LOCAL_ONLY`, default 0), so once the new image is activated the query and capped value snippets of the shortlist go to the selected backend, cloud TypeSafe by default (`../project/agentbox/mcp/servers/lib/memory-jev-rerank.js:16-18,107`); `[system_one].local_only` is empty (`../project/agentbox/agentbox.toml:894`).
+**Drift:** the call site still describes the reranker as a LOCAL judge (`../project/agentbox/mcp/servers/ruvector-mcp.cjs:239-240`), but local-only is now an opt-in (`AGENTBOX_JEV_MEMORY_LOCAL_ONLY`, default 0), so once the new image is activated the query and capped value snippets of the shortlist go to the selected backend, cloud TypeSafe by default (`../project/agentbox/mcp/servers/lib/memory-jev-rerank.js:16-18,107`); `[system_one].local_only` is empty (`../project/agentbox/agentbox.toml:900`).
 
 ## ES-07.7 Recall gate — the band that must hold before and after any retrieval change
 ```mermaid

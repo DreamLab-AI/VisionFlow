@@ -19,7 +19,7 @@ sources:
   - ../vowl-wasm/src/bindings/mod.rs
   - ../vowl-wasm/src/bindings/explorer.rs
   - ../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md
-verified_commit: 28af4365a68d9aacfd7c04f63299cc96ad717ce3
+verified_commit: 2aff199e2de06f4bba512301acf7023477c492ac
 ---
 
 **Repair note — 2026-11-03:** selected counterexamples below have a [scoped successor verification](06-layout-and-release-repairs.md). This historical topic retains its declared source revision; the successor states the repaired contracts and acceptance boundaries.
@@ -60,38 +60,38 @@ flowchart TB
 ## VW-03.3 `QuadTree` — build, insert/subdivide, Barnes-Hut recursion
 ```mermaid
 flowchart TB
-    B["QuadTree::build(nodes)<br/>src/layout/quadtree.rs:126"] --> INS["insert(node_ref) per node<br/>src/layout/quadtree.rs:166"]
-    INS --> COM["update center_of_mass, total_mass<br/>src/layout/quadtree.rs:168-173"]
+    B["QuadTree::build(nodes)<br/>src/layout/quadtree.rs:128"] --> INS["insert(node_ref) per node<br/>src/layout/quadtree.rs:168"]
+    INS --> COM["update center_of_mass, total_mass<br/>src/layout/quadtree.rs:170-175"]
     COM --> HASCH{"children already exist?"}
-    HASCH -->|yes| DELEGATE["delegate to child quadrant<br/>get_quadrant(x,y)<br/>src/layout/quadtree.rs:178-181"]
-    HASCH -->|no| PUSH["push into self.nodes<br/>src/layout/quadtree.rs:184"]
-    PUSH --> CAP{"nodes.len() > capacity?"}
-    CAP -->|yes| SUB["subdivide(): 4 children,<br/>redistribute existing nodes<br/>src/layout/quadtree.rs:193-238"]
+    HASCH -->|yes| DELEGATE["delegate to child quadrant<br/>get_quadrant(x,y)<br/>src/layout/quadtree.rs:180-183"]
+    HASCH -->|no| PUSH["push into self.nodes<br/>src/layout/quadtree.rs:186"]
+    PUSH --> CAP{"nodes.len() > capacity AND depth < 32?<br/>src/layout/quadtree.rs:188-193"}
+    CAP -->|yes| SUB["subdivide(): 4 children,<br/>redistribute existing nodes<br/>src/layout/quadtree.rs:197-250"]
     CAP -->|no| DONE1["leaf, unchanged"]
-    B --> CF["calculate_force(node_pos, node_id, theta, strength)<br/>src/layout/quadtree.rs:266"]
-    CF --> LEAF{"self.children.is_none()?<br/>src/layout/quadtree.rs:279"}
-    LEAF -->|yes, 1 node = self| ZERO["return zero (self-interaction)<br/>src/layout/quadtree.rs:280-282"]
-    LEAF -->|"yes, other leaves"| EXACT["calculate_exact_force<br/>src/layout/quadtree.rs:285, detail in VW-03.4"]
-    LEAF -->|no| THETA{"s/distance < theta?<br/>src/layout/quadtree.rs:300"}
-    THETA -->|yes| APPROX["approximate via center_of_mass,<br/>strength*total_mass/distance²<br/>src/layout/quadtree.rs:301-303"]
-    THETA -->|no| RECURSE["recurse into all 4 children,<br/>sum their forces<br/>src/layout/quadtree.rs:307-311"]
+    B --> CF["calculate_force(node_pos, node_id, theta, strength)<br/>src/layout/quadtree.rs:273"]
+    CF --> LEAF{"self.children.is_none()?<br/>src/layout/quadtree.rs:286"}
+    LEAF -->|yes, 1 node = self| ZERO["return zero (self-interaction)<br/>src/layout/quadtree.rs:287-289"]
+    LEAF -->|"yes, other leaves"| EXACT["calculate_exact_force<br/>src/layout/quadtree.rs:292, detail in VW-03.4"]
+    LEAF -->|no| THETA{"s/distance < theta?<br/>src/layout/quadtree.rs:307"}
+    THETA -->|yes| APPROX["approximate via center_of_mass,<br/>strength*total_mass/distance²<br/>src/layout/quadtree.rs:308-310"]
+    THETA -->|no| RECURSE["recurse into all 4 children,<br/>sum their forces<br/>src/layout/quadtree.rs:314-318"]
 ```
-- **Failure boundary:** insertion has no depth or minimum-cell guard (src/layout/quadtree.rs:166-238). With 51 nodes pinned at one coordinate, the current WASM `WebVowl.tick()` traps with an out-of-bounds memory access during repeated subdivision. The later leaf-force coincident-point nudge cannot protect tree construction. The separate CSR tree has a maximum depth of 40 (src/layout/csr_sim.rs:110, src/layout/csr_sim.rs:213).
-- `theta` (typical 0.5–0.9, doc comment src/layout/quadtree.rs:261) trades layout accuracy for speed: smaller theta forces more recursion (exact), larger theta approximates more aggressively.
+- **Failure boundary:** RESOLVED at vowl-wasm 2aff199 — insertion used to have no depth or minimum-cell guard, so 51 nodes pinned at one coordinate trapped `WebVowl.tick()` during repeated subdivision. Each cell now records its depth and stops subdividing at depth 32, keeping coincident points in a bounded leaf (src/layout/quadtree.rs:188-193, src/layout/quadtree.rs:239-241), and a test covers 51 coincident nodes (src/layout/quadtree.rs:603). The separate CSR tree has a maximum depth of 40 (src/layout/csr_sim.rs:110, src/layout/csr_sim.rs:213).
+- `theta` (typical 0.5–0.9, doc comment src/layout/quadtree.rs:268) trades layout accuracy for speed: smaller theta forces more recursion (exact), larger theta approximates more aggressively.
 
 ## VW-03.4 Leaf-force SIMD/scalar dispatch
 ```mermaid
 flowchart LR
-    LEAF["calculate_exact_force(node_pos, node_id, strength)<br/>src/layout/quadtree.rs:323"] --> FILT["sources = leaf nodes minus self<br/>src/layout/quadtree.rs:330-334"]
-    FILT --> GATE{"feature: simd AND<br/>sources.len() >= 4?<br/>src/layout/quadtree.rs:341,343"}
+    LEAF["calculate_exact_force(node_pos, node_id, strength)<br/>src/layout/quadtree.rs:330"] --> FILT["sources = leaf nodes minus self<br/>src/layout/quadtree.rs:337-341"]
+    FILT --> GATE{"feature: simd AND<br/>sources.len() >= 4?<br/>src/layout/quadtree.rs:348,350"}
     GATE -->|yes, wasm32| SIMDW["unsafe calculate_leaf_force_simd()<br/>src/layout/simd.rs:386, target_feature simd128"]
     GATE -->|yes, non-wasm32| SIMDN["calculate_leaf_force_simd() scalar shim<br/>src/layout/simd.rs:479"]
-    GATE -->|no| SCALAR["scalar fold over sources:<br/>strength*mass/distance_sq, deterministic<br/>perturbation for coincident points<br/>src/layout/quadtree.rs:377-389"]
+    GATE -->|no| SCALAR["scalar fold over sources:<br/>strength*mass/distance_sq, deterministic<br/>perturbation for coincident points<br/>src/layout/quadtree.rs:384-396"]
     SIMDW --> OUT["Vector2<f64> force"]
     SIMDN --> OUT
     SCALAR --> OUT
 ```
-- INVARIANT: coincident nodes (`distance_sq < 0.0001`) never divide by zero — both the scalar leaf path (src/layout/quadtree.rs:384-387) and the CSR tick (VW-03.5) substitute a deterministic sine/cosine-derived nudge.
+- INVARIANT: coincident nodes (`distance_sq < 0.0001`) never divide by zero — both the scalar leaf path (src/layout/quadtree.rs:391-394) and the CSR tick (VW-03.5) substitute a deterministic sine/cosine-derived nudge.
 - `is_simd_available()` differs by target: `#[cfg(target_arch = "wasm32")]` (src/layout/simd.rs:516) returns the compile-time `cfg!(feature = "simd")`; it does not probe browser support; the non-wasm32 stub (src/layout/simd.rs:525) always returns `false`.
 
 ## VW-03.5 `CsrSimulation::tick` — deterministic worker physics, Barnes-Hut by default
@@ -112,13 +112,13 @@ flowchart TB
     DECAY --> FLOOR{"alpha < alpha_min?"}
     FLOOR -->|yes| LATCH["alpha = alpha_min; finished = true<br/>src/layout/csr_sim.rs:446-449"]
     FLOOR -->|no| DONE["tick complete, positions updated in place"]
-    N1["DEBT: ForceSimulation and CsrSimulation each carry their own Barnes-Hut quadtree, a node-reference tree in quadtree.rs and an arena tree over the flat position buffer in csr_sim.rs, so a fix to one does not reach the other<br/>src/layout/quadtree.rs:126 and src/layout/csr_sim.rs:160-169"]
+    N1["DEBT: ForceSimulation and CsrSimulation each carry their own Barnes-Hut quadtree, a node-reference tree in quadtree.rs and an arena tree over the flat position buffer in csr_sim.rs, so a fix to one does not reach the other<br/>src/layout/quadtree.rs:128 and src/layout/csr_sim.rs:160-169"]
     REP --- N1
 ```
-- Since ER-20 `CsrSimulation` is no longer always O(n²): the module doc now states Barnes-Hut is the default and `Repulsion::Exact`, `set_theta(0.0)` or `set_param("theta", 0.0)` select the exact loop, which runs unchanged for comparison (src/layout/csr_sim.rs:9-17, src/layout/csr_sim.rs:639, src/layout/csr_sim.rs:701). The default `SimConfig` is still described as tuned for a scoped tier of at most 1,500 nodes (src/layout/csr_sim.rs:82).
+- Since ER-20 `CsrSimulation` is no longer always O(n²): the module doc now states Barnes-Hut is the default and `Repulsion::Exact`, `set_theta(0.0)` or `set_param("theta", 0.0)` select the exact loop, which runs unchanged for comparison (src/layout/csr_sim.rs:9-17, src/layout/csr_sim.rs:654, src/layout/csr_sim.rs:725). The default `SimConfig` is still described as tuned for a scoped tier of at most 1,500 nodes (src/layout/csr_sim.rs:82).
 - `finished` is a latched `bool` (src/layout/csr_sim.rs:257,448) set once the alpha floor is hit — `tick()` after that point is a guaranteed no-op, not merely a small-alpha update.
-- For valid finite configuration, two guards bound motion in a tick since the 0.2.2 pin. Repulsion is softened: below a radius of `SOFTENING_FRACTION` (0.25) times `link_distance` the magnitude is held at its value at that radius (`softening_sq`, src/layout/csr_sim.rs:454-457, constants src/layout/csr_sim.rs:105-107), so a near-coincident seed pair is not flung thousands of units in one tick; and each node's per-tick displacement is capped at `MAX_STEP_FACTOR` (2.0) times `link_distance` (src/layout/csr_sim.rs:419, src/layout/csr_sim.rs:433-438). The test `near_coincident_seeds_stay_in_bounds` pins both for the exact and the Barnes-Hut path (src/layout/csr_sim.rs:988).
-- Drag pinning: `pin(i, x, y)` writes the position, zeroes the velocity and sets `pinned[i]`; a pinned node still exerts forces but is skipped at integration (src/layout/csr_sim.rs:421-423, src/layout/csr_sim.rs:655-666). It returns `false`, changing nothing, for an index outside the scope or a non-finite coordinate. `unpin` and `is_pinned` follow (src/layout/csr_sim.rs:669-682), `NggExplorer` exposes them as `pinNode` and `unpinNode` (src/bindings/explorer.rs:121-131), and every load clears the pins (src/layout/csr_sim.rs:334, src/layout/csr_sim.rs:371). `pin` does not reheat, so a caller pairs it with `reheat` (src/layout/csr_sim.rs:686).
+- For valid finite configuration, two guards bound motion in a tick since the 0.2.2 pin. Repulsion is softened: below a radius of `SOFTENING_FRACTION` (0.25) times `link_distance` the magnitude is held at its value at that radius (`softening_sq`, src/layout/csr_sim.rs:454-457, constants src/layout/csr_sim.rs:105-107), so a near-coincident seed pair is not flung thousands of units in one tick; and each node's per-tick displacement is capped at `MAX_STEP_FACTOR` (2.0) times `link_distance` (src/layout/csr_sim.rs:419, src/layout/csr_sim.rs:433-438). The test `near_coincident_seeds_stay_in_bounds` pins both for the exact and the Barnes-Hut path (src/layout/csr_sim.rs:1029).
+- Drag pinning: `pin(i, x, y)` writes the position, zeroes the velocity and sets `pinned[i]`; a pinned node still exerts forces but is skipped at integration (src/layout/csr_sim.rs:421-423, src/layout/csr_sim.rs:676-687). It returns `false`, changing nothing, for an index outside the scope or a non-finite coordinate. `unpin` and `is_pinned` follow (src/layout/csr_sim.rs:690-703), `NggExplorer` exposes them as `pinNode` and `unpinNode` (src/bindings/explorer.rs:121-131), and every load clears the pins (src/layout/csr_sim.rs:334, src/layout/csr_sim.rs:371). `pin` does not reheat, so a caller pairs it with `reheat` (src/layout/csr_sim.rs:707).
 
 ## VW-03.6 NGG1 tier load — bytes to seeded simulation
 ```mermaid
@@ -136,7 +136,7 @@ sequenceDiagram
     CS-->>NX: Result<(), Ngg1Error>
     NX-->>JS: Result<(), JsValue> (mapped via to_string)<br/>src/bindings/explorer.rs:43-45
 ```
-- The reader is no longer in this repository: `src/ngg1.rs` is one `pub use ontomark_ngg1::*;` so the `vowl_wasm::ngg1` path and every public name keep working (src/ngg1.rs:1-5), and the crate depends on `ontomark-ngg1` 0.1.0 from crates.io behind the `ngg1` feature (Cargo.toml:45-46, Cargo.toml:67). Header size, node stride, field offsets and the specification are therefore owned by ontomark, not by `vowl-wasm` (docs/adr/ADR-001-shared-ontology-rendering-contract.md:26).
+- The reader is no longer in this repository: `src/ngg1.rs` is one `pub use ontomark_ngg1::*;` so the `vowl_wasm::ngg1` path and every public name keep working (src/ngg1.rs:1-5), and the crate depends on `ontomark-ngg1` 0.1.0 from crates.io behind the `ngg1` feature (Cargo.toml:45-46, Cargo.toml:67). Header size, node stride, field offsets and the specification are therefore owned by ontomark, not by `vowl-wasm` (docs/adr/ADR-001-shared-ontology-rendering-contract.md:36).
 - The external codec owns byte-layout details. Current native migration tests and the built-WASM golden test exercise compatibility rather than duplicating those constants here (tests/ontomark_ngg1_migration.rs:503, tests/ngg1_wasm.test.mjs:24).
 - `CsrSimulation::load_csr` maps a parse failure to `Ngg1Error` and `NggExplorer::load_csr` maps that to a string for JS (src/layout/csr_sim.rs:358, src/bindings/explorer.rs:41-45).
 
@@ -146,7 +146,7 @@ stateDiagram-v2
     [*] --> Running: alpha = config.alpha (1.0)
     Running --> Running: tick() decays alpha *= (1 - alpha_decay)
     Running --> Finished: alpha < alpha_min
-    Finished --> Running: reheat(alpha), both engines<br/>src/layout/csr_sim.rs:686 and src/layout/simulation.rs:71 / set_param("reheat") src/layout/csr_sim.rs:702
+    Finished --> Running: reheat(alpha), both engines<br/>src/layout/csr_sim.rs:707 and src/layout/simulation.rs:71 / set_param("reheat") src/layout/csr_sim.rs:726
     note right of Finished
       Legacy: recomputes from alpha.
       Reheat validates then assigns alpha.
@@ -154,11 +154,11 @@ stateDiagram-v2
       CSR: latched flag; reheat or a
       non-empty load clears it.
       src/layout/csr_sim.rs:376-377
-      src/layout/csr_sim.rs:686-689
+      src/layout/csr_sim.rs:707-713
     end note
 ```
-- Both engines can now be re-annealed from JS: `ForceSimulation::reheat` clamps alpha to `(0, 1]` and ignores a non-finite or non-positive value (src/layout/simulation.rs:71-75), `CsrSimulation::reheat` assigns `max(value, alpha_min)` and sets `finished` only for an empty graph (src/layout/csr_sim.rs:686-689); the `WebVowl` binding exposes `reheat` (src/bindings/mod.rs:133-136) and `NggExplorer` exposes `reheat` and `setTheta` (src/bindings/explorer.rs:112-137). This closes the earlier gap where a settled `WebVowl` graph could only restart through a fresh `initSimulation()`.
-- **Input boundary:** CSR parameter setters accept unchecked values (src/layout/csr_sim.rs:620-653, src/layout/csr_sim.rs:692-703). Infinite reheat produces non-finite positions; negative `alphaMin` prevents settling in a 10,000-tick probe. The legacy reheat guard does not imply equivalent CSR validation.
+- Both engines can now be re-annealed from JS: `ForceSimulation::reheat` clamps alpha to `(0, 1]` and ignores a non-finite or non-positive value (src/layout/simulation.rs:71-75), `CsrSimulation::reheat` ignores a non-finite value, assigns `max(value, alpha_min)` and sets `finished` only for an empty graph (src/layout/csr_sim.rs:707-713); the `WebVowl` binding exposes `reheat` (src/bindings/mod.rs:135-138) and `NggExplorer` exposes `reheat` and `setTheta` (src/bindings/explorer.rs:112-137). This closes the earlier gap where a settled `WebVowl` graph could only restart through a fresh `initSimulation()`.
+- **Input boundary:** RESOLVED at vowl-wasm 2aff199 for non-finite input — every CSR parameter setter and `reheat` now returns early on a non-finite value, so an infinite reheat no longer produces non-finite positions (src/layout/csr_sim.rs:618-670, src/layout/csr_sim.rs:707-710, dispatch src/layout/csr_sim.rs:717-728). Finite out-of-range values are still accepted: the earlier probe showed a negative `alphaMin` prevents settling in 10,000 ticks, and `set_alpha_min` checks only finiteness (src/layout/csr_sim.rs:665-669).
 - `ForceSimulation` implements `LayoutAlgorithm` (src/layout/mod.rs:17); `CsrSimulation` deliberately does not — the two engines share a design (annealing, Hooke springs, Coulomb repulsion) but not a common Rust interface.
 
 ## VW-03.9 Seeding — `ForceSimulation::initialize` vs `CsrSimulation::load`
@@ -194,4 +194,4 @@ flowchart TB
     CSR --> TUNE["SimConfig: charge 2000, link_distance 60,<br/>damping 0.6, center_gravity 0.02<br/>src/layout/csr_sim.rs:84-95"]
 ```
 - `large_graph()`'s doc comment (src/layout/mod.rs:118-121) records it was tuned empirically on a 1,155-node ontology and deliberately over-spreads a small graph, which is why it is a named preset rather than the default; Barnes-Hut engagement above `n > 50` is detailed in VW-03.2.
-- `CsrSimulation` has no size-tiered preset — its `SimConfig::default()` is the only named preset, commented as tuned for the scoped tier of at most 1,500 nodes (src/layout/csr_sim.rs:82-95); callers can change repulsion and numeric force parameters at run time (src/layout/csr_sim.rs:620-653, src/layout/csr_sim.rs:692-703).
+- `CsrSimulation` has no size-tiered preset — its `SimConfig::default()` is the only named preset, commented as tuned for the scoped tier of at most 1,500 nodes (src/layout/csr_sim.rs:82-95); callers can change repulsion and numeric force parameters at run time (src/layout/csr_sim.rs:618-659, src/layout/csr_sim.rs:717-728).

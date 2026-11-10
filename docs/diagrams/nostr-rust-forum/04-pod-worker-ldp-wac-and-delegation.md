@@ -34,7 +34,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs
   - ../nostr-rust-forum/Cargo.toml
   - ../nostr-rust-forum/docs/BASELINE-architecture.md
-verified_commit: c39f41f104b114d6a3fa29013daaf6fa58b45080
+verified_commit: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df
 ---
 
 ## NF-04.1 Route surface
@@ -74,7 +74,7 @@ sequenceDiagram
     participant C as Client
     participant W as pod-worker fetch<br/>nostr-bbs-pod-worker/src/lib.rs:463
     participant A as NIP-98 verify<br/>nostr-bbs-pod-worker/src/auth.rs:13
-    participant ACL as find_effective_acl<br/>nostr-bbs-pod-worker/src/acl.rs:285
+    participant ACL as find_effective_acl<br/>nostr-bbs-pod-worker/src/acl.rs:314
     participant R2 as PODS bucket
     participant Q as quota
 
@@ -85,9 +85,9 @@ sequenceDiagram
     W->>W: an .acl path leaves here for handle_acl_request lib.rs:992
     W->>W: required_mode = coerce_required_mode_for_acl lib.rs:1015
     W->>ACL: resolve the effective ACL lib.rs:1016
-    ACL->>R2: sidecar walk, most specific first acl.rs:295
-    ACL->>ACL: KV miss-fallback only acl.rs:311
-    W->>W: evaluate_access against the resolved doc acl.rs:56
+    ACL->>R2: sidecar walk, most specific first acl.rs:324
+    ACL->>ACL: KV miss-fallback only acl.rs:359
+    W->>W: evaluate_access against the resolved doc acl.rs:82
     alt GET or HEAD
         W->>W: content negotiation lib.rs:1116, preconditions lib.rs:1135
     else PUT
@@ -112,24 +112,24 @@ A NIP-98 token that fails verification is still treated as anonymous, but the 40
 ```mermaid
 flowchart TB
     REQ["incoming method + path"]
-    BASE["base = method_to_mode(method)<br/>nostr-bbs-pod-worker/src/acl.rs:86"]
-    COERCE["coerce_required_mode_for_acl<br/>nostr-bbs-pod-worker/src/acl.rs:85"]
-    SHARED["delegates to the SHARED upstream policy effective_acl_target<br/>re-exported nostr-bbs-pod-worker/src/acl.rs:34"]
-    CTRL["a .acl or .meta path collapses to AccessMode::Control<br/>nostr-bbs-pod-worker/src/acl.rs:88-89"]
+    BASE["base = method_to_mode(method)<br/>nostr-bbs-pod-worker/src/acl.rs:112"]
+    COERCE["coerce_required_mode_for_acl<br/>nostr-bbs-pod-worker/src/acl.rs:111"]
+    SHARED["delegates to the SHARED upstream policy effective_acl_target<br/>re-exported nostr-bbs-pod-worker/src/acl.rs:37"]
+    CTRL["a .acl or .meta path collapses to AccessMode::Control<br/>nostr-bbs-pod-worker/src/acl.rs:114-115"]
     NORM["a normal path keeps its method-derived mode"]
 
     REQ --> BASE --> COERCE --> SHARED
     SHARED --> CTRL
     SHARED --> NORM
 
-    N1["INVARIANT ADR-2009: a sidecar governs another resource's AUTHORISATION GRAPH, so WAC section 4.3.5<br/>requires acl:Control for ANY access - read AND write alike nostr-bbs-pod-worker/src/acl.rs:73-74"]
-    N2["This closes BOTH holes at once: the write escalation - a mere acl:Write holder seizing acl:Control by<br/>overwriting a sidecar - and the read-side disclosure P2-1, an acl:Read holder reading the graph<br/>nostr-bbs-pod-worker/src/acl.rs:80-82"]
-    N3["The kit no longer re-derives the rule; it delegates to the shared upstream policy, so the forum and<br/>the pod server cannot drift on what counts as a sidecar nostr-bbs-pod-worker/src/acl.rs:75-77.<br/>EXTERNAL: the policy lives in solid-pod-rs - see the solid-pod-rs area (SP-*)"]
+    N1["INVARIANT ADR-2009: a sidecar governs another resource's AUTHORISATION GRAPH, so WAC section 4.3.5<br/>requires acl:Control for ANY access - read AND write alike nostr-bbs-pod-worker/src/acl.rs:99-100"]
+    N2["This closes BOTH holes at once: the write escalation - a mere acl:Write holder seizing acl:Control by<br/>overwriting a sidecar - and the read-side disclosure P2-1, an acl:Read holder reading the graph<br/>nostr-bbs-pod-worker/src/acl.rs:106-108"]
+    N3["The kit no longer re-derives the rule; it delegates to the shared upstream policy, so the forum and<br/>the pod server cannot drift on what counts as a sidecar nostr-bbs-pod-worker/src/acl.rs:101-103.<br/>EXTERNAL: the policy lives in solid-pod-rs - see the solid-pod-rs area (SP-*)"]
     N4["Never widen this. Widening reopens both holes - BASELINE-architecture invariant 4."]
-    N5["Two call paths share the MODE, not the TARGET: a path ending .acl is dispatched to handle_acl_request<br/>nostr-bbs-pod-worker/src/lib.rs:118 nostr-bbs-pod-worker/src/lib.rs:992, which checks Control on the PROTECTED resource<br/>nostr-bbs-pod-worker/src/lib.rs:1648-1650; a .meta sidecar stays on the standard path, where coerce keeps only the mode<br/>acl.rs:89 and the ACL is resolved and evaluated for the .meta path itself nostr-bbs-pod-worker/src/lib.rs:1016-1021"]
+    N5["Two call paths share the MODE, not the TARGET: a path ending .acl is dispatched to handle_acl_request<br/>nostr-bbs-pod-worker/src/lib.rs:118 nostr-bbs-pod-worker/src/lib.rs:992, which checks Control on the PROTECTED resource<br/>nostr-bbs-pod-worker/src/lib.rs:1648-1650; a .meta sidecar stays on the standard path, where coerce keeps only the mode<br/>acl.rs:115 and the ACL is resolved and evaluated for the .meta path itself nostr-bbs-pod-worker/src/lib.rs:1016-1021"]
 ```
 
-**Open:** a `.meta` sidecar needs `acl:Control`, but on the standard path that Control is resolved for the `.meta` path itself (its own `.meta.acl` sidecar, then inherited container rules), not for the protected resource (`../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/lib.rs:1015-1021`, `../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/acl.rs:89`, `../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/acl.rs:200`). The `.acl` handler instead checks Control on the protected resource (`../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/lib.rs:1648-1650`). Where a resource has its own `.acl`, the two answers can differ. No test here establishes whether that matters in practice.
+**Open:** a `.meta` sidecar needs `acl:Control`, but on the standard path that Control is resolved for the `.meta` path itself (its own `.meta.acl` sidecar, then inherited container rules), not for the protected resource (`../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/lib.rs:1015-1021`, `../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/acl.rs:115`, `../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/acl.rs:228`). The `.acl` handler instead checks Control on the protected resource (`../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/lib.rs:1648-1650`). Where a resource has its own `.acl`, the two answers can differ. No test here establishes whether that matters in practice.
 
 **Drift:** the handler comment says deriving the target there "covers `.meta` sidecars identically" (`../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/lib.rs:1646-1647`), but only paths ending `.acl` reach that handler (`../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/lib.rs:118-119`).
 
@@ -137,22 +137,22 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    START["find_effective_acl<br/>nostr-bbs-pod-worker/src/acl.rs:285"]
-    SEQ["acl_probe_sequence - ordered, most specific first<br/>nostr-bbs-pod-worker/src/acl.rs:180"]
-    OWN["1 the resource's OWN flat sidecar {path}.acl, inherited = false<br/>nostr-bbs-pod-worker/src/acl.rs:190"]
-    CONT["2 each enclosing container sidecar {dir}/.acl, inherited = true<br/>nostr-bbs-pod-worker/src/acl.rs:209"]
-    LEG["2b legacy flat ancestor form {dir}.acl, also inherited<br/>nostr-bbs-pod-worker/src/acl.rs:217"]
-    HIT["first parseable R2 hit WINS acl.rs:295 acl.rs:329"]
-    KV["3 KV acl:{owner_pubkey} - reached ONLY when the R2 walk resolved nothing<br/>nostr-bbs-pod-worker/src/acl.rs:311, parser acl.rs:339"]
+    START["find_effective_acl<br/>nostr-bbs-pod-worker/src/acl.rs:314"]
+    SEQ["acl_probe_sequence - ordered, most specific first<br/>nostr-bbs-pod-worker/src/acl.rs:208"]
+    OWN["1 the resource's OWN flat sidecar {path}.acl, inherited = false<br/>nostr-bbs-pod-worker/src/acl.rs:218"]
+    CONT["2 each enclosing container sidecar {dir}/.acl, inherited = true<br/>nostr-bbs-pod-worker/src/acl.rs:237"]
+    LEG["2b legacy flat ancestor form {dir}.acl, also inherited<br/>nostr-bbs-pod-worker/src/acl.rs:245"]
+    HIT["first parseable R2 hit WINS acl.rs:324 acl.rs:386"]
+    KV["3 KV acl:{owner_pubkey} - reached ONLY when the R2 walk resolved nothing<br/>nostr-bbs-pod-worker/src/acl.rs:359, parser acl.rs:400"]
     NONE["None - deny"]
 
     START --> SEQ --> OWN --> CONT --> LEG --> HIT
     HIT -.->|"no hit anywhere"| KV --> NONE
 
-    N1["INVARIANT: KV can NEVER shadow a more-specific R2 sidecar, so it can never mask a delegation grant<br/>nostr-bbs-pod-worker/src/acl.rs:253-273. This is the R11 / O3 fix; live behaviour is not re-checked here."]
-    N2["The inherited flag matters: for an ANCESTOR container only acl:default rules may apply per WAC 4.2,<br/>which the upstream evaluator gates on AclDocument::inherited<br/>nostr-bbs-pod-worker/src/acl.rs:161-164; the resource's own sidecar is non-inherited so its<br/>acl:accessTo applies directly acl.rs:166-167"]
-    N3["Kit-specific hardening on top of upstream: a stricter 64 KiB ACL document cap<br/>nostr-bbs-pod-worker/src/acl.rs:93, parser at acl.rs:111"]
-    N4["resolve_effective_acl acl.rs:360 exists so the ordering is unit-testable WITHOUT the worker R2/KV<br/>runtime types - the ordering rule is provable in a native test"]
+    N1["INVARIANT: KV can NEVER shadow a more-specific R2 sidecar, so it can never mask a delegation grant<br/>nostr-bbs-pod-worker/src/acl.rs:281-301. This is the R11 / O3 fix; live behaviour is not re-checked here."]
+    N2["The inherited flag matters: for an ANCESTOR container only acl:default rules may apply per WAC 4.2,<br/>which the upstream evaluator gates on AclDocument::inherited<br/>nostr-bbs-pod-worker/src/acl.rs:189-192; the resource's own sidecar is non-inherited so its<br/>acl:accessTo applies directly acl.rs:194-195"]
+    N3["Kit-specific hardening on top of upstream: a stricter 64 KiB ACL document cap<br/>nostr-bbs-pod-worker/src/acl.rs:119, parser at acl.rs:137"]
+    N4["resolve_effective_acl acl.rs:421 exists so the ordering is unit-testable WITHOUT the worker R2/KV<br/>runtime types - the ordering rule is provable in a native test"]
 ```
 
 ## NF-04.5 Container delegation — the owner is never coerced out
@@ -162,21 +162,21 @@ sequenceDiagram
     autonumber
     participant O as Pod owner
     participant W as pod-worker
-    participant B as build_delegation_acl<br/>nostr-bbs-pod-worker/src/acl.rs:402
+    participant B as build_delegation_acl<br/>nostr-bbs-pod-worker/src/acl.rs:461
     participant R2 as container sidecar
 
     O->>W: PUT a body carrying @delegation to {container}/.acl nostr-bbs-pod-worker/src/lib.rs:1769
     W->>W: writing a sidecar needs acl:Control on the container, so only a Control holder gets here nostr-bbs-pod-worker/src/lib.rs:1721-1725, see NF-04.3
     W->>B: owner_did, agent_did, container_path, modes nostr-bbs-pod-worker/src/lib.rs:1815
-    B->>B: normalise the container path, keeping a trailing slash so acl:accessTo names the container acl.rs:411
-    B->>B: emit owner Control plus agent modes MINUS Control acl.rs:394
-    B->>B: modes are deduped into canonical Read, Write, Append, Control order acl.rs:423
+    B->>B: normalise the container path, keeping a trailing slash so acl:accessTo names the container acl.rs:470
+    B->>B: emit owner Control plus agent modes MINUS Control acl.rs:453
+    B->>B: modes are deduped into canonical Read, Write, Append, Control order acl.rs:482
     B-->>W: AclDocument AST
     W->>R2: serialise to the canonical wire shape
-    W->>W: preserves_owner_control, also applied to a raw JSON-LD replacement nostr-bbs-pod-worker/src/lib.rs:1833 acl.rs:123
+    W->>W: preserves_owner_control, also applied to a raw JSON-LD replacement nostr-bbs-pod-worker/src/lib.rs:1833 acl.rs:153
 
-    Note over B: INVARIANT: the delegate never gets Control, so it can neither re-delegate nor seize the container nostr-bbs-pod-worker/src/acl.rs:394-396
-    Note over B: DIDs are written verbatim as did:nostr hex form - callers validate the shape upstream nostr-bbs-pod-worker/src/acl.rs:397-398
+    Note over B: INVARIANT: the delegate never gets Control, so it can neither re-delegate nor seize the container nostr-bbs-pod-worker/src/acl.rs:453-455
+    Note over B: DIDs are written verbatim as did:nostr hex form - callers validate the shape upstream nostr-bbs-pod-worker/src/acl.rs:456-457
     Note over R2: The emitted doc round-trips cleanly through this crate's own parser - that round-trip is what makes the grant readable by the next request's walk-up
 ```
 
@@ -248,11 +248,11 @@ sequenceDiagram
     autonumber
     participant C as Client
     participant W as pod-worker
-    participant PAY as payments::handle_pay_route<br/>nostr-bbs-pod-worker/src/payments.rs:157
+    participant PAY as payments::handle_pay_route<br/>nostr-bbs-pod-worker/src/payments.rs:188
     participant D1 as payment schema
     participant CH as chain
 
-    W->>W: PAY_ENABLED and PAY_COST_SATS from env nostr-bbs-pod-worker/wrangler.toml:31 wrangler.toml:32
+    W->>W: PAY_ENABLED and PAY_COST_SATS from env nostr-bbs-pod-worker/wrangler.toml:38 wrangler.toml:39
     C->>W: request a paid resource
     W->>PAY: /pay/ route dispatch nostr-bbs-pod-worker/src/lib.rs:730
     PAY->>D1: ensure_payment_schema over pay_ledger SCHEMA payments.rs:45 pay_ledger.rs:130
@@ -262,7 +262,7 @@ sequenceDiagram
     PAY-->>C: 402 with the Web Ledgers payment body
 
     Note over PAY: The discovery/config vocabulary is re-exported from solid_pod_rs::payments rather than reimplemented nostr-bbs-pod-worker/src/payments.rs:34 - EXTERNAL: see the solid-pod-rs area (SP-*)
-    Note over W: The shipped template has PAY_ENABLED "false" nostr-bbs-pod-worker/wrangler.toml:31<br/>DRIFT: production sets it "true" - ADR-2012's 2026-10-02 amendment withdraws the<br/>dormant assumption ADR-2012-d1-ledger-becomes-a-chain-view.md:35-40
+    Note over W: The shipped template has PAY_ENABLED "false" nostr-bbs-pod-worker/wrangler.toml:38<br/>DRIFT: production sets it "true" - ADR-2012's 2026-10-02 amendment withdraws the<br/>dormant assumption ADR-2012-d1-ledger-becomes-a-chain-view.md:35-40
     Note over PAY: The orphaned-job recovery path exists because a chain confirmation can outlive a Worker invocation pay_ledger.rs:1273
 ```
 
@@ -287,7 +287,7 @@ flowchart TB
     N4["Property tests cover the WAC document handling this whole topic rests on<br/>nostr-bbs-pod-worker/tests/wac_proptests.rs:1"]
 ```
 
-**Tension (ADR-2012 vs Cargo.toml):** ADR-2012 decision 4 speaks of "the exact pin" at line 155 of the root manifest, bumped in lockstep with the host, while the workspace dependency is now a caret range, `0.5.0-alpha.18`, recorded as an owner decision to stop an exact pin forcing a core republish on every solid-pod-rs release (`../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md:76-80`, `../nostr-rust-forum/Cargo.toml:181-185`). The pod-worker now also enables the `did` feature on `nostr-bbs-core` (`../nostr-rust-forum/crates/nostr-bbs-pod-worker/Cargo.toml:29`).
+**Tension (ADR-2012 vs Cargo.toml):** ADR-2012 decision 4 speaks of "the exact pin" at line 155 of the root manifest, bumped in lockstep with the host, while the workspace dependency is now a caret range, `0.5.0-alpha.20`, recorded as an owner decision to stop an exact pin forcing a core republish on every solid-pod-rs release (`../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md:76-80`, `../nostr-rust-forum/Cargo.toml:181-185`). The pod-worker now also enables the `did` feature on `nostr-bbs-core` (`../nostr-rust-forum/crates/nostr-bbs-pod-worker/Cargo.toml:29`).
 
 ## NF-04.11 The journalled D1 ledger today, and the chain view ADR-2012 is moving to
 

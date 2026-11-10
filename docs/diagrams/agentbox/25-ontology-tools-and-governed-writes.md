@@ -23,7 +23,7 @@ sources:
   - ../project/agentbox/management-api/lib/ontology-apply.js
   - ../project/agentbox/mcp/servers/lib/ontology-local.js
   - ../project/agentbox/mcp/servers/lib/ontology-workingset.js
-verified_commit: c57d9c0508f4044915f9aecea4b9aa5629cc6a35
+verified_commit: 720e0d89656a4360998b3a716d0f3ee8cac66f93
 ---
 
 Note: `ontology-bridge.js`, `ontology-local.cjs`, `ontology-authoring-authority.js`
@@ -43,24 +43,24 @@ sequenceDiagram
     participant OUT as condense output
     participant REF as ontology-condense-refresh.sh<br/>agentbox/scripts/ontology-condense-refresh.sh:79
     participant IDX as ontology-index-build.js
-    participant LLM as Loom facade<br/>agentbox/agentbox.toml:1125 — see AB-24
+    participant LLM as Loom facade<br/>agentbox/agentbox.toml:1131 — see AB-24
     participant RV as RuVector ns ontology-classes<br/>see AB-20
 
-    Note over SCH: supervised as [program:ontology-condense-scheduler] (agentbox/flake.nix:2442) — launched<br/>unconditionally, exits fast when its gate is off
-    loop tick — schedule_interval_mins 60, jittered plus or minus 20 percent (agentbox.toml:1138)
+    Note over SCH: supervised as [program:ontology-condense-scheduler] (agentbox/flake.nix:2492) — launched<br/>unconditionally, exits fast when its gate is off
+    loop tick — schedule_interval_mins 60, jittered plus or minus 20 percent (agentbox.toml:1144)
         SCH->>GATE: require BOTH ONTOLOGY_CONDENSE_ENABLED and ONTOLOGY_CONDENSE_SCHEDULE
         alt either off
             SCH-->>SCH: no-op — byte-identical-when-off until an operator opts in and the container reboots
         else both on
             SCH->>CORP: newest page mtime
             SCH->>OUT: last condense output mtime
-            alt corpus newer OR output missing OR older than schedule_max_age_hours 24 (agentbox.toml:1139)
+            alt corpus newer OR output missing OR older than schedule_max_age_hours 24 (agentbox.toml:1145)
                 SCH->>REF: exec the refresh
                 Note over REF: flock-serialised (ontology-condense-refresh.sh:49-51) — SKIPS if a refresh already holds<br/>the lock. Stages overwrite/resume deterministically, so the scheduler is idempotent
                 REF->>IDX: parse the corpus into classes, stage 1 (ontology-condense-refresh.sh:79)
-                loop each KG class, max_concurrency 2 (agentbox.toml:1128)
+                loop each KG class, max_concurrency 2 (agentbox.toml:1134)
                     REF->>LLM: POST /v1/chat/completions — one retrieval sentence + a synonym list<br/>(ontology-condense-refresh.sh:82)
-                    Note over LLM: model qwen3.8-27B style openai (agentbox.toml:1126-1127). The model runs BEHIND the Loom<br/>facade so it is swappable with zero change here
+                    Note over LLM: model qwen3.8-27B style openai (agentbox.toml:1132-1133). The model runs BEHIND the Loom<br/>facade so it is swappable with zero change here
                 end
                 REF->>IDX: stage 3 re-run folds the aliases (ontology-condense-refresh.sh:85)
                 REF->>OUT: PUSH Class-Summary cache plus the condensed-text JSON
@@ -84,7 +84,7 @@ sequenceDiagram
     participant CHILD as detached child<br/>ontology-monitor.cjs:258
     participant LOC as local ontology route<br/>VisionClaw-free
     participant ZAI as Z.AI GLM worker
-    participant JEV as Jev proposal verifier<br/>optional, opted in by system_one.consumers.ontology_proposals (agentbox.toml:920), staged
+    participant JEV as Jev proposal verifier<br/>optional, opted in by system_one.consumers.ontology_proposals (agentbox.toml:926), staged
     participant JSONL as ontology-proposals.jsonl<br/>AGENTBOX_STATE
     participant RELAY as forum broker gate<br/>Nostr relay
     participant H as Human approver

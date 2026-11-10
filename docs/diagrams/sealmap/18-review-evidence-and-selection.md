@@ -15,7 +15,7 @@ sources:
   - ../sealmap/crates/sealmap-corpus/tests/review.rs
   - ../sealmap/crates/sealmap-corpus/tests/pack_selection.rs
   - ../sealmap/crates/sealmap/tests/review_cli.rs
-verified_commit: 572e728a7c4e3fcdff557970bb24532588920ed8
+verified_commit: 2b351367cab241aa7304d364aa37b52e65bb71f2
 ---
 
 ## For developers
@@ -43,7 +43,7 @@ needs independent evidence. Adoption must cite a successful observation of the
 actual consumed version, rather than borrow success from another check.
 
 Routing declarations are independent of this receipt contract. `Route::parse`
-accepts named providers (`crates/sealmap-corpus/src/route.rs:283`), while
+accepts named providers (`crates/sealmap-corpus/src/route.rs:307`), while
 `Tiers::parse_with_activities` enforces a caller's activity vocabulary
 (`crates/sealmap-corpus/src/tiers.rs:141`). Explicit `parse_agentbox` adapters
 retain Agentbox's narrower policy. These APIs neither invoke models nor attest

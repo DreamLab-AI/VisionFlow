@@ -10,7 +10,7 @@ sources:
   - ../dream-engine/crates/dream-core/src/runstate.rs
   - ../dream-engine/crates/dream-core/src/seams.rs
   - ../dream-engine/docs/adr/ADR-DE-006-automerge-is-an-option.md
-verified_commit: 815f963b1cbd6999e78144ce5475005ae1dd1d8e
+verified_commit: b40d50724bb6344dc00d57270f7166b138714406
 ---
 ## For developers
 

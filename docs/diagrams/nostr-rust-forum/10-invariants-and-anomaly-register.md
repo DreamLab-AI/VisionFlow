@@ -64,7 +64,7 @@ sources:
   - ../nostr-rust-forum/benchmarks/js-vs-wasm/package.json
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/wasm_bridge.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/tests/upstream_vectors/all_fixtures.rs
-verified_commit: {nostr-rust-forum: c39f41f104b114d6a3fa29013daaf6fa58b45080}
+verified_commit: {nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
 ---
 
 ## NF-10.1 The compliance surface — BASELINE-architecture invariants
@@ -74,7 +74,7 @@ flowchart LR
     I1["1 nostr-bbs-core owns on-wasm32 Schnorr until the canary records Shape A<br/>nostr-bbs-upstream-canary/src/lib.rs:17 - see NF-01.5"]
     I2["2 FORUM_BASE is applied in exactly TWO places<br/>Router base nostr-bbs-forum-client/src/app.rs:902 | base_href nostr-bbs-forum-client/src/app.rs:54 - see NF-05.1"]
     I3["3 channel counts are derived, never accumulated<br/>count_for nostr-bbs-forum-client/src/stores/channels.rs:159 | dedup on insert channels.rs:453 - see NF-05.6"]
-    I4["4 .acl and .meta sidecar access coerces to Control<br/>nostr-bbs-pod-worker/src/acl.rs:85 | shared policy nostr-bbs-pod-worker/src/acl.rs:34 - see NF-04.3"]
+    I4["4 .acl and .meta sidecar access coerces to Control<br/>nostr-bbs-pod-worker/src/acl.rs:111 | shared policy nostr-bbs-pod-worker/src/acl.rs:37 - see NF-04.3"]
     I5["5 gift-wraps are recipient-whitelist-gated, never author-gated<br/>gift_wrap_recipient nip_handlers.rs:138 | admission nip_handlers.rs:1140 - see NF-03.5"]
     I6["6 TENSION: BASELINE invariant 6 says solid-pod-rs stays an EXACT pin docs/BASELINE-architecture.md:200,<br/>the manifest now declares a caret range under ER-35 nostr-rust-forum/Cargo.toml:185 - see NF-01.4"]
 
@@ -91,7 +91,7 @@ flowchart LR
 flowchart LR
     K1["1 derive_subkey is a byte-for-byte cross-stack contract with agentbox's JS mirror derivation<br/>raw HMAC, not HKDF nostr-bbs-core/src/keys.rs:254 | vector nostr-bbs-core/src/keys.rs:479 | digest keys.rs:484 - see NF-09.3"]
     K2["2 derive_from_prf and derive_subkey are DISTINCT and never substitutable<br/>HKDF path nostr-bbs-core/src/keys.rs:198 | contrast documented nostr-bbs-core/src/keys.rs:225"]
-    K3["3 DEVICE_KEYS_ENABLED enables only on the exact string true, checked in both workers<br/>shared rule nostr-bbs-core/src/feature_gate.rs:65 | auth delegates nostr-bbs-auth-worker/src/devices.rs:112 | asserted nostr-bbs-auth-worker/src/devices.rs:912 - see NF-02.7"]
+    K3["3 DEVICE_KEYS_ENABLED enables only on the exact string true, checked in both workers<br/>shared rule nostr-bbs-core/src/feature_gate.rs:65 | auth delegates nostr-bbs-auth-worker/src/devices.rs:112 | asserted nostr-bbs-auth-worker/src/devices.rs:988 - see NF-02.7"]
     K4["4 gift-wrap admission keys on the recipient p tag, never the ephemeral author<br/>nip_handlers.rs:138 - see NF-03.5"]
     K5["5 TL3 is never auto-demoted; demotion stays time-driven on cron, never inline on admission<br/>nostr-bbs-relay-worker/src/trust.rs:334 - see NF-03.8"]
     K6["6 root possession recovers derived children<br/>nostr-bbs-core/src/keys.rs:241<br/>Child-only exposure is a separate case; see N1"]
@@ -111,14 +111,14 @@ flowchart LR
 flowchart TB
     subgraph closed["Confirmed CLOSED at this commit"]
         O1["O1 TL1 promotion and demotion unwired - CLOSED.<br/>Reads tally then check_promotion nip_handlers.rs:2248; demotion is cron-driven. See NF-03.8."]
-        O3["O3 KV ACL fast-path masks R2 delegation - CLOSED.<br/>R2 authoritative, KV miss-fallback only nostr-bbs-pod-worker/src/acl.rs:311, rationale acl.rs:253. See NF-04.4."]
+        O3["O3 KV ACL fast-path masks R2 delegation - CLOSED.<br/>R2 authoritative, KV miss-fallback only nostr-bbs-pod-worker/src/acl.rs:359, rationale acl.rs:281. See NF-04.4."]
         O5["O5 deleting a kind-40 destroyed the is_channel_creator lookup, locking a TL2 author out of their own<br/>channel metadata - CLOSED at 66ca8d8. The creator is persisted at creation, relay_do/storage.rs:162, and read<br/>first, nip_handlers.rs:2548, so the kind-5 path nip_handlers.rs:2457 no longer changes the answer.<br/>Residual: a failed write and a pre-existing channel fall back to the kind-40 event, nip_handlers.rs:2549. See NF-03.7."]
     end
     subgraph live["Confirmed STILL LIVE"]
         O2["O2 NIP-29 group metadata 39000-39002 accepted from admin CLIENTS rather than relay-key-signed.<br/>Acknowledged TODO nip_handlers.rs:1300, admin gate nip_handlers.rs:1307. Spec drift. See NF-03.4 step 11."]
-        O11a["O11 KV and SESSIONS bind the SAME physical namespace id - nostr-bbs-auth-worker/wrangler.toml:28 and nostr-bbs-auth-worker/wrangler.toml:44.<br/>Now documented as deliberate, with disjoint key prefixes, and guarded by a unit test nostr-bbs-auth-worker/wrangler.toml:22<br/>nostr-bbs-auth-worker/src/admins.rs:372. See NF-08.4 and NF-02.2."]
+        O11a["O11 KV and SESSIONS bind the SAME physical namespace id - nostr-bbs-auth-worker/wrangler.toml:28 and nostr-bbs-auth-worker/wrangler.toml:44.<br/>Now documented as deliberate, with disjoint key prefixes, and guarded by a unit test nostr-bbs-auth-worker/wrangler.toml:22<br/>nostr-bbs-auth-worker/src/admins.rs:347. See NF-08.4 and NF-02.2."]
         O11b["O11 /api/native-pod/provision has no in-repo caller and placeholder vars -<br/>route nostr-bbs-auth-worker/src/lib.rs:616, NATIVE_POD_URL nostr-bbs-auth-worker/wrangler.toml:66. See NF-02.2."]
-        O8a["O8 qr_svg is defined TWICE with no shared helper -<br/>recovery_sheet.rs:66 and utils/devices.rs:236. See NF-05.4."]
+        O8a["O8 qr_svg is defined TWICE with no shared helper -<br/>recovery_sheet.rs:66 and utils/devices.rs:246. See NF-05.4."]
         O8b["O8 a per-page kind-0 subscription still duplicates the app-root ProfileCache subscription -<br/>root sub app.rs:751, page sub settings.rs:457. It is now closed on unmount settings.rs:479 and generation-guarded;<br/>the 5 s timer only flags a slow relay and the subscription stays open settings.rs:488-496. See NF-05.6."]
     end
 ```
@@ -127,7 +127,7 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    O4["O4 members-vs-whitelist admin split - CLOSED on the relay side at 66ca8d8. The relay no longer queries members, which<br/>lives only in the auth D1: it unions the static set and whitelist (nostr-bbs-relay-worker/src/auth.rs:185, nostr-bbs-relay-worker/src/auth.rs:194),<br/>while the auth worker still unions all three (nostr-bbs-auth-worker/src/admin.rs:57). A doc comment on query_is_admin still names members<br/>nostr-bbs-relay-worker/src/auth.rs:174. See NF-08.7."]
+    O4["O4 members-vs-whitelist admin split - CLOSED on the relay side at 66ca8d8. The relay no longer queries members, which<br/>lives only in the auth D1: it unions the static set and whitelist (nostr-bbs-relay-worker/src/auth.rs:185, nostr-bbs-relay-worker/src/auth.rs:194),<br/>while the auth worker still unions all three (nostr-bbs-auth-worker/src/admin.rs:53). A doc comment on query_is_admin still names members<br/>nostr-bbs-relay-worker/src/auth.rs:174. See NF-08.7."]
     O6["O6 NIP-07 silent no-op DM subscription - CORRECTED. The subscription registers unconditionally<br/>(nostr-bbs-forum-client/src/dm/mod.rs:245). The real limit is per-event: a NIP-04-only extension fails gift-wrap<br/>unwrap at nostr-bbs-forum-client/src/dm/mod.rs:935 and it IS surfaced via state.error at dm/mod.rs:962. See NF-05.9."]
     O7["O7 NIP05_USERNAME_HOST hardcoded - NOW SHARED, no longer a settings-local constant. settings.rs:35 aliases the onboarding<br/>modal constant nostr-bbs-forum-client/src/pages/settings.rs:35, which bakes NOSTR_BBS_NIP05_DOMAIN at build time and falls back to example.test<br/>nostr-bbs-forum-client/src/components/onboarding_modal.rs:59; settings.rs:343 uses it. A display fallback only. See NF-05.7."]
     O9["O9 nostr-bbs-mesh has no impl AND no relay import - HALF holds. No production MeshSocket impl exists<br/>(only nostr-bbs-mesh/src/mock.rs:249), but the relay DOES declare the dependency nostr-bbs-relay-worker/Cargo.toml:27.<br/>See NF-09.8."]
@@ -143,7 +143,7 @@ flowchart TB
 flowchart TB
     DD1["CLOSED by the README rewrite: the Known-gaps row calling NIP-42 AUTH scaffolded with auth_required false is gone<br/>(the README at this stamp carries no scaffolded or planned rows README.md:60). The code is unchanged: nip42 is the DEFAULT nip42.rs:115,<br/>the template ships AUTH_MODE nip42 nostr-bbs-relay-worker/wrangler.toml:39, and every EVENT passes the gate first nip_handlers.rs:1102.<br/>See NF-03.3."]
     DD2["CLOSED by the README rewrite: the row saying nostr-bbs-mesh is NOT a dependency of the relay-worker is gone and the README<br/>now draws mesh as a dotted configured-routing edge README.md:60. nostr-bbs-relay-worker/Cargo.toml:27 declares the dependency. See NF-09.8."]
-    DD3["nostr-bbs-relay-worker/wrangler.toml:18 asserts there is no ADMIN_PUBKEYS reader in src/.<br/>nostr-bbs-relay-worker/src/auth.rs:185 reads it, and so does nostr-bbs-auth-worker/src/admin.rs:67.<br/>Only nostr-bbs-search-worker/wrangler.toml:41 declares the var. See NF-08.7."]
+    DD3["nostr-bbs-relay-worker/wrangler.toml:18 asserts there is no ADMIN_PUBKEYS reader in src/.<br/>nostr-bbs-relay-worker/src/auth.rs:185 reads it, and so does nostr-bbs-auth-worker/src/admin.rs:63.<br/>Only nostr-bbs-search-worker/wrangler.toml:41 declares the var. See NF-08.7."]
     DD4["nostr-rust-forum/Cargo.toml:72 workspace.metadata.ci.wasm-check-packages names three crates (config, preview-worker, jev) and is read by NOTHING -<br/>the wasm job checks the whole workspace .github/workflows/ci.yml:188. Inert metadata. See NF-01.2."]
     DD5["nostr-bbs-upstream-canary/src/lib.rs:10 names a five-NIP build matrix but only three smokes exist<br/>nostr-bbs-upstream-canary/src/lib.rs:35 nostr-bbs-upstream-canary/src/lib.rs:56 nostr-bbs-upstream-canary/src/lib.rs:89 - nip04, nip59 and nip98 are unexercised. The same doc calls the crate<br/>nostr-upstream-canary nostr-bbs-upstream-canary/src/lib.rs:14 while the package is nostr-bbs-upstream-canary. See NF-01.5."]
     DD6["The search-worker cron runs every five minutes and reindexes NOTHING - the handler body is a<br/>load_store warm touch nostr-bbs-search-worker/src/lib.rs:1008. See NF-07.1."]
@@ -185,7 +185,7 @@ flowchart LR
     A2006 --> Q2006
     A2010 --> Q2010
 
-    N1["DOC-DRIFT: the IDENTITY-keys-and-trust closeout still states OFFSET row-skipping and ignored write<br/>errors as CURRENT defects. Both are fixed - keyset paging nostr-bbs-relay-worker/src/trust_sweep.rs:22<br/>and confirmed-commit-only counters nostr-bbs-relay-worker/src/trust_sweep.rs:286 trust_sweep.rs:501. The governing doc needs<br/>the qualification retired; see NF-11.11 and NF-11.12."]
+    N1["DOC-DRIFT: the IDENTITY-keys-and-trust closeout still states OFFSET row-skipping and ignored write<br/>errors as CURRENT defects. Both are fixed - keyset paging nostr-bbs-relay-worker/src/trust_sweep.rs:22<br/>and confirmed-commit-only counters nostr-bbs-relay-worker/src/trust_sweep.rs:302 trust_sweep.rs:517. The governing doc needs<br/>the qualification retired; see NF-11.11 and NF-11.12."]
     N2["DOC-DRIFT: the relay-side receipt machine is REAL, not proposed - stages at<br/>nostr-bbs-core/src/governance.rs:938, applied at relay_do/receipts.rs:452, and handle_event logs<br/>accepted-but-not-applied from the returned receipt nip_handlers.rs:1635. ADR-2010 now records appeal and supersession as<br/>receipt-wired through the same apply_with_receipt machine docs/adr/ADR-2010-durable-governance-outcome-receipts.md:111,<br/>KF-11 and KF-12 docs/security/known-findings.md:46 docs/security/known-findings.md:47. Only the CONSUMER half is absent.<br/>See NF-11.9 and NF-11.10."]
     N3["EXTERNAL: both remaining halves belong to other repos - VisionClaw's elevation consumer see VC-24,<br/>agentbox's approvals pipeline see AB-14, the estate loop see ES-05"]
 ```

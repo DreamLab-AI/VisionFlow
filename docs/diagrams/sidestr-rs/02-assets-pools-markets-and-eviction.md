@@ -17,7 +17,7 @@ sources:
   - ../sidestr-rs/sidestr-evm/src/rule.rs
   - ../sidestr-rs/sidestr-evm/tests/pools_markets.rs
   - ../project/agentbox/config/sidechain/dreamlab/chain.json
-verified_commit: {sidestr-rs: 9c6de86c657a25ec2f2a189baf63db7dedad40eb, agentbox: 9dfc27b16e82e9786535a55e790710493dd51fdf, visionflow: c146f8b90f698bde23c75c58a40fc1eba57e346d}
+verified_commit: {sidestr-rs: 60259e848795d0cd5c5718ca5d0eb658f69fd0d7, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, visionflow: c146f8b90f698bde23c75c58a40fc1eba57e346d}
 ---
 
 ## For developers
@@ -113,7 +113,7 @@ sequenceDiagram
     end
 ```
 
-**What it shows.** Admission checks next-height maturity; composed production sequences overlays and discards their failures with resubmission allowed (`../sidestr-rs/sidestr-core/src/state.rs:721`, `../sidestr-rs/sidestr-evm/src/rule.rs:218`, `../sidestr-rs/sidestr-evm/src/rule.rs:318`). Its fallback and the core producer instead remember exact bytes on a failed candidate verdict (`../sidestr-rs/sidestr-evm/src/rule.rs:364`, `../sidestr-rs/sidestr-core/src/state.rs:874`, `../sidestr-rs/sidestr-core/src/state.rs:759`).
+**What it shows.** Admission checks next-height maturity; composed production sequences overlays and discards their failures with resubmission allowed (`../sidestr-rs/sidestr-core/src/state.rs:721`, `../sidestr-rs/sidestr-evm/src/rule.rs:218`, `../sidestr-rs/sidestr-evm/src/rule.rs:318`). Its fallback and the core producer instead remember exact bytes on a failed candidate verdict (`../sidestr-rs/sidestr-evm/src/rule.rs:367`, `../sidestr-rs/sidestr-core/src/state.rs:877`, `../sidestr-rs/sidestr-core/src/state.rs:759`).
 
 **Why it is this way.** Discard lets a different ordering retry; exact-byte eviction suppresses repeated invalid forms while admitting a witness repair (`../sidestr-rs/sidestr-core/src/state.rs:742`, `../sidestr-rs/sidestr-core/tests/eviction.rs:16`). The current fallback also treats a producer-wide future-header failure as transaction invalidity: both Rust paths reproduce that gap.
 

@@ -38,7 +38,7 @@ sources:
   - ../project/agentbox/config/sidechain/README.md
   - ../project/agentbox/config/sidechain/dreamlab/chain.json
   - ../project/docs/TODO-unified.md
-verified_commit: {sidestr-rs: 7f04644411220ba0d3b9c7bdba58bbf56be790fa, visionflow: 9cc2266a3f797321e2314741557dbc06061cb4b6, visionclaw: 531df5ef74453a2ed320bff968c203a9b91faed7, agentbox: 5cffdd1d926a9d10c393ec6d6c7a0f4e74ab2925}
+verified_commit: {sidestr-rs: 60259e848795d0cd5c5718ca5d0eb658f69fd0d7, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c, visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
 ---
 
 ## For developers
@@ -132,7 +132,7 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    AB["agentbox supervisor<br/>../project/agentbox/flake.nix:3127"]
+    AB["agentbox supervisor<br/>../project/agentbox/flake.nix:3178"]
     AB --> P1["dreamlab / tbtc4<br/>JavaScript producer port 3450"]
     AB --> P2["dreamlab-txbt4 / txbt4<br/>JavaScript producer port 3451"]
     F1["sidestr-agent faucet"] --> P1
@@ -143,7 +143,7 @@ flowchart TB
     ROUTE -.-> F2
 ```
 
-**What it shows.** At 14:15:29 UTC on 1 November, all six named programmes were running; both producer endpoints served documents equal to their sealed checkout documents. The producers execute baked `siding.mjs`; the faucet binaries differ as the runner specifies (`../project/agentbox/config/sidechain/run-producer.sh:167`, `../project/agentbox/config/sidechain/run-faucet.sh:59`). [Runtime receipt](../../estate-review/evidence/2026-11-01/crate-boundary/runtime.json). The second table is enabled despite the README's older disabled-default statement (`../project/agentbox/agentbox.toml:1975`, `../project/agentbox/config/sidechain/README.md:188`).
+**What it shows.** At 14:15:29 UTC on 1 November, all six named programmes were running; both producer endpoints served documents equal to their sealed checkout documents. The producers execute baked `siding.mjs`; the faucet binaries differ as the runner specifies (`../project/agentbox/config/sidechain/run-producer.sh:167`, `../project/agentbox/config/sidechain/run-faucet.sh:59`). [Runtime receipt](../../estate-review/evidence/2026-11-01/crate-boundary/runtime.json). The second table is enabled despite the README's older disabled-default statement (`../project/agentbox/agentbox.toml:1981`, `../project/agentbox/config/sidechain/README.md:188`).
 
 **Why it is this way.** Each chain has its own producer, mirror and faucet; the BLAKE2b family chooses the forum-kit faucet. A responding tip is not evidence of current block progress, mirror freshness, successful grants or Hitch activation. The observed producers have no checkpoint arguments, consistent with default-zero configuration (`../project/agentbox/config/sidechain/run-producer.sh:148`); historical anchoring was not inspected.
 

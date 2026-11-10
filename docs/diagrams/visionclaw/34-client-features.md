@@ -123,7 +123,7 @@ sources:
   - ../project/client/src/api/settings/schemaMappings.ts
   - ../project/client/src/api/settings/__tests__/settingsRoundTrip.test.ts
   - ../project/client/src/features/control-center/drawer/RightDrawer.tsx
-verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
 ---
 ## For developers
 
@@ -148,7 +148,7 @@ sequenceDiagram
     participant Store as useSettingsStore.updateSettings<br/>client/src/store/settingsStore.ts
     participant ASM as autoSaveManager<br/>client/src/store/autoSaveManager.ts:65
     participant LA as layoutApi.setMode<br/>client/src/api/layoutApi.ts
-    participant EP as settingsApi.updateSettingsByPaths<br/>client/src/api/settings/endpoints.ts:348
+    participant EP as settingsApi.updateSettingsByPaths<br/>client/src/api/settings/endpoints.ts:307
     participant SRV as Rust settings handlers
 
     U->>SS: drag slider
@@ -170,7 +170,7 @@ sequenceDiagram
         USF->>ASM: further edits reset the 500ms timer
     end
     ASM->>EP: updateSettingsByPaths(updates) on flush autoSaveManager.ts:120
-    EP->>EP: bucket path by prefix - physics/rendering/qualityGates/nodeFilter/constraints/visual/local-only endpoints.ts:361-383
+    EP->>EP: bucket path by prefix - physics/rendering/qualityGates/nodeFilter/constraints/visual/local-only endpoints.ts:320-342
     par physics bucket
         EP->>SRV: PUT /api/settings/physics
     and rendering bucket
@@ -183,22 +183,22 @@ sequenceDiagram
         EP->>SRV: PUT /api/settings/visual
     end
     alt any bucket rejects, 401 included
-        EP-->>ASM: markUnsaved(paths, failed), then each update<br/>goes to settingsRetryManager.addFailedUpdate autoSaveManager.ts:123-133
-        ASM->>EP: retry processor every 5 s, one path through updateSettingByPath,<br/>which now rethrows settingsRetryManager.ts:106-115, endpoints.ts:329-331
-        Note over EP,ASM: OPEN: the processor catches never raise attempts (settingsRetryManager.ts:112-115),<br/>so the give-up at settingsRetryManager.ts:121 is unreachable from it and a failing path<br/>is re-sent until reload. settings-auth-failed still has no listener (endpoints.ts:324)
+        EP-->>ASM: markUnsaved(paths, failed), then each update<br/>goes to settingsRetryManager.addFailedUpdate autoSaveManager.ts:123-148
+        ASM->>EP: retry processor every 5 s, one path through updateSettingByPath,<br/>which now rethrows settingsRetryManager.ts:106-115, endpoints.ts:288-290
+        Note over EP,ASM: OPEN: the processor catches never raise attempts (settingsRetryManager.ts:112-115),<br/>so the give-up at settingsRetryManager.ts:121 is unreachable from it and a failing path<br/>is re-sent until reload. settings-auth-failed still has no listener (endpoints.ts:283)
     else PUT ok
         SRV-->>EP: 200
         EP-->>ASM: markSaved(paths) clears them from the unsaved list autoSaveManager.ts:122
     end
     Note over ASM: sync off or store not initialised - the change is held (not-ready)<br/>or kept in this browser (sync-off) and recorded with its reason<br/>autoSaveManager.ts:72-81, autoSaveManager.ts:58-63.<br/>Held changes flush on setInitialized(true) autoSaveManager.ts:54
-    ASM-->>U: useSettingsSyncStatus keeps path to reason in localStorage settingsSyncStatus.ts:29-38, settingsSyncStatus.ts:53-56,<br/>and StatusSurface shows an N unsaved chip with the reasons StatusSurface.tsx:47-48, StatusSurface.tsx:92-99
+    ASM-->>U: useSettingsSyncStatus keeps path to reason in localStorage settingsSyncStatus.ts:30-39, settingsSyncStatus.ts:54-57,<br/>and StatusSurface shows an N unsaved chip with the reasons StatusSurface.tsx:47-48, StatusSurface.tsx:92-99
 ```
 ## VC-34.2 settings — type generation and QA manifest (build-time, not runtime)
 ```mermaid
 flowchart TD
     RustStruct["AppFullSettings struct<br/>crates/visionclaw-domain/src/config/app_settings.rs:79"] -.->|mirrored by hand, not read| Gen["generate_typescript_interfaces()<br/>src/bin/generate_types.rs:64, a raw-string TS literal :65-568"]
     Bin["cargo run --bin generate_types<br/>main() src/bin/generate_types.rs:9"] --> Gen
-    Bin --> OntGen["write_ontology_agent_types()<br/>src/bin/generate_types.rs:767-768, client/src/types/generated/ontology-agent.ts,<br/>serialised from the real ontology enums (wire(), union_of() :590-598)"]
+    Bin --> OntGen["write_ontology_agent_types()<br/>src/bin/generate_types.rs:768-769, client/src/types/generated/ontology-agent.ts,<br/>serialised from the real ontology enums (wire(), union_of() :590-598)"]
     Debt1["DEBT: the settings interfaces are a hand-maintained string, not derived from AppFullSettings.<br/>A field added to the Rust struct is absent from settings.ts until someone edits the literal.<br/>Only the ontology-agent output is generated from Rust types (src/bin/generate_types.rs:590-600)"] -.-> Gen
     Gen -->|convert_to_camel_case| Out["client/src/types/generated/settings.ts<br/>build output written at src/bin/generate_types.rs:21, :30, gitignored (.gitignore line 151), not in the repository at this stamp"]
     Note1["settingsUIDefinition.ts and unifiedSettingsConfig.ts no longer exist. The chain is<br/>registry/settingsRegistry.ts + registry/manifest.ts (settingsRegistry.ts:6 names the old<br/>file only inside a zero-drift-test description). NOT doc drift - docs/explanation/<br/>control-center.md:88,110,296 already describes unifiedSettingsConfig.ts as deleted. It was<br/>the swarm brief that was stale, not the governing docs. Verified 2026-09-05"]
@@ -304,7 +304,7 @@ sequenceDiagram
     participant WSHook as useOntologyWebSocket<br/>client/src/features/ontology/hooks/useOntologyWebSocket.ts:51
     participant Store as useOntologyStore
 
-    SRV-->>WSS: ontology_validation_update message src/handlers/socket_flow_handler/filter_auth.rs:466, src/actors/ontology_actor.rs:368
+    SRV-->>WSS: ontology_validation_update message src/handlers/socket_flow_handler/filter_auth.rs:462, src/actors/ontology_actor.rs:368
     WSS-->>WSHook: onMessage callback useOntologyWebSocket.ts:55-56
     WSHook->>Store: setValidating / setViolations / setMetrics useOntologyWebSocket.ts:60-66
     opt ontology_loaded message
@@ -519,7 +519,7 @@ sequenceDiagram
     Note over AS,UAC: analyticsStore and useSemanticService still hit distinct endpoints<br/>for the same shortest-path feature - not unified
     Note over AS,UAC: a non-numeric id, a server error or a failed reply falls back to the local dijkstra or bellmanFord<br/>analyticsStore.ts:353-355, analyticsStore.ts:399-413
     Note right of NAS: ADR-03 D7, ADR-031 D2/D6 - stride 5 buffer<br/>[clusterId, anomalyScore, communityId, centrality, ssspDistance]
-    Gem->>NAS: getIndexedBuffer(nodeIdToIndexMap) on every 30th frame while an analytic colour scheme or quality gate is on (GemNodes.tsx:648-651),<br/>and every TICK_INTERVAL frames in ClusterHulls.tsx:237-241. nodeAnalyticsStore.ts:97
+    Gem->>NAS: getIndexedBuffer(nodeIdToIndexMap) on every 30th frame while an analytic colour scheme or quality gate is on (GemNodes.tsx:654-657),<br/>and every TICK_INTERVAL frames in ClusterHulls.tsx:237-241. nodeAnalyticsStore.ts:97
     Note over WSBin,Gem: see VC-32 for the binary frame layout, VC-15 for GPU-side computation,<br/>VC-31 for the graph feature's own render-pipeline internals (not redrawn here)
 ```
 ## VC-34.13 physics — live simulation control (distinct from settings persistence)
@@ -632,7 +632,7 @@ sequenceDiagram
         WS-->>Hook: onclose
         Hook->>Hook: setTimeout(connectWebSocket, 5000) - manual reconnect useWorkspaces.ts:404-409
     end
-    Note over Hook,WS: DEBT: no server route serves /ws/workspaces (git grep over src finds none, while the REST scope is mounted at<br/>src/main.rs:1197), so the socket never opens and the 5 s reconnect retries forever. useWorkspaces itself has no caller in client/src
+    Note over Hook,WS: DEBT: no server route serves /ws/workspaces (git grep over src finds none, while the REST scope is mounted at<br/>src/main.rs:1198), so the socket never opens and the 5 s reconnect retries forever. useWorkspaces itself has no caller in client/src
     Comp->>Hook: createWorkspace(data)
     Hook->>API: createWorkspace - validates name length <=100 workspaceApi.ts:173-174
     API->>UAC: POST /workspace/create
@@ -687,7 +687,7 @@ sequenceDiagram
         CI->>U: no write - replies that node opacity is not a setting and names Edge Opacity and Gem Transmission CommandInput.tsx:306-314
         Note over CI: the old nodes.opacity write is gone and the path is retired (retiredPaths.ts:25)
     else glow or bloom wording
-        CI->>CI: writes visualisation.glow.enabled, the one glow switch, bloom.* is retired CommandInput.tsx:345-352, retiredPaths.ts:83-87
+        CI->>CI: writes visualisation.glow.enabled, the one glow switch, bloom.* is retired CommandInput.tsx:345-352, retiredPaths.ts:86-90
         CI->>Pod: dynamic import SolidPodService then saveGraphView/loadGraphView/listGraphViews CommandInput.tsx:464, CommandInput.tsx:479, CommandInput.tsx:507
         CI->>CI: a loaded view's defined physics keys and nodeTypeVisibility become one writes list CommandInput.tsx:481-492
     else matches inject/show agent or swarm (and not node/only)

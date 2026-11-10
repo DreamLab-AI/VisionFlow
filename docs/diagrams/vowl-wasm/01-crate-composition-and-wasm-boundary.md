@@ -25,7 +25,7 @@ sources:
   - ../vowl-wasm/src/layout/simulation.rs
   - ../vowl-wasm/README.md
   - ../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md
-verified_commit: 28af4365a68d9aacfd7c04f63299cc96ad717ce3
+verified_commit: 2aff199e2de06f4bba512301acf7023477c492ac
 ---
 
 ## VW-01.1 Top-level module tree
@@ -44,7 +44,7 @@ flowchart TB
 ```
 - Crate-level `deny(unsafe_code)` is locally overridden for SIMD intrinsics (src/layout/simd.rs:24); it is not a guarantee of no unsafe code. `error` is not re-exported as `pub mod`; only `Result`/`VowlError` are re-exported at the crate root (`src/lib.rs:157`).
 - `SvgRenderer::render` writes edge comments, raw node labels and coordinates; it does not call the fitting helper, filter hidden nodes or draw edge lines (src/render/mod.rs:116-173). `render::SvgRenderer` (src/render/mod.rs:20) exists but is not wired to any `#[wasm_bindgen]` binding — a Rust diagnostic path compiled for either target, not referenced from `bindings/mod.rs`, so unavailable through the published JS API (see vowl-wasm/04-js-api-examples-and-consumers.md).
-- All five `graph::` submodules (`src/graph/mod.rs`) and all five `layout::` submodules (`src/layout/mod.rs`) are always compiled — neither file carries a `#[cfg(feature = ...)]` gate, and `ontology::` is now always compiled too (`src/ontology/mod.rs:6-7`: only `model` and `parser`; the `markdown-ontology` feature with its parser, validator and loader was deleted, see `docs/adr/ADR-001-shared-ontology-rendering-contract.md:25`). Only `bindings::explorer` and `bindings::ngg` are gated, both on `ngg1` (`src/bindings/mod.rs:3-9`); the feature mapping is detailed in VW-01.4.
+- All five `graph::` submodules (`src/graph/mod.rs`) and all five `layout::` submodules (`src/layout/mod.rs`) are always compiled — neither file carries a `#[cfg(feature = ...)]` gate, and `ontology::` is now always compiled too (`src/ontology/mod.rs:6-7`: only `model` and `parser`; the `markdown-ontology` feature with its parser, validator and loader was deleted, see `docs/adr/ADR-001-shared-ontology-rendering-contract.md:35`). Only `bindings::explorer` and `bindings::ngg` are gated, both on `ngg1` (`src/bindings/mod.rs:3-9`); the feature mapping is detailed in VW-01.4.
 
 ## VW-01.4 Feature flags and what they gate
 ```mermaid
@@ -54,7 +54,7 @@ flowchart LR
     end
     NGG1F["ngg1<br/>Cargo.toml:67 dep:ontomark-ngg1 at Cargo.toml:46"] --> NGGMOD["src/ngg1.rs re-export + NggExplorer<br/>bindings/explorer.rs:18 + NggGraph, decodeNgg1, encodeNgg1<br/>bindings/ngg.rs:17-18"]
     INTF["interaction<br/>Cargo.toml:75"] --> INTMOD["interaction module<br/>+ checkNodeClick binding"]
-    DBGF["debug-serde<br/>Cargo.toml:79"] --> DBGMOD["WebVowl.getGraphData()<br/>bindings/mod.rs:176"]
+    DBGF["debug-serde<br/>Cargo.toml:79"] --> DBGMOD["WebVowl.getGraphData()<br/>bindings/mod.rs:178"]
     PARF["parallel<br/>Cargo.toml:84 dep:rayon, native only"] --> PARMOD["enables rayon dependency;<br/>current source has no parallel loading implementation"]
     SIMDF["simd<br/>Cargo.toml:87, needs simd128 target-feature"] --> SIMDMOD["layout/simd.rs SIMD128 kernels"]
     NGG1F -. "not in bundle alone" .-> BUNDLE
@@ -85,7 +85,7 @@ flowchart TB
     JSON["serde_json::Error<br/>From conversion: src/error.rs:49"] --> ERR
     ERR --> JS["JsValue containing rendered error text<br/>From conversion: src/error.rs:43"]
 ```
-- Fallible `WebVowl` operations such as `loadOntology` return `std::result::Result<T, JsValue>` (e.g. `load_ontology` src/bindings/mod.rs:56) — the crate's typed `VowlError` never crosses the boundary, only its rendered message. Getters, booleans and setters also have non-Result signatures (src/bindings/mod.rs:121-152).
+- Fallible `WebVowl` operations such as `loadOntology` return `std::result::Result<T, JsValue>` (e.g. `load_ontology` src/bindings/mod.rs:56) — the crate's typed `VowlError` never crosses the boundary, only its rendered message. Getters, booleans and setters also have non-Result signatures (src/bindings/mod.rs:123-154).
 
 ## VW-01.7 Two entry points: `WebVowl` vs `NggExplorer`
 ```mermaid

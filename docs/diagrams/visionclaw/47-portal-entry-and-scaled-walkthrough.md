@@ -12,7 +12,7 @@ sources:
   - ../project/xr-client/scripts/graph_scene.gd
   - ../project/xr-client/tests/unit/test_space_portals.gd
   - ../project/docs/adr/ADR-2166-spatial-volumes-can-be-entered-the-others-become-portals.md
-verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
 ---
 
 ## For developers
@@ -40,7 +40,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    HAND["Two-hand gesture scales the whole arrangement<br/>graph_scene.gd:3474,3509"] --> MARGIN["Margin = REARM_DISTANCE 0.3 times the largest arrangement axis scale<br/>space_portals.gd:60,829,830"]
+    HAND["Two-hand gesture scales the whole arrangement<br/>graph_scene.gd:3491,3526"] --> MARGIN["Margin = REARM_DISTANCE 0.3 times the largest arrangement axis scale<br/>space_portals.gd:60,829,830"]
     INV["distance_to_box: inverse transform gives the local overshoot<br/>space_portals.gd:805,807,808"] --> WORLD["Per-axis world scale restored, result in metres<br/>space_portals.gd:811"]
     WORLD --> LIMIT["Head within the scaled margin of any portal keeps it disarmed<br/>space_portals.gd:831,832"]
     MARGIN --> LIMIT
@@ -60,9 +60,9 @@ flowchart TD
     SIG --> DIM["Reduced motion starts a dim for ring repositioning<br/>space_portals.gd:763,764"]
     ADD["Arrangement accepts unique volume ids<br/>volume_arrangement.gd:75,79,80"] --> IDS["List every visible open non-room volume<br/>space_portals.gd:562"]
     IDS --> MM["Draw at most eight membrane instances<br/>space_portals.gd:73,776,777"]
-    MM --> GAP["Scene budget collector has no portal-layer count<br/>graph_scene.gd:3561,3596,3599"]
+    MM --> GAP["Scene budget collector has no portal-layer count<br/>graph_scene.gd:3578,3613,3616"]
 ```
 
 **What it shows.** The API probe changes bounds before the dim begins; nine admitted portal boxes get eight membranes. **Why it is this way.** Detection follows mutation, and the documented eight-portal capacity is enforced only for membrane instances. The present scene has three volumes; the ninth-box case tests an extension boundary.
 
-**Debt:** Portal membranes and fade meshes are absent from the scene's explicit draw-call sum; primitive totals are measured separately (`graph_scene.gd:3596,3597`).
+**Debt:** Portal membranes and fade meshes are absent from the scene's explicit draw-call sum; primitive totals are measured separately (`graph_scene.gd:3613,3614`).

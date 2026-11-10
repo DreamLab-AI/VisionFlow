@@ -12,7 +12,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/ontology_governance.rs
   - ../project/agentbox/mcp/nostr-bridge/relay-consumer.js
   - ../project/agentbox/management-api/adapters/orchestrator/local-process-manager.js
-verified_commit: {nostr-rust-forum: c39f41f104b114d6a3fa29013daaf6fa58b45080, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35}
+verified_commit: {nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
 ---
 
 ## For developers
@@ -33,14 +33,14 @@ flowchart TD
     EXP["Expiry receipt then close open / under_review / reopened<br/>cron.rs:764,794,834"] --> SQL
     STORE --> AB["Consumer verifies signature and human roster<br/>relay-consumer.js:446,449,454"]
     AB --> FETCH["Fetch request by exact ID; verify signature<br/>relay-consumer.js:513,532"]
-    FETCH --> APPLY["Explicit promote checks request tag and IRI,<br/>then applies without reading projection receipt or expiry<br/>local-process-manager.js:419,444,461"]
+    FETCH --> APPLY["Explicit promote checks request tag and IRI,<br/>then applies without reading projection receipt or expiry<br/>local-process-manager.js:419,444,466"]
     APPLY -.-> GAP["TENSION: corpus mutation does not wait<br/>for the forum's successful state transition<br/>relay-consumer.js:497"]
     PARSE["Deadline parser byte-slices s[..19] and s[19..]: a multibyte character<br/>at byte 19 panics instead of returning None; the offset sign is applied correctly<br/>ontology_governance.rs:282,289,313,330"] --> EXP
 ```
 
 **What it shows.** Projection failure can coexist with a stored, broadcast decision. The consumer's independent path does not turn a closed forum row into a mutation veto. The parser adds a separate malformed-input risk.
 
-**Why it is this way.** ADR-2013 implements expiry as a case transition. Agentbox ADR-2109 applies the human event directly. The audit verifies the consumer gap with signed expired-proposal fixtures, while the whole deployed crossing remains untested. **Tension:** the Agentbox apply path has no expiry or projection input. The orchestrator checks the request's `d` tag and IRI, then calls `applyOntologyDecision` (`../project/agentbox/management-api/adapters/orchestrator/local-process-manager.js:444,449,461`), and no non-test agentbox source reads `stale_after`. A decision the forum has already closed as expired is still applied. **Debt:** `parse_rfc3339_utc` checks the byte length, then indexes the string with `s[..19]` and `&s[19..]` (`../nostr-rust-forum/crates/nostr-bbs-core/src/ontology_governance.rs:284,289,313`). A `stale_after` value whose 20th byte falls inside a multibyte UTF-8 character panics on the relay's proposal admission path (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:417`), where the doc comment promises `None` for anything the parser will not vouch for (`../nostr-rust-forum/crates/nostr-bbs-core/src/ontology_governance.rs:246-250`). `s.get(..19)` would close it. This is source reading only: no panic was reproduced.
+**Why it is this way.** ADR-2013 implements expiry as a case transition. Agentbox ADR-2109 applies the human event directly. The audit verifies the consumer gap with signed expired-proposal fixtures, while the whole deployed crossing remains untested. **Tension:** the Agentbox apply path has no expiry or projection input. The orchestrator checks the request's `d` tag and IRI, then calls `applyOntologyDecision` (`../project/agentbox/management-api/adapters/orchestrator/local-process-manager.js:444,449,466`), and no non-test agentbox source reads `stale_after`. A decision the forum has already closed as expired is still applied. **Debt:** `parse_rfc3339_utc` checks the byte length, then indexes the string with `s[..19]` and `&s[19..]` (`../nostr-rust-forum/crates/nostr-bbs-core/src/ontology_governance.rs:284,289,313`). A `stale_after` value whose 20th byte falls inside a multibyte UTF-8 character panics on the relay's proposal admission path (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:417`), where the doc comment promises `None` for anything the parser will not vouch for (`../nostr-rust-forum/crates/nostr-bbs-core/src/ontology_governance.rs:246-250`). `s.get(..19)` would close it. This is source reading only: no panic was reproduced.
 
 ## ES-13.2 A checkpoint can include a later unfinished decision
 

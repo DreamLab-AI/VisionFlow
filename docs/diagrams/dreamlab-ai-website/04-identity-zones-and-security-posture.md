@@ -22,7 +22,7 @@ sources:
   - ../dreamlab-ai-website/forum-config/dreamlab.toml
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/agent_disclosure.rs
-verified_commit: {dreamlab-ai-website: c3849abb8a2a289fbb013c721dfc0c5544c74b16, nostr-rust-forum: a3812b8e79846b569c1f19054f0774e94fed1248}
+verified_commit: {dreamlab-ai-website: f934e26f949f3b95171544ec8ec5bcfd7679f593, nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
 ---
 
 ## DW-04.1 Identity is raw-hex Schnorr, not a DID document
@@ -123,7 +123,7 @@ flowchart TB
     POD["Pod worker: 50MB upload, path depth 10,<br/>charset [A-Za-z0-9-_./]<br/>SECURITY_OVERVIEW.md:223,227"]
     SSRF["Preview-worker SSRF guard: http/https only,<br/>RFC1918/loopback/link-local/169.254.169.254 blocked,<br/>hex/int IP obfuscation blocked, 3-hop redirect cap,<br/>1MB response cap, 5s timeout<br/>SECURITY_OVERVIEW.md:233"]
 ```
-- Source: `docs/security/SECURITY_OVERVIEW.md` Relay/Auth-worker/Pod-worker Limits tables (`:197-231`) and SSRF Protection section (`:233`) — these limits are enforced in the upstream kit's worker source (cloned at `KIT_REF`, not vendored in this repo), so this diagram documents the operator-visible contract rather than code this repo owns.
+- Source: `docs/security/SECURITY_OVERVIEW.md` Relay/Auth-worker/Pod-worker Limits tables (`../dreamlab-ai-website/docs/security/SECURITY_OVERVIEW.md:197-231`) and SSRF Protection section (`../dreamlab-ai-website/docs/security/SECURITY_OVERVIEW.md:233`) — these limits are enforced in the upstream kit's worker source (cloned at `KIT_REF`, not vendored in this repo), so this diagram documents the operator-visible contract rather than code this repo owns.
 
 ## DW-04.9 The website-info identity — labelled, never privileged (ADR-2011)
 ```mermaid

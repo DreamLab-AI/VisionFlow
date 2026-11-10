@@ -14,7 +14,7 @@ sources:
   - ../project/agentbox/services/dream-engine/src/estate.rs
   - ../project/agentbox/services/dream-engine/Cargo.toml
   - ../project/agentbox/services/dream-engine/Cargo.lock
-verified_commit: cb08c91a83720a6f5ded8493cb36f9ba4ca53c86
+verified_commit: 720e0d89656a4360998b3a716d0f3ee8cac66f93
 ---
 
 ## For developers

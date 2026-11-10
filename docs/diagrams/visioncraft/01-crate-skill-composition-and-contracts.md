@@ -22,7 +22,7 @@ sources:
   - ../visioncraft/docs/adr/0001-portable-quality-contract.md
   - ../visioncraft/docs/adr/0002-specialist-upstream-boundaries.md
   - ../visioncraft/docs/MIGRATION.md
-verified_commit: 1067a5f59afad7e2c8780bce6b29967d1130c19d
+verified_commit: 2c6627ce01d0e68bb0f48fc55a209b2c674716f1
 ---
 
 ## VK-01.1 Three surfaces and who owns what
@@ -163,7 +163,7 @@ flowchart LR
     R8["Optional Agentic QE<br/>SKILL.md:35"]
     R9["Rust steering, review, port<br/>SKILL.md:36"]
     R10["Browser targets: Rust to WebAssembly<br/>SKILL.md:37"]
-    R11["Roles and worked examples<br/>SKILL.md:38-39"]
+    R11["Roles and worked examples<br/>SKILL.md:39-40"]
     SKM --> R1
     SKM --> R2
     SKM --> R3

@@ -18,7 +18,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/note_view.rs
   - ../project/agentbox/management-api/lib/zone-keys.js
   - ../project/agentbox/scripts/dream-forum-suggestions.mjs
-verified_commit: {nostr-rust-forum: c39f41f104b114d6a3fa29013daaf6fa58b45080, agentbox: 9dfc27b16e82e9786535a55e790710493dd51fdf}
+verified_commit: {nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
 ---
 
 ## For developers
@@ -116,13 +116,13 @@ sequenceDiagram
 flowchart TB
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/sealed.rs:424
     R["Rust strict inner deserialisation<br/>duplicate and unknown fields rejected"]
-    %% Source: ../project/agentbox/management-api/lib/zone-keys.js:551
+    %% Source: ../project/agentbox/management-api/lib/zone-keys.js:553
     J["JavaScript JSON.parse first<br/>duplicate property names collapse"]
-    %% Source: ../project/agentbox/management-api/lib/zone-keys.js:554
+    %% Source: ../project/agentbox/management-api/lib/zone-keys.js:556
     K["Check remaining seven property names<br/>then verify final signed event"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs:479
     S["Rust notices sealed marker without zk<br/>returns Failed"]
-    %% Source: ../project/agentbox/management-api/lib/zone-keys.js:596
+    %% Source: ../project/agentbox/management-api/lib/zone-keys.js:598
     P["JavaScript without zk returns Plain<br/>before checking sealed marker"]
     R -. input-parity gap .-> J --> K
     S -. outcome-parity gap .-> P
@@ -138,7 +138,7 @@ flowchart TB
     I["After decryption restore original<br/>author, time, ID and reply tags"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/note_view.rs:106
     N["Permalink asks relay for original ID<br/>purged row is absent"]
-    %% Source: ../project/agentbox/scripts/dream-forum-suggestions.mjs:296
+    %% Source: ../project/agentbox/scripts/dream-forum-suggestions.mjs:300
     T["Suggestions query original root ID<br/>and reply tags hidden inside ciphertext"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/sealed.rs:483
     C["Retained old IDs can correlate<br/>envelopes with old plaintext and authors"]

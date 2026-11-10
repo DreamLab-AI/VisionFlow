@@ -29,7 +29,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/ascii_img.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/wrangler.toml
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/auth.rs
-verified_commit: c39f41f104b114d6a3fa29013daaf6fa58b45080
+verified_commit: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df
 ---
 
 ## NF-07.1 search-worker — routes and gates

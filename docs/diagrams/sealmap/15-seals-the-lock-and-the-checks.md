@@ -17,7 +17,7 @@ sources:
   - ../sealmap/crates/sealmap-extract/src/lower.rs
   - ../sealmap/docs/DESIGN.md
   - ../sealmap/README.md
-verified_commit: eacc59ece21274273c6bf2c83d4642b4fa7acaf5
+verified_commit: 2b351367cab241aa7304d364aa37b52e65bb71f2
 ---
 ## For developers
 
@@ -29,7 +29,7 @@ classifier, and the step that writes a seal. It is pure: callers pass models
 and texts, and nothing reads the file system or runs git
 (`crates/sealmap-corpus/src/seal/mod.rs:1`-`6`). The CLI around it is SM-16.
 
-The module implements DESIGN §3 (`docs/DESIGN.md:92`-`163`). Where the design
+The module implements DESIGN §3 (`docs/DESIGN.md:114`-`191`). Where the design
 was loose the build chose, and DESIGN now records the choices: the exact lock
 layout, `topic_hash`, the citation rule, failing closed from the model alone,
 and legacy topics as coverage rather than failures. After this topic you
@@ -46,10 +46,9 @@ behaviour, its contract, or its name), with no model and no tokens involved.
 
 That is narrower than "the topic is still true", and the evidence says the
 gap matters. On blind-labelled commits, per-symbol body hashes caught 0.76 of
-the changes that made a topic wrong, against 1.0 for per-file flags, while
-flagging only 1.19× fewer topics (`README.md:81`-`85`). The seal surface is
+the changes that made a topic wrong, against all 29 labelled pairs for per-file selection (`README.md:356`). The seal surface is
 therefore experimental and frozen, not the recommended way to keep a corpus
-true (`docs/DESIGN.md:19`-`30`).
+true (`docs/DESIGN.md:41`-`52`).
 
 It is deliberately strict where strictness is cheap. An edit to the prose
 needs a re-seal, a function that cannot be parsed counts as changed rather
@@ -67,9 +66,9 @@ classDiagram
         +algorithm String
         +generator String
         +topics BTreeMap of id to TopicSeal
-        +parse(text) lock.rs:203
-        +parse_canonical(text) lock.rs:231
-        +to_toml() lock.rs:248
+        +parse(text) lock.rs:204
+        +parse_canonical(text) lock.rs:232
+        +to_toml() lock.rs:249
     }
     class TopicSeal {
         +id String
@@ -116,14 +115,16 @@ classDiagram
 ```
 
 **What it shows.** A lock is a map of topic seals keyed by topic id, each
-holding the prose hash, two opaque strings and the two fingerprints of every
+holding the prose hash, two plain strings and the two fingerprints of every
 sealed symbol; a check produces findings, one class each.
 
 **Why it is this way.** Ordered maps make the canonical text a function of the
 data: topics in id order, symbols in id order, so two people sealing
 different topics touch disjoint hunks (`crates/sealmap-corpus/src/seal/lock.rs:23`-`30`).
-`reviewer` and `model` stay opaque so reviewer policy lives in the skill, not
-the crate (`crates/sealmap-corpus/src/seal/lock.rs:79`-`82`).
+`reviewer` and `model` are plain strings that a lock read does not re-check;
+`sign` is what guarantees a different model family from every rung of `model`
+(`crates/sealmap-corpus/src/seal/lock.rs:79`-`81`), as the README states
+(`README.md:370`-`371`).
 
 **Invariant:** only `Holds` passes (`crates/sealmap-corpus/src/seal/check.rs:45`-`46`),
 and a report passes only when every finding does
@@ -134,14 +135,14 @@ and a report passes only when every finding does
 ```mermaid
 flowchart TB
     T["lock text"]
-    N["line endings normalised<br/>lock.rs:204"]
-    TP["TOML into raw structs that refuse<br/>unknown keys, lock.rs:142"]
-    V{"version 1 and<br/>algorithm sm1?<br/>lock.rs:207, lock.rs:210"}
-    F["each topic validated: id, normalised file,<br/>hash forms, YYYY-MM-DD date,<br/>no repeated symbol<br/>lock.rs:282-304"]
-    D{"a file or a topic id<br/>sealed twice?<br/>lock.rs:216, lock.rs:219"}
+    N["line endings normalised<br/>lock.rs:205"]
+    TP["TOML into raw structs that refuse<br/>unknown keys, lock.rs:143"]
+    V{"version 1 and<br/>algorithm sm1?<br/>lock.rs:208, lock.rs:211"}
+    F["each topic validated: id, normalised file,<br/>hash forms, YYYY-MM-DD date,<br/>no repeated symbol<br/>lock.rs:283-305"]
+    D{"a file or a topic id<br/>sealed twice?<br/>lock.rs:217, lock.rs:220"}
     L["Lock"]
-    C{"to_toml equals the<br/>text byte for byte?<br/>lock.rs:233"}
-    NC["NonCanonical<br/>lock.rs:234"]
+    C{"to_toml equals the<br/>text byte for byte?<br/>lock.rs:234"}
+    NC["NonCanonical<br/>lock.rs:235"]
     E["LockError"]
     T --> N --> TP --> V
     V -->|no| E
@@ -157,14 +158,14 @@ flowchart TB
 
 **Why it is this way.** Canonicality is checked by re-serialising, so the
 writer is the only definition of the format and there is no second grammar to
-drift from it (`crates/sealmap-corpus/src/seal/lock.rs:227`-`235`). `parse`
+drift from it (`crates/sealmap-corpus/src/seal/lock.rs:228`-`236`). `parse`
 alone normalises line endings, so a lock checked out with `\r\n` can be read
 and re-signed, while `verify` still reports it as not canonical
-(`crates/sealmap-corpus/src/seal/lock.rs:229`-`230`).
+(`crates/sealmap-corpus/src/seal/lock.rs:230`-`231`).
 
 **Invariant:** the writer round-trips byte for byte and is independent of
 signing order, pinned by a fixed-layout test and a property test over
-arbitrary strings (`crates/sealmap-corpus/tests/seal.rs:554`,
+arbitrary strings (`crates/sealmap-corpus/tests/seal.rs:573`,
 `crates/sealmap-corpus/tests/lock_props.rs:46`).
 
 ## SM-15.3 What a topic contributes
@@ -257,7 +258,7 @@ pointers with no entry, and citations in topics nobody sealed.
 one stray byte does not hide a real behaviour change
 (`crates/sealmap-corpus/tests/seal.rs:387`). Legacy `path:line` topics are
 coverage, not failures, so a corpus migrates one topic at a time
-(`docs/DESIGN.md:161`-`163`).
+(`docs/DESIGN.md:189`-`191`).
 
 **Debt:** removing a topic's lock entry and its pointer together passes
 `verify` whenever the topic cites no `sym:` id, because such a topic is then
@@ -310,7 +311,7 @@ a sealed module turns the module into Behaviour while every method holds
 the generated diagram of `sign` omits its success arm, because lowering drops
 any arm without a kept call (`crates/sealmap-extract/src/lower.rs:71`,
 `crates/sealmap-corpus/src/seal/check.rs:146`,
-`crates/sealmap-corpus/src/seal/sign.rs:125`-`126`); read from the generated
+`crates/sealmap-corpus/src/seal/sign.rs:142`-`143`); read from the generated
 corpus alone, both functions look as if they had no such path.
 
 ## SM-15.6 Writing a seal
@@ -319,23 +320,23 @@ corpus alone, both functions look as if they had no such path.
 sequenceDiagram
     autonumber
     participant CL as caller, the CLI or a skill
-    participant SG as sign<br/>sign.rs:99
+    participant SG as sign<br/>sign.rs:109
     participant TP as topic functions
     participant RS as resolve<br/>check.rs:441
     participant LK as Lock
     CL->>SG: lock, topic file and text, model, lock name, who
-    SG->>SG: reviewer and model non-empty, date YYYY-MM-DD (sign.rs:107-111)
-    SG->>TP: topic_id, refuse if missing (sign.rs:113)
-    SG->>LK: id already sealed for another file? refuse (sign.rs:117-118)
-    loop each citation (sign.rs:121)
-        SG->>SG: malformed? refuse (sign.rs:122)
-        SG->>RS: current hashes (sign.rs:124)
-        RS-->>SG: Found with fingerprints, else refuse (sign.rs:125-130)
+    SG->>SG: reviewer and model non-empty, date YYYY-MM-DD (sign.rs:117-121)
+    SG->>TP: topic_id, refuse if missing (sign.rs:130)
+    SG->>LK: id already sealed for another file? refuse (sign.rs:134-135)
+    loop each citation (sign.rs:138)
+        SG->>SG: malformed? refuse (sign.rs:139)
+        SG->>RS: current hashes (sign.rs:141)
+        RS-->>SG: Found with fingerprints, else refuse (sign.rs:142-147)
     end
-    SG->>TP: put one sealed: pointer in place (sign.rs:133)
-    SG->>LK: drop any entry for this file, set generator (sign.rs:135-136)
-    SG->>LK: insert the entry with the topic_hash of the new text (sign.rs:137-140)
-    SG-->>CL: topic text with its pointer (sign.rs:146)
+    SG->>TP: put one sealed: pointer in place (sign.rs:150)
+    SG->>LK: drop any entry for this file, set generator (sign.rs:152-153)
+    SG->>LK: insert the entry with the topic_hash of the new text (sign.rs:154-157)
+    SG-->>CL: topic text with its pointer (sign.rs:163)
 ```
 
 **What it shows.** A seal is derived, never typed in: every cited id is
@@ -343,11 +344,11 @@ resolved now, and any citation `verify` could not confirm stops the seal
 before the lock is touched.
 
 **Why it is this way.** The design makes the sign step mechanical so the lock
-is never hand-edited (`docs/DESIGN.md:122`-`127`). Replacing by file as well as
+is never hand-edited (`docs/DESIGN.md:150`-`155`). Replacing by file as well as
 by id means a renumbered topic moves its seal rather than leaving the old
-entry orphaned (`crates/sealmap-corpus/tests/seal.rs:543`).
+entry orphaned (`crates/sealmap-corpus/tests/seal.rs:562`).
 
 **Invariant:** nothing is sealed that `verify` would not then pass: a citation
 that is malformed, absent, unparsable or unfingerprinted is refused
-(`crates/sealmap-corpus/src/seal/sign.rs:122`-`130`), pinned by
+(`crates/sealmap-corpus/src/seal/sign.rs:139`-`147`), pinned by
 `crates/sealmap-corpus/tests/seal.rs:523`.

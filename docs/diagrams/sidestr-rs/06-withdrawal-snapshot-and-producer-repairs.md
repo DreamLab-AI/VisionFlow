@@ -10,7 +10,7 @@ sources:
   - ../sidestr-rs/sidestr-evm/src/rule.rs
   - ../sidestr-rs/sidestr-core/src/error.rs
   - ../sidestr-rs/sidestr-core/src/state.rs
-verified_commit: 7f04644411220ba0d3b9c7bdba58bbf56be790fa
+verified_commit: 60259e848795d0cd5c5718ca5d0eb658f69fd0d7
 ---
 
 ## For developers

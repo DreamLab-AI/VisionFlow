@@ -6,6 +6,7 @@ governing:
   - ../project/docs/BASELINE-architecture.md
 adrs: [ADR-2014, ADR-2040, ADR-2004, ADR-2063, ADR-2065]
 sources:
+  - ../project/docs/BASELINE-architecture.md
   - ../project/src/services/insight_loop.rs
   - ../project/src/handlers/insight_loop_handler.rs
   - ../project/src/adapters/sqlite_enrichment_repository.rs
@@ -49,7 +50,7 @@ sources:
   - ../project/src/handlers/graph_export_handler.rs
   - ../project/docs/SECURITY-profiles.md
   - ../project/src/utils/response_macros.rs
-verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
 ---
 
 ## For developers
@@ -259,11 +260,11 @@ sequenceDiagram
 
     Note over S,P: config-driven, not an env flag - api_url/api_key/model read from<br/>AppFullSettings.perplexity at call time (src/services/perplexity_service.rs:103-113)
     C->>H: POST /nl-query/translate {query, suggestAlternatives}
-    H->>S: translate_to_sparql(query) or suggest_queries(query)<br/>src/services/natural_language_query_service.rs:72,101
-    Note over S: Jev option, opt-in and off unless VISIONCLAW_JEV is set (src/main.rs:517-522): translate_to_sparql first calls try_jev_plan,<br/>an enumerated read-only template chosen by Jev with a code-extracted entity, accepted only above<br/>VISIONCLAW_JEV_AUTO_MIN_CONFIDENCE and re-checked by validate_read_only_sparql, else the generative route below runs unchanged<br/>src/services/natural_language_query_service.rs:65,76-78 src/services/jev_nlq.rs:148, :209 - suggest_queries has no Jev path (src/services/natural_language_query_service.rs:101)
+    H->>S: translate_to_sparql(query) or suggest_queries(query)<br/>src/services/natural_language_query_service.rs:71,100
+    Note over S: Jev option, opt-in and off unless VISIONCLAW_JEV is set (src/main.rs:518-523): translate_to_sparql first calls try_jev_plan,<br/>an enumerated read-only template chosen by Jev with a code-extracted entity, accepted only above<br/>VISIONCLAW_JEV_AUTO_MIN_CONFIDENCE and re-checked by validate_read_only_sparql, else the generative route below runs unchanged<br/>src/services/natural_language_query_service.rs:65,75-77 src/services/jev_nlq.rs:179, :252 - suggest_queries has no Jev path (src/services/natural_language_query_service.rs:100)
     S->>SC: get_llm_context() - schema for the prompt
     SC-->>S: schema_context
-    S->>S: get_system_prompt() then build_translation_prompt(query, schema_context)<br/>src/services/natural_language_query_service.rs:163,225
+    S->>S: get_system_prompt() then build_translation_prompt(query, schema_context)<br/>src/services/natural_language_query_service.rs:162,224
     Note over S: RESOLVED ADR-2063 - the prompt now describes the real Oxigraph named graphs and vocabulary<br/>and asks for read-only SPARQL. It previously claimed to be a SPARQL generator while instructing and<br/>validating for Cypher GraphNode/EDGE labels, so every generated query was unrunnable against the store.
     S->>P: chat_completion([(system,...), (user, prompt)])
     alt perplexity_config missing (api_url/api_key/model None)
@@ -272,13 +273,13 @@ sequenceDiagram
         H-->>C: 500 {error: "Translation failed", message} via error_json<br/>src/handlers/natural_language_query_handler.rs:119, src/utils/response_macros.rs:82
     else config present
         P-->>S: response text
-        S->>S: extract_sparql_block(response) - find fenced sparql block or fallback fence<br/>src/services/natural_language_query_service.rs:300
+        S->>S: extract_sparql_block(response) - find fenced sparql block or fallback fence<br/>src/services/natural_language_query_service.rs:299
         alt no fenced block found
             S-->>H: Err - no SPARQL query found in response
             H-->>C: 500 {error: "Translation failed", message}
         else block found
-            S->>S: validate_sparql(sparql) - delegates to the shared read-only validator<br/>src/services/natural_language_query_service.rs:129
-            S->>S: validate_read_only_sparql - SELECT/ASK/CONSTRUCT/DESCRIBE only<br/>src/handlers/ontology_handler.rs:812
+            S->>S: validate_sparql(sparql) - delegates to the shared read-only validator<br/>src/services/natural_language_query_service.rs:128
+            S->>S: validate_read_only_sparql - SELECT/ASK/CONSTRUCT/DESCRIBE only<br/>src/handlers/ontology_handler.rs:885
             alt mutating form (INSERT/DELETE/DROP/CLEAR/LOAD)
                 S-->>H: Err - rejected, not a read-only query
                 H-->>C: 500 {error: "Translation failed", message}
@@ -297,7 +298,7 @@ sequenceDiagram
     alt rejected by the read-only validator
         H-->>C: 500 {error: "Invalid SPARQL syntax", message}<br/>src/handlers/natural_language_query_handler.rs:178
     else valid
-        S->>P: chat_completion - explain prompt<br/>src/services/natural_language_query_service.rs:134
+        S->>P: chat_completion - explain prompt<br/>src/services/natural_language_query_service.rs:133
         H-->>C: 200 {sparql, explanation}
     end
     C->>H: GET /nl-query/examples
@@ -315,16 +316,16 @@ sequenceDiagram
     participant Caller as GraphServiceSupervisor / handler
     participant A as SemanticProcessorActor<br/>src/actors/semantic_processor_actor.rs:171
 
-    Note over A: since af3dff3f2 the actor has a production owner: main registers a SemanticService over ActixSemanticAdapter for /api/semantic/*, and the adapter starts this actor on its first initialize (estate register ER-25)<br/>src/main.rs:860-870 src/adapters/actix_semantic_adapter.rs:95-103
+    Note over A: since af3dff3f2 the actor has a production owner: main registers a SemanticService over ActixSemanticAdapter for /api/semantic/*, and the adapter starts this actor on its first initialize (estate register ER-25)<br/>src/main.rs:861-871 src/adapters/actix_semantic_adapter.rs:95-103
     Note over A: Actor started/stopped log config.enable_ai_features and final stats<br/>src/actors/semantic_processor_actor.rs:1361-1376
 
-    Caller->>A: UpdateConstraints{constraint_data}<br/>src/actors/messages/physics_messages.rs:292
+    Caller->>A: UpdateConstraints{constraint_data}<br/>src/actors/messages/physics_messages.rs:307
     A-->>Caller: Result<(),String> via handle_constraint_update<br/>src/actors/semantic_processor_actor.rs:1381-1388
 
     Caller->>A: GetConstraints<br/>src/actors/messages/physics_messages.rs:276
     A-->>Caller: ConstraintSet clone<br/>src/actors/semantic_processor_actor.rs:1390-1399
 
-    Caller->>A: TriggerStressMajorization<br/>src/actors/messages/physics_messages.rs:321
+    Caller->>A: TriggerStressMajorization<br/>src/actors/messages/physics_messages.rs:336
     A->>A: web::block(stress optimisation) on thread pool<br/>src/actors/semantic_processor_actor.rs:1402
     alt thread pool Ok(Ok(()))
         A-->>Caller: Ok(())
@@ -332,7 +333,7 @@ sequenceDiagram
         A-->>Caller: Err(e) / "Thread pool error"
     end
 
-    Caller->>A: RegenerateSemanticConstraints<br/>src/actors/messages/physics_messages.rs:341
+    Caller->>A: RegenerateSemanticConstraints<br/>src/actors/messages/physics_messages.rs:356
     A->>A: deactivate semantic_similarity/semantic_clustering/importance_based/topic_based groups<br/>src/actors/semantic_processor_actor.rs:1438-1446
     A->>A: web::block(generate_semantic_constraints_blocking)
     A-->>Caller: ResponseFuture<Result<(),String>>
@@ -377,7 +378,7 @@ sequenceDiagram
     autonumber
     participant SPA as SemanticProcessorActor::process_metadata_blocking<br/>src/actors/semantic_processor_actor.rs:246
     participant SA as SemanticAnalyzer::analyze_metadata<br/>src/services/semantic_analyzer.rs:261
-    participant GS as GitHubSyncService::relation_edges<br/>src/services/github_sync_service.rs:1878
+    participant GS as GitHubSyncService::relation_edges<br/>src/services/github_sync_service.rs:2135
     participant REG as SemanticTypeRegistry<br/>src/services/semantic_type_registry.rs:90
 
     SPA->>SA: analyze_metadata(metadata)
@@ -391,8 +392,8 @@ sequenceDiagram
     end
     Note over SA: compute_similarity weights: topic 0.4 + domain 0.2 + file_type 0.1 + depth 0.1 + temporal 0.1 + importance 0.1<br/>src/services/semantic_analyzer.rs:545-580
 
-    Note over GS: one typed edge per vocab.relations key whose ParsedPage frontmatter has<br/>a wikilink target — an unmapped edge-type predicate is skipped, not defaulted<br/>src/services/github_sync_service.rs:1888-1898
-    GS->>REG: get_or_register_id(edge_type)<br/>src/services/semantic_type_registry.rs:652,src/services/github_sync_service.rs:1899
+    Note over GS: one typed edge per vocab.relations key whose ParsedPage frontmatter has<br/>a wikilink target — an unmapped edge-type predicate is skipped, not defaulted<br/>src/services/github_sync_service.rs:2145-2155
+    GS->>REG: get_or_register_id(edge_type)<br/>src/services/semantic_type_registry.rs:652,src/services/github_sync_service.rs:2156
     REG->>REG: get_id(uri) - read_uri_map lookup<br/>src/services/semantic_type_registry.rs:646-648
     alt uri already registered
         REG-->>GS: existing id
@@ -401,7 +402,7 @@ sequenceDiagram
         REG->>REG: register_internal(uri, config) - assign next_id, push uri/config<br/>src/services/semantic_type_registry.rs:612
         REG-->>GS: new id
     end
-    GS->>REG: get_config(reg_id) - strength*2.0 normalised to spring weight<br/>src/services/semantic_type_registry.rs:662,src/services/github_sync_service.rs:1901-1902
+    GS->>REG: get_config(reg_id) - strength*2.0 normalised to spring weight<br/>src/services/semantic_type_registry.rs:662,src/services/github_sync_service.rs:2158-2159
     Note over REG: version() = next_id atomic counter, used for hot-reload detection<br/>src/services/semantic_type_registry.rs:703
 ```
 
@@ -439,7 +440,7 @@ sequenceDiagram
     participant Caller as AppState / handler
     participant MA as MetadataActor<br/>src/actors/metadata_actor.rs:23
 
-    Note over MA: replaces Arc<RwLock<MetadataStore>> - started at src/app_state.rs:763 (BASELINE-architecture.md "Actor system topology")
+    Note over MA: replaces Arc<RwLock<MetadataStore>> - started at src/app_state.rs:797 (BASELINE-architecture.md "Actor system topology")
     Caller->>MA: GetMetadata<br/>crates/visionclaw-actors/src/messages/graph_messages.rs:221
     MA-->>Caller: Ok(MetadataStore clone)<br/>src/actors/metadata_actor.rs:58-64
     Caller->>MA: UpdateMetadata{metadata}<br/>crates/visionclaw-actors/src/messages/graph_messages.rs:225
@@ -448,7 +449,7 @@ sequenceDiagram
     Note right of MA: RESOLVED ADR-2097 (2026-09-05): RefreshMetadata and refresh_metadata are deleted - the message had no senders<br/>and the actor holds no source. metadata.json is owned by FileService, which pushes rebuilt stores in via UpdateMetadata
 ```
 
-**Drift:** the governing baseline places MetadataActor's start at `app_state.rs:774` (`../project/docs/BASELINE-architecture.md:170`); at this revision the actor starts at `../project/src/app_state.rs:763`, with its log line at `:762`.
+**Drift:** the governing baseline places MetadataActor's start at `app_state.rs:813` (`../project/docs/BASELINE-architecture.md:177`); at this revision the actor starts at `../project/src/app_state.rs:797`, with its log line at `:796`.
 
 ## VC-25.13 file_service + graph_serialization + empty-graph guard
 
@@ -506,7 +507,7 @@ flowchart TB
     CG -->|"gated, communities"| VC["visible_communities over the view: numbering, sizes, modularity<br/>src/handlers/semantic_handler.rs:89-90, :269-274, visible_analytics.rs:331"]
     CG -->|"gated, shortest-path"| VS["Dijkstra over the view from the source slot<br/>src/handlers/semantic_handler.rs:191-192, :314-321, pathfinding.rs:180"]
     CG -->|"gated, centrality"| CF["full-graph analysis, no top-k cut, then gate_centrality filters<br/>src/handlers/semantic_handler.rs:132, :158, :163, :294"]
-    CG -->|"ungated"| SS["SemanticService.initialize(full graph) then the adapter<br/>src/handlers/semantic_handler.rs:92, :200, src/main.rs:864-869"]
+    CG -->|"ungated"| SS["SemanticService.initialize(full graph) then the adapter<br/>src/handlers/semantic_handler.rs:92, :200, src/main.rs:865-870"]
     CF --> SS
     SS --> AD["ActixSemanticAdapter port handlers return empty data, modularity 0.0<br/>src/adapters/actix_semantic_adapter.rs:264, :267-273"]
     AD --> EMPTY["shortest paths, SSSP and importance also empty<br/>src/adapters/actix_semantic_adapter.rs:290-297, :309, :371"]
@@ -520,4 +521,4 @@ flowchart TB
 
 **Tension (parallel):** centrality is the one gated semantic route still filtered after a whole-graph run (`src/handlers/semantic_handler.rs:132`, `:163`), while the analytics PageRank already has a view-local `visible_pagerank` (`src/handlers/api_handler/analytics/visible_analytics.rs:408`). The day the adapter returns scores, a gated caller's visible scores will have been shaped by hidden nodes.
 
-**Open (risk):** the NLQ prompt context lists up to ten `owl_class_iri` values and a total drawn from the whole graph (`src/services/schema_service.rs:145-146`, `:83-89`), sent to the LLM for every translation (`src/services/natural_language_query_service.rs:81`), and Jev templates query the ontology graph directly (`src/services/jev_nlq.rs:56`). SECURITY-profiles 0.1.6 names `jev_nlq` and `natural_language_query_service` as outside the ontology deny-list (`docs/SECURITY-profiles.md:111`).
+**Open (risk):** the NLQ prompt context lists up to ten `owl_class_iri` values and a total drawn from the whole graph (`src/services/schema_service.rs:145-146`, `:83-89`), sent to the LLM for every translation (`src/services/natural_language_query_service.rs:80`), and Jev templates query the ontology graph directly (`src/services/jev_nlq.rs:56`). SECURITY-profiles 0.1.6 names `jev_nlq` and `natural_language_query_service` as outside the ontology deny-list (`../project/docs/SECURITY-profiles.md:111`).

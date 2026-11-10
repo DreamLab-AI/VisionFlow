@@ -23,7 +23,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/push_fanout.rs
   - ../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/Cargo.toml
-verified_commit: c39f41f104b114d6a3fa29013daaf6fa58b45080
+verified_commit: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df
 ---
 
 ## NF-03.1 Worker entry — three doors into the relay
@@ -282,9 +282,9 @@ classDiagram
     }
     decide_demotion --> DemotionDecision
     DemotionDecision --> HoldReason
-    note for HoldReason "Named reasons exist in policy.<br/>Sweep retains only their total<br/>trust_sweep.rs:281."
+    note for HoldReason "Named reasons exist in policy.<br/>Sweep retains only their total<br/>trust_sweep.rs:297."
     note for decide_demotion "Scheduled demotion only.<br/>Per-member entry point removed<br/>trust.rs:406-419."
-    note for DemotionDecision "Conditional audit is repaired<br/>trust_sweep.rs:425.<br/>Capped fairness remains open<br/>See NF-24.2."
+    note for DemotionDecision "Conditional audit is repaired<br/>trust_sweep.rs:441.<br/>Capped fairness remains open<br/>See NF-24.2."
 ```
 
 ## NF-03.10 Post-save effects — activity coalescing, moderation mirror, governance projection

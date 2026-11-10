@@ -36,7 +36,7 @@ sources:
   - ../project/src/settings/auth_extractor.rs
   - ../project/client/src/services/nostrAuthService.ts
   - ../project/agentbox/docs/INGRESS-identity.md
-verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
 ---
 ## ES-04.1 verification mesh — who signs, who verifies whom
 ```mermaid
@@ -78,7 +78,7 @@ flowchart TB
     MAC -- "Authorization: Bearer api_key<br/>management_api_client.rs:305" --> PROXY
     PROXY -- "NIP-98 kind-27235<br/>proxy-verified" --> NBB
     PROXY -- "X-Agentbox-Pubkey<br/>injected, never trusted inbound<br/>proxy.mjs:878" --> MGMT
-    GW -- "op create / send as uid 961 (ab-gateway)<br/>gateway.cjs:420" --> SESS
+    GW -- "op create / send as uid 961 (ab-gateway)<br/>gateway.cjs:436" --> SESS
     SESS -- "POST /v1/sessions/boundary<br/>boundary.rs:86" --> MGMT
     PS -- "NIP-98 kind-27235<br/>buildNip98Header" --> POD
     AEA -- "NIP-98 kind-27235<br/>AGENTBOX_AGENT_EVENT_AUTH=nip98" --> NBB
@@ -94,7 +94,7 @@ flowchart TB
 
 **Debt:** the stamp's strength is the same-UID boundary of the agentbox container, because any process inside it reaches management-api over loopback (TODO-unified X-1; `agentbox/management-api/lib/agent-event-auth.js:36-39`).
 
-**Drift (resolved at this stamp):** ADR-2153 is live (`decision_status: accepted`, `implementation_status: partial`, `activation_status: live`; `../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`). Agent of Empires, its `:9095` listener, its bearer token and the proxy hop to it are gone; session control is a 0660 `ab-sessions` unix socket authorised by `SO_PEERCRED` against uids 1000 and 961 (`../project/agentbox/services/agentbox-sessions/src/api.rs:74`, `../project/agentbox/config/custody/session-plane-acl.json:8-11`), and `:9096` forwards named routes only (`../project/agentbox/docs/INGRESS-identity.md:69-71,244-247`). The 2026-10-30 close-out re-checks the running image and leaves the axes unchanged: `command -v aoe` finds nothing and nothing listens on `:9095` (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:228`); `partial` stays because the all-seed acceptance gap remains open (`:231`).
+**Drift (resolved at this stamp):** ADR-2153 is live (`decision_status: accepted`, `implementation_status: partial`, `activation_status: live`; `../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`). Agent of Empires, its port 9095 listener, its bearer token and the proxy hop to it are gone; session control is a 0660 `ab-sessions` unix socket authorised by `SO_PEERCRED` against uids 1000 and 961 (`../project/agentbox/services/agentbox-sessions/src/api.rs:74`, `../project/agentbox/config/custody/session-plane-acl.json:8-11`), and port 9096 forwards named routes only (`../project/agentbox/docs/INGRESS-identity.md:69-71,244-247`). The 2026-10-30 close-out re-checks the running image and leaves the axes unchanged: `command -v aoe` finds nothing and nothing listens on port 9095 (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:259`); `partial` stays because the all-seed acceptance gap remains open (`:262`).
 
 **Open (PROPOSED 2026-10-30, not implemented):** VisionClaw's identity-authority record now carries a Proposed room-admission section (ADR-2157, ADR-2160, ADR-2161): a `RoomAdmission` port after the presence handshake, fed by the home relay's signed NIP-29 39002 member list, and a single agentbox-held node federation key that VisionClaw never holds (`docs/IDENTITY-authority-chain.md`, section "Proposed"). Today the handshake alone admits a DID to any room, and the diagrams here describe only that shipped path.
 
@@ -189,9 +189,9 @@ sequenceDiagram
     Note over B,S: Under role_isolation, or sign_source = identity-port, the header comes<br/>from the identity port instead and no key is read (pod-signer.js:76-77)
 ```
 
-**Drift (corrected at agentbox c57d9c0):** this panel used to show a degraded signer falling back to an UNSIGNED write and a boot that could keep the `did:nostr:local` placeholder. Neither holds at the pin, and neither held at 6500582 either (pod-signer.js is byte-identical between the two, and the entrypoint already aborted on a failed mint there): `buildPodNip98` returns `null` only when `sign_requests` is off (`../project/agentbox/management-api/lib/pod-signer.js:73`); when it is on, the adapter is built with `requireSigned` (`../project/agentbox/management-api/adapters/index.js:74`) and a null header throws `SigningUnavailable` (`../project/agentbox/management-api/adapters/pods/_solid-http-base.js:105`); and the entrypoint now aborts boot when the mint fails (`../project/agentbox/config/entrypoint-unified.sh:1424-1433`).
+**Drift (corrected at agentbox c57d9c0):** this panel used to show a degraded signer falling back to an UNSIGNED write and a boot that could keep the `did:nostr:local` placeholder. Neither holds at the pin, and neither held at 6500582 either (pod-signer.js is byte-identical between the two, and the entrypoint already aborted on a failed mint there): `buildPodNip98` returns `null` only when `sign_requests` is off (`../project/agentbox/management-api/lib/pod-signer.js:73`); when it is on, the adapter is built with `requireSigned` (`../project/agentbox/management-api/adapters/index.js:74`) and a null header throws `SigningUnavailable` (`../project/agentbox/management-api/adapters/pods/_solid-http-base.js:105`); and the entrypoint now aborts boot when the mint fails (`../project/agentbox/config/entrypoint-unified.sh:1429-1438`).
 
-**Drift (source comment):** `agent-identity.js` still says the entrypoint's `did:nostr:local` fallback "runs unconditionally" (`../project/agentbox/management-api/lib/agent-identity.js:41-43`); the entrypoint it describes now exits 1 on a failed or inconsistent mint (`../project/agentbox/config/entrypoint-unified.sh:1424-1433`). The comment is stale, not the code.
+**Drift (source comment):** `agent-identity.js` still says the entrypoint's `did:nostr:local` fallback "runs unconditionally" (`../project/agentbox/management-api/lib/agent-identity.js:41-43`); the entrypoint it describes now exits 1 on a failed or inconsistent mint (`../project/agentbox/config/entrypoint-unified.sh:1429-1438`). The comment is stale, not the code.
 
 ## ES-04.5 Key custody — where every signing key actually lives
 ```mermaid
@@ -236,22 +236,22 @@ sequenceDiagram
     participant AM as Amethyst on mobile
 
     T->>HK: per-turn hook fires (event = SessionStart|UserPromptSubmit|Stop|SessionEnd)
-    HK->>HK: EARLY EXIT — egressDecision('live-mirror',{}) then recipientAllowlist(),<br/>checked BEFORE key derivation or stdin read<br/>nostr-live-mirror.cjs:405-414
+    HK->>HK: EARLY EXIT — egressDecision('live-mirror',{}) then recipientAllowlist(),<br/>checked BEFORE key derivation or stdin read<br/>nostr-live-mirror.cjs:406-415
     alt AGENTBOX_LIVE_MIRROR=0 or no valid recipient allowlist
         HK-->>T: return 0 — ~170ms/event saved vs deriving keys first
     else no recipient pubkey configured
         HK-->>T: silent no-op
     else armed
-        HK->>HK: mirroredEvents() gate — default {Stop} only,<br/>widened by AGENTBOX_LIVE_MIRROR_EVENTS<br/>nostr-live-mirror.cjs:278-284
+        HK->>HK: mirroredEvents() gate — default {Stop} only,<br/>widened by AGENTBOX_LIVE_MIRROR_EVENTS<br/>nostr-live-mirror.cjs:279-285
         alt event not in mirroredEvents()
-            HK-->>T: bodyForEvent() returns null — skip, nostr-live-mirror.cjs:290-291
+            HK-->>T: bodyForEvent() returns null — skip, nostr-live-mirror.cjs:291-292
         else event mirrored
             HK->>MK: load derived mirror child key
             HK->>HK: build kind-14 DM rumor
-            Note over HK: A urn:agentbox:activity reference is placed INSIDE the<br/>already gift-wrap-sealed rumor (mintActivityUrn, nostr-live-mirror.cjs:166),<br/>so the URN never appears in cleartext on the wire.
-            HK->>W: seal sender identity, wrap as KIND_GIFT_WRAP 1059<br/>nostr-live-mirror.cjs:61, rumor kind 14 at :62
+            Note over HK: A urn:agentbox:activity reference is placed INSIDE the<br/>already gift-wrap-sealed rumor (mintActivityUrn, nostr-live-mirror.cjs:167),<br/>so the URN never appears in cleartext on the wire.
+            HK->>W: seal sender identity, wrap as KIND_GIFT_WRAP 1059<br/>nostr-live-mirror.cjs:62, rumor kind 14 at :63
             W-->>HK: signed gift wrap
-            HK->>REL: publish ONE pre-signed gift wrap, await the relay OK<br/>publishWrap nostr-live-mirror.cjs:332
+            HK->>REL: publish ONE pre-signed gift wrap, await the relay OK<br/>publishWrap nostr-live-mirror.cjs:333
             alt relay accepts
                 REL-->>HK: ok
                 REL->>AM: readable with the derived mirror child key
@@ -263,11 +263,11 @@ sequenceDiagram
     end
     Note over HK,REL: INVARIANT ADR-2026 — the ONLY network egress is the<br/>ENCRYPTED gift wrap. The relay accepts a kind-1059 iff its<br/>FIRST ["p"] recipient is whitelisted (nostr-live-mirror.cjs:19).
     Note over T,AM: Digest sibling — ONE curated kind-30840 summary at SessionEnd<br/>(nostr-live-mirror.cjs:8), via [sovereign_mesh.mobile_bridge].
-    Note over HK: DOC-DRIFT agentbox/docs/SECURITY-profiles.md:11 still asserts the live<br/>hook composes UNREDACTED text —<br/>SECURITY-profiles.md:68-69 and the code<br/>(redactForEgress before compose, nostr-live-mirror.cjs:453) say this<br/>closed 2026-09-05 on both paths. Doc line 11 is stale prose, not code.
+    Note over HK: DOC-DRIFT agentbox/docs/SECURITY-profiles.md:11 still asserts the live<br/>hook composes UNREDACTED text —<br/>SECURITY-profiles.md:68-69 and the code<br/>(redactForEgress before compose, nostr-live-mirror.cjs:456) say this<br/>closed 2026-09-05 on both paths. Doc line 11 is stale prose, not code.
 ```
 
 Encrypted forum zones (ADR-2016, INGRESS-identity.md item 10): zone-key grants (rumor kind 21453) and signed NIP-171 epoch tickets (kind 1014, `../project/agentbox/management-api/lib/zone-keys.js:54-56`, `../project/agentbox/docs/INGRESS-identity.md:295-299`), gating and
-admin-relay retry live in AB-12.11 and AB-13.5 (`zone-keys.js`, `../project/agentbox/config/nostr-gateway/gateway.cjs:671`), not here.
+admin-relay retry live in AB-12.11 and AB-13.5 (`zone-keys.js`, `../project/agentbox/config/nostr-gateway/gateway.cjs:689`), not here.
 
 The 2026-09-07 source closeout makes opaque session issuance, lookup and refresh
 conditional on `VISIONCLAW_LEGACY_SESSIONS=1/true`, default off. Browser REST signs

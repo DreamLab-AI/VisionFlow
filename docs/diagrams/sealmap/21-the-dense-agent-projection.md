@@ -20,7 +20,7 @@ sources:
   - ../sealmap/crates/sealmap-corpus/src/structure.rs
   - ../sealmap/docs/DESIGN.md
   - ../sealmap/README.md
-verified_commit: b9a6aebddd2e8379206eea6cfdd3ab84546724b4
+verified_commit: 2b351367cab241aa7304d364aa37b52e65bb71f2
 ---
 ## For developers
 
@@ -51,11 +51,12 @@ signature once, with fields, variants and implemented traits inline
 (`crates/sealmap-dense/src/skeleton.rs:40`).
 
 The research behind the crate estimated 0.45× source. As built, `dense.txt`
-measures 0.17–0.29× (`docs/DESIGN.md:135`, `docs/DESIGN.md:139`).
+measures 0.17–0.29× (`docs/DESIGN.md:205`, `docs/DESIGN.md:209`).
 
 On the command line, `sealmap dense [PATH] [-o DIR] [--depth N] [--stats]`
 writes both files, by default into `.sealmap/dense`
-(`crates/sealmap/src/main.rs:51`, `crates/sealmap/src/main.rs:341`-`348`).
+(`crates/sealmap/src/main.rs:53`, `crates/sealmap/src/main.rs:146`,
+`crates/sealmap/src/main.rs:422`-`435`).
 It reads the code with the same `--repo`, `--name` and `--tests` options as
 the seal commands, so its `_index.txt` names the ids a seal would. Until the
 seal surface merged, the hook was an example binary; the subcommand replaced
@@ -68,9 +69,10 @@ revealed about the Rust adapter (SM-21.6).
 
 An agent that loads the source of a codebase to learn its shape pays for
 every comment, every formatting choice and every repeated name. The one-file
-Mermaid corpus is no cheaper: it costs 0.48–0.88× the source. The dense
+Mermaid corpus is no cheaper: an earlier README put it at 0.48–0.88× the source, a
+figure the current README no longer carries. The dense
 projection carries the same symbols, signatures, line spans and resolved
-calls at 0.17–0.29× (`README.md:60`). A fixed context budget therefore holds
+calls at 0.17–0.29× (`README.md:355`). A fixed context budget therefore holds
 roughly three times more of the call graph.
 
 Every call is marked exact, inferred or external, so an agent can tell a
@@ -90,7 +92,7 @@ flowchart TB
     IX["index: one line per symbol<br/>lib.rs:307"]
     SL["slice: seeds plus callers and callees<br/>lib.rs:347"]
     OUT["dense.txt and _index.txt<br/>lib.rs:144-147"]
-    PK["pack: one slice per topic<br/>pack.rs:480"]
+    PK["pack: one slice per topic<br/>pack.rs:506"]
     CB --> NEW
     NEW --> SN
     NEW --> GR
@@ -109,7 +111,7 @@ once. Rendering and slicing only read their results.
 
 **Why it is this way.** `pack` takes many slices of one codebase per
 request. It builds one `Dense` and slices it once per topic
-(`crates/sealmap-corpus/src/pack.rs:438`), and the one-call `slice` function
+(`crates/sealmap-corpus/src/pack.rs:464`), and the one-call `slice` function
 says to do so (`crates/sealmap-dense/src/lib.rs:473`-`474`).
 
 **Invariant:** the call graph counts a call only when its target is a symbol
@@ -150,7 +152,7 @@ the depth limit.
 the number of paths through the graph. Expanding it once grows with the
 number of call sites. The depth limit hardly matters for size (±3 % between
 1 and 10 levels), so its default of 3 is chosen for reading, not for bytes
-(`docs/DESIGN.md:139`).
+(`docs/DESIGN.md:209`).
 
 **Invariant:** each callable with a flow is expanded exactly once, whatever
 the depth (`crates/sealmap-dense/tests/dense.rs:266`).
@@ -263,7 +265,7 @@ carries what a caller needs to split the request into shards: the total size
 and the size of each seed's slice alone.
 
 **Why it is this way.** The design requires that `pack` never truncates
-silently (`docs/DESIGN.md:161`). The slice's own index section keeps it
+silently (`docs/DESIGN.md:231`). The slice's own index section keeps it
 self-contained, so a review pack does not need `_index.txt` alongside.
 Seeds are a set, so their order and any duplicates make no difference
 (`crates/sealmap-dense/tests/dense.rs:240`).

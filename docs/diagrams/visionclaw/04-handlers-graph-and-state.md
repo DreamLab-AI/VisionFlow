@@ -67,7 +67,7 @@ sources:
   - ../project/src/services/mcp_relay_manager.rs
   - ../project/src/actors/physics_orchestrator_actor.rs
   - ../project/src/utils/auth.rs
-verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
 ---
 
 ## For developers
@@ -83,13 +83,13 @@ A signed-in user, an anonymous visitor and the owner of private pages now get an
 sequenceDiagram
     autonumber
     participant C as Client
-    participant H as get_graph_data<br/>src/handlers/api_handler/graph/mod.rs:218
+    participant H as get_graph_data<br/>src/handlers/api_handler/graph/mod.rs:224
     participant QH as graph_query_handlers<br/>AppState CQRS handler set
-    participant GPU as ForceComputeActor<br/>fetch_settlement, graph/mod.rs:153
-    participant PRJ as graph_data_projection<br/>graph/mod.rs:306
-    participant POP as PopulationFilter::parse<br/>graph/mod.rs:121
+    participant GPU as ForceComputeActor<br/>fetch_settlement, graph/mod.rs:159
+    participant PRJ as graph_data_projection<br/>graph/mod.rs:341
+    participant POP as PopulationFilter::parse<br/>graph/mod.rs:127
 
-    C->>H: GET /api/graph/data?graph_type=&exclude_linked_pages= (caller as OptionalAuth, graph/mod.rs:221)
+    C->>H: GET /api/graph/data?graph_type=&exclude_linked_pages= (caller as OptionalAuth, graph/mod.rs:227)
     par CQRS queries via execute_in_thread
         H->>QH: get_graph_data.handle(GetGraphData)
     and
@@ -104,50 +104,50 @@ sequenceDiagram
             GPU-->>H: Some(SettlementSnapshot)
         end
     end
-    H->>PRJ: graph_data_projection(graph, query, caller_pubkey, filter_enabled()) (graph/mod.rs:259-264)
-    PRJ->>PRJ: visible_subgraph(graph, caller, filter_on) FIRST, the visibility gate and metadata scrub, see VC-19 (graph/mod.rs:316-320)
-    PRJ->>POP: PopulationFilter::parse(graph_type) — Agent / Knowledge / Ontology bit-mirrors (graph/mod.rs:343)
+    H->>PRJ: graph_data_projection(graph, query, caller_pubkey, filter_enabled(), removal from the node_filter snapshot, a bad snapshot is a 400) (graph/mod.rs:265-282, defn :341, see VC-61)
+    PRJ->>PRJ: visible_subgraph(graph, caller, filter_on) FIRST, the visibility gate and metadata scrub, see VC-19 (graph/mod.rs:352-356)
+    PRJ->>POP: PopulationFilter::parse(graph_type) — Agent / Knowledge / Ontology bit-mirrors (graph/mod.rs:379)
     alt query.graph_type set
-        PRJ->>PRJ: filter nodes by population.matches(node_type, metadata) (graph/mod.rs:350-353)
+        PRJ->>PRJ: filter nodes by population.matches(node_type, metadata) (graph/mod.rs:386-389)
     else absent
         PRJ->>PRJ: no population filtering
     end
     opt exclude_linked_pages=true
-        PRJ->>PRJ: drop nodes whose origin resolves to linked_page (graph/mod.rs:354-365)
+        PRJ->>PRJ: drop nodes whose origin resolves to linked_page (graph/mod.rs:390-401)
     end
-    PRJ-->>H: nodes, edges with both ends kept, the gated metadata map (graph/mod.rs:368-378)
+    PRJ-->>H: nodes, edges with both ends kept, the gated metadata map (graph/mod.rs:427-437)
     alt all three CQRS queries Ok
-        H-->>C: 200 GraphResponseWithPositions{nodes,edges,metadata,settlement_state} (graph/mod.rs:266-279)
+        H-->>C: 200 GraphResponseWithPositions{nodes,edges,metadata,settlement_state} (graph/mod.rs:284-297)
     else any thread execution error
         H-->>C: 500 Internal server error
     else any handler Err
         H-->>C: 500 Failed to retrieve graph data
     end
-    Note over H: INVARIANT: REST /data and the /wss initialGraphLoad give one caller the same nodes, edges and scrubbed metadata,<br/>pinned by visibility_parity_tests over three callers, the ADR-2184 D1 precondition (graph/mod.rs:2341-2344, :2470-2473)
-    Note over H: GET /api/graph/data/paginated (graph/mod.rs:381) is the SAME CQRS GetGraphData read, gated by caller_view BEFORE<br/>offset/limit slicing so total_items counts only what the caller sees (graph/mod.rs:403-405)
-    Note over H: settlement_state now takes its running flag from the GPU snapshot (snap.physics_running, graph/mod.rs:270-278), not from the CQRS GetPhysicsState result,<br/>and GET /api/graph/settlement (route graph/mod.rs:1636, get_physics_state_summary graph/mod.rs:211) returns the compact {settlementState, telemetryLive, physicsRunning} view<br/>telemetryLive false means the numbers are run-state fallbacks, not measurements (graph/mod.rs:189-207)
-    Note over H: GET /api/graph/positions (graph/mod.rs:731) skips CQRS — ForceComputeActor.send(GetCurrentPositions), 503 if gpu_addr is None (graph/mod.rs:736-744)<br/>with the filter on it reads the caller's snapshot for the visible ids, 503 when that read fails (graph/mod.rs:753-768)<br/>positions_reply keeps visible ids and recomputes the bounding box over them only (graph/mod.rs:658-697), numNodes is the kept count (graph/mod.rs:707)
-    Note over H: GET /api/graph/fold -> fold::get_fold_plan (graph/mod.rs:1643) reads fetch_graph_view and memoises only a whole-graph plan (fold.rs:580, :597-621)
-    Note over H: GET /api/graph/auto-balance-notifications (graph/mod.rs:620) — CQRS<br/>GetAutoBalanceNotifications{since_timestamp} via execute_in_thread, same Ok/Err split
+    Note over H: INVARIANT: REST /data and the /wss initialGraphLoad give one caller the same nodes, edges and scrubbed metadata,<br/>pinned by visibility_parity_tests over three callers, the ADR-2184 D1 precondition (graph/mod.rs:2400-2403, :2531-2534)
+    Note over H: GET /api/graph/data/paginated (graph/mod.rs:440) is the SAME CQRS GetGraphData read, gated by caller_view BEFORE<br/>offset/limit slicing so total_items counts only what the caller sees (graph/mod.rs:462-464)
+    Note over H: settlement_state now takes its running flag from the GPU snapshot (snap.physics_running, graph/mod.rs:288-296), not from the CQRS GetPhysicsState result,<br/>and GET /api/graph/settlement (route graph/mod.rs:1695, get_physics_state_summary graph/mod.rs:217) returns the compact {settlementState, telemetryLive, physicsRunning} view<br/>telemetryLive false means the numbers are run-state fallbacks, not measurements (graph/mod.rs:195-213)
+    Note over H: GET /api/graph/positions (graph/mod.rs:790) skips CQRS — ForceComputeActor.send(GetCurrentPositions), 503 if gpu_addr is None (graph/mod.rs:795-803)<br/>with the filter on it reads the caller's snapshot for the visible ids, 503 when that read fails (graph/mod.rs:812-827)<br/>positions_reply keeps visible ids and recomputes the bounding box over them only (graph/mod.rs:717-756), numNodes is the kept count (graph/mod.rs:766)
+    Note over H: GET /api/graph/fold -> fold::get_fold_plan (graph/mod.rs:1702) reads fetch_graph_view and memoises only a whole-graph plan (fold.rs:580, :597-621)
+    Note over H: GET /api/graph/auto-balance-notifications (graph/mod.rs:679) — CQRS<br/>GetAutoBalanceNotifications{since_timestamp} via execute_in_thread, same Ok/Err split
 ```
 
 **What it shows.** The public `/api/graph` reads at `809a859aa`: every graph-shaped answer now passes through the caller's view before any filter or page cut. **Why it is this way.** ADR-2184 D1 required REST and `/wss` to expose the same nodes to the same caller before the overview could be trusted; the policy itself is drawn in VC-19.
 
-**Open (risk):** under the gate `/positions` still returns the snapshot's `kineticEnergy` and `settled` unchanged (`src/handlers/api_handler/graph/mod.rs:708-710`), and the mean is taken over every mapped slot, hidden nodes included (`src/actors/gpu/force_compute_actor.rs:3293-3301`); the bounding box no longer leaks (test `src/handlers/api_handler/graph/mod.rs:2575`), the energy is kept as global telemetry.
+**Open (risk):** under the gate `/positions` still returns the snapshot's `kineticEnergy` and `settled` unchanged (`src/handlers/api_handler/graph/mod.rs:767-769`), and the mean is taken over every mapped slot, hidden nodes included (`src/actors/gpu/force_compute_actor.rs:3398-3406`); the bounding box no longer leaks (test `src/handlers/api_handler/graph/mod.rs:2699`), the energy is kept as global telemetry.
 
 ## VC-04.2 api_handler graph — node/{id} relations, expand, pattern-query (RateLimit 120/min)
 ```mermaid
 sequenceDiagram
     autonumber
     participant C as XR client (visual query builder)
-    participant GR as get_node_relations<br/>src/handlers/api_handler/graph/mod.rs:1129
-    participant EX as expand_node<br/>graph/mod.rs:1161
-    participant QP as query_pattern<br/>graph/mod.rs:1599
-    participant SNAP as fetch_graph_snapshot<br/>graph/mod.rs:1084 — fetch_graph_view, actor read GetGraphStateActor then GetGraphData, NOT the CQRS handler,<br/>then caller_view (graph/mod.rs:1096, :1113), see VC-19
+    participant GR as get_node_relations<br/>src/handlers/api_handler/graph/mod.rs:1188
+    participant EX as expand_node<br/>graph/mod.rs:1220
+    participant QP as query_pattern<br/>graph/mod.rs:1658
+    participant SNAP as fetch_graph_snapshot<br/>graph/mod.rs:1143 — fetch_graph_view, actor read GetGraphStateActor then GetGraphData, NOT the CQRS handler,<br/>then caller_view (graph/mod.rs:1155, :1172), see VC-19
 
     C->>GR: GET /api/graph/node/{id}/relations
     GR->>GR: node_id = path & NODE_ID_MASK (src/utils/binary_protocol.rs)
-    GR->>SNAP: fetch_graph_snapshot(&state, &caller) (graph/mod.rs:1136)
+    GR->>SNAP: fetch_graph_snapshot(&state, &caller) (graph/mod.rs:1195)
     alt snapshot fetch fails
         SNAP-->>GR: Err
         GR-->>C: 500 Failed to retrieve graph data
@@ -159,7 +159,7 @@ sequenceDiagram
     end
     C->>EX: POST /api/graph/node/{id}/expand {limit, edge_type, direction}
     EX->>EX: node_id = path & NODE_ID_MASK — limit = clamp_expand_limit(req.limit)
-    EX->>SNAP: fetch_graph_snapshot(&state, &caller) (graph/mod.rs:1171)
+    EX->>SNAP: fetch_graph_snapshot(&state, &caller) (graph/mod.rs:1230)
     alt node not found
         EX-->>C: 404 Node {id} not found
     else found
@@ -167,16 +167,16 @@ sequenceDiagram
         EX-->>C: 200 neighbours, heaviest-weight first, capped
     end
     C->>QP: POST /api/graph/query/pattern {triples:[{src,edgeType,tgt}]}
-    Note over QP: pattern variables are JSON strings by convention #quot;?vN#quot —<br/>concrete ids are JSON numbers, masked with NODE_ID_MASK (graph/mod.rs:1223-1229)
-    QP->>SNAP: fetch_graph_snapshot(&state, &caller) — SAME gated in-memory graph as /relations and /expand (graph/mod.rs:1607)
-    Note over SNAP: it skips the CQRS GetGraphData query handler on purpose: that sync handler spins a fresh<br/>Tokio runtime per call, a DoS lever on a public route (graph/mod.rs:1075-1083)
-    Note over QP: deliberately NOT translated to SPARQL/Oxigraph — that store holds only<br/>the OWL ontology, not graph node/edge instances (graph/mod.rs:1218-1221)
+    Note over QP: pattern variables are JSON strings by convention #quot;?vN#quot —<br/>concrete ids are JSON numbers, masked with NODE_ID_MASK (graph/mod.rs:1282-1288)
+    QP->>SNAP: fetch_graph_snapshot(&state, &caller) — SAME gated in-memory graph as /relations and /expand (graph/mod.rs:1666)
+    Note over SNAP: it skips the CQRS GetGraphData query handler on purpose: that sync handler spins a fresh<br/>Tokio runtime per call, a DoS lever on a public route (graph/mod.rs:1134-1142)
+    Note over QP: deliberately NOT translated to SPARQL/Oxigraph — that store holds only<br/>the OWL ontology, not graph node/edge instances (graph/mod.rs:1277-1280)
     alt match_pattern Ok
         QP-->>C: 200 pattern bindings over the visible graph
     else empty pattern or empty variable name
-        QP-->>C: 400 {error} (graph/mod.rs:1618-1620)
+        QP-->>C: 400 {error} (graph/mod.rs:1677-1679)
     end
-    Note over GR,QP: all three sit UNDER RateLimit::per_minute(120) resource wraps<br/>(graph/mod.rs:1655-1671), stacked under the scope-wide 600/min limiter
+    Note over GR,QP: all three sit UNDER RateLimit::per_minute(120) resource wraps<br/>(graph/mod.rs:1714-1730), stacked under the scope-wide 600/min limiter
 ```
 
 ## VC-04.3 api_handler graph — update (power_user bulk reload) and refresh (authenticated read-back)
@@ -184,17 +184,17 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant RA as RequireAuth::power_user<br/>src/handlers/api_handler/graph/mod.rs:1681
-    participant UG as update_graph<br/>graph/mod.rs:525
+    participant RA as RequireAuth::power_user<br/>src/handlers/api_handler/graph/mod.rs:1740
+    participant UG as update_graph<br/>graph/mod.rs:584
     participant FS as FileService<br/>src/services/file_service.rs
     participant MD as MetadataActor<br/>UpdateMetadata
     participant GS as GraphServiceSupervisor<br/>AddNodesFromMetadata
-    participant RG as RequireAuth::authenticated<br/>graph/mod.rs:1688
-    participant RF as refresh_graph<br/>graph/mod.rs:486
+    participant RG as RequireAuth::authenticated<br/>graph/mod.rs:1747
+    participant RF as refresh_graph<br/>graph/mod.rs:545
     participant QH as graph_query_handlers.get_graph_data
 
     rect rgb(240,225,225)
-    Note over RA,GS: S2 escalation — POST /api/graph/update triggers a FULL bulk reload<br/>(re-fetch, re-process, rebuild). Destructive and expensive -> power_user (Admin) only (graph/mod.rs:1673-1685)
+    Note over RA,GS: S2 escalation — POST /api/graph/update triggers a FULL bulk reload<br/>(re-fetch, re-process, rebuild). Destructive and expensive -> power_user (Admin) only (graph/mod.rs:1732-1744)
     C->>RA: POST /api/graph/update
     alt caller is not power_user
         RA-->>C: 403 Forbidden
@@ -221,12 +221,12 @@ sequenceDiagram
     end
     end
     rect rgb(225,240,225)
-    Note over RG,QH: /refresh only reads back GetGraphData — any authenticated user may call it (graph/mod.rs:1686-1689)
+    Note over RG,QH: /refresh only reads back GetGraphData — any authenticated user may call it (graph/mod.rs:1745-1748)
     C->>RG: POST /api/graph/refresh
     RG->>RF: call handler
     RF->>QH: execute_in_thread(get_graph_data.handle(GetGraphData))
     alt Ok(Ok(graph_data))
-        RF->>RF: caller_view(graph_data, caller), the read-back is the caller's view only (graph/mod.rs:495), see VC-19
+        RF->>RF: caller_view(graph_data, caller), the read-back is the caller's view only (graph/mod.rs:554), see VC-19
         RF-->>C: 200 {success, message, data: GraphResponse{nodes,edges,metadata}}
     else Ok(Err(e))
         RF-->>C: 500 Failed to retrieve current graph data
@@ -236,7 +236,7 @@ sequenceDiagram
     end
 ```
 
-**Drift (RESOLVED, graph_state_handler removed in project commit 061d8cbf8):** this topic used to draw a second `/api/graph` family, `graph_state_handler` (nine routes: GET `/state`, GET `/statistics`, POST `/nodes`, GET, PUT and DELETE `/nodes/{id}`, POST `/edges`, PUT `/edges/{id}`, POST `/positions/batch`). Each handler ran a hexser CQRS handler over `state.graph_adapter`, the Oxigraph graph repository, directly, with no `GraphServiceSupervisor` message and so no actor notify, a third write path beside the actor path and the `graph_query_handlers` read path. The family never ran: `graph::config` registers `web::scope("/graph")` first (`src/handlers/api_handler/mod.rs:113`, comment at `src/handlers/api_handler/graph/mod.rs:1629`), actix claims the prefix for that first scope and answers 404 for every route of a later same-prefix scope, and none of the nine paths exists in the first. A same-order actix test confirmed 200 for the first scope and 404 for the second. The module, its `pub mod` and `.configure(...)` registrations and `tests/graph_state_integration.rs` were deleted. The surviving `/api/graph` surface is the single scope drawn in VC-04.1 to VC-04.3: `/settlement`, `/data`, `/data/paginated`, `/positions`, `/fold`, `/auto-balance-notifications`, `/node/{id}/relations`, `/node/{id}/expand`, `/query/pattern`, `/update`, `/refresh` (`src/handlers/api_handler/graph/mod.rs:1633`).
+**Drift (RESOLVED, graph_state_handler removed in project commit 061d8cbf8):** this topic used to draw a second `/api/graph` family, `graph_state_handler` (nine routes: GET `/state`, GET `/statistics`, POST `/nodes`, GET, PUT and DELETE `/nodes/{id}`, POST `/edges`, PUT `/edges/{id}`, POST `/positions/batch`). Each handler ran a hexser CQRS handler over `state.graph_adapter`, the Oxigraph graph repository, directly, with no `GraphServiceSupervisor` message and so no actor notify, a third write path beside the actor path and the `graph_query_handlers` read path. The family never ran: `graph::config` registers `web::scope("/graph")` first (`src/handlers/api_handler/mod.rs:113`, comment at `src/handlers/api_handler/graph/mod.rs:1688`), actix claims the prefix for that first scope and answers 404 for every route of a later same-prefix scope, and none of the nine paths exists in the first. A same-order actix test confirmed 200 for the first scope and 404 for the second. The module, its `pub mod` and `.configure(...)` registrations and `tests/graph_state_integration.rs` were deleted. The surviving `/api/graph` surface is the single scope drawn in VC-04.1 to VC-04.3: `/settlement`, `/data`, `/data/paginated`, `/positions`, `/fold`, `/auto-balance-notifications`, `/node/{id}/relations`, `/node/{id}/expand`, `/query/pattern`, `/update`, `/refresh` (`src/handlers/api_handler/graph/mod.rs:1692`).
 
 ## VC-04.4 `files` scope — process/get_content/refresh_graph/update_graph
 ```mermaid
@@ -308,57 +308,57 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client / AgentDetailPanel
-    participant GD as get_bots_data<br/>src/handlers/bots_handler.rs:138
+    participant GD as get_bots_data<br/>src/handlers/bots_handler.rs:141
     participant UD as update_bots_graph<br/>bots_handler.rs:110
-    participant IH as initialize_hive_mind_swarm<br/>bots_handler.rs:160
-    participant SA as spawn_agent_hybrid<br/>bots_handler.rs:290
-    participant ST as submit_task / interrupt_task / get_task_status / remove_task<br/>bots_handler.rs:589,681,779,486
+    participant IH as initialize_hive_mind_swarm<br/>bots_handler.rs:163
+    participant SA as spawn_agent_hybrid<br/>bots_handler.rs:292
+    participant ST as submit_task / interrupt_task / get_task_status / remove_task<br/>bots_handler.rs:591,683,781,488
     participant GS as GraphServiceSupervisor<br/>src/actors/graph_service_supervisor.rs:1815<br/>GetBotsGraphData, :2031 UpdateBotsGraph
     participant AB as AgentBeamActor<br/>src/actors/agent_beam_actor.rs:250<br/>UpdateBotsGraph, :271 GetBotsGraphData
     participant TO as TaskOrchestratorActor<br/>state.get_task_orchestrator_addr()
 
-    Note over C,TO: routes registered at src/handlers/api_handler/bots/mod.rs:11-28, including<br/>POST /settings-command (process_settings_command, bots_handler.rs:397), not expanded here
+    Note over C,TO: routes registered at src/handlers/api_handler/bots/mod.rs:11-28, including<br/>POST /settings-command (process_settings_command, bots_handler.rs:399), not expanded here
     C->>GD: GET /api/bots/data
-    GD->>GD: agent_monitor_addr.send(GetChainPaymentsView),<br/>default on error (bots_handler.rs:142-146)
-    GD->>GS: graph_service_addr.send(GetBotsGraphData) (bots_handler.rs:148)
+    GD->>GD: agent_monitor_addr.send(GetChainPaymentsView),<br/>default on error (bots_handler.rs:145-149)
+    GD->>GS: graph_service_addr.send(GetBotsGraphData) (bots_handler.rs:151)
     GS->>AB: forward when AgentBeamActor is registered,<br/>else Err AgentBeamActor not registered (graph_service_supervisor.rs:1823-1834)
     AB-->>GS: roster view from the feed,<br/>payment edges applied (agent_beam_actor.rs:276-288)
     alt Ok(Ok(view))
-        GD-->>C: 200 {success, nodes, edges, chain} (bots_handler.rs:152-157)
+        GD-->>C: 200 {success, nodes, edges, chain} (bots_handler.rs:155-160)
     else any error
-        GD-->>C: 200 with an empty GraphData view (bots_handler.rs:148-151),<br/>never a static fallback
+        GD-->>C: 200 with an empty GraphData view (bots_handler.rs:151-154),<br/>never a static fallback
     end
     C->>UD: POST /api/bots/data or /api/bots/update (AuthenticatedUser required)
-    UD->>GS: do_send(UpdateBotsGraph{source: Rest, agents, targets: []})<br/>fire-and-forget (bots_handler.rs:117-121)
+    UD->>GS: do_send(UpdateBotsGraph{source: Rest, agents, targets: []})<br/>fire-and-forget (bots_handler.rs:120-124)
     GS->>AB: do_send, or warn when AgentBeamActor is not registered<br/>(graph_service_supervisor.rs:2035-2038)
     AB->>AB: feed.apply then broadcast 0x23<br/>presence/state frames (agent_beam_actor.rs:253-268)
-    UD->>GS: send(GetBotsGraphData), empty view on error (bots_handler.rs:122-125)
-    UD-->>C: 200 BotsResponse{success, "Roster accepted", nodes, edges} (bots_handler.rs:127-132)
+    UD->>GS: send(GetBotsGraphData), empty view on error (bots_handler.rs:125-128)
+    UD-->>C: 200 BotsResponse{success, "Roster accepted", nodes, edges} (bots_handler.rs:130-135)
     C->>IH: POST /api/bots/initialize-swarm (AuthenticatedUser)
-    IH->>IH: build task string from custom_prompt or<br/>topology/strategy/max_agents/agent_types/enable_neural (bots_handler.rs:170-199)
-    IH->>TO: send(CreateTask{agent, task, provider: PRIMARY_PROVIDER env default gemini,<br/>claude_flow_agent_id:None}) (bots_handler.rs:210-224)
+    IH->>IH: build task string from custom_prompt or<br/>topology/strategy/max_agents/agent_types/enable_neural (bots_handler.rs:173-202)
+    IH->>TO: send(CreateTask{agent, task, provider: PRIMARY_PROVIDER env default gemini,<br/>claude_flow_agent_id:None}) (bots_handler.rs:213-227)
     alt Ok(Ok(task_response))
-        IH->>IH: CURRENT_SWARM_ID.write() = Some(task_id) (bots_handler.rs:233-234)
+        IH->>IH: CURRENT_SWARM_ID.write() = Some(task_id) (bots_handler.rs:236-237)
         IH-->>C: 202 Accepted {task_id, topology, strategy, agent_types, ...}
     else Ok(Err(e)) or mailbox Err
         IH-->>C: 500 Failed to create task / Actor communication error
     end
     C->>SA: POST /api/bots/spawn-agent-hybrid (AuthenticatedUser)
-    SA->>TO: send(CreateTask{agent: agent_type, task, provider,<br/>claude_flow_agent_id:None}) (bots_handler.rs:300)
+    SA->>TO: send(CreateTask{agent: agent_type, task, provider,<br/>claude_flow_agent_id:None}) (bots_handler.rs:302)
     SA-->>C: 202 Accepted or 500 (same Ok/Err split as initialize-swarm)
     C->>ST: POST /api/bots/submit-task (AuthenticatedUser)
     alt task empty after trim
-        ST-->>C: 400 "task is empty" (bots_handler.rs:595-600)
+        ST-->>C: 400 "task is empty" (bots_handler.rs:597-602)
     else
-        ST->>TO: send(CreateTask) then observe CANARY-VC-D2-STEER<br/>(bots_handler.rs:616-647)
+        ST->>TO: send(CreateTask) then observe CANARY-VC-D2-STEER<br/>(bots_handler.rs:618-649)
         ST-->>C: 202 {success, taskId, agentType, provider} or 500
     end
     C->>ST: POST /api/bots/interrupt {agentId} (AuthenticatedUser)
-    ST->>TO: send(InterruptAgentTask{id}) resolves a task id<br/>or a swarm agent id (bots_handler.rs:700-704)
+    ST->>TO: send(InterruptAgentTask{id}) resolves a task id<br/>or a swarm agent id (bots_handler.rs:702-706)
     alt Ok(Ok(resolved_task_id))
         ST-->>C: 200 {success, taskId, requestedId}
     else Ok(Err(InterruptError::Unresolved))
-        ST-->>C: 422 {interruptible:false, resolution:unresolved}<br/>(bots_handler.rs:732-752)
+        ST-->>C: 422 {interruptible:false, resolution:unresolved}<br/>(bots_handler.rs:734-754)
     else other error
         ST-->>C: 500
     end
@@ -367,19 +367,19 @@ sequenceDiagram
     alt Ok(Ok(status))
         ST-->>C: 200 status
     else Ok(Err(e))
-        ST-->>C: 404 {status:not_found, error} (bots_handler.rs:793-800)
+        ST-->>C: 404 {status:not_found, error} (bots_handler.rs:795-802)
     end
     C->>ST: DELETE /api/bots/remove-task/{id} (AuthenticatedUser)
-    ST->>TO: send(StopTask{task_id}) (bots_handler.rs:494-498)
+    ST->>TO: send(StopTask{task_id}) (bots_handler.rs:496-500)
     alt Ok(Ok(()))
         ST-->>C: 200 TaskResponse{success:true}
     else Ok(Err(e)) or mailbox Err
         ST-->>C: 500 TaskResponse{success:false, error}
     end
-    Note over GD,ST: GET /api/bots/status -> get_bots_connection_status (bots_handler.rs:268,<br/>reads state.bots_client.get_status())<br/>GET /api/bots/agents -> get_bots_agents (bots_handler.rs:275) -> fetch_hive_mind_agents reads<br/>state.bots_client.get_agents_snapshot() (bots_handler.rs:92-95), not AgentMonitorActor
+    Note over GD,ST: GET /api/bots/status -> get_bots_connection_status (bots_handler.rs:271,<br/>reads state.bots_client.get_status())<br/>GET /api/bots/agents -> get_bots_agents (bots_handler.rs:278) -> fetch_hive_mind_agents reads<br/>state.bots_client.get_agents_snapshot() (bots_handler.rs:92-95), not AgentMonitorActor
 ```
 
-**Drift (RESOLVED at 86cdd7635):** the `BOTS_GRAPH` static fallback store this panel used to draw is gone. `GET /api/bots/data` and the REST roster write both go through `GraphServiceSupervisor` to `AgentBeamActor` (ADR-2142 amendment, project commit `15acb9219`): the write is fire-and-forget and the read answers with an empty view on any error (`src/handlers/bots_handler.rs:117-125`, `:148-151`).
+**Drift (RESOLVED at 86cdd7635):** the `BOTS_GRAPH` static fallback store this panel used to draw is gone. `GET /api/bots/data` and the REST roster write both go through `GraphServiceSupervisor` to `AgentBeamActor` (ADR-2142 amendment, project commit `15acb9219`): the write is fire-and-forget and the read answers with an empty view on any error (`src/handlers/bots_handler.rs:120-128`, `:151-154`).
 
 ## VC-04.6 `analytics` scope — GPU-touching compute triggers and telemetry reads
 ```mermaid
@@ -387,25 +387,25 @@ sequenceDiagram
     autonumber
     participant C as Client (authenticated for POST)
     participant W as RequireAuth::authenticated().mutations_only()<br/>src/handlers/api_handler/analytics/mod.rs:197
-    participant SS as compute_sssp<br/>sssp_handlers.rs:213
+    participant SS as compute_sssp<br/>sssp_handlers.rs:214
     participant AN as run_anomaly_detection<br/>analytics/mod.rs:108
     participant GM as GPUManagerActor / ShortestPathActor<br/>see VC-10
     participant GT as analytics_telemetry<br/>src/actors/gpu/analytics_telemetry.rs
     participant PM as get_gpu_metrics<br/>performance_handlers.rs:149
 
     Note over W: mutations_only() gates every state-mutating POST at authenticated(), and the read-only metric GETs carry no handler auth (analytics/mod.rs:189-194)<br/>they are anonymous only when the /api RbacGate allows public reads (RBAC_PUBLIC_READS=1, src/middleware/rbac_gate.rs:135-142, :172-177)
-    Note over SS: the sibling toggle_sssp (sssp_handlers.rs:112) is now a physics patch: sssp_toggle_patch names only ssspEnabled and ssspAlpha (sssp_handlers.rs:16-22)<br/>and apply_physics_patch merges, validates, stores, pushes to the GPU actors and persists (sssp_handlers.rs:125-126, src/settings/api/settings_routes.rs:613-622)<br/>a validation failure answers 400, a store failure 500 (sssp_handlers.rs:145-166). The route is rate-limited at 60 per minute (analytics/mod.rs:215-219)
-    Note over SS: the hard-coded /sssp/params routes are deleted (ADR-2140), GET /sssp/status reads the stored physics document (sssp_handlers.rs:182-193, test analytics/mod.rs:317-319)
+    Note over SS: the sibling toggle_sssp (sssp_handlers.rs:112) is now a physics patch: sssp_toggle_patch names only ssspEnabled and ssspAlpha (sssp_handlers.rs:16-22)<br/>and apply_physics_patch merges, validates, stores, pushes to the GPU actors and persists (sssp_handlers.rs:125-126, src/settings/api/settings_routes.rs:657-666)<br/>a validation failure answers 400, a store failure 500 (sssp_handlers.rs:145-166). The route is rate-limited at 60 per minute (analytics/mod.rs:215-219)
+    Note over SS: the hard-coded /sssp/params routes are deleted (ADR-2140), GET /sssp/status reads the stored physics document (sssp_handlers.rs:183-194, test analytics/mod.rs:317-319)
     C->>W: POST /api/analytics/sssp/compute {sourceNode}
     W->>SS: call handler (mutation, requires auth)
-    SS->>SS: source_node = body.sourceNode as u32, default 0 (sssp_handlers.rs:220-224)
-    SS->>SS: caller_gate(graph_service_addr, caller), see VC-19 (sssp_handlers.rs:228-233)
+    SS->>SS: source_node = body.sourceNode as u32, default 0 (sssp_handlers.rs:221-225)
+    SS->>SS: caller_gate(graph_service_addr, caller), see VC-19 (sssp_handlers.rs:229-234)
     alt gate read fails
-        SS-->>C: 500 Failed to communicate with graph service, fail closed (sssp_handlers.rs:240-243)
+        SS-->>C: 500 Failed to communicate with graph service, fail closed (sssp_handlers.rs:241-244)
     else source hidden from the caller
-        SS-->>C: 500 sssp_compute_failed(source_not_found), the missing-source reply (sssp_handlers.rs:234-238, :206)
+        SS-->>C: 500 sssp_compute_failed(source_not_found), the missing-source reply (sssp_handlers.rs:235-239, :207)
     end
-    SS->>GM: graph_service_addr.send(ComputeShortestPaths{source_node_id}) (sssp_handlers.rs:247-252)
+    SS->>GM: graph_service_addr.send(ComputeShortestPaths{source_node_id}) (sssp_handlers.rs:248-253)
     alt Ok(Ok(_))
         SS-->>C: 200 {success:true, sourceNode}
     else Ok(Err(e)) or mailbox Err
@@ -448,45 +448,26 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant EN as enable_ontology_physics<br/>src/handlers/api_handler/ontology_physics/mod.rs:107
-    participant OA as OntologyActor<br/>state.ontology_actor_addr, GetOntologyReport
-    participant GMA as GPUManagerActor<br/>state.gpu_manager_addr, ApplyOntologyConstraints
-    participant TS as get_trust_status<br/>ontology_physics/mod.rs:441
+    participant EN as enable_ontology_physics<br/>src/handlers/api_handler/ontology_physics/mod.rs:115
+    participant PW as apply_physics_patch<br/>src/settings/api/settings_routes.rs:661
+    participant GMA as GPUManagerActor<br/>state.gpu_manager_addr, GetHierarchyLevels
+    participant TS as get_trust_status<br/>ontology_physics/mod.rs:266
     participant SF as semantic_forces handlers<br/>get_hierarchy_levels src/handlers/api_handler/semantic_forces.rs:62
 
-    C->>EN: POST /api/ontology-physics/enable {ontologyId, mergeMode}
-    EN->>EN: check_ontology_feature() — feature gate
-    EN->>EN: merge_mode = replace|merge|add_if_no_conflict
-    alt merge_mode invalid string
-        EN-->>C: 400 Invalid merge mode
+    C->>EN: POST /api/ontology-physics/enable {strength optional}
+    EN->>EN: enable_patch gives {ontologyConstraintsEnabled true, ontologyConstraintStrength if sent} (ontology_physics/mod.rs:59-65)
+    EN->>PW: apply_physics_patch(state, settings_repo, patch, pubkey), the one physics write path (ontology_physics/mod.rs:81-95)
+    alt stored
+        EN-->>C: 200 {success, enabled, appliedStrength} (ontology_physics/mod.rs:88-92)
+    else refused
+        EN-->>C: the patch error, an out-of-range strength is a 400 and is not clamped (ontology_physics/mod.rs:93, :72-73)
     end
-    alt ontology_actor_addr is None
-        EN-->>C: 503 Ontology actor not available
-    end
-    EN->>OA: send(GetOntologyReport{report_id: Some(ontology_id)})
-    alt Ok(Ok(Some(report)))
-        alt gpu_manager_addr is None
-            EN-->>C: 503 GPU manager not available
-        else present
-            EN->>EN: build ConstraintSet from report.violations (Semantic kind,<br/>weight by Severity Error=1.0/Warning=0.6/Info=0.3)
-            EN->>GMA: send(ApplyOntologyConstraints{constraint_set, merge_mode, graph_id:0})
-            alt Ok(Ok(()))
-                EN-->>C: 200 {success, activeConstraints, ontologyId, mergeMode}
-            else Err
-                EN-->>C: 500 error
-            end
-        end
-    else Ok(Ok(None))
-        EN-->>C: 400 "Ontology not found — Run validation first" (ontology_physics/mod.rs:243-252)
-    else Ok(Err) or mailbox Err
-        EN-->>C: 500 report retrieval / actor communication failed (ontology_physics/mod.rs:254-266)
-    end
-    Note over EN: disable_ontology_physics (ontology_physics/mod.rs:387) mirrors this with an empty/removed<br/>ConstraintSet via the SAME ApplyOntologyConstraints message
+    Note over EN: RESOLVED at visionclaw 010e1109 - the report-driven ApplyOntologyConstraints flow is gone (ADR-2192). disable_ontology_physics (ontology_physics/mod.rs:242)<br/>writes {ontologyConstraintsEnabled false} (ontology_physics/mod.rs:68-70), PUT /weights writes ontologyConstraintStrength and needs globalStrength (ontology_physics/mod.rs:74-78, :224-234).<br/>The constraint actor receives the stored policy, see VC-11.5 and VC-61
     C->>TS: GET /api/ontology-physics/trust-status
     TS->>TS: provenance_emitter::count_shapes_loaded / count_provenance_triples (ontology_repository.store())
     TS->>TS: shacl_gate::global_gate_mode() — writePaths honours mode, readPaths always advisory
     TS-->>C: 200 {status, shacl{shapesLoaded,engine:shape-driven,gateModes,w3cEnforcement},<br/>provenance{triplesStored,appendOnly:true}, federation{status:deferred, PRD-022 WS-3}}
-    Note over TS: DIVERGENCE — federation.status is hardcoded #quot;deferred#quot — SPARQL federation is<br/>relay-mediated future work, not wired in this commit (ontology_physics/mod.rs:492-495)
+    Note over TS: DIVERGENCE — federation.status is hardcoded #quot;deferred#quot — SPARQL federation is<br/>relay-mediated future work, not wired in this commit (ontology_physics/mod.rs:317-320)
     C->>SF: GET /api/semantic-forces/hierarchy-levels (caller as OptionalAuth)
     SF->>SF: caller_gate(graph_service_addr, caller), 500 Graph state not available when the read fails (semantic_forces.rs:68-78)
     alt gpu_manager_addr is None
@@ -610,14 +591,14 @@ sequenceDiagram
 
 **Debt (loose end):** the "every share has a creator" check sits in `export_graph` (`src/handlers/graph_export_handler.rs:142-146`), whose export creates no share, while `share_graph` passes the creator as an `Option` (`src/handlers/graph_export_handler.rs:200`) and relies on the store refusing it (`src/adapters/sqlite_share_repository.rs:111-113`), so an anonymous share answers 500 rather than the 401 the comment promises; the scope's `RequireAuth::authenticated()` (`src/handlers/graph_export_handler.rs:357`) is what keeps it unreachable.
 
-**Debt (loose end):** `/api/graph-export` has no in-repo caller (the client's `exportApi.ts` was deleted in `90f1bb1c0`), and the export reply's `download_url` names `/api/graph/download/{id}` (`src/services/graph_serialization.rs:85`), a route the `/graph` scope does not register (`src/handlers/api_handler/graph/mod.rs:1633`).
+**Debt (loose end):** `/api/graph-export` has no in-repo caller (the client's `exportApi.ts` was deleted in `90f1bb1c0`), and the export reply's `download_url` names `/api/graph/download/{id}` (`src/services/graph_serialization.rs:85`), a route the `/graph` scope does not register (`src/handlers/api_handler/graph/mod.rs:1692`).
 
 ## VC-04.29 The share store — one SQLite file for every worker, swept at start-up, backed up without its files
 ```mermaid
 flowchart TB
-    AS["AppState::new opens data/shares.sqlite3<br/>src/app_state.rs:474-481"] --> RM["main: remove_expired(now) before the first request,<br/>then remove each returned file<br/>src/main.rs:980-997"]
-    RM --> GH["GraphExportHandler::new(data_dir, share_repository)<br/>built once outside HttpServer::new<br/>src/main.rs:999-1002"]
-    GH --> W["each worker clones the same web::Data<br/>src/main.rs:1230"]
+    AS["AppState::new opens data/shares.sqlite3<br/>src/app_state.rs:481-488"] --> RM["main: remove_expired(now) before the first request,<br/>then remove each returned file<br/>src/main.rs:981-998"]
+    RM --> GH["GraphExportHandler::new(data_dir, share_repository)<br/>built once outside HttpServer::new<br/>src/main.rs:1000-1003"]
+    GH --> W["each worker clones the same web::Data<br/>src/main.rs:1231"]
     subgraph Store["SqliteShareRepository"]
         SC["shared_graphs: id, creator_id, expires_at_ms,<br/>access_count, max_access_count, record<br/>src/adapters/sqlite_share_repository.rs:41-48"]
         EXP["remove_expired: SELECT then DELETE in one transaction<br/>src/adapters/sqlite_share_repository.rs:243-263"]
@@ -626,15 +607,15 @@ flowchart TB
     RM --> EXP
     BK["backup-sqlite.sh REQUIRED_DBS includes shares.sqlite3<br/>scripts/backup-sqlite.sh:75"] --> SC
     FILES["share files under data/shared, named in record.file_path"] -.-x BK
-    N1["OPEN: a share with no expiry is kept until its creator deletes it,<br/>and no per-user erasure path reaches shares<br/>docs/DATA-authority-erasure.md:123-126"]
+    N1["OPEN: a share with no expiry is kept until its creator deletes it,<br/>and no per-user erasure path reaches shares<br/>docs/DATA-authority-erasure.md:123-131"]
     SC --- N1
 ```
 
 **What it shows.** The share store's lifecycle: opened once, swept for expired rows at start-up, shared by every worker, and backed up as a database but not as files. **Why it is this way.** The per-worker `HashMap` lost a share on the next worker and on restart; one SQLite store with single-statement claims and deletes fixes both (cx-server lane, 2026-11-06).
 
-**Open (risk):** `scripts/backup-sqlite.sh` backs up `shares.sqlite3` (`scripts/backup-sqlite.sh:75`) but not the share files the rows point at, so a restore yields rows whose `GET /shared/{id}` answers 500 at the file read (`src/handlers/graph_export_handler.rs:284`); and per-user erasure does not reach a share its creator made (`docs/DATA-authority-erasure.md:124-126`).
+**Open (risk):** `scripts/backup-sqlite.sh` backs up `shares.sqlite3` (`scripts/backup-sqlite.sh:75`) but not the share files the rows point at, so a restore yields rows whose `GET /shared/{id}` answers 500 at the file read (`src/handlers/graph_export_handler.rs:284`); and per-user erasure does not reach a share its creator made (`docs/DATA-authority-erasure.md:129-131`).
 
-**Drift:** `docs/DATA-authority-erasure.md:120` places the store's opening at lines 503-510 of `app_state.rs`, but the store is opened at `src/app_state.rs:474-481`, and `docs/DATA-authority-erasure.md:124` says only the recorded creator may delete, whereas a power user may delete a creator-less legacy share (`src/handlers/graph_export_handler.rs:320`).
+**Drift:** `docs/DATA-authority-erasure.md:120` places the store's opening at lines 475-482 of `app_state.rs`, but at this commit lines 475-480 are the KPI store opening and the store is opened at `src/app_state.rs:481-488`, and `docs/DATA-authority-erasure.md:124` says only the recorded creator may delete, whereas a power user may delete a creator-less legacy share (`src/handlers/graph_export_handler.rs:320`).
 
 ## VC-04.12 `layout` scope — mode/radial/zones/reset; the mode is the stored physics.layoutMode (ADR-2140)
 ```mermaid
@@ -642,7 +623,7 @@ sequenceDiagram
     autonumber
     participant C as Client
     participant SM as set_layout_mode<br/>src/handlers/layout_handler.rs:45
-    participant PP as apply_physics_patch<br/>src/settings/api/settings_routes.rs:617 — the one physics write path
+    participant PP as apply_physics_patch<br/>src/settings/api/settings_routes.rs:661 — the one physics write path
     participant GPU as GPU compute actor<br/>UpdateSimulationParams / SetRadialLayout / ResetPositions / GetSettlementState
     participant RL as set_radial_layout<br/>layout_handler.rs:199
     participant RS as reset_layout<br/>layout_handler.rs:331
@@ -656,8 +637,8 @@ sequenceDiagram
         SM->>SM: nothing written, the repeated page-load call must not rewrite, broadcast or wake the GPU (layout_handler.rs:76-90)
     else changed
         SM->>PP: apply_physics_patch({layoutMode: mode}, auth.pubkey) (layout_handler.rs:92-98)
-        PP->>PP: merge, validate_physics_settings, validate_for_gpu, UpdateSettings (settings_routes.rs:647-690)
-        PP->>GPU: UpdateSimulationParams built from the stored physics (settings_routes.rs:695-705)
+        PP->>PP: merge, validate_physics_settings, validate_for_gpu, UpdateSettings (settings_routes.rs:691-735)
+        PP->>GPU: UpdateSimulationParams built from the stored physics (settings_routes.rs:749-759)
         alt PhysicsPatchError::BadRequest
             SM-->>C: 400 from e.into_response() (layout_handler.rs:101)
         else PhysicsPatchError::Internal
@@ -721,10 +702,10 @@ sequenceDiagram
     end
     Note over PA,POA: compute_forces() / update_positions() / step() / simulate_until_convergence()<br/>each wrap ONE actor message (ComputeForcesMessage, UpdatePositionsMessage, PhysicsStepMessage,<br/>SimulateUntilConvergenceMessage) behind a tokio::time::timeout(self.timeout) —<br/>timeout maps to GpuPhysicsAdapterError::ComputationError("Actor communication timeout")
     Note over C,POA: POST /api/physics/stop, /optimize, /step, /forces/apply, /nodes/pin,<br/>/nodes/unpin, /parameters, /reset all route through the SAME PhysicsService port<br/>to ONE ActixPhysicsAdapter to the SAME PhysicsOrchestratorActor — GET /status (physics_handler.rs:196)<br/>bypasses the port entirely and reads app_state.get_gpu_compute_addr().is_some() directly
-    Note over PA,POA: the adapter starts its own PhysicsOrchestratorActor with gpu_compute_addr None (src/adapters/actix_physics_adapter.rs:121-127,<br/>constructor src/actors/physics_orchestrator_actor.rs:195-198), and main.rs builds the service on a fresh ActixPhysicsAdapter::new() (src/main.rs:855-857)
+    Note over PA,POA: the adapter starts its own PhysicsOrchestratorActor with gpu_compute_addr None (src/adapters/actix_physics_adapter.rs:121-127,<br/>constructor src/actors/physics_orchestrator_actor.rs:195-198), and main.rs builds the service on a fresh ActixPhysicsAdapter::new() (src/main.rs:856-858)
 ```
 
-**Tension:** the `/api/physics` port drives a private `PhysicsOrchestratorActor` that has no GPU compute address (`src/adapters/actix_physics_adapter.rs:121-127`, `src/actors/physics_orchestrator_actor.rs:195-198`, `src/main.rs:855`). The comment in `layout_handler.rs` relies on this ("reachable but harmless … nothing they send reaches the device", `src/handlers/layout_handler.rs:79-84`). So `/api/physics/start` and `/parameters` return success and publish `SimulationStartedEvent` without changing the simulation the clients see, which runs in the GPU actors behind `apply_physics_patch` (VC-04.12). Source tracing only. Close it by routing the port to the live GPU actors or retiring the mutating `/api/physics` routes.
+**Tension:** the `/api/physics` port drives a private `PhysicsOrchestratorActor` that has no GPU compute address (`src/adapters/actix_physics_adapter.rs:121-127`, `src/actors/physics_orchestrator_actor.rs:195-198`, `src/main.rs:856`). The comment in `layout_handler.rs` relies on this ("reachable but harmless … nothing they send reaches the device", `src/handlers/layout_handler.rs:79-84`). So `/api/physics/start` and `/parameters` return success and publish `SimulationStartedEvent` without changing the simulation the clients see, which runs in the GPU actors behind `apply_physics_patch` (VC-04.12). Source tracing only. Close it by routing the port to the live GPU actors or retiring the mutating `/api/physics` routes.
 
 ## VC-04.14 `kpi` scope — compute-on-read, agent-event volume tap, SQLite lineage
 ```mermaid
@@ -766,7 +747,7 @@ sequenceDiagram
     SU->>KC: lineage_for(snapshot_id)
     KC->>KR: lineage_for(snapshot_id) — DERIVED_FROM trail (WP-8 AC3)
     SU-->>C: 200 {snapshot_id, lineage}
-    par background volume tap — src/main.rs:1335 tokio::spawn(run_agent_event_tap(kpi_repo))
+    par background volume tap — src/main.rs:1336 tokio::spawn(run_agent_event_tap(kpi_repo))
         TAP->>HUB: subscribe() — same seam the render actor uses
         loop rx.recv().await — never returns, fail-open on lagged/closed channel
             HUB-->>TAP: AgentEventEnvelope
@@ -818,7 +799,7 @@ sequenceDiagram
     Note over SR,GL: /api/health/* is on the RbacGate public allowlist (src/middleware/rbac_gate.rs:55-61), and neither MCP route has a handler auth wrap (consolidated_health_handler.rs:511-515)
 ```
 
-**Tension:** `POST /api/health/mcp/start` and `GET /api/health/mcp/logs` are reachable without any credential. The whole `api/health` prefix is public in the RbacGate (`src/middleware/rbac_gate.rs:55-61`, `:154-159`), and the routes carry no `RequireAuth` (`src/handlers/consolidated_health_handler.rs:511-515`). The start route runs `docker exec -d multi-agent-container … npm run mcp:start` when the relay is not running (`src/services/mcp_relay_manager.rs:171-187`), then blocks its actix worker thread for two seconds with `std::thread::sleep` (`src/services/mcp_relay_manager.rs:194`). The logs route returns the tail of `/tmp/mcp-server.log` (`src/services/mcp_relay_manager.rs:210-219`). An anonymous caller can therefore start a process in another container, read its log, and stall one of the four workers per request. Source tracing only; the `PublicDemoGuard` refuses mutating methods only when `PUBLIC_DEMO=read-only` (`src/main.rs:1160-1163`). Close it by moving the two MCP routes under an authenticated scope, or off `/api/health`.
+**Tension:** `POST /api/health/mcp/start` and `GET /api/health/mcp/logs` are reachable without any credential. The whole `api/health` prefix is public in the RbacGate (`src/middleware/rbac_gate.rs:55-61`, `:154-159`), and the routes carry no `RequireAuth` (`src/handlers/consolidated_health_handler.rs:511-515`). The start route runs `docker exec -d multi-agent-container … npm run mcp:start` when the relay is not running (`src/services/mcp_relay_manager.rs:171-187`), then blocks its actix worker thread for two seconds with `std::thread::sleep` (`src/services/mcp_relay_manager.rs:194`). The logs route returns the tail of `/tmp/mcp-server.log` (`src/services/mcp_relay_manager.rs:210-219`). An anonymous caller can therefore start a process in another container, read its log, and stall one of the four workers per request. Source tracing only; the `PublicDemoGuard` refuses mutating methods only when `PUBLIC_DEMO=read-only` (`src/main.rs:1161-1164`). Close it by moving the two MCP routes under an authenticated scope, or off `/api/health`.
 
 **Open (risk):** health now answers per caller, so on a corpus with no public pages an anonymous probe of `GET /api/health/physics` reads `warning`, "No nodes in graph" (`src/handlers/consolidated_health_handler.rs:353-358`) while a signed-in owner reads healthy; a monitor that polls anonymously sees the view, not the server (counts rule at `src/handlers/consolidated_health_handler.rs:71-77`).
 
@@ -827,10 +808,10 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Reporting repo / Godot dev client
-    participant AU as canary_write_authorised<br/>src/handlers/liveness_harness_handler.rs:38 release / :52 dev
-    participant RG as register<br/>liveness_harness_handler.rs:100
-    participant OB as observe<br/>liveness_harness_handler.rs:138
-    participant ST as status<br/>liveness_harness_handler.rs:233
+    participant AU as canary_write_authorised<br/>src/handlers/liveness_harness_handler.rs:40 release / :54 dev
+    participant RG as register<br/>liveness_harness_handler.rs:102
+    participant OB as observe<br/>liveness_harness_handler.rs:140
+    participant ST as status<br/>liveness_harness_handler.rs:244
     participant LH as LivenessHarness<br/>src/services/liveness_harness.rs
 
     C->>RG: POST /api/canary/register {canaryId,description,kind,ownerRepo,wave,shaAtRegistration}
@@ -842,7 +823,7 @@ sequenceDiagram
             AU-->>RG: false — FAIL CLOSED
         end
     else debug or dev-auth build
-        AU-->>RG: true — unauthenticated dev flow preserved (:49-51)
+        AU-->>RG: true — unauthenticated dev flow preserved (:51-53)
     end
     alt not authorised
         RG-->>C: 401 {error: missing or invalid X-Agent-Key}
@@ -870,10 +851,10 @@ sequenceDiagram
     end
     C->>ST: GET /api/canary/status (no auth gate — read-only)
     ST->>LH: harness.status()
-    ST-->>C: 200 {kg_backend_up, sha, canaries} (status_body, liveness_harness_handler.rs:209-228)
-    Note over ST: Opt-in: the body gains a jev_triage hypothesis only when the opt-in Jev option is on (VISIONCLAW_JEV_HEALTH_TRIAGE=1) and the state is degraded,<br/>it never feeds armed, fired or kg_backend_up (liveness_harness_handler.rs:165-179, :205-208)
+    ST-->>C: 200 {kg_backend_up, sha, canaries} (status_body, liveness_harness_handler.rs:213-239)
+    Note over ST: Opt-in: the body gains a jev_triage hypothesis only when the opt-in Jev option is on (VISIONCLAW_JEV_HEALTH_TRIAGE=1) and the state is degraded,<br/>it never feeds armed, fired or kg_backend_up (liveness_harness_handler.rs:167-186, :207-212)
     Note over AU: ADR-06 D11 insecure-defaults posture — fail-closed release gate mirrors<br/>socket_flow_handler::http_handler::is_insecure_defaults_allowed and settings::auth_extractor
-    Note over C,AU: the canary scope is mounted inside /api (src/main.rs:1276), so the RbacGate runs first and a POST needs WriteGraph (src/middleware/rbac_gate.rs:179-189)<br/>verify_access accepts only the dev bypasses, NIP-98 or legacy session headers, never X-Agent-Key (src/utils/auth.rs:211-218, :259-265, :329-353)
+    Note over C,AU: the canary scope is mounted inside /api (src/main.rs:1277), so the RbacGate runs first and a POST needs WriteGraph (src/middleware/rbac_gate.rs:179-189)<br/>verify_access accepts only the dev bypasses, NIP-98 or legacy session headers, never X-Agent-Key (src/utils/auth.rs:211-218, :259-265, :329-353)
 ```
 
 **Tension:** a release-build reporting repo that sends only `X-Agent-Key` never reaches `canary_write_authorised`. The `/api` RbacGate classifies `POST /api/canary/*` as a mutation needing `WriteGraph` (`src/middleware/rbac_gate.rs:179-189`) and resolves identity through `verify_access`, which has no `X-Agent-Key` path (`src/utils/auth.rs:191-195`, `:259-265`, `:329-353`), so the write is refused with 401 at the gate. The panel's handler-level gate is correct, but in release it sits behind a second credential the caller may not hold. Dev builds with `VISIONCLAW_DEV_MODE=1` grant every request (`src/utils/auth.rs:211-218`), which hides this. Source tracing only. Close it by allowlisting the canary write routes in the gate and keeping the `X-Agent-Key` check, or by documenting that a canary writer must also present NIP-98.
@@ -936,7 +917,7 @@ sequenceDiagram
     end
     C->>GS: GET /api/validation/stats
     GS-->>C: 200 static capability descriptor — supported_endpoints, security_features<br/>(input_sanitization, schema_validation, rate_limiting, xss/sql-injection/path-traversal prevention)
-    Note over VS: ValidationService is registered as app data once (src/main.rs:846, :1119), and it also runs on a real request path:<br/>EnhancedRagFlowHandler builds its own instance and validates every /ragflow/chat payload (src/handlers/ragflow_handler.rs:203, :304)
+    Note over VS: ValidationService is registered as app data once (src/main.rs:847, :1120), and it also runs on a real request path:<br/>EnhancedRagFlowHandler builds its own instance and validates every /ragflow/chat payload (src/handlers/ragflow_handler.rs:203, :304)
     Note over VS: no free-function validators module (validate_iri, check_sql_injection) exists under src/ at this revision, so it is not what this service calls
 ```
 
@@ -1007,9 +988,9 @@ sequenceDiagram
     end
     Note over DC,SEM: /centrality (compute_centrality :122) filters by visible GPU position before the top-k cut (:132-133, :294-309)<br/>/shortest-path (compute_shortest_path :175) answers a gated caller by visible_shortest_path, CPU Dijkstra over the view keyed by node id (:191-198, :314-337)<br/>a hidden source answers as source_out_of_range (:195, :263-265). /constraints/generate (generate_constraints :220) has no gate and returns only a whole-graph constraint_count (:241-244)<br/>routes semantic_handler.rs:401-413, /cache/invalidate (:354) and GET /statistics (:339) skip the graph read entirely
     Note over SEM: INVARIANT: caller-supplied work is bounded: PageRank iterations 1000, top_k 1000, constraints 10000 (semantic_handler.rs:368,370,372, bounded :397), damping clamped to 0..1 (semantic_handler.rs:140),<br/>and the /semantic scope is rate-limited at 30 per minute per verified pubkey, IP when unauthenticated (semantic_handler.rs:374, :381-394, :404)
-    Note over SEM: SemanticService is now registered as app data (src/main.rs:864-869, :1121), and before ER-25 every /api/semantic route returned 500 at the extractor
+    Note over SEM: SemanticService is now registered as app data (src/main.rs:865-870, :1122), and before ER-25 every /api/semantic route returned 500 at the extractor
 C--xRI: POST /api/inference/run — route no longer registered
-    Note over RI: REMOVED ADR-2066 — the whole Phase 7 inference stack was deleted as dead code.<br/>src/handlers/inference_handler.rs, src/application/inference_service.rs and<br/>src/events/inference_triggers.rs are gone, and the registration (comment block at<br/>src/main.rs:1211-1215) was removed with them. Removal rationale recorded at src/handlers/mod.rs:46-51
+    Note over RI: REMOVED ADR-2066 — the whole Phase 7 inference stack was deleted as dead code.<br/>src/handlers/inference_handler.rs, src/application/inference_service.rs and<br/>src/events/inference_triggers.rs are gone, and the registration (comment block at<br/>src/main.rs:1212-1216) was removed with them. Removal rationale recorded at src/handlers/mod.rs:46-51
     Note over RI: root cause — all seven handlers extracted web::Data of Arc RwLock InferenceService<br/>but InferenceService was never registered as app data anywhere, so every<br/>/api/inference/* route 500'd at the extractor. The live reasoning path is<br/>GitHubSyncService::run_post_sync_reasoning — see VC-20.3
 ```
 
@@ -1112,7 +1093,7 @@ sequenceDiagram
     end
     CL->>CL: append entries to /app/logs/client.log
     CL-->>C: 200 {status:success}
-    Note over CL: registered EARLY in the /api scope (src/main.rs:1172) specifically to avoid<br/>scope-registration-order conflicts (VC-01.10) — RBAC-allowlisted (src/middleware/rbac_gate.rs:57)
+    Note over CL: registered EARLY in the /api scope (src/main.rs:1173) specifically to avoid<br/>scope-registration-order conflicts (VC-01.10) — RBAC-allowlisted (src/middleware/rbac_gate.rs:57)
 
     C->>WS: GET /ws/client-messages (Upgrade: websocket)
     WS->>WS: token = Authorization Bearer, plus the ?token= query only in debug or dev-auth builds (client_messages_handler.rs:137-151)
@@ -1158,7 +1139,7 @@ sequenceDiagram
     participant ST as FsPaymentStore<br/>get_balance and debit
     Note over BAL,RES: extract_caller_pubkey (pay_handler.rs:404) now calls the shared verifier validate_nip98_token_bound with BodyBinding::NoBody for these GETs (pay_handler.rs:413-418)<br/>so each token is single-use in the process-wide replay cache (src/utils/nip98.rs:164-168, claim :573)<br/>and the debit receipt headers are built with HeaderName::from_bytes, skipping a bad pair instead of panicking (pay_handler.rs:567-575), project commit 5fa0e1325
 
-    Note over CFG: embedded-Pod routes mount at src/main.rs:1138 (VC-01) at the App root, outside the /api RbacGate — inert until<br/>PAY_ENABLED=true, gated handler-by-handler rather than by a scope-level middleware
+    Note over CFG: embedded-Pod routes mount at src/main.rs:1139 (VC-01) at the App root, outside the /api RbacGate — inert until<br/>PAY_ENABLED=true, gated handler-by-handler rather than by a scope-level middleware
     C->>INFO: GET /pay/.info (always reachable, no gate)
     INFO-->>C: 200 {enabled, methods:[lightning], cost_tiers} — reports the REAL enabled flag
     C->>BAL: GET /pay/.balance

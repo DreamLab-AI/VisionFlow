@@ -12,12 +12,12 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/js/push.js
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/sw.js
-verified_commit: {nostr-rust-forum: c39f41f104b114d6a3fa29013daaf6fa58b45080}
+verified_commit: {nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
 ---
 
 ## For developers
 
-The historical drain/bump/logout findings below have a [scoped source-repair successor, NF-29](29-external-review-repairs.md#nf-293-notification-claims-and-bounded-sweeps-retain-concurrent-work). This topic retains its declared audit revision; remaining device/runtime boundaries are unchanged.
+The historical drain/bump/logout findings below have a [scoped source-repair successor, NF-29](29-external-review-repairs.md#nf-293-notification-claims-and-bounded-sweeps-retain-concurrent-work). The drain, bump and logout findings below are marked resolved at the re-verified stamp 6064622; remaining device/runtime boundaries are unchanged.
 
 The [ADR-2023 section audit](../../estate-review/2026-11-01-forum-web-push.md) records 85 selected native/worker checks, revision differences and untested device boundaries. These panels describe current code and demonstrated interleavings, not a deployed push receipt.
 
@@ -29,24 +29,24 @@ Empty push requests keep message text away from providers. Reliable alerts still
 
 ```mermaid
 flowchart TB
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:1043
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:1064
     A["Public config reports enablement and public key"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:295
     B["Permission and browser subscription<br/>NIP-98 registration rotates drain token"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/js/push.js:145
     C["Store drain credentials in IndexedDB"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:314
-    D["Set localStorage active and refreshed flags<br/>no push_cfg write in register"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:364
-    E["Logout reads localStorage push_cfg<br/>fresh registration has no such copy"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:377
+    D["RESOLVED at nostr-rust-forum 6064622: register also writes the<br/>localStorage push_cfg copy, then sets the active flag"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:369
+    E["Logout reads localStorage push_cfg<br/>which register now writes"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:382
     F["Browser unsubscribe and IndexedDB cleanup<br/>still attempted in background"]
     A --> B
     B --> C --> D
     D --> E --> F
 ```
 
-A bridge fixture confirms the IndexedDB-only write. Source tracing establishes that the Rust caller never creates the localStorage copy used by token-based server teardown. Browser unsubscribe can still succeed.
+At the earlier stamp a bridge fixture confirmed an IndexedDB-only write and the Rust caller never created the localStorage copy used by token-based server teardown. At 6064622 register stores that copy (`../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:314-318`) and logout reads it for the beacon (`../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:373-377`). Browser unsubscribe still runs in the background.
 
 ## NF-18.2 Fan-out is bounded before pending counts exist
 
@@ -75,45 +75,45 @@ Caps limit work but are not a durable queue. The shared read gate retains the fa
 
 ```mermaid
 flowchart TB
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:234
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:237
     A["Counter bump advances bump_seq"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:686
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:705
     B["Claim push slot, then send empty request"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:1311
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:1340
     C["Worker drains the first count"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:234
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:237
     D["Later event bumps count while first send<br/>still awaits result bookkeeping"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:197
-    E["Success sets pushed_seq to CURRENT bump_seq"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:172
-    F["Pending count remains but due query<br/>requires bump_seq greater than pushed_seq"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:198
+    E["RESOLVED at nostr-rust-forum 6064622: success sets pushed_seq<br/>to the bump_seq read before the send"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:173
+    F["The later bump stays due because the due query<br/>requires bump_seq greater than pushed_seq"]
     A --> B --> C --> D --> E --> F
 ```
 
-Actual SQLite statements reproduce this ordering: one undrained count, no due wake-up. This is an allowed interleaving test, not a measured production frequency. Completion should bind to the sequence actually claimed.
+At the earlier stamp actual SQLite statements reproduced this ordering: one undrained count, no due wake-up. At 6064622 completion binds to the sequence read before the send (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:700`, `../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:722`) and `SQL_MARK_PUSHED` takes the larger of the stored and claimed sequence, so the later bump remains due.
 
 ## NF-18.4 Draining selects and subtracts without an atomic claim
 
 ```mermaid
 flowchart TB
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:1300
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:1328
     A["Read subscription counts and token hash"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:1307
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:1335
     B["Validate bearer token against selected hash"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:161
-    C["Separately subtract snapshot counts<br/>mutation matches id only"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:1325
-    D["Return the earlier counts and deep links"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:158
-    E["Concurrent drains can subtract twice<br/>and consume a newer event"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:138
-    F["Token/owner may rotate before subtraction<br/>old request can mutate replacement row"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:1340
+    C["RESOLVED at nostr-rust-forum 6064622: claim the exact snapshot in one<br/>conditional UPDATE on counts, token hash and bump_seq"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:1361
+    D["Return the claimed counts and deep links"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:1326
+    E["RESOLVED at nostr-rust-forum 6064622: a racing drain fails the claim<br/>and retries, at most eight times"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:200
+    F["RESOLVED at nostr-rust-forum 6064622: a rotated token no longer matches<br/>so an old request cannot mutate the replacement row"]
     A --> B --> C --> D
     E -. interleaves .-> C
     F -. interleaves .-> C
 ```
 
-Two native interleavings demonstrate count loss and mutation after registration rotation. Subtracting a snapshot preserves one intervening bump only when competing drains/registrations do not invalidate that snapshot.
+At the earlier stamp two native interleavings demonstrated count loss and mutation after registration rotation. At 6064622 the drain claims the snapshot atomically, so a competing drain, bump or registration invalidates the comparison and the loser retries (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:1338-1356`).
 
 ## NF-18.5 A drained count is not an acknowledged display
 
@@ -145,15 +145,15 @@ Worker fixtures reproduce visible-login suppression, rejected display after drai
 flowchart TB
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/lib.rs:1181
     A["Five-minute cron invokes trailing flush"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:762
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:783
     B["Select at most 100 due devices<br/>old undrained counts and sequence gap"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:778
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:799
     C["No current preference or read-authority check<br/>queued alerts can survive later quiet hours"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:781
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:802
     D["Send without bumping counts again"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:442
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:445
     E["Successful provider status means accepted<br/>not proof of device display"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:744
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:765
     F["Empty body still carries category Topic<br/>plus category-dependent TTL and urgency"]
     A --> B --> C --> D --> E
     D --> F

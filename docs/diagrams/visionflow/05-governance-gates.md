@@ -34,6 +34,7 @@ sources:
   - docs/jev-option.md
   - .github/workflows/diagram-index.yml
   - docs/adr/ADR-2010-augmentation-conditions-are-the-canon-audit-lens.md
+  - docs/adr/ADR-2020-pele-renders-every-estate-diagram.md
   - docs/architecture/compatibility-matrix.md
   - docs/BASELINE-visionflow.md
   - docs/protocol/mesh-smoke-test.md
@@ -41,7 +42,7 @@ sources:
   - .github/workflows/adr-index.yml
   - scripts/adr-ratchet.sh
   - tests/gates/estate-health-ci.test.mjs
-verified_commit: 5f8b1da92ce5d9e6b32a0bd90ec3630c66619083
+verified_commit: a4a6c20c34c0e298bc4a6725e71e58e00685f64c
 ---
 
 ## VF-05.1 Gate route table — trigger, script, verdict, blocking
@@ -454,7 +455,7 @@ flowchart TB
     S7 --> E1["a verdict on an older commit reads none, not red<br/>estate-health-ci.test.mjs:24"]
     E1 --> E2["a red run on HEAD stays red<br/>estate-health-ci.test.mjs:28"]
     E2 --> E3["only documentation carries a verdict to HEAD<br/>estate-health-ci.test.mjs:44"]
-    E3 --> E4["importing the collector runs no CLI; run bare it exits 2<br/>estate-health-ci.test.mjs:52-54"]
+    E3 --> E4["importing the collector runs no CLI; run bare it exits 2<br/>estate-health-ci.test.mjs:68-70"]
 
     S5 --> DI1["allowlist waives topic+diagram+path+line EXACTLY —<br/>wrong line, wrong diagram or wrong topic still fails,<br/>and an entry matching no citation fails as stale<br/>diagram-index.test.cjs:96,107,141"]
     DI1 --> DI2["VERIFICATION.md freshness — a topic re-stamped without<br/>its citations re-resolved invalidates it<br/>diagram-index.test.cjs:166"]

@@ -17,7 +17,7 @@ sources:
   - ../visiontouch-rs/docs/research/overload-and-calibration.md
   - ../visiontouch-rs/scripts/quality-gate.sh
   - ../visiontouch-rs/.gitignore
-verified_commit: 7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d
+verified_commit: a9e52b6154b44fb7afc158230c4ec26d4213c015
 ---
 
 ## For developers
@@ -123,7 +123,7 @@ flowchart TB
     T2["sell services or hardware based on it<br/>POSITION.md:45"]
     T3["any decompilation of a vendor binary<br/>POSITION.md:46"]
     T4["contact from the rights holder<br/>POSITION.md:47"]
-    POS["posture: private lab evaluation, no economic use<br/>BASELINE-visiontouch-rs.md:91-92"]
+    POS["posture: private lab evaluation, no economic use<br/>BASELINE-visiontouch-rs.md:98-99"]
     R5 --> GI
     GI --> SC
     R6 -. "judgement only" .-> SC

@@ -40,7 +40,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-config/src/schema.rs
   - ../nostr-rust-forum/benchmarks/js-vs-wasm/package.json
   - ../nostr-rust-forum/docs/security/advisory-exceptions.md
-verified_commit: c39f41f104b114d6a3fa29013daaf6fa58b45080
+verified_commit: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df
 ---
 
 ## NF-09.1 The CI gate graph
@@ -116,10 +116,10 @@ flowchart TB
     VAL["validate-forum-config.sh:7 - run the kit's own nostr-bbs-config validator binary"]
 
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/tests/identity_subkey_vectors.rs:153
-    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:105
-    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:199
-    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:203
+    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:106
+    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:200
     %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:204
+    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:205
     N1["Shared vectors test raw HMAC compatibility.<br/>JS mirrors the primitive.<br/>Missing sources pass; recorded hashes and<br/>substring checks do not execute consumers.<br/>See NF-21 for tested limits."]
     N2["Both anti-drift-lint.sh and identity-vector-parity.mjs are now wired into CI by the drift-gates job<br/>.github/workflows/ci.yml:293 .github/workflows/ci.yml:296, but outside the required ci-pass set .github/workflows/ci.yml:306-314.<br/>validate-forum-config.sh runs inside the required test job .github/workflows/ci.yml:121"]
     N3["Fixtures come FROM VisionClaw, so a fixture-suite change there is an unversioned input here -<br/>EXTERNAL: see the VisionClaw area (VC-*)"]

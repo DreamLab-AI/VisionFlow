@@ -35,7 +35,7 @@ sources:
   - ../project/src/actors/agent_demo_director.rs
   - ../project/src/handlers/api_handler/agents_demo.rs
   - ../project/src/main.rs
-verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
 ---
 
 ## For developers
@@ -51,7 +51,7 @@ Agents working in the background show up in the graph as live participants, with
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Caller as AppState boot task<br/>src/app_state.rs:1150, with_graph_service() bots_client.rs:138
+    participant Caller as AppState boot task<br/>src/app_state.rs:1184, with_graph_service() bots_client.rs:138
     participant BC as BotsClient<br/>src/services/bots_client.rs:108
     participant MCP as McpTcpClient<br/>utils/mcp_tcp_client.rs:24, test_connection() :778,<br/>initialize_session() :791, query_agent_list() :293
     participant GSS as GraphServiceSupervisor<br/>actors/graph_service_supervisor.rs:421
@@ -81,7 +81,7 @@ sequenceDiagram
     end
     Note over BC,MCP: RESOLVED ADR-2088 (estate) - get_status() misreported on THREE axes, not one: host<br/>"agentic-workstation", port 9090 and an unconditional connected=true. It now reports<br/>self.mcp_client.host/.port (:244-245, values resolved in BotsClient::new() :120-126) and a real<br/>AtomicBool connection state (:239,243) set from the actual test_connection() outcome (:153,166,171).<br/>Two tokio tests cover it (:312,337).
     Note over Caller,MCP: agent_events/ingest.rs:16-20 marks this port-9500 snapshot path<br/>as untouched by design (not legacy/deprecated) - agent_action events use a separate /wss/agent-events ingest (see VC-27.13, RESOLVED ADR-2084)
-    Note over Caller,BC: TENSION: the heading says superseded, but AppState starts this poll at boot (D1, PRD-023 WP-2,<br/>app_state.rs:1139-1150, retry backoff 5/15/60/300s :1147) and ingest.rs:16-20 calls it not deprecated<br/>and the sole agent-state snapshot source. It is legacy-shaped, not retired.
+    Note over Caller,BC: TENSION: the heading says superseded, but AppState starts this poll at boot (D1, PRD-023 WP-2,<br/>app_state.rs:1173-1184, retry backoff 5/15/60/300s :1181) and ingest.rs:16-20 calls it not deprecated<br/>and the sole agent-state snapshot source. It is legacy-shaped, not retired.
     Note over MCP: DOC-DRIFT (audit-rust.md correction, gap #2): a SECOND file also named mcp_tcp_client.rs<br/>exists at src/client/mcp_tcp_client.rs, defining McpTelemetryClient (struct src/client/mcp_tcp_client.rs:10,<br/>impl :17). grep confirms it is dead - src/client/mod.rs:1,3 declares and re-exports it but nothing else in<br/>src/ constructs or calls it. The live MCP-TCP hop is exclusively utils/mcp_tcp_client.rs::McpTcpClient<br/>shown above (used by bots_client.rs, ontology_class_index.rs, multi_mcp_agent_discovery.rs,<br/>the analytics anomaly/clustering handlers and bin/test_mcp_connection.rs)
 ```
 
@@ -133,7 +133,7 @@ sequenceDiagram
     participant A as MCPRelayActor<br/>mcp_relay_handler.rs:39, Actor impl :200
     participant O as Orchestrator WS<br/>ORCHESTRATOR_WS_URL default ws://multi-agent-container:3002/ws (:78-79)
 
-    Client->>H: GET /ws/mcp-relay (upgrade) - main.rs:1148
+    Client->>H: GET /ws/mcp-relay (upgrade) - main.rs:1149
     H->>H: header_token = Authorization Bearer - :475-480 (the ?token= carrier is dev-only :482-494, a release build drops it :496-505)
     alt no token
         H-->>Client: 401 "Authentication required" via the unauthorised closure - :459-467, :507-510
@@ -185,8 +185,8 @@ sequenceDiagram
     participant RS as ruv-swarm server<br/>host=RUV_SWARM_HOST port=RUV_SWARM_PORT default 9501 (:237-241)
     participant DAA as daa server<br/>host=DAA_HOST port=DAA_PORT default 9502 (:254-258)
 
-    Note over Sync,D: DOC-DRIFT (RESOLVED 2026-10-12, project 6a1a74b8b/4f4345503) - this diagram used to show start_discovery() driven by an unnamed Caller, because nothing constructed the service.<br/>AppState::new now builds it and runs initialize_default_servers (src/app_state.rs:1135-1137), and every /multi-mcp/ws socket attaches and calls sync_running (VC-05.13)
-    Sync->>D: initialize_default_servers() once at boot - :212-270 (called at src/app_state.rs:1137)
+    Note over Sync,D: DOC-DRIFT (RESOLVED 2026-10-12, project 6a1a74b8b/4f4345503) - this diagram used to show start_discovery() driven by an unnamed Caller, because nothing constructed the service.<br/>AppState::new now builds it and runs initialize_default_servers (src/app_state.rs:1169-1171), and every /multi-mcp/ws socket attaches and calls sync_running (VC-05.13)
+    Sync->>D: initialize_default_servers() once at boot - :212-270 (called at src/app_state.rs:1171)
     D->>D: insert claude-flow :215-230 (enabled :225), ruv-swarm :232-247 (enabled only if env_configured :242), daa :249-264 (enabled only if env_configured :259) - env_configured :134-137
     Sync->>D: attach() :170 and detach() :175 move the subscriber count synchronously, sync_running :184-193 starts or stops the loop to match
     D->>D: start_discovery :298 - epoch bumped :307, wake notified :308, so a quick restart leaves one loop
@@ -345,12 +345,12 @@ classDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Sup as AppState::new<br/>src/app_state.rs:1104
+    participant Sup as AppState::new<br/>src/app_state.rs:1138
     participant AM as AgentMonitorActor<br/>src/actors/agent_monitor_actor.rs:199-235 (struct), new() :279-346
     participant MAC as ManagementApiClient<br/>host=MANAGEMENT_API_HOST default agentic-workstation, port=MANAGEMENT_API_PORT default 9090 (agent_monitor_actor.rs:285-290)
     participant GSS as GraphServiceSupervisor
 
-    Sup->>AM: AgentMonitorActor::new(..).start() - app_state.rs:1104
+    Sup->>AM: AgentMonitorActor::new(..).start() - app_state.rs:1138
     AM->>AM: started() - is_connected=true, do_send(InitializeActor) - agent_monitor_actor.rs:494-501
     AM->>AM: handle(InitializeActor) - run_later(100ms) poll_agent_statuses + schedule_next_poll - agent_monitor_actor.rs:511-522
     loop self-rescheduling poll (schedule_next_poll, agent_monitor_actor.rs:466-472)
@@ -492,7 +492,7 @@ sequenceDiagram
         Ws->>Ws: warn "Unknown client action" - :180-182
     end
     Note over Ws,Proto: PROPOSED ADR-2066 addendum: send_init_state still reports an empty roster, now explicit rather than<br/>disguised - the fake get_real_agent_data() helper is deleted. A real source exists (bots_client.get_agents_snapshot,<br/>bots_client.rs:233) but Agent lacks the profile, task counts, success_rate and timestamp AgentStatus requires, so the<br/>mapping needs a decided contract rather than invented defaults.
-    Note over Client,H: OPEN: the upgrade carries no token check of its own (bots_visualization_handler.rs:204-210), unlike /ws/mcp-relay<br/>and /multi-mcp/ws - the /api RbacGate passes public reads through (src/main.rs:1164-1170), so any client can open it.<br/>Today it only ever streams an empty roster, so nothing is exposed - it matters once a real source is wired.
+    Note over Client,H: OPEN: the upgrade carries no token check of its own (bots_visualization_handler.rs:204-210), unlike /ws/mcp-relay<br/>and /multi-mcp/ws - the /api RbacGate passes public reads through (src/main.rs:1165-1171), so any client can open it.<br/>Today it only ever streams an empty roster, so nothing is exposed - it matters once a real source is wired.
     Note over Ws: RESOLVED ADR-2066 addendum: the actor now carries a paused flag - pause_updates and resume_updates<br/>set it and the 16ms run_interval returns early while it is set, so the opcodes do what they advertise.
     Note over Proto: agent_visualization_protocol::AgentVisualizationMessage is internally tagged<br/>(serde(tag="type"), agent_visualization_protocol.rs:6-23) - the wire "type" field is the serde rename, not the<br/>Rust variant name: Initialize->"init", PositionUpdate->"positions", StateUpdate->"state",<br/>ConnectionUpdate->"connections", MetricsUpdate->"metrics". AgentStateUpdate (agent_visualization_protocol.rs:107-123)<br/>is a partial differential update - every field but id is Option~T~, and its status string's recognised values<br/>(idle/busy/active/initializing/terminating/offline/error, plus XR-swarm blocked/done) map to the XR client's<br/>status halo via render_store::agent_status_code (xr-client/rust/src/render_store.rs:415-423: busy/active/working/running->working,<br/>blocked/error->blocked, done/terminating/offline->done, else idle)
 ```
@@ -574,7 +574,7 @@ sequenceDiagram
     loop every 250 ms TICK while a director exists - agent_demo_director.rs:394, :427
         D->>D: DemoDirector.tick advances stagger, work, follow-an-edge and rest per agent - agent_demo_director.rs:212, :432
         D->>CC: BroadcastAgentActionFrame of the raw action events - agent_demo_director.rs:434
-        CC->>CC: broadcast_agent_actions encodes one 0x23 frame per pubkey, dropping events whose target is hidden from it,<br/>and sends nothing while the filter is on and node types are not loaded - src/actors/client_coordinator_actor.rs:465, :472, :480, :485, :495
+        CC->>CC: broadcast_agent_actions encodes one 0x23 frame per pubkey, dropping events whose target is hidden from it,<br/>and sends nothing while the filter is on and node types are not loaded - src/actors/client_coordinator_actor.rs:518, :525, :533, :538, :548
     end
     Note over D,HUB: INVARIANT: the demo never enters the agent event hub - a synthetic event there would be persisted by the KPI tap.<br/>Frames go to the client coordinator only, the same door real agent actions leave through<br/>src/actors/agent_demo_director.rs:3-6
     Note over D: the six agents carry reserved ids 0x80000000 | 0xD001..0xD006 and nothing in a frame says demo, so provenance lives in code alone<br/>src/actors/agent_demo_director.rs:35, :47, :205-207

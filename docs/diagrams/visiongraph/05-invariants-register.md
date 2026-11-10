@@ -15,7 +15,7 @@ sources:
   - ../ontomark/crates/ontomark-compile/src/build/mod.rs
   - ../ontomark/crates/ontomark-compile/src/build/generation.rs
   - ../ontomark/crates/ontomark-compile/src/build/publish.rs
-verified_commit: {visiongraph: 556a0156b5c326fb61141ed2ab1760dd8d9c4dd6, visionclaw: 75b72416bac176ca8fde715cac3bd7c77657b3e7, ontomark: 0caae5d4b695cb720942b9b9212017c00a80ad41}
+verified_commit: {visiongraph: d8277151a1404b456b5c7206187f7e4b50f25be1, visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, ontomark: 6159bb6089753105ef839fd4aac46c1598a64bd2}
 ---
 
 ## For developers
@@ -39,13 +39,13 @@ flowchart TB
     LOCAL --> WHY
     %% Source: crates/ontomark-compile/src/input/page.rs:269
     %% Source: crates/ontomark-compile/src/build/publish.rs:200
-    %% Source: crates/ontomark-compile/src/build/mod.rs:615
-    %% Source: crates/ontomark-compile/src/build/mod.rs:658
-    %% Source: crates/ontomark-compile/src/build/mod.rs:678
-    %% Source: crates/visionclaw-domain/src/vault/mod.rs:162
+    %% Source: crates/ontomark-compile/src/build/mod.rs:709
+    %% Source: crates/ontomark-compile/src/build/mod.rs:752
+    %% Source: crates/ontomark-compile/src/build/mod.rs:772
+    %% Source: crates/visionclaw-domain/src/vault/mod.rs:168
 ```
 
-**What it shows:** exact predicate differences and the compiler's projection order; these source functions replace the older blanket invariant list (`input/page.rs:269`, `vault/mod.rs:162`, `build/mod.rs:678`).
+**What it shows:** exact predicate differences and the compiler's projection order; these source functions replace the older blanket invariant list (`input/page.rs:269`, `vault/mod.rs:168`, `build/mod.rs:772`).
 **Why it is this way:** local structural graph inclusion and public release are different policies; ADR-VG-001 requires those differences and their diagnostics to be intentional and tested (`ADR-VG-001-publication-policy-boundaries.md:32`).
 
 ## VG-05.2 Proposed acceptance requirements remain open
@@ -62,12 +62,12 @@ flowchart TB
     %% Source: docs/adr/ADR-VG-001-publication-policy-boundaries.md:5
     %% Source: docs/adr/ADR-VG-001-publication-policy-boundaries.md:32
     %% Source: docs/adr/ADR-VG-001-publication-policy-boundaries.md:36
-    %% Source: docs/adr/ADR-VG-002-generation-and-consumer-identity.md:32
-    %% Source: docs/adr/ADR-VG-002-generation-and-consumer-identity.md:36
+    %% Source: docs/adr/ADR-VG-002-generation-and-consumer-identity.md:49
+    %% Source: docs/adr/ADR-VG-002-generation-and-consumer-identity.md:53
 ```
 
 **What it shows:** the proposed end-to-end acceptance boundary, not the status of whether the existing site is online (`ADR-VG-001-publication-policy-boundaries.md:36`).
-**Why it is this way:** the records explicitly preserve incomplete consumer acceptance despite component implementation and historical fixes (`ADR-VG-002-generation-and-consumer-identity.md:36`).
+**Why it is this way:** the records explicitly preserve incomplete consumer acceptance despite component implementation and historical fixes (`ADR-VG-002-generation-and-consumer-identity.md:53`).
 
 ## VG-05.3 A compiler generation marker is not the final-site release manifest
 
@@ -79,18 +79,18 @@ flowchart TB
     SITE["Workflow then overlays static files<br/>compresses selected outputs and adds UI/notices"]
     GAP["OPEN: final bytes and loaded consumers<br/>need their own generation binding"]
     INPUT --> MARKER --> TWO --> SITE --> GAP
-    %% Source: crates/ontomark-compile/src/build/mod.rs:968
-    %% Source: crates/ontomark-compile/src/build/mod.rs:977
+    %% Source: crates/ontomark-compile/src/build/mod.rs:1084
+    %% Source: crates/ontomark-compile/src/build/mod.rs:1093
     %% Source: crates/ontomark-compile/src/build/generation.rs:90
-    %% Source: crates/ontomark-compile/src/build/mod.rs:1008
-    %% Source: .github/workflows/publish.yml:261
-    %% Source: .github/workflows/publish.yml:358
-    %% Source: .github/workflows/publish.yml:441
-    %% Source: docs/adr/ADR-VG-002-generation-and-consumer-identity.md:32
+    %% Source: crates/ontomark-compile/src/build/mod.rs:1126
+    %% Source: .github/workflows/publish.yml:260
+    %% Source: .github/workflows/publish.yml:359
+    %% Source: .github/workflows/publish.yml:450
+    %% Source: docs/adr/ADR-VG-002-generation-and-consumer-identity.md:49
 ```
 
-**What it shows:** a real compiler manifest now exists; it lacks the complete final-site and loaded-consumer identity contract proposed by the ADR (`generation.rs:90`, `ADR-VG-002-generation-and-consumer-identity.md:32`).
-**Why it is this way:** compiler emission precedes publication transformations; the earlier public-receipt audit found one static-context hash mismatch at that boundary without establishing malicious alteration (`build/mod.rs:1015`, `publish.yml:261`).
+**What it shows:** a real compiler manifest now exists; it lacks the complete final-site and loaded-consumer identity contract proposed by the ADR (`generation.rs:90`, `ADR-VG-002-generation-and-consumer-identity.md:49`).
+**Why it is this way:** compiler emission precedes publication transformations; the earlier public-receipt audit found one static-context hash mismatch at that boundary without establishing malicious alteration (`build/mod.rs:1133`, `publish.yml:260`).
 
 ## VG-05.4 Historical failures, repairs and successor boundaries
 
@@ -102,8 +102,8 @@ flowchart TB
     NOW["Current workflow invokes released ontomark<br/>old findings require successor-specific evidence"]
     KEEP["Keep broader acceptance obligations open<br/>historical repair is not live consumer acceptance"]
     OLD --> FIX --> RETIRE --> NOW --> KEEP
-    %% Source: docs/adr/ADR-VG-002-generation-and-consumer-identity.md:46
-    %% Source: docs/adr/ADR-VG-002-generation-and-consumer-identity.md:54
+    %% Source: docs/adr/ADR-VG-002-generation-and-consumer-identity.md:63
+    %% Source: docs/adr/ADR-VG-002-generation-and-consumer-identity.md:71
     %% Source: docs/PUBLICATION-contract.md:3
     %% Source: docs/PUBLICATION-contract.md:8
     %% Source: .github/workflows/publish.yml:48
@@ -111,4 +111,4 @@ flowchart TB
 ```
 
 **What it shows:** dated succession instead of presenting retired-parser counterexamples as current behaviour; the historical banner's reference to vault also lags the workflow's ontomark pin (`PUBLICATION-contract.md:3`, `publish.yml:48`).
-**Why it is this way:** generation identity cannot certify privacy, and implementation changes do not automatically close the proposed acceptance contract (`ADR-VG-002-generation-and-consumer-identity.md:48`, `ADR-VG-001-publication-policy-boundaries.md:36`).
+**Why it is this way:** generation identity cannot certify privacy, and implementation changes do not automatically close the proposed acceptance contract (`ADR-VG-002-generation-and-consumer-identity.md:65`, `ADR-VG-001-publication-policy-boundaries.md:36`).

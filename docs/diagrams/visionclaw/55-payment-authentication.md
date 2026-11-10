@@ -9,7 +9,7 @@ sources:
   - ../project/src/utils/auth.rs
   - ../project/src/utils/nip98.rs
   - ../project/tests/pay_nip98_test.rs
-verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
 ---
 
 ## For developers

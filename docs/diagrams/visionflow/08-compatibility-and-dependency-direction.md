@@ -32,7 +32,7 @@ sources:
   - docs/adr/ADR-2007-estate-closeout-evidence-roadmap.md
   - docs/BASELINE-visionflow.md
   - ./README.md
-verified_commit: {visionflow: 5f8b1da92ce5d9e6b32a0bd90ec3630c66619083, visionclaw: 86cdd76355823a51bb64d503c005fe277726e724, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35, nostr-rust-forum: c39f41f104b114d6a3fa29013daaf6fa58b45080}
+verified_commit: {visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c, visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
 ---
 
 Source reconciliation: 2026-09-07. These panels follow the current sections of the compatibility matrix and status reconciliation, plus the source audits named in frontmatter. Historical metrics and register cuts remain historical. This review did not certify a live federation, image, hardware session or replica-wide authentication contract.
@@ -53,17 +53,17 @@ flowchart TB
     LOOM["Loom: ontology facade, HTTP only"] -->|configured retrieval| AB
     RV["RuVector: selected core or image"] --> LOOM
     RV -->|MCP and Postgres boundary| AB
-    CLI["Ontomark corpus operations, pin 0.7.0<br/>lib/ontomark.nix:44<br/>ontology-apply.js:157"] --> AB
+    CLI["Ontomark corpus operations, pin 0.8.0<br/>lib/ontomark.nix:46<br/>ontology-apply.js:157"] --> AB
     VAULT["vault governance transport: propose and panel<br/>ontology-apply.js:153"] --> AB
-    GATE["Both packages share vaultCliActive<br/>flake.nix:942 and flake.nix:960"] --> CLI
+    GATE["Both packages share vaultCliActive<br/>flake.nix:952 and flake.nix:970"] --> CLI
     GATE --> VAULT
     SCOPE["Arrows identify implemented source seams, not a verified complete mesh"]
     VF -.-> SCOPE
 ```
 
-**Current Agentbox corpus dispatch, 2026-10-31:** `binFor` routes `propose` and `panel` through `vault`, and other corpus verbs through `ontomark` (`../project/agentbox/management-api/lib/ontology-apply.js:153`). Both are selected under the same Nix gate (`../project/agentbox/flake.nix:942`, `../project/agentbox/flake.nix:960`). The old vault-only statement did not describe the migrated consumer. This source trace is not a universal absence claim about every estate MCP adapter.
+**Current Agentbox corpus dispatch, 2026-10-31:** `binFor` routes `propose` and `panel` through `vault`, and other corpus verbs through `ontomark` (`../project/agentbox/management-api/lib/ontology-apply.js:153`). Both are selected under the same Nix gate (`../project/agentbox/flake.nix:952`, `../project/agentbox/flake.nix:970`). The old vault-only statement did not describe the migrated consumer. This source trace is not a universal absence claim about every estate MCP adapter.
 
-**INVARIANT: `verified_commit` is a `{repo: sha}` map, not one sha, for any topic whose `sources:` span more than one repo (`scripts/diagram-index-gen.cjs:206-216`).** A missing repository pin can fall back to working-tree bytes, but the current checker reports that as unverified (`scripts/diagram-index-gen.cjs:550`) and strict mode rejects warnings (`scripts/diagram-index-gen.cjs:883`). Such a fallback must not be presented as revision-backed verification.
+**INVARIANT: `verified_commit` is a `{repo: sha}` map, not one sha, for any topic whose `sources:` span more than one repo (`scripts/diagram-index-gen.cjs:215-225`).** A missing repository pin can fall back to working-tree bytes, but the current checker reports that as unverified (`scripts/diagram-index-gen.cjs:579`) and strict mode rejects warnings (`scripts/diagram-index-gen.cjs:912`). Such a fallback must not be presented as revision-backed verification.
 
 Evidence: `repository-map.md`, the Agentbox audit and imported-scope review. This interaction view is not an exhaustive repository count.
 
@@ -158,10 +158,10 @@ flowchart TB
     CS["Codescape: code graph, layout, agent activity, voice collaboration<br/>its own repository, mounted into VisionClaw as the codescape/ submodule<br/>../project/AGENTS.md:15 and docs/architecture/repository-map.md:37"]
     VCWIRE["VisionClaw coupling is three things only: the published visionclaw-wire crate (crates.io),<br/>the runtime CUDA PTX and the host compose contract<br/>docs/architecture/compatibility-matrix.md:20"]
     ISO["a build-graph isolation test forbids any other VisionClaw dependency, and the root workspace<br/>may never list Codescape as a member or depend on it by path<br/>../project/AGENTS.md:15"]
-    VT["visiontouch-rs: private haptic study, no runtime coupling to the substrates,<br/>node-grab input into VisionClaw is intended and not built<br/>docs/architecture/compatibility-matrix.md:20 and docs/architecture/repository-map.md:38"]
+    VT["visiontouch-rs: private haptic study, no runtime coupling to the substrates,<br/>node-grab input into VisionClaw is intended and not built<br/>docs/architecture/compatibility-matrix.md:20 and docs/architecture/repository-map.md:40"]
     CS --> VCWIRE
     VCWIRE --> ISO
-    N1["INVARIANT: the agent-activity hook (agentbox ADR-2144) is on a branch, not agentbox main, and the repository map draws it as a dashed edge labelled branch only<br/>docs/architecture/compatibility-matrix.md:20 and docs/architecture/repository-map.md:83"]
+    N1["INVARIANT: the agent-activity hook (agentbox ADR-2144) is on a branch, not agentbox main, and the repository map draws it as a dashed edge labelled branch only<br/>docs/architecture/compatibility-matrix.md:20 and docs/architecture/repository-map.md:85"]
     N2["OPEN: neither supporting repository carries hardware or headset acceptance, so neither is a federated substrate<br/>docs/architecture/compatibility-matrix.md:20"]
     CS --- N1
     VT --- N2
@@ -176,5 +176,5 @@ flowchart TB
 **Restamp, 2026-11-02:** all four repository pins moved to the audit wave 2 revisions: VisionFlow `5f8b1da`, VisionClaw `86cdd76`, Agentbox `c57d9c0` and nostr-rust-forum `c39f41f`. Every citation was re-read at those revisions. The cross-repository lines were byte-identical to the earlier pins. Two VisionFlow lines moved, and are now `ADR-2007-estate-closeout-evidence-roadmap.md:26` and the checker lines in VF-08.1. ADR-2007 is now `complete` and `live` (`docs/adr/ADR-2007-estate-closeout-evidence-roadmap.md:6-7`), with the evidence gate in all five ledgers, so the rule VF-08.10 states is also mechanically enforced at closing transitions. That is source tracing; no hosted run was checked.
 
 **Drift (anchors, corrected 2026-11-02):**
-- VF-08.1's map invariant cited a matrix sentence that says nothing about `verified_commit`. It now cites the checker that enforces the form (`scripts/diagram-index-gen.cjs:206-216`).
+- VF-08.1's map invariant cited a matrix sentence that says nothing about `verified_commit`. It now cites the checker that enforces the form (`scripts/diagram-index-gen.cjs:215-225`).
 - VF-08.2's Multikey node cited the key-handling line. It now cites the lines that say the Multikey is offered alongside the unchanged DID (`../project/agentbox/management-api/lib/agent-identity.js:22-25`).

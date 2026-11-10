@@ -28,7 +28,7 @@ sources:
   - ../project/src/app_state.rs
   - ../project/docs/adr/ADR-2138-directed-cycles-are-a-server-analysis-with-one-adjacency.md
   - ../project/docs/adr/ADR-2140-physics-forces-have-one-stored-definition-and-no-scale-factors.md
-verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
 ---
 
 ## For developers
@@ -99,13 +99,13 @@ sequenceDiagram
     participant C as Client
     participant FH as feature_flags_handlers<br/>src/handlers/api_handler/analytics/feature_flags_handlers.rs:20
     participant ST as FEATURE_FLAGS static<br/>analytics/state.rs:15
-    participant SS as sssp_handlers<br/>analytics/sssp_handlers.rs:171
+    participant SS as sssp_handlers<br/>analytics/sssp_handlers.rs:172
     participant ON as ontology check_feature_enabled<br/>api_handler/ontology/mod.rs:330
 
     C->>FH: GET /analytics/feature-flags (route reg analytics/mod.rs:297)
     FH->>FH: reported_flags feature_flags_handlers.rs:13-18
     FH->>ST: ontology_validation from FEATURE_FLAGS.lock() feature_flags_handlers.rs:15
-    FH->>SS: sssp_integration from stored_sssp_enabled feature_flags_handlers.rs:16, the stored physics.ssspEnabled, true if the settings actor does not answer (sssp_handlers.rs:171-179)
+    FH->>SS: sssp_integration from stored_sssp_enabled feature_flags_handlers.rs:16, the stored physics.ssspEnabled, true if the settings actor does not answer (sssp_handlers.rs:172-180)
     FH-->>C: flags plus a two-entry description map (feature_flags_handlers.rs:26-29)
     C->>FH: POST /analytics/feature-flags (route reg analytics/mod.rs:236)
     Note over FH: requires AuthenticatedUser extractor feature_flags_handlers.rs:34 on top of the scope wrap
@@ -119,7 +119,7 @@ sequenceDiagram
         Note over ON: ontology_validation is the ONLY flag read as a real GATE - it short-circuits ontology validation with an ErrorResponse
         Note over SS: sssp_integration is display-only and mirrors the store, the FEATURE_FLAGS copy is a placeholder (types.rs:314-317)
     end
-    Note over SS: toggle_sssp (sssp_handlers.rs:112) builds sssp_toggle_patch (sssp_handlers.rs:16) and sends it through apply_physics_patch (sssp_handlers.rs:126, settings_routes.rs:617) - store, GPU actors and SQLite together
+    Note over SS: toggle_sssp (sssp_handlers.rs:112) builds sssp_toggle_patch (sssp_handlers.rs:16) and sends it through apply_physics_patch (sssp_handlers.rs:126, settings_routes.rs:661) - store, GPU actors and SQLite together
     Note over ST: RESOLVED ADR-2059 - seven inert flags removed (types.rs:307-317), struct keeps two fields (types.rs:319-323)
     Note over ST: OPEN ADR-2059 - ontology_validation in FEATURE_FLAGS is still process-global, unpersisted and shared across all users (state.rs:15), default true (types.rs:338)
 ```
@@ -132,7 +132,7 @@ sequenceDiagram
     participant C as Client
     participant PH as params_handlers<br/>src/handlers/api_handler/analytics/params_handlers.rs:17
     participant SET as OptimizedSettingsActor
-    participant GPU as ForceComputeActor<br/>get_gpu_compute_addr app_state.rs:1600
+    participant GPU as ForceComputeActor<br/>get_gpu_compute_addr app_state.rs:1628
 
     C->>PH: GET /analytics/params (route reg analytics/mod.rs:270)
     PH->>SET: send(GetSettings) params_handlers.rs:20
@@ -145,15 +145,15 @@ sequenceDiagram
 
     C->>PH: POST /analytics/params (route reg analytics/mod.rs:199)
     PH->>GPU: send(UpdateVisualAnalyticsParams) params_handlers.rs:63
-    Note over GPU: the ForceComputeActor handler is a logged no-op returning Ok (force_compute_actor.rs:3375-3385), so the POST answers success and changes nothing
+    Note over GPU: the ForceComputeActor handler is a logged no-op returning Ok (force_compute_actor.rs:3480-3490), so the POST answers success and changes nothing
 
     C->>PH: GET /analytics/constraints (route reg analytics/mod.rs:271)
     PH->>GPU: send(GetConstraints) params_handlers.rs:112
-    Note over GPU: always Err "Constraints should be handled by ConstraintActor" (force_compute_actor.rs:3388-3393)
+    Note over GPU: always Err "Constraints should be handled by ConstraintActor" (force_compute_actor.rs:3493-3498)
     PH-->>C: 200 success=true with an EMPTY default ConstraintSet (params_handlers.rs:129-133) - the error is masked
     C->>PH: POST /analytics/constraints (route reg analytics/mod.rs:200)
     PH->>GPU: send(UpdateConstraints{constraint_data}) params_handlers.rs:159
-    Note over GPU: parsed and cached for the next physics step (force_compute_actor.rs:3396-3413)
+    Note over GPU: parsed and cached for the next physics step (force_compute_actor.rs:3501-3518)
     PH->>GPU: send(GetConstraints) params_handlers.rs:163 to echo back the applied set, which always fails
     PH-->>C: falls through to 503 "GPU compute service not available" (params_handlers.rs:194-199) although the update was applied
     Note over GPU: residency change re-derives ENABLE_CONSTRAINTS next step - see VC-11.5 and VC-16.6
@@ -165,7 +165,7 @@ sequenceDiagram
     C->>PH: POST /analytics/kernel-mode (route reg analytics/mod.rs:202)
     PH->>PH: set_kernel_mode params_handlers.rs:357 maps legacy, standard, dual_graph, advanced, visual_analytics (params_handlers.rs:365-378)
     PH->>GPU: send(SetComputeMode{mode}) params_handlers.rs:383
-    Note over GPU: real - sets compute_mode and resyncs unified_params (force_compute_actor.rs:2825-2839)
+    Note over GPU: real - sets compute_mode and resyncs unified_params (force_compute_actor.rs:2930-2944)
     Note over PH,GPU: get_gpu_compute_addr returns Option, a None answers 503 rather than panicking (params_handlers.rs:97-104)
 ```
 
@@ -177,7 +177,7 @@ sequenceDiagram
     participant C as Client
     participant PF as performance_handlers<br/>src/handlers/api_handler/analytics/performance_handlers.rs:55
     participant TEL as analytics_telemetry<br/>src/actors/gpu/analytics_telemetry.rs:190
-    participant GPU as ForceComputeActor<br/>get_gpu_compute_addr app_state.rs:1600
+    participant GPU as ForceComputeActor<br/>get_gpu_compute_addr app_state.rs:1628
 
     C->>PF: GET /analytics/stats (route reg analytics/mod.rs:272)
     PF->>GPU: get_performance_stats :55 sends GetPhysicsStats performance_handlers.rs:60
@@ -189,7 +189,7 @@ sequenceDiagram
         PF->>GPU: send(GetGPUMetrics) performance_handlers.rs:167
         alt Ok(Ok(metrics))
             PF-->>C: metrics plus analytics_execution (performance_handlers.rs:168-173)
-            Note over GPU: the metrics are hard-coded zeros (force_compute_actor.rs:3357-3372)
+            Note over GPU: the metrics are hard-coded zeros (force_compute_actor.rs:3462-3477)
         else Ok(Err(e))
             PF-->>C: 500 with analytics_execution (performance_handlers.rs:175-182)
         else mailbox error
@@ -212,28 +212,28 @@ sequenceDiagram
     autonumber
     participant C as Client
     participant SH as stress_handlers<br/>src/handlers/api_handler/analytics/stress_handlers.rs:12
-    participant FCA as ForceComputeActor<br/>get_gpu_compute_addr app_state.rs:1600
+    participant FCA as ForceComputeActor<br/>get_gpu_compute_addr app_state.rs:1628
     participant SMA as StressMajorizationActor<br/>src/actors/gpu/stress_majorization_actor.rs:311
 
     C->>SH: POST /stress-majorization/trigger (route reg analytics/mod.rs:221)
     SH->>FCA: send(TriggerStressMajorization) stress_handlers.rs:17
-    FCA-->>SH: Err "should be handled by StressMajorizationActor" (force_compute_actor.rs:3457-3466)
+    FCA-->>SH: Err "should be handled by StressMajorizationActor" (force_compute_actor.rs:3562-3571)
     SH-->>C: 400 success=false (stress_handlers.rs:22-27)
     C->>SH: GET /stress-majorization/stats (route reg analytics/mod.rs:288)
     SH->>FCA: send(GetStressMajorizationStats) stress_handlers.rs:43
-    FCA-->>SH: Err (force_compute_actor.rs:3469-3482)
+    FCA-->>SH: Err (force_compute_actor.rs:3574-3587)
     C->>SH: POST /stress-majorization/reset-safety (route reg analytics/mod.rs:225)
     SH->>FCA: send(ResetStressMajorizationSafety) stress_handlers.rs:70
-    FCA-->>SH: Err (force_compute_actor.rs:3485-3497)
+    FCA-->>SH: Err (force_compute_actor.rs:3590-3602)
     C->>SH: POST /stress-majorization/params (route reg analytics/mod.rs:229)
     SH->>FCA: build UpdateStressMajorizationParams stress_handlers.rs:98 then send stress_handlers.rs:102
-    FCA-->>SH: Ok after a log line, nothing forwarded (force_compute_actor.rs:3500-3510)
+    FCA-->>SH: Ok after a log line, nothing forwarded (force_compute_actor.rs:3605-3615)
     C->>SH: POST /stress-majorization/configure (route reg analytics/mod.rs:233)
     SH->>FCA: send(config) stress_handlers.rs:131
-    FCA->>FCA: learning_rate rewrites unified_params.temperature, momentum rewrites unified_params.damping (force_compute_actor.rs:3729-3739)
+    FCA->>FCA: learning_rate rewrites unified_params.temperature, momentum rewrites unified_params.damping (force_compute_actor.rs:3851-3861)
     C->>SH: GET /stress-majorization/config (route reg analytics/mod.rs:292)
     SH->>FCA: send(GetStressMajorizationConfig) stress_handlers.rs:158
-    FCA-->>SH: config derived from unified_params plus fixed values (force_compute_actor.rs:3758-3783)
+    FCA-->>SH: config derived from unified_params plus fixed values (force_compute_actor.rs:3880-3905)
     Note over SMA: StressMajorizationActor has real handlers (stress_majorization_actor.rs:311, :330, :343, :406, :471) and errs "GPU not available for stress majorization" without a context (stress_majorization_actor.rs:95), but no /analytics route reaches it
     Note over SH,FCA: All six handlers guard on get_gpu_compute_addr() being Some and answer 503 otherwise (stress_handlers.rs:120)
     Note over SMA: ADR-2060 bit5 ENABLE_STRESS_MAJORIZATION is RESERVED - stress majorization is CPU-side per project/src/models/simulation_params.rs:77 and is not a GPU force channel
@@ -400,10 +400,10 @@ sequenceDiagram
 
 **Tension (ADR-2138 vs code):** resolved at 7c953a40b — ADR-2138 was `proposed` / `none` / `inactive` while `GET /analytics/cycles` was already registered and served. At the pin its frontmatter is `decision_status: proposed`, `implementation_status: complete`, `activation_status: staged` (`docs/adr/ADR-2138-directed-cycles-are-a-server-analysis-with-one-adjacency.md:5-7`), so the ledger agrees with the code (`src/handlers/api_handler/analytics/mod.rs:286`, `src/handlers/api_handler/analytics/cycles_handlers.rs:60`). Ownership and activation are still open. The decision stays `proposed` because the record leaves acceptance to the owner. Activation stays `staged` until the XR Shapes tab first runs on a headset against a live graph (its `review_trigger`, `docs/adr/ADR-2138-directed-cycles-are-a-server-analysis-with-one-adjacency.md:13`).
 
-**Debt:** resolved — `toggle_sssp` now writes through `apply_physics_patch` (`src/handlers/api_handler/analytics/sssp_handlers.rs:126`, `src/settings/api/settings_routes.rs:617`), and ADR-2140 records the item as closed (`docs/adr/ADR-2140-physics-forces-have-one-stored-definition-and-no-scale-factors.md:44`).
+**Debt:** resolved — `toggle_sssp` now writes through `apply_physics_patch` (`src/handlers/api_handler/analytics/sssp_handlers.rs:126`, `src/settings/api/settings_routes.rs:661`), and ADR-2140 records the item as closed (`docs/adr/ADR-2140-physics-forces-have-one-stored-definition-and-no-scale-factors.md:44`).
 
-**Debt:** every `/analytics/stress-majorization/*` route sends to `ForceComputeActor`, because `get_gpu_compute_addr` returns that actor (`src/app_state.rs:1600`). Its handlers are stubs. Trigger, stats and reset return `Err`; params returns `Ok` without forwarding (`src/actors/gpu/force_compute_actor.rs:3457-3510`). The real `StressMajorizationActor` handlers (`src/actors/gpu/stress_majorization_actor.rs:311`) are unreachable from HTTP. Closing this needs the routes to address the supervised stress actor, or the routes to be removed.
+**Debt:** every `/analytics/stress-majorization/*` route sends to `ForceComputeActor`, because `get_gpu_compute_addr` returns that actor (`src/app_state.rs:1628`). Its handlers are stubs. Trigger, stats and reset return `Err`; params returns `Ok` without forwarding (`src/actors/gpu/force_compute_actor.rs:3562-3615`). The real `StressMajorizationActor` handlers (`src/actors/gpu/stress_majorization_actor.rs:311`) are unreachable from HTTP. Closing this needs the routes to address the supervised stress actor, or the routes to be removed.
 
-**Tension (ADR-2140):** `POST /stress-majorization/configure` rewrites `unified_params.temperature` and `unified_params.damping` in `ForceComputeActor` (`src/actors/gpu/force_compute_actor.rs:3729-3739`) outside the stored physics document. That is a second write path for a physics value. This trace does not establish whether the value reaches the device before the next resync from the store.
+**Tension (ADR-2140):** `POST /stress-majorization/configure` rewrites `unified_params.temperature` and `unified_params.damping` in `ForceComputeActor` (`src/actors/gpu/force_compute_actor.rs:3851-3861`) outside the stored physics document. That is a second write path for a physics value. This trace does not establish whether the value reaches the device before the next resync from the store.
 
-**Debt:** `POST /analytics/params` and `POST /analytics/focus` reach a no-op handler that answers `Ok` (`src/actors/gpu/force_compute_actor.rs:3375-3385`). `GET /analytics/constraints` masks a guaranteed `Err` as an empty successful set (`src/handlers/api_handler/analytics/params_handlers.rs:129-133`). `POST /analytics/constraints` applies the update and then answers 503 (`src/handlers/api_handler/analytics/params_handlers.rs:194-199`). `GetGPUMetrics` returns hard-coded zeros (`src/actors/gpu/force_compute_actor.rs:3357-3372`).
+**Debt:** `POST /analytics/params` and `POST /analytics/focus` reach a no-op handler that answers `Ok` (`src/actors/gpu/force_compute_actor.rs:3480-3490`). `GET /analytics/constraints` masks a guaranteed `Err` as an empty successful set (`src/handlers/api_handler/analytics/params_handlers.rs:129-133`). `POST /analytics/constraints` applies the update and then answers 503 (`src/handlers/api_handler/analytics/params_handlers.rs:194-199`). `GetGPUMetrics` returns hard-coded zeros (`src/actors/gpu/force_compute_actor.rs:3462-3477`).

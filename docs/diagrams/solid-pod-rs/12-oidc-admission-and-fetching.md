@@ -9,7 +9,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/src/oidc/jwks.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs
   - ../solid-pod-rs/crates/solid-pod-rs/tests/oidc_jwks_ssrf.rs
-verified_commit: fcc624a3e952e05923d93d7ea038294bcddb25ae
+verified_commit: 27e18995fc20790fa956acb41f7d8420544a13ec
 ---
 
 ## For developers
@@ -42,9 +42,9 @@ flowchart TD
     PROOF["library verifies DPoP proof<br/>optional ath and replay checks<br/>oidc/mod.rs:406"]
     TOKEN["library checks token signature,<br/>issuer, audience, time and key binding<br/>oidc/mod.rs:836"]
     PROFILE["caller must check WebID issuer authority<br/>oidc/mod.rs:984"]
-    GET["actual private GET<br/>extract identity then enforce read access<br/>lib.rs:1478<br/>lib.rs:1485"]
-    AUTH["resource extractor handles Nostr<br/>production Bearer refused, no DPoP dispatch<br/>lib.rs:603<br/>lib.rs:635"]
-    DENY["unauthenticated request denied<br/>challenge nevertheless advertises DPoP<br/>lib.rs:1140<br/>lib.rs:1160"]
+    GET["actual private GET<br/>extract identity then enforce read access<br/>lib.rs:1536<br/>lib.rs:1543"]
+    AUTH["resource extractor handles Nostr<br/>production Bearer refused, no DPoP dispatch<br/>lib.rs:711<br/>lib.rs:743"]
+    DENY["unauthenticated request denied<br/>challenge nevertheless advertises DPoP<br/>lib.rs:1215<br/>lib.rs:1235"]
     PROOF --> TOKEN --> PROFILE
     GET --> AUTH -->|no identity| DENY
 ```

@@ -14,7 +14,7 @@ sources:
   - ../sealmap/crates/sealmap-extract/src/raw.rs
   - ../sealmap/docs/DESIGN.md
   - ../sealmap/README.md
-verified_commit: b9a6aebddd2e8379206eea6cfdd3ab84546724b4
+verified_commit: 2b351367cab241aa7304d364aa37b52e65bb71f2
 ---
 ## For developers
 
@@ -29,11 +29,11 @@ resolved from what the walker recorded about the receiver
 
 Three commits shaped it. The hardening work replaced an exponential recursive
 glob walk with a precomputed table and a breadth-first search
-(`docs/DESIGN.md:234`). The grammar work keyed every table by typed ids and
+(`docs/DESIGN.md:304`). The grammar work keyed every table by typed ids and
 split types from values, so a module and a function of one name no longer
 collide (commit `5973a4e`). The `Path::parent` fix taught it receiver
 provenance: a value taken from std or a dependency is never matched to an
-internal method by name (`docs/DESIGN.md:236`, commit `5aac8a8`). This topic
+internal method by name (`docs/DESIGN.md:306`, commit `5aac8a8`). This topic
 draws the path walk, the method decision, the provenance rule, and the false
 guesses that remain.
 
@@ -175,7 +175,7 @@ through globs is then a bounded breadth-first search where each module is
 visited once, so cyclic globs are harmless.
 
 **Why it is this way.** The recursive walk this replaced made 908 M calls on
-one file of an older crate; the table brought it to 43 ms (`docs/DESIGN.md:234`).
+one file of an older crate; the table brought it to 43 ms (`docs/DESIGN.md:304`).
 `glob_cycles_resolve_quickly` keeps it that way
 (`crates/sealmap-rust/tests/extract.rs:278`).
 

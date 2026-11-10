@@ -19,7 +19,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/auth/mod.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/relay.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/zone_config.rs
-verified_commit: c39f41f104b114d6a3fa29013daaf6fa58b45080
+verified_commit: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df
 ---
 
 ## For developers
@@ -34,11 +34,11 @@ A generated key, an accepted grant and a member able to read are different outco
 
 ```mermaid
 flowchart TB
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/admin/zone_encryption.rs:249
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/admin/zone_encryption.rs:320
     A["Admin chooses local latest epoch plus one<br/>fresh roster, random key, local insertion"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/admin/zone_encryption.rs:273
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/admin/zone_encryption.rs:344
     G["Send grants to remaining eligible members<br/>no shared epoch activation barrier"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:359
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:380
     W["Stale writer still holds older latest key"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs:568
     E["Encrypt new text with locally supplied key"]
@@ -55,15 +55,15 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/auto_grant.rs:94
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/auto_grant.rs:145
     P["Select recipients without newest-epoch ACK"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/auto_grant.rs:102
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/auto_grant.rs:163
     H["For selected recipients only<br/>include missing older epochs"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/relay.rs:640
     Q["Publish queues or sends and returns<br/>it does not wait for relay ACK"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/auto_grant.rs:153
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/auto_grant.rs:214
     N["Positive ACK records that key<br/>negative ACK returns without changing report"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/auto_grant.rs:100
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/auto_grant.rs:148
     X["Newest accepted, older missing<br/>next sweep skips recipient entirely"]
     P --> H --> Q --> N --> X
     X -. retry uses same newest filter .-> P
@@ -78,13 +78,13 @@ sequenceDiagram
     participant B as Tab B ledger
     A->>K: Load empty recipient set
     B->>K: Load empty recipient set
-    Note over A,B: grant_ledger.rs:61<br/>loaded sets remain local to each instance
+    Note over A,B: grant_ledger.rs:72<br/>loaded sets remain local to each instance
     A->>K: Record Alice and write local snapshot
-    Note over A,K: grant_ledger.rs:91<br/>compare snapshot<br/>with own memory
+    Note over A,K: grant_ledger.rs:151<br/>compare snapshot<br/>with own memory
     B->>K: Record Bob and write local snapshot
-    Note over K,B: grant_ledger.rs:104<br/>does not merge<br/>another instance's later write
+    Note over K,B: grant_ledger.rs:164<br/>does not merge<br/>another instance's later write
     K-->>B: Reopened ledger contains Bob only
-    Note over A,B: grant_ledger.rs:108<br/>one-instance callback repair does not repair this case
+    Note over A,B: grant_ledger.rs:168<br/>one-instance callback repair does not repair this case
 ```
 
 ## NF-27.4 Account identity and zone-key custody have different lifetimes

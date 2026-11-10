@@ -54,7 +54,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/mcp/skills.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/handlers/legacy_notifications.rs
-verified_commit: {solid-pod-rs: 9b6143ce55b242c322c92d8c6bcc0c1a5371b451, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35}
+verified_commit: {solid-pod-rs: 27e18995fc20790fa956acb41f7d8420544a13ec, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
 ---
 
 ## SP-08.1 Solid Notifications 0.2 — the three channels
@@ -78,7 +78,7 @@ flowchart TD
 
     N["DEFAULT_MAX_SUBSCRIPTIONS 10 000 caps only InMemoryNotifications<br/>(solid-pod-rs/src/notifications/mod.rs:125), whose publish is a no-op<br/>(solid-pod-rs/src/notifications/mod.rs:229). The two channel managers that deliver<br/>keep plain unbounded maps (solid-pod-rs/src/notifications/mod.rs:244 and :385)."]
     SUB -.-> N
-    N2["Updates-Via advertises wss://base/.notifications (solid-pod-rs-server/src/lib.rs:1335)<br/>on GET, HEAD and OPTIONS responses only (solid-pod-rs-server/src/lib.rs:1493,<br/>solid-pod-rs-server/src/lib.rs:2329). The reference server mounts nothing there: the<br/>path falls to the LDP catch-all (solid-pod-rs-server/src/lib.rs:5433). See SP-03.11."]
+    N2["Updates-Via advertises wss://base/.notifications (solid-pod-rs-server/src/lib.rs:1417)<br/>on GET, HEAD and OPTIONS responses only (solid-pod-rs-server/src/lib.rs:1575,<br/>solid-pod-rs-server/src/lib.rs:2571). The reference server mounts nothing there: the<br/>path falls to the LDP catch-all (solid-pod-rs-server/src/lib.rs:5781). See SP-03.11."]
     WS -.-> N2
 ```
 
@@ -86,7 +86,7 @@ flowchart TD
 
 **Why it is this way.** The crate owns protocol and leaves routing to the embedder (the same line SP-08.17 draws). The consequence is that the reference server advertises a channel it does not serve.
 
-**Tension:** `set_updates_via` points every GET, HEAD and OPTIONS response at `/.notifications` on the WebSocket scheme, but no route in the server builds a `WebSocketChannelManager` or upgrades that path, so a client that follows the header reaches the LDP GET handler (`solid-pod-rs-server/src/lib.rs:5433`). Either the header should be dropped from the reference server or a channel mounted behind it.
+**Tension:** `set_updates_via` points every GET, HEAD and OPTIONS response at `/.notifications` on the WebSocket scheme, but no route in the server builds a `WebSocketChannelManager` or upgrades that path, so a client that follows the header reaches the LDP GET handler (`solid-pod-rs-server/src/lib.rs:5781`). Either the header should be dropped from the reference server or a channel mounted behind it.
 
 **Drift:** the subscription cap note in earlier readings implied the delivering channels were bounded. Only `InMemoryNotifications` is capped, and it delivers nothing.
 
@@ -229,7 +229,7 @@ sequenceDiagram
 
 **Invariant:** nothing is stored before the claimed actor matches the verified actor (`solid-pod-rs-activitypub/src/inbox.rs:65` precedes `solid-pod-rs-activitypub/src/inbox.rs:72`).
 
-**Tension:** "verify before store" is a caller contract, not a type guarantee. `VerifiedActor` has public fields (`solid-pod-rs-activitypub/src/http_sig.rs:76`) and the doc invites soft-logged callers to hand one through (`solid-pod-rs-activitypub/src/inbox.rs:48`). The reference server mounts no inbox at all: with `activitypub` it serves only the actor document at `/profile/card.jsonld` (`solid-pod-rs-server/src/lib.rs:1433`).
+**Tension:** "verify before store" is a caller contract, not a type guarantee. `VerifiedActor` has public fields (`solid-pod-rs-activitypub/src/http_sig.rs:76`) and the doc invites soft-logged callers to hand one through (`solid-pod-rs-activitypub/src/inbox.rs:48`). The reference server mounts no inbox at all: with `activitypub` it serves only the actor document at `/profile/card.jsonld` (`solid-pod-rs-server/src/lib.rs:1515`).
 
 ## SP-08.6 ActivityPub — outbox and delivery
 
@@ -341,7 +341,7 @@ stateDiagram-v2
 sequenceDiagram
     autonumber
     participant C as Client
-    participant SRV as handle_forge<br/>solid-pod-rs-server/src/lib.rs:5072
+    participant SRV as handle_forge<br/>solid-pod-rs-server/src/lib.rs:5420
     participant RA as ForgeService::resolve_agent<br/>solid-pod-rs-forge/src/lib.rs:369
     participant A as auth::resolve_agent<br/>solid-pod-rs-forge/src/auth.rs:29
     participant F as ForgeService::handle<br/>solid-pod-rs-forge/src/lib.rs:419
@@ -350,7 +350,7 @@ sequenceDiagram
 
     C->>SRV: any method under /forge
     SRV->>SRV: build ForgeRequest<br/>solid-pod-rs-forge/src/request.rs:23
-    SRV->>RA: resolve the caller first<br/>solid-pod-rs-server/src/lib.rs:5123
+    SRV->>RA: resolve the caller first<br/>solid-pod-rs-server/src/lib.rs:5471
     RA->>A: with the host pinned to base_url when configured
     A->>A: 1. forge push token, Bearer f1.*<br/>solid-pod-rs-forge/src/auth.rs:42
     A->>A: 2. NIP-98, body-bound when a body exists, replay-checked<br/>solid-pod-rs-forge/src/auth.rs:58<br/>solid-pod-rs-forge/src/auth.rs:59
@@ -369,7 +369,7 @@ sequenceDiagram
     Note over R: GitSmart is rebuilt, not forwarded verbatim: only owner/name[.git]/suffix is<br/>accepted (solid-pod-rs-forge/src/lib.rs:798) and the CGI always gets<br/>owner/name.git plus the suffix (solid-pod-rs-forge/src/lib.rs:803). See SP-06.12.
 ```
 
-**Drift:** `auth.rs` numbers NIP-98 as "Scheme 3" and says scheme 2, a pod session, "is injected by the server" (`solid-pod-rs-forge/src/auth.rs:50`). The reference server never injects one: it always calls `resolve_agent`, and its own comment says a pod session "would be" injected (`solid-pod-rs-server/src/lib.rs:5122`). In this server a forge caller is a token holder, a NIP-98 signer or anonymous.
+**Drift:** `auth.rs` numbers NIP-98 as "Scheme 3" and says scheme 2, a pod session, "is injected by the server" (`solid-pod-rs-forge/src/auth.rs:50`). The reference server never injects one: it always calls `resolve_agent`, and its own comment says a pod session "would be" injected (`solid-pod-rs-server/src/lib.rs:5470`). In this server a forge caller is a token holder, a NIP-98 signer or anonymous.
 
 ## SP-08.11 The forge push token
 
@@ -482,7 +482,7 @@ sequenceDiagram
     participant A as agent
     participant H as handle_mcp<br/>solid-pod-rs-server/src/mcp/mod.rs:159
     participant D as dispatch<br/>solid-pod-rs-server/src/mcp/mod.rs:97
-    participant T as call_tool<br/>solid-pod-rs-server/src/mcp/tools.rs:1105
+    participant T as call_tool<br/>solid-pod-rs-server/src/mcp/tools.rs:1129
     participant AU as authorise — the REST enforcement path<br/>solid-pod-rs-server/src/mcp/tools.rs:144
     participant W as wac_check — metadata tools<br/>solid-pod-rs-server/src/mcp/tools.rs:105
     participant S as Storage
@@ -520,45 +520,45 @@ flowchart LR
         LR2["list_resources<br/>solid-pod-rs-server/src/mcp/tools.rs:185"]
         RR["read_resource<br/>solid-pod-rs-server/src/mcp/tools.rs:367"]
         WR["write_resource<br/>solid-pod-rs-server/src/mcp/tools.rs:400"]
-        CR["create_resource<br/>solid-pod-rs-server/src/mcp/tools.rs:437"]
-        DR["delete_resource<br/>solid-pod-rs-server/src/mcp/tools.rs:500"]
-        HR["head_resource<br/>solid-pod-rs-server/src/mcp/tools.rs:527"]
+        CR["create_resource<br/>solid-pod-rs-server/src/mcp/tools.rs:439"]
+        DR["delete_resource<br/>solid-pod-rs-server/src/mcp/tools.rs:520"]
+        HR["head_resource<br/>solid-pod-rs-server/src/mcp/tools.rs:548"]
     end
     subgraph ACL["ACL tools"]
-        RA["read_acl<br/>solid-pod-rs-server/src/mcp/tools.rs:722"]
-        WA["write_acl with its own lockout guard<br/>solid-pod-rs-server/src/mcp/tools.rs:830"]
-        BA["build_acl_jsonld<br/>solid-pod-rs-server/src/mcp/tools.rs:771"]
+        RA["read_acl<br/>solid-pod-rs-server/src/mcp/tools.rs:743"]
+        WA["write_acl with its own lockout guard<br/>solid-pod-rs-server/src/mcp/tools.rs:851"]
+        BA["build_acl_jsonld<br/>solid-pod-rs-server/src/mcp/tools.rs:792"]
     end
     subgraph SK["Skill and doc tools"]
-        LS["list_skills<br/>solid-pod-rs-server/src/mcp/tools.rs:555"]
-        GS["get_skill<br/>solid-pod-rs-server/src/mcp/tools.rs:575"]
-        PS["get_pod_skill<br/>solid-pod-rs-server/src/mcp/tools.rs:603"]
-        LD["list_docs / read_docs from the embedded DOCS_DIR<br/>solid-pod-rs-server/src/mcp/tools.rs:639"]
-        PI["pod_info<br/>solid-pod-rs-server/src/mcp/tools.rs:671"]
+        LS["list_skills<br/>solid-pod-rs-server/src/mcp/tools.rs:576"]
+        GS["get_skill<br/>solid-pod-rs-server/src/mcp/tools.rs:596"]
+        PS["get_pod_skill<br/>solid-pod-rs-server/src/mcp/tools.rs:624"]
+        LD["list_docs / read_docs from the embedded DOCS_DIR<br/>solid-pod-rs-server/src/mcp/tools.rs:660"]
+        PI["pod_info<br/>solid-pod-rs-server/src/mcp/tools.rs:692"]
     end
     subgraph JV["Jev tool, feature jev only"]
         PO["propose_operation — proposes, never executes<br/>solid-pod-rs-server/src/mcp/tools.rs:289"]
         JR["jev_rerank of list_resources<br/>solid-pod-rs-server/src/mcp/tools.rs:262"]
     end
     subgraph FED["Federation tool"]
-        CRP["call_remote_pod, SSRF-checked target<br/>solid-pod-rs-server/src/mcp/tools.rs:950<br/>solid-pod-rs-server/src/mcp/tools.rs:978"]
-        FG["federation_gate_path<br/>solid-pod-rs-server/src/mcp/tools.rs:925"]
+        CRP["call_remote_pod, SSRF-checked target<br/>solid-pod-rs-server/src/mcp/tools.rs:974<br/>solid-pod-rs-server/src/mcp/tools.rs:1002"]
+        FG["federation_gate_path<br/>solid-pod-rs-server/src/mcp/tools.rs:949"]
         FA["is_forwardable_auth_header allowlist<br/>solid-pod-rs-server/src/mcp/tools.rs:47"]
     end
-    SUB["handle_subscribe — SSE change stream<br/>solid-pod-rs-server/src/mcp/tools.rs:1245"]
+    SUB["handle_subscribe — SSE change stream<br/>solid-pod-rs-server/src/mcp/tools.rs:1269"]
 
     RES --> SUB
     ACL --> SUB
     FED --> FG
     FED --> FA
 
-    N["INVARIANT: call_remote_pod forwards only an ALLOWLISTED set of auth headers<br/>(case-insensitively) so an agent cannot smuggle an arbitrary credential through<br/>the pod — pinned by two tests<br/>(solid-pod-rs-server/src/mcp/tools.rs:1340 and :1349)."]
+    N["INVARIANT: call_remote_pod forwards only an ALLOWLISTED set of auth headers<br/>(case-insensitively) so an agent cannot smuggle an arbitrary credential through<br/>the pod — pinned by two tests<br/>(solid-pod-rs-server/src/mcp/tools.rs:1364 and :1373)."]
     FA -.-> N
-    N2["path_matches_scope (solid-pod-rs-server/src/mcp/tools.rs:1221) bounds an SSE<br/>subscription to the scope the agent asked for, and each event is WAC-checked<br/>before it is framed by sse_event (:1232)."]
+    N2["path_matches_scope (solid-pod-rs-server/src/mcp/tools.rs:1245) bounds an SSE<br/>subscription to the scope the agent asked for, and each event is WAC-checked<br/>before it is framed by sse_event (:1256)."]
     SUB -.-> N2
     N3["Skills are discovered from CONVENTIONAL pod paths<br/>(solid-pod-rs-server/src/mcp/skills.rs:18, with :19 and :20 for apps and bots), so a pod publishes agent<br/>instructions as ordinary WAC-governed resources rather than as server config.<br/>discover_skills (:109) and read_skill (:152) are the two entry points."]
     SK -.-> N3
-    N4["propose_operation is listed and dispatched only when the jev feature is built<br/>(solid-pod-rs-server/Cargo.toml:184) AND the process env enables it<br/>(solid-pod-rs-server/src/mcp/tools.rs:1123). It checks WAC read on the container,<br/>drops unreadable children before any Jev call, and proposes an LDP operation<br/>without executing it. jev_rerank only ever sees children the caller may read."]
+    N4["propose_operation is listed and dispatched only when the jev feature is built<br/>(solid-pod-rs-server/Cargo.toml:184) AND the process env enables it<br/>(solid-pod-rs-server/src/mcp/tools.rs:1147). It checks WAC read on the container,<br/>drops unreadable children before any Jev call, and proposes an LDP operation<br/>without executing it. jev_rerank only ever sees children the caller may read."]
     JV -.-> N4
 ```
 
@@ -608,11 +608,11 @@ flowchart TD
 
 **Why it is this way.** Each optional tier is a feature gate so a plain forge adds neither relay sockets nor the Bitcoin stack. The README states announcement publication is opt-in: with no `announce_relays` nothing is sent (`../solid-pod-rs/crates/solid-pod-rs-forge/README.md:24-33`).
 
-**Drift (ADR-2009 vs code):** ADR-2009 says the mirror is default off and "nothing in `solid-pod-rs-server` starts it" (`../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2009-forge-plugins-comparator-and-default-off-mirror.md:34`); the server calls `start_forge` at boot when built with `forge` (`../solid-pod-rs/crates/solid-pod-rs-server/src/main.rs:459-460`) and reads `FORGE_MIRROR_RELAYS` (`../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:4980`). ADR-2010 supersedes the default-off clause and defines "on" as compiled in and started at boot, acting on nothing until relays and follow entries are configured (`../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2010-forge-and-mirror-are-on-in-shipped-builds.md:31`).
+**Drift (ADR-2009 vs code):** ADR-2009 says the mirror is default off and "nothing in `solid-pod-rs-server` starts it" (`../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2009-forge-plugins-comparator-and-default-off-mirror.md:34`); the server calls `start_forge` at boot when built with `forge` (`../solid-pod-rs/crates/solid-pod-rs-server/src/main.rs:459-460`) and reads `FORGE_MIRROR_RELAYS` (`../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:5328`). ADR-2010 supersedes the default-off clause and defines "on" as compiled in and started at boot, acting on nothing until relays and follow entries are configured (`../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2010-forge-and-mirror-are-on-in-shipped-builds.md:41`).
 
-**Drift (ADR text vs the SP-GIT-02 repair):** both ADRs gained a review qualification dated 2026-11-01 (`../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2009-forge-plugins-comparator-and-default-off-mirror.md:71`, `../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2010-forge-and-mirror-are-on-in-shipped-builds.md:62`) that still treats hidden refs as the mechanism and complete object withholding as open (`../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2010-forge-and-mirror-are-on-in-shipped-builds.md:69`). At this revision the boundary is store isolation plus the reader gate (SP-14.3, SP-14.4), and neither ADR says so.
+**Drift (ADR text vs the SP-GIT-02 repair):** both ADRs gained a review qualification dated 2026-11-01 (`../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2009-forge-plugins-comparator-and-default-off-mirror.md:71`, `../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2010-forge-and-mirror-are-on-in-shipped-builds.md:72`) that still treats hidden refs as the mechanism and complete object withholding as open (`../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2010-forge-and-mirror-are-on-in-shipped-builds.md:79`). At this revision the boundary is store isolation plus the reader gate (SP-14.3, SP-14.4), and neither ADR says so.
 
-**Tension (ADR-2010 vs agentbox):** ADR-2010 reads accepted / complete / staged (`../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2010-forge-and-mirror-are-on-in-shipped-builds.md:5-7`), and agentbox's pin enables `forge-full` (`../project/agentbox/lib/solid-pod-rs.nix:18`). That pin is `76ab7aab` (`../project/agentbox/lib/solid-pod-rs.nix:58`), which predates both the hidden-tip repair and the SP-GIT-02 store isolation. A shipped agentbox build therefore carries the pre-repair mirror; it stays inert only while no follow entries are configured. ADR-2009 moved the same way, accepted / complete / staged (`../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2009-forge-plugins-comparator-and-default-off-mirror.md:5-7`).
+**Tension (ADR-2010 vs agentbox):** RESOLVED at agentbox 720e0d8 as to the pin. ADR-2010 reads accepted / complete / staged (`../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2010-forge-and-mirror-are-on-in-shipped-builds.md:5-7`), and agentbox's pin enables `forge-full` (`../project/agentbox/lib/solid-pod-rs.nix:18`). That pin is now `27e18995` (`../project/agentbox/lib/solid-pod-rs.nix:64`), the commit this topic is stamped at, so a shipped build carries the hidden-tip repair and the SP-GIT-02 store isolation; the mirror stays inert while no follow entries are configured. ADR-2009 moved the same way, accepted / complete / staged (`../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2009-forge-plugins-comparator-and-default-off-mirror.md:5-7`).
 
 **Open:** the forge README (`../solid-pod-rs/crates/solid-pod-rs-forge/README.md:33`) records the web-edit tier as "not included" for announce triggering, while `ApiEdit` is routed (`solid-pod-rs-forge/src/router.rs:279`); nothing states whether an edit announces.
 

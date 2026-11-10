@@ -16,7 +16,7 @@ sources:
   - ../dream-engine/README.md
   - ../dream-engine/docs/adr/ADR-DE-003-protected-path-guard.md
   - ../dream-engine/docs/adr/ADR-DE-009-candidates-are-formatted-before-the-gate.md
-verified_commit: 815f963b1cbd6999e78144ce5475005ae1dd1d8e
+verified_commit: b40d50724bb6344dc00d57270f7166b138714406
 ---
 ## For developers
 
@@ -150,11 +150,11 @@ sequenceDiagram
     G-->>H: GateDecision
 ```
 
-**What it shows.** The current order includes formatting before relocation, build and evaluation. The first guard precedes branch deletion; the persist-layer guard precedes its worktree creation. Normalised fallback text is checked separately (`crates/dream-core/src/candidate.rs:469`, `crates/dream-core/src/persist.rs:196`).
+**What it shows.** The current order includes formatting before relocation, build and evaluation. The first guard precedes branch deletion; the persist-layer guard precedes its worktree creation. Normalised fallback text is checked separately (`crates/dream-core/src/candidate.rs:482`, `crates/dream-core/src/persist.rs:196`).
 **Why it is this way.** A protected input must stop before candidate commands run. The gate also checks supplied patch text when acceptance is claimed (`crates/dream-gate/src/gate.rs:418`). The caller must construct policy from the correct frozen baseline; the type alone does not prove that provenance (`crates/dream-gate/src/gate.rs:295`).
-**Debt:** the formatter executes on the control host before relocation, and build/evaluator commands execute with runner privileges. Worktree isolation is not an execution sandbox (`crates/dream-core/src/candidate.rs:71`, `crates/dream-core/src/candidate.rs:527`).
-**Debt:** the returned tree hash is prepared before build/evaluation; commands can mutate the tree afterwards without a final hash check in `run` (`crates/dream-core/src/candidate.rs:547`).
-**Open:** pre-apply non-protected guard failures become `Refused` and therefore unproven; the gate's recheck of an `Applied` patch makes those failures evidence vetoes. The layers intentionally remain described separately (`crates/dream-core/src/candidate.rs:451`, `crates/dream-gate/src/gate.rs:344`).
+**Debt:** the formatter executes on the control host before relocation, and build/evaluator commands execute with runner privileges. Worktree isolation is not an execution sandbox (`crates/dream-core/src/candidate.rs:71`, `crates/dream-core/src/candidate.rs:540`).
+**Debt:** the returned tree hash is prepared before build/evaluation; commands can mutate the tree afterwards without a final hash check in `run` (`crates/dream-core/src/candidate.rs:560`).
+**Open:** pre-apply non-protected guard failures become `Refused` and therefore unproven; the gate's recheck of an `Applied` patch makes those failures evidence vetoes. The layers intentionally remain described separately (`crates/dream-core/src/candidate.rs:464`, `crates/dream-gate/src/gate.rs:344`).
 **Debt:** the worktree path is predictable under the shared temporary directory and an existing directory is removed before use (`crates/dream-core/src/persist.rs:142`).
 
 ## DE-10.4 Receipts are checked against the frozen manifest

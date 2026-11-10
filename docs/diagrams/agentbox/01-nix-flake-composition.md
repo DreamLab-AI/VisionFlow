@@ -31,66 +31,66 @@ sources:
   - ../project/agentbox/lib/pele.nix
   - ../project/agentbox/docs/adr/ADR-2155-system-one-consumer-activation.md
   - ../project/agentbox/docs/adr/ADR-2154-pele-renders-mermaid-in-the-image.md
-verified_commit: 5a6c165483545dfaf97df72787e3d0107259b24f
+verified_commit: 720e0d89656a4360998b3a716d0f3ee8cac66f93
 ---
 
 ## AB-01.1 agentbox.toml gates to flake.nix conditionals to package set and supervisord text
 
 ```mermaid
 flowchart TB
-    TOML["agentbox.toml<br/>flake.nix:176 builtins.fromTOML"] --> CFG["agentboxConfig"]
-    CFG --> DESK["desktopCfg = agentboxConfig.desktop or {}<br/>flake.nix:198"]
-    CFG --> MEDIA["mediaCfg = skillsCfg.media or {}<br/>flake.nix:283"]
-    CFG --> VAULT["vaultCfg = agentboxConfig.vault or {}<br/>flake.nix:917"]
+    TOML["agentbox.toml<br/>flake.nix:185 builtins.fromTOML"] --> CFG["agentboxConfig"]
+    CFG --> DESK["desktopCfg = agentboxConfig.desktop or {}<br/>flake.nix:207"]
+    CFG --> MEDIA["mediaCfg = skillsCfg.media or {}<br/>flake.nix:292"]
+    CFG --> VAULT["vaultCfg = agentboxConfig.vault or {}<br/>flake.nix:927"]
 
-    DESK -->|"desktopCfg.enabled or false"| DESKOPT["lib.optionals<br/>flake.nix:1982 desktopPackages"]
-    MEDIA -->|"mediaCfg.comfyui_builtin or false"| COMFYOPT["lib.optionals<br/>flake.nix:1455 comfyuiPackages"]
-    CFG -->|"comfyui_builtin or integrations.comfyui_external.enabled"| COMFYMCP["comfyuiMcpPkg only<br/>flake.nix:900"]
+    DESK -->|"desktopCfg.enabled or false"| DESKOPT["lib.optionals<br/>flake.nix:1998 desktopPackages"]
+    MEDIA -->|"mediaCfg.comfyui_builtin or false"| COMFYOPT["lib.optionals<br/>flake.nix:1465 comfyuiPackages"]
+    CFG -->|"comfyui_builtin or integrations.comfyui_external.enabled"| COMFYMCP["comfyuiMcpPkg only<br/>flake.nix:910"]
     COMFYMCP --> ALLPKG
-    CFG --> VOICELINK["voicelinkOn = voicelink.enabled or false<br/>flake.nix:1848, voicelinkPackages flake.nix:1850<br/>voice-paned linked at /opt/agentbox/bin flake.nix:2129"]
+    CFG --> VOICELINK["voicelinkOn = voicelink.enabled or false<br/>flake.nix:1864, voicelinkPackages flake.nix:1866<br/>voice-paned linked at /opt/agentbox/bin flake.nix:2157"]
     VOICELINK --> ALLPKG
-    MEDIA -->|"mediaCfg.ffmpeg or false"| FFOPT["lib.optionals<br/>flake.nix:1463 wrapGpuBin ffmpeg"]
-    VAULT -->|"vaultCfg.tui == rune"| RUNEOPT["runeActive<br/>flake.nix:919"]
+    MEDIA -->|"mediaCfg.ffmpeg or false"| FFOPT["lib.optionals<br/>flake.nix:1473 wrapGpuBin ffmpeg"]
+    VAULT -->|"vaultCfg.tui == rune"| RUNEOPT["runeActive<br/>flake.nix:929"]
 
     DESKOPT --> ALLPKG["allPackages closure"]
     COMFYOPT --> ALLPKG
     FFOPT --> ALLPKG
-    RUNEOPT -->|"lib.optionals runeActive"| RUNEPKG["runePackages<br/>flake.nix:921"]
+    RUNEOPT -->|"lib.optionals runeActive"| RUNEPKG["runePackages<br/>flake.nix:931"]
     RUNEPKG --> ALLPKG
 
-    DESK -->|"lib.optionalString (desktopCfg.enabled or false)"| DESKSUP["desktopBlocks text<br/>flake.nix:2530<br/>spliced flake.nix:2726"]
-    MEDIA -->|"lib.optionalString (mediaCfg.comfyui_builtin or false)"| COMFYSUP["program:comfyui-builtin block<br/>flake.nix:2875-2884"]
+    DESK -->|"lib.optionalString (desktopCfg.enabled or false)"| DESKSUP["desktopBlocks text<br/>flake.nix:2580<br/>spliced flake.nix:2777"]
+    MEDIA -->|"lib.optionalString (mediaCfg.comfyui_builtin or false)"| COMFYSUP["program:comfyui-builtin block<br/>flake.nix:2926-2935"]
 
-    CFG --> SIDE["sidechainCfg = agentboxConfig.sidechain or {}<br/>flake.nix:321, enabled default false (:322)<br/>mirror and faucet only with enabled (:323-324)"]
-    SIDE -->|"lib.optionals sidechainAnyFaucet<br/>top-level or any per-chain faucet, flake.nix:360"| SIDEPKG["sidechainPackages = sidestr-agent<br/>flake.nix:1844"]
+    CFG --> SIDE["sidechainCfg = agentboxConfig.sidechain or {}<br/>flake.nix:330, enabled default false (:331)<br/>mirror and faucet only with enabled (:332-333)"]
+    SIDE -->|"lib.optionals sidechainAnyFaucet<br/>top-level or any per-chain faucet, flake.nix:369"| SIDEPKG["sidechainPackages = sidestr-agent<br/>flake.nix:1860"]
     SIDEPKG --> ALLPKG
-    SIDE -->|"lib.optionalString sidechainEnabled / Mirror / Faucet"| SIDESUP["upstream bake under /opt/agentbox/sidestr (flake.nix:2106),<br/>program:sidestr-producer, -mirror, -faucet blocks<br/>flake.nix:3127, :3145, :3162"]
+    SIDE -->|"lib.optionalString sidechainEnabled / Mirror / Faucet"| SIDESUP["upstream bake under /opt/agentbox/sidestr (flake.nix:2134),<br/>program:sidestr-producer, -mirror, -faucet blocks<br/>flake.nix:3178, :3196, :3213"]
     SIDESUP --> SUPTEXT
-    CFG --> JEVON["jevCompactionOn = features.jev_compaction.enabled<br/>flake.nix:1866, ADR-2121"]
-    JEVON -->|"lib.optionals jevCompactionOn"| FRPKG["factrailPackages<br/>flake.nix:1882"]
+    CFG --> JEVON["jevCompactionOn = features.jev_compaction.enabled<br/>flake.nix:1882, ADR-2121"]
+    JEVON -->|"lib.optionals jevCompactionOn"| FRPKG["factrailPackages<br/>flake.nix:1898"]
     FRPKG --> ALLPKG
-    JEVON -->|"lib.optionalString jevCompactionOn"| FRBAKE["/opt/agentbox/bin/factrail symlink (flake.nix:2116)<br/>plugin copied to config/claude-plugins/factrail (flake.nix:2197)"]
+    JEVON -->|"lib.optionalString jevCompactionOn"| FRBAKE["/opt/agentbox/bin/factrail symlink (flake.nix:2144)<br/>plugin copied to config/claude-plugins/factrail (flake.nix:2225)"]
 
-    CFG --> SOON["systemOneProxyOn = system_one.enabled<br/>flake.nix:315, ADR-2139"]
-    SOON -->|"lib.optionals systemOneProxyOn"| SOPKG["systemOneProxyPackages (flake.nix:1884)<br/>/opt/agentbox/bin/system-one-proxy link (flake.nix:2134)<br/>rebuild-class consumers add jev: flake.nix:947, :958, :1538"]
+    CFG --> SOON["systemOneProxyOn = system_one.enabled<br/>flake.nix:324, ADR-2139"]
+    SOON -->|"lib.optionals systemOneProxyOn"| SOPKG["systemOneProxyPackages (flake.nix:1900)<br/>/opt/agentbox/bin/system-one-proxy link (flake.nix:2162)<br/>rebuild-class consumers add jev: flake.nix:957, :968, :1553"]
     SOPKG --> ALLPKG
-    SOON -->|"lib.optionalString systemOneProxyOn"| SOSUP["program:system-one-proxy<br/>flake.nix:3037"]
+    SOON -->|"lib.optionalString systemOneProxyOn"| SOSUP["program:system-one-proxy<br/>flake.nix:3088"]
     SOSUP --> SUPTEXT
-    CFG --> JKON["jevCheckpointsOn = features.jev_checkpoints.enabled<br/>flake.nix:1871, ADR-2135"]
-    JKON -->|"config copy filter"| JKBAKE["plugin dir config/claude-plugins/jev-checkpoints dropped when the gate is off,<br/>its tests/ never shipped - flake.nix:2168-2172"]
-    CFG --> SEOON["seoWatchEnabled = seo_watch.enabled (flake.nix:308)<br/>program:seo-watch-cron flake.nix:3084"]
-    CFG --> UCRON["userCronEnabled = user_cron.enabled (flake.nix:309)<br/>program:user-cron flake.nix:3058"]
+    CFG --> JKON["jevCheckpointsOn = features.jev_checkpoints.enabled<br/>flake.nix:1887, ADR-2135"]
+    JKON -->|"config copy filter"| JKBAKE["plugin dir config/claude-plugins/jev-checkpoints dropped when the gate is off,<br/>its tests/ never shipped - flake.nix:2196-2200"]
+    CFG --> SEOON["seoWatchEnabled = seo_watch.enabled (flake.nix:317)<br/>program:seo-watch-cron flake.nix:3135"]
+    CFG --> UCRON["userCronEnabled = user_cron.enabled (flake.nix:318)<br/>program:user-cron flake.nix:3109"]
     UCRON --> SUPTEXT
-    CFG --> TGCON["targetGcEnabled = resources.target_gc.enabled (flake.nix:243)<br/>program:target-gc flake.nix:3376"]
-    CFG --> IPON["interactionPlaneEnabled flake.nix:419, ADR-2153<br/>agentboxSessionsPkg flake.nix:2058, link :2099"]
+    CFG --> TGCON["targetGcEnabled = resources.target_gc.enabled (flake.nix:252)<br/>program:target-gc flake.nix:3427"]
+    CFG --> IPON["interactionPlaneEnabled flake.nix:428, ADR-2153<br/>agentboxSessionsPkg flake.nix:2074, link :2127"]
     IPON --> ALLPKG
-    IPON -->|"program:agentbox-sessions flake.nix:2912"| SUPTEXT
+    IPON -->|"program:agentbox-sessions flake.nix:2963"| SUPTEXT
     SEOON --> SUPTEXT
     TGCON --> SUPTEXT
 
-    DESKSUP --> SUPTEXT["supervisorText — AUTO-GENERATED supervisord.conf<br/>flake.nix:2622 supervisorText = header"]
+    DESKSUP --> SUPTEXT["supervisorText — AUTO-GENERATED supervisord.conf<br/>flake.nix:2672 supervisorText = header"]
     COMFYSUP --> SUPTEXT
-    ALLPKG --> MKIMAGE["mkImage layers<br/>flake.nix:4584"]
+    ALLPKG --> MKIMAGE["mkImage layers<br/>flake.nix:4626"]
 
     ALLPKG -.->|"see AB-01.6"| WRAPTGT["wrapped GPU targets"]
 
@@ -98,11 +98,11 @@ flowchart TB
     SUPTEXT --- note1
 ```
 
-**Tension (ADR-2151 vs manifest, status moved 2026-11-02):** at the previous stamp (`c57d9c0`) ADR-2151 read `decision_status: proposed`, `implementation_status: none`, `activation_status: inactive`. Its 2026-11-02 external review reconciliation moves implementation to `partial` because the source and the bake exist (`docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`, `docs/adr/ADR-2151-voicelink-edge-voice.md:21`), which closes the implementation half; the decision is still proposed and activation inactive, and the ADR says acceptance is not inferred from the enabled flag (`docs/adr/ADR-2151-voicelink-edge-voice.md:21`). Yet `[voicelink] enabled = true` (`agentbox.toml:2264`) makes `voicelinkOn` bake `voice-paned` into the package set and `/opt/agentbox/bin` (`flake.nix:1848-1850`, `flake.nix:2129`).
+**Tension (ADR-2151 vs manifest, status moved 2026-11-02):** at the previous stamp (`c57d9c0`) ADR-2151 read `decision_status: proposed`, `implementation_status: none`, `activation_status: inactive`. Its 2026-11-02 external review reconciliation moves implementation to `partial` because the source and the bake exist (`docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`, `docs/adr/ADR-2151-voicelink-edge-voice.md:21`), which closes the implementation half; the decision is still proposed and activation inactive, and the ADR says acceptance is not inferred from the enabled flag (`docs/adr/ADR-2151-voicelink-edge-voice.md:21`). Yet `[voicelink] enabled = true` (`agentbox.toml:2270`) makes `voicelinkOn` bake `voice-paned` into the package set and `/opt/agentbox/bin` (`flake.nix:1864-1866`, `flake.nix:2157`).
 
 **Tension (ADR-2151 reconciliation vs its own Verification section):** the Verification section still says `implementation_status` becomes `partial` only once the bake and the hook spool are verified by the voicelink end-to-end link test against a live grouped session (`docs/adr/ADR-2151-voicelink-edge-voice.md:43`); the 2026-11-02 reconciliation sets `partial` from a read-only inspection of the bake and records that end-to-end test as not run (`docs/adr/ADR-2151-voicelink-edge-voice.md:21`).
-**Invariant:** the voicelink gate is the one rebuild-class gate that adds a package and a catalogue entry (`management-api/lib/system-manifest.js:184`) but no supervisor block, by design: `voice-paned` runs per ssh connection (`management-api/lib/system-manifest.js:186`).
-**Open:** ADR-2154 (accepted, partial, staged; supersedes ADR-2152 and its browsercontainer `mmdc` shim) puts the pinned Pele renderer and an `mmdc` compatibility shim into the package set when `docsCfg.mermaid` is on (`flake.nix:689`, `flake.nix:768`, `lib/pele.nix:61`, `lib/pele.nix:67`); the record's activation status is still staged. ADR-2155 (`accepted`, `complete`, `staged`, `../project/agentbox/docs/adr/ADR-2155-system-one-consumer-activation.md:5-7`) likewise records the System One consumer activation as staged while `[system_one.consumers]` already sets all nineteen true, three of them rebuild-class (`../project/agentbox/agentbox.toml:906-927`).
+**Invariant:** the voicelink gate is the one rebuild-class gate that adds a package and a catalogue entry (`management-api/lib/system-manifest.js:187`) but no supervisor block, by design: `voice-paned` runs per ssh connection (`management-api/lib/system-manifest.js:189`).
+**Open:** ADR-2154 (accepted, partial, staged; supersedes ADR-2152 and its browsercontainer `mmdc` shim) puts the pinned Pele renderer and an `mmdc` compatibility shim into the package set when `docsCfg.mermaid` is on (`flake.nix:696`, `flake.nix:775`, `lib/pele.nix:61`, `lib/pele.nix:67`); the record's activation status is still staged. ADR-2155 (`accepted`, `complete`, `staged`, `../project/agentbox/docs/adr/ADR-2155-system-one-consumer-activation.md:5-7`) likewise records the System One consumer activation as staged while `[system_one.consumers]` already sets all nineteen true, three of them rebuild-class (`../project/agentbox/agentbox.toml:912-933`).
 
 ## AB-01.2 apply_class taxonomy - live, boot, rebuild
 
@@ -261,14 +261,14 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant FLAKE as flake.nix eval<br/>flake.nix:467-468
+    participant FLAKE as flake.nix eval<br/>flake.nix:476-477
     participant MK as makeNpmCli<br/>lib/npm-cli.nix:120
     participant FETCH as pkgs.fetchurl stage 1<br/>lib/npm-cli.nix:186
     participant FOD as packageWithDeps FOD stage 2<br/>lib/npm-cli.nix:204
     participant WRAP as wrapper derivation stage 3
-    participant ALWAYS as npmCliAlwaysPackages<br/>flake.nix:754
+    participant ALWAYS as npmCliAlwaysPackages<br/>flake.nix:761
 
-    FLAKE->>MK: mkNpmCli pkgName=ruvector version=0.3.3<br/>flake.nix:472-479
+    FLAKE->>MK: mkNpmCli pkgName=ruvector version=0.3.3<br/>flake.nix:481-488
     MK->>FETCH: registryUrl ruvector 0.3.3<br/>lib/npm-cli.nix:102-115
     FETCH->>FETCH: sha256 = SRI hash of the .tgz<br/>lib/npm-cli.nix:186-188
     alt sha256 is lib.fakeHash placeholder
@@ -279,9 +279,9 @@ sequenceDiagram
     FOD-->>MK: $out/lib/ruvector with populated node_modules
     MK->>WRAP: thin mkDerivation, no network, writes $out/bin/ruvector wrapper<br/>lib/npm-cli.nix Stage 3 rationale lines 39-41
     WRAP-->>FLAKE: ruvectorPkg derivation
-    FLAKE->>ALWAYS: npmCliAlwaysPackages = [ ruvectorPkg wranglerPkg ]<br/>flake.nix:754
-    Note over FLAKE,ALWAYS: the nix-prefetch-url comment at flake.nix:471 and the version field<br/>at flake.nix:474 agree on ruvector-0.3.3 (bumped together 2026-10-01)
-    Note over FLAKE,ALWAYS: DRIFT: BASELINE-container.md:63 says the nix-prefetch-url comment above the pin<br/>still names the old tarball, but flake.nix:471 names ruvector-0.3.3 like the pin at flake.nix:474 -<br/>and BASELINE-container.md:61 gives flake.nix as 4,684 lines while it is 4,748 at this stamp
+    FLAKE->>ALWAYS: npmCliAlwaysPackages = [ ruvectorPkg wranglerPkg ]<br/>flake.nix:761
+    Note over FLAKE,ALWAYS: the nix-prefetch-url comment at flake.nix:480 and the version field<br/>at flake.nix:483 agree on ruvector-0.3.3 (bumped together 2026-10-01)
+    Note over FLAKE,ALWAYS: DRIFT: BASELINE-container.md:65 says the nix-prefetch-url comment above the pin<br/>still names the old tarball, but flake.nix:480 names ruvector-0.3.3 like the pin at flake.nix:483 -<br/>and BASELINE-container.md:63 gives flake.nix as 4,684 lines while it is 4,748 at this stamp
 ```
 
 ## AB-01.6 gpu-wrap.nix wrapGpuBins - LD_LIBRARY_PATH suffix and vendor ICDs
@@ -289,18 +289,18 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant FLAKE as flake.nix eval<br/>flake.nix:444-446
+    participant FLAKE as flake.nix eval<br/>flake.nix:453-455
     participant WRAP as gpuWrap.wrapGpuBins<br/>lib/gpu-wrap.nix:76
     participant JOIN as pkgs.symlinkJoin<br/>lib/gpu-wrap.nix:77
     participant MAKEW as makeWrapper wrapProgram<br/>lib/gpu-wrap.nix:87
     participant BIN as wrapped binary at runtime
 
-    FLAKE->>FLAKE: gpuActive = agentbox.toml gpu.backend == local-cuda<br/>flake.nix:444
+    FLAKE->>FLAKE: gpuActive = agentbox.toml gpu.backend == local-cuda<br/>flake.nix:453
     alt gpu.backend == none
-        FLAKE->>FLAKE: wrapGpuBin pkg bins = pkg, unwrapped passthrough<br/>flake.nix:445-448
+        FLAKE->>FLAKE: wrapGpuBin pkg bins = pkg, unwrapped passthrough<br/>flake.nix:454-457
         Note over FLAKE: alt gpu.backend=none - wrapping is inert without injected driver libs, gpu-wrap.nix comment lines 21-22
     else gpu.backend == local-cuda
-        FLAKE->>WRAP: wrapGpuBins pkg=pkgs.blender bins=[blender]<br/>flake.nix:1481
+        FLAKE->>WRAP: wrapGpuBins pkg=pkgs.blender bins=[blender]<br/>flake.nix:1491
         WRAP->>JOIN: paths=[pkg], nativeBuildInputs=[makeWrapper]<br/>lib/gpu-wrap.nix:77-80
         JOIN->>MAKEW: for each bin, wrapProgram target gpuEnvArgs<br/>lib/gpu-wrap.nix:81-89
         MAKEW->>MAKEW: --suffix LD_LIBRARY_PATH : /usr/lib:/usr/lib/x86_64-linux-gnu:/run/opengl-driver/lib<br/>lib/gpu-wrap.nix:46-51,56
@@ -317,7 +317,7 @@ sequenceDiagram
     Note over BIN: DIVERGENCE - GPU wrapper is CUDA-only by design, no Nix-binary Vulkan/GLX presentation path,<br/>interactive 3D depends on the FHS gui-tools sidecar, ADR-2006 Context and Consequences
     Note over MAKEW: DIVERGENCE - BASELINE GPU scope and evidence qualification 2026-09-04 -<br/>current wrappers include GLX/EGL/Vulkan defaults alongside CUDA library-path config,<br/>so ADR-2006's graphics review trigger has been reached, agentbox/docs/BASELINE-container.md lines 310-312
 
-    Note over WRAP: wrapped-target gates - ffmpeg mediaCfg.ffmpeg flake.nix:1463,<br/>qgis spatialCfg.qgis flake.nix:1469, blender spatialCfg.blender AND spatialCfg.blender_local (default true)<br/>flake.nix:1477 - the blender-mcp proxy block stays gated on blender alone, flake.nix:2724,<br/>3DGS spatialCfg.gaussian_splatting map wrapGpuAll gauss3dPackages flake.nix:1487<br/>(see AB-27 for the fuller MCP-proxy treatment of qgis/blender/ffmpeg)
+    Note over WRAP: wrapped-target gates - ffmpeg mediaCfg.ffmpeg flake.nix:1473,<br/>qgis spatialCfg.qgis flake.nix:1479, blender spatialCfg.blender AND spatialCfg.blender_local (default true)<br/>flake.nix:1487 - the blender-mcp proxy block stays gated on blender alone, flake.nix:2775,<br/>3DGS spatialCfg.gaussian_splatting map wrapGpuAll gauss3dPackages flake.nix:1497<br/>(see AB-27 for the fuller MCP-proxy treatment of qgis/blender/ffmpeg)
     Note over WRAP: INVARIANT - wrapGpuBin names exact bins, wrapGpuAll wraps every<br/>executable under out/bin for upstream-versioned bin sets - colmap and lichtfeld<br/>(both CUDA) need the wrapper, metis is CPU-only so wrapping is inert for it,<br/>flake.nix comment lines 1484-1486
 ```
 
@@ -407,23 +407,23 @@ flowchart LR
     RUFLO["rufloConsole<br/>github ruvnet/ruflo pin 631c1557<br/>flake=false, flake.nix:56-59"]
     RUFLO --> EVAL
 
-    EVAL --> PACKAGES["packages - flake.nix:4643<br/>lib.optionalAttrs pkgs.stdenv.isLinux"]
-    EVAL --> DEVSHELL["devShells.default<br/>flake.nix:4721"]
+    EVAL --> PACKAGES["packages - flake.nix:4685<br/>lib.optionalAttrs pkgs.stdenv.isLinux"]
+    EVAL --> DEVSHELL["devShells.default<br/>flake.nix:4765"]
 
-    PACKAGES --> RUNTIME["runtime = mkImage tag runtime-system<br/>flake.nix:4649"]
-    PACKAGES --> FULL["full = mkImage extraPackages allPackages<br/>flake.nix:4650-4653"]
-    PACKAGES --> DESKTOP["desktop = mkImage extraPackages desktopPackages<br/>flake.nix:4654-4657"]
-    PACKAGES --> CUDART["cuda-runtime adds explicitly dispatched local-cuda packages<br/>flake.nix:4675-4683"]
-    PACKAGES --> GSPLAT["gaussian-splatting = 3DGS stack over cuda-runtime<br/>flake.nix:4697-4707"]
-    PACKAGES --> SECTOOLS["security-tools and agentbox-vex, host-only supply-chain tooling (ADR-2137)<br/>flake.nix:4644-4645, built from securityTools flake.nix:168"]
-    MKIMG2["each mkImage result also carries securityEvidence (SBOM and VEX inputs)<br/>flake.nix:4616"] -.-> SECTOOLS
-    PACKAGES --> COMPOSE["compose = docker-compose.yml text, cross-platform<br/>flake.nix:4715-4718"]
+    PACKAGES --> RUNTIME["runtime = mkImage tag runtime-system<br/>flake.nix:4693"]
+    PACKAGES --> FULL["full = mkImage extraPackages allPackages<br/>flake.nix:4694-4697"]
+    PACKAGES --> DESKTOP["desktop = mkImage extraPackages desktopPackages<br/>flake.nix:4698-4701"]
+    PACKAGES --> CUDART["cuda-runtime adds explicitly dispatched local-cuda packages<br/>flake.nix:4719-4727"]
+    PACKAGES --> GSPLAT["gaussian-splatting = 3DGS stack over cuda-runtime<br/>flake.nix:4741-4751"]
+    PACKAGES --> SECTOOLS["security-tools and agentbox-vex, host-only supply-chain tooling (ADR-2137)<br/>flake.nix:4686-4687, built from securityTools flake.nix:177"]
+    MKIMG2["each mkImage result also carries securityEvidence (SBOM and VEX inputs)<br/>flake.nix:4658"] -.-> SECTOOLS
+    PACKAGES --> COMPOSE["compose = docker-compose.yml text, cross-platform<br/>flake.nix:4759-4762"]
 
-    RUNTIME --> MKIMG["mkImage - n2c.buildImage 4 layers, platform toolchains agent-clis services<br/>flake.nix:4564-4589"]
+    RUNTIME --> MKIMG["mkImage - n2c.buildImage 4 layers, platform toolchains agent-clis services<br/>flake.nix:4606-4631"]
     FULL --> MKIMG
     DESKTOP --> MKIMG
 
-    MKIMG --> ENTRYPOINT["config = Entrypoint entrypoint/bin/entrypoint<br/>flake.nix:4600"]
+    MKIMG --> ENTRYPOINT["config = Entrypoint entrypoint/bin/entrypoint<br/>flake.nix:4642"]
     VAULTSRC -.->|"see AB-01.10"| VAULTPKG["vaultPkg = import lib/vault.nix"]
 
     NOTE1["INVARIANT - container-image outputs are Linux-only,<br/>darwin exposes only compose and devShells, flake.nix comment lines 4639-4642"]
@@ -434,17 +434,17 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    TOMLVAULT["[vault] in agentbox.toml<br/>agentbox.toml:1157<br/>tui = rune (:1165), cli = true (:1172)"] --> VAULTCFG["vaultCfg = agentboxConfig.vault or {}<br/>flake.nix:917"]
+    TOMLVAULT["[vault] in agentbox.toml<br/>agentbox.toml:1163<br/>tui = rune (:1171), cli = true (:1178)"] --> VAULTCFG["vaultCfg = agentboxConfig.vault or {}<br/>flake.nix:927"]
 
-    VAULTCFG --> TUIVAL["vaultTui = vaultCfg.tui or none<br/>flake.nix:918"]
-    TUIVAL --> RUNEACTIVE["runeActive = vaultTui == rune<br/>flake.nix:919"]
-    RUNEACTIVE -->|"true"| RUNEPKGIMPORT["runePkg = import lib/rune.nix<br/>flake.nix:920, lazy import"]
-    RUNEACTIVE -->|"lib.optionals runeActive"| RUNEPACKAGES["runePackages<br/>flake.nix:921"]
+    VAULTCFG --> TUIVAL["vaultTui = vaultCfg.tui or none<br/>flake.nix:928"]
+    TUIVAL --> RUNEACTIVE["runeActive = vaultTui == rune<br/>flake.nix:929"]
+    RUNEACTIVE -->|"true"| RUNEPKGIMPORT["runePkg = import lib/rune.nix<br/>flake.nix:930, lazy import"]
+    RUNEACTIVE -->|"lib.optionals runeActive"| RUNEPACKAGES["runePackages<br/>flake.nix:931"]
     RUNEPKGIMPORT --> RUNEPACKAGES
 
-    VAULTCFG --> CLIVAL["vaultCliActive = root != '' and (vaultCfg.cli or true)<br/>flake.nix:942 - defaults ON, unlike tui"]
-    CLIVAL -->|"true"| VAULTPKGIMPORT["vaultPkg = import lib/vault.nix src=vaultSrc<br/>flake.nix:943-948"]
-    CLIVAL -->|"lib.optionals vaultCliActive"| VAULTPACKAGES["vaultPackages = vaultPkg + ontomarkPkg<br/>flake.nix:956-960"]
+    VAULTCFG --> CLIVAL["vaultCliActive = root != '' and (vaultCfg.cli or true)<br/>flake.nix:952 - defaults ON, unlike tui"]
+    CLIVAL -->|"true"| VAULTPKGIMPORT["vaultPkg = import lib/vault.nix src=vaultSrc<br/>flake.nix:953-958"]
+    CLIVAL -->|"lib.optionals vaultCliActive"| VAULTPACKAGES["vaultPackages = vaultPkg + ontomarkPkg<br/>flake.nix:966-970"]
     VAULTPKGIMPORT --> VAULTPACKAGES
 
     RUNEPACKAGES --> ALLPKG["allPackages closure - Nix image composition"]
@@ -463,35 +463,35 @@ flowchart TB
     TOMLVAULT -.->|"vault.tui read at rebuild"| VAULTTUIENTRY
     TOMLVAULT -.->|"vault.cli read at rebuild"| VAULTCLIENTRY
 
-    STATEOF["stateOf function<br/>system-manifest.js:456-469<br/>a false parent gate now dominates child gates (:460-461)"]
+    STATEOF["stateOf function<br/>system-manifest.js:462-475<br/>a false parent gate now dominates child gates (:466-467)"]
     VAULTTUIENTRY --> STATEOF
-    STATEOF --> MODESTRING["off and none count as off, plus a per-entry off_values set<br/>skill-router declares table as its off value<br/>system-manifest.js:478-481, entry at system-manifest.js:345"]
+    STATEOF --> MODESTRING["off and none count as off, plus a per-entry off_values set<br/>skill-router declares table as its off value<br/>system-manifest.js:484-487, entry at system-manifest.js:348"]
 
-    NOTE1["DOC-DRIFT - the code comment at system-manifest.js:393-399 still says the<br/>split is into TWO catalogue entries (ADR-2020), but [vault] now has THREE:<br/>root/pages/format are boot-class, tui and cli are both rebuild-class but gate<br/>different binaries (Rune TUI vs the vault CLI door)"]
+    NOTE1["DOC-DRIFT - the code comment at system-manifest.js:396-402 still says the<br/>split is into TWO catalogue entries (ADR-2020), but [vault] now has THREE:<br/>root/pages/format are boot-class, tui and cli are both rebuild-class but gate<br/>different binaries (Rune TUI vs the vault CLI door)"]
     VAULTTUIENTRY --- NOTE1
 
     NOTE2["DIVERGENCE - vault-tui and vault-cli are REBUILD-class, flipping either key and<br/>restarting the container is NOT sufficient - the Rune binary or the vault CLI is<br/>absent from the package set until agentbox.sh rebuild runs"]
     STATEOF --- NOTE2
 
-    NOTE3["INVARIANT ADR-2107/ADR-2108 - cli defaults to true whenever root is set (opt-OUT),<br/>unlike tui which defaults to none (opt-IN); the gate bakes vault AND ontomark (flake.nix:960):<br/>ontomark owns find, retrieve, tree, edit, create, validate, gate, conflicts and build,<br/>vault keeps only propose and panel publish (flake.nix:949-952), ontology-bridge is retired,<br/>agentbox.toml.schema.json:284-288; loom_sync, loom_url and loom_host follow at :289-307"]
+    NOTE3["INVARIANT ADR-2107/ADR-2108 - cli defaults to true whenever root is set (opt-OUT),<br/>unlike tui which defaults to none (opt-IN); the gate bakes vault AND ontomark (flake.nix:970):<br/>ontomark owns find, retrieve, tree, edit, create, validate, gate, conflicts and build,<br/>vault keeps only propose and panel publish (flake.nix:959-962), ontology-bridge is retired,<br/>agentbox.toml.schema.json:284-288; loom_sync, loom_url and loom_host follow at :289-307"]
     VAULTCLIENTRY --- NOTE3
 ```
 
-**Drift:** the `vault-cli` catalogue entry is still named "the one door to the corpus" and its summary says agents reach the corpus through the `vault` binary (`../project/agentbox/management-api/lib/system-manifest.js:406-408`), but the flake now bakes `ontomark` beside it under the same gate and gives `ontomark` every read and edit verb, leaving `vault` only `propose` and `panel publish` (`../project/agentbox/flake.nix:949-952`, `../project/agentbox/flake.nix:960`). The gate and its apply class are right; the description of what it bakes is stale. Closing it is a catalogue summary edit naming both binaries.
+**Drift:** the `vault-cli` catalogue entry is still named "the one door to the corpus" and its summary says agents reach the corpus through the `vault` binary (`../project/agentbox/management-api/lib/system-manifest.js:409-411`), but the flake now bakes `ontomark` beside it under the same gate and gives `ontomark` every read and edit verb, leaving `vault` only `propose` and `panel publish` (`../project/agentbox/flake.nix:959-962`, `../project/agentbox/flake.nix:970`). The gate and its apply class are right; the description of what it bakes is stale. Closing it is a catalogue summary edit naming both binaries.
 
 ## AB-01.11 ADR-2080 model_routing.neural gate - pinned artefacts baked into the image (rebuild-class)
 ```mermaid
 flowchart TB
-    TOML2["[model_routing.neural] in agentbox.toml<br/>agentbox.toml:1774-1784<br/>enabled/provider/quality_bar/cost_ceiling_usd_per_mtok/privacy_tier/trajectory/assets_dir"] --> CFG2["agentboxConfig<br/>flake.nix:176"]
-    CFG2 --> MRNCFG["modelRoutingNeuralCfg = (agentboxConfig.model_routing or {}).neural or {}<br/>flake.nix:184"]
-    ARTJSON["config/model-router/artefacts.json<br/>hash-pinned files[] list"] --> MRNFETCH["modelRouterArtefacts = builtins.fromJSON ...<br/>flake.nix:185"]
-    MRNFETCH --> MRNASSETS["modelRouterAssets = pkgs.runCommand ...<br/>per-file pkgs.fetchurl url+sha256, copied to $out/dest<br/>flake.nix:186-194"]
+    TOML2["[model_routing.neural] in agentbox.toml<br/>agentbox.toml:1780-1790<br/>enabled/provider/quality_bar/cost_ceiling_usd_per_mtok/privacy_tier/trajectory/assets_dir"] --> CFG2["agentboxConfig<br/>flake.nix:185"]
+    CFG2 --> MRNCFG["modelRoutingNeuralCfg = (agentboxConfig.model_routing or {}).neural or {}<br/>flake.nix:193"]
+    ARTJSON["config/model-router/artefacts.json<br/>hash-pinned files[] list"] --> MRNFETCH["modelRouterArtefacts = builtins.fromJSON ...<br/>flake.nix:194"]
+    MRNFETCH --> MRNASSETS["modelRouterAssets = pkgs.runCommand ...<br/>per-file pkgs.fetchurl url+sha256, copied to $out/dest<br/>flake.nix:195-203"]
 
-    MRNCFG -->|"modelRoutingNeuralCfg.enabled or false"| GATE{"lib.optionalString<br/>flake.nix:2243"}
+    MRNCFG -->|"modelRoutingNeuralCfg.enabled or false"| GATE{"lib.optionalString<br/>flake.nix:2271"}
     MRNASSETS --> GATE
-    GATE -->|true| BAKE["mkdir $out/opt/agentbox/model-router<br/>cp -r modelRouterAssets/. into it<br/>flake.nix:2246-2248"]
+    GATE -->|true| BAKE["mkdir $out/opt/agentbox/model-router<br/>cp -r modelRouterAssets/. into it<br/>flake.nix:2274-2276"]
     GATE -->|false| SKIP["byte-identical-when-off: nothing copied<br/>flake.nix comment lines 2244-2245"]
-    BAKE --> ALLPKG2["mkImage layers<br/>flake.nix:4584"]
+    BAKE --> ALLPKG2["mkImage layers<br/>flake.nix:4626"]
 
     subgraph MANIFEST2["system-manifest.js CATALOGUE"]
         MRNENTRY["id model-routing-neural<br/>gate model_routing.neural.enabled, apply_class rebuild<br/>system-manifest.js:118-120"]
@@ -499,7 +499,7 @@ flowchart TB
     TOML2 -.->|"enabled read at rebuild"| MRNENTRY
 
     subgraph SCHEMA2["schema/agentbox.toml.schema.json"]
-        NEURALSCHEMA["model_routing.properties.neural<br/>additionalProperties false<br/>agentbox.toml.schema.json:1641-1643"]
+        NEURALSCHEMA["model_routing.properties.neural<br/>additionalProperties false<br/>agentbox.toml.schema.json:1649-1651"]
     end
     TOML2 -.-> NEURALSCHEMA
 

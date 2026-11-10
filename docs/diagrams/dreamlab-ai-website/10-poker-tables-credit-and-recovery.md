@@ -26,7 +26,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/poker_schedule.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/relay.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/dm/mod.rs
-verified_commit: {dreamlab-ai-website: b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5, nostr-rust-forum: 9c36b6032640c89879ae52fe25da99493979a0b6, agentbox: 9dfc27b16e82e9786535a55e790710493dd51fdf}
+verified_commit: {dreamlab-ai-website: f934e26f949f3b95171544ec8ec5bcfd7679f593, nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
 ---
 
 ## For developers
@@ -45,12 +45,12 @@ flowchart TB
     A["Website enables poker and configures<br/>DREAM and BLAKES7 house identities"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/poker/mod.rs:265
     B["Client offers a table for each configured<br/>chain with an asset and house key"]
-    %% Source: ../project/agentbox/agentbox.toml:2034
+    %% Source: ../project/agentbox/agentbox.toml:2039
     C["Agentbox enables two house services<br/>with separate keys, chains and daily caps"]
     %% Source: ../project/agentbox/config/poker/run-citizen.sh:23
     D["Runner chooses chain-specific state path<br/>and executes the baked binary"]
-    %% Source: ../project/agentbox/lib/poker-citizen.nix:32
-    E["DRIFT: service pin dd454474 differs from<br/>website client pin 9c36b603"]
+    %% Source: ../project/agentbox/lib/poker-citizen.nix:31
+    E["DRIFT: RESOLVED at agentbox 720e0d8 and website f934e26<br/>service pin 6064622 now equals website client pin 6064622"]
     %% Source: ../dreamlab-ai-website/.github/workflows/deploy.yml:130
     F["Website consumes KIT_REF independently<br/>equal poker source does not prove all dependencies equal"]
     A --> B
@@ -60,8 +60,8 @@ flowchart TB
     E --> F
 ```
 
-**What it shows:** Configuration has expanded beyond the single DREAM seat described by ADR-2009. The source comparison found no changes in the 42 poker files across the two pins; it did not certify the complete dependency graph or running binary provenance.
-**Why it is this way:** ADR-2009 places forum behaviour in the kit and service custody in agentbox. Its exact-commit lockstep wording is stronger than the current separately pinned deployment.
+**What it shows:** Configuration has expanded beyond the single DREAM seat described by ADR-2009. The service and client pins now name the same kit commit, which does not certify the complete dependency graph or running binary provenance.
+**Why it is this way:** ADR-2009 places forum behaviour in the kit and service custody in agentbox. Its exact-commit lockstep wording now holds, but only by two separately edited pins that must be moved together.
 
 ## DW-10.2 Admission grants unsecured play credit
 

@@ -19,8 +19,9 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/src/wac/conditions.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/Cargo.toml
+  - ../solid-pod-rs/crates/solid-pod-rs/src/ldp.rs
   - ../solid-pod-rs/crates/solid-pod-rs/Cargo.toml
-verified_commit: 9b6143ce55b242c322c92d8c6bcc0c1a5371b451
+verified_commit: 27e18995fc20790fa956acb41f7d8420544a13ec
 ---
 
 **Repair note — 2026-11-03:** selected counterexamples below have a [scoped successor verification](15-authority-and-payment-repairs.md). This historical topic retains its declared source revision; the successor states the repaired contracts and acceptance boundaries.
@@ -31,31 +32,31 @@ verified_commit: 9b6143ce55b242c322c92d8c6bcc0c1a5371b451
 sequenceDiagram
     autonumber
     participant H as LDP write handler
-    participant EW as enforce_write_ctx<br/>solid-pod-rs-server/src/lib.rs:953
-    participant ET as guarded_acl_target, wrapping wac::effective_acl_target<br/>solid-pod-rs-server/src/lib.rs:826
-    participant RP as resolve_policy_dyn<br/>solid-pod-rs-server/src/lib.rs:2228
-    participant BAL as resolve_balance_sats<br/>solid-pod-rs-server/src/lib.rs:775
-    participant GI as grant_for_identities<br/>solid-pod-rs-server/src/lib.rs:1078
+    participant EW as enforce_write_ctx<br/>solid-pod-rs-server/src/lib.rs:1052
+    participant ET as guarded_acl_target, wrapping wac::effective_acl_target<br/>solid-pod-rs-server/src/lib.rs:925
+    participant RP as resolve_policy_dyn<br/>solid-pod-rs-server/src/lib.rs:2468
+    participant BAL as resolve_balance_sats<br/>solid-pod-rs-server/src/lib.rs:883
+    participant GI as grant_for_identities<br/>solid-pod-rs-server/src/lib.rs:1177
     participant EV as wac::evaluate_access_ctx_with_registry<br/>solid-pod-rs/src/wac/evaluator.rs:234
-    participant CH as charge_granted_payment<br/>solid-pod-rs-server/src/lib.rs:1047
+    participant CH as charge_granted_payment<br/>solid-pod-rs-server/src/lib.rs:1146
 
     H->>EW: (path, mode, agent_uri, Origin)
-    EW->>EW: wac::Origin::parse of the raw Origin header<br/>solid-pod-rs-server/src/lib.rs:960
-    EW->>ET: map (path, mode) to the resource actually governed<br/>solid-pod-rs-server/src/lib.rs:972
-    ET-->>EW: (resource, eff_mode) — sidecars elevate to Control, and so do trail secrets,<br/>/.well-known/prov/ state and /.well-known/webledgers/ (solid-pod-rs-server/src/lib.rs:826)
+    EW->>EW: wac::Origin::parse of the raw Origin header<br/>solid-pod-rs-server/src/lib.rs:1059
+    EW->>ET: map (path, mode) to the resource actually governed<br/>solid-pod-rs-server/src/lib.rs:1071
+    ET-->>EW: (resource, eff_mode) — sidecars elevate to Control, and so do trail secrets,<br/>/.well-known/prov/ state and /.well-known/webledgers/ (solid-pod-rs-server/src/lib.rs:925)
     EW->>RP: typed policy resolution over the effective resource
     RP-->>EW: PolicyOutcome
     alt outcome.is_failure()
-        EW-->>H: policy_failure_to_actix — 403 or 503<br/>solid-pod-rs-server/src/lib.rs:2244
+        EW-->>H: policy_failure_to_actix — 403 or 503<br/>solid-pod-rs-server/src/lib.rs:2484
     end
     EW->>BAL: Web-Ledger balance for the principal (None if anonymous)
-    EW->>GI: linked did:nostr and WebID identities via cross_identity (solid-pod-rs-server/src/lib.rs:997)
-    GI->>EV: one evaluation per identity, primary first (solid-pod-rs-server/src/lib.rs:1078)
-    Note over GI,EV: every context carries client_id and issuer None (solid-pod-rs-server/src/lib.rs:1093-1094),<br/>and the group resolver is an EMPTY StaticGroupMembership (solid-pod-rs-server/src/lib.rs:994)
+    EW->>GI: linked did:nostr and WebID identities via cross_identity (solid-pod-rs-server/src/lib.rs:1096)
+    GI->>EV: one evaluation per identity, primary first (solid-pod-rs-server/src/lib.rs:1177)
+    Note over GI,EV: every context carries client_id and issuer None (solid-pod-rs-server/src/lib.rs:1192-1193),<br/>and the group resolver is an EMPTY StaticGroupMembership (solid-pod-rs-server/src/lib.rs:1093)
     EV-->>GI: granted true or false
     GI-->>EW: the first granting RequestContext, or None
     alt not granted
-        EW-->>H: acl_denial — 401 with WWW-Authenticate, or 403<br/>solid-pod-rs-server/src/lib.rs:1109
+        EW-->>H: acl_denial — 401 with WWW-Authenticate, or 403<br/>solid-pod-rs-server/src/lib.rs:1208
     end
     opt resource == path, i.e. no sidecar elevation
         EW->>CH: debit the granting rule's PaymentCondition cost
@@ -65,7 +66,7 @@ sequenceDiagram
 
 **What it shows / Why it is this way:** the write gate no longer calls `effective_acl_target` directly: `guarded_acl_target` adds the server-managed state paths, and `grant_for_identities` evaluates the ACL once per linked identity so a `did:nostr` caller with a verified WebID link matches an ACL naming either.
 
-**Invariant:** trail secrets, `/.well-known/prov/` state and `/.well-known/webledgers/` are evaluated as `acl:Control` on themselves, so no ordinary Read or Write grant reaches them over HTTP (`solid-pod-rs-server/src/lib.rs:826`). A path that cannot be canonicalised is also held to Control (`solid-pod-rs-server/src/lib.rs:839`).
+**Invariant:** trail secrets, `/.well-known/prov/` state and `/.well-known/webledgers/` are evaluated as `acl:Control` on themselves, so no ordinary Read or Write grant reaches them over HTTP (`solid-pod-rs-server/src/lib.rs:925`). A path that cannot be canonicalised is also held to Control (`solid-pod-rs-server/src/lib.rs:938`).
 
 **Tension:** the admission context is narrower than the WAC 2.0 vocabulary the evaluator accepts. The native gate never supplies a client or issuer, and it passes an empty group map, so `acl:agentGroup`, and client or issuer conditions other than the `foaf:Agent` class, cannot grant here (see SP-04.13 and SP-04.15).
 
@@ -75,23 +76,23 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant H as handle_get / handle_glob_get
-    participant ER as enforce_read_inner (enforce_read_ctx wraps it with charge = true)<br/>solid-pod-rs-server/src/lib.rs:1177
-    participant ET as guarded_acl_target with base Read<br/>solid-pod-rs-server/src/lib.rs:1196
-    participant RP as resolve_policy_dyn<br/>solid-pod-rs-server/src/lib.rs:2228
+    participant ER as enforce_read_inner (enforce_read_ctx wraps it with charge = true)<br/>solid-pod-rs-server/src/lib.rs:1276
+    participant ET as guarded_acl_target with base Read<br/>solid-pod-rs-server/src/lib.rs:1295
+    participant RP as resolve_policy_dyn<br/>solid-pod-rs-server/src/lib.rs:2468
     participant EV as evaluate_access_ctx_with_registry<br/>solid-pod-rs/src/wac/evaluator.rs:234
 
     H->>ER: (path, agent_uri, Origin)
     ER->>ET: an acl/meta sidecar becomes (protected, Control)
     ER->>RP: resolve typed policy
     RP-->>ER: PolicyOutcome, failures deny here
-    ER->>EV: evaluate for the PRINCIPAL, then each linked identity<br/>via grant_for_identities, solid-pod-rs-server/src/lib.rs:1208
+    ER->>EV: evaluate for the PRINCIPAL, then each linked identity<br/>via grant_for_identities, solid-pod-rs-server/src/lib.rs:1307
     EV-->>ER: granted or denial
-    ER->>EV: RE-evaluate the SAME document with web_id = None<br/>solid-pod-rs-server/src/lib.rs:1267
+    ER->>EV: RE-evaluate the SAME document with web_id = None<br/>solid-pod-rs-server/src/lib.rs:1366
     EV-->>ER: anonymous_would_be_granted
-    ER-->>H: Public only when anonymous is granted AND resource path is unchanged<br/>solid-pod-rs-server/src/lib.rs:1276
+    ER-->>H: Public only when anonymous is granted AND resource path is unchanged<br/>solid-pod-rs-server/src/lib.rs:1375
     Note over ER: The second evaluation is pure — no extra storage I/O.<br/>Sidecar reads classify Private. Both evaluations use the parsed document,<br/>including any restrictions already lost by the parser (SP-04.3).
     Note over H,ER: HEAD routes to handle_get and uses this gate.<br/>See SP-02.11.
-    Note over ER: Glob GET gates the folder (solid-pod-rs-server/src/lib.rs:3057) and then every child<br/>with charge = false (solid-pod-rs-server/src/lib.rs:3074), so a child whose ACL denies Read is<br/>dropped, and a read whose rule carries a PaymentCondition is refused rather than debited<br/>(solid-pod-rs-server/src/lib.rs:1224). COPY needs Read on its Source (solid-pod-rs-server/src/lib.rs:2951).
+    Note over ER: Glob GET gates the folder (solid-pod-rs-server/src/lib.rs:3386) and then every child<br/>with charge = false (solid-pod-rs-server/src/lib.rs:3403), so a child whose ACL denies Read is<br/>dropped, and a read whose rule carries a PaymentCondition is refused rather than debited<br/>(solid-pod-rs-server/src/lib.rs:1323). COPY needs Read on its Source (solid-pod-rs-server/src/lib.rs:3274).
 ```
 
 ## SP-04.3 Typed policy outcomes — only absence inherits
@@ -110,7 +111,7 @@ stateDiagram-v2
 
     Present --> Found: parsed JSON-LD or Turtle
     Present --> Invalid: byte/depth bound, non-UTF-8,<br/>or parser-reported malformed input
-    Present --> Found: DEBT incomplete Turtle condition may be discarded
+    Present --> Invalid: DEBT RESOLVED at solid-pod-rs 27e1899, an incomplete Turtle condition is now a parse error
     Failed --> Unavailable
 
     Missing --> [*]: deny by default (no ACL means no access)
@@ -131,7 +132,7 @@ stateDiagram-v2
     end note
 ```
 
-**Debt:** the typed resolver prevents fallback after reported failure, but a lenient Turtle parse can report Found after discarding a condition. [Native probes](../../estate-review/2026-11-01-solid-policy-parsing.md) distinguish that direct grant from inheritance.
+**Debt:** RESOLVED at solid-pod-rs 27e1899. The typed resolver prevents fallback after reported failure, and the Turtle parser now reports an unbalanced or typeless condition as an error (`solid-pod-rs/src/wac/parser.rs:422-424`, `solid-pod-rs/src/wac/parser.rs:427-429`) that the resolver maps to Malformed (`solid-pod-rs/src/wac/resolver.rs:209-211`), instead of reporting Found after discarding it. [Native probes](../../estate-review/2026-11-01-solid-policy-parsing.md) distinguish that direct grant from inheritance.
 
 ## SP-04.4 classify_policy_read — one level, runtime-free
 
@@ -177,16 +178,16 @@ flowchart LR
     PR["protected_resource_for_acl(path)<br/>solid-pod-rs/src/wac/mod.rs:217"]
     ORD["ordinary resource -> (path, base_mode) unchanged<br/>solid-pod-rs/src/wac/mod.rs:255"]
     ELV["sidecar -> (protected_resource, Control)<br/>solid-pod-rs/src/wac/mod.rs:254"]
-    RD["enforce_read_inner passes base Read<br/>solid-pod-rs-server/src/lib.rs:1196"]
-    WR["enforce_write_ctx passes the request's write mode<br/>solid-pod-rs-server/src/lib.rs:972"]
+    RD["enforce_read_inner passes base Read<br/>solid-pod-rs-server/src/lib.rs:1295"]
+    WR["enforce_write_ctx passes the request's write mode<br/>solid-pod-rs-server/src/lib.rs:1071"]
 
     IN --> PR
     PR -- None --> ORD
     PR -- "Some(p)" --> ELV
-    RD --> GUARD["guarded_acl_target wrapper<br/>solid-pod-rs-server/src/lib.rs:826"]
+    RD --> GUARD["guarded_acl_target wrapper<br/>solid-pod-rs-server/src/lib.rs:925"]
     WR --> GUARD
     GUARD --> IN
-    GUARD -.-> EXTRA["Server-managed secret/state paths also require Control<br/>solid-pod-rs-server/src/lib.rs:831-839"]
+    GUARD -.-> EXTRA["Server-managed secret/state paths also require Control<br/>solid-pod-rs-server/src/lib.rs:930-938"]
 
     N1["Suffix rules: /.acl and /dir/.acl strip to / and /dir/ respectively;<br/>/a/b.acl strips to the resource /a/b.<br/>solid-pod-rs/src/wac/mod.rs:221"]
     PR -.-> N1
@@ -196,7 +197,7 @@ flowchart LR
     IN -.-> N3
 ```
 
-**Open:** the elevation and the resolver disagree about an inner container ACL. `protected_resource_for_acl` maps `/dir/.acl` to `/dir/` (`solid-pod-rs/src/wac/mod.rs:220`), so writing it needs Control on `/dir/`. The resolver reads `acl_sidecar_key("/dir/")`, which is `/dir.acl` (`solid-pod-rs/src/wac/resolver.rs:333-338`, `solid-pod-rs/src/wac/resolver.rs:379`). So a stored `/dir/.acl` is protected but never enforced. Discovery headers now advertise `/dir.acl` (`solid-pod-rs/src/ldp.rs:152`), and the upstream changelog leaves existing inner copies to a migration review rather than moving them.
+**Open:** the elevation and the resolver disagree about an inner container ACL. `protected_resource_for_acl` maps `/dir/.acl` to `/dir/` (`solid-pod-rs/src/wac/mod.rs:220`), so writing it needs Control on `/dir/`. The resolver reads `acl_sidecar_key("/dir/")`, which is `/dir.acl` (`solid-pod-rs/src/wac/resolver.rs:333-338`, `solid-pod-rs/src/wac/resolver.rs:379`). So a stored `/dir/.acl` is protected but never enforced. Discovery headers now advertise `/dir.acl` (`solid-pod-rs/src/ldp.rs:153`-`154`), and the upstream changelog leaves existing inner copies to a migration review rather than moving them.
 
 ## SP-04.6 The lockout guard — syntactic Control is not effective Control
 
@@ -205,34 +206,34 @@ sequenceDiagram
     autonumber
     participant C as Client with Control
     participant H as PUT / POST / PATCH / COPY handler
-    participant G as proposed_acl_keeps_caller_control<br/>solid-pod-rs-server/src/lib.rs:875
+    participant G as proposed_acl_keeps_caller_control<br/>solid-pod-rs-server/src/lib.rs:974
     participant CP as wac::classify_policy_read<br/>solid-pod-rs/src/wac/resolver.rs:265
-    participant GI as grant_for_identities<br/>solid-pod-rs-server/src/lib.rs:1078
+    participant GI as grant_for_identities<br/>solid-pod-rs-server/src/lib.rs:1177
 
     C->>H: write a new sidecar body
     H->>H: enforce Control on the protected resource (SP-04.5)
     H->>G: (path, candidate bytes, content type, caller)
     alt path is not an acl (a meta sidecar)
-        G-->>H: true — Control was already required, the body is not an ACL<br/>solid-pod-rs-server/src/lib.rs:883
+        G-->>H: true — Control was already required, the body is not an ACL<br/>solid-pod-rs-server/src/lib.rs:982
     else acl path
-        G->>CP: bounded JSON-LD then Turtle parse, inherited = false<br/>solid-pod-rs-server/src/lib.rs:889
+        G->>CP: bounded JSON-LD then Turtle parse, inherited = false<br/>solid-pod-rs-server/src/lib.rs:988
         alt not Found, an unknown condition type, or a Turtle syntax error
-            G-->>H: false — fail closed<br/>solid-pod-rs-server/src/lib.rs:892-908
+            G-->>H: false — fail closed<br/>solid-pod-rs-server/src/lib.rs:991-1007
         else parsed
-            G->>GI: effective acl:Control on the PROTECTED resource, with the caller's balance,<br/>linked identities and condition registry, no origin<br/>solid-pod-rs-server/src/lib.rs:916
+            G->>GI: effective acl:Control on the PROTECTED resource, with the caller's balance,<br/>linked identities and condition registry, no origin<br/>solid-pod-rs-server/src/lib.rs:1015
             GI-->>G: some granting identity, or none
             G-->>H: granted?
         end
     end
     alt false
-        H-->>C: 409 Conflict — refused<br/>solid-pod-rs-server/src/lib.rs:1736
+        H-->>C: 409 Conflict — refused<br/>solid-pod-rs-server/src/lib.rs:1819
     end
-    Note over H: Call sites — PUT (lib.rs:1732), POST after Slug resolution (lib.rs:1843),<br/>JSON PATCH on the patched object (lib.rs:1961), RDF PATCH on the<br/>SERIALISED post-patch document (lib.rs:1997), create-via-PATCH (lib.rs:2035),<br/>and COPY onto a sidecar destination (lib.rs:2962). COPY of an ACL sidecar happens only<br/>for a caller holding Control on both sides and passing this guard (lib.rs:2992-3012).
+    Note over H: Call sites — PUT (lib.rs:1815), POST after Slug resolution (lib.rs:1933),<br/>JSON PATCH on the patched object (lib.rs:2123), RDF PATCH on the<br/>SERIALISED post-patch document (lib.rs:2165), create-via-PATCH (lib.rs:2221),<br/>and COPY onto a sidecar destination (lib.rs:3285). COPY of an ACL sidecar happens only<br/>for a caller holding Control on both sides and passing this guard (lib.rs:3320-3340).
 ```
 
 **What changed:** at `09ec90f` the guard was synchronous and syntactic. It accepted any authorisation naming Control for the caller, a recognised class, or an unparseable body. Upstream commit `daff10d` replaced it with an evaluation of effective Control on the protected resource, using the same identities, balance and conditions as admission. A Control rule aimed at a different resource, an unsatisfied condition or an unparseable body now gets 409. The [2026-11-01 HTTP reproduction](../../estate-review/2026-11-01-solid-http-delivery.md) of the wrong-target lockout predates this change. The closure here comes from source tracing; this audit did not re-run it.
 
-**Debt:** the guard still evaluates what the lenient Turtle reader retained, so a condition the parser discards is invisible to it as it is to enforcement (SP-04.3). It passes an empty group map, so a candidate whose only Control grant is an `acl:agentGroup` is refused (`solid-pod-rs-server/src/lib.rs:913`). An RDF PATCH serialisation is refused as Malformed (see the SP-03.5 debt).
+**Debt:** the guard still evaluates what the lenient Turtle reader retained, so a condition the parser discards is invisible to it as it is to enforcement (SP-04.3). It passes an empty group map, so a candidate whose only Control grant is an `acl:agentGroup` is refused (`solid-pod-rs-server/src/lib.rs:1012`). An RDF PATCH serialisation is refused as Malformed (see the SP-03.5 debt).
 
 ## SP-04.7 evaluate_access_ctx_inner — the decision loop
 
@@ -341,24 +342,22 @@ flowchart LR
 ```mermaid
 flowchart TD
     IN["parse_turtle_acl_with_limit<br/>solid-pod-rs/src/wac/parser.rs:40"]
-    STRIP["strip_turtle_comments<br/>solid-pod-rs/src/wac/parser.rs:93"]
-    SPLIT["split_turtle_statements<br/>solid-pod-rs/src/wac/parser.rs:118"]
-    AUTH["parse_turtle_authorization<br/>solid-pod-rs/src/wac/parser.rs:150"]
-    PRED["split_predicate_list<br/>solid-pod-rs/src/wac/parser.rs:242"]
-    COBJ["parse_turtle_condition_objects<br/>solid-pod-rs/src/wac/parser.rs:287"]
-    CBOD["parse_turtle_condition_body<br/>solid-pod-rs/src/wac/parser.rs:349"]
-    NORM["normalise_condition_type<br/>solid-pod-rs/src/wac/parser.rs:460"]
-    CURIE["expand_curie_or_iri against the prefix map<br/>solid-pod-rs/src/wac/parser.rs:545"]
+    STRIP["strip_turtle_comments<br/>solid-pod-rs/src/wac/parser.rs:112"]
+    SPLIT["split_turtle_statements<br/>solid-pod-rs/src/wac/parser.rs:154"]
+    AUTH["parse_turtle_authorization<br/>solid-pod-rs/src/wac/parser.rs:198"]
+    PRED["split_predicate_list<br/>solid-pod-rs/src/wac/parser.rs:312"]
+    COBJ["parse_turtle_condition_objects<br/>solid-pod-rs/src/wac/parser.rs:381"]
+    CBOD["parse_turtle_condition_body<br/>solid-pod-rs/src/wac/parser.rs:463"]
+    NORM["normalise_condition_type<br/>solid-pod-rs/src/wac/parser.rs:577"]
+    CURIE["expand_curie_or_iri against the prefix map<br/>solid-pod-rs/src/wac/parser.rs:662"]
     DOC["AclDocument { graph, inherited }<br/>solid-pod-rs/src/wac/document.rs:13"]
     SER["serialize_turtle_acl — supported fields only<br/>solid-pod-rs/src/wac/serializer.rs:7"]
 
     IN --> STRIP --> SPLIT --> AUTH
     AUTH --> PRED --> CURIE
     AUTH --> COBJ --> CBOD --> NORM
-    COBJ --> LOST["DEBT unbalanced brackets stop parsing<br/>solid-pod-rs/src/wac/parser.rs:317-320"]
-    CBOD --> LOST2["DEBT absent type returns None<br/>solid-pod-rs/src/wac/parser.rs:418"]
-    LOST --> DOC
-    LOST2 --> DOC
+    COBJ --> LOST["DEBT: RESOLVED at solid-pod-rs 27e1899, unbalanced brackets<br/>return an AclParse error<br/>solid-pod-rs/src/wac/parser.rs:422-424"]
+    CBOD --> LOST2["DEBT: RESOLVED at solid-pod-rs 27e1899, an absent type still returns None here<br/>but the caller raises an AclParse error<br/>solid-pod-rs/src/wac/parser.rs:535, solid-pod-rs/src/wac/parser.rs:427-429"]
     AUTH --> DOC
     DOC --> SER
 
@@ -374,7 +373,7 @@ flowchart TD
     BODY["PaymentConditionBody with cost_sats<br/>solid-pod-rs/src/wac/payment.rs:27"]
     TOT["total_payment_cost over a condition list<br/>solid-pod-rs/src/wac/payment.rs:85"]
     GPC["wac::granted_payment_cost — cost of the ONE granting rule<br/>solid-pod-rs/src/wac/evaluator.rs:375"]
-    CG["charge_granted_payment then debit_ledger<br/>(WebLedger::charge since alpha.11)<br/>solid-pod-rs-server/src/lib.rs:1047"]
+    CG["charge_granted_payment then debit_ledger<br/>(WebLedger::charge since alpha.11)<br/>solid-pod-rs-server/src/lib.rs:1146"]
     CLI["ClientConditionEvaluator::evaluate<br/>solid-pod-rs/src/wac/client.rs:54"]
     ISS["IssuerConditionEvaluator::evaluate<br/>solid-pod-rs/src/wac/issuer.rs:44"]
     ANC["ProvenanceAnchorEvaluator::evaluate — a MARKER, always satisfied<br/>solid-pod-rs/src/wac/anchor.rs:102"]
@@ -389,7 +388,7 @@ flowchart TD
 
     N1["A granted request is charged the cost of the rule it actually used, not the<br/>sum of every PaymentCondition in the document."]
     GPC -.-> N1
-    N2["INVARIANT: a debit failure denies the request with the same shape as a WAC<br/>denial — the pod never serves unpaid, even if a concurrent spend raced the<br/>balance below cost after the gate passed.<br/>solid-pod-rs-server/src/lib.rs:1064"]
+    N2["INVARIANT: a debit failure denies the request with the same shape as a WAC<br/>denial — the pod never serves unpaid, even if a concurrent spend raced the<br/>balance below cost after the gate passed.<br/>solid-pod-rs-server/src/lib.rs:1163"]
     CG -.-> N2
     N3["ProvenanceAnchor is not an access gate — it never denies. Treating it as one<br/>would make an anchor-worthy resource unreadable."]
     ANC -.-> N3
@@ -397,18 +396,18 @@ flowchart TD
     REG -.-> GATE
 ```
 
-**Debt:** client and issuer conditions are registered but never fed. Every admission context the server builds sets `client_id` and `issuer` to `None` (`solid-pod-rs-server/src/lib.rs:1093-1094`, `solid-pod-rs-server/src/lib.rs:1263-1264`). So `ClientConditionEvaluator` can be satisfied only by the `foaf:Agent` class shortcut (`solid-pod-rs/src/wac/client.rs:61-64`), and `IssuerConditionEvaluator` denies whenever no class matches (`solid-pod-rs/src/wac/issuer.rs:57-61`). Any rule carrying a specific client or issuer condition cannot grant on this server.
+**Debt:** client and issuer conditions are registered but never fed. Every admission context the server builds sets `client_id` and `issuer` to `None` (`solid-pod-rs-server/src/lib.rs:1192-1193`, `solid-pod-rs-server/src/lib.rs:1362-1363`). So `ClientConditionEvaluator` can be satisfied only by the `foaf:Agent` class shortcut (`solid-pod-rs/src/wac/client.rs:61-64`), and `IssuerConditionEvaluator` denies whenever no class matches (`solid-pod-rs/src/wac/issuer.rs:57-61`). Any rule carrying a specific client or issuer condition cannot grant on this server.
 
 ## SP-04.14 Denial shape
 
 ```mermaid
 flowchart LR
-    IN["acl_denial(acl_doc, agent_uri, path)<br/>solid-pod-rs-server/src/lib.rs:1109"]
+    IN["acl_denial(acl_doc, agent_uri, path)<br/>solid-pod-rs-server/src/lib.rs:1208"]
     ANON{"agent_uri is None?"}
-    U401["401 Unauthorized, body 'authentication required'<br/>solid-pod-rs-server/src/lib.rs:1116"]
-    F403["403 Forbidden, body 'access forbidden'<br/>solid-pod-rs-server/src/lib.rs:1118"]
-    WA["WAC-Allow advisory header on BOTH<br/>solid-pod-rs-server/src/lib.rs:1122"]
-    CH["WWW-Authenticate: Nostr, DPoP, Bearer — all three realms<br/>solid-pod-rs-server/src/lib.rs:1136"]
+    U401["401 Unauthorized, body 'authentication required'<br/>solid-pod-rs-server/src/lib.rs:1215"]
+    F403["403 Forbidden, body 'access forbidden'<br/>solid-pod-rs-server/src/lib.rs:1217"]
+    WA["WAC-Allow advisory header on BOTH<br/>solid-pod-rs-server/src/lib.rs:1221"]
+    CH["WWW-Authenticate: Nostr, DPoP, Bearer — all three realms<br/>solid-pod-rs-server/src/lib.rs:1235"]
 
     IN --> ANON
     ANON -- yes --> U401 --> WA
@@ -417,7 +416,7 @@ flowchart LR
 
     N["Advertising the Nostr scheme matters: without it a did:nostr agent has no<br/>protocol signal that NIP-98 is accepted and cannot know how to retry."]
     CH -.-> N
-    N2["A policy FAILURE is a different shape: Invalid gives 403 'governing ACL is<br/>invalid', Unavailable gives 503 'access control unavailable'.<br/>solid-pod-rs-server/src/lib.rs:2244"]
+    N2["A policy FAILURE is a different shape: Invalid gives 403 'governing ACL is<br/>invalid', Unavailable gives 503 'access control unavailable'.<br/>solid-pod-rs-server/src/lib.rs:2484"]
     IN -.-> N2
 ```
 
@@ -433,7 +432,7 @@ flowchart TD
     NM["no clause matched -> false"]
     TRAIT["GroupMembership trait — is_member(group_iri, agent_uri)<br/>solid-pod-rs/src/wac/evaluator.rs:23"]
     NOOP["NoGroupMembership — always false, crate-private,<br/>used by the WAC 1.x evaluate_access entry point<br/>solid-pod-rs/src/wac/evaluator.rs:28<br/>solid-pod-rs/src/wac/evaluator.rs:172"]
-    STATIC["StaticGroupMembership — HashMap of group to WebIDs. The server passes<br/>an EMPTY one on every admission path, so it never matches there<br/>solid-pod-rs/src/wac/evaluator.rs:38<br/>solid-pod-rs-server/src/lib.rs:994<br/>solid-pod-rs-server/src/lib.rs:1206"]
+    STATIC["StaticGroupMembership — HashMap of group to WebIDs. The server passes<br/>an EMPTY one on every admission path, so it never matches there<br/>solid-pod-rs/src/wac/evaluator.rs:38<br/>solid-pod-rs-server/src/lib.rs:1093<br/>solid-pod-rs-server/src/lib.rs:1305"]
 
     AM --> WEBID
     WEBID -- yes --> GRANT["agent matches"]

@@ -18,7 +18,7 @@ sources:
   - ../project/agentbox/scripts/hp-loom-reconcile.sh
   - ../loom/crates/loom-facade/src/lib.rs
   - ../loom/crates/loom-facade/src/bundle.rs
-verified_commit: {knowledgegraph: 4ed9ac159daf402b4fb252ce559dbeb894a8d91e, visiongraph: 556a0156b5c326fb61141ed2ab1760dd8d9c4dd6, visionclaw: 75b72416bac176ca8fde715cac3bd7c77657b3e7, agentbox: 9dfc27b16e82e9786535a55e790710493dd51fdf, loom: ba21a689a57dc67dc68ad22e52b058da34a7fb05}
+verified_commit: {knowledgegraph: 5294e88b6602a63b5afe96c79f2779d00274a05e, visiongraph: d8277151a1404b456b5c7206187f7e4b50f25be1, visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, loom: 741c5dffd3253038bbe4fadea7fada7c46474a25}
 ---
 
 ## For developers
@@ -33,11 +33,11 @@ A successful website publication does not prove that a graph consumer has refres
 
 ```mermaid
 flowchart TB
-    %% visionGraph/.github/workflows/publish.yml:175
+    %% visionGraph/.github/workflows/publish.yml:174
     VG["visionGraph vault<br/>ontomark build in the publisher"]
-    %% visionGraph/.github/workflows/publish.yml:526
+    %% visionGraph/.github/workflows/publish.yml:535
     PUB["Public website publication<br/>knowledgeGraph gh-pages"]
-    %% visionGraph/.github/workflows/publish.yml:536
+    %% visionGraph/.github/workflows/publish.yml:545
     DISPATCH["After deployment: corpus-sync event<br/>sent to VisionClaw with source SHA<br/>Request delivery, not ingestion completion"]
     %% agentbox/scripts/hp-loom-reconcile.sh:133
     SNAP["Agentbox reconciliation route<br/>Clean worktree of committed vault HEAD"]
@@ -47,7 +47,7 @@ flowchart TB
     LOOM["Transfer and verifying HP reload<br/>Compare served generation with source SHA"]
     VG --> PUB --> DISPATCH
     VG -.->|"Separate distribution route"| SNAP --> BUILD --> LOOM
-    NOTE["DRIFT: the old ontology-bridge route is retired<br/>Manifest describes CLI and Loom HTTP access<br/>agentbox/agentbox.toml:1168"]
+    NOTE["DRIFT: the old ontology-bridge route is retired<br/>Manifest describes CLI and Loom HTTP access<br/>agentbox/agentbox.toml:1173"]
     LOOM --- NOTE
 ```
 
@@ -58,11 +58,11 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    %% src/services/corpus_source/mod.rs:190
+    %% src/services/corpus_source/mod.rs:200
     SELECT["VisionClaw CorpusSource selection<br/>Explicit local or github wins<br/>Otherwise nonempty VAULT_ROOT selects local"]
     %% src/services/corpus_source/github.rs:60
     REMOTE["GitHubSource lists Markdown<br/>Trees API, Contents API fallback"]
-    %% src/services/github_sync_service.rs:290
+    %% src/services/github_sync_service.rs:391
     INGEST["GitHubSyncService filters page identities<br/>under configured base paths<br/>Full listing builds the vault index"]
     %% loom/crates/loom-facade/src/lib.rs:72
     BUNDLE["Loom activates local generation data<br/>LoadedBundle before lexical and graph loading"]

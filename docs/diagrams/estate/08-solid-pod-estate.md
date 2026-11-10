@@ -46,14 +46,14 @@ sources:
   - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
   - ../project/agentbox/docs/adr/ADR-2099-the-chain-is-the-ledger-of-record.md
   - ../project/agentbox/docs/proposals/sovereign-settlement.md
-verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35, solid-pod-rs: 9b6143ce55b242c322c92d8c6bcc0c1a5371b451, nostr-rust-forum: c39f41f104b114d6a3fa29013daaf6fa58b45080, visionflow: 5f8b1da92ce5d9e6b32a0bd90ec3630c66619083}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, solid-pod-rs: 27e18995fc20790fa956acb41f7d8420544a13ec, nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c}
 ---
 ## ES-08.1 Four coexisting Solid-pod deployments — topology contrast
 
 ```mermaid
 flowchart TB
     subgraph VC["VisionClaw process — single binary"]
-        FLAG{{"cargo feature #quot;solid-pod-embed#quot;<br/>in default at Cargo.toml:279, declared at Cargo.toml:312 (default ON)"}}
+        FLAG{{"cargo feature #quot;solid-pod-embed#quot;<br/>in default at Cargo.toml:273, declared at Cargo.toml:306 (default ON)"}}
         EMB["solid_proxy_handler.rs<br/>handle_solid_proxy:311"]
         STUB["no routes registered at all<br/>configure_routes twin, solid_proxy_handler.rs:1820-1824"]
         FLAG -->|"feature ON"| EMB
@@ -61,9 +61,9 @@ flowchart TB
     end
 
     subgraph AB["agentbox container — supervised service"]
-        SUP["supervisord [program:solid-pod]<br/>agentbox/flake.nix:2681"]
+        SUP["supervisord [program:solid-pod]<br/>agentbox/flake.nix:2731"]
         SRV["solid-pod-rs-server  port 8484<br/>agentbox/agentbox.toml:539-540"]
-        HTTPS["[program:https-bridge]<br/>agentbox/flake.nix:2698"]
+        HTTPS["[program:https-bridge]<br/>agentbox/flake.nix:2748"]
         SUP -->|"exec solidPodRsLauncher"| SRV
         HTTPS -->|"TLS terminate to  port 8484"| SRV
     end
@@ -329,7 +329,7 @@ sequenceDiagram
     Note over H: agentbox/docs/user/solid-pod.md:56 PATCH dialects table<br/>N3 Patch, SPARQL-Update, JSON Patch matches this handler's dialect set
 ```
 
-**Tension (PATCH on a non-N-Triples resource):** `Graph::parse_ntriples` returns an error on the first line that is not an N-Triples statement (`../solid-pod-rs/crates/solid-pod-rs/src/ldp.rs:817-828`, the same function at the `v0.5.0-alpha.17` tag VisionClaw pins), and the handler turns that error into an empty graph (`../project/src/handlers/solid_proxy_handler.rs:786-789`). A PATCH against a Turtle or JSON-LD resource, which is what `putResource` writes by default (`../project/client/src/services/solidPod/ldpClient.ts:153-157`), therefore stores only the patch's own triples as `application/n-triples` (`../project/src/handlers/solid_proxy_handler.rs:805-812`) and drops the previous content. The VisionClaw client never sends PATCH (ES-08.3), so no in-repo caller hits this; any other Solid client could. This was traced in source only and not reproduced. Closing it means refusing the PATCH (409 or 415) when the stored body does not parse, or parsing by the stored content type.
+**Tension (PATCH on a non-N-Triples resource):** `Graph::parse_ntriples` returns an error on the first line that is not an N-Triples statement (`../solid-pod-rs/crates/solid-pod-rs/src/ldp.rs:826-837`, read at the `v0.5.0-alpha.21` tag VisionClaw pins), and the handler turns that error into an empty graph (`../project/src/handlers/solid_proxy_handler.rs:786-789`). A PATCH against a Turtle or JSON-LD resource, which is what `putResource` writes by default (`../project/client/src/services/solidPod/ldpClient.ts:153-157`), therefore stores only the patch's own triples as `application/n-triples` (`../project/src/handlers/solid_proxy_handler.rs:805-812`) and drops the previous content. The VisionClaw client never sends PATCH (ES-08.3), so no in-repo caller hits this; any other Solid client could. This was traced in source only and not reproduced. Closing it means refusing the PATCH (409 or 415) when the stored body does not parse, or parsing by the stored content type.
 
 ## ES-08.7 Client pod resource model
 
@@ -413,10 +413,10 @@ classDiagram
 
 ```mermaid
 stateDiagram-v2
-    [*] --> STOPPED : block emitted only when gated flake.nix:2679, solid-pod block flake.nix:2681-2690, https-bridge block flake.nix:2696-2707
-    STOPPED --> STARTING : autostart true, flake.nix:2686
+    [*] --> STOPPED : block emitted only when gated flake.nix:2729, solid-pod block flake.nix:2731-2740, https-bridge block flake.nix:2746-2757
+    STOPPED --> STARTING : autostart true, flake.nix:2736
     STARTING --> RUNNING : solidPodRsLauncher exec succeeds
-    STARTING --> BACKOFF : exec fails within startsecs, supervisord default, none set flake.nix:2681-2690
+    STARTING --> BACKOFF : exec fails within startsecs, supervisord default, none set flake.nix:2731-2740
     BACKOFF --> STARTING : autorestart true, retry
     BACKOFF --> FATAL : retries exceed startretries
     RUNNING --> EXITED : process exits zero or signal
@@ -480,26 +480,26 @@ flowchart LR
 ```mermaid
 sequenceDiagram
     autonumber
-    participant M as "server boot (solid-pod-embed)"<br/>src/main.rs:917
-    participant SP as spawn_boot_pull<br/>src/services/ontology_pull.rs:389
-    participant CFG as OntologyPullConfig::from_env<br/>src/services/ontology_pull.rs:80
-    participant P1 as pull_once<br/>src/services/ontology_pull.rs:295
-    participant REL as "GitHub release ontology-latest"<br/>src/services/ontology_pull.rs:42
+    participant M as "server boot (solid-pod-embed)"<br/>src/main.rs:927
+    participant SP as spawn_boot_pull<br/>src/services/ontology_pull.rs:403
+    participant CFG as OntologyPullConfig::from_env<br/>src/services/ontology_pull.rs:81
+    participant P1 as pull_once<br/>src/services/ontology_pull.rs:303
+    participant REL as "GitHub release ontology-latest"<br/>src/services/ontology_pull.rs:43
     participant ST as "pod Storage (FsBackend)"
 
     M->>SP: spawn_boot_pull(Arc::clone(solid_state.storage))
-    SP->>CFG: read ONTOLOGY_PULL_ENABLED / _URL / _TIMEOUT_SECS / _INTERVAL_SECS<br/>ontology_pull.rs:80-103
+    SP->>CFG: read ONTOLOGY_PULL_ENABLED / _URL / _TIMEOUT_SECS / _INTERVAL_SECS<br/>ontology_pull.rs:81-104
     alt disabled
-        SP-->>M: log "ontology pull disabled" and return<br/>ontology_pull.rs:394-395
+        SP-->>M: log "ontology pull disabled" and return<br/>ontology_pull.rs:408-409
     end
-    SP->>P1: loop { pull_once — sleep(interval) } — break when interval None<br/>ontology_pull.rs:406-410
-    P1->>REL: GET index.jsonld<br/>ontology_pull.rs:309
-    P1->>ST: pod_build_sha plus active-generation check<br/>ontology_pull.rs:312-315
-    alt buildSha unchanged AND active atomic generation exists
+    SP->>P1: loop { pull_once — sleep(interval) } — break when interval None<br/>ontology_pull.rs:420-424
+    P1->>REL: GET index.jsonld<br/>ontology_pull.rs:317
+    P1->>ST: read the pod's stored manifest, compare buildSha and sourceSha, plus active-generation check<br/>ontology_pull.rs:320-327
+    alt buildSha and sourceSha unchanged AND active atomic generation exists
         P1-->>SP: UpToDate, no mutation
     end
-    P1->>REL: GET SHA256SUMS and four content resources<br/>ontology_pull.rs:320-326
-    P1->>P1: Verify content hashes and manifest hash<br/>ontology_pull.rs:322-337
+    P1->>REL: GET SHA256SUMS and four content resources<br/>ontology_pull.rs:334-340
+    P1->>P1: Verify content hashes and manifest hash<br/>ontology_pull.rs:336-351
     Note over P1,ST: Preserve existing ACL, an existence-probe error aborts.<br/>Verified resources are staged as an immutable generation,<br/>then fsynced before atomic pointer activation.
     P1->>ST: publish_ontology five resources<br/>ontology_generation.rs:216
     ST->>ST: Sync content/sidecars, generation directory and pending pointer<br/>publish_with_failure ontology_generation.rs:127, syncs :178-199
@@ -515,29 +515,29 @@ The 2026-09-07 audit distinguishes ES-08.9's missing cross-store erasure dispatc
 ## ES-08.12 PROPOSED — the pod ledger becomes a chain view, and the hand-rolled crypto goes
 ```mermaid
 flowchart TB
-    CRYPTO["WHAT D1 REMOVED, as the record states the pre-port crate — it owned the estate's whole<br/>Bitcoin transaction construction and HAND-ROLLED it: BIP-341 scripts,<br/>the TapSighash and key-path Schnorr on raw k256, with big-endian mod-n<br/>scalar arithmetic written out by hand<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:22-26;<br/>the rust-bitcoin port that retires this posture is recorded as landed on main,<br/>unreleased (ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:119-158)"]
+    CRYPTO["WHAT D1 REMOVED, as the record states the pre-port crate — it owned the estate's whole<br/>Bitcoin transaction construction and HAND-ROLLED it: BIP-341 scripts,<br/>the TapSighash and key-path Schnorr on raw k256, with big-endian mod-n<br/>scalar arithmetic written out by hand<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:36-40;<br/>the rust-bitcoin port that retires this posture is recorded as landed on main,<br/>unreleased (ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:133-172)"]
 
-    PORT["PROPOSED D1 — bitcoin_tx.rs and mrc20.rs port to rust-bitcoin<br/>plus secp256k1; the hand-rolled scalar helpers are DELETED<br/>rather than kept beside the library ones. Highest priority in<br/>the programme because it is the only item that removes<br/>hand-rolled crypto.<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:37-42"]
+    PORT["PROPOSED D1 — bitcoin_tx.rs and mrc20.rs port to rust-bitcoin<br/>plus secp256k1; the hand-rolled scalar helpers are DELETED<br/>rather than kept beside the library ones. Highest priority in<br/>the programme because it is the only item that removes<br/>hand-rolled crypto.<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:51-56"]
     CRYPTO --> PORT
 
-    GATE["PROPOSED D2 — the acceptance gate is three cross-implementation<br/>golden tests that must pass BYTE-IDENTICAL before and after the<br/>port. The fixtures are not regenerated to fit the new code.<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:43-49"]
+    GATE["PROPOSED D2 — the acceptance gate is three cross-implementation<br/>golden tests that must pass BYTE-IDENTICAL before and after the<br/>port. The fixtures are not regenerated to fit the new code.<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:57-63"]
     PORT --> GATE
 
-    VIEW["PROPOSED D4 — WebLedger becomes a derived, height-stamped view.<br/>get_balance reads through the sidestr-node HTTP surface and folds<br/>the UTXOs for that did:nostr, with a bounded cache; a staleness<br/>bound is an ERROR, never a slightly old number.<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:55-59"]
-    API["PROPOSED D5 — credit and debit LEAVE the public API. The one<br/>deliberately breaking change in the estate, because leaving the<br/>pair in place leaves a path by which a balance can exist that<br/>the chain does not know about.<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:60-66"]
+    VIEW["PROPOSED D4 — WebLedger becomes a derived, height-stamped view.<br/>get_balance reads through the sidestr-node HTTP surface and folds<br/>the UTXOs for that did:nostr, with a bounded cache; a staleness<br/>bound is an ERROR, never a slightly old number.<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:69-73"]
+    API["PROPOSED D5 — credit and debit LEAVE the public API. The one<br/>deliberately breaking change in the estate, because leaving the<br/>pair in place leaves a path by which a balance can exist that<br/>the chain does not know about.<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:74-80"]
     VIEW --> API
 
-    TXO["PROPOSED D6 — the TXO stand-in deposit is DELETED, not left<br/>default-off: it credits sats for any parseable TXO URI guarded<br/>only by a replay key. A chain-settled estate must not keep a<br/>reachable free-money oracle.<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:67-71"]
+    TXO["PROPOSED D6 — the TXO stand-in deposit is DELETED, not left<br/>default-off: it credits sats for any parseable TXO URI guarded<br/>only by a replay key. A chain-settled estate must not keep a<br/>reachable free-money oracle.<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:81-85"]
     API --> TXO
 
     FORUM["PROPOSED, the forum half — the pod-worker D1 ledger is demoted<br/>to a derived view in lockstep, and solid-pod-rs moves with the<br/>host. ADR-2012-d1-ledger-becomes-a-chain-view.md:48-51"]
     VIEW --> FORUM
 
-    PRE["INVARIANT the record sets on itself — non-atomic payment state<br/>is fixed FIRST. The crate's own README reproduces a critical<br/>finding saying not to carry value through the payment routes<br/>until it is fixed, and that is a precondition rather than a<br/>follow-up.<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:72-75"]
+    PRE["INVARIANT the record sets on itself — non-atomic payment state<br/>is fixed FIRST. The crate's own README reproduces a critical<br/>finding saying not to carry value through the payment routes<br/>until it is fixed, and that is a precondition rather than a<br/>follow-up.<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:86-89"]
     TXO --> PRE
 
-    NOTLIVE["STATUS — decision_status proposed, implementation_status PARTIAL<br/>on both records: owner decision Q17 (2026-10-02) ordered the crypto items<br/>done under D2's pinned golden fixtures; D1 and D6 landed, D4, D5, D7, D8 not built<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:5-7, ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:119-158,<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:5-7. The crate record says staged<br/>and unreleased, the forum record inactive. see ES-03.11"]
-    DRIFT["DRIFT — the port is no longer unreleased: its commits 0befa5b (D1) and e62d028 (D6)<br/>are ancestors of the solid-pod-rs tags v0.5.0-alpha.11, alpha.17 and alpha.18 and of 76ab7aab, so<br/>VisionClaw's alpha.17 and agentbox's alpha.18 pin both ship it. The record's<br/>activation_status staged and its unreleased wording are stale<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:7, ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:121"]
+    NOTLIVE["STATUS — decision_status proposed, implementation_status PARTIAL<br/>on both records: owner decision Q17 (2026-10-02) ordered the crypto items<br/>done under D2's pinned golden fixtures; D1 and D6 landed, D4, D5, D7, D8 not built<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:5-7, ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:133-172,<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:5-7. The crate record says staged<br/>and unreleased, the forum record inactive. see ES-03.11"]
+    DRIFT["DRIFT — the port is no longer unreleased: its commits 0befa5b (D1) and e62d028 (D6)<br/>are ancestors of the solid-pod-rs tags v0.5.0-alpha.11, alpha.17, alpha.18 and alpha.21 and of 27e18995, so<br/>VisionClaw's alpha.21 and agentbox's alpha.21 pin both ship it. The record's<br/>activation_status staged and its unreleased wording are stale<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:7, ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:135"]
     NOTLIVE --> DRIFT
     PORT --> NOTLIVE
 
@@ -545,17 +545,17 @@ flowchart TB
     CRYPTO --> THREE
 ```
 
-**Drift (ADR-2008 release status):** the record says the port landed on `main` unreleased and keeps `activation_status: staged` (`../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:7`, `:121`). But its D1 and D6 commits (`0befa5b`, `e62d028`) are ancestors of the `v0.5.0-alpha.11`, `v0.5.0-alpha.17` and `v0.5.0-alpha.18` tags and of agentbox's Nix revision `76ab7aab`, so both VisionClaw's alpha.17 dependency (`../project/Cargo.toml:246`) and the agentbox image ship it. The record lives in solid-pod-rs and was not edited.
+**Drift (ADR-2008 release status):** the record says the port landed on `main` unreleased and keeps `activation_status: staged` (`../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:7`, `:135`). But its D1 and D6 commits (`0befa5b`, `e62d028`) are ancestors of the `v0.5.0-alpha.11`, `v0.5.0-alpha.17`, `v0.5.0-alpha.18` and `v0.5.0-alpha.21` tags and of agentbox's Nix revision `27e18995`, so both VisionClaw's alpha.21 dependency (`../project/Cargo.toml:240`) and the agentbox image ship it. The record lives in solid-pod-rs and was not edited.
 
 ## ES-08.13 Forge and mirror in the native pod — compiled in, inert until named (ADR-2145)
 
 ```mermaid
 flowchart TB
-    PIN["native pod built from a pinned source revision,<br/>forge-full unless the forge block sets enable false<br/>agentbox/flake.nix:1548, agentbox/lib/solid-pod-rs.nix:54,58"]
-    SRV["solid-pod-rs-server under supervisord, port 8484<br/>--public-base-url from SOLID_POD_PUBLIC_URL, --trust-proxy by default<br/>agentbox/flake.nix:1628-1629"]
+    PIN["native pod built from a pinned source revision,<br/>forge-full unless the forge block sets enable false<br/>agentbox/flake.nix:1563, agentbox/lib/solid-pod-rs.nix:61,64"]
+    SRV["solid-pod-rs-server under supervisord, port 8484<br/>--public-base-url from SOLID_POD_PUBLIC_URL, --trust-proxy by default<br/>agentbox/flake.nix:1643-1644"]
     FORGE["git forge under /forge, NIP-34 publisher,<br/>forge-held anchoring, started at boot; the kind-30618 mirror is compiled in<br/>but starts only when a follow list is set, so it is NOT running in the shipped pod<br/>agentbox/agentbox.toml:603-608"]
     OFF["defaults: allow_mainnet false, open_edit false, private_repos false,<br/>mirror_follow empty, announce_relays empty<br/>agentbox/agentbox.toml:609-622"]
-    JEV["System One consumer solid_pod_advisories = true agentbox/agentbox.toml:925: adds the jev Cargo feature agentbox/flake.nix:1538-1539<br/>and exports SOLID_POD_JEV=1 with SOLID_POD_JEV_ALLOW_CLOUD=1 unless [system_one].local_only names it<br/>agentbox/services/agentbox-manifest/src/system_one.rs:554-558, agentbox/services/agentbox-manifest/src/system_one.rs:594-618;<br/>the server reranks the forge's already-authorised repo and issue listings through the proxy, falling back to the forge's own bytes<br/>solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:5146-5165, solid-pod-rs/crates/solid-pod-rs-server/src/jev.rs:153-181"]
+    JEV["System One consumer solid_pod_advisories = true agentbox/agentbox.toml:931: adds the jev Cargo feature agentbox/flake.nix:1553-1554<br/>and exports SOLID_POD_JEV=1 with SOLID_POD_JEV_ALLOW_CLOUD=1 unless [system_one].local_only names it<br/>agentbox/services/agentbox-manifest/src/system_one.rs:554-558, agentbox/services/agentbox-manifest/src/system_one.rs:594-618;<br/>the server reranks the forge's already-authorised repo and issue listings through the proxy, falling back to the forge's own bytes<br/>solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:5494-5513, solid-pod-rs/crates/solid-pod-rs-server/src/jev.rs:153-181"]
     ENV["extra relays and follow entries belong in the root .env,<br/>not the tracked manifest<br/>agentbox/agentbox.toml:623-625"]
     PIN --> SRV --> FORGE
     FORGE --> OFF
@@ -565,12 +565,12 @@ flowchart TB
     FORGE --> NOANCHOR
 ```
 
-**What it shows:** the native pod of ES-08.1 deployment 2 now carries a git forge that starts with the server and does nothing external until the owner names relays and follow entries. The kind-30618 mirror is compiled in but does not start while the follow list is empty, which is the shipped state: `mirror_config` returns `None` unless at least one relay and one follow entry survive (`../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:4973-4994`), and the mirror is only built from that `Some` (`:5034-5041`). These lines are read at the solid-pod-rs audit pin; the image builds revision 76ab7aab (`../project/agentbox/lib/solid-pod-rs.nix:58`), an ancestor 25 commits earlier whose `lib.rs` differs, so the line numbers are the pin's, not the image's.
+**What it shows:** the native pod of ES-08.1 deployment 2 now carries a git forge that starts with the server and does nothing external until the owner names relays and follow entries. The kind-30618 mirror is compiled in but does not start while the follow list is empty, which is the shipped state: `mirror_config` returns `None` unless at least one relay and one follow entry survive (`../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:5321-5342`), and the mirror is only built from that `Some` (`:5382-5389`). These lines are read at the solid-pod-rs audit pin; the image builds the same revision 27e18995 (`../project/agentbox/lib/solid-pod-rs.nix:64`), so the line numbers are the image's too.
 
 **Why it is this way:** VisionFlow ADR-2019 decided that shipped pods run the forge and mirror with open edit, mainnet and any follow list opt-in, and agentbox ADR-2145 compiled it in behind the manifest block rather than a separate service.
 
-**Tension (agentbox ADR-2145 vs BASELINE-container):** the ADR records `implementation_status: complete` and `activation_status: live` (`../project/agentbox/docs/adr/ADR-2145-the-solid-pod-forge-and-mirror-are-compiled-in-and-inert-until-named.md:6-7`), while the baseline still says the native pod is "pinned at `v0.5.0-alpha.17`" and "Staged until the image is rebuilt" (`../project/agentbox/docs/BASELINE-container.md:241`, `:246-247`). VisionFlow's own record for the same decision, ADR-2019, agrees with ADR-2145 on activation: `decision_status: accepted`, `implementation_status: partial`, `activation_status: live` (`docs/adr/ADR-2019-forge-and-mirror-on-in-shipped-pods.md:5-7`). The baseline wording is the one left behind.
+**Tension (agentbox ADR-2145 vs BASELINE-container):** the ADR records `implementation_status: complete` and `activation_status: live` (`../project/agentbox/docs/adr/ADR-2145-the-solid-pod-forge-and-mirror-are-compiled-in-and-inert-until-named.md:6-7`), while the baseline still says the native pod is "pinned at `v0.5.0-alpha.17`" and "Staged until the image is rebuilt" (`../project/agentbox/docs/BASELINE-container.md:259`, `:264-265`). VisionFlow's own record for the same decision, ADR-2019, agrees with ADR-2145 on activation: `decision_status: accepted`, `implementation_status: partial`, `activation_status: live` (`docs/adr/ADR-2019-forge-and-mirror-on-in-shipped-pods.md:5-7`). The baseline wording is the one left behind.
 
-**Open (ADR-2019 stays partial):** the 2026-10-30 close-out found `FORGE_MIRROR_FOLLOW` empty in the running pod, so no `mirror on kind-30618` line (`../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:5039`) is logged and the shipped follow list (the operator's own key) is not wired. Closing it is an agentbox change to the pod launcher, and the record's `review_trigger` names it as the event that completes ADR-2019 (`docs/adr/ADR-2019-forge-and-mirror-on-in-shipped-pods.md:13`). The running-pod observation is the close-out's; this audit did not inspect the pod.
+**Open (ADR-2019 stays partial):** the 2026-10-30 close-out found `FORGE_MIRROR_FOLLOW` empty in the running pod, so no `mirror on kind-30618` line (`../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:5387`) is logged and the shipped follow list (the operator's own key) is not wired. Closing it is an agentbox change to the pod launcher, and the record's `review_trigger` names it as the event that completes ADR-2019 (`docs/adr/ADR-2019-forge-and-mirror-on-in-shipped-pods.md:13`). The running-pod observation is the close-out's; this audit did not inspect the pod.
 
-**Drift:** agentbox's pod guide says the image pins `solid-pod-rs` 0.5.0-alpha.13 (`../project/agentbox/docs/user/solid-pod.md:37`) and the baseline says alpha.17 (`../project/agentbox/docs/BASELINE-container.md:241`), while the Nix derivation pins the 0.5.0-alpha.18 workspace at revision 76ab7aab, which adds `SOLID_POD_JEV_ALLOW_CLOUD` (`../project/agentbox/lib/solid-pod-rs.nix:54`, `:56-58`), and VisionClaw's embedded dependency is still `0.5.0-alpha.17` (`../project/Cargo.toml:246`). The deployments on this page no longer share one release and two agentbox documents name two others. The cloud opt-in is configured; the server's own header still describes pod metadata as local-only by default and documents the opt-in that lifts it (`../solid-pod-rs/crates/solid-pod-rs-server/src/jev.rs:24-33`).
+**Drift:** agentbox's pod guide says the image pins `solid-pod-rs` 0.5.0-alpha.13 (`../project/agentbox/docs/user/solid-pod.md:37`) and the baseline says alpha.17 (`../project/agentbox/docs/BASELINE-container.md:259`), while the Nix derivation pins the 0.5.0-alpha.21 workspace at revision 27e18995 (`../project/agentbox/lib/solid-pod-rs.nix:61`, `:64`), and VisionClaw's embedded dependency is also `0.5.0-alpha.21` (`../project/Cargo.toml:240`). VisionClaw and the agentbox image now share one release, while two agentbox documents still name two others. The cloud opt-in is configured; the server's own header still describes pod metadata as local-only by default and documents the opt-in that lifts it (`../solid-pod-rs/crates/solid-pod-rs-server/src/jev.rs:24-33`).

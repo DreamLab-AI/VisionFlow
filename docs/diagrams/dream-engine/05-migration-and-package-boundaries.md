@@ -19,7 +19,7 @@ sources:
   - ../project/agentbox/services/dream-engine/Cargo.toml
   - ../project/agentbox/services/dream-engine/src/lib.rs
   - ../project/agentbox/services/dream-engine/tests/night_e2e.rs
-verified_commit: {dream-engine: 815f963b1cbd6999e78144ce5475005ae1dd1d8e, agentbox: 9dfc27b16e82e9786535a55e790710493dd51fdf}
+verified_commit: {dream-engine: b40d50724bb6344dc00d57270f7166b138714406, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
 ---
 
 ## For developers
@@ -54,8 +54,8 @@ flowchart TB
     ALLOW --> CI["CI invokes cargo-deny<br/>ci.yml:77"]
     NOTICE["Repository NOTICE records design lineage<br/>NOTICE:9"] --- CORE
     ADAPTER["Separate AGPL adapter with a package version<br/>services/dream-engine/Cargo.toml:4<br/>services/dream-engine/Cargo.toml:8"] --> CORE
-    ADAPTER --> PINS["Exact core 0.4.0 and gate 0.3.0 dependencies<br/>services/dream-engine/Cargo.toml:26"]
-    ADAPTER --> ENVELOPE["Envelope module remains in adapter<br/>services/dream-engine/src/lib.rs:54"]
+    ADAPTER --> PINS["Exact core 0.4.1 and gate 0.3.0 dependencies<br/>services/dream-engine/Cargo.toml:26"]
+    ADAPTER --> ENVELOPE["Envelope module remains in adapter<br/>services/dream-engine/src/lib.rs:62"]
 ```
 
 **What it shows.** The dependency direction and licence policy exist, while the adapter manifest has no publish=false restriction. Offline package lists include its envelope module and omit root NOTICE from all five permissive packages. These are package-selection observations, not an upload or a legal compliance verdict.

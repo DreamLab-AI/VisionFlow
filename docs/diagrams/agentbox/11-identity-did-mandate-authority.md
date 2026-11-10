@@ -7,6 +7,10 @@ governing:
   - ../project/agentbox/docs/PROTOCOL-registry.md
 adrs: [ADR-2011, ADR-2025, ADR-2027, ADR-2064, ADR-2087]
 sources:
+  - ../project/agentbox/docs/INGRESS-identity.md
+  - ../project/agentbox/management-api/lib/execution-coverage.js
+  - ../project/agentbox/management-api/routes/voice-intent.js
+  - ../project/agentbox/management-api/lib/action-plane.js
   - ../project/agentbox/config/nip98-proxy/proxy.mjs
   - ../project/agentbox/management-api/lib/agent-identity.js
   - ../project/agentbox/management-api/lib/uris.js
@@ -35,7 +39,7 @@ sources:
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/management-api/lib/bc20-provenance-bridge.js
   - ../project/agentbox/management-api/routes/sessions-boundary.js
-verified_commit: c57d9c0508f4044915f9aecea4b9aa5629cc6a35
+verified_commit: 720e0d89656a4360998b3a716d0f3ee8cac66f93
 ---
 
 ## AB-11.1 Identity, URN and mandate type model
@@ -96,7 +100,7 @@ classDiagram
     note for UrnKindSpec "21 kinds at uris.js:88-129 — pod envelope credential mandate receipt activity event decision mcp memory skill adr prd ddd thing dataset bead knowledge agent meta chain<br/>decision IS-A prov:Activity (legacy ADR-048) and mirrors activity plumbing. bead is content-addressed to match urn:visionclaw:bead so BC20 can cross it (audit 2026-06-09 A3).<br/>knowledge (ADR-2085) is scoped and content-addressed (uris.js:115). chain (ADR-2098) is unscoped and its local part must be the full 64-hex chain id (uris.js:128)."
 ```
 
-**Tension (capability scope vs authority):** the trust classes are validated on registration (`agentbox/management-api/lib/capability-scope.js:113-114`) and reported (`agentbox/management-api/lib/execution-coverage.js:59`), but neither the authority gate nor the mandate code reads them; a granted mandate or an approved action is not narrowed by a capability's trust class at this revision. The dotted edge records that the two concepts sit side by side, not that one constrains the other.
+**Tension (capability scope vs authority):** the trust classes are validated on registration (`agentbox/management-api/lib/capability-scope.js:113-114`) and reported (`../project/agentbox/management-api/lib/execution-coverage.js:59`), but neither the authority gate nor the mandate code reads them; a granted mandate or an approved action is not narrowed by a capability's trust class at this revision. The dotted edge records that the two concepts sit side by side, not that one constrains the other.
 
 ## AB-11.2 loadOrMint — private-key precedence and 0600 persistence
 
@@ -137,7 +141,7 @@ sequenceDiagram
     AI->>AI: xOnly = deriveXonly(privHex)
     alt xOnly falsy or not HEX64
         AI-->>CALLER: return null
-        Note over AI,CALLER: the CLI exits non-zero and the entrypoint aborts boot (entrypoint-unified.sh:1431-1433), no placeholder identity survives. see AB-11.3
+        Note over AI,CALLER: the CLI exits non-zero and the entrypoint aborts boot (entrypoint-unified.sh:1436-1438), no placeholder identity survives. see AB-11.3
     else derived
         critical persist so the DID survives a restart
             AI->>FS: mkdirSync(dirname, recursive) then writeFileSync(privHex, mode 0o600) then chmodSync 0o600 (agent-identity.js:164-166)
@@ -176,15 +180,15 @@ sequenceDiagram
             LM-->>CLI: {did, pubkey, multikey, persisted true, keyPath}
             CLI-->>EP: stdout export AGENTBOX_AGENT_DID / AGENTBOX_AGENT_PUBKEY / AGENTBOX_AGENT_DID_MULTIKEY<br/>agent-identity.js:322-326
             CLI-->>EP: stderr agent-identity: minted or loaded the did (persisted=true, keyfile=path)<br/>agent-identity.js:327-330
-            EP->>EP: parse AGENTBOX_AGENT_DID with sed and require the exact expected three export lines, never eval (entrypoint-unified.sh:1435-1441)
-            EP->>SHELL: export AGENTBOX_AGENT_DID, then derive and export AGENTBOX_AGENT_PUBKEY and AGENTBOX_AGENT_DID_MULTIKEY itself (entrypoint-unified.sh:1442-1450)
+            EP->>EP: parse AGENTBOX_AGENT_DID with sed and require the exact expected three export lines, never eval (entrypoint-unified.sh:1440-1446)
+            EP->>SHELL: export AGENTBOX_AGENT_DID, then derive and export AGENTBOX_AGENT_PUBKEY and AGENTBOX_AGENT_DID_MULTIKEY itself (entrypoint-unified.sh:1447-1455)
             CLI-->>EP: exit 0 agent-identity.js:331
         end
     end
-    Note over EP,SHELL: RESOLVED ADR-2044 (2026-09-05, was DIVERGENCE) - the CLI's own fail-open<br/>path is GONE: a failed mint OR a mint that could not persist its key now exits<br/>non-zero with NO export lines, agent-identity.js:31-39. The entrypoint now treats that as<br/>FATAL too: no mint runtime, a failed mint, or output that is not exactly the three<br/>expected export lines aborts boot with exit 1 (entrypoint-unified.sh:1424-1441), and a configured<br/>DID that is not canonical is refused (entrypoint-unified.sh:1445-1448), so no<br/>did:nostr:local placeholder is exported. see AB-11.13
+    Note over EP,SHELL: RESOLVED ADR-2044 (2026-09-05, was DIVERGENCE) - the CLI's own fail-open<br/>path is GONE: a failed mint OR a mint that could not persist its key now exits<br/>non-zero with NO export lines, agent-identity.js:31-39. The entrypoint now treats that as<br/>FATAL too: no mint runtime, a failed mint, or output that is not exactly the three<br/>expected export lines aborts boot with exit 1 (entrypoint-unified.sh:1429-1446), and a configured<br/>DID that is not canonical is refused (entrypoint-unified.sh:1450-1453), so no<br/>did:nostr:local placeholder is exported. see AB-11.13
 ```
 
-**Drift (INGRESS-identity vs entrypoint):** `docs/INGRESS-identity.md` still names a `did:nostr:local` placeholder fallback in `agent-identity.js:175` that lets a degraded boot produce a non-sovereign identity (`agentbox/docs/INGRESS-identity.md:229-231`), and the `agent-identity.js` header says the entrypoint's `${AGENTBOX_AGENT_DID:-did:nostr:local}` fallback runs unconditionally (`agentbox/management-api/lib/agent-identity.js:41-46`), while the entrypoint aborts boot on a failed or inconsistent mint (`agentbox/config/entrypoint-unified.sh:1424-1441`) and treats `did:nostr:local` only as a trigger to mint (`agentbox/config/entrypoint-unified.sh:1424`). Line 175 of `agent-identity.js` is the `pubkey` field of the return object, not a fallback.
+**Drift (INGRESS-identity vs entrypoint):** `docs/INGRESS-identity.md` still names a `did:nostr:local` placeholder fallback in `agent-identity.js:175` that lets a degraded boot produce a non-sovereign identity (`../project/agentbox/docs/INGRESS-identity.md:229-231`), and the `agent-identity.js` header says the entrypoint's `${AGENTBOX_AGENT_DID:-did:nostr:local}` fallback runs unconditionally (`agentbox/management-api/lib/agent-identity.js:41-46`), while the entrypoint aborts boot on a failed or inconsistent mint (`agentbox/config/entrypoint-unified.sh:1429-1446`) and treats `did:nostr:local` only as a trigger to mint (`agentbox/config/entrypoint-unified.sh:1429`). Line 175 of `agent-identity.js` is the `pubkey` field of the return object, not a fallback.
 
 ## AB-11.4 URN kind table — scope, content addressing and resolvable surface
 
@@ -361,7 +365,7 @@ CS->>REG: reg[_registryKey(agent, container)] = entry then<br/>_saveRegistry (ro
 Note over ACL: lib/mandate.js:137 emits acl:Authorization with<br/>acl:agent <did:nostr:hex> acl:accessTo + acl:default <container><br/>acl:mode acl:Read, acl:Write …<br/>Mirrors the owner-ACL shape solid-pod-rs writes at provision<br/>time.
 ```
 
-**Open (signed mandate distribution):** the signed kind-30078 event is returned to the caller in `signed_event` (`agentbox/management-api/routes/mandate.js:230`), and no code in agentbox at this revision publishes a mandate event to a relay: outside the two mandate modules, kind 30078 appears only in relay kind lists and the voice-intent route that consumes a mandate the caller supplies (`agentbox/management-api/routes/voice-intent.js:108`). Whether operators publish it themselves cannot be seen from source.
+**Open (signed mandate distribution):** the signed kind-30078 event is returned to the caller in `signed_event` (`agentbox/management-api/routes/mandate.js:230`), and no code in agentbox at this revision publishes a mandate event to a relay: outside the two mandate modules, kind 30078 appears only in relay kind lists and the voice-intent route that consumes a mandate the caller supplies (`../project/agentbox/management-api/routes/voice-intent.js:108`). Whether operators publish it themselves cannot be seen from source.
 
 **Tension (grant enforcement vs registry):** the pod enforces the `.acl` the caller PUTs, while revocation (AB-11.8) only rewrites the local registry and re-signs the record; nothing in agentbox removes or rewrites the `.acl`, so a revoked mandate's WAC grant stays in force at the pod until someone replaces it (`agentbox/management-api/routes/mandate.js:238-281`, `agentbox/management-api/lib/mandate.js:129-152`).
 
@@ -649,7 +653,7 @@ Note over AEA,RT: RESOLVED ADR-2044 (was DIVERGENCE) — DEFAULT_POLICY flipped 
     end
 ```
 
-**Invariant:** `proxyVerifiedPubkey(request, env)` returns null unless `peerIsProxy` holds, so a cross-container caller holding `MANAGEMENT_API_KEY` that reaches the `0.0.0.0` bind (`agentbox/management-api/server.js:50`) cannot assert a `did:nostr` through the header; a request with no socket information is refused (`agentbox/management-api/lib/agent-event-auth.js:98-105`, `agentbox/management-api/lib/agent-event-auth.js:117`). The function is exported and `action-plane.js` `resolveAgentDid` shares it (`agentbox/management-api/lib/agent-event-auth.js:238`, `agentbox/management-api/lib/action-plane.js:229`).
+**Invariant:** `proxyVerifiedPubkey(request, env)` returns null unless `peerIsProxy` holds, so a cross-container caller holding `MANAGEMENT_API_KEY` that reaches the `0.0.0.0` bind (`agentbox/management-api/server.js:50`) cannot assert a `did:nostr` through the header; a request with no socket information is refused (`agentbox/management-api/lib/agent-event-auth.js:98-105`, `agentbox/management-api/lib/agent-event-auth.js:117`). The function is exported and `action-plane.js` `resolveAgentDid` shares it (`agentbox/management-api/lib/agent-event-auth.js:238`, `../project/agentbox/management-api/lib/action-plane.js:229`).
 
 **Debt:** a process inside the container reaches management-api over loopback and so passes `peerIsProxy`; the path-2 identity is therefore as strong as the same-UID boundary (TODO-unified X-1), not as strong as the signature path 1 verifies (`agentbox/management-api/lib/agent-event-auth.js:37-39`).
 
@@ -714,7 +718,7 @@ sequenceDiagram
 
     rect rgb(240,255,240)
     Note over BOOT,KF: IMPLEMENTED — what the code actually does
-    BOOT->>AI: mint or load the per-profile agent key<br/>ADR-2044 (2026-09-05): the CLI now exits non-zero on mint or persist failure<br/>and the entrypoint aborts boot (entrypoint-unified.sh:1424-1441) instead of tolerating did:nostr:local — see AB-11.3
+    BOOT->>AI: mint or load the per-profile agent key<br/>ADR-2044 (2026-09-05): the CLI now exits non-zero on mint or persist failure<br/>and the entrypoint aborts boot (entrypoint-unified.sh:1429-1446) instead of tolerating did:nostr:local — see AB-11.3
     AI->>KF: writeFileSync mode 0o600 then chmodSync 0o600 (agent-identity.js:164-166)
     KF-->>AI: readable only by this uid
     BOOT->>BR: load bridge identity from AGENTBOX_BRIDGE_SK_FILE, legacy environment fallback remains
@@ -727,5 +731,5 @@ sequenceDiagram
     ADR-->>AI: rotation cadence, revocation procedure, named custodian, maximum response window — every row is UNCONFIRMED
     end
 Note over ADR: DIVERGENCE SECURITY-profiles provisional custody register 2026-09-04 — seven<br/>credential roles are identified as ROLES TO ASSIGN, not accepted custodians. "No cadence is<br/>invented here." No dated failure/recovery receipt exists for any row. Since 2026-10-03 the same<br/>doc also carries a generated prompt-egress register (46 routes at this revision, devuser-class<br/>credentials under Q8) - it catalogues egress routes, it does not settle custody<br/>
-Note over BOOT,KF: DIVERGENCE — a 0600 file is a same-uid boundary only. With the shipped<br/>[security].role_isolation = false (agentbox.toml:2543) every agentbox process runs as devuser,<br/>so co-resident code can read the agent key and the bridge key alike. Role isolation is the<br/>staged remedy (SECURITY-profiles, Role isolation 2026-10-03). see AB-16 and AB-36
+Note over BOOT,KF: DIVERGENCE — a 0600 file is a same-uid boundary only. With the shipped<br/>[security].role_isolation = false (agentbox.toml:2549) every agentbox process runs as devuser,<br/>so co-resident code can read the agent key and the bridge key alike. Role isolation is the<br/>staged remedy (SECURITY-profiles, Role isolation 2026-10-03). see AB-16 and AB-36
 ```

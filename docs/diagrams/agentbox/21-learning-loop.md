@@ -27,7 +27,7 @@ sources:
   - ../project/agentbox/config/hooks/lib/jev-option.cjs
   - ../project/agentbox/config/hooks/nostr-live-mirror.cjs
   - ../project/agentbox/mcp/servers/ruvector-mcp.cjs
-verified_commit: c57d9c0508f4
+verified_commit: 720e0d89656a4360998b3a716d0f3ee8cac66f93
 ---
 
 ## AB-21.1 Capture — transcript-driven grading
@@ -35,7 +35,7 @@ verified_commit: c57d9c0508f4
 ```mermaid
 sequenceDiagram
     autonumber
-    participant BOOT as entrypoint hook registration<br/>agentbox/config/entrypoint-unified.sh:2039
+    participant BOOT as entrypoint hook registration<br/>agentbox/config/entrypoint-unified.sh:2044
     participant CC as Claude Code<br/>Stop / SubagentStop
     participant HK as trajectory-recorder.cjs<br/>agentbox/config/hooks/trajectory-recorder.cjs:1
     participant STASH as per-session stash<br/>line watermark
@@ -44,9 +44,9 @@ sequenceDiagram
     participant FT as failure-taxonomy.js<br/>agentbox/management-api/lib/failure-taxonomy.js
 
     alt [memory_learning] enabled AND record_trajectories both true
-        BOOT->>CC: register the hook on Stop and SubagentStop in settings.json (:2039-2040)
+        BOOT->>CC: register the hook on Stop and SubagentStop in settings.json (:2044-2045)
     else either false — the DEFAULT-OFF posture
-        BOOT->>CC: strip any prior registration, byte-identical to pre-learning behaviour (:2075-2078)
+        BOOT->>CC: strip any prior registration, byte-identical to pre-learning behaviour (:2080-2083)
     end
     Note over BOOT,HK: ENABLEMENT IS REGISTRATION — the hook reads no gate variable and holds no database client<br/>(config/hooks/trajectory-recorder.cjs:32-36, config/hooks/trajectory-recorder.cjs:14-17)
     CC->>HK: hook fires
@@ -190,7 +190,7 @@ classDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SUP as supervisord<br/>agentbox/flake.nix:2393
+    participant SUP as supervisord<br/>agentbox/flake.nix:2443
     participant SW as ruvector-aggregate-sweep.mjs<br/>agentbox/scripts/ruvector-aggregate-sweep.mjs:1
     participant G as gates
     participant MT as governed memStore/memRetrieve<br/>agentbox/mcp/servers/lib/memory-tools.js
@@ -223,7 +223,7 @@ sequenceDiagram
                     AE->>AE: SKIP (mcp/servers/lib/aggregate-effectiveness.js:244-256)
                     Note over AE: INVARIANT I06 / ADR-2016 — the sample floor gates on the RAW OBSERVATION COUNT, not the<br/>recency-weighted effective size, and a pattern must also come from enough independent sessions
                 else survives the floor
-                    AE->>AE: eligible rows pass trajectoryJev.annotateRows, off unless AGENTBOX_JEV_TRAJECTORY_CLASSIFY=1,<br/>which the manifest projects from consumers.trajectory_classify = true (configured, takes effect at the next image activation, ADR-2155 staged),<br/>with TRAJECTORY_LOCAL_ONLY projected 0 unless it is listed in [system_one].local_only (empty), so by default it takes the proxy and TypeSafe (jev-option.cjs:72-77, system_one.rs:466-472, :546, :580-593)<br/>(agentbox.toml:915, entrypoint-unified.sh:1269-1273, mcp/servers/lib/aggregate-effectiveness.js:417-419, mcp/servers/lib/trajectory-pattern-jev.js:134-137)
+                    AE->>AE: eligible rows pass trajectoryJev.annotateRows, off unless AGENTBOX_JEV_TRAJECTORY_CLASSIFY=1,<br/>which the manifest projects from consumers.trajectory_classify = true (configured, takes effect at the next image activation, ADR-2155 staged),<br/>with TRAJECTORY_LOCAL_ONLY projected 0 unless it is listed in [system_one].local_only (empty), so by default it takes the proxy and TypeSafe (jev-option.cjs:72-77, system_one.rs:466-472, :546, :580-593)<br/>(agentbox.toml:921, entrypoint-unified.sh:1274-1278, mcp/servers/lib/aggregate-effectiveness.js:417-419, mcp/servers/lib/trajectory-pattern-jev.js:134-137)
                     Note over AE: the Jev option only ATTACHES a semantic object, an action class and a coherence score, to a row<br/>that was already eligible, capped at AGENTBOX_JEV_TRAJECTORY_MAX_PATTERNS 40 per sweep<br/>(mcp/servers/lib/trajectory-pattern-jev.js:140,145), and the stored value spreads it in<br/>(mcp/servers/lib/aggregate-effectiveness.js:462, mcp/servers/lib/trajectory-pattern-jev.js:156-158)
                     AE->>MT: memStore through the GOVERNED path (mcp/servers/lib/aggregate-effectiveness.js:24, mcp/servers/lib/aggregate-effectiveness.js:467)
                     Note over AE,AGG: key effectiveness-sha256-12-<hash(pattern)> (mcp/servers/lib/aggregate-effectiveness.js:88), namespace memory-learning-aggregates<br/>(mcp/servers/lib/aggregate-effectiveness.js:47), typed metadata {importance: wilson, tags: ['action:<pattern>'], memory_type:<br/>'semantic'} (mcp/servers/lib/aggregate-effectiveness.js:28-29, runtime mcp/servers/lib/aggregate-effectiveness.js:468-470)
@@ -248,7 +248,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SUP as supervisord<br/>agentbox/flake.nix:2424
+    participant SUP as supervisord<br/>agentbox/flake.nix:2474
     participant DS as ruvector-pattern-distill.mjs<br/>agentbox/scripts/ruvector-pattern-distill.mjs:1
     participant G as gates
     participant PG as trajectory_steps
@@ -447,7 +447,7 @@ flowchart LR
     end
     subgraph env["ruvector-gates.js env resolution"]
         direction TB
-        E1["RUVECTOR_MEMORY_LEARNING_ENABLED mcp/servers/lib/ruvector-gates.js:39<br/>projected into the MCP env, config/entrypoint-unified.sh:1629-1631"]
+        E1["RUVECTOR_MEMORY_LEARNING_ENABLED mcp/servers/lib/ruvector-gates.js:39<br/>projected into the MCP env, config/entrypoint-unified.sh:1634-1636"]
         E2["RUVECTOR_RECORD_TRAJECTORIES mcp/servers/lib/ruvector-gates.js:40"]
         E3["RUVECTOR_FEED_RETRIEVAL mcp/servers/lib/ruvector-gates.js:41"]
         E4["RUVECTOR_FEED_ROUTING mcp/servers/lib/ruvector-gates.js:42"]
@@ -457,15 +457,15 @@ flowchart LR
     subgraph proc["Self-gating processes"]
         direction TB
         H["trajectory-recorder.cjs<br/>Stop hook"]
-        A["ruvector-aggregate-sweep.mjs<br/>agentbox/flake.nix:2393"]
-        D["ruvector-pattern-distill.mjs<br/>agentbox/flake.nix:2424"]
+        A["ruvector-aggregate-sweep.mjs<br/>agentbox/flake.nix:2443"]
+        D["ruvector-pattern-distill.mjs<br/>agentbox/flake.nix:2474"]
         HY["memory-hybrid re-rank"]
     end
     M --> E1
     P --> E2
     C1 --> E3
     C2 --> E4
-    M --> REG["entrypoint registration<br/>agentbox/config/entrypoint-unified.sh:2039"]
+    M --> REG["entrypoint registration<br/>agentbox/config/entrypoint-unified.sh:2044"]
     P --> REG
     REG --> H
     E2 --> HY

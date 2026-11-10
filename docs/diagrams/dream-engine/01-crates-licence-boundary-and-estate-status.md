@@ -30,7 +30,7 @@ sources:
   - scripts/generate-release-manifest.sh
   - tests/gates/release-manifest.test.sh
   - scripts/estate-browser-journeys.mjs
-verified_commit: {dream-engine: 59a3e215e826aa1e9ebe157d49c1ac504f7f39c9, agentbox: 6500582dfae23bf8a38a6942916d208154e43625, visionflow: 4d361b58ce2b3ee17e1570361eaf78270b630012}
+verified_commit: {dream-engine: b40d50724bb6344dc00d57270f7166b138714406, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c}
 ---
 
 DE-01 to DE-06 are the estate's view of dream-engine. The repository's own corpus is DE-07 to DE-14 in this area (moved on 2026-11-05); DE-11 draws the same crate DAG and licence boundary from inside the repository.
@@ -49,7 +49,7 @@ flowchart TB
     DG --> PG["pairwise-gate<br/>crates/pairwise-gate/Cargo.toml:2"]
     AD["Agentbox adapter, AGPL-3.0-only<br/>services/dream-engine/Cargo.toml:8"] --> DC
     AD --> DG
-    AD --> PIN["Exact pins: core 0.4.0, gate 0.3.0<br/>services/dream-engine/Cargo.toml:26-27"]
+    AD --> PIN["Exact pins: core 0.4.1, gate 0.3.0<br/>services/dream-engine/Cargo.toml:26-27"]
     DENY["Permissive workspace policy:<br/>licence allowlist and named crate bans<br/>../dream-engine/deny.toml:9-19<br/>../dream-engine/deny.toml:29-31"] --- DC
 ```
 
@@ -59,21 +59,21 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    LOCAL["Workspace 0.4.0, edition 2021<br/>../dream-engine/Cargo.toml:6-11"] --> PIN["Agentbox pins core 0.4.0 and gate 0.3.0<br/>services/dream-engine/Cargo.toml:26-27"]
+    LOCAL["Workspace 0.4.0, edition 2021<br/>../dream-engine/Cargo.toml:6-11"] --> PIN["Agentbox pins core 0.4.1 and gate 0.3.0<br/>services/dream-engine/Cargo.toml:26-27"]
     PIN --> HIST["Historical activation recorded for 16 October<br/>See ADR-2141 evidence discussed below"]
     HIST --> LIVE["Current running version not requalified here"]
     ROSTER["DRIFT: roster still labels extracted repo imported<br/>scripts/estate-health/roster.json:21"] --> MANIFEST["Release generator still selects dream-machine<br/>scripts/generate-release-manifest.sh:102"]
     MANIFEST --> TEST["Gate expects two imported repositories<br/>tests/gates/release-manifest.test.sh:68-69"]
     TEST --> BROWSER["Browser journey still selects old Pages URL<br/>scripts/estate-browser-journeys.mjs:24"]
     PIN --> LIMITS["Open: host driver, TrainDev and rollback<br/>../dream-engine/README.md:130-135"]
-    LIMITS --> DRAFT["Agentbox publishes drafts directly<br/>services/dream-engine/src/engine.rs:1774"]
+    LIMITS --> DRAFT["Agentbox publishes drafts directly<br/>services/dream-engine/src/engine.rs:1869"]
     DRAFT --> ADMIT["Darwin sandbox-flag admission check<br/>crates/dream-core/src/readiness.rs:228-232"]
 ```
 
 **Tension (roster vs rename):** after the rename the slug names a first-party repository, so the next collection would measure it under a provenance label that no longer describes it (`scripts/estate-health/roster.json:21`), and the gate asserting two imported rows fails the day the row is corrected (`tests/gates/release-manifest.test.sh:68-69`), so row, generator and test must move in one change.
 
-**Resolved (PR 28):** the adapter pin merged on agentbox `main` (merge commit aa9b094c3, `gh pr view 28` reads `MERGED`). **Historical activation:** the ADR records a rebuild and activation of the registry-pinned image on 2026-10-16 (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:47`); the later releases (0.2.0 to 0.4.0) are adopted in `Cargo.toml` and their image activation is not recorded in the ADR (`../project/agentbox/services/dream-engine/Cargo.toml:26-27`). **Resolved (CI):** the agentbox GitHub Actions run again, with the CI, ShellCheck and Secret Scan workflows green on 2026-10-29 (`gh run list`).
+**Resolved (PR 28):** the adapter pin merged on agentbox `main` (merge commit aa9b094c3, `gh pr view 28` reads `MERGED`). **Historical activation:** the ADR records a rebuild and activation of the registry-pinned image on 2026-10-16 (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:84`); the later releases (0.2.0 to 0.4.1) are adopted in `Cargo.toml` and their image activation is not recorded in the ADR (`../project/agentbox/services/dream-engine/Cargo.toml:26-27`). **Resolved (CI):** the agentbox GitHub Actions run again, with the CI, ShellCheck and Secret Scan workflows green on 2026-10-29 (`gh run list`).
 
-**Drift (ADR-2141 vs the manifest):** the record's Pinning bullet names `dream-core` and `dream-gate` `=0.2.0` (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:31`) and its last re-verification adopts `=0.3.0` for both (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:55`), while the adapter pins `dream-core =0.4.0` and `dream-gate =0.3.0` (`../project/agentbox/services/dream-engine/Cargo.toml:26-27`).
+**Drift (ADR-2141 vs the manifest):** the record's Pinning bullet names `dream-core` and `dream-gate` `=0.2.0` (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:68`) and its last re-verification adopts `=0.3.0` for both (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:92`), while the adapter pins `dream-core =0.4.1` and `dream-gate =0.3.0` (`../project/agentbox/services/dream-engine/Cargo.toml:26-27`).
 
-**Drift (autoMerge inert):** the permissive repository's option exists but the adapter publishes through `Forge::publish_draft` (`../project/agentbox/services/dream-engine/src/engine.rs:1774`), and the dream-engine README and ADR-DE-006 now say that path never merges, whatever `autoMerge` says (`../dream-engine/README.md:130-135`, `../dream-engine/docs/adr/ADR-DE-006-automerge-is-an-option.md:44-48`). See ES-05 and AB-23.6. **Invariant (darwin):** darwin entrypoints without the declared sandbox flag are refused by evaluator readiness as a safety check. `assess` only appends an `Unusable::DarwinSandboxMissing` problem for the report and changes nothing (`../dream-engine/crates/dream-core/src/readiness.rs:228-232`). **Open (candidate and evidence boundaries):** source-level checks do not establish formatter confinement or evidence integrity. DE-02 records an out-of-worktree formatter write, duplicate test-name collapse, receipt filename collisions and manifest archive replacement, reproduced against the same production source.
+**Drift (autoMerge inert):** the permissive repository's option exists but the adapter publishes through `Forge::publish_draft` (`../project/agentbox/services/dream-engine/src/engine.rs:1869`), and the dream-engine README and ADR-DE-006 now say that path never merges, whatever `autoMerge` says (`../dream-engine/README.md:130-135`, `../dream-engine/docs/adr/ADR-DE-006-automerge-is-an-option.md:44-48`). See ES-05 and AB-23.6. **Invariant (darwin):** darwin entrypoints without the declared sandbox flag are refused by evaluator readiness as a safety check. `assess` only appends an `Unusable::DarwinSandboxMissing` problem for the report and changes nothing (`../dream-engine/crates/dream-core/src/readiness.rs:228-232`). **Open (candidate and evidence boundaries):** source-level checks do not establish formatter confinement or evidence integrity. DE-02 records an out-of-worktree formatter write, duplicate test-name collapse, receipt filename collisions and manifest archive replacement, reproduced against the same production source.

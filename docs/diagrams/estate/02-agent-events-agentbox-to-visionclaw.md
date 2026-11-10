@@ -23,6 +23,7 @@ sources:
   - ../project/src/actors/client_coordinator_actor.rs
   - ../project/src/utils/binary_protocol.rs
   - ../project/src/utils/unified_gpu_compute/construction.rs
+  - ../project/src/utils/unified_gpu_compute/buffers.rs
   - ../project/src/utils/unified_gpu_compute/memory.rs
   - ../project/src/utils/unified_gpu_compute/execution.rs
   - ../project/client/src/features/visualisation/components/TransientBeamsLayer.tsx
@@ -46,7 +47,7 @@ sources:
   - ../project/agentbox/docs/PROTOCOL-registry.md
   - ../project/agentbox/schema/federation-kinds.json
   - ../project/docs/explanation/visionflow-coordination-platform.md
-verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
 ---
 ## ES-02.1 Producer — POST /v1/agent-events/emit, NIP-98 gate, local publish
 ```mermaid
@@ -159,7 +160,7 @@ sequenceDiagram
         VCW-->>SUB: ctx.text {"error":"malformed_json"}
     end
     Note over HUB: INVARIANT: HUB_CAPACITY=256 tokio broadcast channel, a lagged receiver observes<br/>RecvError::Lagged(skipped) and resyncs on next frame drop-oldest no crash
-    Note over VCW: RESOLVED ADR-2084: src/agent_events/mod.rs and ingest.rs now state that the beam render<br/>actor is SHIPPED and subscribes to this hub, and that the attractive gluon transient edge is a<br/>separate deferred sub-feature. DOC-DRIFT: mod.rs:13 and ingest.rs:11, :24 still send the reader to<br/>agent_beam_actor.rs:327 for the packed-CSR reason, but the gluon_deferral_note block was deleted by 4a3452c91.<br/>At this stamp :327 is the BeamCoalescer construction inside the forwarding task, and the comment at<br/>agent_beam_actor.rs:402 still names the deleted note. hub.rs:4-7 still calls the render actor future and latent
+    Note over VCW: RESOLVED ADR-2084: src/agent_events/mod.rs and ingest.rs now state that the beam render<br/>actor is SHIPPED and subscribes to this hub, and that the attractive gluon transient edge is a<br/>separate deferred sub-feature. DOC-DRIFT: mod.rs:13 and ingest.rs:11, :24 still send the reader to<br/>agent_beam_actor.rs:331 for the packed-CSR reason, but the gluon_deferral_note block was deleted by 4a3452c91.<br/>At this stamp :331 is the BeamCoalescer construction inside the forwarding task, and the comment at<br/>agent_beam_actor.rs:406 still names the deleted note. hub.rs:4-7 still calls the render actor future and latent
     end
 ```
 
@@ -222,10 +223,10 @@ sequenceDiagram
     participant HUB as AGENT_EVENT_HUB<br/>src/agent_events/hub.rs:24
     participant BA as AgentBeamActor<br/>src/actors/agent_beam_actor.rs:203
     participant BC as BeamCoalescer<br/>src/actors/agent_beam_actor.rs:124
-    participant CC as ClientCoordinatorActor<br/>src/actors/client_coordinator_actor.rs:617
+    participant CC as ClientCoordinatorActor<br/>src/actors/client_coordinator_actor.rs:776
     participant DEMO as AgentDemoDirector<br/>src/actors/agent_demo_director.rs:386
 
-    BA->>HUB: agent_events::hub::subscribe()<br/>src/actors/agent_beam_actor.rs:299
+    BA->>HUB: agent_events::hub::subscribe()<br/>src/actors/agent_beam_actor.rs:303
     loop forwarding task, empty backlog blocks on rx.recv()
         HUB->>BA: rx.recv().await
         alt Ok(envelope)
@@ -261,21 +262,21 @@ sequenceDiagram
         BC-->>BA: None
     end
     opt swarm roster arrives (UpdateBotsGraph, forwarded by GraphServiceSupervisor)
-        BA->>CC: roster presence and state frames via try_send, plus a keep-alive on ROSTER_TICK 1 s<br/>src/actors/agent_beam_actor.rs:222-232,244,246-264,303-309
+        BA->>CC: roster presence and state frames via try_send, plus a keep-alive on ROSTER_TICK 1 s<br/>src/actors/agent_beam_actor.rs:222-236,248,250-268,307-313
     end
     opt shared agents demo running (ADR-2142, POST /api/agents/demo, src/handlers/api_handler/agents_demo.rs:30)
-        DEMO->>CC: every 250 ms tick: coordinator.do_send(BroadcastAgentActionFrame(encode_agent_actions(events))), reserved ids 0x8000D001 to 0x8000D006, never enters the hub<br/>src/actors/agent_demo_director.rs:394,433-436
+        DEMO->>CC: every 250 ms tick: coordinator.do_send(BroadcastAgentActionFrame(encode_agent_actions(events))), reserved ids 0x8000D001 to 0x8000D006, never enters the hub<br/>src/actors/agent_demo_director.rs:394,433-435
     end
-    CC->>CC: client_manager.read().broadcast_to_all(frame)<br/>src/actors/client_coordinator_actor.rs:1232-1244
-    CC->>CC: settle_broadcast_result(&broadcast_result, "agent-action frame") (ADR-031 item 5)<br/>src/actors/client_coordinator_actor.rs:1247, fn :672
+    CC->>CC: client_manager.read().broadcast_agent_actions(events, node_type_arrays): one 0x23 frame per client, holding only the actions whose KG target that client may see (ADR-060), fail closed until classified<br/>src/actors/client_coordinator_actor.rs:1389-1401, fn :518
+    CC->>CC: settle_broadcast_result(&broadcast_result, "agent-action frame") (ADR-031 item 5)<br/>src/actors/client_coordinator_actor.rs:1403, fn :831
     opt closed or congested clients
-        CC->>CC: closed clients are evicted via manager.unregister_client(id) :683-688 - congested clients only skip this frame and are tracked by record_congestion :681 and evict_stalled :682
+        CC->>CC: closed clients are evicted via manager.unregister_client(id) :842-847 - congested clients only skip this frame and are tracked by record_congestion :840 and evict_stalled :841
     end
-    Note over CC: Changed by d90064950 (fix(ws), after the previous stamp) - the inline slow-client eviction loop right after broadcast_to_all became settle_broadcast_result,<br/>which evicts closed clients at once, only skips a frame for a congested one, and calls evict_stalled on every broadcast (src/actors/client_coordinator_actor.rs:672-691, evict_stalled :336)<br/>to unregister a client that has stayed congested for its stall timeout
+    Note over CC: Changed by d90064950 (fix(ws), after the previous stamp) - the inline slow-client eviction loop right after broadcast_to_all became settle_broadcast_result,<br/>which evicts closed clients at once, only skips a frame for a congested one, and calls evict_stalled on every broadcast (src/actors/client_coordinator_actor.rs:831-850, evict_stalled :452)<br/>to unregister a client that has stayed congested for its stall timeout
     Note over BC: INVARIANT: past MAX_PENDING_ACTIONS=256 the OLDEST buffered action is evicted and<br/>dropped_total incremented - never a silent drop-and-spam
 ```
 
-**Drift:** since the previous stamp `AgentBeamActor` is no longer only the hub's beam forwarder. It also owns the real-agent roster: `GraphServiceSupervisor` forwards every `UpdateBotsGraph` to it (`src/actors/graph_service_supervisor.rs:2031-2037`), and it emits presence and state `0x23` frames from that roster on a 1 s tick (`src/actors/agent_beam_actor.rs:244,303-309`). Those roster frames go through `broadcast`, a plain `try_send` that logs and drops on a full mailbox (`src/actors/agent_beam_actor.rs:222-232`), so the held-backlog invariant below covers hub actions only. The comment at `src/actors/agent_beam_actor.rs:302` says the keep-alive fires every 5 s while the tick constant is 1 s; the 5 s cadence may live inside `RosterFeed::tick`, which this topic did not trace.
+**Drift:** since the previous stamp `AgentBeamActor` is no longer only the hub's beam forwarder. It also owns the real-agent roster: `GraphServiceSupervisor` forwards every `UpdateBotsGraph` to it (`src/actors/graph_service_supervisor.rs:2031-2037`), and it emits presence and state `0x23` frames from that roster on a 1 s tick (`src/actors/agent_beam_actor.rs:248,307-313`). Those roster frames go through `broadcast`, a plain `try_send` that logs and drops on a full mailbox (`src/actors/agent_beam_actor.rs:222-236`), so the held-backlog invariant below covers hub actions only. The comment at `src/actors/agent_beam_actor.rs:306` says the keep-alive fires every 5 s while the tick constant is 1 s; the 5 s cadence may live inside `RosterFeed::tick`, which this topic did not trace.
 
 ## ES-02.5 Binary wire 0x23 AGENT_ACTION — single event and batch layout
 ```mermaid
@@ -339,8 +340,8 @@ sequenceDiagram
     STORE->>STORE: pushBeams: clampDuration (MIN_BEAM_DURATION_MS=400, DEFAULT=1500), FIFO cap MAX_TRANSIENT_BEAMS=256, state frames filtered again<br/>client/src/store/transientBeamStore.ts:58-63,26,71
     LAYER->>STORE: useTransientBeams() reads beams, calls pruneExpired() every frame
     LAYER->>LAYER: render coloured cylinder agent-node -> KG-node, opacity fade-in/hold/fade-out over durationMs, shape by action_type
-    Note over LAYER: DIVERGENCE: render is a beam coloured cylinder only, no attractive gluon edge is wired.<br/>archived draft ADR docs/archive/adr/ADR-059-bidirectional-agent-channel-server.md rationale<br/>only specified a class_charge-modulation gluon, retracted because class_charge is bulk<br/>ontology-clustering metadata uploaded whole-array at construction<br/>src/utils/unified_gpu_compute/construction.rs:63,370 memory.rs:84 upload_class_metadata<br/>execution.rs:994 with no per-node update path
-    Note over LAYER: DIVERGENCE: the transient-attractive-edge gluon is still DEFERRED and only the beam ships today. DOC-DRIFT: the rationale block this note used to cite<br/>(agent_beam_actor.rs gluon_deferral_note, four reasons including no incremental CSR insert) was deleted by 4a3452c91, so only the comment at agent_beam_actor.rs:402<br/>and the module docs (ingest.rs:11, mod.rs:13) assert the deferral. Still true in code: no UpsertTransientEdge message exists in src/, and edges reach the GPU<br/>as a wholesale packed CSR upload (memory.rs:204 upload_edges_csr, :863 initialize_graph, reallocation :437 resize_buffers)
+    Note over LAYER: DIVERGENCE: render is a beam coloured cylinder only, no attractive gluon edge is wired.<br/>archived draft ADR docs/archive/adr/ADR-059-bidirectional-agent-channel-server.md rationale<br/>only specified a class_charge-modulation gluon, retracted because class_charge is bulk<br/>ontology-clustering metadata uploaded whole-array at construction<br/>src/utils/unified_gpu_compute/construction.rs:64, buffers.rs:147 (default charge 1.0, allocated by the registered table at construction.rs:428) memory.rs:95 upload_class_metadata<br/>execution.rs:990 with no per-node update path
+    Note over LAYER: DIVERGENCE: the transient-attractive-edge gluon is still DEFERRED and only the beam ships today. DOC-DRIFT: the rationale block this note used to cite<br/>(agent_beam_actor.rs gluon_deferral_note, four reasons including no incremental CSR insert) was deleted by 4a3452c91, so only the comment at agent_beam_actor.rs:406<br/>and the module docs (ingest.rs:11, mod.rs:13) assert the deferral. Still true in code: no UpsertTransientEdge message exists in src/, and edges reach the GPU<br/>as a wholesale packed CSR upload (memory.rs:215 upload_edges_csr, :844 initialize_graph, reallocation :472 resize_buffers)
 ```
 
 ## ES-02.7 LEGACY — :9500 MCP-TCP relay lifecycle (docker-exec supervision)
@@ -381,7 +382,7 @@ sequenceDiagram
         MGR->>DOCKER: health_manager.check_service_now("mcp-relay")
     end
     Note over MGR: INVARIANT: RetryableError classifies DockerCommandFailed/HealthCheckFailed/Timeout as<br/>retryable, ContainerNotFound as terminal
-    Note over MGR: RESOLVED ADR-2090 — the /ws/mcp-relay upgrade (mcp_relay_handler.rs, route<br/>src/main.rs:1115) and /multi-mcp/ws (multi_mcp_websocket_handler.rs) previously accepted<br/>ANY non-empty string as a credential: neither referenced NostrService at all, and the sole<br/>gate was .is_empty(), so ?token=x opened the socket. Both now resolve the token through<br/>NostrService::get_session and fail closed on absent token, absent service, or a token that<br/>names no live unexpired session. Found by vc-core, fixed here as owner. see ADR-2044
+    Note over MGR: RESOLVED ADR-2090 — the /ws/mcp-relay upgrade (mcp_relay_handler.rs, route<br/>src/main.rs:1149) and /multi-mcp/ws (multi_mcp_websocket_handler.rs) previously accepted<br/>ANY non-empty string as a credential: neither referenced NostrService at all, and the sole<br/>gate was .is_empty(), so ?token=x opened the socket. Both now resolve the token through<br/>NostrService::get_session and fail closed on absent token, absent service, or a token that<br/>names no live unexpired session. Found by vc-core, fixed here as owner. see ADR-2044
     Note over MGR: RESOLVED ADR-2090 amendment / ADR-2058 — the ?token= query carrier is now<br/>DEV-ONLY on both sockets: compiled out of release behind cfg(any(debug_assertions,<br/>feature="dev-auth")), with a SECURITY warning on the dev arm and a SECURITY rejection<br/>warning on the release arm. The Authorization header is the only release carrier, so the<br/>bearer stops reaching access logs, proxy logs and Referer. Clients that cannot set headers<br/>use the post-connect NIP-98 authenticate envelope (kind 27235). Both cfg arms type-checked
     Note over MGR: RESOLVED ADR-2091 — the /multi-mcp scope also served two REST routes that<br/>returned FICTION: GET /status (get_mcp_server_status) emitted a hardcoded server list<br/>claiming claude-flow is_connected:true with agent_count:4, never querying anything, and<br/>POST /refresh (refresh_mcp_discovery) reported "Discovery refresh initiated" while doing<br/>nothing. Both took _app_state unused. Both REMOVED with their registrations — zero callers<br/>in src/, client/ or xr-client/. Real state lives in multi_mcp_agent_discovery.rs (ES-02.9)
     end
@@ -431,7 +432,7 @@ sequenceDiagram
             BC->>BC: clear stored agents (agents_lock.clear())
         end
     end
-    Note over TCP: RESOLVED ADR-2084: ingest.rs no longer calls this deprecated. It is documented as legacy<br/>but LOAD-BEARING - the sole source of agent state snapshots (query_agent_list), constructed at<br/>app_state.rs:1179 with a boot poll at :1190-1215, no replacement built. ADR-2084 stages the WS cutover with an<br/>acceptance test rather than implying one already exists
+    Note over TCP: RESOLVED ADR-2084: ingest.rs no longer calls this deprecated. It is documented as legacy<br/>but LOAD-BEARING - the sole source of agent state snapshots (query_agent_list), constructed at<br/>app_state.rs:1167 with a boot poll at :1178-1203, no replacement built. ADR-2084 stages the WS cutover with an<br/>acceptance test rather than implying one already exists
 ```
 
 ## ES-02.9 LEGACY — multi-MCP agent discovery, concurrent fan-out poll, run only while a /multi-mcp/ws socket is attached
@@ -444,7 +445,7 @@ sequenceDiagram
     participant RS as ruv-swarm server<br/>RUV_SWARM_PORT default 9501, enabled only when set
     participant DAA as DAA server<br/>src/services/multi_mcp_agent_discovery.rs:254-259, enabled only when set
 
-    Note over CALLER,DISC: DOC-DRIFT (RESOLVED 2026-10-12, project 6a1a74b8b/4f4345503) - this diagram used to open with an unnamed start_discovery caller because nothing constructed the service.<br/>AppState::new now builds it and initialises the default servers (src/app_state.rs:1181-1183), and each /multi-mcp/ws socket attaches and calls sync_running (VC-05.13)
+    Note over CALLER,DISC: DOC-DRIFT (RESOLVED 2026-10-12, project 6a1a74b8b/4f4345503) - this diagram used to open with an unnamed start_discovery caller because nothing constructed the service.<br/>AppState::new now builds it and initialises the default servers (src/app_state.rs:1169-1171), and each /multi-mcp/ws socket attaches and calls sync_running (VC-05.13)
     CALLER->>DISC: attach() then sync_running() which calls start_discovery()<br/>src/services/multi_mcp_agent_discovery.rs:170-172, :184-193, :298
     alt discovery_running already true
         DISC-->>CALLER: warn Discovery already running, return<br/>src/services/multi_mcp_agent_discovery.rs:300-303

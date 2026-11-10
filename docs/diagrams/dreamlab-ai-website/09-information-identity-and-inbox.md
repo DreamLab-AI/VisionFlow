@@ -18,7 +18,7 @@ sources:
   - ../dreamlab-ai-website/forum-config/dreamlab.toml
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/agent_disclosure.rs
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/governance_api.rs
-verified_commit: {dreamlab-ai-website: b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5, nostr-rust-forum: 9c36b6032640c89879ae52fe25da99493979a0b6}
+verified_commit: {dreamlab-ai-website: f934e26f949f3b95171544ec8ec5bcfd7679f593, nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
 ---
 
 ## For developers
@@ -37,22 +37,22 @@ The monitor can summarise received enquiry copies without joining private forum 
 
 ```mermaid
 flowchart TB
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/agent_disclosure.rs:102
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/agent_disclosure.rs:105
     A["Read active registry rows"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/agent_disclosure.rs:68
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/agent_disclosure.rs:70
     A --> B["Merge configured ingress identities<br/>that name an authorising principal"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/agent_disclosure.rs:76
-    B --> C["Active registry row wins for same key<br/>otherwise configuration fills the gap"]
-    %% Source: ../dreamlab-ai-website/scripts/lib/website-info.mjs:77
-    C --> D["Website classifier checks key presence<br/>not provenance, name or principal validity"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/agent_disclosure.rs:78
+    B --> C["Active registry row wins for same key and is marked registered<br/>otherwise configuration fills the gap, marked not registered"]
+    %% Source: ../dreamlab-ai-website/scripts/lib/website-info.mjs:83
+    C --> D["Website classifier separates listed from registered<br/>registered is true only for a registry row"]
     %% Source: ../dreamlab-ai-website/scripts/seed/provision-website-info.mjs:97
-    D --> E["DRIFT: provisioner skips registration<br/>when configuration alone lists the identity"]
-    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:229
-    D --> F["DRIFT: watcher cannot infer missing<br/>registry row from this merged endpoint"]
+    D --> E["DRIFT: RESOLVED at dreamlab-ai-website f934e26<br/>provisioner skips registration only when a registry row exists"]
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:233
+    D --> F["DRIFT: RESOLVED at dreamlab-ai-website f934e26<br/>watcher reads the registered flag, so a missing registry row is a problem"]
 ```
 
-**What it shows:** Public naming survives a missing database row, while the consumer interprets that naming as proof of registration.
-**Why it is this way:** ADR-2011 adopted configuration-backed ingress but retained an older registry-presence check; its two obligations now use the same ambiguous response.
+**What it shows:** Public naming still survives a missing database row, but the relay now marks it `registered: false` and both consumers require `registered: true`.
+**Why it is this way:** ADR-2011 adopted configuration-backed ingress, and the earlier registry-presence check was repaired by adding the registered flag to the shared response.
 
 ## DW-09.2 Provisioning privilege guard versus nightly health
 
@@ -87,12 +87,12 @@ flowchart TB
     B --> C["Copy failure does not change<br/>visitor-facing primary result"]
     %% Source: ../dreamlab-ai-website/scripts/seo-watch/crontab:17
     D["07:15 UTC watcher, flock<br/>300-second timeout"]
-    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:297
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:299
     D --> E["Publish synthetic wrap to monitor<br/>also performed in dry-run mode"]
-    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:314
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:316
     %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:187
     E --> F["Read monitor inbox and verify<br/>seal signature and rumor author binding"]
-    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:253
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:255
     D --> G["Bundle substring checks for keys<br/>are not a browser form-submission test"]
 ```
 
@@ -106,22 +106,22 @@ flowchart TB
     %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:49
     %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:137
     A["Three-day window<br/>500 wraps per page, at most ten pages"]
-    %% Source: ../dreamlab-ai-website/scripts/lib/digest.mjs:74
+    %% Source: ../dreamlab-ai-website/scripts/lib/digest.mjs:81
     A --> B["DEBT: next cursor is oldest second minus one<br/>unseen ties at the boundary can be skipped"]
-    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:328
-    B --> C["Mark wrap ID seen before<br/>verification and classification"]
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:334
+    B --> C["Mark only probe wraps seen at classification<br/>other IDs wait for the digest"]
     %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:200
     C --> D["DEBT: any content containing probe phrase<br/>is omitted as a synthetic probe"]
-    %% Source: ../dreamlab-ai-website/scripts/lib/digest.mjs:18
+    %% Source: ../dreamlab-ai-website/scripts/lib/digest.mjs:25
     C --> E["Sanitised digest itemises first 25<br/>remaining count is a summary line"]
-    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:373
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:377
     E --> F["Relay acknowledgement permits state save<br/>rejected digest leaves seen state unsaved"]
-    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:389
-    F --> G["DEBT: all fetched IDs become persisted seen<br/>undisplayed items do not roll into next digest"]
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:387
+    F --> G["DEBT: RESOLVED at dreamlab-ai-website f934e26<br/>only itemised IDs are marked seen, the rest roll into the next digest"]
 ```
 
-**What it shows:** Bounds prevent unbounded processing but can omit messages. The 30-message fixture displays 25, marks all 30 seen and reports zero new on its next run.
-**Why it is this way:** The watcher deduplicates received wraps and bounds one digest; its state does not distinguish fetched, itemised, pending and acknowledged messages.
+**What it shows:** Bounds prevent unbounded processing, and messages past the 25-item cap stay unseen so the next digest carries them.
+**Why it is this way:** The watcher deduplicates received wraps and bounds one digest; its state now marks only itemised messages seen after an acknowledged delivery.
 
 ## DW-09.5 Plaintext topic annotation and retained evidence
 
@@ -137,9 +137,9 @@ flowchart TB
     C --> D["Explicit endpoint, then configured proxy"]
     %% Source: ../dreamlab-ai-website/scripts/lib/jev.mjs:59
     D --> E["Otherwise vendor endpoint with API key<br/>plaintext enquiry is request state"]
-    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:365
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:369
     A --> F["Dry-run prints composed digest<br/>including enquiry excerpts"]
-    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:341
+    %% Source: ../dreamlab-ai-website/scripts/inbox-watch/run.mjs:345
     A --> G["Normal status retains counts and problems<br/>seen state is not a complete message archive"]
 ```
 

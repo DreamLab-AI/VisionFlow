@@ -21,7 +21,7 @@ sources:
   - ../codescape/crates/codescape-layout/Cargo.toml
   - ../codescape/crates/codescape-server/Cargo.toml
   - ../codescape/crates/codescape-server/tests/isolation.rs
-verified_commit: 446f8e386d7fc31e4cf28db25bf976c636b149ce
+verified_commit: d66bcab80fc0ce1f57deb6a0b6fa74e56ee8e298
 ---
 
 ## CS-01.1 The five crates and their dependency direction

@@ -13,7 +13,7 @@ sources:
   - ../sealmap/crates/sealmap-extract/src/labels.rs
   - ../sealmap/crates/sealmap-model/src/flow.rs
   - ../sealmap/README.md
-verified_commit: b9a6aebddd2e8379206eea6cfdd3ab84546724b4
+verified_commit: 2b351367cab241aa7304d364aa37b52e65bb71f2
 ---
 ## For developers
 
