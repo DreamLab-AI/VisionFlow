@@ -5,7 +5,7 @@ area: visionclaw
 governing:
   - ../project/docs/GPU-wire-abi.md
   - ../project/docs/adr/ADR-2140-physics-forces-have-one-stored-definition-and-no-scale-factors.md
-adrs: [ADR-2029, ADR-2140, ADR-2169]
+adrs: [ADR-2029, ADR-2140, ADR-2169, ADR-2174]
 sources:
   - ../project/crates/visionclaw-gpu/src/cuda_sources/visionclaw_unified.cu
   - ../project/crates/visionclaw-gpu/src/cuda_sources/semantic_forces.cu
@@ -19,6 +19,8 @@ sources:
   - ../project/src/services/semantic_type_registry.rs
   - ../project/src/services/github_sync_service.rs
   - ../project/docs/adr/ADR-2140-physics-forces-have-one-stored-definition-and-no-scale-factors.md
+  - ../project/docs/adr/ADR-2174-layout-forces-are-learned-per-relation-type.md
+  - ../project/crates/relational-field/PREREGISTRATION.md
 verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
 ---
 
@@ -119,4 +121,4 @@ flowchart TB
 
 **What it shows:** a typed edge is pulled by three laws whose coefficients all derive from one registry strength. **Why it is this way:** each path was added separately; no record decides that one relation should have one spring.
 
-**Open:** no ADR states which of the three springs is meant to carry a relation's strength; the November 2026 rework draft proposes one per-relation path, which is not decided at 46edc196b.
+**Open (ADR-2174 and an unmerged result):** no ADR states which of the three springs is meant to carry a relation's strength. ADR-2174 proposes learning per-relation forces offline under a preregistration and writing an integration ADR only if H1 holds (`../project/docs/adr/ADR-2174-layout-forces-are-learned-per-relation-type.md:5-7`, `:50-52`). That experiment was run and its Result reports H1 not supported, but the Result exists only on branch `feat/relational-field-h1` (77f6702b9); at 46edc196b the preregistration ends at its Deviations section (`../project/crates/relational-field/PREREGISTRATION.md:103`) and the ADR still names the experiment as its review trigger (`../project/docs/adr/ADR-2174-layout-forces-are-learned-per-relation-type.md:14`).
