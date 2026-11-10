@@ -56,7 +56,7 @@ sources:
   - ../project/src/services/ontology_visibility.rs
   - ../project/src/handlers/graph_access.rs
   - ../project/docs/SECURITY-profiles.md
-verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8, ontomark: 4b9d15df48056971321a62b8c4e905f4536c74db}
+verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8, ontomark: 6159bb6089753105ef839fd4aac46c1598a64bd2}
 ---
 
 ## For developers
@@ -401,16 +401,16 @@ sequenceDiagram
     CLI->>G: the graph vault build publishes (knowledge vault, projected, attributed, public only)
     CLI->>AD: certify(&graph)
     AD->>AD: spell() — every Subject/Term as an N-Triples string crates/vault/src/certificate.rs:21
-    AD->>CR: certify(triples) — the same engine ontomark build --certificate-out runs<br/>../ontomark/crates/ontomark-compile/src/certificate.rs:51, build/mod.rs:703
+    AD->>CR: certify(triples) — the same engine ontomark build --certificate-out runs<br/>../ontomark/crates/ontomark-compile/src/certificate.rs:51, build/mod.rs:790
     loop until the worklist is empty
         CR->>CR: insert() indexes and queues a new fact, a derived one is ONE step lib.rs:249<br/>consequences_of() — rdfs2/3/5/7/9/11 in both premise positions lib.rs:287, run_to_fixpoint lib.rs:411
-        Note over CR: rule TAB conclusion TAB premise1 TAB premise2 — premises are asserted or EARLIER lines<br/>pinned at lib.rs:879 (ordering) and lib.rs:910 (premise order per rule)
+        Note over CR: rule TAB conclusion TAB premise1 TAB premise2 — premises are asserted or EARLIER lines<br/>pinned at lib.rs:884 (ordering) and lib.rs:915 (premise order per rule)
     end
     CR-->>CLI: Certificate (asserted, steps)
-    CLI->>CR: write(out, generation) — asserted.tsv, derivations.tsv, asserted.sha256, scope.tsv lib.rs:585<br/>push_line refuses any field carrying a separator lib.rs:790
+    CLI->>CR: write(out, generation) — asserted.tsv, derivations.tsv, asserted.sha256, scope.tsv lib.rs:585<br/>push_line refuses any field carrying a separator lib.rs:795
     CLI->>W: reason(&graph).inferred - Err before reasoning when RELEVANT_TRANSITIVE_CAP is exceeded, crates/vault/src/whelk.rs:514
     CLI->>CR: named_subclass_closure() lib.rs:515
-    Note over CLI,W: INVARIANT whelk_parity: certified named closure == Whelk's, exit 1 otherwise<br/>crates/vault/src/main.rs:570, :606-610. Structural today: the emitter puts restrictions only on the<br/>superclass side, so every named entailment is rdfs11. Pinned at crates/vault/src/certificate.rs:92,<br/>ontomark enforces the same parity as a build refusal, ../ontomark/crates/ontomark-compile/src/build/mod.rs:101, :705-710
+    Note over CLI,W: INVARIANT whelk_parity: certified named closure == Whelk's, exit 1 otherwise<br/>crates/vault/src/main.rs:570, :606-610. Structural today: the emitter puts restrictions only on the<br/>superclass side, so every named entailment is rdfs11. Pinned at crates/vault/src/certificate.rs:92,<br/>ontomark enforces the same parity as a build refusal, ../ontomark/crates/ontomark-compile/src/build/mod.rs:101, :792-797
     CLI->>OO: oo-cert asserted.tsv derivations.tsv (reviewer / CI, OO_CERT_BIN)
     OO-->>CLI: {"ok":true,"theorem":"OOCert.certificate_sound"} or exit 1 naming the first bad line and rule
     Note over OO: Measured 2026-10-20 on visionGraph 1ec5774ad: 351,421 asserted, 731,141 derivations,<br/>certify 1.2 s, oo-cert 9.5 s accept, a forged line refused. tests/certificate_oo_cert.rs:72, :91
@@ -426,7 +426,7 @@ sequenceDiagram
     participant P as vault propose<br/>crates/vault/src/main.rs:438
     participant B as build_with_certificates<br/>crates/vault/src/propose.rs:524
     participant A as Assessment::of (base, then patched)<br/>crates/vault/src/propose.rs:118
-    participant D as consequence_delta<br/>../ontomark/crates/rdfs-certificate/src/lib.rs:630
+    participant D as consequence_delta<br/>../ontomark/crates/rdfs-certificate/src/lib.rs:635
     participant PP as PatchProposal.consequences<br/>crates/vault-core/src/proposal.rs:155
     participant F as forum 31402
 
@@ -434,7 +434,7 @@ sequenceDiagram
     B->>A: Assessment::of(base) — validation, conflicts, Whelk, certificate
     B->>A: Assessment::of(patched) — the same four, once
     B->>D: consequence_delta(&before.certificate, &after.certificate)
-    Note over D: compares the CLOSURE (asserted ∪ derived) with blank-node-bearing triples counted, not compared<br/>lib.rs:630. Derived-only misreports a consequence that becomes asserted —<br/>cross-vendor audit finding, pinned at lib.rs:1055
+    Note over D: compares the CLOSURE (asserted ∪ derived) with blank-node-bearing triples counted, not compared<br/>lib.rs:635. Derived-only misreports a consequence that becomes asserted —<br/>cross-vendor audit finding, pinned at lib.rs:1077
     D-->>B: ConsequenceDelta — verdict word, new/lost, by predicate, examples, proposal asserted.sha256<br/>re-exported at crates/vault-core/src/proposal.rs:159
     B->>PP: with_consequences(delta) propose.rs:624, defn crates/vault-core/src/proposal.rs:259
     opt --certificate-dir

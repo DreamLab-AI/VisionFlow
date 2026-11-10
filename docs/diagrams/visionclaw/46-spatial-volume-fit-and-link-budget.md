@@ -13,7 +13,7 @@ sources:
   - ../project/xr-client/scripts/native_container_shim.gd
   - ../project/xr-client/scripts/graph_scene.gd
   - ../project/docs/adr/ADR-2164-code-graph-entities-link-to-knowledge-and-ontology-nodes-resolved-at-runtime.md
-verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
+verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
 ---
 
 ## For developers

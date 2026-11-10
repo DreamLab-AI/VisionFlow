@@ -20,7 +20,7 @@ sources:
   - ../codescape/crates/codescape-server/src/routes/mod.rs
   - ../codescape/crates/codescape-server/src/routes/presence.rs
   - ../codescape/crates/codescape-server/src/xr_presence.rs
-verified_commit: 446f8e386d7fc31e4cf28db25bf976c636b149ce
+verified_commit: d66bcab80fc0ce1f57deb6a0b6fa74e56ee8e298
 ---
 
 ## CS-03.1 Boot order and the two listeners

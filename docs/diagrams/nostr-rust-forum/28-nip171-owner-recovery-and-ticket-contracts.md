@@ -19,7 +19,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/recipient_keys.rs
   - ../nostr-rust-forum/crates/nostr-bbs-zone-migrate/src/grants.rs
   - ../project/agentbox/management-api/lib/zone-keys.js
-verified_commit: {nostr-rust-forum: 0b7979c404f41414cfdbefffa28fb6d5ae1b1242, agentbox: 9dfc27b16e82e9786535a55e790710493dd51fdf}
+verified_commit: {nostr-rust-forum: 0b7979c404f41414cfdbefffa28fb6d5ae1b1242, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
 ---
 
 ## For developers
@@ -136,9 +136,9 @@ flowchart TB
     M["Migrator ticket reader<br/>explicit zone-to-group bindings"]
     %% Source: ../project/agentbox/management-api/lib/zone-keys.js:301
     A["Agentbox ticket reader<br/>configured zone-to-group bindings"]
-    %% Source: ../project/agentbox/management-api/lib/zone-keys.js:504
+    %% Source: ../project/agentbox/management-api/lib/zone-keys.js:506
     C["Competing valid ticket rejected<br/>first key retained without conflict marker"]
-    %% Source: ../project/agentbox/management-api/lib/zone-keys.js:623
+    %% Source: ../project/agentbox/management-api/lib/zone-keys.js:625
     W["writePlan still selects first key<br/>new probe encrypts successfully"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/keyset.rs:86
     X["Browser refuses contested send epoch<br/>cross-consumer policy remains inconsistent"]

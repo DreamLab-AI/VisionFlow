@@ -6,7 +6,7 @@ governing: []
 adrs: [ADR-VG-002]
 sources:
   - ../visionGraph/.github/workflows/publish.yml
-verified_commit: f7186a7d2
+verified_commit: d8277151a1404b456b5c7206187f7e4b50f25be1
 ---
 
 ## For developers
@@ -24,7 +24,7 @@ flowchart TB
     BUILD["certificate below site-data output<br/>publish.yml:179"] --> VERIFY["Lean checker reads promoted files<br/>publish.yml:229"]
     VERIFY --> REPORT["checker report beside certificate<br/>publish.yml:230"]
     REPORT --> REVIEW["retain complete review artefact<br/>publish.yml:237"]
-    REPORT --> SITE["copy whole generation to site<br/>publish.yml:340"]
+    REPORT --> SITE["copy whole generation to site<br/>publish.yml:344"]
 ```
 
 **What it shows:** the checker and downstream copies use one certificate location within the compiler output. **Why it is this way:** the new compiler refuses external certificate directories so its generation and warrant share one promotion point. Formal checking establishes the declared proof fragment, not the factual truth of every authored statement. **Invariant:** verification reads the certificate under the same `site-data` tree that is published (`publish.yml:229`).

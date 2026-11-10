@@ -50,7 +50,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/relay.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/auth/mod.rs
   - ../nostr-rust-forum/crates/nostr-bbs-rate-limit/src/replay.rs
-verified_commit: c39f41f104b114d6a3fa29013daaf6fa58b45080
+verified_commit: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df
 ---
 
 ## NF-12.1 Module map — what the workers and clients all link
@@ -144,7 +144,7 @@ flowchart TB
     S2["Validate raw child bytes as a scalar<br/>reject invalid output; no reduction or retry"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/tests/identity_subkey_vectors.rs:151
     V["Shared vectors test compatibility<br/>for fixed valid roots and exact tags"]
-    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:204
+    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:205
     J["JS runner mirrors the expression<br/>source substring check is not consumer execution"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs:241
     R["Root possession recovers each known-tag child"]
@@ -210,7 +210,7 @@ flowchart TB
 
     N1["INVARIANT: the URL and method are bound into the SIGNATURE, so a token minted for one endpoint cannot<br/>be replayed against another. The payload hash extends that binding to the body."]
     N2["Replay is a SEPARATE concern layered on top: REPLAY_CACHE_TTL_SECS is twice the tolerance, a safe<br/>upper bound for cache entries nostr-bbs-core/src/nip98.rs:71. The single-use INSERT OR IGNORE lives in<br/>nostr-bbs-rate-limit - see NF-02.5 and NF-07.8"]
-    N3["The ten checks live once, in verify_token_full: verify_nip98 nostr-bbs-core/src/nip98.rs:314 and the<br/>replay path nostr-bbs-core/src/nip98.rs:576 both call it. Workers enter through<br/>nostr_bbs_rate_limit::verify_nip98, which delegates to that replay path nostr-bbs-rate-limit/src/replay.rs:94. EXTERNAL: agentbox terminates NIP-98 at its own proxy with an independent<br/>single-use cache - see AB-10"]
+    N3["The ten checks live once, in verify_token_full: verify_nip98 nostr-bbs-core/src/nip98.rs:314 and the<br/>replay path nostr-bbs-core/src/nip98.rs:576 both call it. Workers enter through<br/>nostr_bbs_rate_limit::verify_nip98, which delegates to that replay path nostr-bbs-rate-limit/src/replay.rs:165. EXTERNAL: agentbox terminates NIP-98 at its own proxy with an independent<br/>single-use cache - see AB-10"]
 ```
 
 ## NF-12.6 Domain kinds this crate owns
@@ -278,7 +278,7 @@ classDiagram
     }
     class Delegation {
         DelegationToken : delegation.rs:49
-        Conditions : delegation.rs:187
+        Conditions : delegation.rs:197
     }
     Envelope --> EnvelopeKind
     Envelope --> Delegation

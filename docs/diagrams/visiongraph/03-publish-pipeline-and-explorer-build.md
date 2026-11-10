@@ -13,7 +13,7 @@ sources:
   - ../visionGraph/quartz/scripts/check-secrets.sh
   - ../visionGraph/quartz/scripts/check-urls.sh
   - ../ontomark/crates/ontomark-compile/src/build/mod.rs
-verified_commit: {visiongraph: 556a0156b5c326fb61141ed2ab1760dd8d9c4dd6, ontomark: 0caae5d4b695cb720942b9b9212017c00a80ad41}
+verified_commit: {visiongraph: 556a0156b5c326fb61141ed2ab1760dd8d9c4dd6, ontomark: 6159bb6089753105ef839fd4aac46c1598a64bd2}
 ---
 
 **Repair note — 2026-11-03:** selected counterexamples below have a [scoped successor verification](08-promoted-certificate-consumption.md). This historical topic retains its declared source revision; the successor states the repaired contracts and acceptance boundaries.
@@ -120,7 +120,7 @@ flowchart TB
     LAYOUT["Layout checks raw-or-gzip path presence<br/>notes completeness is a count comparison"]
     DEPLOY["Deploy assembled tree<br/>these checks do not regenerate a final-site manifest"]
     OVERLAY --> RECEIPT --> ZIP --> SIZE --> ASSEMBLE --> SCAN --> LAYOUT --> DEPLOY
-    %% Source: crates/ontomark-compile/src/build/mod.rs:1015
+    %% Source: crates/ontomark-compile/src/build/mod.rs:1133
     %% Source: .github/workflows/publish.yml:261
     %% Source: .github/workflows/publish.yml:317
     %% Source: .github/workflows/publish.yml:343

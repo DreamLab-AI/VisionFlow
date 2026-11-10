@@ -33,7 +33,7 @@ sources:
   - ../loom/crates/loom-vector-ruvector/src/artifact.rs
   - ../project/agentbox/docs/adr/ADR-2136-pin-the-shared-ontology-toolchain.md
   - docs/engineering/sovereign-corpus-contracts.md
-verified_commit: {ontomark: 4b9d15df48056971321a62b8c4e905f4536c74db, loom: ba21a689a57dc67dc68ad22e52b058da34a7fb05, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35, visionflow: 5f8b1da92ce5d9e6b32a0bd90ec3630c66619083}
+verified_commit: {ontomark: 4b9d15df48056971321a62b8c4e905f4536c74db, loom: 741c5dffd3253038bbe4fadea7fada7c46474a25, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c}
 ---
 
 ## OM-06.1 build --scope public|machine — the surface, the refusals and where run_with forks
@@ -181,8 +181,8 @@ flowchart TB
     end
     subgraph ABP6["AB-P6 — DECIDED: the --scope machine flag on build; ADR-2136 now says so"]
         A1["ontomark names the producer as build --scope machine, with --vault all the public publish's value<br/>DEPRECATION.md:468"]
-        A2["agentbox ADR-2136 names AB-P6 as the same released-CLI build --scope machine, no separate verb<br/>ADR-2136-pin-the-shared-ontology-toolchain.md:84"]
-        A3["the only verb split ADR-2136 states is elsewhere: the released ontomark CLI versus a thin AGPL adapter for propose, apply and panel publish<br/>ADR-2136-pin-the-shared-ontology-toolchain.md:80"]
+        A2["agentbox ADR-2136 names AB-P6 as the same released-CLI build --scope machine, no separate verb<br/>ADR-2136-pin-the-shared-ontology-toolchain.md:106"]
+        A3["the only verb split ADR-2136 states is elsewhere: the released ontomark CLI versus a thin AGPL adapter for propose, apply and panel publish<br/>ADR-2136-pin-the-shared-ontology-toolchain.md:102"]
         A4["DECIDED 2026-10-12 (owner, via ADR-OM-005 decision 4): AB-P6 is `build --scope machine`, no separate verb<br/>ontomark-cli/src/main.rs:201-202"]
         A5["DRIFT: the DEPRECATION input-set bullet still names `ontomark build --vault all --private-machine-bundle` (name provisional), a flag that does not exist<br/>DEPRECATION.md:470"]
         A1 --> A4
@@ -191,8 +191,8 @@ flowchart TB
         A5 -.->|DOC-DRIFT| A4
     end
 ```
-- DIVERGENCE: the phrase "AB-P6 verb split" appears in no document at these revisions; the entry records what the sources do say: the scope flag (`DEPRECATION.md:468`), ADR-2136's matching `build --scope machine` wording (`ADR-2136-pin-the-shared-ontology-toolchain.md:84`) and the CLI-versus-adapter verb division (`ADR-2136-pin-the-shared-ontology-toolchain.md:80`).
-- STATUS (ADR-2136, 2026-10-30): the record is `proposed` / `partial` / `inactive` (`ADR-2136-pin-the-shared-ontology-toolchain.md:5-7`). Its close-out found the released `ontomark` 0.6.0 baked into the running image beside `vault`, but not Decision 1's repin of the `vault` source, so the `build --scope machine` wording above is still a decision and not an implemented repin (`ADR-2136-pin-the-shared-ontology-toolchain.md:97-102`).
+- DIVERGENCE: the phrase "AB-P6 verb split" appears in no document at these revisions; the entry records what the sources do say: the scope flag (`DEPRECATION.md:468`), ADR-2136's matching `build --scope machine` wording (`ADR-2136-pin-the-shared-ontology-toolchain.md:106`) and the CLI-versus-adapter verb division (`ADR-2136-pin-the-shared-ontology-toolchain.md:102`).
+- STATUS (ADR-2136, 2026-10-30): the record is `proposed` / `partial` / `inactive` (`ADR-2136-pin-the-shared-ontology-toolchain.md:5-7`). Its close-out found the released `ontomark` 0.6.0 baked into the running image beside `vault`, but not Decision 1's repin of the `vault` source, so the `build --scope machine` wording above is still a decision and not an implemented repin (`ADR-2136-pin-the-shared-ontology-toolchain.md:119-124`).
 - INVARIANT: of the three rows, AB-P6 is decided (the scope flag) and the Loom tolerance is verified (C3 corrected at VisionFlow HEAD); only the NGG1 collapse stays open, pending a format bump.
 
 

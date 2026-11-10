@@ -20,7 +20,7 @@ sources:
   - ../project/agentbox/management-api/lib/ontology-apply.js
   - ../ontomark/crates/rdfs-certificate/src/lib.rs
   - ../ontomark/crates/ontomark-compile/src/write/apply.rs
-verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8, agentbox: c57d9c0508f4, ontomark: 4b9d15df4805}
+verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, ontomark: 6159bb6089753105ef839fd4aac46c1598a64bd2}
 ---
 
 ## For developers
@@ -42,8 +42,8 @@ flowchart TD
     L --> C["Escalate created pages with unknown/provisional keys<br/>amendments do not enter this loop<br/>vault/src/propose.rs:369,585,594"]
     B --> P["Assemble proposal and attach advisory consequences<br/>vault/src/propose.rs:607,619,624"]
     C --> P
-    P -->|no blockers| T["Task stakes follow selected level<br/>nostr.rs:84; vault/src/main.rs:500"]
-    T --> S["Sign complete request<br/>vault/src/main.rs:514,516"]
+    P -->|no blockers| T["Task stakes follow selected level<br/>nostr.rs:84; vault/src/main.rs:509"]
+    T --> S["Sign complete request<br/>vault/src/main.rs:539,541"]
 ```
 
 **What it shows.** Both corpus states are assessed, but validation blockers are deltas on touched pages. Consequences do not automatically raise the level. The audit's taxonomy and definition amendments remain content-level.
@@ -56,8 +56,8 @@ flowchart TD
 flowchart TD
     A["Level, IRI, page, hypothesis, diff<br/>plus group set and create kind<br/>vault-core/src/proposal.rs:365"] --> C["Stable case digest<br/>vault-core/src/proposal.rs:388"]
     BASE["Base and patched emitted graphs<br/>vault/src/propose.rs:118,555"] --> V["Graphs include content-derived versionIRI<br/>build/turtle.rs:495,513"]
-    V --> R["Compare non-blank asserted and derived triples<br/>rdfs-certificate/src/lib.rs:603,630"]
-    R --> META["Restriction filler probe: only versionIRI differs<br/>one added and one lost triple<br/>rdfs-certificate/src/lib.rs:642"]
+    V --> R["Compare non-blank asserted and derived triples<br/>rdfs-certificate/src/lib.rs:603,635"]
+    R --> META["Restriction filler probe: only versionIRI differs<br/>one added and one lost triple<br/>rdfs-certificate/src/lib.rs:647"]
     R --> E["Consequences and generation outside case digest<br/>vault-core/src/proposal.rs:260,365"]
     C --> FULL["Complete proposal serialised into signed event<br/>nostr.rs:145,183,184"]
     E --> FULL
@@ -74,11 +74,11 @@ flowchart TD
 flowchart TD
     M["Several changed pages in manifest<br/>vault/src/propose.rs:551"] --> G["Group subject is proposal IRI<br/>page repeats IRI and pages lists notes<br/>vault-core/src/proposal.rs:225,234"]
     G --> K["Any new page makes group kind create<br/>vault/src/propose.rs:598"]
-    G --> NOTE["CLI prints the group to stderr, unsigned<br/>vault/src/main.rs:493-498"]
-    NOTE --> AR["action_request called before signing<br/>vault/src/main.rs:514"]
+    G --> NOTE["CLI prints the group to stderr, unsigned<br/>vault/src/main.rs:502-507"]
+    NOTE --> AR["action_request called before signing<br/>vault/src/main.rs:539"]
     K --> AR
     AR --> REF["Grouped proposal refused with an error, nothing signed<br/>nostr.rs:105-107, test nostr.rs:384-390"]
-    AR -.->|single page only| S["Blocker check then sign<br/>nostr.rs:108; vault/src/main.rs:516"]
+    AR -.->|single page only| S["Blocker check then sign<br/>nostr.rs:108; vault/src/main.rs:541"]
     S --> A["Consumer dispatches create or amend<br/>ontology-apply.js:384,391"]
     A --> F["Require note-page slug to answer to subject IRI<br/>ontology-apply.js:570,699"]
     F -.-> N["Group guards still refuse grouped application<br/>ontology-apply.js:574,702"]
@@ -103,8 +103,8 @@ flowchart TD
     RI -->|same| S["Proposal subject remains original resource<br/>vault/src/propose.rs:672,674"]
     S --> OLD["Writer checks current resource against proposal IRI<br/>write/apply.rs:229,230"]
     OLD --> PATCH["Apply approved patch then parse new page<br/>write/apply.rs:242,258"]
-    PATCH --> V["Check introduced errors and persist<br/>write/apply.rs:282,395"]
-    V --> NEW["TENSION: writer still has no after-resource equality check<br/>write/apply.rs:280,282"]
+    PATCH --> V["Check introduced errors and persist<br/>write/apply.rs:291,404"]
+    V --> NEW["TENSION: writer still has no after-resource equality check<br/>write/apply.rs:280,291"]
     K["the one code RESOURCE_IMMUTABLE<br/>vault-core/src/promotion.rs:134"] --> BL
     AL["BLOCKER_CODE_ALIASES maps RESOURCE_MUTATED to it,<br/>canonical_blocker_code reads it<br/>vault-core/src/promotion.rs:140, :151-156"] --> K
     VOC["corpus vocabulary still says RESOURCE_MUTATED,<br/>validation.blockers deserialises through the alias<br/>vault-core/src/vocabulary.rs:331, :335-343, test :1235"] --> AL

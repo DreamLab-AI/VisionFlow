@@ -47,7 +47,7 @@ sources:
   - ../project/src/uri/mod.rs
   - ../project/src/config/security_profile.rs
   - ../project/docs/adr/ADR-2012-dev-bypass-triple-gated.md
-verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8}
+verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
 ---
 
 ## For developers
@@ -65,36 +65,36 @@ Every request is identified before it reaches data: a signed Nostr request or a 
 sequenceDiagram
     autonumber
     participant NG as nginx (port 3001)
-    participant AC as actix HttpServer<br/>src/main.rs:1004-1298
-    participant LG as Logger<br/>wrap #1 src/main.rs:1080
-    participant CO as cors<br/>wrap #2 src/main.rs:1081
-    participant CP as Compress<br/>wrap #3 src/main.rs:1082
-    participant TO as TimeoutMiddleware<br/>wrap #4 src/main.rs:1083
-    participant SC as scope /api<br/>src/main.rs:1159
-    participant PD as PublicDemoGuard::from_env<br/>src/main.rs:1163
-    participant RG as RbacGate::from_env<br/>src/main.rs:1170
-    participant RL as RateLimit::per_minute 60<br/>src/main.rs:1177 (scope /api/settings only)
+    participant AC as actix HttpServer<br/>src/main.rs:1005-1299
+    participant LG as Logger<br/>wrap #1 src/main.rs:1081
+    participant CO as cors<br/>wrap #2 src/main.rs:1082
+    participant CP as Compress<br/>wrap #3 src/main.rs:1083
+    participant TO as TimeoutMiddleware<br/>wrap #4 src/main.rs:1084
+    participant SC as scope /api<br/>src/main.rs:1160
+    participant PD as PublicDemoGuard::from_env<br/>src/main.rs:1164
+    participant RG as RbacGate::from_env<br/>src/main.rs:1171
+    participant RL as RateLimit::per_minute 60<br/>src/main.rs:1178 (scope /api/settings only)
     participant H as route handler
 
     Note over LG,RG: actix applies .wrap() in REVERSE registration order at request time<br/>last .wrap() call = outermost layer that sees the request first
-    Note over LG,TO: registration order in main.rs is Logger,cors,Compress,TimeoutMiddleware (src/main.rs:1080-1083)<br/>so the REAL request-time order is TimeoutMiddleware,Compress,cors,Logger,then routing
+    Note over LG,TO: registration order in main.rs is Logger,cors,Compress,TimeoutMiddleware (src/main.rs:1081-1084)<br/>so the REAL request-time order is TimeoutMiddleware,Compress,cors,Logger,then routing
     NG->>AC: HTTP request
     AC->>TO: enter (outermost of the four)
-    TO->>TO: get_timeout(path) — default 30s, override 600s for "/api/admin/sync" (src/main.rs:1083-1085)
-    Note over TO: TimeoutConfig::new(30s).with_override(...) constructed src/main.rs:1084-1085 —<br/>get_timeout (timeout.rs:37-41) looks up an exact-path HashMap (endpoint_overrides) —<br/>no prefix/glob matching, so only "/api/admin/sync" itself gets 600s
-    Note over LG,TO: DEBT: src/middleware/validation.rs (the old ValidationMiddleware) is deleted, so no request-size or content-type<br/>layer exists in this .wrap() chain. The nearest remaining guard, RequestSizeLimit<br/>(src/utils/validation/middleware.rs:17, default cap MAX_REQUEST_SIZE 16MiB at src/utils/validation/mod.rs:14),<br/>is not registered by any .wrap() in src/main.rs:1080-1083
+    TO->>TO: get_timeout(path) — default 30s, override 600s for "/api/admin/sync" (src/main.rs:1084-1086)
+    Note over TO: TimeoutConfig::new(30s).with_override(...) constructed src/main.rs:1085-1086 —<br/>get_timeout (timeout.rs:37-41) looks up an exact-path HashMap (endpoint_overrides) —<br/>no prefix/glob matching, so only "/api/admin/sync" itself gets 600s
+    Note over LG,TO: DEBT: src/middleware/validation.rs (the old ValidationMiddleware) is deleted, so no request-size or content-type<br/>layer exists in this .wrap() chain. The nearest remaining guard, RequestSizeLimit<br/>(src/utils/validation/middleware.rs:17, default cap MAX_REQUEST_SIZE 16MiB at src/utils/validation/mod.rs:14),<br/>is not registered by any .wrap() in src/main.rs:1081-1084
     TO->>CP: enter
     CP->>CO: enter
     CO->>LG: enter
     LG->>SC: enter /api scope
     rect rgb(225,225,245)
-    SC->>RG: RbacGate, wrapped LAST at src/main.rs:1170 so it is the outermost of the two /api wraps
+    SC->>RG: RbacGate, wrapped LAST at src/main.rs:1171 so it is the outermost of the two /api wraps
     alt required_level present (not public route)
         RG->>RG: verify_access then record the identity in request extensions (see VC-03.6)
     else public route
         RG->>RG: pass straight through
     end
-    RG->>PD: PublicDemoGuard, wrapped first at src/main.rs:1163 so it sees the request after the gate
+    RG->>PD: PublicDemoGuard, wrapped first at src/main.rs:1164 so it sees the request after the gate
     Note over PD: PublicDemoGuard::from_env() reads PUBLIC_DEMO ONCE at app start<br/>(public_demo.rs:49-53) — not re-read per request, so toggling the env var at<br/>runtime has no effect until restart. Truthy tokens (trim+lowercase):<br/>"read-only","readonly","1","true","on" (:26-31). DEFAULT OFF — unset means inert<br/>passthrough (:11-12)
     alt PUBLIC_DEMO read-only AND method not GET/HEAD/OPTIONS
         PD-->>NG: 403 read_only_demo
@@ -116,7 +116,7 @@ sequenceDiagram
     participant NS as NostrService::get_session<br/>src/services/nostr_service.rs:611
     participant NV as NostrService::verify_nip98_auth<br/>src/services/nostr_service.rs:648
 
-    Note over WS: routes registered src/main.rs:1144-1152 — /wss, /wss/agent-events,<br/>/ws/speech, /ws/mcp-relay, /ws/client-messages, /ws/presence
+    Note over WS: routes registered src/main.rs:1145-1153 — /wss, /wss/agent-events,<br/>/ws/speech, /ws/mcp-relay, /ws/client-messages, /ws/presence
     C->>WS: GET /wss (Upgrade: websocket)
     WS->>WS: WEBSOCKET_RATE_LIMITER.is_allowed(client_ip), else 429 (http_handler.rs:56-58)
     alt Origin header present
@@ -561,7 +561,7 @@ sequenceDiagram
     else allowed
         RL->>R: service.call(req)
     end
-    Note over RL: applied at src/main.rs:1177 as RateLimit::per_minute(60) on the /api/settings<br/>scope only (rate_limit.rs:171) — 60 requests / 60s window, keyed by realip (use_user_id off by default). RateLimit is Clone and its state sits behind an Arc (rate_limit.rs:84-87), so clones share one request history
+    Note over RL: applied at src/main.rs:1178 as RateLimit::per_minute(60) on the /api/settings<br/>scope only (rate_limit.rs:171) — 60 requests / 60s window, keyed by realip (use_user_id off by default). RateLimit is Clone and its state sits behind an Arc (rate_limit.rs:84-87), so clones share one request history
 ```
 
 ## VC-03.15 Identity authority chain end-to-end — Nostr key to role

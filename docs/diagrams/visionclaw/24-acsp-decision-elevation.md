@@ -41,7 +41,7 @@ sources:
   - ../project/src/app_state.rs
   - ../project/src/services/ontology_mutation_service.rs
   - ../project/src/services/voice_intent_client.rs
-verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35}
+verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
 ---
 
 ## For developers
@@ -454,6 +454,6 @@ sequenceDiagram
     end
     H-->>BR: 200 {cases, total} - total is the unfiltered proposal count<br/>broker_inbox_handler.rs:210, :224
     Note over JV,H: INVARIANT: Jev annotates and orders only - it never approves, rejects or promotes, and the decide route (VC-24.3), signed decisions and receipts are untouched.<br/>crates/visionclaw-jev/src/proposal_triage.rs:8-10
-    Note over TR,JV: RESOLVED 2026-10-30 (routing, configured): the laya declaration is gone. PROPOSAL_TRIAGE is still local-only in code (Item::local_only<br/>crates/visionclaw-jev/src/config.rs:155-160, refusal :326-328), but ALLOW_CLOUD=1 (docker-compose.unified.yml:22, config.rs:303-305) and the shared block's<br/>agentbox:8094 with BACKEND_LOCAL=0 (docker-compose.unified.yml:7-11) send the private proposal text via the proxy to the selected backend, typesafe (agentbox.toml:891),<br/>by operator decision (docs/adr/ADR-2148-enable-local-typed-decisions.md:65-66, docs/reference/configuration.md:417-427, :468).<br/>RESOLVED 2026-10-30 (activation): VisionClaw ADR-2148 is accepted / complete / live (docs/adr/ADR-2148-enable-local-typed-decisions.md:5-7), the agentbox rebuild and the host recreate both happened (docs/adr/ADR-2148-enable-local-typed-decisions.md:81-91) - docs/BASELINE-architecture.md:52-54 agrees, live since the host recreate,<br/>ALLOW_CLOUD=0 with JEV_LOCAL=1 and a local endpoint keeps it on a LAN model
+    Note over TR,JV: RESOLVED 2026-10-30 (routing, configured): the laya declaration is gone. PROPOSAL_TRIAGE is still local-only in code (Item::local_only<br/>crates/visionclaw-jev/src/config.rs:155-160, refusal :326-328), but ALLOW_CLOUD=1 (docker-compose.unified.yml:22, config.rs:303-305) and the shared block's<br/>agentbox:8094 with BACKEND_LOCAL=0 (docker-compose.unified.yml:7-11) send the private proposal text via the proxy to the selected backend, typesafe (agentbox.toml:897),<br/>by operator decision (docs/adr/ADR-2148-enable-local-typed-decisions.md:65-66, docs/reference/configuration.md:417-427, :468).<br/>RESOLVED 2026-10-30 (activation): VisionClaw ADR-2148 is accepted / complete / live (docs/adr/ADR-2148-enable-local-typed-decisions.md:5-7), the agentbox rebuild and the host recreate both happened (docs/adr/ADR-2148-enable-local-typed-decisions.md:81-91) - docs/BASELINE-architecture.md:52-54 agrees, live since the host recreate,<br/>ALLOW_CLOUD=0 with JEV_LOCAL=1 and a local endpoint keeps it on a LAN model
     Note over H,ST: DEBT: total is proposals.len() after store::all, which is capped at ALL_LIMIT 500 rows newest-updated first, so total is not the table size once more than 500 proposals exist<br/>handlers/enrichment_proposals_handler.rs:738-745, handlers/broker_inbox_handler.rs:194
 ```

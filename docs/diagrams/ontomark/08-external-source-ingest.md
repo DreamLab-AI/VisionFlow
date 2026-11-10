@@ -12,7 +12,7 @@ sources:
   - ../ontomark/crates/ontomark-source/src/ledger.rs
   - ../ontomark/crates/ontomark-ingest/src/accept.rs
   - ../ontomark/crates/ontomark-jev/src/config.rs
-verified_commit: {ontomark: 4b9d15df48056971321a62b8c4e905f4536c74db}
+verified_commit: {ontomark: 6159bb6089753105ef839fd4aac46c1598a64bd2}
 ---
 
 ## For developers
@@ -46,14 +46,14 @@ flowchart TD
 ```mermaid
 flowchart TD
     R["Model reply<br/>ingest_cmd.rs:721"] --> J{"Assertion JSON parses?<br/>ingest_cmd.rs:396,728"}
-    J -->|yes| A["Recheck target digest, source version and chunks<br/>accept.rs:329,354,358,366"]
+    J -->|yes| A["Recheck target digest, source version and chunks<br/>accept.rs:333,358,362,370"]
     J -->|no| D["Record dropped chunk only<br/>ingest_cmd.rs:735"]
-    A --> G["Allowed key, grounded name, kind and located quote<br/>accept.rs:415,422,444,466"]
-    G --> M["Quote must mention the value<br/>accept.rs:533"]
+    A --> G["Allowed key, grounded name, kind and located quote<br/>accept.rs:425,432,454,476"]
+    G --> M["Quote must mention the value<br/>accept.rs:543"]
     M --> O["Proposed patch and evidence<br/>ingest_cmd.rs:745,748,802"]
     D --> F["No skipped pair or stop added<br/>complete can remain true<br/>ingest_cmd.rs:821"]
     F --> L["Source recorded as finished<br/>ingest_cmd.rs:842"]
-    M -.-> N["TENSION: mention check does not prove relation meaning<br/>a negated relation can pass<br/>accept.rs:533"]
+    M -.-> N["TENSION: mention check does not prove relation meaning<br/>a negated relation can pass<br/>accept.rs:543"]
     O -.-> Q["Review list selects literal conflict reasons<br/>host profile offers relations<br/>ingest_cmd.rs:791; ingest_profile.rs:54,93"]
 ```
 

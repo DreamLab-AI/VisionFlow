@@ -25,7 +25,7 @@ sources:
   - ../project/agentbox/management-api/middleware/linked-data/surfaces/s04-did.js
   - ../project/agentbox/mcp/servers/lib/memory-tools.js
   - ../project/src/handlers/presence_handler.rs
-verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35}
+verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
 ---
 
 ## For developers
@@ -338,7 +338,7 @@ flowchart TD
     OwnerScoped["visionclaw:owner:NPUB/kg/... -- legacy ADR-050 form"] -.-> Absent["grep across src/ and crates/ -- zero occurrences -- superseded by the hex-scoped urn:visionclaw:kg:PUBKEY:ADDRESS grammar"]
 
     DivB["DIVERGENCE: owner-scoped visionclaw:owner:{npub}/kg/... (legacy ADR-050) is not emitted anywhere in src/ or crates/"]
-    DriftX["ADR-2095 class IRI mint stands: CLASS_PREFIX, class_iri and parse_class_iri live in crates/visionclaw-domain/src/uri.rs:16-53, re-exported<br/>at src/uri/mod.rs:351-354 beside the new domain_iri. Mint sites: elevation_actor.rs:352 (case subject_id), :552 (page resource) and :597 (class_ref_iri), oxigraph_ontology_repository.rs:174, and node_class_iri :3170-3173 (called at :1797 and :3188)"]
+    DriftX["ADR-2095 class IRI mint stands: CLASS_PREFIX, class_iri and parse_class_iri live in crates/visionclaw-domain/src/uri.rs:16-53, re-exported<br/>at src/uri/mod.rs:351-354 beside the new domain_iri. Mint sites: elevation_actor.rs:352 (case subject_id), :552 (page resource) and :597 (class_ref_iri), oxigraph_ontology_repository.rs:174, and node_class_iri :3176-3179 (called at :1803 and :3194)"]
     Refactor["DOC-DRIFT resolved: draft_class_page no longer embeds a JSON-LD fence string (superseded, ADR-2095 closeout note stale) --<br/>it emits vault YAML frontmatter via visionclaw_domain::vault::render_page; relationships move to extra_lists LISTS<br/>(PRD-sovereign-corpus Q5) rather than a comma-joined scalar, mirroring the amend path in<br/>src/services/ontology_mutation_service.rs:511-535"]
 ```
 

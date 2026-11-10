@@ -12,14 +12,14 @@ sources:
   - ../visiontouch-rs/docs/spec/12-force-feedback.md
   - ../visiontouch-rs/crates/device/src/lib.rs
   - ../visiontouch-rs/docs/adr/ADR-0004-reset-pose-registration.md
-verified_commit: 7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d
+verified_commit: a9e52b6154b44fb7afc158230c4ec26d4213c015
 ---
 
 ## For developers
 
 Source review and qualifications: [1 November audit](../../estate-review/2026-11-01-visiontouch-software-boundaries.md). The source pins are retained; this review changes claims, not device behaviour.
 
-`visiontouch-effects` is a hardware-free library of seven force models in model metres, seconds and newtons. A caller owns an `Effect`, feeds it the pen position, velocity and an interval, and gets back an unclamped `Frame` (force, contact proxy, spring-demo bodies, balloon state). Stiffness and damping come from one sanitised `Tuning`, with 150 N/m as the reference for several gains. Cube, plane and balloon also contain a damping term independent of stiffness, so their total force is not generally proportional to stiffness. The crate never limits force: the guard in VT-03 does. The Studio constructs a fresh effect for each effect attempt (apps/calibration/src/protocol.rs:841-843).
+`visiontouch-effects` is a hardware-free library of seven force models in model metres, seconds and newtons. A caller owns an `Effect`, feeds it the pen position, velocity and an interval, and gets back an unclamped `Frame` (force, contact proxy, spring-demo bodies, balloon state). Stiffness and damping come from one sanitised `Tuning`, with 150 N/m as the reference for several gains. Cube, plane and balloon also contain a damping term independent of stiffness, so their total force is not generally proportional to stiffness. The crate never limits force: the guard in VT-03 does. The Studio constructs a fresh effect for each effect attempt (apps/calibration/src/protocol.rs:1359-1361).
 
 ## For the business
 
@@ -34,14 +34,14 @@ sequenceDiagram
     participant NW as Effect::new<br/>crates/effects/src/lib.rs:207
     participant ST as Effect::step<br/>crates/effects/src/lib.rs:231
     participant TU as Tuning::sanitised<br/>crates/effects/src/lib.rs:80
-    participant GD as ForceGuard<br/>crates/device/src/lib.rs:318
+    participant GD as ForceGuard<br/>crates/device/src/lib.rs:348
     CL->>NW: kind, radius, tuning
     NW->>TU: clamp stiffness 20 to 1500 and damping 0 to 100, NaN falls back<br/>(crates/effects/src/lib.rs:80-95)
     NW-->>CL: radius clamped to 0.2 mm to 100 mm, 20 mm default if not finite<br/>(crates/effects/src/lib.rs:207-212)
     CL->>ST: position, velocity, dt
     ST->>ST: non-finite input or dt outside 0 to 25 ms gives an all-zero frame and no<br/>state change<br/>(crates/effects/src/lib.rs:232-234)
     ST-->>CL: Frame with unclamped force and a contact proxy<br/>(crates/effects/src/lib.rs:169-181)
-    CL->>GD: force becomes a Demand, limited there<br/>(crates/device/src/lib.rs:359)
+    CL->>GD: force becomes a Demand, limited there<br/>(crates/device/src/lib.rs:420)
     Note over ST: INVARIANT: pure simulation, never opens hardware or arms motors<br/>crates/effects/src/lib.rs:3-5
     Note over ST: DEBT: finite but extreme velocity can overflow the Water force<br/>calculation<br/>crates/effects/src/lib.rs:232 and crates/effects/src/lib.rs:263
     Note over ST,GD: INVARIANT: Frame force is unclamped and the hardware layer must limit it<br/>crates/effects/src/lib.rs:167
@@ -117,7 +117,7 @@ stateDiagram-v2
     Popped --> [*]: recreate the Effect (crates/effects/src/lib.rs:179-180)
     note right of Popped
         INVARIANT: reinflation requires a new Effect, created for each Studio effect attempt
-        protocol.rs:841-843 and crates/effects/src/lib.rs:391-405
+        protocol.rs:1359-1361 and crates/effects/src/lib.rs:391-405
     end note
 ```
 

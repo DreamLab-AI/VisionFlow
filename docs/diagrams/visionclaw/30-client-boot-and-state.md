@@ -82,7 +82,7 @@ sources:
   - ../project/client/src/features/control-center/status/StatusFlyout.tsx
   - ../project/client/src/features/control-center/drawer/RightDrawer.tsx
   - ../project/client/src/services/nostrAuthService.ts
-verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8}
+verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
 ---
 ## For developers
 
@@ -683,7 +683,7 @@ sequenceDiagram
     participant Frame as handleBinaryFrame<br/>client/src/features/graph/managers/dataManager/wsClient.ts:19
     participant WP as graphWorkerProxy.processBinaryFrame<br/>client/src/features/graph/managers/dataManager/wsClient.ts:42
     participant Sub as useGraphDataSubscription<br/>client/src/features/graph/hooks/useGraphDataSubscription.ts:23
-    participant GM as GraphManager<br/>client/src/features/graph/components/GraphManager.tsx:326
+    participant GM as GraphManager<br/>client/src/features/graph/components/GraphManager.tsx:327
     participant BP as handleLegacyBinaryData<br/>client/src/store/websocket/binaryProtocol.ts:352
 
     WS->>GDM: updateNodePositions(positionData: ArrayBuffer)<br/>graphDataManager.ts:497
@@ -712,7 +712,7 @@ sequenceDiagram
     rect rgb(230,250,230)
     Note over Sub,GM: INVARIANT (historical bug, now fixed): useGraphDataSubscription's<br/>handleGraphUpdate builds dataWithPositions (String()-coerced ids,<br/>getPositionForNode() fallback for (0,0,0) nodes, edge source/target<br/>recovery) and the caller MUST forward THAT object, not the original<br/>data, onward - useGraphDataSubscription.ts:69-100,117
     Sub->>Sub: onGraphData(dataWithPositions)<br/>useGraphDataSubscription.ts:117
-    Sub->>GM: setGraphData(dataWithPositions) via onGraphData callback<br/>GraphManager.tsx:326-327
+    Sub->>GM: setGraphData(dataWithPositions) via onGraphData callback<br/>GraphManager.tsx:327-328
     Note over Sub: this React graphData state feeds RENDER only - the worker's topology<br/>comes from GraphDataManager.setGraphData -> graphWorkerProxy.setGraphTopology<br/>directly (VC-30.9), an entirely separate path from this hook
     end
     Note over Sub: 5000ms fallback timer seeds 3 synthetic nodes if no real data<br/>arrived by then (lastProcessedGraphRef still null)<br/>useGraphDataSubscription.ts:141-155
@@ -793,11 +793,11 @@ flowchart LR
     timelineStore["useTimelineStore<br/>client/src/store/timelineStore.ts:87"]
     beamStore["useTransientBeamStore<br/>client/src/store/transientBeamStore.ts:65"]
     agentTargetStore["useAgentTargetStore<br/>client/src/store/agentTargetStore.ts:43"]
-    nodePosCtx["NodePositionContext module singleton<br/>client/src/features/graph/contexts/NodePositionContext.tsx:8<br/>written by GraphManager.tsx:447"]
+    nodePosCtx["NodePositionContext module singleton<br/>client/src/features/graph/contexts/NodePositionContext.tsx:8<br/>written by GraphManager.tsx:448"]
     workerErrStore["useWorkerErrorStore<br/>client/src/store/workerErrorStore.ts:23"]
 
-    GraphManager["GraphManager<br/>client/src/features/graph/components/GraphManager.tsx:57-74"]
-    GraphCanvas["GraphCanvas<br/>client/src/features/graph/components/GraphCanvas.tsx:180,194-200"]
+    GraphManager["GraphManager<br/>client/src/features/graph/components/GraphManager.tsx:58-75"]
+    GraphCanvas["GraphCanvas<br/>client/src/features/graph/components/GraphCanvas.tsx:181,195-201"]
     NodeDetailPanel["NodeDetailPanel embedded in the drawer Node tab<br/>client/src/features/graph/components/NodeDetailPanel.tsx:65<br/>mounted at RightDrawer.tsx:317, no longer by MainLayout"]
     GemNodes["GemNodes<br/>client/src/features/graph/components/GemNodes.tsx"]
     GlassEdges["GlassEdges<br/>client/src/features/graph/components/GlassEdges.tsx"]
@@ -807,9 +807,9 @@ flowchart LR
     RevealSetting["useRevealSetting hook<br/>client/src/features/control-center/hooks/useRevealSetting.ts"]
     NostrAuthControl["NostrAuthControl<br/>client/src/features/control-center/primitives/NostrAuthControl.tsx"]
     StatusFlyout["StatusFlyout<br/>layout mode readout and voice row moved here, ADR-2189<br/>client/src/features/control-center/status/StatusFlyout.tsx:156-158,269-275"]
-    AgentOverlay["AgentOverlay<br/>nameplates, trails, collab edges, payment labels<br/>client/src/features/bots/components/AgentOverlay.tsx:23<br/>mounted at GraphCanvas.tsx:381"]
-    VirtualAgentMarkers["VirtualAgentMarkers<br/>client/src/features/visualisation/components/VirtualAgentMarkers.tsx:35<br/>mounted at GraphManager.tsx:752"]
-    MarkerPass["agentMarkers - the one agent-position writer<br/>client/src/features/bots/agentMarkerPass.ts:71,144<br/>stepped by GraphManager.tsx:470, reads agentTargetStore"]
+    AgentOverlay["AgentOverlay<br/>nameplates, trails, collab edges, payment labels<br/>client/src/features/bots/components/AgentOverlay.tsx:23<br/>mounted at GraphCanvas.tsx:382"]
+    VirtualAgentMarkers["VirtualAgentMarkers<br/>client/src/features/visualisation/components/VirtualAgentMarkers.tsx:35<br/>mounted at GraphManager.tsx:760"]
+    MarkerPass["agentMarkers - the one agent-position writer<br/>client/src/features/bots/agentMarkerPass.ts:71,144<br/>stepped by GraphManager.tsx:471, reads agentTargetStore"]
     WorkerErrorModal["WorkerErrorModal<br/>client/src/components/WorkerErrorModal.tsx:7"]
     AppInitializer["AppInitializer<br/>client/src/app/AppInitializer.tsx:108,118"]
     EmbeddingCloudLayer["EmbeddingCloudLayer<br/>client/src/features/visualisation/components/EmbeddingCloudLayer.tsx:147,332"]
@@ -839,7 +839,7 @@ flowchart LR
     useTransientBeams --> TransientBeamsLayer
     binaryProtocol -->|pushTransientBeams| beamStore
     binaryProtocol -->|pushActions| agentTargetStore
-    GraphCanvas -->|"mounts AgentOverlay, GraphCanvas.tsx:381"| AgentOverlay
+    GraphCanvas -->|"mounts AgentOverlay, GraphCanvas.tsx:382"| AgentOverlay
     agentTargetStore -->|"seenAt ids, AgentOverlay.tsx:27"| AgentOverlay
     agentTargetStore --> VirtualAgentMarkers
     nodePosCtx -->|"drawn positions and id map"| EmbeddingCloudLayer

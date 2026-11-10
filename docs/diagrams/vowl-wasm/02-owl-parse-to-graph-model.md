@@ -19,7 +19,7 @@ sources:
   - ../vowl-wasm/src/bindings/mod.rs
   - ../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md
   - ../vowl-wasm/README.md
-verified_commit: 28af4365a68d9aacfd7c04f63299cc96ad717ce3
+verified_commit: 2aff199e2de06f4bba512301acf7023477c492ac
 ---
 
 ## VW-02.1 `loadOntology()` — JSON string to `VowlGraph`
@@ -40,7 +40,7 @@ sequenceDiagram
     WV->>GB: GraphBuilder::from_ontology(&ontology_data)
     GB->>G: add_node() per class, EdgeBuilder per property
     GB-->>WV: VowlGraph
-    WV->>WV: store metadata and graph on self<br/>src/bindings/mod.rs:69-70
+    WV->>WV: store metadata and graph on self<br/>src/bindings/mod.rs:69-72
 ```
 - Every stage's `VowlError` is mapped to `JsValue::from_str` before returning to JS (src/bindings/mod.rs:58,62,66) — see VW-01.6. Validation checks domains but permits absent datatype ranges; the builder still requires both endpoints (src/ontology/parser.rs:485-507, src/graph/mod.rs:271-285).
 
@@ -61,7 +61,7 @@ flowchart TB
     PCN --> CN["ClassNode { id, iri, label, class_type,<br/>equivalent, attributes, ontology_meta }<br/>src/ontology/parser.rs:114"]
 ```
 - `ParserConfig` (src/ontology/parser.rs:17) has a `max_classes` cutoff enforced at src/ontology/parser.rs:62-64: a `class` array longer than the configured cap is silently truncated, not rejected.
-- `StandardParser` is the JSON ingest path: it reads an inline subset of WebVOWL-shaped JSON (`class`/`property` arrays) into `OntologyData` (src/ontology/mod.rs:6-7, src/ontology/mod.rs:24). The second path that existed at the earlier stamp, a feature-gated `MarkdownParser` over DreamLab `### OntologyBlock` markdown with an `OntologyLoader` filesystem driver and an `OWL2Validator`, was deleted together with the `markdown-ontology` feature and the `Domain` and `OntologyBlock` types (docs/adr/ADR-001-shared-ontology-rendering-contract.md:26, README.md:204-205). Parsing Markdown vaults is left to `ontomark-parse` (README.md:205).
+- `StandardParser` is the JSON ingest path: it reads an inline subset of WebVOWL-shaped JSON (`class`/`property` arrays) into `OntologyData` (src/ontology/mod.rs:6-7, src/ontology/mod.rs:24). The second path that existed at the earlier stamp, a feature-gated `MarkdownParser` over DreamLab `### OntologyBlock` markdown with an `OntologyLoader` filesystem driver and an `OWL2Validator`, was deleted together with the `markdown-ontology` feature and the `Domain` and `OntologyBlock` types (docs/adr/ADR-001-shared-ontology-rendering-contract.md:36, README.md:204-205). Parsing Markdown vaults is left to `ontomark-parse` (README.md:205).
 - Root `classAttribute`/`propertyAttribute` tables are not joined, labels must be strings, and `validate_iris` has no implementation (src/ontology/parser.rs:17-25, src/ontology/parser.rs:53-114, src/ontology/parser.rs:485-507). Class metadata now accepts caller-supplied domain strings, or none, and the renderer holds no domain registry (README.md:210-212).
 
 ## VW-02.3 `GraphBuilder::from_ontology` — class/property to node/edge
@@ -105,4 +105,4 @@ flowchart TB
     SET --> Q["is_pinned reads manager ID set<br/>src/graph/pinning.rs:151"]
 ```
 - `pin_node` returns `VowlError::InteractionError("Pinning is disabled")` when `self.enabled == false` (src/graph/pinning.rs:43-46), independent of graph state.
-- Pin IDs are separate manager state: graph replacement does not reset them, and `pin_node_at` accepts non-finite coordinates (src/bindings/mod.rs:56-70, src/graph/pinning.rs:82-105). A pinned node's `visual.fixed = true` is what `ForceSimulation::apply_forces` reads to skip velocity/position integration (see VW-03.1).
+- Pin IDs are separate manager state: graph replacement does not reset them, and `pin_node_at` accepts non-finite coordinates (src/bindings/mod.rs:56-72, src/graph/pinning.rs:82-105). A pinned node's `visual.fixed = true` is what `ForceSimulation::apply_forces` reads to skip velocity/position integration (see VW-03.1).

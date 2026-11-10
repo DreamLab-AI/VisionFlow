@@ -15,7 +15,7 @@ sources:
   - ../visionGraph/publishing-tools/WasmVOWL/modern/src/api/fetchArtefact.ts
   - ../ontomark/crates/ontomark-compile/src/build/mod.rs
   - docs/adr/ADR-2013-sovereign-corpus-is-ecosystem-canon.md
-verified_commit: {knowledgegraph: 4ed9ac159daf402b4fb252ce559dbeb894a8d91e, visiongraph: 556a0156b5c326fb61141ed2ab1760dd8d9c4dd6, ontomark: 0caae5d4b695cb720942b9b9212017c00a80ad41, visionflow: e7a9182}
+verified_commit: {knowledgegraph: 5294e88b6602a63b5afe96c79f2779d00274a05e, visiongraph: 556a0156b5c326fb61141ed2ab1760dd8d9c4dd6, ontomark: 6159bb6089753105ef839fd4aac46c1598a64bd2, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c}
 ---
 
 ## For developers
@@ -37,7 +37,7 @@ sequenceDiagram
     participant G as knowledgeGraph gh-pages
     V->>O: fetch release and verify SHA-256<br/>publish.yml:48-51,98-117
     V->>O: validate, collision lint, build both vaults<br/>publish.yml:127-183
-    O-->>V: machine outputs, generation markers and staged notes<br/>mod.rs:990-1016, publish.yml:155-165
+    O-->>V: machine outputs, generation markers and staged notes<br/>mod.rs:1108-1134, publish.yml:155-165
     V->>C: check derivation certificate<br/>publish.yml:217-234
     V->>V: body residue gate<br/>publish.yml:248-253
     V->>V: overlay tracked static contexts<br/>AFTER marker creation, publish.yml:257-262
@@ -63,7 +63,7 @@ flowchart TB
     OLD["Archived Logseq source and Python pipeline<br/>logseq-era-2026-09-22/README.md:1-4<br/>Historical build workflow is archived too<br/>archive/github-workflows/build.yml:1"]
     TRIG["Push main: selected path filters, or manual run<br/>working/ and root assets/ absent from push list<br/>publish.yml:20-31"]
     BUILD["Build uses knowledge plus public working content<br/>publish.yml:155-183<br/>Root assets linked into Quartz staging<br/>publish.yml:195"]
-    MIRROR["Producer emits page-id names and unambiguous title aliases<br/>mod.rs:842-919"]
+    MIRROR["Producer emits page-id names and unambiguous title aliases<br/>mod.rs:958-1035"]
     FETCH["Publishing viewer tries gzip then raw<br/>checks magic bytes and inflates in browser<br/>fetchArtefact.ts:22-38"]
     OLD -.-> TRIG --> BUILD --> MIRROR --> FETCH
     DRIFT["DRIFT: old build guide still names the retired root workflow<br/>build-and-gates.md:3<br/>Canon still names VisionClaw crates/vault as sole compiler<br/>Canon ADR-2013, decision 3"]

@@ -11,7 +11,7 @@ sources:
   - ../ontomark/crates/ontomark-compile/src/write/create.rs
   - ../ontomark/crates/ontomark-compile/src/write/apply.rs
   - ../ontomark/crates/ontomark-compile/src/write/proposal.rs
-verified_commit: {agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35, ontomark: 4b9d15df48056971321a62b8c4e905f4536c74db}
+verified_commit: {agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, ontomark: 6159bb6089753105ef839fd4aac46c1598a64bd2}
 ---
 
 ## For developers
@@ -27,7 +27,7 @@ A reviewer needs to know which approved change reached which page. The applicati
 ```mermaid
 flowchart TD
     A["approve outcome<br/>local-process-manager.js:218"] --> Q["Resolve same case and ontology panel;<br/>proposal digest must equal decision tag<br/>local-process-manager.js:379,397,400"]
-    P["promote or demote outcome<br/>local-process-manager.js:226"] --> R["Roster and own-key refusal<br/>local-process-manager.js:232,503"]
+    P["promote or demote outcome<br/>local-process-manager.js:226"] --> R["Roster and own-key refusal<br/>local-process-manager.js:232,508"]
     Q --> R
     R --> B["Resolve request; compare request tag and signed IRI<br/>local-process-manager.js:419,444,450"]
     B --> D["Dispatch by outcome and proposal kind<br/>ontology-apply.js:372"]
@@ -63,15 +63,15 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    P["Proposal's own semantic fields hash to stated digest<br/>write/proposal.rs:369; write/apply.rs:305"] --> ONE["One amend document and non-renaming patch<br/>write/apply.rs:330"]
+    P["Proposal's own semantic fields hash to stated digest<br/>write/proposal.rs:369; write/apply.rs:314"] --> ONE["One amend document and non-renaming patch<br/>write/apply.rs:339"]
     ONE --> BASE["Current resource IRI and exact hunk context<br/>write/apply.rs:229,242"]
-    BASE --> VALID["Append verification and refuse introduced errors<br/>write/apply.rs:258,282"]
-    VALID --> TEMP["Write synced temporary file;<br/>re-read original before rename<br/>write/apply.rs:395"]
+    BASE --> VALID["Append verification and refuse introduced errors<br/>write/apply.rs:258,291"]
+    VALID --> TEMP["Write synced temporary file;<br/>re-read original before rename<br/>write/apply.rs:404"]
     TEMP --> COMMIT["Commit one path; check ahead count<br/>ontology-apply.js:828,872"]
     COMMIT --> PUSH["Ordinary branch push<br/>ontology-apply.js:879"]
     PUSH --> LEDGER["Attest caller's case and digest;<br/>failure is returned after write<br/>ontology-apply.js:742,900"]
     BASE -.-> H["INVARIANT: staleness is hunk context;<br/>unrelated page edits can survive<br/>write/apply.rs:42"]
-    TEMP -.-> RACE["OPEN: compare and rename are separate;<br/>no writer lock at this boundary<br/>write/apply.rs:401,411"]
+    TEMP -.-> RACE["OPEN: compare and rename are separate;<br/>no writer lock at this boundary<br/>write/apply.rs:410,420"]
     PUSH -.-> OTHER["TENSION: writer can add a commit after count;<br/>push then includes it<br/>ontology-apply.js:872,879"]
 ```
 

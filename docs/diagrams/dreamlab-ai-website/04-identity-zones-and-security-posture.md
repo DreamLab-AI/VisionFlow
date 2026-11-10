@@ -22,7 +22,7 @@ sources:
   - ../dreamlab-ai-website/forum-config/dreamlab.toml
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/agent_disclosure.rs
-verified_commit: {dreamlab-ai-website: c3849abb8a2a289fbb013c721dfc0c5544c74b16, nostr-rust-forum: a3812b8e79846b569c1f19054f0774e94fed1248}
+verified_commit: {dreamlab-ai-website: f934e26f949f3b95171544ec8ec5bcfd7679f593, nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
 ---
 
 ## DW-04.1 Identity is raw-hex Schnorr, not a DID document

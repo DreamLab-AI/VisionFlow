@@ -15,7 +15,7 @@ sources:
   - ../project/codescape/crates/codescape-server/src/xr_presence.rs
   - ../project/xr-client/rust/src/presence.rs
   - ../project/xr-client/scripts/graph_scene.gd
-verified_commit: {codescape: e3b76f63e801c6a8460110b93e88a0b420e9b0b4, visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
+verified_commit: {codescape: e3b76f63e801c6a8460110b93e88a0b420e9b0b4, visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
 ---
 
 ## For developers
@@ -24,7 +24,7 @@ The Codescape hub relays poses and roster events. The [production-library probes
 
 ## For the business
 
-An avatar label is not authenticated identity here. Reconnects and slow readers can also leave a consumer with an inconsistent roster. The default XR scene uses VisionClaw presence, not this endpoint (`graph_scene.gd:2924,2928`).
+An avatar label is not authenticated identity here. Reconnects and slow readers can also leave a consumer with an inconsistent roster. The default XR scene uses VisionClaw presence, not this endpoint (`graph_scene.gd:2941,2945`).
 
 ## VC-43.1 Admission has an origin filter but no identity verifier
 

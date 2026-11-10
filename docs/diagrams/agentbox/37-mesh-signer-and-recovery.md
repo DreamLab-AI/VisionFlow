@@ -18,7 +18,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-mesh/src/envelope.rs
   - ../nostr-rust-forum/crates/nostr-bbs-mesh/src/transport.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/gift_wrap.rs
-verified_commit: {agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35, nostr-rust-forum: c39f41f104b114d6a3fa29013daaf6fa58b45080}
+verified_commit: {agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35, nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
 ---
 
 ## For developers

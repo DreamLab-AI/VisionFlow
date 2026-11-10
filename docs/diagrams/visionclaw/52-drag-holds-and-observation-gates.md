@@ -23,7 +23,7 @@ sources:
   - ../project/client/src/features/graph/managers/graphWorkerProxy.ts
   - ../project/crates/visionclaw-gpu/src/cuda_sources/visionclaw_unified.cu
   - ../project/src/utils/unified_gpu_compute/execution.rs
-verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8}
+verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
 ---
 
 ## For developers
@@ -110,7 +110,7 @@ flowchart TD
     HAND["Choose first held hand<br/>graph_scene.gd:174-175"] --> FRAME["Select held or targeted volume transform<br/>graph_scene.gd:206-212"]
     PRIMARY["Read position from primary binary client<br/>spatial_environment.gd:102,113"] --> WORLD["Apply selected transform to that position<br/>spatial_environment.gd:114-117"]
     FRAME --> WORLD
-    GRAB["Grab uses the chosen connection's position<br/>graph_scene.gd:3831"] -.-> GAP["TENSION: differing connection positions<br/>need an end-to-end marker test<br/>spatial_environment.gd:113"]
+    GRAB["Grab uses the chosen connection's position<br/>graph_scene.gd:3848"] -.-> GAP["TENSION: differing connection positions<br/>need an end-to-end marker test<br/>spatial_environment.gd:113"]
     WORLD -.-> GAP
 ```
 

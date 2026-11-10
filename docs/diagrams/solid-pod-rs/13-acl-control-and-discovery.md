@@ -9,7 +9,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/src/ldp.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/wac/resolver.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/tests/acl_candidate_control.rs
-verified_commit: daff10d610ecb0fb4f1dd0e143c0ea6b95bd7445
+verified_commit: 27e18995fc20790fa956acb41f7d8420544a13ec
 ---
 
 ## For developers
@@ -24,13 +24,13 @@ Malformed or inapplicable permission changes are refused before replacing the po
 
 ```mermaid
 flowchart TD
-    CAND["candidate after request admission<br/>lib.rs:875"]
-    META["metadata body is not an ACL<br/>Control admission still applies<br/>lib.rs:883"]
-    READ["shared bounded policy reader<br/>require a found policy<br/>lib.rs:889"]
-    VALID["validate supported conditions<br/>and RDF syntax for non-JSON ACLs<br/>lib.rs:894<br/>lib.rs:906"]
-    EVAL["same linked identities and balance<br/>evaluate Control on protected destination<br/>lib.rs:910<br/>lib.rs:916"]
-    PATCH["JSON PATCH checks resulting bytes<br/>before quota and storage<br/>lib.rs:1958"]
-    COPY["accompanying COPY policy installed<br/>only if destination Control survives<br/>lib.rs:3004"]
+    CAND["candidate after request admission<br/>lib.rs:974"]
+    META["metadata body is not an ACL<br/>Control admission still applies<br/>lib.rs:982"]
+    READ["shared bounded policy reader<br/>require a found policy<br/>lib.rs:988"]
+    VALID["validate supported conditions<br/>and RDF syntax for non-JSON ACLs<br/>lib.rs:993<br/>lib.rs:1005"]
+    EVAL["same linked identities and balance<br/>evaluate Control on protected destination<br/>lib.rs:1009<br/>lib.rs:1015"]
+    PATCH["JSON PATCH checks resulting bytes<br/>before quota and storage<br/>lib.rs:2120"]
+    COPY["accompanying COPY policy installed<br/>only if destination Control survives<br/>lib.rs:3332"]
     CAND -->|metadata| META
     CAND -->|ACL| READ --> VALID --> EVAL
     PATCH --> CAND
@@ -44,7 +44,7 @@ An invalid candidate returns false to the caller. Direct writes refuse it; resou
 ```mermaid
 flowchart TD
     GET["GET container /shared/<br/>client reads returned ACL link<br/>acl_candidate_control.rs:339"]
-    LINK["success and not-found discovery<br/>use shared sidecar mapping<br/>ldp.rs:152<br/>ldp.rs:1859"]
+    LINK["success and not-found discovery<br/>use shared sidecar mapping<br/>ldp.rs:153<br/>ldp.rs:1805"]
     MAP["existing resolver association<br/>/shared/ maps to /shared.acl<br/>resolver.rs:333"]
     PUT["owner writes restrictive policy<br/>at discovered location<br/>acl_candidate_control.rs:382"]
     CHECK["child read: anonymous denied<br/>owner still authorised<br/>acl_candidate_control.rs:392<br/>acl_candidate_control.rs:396"]

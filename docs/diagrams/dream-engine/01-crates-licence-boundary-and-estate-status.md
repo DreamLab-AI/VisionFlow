@@ -30,7 +30,7 @@ sources:
   - scripts/generate-release-manifest.sh
   - tests/gates/release-manifest.test.sh
   - scripts/estate-browser-journeys.mjs
-verified_commit: {dream-engine: 59a3e215e826aa1e9ebe157d49c1ac504f7f39c9, agentbox: 6500582dfae23bf8a38a6942916d208154e43625, visionflow: 4d361b58ce2b3ee17e1570361eaf78270b630012}
+verified_commit: {dream-engine: b40d50724bb6344dc00d57270f7166b138714406, agentbox: 6500582dfae23bf8a38a6942916d208154e43625, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c}
 ---
 
 DE-01 to DE-06 are the estate's view of dream-engine. The repository's own corpus is DE-07 to DE-14 in this area (moved on 2026-11-05); DE-11 draws the same crate DAG and licence boundary from inside the repository.

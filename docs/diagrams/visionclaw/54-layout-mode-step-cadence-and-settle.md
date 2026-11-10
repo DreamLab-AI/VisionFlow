@@ -27,7 +27,7 @@ sources:
   - ../project/xr-client/scripts/graph_scene.gd
   - ../project/xr-client/scripts/hud.gd
   - ../project/docs/XR-client.md
-verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8}
+verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
 ---
 
 ## For developers
@@ -50,12 +50,12 @@ flowchart TD
     STORE --> RESOLVE["Stored zero becomes the active mode's default here only<br/>settings_routes.rs:695,696<br/>visionclaw-domain/src/models/simulation_params.rs:450,453,470"]
     RESOLVE --> GPU["UpdateSimulationParams to the GPU actor<br/>settings_routes.rs:701,705"]
     GPU --> ACTOR["Actor neither preserves nor fills the mode<br/>force_compute_actor.rs:2618,2619,2620"]
-    BOOT["Boot: legacy qualityGates string migrates once<br/>sqlite_settings_repository.rs:1071,1079<br/>physics_restore.rs:33,39,42"] --> STORE
+    BOOT["Boot: legacy qualityGates string migrates once<br/>sqlite_settings_repository.rs:1074,1082<br/>physics_restore.rs:33,39,42"] --> STORE
 ```
 
 **What it shows.** One path from request to device. The legacy quality-gate string is read once, at boot. **Why it is this way.** ADR-2140 item 1 (2026-10-31) removed the actor's preserve-override, `SetLayoutMode` and the propagation overlay so that no second copy of the mode exists.
 
-**Debt (loose end):** the 2026-11-06 rendering-row insert landed between the ADR-2140 decision-1 doc comment and the function it documents, so that comment (`src/adapters/sqlite_settings_repository.rs:1046-1054`) now attaches to `RENDERING_ROW` (`src/adapters/sqlite_settings_repository.rs:1055-1057`) and `seed_physics_from_blob` (`src/adapters/sqlite_settings_repository.rs:1071`) has none.
+**Debt (loose end):** the 2026-11-06 rendering-row insert landed between the ADR-2140 decision-1 doc comment and the function it documents, so that comment (`src/adapters/sqlite_settings_repository.rs:1046-1054`) now attaches to `RENDERING_ROW` (`src/adapters/sqlite_settings_repository.rs:1055-1057`) and `seed_physics_from_blob` (`src/adapters/sqlite_settings_repository.rs:1074`) has none.
 
 ## VC-54.2 The step is paced by completion, the stream by each client's acknowledgement
 
@@ -131,13 +131,13 @@ flowchart TD
     subgraph MODE["desktop layout mode"]
         direction TB
         SW["registry write of layoutMode also POSTs the mode<br/>settingWrites.ts:65-66"]
-        GM["GraphManager POSTs on every stored-mode change, to receive one-shot positions<br/>GraphManager.tsx:300-302 GraphManager.tsx:313"]
+        GM["GraphManager POSTs on every stored-mode change, to receive one-shot positions<br/>GraphManager.tsx:301-303 GraphManager.tsx:314"]
     end
     subgraph XRH["headset"]
         direction TB
-        CYC["mode cycle POSTs after the volume capability gate, label flips on 2xx<br/>graph_scene.gd:2718-2722 graph_scene.gd:2737 graph_scene.gd:2739"]
+        CYC["mode cycle POSTs after the volume capability gate, label flips on 2xx<br/>graph_scene.gd:2735-2739 graph_scene.gd:2754 graph_scene.gd:2756"]
         LBL["HUD Shared label, every viewer's layout changes<br/>hud.gd:563"]
-        NOP["mode deliberately not persisted on device, re-applying at boot would move every viewer<br/>XR-client.md:1128-1130"]
+        NOP["mode deliberately not persisted on device, re-applying at boot would move every viewer<br/>XR-client.md:1129-1131"]
         CYC --- LBL
         CYC --- NOP
     end
@@ -156,5 +156,5 @@ flowchart TD
 ```
 
 **What it shows.** Layout mode and the two layout dials are one server-side document; the desktop marks the dials as shared and the headset refuses to persist the mode locally for the same reason. **Why it is this way.** ADR-2140 made `physics.layoutMode` the one stored definition, and ADR-2189 §2 labels every control that writes it.
-**Debt (parallel):** Two desktop callers POST the mode: `settingWrites.ts:66` on a registry write and `GraphManager.tsx:313` on the resulting store change, so one edit sends two requests; the server's same-mode check (`layout_handler.rs:86`) makes the second a no-op. The shared-scope sentence is also defined twice (`MacroDial.tsx:41`, `manifest.ts:224`).
-**Open (risk):** A Spectral or Temporal placement is computed over the caller's own view (`layout_handler.rs:139`) and exists only in that response (`layout_handler.rs:191`). Each desktop fetches its own on the store change (`GraphManager.tsx:315`), while the headset's completion handler leaves the body unread (`graph_scene.gd:2816`), so viewers can hold different placements under one shared mode.
+**Debt (parallel):** Two desktop callers POST the mode: `settingWrites.ts:66` on a registry write and `GraphManager.tsx:314` on the resulting store change, so one edit sends two requests; the server's same-mode check (`layout_handler.rs:86`) makes the second a no-op. The shared-scope sentence is also defined twice (`MacroDial.tsx:41`, `manifest.ts:224`).
+**Open (risk):** A Spectral or Temporal placement is computed over the caller's own view (`layout_handler.rs:139`) and exists only in that response (`layout_handler.rs:191`). Each desktop fetches its own on the store change (`GraphManager.tsx:316`), while the headset's completion handler leaves the body unread (`graph_scene.gd:2833`), so viewers can hold different placements under one shared mode.

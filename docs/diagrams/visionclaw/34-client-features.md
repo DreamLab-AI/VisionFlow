@@ -123,7 +123,7 @@ sources:
   - ../project/client/src/api/settings/schemaMappings.ts
   - ../project/client/src/api/settings/__tests__/settingsRoundTrip.test.ts
   - ../project/client/src/features/control-center/drawer/RightDrawer.tsx
-verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8}
+verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
 ---
 ## For developers
 
@@ -198,7 +198,7 @@ sequenceDiagram
 flowchart TD
     RustStruct["AppFullSettings struct<br/>crates/visionclaw-domain/src/config/app_settings.rs:79"] -.->|mirrored by hand, not read| Gen["generate_typescript_interfaces()<br/>src/bin/generate_types.rs:64, a raw-string TS literal :65-568"]
     Bin["cargo run --bin generate_types<br/>main() src/bin/generate_types.rs:9"] --> Gen
-    Bin --> OntGen["write_ontology_agent_types()<br/>src/bin/generate_types.rs:767-768, client/src/types/generated/ontology-agent.ts,<br/>serialised from the real ontology enums (wire(), union_of() :590-598)"]
+    Bin --> OntGen["write_ontology_agent_types()<br/>src/bin/generate_types.rs:768-769, client/src/types/generated/ontology-agent.ts,<br/>serialised from the real ontology enums (wire(), union_of() :590-598)"]
     Debt1["DEBT: the settings interfaces are a hand-maintained string, not derived from AppFullSettings.<br/>A field added to the Rust struct is absent from settings.ts until someone edits the literal.<br/>Only the ontology-agent output is generated from Rust types (src/bin/generate_types.rs:590-600)"] -.-> Gen
     Gen -->|convert_to_camel_case| Out["client/src/types/generated/settings.ts<br/>build output written at src/bin/generate_types.rs:21, :30, gitignored (.gitignore line 151), not in the repository at this stamp"]
     Note1["settingsUIDefinition.ts and unifiedSettingsConfig.ts no longer exist. The chain is<br/>registry/settingsRegistry.ts + registry/manifest.ts (settingsRegistry.ts:6 names the old<br/>file only inside a zero-drift-test description). NOT doc drift - docs/explanation/<br/>control-center.md:88,110,296 already describes unifiedSettingsConfig.ts as deleted. It was<br/>the swarm brief that was stale, not the governing docs. Verified 2026-09-05"]
@@ -519,7 +519,7 @@ sequenceDiagram
     Note over AS,UAC: analyticsStore and useSemanticService still hit distinct endpoints<br/>for the same shortest-path feature - not unified
     Note over AS,UAC: a non-numeric id, a server error or a failed reply falls back to the local dijkstra or bellmanFord<br/>analyticsStore.ts:353-355, analyticsStore.ts:399-413
     Note right of NAS: ADR-03 D7, ADR-031 D2/D6 - stride 5 buffer<br/>[clusterId, anomalyScore, communityId, centrality, ssspDistance]
-    Gem->>NAS: getIndexedBuffer(nodeIdToIndexMap) on every 30th frame while an analytic colour scheme or quality gate is on (GemNodes.tsx:648-651),<br/>and every TICK_INTERVAL frames in ClusterHulls.tsx:237-241. nodeAnalyticsStore.ts:97
+    Gem->>NAS: getIndexedBuffer(nodeIdToIndexMap) on every 30th frame while an analytic colour scheme or quality gate is on (GemNodes.tsx:654-657),<br/>and every TICK_INTERVAL frames in ClusterHulls.tsx:237-241. nodeAnalyticsStore.ts:97
     Note over WSBin,Gem: see VC-32 for the binary frame layout, VC-15 for GPU-side computation,<br/>VC-31 for the graph feature's own render-pipeline internals (not redrawn here)
 ```
 ## VC-34.13 physics — live simulation control (distinct from settings persistence)
@@ -632,7 +632,7 @@ sequenceDiagram
         WS-->>Hook: onclose
         Hook->>Hook: setTimeout(connectWebSocket, 5000) - manual reconnect useWorkspaces.ts:404-409
     end
-    Note over Hook,WS: DEBT: no server route serves /ws/workspaces (git grep over src finds none, while the REST scope is mounted at<br/>src/main.rs:1197), so the socket never opens and the 5 s reconnect retries forever. useWorkspaces itself has no caller in client/src
+    Note over Hook,WS: DEBT: no server route serves /ws/workspaces (git grep over src finds none, while the REST scope is mounted at<br/>src/main.rs:1198), so the socket never opens and the 5 s reconnect retries forever. useWorkspaces itself has no caller in client/src
     Comp->>Hook: createWorkspace(data)
     Hook->>API: createWorkspace - validates name length <=100 workspaceApi.ts:173-174
     API->>UAC: POST /workspace/create
@@ -687,7 +687,7 @@ sequenceDiagram
         CI->>U: no write - replies that node opacity is not a setting and names Edge Opacity and Gem Transmission CommandInput.tsx:306-314
         Note over CI: the old nodes.opacity write is gone and the path is retired (retiredPaths.ts:25)
     else glow or bloom wording
-        CI->>CI: writes visualisation.glow.enabled, the one glow switch, bloom.* is retired CommandInput.tsx:345-352, retiredPaths.ts:83-87
+        CI->>CI: writes visualisation.glow.enabled, the one glow switch, bloom.* is retired CommandInput.tsx:345-352, retiredPaths.ts:86-90
         CI->>Pod: dynamic import SolidPodService then saveGraphView/loadGraphView/listGraphViews CommandInput.tsx:464, CommandInput.tsx:479, CommandInput.tsx:507
         CI->>CI: a loaded view's defined physics keys and nodeTypeVisibility become one writes list CommandInput.tsx:481-492
     else matches inject/show agent or swarm (and not node/only)

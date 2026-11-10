@@ -19,7 +19,7 @@ sources:
   - ../sidestr-rs/sidestr-evm/tests/chain.rs
   - ../sidestr-rs/.github/workflows/ci.yml
   - ../project/agentbox/config/sidechain/dreamlab/chain.json
-verified_commit: {sidestr-rs: 9c6de86c657a25ec2f2a189baf63db7dedad40eb, visionflow: baae32a, agentbox: 9dfc27b16e82e9786535a55e790710493dd51fdf}
+verified_commit: {sidestr-rs: 9c6de86c657a25ec2f2a189baf63db7dedad40eb, visionflow: baae32a, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
 ---
 
 ## For developers

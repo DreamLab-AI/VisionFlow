@@ -59,7 +59,7 @@ sources:
   - ../project/crates/visionclaw-jev/src/config.rs
   - ../project/src/handlers/ontology_agent_handler.rs
   - ../project/src/middleware/auth.rs
-verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35}
+verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
 ---
 
 ## For developers

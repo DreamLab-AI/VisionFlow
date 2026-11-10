@@ -28,7 +28,7 @@ sources:
   - ../project/src/app_state.rs
   - ../project/docs/adr/ADR-2138-directed-cycles-are-a-server-analysis-with-one-adjacency.md
   - ../project/docs/adr/ADR-2140-physics-forces-have-one-stored-definition-and-no-scale-factors.md
-verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8}
+verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
 ---
 
 ## For developers
@@ -132,7 +132,7 @@ sequenceDiagram
     participant C as Client
     participant PH as params_handlers<br/>src/handlers/api_handler/analytics/params_handlers.rs:17
     participant SET as OptimizedSettingsActor
-    participant GPU as ForceComputeActor<br/>get_gpu_compute_addr app_state.rs:1600
+    participant GPU as ForceComputeActor<br/>get_gpu_compute_addr app_state.rs:1627
 
     C->>PH: GET /analytics/params (route reg analytics/mod.rs:270)
     PH->>SET: send(GetSettings) params_handlers.rs:20
@@ -177,7 +177,7 @@ sequenceDiagram
     participant C as Client
     participant PF as performance_handlers<br/>src/handlers/api_handler/analytics/performance_handlers.rs:55
     participant TEL as analytics_telemetry<br/>src/actors/gpu/analytics_telemetry.rs:190
-    participant GPU as ForceComputeActor<br/>get_gpu_compute_addr app_state.rs:1600
+    participant GPU as ForceComputeActor<br/>get_gpu_compute_addr app_state.rs:1627
 
     C->>PF: GET /analytics/stats (route reg analytics/mod.rs:272)
     PF->>GPU: get_performance_stats :55 sends GetPhysicsStats performance_handlers.rs:60
@@ -212,7 +212,7 @@ sequenceDiagram
     autonumber
     participant C as Client
     participant SH as stress_handlers<br/>src/handlers/api_handler/analytics/stress_handlers.rs:12
-    participant FCA as ForceComputeActor<br/>get_gpu_compute_addr app_state.rs:1600
+    participant FCA as ForceComputeActor<br/>get_gpu_compute_addr app_state.rs:1627
     participant SMA as StressMajorizationActor<br/>src/actors/gpu/stress_majorization_actor.rs:311
 
     C->>SH: POST /stress-majorization/trigger (route reg analytics/mod.rs:221)
@@ -402,7 +402,7 @@ sequenceDiagram
 
 **Debt:** resolved — `toggle_sssp` now writes through `apply_physics_patch` (`src/handlers/api_handler/analytics/sssp_handlers.rs:126`, `src/settings/api/settings_routes.rs:617`), and ADR-2140 records the item as closed (`docs/adr/ADR-2140-physics-forces-have-one-stored-definition-and-no-scale-factors.md:44`).
 
-**Debt:** every `/analytics/stress-majorization/*` route sends to `ForceComputeActor`, because `get_gpu_compute_addr` returns that actor (`src/app_state.rs:1600`). Its handlers are stubs. Trigger, stats and reset return `Err`; params returns `Ok` without forwarding (`src/actors/gpu/force_compute_actor.rs:3457-3510`). The real `StressMajorizationActor` handlers (`src/actors/gpu/stress_majorization_actor.rs:311`) are unreachable from HTTP. Closing this needs the routes to address the supervised stress actor, or the routes to be removed.
+**Debt:** every `/analytics/stress-majorization/*` route sends to `ForceComputeActor`, because `get_gpu_compute_addr` returns that actor (`src/app_state.rs:1627`). Its handlers are stubs. Trigger, stats and reset return `Err`; params returns `Ok` without forwarding (`src/actors/gpu/force_compute_actor.rs:3457-3510`). The real `StressMajorizationActor` handlers (`src/actors/gpu/stress_majorization_actor.rs:311`) are unreachable from HTTP. Closing this needs the routes to address the supervised stress actor, or the routes to be removed.
 
 **Tension (ADR-2140):** `POST /stress-majorization/configure` rewrites `unified_params.temperature` and `unified_params.damping` in `ForceComputeActor` (`src/actors/gpu/force_compute_actor.rs:3729-3739`) outside the stored physics document. That is a second write path for a physics value. This trace does not establish whether the value reaches the device before the next resync from the store.
 

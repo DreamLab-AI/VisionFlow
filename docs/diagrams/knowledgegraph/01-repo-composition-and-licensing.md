@@ -12,7 +12,7 @@ sources:
   - ../knowledgeGraph/archive/logseq-era-2026-09-22/README.md
   - ../knowledgeGraph/archive/github-workflows/build.yml
   - ../visionGraph/.github/workflows/publish.yml
-verified_commit: {knowledgegraph: 4ed9ac159daf402b4fb252ce559dbeb894a8d91e, visiongraph: 556a0156b5c326fb61141ed2ab1760dd8d9c4dd6}
+verified_commit: {knowledgegraph: 5294e88b6602a63b5afe96c79f2779d00274a05e, visiongraph: 556a0156b5c326fb61141ed2ab1760dd8d9c4dd6}
 ---
 
 ## For developers
@@ -54,9 +54,9 @@ flowchart TB
 ```mermaid
 flowchart TB
     SCOPE["LICENSING.md governs scope conflicts<br/>LICENSING.md:3"]
-    AGPL["AGPL-3.0-or-later declaration<br/>pipeline/, root .github/, static/, docs/,<br/>examples/ and named root prose<br/>LICENSING.md:18"]
-    MIT["MIT declaration for explorer/<br/>LICENSING.md:24<br/>WebVOWL attribution retained<br/>NOTICE:25"]
-    DATA["ODbL-1.0 declaration<br/>ontology/ and dist/<br/>LICENSING.md:25"]
+    AGPL["AGPL-3.0-or-later declaration<br/>pipeline/, root .github/, static/, docs/,<br/>examples/ and named root prose<br/>LICENSING.md:22"]
+    MIT["MIT declaration for explorer/<br/>LICENSING.md:28<br/>WebVOWL attribution retained<br/>NOTICE:25"]
+    DATA["ODbL-1.0 declaration<br/>ontology/ and dist/<br/>LICENSING.md:29"]
     GAP["DRIFT: committed table names old paths<br/>Archived pages and pipeline are now under archive/<br/>The archive notice does not restate grants"]
     %% knowledgeGraph/archive/logseq-era-2026-09-22/README.md:1
     OFFER["COMMERCIAL.md records alternative terms<br/>and an interim issue-tracker enquiry route<br/>COMMERCIAL.md:3,14"]

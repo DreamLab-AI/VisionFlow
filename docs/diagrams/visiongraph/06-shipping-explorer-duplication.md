@@ -26,7 +26,7 @@ sources:
   - ../knowledgeGraph/explorer/modern/package.json
   - ../knowledgeGraph/explorer/modern/src/site/mesh.ts
   - ../knowledgeGraph/explorer/modern/src/types/scope.ts
-verified_commit: {visiongraph: 556a0156b5c326fb61141ed2ab1760dd8d9c4dd6, knowledgegraph: 4ed9ac159daf402b4fb252ce559dbeb894a8d91e}
+verified_commit: {visiongraph: 556a0156b5c326fb61141ed2ab1760dd8d9c4dd6, knowledgegraph: 5294e88b6602a63b5afe96c79f2779d00274a05e}
 ---
 
 ## For developers

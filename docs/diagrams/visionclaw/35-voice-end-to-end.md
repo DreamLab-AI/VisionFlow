@@ -44,7 +44,7 @@ sources:
   - ../project/client/src/services/WebSocketEventBus.ts
   - ../project/src/actors/elevation_actor.rs
   - ../project/client/src/components/VoiceButton.tsx
-verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8, agentbox: 5cffdd1d926a9d10c393ec6d6c7a0f4e74ab2925, unmute: e348e567c7020d40020412024f7aa03c38a3bc3e}
+verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, unmute: e348e567c7020d40020412024f7aa03c38a3bc3e}
 ---
 
 ## For developers
@@ -554,7 +554,7 @@ flowchart TB
     U2 -.-> UNPIN
     UNPIN["DEBT: voice-stack/unmute is a NESTED checkout that the VisionClaw repo<br/>does not track, so a citation into it can only be pinned through its own<br/>revision. This topic carries an unmute key in verified_commit for exactly<br/>that reason, and its working tree is dirty: read the declared revision,<br/>never the files on disk.<br/>unmute/docker-compose.yml:3"]
     legacy --> SEP
-    VL["TENSION: ADR-2151 (VoiceLink, voice at the client edge over the ssh attach chain) is decision_status proposed, activation inactive, and implementation partial<br/>since its 2026-11-02 reconciliation (was none; source and bake exist), agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7, :21, while the live manifest has the [voicelink] slot enabled = true, agentbox/agentbox.toml:2264.<br/>It is a per-connection voice-paned process, not part of Track A or the VisionClaw voice loop"]
+    VL["TENSION: ADR-2151 (VoiceLink, voice at the client edge over the ssh attach chain) is decision_status proposed, activation inactive, and implementation partial<br/>since its 2026-11-02 reconciliation (was none; source and bake exist), agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7, :21, while the live manifest has the [voicelink] slot enabled = true, agentbox/agentbox.toml:2270.<br/>It is a per-connection voice-paned process, not part of Track A or the VisionClaw voice loop"]
     SEP -.-> VL
     SEP["SEPARATE SUBSYSTEM: this is the agentbox tmux voice plane (Track A),<br/>not the VisionClaw graph voice loop of VC-35.1 to VC-35.11. Its LLM is<br/>the tab0-bridge reached as KYUTAI_LLM_URL, its STT is the Kyutai<br/>service, and its TTS is now the SAME pocket-tts VisionClaw uses.<br/>agentbox/voice/compose.web.yml:45, :44. see AB-06 for the console boundary"]
     owned --> CONV

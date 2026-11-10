@@ -29,7 +29,7 @@ sources:
   - ../project/src/handlers/api_handler/analytics/community.rs
   - ../project/src/handlers/api_handler/analytics/pathfinding.rs
   - ../project/src/handlers/api_handler/analytics/mod.rs
-verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8}
+verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
 ---
 
 ## For developers
@@ -44,7 +44,7 @@ Physics and the graph analytics only run once the GPU is up. If it fails, layout
 
 ```mermaid
 flowchart TD
-    APP["AppState::new<br/>src/app_state.rs:930 starts GPUManagerActor"]
+    APP["AppState::new<br/>src/app_state.rs:953 starts GPUManagerActor"]
     GM["GPUManagerActor<br/>gpu_manager_actor.rs:57 struct, :146 impl Actor"]
     RS["ResourceSupervisor<br/>resource_supervisor.rs:40 struct, :353 impl Actor"]
     PS["PhysicsSupervisor<br/>physics_supervisor.rs"]
@@ -98,7 +98,7 @@ flowchart TD
 ```mermaid
 sequenceDiagram
     autonumber
-    participant APP as AppState::new<br/>src/app_state.rs:930
+    participant APP as AppState::new<br/>src/app_state.rs:953
     participant GM as GPUManagerActor<br/>gpu_manager_actor.rs:259
     participant RS as ResourceSupervisor<br/>resource_supervisor.rs:40
     participant GRA as GPUResourceActor<br/>gpu_resource_actor.rs:451
@@ -287,13 +287,13 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant APP as AppState::new<br/>src/app_state.rs:997
+    participant APP as AppState::new<br/>src/app_state.rs:1020
     participant GM as GPUManagerActor<br/>gpu_manager_actor.rs:714
     participant PS as PhysicsSupervisor<br/>physics_supervisor.rs:380 restart_actor
     participant FCA as ForceComputeActor (new)<br/>force_compute_actor.rs:1746
     participant PO as PhysicsOrchestratorActor<br/>src/actors/physics_orchestrator_actor.rs:1250
 
-    APP->>GM: SetPhysicsSettingsSource (app_state.rs:997)
+    APP->>GM: SetPhysicsSettingsSource (app_state.rs:1020)
     GM->>PS: do_send(SetPhysicsSettingsSource) (gpu_manager_actor.rs:717-719)
     PS->>PS: settings_source = Some(repo), restore_saved_physics (physics_supervisor.rs:786-789)
     Note over GM,PS: SubscribeForceComputeReplaced is forwarded the same way (gpu_manager_actor.rs:696-707) and appended to replacement_subscribers (physics_supervisor.rs:775-776)

@@ -26,7 +26,7 @@ sources:
   - ../project/src/main.rs
   - ../project/src/settings/api/settings_routes.rs
   - ../project/src/app_state.rs
-verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8}
+verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
 ---
 
 These panels are drawn at `86cdd7635582`, where a drag is a hold (ADR-2169): the hand's hold is released separately from an explicit pin. The [current contract audit](../../estate-review/2026-11-01-drag-holds-and-acceptance.md) and [VC-52](52-drag-holds-and-observation-gates.md) trace the hold lifecycle at their own pin. The ADR-2140 layout mode (`physics.layoutMode`), the step cadence and the three settle mechanisms are drawn at `d6c091f0f` in [VC-54](54-layout-mode-step-cadence-and-settle.md).
@@ -193,7 +193,7 @@ sequenceDiagram
     participant APP as apply_physics_patch<br/>src/settings/api/settings_routes.rs:617
     participant FCA as ForceComputeActor<br/>force_compute_actor.rs:2480
 
-    Note over LH: scope /layout mounted by src/main.rs:1295
+    Note over LH: scope /layout mounted by src/main.rs:1296
     C->>LH: GET /modes layout_handler.rs:366
     LH->>C: get_layout_modes layout_handler.rs:33 - current stored mode plus seven advertised (LIVE_LAYOUT_MODES layout_handler.rs:23-31)
     C->>LH: POST /mode, RateLimit 60 per minute (layout_handler.rs:369-372)
@@ -226,7 +226,7 @@ sequenceDiagram
     participant C as Client
     participant CH as constraints_handler<br/>src/handlers/constraints_handler.rs:11
     participant SET as Settings actor
-    participant FCA as ForceComputeActor<br/>get_gpu_compute_addr app_state.rs:1600
+    participant FCA as ForceComputeActor<br/>get_gpu_compute_addr app_state.rs:1627
     participant EX as execution.rs flag derivation
 
     C->>CH: POST /constraints/define constraints_handler.rs:14
@@ -311,11 +311,11 @@ flowchart LR
 ```mermaid
 flowchart TB
     subgraph PROD["producers — what each edge carries"]
-        P1["ensure_source_domain src/services/github_sync_service.rs:2619<br/>every page node gets a group, derive_source_domain<br/>falls back to infrastructure :2611"]
+        P1["ensure_source_domain src/services/github_sync_service.rs:2682<br/>every page node gets a group, derive_source_domain<br/>falls back to infrastructure :2674"]
         P2["group round-trips through Oxigraph since 7b6330608<br/>vc:group written src/adapters/oxigraph_graph_repository.rs:239<br/>read back :1391, source_domain fallback :1441"]
-        P3["materialise_domain_roots src/services/github_sync_service.rs:896<br/>applies plan_domain_roots :2363 — one derived root per populated<br/>domain (domain_root_node_id :2297), stale roots and spokes purged<br/>slugs at crates/vault-core/src/domains.rs:4"]
-        P4["spoke = domain_membership_edge(root_id, member)<br/>src/services/github_sync_service.rs:2465, fn at :2477<br/>edge_type DOMAIN_MEMBER_EDGE_TYPE = domain_member<br/>crates/visionclaw-domain/src/models/edge.rs:12"]
-        P5["is-a relation edges keep the folded predicate<br/>owl_property_iri Some(predicate) src/services/github_sync_service.rs:1919<br/>Oxigraph writes vc:owlProperty src/adapters/oxigraph_graph_repository.rs:551"]
+        P3["materialise_domain_roots src/services/github_sync_service.rs:907<br/>applies plan_domain_roots :2426 — one derived root per populated<br/>domain (domain_root_node_id :2360), stale roots and spokes purged<br/>slugs at crates/vault-core/src/domains.rs:4"]
+        P4["spoke = domain_membership_edge(root_id, member)<br/>src/services/github_sync_service.rs:2528, fn at :2540<br/>edge_type DOMAIN_MEMBER_EDGE_TYPE = domain_member<br/>crates/visionclaw-domain/src/models/edge.rs:12"]
+        P5["is-a relation edges keep the folded predicate<br/>owl_property_iri Some(predicate) src/services/github_sync_service.rs:1982<br/>Oxigraph writes vc:owlProperty src/adapters/oxigraph_graph_repository.rs:551"]
         P6["reasoner-inferred child to parent edge, label hierarchical<br/>with rdfs:subClassOf provenance src/services/inferred_edge_materialiser.rs:71"]
         P1 --> P2 --> P3 --> P4
     end
@@ -333,7 +333,7 @@ flowchart TB
     R1 --- I
 ```
 
-**Invariant (ADR-2035, amended 2026-10-02):** the DAG ranker layers an edge only when `Edge::asserts_subsumption` holds (`crates/visionclaw-domain/src/models/edge.rs:239-247`), applied in `hierarchy_pairs` (`src/actors/gpu/force_compute_actor.rs:438`). A `hierarchical` edge counts only with `rdfs:subClassOf` in `owl_property_iri`. Domain-root spokes carry `domain_member` (`src/services/github_sync_service.rs:2477`, `crates/visionclaw-domain/src/models/edge.rs:12`). This resolves an earlier drift: the ADR accepted the bare label on the premise that ingest never wrote membership under it, but `materialise_domain_roots` did, and every domain root ranked below its own members. The amendment records the observed census: 9,796 subclass edges and 6,400 spokes ranked together on the pre-fix binary (`docs/adr/ADR-2035-dag-rank-accepts-hierarchical-label.md:196-200`). A same-day follow-up (`8a501fbbc`, recorded at `docs/adr/ADR-2035-dag-rank-accepts-hierarchical-label.md:286-337`) made the roots themselves stable. `materialise_domain_roots` now applies the pure `plan_domain_roots` reconcile (`src/services/github_sync_service.rs:2363`), so each domain has one derived root id in every process, and the next sync purges stale counter-minted roots and their `hierarchical` spokes.
+**Invariant (ADR-2035, amended 2026-10-02):** the DAG ranker layers an edge only when `Edge::asserts_subsumption` holds (`crates/visionclaw-domain/src/models/edge.rs:239-247`), applied in `hierarchy_pairs` (`src/actors/gpu/force_compute_actor.rs:438`). A `hierarchical` edge counts only with `rdfs:subClassOf` in `owl_property_iri`. Domain-root spokes carry `domain_member` (`src/services/github_sync_service.rs:2540`, `crates/visionclaw-domain/src/models/edge.rs:12`). This resolves an earlier drift: the ADR accepted the bare label on the premise that ingest never wrote membership under it, but `materialise_domain_roots` did, and every domain root ranked below its own members. The amendment records the observed census: 9,796 subclass edges and 6,400 spokes ranked together on the pre-fix binary (`docs/adr/ADR-2035-dag-rank-accepts-hierarchical-label.md:196-200`). A same-day follow-up (`8a501fbbc`, recorded at `docs/adr/ADR-2035-dag-rank-accepts-hierarchical-label.md:286-337`) made the roots themselves stable. `materialise_domain_roots` now applies the pure `plan_domain_roots` reconcile (`src/services/github_sync_service.rs:2426`), so each domain has one derived root id in every process, and the next sync purges stale counter-minted roots and their `hierarchical` spokes.
 
 **Drift (ADR-2035 vs code):** the record's Context still says the ranker uses `is_directed_hierarchy_relation` (`docs/adr/ADR-2035-dag-rank-accepts-hierarchical-label.md:28-29`). Its Consequences still describe the accept as coupled to ingest labelling (`docs/adr/ADR-2035-dag-rank-accepts-hierarchical-label.md:61-62`). That function was deleted in 8bdece469 and replaced by `hierarchy_pairs` (`src/actors/gpu/force_compute_actor.rs:432`). The Decision section (`:37-48`) is current; the surrounding prose is not.
 

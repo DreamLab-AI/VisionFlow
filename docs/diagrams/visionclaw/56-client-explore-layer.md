@@ -2,7 +2,7 @@
 id: VC-56
 title: Client explore layer, node table, crossfilter widgets, highlight mask and column encoding
 area: visionclaw
-verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8}
+verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
 governing:
   - ../project/docs/BASELINE-architecture.md
 adrs: [ADR-2183, ADR-2184, ADR-2185, ADR-2189]
@@ -242,7 +242,7 @@ flowchart TB
 
 **What it shows.** The ADR-2183 D4 split: scope and collapse remove, the interactive predicates grey, and only the opt-in hides. **Why it is this way.** ADR-2183 D4 keeps hierarchy collapse a removal because it "changes what a node is" (`ADR-2183-interactive-filters-grey-out-through-a-highlight-mask.md:42`); the predicate semantics and the 0.4 default come from the 2026-11-06 implementation notes (`nodeFilter.ts:13-20`, `nodeFilter.ts:51-57`).
 
-**Tension (crossfilter vs render set):** the crossfilter says only rows in the render set count "so counts match the screen" (`crossfilter.ts:15-16`), but hierarchy collapse lives in per-instance hook state inside GraphManager (`GraphManager.tsx:86`, `useGraphFiltering.ts:94`) that the table builder cannot see (`buildTable.ts:32-36`), so the panel has to disclaim it (`ExplorePanel.tsx:336`).
+**Tension (crossfilter vs render set):** the crossfilter says only rows in the render set count "so counts match the screen" (`crossfilter.ts:15-16`), but hierarchy collapse lives in per-instance hook state inside GraphManager (`GraphManager.tsx:87`, `useGraphFiltering.ts:94`) that the table builder cannot see (`buildTable.ts:32-36`), so the panel has to disclaim it (`ExplorePanel.tsx:336`).
 
 ## VC-56.9 Column encoder and legend
 

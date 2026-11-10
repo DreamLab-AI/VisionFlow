@@ -19,7 +19,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/lib.rs
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/acl.rs
   - ../nostr-rust-forum/crates/nostr-bbs-rate-limit/src/replay.rs
-verified_commit: {nostr-rust-forum: d36fac107c686321719d02b94afd71b23350eb6d}
+verified_commit: {nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
 ---
 
 ## For developers

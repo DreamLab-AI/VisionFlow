@@ -15,7 +15,7 @@ sources:
   - ../project/agentbox/services/agentbox-sessions/src/api.rs
   - ../project/agentbox/config/tab0-bridge/server.mjs
   - ../project/agentbox/config/session-plane/client.cjs
-verified_commit: {agentbox: 9dfc27b16e82e9786535a55e790710493dd51fdf}
+verified_commit: {agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
 ---
 
 ## For developers

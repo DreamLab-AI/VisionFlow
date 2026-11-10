@@ -19,7 +19,7 @@ sources:
   - ../ontomark/crates/ontomark-cli/src/main.rs
   - ../ontomark/crates/ontomark-cli/src/migrate_cmd.rs
   - ../project/src/services/corpus_source/local.rs
-verified_commit: {ontomark: 4b9d15df48056971321a62b8c4e905f4536c74db, visionclaw: 2257ee7fa68a9e56cfedd175cfb4d3a14481d894}
+verified_commit: {ontomark: 6159bb6089753105ef839fd4aac46c1598a64bd2, visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
 ---
 
 ## For developers
@@ -51,10 +51,10 @@ flowchart TD
 ```mermaid
 flowchart TD
     START["Canonicalise discovery start<br/>vocabulary.rs:507-510"] --> FIND["Walk ancestors for vocabulary<br/>vocabulary.rs:512-518"]
-    FIND --> CLI["CLI validates profile layout<br/>main.rs:654"]
+    FIND --> CLI["CLI validates profile layout<br/>main.rs:659"]
     CLI --> MIG["Selected migration role must exist in layout<br/>migrate_cmd.rs:142-145"]
-    BUILD["Build validates profile layout<br/>mod.rs:559"] --> EX["Built-in exclusions plus profile additions<br/>profile.rs:530-537"]
-    EX --> LOAD["Load under exact resolved role<br/>mod.rs:569-581"]
+    BUILD["Build validates profile layout<br/>mod.rs:645"] --> EX["Built-in exclusions plus profile additions<br/>profile.rs:530-537"]
+    EX --> LOAD["Load under exact resolved role<br/>mod.rs:655-667"]
     CLI --> LOAD
 ```
 
@@ -66,12 +66,12 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    LIST["Default feature checks all roots before listing<br/>local.rs:247-249"] --> SHARED["Call owner resolve_roots<br/>local.rs:139-142"]
-    SHARED --> PREFIX["Resolve requested prefix within configured roots<br/>local.rs:113-127"]
-    PREFIX --> WALK["Skip child symlinks, including cycles<br/>local.rs:190-199"]
-    WALK --> MISSING["Missing optional source can still be skipped<br/>local.rs:252-262"]
-    FETCH["Fetch canonicalises the page path<br/>local.rs:279-284"] --> BOUND["Require membership in a configured root<br/>local.rs:285-295"]
-    BOUND --> READ["Read the resolved path<br/>local.rs:297-300"]
+    LIST["Default feature checks all roots before listing<br/>local.rs:230-232"] --> SHARED["Call owner resolve_roots<br/>local.rs:120-123"]
+    SHARED --> PREFIX["Resolve requested prefix within configured roots<br/>local.rs:94-108"]
+    PREFIX --> WALK["Skip child symlinks, including cycles<br/>local.rs:173-182"]
+    WALK --> MISSING["Missing optional source can still be skipped<br/>local.rs:235-245"]
+    FETCH["Fetch canonicalises the page path<br/>local.rs:262-267"] --> BOUND["Require membership in a configured root<br/>local.rs:268-278"]
+    BOUND --> READ["Read the resolved path<br/>local.rs:280-283"]
 ```
 
 **What it shows.** The server's default `shared-corpus-layout` feature uses the registry compiler without its default reasoner feature. The vault CLI separately enables `shared-layout`. The actual local module and real vault binary have regression tests; the full server has a compile check.

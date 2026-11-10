@@ -19,7 +19,7 @@ sources:
   - ../dreamlab-ai-website/scripts/seo-watch/lib/presence.mjs
   - ../project/agentbox/flake.nix
   - ../project/agentbox/agentbox.toml
-verified_commit: {dreamlab-ai-website: b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5, agentbox: 9dfc27b16e82e9786535a55e790710493dd51fdf}
+verified_commit: {dreamlab-ai-website: b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
 ---
 
 ## For developers
@@ -38,9 +38,9 @@ The running watch gives the site owner nightly discovery checks. Its clean audit
 
 ```mermaid
 flowchart TB
-    %% Source: ../project/agentbox/flake.nix:308
+    %% Source: ../project/agentbox/flake.nix:317
     A["Manifest seo_watch.enabled<br/>controls baked supervisor stanza"]
-    %% Source: ../project/agentbox/flake.nix:3083
+    %% Source: ../project/agentbox/flake.nix:3135
     A --> B["supercronic reloads mounted website crontab<br/>runs as devuser with inherited environment"]
     %% Source: ../dreamlab-ai-website/scripts/seo-watch/crontab:10
     B --> C["05:40 UTC, nonblocking flock<br/>5400-second whole-run timeout"]

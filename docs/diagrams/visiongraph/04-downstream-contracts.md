@@ -14,7 +14,7 @@ sources:
   - ../project/src/services/ontology_generation.rs
   - ../project/src/main.rs
   - ../ontomark/crates/ontomark-compile/src/build/generation.rs
-verified_commit: {visiongraph: 556a0156b5c326fb61141ed2ab1760dd8d9c4dd6, visionclaw: 75b72416bac176ca8fde715cac3bd7c77657b3e7, ontomark: 0caae5d4b695cb720942b9b9212017c00a80ad41}
+verified_commit: {visiongraph: d8277151a1404b456b5c7206187f7e4b50f25be1, visionclaw: 75b72416bac176ca8fde715cac3bd7c77657b3e7, ontomark: 6159bb6089753105ef839fd4aac46c1598a64bd2}
 ---
 
 ## For developers
@@ -38,7 +38,7 @@ flowchart TB
     PUSH["Optional direct PUT job<br/>only when SOLID_POD_URL variable is configured"]
     EVENT --> SOURCE --> BUILD --> PACK --> RELEASE --> PULL
     PACK --> PUSH
-    %% Source: visionGraph/.github/workflows/publish.yml:536
+    %% Source: visionGraph/.github/workflows/publish.yml:545
     %% Source: project/.github/workflows/ontology-publish.yml:89
     %% Source: project/.github/workflows/ontology-publish.yml:150
     %% Source: project/.github/workflows/ontology-publish.yml:164
@@ -71,7 +71,7 @@ flowchart TB
     CHECK -->|"different build"| ACTIVATE
     %% Source: docs/PUBLICATION-contract.md:14
     %% Source: crates/ontomark-compile/src/build/generation.rs:90
-    %% Source: visionGraph/.github/workflows/publish.yml:358
+    %% Source: visionGraph/.github/workflows/publish.yml:359
     %% Source: scripts/ontology/pack-pod-resources.py:116
     %% Source: src/services/ontology_pull.rs:205
     %% Source: src/services/ontology_pull.rs:312

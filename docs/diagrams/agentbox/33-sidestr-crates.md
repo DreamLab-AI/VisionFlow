@@ -14,7 +14,7 @@ sources:
   - ../project/agentbox/scripts/ci/check-crate-licensing.sh
   - ../project/agentbox/docs/BASELINE-container.md
   - ../project/agentbox/lib/sidestr-agent.nix
-verified_commit: {agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35, sidestr-rs: d8ace3aad2f23eb1d11bd72af4ab0b74d599f618}
+verified_commit: {agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, sidestr-rs: 60259e848795d0cd5c5718ca5d0eb658f69fd0d7}
 ---
 
 ## For developers

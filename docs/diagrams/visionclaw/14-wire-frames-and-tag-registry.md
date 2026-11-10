@@ -27,7 +27,7 @@ sources:
   - ../project/client/src/features/graph/managers/dataManager/wsClient.ts
   - ../project/tests/sssp_integration_test.rs
   - ../project/tests/analytics_wire_snapshot_test.rs
-verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8}
+verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
 ---
 
 ## For developers
@@ -122,7 +122,7 @@ flowchart TD
         T34["0x34 BroadcastAck client to server, 21 bytes with no generic header, one per applied position chunk (ADR-2141)<br/>MessageType::BroadcastAck :1788, decode_message arm :1853"]
         T02["0x02 VoiceData :1782"]
         T03c["0x03 ControlFrame in MessageType :1784"]
-        T04["0x04 RETIRED V4 delta frame, reserved and never reused<br/>no encoder exists, every decoder refuses it (ADR-2139)<br/>docs/PROTOCOL-registry.md:67"]
+        T04["0x04 RETIRED V4 delta frame, reserved and never reused<br/>no encoder exists, every decoder refuses it (ADR-2139)<br/>docs/PROTOCOL-registry.md:68"]
     end
     subgraph PRESENCE["/ws/presence socket - tag space A sibling"]
         T43["0x43 OPCODE_AVATAR_POSE<br/>crates/visionclaw-xr-presence/src/wire.rs:9"]
@@ -140,7 +140,7 @@ flowchart TD
     N5["OPEN: the settings binary protocol is still not fully enumerated in the registry - unchanged by the 2026-09-05 remediation"]
     N6["RESOLVED ADR-2060: the legacy 48B/28B ADR figures are marked retired in the governing docs - the wire is 52B, now compile-time locked"]
     N7["RESOLVED ADR-2139: tag 0x04 (V4 delta) is now an explicit RETIRED row in the registry, so nothing can be allocated over it"]
-    N8["INVARIANT ADR-2143: Codescape is recorded as a second, independent producer of the frozen 0x03, 0x05, 0x23 and 0x34 contract (its encoders exist, serving on port 4100 is phased) and allocates no tag byte and no flag bit, so this registry stays the only allocator - docs/PROTOCOL-registry.md:220-226"]
+    N8["INVARIANT ADR-2143: Codescape is recorded as a second, independent producer of the frozen 0x03, 0x05, 0x23 and 0x34 contract (its encoders exist, serving on port 4100 is phased) and allocates no tag byte and no flag bit, so this registry stays the only allocator - docs/PROTOCOL-registry.md:221-227"]
     T05 -.- N2
     T03 -.- N3
     T05 -.- N4

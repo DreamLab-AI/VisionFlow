@@ -14,7 +14,7 @@ sources:
   - ../codescape/README.md
   - ../codescape/Cargo.toml
   - ../codescape/docs/adr/ADR-0001-extraction-from-visionclaw.md
-verified_commit: 446f8e386d7fc31e4cf28db25bf976c636b149ce
+verified_commit: d66bcab80fc0ce1f57deb6a0b6fa74e56ee8e298
 ---
 
 ## CS-04.1 Entrypoint phases from guard to exec

@@ -20,7 +20,7 @@ sources:
   - ../knowledgeGraph/archive/logseq-era-2026-09-22/pages/ADR-012.md
   - ../visionGraph/.github/workflows/publish.yml
   - ../visionGraph/quartz/scripts/check-urls.sh
-verified_commit: {knowledgegraph: 4809ea9772e61766058cf20d38e7527082e78fed, visiongraph: 556a0156b5c326fb61141ed2ab1760dd8d9c4dd6}
+verified_commit: {knowledgegraph: 4809ea9772e61766058cf20d38e7527082e78fed, visiongraph: d8277151a1404b456b5c7206187f7e4b50f25be1}
 ---
 
 ## For developers
@@ -60,8 +60,8 @@ flowchart TB
     SET["Archived gate compares exact class identities<br/>release_gate.py:127-148"]
     HASH["Archived manifest inventories and re-hashes output<br/>manifest.py:87-135,173-197"]
     ARCH["Pipeline retired to historical archive<br/>logseq-era-2026-09-22/README.md:1-4"]
-    NEW["Current workflow checks minimum volume, domain contracts,<br/>copy hashes, compressed output, smoke and final gates<br/>publish.yml:264-324,341-373,492-520"]
-    LIMIT["DEBT: final notes gate compares counts, not identities<br/>check-urls.sh:115-126<br/>Equal-count replacement passes the scoped probe"]
+    NEW["Current workflow checks minimum volume, domain contracts,<br/>copy hashes, compressed output, smoke and final gates<br/>publish.yml:263-325,341-373,492-520"]
+    LIMIT["DEBT: final notes gate compares counts, not identities<br/>check-urls.sh:116-127<br/>Equal-count replacement passes the scoped probe"]
     OLD --> SET --> HASH --> ARCH --> NEW --> LIMIT
 ```
 

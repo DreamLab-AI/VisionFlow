@@ -29,7 +29,7 @@ sources:
   - ../dreamlab-ai-website/docs/api/MODERATION_API.md
   - ../dreamlab-ai-website/forum-config/src/branding.rs
   - ../nostr-rust-forum/docs/adr/ADR-2016-end-to-end-encrypted-zones.md
-verified_commit: {dreamlab-ai-website: 0e1572801d03a1af6d8bc8861f928da087d69eed, nostr-rust-forum: c39f41f104b114d6a3fa29013daaf6fa58b45080}
+verified_commit: {dreamlab-ai-website: 0e1572801d03a1af6d8bc8861f928da087d69eed, nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
 ---
 
 ## DW-06.1 Pre-build content pipeline — two generators, run before every dev/build

@@ -20,7 +20,7 @@ sources:
   - ../visioncraft/skills/visioncraft/references/deepsec.md
   - ../visioncraft/docs/adr/0001-portable-quality-contract.md
   - ../visioncraft/docs/adr/0002-specialist-upstream-boundaries.md
-verified_commit: 1067a5f59afad7e2c8780bce6b29967d1130c19d
+verified_commit: 2c6627ce01d0e68bb0f48fc55a209b2c674716f1
 ---
 
 ## VK-03.1 One bounded command, start to reap

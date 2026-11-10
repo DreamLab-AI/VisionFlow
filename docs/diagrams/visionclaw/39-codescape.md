@@ -69,7 +69,7 @@ sources:
   - ../project/src/utils/binary_protocol.rs
   - ../project/crates/visionclaw-protocol/Cargo.toml
   - ../project/docs/XR-client.md
-verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8, agentbox: 0b287d7c16cae07faa243c471552f11fbb3e316c, codescape: e3b76f63e801c6a8460110b93e88a0b420e9b0b4}
+verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, codescape: e3b76f63e801c6a8460110b93e88a0b420e9b0b4}
 ---
 
 ## For developers
@@ -141,7 +141,7 @@ flowchart TB
         ASR["nemotron-asr, streaming ASR websocket<br/>codescape-server/src/config.rs:129-134"]
         TTS["pocket-tts<br/>codescape-server/src/config.rs:137-142"]
         LOOM["Loom door, optional out-of-grammar fallback<br/>docker-compose.unified.yml:511"]
-        JEV["System One through the shared agentbox proxy agentbox:8094, never published, opt-in CODESCAPE_JEV=1, proxy/API fallback requires local or cloud permission, which compose now grants, but an explicit endpoint returns before that check<br/>the laya systemone:8097 pins are gone, so the selected backend (typesafe, agentbox.toml:896) is the route. CONFIGURED: effective once the new agentbox image is active and codescape recreated<br/>docker-compose.unified.yml:7-11 docker-compose.unified.yml:504-508 voice/jev.rs:156-205<br/>the laya facade stays only as the opt-in local backend, agentbox docker-compose.system-one.yml:3 and :106"]
+        JEV["System One through the shared agentbox proxy agentbox:8094, never published, opt-in CODESCAPE_JEV=1, proxy/API fallback requires local or cloud permission, which compose now grants, but an explicit endpoint returns before that check<br/>the laya systemone:8097 pins are gone, so the selected backend (typesafe, agentbox.toml:897) is the route. CONFIGURED: effective once the new agentbox image is active and codescape recreated<br/>docker-compose.unified.yml:7-11 docker-compose.unified.yml:504-508 voice/jev.rs:156-205<br/>the laya facade stays only as the opt-in local backend, agentbox docker-compose.system-one.yml:3 and :106"]
     end
     LAN -->|"http port 3001 /codescape/"| NGX
     LAN -.->|"direct, only with CODESCAPE_PUBLISH_ADDR set"| LOOP
@@ -153,7 +153,7 @@ flowchart TB
     ENG -.-> LOOM
     ENG -.->|"Jev URL joins the allowlist only when enabled and resolved<br/>codescape-server/src/config.rs:281-282"| JEV
     DESK["desktop client: base from a /codescape first path segment, ?server= override<br/>codescape/client/src/net/config.ts:15-18 codescape/client/src/net/config.ts:32-57"]
-    XR["Godot XR client: no Backend toggle at this pin - GraphScene opens a second BackendConnection for Codescape at start (ADR-2159), and _cs_base takes XR_CODESCAPE_WS else XR_BACKEND_WS and appends /codescape once<br/>xr-client/scripts/graph_scene.gd:1403-1416 xr-client/scripts/graph_scene.gd:2945-2950 xr-client/scripts/backend_connection.gd:25 xr-client/scripts/backend_connection.gd:74-79"]
+    XR["Godot XR client: no Backend toggle at this pin - GraphScene opens a second BackendConnection for Codescape at start (ADR-2159), and _cs_base takes XR_CODESCAPE_WS else XR_BACKEND_WS and appends /codescape once<br/>xr-client/scripts/graph_scene.gd:1403-1416 xr-client/scripts/graph_scene.gd:2962-2967 xr-client/scripts/backend_connection.gd:25 xr-client/scripts/backend_connection.gd:74-79"]
     XRN["see VC-40.1 - the XR client gates every server-bound request on the connection's capability table (ADR-2143 A6); the switch-and-abandon path of VC-40.2 no longer exists at this pin, both connections stay open<br/>xr-client/scripts/backend_connection.gd:161-169"]
     DESK --- LAN
     XR --- LAN
@@ -359,7 +359,7 @@ flowchart TB
     end
     subgraph JEVG["OPEN: Jev option and estate scene"]
         direction TB
-        J1["TENSION: enabled in compose with threshold 1.0, which accepts a valid offered command at confidence exactly 1.0, compose leaves it empty, README states wiring and fallback tests only, no measured uplift, and VisionClaw ADR-2148 is accepted / complete / live after the agentbox rebuild and host recreate (docs/adr/ADR-2148-enable-local-typed-decisions.md:5-7, matching the VisionClaw baseline), ALLOW_CLOUD=1 sends the utterance via the proxy to the selected backend (agentbox.toml:896)<br/>codescape-server/src/voice/jev.rs:166-171 codescape-server/src/voice/jev.rs:349-354 docker-compose.unified.yml:505 docker-compose.unified.yml:507-508 codescape/README.md:296 docs/BASELINE-architecture.md:55-57"]
+        J1["TENSION: enabled in compose with threshold 1.0, which accepts a valid offered command at confidence exactly 1.0, compose leaves it empty, README states wiring and fallback tests only, no measured uplift, and VisionClaw ADR-2148 is accepted / complete / live after the agentbox rebuild and host recreate (docs/adr/ADR-2148-enable-local-typed-decisions.md:5-7, matching the VisionClaw baseline), ALLOW_CLOUD=1 sends the utterance via the proxy to the selected backend (agentbox.toml:897)<br/>codescape-server/src/voice/jev.rs:166-171 codescape-server/src/voice/jev.rs:349-354 docker-compose.unified.yml:505 docker-compose.unified.yml:507-508 codescape/README.md:296 docs/BASELINE-architecture.md:56-58"]
         J2["DEBT: the estate mounts default to an absolute host volume path, overridable only by CODESCAPE_ESTATE_ROOT<br/>docker-compose.unified.yml:564"]
         J1 --- J2
     end
@@ -372,7 +372,7 @@ flowchart TB
     end
     subgraph XRG["OPEN: XR"]
         direction TB
-        X1["OPEN: empty agent hover label in the headset, actor ids carry AGENT_FLAG but the headset<br/>names agents from its label table, else a demo role, else agent N<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:114 xr-client/scripts/graph_scene.gd:4171-4181"]
+        X1["OPEN: empty agent hover label in the headset, actor ids carry AGENT_FLAG but the headset<br/>names agents from its label table, else a demo role, else agent N<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:114 xr-client/scripts/graph_scene.gd:4188-4198"]
         X2["P4 records partly landed XR support, including the registered /ws/presence shim<br/>A4.5 describes its handshake<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:114 codescape-server/src/routes/mod.rs:454 ADR-2143-codescape-section-separate-workspace-and-port.md:217-218"]
         X3["OPEN: /wss ignores nodePin, nodeUnpin and nodeDrag and there is no physics write, so the headset greys<br/>those controls (see VC-40.1); whether Codescape should honour drag and pin is undecided"]
         X1 --- X2 --- X3
@@ -421,8 +421,8 @@ flowchart TB
         direction TB
         R1["only the port 3001 nginx server has a /codescape/ location, upstream codescape port 4100<br/>nginx.dev.conf:56 nginx.dev.conf:74-77"]
         R2["the rust_backend upstream is port 4000 and src/ has no Codescape route<br/>nginx.dev.conf:44-45"]
-        R3["the headset default base is port 4000, and _cs_base appends /codescape to it without XR_CODESCAPE_WS<br/>xr-client/scripts/graph_scene.gd:87 xr-client/scripts/graph_scene.gd:2945-2950"]
-        R4["the live launch therefore sets XR_CODESCAPE_WS to port 3001 for Codescape alone<br/>docs/XR-client.md:303"]
+        R3["the headset default base is port 4000, and _cs_base appends /codescape to it without XR_CODESCAPE_WS<br/>xr-client/scripts/graph_scene.gd:87 xr-client/scripts/graph_scene.gd:2962-2967"]
+        R4["the live launch therefore sets XR_CODESCAPE_WS to port 3001 for Codescape alone<br/>docs/XR-client.md:304"]
         R1 --> R2 --> R3 --> R4
     end
     WIREG --> PTXG --> ROUTE
@@ -432,5 +432,5 @@ flowchart TB
 **Debt (parallel):** `content_tag` exists twice byte for byte (`codescape-layout/src/ptx_source.rs:142`, `crates/visionclaw-gpu/src/ptx_policy.rs:295`) and the `.entry` arity parser twice (`codescape-layout/src/abi.rs:87`, `src/utils/unified_gpu_compute/execution.rs:3169`); only the FNV test vectors (`ptx_source.rs:138`) and VisionClaw's mirror test (`execution.rs:3180`) keep them aligned.
 **Debt (parallel):** The VisionClaw server's V3 encoder `WireNodeDataItemV3` (`src/utils/binary_protocol.rs:43`) is a second implementation of the record `visionclaw-wire` publishes; it is checked against the crate's fixtures in tests (`src/utils/binary_protocol.rs:925`), not built from it.
 **Open (risk):** VisionClaw uses `visionclaw-wire` by path (`visionclaw-protocol/Cargo.toml:18`), so an in-tree edit without a version bump would change VisionClaw's view of the "frozen" wire while Codescape keeps resolving the published 0.1.0 (`codescape/Cargo.toml:48`).
-**Open (risk):** With only `XR_BACKEND_WS` set to port 4000, the headset's Codescape connection dials a path the Rust backend never routes (`xr-client/scripts/graph_scene.gd:2950`; `nginx.dev.conf:74`), so the LAN route is port 3001 unless port 4100 is published (`docker-compose.unified.yml:641`).
+**Open (risk):** With only `XR_BACKEND_WS` set to port 4000, the headset's Codescape connection dials a path the Rust backend never routes (`xr-client/scripts/graph_scene.gd:2967`; `nginx.dev.conf:74`), so the LAN route is port 3001 unless port 4100 is published (`docker-compose.unified.yml:641`).
 **Debt (loose end):** The submodule pin lags standalone Codescape: at `e3b76f6` ADR-0001 still reads `activation_status: inactive` (`ADR-0001-extraction-from-visionclaw.md:6`), while standalone `13e056d` records activation as live and `d2c3c3b` carries the presence and provenance fixes VC-43 and VC-45 depend on.

@@ -12,7 +12,7 @@ sources:
   - ../dream-engine/crates/dream-core/src/lib.rs
   - ../dream-engine/crates/dream-core/src/source.rs
   - ../dream-engine/docs/adr/ADR-DE-005-seams.md
-verified_commit: 815f963b1cbd6999e78144ce5475005ae1dd1d8e
+verified_commit: b40d50724bb6344dc00d57270f7166b138714406
 ---
 ## For developers
 
@@ -103,7 +103,7 @@ sequenceDiagram
 
 **What it shows.** The order a host drives the seams in. The engine's own
 code crosses `EvaluatorRunner` in `candidate::run` and `Forge` in
-`persist::publish`; source gathering and repair also call the supplied `Llm` (`crates/dream-core/src/source.rs:1040`, `crates/dream-core/src/source.rs:1299`). The host orchestrates these operations and its memory and notification calls.
+`persist::publish`; source gathering and repair also call the supplied `Llm` (`crates/dream-core/src/source.rs:1048`, `crates/dream-core/src/source.rs:1308`). The host orchestrates these operations and its memory and notification calls.
 **Why it is this way.** Memory writes are best effort and callers log and
 continue (`crates/dream-core/src/seams.rs:147`). The `publish_draft` signature returns `PrOutcome`; persistence of the night is a separate host responsibility and a trait implementation can still panic
 (`crates/dream-core/src/seams.rs:365`).

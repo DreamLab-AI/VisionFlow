@@ -16,7 +16,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/wallet.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/tip_button.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/wallet/parent.rs
-verified_commit: {nostr-rust-forum: 9c36b6032640c89879ae52fe25da99493979a0b6}
+verified_commit: {nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
 ---
 
 ## For developers

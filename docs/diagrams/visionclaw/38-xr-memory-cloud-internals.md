@@ -26,7 +26,7 @@ sources:
   - ../project/crates/visionclaw-tri-layout/src/lib.rs
   - ../project/src/handlers/socket_flow_handler/session_relay.rs
   - ../project/src/handlers/socket_flow_handler/message_routing.rs
-verified_commit: {visionclaw: ec785afa9331be1fa049cee6282a4dcda16ee86d}
+verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
 ---
 
 ## For developers
@@ -50,7 +50,7 @@ The honest limits are in the register below: the headset has not yet been used t
 ```mermaid
 flowchart TB
     subgraph gd["GDScript owners on the scene-tree thread"]
-        GS["_on_graph_text routes by message type<br/>xr-client/scripts/graph_scene.gd:4530"]
+        GS["_on_graph_text routes by message type<br/>xr-client/scripts/graph_scene.gd:4547"]
         LAYER["MemoryCloudLayer owns the cloud, the frame and the route objects<br/>xr-client/scripts/memory_cloud_layer.gd:132"]
         SEARCH["MemorySearch owns the query object and one HTTP request in flight<br/>xr-client/scripts/memory_search.gd:58"]
         BEATGD["BeatPulse script wraps the gdext BeatPulse and pings every 2 s<br/>xr-client/scripts/beat_pulse.gd:32"]
@@ -338,7 +338,7 @@ classDiagram
 
 **What it shows.** What the headset accepts from the desktop's relayed frame and what it makes of it. An empty `path` is the clear signal; a bad `sidecar` entry is dropped, a bad `path` entry rejects the whole frame. **Why it is this way.** The relay and the headset parser share one set of limits, but they differ at the edges: the relay rejects a negative `seq` (src/handlers/socket_flow_handler/session_relay.rs:195) and a non-array `sidecar` (src/handlers/socket_flow_handler/session_relay.rs:188) while accepting `null`; the client defaults a bad `seq` to 0 (xr-client/rust/src/memory_route.rs:554) and rejects any non-array `sidecar`, `null` included, as a JSON error (xr-client/rust/src/memory_route.rs:325).
 
-**Drift (narrowed 2026-11-02):** the inline frame shape in `docs/XR-client.md` lists only `{type, snapshotId, seq, sentAt, path[], sidecar[], query}` (docs/XR-client.md:510-511) while the code reads two further fields, `sidecarTotal` and `sidecarAgree` (xr-client/rust/src/memory_route.rs:209). The same document does describe the optional pair, its consistency rule and the relay's drop-both behaviour in a separate bullet (docs/XR-client.md:549-552), so the gap is the one-line shape summary, not an undocumented field. The earlier wording said the document omitted them; it already carried that bullet at the previous stamp.
+**Drift (narrowed 2026-11-02):** the inline frame shape in `docs/XR-client.md` lists only `{type, snapshotId, seq, sentAt, path[], sidecar[], query}` (docs/XR-client.md:511-512) while the code reads two further fields, `sidecarTotal` and `sidecarAgree` (xr-client/rust/src/memory_route.rs:209). The same document does describe the optional pair, its consistency rule and the relay's drop-both behaviour in a separate bullet (docs/XR-client.md:550-553), so the gap is the one-line shape summary, not an undocumented field. The earlier wording said the document omitted them; it already carried that bullet at the previous stamp.
 
 ## VC-38.8 RouteGate - ordering, reload and the five verdicts
 
@@ -385,14 +385,14 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant GS as _on_graph_text<br/>xr-client/scripts/graph_scene.gd:4530
+    participant GS as _on_graph_text<br/>xr-client/scripts/graph_scene.gd:4547
     participant L as apply_route_json<br/>xr-client/scripts/memory_cloud_layer.gd:473
     participant MR as offer_json<br/>xr-client/rust/src/memory_route.rs:1664
     participant G as RouteGate offer<br/>xr-client/rust/src/memory_route.rs:606
     participant AR as ActiveRoute set<br/>xr-client/rust/src/memory_route.rs:1455
     participant T as tick<br/>xr-client/rust/src/memory_route.rs:1830
 
-    GS->>L: memoryRoute frame, the layer gates it xr-client/scripts/graph_scene.gd:4550
+    GS->>L: memoryRoute frame, the layer gates it xr-client/scripts/graph_scene.gd:4567
     L->>MR: offer_json(json, loaded snapshot id, positions) xr-client/scripts/memory_cloud_layer.gd:476
     MR->>MR: parse_route, a failure returns error and sets last_error xr-client/rust/src/memory_route.rs:516
     MR->>G: offer(frame, loaded, rows)
@@ -555,7 +555,7 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant GS as _on_graph_text<br/>xr-client/scripts/graph_scene.gd:4530
+    participant GS as _on_graph_text<br/>xr-client/scripts/graph_scene.gd:4547
     participant BG as BeatPulse script on_text<br/>xr-client/scripts/beat_pulse.gd:95
     participant BP as BeatPulse handle_text<br/>xr-client/rust/src/pulse.rs:65
     participant BS as BeatSync and ClockOffset<br/>xr-client/rust/src/beat.rs:397
@@ -565,7 +565,7 @@ sequenceDiagram
     BP-->>BG: ping JSON stamped with local epoch ms xr-client/rust/src/beat.rs:265
     BG->>SV: send_text(ping) on the graph socket xr-client/rust/src/binary_protocol.rs:1455
     SV-->>GS: pong echoing the timestamp with serverTime
-    GS->>BG: _beat.on_text(json, type) after the settings router xr-client/scripts/graph_scene.gd:4540
+    GS->>BG: _beat.on_text(json, type) after the settings router xr-client/scripts/graph_scene.gd:4557
     BG->>BP: handle_text(json) for beatClock and pong only xr-client/scripts/beat_pulse.gd:99
     alt beatClock frame
         BP->>BS: parse_beat_clock_frame then on_remote(frame, now) xr-client/rust/src/beat.rs:236 xr-client/rust/src/beat.rs:433

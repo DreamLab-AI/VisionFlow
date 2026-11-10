@@ -49,7 +49,7 @@ sources:
   - ../project/client/src/features/graph/explore/__tests__/nodeFilter.test.ts
   - ../project/tests/node-filter-parity.json
   - ../project/xr-client/rust/src/settings_sync.rs
-verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8}
+verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
 ---
 
 ## For developers
@@ -106,7 +106,7 @@ sequenceDiagram
     end
     end
     Note over PO: DRIFT the orchestrator comment still routes positions through BroadcastPositions, which ADR-2141 removed,<br/>the live path is UpdateNodePositions then PublishPositions<br/>src/actors/physics_orchestrator_actor.rs:577-581
-    Note over PO,CC: DRIFT docs/BASELINE-architecture.md draws the position path as ForceComputeActor, PhysicsOrchestratorActor, ClientCoordinatorActor<br/>and says ForceComputeActor drives the periodic full-position broadcast, in the code the orchestrator only sends ComputeForces and takes no part in<br/>delivery, ForceComputeActor publishes every step through GraphServiceSupervisor and the coordinator paces each client<br/>docs/BASELINE-architecture.md:167-170, :243-244, :249-250, :434,src/actors/graph_service_supervisor.rs:612-633,src/actors/client_coordinator_actor.rs:1419-1426
+    Note over PO,CC: DRIFT docs/BASELINE-architecture.md draws the position path as ForceComputeActor, PhysicsOrchestratorActor, ClientCoordinatorActor<br/>and says ForceComputeActor drives the periodic full-position broadcast, in the code the orchestrator only sends ComputeForces and takes no part in<br/>delivery, ForceComputeActor publishes every step through GraphServiceSupervisor and the coordinator paces each client<br/>docs/BASELINE-architecture.md:169-172, :245-246, :251-252, :436,src/actors/graph_service_supervisor.rs:612-633,src/actors/client_coordinator_actor.rs:1419-1426
     Note over WS,CC: acknowledgements close the loop, see VC-13.4 and VC-14.10
 ```
 
@@ -189,7 +189,7 @@ sequenceDiagram
                 HH->>WSS: ws_server.pubkey = Some(user.pubkey)<br/>src/handlers/socket_flow_handler/http_handler.rs:433-434
                 Note right of HH: DEBT redundant since 0d636fd0e, the first extraction already routes a dev query token<br/>through get_session into signed_user, see VC-03.2<br/>src/handlers/socket_flow_handler/http_handler.rs:187-202, :262
             end
-            Note over HH: DRIFT the registry's /wss row says NIP-98 Bearer or a ?token= query with the handler at http_handler.rs:139-150 and the Origin<br/>requirement at :130, the query token is dev-build only, the Bearer path is 178-184 and the Origin rejections are 118-121 and 138-140<br/>docs/PROTOCOL-registry.md:262,src/handlers/socket_flow_handler/http_handler.rs:118-121, :138-140, :178-214
+            Note over HH: DRIFT the registry's /wss row says NIP-98 Bearer or a ?token= query with the handler at http_handler.rs:139-150 and the Origin<br/>requirement at :130, the query token is dev-build only, the Bearer path is 178-184 and the Origin rejections are 118-121 and 138-140<br/>docs/PROTOCOL-registry.md:263,src/handlers/socket_flow_handler/http_handler.rs:118-121, :138-140, :178-214
             HH->>C: 101 Switching Protocols (WsResponseBuilder, PUBLIC_WS_PROTOCOLS echoed)<br/>src/handlers/socket_flow_handler/http_handler.rs:447-450
             WSS->>WSS: started registers anonymous ClientRecipients with the coordinator, which gives the session a fresh position stream, see VC-13.6<br/>src/handlers/socket_flow_handler/types.rs:333-347,src/actors/client_coordinator_actor.rs:1214-1216
             WSS->>WSS: SetClientId forwards an upgrade-time pubkey to the coordinator as AuthenticateClient<br/>src/handlers/socket_flow_handler/actor_messages.rs:14-30
@@ -310,7 +310,7 @@ sequenceDiagram
         CC->>CC: trace_stale_ack, changes nothing<br/>src/actors/client_coordinator_actor.rs:1497-1507
     end
     Note over CS: no acknowledgement within effective_timeout = ack_timeout times 2 to the consecutive timeouts, capped at 8x,<br/>so the safety tick rebuilds a fresh chunk from current state under a new sequence, a never-acknowledging client costs a bounded trickle<br/>src/actors/position_stream.rs:68,99-102,src/actors/client_coordinator_actor.rs:1110-1112
-    Note over CC,CS: INVARIANT absolute positions, no deltas, a chunk is always rebuilt from current state and never resent as old bytes, ADR-2139 and ADR-2141<br/>docs/PROTOCOL-registry.md:325
+    Note over CC,CS: INVARIANT absolute positions, no deltas, a chunk is always rebuilt from current state and never resent as old bytes, ADR-2139 and ADR-2141<br/>docs/PROTOCOL-registry.md:326
     Note over CC: stored settings physics.streamChunkNodes, streamMoveThreshold and streamAckTimeoutMs default to 2500, 0.05 and 500 ms,<br/>loaded from the saved physics row at start and re-applied by the physics PUT<br/>crates/visionclaw-domain/src/types/physics_config.rs:25,38,47,src/actors/client_coordinator_actor.rs:1091-1106,src/settings/api/settings_routes.rs:477
     Note over CC,WS: TENSION ADR-2141 decision 6 says clients drop no chunk, the web dispatcher bounds its queue at 256 frames and discards the oldest,<br/>which is safe only because the server rebuilds an unacknowledged chunk after the timeout<br/>docs/adr/ADR-2141-positions-are-streamed-per-client-until-acknowledged.md:43,client/src/store/websocket/binaryFrameDispatcher.ts:27-28, :71-77
     end
@@ -474,7 +474,7 @@ flowchart TB
     end
     subgraph DEF["four written copies of the shipped defaults, plus the derived fallbacks, all pinned"]
         D1["ClientFilter default: off, 0.4, stubs out, server_remove false<br/>src/actors/client_coordinator_actor.rs:135-151"]
-        D2["NodeFilterSettings default, the same values plus min_connections and min_maturity<br/>src/settings/models.rs:163-182"]
+        D2["NodeFilterSettings default, the same values plus min_connections and min_maturity<br/>src/settings/models.rs:170-189"]
         D3["NODE_FILTER_DEFAULTS, the same values plus minConnections and minMaturity<br/>client/src/features/graph/explore/nodeFilter.ts:57-68"]
         D5["XR NodeFilter default, the shared fields only, no server_remove<br/>xr-client/rust/src/settings_sync.rs:44-55"]
         D4["the filter_update fallbacks, taken from D2<br/>src/handlers/socket_flow_handler/filter_auth.rs:17"]
@@ -492,7 +492,7 @@ flowchart TB
 
 **Invariant:** every copy of the node-filter defaults, the `filter_update` fallbacks included, is pinned to the `default` case of `tests/node-filter-parity.json` (`tests/node-filter-parity.json:72`), by `shipped_defaults_match_the_fixture_default_case` (`src/actors/client_filter.rs:406`), `an_empty_filter_update_takes_the_shipped_defaults` (`src/handlers/socket_flow_handler/filter_auth.rs:592`), the XR fixture test (`xr-client/rust/src/settings_sync.rs:653-654`) and the client suite (`client/src/features/graph/explore/__tests__/nodeFilter.test.ts:14`).
 
-**Debt (parallel):** the defaults are still written four times and pinned by tests rather than shared (`src/actors/client_coordinator_actor.rs:135-151`, `src/settings/models.rs:163-182`, `client/src/features/graph/explore/nodeFilter.ts:57-68`, `xr-client/rust/src/settings_sync.rs:44-55`), and only two of them carry the degree and maturity floors (`src/settings/models.rs:178-179`, `client/src/features/graph/explore/nodeFilter.ts:66-67`); and `filtered_node_ids` is recomputed over the whole graph on register and authenticate (`src/actors/client_coordinator_actor.rs:1248-1251`, `:1621-1624`) but over the caller's view on `filter_update` (`src/actors/client_coordinator_actor.rs:73`), so the same client's set has two bases.
+**Debt (parallel):** the defaults are still written four times and pinned by tests rather than shared (`src/actors/client_coordinator_actor.rs:135-151`, `src/settings/models.rs:170-189`, `client/src/features/graph/explore/nodeFilter.ts:57-68`, `xr-client/rust/src/settings_sync.rs:44-55`), and only two of them carry the degree and maturity floors (`src/settings/models.rs:185-186`, `client/src/features/graph/explore/nodeFilter.ts:66-67`); and `filtered_node_ids` is recomputed over the whole graph on register and authenticate (`src/actors/client_coordinator_actor.rs:1248-1251`, `:1621-1624`) but over the caller's view on `filter_update` (`src/actors/client_coordinator_actor.rs:73`), so the same client's set has two bases.
 
 ## VC-13.8 Client session lifecycle
 ```mermaid

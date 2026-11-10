@@ -30,7 +30,7 @@ sources:
   - ../project/agentbox/docs/adr/ADR-2080-metaharness-router-console-under-aoe.md
   - ../project/agentbox/docs/adr/ADR-2084-one-published-loom-client-for-every-facade-caller.md
   - ../project/agentbox/lib/explainer-tools.nix
-verified_commit: {visionclaw: 86cdd76355823a51bb64d503c005fe277726e724, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35, loom: ba21a689a57dc67dc68ad22e52b058da34a7fb05}
+verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, loom: 741c5dffd3253038bbe4fadea7fada7c46474a25}
 ---
 ## ES-06.1 Topology — the gateway holds a façade, never a model port
 ```mermaid
@@ -62,7 +62,7 @@ flowchart LR
     INV1["INVARIANT — consumers hold the FAÇADE, never the model port.<br/>The deployed model is a URL behind DISTILL_BACKEND_URL;<br/>swapping Muse to Gemma to Qwen3.8 to next never touches a<br/>consumer. This is the no-technical-debt-on-upgrade guarantee."]
     INV2["INVARIANT — the Loom IS the email privacy system. It<br/>delegates ONLY to a LAN/local model, never to a cloud<br/>endpoint, so mail content never leaves the LAN."]
     DIV0["DIVERGENCE — Deployment B is SPECIFIED, not running. The loom<br/>service is gated behind compose profile loom (docker-compose.unified.yml:453-454),<br/>so a default up never starts it, and its image is not built from this repo:<br/>the referenced loom/deploy/Dockerfile does not exist in this checkout<br/>(docker-compose.unified.yml:376-381, the checkout holds README.md and app/ only). Deployment A (port 8084 on HP)<br/>is the live path. see ES-01.6"]
-    DIV1["DIVERGENCE — the connected node's old LAN address is DEAD. It<br/>sits downstream with no LAN IP and the gateway host routes and<br/>NATs it over the rail. Commit 2899b3b7e generalised the literal<br/>address out of the public repo, so the record now names it only<br/>as a retired address, agentbox/docs/adr/ADR-2023-loom-facade.md:64<br/>and agentbox/skills/email-search/SKILL.md:99. see ES-06.7"]
+    DIV1["DIVERGENCE — the connected node's old LAN address is DEAD. It<br/>sits downstream with no LAN IP and the gateway host routes and<br/>NATs it over the rail. Commit 2899b3b7e generalised the literal<br/>address out of the public repo, so the record now names it only<br/>as a retired address, agentbox/docs/adr/ADR-2023-loom-facade.md:76<br/>and agentbox/skills/email-search/SKILL.md:99. see ES-06.7"]
     DIV2["DIVERGENCE GOVERNANCE-capabilities — ADR-051 (Loom) is<br/>decision_status PROPOSED while the Loom is<br/>production-critical. Interim authority is the governing doc."]
     DIV3["RESOLVED ADR-2070 — ingress and egress have different contracts.<br/>Loom facade port 8084 and raw model port 8085 are named egress doors.<br/>Task-specific raw calls do not bypass the NIP-98 ingress proxy."]
 
@@ -224,7 +224,7 @@ flowchart TB
     D1["Reload is the Rust binary reload_published_generation (reload_published_generation.rs:185), which replaced the<br/>deleted scripts/reload-published-generation.py. reconcile (reload.rs:380) calls verified_bundle (reload.rs:211):<br/>the six REQUIRED artefacts (reload.rs:36), strict marker, per-file sha256, sidecar. It writes reload-pending<br/>before the restart (reload.rs:399) and served only after the live identity matches (reload.rs:413).<br/>One tick at a time: try_lock (reload_published_generation.rs:161). The unit runs the binary<br/>(loom-generation-reload.service:6). ADR-142 records the first served Ontomark bundle (ADR-142-consume-versioned-shared-ontology-contracts.md:54-56) and that the<br/>stale 23 Sep generation was the host unit still calling the deleted script (ADR-142-consume-versioned-shared-ontology-contracts.md:58)."]
     D2["DIVERGENCE — app/ontology-mcp/ (stdio MCP server, JavaScript)<br/>survived the Python deletion but now has NO build or run path<br/>from this repo. PRD-025/ADR-135 treat it as a thin client of<br/>the Loom index; placement is an open decision."]
 
-    RECON["GENERATION SOURCE — agentbox starts hp-loom-reconcile.sh in the background at every boot<br/>([vault].loom_sync, full here): it builds the committed vault HEAD, promotes and verifies it, pushes<br/>the BUILT bundle and starts the Loom's verifying reload. The connected node never reads the vault<br/>agentbox/config/entrypoint-unified.sh:1221-1229, agentbox/agentbox.toml:1181-1189"]
+    RECON["GENERATION SOURCE — agentbox starts hp-loom-reconcile.sh in the background at every boot<br/>([vault].loom_sync, full here): it builds the committed vault HEAD, promotes and verifies it, pushes<br/>the BUILT bundle and starts the Loom's verifying reload. The connected node never reads the vault<br/>agentbox/config/entrypoint-unified.sh:1226-1234, agentbox/agentbox.toml:1187-1195"]
 
     nomodel --> GEN
     RECON --> GEN
@@ -236,7 +236,7 @@ flowchart TB
 
 **Tension:** loom ADR-140 is `Status: Proposed` (`../loom/docs/design/ADR-140-loom-v2-agent-drivable-grounding.md:3`), yet its P0 is in service: the façade routes `/mcp` (`../loom/crates/loom-facade/src/routes/mod.rs:65`) and the note records that agentbox's `ontology-augment` grounds through it, with P1 onward not started (`../loom/docs/design/ADR-140-loom-v2-agent-drivable-grounding.md:632-634`).
 
-**Open:** the Jev option inside the façade is a proposed research candidate with no measured uplift; the code default is off (`LOOM_JEV=1` to enable, `../loom/docs/jev-option.md:3-6`) but the unified compose arms it (`../project/docker-compose.unified.yml:391-397`) and, since 2026-10-30, lets it reach the cloud-backed agentbox proxy instead of the laya façade (`LOOM_JEV_ALLOW_CLOUD` default 1, `:395`), although the façade's own header still justifies local-only by private corpus content (`../loom/crates/loom-facade/src/jev.rs:30-34`); the VisionClaw baseline records the compose System One consumers as live since the 2026-10-30 host recreate on the dev profile (`../project/docs/BASELINE-architecture.md:43-54`), but the loom service sits behind the `loom` compose profile and is not started by default (`../project/docker-compose.unified.yml:453-454`), so whether this Jev arm is serving anywhere cannot be read from source.
+**Open:** the Jev option inside the façade is a proposed research candidate with no measured uplift; the code default is off (`LOOM_JEV=1` to enable, `../loom/docs/jev-option.md:3-6`) but the unified compose arms it (`../project/docker-compose.unified.yml:391-397`) and, since 2026-10-30, lets it reach the cloud-backed agentbox proxy instead of the laya façade (`LOOM_JEV_ALLOW_CLOUD` default 1, `:395`), although the façade's own header still justifies local-only by private corpus content (`../loom/crates/loom-facade/src/jev.rs:30-34`); the VisionClaw baseline records the compose System One consumers as live since the 2026-10-30 host recreate on the dev profile (`../project/docs/BASELINE-architecture.md:48-59`), but the loom service sits behind the `loom` compose profile and is not started by default (`../project/docker-compose.unified.yml:453-454`), so whether this Jev arm is serving anywhere cannot be read from source.
 
 **Drift (corrected at visionclaw 86cdd76):** this paragraph used to say the arm was CONFIGURED and would take effect on the next activation, citing the same baseline passage, which says live (at 8692b12 too: the passage did not change, it moved down one line).
 
@@ -247,7 +247,7 @@ sequenceDiagram
     participant A as agent
     participant G as email-mcp-gateway:8765
     participant H as GET /health
-    participant DEAD as the retired model-host address<br/>agentbox/docs/adr/ADR-2023-loom-facade.md:64
+    participant DEAD as the retired model-host address<br/>agentbox/docs/adr/ADR-2023-loom-facade.md:76
     participant GOOD as the gateway-host DNAT to the facade, port 8084<br/>agentbox/skills/email-search/SKILL.md:79
 
     rect rgb(240,230,230)
@@ -356,7 +356,7 @@ stateDiagram-v2
 ```mermaid
 flowchart TB
     subgraph PRIV["Plane 1 — the Loom façade: PRIVATE work, LAN-only"]
-        FAC["Loom façade, the stable door<br/>ADR-2023-loom-facade.md:64<br/>consumers hold this URL, never a model port"]
+        FAC["Loom façade, the stable door<br/>ADR-2023-loom-facade.md:76<br/>consumers hold this URL, never a model port"]
         MDL["deployed model behind DISTILL_BACKEND_URL<br/>Qwen3.8-27B in the loom-model container<br/>email-search/SKILL.md:95"]
         MAIL["email-mcp-gateway port 8765<br/>REASONER_BASE_URL points at the façade"]
         FAC --> MDL
@@ -364,19 +364,19 @@ flowchart TB
     end
 
     subgraph PUB["Plane 2 — ADR-2080 metaharness router console: PUBLIC work only"]
-        GATE["[model_routing.neural] gate<br/>agentbox.toml:1774-1775"]
-        ART["pinned artefacts baked at rebuild<br/>config/model-router/artefacts.json<br/>flake.nix:179-185, installed flake.nix:2246-2248"]
-        ENV["entrypoint exports AGENTBOX_MODEL_ROUTER_*<br/>entrypoint-unified.sh:2304-2324<br/>assets_dir resolved at :2307, fallback :2308-2311"]
-        CON["router session console, a seed on agentbox-sessions (agentbox.toml:2224)<br/>embeds the task offline, asks the router for the<br/>cheapest OpenRouter model above the quality bar,<br/>executes it, writes a labelled receipt"]
+        GATE["[model_routing.neural] gate<br/>agentbox.toml:1780-1781"]
+        ART["pinned artefacts baked at rebuild<br/>config/model-router/artefacts.json<br/>flake.nix:188-194, installed flake.nix:2274-2276"]
+        ENV["entrypoint exports AGENTBOX_MODEL_ROUTER_*<br/>entrypoint-unified.sh:2302-2322<br/>assets_dir resolved at :2305, fallback :2306-2309"]
+        CON["router session console, a seed on agentbox-sessions (agentbox.toml:2230)<br/>embeds the task offline, asks the router for the<br/>cheapest OpenRouter model above the quality bar,<br/>executes it, writes a labelled receipt"]
         GATE --> ART --> ENV --> CON
     end
 
-    INV1["INVARIANT ADR-2079 section 4 — privacy_tier is pinned to public<br/>(agentbox.toml:1782) and the console EXITS on any other value.<br/>Private corpora never reach an OpenRouter model; that is what<br/>keeps plane 2 disjoint from plane 1."]
-    INV2["INVARIANT — the router env is SESSION-SCOPED. The entrypoint<br/>exports AGENTBOX_MODEL_ROUTER_* for the router seed only and<br/>never exports CLAUDE_FLOW_ROUTER_* globally (agentbox.toml:1772),<br/>so no other agent silently inherits a cost-optimal route."]
-    INV3["INVARIANT ADR-2023 — plane 1 swaps its model behind the façade with<br/>zero consumer change. Plane 2 swaps its model PER TASK by price.<br/>Neither plane may name the other's endpoint: a raw model port in<br/>consumer config re-creates the coupling ADR-2023 removed<br/>(ADR-2023-loom-facade.md:64-65)."]
-    DEG["DIVERGENCE — the gate can be on with no artefacts present. The<br/>entrypoint then prints the fetch instruction rather than failing<br/>(entrypoint-unified.sh:2328), so an operator sees a console<br/>that is enabled-but-inert until ./agentbox.sh model-router fetch<br/>or a rebuild lands the pinned set. see AB-15 and AB-28."]
+    INV1["INVARIANT ADR-2079 section 4 — privacy_tier is pinned to public<br/>(agentbox.toml:1788) and the console EXITS on any other value.<br/>Private corpora never reach an OpenRouter model; that is what<br/>keeps plane 2 disjoint from plane 1."]
+    INV2["INVARIANT — the router env is SESSION-SCOPED. The entrypoint<br/>exports AGENTBOX_MODEL_ROUTER_* for the router seed only and<br/>never exports CLAUDE_FLOW_ROUTER_* globally (agentbox.toml:1778),<br/>so no other agent silently inherits a cost-optimal route."]
+    INV3["INVARIANT ADR-2023 — plane 1 swaps its model behind the façade with<br/>zero consumer change. Plane 2 swaps its model PER TASK by price.<br/>Neither plane may name the other's endpoint: a raw model port in<br/>consumer config re-creates the coupling ADR-2023 removed<br/>(ADR-2023-loom-facade.md:76-77)."]
+    DEG["DIVERGENCE — the gate can be on with no artefacts present. The<br/>entrypoint then prints the fetch instruction rather than failing<br/>(entrypoint-unified.sh:2326), so an operator sees a console<br/>that is enabled-but-inert until ./agentbox.sh model-router fetch<br/>or a rebuild lands the pinned set. see AB-15 and AB-28."]
 
-    NOPIN["INVARIANT 2026-10-01, 878f23311 — no agentbox default names the<br/>Loom's model any more. dream_machine loom_model is empty<br/>(agentbox.toml:2612), the dream-engine supervisor passes an empty<br/>LOOM_MODEL (flake.nix:2902) and the generated compose defaults<br/>LOOM_MODEL empty (flake.nix:3964). Empty means use the single<br/>model the facade advertises at /models, so a swap behind the<br/>facade no longer breaks a seeder that asked for a stale alias."]
+    NOPIN["INVARIANT 2026-10-01, 878f23311 — no agentbox default names the<br/>Loom's model any more. dream_machine loom_model is empty<br/>(agentbox.toml:2618), the dream-engine supervisor passes an empty<br/>LOOM_MODEL (flake.nix:2953) and the generated compose defaults<br/>LOOM_MODEL empty (flake.nix:4006). Empty means use the single<br/>model the facade advertises at /models, so a swap behind the<br/>facade no longer breaks a seeder that asked for a stale alias."]
     MDL --> NOPIN
     PRIV --> INV3
     PUB --> INV3
@@ -385,7 +385,7 @@ flowchart TB
     ENV --> DEG
 ```
 
-**Resolved:** ADR-2153 is live, so the router console of plane 2 is an ordinary `[[interaction_plane.session_seeds]]` entry (`slug = "router"`, `../project/agentbox/agentbox.toml:2224`) on the owned session plane, not an Agent of Empires session; ADR-2080 (`../project/agentbox/docs/adr/ADR-2080-metaharness-router-console-under-aoe.md`) keeps its scope rules and its AoE-era title (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`, `:91`).
+**Resolved:** ADR-2153 is live, so the router console of plane 2 is an ordinary `[[interaction_plane.session_seeds]]` entry (`slug = "router"`, `../project/agentbox/agentbox.toml:2230`) on the owned session plane, not an Agent of Empires session; ADR-2080 (`../project/agentbox/docs/adr/ADR-2080-metaharness-router-console-under-aoe.md`) keeps its scope rules and its AoE-era title (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`, `:122`).
 
 **Tension (ADR-2080 acceptance item 3, recorded 2026-10-30):** the public-only invariant above holds for the console, which exits on any other tier, but the router wrapper pins the tier to `public` before it starts the console, so setting `AGENTBOX_MODEL_ROUTER_PRIVACY_TIER=private` cannot make the wrapper exit non-zero as the acceptance text asks (`../project/agentbox/docs/adr/ADR-2080-metaharness-router-console-under-aoe.md:129-132`). The record's `review_trigger` says items 1, 2 and 4 passed on the running image on 2026-10-30 and leaves item 3 to an owner ruling, so ADR-2080 stays `accepted` / `partial` / `staged` (`../project/agentbox/docs/adr/ADR-2080-metaharness-router-console-under-aoe.md:5-7,13`).
 

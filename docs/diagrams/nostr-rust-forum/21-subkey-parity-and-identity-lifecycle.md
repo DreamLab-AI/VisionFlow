@@ -14,7 +14,7 @@ sources:
   - ../project/agentbox/config/hooks/nostr-live-mirror.cjs
   - ../project/agentbox/config/nostr-gateway/nostr-send.cjs
   - ../project/agentbox/config/nostr-gateway/gateway.cjs
-verified_commit: {nostr-rust-forum: c39f41f104b114d6a3fa29013daaf6fa58b45080, agentbox: 9dfc27b16e82e9786535a55e790710493dd51fdf}
+verified_commit: {nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df, agentbox: 9dfc27b16e82e9786535a55e790710493dd51fdf}
 ---
 
 ## For developers
@@ -37,7 +37,7 @@ flowchart TB
     C["Rust validates child scalar<br/>no modular reduction"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/tests/identity_subkey_vectors.rs:151
     D["Rust checks shared vectors"]
-    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:105
+    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:106
     E["Node separately mirrors primitive<br/>and checks the same fixture"]
     %% Source: ../project/agentbox/config/hooks/nostr-live-mirror.cjs:68
     F["Consumer envFirst trims tags<br/>before derivation"]
@@ -50,15 +50,15 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:197
+    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:198
     A["Try reading three agentbox source files"]
-    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:199
+    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:200
     B["Read failure: successful skip"]
-    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:203
-    C["Readable: record hash<br/>no expected hash comparison"]
     %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:204
+    C["Readable: record hash<br/>no expected hash comparison"]
+    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:205
     D["Search source substring<br/>comments can satisfy it"]
-    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:223
+    %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:224
     E["Any HKDF text fails<br/>including unrelated comments"]
     %% Source: ../nostr-rust-forum/.github/workflows/ci.yml:283
     F["CI checks out agentbox without explicit ref"]

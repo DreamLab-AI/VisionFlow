@@ -18,7 +18,7 @@ sources:
   - ../dreamlab-ai-website/forum-config/dreamlab.toml
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/agent_disclosure.rs
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/governance_api.rs
-verified_commit: {dreamlab-ai-website: b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5, nostr-rust-forum: 9c36b6032640c89879ae52fe25da99493979a0b6}
+verified_commit: {dreamlab-ai-website: b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5, nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
 ---
 
 ## For developers
@@ -37,11 +37,11 @@ The monitor can summarise received enquiry copies without joining private forum 
 
 ```mermaid
 flowchart TB
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/agent_disclosure.rs:102
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/agent_disclosure.rs:105
     A["Read active registry rows"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/agent_disclosure.rs:68
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/agent_disclosure.rs:70
     A --> B["Merge configured ingress identities<br/>that name an authorising principal"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/agent_disclosure.rs:76
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/agent_disclosure.rs:78
     B --> C["Active registry row wins for same key<br/>otherwise configuration fills the gap"]
     %% Source: ../dreamlab-ai-website/scripts/lib/website-info.mjs:77
     C --> D["Website classifier checks key presence<br/>not provenance, name or principal validity"]

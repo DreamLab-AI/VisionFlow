@@ -22,7 +22,7 @@ sources:
   - ../project/agentbox/management-api/lib/elevation-stage.js
   - ../project/agentbox/management-api/lib/elevation-publisher.js
   - ../project/agentbox/docs/PROTOCOL-registry.md
-verified_commit: c57d9c0508f4
+verified_commit: 720e0d89656a4360998b3a716d0f3ee8cac66f93
 ---
 
 ## AB-17.1 The agent-event wire envelope — single canonical builder

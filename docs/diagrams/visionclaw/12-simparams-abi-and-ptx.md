@@ -24,7 +24,7 @@ sources:
   - ../project/src/utils/gpu_diagnostics.rs
   - ../project/src/gpu/mod.rs
   - ../project/src/physics/mod.rs
-verified_commit: {visionclaw: 809a859aae9e3d96d4d6b99690378018e48e3ad8}
+verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
 ---
 ## For developers
 

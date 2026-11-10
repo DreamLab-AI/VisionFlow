@@ -26,7 +26,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/poker_schedule.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/relay.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/dm/mod.rs
-verified_commit: {dreamlab-ai-website: b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5, nostr-rust-forum: 9c36b6032640c89879ae52fe25da99493979a0b6, agentbox: 9dfc27b16e82e9786535a55e790710493dd51fdf}
+verified_commit: {dreamlab-ai-website: b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5, nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df, agentbox: 9dfc27b16e82e9786535a55e790710493dd51fdf}
 ---
 
 ## For developers

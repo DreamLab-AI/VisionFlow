@@ -11,7 +11,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/handlers/prov.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/handlers/pay.rs
-verified_commit: c27cdfed1d96fc12dc2c7db5df866e9bed75524a
+verified_commit: 27e18995fc20790fa956acb41f7d8420544a13ec
 ---
 
 ## For developers
@@ -26,9 +26,9 @@ A public folder grant no longer opens an entire pod's private history. Historica
 
 ```mermaid
 flowchart TB
-    CONDITION["Turtle condition object<br/>parser.rs:363"]
-    BROKEN["unbalanced object or invalid parameters<br/>parser.rs:408<br/>parser.rs:413"]
-    COST["payment cost must parse<br/>parser.rs:533"]
+    CONDITION["Turtle condition object<br/>parser.rs:378"]
+    BROKEN["unbalanced object or invalid parameters<br/>parser.rs:423<br/>parser.rs:428"]
+    COST["payment cost must parse<br/>parser.rs:548"]
     DENY["return ACL parse failure<br/>restriction is not omitted"]
     SUBJECT["combine same-subject statements<br/>parser.rs:81"] --> CONDITION
     SCHEME["normalise ACL predicates<br/>parser.rs:232"] --> CONDITION
@@ -38,16 +38,16 @@ flowchart TB
 
 **What it shows:** malformed conditions return errors instead of an empty condition list or a zero-cost replacement. Valid typed conditions remain supported. **Why it is this way:** ADR-2005's fail-closed rule applies before the evaluator, including incomplete Turtle condition objects.
 
-**Invariant:** an absent or invalid payment amount cannot default to a free condition (`parser.rs:533`).
+**Invariant:** an absent or invalid payment amount cannot default to a free condition (`parser.rs:548`).
 
 ## SP-15.2 Whole-history Git export requires the pod owner
 
 ```mermaid
 flowchart TB
-    READ["current root Read check<br/>solid-pod-rs-server/src/lib.rs:4771"]
-    OWNER["authenticated principal equals pod key<br/>solid-pod-rs-server/src/lib.rs:4794"]
-    DENY["delegated or anonymous history export refused<br/>solid-pod-rs-server/src/lib.rs:4801"]
-    SERVICE["service root is data_root<br/>slug extracted once<br/>solid-pod-rs-server/src/lib.rs:4805"]
+    READ["current root Read check<br/>solid-pod-rs-server/src/lib.rs:5130"]
+    OWNER["authenticated principal equals pod key<br/>solid-pod-rs-server/src/lib.rs:5153"]
+    DENY["delegated or anonymous history export refused<br/>solid-pod-rs-server/src/lib.rs:5160"]
+    SERVICE["service root is data_root<br/>slug extracted once<br/>solid-pod-rs-server/src/lib.rs:5164"]
     READ --> OWNER
     OWNER -->|owner| SERVICE
     OWNER -->|other caller| DENY
@@ -55,7 +55,7 @@ flowchart TB
 
 **What it shows:** current resource permission and whole-history custody are separate checks. The service receives the data root rather than an already-prefixed pod directory. **Why it is this way:** root Read alone did not authorise private children or earlier versions. ADR-2010 now defines this route as an owner export/recovery surface; delegated readers use LDP. Alias pods without a cryptographic owner binding gain no export privilege.
 
-**Invariant:** an anonymous public-root Read grant does not satisfy the owner gate (`solid-pod-rs-server/src/lib.rs:4794`).
+**Invariant:** an anonymous public-root Read grant does not satisfy the owner gate (`solid-pod-rs-server/src/lib.rs:5153`).
 
 ## SP-15.3 Provenance inherits resource authority and commit identity
 
@@ -77,8 +77,8 @@ flowchart TB
 ```mermaid
 flowchart TB
     STATE["canonical state read<br/>only NotFound selects legacy migration<br/>pay.rs:191<br/>pay.rs:196"]
-    BALANCE["WAC balance uses PaymentStore<br/>solid-pod-rs-server/src/lib.rs:775"]
-    BOUNDS["fee below 10000 bps<br/>checked token price and swap product<br/>pay.rs:1150<br/>pay.rs:1529<br/>pay.rs:1626<br/>trading.rs:497"]
+    BALANCE["WAC balance uses PaymentStore<br/>solid-pod-rs-server/src/lib.rs:883"]
+    BOUNDS["fee below 10000 bps<br/>checked token price and swap product<br/>pay.rs:1158<br/>pay.rs:1541<br/>pay.rs:1638<br/>trading.rs:497"]
     INTENT["intent copy clears issuer secret<br/>pay.rs:218"]
     RECOVER["matching custody identity supplies key<br/>pay.rs:288"]
     STATE --> BALANCE
@@ -95,7 +95,7 @@ The shared replay error also has an explicit unavailable-store refusal for durab
 
 ```mermaid
 flowchart TB
-    DID["authenticated deposit beneficiary"] --> TWEAK["require DID-tweaked target address<br/>pay.rs:610"]
+    DID["authenticated deposit beneficiary"] --> TWEAK["require DID-tweaked target address<br/>pay.rs:618"]
     TWEAK --> CREDIT["proof validation then canonical credit"]
     WAC["granted paid access"] --> CHARGE["shared-lock canonical charge and commit<br/>pay.rs:137"]
     CHARGE --> LEDGER["same canonical ledger used by payment routes"]

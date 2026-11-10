@@ -42,7 +42,7 @@ sources:
   - ../project/agentbox/management-api/routes/sessions-boundary.js
   - ../project/agentbox/management-api/lib/pg-config.js
   - ../project/agentbox/management-api/adapters/memory/external-pg.js
-verified_commit: c57d9c0508f4044915f9aecea4b9aa5629cc6a35
+verified_commit: 720e0d89656a4360998b3a716d0f3ee8cac66f93
 ---
 
 ## AB-04.1 resolveAdapters — slot to implementation resolution
@@ -139,7 +139,7 @@ classDiagram
         +streamEvent(agentId, handler) local-process-manager.js:106
         +listAgents() local-process-manager.js:119
         +handleGovernanceDecision(event, opts) local-process-manager.js:142
-        +terminateAgent(agentId) local-process-manager.js:549
+        +terminateAgent(agentId) local-process-manager.js:554
     }
     BaseAdapter <|-- EmbeddedRuvectorMemoryAdapter
     BaseAdapter <|-- OffMemoryAdapter
@@ -300,11 +300,11 @@ sequenceDiagram
     Note over LC,T: DEFAULT_CONNECT_TIMEOUT_MS = 10000 — lifecycle.js:72
     Note over LC: Manifest override [adapters] connect_timeout_ms scalar or per-slot map — lifecycle.js:107-109, :123,<br/>non-positive values ignored (lifecycle.js:126). The Stage 1 schema rejects the key, see AB-04.15
     Note over SV,LC: INVARIANT: ONE deadline PER SLOT, never one aggregate budget —<br/>adapters/lifecycle.js:234, wired from server.js:1365-1366. Aggregate wall-clock is<br/>bounded by the slowest single slot, not by a race that abandons work in flight<br/>(lifecycle.js:31-35).
-    Note over SV,LC: RESOLVED ADR-2035: BASELINE-container.md:117 documents the<br/>per-slot deadline. Its line references there (server.js:1241-1242) are stale at this<br/>commit, see the Drift entry below this panel.
+    Note over SV,LC: RESOLVED ADR-2035: BASELINE-container.md:135 documents the<br/>per-slot deadline. Its line references there (server.js:1241-1242) are stale at this<br/>commit, see the Drift entry below this panel.
     Note over CO,T: Timeout is a CONNECT FAILURE identical in consequence to an explicit rejection — lifecycle.js:31-33
 ```
 
-**Drift:** `docs/BASELINE-container.md` still cites `connectAdapters` as wired from `server.js:1241-1242` and `app.adapterReadiness` at `server.js:1257` (`../project/agentbox/docs/BASELINE-container.md:117`). At the pin those calls sit at `../project/agentbox/management-api/server.js:1365-1381`. It also places `instrumentAdapter` at `index.js:131` (`../project/agentbox/docs/BASELINE-container.md:112`), where the function is now at `../project/agentbox/management-api/adapters/index.js:158`. The governing document carries line numbers that no longer resolve.
+**Drift:** `docs/BASELINE-container.md` still cites `connectAdapters` as wired from `server.js:1241-1242` and `app.adapterReadiness` at `server.js:1257` (`../project/agentbox/docs/BASELINE-container.md:135`). At the pin those calls sit at `../project/agentbox/management-api/server.js:1365-1381`. It also places `instrumentAdapter` at `index.js:131` (`../project/agentbox/docs/BASELINE-container.md:130`), where the function is now at `../project/agentbox/management-api/adapters/index.js:158`. The governing document carries line numbers that no longer resolve.
 
 ## AB-04.7 Failure path — quarantine before replacement, fail-closed slots abort
 ```mermaid
@@ -555,7 +555,7 @@ sequenceDiagram
             OA->>OA: stored request's d tag and iri must match the decision, else refused (local-process-manager.js:442-452)
             OA->>OD: proposal = proposalFromRequest(request) — ontology-apply.js:536
         end
-        OA->>OD: applyOntologyDecision(proposal, outcome, iri, page, signerNpub, at, caseId, digest, eventId, kind) — local-process-manager.js:461-480
+        OA->>OD: applyOntologyDecision(proposal, outcome, iri, page, signerNpub, at, caseId, digest, eventId, kind) — local-process-manager.js:466-485
         alt proposal.kind is create
             OD->>OD: applyCreateProposal(decision, proposal, deps) — ontology-apply.js:385, :560
         else promote of an amend proposal
@@ -568,7 +568,7 @@ sequenceDiagram
         OD->>OD: attest(ledger body) — ontology-apply.js:438, :627, :742
         OD-->>OA: applied, page, outcome, attested, attestError
         opt applyOntologyDecision throws
-            OA->>OA: ontology = applied false, error message — local-process-manager.js:481-487
+            OA->>OA: ontology = applied false, error message — local-process-manager.js:486-492
         end
     end
     OA->>OA: decision record with activity_urn, receipt_urn, ontology — local-process-manager.js:256-267
@@ -579,7 +579,7 @@ sequenceDiagram
     opt stream and control
         R->>OA: streamEvent(agentId, handler) — local-process-manager.js:106
         R->>OA: listAgents() — local-process-manager.js:119
-        R->>OA: terminateAgent(agentId) — local-process-manager.js:549
+        R->>OA: terminateAgent(agentId) — local-process-manager.js:554
     end
     Note over OA: INVARIANT ADR-2004 — orchestrator is the sole member of FAIL_CLOSED_SLOTS<br/>(lifecycle.js:75). Connect rejection, deadline expiry and quarantine are all equally<br/>fatal (lifecycle.js:50-53).
     Note over OA,OD: INVARIANT ADR-2109 — the ontology write runs BEFORE agent dispatch: the write<br/>IS the decision's effect and dispatch is only a notification about it. A write<br/>failure is recorded as ontology.applied=false and swallowed, never thrown — the<br/>signed 31403 stays durable whatever the corpus write managed to do (local-process-manager.js:204-215).
@@ -648,7 +648,7 @@ flowchart TD
 
 **Tension:** the schema's `[adapters]` table sets `additionalProperties: false` and does not declare `connect_timeout_ms` (`../project/agentbox/schema/agentbox.toml.schema.json:50-52`). Stage 1 compiles that schema with Ajv (`../project/agentbox/scripts/agentbox-config-validate.js:125-128`). The per-slot override that Stage 2 reads (`../project/agentbox/management-api/adapters/lifecycle.js:107-109`) is therefore rejected by Stage 1 as an unknown key, so the documented knob cannot pass validation.
 
-**Drift:** BASELINE stage 4 says the slot SLO is "surfaced as the `agentbox_adapter_health` gauge ∈ {0,1,2}" (`../project/agentbox/docs/BASELINE-container.md:119`). The gauge is declared (`../project/agentbox/management-api/observability/metrics.js:35-40`), but its only setter has no caller in the repository. The help text and the setter agree on the encoding: 0 unhealthy (so `off` would read as 0), 1 healthy, 2 degraded (`../project/agentbox/management-api/observability/metrics.js:37`, `../project/agentbox/management-api/observability/metrics.js:202-204`). Earlier versions of this topic gave healthy as 2, which contradicts both. Stage 1's rejection is also wider than "structural only": cross-field E-rules such as E-PAY1 reject as well (`../project/agentbox/scripts/agentbox-config-validate.js:1755`).
+**Drift:** BASELINE stage 4 says the slot SLO is "surfaced as the `agentbox_adapter_health` gauge ∈ {0,1,2}" (`../project/agentbox/docs/BASELINE-container.md:137`). The gauge is declared (`../project/agentbox/management-api/observability/metrics.js:35-40`), but its only setter has no caller in the repository. The help text and the setter agree on the encoding: 0 unhealthy (so `off` would read as 0), 1 healthy, 2 degraded (`../project/agentbox/management-api/observability/metrics.js:37`, `../project/agentbox/management-api/observability/metrics.js:202-204`). Earlier versions of this topic gave healthy as 2, which contradicts both. Stage 1's rejection is also wider than "structural only": cross-field E-rules such as E-PAY1 reject as well (`../project/agentbox/scripts/agentbox-config-validate.js:1755`).
 
 ## AB-04.16 SLO surfacing and the agentbox.sh health exit contract
 ```mermaid

@@ -16,7 +16,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/devices.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/storage.rs
-verified_commit: c39f41f104b114d6a3fa29013daaf6fa58b45080
+verified_commit: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df
 ---
 
 ## For developers

@@ -18,7 +18,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/src/storage/fs.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/storage/memory.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/scheme.rs
-verified_commit: 9b6143ce55b242c322c92d8c6bcc0c1a5371b451
+verified_commit: 27e18995fc20790fa956acb41f7d8420544a13ec
 ---
 
 ## SP-02.1 Process entry point — CLI to listening socket
@@ -33,7 +33,7 @@ sequenceDiagram
     participant LD as ConfigLoader<br/>solid-pod-rs-server/src/main.rs:280
     participant BIND as bind_available<br/>solid-pod-rs-server/src/main.rs:196
     participant ST as build_storage<br/>solid-pod-rs-server/src/main.rs:180
-    participant APP as build_app<br/>solid-pod-rs-server/src/lib.rs:5188
+    participant APP as build_app<br/>solid-pod-rs-server/src/lib.rs:5536
 
     OS->>M: exec
     M->>CLI: parse argv + env
@@ -63,12 +63,12 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant M as main<br/>solid-pod-rs-server/src/main.rs:261
-    participant S as AppState::new<br/>solid-pod-rs-server/src/lib.rs:401
+    participant S as AppState::new<br/>solid-pod-rs-server/src/lib.rs:507
     participant MP as log_mempool_selection_once<br/>solid-pod-rs-server/src/main.rs:326
     participant Q as FsQuotaStore::new<br/>solid-pod-rs-server/src/main.rs:332
 
     M->>S: AppState::new(storage)<br/>solid-pod-rs-server/src/main.rs:318
-    S-->>M: defaults — mcp off, quota None, admin_key None<br/>solid-pod-rs-server/src/lib.rs:416
+    S-->>M: defaults — mcp off, quota None, admin_key None<br/>solid-pod-rs-server/src/lib.rs:522
     M->>M: state.data_root from StorageBackendConfig::Fs root
     M->>MP: record endpoint + inferred network once (ADR-2007)
     opt feature quota AND default_quota_bytes > 0
@@ -160,7 +160,7 @@ stateDiagram-v2
     Parse --> Rejected: any other backend name
 
     Fs --> Ready: FsBackend.new(root)<br/>solid-pod-rs/src/storage/fs.rs:47
-    Memory --> Ready: MemoryBackend.new()<br/>solid-pod-rs/src/storage/memory.rs:45
+    Memory --> Ready: MemoryBackend.new()<br/>solid-pod-rs/src/storage/memory.rs:46
     Rejected --> [*]: the value is kept (sources.rs:267), then deserialising<br/>the tagged enum fails the load (loader.rs:196)
 
     Ready --> [*]
@@ -205,58 +205,58 @@ stateDiagram-v2
 ```mermaid
 flowchart TD
     REQ["inbound request"]
-    ELM["ErrorLoggingMiddleware (registered first, runs LAST)<br/>solid-pod-rs-server/src/lib.rs:5211"]
-    CORS["CorsHeaders<br/>solid-pod-rs-server/src/lib.rs:5212"]
-    NORM["NormalizePath TrailingSlash::MergeOnly<br/>solid-pod-rs-server/src/lib.rs:5216"]
-    PTG["PathTraversalGuard<br/>solid-pod-rs-server/src/lib.rs:5217"]
-    DFG["DotfileGuard plus HostPolicy — 421 for a Host outside allowed_hosts, else 403 on a denied dotfile<br/>solid-pod-rs-server/src/lib.rs:5218"]
+    ELM["ErrorLoggingMiddleware (registered first, runs LAST)<br/>solid-pod-rs-server/src/lib.rs:5559"]
+    CORS["CorsHeaders<br/>solid-pod-rs-server/src/lib.rs:5560"]
+    NORM["NormalizePath TrailingSlash::MergeOnly<br/>solid-pod-rs-server/src/lib.rs:5564"]
+    PTG["PathTraversalGuard<br/>solid-pod-rs-server/src/lib.rs:5565"]
+    DFG["DotfileGuard plus HostPolicy — 421 for a Host outside allowed_hosts, else 403 on a denied dotfile<br/>solid-pod-rs-server/src/lib.rs:5566"]
     H["route handler"]
 
     REQ --> DFG --> PTG --> NORM --> CORS --> ELM --> H
 
-    N1["INVARIANT: MergeOnly collapses // to / but never strips the trailing slash —<br/>the trailing slash is the LDP container/resource discriminator.<br/>solid-pod-rs-server/src/lib.rs:5214"]
+    N1["INVARIANT: MergeOnly collapses // to / but never strips the trailing slash —<br/>the trailing slash is the LDP container/resource discriminator.<br/>solid-pod-rs-server/src/lib.rs:5562"]
     NORM -.-> N1
-    N2["actix runs wraps in reverse registration order, so ErrorLoggingMiddleware is<br/>the INNERMOST layer. It logs 5xx from handlers only and never sees a 403 or<br/>421 from the outer guards, contrary to the source comment<br/>solid-pod-rs-server/src/lib.rs:5208"]
+    N2["actix runs wraps in reverse registration order, so ErrorLoggingMiddleware is<br/>the INNERMOST layer. It logs 5xx from handlers only and never sees a 403 or<br/>421 from the outer guards, contrary to the source comment<br/>solid-pod-rs-server/src/lib.rs:5556"]
     ELM -.-> N2
-    N3["PathTraversalGuard rejects on path_is_traversal<br/>solid-pod-rs-server/src/lib.rs:3494"]
+    N3["PathTraversalGuard rejects on path_is_traversal<br/>solid-pod-rs-server/src/lib.rs:3827"]
     PTG -.-> N3
-    N4["INVARIANT: with allowed_hosts non-empty a request for any other Host gets 421 Misdirected<br/>Request before any handler runs. Empty allows any host.<br/>solid-pod-rs-server/src/lib.rs:3843, solid-pod-rs-server/src/scheme.rs:256"]
+    N4["INVARIANT: with allowed_hosts non-empty a request for any other Host gets 421 Misdirected<br/>Request before any handler runs. Empty allows any host.<br/>solid-pod-rs-server/src/lib.rs:4176, solid-pod-rs-server/src/scheme.rs:256"]
     DFG -.-> N4
 ```
 
-**Drift:** the product comment says `ErrorLoggingMiddleware` is the outermost layer and observes guard short-circuits (`solid-pod-rs-server/src/lib.rs:5207`). Under actix-web's documented reverse-order rule it is the innermost.
+**Drift:** the product comment says `ErrorLoggingMiddleware` is the outermost layer and observes guard short-circuits (`solid-pod-rs-server/src/lib.rs:5555`). Under actix-web's documented reverse-order rule it is the innermost.
 
-**Tension:** both guards run before `NormalizePath`, so they inspect the raw path before `//` is merged. A 403 or 421 from a guard also never passes through `CorsHeaders`, whose headers are added on the inner service's response (`solid-pod-rs-server/src/lib.rs:3568`), so a browser sees those rejections as CORS failures. This is source reading against the framework rule; no request was run.
+**Tension:** both guards run before `NormalizePath`, so they inspect the raw path before `//` is merged. A 403 or 421 from a guard also never passes through `CorsHeaders`, whose headers are added on the inner service's response (`solid-pod-rs-server/src/lib.rs:3901`), so a browser sees those rejections as CORS failures. This is source reading against the framework rule; no request was run.
 
 ## SP-02.9 Route table — discovery, payments, admin and account routes
 
 ```mermaid
 flowchart LR
     subgraph WK["Well-known (always on)"]
-        A1["GET /.well-known/solid<br/>solid-pod-rs-server/src/lib.rs:5229"]
-        A2["GET /.well-known/webfinger<br/>solid-pod-rs-server/src/lib.rs:5232"]
-        A3["GET /.well-known/nodeinfo<br/>solid-pod-rs-server/src/lib.rs:5235"]
-        A4["GET /.well-known/nodeinfo/2.1<br/>solid-pod-rs-server/src/lib.rs:5239"]
-        A5["GET /.well-known/apps<br/>solid-pod-rs-server/src/lib.rs:5273"]
+        A1["GET /.well-known/solid<br/>solid-pod-rs-server/src/lib.rs:5577"]
+        A2["GET /.well-known/webfinger<br/>solid-pod-rs-server/src/lib.rs:5580"]
+        A3["GET /.well-known/nodeinfo<br/>solid-pod-rs-server/src/lib.rs:5583"]
+        A4["GET /.well-known/nodeinfo/2.1<br/>solid-pod-rs-server/src/lib.rs:5587"]
+        A5["GET /.well-known/apps<br/>solid-pod-rs-server/src/lib.rs:5621"]
     end
     subgraph GATED["Feature-gated discovery"]
-        B1["GET /.well-known/did/nostr/{pubkey}.json — did-nostr<br/>solid-pod-rs-server/src/lib.rs:5247"]
-        B2["GET /.well-known/nostr.json — nip05-endpoint<br/>solid-pod-rs-server/src/lib.rs:5259"]
-        B3["GET /api/exports/all — export-jsonld<br/>solid-pod-rs-server/src/lib.rs:5269"]
+        B1["GET /.well-known/did/nostr/{pubkey}.json — did-nostr<br/>solid-pod-rs-server/src/lib.rs:5595"]
+        B2["GET /.well-known/nostr.json — nip05-endpoint<br/>solid-pod-rs-server/src/lib.rs:5607"]
+        B3["GET /api/exports/all — export-jsonld<br/>solid-pod-rs-server/src/lib.rs:5617"]
     end
     subgraph PAYADMIN["Payments, proxy, admin"]
-        C1["GET /pay/.info<br/>solid-pod-rs-server/src/lib.rs:5276"]
-        C2["handlers::pay::register — the whole /pay/* surface<br/>solid-pod-rs-server/src/lib.rs:5282"]
-        C3["GET /proxy — WAC-gated CORS proxy<br/>solid-pod-rs-server/src/lib.rs:5285"]
-        C4["POST /_admin/provision/{pubkey}<br/>solid-pod-rs-server/src/lib.rs:5301"]
+        C1["GET /pay/.info<br/>solid-pod-rs-server/src/lib.rs:5624"]
+        C2["handlers::pay::register — the whole /pay/* surface<br/>solid-pod-rs-server/src/lib.rs:5630"]
+        C3["GET /proxy — WAC-gated CORS proxy<br/>solid-pod-rs-server/src/lib.rs:5633"]
+        C4["POST /_admin/provision/{pubkey}<br/>solid-pod-rs-server/src/lib.rs:5649"]
     end
     subgraph ACCT["Account and pod management"]
-        D1["POST /.pods<br/>solid-pod-rs-server/src/lib.rs:5306"]
-        D2["POST /api/accounts/new<br/>solid-pod-rs-server/src/lib.rs:5307"]
-        D3["GET /pods/check/{name}<br/>solid-pod-rs-server/src/lib.rs:5308"]
-        D4["POST /login/password<br/>solid-pod-rs-server/src/lib.rs:5309"]
-        D5["POST /account/password/reset<br/>solid-pod-rs-server/src/lib.rs:5311"]
-        D6["POST /account/password/change<br/>solid-pod-rs-server/src/lib.rs:5315"]
+        D1["POST /.pods<br/>solid-pod-rs-server/src/lib.rs:5654"]
+        D2["POST /api/accounts/new<br/>solid-pod-rs-server/src/lib.rs:5655"]
+        D3["GET /pods/check/{name}<br/>solid-pod-rs-server/src/lib.rs:5656"]
+        D4["POST /login/password<br/>solid-pod-rs-server/src/lib.rs:5657"]
+        D5["POST /account/password/reset<br/>solid-pod-rs-server/src/lib.rs:5659"]
+        D6["POST /account/password/change<br/>solid-pod-rs-server/src/lib.rs:5663"]
     end
 
     N["INVARIANT: every one of these registers BEFORE the LDP catch-all so a\nreserved prefix is never treated as a pod resource."]
@@ -267,19 +267,19 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    MCP["POST /mcp + OPTIONS — only when state.mcp_enabled<br/>solid-pod-rs-server/src/lib.rs:5291"]
-    FORGE["/forge and /forge/{tail} — cfg(feature forge)<br/>solid-pod-rs-server/src/lib.rs:5326"]
-    BLOCK1["ANY /{tail}/.git -> 403<br/>solid-pod-rs-server/src/lib.rs:5337"]
-    BLOCK2["ANY /{tail}/.git/{rest} -> 403<br/>solid-pod-rs-server/src/lib.rs:5344"]
-    PANEL_OPT["OPTIONS /pods/{pk}/_git/{tail} — registered unconditionally<br/>solid-pod-rs-server/src/lib.rs:5355"]
+    MCP["POST /mcp + OPTIONS — only when state.mcp_enabled<br/>solid-pod-rs-server/src/lib.rs:5639"]
+    FORGE["/forge and /forge/{tail} — cfg(feature forge)<br/>solid-pod-rs-server/src/lib.rs:5674"]
+    BLOCK1["ANY /{tail}/.git -> 403<br/>solid-pod-rs-server/src/lib.rs:5685"]
+    BLOCK2["ANY /{tail}/.git/{rest} -> 403<br/>solid-pod-rs-server/src/lib.rs:5692"]
+    PANEL_OPT["OPTIONS /pods/{pk}/_git/{tail} — registered unconditionally<br/>solid-pod-rs-server/src/lib.rs:5703"]
 
     subgraph GITON["cfg(feature git)"]
-        SMART["GET info/refs, POST git-upload-pack, POST git-receive-pack (routed only so handle_git refuses it — push is not served)<br/>solid-pod-rs-server/src/lib.rs:5368"]
-        PANEL["/pods/{pubkey}/_git/{status,log,diff,stage,unstage,commit,branches,branch,discard}<br/>solid-pod-rs-server/src/lib.rs:5374"]
-        PROVR["handlers::prov::register — _prov resolve + anchor<br/>solid-pod-rs-server/src/lib.rs:5412"]
+        SMART["GET info/refs, POST git-upload-pack, POST git-receive-pack (routed only so handle_git refuses it — push is not served)<br/>solid-pod-rs-server/src/lib.rs:5716"]
+        PANEL["/pods/{pubkey}/_git/{status,log,diff,stage,unstage,commit,branches,branch,discard}<br/>solid-pod-rs-server/src/lib.rs:5722"]
+        PROVR["handlers::prov::register — _prov resolve + anchor<br/>solid-pod-rs-server/src/lib.rs:5760"]
     end
     subgraph GITOFF["cfg(not(feature git))"]
-        R501["the three smart-HTTP paths return 501<br/>solid-pod-rs-server/src/lib.rs:5424"]
+        R501["the three smart-HTTP paths return 501<br/>solid-pod-rs-server/src/lib.rs:5772"]
     end
 
     MCP --> FORGE --> BLOCK1 --> BLOCK2 --> PANEL_OPT --> GITON
@@ -287,7 +287,7 @@ flowchart TD
 
     N1["INVARIANT: direct .git/ access is blocked unconditionally — the block is\nregistered outside every feature gate, so it survives a git-less build."]
     BLOCK1 -.-> N1
-    N2["The forge registers BEFORE the pod-git catch-all so /forge/<o>/<n>.git/info/refs\nreaches the forge's own CGI, not the pod-git handler.<br/>solid-pod-rs-server/src/lib.rs:5320"]
+    N2["The forge registers BEFORE the pod-git catch-all so /forge/<o>/<n>.git/info/refs\nreaches the forge's own CGI, not the pod-git handler.<br/>solid-pod-rs-server/src/lib.rs:5668"]
     FORGE -.-> N2
     N3["OPTIONS preflight for the _git panel is registered even without the feature\nso a browser gets a valid CORS answer either way."]
     PANEL_OPT -.-> N3
@@ -297,23 +297,23 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    P1["POST /{tail}/ -> handle_post<br/>solid-pod-rs-server/src/lib.rs:5431"]
-    P2["PUT /{tail}/ -> handle_put<br/>solid-pod-rs-server/src/lib.rs:5432"]
-    G["GET /{tail} -> handle_get<br/>solid-pod-rs-server/src/lib.rs:5433"]
-    H["HEAD /{tail} -> handle_get<br/>solid-pod-rs-server/src/lib.rs:5434"]
-    PU["PUT /{tail} -> handle_put<br/>solid-pod-rs-server/src/lib.rs:5435"]
-    PA["PATCH /{tail} -> handle_patch<br/>solid-pod-rs-server/src/lib.rs:5436"]
-    DE["DELETE /{tail} -> handle_delete<br/>solid-pod-rs-server/src/lib.rs:5437"]
-    CO["COPY /{tail} -> handle_copy<br/>solid-pod-rs-server/src/lib.rs:5440"]
-    OP["OPTIONS /{tail} -> handle_options<br/>solid-pod-rs-server/src/lib.rs:5444"]
+    P1["POST /{tail}/ -> handle_post<br/>solid-pod-rs-server/src/lib.rs:5779"]
+    P2["PUT /{tail}/ -> handle_put<br/>solid-pod-rs-server/src/lib.rs:5780"]
+    G["GET /{tail} -> handle_get<br/>solid-pod-rs-server/src/lib.rs:5781"]
+    H["HEAD /{tail} -> handle_get<br/>solid-pod-rs-server/src/lib.rs:5782"]
+    PU["PUT /{tail} -> handle_put<br/>solid-pod-rs-server/src/lib.rs:5783"]
+    PA["PATCH /{tail} -> handle_patch<br/>solid-pod-rs-server/src/lib.rs:5784"]
+    DE["DELETE /{tail} -> handle_delete<br/>solid-pod-rs-server/src/lib.rs:5785"]
+    CO["COPY /{tail} -> handle_copy<br/>solid-pod-rs-server/src/lib.rs:5788"]
+    OP["OPTIONS /{tail} -> handle_options<br/>solid-pod-rs-server/src/lib.rs:5792"]
 
     P1 --> P2 --> G --> H --> PU --> PA --> DE --> CO --> OP
 
-    N1["The trailing-slash POST/PUT variants register FIRST so a container write wins\nover the resource catch-all.<br/>solid-pod-rs-server/src/lib.rs:5429"]
+    N1["The trailing-slash POST/PUT variants register FIRST so a container write wins\nover the resource catch-all.<br/>solid-pod-rs-server/src/lib.rs:5777"]
     P1 -.-> N1
     N2["INVARIANT: HEAD is routed to handle_get, so HEAD inherits the same WAC read\ngate as GET — a private resource cannot be probed by HEAD. See SP-04.2."]
     H -.-> N2
-    N3["COPY is registered by raw method bytes — it is not a standard actix verb.<br/>solid-pod-rs-server/src/lib.rs:5440"]
+    N3["COPY is registered by raw method bytes — it is not a standard actix verb.<br/>solid-pod-rs-server/src/lib.rs:5788"]
     CO -.-> N3
 ```
 

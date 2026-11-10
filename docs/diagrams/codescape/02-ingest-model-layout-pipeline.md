@@ -21,7 +21,7 @@ sources:
   - ../codescape/crates/codescape-server/src/engine.rs
   - ../codescape/crates/codescape-server/src/persist.rs
   - ../codescape/crates/codescape-server/src/ingest_sink.rs
-verified_commit: 446f8e386d7fc31e4cf28db25bf976c636b149ce
+verified_commit: d66bcab80fc0ce1f57deb6a0b6fa74e56ee8e298
 ---
 
 ## CS-02.1 Cold open of one repository

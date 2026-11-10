@@ -25,7 +25,7 @@ sources:
   - ../visionGraph/.github/workflows/publish.yml
   - ../project/.github/workflows/ontology-publish.yml
   - docs/engineering/sovereign-corpus-contracts.md
-verified_commit: {ontomark: 6c3f693b36301ee95c8b684a000b5aeec3ac9bbd, visiongraph: 556a0156b5c326fb61141ed2ab1760dd8d9c4dd6, visionclaw: 86cdd76355823a51bb64d503c005fe277726e724, visionflow: 5f8b1da92ce5d9e6b32a0bd90ec3630c66619083}
+verified_commit: {ontomark: 6c3f693b36301ee95c8b684a000b5aeec3ac9bbd, visiongraph: 556a0156b5c326fb61141ed2ab1760dd8d9c4dd6, visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c}
 ---
 
 Restamped at ontomark 4b9d15d on 2026-11-02. The `ingest` verb is now in the command tree (`ontomark-cli/src/main.rs:137-140`) and is shown in OM-05.1; its pipeline is mapped in [OM-08](08-external-source-ingest.md).
@@ -214,17 +214,17 @@ flowchart LR
     end
     subgraph VC["VisionClaw ontology-publish.yml — Pod resources"]
         direction TB
-        VCCACHE["Cache Cargo registry and target<br/>ontology-publish.yml:156-165"]
-        VCBUILD["cargo build --release --locked -p vault<br/>in-tree crate, NOT ontomark<br/>ontology-publish.yml:167-168"]
-        VCRUN["vault --repo vault-source build --vault knowledge<br/>--out output/vault — no publish-out, no mirror<br/>ontology-publish.yml:172-175"]
-        VCCERT["vault certify then the same oo-cert re-check (ADR-2147)<br/>ontology-publish.yml:180-206"]
+        VCCACHE["Cache Cargo registry and target<br/>ontology-publish.yml:170-179"]
+        VCBUILD["cargo build --release --locked -p vault<br/>in-tree crate, NOT ontomark<br/>ontology-publish.yml:181-182"]
+        VCRUN["vault --repo vault-source build --vault knowledge<br/>--out output/vault — no publish-out, no mirror<br/>ontology-publish.yml:186-189"]
+        VCCERT["vault certify then the same oo-cert re-check (ADR-2147)<br/>ontology-publish.yml:194-220"]
         VCCACHE --> VCBUILD --> VCRUN --> VCCERT
     end
     BIN["ontomark build — ontomark-cli/src/main.rs:798-910"]
     VGBUILD -->|"vault_kinds all -> with_working_publish true"| BIN
     VCRUN -.->|"different binary"| BIN
-    n1["EXTERNAL: the two consumers differ — visionGraph uses ontomark with<br/>--vault all, VisionClaw still uses its own vault crate with<br/>--vault knowledge; ADR-OM-005 records this and routes VisionClaw to build --scope machine, see OM-06.1,<br/>publish.yml:175-176, ontology-publish.yml:168-173, ADR-OM-005-estate-alignment-one-producer-explicit-projections.md:40"]
-    n2["EXTERNAL: this VisionClaw workflow never invokes ontomark; vault build output<br/>feeds pack-pod-resources.py, ontology-publish.yml:247. ADR-OM-005 decision 2<br/>retires this job, gated, so it keeps running — ADR-OM-005-estate-alignment-one-producer-explicit-projections.md:38"]
+    n1["EXTERNAL: the two consumers differ — visionGraph uses ontomark with<br/>--vault all, VisionClaw still uses its own vault crate with<br/>--vault knowledge; ADR-OM-005 records this and routes VisionClaw to build --scope machine, see OM-06.1,<br/>publish.yml:175-176, ontology-publish.yml:182-187, ADR-OM-005-estate-alignment-one-producer-explicit-projections.md:40"]
+    n2["EXTERNAL: this VisionClaw workflow never invokes ontomark; vault build output<br/>feeds pack-pod-resources.py, ontology-publish.yml:261. ADR-OM-005 decision 2<br/>retires this job, gated, so it keeps running — ADR-OM-005-estate-alignment-one-producer-explicit-projections.md:38"]
     n3["INVARIANT: visionGraph treats the staging tree as wrong unless both<br/>pages/ and working/ exist, because ontomark silently accepts a<br/>knowledge-only build — publish.yml:199-205"]
     VG --- n1
     VC --- n2
