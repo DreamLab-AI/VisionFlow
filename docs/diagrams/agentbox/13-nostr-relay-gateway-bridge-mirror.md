@@ -8,6 +8,7 @@ governing:
   - ../project/agentbox/docs/PROTOCOL-registry.md
 adrs: [ADR-2012, ADR-2025, ADR-2026, ADR-2061, ADR-2085, ADR-2105]
 sources:
+  - ../project/agentbox/management-api/lib/authority-consumer.js
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/flake.nix
   - ../project/agentbox/config/nostr-gateway/gateway.cjs
@@ -38,7 +39,7 @@ sources:
   - ../project/agentbox/config/session-plane/client.cjs
   - ../project/agentbox/config/custody/session-plane-acl.json
   - ../project/agentbox/services/agentbox-sessions/src/api.rs
-verified_commit: c57d9c0508f4044915f9aecea4b9aa5629cc6a35
+verified_commit: 720e0d89656a4360998b3a716d0f3ee8cac66f93
 ---
 
 ## AB-13.1 Nostr topology — relay, gateway, pod bridge, mirror, mesh
@@ -46,14 +47,14 @@ verified_commit: c57d9c0508f4044915f9aecea4b9aa5629cc6a35
 ```mermaid
 flowchart TB
     subgraph lan["LAN / container boundary"]
-        subgraph relayslot["relay slot [program:nostr-relay] flake.nix:2727-2757"]
+        subgraph relayslot["relay slot [program:nostr-relay] flake.nix:2778-2808"]
             PB["nostr-pod-bridge daemon<br/>services/nostr-pod-bridge/src/main.rs:144 run_daemon<br/>embedded relay port 7777 loopback (podBridgeEnabled=true, default)"]
-            RS["nostr-rs-relay binary<br/>flake.nix:2747 else-branch (podBridgeEnabled=false only)"]
+            RS["nostr-rs-relay binary<br/>flake.nix:2798 else-branch (podBridgeEnabled=false only)"]
         end
-        GW["nostr-gateway daemon<br/>config/nostr-gateway/gateway.cjs:719 connect()<br/>[program:nostr-gateway] flake.nix:2412"]
+        GW["nostr-gateway daemon<br/>config/nostr-gateway/gateway.cjs:737 connect()<br/>[program:nostr-gateway] flake.nix:2462"]
         MGMT["management-api RelayConsumer<br/>management-api/server.js:1432<br/>mcp/nostr-bridge/relay-consumer.js:107 (legacy JS consumer, still wired)"]
-        SESS["agentbox-sessions unix socket sessions.sock, uid ACL from SO_PEERCRED<br/>gateway.cjs:415-426 sessionCreate() / sessionSend()"]
-        TAB0["tab0-bridge port 8971<br/>gateway.cjs:119,347 chatTab0()"]
+        SESS["agentbox-sessions unix socket sessions.sock, uid ACL from SO_PEERCRED<br/>gateway.cjs:431-442 sessionCreate() / sessionSend()"]
+        TAB0["tab0-bridge port 8971<br/>gateway.cjs:119,363 chatTab0()"]
     end
     subgraph cloud["Cloud egress boundary (the ONE external Nostr hop for mirror+control)"]
         CLOUD["dreamlab cloud worker relay<br/>wss://dreamlab-nostr-relay.solitary-paper-764d.workers.dev<br/>agentbox.toml:189 forum_relay_url"]
@@ -61,10 +62,10 @@ flowchart TB
     subgraph phone["Operator phone"]
         AME["Amethyst + Amber signer<br/>reads/writes the operator self-DM thread"]
     end
-    MIRROR["nostr-live-mirror.cjs hook<br/>config/hooks/nostr-live-mirror.cjs:394 main()<br/>fires on 4 hook events, mirrors Stop only by default (AB-13.9)"]
+    MIRROR["nostr-live-mirror.cjs hook<br/>config/hooks/nostr-live-mirror.cjs:395 main()<br/>fires on 4 hook events, mirrors Stop only by default (AB-13.9)"]
     DIGEST["nostr-pod-bridge session-summary<br/>services/nostr-pod-bridge/src/session_summary.rs:389 run()"]
     ZAI["Z.AI / GLM summariser<br/>session_summary.rs:60 DEFAULT_ZAI_BASE"]
-    FORUM["forum-backup-cron<br/>flake.nix:3104 [program:forum-backup-cron]<br/>supercronic + dreamlab-ai-website/scripts/backup/crontab (OUT OF TREE, editable without rebuild — only the stanza is baked)<br/>PATH pinned to coreutils/grep/findutils/curl/jq/gzip flake.nix:3107<br/>fails loud exit 2 if CLOUDFLARE_API_TOKEN/ACCOUNT_ID absent flake.nix:3101"]
+    FORUM["forum-backup-cron<br/>flake.nix:3155 [program:forum-backup-cron]<br/>supercronic + dreamlab-ai-website/scripts/backup/crontab (OUT OF TREE, editable without rebuild — only the stanza is baked)<br/>PATH pinned to coreutils/grep/findutils/curl/jq/gzip flake.nix:3158<br/>fails loud exit 2 if CLOUDFLARE_API_TOKEN/ACCOUNT_ID absent flake.nix:3152"]
     MESH["peer agentbox relays<br/>agentbox.toml:273-282 [mesh]"]
 
     MIRROR -->|"kind 1059 gift wrap"| CLOUD
@@ -80,7 +81,7 @@ flowchart TB
     FORUM -.->|"Cloudflare API (not Nostr)"| CLOUD
 
 N1["RESOLVED ADR-2065 (2026-09-05): the Rust spawn_consumer is the sole inbox writer when the<br/>pod-bridge daemon runs — RelayConsumer takes writeInbox=false via AGENTBOX_POD_INBOX_WRITER,<br/>projected from the same podBridgeEnabled expression that gates the daemon supervisor block.<br/>The JS consumer is narrowed, not deleted: it still solely implements ACSP governance 31400-31405,<br/>agent-intent 38000+, payments 38200/38201, the outbox publisher and external fanout"]
-    N2["INVARIANT ADR-2012: relay ingress is allowlist-only, no fallback, no auto-add — allowed_pubkeys baked at nix build (relayAllowedPubkeysCsv, flake.nix:1893)"]
+    N2["INVARIANT ADR-2012: relay ingress is allowlist-only, no fallback, no auto-add — allowed_pubkeys baked at nix build (relayAllowedPubkeysCsv, flake.nix:1909)"]
 ```
 
 ## AB-13.2 Relay ingress admission — allowlist gate before store/broadcast/OK
@@ -129,26 +130,26 @@ Note over ADM,REL: DIVERGENCE (ADR-2012 closeout 2026-09-04): this gate closes t
 sequenceDiagram
     autonumber
     participant TOML as agentbox.toml<br/>[sovereign_mesh.relay] agentbox.toml:143-205
-    participant NIX as flake.nix evaluation<br/>flake.nix:1684-1712
-    participant CSV as relayAllowedPubkeysCsv<br/>flake.nix:1893
-    participant TOMLGEN as relayAllowedPubkeysToml<br/>flake.nix:1902-1905
-    participant SUP as supervisord generated text<br/>flake.nix:2727-2757
+    participant NIX as flake.nix evaluation<br/>flake.nix:1699-1727
+    participant CSV as relayAllowedPubkeysCsv<br/>flake.nix:1909
+    participant TOMLGEN as relayAllowedPubkeysToml<br/>flake.nix:1918-1921
+    participant SUP as supervisord generated text<br/>flake.nix:2778-2808
     participant PB as nostr-pod-bridge process<br/>services/nostr-pod-bridge/src/lib.rs:139 BridgeConfig::from_env
 
-    NIX->>NIX: relayEnabled = relayCfg.enabled flake.nix:1684
-    NIX->>NIX: relayLocal = relayEnabled and impl in {nostr-rs-relay, rnostr} flake.nix:1686
-    NIX->>NIX: podBridgeEnabled = relayLocal and relayCfg.pod_bridge flake.nix:1712
+    NIX->>NIX: relayEnabled = relayCfg.enabled flake.nix:1699
+    NIX->>NIX: relayLocal = relayEnabled and impl in {nostr-rs-relay, rnostr} flake.nix:1701
+    NIX->>NIX: podBridgeEnabled = relayLocal and relayCfg.pod_bridge flake.nix:1727
     TOML->>NIX: allowed_pubkeys[] agentbox.toml:156-165, pod_bridge=true agentbox.toml:174
-    NIX->>CSV: relayAllowedPubkeysCsv = concatStringsSep "," allowed_pubkeys flake.nix:1893
+    NIX->>CSV: relayAllowedPubkeysCsv = concatStringsSep "," allowed_pubkeys flake.nix:1909
     alt podBridgeEnabled == true (default: pod_bridge = true)
-        NIX->>SUP: [program:nostr-relay] command=nostr-pod-bridge flake.nix:2735-2744
-        SUP->>PB: env AGENTBOX_ALLOWED_PUBKEYS=relayAllowedPubkeysCsv flake.nix:2739
-        Note over TOMLGEN: relayConfigText / relayAllowedPubkeysToml is generated but UNUSED on this path (flake.nix:1888 "Unused on the pod_bridge path — the bridge is env-configured")
+        NIX->>SUP: [program:nostr-relay] command=nostr-pod-bridge flake.nix:2786-2795
+        SUP->>PB: env AGENTBOX_ALLOWED_PUBKEYS=relayAllowedPubkeysCsv flake.nix:2790
+        Note over TOMLGEN: relayConfigText / relayAllowedPubkeysToml is generated but UNUSED on this path (flake.nix:1904 "Unused on the pod_bridge path — the bridge is env-configured")
         PB->>PB: allowed_pubkeys = env.split(",").filter(nonempty) lib.rs:150-156
     else podBridgeEnabled == false (implementation=nostr-rs-relay, pod_bridge=false)
-        NIX->>TOMLGEN: relayAllowedPubkeysToml — empty array emits explicit pubkey_whitelist = [ ] flake.nix:1902-1905
-        Note over TOMLGEN: comment explains the omission bug — an omitted pubkey_whitelist accepts EVERY author, an explicit empty array is ADR-2012 deny-all (flake.nix:1902-1905)
-        NIX->>SUP: [program:nostr-relay] command=nostr-rs-relay --config /etc/agentbox/nostr-relay.toml flake.nix:2747-2756
+        NIX->>TOMLGEN: relayAllowedPubkeysToml — empty array emits explicit pubkey_whitelist = [ ] flake.nix:1918-1921
+        Note over TOMLGEN: comment explains the omission bug — an omitted pubkey_whitelist accepts EVERY author, an explicit empty array is ADR-2012 deny-all (flake.nix:1918-1921)
+        NIX->>SUP: [program:nostr-relay] command=nostr-rs-relay --config /etc/agentbox/nostr-relay.toml flake.nix:2798-2807
     end
 Note over TOML,PB: no runtime mutation path — no auto-add, no fallback (admission.rs:139-141).<br/>Changing allowed_pubkeys requires ./agentbox.sh rebuild (Nix build-time artefact, ADR-2012<br/>Consequences)
 ```
@@ -159,24 +160,24 @@ Note over TOML,PB: no runtime mutation path — no auto-add, no fallback (admiss
 classDiagram
     class Kind1059_GiftWrap {
         kind = 1059
-        producer nostr-live-mirror.cjs:500 nip59.wrapEvent
-        producer gateway.cjs:260 buildWrap
+        producer nostr-live-mirror.cjs:506 nip59.wrapEvent
+        producer gateway.cjs:275 buildWrap
         consumer lib.rs:278 effective_message unwrap_gift
-        consumer gateway.cjs:666 handleWrap
-        signer mirror child key HMAC derived, nostr-live-mirror.cjs:211-214
+        consumer gateway.cjs:684 handleWrap
+        signer mirror child key HMAC derived, nostr-live-mirror.cjs:212-215
     }
     class Kind14_DmRumor {
         kind = 14 NIP-17 rumor inside the gift wrap
-        producer nostr-live-mirror.cjs:491 rumor
-        producer gateway.cjs:261 rumor
+        producer nostr-live-mirror.cjs:497 rumor
+        producer gateway.cjs:277 rumor
         consumer nostr-pod-bridge unwrap_gift lib.rs:278-279
         signer sealed sender see AB-13.9
     }
     class Kind22242_NIP42Auth {
         kind = 22242 KIND_AUTH relay session AUTH
-        producer gateway.cjs:629 authenticate finalizeEvent
+        producer gateway.cjs:645 authenticate finalizeEvent
         consumer cloud relay and embedded relay AUTH check
-        signer operator or derived child key gateway.cjs:148-150
+        signer: identity port under role isolation, else operator or derived child key gateway.cjs:148-170
     }
     class Kind27235_NIP98 {
         kind = 27235 nostr-bridge.js:55 kinds.AUTH
@@ -272,68 +273,68 @@ classDiagram
 sequenceDiagram
     autonumber
     participant CLOUD as cloud relay<br/>gateway.cjs:86 DEFAULT_RELAY
-    participant CONN as connect<br/>config/nostr-gateway/gateway.cjs:719
-    participant ONM as onMessage<br/>gateway.cjs:706
-    participant HW as handleWrap<br/>gateway.cjs:666
-    participant DISP as dispatch<br/>gateway.cjs:269
-    participant SESS as sessionCreate<br/>gateway.cjs:415
+    participant CONN as connect<br/>config/nostr-gateway/gateway.cjs:737
+    participant ONM as onMessage<br/>gateway.cjs:724
+    participant HW as handleWrap<br/>gateway.cjs:684
+    participant DISP as dispatch<br/>gateway.cjs:285
+    participant SESS as sessionCreate<br/>gateway.cjs:431
     participant API as session plane handle<br/>services/agentbox-sessions/src/api.rs:67
-    participant TMUX as tmux fleet<br/>gateway.cjs:228-257
+    participant TMUX as tmux fleet<br/>gateway.cjs:243-272
 
-    CONN->>CLOUD: new WS(relayUrl) gateway.cjs:720
-    CONN->>CLOUD: on open ["REQ","ctrl",{kinds:[1059],#p:[pub],since:now-50h}] gateway.cjs:725,628
+    CONN->>CLOUD: new WS(relayUrl) gateway.cjs:738
+    CONN->>CLOUD: on open ["REQ","ctrl",{kinds:[1059],#p:[pub],since:now-50h}] gateway.cjs:743,644
     CLOUD-->>CONN: AUTH challenge
-    CONN->>CLOUD: ["AUTH", finalizeEvent(kind 22242)], then the same REQ again 200 ms later gateway.cjs:629-633
+    CONN->>CLOUD: ["AUTH", finalizeEvent(kind 22242)], then the same REQ again 200 ms later gateway.cjs:645-651
     CLOUD-->>ONM: EOSE
-    ONM->>ONM: armed = true gateway.cjs:713
+    ONM->>ONM: armed = true gateway.cjs:731
     CLOUD-->>ONM: ["EVENT", wrap]
-    ONM->>HW: handleWrap(ws, wrap) gateway.cjs:711
-    HW->>HW: nip59.unwrapEvent(wrap, sk) gateway.cjs:669
-    HW->>HW: drop kind-21453 zone-key grants — key material, never a command gateway.cjs:671
+    ONM->>HW: handleWrap(ws, wrap) gateway.cjs:729
+    HW->>HW: nip59.unwrapEvent(wrap, sk), or the port's nip17_unwrap when the flag is on gateway.cjs:687
+    HW->>HW: drop kind-21453 zone-key grants — key material, never a command gateway.cjs:689
     alt website enquiry or signup wrap
-        HW-->>CLOUD: forwarded to the operator as a notification, never a command gateway.cjs:636-664,672
+        HW-->>CLOUD: forwarded to the operator as a notification, never a command gateway.cjs:654-682,690
     else sealed sender != commanderPub
-        HW-->>HW: dropped — only operator may command gateway.cjs:673
+        HW-->>HW: dropped — only operator may command gateway.cjs:691
     else agentbox client tag or DM copy addressed elsewhere
-        HW-->>HW: dropped — a NIP-17 self-copy of a DM the operator sent someone else<br/>reads as a command otherwise gateway.cjs:674,681-682
+        HW-->>HW: dropped — a NIP-17 self-copy of a DM the operator sent someone else<br/>reads as a command otherwise gateway.cjs:692,699-700
     else text starts with a poker table prefix
-        HW-->>HW: dropped — poker-coach table traffic, never a command gateway.cjs:685-687
+        HW-->>HW: dropped — poker-coach table traffic, never a command gateway.cjs:703-705
     else not armed (cold-boot backlog)
-        HW-->>HW: skipped, backlog message gateway.cjs:697
+        HW-->>HW: skipped, backlog message gateway.cjs:715
     else replay — wrap.id in executed.ids
-        HW-->>HW: skipped, replayed message gateway.cjs:698
+        HW-->>HW: skipped, replayed message gateway.cjs:716
     else stale — age > CMD_FRESH_WINDOW (600s)
-        HW-->>HW: skipped, stale cmd gateway.cjs:700
+        HW-->>HW: skipped, stale cmd gateway.cjs:718
     else fresh authorised command
-        HW->>HW: recordExecuted(wrap.id) gateway.cjs:701
+        HW->>HW: recordExecuted(wrap.id) gateway.cjs:719
         alt text does not start with /
-            HW->>HW: chatTab0(ws, text) — POST /tab0/send to tab0-bridge, see AB-12.5 gateway.cjs:704,347
+            HW->>HW: chatTab0(ws, text) — POST /tab0/send to tab0-bridge, see AB-12.5 gateway.cjs:722,363
         end
-        HW->>DISP: dispatch(ws, text) when text starts with / gateway.cjs:703
-        DISP->>DISP: verb = body.split(/space/)[0] gateway.cjs:271
+        HW->>DISP: dispatch(ws, text) when text starts with / gateway.cjs:721
+        DISP->>DISP: verb = body.split(/space/)[0] gateway.cjs:287
         alt verb is tabs/peek/help
-            DISP->>TMUX: capture-pane (zero tokens) gateway.cjs:228-230
+            DISP->>TMUX: capture-pane (zero tokens) gateway.cjs:243-245
         else verb is report
-            DISP->>DISP: doReport spends one Sonnet call gateway.cjs:591
+            DISP->>DISP: doReport spends one Sonnet call gateway.cjs:607
         else verb is spawn/cd
-            DISP->>SESS: sessionCreate(repoPath, tool) when agent is not zai, gateway.cjs:462-464
+            DISP->>SESS: sessionCreate(repoPath, tool) when agent is not zai, gateway.cjs:478-480
             SESS->>API: call({op: create, slug, tool}) over sessions.sock, session-plane/client.cjs:4-11
             API->>API: socket_peercred uid must be in the ACL, else uid not authorised, api.rs:71-76
-            API-->>SESS: ok, no session id, so the slug is the id and status is starting, gateway.cjs:420-421
-            SESS-->>DISP: any other project than workspace/project throws, falling back to the tmux window, gateway.cjs:418,477
+            API-->>SESS: ok, no session id, so the slug is the id and status is starting, gateway.cjs:436-437
+            SESS-->>DISP: any other project than workspace/project throws, falling back to the tmux window, gateway.cjs:434,493
         else verb is tab/say/exit/quit
-            DISP->>TMUX: sendKeys(idx, text) types the text with send-keys -l at once, gateway.cjs:254-255
-            DISP-->>TMUX: Enter scheduled 1500 ms later by setTimeout, never slept, so a broadcast cannot stall the relay socket, gateway.cjs:251-253,256
+            DISP->>TMUX: sendKeys(idx, text) types the text with send-keys -l at once, gateway.cjs:269-270
+            DISP-->>TMUX: Enter scheduled 1500 ms later by setTimeout, never slept, so a broadcast cannot stall the relay socket, gateway.cjs:266-268,271
         else any other verb after the slash, or /spawn whose first word is not a workspace dir
-            DISP->>DISP: routeInstruction — one bounded Sonnet C2 call gateway.cjs:309,322,526-579
+            DISP->>DISP: routeInstruction — one bounded Sonnet C2 call gateway.cjs:325,338,542-595
         end
-        DISP->>CLOUD: reply(ws, text) buildWrap + nip59.wrapEvent gateway.cjs:260-262
+        DISP->>CLOUD: reply(ws, text) buildWrap + nip59.wrapEvent, or the port's nip17_wrap when the flag is on gateway.cjs:275-279
     end
-Note over HW: replay guard ordering (gateway.cjs:14-38): 1 relay AUTH, 2 sealed sender == commander<br/>pubkey (the header says child pubkey), 3 arm-after-EOSE, 4 durable executed.json, 5 CMD_FRESH_WINDOW=600s freshness, 6 grammar<br/>(leading slash). Before any of these run: the kind-21453 zone-key-grant drop (gateway.cjs:671)<br/>— key material forwarded by the forum's ADR-2016 zone bridge, the agentbox client-tag ignore<br/>and the addressed-to-self gate (gateway.cjs:674,681-682, added after operator DMs sent from the<br/>forum arrived sealed by the operator), the poker-coach prefix drop (gateway.cjs:685-687) and the<br/>website-enquiry forward (gateway.cjs:672)
+Note over HW: replay guard ordering (gateway.cjs:14-38): 1 relay AUTH, 2 sealed sender == commander<br/>pubkey (the header says child pubkey), 3 arm-after-EOSE, 4 durable executed.json, 5 CMD_FRESH_WINDOW=600s freshness, 6 grammar<br/>(leading slash). Before any of these run: the kind-21453 zone-key-grant drop (gateway.cjs:689)<br/>— key material forwarded by the forum's ADR-2016 zone bridge, the agentbox client-tag ignore<br/>and the addressed-to-self gate (gateway.cjs:692,699-700, added after operator DMs sent from the<br/>forum arrived sealed by the operator), the poker-coach prefix drop (gateway.cjs:703-705) and the<br/>website-enquiry forward (gateway.cjs:690)
     Note over CLOUD,TMUX: rect boundary — this whole sequence runs LAN-side except the cloud relay hop. See AB-13.13 for the connection lifecycle state machine
 ```
 
-**Invariant:** `sendKeys` never blocks the relay socket: the text goes in at once and the Enter is scheduled 1500 ms later, because Codex reads text and Enter arriving in one burst as a paste and keeps the Enter as a newline, so the prompt would never be submitted (`agentbox/config/nostr-gateway/gateway.cjs:251-256`).
+**Invariant:** `sendKeys` never blocks the relay socket: the text goes in at once and the Enter is scheduled 1500 ms later, because Codex reads text and Enter arriving in one burst as a paste and keeps the Enter as a newline, so the prompt would never be submitted (`agentbox/config/nostr-gateway/gateway.cjs:266-271`).
 
 ## AB-13.6 nostr-pod-bridge inbox write — authorise, unwrap, persist
 
@@ -434,7 +435,7 @@ RC->>GDW: governanceDecisionSink.notify(...) server.js:1447,<br/>relay-consumer.
 Note over NB,CONN: subscription keepalive — a Cloudflare Durable-Object relay stops<br/>PUSHING to an idle subscription ~20s after its last REQ regardless of socket<br/>liveness, and only begins pushing again for a FRESH subId (reusing a known id on<br/>reconnect+re-AUTH is why junkiejarvis went deaf, mcp/servers/nostr-bridge.js:301-306).<br/>Every subRefreshMs tick re-issues every active subscription under a fresh wire id.<br/>the default is now 3600000 (AGENTBOX_BRIDGE_SUB_REFRESH_MS) because each tick<br/>replays the full filter history from the relay's D1 and 15s cost ~1.5M rows per day<br/>(nostr-bridge.js:314-339)
 ```
 
-**Tension (JS consumer allowlist):** with `ingressPolicy = allowlist`, an empty allowlist ADMITS every signed author in the JS consumer (`mcp/nostr-bridge/relay-consumer.js:764-768`), the opposite of the Rust boundary's deny-all (`services/nostr-pod-bridge/src/admission.rs:35-45`). Nothing in `flake.nix`, the entrypoint or the manifest projector sets `AGENTBOX_RELAY_ALLOWED_PUBKEYS`, so it is empty unless the operator supplies it (`management-api/server.js:1434`). The shipped manifest sets `external_fanout = "bidirectional"` (`agentbox.toml:175`), which the flake projects as `AGENTBOX_RELAY_FANOUT` (`flake.nix:4515`), and any value other than `off` adds the public relays in `NOSTR_RELAYS` (image default `wss://relay.damus.io,wss://relay.primal.net`, `flake.nix:4321`) to the consumer's subscription (`mcp/nostr-bridge/relay-consumer.js:247-255`). With the defaults, then, any signed author on those public relays whose event p-tags a local npub (I10) passes I07 into the governance, intent and payment handlers. The authority gate keeps its own responder allowlist for 31403 decisions (`management-api/lib/authority-consumer.js:259-271`), so approvals are not opened by this; what reaches pod files and intent markers is. **Open:** whether a deployment sets the allowlist or turns fanout off is runtime configuration not visible in source.
+**Tension (JS consumer allowlist):** with `ingressPolicy = allowlist`, an empty allowlist ADMITS every signed author in the JS consumer (`mcp/nostr-bridge/relay-consumer.js:764-768`), the opposite of the Rust boundary's deny-all (`services/nostr-pod-bridge/src/admission.rs:35-45`). Nothing in `flake.nix`, the entrypoint or the manifest projector sets `AGENTBOX_RELAY_ALLOWED_PUBKEYS`, so it is empty unless the operator supplies it (`management-api/server.js:1434`). The shipped manifest sets `external_fanout = "bidirectional"` (`agentbox.toml:175`), which the flake projects as `AGENTBOX_RELAY_FANOUT` (`flake.nix:4557`), and any value other than `off` adds the public relays in `NOSTR_RELAYS` (image default `wss://relay.damus.io,wss://relay.primal.net`, `flake.nix:4363`) to the consumer's subscription (`mcp/nostr-bridge/relay-consumer.js:247-255`). With the defaults, then, any signed author on those public relays whose event p-tags a local npub (I10) passes I07 into the governance, intent and payment handlers. The authority gate keeps its own responder allowlist for 31403 decisions (`management-api/lib/authority-consumer.js:259-271`), so approvals are not opened by this; what reaches pod files and intent markers is. **Open:** whether a deployment sets the allowlist or turns fanout off is runtime configuration not visible in source.
 
 ## AB-13.8 Control gateway — operator command to handler mapping
 
@@ -442,19 +443,19 @@ Note over NB,CONN: subscription keepalive — a Cloudflare Durable-Object relay 
 sequenceDiagram
     autonumber
     participant DOC as nostr-control-gateway.md<br/>agentbox/docs/user/nostr-control-gateway.md
-    participant DISP as dispatch<br/>config/nostr-gateway/gateway.cjs:269
+    participant DISP as dispatch<br/>config/nostr-gateway/gateway.cjs:285
 
 Note over DOC,DISP: doc Commands table (nostr-control-gateway.md:56-73) lists<br/>tabs, report, report n, report question, peek, help, free-form instruction,<br/>tab n text, say text
-    DISP->>DISP: verb == help or empty -> reply(HELP) gateway.cjs:275
-    DISP->>DISP: verb == tabs -> listTabs() gateway.cjs:276
-    DISP->>DISP: verb == report -> doReport(ws, after) gateway.cjs:277, 591
-    DISP->>DISP: verb == peek -> capture(idx, k) gateway.cjs:278-284
-DISP->>DISP: verb == tab -> doSend(ws, idx, instr, explicit /tab)<br/>gateway.cjs:285-291
-DISP->>DISP: verb == say -> broadcast sendKeys to every agentWindows<br/>gateway.cjs:292-300
-DISP->>DISP: free-form (no matching verb) -> routeInstruction(ws, body)<br/>gateway.cjs:322, 526
-DISP->>DISP: verb == spawn or cd -> doSpawn(ws, dir, agent, rest)<br/>gateway.cjs:302-314,450
-    DISP->>DISP: verb == exit or quit -> doExit(ws, idx) gateway.cjs:316-320,504
-Note over DOC,DISP: DOC-DRIFT — nostr-control-gateway.md Commands tables (Ask<br/>:58-65, Instruct<br/>:69-73) list only tabs, report, report n, report question, peek, help,<br/>free-form instruction,<br/>tab n text, say text. The doc omits /spawn and /exit and /quit, which ARE implemented<br/>(gateway.cjs:302-320, HELP text gateway.cjs:211-215), and the doc does not<br/>mention them anywhere. Its gotcha section also describes arm-after-EOSE as the<br/>only replay gate (nostr-control-gateway.md:103-115), while the code adds the durable<br/>executed store and the inner-rumor freshness window (gateway.cjs:23-34)
+    DISP->>DISP: verb == help or empty -> reply(HELP) gateway.cjs:291
+    DISP->>DISP: verb == tabs -> listTabs() gateway.cjs:292
+    DISP->>DISP: verb == report -> doReport(ws, after) gateway.cjs:293, 607
+    DISP->>DISP: verb == peek -> capture(idx, k) gateway.cjs:294-300
+DISP->>DISP: verb == tab -> doSend(ws, idx, instr, explicit /tab)<br/>gateway.cjs:301-307
+DISP->>DISP: verb == say -> broadcast sendKeys to every agentWindows<br/>gateway.cjs:308-316
+DISP->>DISP: free-form (no matching verb) -> routeInstruction(ws, body)<br/>gateway.cjs:338, 542
+DISP->>DISP: verb == spawn or cd -> doSpawn(ws, dir, agent, rest)<br/>gateway.cjs:318-330,466
+    DISP->>DISP: verb == exit or quit -> doExit(ws, idx) gateway.cjs:332-336,520
+Note over DOC,DISP: DOC-DRIFT — nostr-control-gateway.md Commands tables (Ask<br/>:58-65, Instruct<br/>:69-73) list only tabs, report, report n, report question, peek, help,<br/>free-form instruction,<br/>tab n text, say text. The doc omits /spawn and /exit and /quit, which ARE implemented<br/>(gateway.cjs:318-336, HELP text gateway.cjs:226-230), and the doc does not<br/>mention them anywhere. Its gotcha section also describes arm-after-EOSE as the<br/>only replay gate (nostr-control-gateway.md:103-115), while the code adds the durable<br/>executed store and the inner-rumor freshness window (gateway.cjs:23-34)
 Note over DISP: gate order enforced before dispatch is reached (AB-13.5) —<br/>relay AUTH, sealed<br/>sender == commanderPub, arm-after-EOSE, durable executed.json,<br/>CMD_FRESH_WINDOW=600s, leading<br/>slash grammar (gateway.cjs:14-38)
 ```
 
@@ -464,43 +465,43 @@ Note over DISP: gate order enforced before dispatch is reached (AB-13.5) —<br/
 sequenceDiagram
     autonumber
     participant H as Hook event
-    participant M as main<br/>config/hooks/nostr-live-mirror.cjs:394
+    participant M as main<br/>config/hooks/nostr-live-mirror.cjs:395
     participant P as egress policy<br/>config/hooks/lib/egress-policy.cjs:139
-    participant EV as mirroredEvents<br/>config/hooks/nostr-live-mirror.cjs:279
-    participant B as bodyForEvent<br/>config/hooks/nostr-live-mirror.cjs:290
-    participant W as publishWrap<br/>nostr-live-mirror.cjs:332 (AB-13.17)
-    H->>M: event name (argv[2]: SessionStart/UserPromptSubmit/Stop/SessionEnd) nostr-live-mirror.cjs:396
-    M->>P: early = egressDecision('live-mirror', {}) — FAST EXIT before stdin, keys or<br/>nostr-tools load nostr-live-mirror.cjs:404-409
+    participant EV as mirroredEvents<br/>config/hooks/nostr-live-mirror.cjs:280
+    participant B as bodyForEvent<br/>config/hooks/nostr-live-mirror.cjs:291
+    participant W as publishWrap<br/>nostr-live-mirror.cjs:333 (AB-13.17)
+    H->>M: event name (argv[2]: SessionStart/UserPromptSubmit/Stop/SessionEnd) nostr-live-mirror.cjs:397
+    M->>P: early = egressDecision('live-mirror', {}) — FAST EXIT before stdin, keys or<br/>nostr-tools load nostr-live-mirror.cjs:405-410
     alt global AGENTBOX_EGRESS or live-mirror switch off
-        P-->>M: skipped with reason nostr-live-mirror.cjs:410
+        P-->>M: skipped with reason nostr-live-mirror.cjs:411
     else recipient allowlist missing/malformed
-        M-->>M: skipped: recipient-allowlist-missing-or-invalid nostr-live-mirror.cjs:411-415
+        M-->>M: skipped: recipient-allowlist-missing-or-invalid nostr-live-mirror.cjs:412-416
     else admission passes
-        M->>M: derive child key or explicit recipient nostr-live-mirror.cjs:416-417
-        M->>P: pre = egressDecision('live-mirror', {identityPresent}) nostr-live-mirror.cjs:418-420
+        M->>M: ask the port for mirror_key, else derive the child key, then explicit recipient nostr-live-mirror.cjs:417-420
+        M->>P: pre = egressDecision('live-mirror', {identityPresent}) nostr-live-mirror.cjs:421-423
         alt no identity available
-            P-->>M: skipped/failed with reason nostr-live-mirror.cjs:421-426
+            P-->>M: skipped/failed with reason nostr-live-mirror.cjs:424-429
         else identity present
-            M->>M: resolve recipient pubkey nostr-live-mirror.cjs:428-432
-            M->>P: rDecision = egressDecision('live-mirror', {recipient}) — recipientAllowed<br/>gate, egress-policy.cjs:59 nostr-live-mirror.cjs:433
+            M->>M: resolve recipient pubkey nostr-live-mirror.cjs:431-435
+            M->>P: rDecision = egressDecision('live-mirror', {recipient}) — recipientAllowed<br/>gate, egress-policy.cjs:59 nostr-live-mirror.cjs:436
             alt recipient denied (malformed, unlisted)
-                P-->>M: denied before stdin or body access nostr-live-mirror.cjs:434-437
+                P-->>M: denied before stdin or body access nostr-live-mirror.cjs:437-440
             else recipient enumerated
-                M->>M: read stdin, parse payload nostr-live-mirror.cjs:439-443
-                M->>B: bodyForEvent(event, payload) nostr-live-mirror.cjs:445
-                B->>EV: mirroredEvents().has(event) nostr-live-mirror.cjs:291
+                M->>M: read stdin, parse payload nostr-live-mirror.cjs:442-446
+                M->>B: bodyForEvent(event, payload) nostr-live-mirror.cjs:448
+                B->>EV: mirroredEvents().has(event) nostr-live-mirror.cjs:292
                 alt event not in mirroredEvents() — DEFAULT is Stop only
                     EV-->>B: not mirrored
-                    B-->>M: null — egress skipped: empty-body nostr-live-mirror.cjs:446
+                    B-->>M: null — egress skipped: empty-body nostr-live-mirror.cjs:449
                 else event is mirrored
                     B-->>M: body
-                    M->>P: redactForEgress(body) egress-policy.cjs:118, nostr-live-mirror.cjs:453
+                    M->>P: redactForEgress(body) egress-policy.cjs:118, nostr-live-mirror.cjs:456
                     alt redaction fails
-                        P-->>M: null, skipped (fail-closed) nostr-live-mirror.cjs:454-457
+                        P-->>M: null, skipped (fail-closed) nostr-live-mirror.cjs:457-460
                     else redaction succeeds
-                        M->>M: append activity URN, cap composed body<br/>nostr-live-mirror.cjs:463-464
+                        M->>M: append activity URN, cap composed body<br/>nostr-live-mirror.cjs:466-467
                         alt AGENTBOX_MIRROR_DRY_RUN=1
-                            M-->>H: redacted local preview only, no network egress nostr-live-mirror.cjs:469-475
+                            M-->>H: redacted local preview only, no network egress nostr-live-mirror.cjs:472-478
                         else live
                             M->>W: gift-wrap and publish (AB-13.17)
                             W-->>M: accepted or failed with reason
@@ -510,7 +511,7 @@ sequenceDiagram
             end
         end
     end
-    Note over EV,B: DRIFT 2026-09-29 (D1 cost) — DEFAULT_MIRROR_EVENTS is now `['Stop']` only<br/>(nostr-live-mirror.cjs:278): the assistant's final reply is the one line worth a gift wrap.<br/>The prior default fired on all four hook events per turn, quadrupling the cloud relay's<br/>D1 row-read cost for the re-read the gateway's lookback query performs on each one<br/>(nostr-live-mirror.cjs:269-276). AGENTBOX_LIVE_MIRROR_EVENTS=SessionStart,UserPromptSubmit,<br/>Stop,SessionEnd (any comma-separated subset) restores the wider set (nostr-live-mirror.cjs:275-283)
+    Note over EV,B: DRIFT 2026-09-29 (D1 cost) — DEFAULT_MIRROR_EVENTS is now `['Stop']` only<br/>(nostr-live-mirror.cjs:279): the assistant's final reply is the one line worth a gift wrap.<br/>The prior default fired on all four hook events per turn, quadrupling the cloud relay's<br/>D1 row-read cost for the re-read the gateway's lookback query performs on each one<br/>(nostr-live-mirror.cjs:270-277). AGENTBOX_LIVE_MIRROR_EVENTS=SessionStart,UserPromptSubmit,<br/>Stop,SessionEnd (any comma-separated subset) restores the wider set (nostr-live-mirror.cjs:276-284)
     Note over M,P: G4 source requires a non-empty valid recipient set, including dry-run.<br/>The earlier closeout recorded 25 isolated tests passing (not re-run here). Deployment needs an<br/>explicit reviewed recipient set. No messages were sent by the closeout tests.
 ```
 
@@ -521,26 +522,26 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant MAIN as main<br/>config/hooks/nostr-live-mirror.cjs:394
-    participant PUB as publishWrap<br/>nostr-live-mirror.cjs:332
+    participant MAIN as main<br/>config/hooks/nostr-live-mirror.cjs:395
+    participant PUB as publishWrap<br/>nostr-live-mirror.cjs:333
     participant CLOUD as cloud worker relay<br/>dreamlab-nostr-relay workers.dev
     participant AME as Amethyst (operator phone)
 
     rect rgb(255, 235, 235)
 Note over MAIN,CLOUD: CLOUD EGRESS BOUNDARY — the only non-LAN<br/>hop in this domain
-MAIN->>MAIN: log egress attempted, relay + wrap id — logged BEFORE transport so a network<br/>kill still leaves evidence bytes were handed over nostr-live-mirror.cjs:510
-MAIN->>PUB: publishWrap(WS, mirrorRelay(), wrap,<br/>DEADLINE_MS=6000) nostr-live-mirror.cjs:332-357,512
+MAIN->>MAIN: log egress attempted, relay + wrap id — logged BEFORE transport so a network<br/>kill still leaves evidence bytes were handed over nostr-live-mirror.cjs:517
+MAIN->>PUB: publishWrap(WS, mirrorRelay(), wrap,<br/>DEADLINE_MS=6000) nostr-live-mirror.cjs:333-358,519
     PUB->>CLOUD: ["EVENT", wrap]
     alt relay OK true
         CLOUD-->>PUB: ["OK", id, true]
         CLOUD-->>AME: gift-wrapped DM delivered to the<br/>child-key self-DM thread
-        MAIN->>MAIN: log egress accepted nostr-live-mirror.cjs:513-514
+        MAIN->>MAIN: log egress accepted nostr-live-mirror.cjs:520-521
     else relay rejects or timeout or network error
-PUB-->>MAIN: resolves anyway (never rejects)<br/>nostr-live-mirror.cjs:332-357
-Note over MAIN: fail-open — publish failure is logged as egress failed (a THIRD, distinct<br/>outcome from skipped/accepted, RESOLVED ADR-2026) and swallowed, hook still exits 0<br/>nostr-live-mirror.cjs:515-519
+PUB-->>MAIN: resolves anyway (never rejects)<br/>nostr-live-mirror.cjs:333-358
+Note over MAIN: fail-open — publish failure is logged as egress failed (a THIRD, distinct<br/>outcome from skipped/accepted, RESOLVED ADR-2026) and swallowed, hook still exits 0<br/>nostr-live-mirror.cjs:522-526
     end
     end
-Note over MAIN: hard kill-switch guard — setTimeout(process.exit(0),<br/>DEADLINE_MS+1500) unref'd, so the hook process can<br/>never outlive its budget nostr-live-mirror.cjs:543
+Note over MAIN: hard kill-switch guard — setTimeout(process.exit(0),<br/>DEADLINE_MS+1500) unref'd, so the hook process can<br/>never outlive its budget nostr-live-mirror.cjs:550
 Note over MAIN,AME: RESOLVED ADR-2026 (config/hooks/lib/egress-policy.cjs +<br/>services/nostr-pod-bridge/src/egress_policy.rs) — the mirror and the kind-30840 digest<br/>(AB-13.10) now share ONE policy contract: a global AGENTBOX_EGRESS switch, per-path<br/>switches, mandatory redaction, a recipient allowlist and the skipped/attempted/accepted/failed<br/>outcome vocabulary, cross-checked by one fixture (tests/fixtures/egress-redaction.v1.json).<br/>The digest is public kind-30840 visibility while this path requires a non-empty recipient enumeration.<br/>Shared redaction fixtures do not imply equal recipient semantics.
 ```
 
@@ -640,18 +641,18 @@ Note over TOML,VCU: DIVERGENCE — these are TWO SEPARATE federation mechanisms 
 ```mermaid
 stateDiagram-v2
     [*] --> Connecting
-    Connecting --> Connected: ws open, gateway.cjs:725 log connected
-    Connected --> Authenticating: AUTH challenge frame received, gateway.cjs:710,629
-    Authenticating --> SubscribedColdBoot: AUTH sent, REQ ctrl since now-50h, gateway.cjs:629-633,628
-    SubscribedColdBoot --> Armed: first EOSE received, armed=true coldBoot=false, gateway.cjs:713
-    Armed --> Armed: EVENT frames dispatched via handleWrap, gateway.cjs:711,666
-    Armed --> Armed: WebSocket ping every 15000ms — TCP/middlebox keepalive, touches no D1, gateway.cjs:742
-    Armed --> Armed: belt-and-braces re-REQ every REARM_MS (default 600000ms, floor 60000ms,<br/>AGENTBOX_GATEWAY_REARM_MS), gateway.cjs:741,743
-    Armed --> Reconnecting: ws close event, gateway.cjs:727
-    Connecting --> Reconnecting: ws error, gateway.cjs:728
-    Reconnecting --> Connecting: setTimeout(connect, 5000), gateway.cjs:727
-    Connecting --> SubscribedWarm: reconnect and coldBoot is false, armed stays true, gateway.cjs:725
-    SubscribedWarm --> Armed: seen-set dedupes replayed history, disconnect-gap commands still dispatched, gateway.cjs:721-725
+    Connecting --> Connected: ws open, gateway.cjs:743 log connected
+    Connected --> Authenticating: AUTH challenge frame received, gateway.cjs:728,645
+    Authenticating --> SubscribedColdBoot: AUTH sent, REQ ctrl since now-50h, gateway.cjs:645-652,644
+    SubscribedColdBoot --> Armed: first EOSE received, armed=true coldBoot=false, gateway.cjs:731
+    Armed --> Armed: EVENT frames dispatched via handleWrap, gateway.cjs:729,684
+    Armed --> Armed: WebSocket ping every 15000ms — TCP/middlebox keepalive, touches no D1, gateway.cjs:760
+    Armed --> Armed: belt-and-braces re-REQ every REARM_MS (default 600000ms, floor 60000ms,<br/>AGENTBOX_GATEWAY_REARM_MS), gateway.cjs:759,761
+    Armed --> Reconnecting: ws close event, gateway.cjs:745
+    Connecting --> Reconnecting: ws error, gateway.cjs:746
+    Reconnecting --> Connecting: setTimeout(connect, 5000), gateway.cjs:745
+    Connecting --> SubscribedWarm: reconnect and coldBoot is false, armed stays true, gateway.cjs:743
+    SubscribedWarm --> Armed: seen-set dedupes replayed history, disconnect-gap commands still dispatched, gateway.cjs:739-743
     note right of Armed
         INVARIANT do not shorten the since window or add a
         created_at freshness check here — NIP-59 randomizes
@@ -665,7 +666,7 @@ stateDiagram-v2
         live-pushed 1059 still arrives. The prior 15s re-REQ was pure
         cost (~240 D1 row-reads per hour), ping replaces it as the
         keepalive, and REARM_MS survives only as a rare re-arm
-        (gateway.cjs:730-743)
+        (gateway.cjs:748-761)
     end note
 ```
 

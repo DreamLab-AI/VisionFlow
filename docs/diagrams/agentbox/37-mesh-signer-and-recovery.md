@@ -18,7 +18,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-mesh/src/envelope.rs
   - ../nostr-rust-forum/crates/nostr-bbs-mesh/src/transport.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/gift_wrap.rs
-verified_commit: {agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35, nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
+verified_commit: {agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
 ---
 
 ## For developers
@@ -34,7 +34,7 @@ Sharing spaces across nodes still needs compatible configuration, limited signin
 ```mermaid
 flowchart TD
     MAN["Agentbox moderation is boolean<br/>agentbox.toml:282"] --> FAIL["Library honor_remote_moderation is a list of DIDs<br/>config.rs:67-69"]
-    SCHEMA["Schema modes: standalone or client<br/>agentbox.toml.schema.json:2585,2586"]
+    SCHEMA["Schema modes: standalone or client<br/>agentbox.toml.schema.json:2598-2600"]
     PEERS["PROPOSED pinned peer records and projection<br/>PROTOCOL-registry.md:253,254"] -.-> SCHEMA
     PEERS -.-> LIB["Current roster uses peer_relays<br/>transport.rs:642,643"]
     LIB --> CACHE["SeenIds is a bounded memory cache<br/>transport.rs:584,595,605"]
@@ -47,11 +47,11 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    SOCKET["Kernel peer credentials<br/>server.rs:106"] --> UID["Authorise uid and named operation<br/>port.rs:361,362,378"]
-    UID --> GRANT["Kind must be in grant<br/>port.rs:534-536"]
-    GRANT --> SIGN["Caller tags, content and timestamp passed through<br/>port.rs:559,562,563,564"]
-    SIGN --> RECEIPT["Append receipt before returning result<br/>port.rs:320,326,328<br/>receipts.rs:132,136"]
-    CLOSED["Checked-in grants omit kind 30078<br/>identity-port-acl.json:39,40"]
+    SOCKET["Kernel peer credentials<br/>server.rs:106"] --> UID["Authorise uid and named operation<br/>port.rs:418,419,435"]
+    UID --> GRANT["Kind must be in grant<br/>port.rs:618-620"]
+    GRANT --> SIGN["Caller tags, content and timestamp passed through<br/>port.rs:643,646,647,648"]
+    SIGN --> RECEIPT["Append receipt before returning result<br/>port.rs:377,383,385<br/>receipts.rs:132,136"]
+    CLOSED["Checked-in grants omit kind 30078<br/>identity-port-acl.json:52-54"]
     REQUIRED["PROPOSED typed catalogue and control signer<br/>independent key, VisionClaw-only client<br/>PROTOCOL-registry.md:255"]
     SIGN -.-> REQUIRED
 ```

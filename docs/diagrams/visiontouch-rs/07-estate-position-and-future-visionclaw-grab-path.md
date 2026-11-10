@@ -19,7 +19,7 @@ sources:
   - ../project/client/src/features/graph/services/interactionModes/vrArMode.ts
   - ../project/xr-client/rust/src/selection.rs
   - ../project/src/handlers/socket_flow_handler/message_routing.rs
-verified_commit: {visiontouch-rs: 7b95fb20d50a9d06c64fb6d6cc393b16edbbc35d, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c, visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
+verified_commit: {visiontouch-rs: a9e52b6154b44fb7afc158230c4ec26d4213c015, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c, visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
 ---
 
 ## For developers
@@ -63,11 +63,11 @@ Both records agree on the posture and on the integration being future work. Thei
 
 ```mermaid
 flowchart TB
-    DEV["Device::sample on a dedicated worker, feedback off<br/>crates/device/src/lib.rs:529"]
-    ES["EncoderState: six counters and the stylus button<br/>crates/device/src/lib.rs:186-194"]
-    REG["register_reset at the reset pose, per connection<br/>crates/device/src/lib.rs:474"]
-    POS["position_m: three coordinates in metres from the reset pose<br/>crates/device/src/lib.rs:241-244"]
-    BTN["button_pressed, active low<br/>crates/device/src/lib.rs:192-193"]
+    DEV["Device::sample on a dedicated worker, feedback off<br/>crates/device/src/lib.rs:680"]
+    ES["EncoderState: six counters and the stylus button<br/>crates/device/src/lib.rs:216-224"]
+    REG["register_reset at the reset pose, per connection<br/>crates/device/src/lib.rs:583"]
+    POS["position_m: three coordinates in metres from the reset pose<br/>crates/device/src/lib.rs:271-274"]
+    BTN["button_pressed, active low<br/>crates/device/src/lib.rs:222-223"]
     BRG["local bridge on the device host to the client over loopback, never via the server<br/>ADR-2017-haptic-input-device-is-a-supporting-study.md:31"]
     CL["web or XR client input path, see VT-07.3 and VT-07.4"]
     DEV --> ES
@@ -79,7 +79,7 @@ flowchart TB
     BRG -. "EXTERNAL: not built" .-> CL
     N1["DIVERGENCE: ADR-2017 says the lab wants a 6-DoF input device<br/>ADR-2017-haptic-input-device-is-a-supporting-study.md:23 but the SDK exposes a 3-coordinate position and the wrist counters stay uncalibrated counts<br/>12-force-feedback.md:14-15"]
     N2["DEBT: no bridge crate or stream exists, the workspace members are hal, device, effects, three tools and two apps<br/>Cargo.toml:2"]
-    N3["INVARIANT: pose is relative to a per-connection reset pose, a reconnect clears it<br/>crates/device/src/lib.rs:460-466"]
+    N3["INVARIANT: pose is relative to a per-connection reset pose, a reconnect clears it<br/>crates/device/src/lib.rs:569-575"]
     POS --- N1
     BRG --- N2
     REG --- N3
@@ -118,14 +118,14 @@ flowchart TB
     ARB["SelectionArbiter::tick takes controllers, gaze, candidates<br/>selection.rs:297"]
     EVT["SelectionEvent out<br/>selection.rs:305"]
     NEW["a new Resolver variant for the stylus<br/>ADR-2017-haptic-input-device-is-a-supporting-study.md:30"]
-    STY["stylus button as the trigger, position as a ray origin<br/>crates/device/src/lib.rs:193"]
+    STY["stylus button as the trigger, position as a ray origin<br/>crates/device/src/lib.rs:223"]
     STY -. "EXTERNAL: would map to trigger held" .-> PI
     PI --> ARB
     RES --> ARB
     ARB --> EVT
     NEW -. "EXTERNAL: not built" .-> RES
     N1["INVARIANT: explicit triggers act on a rising edge and outrank dwell, so a held stylus button would not re-select every frame<br/>selection.rs:314-315 and selection.rs:645"]
-    N2["OPEN: PointerInput needs a ray, the arm gives only a position, so a ray direction must be chosen or calibrated<br/>selection.rs:76 vs crates/device/src/lib.rs:241"]
+    N2["OPEN: PointerInput needs a ray, the arm gives only a position, so a ray direction must be chosen or calibrated<br/>selection.rs:76 vs crates/device/src/lib.rs:271"]
     ARB --- N1
     PI --- N2
 ```

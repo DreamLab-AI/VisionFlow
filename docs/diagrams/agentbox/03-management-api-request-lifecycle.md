@@ -55,7 +55,7 @@ sources:
   - ../project/agentbox/management-api/lib/agent-event-auth.js
   - ../project/agentbox/flake.nix
   - ../project/agentbox/scripts/agentbox-config-validate.js
-verified_commit: c57d9c0508f4044915f9aecea4b9aa5629cc6a35
+verified_commit: 720e0d89656a4360998b3a716d0f3ee8cac66f93
 ---
 
 ## AB-03.1 server.js boot part 1 — Fastify construction, hooks, static route registers
@@ -101,7 +101,7 @@ sequenceDiagram
     Boot->>Routes: app.register(routes/dream)<br/>server.js:429
     Boot->>Routes: app.register(routes/exec-record), POST /v1/exec/record, ADR-2071 Phase 1<br/>server.js:434, called operator-gated at server.js:433 but carries no requireOperator, see Tension below
     Boot->>App: app.get /livez /ready /health /health/pods /v1/meta /metrics /<br/>server.js:438-792
-    Note over App: ADR-2003 management-api (server.js included) is a flake.nix npm derivation built into the image (flake.nix:786-789),<br/>not a runtime install, and not generated from agentbox.toml (see AB-02.1 for the surrounding boot phases)
+    Note over App: ADR-2003 management-api (server.js included) is a flake.nix npm derivation built into the image (flake.nix:796-799),<br/>not a runtime install, and not generated from agentbox.toml (see AB-02.1 for the surrounding boot phases)
 ```
 
 **Tension:** `POST /v1/exec/record` is described as "operator-gated" (`../project/agentbox/management-api/server.js:433`, `../project/agentbox/management-api/routes/exec-record.js:6-7`), but the only gate is the global `preValidation` auth hook (`../project/agentbox/management-api/server.js:235-276`). The route attaches no `requireOperator` preHandler, unlike `routes/mandate.js` (`../project/agentbox/management-api/routes/mandate.js:311`). In `hybrid` or `nip98` mode any NIP-98-verified signer passes `authMiddleware` (`../project/agentbox/management-api/middleware/auth.js:194-199`), so any authenticated principal can append to the journal, not only the operator.
@@ -646,7 +646,7 @@ sequenceDiagram
 
 **Drift:** the earlier panel drew this write ending in an events-adapter dispatch (`mandate.created`, hash-chained into the JSONL log). `createSignedMandate` dispatches nothing to the events slot. It signs a kind-30078, or warns and keeps the mandate unsigned, and saves a local registry entry (`../project/agentbox/management-api/routes/mandate.js:191-231`). The panel also had the proxy forwarding `/mgmt/v1/mandate`, but the `/mgmt/` route strips its prefix (`../project/agentbox/config/nip98-proxy/proxy.mjs:304-310`).
 
-**Open:** source does not show that the forwarded NIP-98 header verifies a second time at the management API. The proxy forwards the caller's header verbatim after stripping `/mgmt/` (`../project/agentbox/config/nip98-proxy/proxy.mjs:886-892`). The API rebuilds the URL from the stripped path (`../project/agentbox/management-api/middleware/auth.js:73`). `verifyNip98` accepts only an exact or suffix match of the signed `u` tag against that URL (`../project/agentbox/mcp/servers/nostr-bridge.js:545-546`). A tag that keeps `/mgmt/` is not a suffix match of the stripped URL, so this path may answer 401. Only a runtime request through `:9096/mgmt/` can settle it.
+**Open:** source does not show that the forwarded NIP-98 header verifies a second time at the management API. The proxy forwards the caller's header verbatim after stripping `/mgmt/` (`../project/agentbox/config/nip98-proxy/proxy.mjs:886-892`). The API rebuilds the URL from the stripped path (`../project/agentbox/management-api/middleware/auth.js:73`). `verifyNip98` accepts only an exact or suffix match of the signed `u` tag against that URL (`../project/agentbox/mcp/servers/nostr-bridge.js:545-546`). A tag that keeps `/mgmt/` is not a suffix match of the stripped URL, so this path may answer 401. Only a runtime request through `/mgmt/` on port 9096 can settle it.
 
 ## AB-03.16 middleware/*.js inventory — which routes and hooks actually consume each file
 

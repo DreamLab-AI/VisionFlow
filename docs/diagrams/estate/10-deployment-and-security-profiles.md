@@ -266,7 +266,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant HP as Godot client on HP-Desktop<br/>ws to 192.168.2.132 port 4000
+    participant HP as Godot client on HP-Desktop<br/>ws to the host LAN address port 4000
     participant DK as Docker bridge SNAT
     participant AX as AuthenticatedUser extractor<br/>src/settings/auth_extractor.rs
     participant DB as dev_full_bypass_active<br/>src/utils/auth.rs:116

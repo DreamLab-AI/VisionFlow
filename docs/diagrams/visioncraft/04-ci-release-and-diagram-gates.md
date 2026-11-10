@@ -15,7 +15,7 @@ sources:
   - ../visioncraft/docs/diagrams/README.md
   - ../visioncraft/docs/adr/0001-portable-quality-contract.md
   - ../visioncraft/docs/adr/0002-specialist-upstream-boundaries.md
-verified_commit: 1067a5f59afad7e2c8780bce6b29967d1130c19d
+verified_commit: 2c6627ce01d0e68bb0f48fc55a209b2c674716f1
 ---
 
 ## VK-04.1 CI jobs on push to main and on every pull request
@@ -59,14 +59,14 @@ sequenceDiagram
     participant SM as sealmap 0.4.0
     participant GN as docs/diagrams/generated
     participant CI as diagrams job<br/>ci.yml:31
-    Dev->>SM: sealmap generate . --name visioncraft --public-only --min-calls 4 --no-model (docs/diagrams/README.md:11-12)
-    SM->>GN: _overview.md and _index.json with hashes, spans, call confidence (docs/diagrams/README.md:3-5)
-    Note over GN: INVARIANT: generated views are read-only, edit code and regenerate (docs/diagrams/README.md:5-7)
+    Dev->>SM: sealmap generate . --name visioncraft --public-only --min-calls 4 --no-model (docs/diagrams/README.md:18-19)
+    SM->>GN: _overview.md and _index.json with hashes, spans, call confidence (docs/diagrams/README.md:10-12)
+    Note over GN: INVARIANT: generated views are read-only, edit code and regenerate (docs/diagrams/README.md:12-14)
     CI->>CI: cargo install sealmap --version =0.4.0 --locked (ci.yml:36)
     CI->>SM: the same generate command plus --check against the candidate source (ci.yml:37)
     SM-->>CI: fails if generated output differs from source
     Note over CI: EXTERNAL: sealmap-corpus 0.4.0 is also a library dependency of the crate (Cargo.toml:28)
-    Note over GN: DEBT: the generated overview misclassifies the recorded alias, a path-attribute module, as an external call target, recorded as a known extraction limit (docs/diagrams/README.md:46-49)
+    Note over GN: DEBT: the generated overview misclassifies the recorded alias, a path-attribute module, as an external call target, recorded as a known extraction limit (docs/diagrams/README.md:53-56)
     Note over GN: see deepsec.rs:19-20 for the alias declaration
     Note over Dev,CI: TENSION: the pinned CLI version and the library dependency are independent edits, nothing ties ci.yml:36 to Cargo.toml:28
 ```
@@ -87,10 +87,10 @@ sequenceDiagram
     GH->>CI: quality, msrv, diagrams jobs (ci.yml:3-5)
     CI->>CI: cargo package --locked proves the crate packages (ci.yml:23)
     GH-->>M: merge as b7e579f, PR number 2
-    Note over GH: version bumped to 0.2.0 in the crate (Cargo.toml:3) and the skill (SKILL.md:6)
+    Note over GH: version bumped in the crate (Cargo.toml:3) and the skill (SKILL.md:6), 0.2.0 by PR 2 and 0.3.0 at this stamp after PR 3, tag v0.3.0
     M->>CR: publish by hand, since no CI job publishes (ci.yml:9-37)
     Note over CR: README points at crates.io and docs.rs (../visioncraft/README.md:25)
-    Note over CR: README install pins version 0.2.0 for both CLI and library (../visioncraft/README.md:35, ../visioncraft/README.md:43)
+    Note over CR: README install pins version 0.3.0 for both CLI and library (../visioncraft/README.md:35, ../visioncraft/README.md:43)
     M->>AB: re-pin by commit, tree hash and lockfile digest
     Note over AB: see VK-05.2
     Note over M,AB: DEBT: publication, adoption and deployment are separate observations, only the first two leave a receipt (0002-specialist-upstream-boundaries.md:62)
@@ -103,20 +103,20 @@ There is no release workflow, tag job or publish step in ci.yml. The crate versi
 ```mermaid
 flowchart LR
     ADR["Hand-written ADRs 0001 and 0002<br/>0001-portable-quality-contract.md:1"]
-    AUTH["Authored overview diagram<br/>docs/diagrams/README.md:27-44"]
-    GEN["Sealmap generated corpus, machine output<br/>docs/diagrams/README.md:3-5"]
+    AUTH["Authored overview diagram<br/>docs/diagrams/README.md:34-51"]
+    GEN["Sealmap generated corpus, machine output<br/>docs/diagrams/README.md:10-12"]
     EST["This estate corpus, VK-01 to VK-05<br/>docs/diagrams/README.md:1"]
     CHK1["ci.yml diagrams job: regenerate and compare<br/>ci.yml:37"]
     CHK2["VisionFlow gate: every path:line read at the declared sha"]
     ST1["ADR verified_commit e3306776<br/>0001-portable-quality-contract.md:6"]
-    ST2["README stamp e3306776<br/>docs/diagrams/README.md:22-25"]
+    ST2["README stamp e3306776<br/>docs/diagrams/README.md:29-32"]
     ADR --- ST1
     AUTH --- ST2
     GEN --> CHK1
     EST --> CHK2
     N1["INVARIANT: src, contracts and Cargo.toml dependencies are unchanged between e3306776 and 1067a5f except the version bump, so both stamps remain true"]
     N2["INVARIANT: ADR 0001 says its inspected revision predates the documentation commit; refresh only after rechecking governed paths<br/>0001-portable-quality-contract.md:68-69"]
-    N3["INVARIANT: extraction, Mermaid rendering and runtime verification are separate observations<br/>docs/diagrams/README.md:19-20"]
+    N3["INVARIANT: extraction, Mermaid rendering and runtime verification are separate observations<br/>docs/diagrams/README.md:26-27"]
     ST1 --- N1
     ST2 --- N1
     ADR --- N2

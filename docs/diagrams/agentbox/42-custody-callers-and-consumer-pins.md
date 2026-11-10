@@ -14,7 +14,7 @@ sources:
   - ../project/agentbox/lib/solid-pod-rs.nix
   - ../project/agentbox/lib/nostr-pod-bridge.nix
   - ../project/agentbox/lib/colloquy.nix
-verified_commit: c157489c994827ca67e1b804556743be36a59ba1
+verified_commit: 720e0d89656a4360998b3a716d0f3ee8cac66f93
 ---
 
 ## For developers
@@ -57,9 +57,9 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-    %% Source: ../project/agentbox/lib/solid-pod-rs.nix:58
-    S["Solid c27cdfed; alpha.19"] --> Server["Native pod server"]
-    %% Source: ../project/agentbox/lib/nostr-pod-bridge.nix:63
+    %% Source: ../project/agentbox/lib/solid-pod-rs.nix:64
+    S["Solid 27e18995; alpha.21"] --> Server["Native pod server"]
+    %% Source: ../project/agentbox/lib/nostr-pod-bridge.nix:64
     S --> Bridge["Identity and relay bridge"]
     %% Source: ../project/agentbox/lib/nostr-pod-bridge.nix:50
     F["Forum a3812b8e"] --> Bridge

@@ -43,7 +43,7 @@ sources:
   - ../project/agentbox/config/entrypoint-unified.sh
   - ../project/agentbox/crates/system-one/system-one-proxy/src/server.rs
   - ../project/agentbox/services/agentbox-manifest/src/system_one.rs
-verified_commit: c57d9c0508f4044915f9aecea4b9aa5629cc6a35
+verified_commit: 720e0d89656a4360998b3a716d0f3ee8cac66f93
 ---
 
 ## AB-06.1 Compose overlay topology on visionclaw_network
@@ -85,7 +85,7 @@ flowchart TB
     OM --- NET
     AND --- NET
     CF --- NET
-    RET["RETIRED: the connected-node overlay (HP) no longer exists, ADR-2140 retired the HP agentbox;<br/>docs/BASELINE-container.md:235 records that the ADR-2118 migration therefore has no second target"]
+    RET["RETIRED: the connected-node overlay (HP) no longer exists, ADR-2140 retired the HP agentbox;<br/>docs/BASELINE-container.md:253 records that the ADR-2118 migration therefore has no second target"]
     BASE -.-> RET
 ```
 
@@ -94,7 +94,7 @@ flowchart TB
 flowchart TD
     CI[".github/workflows/invariants.yml"] --> W["scripts/ci/check-ports-loopback.sh<br/>stable entry point, resolves the gate<br/>relative to itself and FAILS LOUDLY if missing (check-ports-loopback.sh:29-30)"]
     W --> G["scripts/ci/check-ports-loopback.mjs<br/>real YAML reader"]
-    G --> WALK["walk the WHOLE tree of every docker-compose*.yml<br/>at the repo root glob, not only services/*/ports (check-ports-loopback.mjs:1073-1078)"]
+    G --> WALK["walk the WHOLE tree of every docker-compose*.yml<br/>at the repo root glob, not only services/*/ports (check-ports-loopback.mjs:1078-1083)"]
     WALK --> NORM["normalise every spelling to one tuple —<br/>long-form host_ip/published/target and<br/>short 0.0.0.0:8080:80 judge identically (:31-32)"]
     NORM --> J{"host_ip is 127.0.0.1?<br/>LOOPBACK const :106"}
     J -->|yes| PASS["pass"]
@@ -123,7 +123,7 @@ flowchart LR
     BC -->|"screenshot or render result back into the volume"| V
     V -->|"agent reads ~/gui-tools/result"| AB
     AB -.-> NOTE["INVARIANT — the SAME volume has DIFFERENT mount paths per container.<br/>An agent writing ~/gui-tools/foo.svg must address it as<br/>file:///home/devuser/exchange/foo.svg from the browser sidecar"]
-    V -.-> DECL["declared in all three overlays —<br/>docker-compose.override.yml:188, docker-compose.browsercontainer.yml:72, docker-compose.gui-tools.yml:70"]
+    V -.-> DECL["declared in all three overlays —<br/>docker-compose.override.yml:188, docker-compose.browsercontainer.yml:75, docker-compose.gui-tools.yml:70"]
     CH[("named volume<br/>agentbox-claude-home, external<br/>docker-compose.override.yml:185-187")] -->|"mounted at /home/devuser/.claude<br/>docker-compose.override.yml:87"| AB
     HB["host ~/.claude<br/>read AND written"] -->|"bound at /var/lib/agentbox/host-claude<br/>docker-compose.override.yml:88 — credentials only"| AB
     AB -.-> INV2["INVARIANT (ADR-2118) — the container no longer reads settings,<br/>hooks or agents from the host's ~/.claude; only claude-cred-sync<br/>reads AND writes across the host bind, converging .credentials.json"]
@@ -239,7 +239,7 @@ flowchart TB
     end
     Q3 -.-> AND["android comment: this is an authenticated Google session,<br/>never expose it on 0.0.0.0, prefer docker exec (docker-compose.android.yml:37-38)"]
     Q2 -.-> OM["openmed refuses to serve until the operator sets<br/>OPENMED_LICENSE_ACKNOWLEDGED, _ONNX_RUNTIME_PRESENT and<br/>_GOVERNANCE_ACKNOWLEDGED — all default false (docker-compose.openmed.yml:19-21)"]
-    Q1 -.-> CSR["RESOLVED ADR-2040 (implementation_status: partial): code-server<br/>([program:code-server]) runs --auth password, credential minted at boot<br/>into /home/devuser/.local/share/code-server/config.yaml (0600),<br/>flake.nix:2852-2859. jupyter-lab's empty token was DELETED in favour of a<br/>minted JUPYTER_TOKEN. Listener-side CI gate is still open work."]
+    Q1 -.-> CSR["RESOLVED ADR-2040 (implementation_status: partial): code-server<br/>([program:code-server]) runs --auth password, credential minted at boot<br/>into /home/devuser/.local/share/code-server/config.yaml (0600),<br/>flake.nix:2903-2910. jupyter-lab's empty token was DELETED in favour of a<br/>minted JUPYTER_TOKEN. Listener-side CI gate is still open work."]
     R1 -.-> PGN["ADR-015 — mandatory memory sidecar, health-gated;<br/>the memory adapter fails closed with no fallback store"]
 ```
 
@@ -248,13 +248,13 @@ flowchart TB
 flowchart TD
     AB["agentbox service<br/>docker-compose.yml:30"] --> CD["cap_drop :95"]
     AB --> CA2["cap_add :97"]
-    AB --> TM["tmpfs :107, now also /etc/claude-code (root, noexec, 1M) :109 for the managed-policy file;<br/>/home/devuser/.codex left the tmpfs list and became the codex-home volume :147, :200-201"]
+    AB --> TM["tmpfs :107, now also /etc/claude-code (root, noexec, 1M) :109 for the managed-policy file;<br/>/home/devuser/.codex left the tmpfs list and became the codex-home volume :147, :202-203"]
     TM --> SEC["NEW custody W1: /run/secrets is its OWN tmpfs, root 0711,<br/>noexec nosuid nodev, beside the uid-1000 /run<br/>docker-compose.yml:111"]
-    AB --> SO["security_opt :128"]
-    AB --> VOL["volumes :131"]
+    AB --> SO["security_opt :127"]
+    AB --> VOL["volumes :130"]
     AB --> NET["networks :153"]
     SO --> SCC["seccomp and no-new-privileges declarations,<br/>gated by CI invariants under scripts/ci/"]
-    VOL --> CXP["codex-packages mounted at /home/devuser/.codex/packages :148,<br/>declared agentbox-codex-packages :202-203 - ADR-2120, a disk-backed<br/>exec-capable home for Codex daemon packages under the noexec tmpfs"]
+    VOL --> CXP["codex-packages mounted at /home/devuser/.codex/packages :148,<br/>declared agentbox-codex-packages :204-205 - ADR-2120, a disk-backed<br/>exec-capable home for Codex daemon packages under the noexec tmpfs"]
     VOL --> NV["named volumes declared — ruvector-pg-data,<br/>agentbox-ruvector-data, agentbox-solid-data :175-182"]
     AB --> HC["healthcheck curl -f http://localhost:9090/ready<br/>interval 30s, timeout 10s, retries 5, start_period 60s — :39-44"]
     HC --> RDY["so compose readiness rides the SAME /ready contract<br/>the management API publishes — see AB-02"]
@@ -297,7 +297,7 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     CLI["agentbox.sh systemone<br/>cmd_systemone agentbox.sh:2451<br/>SYSTEMONE_FILE agentbox.sh:591"] --> SUB["subcommands up :2479, down :2510, logs :2515,<br/>status :2518, health :2521, models :2547,<br/>eval :2551, rebuild :2661"]
-    CLI --> VEND["NEW ADR-2139 backend :2590, proxy :2654 - no compose: they act on the<br/>vendor-slot proxy inside the agentbox container (loopback for in-container consumers; 0.0.0.0:8094 on the<br/>private docker networks when network = true, agentbox.toml:892-893); from the host<br/>they re-exec through docker exec on the mounted checkout (agentbox.sh:2456-2474)"]
+    CLI --> VEND["NEW ADR-2139 backend :2590, proxy :2654 - no compose: they act on the<br/>vendor-slot proxy inside the agentbox container (loopback for in-container consumers; 0.0.0.0:8094 on the<br/>private docker networks when network = true, agentbox.toml:898-899); from the host<br/>they re-exec through docker exec on the mounted checkout (agentbox.sh:2456-2474)"]
     SUB --> COMPOSE["docker-compose.system-one.yml"]
 
     COMPOSE --> FACADE["service systemone<br/>build laya-engine + system-one crate context<br/>image agentbox/system-one:latest<br/>docker-compose.system-one.yml:14-26"]
@@ -318,7 +318,7 @@ flowchart TB
 **What it shows.** The two compose overlays that joined the estate since this topic was last stamped: the ADR-2094 System One façade with its optional engine profile, and the shared speech pair the voice console depends on.
 **Why it is this way.** ADR-2094 keeps typed decisions on the LAN, so the façade is published to host loopback and reached in-estate by service name; the engine shares the façade's network namespace rather than opening a second surface (`../project/agentbox/docker-compose.system-one.yml:162`).
 
-**Invariant:** enabling `features.sovereign_system_one` without this overlay running leaves both consumers failing open to their built-in paths rather than erroring (`../project/agentbox/management-api/lib/system-manifest.js:282`).
+**Invariant:** enabling `features.sovereign_system_one` without this overlay running leaves both consumers failing open to their built-in paths rather than erroring (`../project/agentbox/management-api/lib/system-manifest.js:285`).
 
 ## AB-06.11 ADR-2118 — container-owned ~/.claude and the migrate-claude-home lifecycle
 ```mermaid
@@ -332,10 +332,10 @@ flowchart TB
     DEBRIS --> RSYNC["rsync host ~/.claude into the volume, excluding<br/>CLAUDE.md and .credentials.json, then rewrite<br/>plugins/*.json host paths to /home/devuser/.claude<br/>agentbox.sh:1855-1864"]
     RSYNC --> DONE["volume seeded — run preflight then up or rebuild<br/>agentbox.sh:1866-1867"]
     DONE --> DEC
-    AB2["agentbox container"] --> SYNC["[program:claude-cred-sync], only when toolchains claude_code<br/>agentbox-manifest cred-sync, interval 2s<br/>flake.nix:3281, :3288-3294"]
-    SYNC --> MERGE["per-token merge between /home/devuser/.claude/.credentials.json<br/>and /var/lib/agentbox/host-claude/.credentials.json,<br/>later expiresAt wins — agentbox-manifest cred-sync, flake.nix:3283-3289"]
-    MERGE -.-> ABSENT["exits 0 and stays stopped when the host bind is absent<br/>(deployments that don't share auth) — flake.nix:3286-3287, :3293-3294"]
-    MERGE -.-> INV["INVARIANT — the container reads settings, hooks and agents<br/>ONLY from the volume; the host bind exists solely for<br/>credential convergence, not configuration<br/>docker-compose.override.yml:83-85, system-manifest.js:265-267"]
+    AB2["agentbox container"] --> SYNC["[program:claude-cred-sync], only when toolchains claude_code<br/>agentbox-manifest cred-sync, interval 2s<br/>flake.nix:3332, :3339-3345"]
+    SYNC --> MERGE["per-token merge between /home/devuser/.claude/.credentials.json<br/>and /var/lib/agentbox/host-claude/.credentials.json,<br/>later expiresAt wins — agentbox-manifest cred-sync, flake.nix:3334-3340"]
+    MERGE -.-> ABSENT["exits 0 and stays stopped when the host bind is absent<br/>(deployments that don't share auth) — flake.nix:3337-3338, :3344-3345"]
+    MERGE -.-> INV["INVARIANT — the container reads settings, hooks and agents<br/>ONLY from the volume; the host bind exists solely for<br/>credential convergence, not configuration<br/>docker-compose.override.yml:83-85, system-manifest.js:268-270"]
 ```
 
 **What it shows.** ADR-2118 replaced the whole-directory host `~/.claude` bind with a container-owned `agentbox-claude-home` volume: an external volume compose cannot start without, a `migrate-claude-home` command that seeds it once from the host, a preflight gate that fails loudly if it is missing, and a `claude-cred-sync` supervisor program that keeps only the rotating OAuth `.credentials.json` converged against the host's own `~/.claude`, which stays bound read-write at `/var/lib/agentbox/host-claude` for that purpose alone.
@@ -360,10 +360,10 @@ flowchart TB
         L2["program:podkey-loader runs podkey-ctl.js load --watch,<br/>Extensions.loadUnpacked once per Chrome process<br/>supervisord.conf:53-57, podkey-ctl.js:169"]
         L3["profile at /home/devuser/chrome-profile, stale Singleton files removed<br/>launch-chromium.sh:40, :58, :80"]
     end
-    VOL[("named volume browsercontainer-profile, fixed name<br/>docker-compose.browsercontainer.yml:64, :75-76<br/>holds Podkey's encrypted vault - never down -v")]
+    VOL[("named volume browsercontainer-profile, fixed name<br/>docker-compose.browsercontainer.yml:64, :78-79<br/>holds Podkey's encrypted vault - never down -v")]
     PIN --> F1 --> D1 --> D2 --> D3 --> L1 --> L2
     L1 --> L3 --> VOL
-    VOL -.-> OPEN1["OPEN: the vault is meant to hold K_browser, not the house key,<br/>but k_browser's pubkey is still null, g5-key-split.json:16-19, and the<br/>nip98-proxy roster still admits the house key for it, agentbox.toml:2134"]
+    VOL -.-> OPEN1["OPEN: the vault is meant to hold K_browser, not the house key,<br/>but k_browser's pubkey is still null, g5-key-split.json:16-19, and the<br/>nip98-proxy roster still admits the house key for it, agentbox.toml:2140"]
     PIN -.-> OPEN2["OPEN (RESOLVED 2026-10-12, agentbox 8fad68285): the earlier pin's CI artefact was due to expire on 2026-12-24.<br/>The pin now names run 38386898958 and expires 2027-01-11 (podkey.pin:11), and podkey CI has workflow_dispatch so the next re-pin needs no upstream commit"]
 ```
 
@@ -372,7 +372,7 @@ flowchart TB
 
 **Invariant:** the browsercontainer image is never built with an unverified Podkey: the zip copied into the build is checked against the pinned sha256 before a single entry is extracted, and a mismatch refuses the build (`../project/agentbox/browsercontainer/scripts/fetch-podkey.sh:150-151`, `../project/agentbox/browsercontainer/scripts/fetch-podkey.sh:95-101`).
 
-**Open:** `K_browser` is not admitted anywhere yet. Its pubkey is null in the split register (`../project/agentbox/config/custody/g5-key-split.json:16-20`), and the LAN door's roster still names the house key as the browsercontainer vault's identity (`../project/agentbox/agentbox.toml:2134`). Until the owner mints it and the dual-admit step lands, the sidecar's flows still authenticate as the house key.
+**Open:** `K_browser` is not admitted anywhere yet. Its pubkey is null in the split register (`../project/agentbox/config/custody/g5-key-split.json:16-20`), and the LAN door's roster still names the house key as the browsercontainer vault's identity (`../project/agentbox/agentbox.toml:2140`). Until the owner mints it and the dual-admit step lands, the sidecar's flows still authenticate as the house key.
 
 ## AB-06.13 The host Docker socket and the /run/secrets mount: what compose can and cannot narrow (custody W0, W1)
 ```mermaid

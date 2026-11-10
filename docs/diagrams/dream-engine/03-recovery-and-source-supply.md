@@ -10,7 +10,7 @@ sources:
   - ../dream-engine/crates/dream-core/src/runstate.rs
   - ../dream-engine/crates/dream-core/src/source.rs
   - ../dream-engine/crates/dream-gate/src/manifest.rs
-verified_commit: 815f963b1cbd6999e78144ce5475005ae1dd1d8e
+verified_commit: b40d50724bb6344dc00d57270f7166b138714406
 ---
 
 ## For developers
@@ -42,15 +42,15 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    TREE["Read tracked paths using line-based ls-tree output<br/>source.rs:117<br/>source.rs:138"] --> EXPAND["Expand requested directories<br/>source.rs:891"]
-    EXPAND --> CAP["Reserve half the slots<br/>count entries before validation<br/>source.rs:1091"]
-    CAP --> PLAN["Tell planner which paths are selected<br/>source.rs:1112"]
-    PLAN --> MERGE["Merge requested, planned, mentioned paths<br/>deduplicate by path<br/>source.rs:489"]
-    MERGE --> READ["Read baseline blobs<br/>source.rs:1153"]
-    READ --> RENDER["Render and label file outcomes<br/>source.rs:795"]
+    TREE["Read tracked paths using NUL-separated ls-tree output<br/>source.rs:117<br/>source.rs:133"] --> EXPAND["Expand requested directories<br/>source.rs:899"]
+    EXPAND --> CAP["Reserve half the slots<br/>count entries before validation<br/>source.rs:1099"]
+    CAP --> PLAN["Tell planner which paths are selected<br/>source.rs:1121"]
+    PLAN --> MERGE["Merge requested, planned, mentioned paths<br/>deduplicate by path<br/>source.rs:494"]
+    MERGE --> READ["Read baseline blobs<br/>source.rs:1162"]
+    READ --> RENDER["Render and label file outcomes<br/>source.rs:803"]
 ```
 
-**What it shows.** Invalid or duplicate requests consume positions in the reservation before usable files are selected. Git's quoted non-ASCII paths are retained as quoted text by the line parser, so a tracked file can be missed. The controlled probe reads the same file directly with git show, confirming the failure is in path accounting.
+**What it shows.** Invalid or duplicate requests consume positions in the reservation before usable files are selected. Git's quoted non-ASCII paths used to be retained as quoted text by the line parser, so a tracked file could be missed; RESOLVED at dream-engine b40d507, the tracked listing is now NUL-separated and returns such paths unescaped (`../dream-engine/crates/dream-core/src/source.rs:117`, `../dream-engine/crates/dream-core/src/source.rs:124`).
 
 **Why it is this way.** ADR-DE-008 prioritises unmet requests while retaining room for planner choices. Its current implementation reserves input positions rather than a count of successfully supplied files. Directory expansion and path deduplication also lose the identity of individual range requests.
 
@@ -58,11 +58,11 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    RANGE["Slice requested lines<br/>past EOF returns empty text<br/>source.rs:645"] --> CLIP["Clip payload to allowance<br/>then append elision marker<br/>source.rs:656"]
-    CLIP --> REDACT["Apply caller redactor after clipping<br/>source.rs:851"]
-    REDACT --> COUNT["Count final body bytes and mark inlined<br/>source.rs:865"]
-    COUNT --> HONOUR["Inlined means requested_honoured<br/>source.rs:1164"]
-    HONOUR --> RESULT["No returned record when nothing is inlined<br/>source.rs:1183"]
+    RANGE["Slice requested lines<br/>past EOF returns empty text<br/>source.rs:650"] --> CLIP["Clip payload to allowance<br/>then append elision marker<br/>source.rs:661"]
+    CLIP --> REDACT["Apply caller redactor after clipping<br/>source.rs:859"]
+    REDACT --> COUNT["Count final body bytes and mark inlined<br/>source.rs:873"]
+    COUNT --> HONOUR["Inlined means requested_honoured<br/>source.rs:1173"]
+    HONOUR --> RESULT["No returned record when nothing is inlined<br/>source.rs:1192"]
 ```
 
 **What it shows.** A request beyond EOF is honoured with zero bytes and a reversed displayed line interval. Clipping markers make body usage exceed both the requested half-budget and the overall budget. At default settings the probe records 30,134 requested bytes and 60,134 total body bytes, before section headers.

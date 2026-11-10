@@ -19,7 +19,7 @@ sources:
   - ../vowl-wasm/docs/release-inventory.json
   - ../vowl-wasm/docs/UPSTREAMS.md
   - ../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md
-verified_commit: 28af4365a68d9aacfd7c04f63299cc96ad717ce3
+verified_commit: 2aff199e2de06f4bba512301acf7023477c492ac
 ---
 
 **Repair note — 2026-11-03:** selected counterexamples below have a [scoped successor verification](06-layout-and-release-repairs.md). This historical topic retains its declared source revision; the successor states the repaired contracts and acceptance boundaries.
@@ -71,20 +71,22 @@ flowchart LR
 ```mermaid
 flowchart TB
     TAG["Tag v* or manual tag input<br/>release.yml:3-12"] --> CHECK["Check Cargo version matches tag<br/>release.yml:65-76"]
-    CHECK --> VERIFY["Verify reviewed inventory and refuse existing browser asset<br/>release.yml:79-90"]
-    VERIFY --> BUILD["wasm-pack: ngg1,interaction, locked<br/>release.yml:94-97"]
-    BUILD --> GATE["Rust and JavaScript bundle contracts<br/>release.yml:99-105"]
-    GATE --> PIN["Pin package metadata; include reviewed notices<br/>release.yml:110-126"]
-    PIN --> PACK["npm pack; dry run checks notices<br/>release.yml:128-143"]
-    PACK --> REL["Attach tarball and companions to GitHub<br/>release.yml:145-159"]
-    REL --> EXISTS{"Registry version exists?<br/>release.yml:168"}
-    EXISTS -->|yes| SKIP["Skip without comparing integrity<br/>release.yml:169-171"]
-    EXISTS -->|no| NPM["Attempt npm publish of same tarball<br/>release.yml:173"]
-    NPM -. failure .-> RETRY["Retry stops at existing browser asset guard<br/>release.yml:86-90"]
+    CHECK --> VERIFY["Verify reviewed inventory and record whether the browser asset already exists<br/>release.yml:79-91"]
+    VERIFY -->|asset exists| REUSE["Skip build, pack and attach; download the attached tarball, check its sha256, package name and version<br/>release.yml:93-104"]
+    VERIFY -->|new| BUILD["wasm-pack: ngg1,interaction, locked<br/>release.yml:108-112"]
+    REUSE --> EXISTS
+    BUILD --> GATE["Rust and JavaScript bundle contracts<br/>release.yml:114-121"]
+    GATE --> PIN["Pin package metadata; include reviewed notices<br/>release.yml:126-144"]
+    PIN --> PACK["npm pack; dry run checks notices<br/>release.yml:146-162"]
+    PACK --> REL["Attach tarball and companions to GitHub<br/>release.yml:164-179"]
+    REL --> EXISTS{"Registry version exists?<br/>release.yml:188"}
+    EXISTS -->|yes| SKIP["Skip without comparing integrity<br/>release.yml:189-191"]
+    EXISTS -->|no| NPM["Attempt npm publish of same tarball<br/>release.yml:193"]
+    NPM -. failure .-> RETRY["Retry reuses the attached tarball and reaches the registry check again<br/>release.yml:93-104 and release.yml:185-193"]
 ```
 - `id-token: write` permits the OIDC flow; the workflow supplies no explicit npm token (release.yml:14-21). Matching registry-side trust and permission are external prerequisites, not proved by this YAML.
-- A successful new npm publish uses the same local tarball as the GitHub upload (release.yml:161-173). Existing registry versions are skipped without comparing integrity; the workflow does not establish byte parity on that branch.
-- A re-run against an existing tag (`workflow_dispatch` with `tag` input, release.yml:7-12) stops at the immutable-asset check (release.yml:86-90) once the tarball is attached, including when a prior npm publish failed after attachment. The later registry skip cannot be reached on that retry (release.yml:163-171). The observed v0.2.2 run attached its asset then failed npm publication; the registry listed only 0.1.2 on 1 November 2026 ([dated release assessment](../../estate-review/2026-11-01-vowl-ingest-and-release.md)).
+- A successful new npm publish uses the same local tarball as the GitHub upload (release.yml:181-193). Existing registry versions are skipped without comparing integrity; the workflow does not establish byte parity on that branch.
+- A re-run against an existing tag (`workflow_dispatch` with `tag` input, release.yml:7-12) no longer stops at the immutable-asset check: RESOLVED at vowl-wasm 2aff199 — when the tarball is already attached the workflow skips the build, pack and attach steps, downloads the attached tarball and verifies its checksum, package name and version (release.yml:87-104), then reaches the registry check and publish (release.yml:185-193). Earlier the check failed the run, so a retry after a failed npm publish could not reach the registry step. The observed v0.2.2 run attached its asset then failed npm publication; the registry listed only 0.1.2 on 1 November 2026 ([dated release assessment](../../estate-review/2026-11-01-vowl-ingest-and-release.md)).
 - Since the earlier stamp the release also installs wasm-pack 0.15.0 from a checksum-verified release tarball and builds on rustc 1.99.0 (release.yml:38, release.yml:45-54).
 
 ## VW-05.4 Benches — what each measures
@@ -109,8 +111,8 @@ flowchart LR
     MEASURE --> BROTLI["brotli: 279,066 → 288,007 bytes (LARGER)"]
     RAW & GZIP & BROTLI --> DECISION["package.metadata.wasm-pack.profile.release<br/>wasm-opt = false — historical compressed-size result;<br/>current host compression not established<br/>Cargo.toml:143-144"]
 ```
-- `strip = true` already removes the ~190 KB `name` section (Cargo.toml:133-142, the comment above `[package.metadata.wasm-pack.profile.release]`); running binaryen on top of that opt-level-z + LTO build is what produced the gzip/brotli regression above.
-- The decision also notes a portability cost: validating rustc's bulk-memory output needs binaryen's `-all` flag, which "ties the build to a binaryen version" — a second reason to leave it off (Cargo.toml:139-141).
+- `strip = true` already removes the ~190 KB `name` section (Cargo.toml:134-142, the comment above `[package.metadata.wasm-pack.profile.release]`); running binaryen on top of that opt-level-z + LTO build is what produced the gzip/brotli regression above.
+- The decision also notes a portability cost: validating rustc's bulk-memory output needs binaryen's `-all` flag, which "ties the build to a binaryen version" — a second reason to leave it off (Cargo.toml:140-141).
 
 ## VW-05.6 Reviewed release inventory — the guard between a source change and a browser tarball
 ```mermaid
@@ -118,19 +120,19 @@ flowchart TB
     INVJ["docs/release-inventory.json: version, source commit, target, features ngg1 and interaction,<br/>rustc and wasm-pack versions, a SHA-256 per collected source file<br/>docs/release-inventory.json:2-12"]
     VER["verify ROOT TAG RUSTC WASM_PACK compares supplied toolchain strings,<br/>version/tag and the collected source set<br/>tools/release-inventory/src/main.rs:72"]
     PKG["package copies full notices and source URLs into pkg and its npm files allowlist<br/>tools/release-inventory/src/main.rs:115"]
-    REL["release.yml runs verify before the build and package before npm pack<br/>.github/workflows/release.yml:79-90 and .github/workflows/release.yml:123-126"]
-    DRY["npm pack dry run must list THIRD-PARTY-NOTICES.md and docs/UPSTREAMS.md<br/>.github/workflows/release.yml:133-134"]
-    FROZEN["an existing browser tarball for the version is never replaced, a corrected notice ships as a separate companion asset<br/>.github/workflows/release.yml:86-90"]
+    REL["release.yml runs verify before the build and package before npm pack<br/>.github/workflows/release.yml:79-90 and .github/workflows/release.yml:140-144"]
+    DRY["npm pack dry run must list THIRD-PARTY-NOTICES.md and docs/UPSTREAMS.md<br/>.github/workflows/release.yml:152-153"]
+    FROZEN["an existing browser tarball for the version is never replaced, it is reused for a registry retry, a corrected notice ships as a separate companion asset<br/>.github/workflows/release.yml:87-104"]
     INVJ --> VER
     VER --> REL
     PKG --> REL
     REL --> DRY
     REL --> FROZEN
     N1["INVARIANT: hashes are updated only after the new dependency closure and notices are reviewed, never to bypass a failed check<br/>tools/release-inventory/README.md:18-22"]
-    N2["TENSION: the guard runs on tags and manual dispatch only, so on main a source edit can leave docs/release-inventory.json stale until the next release attempt fails<br/>.github/workflows/ci.yml:50-52 and .github/workflows/release.yml:79-85"]
+    N2["TENSION: the guard runs on tags and manual dispatch only, so on main a source edit can leave docs/release-inventory.json stale until the next release attempt fails<br/>.github/workflows/ci.yml:50-52 and .github/workflows/release.yml:79-86"]
     VER --- N1
     REL --- N2
 ```
 
 **What it shows.** A private Rust tool compares version, tag, features, supplied toolchain strings and hashes of collected sources/notices with a reviewed inventory. It checks source-commit syntax, not commit resolution, and excludes the release workflow and guard implementation from its source hash set. Packaging adds the recorded notices; this does not establish the completeness of the dependency review or publication to both destinations.
-**Why it is this way.** New packages include notices and also attach a separate companion asset; historical tarballs are not overwritten, and existing frozen assets stay tied to their original source and digest (docs/UPSTREAMS.md:3, tools/release-inventory/README.md:18-22). The inventory now binds the 0.2.2 release: tag `v0.2.2`, layout source `567d661b3f5614080fc2c8897ab6091af40feefc`, whose reviewed document states that its dependency closure matches 0.2.0 apart from this crate's version (docs/UPSTREAMS.md:3, docs/release-inventory.json:2-3). The earlier statement that the 0.2.0 tarball carried only the project and WebVOWL licences is not restated at this pin and is not confirmed here.
+**Why it is this way.** New packages include notices and also attach a separate companion asset; historical tarballs are not overwritten, and existing frozen assets stay tied to their original source and digest (docs/UPSTREAMS.md:3, tools/release-inventory/README.md:18-22). The inventory now binds the planned 0.2.3 release: tag `v0.2.3`, layout source `756f49f5ab7bac9a97b3701157bb923da34abe22`, whose reviewed document states that its package table and notices carry forward from 0.2.2 because only this crate's version changed, and that it does not claim publication of 0.2.3 (docs/UPSTREAMS.md:3, docs/release-inventory.json:2-3). The earlier statement that the 0.2.0 tarball carried only the project and WebVOWL licences is not restated at this pin and is not confirmed here.

@@ -18,18 +18,18 @@ sources:
   - ../dream-engine/crates/dream-gate/src/pertest.rs
   - ../dream-engine/crates/dream-gate/src/receipts.rs
   - ../dream-engine/crates/dream-gate/src/manifest.rs
-verified_commit: 815f963b1cbd6999e78144ce5475005ae1dd1d8e
+verified_commit: b40d50724bb6344dc00d57270f7166b138714406
 ---
 
 ## For developers
 
-**Repair follow-up, 2026-11-03:** [DE-06](06-formatting-and-evidence-repairs.md) records explicit-file formatting and post-evaluator tree checks. This topic keeps its historical stamp; other gate and persistence observations are not closed.
+**Repair follow-up, 2026-11-03:** [DE-06](06-formatting-and-evidence-repairs.md) records explicit-file formatting and post-evaluator tree checks. DE-02.2 now draws those repairs; other gate and persistence observations are not closed.
 
 Candidate construction and receipt checking are separate contracts. The pure gate checks command identity, requiredness and the supplied patch; it trusts the caller's candidate tree and typed outcome. Readiness and replay add checks but do not make those inputs intrinsically authentic. The [1 November audit](../../estate-review/2026-11-01-dream-candidate-and-evidence.md) records executed counterexamples and distinguishes direct API behaviour from the agentbox integration.
 
 ## For the business
 
-The engine can compare a proposed change with configured tests and produce a reviewable decision. Confidence depends on the tested files staying fixed, the tests meaningfully examining them, and the retained evidence identifying each result uniquely. Passing tests do not establish confinement of the formatter or a complete record after interruption.
+The engine can compare a proposed change with configured tests and produce a reviewable decision. Confidence depends on the tested files staying fixed, the tests meaningfully examining them, and the retained evidence identifying each result uniquely. Passing tests do not establish isolation of the evaluator host or a complete record after interruption.
 
 ## DE-02.1 Admission and patch protection
 
@@ -38,8 +38,8 @@ flowchart TB
     CFG["Configured evaluators and selected deep"] --> READY["Static readiness assessment<br/>readiness.rs:187"]
     READY --> REQUIRED["Require applicable required evaluator<br/>readiness.rs:259"]
     READY --> CMD["Inspect simple command segments and script existence<br/>readiness.rs:127<br/>readiness.rs:241"]
-    PATCH["Candidate patch"] --> GUARD["Protected-path check before git or evaluation<br/>candidate.rs:489"]
-    GUARD --> BUILD["Prepare candidate worktree<br/>candidate.rs:494"]
+    PATCH["Candidate patch"] --> GUARD["Protected-path check before git or evaluation<br/>candidate.rs:502"]
+    GUARD --> BUILD["Prepare candidate worktree<br/>candidate.rs:507"]
 ```
 
 **What it shows.** Readiness rejects an empty evaluator set and some constant commands. Its filesystem existence check does not verify tracking at the dispatched commit: an untracked script can pass admission, and a shell-wrapped constant command is not recognised as non-probative.
@@ -51,18 +51,19 @@ flowchart TB
 ```mermaid
 flowchart TB
     PREP["Candidate patch applied and committed"] --> FILES["Select touched files handled by fixer<br/>candidate.rs:94"]
-    FILES --> SCAN["Literal substring check for path attribute<br/>candidate.rs:115"]
-    SCAN --> FMT["Local rustfmt process on control plane<br/>candidate.rs:129-131"]
+    FILES --> SCAN["Only regular files whose canonical path stays inside the worktree are formatted, else skipped<br/>candidate.rs:111-124"]
+    SCAN --> FMT["Local rustfmt per file through stdin and stdout, children skipped, written only after success<br/>candidate.rs:129-131<br/>candidate.rs:234-247"]
     FMT --> STATUS["Inspect worktree changed paths<br/>candidate.rs:147"]
     STATUS --> COMMIT["Commit layout and re-guard diff<br/>candidate.rs:176<br/>candidate.rs:206"]
-    COMMIT --> EVAL["Build and evaluate after recorded tree hash<br/>candidate.rs:546-558"]
+    COMMIT --> EVAL["Build and evaluate at the recorded tree hash<br/>candidate.rs:559-564"]
+    EVAL --> INTEG["Re-check the tree identity after evaluation, a changed tree is DidNotApply with an Integrity error<br/>candidate.rs:565-591"]
 ```
 
-**What it shows.** ADR-DE-009 places formatting before evaluation and records the resulting patch. The `#[path` substring test misses valid `#[ path` syntax; rustfmt followed an absolute path to a temporary canary outside the worktree and changed it. Git status inside the worktree cannot detect that write.
+**What it shows.** ADR-DE-009 places formatting before evaluation and records the resulting patch. The literal `#[path` substring test that earlier missed `#[ path` syntax is gone: formatting now accepts only explicit regular files inside the worktree and formats through stdin, so it never follows module declarations.
 
-**Why it is this way.** Formatting is intended to remove mechanical layout failures without widening the candidate. The source does not enforce that confinement for all Rust attribute syntax. Evaluators can also modify working files after the recorded tree hash; `candidate::run` returns the prior hash without a post-evaluation tree check.
+**Why it is this way.** Formatting is intended to remove mechanical layout failures without widening the candidate. After the evaluators run, `candidate::run` verifies the worktree and, when the tree was relocated, the evaluated copy against the recorded tree hash before returning `Applied`; the checks run on the same host and the evaluator host is still not a sandbox.
 
-**Tension (ADR-DE-009 confinement):** the documented out-of-worktree-write closure is contradicted by the controlled probe; a syntax-aware check alone would still need a filesystem boundary to constrain tool writes.
+**Tension (ADR-DE-009 confinement):** RESOLVED at dream-engine b40d507 — the out-of-worktree-write probe and the missing post-evaluation tree check are closed by explicit-file formatting and the final tree identity check (`../dream-engine/crates/dream-core/src/candidate.rs:111-124`, `../dream-engine/crates/dream-core/src/candidate.rs:565-591`); DE-06 records the repair.
 
 ## DE-02.3 What the pure gate validates
 
