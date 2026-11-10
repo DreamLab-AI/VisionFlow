@@ -13,14 +13,14 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs-forge/src/mirror.rs
   - ../solid-pod-rs/crates/solid-pod-rs-forge/src/migrate.rs
   - ../solid-pod-rs/crates/solid-pod-rs-forge/src/migrate_fork.rs
-verified_commit: 9b6143ce55b242c322c92d8c6bcc0c1a5371b451
+verified_commit: 27e18995fc20790fa956acb41f7d8420544a13ec
 ---
 
 **Repair note — 2026-11-03:** selected counterexamples below have a [scoped successor verification](15-authority-and-payment-repairs.md). This historical topic retains its declared source revision; the successor states the repaired contracts and acceptance boundaries.
 
 ## For developers
 
-The pod adapter and generic Git service both apply the pod path component. This topic separates repository selection from the root-only WAC decision; passing that decision does not prove that the intended repository is served.
+RESOLVED at solid-pod-rs 27e1899: the pod adapter roots the generic Git service at the data root, so the pod path component is applied once and the selected repository is the pod's own. This topic separates repository selection from the root-only WAC decision; passing that decision no longer risks serving a different repository, but it still gates only the pod root.
 
 ## For the business
 
@@ -30,31 +30,31 @@ Usable history export needs both correct routing and explicit authority over the
 
 ```mermaid
 flowchart TD
-    REQUEST["request /alice/info/refs<br/>original path retained<br/>solid-pod-rs-server/src/lib.rs:4724"]
-    ROOT["adapter root is data_root/alice<br/>solid-pod-rs-server/src/lib.rs:4740"]
-    SERVICE["construct service with that root<br/>solid-pod-rs-server/src/lib.rs:4816"]
+    REQUEST["request /alice/info/refs<br/>original path retained<br/>solid-pod-rs-server/src/lib.rs:5057"]
+    ROOT["adapter checks that data_root/alice exists<br/>solid-pod-rs-server/src/lib.rs:5073"]
+    SERVICE["RESOLVED at solid-pod-rs 27e1899: construct the service<br/>rooted at data_root, not at the pod<br/>solid-pod-rs-server/src/lib.rs:5164"]
     SLUG["service extracts slug alice<br/>service.rs:295"]
-    JOIN["join root and slug<br/>data_root/alice/alice<br/>service.rs:299<br/>guard.rs:92"]
+    JOIN["join root and slug<br/>data_root/alice<br/>service.rs:299<br/>guard.rs:92"]
     REPO["look for Git repository there<br/>service.rs:338"]
     REQUEST --> ROOT --> SERVICE --> SLUG --> JOIN --> REPO
 ```
 
-The normal write hook records files under `data_root/alice`, so this is a different repository selection. A missing nested repository prevents export; an existing nested repository changes which data the route serves. The [assessment](../../estate-review/2026-11-01-solid-git-export-and-baseline.md) distinguishes source analysis, normal routing and a transport positive control.
+The normal write hook records files under `data_root/alice`, and the service now selects that same repository, so the earlier nested `data_root/alice/alice` selection no longer occurs. The [assessment](../../estate-review/2026-11-01-solid-git-export-and-baseline.md) distinguishes source analysis, normal routing and a transport positive control.
 
 ## SP-14.2 Root permission precedes whole-repository export
 
 ```mermaid
 flowchart TD
-    WRITE["LDP private content can be committed<br/>git_mark_write builds pod repository path<br/>solid-pod-rs-server/src/lib.rs:3952"]
+    WRITE["LDP private content can be committed<br/>git_mark_write builds pod repository path<br/>solid-pod-rs-server/src/lib.rs:4285"]
     MARK["stage the resource in Git history<br/>mark.rs:168"]
-    READ["clone and fetch check Read<br/>only on the pod-root resource<br/>solid-pod-rs-server/src/lib.rs:4792<br/>solid-pod-rs-server/src/lib.rs:4797"]
+    READ["clone and fetch check Read<br/>only on the pod-root resource<br/>solid-pod-rs-server/src/lib.rs:5125<br/>solid-pod-rs-server/src/lib.rs:5130<br/>then only the pod owner is served<br/>solid-pod-rs-server/src/lib.rs:5153"]
     SELECT["resolve selected repository<br/>service.rs:338"]
     CGI["serve through Git HTTP backend<br/>no child ACL walk here<br/>service.rs:378"]
     WRITE --> MARK
     READ --> SELECT --> CGI
 ```
 
-The two paths need a common export-authority contract. Correcting selection alone would connect normal stored history to the existing root-only gate. Git's object transport is not a per-resource WAC response; this diagram does not propose root Control or a filtered ref list as a sufficient replacement policy.
+The handler now also refuses any caller other than the pod owner before the service runs (`solid-pod-rs-server/src/lib.rs:5149`-`5162`). The two paths still need a common export-authority contract. Correcting selection alone would connect normal stored history to the existing root-only gate. Git's object transport is not a per-resource WAC response; this diagram does not propose root Control or a filtered ref list as a sufficient replacement policy.
 
 ## SP-14.3 Mirror fetches stay in a private candidate store
 

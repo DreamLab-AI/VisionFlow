@@ -12,12 +12,12 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/lib.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/wrangler.toml
-verified_commit: {nostr-rust-forum: c39f41f104b114d6a3fa29013daaf6fa58b45080}
+verified_commit: {nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
 ---
 
 ## For developers
 
-The bounded-prefix starvation finding has a [scoped source-repair successor, NF-29](29-external-review-repairs.md#nf-293-notification-claims-and-bounded-sweeps-retain-concurrent-work). This topic retains its declared audit revision; other trust consistency findings remain separate.
+The bounded-prefix starvation finding has a [scoped source-repair successor, NF-29](29-external-review-repairs.md#nf-293-notification-claims-and-bounded-sweeps-retain-concurrent-work). The starvation finding is marked resolved at the re-verified stamp 6064622; other trust consistency findings remain separate.
 
 [The trust-transition audit](../../estate-review/2026-11-01-forum-trust-transitions.md) records 32 native trust cases, five existing demotion SQL tests and six promotion SQL scenarios. Native cases call the actual policy/engine through its existing in-memory store. Promotion probes execute extracted SQL with chosen interleavings, not the async Worker handler or live D1.
 
@@ -31,18 +31,18 @@ Members need stable rights and intelligible reasons for changes. Operators need 
 flowchart TB
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/wrangler.toml:123
     A["Configured five-minute cron"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs:253
-    B["Start with no cursor<br/>page eligible TL1/TL2 rows"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs:544
+    B["Start from the stored cursor, none on the first tick<br/>page eligible TL1/TL2 rows"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust.rs:326
     C["Pure policy checks exclusions,<br/>inactivity and hysteresis"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs:418
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs:434
     D["Guarded UPDATE compares level,<br/>admin flag, timestamps and counters"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs:425
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs:441
     E["Same batch: audit INSERT SELECT<br/>only WHERE changes() = 1"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs:503
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs:519
     F["Both results must report one change<br/>otherwise return failure/conflict"]
     A --> B --> C -->|Demote| D --> E --> F
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs:281
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs:297
     C -->|Hold| H["Increment held total<br/>discard named reason"]
 ```
 
@@ -50,21 +50,21 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs:253
-    A["New tick starts before first row"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs:275
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs:544
+    A["RESOLVED at nostr-rust-forum 6064622: a new tick resumes<br/>from the stored cursor"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs:294
     B["Held or failed prefix<br/>still counts as scanned"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs:299
-    C["Cap reached: return truncated<br/>tail never visited"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs:162
-    D["Report last pubkey only<br/>no persisted cursor or resume input"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs:315
+    C["Cap reached: return truncated<br/>the tail waits for the next tick"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs:562
+    D["RESOLVED at nostr-rust-forum 6064622: persist the resume cursor<br/>in trust_sweep_state for the next tick"]
     A --> B --> C --> D --> A
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs:66
     E["Production cap: 50,000<br/>Probe: cap 3, four rows, three ticks"]
     E -.-> C
 ```
 
-The native fixture reproduces starvation at a smaller configurable cap. Production starvation requires a cap-sized eligible prefix that remains held or failed; no real membership population was inspected. Increasing the fixture budget reaches the tail, which is the positive control.
+At the earlier stamp the native fixture reproduced starvation at a smaller configurable cap, because each tick restarted with no cursor. At 6064622 a truncated or aborted sweep stores its resume cursor and the next tick reads it back (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs:544-557`, `../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs:560-564`), so a held or failed prefix no longer hides the tail. No real membership population was inspected.
 
 ## NF-24.3 Promotion can overwrite a grant made after its read
 
@@ -99,6 +99,6 @@ flowchart TB
     A --> B -->|yes| C
     C -->|no| H
     C -->|yes| D
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs:281
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs:297
     H --> R["Sweep reports aggregate held count<br/>reason is not retained"]
 ```

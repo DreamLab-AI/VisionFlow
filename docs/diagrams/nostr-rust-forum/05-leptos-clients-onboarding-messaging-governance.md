@@ -13,6 +13,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/relay.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/auth/mod.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/auth/passkey.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/webauthn.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/auth/nip98.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/auth/nip07.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/auth/session.rs
@@ -63,7 +64,10 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/theme.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/category.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/mobile_bottom_nav.rs
-verified_commit: c39f41f104b114d6a3fa29013daaf6fa58b45080
+  - ../nostr-rust-forum/docs/adr/ADR-2027-nip17-overlay-for-nostr-chat-interop.md
+  - ../nostr-rust-forum/docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md
+  - ../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md
+verified_commit: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df
 ---
 
 ## NF-05.1 Forum client boot and the FORUM_BASE discipline
@@ -151,14 +155,14 @@ sequenceDiagram
     WA-->>PK: credential + PRF output
     PK->>PK: extract PRF from creation auth/webauthn.rs:123
     PK->>PK: derive_from_prf(prf, prfSalt) auth/passkey.rs:153
-    PK->>AW: unsigned POST /auth/register/verify auth/passkey.rs:173-174
-    Note over PK,AW: Worker requires NIP-98, so this normal request is rejected<br/>See NF-23.1 before treating later steps as reachable
+    PK->>AW: POST /auth/register/verify, NIP-98 signed with the derived key auth/passkey.rs:181-182
+    Note over PK,AW: RESOLVED at nostr-rust-forum 6064622 - the client now sends the NIP-98 header the worker requires<br/>See NF-23.1 for the earlier unsigned request
     U->>AS: log in
     AS->>PK: authenticate_passkey auth/mod.rs:328
-    PK->>AW: POST /auth/login/options auth/passkey.rs:237
+    PK->>AW: POST /auth/login/options auth/passkey.rs:247
     PK->>PK: extract PRF from assertion auth/webauthn.rs:169
-    PK->>PK: derive using returned salt auth/passkey.rs:264
-    PK->>AW: verify call, itself NIP-98 authenticated auth/passkey.rs:290
+    PK->>PK: derive using returned salt auth/passkey.rs:274
+    PK->>AW: verify call, itself NIP-98 authenticated auth/passkey.rs:300
     AS->>AS: PrfSigner built from the derived key auth/mod.rs:770
 
     Note over AS,PK: Private-key copy is held in StoredValue auth/mod.rs:107<br/>get_privkey_bytes returns a Zeroizing copy auth/mod.rs:232
@@ -166,7 +170,7 @@ sequenceDiagram
     Note over PK,AW: Server checks are in NF-02.3 and NF-02.4
 ```
 
-[NF-23 and its report](../../estate-review/2026-11-01-forum-passkey-contracts.md) qualify this sequence. The worker stores a different PRF salt from creation, so the same-identity claim is not established. Creation requires PRF evaluation immediately, and the hybrid guard tries an attestation-only method on an assertion. Real authenticator and cross-browser acceptance remain open.
+[NF-23 and its report](../../estate-review/2026-11-01-forum-passkey-contracts.md) qualify this sequence. At the report's stamp the worker stored a different PRF salt from creation; that is resolved at 6064622, where the worker stores the salt it issued (`../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/webauthn.rs:1077`). Creation requires PRF evaluation immediately, and the hybrid guard tries an attestation-only method on an assertion. Real authenticator and cross-browser acceptance remain open.
 
 ## NF-05.4 Three identity backends behind one signing seam
 
@@ -526,7 +530,7 @@ flowchart TB
     V["Verify wrap and seal, unwrap private rumor<br/>admin authority and key-pair validation"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:279
     K["Persist and replace zone/epoch entry<br/>conflicting public keys are not preserved"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:458
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:479
     W["Resolve channel zone before writing<br/>unknown mapping passes plaintext through"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs:568
     E["Mapped encrypted zone uses newest held key<br/>no key means refuse and retain draft"]
@@ -556,23 +560,23 @@ flowchart TB
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:262
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:302
     SUB["enable subscribes this device and registers it with a NIP-98 signed POST /api/push/subscribe<br/> "]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:413
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:424
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:418
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:429
     PREFS["server-side prefs: replies and DMs on, topics and posts off, mutes, quiet hours<br/> "]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/sw.js:335
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/sw.js:241
     SWPUSH["service worker push handler: the push is EMPTY, so it drains counters from the relay<br/> "]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:163
     LOCAL["Tier 0 local alert only while the page is hidden, permission granted and server push inactive"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:364
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:368
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:369
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:373
     OUT["logout attempts token deletion and browser cleanup<br/>registration never writes the localStorage credential copy it reads<br/> "]
 
     CFG --> CARD
     CARD -->|Push mode| SUB --> SWPUSH
     CARD -->|registered Push mode| PREFS
     LOCAL -. "showNotification directly" .-> SHOWN
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:442
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs:447
     SHOWN["Generic system notification through worker registration"]
     OUT -.-> SUB
 
@@ -584,6 +588,6 @@ flowchart TB
 
 **What it shows.** How the browser side of ADR-2023 works: the client asks the relay whether push is on, subscribes the device with a signed request, and from then on an empty push wakes the service worker, which drains content-free counters. Where server push is off, Tier 0 raises generic system notifications from the page. Logout cleanup is best effort, and its missing credential copy is documented in [the push audit](../../estate-review/2026-11-01-forum-web-push.md).
 
-**Why it is this way.** Push payloads transit Google, Apple and Mozilla, and the service worker has no access to the page’s localStorage or sessionStorage, so ADR-2023 chose payload-less push with a bearer-token drain instead of RFC 8291 encryption (`../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md:21`, `../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md:25`).
+**Why it is this way.** Push payloads transit Google, Apple and Mozilla, and the service worker has no access to the page’s localStorage or sessionStorage, so ADR-2023 chose payload-less push with a bearer-token drain instead of RFC 8291 encryption (`../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md:34-35`, `../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md:38-39`).
 
 **Open:** ADR-2023 records `activation_status: staged` (no live Cloudflare deploy, push-service round trip or iOS device run was verified), and the shipped relay template leaves `PUSH_ENABLED = "false"` (`../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md:7`, `../nostr-rust-forum/crates/nostr-bbs-relay-worker/wrangler.toml:86`).

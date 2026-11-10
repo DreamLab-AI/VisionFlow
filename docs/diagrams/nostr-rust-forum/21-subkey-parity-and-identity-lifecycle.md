@@ -14,7 +14,7 @@ sources:
   - ../project/agentbox/config/hooks/nostr-live-mirror.cjs
   - ../project/agentbox/config/nostr-gateway/nostr-send.cjs
   - ../project/agentbox/config/nostr-gateway/gateway.cjs
-verified_commit: {nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df, agentbox: 9dfc27b16e82e9786535a55e790710493dd51fdf}
+verified_commit: {nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
 ---
 
 ## For developers
@@ -39,7 +39,7 @@ flowchart TB
     D["Rust checks shared vectors"]
     %% Source: ../nostr-rust-forum/scripts/identity-vector-parity.mjs:106
     E["Node separately mirrors primitive<br/>and checks the same fixture"]
-    %% Source: ../project/agentbox/config/hooks/nostr-live-mirror.cjs:68
+    %% Source: ../project/agentbox/config/hooks/nostr-live-mirror.cjs:69
     F["Consumer envFirst trims tags<br/>before derivation"]
     A --> B --> C --> D
     E -. shared vectors .-> D
@@ -80,9 +80,9 @@ flowchart TB
     B["Sender: child selects derived key<br/>default tag agentbox-mirror-v1"]
     %% Source: ../project/agentbox/config/nostr-gateway/nostr-send.cjs:42
     C["Sender: gateway and default select root"]
-    %% Source: ../project/agentbox/config/nostr-gateway/gateway.cjs:153
+    %% Source: ../project/agentbox/config/nostr-gateway/gateway.cjs:167
     D["Gateway: gateway selects derived key<br/>default tag agentbox-gateway-v1"]
-    %% Source: ../project/agentbox/config/nostr-gateway/gateway.cjs:155
+    %% Source: ../project/agentbox/config/nostr-gateway/gateway.cjs:169
     E["Gateway: child and default select root"]
     A --> B
     A --> C
@@ -100,7 +100,7 @@ flowchart TB
     B["Old secret remains able to sign"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs:254
     C["Old root and tag still reproduce old child"]
-    %% Source: ../project/agentbox/config/hooks/nostr-live-mirror.cjs:212
+    %% Source: ../project/agentbox/config/hooks/nostr-live-mirror.cjs:213
     D["Warm mirror cache returns first result<br/>before rereading tag or root"]
     %% Source: ../nostr-rust-forum/docs/archive/adr/ADR-100-key-lifecycle.md:78
     E["Lifecycle intent: adopt replacement<br/>and withdraw old authority separately"]

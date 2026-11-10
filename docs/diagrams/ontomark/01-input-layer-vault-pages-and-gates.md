@@ -40,15 +40,15 @@ sources:
   - ../ontomark/crates/ontomark-compile/src/profile/layout.rs
   - ../ontomark/crates/ontomark-compile/src/write/apply.rs
   - ../ontomark/crates/ontomark-compile/src/write/create.rs
-verified_commit: 4b9d15df48056971321a62b8c4e905f4536c74db
+verified_commit: 6159bb6089753105ef839fd4aac46c1598a64bd2
 ---
 
 ## OM-01.1 Vault root to Vault — pages, journals, skips
 
 ```mermaid
 flowchart TD
-    CLI["ontomark-cli load per VaultKind — vault_root from profile.layout.root_of, then Vault::load_excluding with layout.excluded_dirs<br/>ontomark-cli/src/main.rs:559-569; run() first checks the layout, ontomark-cli/src/main.rs:654"]
-    BUILD["build::run_with — layout.validate, then walk_pages once with the layout's excluded dirs, inspect_walk census, then Vault::load_with_walk with the role from kind_of_at<br/>build/mod.rs:559, build/mod.rs:569-583"]
+    CLI["ontomark-cli load per VaultKind — vault_root from profile.layout.root_of, then Vault::load_excluding with layout.excluded_dirs<br/>ontomark-cli/src/main.rs:564-574; run() first checks the layout, ontomark-cli/src/main.rs:659"]
+    BUILD["build::run_with — layout.validate, then walk_pages once with the layout's excluded dirs, inspect_walk census, then Vault::load_with_walk with the role from kind_of_at<br/>build/mod.rs:645, build/mod.rs:655-669"]
     LOADW["Vault::load_with_walk — loads the files of a PageWalk the caller already made<br/>input/page.rs:506"]
     LOAD["Vault::load root, kind — load_excluding with the built-in EXCLUDED_DIRS<br/>input/page.rs:464-465"]
     LOADX["Vault::load_excluding root, kind, excluded — the root is the content root, no pages dir<br/>input/page.rs:473-478"]
@@ -76,14 +76,14 @@ flowchart TD
     VAULT -.-> JDATE
     note1["INVARIANT: journal separation no longer depends on the caller — load_excluding and Layout::excluded_dirs both start from EXCLUDED_DIRS,<br/>input/page.rs:485-490, ontomark-compile/src/profile.rs:530-538; TENSION: load_with_walk still trusts a caller's PageWalk, input/page.rs:506"]
     note2["INVARIANT: the first malformed frontmatter or unreadable file aborts the whole load — Page::parse errors propagate,<br/>input/page.rs:519"]
-    note3["INVARIANT: one listing feeds the census, the load and the held-page identities — the PageWalk made at build/mod.rs:575 is passed on,<br/>ir/projection.rs:96, ir/projection.rs:228 — see OM-01.2"]
+    note3["INVARIANT: one listing feeds the census, the load and the held-page identities — the PageWalk made at build/mod.rs:661 is passed on,<br/>ir/projection.rs:96, ir/projection.rs:228 — see OM-01.2"]
     VAULT --- note1
     PARSE --- note2
     BUILD --- note3
 ```
 - **EXTERNAL:** the whole `input/` tree is a temporary stand-in relocated from VisionClaw `vault-core`, to be deleted once the input adapter reads `ontomark-model` (`input/mod.rs:3-8`); ADR-OM-001 owns that replacement.
 - **DIVERGENCE:** `ontomark-parse` carries its own frontmatter reader (`ontomark-parse/src/frontmatter.rs:1-9`) beside the one used here (`input/frontmatter.rs:128`); the two are not shared in production.
-- **Changed at 07f4c1c, still true at 4b9d15d:** the Logseq-era `pages/` folder is gone. A vault is an ordinary Obsidian vault whose pages sit at the vault root (`input/page.rs:7-14`, ADR-OM-007); where that root sits under the repository is the profile's layout (`ontomark-cli/src/main.rs:555-557`), and a page id is its root-relative path (`input/page.rs:514-517`). The old `load_vault` entry that guessed the role from a folder name no longer exists; the role is the layout's, named by `VaultKind::role_name` (`input/page.rs:155`).
+- **Changed at 07f4c1c, still true at 4b9d15d:** the Logseq-era `pages/` folder is gone. A vault is an ordinary Obsidian vault whose pages sit at the vault root (`input/page.rs:7-14`, ADR-OM-007); where that root sits under the repository is the profile's layout (`ontomark-cli/src/main.rs:560-562`), and a page id is its root-relative path (`input/page.rs:514-517`). The old `load_vault` entry that guessed the role from a folder name no longer exists; the role is the layout's, named by `VaultKind::role_name` (`input/page.rs:155`).
 
 ## OM-01.2 walk_pages — what is declined, reported, and the one listing every consumer shares
 
@@ -112,11 +112,11 @@ flowchart TD
     EXCL -- no --> KEEP
     KEEP --> SORT --> OUT
     UNPUB["_misc is NOT declined here — publication rule, kept as a page<br/>input/page.rs:48, input/page.rs:602-603"]
-    CALLERS["callers: Vault::load_excluding, build::run_with, migrate read_considered, repair, bodies<br/>input/page.rs:491, build/mod.rs:575, migrate/plan.rs:354, check/repair.rs:391, check/bodies.rs:795"]
+    CALLERS["callers: Vault::load_excluding, build::run_with, migrate read_considered, repair, bodies<br/>input/page.rs:491, build/mod.rs:661, migrate/plan.rs:354, check/repair.rs:391, check/bodies.rs:795"]
     CENSUS["inspect_walk — the census over the SAME PageWalk: a hidden or excluded-folder skip counts excluded_directory, a non-regular file excluded_not_regular_file<br/>ir/projection.rs:96, ir/projection.rs:104-109"]
     CENSUSF["per file: _misc excluded_directory, unreadable or unterminated fence invalid_input, public not a YAML bool invalid_publication_flag<br/>ir/projection.rs:114-116, ir/projection.rs:123-126, ir/projection.rs:139-142"]
     HELD["excluded_identities_of reads the held pages out of the loaded Vault — no second walk or parse<br/>ir/projection.rs:228-236"]
-    RUN["build::run_with walks once, then census, load and held identities all read that listing<br/>build/mod.rs:575-577, build/mod.rs:666"]
+    RUN["build::run_with walks once, then census, load and held identities all read that listing<br/>build/mod.rs:661-663, build/mod.rs:752"]
     OUT --- CALLERS
     OUT --- UNPUB
     RUN --> OUT
@@ -132,7 +132,7 @@ flowchart TD
 - **INVARIANT:** `UNPUBLISHED_DIRS = ["_misc"]` (`input/page.rs:48`) is applied twice: `is_unpublished` at the top level (`input/page.rs:667-672`) and, since 07f4c1c, at any depth by `held_back`, which also holds back `misc` (`build/publish.rs:134`, `build/publish.rs:138-148`). `HELD_BACK_DIRS` lists only the site-only `misc`, so the two lists no longer restate each other (`build/publish.rs:131-133`).
 - **INVARIANT:** hidden-directory, excluded-folder and non-regular-file skips are reported on `Vault.skipped` (`input/page.rs:437-440`) and travel into the validation report (`check/validate.rs:378`).
 
-**Changed by 4b9d15d (2026-11-02 restamp).** The two faults the [2026-11-01 layout audit](../../estate-review/2026-11-01-ontomark-layout-and-shared-checks.md) reproduced are closed in source: an empty exclusion list can no longer load journals twice, because `load_excluding` and `Layout::excluded_dirs` both start from `EXCLUDED_DIRS` (`input/page.rs:485-490`, `ontomark-compile/src/profile.rs:530-538`); a symlinked `journals/` root is refused (`input/page.rs:525`); and the CLI and the build check role roots for overlap and escape before any page is read (`ontomark-cli/src/main.rs:654`, `build/mod.rs:559`, `profile/layout.rs:190`). [OM-12](12-shared-layout-checks.md) owns that check. Low-level `walk_pages` still accepts an explicit list, so the journal tree can be walked on its own (`input/page.rs:535`).
+**Changed by 4b9d15d (2026-11-02 restamp).** The two faults the [2026-11-01 layout audit](../../estate-review/2026-11-01-ontomark-layout-and-shared-checks.md) reproduced are closed in source: an empty exclusion list can no longer load journals twice, because `load_excluding` and `Layout::excluded_dirs` both start from `EXCLUDED_DIRS` (`input/page.rs:485-490`, `ontomark-compile/src/profile.rs:530-538`); a symlinked `journals/` root is refused (`input/page.rs:525`); and the CLI and the build check role roots for overlap and escape before any page is read (`ontomark-cli/src/main.rs:659`, `build/mod.rs:645`, `profile/layout.rs:190`). [OM-12](12-shared-layout-checks.md) owns that check. Low-level `walk_pages` still accepts an explicit list, so the journal tree can be walked on its own (`input/page.rs:535`).
 
 ## OM-01.3 Frontmatter parse and the public, type and resource gates
 
@@ -149,13 +149,13 @@ flowchart TD
     UFLAG["Page.unterminated_frontmatter carries the split flag to the census and validate<br/>input/page.rs:223"]
     PUBLIC["Page::is_public — only Value::Bool(true) publishes; absent, false, a string or a number do not<br/>input/page.rs:269-274"]
     BOOL["Frontmatter::boolean takes a YAML bool only — a quoted true is None, never coerced<br/>input/frontmatter.rs:247-252"]
-    OKF["Page::okf → OkfBlock::from_frontmatter, never fails<br/>input/page.rs:278-280, input/okf.rs:264"]
-    OKFF["type_name, resource, status parse, generated, verified, sources<br/>input/okf.rs:274-288"]
-    HV["is_human_verified — any verified stamp by a human<br/>input/okf.rs:294-296"]
+    OKF["Page::okf → OkfBlock::from_frontmatter, never fails<br/>input/page.rs:278-280, input/okf.rs:326"]
+    OKFF["type_name, resource, status parse, generated, verified, sources<br/>input/okf.rs:336-350"]
+    HV["is_human_verified — any verified stamp by a human<br/>input/okf.rs:356-358"]
     GTYPE["MISSING_TYPE if the role grammar requires a type (rules.requires_type) and the page has none<br/>check/validate.rs:806-812"]
     GINV["INVALID_TYPE if type not in vocab types or working_types, and only when the vocabulary declares types<br/>check/validate.rs:813-826"]
     GREQ["MISSING_REQUIRED for each required key; resource needs iri and has_ontology<br/>check/validate.rs:827-843"]
-    GONT["has_ontology = has resource OR has type<br/>ir/model.rs:429"]
+    GONT["has_ontology = has resource OR has type<br/>ir/model.rs:432"]
     GIRI["MISSING_CLASS_IRI when has_ontology but iri empty<br/>check/validate.rs:527-533"]
     GRES["resource = frontmatter resource else namespace + slug<br/>input/page.rs:255-260"]
     TXT --> SPLIT
@@ -203,7 +203,7 @@ sequenceDiagram
     Note over R: INVARIANT: no credential character class contains a dollar sign, so env references are not matches — input/secrets.rs:106-113
     Note over V: INVARIANT: S1.2 closed — a credential in a sources or title value is seen by validate and by the staging gate alike — check/validate.rs:323, build/publish.rs:240
 ```
-- **INVARIANT:** the build runs the credential gate first, before validation, so a key on a public page gets its own exit code rather than being swallowed by the generic validation failure (`build/mod.rs:587-600`, `build/mod.rs:641`).
+- **INVARIANT:** the build runs the credential gate first, before validation, so a key on a public page gets its own exit code rather than being swallowed by the generic validation failure (`build/mod.rs:673-686`, `build/mod.rs:727`).
 - **INVARIANT:** `journals/` pages are secret-scanned by validate (`check/validate.rs:653-654`) but are never staged for publication (`build/publish.rs:215-217`).
 
 ## OM-01.5 Slug derivation and the consistency vocabulary
@@ -219,8 +219,8 @@ flowchart TD
     THING["is_thing — thing, owl-thing, owl:thing<br/>input/slug.rs:80-85"]
     U1["closure.rs uses ref_slug and is_thing<br/>ir/closure.rs:19, ir/closure.rs:123-124"]
     U2["indexes.rs uses ref_slug<br/>build/indexes.rs:13, build/indexes.rs:58"]
-    U3["Corpus links use target_slug<br/>ir/model.rs:424"]
-    U4["Corpus resolve fallback uses plain slugify, not target_slug<br/>ir/model.rs:342"]
+    U3["Corpus links use target_slug<br/>ir/model.rs:427"]
+    U4["Corpus resolve fallback uses plain slugify, not target_slug<br/>ir/model.rs:344"]
     CKEY["class_key — tail after last slash hash or colon, lowercased<br/>input/consistency.rs:62-69"]
     TAX["is_taxonomic → Taxonomy::is_taxonomy_node<br/>input/consistency.rs:87-89"]
     CDP["check_disjoint_pair — refuse taxonomic, self, or no shared parent<br/>input/consistency.rs:100-131"]
@@ -238,12 +238,12 @@ flowchart TD
     CDP -.-> WHELK
     note1["DIVERGENCE: a second slugify exists, hand-rolled without regex, in ontomark-model — ontomark-model/src/mint.rs:73-88"]
     note2["DIVERGENCE: whelk_inconsistent has no production caller; only tests/probe_consistency.rs:114 builds it,<br/>despite input/consistency.rs:3-6 saying both write paths read it"]
-    note3["DIVERGENCE: link refs use target_slug at ir/model.rs:424 but the resolve closure uses slugify at ir/model.rs:342; they differ on kebab input with leading, trailing or doubled dashes"]
+    note3["DIVERGENCE: link refs use target_slug at ir/model.rs:427 but the resolve closure uses slugify at ir/model.rs:344; they differ on kebab input with leading, trailing or doubled dashes"]
     SLUGIFY --- note1
     WHELK --- note2
     U4 --- note3
 ```
-- **DIVERGENCE:** `iri_for` had no caller and was removed in 8d654d1; the class IRI is built inline from `Page::resource` (`input/page.rs:255-260`) and the resolve fallback (`ir/model.rs:342`).
+- **DIVERGENCE:** `iri_for` had no caller and was removed in 8d654d1; the class IRI is built inline from `Page::resource` (`input/page.rs:255-260`) and the resolve fallback (`ir/model.rs:344`).
 - **EXTERNAL:** the module doc says the sibling-only rule is shared with VisionClaw's elevation actor (`input/consistency.rs:3-6`); that consumer is not in this repo.
 
 ## OM-01.6 Vocabulary loading, and the input modules with no production caller
@@ -251,8 +251,8 @@ flowchart TD
 ```mermaid
 flowchart TD
     DISC["Vocabulary::discover — canonicalise the start, then walk up for ontology/vocabulary.yaml<br/>input/vocabulary.rs:491-495, input/vocabulary.rs:507-523"]
-    CLIUSE["only caller of discover: ontomark-cli resolve_repo<br/>ontomark-cli/src/main.rs:490"]
-    GENERIC["no vocabulary.yaml above the start dir → Vocabulary::generic, estate_shape false — no types, relations or scalars (ADR-OM-008)<br/>ontomark-cli/src/main.rs:503-513, input/vocabulary.rs:469-471"]
+    CLIUSE["only caller of discover: ontomark-cli resolve_repo<br/>ontomark-cli/src/main.rs:495"]
+    GENERIC["no vocabulary.yaml above the start dir → Vocabulary::generic, estate_shape false — no types, relations or scalars (ADR-OM-008)<br/>ontomark-cli/src/main.rs:508-518, input/vocabulary.rs:469-471"]
     LOADV["Vocabulary::load — read file, wrap error with path<br/>input/vocabulary.rs:478-485"]
     LOADERS["other load callers: migrate plan<br/>migrate/plan.rs:475"]
     FROMYAML["from_yaml_str — serde_yaml then check<br/>input/vocabulary.rs:533-537"]
@@ -275,10 +275,10 @@ flowchart TD
     CODE --> CODEUSE
     PROMO --> PROMOUSE
     note1["DIVERGENCE: PromotionState, Transition and apply have no caller outside input/promotion.rs — a state machine with no driver in this workspace, input/promotion.rs:30-93"]
-    note2["DIVERGENCE: test-only public API — parse_page input/page.rs:683; Vault::get and get_mut are used by the guarded writes, write/create.rs:252, write/apply.rs:368; all_pages is read by the build digest loop, ontomark-compile/src/build/mod.rs:976"]
+    note2["DIVERGENCE: test-only public API — parse_page input/page.rs:683; Vault::get and get_mut are used by the guarded writes, write/create.rs:252, write/apply.rs:377; all_pages is read by the build digest loop, ontomark-compile/src/build/mod.rs:1084"]
     PROMO --- note1
     PROMOUSE --- note2
 ```
-- **Changed at 07f4c1c, still true at 4b9d15d:** a repository with no `ontology/vocabulary.yaml` is no longer refused: `resolve_repo` falls back to the built-in generic vocabulary (`ontomark-cli/src/main.rs:503-513`), and the validator takes `type` and `status` requirements and the unknown-key policy from the profile's role grammar, not from the vault's name (`check/validate.rs:389-402`, `check/validate.rs:806-812`).
+- **Changed at 07f4c1c, still true at 4b9d15d:** a repository with no `ontology/vocabulary.yaml` is no longer refused: `resolve_repo` falls back to the built-in generic vocabulary (`ontomark-cli/src/main.rs:508-518`), and the validator takes `type` and `status` requirements and the unknown-key policy from the profile's role grammar, not from the vault's name (`check/validate.rs:389-402`, `check/validate.rs:806-812`).
 - **DOC-DRIFT:** `parse_page` is documented as the entry point `VisionClaw`'s `CorpusSource::LocalDirectory` calls (`input/page.rs:676-681`), but no caller exists in this workspace.
 - **INVARIANT:** an unparseable or inconsistent vocabulary is a load error naming the file, never a partial vocabulary (`input/vocabulary.rs:481-484`, `input/vocabulary.rs:533-537`).

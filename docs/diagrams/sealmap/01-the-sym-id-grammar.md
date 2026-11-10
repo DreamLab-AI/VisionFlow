@@ -10,7 +10,8 @@ sources:
   - ../sealmap/crates/sealmap-extract/src/ids.rs
   - ../sealmap/docs/DESIGN.md
   - ../sealmap/README.md
-verified_commit: b9a6aebddd2e8379206eea6cfdd3ab84546724b4
+  - ../sealmap/crates/sealmap-model/README.md
+verified_commit: 2b351367cab241aa7304d364aa37b52e65bb71f2
 ---
 ## For developers
 
@@ -26,8 +27,8 @@ operations are cheap.
 The id is the identity half of rustc's identity/freshness split
 (`crates/sealmap-model/src/sym.rs:3`-`9`): the content half lives in
 fingerprints (SM-02). It was introduced in commit `5973a4e` as step 2 of the
-0.2 plan (`docs/DESIGN.md:296`), replacing the 0.1 `::` path ids whose
-`::` → `__` mangling was not injective (`docs/DESIGN.md:235`).
+0.2 plan (`docs/DESIGN.md:366`), replacing the 0.1 `::` path ids whose
+`::` → `__` mangling was not injective (`docs/DESIGN.md:305`).
 
 The builder that mints ids for real definitions is `sealmap-extract`'s
 `ids` module (SM-05); this topic covers the grammar it targets. What this
@@ -106,7 +107,7 @@ are plain string operations, and a parent sorts before its children because
 its text is a prefix of theirs (`crates/sealmap-model/src/sym.rs:101`-`104`).
 The owner chose SCIP's descriptor suffixes so a global id maps to a SCIP
 symbol by swapping the prefix (`crates/sealmap-model/src/sym.rs:11`-`13`),
-which is what keeps a later `export --scip` cheap (`docs/DESIGN.md:164`).
+which is what keeps a later `export --scip` cheap (`docs/DESIGN.md:234`).
 
 **Invariant:** two ids are equal exactly when their texts are, because only
 canonical text is ever stored; `parse` refuses anything that does not print
@@ -270,8 +271,8 @@ strict prefix of the child's (`crates/sealmap-model/tests/sym_props.rs:92`).
 
 ```mermaid
 flowchart TB
-    D1["DESIGN.md section 4<br/>sym grammar, kind-explicit, no file path<br/>docs/DESIGN.md:130"]
-    D2["README ids section<br/>printing injective, canonical-only parse<br/>README.md:182"]
+    D1["DESIGN.md section 4<br/>sym grammar, kind-explicit, no file path<br/>docs/DESIGN.md:200"]
+    D2["model crate README ids bullet<br/>printing injective, parsing its exact inverse<br/>crates/sealmap-model/README.md:12-14"]
     C1["grammar in rustdoc<br/>crates/sealmap-model/src/sym.rs:17"]
     C2["property tests<br/>crates/sealmap-model/tests/sym_props.rs:75"]
     C3["id builder, one per adapter<br/>crates/sealmap-extract/src/ids.rs:3"]
@@ -281,11 +282,12 @@ flowchart TB
     C1 --> C3
 ```
 
-**What it shows.** The design and the README both point at the rustdoc
-grammar as the authority, and the property tests and the shared id builder
+**What it shows.** The design and the model crate README both state the
+grammar's contract, with the rustdoc grammar as the authority, and the property tests and the shared id builder
 are the two things that hold the code to it.
 
-**Why it is this way.** The README says the grammar "is documented in
-`sealmap_model::sym`" (`README.md:183`) rather than restating it, so there is
-one source; the README's example table (`README.md:169`-`175`) is
-illustrative.
+**Why it is this way.** The root README no longer restates the grammar: it
+gives one illustrative id (`sealmap/README.md:364-366`) and a `resolve` example in its
+table (`sealmap/README.md:25`), while the model crate README states the
+injective-print and exact-inverse contract (`crates/sealmap-model/README.md:12-14`),
+so the rustdoc stays the one source.

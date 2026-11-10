@@ -12,7 +12,7 @@ sources:
   - ../sealmap/crates/sealmap-corpus/tests/contract.rs
   - ../sealmap/docs/DESIGN.md
   - ../sealmap/README.md
-verified_commit: 4ed7a51f92f7241a1c420e49e8036a8d9189912a
+verified_commit: 2b351367cab241aa7304d364aa37b52e65bb71f2
 ---
 ## For developers
 
@@ -20,16 +20,16 @@ verified_commit: 4ed7a51f92f7241a1c420e49e8036a8d9189912a
 output path to text: exactly one Markdown document per source file, plus four
 reserved files whose names start with `_` and so never collide with a source
 (`crates/sealmap-corpus/src/lib.rs:12`-`58`). It is pure: equal inputs give
-byte-identical output (`crates/sealmap-corpus/src/lib.rs:189`-`190`), and every
+byte-identical output (`crates/sealmap-corpus/src/lib.rs:192`-`193`), and every
 `CorpusOptions` field is part of that identity, so changing one is reported as
-drift by `verify` (`crates/sealmap-corpus/src/lib.rs:130`-`132`).
+drift by `verify` (`crates/sealmap-corpus/src/lib.rs:133`-`135`).
 
 This topic covers the orchestration, the anatomy of a document, and the
 `_index.json` merge map that links every call to the fragment that expands it.
 The diagrams inside a document are SM-13; checking and writing a directory is
 SM-14. Under the accepted design this 1:1 corpus stopped being a committed,
 CI-gated artefact and is an optional view under a gitignored `.sealmap/`
-(`docs/DESIGN.md:41`, `docs/DESIGN.md:44`-`48`); the code that produces it was
+(`docs/DESIGN.md:105`, `docs/DESIGN.md:108`-`112`); the code that produces it was
 unchanged by that decision.
 
 ## For the business
@@ -41,8 +41,9 @@ files. Its value to an adopter is that it costs no model tokens to produce and
 is identical every time, so it can be regenerated on demand rather than stored
 and maintained.
 
-The design's own measurement is the caution: a one-document-per-file Mermaid
-corpus is about the same size as the source (`README.md:59`), so it is not a
+The caution is a size one: an earlier README recorded that a one-document-per-file
+Mermaid corpus is about the same size as the source (1.07 times), and the current
+README keeps only the dense-view result of 0.17 to 0.29 times (`README.md:355`), so the corpus is not a
 compression and not what people should read. Its job is to be a reliable,
 linkable substrate, not the human map.
 
@@ -52,21 +53,21 @@ linkable substrate, not the human map.
 sequenceDiagram
     autonumber
     participant CL as caller
-    participant GE as generate<br/>sealmap-corpus/src/lib.rs:191
-    participant LK as Lookup.new<br/>sealmap-corpus/src/lib.rs:222
+    participant GE as generate<br/>sealmap-corpus/src/lib.rs:194
+    participant LK as Lookup.new<br/>sealmap-corpus/src/lib.rs:225
     participant DR as document render<br/>document.rs:14
     participant IX as Index<br/>index.rs:101
     CL->>GE: Codebase and CorpusOptions
-    GE->>GE: assert every diagram id unique (sealmap-corpus/src/lib.rs:193)
-    GE->>IX: new, with stats and generator version (sealmap-corpus/src/lib.rs:194)
-    GE->>LK: per-file and per-parent symbol lists (sealmap-corpus/src/lib.rs:195)
+    GE->>GE: assert every diagram id unique (sealmap-corpus/src/lib.rs:196)
+    GE->>IX: new, with stats and generator version (sealmap-corpus/src/lib.rs:197)
+    GE->>LK: per-file and per-parent symbol lists (sealmap-corpus/src/lib.rs:198)
     loop each source file in path order
-        GE->>DR: file, lookup, options (sealmap-corpus/src/lib.rs:197)
+        GE->>DR: file, lookup, options (sealmap-corpus/src/lib.rs:200)
         DR-->>GE: document path, text, DocumentEntry
     end
-    GE->>IX: link calls to expanding fragments (sealmap-corpus/src/lib.rs:201)
-    GE->>GE: _overview.md, _README.md, _model.json, _index.json (sealmap-corpus/src/lib.rs:203)
-    GE-->>CL: Corpus of files and index (sealmap-corpus/src/lib.rs:209)
+    GE->>IX: link calls to expanding fragments (sealmap-corpus/src/lib.rs:204)
+    GE->>GE: _overview.md, _README.md, _model.json, _index.json (sealmap-corpus/src/lib.rs:206)
+    GE-->>CL: Corpus of files and index (sealmap-corpus/src/lib.rs:212)
 ```
 
 **What it shows.** Generation is a single pass over files in path order, with
@@ -74,9 +75,9 @@ the cross-document work (id uniqueness up front, expansion links and the
 corpus-level files at the end) around it.
 
 **Why it is this way.** `_model.json` is optional (`emit_model`), the others
-are always written (`crates/sealmap-corpus/src/lib.rs:205`-`208`). JSON is
+are always written (`crates/sealmap-corpus/src/lib.rs:208`-`211`). JSON is
 compact by default because it is roughly half the size of pretty output
-(`crates/sealmap-corpus/src/lib.rs:153`-`155`).
+(`crates/sealmap-corpus/src/lib.rs:156`-`158`).
 
 **Debt:** the index records its generator as `sealmap-corpus` plus the crate
 version (`crates/sealmap-corpus/src/index.rs:104`), so a version bump with no
@@ -157,7 +158,7 @@ sequence and `structure:<file>` for a structure diagram, unique across the
 corpus (`crates/sealmap-corpus/src/index.rs:37`-`38`); the fragment hash exists
 so an orchestrator can cache merged results (`crates/sealmap-corpus/src/index.rs:60`).
 Fingerprints were added to fragments with schema v2
-(`crates/sealmap-corpus/src/lib.rs:114`).
+(`crates/sealmap-corpus/src/lib.rs:117`).
 
 **Invariant:** `_index.json` and `_model.json` carry ids, spans and
 fingerprints in schema v2, pinned by
@@ -169,10 +170,10 @@ fingerprints in schema v2, pinned by
 ```mermaid
 sequenceDiagram
     autonumber
-    participant GE as generate<br/>sealmap-corpus/src/lib.rs:191
+    participant GE as generate<br/>sealmap-corpus/src/lib.rs:194
     participant LE as link_expansions<br/>index.rs:112
     participant OR as orchestrating agent
-    GE->>LE: after every document is rendered (sealmap-corpus/src/lib.rs:201)
+    GE->>LE: after every document is rendered (sealmap-corpus/src/lib.rs:204)
     LE->>LE: collect ids of all sequence fragments (index.rs:113)
     loop every call of every fragment
         LE->>LE: target has a sequence fragment, set expands (index.rs:119)
@@ -194,10 +195,10 @@ link is a lookup, not a guess (`crates/sealmap-corpus/src/lib.rs:50`-`53`);
 
 ```mermaid
 flowchart TB
-    BEFORE["per document: Codebase.symbols_in_file and<br/>Codebase.children scan every symbol,<br/>O of files times symbols<br/>sealmap-corpus/src/lib.rs:214-215"]
-    LK["Lookup.new: one pass over symbols in id<br/>order, by file and by parent<br/>sealmap-corpus/src/lib.rs:227"]
-    IF["in_file: same items and order as<br/>symbols_in_file<br/>sealmap-corpus/src/lib.rs:236-238"]
-    CH["children: same items and order as<br/>Codebase.children<br/>sealmap-corpus/src/lib.rs:241-243"]
+    BEFORE["per document: Codebase.symbols_in_file and<br/>Codebase.children scan every symbol,<br/>O of files times symbols<br/>sealmap-corpus/src/lib.rs:217-218"]
+    LK["Lookup.new: one pass over symbols in id<br/>order, by file and by parent<br/>sealmap-corpus/src/lib.rs:230"]
+    IF["in_file: same items and order as<br/>symbols_in_file<br/>sealmap-corpus/src/lib.rs:239-241"]
+    CH["children: same items and order as<br/>Codebase.children<br/>sealmap-corpus/src/lib.rs:244-246"]
     BEFORE --> LK
     LK --> IF
     LK --> CH
@@ -208,7 +209,7 @@ once per generation instead of calling the model's linear scans per document.
 
 **Why it is this way.** It was part of the hardening (commit `8af26b3`); the
 lists keep the order the linear scans produced, so output did not change
-(`crates/sealmap-corpus/src/lib.rs:225`-`226`).
+(`crates/sealmap-corpus/src/lib.rs:228`-`229`).
 
 **Invariant:** generation is byte-identical across runs and regardless of the
 order sources were inserted (`crates/sealmap-corpus/tests/contract.rs:93`).

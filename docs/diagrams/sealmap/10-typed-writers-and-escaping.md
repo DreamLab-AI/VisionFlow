@@ -15,7 +15,8 @@ sources:
   - ../sealmap/crates/sealmap-mermaid/Cargo.toml
   - ../sealmap/docs/DESIGN.md
   - ../sealmap/README.md
-verified_commit: b9a6aebddd2e8379206eea6cfdd3ab84546724b4
+  - ../sealmap/crates/sealmap-mermaid/README.md
+verified_commit: 2b351367cab241aa7304d364aa37b52e65bb71f2
 ---
 ## For developers
 
@@ -33,8 +34,10 @@ class bodies, `(` turns a class member into a method, angle brackets collide
 with generics and `#` starts an entity code
 (`crates/sealmap-mermaid/src/lib.rs:17`-`21`). This topic draws the writer
 contract, the escaping rules and how each builder renders. It is the reason a
-whole generated corpus parses: the README counts 4,680 diagrams from five
-codebases and 6,142 from a VisionClaw corpus (`README.md:324`-`327`).
+whole generated corpus parses: the mermaid crate README says every label and identifier goes through one
+escaping layer so generated diagrams parse, whatever the source text contained
+(`crates/sealmap-mermaid/README.md:10`-`11`); the diagram counts the root README once
+quoted are no longer in it.
 
 ## For the business
 

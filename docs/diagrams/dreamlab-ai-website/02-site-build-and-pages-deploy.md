@@ -19,8 +19,9 @@ sources:
   - ../dreamlab-ai-website/scripts/generate-llms-full.mjs
   - ../dreamlab-ai-website/scripts/check-discovery.mjs
   - ../dreamlab-ai-website/scripts/check-claims.mjs
+  - ../dreamlab-ai-website/.github/workflows/deploy.yml
   - ../dreamlab-ai-website/docs/archive/adr/043-ai-search-visibility-aeo.md
-verified_commit: a67cb2a8d474f4ba2e79bdbf55fad2e87bfd7e98
+verified_commit: f934e26f949f3b95171544ec8ec5bcfd7679f593
 ---
 
 ## DW-02.1 Route table — lazy-loaded, code-split

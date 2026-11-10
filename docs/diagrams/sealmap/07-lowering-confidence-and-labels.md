@@ -17,7 +17,8 @@ sources:
   - ../sealmap/crates/sealmap-rust/src/tidy.rs
   - ../sealmap/crates/sealmap-rust/src/lib.rs
   - ../sealmap/README.md
-verified_commit: b9a6aebddd2e8379206eea6cfdd3ab84546724b4
+  - ../sealmap/crates/sealmap-rust/README.md
+verified_commit: 2b351367cab241aa7304d364aa37b52e65bb71f2
 ---
 ## For developers
 
@@ -34,7 +35,7 @@ pieces of shared, language-neutral policy, all in `sealmap-extract`:
 
 They were extracted from the Rust adapter in `a02b381` with no behaviour
 change, so a second adapter would draw flows, confidences and labels by the
-same rules (the design calls this the parity lever, `docs/DESIGN.md:131`). The resolver
+same rules (the design calls this the parity lever, `docs/DESIGN.md:201`). The resolver
 closure that lowering takes is the Rust adapter's `Resolver::call`, drawn in
 SM-07.4; how it finds targets is SM-08.
 
@@ -43,8 +44,8 @@ SM-07.4; how it finds targets is SM-08.
 This is where sealmap is honest about what it does not know. Every call in
 every diagram carries one of three tags: `exact` (resolved through explicit
 paths, imports or declared types), `inferred` (matched by a weaker rule) or
-`external` (outside the analysed code). Nothing is guessed silently
-(`README.md:321`-`323`), and the generated sequence diagrams mark inferred
+`external` (outside the analysed code). The extractor's README calls this honest confidence
+(`crates/sealmap-rust/README.md:16`), and the generated sequence diagrams mark inferred
 calls with a `~` so a reviewer can see which arrows to doubt (SM-12).
 
 By default calls into the standard library and calls on values of unknown

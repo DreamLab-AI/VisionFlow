@@ -11,7 +11,8 @@ sources:
   - ../sealmap/crates/sealmap-rust/tests/fingerprint.rs
   - ../sealmap/docs/DESIGN.md
   - ../sealmap/README.md
-verified_commit: b9a6aebddd2e8379206eea6cfdd3ab84546724b4
+  - ../sealmap/crates/sealmap-rust/README.md
+verified_commit: 2b351367cab241aa7304d364aa37b52e65bb71f2
 ---
 ## For developers
 
@@ -38,9 +39,10 @@ changing it costs exactly one re-look. Running rustfmt, adding a comment,
 silencing a lint or moving a function to another file leaves every
 fingerprint as it was, so no reviewed diagram is flagged. Changing what a
 function does changes its body fingerprint; changing how it is called changes
-its signature fingerprint. The README records the experiment behind the
-claim: reflowing tokio, VisionClaw and sealmap at a 50-column width changed no
-id and no hash (`README.md:200`-`201`).
+its signature fingerprint. The extractor's README states the claim that the
+fingerprints ignore comments, whitespace, rustfmt rewrites and moves
+(`crates/sealmap-rust/README.md:18`-`19`); the 50-column reflow experiment
+that once backed it is no longer in the README.
 
 The one gap an adopter should know about is macros: when a macro's arguments
 are not ordinary expressions, its body is only normalised token by token, so
@@ -125,7 +127,7 @@ keeps its `body_hash` and a rename detector can match it
 **Open:** because the impl header is part of every method's contract
 (`crates/sealmap-rust/src/collect.rs:450`-`452`), adding a bound to an
 impl's `where` clause changes the `sig_hash` of every method in it; the design's
-contract class (`docs/DESIGN.md:105`) does not say whether that is meant to
+contract class (`docs/DESIGN.md:175`) does not say whether that is meant to
 read as a contract change for each of them.
 
 ## SM-09.3 What goes into each value

@@ -29,7 +29,7 @@ sources:
   - ../dreamlab-ai-website/docs/api/MODERATION_API.md
   - ../dreamlab-ai-website/forum-config/src/branding.rs
   - ../nostr-rust-forum/docs/adr/ADR-2016-end-to-end-encrypted-zones.md
-verified_commit: {dreamlab-ai-website: 0e1572801d03a1af6d8bc8861f928da087d69eed, nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
+verified_commit: {dreamlab-ai-website: f934e26f949f3b95171544ec8ec5bcfd7679f593, nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
 ---
 
 ## DW-06.1 Pre-build content pipeline — two generators, run before every dev/build
@@ -46,19 +46,19 @@ sequenceDiagram
     WS->>WD: readdir(workshopsBaseDir)<br/>generate-workshop-list.mjs:5,33
     WD-->>WS: per-workshop dirs, .md files
     WS->>WS: extractTitleFromMd: first H1, fallback to<br/>Title Cased filename<br/>generate-workshop-list.mjs:8-25
-    WS->>WD: queue the manifest, then write manifest.json per workshop dir<br/>{title, pages: [{slug, title, pageTitle?}]}<br/>generate-workshop-list.mjs:86-90, 112
-    WS->>OUT: write src/data/workshop-list.json<br/>generate-workshop-list.mjs:117-118
+    WS->>WD: queue the manifest, then write manifest.json per workshop dir<br/>{title, pages: [{slug, title, pageTitle?}]}<br/>generate-workshop-list.mjs:87-91, 112
+    WS->>OUT: write src/data/workshop-list.json<br/>generate-workshop-list.mjs:118-119
     NPM->>TS: predev/prebuild step
     TS->>YAML: parseYaml(site-content.yaml)<br/>generate-testimonials.mjs:11-12
     TS->>TS: data.pages.testimonials.items<br/>generate-testimonials.mjs:14
     TS->>OUT: write src/data/testimonials.json<br/>generate-testimonials.mjs:18
 ```
-- Both generators fail soft: a missing `public/data/workshops/` writes an empty `workshop-list.json` instead of failing the build (`generate-workshop-list.mjs:121-124`), and a YAML parse error writes an empty `testimonials.json` (`generate-testimonials.mjs:22-25`) — CLAUDE.md's Data directory note explicitly marks these two JSON files as GENERATED, do-not-hand-edit.
+- Both generators fail soft: a missing `public/data/workshops/` writes an empty `workshop-list.json` instead of failing the build (`generate-workshop-list.mjs:122-125`), and a YAML parse error writes an empty `testimonials.json` (`generate-testimonials.mjs:22-25`) — CLAUDE.md's Data directory note explicitly marks these two JSON files as GENERATED, do-not-hand-edit.
 
 ## DW-06.2 Workshop manifest generation — page ordering rules
 ```mermaid
 flowchart TB
-    FILES["workshop dir .md files"] --> SORT["pageItems.sort<br/>generate-workshop-list.mjs:73-84"]
+    FILES["workshop dir .md files"] --> SORT["pageItems.sort<br/>generate-workshop-list.mjs:74-85"]
     SORT --> R1{"slug === readme.md?"}
     R1 -->|yes| FIRST["sorts first, always"]
     R1 -->|no| R2{"both slugs match ^(digits)[_.]?"}
@@ -68,8 +68,8 @@ flowchart TB
     NUMERIC --> MANIFEST
     ALPHA --> MANIFEST
 ```
-- The workshop id itself is reformatted for display: `workshop-01-foo` becomes `01 - Foo` via a regex that splits the leading number from the rest and title-cases each word (`generate-workshop-list.mjs:40-46`).
-- Manifests are now written in a second pass: every workshop's manifest is queued first (`generate-workshop-list.mjs:86-90`), then lessons whose title duplicates another lesson's, or repeats their own workshop's title, gain a `pageTitle` (`generate-workshop-list.mjs:98-110`) before the write (`generate-workshop-list.mjs:112`). The ordering rules above are unchanged. Content correctness is also checked by `scripts/lib/content-generators.mjs`, which re-derives counts from the generators' inputs (`scripts/lib/content-generators.mjs:7-11`), because both JSON artefacts are committed yet rebuilt by `prebuild`; it also now fails when a workshop's `path` is not `/workshops/<id>` (`scripts/lib/content-generators.mjs:88-99`), since prerender and the discovery check both re-read that field.
+- The workshop id itself is reformatted for display: `workshop-01-foo` becomes `01 - Foo` via a regex that splits the leading number from the rest and title-cases each word (`generate-workshop-list.mjs:41-47`).
+- Manifests are now written in a second pass: every workshop's manifest is queued first (`generate-workshop-list.mjs:87-91`), then lessons whose title duplicates another lesson's, or repeats their own workshop's title, gain a `pageTitle` (`generate-workshop-list.mjs:99-111`) before the write (`generate-workshop-list.mjs:113`). The ordering rules above are unchanged. Content correctness is also checked by `scripts/lib/content-generators.mjs`, which re-derives counts from the generators' inputs (`scripts/lib/content-generators.mjs:7-11`), because both JSON artefacts are committed yet rebuilt by `prebuild`; it also now fails when a workshop's `path` is not `/workshops/<id>` (`scripts/lib/content-generators.mjs:88-99`), since prerender and the discovery check both re-read that field.
 
 ## DW-06.5 API and security documentation inventory
 ```mermaid
@@ -126,7 +126,7 @@ flowchart TB
     D9["BASELINE-architecture.md cites a stale KIT_REF (BASELINE-architecture.md:117) and a beta.9 crate version (BASELINE-architecture.md:152)<br/>see DW-01.5"]
     D10["branding.rs dead code: dreamlab_zone_names() keeps a superseded<br/>3-zone naming, branding.rs:40-42; branding values now match<br/>dreamlab.toml, see DW-03.1"]
     D11["BASELINE-architecture.md estate-closeout note predates the 2026-09-05 gate fix<br/>see DW-05.3"]
-    D12["REOPENED: README.md:65 names kit source 8a5cf81, one repin behind the pins<br/>at 9c36b60 (rust-ci.yml:20, workers-deploy.yml:44) — see DW-06.8"]
+    D12["REOPENED: README.md:65 names kit source 8a5cf81, several repins behind the pins<br/>at 6064622 (rust-ci.yml:20, workers-deploy.yml:44) — see DW-06.8"]
     D13["RESOLVED 2026-10-07: root-level seed scripts with a hardcoded key<br/>deleted by 3baf2fa4, historical — see DW-07.2"]
     D14["embeddings/ tooling targets RuVector Postgres + all-MiniLM-L6-v2,<br/>unrelated to the search worker; the README claim was removed — see DW-07.4"]
     D15["IDENTITY-zones.md I7 breached: zone2/zone4 now encrypted=true too<br/>(dreamlab.toml:123,148), master gate [encryption].enabled added<br/>(dreamlab.toml:33-37) citing kit ADR-2016; DW-03.1 records the<br/>breach, the governing doc is still unrevised<br/>see DW-06.6 I7"]
@@ -146,4 +146,4 @@ flowchart TB
 ```
 - The earlier nine-bullet README feature list this diagram once classified is gone with the README rewrite; the register is seeded only with README claims that cite a concrete in-repo `file:line` (web push in the operator overlay, declared recipients and an inbox-watch path), so uncited README claims report `unclassified` by design (`docs/claims-register.json:2`).
 - **Tension (closed):** the README no longer says "no register file"; it now says the source-grounded register ships in this repository, that its evidence paths are checked in the test suite, and that the checker runs at the end of `postbuild` (`README.md:125`). `docs/claims-register.json` carries two claims and three feature notes, each now with an `evidence` path (`docs/claims-register.json:3-40`), and `checkClaims` still skips Jev only when no feature notes exist (`scripts/lib/claims.mjs:98-101`).
-- **Drift (reopened):** `README.md:65` stopped stating kit source `631c09f…` and stated `8a5cf81…`, but the pin sites now carry `9c36b6032640c89879ae52fe25da99493979a0b6` (`.github/workflows/rust-ci.yml:20`, `.github/workflows/workers-deploy.yml:44`), so the README sentence is one repin stale again.
+- **Drift (reopened):** `README.md:65` stopped stating kit source `631c09f…` and stated `8a5cf81…`, but the pin sites now carry `6064622dbb1a7cc1ba2d072109f9e3e8a96157df` (`.github/workflows/rust-ci.yml:20`, `.github/workflows/workers-deploy.yml:44`), so the README sentence is several repins stale.

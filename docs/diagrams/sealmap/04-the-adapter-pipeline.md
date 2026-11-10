@@ -14,7 +14,8 @@ sources:
   - ../sealmap/crates/sealmap-extract/src/isolate.rs
   - ../sealmap/docs/DESIGN.md
   - ../sealmap/README.md
-verified_commit: b9a6aebddd2e8379206eea6cfdd3ab84546724b4
+  - ../sealmap/crates/sealmap-rust/README.md
+verified_commit: 2b351367cab241aa7304d364aa37b52e65bb71f2
 ---
 ## For developers
 
@@ -25,11 +26,11 @@ A language adapter turns a `SourceSet` into a `Codebase` in three passes:
 (`crates/sealmap-rust/src/lib.rs:14`-`30`). `sealmap-rust` is the only adapter
 today; the language-neutral half it shares with any future adapter lives in
 `sealmap-extract`, split out in commit `a02b381` with byte-identical output
-before and after (`docs/DESIGN.md:131`).
+before and after (`docs/DESIGN.md:201`).
 
 This topic is the skeleton those passes hang on: the `extract` entry point,
 the Cargo layout rules, the panic-isolated big-stack collection that came
-from the hardening work (`docs/DESIGN.md:232`), and the order in which
+from the hardening work (`docs/DESIGN.md:302`), and the order in which
 `resolve::build` assembles the model. The passes' insides are their own
 topics: ids (SM-05), the flow walker (SM-06), lowering and confidence
 (SM-07), resolution (SM-08) and fingerprints (SM-09).
@@ -42,8 +43,9 @@ Three properties come from this skeleton. It never compiles anything, so it
 runs on any checkout, including one that does not build, and needs no
 toolchain at run time. It never fails a whole run because of one bad file:
 a file that does not parse, or that trips a bug, becomes a warning and a
-placeholder entry. And it is fast enough to sit in CI: the README records
-1.13 s for a 934-file workspace (`README.md:335`).
+placeholder entry. And it is fast enough to sit in CI: the extractor's README says a
+934-file workspace extracts and renders in about 1 s
+(`crates/sealmap-rust/README.md:20`-`22`).
 
 The residual risk is a file nested deeply enough to exhaust even the large
 stack: that still ends the process, because a stack overflow cannot be
@@ -173,7 +175,7 @@ a panic in one file becomes a placeholder `RawFile` whose error becomes a
 diagnostic, and the run continues.
 
 **Why it is this way.** The VisionClaw stack overflow came from deeply nested
-generics on rayon's default 2 MiB stacks (`docs/DESIGN.md:232`); syn costs
+generics on rayon's default 2 MiB stacks (`docs/DESIGN.md:302`); syn costs
 about 40 KiB per nesting level in a debug build
 (`crates/sealmap-extract/src/isolate.rs:3`-`7`). Address space is reserved,
 not memory, so the large stack is cheap (`crates/sealmap-extract/src/isolate.rs:27`-`29`).

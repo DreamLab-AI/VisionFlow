@@ -41,7 +41,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/docs/explanation/ecosystem-integration.md
   - ../solid-pod-rs/crates/solid-pod-rs/src/notifications/legacy.rs
   - ../solid-pod-rs/crates/solid-pod-rs/docs/BASELINE-solid-pod-rs.md
-verified_commit: 9b6143ce55b242c322c92d8c6bcc0c1a5371b451
+verified_commit: 27e18995fc20790fa956acb41f7d8420544a13ec
 ---
 
 ## SP-10.1 The eight baseline invariants and where each lives in code
@@ -55,7 +55,7 @@ flowchart TD
     I4b["4b. ONLY an absent policy inherits<br/>solid-pod-rs/src/wac/resolver.rs:153"]
     I5["5. Provenance never changes a write's HTTP status —<br/>but the failure is no longer swallowed<br/>solid-pod-rs/src/provenance.rs:514"]
     I6["6. Discovery metadata must MATCH the crypto path<br/>solid-pod-rs/src/oidc/mod.rs:184"]
-    I7["7. A private response is never advertised as publicly cacheable<br/>solid-pod-rs/src/ldp.rs:1949"]
+    I7["7. A private response is never advertised as publicly cacheable<br/>solid-pod-rs/src/ldp.rs:1895"]
     I8["8. The mirror is ON in shipped builds and fails closed (ADR-2010) —<br/>shipped means built with forge-full; the server's cargo default is empty<br/>crates/solid-pod-rs-server/Cargo.toml:172"]
 
     I1 --> SUR["the compliance surface"]
@@ -76,7 +76,7 @@ flowchart TD
 
 - **Drift:** the baseline lists eight invariants, the eighth being the mirror (../solid-pod-rs/crates/solid-pod-rs/docs/BASELINE-solid-pod-rs.md:291); this panel used to say seven. Invariant 8 was already present at the previous stamp.
 - **Open:** nothing in this repository builds forge-full apart from a test; the feature is defined at ../solid-pod-rs/crates/solid-pod-rs-server/Cargo.toml:172 and the default stays empty at ../solid-pod-rs/crates/solid-pod-rs-server/Cargo.toml:127. "Shipped builds" therefore means consumer builds, which this topic does not trace.
-- **Invariant:** invariant 1 survived the empty-body fix: the one verifier now binds any supplied body, empty included (solid-pod-rs/src/auth/nip98.rs:191), so SP-ID-01 is closed in source.
+- **Invariant:** invariant 1 survived the empty-body fix: the one verifier now binds any supplied body, empty included (solid-pod-rs/src/auth/nip98.rs:195), so SP-ID-01 is closed in source.
 
 ## SP-10.2 Fail-closed boundaries, in request order
 
@@ -84,14 +84,14 @@ flowchart TD
 flowchart TD
     A["storage boundary — parsed path components, not substrings, re-checked at the storage call<br/>solid-pod-rs/src/storage/fs.rs:81"]
     B["dotfile allowlist — a closed set of three, matched after fold_case so doc.ACL and<br/>other case variants are refused too (alpha.14)<br/>solid-pod-rs/src/security/dotfile.rs:24, fold_case at solid-pod-rs/src/security/dotfile.rs:306"]
-    C["NIP-98 — Schnorr verification is UNCONDITIONAL; without the feature<br/>the verifier is a fail-closed stub, and the server will not compile without it<br/>solid-pod-rs/src/auth/nip98.rs:212, stub at solid-pod-rs/src/auth/nip98.rs:381,<br/>assertion at solid-pod-rs-server/src/lib.rs:192"]
+    C["NIP-98 — Schnorr verification is UNCONDITIONAL; without the feature<br/>the verifier is a fail-closed stub, and the server will not compile without it<br/>solid-pod-rs/src/auth/nip98.rs:216, stub at solid-pod-rs/src/auth/nip98.rs:385,<br/>assertion at solid-pod-rs-server/src/lib.rs:192"]
     D["replay — a store at capacity REFUSES the credential<br/>solid-pod-rs/src/auth/replay_store.rs:75"]
     E["policy resolution — invalid or unreadable DENIES, never inherits<br/>solid-pod-rs/src/wac/resolver.rs:275"]
     F["evaluation — no ACL means no access; an unmatched condition skips the rule<br/>solid-pod-rs/src/wac/evaluator.rs:264, condition gate at solid-pod-rs/src/wac/evaluator.rs:306"]
     G["sidecar elevation — reading or writing an ACL demands Control<br/>solid-pod-rs/src/wac/mod.rs:252"]
-    H["lockout guard — a proposed ACL that would not leave the caller effective Control<br/>(same identities, conditions and balance as admission) is REFUSED<br/>solid-pod-rs-server/src/lib.rs:875"]
-    I["payment — a raced debit failure denies rather than serving unpaid<br/>solid-pod-rs-server/src/lib.rs:1064"]
-    J["PATCH — a stored body that is not UTF-8 N-Triples is refused with 409, not overwritten<br/>solid-pod-rs-server/src/lib.rs:2183"]
+    H["lockout guard — a proposed ACL that would not leave the caller effective Control<br/>(same identities, conditions and balance as admission) is REFUSED<br/>solid-pod-rs-server/src/lib.rs:974"]
+    I["payment — a raced debit failure denies rather than serving unpaid<br/>solid-pod-rs-server/src/lib.rs:1163"]
+    J["PATCH — a stored body that is not UTF-8 Turtle or N-Triples is refused with 409, not overwritten<br/>solid-pod-rs-server/src/lib.rs:2374"]
     K["method mapping — an unknown verb maps to Read, the least privilege<br/>solid-pod-rs/src/wac/mod.rs:185"]
 
     B --> C --> D --> G --> E --> F --> I --> H --> A
@@ -102,7 +102,7 @@ flowchart TD
     E -.-> N
 ```
 
-- **Drift:** at the previous stamp the lockout-guard and PATCH nodes cited lines that held other code. The lockout node pointed at a ledger-path doc comment, the PATCH node at the lockout guard and the payment node at a read-path comment. The chain also started with the storage-layer check and placed sidecar elevation after evaluation. The chain now follows the PUT path: the dotfile middleware, then authentication, then guarded_acl_target (solid-pod-rs-server/src/lib.rs:826) before policy resolution, payment debit inside enforcement, and the lockout guard in the handler before storage. On PATCH the stored-body refusal (solid-pod-rs-server/src/lib.rs:1941) runs before the lockout guard (solid-pod-rs-server/src/lib.rs:1961).
+- **Drift:** at the previous stamp the lockout-guard and PATCH nodes cited lines that held other code. The lockout node pointed at a ledger-path doc comment, the PATCH node at the lockout guard and the payment node at a read-path comment. The chain also started with the storage-layer check and placed sidecar elevation after evaluation. The chain now follows the PUT path: the dotfile middleware, then authentication, then guarded_acl_target (solid-pod-rs-server/src/lib.rs:925) before policy resolution, payment debit inside enforcement, and the lockout guard in the handler before storage. On PATCH the stored-body refusal (solid-pod-rs-server/src/lib.rs:2099) runs before the lockout guard (solid-pod-rs-server/src/lib.rs:2165).
 
 ## SP-10.3 Where a partial failure is visible rather than swallowed
 
@@ -125,29 +125,29 @@ sequenceDiagram
     else anchor failed
         P-->>H: the mark stands, anchor_error carried alongside<br/>solid-pod-rs/src/provenance.rs:512
     else sidecar write failed
-        P-->>H: stage unchanged, mark_error set<br/>solid-pod-rs-server/src/lib.rs:4105
+        P-->>H: stage unchanged, mark_error set<br/>solid-pod-rs-server/src/lib.rs:4438
     end
-    H-->>C: 201 in EVERY branch, plus X-Provenance naming the tier reached<br/>solid-pod-rs-server/src/lib.rs:1755, header at solid-pod-rs-server/src/lib.rs:1359
+    H-->>C: 201 in EVERY branch, plus X-Provenance naming the tier reached<br/>solid-pod-rs-server/src/lib.rs:1840, header at solid-pod-rs-server/src/lib.rs:1441
 
     Note over H: INVARIANT (ADR-2004): the status never changes, because the bytes ARE stored —<br/>but "stored" and "stored and provably marked" are now distinguishable to the<br/>caller. The receipt makes the write-then-mark window observable — it does not<br/>close it. The three steps are still not atomic.
 ```
 
-- **Invariant:** the server's git_mark_write composes through the library's record_receipt (solid-pod-rs-server/src/lib.rs:4023), so the mark-failed and anchor-failed branches cited in the library are the ones the server runs.
-- **Drift:** the PUT handler's comment still calls the hook "best-effort (errors swallowed)" at solid-pod-rs-server/src/lib.rs:1752, seven lines before it attaches the receipt (solid-pod-rs-server/src/lib.rs:1759). The comment contradicts invariant 5; the code does not.
+- **Invariant:** the server's git_mark_write composes through the library's record_receipt (solid-pod-rs-server/src/lib.rs:4356), so the mark-failed and anchor-failed branches cited in the library are the ones the server runs.
+- **Drift:** the PUT handler's comment still calls the hook "best-effort (errors swallowed)" at solid-pod-rs-server/src/lib.rs:1837, seven lines before it attaches the receipt (solid-pod-rs-server/src/lib.rs:1844). The comment contradicts invariant 5; the code does not.
 
 ## SP-10.4 Windows that are open by construction
 
 ```mermaid
 flowchart TD
-    W1["write-then-mark is NOT atomic — a crash between the storage put and the<br/>git commit leaves an unmarked resource<br/>put at solid-pod-rs-server/src/lib.rs:1747, mark at solid-pod-rs-server/src/lib.rs:1754"]
+    W1["write-then-mark is NOT atomic — a crash between the storage put and the<br/>git commit leaves an unmarked resource<br/>put at solid-pod-rs-server/src/lib.rs:1832, mark at solid-pod-rs-server/src/lib.rs:1839"]
     W2["metadata, then body: two separate atomic renames — a crash between them leaves<br/>a .meta tagged with a body ETag that never landed<br/>solid-pod-rs/src/storage/fs.rs:256"]
     W3["replay protection is process-local — a second replica shares nothing, and a<br/>restart reopens the window for one TTL<br/>solid-pod-rs-server/src/lib.rs:196"]
     W4["PAYMENT_STATE_LOCK is process-wide, not storage-wide — two replicas over one<br/>pod store share no lock<br/>solid-pod-rs-server/src/lib.rs:208"]
     W5["the NIP-98 freshness check is two-sided, ±60 s around now (a 120 s window);<br/>only the single-use store closes it<br/>solid-pod-rs/src/auth/nip98.rs:28, solid-pod-rs/src/auth/nip98.rs:151"]
-    W6["COPY authorises Write on the destination AND Read on the source, with the dotfile<br/>allowlist applied — CLOSED in alpha.13<br/>solid-pod-rs-server/src/lib.rs:2951, allowlist at solid-pod-rs-server/src/lib.rs:2946, CHANGELOG.md:541"]
-    W7["glob GET gates on the folder acl:Read, then enforce_read_inner per child,<br/>a refused child is skipped not merged — CLOSED in alpha.13<br/>solid-pod-rs-server/src/lib.rs:3057, solid-pod-rs-server/src/lib.rs:3074, CHANGELOG.md:546"]
+    W6["COPY authorises Write on the destination AND Read on the source, with the dotfile<br/>allowlist applied — CLOSED in alpha.13<br/>solid-pod-rs-server/src/lib.rs:3274, allowlist at solid-pod-rs-server/src/lib.rs:3269, CHANGELOG.md:673"]
+    W7["glob GET gates on the folder acl:Read, then enforce_read_inner per child,<br/>a refused child is skipped not merged — CLOSED in alpha.13<br/>solid-pod-rs-server/src/lib.rs:3386, solid-pod-rs-server/src/lib.rs:3403, CHANGELOG.md:678"]
 
-    W8["trail and epoch locks are in-process and held across network calls — a known gap<br/>that a second replica does not share<br/>CHANGELOG.md:603"]
+    W8["trail and epoch locks are in-process and held across network calls — a known gap<br/>that a second replica does not share<br/>CHANGELOG.md:735"]
 
     W1 --> R["recorded, not closed"]
     W2 --> R
@@ -199,9 +199,9 @@ flowchart TD
     D3["ADR-2003: discovery does not advertise EdDSA though the verifier accepts it<br/>solid-pod-rs/src/oidc/mod.rs:184"]
     D4["ADR-2004: provenance is off in a default build<br/>crates/solid-pod-rs-server/Cargo.toml:127"]
     D5["ADR-2005: the edge ACL resolver is out of repo and still treats a failed or<br/>invalid read as a miss<br/>solid-pod-rs/src/wac/resolver.rs:265"]
-    D6["ADR-2006: the ReplayStore seam has exactly ONE implementor<br/>solid-pod-rs/src/auth/replay_store.rs:90"]
+    D6["ADR-2006: the ReplayStore seam has exactly ONE implementor<br/>solid-pod-rs/src/auth/replay_store.rs:95"]
     D7["ADR-2007: one mempool URL, no fallback chain, public testnet4 default<br/>solid-pod-rs-server/src/mempool.rs:60"]
-    D8["REC-11: no pod-wide _prov enumeration — point lookup only<br/>solid-pod-rs-server/src/handlers/prov.rs:749"]
+    D8["REC-11: no pod-wide _prov enumeration — point lookup only<br/>solid-pod-rs-server/src/handlers/prov.rs:762"]
 
     D1 --> LEDGER["the ADR ledger amending the baseline"]
     D2 --> LEDGER
@@ -212,7 +212,7 @@ flowchart TD
     D7 --> LEDGER
     D8 --> LEDGER
 
-    N["D2 and D3 are DOCUMENTED AND PINNED by tests, not fixed — the compatibility<br/>matrix records them as known deltas; D1 was the opposite case, code ahead of the record (alpha.14, CHANGELOG.md:504);<br/>the ADR has since caught up. Neither claims Solid-OIDC conformance the code does not have."]
+    N["D2 and D3 are DOCUMENTED AND PINNED by tests, not fixed — the compatibility<br/>matrix records them as known deltas; D1 was the opposite case, code ahead of the record (alpha.14, CHANGELOG.md:636);<br/>the ADR has since caught up. Neither claims Solid-OIDC conformance the code does not have."]
     D3 -.-> N
     N2["D5 and D6 are the same shape: an interface exists in this repo, its second<br/>implementor lives in nostr-rust-forum, and neither can be discharged here.<br/>See SP-09.7 for the pin that blocks adoption."]
     D6 -.-> N2
@@ -225,9 +225,9 @@ flowchart LR
     R1["README now says a default server build records no git marks — RESOLVED<br/>../solid-pod-rs/README.md:139"]
     R2["README no longer makes the 'exit right' claim; GET /api/exports/all stays behind<br/>the default-off export-jsonld feature<br/>crates/solid-pod-rs-server/Cargo.toml:155"]
     R3["ecosystem-integration: 'S3 is configuration/dependency scaffolding only'<br/>(../solid-pod-rs/crates/solid-pod-rs/docs/explanation/ecosystem-integration.md:105)<br/>— the S3 variant no longer exists in StorageBackendConfig<br/>solid-pod-rs-server/src/main.rs:181"]
-    R4["ecosystem-integration: consumers pin solid-pod-rs 0.4<br/>(../solid-pod-rs/crates/solid-pod-rs/docs/explanation/ecosystem-integration.md:47)<br/>— the workspace is at 0.5.0-alpha.18<br/>../solid-pod-rs/Cargo.toml:15"]
+    R4["ecosystem-integration: consumers pin solid-pod-rs 0.4<br/>(../solid-pod-rs/crates/solid-pod-rs/docs/explanation/ecosystem-integration.md:47)<br/>— the workspace is at 0.5.0-alpha.21<br/>../solid-pod-rs/Cargo.toml:15"]
     R5["README no longer says 'Phases 0-3 shipped': it lists the alpha.17 forge surface and<br/>says compiled features, configured service and activation are separate<br/>../solid-pod-rs/README.md:172"]
-    R6["README: at most 86.4% strict over 300 rows after the 2026-11-01 audit, 21 rows missing<br/>including two P0s — a script over a curated checklist, 'not a universal conformance score'<br/>../solid-pod-rs/README.md:171, ../solid-pod-rs/scripts/parity-check.sh:7"]
+    R6["README: at most 89.6% strict over 300 rows after the 2026-11-01 audit, 15 rows missing<br/>— a script over a curated checklist, 'not a universal conformance score'<br/>../solid-pod-rs/README.md:171, ../solid-pod-rs/scripts/parity-check.sh:7"]
 
     R1 --> REG["doc drift against the code at this commit"]
     R2 --> REG
@@ -236,7 +236,7 @@ flowchart LR
     R5 --> REG
     R6 --> REG
 
-    N["None of these is a code defect. Each is a claim the living docs make that the<br/>code at 9b6143c qualifies or contradicts — which is exactly what the baseline's<br/>'live code beats doc prose' lookup order exists to catch."]
+    N["None of these is a code defect. Each is a claim the living docs make that the<br/>code at 27e1899 qualifies or contradicts — which is exactly what the baseline's<br/>'live code beats doc prose' lookup order exists to catch."]
     REG -.-> N
 ```
 
@@ -246,11 +246,11 @@ flowchart LR
 flowchart TD
     A["dated security and quality audit, 2026-08-19"]
     F1["filesystem symlink root escape — closed by the cap-std capability handle<br/>solid-pod-rs/src/storage/fs.rs:53"]
-    F2["anonymous MCP reads / WAC sidecar bypass — CLOSED in 0.5.0-alpha.13: one path<br/>canonicaliser feeds permission check and storage on every route, MCP enforces<br/>the dotfile allowlist and the REST quota path<br/>CHANGELOG.md:550, CHANGELOG.md:559"]
+    F2["anonymous MCP reads / WAC sidecar bypass — CLOSED in 0.5.0-alpha.13: one path<br/>canonicaliser feeds permission check and storage on every route, MCP enforces<br/>the dotfile allowlist and the REST quota path<br/>CHANGELOG.md:682, CHANGELOG.md:691"]
     F3["forged IdP identity — mitigated by not exposing the optional IdP router"]
-    F4["non-atomic payment state — alpha.13 holds the payment lock across anchor<br/>charges and refunds, closing the lost-update race<br/>CHANGELOG.md:580"]
+    F4["non-atomic payment state — alpha.13 holds the payment lock across anchor<br/>charges and refunds, closing the lost-update race<br/>CHANGELOG.md:712"]
     F5["filesystem writes violate the advertised atomic storage contract<br/>solid-pod-rs/src/storage/fs.rs:111"]
-    F6["supply-chain advisories RUSTSEC-2026-0258 / RUSTSEC-2023-0071 / RUSTSEC-2026-0387 — carried as<br/>dated, justified exceptions (SP-09.4); the third (crypto-bigint 0.5.5 via openidconnect) has unassessed exposure<br/>../solid-pod-rs/deny.toml:47, ../solid-pod-rs/deny.toml:56, ../solid-pod-rs/deny.toml:63, ../solid-pod-rs/.github/workflows/ci.yml:195"]
+    F6["supply-chain advisories RUSTSEC-2026-0258 / RUSTSEC-2023-0071 / RUSTSEC-2026-0387 — carried as<br/>dated, justified exceptions (SP-09.4); the third (crypto-bigint 0.5.5 via openidconnect) has unassessed exposure<br/>../solid-pod-rs/deny.toml:48, ../solid-pod-rs/deny.toml:57, ../solid-pod-rs/deny.toml:64, ../solid-pod-rs/.github/workflows/ci.yml:195"]
 
     A --> F1
     A --> F2
@@ -259,13 +259,13 @@ flowchart TD
     A --> F5
     A --> F6
 
-    N["The README no longer lists these findings or says to keep MCP disabled: its status table<br/>says release notes and a dated audit document record fixed findings and remaining gaps,<br/>and that its refresh did not rerun a security audit (../solid-pod-rs/README.md:175).<br/>The alpha.13 entry names the remaining gaps itself (../solid-pod-rs/CHANGELOG.md:603)."]
+    N["The README no longer lists these findings or says to keep MCP disabled: its status table<br/>says release notes and a dated audit document record fixed findings and remaining gaps,<br/>and that its refresh did not rerun a security audit (../solid-pod-rs/README.md:175).<br/>The alpha.13 entry names the remaining gaps itself (../solid-pod-rs/CHANGELOG.md:735)."]
     A -.-> N
-    N2["F2 and F4 are closed by alpha.13, and the alpha.13 notes tell operators who served a<br/>public-read root or enabled MCP to rotate trail keys and audit ledger balances<br/>(../solid-pod-rs/CHANGELOG.md:557). The advisory exceptions in F6 are not asserted<br/>to pass any gate by the README now (../solid-pod-rs/README.md:178)."]
+    N2["F2 and F4 are closed by alpha.13, and the alpha.13 notes tell operators who served a<br/>public-read root or enabled MCP to rotate trail keys and audit ledger balances<br/>(../solid-pod-rs/CHANGELOG.md:689). The advisory exceptions in F6 are not asserted<br/>to pass any gate by the README now (../solid-pod-rs/README.md:178)."]
     F6 -.-> N2
 ```
 
-- **Drift:** the alpha.13 "Known gaps" text still says the Solid-OIDC helpers do not check aud (../solid-pod-rs/CHANGELOG.md:606). Alpha.14 closed that gap (../solid-pod-rs/CHANGELOG.md:504). A dated release entry is history; read it with the later entries.
+- **Drift:** the alpha.13 "Known gaps" text still says the Solid-OIDC helpers do not check aud (../solid-pod-rs/CHANGELOG.md:738). Alpha.14 closed that gap (../solid-pod-rs/CHANGELOG.md:636). A dated release entry is history; read it with the later entries.
 - **Open:** the 2026-08-19 audit and the F3 IdP-router mitigation carry no citation here. They are recorded claims, not traced in source.
 
 ## SP-10.9 Error taxonomy and how a failure reaches the caller
@@ -273,12 +273,12 @@ flowchart TD
 ```mermaid
 flowchart TD
     POD["PodError — the library's error type<br/>solid-pod-rs/src/error.rs:9"]
-    TA["to_actix maps it to a status<br/>solid-pod-rs-server/src/lib.rs:573"]
-    PF["policy_failure_to_actix — 403 for Invalid, 503 for Unavailable<br/>solid-pod-rs-server/src/lib.rs:2244"]
-    AD["acl_denial — 401 with a WWW-Authenticate challenge, or 403<br/>solid-pod-rs-server/src/lib.rs:1109"]
+    TA["to_actix maps it to a status<br/>solid-pod-rs-server/src/lib.rs:679"]
+    PF["policy_failure_to_actix — 403 for Invalid, 503 for Unavailable<br/>solid-pod-rs-server/src/lib.rs:2484"]
+    AD["acl_denial — 401 with a WWW-Authenticate challenge, or 403<br/>solid-pod-rs-server/src/lib.rs:1208"]
     PE["PaymentError<br/>solid-pod-rs/src/payments.rs:938"]
-    PR["payment_error_response<br/>solid-pod-rs-server/src/handlers/pay.rs:369"]
-    LOG["ErrorLoggingMiddleware — log_5xx and format_error_chain<br/>solid-pod-rs-server/src/lib.rs:3719"]
+    PR["payment_error_response<br/>solid-pod-rs-server/src/handlers/pay.rs:407"]
+    LOG["ErrorLoggingMiddleware — log_5xx and format_error_chain<br/>solid-pod-rs-server/src/lib.rs:4052"]
     C["the caller"]
 
     POD --> TA --> C
@@ -291,26 +291,26 @@ flowchart TD
 
     N["The distinction between 403 and 503 on a policy failure is deliberate: Invalid<br/>is the operator's problem and will not fix itself, Unavailable may be transient.<br/>Collapsing both to 403 would tell a client to stop retrying a recoverable fault."]
     PF -.-> N
-    N2["The code comment says ErrorLoggingMiddleware is OUTERMOST, but it is the FIRST .wrap<br/>(solid-pod-rs-server/src/lib.rs:5211), and actix runs the LAST-registered wrap outermost.<br/>So it sits inside CORS, NormalizePath, PathTraversalGuard and DotfileGuard (SP-02.8).<br/>format_error_chain (solid-pod-rs-server/src/lib.rs:3755) appends the actix Debug dump to<br/>the Display message. It does not walk source()."]
+    N2["The code comment says ErrorLoggingMiddleware is OUTERMOST, but it is the FIRST .wrap<br/>(solid-pod-rs-server/src/lib.rs:5559), and actix runs the LAST-registered wrap outermost.<br/>So it sits inside CORS, NormalizePath, PathTraversalGuard and DotfileGuard (SP-02.8).<br/>format_error_chain (solid-pod-rs-server/src/lib.rs:4088) appends the actix Debug dump to<br/>the Display message. It does not walk source()."]
     LOG -.-> N2
 ```
 
-- **Tension:** the intent stated at solid-pod-rs-server/src/lib.rs:5207, to observe every response including guard short-circuits, does not match actix's ordering. actix-web 4.14.1, the version in the lockfile, documents in its middleware module that middleware runs in the opposite order of registration, with the last-registered layer outermost. A 5xx produced by an outer middleware would therefore not reach log_5xx. No request was run to observe it.
+- **Tension:** the intent stated at solid-pod-rs-server/src/lib.rs:5555, to observe every response including guard short-circuits, does not match actix's ordering. actix-web 4.14.1, the version in the lockfile, documents in its middleware module that middleware runs in the opposite order of registration, with the last-registered layer outermost. A 5xx produced by an outer middleware would therefore not reach log_5xx. No request was run to observe it.
 
 ## SP-10.10 Denial-of-service bounds
 
 ```mermaid
 flowchart LR
-    B1["request body cap — JSS_MAX_REQUEST_BODY, default 50 MiB<br/>solid-pod-rs-server/src/lib.rs:383"]
+    B1["request body cap — JSS_MAX_REQUEST_BODY, default 50 MiB<br/>solid-pod-rs-server/src/lib.rs:489"]
     B2["ACL byte cap — MAX_ACL_BYTES 1 MiB<br/>solid-pod-rs/src/wac/mod.rs:28"]
     B3["ACL JSON depth cap — 32, checked WITHOUT parsing<br/>solid-pod-rs/src/wac/mod.rs:33"]
     B4["NIP-98 token cap — MAX_EVENT_SIZE 64 KiB, before and after base64<br/>solid-pod-rs/src/auth/nip98.rs:29"]
     B5["replay store cap — DEFAULT_MAX_SIZE 10 000, refuses rather than evicting<br/>solid-pod-rs/src/auth/replay.rs:82"]
-    B6["pod creation — one POST /.pods per IP per day<br/>solid-pod-rs-server/src/lib.rs:540"]
-    B7["proxy byte cap — DEFAULT_PROXY_BYTE_CAP 50 MiB<br/>solid-pod-rs-server/src/lib.rs:3181"]
+    B6["pod creation — one POST /.pods per IP per day<br/>solid-pod-rs-server/src/lib.rs:646"]
+    B7["proxy byte cap — DEFAULT_PROXY_BYTE_CAP 50 MiB<br/>solid-pod-rs-server/src/lib.rs:3510"]
     B8["notification subscriptions — 10 000 overall, 100 per legacy connection<br/>solid-pod-rs/src/notifications/mod.rs:125, solid-pod-rs/src/notifications/legacy.rs:75"]
-    B9["Slug length — MAX_SLUG_BYTES 255<br/>solid-pod-rs/src/ldp.rs:167"]
-    B10["POST unique-name probing is bounded, with a hash fallback<br/>solid-pod-rs-server/src/lib.rs:1770"]
+    B9["Slug length — MAX_SLUG_BYTES 255<br/>solid-pod-rs/src/ldp.rs:168"]
+    B10["POST unique-name probing is bounded, with a hash fallback<br/>solid-pod-rs-server/src/lib.rs:1855"]
 
     B1 --> D["bounded before allocation"]
     B2 --> D
@@ -344,11 +344,11 @@ flowchart TD
 
     C1["re-read invariants 1 and 2; confirm the store still REFUSES at capacity<br/>solid-pod-rs/src/auth/replay.rs:275"]
     C2["re-read invariants 4 and 4b; confirm Invalid and Unavailable still deny<br/>solid-pod-rs/src/wac/resolver.rs:143"]
-    C3["re-read invariant 5; confirm the status is unchanged AND the receipt still<br/>reaches the caller<br/>solid-pod-rs-server/src/lib.rs:1359"]
+    C3["re-read invariant 5; confirm the status is unchanged AND the receipt still<br/>reaches the caller<br/>solid-pod-rs-server/src/lib.rs:1441"]
     C4["re-read invariant 6; discovery and the verifier move TOGETHER<br/>solid-pod-rs/src/oidc/mod.rs:184"]
     C5["re-read invariant 3; confirm scrub_dotdot is still a loop<br/>solid-pod-rs/src/multitenant.rs:199"]
     C6["update the pin matrix and check whether the edge consumer can still compile<br/>the core surface — SP-09.7"]
-    C7["re-read invariants 7 and 8; private stays private, no-store, and the mirror<br/>still fails closed<br/>solid-pod-rs/src/ldp.rs:1949, crates/solid-pod-rs-server/Cargo.toml:172"]
+    C7["re-read invariants 7 and 8; private stays private, no-store, and the mirror<br/>still fails closed<br/>solid-pod-rs/src/ldp.rs:1895, crates/solid-pod-rs-server/Cargo.toml:172"]
     BL["update BASELINE-solid-pod-rs.md in the SAME commit, bump its version, and<br/>re-record its verified_commit"]
 
     START --> Q1 --> C1 --> BL
@@ -381,14 +381,14 @@ flowchart TD
         W2["DotfileAllowlist::with_metrics<br/>solid-pod-rs/src/security/dotfile.rs:89"]
     end
     subgraph HDR["Per-response signals a client can read"]
-        H1["X-Provenance and X-Provenance-Commit<br/>solid-pod-rs-server/src/lib.rs:1359"]
-        H2["WAC-Allow, advisory on grant (set_wac_allow, solid-pod-rs-server/src/lib.rs:1328)<br/>AND denial (acl_denial, solid-pod-rs-server/src/lib.rs:1122)"]
-        H3["Updates-via — the notification endpoint<br/>solid-pod-rs-server/src/lib.rs:1339"]
+        H1["X-Provenance and X-Provenance-Commit<br/>solid-pod-rs-server/src/lib.rs:1441"]
+        H2["WAC-Allow, advisory on grant (set_wac_allow, solid-pod-rs-server/src/lib.rs:1410)<br/>AND denial (acl_denial, solid-pod-rs-server/src/lib.rs:1221)"]
+        H3["Updates-via — the notification endpoint<br/>solid-pod-rs-server/src/lib.rs:1421"]
     end
     subgraph LOG["Structured tracing"]
-        L1["log_5xx and format_error_chain<br/>solid-pod-rs-server/src/lib.rs:3719"]
+        L1["log_5xx and format_error_chain<br/>solid-pod-rs-server/src/lib.rs:4052"]
         L2["mempool selection recorded once at startup<br/>solid-pod-rs-server/src/mempool.rs:329"]
-        L3["an invalid or unreadable ACL logs the policy path and reason<br/>solid-pod-rs-server/src/lib.rs:2250"]
+        L3["an invalid or unreadable ACL logs the policy path and reason<br/>solid-pod-rs-server/src/lib.rs:2490"]
     end
 
     SM --> SS
@@ -404,7 +404,7 @@ flowchart TD
     COUNT -.-> N
     N2["EXTERNAL: the doc names the upstream binder that owns the Prometheus registry<br/>(solid-pod-rs/src/metrics.rs:5) — that is VisionClaw's webxr server, which<br/>embeds the pod. See VC-26 and VC-08."]
     WIRE -.-> N2
-    N3["Only TWO subsystems are counted — SSRF blocks and dotfile denials. WAC<br/>denials, replay rejections, quota refusals and provenance failures are never<br/>counted. Of these the server logs policy-resolution failures and provenance failures;<br/>a plain acl_denial writes no log line (solid-pod-rs-server/src/lib.rs:1109)."]
+    N3["Only TWO subsystems are counted — SSRF blocks and dotfile denials. WAC<br/>denials, replay rejections, quota refusals and provenance failures are never<br/>counted. Of these the server logs policy-resolution failures and provenance failures;<br/>a plain acl_denial writes no log line (solid-pod-rs-server/src/lib.rs:1208)."]
     SM -.-> N3
     N4["The counters are also OPT-IN: without a with_metrics call the policies hold a<br/>default bundle nobody reads, so a deployment that never wires one records<br/>nothing."]
     WIRE -.-> N4

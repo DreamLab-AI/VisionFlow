@@ -19,7 +19,7 @@ sources:
   - ../dreamlab-ai-website/scripts/seo-watch/lib/presence.mjs
   - ../project/agentbox/flake.nix
   - ../project/agentbox/agentbox.toml
-verified_commit: {dreamlab-ai-website: b5eb1ecf96599ebe154ebf23bbe7c703d2e653a5, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
+verified_commit: {dreamlab-ai-website: f934e26f949f3b95171544ec8ec5bcfd7679f593, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
 ---
 
 ## For developers
@@ -47,7 +47,7 @@ flowchart TB
     %% Source: ../dreamlab-ai-website/scripts/seo-watch/run.mjs:141
     C --> D["Audit live pages, then optional advice<br/>and proposal processing"]
     %% Source: ../dreamlab-ai-website/scripts/seo-watch/run.mjs:35
-    %% Source: ../dreamlab-ai-website/scripts/seo-watch/run.mjs:240
+    %% Source: ../dreamlab-ai-website/scripts/seo-watch/run.mjs:241
     D --> E["Reports, state and ledger outside repo<br/>default workspace/.agentbox/seo-watch"]
     %% Source: ../dreamlab-ai-website/scripts/seo-watch/crontab:17
     B --> F["Same crontab also runs inbox watch<br/>07:15 UTC, separate lock and state"]
@@ -130,44 +130,44 @@ flowchart TB
     A["Validate paths, headers, line count<br/>and file cooldown"]
     %% Source: ../dreamlab-ai-website/scripts/seo-watch/lib/advise.mjs:31
     A --> P["DRIFT: crawler policy restriction<br/>is a prompt rule, not a semantic patch gate"]
-    %% Source: ../dreamlab-ai-website/scripts/seo-watch/lib/propose.mjs:121
+    %% Source: ../dreamlab-ai-website/scripts/seo-watch/lib/propose.mjs:128
     A --> B["Detached origin/main worktree<br/>share installed dependencies if present"]
-    %% Source: ../dreamlab-ai-website/scripts/seo-watch/lib/propose.mjs:143
+    %% Source: ../dreamlab-ai-website/scripts/seo-watch/lib/propose.mjs:150
     B --> C["Git path/application checks<br/>build, lint and tests under cleared environment"]
-    %% Source: ../dreamlab-ai-website/scripts/seo-watch/lib/propose.mjs:193
+    %% Source: ../dreamlab-ai-website/scripts/seo-watch/lib/propose.mjs:207
     C --> D["Require exact applied diff<br/>and only expected changed paths"]
-    %% Source: ../dreamlab-ai-website/scripts/seo-watch/lib/propose.mjs:288
+    %% Source: ../dreamlab-ai-website/scripts/seo-watch/lib/propose.mjs:302
     D --> E["Create branch, stage patch and report<br/>commit with hooks disabled"]
-    %% Source: ../dreamlab-ai-website/scripts/seo-watch/lib/propose.mjs:298
-    E --> F["DRIFT: inspect staged names AFTER commit<br/>normal empty index fails expected-file check"]
-    %% Source: ../dreamlab-ai-website/scripts/seo-watch/lib/propose.mjs:301
-    F -.->|"not reached in local success-to-commit fixture"| G["Push, label and draft PR code<br/>human merge remains required"]
+    %% Source: ../dreamlab-ai-website/scripts/seo-watch/lib/propose.mjs:312
+    E --> F["DRIFT: RESOLVED at dreamlab-ai-website f934e26<br/>committed set read with diff-tree on HEAD, then compared"]
+    %% Source: ../dreamlab-ai-website/scripts/seo-watch/lib/propose.mjs:317
+    F --> G["Push, label and draft PR code<br/>human merge remains required"]
 ```
 
-**What it shows:** Non-executable text and exact-tree checks bound the model patch, but the normal publisher path rejects after committing.
-**Why it is this way:** ADR-2010 requires tested, human-reviewed proposals; the local fixture demonstrates a publication defect without contacting GitHub.
+**What it shows:** Non-executable text and exact-tree checks bound the model patch, and the publisher now checks the committed file set (not the emptied index) before it pushes.
+**Why it is this way:** ADR-2010 requires tested, human-reviewed proposals; the earlier staged-index check that failed after committing is replaced by a diff-tree read of the commit.
 
 ## DW-08.6 Reconciliation, receipts and outcome limits
 
 ```mermaid
 flowchart TB
-    %% Source: ../dreamlab-ai-website/scripts/seo-watch/lib/propose.mjs:237
+    %% Source: ../dreamlab-ai-website/scripts/seo-watch/lib/propose.mjs:251
     A["Reconcile labelled PRs and owned branches<br/>open PR gate and declined-file cooldown"]
-    %% Source: ../dreamlab-ai-website/scripts/seo-watch/lib/propose.mjs:267
+    %% Source: ../dreamlab-ai-website/scripts/seo-watch/lib/propose.mjs:281
     A --> B["DEBT: delete state record even<br/>when remote branch deletion fails"]
-    %% Source: ../dreamlab-ai-website/scripts/seo-watch/run.mjs:190
+    %% Source: ../dreamlab-ai-website/scripts/seo-watch/run.mjs:191
     C["Provider error retained in advice object"]
-    %% Source: ../dreamlab-ai-website/scripts/seo-watch/run.mjs:241
+    %% Source: ../dreamlab-ai-website/scripts/seo-watch/run.mjs:242
     C --> D["Report is scrubbed before writing"]
-    %% Source: ../dreamlab-ai-website/scripts/seo-watch/run.mjs:253
-    C --> E["DRIFT: ledger serialises raw advice error<br/>error log is also unsanitised"]
+    %% Source: ../dreamlab-ai-website/scripts/seo-watch/run.mjs:254
+    C --> E["DRIFT: RESOLVED at dreamlab-ai-website f934e26<br/>advice error scrubbed at source before ledger row and log (run.mjs:190)"]
     %% Source: ../dreamlab-ai-website/scripts/seo-watch/lib/presence.mjs:6
     F["Optional weekly Perplexity citation probe"]
     %% Source: ../dreamlab-ai-website/scripts/seo-watch/lib/presence.mjs:29
     F --> G["DEBT: failed calls count as not cited<br/>in the aggregate denominator"]
-    %% Source: ../dreamlab-ai-website/docs/adr/ADR-2010-seo-watch-nightly.md:99
+    %% Source: ../dreamlab-ai-website/docs/adr/ADR-2010-seo-watch-nightly.md:123
     G --> H["No Search Console or Bing index evidence<br/>citation fraction is not ranking or conversion"]
 ```
 
-**What it shows:** Review state and retained receipts have failure cases distinct from the live audit. A synthetic provider-key echo reaches the ledger and stderr but not the report.
-**Why it is this way:** ADR-2010 requires scrubbing and an outcome metric; the current error and aggregate paths only partly implement those obligations.
+**What it shows:** Review state and retained receipts have failure cases distinct from the live audit. A provider-key echo in an error is now scrubbed where it is caught, so it reaches neither the ledger, stderr nor the report.
+**Why it is this way:** ADR-2010 requires scrubbing and an outcome metric; the error path now scrubs, while the aggregate path still only partly implements those obligations.

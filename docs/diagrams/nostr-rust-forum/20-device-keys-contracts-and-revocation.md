@@ -13,12 +13,12 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/read_cache.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/session.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/settings.rs
-verified_commit: {nostr-rust-forum: c39f41f104b114d6a3fa29013daaf6fa58b45080}
+verified_commit: {nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
 ---
 
 ## For developers
 
-The registration proof/list-number and re-enrolment findings below have a [scoped source-repair successor, NF-29](29-external-review-repairs.md#nf-292-device-lifecycle-and-dynamic-administration-settle-at-their-owners). This topic retains its declared audit revision; cache/transport findings remain separate.
+The registration proof/list-number and re-enrolment findings below have a [scoped source-repair successor, NF-29](29-external-review-repairs.md#nf-292-device-lifecycle-and-dynamic-administration-settle-at-their-owners). The proof, list-number and re-enrolment findings are marked resolved at the re-verified stamp 6064622; cache/transport findings remain separate.
 
 [ADR-2004 section review](../../estate-review/2026-11-01-forum-device-keys.md) records 76 selected checks, including producer-consumer mismatches, actual SQLite statements and extracted cache methods. Mocked lookup fixtures do not certify deployed Workers or browser behaviour.
 
@@ -57,35 +57,35 @@ An independently whitelisted raw device key may still pass ordinary write policy
 ```mermaid
 flowchart TB
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/devices.rs:144
-    A["Settings registration sends<br/>device_pubkey and label only"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/devices.rs:186
-    B["Recovery-sheet registration sends<br/>the same two fields"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:385
+    A["RESOLVED at nostr-rust-forum 6064622: Settings registration sends<br/>device_pubkey, label and a signed device_proof"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/devices.rs:191
+    B["Recovery-sheet registration builds the same body<br/>from the same registration_body helper"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:400
     C["Handler requires device_proof<br/>missing proof returns 400"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:326
-    D["Server row uses f64 for<br/>created_at and revoked"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:470
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:325
+    D["Server row holds f64 but serialises created_at<br/>and revoked as unsigned integers"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:485
     E["List serialises those rows as JSON"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/devices.rs:264
-    F["Client parser expects u64 and u8<br/>non-empty server list fails"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/devices.rs:46
+    F["RESOLVED at nostr-rust-forum 6064622: client parser expects u64 and u8<br/>and now receives integers, so a non-empty list parses"]
     A --> C
     B --> C
     D --> E --> F
 ```
 
-Five native contract tests use the two extracted producer expressions and actual server/client types and parser. Empty lists pass, concealing the numeric mismatch. HTTP dispatch and browser rendering were not executed.
+At the earlier stamp five native contract tests showed the client omitting the device proof and a non-empty list failing on a numeric mismatch. At 6064622 the client signs the proof (`../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/devices.rs:272-294`) and the server serialises validated integers (`../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:333-340`). HTTP dispatch and browser rendering were not executed.
 
 ## NF-20.3 Registration can reactivate or transfer a device
 
 ```mermaid
 flowchart TB
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:383
-    A["Verify device proof bound to<br/>authenticated owner and short expiry"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:398
+    A["Verify device proof bound to<br/>authenticated owner and short expiry"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:413
     B["Probe principal exclusion<br/>separately from the later upsert"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:416
-    C["Existing device row: replace owner<br/>reset revoked to zero"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:511
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:331
+    C["RESOLVED at nostr-rust-forum 6064622: conditional upsert changes only the label<br/>of the same owner's active row, others get 409"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:526
     D["Revoke matches current owner only"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:293
     E["Concurrent new owner mapping can appear<br/>after principal-exclusion probe"]
@@ -94,7 +94,7 @@ flowchart TB
     E -. no atomic recheck .-> C
 ```
 
-SQL tests reproduce reactivation, transfer and a principal-probe race. Real registration still requires caller authentication and a valid device proof; these tests do not bypass either. Original-owner revocation matches no row after a transfer.
+At the earlier stamp SQL tests reproduced reactivation, transfer and a principal-probe race. At 6064622 reactivation and transfer are refused by the conditional upsert (`../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:421-444`); the principal probe and the upsert remain separate statements, so the probe race stays open.
 
 ## NF-20.4 AUTH authenticates the raw key, not the owner mapping
 
@@ -126,7 +126,7 @@ flowchart TB
     A["Owner lookup caches positive and negative results"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/read_cache.rs:73
     B["Reuse entry while age is less than 60 seconds"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:511
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:526
     C["Auth worker revokes database row<br/>no relay cache invalidation here"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2160
     D["Resolved viewer context keeps<br/>owner, cohorts and admin flags"]

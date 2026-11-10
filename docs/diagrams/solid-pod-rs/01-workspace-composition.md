@@ -29,7 +29,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/cli/install.rs
   - ../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2010-forge-and-mirror-are-on-in-shipped-builds.md
   - ../solid-pod-rs/.github/workflows/ci.yml
-verified_commit: 9b6143ce55b242c322c92d8c6bcc0c1a5371b451
+verified_commit: 27e18995fc20790fa956acb41f7d8420544a13ec
 ---
 
 ## SP-01.1 Eight workspace members and the library-first split
@@ -88,23 +88,23 @@ classDiagram
         metrics  solid-pod-rs/src/lib.rs:146
         mrc20  solid-pod-rs/src/lib.rs:147
         multitenant  solid-pod-rs/src/lib.rs:148
-        payments  solid-pod-rs/src/lib.rs:149
-        provenance  solid-pod-rs/src/lib.rs:150
-        rdf_input  solid-pod-rs/src/lib.rs:151
-        security  solid-pod-rs/src/lib.rs:152
-        trading  solid-pod-rs/src/lib.rs:153
-        wac  solid-pod-rs/src/lib.rs:154
-        webid  solid-pod-rs/src/lib.rs:155
+        payments  solid-pod-rs/src/lib.rs:150
+        provenance  solid-pod-rs/src/lib.rs:151
+        rdf_input  solid-pod-rs/src/lib.rs:152
+        security  solid-pod-rs/src/lib.rs:153
+        trading  solid-pod-rs/src/lib.rs:154
+        wac  solid-pod-rs/src/lib.rs:155
+        webid  solid-pod-rs/src/lib.rs:156
     }
     class FeatureGated {
-        did_nostr_types  solid-pod-rs/src/lib.rs:166
-        notifications  solid-pod-rs/src/lib.rs:177
-        provision  solid-pod-rs/src/lib.rs:179
-        quota  solid-pod-rs/src/lib.rs:181
-        storage  solid-pod-rs/src/lib.rs:183
-        oidc  solid-pod-rs/src/lib.rs:186
-        export  solid-pod-rs/src/lib.rs:202
-        handlers  solid-pod-rs/src/lib.rs:209
+        did_nostr_types  solid-pod-rs/src/lib.rs:167
+        notifications  solid-pod-rs/src/lib.rs:178
+        provision  solid-pod-rs/src/lib.rs:180
+        quota  solid-pod-rs/src/lib.rs:182
+        storage  solid-pod-rs/src/lib.rs:184
+        oidc  solid-pod-rs/src/lib.rs:187
+        export  solid-pod-rs/src/lib.rs:203
+        handlers  solid-pod-rs/src/lib.rs:210
     }
     AlwaysCompiled <.. FeatureGated
     note for AlwaysCompiled "The always-compiled half is pure logic plus the crypto and protocol primitives,\nwhich is what makes the core wasm/edge surface in SP-01.4 possible: storage,\nnotifications, provision, quota and oidc — everything that needs I/O or a\nruntime — sit behind a feature. blocktrail (new in 0.5.0-alpha.12) is always compiled for the shared\nBlocktrail type and TXO URIs, but its walk and per-link verification sit behind mrc20\n(solid-pod-rs/src/blocktrail.rs:896)."
@@ -157,13 +157,13 @@ flowchart LR
     LWSE --> LWSF
     OIDCF --> DPOPR
 
-    G1["INVARIANT: without nip98-schnorr the verifier is a fail-CLOSED stub,<br/>never a structural-only accept<br/>solid-pod-rs/src/auth/nip98.rs:381"]
+    G1["INVARIANT: without nip98-schnorr the verifier is a fail-CLOSED stub,<br/>never a structural-only accept<br/>solid-pod-rs/src/auth/nip98.rs:385"]
     NIP98S -.-> G1
     G2["DIVERGENCE: dpop-symmetric-test compiles the HS256 oct arm; a symmetric DPoP alg<br/>is an RFC 9449 alg-confusion vector production must reject<br/>crates/solid-pod-rs/Cargo.toml:179"]
     DPOPT -.-> G2
 ```
 
-**Drift:** the doc comment above the stub calls it a "No-op" (`solid-pod-rs/src/auth/nip98.rs:379`), while the body returns `Err(PodError::Unsupported)`; the panel's fail-closed reading is the code's.
+**Drift:** the doc comment above the stub calls it a "No-op" (`solid-pod-rs/src/auth/nip98.rs:383`), while the body returns `Err(PodError::Unsupported)`; the panel's fail-closed reading is the code's.
 
 ## SP-01.6 Core feature graph — JSS-parity umbrella
 
@@ -209,7 +209,7 @@ flowchart LR
     SRVD --> R2["a default server build has NO tls, NO git, NO forge,<br/>NO quota, NO did-nostr, NO export, NO nip05"]
     SRVD --> R3["but its core dependency always carries ten features: fs and memory backends,<br/>config-loader, legacy-notifications, dpop-replay-cache, embedded-docs,<br/>mrc20, nip98-schnorr, nip98-replay, acl-origin<br/>crates/solid-pod-rs-server/Cargo.toml:44"]
 
-    D1["INVARIANT (ADR-2004): the empty server default means git_mark_write compiles to<br/>the no-op shim, so a default build records ZERO provenance marks<br/>solid-pod-rs-server/src/lib.rs:4123"]
+    D1["INVARIANT (ADR-2004): the empty server default means git_mark_write compiles to<br/>the no-op shim, so a default build records ZERO provenance marks<br/>solid-pod-rs-server/src/lib.rs:4456"]
     SRVD -.-> D1
 ```
 
@@ -306,14 +306,14 @@ classDiagram
 ```mermaid
 flowchart LR
     ADV["[advisories] yanked = deny<br/>../solid-pod-rs/deny.toml:37"]
-    LIC["[licenses] allow-list<br/>../solid-pod-rs/deny.toml:74"]
-    BANS["[bans] wildcards = deny<br/>../solid-pod-rs/deny.toml:124"]
-    MULTI["multiple-versions = warn<br/>../solid-pod-rs/deny.toml:123"]
-    SRC["[sources] unknown-registry = deny<br/>../solid-pod-rs/deny.toml:148"]
-    GITS["unknown-git = deny (deny.toml:149), allow-git = []<br/>../solid-pod-rs/deny.toml:151"]
-    REG["allow-registry = crates.io only<br/>../solid-pod-rs/deny.toml:150"]
+    LIC["[licenses] allow-list<br/>../solid-pod-rs/deny.toml:75"]
+    BANS["[bans] wildcards = deny<br/>../solid-pod-rs/deny.toml:125"]
+    MULTI["multiple-versions = warn<br/>../solid-pod-rs/deny.toml:124"]
+    SRC["[sources] unknown-registry = deny<br/>../solid-pod-rs/deny.toml:149"]
+    GITS["unknown-git = deny (deny.toml:150), allow-git = []<br/>../solid-pod-rs/deny.toml:152"]
+    REG["allow-registry = crates.io only<br/>../solid-pod-rs/deny.toml:151"]
 
-    DEBT["DEBT: the advisory ignore list gained RUSTSEC-2026-0387 on 2026-10-29: crypto-bigint 0.5.5 survives only via openidconnect to p256 0.13, so the oidc feature is exposed and unassessed until openidconnect moves to the 0.14 line<br/>../solid-pod-rs/deny.toml:57-63"]
+    DEBT["DEBT: the advisory ignore list gained RUSTSEC-2026-0387 on 2026-10-29: crypto-bigint 0.5.5 survives only via openidconnect to p256 0.13, so the oidc feature is exposed and unassessed until openidconnect moves to the 0.14 line<br/>../solid-pod-rs/deny.toml:58-64"]
     ADV -.-> DEBT
     ADV --> OUT["cargo-deny CI job — see SP-09.4"]
     LIC --> OUT
@@ -325,7 +325,7 @@ flowchart LR
 
     N["INVARIANT: allow-git is empty — every dependency resolves from the crates.io<br/>index, so a git-patched dependency cannot enter a release build."]
     GITS -.-> N
-    X["EXCEPTION: the licences gate carries one scoped exception — hex_lit (a dep of<br/>rust-bitcoin per ADR-2008) is allowed under MITNFA, MIT plus a<br/>no-false-attribution clause, crate-scoped not workspace-wide.<br/>../solid-pod-rs/deny.toml:109"]
+    X["EXCEPTION: the licences gate carries one scoped exception — hex_lit (a dep of<br/>rust-bitcoin per ADR-2008) is allowed under MITNFA, MIT plus a<br/>no-false-attribution clause, crate-scoped not workspace-wide.<br/>../solid-pod-rs/deny.toml:110"]
     LIC -.-> X
 ```
 

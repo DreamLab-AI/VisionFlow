@@ -12,7 +12,9 @@ sources:
   - ../sealmap/crates/sealmap-model/src/symbol.rs
   - ../sealmap/crates/sealmap-rust/tests/resolver_er.rs
   - ../sealmap/README.md
-verified_commit: b9a6aebddd2e8379206eea6cfdd3ab84546724b4
+  - ../sealmap/crates/sealmap-rust/README.md
+  - ../sealmap/crates/sealmap-corpus/src/corpus_readme.md
+verified_commit: 2b351367cab241aa7304d364aa37b52e65bb71f2
 ---
 ## For developers
 
@@ -26,7 +28,8 @@ resolver decides which type a method belongs to.
 The rule that matters most is that a method sits under the type that owns
 it, never under its `impl` block (`crates/sealmap-extract/src/ids.rs:20`-`28`):
 splitting an `impl` or moving it to another file keeps every method id. The
-README promises the same thing to users (`README.md:177`-`179`). This came
+generated corpus README promises the same thing to users
+(`crates/sealmap-corpus/src/corpus_readme.md:34`-`38`). This came
 with the grammar in commit `5973a4e`; the undefined-member rule at the end of
 this topic came with the dogfood fix in `6c8a9b0`.
 
@@ -40,7 +43,8 @@ no reviewed diagram. A real rename, or moving a function to another module,
 does change the name, which is what a reviewer would expect to look at again.
 
 One limit for adopters to know: items that a macro generates are not seen,
-so they get no name and cannot be cited or sealed (`README.md:345`).
+so they get no name, and the README warns that macro-generated code may
+remain unresolved (`sealmap/README.md:344`-`346`).
 
 ## SM-05.1 The id table
 
@@ -179,8 +183,9 @@ flowchart TB
 the trailing commas rustfmt adds to a broken generic list removed.
 
 **Why it is this way.** Ids must not change when rustfmt reflows a line; the
-README's claim that reflowing tokio, VisionClaw and sealmap at
-`max_width = 50` changes no id (`README.md:200`-`201`) depends on this rule
+extractor README's claim that ids and fingerprints ignore comments,
+whitespace, rustfmt rewrites and moves
+(`crates/sealmap-rust/README.md:17`-`19`) depends on this rule
 (`crates/sealmap-rust/src/collect.rs:489`-`493`).
 
 **Invariant:** `(T,)` and `(T)` stay distinct in a trait's text, because only

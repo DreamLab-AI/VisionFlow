@@ -123,7 +123,7 @@ flowchart TB
     POD["Pod worker: 50MB upload, path depth 10,<br/>charset [A-Za-z0-9-_./]<br/>SECURITY_OVERVIEW.md:223,227"]
     SSRF["Preview-worker SSRF guard: http/https only,<br/>RFC1918/loopback/link-local/169.254.169.254 blocked,<br/>hex/int IP obfuscation blocked, 3-hop redirect cap,<br/>1MB response cap, 5s timeout<br/>SECURITY_OVERVIEW.md:233"]
 ```
-- Source: `docs/security/SECURITY_OVERVIEW.md` Relay/Auth-worker/Pod-worker Limits tables (`:197-231`) and SSRF Protection section (`:233`) — these limits are enforced in the upstream kit's worker source (cloned at `KIT_REF`, not vendored in this repo), so this diagram documents the operator-visible contract rather than code this repo owns.
+- Source: `docs/security/SECURITY_OVERVIEW.md` Relay/Auth-worker/Pod-worker Limits tables (`../dreamlab-ai-website/docs/security/SECURITY_OVERVIEW.md:197-231`) and SSRF Protection section (`../dreamlab-ai-website/docs/security/SECURITY_OVERVIEW.md:233`) — these limits are enforced in the upstream kit's worker source (cloned at `KIT_REF`, not vendored in this repo), so this diagram documents the operator-visible contract rather than code this repo owns.
 
 ## DW-04.9 The website-info identity — labelled, never privileged (ADR-2011)
 ```mermaid

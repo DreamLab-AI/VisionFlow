@@ -14,7 +14,8 @@ sources:
   - ../sealmap/crates/sealmap-model/src/sym.rs
   - ../sealmap/docs/DESIGN.md
   - ../sealmap/README.md
-verified_commit: b9a6aebddd2e8379206eea6cfdd3ab84546724b4
+  - ../sealmap/crates/sealmap-mermaid/README.md
+verified_commit: 2b351367cab241aa7304d364aa37b52e65bb71f2
 ---
 ## For developers
 
@@ -31,7 +32,7 @@ This is what lets diagrams drawn separately, in different documents, be
 concatenated, merged or diffed by id (`crates/sealmap-corpus/src/lib.rs:64`-`69`).
 The encoding replaced, in commit `337301a`, a readable-plus-FNV-1a-suffix
 scheme from the hardening commit `8af26b3`, which in turn replaced 0.1's
-non-injective `::` → `__` mangling (`docs/DESIGN.md:235`). The corpus still
+non-injective `::` → `__` mangling (`docs/DESIGN.md:305`). The corpus still
 asserts uniqueness over every generated codebase as a guard. This topic draws
 the encoding, why it cannot collide, the proof the tests give, and where ids
 are still minted the lossy way.
@@ -112,11 +113,11 @@ mangling merged, get different ids (`crates/sealmap-mermaid/src/symbol.rs:54`-`5
 ```mermaid
 sequenceDiagram
     autonumber
-    participant GE as generate<br/>sealmap-corpus/src/lib.rs:191
+    participant GE as generate<br/>sealmap-corpus/src/lib.rs:194
     participant AU as assert_unique_idents<br/>naming.rs:23
     participant IDT as ident<br/>naming.rs:10
     participant FS as Ident.from_symbol<br/>symbol.rs:58
-    GE->>AU: the codebase, before any document (sealmap-corpus/src/lib.rs:193)
+    GE->>AU: the codebase, before any document (sealmap-corpus/src/lib.rs:196)
     loop every symbol id and every relation endpoint
         AU->>IDT: id (naming.rs:27)
         IDT->>FS: encode (naming.rs:11)
@@ -132,7 +133,7 @@ and every relation endpoint and panics if two distinct ids share a diagram id.
 **Why it is this way.** The encoder is injective by construction; the guard
 exists so a future change to either grammar cannot silently merge nodes
 (`crates/sealmap-corpus/src/naming.rs:14`-`18`), and the design keeps it as an
-explicit requirement (`docs/DESIGN.md:134`).
+explicit requirement (`docs/DESIGN.md:204`).
 
 **Debt:** the overview's crate graph mints its node ids with the lossy
 `Ident::new` from crate and external root names
@@ -167,7 +168,7 @@ back to the symbol it came from.
 
 ```mermaid
 flowchart TB
-    V1["0.1: path ids with :: turned into __<br/>not injective<br/>docs/DESIGN.md:235"]
+    V1["0.1: path ids with :: turned into __<br/>not injective<br/>docs/DESIGN.md:305"]
     V2["hardening, 8af26b3: readable ids,<br/>FNV-1a suffix on collision,<br/>corpus-wide assertion"]
     V3["step 2, 337301a: encoding of the<br/>sym id structure, no suffix<br/>symbol.rs:58"]
     V1 --> V2 --> V3
@@ -178,9 +179,10 @@ with a collision suffix, then rebuilt on the typed `sym:` id.
 
 **Why it is this way.** Once ids had structure, the structure could be encoded
 directly, and the suffix and its dead helper were removed (commit `337301a`).
-The README describes the current scheme (`README.md:212`-`215`).
+The mermaid crate README describes the current scheme
+(`crates/sealmap-mermaid/README.md:12`-`15`).
 
 The design's hardening table now records the fix as it was built: injective
 readable ids derived from `sym:` ids, with no hash suffix
-(`docs/DESIGN.md:235`), as the code has it
+(`docs/DESIGN.md:305`), as the code has it
 (`crates/sealmap-mermaid/src/symbol.rs:10`-`12`).

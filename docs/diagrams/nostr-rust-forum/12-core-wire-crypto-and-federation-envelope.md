@@ -50,6 +50,8 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/relay.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/auth/mod.rs
   - ../nostr-rust-forum/crates/nostr-bbs-rate-limit/src/replay.rs
+  - ../nostr-rust-forum/docs/adr/ADR-2027-nip17-overlay-for-nostr-chat-interop.md
+  - ../nostr-rust-forum/docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md
 verified_commit: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df
 ---
 

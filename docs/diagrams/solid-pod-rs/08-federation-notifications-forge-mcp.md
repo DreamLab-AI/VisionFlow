@@ -54,7 +54,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/mcp/skills.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/handlers/legacy_notifications.rs
-verified_commit: {solid-pod-rs: 27e18995fc20790fa956acb41f7d8420544a13ec, agentbox: c57d9c0508f4044915f9aecea4b9aa5629cc6a35}
+verified_commit: {solid-pod-rs: 27e18995fc20790fa956acb41f7d8420544a13ec, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
 ---
 
 ## SP-08.1 Solid Notifications 0.2 — the three channels
@@ -612,7 +612,7 @@ flowchart TD
 
 **Drift (ADR text vs the SP-GIT-02 repair):** both ADRs gained a review qualification dated 2026-11-01 (`../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2009-forge-plugins-comparator-and-default-off-mirror.md:71`, `../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2010-forge-and-mirror-are-on-in-shipped-builds.md:72`) that still treats hidden refs as the mechanism and complete object withholding as open (`../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2010-forge-and-mirror-are-on-in-shipped-builds.md:79`). At this revision the boundary is store isolation plus the reader gate (SP-14.3, SP-14.4), and neither ADR says so.
 
-**Tension (ADR-2010 vs agentbox):** ADR-2010 reads accepted / complete / staged (`../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2010-forge-and-mirror-are-on-in-shipped-builds.md:5-7`), and agentbox's pin enables `forge-full` (`../project/agentbox/lib/solid-pod-rs.nix:18`). That pin is `76ab7aab` (`../project/agentbox/lib/solid-pod-rs.nix:58`), which predates both the hidden-tip repair and the SP-GIT-02 store isolation. A shipped agentbox build therefore carries the pre-repair mirror; it stays inert only while no follow entries are configured. ADR-2009 moved the same way, accepted / complete / staged (`../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2009-forge-plugins-comparator-and-default-off-mirror.md:5-7`).
+**Tension (ADR-2010 vs agentbox):** RESOLVED at agentbox 720e0d8 as to the pin. ADR-2010 reads accepted / complete / staged (`../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2010-forge-and-mirror-are-on-in-shipped-builds.md:5-7`), and agentbox's pin enables `forge-full` (`../project/agentbox/lib/solid-pod-rs.nix:18`). That pin is now `27e18995` (`../project/agentbox/lib/solid-pod-rs.nix:64`), the commit this topic is stamped at, so a shipped build carries the hidden-tip repair and the SP-GIT-02 store isolation; the mirror stays inert while no follow entries are configured. ADR-2009 moved the same way, accepted / complete / staged (`../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2009-forge-plugins-comparator-and-default-off-mirror.md:5-7`).
 
 **Open:** the forge README (`../solid-pod-rs/crates/solid-pod-rs-forge/README.md:33`) records the web-edit tier as "not included" for announce triggering, while `ApiEdit` is routed (`solid-pod-rs-forge/src/router.rs:279`); nothing states whether an edit announces.
 

@@ -31,7 +31,9 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-rate-limit/src/lib.rs
   - ../nostr-rust-forum/crates/nostr-bbs-rate-limit/src/replay.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/nip98.rs
-verified_commit: c39f41f104b114d6a3fa29013daaf6fa58b45080
+  - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/auth/passkey.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/passkey.rs
+verified_commit: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df
 ---
 
 ## NF-02.1 Request entry — bootstrap, rate limit, body pre-read, dispatch
@@ -109,7 +111,7 @@ flowchart TB
     N2["ANOMALY O11 (recorded live by an earlier review, not re-run here): /api/native-pod/provision nostr-bbs-auth-worker/src/lib.rs:616 requires NATIVE_POD_URL and the<br/>NATIVE_POD_ADMIN_KEY secret; both are placeholders in the template nostr-bbs-auth-worker/wrangler.toml:66"]
 ```
 
-**Invariant:** `SESSIONS` (the rate limiter's `rl:{ip}:{bucket}` keys) and `KV` (the admin pubkey cache) bind the same KV namespace id, so the admin cache key must never start with `rl:` (`../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/admins.rs:372`, `../nostr-rust-forum/crates/nostr-bbs-auth-worker/wrangler.toml:22-25`).
+**Invariant:** `SESSIONS` (the rate limiter's `rl:{ip}:{bucket}` keys) and `KV` (the admin pubkey cache) bind the same KV namespace id, so the admin cache key must never start with `rl:` (`../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/admins.rs:347`, `../nostr-rust-forum/crates/nostr-bbs-auth-worker/wrangler.toml:22-25`).
 
 **Open:** the rationale-check route and its flag `JEV_RATIONALE_CHECK` are off in the library but ON in the committed auth template, `JEV_RATIONALE_CHECK = "1"` (`../nostr-rust-forum/crates/nostr-bbs-auth-worker/wrangler.toml:53`; flag name `../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/rationale_check.rs:36`); the check is advisory and, since the 2026-10-30 pin, cloud by default: locality is the operator's own `JEV_RATIONALE_CHECK_LOCAL_ONLY` switch (`../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/rationale_check.rs:38`, read at `../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/rationale_check.rs:303`), default off, so the proxy or TypeSafe with `TYPESAFE_API_KEY` may answer; setting it to `1` makes the route report unavailable until a deployment supplies a sovereign endpoint (`../nostr-rust-forum/crates/nostr-bbs-auth-worker/wrangler.toml:54-58`).
 
@@ -119,35 +121,35 @@ flowchart TB
 sequenceDiagram
     autonumber
     participant C as Browser
-    participant RO as register_options<br/>nostr-bbs-auth-worker/src/webauthn.rs:723
+    participant RO as register_options<br/>nostr-bbs-auth-worker/src/webauthn.rs:767
     participant D1 as D1 challenges / webauthn_credentials
-    participant RV as register_verify<br/>nostr-bbs-auth-worker/src/webauthn.rs:814
+    participant RV as register_verify<br/>nostr-bbs-auth-worker/src/webauthn.rs:871
     participant WOT as wot::is_allowed_by_wot<br/>nostr-bbs-auth-worker/src/wot.rs:431
 
     C->>RO: POST /auth/register/options
-    RO->>RO: 32-byte challenge from getrandom webauthn.rs:733
-    RO->>RO: server-controlled PRF salt, 32 bytes webauthn.rs:739
-    RO->>D1: batch DELETE expired + INSERT challenge (pubkey column = the challenge) webauthn.rs:756
-    RO->>RO: rp_id_required rejects missing or blank RP_ID webauthn.rs:772
-    RO-->>C: options with residentKey required, userVerification required webauthn.rs:791
+    RO->>RO: 32-byte challenge from getrandom webauthn.rs:777
+    RO->>RO: server-controlled PRF salt, 32 bytes webauthn.rs:783
+    RO->>D1: batch DELETE expired + INSERT challenge (pubkey column = the challenge) + INSERT issued salt webauthn.rs:803 webauthn.rs:814
+    RO->>RO: rp_id_required rejects missing or blank RP_ID webauthn.rs:829
+    RO-->>C: options with residentKey required, userVerification required webauthn.rs:848
     C->>RV: POST /auth/register/verify
-    RV->>RV: mandatory NIP-98 header and matching author webauthn.rs:836 webauthn.rs:849
-    RV->>RV: reject cross-origin ceremony webauthn.rs:878
-    RV->>RV: clientData.origin must equal EXPECTED_ORIGIN webauthn.rs:886
-    RV->>D1: challenge must exist, be unexpired AND have pubkey = challenge webauthn.rs:908
-    RV->>RV: attestation fmt must be none or packed webauthn.rs:932
-    RV->>RV: constant-time RP-ID-hash compare webauthn.rs:951
-    RV->>RV: flags UP bit0 webauthn.rs:957 and UV bit2 webauthn.rs:960 must be set
-    RV->>RV: COSE coordinates must form a valid P-256 point webauthn.rs:976
-    RV->>D1: reject duplicate pubkey with 409 webauthn.rs:989
-    RV->>WOT: registration gate, invite code is the documented bypass webauthn.rs:1001
-    RV->>RV: PRF salt DERIVED server-side, client prfSalt ignored webauthn.rs:1028
-    RV->>D1: batch INSERT credential + DELETE challenge webauthn.rs:1037
-    RV-->>C: verified, pubkey, didNostr webauthn.rs:1054
+    RV->>RV: mandatory NIP-98 header and matching author webauthn.rs:893 webauthn.rs:906
+    RV->>RV: reject cross-origin ceremony webauthn.rs:935
+    RV->>RV: clientData.origin must equal EXPECTED_ORIGIN webauthn.rs:943
+    RV->>D1: challenge joined to its issued PRF salt must exist, be unexpired AND have pubkey = challenge webauthn.rs:719 webauthn.rs:967
+    RV->>RV: attestation fmt must be none or packed webauthn.rs:990
+    RV->>RV: constant-time RP-ID-hash compare webauthn.rs:1009
+    RV->>RV: flags UP bit0 webauthn.rs:1015 and UV bit2 webauthn.rs:1018 must be set
+    RV->>RV: COSE coordinates must form a valid P-256 point webauthn.rs:1034
+    RV->>D1: reject duplicate pubkey with 409 webauthn.rs:1047
+    RV->>WOT: registration gate, invite code is the documented bypass webauthn.rs:1059
+    RV->>RV: PRF salt is the one issued at options time and read with the challenge, never caller-supplied webauthn.rs:1077
+    RV->>D1: batch INSERT credential guarded by the issued salt + DELETE challenge + DELETE salt webauthn.rs:1081 webauthn.rs:1100
+    RV-->>C: verified, pubkey, didNostr webauthn.rs:1112
 
-    Note over D1,RV: Registration challenge uses pubkey = challenge<br/>Login-bucket challenges do not satisfy this lookup webauthn.rs:898-905
-    Note over RV: Stored salt differs from the random options salt<br/>Same-identity login is not established webauthn.rs:739 webauthn.rs:1022
-    Note over RV,WOT: WoT disabled returns Ok(true)<br/>No trust gate on open instances webauthn.rs:996-999
+    Note over D1,RV: Registration challenge uses pubkey = challenge<br/>Login-bucket challenges do not satisfy this lookup webauthn.rs:955-961
+    Note over RV: RESOLVED at nostr-rust-forum 6064622 - the stored salt is the random options salt<br/>Registration and login now share one server-issued salt webauthn.rs:783 webauthn.rs:1077
+    Note over RV,WOT: WoT disabled returns Ok(true)<br/>No trust gate on open instances webauthn.rs:1054-1057
 ```
 
 ## NF-02.4 Passkey login — assertion verification and clone detection
@@ -156,29 +158,29 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Browser
-    participant LO as login_options<br/>nostr-bbs-auth-worker/src/webauthn.rs:1080
-    participant LV as login_verify<br/>nostr-bbs-auth-worker/src/webauthn.rs:1178
+    participant LO as login_options<br/>nostr-bbs-auth-worker/src/webauthn.rs:1138
+    participant LV as login_verify<br/>nostr-bbs-auth-worker/src/webauthn.rs:1236
     participant D1 as D1
 
     C->>LO: POST /auth/login/options
-    LO-->>C: empty allowCredentials plus selected salt webauthn.rs:1103 webauthn.rs:1128
+    LO-->>C: empty allowCredentials plus selected salt webauthn.rs:1161 webauthn.rs:1186
     C->>LV: POST /auth/login/verify
-    LV->>LV: mandatory NIP-98 header verified with replay protection webauthn.rs:1200
-    LV->>D1: SELECT credential_id, public_key, counter webauthn.rs:1215
-    LV->>LV: reject cross-origin webauthn.rs:1261, origin equality webauthn.rs:1266
-    LV->>D1: challenge must match pubkey IN (pubkey, __discoverable__) webauthn.rs:1293
-    LV->>LV: RP-ID hash webauthn.rs:1330, UP webauthn.rs:1336, UV webauthn.rs:1339
-    LV->>LV: sign_count must strictly increase unless 0 webauthn.rs:1349
-    LV->>LV: signed_data = authenticatorData ||<br/>SHA-256(clientDataJSON) webauthn.rs:1387
-    LV->>LV: DER ECDSA parse webauthn.rs:1391 then P-256 verify webauthn.rs:1400
-    LV->>D1: batch UPDATE counter + DELETE challenge webauthn.rs:1405
-    LV-->>C: verified, pubkey, didNostr webauthn.rs:1413
+    LV->>LV: mandatory NIP-98 header verified with replay protection webauthn.rs:1258
+    LV->>D1: SELECT credential_id, public_key, counter webauthn.rs:1273
+    LV->>LV: reject cross-origin webauthn.rs:1319, origin equality webauthn.rs:1324
+    LV->>D1: challenge must match pubkey IN (pubkey, __discoverable__) webauthn.rs:1351
+    LV->>LV: RP-ID hash webauthn.rs:1388, UP webauthn.rs:1394, UV webauthn.rs:1397
+    LV->>LV: sign_count must strictly increase unless 0 webauthn.rs:1407
+    LV->>LV: signed_data = authenticatorData ||<br/>SHA-256(clientDataJSON) webauthn.rs:1445
+    LV->>LV: DER ECDSA parse webauthn.rs:1449 then P-256 verify webauthn.rs:1458
+    LV->>D1: batch UPDATE counter + DELETE challenge webauthn.rs:1463
+    LV-->>C: verified, pubkey, didNostr webauthn.rs:1471
 
-    Note over LV,D1: New signCount zero bypasses the increase check<br/>Otherwise a non-increasing count is rejected webauthn.rs:1348-1350
-    Note over LO: Equal response shape does not close the separate public lookup route<br/>or the empty-secret fallback condition webauthn.rs:78 webauthn.rs:1427
+    Note over LV,D1: New signCount zero bypasses the increase check<br/>Otherwise a non-increasing count is rejected webauthn.rs:1406-1408
+    Note over LO: Equal response shape does not close the separate public lookup route<br/>or the empty-secret fallback condition webauthn.rs:78 webauthn.rs:1485
 ```
 
-[The passkey contract review](../../estate-review/2026-11-01-forum-passkey-contracts.md) qualifies NF-02.3/4: both clients omit the required registration header, issued and stored salts differ, lookup remains public, and challenge reads are separate from unconditional consumption. NF-23 records the probes and parser limits. These worker sequences show handler order, not a successfully completed client ceremony.
+[The passkey contract review](../../estate-review/2026-11-01-forum-passkey-contracts.md) qualifies NF-02.3/4: at its stamp both clients omitted the required registration header and the issued and stored salts differed; both are repaired at 6064622 (both clients sign register/verify with NIP-98, `../nostr-rust-forum/crates/nostr-bbs-forum-client/src/auth/passkey.rs:182`, `../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/passkey.rs:356`, and the stored salt is the issued one, `../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/webauthn.rs:1077`); lookup remains public, and challenge reads are separate from unconditional consumption. NF-23 records the probes and parser limits. These worker sequences show handler order, not a successfully completed client ceremony.
 
 ## NF-02.5 NIP-98 gate and the single-use replay store
 
@@ -187,42 +189,42 @@ sequenceDiagram
     autonumber
     participant H as Route handler
     participant A as auth::verify_nip98_replay<br/>nostr-bbs-auth-worker/src/auth.rs:15
-    participant RLC as nostr_bbs_rate_limit::verify_nip98<br/>nostr-bbs-rate-limit/src/replay.rs:77, re-exported nostr-bbs-rate-limit/src/lib.rs:21
+    participant RLC as nostr_bbs_rate_limit::verify_nip98<br/>nostr-bbs-rate-limit/src/replay.rs:148, re-exported nostr-bbs-rate-limit/src/lib.rs:21
     participant D1 as nostr-bbs-auth D1 (binding DB)
 
     H->>A: header, canonical URL, method, body bytes
     A->>RLC: delegate with REPLAY_DB = "DB" nostr-bbs-auth-worker/src/auth.rs:11
     RLC->>RLC: core verify_token_full - Schnorr, URL, method, payload hash, created_at window - BEFORE any replay write nostr-bbs-core/src/nip98.rs:576
-    RLC->>D1: then seen_or_record, an atomic INSERT OR IGNORE on the replay row nostr-bbs-core/src/nip98.rs:585 nostr-bbs-rate-limit/src/replay.rs:27
+    RLC->>D1: then seen_or_record, an atomic INSERT OR IGNORE on the replay row nostr-bbs-core/src/nip98.rs:585 nostr-bbs-rate-limit/src/replay.rs:13
     alt row already present
         D1-->>H: replay rejected
     end
     RLC-->>H: Nip98Token { pubkey, .. }
 
     Note over A: INVARIANT: every worker binds its replay store to the SAME database (nostr-bbs-auth) so cross-worker replay is detected nostr-bbs-auth-worker/src/auth.rs:9-11 - the auth template's DB id nostr-bbs-auth-worker/wrangler.toml:11 is the id the relay, pod and search templates give REPLAY_DB - see NF-08.4
-    Note over D1: OPEN: when D1 returns no write metadata the store answers first-seen, so the replay check fails OPEN on that path nostr-bbs-rate-limit/src/replay.rs:37-39 - whether D1 ever omits it is runtime behaviour
+    Note over D1: OPEN: RESOLVED at nostr-rust-forum 6064622 - when D1 returns no write metadata the store returns an error, so the replay check fails closed on that path nostr-bbs-rate-limit/src/replay.rs:40-43 nostr-bbs-rate-limit/src/replay.rs:47-55
     Note over H: canonical_url composes the ACTUAL origin with the path so a workers.dev token verifies against a custom-domain deployment nostr-bbs-auth-worker/src/lib.rs:313
     Note over RLC: EXTERNAL: agentbox terminates NIP-98 at its own proxy with an independent single-use cache - see AB-10
 ```
 
-**Open:** the D1 replay store answers first-seen when D1 returns no write metadata (`../nostr-rust-forum/crates/nostr-bbs-rate-limit/src/replay.rs:37-39`; the trait contract is `true` on first observation, `../nostr-rust-forum/crates/nostr-bbs-core/src/nip98.rs:94-95`). The full signature, URL, method, payload and freshness check runs first (`../nostr-rust-forum/crates/nostr-bbs-core/src/nip98.rs:576`), so the exposure is bounded: a valid captured token could be replayed within its freshness window, and only on a request where D1 omits the metadata. Whether D1 ever does so is runtime behaviour, not settled by source.
+**Open:** RESOLVED at nostr-rust-forum 6064622 — the D1 replay store no longer answers first-seen when D1 returns no write metadata: absent metadata is an error (`../nostr-rust-forum/crates/nostr-bbs-rate-limit/src/replay.rs:40-43`) and so is an omitted changed-row count (`../nostr-rust-forum/crates/nostr-bbs-rate-limit/src/replay.rs:47-55`), which the verifier surfaces as a replay-backend error rather than a pass (`../nostr-rust-forum/crates/nostr-bbs-core/src/nip98.rs:585-588`; the trait contract is `true` on first observation, `../nostr-rust-forum/crates/nostr-bbs-core/src/nip98.rs:94-96`). The full signature, URL, method, payload and freshness check still runs first (`../nostr-rust-forum/crates/nostr-bbs-core/src/nip98.rs:576`).
 
 ## NF-02.6 The two gates every sprint handler chooses between
 
 ```mermaid
 flowchart LR
-    RA["require_admin<br/>nostr-bbs-auth-worker/src/admin.rs:110"]
-    RU["require_authed<br/>nostr-bbs-auth-worker/src/admin.rs:143"]
-    ISA["is_admin - static union RELAY_DB union DB<br/>nostr-bbs-auth-worker/src/admin.rs:57"]
+    RA["require_admin<br/>nostr-bbs-auth-worker/src/admin.rs:92"]
+    RU["require_authed<br/>nostr-bbs-auth-worker/src/admin.rs:125"]
+    ISA["is_admin - static union RELAY_DB union DB<br/>nostr-bbs-auth-worker/src/admin.rs:53"]
 
     RA --> ISA
-    ADMINONLY["Admin-only: mod actions moderation.rs:209 | wot status wot.rs:128 | welcome config welcome.rs:148<br/>| admins add admins.rs:161 | governance register governance_api.rs:362 | provision governance_api.rs:441<br/>| roles grant governance_api.rs:670 | admin registrations username.rs:689<br/>| reviewer telemetry governance_api.rs:1407"]
-    AUTHED["Authed-only: mod report moderation.rs:316 | invite create invites.rs:291 | redeem invites.rs:577<br/>| devices register devices.rs:361 | list devices.rs:452 | revoke devices.rs:488<br/>| username claim username.rs:568 | governance cases governance_api.rs:561 | decisions governance_api.rs:626<br/>| receipt application governance_api.rs:1130 - authed, then authorised by ROLE inside the handler"]
+    ADMINONLY["Admin-only: mod actions moderation.rs:197 | wot status wot.rs:128 | welcome config welcome.rs:148<br/>| admins add admins.rs:136 | governance register governance_api.rs:362 | provision governance_api.rs:441<br/>| roles grant governance_api.rs:670 | admin registrations username.rs:689<br/>| reviewer telemetry governance_api.rs:1407"]
+    AUTHED["Authed-only: mod report moderation.rs:304 | invite create invites.rs:292 | redeem invites.rs:578<br/>| devices register devices.rs:376 | list devices.rs:467 | revoke devices.rs:503<br/>| username claim username.rs:568 | governance cases governance_api.rs:561 | decisions governance_api.rs:626<br/>| receipt application governance_api.rs:1130 - authed, then authorised by ROLE inside the handler"]
 
     RA --> ADMINONLY
     RU --> AUTHED
 
-    N1["INVARIANT device ownership: the owner is ALWAYS the NIP-98 author, never a body field -<br/>no owner leaks through devices.rs:641, gate note nostr-bbs-auth-worker/src/lib.rs:593-595"]
+    N1["INVARIANT device ownership: the owner is ALWAYS the NIP-98 author, never a body field -<br/>no owner leaks through devices.rs:656, gate note nostr-bbs-auth-worker/src/lib.rs:593-595"]
     N2["wot status is admin-gated (wot.rs:128) even though it reads as a self-status endpoint -<br/>a member cannot query their own WoT standing through this API"]
     N3["EXTERNAL: the same admin identity is enforced independently at relay ingress - see NF-03 and NF-08.7"]
 ```
@@ -233,13 +235,13 @@ flowchart LR
 flowchart TB
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:100
     A["Auth worker exact true gate<br/>off returns 404 before database work"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:361
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:376
     B["Registration authenticates owner via NIP-98"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:383
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:398
     C["Require device-signed proof<br/>then exclude known principals"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:414
-    D["Upsert relay D1 registry row<br/>replaces owner and resets revoked"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:511
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:427
+    D["Conditional upsert of relay D1 registry row<br/>another owner or a revoked row is refused with 409"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:526
     E["Owner-scoped revoke sets revoked to 1"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2069
     F["AUTH stores raw public key<br/>does not consult device registry"]
@@ -258,25 +260,25 @@ flowchart TB
 sequenceDiagram
     autonumber
     participant I as Inviter (authed)
-    participant IC as invites::handle_create<br/>nostr-bbs-auth-worker/src/invites.rs:284
+    participant IC as invites::handle_create<br/>nostr-bbs-auth-worker/src/invites.rs:285
     participant N as New user
-    participant IR as invites::handle_redeem<br/>nostr-bbs-auth-worker/src/invites.rs:565
+    participant IR as invites::handle_redeem<br/>nostr-bbs-auth-worker/src/invites.rs:566
     participant UC as username::claim<br/>nostr-bbs-auth-worker/src/username.rs:210
     participant AD as auth D1 members / username_reservations
     participant RD as relay D1 whitelist
 
     I->>IC: POST /api/invites/create
-    IC->>AD: invitations row schema.rs:123
+    IC->>AD: invitations row schema.rs:124
     N->>IR: POST /api/invites/{code}/redeem
-    IR->>AD: invitation_redemptions invites.rs:661 schema.rs:136 + members row invites.rs:671 schema.rs:116
-    IR->>RD: zone invite only - grant_zone_cohorts on the relay whitelist invites.rs:230 invites.rs:245 invites.rs:271
+    IR->>AD: invitation_redemptions invites.rs:662 schema.rs:137 + members row invites.rs:672 schema.rs:117
+    IR->>RD: zone invite only - grant_zone_cohorts on the relay whitelist invites.rs:223 invites.rs:238 invites.rs:263
     N->>UC: POST /api/username/claim
-    UC->>AD: one atomic INSERT into username_reservations username.rs:237, table schema.rs:208
+    UC->>AD: one atomic INSERT into username_reservations username.rs:237, table schema.rs:209
     UC->>RD: whitelist row with the auto-approved cohort set, ON CONFLICT DO NOTHING keeps admin-set cohorts username.rs:307
 
-    Note over UC: INVARIANT one name per pubkey and one pubkey per name: the claim is a single INSERT that relies on UNIQUE(username) and UNIQUE(pubkey) username.rs:231 schema.rs:211, not an upsert
-    Note over IR: INVARIANT ensure-then-merge: the zone grant inserts-or-keeps the whitelist row, then merges cohorts into it, so a concurrent username claim creating the same row cannot drop the grant invites.rs:215-225
-    Note over IC: consume_for_registration is the registration-time bypass of the WoT gate invites.rs:785
+    Note over UC: INVARIANT one name per pubkey and one pubkey per name: the claim is a single INSERT that relies on UNIQUE(username) and UNIQUE(pubkey) username.rs:231 schema.rs:212, not an upsert
+    Note over IR: INVARIANT ensure-then-merge: the zone grant inserts-or-keeps the whitelist row, then merges cohorts into it, so a concurrent username claim creating the same row cannot drop the grant invites.rs:208-218
+    Note over IC: consume_for_registration is the registration-time bypass of the WoT gate invites.rs:786
     Note over UC: The granted cohort set is config-driven, not hardcoded - see NF-08.3
 ```
 
