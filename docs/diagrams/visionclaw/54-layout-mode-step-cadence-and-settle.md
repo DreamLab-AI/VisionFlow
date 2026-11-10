@@ -9,6 +9,8 @@ sources:
   - ../project/src/handlers/layout_handler.rs
   - ../project/src/settings/api/settings_routes.rs
   - ../project/crates/visionclaw-domain/src/models/simulation_params.rs
+  - ../project/crates/visionclaw-domain/src/types/layout.rs
+  - ../project/crates/visionclaw-domain/src/types/physics_config.rs
   - ../project/src/models/simulation_params.rs
   - ../project/src/adapters/sqlite_settings_repository.rs
   - ../project/src/actors/gpu/physics_restore.rs
@@ -27,7 +29,7 @@ sources:
   - ../project/xr-client/scripts/graph_scene.gd
   - ../project/xr-client/scripts/hud.gd
   - ../project/docs/XR-client.md
-verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
 ---
 
 ## For developers
@@ -45,29 +47,29 @@ flowchart TD
     POST["POST layout mode parses either vocabulary, unknown is 400<br/>layout_handler.rs:45,64,67"] --> SAME{"Mode already stored?<br/>layout_handler.rs:86"}
     SAME -->|yes| NOOP["Nothing written, no broadcast, no resume<br/>layout_handler.rs:87"]
     SAME -->|no| PATCH["apply_physics_patch with layoutMode only<br/>layout_handler.rs:92,95"]
-    PATCH --> MERGE["Deep-merge onto the stored document, validate twice<br/>settings_routes.rs:651,664,674"]
-    MERGE --> STORE["Write the settings snapshot<br/>settings_routes.rs:686"]
-    STORE --> RESOLVE["Stored zero becomes the active mode's default here only<br/>settings_routes.rs:695,696<br/>visionclaw-domain/src/models/simulation_params.rs:450,453,470"]
-    RESOLVE --> GPU["UpdateSimulationParams to the GPU actor<br/>settings_routes.rs:701,705"]
-    GPU --> ACTOR["Actor neither preserves nor fills the mode<br/>force_compute_actor.rs:2618,2619,2620"]
-    BOOT["Boot: legacy qualityGates string migrates once<br/>sqlite_settings_repository.rs:1074,1082<br/>physics_restore.rs:33,39,42"] --> STORE
+    PATCH --> MERGE["Deep-merge onto the stored document, validate twice<br/>settings_routes.rs:696,709,719"]
+    MERGE --> STORE["Write the settings snapshot<br/>settings_routes.rs:731"]
+    STORE --> RESOLVE["Stored zero becomes the active mode's default here only<br/>settings_routes.rs:749,750<br/>visionclaw-domain/src/models/simulation_params.rs:450,453,470"]
+    RESOLVE --> GPU["UpdateSimulationParams to the GPU actor<br/>settings_routes.rs:755,759"]
+    GPU --> ACTOR["Actor neither preserves nor fills the mode<br/>force_compute_actor.rs:2723,2724,2725"]
+    BOOT["Boot: legacy qualityGates string migrates once<br/>sqlite_settings_repository.rs:1176,1184<br/>physics_restore.rs:33,39,42"] --> STORE
 ```
 
 **What it shows.** One path from request to device. The legacy quality-gate string is read once, at boot. **Why it is this way.** ADR-2140 item 1 (2026-10-31) removed the actor's preserve-override, `SetLayoutMode` and the propagation overlay so that no second copy of the mode exists.
 
-**Debt (loose end):** the 2026-11-06 rendering-row insert landed between the ADR-2140 decision-1 doc comment and the function it documents, so that comment (`src/adapters/sqlite_settings_repository.rs:1046-1054`) now attaches to `RENDERING_ROW` (`src/adapters/sqlite_settings_repository.rs:1055-1057`) and `seed_physics_from_blob` (`src/adapters/sqlite_settings_repository.rs:1074`) has none.
+**Debt (loose end):** the 2026-11-06 rendering-row insert landed between the ADR-2140 decision-1 doc comment and the function it documents, so that comment (`src/adapters/sqlite_settings_repository.rs:1148-1156`) now attaches to `RENDERING_ROW` (`src/adapters/sqlite_settings_repository.rs:1157-1159`) and `seed_physics_from_blob` (`src/adapters/sqlite_settings_repository.rs:1176`) has none.
 
 ## VC-54.2 The step is paced by completion, the stream by each client's acknowledgement
 
 ```mermaid
 flowchart TD
     MODE["Cadence 16 ms in Continuous, 0 in FastSettle<br/>physics_orchestrator_actor.rs:113,272,276"] --> EFF["Any held node makes the cadence 0<br/>physics_orchestrator_actor.rs:310,314"]
-    STEP["GPU step: gate, mutex, kernels, readback<br/>force_compute_actor.rs:1979,2013,2018,2025"] --> DONE["PhysicsStepCompleted back to the orchestrator<br/>force_compute_actor.rs:2407"]
+    STEP["GPU step: gate, mutex, kernels, readback<br/>force_compute_actor.rs:2084,2118,2123,2130"] --> DONE["PhysicsStepCompleted back to the orchestrator<br/>force_compute_actor.rs:2512"]
     DONE --> NEXT["Next step after cadence minus step time<br/>physics_orchestrator_actor.rs:1892,1894"]
     EFF --> NEXT
     NEXT --> RUN["run_later then physics_step<br/>physics_orchestrator_actor.rs:289,296,304"]
-    TIMING["StepTiming logs phases every 120 steps<br/>force_compute_actor.rs:4891"] -.-> STEP
-    BENCH["Ignored stage-timing test at live size<br/>execution.rs:2133"] -.-> STEP
+    TIMING["StepTiming logs phases every 120 steps<br/>force_compute_actor.rs:5013"] -.-> STEP
+    BENCH["Ignored stage-timing test at live size<br/>execution.rs:2129"] -.-> STEP
     STREAM["Per client: next chunk only on ack or timeout<br/>position_stream.rs:17,18,19"] --> RATE["Delivery rate set by that client's round trip<br/>position_stream.rs:19,20"]
     CFG["Fixture: chunk 2500 nodes, ack timeout 500 ms<br/>live_physics_settings.json:1"] --> STREAM
     DONE -.-> STREAM
@@ -75,44 +77,44 @@ flowchart TD
 
 **What it shows.** The step rate and the per-client stream rate are independent clocks. On the live graph the 16 ms cadence does nothing, because a step takes longer than that. **Why it is this way.** The sequential pipeline avoids queued steps. ADR-2141 made delivery ack-paced so that a slow client cannot stall the step.
 
-**Open:** ADR-2169 records the step at 9–10 Hz and leaves ack-paced delivery unmeasured. A rate observed at a client is a stream rate, so the step rate and the per-client stream rate need separate measurements (`position_stream.rs:19`; `force_compute_actor.rs:4891`).
+**Open:** ADR-2169 records the step at 9–10 Hz and leaves ack-paced delivery unmeasured. A rate observed at a client is a stream rate, so the step rate and the per-client stream rate need separate measurements (`position_stream.rs:19`; `force_compute_actor.rs:5013`).
 
 ## VC-54.3 Three mechanisms are called settle
 
 ```mermaid
 flowchart TD
     FS["FastSettle mode: damping override burst, then latch off<br/>visionclaw-domain/src/models/simulation_params.rs:88,90<br/>physics_orchestrator_actor.rs:359"] --> DEF["Default and always-defaulted mode is Continuous<br/>visionclaw-domain/src/models/simulation_params.rs:83,84<br/>project/src/models/simulation_params.rs:181"]
-    WIN["Hold settle window: 2 s of forced steps after last release<br/>force_compute_actor.rs:4536"]
-    TEL["Settlement telemetry: 180 ticks below KE epsilon<br/>force_compute_actor.rs:291,296"]
+    WIN["Hold settle window: 2 s of forced steps after last release<br/>force_compute_actor.rs:4658"]
+    TEL["Settlement telemetry: 180 ticks below KE epsilon<br/>force_compute_actor.rs:302,307"]
     EQ["Orchestrator equilibrium auto-pause, held guard<br/>physics_orchestrator_actor.rs:655,673,714"] --> OFF["Fixture: pauseOnEquilibrium false<br/>live_physics_settings.json:1"]
-    FS --> FA2["FA2 branch sets velocity from force, never reads damping<br/>visionclaw_unified.cu:1059,1073"]
-    FA2 -.-> D1["DEBT: FastSettle damping override is inert<br/>under the stored adaptive integrator<br/>visionclaw_unified.cu:1089"]
+    FS --> FA2["FA2 branch sets velocity from force, never reads damping<br/>visionclaw_unified.cu:1062,1076"]
+    FA2 -.-> D1["DEBT: FastSettle damping override is inert<br/>under the stored adaptive integrator<br/>visionclaw_unified.cu:1092"]
 ```
 
 **What it shows.** A burst mode, a 2 s time box and a KE detector share one word, and a fourth judge (the auto-pause) is configured off. **Why it is this way.** Each was added for a different consumer: layout passes, ADR-2169 holds, and the REST `/api/layout/status`.
 
-**Debt:** "settle" names three unrelated mechanisms (`physics_orchestrator_actor.rs:359`; `force_compute_actor.rs:4536,291`), and only the Verlet branch reads damping (`visionclaw_unified.cu:1089`). Since spring mode merged, that branch runs throughout every hold window (`execution.rs:1159,1160`), so damping is live there and inert only at rest under the stored adaptive integrator.
+**Debt:** "settle" names three unrelated mechanisms (`physics_orchestrator_actor.rs:359`; `force_compute_actor.rs:4658,302`), and only the Verlet branch reads damping (`visionclaw_unified.cu:1092`). Since spring mode merged, that branch runs throughout every hold window (`execution.rs:1155,1156`), so damping is live there and inert only at rest under the stored adaptive integrator.
 
 ## VC-54.4 How strongly a held node's neighbours follow it: stored force style at rest, spring mode while held
 
 ```mermaid
 flowchart TD
-    PIN["Held node skips integration but stays in neighbours' spring loops<br/>visionclaw_unified.cu:1018"] --> ATT{"Stored linLogMode<br/>live_physics_settings.json:1"}
+    PIN["Held node skips integration but stays in neighbours' spring loops<br/>visionclaw_unified.cu:1021"] --> ATT{"Stored linLogMode<br/>live_physics_settings.json:1"}
     ATT -->|true, fixture| LOG["Attraction log1p of distance, ignores spring_k<br/>visionclaw_unified.cu:434,437"]
     ATT -->|false| HOOKE["Hooke around one global rest length<br/>visionclaw_unified.cu:440,451"]
-    LOG --> OVL["While held: plus spring_k times stretch from the grab snapshot<br/>visionclaw_unified.cu:454,455; execution.rs:718"]
+    LOG --> OVL["While held: plus spring_k times stretch from the grab snapshot<br/>visionclaw_unified.cu:454,455; execution.rs:714"]
     HOOKE --> OVL
-    OVL --> CAP["Total force capped at max_force, raised with spring_k by the hold gain<br/>visionclaw_unified.cu:1044; execution.rs:1165,1166"]
-    CAP --> INT{"Overlay on, or stored adaptiveSpeed false?<br/>execution.rs:1159,1160; live_physics_settings.json:1"}
-    INT -->|no: at rest, fixture| AD["Speed is global_speed over 1 plus root swing<br/>visionclaw_unified.cu:1059,1073"]
-    INT -->|yes: held or settling| VER["Verlet with dt and damping<br/>visionclaw_unified.cu:1088,1089"]
-    FLOOR["Hold floor raises global_speed to 2.0<br/>force_compute_actor.rs:4552,4601"] -.-> GAP["DEBT: only the adaptive branch reads it, and the overlay<br/>turns that branch off for the same span<br/>visionclaw_unified.cu:1073"]
-    SEL["Kernel chosen by stability_threshold<br/>execution.rs:661,662,664"] -.-> ONE["Both force kernels call one spring helper<br/>visionclaw_unified.cu:422,645,2400"]
+    OVL --> CAP["Total force capped at max_force, raised with spring_k by the hold gain<br/>visionclaw_unified.cu:1047; execution.rs:1161,1162"]
+    CAP --> INT{"Overlay on, or stored adaptiveSpeed false?<br/>execution.rs:1155,1156; live_physics_settings.json:1"}
+    INT -->|no: at rest, fixture| AD["Speed is global_speed over 1 plus root swing<br/>visionclaw_unified.cu:1062,1076"]
+    INT -->|yes: held or settling| VER["Verlet with dt and damping<br/>visionclaw_unified.cu:1091,1092"]
+    FLOOR["Hold floor raises global_speed to 2.0<br/>force_compute_actor.rs:4674,4723"] -.-> GAP["DEBT: only the adaptive branch reads it, and the overlay<br/>turns that branch off for the same span<br/>visionclaw_unified.cu:1076"]
+    SEL["Kernel chosen by stability_threshold<br/>execution.rs:661,662,664"] -.-> ONE["Both force kernels call one spring helper<br/>visionclaw_unified.cu:422,645,2408"]
 ```
 
 **What it shows.** At rest, the fixture's LinLog plus adaptive pairing gives a weak, swing-damped pull. Turning LinLog off globally would move every edge to one rest length, and the resting layout with it. While a node is held, the merged ADR-2169 amendment adds a linear spring around each edge's length at the moment of grab. It strengthens that spring by the hold gain and integrates with Verlet, so the pull no longer depends on the stored force style or on swing. **Why it is this way.** LinLog is the modularity layout. The `HOLD_GLOBAL_SPEED` floor was the first attempt to answer the hand inside it. The spring overlay is the second attempt, and it replaced the first without removing it.
 
-**Debt:** the speed floor is computed for exactly the span in which the overlay disables its only reader (`force_compute_actor.rs:4601`; `execution.rs:1160`; `visionclaw_unified.cu:1073`). The earlier debt that the spring force was written twice is closed: both kernels now call `edge_spring_scale` (`visionclaw_unified.cu:422`), although each kernel still has its own neighbour loop.
+**Debt:** the speed floor is computed for exactly the span in which the overlay disables its only reader (`force_compute_actor.rs:4723`; `execution.rs:1156`; `visionclaw_unified.cu:1076`). The earlier debt that the spring force was written twice is closed: both kernels now call `edge_spring_scale` (`visionclaw_unified.cu:422`), although each kernel still has its own neighbour loop.
 
 ## VC-54.5 One shared layout document, written from three surfaces
 
@@ -144,7 +146,7 @@ flowchart TD
     SRV["POST /api/layout/mode, any authenticated user, 60 per minute<br/>layout_handler.rs:46 layout_handler.rs:370-372"]
     SAMEQ["already stored: nothing written<br/>layout_handler.rs:86-87"]
     ONE["Spectral or Temporal: placement over the caller's own view, returned in the response only<br/>layout_handler.rs:128 layout_handler.rs:139 layout_handler.rs:178 layout_handler.rs:191"]
-    PHYS["settings physics PUT, the one physics document<br/>settings_routes.rs:651 settings_routes.rs:686"]
+    PHYS["settings physics PUT, the one physics document<br/>settings_routes.rs:696 settings_routes.rs:731"]
     SPREAD --> PHYS
     MOTION --> PHYS
     SW --> SRV
@@ -152,9 +154,28 @@ flowchart TD
     CYC --> SRV
     SRV --> SAMEQ
     SRV --> ONE
-    MOTION -.-> INERT["DEBT: at rest under the stored adaptive integrator the damping share of Motion is not read<br/>visionclaw_unified.cu:1059 visionclaw_unified.cu:1073"]
+    MOTION -.-> INERT["DEBT: at rest under the stored adaptive integrator the damping share of Motion is not read<br/>visionclaw_unified.cu:1062 visionclaw_unified.cu:1076"]
 ```
 
 **What it shows.** Layout mode and the two layout dials are one server-side document; the desktop marks the dials as shared and the headset refuses to persist the mode locally for the same reason. **Why it is this way.** ADR-2140 made `physics.layoutMode` the one stored definition, and ADR-2189 §2 labels every control that writes it.
 **Debt (parallel):** Two desktop callers POST the mode: `settingWrites.ts:66` on a registry write and `GraphManager.tsx:314` on the resulting store change, so one edit sends two requests; the server's same-mode check (`layout_handler.rs:86`) makes the second a no-op. The shared-scope sentence is also defined twice (`MacroDial.tsx:41`, `manifest.ts:224`).
 **Open (risk):** A Spectral or Temporal placement is computed over the caller's own view (`layout_handler.rs:139`) and exists only in that response (`layout_handler.rs:191`). Each desktop fetches its own on the store change (`GraphManager.tsx:316`), while the headset's completion handler leaves the body unread (`graph_scene.gd:2833`), so viewers can hold different placements under one shared mode.
+
+## VC-54.6 Eight modes, resolved on the host, and a kernel field nothing reads
+
+```mermaid
+flowchart TB
+    STORED["physics.layoutMode, unknown values load the default<br/>types/physics_config.rs:410"] --> MODES["LayoutMode: forceDirected, hierarchical, radial, spectral,<br/>temporal, clustered, dagLeftRight, typeClustering<br/>layout.rs:11"]
+    MODES --> FROM["SimulationParams from the stored document<br/>visionclaw-domain/src/models/simulation_params.rs:450-454"]
+    FROM --> RES["resolve_mode_defaults: only a stored value of 0 or less is replaced<br/>visionclaw-domain/src/models/simulation_params.rs:470"]
+    RES --> RAD["radial: dagBiasK, dagLevelDistance<br/>visionclaw-domain/src/models/simulation_params.rs:472-479"]
+    RES --> HIER["hierarchical, dagLeftRight: layerBiasK, layerSpacing<br/>visionclaw-domain/src/models/simulation_params.rs:480-487"]
+    RES --> DAG["DAG modes: centerGravityK, ssspAlpha<br/>visionclaw-domain/src/models/simulation_params.rs:488-495"]
+    RES --> TC["typeClustering: clusterStrength<br/>visionclaw-domain/src/models/simulation_params.rs:496-498"]
+    MODES --> GPUU["as_gpu_u32 into SimParams.layout_mode<br/>layout.rs:74, visionclaw_unified.cu:93"]
+    GPUU -.-> UNUSED["DEBT: the kernel declares layout_mode but no branch reads it,<br/>layout.rs:70-72, spectral, temporal and clustered<br/>get no mode defaults and run as forceDirected"]
+```
+
+**What it shows:** a mode changes the layout only by filling unset force terms on the host; the GPU receives the mode number but never branches on it. **Why it is this way:** ADR-2140 kept the modes as stored presets over one force pass; the per-mode kernel terms of ADR-141 were never written.
+
+**Debt:** `SimParams.layout_mode` is uploaded (`../project/crates/visionclaw-domain/src/types/layout.rs:74`) and declared by the kernel (`../project/crates/visionclaw-gpu/src/cuda_sources/visionclaw_unified.cu:93`), but its own comment says nothing branches on it (`../project/crates/visionclaw-domain/src/types/layout.rs:70-71`), and `resolve_mode_defaults` has no case for spectral, temporal or clustered (`../project/crates/visionclaw-domain/src/models/simulation_params.rs:470-498`), so those three behave exactly like forceDirected.
