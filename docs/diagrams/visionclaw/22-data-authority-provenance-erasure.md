@@ -466,7 +466,7 @@ sequenceDiagram
         SYNC->>REBUILD: rebuild_assert_graph(stats) (github_sync_service.rs:742-744)
         REBUILD->>REBUILD: filter KG nodes to ontology-typed only, ONTOLOGY_TYPE_KEY metadata (github_sync_service.rs:1106)
         REBUILD->>AG: CLEAR GRAPH assert then INSERT DATA class nodes + class-relation edges (save_ontology_graph, atomic) (github_sync_service.rs:1147)
-        Note over REBUILD,AG: this CLEAR wipes the ENTIRE assert graph including runtime OWL classes/axioms added via the governed write door (github_sync_service.rs:1073-1075)
+        Note over REBUILD,AG: this CLEAR wipes the ENTIRE assert graph including runtime OWL classes/axioms<br/>added via the governed write door (github_sync_service.rs:1073-1075)
         REBUILD->>DECREB: rematerialise_decisions() ADR-050 read-half, called AFTER the class CLEAR+INSERT (github_sync_service.rs:1163)
         DECREB->>DECREB: list_pages_under(DECISIONS_DIR), decision_page_quads_logged per page (github_sync_service.rs:1237, :1265)
         DECREB->>AG: insert_quads_to_store re-derived dl:DecisionRecord quads, non-fatal on failure (github_sync_service.rs:1276, :1163-1169)
