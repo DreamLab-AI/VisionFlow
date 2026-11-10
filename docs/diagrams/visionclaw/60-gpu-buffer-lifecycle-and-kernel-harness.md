@@ -19,7 +19,7 @@ sources:
   - ../project/crates/visionclaw-gpu/tests/force_kernel_baseline/main.rs
   - ../project/docs/adr/ADR-2191-graph-sized-gpu-buffers-are-declared-once-and-sssp-spring-adjust-is-off-by-default.md
   - ../project/docs/adr/ADR-2140-physics-forces-have-one-stored-definition-and-no-scale-factors.md
-verified_commit: {visionclaw: bc6c16aef9fb05336ed5933101562ebc5e48ab3b}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
 ---
 
 ## For developers
