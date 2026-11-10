@@ -92,47 +92,47 @@ sources:
   - ../dream-engine/crates/dream-cli/src/lib.rs
   - ../dream-engine/docs/adr/ADR-DE-006-automerge-is-an-option.md
   - ../dream-engine/docs/adr/ADR-DE-007-a-night-is-identified-by-its-directory.md
-verified_commit: {agentbox: 6500582dfae23bf8a38a6942916d208154e43625, dream-engine: 59a3e215e826aa1e9ebe157d49c1ac504f7f39c9}
+verified_commit: {agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, dream-engine: b40d50724bb6344dc00d57270f7166b138714406}
 ---
 Repair follow-up, 2026-11-03: [AB-41.3](41-process-governance-and-dream-repairs.md#ab-413-supply-the-reusable-core-with-verifiable-host-inputs) and [DE-06](../dream-engine/06-formatting-and-evidence-repairs.md) record the adapter's registry adoption and core formatting/source/integrity repairs. This topic retains its historical source stamp.
 
 This topic draws the adapter and the boundary after the 2026-10-15 extraction (agentbox ADR-2141). The judgement and the loop mechanism moved to the permissive repository DreamLab-AI/dream-engine, mapped in DE-01 and in its own corpus at `../dream-engine/docs/diagrams/README.md`, which is not duplicated here. AB-23.9 onward are adapter-owned and re-cited at the new revision.
 
-State at this stamp: the adapter pins `dream-core =0.4.0` and `dream-gate =0.3.0` from the registry (`../project/agentbox/services/dream-engine/Cargo.toml:26-27`), and the extraction is live: ADR-2141 is `accepted`, `complete`, `live`, with the operator's rebuild activated on 2026-10-16 and later releases adopted since (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:6-8`). Three adapter-owned changes since the first stamp are drawn here: source supply as plumbing (AB-23.21, ADR-2143), the opt-in Jev triage before the candidate build (AB-23.22, AB-23-S1-01) and the formatter step inside the core's candidate run (AB-23.4, ADR-DE-009). The crates.io versions are recorded in DE-01.
+State at this stamp: the adapter pins `dream-core =0.4.1` and `dream-gate =0.3.0` from the registry (`../project/agentbox/services/dream-engine/Cargo.toml:26-27`), and the extraction is live: ADR-2141 is `accepted`, `complete`, `live`, with the operator's rebuild activated on 2026-10-16 and later releases adopted since (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:6-8`). Three adapter-owned changes since the first stamp are drawn here: source supply as plumbing (AB-23.21, ADR-2143), the opt-in Jev triage before the candidate build (AB-23.22, AB-23-S1-01) and the formatter step inside the core's candidate run (AB-23.4, ADR-DE-009). The crates.io versions are recorded in DE-01.
 
 ## AB-23.1 Repo-night phases and early exits
 
 ```mermaid
 flowchart TB
-    CFG["Load config and select slot<br/>engine.rs:549"] --> LOCK{"Dry run or per-night lock acquired?<br/>engine.rs:560"}
-    LOCK -->|held or IO error| STOP["Return error; no repo-night execution<br/>engine.rs:567"]
-    LOCK -->|yes| READY{"Readiness admitted?<br/>engine.rs:576"}
-    READY -->|no| HAND["HANDOFF; writes report and ledger unless dry run<br/>engine.rs:596"]
-    READY -->|yes| PROMPT["Compile prompt and carry-over<br/>engine.rs:609"]
-    PROMPT --> DRY{"Dry run?<br/>engine.rs:623"}
-    DRY -->|yes| END["Return without dispatch<br/>engine.rs:625"]
-    DRY -->|no| FIN{"finished_night by repo, date and night directory<br/>engine.rs:641"}
-    FIN -->|Persisted or Complete| SKIP["Return stored outcome; no publication reconciliation<br/>engine.rs:655"]
-    FIN -->|unreadable| BLOCK["BLOCKED-ENV result<br/>engine.rs:644"]
-    FIN -->|unfinished| MAN["Resolve baseline, policy and frozen manifest<br/>engine.rs:700,743,763"]
-    MAN --> HEALTH{"Sweep then annexe health<br/>engine.rs:806,823"}
-    HEALTH -->|unhealthy| NOATT["BLOCKED-ENV before attempt count<br/>engine.rs:850"]
-    HEALTH -->|healthy| BEGIN{"begin: fresh, resumed, terminal or error<br/>engine.rs:867"}
+    CFG["Load config and select slot<br/>engine.rs:644"] --> LOCK{"Dry run or per-night lock acquired?<br/>engine.rs:655"}
+    LOCK -->|held or IO error| STOP["Return error; no repo-night execution<br/>engine.rs:662"]
+    LOCK -->|yes| READY{"Readiness admitted?<br/>engine.rs:671"}
+    READY -->|no| HAND["HANDOFF; writes report and ledger unless dry run<br/>engine.rs:691"]
+    READY -->|yes| PROMPT["Compile prompt and carry-over<br/>engine.rs:704"]
+    PROMPT --> DRY{"Dry run?<br/>engine.rs:718"}
+    DRY -->|yes| END["Return without dispatch<br/>engine.rs:720"]
+    DRY -->|no| FIN{"finished_night by repo, date and night directory<br/>engine.rs:736"}
+    FIN -->|Persisted or Complete| SKIP["Return stored outcome; no publication reconciliation<br/>engine.rs:750"]
+    FIN -->|unreadable| BLOCK["BLOCKED-ENV result<br/>engine.rs:739"]
+    FIN -->|unfinished| MAN["Resolve baseline, policy and frozen manifest<br/>engine.rs:795,838,858"]
+    MAN --> HEALTH{"Sweep then annexe health<br/>engine.rs:901,918"}
+    HEALTH -->|unhealthy| NOATT["BLOCKED-ENV before attempt count<br/>engine.rs:945"]
+    HEALTH -->|healthy| BEGIN{"begin: fresh, resumed, terminal or error<br/>engine.rs:962"}
     BEGIN -->|terminal| SKIP
     BEGIN -->|journal error| BLOCK
-    BEGIN -->|abandoned| ABANDON["Alert and BLOCKED-ENV record<br/>engine.rs:890"]
-    BEGIN -->|fresh or resumed| BASE["Dispatch, checkout probe and baseline evaluation<br/>engine.rs:954,979,1097"]
-    BASE -->|harness fault| EARLY["Persist blocked result and best-effort Complete<br/>engine.rs:1135"]
-    BASE -->|usable| MODEL["Source, model, repair and optional triage<br/>engine.rs:1275,1317,1410,1439"]
-    MODEL --> CAND["Optional candidate run; mark CandidateEvaluated even if skipped<br/>engine.rs:1465,1522"]
-    CAND --> GATE["Judge then best-effort Gated<br/>engine.rs:1601"]
-    GATE --> PERSIST{"Persisted journal write succeeds?<br/>engine.rs:1710"}
-    PERSIST -->|no| PFAIL["BLOCKED-ENV persistence error<br/>engine.rs:1712"]
-    PERSIST -->|yes| EFFECT["Draft branch handling and ledger tail<br/>engine.rs:1733"]
-    EFFECT --> COMPLETE["Best-effort Complete<br/>engine.rs:1932"]
+    BEGIN -->|abandoned| ABANDON["Alert and BLOCKED-ENV record<br/>engine.rs:985"]
+    BEGIN -->|fresh or resumed| BASE["Dispatch, checkout probe and baseline evaluation<br/>engine.rs:1049,1074,1192"]
+    BASE -->|harness fault| EARLY["Persist blocked result and best-effort Complete<br/>engine.rs:1230"]
+    BASE -->|usable| MODEL["Source, model, repair and optional triage<br/>engine.rs:1370,1412,1505,1534"]
+    MODEL --> CAND["Optional candidate run; mark CandidateEvaluated even if skipped<br/>engine.rs:1560,1617"]
+    CAND --> GATE["Judge then best-effort Gated<br/>engine.rs:1696"]
+    GATE --> PERSIST{"Persisted journal write succeeds?<br/>engine.rs:1805"}
+    PERSIST -->|no| PFAIL["BLOCKED-ENV persistence error<br/>engine.rs:1807"]
+    PERSIST -->|yes| EFFECT["Draft branch handling and ledger tail<br/>engine.rs:1828"]
+    EFFECT --> COMPLETE["Best-effort Complete<br/>engine.rs:2031"]
 ```
 
-This is the control-flow overview; phase names record progress, not proof that every named action ran. Config loading precedes the lock, admission precedes the finished-night check, and several intermediate phase writes ignore errors (`../project/agentbox/services/dream-engine/src/engine.rs:934,1097,1378,1522,1601`). AB-23.7 covers recovery in detail.
+This is the control-flow overview; phase names record progress, not proof that every named action ran. Config loading precedes the lock, admission precedes the finished-night check, and several intermediate phase writes ignore errors (`../project/agentbox/services/dream-engine/src/engine.rs:1029,1192,1473,1617,1696`). AB-23.7 covers recovery in detail.
 
 The [controls probe](../../estate-review/2026-11-01-dream-adapter-controls-and-egress.md) reproduced a completed night gaining a HANDOFF row and an overwritten report after its evaluator config became unusable. `Persisted` suppresses a repeat after a process crash; it neither confirms a draft was delivered nor supplies a power-loss transaction. Those limits are assessed in the [recovery](../../estate-review/2026-11-01-dream-recovery-and-source-supply.md) and [forge](../../estate-review/2026-11-01-dream-forge-and-seam-contracts.md) reviews.
 
@@ -140,28 +140,28 @@ The [controls probe](../../estate-review/2026-11-01-dream-adapter-controls-and-e
 
 ```mermaid
 flowchart TB
-    LOOP["UTC loop: start <= hour < end; tick every 600 seconds<br/>main.rs:284"]
-    TARGET{"target supplied?<br/>main.rs:300"}
+    LOOP["UTC loop: start <= hour < end; tick every 600 seconds<br/>migration guard first, AB-43<br/>main.rs:496, main.rs:518"]
+    TARGET{"target supplied?<br/>main.rs:523"}
     LOOP --> TARGET
-    TARGET -->|yes| SINGLE["run_cycle: selected repo; bypass pause, standby and roster cap<br/>engine.rs:126"]
-    TARGET -->|no| PAUSE{"pause flag exists?<br/>engine.rs:156"}
-    PAUSE -->|yes| RETRY["Return None: date not consumed; retry next tick<br/>main.rs:315"]
-    PAUSE -->|no| NIGHT["Governance ingest; discover; optional branch sweep<br/>engine.rs:176"]
-    NIGHT --> FILTER["Exclude manual standby and dry streak >= configured threshold<br/>engine.rs:206-216"]
+    TARGET -->|yes| SINGLE["run_cycle: selected repo; bypass pause, standby and roster cap<br/>engine.rs:128"]
+    TARGET -->|no| PAUSE{"pause flag exists?<br/>engine.rs:158"}
+    PAUSE -->|yes| RETRY["Return None: date not consumed; retry next tick<br/>main.rs:538"]
+    PAUSE -->|no| NIGHT["Governance ingest; discover; optional branch sweep<br/>engine.rs:178"]
+    NIGHT --> FILTER["Exclude manual standby and dry streak >= configured threshold<br/>engine.rs:213-223"]
     FILTER --> ROS["Load roster, select oldest date then fewest runs then name; cap<br/>dream-core/src/roster.rs:67"]
-    ROS --> LOCK["Selected repos run serially; acquire per-night lock<br/>engine.rs:288,563"]
+    ROS --> LOCK["Selected repos run serially; acquire per-night lock<br/>engine.rs:295,658"]
     SINGLE --> LOCK
-    LOCK --> READY{"readiness admitted?<br/>engine.rs:576"}
-    READY -->|no| HAND["Persist HANDOFF before checking finished state<br/>engine.rs:599"]
-    READY -->|yes| DONE{"finished_night?<br/>engine.rs:641"}
-    DONE -->|yes| OLD["Return stored result<br/>engine.rs:655"]
-    DONE -->|no| CYCLE["Run experiment and delivery; see AB-23.4 to AB-23.7<br/>engine.rs:674"]
-    HAND --> RECORD["Roster mode records returned results or failures; locked repos skipped<br/>engine.rs:295,308"]
+    LOCK --> READY{"readiness admitted?<br/>engine.rs:671"}
+    READY -->|no| HAND["Persist HANDOFF before checking finished state<br/>engine.rs:694"]
+    READY -->|yes| DONE{"finished_night?<br/>engine.rs:736"}
+    DONE -->|yes| OLD["Return stored result<br/>engine.rs:750"]
+    DONE -->|no| CYCLE["Run experiment and delivery; see AB-23.4 to AB-23.7<br/>engine.rs:769"]
+    HAND --> RECORD["Roster mode records returned results or failures; locked repos skipped<br/>engine.rs:302,315"]
     OLD --> RECORD
     CYCLE --> RECORD
-    RECORD --> HEALTH["Health, governance publish, digest and optional forum suggestions<br/>engine.rs:336,395,403,413"]
-    HEALTH --> DATE["Loop consumes date even on failure; marker is process-local<br/>main.rs:321"]
-    ROS -.-> LOSS["Unreadable roster resets history; failed save only warns<br/>dream-core/src/roster.rs:111<br/>engine.rs:309"]
+    RECORD --> HEALTH["Health, governance publish, digest and optional forum suggestions<br/>engine.rs:343,408,416,426"]
+    HEALTH --> DATE["Date consumed after a cycle, even a failed target cycle;<br/>a night that did not run retries in 600 s; marker is process-local<br/>main.rs:545, main.rs:538"]
+    ROS -.-> LOSS["Unreadable roster resets history; failed save only warns<br/>dream-core/src/roster.rs:111<br/>engine.rs:316"]
 ```
 
 **Limits.** The window controls start time, not a night deadline. Pause is checked only at roster entry, not during a night or targeted execution. Readiness can append HANDOFF to an already finished night; see the 1 November controls audit.
@@ -171,8 +171,8 @@ flowchart TB
 ```mermaid
 flowchart TB
     AD["Agentbox adapter, AGPL-3.0-only<br/>services/dream-engine/Cargo.toml:8"] --> MODULES["Host orchestration, providers, transport,<br/>memory and forum modules<br/>services/dream-engine/src/lib.rs:25"]
-    MODULES --> ENVELOPE["zone_crypto remains an adapter module<br/>services/dream-engine/src/lib.rs:54"]
-    AD --> PIN["Exact registry dependencies<br/>core 0.4.0 and gate 0.3.0<br/>services/dream-engine/Cargo.toml:26"]
+    MODULES --> ENVELOPE["zone_crypto remains an adapter module<br/>services/dream-engine/src/lib.rs:62"]
+    AD --> PIN["Exact registry dependencies<br/>core 0.4.1 and gate 0.3.0<br/>services/dream-engine/Cargo.toml:26"]
     PIN --> CORE["dream-core: host-driven loop mechanisms<br/>dream-core/src/lib.rs:3"]
     PIN --> GATE["dream-gate: judgement and evidence types<br/>dream-gate/src/lib.rs:3"]
     CORE --> GATE
@@ -190,20 +190,20 @@ flowchart TB
 
 **Open (publication control):** the adapter's manifest declares its licence and version but no publication restriction (`../project/agentbox/services/dream-engine/Cargo.toml:4`, `../project/agentbox/services/dream-engine/Cargo.toml:8`). Source placement and stated policy must not be presented as a registry guard.
 
-**Drift (activation evidence):** ADR-2141 records activation on 16 October and a later 0.3.0 re-verification (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:47`, `../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:55`). Current source pins core 0.4.0 (`../project/agentbox/services/dream-engine/Cargo.toml:26`); those historical records do not establish its current running image. The local tests in the dated audit use fixture services.
+**Drift (activation evidence):** ADR-2141 records activation on 16 October and a later 0.3.0 re-verification (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:84`, `../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:92`). Current source pins core 0.4.1 (`../project/agentbox/services/dream-engine/Cargo.toml:26`); those historical records do not establish its current running image. The local tests in the dated audit use fixture services.
 
 ## AB-23.4 Guard ordering and the gate's evidence boundary
 
 ```mermaid
 flowchart TB
-    FLOW["attempt_judged enters candidate::run<br/>candidate_flow.rs:128"] --> BIN{"Binary deletion?<br/>candidate.rs:481"}
-    BIN -->|yes| REF["Refused; no apply<br/>candidate.rs:483"]
-    BIN -->|no| GUARD{"Protected-path and diff guard<br/>candidate.rs:489"}
-    GUARD -->|refused| PRO["Protected or Refused state<br/>candidate.rs:490"]
-    GUARD -->|allowed| PRE["Prepare worktree; recheck normalised patch<br/>candidate.rs:494,503"]
-    PRE --> FMT["Configured fixer on control plane; record formatting outcome<br/>candidate.rs:527"]
-    FMT --> RUN["Optional relocation and build; required evaluators<br/>candidate.rs:528,546,551"]
-    RUN --> STATE["Applied state, actual patch, tree and receipts<br/>candidate.rs:553"]
+    FLOW["attempt_judged enters candidate::run<br/>candidate_flow.rs:140"] --> BIN{"Binary deletion?<br/>candidate.rs:494"}
+    BIN -->|yes| REF["Refused; no apply<br/>candidate.rs:496"]
+    BIN -->|no| GUARD{"Protected-path and diff guard<br/>candidate.rs:502"}
+    GUARD -->|refused| PRO["Protected or Refused state<br/>candidate.rs:503"]
+    GUARD -->|allowed| PRE["Prepare worktree; recheck normalised patch<br/>candidate.rs:507,516"]
+    PRE --> FMT["Configured fixer on control plane; record formatting outcome<br/>candidate.rs:540"]
+    FMT --> RUN["Optional relocation and build; required evaluators<br/>candidate.rs:541,559,564"]
+    RUN --> STATE["Applied state, actual patch, tree and receipts<br/>candidate.rs:593"]
     REF --> JUDGE
     PRO --> JUDGE
     STATE --> JUDGE["Adapter replay capture with baseline policy<br/>judge.rs:36"]
@@ -212,19 +212,19 @@ flowchart TB
     CTX --> RESULT["ACCEPT claim plus no vetoes accepts<br/>gate.rs:489"]
 ```
 
-Both the pre-apply guard and the pure gate recheck are present. The gate trusts caller-supplied receipt outcomes and candidate state; it is not an execution attestation. The adapter obtains a candidate config digest through an Option-returning helper, so a missing digest skips that comparison (`../project/agentbox/services/dream-engine/src/candidate_flow.rs:307`; `../dream-engine/crates/dream-gate/src/gate.rs:471`). Required evaluator failures veto an otherwise eligible ACCEPT; unreadable or absent evidence has its own classification.
+Both the pre-apply guard and the pure gate recheck are present. The gate trusts caller-supplied receipt outcomes and candidate state; it is not an execution attestation. The adapter obtains a candidate config digest through an Option-returning helper, so a missing digest skips that comparison (`../project/agentbox/services/dream-engine/src/candidate_flow.rs:330`; `../dream-engine/crates/dream-gate/src/gate.rs:471`). Required evaluator failures veto an otherwise eligible ACCEPT; unreadable or absent evidence has its own classification.
 
-Formatting is not a confinement boundary: a valid spaced Rust path attribute caused rustfmt to modify an external temporary file in the [candidate probe](../../estate-review/2026-11-01-dream-candidate-and-evidence.md). The same review reproduced an evaluator changing tracked files after the candidate tree was recorded. The repository's own config names no fixer at this stamp, but another nominated repository can enable one (`../project/agentbox/dream.config.json:43`; `../dream-engine/crates/dream-core/src/candidate.rs:527`).
+Formatting is not a confinement boundary: a valid spaced Rust path attribute caused rustfmt to modify an external temporary file in the [candidate probe](../../estate-review/2026-11-01-dream-candidate-and-evidence.md). The same review reproduced an evaluator changing tracked files after the candidate tree was recorded. The repository's own config names no fixer at this stamp, but another nominated repository can enable one (`../project/agentbox/dream.config.json:43`; `../dream-engine/crates/dream-core/src/candidate.rs:540`).
 
 ## AB-23.5 Candidate worktree, relocation and apply repair
 
 ```mermaid
 sequenceDiagram
-    participant CF as candidate_flow<br/>candidate_flow.rs:177
-    participant RUN as candidate::run<br/>candidate.rs:469
-    participant PRE as prepare and format<br/>candidate.rs:494,527
-    participant EV as runner and relocation<br/>candidate.rs:528
-    participant SRC as apply_repair<br/>candidate_flow.rs:206
+    participant CF as candidate_flow<br/>candidate_flow.rs:189
+    participant RUN as candidate::run<br/>candidate.rs:482
+    participant PRE as prepare and format<br/>candidate.rs:507,540
+    participant EV as runner and relocation<br/>candidate.rs:541
+    participant SRC as apply_repair<br/>candidate_flow.rs:229
     CF->>RUN: guarded attempt at the dispatched base
     RUN->>PRE: apply strategies and normalisation, then configured fixer
     alt prepared successfully
@@ -237,7 +237,7 @@ sequenceDiagram
         CF->>CF: load apply-repair.json only if failed-patch digest matches
         opt no matching receipt
             CF->>SRC: report, git error, failed patch and baseline excerpt
-            Note over CF,SRC: Excerpt bypasses source filename and key-material withholding.<br/>source.rs:1327
+            Note over CF,SRC: RESOLVED: excerpt now passes the source denylist and key-material check.<br/>source.rs:1353-1356
             SRC-->>CF: correction, decline, absent diff or error
             CF->>CF: best-effort receipt write
         end
@@ -250,7 +250,7 @@ sequenceDiagram
     Note over PRE,EV: Worktree separation does not confine<br/>formatter or evaluator writes.<br/>Build results stay separate<br/>from evaluator receipts.
 ```
 
-The baseline revision is passed into the candidate worktree, which protects against ordinary HEAD movement. However, the failing-hunk excerpt goes straight from `read_blob` to the repair prompt without the source-stage denylist or key-material withholding (`../dream-engine/crates/dream-core/src/source.rs:1320-1336`). The execution review reproduces this with harmless canaries and a capturing model stub. Apply repair is keyed to the failed patch, not to a complete baseline/prompt identity, and its receipt write is best effort (`../project/agentbox/services/dream-engine/src/candidate_flow.rs:186-215`). A missing receipt after a crash can therefore permit another repair request; the code does not establish exactly one external call across all failures.
+The baseline revision is passed into the candidate worktree, which protects against ordinary HEAD movement. The failing-hunk excerpt bypass the execution review reproduced is RESOLVED at dream-engine b40d507: `failing_excerpt_with` validates the path against the host denylist and withholds a blob with key material (`../dream-engine/crates/dream-core/src/source.rs:1343-1356`), and the adapter passes the source denylist (`../project/agentbox/services/dream-engine/src/candidate_flow.rs:208-214`). Apply repair is keyed to the failed patch, not to a complete baseline/prompt identity, and its receipt write is best effort (`../project/agentbox/services/dream-engine/src/candidate_flow.rs:198-238`). A missing receipt after a crash can therefore permit another repair request; the code does not establish exactly one external call across all failures.
 
 The formatter runs locally before relocation. A successful worktree build does not establish the identity of a remote extracted tree or protect the operator's filesystem from subprocess effects. The [candidate](../../estate-review/2026-11-01-dream-candidate-and-evidence.md) and [annexe](../../estate-review/2026-11-01-dream-annexe-and-receipts.md) probes qualify those guarantees. Full ADR-2114 dispositions are in the [execution review](../../estate-review/2026-11-01-dream-execution-and-triage.md).
 
@@ -258,19 +258,19 @@ The formatter runs locally before relocation. A successful worktree build does n
 
 ```mermaid
 flowchart TB
-    PERSIST["Persist verdict before forge and ledger<br/>engine.rs:1710"] --> CHOOSE["Prepared candidate and gate acceptance<br/>engine.rs:1733"]
-    CHOOSE -->|"accepted and persistence enabled"| PUSH["Direct draft publication<br/>engine.rs:1774"]
-    CHOOSE -->|"accepted, persistence disabled"| LOCAL["Keep branch locally<br/>engine.rs:1816"]
-    CHOOSE -->|"candidate vetoed"| DISCARD["Discard candidate<br/>engine.rs:1821"]
-    CHOOSE -->|"no prepared candidate"| NONE["No publication<br/>engine.rs:1833"]
-    PUSH --> RESULT["URL present selects Accepted notice<br/>otherwise LostPr<br/>engine.rs:1788"]
-    RESULT --> LED["Append ledger for every continuing branch<br/>engine.rs:1857"]
+    PERSIST["Persist verdict before forge and ledger<br/>engine.rs:1805"] --> CHOOSE["Prepared candidate and gate acceptance<br/>engine.rs:1828"]
+    CHOOSE -->|"accepted and persistence enabled"| PUSH["Direct draft publication<br/>engine.rs:1869"]
+    CHOOSE -->|"accepted, persistence disabled"| LOCAL["Keep branch locally<br/>engine.rs:1911"]
+    CHOOSE -->|"candidate vetoed"| DISCARD["Discard candidate<br/>engine.rs:1916"]
+    CHOOSE -->|"no prepared candidate"| NONE["No publication<br/>engine.rs:1928"]
+    PUSH --> RESULT["URL present selects Accepted notice<br/>otherwise LostPr<br/>engine.rs:1883"]
+    RESULT --> LED["Append ledger for every continuing branch<br/>engine.rs:1956"]
     LOCAL --> LED
     DISCARD --> LED
     NONE --> LED
-    LED --> COMMIT["Append failure stops, commit failure is logged<br/>records.rs:55<br/>records.rs:80"]
-    COMMIT --> MEMORY["Memory write failure is logged and tolerated<br/>engine.rs:1891<br/>engine.rs:1901"]
-    MEMORY --> COMPLETE["Summary, remote cleanup, then complete<br/>engine.rs:1905<br/>engine.rs:1932"]
+    LED --> COMMIT["Append under the ledger lock; append failure stops,<br/>commit failure is logged<br/>records.rs:66, records.rs:80<br/>records.rs:110"]
+    COMMIT --> MEMORY["Memory write failure is logged and tolerated<br/>engine.rs:1990<br/>engine.rs:2000"]
+    MEMORY --> COMPLETE["Summary, remote cleanup, then complete<br/>engine.rs:2004<br/>engine.rs:2031"]
 ```
 
 **What it shows.** The adapter checks publication eligibility before calling the forge, and calls `Forge::publish_draft` directly. The common ledger path follows all continuing branches, including vetoed and locally retained candidates. A publication failure does not erase the verdict; it changes the PR reference and notice. Earlier inbox and request-store effects precede the persistence boundary described here.
@@ -279,22 +279,22 @@ flowchart TB
 
 **Open (publication identity):** the PR request carries a branch name, not the verified commit hash (`../dream-engine/crates/dream-core/src/seams.rs:341`). A successful create command returns Some even for empty stdout (`../dream-engine/crates/dream-core/src/seams.rs:531`); the adapter then selects the acceptance notice by Option presence. The tested command boundary does not validate the URL or bind the pushed head to the evaluated tree.
 
-**Tension (error ownership):** draft creation exposes only pushed and an optional URL, losing the command error detail (`../dream-engine/crates/dream-core/src/seams.rs:425`, `../dream-engine/crates/dream-core/src/seams.rs:512`). Memory errors are journalled and logged but tolerated (`../project/agentbox/services/dream-engine/src/engine.rs:1895`); they are not automatically written into the core run-state last_error field. ADR-DE-005's universal error-propagation wording is broader than this implementation.
+**Tension (error ownership):** draft creation exposes only pushed and an optional URL, losing the command error detail (`../dream-engine/crates/dream-core/src/seams.rs:425`, `../dream-engine/crates/dream-core/src/seams.rs:512`). Memory errors are journalled and logged but tolerated (`../project/agentbox/services/dream-engine/src/engine.rs:1994`); they are not automatically written into the core run-state last_error field. ADR-DE-005's universal error-propagation wording is broader than this implementation.
 
 ## AB-23.7 Run journal — restart, resume, abandonment and the finished-night rule
 
 ```mermaid
 flowchart TB
-    LOCK["Acquire night lock<br/>engine.rs:563"] --> CHECK["Check finished night<br/>engine.rs:641"]
-    CHECK -->|"matching terminal journal"| SKIP["Return recorded result<br/>engine.rs:649"]
-    CHECK -->|"damaged journal"| BLOCK["Report journal fault<br/>engine.rs:644"]
-    CHECK -->|"absent, unfinished or wrong night"| FREEZE["Build and freeze manifest<br/>engine.rs:700<br/>engine.rs:763"]
-    FREEZE --> HEALTH["Annexe health before begin<br/>engine.rs:823"]
+    LOCK["Acquire night lock<br/>engine.rs:658"] --> CHECK["Check finished night<br/>engine.rs:736"]
+    CHECK -->|"matching terminal journal"| SKIP["Return recorded result<br/>engine.rs:744"]
+    CHECK -->|"damaged journal"| BLOCK["Report journal fault<br/>engine.rs:739"]
+    CHECK -->|"absent, unfinished or wrong night"| FREEZE["Build and freeze manifest<br/>engine.rs:795<br/>engine.rs:858"]
+    FREEZE --> HEALTH["Annexe health before begin<br/>engine.rs:918"]
     HEALTH --> BEGIN["Begin checks night identity and attempts<br/>runstate.rs:523<br/>runstate.rs:542"]
     BEGIN -->|"same run, budget remains"| RESUME["Resumed with attempt increment<br/>runstate.rs:549"]
     BEGIN -->|"new run, budget remains"| FRESH["Fresh with carried attempt count<br/>runstate.rs:560"]
     BEGIN -->|"wrong night or exhausted"| STOP["Refuse or abandon<br/>runstate.rs:526<br/>runstate.rs:542"]
-    RESUME --> PERSIST["Persist verdict before forge and ledger<br/>engine.rs:1710"]
+    RESUME --> PERSIST["Persist verdict before forge and ledger<br/>engine.rs:1805"]
     FRESH --> PERSIST
     PERSIST --> IO["Journal write uses temporary file and rename<br/>manifest.rs:328"]
 ```
@@ -304,7 +304,7 @@ flowchart TB
 
 **Why it is this way.** ADR-DE-007 repairs the earlier run-id-only rule. The [1 November recovery audit](../../estate-review/2026-11-01-dream-recovery-and-source-supply.md) verifies lock release and restart decisions after killing a fixture process before and after persistence. These tests cover process death, not power loss or successful publication. The writer does not synchronise file or directory contents (`../dream-engine/crates/dream-gate/src/manifest.rs:328`); the reset helper uses several link/unlink operations with best-effort rollback (`../dream-engine/crates/dream-core/src/runstate.rs:466`).
 
-**Invariant:** the adapter checks the result of `persist` before attempting accepted-candidate publication (`../project/agentbox/services/dream-engine/src/engine.rs:1710`). At-most-once claims depend on the journal surviving, the lock being honoured and no explicit reset; the library does not reconcile forge outcomes.
+**Invariant:** the adapter checks the result of `persist` before attempting accepted-candidate publication (`../project/agentbox/services/dream-engine/src/engine.rs:1805`). At-most-once claims depend on the journal surviving, the lock being honoured and no explicit reset; the library does not reconcile forge outcomes.
 
 ## AB-23.8 Core types
 
@@ -329,7 +329,7 @@ flowchart TB
 ```
 
 
-This graph shows selected record fields, phase/resume variants, lock methods, gate result and night-health fields. `CandidateState` is non-exhaustive and its payloads are abbreviated. `NotAttempted` also represents optional triage deferral, and `CandidateEvaluated` can be written when no evaluator ran (`../project/agentbox/services/dream-engine/src/engine.rs:1465,1522`). A type name does not establish execution or delivery.
+This graph shows selected record fields, phase/resume variants, lock methods, gate result and night-health fields. `CandidateState` is non-exhaustive and its payloads are abbreviated. `NotAttempted` also represents optional triage deferral, and `CandidateEvaluated` can be written when no evaluator ran (`../project/agentbox/services/dream-engine/src/engine.rs:1560,1617`). A type name does not establish execution or delivery.
 
 `NightHealth.digest` is an optional status string. Health records are adapter reporting inputs; they do not attest that ledger rows, publication or all journal calls succeeded. AB-23.23 and AB-23.24 show those evidence boundaries (`../project/agentbox/services/dream-engine/src/digest.rs:86`).
 
@@ -337,7 +337,7 @@ This graph shows selected record fields, phase/resume variants, lock methods, ga
 
 ```mermaid
 flowchart TB
-    BOOT["Boot prefers baked hook, then checkout; dedupes command substring<br/>entrypoint-unified.sh:2208-2221"] --> INPUT["UserPromptSubmit stdin<br/>dream-inbox-surface.cjs:35-39"]
+    BOOT["Boot prefers baked hook, then checkout; dedupes command substring<br/>entrypoint-unified.sh:2210-2223"] --> INPUT["UserPromptSubmit stdin<br/>dream-inbox-surface.cjs:35-39"]
     INPUT --> MACHINE{"Prompt starts with a known machine-turn tag?<br/>dream-inbox-surface.cjs:31-41"}
     MACHINE -->|yes| EXIT["No context injection<br/>dream-inbox-surface.cjs:68-70"]
     MACHINE -->|no| READ["Read JSON array; count status=open<br/>No published_event_id or relay check<br/>dream-inbox-surface.cjs:42-45"]
@@ -359,19 +359,19 @@ flowchart LR
     SKILL["Operator /dream commands<br/>commands/dream.md:7"]
     SKILL --> STATUS["status: supervisor, pause flag, roster, ledgers and last-night health<br/>commands/dream.md:10"]
     SKILL --> RUN["run: stop loop, invoke baked Rust binary --once, restart loop<br/>commands/dream.md:46"]
-    RUN --> ALL["No target: run_night checks pause and standby<br/>main.rs:253"]
-    RUN --> ONE["--target: run_cycle bypasses pause and standby<br/>main.rs:261"]
+    RUN --> ALL["No target: run_night checks pause and standby<br/>main.rs:438"]
+    RUN --> ONE["--target: run_cycle bypasses pause and standby<br/>main.rs:446"]
     SKILL --> PAUSE["off/on: create/remove dream-paused flag<br/>commands/dream.md:41"]
     SKILL --> STAND["standby/revive: create/remove repo marker<br/>commands/dream.md:61"]
     SKILL --> FORUM["questions/answer/dismiss: forum decisions; local inbox is break-glass<br/>commands/dream.md:17"]
-    SKILL --> DIG["digest and governance use Rust subcommands<br/>main.rs:117"]
+    SKILL --> DIG["digest and governance use Rust subcommands<br/>main.rs:183"]
     SKILL --> NOM["nominate: author repo config and verify evaluators<br/>commands/dream.md:74"]
     SKILL --> HAR["harvest: dream-harvest.mjs<br/>commands/dream.md:31"]
     API["Separate HTTP surface: GET /dream/status only; no run control<br/>routes/dream.js:24"]
-    API --> JS["aggregateDreamStatus reads nominated repo ledgers<br/>dream-ledger.js:397"]
-    JS --> PATH["Ledger path and realpath containment; 5 MiB limit<br/>dream-ledger.js:346"]
-    JS -.-> DIFF["Status discovery ignores symlink dirs; Rust scheduler follows them<br/>dream-ledger.js:248<br/>dream-engine/src/config.rs:223"]
-    RESET["reset-night joins caller date/repo into artefact path<br/>main.rs:142"]
+    API --> JS["aggregateDreamStatus reads nominated repo ledgers<br/>dream-ledger.js:368"]
+    JS --> PATH["Ledger path and realpath containment; 5 MiB limit<br/>dream-ledger.js:317"]
+    JS -.-> DIFF["Status discovery ignores symlink dirs; Rust scheduler follows them<br/>dream-ledger.js:219<br/>dream-engine/src/config.rs:246"]
+    RESET["reset-night joins caller date/repo into artefact path<br/>main.rs:273"]
     RESET --> ARCH["Acquire night lock then archive state and manifest; see AB-23.7<br/>dream-core/src/runstate.rs:441"]
 ```
 
@@ -381,7 +381,7 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    BASE["Capture target HEAD commit and tree<br/>baseline.rs:37; engine.rs:681"]
+    BASE["Capture target HEAD commit and tree<br/>baseline.rs:37; engine.rs:776"]
     BASE --> SUB["Canonical repo path relative to canonical workspace<br/>dispatch.rs:295"]
     SUB -->|inside workspace| DEPTH["Preserve nested depth, including symlink resolution<br/>dispatch.rs:307"]
     SUB -->|outside or unresolved| LEAF["Fall back to leaf name<br/>dispatch.rs:296-305"]
@@ -429,12 +429,12 @@ flowchart TB
     STATE -->|Applied| GUARD["Check protected paths, then candidate receipts if tree trusted<br/>dream-gate/src/gate.rs:421,461"]
     UNPROVEN --> VERDICT["Only unproven vetoes => INCONCLUSIVE<br/>dream-gate/src/gate.rs:506"]
     HARNESS --> BLOCK["Harness veto => BLOCKED-ENV<br/>dream-gate/src/gate.rs:500"]
-    VERDICT --> STREAK["INCONCLUSIVE advances dry streak<br/>engine.rs:1602; dream-core/src/streak.rs:151"]
-    VERDICT --> ALERT["Any nonempty veto list adds operator inbox alert<br/>engine.rs:1689-1705"]
+    VERDICT --> STREAK["INCONCLUSIVE advances dry streak<br/>engine.rs:1697; dream-core/src/streak.rs:151"]
+    VERDICT --> ALERT["Any nonempty veto list adds operator inbox alert<br/>engine.rs:1784-1800"]
     BLOCK --> ALERT
     GUARD --> RESULT["Gate result and typed vetoes<br/>dream-gate/src/gate.rs:489"]
     RESULT -->|nonempty veto list| ALERT
-    ALERT -.-> GAP["ADR-2081 no-operator-alert clause is not implemented here<br/>engine.rs:1689"]
+    ALERT -.-> GAP["ADR-2081 no-operator-alert clause is not implemented here<br/>engine.rs:1784"]
 ```
 
 **Verified distinction.** The no-patch fixture yields INCONCLUSIVE and no Harness veto, but does add an alert. Candidate receipt grading and notification policy are separate; a verdict class alone does not suppress operator messages.
@@ -449,8 +449,8 @@ flowchart TB
     LINE -->|found| SELECTED
     LINE -->|none| FALL["select_finding then take 80 Rust chars<br/>May retain Given prefix or exceed 80 UTF-16 units<br/>dream-gate/src/verdict.rs:374"]
     FALL --> SELECTED
-    SELECTED --> BACK["Adapter checks entire row and repairs violations before append<br/>records.rs:45; dream-core/src/ledger.rs:254"]
-    BACK --> LEDGER["Append repaired or original row; commit is fail-open<br/>records.rs:55-75"]
+    SELECTED --> BACK["Adapter checks entire row and repairs violations before append<br/>records.rs:53; dream-core/src/ledger.rs:254"]
+    BACK --> LEDGER["Append repaired or original row; commit is fail-open<br/>records.rs:66-111"]
     RULES["Cell rules: nonempty, <=80 UTF-16 units, no hypothesis/pointer prefix<br/>Checks through repeated VETOED prefixes<br/>dream-gate/src/verdict.rs:394"] -.-> TABLE
     RULES -.-> LINE
     REPORT --> FULL["Full finding uses older hypothesis-first selection with a separate bound<br/>dream-gate/src/verdict.rs:514,523"]
@@ -463,20 +463,20 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    CFG["DREAM_LLM_PROVIDER overrides runtime config; unknown name becomes Zai<br/>estate.rs:78<br/>llm.rs:35"]
+    CFG["DREAM_LLM_PROVIDER overrides runtime config; unknown name becomes Zai<br/>estate.rs:165<br/>llm.rs:35"]
     CFG --> PRIMARY["Primary LlmAdapter; request token budget honoured<br/>llm.rs:278"]
     PRIMARY --> ZAI["Zai: POST /v1/messages; one transient retry after 20s<br/>llm.rs:49,120"]
     PRIMARY --> LOOM["Loom: published client, 600s timeout, 20s backoff<br/>declining_verbatim; pinned sampling<br/>llm.rs:205"]
-    ZAI --> RESULT{"primary verdict request succeeds?<br/>engine.rs:1326"}
+    ZAI --> RESULT{"primary verdict request succeeds?<br/>engine.rs:1421"}
     LOOM --> RESULT
-    RESULT -->|yes| REPORT["Use report text<br/>engine.rs:1327"]
-    RESULT -->|no| FB{"fallback configured?<br/>estate.rs:126"}
-    FB -->|no| DEG["Record degraded INCONCLUSIVE report<br/>engine.rs:1372"]
-    FB -->|yes| SEND["Send the same prompt to fallback provider<br/>engine.rs:1344"]
-    SEND --> OUT["Use fallback report, or degraded INCONCLUSIVE if both fail<br/>engine.rs:1355"]
-    CFG -.-> POLICY["Zai primary: Loom fallback; Loom primary: Zai if key exists<br/>DREAM_LLM_FALLBACK=off disables fallback<br/>estate.rs:126-159"]
+    RESULT -->|yes| REPORT["Use report text<br/>engine.rs:1422"]
+    RESULT -->|no| FB{"fallback configured?<br/>estate.rs:205"}
+    FB -->|no| DEG["Record degraded INCONCLUSIVE report<br/>engine.rs:1467"]
+    FB -->|yes| SEND["Send the same prompt to fallback provider<br/>engine.rs:1439"]
+    SEND --> OUT["Use fallback report, or degraded INCONCLUSIVE if both fail<br/>engine.rs:1450"]
+    CFG -.-> POLICY["Zai primary: Loom fallback; Loom primary: Zai if key exists<br/>DREAM_LLM_FALLBACK=off disables fallback<br/>estate.rs:205-266"]
     POLICY -.-> FB
-    POLICY -.-> EGRESS["Selecting Loom alone does not establish LAN confinement<br/>ADR-2053's one-setting claim exceeds implementation<br/>estate.rs:126"]
+    POLICY -.-> EGRESS["Selecting Loom alone does not establish LAN confinement<br/>ADR-2053's one-setting claim exceeds implementation<br/>estate.rs:205"]
 ```
 
 **Egress.** Retaining Z.AI as the default is the recorded operator decision. LAN confinement requires the effective primary, fallback and endpoint policy to agree; a provider label alone does not enforce it. Client-level guarantees remain owned by AB-28.11.
@@ -485,19 +485,19 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    INPUT["Parsed RuntimeConfig<br/>main.rs:162"]
-    INPUT --> WHOLE["hp_host, loom_url, zai_url: whole-value placeholder resolution<br/>dream-engine/src/config.rs:127"]
-    INPUT --> INFIX["hp_annexe_dir: expand embedded placeholders<br/>dream-engine/src/config.rs:146"]
-    WHOLE --> DEFAULT["Unset/empty whole placeholder uses field default<br/>dream-engine/src/config.rs:128"]
-    INFIX --> DEFAULT2["Missing/empty referenced variable uses annexe default<br/>dream-engine/src/config.rs:135"]
-    WHOLE -.-> REMAIN["Embedded host/URL placeholders and nested replacement values survive<br/>dream-engine/src/config.rs:112"]
-    INFIX -.-> NESTED["Replacement values are not expanded recursively<br/>dream-engine/src/config.rs:158"]
+    INPUT["Parsed RuntimeConfig<br/>main.rs:293"]
+    INPUT --> WHOLE["hp_host, loom_url, zai_url: whole-value placeholder resolution<br/>dream-engine/src/config.rs:150"]
+    INPUT --> INFIX["hp_annexe_dir: expand embedded placeholders<br/>dream-engine/src/config.rs:169"]
+    WHOLE --> DEFAULT["Unset/empty whole placeholder uses field default<br/>dream-engine/src/config.rs:151"]
+    INFIX --> DEFAULT2["Missing/empty referenced variable uses annexe default<br/>dream-engine/src/config.rs:158"]
+    WHOLE -.-> REMAIN["Embedded host/URL placeholders and nested replacement values survive<br/>dream-engine/src/config.rs:127"]
+    INFIX -.-> NESTED["Replacement values are not expanded recursively<br/>dream-engine/src/config.rs:181"]
     DEFAULT --> GUARD["ssh, ssh_capture and scp_to reject trimmed-empty host<br/>dispatch.rs:65,92,124"]
     DEFAULT2 --> GUARD
     GUARD --> EXEC["Nonempty host: BatchMode and 10s connection timeout<br/>remote command completion has no overall deadline<br/>dispatch.rs:38"]
     FROM["scp_from: no empty-host guard; invokes scp with host:path<br/>dispatch.rs:147"]
-    BAD["Explicit runtime file unreadable or invalid?<br/>main.rs:162"]
-    BAD --> FALL["Log then use defaults, including enabled=true and provider=Zai<br/>main.rs:174<br/>dream-engine/src/config.rs:52,183"]
+    BAD["Explicit runtime file unreadable or invalid?<br/>main.rs:293"]
+    BAD --> FALL["Log then use defaults, including enabled=true and provider=Zai<br/>main.rs:305<br/>dream-engine/src/config.rs:52,206"]
 ```
 
 **Limit.** Existing tests cover the original simple-placeholder failures, not a universal ban on unresolved placeholders. The isolated controls probe confirms nested values survive and empty-host scp_from launches a fake executable.
@@ -506,22 +506,22 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    ING["Start of night: ingest published open items<br/>governance.rs:1058-1069"] --> FETCH["Fetch request times and responses<br/>Query errors become empty results<br/>governance.rs:1086-1114"]
-    FETCH --> VALID["Keep kind 31403, valid signature, signer not this agent<br/>No local admin or delegated-role lookup<br/>governance.rs:857-862"]
-    VALID --> NEW["Choose newest timestamp and event ID per d tag FIRST<br/>governance.rs:864-875"]
-    NEW --> BIND{"Request e tag absent, or equals stored request?<br/>governance.rs:879-883"}
-    BIND -->|yes| MAP["Approve, reject or nonempty amend maps to resolution<br/>Delegate and unsupported responses stay open<br/>governance.rs:783-813"]
+    ING["Start of night: ingest published open items<br/>governance.rs:1060-1071"] --> FETCH["Fetch request times and responses<br/>Query errors become empty results<br/>governance.rs:1088-1116"]
+    FETCH --> VALID["Keep kind 31403, valid signature, signer not this agent<br/>No local admin or delegated-role lookup<br/>governance.rs:859-864"]
+    VALID --> NEW["Choose newest timestamp and event ID per d tag FIRST<br/>governance.rs:866-877"]
+    NEW --> BIND{"Request e tag absent, or equals stored request?<br/>governance.rs:881-885"}
+    BIND -->|yes| MAP["Approve, reject or nonempty amend maps to resolution<br/>Delegate and unsupported responses stay open<br/>governance.rs:785-815"]
     BIND -->|no| NONE["No older valid decision is reconsidered"]
-    NONE -->|"alert only"| ACK["Alert fallback: panel action plus publication time<br/>No outcome or local authority check<br/>governance.rs:895-914"]
+    NONE -->|"alert only"| ACK["Alert fallback: panel action plus publication time<br/>No outcome or local authority check<br/>governance.rs:897-916"]
     MAP -->|"supported resolution"| SAVE["Resolve OPEN local item; later decisions do not revise it<br/>inbox.rs:157-170"]
     MAP -->|"delegate or unsupported"| NONE
     ACK --> SAVE
-    SAVE --> WITHDRAW["Sign kind-5 request; ACK increments withdrawn<br/>Local receipt write can fail, allowing resend<br/>governance.rs:661-707"]
-    PUB["End of night: publish panel if content or tags differ<br/>Comparison does not verify returned event signature<br/>governance.rs:989-1012"] --> SWEEP["Sweep settled items, then publish unmarked open items<br/>governance.rs:1015-1044"]
+    SAVE --> WITHDRAW["Sign kind-5 request; ACK increments withdrawn<br/>Local receipt write can fail, allowing resend<br/>governance.rs:663-709"]
+    PUB["End of night: publish panel if content or tags differ<br/>Comparison does not verify returned event signature<br/>governance.rs:991-1014"] --> SWEEP["Sweep settled items, then publish unmarked open items<br/>governance.rs:1017-1046"]
     SWEEP --> WITHDRAW
-    SWEEP --> CASE["Sign case 31402; relay ACK triggers local mark<br/>No request read-back here<br/>governance.rs:1021-1035"]
+    SWEEP --> CASE["Sign case 31402; relay ACK triggers local mark<br/>No request read-back here<br/>governance.rs:1023-1037"]
     CASE --> REOPEN["mark_published selects FIRST item with matching ID<br/>A reopened duplicate can update its closed predecessor<br/>inbox.rs:114-130"]
-    REOPEN --> RISK["Old record can then target the new request for deletion<br/>Coordinate suppression alone does not protect its e tag<br/>governance.rs:587-601; governance.rs:620-633"]
+    REOPEN --> RISK["Old record can then target the new request for deletion<br/>Coordinate suppression alone does not protect its e tag<br/>governance.rs:589-603; governance.rs:622-635"]
 ```
 
 **Authority.** Signature validity and rejection of this agent's key do not establish a human decision. The configured relay supplies admission policy; current relay source allows admins and case-delegated reviewers. The adapter also accepts missing request binding and ignores supersession after local resolution; these boundaries are tested in the [governance audit](../../estate-review/2026-11-01-dream-governance-and-delivery.md).
@@ -532,21 +532,21 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    MAN["Manifest frozen; attempt not yet counted<br/>engine.rs:763"] --> SWEEP["SSH retention: find date-like dirs by parent mtime, then rm<br/>engine.rs:806-810"]
-    SWEEP --> MASK["Shell ends with true; find and deletion errors hidden<br/>engine.rs:809"]
-    MASK --> SSH["annexe_health via synchronous SSH<br/>engine.rs:823; dispatch.rs:347"]
+    MAN["Manifest frozen; attempt not yet counted<br/>engine.rs:858"] --> SWEEP["SSH retention: find date-like dirs by parent mtime, then rm<br/>engine.rs:901-905"]
+    SWEEP --> MASK["Shell ends with true; find and deletion errors hidden<br/>engine.rs:904"]
+    MASK --> SSH["annexe_health via synchronous SSH<br/>engine.rs:918; dispatch.rs:347"]
     SSH --> WRITE{"mkdir, write probe, remove probe succeed?<br/>dispatch.rs:327-332"}
     WRITE -->|no| FAIL["Health error<br/>dispatch.rs:348"]
     WRITE -->|yes| DF["df -Pk emits AVAIL-KB<br/>dispatch.rs:331"]
     DF --> PARSE{"Parse KiB and floor to GiB<br/>dispatch.rs:336,351"}
     PARSE -->|missing or below floor| FAIL
-    PARSE -->|sufficient| BEGIN["begin counts attempt<br/>engine.rs:867"]
-    FAIL --> REC["Alert plus BLOCKED-ENV record; no attempt count<br/>engine.rs:836,850"]
-    BEGIN --> CLONE["Clone then check directory exists and is non-empty<br/>engine.rs:954,979"]
-    CLONE --> RETRY["One reprovision attempt if checkout probe fails<br/>engine.rs:993"]
+    PARSE -->|sufficient| BEGIN["begin counts attempt<br/>engine.rs:962"]
+    FAIL --> REC["Alert plus BLOCKED-ENV record; no attempt count<br/>engine.rs:931,850"]
+    BEGIN --> CLONE["Clone then check directory exists and is non-empty<br/>engine.rs:1049,1074"]
+    CLONE --> RETRY["One reprovision attempt if checkout probe fails<br/>engine.rs:1088"]
 ```
 
-The write test catches failures that a free-space figure alone misses; local fixtures exercise the actual public health function through a substitute SSH executable. The minimum defaults to 10 GiB; an explicit zero disables the capacity floor, not the write test (`../project/agentbox/services/dream-engine/src/engine.rs:2293`). Health checks are observations at that moment, not reservations of space or proof of checkout identity.
+The write test catches failures that a free-space figure alone misses; local fixtures exercise the actual public health function through a substitute SSH executable. The minimum defaults to 10 GiB; an explicit zero disables the capacity floor, not the write test (`../project/agentbox/services/dream-engine/src/engine.rs:2392`). Health checks are observations at that moment, not reservations of space or proof of checkout identity.
 
 The exact retention command deleted a disposable old parent directory containing a freshly written child. It checks neither active jobs nor night locks, and a failing find command still returned success with no stderr. This is fixture evidence, not a claim that a live run was deleted. SSH has a 10-second connection timeout but no overall command deadline (`../project/agentbox/services/dream-engine/src/dispatch.rs:39-60`); a connected hung sweep or probe can therefore hold up later serial work. See the [execution review](../../estate-review/2026-11-01-dream-execution-and-triage.md).
 
@@ -554,7 +554,7 @@ The exact retention command deleted a disposable old parent directory containing
 
 ```mermaid
 flowchart TB
-    %% ADR-2071-journal-the-nightly-dream-cycle.md:195-203
+    %% ADR-2071-journal-the-nightly-dream-cycle.md:204-212
     %% adr-2071-api-down-night.sh:29-31
     %% adr-2071-api-down-night.sh:83-95
     %% adr-2071-api-down-night.sh:94
@@ -597,33 +597,29 @@ flowchart TB
     C3 --> LIMIT["No restart-success or engine-exit validation;<br/>no proof of continuous outage or ledger append<br/>checker lines 410-417"]
 ```
 
-**History.** ADR-2071 records a manual 4 October acceptance run, three newly dreamed repositories and one previously completed skip. This is historical evidence, not a fresh deployment check (`../project/agentbox/docs/adr/ADR-2071-journal-the-nightly-dream-cycle.md:195-203`).
+**History.** ADR-2071 records a manual 4 October acceptance run, three newly dreamed repositories and one previously completed skip. This is historical evidence, not a fresh deployment check (`../project/agentbox/docs/adr/ADR-2071-journal-the-nightly-dream-cycle.md:204-212`).
 **Current boundary.** The retained tick can consume a fresh marker using old done state, restart before the window from matching date text, mask an interruption and retire after a failed start. C3 trusts aggregate files rather than binding an outage to a specific completed run; see the [journal audit](../../estate-review/2026-11-01-dream-journal-and-api-down.md).
 **Recovery limit.** The EXIT trap is removed after writing stopped state; later recovery depends on another tick and a successful supervisor start. It is not an unconditional guarantee that the API returns (`../project/agentbox/scripts/activation/adr-2071-api-down-night.sh:106-111`, `../project/agentbox/scripts/activation/adr-2071-api-down-night.sh:145-148`).
 
-## AB-23.20 Signing keys — current loader and the unfinished port cutover
+## AB-23.20 Signing keys — the identity-port capability and the local fallback
 
 ```mermaid
 flowchart TB
-    FILE{"Nonempty key FILE variable?<br/>relay.rs:95"}
-    FILE -->|yes| READ["Read bounded regular file; error never falls back<br/>Applies with isolation on OR off<br/>relay.rs:133-147"]
-    FILE -->|no| ISO{"AGENTBOX_ROLE_ISOLATION equals 1?<br/>relay.rs:87-101"}
-    ISO -->|yes| ERR["Key unavailable; ignore bare variable and repo env file<br/>Log bare-variable leak when present<br/>relay.rs:89-101"]
-    ISO -->|no| ENV["Nonempty bare variable, else repo env line<br/>relay.rs:102-118"]
-    READ -->|success| KEY["Parse key and sign in engine memory<br/>relay.rs:122-126; relay.rs:152-154"]
-    READ -->|error| SKIP
-    ENV --> KEY
-    ERR --> SKIP["Governance skips fail-open<br/>governance.rs:920-928"]
-    BOOT["Flag-on boot delivers role-owned 0400 file in 0500 dir<br/>devuser engine cannot read intended identity-owned key<br/>entrypoint-unified.sh:460-470"] -.-> READ
-    KEY --> SIGN["Current client signs panels, cases, withdrawals and NIP-42<br/>governance.rs:150-169; governance.rs:579-606; relay.rs:205-222"]
-    PORT["ACL supports marked agent_governance keys<br/>forum_event may grant 31400 and 31402<br/>identity_port/acl.rs:75-84; identity_port/acl.rs:294-307"] --> HUMAN["Human-decision kinds remain forbidden<br/>identity_port/acl.rs:70-73"]
-    PORT --> CONFIG["Shipped ACL has no marked key or panel/case grant<br/>identity-port-acl.json:28-40"]
-    PORT --> AUTH["Marked key may use forum_event only<br/>NIP-42 operation requires a separate design decision<br/>identity_port/acl.rs:300-302"]
-    CONFIG --> PENDING["Client/key/relay-registration cutover remains pending<br/>ADR-2122 ER-6 decided; source support exists"]
-    SIGN -.-> PENDING
+    GOV["governance load_key, purpose agent_governance<br/>governance.rs:922-923"] --> ISO{"AGENTBOX_ROLE_ISOLATION equals 1?<br/>relay.rs:155"}
+    ISO -->|"no"| LOCAL["Local key: FILE variable, bare variable or repo env line<br/>load_signing_key relay.rs:242"]
+    ISO -->|"yes"| PUB["port pubkey for the purpose, no key file opened<br/>relay.rs:158"]
+    PUB --> PORTK["PublishingKey.Port, public identity and alias only<br/>relay.rs:49-53"]
+    LOCAL --> SIGNL["sign in engine memory<br/>relay.rs:104-106"]
+    PORTK --> REQ["port_sign_request: kind 22242 goes to nip42_auth<br/>agent_governance goes to governance_event<br/>relay.rs:125, relay.rs:134, relay.rs:138-139"]
+    REQ --> SOCK["one JSON line on the identity socket, 2 s timeouts<br/>port_request relay.rs:56"]
+    SOCK --> ACL["shipped ACL: devuser may governance_event kinds 31400, 31402, 5<br/>with the optional agent_governance key<br/>identity-port-acl.json:39-42, identity-port-acl.json:54"]
+    ACL --> GUARD["agent key: only AGENT_GOVERNANCE_KINDS, else refused at load<br/>identity_port/acl.rs:102, identity_port/acl.rs:342-343"]
+    GUARD --> HUMAN["Human-decision kinds 31401, 31403-31405 stay never-grantable<br/>identity_port/acl.rs:89-91, identity_port/acl.rs:348-351"]
+    PUB -->|"error"| SKIP["Governance skipped fail-open<br/>governance.rs:924-928"]
+    LOCAL -->|"error"| SKIP
 ```
 
-**Correction.** The former diagram said governance signing could never be granted. The loader already has the agent-key exception; its test also permits kind 5 in that grant (`../project/agentbox/services/nostr-pod-bridge/src/identity_port/acl.rs:423-430`). Human decision kinds remain forbidden. The shipped ACL and direct-key client still require cutover.
+**Correction.** RESOLVED at agentbox 720e0d8 — the dream engine no longer reads its governance key under isolation: it takes a purpose-bound port capability (`../project/agentbox/services/dream-engine/src/relay.rs:150-158`) and the shipped ACL grants `governance_event` for kinds 31400, 31402 and 5 to the optional `agent_governance` key (`../project/agentbox/config/custody/identity-port-acl.json:54`); the key is `required: false` and must be provisioned by the operator before use (`../project/agentbox/config/custody/identity-port-acl.json:41`).
 **Activation.** Flag-on behaviour depends on effective boot configuration, ownership and running identity. This pass reads those contracts but does not enable isolation, inspect keys or certify a running image. Key-file precedence alone does not imply the flag is on.
 **Scope.** ADR-2122's ER-6 decision is assessed here, not its entire custody programme. Complete the signing, authentication and withdrawal design together, including old-key cases; see the [governance audit](../../estate-review/2026-11-01-dream-governance-and-delivery.md).
 
@@ -631,55 +627,55 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    REPORT["Extract report requests and classify human actions<br/>engine.rs:1648<br/>wanted.rs:191"] --> STORE["Record pending keys or report a repeated inactive key<br/>wanted.rs:231"]
-    STORE --> ALERT["Loop alert per record call<br/>engine.rs:1669"]
+    REPORT["Extract report requests and classify human actions<br/>engine.rs:1743<br/>wanted.rs:191"] --> STORE["Record pending keys or report a repeated inactive key<br/>wanted.rs:231"]
+    STORE --> ALERT["Loop alert per record call<br/>engine.rs:1764"]
     STORE --> TAKE["Take active requests and increment each offer count<br/>wanted.rs:276"]
-    TAKE --> SCAN["Append path-shaped scan entries<br/>engine.rs:1266"]
-    SCAN --> CORE["Validate and select requested entries first<br/>source.rs:1091"]
-    CORE --> RENDER["Clip then add markers and redact<br/>source.rs:850"]
-    RENDER --> RECEIPT["Return receipt only if a file is marked inlined<br/>source.rs:1183"]
+    TAKE --> SCAN["Append path-shaped scan entries<br/>engine.rs:1361"]
+    SCAN --> CORE["Validate and select requested entries first<br/>source.rs:1099"]
+    CORE --> RENDER["Clip then add markers and redact<br/>source.rs:858"]
+    RENDER --> RECEIPT["Return receipt only if a file is marked inlined<br/>source.rs:1192"]
     RECEIPT --> SETTLE["Settle by path or directory prefix<br/>ranges are not compared<br/>wanted.rs:328"]
 ```
 
 
-**What it shows.** Requests are offered before planner picks, with scan paths appended afterwards. Reservation counts candidate entries before validation, clipping markers can exceed the nominal byte allocation, and an empty line window can count as honoured. `take_for` counts invocations, not distinct night identifiers; `settle` treats any range from the same path as satisfying all its ranges (`../project/agentbox/services/dream-engine/src/wanted.rs:284`, `../project/agentbox/services/dream-engine/src/wanted.rs:328`). **Why it is this way.** ADR-2143 moves repetitive file requests out of the operator panel, but the [source-supply audit](../../estate-review/2026-11-01-dream-recovery-and-source-supply.md) finds that its completion markers do not prove the requested content was supplied. A requested directory is satisfied by any file under it. An all-refused read returns no source record (`../dream-engine/crates/dream-core/src/source.rs:1183`).
+**What it shows.** Requests are offered before planner picks, with scan paths appended afterwards. Reservation counts candidate entries before validation, clipping markers can exceed the nominal byte allocation, and an empty line window can count as honoured. `take_for` counts invocations, not distinct night identifiers; `settle` treats any range from the same path as satisfying all its ranges (`../project/agentbox/services/dream-engine/src/wanted.rs:284`, `../project/agentbox/services/dream-engine/src/wanted.rs:328`). **Why it is this way.** ADR-2143 moves repetitive file requests out of the operator panel, but the [source-supply audit](../../estate-review/2026-11-01-dream-recovery-and-source-supply.md) finds that its completion markers do not prove the requested content was supplied. A requested directory is satisfied by any file under it. An all-refused read returns no source record (`../dream-engine/crates/dream-core/src/source.rs:1192`).
 
 **Drift (question shape):** four fields are the prompt's desired format, not an enforced invariant. Parsing requires only Decision and If approved; unstructured questions pass through unchanged (`../project/agentbox/services/dream-engine/src/inbox.rs:278`, `../project/agentbox/services/dream-engine/src/inbox.rs:289`).
 
-**Tension (expiry and evidence):** source receipt writes and settlement writes are best effort, and the shared request store has no transaction around read-modify-write (`../project/agentbox/services/dream-engine/src/engine.rs:1295`, `../project/agentbox/services/dream-engine/src/wanted.rs:91`). Current source does not establish three distinct nights, exact range delivery or one lifetime loop alert per request.
+**Tension (expiry and evidence):** source receipt writes and settlement writes are best effort, and the shared request store has no transaction around read-modify-write (`../project/agentbox/services/dream-engine/src/engine.rs:1390`, `../project/agentbox/services/dream-engine/src/wanted.rs:91`). Current source does not establish three distinct nights, exact range delivery or one lifetime loop alert per request.
 
 ## AB-23.22 Optional triage can defer without a durable receipt
 
 ```mermaid
 flowchart TB
-    CLAIM{"Report claims ACCEPT and triage enabled?<br/>engine.rs:1439-1441"}
-    CLAIM -->|no| BUILD["Proceed to ordinary candidate handling<br/>engine.rs:1465"]
-    CLAIM -->|yes| ROUTE{"Endpoint available under configured locality?<br/>jev_triage.rs:147-187"}
+    CLAIM{"Report claims ACCEPT and triage enabled?<br/>engine.rs:1534-1536"}
+    CLAIM -->|no| BUILD["Proceed to ordinary candidate handling<br/>engine.rs:1560"]
+    CLAIM -->|yes| ROUTE{"Endpoint available under configured locality?<br/>jev_triage.rs:147-188"}
     ROUTE -->|no| BUILD
-    ROUTE -->|yes| ASK["First request: report head, path hints and evaluator names<br/>jev_triage.rs:319"]
-    ASK --> SIGNAL{"Valid typed usefulness and support values?<br/>jev_triage.rs:346"}
+    ROUTE -->|yes| ASK["First request: report head, path hints and evaluator names<br/>jev_triage.rs:320"]
+    ASK --> SIGNAL{"Valid typed usefulness and support values?<br/>jev_triage.rs:347"}
     SIGNAL -->|fallback| BUILD
-    SIGNAL -->|yes| DEFER["Compute defer from support and explicit threshold<br/>jev_triage.rs:490"]
-    DEFER --> SCREEN["Second request: library discipline screen, capped inputs<br/>jev_triage.rs:521; screen.rs:222"]
-    SCREEN --> RECORD["Write annotation or screen-fallback record<br/>jev_triage.rs:521-549"]
-    RECORD --> CHECK{"Defer computed true?<br/>jev_triage.rs:557"}
+    SIGNAL -->|yes| DEFER["Compute defer from support and explicit threshold<br/>jev_triage.rs:491"]
+    DEFER --> SCREEN["Second request: library discipline screen, capped inputs<br/>jev_triage.rs:522; screen.rs:222"]
+    SCREEN --> RECORD["Write annotation or screen-fallback record<br/>jev_triage.rs:522-550"]
+    RECORD --> CHECK{"Defer computed true?<br/>jev_triage.rs:558"}
     CHECK -->|no| BUILD
-    CHECK -->|yes| SKIP["Skip build even if annotation write failed<br/>engine.rs:1465"]
+    CHECK -->|yes| SKIP["Skip build even if annotation write failed<br/>engine.rs:1560"]
     SKIP --> GATE["NotAttempted: ACCEPT stays unproven<br/>gate.rs:445"]
-    RECORD -.-> AUTH["Each HTTP call has 15-second timeout and no redirects<br/>jev_triage.rs:274-278"]
+    RECORD -.-> AUTH["Each HTTP call has 15-second timeout and no redirects<br/>jev_triage.rs:275-279"]
 ```
 
-Default threshold is unset, so valid signals annotate without deferral. A configured threshold must lie in 0 to 0.5. Neither usefulness nor the discipline score can approve a candidate. The two requests are sequential; the first failing means the second is not sent. An initial fallback writes nothing and leaves any prior annotation in place (`../project/agentbox/services/dream-engine/src/jev_triage.rs:505-511`).
+Default threshold is unset, so valid signals annotate without deferral. A configured threshold must lie in 0 to 0.5. Neither usefulness nor the discipline score can approve a candidate. The two requests are sequential; the first failing means the second is not sent. An initial fallback writes nothing and leaves any prior annotation in place (`../project/agentbox/services/dream-engine/src/jev_triage.rs:506-512`).
 
-The first request clips the report to 4,000 characters but does not cap the complete request. Its path hints omit deletions and pure renames. The second request retains at most 16 disciplines, while the saved annotation lists the full input set (`../project/agentbox/services/dream-engine/src/jev_triage.rs:305,319,527`; `../dream-engine/crates/dream-core/src/screen.rs:230`). These signals cannot replace evaluator evidence. The [execution review](../../estate-review/2026-11-01-dream-execution-and-triage.md) records transport-free probes, current configuration and the limits of ADR-2155's staged activation record. A staged record does not prove that no other running image has the feature.
+The first request clips the report to 4,000 characters but does not cap the complete request. Its path hints omit deletions and pure renames. The second request retains at most 16 disciplines, while the saved annotation lists the full input set (`../project/agentbox/services/dream-engine/src/jev_triage.rs:306,320,528`; `../dream-engine/crates/dream-core/src/screen.rs:230`). These signals cannot replace evaluator evidence. The [execution review](../../estate-review/2026-11-01-dream-execution-and-triage.md) records transport-free probes, current configuration and the limits of ADR-2155's staged activation record. A staged record does not prove that no other running image has the feature.
 
 ## Audit qualification — 2026-10-29
 
 1 November continuation: AB-23.7 and AB-23.21 were reassessed against matching current source and updated for recovery and source-supply limits. Later forge/seam and migration passes also reassessed AB-23.6 and AB-23.3. The controls pass reassessed AB-23.2, AB-23.10, AB-23.15 and AB-23.16. The receipt/depth pass reassessed AB-23.11 to AB-23.14. The execution/triage pass subsequently assessed the six remaining original panels (1, 4, 5, 8, 18 and 22). All 22 original panels and additions 23–24 now have a source assessment across the linked passes; open findings, the separate nested engine corpus and the wider estate audit remain outstanding.
 
-This topic describes the extraction as source at the stamped revisions. ADR-2141 records `implementation_status: complete` and `activation_status: live`: the operator rebuilt and activated the registry-pinned image on 2026-10-16 and the supervised daemon was RUNNING with no degradation (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:47`). The later pins (0.2.0, 0.3.0, 0.4.0) are source in `Cargo.toml`; the record carries activation evidence for 0.2.0 only (`../project/agentbox/docs/adr/ADR-2143-source-supply-is-plumbing-and-decisions-are-plain-english.md:35`).
+This topic describes the extraction as source at the stamped revisions. ADR-2141 records `implementation_status: complete` and `activation_status: live`: the operator rebuilt and activated the registry-pinned image on 2026-10-16 and the supervised daemon was RUNNING with no degradation (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:84`). The later pins (0.2.0, 0.3.0, 0.4.0) are source in `Cargo.toml`; the record carries activation evidence for 0.2.0 only (`../project/agentbox/docs/adr/ADR-2143-source-supply-is-plumbing-and-decisions-are-plain-english.md:57`).
 
-**Resolved:** the earlier follow-on that `ontomark/dream.config.json` (`"adrConvention": "ADR-OM-NNN"`) would not load under the stricter `dream-gate` validation is closed: the legacy free-form template is accepted and rendered with its prefix from `dream-gate` 0.1.1 (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:35`).
+**Resolved:** the earlier follow-on that `ontomark/dream.config.json` (`"adrConvention": "ADR-OM-NNN"`) would not load under the stricter `dream-gate` validation is closed: the legacy free-form template is accepted and rendered with its prefix from `dream-gate` 0.1.1 (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:72`).
 
 **Tension (activation records):** ADR-2141 says the image running the adapter was rebuilt and activated (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:8`), while ADR-2081 still records `activation_status: staged` for the annexe-depth and receipt corrections that the same engine source carries (`../project/agentbox/docs/adr/ADR-2081-annexe-depth-law-and-honest-evaluator-receipts.md:7`); its review_trigger names the first nightly run on the rebuilt image as the receipt that moves it to live (`../project/agentbox/docs/adr/ADR-2081-annexe-depth-law-and-honest-evaluator-receipts.md:13`); AB-23.11 to AB-23.14 describe source behaviour and claim no live receipt.
 
@@ -703,12 +699,12 @@ flowchart TB
     ACK -->|"yes, including duplicate or empty ID"| REC["recorded++; reset failure streak<br/>journal.rs:267-270"]
     ACK -->|"no"| FAIL["failed++; increment streak; no retry or local outbox<br/>journal.rs:272-276"]
     DONE --> STATS["unpaired = current open_calls, not remote pair reconciliation<br/>journal.rs:224-229"]
-    STATS --> HEALTH["Normal path records repo stats, then night-level stats<br/>Early returns and crashes have narrower coverage<br/>engine.rs:352-361; engine.rs:448-449; records.rs:382-399"]
+    STATS --> HEALTH["Normal path records repo stats, then night-level stats<br/>Early returns and crashes have narrower coverage<br/>engine.rs:359-368; engine.rs:461-462; records.rs:411-428"]
 ```
 
 **Evidence.** Loopback probes reproduce unmatched remote records with unpaired=0; route probes reproduce changed-payload deduplication, restart sequence reuse and concurrent duplicate sequence numbers while the on-disk hash chain verifies. These are separate integrity properties, detailed in the [journal audit](../../estate-review/2026-11-01-dream-journal-and-api-down.md).
-**Coverage.** Several inbox writes have no tool pair, including shared-remote warnings, annexe-health failure and damaged-run alerts; inbox::add does not journal internally (`../project/agentbox/services/dream-engine/src/engine.rs:244`, `../project/agentbox/services/dream-engine/src/engine.rs:838`, `../project/agentbox/services/dream-engine/src/engine.rs:2061`, `../project/agentbox/services/dream-engine/src/inbox.rs:174-215`).
-**Skip semantics.** The repo wrapper posts turn.started before calling the body and turn.completed afterwards, including locked or already-finished returns. No tool effect is required for those lifecycle events (`../project/agentbox/services/dream-engine/src/engine.rs:508-529`).
+**Coverage.** Several inbox writes have no tool pair, including shared-remote warnings, annexe-health failure and damaged-run alerts; inbox::add does not journal internally (`../project/agentbox/services/dream-engine/src/engine.rs:251`, `../project/agentbox/services/dream-engine/src/engine.rs:933`, `../project/agentbox/services/dream-engine/src/engine.rs:2160`, `../project/agentbox/services/dream-engine/src/inbox.rs:174-215`).
+**Skip semantics.** The repo wrapper posts turn.started before calling the body and turn.completed afterwards, including locked or already-finished returns. No tool effect is required for those lifecycle events (`../project/agentbox/services/dream-engine/src/engine.rs:603-624`).
 
 
 ## AB-23.24 Digest — evidence limits and encryption configuration
@@ -723,16 +719,16 @@ flowchart TB
     ANY -->|yes| WORDS["Compose from outcome labels and last ledger row<br/>ACCEPT says confirmed; REJECT says disproved<br/>digest.rs:242-275"]
     WORDS --> LOCAL["Append local open count as panel backlog<br/>digest.rs:220-227"]
     ABSENT --> LOCAL
-    LOCAL --> ZONE["Resolve section and zone metadata; select encryption plan<br/>digest.rs:417-426"]
+    LOCAL --> ZONE["Resolve section and zone metadata; select encryption plan<br/>digest.rs:421-430"]
     ZONE --> PLAIN["Malformed or absent zones become empty;<br/>unknown section can select first configured zone<br/>zone_crypto.rs:86-105"]
     ZONE --> SECRET["Known encrypted zone with gate on: latest held epoch or refuse<br/>zone_crypto.rs:109-115; zone_crypto.rs:221-233"]
     PLAIN --> FALL["No encrypted match means plaintext plan<br/>zone_crypto.rs:222-224"]
-    SECRET -->|"no held key"| STOP["Withhold digest<br/>digest.rs:427-428"]
-    SECRET -->|"held key"| POST["Sign and publish; retry once after missing read-back<br/>digest.rs:454-480"]
+    SECRET -->|"no held key"| STOP["Withhold digest<br/>digest.rs:431-432"]
+    SECRET -->|"held key"| POST["Sign and publish; retry once after missing read-back<br/>digest.rs:453-479"]
     FALL --> POST
-    POST --> VERIFY["Read-back match checks ID only<br/>Relay query does not verify signature or filter membership<br/>digest.rs:468-477; relay.rs:317-323"]
+    POST --> VERIFY["Read-back match checks ID only<br/>Relay query does not verify signature or filter membership<br/>digest.rs:467-476; relay.rs:483-489"]
 ```
 
-**Presentation.** A missing health file, REJECT label or unpublished inbox count is insufficient for the digest's stronger claims. Standby repositories disappear from the ordinary outcomes branch. Case context separately hard-codes the default ledger path, despite configurable ledgerPath (`../project/agentbox/services/dream-engine/src/governance.rs:274-278`).
+**Presentation.** A missing health file, REJECT label or unpublished inbox count is insufficient for the digest's stronger claims. Standby repositories disappear from the ordinary outcomes branch. Case context now reads the configured ledgerPath, RESOLVED at agentbox 720e0d8 (`../project/agentbox/services/dream-engine/src/governance.rs:279`).
 **Privacy.** The no-key refusal applies only after zone policy identifies an encrypted zone. Malformed metadata produces plaintext selection even with the gate on; the probe does not publish plaintext or claim the live relay would admit it. No current zone-key epoch is fetched, so latest means latest locally held.
 **Evidence.** The [governance audit](../../estate-review/2026-11-01-dream-governance-and-delivery.md) records isolated probes and the source boundary. Neither a publish ACK nor an ID-only read-back establishes delivery to the operator or a verified current deployment.
