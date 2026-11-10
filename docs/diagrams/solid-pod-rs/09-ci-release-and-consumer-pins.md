@@ -39,7 +39,7 @@ sources:
   - ../project/agentbox/management-api/routes/payments.js
   - ../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md
   - ../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2010-forge-and-mirror-are-on-in-shipped-builds.md
-verified_commit: {solid-pod-rs: 27e18995fc20790fa956acb41f7d8420544a13ec, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e, nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
+verified_commit: {solid-pod-rs: 27e18995fc20790fa956acb41f7d8420544a13ec, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
 ---
 
 ## SP-09.2 The CI jobs and the required-check aggregator

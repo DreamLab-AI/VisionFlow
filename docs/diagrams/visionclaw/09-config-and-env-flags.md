@@ -77,7 +77,7 @@ sources:
   - ../project/src/services/corpus_history.rs
   - ../project/src/handlers/splat_handler.rs
   - ../project/crates/visionclaw-splat/src/licence.rs
-verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
 ---
 
 ## For developers
@@ -121,7 +121,7 @@ sequenceDiagram
     alt load fails
         S-->>M: Err — main returns an io::Error, boot aborts (src/main.rs:351-357)
     end
-    M->>M: DATA_DIR (src/main.rs:370, src/app_state.rs:408)
+    M->>M: DATA_DIR (src/main.rs:370, src/app_state.rs:406)
     M->>M: BIND_ADDRESS (src/main.rs:872), SYSTEM_NETWORK_PORT (src/main.rs:873)
     M->>P: assert_effective_profile_or_exit(EnvSnapshot::from_process(), BuildIdentity::current(), today) (src/main.rs:962)
     Note over P: ADR-2038 — see VC-09.4. Pure fn over a snapshot plus the UTC date.
@@ -412,7 +412,7 @@ flowchart TB
         E5["APP_ENV<br/>unset = non-production<br/>src/main.rs:85 and :1040"] --> E6["NODE_ENV<br/>src/main.rs:141"] --> E7["DOCKER_ENV<br/>src/main.rs:144"] --> E8["VISIONCLAW_GIT_SHA<br/>src/services/liveness_harness.rs:279"]
     end
     subgraph PATHS["paths, stores and logging"]
-        E9["DATA_DIR<br/>src/main.rs:370 · src/app_state.rs:408"] --> E10["SETTINGS_FILE_PATH<br/>default /app/settings.yaml<br/>src/main.rs:310"] --> E11["EVENT_STORE_PATH<br/>src/app_state.rs:885"] --> E12["LOG_DIR<br/>src/utils/advanced_logging.rs:561"] --> E13["TELEMETRY_LOG_DIR<br/>src/main.rs:280"] --> E13b["TELEMETRY_ENABLED<br/>unset = on, only 1 or true enable<br/>src/telemetry/agent_telemetry.rs:309, :326"] --> E14["DEBUG_ENABLED<br/>src/utils/advanced_logging.rs:634"]
+        E9["DATA_DIR<br/>src/main.rs:370 · src/app_state.rs:406"] --> E10["SETTINGS_FILE_PATH<br/>default /app/settings.yaml<br/>src/main.rs:310"] --> E11["EVENT_STORE_PATH<br/>src/app_state.rs:896"] --> E12["LOG_DIR<br/>src/utils/advanced_logging.rs:561"] --> E13["TELEMETRY_LOG_DIR<br/>src/main.rs:280"] --> E13b["TELEMETRY_ENABLED<br/>unset = on, only 1 or true enable<br/>src/telemetry/agent_telemetry.rs:309, :326"] --> E14["DEBUG_ENABLED<br/>src/utils/advanced_logging.rs:634"]
     end
     subgraph BIND["listener"]
         E15["BIND_ADDRESS<br/>src/main.rs:872"] --> E16["DEBT: ALLOWED_WS_ORIGINS has no reader since the fastwebsockets handler was deleted (7a0674e79),<br/>yet docs/reference/configuration.md:110 still documents it. The /wss upgrade checks CORS_ALLOWED_ORIGINS,<br/>src/handlers/socket_flow_handler/http_handler.rs:69-88"]
@@ -452,10 +452,10 @@ flowchart TB
 ```mermaid
 flowchart TB
     subgraph KEYS["signing keys — panel secret resolved by services::acsp::key_file::load_panel_secret"]
-        K0["KEY-FILE VARS tried first<br/>ACSP_PANEL_NOSTR_KEY_FILE, VISIONCLAW_NOSTR_KEY_FILE<br/>src/services/acsp/key_file.rs:39-40<br/>loader src/services/acsp/key_file.rs:310<br/>mint-nostr-key CLI dispatched before dotenv loads<br/>src/main.rs:198-201"] --> K1["VISIONCLAW_NOSTR_PRIVKEY<br/>inline hex fallback — src/services/acsp/key_file.rs:43<br/>bridge reads it directly: src/services/nostr_bridge.rs:37<br/>src/services/nostr_bead_publisher.rs:40"] --> K2["ACSP_PANEL_NOSTR_PRIVKEY<br/>inline hex fallback — src/services/acsp/key_file.rs:43<br/>read via load_panel_secret: src/app_state.rs:1294<br/>src/actors/elevation_actor.rs:199<br/>src/actors/decision_elevation_actor.rs:183<br/>src/services/voice_intent_client.rs:154"] --> K3["VISIONCLAW_AGENT_KEY<br/>src/handlers/enrichment_proposals_handler.rs:147<br/>src/handlers/image_gen_handler.rs:52<br/>src/handlers/liveness_harness_handler.rs:41"]
+        K0["KEY-FILE VARS tried first<br/>ACSP_PANEL_NOSTR_KEY_FILE, VISIONCLAW_NOSTR_KEY_FILE<br/>src/services/acsp/key_file.rs:39-40<br/>loader src/services/acsp/key_file.rs:310<br/>mint-nostr-key CLI dispatched before dotenv loads<br/>src/main.rs:198-201"] --> K1["VISIONCLAW_NOSTR_PRIVKEY<br/>inline hex fallback — src/services/acsp/key_file.rs:43<br/>bridge reads it directly: src/services/nostr_bridge.rs:37<br/>src/services/nostr_bead_publisher.rs:40"] --> K2["ACSP_PANEL_NOSTR_PRIVKEY<br/>inline hex fallback — src/services/acsp/key_file.rs:43<br/>read via load_panel_secret: src/app_state.rs:1305<br/>src/actors/elevation_actor.rs:199<br/>src/actors/decision_elevation_actor.rs:183<br/>src/services/voice_intent_client.rs:154"] --> K3["VISIONCLAW_AGENT_KEY<br/>src/handlers/enrichment_proposals_handler.rs:147<br/>src/handlers/image_gen_handler.rs:52<br/>src/handlers/liveness_harness_handler.rs:41"]
     end
     subgraph RELAYS["relays and taps"]
-        R1["FORUM_RELAY_URL<br/>src/services/nostr_bridge.rs:40 · src/app_state.rs:1293<br/>src/actors/elevation_actor.rs:198<br/>src/actors/decision_elevation_actor.rs:182"] --> R2["NOSTR_RELAY_URL<br/>src/services/nostr_bridge.rs:44<br/>src/services/nostr_bead_publisher.rs:44"] --> R3["CANARY_TAP_RELAY_URL<br/>unset = tap not started<br/>src/services/canary_nostr_tap.rs:246"] --> R4["CANARY_TAP_ALLOWED_PUBKEYS<br/>src/services/canary_nostr_tap.rs:256"]
+        R1["FORUM_RELAY_URL<br/>src/services/nostr_bridge.rs:40 · src/app_state.rs:1304<br/>src/actors/elevation_actor.rs:198<br/>src/actors/decision_elevation_actor.rs:182"] --> R2["NOSTR_RELAY_URL<br/>src/services/nostr_bridge.rs:44<br/>src/services/nostr_bead_publisher.rs:44"] --> R3["CANARY_TAP_RELAY_URL<br/>unset = tap not started<br/>src/services/canary_nostr_tap.rs:246"] --> R4["CANARY_TAP_ALLOWED_PUBKEYS<br/>src/services/canary_nostr_tap.rs:256"]
     end
     subgraph GATES["actor and envelope gates"]
         G1["ELEVATION_ACTOR_ENABLED<br/>src/actors/elevation_actor.rs:191"] --> G2["DECISION_ELEVATION_ENABLED<br/>src/actors/decision_elevation_actor.rs:175"] --> G3["ONTOLOGY_REQUIRE_SIGNED_ENVELOPE<br/>src/services/proposal_spine.rs:411"]
@@ -479,7 +479,7 @@ flowchart TB
         L1["GITHUB_OWNER<br/>src/services/github/config.rs:72-73<br/>src/services/github_pr_service.rs:130"] --> L2["GITHUB_REPO<br/>src/services/github/config.rs:75-76<br/>src/services/github_pr_service.rs:136"] --> L3["GITHUB_BRANCH<br/>src/services/github/config.rs:97<br/>src/services/github_pr_service.rs:142"] --> L4["GITHUB_BASE_PATHS preferred, GITHUB_BASE_PATH legacy singular<br/>src/services/github/config.rs:82-84"] --> L5["GITHUB_REPO_OWNER src/services/github_pr_service.rs:131<br/>GITHUB_REPO_NAME src/services/github_pr_service.rs:137<br/>GITHUB_BASE_BRANCH src/services/github_pr_service.rs:143"]
     end
     subgraph BEHAV["sync behaviour"]
-        B1["FORCE_FULL_SYNC — bypasses the incremental filter<br/>src/services/github_sync_service.rs:391"] --> B2["FANOUT_NODE_THRESHOLD<br/>src/services/github_sync_service.rs:490 and :751"] --> B3["GITHUB_RATE_LIMIT<br/>src/services/github/config.rs:99"] --> B4["GITHUB_API_VERSION<br/>src/services/github/config.rs:103"] --> B5["SYNC_GRAPH_REPORT_PATH — optional JSON receipt of the persisted graph<br/>src/bin/sync_corpus.rs:115; any sync error now exits non-zero :120"] --> B6["VISIONCLAW_CORPUS_HISTORY — kill switch, default on; 0, false, off or no stops recording<br/>const src/services/corpus_history.rs:81, read :87-95"]
+        B1["FORCE_FULL_SYNC — bypasses the incremental filter<br/>src/services/github_sync_service.rs:467"] --> B2["FANOUT_NODE_THRESHOLD<br/>src/services/github_sync_service.rs:566 and :835"] --> B3["GITHUB_RATE_LIMIT<br/>src/services/github/config.rs:99"] --> B4["GITHUB_API_VERSION<br/>src/services/github/config.rs:103"] --> B5["SYNC_GRAPH_REPORT_PATH — optional JSON receipt of the persisted graph<br/>src/bin/sync_corpus.rs:115; any sync error now exits non-zero :120"] --> B6["VISIONCLAW_CORPUS_HISTORY — kill switch, default on; 0, false, off or no stops recording<br/>const src/services/corpus_history.rs:81, read :87-95"]
     end
     SEL --> TOK --> LOC --> BEHAV
     N4["DIVERGENCE — GITHUB_REPO_OWNER, GITHUB_REPO_NAME and GITHUB_BASE_BRANCH are read<br/>only by github_pr_service.rs and duplicate GITHUB_OWNER, GITHUB_REPO and GITHUB_BRANCH<br/>read elsewhere — two naming grammars for the same coordinates, unreconciled"]
@@ -493,10 +493,10 @@ flowchart TB
 ```mermaid
 flowchart TB
     subgraph MCP["MCP transport"]
-        M1["MCP_HOST<br/>src/app_state.rs:1114 · src/services/bots_client.rs:121<br/>src/services/speech_service.rs:1067<br/>src/services/ontology_class_index.rs:88<br/>analytics/anomaly_handlers.rs:101<br/>analytics/clustering_handlers.rs:421"] --> M2["MCP_TCP_PORT<br/>src/app_state.rs:1115 · src/services/bots_client.rs:123<br/>src/services/multi_mcp_agent_discovery.rs:221<br/>src/services/speech_service.rs:1068<br/>src/services/ontology_class_index.rs:89<br/>plus the two analytics handlers above"] --> M3["CLAUDE_FLOW_HOST<br/>src/services/bots_client.rs:120<br/>src/services/multi_mcp_agent_discovery.rs:220 via claude_flow_host :143"]
+        M1["MCP_HOST<br/>src/app_state.rs:1125 · src/services/bots_client.rs:121<br/>src/services/speech_service.rs:1067<br/>src/services/ontology_class_index.rs:88<br/>analytics/anomaly_handlers.rs:101<br/>analytics/clustering_handlers.rs:421"] --> M2["MCP_TCP_PORT<br/>src/app_state.rs:1126 · src/services/bots_client.rs:123<br/>src/services/multi_mcp_agent_discovery.rs:221<br/>src/services/speech_service.rs:1068<br/>src/services/ontology_class_index.rs:89<br/>plus the two analytics handlers above"] --> M3["CLAUDE_FLOW_HOST<br/>src/services/bots_client.rs:120<br/>src/services/multi_mcp_agent_discovery.rs:220 via claude_flow_host :143"]
     end
     subgraph MGMT["management API"]
-        G1["MANAGEMENT_API_HOST<br/>src/main.rs:727 · src/app_state.rs:1196<br/>src/actors/agent_monitor_actor.rs:285"] --> G2["MANAGEMENT_API_PORT<br/>src/main.rs:728 · src/app_state.rs:1198<br/>src/actors/agent_monitor_actor.rs:287"] --> G3["MANAGEMENT_API_KEY<br/>src/main.rs:732 · src/app_state.rs:87<br/>decide_management_api_credential() src/actors/agent_monitor_actor.rs:267<br/>called at :299, fail-closed panic at :319-321 (ADR-2094)"]
+        G1["MANAGEMENT_API_HOST<br/>src/main.rs:727 · src/app_state.rs:1207<br/>src/actors/agent_monitor_actor.rs:285"] --> G2["MANAGEMENT_API_PORT<br/>src/main.rs:728 · src/app_state.rs:1209<br/>src/actors/agent_monitor_actor.rs:287"] --> G3["MANAGEMENT_API_KEY<br/>src/main.rs:732 · src/app_state.rs:87<br/>decide_management_api_credential() src/actors/agent_monitor_actor.rs:267<br/>called at :299, fail-closed panic at :319-321 (ADR-2094)"]
     end
     subgraph DISC["swarm discovery"]
         D1["DAA_HOST multi_mcp_agent_discovery.rs:254 · DAA_PORT multi_mcp_agent_discovery.rs:255<br/>either non-empty also ENABLES the daa server, multi_mcp_agent_discovery.rs:259"] --> D2["RUV_SWARM_HOST multi_mcp_agent_discovery.rs:237 · RUV_SWARM_PORT multi_mcp_agent_discovery.rs:238<br/>either non-empty also ENABLES ruv-swarm, multi_mcp_agent_discovery.rs:242"] --> D3["ORCHESTRATOR_WS_URL<br/>src/handlers/mcp_relay_handler.rs:78"]
@@ -505,7 +505,7 @@ flowchart TB
         A1["MAX_CONCURRENT_TASKS<br/>src/actors/task_orchestrator_actor.rs:68"] --> A2["MOCK_AGENTS<br/>src/actors/agent_monitor_actor.rs:634"] --> A3["AGENTBOX_MANAGEMENT_URL voice_intent_client.rs:149<br/>AGENTBOX_VOICE_INTENT_URL voice_intent_client.rs:145<br/>VISIONCLAW_VOICE_ACTOR_LABEL voice_intent_client.rs:174"]
     end
     MCP --> MGMT --> DISC --> AGENTS
-    NR["DOC-DRIFT (RESOLVED 2026-10-12, project 6a1a74b8b/4f4345503): CLAUDE_FLOW_HOST, MCP_TCP_PORT, RUV_SWARM_* and DAA_* were read only by a service that nothing constructed.<br/>They are now read by the MultiMcpAgentDiscovery built at boot (src/app_state.rs:1158-1160, initialize_default_servers multi_mcp_agent_discovery.rs:212).<br/>Only claude-flow is enabled unconditionally (multi_mcp_agent_discovery.rs:225), the others need a non-empty variable (env_configured multi_mcp_agent_discovery.rs:134).<br/>RESOLVED (project 9f98e3787): discovery resolves the claude-flow host as BotsClient does (CLAUDE_FLOW_HOST, then MCP_HOST, then multi-agent-container), through claude_flow_host (multi_mcp_agent_discovery.rs:143-147, called at :220) against bots_client.rs:120-122. It had fallen back to localhost before that fix.<br/>OPEN: ruv-swarm and daa have no confirmed endpoint in this estate, and nothing was observed against a live hub"]
+    NR["DOC-DRIFT (RESOLVED 2026-10-12, project 6a1a74b8b/4f4345503): CLAUDE_FLOW_HOST, MCP_TCP_PORT, RUV_SWARM_* and DAA_* were read only by a service that nothing constructed.<br/>They are now read by the MultiMcpAgentDiscovery built at boot (src/app_state.rs:1169-1171, initialize_default_servers multi_mcp_agent_discovery.rs:212).<br/>Only claude-flow is enabled unconditionally (multi_mcp_agent_discovery.rs:225), the others need a non-empty variable (env_configured multi_mcp_agent_discovery.rs:134).<br/>RESOLVED (project 9f98e3787): discovery resolves the claude-flow host as BotsClient does (CLAUDE_FLOW_HOST, then MCP_HOST, then multi-agent-container), through claude_flow_host (multi_mcp_agent_discovery.rs:143-147, called at :220) against bots_client.rs:120-122. It had fallen back to localhost before that fix.<br/>OPEN: ruv-swarm and daa have no confirmed endpoint in this estate, and nothing was observed against a live hub"]
     DISC --- NR
     N["agent integration and the MCP relay see VC-27 — the agentbox side is the agentbox area"]
     AGENTS --- N
@@ -573,7 +573,7 @@ sequenceDiagram
     participant D as GraphsSettings<br/>crates/visionclaw-domain/src/config/visualisation.rs:509-514
     participant GT as normalise_graph_type<br/>crates/visionclaw-domain/src/config/graph_type.rs:14-20
     participant P as path_accessible_impls<br/>src/config/path_accessible_impls.rs:159
-    participant M as migrateGraphSettingsKey<br/>client/src/store/settings/settingsHelpers.ts:384
+    participant M as migrateGraphSettingsKey<br/>client/src/store/settings/settingsHelpers.ts:385
 
     Note over Y,M: ADR-2115 accepted, implementation_status complete, activation_status live — supersedes ADR-2041's one-release logseq alias
     Y->>D: deserialise graphs.knowledge — no serde alias, "logseq" is an unrecognised field
@@ -583,7 +583,7 @@ sequenceDiagram
     D->>GT: normalise_graph_type("logseq") passes the value through unchanged, never redirected to knowledge
     P->>P: match segments[0] — "knowledge" and "visionclaw" only (:159 and :183)<br/>a "logseq" segment falls to the Unknown-graph-type Err arm
     Note over P: RESOLVED ADR-2115 — the dual "knowledge" | "logseq" match arm is gone,<br/>along with GraphsSettings::knowledge's #[serde(alias = "logseq")]
-    M->>M: receive-side only — a persisted visualisation.graphs.logseq object still<br/>migrates onto graphs.knowledge on load (:388 and :393-394), dropping the legacy key
+    M->>M: receive-side only — a persisted visualisation.graphs.logseq object still<br/>migrates onto graphs.knowledge on load (:389 and :394-395), dropping the legacy key
     Note over M: client never SENDS logseq (graphDataManager.ts, graph.worker.ts) — this is<br/>a one-way localStorage upgrade path, not a live protocol alias. Settings round trip see VC-06.
 ```
 

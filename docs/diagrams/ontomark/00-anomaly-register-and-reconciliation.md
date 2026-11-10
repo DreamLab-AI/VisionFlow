@@ -62,7 +62,7 @@ sources:
   - ../project/crates/vault-core/src/page.rs
   - ../project/agentbox/docs/adr/ADR-2136-pin-the-shared-ontology-toolchain.md
   - docs/engineering/sovereign-corpus-contracts.md
-verified_commit: {ontomark: 6159bb6089753105ef839fd4aac46c1598a64bd2, visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
+verified_commit: {ontomark: 6159bb6089753105ef839fd4aac46c1598a64bd2, visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
 ---
 
 The register records outcomes at 07f4c1c; the 2026-11-02 restamp re-read every row at ontomark 4b9d15d, and each row below still holds there unless it says otherwise.

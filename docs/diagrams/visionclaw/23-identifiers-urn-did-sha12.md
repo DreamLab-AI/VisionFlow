@@ -25,7 +25,7 @@ sources:
   - ../project/agentbox/management-api/middleware/linked-data/surfaces/s04-did.js
   - ../project/agentbox/mcp/servers/lib/memory-tools.js
   - ../project/src/handlers/presence_handler.rs
-verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
 ---
 
 ## For developers
@@ -334,7 +334,7 @@ flowchart TD
     Meta --> Render["vault::render_page(meta, body) -- frontmatter-only emission, elevation_actor.rs:566"]
     Lists --> Render
     Render -.-> NoFence["NO JSON-LD fence, no key:: value lines -- content.starts_with('---\n'), asserted elevation_actor.rs:2018-2021"]
-    QS["vc:qualityScore -- provenance noted in a source comment only, src/actors/client_filter.rs:43-44 -- expanded qualityScore key is consumed, the CURIE itself is not emitted as a literal there"]
+    QS["vc:qualityScore -- provenance noted in a source comment only, src/actors/client_filter.rs:117-120 -- expanded qualityScore key is consumed, the CURIE itself is not emitted as a literal there"]
     OwnerScoped["visionclaw:owner:NPUB/kg/... -- legacy ADR-050 form"] -.-> Absent["grep across src/ and crates/ -- zero occurrences -- superseded by the hex-scoped urn:visionclaw:kg:PUBKEY:ADDRESS grammar"]
 
     DivB["DIVERGENCE: owner-scoped visionclaw:owner:{npub}/kg/... (legacy ADR-050) is not emitted anywhere in src/ or crates/"]

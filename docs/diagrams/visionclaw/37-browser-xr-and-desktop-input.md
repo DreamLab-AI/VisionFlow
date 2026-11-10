@@ -36,7 +36,7 @@ sources:
   - ../project/client/src/features/graph/hooks/dragHeartbeat.ts
   - ../project/client/src/features/graph/hooks/__tests__/dragHeartbeat.test.ts
   - ../project/src/handlers/socket_flow_handler/types.rs
-verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
 ---
 
 ## For developers
@@ -342,7 +342,7 @@ sequenceDiagram
 
 **What it shows.** The webcam path, unchanged since the previous stamp. **Why it is this way.** An off-axis frustum gives a window-like parallax on a flat screen without stereo hardware.
 
-**Tension:** the non-frustum mode multiplies a translation into `camera.projectionMatrix` on every tracked frame without first rebuilding it (client/src/features/visualisation/components/HeadTrackedParallaxController.tsx:62); the only other client callers of `updateProjectionMatrix` run when the canvas size changes (client/src/features/graph/components/GraphCanvas.tsx:84-94) and on an event-driven camera fit, once on first data, on an explicit request, when the fit scope changes, or under the whole-scene scope when the memory cloud settles (client/src/features/graph/hooks/useCameraAutoFit.ts:91, client/src/features/graph/hooks/useCameraAutoFit.ts:149-242), so between those events the offsets would compound frame on frame, and stopping tracking in that mode does not restore the matrix because the reset branch runs only when `camera.view` is set (client/src/features/visualisation/components/HeadTrackedParallaxController.tsx:66-68). Not observed at runtime.
+**Tension:** the non-frustum mode multiplies a translation into `camera.projectionMatrix` on every tracked frame without first rebuilding it (client/src/features/visualisation/components/HeadTrackedParallaxController.tsx:62); the only other client callers of `updateProjectionMatrix` run when the canvas size changes (client/src/features/graph/components/GraphCanvas.tsx:84-94) and on an event-driven camera fit, once on first data, on an explicit request, when the fit scope changes, or under the whole-scene scope when the memory cloud settles (client/src/features/graph/hooks/useCameraAutoFit.ts:91, client/src/features/graph/hooks/useCameraAutoFit.ts:149-213), so between those events the offsets would compound frame on frame, and stopping tracking in that mode does not restore the matrix because the reset branch runs only when `camera.view` is set (client/src/features/visualisation/components/HeadTrackedParallaxController.tsx:66-68). Not observed at runtime.
 
 ## VC-37.7 How the desktop spatial inputs share state with the R3F path
 

@@ -45,7 +45,7 @@ sources:
   - ../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md
   - ../project/agentbox/tests/runtime-contract/RC-X1-06.sh
   - ../project/agentbox/docs/adr/ADR-2101-federation-topology-and-key-separation.md
-verified_commit: {agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, visionclaw: 86cdd76355823a51bb64d503c005fe277726e724}
+verified_commit: {agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
 ---
 
 ## AB-16.1 Container hardening posture — what actually confines the box

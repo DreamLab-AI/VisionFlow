@@ -64,7 +64,7 @@ sources:
   - ../project/src/services/github_sync_service.rs
   - ../project/src/services/corpus_source/github.rs
   - ../project/crates/visionclaw-domain/src/vault/mod.rs
-verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
 ---
 
 ## For developers
@@ -282,7 +282,7 @@ sequenceDiagram
     participant EX as execute_in_thread<br/>src/handlers/utils.rs
     participant QH as LoadAllSettingsHandler<br/>src/application/settings
     participant PT as SettingsRepository port
-    participant AD as SqliteSettingsRepository<br/>src/adapters/sqlite_settings_repository.rs:372
+    participant AD as SqliteSettingsRepository<br/>src/adapters/sqlite_settings_repository.rs:474
 
     CL->>H: GET /api/config
     H->>QH: LoadAllSettingsHandler::new(state.settings_repository.clone()) (src/handlers/api_handler/mod.rs:43)
@@ -303,7 +303,7 @@ sequenceDiagram
     end
     Note over H,AD: comment src/application/mod.rs:71 — application services were removed,<br/>handlers use actors directly via CQRS or direct messaging. There is no dispatcher bus.
     Note over EX: INVARIANT — every sync hexser handler enters a nested block_on, so calling one<br/>straight from an actix worker panics with the nested-runtime error Cannot start a runtime from within a runtime.<br/>execute_in_thread (spawn_blocking) is what makes the sync handler safe, and its Ok(Ok)/Ok(Err)/Err<br/>triple is the shape every call site must match — src/handlers/utils.rs
-    Note over EX: DEBT — get_owl_property and add_owl_property were the LAST two bare sync calls<br/>and were only dispatched off the worker on 2026-09-16 in ad8b83ad4, and the earlier hierarchy<br/>endpoint had the same defect fixed on 2026-08-10. Nothing in the type system prevents the<br/>next bare call — ontology_handler.rs:379-383, ontology_handler.rs:462-466, regression module<br/>ontology_handler.rs:1275 pins the bare call as the panic it is
+    Note over EX: DEBT — get_owl_property and add_owl_property were the LAST two bare sync calls<br/>and were only dispatched off the worker on 2026-09-16 in ad8b83ad4, and the earlier hierarchy<br/>endpoint had the same defect fixed on 2026-08-10. Nothing in the type system prevents the<br/>next bare call — ontology_handler.rs:379-383, ontology_handler.rs:462-466, regression module<br/>ontology_handler.rs:1288 pins the bare call as the panic it is
 ```
 
 ## VC-07.8 Storage-agnostic domain kernel — src/domain/broker
@@ -394,14 +394,14 @@ flowchart TB
     T --> G["GitHubSource — src/services/corpus_source/github.rs:15,47<br/>wraps EnhancedContentAPI, pre-existing remote pull"]
     B["source_from_env_with_github — src/services/corpus_source/mod.rs:167<br/>selects by corpus_source_kind() (src/services/corpus_source/mod.rs:203)<br/>over CORPUS_SOURCE, defaulting to local when VAULT_ROOT is set"]
     B --> T
-    AS["AppState::new — src/app_state.rs:542-548<br/>corpus_source = source_from_env_with_github(enhanced_content_api)<br/>GitHubSyncService::new(corpus_source, ...)"]
+    AS["AppState::new — src/app_state.rs:527-533<br/>corpus_source = source_from_env_with_github(enhanced_content_api)<br/>GitHubSyncService::new(corpus_source, ...)"]
     B --> AS
     N1["INVARIANT — change_marker differs by source: SHA1 blob hash for<br/>GitHub (src/services/corpus_source/github.rs:40), mtime:size on disk for local<br/>(src/services/corpus_source/local.rs:146)<br/>— equal markers across two listings mean unchanged"]
     L --- N1
     G --- N1
     N2["GitHubSyncService::new took EnhancedContentAPI directly before<br/>ADR-2114; the port now sits between it and the sync pipeline so<br/>parse -> dual graph -> Whelk reasoning runs unchanged over either source"]
     AS --- N2
-    H["page_history, ADR-2184/2185 temporal keys, never an error<br/>local: one git log over the vault, 120 s cap (src/services/corpus_source/local.rs:301-302,<br/>src/services/corpus_source/history.rs:42, :77-78)<br/>GitHub: batched GraphQL commit_history (src/services/corpus_source/github.rs:95-97)<br/>called once per sync for the pages it builds (src/services/github_sync_service.rs:425)"]
+    H["page_history, ADR-2184/2185 temporal keys, never an error<br/>local: one git log over the vault, 120 s cap (src/services/corpus_source/local.rs:301-302,<br/>src/services/corpus_source/history.rs:42, :77-78)<br/>GitHub: batched GraphQL commit_history (src/services/corpus_source/github.rs:95-97)<br/>called once per sync for the pages it builds (src/services/github_sync_service.rs:501)"]
     L --- H
     G --- H
     N3["shared-corpus-layout, a DEFAULT feature (Cargo.toml:273, :275) — LocalDirectorySource resolves prefixes and roots<br/>through ontomark_compile::profile::resolve_roots, refuses a prefix outside the configured roots<br/>(src/services/corpus_source/local.rs:93-105, checked_roots :120-124) and skips symlinks (local.rs:175-179)"]

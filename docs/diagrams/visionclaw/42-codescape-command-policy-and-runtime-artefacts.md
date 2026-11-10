@@ -19,7 +19,7 @@ sources:
   - ../project/codescape/crates/codescape-layout/src/lib.rs
   - ../project/docker-compose.unified.yml
   - ../project/docs/adr/ADR-2148-enable-local-typed-decisions.md
-verified_commit: {codescape: e3b76f63e801c6a8460110b93e88a0b420e9b0b4, visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
+verified_commit: {codescape: e3b76f63e801c6a8460110b93e88a0b420e9b0b4, visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
 ---
 
 ## For developers

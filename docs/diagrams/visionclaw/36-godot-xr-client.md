@@ -95,7 +95,7 @@ sources:
   - ../project/src/actors/client_coordinator_actor.rs
   - ../project/client/src/features/graph/explore/nodeFilter.ts
   - ../project/xr-client/scripts/backend_caps.gd
-verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
 ---
 
 ## For developers
@@ -515,7 +515,7 @@ sequenceDiagram
         IA-->>HUD: ok false with FALLBACK_SECTIONS and FALLBACK_SCOPES<br/>hud_ia.gd:26-39, hud_ia.gd:90-96, hud_ia.gd:110-112
         Note over HUD: only push_warning, which a headset wearer never sees<br/>hud.gd:511-512
     else the seven sections
-        IA-->>HUD: id, label, hotkey, subsection names and scope texts<br/>hud_ia.gd:97-118, ia.json:12, ia.json:1844
+        IA-->>HUD: id, label, hotkey, subsection names and scope texts<br/>hud_ia.gd:97-118, ia.json:12, ia.json:1872
     end
     HUD->>HUD: one tab per section, then Fit, Legend and Explore<br/>hud.gd:517, hud.gd:528-545
     Note over HUD: Agents and Governance is shortened to Agents on its button hud.gd:521.<br/>Fit emits fit_view (VC-36.30), Legend opens the key page, Explore the query page<br/>hud.gd:539-544
@@ -688,8 +688,8 @@ sequenceDiagram
     participant PM as _post_layout_mode<br/>xr-client/scripts/graph_scene.gd:2751
     participant PR as _post_radial<br/>xr-client/scripts/graph_scene.gd:2771
     participant LH as layout_handler.rs<br/>src/handlers/layout_handler.rs:45
-    participant FC as force_compute_actor.rs<br/>src/actors/gpu/force_compute_actor.rs:432
-    participant DR as compute_dag_ranks<br/>src/actors/gpu/force_compute_actor.rs:451
+    participant FC as force_compute_actor.rs<br/>src/actors/gpu/force_compute_actor.rs:443
+    participant DR as compute_dag_ranks<br/>src/actors/gpu/force_compute_actor.rs:462
 
     Note over GS: LAYOUT_MODES = [forceDirected, hierarchical, radial, spectral,<br/>temporal, clustered] graph_scene.gd:960. DRIFT the server no longer advertises the<br/>same list: LIVE_LAYOUT_MODES is forceDirected, hierarchical, radial, dagLeftRight,<br/>typeClustering, spectral, temporal (layout_handler.rs:23-31), served by GET at :33-42.<br/>clustered is accepted but not advertised (:20-22, parse at :64-71), and the headset's<br/>cycle can never reach dagLeftRight or typeClustering
     HD->>GS: control_pressed("layout_cycle")
@@ -708,22 +708,22 @@ sequenceDiagram
         FC->>FC: hierarchy_pairs - filter edge.asserts_subsumption
         alt owl_property_iri provenance is rdfs:subClassOf
             FC-->>DR: (parent_idx, child_idx) pair
-            Note right of FC: ADR-2035 AMENDED 2026-10-02 (N-14): ranks key on<br/>subClassOf PROVENANCE (Edge.asserts_subsumption),<br/>never on the bare "hierarchical" force label.<br/>force_compute_actor.rs:425-431, :432-449
+            Note right of FC: ADR-2035 AMENDED 2026-10-02 (N-14): ranks key on<br/>subClassOf PROVENANCE (Edge.asserts_subsumption),<br/>never on the bare "hierarchical" force label.<br/>force_compute_actor.rs:436-442, :443-460
         else equivalentClass, sameAs, subPropertyOf, instance-of,<br/>domain membership, or no provenance at all
             FC-->>DR: skipped - edge not on the GPU is skipped too
-            Note right of FC: the ingest folds equivalence, sameAs, sub-property<br/>and instance-of into the same "hierarchical" label and<br/>domain membership has its own label - ranking any of<br/>them would fabricate layers. force_compute_actor.rs:425-430
+            Note right of FC: the ingest folds equivalence, sameAs, sub-property<br/>and instance-of into the same "hierarchical" label and<br/>domain membership has its own label - ranking any of<br/>them would fabricate layers. force_compute_actor.rs:436-441
         end
     end
     DR->>DR: ranks initialised to -1.0 for every node
     alt num_nodes == 0 or hierarchy_edges empty
         DR-->>LH: all nodes stay -1.0 (unranked)
-        Note right of DR: Before the accept landed (73540faa0) EVERY node stayed<br/>unranked, so Radial: DAG and the Hierarchy toggle were<br/>silently inert - reported in-headset as the Radial Shells<br/>buttons "appearing disconnected". force_compute_actor.rs:451-455
+        Note right of DR: Before the accept landed (73540faa0) EVERY node stayed<br/>unranked, so Radial: DAG and the Hierarchy toggle were<br/>silently inert - reported in-headset as the Radial Shells<br/>buttons "appearing disconnected". force_compute_actor.rs:462-466
     else
         DR-->>LH: ranks assigned
     end
-    Note over FC: RESOLVED DOC-DRIFT: docs/XR-client.md 0.1.3 (2026-10-02) now<br/>documents the provenance keying, and the corrected doc-comment<br/>at force_compute_actor.rs:425-431 is committed at this revision -<br/>the old excludes-vs-accepts contradiction is gone from both.
-    Note over DR: RESOLVED ADR-2079, SUPERSEDED by the amendment: the closeout's<br/>predicate test is replaced by only_subsumption_provenance_ranks<br/>at force_compute_actor.rs:5247 - bare "hierarchical" with no<br/>subClassOf IRI is now REJECTED, and equivalence, sub-property,<br/>sameAs and instance-of foldings stay out of the rank space.
-    Note over FC,DR: RESOLVED DIVERGENCE: the old lossy-accept cost is gone - a<br/>domain-membership edge under "hierarchical" no longer ranks and<br/>can no longer shortcut a subclass chain (BFS lift), asserted by<br/>membership_edges_neither_rank_nor_shortcut_a_subclass_chain at<br/>force_compute_actor.rs:5327 and a_domain_root_never_ranks_below_its_own_members at force_compute_actor.rs:5139.
+    Note over FC: RESOLVED DOC-DRIFT: docs/XR-client.md 0.1.3 (2026-10-02) now<br/>documents the provenance keying, and the corrected doc-comment<br/>at force_compute_actor.rs:436-442 is committed at this revision -<br/>the old excludes-vs-accepts contradiction is gone from both.
+    Note over DR: RESOLVED ADR-2079, SUPERSEDED by the amendment: the closeout's<br/>predicate test is replaced by only_subsumption_provenance_ranks<br/>at force_compute_actor.rs:5369 - bare "hierarchical" with no<br/>subClassOf IRI is now REJECTED, and equivalence, sub-property,<br/>sameAs and instance-of foldings stay out of the rank space.
+    Note over FC,DR: RESOLVED DIVERGENCE: the old lossy-accept cost is gone - a<br/>domain-membership edge under "hierarchical" no longer ranks and<br/>can no longer shortcut a subclass chain (BFS lift), asserted by<br/>membership_edges_neither_rank_nor_shortcut_a_subclass_chain at<br/>force_compute_actor.rs:5449 and a_domain_root_never_ranks_below_its_own_members at force_compute_actor.rs:5261.
 ```
 
 ## VC-36.13 gdext class surface (GDScript composes, Rust owns the wire)
@@ -948,7 +948,7 @@ sequenceDiagram
     participant HD as _build_query_page<br/>xr-client/scripts/hud.gd:1048
     participant QB as query_builder.gd<br/>xr-client/scripts/query_builder.gd
     participant GS as graph_scene.gd
-    participant SV as query_pattern, POST /api/graph/query/pattern<br/>src/handlers/api_handler/graph/mod.rs:1599
+    participant SV as query_pattern, POST /api/graph/query/pattern<br/>src/handlers/api_handler/graph/mod.rs:1658
     participant PM as plane_manager.gd<br/>xr-client/scripts/plane_manager.gd
 
     HD->>HD: Execute button built via _press_fire hud.gd:501
@@ -958,7 +958,7 @@ sequenceDiagram
         QB-->>GS: no-op (BREAK)
     else true
         GS->>SV: POST /api/graph/query/pattern + NIP-98 headers (_auth_headers)
-        SV->>SV: fetch_graph_snapshot then caller_view - the pattern runs over the caller's view only<br/>src/handlers/api_handler/graph/mod.rs:1607 src/handlers/api_handler/graph/mod.rs:1113 src/handlers/graph_access.rs:23
+        SV->>SV: fetch_graph_snapshot then caller_view - the pattern runs over the caller's view only<br/>src/handlers/api_handler/graph/mod.rs:1666 src/handlers/api_handler/graph/mod.rs:1172 src/handlers/graph_access.rs:23
         alt 2xx
             SV-->>GS: result set
             GS->>PM: build result planes
@@ -1291,7 +1291,7 @@ benchmark run now stays under 100 000 triangles with at most six draw calls
 flowchart TB
     TRI["visionclaw-tri-layout is the single definition of the geometry:<br/>knowledge, ontology and memory on the vertices of a ground-plane triangle, agents at the centroid<br/>crates/visionclaw-tri-layout/src/lib.rs:1 crates/visionclaw-tri-layout/src/lib.rs:106 (SEPARATION)"]
     SRV["server display projection, always on since the operator decision of 2026-10-08<br/>src/actors/gpu/display_projection.rs:110 src/actors/gpu/display_projection.rs:190"]
-    FCA["ForceComputeActor calls project_display on every broadcast<br/>src/actors/gpu/force_compute_actor.rs:23 src/actors/gpu/force_compute_actor.rs:2314"]
+    FCA["ForceComputeActor calls project_display on every broadcast<br/>src/actors/gpu/force_compute_actor.rs:23 src/actors/gpu/force_compute_actor.rs:2419"]
     DRIFT["each action credits the vertex of the body it touched, credit halves over time and the agent falls back<br/>to the centroid, the offset recomputed from the current frame<br/>crates/visionclaw-tri-layout/src/drift.rs:1 crates/visionclaw-tri-layout/src/drift.rs:66 crates/visionclaw-tri-layout/src/drift.rs:133"]
     CLI["xr-client links the same crate<br/>xr-client/rust/Cargo.toml:24"]
     BPC["BinaryProtocolClient.agent_drift_offset, fed by applied 0x23 actions and memory flashes<br/>xr-client/rust/src/binary_protocol.rs:1837"]
@@ -1314,7 +1314,7 @@ the headset's agent rest positions, so the room and the desktop agree where the
 knowledge graph, the ontology and the memory cloud sit.
 
 **Why it is this way.** The operator fixed the layout as always separated on
-2026-10-08 (`src/actors/gpu/force_compute_actor.rs:2156-2161`, ADR-2135), so the
+2026-10-08 (`src/actors/gpu/force_compute_actor.rs:2261-2266`, ADR-2135), so the
 earlier front-arc rim slots lost their reason to exist.
 
 ## VC-36.27 gdext classes added after the af3dff3 stamp
@@ -1436,8 +1436,8 @@ flowchart TD
 flowchart TB
     subgraph query["HUD Explore query panel"]
         Q1["preview and Execute both POST /api/graph/query/pattern with NIP-98 headers<br/>xr-client/scripts/graph_scene.gd:5564 xr-client/scripts/graph_scene.gd:5631"]
-        Q2["query_pattern takes the caller as OptionalAuth<br/>src/handlers/api_handler/graph/mod.rs:1599-1602"]
-        Q3["fetch_graph_view applies caller_view before matching<br/>src/handlers/api_handler/graph/mod.rs:1096 src/handlers/api_handler/graph/mod.rs:1113"]
+        Q2["query_pattern takes the caller as OptionalAuth<br/>src/handlers/api_handler/graph/mod.rs:1658-1661"]
+        Q3["fetch_graph_view applies caller_view before matching<br/>src/handlers/api_handler/graph/mod.rs:1155 src/handlers/api_handler/graph/mod.rs:1172"]
         Q4["caller_view is visible_subgraph for the caller's pubkey, anonymous sees public only<br/>src/handlers/graph_access.rs:23 src/handlers/graph_access.rs:36-38"]
         Q1 --> Q2 --> Q3 --> Q4
     end
@@ -1447,13 +1447,13 @@ flowchart TB
         O1 -.-> O2
     end
     subgraph filt["Node filter: three default copies, one fixture"]
-        F1["server NodeFilterSettings default<br/>src/settings/models.rs:170-186"]
+        F1["server NodeFilterSettings default<br/>src/settings/models.rs:192-208"]
         F2["filter_update_from_wire: an omitted key takes that default<br/>src/handlers/socket_flow_handler/filter_auth.rs:12 src/handlers/socket_flow_handler/filter_auth.rs:17"]
-        F3["the reply goes through visible_subgraph for the sender, then its own filter<br/>src/actors/client_coordinator_actor.rs:58 src/actors/client_coordinator_actor.rs:1688"]
+        F3["the reply goes through visible_subgraph for the sender, then its own filter<br/>src/actors/client_coordinator_actor.rs:58 src/actors/client_coordinator_actor.rs:1747"]
         F4["XR NodeFilter default, a third hand copy<br/>xr-client/rust/src/settings_sync.rs:44"]
         F7["INVARIANT: the XR default is asserted equal to the fixture default case<br/>xr-client/rust/src/settings_sync.rs:653-654"]
         F5["desktop NODE_FILTER_DEFAULTS<br/>client/src/features/graph/explore/nodeFilter.ts:57"]
-        F6["INVARIANT: server wire defaults pinned to the fixture's shipped-default case<br/>src/handlers/socket_flow_handler/filter_auth.rs:592"]
+        F6["INVARIANT: server wire defaults pinned to the fixture's shipped-default case<br/>src/handlers/socket_flow_handler/filter_auth.rs:588"]
         F1 --> F2 --> F3
         F2 --> F6
         F4 --> F5
@@ -1469,8 +1469,8 @@ flowchart TB
 ```
 
 **What it shows.** Every server read the headset's Explore panel makes now runs over the caller's own view. The ontology per-caller deny-list never applies, because no headset script calls an ontology route. The node-filter defaults live in three hand copies, all pinned by one fixture. **Why it is this way.** The 2026-11-06 visibility sweep (`ab05ee9d6`) gave every graph read one caller gate. `923feef34` and `f86704227` put the filter reply through the same gate and gave the frame's omitted keys the shipped defaults.
-**Debt (parallel):** the node-filter defaults are written by hand three times: server (`src/settings/models.rs:170-186`), desktop (`client/src/features/graph/explore/nodeFilter.ts:57-68`) and headset (`xr-client/rust/src/settings_sync.rs:44-56`). The copies agree, and the shared fixture's default case pins the server wire copy (`src/handlers/socket_flow_handler/filter_auth.rs:592-595`) and the XR copy (`xr-client/rust/src/settings_sync.rs:653-654`). A new filter key still has to be added in three places.
-**Debt (loose end):** `filter_update_success` is in the headset's handled set (`xr-client/scripts/graph_parity.gd:24`), but the server sends it only to the client that sent `filter_update` (`src/handlers/socket_flow_handler/filter_auth.rs:410-416`), and the headset never sends one.
+**Debt (parallel):** the node-filter defaults are written by hand three times: server (`src/settings/models.rs:192-208`), desktop (`client/src/features/graph/explore/nodeFilter.ts:57-68`) and headset (`xr-client/rust/src/settings_sync.rs:44-56`). The copies agree, and the shared fixture's default case pins the server wire copy (`src/handlers/socket_flow_handler/filter_auth.rs:588-591`) and the XR copy (`xr-client/rust/src/settings_sync.rs:653-654`). A new filter key still has to be added in three places.
+**Debt (loose end):** `filter_update_success` is in the headset's handled set (`xr-client/scripts/graph_parity.gd:24`), but the server sends it to a `/wss` client after its own recompute, on its `filter_update` and on each graph change (`refresh_all_filters`, `src/actors/client_coordinator_actor.rs:134`) (`src/actors/client_coordinator_actor.rs:113-121`, `:1759-1766`; `src/handlers/socket_flow_handler/filter_auth.rs:410-413`), and the headset never sends one.
 **Open (risk):** the pattern query sees the public nodes plus those owned by the signing pubkey (`src/handlers/graph_access.rs:36-41`), and power-user status plays no part. A headset with an ephemeral signer, or one granted `DEV_MODE_PUBKEY` under dev mode (`src/settings/auth_extractor.rs:25-30`), therefore counts over the public graph only. A desktop signed in as the owner counts over more, and the query page does not say which view answered.
 Resolved at a950f4d80: the headset receipt is now on record. On 2026-11-06, on the HP at main 809a859aa, the OpenXR session was focused and ran at 88-90 fps with all three volumes (knowledge 84 nodes, ontology 9,604, Codescape 4,817), with zero script, parse, shader, heartbeat or reconnect errors over 15 minutes (`docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:52`, `docs/XR-client.md:8`). ADR-2188 activation is now live (`docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:7`).
 

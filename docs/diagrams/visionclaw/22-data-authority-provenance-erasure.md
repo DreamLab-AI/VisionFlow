@@ -48,7 +48,7 @@ sources:
   - ../project/src/app_state.rs
   - ../project/src/actors/graph_state_actor.rs
   - ../project/src/services/ontology_mutation_service.rs
-verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
 ---
 
 ## For developers
@@ -63,8 +63,8 @@ Every piece of data has one authoritative home, so a correction or a deletion ha
 
 ```mermaid
 flowchart LR
-    AuthContent["Authored content<br/>public: true / owl-class markdown"] --> CorpusSrc["CorpusSource port (ADR-2114)<br/>local vault default (VAULT_ROOT set), GitHub opt-in<br/>corpus_source/mod.rs:203 corpus_source_kind<br/>github_sync_service.rs:1722 ingest"]
-    CorpusSrc -->|"github_sync_service.rs:1002, :1059 rebuild_assert_graph CLEAR+INSERT"| AssertGraph["GRAPH_ONTOLOGY :assert<br/>oxigraph_ontology_repository.rs:48"]
+    AuthContent["Authored content<br/>public: true / owl-class markdown"] --> CorpusSrc["CorpusSource port (ADR-2114)<br/>local vault default (VAULT_ROOT set), GitHub opt-in<br/>corpus_source/mod.rs:203 corpus_source_kind<br/>github_sync_service.rs:1916 ingest"]
+    CorpusSrc -->|"github_sync_service.rs:1090, :1147 rebuild_assert_graph CLEAR+INSERT"| AssertGraph["GRAPH_ONTOLOGY :assert<br/>oxigraph_ontology_repository.rs:48"]
     CorpusSrc -->|"oxigraph_graph_repository.rs:1212 clear_graph drops knowledge and agent graphs"| KnowledgeGraph["GRAPH_KNOWLEDGE<br/>oxigraph_ontology_repository.rs:50"]
 
     VisIntent["Visibility intent<br/>visibility + owner_pubkey"] --> SettingsDB["settings.sqlite3 settings table<br/>sqlite_settings_repository.rs:61-68"]
@@ -211,7 +211,7 @@ erDiagram
     ENRICHMENT_PROPOSALS ||--o{ ENRICHMENT_DECISIONS : "case_id (sqlite_enrichment_repository.rs:96)"
     LIVENESS_CANARIES ||--o{ CANARY_FIRES : "canary_id (sqlite_canary_repository.rs:64)"
     KPI_SNAPSHOTS ||--o{ KPI_LINEAGE : "snapshot_id (sqlite_kpi_repository.rs:104)"
-    SETTINGS ||--|| USER_ROLES : "same settings.sqlite3 connection (role_store.rs:4-5, main.rs:784-788, settings repo opened at app_state.rs:419-425)"
+    SETTINGS ||--|| USER_ROLES : "same settings.sqlite3 connection (role_store.rs:4-5, main.rs:784-788, settings repo opened at app_state.rs:417-423)"
 ```
 
 ## VC-22.3 Derived-writeback fence (`POST /api/ingest/writeback`, ADR-2015)
@@ -379,7 +379,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SYNC as GitHubSyncService<br/>src/services/github_sync_service.rs:216
+    participant SYNC as GitHubSyncService<br/>src/services/github_sync_service.rs:282
     participant KG as GRAPH_KNOWLEDGE<br/>oxigraph_ontology_repository.rs:50
     participant AG as GRAPH_ONTOLOGY assert<br/>oxigraph_ontology_repository.rs:48
     participant APD as apply_decision<br/>src/handlers/enrichment_proposals_handler.rs:473
@@ -388,8 +388,8 @@ sequenceDiagram
     participant PROV as GRAPH_PROVENANCE<br/>oxigraph_ontology_repository.rs:57
 
     critical content sync fan-out
-        SYNC->>KG: batch_add_nodes ingest corpus pages (github_sync_service.rs:1722)
-        SYNC->>AG: save_ontology_graph atomic CLEAR GRAPH assert then INSERT DATA (github_sync_service.rs:1059)
+        SYNC->>KG: batch_add_nodes ingest corpus pages (github_sync_service.rs:1916)
+        SYNC->>AG: save_ontology_graph atomic CLEAR GRAPH assert then INSERT DATA (github_sync_service.rs:1147)
     end
     Note over SYNC,AG: authoritative store (the CorpusSource, ADR-2114) commits first via sync run - the Oxigraph projection is regenerated, never hand-edited (docs/DATA-authority-erasure.md:64)
 
@@ -428,7 +428,7 @@ sequenceDiagram
     alt public_reads true (rbac_gate.rs:172-175)
         REQ-->>GATE: None - public route, no auth required
         GATE-->>C: 200 passthrough (rbac_gate.rs:264-269)
-        Note over C,GATE: since dc7fd3858 the graph handler then cuts the reply to the caller's view -<br/>visible_subgraph at src/handlers/api_handler/graph/mod.rs:316, see VC-22.12
+        Note over C,GATE: since dc7fd3858 the graph handler then cuts the reply to the caller's view -<br/>visible_subgraph at src/handlers/api_handler/graph/mod.rs:352, see VC-22.12
     else public_reads false
         REQ-->>GATE: Some(ReadOnly)
         GATE->>RS: effective_role(pubkey, is_power_user) for a mutating/gated route
@@ -453,28 +453,28 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant OP as Operator (force_full_sync)
-    participant SYNC as GitHubSyncService.sync_graphs<br/>src/services/github_sync_service.rs:266
+    participant SYNC as GitHubSyncService.sync_graphs<br/>src/services/github_sync_service.rs:342
     participant KGREPO as kg_repo.clear_graph<br/>src/adapters/oxigraph_graph_repository.rs:1212
-    participant REBUILD as rebuild_assert_graph<br/>src/services/github_sync_service.rs:1002
+    participant REBUILD as rebuild_assert_graph<br/>src/services/github_sync_service.rs:1090
     participant AG as GRAPH_ONTOLOGY assert
-    participant DECREB as rematerialise_decisions<br/>src/services/github_sync_service.rs:1148
+    participant DECREB as rematerialise_decisions<br/>src/services/github_sync_service.rs:1236
     participant DIRECT as add_owl_class/add_axiom<br/>application/ontology/directives.rs (governed write door)
 
     OP->>SYNC: FORCE_FULL_SYNC=1
-    alt force_full_sync true (github_sync_service.rs:389, :658)
-        SYNC->>KGREPO: clear_graph() drops GRAPH_KNOWLEDGE and GRAPH_AGENT (github_sync_service.rs:439-443, oxigraph_graph_repository.rs:1215-1216)
-        SYNC->>REBUILD: rebuild_assert_graph(stats) (github_sync_service.rs:658-660)
-        REBUILD->>REBUILD: filter KG nodes to ontology-typed only, ONTOLOGY_TYPE_KEY metadata (github_sync_service.rs:1018)
-        REBUILD->>AG: CLEAR GRAPH assert then INSERT DATA class nodes + class-relation edges (save_ontology_graph, atomic) (github_sync_service.rs:1059)
-        Note over REBUILD,AG: this CLEAR wipes the ENTIRE assert graph including runtime OWL classes/axioms added via the governed write door (github_sync_service.rs:985-987)
-        REBUILD->>DECREB: rematerialise_decisions() ADR-050 read-half, called AFTER the class CLEAR+INSERT (github_sync_service.rs:1075)
-        DECREB->>DECREB: list_pages_under(DECISIONS_DIR), decision_page_quads_logged per page (github_sync_service.rs:1149, :1177)
-        DECREB->>AG: insert_quads_to_store re-derived dl:DecisionRecord quads, non-fatal on failure (github_sync_service.rs:1188, :1075-1081)
+    alt force_full_sync true (github_sync_service.rs:465, :742)
+        SYNC->>KGREPO: clear_graph() drops GRAPH_KNOWLEDGE and GRAPH_AGENT (github_sync_service.rs:515-519, oxigraph_graph_repository.rs:1215-1216)
+        SYNC->>REBUILD: rebuild_assert_graph(stats) (github_sync_service.rs:742-744)
+        REBUILD->>REBUILD: filter KG nodes to ontology-typed only, ONTOLOGY_TYPE_KEY metadata (github_sync_service.rs:1106)
+        REBUILD->>AG: CLEAR GRAPH assert then INSERT DATA class nodes + class-relation edges (save_ontology_graph, atomic) (github_sync_service.rs:1147)
+        Note over REBUILD,AG: this CLEAR wipes the ENTIRE assert graph including runtime OWL classes/axioms added via the governed write door (github_sync_service.rs:1073-1075)
+        REBUILD->>DECREB: rematerialise_decisions() ADR-050 read-half, called AFTER the class CLEAR+INSERT (github_sync_service.rs:1163)
+        DECREB->>DECREB: list_pages_under(DECISIONS_DIR), decision_page_quads_logged per page (github_sync_service.rs:1237, :1265)
+        DECREB->>AG: insert_quads_to_store re-derived dl:DecisionRecord quads, non-fatal on failure (github_sync_service.rs:1276, :1163-1169)
     else incremental sync (SHA1 filter narrowed file list)
-        SYNC->>SYNC: clear_graph guard not entered, existing data left intact (github_sync_service.rs:439)
+        SYNC->>SYNC: clear_graph guard not entered, existing data left intact (github_sync_service.rs:515)
     end
     Note over DIRECT,AG: a class added via add_owl_class/add_axiom between full-syncs is NOT itself in GRAPH_PROVENANCE-protected history for the<br/>assert graph - only re-derivation from the corpus (the visionGraph vault via CorpusSource, ADR-2114) restores it after the next rebuild
-    Note over DECREB,AG: attribution is deliberately NOT re-materialised here - the signed PROV-O attribution stays in GRAPH_PROVENANCE (ADR-049)<br/>the corpus decision page carries only the summary (github_sync_service.rs:1067-1074)
+    Note over DECREB,AG: attribution is deliberately NOT re-materialised here - the signed PROV-O attribution stays in GRAPH_PROVENANCE (ADR-049)<br/>the corpus decision page carries only the summary (github_sync_service.rs:1155-1162)
     Note over SYNC,AG: PROPOSED ADR-2102: one durable erasure record, five store acknowledgements, and a partial erasure that is recorded<br/>and retryable rather than a silent success - agentbox ADR-2060 is the RuVector-side half and is referenced, not superseded
 ```
 
@@ -498,7 +498,7 @@ flowchart TD
 <!-- 2026-11-06 restamp ec785afa9: new. dc7fd3858 gates REST graph reads with the /wss policy, 395b62924 and efec9b27d scrub hidden page names -->
 ```mermaid
 flowchart TB
-    CALL["Callers: caller_view_for graph_access.rs:36-41,<br/>REST graph read api_handler/graph/mod.rs:316,<br/>/wss initialGraphLoad socket_flow_handler/types.rs:509"] --> VS["visible_subgraph(graph, pubkey, filter_on)<br/>visibility_filter.rs:171"]
+    CALL["Callers: caller_view_for graph_access.rs:36-41,<br/>REST graph read api_handler/graph/mod.rs:352,<br/>/wss initialGraphLoad socket_flow_handler/types.rs:509"] --> VS["visible_subgraph(graph, pubkey, filter_on)<br/>visibility_filter.rs:171"]
     VS -->|filter off| SAME["graph returned unchanged<br/>visibility_filter.rs:176-178"]
     VS --> KEPT["keep nodes where of_node(n).is_visible_to(caller)<br/>visibility_filter.rs:179-183, of_node :101-115"]
     KEPT -->|"nothing removed"| SAME2["same Arc, no scrub needed<br/>visibility_filter.rs:185-196"]
@@ -526,12 +526,12 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant RB as rebuild_assert_graph tail<br/>src/services/github_sync_service.rs:1086
-    participant VR as verify_and_record_corpus_history<br/>src/services/github_sync_service.rs:1093
+    participant RB as rebuild_assert_graph tail<br/>src/services/github_sync_service.rs:1174
+    participant VR as verify_and_record_corpus_history<br/>src/services/github_sync_service.rs:1181
     participant CH as corpus_history.verify_and_record<br/>src/services/corpus_history.rs:441
     participant AG as GRAPH_ASSERT
     participant PG as GRAPH_PROVENANCE
-    RB->>VR: after the class CLEAR+INSERT and rematerialise_decisions (github_sync_service.rs:1075-1082)
+    RB->>VR: after the class CLEAR+INSERT and rematerialise_decisions (github_sync_service.rs:1163-1170)
     VR->>VR: resolve_corpus_agent - kill switch, then panel key as did:nostr (corpus_history.rs:112-126)
     VR->>CH: spawn_blocking verify_and_record(store, graph, agent, now)
     CH->>AG: P4 - digest of what the rebuild meant to write vs what assert holds (corpus_history.rs:449-463)
@@ -564,7 +564,7 @@ flowchart TB
         ROW -.->|"no creator"| NC["store refuses: NoCreator, answered as 500<br/>src/adapters/sqlite_share_repository.rs:110-113"]
     end
     subgraph STORE["SqliteShareRepository, data/shares.sqlite3"]
-        OPEN["opened once in AppState.new<br/>src/app_state.rs:483-490"]
+        OPEN["opened once in AppState.new<br/>src/app_state.rs:481-488"]
         TBL["shared_graphs: creator_id, expires_at_ms, access_count<br/>src/adapters/sqlite_share_repository.rs:41-50"]
         CLAIM["claim_access and delete_owned are single statements,<br/>so workers cannot race<br/>src/adapters/sqlite_share_repository.rs:164, :193, :210"]
         OPEN --> TBL --> CLAIM
@@ -587,4 +587,4 @@ flowchart TB
 
 **Debt (loose end):** an expired share is refused with 410 but its row and file stay until the next start-up sweep (`src/handlers/graph_export_handler.rs:235-238`, `src/main.rs:983-999`); a long-running server keeps every expired share's private snapshot on disk.
 
-**Drift:** `docs/DATA-authority-erasure.md:120` cites `src/app_state.rs:475-482` for where the share store is built; at this commit those lines are the KPI store opening, and the store is opened at `src/app_state.rs:483-490`.
+**Drift:** `docs/DATA-authority-erasure.md:120` cites `src/app_state.rs:475-482` for where the share store is built; at this commit those lines are the end of the KPI store opening plus the start of the share store, which is opened at `src/app_state.rs:481-488`.

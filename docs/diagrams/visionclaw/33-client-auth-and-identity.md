@@ -38,7 +38,7 @@ sources:
   - ../project/client/src/services/powerUserStatus.ts
   - ../project/src/handlers/admin_rbac_handler.rs
   - ../project/src/utils/nip98.rs
-verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
 ---
 ## For developers
 
@@ -184,7 +184,7 @@ sequenceDiagram
     and
         Note over AI: client/src/store/websocket/connectionManager.ts:334 sends its own - see VC-32.1
     end
-    Note over AI: A further reference at<br/>client/src/features/graph/managers/dataManager/restClient.ts:215 is a COMMENT<br/>documenting the pattern, not a call site
+    Note over AI: A further reference at<br/>client/src/features/graph/managers/dataManager/restClient.ts:221 is a COMMENT<br/>documenting the pattern, not a call site
     AI->>S: request with Bearer dev-session-token
     alt server is a debug build or built with --features dev-auth, AND DEV_AUTH_LOOPBACK=1 AND loopback peer<br/>(ADR-2012 triple gate, src/utils/auth.rs:133-141, :223-227)
         S-->>AI: 200 dev-admin principal granted
@@ -300,14 +300,14 @@ sequenceDiagram
     autonumber
     participant NA as NostrAuthService<br/>nostrAuthService.ts:406-410
     participant App as App.tsx effect<br/>client/src/app/App.tsx:44-52
-    participant Store as settingsStore coreSlice<br/>client/src/store/settings/coreSlice.ts:182-185
+    participant Store as settingsStore coreSlice<br/>client/src/store/settings/coreSlice.ts:183-186
     participant PUS as fetchPowerUserStatus<br/>client/src/services/powerUserStatus.ts:26
     participant SRV as RbacGate plus whoami handler<br/>src/handlers/admin_rbac_handler.rs:81
-    participant Row as SettingRow<br/>client/src/features/control-center/primitives/SettingRow.tsx:77,91
+    participant Row as SettingRow<br/>client/src/features/control-center/primitives/SettingRow.tsx:78,92
     participant Ctl as NostrAuthControl<br/>client/src/features/control-center/primitives/NostrAuthControl.tsx:20,56
 
     NA->>App: AuthState authenticated user.isPowerUser App.tsx:49
-    App->>Store: setUser({isPowerUser, pubkey}) App.tsx:48-51, coreSlice.ts:182-185
+    App->>Store: setUser({isPowerUser, pubkey}) App.tsx:48-51, coreSlice.ts:183-186
     Note over Store: isPowerUser is a single boolean.<br/>login()/loginWithPasskey() set it false and only<br/>devLogin()/dev-mode auto-login sets true, and outside dev<br/>mode App.tsx then overwrites it from the server whoami<br/>answer. NEVER the<br/>four-tier Owner/Admin/Editor/Viewer role —<br/>nostrAuthService.ts:409,544,632 vs 334,676
     opt user.isPowerUser false (every non-dev sign-in)
         App->>PUS: fetchPowerUserStatus(pubkey) -- ER-26, client/src/app/App.tsx:53-65
@@ -318,10 +318,10 @@ sequenceDiagram
         PUS-->>App: boolean, or null on error or when the answer names another<br/>key client/src/services/powerUserStatus.ts:29-38
         App->>Store: setUser({isPowerUser, pubkey}) only if the store still<br/>holds the same pubkey client/src/app/App.tsx:58-62
     end
-    Store->>Row: isPowerUser via useSettingsStore selector SettingRow.tsx:77
-    Row->>Row: isWritable = !disabled && (!field.isPowerUserOnly ||<br/>isPowerUser) SettingRow.tsx:91
+    Store->>Row: isPowerUser via useSettingsStore selector SettingRow.tsx:78
+    Row->>Row: isWritable = !disabled && (!field.isPowerUserOnly ||<br/>isPowerUser) SettingRow.tsx:92
     alt field.isPowerUserOnly and not isPowerUser
-        Row->>Row: render disabled with Lock icon SettingRow.tsx:108
+        Row->>Row: render disabled with Lock icon SettingRow.tsx:109
     else writable
         Row->>Row: render editable control
     end

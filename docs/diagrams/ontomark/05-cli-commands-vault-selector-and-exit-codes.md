@@ -25,7 +25,7 @@ sources:
   - ../visionGraph/.github/workflows/publish.yml
   - ../project/.github/workflows/ontology-publish.yml
   - docs/engineering/sovereign-corpus-contracts.md
-verified_commit: {ontomark: 6159bb6089753105ef839fd4aac46c1598a64bd2, visiongraph: d8277151a1404b456b5c7206187f7e4b50f25be1, visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c}
+verified_commit: {ontomark: 6159bb6089753105ef839fd4aac46c1598a64bd2, visiongraph: d8277151a1404b456b5c7206187f7e4b50f25be1, visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c}
 ---
 
 Restamped at ontomark 4b9d15d on 2026-11-02. The `ingest` verb is now in the command tree (`ontomark-cli/src/main.rs:138-141`) and is shown in OM-05.1; its pipeline is mapped in [OM-08](08-external-source-ingest.md).

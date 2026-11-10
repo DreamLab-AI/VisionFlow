@@ -17,7 +17,7 @@ sources:
   - ../project/xr-client/scripts/backend_connection.gd
   - ../project/src/services/corpus_history.rs
   - ../project/src/actors/agent_demo_director.rs
-verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
 ---
 
 ## For developers

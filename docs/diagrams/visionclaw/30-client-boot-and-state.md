@@ -82,7 +82,7 @@ sources:
   - ../project/client/src/features/control-center/status/StatusFlyout.tsx
   - ../project/client/src/features/control-center/drawer/RightDrawer.tsx
   - ../project/client/src/services/nostrAuthService.ts
-verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
 ---
 ## For developers
 
@@ -198,22 +198,22 @@ classDiagram
       merge() strips ADR-2189 retired paths then restores persisted.partialSettings settingsStore.ts:47-73
     }
     class CoreSlice {
-      partialSettings DeepPartial~Settings~ coreSlice.ts:70
-      settings DeepPartial~Settings~ coreSlice.ts:71
-      loadedPaths Set~string~ coreSlice.ts:72
-      loadingSections Set~string~ coreSlice.ts:73
-      initialized bool coreSlice.ts:74
-      authenticated bool coreSlice.ts:75
-      settingsSyncEnabled bool coreSlice.ts:78
-      +initialize() coreSlice.ts:85
-      +get(path) coreSlice.ts:200
-      +set(path,value,skipServerSync) coreSlice.ts:232
-      +subscribe(path,cb,immediate) coreSlice.ts:261
-      +ensureLoaded(paths) coreSlice.ts:275
-      +loadSection(section) coreSlice.ts:335
-      +updateSettings(updater) coreSlice.ts:371
-      +updateComputeMode(mode) coreSlice.ts:442
-      +updateConstraints(constraints) coreSlice.ts:453
+      partialSettings DeepPartial~Settings~ coreSlice.ts:71
+      settings DeepPartial~Settings~ coreSlice.ts:72
+      loadedPaths Set~string~ coreSlice.ts:73
+      loadingSections Set~string~ coreSlice.ts:74
+      initialized bool coreSlice.ts:75
+      authenticated bool coreSlice.ts:76
+      settingsSyncEnabled bool coreSlice.ts:79
+      +initialize() coreSlice.ts:86
+      +get(path) coreSlice.ts:201
+      +set(path,value,skipServerSync) coreSlice.ts:233
+      +subscribe(path,cb,immediate) coreSlice.ts:262
+      +ensureLoaded(paths) coreSlice.ts:276
+      +loadSection(section) coreSlice.ts:345
+      +updateSettings(updater) coreSlice.ts:381
+      +updateComputeMode(mode) coreSlice.ts:452
+      +updateConstraints(constraints) coreSlice.ts:463
     }
     class PhysicsSlice {
       +updatePhysics(graphName,params) physicsSlice.ts:19
@@ -241,7 +241,7 @@ classDiagram
     }
     class useWebSocketStore {
       client/src/store/websocketStore.ts:9-16 re-export shim (36 lines)
-      real impl client/src/store/websocket/index.ts:515 lines
+      real impl client/src/store/websocket/index.ts:507 lines
       socket WebSocket~null~ storeState.ts:48
       isConnected bool storeState.ts:49
       isServerReady bool storeState.ts:50
@@ -286,7 +286,7 @@ classDiagram
       TRANSIENT_THRESHOLD=30 workerErrorStore.ts:21
     }
     class AutoSaveManager {
-      client/src/store/autoSaveManager.ts:15 singleton autoSaveManager.ts:149
+      client/src/store/autoSaveManager.ts:15 singleton autoSaveManager.ts:170
       pendingChanges Map~string,any~ autoSaveManager.ts:16
       DEBOUNCE_DELAY=500ms autoSaveManager.ts:20
       CLIENT_ONLY_PATHS auth.nostr.connected,auth.nostr.publicKey autoSaveManager.ts:38-41
@@ -299,14 +299,14 @@ classDiagram
       -flushPendingChanges() calls settingsApi.updateSettingsByPaths autoSaveManager.ts:108
     }
     class useSettingsSyncStatus {
-      client/src/store/settingsSyncStatus.ts:29
-      unsaved Record~path,UnsavedReason~ settingsSyncStatus.ts:21
-      UnsavedReason not-ready,sync-off,failed settingsSyncStatus.ts:17
-      persisted key graph-viz-settings-unsynced settingsSyncStatus.ts:27,54
-      +markUnsaved(paths,reason) settingsSyncStatus.ts:33
-      +markSaved(paths) settingsSyncStatus.ts:39
-      +isUnsyncedPath(path) ancestor or descendant match settingsSyncStatus.ts:62-68
-      +describeUnsaved(unsaved) chip tooltip settingsSyncStatus.ts:72
+      client/src/store/settingsSyncStatus.ts:30
+      unsaved Record~path,UnsavedReason~ settingsSyncStatus.ts:22
+      UnsavedReason not-ready,sync-off,failed,rejected (the server refused the value, HTTP 400, and the store was reverted) settingsSyncStatus.ts:17-18
+      persisted key graph-viz-settings-unsynced settingsSyncStatus.ts:28,55
+      +markUnsaved(paths,reason) settingsSyncStatus.ts:34
+      +markSaved(paths) settingsSyncStatus.ts:40
+      +isUnsyncedPath(path) ancestor or descendant match settingsSyncStatus.ts:63-69
+      +describeUnsaved(unsaved) chip tooltip settingsSyncStatus.ts:73
     }
     class SettingsRetryManager {
       client/src/store/settingsRetryManager.ts:21 singleton settingsRetryManager.ts:207
@@ -333,23 +333,23 @@ classDiagram
 sequenceDiagram
     autonumber
     participant Comp as Component<br/>useSelectiveSetting/useSettingsSubscription<br/>client/src/hooks/useSelectiveSettingsStore.ts:14,102
-    participant Store as useSettingsStore.updateSettings<br/>client/src/store/settings/coreSlice.ts:371
+    participant Store as useSettingsStore.updateSettings<br/>client/src/store/settings/coreSlice.ts:381
     participant Trie as subscriberTrie<br/>client/src/store/settings/subscriberTrie.ts
     participant ASM as autoSaveManager<br/>client/src/store/autoSaveManager.ts:15
     participant API as settingsApi.updateSettingsByPaths<br/>client/src/store/autoSaveManager.ts:120
     participant Retry as settingsRetryManager<br/>client/src/store/settingsRetryManager.ts:21
-    participant SS as useSettingsSyncStatus<br/>client/src/store/settingsSyncStatus.ts:29
+    participant SS as useSettingsSyncStatus<br/>client/src/store/settingsSyncStatus.ts:30
 
     Comp->>Store: useSettingsStore(state => state.get(path))<br/>useSelectiveSettingsStore.ts:22-25 (Zustand selector memoisation)
     Comp->>Store: subscribe(path, callback, immediate=false)<br/>useSelectiveSettingsStore.ts:131
-    Store->>Trie: getOrCreateTrieNode(path).subscribers.add(callback)<br/>coreSlice.ts:262, subscriberTrie.ts:18
-    Note over Comp,Store: immediate=true fires callback synchronously against get().initialized<br/>coreSlice.ts:264-265
+    Store->>Trie: getOrCreateTrieNode(path).subscribers.add(callback)<br/>coreSlice.ts:263, subscriberTrie.ts:18
+    Note over Comp,Store: immediate=true fires callback synchronously against get().initialized<br/>coreSlice.ts:265-266
 
-    Store->>Store: produce(partialSettings,updater) via immer, findChangedPaths()<br/>coreSlice.ts:374-376
+    Store->>Store: produce(partialSettings,updater) via immer, findChangedPaths()<br/>coreSlice.ts:384-386
     alt changedPaths.length == 0
         Store-->>Comp: no-op return
     end
-    Store->>ASM: autoSaveManager.queueChanges(batchChanges)<br/>coreSlice.ts:401
+    Store->>ASM: autoSaveManager.queueChanges(batchChanges)<br/>coreSlice.ts:411
     alt path in CLIENT_ONLY_PATHS (auth.nostr.*)
         ASM-->>Store: filtered out, never leaves client<br/>autoSaveManager.ts:71-72
     else sync off (local-only mode)
@@ -360,27 +360,27 @@ sequenceDiagram
     else
         ASM->>ASM: pendingChanges.set(path,value), scheduleFlush()<br/>debounce 500ms via clearTimeout/setTimeout<br/>autoSaveManager.ts:77,84,88-95
     end
-    Store->>Trie: collectMatchedCallbacks(changedPaths)<br/>coreSlice.ts:439, subscriberTrie.ts:41
+    Store->>Trie: collectMatchedCallbacks(changedPaths)<br/>coreSlice.ts:449, subscriberTrie.ts:41
     Trie->>Trie: walk ancestor prefixes + collectDescendants(exactNode)<br/>subscriberTrie.ts:44-59
     Store->>Trie: scheduleNotify(matched) - adds to pendingNotifyCallbacks,<br/>one requestAnimationFrame per batch<br/>subscriberTrie.ts:78-83
     Trie->>Comp: flushNotifyCallbacks() invokes each callback, errors caught+logged<br/>subscriberTrie.ts:67-75
 
     Note over ASM: after DEBOUNCE_DELAY=500ms, flushPendingChanges() fires<br/>autoSaveManager.ts:93-95,108
     ASM->>API: settingsApi.updateSettingsByPaths(updates)<br/>autoSaveManager.ts:120
-    Note over API: a path under visualisation.graphs.*.physics. becomes a NESTED partial via physicsPatchEntry<br/>(physics.semantic.dag.levelAttraction becomes {semantic:{dag:{levelAttraction}}}) and mergeInto<br/>deep-merges entries, so two sliders of one group in the same debounce window both survive,<br/>then updatePhysics GETs and PUTs the merged document<br/>endpoints.ts:337-346, :361-365, :390 and physicsPatch.ts:10-18
+    Note over API: a path under visualisation.graphs.*.physics. becomes a NESTED partial via physicsPatchEntry<br/>(physics.semantic.dag.levelAttraction becomes {semantic:{dag:{levelAttraction}}}) and mergeInto<br/>deep-merges entries, so two sliders of one group in the same debounce window both survive,<br/>then updatePhysics GETs and PUTs the merged document<br/>endpoints.ts:296-305, :320-324, :349 and physicsPatch.ts:10-18
     alt API resolves
         API-->>ASM: SUCCESS - pendingChanges already cleared pre-send<br/>autoSaveManager.ts:114-121
         ASM->>SS: markSaved(paths)<br/>autoSaveManager.ts:122
     else API rejects
-        ASM->>SS: markUnsaved(paths,'failed')<br/>autoSaveManager.ts:124
-        ASM->>Retry: settingsRetryManager.addFailedUpdate(path,value,error.message)<br/>per failed update, autoSaveManager.ts:127-133
+        ASM->>SS: markUnsaved(paths,'failed')<br/>autoSaveManager.ts:139
+        ASM->>Retry: settingsRetryManager.addFailedUpdate(path,value,error.message)<br/>per failed update, autoSaveManager.ts:142-148
         Retry->>Retry: retryQueue.set(path,{attempts,lastAttempt,error})<br/>settingsRetryManager.ts:41-47
         Retry->>Retry: startRetryProcessor() window.setInterval 5000ms<br/>settingsRetryManager.ts:144-151
         loop every 5000ms while retryQueue non-empty
             Retry->>Retry: calculateRetryDelay(attempts)=min(1000*2^(attempts-1),30000)+jitter<br/>settingsRetryManager.ts:134-140
             alt now - lastAttempt >= delay
                 Retry->>API: settingsApi.updateSettingsByPaths (batch) or updateSettingByPath (single)<br/>settingsRetryManager.ts:87,108
-                Note over API: updateSettingByPath now rethrows (endpoints.ts:329-331), so a failed<br/>single retry is no longer counted as a success
+                Note over API: updateSettingByPath now rethrows (endpoints.ts:288-290), so a failed<br/>single retry is no longer counted as a success
                 alt retry succeeds
                     Retry->>Retry: retryQueue.delete(path)<br/>settingsRetryManager.ts:92,109
                     Retry->>SS: markSaved(paths)<br/>settingsRetryManager.ts:90,110
@@ -399,7 +399,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Graph as websocket/index.ts connect()<br/>client/src/store/websocket/index.ts:154
+    participant Graph as websocket/index.ts connect()<br/>client/src/store/websocket/index.ts:155
     participant Voice as VoiceWebSocketService<br/>client/src/services/VoiceWebSocketService.ts:89
     participant Solid as solidWebSocket store adapter<br/>client/src/store/websocket/solidWebSocket.ts:71
     participant Pod as podNotificationManager<br/>client/src/services/solidPod/podNotifications.ts:92
@@ -408,7 +408,7 @@ sequenceDiagram
     participant Bots as BotsWebSocketIntegration<br/>client/src/features/bots/services/BotsWebSocketIntegration.ts:53
 
     Note over Reg: connections Map~string,RegistryEntry~ keyed by name - WebSocketRegistry.ts:23
-    Graph->>Reg: register("graph", url, socket)<br/>websocket/index.ts:178
+    Graph->>Reg: register("graph", url, socket)<br/>websocket/index.ts:179
     Voice->>Reg: register(REGISTRY_NAME="voice", url, socket)<br/>VoiceWebSocketService.ts:14,89
     Solid->>Pod: connect() - the adapter registers nothing of its own<br/>solidWebSocket.ts:81
     Pod->>Reg: register(REGISTRY_NAME="solid-pod", url, socket)<br/>podNotifications.ts:20,92
@@ -419,7 +419,7 @@ sequenceDiagram
     Reg->>Bus: emit("registry:registered",{name,url})<br/>WebSocketRegistry.ts:63
 
     par each socket also emits directly
-        Graph->>Bus: emit("connection:open",{name:"graph",url})<br/>websocket/index.ts:179
+        Graph->>Bus: emit("connection:open",{name:"graph",url})<br/>websocket/index.ts:180
     and
         Voice->>Bus: emit("connection:open",{name:"voice",url})<br/>VoiceWebSocketService.ts:90
     and
@@ -438,13 +438,13 @@ sequenceDiagram
 
     alt connection error (any socket)
         Voice->>Bus: emit("connection:error",{name,error})<br/>VoiceWebSocketService.ts:116
-        Graph->>Bus: emit("connection:error",{name:"graph",error:errorMessage})<br/>websocket/index.ts:246
+        Graph->>Bus: emit("connection:error",{name:"graph",error:errorMessage})<br/>websocket/index.ts:247
     end
     alt connection close (any socket)
-        Graph->>Reg: unregister("graph")<br/>websocket/index.ts:217,276
+        Graph->>Reg: unregister("graph")<br/>websocket/index.ts:218,277
         Reg->>Reg: removeEventListener for each tracked listener, delete from connections<br/>WebSocketRegistry.ts:74-79
         Reg->>Bus: emit("registry:unregistered",{name})<br/>WebSocketRegistry.ts:81
-        Graph->>Bus: emit("connection:close",{name,code,reason})<br/>websocket/index.ts:218
+        Graph->>Bus: emit("connection:close",{name,code,reason})<br/>websocket/index.ts:219
     end
     Note over Reg: RESOLVED ADR-2077: closeAll() is DELETED - it had zero callers.<br/>register, unregister, get, getEntry, getAll, size and readyStateLabel<br/>remain. Nothing can mass-close sockets. no caller ever wanted that.
 ```
@@ -614,87 +614,87 @@ sequenceDiagram
     Note over Ax: RESOLVED ADR-2074: settingsApi still uses its own global axios instance<br/>(a transport choice), but its interceptor no longer reimplements the auth<br/>branch - it calls the shared computeAuthHeaders from authInterceptor.ts:51.<br/>All four HTTP transports now share one signing helper. endpoints.ts:42
     Ax->>Ax: axios.interceptors.request.use: await computeAuthHeaders(fullUrl,method,body),<br/>Object.assign onto config.headers<br/>endpoints.ts:42-57
     Ax->>Ax: axios.get/put(`${API_BASE}/api/settings/...`)<br/>API_BASE='' - relative, proxied by Vite/nginx<br/>endpoints.ts:36,91,96
-    Ax->>Ax: getSettingsByPaths strips ADR-2189 retired paths from /api/settings/all before caching<br/>so a server document still carrying them never re-enters the store<br/>endpoints.ts:233,243-248
+    Ax->>Ax: getSettingsByPaths strips ADR-2189 retired paths from /api/settings/all before caching<br/>so a server document still carrying them never re-enters the store<br/>endpoints.ts:192,202-207
     end
 
     Note over Mod: Endpoint modules on UnifiedApiClient: analyticsApi.ts (AnalyticsAPI class, includes getCycles),<br/>graphExpandApi.ts (fetchNodeRelations/expandNode), exportApi.ts deleted as dead (no importer, a route that never existed),<br/>workspaceApi.ts (WorkspaceApiError): client/src/api/analyticsApi.ts:134,409,<br/>graphExpandApi.ts:69,84, workspaceApi.ts:62,80,136. constraintsApi.ts and layoutApi.ts import the global axios<br/>instead (constraintsApi.ts:5,86, layoutApi.ts:5,66). layoutApi.setMode posts the engine's own LayoutMode name with no<br/>remapping layer - toEngineLayoutMode is gone (ADR-2140, layoutApi.ts:47-60, :70-77)
 ```
-**Drift (retiredPaths comment vs code):** `retiredPaths.ts:11-12` places the server-load strip in the settings store and on a `/visual` response; it runs in `getSettingsByPaths` on `/api/settings/all` (`endpoints.ts:243-247`).
-**Invariant:** every settings load goes through `getSettingsByPaths` (`coreSlice.ts:103`, `coreSlice.ts:284`, `persistenceSlice.ts:116`), so a retired path cannot reach the store from the server (`endpoints.ts:247`).
+**Drift (retiredPaths comment vs code):** `retiredPaths.ts:11-12` places the server-load strip in the settings store and on a `/visual` response; it runs in `getSettingsByPaths` on `/api/settings/all` (`endpoints.ts:202-206`).
+**Invariant:** every settings load goes through `getSettingsByPaths` (`coreSlice.ts:104`, `coreSlice.ts:285`, `persistenceSlice.ts:116`), so a retired path cannot reach the store from the server (`endpoints.ts:206`).
 
 ## VC-30.9 graphDataManager — fetchInitialData, setGraphData, id maps, cache
 ```mermaid
 sequenceDiagram
     autonumber
     participant Caller as AppInitializer<br/>client/src/app/AppInitializer.tsx:168
-    participant GDM as GraphDataManager<br/>client/src/features/graph/managers/graphDataManager.ts:25
+    participant GDM as GraphDataManager<br/>client/src/features/graph/managers/graphDataManager.ts:26
     participant Rest as fetchGraphData<br/>client/src/features/graph/managers/dataManager/restClient.ts
     participant Gate as dropLinkedPageStubs<br/>client/src/features/graph/managers/dataManager/nodeUtils.ts
     participant Topo as buildNodeIdMaps/setDataAndNotify<br/>client/src/features/graph/managers/dataManager/topology.ts
-    participant WP as graphWorkerProxy<br/>client/src/features/graph/managers/graphDataManager.ts:6
-    participant WSH as handleInitialGraphLoad<br/>client/src/store/websocket/textMessageHandler.ts:229
+    participant WP as graphWorkerProxy<br/>client/src/features/graph/managers/graphDataManager.ts:7
+    participant WSH as handleInitialGraphLoad<br/>client/src/store/websocket/textMessageHandler.ts:239
 
-    Caller->>GDM: fetchInitialData() - counts restLoadsInFlight++ then runs _fetchInitialDataInner<br/>graphDataManager.ts:202-206,217
-    GDM->>GDM: includeLinkedPages = settings.nodeFilter.includeLinkedPages ?? false<br/>graphDataManager.ts:220-221
-    GDM->>Rest: fetchGraphData(graphType,graphTypeFilter,!includeLinkedPages)<br/>graphDataManager.ts:222-226
-    Rest->>Rest: normalise edge.source/target via String(), node.id via String()<br/>restClient.ts:107,121
+    Caller->>GDM: fetchInitialData() - counts restLoadsInFlight++ then runs _fetchInitialDataInner<br/>graphDataManager.ts:203-207,217
+    GDM->>GDM: includeLinkedPages = settings.nodeFilter.includeLinkedPages ?? false<br/>graphDataManager.ts:221-222
+    GDM->>Rest: fetchGraphData(graphType,graphTypeFilter,!includeLinkedPages, restNodeFilterSnapshot(): the node_filter query only when enabled and serverRemove, see VC-61)<br/>graphDataManager.ts:223-228
+    Rest->>Rest: normalise edge.source/target via String(), node.id via String()<br/>restClient.ts:113,127
     Rest-->>GDM: GraphData{nodes,edges}
-    GDM->>GDM: setGraphData(validatedData)<br/>graphDataManager.ts:228,291
+    GDM->>GDM: setGraphData(validatedData)<br/>graphDataManager.ts:230,293
     alt currentData.nodes.length == 0
-        GDM->>GDM: scheduleEmptyDataRetry(1,retryTimeout,fetchInitialData,...)<br/>T6 fix - backend up but Oxigraph empty<br/>graphDataManager.ts:234-241
+        GDM->>GDM: scheduleEmptyDataRetry(1,retryTimeout,fetchInitialData,...)<br/>T6 fix - backend up but Oxigraph empty<br/>graphDataManager.ts:236-243
     end
-    GDM-->>Caller: return currentData (lastGraphData ?? validatedData)<br/>graphDataManager.ts:230,244
-    Note over GDM: finally: restLoadsInFlight-- and, when it returns to 0, resolveHeldServerLoad(restSucceeded)<br/>graphDataManager.ts:209-214
+    GDM-->>Caller: return currentData (lastGraphData ?? validatedData)<br/>graphDataManager.ts:232,246
+    Note over GDM: finally: restLoadsInFlight-- and, when it returns to 0, resolveHeldServerLoad(restSucceeded)<br/>graphDataManager.ts:210-215
 
     rect rgb(235,245,255)
-    Note over WSH,GDM: INVARIANT: REST topology is authoritative during the startup race. A server-pushed initialGraphLoad<br/>(capped at connect time) is held while a REST load is in flight and never seeds or replaces the topology first<br/>textMessageHandler.ts:235-243, graphDataManager.ts:58-64
-    WSH->>GDM: offerServerGraphLoad(data,{isFilterResponse})<br/>textMessageHandler.ts:319-321, graphDataManager.ts:258
+    Note over WSH,GDM: INVARIANT: REST topology is authoritative during the startup race. A server-pushed initialGraphLoad<br/>(capped at connect time) is held while a REST load is in flight and never seeds or replaces the topology first<br/>textMessageHandler.ts:245-253, graphDataManager.ts:59-65
+    WSH->>GDM: offerServerGraphLoad(data,{isFilterResponse})<br/>textMessageHandler.ts:329-331, graphDataManager.ts:260
     alt isRestLoadInFlight()
-        GDM-->>WSH: deferred - the latest load is kept in heldServerLoad<br/>graphDataManager.ts:262-268
-        Note over GDM: when REST settles the held load is DROPPED on REST success unless it answers our own filter_update,<br/>and APPLIED through setGraphData on REST failure<br/>graphDataManager.ts:274-287
+        GDM-->>WSH: deferred - the latest load is kept in heldServerLoad<br/>graphDataManager.ts:264-270
+        Note over GDM: when REST settles the held load is DROPPED on REST success unless it answers our own filter_update,<br/>and APPLIED through setGraphData on REST failure<br/>graphDataManager.ts:276-289
     else no REST load pending
-        GDM->>GDM: setGraphData(data) and return applied<br/>graphDataManager.ts:270-271
+        GDM->>GDM: setGraphData(data) and return applied<br/>graphDataManager.ts:272-273
     end
     end
 
-    Note over GDM: setGraphData(data) - population gate + id-map build + cache + worker delivery<br/>graphDataManager.ts:291
-    GDM->>Gate: dropLinkedPageStubs(data,includeLinkedPages)<br/>strips ~14.7k of 17.1k linked_page wikilink stubs<br/>graphDataManager.ts:304
-    GDM->>GDM: nodes.map(ensureNodeHasValidPosition)<br/>graphDataManager.ts:308-312
-    GDM->>Topo: buildNodeIdMaps(nodes,nodeIdMap,reverseNodeIdMap)<br/>graphDataManager.ts:320
-    GDM->>Topo: setDataAndNotify(validatedData,lastGraphDataHash,listeners,setter)<br/>ADR-03 D5 single cached delivery path<br/>graphDataManager.ts:323-331
+    Note over GDM: setGraphData(data) - population gate + id-map build + cache + worker delivery<br/>graphDataManager.ts:293
+    GDM->>Gate: dropLinkedPageStubs(data,includeLinkedPages)<br/>strips ~14.7k of 17.1k linked_page wikilink stubs<br/>graphDataManager.ts:306
+    GDM->>GDM: nodes.map(ensureNodeHasValidPosition)<br/>graphDataManager.ts:310-314
+    GDM->>Topo: buildNodeIdMaps(nodes,nodeIdMap,reverseNodeIdMap)<br/>graphDataManager.ts:322
+    GDM->>Topo: setDataAndNotify(validatedData,lastGraphDataHash,listeners,setter)<br/>ADR-03 D5 single cached delivery path<br/>graphDataManager.ts:325-333
     Topo-->>GDM: onGraphDataChange listeners fire with validatedData
     alt graphWorkerProxy.isReady()
-        GDM->>WP: setGraphTopology(validatedData)<br/>ADR-03 D7 - worker gets topology directly from the manager,<br/>NOT from any React state<br/>graphDataManager.ts:334-336
+        GDM->>WP: setGraphTopology(validatedData)<br/>ADR-03 D7 - worker gets topology directly from the manager,<br/>NOT from any React state<br/>graphDataManager.ts:336-338
         alt setGraphTopology throws
-            Note over GDM: caught, logged warn, topology delivery to worker skipped this pass<br/>graphDataManager.ts:337-339
+            Note over GDM: caught, logged warn, topology delivery to worker skipped this pass<br/>graphDataManager.ts:339-341
         end
     end
 
-    Note over GDM: mergeGraphData(newNodes,newEdges,anchorNodeId,anchorPosition) - additive expansion,<br/>seeds new nodes on golden-angle ring around LIVE anchor position (worker/SAB,<br/>not stale cached node.position), dedups nodes/edges by String()-coerced id<br/>graphDataManager.ts:397-470
-    Note over GDM: getCachedGraphData() always returns null by design - worker data is<br/>async-only, callers must use fallback positioning<br/>graphDataManager.ts:134-136
+    Note over GDM: mergeGraphData(newNodes,newEdges,anchorNodeId,anchorPosition) - additive expansion,<br/>seeds new nodes on golden-angle ring around LIVE anchor position (worker/SAB,<br/>not stale cached node.position), dedups nodes/edges by String()-coerced id<br/>graphDataManager.ts:399-472
+    Note over GDM: getCachedGraphData() always returns null by design - worker data is<br/>async-only, callers must use fallback positioning<br/>graphDataManager.ts:135-137
 ```
 ## VC-30.10 graphDataManager binary path and the dataWithPositions forwarding invariant
 ```mermaid
 sequenceDiagram
     autonumber
     participant WS as websocketService.onBinaryMessage<br/>client/src/app/AppInitializer.tsx:201
-    participant GDM as GraphDataManager.updateNodePositions<br/>client/src/features/graph/managers/graphDataManager.ts:497
-    participant Heal as maybeSelfHealUnknownNodes<br/>client/src/features/graph/managers/graphDataManager.ts:515
+    participant GDM as GraphDataManager.updateNodePositions<br/>client/src/features/graph/managers/graphDataManager.ts:499
+    participant Heal as maybeSelfHealUnknownNodes<br/>client/src/features/graph/managers/graphDataManager.ts:517
     participant Frame as handleBinaryFrame<br/>client/src/features/graph/managers/dataManager/wsClient.ts:19
     participant WP as graphWorkerProxy.processBinaryFrame<br/>client/src/features/graph/managers/dataManager/wsClient.ts:42
     participant Sub as useGraphDataSubscription<br/>client/src/features/graph/hooks/useGraphDataSubscription.ts:23
     participant GM as GraphManager<br/>client/src/features/graph/components/GraphManager.tsx:327
     participant BP as handleLegacyBinaryData<br/>client/src/store/websocket/binaryProtocol.ts:352
 
-    WS->>GDM: updateNodePositions(positionData: ArrayBuffer)<br/>graphDataManager.ts:497
-    GDM->>Heal: maybeSelfHealUnknownNodes(positionData) - sampled every 120 frames<br/>graphDataManager.ts:499,515-516
+    WS->>GDM: updateNodePositions(positionData: ArrayBuffer)<br/>graphDataManager.ts:499
+    GDM->>Heal: maybeSelfHealUnknownNodes(positionData) - sampled every 120 frames<br/>graphDataManager.ts:501,517-518
     opt sample frame && nodeIdMap non-empty && no opted-in serverRemove quality/authority filter
-        Heal->>Heal: parseBinaryNodeData, check reverseNodeIdMap.has(getActualNodeId(id))<br/>graphDataManager.ts:528-529
+        Heal->>Heal: parseBinaryNodeData, check reverseNodeIdMap.has(getActualNodeId(id))<br/>graphDataManager.ts:530-531
         alt unknown ids found && cooldown (30000ms) elapsed
-            Heal->>GDM: fetchInitialData() - topology hash makes false-positive refetch a no-op,<br/>skipped only when nodeFilter.serverRemove narrowed the graph (grey-out keeps every id)<br/>graphDataManager.ts:524-535
+            Heal->>GDM: fetchInitialData() - topology hash makes false-positive refetch a no-op,<br/>skipped only when nodeFilter.serverRemove narrowed the graph (grey-out keeps every id)<br/>graphDataManager.ts:526-537
         end
     end
-    GDM->>Frame: handleBinaryFrame(positionData,lastBinaryUpdateTime,onUpdateTime)<br/>graphDataManager.ts:500-504
+    GDM->>Frame: handleBinaryFrame(positionData,lastBinaryUpdateTime,onUpdateTime)<br/>graphDataManager.ts:502-506
     Frame->>Frame: onUpdateTime(Date.now()) - no throttle, every ack-paced chunk is applied<br/>wsClient.ts:26-27
         Frame->>WP: processBinaryFrame(new Uint8Array(positionData)) - zero-copy transfer,<br/>frames wait in the proxy FIFO in arrival order and none<br/>is collapsed (ADR-2141), the promise resolves once the worker<br/>has applied this frame<br/>wsClient.ts:41-42, graphWorkerProxy.ts:227-241
         Frame->>Frame: resetTransientErrors() on success<br/>wsClient.ts:43
@@ -717,7 +717,7 @@ sequenceDiagram
     end
     Note over Sub: 5000ms fallback timer seeds 3 synthetic nodes if no real data<br/>arrived by then (lastProcessedGraphRef still null)<br/>useGraphDataSubscription.ts:141-155
 ```
-**Debt (loose end):** with the 16 ms throttle gone, `handleBinaryFrame` keeps an unused `_lastUpdateTime` parameter (`wsClient.ts:21`) and `updateNodePositions` still passes `lastBinaryUpdateTime` into it (`graphDataManager.ts:502`).
+**Debt (loose end):** with the 16 ms throttle gone, `handleBinaryFrame` keeps an unused `_lastUpdateTime` parameter (`wsClient.ts:21`) and `updateNodePositions` still passes `lastBinaryUpdateTime` into it (`graphDataManager.ts:504`).
 
 ## VC-30.11 graph worker handoff — proxy init, SAB-vs-Comlink capability, dispose
 ```mermaid
@@ -753,7 +753,7 @@ sequenceDiagram
     Proxy->>Proxy: isInitialized=true<br/>graphWorkerProxy.ts:209
 
     Note over Proxy: D7 surface is EXACTLY 4 methods - processBinaryFrame, getPositions,<br/>setGraphTopology, dispose. Legacy methods (tick,getGraphData,<br/>getAnalyticsBuffer,reheatSimulation,updateForcePhysicsSettings) throw<br/>deprecation shims - graphWorkerProxy.ts:1-15,399-472
-    AI->>Proxy: setGraphTopology(graph) - the caller is GraphDataManager.setGraphData (graphDataManager.ts:336), not AppInitializer<br/>graphWorkerProxy.ts:330
+    AI->>Proxy: setGraphTopology(graph) - the caller is GraphDataManager.setGraphData (graphDataManager.ts:338), not AppInitializer<br/>graphWorkerProxy.ts:330
     Proxy->>Proxy: ensureSharedCapacity(nodes.length) - ADR-2181 D4, grow the SAB to the next power of two<br/>via sharedCapacityFor and publishNodeBufferReport(total,drawn,truncated) for the in-canvas notice<br/>graphWorkerProxy.ts:334,121-126,344-364
     Proxy->>W: setupSharedPositions(grown buffer) - the worker refills it at once<br/>graphWorkerProxy.ts:352-353, graph.worker.ts:203-204
     Proxy->>W: workerApi.setGraphData(graph)<br/>graphWorkerProxy.ts:335, graph.worker.ts:115
@@ -868,22 +868,22 @@ flowchart LR
     RightDrawer["RightDrawer<br/>client/src/features/control-center/drawer/RightDrawer.tsx:86"]
     StatusSurface["StatusSurface<br/>client/src/features/control-center/status/StatusSurface.tsx:34,57<br/>N unsaved chip, StatusSurface.tsx:47-48,92-100<br/>right corner row, MainLayout.tsx:97-103"]
     StatusSurface --> StatusFlyout
-    syncStatus["useSettingsSyncStatus<br/>client/src/store/settingsSyncStatus.ts:29"]
+    syncStatus["useSettingsSyncStatus<br/>client/src/store/settingsSyncStatus.ts:30"]
     syncStatus --> StatusSurface
-    syncStatus -.->|"coreSlice.ts:129"| settingsStore
+    syncStatus -.->|"coreSlice.ts:130"| settingsStore
 ```
 ## VC-30.13 Settings load precedence and where an unsaved change surfaces
 ```mermaid
 flowchart TB
     subgraph Load["coreSlice.initialize - server wins for what it stores"]
-        GET["getSettingsByPaths(ESSENTIAL_PATHS) fetches /api/settings/all,<br/>strips retired paths, records storedClientPaths<br/>client/src/api/settings/endpoints.ts:243-248"]
-        Base["base = server document, overlay = persisted browser copy<br/>deepMergeSettings(essentialSettings, partialSettings)<br/>client/src/store/settings/coreSlice.ts:116-119"]
-        Win{"browser path stored on the server, has a server bucket<br/>and is NOT unsynced?<br/>client/src/store/settings/coreSlice.ts:128-129"}
-        SrvVal["server value overwrites the browser copy<br/>client/src/store/settings/coreSlice.ts:130-131"]
+        GET["getSettingsByPaths(ESSENTIAL_PATHS) fetches /api/settings/all,<br/>strips retired paths, records storedClientPaths<br/>client/src/api/settings/endpoints.ts:202-207"]
+        Base["base = server document, overlay = persisted browser copy<br/>deepMergeSettings(essentialSettings, partialSettings)<br/>client/src/store/settings/coreSlice.ts:117-120"]
+        Win{"browser path stored on the server, has a server bucket<br/>and is NOT unsynced?<br/>client/src/store/settings/coreSlice.ts:129-130"}
+        SrvVal["server value overwrites the browser copy<br/>client/src/store/settings/coreSlice.ts:131-132"]
         Keep["browser value kept: browser-only, never stored,<br/>or a change this browser could not save"]
-        Phys["physics and clientTweening replaced whole from the server (ADR-2140)<br/>client/src/store/settings/coreSlice.ts:134-146"]
-        Loaded["loadedPaths = every path the server document carries,<br/>so get() returns the server value, not undefined<br/>client/src/store/settings/coreSlice.ts:154-158"]
-        Ready["autoSaveManager.setInitialized(true) flushes held changes<br/>client/src/store/settings/coreSlice.ts:166, autoSaveManager.ts:50-55"]
+        Phys["physics and clientTweening replaced whole from the server (ADR-2140)<br/>client/src/store/settings/coreSlice.ts:135-147"]
+        Loaded["loadedPaths = every path the server document carries,<br/>so get() returns the server value, not undefined<br/>client/src/store/settings/coreSlice.ts:155-159"]
+        Ready["autoSaveManager.setInitialized(true) flushes held changes<br/>client/src/store/settings/coreSlice.ts:167, autoSaveManager.ts:50-55"]
         GET --> Base --> Win
         Win -->|yes| SrvVal --> Phys
         Win -->|no| Keep --> Phys
@@ -893,24 +893,24 @@ flowchart TB
         Auto["autoSave queue: not-ready, sync-off or failed<br/>client/src/store/autoSaveManager.ts:58-63"]
         Direct["setByPath and batchUpdate bypass the queue,<br/>recordWrite marks failed or saved<br/>client/src/store/settings/persistenceSlice.ts:8-14,54,78"]
         Retry["retry success marks saved<br/>client/src/store/settingsRetryManager.ts:90,110,193"]
-        Rec["unsaved path to reason, persisted in its own localStorage key<br/>client/src/store/settingsSyncStatus.ts:21,27"]
+        Rec["unsaved path to reason, persisted in its own localStorage key<br/>client/src/store/settingsSyncStatus.ts:22,28"]
         Chip["status chip: N unsaved, tooltip describeUnsaved<br/>client/src/features/control-center/status/StatusSurface.tsx:92-100"]
         Auto --> Rec
         Direct --> Rec
         Retry --> Rec
         Rec --> Chip
     end
-    Rec -.->|"isUnsyncedPath, client/src/store/settingsSyncStatus.ts:62"| Win
+    Rec -.->|"isUnsyncedPath, client/src/store/settingsSyncStatus.ts:63"| Win
     Note1["OPEN: nothing calls clear() and setSyncEnabled(true) re-sends nothing,<br/>so a sync-off or a failed setByPath entry stays in the record,<br/>keeps the chip lit and keeps beating the server value on every load<br/>client/src/store/autoSaveManager.ts:24-26, persistenceSlice.ts:54-55"]
     Rec --- Note1
 ```
-**What it shows:** the load rule since the settings-integrity fix (`7cde2f00c`): the server document is the base, and for any path the server actually stores its value replaces this browser's copy unless the record of unsaved changes holds that path (`coreSlice.ts:128-131`). Every write path that can lose a change now feeds one persisted record, and the status chip counts it (`StatusSurface.tsx:47-48`).
+**What it shows:** the load rule since the settings-integrity fix (`7cde2f00c`): the server document is the base, and for any path the server actually stores its value replaces this browser's copy unless the record of unsaved changes holds that path (`coreSlice.ts:129-132`). Every write path that can lose a change now feeds one persisted record, and the status chip counts it (`StatusSurface.tsx:47-48`).
 **Why it is this way:** the audit found the browser copy won everywhere (F5) and changes were dropped with a debug log (F7); the fix inverted precedence and made every loss visible (`settingsSyncStatus.ts:1-11`).
 
-**Open (risk):** a `sync-off` entry is never re-queued: `setSyncEnabled(true)` only flips the flag (`autoSaveManager.ts:24-26`), `setByPath` failures go to the record but not to the retry queue (`persistenceSlice.ts:54-55`), and the store's `clear` (`settingsSyncStatus.ts:51`) has no caller, so such a path keeps the chip lit and keeps overriding the server on every load (`coreSlice.ts:129`).
+**Open (risk):** a `sync-off` entry is never re-queued: `setSyncEnabled(true)` only flips the flag (`autoSaveManager.ts:24-26`), `setByPath` failures go to the record but not to the retry queue (`persistenceSlice.ts:54-55`), and the store's `clear` (`settingsSyncStatus.ts:52`) has no caller, so such a path keeps the chip lit and keeps overriding the server on every load (`coreSlice.ts:130`).
 **Open (risk):** a failed retry updates only `lastAttempt` (`settingsRetryManager.ts:99-102`, `settingsRetryManager.ts:113-114`); `attempts` grows only in `addFailedUpdate` (`settingsRetryManager.ts:44`), so a path that keeps failing is retried every poll and the `settings-retry-failed` give-up (`settingsRetryManager.ts:120-128`) never fires from retries alone.
-**Tension (parallel):** two write routers disagree on physics: the batch path nests `visualisation.graphs.*.physics.*` through `physicsPatchEntry` (`endpoints.ts:362-364`), while the single-path `updateSettingByPath` used by one-item retries and `setByPath` flattens it to its last segment (`endpoints.ts:303-304`), so a nested physics leaf retried alone lands at the top of the physics document.
-**Open (risk):** the FPS auto-degrade writes `visualisation.sceneEffects.*` through `updateSettings` (`useFpsMonitor.ts:117-127`), which queues them into the shared visual bucket (`coreSlice.ts:401`), so one slow machine lowers effects for every viewer when `qualityGates.autoAdjust` is on (`useFpsMonitor.ts:39-41`).
-**Debt (loose end):** `getSettingsByPaths` builds a per-path `result` and then returns the whole document (`endpoints.ts:253-261`), so its `paths` argument selects nothing.
-**Debt (loose end):** `exportSettings` fetches the full document only when `loadedPaths.size === ESSENTIAL_PATHS.length` (`persistenceSlice.ts:112`), which no longer holds once `initialize` marks every server path loaded (`coreSlice.ts:154-158`).
+**Tension (parallel):** two write routers disagree on physics: the batch path nests `visualisation.graphs.*.physics.*` through `physicsPatchEntry` (`endpoints.ts:321-323`), while the single-path `updateSettingByPath` used by one-item retries and `setByPath` flattens it to its last segment (`endpoints.ts:262-263`), so a nested physics leaf retried alone lands at the top of the physics document.
+**Open (risk):** the FPS auto-degrade writes `visualisation.sceneEffects.*` through `updateSettings` (`useFpsMonitor.ts:117-127`), which queues them into the shared visual bucket (`coreSlice.ts:411`), so one slow machine lowers effects for every viewer when `qualityGates.autoAdjust` is on (`useFpsMonitor.ts:39-41`).
+**Debt (loose end):** `getSettingsByPaths` builds a per-path `result` and then returns the whole document (`endpoints.ts:212-220`), so its `paths` argument selects nothing.
+**Debt (loose end):** `exportSettings` fetches the full document only when `loadedPaths.size === ESSENTIAL_PATHS.length` (`persistenceSlice.ts:112`), which no longer holds once `initialize` marks every server path loaded (`coreSlice.ts:155-159`).
 **Debt (loose end):** the retired-path list cites an ephemeral scratchpad file as its source (`retiredPaths.ts:22`) rather than a tracked document.

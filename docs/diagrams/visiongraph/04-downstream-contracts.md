@@ -14,7 +14,7 @@ sources:
   - ../project/src/services/ontology_generation.rs
   - ../project/src/main.rs
   - ../ontomark/crates/ontomark-compile/src/build/generation.rs
-verified_commit: {visiongraph: d8277151a1404b456b5c7206187f7e4b50f25be1, visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e, ontomark: 6159bb6089753105ef839fd4aac46c1598a64bd2}
+verified_commit: {visiongraph: d8277151a1404b456b5c7206187f7e4b50f25be1, visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, ontomark: 6159bb6089753105ef839fd4aac46c1598a64bd2}
 ---
 
 ## For developers

@@ -27,7 +27,7 @@ sources:
   - ../project/client/src/features/graph/managers/dataManager/wsClient.ts
   - ../project/tests/sssp_integration_test.rs
   - ../project/tests/analytics_wire_snapshot_test.rs
-verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
 ---
 
 ## For developers
@@ -217,7 +217,7 @@ classDiagram
 
     note for FrameLayout "Frame = [0x23][u16 count LE] then per event [u16 event_len LE][15-byte header plus optional payload] - multiple actions coalesce into ONE frame, encode_agent_actions utils/binary_protocol.rs:1652 and decode_agent_actions :1675"
     note for AgentActionEvent "ADR-2020 identity-blind by design - carries agent-id-space numeric ids only, never a pubkey or DID"
-    note for FrameLayout "INVARIANT since 2026-11 the coordinator encodes one such frame per identity,<br/>only the actions whose KG target that identity may see<br/>src/actors/client_coordinator_actor.rs:461-496"
+    note for FrameLayout "INVARIANT since 2026-11 the coordinator encodes one such frame per identity,<br/>only the actions whose KG target that identity may see<br/>src/actors/client_coordinator_actor.rs:514-549"
     note for AgentActionEvent "RESOLVED ADR-2060: the ~+340-line 0x23 citation drift is corrected"
     note for AgentActionType "Coalescing and fan-out live in src/actors/agent_beam_actor.rs - see VC-16.4, ingest side is ES-02"
 ```
@@ -227,20 +227,20 @@ classDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant FCA as ClientCoordinatorActor serialize_positions<br/>src/actors/client_coordinator_actor.rs:638
+    participant FCA as ClientCoordinatorActor serialize_positions<br/>src/actors/client_coordinator_actor.rs:691
     participant ENC as encode_node_data_extended_with_sssp<br/>src/utils/binary_protocol.rs:426
     participant WS as WebSocket /wss
     participant RS as XR Rust decoder<br/>xr-client/rust/src/binary_protocol.rs:646
     participant TS as Web TS decoder<br/>client/src/types/binaryProtocol.ts:328
 
-    FCA->>ENC: the coordinator pump encodes each client's chunk, node tuples plus the NodeClassIds<br/>sets, src/actors/client_coordinator_actor.rs:646-660
+    FCA->>ENC: the coordinator pump encodes each client's chunk, node tuples plus the NodeClassIds<br/>sets, src/actors/client_coordinator_actor.rs:699-713
     ENC->>ENC: per node stamp type flag bits (utils/binary_protocol.rs:465-474) then<br/>enforce_wire_id_bounds (utils/binary_protocol.rs:490), to_wire_id_v2<br/>(utils/binary_protocol.rs:508)
     ENC->>ENC: PRE-STAMPED ids forwarded unchanged (utils/binary_protocol.rs:475-484) when get_node_type is not Unknown
     Note over ENC: INVARIANT (2026-09-08, 6c47b9833) — a caller that stamps the class flag itself and<br/>passes EMPTY class sets reaches the<br/>untyped fall-through with bits 26-31 already set. The chunk path passes real class<br/>sets instead. A compact raw id (ADR-2024) never carries<br/>those bits, so a recognised class pattern means stamped and the encoder forwards it.<br/>Running the 26-bit bound check on a stamped id panicked every broadcast in the<br/>dev-runtime<br/>build — each /wss client saw Connection reset without closing handshake on a 2 s loop<br/>—<br/>and a release build would have silently stripped the class flag instead.<br/>Regression reads the id back off the wire, utils/binary_protocol.rs:1241<br/>the caller that motivated it, the swarm telemetry encode, is gone with requestSwarmTelemetry (agents reach clients only<br/>as 0x23 frames, ADR-2142, src/handlers/socket_flow_handler/message_routing.rs:11-13), the forwarding branch stays as a guard<br/>DRIFT the encoder comment still names actor_messages.rs as a pre-stamping caller, that file no longer calls<br/>any encoder, its position broadcast handler was removed by ADR-2141, utils/binary_protocol.rs:476-478
     ENC->>ENC: strip flag bits before SSSP and analytics map lookups
     ENC->>ENC: write 52-byte record - id@0 pos@4 vel@16 sssp_dist@28 sssp_parent@32 cluster@36<br/>anomaly@40 community@44 centrality@48
     Note over ENC: sssp_distance defaults to f32::INFINITY and sssp_parent to -1 when absent<br/>src/utils/binary_protocol.rs:526-532
-    Note over FCA,ENC: INVARIANT every viewer receives unreachable in slots 28 and 32, the only live encoder call passes None for the SSSP map<br/>src/actors/client_coordinator_actor.rs:650-661, and no SSSP map exists since 7a0674e79 removed node_sssp
+    Note over FCA,ENC: INVARIANT every viewer receives unreachable in slots 28 and 32, the only live encoder call passes None for the SSSP map<br/>src/actors/client_coordinator_actor.rs:703-714, and no SSSP map exists since 7a0674e79 removed node_sssp
     ENC->>WS: [tag][records...]
     par XR Rust client
         WS->>RS: bytes
@@ -270,7 +270,7 @@ sequenceDiagram
     Note over ENC,TS: Shared fixtures (crates/visionclaw-protocol/src/wire_fixtures.rs:1-6 now only<br/>re-exports visionclaw_wire, whose node-record and ack constants are at<br/>crates/visionclaw-wire/src/lib.rs:83,92-95) pin the format for both decoders -<br/>utils/binary_protocol.rs:960-965 asserts fx::NODE_RECORD_BYTES == WIRE_V3_ITEM_SIZE<br/>and fx::NODE_ID_MASK == NODE_ID_MASK, and :968 guards the shared 0x23 fixture against<br/>encoder drift
 ```
 
-**Invariant:** wire slot 28 (SSSP distance) and slot 32 (parent) carry `(INFINITY, -1)` for every node on the live stream: the encoder defaults an absent entry (`src/utils/binary_protocol.rs:526-530`) and the one production caller passes `None` (`src/actors/client_coordinator_actor.rs:659`). The shared `node_sssp` map, `SetNodeSSSP` and `FastWebSocketServer` are deleted, so no per-viewer SSSP result can reach the wire.
+**Invariant:** wire slot 28 (SSSP distance) and slot 32 (parent) carry `(INFINITY, -1)` for every node on the live stream: the encoder defaults an absent entry (`src/utils/binary_protocol.rs:526-530`) and the one production caller passes `None` (`src/actors/client_coordinator_actor.rs:712`). The shared `node_sssp` map, `SetNodeSSSP` and `FastWebSocketServer` are deleted, so no per-viewer SSSP result can reach the wire.
 
 **Debt (loose end):** `encode_node_data_with_live_analytics` is documented as the broadcast path's wrapper over "the shared analytics + SSSP maps" (`src/utils/binary_protocol.rs:575-580`), but its only callers are tests (`tests/sssp_integration_test.rs:182`, `tests/analytics_wire_snapshot_test.rs:225`), and the `sssp_data` parameter of `encode_node_data_extended_with_sssp` (`src/utils/binary_protocol.rs:429`) is now `None` on every production call.
 
@@ -424,13 +424,13 @@ classDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SRV as ClientCoordinatorActor<br/>src/actors/client_coordinator_actor.rs:723
+    participant SRV as ClientCoordinatorActor<br/>src/actors/client_coordinator_actor.rs:776
     participant WS as WebSocket /wss
     participant WEB as Web client<br/>client/src/store/websocket/binaryProtocol.ts:352
     participant XR as XR Rust client<br/>xr-client/rust/src/binary_protocol.rs:892
     participant HDL as SocketFlowServer binary handler<br/>src/handlers/socket_flow_handler/binary_protocol.rs:30
 
-    SRV->>WS: V5 chunk [0x05][u64 seq][52 B per node], seq is the chunk's own number<br/>src/actors/client_coordinator_actor.rs:638-669
+    SRV->>WS: V5 chunk [0x05][u64 seq][52 B per node], seq is the chunk's own number<br/>src/actors/client_coordinator_actor.rs:691-722
     par web client
         WS->>WEB: chunk bytes
         WEB->>WEB: apply through graphDataManager.updateNodePositions, an exception returns WITHOUT an ack<br/>client/src/store/websocket/binaryProtocol.ts:393-402
@@ -445,7 +445,7 @@ sequenceDiagram
     HDL->>HDL: is_stream_ack, the first byte 0x34, is exempt from the per-IP message rate limiter<br/>src/handlers/socket_flow_handler/binary_protocol.rs:10-12, :22-24, :35
     HDL->>HDL: BinaryProtocol::decode_message, the 0x34 arm reads the 20-byte payload with no generic header<br/>src/utils/binary_protocol.rs:1853,1866-1892
     HDL->>SRV: ClientBroadcastAck{sequence_id, nodes_received, timestamp, client_id}<br/>src/handlers/socket_flow_handler/binary_protocol.rs:67-86
-    Note over SRV: the ack commits that chunk's nodes as held by this client and the next chunk is built at once, see VC-13.4<br/>src/actors/client_coordinator_actor.rs:1469-1500
+    Note over SRV: the ack commits that chunk's nodes as held by this client and the next chunk is built at once, see VC-13.4<br/>src/actors/client_coordinator_actor.rs:1540-1571
     Note over WS,SRV: INVARIANT the ack bytes are asserted against one golden frame by the server, the web client and the XR client<br/>crates/visionclaw-wire/src/lib.rs:92-95, :334 and src/utils/binary_protocol.rs:2159-2178
     Note over WEB: RESOLVED handleBinaryFrame no longer drops a chunk that arrives within 16 ms of the last, so ADR-2141 decision 5 holds,<br/>an applied chunk is acknowledged, and a worker error is rethrown so the chunk is not<br/>docs/adr/ADR-2141-positions-are-streamed-per-client-until-acknowledged.md:42 and client/src/features/graph/managers/dataManager/wsClient.ts:39-42, :78 and client/src/store/websocket/binaryProtocol.ts:393-409
 ```

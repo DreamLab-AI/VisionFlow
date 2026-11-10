@@ -50,7 +50,7 @@ sources:
   - ../project/src/handlers/graph_export_handler.rs
   - ../project/docs/SECURITY-profiles.md
   - ../project/src/utils/response_macros.rs
-verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
 ---
 
 ## For developers
@@ -279,7 +279,7 @@ sequenceDiagram
             H-->>C: 500 {error: "Translation failed", message}
         else block found
             S->>S: validate_sparql(sparql) - delegates to the shared read-only validator<br/>src/services/natural_language_query_service.rs:128
-            S->>S: validate_read_only_sparql - SELECT/ASK/CONSTRUCT/DESCRIBE only<br/>src/handlers/ontology_handler.rs:880
+            S->>S: validate_read_only_sparql - SELECT/ASK/CONSTRUCT/DESCRIBE only<br/>src/handlers/ontology_handler.rs:885
             alt mutating form (INSERT/DELETE/DROP/CLEAR/LOAD)
                 S-->>H: Err - rejected, not a read-only query
                 H-->>C: 500 {error: "Translation failed", message}
@@ -319,13 +319,13 @@ sequenceDiagram
     Note over A: since af3dff3f2 the actor has a production owner: main registers a SemanticService over ActixSemanticAdapter for /api/semantic/*, and the adapter starts this actor on its first initialize (estate register ER-25)<br/>src/main.rs:861-871 src/adapters/actix_semantic_adapter.rs:95-103
     Note over A: Actor started/stopped log config.enable_ai_features and final stats<br/>src/actors/semantic_processor_actor.rs:1361-1376
 
-    Caller->>A: UpdateConstraints{constraint_data}<br/>src/actors/messages/physics_messages.rs:292
+    Caller->>A: UpdateConstraints{constraint_data}<br/>src/actors/messages/physics_messages.rs:307
     A-->>Caller: Result<(),String> via handle_constraint_update<br/>src/actors/semantic_processor_actor.rs:1381-1388
 
     Caller->>A: GetConstraints<br/>src/actors/messages/physics_messages.rs:276
     A-->>Caller: ConstraintSet clone<br/>src/actors/semantic_processor_actor.rs:1390-1399
 
-    Caller->>A: TriggerStressMajorization<br/>src/actors/messages/physics_messages.rs:321
+    Caller->>A: TriggerStressMajorization<br/>src/actors/messages/physics_messages.rs:336
     A->>A: web::block(stress optimisation) on thread pool<br/>src/actors/semantic_processor_actor.rs:1402
     alt thread pool Ok(Ok(()))
         A-->>Caller: Ok(())
@@ -333,7 +333,7 @@ sequenceDiagram
         A-->>Caller: Err(e) / "Thread pool error"
     end
 
-    Caller->>A: RegenerateSemanticConstraints<br/>src/actors/messages/physics_messages.rs:341
+    Caller->>A: RegenerateSemanticConstraints<br/>src/actors/messages/physics_messages.rs:356
     A->>A: deactivate semantic_similarity/semantic_clustering/importance_based/topic_based groups<br/>src/actors/semantic_processor_actor.rs:1438-1446
     A->>A: web::block(generate_semantic_constraints_blocking)
     A-->>Caller: ResponseFuture<Result<(),String>>
@@ -378,7 +378,7 @@ sequenceDiagram
     autonumber
     participant SPA as SemanticProcessorActor::process_metadata_blocking<br/>src/actors/semantic_processor_actor.rs:246
     participant SA as SemanticAnalyzer::analyze_metadata<br/>src/services/semantic_analyzer.rs:261
-    participant GS as GitHubSyncService::relation_edges<br/>src/services/github_sync_service.rs:1941
+    participant GS as GitHubSyncService::relation_edges<br/>src/services/github_sync_service.rs:2135
     participant REG as SemanticTypeRegistry<br/>src/services/semantic_type_registry.rs:90
 
     SPA->>SA: analyze_metadata(metadata)
@@ -392,8 +392,8 @@ sequenceDiagram
     end
     Note over SA: compute_similarity weights: topic 0.4 + domain 0.2 + file_type 0.1 + depth 0.1 + temporal 0.1 + importance 0.1<br/>src/services/semantic_analyzer.rs:545-580
 
-    Note over GS: one typed edge per vocab.relations key whose ParsedPage frontmatter has<br/>a wikilink target — an unmapped edge-type predicate is skipped, not defaulted<br/>src/services/github_sync_service.rs:1951-1961
-    GS->>REG: get_or_register_id(edge_type)<br/>src/services/semantic_type_registry.rs:652,src/services/github_sync_service.rs:1962
+    Note over GS: one typed edge per vocab.relations key whose ParsedPage frontmatter has<br/>a wikilink target — an unmapped edge-type predicate is skipped, not defaulted<br/>src/services/github_sync_service.rs:2145-2155
+    GS->>REG: get_or_register_id(edge_type)<br/>src/services/semantic_type_registry.rs:652,src/services/github_sync_service.rs:2156
     REG->>REG: get_id(uri) - read_uri_map lookup<br/>src/services/semantic_type_registry.rs:646-648
     alt uri already registered
         REG-->>GS: existing id
@@ -402,7 +402,7 @@ sequenceDiagram
         REG->>REG: register_internal(uri, config) - assign next_id, push uri/config<br/>src/services/semantic_type_registry.rs:612
         REG-->>GS: new id
     end
-    GS->>REG: get_config(reg_id) - strength*2.0 normalised to spring weight<br/>src/services/semantic_type_registry.rs:662,src/services/github_sync_service.rs:1964-1965
+    GS->>REG: get_config(reg_id) - strength*2.0 normalised to spring weight<br/>src/services/semantic_type_registry.rs:662,src/services/github_sync_service.rs:2158-2159
     Note over REG: version() = next_id atomic counter, used for hot-reload detection<br/>src/services/semantic_type_registry.rs:703
 ```
 
@@ -440,7 +440,7 @@ sequenceDiagram
     participant Caller as AppState / handler
     participant MA as MetadataActor<br/>src/actors/metadata_actor.rs:23
 
-    Note over MA: replaces Arc<RwLock<MetadataStore>> - started at src/app_state.rs:786 (BASELINE-architecture.md "Actor system topology")
+    Note over MA: replaces Arc<RwLock<MetadataStore>> - started at src/app_state.rs:797 (BASELINE-architecture.md "Actor system topology")
     Caller->>MA: GetMetadata<br/>crates/visionclaw-actors/src/messages/graph_messages.rs:221
     MA-->>Caller: Ok(MetadataStore clone)<br/>src/actors/metadata_actor.rs:58-64
     Caller->>MA: UpdateMetadata{metadata}<br/>crates/visionclaw-actors/src/messages/graph_messages.rs:225
@@ -449,7 +449,7 @@ sequenceDiagram
     Note right of MA: RESOLVED ADR-2097 (2026-09-05): RefreshMetadata and refresh_metadata are deleted - the message had no senders<br/>and the actor holds no source. metadata.json is owned by FileService, which pushes rebuilt stores in via UpdateMetadata
 ```
 
-**Drift:** the governing baseline places MetadataActor's start at `app_state.rs:802` (`../project/docs/BASELINE-architecture.md:177`); at this revision the actor starts at `../project/src/app_state.rs:786`, with its log line at `:785`.
+**Drift:** the governing baseline places MetadataActor's start at `app_state.rs:813` (`../project/docs/BASELINE-architecture.md:177`); at this revision the actor starts at `../project/src/app_state.rs:797`, with its log line at `:796`.
 
 ## VC-25.13 file_service + graph_serialization + empty-graph guard
 

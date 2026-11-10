@@ -2,7 +2,7 @@
 id: VC-31
 title: R3F/Three.js graph render pipeline, overview layer and WASM scene effects
 area: visionclaw
-verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
 governing:
   - ../project/docs/BASELINE-architecture.md
 adrs: [ADR-2135, ADR-2142, ADR-2179, ADR-2181, ADR-2182, ADR-2183, ADR-2184, ADR-2186, ADR-2189]
@@ -690,7 +690,7 @@ flowchart TB
     CAPN --> REP["publishOverviewEdgeReport, N of M edges drawn<br/>OverviewLayer.tsx:86-90, overviewEdgeStore.ts:56-59"]
     PICK --> EL["OverviewEdgeLines: instance attributes only on data or width change<br/>OverviewEdgeLines.tsx:115-141"]
     FILL --> EL
-    SET["Edge Opacity (all edges), Look - Edges, 0 to 0.3, default 0.15<br/>look.ts:15, defaults.ts:305"] --> OPA["overviewEdgeOpacity: piecewise linear, default maps to 0.6, slider top to 1<br/>edgeStyle.ts:107-120, OverviewLayer.tsx:98-99"]
+    SET["Edge Opacity (all edges), Look - Edges, 0 to 0.3, default 0.15<br/>look.ts:15, defaults.ts:308"] --> OPA["overviewEdgeOpacity: piecewise linear, default maps to 0.6, slider top to 1<br/>edgeStyle.ts:107-120, OverviewLayer.tsx:98-99"]
     OPA --> EL
     OPA -.-> I2["INVARIANT: the default reproduces base alpha 0.6, the whole slider is live,<br/>bad input falls back (edgeOpacity.test.ts:12-35)"]
     EL --> EUN["per frame only uniforms, and hidden until positions are ready or once faulted<br/>OverviewEdgeLines.tsx:143-158"]
@@ -783,19 +783,19 @@ flowchart TB
     M2 --> M3["at the D2 defaults the box saturates, still at a quarter of the alpha<br/>overdraw.test.ts:52-58"]
     M3 --> M4["half coverage needs about 0.004 per-edge alpha, a few thousand edges at 0.15<br/>overdraw.test.ts:60-69"]
     SYM --> L1["root cause: knowledge nodes pinned at the 400-unit soft cube, p5 and p95 on y at +-400<br/>ADR-2181-overview-edges-are-screen-space-lines-with-no-silent-cap.md:65"]
-    L1 --> L2["fix b11d8cba1: default_bounds_size 1600, PhysicsSettings default 1600<br/>physics_config.rs:113-115, :550"]
+    L1 --> L2["fix b11d8cba1: default_bounds_size 1600, PhysicsSettings default 1600<br/>physics_config.rs:138-140, :593"]
     L2 --> L3["client copies follow: defaults.ts:57, registry slider max 2000 at motion.ts:42"]
-    L2 --> L4["INVARIANT: test_physics_settings_default asserts 1600<br/>physics_config.rs:833"]
-    L2 -.-> DR["DRIFT RESOLVED at visionclaw 46edc196 for the comment on the default, physics_config.rs:547-549 now says it was measured under the earlier 400u bounds<br/>the test comment still says the graph settles within the 400u cube, physics_config.rs:828"]
+    L2 --> L4["INVARIANT: test_physics_settings_default asserts 1600<br/>physics_config.rs:911"]
+    L2 -.-> DR["DRIFT RESOLVED at visionclaw 46edc196 for the comment on the default, physics_config.rs:590-592 now says it was measured under the earlier 400u bounds<br/>the test comment still says the graph settles within the 400u cube, physics_config.rs:906"]
     E1["Dawn Draw(0) warnings: empty trails and collab edges"] --> E2["setLineDrawCount hides a line with fewer than 2 vertices<br/>lineDrawCount.ts:12-15, AgentTrail.tsx:26, AgentCollabEdges.tsx:41"]
 ```
 
 **What it shows.** Two explanations of the overview "slab" side by side: an overdraw planning model that says the default alpha saturates a dense fit box, and the measured root cause, a layout crushed against the 400-unit physics bounds; plus the empty-line fix from the same WebGPU fault lane. **Why it is this way.** The overdraw model is a planning tool for the D2/D4 thresholds, not a renderer path (`edgeStyle.ts:180-181`). The real-WebGPU check found the slab survived an edge alpha of 0.05 and that the nodes themselves formed the square, so the bounds default was raised (b11d8cba1; `ADR-2181-overview-edges-are-screen-space-lines-with-no-silent-cap.md:65`).
 
-**Tension (ADR-2181 D2 vs code, resolved):** the slab at default fit was read as a D2 alpha failure, but it was a boundary-pinned layout; `default_bounds_size` went from 400 to 1600 (`physics_config.rs:113-115`, `:550`), with the ADR-2181 note recording "check the position quantiles before touching edge alpha" (`ADR-2181-overview-edges-are-screen-space-lines-with-no-silent-cap.md:65`).
+**Tension (ADR-2181 D2 vs code, resolved):** the slab at default fit was read as a D2 alpha failure, but it was a boundary-pinned layout; `default_bounds_size` went from 400 to 1600 (`physics_config.rs:138-140`, `:593`), with the ADR-2181 note recording "check the position quantiles before touching edge alpha" (`ADR-2181-overview-edges-are-screen-space-lines-with-no-silent-cap.md:65`).
 
 **Tension (overdraw test vs ADR-2181 note):** `overdraw.test.ts:52` names its case "the slab is overdraw, on any backend", while the ADR note says the slab was the nodes crushed into the cube (`ADR-2181-overview-edges-are-screen-space-lines-with-no-silent-cap.md:65`).
 
-**Debt (parallel):** the bounds default is written four times, `default_bounds_size` (`physics_config.rs:113-115`), the `PhysicsSettings` literal (`:550`), the client defaults (`defaults.ts:57`) and the registry description (`motion.ts:42`); only the Rust test pins one (`physics_config.rs:833`).
+**Debt (parallel):** the bounds default is written four times, `default_bounds_size` (`physics_config.rs:138-140`), the `PhysicsSettings` literal (`:593`), the client defaults (`defaults.ts:57`) and the registry description (`motion.ts:42`); only the Rust test pins one (`physics_config.rs:911`).
 
-**Drift:** RESOLVED at visionclaw 46edc196 for the comment on the default (`physics_config.rs:547-549` now says it was measured under the earlier 400u bounds), but `:828` still says the graph settles "within the ~400u soft-cube bounds", beside the 1600 it annotates.
+**Drift:** RESOLVED at visionclaw 46edc196 for the comment on the default (`physics_config.rs:590-592` now says it was measured under the earlier 400u bounds), but `:906` still says the graph settles "within the ~400u soft-cube bounds", beside the 1600 it annotates.

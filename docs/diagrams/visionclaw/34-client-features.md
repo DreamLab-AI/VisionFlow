@@ -123,7 +123,7 @@ sources:
   - ../project/client/src/api/settings/schemaMappings.ts
   - ../project/client/src/api/settings/__tests__/settingsRoundTrip.test.ts
   - ../project/client/src/features/control-center/drawer/RightDrawer.tsx
-verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
 ---
 ## For developers
 
@@ -148,7 +148,7 @@ sequenceDiagram
     participant Store as useSettingsStore.updateSettings<br/>client/src/store/settingsStore.ts
     participant ASM as autoSaveManager<br/>client/src/store/autoSaveManager.ts:65
     participant LA as layoutApi.setMode<br/>client/src/api/layoutApi.ts
-    participant EP as settingsApi.updateSettingsByPaths<br/>client/src/api/settings/endpoints.ts:348
+    participant EP as settingsApi.updateSettingsByPaths<br/>client/src/api/settings/endpoints.ts:307
     participant SRV as Rust settings handlers
 
     U->>SS: drag slider
@@ -170,7 +170,7 @@ sequenceDiagram
         USF->>ASM: further edits reset the 500ms timer
     end
     ASM->>EP: updateSettingsByPaths(updates) on flush autoSaveManager.ts:120
-    EP->>EP: bucket path by prefix - physics/rendering/qualityGates/nodeFilter/constraints/visual/local-only endpoints.ts:361-383
+    EP->>EP: bucket path by prefix - physics/rendering/qualityGates/nodeFilter/constraints/visual/local-only endpoints.ts:320-342
     par physics bucket
         EP->>SRV: PUT /api/settings/physics
     and rendering bucket
@@ -183,15 +183,15 @@ sequenceDiagram
         EP->>SRV: PUT /api/settings/visual
     end
     alt any bucket rejects, 401 included
-        EP-->>ASM: markUnsaved(paths, failed), then each update<br/>goes to settingsRetryManager.addFailedUpdate autoSaveManager.ts:123-133
-        ASM->>EP: retry processor every 5 s, one path through updateSettingByPath,<br/>which now rethrows settingsRetryManager.ts:106-115, endpoints.ts:329-331
-        Note over EP,ASM: OPEN: the processor catches never raise attempts (settingsRetryManager.ts:112-115),<br/>so the give-up at settingsRetryManager.ts:121 is unreachable from it and a failing path<br/>is re-sent until reload. settings-auth-failed still has no listener (endpoints.ts:324)
+        EP-->>ASM: markUnsaved(paths, failed), then each update<br/>goes to settingsRetryManager.addFailedUpdate autoSaveManager.ts:123-148
+        ASM->>EP: retry processor every 5 s, one path through updateSettingByPath,<br/>which now rethrows settingsRetryManager.ts:106-115, endpoints.ts:288-290
+        Note over EP,ASM: OPEN: the processor catches never raise attempts (settingsRetryManager.ts:112-115),<br/>so the give-up at settingsRetryManager.ts:121 is unreachable from it and a failing path<br/>is re-sent until reload. settings-auth-failed still has no listener (endpoints.ts:283)
     else PUT ok
         SRV-->>EP: 200
         EP-->>ASM: markSaved(paths) clears them from the unsaved list autoSaveManager.ts:122
     end
     Note over ASM: sync off or store not initialised - the change is held (not-ready)<br/>or kept in this browser (sync-off) and recorded with its reason<br/>autoSaveManager.ts:72-81, autoSaveManager.ts:58-63.<br/>Held changes flush on setInitialized(true) autoSaveManager.ts:54
-    ASM-->>U: useSettingsSyncStatus keeps path to reason in localStorage settingsSyncStatus.ts:29-38, settingsSyncStatus.ts:53-56,<br/>and StatusSurface shows an N unsaved chip with the reasons StatusSurface.tsx:47-48, StatusSurface.tsx:92-99
+    ASM-->>U: useSettingsSyncStatus keeps path to reason in localStorage settingsSyncStatus.ts:30-39, settingsSyncStatus.ts:54-57,<br/>and StatusSurface shows an N unsaved chip with the reasons StatusSurface.tsx:47-48, StatusSurface.tsx:92-99
 ```
 ## VC-34.2 settings — type generation and QA manifest (build-time, not runtime)
 ```mermaid
@@ -304,7 +304,7 @@ sequenceDiagram
     participant WSHook as useOntologyWebSocket<br/>client/src/features/ontology/hooks/useOntologyWebSocket.ts:51
     participant Store as useOntologyStore
 
-    SRV-->>WSS: ontology_validation_update message src/handlers/socket_flow_handler/filter_auth.rs:466, src/actors/ontology_actor.rs:368
+    SRV-->>WSS: ontology_validation_update message src/handlers/socket_flow_handler/filter_auth.rs:462, src/actors/ontology_actor.rs:368
     WSS-->>WSHook: onMessage callback useOntologyWebSocket.ts:55-56
     WSHook->>Store: setValidating / setViolations / setMetrics useOntologyWebSocket.ts:60-66
     opt ontology_loaded message

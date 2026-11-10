@@ -47,7 +47,7 @@ sources:
   - ../project/src/uri/mod.rs
   - ../project/src/config/security_profile.rs
   - ../project/docs/adr/ADR-2012-dev-bypass-triple-gated.md
-verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
 ---
 
 ## For developers
@@ -472,32 +472,32 @@ sequenceDiagram
     autonumber
     participant EF as filter_enabled<br/>crates/visionclaw-domain/src/utils/visibility_filter.rs:46
     participant GS as GraphStateActor get_node_type_arrays<br/>src/actors/graph_state_actor.rs:165
-    participant CC as ClientCoordinator pump_all / pump_one<br/>src/actors/client_coordinator_actor.rs:506, :548
+    participant CC as ClientCoordinator pump_all / pump_one<br/>src/actors/client_coordinator_actor.rs:559, :601
     participant VF as compute_private_opaque_ids<br/>crates/visionclaw-domain/src/utils/visibility_filter.rs:144
     participant CF as recompute_filtered_nodes<br/>src/actors/client_filter.rs:26
 
     Note over EF: parse_visibility_flag (visibility_filter.rs:34-42) is default ON, only "0", "false", "off" or "no" disables.<br/>The env is read once through OnceLock (visibility_filter.rs:46-51), so a runtime change has no effect.
     GS->>GS: private_nodes = every node whose NodeVisibility::of_node is not public (graph_state_actor.rs:173-179)
-    CC->>EF: policy_on = filter_enabled() (client_coordinator_actor.rs:513)
+    CC->>EF: policy_on = filter_enabled() (client_coordinator_actor.rs:566)
     alt policy_on and node classification not yet loaded
-        CC-->>CC: warn and send nothing, fail closed (client_coordinator_actor.rs:514-519)
+        CC-->>CC: warn and send nothing, fail closed (client_coordinator_actor.rs:567-572)
     else classification in hand
         loop each client due a chunk (ADR-2141, until it acknowledges)
-            CC->>VF: drop set for client.pubkey, once per distinct pubkey per pump (client_coordinator_actor.rs:566-574)
+            CC->>VF: drop set for client.pubkey, once per distinct pubkey per pump (client_coordinator_actor.rs:619-627)
             Note over VF: an anonymous session or an unowned private node drops (is_dropped_for, visibility_filter.rs:127-137)
             VF-->>CC: hidden id set
-            CF-->>CC: filtered_node_ids, the ADR-2183 scope and opt-in predicate removal, not ownership (client_filter.rs:26-28)
-            CC->>CC: visible(id) = node filter allows AND not hidden (client_coordinator_actor.rs:580-582)
-            CC->>CC: retain_nodes forgets what is no longer visible, plan from visible ids only (client_coordinator_actor.rs:600-606)
+            CF-->>CC: filtered_node_ids, the ADR-2183 scope and opt-in predicate removal, not ownership (client_filter.rs:24-28, :42)
+            CC->>CC: visible(id) = node filter allows AND not hidden (client_coordinator_actor.rs:633-635)
+            CC->>CC: retain_nodes forgets what is no longer visible, plan from visible ids only (client_coordinator_actor.rs:653-659)
         end
     end
-    Note over CC: INVARIANT: a chunk is planned only from the visible set, so a private node the caller does not own<br/>never reaches a position frame (client_coordinator_actor.rs:580-582, :604-606)
+    Note over CC: INVARIANT: a chunk is planned only from the visible set, so a private node the caller does not own<br/>never reaches a position frame (client_coordinator_actor.rs:633-635, :657-659)
     Note over CC: The initialGraphLoad, the REST reads and the analytics routes take the same policy through<br/>visible_subgraph and caller_view. That shared gate is drawn in VC-19.
 ```
 
 **What it shows.** The live position stream's per-session entitlement, and how it is combined with the separate server node filter. **Why it is this way.** ADR-2003 makes the filter default on and fail-closed. ADR-2141 streams each client its own unacknowledged set, so the drop set is applied per client at planning time.
 
-**Debt (parallel):** the node-filter predicate is written three times, in the client (`client/src/features/graph/explore/nodeFilter.ts:109`), the server (`src/actors/client_filter.rs:74-93`) and the headset (`xr-client/rust/src/settings_sync.rs:94`). The copies agree today and all three tests load one fixture (`client_filter.rs:311`, `settings_sync.rs:624`, `nodeFilter.test.ts:14`), so a copy that drifts from the fixture fails its own suite. A behaviour change still has to be made three times.
+**Debt (parallel):** the node-filter predicate is written three times, in the client (`client/src/features/graph/explore/nodeFilter.ts:109`), the server (`src/actors/client_filter.rs:176-195`) and the headset (`xr-client/rust/src/settings_sync.rs:94`). The copies agree today and all three tests load one fixture (`client_filter.rs:477`, `settings_sync.rs:624`, `nodeFilter.test.ts:14`), so a copy that drifts from the fixture fails its own suite. A behaviour change still has to be made three times.
 
 ## VC-03.11 Dev bypass triple gate (ADR-2012 / ADR-2039) — nested conditions
 ```mermaid
@@ -647,26 +647,26 @@ sequenceDiagram
     participant C as Client on /wss
     participant MR as message_routing<br/>src/handlers/socket_flow_handler/message_routing.rs:39
     participant FA as handle_filter_update<br/>src/handlers/socket_flow_handler/filter_auth.rs:324
-    participant CC as Handler UpdateClientFilter<br/>src/actors/client_coordinator_actor.rs:1645
+    participant CC as Handler UpdateClientFilter<br/>src/actors/client_coordinator_actor.rs:1716
     participant FR as filter_update_reply<br/>src/actors/client_coordinator_actor.rs:58
 
     C->>MR: text frame type filter_update
     MR->>FA: handle_filter_update (message_routing.rs:40)
     FA->>FA: filter_update_from_wire, an omitted key takes NodeFilterSettings::default (filter_auth.rs:12-40)
     FA->>CC: UpdateClientFilter (filter_auth.rs:347)
-    CC->>CC: copy the fields onto the client's filter (client_coordinator_actor.rs:1663-1670)
-    CC->>CC: GetGraphData, then take the client manager write lock (client_coordinator_actor.rs:1684-1687)
-    CC->>FR: filter_update_reply(filter, graph, client.pubkey, filter_enabled()) (client_coordinator_actor.rs:1688-1693)
+    CC->>CC: copy the fields onto the client's filter with apply_filter_update, max_nodes included (client_coordinator_actor.rs:1729, client_filter.rs:94-115)
+    CC->>CC: GetGraphData, then take the client manager write lock (client_coordinator_actor.rs:1743-1746)
+    CC->>FR: filter_update_reply(filter, graph, client.pubkey, filter_enabled()) (client_coordinator_actor.rs:1747-1752)
     FR->>FR: visible_subgraph for that identity first (client_coordinator_actor.rs:68-72)
     FR->>FR: recompute_filtered_nodes over the view, keep nodes and edges it allows (client_coordinator_actor.rs:73-108)
-    CC-->>C: SendInitialGraphLoad with the filtered nodes and edges (client_coordinator_actor.rs:1701-1704)
+    CC-->>C: SendInitialGraphLoad with the filtered nodes and edges (client_coordinator_actor.rs:1769-1772)
     FA->>FA: an authenticated caller's filter is persisted as user_filter (filter_auth.rs:366-391)
-    FA-->>C: filter_update_success (filter_auth.rs:410-416)
-    Note over FR: INVARIANT: the reply is built from visible_subgraph, so a private node the caller does not own<br/>never leaves. Pinned by anonymous, non-owner and owner tests (client_coordinator_actor.rs:1779, :1789, :1794)
-    Note over CC,FR: OPEN: the whole-graph view and filter are rebuilt while the std RwLock on the client manager<br/>is held for writing (client_coordinator_actor.rs:1686-1693), which every broadcast also takes
-    Note over FA,CC: DEBT: max_nodes is parsed (filter_auth.rs:41-42) and persisted (filter_auth.rs:376), but the handler<br/>never copies it (client_coordinator_actor.rs:1663-1670) and ClientFilter.max_nodes stays None (:146)
+    CC-->>C: filter_update_success with the visible and total counts, sent by the coordinator after its recompute (client_coordinator_actor.rs:1759-1766, filter_auth.rs:410-413)
+    Note over FR: INVARIANT: the reply is built from visible_subgraph, so a private node the caller does not own<br/>never leaves. Pinned by anonymous, non-owner and owner tests (client_coordinator_actor.rs:1883, :1893, :1898)
+    Note over CC,FR: OPEN: the whole-graph view and filter are rebuilt while the std RwLock on the client manager<br/>is held for writing (client_coordinator_actor.rs:1745-1752), which every broadcast also takes
+    Note over FA,CC: DEBT: RESOLVED at visionclaw 010e1109 - max_nodes is parsed (filter_auth.rs:41-42), persisted (filter_auth.rs:376) and now copied by apply_filter_update (client_filter.rs:110-113),<br/>and the cap applies when filter.enabled and server_remove are both set (client_filter.rs:71-78), see VC-61
 ```
 
-**What it shows.** How a node-filter change is answered: one identity's view first, then that client's own filter, with the result sent as a fresh initial load. **Why it is this way.** The 2026-11-06 re-review found the reply was built from the unfiltered graph, so any desktop session, anonymous included, received private nodes (`../project/src/actors/client_coordinator_actor.rs:1726-1728`).
+**What it shows.** How a node-filter change is answered: one identity's view first, then that client's own filter, with the result sent as a fresh initial load. **Why it is this way.** The 2026-11-06 re-review found the reply was built from the unfiltered graph, so any desktop session, anonymous included, received private nodes (`../project/src/actors/client_coordinator_actor.rs:55-57`).
 
 **Tension (parallel):** the `/wss` initial load caps the nodes at `initial_node_limit`, sorted by quality (`../project/src/handlers/socket_flow_handler/types.rs:516-540`), while the `filter_update` reply sends every node the filter allows (`../project/src/actors/client_coordinator_actor.rs:73-78`). The same identity can get two different first graphs depending on whether it has touched the filter.

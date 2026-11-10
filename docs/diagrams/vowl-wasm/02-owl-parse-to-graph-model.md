@@ -80,7 +80,7 @@ flowchart LR
     EB -.->|"map_edge_type()"| ET["EdgeType: ObjectProperty ·<br/>DatatypeProperty · SubClass · Special(String)<br/>src/graph/mod.rs:176"]
 ```
 
-- **Semantic loss:** parsed class equivalences/individuals are not copied to nodes (src/graph/builder.rs:24-31); exact cardinality is discarded when only min/max reach the edge (src/graph/builder.rs:53-54). Bounds without a `cardinality` key are ignored and u64 values narrow to u32 unchecked (src/ontology/parser.rs:389-413). `rdfs:subClassOf` misses the case-sensitive substring mapping (src/graph/builder.rs:121-128).
+- **Semantic loss:** parsed class equivalences/individuals are not copied to nodes (src/graph/builder.rs:24-31); exact cardinality is discarded when only min/max reach the edge (src/graph/builder.rs:59-60). Bounds without a `cardinality` key are ignored and u64 values narrow to u32 unchecked (src/ontology/parser.rs:389-413). `rdfs:subClassOf` misses the case-sensitive substring mapping (src/graph/builder.rs:121-128).
 
 ## VW-02.4 `VowlGraph` node/edge model
 ```mermaid
@@ -91,7 +91,7 @@ flowchart TB
     N --> S["SemanticAttributes: iri, external,<br/>equivalent IDs, optional individual count<br/>src/graph/mod.rs:129"]
     E --> C["EdgeCharacteristics: functional,<br/>inverse_functional, transitive, symmetric<br/>src/graph/mod.rs:226"]
 ```
-- `GraphStatistics.calculate` density is defined as `0.0` when `node_count <= 1` (src/graph/statistics.rs:239-243), avoiding a divide-by-zero on `max_edges`. Parallel/synthetic edges can still make density exceed one. Component DFS follows outgoing neighbours, so component and isolation counts depend on node insertion order (src/graph/statistics.rs:371-399, src/graph/mod.rs:326-339).
+- `GraphStatistics.calculate` density is defined as `0.0` when `node_count <= 1` (src/graph/statistics.rs:240-243), avoiding a divide-by-zero on `max_edges`. Parallel/synthetic edges can still make density exceed one. Component DFS follows outgoing neighbours, so component and isolation counts depend on node insertion order (src/graph/statistics.rs:371-399, src/graph/mod.rs:326-339).
 
 ## VW-02.8 `PinManager` — node pin lifecycle
 ```mermaid

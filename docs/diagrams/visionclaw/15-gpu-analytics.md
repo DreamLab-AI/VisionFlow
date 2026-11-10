@@ -44,12 +44,12 @@ sources:
   - ../project/src/handlers/api_handler/analytics/visible_analytics.rs
   - ../project/src/handlers/api_handler/analytics/visible_results.rs
   - ../project/src/handlers/graph_access.rs
-verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
 ---
 
 ## For developers
 
-The analytics routes: clustering, community, anomaly, PageRank, shortest paths and components. At 809a859aa every gated analytics route takes its decision from one `CallerGate`; point-to-point A*, bidirectional and semantic paths run over `caller_view` instead (`analytics/pathfinding.rs:557`). A caller whose view hides nodes is answered on the CPU over that view for communities, PageRank, SSSP, APSP and components; full-access callers reach the GPU actors through `GPUManagerActor`. Anomalies and DBSCAN clusters are still filtered after a whole-graph run, and no SSSP run is written to the wire any more.
+The analytics routes: clustering, community, anomaly, PageRank, shortest paths and components. At 809a859aa every gated analytics route takes its decision from one `CallerGate`; point-to-point A*, bidirectional and semantic paths run over `caller_view` instead (`analytics/pathfinding.rs:582`). A caller whose view hides nodes is answered on the CPU over that view for communities, PageRank, SSSP, APSP and components; full-access callers reach the GPU actors through `GPUManagerActor`. Anomalies and DBSCAN clusters are still filtered after a whole-graph run, and no SSSP run is written to the wire any more.
 
 ## For the business
 
@@ -110,7 +110,7 @@ sequenceDiagram
         end
     end
     PC->>GM: WriteClusterAnalytics{clusters} do_send (clustering_handlers.rs:69)
-    GM->>AS: WriteClusterAnalytics forward (gpu_manager_actor.rs:984)
+    GM->>AS: WriteClusterAnalytics forward (gpu_manager_actor.rs:988)
     AS->>CA: WriteClusterAnalytics (clustering_actor.rs:1222)
     CA->>CA: write_cluster_id_from_assignments (ADR-031 D3 single writer)
     PC->>PC: CLUSTERING_TASKS[task_id].status = completed :79-81
@@ -346,26 +346,26 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant CS as compute_sssp<br/>analytics/pathfinding.rs:167
-    participant CAp as compute_apsp<br/>analytics/pathfinding.rs:262
+    participant CS as compute_sssp<br/>analytics/pathfinding.rs:180
+    participant CAp as compute_apsp<br/>analytics/pathfinding.rs:287
     participant VA as visible_sssp and visible_apsp<br/>visible_analytics.rs:60
     participant GM as GPUManagerActor<br/>gpu_manager_actor.rs:732
     participant GAS as GraphAnalyticsSupervisor<br/>graph_analytics_supervisor.rs:392
     participant SPA as ShortestPathActor (supervised)<br/>shortest_path_actor.rs:198
 
     C->>CS: POST /analytics/pathfinding/sssp {sourceIdx,maxDistance,delta} (analytics/mod.rs:246)
-    CS->>CS: gated_view, current graph then gate_for_graph,<br/>an unreadable graph answers 503 (analytics/pathfinding.rs:177, :431-452)
+    CS->>CS: gated_view, current graph then gate_for_graph,<br/>an unreadable graph answers 503 (analytics/pathfinding.rs:193, :456-477)
     alt Ok(Some(gate)), the view hides nodes
-        CS->>VA: visible_sssp(gate, source_idx, max_distance) analytics/pathfinding.rs:179-183
+        CS->>VA: visible_sssp(gate, source_idx, max_distance) analytics/pathfinding.rs:195-199
         alt source hidden or past the end
-            VA-->>C: 500 with the exact out-of-range text (analytics/pathfinding.rs:189-193, :421-426)
+            VA-->>C: 500 with the exact out-of-range text (analytics/pathfinding.rs:205-209, :446-451)
         else
-            VA-->>C: 200 SsspPayload Visible, one CPU Dijkstra over the view,<br/>never the GPU (analytics/pathfinding.rs:184-188)
+            VA-->>C: 200 SsspPayload Visible, one CPU Dijkstra over the view,<br/>never the GPU (analytics/pathfinding.rs:200-204)
         end
     else data.gpu_manager_addr is None
-        CS-->>C: 500 Shortest path actor not available analytics/pathfinding.rs:239-245
+        CS-->>C: 500 Shortest path actor not available analytics/pathfinding.rs:264-270
     else full access
-        CS->>GM: ComputeSSP{source_idx,max_distance,delta} analytics/pathfinding.rs:204-208
+        CS->>GM: ComputeSSP{source_idx,max_distance,delta} analytics/pathfinding.rs:220-224
         GM->>GAS: forward_to_graph_analytics ComputeSSP (gpu_manager_actor.rs:755-758)
         alt child absent or not running
             GAS-->>GM: Err ShortestPathActor not available (graph_analytics_supervisor.rs:396-402)
@@ -374,25 +374,25 @@ sequenceDiagram
             alt SPA.shared_context is None
                 SPA-->>GAS: Err GPU context not initialized (shortest_path_actor.rs:214-216)
             else
-                SPA->>SPA: unified_compute.run_sssp(source_idx,delta) (shortest_path_actor.rs:223),<br/>bounds-checked, an index past num_nodes errors<br/>instead of panicking (src/utils/unified_gpu_compute/sssp.rs:21-25)
+                SPA->>SPA: unified_compute.run_sssp(source_idx,delta) (shortest_path_actor.rs:223),<br/>bounds-checked, an index past num_nodes errors<br/>instead of panicking (src/utils/unified_gpu_compute/sssp.rs:72-75, plus delta and non-negative-weight checks at :76-93, see VC-60)
                 SPA->>SPA: record_execution(Sssp, Gpu) (shortest_path_actor.rs:231)
                 SPA->>SPA: optional max_distance filter (shortest_path_actor.rs:247-254)
                 SPA-->>GAS: Ok(SSSPResult{distances,nodes_reached,max_distance}),<br/>returned only, written nowhere (shortest_path_actor.rs:274-280)
             end
         end
-        CS-->>C: 200 or 500 SSSPResponse (analytics/pathfinding.rs:210-238)
+        CS-->>C: 200 or 500 SSSPResponse (analytics/pathfinding.rs:226-263)
     end
     C->>CAp: POST /analytics/pathfinding/apsp {numLandmarks,seed} (analytics/mod.rs:250)
-    CAp->>CAp: gated_view (analytics/pathfinding.rs:271)
+    CAp->>CAp: gated_view (analytics/pathfinding.rs:296)
     alt Ok(Some(gate))
         CAp->>VA: visible_apsp, landmark rows k x n keyed by visible id,<br/>k defaults to ceil sqrt n, capped at 256 (visible_analytics.rs:511-515)
-        VA-->>C: 200 ApspPayload Visible (analytics/pathfinding.rs:272-283)
+        VA-->>C: 200 ApspPayload Visible (analytics/pathfinding.rs:297-308)
     else full access
-        CAp->>GM: ComputeAPSP{num_landmarks,seed} analytics/pathfinding.rs:293-298
+        CAp->>GM: ComputeAPSP{num_landmarks,seed} analytics/pathfinding.rs:318-323
         GM->>GAS: forward ComputeAPSP (gpu_manager_actor.rs:759-762, graph_analytics_supervisor.rs:491)
         GAS->>SPA: ComputeAPSP
         SPA-->>CAp: Err APSP disabled by NFR-7, O(n^2) memory forbidden,<br/>use SSSP per source (shortest_path_actor.rs:294-299)
-        CAp-->>C: 500 APSPResponse success=false (analytics/pathfinding.rs:310-316)
+        CAp-->>C: 500 APSPResponse success=false (analytics/pathfinding.rs:335-341)
     end
     Note over SPA: RESOLVED ADR-2054 - the APSP kernel is removed (crates/visionclaw-gpu/src/cuda_sources/gpu_landmark_apsp.cu:13-25), ComputeAPSP is retained and refuses explicitly under NFR-7
     Note over CS,GAS: RESOLVED 2026-11 - the publish flag, stream_safe and the node_sssp map are deleted,<br/>no SSSP run reaches the wire, ComputeSSP carries no publish field (src/actors/gpu/shortest_path_actor.rs:26-36)
@@ -400,7 +400,7 @@ sequenceDiagram
 
 **What it shows:** SSSP and APSP split on the caller gate. The GPU actor now only returns its distances; the run-to-wire publish path and its `stream_safe` precondition were removed in ca9113b2f and 7a0674e79.
 
-**Tension (parallel):** a gated caller is answered on `/pathfinding/apsp` with landmark rows (`src/handlers/api_handler/analytics/pathfinding.rs:271-283`), while a full-access caller always gets the NFR-7 refusal (`src/actors/gpu/shortest_path_actor.rs:294-299`), so seeing less of the graph yields more of the answer.
+**Tension (parallel):** a gated caller is answered on `/pathfinding/apsp` with landmark rows (`src/handlers/api_handler/analytics/pathfinding.rs:296-308`), while a full-access caller always gets the NFR-7 refusal (`src/actors/gpu/shortest_path_actor.rs:294-299`), so seeing less of the graph yields more of the answer.
 
 ## VC-15.7 POST /analytics/sssp/compute — the one CPU Dijkstra via GraphServiceSupervisor, result discarded
 
@@ -409,18 +409,18 @@ sequenceDiagram
     autonumber
     participant C as Client
     participant RT as Route<br/>analytics/mod.rs:212
-    participant CS as compute_sssp<br/>sssp_handlers.rs:213
+    participant CS as compute_sssp<br/>sssp_handlers.rs:214
     participant GSS as GraphServiceSupervisor (graph_service_addr)<br/>graph_service_supervisor.rs:1689
     participant GSA as GraphStateActor<br/>graph_state_actor.rs:1100
 
     C->>RT: POST /analytics/sssp/compute {sourceNode}
-    RT->>CS: compute_sssp(request), sourceNode defaults to 0 (sssp_handlers.rs:220-224)
-    alt caller_gate says the caller's view hides nodes and the source is not in it (sssp_handlers.rs:228-238)
-        CS-->>C: 500 Failed to compute SSSP Source node N not found, the same text and status as a missing source (sssp_handlers.rs:206-211, graph_state_actor.rs:1096-1098)
+    RT->>CS: compute_sssp(request), sourceNode defaults to 0 (sssp_handlers.rs:221-225)
+    alt caller_gate says the caller's view hides nodes and the source is not in it (sssp_handlers.rs:229-239)
+        CS-->>C: 500 Failed to compute SSSP Source node N not found, the same text and status as a missing source (sssp_handlers.rs:207-212, graph_state_actor.rs:1096-1098)
     else unreadable graph
-        CS-->>C: 500 Failed to communicate with graph service, fail closed (sssp_handlers.rs:240-243)
+        CS-->>C: 500 Failed to communicate with graph service, fail closed (sssp_handlers.rs:241-244)
     end
-    CS->>GSS: ComputeShortestPaths{source_node_id} (sssp_handlers.rs:247-251)
+    CS->>GSS: ComputeShortestPaths{source_node_id} (sssp_handlers.rs:248-252)
     GSS->>GSA: forward to graph_state (graph_service_supervisor.rs:1698-1708)
     GSA->>GSA: compute_shortest_paths delegates to shortest_paths_over (graph_state_actor.rs:749-754, :1071)
     alt source_node_id not in node_map
@@ -432,13 +432,13 @@ sequenceDiagram
     end
     GSS-->>CS: propagate
     alt Ok
-        CS-->>C: 200 success=true SSSP computation started (sssp_handlers.rs:254-260)
-        Note over CS: DEBT the computed distances and paths are dropped<br/>Ok(Ok(_)) at sssp_handlers.rs:254 discards them<br/>and the reply says started for a finished computation
+        CS-->>C: 200 success=true SSSP computation started (sssp_handlers.rs:255-261)
+        Note over CS: DEBT the computed distances and paths are dropped<br/>Ok(Ok(_)) at sssp_handlers.rs:255 discards them<br/>and the reply says started for a finished computation
     else Err(e)
-        CS-->>C: 500 success=false error through the shared sssp_compute_failed (sssp_handlers.rs:262-265)
+        CS-->>C: 500 success=false error through the shared sssp_compute_failed (sssp_handlers.rs:263-266)
     end
     Note over GSA: RESOLVED 2026-11 - the BTreeSet Dijkstra is deleted, this route and every gated route share single_source (src/services/pathfinding.rs:150-155)<br/>it never touches ShortestPathActor, and unlike GPU ComputeSSP it reconstructs hop paths
-    Note over GSS,GSA: DEAD CODE - GPUManagerActor Handler-ComputeShortestPaths (gpu_manager_actor.rs:773)<br/>and GraphAnalyticsSupervisor Handler-ComputeShortestPaths (graph_analytics_supervisor.rs:514)<br/>are unreachable, the only sender is sssp_handlers.rs:249 and it targets graph_service_addr
+    Note over GSS,GSA: DEAD CODE - GPUManagerActor Handler-ComputeShortestPaths (gpu_manager_actor.rs:773)<br/>and GraphAnalyticsSupervisor Handler-ComputeShortestPaths (graph_analytics_supervisor.rs:514)<br/>are unreachable, the only sender is sssp_handlers.rs:250 and it targets graph_service_addr
 ```
 
 ## VC-15.8 POST /analytics/pathfinding/connected-components — supervised GPU actor, no CPU fallback
@@ -448,18 +448,18 @@ sequenceDiagram
     autonumber
     participant C as Client
     participant RT as Route<br/>analytics/mod.rs:258
-    participant CC as compute_connected_components<br/>analytics/pathfinding.rs:349
+    participant CC as compute_connected_components<br/>analytics/pathfinding.rs:374
     participant GM as GPUManagerActor<br/>gpu_manager_actor.rs:796
     participant GAS as GraphAnalyticsSupervisor<br/>graph_analytics_supervisor.rs:574
     participant CCA as ConnectedComponentsActor (supervised)<br/>connected_components_actor.rs:179
 
     C->>RT: POST /analytics/pathfinding/connected-components {maxIterations}
     RT->>CC: compute_connected_components(payload)
-    CC->>CC: the same gated_view first, a caller whose view hides nodes gets visible_components on the CPU, so no label joins two visible nodes through a hidden one (analytics/pathfinding.rs:356-370)
+    CC->>CC: the same gated_view first, a caller whose view hides nodes gets visible_components on the CPU, so no label joins two visible nodes through a hidden one (analytics/pathfinding.rs:381-395)
     alt data.gpu_manager_addr is None
-        CC-->>C: 500 Connected components actor not available analytics/pathfinding.rs:411-417
+        CC-->>C: 500 Connected components actor not available analytics/pathfinding.rs:436-442
     else
-            CC->>GM: ComputeConnectedComponents{max_iterations} analytics/pathfinding.rs:373-379
+            CC->>GM: ComputeConnectedComponents{max_iterations} analytics/pathfinding.rs:398-404
         GM->>GAS: forward (gpu_manager_actor.rs:805-814)
         alt child absent or not running
             GAS-->>GM: Err ConnectedComponentsActor not available (graph_analytics_supervisor.rs:582-590)
@@ -478,9 +478,9 @@ sequenceDiagram
                 end
             end
         end
-        CC-->>C: 200 or 500 ConnectedComponentsResponse (analytics/pathfinding.rs:380-409)
+        CC-->>C: 200 or 500 ConnectedComponentsResponse (analytics/pathfinding.rs:405-434)
     end
-    Note over GM,CCA: RESOLVED ADR-2053 - stats reads use GetSupervisedComponentsStats (analytics/pathfinding.rs:480), a Result-returning wrapper, because the bare stats message has no Default and absence must stay explicit
+    Note over GM,CCA: RESOLVED ADR-2053 - stats reads use GetSupervisedComponentsStats (analytics/pathfinding.rs:505), a Result-returning wrapper, because the bare stats message has no Default and absence must stay explicit
     Note over CCA: RESOLVED ADR-2054 - the CPU fallback that returned every node as a singleton component is removed, a GPU Err propagates as a hard error (connected_components_actor.rs:212-224)
 ```
 
@@ -491,8 +491,8 @@ sequenceDiagram
     autonumber
     participant C as Client
     participant RT as Route<br/>analytics/mod.rs:254
-    participant PTP as compute_point_to_point<br/>analytics/pathfinding.rs:543-544
-    participant GR as graph_repository<br/>analytics/pathfinding.rs:555
+    participant PTP as compute_point_to_point<br/>analytics/pathfinding.rs:568-569
+    participant GR as graph_repository<br/>analytics/pathfinding.rs:580
     participant AS as AStarPathfinder<br/>services/pathfinding.rs
     participant BD as BidirectionalDijkstra<br/>services/pathfinding.rs
     participant SEM as SemanticPathfinder (word-level Jaccard similarity)<br/>services/pathfinding.rs
@@ -500,30 +500,30 @@ sequenceDiagram
 
     C->>RT: POST /analytics/pathfinding/path {sourceId,targetId,algorithm,query}
     RT->>PTP: compute_point_to_point(payload)
-    PTP->>GR: graph_repository.get_graph() analytics/pathfinding.rs:555
-    PTP->>PTP: keep the full graph and the caller's view, caller_view, every algorithm below runs on the view (analytics/pathfinding.rs:556-559)
+    PTP->>GR: graph_repository.get_graph() analytics/pathfinding.rs:580
+    PTP->>PTP: keep the full graph and the caller's view, caller_view, every algorithm below runs on the view (analytics/pathfinding.rs:581-584)
     alt graph fetch Err
-        PTP-->>C: 500 Failed to retrieve graph data analytics/pathfinding.rs:562-566
+        PTP-->>C: 500 Failed to retrieve graph data analytics/pathfinding.rs:587-591
     else
         alt algorithm == Astar
-            PTP->>AS: AStarPathfinder::find_path(graph,source,target) analytics/pathfinding.rs:572
+            PTP->>AS: AStarPathfinder::find_path(graph,source,target) analytics/pathfinding.rs:597
         else algorithm == Bidirectional
-            PTP->>BD: BidirectionalDijkstra::find_path(graph,source,target) analytics/pathfinding.rs:598
+            PTP->>BD: BidirectionalDijkstra::find_path(graph,source,target) analytics/pathfinding.rs:623
         else algorithm == Semantic
             alt query is empty or missing
-                PTP-->>C: 500 Query string is required for semantic pathfinding analytics/pathfinding.rs:631-638
+                PTP-->>C: 500 Query string is required for semantic pathfinding analytics/pathfinding.rs:656-663
             else
-                PTP->>SEM: SemanticPathfinder(alpha).find_path(graph,source,target,query) analytics/pathfinding.rs:641-644
+                PTP->>SEM: SemanticPathfinder(alpha).find_path(graph,source,target,query) analytics/pathfinding.rs:666-669
             end
         else algorithm == Sssp
-            opt gate_for_graph over the full graph says the view hides nodes (analytics/pathfinding.rs:674-677)
-                PTP-->>C: CPU visible_point_to_point over the view, never the GPU, whose indices are full-graph positions (analytics/pathfinding.rs:678-703)
+            opt gate_for_graph over the full graph says the view hides nodes (analytics/pathfinding.rs:699-702)
+                PTP-->>C: CPU visible_point_to_point over the view, never the GPU, whose indices are full-graph positions (analytics/pathfinding.rs:703-728)
             end
-            PTP->>PTP: locate source_idx by node id in graph_data.nodes analytics/pathfinding.rs:710-714
+            PTP->>PTP: locate source_idx by node id in graph_data.nodes analytics/pathfinding.rs:735-739
             alt source not found
-                PTP-->>C: 500 Source node not found in graph analytics/pathfinding.rs:716-725
+                PTP-->>C: 500 Source node not found in graph analytics/pathfinding.rs:741-750
             else
-                PTP->>GM: ComputeSSP{source_idx} via gpu_manager_addr analytics/pathfinding.rs:708, :728-732
+                PTP->>GM: ComputeSSP{source_idx} via gpu_manager_addr analytics/pathfinding.rs:733, :753-757
                 GM-->>PTP: SSSPResult (same supervised path as VC-15.6)
             end
         end
@@ -689,7 +689,7 @@ flowchart TD
     DBS -.->|"conformance test recorded PASS"| CPUDB
     LOF -.->|"recorded PASS: max delta 4.759e-7 below 1e-3"| CPULOF
 
-    NOTE["Trust table docs/GPU-wire-abi.md:196-209 (ADR-2061, 2026-09-07): PageRank max delta 3.4e-11,<br/>DBSCAN exact, Louvain 16 of 16 communities, LOF corrected from 0.702 to 4.759e-7 on the 1e-3 bar<br/>Test crates/visionclaw-gpu/tests/analytics_oracle_conformance.rs - these are recorded results, not re-run here"]
+    NOTE["Trust table docs/GPU-wire-abi.md:199-212 (ADR-2061, 2026-09-07): PageRank max delta 3.4e-11,<br/>DBSCAN exact, Louvain 16 of 16 communities, LOF corrected from 0.702 to 4.759e-7 on the 1e-3 bar<br/>Test crates/visionclaw-gpu/tests/analytics_oracle_conformance.rs - these are recorded results, not re-run here"]
     LIVE -.-> NOTE
     ORACLE -.->|"fixture crate only, not wired into any runtime request path"| LIVE
     TEL["Runtime reach: full-access PageRank and community detection reach these kernels through GPUManagerActor<br/>gpu_routes.rs:33-44, gated callers are answered on the CPU over the view, see VC-15.3 and VC-15.5"]
@@ -698,18 +698,18 @@ flowchart TD
     TEL -.-> PAR
 ```
 
-**Debt:** `POST /analytics/sssp/compute` computes a full CPU Dijkstra and then discards it, answering `SSSP computation started` (`src/handlers/api_handler/analytics/sssp_handlers.rs:254-260`).
+**Debt:** `POST /analytics/sssp/compute` computes a full CPU Dijkstra and then discards it, answering `SSSP computation started` (`src/handlers/api_handler/analytics/sssp_handlers.rs:255-261`).
 
 **Drift:** before this restamp the topic placed the Louvain D1 marker at `gpu_clustering_kernels.cu:581` (a loop line; the marker is at `:606`) and described the APSP kernel as `#if 0`-guarded, but ADR-2054 had already removed it (`crates/visionclaw-gpu/src/cuda_sources/gpu_landmark_apsp.cu:13-25`).
 
 **Invariant:** `CallerGate` is the one ADR-060 "is anything hidden from this caller" decision; `gate_for_graph` and `caller_gate` are its only constructors (`src/handlers/graph_access.rs:77-82`, `:120`, `:159`), and ids and GPU positions are distinct types so they cannot be mixed (`src/handlers/graph_access.rs:44-53`).
 
-**Debt (parallel):** the gate still reads the graph two ways. Point-to-point reads `graph_repository` (`src/handlers/api_handler/analytics/pathfinding.rs:555`) while every other gate reads `GraphServiceSupervisor` (`src/handlers/graph_access.rs:159-168`), and `gated_view` fetches the graph even when the filter is off (`src/handlers/api_handler/analytics/pathfinding.rs:431-451`) where `caller_gate` skips the fetch (`src/handlers/graph_access.rs:163-165`).
+**Debt (parallel):** the gate still reads the graph two ways. Point-to-point reads `graph_repository` (`src/handlers/api_handler/analytics/pathfinding.rs:580`) while every other gate reads `GraphServiceSupervisor` (`src/handlers/graph_access.rs:159-168`), and `gated_view` fetches the graph even when the filter is off (`src/handlers/api_handler/analytics/pathfinding.rs:456-476`) where `caller_gate` skips the fetch (`src/handlers/graph_access.rs:163-165`).
 
-**Invariant:** there is one CPU single-source shortest path, `single_source` (`src/services/pathfinding.rs:180`), used by `/sssp/compute` (`src/actors/graph_state_actor.rs:1079`) and the gated routes; the GPU `run_sssp` (`src/utils/unified_gpu_compute/sssp.rs:20`) is its accelerator for full-access callers.
+**Invariant:** there is one CPU single-source shortest path, `single_source` (`src/services/pathfinding.rs:180`), used by `/sssp/compute` (`src/actors/graph_state_actor.rs:1079`) and the gated routes; the GPU `run_sssp` (`src/utils/unified_gpu_compute/sssp.rs:72`) is its accelerator for full-access callers.
 
 **Tension (risk):** anomalies are still scored over the whole graph and only filtered on the way out (`src/handlers/api_handler/analytics/visible_results.rs:1-7`), because LOF scores layout positions every node shaped; and DBSCAN clusters keep their whole-graph cluster ids after hidden members are dropped (`src/handlers/api_handler/analytics/visible_analytics.rs:173-177`). A visible node's anomaly score or cluster number can still reflect hidden nodes.
 
 **Open (risk):** the GPU-vs-CPU parity tests for communities and PageRank are `#[ignore]` without a CUDA device (`src/handlers/api_handler/analytics/visible_analytics.rs:921-922`), so nothing in a GPU-less run checks that a gated and a full-access caller see the same algorithm's answer.
 
-**Drift (loose end):** the point-to-point SSSP comment still says a GPU run would "be published to the shared stream" (`src/handlers/api_handler/analytics/pathfinding.rs:671-673`); the publish path was deleted in ca9113b2f.
+**Drift (loose end):** the point-to-point SSSP comment still says a GPU run would "be published to the shared stream" (`src/handlers/api_handler/analytics/pathfinding.rs:696-698`); the publish path was deleted in ca9113b2f.

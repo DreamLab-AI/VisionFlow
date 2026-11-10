@@ -41,7 +41,7 @@ sources:
   - ../project/src/app_state.rs
   - ../project/src/services/ontology_mutation_service.rs
   - ../project/src/services/voice_intent_client.rs
-verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
 ---
 
 ## For developers
@@ -390,24 +390,24 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant BOOT as AppState::new<br/>app_state.rs:1292-1319
+    participant BOOT as AppState::new<br/>app_state.rs:1303-1330
     participant ENV as env FORUM_RELAY_URL + panel key:<br/>KEY_FILE vars or privkey vars (acsp/key_file.rs:13-15)
     participant ACSP as AcspClient::connect<br/>acsp/client.rs:78
     participant RELAY as forum relay (nostr_sdk Client, auto-reconnect)
-    BOOT->>ENV: read FORUM_RELAY_URL :1293, then panel secret via<br/>key_file::load_panel_secret (file first, env fallback)<br/>app_state.rs:1293-1300 acsp/key_file.rs:310
+    BOOT->>ENV: read FORUM_RELAY_URL :1304, then panel secret via<br/>key_file::load_panel_secret (file first, env fallback)<br/>app_state.rs:1304-1311 acsp/key_file.rs:310
     alt relay and secret both Some
         BOOT->>ACSP: connect(secret, relay)
         ACSP->>RELAY: add_relay + connect (nostr_sdk relay pool)<br/>acsp/client.rs:83-89
         alt connect Ok
             RELAY-->>ACSP: relay added, nostr-sdk connects in the background and keeps retrying (acsp/client.rs:87-89)
             ACSP-->>BOOT: Arc AcspClient
-            BOOT->>BOOT: acsp_client = Some(client)<br/>app_state.rs:1305 log relay set - REST/bridge decisions project as kind-31403
+            BOOT->>BOOT: acsp_client = Some(client)<br/>app_state.rs:1316 log relay set - REST/bridge decisions project as kind-31403
         else connect Err
             ACSP-->>BOOT: Err(e)
-            BOOT->>BOOT: acsp_client = None, warn FAILED to connect - degraded, visible<br/>app_state.rs:1309
+            BOOT->>BOOT: acsp_client = None, warn FAILED to connect - degraded, visible<br/>app_state.rs:1320
         end
     else unconfigured or key unusable
-        BOOT->>BOOT: acsp_client = None, info OFF (key_file load error logs error!) -<br/>decisions record forum_projection=skipped<br/>app_state.rs:1315
+        BOOT->>BOOT: acsp_client = None, info OFF (key_file load error logs error!) -<br/>decisions record forum_projection=skipped<br/>app_state.rs:1326
     end
     Note over BOOT,RELAY: DEBT: connect Ok does not prove the relay is reachable - an unreachable relay surfaces later as a publish error,<br/>i.e. forum_projection=failed at decide time, not as the FAILED-to-connect branch above. acsp/client.rs:87-89, handlers/enrichment_proposals_handler.rs:654
     Note over BOOT,RELAY: this is the SAME AcspClient type ElevationActor and<br/>DecisionElevationActor each construct independently at their own<br/>startup (elevation_actor.rs:1056, decision_elevation_actor.rs:510) -<br/>three separate relay connections under three panel ids can exist<br/>concurrently, all signing with the same panel secret from<br/>key_file::load_panel_secret (elevation_actor.rs:199, decision_elevation_actor.rs:183)

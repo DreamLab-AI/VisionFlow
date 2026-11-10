@@ -23,7 +23,7 @@ sources:
   - ../project/src/services/ontology_pull.rs
   - ../project/docs/adr/ADR-2147-inferences-carry-a-re-checkable-certificate-and-proposals-carry-a-consequence-delta.md
   - ../dreamlab-ai-website/forum-config/Cargo.toml
-verified_commit: {dreamlab-ai-website: f934e26f949f3b95171544ec8ec5bcfd7679f593, knowledgegraph: 5294e88b6602a63b5afe96c79f2779d00274a05e, visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c, visiongraph: d8277151a1404b456b5c7206187f7e4b50f25be1, vowl-wasm: 2aff199e2de06f4bba512301acf7023477c492ac}
+verified_commit: {dreamlab-ai-website: f934e26f949f3b95171544ec8ec5bcfd7679f593, knowledgegraph: 5294e88b6602a63b5afe96c79f2779d00274a05e, visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c, visiongraph: d8277151a1404b456b5c7206187f7e4b50f25be1, vowl-wasm: 2aff199e2de06f4bba512301acf7023477c492ac}
 ---
 ## ES-11.1 The publishing axis — six cross-repo edges, each previously drawn from one side only
 ```mermaid

@@ -69,7 +69,7 @@ sources:
   - ../project/src/utils/binary_protocol.rs
   - ../project/crates/visionclaw-protocol/Cargo.toml
   - ../project/docs/XR-client.md
-verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, codescape: e3b76f63e801c6a8460110b93e88a0b420e9b0b4}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, codescape: e3b76f63e801c6a8460110b93e88a0b420e9b0b4}
 ---
 
 ## For developers
@@ -413,8 +413,8 @@ flowchart TB
         direction TB
         P1["content_tag copied verbatim from ptx_policy into ptx_source<br/>codescape-layout/src/ptx_source.rs:126-128 codescape-layout/src/ptx_source.rs:142 crates/visionclaw-gpu/src/ptx_policy.rs:295"]
         P2["Codescape's expected c_params 212 bytes and kernel arities 30, 13, 24<br/>codescape-layout/src/abi.rs:34 codescape-layout/src/abi.rs:40-43"]
-        P3["VisionClaw mirrors those numbers in its own test, with its own .entry arity parser<br/>src/utils/unified_gpu_compute/execution.rs:3169-3177 src/utils/unified_gpu_compute/execution.rs:3180-3189 codescape-layout/src/abi.rs:87-95"]
-        P4["the source of truth: SimParams static_assert and the kernel signatures<br/>visionclaw_unified.cu:118 visionclaw_unified.cu:460 visionclaw_unified.cu:915 visionclaw_unified.cu:978"]
+        P3["VisionClaw mirrors those numbers in its own test, with its own .entry arity parser<br/>src/utils/unified_gpu_compute/execution.rs:3165-3173 src/utils/unified_gpu_compute/execution.rs:3176-3185 codescape-layout/src/abi.rs:87-95"]
+        P4["the source of truth: SimParams static_assert and the kernel signatures<br/>visionclaw_unified.cu:118 visionclaw_unified.cu:460 visionclaw_unified.cu:918 visionclaw_unified.cu:981"]
         P1 --> P2 --> P3 --> P4
     end
     subgraph ROUTE["reachability"]
@@ -429,7 +429,7 @@ flowchart TB
 ```
 
 **What it shows.** Three couplings survive the extraction as hand-held copies: the wire (one crate, but a second encoder in the server), the PTX ABI (numbers and a parser on both sides), and the route (one nginx location). **Why it is this way.** ADR-0001 accepted a two-repository change for any V3 or PTX change as the cost of independence (`ADR-0001-extraction-from-visionclaw.md:46`).
-**Debt (parallel):** `content_tag` exists twice byte for byte (`codescape-layout/src/ptx_source.rs:142`, `crates/visionclaw-gpu/src/ptx_policy.rs:295`) and the `.entry` arity parser twice (`codescape-layout/src/abi.rs:87`, `src/utils/unified_gpu_compute/execution.rs:3169`); only the FNV test vectors (`ptx_source.rs:138`) and VisionClaw's mirror test (`execution.rs:3180`) keep them aligned.
+**Debt (parallel):** `content_tag` exists twice byte for byte (`codescape-layout/src/ptx_source.rs:142`, `crates/visionclaw-gpu/src/ptx_policy.rs:295`) and the `.entry` arity parser twice (`codescape-layout/src/abi.rs:87`, `src/utils/unified_gpu_compute/execution.rs:3165`); only the FNV test vectors (`ptx_source.rs:138`) and VisionClaw's mirror test (`execution.rs:3180`) keep them aligned.
 **Debt (parallel):** The VisionClaw server's V3 encoder `WireNodeDataItemV3` (`src/utils/binary_protocol.rs:43`) is a second implementation of the record `visionclaw-wire` publishes; it is checked against the crate's fixtures in tests (`src/utils/binary_protocol.rs:925`), not built from it.
 **Open (risk):** VisionClaw uses `visionclaw-wire` by path (`visionclaw-protocol/Cargo.toml:18`), so an in-tree edit without a version bump would change VisionClaw's view of the "frozen" wire while Codescape keeps resolving the published 0.1.0 (`codescape/Cargo.toml:48`).
 **Open (risk):** With only `XR_BACKEND_WS` set to port 4000, the headset's Codescape connection dials a path the Rust backend never routes (`xr-client/scripts/graph_scene.gd:2967`; `nginx.dev.conf:74`), so the LAN route is port 3001 unless port 4100 is published (`docker-compose.unified.yml:641`).

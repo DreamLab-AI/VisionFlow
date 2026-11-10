@@ -30,7 +30,7 @@ sources:
   - docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md
   - ../project/docs/adr/ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md
   - ../project/docs/TODO-unified.md
-verified_commit: {sidestr-rs: 60259e848795d0cd5c5718ca5d0eb658f69fd0d7, visionflow: 4d361b58ce2b3ee17e1570361eaf78270b630012, visionclaw: 8692b12ba987ecb87165566beb7c320a2446e4b4}
+verified_commit: {sidestr-rs: 60259e848795d0cd5c5718ca5d0eb658f69fd0d7, visionflow: 4d361b58ce2b3ee17e1570361eaf78270b630012, visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
 ---
 
 ## For developers
@@ -105,7 +105,7 @@ flowchart TB
 
 **What it shows.** Version 2 snapshots contain signing keys, revocation secrets and preimages; restore checks key relationships and retained signatures, but recorded closes/claims are checked only by transaction ID (`../sidestr-rs/sidestr-hitch/src/protocol/snapshot.rs:22`, `../sidestr-rs/sidestr-hitch/src/protocol/snapshot.rs:244`, `../sidestr-rs/sidestr-hitch/src/protocol/snapshot.rs:341-353`). The pure router settles invoices or records a forward before returning its action, with fee and both-channel timeout deductions; the embedding host must persist/reload those records (`../sidestr-rs/sidestr-hitch/src/route.rs:198`, `../sidestr-rs/sidestr-hitch/src/route.rs:248`, `../sidestr-rs/sidestr-hitch/src/route.rs:303`). The present agent host constructs a non-hub router, and its payee lookup supplies no invoice Unix-expiry filter (`../sidestr-rs/sidestr-agent/src/hitch/host.rs:680`, `../sidestr-rs/sidestr-agent/src/hitch/host.rs:1676-1683`).
 
-**Why it is this way.** Save-before-send is a host obligation; the machine itself performs no IO (`../sidestr-rs/sidestr-hitch/src/protocol/mod.rs:30`). Missing prior reveals block normal updates and are requested through sync, while snapshots with an awaiting final revocation remain valid recovery states (`../sidestr-rs/sidestr-hitch/src/protocol/machine.rs:523`, `../sidestr-rs/sidestr-hitch/src/protocol/machine.rs:647`, `../sidestr-rs/sidestr-hitch/src/protocol/machine.rs:1205`, `../sidestr-rs/sidestr-hitch/src/protocol/snapshot.rs:325`).
+**Why it is this way.** Save-before-send is a host obligation; the machine itself performs no IO (`../sidestr-rs/sidestr-hitch/src/protocol/mod.rs:30`). Missing prior reveals block normal updates and are requested through sync, while snapshots with an awaiting final revocation remain valid recovery states (`../sidestr-rs/sidestr-hitch/src/protocol/machine.rs:523`, `../sidestr-rs/sidestr-hitch/src/protocol/machine.rs:647`, `../sidestr-rs/sidestr-hitch/src/protocol/machine.rs:1205`, `../sidestr-rs/sidestr-hitch/src/protocol/snapshot.rs:326`).
 
 **Debt:** [Native recovery checks](../../estate-review/2026-11-01-sidestr-hitch-recovery.md) reproduce damaged-witness rebroadcasts and missing-secret close classification that persists after a late reveal; snapshot acceptance alone does not establish protection. Invoice wall-clock expiry policy and durable hub integration remain explicit acceptance tasks.
 

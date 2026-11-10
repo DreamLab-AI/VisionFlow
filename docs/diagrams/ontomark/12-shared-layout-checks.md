@@ -19,7 +19,7 @@ sources:
   - ../ontomark/crates/ontomark-cli/src/main.rs
   - ../ontomark/crates/ontomark-cli/src/migrate_cmd.rs
   - ../project/src/services/corpus_source/local.rs
-verified_commit: {ontomark: 6159bb6089753105ef839fd4aac46c1598a64bd2, visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
+verified_commit: {ontomark: 6159bb6089753105ef839fd4aac46c1598a64bd2, visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
 ---
 
 ## For developers

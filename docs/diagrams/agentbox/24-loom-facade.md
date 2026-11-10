@@ -49,7 +49,7 @@ sources:
   - ../project/agentbox/services/agentbox-manifest/src/system_one.rs
   - ../project/agentbox/docs/GOVERNANCE-capabilities.md
   - ../loom/.gitignore
-verified_commit: {agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e, loom: 741c5dffd3253038bbe4fadea7fada7c46474a25}
+verified_commit: {agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, loom: 741c5dffd3253038bbe4fadea7fada7c46474a25}
 ---
 
 ## AB-24.1 Two deployments of one facade contract — topology

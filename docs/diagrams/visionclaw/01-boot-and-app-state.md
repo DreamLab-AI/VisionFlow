@@ -73,7 +73,7 @@ sources:
   - ../project/src/services/ontology_pull.rs
   - ../project/Cargo.toml
   - ../project/src/adapters/mod.rs
-verified_commit: {visionclaw: 46edc196b58a46c64fffa5c10e3dd72c0a36238e}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
 ---
 
 ## For developers
@@ -133,10 +133,10 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant M as main<br/>src/main.rs:172
-    participant AS as AppState::new<br/>src/app_state.rs:370
+    participant AS as AppState::new<br/>src/app_state.rs:368
     participant GH as GitHub client + ContentAPI<br/>src/services/github/config.rs
     participant CS as source_from_env_with_github<br/>src/services/corpus_source/mod.rs:167
-    participant SY as GithubSyncService<br/>src/services/github_sync_service.rs:232
+    participant SY as GithubSyncService<br/>src/services/github_sync_service.rs:298
     participant RS as RoleStore<br/>src/services/role_store.rs
     participant SV as domain services
     participant PR as assert_effective_profile_or_exit<br/>src/config/security_profile.rs:624
@@ -211,7 +211,7 @@ sequenceDiagram
     Note over A: /api/settings scope only — src/main.rs:1177-1180
     A->>A: .wrap(RateLimit::per_minute(60)) (src/main.rs:1178)
     end
-    Note over A: /api/graph carries its own scope limiter RateLimit::per_minute(600) plus<br/>tighter 120/min per-resource wraps — src/handlers/api_handler/graph/mod.rs:1634 and :1655-1671
+    Note over A: /api/graph carries its own scope limiter RateLimit::per_minute(600) plus<br/>tighter 120/min per-resource wraps — src/handlers/api_handler/graph/mod.rs:1693 and :1714-1730
     M->>M: .on_connect(socket_flow_handler::transport::capture_transport) keeps a dup of each connection fd so a /wss client that never reads can be closed from outside its session actor (src/main.rs:1300-1302)
     M->>M: .bind(&bind_address) (src/main.rs:1303) then .run() (src/main.rs:1305)
     REQ->>A: request order = Timeout → Compress → Cors → Logger → [PublicDemoGuard → RbacGate] → extractor → handler
@@ -273,56 +273,56 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant AS as AppState::new<br/>src/app_state.rs:370
-    participant CC as ClientCoordinatorActor<br/>src/app_state.rs:677
-    participant AB as AgentBeamActor<br/>src/app_state.rs:692
-    participant MD as MetadataActor<br/>src/app_state.rs:786
-    participant GS as GraphServiceSupervisor<br/>src/app_state.rs:791
-    participant AD as AgentDemoDirector<br/>src/app_state.rs:826
-    participant GPU as GPU actor group<br/>src/app_state.rs:951-971
-    participant SE as settings_actor<br/>src/app_state.rs:1104
+    participant AS as AppState::new<br/>src/app_state.rs:368
+    participant CC as ClientCoordinatorActor<br/>src/app_state.rs:662
+    participant AB as AgentBeamActor<br/>src/app_state.rs:677
+    participant MD as MetadataActor<br/>src/app_state.rs:797
+    participant GS as GraphServiceSupervisor<br/>src/app_state.rs:802
+    participant AD as AgentDemoDirector<br/>src/app_state.rs:837
+    participant GPU as GPU actor group<br/>src/app_state.rs:962-982
+    participant SE as settings_actor<br/>src/app_state.rs:1115
     participant PEERS as peer actors
 
     Note over AS: pub struct AppState src/app_state.rs:241
     AS->>CC: ClientCoordinatorActor.start() → client_manager_addr
-    AS->>AB: let agent_beam_addr = AgentBeamActor::new(client_manager_addr.clone()).start() (src/app_state.rs:692) — the Addr is now kept
-    AS->>AS: SqliteShareRepository::open(data_dir/shares.sqlite3), one share store for every worker (src/app_state.rs:483-489, field :284)
+    AS->>AB: let agent_beam_addr = AgentBeamActor::new(client_manager_addr.clone()).start() (src/app_state.rs:677) — the Addr is now kept
+    AS->>AS: SqliteShareRepository::open(data_dir/shares.sqlite3), one share store for every worker (src/app_state.rs:481-487, field :284)
     AS->>MD: MetadataActor::new(MetadataStore::new()).start() → metadata_addr
     AS->>GS: GraphServiceSupervisor::new(graph_adapter.clone()).start() → graph_service_addr
-    AS->>GS: SetClientCoordinatorAddr { ... } (src/app_state.rs:802)
-    AS->>GS: SetAgentBeamAddr { addr: agent_beam_addr } (src/app_state.rs:806) — ADR-2142 amendment 2026-11-01: swarm rosters,<br/>/bots/data and the S5 payment projection now go to AgentBeamActor, not GraphStateActor (see VC-02.3, VC-02.20)
-    AS->>AD: AgentDemoDirector::new(graph_actor_addr, client_manager_addr).start() → agent_demo_addr (src/app_state.rs:826-830, ADR-2142) — one server-side producer of 0x23 demo action frames, writes to the client coordinator only
-    Note over CC,GS: INVARIANT (BASELINE Invariants) — the live ClientCoordinatorActor must be the one<br/>clients register with (registry not empty). The re-bind at src/app_state.rs:802 is what enforces it.
+    AS->>GS: SetClientCoordinatorAddr { ... } (src/app_state.rs:813)
+    AS->>GS: SetAgentBeamAddr { addr: agent_beam_addr } (src/app_state.rs:817) — ADR-2142 amendment 2026-11-01: swarm rosters,<br/>/bots/data and the S5 payment projection now go to AgentBeamActor, not GraphStateActor (see VC-02.3, VC-02.20)
+    AS->>AD: AgentDemoDirector::new(graph_actor_addr, client_manager_addr).start() → agent_demo_addr (src/app_state.rs:837-841, ADR-2142) — one server-side producer of 0x23 demo action frames, writes to the client coordinator only
+    Note over CC,GS: INVARIANT (BASELINE Invariants) — the live ClientCoordinatorActor must be the one<br/>clients register with (registry not empty). The re-bind at src/app_state.rs:813 is what enforces it.
     rect rgb(236,236,244)
     Note over GPU: GPU actor group — GPUManagerActor only. RESOLVED ADR-2053: the standalone<br/>ShortestPathActor and ConnectedComponentsActor spawns were removed. They were never sent<br/>a SharedGPUContext (ResourceSupervisor distributes it only to the subsystem supervisors),<br/>so every /api/analytics pathfinding route addressed a GPU-blind pair.
     AS->>GPU: GPUManagerActor::new().start()
-    AS->>GPU: gpu_manager.do_send(SetNodeAnalytics { node_analytics }) (src/app_state.rs:957-959), ADR-014 DL4, to ClusteringActor and AnomalyDetectionActor<br/>the SetNodeSSSP send and its node_sssp map are deleted (7a0674e79), slot 28 is encoded elsewhere, see VC-14
+    AS->>GPU: gpu_manager.do_send(SetNodeAnalytics { node_analytics }) (src/app_state.rs:968-970), ADR-014 DL4, to ClusteringActor and AnomalyDetectionActor<br/>the SetNodeSSSP send and its node_sssp map are deleted (7a0674e79), slot 28 is encoded elsewhere, see VC-14
     Note over GPU: DOC-DRIFT — this block carries NO #[cfg(feature = "gpu")] gate. app_state.rs itself<br/>carries no solid-pod-embed cfg gates either — the only cfg(feature) sites for that flag are in<br/>main.rs:919 (init_solid_state), main.rs:926 (ADR-2106 ontology_pull::spawn_boot_pull), main.rs:932 (pay state),<br/>main.rs:1128 (solid_state app_data), main.rs:1134 (pay app_data). It works<br/>because gpu is in the DEFAULT feature set (Cargo.toml:273 default = gpu, ontology,<br/>persistence-oxigraph, solid-pod-embed, shared-corpus-layout) while the adapter layer IS gated (src/adapters/mod.rs:19,<br/>:37) — so the actor start and its adapters are gated inconsistently. GPU internals see VC-10.
     end
     AS->>SE: settings_actor.start() → settings_addr
     par peer actors
-        AS->>PEERS: AgentMonitorActor::new(claude_flow_client, graph_service_addr).start() (:1127)
+        AS->>PEERS: AgentMonitorActor::new(claude_flow_client, graph_service_addr).start() (:1138)
     and
-        AS->>PEERS: WorkspaceActor::new().start() → workspace_addr (:1139)
+        AS->>PEERS: WorkspaceActor::new().start() → workspace_addr (:1150)
     and
-        AS->>PEERS: OntologyActor.start() (:1152)
+        AS->>PEERS: OntologyActor.start() (:1163)
     and
-        AS->>PEERS: BotsClient::with_graph_service (:1156), then MultiMcpAgentDiscovery::new() (:1158) and initialize_default_servers().await (:1160) - stored as AppState.multi_mcp_discovery (field :347, struct literal :1383)
+        AS->>PEERS: BotsClient::with_graph_service (:1167), then MultiMcpAgentDiscovery::new() (:1169) and initialize_default_servers().await (:1171) - stored as AppState.multi_mcp_discovery (field :347, struct literal :1394)
     and
-        AS->>PEERS: TaskOrchestratorActor::new(mgmt_client).start() (:1206)
+        AS->>PEERS: TaskOrchestratorActor::new(mgmt_client).start() (:1217)
     end
-    alt ElevationActor::new(...) returns Some (src/app_state.rs:1214-1232)
+    alt ElevationActor::new(...) returns Some (src/app_state.rs:1225-1243)
         AS->>PEERS: let _ = actor.start() — ACSP knowledge-elevation panel live
         Note over PEERS: GOV-7 ADR-130 — Some(ontology_repository) is passed so the EL++ consistency<br/>gate is armed. A None here would fail the gate CLOSED, blocking approvals.
     else None
         AS->>AS: log disabled — needs ELEVATION_ACTOR_ENABLED plus FORUM_RELAY_URL plus ACSP_PANEL_NOSTR_PRIVKEY
     end
-    alt VoiceInterfaceActor::new(task_orchestrator_addr, speech_service) returns Some (:1237-1248)
+    alt VoiceInterfaceActor::new(task_orchestrator_addr, speech_service) returns Some (:1248-1259)
         AS->>PEERS: let _ = actor.start() — ADR-110 voice to settings-assistant bridge
     else None
         AS->>AS: log disabled (no speech service)
     end
-    Note over AS,PEERS: Added with project 6a1a74b8b/4f4345503 (2026-10-12) - AppState now holds the multi-MCP discovery handle: built and given its default servers at boot<br/>(src/app_state.rs:1158-1160) and handed to every /multi-mcp/ws socket (VC-05.13, which records the drift this closed). Boot does NOT start its poll loop: the first connected socket attaches and starts it (src/handlers/multi_mcp_websocket_handler.rs:419)
+    Note over AS,PEERS: Added with project 6a1a74b8b/4f4345503 (2026-10-12) - AppState now holds the multi-MCP discovery handle: built and given its default servers at boot<br/>(src/app_state.rs:1169-1171) and handed to every /multi-mcp/ws socket (VC-05.13, which records the drift this closed). Boot does NOT start its poll loop: the first connected socket attaches and starts it (src/handlers/multi_mcp_websocket_handler.rs:419)
     Note over AS,PEERS: full supervision tree and per-actor message surfaces see VC-02
 ```
 
@@ -412,7 +412,7 @@ flowchart TB
     ORD["INVARIANT registration order — actix matches scopes in registration order by path segment<br/>and does NOT fall through a matched scope prefix. The broad /ontology scope inside<br/>api_handler::ontology::config would shadow /ontology/derived and /ontology/class-count to 404,<br/>so both MUST register before api_handler::config. Comments src/main.rs:1181-1195.<br/>Guarded by tests/resd_class_count_route.rs"]
     R4 --- ORD
     R5 --- ORD
-    ORD2["same hazard inside /graph — actix claims the prefix for the FIRST web::scope('/graph'),<br/>so mixed-auth must live in ONE scope with per-resource .wrap()<br/>src/handlers/api_handler/graph/mod.rs:1629-1632"]
+    ORD2["same hazard inside /graph — actix claims the prefix for the FIRST web::scope('/graph'),<br/>so mixed-auth must live in ONE scope with per-resource .wrap()<br/>src/handlers/api_handler/graph/mod.rs:1688-1691"]
     R6 --- ORD2
 ```
 
@@ -431,7 +431,7 @@ flowchart LR
     C --> RF["ragflow_handler::config<br/>scope /ragflow — src/handlers/ragflow_handler.rs:623<br/>POST /session, /message, /chat, /session/enhanced<br/>GET /history/{session_id}, /history/enhanced/{session_id}"]
     C --> CO["constraints_handler::config<br/>scope /constraints — src/handlers/constraints_handler.rs:13<br/>POST /define, /apply, /remove, /validate — GET /list"]
     C --> ON["ontology::config<br/>scope /ontology — src/handlers/api_handler/ontology/mod.rs:1819 — see VC-20"]
-    C --> OP["ontology_physics::configure_routes<br/>scope /ontology-physics — src/handlers/api_handler/ontology_physics/mod.rs:502<br/>POST /enable, /disable — GET /constraints, /trust-status — PUT /weights"]
+    C --> OP["ontology_physics::configure_routes<br/>scope /ontology-physics — src/handlers/api_handler/ontology_physics/mod.rs:327<br/>POST /enable, /disable — GET /constraints, /trust-status — PUT /weights"]
     C --> SF["semantic_forces::config<br/>scope /semantic-forces — src/handlers/api_handler/semantic_forces.rs:438<br/>GET /hierarchy-levels, /config (:439-440) — POST /hierarchy/recalculate<br/>GET|POST /relationship-types, POST /relationship-types/reload, GET|PUT /relationship-types/{uri} (:441-466)<br/>hierarchy-levels answers the caller's view, see VC-04.7"]
     N["WS-0 — the duplicate /ontology scope in ontology_handler::config was collapsed<br/>into api_handler::ontology::config (src/handlers/api_handler/mod.rs:114-117)<br/>settings_handler::config is disabled in favour of settings::api (:121-122)"]
     C --- N
@@ -486,26 +486,26 @@ flowchart LR
 ## VC-01.14 Route table 6 — /api/graph mixed-auth scope and /api/settings
 ```mermaid
 flowchart TB
-    G["web::scope('/graph') — src/handlers/api_handler/graph/mod.rs:1633"]
-    G --> RL["wrap RateLimit::per_minute(600) — scope default, public reads (:1634)"]
-    RL --> P0["GET /api/graph/settlement → get_physics_state_summary (:1636) — compact physics state, telemetry_live false when no snapshot answered"]
-    RL --> P1["GET /api/graph/data → get_graph_data (:1637)"]
-    RL --> P2["GET /api/graph/data/paginated → get_paginated_graph_data (:1638)"]
-    RL --> P3["GET /api/graph/positions → get_graph_positions (:1639)"]
-    RL --> P4["GET /api/graph/fold → fold::get_fold_plan (:1643) — Wave 3, read-only plan"]
-    RL --> P5["GET /api/graph/auto-balance-notifications → get_auto_balance_notifications (:1644-1647)"]
-    RL --> T1["resource /node/{id}/relations + wrap RateLimit::per_minute(120)<br/>GET → get_node_relations (:1655-1658)"]
-    RL --> T2["resource /node/{id}/expand + wrap RateLimit::per_minute(120)<br/>POST → expand_node (:1660-1663)"]
-    RL --> T3["resource /query/pattern + wrap RateLimit::per_minute(120)<br/>POST → query_pattern (:1668-1671)"]
-    RL --> A1["resource /update + wrap RequireAuth::power_user()<br/>POST → update_graph (:1679-1682)"]
-    RL --> A2["resource /refresh + wrap RequireAuth::authenticated()<br/>POST → refresh_graph (:1686-1689)"]
-    N1["S2 escalation — /update triggers a full bulk reload (re-fetch, re-process, rebuild from<br/>AddNodesFromMetadata). Destructive and expensive, so power_user (Admin), not Authenticated.<br/>/refresh only reads back GetGraphData, so any authenticated user may call it. Comments :1673-1685"]
+    G["web::scope('/graph') — src/handlers/api_handler/graph/mod.rs:1692"]
+    G --> RL["wrap RateLimit::per_minute(600) — scope default, public reads (:1693)"]
+    RL --> P0["GET /api/graph/settlement → get_physics_state_summary (:1695) — compact physics state, telemetry_live false when no snapshot answered"]
+    RL --> P1["GET /api/graph/data → get_graph_data (:1696)"]
+    RL --> P2["GET /api/graph/data/paginated → get_paginated_graph_data (:1697)"]
+    RL --> P3["GET /api/graph/positions → get_graph_positions (:1698)"]
+    RL --> P4["GET /api/graph/fold → fold::get_fold_plan (:1702) — Wave 3, read-only plan"]
+    RL --> P5["GET /api/graph/auto-balance-notifications → get_auto_balance_notifications (:1703-1706)"]
+    RL --> T1["resource /node/{id}/relations + wrap RateLimit::per_minute(120)<br/>GET → get_node_relations (:1714-1717)"]
+    RL --> T2["resource /node/{id}/expand + wrap RateLimit::per_minute(120)<br/>POST → expand_node (:1719-1722)"]
+    RL --> T3["resource /query/pattern + wrap RateLimit::per_minute(120)<br/>POST → query_pattern (:1727-1730)"]
+    RL --> A1["resource /update + wrap RequireAuth::power_user()<br/>POST → update_graph (:1738-1741)"]
+    RL --> A2["resource /refresh + wrap RequireAuth::authenticated()<br/>POST → refresh_graph (:1745-1748)"]
+    N1["S2 escalation — /update triggers a full bulk reload (re-fetch, re-process, rebuild from<br/>AddNodesFromMetadata). Destructive and expensive, so power_user (Admin), not Authenticated.<br/>/refresh only reads back GetGraphData, so any authenticated user may call it. Comments :1732-1744"]
     A1 --- N1
-    N3["every graph read answers the caller's view: get_graph_data and the paginated read<br/>pass the graph through graph_access::caller_view (src/handlers/api_handler/graph/mod.rs:405, :495, :1113, imported at :1118)<br/>the shared visibility policy is drawn in VC-19"]
+    N3["every graph read answers the caller's view: get_graph_data and the paginated read<br/>pass the graph through graph_access::caller_view (src/handlers/api_handler/graph/mod.rs:464, :554, :1172, imported at :1177)<br/>the shared visibility policy is drawn in VC-19"]
     P1 --- N3
-    N2["the Graph2VR reads scan every edge, so their 120/min per-resource ceiling stacks UNDER<br/>the 600/min scope limiter and is the stricter gate. Comment :1648-1654"]
+    N2["the Graph2VR reads scan every edge, so their 120/min per-resource ceiling stacks UNDER<br/>the 600/min scope limiter and is the stricter gate. Comment :1707-1713"]
     T1 --- N2
-    SET["web::scope('/settings') + RateLimit::per_minute(60) — src/main.rs:1177-1180<br/>settings::api::configure_routes src/settings/api/settings_routes.rs:1947<br/>GET|PUT physics, constraints, rendering, node-filter, quality-gates, visual<br/>POST physics/reset-layout — GET all — POST|GET profiles — GET|DELETE profiles/{id}<br/>nested scope /user GET|PUT /filter (:1970-1973)"]
+    SET["web::scope('/settings') + RateLimit::per_minute(60) — src/main.rs:1177-1180<br/>settings::api::configure_routes src/settings/api/settings_routes.rs:2022<br/>GET|PUT physics, constraints, rendering, node-filter, quality-gates, visual<br/>POST physics/reset-layout — GET all — POST|GET profiles — GET|DELETE profiles/{id}<br/>nested scope /user GET|PUT /filter (:2045-2048)"]
     SET2["settings round-trip and the settings actor see VC-06, ProtectedSettingsActor is deleted"]
     SET --- SET2
 ```
