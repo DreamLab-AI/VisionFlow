@@ -1,9 +1,9 @@
 {
   "schema": "visionflow.estate-health/1",
-  "generated_at": "2026-11-14T22:24:48.084Z",
+  "generated_at": "2026-11-14T22:38:53.984Z",
   "generator": {
-    "revision": "43e558e6ef4fbc6d478897ae36bb3e657ac5ac9b",
-    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43647926396",
+    "revision": "7aee7fc8d2575d4c7783d75f20fb07e7b322db04",
+    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43649153768",
     "collector": "scripts/estate-health.mjs"
   },
   "summary": {
@@ -30,11 +30,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "43e558e6ef4fbc6d478897ae36bb3e657ac5ac9b",
-        "short": "43e558e",
-        "date": "2026-11-14T22:19:50Z",
-        "message": "chore(estate-health): nightly snapshot 2026-11-14 — 16/21 green",
-        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/43e558e6ef4fbc6d478897ae36bb3e657ac5ac9b"
+        "sha": "7aee7fc8d2575d4c7783d75f20fb07e7b322db04",
+        "short": "7aee7fc",
+        "date": "2026-11-14T22:34:06Z",
+        "message": "Merge pull request #30 from DreamLab-AI/fix/estate-green-20261114",
+        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/7aee7fc8d2575d4c7783d75f20fb07e7b322db04"
       },
       "ci": {
         "state": "green",
@@ -50,22 +50,22 @@
             "workflow": "Copyright Source Guard",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/42868137225",
-            "updated_at": "2026-11-10T17:45:23Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43648775956",
+            "updated_at": "2026-11-14T22:34:20Z"
           },
           {
             "workflow": "Deploy to GitHub Pages",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43647514336",
-            "updated_at": "2026-11-14T22:20:30Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43648776008",
+            "updated_at": "2026-11-14T22:34:49Z"
           },
           {
             "workflow": "Diagrams-as-code index gate",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/42868137630",
-            "updated_at": "2026-11-10T17:45:28Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43648775955",
+            "updated_at": "2026-11-14T22:34:25Z"
           },
           {
             "workflow": "Harness Fitness Gates",
@@ -78,8 +78,8 @@
             "workflow": "Nightly estate health",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43647477029",
-            "updated_at": "2026-11-14T22:19:56Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43647926396",
+            "updated_at": "2026-11-14T22:24:55Z"
           }
         ]
       },
@@ -470,11 +470,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "5294e88b6602a63b5afe96c79f2779d00274a05e",
-        "short": "5294e88",
-        "date": "2026-10-31T12:02:51Z",
-        "message": "docs(adr): consume the canonical ledger checker pinned instead of a vendored copy",
-        "url": "https://github.com/DreamLab-AI/knowledgeGraph/commit/5294e88b6602a63b5afe96c79f2779d00274a05e"
+        "sha": "7815bbcb9f8ab04c2e76f5f8c5c32c69a9dbc56c",
+        "short": "7815bbc",
+        "date": "2026-11-14T22:35:31Z",
+        "message": "Merge pull request #5 from DreamLab-AI/fix/estate-buffer-repair-20261114",
+        "url": "https://github.com/DreamLab-AI/knowledgeGraph/commit/7815bbcb9f8ab04c2e76f5f8c5c32c69a9dbc56c"
       },
       "ci": {
         "state": "green",
@@ -483,8 +483,8 @@
             "workflow": "adr-ledger",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/knowledgeGraph/actions/runs/41199667925",
-            "updated_at": "2026-10-31T12:08:34Z"
+            "url": "https://github.com/DreamLab-AI/knowledgeGraph/actions/runs/43648905242",
+            "updated_at": "2026-11-14T22:37:13Z"
           }
         ]
       },
@@ -961,7 +961,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 370,
+      "latency_ms": 330,
       "note": null
     },
     {
@@ -970,7 +970,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 253,
+      "latency_ms": 358,
       "note": null
     },
     {
@@ -979,7 +979,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/ld+json",
-      "latency_ms": 246,
+      "latency_ms": 357,
       "note": null
     },
     {
@@ -988,7 +988,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/json; charset=utf-8",
-      "latency_ms": 247,
+      "latency_ms": 223,
       "note": "classes=9595 pages=9593 nodes=9595"
     },
     {
@@ -997,7 +997,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 359,
+      "latency_ms": 691,
       "note": null
     },
     {
@@ -1006,7 +1006,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/octet-stream",
-      "latency_ms": 273,
+      "latency_ms": 356,
       "note": null
     }
   ],
