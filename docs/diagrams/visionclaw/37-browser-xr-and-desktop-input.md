@@ -36,7 +36,7 @@ sources:
   - ../project/client/src/features/graph/hooks/dragHeartbeat.ts
   - ../project/client/src/features/graph/hooks/__tests__/dragHeartbeat.test.ts
   - ../project/src/handlers/socket_flow_handler/types.rs
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
+verified_commit: {visionclaw: 2e7ecc2e731ed475982176d522877d9c89e3ff51}
 ---
 
 ## For developers
@@ -391,9 +391,9 @@ flowchart TB
         B5["Binary V3/V5 over /wss to SAB<br/>see VC-32"]
     end
     subgraph gd["Godot XR client (xr-client/)"]
-        G1["Godot 4.6.1 + gdext, OpenXR<br/>gl_compatibility on desktop project.godot:56"]
+        G1["Godot 4.8-beta2 target + gdext, OpenXR<br/>gl_compatibility on desktop project.godot:56"]
         G1M["TENSION: rendering_method.mobile is 'mobile', so an Android or Quest export<br/>would take the Mobile renderer, not Compatibility, unless overridden<br/>project.godot:57"]
-        G1D["DEBT: config/features metadata is still pinned at 4.3 while the verified runtime is 4.6.1,<br/>to be re-pinned in the editor with the Quest renderer decision<br/>project.godot:3-7"]
+        G1D["DEBT: config/features metadata is still pinned at 4.3 while the single engine target is 4.8-beta2,<br/>to be re-pinned in the editor with the Quest renderer decision<br/>project.godot:3-7"]
         G1 -.-> G1D
         G1 -.-> G1M
         G2["Real stereo submission on SteamVR<br/>ADR-2032"]

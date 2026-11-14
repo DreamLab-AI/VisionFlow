@@ -29,7 +29,7 @@ sources:
   - ../project/xr-client/scripts/graph_scene.gd
   - ../project/xr-client/scripts/hud.gd
   - ../project/docs/XR-client.md
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
+verified_commit: {visionclaw: 2e7ecc2e731ed475982176d522877d9c89e3ff51}
 ---
 
 ## For developers
@@ -137,9 +137,9 @@ flowchart TD
     end
     subgraph XRH["headset"]
         direction TB
-        CYC["mode cycle POSTs after the volume capability gate, label flips on 2xx<br/>graph_scene.gd:2735-2739 graph_scene.gd:2754 graph_scene.gd:2756"]
-        LBL["HUD Shared label, every viewer's layout changes<br/>hud.gd:563"]
-        NOP["mode deliberately not persisted on device, re-applying at boot would move every viewer<br/>XR-client.md:1129-1131"]
+        CYC["mode cycle POSTs after the volume capability gate, label flips on 2xx<br/>graph_scene.gd:2748-2752 graph_scene.gd:2767 graph_scene.gd:2769"]
+        LBL["HUD Shared label, every viewer's layout changes<br/>hud.gd:566"]
+        NOP["mode deliberately not persisted on device, re-applying at boot would move every viewer<br/>XR-client.md:1140-1142"]
         CYC --- LBL
         CYC --- NOP
     end
@@ -159,7 +159,7 @@ flowchart TD
 
 **What it shows.** Layout mode and the two layout dials are one server-side document; the desktop marks the dials as shared and the headset refuses to persist the mode locally for the same reason. **Why it is this way.** ADR-2140 made `physics.layoutMode` the one stored definition, and ADR-2189 §2 labels every control that writes it.
 **Debt (parallel):** Two desktop callers POST the mode: `settingWrites.ts:66` on a registry write and `GraphManager.tsx:314` on the resulting store change, so one edit sends two requests; the server's same-mode check (`layout_handler.rs:86`) makes the second a no-op. The shared-scope sentence is also defined twice (`MacroDial.tsx:41`, `manifest.ts:224`).
-**Open (risk):** A Spectral or Temporal placement is computed over the caller's own view (`layout_handler.rs:139`) and exists only in that response (`layout_handler.rs:191`). Each desktop fetches its own on the store change (`GraphManager.tsx:316`), while the headset's completion handler leaves the body unread (`graph_scene.gd:2833`), so viewers can hold different placements under one shared mode.
+**Open (risk):** A Spectral or Temporal placement is computed over the caller's own view (`layout_handler.rs:139`) and exists only in that response (`layout_handler.rs:191`). Each desktop fetches its own on the store change (`GraphManager.tsx:316`), while the headset's completion handler leaves the body unread (`graph_scene.gd:2846`), so viewers can hold different placements under one shared mode.
 
 ## VC-54.6 Eight modes, resolved on the host, and a kernel field nothing reads
 

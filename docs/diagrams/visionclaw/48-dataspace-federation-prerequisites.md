@@ -17,7 +17,7 @@ sources:
   - ../project/xr-client/scripts/backend_connection.gd
   - ../project/src/services/corpus_history.rs
   - ../project/src/actors/agent_demo_director.rs
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
+verified_commit: {visionclaw: 2e7ecc2e731ed475982176d522877d9c89e3ff51}
 ---
 
 ## For developers
@@ -32,17 +32,17 @@ Local portals and concurrent graph connections do not provide cross-node data sh
 
 ```mermaid
 flowchart TD
-    DIAL["BackendConnection dials with URL and signing secret<br/>backend_connection.gd:350 backend_connection.gd:356"] --> REQ["graph_upgrade_request: Origin is the target's own scheme and authority<br/>transport.rs:49 transport.rs:63 transport.rs:70"]
-    REQ --> CAR["NIP-98 for the http(s) form of the socket URL, carried as nostr.base64url in Sec-WebSocket-Protocol, bare visionclaw when no secret<br/>transport.rs:71-83"]
-    CAR --> CONN["connect with the signed request<br/>transport.rs:139 transport.rs:147"]
+    DIAL["BackendConnection dials with URL and signing secret<br/>backend_connection.gd:399 backend_connection.gd:406"] --> REQ["graph_upgrade_request: Origin is the target's own scheme and authority<br/>transport.rs:52 transport.rs:66 transport.rs:73"]
+    REQ --> CAR["NIP-98 for the http(s) form of the socket URL, carried as nostr.base64url in Sec-WebSocket-Protocol, bare visionclaw when no secret<br/>transport.rs:74-86"]
+    CAR --> CONN["connect with the signed request over ReadClock-wrapped TCP<br/>transport.rs:132 transport.rs:197"]
     CONN --> ORIGIN["Server requires Origin in release<br/>http_handler.rs:67,129,131,139"]
     ORIGIN --> AUTH["Verify signed subprotocol or legacy bearer at upgrade<br/>http_handler.rs:146,151,181,183"]
     AUTH --> DENY["Unauthenticated release upgrade refused<br/>http_handler.rs:314,321,322"]
-    CONN --> FB["no subprotocol selected and a secret set: send first-message authenticate, the Codescape contract<br/>transport.rs:165-170"]
+    CONN --> FB["no subprotocol selected and a secret set: send first-message authenticate, the Codescape contract<br/>transport.rs:215-220"]
 ```
 
-**What it shows.** The upgrade-phase mismatch the earlier stamp recorded is closed: a configured identity now signs the HTTP upgrade itself, and the post-upgrade text message survives only for a server that selects no subprotocol. **Why it is this way.** One signed carrier for browsers and the headset (`transport.rs:48`); dataspace viewers must still bind one dataspace, which nothing implements.
-**Open (risk):** The native client writes its own `Origin` from the target URL (`transport.rs:63`), so the release Origin gate (`http_handler.rs:139`) separates browsers only; the signed carrier is the actual boundary for non-browser peers.
+**What it shows.** The upgrade-phase mismatch the earlier stamp recorded is closed: a configured identity now signs the HTTP upgrade itself, and the post-upgrade text message survives only for a server that selects no subprotocol. **Why it is this way.** One signed carrier for browsers and the headset (`transport.rs:51`); dataspace viewers must still bind one dataspace, which nothing implements.
+**Open (risk):** The native client writes its own `Origin` from the target URL (`transport.rs:66`), so the release Origin gate (`http_handler.rs:139`) separates browsers only; the signed carrier is the actual boundary for non-browser peers.
 
 ## VC-48.2 One visibility projection, still narrower than a dataspace contract
 
@@ -71,3 +71,5 @@ flowchart TD
 
 **What it shows.** The design has distinct ownership and expiry rules; the current resolver has no 410/tombstone implementation. **Why it is this way.** A received reference is reconstructible, while an authored assertion is primary data. This diagram records the proposal without asserting that its deadlines run today.
 **Open (risk):** graph shares are a durable copy of the creator's view, private nodes included, and no per-user erasure path reaches them (`DATA-authority-erasure.md:114-115`, `DATA-authority-erasure.md:129-131`). A federated render-only rule that forbids durable copies (`DATA-authority-erasure.md:182`) would need shares carved out or covered.
+
+**Transport boundary, 14 November source review:** `connect_graph` accepts `ws://` only; this build has no TLS backend and refuses `wss://` (`xr-client/rust/src/transport.rs:108-123`). Signing the upgrade establishes the configured identity carrier, not encrypted transport or a completed federation contract. VC-44.4 describes the separate byte-progress and reconnect behaviour.

@@ -56,7 +56,7 @@ sources:
   - ../project/src/handlers/socket_flow_handler/types.rs
   - ../project/src/handlers/socket_flow_handler/message_routing.rs
   - ../project/src/handlers/socket_flow_handler/position_updates.rs
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
+verified_commit: {visionclaw: 2e7ecc2e731ed475982176d522877d9c89e3ff51}
 ---
 
 ## For developers
@@ -303,7 +303,7 @@ classDiagram
     }
     V5Envelope --> V3NodeRecord : wraps
     V4DeltaFrame_RETIRED --> DeltaItem : contained
-    note for V3NodeRecord "CROSS-CHECK OK. client/src/types/binaryProtocol.ts:84-94 offsets match<br/>xr-client/rust/src/binary_protocol.rs:8-11,947-969 exactly: id, pos, vel,<br/>sssp_distance, sssp_parent, cluster_id, anomaly, community_id, centrality. Godot<br/>NODE_RECORD_BYTES=52 (:32) equals client BINARY_NODE_SIZE_V3=52<br/>(types/binaryProtocol.ts:79). No DIVERGENCE."
+    note for V3NodeRecord "CROSS-CHECK OK. client/src/types/binaryProtocol.ts:84-94 offsets match<br/>xr-client/rust/src/binary_protocol.rs:8-11,977-999 exactly: id, pos, vel,<br/>sssp_distance, sssp_parent, cluster_id, anomaly, community_id, centrality. Godot<br/>NODE_RECORD_BYTES=52 (:32) equals client BINARY_NODE_SIZE_V3=52<br/>(types/binaryProtocol.ts:79). No DIVERGENCE."
     note for V2NodeRecord "Declined, not live. The server answers a 0x02 lead byte with Err (src/utils/binary_protocol.rs:610),<br/>its 36-byte stride constant is deleted, and the client declares no 36-byte stride at all (ADR-2057,<br/>types/binaryProtocol.ts:76-79). The shape is kept here only to show what the 52-byte V3 record replaced."
     note for V5Envelope "types/binaryProtocol.ts:328-349 parseV5Nodes reads seqLow at offset1 and seqHigh<br/>at offset5, reconstructs a V3 buffer at offset9. Matches Godot PROTOCOL_V5=0x05<br/>and V5_SEQ_BYTES=8, docs/PROTOCOL-registry.md 0x05 row<br/>(xr-client/rust/src/binary_protocol.rs:29-30)."
     note for V4DeltaFrame_RETIRED "RETIRED (ADR-2139, ADR-2141). No encoder exists on the server and every decoder refuses the tag: the web parser logs a<br/>decline and applies nothing (client/src/types/binaryProtocol.ts:190-198), the registry keeps 0x04 reserved, never to be reused<br/>(docs/PROTOCOL-registry.md:68). Every position frame is an absolute chunk, so there is nothing to add offsets to.<br/>PROTOCOL_V4 now means only the retired delta tag (client/src/services/binaryProtocol/frameTypes.ts:37)."
