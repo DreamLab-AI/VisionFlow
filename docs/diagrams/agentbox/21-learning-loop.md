@@ -27,7 +27,7 @@ sources:
   - ../project/agentbox/config/hooks/lib/jev-option.cjs
   - ../project/agentbox/config/hooks/nostr-live-mirror.cjs
   - ../project/agentbox/mcp/servers/ruvector-mcp.cjs
-verified_commit: 720e0d89656a4360998b3a716d0f3ee8cac66f93
+verified_commit: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a
 ---
 
 ## AB-21.1 Capture — transcript-driven grading
@@ -35,7 +35,7 @@ verified_commit: 720e0d89656a4360998b3a716d0f3ee8cac66f93
 ```mermaid
 sequenceDiagram
     autonumber
-    participant BOOT as entrypoint hook registration<br/>agentbox/config/entrypoint-unified.sh:2044
+    participant BOOT as entrypoint hook registration<br/>agentbox/config/entrypoint-unified.sh:2045
     participant CC as Claude Code<br/>Stop / SubagentStop
     participant HK as trajectory-recorder.cjs<br/>agentbox/config/hooks/trajectory-recorder.cjs:1
     participant STASH as per-session stash<br/>line watermark
@@ -190,7 +190,7 @@ classDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SUP as supervisord<br/>agentbox/flake.nix:2443
+    participant SUP as supervisord<br/>agentbox/flake.nix:2608
     participant SW as ruvector-aggregate-sweep.mjs<br/>agentbox/scripts/ruvector-aggregate-sweep.mjs:1
     participant G as gates
     participant MT as governed memStore/memRetrieve<br/>agentbox/mcp/servers/lib/memory-tools.js
@@ -223,7 +223,7 @@ sequenceDiagram
                     AE->>AE: SKIP (mcp/servers/lib/aggregate-effectiveness.js:244-256)
                     Note over AE: INVARIANT I06 / ADR-2016 — the sample floor gates on the RAW OBSERVATION COUNT, not the<br/>recency-weighted effective size, and a pattern must also come from enough independent sessions
                 else survives the floor
-                    AE->>AE: eligible rows pass trajectoryJev.annotateRows, off unless AGENTBOX_JEV_TRAJECTORY_CLASSIFY=1,<br/>which the manifest projects from consumers.trajectory_classify = true (configured, takes effect at the next image activation, ADR-2155 staged),<br/>with TRAJECTORY_LOCAL_ONLY projected 0 unless it is listed in [system_one].local_only (empty), so by default it takes the proxy and TypeSafe (jev-option.cjs:72-77, system_one.rs:466-472, :546, :580-593)<br/>(agentbox.toml:921, entrypoint-unified.sh:1274-1278, mcp/servers/lib/aggregate-effectiveness.js:417-419, mcp/servers/lib/trajectory-pattern-jev.js:134-137)
+                    AE->>AE: eligible rows pass trajectoryJev.annotateRows, off unless AGENTBOX_JEV_TRAJECTORY_CLASSIFY=1,<br/>which the manifest projects from consumers.trajectory_classify = true (configured, takes effect at the next image activation, ADR-2155 staged),<br/>with TRAJECTORY_LOCAL_ONLY projected 0 unless it is listed in [system_one].local_only (empty), so by default it takes the proxy and TypeSafe (jev-option.cjs:72-77, system_one.rs:466-472, :546, :580-593)<br/>(agentbox.toml:939, entrypoint-unified.sh:1272-1276, mcp/servers/lib/aggregate-effectiveness.js:417-419, mcp/servers/lib/trajectory-pattern-jev.js:134-137)
                     Note over AE: the Jev option only ATTACHES a semantic object, an action class and a coherence score, to a row<br/>that was already eligible, capped at AGENTBOX_JEV_TRAJECTORY_MAX_PATTERNS 40 per sweep<br/>(mcp/servers/lib/trajectory-pattern-jev.js:140,145), and the stored value spreads it in<br/>(mcp/servers/lib/aggregate-effectiveness.js:462, mcp/servers/lib/trajectory-pattern-jev.js:156-158)
                     AE->>MT: memStore through the GOVERNED path (mcp/servers/lib/aggregate-effectiveness.js:24, mcp/servers/lib/aggregate-effectiveness.js:467)
                     Note over AE,AGG: key effectiveness-sha256-12-<hash(pattern)> (mcp/servers/lib/aggregate-effectiveness.js:88), namespace memory-learning-aggregates<br/>(mcp/servers/lib/aggregate-effectiveness.js:47), typed metadata {importance: wilson, tags: ['action:<pattern>'], memory_type:<br/>'semantic'} (mcp/servers/lib/aggregate-effectiveness.js:28-29, runtime mcp/servers/lib/aggregate-effectiveness.js:468-470)
@@ -241,14 +241,14 @@ sequenceDiagram
 
 **Resolved:** the Jev pattern annotation stated that the recorder's own taint handling was not verified for it and left the safe default to an operator flag, `AGENTBOX_JEV_TRAJECTORY_LOCAL_ONLY` (`../project/agentbox/mcp/servers/lib/trajectory-pattern-jev.js:30-33`, `:138`); since 2026-10-30 (ADR-2139 amendment) the manifest projects it 0 unless `trajectory_classify` is in `[system_one].local_only`, empty by default (`../project/agentbox/services/agentbox-manifest/src/system_one.rs:580-593`).
 
-**Drift:** the module header still says "successes = steps with quality >= 0.5" (`../project/agentbox/mcp/servers/lib/aggregate-effectiveness.js:15`), but the query counts a success only at `quality >= $2`, the clean-exit threshold defaulting to 0.9 (`../project/agentbox/mcp/servers/lib/aggregate-effectiveness.js:197-200`, `../project/agentbox/mcp/servers/lib/aggregate-effectiveness.js:224-227`). Separately, the sweep logs "aggregates will store without embeddings" when Xinference is unreachable (`../project/agentbox/mcp/servers/lib/aggregate-effectiveness.js:425-427`). The governed `memStore` it calls instead REJECTS an unembedded write unless `RUVECTOR_EMBED_REPAIR` is set (`../project/agentbox/mcp/servers/lib/memory-tools.js:277-294`), and nothing in this process sets it, so those stores fail and are counted as failures.
+**Drift:** the module header still says "successes = steps with quality >= 0.5" (`../project/agentbox/mcp/servers/lib/aggregate-effectiveness.js:15`), but the query counts a success only at `quality >= $2`, the clean-exit threshold defaulting to 0.9 (`../project/agentbox/mcp/servers/lib/aggregate-effectiveness.js:197-200`, `../project/agentbox/mcp/servers/lib/aggregate-effectiveness.js:224-227`). Separately, the sweep logs "aggregates will store without embeddings" when Xinference is unreachable (`../project/agentbox/mcp/servers/lib/aggregate-effectiveness.js:425-427`). The governed `memStore` it calls instead REJECTS an unembedded write unless `RUVECTOR_EMBED_REPAIR` is set (`../project/agentbox/mcp/servers/lib/memory-tools.js:296-313`), and nothing in this process sets it, so those stores fail and are counted as failures.
 
 ## AB-21.5 Distil — patterns table
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SUP as supervisord<br/>agentbox/flake.nix:2474
+    participant SUP as supervisord<br/>agentbox/flake.nix:2639
     participant DS as ruvector-pattern-distill.mjs<br/>agentbox/scripts/ruvector-pattern-distill.mjs:1
     participant G as gates
     participant PG as trajectory_steps
@@ -292,7 +292,7 @@ sequenceDiagram
     autonumber
     participant AG as Agent
     participant HY as applyEffectivenessBonus<br/>agentbox/mcp/servers/lib/memory-hybrid.js:121
-    participant ADM as consumerAdmission<br/>agentbox/mcp/servers/lib/ruvector-gates.js:90
+    participant ADM as consumerAdmission<br/>agentbox/mcp/servers/lib/ruvector-gates.js:94
     participant AGG as ns memory-learning-aggregates
     participant RES as result rows
 
@@ -306,19 +306,19 @@ sequenceDiagram
         ADM-->>HY: {admitted: false, reason: 'master-learning-off'} (:93-97)
         Note over ADM: the master gate is the OUTER BOUNDARY — a consumer gate left on behind an off master<br/>must not act
     else producer currently capturing
-        ADM-->>HY: {admitted: true, reason: 'active-capture'} (ruvector-gates.js:98)
+        ADM-->>HY: {admitted: true, reason: 'active-capture'} (ruvector-gates.js:102)
     else producer off and no receipt
         ADM-->>HY: {admitted: false, reason: 'producer-off-and-retained-corpus-not-accepted'} (:100-106)
     else receipt present but corpus empty
-        ADM-->>HY: {admitted: false, reason: 'retained-corpus-empty'} (ruvector-gates.js:118)
-        Note over ADM: emptiness is diagnosed FIRST — an empty corpus is also undateable, and "there is nothing<br/>here" is the more useful answer than "I cannot date it" (ruvector-gates.js:115-116)
+        ADM-->>HY: {admitted: false, reason: 'retained-corpus-empty'} (ruvector-gates.js:122)
+        Note over ADM: emptiness is diagnosed FIRST — an empty corpus is also undateable, and "there is nothing<br/>here" is the more useful answer than "I cannot date it" (ruvector-gates.js:119-120)
     else receipt present but corpus undateable
-        ADM-->>HY: {admitted: false, reason: 'retained-corpus-freshness-unknown'} (ruvector-gates.js:123)
+        ADM-->>HY: {admitted: false, reason: 'retained-corpus-freshness-unknown'} (ruvector-gates.js:127)
         Note over ADM: an accepted corpus we CANNOT DATE is not a fresh corpus. Refuse rather than assume — an<br/>unmeasurable corpus is the same risk as a stale one
     else receipt present and corpus older than RUVECTOR_RETAINED_CORPUS_MAX_AGE_DAYS default 30
-        ADM-->>HY: {admitted: false, reason: 'retained-corpus-stale'} (ruvector-gates.js:126)
+        ADM-->>HY: {admitted: false, reason: 'retained-corpus-stale'} (ruvector-gates.js:130)
     else receipt present and fresh
-        ADM-->>HY: {admitted: true, reason: 'retained-corpus-accepted', receipt, corpus_age_days} (ruvector-gates.js:128)
+        ADM-->>HY: {admitted: true, reason: 'retained-corpus-accepted', receipt, corpus_age_days} (ruvector-gates.js:132)
     end
     alt admitted
         HY->>AGG: ONE bounded read, LIMIT 500 (:139-148)
@@ -362,7 +362,7 @@ stateDiagram-v2
     Refused_Undateable --> [*]
     Refused_Stale --> [*]
     note right of NeedsReceipt
-        THE INVARIANT, chosen and stated (ruvector-gates.js:47-74):
+        THE INVARIANT, chosen and stated (ruvector-gates.js:51-78):
         producer-before-consumer means a QUALIFIED RETAINED CORPUS,
         not merely active capture. "Active capture" alone is too strong —
         stopping the recorder does not erase valid aggregates. "Any
@@ -374,12 +374,12 @@ stateDiagram-v2
         The provenance/freshness binding: an operator says WHICH corpus
         they accepted, and the runtime checks it is not stale before
         letting it move a score. AN ENVIRONMENT OVERRIDE CANNOT SKIP IT —
-        there is no boolean that means "trust me" (ruvector-gates.js:67-70).
+        there is no boolean that means "trust me" (ruvector-gates.js:71-74).
     end note
     note right of Admitted_ActiveCapture
         RESOLVED ADR-2051: LEARNING-memory Invariant 2 now states the
         enforced rule — a consumer is admitted only via this single
-        runtime consumerAdmission decision (ruvector-gates.js:90-128),
+        runtime consumerAdmission decision (ruvector-gates.js:94-132),
         which the static validator (E066/W066) mirrors. The doc
         previously said the validator only diagnoses.
     end note
@@ -447,25 +447,25 @@ flowchart LR
     end
     subgraph env["ruvector-gates.js env resolution"]
         direction TB
-        E1["RUVECTOR_MEMORY_LEARNING_ENABLED mcp/servers/lib/ruvector-gates.js:39<br/>projected into the MCP env, config/entrypoint-unified.sh:1634-1636"]
-        E2["RUVECTOR_RECORD_TRAJECTORIES mcp/servers/lib/ruvector-gates.js:40"]
-        E3["RUVECTOR_FEED_RETRIEVAL mcp/servers/lib/ruvector-gates.js:41"]
-        E4["RUVECTOR_FEED_ROUTING mcp/servers/lib/ruvector-gates.js:42"]
+        E1["RUVECTOR_MEMORY_LEARNING_ENABLED mcp/servers/lib/ruvector-gates.js:43<br/>projected into the MCP env, config/entrypoint-unified.sh:1635-1637"]
+        E2["RUVECTOR_RECORD_TRAJECTORIES mcp/servers/lib/ruvector-gates.js:44"]
+        E3["RUVECTOR_FEED_RETRIEVAL mcp/servers/lib/ruvector-gates.js:45"]
+        E4["RUVECTOR_FEED_ROUTING mcp/servers/lib/ruvector-gates.js:46"]
         E5["RUVECTOR_RETAINED_CORPUS_ACCEPTED"]
-        E6["RUVECTOR_RETAINED_CORPUS_MAX_AGE_DAYS<br/>default 30 mcp/servers/lib/ruvector-gates.js:75-78"]
+        E6["RUVECTOR_RETAINED_CORPUS_MAX_AGE_DAYS<br/>default 30 mcp/servers/lib/ruvector-gates.js:79-82"]
     end
     subgraph proc["Self-gating processes"]
         direction TB
         H["trajectory-recorder.cjs<br/>Stop hook"]
-        A["ruvector-aggregate-sweep.mjs<br/>agentbox/flake.nix:2443"]
-        D["ruvector-pattern-distill.mjs<br/>agentbox/flake.nix:2474"]
+        A["ruvector-aggregate-sweep.mjs<br/>agentbox/flake.nix:2608"]
+        D["ruvector-pattern-distill.mjs<br/>agentbox/flake.nix:2639"]
         HY["memory-hybrid re-rank"]
     end
     M --> E1
     P --> E2
     C1 --> E3
     C2 --> E4
-    M --> REG["entrypoint registration<br/>agentbox/config/entrypoint-unified.sh:2044"]
+    M --> REG["entrypoint registration<br/>agentbox/config/entrypoint-unified.sh:2045"]
     P --> REG
     REG --> H
     E2 --> HY
@@ -512,3 +512,6 @@ sequenceDiagram
 ## Audit qualification — 2026-09-07
 
 ADR-2015 is transcript-driven but uses the **structured `tool_result.is_error` flag**, not an LLM's error prose. Unknown or interrupted outcomes are skipped. Current source keeps the watermark unchanged when pg is unavailable and records `usage_id`, turn-level scope and queue overflow metadata. The 57 selected Jest assertions in the [audit](../../estate-review/2026-09-07-agentbox-audit.md) passed. They do not establish a complete failure denominator or live recorder-to-dashboard delivery: non-Bash work, skipped outcomes, crash-before-Stop, HTTP status handling and downstream usage deduplication remain separate obligations.
+
+
+Reviewed at agentbox e458b308: the memory evidence and read-count additions are drawn in [ES-07.11](../estate/07-memory-and-embedding-estate.md#es-0711-read-counters-observe-returned-rows-without-updating-the-indexed-entries). The registered answer experiment is separate from the recall geometry gate; no recall run, consolidation job or runtime activation is performed by this review. Historical measurements retain their dates.
