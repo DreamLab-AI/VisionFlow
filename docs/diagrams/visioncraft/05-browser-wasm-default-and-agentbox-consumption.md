@@ -29,7 +29,7 @@ sources:
   - ../project/agentbox/docs/developer/visioncraft-consumption.md
   - ../project/agentbox/docs/adr/ADR-2165-visioncraft-owns-the-portable-quality-method.md
   - ../project/agentbox/skills/SKILL-DIRECTORY.md
-verified_commit: {visioncraft: 2c6627ce01d0e68bb0f48fc55a209b2c674716f1, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
+verified_commit: {visioncraft: 6add68eebf1e8fb81a05eb86e2e27e732c4da1c3, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
 ---
 
 ## VK-05.1 How agentbox adopted VisionCraft, in three commits
@@ -133,8 +133,8 @@ flowchart LR
     G3["3 wasm-bindgen-test headless for browser-API behaviour<br/>browser-wasm.md:77"]
     G4["4 one real browser journey through the actual bundle<br/>browser-wasm.md:78-79"]
     G5["5 .wasm size against budget, load time where it matters<br/>browser-wasm.md:80-81"]
-    EC["exit-code check, executable evidence<br/>plan.rs:175-177"]
-    PV["partially verifiable or manual, needs a limitation<br/>plan.rs:178-181"]
+    EC["exit-code check, executable evidence<br/>plan.rs:183-185"]
+    PV["partially verifiable or manual, needs a limitation<br/>plan.rs:186-189"]
     GEN["generic run records observed_tests empty<br/>cli.rs:875"]
     SK["missing tool becomes Skipped, a visible non-pass<br/>evaluate.rs:190-195"]
     G1 --> EC

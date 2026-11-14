@@ -74,6 +74,8 @@ verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox
 
 ## For developers
 
+Consumer scope checked on 14 November 2026: VisionClaw main `a6d05ed1a8d090e290944ebb8a9c122c7f59ef8c` still pins Codescape gitlink `e3b76f63e801c6a8460110b93e88a0b420e9b0b4`. This topic retains that producer revision; the standalone Codescape area describes newer source. No deployment was requalified by this pin check.
+
 Codescape is a separate section: a near-real-time 3D view of a codebase that humans and agents share by voice, with its own Cargo workspace, its own compose service and tested dependency-isolation checks (ADR-2143). It reuses the frozen V3/V5 position wire and is intended to exclude corpus access, RuVector access and signing keys; the [runtime-boundary assessment](../../estate-review/2026-11-01-codescape-runtime-boundary.md) separates verified mount and port metadata from the still-open filesystem and network guarantees. Every Codescape citation here is at `e3b76f6`, the submodule commit VisionClaw `ec785afa9` records; standalone `main` is ahead (see VC-43 and VC-45). The agentbox hook is on agentbox `main` (ADR-2146, activity-sink.cjs:5). VC-39.8 lists what Codescape still copies from VisionClaw by hand, and what holds each copy in step.
 
 ## For the business

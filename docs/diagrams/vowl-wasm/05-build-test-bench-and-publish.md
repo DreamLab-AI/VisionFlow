@@ -19,10 +19,10 @@ sources:
   - ../vowl-wasm/docs/release-inventory.json
   - ../vowl-wasm/docs/UPSTREAMS.md
   - ../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md
-verified_commit: 2aff199e2de06f4bba512301acf7023477c492ac
+verified_commit: f04ff27209a0350e926d5a8a183fe0eb8c416604
 ---
 
-**Repair note — 2026-11-03:** selected counterexamples below have a [scoped successor verification](06-layout-and-release-repairs.md). This historical topic retains its declared source revision; the successor states the repaired contracts and acceptance boundaries.
+**Repair note — 2026-11-03:** selected counterexamples below have a [scoped successor verification](06-layout-and-release-repairs.md). Historical probe receipts retain their original revisions; source references were refreshed on 14 November 2026 after reviewing the plain-array loader, documentation and lint changes. The successor states the repaired contracts and acceptance boundaries.
 
 ## VW-05.1 CI — job graph on push/PR/weekly cron
 ```mermaid

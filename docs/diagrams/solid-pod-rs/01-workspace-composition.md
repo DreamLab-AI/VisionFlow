@@ -29,7 +29,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/cli/install.rs
   - ../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2010-forge-and-mirror-are-on-in-shipped-builds.md
   - ../solid-pod-rs/.github/workflows/ci.yml
-verified_commit: 27e18995fc20790fa956acb41f7d8420544a13ec
+verified_commit: bc6d9d837bfb7638a4e7698fba9b8c22f4152cf2
 ---
 
 ## SP-01.1 Eight workspace members and the library-first split
@@ -305,13 +305,15 @@ classDiagram
 
 ```mermaid
 flowchart LR
+    SQL["DEBT: SQLite RUSTSEC-2026-0459 ignored for ActivityPub,<br/>sqlx 0.9 migration is the exit, review by 2026-12-20<br/>../solid-pod-rs/deny.toml:65-74"]
+    ADV --- SQL
     ADV["[advisories] yanked = deny<br/>../solid-pod-rs/deny.toml:37"]
-    LIC["[licenses] allow-list<br/>../solid-pod-rs/deny.toml:75"]
-    BANS["[bans] wildcards = deny<br/>../solid-pod-rs/deny.toml:125"]
-    MULTI["multiple-versions = warn<br/>../solid-pod-rs/deny.toml:124"]
-    SRC["[sources] unknown-registry = deny<br/>../solid-pod-rs/deny.toml:149"]
-    GITS["unknown-git = deny (deny.toml:150), allow-git = []<br/>../solid-pod-rs/deny.toml:152"]
-    REG["allow-registry = crates.io only<br/>../solid-pod-rs/deny.toml:151"]
+    LIC["[licenses] allow-list<br/>../solid-pod-rs/deny.toml:85"]
+    BANS["[bans] wildcards = deny<br/>../solid-pod-rs/deny.toml:135"]
+    MULTI["multiple-versions = warn<br/>../solid-pod-rs/deny.toml:134"]
+    SRC["[sources] unknown-registry = deny<br/>../solid-pod-rs/deny.toml:159"]
+    GITS["unknown-git = deny (deny.toml:160), allow-git = []<br/>../solid-pod-rs/deny.toml:162"]
+    REG["allow-registry = crates.io only<br/>../solid-pod-rs/deny.toml:161"]
 
     DEBT["DEBT: the advisory ignore list gained RUSTSEC-2026-0387 on 2026-10-29: crypto-bigint 0.5.5 survives only via openidconnect to p256 0.13, so the oidc feature is exposed and unassessed until openidconnect moves to the 0.14 line<br/>../solid-pod-rs/deny.toml:58-64"]
     ADV -.-> DEBT
@@ -325,7 +327,7 @@ flowchart LR
 
     N["INVARIANT: allow-git is empty — every dependency resolves from the crates.io<br/>index, so a git-patched dependency cannot enter a release build."]
     GITS -.-> N
-    X["EXCEPTION: the licences gate carries one scoped exception — hex_lit (a dep of<br/>rust-bitcoin per ADR-2008) is allowed under MITNFA, MIT plus a<br/>no-false-attribution clause, crate-scoped not workspace-wide.<br/>../solid-pod-rs/deny.toml:110"]
+    X["EXCEPTION: the licences gate carries one scoped exception — hex_lit (a dep of<br/>rust-bitcoin per ADR-2008) is allowed under MITNFA, MIT plus a<br/>no-false-attribution clause, crate-scoped not workspace-wide.<br/>../solid-pod-rs/deny.toml:120"]
     LIC -.-> X
 ```
 

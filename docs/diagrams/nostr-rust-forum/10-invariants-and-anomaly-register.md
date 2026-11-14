@@ -64,7 +64,7 @@ sources:
   - ../nostr-rust-forum/benchmarks/js-vs-wasm/package.json
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/wasm_bridge.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/tests/upstream_vectors/all_fixtures.rs
-verified_commit: {nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
+verified_commit: {nostr-rust-forum: 7e1f036ebd9ebd6c922db6f9acea041775730071}
 ---
 
 ## NF-10.1 The compliance surface — BASELINE-architecture invariants

@@ -11,7 +11,7 @@ sources:
   - ../dream-engine/crates/dream-gate/src/pertest.rs
   - ../dream-engine/crates/dream-core/src/testfmt.rs
   - ../dream-engine/docs/adr/ADR-DE-004-pairwise-selection-and-fingerprints.md
-verified_commit: b40d50724bb6344dc00d57270f7166b138714406
+verified_commit: 413f1bbd2927251fcd3a919f64b824837d80d1f5
 ---
 ## For developers
 
@@ -118,7 +118,7 @@ not obviously equivalent.
 evidence exists only when the manifest declares a `test_format` for the
 evaluator and a parse of both runs succeeds; otherwise the builder returns
 `None`, never fabricated evidence
-(`crates/dream-core/src/testfmt.rs:543`).
+(`crates/dream-core/src/testfmt.rs:539`).
 **Debt:** `TrainDev` and held-out dev evaluators are not wired into the nightly.
 The gate's options have no held-out field and the policy builder never
 constructs `TrainDev` (`crates/dream-gate/src/pertest.rs:131`,

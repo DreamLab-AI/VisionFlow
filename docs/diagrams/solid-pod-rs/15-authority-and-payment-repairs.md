@@ -11,7 +11,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/handlers/prov.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/handlers/pay.rs
-verified_commit: 27e18995fc20790fa956acb41f7d8420544a13ec
+verified_commit: bc6d9d837bfb7638a4e7698fba9b8c22f4152cf2
 ---
 
 ## For developers

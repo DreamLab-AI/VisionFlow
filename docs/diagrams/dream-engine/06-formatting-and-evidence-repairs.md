@@ -11,7 +11,7 @@ sources:
   - ../dream-engine/crates/dream-core/src/candidate.rs
   - ../dream-engine/crates/dream-core/src/source.rs
   - ../dream-engine/crates/dream-core/Cargo.toml
-verified_commit: b40d50724bb6344dc00d57270f7166b138714406
+verified_commit: 413f1bbd2927251fcd3a919f64b824837d80d1f5
 ---
 
 ## For developers

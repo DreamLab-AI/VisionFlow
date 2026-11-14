@@ -22,7 +22,7 @@ sources:
   - ../visioncraft/docs/adr/0001-portable-quality-contract.md
   - ../visioncraft/docs/adr/0002-specialist-upstream-boundaries.md
   - ../visioncraft/docs/MIGRATION.md
-verified_commit: 2c6627ce01d0e68bb0f48fc55a209b2c674716f1
+verified_commit: 6add68eebf1e8fb81a05eb86e2e27e732c4da1c3
 ---
 
 ## VK-01.1 Three surfaces and who owns what
@@ -87,15 +87,15 @@ The pure library is `default-features = false`; the Deepsec adapter hangs off `c
 
 ```mermaid
 flowchart LR
-    QP["QualityPlan v1<br/>plan.rs:234"]
-    SJ["Subject: repository, revision, configuration, dirty, inputs<br/>plan.rs:20"]
-    CS["CheckSpec: id, required, invocation, evaluator, scope<br/>plan.rs:159"]
-    EX["Expectation: claim, category, checks, stabilizer, audit<br/>plan.rs:197"]
-    GP["GatePolicy: max_age_ms, require_observed_scope<br/>plan.rs:224"]
-    IV["Invocation: argv, cwd, env names, timeout, output bound<br/>plan.rs:88"]
-    EV["Evaluator: exit-code or reported adapter<br/>plan.rs:143"]
-    EC["EvidenceCategory: executable, partial, manual<br/>plan.rs:175"]
-    ST["Stabilizer: check_id plus test_id<br/>plan.rs:187"]
+    QP["QualityPlan v1<br/>plan.rs:242"]
+    SJ["Subject: repository, revision, configuration, dirty, inputs<br/>plan.rs:24"]
+    CS["CheckSpec: id, required, invocation, evaluator, scope<br/>plan.rs:167"]
+    EX["Expectation: claim, category, checks, stabilizer, audit<br/>plan.rs:205"]
+    GP["GatePolicy: max_age_ms, require_observed_scope<br/>plan.rs:232"]
+    IV["Invocation: argv, cwd, env names, timeout, output bound<br/>plan.rs:96"]
+    EV["Evaluator: exit-code or reported adapter<br/>plan.rs:151"]
+    EC["EvidenceCategory: executable, partial, manual<br/>plan.rs:183"]
+    ST["Stabilizer: check_id plus test_id<br/>plan.rs:195"]
     QP --> SJ
     QP --> CS
     QP --> EX
@@ -104,11 +104,11 @@ flowchart LR
     CS --> EV
     EX --> EC
     EX --> ST
-    A1["Admission ceilings: 1024 checks, one day of deadlines, one GiB of capture<br/>plan.rs:11-15"]
-    A2["INVARIANT: at least one required check, scope must name subject inputs<br/>plan.rs:303-306"]
-    A3["INVARIANT: positive control must be a distinct declared check<br/>plan.rs:384-389"]
-    A4["INVARIANT: partial or manual evidence needs a stated limitation<br/>plan.rs:390-395"]
-    A5["digest = sha256 of the validated typed plan, a content binding not a signature<br/>plan.rs:407-411"]
+    A1["Admission ceilings: 1024 checks, 4096 expectations,<br/>16384 inputs, one day of deadlines, one GiB of capture<br/>plan.rs:11-19"]
+    A2["INVARIANT: at least one required check, scope must name subject inputs<br/>plan.rs:315-318<br/>plan.rs:347-353"]
+    A3["INVARIANT: positive control must be a distinct declared check<br/>plan.rs:396-401"]
+    A4["INVARIANT: partial or manual evidence needs a stated limitation<br/>plan.rs:402-407"]
+    A5["digest = sha256 of the validated typed plan, a content binding not a signature<br/>plan.rs:419-423"]
     QP --- A1
     QP --- A2
     EX --- A3

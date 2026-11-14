@@ -50,7 +50,7 @@ flowchart TB
     READY -->|"failure"| ERROR["Record enable error<br/>persist.rs:327"]
     MERGE -->|"failure"| ERROR
     MERGE -->|"success"| ENABLED["Enable command succeeded<br/>persist.rs:326"]
-    ERROR --> STATE["No draft-restoration or outcome query<br/>seams.rs:480"]
+    ERROR --> STATE["No draft-restoration or outcome query<br/>seams.rs:469-491"]
 ```
 
 **What it shows.** A rejected verdict or self-referential target prevents merge enablement but does not prevent this helper from first publishing a draft. The adapter separately gates publication before calling the lower-level forge. With the option off, only draft publication is attempted.

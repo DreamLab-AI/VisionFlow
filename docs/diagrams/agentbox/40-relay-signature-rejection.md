@@ -8,7 +8,7 @@ sources:
   - ../project/agentbox/mcp/nostr-bridge/relay-consumer.js
   - ../project/agentbox/management-api/lib/authority-consumer.js
   - ../project/agentbox/tests/sovereign/relay-signature-failure.test.cjs
-verified_commit: 720e0d89656a4360998b3a716d0f3ee8cac66f93
+verified_commit: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a
 ---
 
 ## For developers

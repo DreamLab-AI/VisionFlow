@@ -52,7 +52,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-rate-limit/src/replay.rs
   - ../nostr-rust-forum/docs/adr/ADR-2027-nip17-overlay-for-nostr-chat-interop.md
   - ../nostr-rust-forum/docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md
-verified_commit: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df
+verified_commit: 7e1f036ebd9ebd6c922db6f9acea041775730071
 ---
 
 ## NF-12.1 Module map — what the workers and clients all link
@@ -101,7 +101,7 @@ flowchart LR
     N7["did:nostr parity model, did-nostr#145: decoding accepts both fe70102 and fe70103 Multikey<br/>prefixes and returns the same x-only key nostr-bbs-core/src/did.rs:109; read as a point a Multikey<br/>keeps its own parity did.rs:121, while a bare identifier denotes the even-y lift did.rs:74.<br/>Every forum route renders from the D1 identifier, so it only ever emits fe70102 did.rs:15"]
     N4["feature_gate is why the two workers cannot disagree on what DEVICE_KEYS_ENABLED means - each reads its<br/>OWN binding nostr-bbs-core/src/feature_gate.rs:42 but shares the PARSE rule<br/>nostr-bbs-core/src/feature_gate.rs:64, so ADR-2004's lockstep requirement holds by construction rather<br/>than by review - see NF-02.7 and NF-08.8"]
     N5["boot_profile's BOOTPROFILE_MODE nostr-bbs-core/src/boot_profile.rs:41 and is_pwa_boot<br/>nostr-bbs-core/src/boot_profile.rs:97 gate the BBS client's zone-bound one-shot PWA boot - see NF-05.11"]
-    N6["nip19 is the only place bech32 npub nostr-bbs-core/src/nip19.rs:77, nsec nip19.rs:85, nprofile<br/>nip19.rs:180 and naddr nip19.rs:232 are encoded in production code - the forum client's own bech32 encode calls sit<br/>under cfg(test) nostr-bbs-forum-client/src/auth/mod.rs:843; the recovery sheet's QR codes carry its output -<br/>see NF-05.8"]
+    N6["nip19 is the only place bech32 npub nostr-bbs-core/src/nip19.rs:77, nsec nip19.rs:84, nprofile<br/>nip19.rs:178 and naddr nip19.rs:230 are encoded in production code - the forum client's own bech32 encode calls sit<br/>under cfg(test) nostr-bbs-forum-client/src/auth/mod.rs:843; the recovery sheet's QR codes carry its output -<br/>see NF-05.8"]
 ```
 
 ## NF-12.2 Event identity and the signing path
