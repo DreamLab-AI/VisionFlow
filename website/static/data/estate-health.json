@@ -1,9 +1,9 @@
 {
   "schema": "visionflow.estate-health/1",
-  "generated_at": "2026-11-14T22:38:53.984Z",
+  "generated_at": "2026-11-14T22:49:29.138Z",
   "generator": {
-    "revision": "7aee7fc8d2575d4c7783d75f20fb07e7b322db04",
-    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43649153768",
+    "revision": "c47f2fa1786815abd17afb245700940265bfb120",
+    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43650062669",
     "collector": "scripts/estate-health.mjs"
   },
   "summary": {
@@ -30,11 +30,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "7aee7fc8d2575d4c7783d75f20fb07e7b322db04",
-        "short": "7aee7fc",
-        "date": "2026-11-14T22:34:06Z",
-        "message": "Merge pull request #30 from DreamLab-AI/fix/estate-green-20261114",
-        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/7aee7fc8d2575d4c7783d75f20fb07e7b322db04"
+        "sha": "c47f2fa1786815abd17afb245700940265bfb120",
+        "short": "c47f2fa",
+        "date": "2026-11-14T22:47:47Z",
+        "message": "Merge pull request #31 from DreamLab-AI/docs/estate-alignment-20261114",
+        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/c47f2fa1786815abd17afb245700940265bfb120"
       },
       "ci": {
         "state": "green",
@@ -50,22 +50,22 @@
             "workflow": "Copyright Source Guard",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43648775956",
-            "updated_at": "2026-11-14T22:34:20Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43649952158",
+            "updated_at": "2026-11-14T22:48:02Z"
           },
           {
             "workflow": "Deploy to GitHub Pages",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43648776008",
-            "updated_at": "2026-11-14T22:34:49Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43649952156",
+            "updated_at": "2026-11-14T22:48:21Z"
           },
           {
             "workflow": "Diagrams-as-code index gate",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43648775955",
-            "updated_at": "2026-11-14T22:34:25Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43649952257",
+            "updated_at": "2026-11-14T22:48:07Z"
           },
           {
             "workflow": "Harness Fitness Gates",
@@ -78,8 +78,8 @@
             "workflow": "Nightly estate health",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43647926396",
-            "updated_at": "2026-11-14T22:24:55Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43649153768",
+            "updated_at": "2026-11-14T22:39:00Z"
           }
         ]
       },
@@ -106,11 +106,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "a6d05ed1a8d090e290944ebb8a9c122c7f59ef8c",
-        "short": "a6d05ed",
-        "date": "2026-11-10T21:52:06Z",
-        "message": "chore(agentbox): pin validated delivery evidence ledger",
-        "url": "https://github.com/DreamLab-AI/VisionClaw/commit/a6d05ed1a8d090e290944ebb8a9c122c7f59ef8c"
+        "sha": "2e7ecc2e731ed475982176d522877d9c89e3ff51",
+        "short": "2e7ecc2",
+        "date": "2026-11-14T22:44:28Z",
+        "message": "Merge pull request #42 from DreamLab-AI/docs/estate-h1-result-20261114",
+        "url": "https://github.com/DreamLab-AI/VisionClaw/commit/2e7ecc2e731ed475982176d522877d9c89e3ff51"
       },
       "ci": {
         "state": "none",
@@ -154,7 +154,7 @@
         "build_type": "workflow"
       },
       "notes": [
-        "no qualifying run on HEAD a6d05ed; the latest runs are on older commits (7d80fe6, 8537435) and were red, reported none"
+        "no qualifying run on HEAD 2e7ecc2; the latest runs are on older commits (7d80fe6, 8537435) and were red, reported none"
       ]
     },
     {
@@ -961,7 +961,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 330,
+      "latency_ms": 164,
       "note": null
     },
     {
@@ -970,7 +970,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 358,
+      "latency_ms": 82,
       "note": null
     },
     {
@@ -979,7 +979,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/ld+json",
-      "latency_ms": 357,
+      "latency_ms": 71,
       "note": null
     },
     {
@@ -988,7 +988,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/json; charset=utf-8",
-      "latency_ms": 223,
+      "latency_ms": 84,
       "note": "classes=9595 pages=9593 nodes=9595"
     },
     {
@@ -997,7 +997,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 691,
+      "latency_ms": 267,
       "note": null
     },
     {
@@ -1006,7 +1006,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/octet-stream",
-      "latency_ms": 356,
+      "latency_ms": 238,
       "note": null
     }
   ],
