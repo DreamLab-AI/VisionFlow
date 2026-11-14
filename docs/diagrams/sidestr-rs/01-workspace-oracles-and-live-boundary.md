@@ -38,7 +38,7 @@ sources:
   - ../project/agentbox/config/sidechain/README.md
   - ../project/agentbox/config/sidechain/dreamlab/chain.json
   - ../project/docs/TODO-unified.md
-verified_commit: {sidestr-rs: 60259e848795d0cd5c5718ca5d0eb658f69fd0d7, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c, visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
+verified_commit: {sidestr-rs: 60259e848795d0cd5c5718ca5d0eb658f69fd0d7, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c, visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a}
 ---
 
 ## For developers
@@ -117,7 +117,7 @@ flowchart TB
     PUB -. "does not prove" .-> ACT
     DEPLOY --> LIFE
     BOUND["INVARIANT, ADR-0002 reconciliation 2026-11-02: crate boundaries are an<br/>architectural property, not a consensus-integrity certificate, and an<br/>optional-library defect is not estate-chain exposure without activation evidence<br/>ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md:23, :25"]
-    REP["OPEN, ADR-0002 repair 2026-11-03: withdrawal outputs consumed once, snapshot<br/>code hashes checked on restore, header failures no longer evict valid txs.<br/>It rejects formerly accepted blocks, so consumers must adopt together<br/>before activation. agentbox source now pins sidestr-agent at that repair<br/>revision, sidestr-agent.nix:30, ADR-0002 records no rebuild or activation receipt<br/>ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md:19"]
+    REP["OPEN, ADR-0002 repair 2026-11-03: withdrawal outputs consumed once, snapshot<br/>code hashes checked on restore, header failures no longer evict valid txs.<br/>It rejects formerly accepted blocks, so consumers must adopt together<br/>before activation. agentbox source pins sidestr-agent at 60259e8, carrying those<br/>repairs, sidestr-agent.nix:30, ADR-0002 records no rebuild or activation receipt<br/>ADR-0002-keep-optional-execution-and-services-behind-crate-boundaries.md:19"]
     SOURCE -.-> BOUND
     REP -. "adoption needed" .-> LIFE
 ```
@@ -132,7 +132,7 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    AB["agentbox supervisor<br/>../project/agentbox/flake.nix:3178"]
+    AB["agentbox supervisor<br/>../project/agentbox/flake.nix:3350"]
     AB --> P1["dreamlab / tbtc4<br/>JavaScript producer port 3450"]
     AB --> P2["dreamlab-txbt4 / txbt4<br/>JavaScript producer port 3451"]
     F1["sidestr-agent faucet"] --> P1
@@ -143,7 +143,7 @@ flowchart TB
     ROUTE -.-> F2
 ```
 
-**What it shows.** At 14:15:29 UTC on 1 November, all six named programmes were running; both producer endpoints served documents equal to their sealed checkout documents. The producers execute baked `siding.mjs`; the faucet binaries differ as the runner specifies (`../project/agentbox/config/sidechain/run-producer.sh:167`, `../project/agentbox/config/sidechain/run-faucet.sh:59`). [Runtime receipt](../../estate-review/evidence/2026-11-01/crate-boundary/runtime.json). The second table is enabled despite the README's older disabled-default statement (`../project/agentbox/agentbox.toml:1981`, `../project/agentbox/config/sidechain/README.md:188`).
+**What it shows.** At 14:15:29 UTC on 1 November, all six named programmes were running; both producer endpoints served documents equal to their sealed checkout documents. The producers execute baked `siding.mjs`; the faucet binaries differ as the runner specifies (`../project/agentbox/config/sidechain/run-producer.sh:167`, `../project/agentbox/config/sidechain/run-faucet.sh:59`). [Runtime receipt](../../estate-review/evidence/2026-11-01/crate-boundary/runtime.json). The second table is enabled despite the README's older disabled-default statement (`../project/agentbox/agentbox.toml:2012`, `../project/agentbox/config/sidechain/README.md:188`).
 
 **Why it is this way.** Each chain has its own producer, mirror and faucet; the BLAKE2b family chooses the forum-kit faucet. A responding tip is not evidence of current block progress, mirror freshness, successful grants or Hitch activation. The observed producers have no checkpoint arguments, consistent with default-zero configuration (`../project/agentbox/config/sidechain/run-producer.sh:148`); historical anchoring was not inspected.
 
