@@ -23,10 +23,10 @@ sources:
   - ../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/physics.worker.ts
   - ../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/protocol.ts
   - ../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/positionTransport.ts
-verified_commit: {vowl-wasm: 2aff199e2de06f4bba512301acf7023477c492ac, visiongraph: d8277151a1404b456b5c7206187f7e4b50f25be1}
+verified_commit: {vowl-wasm: f04ff27209a0350e926d5a8a183fe0eb8c416604, visiongraph: d8277151a1404b456b5c7206187f7e4b50f25be1}
 ---
 
-**Repair note — 2026-11-03:** selected counterexamples below have a [scoped successor verification](06-layout-and-release-repairs.md). This historical topic retains its declared source revision; the successor states the repaired contracts and acceptance boundaries.
+**Repair note — 2026-11-03:** selected counterexamples below have a [scoped successor verification](06-layout-and-release-repairs.md). Historical probe receipts retain their original revisions; source references were refreshed on 14 November 2026 after reviewing the plain-array loader, documentation and lint changes. The successor states the repaired contracts and acceptance boundaries.
 
 ## VW-04.1 `WebVowl` — the frozen 0.1.0 JS surface
 ```mermaid
@@ -41,7 +41,7 @@ flowchart TB
     WV --> FILTER["filterByDegree, toggleDatatypes,<br/>toggleSetOperators, resetVisibility<br/>src/bindings/mod.rs:582"]
     FILTER --> HIER["filterHierarchy(depth)<br/>src/bindings/mod.rs:160"]
 ```
-- INVARIANT (README.md:148-149): this is the frozen 0.1.0 surface — names/signatures do not change without a major bump; later releases only add (`getNodeIds`/`getNodePositions`/`writePositionsInto` arrived in 0.1.1, per src/lib.rs crate doc, and `reheat` is now on the binding, src/bindings/mod.rs:133-138).
+- INVARIANT (README.md:154-155): this is the frozen 0.1.0 surface — names/signatures do not change without a major bump; later releases only add (`getNodeIds`/`getNodePositions`/`writePositionsInto` arrived in 0.1.1, per src/lib.rs crate doc, and `reheat` is now on the binding, src/bindings/mod.rs:133-138).
 - `getNodeIds()`/`getNodePositions()` pair is index-stable: ticking, pinning, filtering and folding never reorder or remove nodes (src/bindings/mod.rs:212-258 doc comments), so JS zips `ids[i] <-> xy[2i], xy[2i+1]` once per load.
 
 - **Replacement boundary:** `loadOntology` swaps graph/metadata without resetting the pin manager or simulation alpha (src/bindings/mod.rs:56-72). Obsolete pin IDs remain reported and a previously settled engine leaves the new graph unticked until explicitly restarted. `pinNode` accepts non-finite positions through the legacy manager (src/graph/pinning.rs:82-102); CSR pinning rejects them.
@@ -55,11 +55,11 @@ flowchart LR
     subgraph Reuse["Caller buffer<br/>src/bindings/mod.rs:300"]
         B1["reuse caller-owned buffer<br/>writes 2 * min(floor(out.len()/2), n)"] --> B2["returns even count; odd tail untouched<br/>src/bindings/mod.rs:305-314"]
     end
-    subgraph ZeroCopy["Direct view<br/>src/bindings/explorer.rs:84,90"]
+    subgraph ZeroCopy["Direct view<br/>src/bindings/explorer.rs:163,169"]
         C1["raw pointer into<br/>wasm.memory.buffer"] --> C2["JS Float32Array view,<br/>no copy at this boundary; needs ngg1 tier<br/>rebuild view after load or memory growth"]
     end
 ```
-- The Rust method avoids creating a result vector, but the allocation claim in its doc comment is too broad (src/bindings/mod.rs:293-298): freshly generated wasm-bindgen 0.2.128 glue allocates a temporary WASM array for each `writePositionsInto` call and copies it back. Caller buffer reuse is not allocation-free across the ABI. `NggExplorer::positions_ptr` is the direct-view alternative (src/bindings/explorer.rs:75-90); the downstream worker still copies that view into its transport buffer. CSR `writePositionsInto` copies individual floats, including an odd last element, unlike the legacy pair-only method (src/layout/csr_sim.rs:610-614).
+- The Rust method avoids creating a result vector, but the allocation claim in its doc comment is too broad (src/bindings/mod.rs:293-298): freshly generated wasm-bindgen 0.2.128 glue allocates a temporary WASM array for each `writePositionsInto` call and copies it back. Caller buffer reuse is not allocation-free across the ABI. `NggExplorer::positions_ptr` is the direct-view alternative (src/bindings/explorer.rs:157-170); the downstream worker still copies that view into its transport buffer. CSR `writePositionsInto` copies individual floats, including an odd last element, unlike the legacy pair-only method (src/layout/csr_sim.rs:610-614).
 
 ## VW-04.3 `checkNodeClick` — ray/sphere hit testing (feature `interaction`)
 ```mermaid
@@ -97,7 +97,7 @@ sequenceDiagram
     autonumber
     participant W as visionGraph worker<br/>physics.worker.ts:39
     participant PKG as vowl-wasm package<br/>GitHub release tarball, see VW-05.3
-    participant WA as NggExplorer<br/>explorer.rs:18
+    participant WA as NggExplorer<br/>explorer.rs:56
     Note over W: External consumer: visionGraph
     W->>PKG: import init, default glue<br/>await init() → InitOutput.memory
     W->>WA: loadCsr(bytes) / tick() / isFinished() / getAlpha()
@@ -129,7 +129,7 @@ flowchart LR
     DEC --> GET["accessors return copies: ids, positions, domains, categories,<br/>flags, degrees, labels, iris, rowPtr, colIdx, edgeType<br/>src/bindings/ngg.rs:57-112"]
     FIELDS["typed arrays plus string arrays"] -->|"encodeNgg1(...)"| ENC["encode_parts through ontomark's NGG1 writer,<br/>mismatched arrays and invalid CSR throw an NGG1 string<br/>src/bindings/ngg.rs:182-200"]
     CONST["ngg1Constants()"] --> OWN["flags, sentinels and edge codes read from the ontomark owner<br/>src/bindings/ngg.rs:236-244"]
-    DEC -. "layout continues in a worker, no per-frame metadata" .-> EXP["NggExplorer: loadCsr, tick, positionsPtr, setParam, setTheta, pinNode, unpinNode, reheat<br/>src/bindings/explorer.rs:41-137"]
+    DEC -. "layout continues in a worker, no per-frame metadata" .-> EXP["NggExplorer: loadCsr, loadArrays, tick, positionsPtr, setParam, setTheta, pinNode, unpinNode, reheat<br/>src/bindings/explorer.rs:80-215"]
     GATE["feature ngg1 gates both modules<br/>src/bindings/mod.rs:3-9"] --- DEC
     N1["INVARIANT: numeric domain and category ids come from the producer, the type maps them to no estate taxonomy<br/>src/bindings/ngg.rs:13-16"]
     N2["OPEN: the TypeScript reader consolidation and the Obsidian plugin are tracked by their own steps and are not claimed by ADR-001<br/>docs/adr/ADR-001-shared-ontology-rendering-contract.md:99-103"]
@@ -137,5 +137,19 @@ flowchart LR
     EXP --- N2
 ```
 
-**What it shows.** Version 0.2.0 adds an owned, copying way to read and write NGG1 tiers in the browser, next to the existing zero-copy explorer: the codec is ontomark's, the binding only wraps it, and a worker keeps laying out through `NggExplorer` without serialising metadata per frame (src/bindings/ngg.rs:1-6, README.md:216-233).
+**What it shows.** Version 0.2.0 adds an owned, copying way to read and write NGG1 tiers in the browser, next to the existing zero-copy explorer: the codec is ontomark's, the binding only wraps it, and a worker keeps laying out through `NggExplorer` without serialising metadata per frame (src/bindings/ngg.rs:1-6, README.md:222-239).
 **Why it is this way.** ADR-001 wants one owner per graph format, so `vowl-wasm` delegates every binary read and write to ontomark and keeps only the browser surface, with a JavaScript test that round-trips the golden fixture through the built wasm (docs/adr/ADR-001-shared-ontology-rendering-contract.md:36, tests/ngg1_wasm.test.mjs:1-3).
+
+## VW-04.9 Plain-array loading keeps the old graph on validation failure
+
+```mermaid
+flowchart TB
+    IN["Interleaved positions and parallel edge arrays<br/>src/bindings/explorer.rs:110-116"] --> VALID{"Even position count, finite coordinates,<br/>parallel arrays, endpoints in range?<br/>src/bindings/explorer.rs:23-50"}
+    VALID -->|no| ERR["Return a JavaScript error before changing the simulation<br/>src/bindings/explorer.rs:117"]
+    VALID -->|yes| LOAD["Copy arrays into CsrSimulation<br/>src/bindings/explorer.rs:118-124"]
+    LOAD --> KEEP["Stable node index order until the next load<br/>self-loops and duplicate edges accepted<br/>src/bindings/explorer.rs:92-101"]
+```
+
+**What it shows.** `loadArrays` accepts a graph already held in memory without NGG1 encoding. Invalid input leaves the preceding graph intact; the built-WASM regression checks both the error and retained counts (`tests/ngg1_wasm.test.mjs:100-130`).
+
+**Why it is this way.** Validation happens before the array copies and simulation replacement, so malformed input produces a JavaScript exception instead of reaching a simulation assertion (`src/bindings/explorer.rs:105-124`). This source review does not establish which downstream deployment includes the new export.

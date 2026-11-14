@@ -19,7 +19,7 @@ sources:
   - ../project/agentbox/services/dream-engine/Cargo.toml
   - ../project/agentbox/services/dream-engine/src/lib.rs
   - ../project/agentbox/services/dream-engine/tests/night_e2e.rs
-verified_commit: {dream-engine: b40d50724bb6344dc00d57270f7166b138714406, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
+verified_commit: {dream-engine: 413f1bbd2927251fcd3a919f64b824837d80d1f5, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
 ---
 
 ## For developers
@@ -37,7 +37,7 @@ flowchart TB
     GUIDE["Guide points host retirement at parity checks<br/>migrating-from-the-ts-fork.md:43"] --> FIXTURE["Rust expectations derived from reading TypeScript<br/>TypeScript not executed by this suite<br/>ts_parity.rs:3"]
     FIXTURE --> INPUTS["Configuration, ledger and witness examples<br/>ts_parity.rs:32<br/>ts_parity.rs:175<br/>ts_parity.rs:335"]
     GUIDE --> HOST["Separate host-night tests<br/>night_e2e.rs:1"]
-    HOST --> DOUBLES["Scripted model, recording forge,<br/>local evaluator and SSH/SCP shims<br/>night_e2e.rs:11"]
+    HOST --> DOUBLES["Scripted model, recording forge,<br/>local evaluator and SSH/SCP shims<br/>night_e2e.rs:12-17"]
     DOUBLES --> OFF["Several night services disabled in fixture<br/>night_e2e.rs:108"]
     INPUTS --> TRIM["Rust trimming differs from JavaScript whitespace<br/>ledger/read.rs:215<br/>verdict.rs:394<br/>verdict.rs:444"]
 ```

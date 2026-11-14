@@ -19,30 +19,30 @@ sources:
   - ../vowl-wasm/src/bindings/mod.rs
   - ../vowl-wasm/src/bindings/explorer.rs
   - ../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md
-verified_commit: 2aff199e2de06f4bba512301acf7023477c492ac
+verified_commit: f04ff27209a0350e926d5a8a183fe0eb8c416604
 ---
 
-**Repair note — 2026-11-03:** selected counterexamples below have a [scoped successor verification](06-layout-and-release-repairs.md). This historical topic retains its declared source revision; the successor states the repaired contracts and acceptance boundaries.
+**Repair note — 2026-11-03:** selected counterexamples below have a [scoped successor verification](06-layout-and-release-repairs.md). Historical probe receipts retain their original revisions; source references were refreshed on 14 November 2026 after reviewing the plain-array loader, documentation and lint changes. The successor states the repaired contracts and acceptance boundaries.
 
 ## VW-03.1 `ForceSimulation` one tick — `LayoutAlgorithm` impl
 ```mermaid
 sequenceDiagram
     autonumber
     participant C as caller (WebVowl::tick / run_simulation)
-    participant FS as ForceSimulation::tick<br/>src/layout/simulation.rs:276 impl LayoutAlgorithm
+    participant FS as ForceSimulation::tick<br/>src/layout/simulation.rs:275 impl LayoutAlgorithm
     participant CF as calculate_forces<br/>src/layout/simulation.rs:139
-    participant AF as apply_forces<br/>src/layout/simulation.rs:247
+    participant AF as apply_forces<br/>src/layout/simulation.rs:246
     C->>FS: tick(&mut graph)
-    FS->>FS: guard clause: if is_finished() return early<br/>src/layout/simulation.rs:277-279
+    FS->>FS: guard clause: if is_finished() return early<br/>src/layout/simulation.rs:276-278
     FS->>CF: calculate_forces(graph)
     CF-->>FS: HashMap<node_id, Vector2<f64>>
     FS->>AF: apply_forces(graph, &forces)
-    AF->>AF: skip nodes where visual.fixed<br/>src/layout/simulation.rs:250
-    AF->>AF: update velocity by force times alpha, apply damping, integrate position<br/>src/layout/simulation.rs:252-259
-    FS->>FS: decay alpha, increment iteration counter<br/>src/layout/simulation.rs:295-296
+    AF->>AF: skip nodes where visual.fixed<br/>src/layout/simulation.rs:249
+    AF->>AF: update velocity by force times alpha, apply damping, integrate position<br/>src/layout/simulation.rs:251-260
+    FS->>FS: decay alpha, increment iteration counter<br/>src/layout/simulation.rs:294-295
 ```
-- `run(graph, iterations)` (src/layout/simulation.rs:326) calls `initialize` at src/layout/simulation.rs:327 once then loops `tick` up to `iterations` times, breaking early on `is_finished()` (src/layout/simulation.rs:330-331). Every call reseeds, including fixed nodes unless the native preservation option applies; repeated `runSimulation(n)` is not a continuation API (src/layout/simulation.rs:89-119).
-- `is_finished()` is `alpha < config.alpha_min` (src/layout/simulation.rs:340) — a pure read, not a latched flag (contrast with `CsrSimulation`, VW-03.5).
+- `run(graph, iterations)` (src/layout/simulation.rs:325) calls `initialize` at src/layout/simulation.rs:326 once then loops `tick` up to `iterations` times, breaking early on `is_finished()` (src/layout/simulation.rs:329-330). Every call reseeds, including fixed nodes unless the native preservation option applies; repeated `runSimulation(n)` is not a continuation API (src/layout/simulation.rs:89-119).
+- `is_finished()` is `alpha < config.alpha_min` (src/layout/simulation.rs:339) — a pure read, not a latched flag (contrast with `CsrSimulation`, VW-03.5).
 
 ## VW-03.2 `calculate_forces` — repulsion / attraction / centring
 ```mermaid
@@ -50,9 +50,9 @@ flowchart TB
     START["calculate_forces(graph)<br/>src/layout/simulation.rs:139"] --> BR{"n > 50 AND<br/>config.use_barnes_hut?<br/>src/layout/simulation.rs:158"}
     BR -->|yes| QT["QuadTree::build(&nodes)<br/>then calculate_force() per node<br/>src/layout/simulation.rs:163-172"]
     BR -->|no| BATCH["calculate_batch_repulsion(positions, charge)<br/>SIMD/scalar batch, O(n²)<br/>src/layout/simulation.rs:180"]
-    QT --> ATTR["attraction along edges:<br/>calculate_attraction(pos1,pos2,link_distance,link_strength) * alpha<br/>src/layout/simulation.rs:189-198"]
+    QT --> ATTR["attraction along edges:<br/>calculate_attraction(pos1,pos2,link_distance,link_strength) * alpha<br/>src/layout/simulation.rs:190-202"]
     BATCH --> ATTR
-    ATTR --> CENTER["calculate_batch_center_force(positions, center, center_strength)<br/>src/layout/simulation.rs:233-236"]
+    ATTR --> CENTER["calculate_batch_center_force(positions, center, center_strength)<br/>src/layout/simulation.rs:232-236"]
     CENTER --> SUM["forces: HashMap<node_id, Vector2<f64>><br/>summed per node"]
 ```
 - Barnes-Hut only engages above the `n > 50` threshold (src/layout/simulation.rs:158) — small graphs always take the O(n²) batch path.
@@ -118,14 +118,14 @@ flowchart TB
 - Since ER-20 `CsrSimulation` is no longer always O(n²): the module doc now states Barnes-Hut is the default and `Repulsion::Exact`, `set_theta(0.0)` or `set_param("theta", 0.0)` select the exact loop, which runs unchanged for comparison (src/layout/csr_sim.rs:9-17, src/layout/csr_sim.rs:654, src/layout/csr_sim.rs:725). The default `SimConfig` is still described as tuned for a scoped tier of at most 1,500 nodes (src/layout/csr_sim.rs:82).
 - `finished` is a latched `bool` (src/layout/csr_sim.rs:257,448) set once the alpha floor is hit — `tick()` after that point is a guaranteed no-op, not merely a small-alpha update.
 - For valid finite configuration, two guards bound motion in a tick since the 0.2.2 pin. Repulsion is softened: below a radius of `SOFTENING_FRACTION` (0.25) times `link_distance` the magnitude is held at its value at that radius (`softening_sq`, src/layout/csr_sim.rs:454-457, constants src/layout/csr_sim.rs:105-107), so a near-coincident seed pair is not flung thousands of units in one tick; and each node's per-tick displacement is capped at `MAX_STEP_FACTOR` (2.0) times `link_distance` (src/layout/csr_sim.rs:419, src/layout/csr_sim.rs:433-438). The test `near_coincident_seeds_stay_in_bounds` pins both for the exact and the Barnes-Hut path (src/layout/csr_sim.rs:1029).
-- Drag pinning: `pin(i, x, y)` writes the position, zeroes the velocity and sets `pinned[i]`; a pinned node still exerts forces but is skipped at integration (src/layout/csr_sim.rs:421-423, src/layout/csr_sim.rs:676-687). It returns `false`, changing nothing, for an index outside the scope or a non-finite coordinate. `unpin` and `is_pinned` follow (src/layout/csr_sim.rs:690-703), `NggExplorer` exposes them as `pinNode` and `unpinNode` (src/bindings/explorer.rs:121-131), and every load clears the pins (src/layout/csr_sim.rs:334, src/layout/csr_sim.rs:371). `pin` does not reheat, so a caller pairs it with `reheat` (src/layout/csr_sim.rs:707).
+- Drag pinning: `pin(i, x, y)` writes the position, zeroes the velocity and sets `pinned[i]`; a pinned node still exerts forces but is skipped at integration (src/layout/csr_sim.rs:421-423, src/layout/csr_sim.rs:676-687). It returns `false`, changing nothing, for an index outside the scope or a non-finite coordinate. `unpin` and `is_pinned` follow (src/layout/csr_sim.rs:690-703), `NggExplorer` exposes them as `pinNode` and `unpinNode` (src/bindings/explorer.rs:201-209), and every load clears the pins (src/layout/csr_sim.rs:334, src/layout/csr_sim.rs:371). `pin` does not reheat, so a caller pairs it with `reheat` (src/layout/csr_sim.rs:707).
 
 ## VW-03.6 NGG1 tier load — bytes to seeded simulation
 ```mermaid
 sequenceDiagram
     autonumber
     participant JS as JS worker: loadCsr(bytes)
-    participant NX as NggExplorer::load_csr<br/>src/bindings/explorer.rs:41
+    participant NX as NggExplorer::load_csr<br/>src/bindings/explorer.rs:80
     participant CS as CsrSimulation::load_csr<br/>src/layout/csr_sim.rs:358
     participant N1 as ontomark codec<br/>src/ngg1.rs:5
     JS->>NX: loadCsr(bytes: &[u8])
@@ -134,11 +134,11 @@ sequenceDiagram
     N1-->>CS: Ngg1<'_> view (borrowed, no realloc)
     CS->>CS: load(&g): seed positions, build CSR springs<br/>src/layout/csr_sim.rs:367
     CS-->>NX: Result<(), Ngg1Error>
-    NX-->>JS: Result<(), JsValue> (mapped via to_string)<br/>src/bindings/explorer.rs:43-45
+    NX-->>JS: Result<(), JsValue> (mapped via to_string)<br/>src/bindings/explorer.rs:81-83
 ```
 - The reader is no longer in this repository: `src/ngg1.rs` is one `pub use ontomark_ngg1::*;` so the `vowl_wasm::ngg1` path and every public name keep working (src/ngg1.rs:1-5), and the crate depends on `ontomark-ngg1` 0.1.0 from crates.io behind the `ngg1` feature (Cargo.toml:45-46, Cargo.toml:67). Header size, node stride, field offsets and the specification are therefore owned by ontomark, not by `vowl-wasm` (docs/adr/ADR-001-shared-ontology-rendering-contract.md:36).
-- The external codec owns byte-layout details. Current native migration tests and the built-WASM golden test exercise compatibility rather than duplicating those constants here (tests/ontomark_ngg1_migration.rs:503, tests/ngg1_wasm.test.mjs:24).
-- `CsrSimulation::load_csr` maps a parse failure to `Ngg1Error` and `NggExplorer::load_csr` maps that to a string for JS (src/layout/csr_sim.rs:358, src/bindings/explorer.rs:41-45).
+- The external codec owns byte-layout details. Current native migration tests and the built-WASM golden test exercise compatibility rather than duplicating those constants here (tests/ontomark_ngg1_migration.rs:501-509, tests/ngg1_wasm.test.mjs:24).
+- `CsrSimulation::load_csr` maps a parse failure to `Ngg1Error` and `NggExplorer::load_csr` maps that to a string for JS (src/layout/csr_sim.rs:358, src/bindings/explorer.rs:80-83).
 
 ## VW-03.7 Alpha annealing — shared shape, two independent implementations
 ```mermaid
@@ -157,14 +157,14 @@ stateDiagram-v2
       src/layout/csr_sim.rs:707-713
     end note
 ```
-- Both engines can now be re-annealed from JS: `ForceSimulation::reheat` clamps alpha to `(0, 1]` and ignores a non-finite or non-positive value (src/layout/simulation.rs:71-75), `CsrSimulation::reheat` ignores a non-finite value, assigns `max(value, alpha_min)` and sets `finished` only for an empty graph (src/layout/csr_sim.rs:707-713); the `WebVowl` binding exposes `reheat` (src/bindings/mod.rs:135-138) and `NggExplorer` exposes `reheat` and `setTheta` (src/bindings/explorer.rs:112-137). This closes the earlier gap where a settled `WebVowl` graph could only restart through a fresh `initSimulation()`.
+- Both engines can now be re-annealed from JS: `ForceSimulation::reheat` clamps alpha to `(0, 1]` and ignores a non-finite or non-positive value (src/layout/simulation.rs:71-75), `CsrSimulation::reheat` ignores a non-finite value, assigns `max(value, alpha_min)` and sets `finished` only for an empty graph (src/layout/csr_sim.rs:707-713); the `WebVowl` binding exposes `reheat` (src/bindings/mod.rs:135-138) and `NggExplorer` exposes `reheat` and `setTheta` (src/bindings/explorer.rs:192-215). This closes the earlier gap where a settled `WebVowl` graph could only restart through a fresh `initSimulation()`.
 - **Input boundary:** RESOLVED at vowl-wasm 2aff199 for non-finite input — every CSR parameter setter and `reheat` now returns early on a non-finite value, so an infinite reheat no longer produces non-finite positions (src/layout/csr_sim.rs:618-670, src/layout/csr_sim.rs:707-710, dispatch src/layout/csr_sim.rs:717-728). Finite out-of-range values are still accepted: the earlier probe showed a negative `alphaMin` prevents settling in 10,000 ticks, and `set_alpha_min` checks only finiteness (src/layout/csr_sim.rs:665-669).
 - `ForceSimulation` implements `LayoutAlgorithm` (src/layout/mod.rs:17); `CsrSimulation` deliberately does not — the two engines share a design (annealing, Hooke springs, Coulomb repulsion) but not a common Rust interface.
 
 ## VW-03.9 Seeding — `ForceSimulation::initialize` vs `CsrSimulation::load`
 ```mermaid
 flowchart TB
-    subgraph FS["Legacy initialise<br/>src/layout/simulation.rs:269"]
+    subgraph FS["Legacy initialise<br/>src/layout/simulation.rs:268"]
         FI1["initialize_positions(graph)<br/>src/layout/simulation.rs:89"] --> FI2{"preserve_seeded_positions AND<br/>node already placed?<br/>src/layout/simulation.rs:111-112"}
         FI2 -->|no| FI3["seed on circle, radius=seed_radius<br/>angle += TAU/node_count<br/>src/layout/simulation.rs:113-114"]
         FI2 -->|yes| FI4["keep caller's x,y"]

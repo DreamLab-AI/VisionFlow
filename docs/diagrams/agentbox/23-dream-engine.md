@@ -92,7 +92,7 @@ sources:
   - ../dream-engine/crates/dream-cli/src/lib.rs
   - ../dream-engine/docs/adr/ADR-DE-006-automerge-is-an-option.md
   - ../dream-engine/docs/adr/ADR-DE-007-a-night-is-identified-by-its-directory.md
-verified_commit: {agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, dream-engine: b40d50724bb6344dc00d57270f7166b138714406}
+verified_commit: {agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, dream-engine: 413f1bbd2927251fcd3a919f64b824837d80d1f5}
 ---
 Repair follow-up, 2026-11-03: [AB-41.3](41-process-governance-and-dream-repairs.md#ab-413-supply-the-reusable-core-with-verifiable-host-inputs) and [DE-06](../dream-engine/06-formatting-and-evidence-repairs.md) record the adapter's registry adoption and core formatting/source/integrity repairs. This topic retains its historical source stamp.
 
@@ -152,10 +152,10 @@ flowchart TB
     ROS --> LOCK["Selected repos run serially; acquire per-night lock<br/>engine.rs:295,658"]
     SINGLE --> LOCK
     LOCK --> READY{"readiness admitted?<br/>engine.rs:671"}
-    READY -->|no| HAND["Persist HANDOFF before checking finished state<br/>engine.rs:694"]
+    READY -->|no| HAND["Persist HANDOFF before checking finished state<br/>engine.rs:690-694"]
     READY -->|yes| DONE{"finished_night?<br/>engine.rs:736"}
     DONE -->|yes| OLD["Return stored result<br/>engine.rs:750"]
-    DONE -->|no| CYCLE["Run experiment and delivery; see AB-23.4 to AB-23.7<br/>engine.rs:769"]
+    DONE -->|no| CYCLE["Run experiment and delivery; see AB-23.4 to AB-23.7<br/>engine.rs:1179<br/>engine.rs:1869"]
     HAND --> RECORD["Roster mode records returned results or failures; locked repos skipped<br/>engine.rs:302,315"]
     OLD --> RECORD
     CYCLE --> RECORD

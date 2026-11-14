@@ -18,7 +18,7 @@ sources:
   - ../visioncraft/src/process.rs
   - ../visioncraft/tests/core.rs
   - ../visioncraft/docs/adr/0001-portable-quality-contract.md
-verified_commit: 2c6627ce01d0e68bb0f48fc55a209b2c674716f1
+verified_commit: 6add68eebf1e8fb81a05eb86e2e27e732c4da1c3
 ---
 
 ## VK-02.1 Seven EDD steps and the typed record each one leaves
@@ -32,11 +32,11 @@ flowchart TB
     S5["5 Challenge: resolve ambiguity with the decision-maker<br/>edd.md:18"]
     S6["6 Iterate: retain the earlier result, explain the new claim<br/>edd.md:21"]
     S7["7 Stabilise: regression-critical scenarios become permanent checks<br/>edd.md:23"]
-    T1["Expectation record<br/>plan.rs:197"]
+    T1["Expectation record<br/>plan.rs:205"]
     T3["ExecutionReceipt<br/>evidence.rs:46"]
-    T4["AuditReceipt<br/>evidence.rs:208"]
-    T4b["ManualObservation<br/>evidence.rs:234"]
-    T7["Stabilizer: check_id plus test_id<br/>plan.rs:187"]
+    T4["AuditReceipt<br/>evidence.rs:217"]
+    T4b["ManualObservation<br/>evidence.rs:243"]
+    T7["Stabilizer: check_id plus test_id<br/>plan.rs:195"]
     S1 --> S2 --> S3 --> S4 --> S5 --> S6 --> S7
     S6 -. "repeat" .-> S2
     S1 --- T1
@@ -45,7 +45,7 @@ flowchart TB
     S5 --- T4b
     S7 --- T7
     N1["INVARIANT: an auditor label on the same session creates no independence; record the real model family<br/>edd.md:26-31"]
-    N2["DOC-DRIFT: edd.md names a stabilized_by reference, the typed field is stabilizer<br/>edd.md:90 vs plan.rs:212"]
+    N2["DOC-DRIFT: edd.md names a stabilized_by reference, the typed field is stabilizer<br/>edd.md:90 vs plan.rs:220"]
     S4 --- N1
     S7 --- N2
 ```
@@ -203,7 +203,7 @@ flowchart TB
     ST["stabilizer lookup needs the test id in observed_tests<br/>evaluate.rs:344-347"]
     RS["require_observed_scope policy makes unknown scope Inconclusive<br/>evaluate.rs:235-240"]
     RF["generic run refuses reported evaluators<br/>cli.rs:754-759"]
-    POL["policy field require_observed_scope<br/>plan.rs:227-228"]
+    POL["policy field require_observed_scope<br/>plan.rs:235-236"]
     RUN --> OS
     RUN --> OT
     RUN --> RP

@@ -19,7 +19,7 @@ sources:
   - ../vowl-wasm/src/bindings/mod.rs
   - ../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md
   - ../vowl-wasm/README.md
-verified_commit: 2aff199e2de06f4bba512301acf7023477c492ac
+verified_commit: f04ff27209a0350e926d5a8a183fe0eb8c416604
 ---
 
 ## VW-02.1 `loadOntology()` — JSON string to `VowlGraph`
@@ -61,21 +61,21 @@ flowchart TB
     PCN --> CN["ClassNode { id, iri, label, class_type,<br/>equivalent, attributes, ontology_meta }<br/>src/ontology/parser.rs:114"]
 ```
 - `ParserConfig` (src/ontology/parser.rs:17) has a `max_classes` cutoff enforced at src/ontology/parser.rs:62-64: a `class` array longer than the configured cap is silently truncated, not rejected.
-- `StandardParser` is the JSON ingest path: it reads an inline subset of WebVOWL-shaped JSON (`class`/`property` arrays) into `OntologyData` (src/ontology/mod.rs:6-7, src/ontology/mod.rs:24). The second path that existed at the earlier stamp, a feature-gated `MarkdownParser` over DreamLab `### OntologyBlock` markdown with an `OntologyLoader` filesystem driver and an `OWL2Validator`, was deleted together with the `markdown-ontology` feature and the `Domain` and `OntologyBlock` types (docs/adr/ADR-001-shared-ontology-rendering-contract.md:36, README.md:204-205). Parsing Markdown vaults is left to `ontomark-parse` (README.md:205).
-- Root `classAttribute`/`propertyAttribute` tables are not joined, labels must be strings, and `validate_iris` has no implementation (src/ontology/parser.rs:17-25, src/ontology/parser.rs:53-114, src/ontology/parser.rs:485-507). Class metadata now accepts caller-supplied domain strings, or none, and the renderer holds no domain registry (README.md:210-212).
+- `StandardParser` is the JSON ingest path: it reads an inline subset of WebVOWL-shaped JSON (`class`/`property` arrays) into `OntologyData` (src/ontology/mod.rs:6-7, src/ontology/mod.rs:24). The second path that existed at the earlier stamp, a feature-gated `MarkdownParser` over DreamLab `### OntologyBlock` markdown with an `OntologyLoader` filesystem driver and an `OWL2Validator`, was deleted together with the `markdown-ontology` feature and the `Domain` and `OntologyBlock` types (docs/adr/ADR-001-shared-ontology-rendering-contract.md:36, README.md:210-211). Parsing Markdown vaults is left to `ontomark-parse` (README.md:211).
+- Root `classAttribute`/`propertyAttribute` tables are not joined, labels must be strings, and `validate_iris` has no implementation (src/ontology/parser.rs:17-25, src/ontology/parser.rs:53-114, src/ontology/parser.rs:485-507). Class metadata now accepts caller-supplied domain strings, or none, and the renderer holds no domain registry (README.md:216-218).
 
 ## VW-02.3 `GraphBuilder::from_ontology` — class/property to node/edge
 ```mermaid
 flowchart LR
-    OD["OntologyData { classes, properties }"] --> LOOP1["for class in data.classes<br/>src/graph/builder.rs:24"]
-    LOOP1 --> NB["NodeBuilder::new(id).label().node_type()<br/>.iri().external().ontology_meta()<br/>src/graph/builder.rs:25-31"]
-    NB --> ADDN["graph.add_node(node)<br/>src/graph/builder.rs:32"]
+    OD["OntologyData { classes, properties }"] --> LOOP1["for class in data.classes<br/>src/graph/builder.rs:25"]
+    LOOP1 --> NB["NodeBuilder::new(id).label().node_type()<br/>.iri().external().ontology_meta()<br/>src/graph/builder.rs:26-32"]
+    NB --> ADDN["graph.add_node(node)<br/>src/graph/builder.rs:34"]
     OD --> LOOP2["for property in data.properties<br/>src/graph/builder.rs:38"]
     LOOP2 --> EB["EdgeBuilder::new(id).label().edge_type()<br/>src/graph/builder.rs:39-41"]
-    EB --> CHAR["functional/transitive/symmetric/<br/>inverse_functional/cardinality<br/>src/graph/builder.rs:43-55"]
-    CHAR --> ADDE["graph.add_edge(source, target, edge)<br/>src/graph/builder.rs:73-75"]
-    ADDE --> INV{"inverseOf supplied?<br/>src/graph/builder.rs:78"}
-    INV -->|yes| EXTRA["add synthetic reversed edge using inverse ID;<br/>explicit inverse records are not deduplicated<br/>src/graph/builder.rs:80-89"]
+    EB --> CHAR["functional/transitive/symmetric/<br/>inverse_functional/cardinality<br/>src/graph/builder.rs:43-60"]
+    CHAR --> ADDE["graph.add_edge(source, target, edge)<br/>src/graph/builder.rs:76-78"]
+    ADDE --> INV{"inverseOf supplied?<br/>src/graph/builder.rs:81"}
+    INV -->|yes| EXTRA["add synthetic reversed edge using inverse ID;<br/>explicit inverse records are not deduplicated<br/>src/graph/builder.rs:82-91"]
     NB -.->|"map_node_type()"| NT["NodeType: Class · Datatype ·<br/>Special(String) · SetOperator(SetOperator)<br/>src/graph/mod.rs:85"]
     EB -.->|"map_edge_type()"| ET["EdgeType: ObjectProperty ·<br/>DatatypeProperty · SubClass · Special(String)<br/>src/graph/mod.rs:176"]
 ```

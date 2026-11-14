@@ -40,7 +40,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-config/src/schema.rs
   - ../nostr-rust-forum/benchmarks/js-vs-wasm/package.json
   - ../nostr-rust-forum/docs/security/advisory-exceptions.md
-verified_commit: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df
+verified_commit: 7e1f036ebd9ebd6c922db6f9acea041775730071
 ---
 
 ## NF-09.1 The CI gate graph

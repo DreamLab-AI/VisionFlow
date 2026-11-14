@@ -9,7 +9,7 @@ sources:
   - ../vowl-wasm/src/layout/csr_sim.rs
   - ../vowl-wasm/src/bindings/mod.rs
   - ../vowl-wasm/.github/workflows/release.yml
-verified_commit: 2aff199e2de06f4bba512301acf7023477c492ac
+verified_commit: f04ff27209a0350e926d5a8a183fe0eb8c416604
 ---
 
 ## For developers

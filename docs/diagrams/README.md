@@ -184,7 +184,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_269 topic files, 2040 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_269 topic files, 2041 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -387,7 +387,7 @@ _269 topic files, 2040 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | VW-01 | [Crate composition, modules and the WASM boundary](vowl-wasm/01-crate-composition-and-wasm-boundary.md) | 6 | flowchart, sequenceDiagram | [README.md](../../../vowl-wasm/README.md), [ADR-001-shared-ontology-rendering-contract.md](../../../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md) | vowl-wasm:ADR-001 |
 | VW-02 | [OWL parse → graph model](vowl-wasm/02-owl-parse-to-graph-model.md) | 5 | sequenceDiagram, flowchart | [README.md](../../../vowl-wasm/README.md), [ADR-001-shared-ontology-rendering-contract.md](../../../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md) | vowl-wasm:ADR-001 |
 | VW-03 | [Force layout — Barnes-Hut, SIMD and CSR simulation lifecycle](vowl-wasm/03-force-layout-lifecycle.md) | 9 | sequenceDiagram, flowchart, stateDiagram-v2 | [README.md](../../../vowl-wasm/README.md), [ADR-001-shared-ontology-rendering-contract.md](../../../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md) | vowl-wasm:ADR-001 |
-| VW-04 | [JS API surface, examples and downstream consumers](vowl-wasm/04-js-api-examples-and-consumers.md) | 7 | flowchart, sequenceDiagram | [README.md](../../../vowl-wasm/README.md), [ADR-001-shared-ontology-rendering-contract.md](../../../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md) | vowl-wasm:ADR-001 |
+| VW-04 | [JS API surface, examples and downstream consumers](vowl-wasm/04-js-api-examples-and-consumers.md) | 8 | flowchart, sequenceDiagram | [README.md](../../../vowl-wasm/README.md), [ADR-001-shared-ontology-rendering-contract.md](../../../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md) | vowl-wasm:ADR-001 |
 | VW-05 | [Build, test, bench and the npm publish pipeline](vowl-wasm/05-build-test-bench-and-publish.md) | 6 | flowchart | [README.md](../../../vowl-wasm/README.md), [ADR-001-shared-ontology-rendering-contract.md](../../../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md) | vowl-wasm:ADR-001 |
 | VW-06 | [Layout termination, reload state and release retry repairs](vowl-wasm/06-layout-and-release-repairs.md) | 3 | flowchart |  | vowl-wasm:ADR-001 |
 

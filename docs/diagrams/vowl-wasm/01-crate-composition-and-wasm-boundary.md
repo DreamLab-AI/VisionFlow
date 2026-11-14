@@ -25,7 +25,7 @@ sources:
   - ../vowl-wasm/src/layout/simulation.rs
   - ../vowl-wasm/README.md
   - ../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md
-verified_commit: 2aff199e2de06f4bba512301acf7023477c492ac
+verified_commit: f04ff27209a0350e926d5a8a183fe0eb8c416604
 ---
 
 ## VW-01.1 Top-level module tree
@@ -52,16 +52,16 @@ flowchart LR
     subgraph Always["always compiled, default = []"]
         CORE["OWL/JSON parsing, graph model,<br/>force layout, pinning, statistics<br/>Cargo.toml:58-61"]
     end
-    NGG1F["ngg1<br/>Cargo.toml:67 dep:ontomark-ngg1 at Cargo.toml:46"] --> NGGMOD["src/ngg1.rs re-export + NggExplorer<br/>bindings/explorer.rs:18 + NggGraph, decodeNgg1, encodeNgg1<br/>bindings/ngg.rs:17-18"]
-    INTF["interaction<br/>Cargo.toml:75"] --> INTMOD["interaction module<br/>+ checkNodeClick binding"]
-    DBGF["debug-serde<br/>Cargo.toml:79"] --> DBGMOD["WebVowl.getGraphData()<br/>bindings/mod.rs:178"]
-    PARF["parallel<br/>Cargo.toml:84 dep:rayon, native only"] --> PARMOD["enables rayon dependency;<br/>current source has no parallel loading implementation"]
-    SIMDF["simd<br/>Cargo.toml:87, needs simd128 target-feature"] --> SIMDMOD["layout/simd.rs SIMD128 kernels"]
+    NGG1F["ngg1<br/>Cargo.toml:67 dep:ontomark-ngg1 at Cargo.toml:46"] --> NGGMOD["src/ngg1.rs re-export + NggExplorer<br/>bindings/explorer.rs:56 + NggGraph, decodeNgg1, encodeNgg1<br/>bindings/ngg.rs:17-18"]
+    INTF["interaction<br/>Cargo.toml:71"] --> INTMOD["interaction module<br/>+ checkNodeClick binding"]
+    DBGF["debug-serde<br/>Cargo.toml:76"] --> DBGMOD["WebVowl.getGraphData()<br/>bindings/mod.rs:178"]
+    PARF["parallel<br/>Cargo.toml:80 dep:rayon, native only"] --> PARMOD["enables rayon dependency;<br/>current source has no parallel loading implementation"]
+    SIMDF["simd<br/>Cargo.toml:84, needs simd128 target-feature"] --> SIMDMOD["layout/simd.rs SIMD128 kernels"]
     NGG1F -. "not in bundle alone" .-> BUNDLE
-    INTF --> BUNDLE["published npm bundle<br/>README.md:201 --features ngg1,interaction"]
+    INTF --> BUNDLE["published npm bundle<br/>README.md:207 --features ngg1,interaction"]
 ```
 - `default = []` (Cargo.toml:61) disables named optional features. The `parallel` feature currently adds rayon but no source call uses it; the manifest comment describes an absent loading implementation. Optional dependency selection alone is not parallel execution.
-- The `markdown-ontology` feature and its `regex` dependency no longer exist: the manifest has no `regex` and no such feature (Cargo.toml:26-46, Cargo.toml:57-84), and the README records the removal, with Markdown parsing left to `ontomark-parse` (README.md:204-205). The NGG1 codec is `ontomark-ngg1` 0.1.0 from crates.io, optional behind `ngg1` (Cargo.toml:45-46).
+- The `markdown-ontology` feature and its `regex` dependency no longer exist: the manifest has no `regex` and no such feature (Cargo.toml:26-46, Cargo.toml:57-84), and the README records the removal, with Markdown parsing left to `ontomark-parse` (README.md:210-211). The NGG1 codec is `ontomark-ngg1` 0.1.0 from crates.io, optional behind `ngg1` (Cargo.toml:45-46).
 
 ## VW-01.5 `init()` and `version()` — module entry, called once by wasm-bindgen
 ```mermaid
@@ -90,10 +90,11 @@ flowchart TB
 ## VW-01.7 Two entry points: `WebVowl` vs `NggExplorer`
 ```mermaid
 flowchart TB
-    WORKER["JS rendering worker"] --> NG["NggExplorer, feature ngg1<br/>src/bindings/explorer.rs:18"]
+    WORKER["JS rendering worker"] --> NG["NggExplorer, feature ngg1<br/>src/bindings/explorer.rs:56"]
     NG --> LOAD["loadCsr: NGG1 parse<br/>tick: CsrSimulation"]
+    NG --> ARR["loadArrays: validate plain positions and edges,<br/>then replace the simulation graph<br/>src/bindings/explorer.rs:110-124"]
     NG --> PTR["positionsPtr and positionsLen<br/>direct view over wasm.memory.buffer"]
-    NG --> TUNE["setTheta, pinNode, unpinNode, reheat<br/>src/bindings/explorer.rs:112-137"]
+    NG --> TUNE["setTheta, pinNode, unpinNode, reheat<br/>src/bindings/explorer.rs:192-215"]
     MAIN["JS main-thread consumer"] --> WV["WebVowl, always available<br/>src/bindings/mod.rs:27"]
     WV --> JSON["loadOntology: parser and builder<br/>tick/run/init: ForceSimulation"]
     WV --> STATE["Typed positions, metadata,<br/>pinning, filtering, statistics<br/>getGraphData needs debug-serde"]
@@ -101,7 +102,7 @@ flowchart TB
     OWNED --> ENCODE["encodeNgg1<br/>src/bindings/ngg.rs:182"]
     OWNED --> CONST["ngg1Constants<br/>src/bindings/ngg.rs:240"]
 ```
-- The pointer-view path avoids copying positions at that boundary (src/bindings/explorer.rs:75-90). This is not an allocation-free engine: ticks allocate force buffers and tree storage (src/layout/csr_sim.rs:386-387, src/layout/csr_sim.rs:186-187); `writePositionsInto` also uses allocating generated glue. Separate owned codec functions are not explorer methods.
+- The pointer-view path avoids copying positions at that boundary (src/bindings/explorer.rs:157-170). This is not an allocation-free engine: ticks allocate force buffers and tree storage (src/layout/csr_sim.rs:386-387, src/layout/csr_sim.rs:186-187); `writePositionsInto` also uses allocating generated glue. Separate owned codec functions are not explorer methods.
 
 ## VW-01.8 `DebugFlags` — opt-in console tracing
 ```mermaid

@@ -47,7 +47,7 @@ flowchart TB
     CAP --> PLAN["Tell planner which paths are selected<br/>source.rs:1121"]
     PLAN --> MERGE["Merge requested, planned, mentioned paths<br/>deduplicate by path<br/>source.rs:494"]
     MERGE --> READ["Read baseline blobs<br/>source.rs:1162"]
-    READ --> RENDER["Render and label file outcomes<br/>source.rs:803"]
+    READ --> RENDER["Render and label file outcomes<br/>source.rs:789-818"]
 ```
 
 **What it shows.** Invalid or duplicate requests consume positions in the reservation before usable files are selected. Git's quoted non-ASCII paths used to be retained as quoted text by the line parser, so a tracked file could be missed; RESOLVED at dream-engine b40d507, the tracked listing is now NUL-separated and returns such paths unescaped (`../dream-engine/crates/dream-core/src/source.rs:117`, `../dream-engine/crates/dream-core/src/source.rs:124`).

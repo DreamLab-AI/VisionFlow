@@ -41,7 +41,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/docs/explanation/ecosystem-integration.md
   - ../solid-pod-rs/crates/solid-pod-rs/src/notifications/legacy.rs
   - ../solid-pod-rs/crates/solid-pod-rs/docs/BASELINE-solid-pod-rs.md
-verified_commit: 27e18995fc20790fa956acb41f7d8420544a13ec
+verified_commit: bc6d9d837bfb7638a4e7698fba9b8c22f4152cf2
 ---
 
 ## SP-10.1 The eight baseline invariants and where each lives in code
@@ -144,10 +144,10 @@ flowchart TD
     W3["replay protection is process-local — a second replica shares nothing, and a<br/>restart reopens the window for one TTL<br/>solid-pod-rs-server/src/lib.rs:196"]
     W4["PAYMENT_STATE_LOCK is process-wide, not storage-wide — two replicas over one<br/>pod store share no lock<br/>solid-pod-rs-server/src/lib.rs:208"]
     W5["the NIP-98 freshness check is two-sided, ±60 s around now (a 120 s window);<br/>only the single-use store closes it<br/>solid-pod-rs/src/auth/nip98.rs:28, solid-pod-rs/src/auth/nip98.rs:151"]
-    W6["COPY authorises Write on the destination AND Read on the source, with the dotfile<br/>allowlist applied — CLOSED in alpha.13<br/>solid-pod-rs-server/src/lib.rs:3274, allowlist at solid-pod-rs-server/src/lib.rs:3269, CHANGELOG.md:673"]
-    W7["glob GET gates on the folder acl:Read, then enforce_read_inner per child,<br/>a refused child is skipped not merged — CLOSED in alpha.13<br/>solid-pod-rs-server/src/lib.rs:3386, solid-pod-rs-server/src/lib.rs:3403, CHANGELOG.md:678"]
+    W6["COPY authorises Write on the destination AND Read on the source, with the dotfile<br/>allowlist applied — CLOSED in alpha.13<br/>solid-pod-rs-server/src/lib.rs:3274, allowlist at solid-pod-rs-server/src/lib.rs:3269, CHANGELOG.md:697"]
+    W7["glob GET gates on the folder acl:Read, then enforce_read_inner per child,<br/>a refused child is skipped not merged — CLOSED in alpha.13<br/>solid-pod-rs-server/src/lib.rs:3386, solid-pod-rs-server/src/lib.rs:3403, CHANGELOG.md:702"]
 
-    W8["trail and epoch locks are in-process and held across network calls — a known gap<br/>that a second replica does not share<br/>CHANGELOG.md:735"]
+    W8["trail and epoch locks are in-process and held across network calls — a known gap<br/>that a second replica does not share<br/>CHANGELOG.md:759"]
 
     W1 --> R["recorded, not closed"]
     W2 --> R
@@ -201,7 +201,7 @@ flowchart TD
     D5["ADR-2005: the edge ACL resolver is out of repo and still treats a failed or<br/>invalid read as a miss<br/>solid-pod-rs/src/wac/resolver.rs:265"]
     D6["ADR-2006: the ReplayStore seam has exactly ONE implementor<br/>solid-pod-rs/src/auth/replay_store.rs:95"]
     D7["ADR-2007: one mempool URL, no fallback chain, public testnet4 default<br/>solid-pod-rs-server/src/mempool.rs:60"]
-    D8["REC-11: no pod-wide _prov enumeration — point lookup only<br/>solid-pod-rs-server/src/handlers/prov.rs:762"]
+    D8["REC-11: no pod-wide _prov enumeration — point lookup only<br/>solid-pod-rs-server/src/handlers/prov.rs:766"]
 
     D1 --> LEDGER["the ADR ledger amending the baseline"]
     D2 --> LEDGER
@@ -212,7 +212,7 @@ flowchart TD
     D7 --> LEDGER
     D8 --> LEDGER
 
-    N["D2 and D3 are DOCUMENTED AND PINNED by tests, not fixed — the compatibility<br/>matrix records them as known deltas; D1 was the opposite case, code ahead of the record (alpha.14, CHANGELOG.md:636);<br/>the ADR has since caught up. Neither claims Solid-OIDC conformance the code does not have."]
+    N["D2 and D3 are DOCUMENTED AND PINNED by tests, not fixed — the compatibility<br/>matrix records them as known deltas; D1 was the opposite case, code ahead of the record (alpha.14, CHANGELOG.md:660);<br/>the ADR has since caught up. Neither claims Solid-OIDC conformance the code does not have."]
     D3 -.-> N
     N2["D5 and D6 are the same shape: an interface exists in this repo, its second<br/>implementor lives in nostr-rust-forum, and neither can be discharged here.<br/>See SP-09.7 for the pin that blocks adoption."]
     D6 -.-> N2
@@ -225,7 +225,7 @@ flowchart LR
     R1["README now says a default server build records no git marks — RESOLVED<br/>../solid-pod-rs/README.md:139"]
     R2["README no longer makes the 'exit right' claim; GET /api/exports/all stays behind<br/>the default-off export-jsonld feature<br/>crates/solid-pod-rs-server/Cargo.toml:155"]
     R3["ecosystem-integration: 'S3 is configuration/dependency scaffolding only'<br/>(../solid-pod-rs/crates/solid-pod-rs/docs/explanation/ecosystem-integration.md:105)<br/>— the S3 variant no longer exists in StorageBackendConfig<br/>solid-pod-rs-server/src/main.rs:181"]
-    R4["ecosystem-integration: consumers pin solid-pod-rs 0.4<br/>(../solid-pod-rs/crates/solid-pod-rs/docs/explanation/ecosystem-integration.md:47)<br/>— the workspace is at 0.5.0-alpha.21<br/>../solid-pod-rs/Cargo.toml:15"]
+    R4["ecosystem-integration: consumers pin solid-pod-rs 0.4<br/>(../solid-pod-rs/crates/solid-pod-rs/docs/explanation/ecosystem-integration.md:47)<br/>— the workspace is at 0.5.0-alpha.22<br/>../solid-pod-rs/Cargo.toml:15"]
     R5["README no longer says 'Phases 0-3 shipped': it lists the alpha.17 forge surface and<br/>says compiled features, configured service and activation are separate<br/>../solid-pod-rs/README.md:172"]
     R6["README: at most 89.6% strict over 300 rows after the 2026-11-01 audit, 15 rows missing<br/>— a script over a curated checklist, 'not a universal conformance score'<br/>../solid-pod-rs/README.md:171, ../solid-pod-rs/scripts/parity-check.sh:7"]
 
@@ -246,11 +246,11 @@ flowchart LR
 flowchart TD
     A["dated security and quality audit, 2026-08-19"]
     F1["filesystem symlink root escape — closed by the cap-std capability handle<br/>solid-pod-rs/src/storage/fs.rs:53"]
-    F2["anonymous MCP reads / WAC sidecar bypass — CLOSED in 0.5.0-alpha.13: one path<br/>canonicaliser feeds permission check and storage on every route, MCP enforces<br/>the dotfile allowlist and the REST quota path<br/>CHANGELOG.md:682, CHANGELOG.md:691"]
+    F2["anonymous MCP reads / WAC sidecar bypass — CLOSED in 0.5.0-alpha.13: one path<br/>canonicaliser feeds permission check and storage on every route, MCP enforces<br/>the dotfile allowlist and the REST quota path<br/>CHANGELOG.md:706, CHANGELOG.md:715"]
     F3["forged IdP identity — mitigated by not exposing the optional IdP router"]
-    F4["non-atomic payment state — alpha.13 holds the payment lock across anchor<br/>charges and refunds, closing the lost-update race<br/>CHANGELOG.md:712"]
+    F4["non-atomic payment state — alpha.13 holds the payment lock across anchor<br/>charges and refunds, closing the lost-update race<br/>CHANGELOG.md:736"]
     F5["filesystem writes violate the advertised atomic storage contract<br/>solid-pod-rs/src/storage/fs.rs:111"]
-    F6["supply-chain advisories RUSTSEC-2026-0258 / RUSTSEC-2023-0071 / RUSTSEC-2026-0387 — carried as<br/>dated, justified exceptions (SP-09.4); the third (crypto-bigint 0.5.5 via openidconnect) has unassessed exposure<br/>../solid-pod-rs/deny.toml:48, ../solid-pod-rs/deny.toml:57, ../solid-pod-rs/deny.toml:64, ../solid-pod-rs/.github/workflows/ci.yml:195"]
+    F6["supply-chain advisories RUSTSEC-2026-0258 / RUSTSEC-2023-0071 / RUSTSEC-2026-0387 / RUSTSEC-2026-0459 — carried as<br/>dated, justified exceptions (SP-09.4); the third (crypto-bigint 0.5.5 via openidconnect) has unassessed exposure<br/>../solid-pod-rs/deny.toml:48, ../solid-pod-rs/deny.toml:57, ../solid-pod-rs/deny.toml:64, ../solid-pod-rs/deny.toml:65-74, ../solid-pod-rs/.github/workflows/ci.yml:195"]
 
     A --> F1
     A --> F2
@@ -259,13 +259,13 @@ flowchart TD
     A --> F5
     A --> F6
 
-    N["The README no longer lists these findings or says to keep MCP disabled: its status table<br/>says release notes and a dated audit document record fixed findings and remaining gaps,<br/>and that its refresh did not rerun a security audit (../solid-pod-rs/README.md:175).<br/>The alpha.13 entry names the remaining gaps itself (../solid-pod-rs/CHANGELOG.md:735)."]
+    N["The README no longer lists these findings or says to keep MCP disabled: its status table<br/>says release notes and a dated audit document record fixed findings and remaining gaps,<br/>and that its refresh did not rerun a security audit (../solid-pod-rs/README.md:175).<br/>The alpha.13 entry names the remaining gaps itself (../solid-pod-rs/CHANGELOG.md:759)."]
     A -.-> N
-    N2["F2 and F4 are closed by alpha.13, and the alpha.13 notes tell operators who served a<br/>public-read root or enabled MCP to rotate trail keys and audit ledger balances<br/>(../solid-pod-rs/CHANGELOG.md:689). The advisory exceptions in F6 are not asserted<br/>to pass any gate by the README now (../solid-pod-rs/README.md:178)."]
+    N2["F2 and F4 are closed by alpha.13, and the alpha.13 notes tell operators who served a<br/>public-read root or enabled MCP to rotate trail keys and audit ledger balances<br/>(../solid-pod-rs/CHANGELOG.md:713). The advisory exceptions in F6 are not asserted<br/>to pass any gate by the README now (../solid-pod-rs/README.md:178)."]
     F6 -.-> N2
 ```
 
-- **Drift:** the alpha.13 "Known gaps" text still says the Solid-OIDC helpers do not check aud (../solid-pod-rs/CHANGELOG.md:738). Alpha.14 closed that gap (../solid-pod-rs/CHANGELOG.md:636). A dated release entry is history; read it with the later entries.
+- **Drift:** the alpha.13 "Known gaps" text still says the Solid-OIDC helpers do not check aud (../solid-pod-rs/CHANGELOG.md:762). Alpha.14 closed that gap (../solid-pod-rs/CHANGELOG.md:660). A dated release entry is history; read it with the later entries.
 - **Open:** the 2026-08-19 audit and the F3 IdP-router mitigation carry no citation here. They are recorded claims, not traced in source.
 
 ## SP-10.9 Error taxonomy and how a failure reaches the caller

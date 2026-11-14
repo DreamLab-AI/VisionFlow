@@ -21,6 +21,8 @@ verified_commit: {codescape: e3b76f63e801c6a8460110b93e88a0b420e9b0b4, visioncla
 
 ## For developers
 
+Consumer scope checked on 14 November 2026: VisionClaw main `a6d05ed1a8d090e290944ebb8a9c122c7f59ef8c` still pins Codescape gitlink `e3b76f63e801c6a8460110b93e88a0b420e9b0b4`. This topic retains that producer revision; the standalone Codescape area describes newer source. No deployment was requalified by this pin check.
+
 The Codescape hub relays poses and roster events. The [production-library probes](../../estate-review/2026-10-31-codescape-presence-and-xr.md) expose stale membership and queue-loss boundaries; they do not measure a live socket race.
 
 ## For the business

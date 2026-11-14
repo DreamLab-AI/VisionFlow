@@ -40,7 +40,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-preview-worker/wrangler.toml
   - ../nostr-rust-forum/crates/nostr-bbs-search-worker/wrangler.toml
   - ../nostr-rust-forum/.github/workflows/ci.yml
-verified_commit: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df
+verified_commit: 7e1f036ebd9ebd6c922db6f9acea041775730071
 ---
 
 ## NF-01.1 Twenty crates in four layers
@@ -179,7 +179,7 @@ classDiagram
         passkey-types 0.3 : nostr-rust-forum/Cargo.toml:101
         comrak 0.38 : nostr-rust-forum/Cargo.toml:136
         image 0.24 pure-Rust decoders only : nostr-rust-forum/Cargo.toml:200
-        rusqlite 0.37 bundled, test-only for the shared whitelist SQL : nostr-rust-forum/Cargo.toml:78
+        rusqlite 0.41 bundled, test-only for the shared whitelist SQL : nostr-rust-forum/Cargo.toml:78
         solid-pod-rs caret 0.5.0-alpha.20 core : nostr-rust-forum/Cargo.toml:185
     }
     class SolidPodRs {

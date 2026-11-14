@@ -30,7 +30,7 @@ sources:
   - scripts/generate-release-manifest.sh
   - tests/gates/release-manifest.test.sh
   - scripts/estate-browser-journeys.mjs
-verified_commit: {dream-engine: b40d50724bb6344dc00d57270f7166b138714406, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c}
+verified_commit: {dream-engine: 413f1bbd2927251fcd3a919f64b824837d80d1f5, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c}
 ---
 
 DE-01 to DE-06 are the estate's view of dream-engine. The repository's own corpus is DE-07 to DE-14 in this area (moved on 2026-11-05); DE-11 draws the same crate DAG and licence boundary from inside the repository.
@@ -41,7 +41,7 @@ Current audit qualification, 1 November 2026: [candidate and evidence boundary r
 
 ```mermaid
 flowchart TB
-    CLI["dream-cli: offline shell<br/>crates/dream-cli/Cargo.toml:24-25"] --> DC["dream-core: runner and loop components<br/>crates/dream-core/Cargo.toml:17-18"]
+    CLI["dream-cli: offline shell<br/>crates/dream-cli/Cargo.toml:24-25"] --> DC["dream-core: runner and loop components<br/>crates/dream-core/Cargo.toml:6"]
     CLI --> DG["dream-gate: pure gate and evidence<br/>crates/dream-gate/Cargo.toml:23-24"]
     DC --> DG
     DC --> FF["failure-fingerprint<br/>crates/failure-fingerprint/Cargo.toml:2"]

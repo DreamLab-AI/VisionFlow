@@ -22,7 +22,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/src/wac/conditions.rs
   - ../solid-pod-rs/crates/solid-pod-rs-git/src/api.rs
   - ../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md
-verified_commit: 27e18995fc20790fa956acb41f7d8420544a13ec
+verified_commit: bc6d9d837bfb7638a4e7698fba9b8c22f4152cf2
 ---
 
 **Repair note — 2026-11-03:** selected counterexamples below have a [scoped successor verification](15-authority-and-payment-repairs.md). This historical topic retains its declared source revision; the successor states the repaired contracts and acceptance boundaries.
@@ -182,7 +182,7 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    REG["register before LDP catch-all<br/>solid-pod-rs-server/src/handlers/prov.rs:760"]
+    REG["register before LDP catch-all<br/>solid-pod-rs-server/src/handlers/prov.rs:764"]
     GET["GET commit: resolve Git metadata and first content path<br/>solid-pod-rs-server/src/handlers/prov.rs:351"]
     SC["read current resource sidecar directly from storage<br/>solid-pod-rs-server/src/handlers/prov.rs:402"]
     LEAK["DRIFT: no resource WAC gate or sidecar commit check<br/>anchored is a substring check for bt:txid<br/>solid-pod-rs-server/src/handlers/prov.rs:429"]
@@ -201,7 +201,7 @@ flowchart TD
 
 - **What it shows:** the point query bypasses the ordinary LDP read path. A known old commit can return a newer sidecar, and an owner can overwrite that sidecar by anchoring the old commit. The endpoint does not deduplicate logical requests.
 - **Why it is this way:** the explicit upgrade composes a local charge, chain submission and mutable sidecar. NIP-98 rejects reuse of an authentication event, but a retry with a new event is a fresh charge.
-- **Debt:** a failed refund is only *attempted* in the pending file; a second storage failure is logged at solid-pod-rs-server/src/handlers/prov.rs:705. No repayment worker was found in the crate search. This is not a guaranteed durable refund.
+- **Debt:** a failed refund is only *attempted* in the pending file; a second storage failure is logged at solid-pod-rs-server/src/handlers/prov.rs:709. No repayment worker was found in the crate search. This is not a guaranteed durable refund.
 - **Tension:** private resource and sidecar reads returned 401 in the audit fixture, while the unauthenticated commit query returned their metadata and sidecar text. No pod-wide query enumeration or live deployment exposure is claimed.
 
 ## SP-07.7 Epoch batching — one transaction, many commits
@@ -248,7 +248,7 @@ flowchart TD
     DEP["verify_mrc20_deposit<br/>solid-pod-rs/src/mrc20.rs:262"]
     KEY["bt_derive_chained_pubkey / privkey<br/>solid-pod-rs/src/mrc20.rs:561"]
     ADDR["bt_address — bech32m taproot<br/>solid-pod-rs/src/mrc20.rs:766"]
-    VER["verify_mrc20_anchor — state chain, a head UTXO read via MempoolLookup,<br/>then a walk of every earlier mark<br/>solid-pod-rs/src/mrc20.rs:1034"]
+    VER["verify_mrc20_anchor — state chain, a head UTXO read via MempoolLookup,<br/>then a walk of every earlier mark<br/>solid-pod-rs/src/mrc20.rs:869"]
     WALK["verify_anchor_chain — back from the head outpoint to genesis<br/>solid-pod-rs/src/blocktrail.rs:1068"]
     ML["MempoolLookup trait<br/>solid-pod-rs/src/mrc20.rs:372"]
 
@@ -263,9 +263,9 @@ flowchart TD
     ST -.-> N2
     N3["extract_transfers_to and total_transferred_to are the read side<br/>solid-pod-rs/src/mrc20.rs:240"]
     DEP -.-> N3
-    N4["CHANGED in alpha.12: a UTXO at the head address no longer suffices. Each earlier mark must<br/>be the key its prefix of states derives and spend the mark before it, else the call<br/>fails with 'does not verify link by link'. A head still in the mempool is still<br/>accepted (intact, not verified). Per-link detail: SP-07.19.<br/>solid-pod-rs/src/mrc20.rs:1034"]
+    N4["CHANGED in alpha.12: a UTXO at the head address no longer suffices. Each earlier mark must<br/>be the key its prefix of states derives and spend the mark before it, else the call<br/>fails with 'does not verify link by link'. A head still in the mempool is still<br/>accepted (intact, not verified). Per-link detail: SP-07.19.<br/>solid-pod-rs/src/mrc20.rs:869"]
     VER -.-> N4
-    N5["The walk covers only the stateStrings the caller supplies. Only the LAST is compared<br/>with JCS(state) (solid-pod-rs/src/mrc20.rs:1061); nothing requires JCS(prevState) or a<br/>seq-0 genesis among them, or one string per state since genesis. With one string there<br/>is no earlier mark to walk (SP-07.19)."]
+    N5["The walk covers only the stateStrings the caller supplies. Only the LAST is compared<br/>with JCS(state) (solid-pod-rs/src/mrc20.rs:896); nothing requires JCS(prevState) or a<br/>seq-0 genesis among them, or one string per state since genesis. With one string there<br/>is no earlier mark to walk (SP-07.19)."]
     VER -.-> N5
 ```
 

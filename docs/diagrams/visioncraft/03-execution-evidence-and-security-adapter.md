@@ -20,7 +20,7 @@ sources:
   - ../visioncraft/skills/visioncraft/references/deepsec.md
   - ../visioncraft/docs/adr/0001-portable-quality-contract.md
   - ../visioncraft/docs/adr/0002-specialist-upstream-boundaries.md
-verified_commit: 2c6627ce01d0e68bb0f48fc55a209b2c674716f1
+verified_commit: 6add68eebf1e8fb81a05eb86e2e27e732c4da1c3
 ---
 
 ## VK-03.1 One bounded command, start to reap
@@ -64,6 +64,7 @@ flowchart LR
     T1 --> PS --> ST
     ST --> XE
     ST --> OUT
+    ST --> VALID["FailedToStart or Unavailable cannot carry an exit code or signal<br/>evidence.rs:154-160"]
     SIG --> ST
     N1["INVARIANT: process completion is recorded separately from the evaluator's judgement<br/>quality-gates.md:69-73"]
     N2["INVARIANT: the 78, 124, 130, 70 vocabulary is shared with the Deepsec adapter<br/>deepsec.rs:93"]
@@ -141,7 +142,7 @@ flowchart TB
     LG["stdout.log and stderr.log with SHA-256<br/>cli.rs:822-829"]
     RJ["receipt.json<br/>cli.rs:880-881"]
     LR["evaluate loads each receipts directory<br/>cli.rs:976-978"]
-    VA["VerifiedArtifacts: bytes hashed in memory<br/>evidence.rs:258"]
+    VA["VerifiedArtifacts: bytes hashed in memory<br/>evidence.rs:267"]
     CX["context.json artifacts resolved against its own parent<br/>cli.rs:983-990"]
     GA["evaluate refuses an unverified artifact<br/>evaluate.rs:210-219"]
     OUT --> GI --> PJ --> CK --> LG --> RJ

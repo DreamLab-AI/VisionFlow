@@ -22,16 +22,19 @@ sources:
   - ../ontomark-obsidian/src/sparql-rewrite.ts
   - ../ontomark-obsidian/src/guard.ts
   - ../ontomark-obsidian/src/ingest-transport.ts
-verified_commit: {ontomark-obsidian: 2a6c44e024121ec055329d37915e0ce5a05f75f2}
+  - ../ontomark-obsidian/src/ingest-run.ts
+  - ../ontomark-obsidian/src/endpoint.ts
+  - ../ontomark-obsidian/src/jev-ingest.ts
+verified_commit: {ontomark-obsidian: 4b1016d1b531679a8a59992b71cbee552dac6394}
 ---
 
 ## For developers
 
-The Obsidian plugin is a separate engine consumer with its own repository revision. These panels describe host behaviour at plugin 0.4.2, including reproduced failures. The [refresh audit](../../estate-review/2026-11-01-obsidian-refresh.md) binds five whole-ADR assessments, current engine execution and bounded lifecycle probes. The ADR ledger's metadata migration is not a revalidation of implementation or activation.
+The Obsidian plugin is a separate engine consumer with its own repository revision. These panels describe plugin 0.5.0 and engine v0.8.1. The 14 November source refresh reconciles per-block query channels, stable subscriptions, ingest cancellation and persisted-write reporting. Historical probe receipts remain bound to their original revisions. The [refresh audit](../../estate-review/2026-11-01-obsidian-refresh.md) binds five whole-ADR assessments, current engine execution and bounded lifecycle probes. The ADR ledger's metadata migration is not a revalidation of implementation or activation.
 
 ## For the business
 
-A user can query typed notes locally and review a proposed note edit before applying it. Reliable saved queries and clear recovery after an index failure are still product gaps. Optional model features send requests outside the vault; a local graph does not make those actions offline. The build and shim tests establish bounded behaviour, not installed-desktop acceptance.
+A user can query typed notes locally and review a proposed note edit before applying it. Saved queries now retain independent channels and stop rendering after unload. A successful note write is reported as applied even when the following engine update fails. Optional model features send requests outside the vault; a local graph does not make those actions offline. The build and shim tests establish bounded behaviour, not installed-desktop acceptance.
 
 ## OM-09.1 Verified inputs and three release files
 
@@ -46,7 +49,7 @@ flowchart TD
     A --> F["Publish main.js, manifest.json, styles.css<br/>release.yml:24"]
 ```
 
-**What it shows.** The release workflow publishes loose runtime files, not the removed ZIP. A fresh audit build verified the configured engine archive and source receipt. Workflow presence alone does not prove a published asset's attestation was verified.
+**What it shows.** The release workflow publishes loose runtime files, not the removed ZIP. The linked 1 November audit verified the then-configured engine archive and source receipt. This source refresh checks the new pins, not a new release build. Workflow presence alone does not prove a published asset's attestation was verified.
 
 **Why it is this way.** ADR-OBS-001 keeps reusable semantics and graph rendering upstream, while the plugin owns installation and host adapters. Licences and notices now live in the repository; this diagram makes no distribution-compliance determination.
 
@@ -59,14 +62,14 @@ flowchart TD
     E --> I["Update current captured API<br/>main.ts:383,387"]
     C --> N{"Renamed target excluded?<br/>main.ts:403,409"}
     N -->|yes| DEL["Delete old path<br/>main.ts:409"]
-    N -->|no| O["Rename or index target<br/>main.ts:411; api.ts:127"]
+    N -->|no| O["Rename or index target<br/>main.ts:411; api.ts:139"]
     S["Settings save reloads native filters<br/>main.ts:167,169"] --> RE["Dispose API and create a new one<br/>main.ts:180,181,182"]
     RE --> L
-    RE -.-> Q["TENSION: blocks subscribe to old API<br/>sparql-block.ts:40"]
-    Q --> FIX["Stable plugin subscription exists<br/>main.ts:193,294"]
+    RE --> Q["Blocks subscribe through the stable plugin relay<br/>sparql-block.ts:54"]
+    Q --> FIX["Later index and classification events schedule a rerun<br/>sparql-block.ts:55-60"]
 ```
 
-**What it shows.** Filtering belongs to the host's listing and event adapters. A settings-triggered reindex replaces the API. Existing blocks subscribe directly to the old instance, unlike consumers using the stable plugin subscription.
+**What it shows.** Filtering belongs to the host's listing and event adapters. A settings-triggered reindex replaces the API. Existing blocks now subscribe through the stable plugin relay, so a replacement API does not strand their listeners.
 
 **Why it is this way.** ADR-OBS-005 separates vault policy from engine semantics. Malformed native configuration can remove the extra filters by design; these convenience rules are not an authorisation boundary inside every public API method.
 
@@ -74,37 +77,38 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    B["One renderer child per fence<br/>sparql-block.ts:120,121"] --> SUB["Subscribe and debounce 400 ms<br/>sparql-block.ts:19,40,43"]
-    SUB --> RW["Resolve note references and rewrite<br/>sparql-block.ts:62,63,105"]
-    RW --> Q["Query channel uses note path<br/>sparql-block.ts:71"]
+    B["One renderer child per fence<br/>sparql-block.ts:144-146"] --> SUB["Stable subscription and 400 ms debounce<br/>sparql-block.ts:19,54-60"]
+    SUB --> RW["Resolve note references and rewrite<br/>sparql-block.ts:79-81"]
+    RW --> Q["Query channel includes a unique block counter<br/>sparql-block.ts:47,90"]
     Q --> GU["Latest request per channel wins<br/>guard.ts:46,68"]
-    GU -.-> COLL["TENSION: two blocks in one note collide<br/>sparql-block.ts:71"]
-    Q -->|success| R
-    Q --> CL["not_classified triggers classify and retry<br/>sparql-block.ts:73,74,75"]
-    CL --> R["Render after await<br/>sparql-block.ts:77,79"]
-    U["Unload only unsubscribes and clears timer<br/>sparql-block.ts:51,54"] -.-> R
+    Q --> CL["not_classified triggers classify and retry<br/>sparql-block.ts:92-96"]
+    GU --> CUR{"Still the latest block run?<br/>sparql-block.ts:76-80,98"}
+    CL --> CUR
+    CUR -->|yes| R["Render result with classification envelope<br/>sparql-block.ts:99-101"]
+    U["Unload unsubscribes, clears timer and increments run sequence<br/>sparql-block.ts:65-70"] --> CUR
     RW -.-> SC["DRIFT: placeholder lacks token boundary<br/>directive accepted beyond leading comment<br/>sparql-rewrite.ts:48,51,89"]
 ```
 
-**What it shows.** The guard prevents obsolete reads on one channel. Reusing a channel across independent blocks defeats that independence, and unsubscribing does not invalidate an already running render. All three lifecycle cases and both scanner mismatches were reproduced with current host modules.
+**What it shows.** Each block has its own request channel, and each run checks its sequence before changing the display. Unloading invalidates an in-flight render. Concurrent entity lookups share one index read per generation (`api.ts:164-179`). These are source-level closures of the earlier lifecycle findings; the linked historical probes are not new installed-desktop acceptance.
 
-**Why it is this way.** ADR-OBS-004 promises a reactive in-note result. That needs both per-block request identity and component lifetime checks. Inferred queries can also classify automatically, qualifying ADR-OBS-001's phrase “classification remains explicit”.
+**Why it is this way.** ADR-OBS-004 promises a reactive in-note result. That needs both per-block request identity and component lifetime checks. Inferred queries can still classify automatically, qualifying ADR-OBS-001's phrase “classification remains explicit”. The scanner mismatches remain separate from these lifecycle repairs.
 
 ## OM-09.4 Model waiting, review, persistence and indexing
 
 ```mermaid
 flowchart TD
-    CMD["Always-registered command checks endpoint and key<br/>main.ts:454,463,559"] --> PLAN["Shared engine plans request<br/>main.ts:478,479"]
-    PLAN --> NET["Send chunks; abort checked between chunks<br/>ingest-transport.ts:149,152"]
-    NET --> WAIT["Timeout races host request; no abort handle<br/>ingest-transport.ts:85,91,92"]
-    WAIT --> ACCEPT["Check abort, accept, optional Jev judgement<br/>main.ts:488,489,494"]
-    ACCEPT --> CONF["Preview requires confirmation<br/>main.ts:501; api.ts:240"]
-    CONF --> WRITE["Atomic full-text comparison and write<br/>api.ts:242,243,246"]
-    WRITE --> INDEX["Then update engine index<br/>api.ts:253"]
-    INDEX --> RECEIPT["Return applied outcome<br/>api.ts:255"]
-    INDEX -.-> FAIL["TENSION: rejection can follow persisted write<br/>upsert is outside write-error catch<br/>api.ts:248,253"]
+    CMD["Always-registered command checks endpoint and key<br/>main.ts:454-466,558"] --> PLAN["Capture one API and plan the request<br/>main.ts:482-487; ingest-run.ts:29"]
+    PLAN --> NET["Chunk loop: abort check and ten-minute deadline<br/>ingest-transport.ts:154-168"]
+    NET --> WAIT["Timeout races host request; no abort handle<br/>ingest-transport.ts:90-105,180"]
+    WAIT --> ACCEPT["Accept and optional Jev judgement<br/>abort checked after each await<br/>ingest-run.ts:31-39"]
+    ACCEPT --> CONF["Preview needs confirmation and final abort check<br/>ingest-run.ts:45-46; api.ts:264"]
+    CONF --> WRITE["Atomic full-text comparison and write<br/>api.ts:266-271"]
+    WRITE --> INDEX["Then update engine index<br/>api.ts:285-286"]
+    INDEX --> RECEIPT["Return applied, including when index update fails<br/>api.ts:287-291"]
 ```
 
-**What it shows.** Proposal, confirmation, persistence and indexing are separate events. The timeout stops waiting; it does not recall a request. The current host has no second abort check after optional Jev judging and before confirmation. The write/index failure was reproduced; the Jev unload race remains a source-derived test target.
+**What it shows.** Proposal, confirmation, persistence and indexing remain separate events. The ingest lifecycle checks cancellation after planning, model calls, acceptance and optional Jev, and again after confirmation. A persisted write stays an applied outcome when the engine update fails. The ten-minute deadline covers the model chunk loop; it is not a timer around planning, Jev or the user's review. A timeout stops waiting but does not recall the host request.
 
-**Why it is this way.** ADR-OBS-003 places credentials and network calls in the host and keeps the engine pure. Its original absent-command and one-destination wording exceeds current enforcement: the command is always registered, optional Jev broadens the surface, and the host transport does not expose redirect control.
+**Why it is this way.** ADR-OBS-003 places credentials and network calls in the host and keeps the engine pure. Plain HTTP outside loopback now requires explicit configuration (`endpoint.ts:18-21,45-49`). The original one-destination wording still exceeds enforcement: the host transport does not expose redirect control (`endpoint.ts:27-31`).
+
+**Invariant (verification policy):** with the Jev withholding threshold above zero, unverified facts are withheld; at zero, the result is retained with an explicit `not_verified` state (`jev-ingest.ts:127-144`). This source review does not claim a live model or installed-desktop test.

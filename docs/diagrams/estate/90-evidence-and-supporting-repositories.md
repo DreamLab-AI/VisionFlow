@@ -29,7 +29,7 @@ sources:
   - ../diagram-ir/Cargo.toml
   - ../loom/Cargo.toml
   - docs/estate-review/2026-09-07-estate-audit.md
-verified_commit: {visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, dream-engine: b40d50724bb6344dc00d57270f7166b138714406, WasmVOWL: 51a1484301901e817757c4cce17b1fece371652a, loom: ba21a689a57dc67dc68ad22e52b058da34a7fb05, dream-machine: b77093e564ef689923fb523b0e0b18d2bb4a21a4, prose-sanitiser: 9f1c67193e9164717479c0f88a611aa5f7355ca7, diagram-ir: 15cba163da7086a3ebbb5a059c8a8d0ab4ba9706}
+verified_commit: {visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, dream-engine: 413f1bbd2927251fcd3a919f64b824837d80d1f5, WasmVOWL: 51a1484301901e817757c4cce17b1fece371652a, loom: ba21a689a57dc67dc68ad22e52b058da34a7fb05, dream-machine: b77093e564ef689923fb523b0e0b18d2bb4a21a4, prose-sanitiser: 2e5d203eb11b8d9bb7bbc84b761128b334a63f45, diagram-ir: 15cba163da7086a3ebbb5a059c8a8d0ab4ba9706}
 ---
 
 ## ES-90.1 Three scopes — health roster, source review and workspace neighbours

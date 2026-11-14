@@ -17,7 +17,7 @@ sources:
   - ../project/agentbox/services/dream-engine/src/config.rs
   - ../project/agentbox/schema/agentbox.toml.schema.json
   - ../project/agentbox/docs/adr/ADR-2190-dream-ledger-human-cells-come-only-from-recorded-reviews-and-night-artefacts-are-a-durable-archived-record.md
-verified_commit: 720e0d89656a4360998b3a716d0f3ee8cac66f93
+verified_commit: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a
 ---
 
 ## For developers
@@ -26,7 +26,7 @@ ADR-2190 (merged in agentbox PR 43, 795fd6107) amends ADR-2087 point 5: the ledg
 
 ## For the business
 
-A nightly improvement is now reviewed on the record: a person's review is written down against that night's evidence and only then appears in the ledger, so the ledger can no longer claim a human looked at work an agent merged. The evidence for every night is kept and backed up off the machine.
+The implementation separates a recorded review from a merge event, so an agent merge does not fill the human review cells. Night evidence has a durable archive path with a fail-open push; deployment of that path still needs the receipts listed below.
 
 ## AB-43.1 One night: start-up guard, backfill, row, archive
 
@@ -79,7 +79,7 @@ sequenceDiagram
 
 **What it shows:** `dream-engine review import` validates each record against the night it names, writes `review.json`, and fills the ledger row under the same lock the night uses. **Why it is this way:** an import runs outside the loop's singleton lock, so without a ledger lock an import and a night could each rewrite the ledger and lose the other's change (ADR-2190 context).
 
-**Open:** the record is explicit but not authenticated: `reviewer` is free text from the importing tool and the witness binds a review to a night, not to a person (`../project/agentbox/docs/adr/ADR-2190-dream-ledger-human-cells-come-only-from-recorded-reviews-and-night-artefacts-are-a-durable-archived-record.md:46`).
+**Open:** the record is explicit but not authenticated: `reviewer` is free text from the importing tool and the witness binds a review to a night, not to a person (`../project/agentbox/docs/adr/ADR-2190-dream-ledger-human-cells-come-only-from-recorded-reviews-and-night-artefacts-are-a-durable-archived-record.md:51`).
 
 ## AB-43.3 Locks and identity: who serialises on what
 
@@ -89,7 +89,7 @@ flowchart TB
     LL --> W1["night row append<br/>records.rs:65"]
     LL --> W2["review import and backfill<br/>review.rs:815"]
     NR["NightRunning, .night-running.lock in the artefact dir<br/>ledger_io.rs:59, ledger_io.rs:220"] --> REF["import and backfill refuse to run during a night<br/>main.rs:157"]
-    CFG["dream_machine.git_author_name and git_author_email<br/>config.rs:100-103, schema agentbox.toml.schema.json:2981-2988"] --> GI["git_identity<br/>config.rs:140"]
+    CFG["dream_machine.git_author_name and git_author_email<br/>config.rs:100-103, schema agentbox.toml.schema.json:2982-2988"] --> GI["git_identity<br/>config.rs:140"]
     GI --> LAYER["fallback config layer, includes the account's real config<br/>GIT_CONFIG_GLOBAL set at start-up<br/>archive.rs:161, main.rs:343-345"]
     GI --> ARGS["archive commit: -c user.name and user.email<br/>only when the checkout has no identity<br/>archive.rs:87, archive.rs:102"]
     LAYER -.-> INV["INVARIANT: a checkout's own identity outranks the fallback"]
@@ -98,7 +98,7 @@ flowchart TB
 
 **What it shows:** one advisory lock per ledger shared by every writer, a separate night-in-progress lock that keeps manual imports out of a running night, and a configured identity that only fills a gap. **Why it is this way:** the estate gives checkouts their own identities on purpose, so the engine's identity may not override them (ADR-2190 decision, identity paragraph).
 
-**Debt:** the ledger lock binds only processes that take it; the legacy `scripts/dream-machine-nightly.mjs` fallback and a loop built before this change rewrite the ledger without it (`../project/agentbox/docs/adr/ADR-2190-dream-ledger-human-cells-come-only-from-recorded-reviews-and-night-artefacts-are-a-durable-archived-record.md:52`).
+**Debt:** the ledger lock binds only processes that take it; the legacy `scripts/dream-machine-nightly.mjs` fallback and a loop built before this change rewrite the ledger without it (`../project/agentbox/docs/adr/ADR-2190-dream-ledger-human-cells-come-only-from-recorded-reviews-and-night-artefacts-are-a-durable-archived-record.md:57`).
 
 ## AB-43.4 The archive step: ignore list, SSH mode, push target
 
@@ -117,6 +117,6 @@ flowchart TB
 
 **What it shows:** the end-of-night archive commits whatever the ignore list admits and pushes it to the checkout's own remote. **Why it is this way:** night artefacts were in a temporary directory and nights before 6 October 2026 were lost; the archive repository's name and remote are deliberately kept out of the public repositories (ADR-2190 consequences).
 
-**Debt:** the artefact directory grows without bound; pruning it would orphan every row's witness and is now a decision-level change (`../project/agentbox/docs/adr/ADR-2190-dream-ledger-human-cells-come-only-from-recorded-reviews-and-night-artefacts-are-a-durable-archived-record.md:48`).
+**Debt:** the artefact directory grows without bound; pruning it would orphan every row's witness and is now a decision-level change (`../project/agentbox/docs/adr/ADR-2190-dream-ledger-human-cells-come-only-from-recorded-reviews-and-night-artefacts-are-a-durable-archived-record.md:53`).
 
-**Open:** ADR-2190 is `activation_status: staged` (`../project/agentbox/docs/adr/ADR-2190-dream-ledger-human-cells-come-only-from-recorded-reviews-and-night-artefacts-are-a-durable-archived-record.md:7`); it goes live after a rebuilt image pushes the archive, one real `review import` fills a row and the legacy directory is migrated (`../project/agentbox/docs/adr/ADR-2190-dream-ledger-human-cells-come-only-from-recorded-reviews-and-night-artefacts-are-a-durable-archived-record.md:75`). None of the three is evidenced at 720e0d896.
+**Open:** ADR-2190 is `activation_status: staged` (`../project/agentbox/docs/adr/ADR-2190-dream-ledger-human-cells-come-only-from-recorded-reviews-and-night-artefacts-are-a-durable-archived-record.md:7`); it goes live after a rebuilt image pushes the archive, one real `review import` fills a row and the legacy directory is migrated (`../project/agentbox/docs/adr/ADR-2190-dream-ledger-human-cells-come-only-from-recorded-reviews-and-night-artefacts-are-a-durable-archived-record.md:80`). The 14 November source check does not provide those deployment receipts.

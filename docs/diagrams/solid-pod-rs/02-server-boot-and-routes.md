@@ -18,7 +18,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/src/storage/fs.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/storage/memory.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/scheme.rs
-verified_commit: 27e18995fc20790fa956acb41f7d8420544a13ec
+verified_commit: bc6d9d837bfb7638a4e7698fba9b8c22f4152cf2
 ---
 
 ## SP-02.1 Process entry point — CLI to listening socket
