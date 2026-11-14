@@ -42,7 +42,8 @@ sources:
   - ../project/agentbox/management-api/routes/sessions-boundary.js
   - ../project/agentbox/management-api/lib/pg-config.js
   - ../project/agentbox/management-api/adapters/memory/external-pg.js
-verified_commit: 720e0d89656a4360998b3a716d0f3ee8cac66f93
+  - ../project/agentbox/mcp/servers/lib/memory-evidence.js
+verified_commit: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a
 ---
 
 ## AB-04.1 resolveAdapters — slot to implementation resolution
@@ -267,13 +268,13 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SV as server.js boot<br/>server.js:1364-1382
+    participant SV as server.js boot<br/>server.js:1361-1379
     participant LC as connectAdapters<br/>adapters/lifecycle.js:234
     participant CO as connectOneSlot<br/>adapters/lifecycle.js:194
     participant AD as adapter.connect()
     participant T as deadline timer<br/>lifecycle.js:210-212
 
-    SV->>LC: connectAdapters(slots, adapters, manifest, logger, resolveOff) — server.js:1366
+    SV->>LC: connectAdapters(slots, adapters, manifest, logger, resolveOff) — server.js:1363
     par all five slots concurrently (lifecycle.js:249)
         LC->>LC: timeoutMs = connectTimeoutFor(slot, manifest) (lifecycle.js:252 and :119)
         alt adapter missing or no connect() hook (lifecycle.js:255)
@@ -294,17 +295,17 @@ sequenceDiagram
         end
     end
     LC-->>SV: readiness map and healthy flag (lifecycle.js:338-339)
-    SV->>SV: app.adapters[slot] = resolvedAdapters[slot] (server.js:1379)
-    SV->>SV: Object.assign(adapterHealth, toLegacyHealth(readiness)) (server.js:1380)
-    SV->>SV: app.decorate('adapterReadiness', readiness) (server.js:1381)
+    SV->>SV: app.adapters[slot] = resolvedAdapters[slot] (server.js:1376)
+    SV->>SV: Object.assign(adapterHealth, toLegacyHealth(readiness)) (server.js:1377)
+    SV->>SV: app.decorate('adapterReadiness', readiness) (server.js:1378)
     Note over LC,T: DEFAULT_CONNECT_TIMEOUT_MS = 10000 — lifecycle.js:72
     Note over LC: Manifest override [adapters] connect_timeout_ms scalar or per-slot map — lifecycle.js:107-109, :123,<br/>non-positive values ignored (lifecycle.js:126). The Stage 1 schema rejects the key, see AB-04.15
-    Note over SV,LC: INVARIANT: ONE deadline PER SLOT, never one aggregate budget —<br/>adapters/lifecycle.js:234, wired from server.js:1365-1366. Aggregate wall-clock is<br/>bounded by the slowest single slot, not by a race that abandons work in flight<br/>(lifecycle.js:31-35).
-    Note over SV,LC: RESOLVED ADR-2035: BASELINE-container.md:135 documents the<br/>per-slot deadline. Its line references there (server.js:1241-1242) are stale at this<br/>commit, see the Drift entry below this panel.
+    Note over SV,LC: INVARIANT: ONE deadline PER SLOT, never one aggregate budget —<br/>adapters/lifecycle.js:234, wired from server.js:1362-1363. Aggregate wall-clock is<br/>bounded by the slowest single slot, not by a race that abandons work in flight<br/>(lifecycle.js:31-35).
+    Note over SV,LC: RESOLVED ADR-2035: BASELINE-container.md:159 documents the<br/>per-slot deadline. Its line references there (server.js:1241-1242) are stale at this<br/>commit, see the Drift entry below this panel.
     Note over CO,T: Timeout is a CONNECT FAILURE identical in consequence to an explicit rejection — lifecycle.js:31-33
 ```
 
-**Drift:** `docs/BASELINE-container.md` still cites `connectAdapters` as wired from `server.js:1241-1242` and `app.adapterReadiness` at `server.js:1257` (`../project/agentbox/docs/BASELINE-container.md:135`). At the pin those calls sit at `../project/agentbox/management-api/server.js:1365-1381`. It also places `instrumentAdapter` at `index.js:131` (`../project/agentbox/docs/BASELINE-container.md:130`), where the function is now at `../project/agentbox/management-api/adapters/index.js:158`. The governing document carries line numbers that no longer resolve.
+**Drift:** `docs/BASELINE-container.md` still cites `connectAdapters` as wired from `server.js:1241-1242` and `app.adapterReadiness` at `server.js:1257` (`../project/agentbox/docs/BASELINE-container.md:159`). At the pin those calls sit at `../project/agentbox/management-api/server.js:1362-1378`. It also places `instrumentAdapter` at `index.js:131` (`../project/agentbox/docs/BASELINE-container.md:154`), where the function is now at `../project/agentbox/management-api/adapters/index.js:158`. The governing document carries line numbers that no longer resolve.
 
 ## AB-04.7 Failure path — quarantine before replacement, fail-closed slots abort
 ```mermaid
@@ -312,7 +313,7 @@ sequenceDiagram
     autonumber
     participant LC as connectAdapters<br/>lifecycle.js:234
     participant Q as quarantineAdapter<br/>lifecycle.js:142
-    participant RO as resolveOff callback<br/>server.js:1371-1374
+    participant RO as resolveOff callback<br/>server.js:1368-1371
     participant IDX as resolveAdapters<br/>index.js:196
     participant PX as process.exit(1)<br/>lifecycle.js:333
 
@@ -401,7 +402,7 @@ stateDiagram-v2
     end note
 ```
 
-**Drift:** this panel used to map the legacy states onto the `agentbox_adapter_health` gauge as off 0, degraded 1, healthy 2. `setAdapterHealth` encodes healthy as 1, degraded as 2 and anything else as 0 (`../project/agentbox/management-api/observability/metrics.js:202-204`). Nothing in the management API calls it, so the gauge is never set at this revision. The collapse feeds only the `/health` JSON (`../project/agentbox/management-api/server.js:1380`, `../project/agentbox/management-api/server.js:608-619`).
+**Drift:** this panel used to map the legacy states onto the `agentbox_adapter_health` gauge as off 0, degraded 1, healthy 2. `setAdapterHealth` encodes healthy as 1, degraded as 2 and anything else as 0 (`../project/agentbox/management-api/observability/metrics.js:202-204`). Nothing in the management API calls it, so the gauge is never set at this revision. The collapse feeds only the `/health` JSON (`../project/agentbox/management-api/server.js:1377`, `../project/agentbox/management-api/server.js:608-619`).
 
 ## AB-04.9 memory.store — the configured external-pg dispatch through both layers
 ```mermaid
@@ -617,14 +618,14 @@ flowchart TD
     subgraph S1["Stage 1 static schema — edit and build time"]
         A1["schema/agentbox.toml.schema.json"] --> A2["agentbox-config-validate.js:125-128<br/>Ajv"]
         A2 --> A3{"any E-code?<br/>schema or cross-field"}
-        A3 -->|yes| A4["reject, exit 1<br/>:1920"]
-        A3 -->|"no"| A5["W0xx warning only<br/>exit 0, :1912-1915"]
+        A3 -->|yes| A4["reject, exit 1<br/>agentbox-config-validate.js:1931"]
+        A3 -->|"no"| A5["W0xx warning only, exit 0<br/>agentbox-config-validate.js:1926"]
     end
     subgraph S2["Stage 2 boot probe — once per boot"]
-        B1["server.js:1365-1366 require adapters/lifecycle"] --> B2["connectAdapters lifecycle.js:234"]
+        B1["server.js:1362-1363 require adapters/lifecycle"] --> B2["connectAdapters lifecycle.js:234"]
         B2 --> B3["per-slot deadline lifecycle.js:119 and :252"]
         B3 --> B4["ready | disabled | unavailable | off<br/>lifecycle.js:55-66"]
-        B4 --> B5["toLegacyHealth lifecycle.js:350<br/>adapterHealth server.js:1380"]
+        B4 --> B5["toLegacyHealth lifecycle.js:350<br/>adapterHealth server.js:1377"]
     end
     subgraph S3["Stage 3 conformance — CI only, never at boot"]
         C1["tests/contract/memory.contract.spec.js"] --> C4["all three impl classes must behave identically"]
@@ -641,14 +642,16 @@ flowchart TD
         D2["agentbox_adapter_duration_seconds metrics.js:26"] --> D4
         D3["agentbox_adapter_health metrics.js:35<br/>never set"] --> D4
     end
-    A4 --> B1
+    A4 --> STOP["Validation stops before boot"]
     A5 --> B1
+    S2 ~~~ S3
+    S3 ~~~ S4
     S3 -.-> NOTE["DIVERGENCE — legacy ADR-005 conflates<br/>all four into 'contract tests'"]
 ```
 
 **Tension:** the schema's `[adapters]` table sets `additionalProperties: false` and does not declare `connect_timeout_ms` (`../project/agentbox/schema/agentbox.toml.schema.json:50-52`). Stage 1 compiles that schema with Ajv (`../project/agentbox/scripts/agentbox-config-validate.js:125-128`). The per-slot override that Stage 2 reads (`../project/agentbox/management-api/adapters/lifecycle.js:107-109`) is therefore rejected by Stage 1 as an unknown key, so the documented knob cannot pass validation.
 
-**Drift:** BASELINE stage 4 says the slot SLO is "surfaced as the `agentbox_adapter_health` gauge ∈ {0,1,2}" (`../project/agentbox/docs/BASELINE-container.md:137`). The gauge is declared (`../project/agentbox/management-api/observability/metrics.js:35-40`), but its only setter has no caller in the repository. The help text and the setter agree on the encoding: 0 unhealthy (so `off` would read as 0), 1 healthy, 2 degraded (`../project/agentbox/management-api/observability/metrics.js:37`, `../project/agentbox/management-api/observability/metrics.js:202-204`). Earlier versions of this topic gave healthy as 2, which contradicts both. Stage 1's rejection is also wider than "structural only": cross-field E-rules such as E-PAY1 reject as well (`../project/agentbox/scripts/agentbox-config-validate.js:1755`).
+**Drift:** BASELINE stage 4 says the slot SLO is "surfaced as the `agentbox_adapter_health` gauge ∈ {0,1,2}" (`../project/agentbox/docs/BASELINE-container.md:161`). The gauge is declared (`../project/agentbox/management-api/observability/metrics.js:35-40`), but its only setter has no caller in the repository. The help text and the setter agree on the encoding: 0 unhealthy (so `off` would read as 0), 1 healthy, 2 degraded (`../project/agentbox/management-api/observability/metrics.js:37`, `../project/agentbox/management-api/observability/metrics.js:202-204`). Earlier versions of this topic gave healthy as 2, which contradicts both. Stage 1's rejection is also wider than "structural only": cross-field E-rules such as E-PAY1 reject as well (`../project/agentbox/scripts/agentbox-config-validate.js:1766`).
 
 ## AB-04.16 SLO surfacing and the agentbox.sh health exit contract
 ```mermaid
@@ -696,3 +699,25 @@ sequenceDiagram
 ```
 
 **Tension:** the non-zero exit is reachable only on the pretty-print path. `--json` prints the payload and exits 0 (`../project/agentbox/agentbox.sh:1148-1151`). A host without `jq` prints the raw payload and returns 0 even when slots are degraded (`../project/agentbox/agentbox.sh:1220-1223`). A script that pipes `agentbox.sh health --json` gets no failure signal.
+
+## AB-04.17 External memory deletion withdraws evidence references
+
+```mermaid
+sequenceDiagram
+    participant Caller as adapter caller
+    participant Adapter as ExternalPgMemoryAdapter.del<br/>external-pg.js:157
+    participant SQL as deleteAndWithdrawSql<br/>memory-evidence.js:149
+    participant PG as shared memory_entries table
+    Caller->>Adapter: del(key, namespace)
+    Adapter->>Adapter: require key and ensure connection<br/>external-pg.js:158-159
+    Adapter->>SQL: build delete predicate for key, namespace and source_type agentbox<br/>external-pg.js:162-165
+    SQL-->>Adapter: one delete-and-withdraw statement<br/>memory-evidence.js:151-170
+    Adapter->>PG: execute with namespace, key, time, probe and source type<br/>external-pg.js:163-165
+    Note over Adapter,PG: Matching evidence in surviving rows becomes a withdrawn marker<br/>with time only. evidence_state becomes partial.<br/>Withdrawal requires an actual deletion and runs regardless of the evidence gate.<br/>memory-evidence.js:128-140,159-167
+    PG-->>Adapter: deleted and withdrawn counts<br/>memory-evidence.js:170
+    Adapter-->>Caller: deleted is true only when deleted count exceeds zero<br/>external-pg.js:167
+```
+
+**What it shows:** the external Postgres adapter shares the MCP server's atomic delete-and-withdraw statement. Its public result remains a boolean `deleted`; a successful SQL statement alone no longer implies an entry was removed.
+
+**Why it is this way:** references written while evidence tracking was enabled must still be withdrawn after that gate is disabled (`../project/agentbox/mcp/servers/lib/memory-evidence.js:136-140`). This is database reference withdrawal; it does not recall prose copied outside those metadata references. The wider memory boundary is in ES-07.11.
