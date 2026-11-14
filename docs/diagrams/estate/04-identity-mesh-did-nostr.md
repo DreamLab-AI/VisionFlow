@@ -36,7 +36,7 @@ sources:
   - ../project/src/settings/auth_extractor.rs
   - ../project/client/src/services/nostrAuthService.ts
   - ../project/agentbox/docs/INGRESS-identity.md
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a}
 ---
 ## ES-04.1 verification mesh — who signs, who verifies whom
 ```mermaid
@@ -94,7 +94,7 @@ flowchart TB
 
 **Debt:** the stamp's strength is the same-UID boundary of the agentbox container, because any process inside it reaches management-api over loopback (TODO-unified X-1; `agentbox/management-api/lib/agent-event-auth.js:36-39`).
 
-**Drift (resolved at this stamp):** ADR-2153 is live (`decision_status: accepted`, `implementation_status: partial`, `activation_status: live`; `../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`). Agent of Empires, its port 9095 listener, its bearer token and the proxy hop to it are gone; session control is a 0660 `ab-sessions` unix socket authorised by `SO_PEERCRED` against uids 1000 and 961 (`../project/agentbox/services/agentbox-sessions/src/api.rs:74`, `../project/agentbox/config/custody/session-plane-acl.json:8-11`), and port 9096 forwards named routes only (`../project/agentbox/docs/INGRESS-identity.md:69-71,244-247`). The 2026-10-30 close-out re-checks the running image and leaves the axes unchanged: `command -v aoe` finds nothing and nothing listens on port 9095 (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:259`); `partial` stays because the all-seed acceptance gap remains open (`:262`).
+**Drift (resolved at this stamp):** ADR-2153 is live (`decision_status: accepted`, `implementation_status: partial`, `activation_status: live`; `../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`). Agent of Empires, its port 9095 listener, its bearer token and the proxy hop to it are gone; session control is a 0660 `ab-sessions` unix socket authorised by `SO_PEERCRED` against uids 1000 and 961 (`../project/agentbox/services/agentbox-sessions/src/api.rs:74`, `../project/agentbox/config/custody/session-plane-acl.json:8-11`), and port 9096 forwards named routes only (`../project/agentbox/docs/INGRESS-identity.md:69-71,244-247`). The 2026-10-30 close-out re-checks the running image and leaves the axes unchanged: `command -v aoe` finds nothing and nothing listens on port 9095 (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:304`); `partial` stays because the all-seed acceptance gap remains open (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:307`).
 
 **Open (PROPOSED 2026-10-30, not implemented):** VisionClaw's identity-authority record now carries a Proposed room-admission section (ADR-2157, ADR-2160, ADR-2161): a `RoomAdmission` port after the presence handshake, fed by the home relay's signed NIP-29 39002 member list, and a single agentbox-held node federation key that VisionClaw never holds (`docs/IDENTITY-authority-chain.md`, section "Proposed"). Today the handshake alone admits a DID to any room, and the diagrams here describe only that shipped path.
 
@@ -189,9 +189,9 @@ sequenceDiagram
     Note over B,S: Under role_isolation, or sign_source = identity-port, the header comes<br/>from the identity port instead and no key is read (pod-signer.js:76-77)
 ```
 
-**Drift (corrected at agentbox c57d9c0):** this panel used to show a degraded signer falling back to an UNSIGNED write and a boot that could keep the `did:nostr:local` placeholder. Neither holds at the pin, and neither held at 6500582 either (pod-signer.js is byte-identical between the two, and the entrypoint already aborted on a failed mint there): `buildPodNip98` returns `null` only when `sign_requests` is off (`../project/agentbox/management-api/lib/pod-signer.js:73`); when it is on, the adapter is built with `requireSigned` (`../project/agentbox/management-api/adapters/index.js:74`) and a null header throws `SigningUnavailable` (`../project/agentbox/management-api/adapters/pods/_solid-http-base.js:105`); and the entrypoint now aborts boot when the mint fails (`../project/agentbox/config/entrypoint-unified.sh:1429-1438`).
+**Drift (corrected at agentbox c57d9c0):** this panel used to show a degraded signer falling back to an UNSIGNED write and a boot that could keep the `did:nostr:local` placeholder. Neither holds at the pin, and neither held at 6500582 either (pod-signer.js is byte-identical between the two, and the entrypoint already aborted on a failed mint there): `buildPodNip98` returns `null` only when `sign_requests` is off (`../project/agentbox/management-api/lib/pod-signer.js:73`); when it is on, the adapter is built with `requireSigned` (`../project/agentbox/management-api/adapters/index.js:74`) and a null header throws `SigningUnavailable` (`../project/agentbox/management-api/adapters/pods/_solid-http-base.js:105`); and the entrypoint now aborts boot when the mint fails (`../project/agentbox/config/entrypoint-unified.sh:1424-1433`).
 
-**Drift (source comment):** `agent-identity.js` still says the entrypoint's `did:nostr:local` fallback "runs unconditionally" (`../project/agentbox/management-api/lib/agent-identity.js:41-43`); the entrypoint it describes now exits 1 on a failed or inconsistent mint (`../project/agentbox/config/entrypoint-unified.sh:1429-1438`). The comment is stale, not the code.
+**Drift (source comment):** `agent-identity.js` still says the entrypoint's `did:nostr:local` fallback "runs unconditionally" (`../project/agentbox/management-api/lib/agent-identity.js:41-43`); the entrypoint it describes now exits 1 on a failed or inconsistent mint (`../project/agentbox/config/entrypoint-unified.sh:1424-1433`). The comment is stale, not the code.
 
 ## ES-04.5 Key custody — where every signing key actually lives
 ```mermaid

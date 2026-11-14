@@ -19,16 +19,16 @@ sources:
   - ../sidestr-rs/sidestr-evm/tests/chain.rs
   - ../sidestr-rs/.github/workflows/ci.yml
   - ../project/agentbox/config/sidechain/dreamlab/chain.json
-verified_commit: {sidestr-rs: 60259e848795d0cd5c5718ca5d0eb658f69fd0d7, visionflow: baae32a, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
+verified_commit: {sidestr-rs: 60259e848795d0cd5c5718ca5d0eb658f69fd0d7, visionflow: baae32a, agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a}
 ---
 
 ## For developers
 
-**Repair note — 2026-11-03:** selected counterexamples below have a [scoped successor verification](06-withdrawal-snapshot-and-producer-repairs.md). This historical topic retains its declared source revision; the successor states the repaired contracts and acceptance boundaries. The optional `evm` rule executes carried Ethereum transactions with revm alongside the UTXO ledger. Applied EVM state moves after the enclosing block passes. Candidate caches, withdrawal multiplicity and snapshot validation have separate limits; the [audit](../../estate-review/2026-11-01-sidestr-evm-accounting-and-snapshots.md) reproduces them through production libraries.
+**Source reconciliation — 2026-11-14:** this overview reads `60259e8`, including the withdrawal multiplicity and code-commitment repairs also drawn in [SR-06](06-withdrawal-snapshot-and-producer-repairs.md). The [1 November audit](../../estate-review/2026-11-01-sidestr-evm-accounting-and-snapshots.md) remains evidence about its earlier `9c6de86` source. Its underpayment and changed-bytecode counterexamples are not current-source findings. Candidate caches, snapshot metadata and retained-history semantics still have the separate limits below. Applied EVM state moves only after the enclosing block passes.
 
 ## For the business
 
-This is smart-contract execution within a sidestr chain. Value crosses through deposits and withdrawals at one sat per gwei. The source package disables publication and the estate document does not select EVM. Current validation can underpay duplicate withdrawals; snapshot root agreement alone does not establish trustworthy executable state.
+This is smart-contract execution within a sidestr chain. Value crosses through deposits and withdrawals at one sat per gwei. The source package disables publication and the estate document does not select EVM. Each withdrawal now needs its own matching output, and restored contract bytes must match their code hashes. Snapshot metadata and the external chain commitment still require a separate trust boundary.
 
 ## SR-03.1 One chain, two coordinated state views
 
@@ -52,7 +52,7 @@ flowchart TB
 
 **Why it is this way.** Account execution and UTXO payouts meet in one validated block. Each matched output is now marked consumed (`../sidestr-rs/sidestr-evm/src/state.rs:516`, `:521`), so equal obligations must be paid by as many outputs; the earlier existence test let one output satisfy two equal withdrawals until sidestr-rs 7f046444 enforced the multiplicity.
 
-**Open:** a full-validator probe accepts two 10,000-sat withdrawals with one 10,000-sat recipient output and the remaining allowance paid to the signer. Complete withdrawal payment is a required invariant that the current predicate does not enforce.
+**Resolved (withdrawal multiplicity):** the old full-validator counterexample reused one payment for two equal obligations. The current predicate consumes each matching output and refuses any unpaid obligation (`../sidestr-rs/sidestr-evm/src/state.rs:516-531`). SR-06 records the repair boundary; this source review does not rerun the historical probe or establish chain adoption.
 
 ## SR-03.2 Prepare, retain, then commit
 
@@ -78,24 +78,26 @@ sequenceDiagram
 
 **What it shows.** Coinbase allowance and rule checking share preparation; a successful EVM verdict stages a world even if another rule later rejects the block (`../sidestr-rs/sidestr-evm/src/rule.rs:100`, `../sidestr-rs/sidestr-evm/src/state.rs:542-552`). Commit clears pending candidates but leaves the verdict map; restore clears both (`../sidestr-rs/sidestr-evm/src/state.rs:572-593`, `../sidestr-rs/sidestr-evm/src/state.rs:352`).
 
-**Why it is this way.** Applied balances and receipts remain separate from speculative execution. The former discard-on-refusal arrow overstated cleanup: the native probe retains 64 rejected outer candidates, then still reads all 64 verdicts after application.
+**Why it is this way.** Applied balances and receipts remain separate from speculative execution. The former discard-on-refusal arrow overstated cleanup: the dated audit retained 64 rejected outer candidates and read their verdicts after application. The current commit path still clears pending worlds without clearing the verdict map (`../sidestr-rs/sidestr-evm/src/state.rs:572-593`).
 
 ## SR-03.3 Retained-height snapshots
 
 ```mermaid
 flowchart TB
-    SNAP["snapshot: worlds, times,<br/>block records and receipts"] --> V{"version and config match,<br/>selected world root equals<br/>snapshot block record?"}
-    V -->|no| REF["refuse snapshot"]
-    V -->|yes, time exists| LIVE["select height and world<br/>sidestr-evm/src/state.rs:305"]
-    SNAP --> CODE["code bytes keyed by claimed hash"]
-    CODE --> EXEC["execution reads supplied bytes<br/>sidestr-evm/src/world.rs:202-210"]
-    LIVE --> ALL["retain all snapshot histories,<br/>including heights above selection"]
-    LIVE -.-> NEED["caller still needs trusted chain anchor<br/>and verified code / metadata"]
+    SNAP["supplied snapshot"] --> VERSION{"version and configuration match?<br/>sidestr-evm/src/state.rs:305-314"}
+    VERSION -->|no| REF["refuse before installing state"]
+    VERSION -->|yes| CODE{"all retained worlds have valid code maps?<br/>state.rs:317-318<br/>world.rs:77-89"}
+    CODE -->|no| REF
+    CODE -->|yes| ROOT{"selected world root equals its block record<br/>and selected time exists?<br/>state.rs:320-338"}
+    ROOT -->|no| REF
+    ROOT -->|yes| LIVE["install selected world and copy all histories<br/>including heights above selection<br/>state.rs:340-351"]
+    LIVE --> CLEAR["clear pending candidates and verdicts<br/>state.rs:352-353"]
+    LIVE -.-> NEED["caller still needs a trusted external chain anchor<br/>and authenticated time / receipt metadata"]
 ```
 
-**What it shows.** Restore checks schema/configuration, selected world-root equality with the snapshot's own record and time presence. It copies all histories and receipts, then clears transient caches (`../sidestr-rs/sidestr-evm/src/state.rs:305-355`). It does not authenticate that time, receipts or an external chain commitment.
+**What it shows.** Restore validates code in every retained world before installation, then checks the selected root against the snapshot's block record and requires a time entry (`../sidestr-rs/sidestr-evm/src/state.rs:305-355`). It retains all histories and receipts and clears transient caches. It does not authenticate time, receipts or an external chain commitment.
 
-**Why it is this way.** Account roots contain code hashes; execution looks up code bytes separately without rehashing them (`../sidestr-rs/sidestr-evm/src/world.rs:129`, `../sidestr-rs/sidestr-evm/src/world.rs:202-210`). A probe changes a contract answer from 42 to 43 under the same root. Selecting genesis also leaves future block/receipt records queryable; this is not a pruned active-history view.
+**Why it is this way.** Account roots contain code hashes, while executable bytes live in a separate map. Restore now requires each map key to equal Keccak of its bytes and every non-empty account code hash to have a blob (`../sidestr-rs/sidestr-evm/src/world.rs:77-89`). This closes the dated audit's changed-bytecode counterexample. Selecting genesis still leaves later block/receipt records copied into the state; code validation does not turn retained history into a pruned active-history view (`../sidestr-rs/sidestr-evm/src/state.rs:340-351`).
 
 ## SR-03.4 Evidence and activation boundary
 
@@ -109,8 +111,8 @@ flowchart TB
     SRC -.-> LIVE["publication and chain activation<br/>require separate evidence"]
 ```
 
-**What it shows.** Fresh Rust tests replay committed fixtures; CI is configured to regenerate them against the pinned module (`../sidestr-rs/.github/workflows/ci.yml:186`, `../sidestr-rs/sidestr-evm/tests/oracle.rs:155`). Two KZG refusal cases compare the error but deliberately skip intermediate-root equality (`../sidestr-rs/sidestr-evm/tests/oracle.rs:180`).
+**What it shows.** The Rust tests replay committed fixtures; CI is configured to regenerate them against the pinned module (`../sidestr-rs/.github/workflows/ci.yml:186`, `../sidestr-rs/sidestr-evm/tests/oracle.rs:155`). Two KZG refusal cases compare the error but deliberately skip intermediate-root equality (`../sidestr-rs/sidestr-evm/tests/oracle.rs:180`).
 
-**Why it is this way.** Reference compatibility is narrower than Ethereum equivalence: the profile disables block-gas enforcement, aborts at KZG and returns zero for BLOCKHASH (`../sidestr-rs/sidestr-evm/src/exec.rs:168-170`, `../sidestr-rs/sidestr-evm/src/exec.rs:78`, `../sidestr-rs/sidestr-evm/src/world.rs:227-228`). The pinned reference also contains the withdrawal-matching gap.
+**Why it is this way.** Reference compatibility is narrower than Ethereum equivalence: the profile disables block-gas enforcement, aborts at KZG and returns zero for BLOCKHASH (`../sidestr-rs/sidestr-evm/src/exec.rs:168-170`, `../sidestr-rs/sidestr-evm/src/exec.rs:78`, `../sidestr-rs/sidestr-evm/src/world.rs:227-228`). The dated audit found the withdrawal-matching gap in its pinned reference as well; passing that historical fixture suite did not establish payment multiplicity. The Rust source now enforces the distinct-output rule above.
 
 **Scope:** `publish = false` remains in the package configuration and the estate document lacks an EVM rule (`../sidestr-rs/sidestr-evm/Cargo.toml:16`, `../project/agentbox/config/sidechain/dreamlab/chain.json:28`). These checks neither publish the crate nor establish deployed contract use.
