@@ -92,7 +92,7 @@ sources:
   - ../dream-engine/crates/dream-cli/src/lib.rs
   - ../dream-engine/docs/adr/ADR-DE-006-automerge-is-an-option.md
   - ../dream-engine/docs/adr/ADR-DE-007-a-night-is-identified-by-its-directory.md
-verified_commit: {agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, dream-engine: 413f1bbd2927251fcd3a919f64b824837d80d1f5}
+verified_commit: {agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a, dream-engine: 413f1bbd2927251fcd3a919f64b824837d80d1f5}
 ---
 Repair follow-up, 2026-11-03: [AB-41.3](41-process-governance-and-dream-repairs.md#ab-413-supply-the-reusable-core-with-verifiable-host-inputs) and [DE-06](../dream-engine/06-formatting-and-evidence-repairs.md) record the adapter's registry adoption and core formatting/source/integrity repairs. This topic retains its historical source stamp.
 
@@ -254,7 +254,7 @@ The baseline revision is passed into the candidate worktree, which protects agai
 
 The formatter runs locally before relocation. A successful worktree build does not establish the identity of a remote extracted tree or protect the operator's filesystem from subprocess effects. The [candidate](../../estate-review/2026-11-01-dream-candidate-and-evidence.md) and [annexe](../../estate-review/2026-11-01-dream-annexe-and-receipts.md) probes qualify those guarantees. Full ADR-2114 dispositions are in the [execution review](../../estate-review/2026-11-01-dream-execution-and-triage.md).
 
-## AB-23.6 Persistence and the human merge gate
+## AB-23.6 Persistence and the external merge decision
 
 ```mermaid
 flowchart TB
@@ -275,7 +275,7 @@ flowchart TB
 
 **What it shows.** The adapter checks publication eligibility before calling the forge, and calls `Forge::publish_draft` directly. The common ledger path follows all continuing branches, including vetoed and locally retained candidates. A publication failure does not erase the verdict; it changes the PR reference and notice. Earlier inbox and request-store effects precede the persistence boundary described here.
 
-**Why it is this way.** A human still decides the merge. The core's `autoMerge` policy is only used by `persist::publish`, which this adapter does not call. The [1 November forge/seam audit](../../estate-review/2026-11-01-dream-forge-and-seam-contracts.md) exercises the real GhForge subprocess boundary with local Git remotes and an offline replacement for gh; it does not establish live GitHub behaviour or current deployment.
+**Why it is this way.** The engine does not merge. The command policy also permits an operator-delegated `/dream sweep` on non-excluded repositories, with green head checks, protected paths respected and a recorded sweep comment; it must not invent human review evidence (`skills/dream-machine/commands/dream.md:80-105`). The core's `autoMerge` policy is only used by `persist::publish`, which this adapter does not call. The [1 November forge/seam audit](../../estate-review/2026-11-01-dream-forge-and-seam-contracts.md) exercises the real GhForge subprocess boundary with local Git remotes and an offline replacement for gh; it does not establish live GitHub behaviour or current deployment.
 
 **Open (publication identity):** the PR request carries a branch name, not the verified commit hash (`../dream-engine/crates/dream-core/src/seams.rs:341`). A successful create command returns Some even for empty stdout (`../dream-engine/crates/dream-core/src/seams.rs:531`); the adapter then selects the acceptance notice by Option presence. The tested command boundary does not validate the URL or bind the pushed head to the evaluated tree.
 
@@ -337,7 +337,7 @@ This graph shows selected record fields, phase/resume variants, lock methods, ga
 
 ```mermaid
 flowchart TB
-    BOOT["Boot prefers baked hook, then checkout; dedupes command substring<br/>entrypoint-unified.sh:2210-2223"] --> INPUT["UserPromptSubmit stdin<br/>dream-inbox-surface.cjs:35-39"]
+    BOOT["Boot prefers baked hook, then checkout; dedupes command substring<br/>entrypoint-unified.sh:2211-2224"] --> INPUT["UserPromptSubmit stdin<br/>dream-inbox-surface.cjs:35-39"]
     INPUT --> MACHINE{"Prompt starts with a known machine-turn tag?<br/>dream-inbox-surface.cjs:31-41"}
     MACHINE -->|yes| EXIT["No context injection<br/>dream-inbox-surface.cjs:68-70"]
     MACHINE -->|no| READ["Read JSON array; count status=open<br/>No published_event_id or relay check<br/>dream-inbox-surface.cjs:42-45"]
@@ -350,7 +350,7 @@ flowchart TB
 
 **Meaning.** The pointer says decisions await on the panel even when all open items lack a publication receipt. It measures local backlog; publication success and panel visibility need separate evidence. Existing fixture tests use unpublished items and still receive that wording.
 **Limits.** The timestamp is shared by sessions but read and written without locking, so four hours is a sequential suppression policy, not a concurrent delivery guarantee. Failed stamp writes permit another reminder. See the [governance audit](../../estate-review/2026-11-01-dream-governance-and-delivery.md).
-**Source pin.** Boot citations use the existing topic revision. The selected registration block is unchanged at the current checkout but moved to lines 2171–2196; the audit manifest records that comparison.
+**Source pin.** The boot registration is read at the topic revision (`config/entrypoint-unified.sh:2211-2224`). The earlier audit remains a dated receipt.
 
 ## AB-23.10 Control and reporting surfaces
 
@@ -366,6 +366,7 @@ flowchart LR
     SKILL --> FORUM["questions/answer/dismiss: forum decisions; local inbox is break-glass<br/>commands/dream.md:17"]
     SKILL --> DIG["digest and governance use Rust subcommands<br/>main.rs:183"]
     SKILL --> NOM["nominate: author repo config and verify evaluators<br/>commands/dream.md:74"]
+    SKILL --> SWEEP["sweep: delegated agent review, exclusions first<br/>green head checks and protected-path limits<br/>no automatic merge or human-review receipt<br/>commands/dream.md:80-105"]
     SKILL --> HAR["harvest: dream-harvest.mjs<br/>commands/dream.md:31"]
     API["Separate HTTP surface: GET /dream/status only; no run control<br/>routes/dream.js:24"]
     API --> JS["aggregateDreamStatus reads nominated repo ledgers<br/>dream-ledger.js:368"]
