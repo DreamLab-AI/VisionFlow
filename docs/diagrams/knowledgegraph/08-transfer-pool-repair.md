@@ -12,7 +12,7 @@ verified_commit: 4809ea9772e61766058cf20d38e7527082e78fed
 
 ## For developers
 
-This scoped successor covers KG-04.2 in the retained modern explorer. It does not declare this explorer the canonical publisher; visionGraph retains that role.
+This scoped successor covers KG-04.2 in the retained modern explorer. Its declared repair commit is now an ancestor of main, published by [knowledgeGraph PR 5](https://github.com/DreamLab-AI/knowledgeGraph/pull/5) on 14 November 2026. It does not declare this explorer the canonical publisher; visionGraph retains that role.
 
 ## For the business
 

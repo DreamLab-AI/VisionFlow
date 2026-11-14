@@ -49,7 +49,7 @@ sources:
   - ../project/client/src/features/graph/explore/__tests__/nodeFilter.test.ts
   - ../project/tests/node-filter-parity.json
   - ../project/xr-client/rust/src/settings_sync.rs
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
+verified_commit: {visionclaw: a6d05ed1a8d090e290944ebb8a9c122c7f59ef8c}
 ---
 
 ## For developers
@@ -478,7 +478,7 @@ flowchart TB
         D3["NODE_FILTER_DEFAULTS, the same values plus minConnections and minMaturity<br/>client/src/features/graph/explore/nodeFilter.ts:57-68"]
         D5["XR NodeFilter default, the shared fields only, no server_remove<br/>xr-client/rust/src/settings_sync.rs:44-55"]
         D4["the filter_update fallbacks, taken from D2<br/>src/handlers/socket_flow_handler/filter_auth.rs:17"]
-        FIX["tests/node-filter-parity.json default case :72<br/>pinned by src/actors/client_filter.rs:574, src/handlers/socket_flow_handler/filter_auth.rs:588<br/>xr-client/rust/src/settings_sync.rs:653-654<br/>and client/src/features/graph/explore/__tests__/nodeFilter.test.ts:14"]
+        FIX["tests/node-filter-parity.json default case :72<br/>pinned by src/actors/client_filter.rs:574, src/handlers/socket_flow_handler/filter_auth.rs:588<br/>xr-client/rust/src/settings_sync.rs:669-670<br/>and client/src/features/graph/explore/__tests__/nodeFilter.test.ts:14"]
         D1 --> FIX
         D2 --> FIX
         D3 --> FIX
@@ -490,7 +490,7 @@ flowchart TB
     PUMP --> T2["TENSION ADR-2183 says the stream always applies the population scope, but with enabled false<br/>filtered_node_ids is skipped, so linked_page stubs stream to a default client, and initialGraphLoad applies no stub scope either<br/>docs/adr/ADR-2183-interactive-filters-grey-out-through-a-highlight-mask.md:64, src/actors/client_filter.rs:3-5, src/handlers/socket_flow_handler/types.rs:492-537"]
 ```
 
-**Invariant:** every copy of the node-filter defaults, the `filter_update` fallbacks included, is pinned to the `default` case of `tests/node-filter-parity.json` (`tests/node-filter-parity.json:72`), by `shipped_defaults_match_the_fixture_default_case` (`src/actors/client_filter.rs:574`), `an_empty_filter_update_takes_the_shipped_defaults` (`src/handlers/socket_flow_handler/filter_auth.rs:588`), the XR fixture test (`xr-client/rust/src/settings_sync.rs:653-654`) and the client suite (`client/src/features/graph/explore/__tests__/nodeFilter.test.ts:14`).
+**Invariant:** every copy of the node-filter defaults, the `filter_update` fallbacks included, is pinned to the `default` case of `tests/node-filter-parity.json` (`tests/node-filter-parity.json:72`), by `shipped_defaults_match_the_fixture_default_case` (`src/actors/client_filter.rs:574`), `an_empty_filter_update_takes_the_shipped_defaults` (`src/handlers/socket_flow_handler/filter_auth.rs:588`), the XR fixture test (`xr-client/rust/src/settings_sync.rs:669-670`) and the client suite (`client/src/features/graph/explore/__tests__/nodeFilter.test.ts:14`).
 
 **Debt (parallel):** the defaults are still written four times and pinned by tests rather than shared (`src/actors/client_coordinator_actor.rs:187-205`, `src/settings/models.rs:192-212`, `client/src/features/graph/explore/nodeFilter.ts:57-68`, `xr-client/rust/src/settings_sync.rs:44-55`), and only two of them carry the degree and maturity floors (`src/settings/models.rs:207-208`, `client/src/features/graph/explore/nodeFilter.ts:66-67`); and `filtered_node_ids` is recomputed over the whole graph on register and authenticate (`src/actors/client_coordinator_actor.rs:1301-1304`, `:1692-1695`) but over the caller's view on `filter_update` (`src/actors/client_coordinator_actor.rs:73`), so the same client's set has two bases.
 
