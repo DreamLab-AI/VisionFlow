@@ -934,7 +934,7 @@ Revision labels are author declarations. This index checks structure and referen
 | [AB-23.3 Module map and the licence boundary](agentbox/23-dream-engine.md#ab-233-module-map-and-the-licence-boundary) | flowchart | AB-23 |
 | [AB-23.4 Guard ordering and the gate's evidence boundary](agentbox/23-dream-engine.md#ab-234-guard-ordering-and-the-gates-evidence-boundary) | flowchart | AB-23 |
 | [AB-23.5 Candidate worktree, relocation and apply repair](agentbox/23-dream-engine.md#ab-235-candidate-worktree-relocation-and-apply-repair) | sequenceDiagram | AB-23 |
-| [AB-23.6 Persistence and the human merge gate](agentbox/23-dream-engine.md#ab-236-persistence-and-the-human-merge-gate) | flowchart | AB-23 |
+| [AB-23.6 Persistence and the external merge decision](agentbox/23-dream-engine.md#ab-236-persistence-and-the-external-merge-decision) | flowchart | AB-23 |
 | [AB-23.7 Run journal — restart, resume, abandonment and the finished-night rule](agentbox/23-dream-engine.md#ab-237-run-journal-restart-resume-abandonment-and-the-finished-night-rule) | flowchart | AB-23 |
 | [AB-23.8 Core types](agentbox/23-dream-engine.md#ab-238-core-types) | flowchart | AB-23 |
 | [AB-23.9 Reminder counts local open items, not confirmed forum cases](agentbox/23-dream-engine.md#ab-239-reminder-counts-local-open-items-not-confirmed-forum-cases) | flowchart | AB-23 |

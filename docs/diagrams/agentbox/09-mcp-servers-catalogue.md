@@ -30,21 +30,20 @@ sources:
   - ../project/agentbox/flake.nix
   - ../project/agentbox/docs/adr/ADR-2085-colloquy-knowledge-units-on-the-forum.md
   - ../project/agentbox/docs/adr/ADR-2086-confirmation-weight-follows-authorising-principals.md
-verified_commit: 720e0d89656a4360998b3a716d0f3ee8cac66f93
+verified_commit: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a
 ---
 
 ## AB-09.1 Registry ownership classes — what the projector may touch
 ```mermaid
 flowchart TD
-    REG["skills/mcp.json v2.0.0<br/>CANONICAL BOOT-PROJECTION SOURCE<br/>28 servers total"] --> CLS{"x-agentbox-managed-by<br/>MANAGED_BY_VALUES project-mcp-servers.mjs:101"}
+    REG["skills/mcp.json v2.0.0<br/>CANONICAL BOOT-PROJECTION SOURCE<br/>24 servers total"] --> CLS{"x-agentbox-managed-by<br/>MANAGED_BY_VALUES project-mcp-servers.mjs:101"}
     CLS -->|projector — 9| PJ["aci-shell, code-interpreter, codebase-memory,<br/>consultant-codex, consultant-antigravity, consultant-zai,<br/>consultant-perplexity, consultant-deepseek, web-researcher"]
     CLS -->|bespoke — 3| BS["claude-flow, browser-gpu, perplexity"]
-    CLS -->|reference — 16| RF["ruv-swarm, imagemagick, qgis, web-summary, comfyui, blender,<br/>gemini-url-context, notebooklm, linkedin, defense-security, reddit,<br/>meta-xr-sdk, unreal-engine, clipcannon, scrapling, context7"]
+    CLS -->|reference — 12| RF["ruv-swarm, imagemagick, qgis, web-summary, comfyui, blender,<br/>gemini-url-context, linkedin, reddit,<br/>meta-xr-sdk, unreal-engine, context7"]
     PJ --> ACT["gate-evaluated, requires-checked, ${VAR} expanded,<br/>UPSERTED into .mcp.json — reconcile not append<br/>project-mcp-servers.mjs:13-20"]
     BS --> NEVER["hand-written entrypoint blocks with health probes,<br/>secret handling and warmup — NEVER touched here, so the<br/>live set stays byte-identical (project-mcp-servers.mjs:22-24)"]
     RF --> DOC["GPU-sidecar skill wrappers whose mcp-server lives under a skill dir,<br/>or npx/uvx network-installer servers that cannot run on the<br/>read-only rootfs — documented, not auto-projected (:25-27)"]
-    REG -.-> D1["DOC-DRIFT — BASELINE-container says skills/mcp.json is a 30-server registry.<br/>The file holds 28 (9 projector + 3 bespoke + 16 reference).<br/>The 9/3/16 split the doc gives is correct"]
-    REG -.-> D1R["RESOLVED ADR-2039: BASELINE-container.md:30 (changelog 0.3.0) says<br/>skills/mcp.json holds 28 servers, not 30"]
+    REG -.-> D1["Historical counts differ: BASELINE-container.md:32 records 28.<br/>The current registry has 24: nine projector, three bespoke, twelve reference.<br/>NotebookLM, defense-security, clipcannon and scrapling entries were removed."]
     REG -.-> D2["separate file agentbox/mcp/mcp.json is a DIFFERENT 16-entry map<br/>and is not the projection source"]
 ```
 
@@ -133,7 +132,7 @@ sequenceDiagram
     Note over LED: the ledger is deliberately NOT stored inside .mcp.json — that file is read by the Claude Code harness and must carry no agentbox-private keys (project-mcp-servers.mjs:59-61)
     Note over EP,P: boot is NOT blocked — a non-zero exit surfaces as a loud [mcp] FAIL line in the boot log without aborting the entrypoint (:76-79)
     Note over P: DOC-DRIFT — BASELINE "Configuration projection qualification 2026-09-04" says<br/>ADR-2008 is partial because the reconciliation loop cannot remove deleted registry<br/>definitions and unreadable input leaves stale state with exit zero. The ADR-2008<br/>closeout dated 2026-09-05 fixes both as D1 and D3 (project-mcp-servers.mjs:30-49)
-    Note over P: RESOLVED ADR-2039: BASELINE-container.md:314 marks this qualification<br/>resolved with the D1/D3 evidence — ownership-ledger removal<br/>project-mcp-servers.mjs:33-39, non-zero exit on malformed input :46-49, exit codes :71-74
+    Note over P: RESOLVED ADR-2039: BASELINE-container.md:339 marks this qualification<br/>resolved with the D1/D3 evidence — ownership-ledger removal<br/>project-mcp-servers.mjs:33-39, non-zero exit on malformed input :46-49, exit codes :71-74
 ```
 
 ## AB-09.4 The four ADR-2008 closeout defects and their fixes
@@ -179,8 +178,8 @@ flowchart TB
     end
     subgraph KB["corpus and memory"]
         I["ruvnet-brain mcp/ruvnet-brain/server.js:194 v0.2.0"] --> IT["search_ruvnet :201, ruvnet_brain_status :217 —<br/>status also surfaces release provenance :176-185:<br/>archive digest, signature present/verified, receipt digest, shipped runtime"]
-        J["ruvector-mcp.cjs — 26 tools = 20 base ruvector-mcp.cjs:249<br/>+ 6 pushed only when their gate is on :428-512<br/>ADVERTISED_TOOLS set built from the final list :532"] --> JT["memory_store, memory_search, memory_retrieve, memory_list, memory_usage,<br/>memory_health, memory_orient, memory_hybrid_search, memory_sweep_episodic,<br/>memory_repair_embeddings, swarm_init, swarm_status, agent_spawn,<br/>task_orchestrate, coordination_sync, load_balance, parallel_execute,<br/>neural_patterns, sona_health, sparc_mode, performance_report,<br/>bottleneck_analyze, workflow_create, workflow_execute,<br/>github_pr_manage, github_repo_analyze"]
-        J -.-> JS["shapedSearch(query, namespace, sourceType) wraps memory_search —<br/>bounds output via min_score / snippet_chars; internal callers (hybrid,<br/>orient) still call memSearch directly for whole values (ruvector-mcp.cjs:232-234).<br/>It first widens the pool and passes it through memory-jev-rerank,<br/>an optional Jev judge, local-only only when AGENTBOX_JEV_MEMORY_LOCAL_ONLY=1, off in code unless AGENTBOX_JEV_MEMORY_RERANK=1<br/>(ruvector-mcp.cjs:239-243, memory-jev-rerank.js:16, :31, :107), opted in by [system_one.consumers].memory_rerank (agentbox.toml:920) and staged until a rebuild (agentbox.toml:913)"]
+        J["ruvector-mcp.cjs — 26 tools = 20 base ruvector-mcp.cjs:255<br/>+ 6 pushed only when their gate is on ruvector-mcp.cjs:457-541<br/>ADVERTISED_TOOLS set built from the final list ruvector-mcp.cjs:561"] --> JT["memory_store, memory_search, memory_retrieve, memory_list, memory_usage,<br/>memory_health, memory_orient, memory_hybrid_search, memory_sweep_episodic,<br/>memory_repair_embeddings, swarm_init, swarm_status, agent_spawn,<br/>task_orchestrate, coordination_sync, load_balance, parallel_execute,<br/>neural_patterns, sona_health, sparc_mode, performance_report,<br/>bottleneck_analyze, workflow_create, workflow_execute,<br/>github_pr_manage, github_repo_analyze"]
+        J -.-> JS["shapedSearch(query, namespace, sourceType) wraps memory_search —<br/>bounds output via min_score / snippet_chars;<br/>counts only returned hits asynchronously after floor and limit (ruvector-mcp.cjs:244-250); internal callers (hybrid,<br/>orient) still call memSearch directly for whole values (ruvector-mcp.cjs:232-234).<br/>It first widens the pool and passes it through memory-jev-rerank,<br/>an optional Jev judge, local-only only when AGENTBOX_JEV_MEMORY_LOCAL_ONLY=1, off in code unless AGENTBOX_JEV_MEMORY_RERANK=1<br/>(ruvector-mcp.cjs:239-243, memory-jev-rerank.js:16, :31, :107), opted in by [system_one.consumers].memory_rerank (agentbox.toml:938) and staged until a rebuild (agentbox.toml:931)"]
     end
     J -.-> RVO["ADR-2082 — with the gate on, the stub orchestration half of this list is<br/>replaced at tools/list by a filtered ruflo child limited to the categories<br/>swarm, agent and rure (agentbox.toml:455); memory_* is denied on the<br/>proxy side (mcp/servers/lib/orchestration-proxy.js:43). see AB-20.13"]
     J -.-> RVB["memory boundary — the retrieval geometry, embedding pipeline and<br/>recall gate belong to AB-20. ruvector-mcp.cjs fails CLOSED with no<br/>sql.js fallback, so the ruvector-postgres sidecar is mandatory.<br/>The pool now takes RUVECTOR_PG_HOST/PORT/DATABASE/USER and reads the password only<br/>from the 0600 RUVECTOR_PG_PASSWORD_FILE, no conninfo string (ruvector-mcp.cjs:52-55, :61-62)"]
@@ -217,7 +216,7 @@ sequenceDiagram
     H-->>M: tool result
     Note over S: aci-shell records agentbox_aci_calls_total and agentbox_aci_duration_ms — the server is instrumented like the adapter spine
     Note over H,J: a server whose gate or requires failed at boot is ABSENT from .mcp.json, so the harness never offers its tools rather than offering a dead entry
-    Note over H,J: .mcp.json is found only by walking up from the cwd, so a session started outside WORKSPACE saw none of it, boot therefore also mirrors the final claude-flow entry (RuVector memory) into the user-level ~/.claude/.claude.json via agentbox-manifest mcp-mirror-server (entrypoint-unified.sh:3406-3414, mcp.rs:275), after the hub projection
+    Note over H,J: .mcp.json is found only by walking up from the cwd, so a session started outside WORKSPACE saw none of it, boot therefore also mirrors the final claude-flow entry (RuVector memory) into the user-level ~/.claude/.claude.json via agentbox-manifest mcp-mirror-server (entrypoint-unified.sh:3425-3433, mcp.rs:275), after the hub projection
     Note over M,H: bespoke servers claude-flow, browser-gpu and perplexity reach the harness through hand-written entrypoint blocks, not through this projection
 ```
 
@@ -225,7 +224,7 @@ sequenceDiagram
 ```mermaid
 stateDiagram-v2
     [*] --> Starting
-    Starting --> Waiting : supervisord runs agentbox-mcp hub, flake.nix:3368
+    Starting --> Waiting : supervisord runs agentbox-mcp hub, flake.nix:3540
     Waiting --> Serving : /run/agentbox/mcp-hub.json exists
     Waiting --> Waiting : re-check every 500 ms, log every 15 s
     Waiting --> FailedLoud : 120 s elapsed, hub/mod.rs:259
@@ -245,13 +244,13 @@ stateDiagram-v2
         refuses to idle. hub/mod.rs:275-281
     end note
     note right of Serving
-        BASELINE-container.md:291 carries the amended rule -
+        BASELINE-container.md:316 carries the amended rule -
         a bounded wait, a loud exit naming the projection, and
         a startsecs above that wait so the exit is a failed
         START. ADR-2063 as amended by ADR-2104.
     end note
     note right of Fatal
-        DEBT: eight servers are hub-routed (agentbox.toml:1630-1633,
+        DEBT: eight servers are hub-routed (agentbox.toml:1661-1664,
         down from nine at ADR-2104) and all refuse connections
         while this program is down, so supervisorctl status
         agentbox-mcp-hub is the first check.
