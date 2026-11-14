@@ -31,12 +31,12 @@ sources:
   - ../project/agentbox/services/nostr-pod-bridge/src/contract.rs
   - ../project/agentbox/docs/adr/ADR-2105-agentbox-kind-bands-and-the-colloquy-move.md
   - ../project/agentbox/management-api/lib/sidestr-spend-key.js
-verified_commit: 720e0d89656a4360998b3a716d0f3ee8cac66f93
+verified_commit: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a
 ---
 
 ## For developers
 
-This topic is the PRD-024 design, read at `1639f86ab` when nothing of it was running: every one of the eight decisions was minted `proposed` with `implementation_status: none` (seven still carry `decision_status: proposed`; ADR-2096, ADR-2098 and ADR-2103 have since moved to `implementation_status: partial` as P0/P1 landed, and ADR-2097 is `accepted` and `complete` — ADR-2096-sidestr-sidechains-are-the-sole-value-instrument.md:5-6, ADR-2098-chain-and-asset-urn-kinds-and-the-chain-nostr-plane.md:5-6, ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:5-6, ADR-2097-sidestr-rail-supersedes-lightning-first.md:5-6), carried by the four governing documents in explicitly marked PROPOSED sections that join the compliance surface only on ratification (GOVERNANCE-capabilities.md:626-628). Read every node and Note below as a design that cites the record proposing it.
+This topic is the PRD-024 design, read at `1639f86ab` when nothing of it was running: every one of the eight decisions was minted `proposed` with `implementation_status: none` (seven still carry `decision_status: proposed`; ADR-2096, ADR-2098 and ADR-2103 have since moved to `implementation_status: partial` as P0/P1 landed, and ADR-2097 is `accepted` and `complete` — ADR-2096-sidestr-sidechains-are-the-sole-value-instrument.md:5-6, ADR-2098-chain-and-asset-urn-kinds-and-the-chain-nostr-plane.md:5-6, ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:5-6, ADR-2097-sidestr-rail-supersedes-lightning-first.md:5-6), carried by the four governing documents in explicitly marked PROPOSED sections that join the compliance surface only on ratification (GOVERNANCE-capabilities.md:655-657). Read every node and Note below as a design that cites the record proposing it.
 Part of it has since been built. AB-32 is the sealed root chain, AB-33 the published crates, AB-34 what is actually running, AB-35 the reviewed level-2 shape — stamped at later revisions than the `1639f86ab` design reading. Where this topic and those disagree, they are the current claim and this one is the design it came from.
 
 **Drift (this topic vs ADR-2112):** "AB-33 the four published crates" is superseded — on 2026-09-23 ADR-2112 moved the crates (eight are now published) to `DreamLab-AI/sidestr-rs`; agentbox hosts the chain instance only. See SR-01.
@@ -82,7 +82,7 @@ flowchart TB
     U -.-> W
     subgraph note["Status"]
         direction TB
-        N1["PARTIAL since 2026-09-30: [sidechain] gates the interim JS sidestr-producer,<br/>and its mirror and faucet children. No sidestr-node, no sidestr-bridge and no<br/>loopback port 9097 bind exist. The crates live in sidestr-rs (ADR-2112), only<br/>the standalone sidestr-agent is baked - BASELINE-container.md:252"]
+        N1["PARTIAL since 2026-09-30: [sidechain] gates the interim JS sidestr-producer,<br/>and its mirror and faucet children. No sidestr-node, no sidestr-bridge and no<br/>loopback port 9097 bind exist. The crates live in sidestr-rs (ADR-2112), only<br/>the standalone sidestr-agent is baked - BASELINE-container.md:276"]
         N2["PROPOSED: this document is scope, not authority. The eight ADRs are the<br/>decisions and the governing documents are the compliance surface<br/>sovereign-settlement.md:21-23"]
         N3["the eight decisions land as DDD-022, bounded context BC25<br/>sovereign-settlement-domain.md:5"]
         N1 ~~~ N2 ~~~ N3
@@ -113,12 +113,12 @@ stateDiagram-v2
     note right of Proposed
         Marked sections are added to the four governing documents
         and every addition says PROPOSED. The live compliance
-        surfaces are unchanged. GOVERNANCE-capabilities.md:23
+        surfaces are unchanged. GOVERNANCE-capabilities.md:28
     end note
     Proposed --> Candidate
     Candidate: the proposed invariants are CANDIDATES, and no gate,<br/>test or review may cite them as binding
     note right of Candidate
-        GOVERNANCE-capabilities.md:626-628
+        GOVERNANCE-capabilities.md:655-657
     end note
     Candidate --> Ratified : the owner ratifies PRD-024
     Candidate --> Withdrawn : the owner does not
@@ -127,7 +127,7 @@ stateDiagram-v2
     Withdrawn --> [*]
 ```
 
-**Invariant:** a proposed section states its own non-authority in the document that carries it, so a reader who lands on it by search cannot mistake it for a live rule (`../project/agentbox/docs/BASELINE-container.md:252`, `../project/agentbox/docs/GOVERNANCE-capabilities.md:626-628`).
+**Invariant:** a proposed section states its own non-authority in the document that carries it, so a reader who lands on it by search cannot mistake it for a live rule (`../project/agentbox/docs/BASELINE-container.md:276`, `../project/agentbox/docs/GOVERNANCE-capabilities.md:655-657`).
 
 ## AB-31.5 PROPOSED - a settlement through the authority gate
 
@@ -137,9 +137,9 @@ sequenceDiagram
     participant AG as an agent asking to spend
     participant WAL as PROPOSED /v1/wallet/*<br/>agentbox/docs/proposals/sovereign-settlement.md:147
     participant POL as spend-policy, the only authoriser<br/>agentbox/docs/adr/ADR-2100-every-settlement-passes-the-authority-gate.md:45
-    participant GATE as PROPOSED lib/authority.js under payment_settlement<br/>agentbox/docs/GOVERNANCE-capabilities.md:630-632
+    participant GATE as PROPOSED lib/authority.js under payment_settlement<br/>agentbox/docs/GOVERNANCE-capabilities.md:659-661
     participant HUM as the approving human
-    participant NODE as PROPOSED sidestr-node<br/>agentbox/docs/BASELINE-container.md:420
+    participant NODE as PROPOSED sidestr-node<br/>agentbox/docs/BASELINE-container.md:445
 
     AG->>WAL: request a spend
     WAL->>POL: max_sats_per_call, daily_budget_sats, origin allowlist, threshold
@@ -153,16 +153,16 @@ sequenceDiagram
     alt denied
         GATE->>GATE: journal the deny as a hash-chained authority.deny entry
         GATE-->>AG: refused, and the outcome is mirrored to the approving human
-        Note over GATE: PROPOSED ADR-2100 D4: every outcome mints a receipt, INCLUDING<br/>denied and failed (GOVERNANCE-capabilities.md:651-653)
+        Note over GATE: PROPOSED ADR-2100 D4: every outcome mints a receipt, INCLUDING<br/>denied and failed (GOVERNANCE-capabilities.md:680-682)
     else approved
         GATE->>NODE: the spend reaches the chain
         NODE-->>AG: a receipt citing the chain transaction
     end
-    Note over GATE: PROPOSED ADR-2100 D1: no new governance mechanism is added, the<br/>EXISTING one is called - /v1/wallet/* and /v1/chain/* from their first<br/>commit, retrofitted onto /v1/pay/*<br/>(GOVERNANCE-capabilities.md:636-638)
-    Note over NODE: PROPOSED ADR-2100 D3: settlement FAILS CLOSED - the cost gate is<br/>forced closed on any chain-settling path, and a stopped node is refused<br/>rather than waved through (GOVERNANCE-capabilities.md:647-650, GOVERNANCE-capabilities.md:686-688)
+    Note over GATE: PROPOSED ADR-2100 D1: no new governance mechanism is added, the<br/>EXISTING one is called - /v1/wallet/* and /v1/chain/* from their first<br/>commit, retrofitted onto /v1/pay/*<br/>(GOVERNANCE-capabilities.md:665-667)
+    Note over NODE: PROPOSED ADR-2100 D3: settlement FAILS CLOSED - the cost gate is<br/>forced closed on any chain-settling path, and a stopped node is refused<br/>rather than waved through (GOVERNANCE-capabilities.md:676-679, GOVERNANCE-capabilities.md:715-717)
 ```
 
-**Invariant (proposed):** spend authorisation counts authorising principals and never accounts, reusing the colloquy rule, so an operator's fifty agents are one voice (`../project/agentbox/docs/GOVERNANCE-capabilities.md:654-656`).
+**Invariant (proposed):** spend authorisation counts authorising principals and never accounts, reusing the colloquy rule, so an operator's fifty agents are one voice (`../project/agentbox/docs/GOVERNANCE-capabilities.md:683-685`).
 
 ## AB-31.6 PROPOSED - the chain as the ledger of record
 
@@ -176,7 +176,7 @@ flowchart TB
         direction TB
         R1["PROPOSED INVARIANT: no code path may spend, credit, debit or gate on a<br/>view without resolving to the chain<br/>ADR-2099-the-chain-is-the-ledger-of-record.md:44-45"]
         R2["PROPOSED: a fold is not a thing you can spend from - every one of the<br/>three ledgers becomes a read-through view, or it stops being consulted<br/>sovereign-settlement-domain.md:35-39"]
-        R3["PROPOSED vocabulary: until the confirmer is green against the node the<br/>words are ANCHOR, PEG and CLAIM, never SEAL<br/>GOVERNANCE-capabilities.md:678-681"]
+        R3["PROPOSED vocabulary: until the confirmer is green against the node the<br/>words are ANCHOR, PEG and CLAIM, never SEAL<br/>GOVERNANCE-capabilities.md:707-710"]
         R1 ~~~ R2 ~~~ R3
     end
     V1 --> rule
@@ -190,7 +190,7 @@ flowchart TB
 ```mermaid
 flowchart TB
     KID["k_id, the sovereign identity key<br/>INGRESS-identity.md:506 - signs identity events and the binding.<br/>NEVER spends, NEVER seals a block"]
-    KID -->|"PROPOSED derive_subkey with a sidestr/spend domain; BUILT as an independent key minted beside k_id"| KSP["k_spend(chain)<br/>INGRESS-identity.md:507 - spends UTXOs on EXACTLY that chain<br/>built: a second secp256k1 key from an independent random seed, NEVER derived<br/>from k_id (sidestr-spend-key.js:7-12, ADR-2097-sidestr-rail-supersedes-lightning-first.md:101-102)"]
+    KID -->|"PROPOSED derive_subkey with a sidestr/spend domain; BUILT as an independent key minted beside k_id"| KSP["k_spend(chain)<br/>INGRESS-identity.md:507 - spends UTXOs on EXACTLY that chain<br/>built: a second secp256k1 key from an independent random seed, NEVER derived<br/>from k_id (sidestr-spend-key.js:7-12, ADR-2097-sidestr-rail-supersedes-lightning-first.md:106-107)"]
     KID -->|"derive_subkey with a sidestr/sign domain"| KSG["k_sign(chain)<br/>INGRESS-identity.md:508 - federated instance operators only,<br/>seals blocks on EXACTLY that chain"]
     KSP --> BIND["PROPOSED kind 38420 sidestr-account-binding (ADR-2105 moved it off<br/>38110, which sat inside the agent-response reservation)<br/>addressable, d is chain id plus did hex, content is the spend<br/>pubkey, signed by k_id, built in management-api/lib/sidestr-spend-key.js<br/>PROTOCOL-registry.md:174"]
     BIND --> REG["PROPOSED: allocated from the agentbox band 38400 to 38499, the<br/>first hundred no record reserves, so NOTHING outside this repo<br/>moves for it - PROTOCOL-registry.md:92, PROTOCOL-registry.md:174"]
@@ -251,7 +251,7 @@ flowchart TB
 
 **Tension (INGRESS-identity vs PROTOCOL-registry and code):** the identity governing document still derives `k_spend` with `derive_subkey(k_id, "sidestr/spend/" ‖ chain_id)` and says the binding carries the derived spend pubkey (`../project/agentbox/docs/INGRESS-identity.md:507`, `../project/agentbox/docs/INGRESS-identity.md:520`), while the protocol registry and the built module mint `k_spend` independently and never derive it (`../project/agentbox/docs/PROTOCOL-registry.md:174`, `../project/agentbox/management-api/lib/sidestr-spend-key.js:7-12`). ADR-2101, whose D3/D4 the module cites, still records `implementation_status: none`.
 
-**Drift:** the account binding and the five domain events moved from a claimed-free `38106`-`38201` range (which overlapped the ADR-009 agent-response reservation) to the clean `38400`-`38499` band, and gained five concrete kind numbers where the design had left the domain events as a range (`../project/agentbox/docs/adr/ADR-2105-agentbox-kind-bands-and-the-colloquy-move.md:90-94, ADR-2105-agentbox-kind-bands-and-the-colloquy-move.md:118-122`).
+**Drift:** the account binding and the five domain events moved from a claimed-free `38106`-`38201` range (which overlapped the ADR-009 agent-response reservation) to the clean `38400`-`38499` band, and gained five concrete kind numbers where the design had left the domain events as a range (`../project/agentbox/docs/adr/ADR-2105-agentbox-kind-bands-and-the-colloquy-move.md:95-99, ADR-2105-agentbox-kind-bands-and-the-colloquy-move.md:123-127`).
 
 ## AB-31.9 PROPOSED - the five phases, and the one that touches real value
 
@@ -302,4 +302,4 @@ stateDiagram-v2
 
 **Open:** PRD-024 lists its own outstanding questions and ranked risks (`../project/agentbox/docs/proposals/sovereign-settlement.md:463`, `../project/agentbox/docs/proposals/sovereign-settlement.md:427`); none is answered by anything in this repository today.
 
-**Drift (this topic vs the repository since 1639f86ab):** the account binding moved from kind `38110` to `38420` (AB-34.4), `crates/sidestr/` now holds only a pointer — the published crates live in `DreamLab-AI/sidestr-rs` (AB-33.7), the root chain named here as proposed has been sealed (AB-32.1), and since `d0fa1b80b` its interim producer, mirror and faucet are wired under supervisord behind `[sidechain]` (AB-34.1), and the manifest now ships that gate `true` after recovering validated prefixes following an ENOSPC block-persistence failure, with a second sealed chain `[sidechain.dreamlab-txbt4]` also enabled (`../project/agentbox/agentbox.toml:1964-1965`, `../project/agentbox/agentbox.toml:1980-1981`). The record's own status line agrees at this revision: the settlement "remains partial" (`../project/agentbox/docs/BASELINE-container.md:252`), so AB-31.1's and AB-31.6's PROPOSED status notes still describe the live state.
+**Drift (this topic vs the repository since 1639f86ab):** the account binding moved from kind `38110` to `38420` (AB-34.4), `crates/sidestr/` now holds only a pointer — the published crates live in `DreamLab-AI/sidestr-rs` (AB-33.7), the root chain named here as proposed has been sealed (AB-32.1), and since `d0fa1b80b` its interim producer, mirror and faucet are wired under supervisord behind `[sidechain]` (AB-34.1), and the manifest now ships that gate `true` after recovering validated prefixes following an ENOSPC block-persistence failure, with a second sealed chain `[sidechain.dreamlab-txbt4]` also enabled (`../project/agentbox/agentbox.toml:1995-1996`, `../project/agentbox/agentbox.toml:2011-2012`). The record's own status line agrees at this revision: the settlement "remains partial" (`../project/agentbox/docs/BASELINE-container.md:276`), so AB-31.1's and AB-31.6's PROPOSED status notes still describe the live state.
