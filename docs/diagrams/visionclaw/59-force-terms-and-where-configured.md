@@ -23,12 +23,12 @@ sources:
   - ../project/docs/adr/ADR-2140-physics-forces-have-one-stored-definition-and-no-scale-factors.md
   - ../project/docs/adr/ADR-2174-layout-forces-are-learned-per-relation-type.md
   - ../project/crates/relational-field/PREREGISTRATION.md
-verified_commit: {visionclaw: a6d05ed1a8d090e290944ebb8a9c122c7f59ef8c}
+verified_commit: {visionclaw: 2e7ecc2e731ed475982176d522877d9c89e3ff51}
 ---
 
 ## For developers
 
-One page per force term on the default path at main a6d05ed1a: the law the kernel computes, the flag or pointer that switches it on, and the stored setting or code constant it reads. VC-11 draws the step that runs them, VC-58 the edge data they consume. The physics rework planned in November 2026 appears only as register entries.
+One page per force term on the default path at main 2e7ecc2e7: the law the kernel computes, the flag or pointer that switches it on, and the stored setting or code constant it reads. VC-11 draws the step that runs them, VC-58 the edge data they consume. The physics rework planned in November 2026 appears only as register entries.
 
 ## For the business
 

@@ -75,7 +75,7 @@ sources:
   - ../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md
   - ../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md
   - ../project/agentbox/docker-compose.system-one.yml
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
+verified_commit: {visionclaw: 2e7ecc2e731ed475982176d522877d9c89e3ff51, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
 ---
 ## ES-09.1 The host-vs-container build trap — wrong path vs sanctioned path
 ```mermaid
@@ -568,26 +568,27 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant GH as pull request touching xr-client/** or manual dispatch (the push trigger was removed 2026-11-10)<br/>xr-godot-ci.yml:25-38
-    participant RT as xr-rust-tests job<br/>xr-godot-ci.yml:54 blocking
-    participant GUT as gut-headless job<br/>xr-godot-ci.yml:78 blocking
-    participant Q3 as quest3-android job<br/>xr-godot-ci.yml:137 advisory
+    participant GH as pull request touching xr-client/** or manual dispatch (the push trigger was removed 2026-11-10)<br/>xr-godot-ci.yml:26-39
+    participant RT as xr-rust-tests job<br/>xr-godot-ci.yml:57 blocking
+    participant GUT as gut-headless job<br/>xr-godot-ci.yml:81 blocking
+    participant Q3 as quest3-android job<br/>xr-godot-ci.yml:141 advisory
 
-    GH->>RT: cargo test -p visionclaw-xr-gdext --all-features :74
-    RT->>RT: cargo test -p visionclaw-xr-presence :76
-    GH->>GUT: cargo build -p visionclaw-xr-gdext (debug cdylib) :95
-    GUT->>GUT: launch-guard tests, then fail if the library Godot loads is older<br/>than its Rust source :96-99
-    GUT->>GUT: install GL display deps, xvfb and mesa :100-101
-    GUT->>GUT: install Godot 4.6.1-stable, env GODOT_VERSION :50, :102-108
-    GUT->>GUT: check the committed GUT pin is 9.6.1, not a fetched tag :109-113
-    GUT->>GUT: godot --headless --editor --xr-mode off --import, log kept :119
-    GUT->>GUT: xvfb-run godot gl_compatibility -s gut_cmdln.gd, log kept :121-123
-    GUT->>GUT: GUT guard fails on any parse or compile error or a short script count :124-127
-    Note over GUT: the job is still named gut-headless :78 but the suite runs<br/>under a virtual GL display, because the world-space HUD fit<br/>gate needs real GL font metrics :120
-    GH->>Q3: continue-on-error true :141
-    Q3->>Q3: cargo ndk build aarch64-linux-android :165
-    Q3->>Q3: export Quest 3 arm64 APK :181-189
-    Q3->>Q3: APK size gate, fail if greater than 80MB :190-195
+    GH->>RT: cargo test -p visionclaw-xr-gdext --all-features :77
+    RT->>RT: cargo test -p visionclaw-xr-presence :79
+    GH->>GUT: cargo build -p visionclaw-xr-gdext (debug cdylib) :98
+    GUT->>GUT: launch-guard tests, then fail if the library Godot loads is older<br/>than its Rust source :99-102
+    GUT->>GUT: install GL display deps, xvfb and mesa :103-104
+    GUT->>GUT: install Godot 4.8-beta2, verify SHA-512 before unzip :51-53, :105-112
+    GUT->>GUT: check the committed GUT pin is 9.6.1, not a fetched tag :113-117
+    GUT->>GUT: godot --headless --editor --xr-mode off --import, log kept :123
+    GUT->>GUT: xvfb-run godot gl_compatibility -s gut_cmdln.gd, log kept :125-127
+    GUT->>GUT: GUT guard fails on any parse or compile error or a short script count :128-131
+    Note over GUT: the job is still named gut-headless :81 but the suite runs<br/>under a virtual GL display, because the world-space HUD fit<br/>gate needs real GL font metrics :124
+    GH->>Q3: continue-on-error true :145
+    Q3->>Q3: cargo ndk build aarch64-linux-android :169
+    Q3->>Q3: export Quest 3 arm64 APK :185-194
+    Q3->>Q3: APK size gate, fail if greater than 80MB :195-200
+    Note over GH,Q3: Workflow definition only, repository Actions disabled<br/>xr-godot-ci.yml:16
     Note over Q3: advisory until first green hosted run,<br/>then promote to blocking (per file header comment)
 ```
 
