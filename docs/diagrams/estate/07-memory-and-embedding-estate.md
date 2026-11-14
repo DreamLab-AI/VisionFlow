@@ -5,8 +5,10 @@ area: estate
 governing:
   - ../project/agentbox/docs/LEARNING-memory.md
   - ../project/docs/DATA-authority-erasure.md
-adrs: [visionclaw:ADR-2133, agentbox:ADR-2014, agentbox:ADR-2015, agentbox:ADR-2016, agentbox:ADR-2082]
+adrs: [agentbox:ADR-2201, visionclaw:ADR-2133, agentbox:ADR-2014, agentbox:ADR-2015, agentbox:ADR-2016, agentbox:ADR-2082]
 sources:
+  - ../project/agentbox/mcp/servers/lib/memory-tools.js
+  - ../project/agentbox/mcp/servers/lib/memory-reads.js
   - ../project/agentbox/mcp/servers/ruvector-mcp.cjs
   - ../project/agentbox/scripts/ruvector-recall-harness.mjs
   - ../project/agentbox/scripts/ruvector-sona-feeder.mjs
@@ -25,13 +27,13 @@ sources:
   - ../project/agentbox/services/agentbox-manifest/src/system_one.rs
   - ../project/agentbox/mcp/servers/lib/memory-jev-rerank.js
   - ../project/agentbox/management-api/lib/pg-config.js
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a}
 ---
 ## ES-07.1 Every RuVector client and the one shared embedder
 ```mermaid
 flowchart TB
     subgraph clients["Clients — all writes MUST go through the MCP surface"]
-        MCP["agentbox/mcp/servers/ruvector-mcp.cjs<br/>memory_store / memory_retrieve / memory_list / memory_search<br/>lines 251,265,277,288"]
+        MCP["agentbox/mcp/servers/ruvector-mcp.cjs<br/>memory_store / memory_retrieve / memory_list / memory_search<br/>ruvector-mcp.cjs:257,271,283,294"]
         HOOKS["agentbox hooks + skills<br/>route via the same MCP server"]
         SWEEP["ruvector-aggregate-sweep.mjs"]
         DISTILL["ruvector-pattern-distill.mjs"]
@@ -65,8 +67,8 @@ flowchart TB
     INV1["INVARIANT — agent access is the governed memory MCP ONLY.<br/>This container exposes agentbox-memory; server aliases differ.<br/>The claude-flow CLI and raw SQL INSERT bypass the embedding<br/>pipeline, so rows written that way are INVISIBLE to HNSW search."]
     INV2["INVARIANT — ruvector-mcp.cjs FAILS CLOSED with no sql.js<br/>fallback: cannot reach ruvector-postgres is FATAL<br/>(ruvector-mcp.cjs:152)"]
     DIV1["DIVERGENCE — VisionClaw has NO RuVector write client. Its<br/>touchpoints are the memory-flash WS broadcast (src/handlers/<br/>memory_flash_handler.rs:50, observational, never embeds) and the<br/>memory cloud, a read-only reader that samples the store and<br/>queries its HNSW index (src/services/memory_cloud_service.rs:6-13).<br/>There is no RuVectorAdapter type in src/ or crates/ (verified by grep)."]
-    SCOPE["INVARIANT — pubkey scoping: NIP-98 callers are scoped to their<br/>own pubkey namespace (user:&lt;pubkey&gt;:proj:&lt;repo-slug&gt;:&lt;ns&gt;); a<br/>session cannot read another session's per-project namespace<br/>— agentbox.toml:379-395"]
-    NS5["code-harness-lessons namespace — expel_lesson_extraction distils<br/>0-N rules per completed trajectory as ex:DistilledLesson<br/>(memory_type=semantic, durable) — agentbox.toml:691-696"]
+    SCOPE["INVARIANT — pubkey scoping: NIP-98 callers are scoped to their<br/>own pubkey namespace (user:&lt;pubkey&gt;:proj:&lt;repo-slug&gt;:&lt;ns&gt;); a<br/>session cannot read another session's per-project namespace<br/>— agentbox.toml:379-393"]
+    NS5["code-harness-lessons namespace — expel_lesson_extraction distils<br/>0-N rules per completed trajectory as ex:DistilledLesson<br/>(memory_type=semantic, durable) — agentbox.toml:709-714"]
     DIV3["DIVERGENCE — the harness's file-based auto-memory<br/>(~/.claude/projects/.../memory/, MEMORY.md) is INVISIBLE to this<br/>path and to every other agent in the mesh."]
 
     MCP --> INV1
@@ -82,7 +84,7 @@ flowchart TB
 sequenceDiagram
     autonumber
     participant A as agent
-    participant M as ruvector-mcp.cjs<br/>memory_store:251
+    participant M as ruvector-mcp.cjs<br/>ruvector-mcp.cjs:257
     participant X as xinference port 9997<br/>bge-small-en-v1.5
     participant P as ruvector-postgres port 5432
     participant H as HNSW index
@@ -116,7 +118,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant A as agent
-    participant M as ruvector-mcp.cjs<br/>memory_search:288
+    participant M as ruvector-mcp.cjs<br/>ruvector-mcp.cjs:294
     participant X as xinference port 9997
     participant P as ruvector-postgres
     participant H as HNSW index
@@ -129,7 +131,7 @@ sequenceDiagram
         P->>H: HNSW top-k
         H-->>P: candidates
         P-->>M: ranked rows
-        opt AGENTBOX_JEV_MEMORY_RERANK=1 (Jev option, off in the code, the manifest sets memory_rerank = true at agentbox.toml:920 and system_one.rs:460 exports it, staged until the new agentbox image is activated, ADR-2155)
+        opt AGENTBOX_JEV_MEMORY_RERANK=1 (Jev option, off in the code, the manifest sets memory_rerank = true at agentbox.toml:938 and system_one.rs:460 exports it, staged until the new agentbox image is activated, ADR-2155)
             M->>M: the selected System One backend (TypeSafe by default, proxy agentbox:8094) reorders the already access-permitted shortlist, score stays the cosine, every miss returns the rows unchanged<br/>ruvector-mcp.cjs:239-243, local-only only when AGENTBOX_JEV_MEMORY_LOCAL_ONLY=1 (default 0), memory-jev-rerank.js:16-18,107
         end
         M-->>A: semantic results (~100ms typical)
@@ -147,7 +149,7 @@ sequenceDiagram
     Note over A,H: namespace "*" performs a global cross-namespace search.<br/>AVOID memory_hybrid_search on large namespaces — it<br/>materialises the whole namespace (~72s on ruvnet-kb).
 ```
 
-**Drift:** the call site still describes the reranker as a LOCAL judge (`../project/agentbox/mcp/servers/ruvector-mcp.cjs:239-240`), but local-only is now an opt-in (`AGENTBOX_JEV_MEMORY_LOCAL_ONLY`, default 0), so once the new image is activated the query and capped value snippets of the shortlist go to the selected backend, cloud TypeSafe by default (`../project/agentbox/mcp/servers/lib/memory-jev-rerank.js:16-18,107`); `[system_one].local_only` is empty (`../project/agentbox/agentbox.toml:900`).
+**Drift:** the call site still describes the reranker as a LOCAL judge (`../project/agentbox/mcp/servers/ruvector-mcp.cjs:239-240`), but local-only is now an opt-in (`AGENTBOX_JEV_MEMORY_LOCAL_ONLY`, default 0), so once the new image is activated the query and capped value snippets of the shortlist go to the selected backend, cloud TypeSafe by default (`../project/agentbox/mcp/servers/lib/memory-jev-rerank.js:16-18,107`); `[system_one].local_only` is empty (`../project/agentbox/agentbox.toml:918`).
 
 ## ES-07.7 Recall gate — the band that must hold before and after any retrieval change
 ```mermaid
@@ -183,7 +185,7 @@ flowchart TB
     D1["DIVERGENCE D1 — SONA is INERT. The prebuilt<br/>@ruvector/sona@0.1.5 NAPI binary hardcodes<br/>embedding_dim = 256, so 384-dim learns return<br/>status:learned but accumulate NOTHING (verified live).<br/>The feeder's fed count is that status:learned count, not proof of accumulation<br/>(this stamp adds engine_accumulating beside it, ruvector-sona-feeder.mjs:558).<br/>Both gates stay off until a 384-dim-capable binary."]
     D1B["attention_rerank is OFF BY MEASUREMENT, not caution —<br/>on an L2-normalised corpus the attention blend is a<br/>mathematical identity (max diff 4e-7)."]
     D2["DIVERGENCE D2 — aggregate-count drift. agentbox.toml:479<br/>cites 78 aggregates >=20 samples (2026-08-31); the<br/>reference doc records 12 from the 2026-07-21 sweep.<br/>The toml is the running config and the newer number."]
-    D4["DOC-DRIFT D4 — the README no longer carries the learning-loop row that<br/>listed feed_retrieval and feed_routing as open gates (agentbox/README.md:85 is<br/>its only memory row), but the governing LEARNING-memory.md still tells the<br/>reader to update the README learning-loop table (LEARNING-memory.md:263-266). The running<br/>manifest has feed_retrieval = true since 2026-08-31 (agentbox.toml:479)<br/>and only feed_routing is still false (agentbox.toml:480)."]
+    D4["DOC-DRIFT D4 — the README no longer carries the learning-loop row that<br/>listed feed_retrieval and feed_routing as open gates (agentbox/README.md:89 is<br/>its only memory row), but the governing LEARNING-memory.md still tells the<br/>reader to update the README learning-loop table (LEARNING-memory.md:309-312). The running<br/>manifest has feed_retrieval = true since 2026-08-31 (agentbox.toml:479)<br/>and only feed_routing is still false (agentbox.toml:480)."]
     D5["DIVERGENCE D5 — pod-sync deletion has NO reverse<br/>tombstone. deleteAgentMemory() in the Pod does not revoke<br/>the RuVector-held agent memory: the embedding row persists<br/>and stays semantically searchable. Largest erasure hole.<br/>No point-in-time RuVector backup exists, so there is no<br/>cross-store consistent restore, RPO or RTO."]
 
     F1 --> G1
@@ -197,7 +199,7 @@ flowchart TB
 
 **Drift (resolved by agentbox 6500582, still holds at c57d9c0):** the feeder's `fed` counts calls whose result was `status:"learned"` (`agentbox/scripts/ruvector-sona-feeder.mjs:517-518`), which D1 shows the 256-dim binary also returns for a 384-dim learn it keeps nowhere, so `fed` was never evidence of accumulation. That revision added `engine_accumulating` to the `SonaRunCompleted` event, derived from the post-batch `trajectories_buffered + patterns_stored` and null when the stats are unreadable (`agentbox/scripts/ruvector-sona-feeder.mjs:327-331,558`), and rewords the human lines to "accepted by learn ... engine accumulating: yes/no/unknown" (`agentbox/scripts/ruvector-sona-feeder.mjs:637`). `fed` is kept for the cursor and the event contract. Both SONA gates stay off, so the loop's shipped state is unchanged.
 
-**Drift:** the governing LEARNING-memory.md D4 says the README learning-loop table lags the toml (`agentbox/docs/LEARNING-memory.md:263-266`), but the README at agentbox c57d9c0 has no such row (`agentbox/README.md:85`).
+**Drift:** the governing LEARNING-memory.md D4 says the README learning-loop table lags the toml (`agentbox/docs/LEARNING-memory.md:309-312`), but the README at agentbox c57d9c0 has no such row (`agentbox/README.md:89`).
 
 ## Audit qualification — 2026-09-07
 
@@ -209,11 +211,11 @@ sequenceDiagram
     autonumber
     participant AG as an agent session
     participant RV as ruvector-mcp.cjs<br/>agentbox/mcp/servers/ruvector-mcp.cjs:32
-    participant PROXY as createOrchestrationProxy<br/>agentbox/mcp/servers/ruvector-mcp.cjs:538
+    participant PROXY as createOrchestrationProxy<br/>agentbox/mcp/servers/ruvector-mcp.cjs:567
     participant MAN as agentbox.toml orchestration gate<br/>agentbox/agentbox.toml:454
 
     AG->>RV: memory_store / memory_search / memory_list / memory_retrieve
-    RV-->>AG: served locally against ruvector-postgres,<br/>ruvector-mcp.cjs:564,612,615,618
+    RV-->>AG: served locally against ruvector-postgres,<br/>ruvector-mcp.cjs:593,642,645,648
 
     AG->>RV: swarm / agent / task / coordination tools
     RV->>MAN: is orchestration_proxy on
@@ -222,12 +224,33 @@ sequenceDiagram
     alt the child is reachable
         PROXY-->>AG: the real ruflo result
     else the child is unavailable or times out
-        PROXY-->>AG: the proxy's own honest error (timeout, child gone),<br/>ruvector-mcp.cjs:643-646
+        PROXY-->>AG: the proxy's own honest error (timeout, child gone),<br/>ruvector-mcp.cjs:674-677
     end
     AG->>RV: task / coordination, or any orchestration tool with the gate off
-    RV-->>AG: a local honest stub, ok false and error unimplemented,<br/>ruvector-mcp.cjs:655-657
+    RV-->>AG: a local honest stub, ok false and error unimplemented,<br/>ruvector-mcp.cjs:686-688
 
-    Note over RV,PROXY: INVARIANT — memory_* is NEVER forwarded to the proxy child.<br/>This server backs the memory tools itself and says so in the<br/>stub descriptions it ships, ruvector-mcp.cjs:304-309.<br/>The ADR-2014 access invariant is therefore unchanged.
+    Note over RV,PROXY: INVARIANT — memory_* is NEVER forwarded to the proxy child.<br/>This server backs the memory tools itself and says so in the<br/>stub descriptions it ships, ruvector-mcp.cjs:310-315.<br/>The ADR-2014 access invariant is therefore unchanged.
     Note over RV: INVARIANT — the server replaces claude-flow mcp start so that<br/>every memory call goes through the embedding pipeline rather<br/>than round the side of it, ruvector-mcp.cjs:6. see AB-09
     Note over MAN: DEBT — the gate is a manifest boolean with no runtime probe,<br/>so an operator reading agentbox.toml:454 learns the intent and<br/>not whether a ruflo child is actually answering. The honest<br/>stub is the only signal, and it looks the same as a tool that<br/>was never implemented.
 ```
+
+
+## ES-07.11 Read counters observe returned rows without updating the indexed entries
+
+```mermaid
+flowchart TB
+    CFG["Manifest: read_counts true, evidence_refs false<br/>agentbox.toml:437-438"] --> SEARCH
+    SEARCH["Search shapes results after reranking,<br/>floor and limit<br/>ruvector-mcp.cjs:244-248"] --> HIT["Record search_hit for returned rows only<br/>ruvector-mcp.cjs:248"]
+    FETCH["Successful retrieve returns the whole value<br/>memory-tools.js:499-513"] --> READ["Record retrieve without awaiting<br/>memory-tools.js:511"]
+    HIT --> GATE["Recorder gate, valid action and distinct namespace/key pairs<br/>memory-reads.js:98-109"]
+    READ --> GATE
+    GATE --> QUEUE["Serial, bounded queue: drop counters at capacity,<br/>log failures and retain the read response<br/>memory-reads.js:49,81-89"]
+    QUEUE --> SIDE["UPSERT memory_reads by namespace, key and action<br/>memory-reads.js:30-43,112-115"]
+    SIDE -.-> INDEX["No read counter UPDATE to memory_entries.<br/>Its access_count stays unmaintained<br/>memory-reads.js:6-17"]
+```
+
+**What it shows.** A returned search hit and a whole-value retrieve are separate observations, recorded in a side table. Counting may drop observations under pressure and cannot certify comprehension. **Why it is this way.** Updating the indexed memory row for every read would cause HNSW write traffic; the recorder is gated, bounded and not awaited. The manifest declares it enabled, which alone does not prove the deployed process has the flag.
+
+**Evidence boundary (ADR-2201):** the evidence-reference schema is advertised only when its gate is enabled (`../project/agentbox/mcp/servers/ruvector-mcp.cjs:431-451`); the manifest keeps it off (`../project/agentbox/agentbox.toml:437`). When enabled, malformed or unresolved references refuse the whole write (`../project/agentbox/mcp/servers/lib/memory-tools.js:267-270`, `../project/agentbox/mcp/servers/lib/memory-tools.js:351-356`). Deletion withdraws existing references regardless of the gate, but cannot recall a summary's text or material that already left the container (`../project/agentbox/mcp/servers/lib/memory-tools.js:745-752`). This does not close the cross-store erasure finding in ES-07.9.
+
+The registered 13 November answer experiment is a dated receipt: one search scored 15/80, iterative reading 39/80 and iterative reading with topic entries 44/80. The last comparison was inconclusive, so no consolidation job was built (`../project/agentbox/docs/LEARNING-memory.md:235-274`). Its protocol and limitations remain separate from the retrieval-geometry gate; this diagram review did not rerun it.
