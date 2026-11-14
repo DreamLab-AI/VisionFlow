@@ -184,7 +184,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_269 topic files, 2044 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_269 topic files, 2045 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -271,7 +271,7 @@ _269 topic files, 2044 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | AB-01 | [Nix flake composition and apply-class gates](agentbox/01-nix-flake-composition.md) | 10 | flowchart, stateDiagram-v2, sequenceDiagram, classDiagram | [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md) | ADR-2003, ADR-2006, ADR-2029, ADR-2039, ADR-2080, ADR-2151, ADR-2152, ADR-2154, ADR-2155 |
 | AB-02 | [Boot sequence, supervision tree and readiness](agentbox/02-boot-sequence-and-readiness.md) | 21 | sequenceDiagram, flowchart, stateDiagram-v2 | [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md) | ADR-2003, ADR-2007, ADR-2028, ADR-2029, ADR-2034, ADR-2063, ADR-2080, ADR-2092, ADR-2104, ADR-2122, ADR-2140, ADR-2144, ADR-2146, ADR-2151, ADR-2153 |
 | AB-03 | [Management API request lifecycle and route table](agentbox/03-management-api-request-lifecycle.md) | 17 | sequenceDiagram, flowchart | [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md), [INGRESS-identity.md](../../../project/agentbox/docs/INGRESS-identity.md) | ADR-2005, ADR-2013, ADR-2003 |
-| AB-04 | [Five-slot adapter spine, dispatch middleware and connect lifecycle](agentbox/04-adapter-spine.md) | 15 | flowchart, classDiagram, sequenceDiagram, stateDiagram-v2 | [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md) | ADR-2004, ADR-2005, ADR-2035, ADR-2036, ADR-2037, ADR-2064 |
+| AB-04 | [Five-slot adapter spine, dispatch middleware and connect lifecycle](agentbox/04-adapter-spine.md) | 16 | flowchart, classDiagram, sequenceDiagram, stateDiagram-v2 | [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md) | ADR-2004, ADR-2005, ADR-2035, ADR-2036, ADR-2037, ADR-2064 |
 | AB-05 | [Manifest gate catalogue, vault path authority and the agentbox.sh CLI](agentbox/05-manifest-gates-and-cli.md) | 16 | sequenceDiagram, flowchart, stateDiagram-v2 | [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md) | ADR-2003, ADR-2028, ADR-2029, ADR-2034, ADR-2036, ADR-2037, ADR-2038, ADR-2039, ADR-2080, ADR-2091, ADR-2092, ADR-2093, ADR-2094, ADR-2095, ADR-2107, ADR-2108, ADR-2110, ADR-2116, ADR-2118, ADR-2122, ADR-2140, ADR-2142, ADR-2144, ADR-2145, ADR-2146, ADR-2149, ADR-2151, ADR-2152, ADR-2139, ADR-2153, ADR-2154, ADR-2155 |
 | AB-06 | [Compose overlays, sidecar topology and the loopback-publish invariant](agentbox/06-sidecars-and-compose-overlays.md) | 14 | flowchart, sequenceDiagram | [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md) | ADR-2013, ADR-2003, ADR-2040, ADR-2094, ADR-2118, ADR-2122, ADR-2140, ADR-2149, ADR-2152, ADR-2154 |
 | AB-07 | [Daemon classes, argv-boundary reaping, cron and backups](agentbox/07-daemons-reapers-cron-backups.md) | 11 | flowchart, stateDiagram-v2, sequenceDiagram | [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md) | ADR-2032, ADR-2003, ADR-2039, ADR-2040, ADR-2118, ADR-2131 |

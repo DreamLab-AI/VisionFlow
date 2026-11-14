@@ -52,7 +52,7 @@ sources:
   - ../nostr-rust-forum/Cargo.toml
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/payments.rs
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/pay_ledger.rs
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c, solid-pod-rs: 27e18995fc20790fa956acb41f7d8420544a13ec, nostr-rust-forum: 7e1f036ebd9ebd6c922db6f9acea041775730071}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c, solid-pod-rs: 27e18995fc20790fa956acb41f7d8420544a13ec, nostr-rust-forum: 7e1f036ebd9ebd6c922db6f9acea041775730071}
 ---
 ## ES-03.1 Shared wire envelope: AgentActionNotification (agentbox emit -> VisionClaw ingest)
 ```mermaid
@@ -399,7 +399,7 @@ sequenceDiagram
     participant AA as assertPrivacyFilterApplied<br/>privacy-filter.js:595
     participant Ad as Adapter impl call
     rect rgb(240,240,255)
-    Note over Rt,Ad: DOC-DRIFT RESOLVED BY CORRECTION (ADR-2036) - the governing doc's own<br/>THREE-LAYER dispatch claim was the error, retracted at BASELINE-container.md:318.<br/>Observability and privacy wrap the dispatch (metrics.js:125, privacy-filter.js:649),<br/>JSON-LD encoding is a SEPARATE caller action, deliberately, not a third wrapper layer.
+    Note over Rt,Ad: DOC-DRIFT RESOLVED BY CORRECTION (ADR-2036) - the governing doc's own<br/>THREE-LAYER dispatch claim was the error, retracted at BASELINE-container.md:343.<br/>Observability and privacy wrap the dispatch (metrics.js:125, privacy-filter.js:649),<br/>JSON-LD encoding is a SEPARATE caller action, deliberately, not a third wrapper layer.
     Rt->>WD: instrumentedDispatch(...args)
     WD->>WD: executionId = uris.mint kind event,pubkey,payload
     WD->>PF: privacyWrapped(...args)
@@ -440,11 +440,11 @@ sequenceDiagram
         end
     end
     Note over LD: INVARIANT DDD-004 par L08 - privacy redaction completes before the encoder runs, verified<br/>per-dispatch not per-module-load
-    Note over Ad: DIVERGENCE BASELINE-container.md:247 - adapter contract versions are STALE<br/>PLACEHOLDERS. pods, memory, events and orchestrator all still declare 1.0.0 despite live<br/>churn, so a breaking change would need a MAJOR bump that has NOT happened. A consumer<br/>cannot tell from the version whether the contract it compiled against still holds.
-    Note over Ad: CORRECTED 2026-11-02 (ADR-2035) - connectAdapters races EVERY slot against its OWN<br/>deadline (lifecycle.js:31), and failure and timeout both quarantine the adapter (lifecycle.js:273,296).<br/>They are NOT equally fatal and one slot IS privileged: orchestrator is the only fail-closed slot<br/>(lifecycle.js:75) and aborts startup (lifecycle.js:298-302,329-335). Every other failed slot gets<br/>an off stand-in whose dispatch refuses (lifecycle.js:178,312), and if that cannot be built the slot<br/>stays quarantined and dispatch throws AdapterQuarantined (lifecycle.js:318-326).<br/>toLegacyHealth feeds adapterHealth (server.js:1380), and /ready blocks on any non-off<br/>manifest slot that is not healthy (server.js:511-513).
+    Note over Ad: DIVERGENCE BASELINE-container.md:271 - adapter contract versions are STALE<br/>PLACEHOLDERS. pods, memory, events and orchestrator all still declare 1.0.0 despite live<br/>churn, so a breaking change would need a MAJOR bump that has NOT happened. A consumer<br/>cannot tell from the version whether the contract it compiled against still holds.
+    Note over Ad: CORRECTED 2026-11-02 (ADR-2035) - connectAdapters races EVERY slot against its OWN<br/>deadline (lifecycle.js:31), and failure and timeout both quarantine the adapter (lifecycle.js:273,296).<br/>They are NOT equally fatal and one slot IS privileged: orchestrator is the only fail-closed slot<br/>(lifecycle.js:75) and aborts startup (lifecycle.js:298-302,329-335). Every other failed slot gets<br/>an off stand-in whose dispatch refuses (lifecycle.js:178,312), and if that cannot be built the slot<br/>stays quarantined and dispatch throws AdapterQuarantined (lifecycle.js:318-326).<br/>toLegacyHealth feeds adapterHealth (server.js:1377), and /ready blocks on any non-off<br/>manifest slot that is not healthy (server.js:511-513).
 ```
 
-**Drift:** the governing doc's own resolution paragraph still cites `adapters/lifecycle.js:256`, `:274` and the range 292 to 299 (`../project/agentbox/docs/BASELINE-container.md:318`); at the agentbox stamp the first two hold a readiness record and the `reason` assignment, the range holds the late-settle callback's close and the quarantine call (`../project/agentbox/management-api/adapters/lifecycle.js:296`), and the replacement-failed branch is at `../project/agentbox/management-api/adapters/lifecycle.js:318-326`. It also says failure and timeout "no longer have different outcomes", which is true of quarantine but not of startup: `orchestrator` aborts (`../project/agentbox/management-api/adapters/lifecycle.js:75`).
+**Drift:** the governing doc's own resolution paragraph still cites `adapters/lifecycle.js:256`, `:274` and the range 292 to 299 (`../project/agentbox/docs/BASELINE-container.md:343`); at the agentbox stamp the first two hold a readiness record and the `reason` assignment, the range holds the late-settle callback's close and the quarantine call (`../project/agentbox/management-api/adapters/lifecycle.js:296`), and the replacement-failed branch is at `../project/agentbox/management-api/adapters/lifecycle.js:318-326`. It also says failure and timeout "no longer have different outcomes", which is true of quarantine but not of startup: `orchestrator` aborts (`../project/agentbox/management-api/adapters/lifecycle.js:75`).
 ## ES-03.10 Partial convergence: typed operational crossings and remaining RDF identity seams
 ```mermaid
 flowchart TD
@@ -480,7 +480,7 @@ flowchart TB
     PRD["PROPOSED — PRD-024 Sovereign Settlement, the source record<br/>our own sidestr sidechains are the sole value instrument<br/>agentbox/docs/proposals/sovereign-settlement.md:42"]
 
     subgraph AB["agentbox — the eight records that implement it, ADR-2096 to ADR-2103: seven proposed, ADR-2097 accepted"]
-        A96["ADR-2096 sidechains are the sole value instrument,<br/>ADR-2096-sidestr-sidechains-are-the-sole-value-instrument.md:43.<br/>No longer clean-room: ADR-2106 made the crates AGPL derivatives of upstream siding (:53-56)<br/>and ADR-2112 moved them to sidestr-rs (:57-59); rust-bitcoin accepted estate-wide :64"]
+        A96["ADR-2096 sidechains are the sole value instrument,<br/>ADR-2096-sidestr-sidechains-are-the-sole-value-instrument.md:51.<br/>No longer clean-room: ADR-2106 made the crates AGPL derivatives of upstream siding (ADR-2096-sidestr-sidechains-are-the-sole-value-instrument.md:61-64)<br/>and ADR-2112 moved them to sidestr-rs (ADR-2096-sidestr-sidechains-are-the-sole-value-instrument.md:65-67); rust-bitcoin accepted estate-wide ADR-2096-sidestr-sidechains-are-the-sole-value-instrument.md:72"]
         A98["ADR-2098 two new URN kinds chain and asset minted only<br/>through uris.js, plus kind 38420 sidestr-account-binding<br/>ADR-2098-chain-and-asset-urn-kinds-and-the-chain-nostr-plane.md:36,44.<br/>Only chain landed (management-api/lib/uris.js:128); asset is still unminted, ADR-2098:149"]
         A99["ADR-2099 the chain is the ledger of record, a balance<br/>is a UTXO fold and every existing ledger becomes a view<br/>ADR-2099-the-chain-is-the-ledger-of-record.md:33,37"]
     end
@@ -498,13 +498,13 @@ flowchart TB
 
     INV["CORRECTED 2026-11-02 — not every record is proposed. ADR-2097, the sidestr rail<br/>superseding Lightning-first, is accepted, complete and staged<br/>(ADR-2097-sidestr-rail-supersedes-lightning-first.md:5-7). Every other record carries<br/>decision_status proposed. implementation_status partial: ADR-2096 (ADR-2096:5-6),<br/>ADR-2098 (ADR-2098:5-6), ADR-2103<br/>(ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:5-6),<br/>the canon entry, partial and inactive<br/>(ADR-2012-sidestr-settlement-is-ecosystem-canon.md:5-7), the solid-pod-rs port, partial and staged<br/>(ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:5-7),<br/>and the forum D1 demotion, partial but inactive<br/>(ADR-2012-d1-ledger-becomes-a-chain-view.md:5-7). implementation_status none:<br/>the host at ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:5-6,<br/>ADR-2099 at ADR-2099-the-chain-is-the-ledger-of-record.md:5-6,<br/>ADR-2100-every-settlement-passes-the-authority-gate.md:5-6,<br/>ADR-2101-federation-topology-and-key-separation.md:5-6 and<br/>ADR-2102-assets-are-bridged-in-rgb-as-a-wrapped-asset.md:5-6."]
     CANON --> INV
-    SRCST["PARTIAL, INACTIVE — the canon entry now records that sidestr-rs<br/>publishes seven crates and carries inactive pool, market, EVM and<br/>Hitch code. EVM executes inside a sidestr chain and Hitch speaks to<br/>no Lightning peer, so neither is an estate rail,<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:36-40.<br/>The one running piece is agentbox's interim testnet producer,<br/>mirror and faucet under the sidechain gates, with no sidestr-node,<br/>bridge or port 9097 bind, BASELINE-container.md:252."]
+    SRCST["PARTIAL, INACTIVE — the canon entry now records that sidestr-rs<br/>publishes seven crates and carries inactive pool, market, EVM and<br/>Hitch code. EVM executes inside a sidestr chain and Hitch speaks to<br/>no Lightning peer, so neither is an estate rail,<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:36-40.<br/>The one running piece is agentbox's interim testnet producer,<br/>mirror and faucet under the sidechain gates, with no sidestr-node,<br/>bridge or port 9097 bind, BASELINE-container.md:276."]
     CANON --> SRCST
 
     RET["RETIRED — Lightning-first is superseded. x402 and l402 stay<br/>payable false permanently and Lightning may return only as a<br/>bridge on-ramp, never as the planned rail.<br/>agentbox/docs/developer/economy-loop.md:143"]
     PRD --> RET
 
-    KILL["EXTERNAL — the k256-only, zero-rust-bitcoin-dependency posture<br/>is retired estate-wide by ADR-2096 D3, which is why the<br/>solid-pod-rs port is in scope at all.<br/>ADR-2096-sidestr-sidechains-are-the-sole-value-instrument.md:64-65"]
+    KILL["EXTERNAL — the k256-only, zero-rust-bitcoin-dependency posture<br/>is retired estate-wide by ADR-2096 D3, which is why the<br/>solid-pod-rs port is in scope at all.<br/>ADR-2096-sidestr-sidechains-are-the-sole-value-instrument.md:72-73"]
     A96 --> KILL
 ```
 

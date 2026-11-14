@@ -55,7 +55,7 @@ sources:
   - ../project/agentbox/management-api/lib/agent-event-auth.js
   - ../project/agentbox/flake.nix
   - ../project/agentbox/scripts/agentbox-config-validate.js
-verified_commit: 720e0d89656a4360998b3a716d0f3ee8cac66f93
+verified_commit: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a
 ---
 
 ## AB-03.1 server.js boot part 1 — Fastify construction, hooks, static route registers
@@ -101,7 +101,7 @@ sequenceDiagram
     Boot->>Routes: app.register(routes/dream)<br/>server.js:429
     Boot->>Routes: app.register(routes/exec-record), POST /v1/exec/record, ADR-2071 Phase 1<br/>server.js:434, called operator-gated at server.js:433 but carries no requireOperator, see Tension below
     Boot->>App: app.get /livez /ready /health /health/pods /v1/meta /metrics /<br/>server.js:438-792
-    Note over App: ADR-2003 management-api (server.js included) is a flake.nix npm derivation built into the image (flake.nix:796-799),<br/>not a runtime install, and not generated from agentbox.toml (see AB-02.1 for the surrounding boot phases)
+    Note over App: ADR-2003 management-api (server.js included) is a flake.nix npm derivation built into the image (flake.nix:894-897),<br/>not a runtime install, and not generated from agentbox.toml (see AB-02.1 for the surrounding boot phases)
 ```
 
 **Tension:** `POST /v1/exec/record` is described as "operator-gated" (`../project/agentbox/management-api/server.js:433`, `../project/agentbox/management-api/routes/exec-record.js:6-7`), but the only gate is the global `preValidation` auth hook (`../project/agentbox/management-api/server.js:235-276`). The route attaches no `requireOperator` preHandler, unlike `routes/mandate.js` (`../project/agentbox/management-api/routes/mandate.js:311`). In `hybrid` or `nip98` mode any NIP-98-verified signer passes `authMiddleware` (`../project/agentbox/management-api/middleware/auth.js:194-199`), so any authenticated principal can append to the journal, not only the operator.
@@ -150,18 +150,18 @@ sequenceDiagram
     Start->>App: register routes/sessions-boundary<br/>server.js:1264
     Start->>App: register routes/approvals<br/>server.js:1274
     Start->>App: register routes/briefing with processManager, ADR-2072<br/>server.js:1289
-    Start->>Start: log SecurityProfileApplied resolved posture<br/>server.js:1349-1355
-    Start->>Adapters: connectAdapters per-slot deadline<br/>server.js:1365-1381
+    Start->>Start: log SecurityProfileApplied resolved posture<br/>server.js:1346-1352
+    Start->>Adapters: connectAdapters per-slot deadline<br/>server.js:1362-1378
     Note over Start,Adapters: see AB-04.6 connectAdapters per-slot deadline detail, not re-drawn here
     opt AGENTBOX_RELAY_ENABLED and AGENTBOX_RELAY_POD_BRIDGE true
-        Start->>Start: new RelayConsumer(npubs...).start()<br/>server.js:1388-1389, :1432-1450
+        Start->>Start: new RelayConsumer(npubs...).start()<br/>server.js:1385-1386, server.js:1429-1447
     end
     opt junkiejarvisEnabled(manifest)
-        Start->>Start: startJunkieJarvis bridge logger<br/>server.js:1471-1490
+        Start->>Start: startJunkieJarvis bridge logger<br/>server.js:1468-1487
     end
-    Start->>Start: headroom.init(logger) decorate headroom or null<br/>server.js:1507-1515
-    Start->>Start: initTracing, setBuildInfo, startMetricsServer<br/>server.js:1519-1521
-    Start->>App: app.listen port PORT host HOST<br/>server.js:1524
+    Start->>Start: headroom.init(logger) decorate headroom or null<br/>server.js:1504-1512
+    Start->>Start: initTracing, setBuildInfo, startMetricsServer<br/>server.js:1516-1518
+    Start->>App: app.listen port PORT host HOST<br/>server.js:1521
     Note over Start: MANAGEMENT_API_PORT default 9090 (server.js:45) HOST default 0.0.0.0 (server.js:50)<br/>compose publishes 127.0.0.1 9090 9090 only
     Note over Start: agentbox main b9e0ea9a8 (S-3) leaves the 0.0.0.0 bind alone and instead makes the two readers of X-Agentbox-Pubkey (agent-event-auth and action-plane resolveAgentDid)<br/>honour it only from a loopback TCP peer (lib/agent-event-auth.js:98-106, :116-117, AGENTBOX_PROXY_PEERS overrides the peer list), so a cross-container<br/>MANAGEMENT_API_KEY holder can no longer assert an identity through it. The auth gate itself never reads the header, see AB-10.14
 ```
@@ -283,7 +283,7 @@ sequenceDiagram
         end
     end
     end
-    Note over RO,RA: ADR-2013 — 9096 is the ONE LAN-published ingress door<br/>(docker-compose.yml:47, sanctioned check-ports-loopback.mjs:94) — 9090 mgmt-api and<br/>9095 aoe serve are loopback-only (docker-compose.yml:48)
+    Note over RO,RA: ADR-2013 — 9096 is the ONE LAN-published ingress door<br/>(docker-compose.yml:47, sanctioned check-ports-loopback.mjs:94) — 9090 management API is loopback-only (docker-compose.yml:48)
 ```
 
 ## AB-03.6 route table (a) — system, status, well-known, uri-resolver, meta probes
@@ -374,7 +374,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     subgraph sb["routes/sessions-boundary.js — ADR-043 D4.1-D4.5"]
-        S1["POST /v1/sessions/boundary<br/>sessions-boundary.js:167"] --> SH1["bind did:nostr + URN + beads epic + memory namespace"]
+        S1["POST /v1/sessions/boundary<br/>sessions-boundary.js:168"] --> SH1["bind did:nostr + URN + beads epic + memory namespace"]
     end
     subgraph ae["routes/agent-events.js"]
         E1["GET /v1/agent-events/stream<br/>agent-events.js:58<br/>websocket true"] --> EH1["WS push of agent action events"]
@@ -666,7 +666,7 @@ flowchart LR
     Note1["no other routes/*.js or server.js require them; scripts/agentbox-config-validate.js<br/>only checks payments.consumer coherence for spend-policy, it does not import it"]
 ```
 
-**Drift:** this panel previously drew `spend-policy.js` and `consumer-payer.js` as "consumed only by scripts/agentbox-config-validate.js", with no `require()` from any route. Its own note contradicted that, and it misattributed the `chain-payments.js` line numbers to the two middleware files. At the pin, `routes/chain-payments.js` requires both (`../project/agentbox/management-api/routes/chain-payments.js:34-35`). The validator mentions spend-policy only in its rule text (`../project/agentbox/scripts/agentbox-config-validate.js:1730-1755`).
+**Drift:** this panel previously drew `spend-policy.js` and `consumer-payer.js` as "consumed only by scripts/agentbox-config-validate.js", with no `require()` from any route. Its own note contradicted that, and it misattributed the `chain-payments.js` line numbers to the two middleware files. At the pin, `routes/chain-payments.js` requires both (`../project/agentbox/management-api/routes/chain-payments.js:34-35`). The validator mentions spend-policy only in its rule text (`../project/agentbox/scripts/agentbox-config-validate.js:1741-1766`).
 
 ## AB-03.18 lib/elevation-stage.js — gateElevation, ADR-2116 vault-propose gate before federation
 

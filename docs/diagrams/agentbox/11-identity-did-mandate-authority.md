@@ -39,7 +39,7 @@ sources:
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/management-api/lib/bc20-provenance-bridge.js
   - ../project/agentbox/management-api/routes/sessions-boundary.js
-verified_commit: 720e0d89656a4360998b3a716d0f3ee8cac66f93
+verified_commit: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a
 ---
 
 ## AB-11.1 Identity, URN and mandate type model
@@ -107,7 +107,7 @@ classDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant CALLER as caller<br/>agentbox/management-api/routes/sessions-boundary.js:214
+    participant CALLER as caller<br/>agentbox/management-api/routes/sessions-boundary.js:215
     participant AI as loadOrMint<br/>agentbox/management-api/lib/agent-identity.js:128
     participant ENV as process.env
     participant FS as profile key file<br/>profileKeyPath opts
@@ -141,7 +141,7 @@ sequenceDiagram
     AI->>AI: xOnly = deriveXonly(privHex)
     alt xOnly falsy or not HEX64
         AI-->>CALLER: return null
-        Note over AI,CALLER: the CLI exits non-zero and the entrypoint aborts boot (entrypoint-unified.sh:1436-1438), no placeholder identity survives. see AB-11.3
+        Note over AI,CALLER: the CLI exits non-zero and the entrypoint aborts boot (entrypoint-unified.sh:1431-1433), no placeholder identity survives. see AB-11.3
     else derived
         critical persist so the DID survives a restart
             AI->>FS: mkdirSync(dirname, recursive) then writeFileSync(privHex, mode 0o600) then chmodSync 0o600 (agent-identity.js:164-166)
@@ -180,15 +180,15 @@ sequenceDiagram
             LM-->>CLI: {did, pubkey, multikey, persisted true, keyPath}
             CLI-->>EP: stdout export AGENTBOX_AGENT_DID / AGENTBOX_AGENT_PUBKEY / AGENTBOX_AGENT_DID_MULTIKEY<br/>agent-identity.js:322-326
             CLI-->>EP: stderr agent-identity: minted or loaded the did (persisted=true, keyfile=path)<br/>agent-identity.js:327-330
-            EP->>EP: parse AGENTBOX_AGENT_DID with sed and require the exact expected three export lines, never eval (entrypoint-unified.sh:1440-1446)
-            EP->>SHELL: export AGENTBOX_AGENT_DID, then derive and export AGENTBOX_AGENT_PUBKEY and AGENTBOX_AGENT_DID_MULTIKEY itself (entrypoint-unified.sh:1447-1455)
+            EP->>EP: parse AGENTBOX_AGENT_DID with sed and require the exact expected three export lines, never eval (entrypoint-unified.sh:1435-1441)
+            EP->>SHELL: export AGENTBOX_AGENT_DID, then derive and export AGENTBOX_AGENT_PUBKEY and AGENTBOX_AGENT_DID_MULTIKEY itself (entrypoint-unified.sh:1442-1450)
             CLI-->>EP: exit 0 agent-identity.js:331
         end
     end
-    Note over EP,SHELL: RESOLVED ADR-2044 (2026-09-05, was DIVERGENCE) - the CLI's own fail-open<br/>path is GONE: a failed mint OR a mint that could not persist its key now exits<br/>non-zero with NO export lines, agent-identity.js:31-39. The entrypoint now treats that as<br/>FATAL too: no mint runtime, a failed mint, or output that is not exactly the three<br/>expected export lines aborts boot with exit 1 (entrypoint-unified.sh:1429-1446), and a configured<br/>DID that is not canonical is refused (entrypoint-unified.sh:1450-1453), so no<br/>did:nostr:local placeholder is exported. see AB-11.13
+    Note over EP,SHELL: RESOLVED ADR-2044 (2026-09-05, was DIVERGENCE) - the CLI's own fail-open<br/>path is GONE: a failed mint OR a mint that could not persist its key now exits<br/>non-zero with NO export lines, agent-identity.js:31-39. The entrypoint now treats that as<br/>FATAL too: no mint runtime, a failed mint, or output that is not exactly the three<br/>expected export lines aborts boot with exit 1 (entrypoint-unified.sh:1424-1441), and a configured<br/>DID that is not canonical is refused (entrypoint-unified.sh:1445-1448), so no<br/>did:nostr:local placeholder is exported. see AB-11.13
 ```
 
-**Drift (INGRESS-identity vs entrypoint):** `docs/INGRESS-identity.md` still names a `did:nostr:local` placeholder fallback in `agent-identity.js:175` that lets a degraded boot produce a non-sovereign identity (`../project/agentbox/docs/INGRESS-identity.md:229-231`), and the `agent-identity.js` header says the entrypoint's `${AGENTBOX_AGENT_DID:-did:nostr:local}` fallback runs unconditionally (`agentbox/management-api/lib/agent-identity.js:41-46`), while the entrypoint aborts boot on a failed or inconsistent mint (`agentbox/config/entrypoint-unified.sh:1429-1446`) and treats `did:nostr:local` only as a trigger to mint (`agentbox/config/entrypoint-unified.sh:1429`). Line 175 of `agent-identity.js` is the `pubkey` field of the return object, not a fallback.
+**Drift (INGRESS-identity vs entrypoint):** `docs/INGRESS-identity.md` still names a `did:nostr:local` placeholder fallback in `agent-identity.js:175` that lets a degraded boot produce a non-sovereign identity (`../project/agentbox/docs/INGRESS-identity.md:229-231`), and the `agent-identity.js` header says the entrypoint's `${AGENTBOX_AGENT_DID:-did:nostr:local}` fallback runs unconditionally (`agentbox/management-api/lib/agent-identity.js:41-46`), while the entrypoint aborts boot on a failed or inconsistent mint (`agentbox/config/entrypoint-unified.sh:1424-1441`) and treats `did:nostr:local` only as a trigger to mint (`agentbox/config/entrypoint-unified.sh:1424`). Line 175 of `agent-identity.js` is the `pubkey` field of the return object, not a fallback.
 
 ## AB-11.4 URN kind table — scope, content addressing and resolvable surface
 
@@ -585,7 +585,7 @@ sequenceDiagram
     Note over PS,NB: nostr-bridge is vendored into lib/ at build time (flake buildPhaseExtra) — require('./nostr-bridge')<br/>first, falling back to '../../mcp/servers/nostr-bridge', which only resolves in a source checkout (pod-signer.js:85-89)
 ```
 
-**Tension (signing identity vs mandate grantee):** the default signer is the container's sovereign identity minted by `nostr-pod-bridge bootstrap` (`agentbox/management-api/lib/agent-identity.js:186-192`, `agentbox/management-api/lib/agent-identity.js:232`), not the per-profile key `loadOrMint` writes (AB-11.2). A pod write therefore carries the container's DID unless a stack is named, so the per-session mandate grantee (`agentbox/management-api/routes/sessions-boundary.js:294`) is not the key the pods adapter signs with by default, and the adapter's writes succeed or fail on the ACL the bootstrap wrote for its own identity (`agentbox/management-api/lib/pod-signer.js:14-20`) rather than on a mandate. The earlier drawing showed the agent's own profile DID and an abort when no stack resolved; neither holds at this revision.
+**Tension (signing identity vs mandate grantee):** the default signer is the container's sovereign identity minted by `nostr-pod-bridge bootstrap` (`agentbox/management-api/lib/agent-identity.js:186-192`, `agentbox/management-api/lib/agent-identity.js:232`), not the per-profile key `loadOrMint` writes (AB-11.2). A pod write therefore carries the container's DID unless a stack is named, so the per-session mandate grantee (`agentbox/management-api/routes/sessions-boundary.js:297`) is not the key the pods adapter signs with by default, and the adapter's writes succeed or fail on the ACL the bootstrap wrote for its own identity (`agentbox/management-api/lib/pod-signer.js:14-20`) rather than on a mandate. The earlier drawing showed the agent's own profile DID and an abort when no stack resolved; neither holds at this revision.
 
 **Open (caller-supplied Authorization):** a request that already carries an `Authorization` header bypasses the originator entirely, in both modes (`agentbox/management-api/adapters/pods/_solid-http-base.js:73-74`, `agentbox/management-api/adapters/pods/_solid-http-base.js:81-82`). Which callers pass one is not traced here.
 
@@ -718,7 +718,7 @@ sequenceDiagram
 
     rect rgb(240,255,240)
     Note over BOOT,KF: IMPLEMENTED — what the code actually does
-    BOOT->>AI: mint or load the per-profile agent key<br/>ADR-2044 (2026-09-05): the CLI now exits non-zero on mint or persist failure<br/>and the entrypoint aborts boot (entrypoint-unified.sh:1429-1446) instead of tolerating did:nostr:local — see AB-11.3
+    BOOT->>AI: mint or load the per-profile agent key<br/>ADR-2044 (2026-09-05): the CLI now exits non-zero on mint or persist failure<br/>and the entrypoint aborts boot (entrypoint-unified.sh:1424-1441) instead of tolerating did:nostr:local — see AB-11.3
     AI->>KF: writeFileSync mode 0o600 then chmodSync 0o600 (agent-identity.js:164-166)
     KF-->>AI: readable only by this uid
     BOOT->>BR: load bridge identity from AGENTBOX_BRIDGE_SK_FILE, legacy environment fallback remains
@@ -731,5 +731,5 @@ sequenceDiagram
     ADR-->>AI: rotation cadence, revocation procedure, named custodian, maximum response window — every row is UNCONFIRMED
     end
 Note over ADR: DIVERGENCE SECURITY-profiles provisional custody register 2026-09-04 — seven<br/>credential roles are identified as ROLES TO ASSIGN, not accepted custodians. "No cadence is<br/>invented here." No dated failure/recovery receipt exists for any row. Since 2026-10-03 the same<br/>doc also carries a generated prompt-egress register (46 routes at this revision, devuser-class<br/>credentials under Q8) - it catalogues egress routes, it does not settle custody<br/>
-Note over BOOT,KF: DIVERGENCE — a 0600 file is a same-uid boundary only. With the shipped<br/>[security].role_isolation = false (agentbox.toml:2549) every agentbox process runs as devuser,<br/>so co-resident code can read the agent key and the bridge key alike. Role isolation is the<br/>staged remedy (SECURITY-profiles, Role isolation 2026-10-03). see AB-16 and AB-36
+Note over BOOT,KF: DIVERGENCE — a 0600 file is a same-uid boundary only. With the shipped<br/>[security].role_isolation = false (agentbox.toml:2581) every agentbox process runs as devuser,<br/>so co-resident code can read the agent key and the bridge key alike. Role isolation is the<br/>staged remedy (SECURITY-profiles, Role isolation 2026-10-03). see AB-16 and AB-36
 ```
