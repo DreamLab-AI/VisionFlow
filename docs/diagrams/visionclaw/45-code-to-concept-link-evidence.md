@@ -13,12 +13,12 @@ sources:
   - ../project/xr-client/rust/src/link_index.rs
   - ../project/xr-client/rust/src/binary_protocol.rs
   - ../project/xr-client/scripts/graph_scene.gd
-verified_commit: {codescape: e3b76f63e801c6a8460110b93e88a0b420e9b0b4, visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
+verified_commit: {codescape: e3b76f63e801c6a8460110b93e88a0b420e9b0b4, visionclaw: 2e7ecc2e731ed475982176d522877d9c89e3ff51}
 ---
 
 ## For developers
 
-Consumer scope checked on 14 November 2026: VisionClaw main `a6d05ed1a8d090e290944ebb8a9c122c7f59ef8c` still pins Codescape gitlink `e3b76f63e801c6a8460110b93e88a0b420e9b0b4`. This topic retains that producer revision; the standalone Codescape area describes newer source. No deployment was requalified by this pin check.
+Consumer scope checked on 14 November 2026: VisionClaw main `2e7ecc2e731ed475982176d522877d9c89e3ff51` still pins Codescape gitlink `e3b76f63e801c6a8460110b93e88a0b420e9b0b4`. This topic retains that producer revision; the standalone Codescape area describes newer source. No deployment was requalified by this pin check.
 
 The [executable audit](../../estate-review/2026-10-31-xr-volumes-and-code-links.md) follows real Codescape annotation scanning and topology emission into the verbatim pure XR join module. It does not exercise the gdext wrapper or live streams.
 
@@ -50,7 +50,7 @@ flowchart TD
     PROD["Pinned producer metadata: source_file, domain, size, type, community, tier, no repo or revision<br/>codescape-server/src/xr.rs:42-49"] --> CS
     CS["Parse ontology_refs into code-node refs<br/>link_index.rs:93,124"] --> READ["Read metadata.repo, else empty, and metadata.revision, else None<br/>link_index.rs:132,138"]
     READ --> PICK["Deduplicate IRI, path and line<br/>symbol wins over file roll-up<br/>link_index.rs:253,268"]
-    VC["Build IRI to wire-id lists from topology metadata<br/>binary_protocol.rs:210,1409"] --> JOIN["Join targets and filter by knowledge or ontology class<br/>link_index.rs:276"]
+    VC["Build IRI to wire-id lists from topology metadata<br/>binary_protocol.rs:210,1453"] --> JOIN["Join targets and filter by knowledge or ontology class<br/>link_index.rs:276"]
     PICK --> JOIN
     JOIN --> REC["Emit one record per eligible target<br/>link_index.rs:281"]
     REC --> GEN["Retain both stream generations<br/>link_index.rs:301"]
@@ -60,7 +60,7 @@ flowchart TD
 ```
 
 **What it shows.** VisionClaw's half of the provenance repair has landed: the join copies whatever repository and revision the code stream supplies. **Why it is this way.** The revision is a monotonic Codescape snapshot counter, not a Git commit (`link_index.rs:114`), so even when populated it does not name the source revision of a claim.
-**Tension (cross-repo):** The producer half (`repo` and `revision` in `initial_graph_load` metadata) exists only on standalone Codescape after `e3b76f6`; VisionClaw `ec785afa9` pins `e3b76f6`, whose `codescape-server/src/xr.rs:42-49` emits neither, so every deployed record is the "legacy" empty case.
+**Tension (cross-repo):** The producer half (`repo` and `revision` in `initial_graph_load` metadata) exists only on standalone Codescape after `e3b76f6`; VisionClaw `2e7ecc2` pins `e3b76f6`, whose `codescape-server/src/xr.rs:42-49` emits neither, so records from that producer remain the "legacy" empty case.
 
 ## VC-45.3 Producer truncation and connection invalidation have different counters
 
@@ -69,9 +69,9 @@ flowchart TD
     ALL["Bound annotation table retains all rows<br/>annotations.rs:369"] --> CUT["Only first 32 sorted refs per node reach wire metadata<br/>annotations.rs:239"]
     CUT --> JOIN["Join sees only received refs<br/>link_index.rs:253"]
     JOIN --> COUNT["Missing targets count as unresolved<br/>link_index.rs:306"]
-    TOPO["Topology replaces cached IRI and annotation tables<br/>binary_protocol.rs:1409,1410"] --> REBUILD["Scene joins on generation and population-count changes<br/>graph_scene.gd:750,758"]
-    DISC["Disconnect drops records for that connection<br/>graph_scene.gd:4650,4651"] --> REBUILD
-    NEW["Topology callback drops old-generation records<br/>graph_scene.gd:4662,4682"] --> REBUILD
+    TOPO["Topology replaces cached IRI and annotation tables<br/>binary_protocol.rs:1453,1454"] --> REBUILD["Scene joins on generation and population-count changes<br/>graph_scene.gd:748,756"]
+    DISC["Disconnect drops records for that connection<br/>graph_scene.gd:4657,4658"] --> REBUILD
+    NEW["Topology callback drops old-generation records<br/>graph_scene.gd:4669,4689"] --> REBUILD
 ```
 
 **What it shows.** With 33 bound refs and every target available, the probe receives 32 refs, emits 32 links and reports zero unresolved. Generation-change cleanup is a separate mechanism. **Why it is this way.** The cap is documented, but omitted producer refs cannot be counted by a consumer that never receives them.

@@ -27,7 +27,7 @@ sources:
   - ../project/client/src/features/graph/managers/dataManager/wsClient.ts
   - ../project/tests/sssp_integration_test.rs
   - ../project/tests/analytics_wire_snapshot_test.rs
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
+verified_commit: {visionclaw: 2e7ecc2e731ed475982176d522877d9c89e3ff51}
 ---
 
 ## For developers
@@ -230,7 +230,7 @@ sequenceDiagram
     participant FCA as ClientCoordinatorActor serialize_positions<br/>src/actors/client_coordinator_actor.rs:691
     participant ENC as encode_node_data_extended_with_sssp<br/>src/utils/binary_protocol.rs:426
     participant WS as WebSocket /wss
-    participant RS as XR Rust decoder<br/>xr-client/rust/src/binary_protocol.rs:646
+    participant RS as XR Rust decoder<br/>xr-client/rust/src/binary_protocol.rs:671
     participant TS as Web TS decoder<br/>client/src/types/binaryProtocol.ts:328
 
     FCA->>ENC: the coordinator pump encodes each client's chunk, node tuples plus the NodeClassIds<br/>sets, src/actors/client_coordinator_actor.rs:699-713
@@ -244,11 +244,11 @@ sequenceDiagram
     ENC->>WS: [tag][records...]
     par XR Rust client
         WS->>RS: bytes
-        RS->>RS: decode_position_frame_with_sequence :646
-        alt lead byte == PROTOCOL_V5 (0x05) rust/src/binary_protocol.rs:661
-            RS->>RS: need = HEADER_BYTES + V5_SEQ_BYTES :662 then read u64 seq :669-671
+        RS->>RS: decode_position_frame_with_sequence :671
+        alt lead byte == PROTOCOL_V5 (0x05) rust/src/binary_protocol.rs:686
+            RS->>RS: need = HEADER_BYTES + V5_SEQ_BYTES :687 then read u64 seq :694-696
         end
-        RS->>RS: mask each id with NODE_ID_MASK :950
+        RS->>RS: mask each id with NODE_ID_MASK :980
         Note over RS: constants PROTOCOL_V5 :29, V5_SEQ_BYTES 8 :30, NODE_RECORD_BYTES 52 :32, NODE_ID_MASK :41
     and Web TS client
         WS->>TS: bytes
@@ -427,7 +427,7 @@ sequenceDiagram
     participant SRV as ClientCoordinatorActor<br/>src/actors/client_coordinator_actor.rs:776
     participant WS as WebSocket /wss
     participant WEB as Web client<br/>client/src/store/websocket/binaryProtocol.ts:352
-    participant XR as XR Rust client<br/>xr-client/rust/src/binary_protocol.rs:892
+    participant XR as XR Rust client<br/>xr-client/rust/src/binary_protocol.rs:922
     participant HDL as SocketFlowServer binary handler<br/>src/handlers/socket_flow_handler/binary_protocol.rs:30
 
     SRV->>WS: V5 chunk [0x05][u64 seq][52 B per node], seq is the chunk's own number<br/>src/actors/client_coordinator_actor.rs:691-722
@@ -438,8 +438,8 @@ sequenceDiagram
         WEB->>WS: createBroadcastAck builds [0x34][u64 seq][u32 nodes][u64 timestamp_ms], 21 bytes, no 6-byte header<br/>client/src/services/BinaryWebSocketProtocol.ts:245-255
     and XR client
         WS->>XR: chunk bytes
-        XR->>XR: freshness gate admits the frame, only Accept and AcceptResync name a sequence<br/>xr-client/rust/src/binary_protocol.rs:716-721
-        XR->>WS: encode_broadcast_ack after the records are applied, a stale or duplicate frame is not acknowledged<br/>xr-client/rust/src/binary_protocol.rs:703-710, :892-903
+        XR->>XR: freshness gate admits the frame, only Accept and AcceptResync name a sequence<br/>xr-client/rust/src/binary_protocol.rs:741-747
+        XR->>WS: encode_broadcast_ack after the records are applied, a stale or duplicate frame is not acknowledged<br/>xr-client/rust/src/binary_protocol.rs:728-735, :922-933
     end
     WS->>HDL: binary frame
     HDL->>HDL: is_stream_ack, the first byte 0x34, is exempt from the per-IP message rate limiter<br/>src/handlers/socket_flow_handler/binary_protocol.rs:10-12, :22-24, :35

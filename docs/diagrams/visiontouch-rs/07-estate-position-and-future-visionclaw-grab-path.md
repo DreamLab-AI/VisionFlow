@@ -19,7 +19,7 @@ sources:
   - ../project/client/src/features/graph/services/interactionModes/vrArMode.ts
   - ../project/xr-client/rust/src/selection.rs
   - ../project/src/handlers/socket_flow_handler/message_routing.rs
-verified_commit: {visiontouch-rs: a9e52b6154b44fb7afc158230c4ec26d4213c015, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c, visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
+verified_commit: {visiontouch-rs: a9e52b6154b44fb7afc158230c4ec26d4213c015, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c, visionclaw: 2e7ecc2e731ed475982176d522877d9c89e3ff51}
 ---
 
 ## For developers
@@ -130,4 +130,4 @@ flowchart TB
     PI --- N2
 ```
 
-The cited `selection.rs` anchors match the declared revision and are unchanged at the reviewed 75b72416 HEAD. The XR path would add a resolver, not a new server message.
+The cited `selection.rs` anchors match the declared revision and are unchanged at the reviewed 2e7ecc2 revision; the later edits in this file only change formatting. The XR path would add a resolver, not a new server message.

@@ -2,7 +2,7 @@
 id: VC-57
 title: Control centre information architecture, scope badges, dock and right-hand drawer
 area: visionclaw
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
+verified_commit: {visionclaw: 2e7ecc2e731ed475982176d522877d9c89e3ff51}
 governing:
   - ../project/docs/BASELINE-architecture.md
   - ../project/docs/XR-client.md
@@ -138,13 +138,15 @@ flowchart TB
     B5 -.->|pins| C2
     TE["test e, counts and per-section field counts only<br/>registry.test.ts:574, registry.test.ts:579-582"] -.->|"OPEN: labels, paths and test ids are not compared (registry.test.ts:579)"| MAN
     C2 --> LD["HudIa.load_doc, falls back to a built-in seven<br/>hud_ia.gd:88"]
-    LD --> HUD["HUD tab bar built from it<br/>hud.gd:506, hud.gd:510"]
+    LD --> HUD["HUD tab bar built from it<br/>hud.gd:509, hud.gd:513"]
     FB["FALLBACK_SECTIONS and FALLBACK_SCOPES, hand-kept<br/>hud_ia.gd:26, hud_ia.gd:35"] -.-> LD
     GUT["GUT test, fallback equals the committed file<br/>test_hud_ia.gd:38, test_hud_ia.gd:47"] -.->|pins| FB
     XO["XR_ONLY exempts names the desktop lacks<br/>hud_ia.gd:75"] -.-> GUT2["GUT test, every XR subsection is the desktop's or XR-only<br/>test_hud_ia.gd:68-71"]
 ```
 
 **What it shows.** One emitter, three committed outputs, and which test pins which copy. **Why it is this way.** ADR-2189 §2 follows the `semantic_fields.json` precedent: one generated document, two committed copies, a test that regenerates and compares, so desktop and headset cannot drift silently.
+
+**Source update, 14 November:** the Session header now includes a clipped build-information label for the supplied commit, export/library times and backend text (`xr-client/scripts/hud.gd:1568-1583`, `xr-client/scripts/hud.gd:2081-2088`). It shares the header row; the seven-section IA remains unchanged.
 
 **Debt (parallel):** the IA exists as two committed copies, `registry/ia.json` and `xr-client/data/ia.json`, written by one emitter (`emit-settings-manifest.ts:19-22`); they are generated, never hand-edited.
 
@@ -154,7 +156,7 @@ flowchart TB
 
 **Tension (parallel):** the XR "Semantic forces" subsection passes the parity test only by being listed as XR-only (`hud_ia.gd:79`), though the desktop has eight "Semantic forces › …" subsections (`placement.ts:62-68`).
 
-**Tension (ADR-2189 vs XR-client.md):** RESOLVED at visionclaw 46edc196 — ADR-2189 now says the XR HUD is built and reads `xr-client/data/ia.json`, and strikes the not-built item (`ADR-2189-desktop-and-xr-menus-share-one-seven-section-information-architecture.md:23`, `:314`), in line with `XR-client.md:1062`, which records the XR side as built, and `hud.gd:510`, which loads it.
+**Tension (ADR-2189 vs XR-client.md):** RESOLVED at visionclaw 46edc196 — ADR-2189 now says the XR HUD is built and reads `xr-client/data/ia.json`, and strikes the not-built item (`ADR-2189-desktop-and-xr-menus-share-one-seven-section-information-architecture.md:23`, `:314`), in line with `XR-client.md:1073`, which records the XR side as built, and `hud.gd:513`, which loads it.
 
 ## VC-57.4 Scope badges from the server bucket
 ```mermaid

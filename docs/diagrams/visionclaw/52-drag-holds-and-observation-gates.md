@@ -23,7 +23,7 @@ sources:
   - ../project/client/src/features/graph/managers/graphWorkerProxy.ts
   - ../project/crates/visionclaw-gpu/src/cuda_sources/visionclaw_unified.cu
   - ../project/src/utils/unified_gpu_compute/execution.rs
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
+verified_commit: {visionclaw: 2e7ecc2e731ed475982176d522877d9c89e3ff51}
 ---
 
 ## For developers
@@ -107,10 +107,10 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    HAND["Choose first held hand<br/>graph_scene.gd:174-175"] --> FRAME["Select held or targeted volume transform<br/>graph_scene.gd:206-212"]
+    HAND["Choose first held hand<br/>graph_scene.gd:172-173"] --> FRAME["Select held or targeted volume transform<br/>graph_scene.gd:204-210"]
     PRIMARY["Read position from primary binary client<br/>spatial_environment.gd:102,113"] --> WORLD["Apply selected transform to that position<br/>spatial_environment.gd:114-117"]
     FRAME --> WORLD
-    GRAB["Grab uses the chosen connection's position<br/>graph_scene.gd:3848"] -.-> GAP["TENSION: differing connection positions<br/>need an end-to-end marker test<br/>spatial_environment.gd:113"]
+    GRAB["Grab uses the chosen connection's position<br/>graph_scene.gd:3855"] -.-> GAP["TENSION: differing connection positions<br/>need an end-to-end marker test<br/>spatial_environment.gd:113"]
     WORLD -.-> GAP
 ```
 
