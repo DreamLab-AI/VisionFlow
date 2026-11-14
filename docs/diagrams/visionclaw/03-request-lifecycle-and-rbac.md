@@ -47,7 +47,7 @@ sources:
   - ../project/src/uri/mod.rs
   - ../project/src/config/security_profile.rs
   - ../project/docs/adr/ADR-2012-dev-bypass-triple-gated.md
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
+verified_commit: {visionclaw: a6d05ed1a8d090e290944ebb8a9c122c7f59ef8c}
 ---
 
 ## For developers
@@ -497,7 +497,7 @@ sequenceDiagram
 
 **What it shows.** The live position stream's per-session entitlement, and how it is combined with the separate server node filter. **Why it is this way.** ADR-2003 makes the filter default on and fail-closed. ADR-2141 streams each client its own unacknowledged set, so the drop set is applied per client at planning time.
 
-**Debt (parallel):** the node-filter predicate is written three times, in the client (`client/src/features/graph/explore/nodeFilter.ts:109`), the server (`src/actors/client_filter.rs:176-195`) and the headset (`xr-client/rust/src/settings_sync.rs:94`). The copies agree today and all three tests load one fixture (`client_filter.rs:477`, `settings_sync.rs:624`, `nodeFilter.test.ts:14`), so a copy that drifts from the fixture fails its own suite. A behaviour change still has to be made three times.
+**Debt (parallel):** the node-filter predicate is written three times, in the client (`client/src/features/graph/explore/nodeFilter.ts:109`), the server (`src/actors/client_filter.rs:176-195`) and the headset (`xr-client/rust/src/settings_sync.rs:110`). The copies agree today and all three tests load one fixture (`client_filter.rs:477`, `settings_sync.rs:640`, `nodeFilter.test.ts:14`), so a copy that drifts from the fixture fails its own suite. A behaviour change still has to be made three times.
 
 ## VC-03.11 Dev bypass triple gate (ADR-2012 / ADR-2039) — nested conditions
 ```mermaid

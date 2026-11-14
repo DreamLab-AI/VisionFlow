@@ -25,7 +25,7 @@ sources:
   - ../project/agentbox/management-api/middleware/linked-data/surfaces/s04-did.js
   - ../project/agentbox/mcp/servers/lib/memory-tools.js
   - ../project/src/handlers/presence_handler.rs
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a}
 ---
 
 ## For developers
@@ -218,7 +218,7 @@ sequenceDiagram
     participant Caller
     participant VC as content_address<br/>src/uri/mod.rs:179
     participant AB as sha12 (bc20-provenance-bridge)<br/>agentbox/management-api/lib/bc20-provenance-bridge.js:132
-    participant MT as sha12 (memory-tools)<br/>agentbox/mcp/servers/lib/memory-tools.js:60
+    participant MT as sha12 (memory-tools)<br/>agentbox/mcp/servers/lib/memory-tools.js:62
     Caller->>VC: content_address(bytes)
     VC->>VC: Sha256::digest(input), take 6 bytes, 2 hex chars each, src/uri/mod.rs:180-186
     VC-->>Caller: sha256-12-HEX (CONTENT_ADDR_PREFIX + 12 lowercase hex), src/uri/mod.rs:187
@@ -228,12 +228,12 @@ sequenceDiagram
         AB-->>Caller: sha256-12-HEX
     and agentbox memory-tools side
         Caller->>MT: sha12(v)
-        MT->>MT: sha256 hex digest, slice(0,12), agentbox/mcp/servers/lib/memory-tools.js:60
+        MT->>MT: sha256 hex digest, slice(0,12), agentbox/mcp/servers/lib/memory-tools.js:62
         MT-->>Caller: bare 12 hex chars, no sha256-12- prefix added by this helper
     end
     Note over VC,AB: INVARIANT byte-identical -- both truncate to the first 6 bytes (12 hex chars) of the same SHA-256 digest, ADR-2023
     Note over VC: verified fixture sha256-12-b94d27b9934d for input hello world, src/uri/mod.rs:886-898
-    Note over MT: DIVERGENCE memory-tools.js:60 returns the bare 12-hex digest with no sha256-12- prefix, unlike CONTENT_ADDR_PREFIX-enforced VisionClaw and bc20-provenance-bridge sides
+    Note over MT: DIVERGENCE memory-tools.js:62 returns the bare 12-hex digest with no sha256-12- prefix, unlike CONTENT_ADDR_PREFIX-enforced VisionClaw and bc20-provenance-bridge sides
 ```
 
 ## VC-23.6 Federation crossing — toVisionclaw / cross_from_agentbox closed map (ADR-2025)

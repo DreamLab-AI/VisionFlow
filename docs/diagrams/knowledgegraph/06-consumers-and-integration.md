@@ -18,7 +18,7 @@ sources:
   - ../project/agentbox/scripts/hp-loom-reconcile.sh
   - ../loom/crates/loom-facade/src/lib.rs
   - ../loom/crates/loom-facade/src/bundle.rs
-verified_commit: {knowledgegraph: 5294e88b6602a63b5afe96c79f2779d00274a05e, visiongraph: d8277151a1404b456b5c7206187f7e4b50f25be1, visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, loom: 741c5dffd3253038bbe4fadea7fada7c46474a25}
+verified_commit: {knowledgegraph: 5294e88b6602a63b5afe96c79f2779d00274a05e, visiongraph: d8277151a1404b456b5c7206187f7e4b50f25be1, visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a, loom: 741c5dffd3253038bbe4fadea7fada7c46474a25}
 ---
 
 ## For developers
@@ -47,7 +47,7 @@ flowchart TB
     LOOM["Transfer and verifying HP reload<br/>Compare served generation with source SHA"]
     VG --> PUB --> DISPATCH
     VG -.->|"Separate distribution route"| SNAP --> BUILD --> LOOM
-    NOTE["DRIFT: the old ontology-bridge route is retired<br/>Manifest describes CLI and Loom HTTP access<br/>agentbox/agentbox.toml:1173"]
+    NOTE["DRIFT: the old ontology-bridge route is retired<br/>Manifest describes CLI and Loom HTTP access<br/>agentbox/agentbox.toml:1192"]
     LOOM --- NOTE
 ```
 

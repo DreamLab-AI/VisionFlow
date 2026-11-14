@@ -40,7 +40,7 @@ sources:
   - ../project/AGENTS.md
   - ../project/tests/test_save_endpoint.rs
   - ../project/tests/test_settings_persistence.rs
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
+verified_commit: {visionclaw: a6d05ed1a8d090e290944ebb8a9c122c7f59ef8c}
 ---
 
 ## For developers
@@ -311,7 +311,7 @@ flowchart TB
     FIX --- NOTE
 ```
 
-**Invariant:** the node-filter defaults (off, quality 0.4, authority 0.5, OR) are written in four places, the server model (`../project/src/settings/models.rs:192-212`), the client (`../project/client/src/features/graph/explore/nodeFilter.ts:57-68`), the headset (`../project/xr-client/rust/src/settings_sync.rs:44-55`) and the `filter_update` parser's fallbacks (`../project/src/handlers/socket_flow_handler/filter_auth.rs:17`), and each is now pinned to the parity fixture's default case (`../project/src/actors/client_filter.rs:574`, `../project/client/src/features/graph/explore/__tests__/nodeFilter.test.ts:58`, `../project/xr-client/rust/src/settings_sync.rs:653-654`).
+**Invariant:** the node-filter defaults (off, quality 0.4, authority 0.5, OR) are written in four places, the server model (`../project/src/settings/models.rs:192-212`), the client (`../project/client/src/features/graph/explore/nodeFilter.ts:57-68`), the headset (`../project/xr-client/rust/src/settings_sync.rs:44-55`) and the `filter_update` parser's fallbacks (`../project/src/handlers/socket_flow_handler/filter_auth.rs:17`), and each is now pinned to the parity fixture's default case (`../project/src/actors/client_filter.rs:574`, `../project/client/src/features/graph/explore/__tests__/nodeFilter.test.ts:58`, `../project/xr-client/rust/src/settings_sync.rs:669-670`).
 
 **Open:** `minConnections` and `minMaturity` are stored on the server (`../project/src/settings/models.rs:157-165`) and applied by the desktop client (`../project/client/src/features/graph/explore/nodeFilter.ts:66-67`). The headset `NodeFilter` has no such fields and documents them as desktop-only (`../project/xr-client/rust/src/settings_sync.rs:31-42`), so a floor one viewer saves greys nodes on every desktop and on no headset. No record says whether that split is intended.
 

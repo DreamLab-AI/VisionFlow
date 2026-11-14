@@ -23,12 +23,12 @@ sources:
   - ../project/docs/adr/ADR-2140-physics-forces-have-one-stored-definition-and-no-scale-factors.md
   - ../project/docs/adr/ADR-2174-layout-forces-are-learned-per-relation-type.md
   - ../project/crates/relational-field/PREREGISTRATION.md
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
+verified_commit: {visionclaw: a6d05ed1a8d090e290944ebb8a9c122c7f59ef8c}
 ---
 
 ## For developers
 
-One page per force term on the default path at main 010e1109b: the law the kernel computes, the flag or pointer that switches it on, and the stored setting or code constant it reads. VC-11 draws the step that runs them, VC-58 the edge data they consume. The physics rework planned in November 2026 appears only as register entries.
+One page per force term on the default path at main a6d05ed1a: the law the kernel computes, the flag or pointer that switches it on, and the stored setting or code constant it reads. VC-11 draws the step that runs them, VC-58 the edge data they consume. The physics rework planned in November 2026 appears only as register entries.
 
 ## For the business
 
@@ -123,4 +123,4 @@ flowchart TB
 
 **What it shows:** a typed edge is pulled by three laws whose coefficients all derive from one registry strength. **Why it is this way:** each path was added separately; no record decides that one relation should have one spring.
 
-**Open (ADR-2174 and an unmerged result):** no ADR states which of the three springs is meant to carry a relation's strength. ADR-2174 proposes learning per-relation forces offline under a preregistration and writing an integration ADR only if H1 holds (`../project/docs/adr/ADR-2174-layout-forces-are-learned-per-relation-type.md:5-7`, `:50-52`). That experiment was run and its Result reports H1 not supported, but the Result exists only on branch `feat/relational-field-h1` (77f6702b9); at 010e1109b the preregistration ends at its Deviations section (`../project/crates/relational-field/PREREGISTRATION.md:103`) and the ADR still names the experiment as its review trigger (`../project/docs/adr/ADR-2174-layout-forces-are-learned-per-relation-type.md:14`).
+**Open (ADR-2174):** no ADR states which of the three springs is meant to carry a relation's strength. ADR-2174 proposes learning per-relation forces offline and writing an integration ADR only if H1 holds (`../project/docs/adr/ADR-2174-layout-forces-are-learned-per-relation-type.md:50-52`). The Result is now on main: H1 is not supported as stated, with gates 1, 3 and 5 failing (`../project/crates/relational-field/PREREGISTRATION.md:263-266`). The three passing gates do not establish typed geometry, and the learned parameters do not reproduce RF geometry in the simulator (`../project/crates/relational-field/PREREGISTRATION.md:408-422`). The live force laws above are unchanged.

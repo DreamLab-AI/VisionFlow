@@ -24,7 +24,7 @@ sources:
   - ../knowledgeGraph/archive/logseq-era-2026-09-22/pages/ADR-012.md
   - ../visionGraph/.github/workflows/publish.yml
   - ../visionGraph/quartz/scripts/check-urls.sh
-verified_commit: {knowledgegraph: 5294e88b6602a63b5afe96c79f2779d00274a05e, visiongraph: d8277151a1404b456b5c7206187f7e4b50f25be1}
+verified_commit: {knowledgegraph: 7815bbcb9f8ab04c2e76f5f8c5c32c69a9dbc56c, visiongraph: d8277151a1404b456b5c7206187f7e4b50f25be1}
 ---
 
 ## For developers
@@ -60,7 +60,7 @@ flowchart TB
 ```mermaid
 flowchart TB
     OLD["September acceptance reports census, strict flags,<br/>visibility fixtures and export generation checks<br/>ADR-2002, September acceptance"]
-    %% Source: ADR-2002-corpus-is-the-ontology.md:90-138
+    %% Source: ADR-2002-corpus-is-the-ontology.md:104-152
     SET["Archived gate compares exact class identities<br/>release_gate.py:127-148"]
     HASH["Archived manifest inventories and re-hashes output<br/>manifest.py:87-135,173-197"]
     ARCH["Pipeline retired to historical archive<br/>logseq-era-2026-09-22/README.md:1-4"]
@@ -73,7 +73,9 @@ flowchart TB
 
 **Why it is this way:** The successor has a different assembly path. Retirement neither proves that all previous obligations transferred nor makes their unresolved acceptance conditions moot.
 
-**Open (ADR-2002 reconciliation, 2026-11-02 and 2026-11-03):** at the previous stamp (`4809ea97`) ADR-2002 carried a reconciliation entry and a repair entry about a retained legacy explorer. Neither is on the pushed main at `5294e88b`: ADR-2002 there goes from its heading to its Context with no explorer decision (`../knowledgeGraph/docs/adr/ADR-2002-corpus-is-the-ontology.md:18-20`), and the retained explorer still pins the vowl-wasm v0.1.1 tarball (`../knowledgeGraph/explorer/modern/package.json:20`) with a DoubleBuffer that releases only buffers it owns by object identity (`../knowledgeGraph/explorer/modern/src/workers/positionTransport.ts:81-86`). The choice between retiring that explorer and a tested consumer upgrade is therefore recorded nowhere on the pushed main.
+**Resolved (ADR-2002 publication, 2026-11-14):** knowledgeGraph PR 5 publishes the retained explorer reconciliation and buffer repair on main. ADR-2002 records 26 passing worker tests, including the repeated two-buffer transfer regression and its failing original-source control (`../knowledgeGraph/docs/adr/ADR-2002-corpus-is-the-ontology.md:20-32`). The pool accepts returned wrappers through outstanding-count accounting (`../knowledgeGraph/explorer/modern/src/workers/positionTransport.ts:82-88`); [KG-08](08-transfer-pool-repair.md) explains the repair.
+
+**Open (retained explorer lifecycle):** the vowl-wasm v0.1.1 dependency remains (`../knowledgeGraph/explorer/modern/package.json:20`). Retirement or a tested consumer upgrade still needs an explicit decision (`../knowledgeGraph/docs/adr/ADR-2002-corpus-is-the-ontology.md:32`). Publication of the buffer repair does not establish a deployed browsing journey.
 
 ## KG-07.3 Historical gaps and continuing decision tensions
 

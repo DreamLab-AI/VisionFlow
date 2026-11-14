@@ -33,6 +33,17 @@ Source symbols and exact document passages supplied the revised coordinates. No 
 
 ## Work still open
 
-The current-source audit still identifies substantial Agentbox and VisionClaw coverage to reconcile. Its raw change list also includes intentional old scopes: OM-10 links to the certificate repair in OM-13, SM-17 links to the successor review-pack contract, and the Codescape consumer topics describe a pinned submodule. NF-28 describes the explicitly unmerged upgrade branch. KG-08 refers to a local retained-explorer repair whose publication is being checked separately. A changed source list is an audit queue, not proof that each historical diagram should be restamped.
+The current-source audit still identifies substantial Agentbox and VisionClaw coverage to reconcile. Its raw change list also includes intentional old scopes: OM-10 links to the certificate repair in OM-13, SM-17 links to the successor review-pack contract, and the Codescape consumer topics describe a pinned submodule. NF-28 describes the explicitly unmerged upgrade branch. KG-08 refers to the retained-explorer repair now published in knowledgeGraph PR 5; the follow-up receipt below records its checks. A changed source list is an audit queue, not proof that each historical diagram should be restamped.
 
 The 1 November semantic audit and its later handoff remain historical receipts. This progress record does not promote them to a fresh whole-estate verification. The outstanding CI access/Actions questions, remaining diagram source review and pending local update review prevent close-out.
+
+
+## Follow-up: published repairs and source alignment
+
+The live health data generated at **2026-11-14 22:38:53 UTC** still reports **17 green, zero red, one without a qualifying run, one exempt and two unreadable**, with six of six surfaces up. [Refresh 43649153768](https://github.com/DreamLab-AI/VisionFlow/actions/runs/43649153768) passes; the served JSON was fetched independently.
+
+[knowledgeGraph PR 5](https://github.com/DreamLab-AI/knowledgeGraph/pull/5) publishes the retained explorer repair and reconciliation at `7815bbc`. All 26 worker tests pass, including a twenty-round transfer regression with both slots occupied. Replacing only the implementation with the old source makes both transfer regressions fail. The main [ADR gate 43648905242](https://github.com/DreamLab-AI/knowledgeGraph/actions/runs/43648905242) passes. KG-07 now closes the publication finding while retaining the unresolved renderer lifecycle decision; KG-08 keeps its original repair revision, now an ancestor of main.
+
+This follow-up aligns fifteen topics: AB-37/42, DW-10, KG-06/07/08 and VC-03/06/13/18/23/24/28/39/59. It updates Agentbox manifest, schema, hash-helper and paired Solid alpha.22 source anchors; reviews the additive XR quality-filter constructor and unchanged analytics contract; and records the now-merged negative H1 result. The full corpus still passes with 269 topics, 2,041 rendered diagrams and 33,292 resolved citations, zero fallbacks or unresolvable citations, and the five existing LaTeX-log exceptions.
+
+The source-change queue has 78 topics before the additional VisionClaw ADR publication. This includes historical and pinned-consumer scopes described above. It remains an audit queue; neither this batch nor the passing structure/citation gate claims completion of the remaining source review.

@@ -26,7 +26,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/poker_schedule.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/relay.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/dm/mod.rs
-verified_commit: {dreamlab-ai-website: f934e26f949f3b95171544ec8ec5bcfd7679f593, nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
+verified_commit: {dreamlab-ai-website: f934e26f949f3b95171544ec8ec5bcfd7679f593, nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df, agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a}
 ---
 
 ## For developers
@@ -45,7 +45,7 @@ flowchart TB
     A["Website enables poker and configures<br/>DREAM and BLAKES7 house identities"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/poker/mod.rs:265
     B["Client offers a table for each configured<br/>chain with an asset and house key"]
-    %% Source: ../project/agentbox/agentbox.toml:2039
+    %% Source: ../project/agentbox/agentbox.toml:2057-2078
     C["Agentbox enables two house services<br/>with separate keys, chains and daily caps"]
     %% Source: ../project/agentbox/config/poker/run-citizen.sh:23
     D["Runner chooses chain-specific state path<br/>and executes the baked binary"]

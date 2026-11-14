@@ -18,12 +18,12 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-mesh/src/envelope.rs
   - ../nostr-rust-forum/crates/nostr-bbs-mesh/src/transport.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/gift_wrap.rs
-verified_commit: {agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
+verified_commit: {agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a, nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
 ---
 
 ## For developers
 
-The [mesh audit](../../estate-review/2026-11-01-mesh-signer-and-custody.md) runs 65 isolated tests against current modules and library APIs. Proposed nodes describe requirements; no mesh service or production signer was activated.
+The [mesh audit](../../estate-review/2026-11-01-mesh-signer-and-custody.md) records 65 isolated tests against its declared modules and library APIs. Proposed nodes describe requirements; no mesh service or production signer was activated.
 
 ## For the business
 
@@ -34,7 +34,7 @@ Sharing spaces across nodes still needs compatible configuration, limited signin
 ```mermaid
 flowchart TD
     MAN["Agentbox moderation is boolean<br/>agentbox.toml:282"] --> FAIL["Library honor_remote_moderation is a list of DIDs<br/>config.rs:67-69"]
-    SCHEMA["Schema modes: standalone or client<br/>agentbox.toml.schema.json:2598-2600"]
+    SCHEMA["Schema modes: standalone or client<br/>agentbox.toml.schema.json:2599-2601"]
     PEERS["PROPOSED pinned peer records and projection<br/>PROTOCOL-registry.md:253,254"] -.-> SCHEMA
     PEERS -.-> LIB["Current roster uses peer_relays<br/>transport.rs:642,643"]
     LIB --> CACHE["SeenIds is a bounded memory cache<br/>transport.rs:584,595,605"]
