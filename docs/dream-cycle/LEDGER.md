@@ -49,3 +49,4 @@ Schema note (2026-09-14, unmerged): FR6.6 of PRD-augmentation-conditions adds `R
 | 2026-10-21 | build-pipeline | VETOED: family-5 red-path cases (host-drift, offsite image) added to exit-code… | NONE | NONE | yes | REJECT |  | 7f8e1c7d8321 |  |  |  |
 | 2026-10-23 | estate-health | VETOED: RED/AMBER lines carry the run's updated_at date; frozen reds… | NONE | NONE | yes | REJECT |  | acadd7004d8c |  |  |  |
 | 2026-10-24 | content-integrity | VETOED: Missing dist/CNAME now fails link check (NO-CNAME, 10-21 decision) +… | NONE | NONE | yes | REJECT |  | 77e3a9ced16a |  |  |  |
+| 2026-11-15 | estate-health | snapshot 231.5h stale (limit 36h); collector idle since 11-05; no patchable path | NONE | NONE | yes | INCONCLUSIVE |  | 617ddf9c1f1c |  |  |  |
