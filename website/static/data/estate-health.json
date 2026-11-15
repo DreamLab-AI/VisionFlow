@@ -1,9 +1,9 @@
 {
   "schema": "visionflow.estate-health/1",
-  "generated_at": "2026-11-14T22:49:29.138Z",
+  "generated_at": "2026-11-15T00:30:46.461Z",
   "generator": {
-    "revision": "c47f2fa1786815abd17afb245700940265bfb120",
-    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43650062669",
+    "revision": "185fce4e9528d86e998ef9e6216982af310a2329",
+    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43658496678",
     "collector": "scripts/estate-health.mjs"
   },
   "summary": {
@@ -30,56 +30,42 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "c47f2fa1786815abd17afb245700940265bfb120",
-        "short": "c47f2fa",
-        "date": "2026-11-14T22:47:47Z",
-        "message": "Merge pull request #31 from DreamLab-AI/docs/estate-alignment-20261114",
-        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/c47f2fa1786815abd17afb245700940265bfb120"
+        "sha": "185fce4e9528d86e998ef9e6216982af310a2329",
+        "short": "185fce4",
+        "date": "2026-11-15T00:29:32Z",
+        "message": "Merge pull request #41 from DreamLab-AI/docs/estate-routing-alignment-20261115",
+        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/185fce4e9528d86e998ef9e6216982af310a2329"
       },
       "ci": {
         "state": "green",
         "runs": [
           {
-            "workflow": "ADR frontmatter gate",
-            "conclusion": "success",
-            "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/42461996521",
-            "updated_at": "2026-11-08T08:13:43Z"
-          },
-          {
             "workflow": "Copyright Source Guard",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43649952158",
-            "updated_at": "2026-11-14T22:48:02Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43658428127",
+            "updated_at": "2026-11-15T00:29:47Z"
           },
           {
             "workflow": "Deploy to GitHub Pages",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43649952156",
-            "updated_at": "2026-11-14T22:48:21Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43658428190",
+            "updated_at": "2026-11-15T00:30:10Z"
           },
           {
             "workflow": "Diagrams-as-code index gate",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43649952257",
-            "updated_at": "2026-11-14T22:48:07Z"
-          },
-          {
-            "workflow": "Harness Fitness Gates",
-            "conclusion": "success",
-            "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/42369109105",
-            "updated_at": "2026-11-07T11:40:09Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43658428130",
+            "updated_at": "2026-11-15T00:29:57Z"
           },
           {
             "workflow": "Nightly estate health",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43649153768",
-            "updated_at": "2026-11-14T22:39:00Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43650062669",
+            "updated_at": "2026-11-14T22:49:35Z"
           }
         ]
       },
@@ -961,7 +947,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 164,
+      "latency_ms": 209,
       "note": null
     },
     {
@@ -970,7 +956,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 82,
+      "latency_ms": 166,
       "note": null
     },
     {
@@ -979,7 +965,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/ld+json",
-      "latency_ms": 71,
+      "latency_ms": 178,
       "note": null
     },
     {
@@ -988,7 +974,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/json; charset=utf-8",
-      "latency_ms": 84,
+      "latency_ms": 175,
       "note": "classes=9595 pages=9593 nodes=9595"
     },
     {
@@ -997,7 +983,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 267,
+      "latency_ms": 356,
       "note": null
     },
     {
@@ -1006,7 +992,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/octet-stream",
-      "latency_ms": 238,
+      "latency_ms": 273,
       "note": null
     }
   ],
