@@ -75,6 +75,7 @@ sources:
   - ../project/agentbox/scripts/ci/env-secret-inventory.js
   - ../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md
   - ../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md
+  - ../project/agentbox/docs/adr/ADR-2013-loopback-publish-except-9096.md
   - ../project/agentbox/docker-compose.system-one.yml
 verified_commit: {visionclaw: 2e7ecc2e731ed475982176d522877d9c89e3ff51, agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a}
 ---
@@ -607,7 +608,7 @@ sequenceDiagram
     J->>J: check-ports-loopback.sh invariants.yml:155
     Note over J: ADR-2013: sweeps EVERY docker-compose*.yml via a real<br/>YAML parser (check-ports-loopback.mjs), replacing an<br/>awk line-walker that missed nested-mapping publishes
     Note over J: SANCTIONED allowlist: 9096 sovereign ingress,<br/>voice 8443/8444, browsercontainer 5903/8931/9222,<br/>gui-tools 5905/9876/9877, xr-runtime 5904
-    Note over J: DIVERGENCE: implementation_status partial — the<br/>dated closeout says the scanner does not yet cover<br/>every equivalent publish syntax form
+    Note over J: ADR-2013 remains partial for effective deployment and active-listener acceptance.<br/>Its current Decision covers normalised short and long syntax,<br/>aliases and merges, with unsupported forms refused.<br/>ADR-2013-loopback-publish-except-9096.md:23,136-139
     J->>J: check-listeners.test.mjs invariants.yml:158, the tests/security/**<br/>trigger path guards this gate's own unit tests
     J->>J: session-plane retirement test, AoE removed and no script attaches<br/>the operator client (scripts-never-switch-operator-tmux.test.mjs) invariants.yml:160-161
     J->>J: session-launch-contract (ADR-2153, live) invariants.yml:163-164, session-plane notify invariants.yml:166-167,<br/>then trust-seed invariants.yml:169-170, every seed resolves to a launch the pinned CLIs accept and every Claude config<br/>store a session reads is trusted

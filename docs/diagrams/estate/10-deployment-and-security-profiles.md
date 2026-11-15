@@ -26,6 +26,7 @@ sources:
   - ../project/docs/adr/ADR-2119-prod-ingress-is-declared-lan-or-tunnel.md
   - ../project/scripts/launch.sh
   - ../project/agentbox/docs/adr/ADR-2013-loopback-publish-except-9096.md
+  - ../project/agentbox/docs/adr/ADR-2062-container-internal-bind-surface.md
   - ../project/agentbox/docs/adr/ADR-2139-system-one-judge-as-a-vendor-slot.md
   - ../project/agentbox/crates/system-one/system-one-proxy/src/server.rs
   - ../project/agentbox/scripts/ci/check-ports-loopback.mjs
@@ -334,7 +335,7 @@ flowchart TB
     end
     subgraph rule["Rule"]
         R1["A publish must bind 127.0.0.1:<br/>OR appear on the in-script SANCTIONED list"]
-        R2["Long-syntax published: / host_ip: mappings<br/>are FORBIDDEN in every file"]
+        R2["Short and long syntax share the same normalised tuple.<br/>Unsupported syntax, interpolation and port ranges fail closed.<br/>ADR-2013-loopback-publish-except-9096.md:136-139"]
     end
     subgraph sanctioned["SANCTIONED LAN doors — each cites its rationale"]
         P1[" port 9096 nip98-proxy — sovereign ingress (ADR-045)"]
@@ -348,7 +349,7 @@ flowchart TB
     D1["RESOLVED ADR-2013 — the estate has TEN sanctioned LAN publishes,<br/>not one front door and not two. the main compose publishes only  port 9096<br/>(agentbox/docker-compose.yml:47) but the overlays add nine more, each with a<br/>cited rationale on the SANCTIONED list (check-ports-loopback.mjs:93-104)<br/>and CI-enforced. These are DECIDED exposures, not an admitted breach."]
     D2["RESOLVED ADR-2013 closeout 2026-09-05 — the scanner is now a<br/>strict YAML PARSER, not an awk line-walker<br/>(check-ports-loopback.mjs:8-24). It rejects the flow-mapping<br/>and JSON-flow bypasses that previously passed, plus IPv6<br/>binds and non-sequence ports values (:39-41)."]
     D3["RESOLVED ADR-2040 — code-server still binds 0.0.0.0:8080 inside the<br/>container while compose publishes 127.0.0.1:8080:8080<br/>(agentbox/docker-compose.yml:54), and a loopback PUBLISH constrains the<br/>HOST only: agentbox also joins visionclaw_network, so a PEER CONTAINER<br/>still reaches it. The hole was closed by AUTHENTICATION, not by<br/>rebinding — the flag is now --auth password, not --auth none<br/>(agentbox/flake.nix:3076), with the password minted 0600 at boot by<br/>entrypoint-unified.sh and never baked into the generated supervisor<br/>text (agentbox/flake.nix:3069-3075)."]
-    D5["PROPOSED ADR-2062: the gate reasons about PUBLISHED ports and<br/>is structurally blind to a container-internal 0.0.0.0 bind on a<br/>shared bridge. The invariant is to be restated in terms of<br/>LISTENERS, with each supervised program declaring its bind address."]
+    D5["IMPLEMENTED ADR-2062: a separate declared-listener rule reads<br/>supervisor bind flags alongside the compose publish rule.<br/>Implicit or file-configured binds retain limits.<br/>ADR-2062-container-internal-bind-surface.md:61-74,<br/>check-ports-loopback.mjs:735-745"]
     D4["RESOLVED — the stale --auth none COMMENT that used to survive at<br/>agentbox/docker-compose.yml near the port list is GONE from the<br/>generated artefact at HEAD; only the AUTO-GENERATED, do not edit by<br/>hand header remains (agentbox/docker-compose.yml:1). The generator<br/>(agentbox/flake.nix:3076 emits --auth password) and the committed<br/>artefact now agree, confirming the self-heal-on-regenerate DECISION."]
 
     D6["LISTENER, not a publish — the System One proxy binds 0.0.0.0 inside the container when network is true (agentbox.toml:916-917),<br/>never published, so any container on visionclaw_network can reach it and spend the vendor key, an accepted consequence<br/>(ADR-2139-system-one-judge-as-a-vendor-slot.md:335). It is on the listener list, check-ports-loopback.mjs:740-745, and refuses an Origin<br/>header or a non-JSON content type with 403 (server.rs:151-169). CONFIGURED: effective when the new agentbox image is activated"]

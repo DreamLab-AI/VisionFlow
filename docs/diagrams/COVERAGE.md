@@ -3442,7 +3442,7 @@ Keys are repository-qualified. `estate-unresolved` preserves an unqualified cros
 | `../project/agentbox/docs/adr/ADR-2010-bearer-gated-behind-nip98.md` | [AB-10](agentbox/10-ingress-nip98-proxy-and-aoe.md) |
 | `../project/agentbox/docs/adr/ADR-2011-hex-canonical-identity.md` | [AB-10](agentbox/10-ingress-nip98-proxy-and-aoe.md) |
 | `../project/agentbox/docs/adr/ADR-2012-relay-allowlist-only-ingress.md` | [AB-13](agentbox/13-nostr-relay-gateway-bridge-mirror.md) |
-| `../project/agentbox/docs/adr/ADR-2013-loopback-publish-except-9096.md` | [AB-10](agentbox/10-ingress-nip98-proxy-and-aoe.md), [ES-01](estate/01-estate-topology.md), [ES-10](estate/10-deployment-and-security-profiles.md) |
+| `../project/agentbox/docs/adr/ADR-2013-loopback-publish-except-9096.md` | [AB-10](agentbox/10-ingress-nip98-proxy-and-aoe.md), [ES-01](estate/01-estate-topology.md), [ES-09](estate/09-build-deploy-and-ci-estate.md), [ES-10](estate/10-deployment-and-security-profiles.md) |
 | `../project/agentbox/docs/adr/ADR-2014-memory-mcp-only-fail-closed.md` | [ES-07](estate/07-memory-and-embedding-estate.md) |
 | `../project/agentbox/docs/adr/ADR-2020-capability-gating.md` | [AB-15](agentbox/15-capability-gating-spend-consultants.md), [AB-22](agentbox/22-skills-and-routing.md) |
 | `../project/agentbox/docs/adr/ADR-2021-skills-jit-context-lint.md` | [AB-22](agentbox/22-skills-and-routing.md) |
@@ -3457,6 +3457,7 @@ Keys are repository-qualified. `estate-unresolved` preserves an unqualified cros
 | `../project/agentbox/docs/adr/ADR-2041-wire-execution-journal-and-action-pipeline.md` | [AB-14](agentbox/14-governance-journal-actions-approvals.md) |
 | `../project/agentbox/docs/adr/ADR-2053-dream-default-provider-is-zai.md` | [AB-23](agentbox/23-dream-engine.md) |
 | `../project/agentbox/docs/adr/ADR-2061-federation-kind-map-parity.md` | [ES-03](estate/03-cross-repo-federation-contract.md) |
+| `../project/agentbox/docs/adr/ADR-2062-container-internal-bind-surface.md` | [ES-10](estate/10-deployment-and-security-profiles.md) |
 | `../project/agentbox/docs/adr/ADR-2071-journal-the-nightly-dream-cycle.md` | [AB-14](agentbox/14-governance-journal-actions-approvals.md), [AB-23](agentbox/23-dream-engine.md), [ES-05](estate/05-governance-loop-across-estate.md) |
 | `../project/agentbox/docs/adr/ADR-2079-aoe-is-the-dispatch-plane-of-a-fleet-model-router.md` | [AB-29](agentbox/29-metaharness-router-console.md) |
 | `../project/agentbox/docs/adr/ADR-2080-metaharness-router-console-under-aoe.md` | [AB-15](agentbox/15-capability-gating-spend-consultants.md), [ES-06](estate/06-loom-and-email-privacy-path.md) |
