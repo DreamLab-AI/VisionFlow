@@ -3,18 +3,19 @@ id: ADR-2024
 title: Separate provenance roles and bind certification to reviewed content
 date: 2026-11-15
 decision_status: accepted
-implementation_status: partial
-activation_status: inactive
+implementation_status: complete
+activation_status: staged
 supersedes: []
 superseded_by: []
 amends: [ADR-2023]
-verified_commit:
-verified_paths: []
+verified_commit: f9ba200b8051dc3a1f5e26ff2e001d5fc2905426
+verified_paths: [ontomark:crates/ontomark-parse/src/certification.rs, ontomark:crates/ontomark-parse/src/provenance.rs, ontomark:crates/ontomark-compile/src/build/page_api.rs, ontomark:crates/ontomark-ingest/src/certification.rs, loom:crates/loom-domain/src/okf.rs, visionclaw:crates/vault-core/src/page.rs, agentbox:lib/ontomark.nix, visiongraph:.github/workflows/publish.yml]
 owner: jjohare
 review_trigger: A consumer changes provenance interpretation, certification digest encoding or legacy stamp handling
 repo: visionflow
-evidence_class: source+test
-acceptance_boundary: Owner-authorised contract and partial producer implementation; consumer integration and release not complete
+domain: BASELINE-visionflow.md
+evidence_class: source+test+ci
+acceptance_boundary: portable contract released as Ontomark 0.9.0; tested consumer source adoption merged; runtime image activation remains staged
 ---
 
 # ADR-2024 — Separate provenance roles and bind certification to reviewed content
@@ -74,18 +75,23 @@ invariance; sequence/type distinctions; malformed digest; agent/process refusal;
 legacy unbound and stale ingest protection; mixed current/stale stamps; public/private
 projection canaries; native/WASM parity and supported consumer builds.
 
-Implementation has not yet been verified. This section must record actual commands,
-revisions, results and release/consumer boundaries before completion is claimed.
+The producer is released as [Ontomark v0.9.0](https://github.com/DreamLab-AI/ontomark/releases/tag/v0.9.0),
+source `f9ba200b8051dc3a1f5e26ff2e001d5fc2905426`. Parser 0.1.4,
+ingest 0.2.2, compiler/profile/CLI 0.9.0 are published on crates.io. The WASM
+engine is delivered through the checksum-pinned GitHub archive.
 
-## Implementation checkpoint
+[The execution receipt](../evidence/ADR-2024-provenance.md) records revisions,
+commands, counts, release hashes and the deployment boundary. Ontomark
+[ADR-OM-013](https://github.com/DreamLab-AI/ontomark/blob/v0.9.0/docs/adr/ADR-OM-013-content-bound-review-and-build-provenance.md)
+and its protocol document define the byte-level contract. Existing context and
+API meanings remain intact; new `context/v3.jsonld`, `ns/v3.jsonld` and
+`api/v3/pages` expose the additive source review summary.
 
-The producer branch implements shared content-binding digests, current/stale/unbound
-counts in compiler and ingest, explicit bundle `built_by` metadata, and a read-only
-`review-binding` CLI operation. Parser unit tests, compiler no-default-feature suite,
-focused ingest and cross-adapter tests, scoped Clippy and CLI compilation passed.
+## Activation boundary
 
-Open delivery work: publish freshness through a versioned API/context; propagate the
-producer and freshness contracts through Loom and VisionClaw; add CLI end-to-end,
-malformed-scope, private projection and WASM conformance checks; reconcile all required
-release goldens; version and release the changed crates; run consumer compatibility
-and required independent review. No source merge, publication or deployment is claimed.
+Loom, VisionClaw, Agentbox, visionGraph and the Obsidian plugin have adopted the
+contract at source. Hosted plugin checks pass, including offline execution.
+Agentbox image activation and running Loom/VisionClaw process replacement are
+separate deployment operations, not implied by dependency pins or successful tests.
+No bulk human certification, corpus rewrite, identity reminting or completed
+cross-estate ontology migration is claimed. The broader decisions remain partial.

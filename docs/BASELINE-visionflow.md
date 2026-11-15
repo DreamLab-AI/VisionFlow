@@ -401,6 +401,20 @@ Its headline metric is signal-to-action latency. The record is proposed, unimple
 inactive and changes none of the invariants above; implementations belong to agentbox and
 nostr-rust-forum (ADR-2006).
 
+## Provenance and review freshness (2026-11-15)
+
+[ADR-2024](adr/ADR-2024-provenance-and-certification-freshness.md) separates source
+attribution, bundle compilation, logical derivation, human review and governance
+admission. Missing content attribution and legacy compiler metadata remain unknown.
+Ontomark owns the portable review digest and assessment contract.
+
+New human stamps bind their reviewed scope to source content. Changed values make
+review stale; legacy unbound and stale stamps still protect historically reviewed
+keys from automated ingest. Builders and ordinary edits never recertify. The v3
+page API exposes source freshness separately from historical protection, while v1/v2
+contexts retain their meanings. Public projection retains its existing private-data
+boundary. Release, consumer adoption and runtime activation need separate evidence.
+
 ## Adapted from NVIDIA auto-ontology (2026-11-04)
 
 [ADR-2023](adr/ADR-2023-adapt-nvidia-auto-ontology.md) adapts three ideas from
