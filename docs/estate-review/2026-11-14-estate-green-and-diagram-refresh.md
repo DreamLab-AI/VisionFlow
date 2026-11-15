@@ -120,3 +120,12 @@ AB-02, AB-10, AB-12 and AB-29 now trace Agentbox `e458b308`. Boot and supervisor
 The ingress diagrams retire the already-removed `isAoe` branches and daemon-token test. Family K now checks tokenless HTTP, WebSocket and named-route denial before upstream contact. Voice ports are shown as sanctioned publishes. Wrapper and catalogue wording now identifies native sessions; remaining stale flake, manifest, overlay and voice-route comments are identified explicitly. The registered skill census is 22 Claude and 17 Codex skills. These source checks do not supply a new live provider round trip or cold-boot acceptance.
 
 Validation: 269 topics, 2,045 renders and 33,403 citations pass. No warnings, working-tree fallbacks or unresolved citations; the five existing ignored-log exceptions remain. The Agentbox-only render checked all 414 diagrams before the full gate.
+
+
+## Follow-up: media services and estate topology — 15 November
+
+AB-27, AB-28 and ES-01 now trace Agentbox `e458b308`. LichtFeld's removed placeholder and skill no longer appear as a working training path; the Gaussian-splatting gate selects COLMAP and METIS. QGIS and Blender have independent local-binary gates, both off in the committed manifest while the proxies stay enabled. Blender's optional Linux package uses the shared 5.3.0 pin and its GUI launch explicitly requests OpenGL. The ADR's dated writable-layer activation remains separate from the staged replacement images.
+
+The service inventory records 13 skill-tools binaries including paper-orchestra, the current Antigravity TUI fallback, qgis_local round-trip field and motion-render licensing row. It removes the claim that all boot scalar reads use Rust and that copied MCP configuration carries a connection password. The topology now records VisionClaw's actual ca5b4152a Agentbox gitlink (123 ancestor commits and 669 changed files behind the independently reviewed Agentbox stamp), separate Solid Pod alpha.21/alpha.22 consumers, and the removed AoE profile mount. Its model and service descriptions are scoped to source evidence, not new live probes.
+
+Validation: **269 topics, 2,045 rendered diagrams and 33,409 resolved citations** pass the full strict gate. There are no warnings, working-tree fallbacks or unresolved citations; the five existing ignored-log exceptions remain. This batch does not change runtime gates, upgrade consumer pins or establish fresh GPU acceptance.
