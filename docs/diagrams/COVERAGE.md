@@ -2180,6 +2180,7 @@ Keys are repository-qualified. `estate-unresolved` preserves an unqualified cros
 | agentbox:ADR-2163 | [AB-38](agentbox/38-video-measurements-and-provider-boundaries.md) |
 | agentbox:ADR-2164 | [AB-21](agentbox/21-learning-loop.md) |
 | agentbox:ADR-2190 | [AB-43](agentbox/43-dream-night-archive-and-review-record.md) |
+| agentbox:ADR-2192 | [AB-22](agentbox/22-skills-and-routing.md) |
 | agentbox:ADR-2197 | [ES-05](estate/05-governance-loop-across-estate.md) |
 | agentbox:ADR-2201 | [ES-07](estate/07-memory-and-embedding-estate.md) |
 | agentbox:ADR-DE-008 | [AB-23](agentbox/23-dream-engine.md) |
@@ -3905,7 +3906,7 @@ Keys are repository-qualified. `estate-unresolved` preserves an unqualified cros
 | `../project/agentbox/skills/mcp.json` | [AB-05](agentbox/05-manifest-gates-and-cli.md), [AB-09](agentbox/09-mcp-servers-catalogue.md), [AB-15](agentbox/15-capability-gating-spend-consultants.md), [AB-22](agentbox/22-skills-and-routing.md), [AB-28](agentbox/28-agentbox-services-and-manifest-binary.md) |
 | `../project/agentbox/skills/podcast-knowledge-ingest/crontab` | [AB-23](agentbox/23-dream-engine.md) |
 | `../project/agentbox/skills/registered-skills.txt` | [AB-02](agentbox/02-boot-sequence-and-readiness.md), [AB-22](agentbox/22-skills-and-routing.md) |
-| `../project/agentbox/skills/SKILL-DIRECTORY.md` | [AB-22](agentbox/22-skills-and-routing.md), [VK-05](visioncraft/05-browser-wasm-default-and-agentbox-consumption.md) |
+| `../project/agentbox/skills/SKILL-DIRECTORY.md` | [AB-15](agentbox/15-capability-gating-spend-consultants.md), [AB-22](agentbox/22-skills-and-routing.md), [VK-05](visioncraft/05-browser-wasm-default-and-agentbox-consumption.md) |
 | `../project/agentbox/skills/skill-router/references/routing-table.md` | [AB-22](agentbox/22-skills-and-routing.md) |
 | `../project/agentbox/skills/skill-router/references/section-map.json` | [AB-22](agentbox/22-skills-and-routing.md) |
 | `../project/agentbox/skills/skill-router/SKILL.md` | [AB-22](agentbox/22-skills-and-routing.md) |

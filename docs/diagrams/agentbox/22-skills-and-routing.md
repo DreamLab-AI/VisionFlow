@@ -4,7 +4,7 @@ title: Skills estate — discovery, lint gate, the live router, harness and coll
 area: agentbox
 governing:
   - ../project/agentbox/docs/GOVERNANCE-capabilities.md
-adrs: [ADR-2020, ADR-2021, ADR-2028, ADR-2056, ADR-2057, ADR-2083, ADR-2085, ADR-2086, ADR-2089, ADR-2090, ADR-2091, ADR-2092, ADR-2095, ADR-2110, ADR-2116, ADR-2150]
+adrs: [ADR-2192, ADR-2020, ADR-2021, ADR-2028, ADR-2056, ADR-2057, ADR-2083, ADR-2085, ADR-2086, ADR-2089, ADR-2090, ADR-2091, ADR-2092, ADR-2095, ADR-2110, ADR-2116, ADR-2150]
 sources:
   - ../project/agentbox/skills/lint-skills.sh
   - ../project/agentbox/docs/GOVERNANCE-capabilities.md
@@ -61,7 +61,7 @@ sources:
   - ../project/agentbox/docs/adr/ADR-2091-live-skill-router.md
   - ../project/agentbox/docs/adr/ADR-2092-govern-the-agent-and-command-registries.md
   - ../project/agentbox/docs/adr/ADR-2150-video-production-skill.md
-verified_commit: 720e0d89656a4360998b3a716d0f3ee8cac66f93
+verified_commit: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a
 ---
 
 ## AB-22.1 Skill discovery and JIT load at a turn
@@ -75,11 +75,11 @@ sequenceDiagram
     participant SK as SKILL.md frontmatter<br/>agentbox/skills/tree-search-coder/SKILL.md:1-3
     participant REF as references/*<br/>agentbox/skills/tree-search-coder/references/algorithm.md
 
-    Note over H,FS: INVARIANT: skills self-trigger from description frontmatter (ADR-2021) — bake root is<br/>/opt/agentbox/skills, NEVER ~/.claude/skills. 133 skills at this revision (agentbox/AGENTS.md:32)
+    Note over H,FS: INVARIANT: skills self-trigger from description frontmatter (ADR-2021) — bake root is<br/>/opt/agentbox/skills, NEVER ~/.claude/skills. 124 skills at this revision (agentbox/AGENTS.md:32)
     Note over H,FS: INVARIANT ADR-2083 authoring contract — name equals the directory and description is<br/>at most DESC_MAX 1024 chars with what/when/when-not (agentbox/skills/lint-skills.mjs:72)<br/>Registration is by manifest: skills/registered-skills.txt:1 always-loaded for Claude Code,<br/>skills/codex-registered-skills.txt:1 for Codex — everything else is reached through the router
-    H->>FS: scan description frontmatter of every SKILL.md
-    alt manifest gate off — e.g. [skills.tree_search_coder] enabled = false
-        Note right of H: DIVERGENCE: byte-identical-when-off (GOVERNANCE-capabilities.md Invariants) —<br/>instructional file still bakes with the skills tree, only the executable<br/>package/supervised process is omitted
+    H->>FS: registered descriptions are always loaded, other skills can be discovered by the router
+    alt explicit frontmatter gate is off, absent or unreadable
+        Note right of H: The router honours the literal gate field (lib/skill-route.cjs:220-258).<br/>Instruction files can still be baked. Recommendation filtering does not prove image byte identity<br/>or replace execution checks. Tree-search uses a separate manifest_gate field, see AB-22.12.
         H-->>U: skill absent from routable set this turn
     else trigger phrase matches description
         H->>SK: load entry-context SKILL.md (<=250 lines, MAX_ENTRY_LINES)
@@ -102,57 +102,57 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant U as User turn
-    participant HK as skill-route hook<br/>agentbox/config/hooks/skill-route.cjs:29
-    participant LIB as shared route library<br/>agentbox/config/hooks/lib/skill-route.cjs:605
-    participant BM as local BM25 cascade<br/>agentbox/config/hooks/lib/skill-route.cjs:140,168
+    participant HK as skill-route hook<br/>agentbox/config/hooks/skill-route.cjs:30
+    participant LIB as shared route library<br/>agentbox/config/hooks/lib/skill-route.cjs:701
+    participant BM as local BM25 cascade<br/>agentbox/config/hooks/lib/skill-route.cjs:142,170
     participant J as System One judge, backend per [system_one] (ADR-2139)
     participant TBL as routing-table.md<br/>agentbox/skills/skill-router/references/routing-table.md
     participant M as model
 
-    Note over HK: registered on UserPromptSubmit ONLY when [skills.routing].router is jev<br/>and hook is true (agentbox/agentbox.toml:1314-1315). The gate is inlined into the<br/>command as AGENTBOX_SKILL_ROUTER=jev, so gate-off means NOT REGISTERED<br/>(byte-identical-when-off)
+    Note over HK: registered on UserPromptSubmit ONLY when [skills.routing].router is jev<br/>and hook is true (agentbox/agentbox.toml:1332-1333). The gate is inlined into the<br/>command as AGENTBOX_SKILL_ROUTER=jev, so gate-off means NOT REGISTERED<br/>(byte-identical-when-off)
     U->>HK: hook JSON on stdin
-    HK->>LIB: config(process.env) then route(prompt, cfg, {registeredOnly:true})<br/>(config/hooks/skill-route.cjs:36-37)
-    Note right of LIB: DRIFT (resolved) — the hook now passes registeredOnly:true, so candidates are<br/>restricted to skills/registered-skills.txt via restrictToRegistered() (lib/skill-route.cjs:243,616),<br/>not the whole baked /opt/agentbox/skills tree — /route and the eval CLI still see everything
-    Note right of LIB: candidates then GROW past the manifest — loadLoadableExtras(cfg.claudeDir) adds the claude.ai<br/>account skills synced under ~/.claude/skills/synced as anthropic-skills:NAME and the skills of every<br/>enabled plugin as PLUGIN:SKILL (lib/skill-route.cjs:277, merged at :621-628). An explicit candidate map,<br/>the eval rig, is left as given. AGENTBOX_SKILL_ROUTE_CLAUDE_DIR=0 turns it off (lib/skill-route.cjs:406)
-    Note right of LIB: OPEN: ADR-2090 accepts egress of the routing PROMPT, but whether that acceptance also covers<br/>the descriptions of the operator's synced claude.ai skills, now sent as candidate rubrics, is not recorded.<br/>The record notes only the behaviour (docs/adr/ADR-2091-live-skill-router.md:65)
-    Note right of LIB: ADR-2139 keyless path — config() sets proxy from AGENTBOX_SYSTEM_ONE_PROXY=1 (lib/skill-route.cjs:418) — with it neither the no-key skip (lib/skill-route.cjs:610,655)<br/>nor the Authorization header applies (lib/skill-route.cjs:682-684), because the system-one-proxy holds the vendor key<br/>(this container dials 127.0.0.1:8094, and with [system_one].network = true it also binds 0.0.0.0:8094<br/>on the private docker networks, never published, agentbox.toml:898-899 — configured, live at the next image activation), and the turn's price is read from the proxy's<br/>x-system-one-usd-per-mtok-in header (lib/skill-route.cjs:710-711). The flag is inlined into the registered hook command (config/entrypoint-unified.sh:2776,2792) from the<br/>system-one-project projection (config/entrypoint-unified.sh:2676) when [system_one].enabled (agentbox.toml:895)
+    HK->>LIB: config(process.env) then route(prompt, cfg, {registeredOnly:true})<br/>(config/hooks/skill-route.cjs:37-38)
+    Note right of LIB: registeredOnly:true activates the hook scope choice. scope=all keeps the routable baked map,<br/>scope=registered narrows it to the registration manifest, failing open if that manifest is unreadable or disjoint.<br/>The committed manifest selects all (agentbox.toml:1349), CLI routing keeps the whole map<br/>(lib/skill-route.cjs:287-293,710-720). Unregistered picks carry a SKILL.md path (lib/skill-route.cjs:884-902).
+    Note right of LIB: loadLoadableExtras adds synced account and enabled-plugin skills (lib/skill-route.cjs:328-370).<br/>Baked bare names win, then a plugin over an identical synced rubric (lib/skill-route.cjs:373-405).<br/>Desktop-only synced tools are excluded (lib/skill-route.cjs:304,340). Metadata comes only from leading frontmatter<br/>(lib/skill-route.cjs:188-205), and explicit gates require literal true (lib/skill-route.cjs:220-258).
+    Note right of LIB: OPEN: ADR-2090 accepts egress of the routing PROMPT, but whether that acceptance also covers<br/>the descriptions of the operator's synced claude.ai skills, now sent as candidate rubrics, is not recorded.<br/>The record notes only the behaviour (docs/adr/ADR-2091-live-skill-router.md:70)
+    Note right of LIB: ADR-2139 keyless path — config() sets proxy from AGENTBOX_SYSTEM_ONE_PROXY=1 (lib/skill-route.cjs:514) — with it neither the no-key skip (lib/skill-route.cjs:706,757)<br/>nor the Authorization header applies (lib/skill-route.cjs:784-786), because the system-one-proxy holds the vendor key<br/>(this container dials 127.0.0.1:8094, and with [system_one].network = true it also binds 0.0.0.0:8094<br/>on the private docker networks, never published, agentbox.toml:916-917 — configured, live at the next image activation), and the turn's price is read from the proxy's<br/>x-system-one-usd-per-mtok-in header (lib/skill-route.cjs:819-820). The flag is inlined into the registered hook command (config/entrypoint-unified.sh:2783,2799) from the<br/>system-one-project projection (config/entrypoint-unified.sh:2677) when [system_one].enabled (agentbox.toml:913)
     alt prompt shorter than min_prompt_chars 24, or a /slash-command
-        LIB-->>HK: never sent, never routed (agentbox.toml:1318, lib/skill-route.cjs:611-612)
-    else cascade enabled — the shipped manifest has cascade = false (agentbox.toml:1339)
-        LIB->>BM: localRank(prompt, criteria) — BM25 over each skill's stripped rubric<br/>(k1=1.5, b=0.75, exclusion-clause stripping, lib/skill-route.cjs:121,129,140,168)
-        alt top-two relative margin >= cascade_cutoff 0.3718 (agentbox.toml:1340)
-            BM-->>LIB: local pick, cascade:'local', usd 0 — answered WITHOUT egress (lib/skill-route.cjs:643-653)
+        LIB-->>HK: never sent, never routed (agentbox.toml:1336, lib/skill-route.cjs:707-708)
+    else cascade enabled — the shipped manifest has cascade = false (agentbox.toml:1370)
+        LIB->>BM: localRank(prompt, criteria) — BM25 over each skill's stripped rubric<br/>(k1=1.5, b=0.75, exclusion-clause stripping, lib/skill-route.cjs:123,131,142,170)
+        alt top-two relative margin >= cascade_cutoff 0.3718 (agentbox.toml:1371)
+            BM-->>LIB: local pick, cascade:'local', usd 0 — answered WITHOUT egress (lib/skill-route.cjs:745-755)
             LIB-->>HK: routed locally
         else margin below cutoff
-            BM-->>LIB: cascade:'escalated' (lib/skill-route.cjs:654)
+            BM-->>LIB: cascade:'escalated' (lib/skill-route.cjs:756)
         end
     end
     alt session cwd lies under a [skills.routing].bypass_projects root, or the list is set and cwd is unknown
-        LIB-->>HK: skip 'project-bypass' — NOTHING leaves the container (lib/skill-route.cjs:660, :436-446)
-        Note right of LIB: ADR-2090 per-project bypass, the ONE gate before the ONE egress site. Empty list by default<br/>(agentbox.toml:1327), so today's turns still go out. It covers skill routing only, not factrail<br/>or jev-checkpoints (docs/adr/ADR-2090-skill-routing-prompt-egress.md:144)
+        LIB-->>HK: skip 'project-bypass' — NOTHING leaves the container (lib/skill-route.cjs:762, lib/skill-route.cjs:532-542)
+        Note right of LIB: ADR-2090 per-project bypass, the ONE gate before the ONE egress site. Empty list by default<br/>(agentbox.toml:1358), so today's turns still go out. It covers skill routing only, not factrail<br/>or jev-checkpoints (docs/adr/ADR-2090-skill-routing-prompt-egress.md:149)
     else
-        LIB->>J: ONE Choice question over the (scoped) candidates, budget timeout_ms 4000 (agentbox.toml:1317)
+        LIB->>J: ONE Choice question over the (scoped) candidates, budget timeout_ms 4000 (agentbox.toml:1335)
     end
-    opt Jev option, AGENTBOX_JEV_SKILL_VERIFY=1 and or AGENTBOX_JEV_SKILL_INTENT=1, both off by default
-        LIB->>J: extra questions ride in the SAME request: a fit Noul per BM25 shortlist entry and a blind second Choice over opaque cap_NN ids (lib/skill-route.cjs:523-553,665-666)
-        J-->>LIB: applyJev folds the answers in, additive fields only, plus a veto when the picked skill's Noul is below vetoBelow (lib/skill-route.cjs:558-600,724)
-        Note over LIB,J: INVARIANT: every default threshold ACCEPTS NOTHING, vetoBelow 0 never vetoes, listAtLeast 2 never lists in code, but the manifest now projects AGENTBOX_JEV_SKILL_LIST_AT_LEAST=0.6<br/>when skill_verify is on, so runner-ups at that rate are listed beside the pick, advisory only<br/>(system_one.rs:487-492, agentbox.toml:901, lib/skill-route.cjs:595 — configured, live at the next image activation),<br/>blindAdoptAt 1.01 never adopts, and a turn that names a skill explicitly bypasses both (lib/skill-route.cjs:497-499,503-511,526)
+    opt Jev verification enabled — committed skill_verify true, skill_intent false (agentbox.toml:940-941)
+        LIB->>J: extra verification questions ride in the SAME request: a fit Noul per BM25 shortlist entry.<br/>The optional blind second Choice is added only if skill_intent is enabled (lib/skill-route.cjs:619-649,767-768)
+        J-->>LIB: applyJev folds the answers in, additive fields only, plus a veto when the picked skill's Noul is below vetoBelow (lib/skill-route.cjs:654-695,833)
+        Note over LIB,J: INVARIANT: every default threshold ACCEPTS NOTHING, vetoBelow 0 never vetoes, listAtLeast 2 never lists in code, but the manifest now projects AGENTBOX_JEV_SKILL_LIST_AT_LEAST=0.6<br/>when skill_verify is on, so runner-ups at that rate are listed beside the pick, advisory only<br/>(system_one.rs:487-492, agentbox.toml:919, lib/skill-route.cjs:691 — configured, live at the next image activation),<br/>blindAdoptAt 1.01 never adopts, and a turn that names a skill explicitly bypasses both (lib/skill-route.cjs:593-595,599-607,622)
     end
     alt a pick comes back
         J-->>LIB: the chosen skill
-        HK-->>M: emitContext(formatContext(r,cfg)) — additionalContext, ADVISORY ONLY,<br/>the hook recommends and never dispatches (config/hooks/skill-route.cjs:42,<br/>lib/hook-output.cjs:32), with an Also verified list only when the Jev option listed fits (lib/skill-route.cjs:758-759)
-    else error, timeout, 429 or 529, missing key (none needed behind the proxy), or a none pick
+        HK-->>M: emitContext(formatContext(r,cfg)) — additionalContext, ADVISORY ONLY,<br/>the hook recommends and never dispatches (config/hooks/skill-route.cjs:43,<br/>lib/hook-output.cjs:32), with an Also verified list only when the Jev option listed fits (lib/skill-route.cjs:867-868)
+    else error, timeout through body parsing (lib/skill-route.cjs:776-810), 429 or 529, missing key (none needed behind the proxy), or a none pick
         J-->>LIB: nothing usable
         HK-->>M: emitContext resolves false — NO injection written — FAIL OPEN
         M->>TBL: the pre-2091 path — always-loaded descriptions self-trigger and /route reads the generated table
     end
     U->>M: /route describe what you need
     M->>LIB: the slash command shares the SAME library
-    opt cfg.labelLog (ADR-2110, PROPOSED, off by default — agentbox.toml:1353)
-        HK->>HK: appendLog(cfg,{...r, consumer:'hook', session}) — hashed session id only,<br/>never the prompt text (config/hooks/skill-route.cjs:38-41)
+    opt cfg.labelLog (off after EXP-B8 withdrawal — agentbox.toml:1378-1384)
+        HK->>HK: appendLog(cfg,{...r, consumer:'hook', session}) — hashed session id only,<br/>never the prompt text (config/hooks/skill-route.cjs:39-42)
     end
-    Note over HK,J: INVARIANT ADR-2090 — the pick's probability is never a gate. Egress of the routing<br/>prompt is an accepted operator decision for skill routing ONLY<br/>(docs/adr/ADR-2090-skill-routing-prompt-egress.md:56-60, docs/adr/ADR-2091-live-skill-router.md:104)
-    Note over LIB,TBL: router jev is the default at this revision (agentbox.toml:1314), so a turn that routes at all and<br/>misses the cascade leaves the container unless its project is listed. The per-project gate the DEBT named is BUILT<br/>(ADR-2090 close-out, docs/adr/ADR-2090-skill-routing-prompt-egress.md:117). Backend RESOLVED (backend switched back, 2026-10) — the shipped manifest again selects backend typesafe, the Jev vendor (agentbox.toml:897,935), after a spell on subq (agentbox.toml:943) —<br/>the proxy still overwrites the model and swaps the vendor key (docs/GOVERNANCE-capabilities.md:231-236)
+    Note over HK,J: INVARIANT ADR-2090 — the pick's probability is never a gate. Egress of the routing<br/>prompt is an accepted operator decision for skill routing ONLY<br/>(docs/adr/ADR-2090-skill-routing-prompt-egress.md:61-65, docs/adr/ADR-2091-live-skill-router.md:109)
+    Note over LIB,TBL: router jev is the default at this revision (agentbox.toml:1332), so a turn that routes at all and<br/>misses the cascade leaves the container unless its project is listed. The per-project gate the DEBT named is BUILT<br/>(ADR-2090 close-out, docs/adr/ADR-2090-skill-routing-prompt-egress.md:122). Backend RESOLVED (backend switched back, 2026-10) — the shipped manifest again selects backend typesafe, the Jev vendor (agentbox.toml:915,953), after a spell on subq (agentbox.toml:961) —<br/>the proxy still overwrites the model and swaps the vendor key (docs/GOVERNANCE-capabilities.md:241-246)
 ```
 
 ## AB-22.3 Lint gate (ADR-2021) — findings and the advisory divergence
@@ -162,9 +162,9 @@ sequenceDiagram
     autonumber
     participant CI as invariants.yml<br/>agentbox/.github/workflows/invariants.yml:218
     participant SH as lint-skills.sh<br/>agentbox/skills/lint-skills.sh:24
-    participant MJS as main<br/>agentbox/skills/lint-skills.mjs:629
-    participant TXT as checkTextPatterns<br/>agentbox/skills/lint-skills.mjs:376
-    participant SKC as checkSkill<br/>agentbox/skills/lint-skills.mjs:409
+    participant MJS as main<br/>agentbox/skills/lint-skills.mjs:661
+    participant TXT as checkTextPatterns<br/>agentbox/skills/lint-skills.mjs:408
+    participant SKC as checkSkill<br/>agentbox/skills/lint-skills.mjs:441
 
     CI->>SH: bash skills/lint-skills.sh
     SH->>MJS: exec node ./lint-skills.mjs (skills/lint-skills.sh:24)
@@ -172,23 +172,25 @@ sequenceDiagram
     alt STALE — banned string, no suppress context
         TXT-->>MJS: fail STALE (BANNED regex agentbox/skills/lint-skills.mjs:59-60)
     else STALE — suppressed by DEAD/retired/legacy/lint-ok context
-        TXT-->>MJS: suppressed STALE (agentbox/skills/lint-skills.mjs:61,394)
+        TXT-->>MJS: suppressed STALE (agentbox/skills/lint-skills.mjs:61,426)
     else ABSPATH — literal ~/.claude/skills/ path, dir not in skip-list
-        TXT-->>MJS: fail ABSPATH (agentbox/skills/lint-skills.mjs:397-399)
+        TXT-->>MJS: fail ABSPATH (agentbox/skills/lint-skills.mjs:429-431)
     else RETIRED-PATH — literal /workspace/ prefix, no lint-ok
-        TXT-->>MJS: fail RETIRED-PATH (agentbox/skills/lint-skills.mjs:402-403)
+        TXT-->>MJS: fail RETIRED-PATH (agentbox/skills/lint-skills.mjs:434-435)
     end
     MJS->>SKC: checkSkill(skill) for each skills/<name>/SKILL.md
     alt FRONTMATTER — missing/empty name or description, or block never opens/closes
-        SKC-->>MJS: fail FRONTMATTER (agentbox/skills/lint-skills.mjs:416-425)
+        SKC-->>MJS: fail FRONTMATTER (agentbox/skills/lint-skills.mjs:448-457)
+    else FRONTMATTER — unquoted plain scalar contains colon followed by space
+        SKC-->>MJS: fail invalid scalar, excluding quoted/flow/block values (lint-skills.mjs:190-213,332-333)
     else BUDGET — over MAX_ENTRY_LINES=250, no references/ or references/ has no readable file
-        SKC-->>MJS: fail BUDGET (agentbox/skills/lint-skills.mjs:485-500)
+        SKC-->>MJS: fail BUDGET (agentbox/skills/lint-skills.mjs:517-532)
     else RESOURCE — cited references|scripts|assets path does not resolve
-        SKC-->>MJS: fail RESOURCE (agentbox/skills/lint-skills.mjs:511-514)
+        SKC-->>MJS: fail RESOURCE (agentbox/skills/lint-skills.mjs:543-546)
     end
-    MJS->>MJS: checkEstate(entries) — REGISTERED and DIRECTORY, added with the ADR-2083 contract (agentbox/skills/lint-skills.mjs:534)
-    MJS-->>CI: exit 0 clean / exit 1 with byCode summary (agentbox/skills/lint-skills.mjs:647-658)
-    Note over MJS,CI: DIVERGENCE: "Skill lint is advisory — lint-skills.sh gates estate hygiene but is not a<br/>runtime capability gate — an enabled skill with clean frontmatter is trusted"<br/>(agentbox/docs/GOVERNANCE-capabilities.md:401-402)
+    MJS->>MJS: checkEstate(entries) — REGISTERED and DIRECTORY, added with the ADR-2083 contract (agentbox/skills/lint-skills.mjs:566)
+    MJS-->>CI: exit 0 clean / exit 1 with byCode summary (agentbox/skills/lint-skills.mjs:679-690)
+    Note over MJS,CI: DIVERGENCE: "Skill lint is advisory — lint-skills.sh gates estate hygiene but is not a<br/>runtime capability gate — an enabled skill with clean frontmatter is trusted"<br/>(agentbox/docs/GOVERNANCE-capabilities.md:422-423)
 ```
 
 ## AB-22.4 SKILL-DIRECTORY.md maintenance vs the machine-checked count
@@ -203,16 +205,16 @@ sequenceDiagram
 
     Note over AUTHOR,DIR: SKILL-DIRECTORY.md is hand-maintained prose (categorised inventory, decision tree, MCP<br/>table) — no generator script found under agentbox/scripts for its body text
     CNT->>DISK: countSkills() — one SKILL.md per top-level skills/ dir<br/>(agentbox/scripts/skill-count-check.js:59-74)
-    DISK-->>CNT: count = 133 (agentbox/scripts/skill-count-check.js output, this tree)
+    DISK-->>CNT: count = 124 (agentbox/scripts/skill-count-check.js output, this tree)
     CNT->>DIR: scanDoc() for "N active skills" / "N+ skills" / "for N skills" claims against<br/>README.md, SKILL-DIRECTORY.md, AGENTS.md — CLAUDE.md only imports AGENTS.md (ADR-2111)<br/>(agentbox/scripts/skill-count-check.js:41,84-106)
     alt claim matches truth count
-        CNT-->>AUTHOR: ok=true (SKILL-DIRECTORY.md:3,35,41,308 all state 133 — matches)
+        CNT-->>AUTHOR: ok=true (SKILL-DIRECTORY.md:3,35,41,306 all state 124 — matches)
     else claim diverges from truth count
         CNT-->>AUTHOR: E-SKILL1 skill-count drift, exit 1 (agentbox/scripts/skill-count-check.js:161-168)
     end
     Note over AUTHOR,DISK: INVARIANT ADR-2056 — skill-count-check.js is the single count authority and it is<br/>wired into CI (agentbox/.github/workflows/invariants.yml:219), so a hand-written count claim<br/>in SKILL-DIRECTORY.md cannot drift silently
-    Note over AUTHOR,DISK: RESOLVED — agentbox/AGENTS.md:32 now says "the image bakes /opt/agentbox/skills (133<br/>skills)", matching skill-count-check.js and SKILL-DIRECTORY.md:3
-    Note over AUTHOR,DISK: TENSION — the one number 133 counts every SKILL.md directory, including the five deprecated redirect stubs, yet SKILL-DIRECTORY.md:3 calls all of them<br/>"active" while the generated table says "128 active, 5 deprecated redirects" (agentbox/skills/skill-router/references/routing-table.md:12, agentbox/scripts/skill-count-check.js:59-74)
+    Note over AUTHOR,DISK: RESOLVED — agentbox/AGENTS.md:32 now says "the image bakes /opt/agentbox/skills (124<br/>skills)", matching skill-count-check.js and SKILL-DIRECTORY.md:3
+    Note over AUTHOR,DISK: RESOLVED CENSUS — 124 skill directories and 124 active table rows, zero deprecated<br/>redirects (routing-table.md:12). Status and gate filtering still make the routable set smaller<br/>(lib/skill-route.cjs:235-258), so this count is not a live candidate count.
 ```
 
 ## AB-22.5 harness-bridge MCP — list/inspect/validate
@@ -252,7 +254,7 @@ sequenceDiagram
     else found — check required_substrates and blocked_patterns per guide, plus structure.substrates
         HB-->>AG: {compliant, violations[], template_version} (harness-bridge.js:363-369)
     end
-    Note over TD: RESOLVED (ADR-2057 gap 4): agentbox.toml:1291-1292 sets [skills.harness] enabled/template_dir =<br/>"/home/devuser/workspace/VisionFlow/docs/engineering/templates" — entrypoint-unified.sh's<br/>harness-bridge registration block now READS it (agentbox-manifest toml-string --path<br/>skills.harness.template_dir, entrypoint-unified.sh:2476-2477) and projects it into the<br/>server's HARNESS_TEMPLATE_DIR env (:2489) — an empty/absent manifest value still falls back<br/>to the server's own default (:2479), but a set value now propagates instead of being ignored
+    Note over TD: RESOLVED (ADR-2057 gap 4): agentbox.toml:1309-1310 sets [skills.harness] enabled/template_dir =<br/>"/home/devuser/workspace/VisionFlow/docs/engineering/templates" — entrypoint-unified.sh's<br/>harness-bridge registration block now READS it (agentbox-manifest toml-string --path<br/>skills.harness.template_dir, entrypoint-unified.sh:2477-2478) and projects it into the<br/>server's HARNESS_TEMPLATE_DIR env (entrypoint-unified.sh:2490) — an empty/absent manifest value still falls back<br/>to the server's own default (entrypoint-unified.sh:2480), but a set value now propagates instead of being ignored
 
     AG->>HB: CallTool harness_audit {verbose?} (harness-bridge.js:372)
     HB->>LT: loadTemplates()
@@ -331,7 +333,7 @@ sequenceDiagram
     participant CQ as colloquy-mcp handle<br/>agentbox/crates/colloquy/colloquy-mcp/src/server.rs:141
     participant V as verbs<br/>agentbox/crates/colloquy/colloquy-mcp/src/server.rs:164
     participant ST as store, tier chosen by COLLOQUY_TIER<br/>agentbox/crates/colloquy/colloquy-mcp/src/main.rs:133-134
-    participant EP as entrypoint registration<br/>agentbox/config/entrypoint-unified.sh:2352
+    participant EP as entrypoint registration<br/>agentbox/config/entrypoint-unified.sh:2353
 
     AG->>CQ: tools/list
     CQ-->>AG: query :29, propose :43, confirm :59, flag :71, reflect :83, status :107
@@ -343,9 +345,9 @@ sequenceDiagram
     end
     AG->>CQ: tools/call confirm or flag
     CQ->>V: the SAME attest verb, the boolean is the only difference (crates/colloquy/colloquy-mcp/src/server.rs:166-167)
-    Note over EP: the server is registered only when [skills.colloquy].enabled is true<br/>(agentbox/agentbox.toml:1361) AND the container has both a member pubkey and an<br/>authorising principal — otherwise the boot SKIPS it and says why<br/>(config/entrypoint-unified.sh:2406-2412)
-    Note over EP: INVARIANT — the recorded command is compared against the canonical baked binary and<br/>rewritten when they differ, so a stale /nix/store path self-heals on rebuild<br/>(config/entrypoint-unified.sh:2419-2425). The previous grep-once guard could not<br/>correct itself. see AB-09.5
-    Note over ST,AG: the binary defaults COLLOQUY_TIER to local when unset (crates/colloquy/colloquy-mcp/src/main.rs:134), and the manifest sets<br/>tier shared on purpose — agents in one container are one<br/>operator's, so a private tier-1 store would lose every learning at session end<br/>(agentbox/agentbox.toml:1362-1368)
+    Note over EP: the server is registered only when [skills.colloquy].enabled is true<br/>(agentbox/agentbox.toml:1392) AND the container has both a member pubkey and an<br/>authorising principal — otherwise the boot SKIPS it and says why<br/>(config/entrypoint-unified.sh:2407-2413)
+    Note over EP: INVARIANT — the recorded command is compared against the canonical baked binary and<br/>rewritten when they differ, so a stale /nix/store path self-heals on rebuild<br/>(config/entrypoint-unified.sh:2420-2426). The previous grep-once guard could not<br/>correct itself. see AB-09.5
+    Note over ST,AG: the binary defaults COLLOQUY_TIER to local when unset (crates/colloquy/colloquy-mcp/src/main.rs:134), and the manifest sets<br/>tier shared on purpose — agents in one container are one<br/>operator's, so a private tier-1 store would lose every learning at session end<br/>(agentbox/agentbox.toml:1393-1399)
 ```
 
 ## AB-22.9 continual-harness — evidence-anchored signed refine
@@ -408,9 +410,9 @@ flowchart TB
     GATE["gateOpen(x-agentbox-gate)<br/>agentbox/scripts/project-mcp-servers.mjs:234"]
     REQ["requiresMet(x-agentbox-requires)<br/>agentbox/scripts/project-mcp-servers.mjs:248"]
     LEDGER["ownership ledger<br/>agentbox/scripts/project-mcp-servers.mjs:268"]
-    WS[".mcp.json workspace target<br/>entrypoint-unified.sh:1531 _MCP_JSON=WORKSPACE/.mcp.json"]
-    NOONT["no MCP server for the corpus (ADR-2107/ADR-2108) — the ontology-bridge<br/>registration block that used to sit here is DELETED; agents reach the<br/>corpus through the vault CLI (Bash) and the Loom over HTTP instead, see AB-05<br/>entrypoint-unified.sh:2346-2350"]
-    BESPOKE["bespoke entries hand-written earlier in entrypoint<br/>harness-bridge entrypoint-unified.sh:2480, colloquy :2425,<br/>claude-flow and browser-gpu — precedent-bridge is GONE, see AB-22.7"]
+    WS[".mcp.json workspace target<br/>entrypoint-unified.sh:1529 _MCP_JSON=WORKSPACE/.mcp.json"]
+    NOONT["no MCP server for the corpus (ADR-2107/ADR-2108) — the ontology-bridge<br/>registration block that used to sit here is DELETED; agents reach the<br/>corpus through the vault CLI (Bash) and the Loom over HTTP instead, see AB-05<br/>entrypoint-unified.sh:2347-2351"]
+    BESPOKE["bespoke entries hand-written earlier in entrypoint<br/>harness-bridge entrypoint-unified.sh:2481, colloquy entrypoint-unified.sh:2426,<br/>claude-flow and browser-gpu — precedent-bridge is GONE, see AB-22.7"]
 
     REG -- "mirror shared server wiring (skills/mcp.json:3 comment)" --> MIRROR
     REG -- "nix bake" --> BAKE
@@ -422,12 +424,12 @@ flowchart TB
     PROJ --> LEDGER
     LEDGER -- "D1: owned name whose definition vanished is removed + recorded" --> WS
     NOONT -.-> BESPOKE
-    BESPOKE -- "written first, entrypoint-unified.sh:3334 runs the projector AFTER" --> WS
+    BESPOKE -- "written first, entrypoint-unified.sh:3343 runs the projector AFTER" --> WS
     PROJ -- "reconcile: upsert projector-managed servers, remove closed-gate ones" --> WS
 ```
 
 AB-22.11 retired: it depicted `ensureFrontmatter()` in `mcp/servers/lib/vault-frontmatter.js`, deleted at this
-revision (ADR-2107/ADR-2108). Vault mutation is now the `vault propose` / `vault edit --expect` CLI door in code, although the baked `vault 0.1.0` no longer carries `edit` (it moved to the `ontomark` CLI, `../project/agentbox/docs/adr/ADR-2108-ontology-bridge-retired-vault-baked-by-nix.md:279`; the stale flake comment that said otherwise is fixed, `../project/agentbox/docs/adr/ADR-2108-ontology-bridge-retired-vault-baked-by-nix.md:287`); see
+revision (ADR-2107/ADR-2108). Vault mutation is now the `vault propose` / `vault edit --expect` CLI door in code, although the baked `vault 0.1.0` no longer carries `edit` (it moved to the `ontomark` CLI, `../project/agentbox/docs/adr/ADR-2108-ontology-bridge-retired-vault-baked-by-nix.md:285`; the stale flake comment that said otherwise is fixed, `../project/agentbox/docs/adr/ADR-2108-ontology-bridge-retired-vault-baked-by-nix.md:293`); see
 AB-05 (`docs/diagrams/agentbox/05-manifest-gates-and-cli.md`, AB-05.4) for the current `[vault]` path authority
 and CLI gate.
 
@@ -437,14 +439,14 @@ and CLI gate.
 sequenceDiagram
     autonumber
     participant U as User/coordinator (explicit invocation only, never auto-routed)
-    participant TSC as tree-search-coder SKILL<br/>agentbox/skills/tree-search-coder/SKILL.md:80
+    participant TSC as tree-search-coder SKILL<br/>agentbox/skills/tree-search-coder/SKILL.md:69
     participant CAP as tree-search-cap CLI<br/>agentbox/services/agentbox-ops/src/bin/tree-search-cap.rs
     participant LED as cost_cap ledger (flock)<br/>agentbox/services/agentbox-ops/src/cost_cap/mod.rs:361
     participant SC as sparc:coder
     participant KS as KernelSession (code-interpreter MCP)
 
     U->>TSC: /tree-search-coder <task> (manifest_gate [skills.tree_search_coder] enabled=true)
-    loop candidate k = 1..max_candidates (default 5, agentbox.toml:1099)
+    loop candidate k = 1..max_candidates (default 5, agentbox.toml:1117)
         TSC->>CAP: tree-search-cap reserve --run RUN_ID --estimate 0.13 (algorithm.md:60-63)
         CAP->>LED: reserve_at(run_id, estimate, now) under exclusive flock (cost_cap/mod.rs:361-366)
         break exit 3 REFUSED — spend_cap_exceeded, candidate_limit_exceeded, branch_timeout, or capability_disabled
@@ -467,38 +469,38 @@ sequenceDiagram
     end
     TSC->>TSC: score by assertion-pass count, select highest, tie-break shortest code<br/>(algorithm.md:16-18)
     TSC-->>U: chosen candidate + audit trajectory JSONL for ExpeL distillation (algorithm.md:27-28)
-    Note over TSC,LED: INVARIANT (ADR-2020): no default-unlimited mode — an absent spend_cap_usd falls back to<br/>the documented 0.50 USD default, never to infinity (algorithm.md:24,<br/>agentbox.toml:1099-1101)
-    Note over TSC,U: INVARIANT: never auto-routed — SKILL-DIRECTORY.md and skill-router's routing table<br/>exclude tree-search-coder from automatic dispatch (algorithm.md manifest gate section)
+    Note over TSC,LED: INVARIANT (ADR-2020): no default-unlimited mode — an absent spend_cap_usd falls back to<br/>the documented 0.50 USD default, never to infinity (algorithm.md:24,<br/>agentbox.toml:1117-1119)
+    Note over TSC,U: POLICY / IMPLEMENTATION GAP — the directory requires explicit opt-in (SKILL-DIRECTORY.md:65,630).<br/>The generated table still includes tree-search (routing-table.md:67). Its manifest_gate field<br/>(skills/tree-search-coder/SKILL.md:15) is not the literal gate field read by loadCandidates<br/>(lib/skill-route.cjs:245-258), so recommendation eligibility is not an execution permission.<br/>The hook advises only, and the spend-cap CLI still refuses disabled reservations (algorithm.md:89-90).
 ```
 
 ## AB-22.13 [skills.*] manifest gate table, plus [claude_code] (ADR-2020/ADR-2116, catalogue parity closed)
 
 ```mermaid
 flowchart TB
-    TOML["agentbox.toml [skills.*] blocks<br/>agentbox/agentbox.toml:652"]
+    TOML["agentbox.toml [skills.*] blocks<br/>agentbox/agentbox.toml:670"]
     MANI["system-manifest.js catalogue<br/>agentbox/management-api/lib/system-manifest.js:39"]
 
     subgraph rebuild["apply_class rebuild — Nix package set plus supervisor block, image rebuild required"]
-        CI2["code_interpreter agentbox.toml:670<br/>system-manifest.js:158"]
-        CODEACT["codeact agentbox.toml:686"]
-        ACI["aci_shell agentbox.toml:1052<br/>system-manifest.js:416"]
-        TSCB["tree_search_coder agentbox.toml:1094<br/>system-manifest.js:419"]
-        RES["research.web_researcher agentbox.toml:663<br/>system-manifest.js:161"]
-        BLL["spatial_and_3d.blender_local = false, sidecar-first, requires blender<br/>agentbox.toml:634, system-manifest.js:139"]
-        AQE["agentic_qe ENABLED again (ADR-2165) — pinned upstream AQE gives direct<br/>quality-engineering MCP tools alongside VisionCraft. agentbox.toml:2285"]
+        CI2["code_interpreter agentbox.toml:688<br/>system-manifest.js:164"]
+        CODEACT["codeact agentbox.toml:704"]
+        ACI["aci_shell agentbox.toml:1070<br/>system-manifest.js:422"]
+        TSCB["tree_search_coder agentbox.toml:1112<br/>system-manifest.js:425"]
+        RES["research.web_researcher agentbox.toml:681<br/>system-manifest.js:167"]
+        BLL["spatial_and_3d.blender_local = false, sidecar-first, requires blender<br/>agentbox.toml:637, system-manifest.js:145"]
+        AQE["agentic_qe ENABLED again (ADR-2165) — pinned upstream AQE gives direct<br/>quality-engineering MCP tools alongside VisionCraft. agentbox.toml:2316"]
     end
     subgraph boot["apply_class boot — manifest re-read at container boot, no rebuild"]
-        RVB["ruvnet_brain agentbox.toml:1060<br/>system-manifest.js:254"]
-        ONT["ontology agentbox.toml:1103<br/>system-manifest.js:364"]
-        HARN["harness agentbox.toml:1286<br/>system-manifest.js:371"]
-        CQG["colloquy agentbox.toml:1356<br/>system-manifest.js:374"]
-        RTR["routing.router — off_values table<br/>agentbox.toml:1314, system-manifest.js:349"]
-        CC["claude_code.permission_mode — off_values default<br/>NEW ADR-2116, not [skills.*]<br/>agentbox.toml:703,709, system-manifest.js:257"]
-        FLR["claude_code.floor — default true, ADR-2144 managed floor plus decline-recorder hooks<br/>agentbox.toml:745, system-manifest.js:265"]
-        CCR["claude_code.advisor_model — off_values off<br/>ADR-2134 model roles<br/>agentbox.toml:732-734, system-manifest.js:260"]
+        RVB["ruvnet_brain agentbox.toml:1078<br/>system-manifest.js:260"]
+        ONT["ontology agentbox.toml:1121<br/>system-manifest.js:370"]
+        HARN["harness agentbox.toml:1304<br/>system-manifest.js:377"]
+        CQG["colloquy agentbox.toml:1387<br/>system-manifest.js:380"]
+        RTR["routing.router — off_values table<br/>agentbox.toml:1332, system-manifest.js:355"]
+        CC["claude_code.permission_mode — off_values default<br/>NEW ADR-2116, not [skills.*]<br/>agentbox.toml:721,727, system-manifest.js:263"]
+        FLR["claude_code.floor — default true, ADR-2144 managed floor plus decline-recorder hooks<br/>agentbox.toml:763, system-manifest.js:271"]
+        CCR["claude_code.advisor_model — off_values off<br/>ADR-2134 model roles<br/>agentbox.toml:750-752, system-manifest.js:266"]
     end
     subgraph vault["[vault] — sibling top-level section, not [skills.*]"]
-        VLT["vault agentbox.toml:1163 — ADR-2028 path authority"]
+        VLT["vault agentbox.toml:1181 — ADR-2028 path authority"]
     end
 
     TOML --> MANI
@@ -506,13 +508,13 @@ flowchart TB
     MANI --> boot
     TOML --> vault
 
-    HARN -->|"gate read at boot, config/entrypoint-unified.sh:2472, THEN the file must exist"| REG2["harness-bridge registered in .mcp.json only when [skills.harness].enabled is true"]
-    CQG -->|"gate read at boot, config/entrypoint-unified.sh:2368, plus a member and an authorising principal"| REG3["colloquy registered in .mcp.json — it REPLACED the precedent bridge, see AB-22.7"]
+    HARN -->|"gate read at boot, config/entrypoint-unified.sh:2473, THEN the file must exist"| REG2["harness-bridge registered in .mcp.json only when [skills.harness].enabled is true"]
+    CQG -->|"gate read at boot, config/entrypoint-unified.sh:2369, plus a member and an authorising principal"| REG3["colloquy registered in .mcp.json — it REPLACED the precedent bridge, see AB-22.7"]
     RTR -->|"router table de-registers the UserPromptSubmit hook entirely; cascade adds a local<br/>escalation stage in front, see AB-22.2"| REG4["byte-identical-when-off"]
 
     TSCB -->|"enabled false refuses every tree-search-cap reservation"| CAPGATE["cost_cap ledger — manifest gate check, algorithm.md Enforced cost cap"]
 
-    MANI --> RESOLVED["RESOLVED ADR-2057 gap 1/2 — harness and the retired precedent gate were the two<br/>that had no catalogue entry. harness now carries one (system-manifest.js:371) and<br/>colloquy took the second slot (system-manifest.js:374), so the ADR-039 honesty rule<br/>holds for every [skills.*] gate this diagram names"]
+    MANI --> RESOLVED["RESOLVED ADR-2057 gap 1/2 — harness and the retired precedent gate were the two<br/>that had no catalogue entry. harness now carries one (system-manifest.js:377) and<br/>colloquy took the second slot (system-manifest.js:380), so the ADR-039 honesty rule<br/>holds for every [skills.*] gate this diagram names"]
     RESOLVED --> INV["INVARIANT ADR-039 — the apply class follows WHERE the gate is consumed:<br/>boot for a gate the entrypoint reads, rebuild for one that decides baked text<br/>(management-api/lib/system-manifest.js:15-20)"]
     CCR -.->|"model, effort and advisor_model are projected beside permission_mode; ADR-2134 also registers the Explore built-in override<br/>agents/registered-agents.txt:57"| TOML
     CC -.->|"DIVERGENCE — ADR-2116 permission posture governs every Claude Code session<br/>container-wide; it sits beside [skills.*], not inside it"| TOML
@@ -527,15 +529,15 @@ flowchart TB
     GEN --> OUT["skill-router/references/routing-table.md<br/>marked Generated artefact, do not hand-edit<br/>agentbox/skills/gen-routing-table.mjs:72-74"]
     GEN --> MISS["a skill directory absent from the map is an ERROR,<br/>not a silent omission (agentbox/skills/gen-routing-table.mjs:61)"]
     CI["invariants.yml routing-table freshness<br/>agentbox/.github/workflows/invariants.yml:221"] --> GEN
-    DIRC["lint DIRECTORY check — the inventory MCP column is DERIVED from<br/>frontmatter, so it is gated rather than trusted<br/>agentbox/skills/lint-skills.mjs:569-575"] --> OUT
-    REGC["lint REGISTERED check — a name in either manifest with no<br/>SKILL.md, or pointing at a deprecated redirect stub, fails<br/>agentbox/skills/lint-skills.mjs:537-541"] --> OUT
+    DIRC["lint DIRECTORY check — the inventory MCP column is DERIVED from<br/>frontmatter, so it is gated rather than trusted<br/>agentbox/skills/lint-skills.mjs:601-607"] --> OUT
+    REGC["lint REGISTERED check — a name in either manifest with no<br/>SKILL.md, or pointing at a deprecated redirect stub, fails<br/>agentbox/skills/lint-skills.mjs:569-573"] --> OUT
     OUT --> AG["ADR-2092 gives agents and slash-commands the same manifest shape —<br/>agents/registered-agents.txt:1 projected by scripts/reconcile-agents.sh:1,<br/>config/registered-commands.txt:1 pruned by scripts/reconcile-commands.sh:1"]
     OUT --> RM["INVARIANT ADR-2089 — a whole skill may be REMOVED on measurement plus an<br/>operator decision; four tooling-free thinking lenses went that way<br/>agentbox/AGENTS.md:32, docs/adr/ADR-2089-skill-status-and-measured-discovery.md:1"]
 ```
 
 
-**What it shows.** The routing table is generated from every `SKILL.md` description and the section map, and CI fails when it is stale; at this stamp 133 skill directories exist, of which the table lists 128 active skills and 5 deprecated redirects (`../project/agentbox/skills/skill-router/references/routing-table.md:12`).
+**What it shows.** The table is generated from skill descriptions and the section map; CI fails when it is stale. This stamp has 124 skill directories and 124 active table rows, with no deprecated redirects (`../project/agentbox/skills/skill-router/references/routing-table.md:12`).
 
-**Why it is this way.** The two skills added since the previous stamp, `isaac-sim` and `video-production`, each needed a `section-map.json` entry or the generator would have failed (`../project/agentbox/skills/skill-router/references/section-map.json:95`, `../project/agentbox/skills/skill-router/references/section-map.json:157`).
+**Why it is this way.** Every skill needs a section-map entry. The new CAD group, motion-designer and paper-orchestra are mapped explicitly (`../project/agentbox/skills/skill-router/references/section-map.json:46-52,77,107`). Inventory counts and routing eligibility are separate checks.
 
-**Open:** ADR-2150 (`video-production`) is `decision_status: proposed`, `implementation_status: partial`, `activation_status: staged` (`../project/agentbox/docs/adr/ADR-2150-video-production-skill.md:5-7`), yet the skill is already baked, mapped and listed in the generated table (`../project/agentbox/skills/skill-router/references/section-map.json:157`); does the proposed status block the skill from being routed to?
+**Boundary:** ADR-2150 remains proposed/partial/staged (`../project/agentbox/docs/adr/ADR-2150-video-production-skill.md:5-7`). The router reads skill frontmatter status and gates, not ADR status (`../project/agentbox/config/hooks/lib/skill-route.cjs:235-258,311-316`); a table entry does not establish runtime acceptance.

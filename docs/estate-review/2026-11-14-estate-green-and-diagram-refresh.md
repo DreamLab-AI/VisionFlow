@@ -129,3 +129,27 @@ AB-27, AB-28 and ES-01 now trace Agentbox `e458b308`. LichtFeld's removed placeh
 The service inventory records 13 skill-tools binaries including paper-orchestra, the current Antigravity TUI fallback, qgis_local round-trip field and motion-render licensing row. It removes the claim that all boot scalar reads use Rust and that copied MCP configuration carries a connection password. The topology now records VisionClaw's actual ca5b4152a Agentbox gitlink (123 ancestor commits and 669 changed files behind the independently reviewed Agentbox stamp), separate Solid Pod alpha.21/alpha.22 consumers, and the removed AoE profile mount. Its model and service descriptions are scoped to source evidence, not new live probes.
 
 Validation: **269 topics, 2,045 rendered diagrams and 33,409 resolved citations** pass the full strict gate. There are no warnings, working-tree fallbacks or unresolved citations; the five existing ignored-log exceptions remain. This batch does not change runtime gates, upgrade consumer pins or establish fresh GPU acceptance.
+
+## Follow-up: routing, hooks and consultant boundaries — 15 November
+
+AB-08, AB-15 and AB-22 now trace Agentbox `e458b308`. The routing hook follows the configured candidate scope, with `all` committed, and reads metadata only from leading frontmatter. Literal gates, desktop-only exclusions, duplicate precedence and registration-path checks now appear in the diagrams. The request deadline includes body parsing. The inventory is 124 skills with no deprecated redirect stubs; that count is separate from routing eligibility. Verification is enabled, blind intent and the withdrawn EXP-B8 label recorder are off.
+
+The tree-search directory's explicit-invocation policy is distinguished from the router's recommendation mechanism: `manifest_gate` is not its literal `gate` field, and the generated table includes the skill. The hook only recommends; the separate execution limiter retains its manifest and spend checks. The lint diagram includes rejection of invalid unquoted YAML scalars.
+
+The consultant diagram names Hydrogen where the current source selects it, preserves the separate Flash defaults, shows API-key alias precedence and separates model discovery from successful inference. Its costs are source-configured estimates. Deepsec's manifest comment still says 2.3.10 while its package pin is 2.3.12; current hand-off and historical execution receipts remain distinct. Hook and plugin references were matched to current source passages without asserting a new image activation or compaction soak.
+
+Validation: **269 topics, 2,045 rendered diagrams and 33,429 resolved citations** pass, with no warnings, working-tree fallbacks or unresolved citations. The five existing ignored-log exceptions remain.
+
+The final declared-source comparison against the reviewed estate heads has eleven rows, all dispositioned below. No Agentbox or VisionClaw source row remains unreviewed. A changed file does not by itself invalidate a deliberately dated topic.
+
+| Topics | Retained revision and reason |
+| --- | --- |
+| KG-04 | Historical `5294e88b6`; KG-08 describes the transferable-buffer repair now merged through knowledgeGraph PR 5. |
+| OM-10 | Historical `0caae5d4b`; OM-13 describes atomic certificate publication and identity repairs. Its declared source passages remain unchanged through reviewed main `6d6352847`. |
+| SM-17 | Historical `eacc59ece`; the topic explicitly points to SM-18 at current `2b351367c` for selection and provenance changes. |
+| NF-28 | Local upgrade-branch audit at `0b7979c40`, not an ancestor of forum main `7e1f036eb`. Six cited files do not exist on main. The topic explicitly distinguishes this branch from NF-27 and live deployment. |
+| VC-39/42/43/45 | Codescape `e3b76f63e` is still the actual gitlink in reviewed VisionClaw main `2e7ecc2e7`. Standalone Codescape diagrams cover newer source; changing these pins would misrepresent the consumer. |
+| VF-02/03 | The changed file is the collected health snapshot. VF-02 cites its unchanged schema; VF-03.11 explicitly retains the 14 November 22:38 UTC sample. Current website health is checked separately. |
+| VF-06 | Only the generated README index changed; its cited tooling block at lines 93–97 is unchanged. |
+
+The remaining website barriers are collector access to the two private repositories and VisionClaw's deliberately disabled Actions. Frozen WasmVOWL remains an explicit exemption. These are not converted into passing statuses by this documentation review.
