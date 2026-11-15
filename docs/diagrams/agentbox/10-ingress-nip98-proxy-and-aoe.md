@@ -37,7 +37,7 @@ sources:
   - ../project/agentbox/voice/console/Caddyfile
   - ../project/agentbox/management-api/lib/agent-event-auth.js
   - ../project/agentbox/management-api/lib/action-plane.js
-verified_commit: 720e0d89656a4360998b3a716d0f3ee8cac66f93
+verified_commit: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a
 ---
 
 ## AB-10.1 Door inventory and port topology
@@ -46,27 +46,27 @@ verified_commit: 720e0d89656a4360998b3a716d0f3ee8cac66f93
 flowchart TB
     LAN["LAN client"]
     P9096["nip98-proxy<br/>agentbox/config/nip98-proxy/proxy.mjs:1045<br/>listen 0.0.0.0:9096"]
-    MGMT9090["management-api<br/>agentbox/management-api/server.js:50,:1524<br/>HOST 0.0.0.0 PORT 9090 in-container"]
-    BRIDGE8971["tab0-bridge<br/>agentbox/agentbox.toml:2153<br/>127.0.0.1:8971"]
-    IDE["code-server 8080 and jupyter 8888<br/>agentbox/agentbox.toml:2175,:2180"]
+    MGMT9090["management-api<br/>agentbox/management-api/server.js:50,server.js:1521<br/>HOST 0.0.0.0 PORT 9090 in-container"]
+    BRIDGE8971["tab0-bridge<br/>agentbox/agentbox.toml:2184<br/>127.0.0.1:8971"]
+    IDE["code-server 8080 and jupyter 8888<br/>agentbox/agentbox.toml:2206,agentbox.toml:2211"]
     SOCK["agentbox-sessions socket<br/>agentbox/services/agentbox-sessions/src/api.rs:29<br/>unix 0660, no TCP port"]
-    RELAY7777["nostr-rs-relay<br/>agentbox/flake.nix:1940-1941<br/>binds relayCfg.bind, default 127.0.0.1:7777"]
+    RELAY7777["nostr-rs-relay<br/>agentbox/flake.nix:2087-2088<br/>binds relayCfg.bind, default 127.0.0.1:7777"]
     VOICE8444["voice cockpit Caddy origin<br/>docker-compose.voice.yml:41<br/>0.0.0.0:8444"]
 
-    LAN -->|"9096:9096 SANCTIONED agentbox/scripts/ci/check-ports-loopback.mjs:94,:74-91 ADR-2013"| P9096
-    P9096 -->|"prefix mgmt, approvals, dream - bearer_env MANAGEMENT_API_KEY agentbox/agentbox.toml:2146-2165"| MGMT9090
-    P9096 -->|"prefix bridge and feed - bearer_env BRIDGE_TOKEN agentbox/agentbox.toml:2151-2171"| BRIDGE8971
-    P9096 -->|"prefix code and jupyter - preserve_host agentbox/agentbox.toml:2173-2182"| IDE
+    LAN -->|"9096:9096 SANCTIONED agentbox/scripts/ci/check-ports-loopback.mjs:94,check-ports-loopback.mjs:74-91 ADR-2013"| P9096
+    P9096 -->|"prefix mgmt, approvals, dream - bearer_env MANAGEMENT_API_KEY agentbox/agentbox.toml:2177-2196"| MGMT9090
+    P9096 -->|"prefix bridge and feed - bearer_env BRIDGE_TOKEN agentbox/agentbox.toml:2182-2202"| BRIDGE8971
+    P9096 -->|"prefix code and jupyter - preserve_host agentbox/agentbox.toml:2204-2213"| IDE
     P9096 -.->|"no prefix matches - routeFor returns null, 404 after auth, no upstream contact agentbox/config/nip98-proxy/proxy.mjs:846-851"| P9096
-    LAN -.->|"127.0.0.1:9090:9090 host publish agentbox/flake.nix:3586 not LAN-reachable"| MGMT9090
+    LAN -.->|"127.0.0.1:9090:9090 host publish agentbox/flake.nix:3758 not LAN-reachable"| MGMT9090
     LAN -->|"8443/8444 SANCTIONED docker-compose.voice.yml:41 agentbox/scripts/ci/check-ports-loopback.mjs:95-96"| VOICE8444
-    VOICE8444 -->|"slash lo and slash docs ONLY - direct to management-api voice/console/Caddyfile:72-77"| MGMT9090
-    VOICE8444 -->|"slash approvals, mgmt, workspace, dream, feed, bridge, nip07 - Authorization forwarded to the NIP-98 door voice/console/Caddyfile:55-106"| P9096
+    VOICE8444 -->|"slash lo and slash docs ONLY - direct to management-api voice/console/Caddyfile:71-76"| MGMT9090
+    VOICE8444 -->|"slash approvals, mgmt, workspace, dream, feed, bridge, nip07 - Authorization forwarded to the NIP-98 door voice/console/Caddyfile:54-105"| P9096
 
 N1["RESOLVED ADR-2047: not a breach - a decided, enumerated exposure. The LAN surface is TEN<br/>sanctioned publishes across five compose files, matched on the normalised host_ip/published/<br/>target/protocol tuple: 9096 sovereign ingress, voice 8443 and 8444, browsercontainer 5903<br/>8931 9222-to-9223, gui-tools 5905 9876 9877, xr-runtime 5904 - each cited at<br/>agentbox/scripts/ci/check-ports-loopback.mjs:93-104. 9096 is the sole IDENTITY ingress, now to<br/>named operator routes only; the others carry their own auth."]
-N2["RETIRED ADR-2153: there is no session board door. aoe serve, its port 9095 listener and the proxy default<br/>upstream are gone; the flake comment at agentbox/flake.nix:3581-3582 records that session control<br/>is a unix socket with no TCP port, and the voice Caddyfile has no slash aoe handle (voice/console/Caddyfile:55-106)."]
-N6["INVARIANT ADR-2013: sovereign_mesh.relay.expose does NOT open a LAN door. When true it adds<br/>ONE publish and that publish is loopback-pinned - 127.0.0.1:port:port at<br/>agentbox/flake.nix:3591-3592 - so the relay never reaches the SANCTIONED LAN list at<br/>check-ports-loopback.mjs:93-104. Default is expose=false, agentbox.toml:148."]
-N3["INVARIANT ADR-2153: verification precedes routing. An unauthenticated request to an unknown path is<br/>refused 302 or 401 before routeFor runs, so the route table cannot be probed anonymously; only a verified<br/>caller sees the 404 (agentbox/config/nip98-proxy/proxy.mjs:823-851). The route table itself is projected from the<br/>manifest into nip98-proxy-config.json at every boot (agentbox/services/agentbox-manifest/src/proxy.rs:23,<br/>agentbox/config/entrypoint-unified.sh:2337)"]
+N2["RETIRED ADR-2153: there is no session board door. aoe serve, its port 9095 listener and the proxy default<br/>upstream are gone; the flake comment at agentbox/flake.nix:3753-3754 records that session control<br/>is a unix socket with no TCP port, and the voice Caddyfile has no slash aoe handle (voice/console/Caddyfile:54-105)."]
+N6["INVARIANT ADR-2013: sovereign_mesh.relay.expose does NOT open a LAN door. When true it adds<br/>ONE publish and that publish is loopback-pinned - 127.0.0.1:port:port at<br/>agentbox/flake.nix:3763-3764 - so the relay never reaches the SANCTIONED LAN list at<br/>check-ports-loopback.mjs:93-104. Default is expose=false, agentbox.toml:148."]
+N3["INVARIANT ADR-2153: verification precedes routing. An unauthenticated request to an unknown path is<br/>refused 302 or 401 before routeFor runs, so the route table cannot be probed anonymously; only a verified<br/>caller sees the 404 (agentbox/config/nip98-proxy/proxy.mjs:823-851). The route table itself is projected from the<br/>manifest into nip98-proxy-config.json at every boot (agentbox/services/agentbox-manifest/src/proxy.rs:23,<br/>agentbox/config/entrypoint-unified.sh:2338)"]
 N4["RESOLVED ADR-2047: the compose-exposure qualification is superseded in the governing doc.<br/>The line-walker bypass is fixed - check-ports-loopback.sh is a wrapper that execs<br/>check-ports-loopback.mjs, a strict YAML reader for the compose subset, and anything outside that<br/>subset is REJECTED with file and line, never skipped. ADR-2013 stays partial for the DEPLOYMENT<br/>half only: overlay order, interpolation, external files and active-listener evidence.<br/>Receipt: agentbox/docs/estate-closeout/2026-09-05/adr-2013-ports-gate.json."]
 N5["INVARIANT ADR-2013: the wrapper FAILS LOUDLY when the .mjs gate is missing - a copy of the<br/>wrapper without its gate exits 3 with an explicit message rather than looking like a pass<br/>agentbox/scripts/ci/check-ports-loopback.sh:38-42"]
 ```
@@ -100,7 +100,7 @@ sequenceDiagram
     alt NOSTR_BRIDGE_PATH explicit
         NB->>FS: existsSync(NOSTR_BRIDGE_PATH) proxy.mjs:381
         alt missing or exports no verifyNip98
-            NB-->>LOG: error no fallback proxy.mjs:382,:391,:393
+            NB-->>LOG: error no fallback proxy.mjs:382,proxy.mjs:391,proxy.mjs:393
             NB-->>BOOT: null
         else
             NB-->>BOOT: NostrBridge proxy.mjs:389
@@ -116,7 +116,7 @@ sequenceDiagram
         BOOT-->>LOG: warn nostr-bridge unavailable NIP-98 verification DISABLED fail-closed proxy.mjs:425-431
         Note over BOOT: INVARIANT ADR-2009 - missing verifier rejects every NIP-98 token, only break-glass if configured survives
     else loaded
-        BOOT-->>LOG: info nostr-bridge loaded proxy.mjs:388,:413
+        BOOT-->>LOG: info nostr-bridge loaded proxy.mjs:388,proxy.mjs:413
     end
     BOOT->>FS: readFileSync CONFIG_FILE default workspace/.agentbox/nip98-proxy-config.json proxy.mjs:249-255
     alt file absent
@@ -214,7 +214,7 @@ sequenceDiagram
     participant CALLER as verifyIdentity<br/>agentbox/config/nip98-proxy/proxy.mjs:577
     participant VN as verifyNip98<br/>agentbox/mcp/servers/nostr-bridge.js:500
     participant TAG as getTag<br/>agentbox/mcp/servers/nostr-bridge.js:531
-    participant SHA as crypto sha256<br/>agentbox/mcp/servers/nostr-bridge.js:566,:573
+    participant SHA as crypto sha256<br/>agentbox/mcp/servers/nostr-bridge.js:566,nostr-bridge.js:573
     participant SIG as verifyEvent nostr-tools<br/>agentbox/mcp/servers/nostr-bridge.js:583
     participant REPLAY as replay LRU<br/>agentbox/mcp/servers/nostr-bridge.js:97
 
@@ -226,13 +226,13 @@ sequenceDiagram
     break not valid base64 JSON
         VN-->>CALLER: valid false, error token is not valid base64 JSON nostr-bridge.js:514
     end
-    break event.kind !== kinds.AUTH (27235) nostr-bridge.js:55,:517
+    break event.kind !== kinds.AUTH (27235) nostr-bridge.js:55,nostr-bridge.js:517
         VN-->>CALLER: valid false, error expected kind 27235 got X nostr-bridge.js:518
     end
     break created_at not a number
         VN-->>CALLER: valid false, error missing created_at nostr-bridge.js:522
     end
-    break abs(now - created_at) greater than VERIFY_NIP98_WINDOW_S 60s nostr-bridge.js:80,:526
+    break abs(now - created_at) greater than VERIFY_NIP98_WINDOW_S 60s nostr-bridge.js:80,nostr-bridge.js:526
         VN-->>CALLER: valid false, error event timestamp out of 60-second window nostr-bridge.js:527
     end
     VN->>TAG: getTag(method), getTag(u) nostr-bridge.js:538-539
@@ -244,16 +244,16 @@ sequenceDiagram
     end
     opt rawBody supplied - Finding 4 payload binding
         VN->>TAG: getTag(payload) nostr-bridge.js:561
-        VN->>SHA: hex(sha256(rawBody)) nostr-bridge.js:566,:573
+        VN->>SHA: hex(sha256(rawBody)) nostr-bridge.js:566,nostr-bridge.js:573
         break body non-empty and payload tag missing, or computed hash mismatch either branch
-            VN-->>CALLER: valid false, error missing payload tag for request body OR payload hash mismatch nostr-bridge.js:564,:568,:575
+            VN-->>CALLER: valid false, error missing payload tag for request body OR payload hash mismatch nostr-bridge.js:564,nostr-bridge.js:568,nostr-bridge.js:575
         end
     end
     VN->>SIG: verifyEvent(event) BIP-340 schnorr constant-time nostr-bridge.js:584
     break signature invalid or verifyEvent throws
-        VN-->>CALLER: valid false, error invalid Schnorr signature nostr-bridge.js:586,:589
+        VN-->>CALLER: valid false, error invalid Schnorr signature nostr-bridge.js:586,nostr-bridge.js:589
     end
-    VN->>REPLAY: _recordReplayId(event.id) nostr-bridge.js:596,:111
+    VN->>REPLAY: _recordReplayId(event.id) nostr-bridge.js:596,nostr-bridge.js:111
 Note over REPLAY: REPLAY_TTL_MS = VERIFY_NIP98_WINDOW_S times 1000 = 60000ms,<br/>REPLAY_MAX_ENTRIES = 20000, keyed on event id, populated ONLY after signature verify so a<br/>forged token can never poison the cache nostr-bridge.js:95-97
     break id already seen inside the freshness window - live duplicate
         VN-->>CALLER: valid false, error replayed NIP-98 event id nostr-bridge.js:597
@@ -266,17 +266,17 @@ Note over REPLAY: REPLAY_TTL_MS = VERIFY_NIP98_WINDOW_S times 1000 = 60000ms,<br
 ```mermaid
 stateDiagram-v2
     [*] --> Unauthenticated
-    Unauthenticated --> BearerAccepted: break-glass token constant-time match, unexpired, in scope proxy.mjs:529-533,:567
+    Unauthenticated --> BearerAccepted: break-glass token constant-time match, unexpired, in scope proxy.mjs:529-533,proxy.mjs:567
     Unauthenticated --> Nip98Verified: verifyNip98 valid, canonicalPubkey, pubkeyAllowed proxy.mjs:586-593
     Unauthenticated --> SessionCookieVerified: verifySessionToken valid and allowlisted proxy.mjs:600-604
     Unauthenticated --> Rejected302: browser GET, Accept text/html, auth failed proxy.mjs:828-835
     Unauthenticated --> Rejected401: auth failed, not an html GET proxy.mjs:837-842
-    Unauthenticated --> FailClosed: NostrBridge null at boot, every Nostr header refused proxy.mjs:425-431,:573
-    BearerAccepted --> Routed: routeFor(req.url) proxy.mjs:846,:980
-    Nip98Verified --> Routed: routeFor(req.url) proxy.mjs:846,:980
-    SessionCookieVerified --> Routed: routeFor(req.url) proxy.mjs:846,:980
+    Unauthenticated --> FailClosed: NostrBridge null at boot, every Nostr header refused proxy.mjs:425-431,proxy.mjs:573
+    BearerAccepted --> Routed: routeFor(req.url) proxy.mjs:846,proxy.mjs:980
+    Nip98Verified --> Routed: routeFor(req.url) proxy.mjs:846,proxy.mjs:980
+    SessionCookieVerified --> Routed: routeFor(req.url) proxy.mjs:846,proxy.mjs:980
     Routed --> Upstream: named route, nip98 passthrough or bearer_env injection proxy.mjs:886-894
-    Routed --> NotFound404: no named prefix matches, routeFor returned null, no upstream contact proxy.mjs:847-850,:981-983
+    Routed --> NotFound404: no named prefix matches, routeFor returned null, no upstream contact proxy.mjs:847-850,proxy.mjs:981-983
     FailClosed --> [*]
     Rejected401 --> [*]
     Rejected302 --> [*]
@@ -284,8 +284,7 @@ stateDiagram-v2
     Upstream --> [*]
 ```
 
-Every anchor above was re-derived from its symbol at agentbox 0b0f791 (2026-10-29), after
-ADR-2153 removed the AoE transitions, and re-read at c57d9c0 (2026-11-02), where `proxy.mjs` is unchanged.
+The current source check at `e458b308` retains the authentication order and named-route boundary. The redundant `isAoe` field and its conditionals have now been removed.
 
 ## AB-10.6 Unknown-route door — no default upstream, 404 after verification
 
@@ -299,20 +298,20 @@ sequenceDiagram
     participant SOCK as agentbox-sessions socket<br/>agentbox/services/agentbox-sessions/src/api.rs:29
 
     BR->>PX: GET /api/sessions (the retired board path) proxy.mjs:808
-    PX->>PX: buffer request body, size-capped MAX_BODY_BYTES 25MiB proxy.mjs:157,:928-932
+    PX->>PX: buffer request body, size-capped MAX_BODY_BYTES 25MiB proxy.mjs:157,proxy.mjs:928-932
     PX->>VI: verifyIdentity(req, undefined, rawBody) proxy.mjs:823
     alt auth not ok
         PX-->>BR: 302 to /nip07 (html GET) or 401 JSON proxy.mjs:828-842
     else auth ok
-        PX->>RT: routeFor(req.url) - no prefix matches proxy.mjs:846,:325-336
+        PX->>RT: routeFor(req.url) - no prefix matches proxy.mjs:846,proxy.mjs:325-336
         RT-->>PX: null, no default upstream proxy.mjs:336
         PX-->>BR: 404 NotFound, message No operator route, no upstream contact proxy.mjs:847-850
         Note over PX: WebSocket upgrades take the same decision after verifying: socket.end with 404 Not Found proxy.mjs:980-983
     end
-    Note over BR,SOCK: session control is not a proxy route at all - it is a unix socket with no TCP port, so there is nothing for this door to forward to (agentbox/flake.nix:3581-3582, agentbox/services/agentbox-sessions/src/api.rs:3-7)
+    Note over BR,SOCK: session control is not a proxy route at all - it is a unix socket with no TCP port, so there is nothing for this door to forward to (agentbox/flake.nix:3753-3754, agentbox/services/agentbox-sessions/src/api.rs:3-7)
 ```
 
-**Debt:** `routeFor` still returns an `isAoe: false` field and two branches still test `!route.isAoe`, so a dead flag outlives the retired daemon-token path and misleads the next reader (`agentbox/config/nip98-proxy/proxy.mjs:334`, `agentbox/config/nip98-proxy/proxy.mjs:886`, `agentbox/config/nip98-proxy/proxy.mjs:1016`).
+**Resolved in source:** `routeFor` returns the upstream, path, bearer and host-preservation choice without an AoE flag. HTTP and WebSocket forwarding select signed-header passthrough by auth mode directly (`agentbox/config/nip98-proxy/proxy.mjs:334`, `agentbox/config/nip98-proxy/proxy.mjs:886-894`, `agentbox/config/nip98-proxy/proxy.mjs:1016-1022`).
 
 ## AB-10.7 /mgmt/* router door — bearer_env gated behind NIP-98
 
@@ -323,7 +322,7 @@ sequenceDiagram
     participant PX as forward()<br/>agentbox/config/nip98-proxy/proxy.mjs:819
     participant VI as verifyIdentity<br/>agentbox/config/nip98-proxy/proxy.mjs:523
     participant RT as routeFor<br/>agentbox/config/nip98-proxy/proxy.mjs:323
-    participant MAPI as management-api server<br/>agentbox/management-api/server.js:1524
+    participant MAPI as management-api server<br/>agentbox/management-api/server.js:1521
     participant AUTH as authMiddleware<br/>agentbox/management-api/middleware/auth.js:184
     participant NB2 as verifyNip98Header<br/>agentbox/management-api/middleware/auth.js:68
 
@@ -333,8 +332,8 @@ sequenceDiagram
         PX-->>BR: 401 or 302 proxy.mjs:828-842
     else ok
 PX->>RT: routeFor(/mgmt/v1/system) matches prefix /mgmt/, strip true<br/>proxy.mjs:326-331
-RT-->>PX: upstream 127.0.0.1:MANAGEMENT_API_PORT, path /v1/system, isAoe<br/>false, preserveHost proxy.mjs:334
-Note over PX,RT: a route may opt in to preserve_host, and only then is the client Host<br/>forwarded instead of the upstream host and port (proxy.mjs:239, :870-871).<br/>The connection TARGET stays fixed by the trusted config either way, so this<br/>lets a browser compare Host with Origin without loosening where a request goes
+RT-->>PX: upstream 127.0.0.1:MANAGEMENT_API_PORT, path /v1/system,<br/>bearer and preserveHost proxy.mjs:334
+Note over PX,RT: a route may opt in to preserve_host, and only then is the client Host<br/>forwarded instead of the upstream host and port (proxy.mjs:239, proxy.mjs:870-871).<br/>The connection TARGET stays fixed by the trusted config either way, so this<br/>lets a browser compare Host with Origin without loosening where a request goes
         alt auth.mode is nip98
 PX->>PX: headers.authorization = req.headers.authorization, unchanged<br/>proxy.mjs:886-892
 Note over PX: ADR-2010 - a genuinely signed NIP-98 header always reaches<br/>a named upstream, so the governance surface re-verifies the operator<br/>signature itself
@@ -344,15 +343,15 @@ Note over PX: ADR-2010 - bearer_env is injected ONLY when auth.mode is<br/>not n
         end
         PX->>MAPI: forward to 127.0.0.1:9090, path /v1/system proxy.mjs:900-909
 MAPI->>AUTH: authMiddleware, authMode = MANAGEMENT_API_AUTH_MODE default<br/>hybrid agentbox/management-api/server.js:224-227
-Note over AUTH: hybrid AUTO-ELEVATES to strict-nip98 when<br/>AGENTBOX_SOVEREIGN_MESH_ENABLED is true and no mode is set explicitly, and<br/>strict-nip98 rejects Bearer unconditionally<br/>agentbox/management-api/middleware/auth.js:172-182,:194-195
+Note over AUTH: hybrid AUTO-ELEVATES to strict-nip98 when<br/>AGENTBOX_SOVEREIGN_MESH_ENABLED is true and no mode is set explicitly, and<br/>strict-nip98 rejects Bearer unconditionally<br/>agentbox/management-api/middleware/auth.js:172-182,auth.js:194-195
 AUTH->>NB2: verifyNip98Header(authHeader, request) re-verifies the<br/>signature independently agentbox/management-api/middleware/auth.js:68-83
 Note over NB2: the URL it checks against the signed u tag is rebuilt from request.host, which<br/>keeps a non-default port, since the Fastify 5 upgrade, agentbox/management-api/middleware/auth.js:73
         alt hybrid and Bearer equals API_KEY
-AUTH-->>MAPI: allow, bearer accepted<br/>agentbox/management-api/middleware/auth.js:106-111, :199
+AUTH-->>MAPI: allow, bearer accepted<br/>agentbox/management-api/middleware/auth.js:106-111, auth.js:199
         else nip98Result valid
-AUTH-->>MAPI: allow, nip98 accepted<br/>agentbox/management-api/middleware/auth.js:190,:198
+AUTH-->>MAPI: allow, nip98 accepted<br/>agentbox/management-api/middleware/auth.js:190,auth.js:198
         else Bearer is a live per-task action token #40;ADR-2164#41;, checked only when nothing above authenticated
-AUTH-->>MAPI: allow as mode task-token in EVERY auth mode, but only on POST /v1/agent-events/emit, batch<br/>or trajectory, any other route is 403 agentbox/management-api/middleware/auth.js:139-144, :207-219
+AUTH-->>MAPI: allow as mode task-token in EVERY auth mode, but only on POST /v1/agent-events/emit, batch<br/>or trajectory, any other route is 403 agentbox/management-api/middleware/auth.js:139-144, auth.js:207-219
         else neither
             AUTH-->>MAPI: 401 agentbox/management-api/middleware/auth.js:234-237
         end
@@ -449,18 +448,18 @@ Note over PX: DIVERGENCE query-carried credentials, WS-handshake-only - regressi
 sequenceDiagram
     autonumber
     participant DC as Direct caller (container-internal)
-    participant MAPI as management-api server<br/>agentbox/management-api/server.js:1524, HOST 0.0.0.0 PORT 9090
+    participant MAPI as management-api server<br/>agentbox/management-api/server.js:1521, HOST 0.0.0.0 PORT 9090
     participant AUTH as authMiddleware<br/>agentbox/management-api/middleware/auth.js:184
     participant BR2 as Browser via port 9096
     participant PX2 as proxy /mgmt/ route<br/>agentbox/config/nip98-proxy/proxy.mjs:304
 
-    Note over DC,MAPI: port 9090 is published to the host only as 127.0.0.1:9090:9090 agentbox/flake.nix:3586 - DC must already be container-internal or on the loopback publish
+    Note over DC,MAPI: port 9090 is published to the host only as 127.0.0.1:9090:9090 agentbox/flake.nix:3758 - DC must already be container-internal or on the loopback publish
     DC->>MAPI: request with its OWN Authorization Bearer API_KEY or Nostr header, no X-Agentbox-Pubkey
     MAPI->>AUTH: authMiddleware verifies bearer or nip98 directly agentbox/management-api/server.js:224-232
     AUTH-->>MAPI: allow, 401, or 403 for a task action token off its three agent-event routes agentbox/management-api/middleware/auth.js:207-219
 
     BR2->>PX2: request /mgmt/... over 9096, with NIP-98 or session cookie
-    PX2->>PX2: verifyIdentity, then routeFor, then inject x-agentbox-pubkey and x-agentbox-auth-mode proxy.mjs:823,:846,:878-879
+    PX2->>PX2: verifyIdentity, then routeFor, then inject x-agentbox-pubkey and x-agentbox-auth-mode proxy.mjs:823,proxy.mjs:846,proxy.mjs:878-879
     PX2->>MAPI: forward to 127.0.0.1:9090, Authorization is passthrough (nip98) or bearer_env (else) per ADR-2010
     MAPI->>AUTH: authMiddleware STILL independently verifies Authorization, same code path as the direct request agentbox/management-api/middleware/auth.js:184-236
 Note over MAPI,AUTH: the only difference at the GATE is WHO ADDS the pubkey header - only the<br/>proxied path carries x-agentbox-pubkey and x-agentbox-auth-mode, and createAuthMiddleware<br/>requires neither agentbox/management-api/middleware/auth.js:184-241. Route handlers past the<br/>gate are a different matter - see AB-10.14
@@ -475,11 +474,11 @@ sequenceDiagram
     participant GW as sessionCreate<br/>agentbox/config/nostr-gateway/gateway.cjs:431
     participant CL as client.call<br/>agentbox/config/session-plane/client.cjs:4
     participant SK as handle<br/>agentbox/services/agentbox-sessions/src/api.rs:67
-    participant PL as Plane.create<br/>agentbox/services/agentbox-sessions/src/plane.rs:449
+    participant PL as Plane.create<br/>agentbox/services/agentbox-sessions/src/plane.rs:485
 
     OP->>GW: /spawn dir agent text - doSpawn prefers the session plane unless the launcher is zai gateway.cjs:478-480
     alt repoPath is not the project root
-        GW-->>OP: throw using tmux for alternate project, doSpawn falls back to the confined tmux new-window gateway.cjs:434,:489-493
+        GW-->>OP: throw using tmux for alternate project, doSpawn falls back to the confined tmux new-window gateway.cjs:434,gateway.cjs:489-493
     else project root
         GW->>CL: call op create, slug from the title, tool gateway.cjs:435-437
         CL->>SK: connect to AGENTBOX_SESSIONS_SOCKET, write one JSON line, 12 s timeout client.cjs:4-11
@@ -489,13 +488,13 @@ sequenceDiagram
             CL-->>GW: throws, doSpawn logs and falls back to tmux client.cjs:18, gateway.cjs:489-491
         else uid 1000 devuser or 961 ab-gateway
             SK->>PL: dispatch op create api.rs:83-95
-            PL-->>SK: bail on a bad slug, a manifest slug or an existing session plane.rs:451-461
+            PL-->>SK: bail on a bad slug, a manifest slug or an existing session plane.rs:487-497
             SK-->>CL: ok true client.cjs:19
         end
-        GW->>CL: optional follow-up send, text then pause then Enter gateway.cjs:483-485, plane.rs:396-411
+        GW->>CL: optional follow-up send, text then pause then Enter gateway.cjs:483-485, plane.rs:432-447
     end
-    Note over SK: INVARIANT ADR-2153 - the ACL decides, never the file mode: the socket is 0660 in group ab-sessions (gid 973, members devuser and ab-gateway) but even root is refused unless listed<br/>api.rs:29,:128, config/role-accounts.json:139-144, config/custody/session-plane-acl.json:8-11
-    Note over SK: the daemon is supervised as devuser with the ACL path and gid in its environment, autostart true<br/>flake.nix:2963-2968, gid taken from the one role table at eval time flake.nix:1795-1804
+    Note over SK: INVARIANT ADR-2153 - the ACL decides, never the file mode: the socket is 0660 in group ab-sessions (gid 973, members devuser and ab-gateway) but even root is refused unless listed<br/>api.rs:29,api.rs:128, config/role-accounts.json:139-144, config/custody/session-plane-acl.json:8-11
+    Note over SK: the daemon is supervised as devuser with the ACL path and gid in its environment, autostart true<br/>flake.nix:3129-3134, gid taken from the one role table at eval time flake.nix:1934-1943
     Note over GW: before any command runs, handleWrap drops NIP-17 self-DM copies whose p tag<br/>names another identity and poker-coach table traffic, gateway.cjs:684,699-700,705 -<br/>and with the flag off the operator key is read only through hooks/lib/operator-key.cjs, while under role_isolation<br/>the gateway asks the identity port for public keys and holds no key (gateway.cjs:81-82,148-165)
 ```
 
@@ -503,24 +502,24 @@ sequenceDiagram
 
 ```mermaid
 flowchart TB
-    HARNESS["selftest.mjs harness<br/>agentbox/config/nip98-proxy/selftest.mjs:275 main()"]
+    HARNESS["selftest.mjs harness<br/>agentbox/config/nip98-proxy/selftest.mjs:274 main()"]
     PUT["proxy.mjs under test<br/>plus separate child processes<br/>for boot-config-specific cases"]
-    FAKE["fake stub, mgmt and governance upstreams<br/>stub registered as named routes<br/>selftest.mjs:290-293"]
-    A["A - no credentials, 401<br/>selftest.mjs:308"]
-    B["B - break-glass bearer, 200, identity injected,<br/>Authorization stripped<br/>selftest.mjs:314"]
-    C["C - valid NIP-98, 200, skips gracefully if<br/>nostr-tools unresolvable<br/>selftest.mjs:336"]
-    D["D - WebSocket upgrade, forwarded with<br/>injected identity<br/>selftest.mjs:365"]
-    E["E - routed prefix ADR-045, mgmt on second upstream,<br/>unrouted HTTP and WS get 404, ADR-2153<br/>selftest.mjs:417"]
-    F["F - NIP-07 sessions, handshake page, redirect,<br/>cookie auth, strip, forged/expired reject<br/>selftest.mjs:450"]
-    G["G - spoofed identity headers stripped and<br/>replaced, ADR-2009<br/>selftest.mjs:549"]
-    H["H - verifier faults, absent/throwing/non-canonical,<br/>zero upstream contact, ADR-2009/2011<br/>selftest.mjs:597"]
-    I["I - allowlist removal denies the next request,<br/>including a live session, ADR-2009<br/>selftest.mjs:688"]
-    J["J - cookie expiry and restart under a rotated<br/>HMAC key, rejected<br/>selftest.mjs:729"]
-    K["K - tokenless denial, nothing forwarded,<br/>ADR-2002<br/>selftest.mjs:758"]
-    L["L - bearer gated behind NIP-98 on a named route,<br/>ADR-2010<br/>selftest.mjs:780"]
-    M["M - hex-canonical identity helper, 0600 key file,<br/>restart stability, ADR-2011, see AB-11<br/>selftest.mjs:869"]
-    N["N - break-glass is BOUNDED authority, expiry,<br/>scope and fingerprint audit, ADR-2027<br/>selftest.mjs:943"]
-    NOTE1["128 assert() call sites plus the helper itself. NODE_PATH must resolve<br/>nostr-tools or the live-signature cases skip -<br/>config/nip98-proxy/README.md:19-20, harness at selftest.mjs:89"]
+    FAKE["fake stub, mgmt and governance upstreams<br/>stub registered as named routes<br/>selftest.mjs:288-291"]
+    A["A - no credentials, 401<br/>selftest.mjs:306"]
+    B["B - break-glass bearer, 200, identity injected,<br/>Authorization stripped<br/>selftest.mjs:312"]
+    C["C - valid NIP-98, 200, skips gracefully if<br/>nostr-tools unresolvable<br/>selftest.mjs:333"]
+    D["D - WebSocket upgrade, forwarded with<br/>injected identity<br/>selftest.mjs:362"]
+    E["E - routed prefix ADR-045, mgmt on second upstream,<br/>unrouted HTTP and WS get 404, ADR-2153<br/>selftest.mjs:414"]
+    F["F - NIP-07 sessions, handshake page, redirect,<br/>cookie auth, strip, forged/expired reject<br/>selftest.mjs:447"]
+    G["G - spoofed identity headers stripped and<br/>replaced, ADR-2009<br/>selftest.mjs:546"]
+    H["H - verifier faults, absent/throwing/non-canonical,<br/>zero upstream contact, ADR-2009/2011<br/>selftest.mjs:594"]
+    I["I - allowlist removal denies the next request,<br/>including a live session, ADR-2009<br/>selftest.mjs:685"]
+    J["J - cookie expiry and restart under a rotated<br/>HMAC key, rejected<br/>selftest.mjs:726"]
+    K["K - tokenless denial, nothing forwarded,<br/>ADR-2002<br/>selftest.mjs:755"]
+    L["L - bearer gated behind NIP-98 on a named route,<br/>ADR-2010<br/>selftest.mjs:775"]
+    M["M - hex-canonical identity helper, 0600 key file,<br/>restart stability, ADR-2011, see AB-11<br/>selftest.mjs:864"]
+    N["N - break-glass is BOUNDED authority, expiry,<br/>scope and fingerprint audit, ADR-2027<br/>selftest.mjs:937"]
+    NOTE1["127 assert() call sites plus the helper itself. NODE_PATH must resolve<br/>nostr-tools or the live-signature cases skip -<br/>config/nip98-proxy/README.md:20-21, harness at selftest.mjs:88"]
 
     HARNESS --> PUT
     HARNESS --> FAKE
@@ -544,7 +543,7 @@ flowchart TB
 The A-to-N chain is execution order: `main()` runs the families in sequence, so a
 failure in an early family short-circuits the ones after it.
 
-**Debt:** family K still asserts that the retired AoE daemon token is neither injected nor leaked (`agentbox/config/nip98-proxy/selftest.mjs:762-767`), which can no longer fail because the proxy holds no such token; the live ADR-2153 coverage is E2's 404 pair for HTTP and WS (`agentbox/config/nip98-proxy/selftest.mjs:433-440`).
+**Resolved in source:** family K now asserts tokenless HTTP, WebSocket and named-route denial before any upstream contact (`agentbox/config/nip98-proxy/selftest.mjs:755-772`). The retired daemon-token assertion is gone; E2 still checks the authenticated unknown-route 404 pair (`agentbox/config/nip98-proxy/selftest.mjs:430-437`).
 
 ## AB-10.14 ADR-2042 — who actually trusts X-Agentbox-Pubkey
 
@@ -558,8 +557,8 @@ sequenceDiagram
     participant APL as resolveAgentDid<br/>agentbox/management-api/lib/action-plane.js:222
 
     CL->>PX: request carrying its own x-agentbox-pubkey
-    PX->>PX: inbound copy DROPPED, then re-injected from the AUTHENTICATED identity proxy.mjs:860-861,:878-879
-    Note over PX: on WS the same strip-and-restamp applies proxy.mjs:995,:1012-1013
+    PX->>PX: inbound copy DROPPED, then re-injected from the AUTHENTICATED identity proxy.mjs:860-861,proxy.mjs:878-879
+    Note over PX: on WS the same strip-and-restamp applies proxy.mjs:995,proxy.mjs:1012-1013
     PX->>GATE: forward, Authorization passthrough (nip98) or bearer_env (else) proxy.mjs:886-894
     GATE->>GATE: verifyNip98Header and verifyBearerHeader on Authorization ONLY auth.js:189-199
     Note over GATE: INVARIANT the gate never reads x-agentbox-pubkey - it re-verifies the credential itself auth.js:184-241
@@ -570,7 +569,7 @@ sequenceDiagram
     else Authorization starts with Nostr
         AEA->>AEA: verify the signature against this request, a bad signature is NEVER rescued by the header agent-event-auth.js:153-183
     else no Nostr header - NIP-07 session or break-glass hop
-        AEA->>AEA: ADR-2042 path 2, trust x-agentbox-pubkey when the TCP peer is the proxy and it is 64 lowercase hex agent-event-auth.js:116-122,:192-195
+        AEA->>AEA: ADR-2042 path 2, trust x-agentbox-pubkey when the TCP peer is the proxy and it is 64 lowercase hex agent-event-auth.js:116-122,agent-event-auth.js:192-195
         Note over AEA: DOC-DRIFT AB-10.7 and AB-10.10 previously asserted management-api has ZERO<br/>references to X-Agentbox-Pubkey. False - this is the ONLY identity carrier on that hop,<br/>because the proxy replaced Authorization with the route bearer
     end
     GATE->>APL: any action-plane dispatch past the gate

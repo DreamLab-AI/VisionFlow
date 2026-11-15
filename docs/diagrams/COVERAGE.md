@@ -3734,7 +3734,7 @@ Keys are repository-qualified. `estate-unresolved` preserves an unqualified cros
 | `../project/agentbox/scripts/ci/check-crate-licensing.sh` | [AB-33](agentbox/33-sidestr-crates.md) |
 | `../project/agentbox/scripts/ci/check-manifest-catalogue.js` | [AB-15](agentbox/15-capability-gating-spend-consultants.md) |
 | `../project/agentbox/scripts/ci/check-no-logseq-paths.sh` | [ES-09](estate/09-build-deploy-and-ci-estate.md) |
-| `../project/agentbox/scripts/ci/check-ports-loopback.mjs` | [AB-03](agentbox/03-management-api-request-lifecycle.md), [AB-06](agentbox/06-sidecars-and-compose-overlays.md), [AB-10](agentbox/10-ingress-nip98-proxy-and-aoe.md), [ES-01](estate/01-estate-topology.md), [ES-09](estate/09-build-deploy-and-ci-estate.md), [ES-10](estate/10-deployment-and-security-profiles.md) |
+| `../project/agentbox/scripts/ci/check-ports-loopback.mjs` | [AB-03](agentbox/03-management-api-request-lifecycle.md), [AB-06](agentbox/06-sidecars-and-compose-overlays.md), [AB-10](agentbox/10-ingress-nip98-proxy-and-aoe.md), [AB-12](agentbox/12-tab0-bridge-and-interaction-plane.md), [ES-01](estate/01-estate-topology.md), [ES-09](estate/09-build-deploy-and-ci-estate.md), [ES-10](estate/10-deployment-and-security-profiles.md) |
 | `../project/agentbox/scripts/ci/check-ports-loopback.sh` | [AB-06](agentbox/06-sidecars-and-compose-overlays.md), [AB-10](agentbox/10-ingress-nip98-proxy-and-aoe.md), [ES-09](estate/09-build-deploy-and-ci-estate.md) |
 | `../project/agentbox/scripts/ci/check-seccomp.sh` | [AB-02](agentbox/02-boot-sequence-and-readiness.md), [AB-16](agentbox/16-secrets-custody-seccomp-profiles.md) |
 | `../project/agentbox/scripts/ci/env-secret-inventory.js` | [AB-16](agentbox/16-secrets-custody-seccomp-profiles.md), [AB-36](agentbox/36-role-isolation-and-identity-port.md), [ES-09](estate/09-build-deploy-and-ci-estate.md) |
@@ -3891,7 +3891,7 @@ Keys are repository-qualified. `estate-unresolved` preserves an unqualified cros
 | `../project/agentbox/setup/server/src/main.rs` | [AB-30](agentbox/30-supporting-services-secret-backup-setup-https-bridge.md) |
 | `../project/agentbox/skills/blender/tools/blender-mcp-proxy.js` | [AB-27](agentbox/27-media-gpu-capability-services.md) |
 | `../project/agentbox/skills/browser/SKILL.md` | [ES-01](estate/01-estate-topology.md) |
-| `../project/agentbox/skills/codex-registered-skills.txt` | [AB-22](agentbox/22-skills-and-routing.md) |
+| `../project/agentbox/skills/codex-registered-skills.txt` | [AB-02](agentbox/02-boot-sequence-and-readiness.md), [AB-22](agentbox/22-skills-and-routing.md) |
 | `../project/agentbox/skills/comfyui/mcp-server/server.js` | [AB-27](agentbox/27-media-gpu-capability-services.md), [AB-38](agentbox/38-video-measurements-and-provider-boundaries.md) |
 | `../project/agentbox/skills/comfyui/scripts/comfy_client.py` | [AB-38](agentbox/38-video-measurements-and-provider-boundaries.md) |
 | `../project/agentbox/skills/dream-machine/commands/dream.md` | [AB-23](agentbox/23-dream-engine.md) |
@@ -3902,7 +3902,7 @@ Keys are repository-qualified. `estate-unresolved` preserves an unqualified cros
 | `../project/agentbox/skills/lint-skills.sh` | [AB-14](agentbox/14-governance-journal-actions-approvals.md), [AB-22](agentbox/22-skills-and-routing.md) |
 | `../project/agentbox/skills/mcp.json` | [AB-05](agentbox/05-manifest-gates-and-cli.md), [AB-09](agentbox/09-mcp-servers-catalogue.md), [AB-15](agentbox/15-capability-gating-spend-consultants.md), [AB-22](agentbox/22-skills-and-routing.md), [AB-28](agentbox/28-agentbox-services-and-manifest-binary.md) |
 | `../project/agentbox/skills/podcast-knowledge-ingest/crontab` | [AB-23](agentbox/23-dream-engine.md) |
-| `../project/agentbox/skills/registered-skills.txt` | [AB-22](agentbox/22-skills-and-routing.md) |
+| `../project/agentbox/skills/registered-skills.txt` | [AB-02](agentbox/02-boot-sequence-and-readiness.md), [AB-22](agentbox/22-skills-and-routing.md) |
 | `../project/agentbox/skills/SKILL-DIRECTORY.md` | [AB-22](agentbox/22-skills-and-routing.md), [VK-05](visioncraft/05-browser-wasm-default-and-agentbox-consumption.md) |
 | `../project/agentbox/skills/skill-router/references/routing-table.md` | [AB-22](agentbox/22-skills-and-routing.md) |
 | `../project/agentbox/skills/skill-router/references/section-map.json` | [AB-22](agentbox/22-skills-and-routing.md) |
