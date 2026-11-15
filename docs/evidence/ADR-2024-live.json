@@ -1,0 +1,38 @@
+{
+  "contexts": [
+    {
+      "path": "context/v1.jsonld",
+      "sha256": "452d5ce09759911587032b30a6a4cc5270fe130c92b7f658f37631ff9a97160f",
+      "unchanged": true
+    },
+    {
+      "path": "context/v2.jsonld",
+      "sha256": "4da97d7789d98dfe703de43f19e6a6898134562022b3c22361c91c6f28bd3e05",
+      "unchanged": true
+    },
+    {
+      "path": "ns/v2.jsonld",
+      "sha256": "4da97d7789d98dfe703de43f19e6a6898134562022b3c22361c91c6f28bd3e05",
+      "unchanged": true
+    }
+  ],
+  "v3_context_sha256": "c98f55c7fcec50cc2fd74e88d1371f0a105c7536d3b0f0de1270387166e683ac",
+  "page": {
+    "id": "1-hive",
+    "reviewBinding": {
+      "current": 0,
+      "stale": 0,
+      "unbound": 0
+    },
+    "legacy_equal_except_review_binding": true
+  },
+  "built_by": {
+    "name": "ontomark-compile",
+    "version": "0.9.0"
+  },
+  "source_commit": "1df8eb49051b6e55f35ea493b3c42e79ffd77bb8",
+  "date": "2026-11-15",
+  "publisher_run": 43720813096,
+  "pages_run": 43722937353,
+  "pages_commit": "cf29935f59805db79f6d6564ec6d5237226c3969"
+}

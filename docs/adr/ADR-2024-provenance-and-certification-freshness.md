@@ -57,6 +57,26 @@ derivation, human review and governance admission make different claims.
    adapters use shared fixtures. Public metadata never discloses private content;
    working-vault input stays within the private machine-bundle boundary.
 
+## Claim boundaries
+
+```mermaid
+flowchart LR
+  Source[Source content and explicit attribution] --> Build[Compiler and version]
+  Source --> Scope[Versioned digest of reviewed scope]
+  Human[Dated human review stamp] --> Assess[Current, stale or unbound]
+  Scope --> Assess
+  Build --> Bundle[Projected bundle and build receipt]
+  Assess --> Bundle
+  History[Historical review scope] --> Protect[Automated ingest protection]
+  Human --> History
+  Bundle --> Derive[Logical derivation and checker receipt]
+  Bundle --> Admit[Governance decision and admission receipt]
+```
+
+A build, derivation or admission receipt does not substitute for a human review
+stamp. Freshness compares against source content; public projection may redact
+parts of that source. The projection is not thereby certified as a whole.
+
 ## Consequences
 
 Consumers can distinguish known processing from unknown authorship and distinguish
@@ -90,7 +110,9 @@ API meanings remain intact; new `context/v3.jsonld`, `ns/v3.jsonld` and
 ## Activation boundary
 
 Loom, VisionClaw, Agentbox, visionGraph and the Obsidian plugin have adopted the
-contract at source. Hosted plugin checks pass, including offline execution.
+contract at source. Hosted producer, consumer and plugin checks pass, including offline execution.
+The public v3 surface is deployed and live-checked; v1/v2 context bytes remain
+unchanged.
 Agentbox image activation and running Loom/VisionClaw process replacement are
 separate deployment operations, not implied by dependency pins or successful tests.
 No bulk human certification, corpus rewrite, identity reminting or completed
