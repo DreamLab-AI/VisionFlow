@@ -135,7 +135,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join, resolve, relative } from 'node:path';
 import { createRequire } from 'node:module';
 
 // The opt-in Jev option (docs/jev-option.md): advisory only, off by default.
@@ -896,6 +896,71 @@ function gitRevision() {
   }
 }
 
+/**
+ * How far this checkout lags the branch it tracks, and how old that branch's
+ * copy of the snapshot is. OFFLINE: it reads local remote-tracking refs and
+ * never fetches, so it is only as current as the last `git fetch`. Every field
+ * is null when git, an upstream or the file on the upstream is unavailable.
+ *
+ * @param {string} snapshotPath absolute path of the snapshot being checked
+ * @returns {{behind: number|null, upstream: string|null, upstreamGeneratedAt: string|null}}
+ */
+export function checkoutLag(snapshotPath) {
+  const git = (args) => execFileSync('git', args, {
+    cwd: REPO_ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 64 * 1024 * 1024,
+  });
+  const none = { behind: null, upstream: null, upstreamGeneratedAt: null };
+  let upstream;
+  try {
+    upstream = git(['rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{upstream}']).trim();
+  } catch {
+    return none;
+  }
+  if (!upstream) return none;
+  let behind = null;
+  try {
+    const n = Number(git(['rev-list', '--count', `HEAD..${upstream}`]).trim());
+    behind = Number.isFinite(n) ? n : null;
+  } catch { /* leave null */ }
+  let upstreamGeneratedAt = null;
+  try {
+    const rel = relative(REPO_ROOT, snapshotPath).split('\\').join('/');
+    if (rel && !rel.startsWith('..')) {
+      const at = JSON.parse(git(['show', `${upstream}:${rel}`]))?.generated_at;
+      upstreamGeneratedAt = typeof at === 'string' ? at : null;
+    }
+  } catch { /* the file is not on the upstream, or is unreadable there */ }
+  return { behind, upstream, upstreamGeneratedAt };
+}
+
+/**
+ * One line naming why a stale snapshot is stale, or null when there is nothing
+ * to add. Pure, so the three cases are testable without a repository:
+ *   - the checkout is behind and its upstream holds a fresh snapshot: the
+ *     collector is fine and the checkout needs syncing;
+ *   - the checkout is behind and the upstream copy is stale too (or unknown):
+ *     say both, so nobody stops at the first cause;
+ *   - the checkout is level with its upstream: the collector itself is late.
+ *
+ * @param {{behind: number|null, upstream: string|null, upstreamGeneratedAt: string|null, now: number, maxAgeHours: number}} lag
+ * @returns {string|null}
+ */
+export function staleCause({ behind, upstream, upstreamGeneratedAt, now, maxAgeHours }) {
+  if (!upstream || behind === null) return null;
+  const upstreamAge = upstreamGeneratedAt ? (now - Date.parse(upstreamGeneratedAt)) / 3_600_000 : NaN;
+  const upstreamFresh = Number.isFinite(upstreamAge) && upstreamAge <= maxAgeHours;
+  if (behind > 0 && upstreamFresh) {
+    return `CAUSE checkout is ${behind} commits behind ${upstream}, whose snapshot is ${upstreamAge.toFixed(1)} h old:`
+      + ' the collector is running; sync this checkout';
+  }
+  if (behind > 0) {
+    const known = Number.isFinite(upstreamAge) ? `${upstreamAge.toFixed(1)} h old` : 'unreadable';
+    return `CAUSE checkout is ${behind} commits behind ${upstream}, whose snapshot is ${known}:`
+      + ' fetch and sync before concluding the collector stopped';
+  }
+  return `CAUSE checkout is level with ${upstream} as last fetched: the collector has not committed a fresh snapshot`;
+}
+
 function workflowRunUrl() {
   const { GITHUB_SERVER_URL, GITHUB_REPOSITORY, GITHUB_RUN_ID } = process.env;
   if (!GITHUB_REPOSITORY || !GITHUB_RUN_ID) return null;
@@ -1051,7 +1116,14 @@ async function check() {
 
   if (!Number.isFinite(ageHours) || ageHours > MAX_AGE_HOURS) {
     const age = Number.isFinite(ageHours) ? `${ageHours.toFixed(1)} h` : 'unknown age';
-    process.stdout.write(`${buf}DOWN snapshot stale ${age} (limit ${MAX_AGE_HOURS} h)\nESTATE-HEALTH-STALE\n`);
+    // A stale file has two very different causes: the collector stopped, or
+    // this checkout stopped following the branch the collector commits to.
+    // On 2026-11-15 a checkout 64 commits behind was read as "collector idle
+    // since 11-05" for ten days. Say which it is, from local refs only.
+    const cause = staleCause({ ...checkoutLag(CHECK_PATH), now: Date.now(), maxAgeHours: MAX_AGE_HOURS });
+    process.stdout.write(
+      `${buf}DOWN snapshot stale ${age} (limit ${MAX_AGE_HOURS} h)\n`
+      + `${cause ? `${cause}\n` : ''}ESTATE-HEALTH-STALE\n`);
     return 1;
   }
 
