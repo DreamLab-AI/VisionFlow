@@ -111,3 +111,12 @@ AB-05 and ES-09/10 now read Agentbox `e458b308`. The catalogue census is 129 ent
 The CI overview names the generalised operator-tmux guard and the CAD launcher and supervised-Python checks. Their image-dependent behaviour remains outside a plain runner's static evidence. The exposure policy now shows normalised short and long Compose syntax and the implemented declared-listener rule, with effective deployment and active-listener acceptance still separate. The custody overview records the archived AoE profile files and removed mount, with host-volume removal still a separate operator step after a rebuild. Source declarations are kept separate from fresh image or custody acceptance.
 
 The full strict/render gate passes **269 topics, 2,045 diagrams and 33,399 resolved citations**, with zero warnings, fallbacks or unresolvable citations and the same five ignored-log exceptions. The source-change queue is twenty-one topics / twenty-two repository rows: ten Agentbox, four VisionFlow and eight historical or pinned-consumer rows elsewhere. Remaining source review and CI access/Actions questions remain open.
+
+
+## Follow-up: native sessions, ingress and boot — 15 November
+
+AB-02, AB-10, AB-12 and AB-29 now trace Agentbox `e458b308`. Boot and supervisor citations were matched to their source passages, including previously abbreviated references. The session diagrams include adoption of registered `aoe-` worktrees into `abs-` paths before ensure, preservation of edits and submodule back-pointers, and deferral when another session occupies the old path. The profile mount is removed from source after archival; host-volume removal remains a post-rebuild operator step.
+
+The ingress diagrams retire the already-removed `isAoe` branches and daemon-token test. Family K now checks tokenless HTTP, WebSocket and named-route denial before upstream contact. Voice ports are shown as sanctioned publishes. Wrapper and catalogue wording now identifies native sessions; remaining stale flake, manifest, overlay and voice-route comments are identified explicitly. The registered skill census is 22 Claude and 17 Codex skills. These source checks do not supply a new live provider round trip or cold-boot acceptance.
+
+Validation: 269 topics, 2,045 renders and 33,403 citations pass. No warnings, working-tree fallbacks or unresolved citations; the five existing ignored-log exceptions remain. The Agentbox-only render checked all 414 diagrams before the full gate.
