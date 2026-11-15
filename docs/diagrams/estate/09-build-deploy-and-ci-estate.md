@@ -28,6 +28,7 @@ sources:
   - ../project/docs/adr/ADR-2119-prod-ingress-is-declared-lan-or-tunnel.md
   - ../project/.gitmodules
   - ../project/agentbox/flake.nix
+  - ../project/agentbox/docker-compose.yml
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/management-api/lib/system-manifest.js
   - ../project/.github/workflows/ci.yml
@@ -74,8 +75,9 @@ sources:
   - ../project/agentbox/scripts/ci/env-secret-inventory.js
   - ../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md
   - ../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md
+  - ../project/agentbox/docs/adr/ADR-2013-loopback-publish-except-9096.md
   - ../project/agentbox/docker-compose.system-one.yml
-verified_commit: {visionclaw: 2e7ecc2e731ed475982176d522877d9c89e3ff51, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
+verified_commit: {visionclaw: 2e7ecc2e731ed475982176d522877d9c89e3ff51, agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a}
 ---
 ## ES-09.1 The host-vs-container build trap — wrong path vs sanctioned path
 ```mermaid
@@ -298,9 +300,9 @@ stateDiagram-v2
         binary already compiled, no wrapper script
     end note
     note left of supervisordRootProd
-        cross-estate compare (agentbox flake.nix 2622 and 2684):
+        cross-estate compare (agentbox/docker-compose.yml:88-92,<br/>agentbox/flake.nix:2868-2871):
         agentbox supervisord also runs as PID1 root,
-        but every long-running program declares user devuser
+        the default service blocks drop to devuser
         per-program. Here the image switches to USER appuser
         before the entrypoint (Dockerfile.unified 427), so the
         user=root line cannot raise privilege and every program
@@ -406,12 +408,12 @@ flowchart LR
 ```mermaid
 flowchart TB
     subgraph FLAKE["agentbox/flake.nix — image composition"]
-        NIXPKG["Nix package set<br/>e.g. toolchains.ruflo gate agentbox/flake.nix:490"]
-        SUPTEXT["supervisorText string<br/>agentbox/flake.nix:2672, agentbox/flake.nix:2703,<br/>agentbox/flake.nix:2719<br/>program blocks e.g. management-api, bootstrap-seal"]
-        SUPWRITE["writeText supervisord.conf, asserting no JSS_ variable leaked<br/>agentbox/flake.nix:4050-4055"]
+        NIXPKG["Nix package set<br/>e.g. toolchains.ruflo gate agentbox/flake.nix:583"]
+        SUPTEXT["supervisorText string<br/>agentbox/flake.nix:2837, agentbox/flake.nix:2868,<br/>agentbox/flake.nix:2884<br/>program blocks e.g. management-api, bootstrap-seal"]
+        SUPWRITE["writeText supervisord.conf, asserting no JSS_ variable leaked<br/>agentbox/flake.nix:4215-4220"]
     end
     subgraph TOML["agentbox/agentbox.toml — RUNNING config, not a template"]
-        GATEKEY["gate key e.g. interaction_plane.enabled, now rebuild-class (ADR-2153)<br/>agentbox.toml:2125-2126, catalogue entry system-manifest.js:74-75"]
+        GATEKEY["gate key e.g. interaction_plane.enabled, now rebuild-class (ADR-2153)<br/>agentbox.toml:2156-2157, catalogue entry system-manifest.js:74-75"]
     end
     subgraph MANIFEST["agentbox/management-api/lib/system-manifest.js"]
         CATALOGUE["CATALOGUE entry<br/>system-manifest.js:39<br/>gate, service, apply_class"]
@@ -599,42 +601,42 @@ sequenceDiagram
     participant GH as push or pull request touching compose, ADRs, the egress policy, entrypoint,<br/>management-api, lib, scripts, tests/security, flake, skills, mcp,<br/>schema or the manifest invariants.yml:6-118
     participant J as invariants job<br/>invariants.yml:128
 
-    GH->>J: checkout fetch-depth 0 :135
-    J->>J: runtime-delivery.test.cjs, non-disruptive preparation<br/>and scoped activation (ADR-2132) :146
-    J->>J: check-seccomp.sh :149
-    J->>J: check-nnp.sh (no-new-privileges) :152
-    J->>J: check-ports-loopback.sh :155
+    GH->>J: checkout fetch-depth 0 invariants.yml:135
+    J->>J: runtime-delivery.test.cjs, non-disruptive preparation<br/>and scoped activation (ADR-2132) invariants.yml:146
+    J->>J: check-seccomp.sh invariants.yml:149
+    J->>J: check-nnp.sh (no-new-privileges) invariants.yml:152
+    J->>J: check-ports-loopback.sh invariants.yml:155
     Note over J: ADR-2013: sweeps EVERY docker-compose*.yml via a real<br/>YAML parser (check-ports-loopback.mjs), replacing an<br/>awk line-walker that missed nested-mapping publishes
     Note over J: SANCTIONED allowlist: 9096 sovereign ingress,<br/>voice 8443/8444, browsercontainer 5903/8931/9222,<br/>gui-tools 5905/9876/9877, xr-runtime 5904
-    Note over J: DIVERGENCE: implementation_status partial — the<br/>dated closeout says the scanner does not yet cover<br/>every equivalent publish syntax form
-    J->>J: check-listeners.test.mjs :158, the tests/security/**<br/>trigger path guards this gate's own unit tests
-    J->>J: session-plane retirement test, AoE removed and no script attaches<br/>the operator client (the file keeps its aoe-launch name) :160-161
-    J->>J: session-launch-contract (ADR-2153, live) :163-164, session-plane notify :166-167,<br/>then trust-seed :169-170, every seed resolves to a launch the pinned CLIs accept and every Claude config<br/>store a session reads is trusted
-    J->>J: check-db-password.sh :173
-    J->>J: check-secret-not-in-env.sh :176
-    J->>J: custody W2 - env-secret-inventory --check and its unit<br/>tests, plus compose-role-env (W10) :183, :188, :190 - see ES-09.24
-    J->>J: RC-X1-01 to RC-X1-07 runtime contracts, the real entrypoint<br/>functions against a scratch root - :197, :199, :201, :203,<br/>:205, :207, :209 - see ES-09.24
-    J->>J: check-single-metrics.js :212
-    J->>J: check-no-npx-latest.sh (ratchet) :215
-    J->>J: lint-skills.sh :218
-    J->>J: VisionCraft release source and host contract, which now also runs the visioncraft-deepsec, cutover and aqe config tests (the build-with-quality deepsec-gate unit test step is gone) :229-238
-    J->>J: check-manifest-catalogue.js (ADR-039 gate-path parity) :245
-    J->>J: ruflo-console bake + boot projection test :248
-    J->>J: check-declared-vs-running against the dated runtime snapshot,<br/>plus its unit tests :255, :257
-    J->>J: check-no-logseq-paths.sh :260
+    Note over J: ADR-2013 remains partial for effective deployment and active-listener acceptance.<br/>Its current Decision covers normalised short and long syntax,<br/>aliases and merges, with unsupported forms refused.<br/>ADR-2013-loopback-publish-except-9096.md:23,136-139
+    J->>J: check-listeners.test.mjs invariants.yml:158, the tests/security/**<br/>trigger path guards this gate's own unit tests
+    J->>J: session-plane retirement test, AoE removed and no script attaches<br/>the operator client (scripts-never-switch-operator-tmux.test.mjs) invariants.yml:160-161
+    J->>J: session-launch-contract (ADR-2153, live) invariants.yml:163-164, session-plane notify invariants.yml:166-167,<br/>then trust-seed invariants.yml:169-170, every seed resolves to a launch the pinned CLIs accept and every Claude config<br/>store a session reads is trusted
+    J->>J: check-db-password.sh invariants.yml:173
+    J->>J: check-secret-not-in-env.sh invariants.yml:176
+    J->>J: custody W2 - env-secret-inventory --check and its unit<br/>tests, plus compose-role-env (W10) invariants.yml:183, invariants.yml:188, invariants.yml:190 - see ES-09.24
+    J->>J: RC-X1-01 to RC-X1-07 runtime contracts, the real entrypoint<br/>functions against a scratch root - invariants.yml:197, invariants.yml:199, invariants.yml:201, invariants.yml:203,<br/>invariants.yml:205, invariants.yml:207, invariants.yml:209 - see ES-09.24
+    J->>J: check-single-metrics.js invariants.yml:212
+    J->>J: check-no-npx-latest.sh (ratchet) invariants.yml:215
+    J->>J: lint-skills.sh invariants.yml:218
+    J->>J: VisionCraft release source and host contract, which now also runs the visioncraft-deepsec, cutover and aqe config tests (the build-with-quality deepsec-gate unit test step is gone) invariants.yml:229-238
+    J->>J: check-manifest-catalogue.js (ADR-039 gate-path parity) invariants.yml:245
+    J->>J: ruflo-console bake + boot projection test invariants.yml:248
+    J->>J: check-declared-vs-running against the dated runtime snapshot,<br/>plus its unit tests invariants.yml:255, invariants.yml:257
+    J->>J: check-no-logseq-paths.sh invariants.yml:260
     Note over J: ADR-2028: vault.root is the single corpus path<br/>authority, greps for hard-coded workspace/logseq<br/>outside docs/archive and docs/adr exemptions
-    J->>J: federation-fixture-check (ADR-2025) :267
-    J->>J: protocol-registry-lint and its unit tests, kind rows<br/>owned and no collisions (ADR-2105) :272, :274
-    J->>J: adr-index-gen.js docs/adr --check :282
-    J->>J: adr-index-gen.js docs/adr --check-index (ADR-2001) :290
-    J->>J: N-7 render-egress-register.js --check :297 - see ES-09.24
-    J->>J: adr-ratchet self-test :300, evidence-gate self-test (VisionFlow ADR-2007) :303,<br/>then adr-ratchet.sh over the push range :305-308
+    J->>J: federation-fixture-check (ADR-2025) invariants.yml:267
+    J->>J: protocol-registry-lint and its unit tests, kind rows<br/>owned and no collisions (ADR-2105) invariants.yml:272, invariants.yml:274
+    J->>J: adr-index-gen.js docs/adr --check invariants.yml:282
+    J->>J: adr-index-gen.js docs/adr --check-index (ADR-2001) invariants.yml:290
+    J->>J: N-7 render-egress-register.js --check invariants.yml:297 - see ES-09.24
+    J->>J: adr-ratchet self-test invariants.yml:300, evidence-gate self-test (VisionFlow ADR-2007) invariants.yml:303,<br/>then adr-ratchet.sh over the push range invariants.yml:305-308
     Note over J: the ratchet script is byte-identical to the host copy at both stamps<br/>(same sha256, agentbox/scripts/adr-ratchet.sh:45 carries the same 2026-10-20<br/>end date) so both ledgers run one rule. The copy at VisionClaw's agentbox<br/>gitlink 4f41f77be is byte-identical too. see ES-09.12
-    J->>J: check-crate-licensing.sh :311
+    J->>J: check-crate-licensing.sh invariants.yml:311
     Note over J: DRIFT resolved — the vault-frontmatter unit test step<br/>(node --test mcp/servers/lib/__tests__/*.test.js) is GONE:<br/>ADR-2107/ADR-2108 deleted the V2 frontmatter writer it gated<br/>along with the ontology write path. The workflow comment now names<br/>ontomark validate as the successor contract check, run against the<br/>corpus not a helper (invariants.yml:276-279).
 ```
 
-**Open:** ADR-2153 has replaced Agent of Empires and is live, with implementation still recorded partial (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`): the supervisor runs `[program:agentbox-sessions]` and no longer `aoe serve` (`../project/agentbox/flake.nix:2963`), and the invariants job runs the contract and notify steps (`../project/agentbox/.github/workflows/invariants.yml:163-167`) while the surviving regression test keeps its `aoe-launch` filename (`../project/agentbox/.github/workflows/invariants.yml:160-161`).
+**Open:** ADR-2153 has replaced Agent of Empires and is live, with implementation still recorded partial (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`): the supervisor runs `[program:agentbox-sessions]` and no longer `aoe serve` (`../project/agentbox/flake.nix:3129`), and the invariants job runs the contract and notify steps (`../project/agentbox/.github/workflows/invariants.yml:163-167`) and the generalised regression guard is now named `scripts-never-switch-operator-tmux.test.mjs` (`../project/agentbox/.github/workflows/invariants.yml:160-161`).
 
 ## ES-09.16 agentbox contract-tests.yml — adapter contract suites
 ```mermaid
@@ -665,23 +667,24 @@ sequenceDiagram
     participant GH as PR touching agentbox.toml, schema, the manifest crate, tests/config,<br/>config/sidechain, config/role-accounts.json, config/lib, the entrypoint<br/>manifest-validate.yml:18-32
     participant V as validate job<br/>manifest-validate.yml:64
 
-    GH->>V: setup Node 20, Python 3.11, Rust stable :71-89
-    V->>V: cargo build --release services/agentbox-manifest :92
-    V->>V: node agentbox-config-validate.js agentbox.toml :98
+    GH->>V: setup Node 20, Python 3.11, Rust stable manifest-validate.yml:71-89
+    V->>V: cargo build --release services/agentbox-manifest manifest-validate.yml:92
+    V->>V: node agentbox-config-validate.js agentbox.toml manifest-validate.yml:98
     loop each tests/tui/fixtures/valid-*.toml
-        V->>V: agentbox-manifest tui-read fixture -> state.json :109
-        V->>V: agentbox-manifest tui-write state.json -> out.toml :110
-        V->>V: agentbox-config-validate.js out.toml :111
+        V->>V: agentbox-manifest tui-read fixture -> state.json manifest-validate.yml:109
+        V->>V: agentbox-manifest tui-write state.json -> out.toml manifest-validate.yml:110
+        V->>V: agentbox-config-validate.js out.toml manifest-validate.yml:111
     end
     loop each tests/tui/fixtures/invalid-*.toml
-        V->>V: assert failure with the expected E-code :115-130
+        V->>V: assert failure with the expected E-code manifest-validate.yml:115-130
     end
-    V->>V: assert JSON Schema well-formed :133
-    V->>V: ADR-2122 - the two supervisor configs cannot drift, the /run/secrets<br/>delivery tree, at-rest custody migrate/revert, and flag off boots as<br/>today :135-154 - see ES-09.24
-    V->>V: sidechain-genesis.test.sh — document invariants, P21<br/>mainnet gate, no-key-in-git (ADR-2103) :156-159
-    V->>V: mirror chain-event, producer parent gates, catalogue gates and<br/>mirror retry, the dream-inbox reminder :161-176
-    V->>V: assert all W-codes route to warnings :178-190
-    V->>V: assert E021 fires when exception block missing :192-210
+    V->>V: assert JSON Schema well-formed manifest-validate.yml:133
+    V->>V: CAD launcher policy and wheel lock, then supervised Python path<br/>static runner checks, image-dependent behaviour skips<br/>manifest-validate.yml:135-141
+    V->>V: ADR-2122 - the two supervisor configs cannot drift, the /run/secrets<br/>delivery tree, at-rest custody migrate/revert, and flag off boots as<br/>today manifest-validate.yml:143-162 - see ES-09.24
+    V->>V: sidechain-genesis.test.sh — document invariants, P21<br/>mainnet gate, no-key-in-git (ADR-2103) manifest-validate.yml:164-167
+    V->>V: mirror chain-event, producer parent gates, catalogue gates and<br/>mirror retry, the dream-inbox reminder manifest-validate.yml:169-184
+    V->>V: assert all W-codes route to warnings manifest-validate.yml:186-198
+    V->>V: assert E021 fires when exception block missing manifest-validate.yml:200-218
     Note over V: same validator the TUI runs on every section<br/>transition and the flake evaluator runs at build time
 ```
 
@@ -810,8 +813,8 @@ flowchart TB
     S2 --> DEBT
     C3 --> DEBT
 
-    CAT["INVARIANT ADR-039 — a new manifest gate must arrive with a<br/>CATALOGUE entry carrying an honest apply class, and the parity<br/>check above is what enforces it. Recent module entries: Claude Code<br/>permissions (ADR-2116) and instruction tiers (ADR-2118) and the<br/>collaboration floor (ADR-2144) at boot, claude-cred-sync at<br/>rebuild, skill-router-cascade (ADR-2095) and<br/>routing-teacher-labels (ADR-2110, proposed) at boot, vault-cli<br/>(ADR-2107/2108) at rebuild<br/>agentbox/management-api/lib/system-manifest.js:256, :262, :265, :268, :351, :354, :409"]
-    HONEST["2026-10-02 — two entries show the honesty rule working. jev-compaction<br/>moved from boot to REBUILD when factrail landed (ADR-2121), because<br/>the binary and plugin are now gated in flake.nix,<br/>agentbox/management-api/lib/system-manifest.js:271-272. A new sidechain<br/>entry is rebuild-class with three gates,<br/>agentbox/management-api/lib/system-manifest.js:388-389, and stateOf<br/>lets a false parent gate dominate its child gates,<br/>agentbox/management-api/lib/system-manifest.js:462-464. 2026-10-29: interaction-plane moved from boot to REBUILD with ADR-2153,<br/>agentbox/management-api/lib/system-manifest.js:74-76, and nineteen System One consumer entries arrived,<br/>sixteen boot and three rebuild (solid pod, ontomark, vault rank), agentbox/management-api/lib/system-manifest.js:291-347. 2026-10-30: system-one-network arrived at BOOT,<br/>agentbox/management-api/lib/system-manifest.js:280-282. 2026-10-03: the<br/>role-isolation entry first arrived at BOOT, because both supervisor configs<br/>ship in every image; it is now rebuild-class, because the devuser sudo route is<br/>removed at build, agentbox/management-api/lib/system-manifest.js:97-99"]
+    CAT["INVARIANT ADR-039 — a new manifest gate must arrive with a<br/>CATALOGUE entry carrying an honest apply class, and the parity<br/>check above is what enforces it. Recent module entries: Claude Code<br/>permissions (ADR-2116) and instruction tiers (ADR-2118) and the<br/>collaboration floor (ADR-2144) at boot, claude-cred-sync at<br/>rebuild, skill-router-cascade (ADR-2095) and<br/>routing-teacher-labels (ADR-2110, proposed) at boot, vault-cli<br/>(ADR-2107/2108) at rebuild<br/>agentbox/management-api/lib/system-manifest.js:262, system-manifest.js:268, system-manifest.js:271, system-manifest.js:274, system-manifest.js:357, system-manifest.js:360, system-manifest.js:415"]
+    HONEST["2026-10-02 — two entries show the honesty rule working. jev-compaction<br/>moved from boot to REBUILD when factrail landed (ADR-2121), because<br/>the binary and plugin are now gated in flake.nix,<br/>agentbox/management-api/lib/system-manifest.js:277-278. A new sidechain<br/>entry is rebuild-class with three gates,<br/>agentbox/management-api/lib/system-manifest.js:394-395, and stateOf<br/>lets a false parent gate dominate its child gates,<br/>agentbox/management-api/lib/system-manifest.js:474-476. 2026-10-29: interaction-plane moved from boot to REBUILD with ADR-2153,<br/>agentbox/management-api/lib/system-manifest.js:74-76, and nineteen System One consumer entries arrived,<br/>sixteen boot and three rebuild (solid pod, ontomark, vault rank), agentbox/management-api/lib/system-manifest.js:297-353. 2026-10-30: system-one-network arrived at BOOT,<br/>agentbox/management-api/lib/system-manifest.js:286-288. 2026-10-03: the<br/>role-isolation entry first arrived at BOOT, because both supervisor configs<br/>ship in every image; it is now rebuild-class, because the devuser sudo route is<br/>removed at build, agentbox/management-api/lib/system-manifest.js:97-99"]
     CAT --> HONEST
     C2 --> CAT
 
@@ -869,9 +872,9 @@ flowchart TB
         I3["N-7: the SECURITY-profiles egress table must match egress-policy.json,<br/>and an unmarked gap fails - agentbox/.github/workflows/invariants.yml:296-297"]
     end
     subgraph MV["manifest-validate.yml, on the role table, config/lib or the entrypoint"]
-        M1["the two supervisor configs cannot drift: only role programs' user=<br/>and environment= differ - agentbox/.github/workflows/manifest-validate.yml:135-140"]
-        M2["/run/secrets delivery builds the right owner and mode tree, chown stubbed,<br/>plus at-rest custody migrate/revert - agentbox/.github/workflows/manifest-validate.yml:142-151"]
-        M3["with role_isolation off the boot is today's<br/>agentbox/.github/workflows/manifest-validate.yml:153-154"]
+        M1["the two supervisor configs cannot drift: only role programs' user=<br/>and environment= differ - agentbox/.github/workflows/manifest-validate.yml:143-148"]
+        M2["/run/secrets delivery builds the right owner and mode tree, chown stubbed,<br/>plus at-rest custody migrate/revert - agentbox/.github/workflows/manifest-validate.yml:150-159"]
+        M3["with role_isolation off the boot is today's<br/>agentbox/.github/workflows/manifest-validate.yml:161-162"]
     end
     subgraph TUI["tui-tests.yml, on services/agentbox-manifest and services/agentbox-sessions"]
         T1["cargo test agentbox-manifest, which carries the role_accounts unit tests<br/>agentbox/.github/workflows/tui-tests.yml:77"]
