@@ -64,7 +64,7 @@ sources:
   - ../project/src/services/github_sync_service.rs
   - ../project/src/services/corpus_source/github.rs
   - ../project/crates/visionclaw-domain/src/vault/mod.rs
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
+verified_commit: {visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16}
 ---
 
 ## For developers

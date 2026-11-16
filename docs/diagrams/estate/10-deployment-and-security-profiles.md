@@ -52,7 +52,7 @@ sources:
   - ../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md
   - ../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md
   - ../project/agentbox/config/custody/session-plane-acl.json
-verified_commit: {visionclaw: 2e7ecc2e731ed475982176d522877d9c89e3ff51, agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a}
+verified_commit: {visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16, agentbox: 3a2c59764028e1fd8475abfda61bb3bcefab46d5}
 ---
 ## ES-10.1 Three named profiles — exact flag set per profile vs the fail-closed code default
 ```mermaid
@@ -367,7 +367,7 @@ flowchart TB
     D5 --> D6
 ```
 
-**Resolved:** ADR-2153 remains accepted and live with partial implementation. The port-9095 listener is retired, and port 9096 retains named operator routes. The old profile files were archived and checksum-verified before the mount was removed from compose and the flake. Removing the host volume is a separate operator step after a rebuild (`docs/adr/ADR-2153-session-plane-replaces-aoe.md:39-43`).
+**Resolved:** ADR-2153 remains accepted and live with partial implementation. The port-9095 listener is retired, and port 9096 retains named operator routes. The old profile files were archived and checksum-verified before the mount was removed from compose and the flake. Removing the host volume is a separate operator step after a rebuild (`docs/adr/ADR-2153-session-plane-replaces-aoe.md:48-52`).
 
 ## ES-10.10 agentbox credential custody register — roles and open acceptance evidence
 ```mermaid

@@ -13,12 +13,12 @@ sources:
   - ../project/xr-client/rust/src/link_index.rs
   - ../project/xr-client/rust/src/binary_protocol.rs
   - ../project/xr-client/scripts/graph_scene.gd
-verified_commit: {codescape: e3b76f63e801c6a8460110b93e88a0b420e9b0b4, visionclaw: 2e7ecc2e731ed475982176d522877d9c89e3ff51}
+verified_commit: {codescape: e3b76f63e801c6a8460110b93e88a0b420e9b0b4, visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16}
 ---
 
 ## For developers
 
-Consumer scope checked on 14 November 2026: VisionClaw main `2e7ecc2e731ed475982176d522877d9c89e3ff51` still pins Codescape gitlink `e3b76f63e801c6a8460110b93e88a0b420e9b0b4`. This topic retains that producer revision; the standalone Codescape area describes newer source. No deployment was requalified by this pin check.
+Consumer scope checked on 16 November 2026: VisionClaw main `d2780e26f870ce21fa92bccb29fa47f001015b16` still pins Codescape gitlink `e3b76f63e801c6a8460110b93e88a0b420e9b0b4`. This topic retains that producer revision; the standalone Codescape area describes newer source. No deployment was requalified by this pin check.
 
 The [executable audit](../../estate-review/2026-10-31-xr-volumes-and-code-links.md) follows real Codescape annotation scanning and topology emission into the verbatim pure XR join module. It does not exercise the gdext wrapper or live streams.
 
@@ -60,7 +60,7 @@ flowchart TD
 ```
 
 **What it shows.** VisionClaw's half of the provenance repair has landed: the join copies whatever repository and revision the code stream supplies. **Why it is this way.** The revision is a monotonic Codescape snapshot counter, not a Git commit (`link_index.rs:114`), so even when populated it does not name the source revision of a claim.
-**Tension (cross-repo):** The producer half (`repo` and `revision` in `initial_graph_load` metadata) exists only on standalone Codescape after `e3b76f6`; VisionClaw `2e7ecc2` pins `e3b76f6`, whose `codescape-server/src/xr.rs:42-49` emits neither, so records from that producer remain the "legacy" empty case.
+**Tension (cross-repo):** The producer half (`repo` and `revision` in `initial_graph_load` metadata) exists only on standalone Codescape after `e3b76f6`; VisionClaw `d2780e2` pins `e3b76f6`, whose `codescape-server/src/xr.rs:42-49` emits neither, so records from that producer remain the "legacy" empty case.
 
 ## VC-45.3 Producer truncation and connection invalidation have different counters
 

@@ -29,7 +29,7 @@ sources:
   - ../project/agentbox/docs/developer/visioncraft-consumption.md
   - ../project/agentbox/docs/adr/ADR-2165-visioncraft-owns-the-portable-quality-method.md
   - ../project/agentbox/skills/SKILL-DIRECTORY.md
-verified_commit: {visioncraft: 6add68eebf1e8fb81a05eb86e2e27e732c4da1c3, agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a}
+verified_commit: {visioncraft: 6add68eebf1e8fb81a05eb86e2e27e732c4da1c3, agentbox: 3a2c59764028e1fd8475abfda61bb3bcefab46d5}
 ---
 
 ## VK-05.1 How agentbox adopted VisionCraft

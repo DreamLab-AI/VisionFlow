@@ -77,7 +77,7 @@ sources:
   - ../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md
   - ../project/agentbox/docs/adr/ADR-2013-loopback-publish-except-9096.md
   - ../project/agentbox/docker-compose.system-one.yml
-verified_commit: {visionclaw: 2e7ecc2e731ed475982176d522877d9c89e3ff51, agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a}
+verified_commit: {visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16, agentbox: 3a2c59764028e1fd8475abfda61bb3bcefab46d5}
 ---
 ## ES-09.1 The host-vs-container build trap — wrong path vs sanctioned path
 ```mermaid
@@ -438,7 +438,7 @@ flowchart TB
 
     subgraph SUBMOD["VisionClaw submodule pointer-bump"]
         GITMODULES[".gitmodules:1-3<br/>submodule agentbox<br/>url github.com/DreamLab-AI/agentbox.git<br/>.gitmodules:4-6<br/>submodule codescape (ADR-2143 A5, its own repository)<br/>url github.com/DreamLab-AI/codescape"]
-        SUBSTATUS["git submodule status<br/>4f41f77be agentbox and e3b76f63e codescape at the stamped gitlinks<br/>a + prefix means the checkout differs from the index"]
+        SUBSTATUS["git submodule status<br/>ca5b4152a agentbox and e3b76f63e codescape at the stamped gitlinks<br/>a + prefix means the checkout differs from the index"]
         SUBUPDATE["cd agentbox and git checkout NEW_SHA<br/>then git add agentbox (records gitlink)"]
         SUBCOMMIT["git commit records new gitlink SHA<br/>in the VisionClaw superproject tree"]
     end
@@ -446,11 +446,11 @@ flowchart TB
     SUBSTATUS --> SUBUPDATE
     SUBUPDATE --> SUBCOMMIT
     IMAGE -.->|"agentbox image built from the checked-out<br/>submodule commit, independent pin"| SUBSTATUS
-    SKEW["DRIFT: the gitlink 4f41f77be at the VisionClaw stamp is 16 commits behind<br/>the agentbox stamp 720e0d89 this topic reads agentbox files at, so what VisionClaw<br/>pins is older than what these panels describe"]
+    SKEW["DRIFT: the gitlink ca5b4152a at the VisionClaw stamp is 133 commits behind<br/>the agentbox stamp 3a2c5976 this topic reads agentbox files at, so what VisionClaw<br/>pins is older than what these panels describe"]
     SUBSTATUS -.-> SKEW
 ```
 
-**Drift (submodule pin skew):** `.gitmodules` names the agentbox and codescape submodules (`../project/.gitmodules:1-6`). At the VisionClaw stamp the agentbox gitlink is `4f41f77be`, 16 commits behind the agentbox stamp `720e0d89` that this topic reads agentbox files at. A claim here about agentbox therefore describes a revision newer than the one VisionClaw checks out.
+**Drift (submodule pin skew):** `.gitmodules` names the agentbox and codescape submodules (`../project/.gitmodules:1-6`). At the VisionClaw stamp the agentbox gitlink is `ca5b4152a`, 133 commits behind the agentbox stamp `3a2c5976` that this topic reads agentbox files at. A claim here about agentbox therefore describes a revision newer than the one VisionClaw checks out.
 
 ## ES-09.11 VisionClaw ci.yml — Rust CPU/client blocking gates, GPU excluded
 ```mermaid
@@ -461,8 +461,8 @@ sequenceDiagram
     participant CPU as rust-cpu job<br/>project/.github/workflows/ci.yml:92 blocking
     participant CLI as client job<br/>project/.github/workflows/ci.yml:140 blocking
     participant GATE as dev-auth-release-gate job<br/>project/.github/workflows/ci.yml:162 blocking
-    participant LINT as client-quality job<br/>project/.github/workflows/ci.yml:254 advisory
-    participant PW as playwright job<br/>project/.github/workflows/ci.yml:285 manual only
+    participant LINT as client-quality job<br/>project/.github/workflows/ci.yml:254 advisory, manual only :257
+    participant PW as playwright job<br/>project/.github/workflows/ci.yml:287 manual only
 
     GH->>FMT: cargo fmt --all --check :89-90
     GH->>CPU: cargo build CPU_CRATES :123, now built over<br/>vault-core and vault (ADR-2113), replacing vault-migrate :108-109
@@ -472,13 +472,15 @@ sequenceDiagram
     GH->>CLI: npm ci :155-156, then npm run test (vitest) :160
     GH->>GATE: hermetic text assertion over the<br/>committed Dockerfiles/entrypoints :166-175
     GATE->>GATE: no --release cargo line may name dev-auth :183-188
-    GH->>LINT: npm run lint (ESLint) :274, npx tsc --noEmit :276
-    Note over LINT: continue-on-error true :261, never a required check
-    opt workflow_dispatch only :291
-        GH->>PW: npx playwright install :307, npm run test:e2e :309
+    opt workflow_dispatch only :257 (gated 2026-11-15, Actions volume)
+        GH->>LINT: npm run lint (ESLint) :276, npx tsc --noEmit :278
+    end
+    Note over LINT: continue-on-error true :263, never a required check
+    opt workflow_dispatch only :293
+        GH->>PW: npx playwright install :309, npm run test:e2e :311
     end
     Note over GATE: INVARIANT: ADR-2037 via ADR-2086 - a production/release<br/>image must never carry the dev-auth cargo feature (it compiles in<br/>the Bearer dev-session-token bypass and stubs<br/>enforce_release_env_hygiene to a no-op).<br/>Hermetic: no cargo, no docker, no network - project/.github/workflows/ci.yml:162,166
-    Note over CPU: DIVERGENCE: visionclaw-gpu and root server crate link<br/>CUDA at runtime, removed from hosted CI 2026-07-24 (project/.github/workflows/ci.yml:278-280)
+    Note over CPU: DIVERGENCE: visionclaw-gpu and root server crate link<br/>CUDA at runtime, removed from hosted CI 2026-07-24 (project/.github/workflows/ci.yml:280-282)
     Note over CPU: GPU crates validated only on the developer CUDA<br/>host via scripts/launch.sh, not by any GitHub runner
 ```
 
@@ -488,7 +490,7 @@ sequenceDiagram
     autonumber
     participant GH as pull request touching docs/** or the ratchet and its tests, or manual dispatch (the push trigger was removed 2026-11-10)<br/>docs-ci.yml:3-16
     participant ADR as validate-adr-ledger job<br/>docs-ci.yml:23
-    participant DOC as validate-documentation job<br/>docs-ci.yml:45
+    participant DOC as validate-documentation job<br/>docs-ci.yml:45, manual dispatch only :47-48
 
     GH->>ADR: checkout fetch-depth 0 :31 (staleness diffs old commits)
     ADR->>ADR: node scripts/adr-index-gen.js docs/adr --check :33
@@ -497,18 +499,20 @@ sequenceDiagram
     ADR->>ADR: bash scripts/adr-ratchet.sh docs/adr BASE sha :40-43
     Note over ADR: TWO RULES in the ratchet. Backlog: fails when more ADRs were ADDED<br/>undecided than LEFT proposed over the push range, project/scripts/adr-ratchet.sh:115-126.<br/>A record added already decided is reported, not counted (:74), an ADR-Ratchet<br/>trailer exempts the record it names (:65-66, :73), and after ADR_RATCHET_UNTIL,<br/>default 2026-10-20 (:45), it reports only (:119-123). Evidence (VisionFlow ADR-2007):<br/>a record turning complete or live without evidence_class and acceptance_boundary<br/>fails, with no end date (:81-113)
 
-    GH->>DOC: checkout
-    DOC->>DOC: validate internal links :54-119
-    DOC->>DOC: validate mermaid diagrams :121-174
-    DOC->>DOC: check stale references :176-222
-    Note over DOC: stale refs are warnings only, never a score penalty :219-222
-    DOC->>DOC: validate directory structure :224-253
-    Note over DOC: required Diataxis dirs: tutorials, how-to,<br/>explanation, reference, plus docs/README.md :232-244
-    DOC->>DOC: score = (links_rate*60 + mermaid_rate*40)/100<br/>minus 10 per structure error, clamp 0-100 :266-272
-    alt score below 50
-        DOC->>GH: exit 1, quality threshold failed :338-340
-    else score at or above 50
-        DOC->>GH: pass :342
+    opt workflow_dispatch only :48 (gated 2026-11-15, Actions volume)
+        GH->>DOC: checkout
+        DOC->>DOC: validate internal links :56-121
+        DOC->>DOC: validate mermaid diagrams :123-176
+        DOC->>DOC: check stale references :178-224
+        Note over DOC: stale refs are warnings only, never a score penalty :221-224
+        DOC->>DOC: validate directory structure :226-255
+        Note over DOC: required Diataxis dirs: tutorials, how-to,<br/>explanation, reference, plus docs/README.md :234-246
+        DOC->>DOC: score = (links_rate*60 + mermaid_rate*40)/100<br/>minus 10 per structure error, clamp 0-100 :268-274
+        alt score below 50
+            DOC->>GH: exit 1, quality threshold failed :340-342
+        else score at or above 50
+            DOC->>GH: pass :344
+        end
     end
 ```
 
@@ -518,51 +522,50 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant GH as push/PR/repository_dispatch<br/>ontology-publish.yml:3-22 corpus-sync
-    participant VAL as validate-source job<br/>ontology-publish.yml:56
-    participant BLD as build-ontology job<br/>ontology-publish.yml:146
-    participant REL as publish-release job<br/>ontology-publish.yml:300
+    participant GH as push, repository_dispatch or manual dispatch<br/>ontology-publish.yml:3-16 corpus-sync
+    participant VAL as validate-source job<br/>ontology-publish.yml:50
+    participant BLD as build-ontology job<br/>ontology-publish.yml:140
+    participant REL as publish-release job<br/>ontology-publish.yml:294
     participant SRV as visionclaw-server boot<br/>src/services/ontology_pull.rs
-    participant DEP as deploy-jss job (push path)<br/>ontology-publish.yml:371
-    participant WS as notify-websocket job<br/>ontology-publish.yml:482
-    participant PRP as pr-preview job<br/>ontology-publish.yml:562
-    participant MIS as deploy-target-missing job<br/>ontology-publish.yml:617
+    participant DEP as deploy-jss job (push path)<br/>ontology-publish.yml:365
+    participant WS as notify-websocket job<br/>ontology-publish.yml:476
+    participant MIS as deploy-target-missing job<br/>ontology-publish.yml:560
 
-    GH->>VAL: preflight gh repo view on the private ontology source :80-86<br/>ONTOLOGY_SOURCE_TOKEN, falling back to GITHUB_TOKEN :80-81
+    GH->>VAL: preflight gh repo view on the private ontology source :74-80<br/>ONTOLOGY_SOURCE_TOKEN, falling back to GITHUB_TOKEN :74-75
     alt source unreadable
-        VAL--xGH: ::error + OPS ACTION naming the fine-grained PAT, exit 1 :87-100
+        VAL--xGH: ::error + OPS ACTION naming the fine-grained PAT, exit 1 :81-94
     end
-    GH->>VAL: checkout ontology source into vault-source/, same token :102-108,<br/>at the dispatch payload's source_sha or main :106
-    VAL->>VAL: detect changed markdown files :110-131
-    VAL->>BLD: has_changes true, needs validate-source :150-151
-    BLD->>BLD: checkout the source into vault-source/ again :162-168,<br/>pinned to validate-source's source_sha :166
-    BLD->>BLD: ADR-2113 — cargo build --release --locked -p vault :182<br/>(crates/vault in THIS repo, cached by Cargo.lock hash :170-178)
-    BLD->>BLD: ./target/release/vault --repo vault-source build<br/>--vault knowledge --out output/vault :184-187
-    BLD->>BLD: ADR-2147 vault certify writes an oo-cert/1 derivation certificate and<br/>exits 1 if the certified closure stops matching Whelk's :194-203, then a pinned<br/>Lean 4 oo-cert binary re-checks it by digest :205-222, reports and certificate uploaded :224-241
-    BLD->>BLD: pack-pod-resources.py output/vault output/pod — public-only<br/>TTL, JSON-LD compacted against the vault context, LDP index<br/>manifest, substance floor :255-261
-    BLD->>BLD: re-parse packed resources :263-279, upload<br/>ontology-ttl :284-285 and ontology-jsonld :291-292
-    BLD->>REL: main only, needs validate-source + build-ontology :304
-    REL->>REL: assemble five assets + SHA256SUMS :324-332,<br/>create or move release tag ontology-latest
-    REL->>REL: upload --clobber, verify the public<br/>download path diffs SHA256SUMS :365-368
+    GH->>VAL: checkout ontology source into vault-source/, same token :96-102,<br/>at the dispatch payload's source_sha or main :100
+    VAL->>VAL: detect changed markdown files :104-125
+    VAL->>BLD: has_changes true, needs validate-source :144-145
+    BLD->>BLD: checkout the source into vault-source/ again :156-162,<br/>pinned to validate-source's source_sha :160
+    BLD->>BLD: ADR-2113 — cargo build --release --locked -p vault :176<br/>(crates/vault in THIS repo, cached by Cargo.lock hash :164-172)
+    BLD->>BLD: ./target/release/vault --repo vault-source build<br/>--vault knowledge --out output/vault :178-181
+    BLD->>BLD: ADR-2147 vault certify writes an oo-cert/1 derivation certificate and<br/>exits 1 if the certified closure stops matching Whelk's :188-197, then a pinned<br/>Lean 4 oo-cert binary re-checks it by digest :199-216, reports and certificate uploaded :218-235
+    BLD->>BLD: pack-pod-resources.py output/vault output/pod — public-only<br/>TTL, JSON-LD compacted against the vault context, LDP index<br/>manifest, substance floor :249-255
+    BLD->>BLD: re-parse packed resources :257-273, upload<br/>ontology-ttl :278-279 and ontology-jsonld :285-286
+    BLD->>REL: main only, needs validate-source + build-ontology :298
+    REL->>REL: assemble five assets + SHA256SUMS :318-326,<br/>create or move release tag ontology-latest
+    REL->>REL: upload --clobber, verify the public<br/>download path diffs SHA256SUMS :359-362
     Note over SRV: ADR-2106 pull model — at boot and every<br/>ONTOLOGY_PULL_INTERVAL_SECS: GET index.jsonld, compare<br/>visionflow:buildSha and visionflow:sourceSha with the pod's, and if moved GET<br/>SHA256SUMS plus the files, verify every digest, then write<br/>via Storage in order: containers, .acl only if absent,<br/>content, manifest last. Fail-open. see ES-08.11
     SRV->>REL: GET releases/download/ontology-latest/{index.jsonld, SHA256SUMS, ...}
     alt vars.SOLID_POD_URL set (a pod a runner can reach)
-        BLD->>DEP: needs build-ontology, ref main :376
-        DEP->>DEP: backup current pod index for rollback :399
-        DEP->>DEP: PUT visionflow.ttl, context/ontology/index jsonld :417-434, verify :443-459
+        BLD->>DEP: needs build-ontology, ref main :370
+        DEP->>DEP: backup current pod index for rollback :393
+        DEP->>DEP: PUT visionflow.ttl, context/ontology/index jsonld :411-428, verify :437-453
         alt deployment fails
-            DEP->>DEP: rollback to backed-up index :475
+            DEP->>DEP: rollback to backed-up index :469
         end
         DEP->>WS: deployment_status success
-        WS->>WS: POST to SOLID_POD_URL/.notifications :526, PATCH index.jsonld :531
+        WS->>WS: POST to SOLID_POD_URL/.notifications :520, PATCH index.jsonld :525
     else unset (default: the in-process pod is not reachable from a hosted runner)
-        REL->>MIS: ::notice: push deploy skipped, pull model in effect :622-625
+        REL->>MIS: ::notice: push deploy skipped, pull model in effect :565-568
     end
-    GH->>PRP: pull_request only: comment with stats and SHAs :562-611
-    Note over VAL,WS: RESOLVED ADR-2098 (2026-09-05): SOLID_POD_URL now<br/>defaults to the loopback /solid scope :48-50 — what the embedded<br/>solid-pod-rs serves in-process (ADR-032 M3). The POST to<br/>/.notifications is annotated a best-effort no-op there:<br/>that path is a GET WebSocket upgrade
+    Note over GH,BLD: pull_request trigger and the pr-preview job removed 2026-11-15<br/>(Actions volume): the push to main rebuilds, and publish-release<br/>needs build-ontology, so a broken build never publishes :12-13, :298
+    Note over VAL,WS: RESOLVED ADR-2098 (2026-09-05): SOLID_POD_URL now<br/>defaults to the loopback /solid scope :42-44 — what the embedded<br/>solid-pod-rs serves in-process (ADR-032 M3). The POST to<br/>/.notifications is annotated a best-effort no-op there:<br/>that path is a GET WebSocket upgrade
     Note over BLD: RESOLVED — ADR-2112/ADR-2113 replaced the Python<br/>pipeline.build converter (0 owl:Class from 380 pages on run<br/>34045488066, itself a fix of two earlier Logseq-only jobs) first<br/>with a vault-owned Python step, now with an IN-REPO Rust build:<br/>cargo build -p vault then ./target/release/vault build against<br/>the checked-out vault-source/, no external converter left to own
-    Note over GH,BLD: DRIFT resolved — the source repo is still checked out (path<br/>renamed logseq-source to vault-source, trigger renamed logseq-sync<br/>to corpus-sync :20-21) but it no longer runs anyone's pipeline in<br/>place: `vault build` reads it via --repo and writes output/vault.<br/>scripts/ontology/pack-pod-resources.py remains this repo's own<br/>script, unchanged, run from the repo root :245. see VG-04.1, KG-05
-    Note over GH,BLD: 2026-10 (805219679) — a corpus-sync dispatch may name the<br/>source repo :42 and sha :106, and the build job checks out exactly<br/>the sha validate-source detected :166, so a build can no longer<br/>publish a later corpus commit than the one it validated
+    Note over GH,BLD: DRIFT resolved — the source repo is still checked out (path<br/>renamed logseq-source to vault-source, trigger renamed logseq-sync<br/>to corpus-sync :14-15) but it no longer runs anyone's pipeline in<br/>place: `vault build` reads it via --repo and writes output/vault.<br/>scripts/ontology/pack-pod-resources.py remains this repo's own<br/>script, unchanged, run from the repo root :239. see VG-04.1, KG-05
+    Note over GH,BLD: 2026-10 (805219679) — a corpus-sync dispatch may name the<br/>source repo :36 and sha :100, and the build job checks out exactly<br/>the sha validate-source detected :160, so a build can no longer<br/>publish a later corpus commit than the one it validated
     Note over SRV,MIS: RESOLVED ADR-2106 (2026-09-06): deploy-jss had never<br/>run and could not from a hosted runner — delivery inverted to a<br/>boot pull from the ontology-latest release. see ES-08.11
 ```
 
@@ -570,29 +573,34 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant GH as pull request touching xr-client/** or manual dispatch (the push trigger was removed 2026-11-10)<br/>xr-godot-ci.yml:26-39
-    participant RT as xr-rust-tests job<br/>xr-godot-ci.yml:57 blocking
-    participant GUT as gut-headless job<br/>xr-godot-ci.yml:81 blocking
-    participant Q3 as quest3-android job<br/>xr-godot-ci.yml:141 advisory
+    participant GH as pull request touching xr-client/** or manual dispatch (the push trigger was removed 2026-11-10)<br/>xr-godot-ci.yml:26-40
+    participant RT as xr-rust-tests job<br/>xr-godot-ci.yml:58 blocking
+    participant GUT as gut-headless job<br/>xr-godot-ci.yml:82 blocking
+    participant Q3 as quest3-android job<br/>xr-godot-ci.yml:142 advisory, manual only :145
 
-    GH->>RT: cargo test -p visionclaw-xr-gdext --all-features :77
-    RT->>RT: cargo test -p visionclaw-xr-presence :79
-    GH->>GUT: cargo build -p visionclaw-xr-gdext (debug cdylib) :98
-    GUT->>GUT: launch-guard tests, then fail if the library Godot loads is older<br/>than its Rust source :99-102
-    GUT->>GUT: install GL display deps, xvfb and mesa :103-104
-    GUT->>GUT: install Godot 4.8-beta2, verify SHA-512 before unzip :51-53, :105-112
-    GUT->>GUT: check the committed GUT pin is 9.6.1, not a fetched tag :113-117
-    GUT->>GUT: godot --headless --editor --xr-mode off --import, log kept :123
-    GUT->>GUT: xvfb-run godot gl_compatibility -s gut_cmdln.gd, log kept :125-127
-    GUT->>GUT: GUT guard fails on any parse or compile error or a short script count :128-131
-    Note over GUT: the job is still named gut-headless :81 but the suite runs<br/>under a virtual GL display, because the world-space HUD fit<br/>gate needs real GL font metrics :124
-    GH->>Q3: continue-on-error true :145
-    Q3->>Q3: cargo ndk build aarch64-linux-android :169
-    Q3->>Q3: export Quest 3 arm64 APK :185-194
-    Q3->>Q3: APK size gate, fail if greater than 80MB :195-200
-    Note over GH,Q3: Workflow definition only, repository Actions disabled<br/>xr-godot-ci.yml:16
+    GH->>RT: cargo test -p visionclaw-xr-gdext --all-features :78
+    RT->>RT: cargo test -p visionclaw-xr-presence :80
+    GH->>GUT: cargo build -p visionclaw-xr-gdext (debug cdylib) :99
+    GUT->>GUT: launch-guard tests, then fail if the library Godot loads is older<br/>than its Rust source :100-103
+    GUT->>GUT: install GL display deps, xvfb and mesa :104-105
+    GUT->>GUT: install Godot 4.8-beta2, verify SHA-512 before unzip :52-54, :106-113
+    GUT->>GUT: check the committed GUT pin is 9.6.1, not a fetched tag :114-118
+    GUT->>GUT: godot --headless --editor --xr-mode off --import, log kept :124
+    GUT->>GUT: xvfb-run godot gl_compatibility -s gut_cmdln.gd, log kept :126-128
+    GUT->>GUT: GUT guard fails on any parse or compile error or a short script count :129-132
+    Note over GUT: the job is still named gut-headless :82 but the suite runs<br/>under a virtual GL display, because the world-space HUD fit<br/>gate needs real GL font metrics :125
+    opt workflow_dispatch only :145 (gated 2026-11-15, Actions volume)
+        GH->>Q3: continue-on-error true :148
+        Q3->>Q3: cargo ndk build aarch64-linux-android :172
+        Q3->>Q3: export Quest 3 arm64 APK :188-197
+        Q3->>Q3: APK size gate, fail if greater than 80MB :198-203
+    end
+    Note over GH,GUT: Cargo.lock no longer triggers this workflow (dropped 2026-11-15):<br/>a dependency-only pull request is left to ci.yml rust-cpu, which<br/>builds visionclaw-xr-presence (:37-38, project/.github/workflows/ci.yml:106)
+    Note over GH,Q3: Workflow header says Actions is off on this repo, see the drift below<br/>xr-godot-ci.yml:16
     Note over Q3: advisory until first green hosted run,<br/>then promote to blocking (per file header comment)
 ```
+
+**Drift (Actions status):** the workflow header says Actions is off on this repo (`../project/.github/workflows/xr-godot-ci.yml:16`), but ADR-2037's 2026-11-15 review records `dev-auth-release-gate` passing on pull request #44 (`../project/docs/adr/ADR-2037-production-build-excludes-dev-auth.md:212`), and the 2026-11-15 workflow commit `d1d3fa0d5` describes the change as cutting Actions volume, not as running none. Actions is restricted, not shown to be off, so the manual-only gating of the advisory jobs in ES-09.11, ES-09.12 and ES-09.14 is a cost control rather than a record that nothing runs.
 
 ## ES-09.15 agentbox invariants.yml — security invariant gates including loopback-publish
 ```mermaid
@@ -631,7 +639,7 @@ sequenceDiagram
     J->>J: adr-index-gen.js docs/adr --check-index (ADR-2001) invariants.yml:290
     J->>J: N-7 render-egress-register.js --check invariants.yml:297 - see ES-09.24
     J->>J: adr-ratchet self-test invariants.yml:300, evidence-gate self-test (VisionFlow ADR-2007) invariants.yml:303,<br/>then adr-ratchet.sh over the push range invariants.yml:305-308
-    Note over J: the ratchet script is byte-identical to the host copy at both stamps<br/>(same sha256, agentbox/scripts/adr-ratchet.sh:45 carries the same 2026-10-20<br/>end date) so both ledgers run one rule. The copy at VisionClaw's agentbox<br/>gitlink 4f41f77be is byte-identical too. see ES-09.12
+    Note over J: the ratchet script is byte-identical to the host copy at both stamps<br/>(same sha256, agentbox/scripts/adr-ratchet.sh:45 carries the same 2026-10-20<br/>end date) so both ledgers run one rule. The copy at VisionClaw's agentbox<br/>gitlink ca5b4152a is byte-identical too. see ES-09.12
     J->>J: check-crate-licensing.sh invariants.yml:311
     Note over J: DRIFT resolved — the vault-frontmatter unit test step<br/>(node --test mcp/servers/lib/__tests__/*.test.js) is GONE:<br/>ADR-2107/ADR-2108 deleted the V2 frontmatter writer it gated<br/>along with the ontology write path. The workflow comment now names<br/>ontomark validate as the successor contract check, run against the<br/>corpus not a helper (invariants.yml:276-279).
 ```

@@ -15,7 +15,7 @@ sources:
   - ../ontomark/crates/ontomark-compile/src/build/mod.rs
   - ../ontomark/crates/ontomark-compile/src/build/generation.rs
   - ../ontomark/crates/ontomark-compile/src/build/publish.rs
-verified_commit: {visiongraph: d8277151a1404b456b5c7206187f7e4b50f25be1, visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, ontomark: 6159bb6089753105ef839fd4aac46c1598a64bd2}
+verified_commit: {visiongraph: 1df8eb49051b6e55f35ea493b3c42e79ffd77bb8, visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16, ontomark: fbe30244c6842879297883b571965f5bc1ce0441}
 ---
 
 ## For developers
@@ -37,7 +37,7 @@ flowchart TB
     WHY["Different consumer predicates<br/>local inclusion does not grant site publication"]
     PAGE --> SITE --> PROJECT --> WHY
     LOCAL --> WHY
-    %% Source: crates/ontomark-compile/src/input/page.rs:269
+    %% Source: crates/ontomark-compile/src/input/page.rs:272
     %% Source: crates/ontomark-compile/src/build/publish.rs:200
     %% Source: crates/ontomark-compile/src/build/mod.rs:709
     %% Source: crates/ontomark-compile/src/build/mod.rs:752
@@ -45,7 +45,7 @@ flowchart TB
     %% Source: crates/visionclaw-domain/src/vault/mod.rs:168
 ```
 
-**What it shows:** exact predicate differences and the compiler's projection order; these source functions replace the older blanket invariant list (`input/page.rs:269`, `vault/mod.rs:168`, `build/mod.rs:772`).
+**What it shows:** exact predicate differences and the compiler's projection order; these source functions replace the older blanket invariant list (`input/page.rs:272`, `vault/mod.rs:168`, `build/mod.rs:772`).
 **Why it is this way:** local structural graph inclusion and public release are different policies; ADR-VG-001 requires those differences and their diagnostics to be intentional and tested (`ADR-VG-001-publication-policy-boundaries.md:32`).
 
 ## VG-05.2 Proposed acceptance requirements remain open
@@ -74,23 +74,24 @@ flowchart TB
 ```mermaid
 flowchart TB
     INPUT["Digest source page hashes and vocabulary<br/>track source commit and dirty state"]
-    MARKER["Generation fields include content/ontology digests<br/>counts, vocabulary version, scope and artefact hashes"]
+    MARKER["Generation fields include content/ontology digests<br/>counts, vocabulary version, scope and artefact hashes<br/>and the compiler that built it (built_by, optional)"]
     TWO["Root marker plus data-scoped marker<br/>root includes data marker, neither includes itself"]
     SITE["Workflow then overlays static files<br/>compresses selected outputs and adds UI/notices"]
     GAP["OPEN: final bytes and loaded consumers<br/>need their own generation binding"]
     INPUT --> MARKER --> TWO --> SITE --> GAP
-    %% Source: crates/ontomark-compile/src/build/mod.rs:1084
-    %% Source: crates/ontomark-compile/src/build/mod.rs:1093
-    %% Source: crates/ontomark-compile/src/build/generation.rs:90
-    %% Source: crates/ontomark-compile/src/build/mod.rs:1126
-    %% Source: .github/workflows/publish.yml:260
-    %% Source: .github/workflows/publish.yml:359
-    %% Source: .github/workflows/publish.yml:450
+    %% Source: crates/ontomark-compile/src/build/mod.rs:1102
+    %% Source: crates/ontomark-compile/src/build/mod.rs:1111
+    %% Source: crates/ontomark-compile/src/build/generation.rs:92
+    %% Source: crates/ontomark-compile/src/build/generation.rs:95
+    %% Source: crates/ontomark-compile/src/build/mod.rs:1144
+    %% Source: .github/workflows/publish.yml:261
+    %% Source: .github/workflows/publish.yml:370
+    %% Source: .github/workflows/publish.yml:460
     %% Source: docs/adr/ADR-VG-002-generation-and-consumer-identity.md:49
 ```
 
-**What it shows:** a real compiler manifest now exists; it lacks the complete final-site and loaded-consumer identity contract proposed by the ADR (`generation.rs:90`, `ADR-VG-002-generation-and-consumer-identity.md:49`).
-**Why it is this way:** compiler emission precedes publication transformations; the earlier public-receipt audit found one static-context hash mismatch at that boundary without establishing malicious alteration (`build/mod.rs:1133`, `publish.yml:260`).
+**What it shows:** a real compiler manifest now exists; it lacks the complete final-site and loaded-consumer identity contract proposed by the ADR (`generation.rs:92`, `ADR-VG-002-generation-and-consumer-identity.md:49`).
+**Why it is this way:** compiler emission precedes publication transformations; the earlier public-receipt audit found one static-context hash mismatch at that boundary without establishing malicious alteration (`build/mod.rs:1151`, `publish.yml:261`).
 
 ## VG-05.4 Historical failures, repairs and successor boundaries
 

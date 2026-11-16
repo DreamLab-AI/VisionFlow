@@ -23,19 +23,19 @@ sources:
   - ../project/src/services/ontology_pull.rs
   - ../project/docs/adr/ADR-2147-inferences-carry-a-re-checkable-certificate-and-proposals-carry-a-consequence-delta.md
   - ../dreamlab-ai-website/forum-config/Cargo.toml
-verified_commit: {dreamlab-ai-website: f934e26f949f3b95171544ec8ec5bcfd7679f593, knowledgegraph: 5294e88b6602a63b5afe96c79f2779d00274a05e, visionclaw: 2e7ecc2e731ed475982176d522877d9c89e3ff51, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c, visiongraph: d8277151a1404b456b5c7206187f7e4b50f25be1, vowl-wasm: 2aff199e2de06f4bba512301acf7023477c492ac}
+verified_commit: {dreamlab-ai-website: f934e26f949f3b95171544ec8ec5bcfd7679f593, knowledgegraph: 5294e88b6602a63b5afe96c79f2779d00274a05e, visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c, visiongraph: 1df8eb49051b6e55f35ea493b3c42e79ffd77bb8, vowl-wasm: 2aff199e2de06f4bba512301acf7023477c492ac}
 ---
 ## ES-11.1 The publishing axis — six cross-repo edges, each previously drawn from one side only
 ```mermaid
 flowchart TB
     subgraph AUTHOR["Authoring"]
         VG["EXTERNAL: visionGraph — the vault<br/>private, jjohare/visionGraph. see VG-01"]
-        OM["EXTERNAL: DreamLab-AI/ontomark — the released CLI<br/>v0.8.0 pinned by tag AND sha256, no build-from-source fallback<br/>publish.yml:48-51. see OM-03"]
+        OM["EXTERNAL: DreamLab-AI/ontomark — the released CLI<br/>v0.9.0 pinned by tag AND sha256, no build-from-source fallback<br/>publish.yml:48-51. see OM-03"]
     end
     subgraph PUB["Publication"]
-        PUBYML["visionGraph publish.yml<br/>publish.yml:535-536 peaceiris/actions-gh-pages pinned SHA"]
+        PUBYML["visionGraph publish.yml<br/>publish.yml:544-545 peaceiris/actions-gh-pages pinned SHA"]
         KG["EXTERNAL: knowledgeGraph — Pages host<br/>CNAME:1 narrativegoldmine.com. see KG-01"]
-        REL["VisionClaw ontology-latest release<br/>ontology-publish.yml:301,332. see ES-09.13"]
+        REL["VisionClaw ontology-latest release<br/>ontology-publish.yml:295,326. see ES-09.13"]
     end
     subgraph CONSUME["Consumption"]
         POD["VisionClaw embedded pod<br/>ontology_pull.rs:303. see ES-08.11"]
@@ -48,17 +48,17 @@ flowchart TB
         DW["EXTERNAL: dreamlab-ai-website<br/>KIT_REF rust-ci.yml:20. see DW-01"]
     end
 
-    OM -->|"edge 17 - CHANGED 2026-10: publish.yml fetches the released ontomark CLI<br/>by tag and digest, publish.yml:98-115; the VisionClaw vault<br/>binary is no longer its producer"| PUBYML
+    OM -->|"edge 17 - CHANGED 2026-10: publish.yml fetches the released ontomark CLI<br/>by tag and digest, publish.yml:99-116; the VisionClaw vault<br/>binary is no longer its producer"| PUBYML
     VG -->|"edge 11 - cross-ORG deploy"| PUBYML
-    PUBYML -->|"external_repository DreamLab-AI/knowledgeGraph<br/>publish_branch gh-pages, publish.yml:539-540"| KG
-    PUBYML -->|"edge 9 - since 2026-10 the SAME publish run dispatches<br/>corpus-sync with source_repo and source_sha, publish.yml:545-551,<br/>received at ontology-publish.yml:20-21, built at that sha :106"| REL
+    PUBYML -->|"external_repository DreamLab-AI/knowledgeGraph<br/>publish_branch gh-pages, publish.yml:548-549"| KG
+    PUBYML -->|"edge 9 - since 2026-10 the SAME publish run dispatches<br/>corpus-sync with source_repo and source_sha, publish.yml:554-560,<br/>received at ontology-publish.yml:14-15, built at that sha :100"| REL
     REL --> POD
     KG -->|"edge 16 - /ns/v2.jsonld is the contract<br/>consumers dereference, roster.json:38-43"| LOOM
     KG -->|"edge 12"| EXPL
     VW --> EXPL
     NF -->|"edge 13 - source clone at KIT_REF for the client and workers,<br/>plus the library crates from crates.io at exact versions"| DW
 
-    INV["INVARIANT - ONE authored corpus, TWO distribution paths.<br/>The gh-pages deploy publishes the browsable site to<br/>narrativegoldmine.com; the release feeds the embedded pod<br/>by boot pull. Neither is the other's fallback: a change to<br/>the vault reaches consumers by BOTH routes. The release is now<br/>triggered by the publish run itself, after the gh-pages deploy,<br/>and builds the corpus commit that run published, so the two<br/>routes start from one commit, while the pod still picks the<br/>release up on its own pull clock. Each route also carries a<br/>re-checkable derivation certificate (publish.yml:216-231,<br/>ontology-publish.yml:194-205). see ES-09.13 and ES-08.11"]
+    INV["INVARIANT - ONE authored corpus, TWO distribution paths.<br/>The gh-pages deploy publishes the browsable site to<br/>narrativegoldmine.com; the release feeds the embedded pod<br/>by boot pull. Neither is the other's fallback: a change to<br/>the vault reaches consumers by BOTH routes. The release is now<br/>triggered by the publish run itself, after the gh-pages deploy,<br/>and builds the corpus commit that run published, so the two<br/>routes start from one commit, while the pod still picks the<br/>release up on its own pull clock. Each route also carries a<br/>re-checkable derivation certificate (publish.yml:217-232,<br/>ontology-publish.yml:188-199). see ES-09.13 and ES-08.11"]
     GAP["Why this topic exists - before it, estate/ named none of<br/>vowl-wasm, KIT_REF, narrativegoldmine, roster.json, gh-pages<br/>or the CLI provisioning edge (then a vault binary, now the pinned ontomark release). Each was drawn only<br/>from the repo that owns one END of it, so a contributor<br/>changing a pin had no diagram showing who breaks."]
 
     PUBYML --> INV
@@ -77,25 +77,27 @@ sequenceDiagram
     participant KG as "EXTERNAL: DreamLab-AI/knowledgeGraph"<br/>see KG-05
     participant VC as "EXTERNAL: DreamLab-AI/VisionClaw"<br/>see VC-21
 
-    VG->>OM: gh release download ONTOMARK_RELEASE_TAG, then sha256sum --check --strict, publish.yml:98-115
-    Note over VG,OM: no fallback - a run that cannot obtain the pinned release<br/>fails, publish.yml:100-106 and the comment at publish.yml:41-47
-    VG->>VG: ontomark validate --vault all, the source gate, publish.yml:127-135
-    VG->>VG: collision lint, one concept one page, fails on title or alias collisions, publish.yml:144-145
-    VG->>WWW: ontomark build --vault all --out site-data<br/>--publish-out quartz/content --certificate-out, publish.yml:174-180
-    VG->>OO: download the pinned oo-cert, check its sha256, publish.yml:224-227
-    OO-->>VG: re-derives every certificate line from its premises or exits 1<br/>site-data/certificate/ ships with the site, publish.yml:228-231
-    VG->>VG: body residue check now STOPS the publish on Logseq outline residue, publish.yml:245-250
-    VG->>VG: verify the space and Earth domain contract, then the supply chains<br/>and logistics domain contract, publish.yml:321-325
-    VG->>WWW: Quartz v4 renders /notes/ from staged content<br/>(replaces the old Logseq SPA), publish.yml:330-340
-    VG->>WWW: place machine artefacts at site root and check each unaltered<br/>publish.yml:342-357
-    VG->>WWW: gzip the per-page artefacts at rest, write CNAME<br/>publish.yml:359-387
-    VG->>WWW: build WasmVOWL explorer SPA at site root, publish.yml:430-471
-    VG->>KG: actions-gh-pages pinned SHA publish.yml:536<br/>external_repository :539, publish_branch :540
+    VG->>OM: gh release download ONTOMARK_RELEASE_TAG, then sha256sum --check --strict, publish.yml:99-116
+    Note over VG,OM: no fallback - a run that cannot obtain the pinned release<br/>fails, publish.yml:101-107 and the comment at publish.yml:41-47
+    VG->>VG: ontomark validate --vault all, the source gate, publish.yml:128-136
+    VG->>VG: collision lint, one concept one page, fails on title or alias collisions, publish.yml:145-146
+    VG->>WWW: ontomark build --vault all --out site-data<br/>--publish-out quartz/content --certificate-out, publish.yml:175-181
+    VG->>OO: download the pinned oo-cert, check its sha256, publish.yml:225-228
+    OO-->>VG: re-derives every certificate line from its premises or exits 1<br/>site-data/certificate/ ships with the site, publish.yml:229-232
+    VG->>VG: body residue check now STOPS the publish on Logseq outline residue, publish.yml:246-251
+    VG->>VG: gate the machine artefacts - context/v3.jsonld and ns/v3.jsonld are now required beside the v1 and v2 files,<br/>and api/v3/pages must be non-empty, publish.yml:286-287, :309
+    VG->>VG: verify the space and Earth domain contract, then the supply chains<br/>and logistics domain contract, publish.yml:325-329
+    VG->>VG: install the explorer dependencies and the Playwright browser before the long render,<br/>so a runner incompatibility fails early, the job is pinned to ubuntu-24.04, publish.yml:334-339, :56-57
+    VG->>WWW: Quartz v4 renders /notes/ from staged content<br/>(replaces the old Logseq SPA), publish.yml:341-351
+    VG->>WWW: place machine artefacts at site root and check each unaltered<br/>publish.yml:353-368
+    VG->>WWW: gzip the per-page artefacts at rest, write CNAME<br/>publish.yml:370-398
+    VG->>WWW: build WasmVOWL explorer SPA at site root, publish.yml:441-481
+    VG->>KG: actions-gh-pages pinned SHA publish.yml:545<br/>external_repository :548, publish_branch :549
     Note over VG,OM: INVARIANT - ontomark is the ONLY producer of both the machine<br/>artefacts and the Quartz content staging tree, pinned twice,<br/>by release tag and by digest, publish.yml:41-51. The pin moved from<br/>a VisionClaw vault binary to the ontomark release in 2026-10<br/>(publish.yml:17-18), so VisionClaw is no longer a build-time<br/>dependency of this pipeline.
-    Note over VG,KG: INVARIANT - this is still a CROSS-ORG, CROSS-REPO deploy:<br/>the workflow lives in jjohare/visionGraph and writes into<br/>DreamLab-AI/knowledgeGraph, authenticated by a personal_token<br/>secret (publish.yml:538). knowledgeGraph does not build the<br/>site it serves - it is a publication TARGET.
-    VG->>VC: repository_dispatch corpus-sync with source_sha, publish.yml:545-551.<br/>see ES-11.1 edge 9 and ES-09.13
+    Note over VG,KG: INVARIANT - this is still a CROSS-ORG, CROSS-REPO deploy:<br/>the workflow lives in jjohare/visionGraph and writes into<br/>DreamLab-AI/knowledgeGraph, authenticated by a personal_token<br/>secret (publish.yml:547). knowledgeGraph does not build the<br/>site it serves - it is a publication TARGET.
+    VG->>VC: repository_dispatch corpus-sync with source_sha, publish.yml:554-560.<br/>see ES-11.1 edge 9 and ES-09.13
     Note over WWW: DOC-DRIFT resolved - the old gh-pages clone-and-preserve<br/>/notes step is gone. Quartz v4 builds /notes/ fresh every<br/>run from staged content, so there is no cross-deploy<br/>carry-over left to document.
-    Note over KG: knowledgeGraph/CNAME:1 is narrativegoldmine.com - the same<br/>domain publish.yml:387 writes, so the CNAME exists on both<br/>sides of the deploy. see KG-01
+    Note over KG: knowledgeGraph/CNAME:1 is narrativegoldmine.com - the same<br/>domain publish.yml:398 writes, so the CNAME exists on both<br/>sides of the deploy. see KG-01
 ```
 
 ## ES-11.3 Edge 12 - two VOWL explorers, two divergent bundle pins
@@ -113,7 +115,7 @@ flowchart LR
     CRATE -->|"published as a GitHub release asset"| KGP
     CRATE -->|"published as a GitHub release asset"| VGP
 
-    D1["DOC-DRIFT - the two consumers are a MINOR version apart, though<br/>both now fetch a release tarball over HTTPS. knowledgeGraph<br/>stays on the frozen v0.1.1 tarball; visionGraph moved to v0.2.3.<br/>A vowl-wasm release therefore reaches one explorer and not the<br/>other. The only version-named check is visionGraph's own<br/>0.2.3 notice file, publish.yml:490, not a comparison of the two."]
+    D1["DOC-DRIFT - the two consumers are a MINOR version apart, though<br/>both now fetch a release tarball over HTTPS. knowledgeGraph<br/>stays on the frozen v0.1.1 tarball; visionGraph moved to v0.2.3.<br/>A vowl-wasm release therefore reaches one explorer and not the<br/>other. The only version-named check is visionGraph's own<br/>0.2.3 notice file, publish.yml:500, not a comparison of the two."]
     D2["DIVERGENCE - the roster carries BOTH vowl-wasm and WasmVOWL<br/>as separate first-party repositories (roster.json:16,18), and<br/>registers @dreamlab-ai/vowl-wasm on npm alongside the<br/>crates.io crate (roster.json:63,88). Neither explorer resolves<br/>from the npm copy at this revision, both pin release tarballs<br/>of the same bundle; the crate is what estate health<br/>actually measures. see VF-03.1"]
 
     KGP --> D1
@@ -140,7 +142,7 @@ sequenceDiagram
     Note over NF: EXTERNAL - this diagram asserts only what the WEBSITE's<br/>workflows state about the kit. The kit's own contract is<br/>NF's to describe. see NF-01 and DW-02
 ```
 
-**Drift (corrected 2026-11-02):** ES-11.4 said `kit-pin-guard.yml` was the only check on the five pin sites. At website `0e15728` that workflow only runs `scripts/dream-kit-pin-guard.sh` (`../dreamlab-ai-website/.github/workflows/kit-pin-guard.yml:26`), a wrapper whose logic lives in `scripts/pin-parity.mjs`. The same script runs as the `pin-check` job (`../dreamlab-ai-website/.github/workflows/ci.yml:215,225`) and in the dream cycle (`../dreamlab-ai-website/scripts/dream-kit-pin-guard.sh:4-7`). In ES-11.1 the ontomark pin read v0.6.0. visionGraph `556a015` pinned v0.7.0 and `d8277151` pins v0.8.0, each with a new digest (`../visionGraph/.github/workflows/publish.yml:49-51`).
+**Drift (corrected 2026-11-02):** ES-11.4 said `kit-pin-guard.yml` was the only check on the five pin sites. At website `0e15728` that workflow only runs `scripts/dream-kit-pin-guard.sh` (`../dreamlab-ai-website/.github/workflows/kit-pin-guard.yml:26`), a wrapper whose logic lives in `scripts/pin-parity.mjs`. The same script runs as the `pin-check` job (`../dreamlab-ai-website/.github/workflows/ci.yml:215,225`) and in the dream cycle (`../dreamlab-ai-website/scripts/dream-kit-pin-guard.sh:4-7`). In ES-11.1 the ontomark pin read v0.6.0. visionGraph `556a015` pinned v0.7.0, `d8277151` pinned v0.8.0 and `1df8eb4` now pins v0.9.0, each with a new digest (`../visionGraph/.github/workflows/publish.yml:49-51`).
 
 ## ES-11.5 Edges 14 and 15 - the roster is the estate's only enumeration, and what reads it
 ```mermaid

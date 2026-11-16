@@ -21,7 +21,7 @@ sources:
   - ../visionGraph/scripts/check-bases.sh
   - ../visionGraph/quartz/quartz/plugins/filters/explicit.ts
   - ../visionGraph/quartz/quartz.config.ts
-verified_commit: d8277151a1404b456b5c7206187f7e4b50f25be1
+verified_commit: 1df8eb49051b6e55f35ea493b3c42e79ffd77bb8
 ---
 
 ## For developers
@@ -40,7 +40,7 @@ flowchart TB
     W["working/ curator role<br/>Notes, episodes, drafts and journals<br/>vault.toml:41-50"]
     AS["One repo-level assets/ store<br/>working/assets is a symlink<br/>knowledge/assets is a synced real subset<br/>vault.toml:56-66"]
     VOC["ontology/vocabulary.yaml<br/>Vocabulary version and namespace<br/>vault.toml:17-21"]
-    %% Source: publish.yml:174-180,329-335,421-490
+    %% Source: publish.yml:175-181,341-346,432-500
     PUB["Publisher uses ontomark, Quartz and explorer<br/>Publication workflow"]
     K --> AS
     W --> AS
@@ -58,11 +58,11 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    SRC["Authored knowledge and working vaults<br/>Workflow explicitly selects --vault all<br/>publish.yml:174-180"]
-    STAGE["Compiler machine outputs and Quartz staging<br/>Public working content is included by this route<br/>publish.yml:155-159"]
+    SRC["Authored knowledge and working vaults<br/>Workflow explicitly selects --vault all<br/>publish.yml:175-181"]
+    STAGE["Compiler machine outputs and Quartz staging<br/>Public working content is included by this route<br/>publish.yml:156-160"]
     QUARTZ["Quartz configured with key public<br/>quartz.config.ts:126"]
     FILTER["ExplicitPublish accepts boolean true<br/>OR the exact string true<br/>explicit.ts:23-25"]
-    SITE["www/ deployed to knowledgeGraph gh-pages<br/>Then a VisionClaw refresh request is sent<br/>publish.yml:535-551"]
+    SITE["www/ deployed to knowledgeGraph gh-pages<br/>Then a VisionClaw refresh request is sent<br/>publish.yml:544-560"]
     SRC --> STAGE --> QUARTZ --> FILTER --> SITE
     LIMIT["TENSION: README describes typed true only<br/>The downstream predicate is more permissive<br/>visionGraph/README.md:143-145<br/>Upstream compiler filtering is a separate boundary"]
     FILTER --- LIMIT
@@ -78,7 +78,7 @@ flowchart TB
     HIST["September publication evidence is historical<br/>Retired Python behaviour is not a current runbook<br/>PUBLICATION-contract.md:3-8"]
     %% Source: ADR-VG-003-obsidian-only-authoring.md:25-33
     RETIRE["ADR-VG-003 retires Logseq authoring and fallbacks<br/>Keep rejection tests and provenance history<br/>ADR-VG-003 decision"]
-    GATE["Current workflow validates through ontomark<br/>Then checks body repair and other release gates<br/>publish.yml:127-145,248-253"]
+    GATE["Current workflow validates through ontomark<br/>Then checks body repair and other release gates<br/>publish.yml:128-146,249-254"]
     ACCEPT["Inclusion and generation decisions remain proposed<br/>ADR-VG-001 and ADR-VG-002: partial, inactive<br/>docs/adr/README.md:13-14"]
     HIST --> RETIRE --> GATE --> ACCEPT
     LIMIT["OPEN: retiring old code does not certify<br/>visibility, identity or consumer activation<br/>PUBLICATION-contract.md:20-26"]
@@ -96,11 +96,11 @@ flowchart TB
     W["working role declares unknown_keys=allow<br/>publishable=false and reasoned=false<br/>vault.toml:41-50"]
     DEFAULT["Build defaults to knowledge, public_only=true<br/>Domain-root disjointness disabled<br/>vault.toml:74-80"]
     PUBLISH["Publish section says knowledge-only content<br/>and working excluded<br/>vault.toml:144-153"]
-    ACTUAL["TENSION: active workflow passes --vault all<br/>and stages public working content too<br/>publish.yml:155-180"]
+    ACTUAL["TENSION: active workflow passes --vault all<br/>and stages public working content too<br/>publish.yml:156-181"]
     K --> DEFAULT
     W --> DEFAULT
     DEFAULT --> PUBLISH --> ACTUAL
-    PIN["DRIFT: README says v0.2.0, rules say v0.5.0<br/>Workflow pins ontomark v0.8.0 and SHA-256<br/>visionGraph/README.md:66, CLAUDE.md:23, publish.yml:48-51"]
+    PIN["DRIFT: README says v0.2.0, rules say v0.5.0<br/>Workflow pins ontomark v0.9.0 and SHA-256<br/>visionGraph/README.md:66, CLAUDE.md:23, publish.yml:48-51"]
     ACTUAL --- PIN
 ```
 

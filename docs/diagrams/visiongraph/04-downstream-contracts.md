@@ -14,7 +14,7 @@ sources:
   - ../project/src/services/ontology_generation.rs
   - ../project/src/main.rs
   - ../ontomark/crates/ontomark-compile/src/build/generation.rs
-verified_commit: {visiongraph: d8277151a1404b456b5c7206187f7e4b50f25be1, visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, ontomark: 6159bb6089753105ef839fd4aac46c1598a64bd2}
+verified_commit: {visiongraph: 1df8eb49051b6e55f35ea493b3c42e79ffd77bb8, visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16, ontomark: fbe30244c6842879297883b571965f5bc1ce0441}
 ---
 
 ## For developers
@@ -38,28 +38,33 @@ flowchart TB
     PUSH["Optional direct PUT job<br/>only when SOLID_POD_URL variable is configured"]
     EVENT --> SOURCE --> BUILD --> PACK --> RELEASE --> PULL
     PACK --> PUSH
-    %% Source: visionGraph/.github/workflows/publish.yml:545
-    %% Source: project/.github/workflows/ontology-publish.yml:102
-    %% Source: project/.github/workflows/ontology-publish.yml:164
-    %% Source: project/.github/workflows/ontology-publish.yml:178
-    %% Source: project/.github/workflows/ontology-publish.yml:191
+    NOTE["DEBT: pull_request trigger and PR-preview job removed 2026-11-15<br/>conditions testing for a pull request remain<br/>ontology-publish.yml:12-13,33,299,370"]
+    BUILD --- NOTE
+    %% Source: project/.github/workflows/ontology-publish.yml:12
+    %% Source: project/.github/workflows/ontology-publish.yml:33
+    %% Source: project/.github/workflows/ontology-publish.yml:299
+    %% Source: visionGraph/.github/workflows/publish.yml:554
+    %% Source: project/.github/workflows/ontology-publish.yml:96
+    %% Source: project/.github/workflows/ontology-publish.yml:158
+    %% Source: project/.github/workflows/ontology-publish.yml:172
+    %% Source: project/.github/workflows/ontology-publish.yml:185
     %% Source: scripts/ontology/pack-pod-resources.py:116
-    %% Source: project/.github/workflows/ontology-publish.yml:320
-    %% Source: project/.github/workflows/ontology-publish.yml:376
+    %% Source: project/.github/workflows/ontology-publish.yml:314
+    %% Source: project/.github/workflows/ontology-publish.yml:370
     %% Source: src/main.rs:927
     %% Source: src/services/ontology_pull.rs:303
     %% Source: src/services/ontology_pull.rs:403
 ```
 
-**What it shows:** the workflow still builds VisionClaw's `vault`, while the site uses the released `ontomark`; the pod pull is wired into server startup, but this source map does not prove a running deployment's configuration (`ontology-publish.yml:178`, `publish.yml:48`, `src/main.rs:927`).
-**Why it is this way:** the release route supports pull-based delivery; its default rolling URL and the optional push job are distinct delivery paths, and a successful dispatch is not an activation acknowledgement (`ontology_pull.rs:41`, `ontology-publish.yml:376`).
+**What it shows:** the workflow still builds VisionClaw's `vault`, while the site uses the released `ontomark`; the pod pull is wired into server startup, but this source map does not prove a running deployment's configuration (`ontology-publish.yml:172`, `publish.yml:48`, `src/main.rs:927`).
+**Why it is this way:** the release route supports pull-based delivery; its default rolling URL and the optional push job are distinct delivery paths, and a successful dispatch is not an activation acknowledgement (`ontology_pull.rs:41`, `ontology-publish.yml:370`).
 
 ## VG-04.3 Source, bundle, deployment and loaded identity differ
 
 ```mermaid
 flowchart TB
     SOURCE["Authored source revision"]
-    SITE["Site compiler marker<br/>source commit, content and ontology digests<br/>output hashes, scope and vocabulary version"]
+    SITE["Site compiler marker<br/>source commit, content and ontology digests<br/>output hashes, scope, vocabulary version<br/>and compiler identity (built_by, absent in legacy bundles)"]
     PUBLIC["Distribution commit and served site bytes<br/>post-build transformations require their own receipt"]
     POD["Pod index records sourceSha separately<br/>buildSha comes from VisionClaw GITHUB_SHA"]
     CHECK["Puller compares stored buildSha and sourceSha<br/>and requires an existing atomic generation"]
@@ -70,8 +75,9 @@ flowchart TB
     CHECK -->|"same build and source"| SKIP
     CHECK -->|"different build or source"| ACTIVATE
     %% Source: docs/PUBLICATION-contract.md:14
-    %% Source: crates/ontomark-compile/src/build/generation.rs:90
-    %% Source: visionGraph/.github/workflows/publish.yml:359
+    %% Source: crates/ontomark-compile/src/build/generation.rs:92
+    %% Source: crates/ontomark-compile/src/build/generation.rs:95
+    %% Source: visionGraph/.github/workflows/publish.yml:370
     %% Source: scripts/ontology/pack-pod-resources.py:116
     %% Source: src/services/ontology_pull.rs:207
     %% Source: src/services/ontology_pull.rs:325-327

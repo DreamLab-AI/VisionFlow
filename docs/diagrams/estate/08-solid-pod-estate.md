@@ -46,7 +46,7 @@ sources:
   - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
   - ../project/agentbox/docs/adr/ADR-2099-the-chain-is-the-ledger-of-record.md
   - ../project/agentbox/docs/proposals/sovereign-settlement.md
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a, solid-pod-rs: bc6d9d837bfb7638a4e7698fba9b8c22f4152cf2, nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c}
+verified_commit: {visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16, agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a, solid-pod-rs: bc6d9d837bfb7638a4e7698fba9b8c22f4152cf2, nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c}
 ---
 ## ES-08.1 Four coexisting Solid-pod deployments — topology contrast
 
@@ -329,7 +329,7 @@ sequenceDiagram
     Note over H: agentbox/docs/user/solid-pod.md:56 PATCH dialects table<br/>N3 Patch, SPARQL-Update, JSON Patch matches this handler's dialect set
 ```
 
-**Tension (PATCH on a non-N-Triples resource):** `Graph::parse_ntriples` returns an error on the first line that is not an N-Triples statement (`../solid-pod-rs/crates/solid-pod-rs/src/ldp.rs:826-837`, read at the `v0.5.0-alpha.21` tag VisionClaw pins), and the handler turns that error into an empty graph (`../project/src/handlers/solid_proxy_handler.rs:786-789`). A PATCH against a Turtle or JSON-LD resource, which is what `putResource` writes by default (`../project/client/src/services/solidPod/ldpClient.ts:153-157`), therefore stores only the patch's own triples as `application/n-triples` (`../project/src/handlers/solid_proxy_handler.rs:805-812`) and drops the previous content. The VisionClaw client never sends PATCH (ES-08.3), so no in-repo caller hits this; any other Solid client could. This was traced in source only and not reproduced. Closing it means refusing the PATCH (409 or 415) when the stored body does not parse, or parsing by the stored content type.
+**Tension (PATCH on a non-N-Triples resource):** `Graph::parse_ntriples` returns an error on the first line that is not an N-Triples statement (`../solid-pod-rs/crates/solid-pod-rs/src/ldp.rs:826-837`, read at the `v0.5.0-alpha.22` tag, commit `bc6d9d8`; VisionClaw now requires the crates.io alpha.22 version, and the match between that published crate and this commit was not checked), and the handler turns that error into an empty graph (`../project/src/handlers/solid_proxy_handler.rs:786-789`). A PATCH against a Turtle or JSON-LD resource, which is what `putResource` writes by default (`../project/client/src/services/solidPod/ldpClient.ts:153-157`), therefore stores only the patch's own triples as `application/n-triples` (`../project/src/handlers/solid_proxy_handler.rs:805-812`) and drops the previous content. The VisionClaw client never sends PATCH (ES-08.3), so no in-repo caller hits this; any other Solid client could. This was traced in source only and not reproduced. Closing it means refusing the PATCH (409 or 415) when the stored body does not parse, or parsing by the stored content type.
 
 ## ES-08.7 Client pod resource model
 
@@ -537,7 +537,7 @@ flowchart TB
     TXO --> PRE
 
     NOTLIVE["STATUS — decision_status proposed, implementation_status PARTIAL<br/>on both records: owner decision Q17 (2026-10-02) ordered the crypto items<br/>done under D2's pinned golden fixtures; D1 and D6 landed, D4, D5, D7, D8 not built<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:5-7, ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:133-172,<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:5-7. The crate record says staged<br/>and unreleased, the forum record inactive. see ES-03.11"]
-    DRIFT["DRIFT — D1 and D6 are released and included in both consumer source pins:<br/>VisionClaw alpha.21 and Agentbox alpha.22.<br/>Release ancestry corrects the record's unreleased wording.<br/>It does not establish running-image activation.<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:7,135<br/>agentbox/lib/solid-pod-rs.nix:66,69"]
+    DRIFT["DRIFT — D1 and D6 are released and included in both consumer source pins:<br/>VisionClaw alpha.22 (crate) and Agentbox alpha.22 (Nix rev).<br/>Release ancestry corrects the record's unreleased wording.<br/>It does not establish running-image activation.<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:7,135<br/>agentbox/lib/solid-pod-rs.nix:66,69"]
     NOTLIVE --> DRIFT
     PORT --> NOTLIVE
 
@@ -545,7 +545,7 @@ flowchart TB
     CRYPTO --> THREE
 ```
 
-**Drift (ADR-2008 release status):** the record says D1 and D6 landed on `main` unreleased and keeps `activation_status: staged` (`../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:7`, `../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:135`). Its repair commits `0befa5b` and `e62d028` are ancestors of the alpha.21 and alpha.22 source pins used by VisionClaw and Agentbox respectively (`../project/Cargo.toml:240`, `../project/agentbox/lib/solid-pod-rs.nix:66,69`). The unreleased wording is stale. Release ancestry alone does not settle the recorded activation status or prove which image is running.
+**Drift (ADR-2008 release status):** the record says D1 and D6 landed on `main` unreleased and keeps `activation_status: staged` (`../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:7`, `../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:135`). Its repair commits `0befa5b` and `e62d028` are ancestors of the alpha.22 release that both consumers pin, VisionClaw as a crates.io version and Agentbox as a Nix rev (`../project/Cargo.toml:240`, `../project/agentbox/lib/solid-pod-rs.nix:66,69`). The unreleased wording is stale. Release ancestry alone does not settle the recorded activation status or prove which image is running.
 
 ## ES-08.13 Forge and mirror in the native pod — compiled in, inert until named (ADR-2145)
 
@@ -573,4 +573,4 @@ flowchart TB
 
 **Open (ADR-2019 stays partial):** the 2026-10-30 close-out found `FORGE_MIRROR_FOLLOW` empty in the running pod, so no `mirror on kind-30618` line (`../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:5387`) is logged and the shipped follow list (the operator's own key) is not wired. Closing it is an agentbox change to the pod launcher, and the record's `review_trigger` names it as the event that completes ADR-2019 (`docs/adr/ADR-2019-forge-and-mirror-on-in-shipped-pods.md:13`). The running-pod observation is the close-out's; this audit did not inspect the pod.
 
-**Drift:** Agentbox's pod guide still names alpha.13 (`../project/agentbox/docs/user/solid-pod.md:37`) and its baseline alpha.17 (`../project/agentbox/docs/BASELINE-container.md:283`), while its Nix source pin is alpha.22 at `bc6d9d8` (`../project/agentbox/lib/solid-pod-rs.nix:66,69`). VisionClaw's embedded dependency remains alpha.21 (`../project/Cargo.toml:240`). The consumers therefore select different releases, though the files cited in this topic are unchanged between them. The configured cloud opt-in and the server's local-only default remain distinct (`../solid-pod-rs/crates/solid-pod-rs-server/src/jev.rs:24-33`).
+**Drift:** Agentbox's pod guide still names alpha.13 (`../project/agentbox/docs/user/solid-pod.md:37`) and its baseline alpha.17 (`../project/agentbox/docs/BASELINE-container.md:283`), while its Nix source pin is alpha.22 at `bc6d9d8` (`../project/agentbox/lib/solid-pod-rs.nix:66,69`). VisionClaw's embedded dependency is now alpha.22 as well (`../project/Cargo.toml:240`). The consumers therefore select the same release by different routes, registry crate and Nix rev, and the files cited in this topic are unchanged between alpha.21 and alpha.22. The configured cloud opt-in and the server's local-only default remain distinct (`../solid-pod-rs/crates/solid-pod-rs-server/src/jev.rs:24-33`).

@@ -24,7 +24,7 @@ sources:
   - ../knowledgeGraph/archive/logseq-era-2026-09-22/pages/ADR-012.md
   - ../visionGraph/.github/workflows/publish.yml
   - ../visionGraph/quartz/scripts/check-urls.sh
-verified_commit: {knowledgegraph: 7815bbcb9f8ab04c2e76f5f8c5c32c69a9dbc56c, visiongraph: d8277151a1404b456b5c7206187f7e4b50f25be1}
+verified_commit: {knowledgegraph: 7815bbcb9f8ab04c2e76f5f8c5c32c69a9dbc56c, visiongraph: 1df8eb49051b6e55f35ea493b3c42e79ffd77bb8}
 ---
 
 ## For developers
@@ -64,9 +64,13 @@ flowchart TB
     SET["Archived gate compares exact class identities<br/>release_gate.py:127-148"]
     HASH["Archived manifest inventories and re-hashes output<br/>manifest.py:87-135,173-197"]
     ARCH["Pipeline retired to historical archive<br/>logseq-era-2026-09-22/README.md:1-4"]
-    NEW["Current workflow checks minimum volume, domain contracts,<br/>copy hashes, compressed output, smoke and final gates<br/>publish.yml:263-325,341-373,492-520"]
+    NEW["Current workflow checks minimum volume, domain contracts,<br/>copy hashes, compressed output, smoke and final gates<br/>publish.yml:264-329,352-384,502-529"]
     LIMIT["DEBT: final notes gate compares counts, not identities<br/>check-urls.sh:116-127<br/>Equal-count replacement passes the scoped probe"]
     OLD --> SET --> HASH --> ARCH --> NEW --> LIMIT
+    %% Source: ADR-2002-corpus-is-the-ontology.md:106
+    %% Source: ADR-2003-expected-classes-tripwire.md:96
+    DRIFT["DRIFT: ADR-2002 and ADR-2003 still cite pipeline/ paths as the implementation<br/>those paths exist only under archive/logseq-era-2026-09-22/pipeline/<br/>ADR-2002:106,116, ADR-2003:96"]
+    ARCH --- DRIFT
 ```
 
 **What it shows:** The archived identity set and generation verifier are distinct from the current workflow's checks. A notes-page count can agree even when the intended page is absent.

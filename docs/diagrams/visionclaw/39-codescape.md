@@ -69,14 +69,14 @@ sources:
   - ../project/src/utils/binary_protocol.rs
   - ../project/crates/visionclaw-protocol/Cargo.toml
   - ../project/docs/XR-client.md
-verified_commit: {visionclaw: 2e7ecc2e731ed475982176d522877d9c89e3ff51, agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a, codescape: e3b76f63e801c6a8460110b93e88a0b420e9b0b4}
+verified_commit: {visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16, agentbox: 3a2c59764028e1fd8475abfda61bb3bcefab46d5, codescape: e3b76f63e801c6a8460110b93e88a0b420e9b0b4}
 ---
 
 ## For developers
 
-Consumer scope checked on 14 November 2026: VisionClaw main `2e7ecc2e731ed475982176d522877d9c89e3ff51` still pins Codescape gitlink `e3b76f63e801c6a8460110b93e88a0b420e9b0b4`. This topic retains that producer revision; the standalone Codescape area describes newer source. No deployment was requalified by this pin check.
+Consumer scope checked on 16 November 2026: VisionClaw main `d2780e26f870ce21fa92bccb29fa47f001015b16` still pins Codescape gitlink `e3b76f63e801c6a8460110b93e88a0b420e9b0b4`. This topic retains that producer revision; the standalone Codescape area describes newer source. No deployment was requalified by this pin check.
 
-Codescape is a separate section: a near-real-time 3D view of a codebase that humans and agents share by voice, with its own Cargo workspace, its own compose service and tested dependency-isolation checks (ADR-2143). It reuses the frozen V3/V5 position wire and is intended to exclude corpus access, RuVector access and signing keys; the [runtime-boundary assessment](../../estate-review/2026-11-01-codescape-runtime-boundary.md) separates verified mount and port metadata from the still-open filesystem and network guarantees. Every Codescape citation here is at `e3b76f6`, the submodule commit VisionClaw `2e7ecc2` records; standalone `main` is ahead (see VC-43 and VC-45). The agentbox hook is on agentbox `main` (ADR-2146, activity-sink.cjs:5). VC-39.8 lists what Codescape still copies from VisionClaw by hand, and what holds each copy in step.
+Codescape is a separate section: a near-real-time 3D view of a codebase that humans and agents share by voice, with its own Cargo workspace, its own compose service and tested dependency-isolation checks (ADR-2143). It reuses the frozen V3/V5 position wire and is intended to exclude corpus access, RuVector access and signing keys; the [runtime-boundary assessment](../../estate-review/2026-11-01-codescape-runtime-boundary.md) separates verified mount and port metadata from the still-open filesystem and network guarantees. Every Codescape citation here is at `e3b76f6`, the submodule commit VisionClaw `d2780e2` records; standalone `main` is ahead (see VC-43 and VC-45). The agentbox hook is on agentbox `main` (ADR-2146, activity-sink.cjs:5). VC-39.8 lists what Codescape still copies from VisionClaw by hand, and what holds each copy in step.
 
 ## For the business
 

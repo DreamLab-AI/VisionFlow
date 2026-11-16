@@ -42,7 +42,7 @@ sources:
   - .github/workflows/adr-index.yml
   - scripts/adr-ratchet.sh
   - tests/gates/estate-health-ci.test.mjs
-verified_commit: a4a6c20c34c0e298bc4a6725e71e58e00685f64c
+verified_commit: fdeab5dc36a859b3b881d7d587af067c88795217
 ---
 
 ## VF-05.1 Gate route table — trigger, script, verdict, blocking

@@ -19,7 +19,7 @@ sources:
   - ../project/agentbox/services/secret-backup/src/main.rs
   - ../project/agentbox/docs/archive/adr/ADR-024-setup-dashboard.md
   - ../project/agentbox/docs/BASELINE-container.md
-verified_commit: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a
+verified_commit: 3a2c59764028e1fd8475abfda61bb3bcefab46d5
 ---
 
 **Debt (title vs panels):** the title names secret-backup and `sources:` lists `../project/agentbox/services/secret-backup/src/main.rs`, but no panel draws it; the topic starts at AB-30.2. Either a secret-backup panel is owed or the title and source entry should go.

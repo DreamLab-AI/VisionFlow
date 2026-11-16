@@ -19,7 +19,7 @@ sources:
   - ../ontomark/crates/ontomark-cli/src/main.rs
   - ../ontomark/crates/ontomark-cli/src/migrate_cmd.rs
   - ../project/src/services/corpus_source/local.rs
-verified_commit: {ontomark: 6159bb6089753105ef839fd4aac46c1598a64bd2, visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
+verified_commit: {ontomark: fbe30244c6842879297883b571965f5bc1ce0441, visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16}
 ---
 
 ## For developers
@@ -51,7 +51,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     START["Canonicalise discovery start<br/>vocabulary.rs:507-510"] --> FIND["Walk ancestors for vocabulary<br/>vocabulary.rs:512-518"]
-    FIND --> CLI["CLI validates profile layout<br/>main.rs:659"]
+    FIND --> CLI["CLI validates profile layout<br/>main.rs:672"]
     CLI --> MIG["Selected migration role must exist in layout<br/>migrate_cmd.rs:142-145"]
     BUILD["Build validates profile layout<br/>mod.rs:645"] --> EX["Built-in exclusions plus profile additions<br/>profile.rs:530-537"]
     EX --> LOAD["Load under exact resolved role<br/>mod.rs:655-667"]
@@ -82,7 +82,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    JOURNAL["Reject linked journal root before separate walk<br/>page.rs:524-535"] --> PLAN["Planner applies the same journal-root guard<br/>plan.rs:341-349"]
+    JOURNAL["Reject linked journal root before separate walk<br/>page.rs:527-538"] --> PLAN["Planner applies the same journal-root guard<br/>plan.rs:341-349"]
     REPAIR["Body and fence repair reject linked scope roots<br/>bodies.rs:791; repair.rs:387"]
     APPLY["Resolve migration log directory and children<br/>apply.rs:145-146"] --> TARGET["Check planned target containment<br/>apply.rs:182"]
     ROLLBACK["Canonical journal must belong to repository<br/>apply.rs:298-305"] --> RESTORE["Check target before restoring bytes<br/>apply.rs:347"]

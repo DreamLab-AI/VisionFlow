@@ -52,7 +52,7 @@ sources:
   - ../nostr-rust-forum/Cargo.toml
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/payments.rs
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/pay_ledger.rs
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c, solid-pod-rs: 27e18995fc20790fa956acb41f7d8420544a13ec, nostr-rust-forum: 7e1f036ebd9ebd6c922db6f9acea041775730071}
+verified_commit: {visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16, agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c, solid-pod-rs: 27e18995fc20790fa956acb41f7d8420544a13ec, nostr-rust-forum: 7e1f036ebd9ebd6c922db6f9acea041775730071}
 ---
 ## ES-03.1 Shared wire envelope: AgentActionNotification (agentbox emit -> VisionClaw ingest)
 ```mermaid
@@ -251,7 +251,7 @@ flowchart TD
     end
 ```
 
-**Tension:** ADR-2061 is recorded `live`, but only its JS half is CI-gated; the Rust half (`cargo test --lib uri`) is not, because the crate owning `src/uri` is outside the CPU crate list (`../project/agentbox/docs/adr/ADR-2061-federation-kind-map-parity.md:232-237`). That still holds at the VisionClaw stamp: `../project/.github/workflows/ci.yml:98-99` leaves `visionclaw-server` to the GPU job, which runs on the developer's CUDA host (`../project/.github/workflows/ci.yml:279`). A one-sided artefact edit that breaks only Rust is caught locally, not in CI.
+**Tension:** ADR-2061 is recorded `live`, but only its JS half is CI-gated; the Rust half (`cargo test --lib uri`) is not, because the crate owning `src/uri` is outside the CPU crate list (`../project/agentbox/docs/adr/ADR-2061-federation-kind-map-parity.md:232-237`). That still holds at the VisionClaw stamp: the CPU job's own comment (`../project/.github/workflows/ci.yml:98`) leaves `visionclaw-server` to a GPU job, but that job was removed and the crate is compiled and run only on the developer's CUDA host (`../project/.github/workflows/ci.yml:280-281`). A one-sided artefact edit that breaks only Rust is caught locally, not in CI.
 ## ES-03.6 Content address byte-identity: sha256-12, first 6 bytes, lowercase hex (ADR-2023)
 ```mermaid
 sequenceDiagram
@@ -531,6 +531,6 @@ flowchart LR
     GATE["OPEN — the payment_settlement authority class is declared today<br/>and currently GATES NOTHING. The settlement pack is what would<br/>give it work to do.<br/>agentbox/docs/developer/economy-loop.md:270"]
     CHAIN --> GATE
 
-    SKEW["DOC-DRIFT — the forum record still reads the host at solid-pod-rs 0.4.0-alpha.15<br/>and the forum at 0.5.0-alpha.7 (ADR-2012-d1-ledger-becomes-a-chain-view.md:28-30),<br/>as does the proposal (sovereign-settlement.md:61). Both are stale: the forum workspace now<br/>requires 0.5.0-alpha.20 (nostr-rust-forum/Cargo.toml:185) and the VisionClaw checkout<br/>0.5.0-alpha.21 (project/Cargo.toml:240). The skew is narrower than recorded, still one<br/>pre-release apart, and no gate compares them. see ES-01.1"]
+    SKEW["DOC-DRIFT — the forum record still reads the host at solid-pod-rs 0.4.0-alpha.15<br/>and the forum at 0.5.0-alpha.7 (ADR-2012-d1-ledger-becomes-a-chain-view.md:28-30),<br/>as does the proposal (sovereign-settlement.md:61). Both are stale: the forum workspace now<br/>requires 0.5.0-alpha.20 (nostr-rust-forum/Cargo.toml:185) and the VisionClaw checkout<br/>0.5.0-alpha.22 (project/Cargo.toml:240). The skew is narrower than recorded, still two<br/>pre-releases apart, and no gate compares them. see ES-01.1"]
     TODAY --> SKEW
 ```
