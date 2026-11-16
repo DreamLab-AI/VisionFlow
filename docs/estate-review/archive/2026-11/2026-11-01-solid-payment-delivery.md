@@ -9,7 +9,7 @@ type: explanation
 
 Solid’s explicit provenance query exposes private metadata and returns sidecars from the wrong revision. Retrying an owner-authorised anchor charges again and advances the trail again. Separately, a canonical payment-state read outage can select stale compatibility mirrors; a subsequent payment mutation then overwrites the authoritative balance and loses pending intents. These are local reproductions against the current native server, not observations of a deployed service.
 
-This batch assesses every section of **ADR-2008** and five existing panels: **SP-07.6/.10/.13/.15/.18**. The crypto port and its golden parity are implemented. The chain-derived ledger is not. The October ADR implementation note has fallen behind the narrower public API, bundled payment commits and consumer changes. The new [parallel-implementation audit](../../2026-11-01-parallel-implementations.md) adds a separate estate-wide consolidation queue; its source-only findings are not promoted to runtime evidence by this report.
+This batch assesses every section of **ADR-2008** and five existing panels: **SP-07.6/.10/.13/.15/.18**. The crypto port and its golden parity are implemented. The chain-derived ledger is not. The October ADR implementation note has fallen behind the narrower public API, bundled payment commits and consumer changes. The new [parallel-implementation audit](2026-11-01-parallel-implementations.md) adds a separate estate-wide consolidation queue; its source-only findings are not promoted to runtime evidence by this report.
 
 ## Evidence and limits
 

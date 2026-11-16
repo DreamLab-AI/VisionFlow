@@ -1,0 +1,165 @@
+{
+  "components": [
+    "visionclaw",
+    "agentbox",
+    "nostr-rust-forum",
+    "dreamlab-ai-website",
+    "solid-pod-rs",
+    "sidestr-rs",
+    "loom",
+    "ontomark",
+    "visiongraph",
+    "knowledgegraph",
+    "dream-engine",
+    "codescape",
+    "visioncraft",
+    "sealmap",
+    "visiontouch-rs",
+    "wasmvowl",
+    "visionflow",
+    "estate"
+  ],
+  "seams": [
+    {
+      "id": "decision-attribution",
+      "title": "Who decided",
+      "between": [
+        "nostr-rust-forum",
+        "agentbox",
+        "visionclaw"
+      ],
+      "contract": "A change to shared knowledge is applied only when it cites a decision signed by a human's key and bound to the proposal it answers. Covers decide routes, attribution of approvals, write-back and receipts."
+    },
+    {
+      "id": "governance-events",
+      "title": "Governance events",
+      "between": [
+        "nostr-rust-forum",
+        "agentbox",
+        "visionclaw"
+      ],
+      "contract": "The shape of governance events (kinds 31400 to 31405): panel definitions, proposals, decisions, updates and retirements. The forum's core crate is the one definition; every other component builds and reads events that match it."
+    },
+    {
+      "id": "agent-control-api",
+      "title": "Agent control and activity",
+      "between": [
+        "agentbox",
+        "visionclaw"
+      ],
+      "contract": "How VisionClaw sees and directs agents: the management API (tasks, status), the agent-event feed into VisionClaw's ingest, and the credentials those calls carry."
+    },
+    {
+      "id": "identity",
+      "title": "Identity checks",
+      "between": [
+        "nostr-rust-forum",
+        "solid-pod-rs",
+        "agentbox",
+        "visionclaw",
+        "dreamlab-ai-website"
+      ],
+      "contract": "How a caller proves who they are across components: NIP-98 request signing, did:nostr, NIP-05, WebID, OIDC and DPoP, passkeys, session tokens, and the roles that follow from an identity."
+    },
+    {
+      "id": "key-custody",
+      "title": "Keys and secrets",
+      "between": [
+        "agentbox",
+        "nostr-rust-forum",
+        "dreamlab-ai-website",
+        "visionclaw"
+      ],
+      "contract": "Where private keys and credentials live, who can read or use them, how they are split, rotated and recovered, and which process may sign as whom."
+    },
+    {
+      "id": "forum-zones",
+      "title": "Forum zones and message keys",
+      "between": [
+        "nostr-rust-forum",
+        "dreamlab-ai-website",
+        "agentbox"
+      ],
+      "contract": "Zone membership, encryption of zone and inbox messages, key grants and their ledger, and the relay rules that admit or refuse an author."
+    },
+    {
+      "id": "pod-api",
+      "title": "Pod storage",
+      "between": [
+        "solid-pod-rs",
+        "visionclaw",
+        "agentbox",
+        "nostr-rust-forum",
+        "dreamlab-ai-website"
+      ],
+      "contract": "The pod server as others consume it: the storage and access-control interface, the forge and mirror, the crate version each consumer pins, and parity with the reference implementation where a consumer depends on it."
+    },
+    {
+      "id": "payments",
+      "title": "Value transfer",
+      "between": [
+        "sidestr-rs",
+        "solid-pod-rs",
+        "nostr-rust-forum",
+        "visionclaw",
+        "agentbox"
+      ],
+      "contract": "Anything that moves or records value: pay routes, the teller and credit ledger, settlement chains and their followers, faucets, wallets and the approval thresholds on them."
+    },
+    {
+      "id": "ontology-pipeline",
+      "title": "Ontology from corpus to consumers",
+      "between": [
+        "visiongraph",
+        "ontomark",
+        "loom",
+        "visionclaw",
+        "agentbox"
+      ],
+      "contract": "How the ontology travels: authored pages, the build that turns them into published artefacts, the Loom's served closure and its promotion, and what VisionClaw and agents read. Includes versioned context files and the parsers on each side."
+    },
+    {
+      "id": "xr-presence",
+      "title": "XR, presence and the code view",
+      "between": [
+        "visionclaw",
+        "codescape",
+        "agentbox"
+      ],
+      "contract": "The shared room: presence and roster messages, the XR client and its wire protocol, Codescape as VisionClaw mounts it, and voice into the room."
+    },
+    {
+      "id": "memory",
+      "title": "Shared memory",
+      "between": [
+        "agentbox",
+        "visionclaw"
+      ],
+      "contract": "The memory store agents and services share: its interface, embedding pipeline, namespaces and who may read or write."
+    },
+    {
+      "id": "release-pins",
+      "title": "Versions and pins across repositories",
+      "between": [
+        "estate"
+      ],
+      "contract": "What one repository assumes about another's version: crate pins, submodule gitlinks, vendored copies, compatibility records, and the release and CI steps that keep them in step."
+    },
+    {
+      "id": "nightly-cycle",
+      "title": "The nightly cycle across repositories",
+      "between": [
+        "dream-engine",
+        "agentbox",
+        "visionflow"
+      ],
+      "contract": "The autonomous nightly run as it touches other repositories: what it reads to judge health, what it may change and merge, and the ledgers it writes."
+    },
+    {
+      "id": "none",
+      "title": "Inside one component",
+      "between": [],
+      "contract": "The item concerns one component's own behaviour and no contract with another. Fixing it changes nothing a neighbour depends on."
+    }
+  ]
+}

@@ -28,6 +28,7 @@ SUITES=(
   "adr-evidence-field.test.sh"
   "adr-ratchet-evidence.test.sh"
   "pele-pin.test.sh"
+  "open-work.test.sh"
 )
 
 FAILED=()

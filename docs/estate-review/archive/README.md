@@ -9,12 +9,15 @@ type: reference
 
 Dated audit records for which no reference was found in the diagram corpus, decision records, scripts, tests, website sources, CI files or the other estate repositories. They are kept as the research history of the estate, unchanged apart from their links. For what is open now, start at [current focus](../../current-focus.md).
 
-89 records were moved here on 16 November 2026. Dated records that a diagram topic, a decision record, a script or another repository still cites stay in the [parent folder](../README.md), because moving them would break those citations.
+89 records were moved here on 16 November 2026, and three more (the findings index, the duplicate-implementations report and its remediation queue) when the [open-work register](../../open-work/README.md) replaced them the same day. Dated records that a diagram topic, a decision record, a script or another repository still cites stay in the [parent folder](../README.md), because moving them would break those citations.
 
 ## 2026-11
 
 | Record | Title |
 |---|---|
+| [2026-11-01](2026-11/2026-11-01-parallel-implementations.md) | Duplicate implementations across the estate (frozen; superseded by the open-work register) |
+| [2026-11-01](2026-11/2026-11-01-parallel-remediation.md) | Duplicate implementations: remediation queue (frozen) |
+| [2026-11-02](2026-11/2026-11-02-findings-index.md) | Audit findings index, 1 to 3 November (frozen; superseded by the open-work register) |
 | [2026-11-01](2026-11/2026-11-01-dream-diagram-corpus.md) | Dream-engine nested diagram corpus and failure identities |
 | [2026-11-01](2026-11/2026-11-01-handoff.md) | Estate audit handoff and closeout |
 | [2026-11-01](2026-11/2026-11-01-review-method-lessons.md) | Review lessons incorporated into Agentbox skills |

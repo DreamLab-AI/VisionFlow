@@ -7,6 +7,8 @@ type: explanation
 
 # Parallel implementations across the estate
 
+> **Frozen on 16 November 2026.** This report of duplicate implementations is a historical record. Every issue was imported into the register under its first id here, with any second id kept as an alias. Status is now kept in the [open-work register](../../../open-work/README.md); nothing on this page is updated.
+
 At committed HEAD, eleven review clusters filed 145 parallel-implementation records. Merging records that describe the same defect leaves 134 distinct issues. By severity there are 2 S0-crypto, 23 S1-high, 73 S2-medium and 36 S3-low. Across the 145 records, 73 are CONFIRMED-LIVE (both paths reachable), 45 PARTIAL (one side half-wired or only conditionally reachable), 25 ONE-DEAD (a shipped path with no production caller) and 2 RESOLVED-SINCE-STAMP. Counted as distinct issues, that is 68, 40, 24 and 2. Another 18 hypotheses were rejected or folded into other records; they are listed below so nobody chases them again. Both S0 items are S0 *by category* (bespoke crypto format), not because a hot path is exposed. ABI-02 is a `nostr.key.enc` reader whose writer has been deleted, and ABR-11 is a hand-encoded X.509 fallback that fails closed.
 
 The 23 S1 items fall into four groups:
