@@ -11,7 +11,7 @@ VisionClaw `5fa0e1325a2f903c175cfe67bbc6d644fcf38267` repairs payment authentica
 
 At the reviewed baseline `531df5ef7`, `extract_caller_pubkey` called the stateless Solid verifier with `req.uri()` and no body. Payment handlers therefore bypassed the existing replay cache and body-binding policy. The repair also removes a response-header panic that occurred after a resource debit: mixed-case header names now use fallible parsing instead of `HeaderName::from_static`.
 
-This assessment follows VCS-10 / XR-01 in the [parallel implementation audit](../../2026-11-01-parallel-implementations.md). It covers the payment route authentication boundary and ADR-2002's adoption claim. The combined issue also includes Solid-proxy URL reconstruction and shared fixture adoption. Those obligations remain separate from the payment repair.
+This assessment follows VCS-10 / XR-01 in the [parallel implementation audit](2026-11-01-parallel-implementations.md). It covers the payment route authentication boundary and ADR-2002's adoption claim. The combined issue also includes Solid-proxy URL reconstruction and shared fixture adoption. Those obligations remain separate from the payment repair.
 
 ## Contract and user effect
 

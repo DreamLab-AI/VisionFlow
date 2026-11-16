@@ -7,7 +7,9 @@ type: explanation
 
 # Parallel audit intake and remediation evidence
 
-Your [parallel-implementation report](2026-11-01-parallel-implementations.md) is merged into VisionFlow. Its original `d2b2a19` was rebased from `b205687` onto actual main `bc97713`, producing **`9c2ac2c`**, then fast-forwarded. Report bytes are unchanged. Nothing was pushed. Its 134 distinct issues are preserved individually in the [remediation queue](remediation/parallel-implementations-2026-11-01.json), including merged IDs, original severity, source status, anchors and proposed canonical path.
+> **Frozen on 16 November 2026.** This remediation queue is a historical record. Status is now kept in the [open-work register](../../../open-work/README.md); nothing on this page is updated.
+
+Your [parallel-implementation report](2026-11-01-parallel-implementations.md) is merged into VisionFlow. Its original `d2b2a19` was rebased from `b205687` onto actual main `bc97713`, producing **`9c2ac2c`**, then fast-forwarded. Report bytes are unchanged. Nothing was pushed. Its 134 distinct issues are preserved individually in the [remediation queue](../../remediation/parallel-implementations-2026-11-01.json), including merged IDs, original severity, source status, anchors and proposed canonical path.
 
 Importing this report does not close its issues or certify every proposed deletion. Its reachability evidence is static and pinned to the report's source revisions. Its diagram census of 121 topics is that audit's baseline; it does not replace the whole-estate completion ledger. Eighteen rejected/folded hypotheses remain in the report, including the corrected vault-core dependency finding. RuView stays excluded.
 
@@ -19,15 +21,15 @@ At Agentbox `9dfc27b16`, `RelayConsumer._verifySig` accepted id/sig strings when
 
 Five new regression tests exercise the actual loaded consumer. Four fail against the original code and all five pass after the fix. Failure cases prove that no governance notification, disk record, dedup entry or orchestrator dispatch occurs. Controls use a real signature from a known synthetic key, altered content and a malformed event. Fourteen existing forum-governance tests pass, including roster, deduplication, cursor and dispatch behaviour. No sockets, live relay or production key are used.
 
-Evidence: [before](evidence/2026-11-01/parallel-intake/relay-before.txt), [after](evidence/2026-11-01/parallel-intake/relay-after.txt), [existing suite](evidence/2026-11-01/parallel-intake/relay-forum-tests.txt). The committed test is `tests/sovereign/relay-signature-failure.test.cjs`; the command is `npm run test:relay-signatures`. Agentbox's governance baseline records the repair and its activation limit.
+Evidence: [before](../../evidence/2026-11-01/parallel-intake/relay-before.txt), [after](../../evidence/2026-11-01/parallel-intake/relay-after.txt), [existing suite](../../evidence/2026-11-01/parallel-intake/relay-forum-tests.txt). The committed test is `tests/sovereign/relay-signature-failure.test.cjs`; the command is `npm run test:relay-signatures`. Agentbox's governance baseline records the repair and its activation limit.
 
 Deployment is outstanding. A source merge does not update a running image. The wider ABI-05 issue remains **partially remediated**: establish one authoritative ingress and roster contract, remove the unused competing responsibility only after tracing all callers, and exercise the deployed relay-to-orchestrator path. The existing authority consumer remains in place because deleting it without migrating its signing/dashboard responsibilities would break a different path.
 
 ## Diagram disposition
 
-[AB-40.1](../diagrams/agentbox/40-relay-signature-rejection.md) records the repaired check at the exact Agentbox commit. AB-13.7 now explicitly shows that its older declared revision's exception path accepted string-shaped signatures; it links the current repair rather than presenting the old invariant as enforced. AB-13's other sources have changed since its declared revision, so the topic is not broadly re-stamped or counted as newly assessed. Whole-topic refresh remains queued.
+[AB-40.1](../../../diagrams/agentbox/40-relay-signature-rejection.md) records the repaired check at the exact Agentbox commit. AB-13.7 now explicitly shows that its older declared revision's exception path accepted string-shaped signatures; it links the current repair rather than presenting the old invariant as enforced. AB-13's other sources have changed since its declared revision, so the topic is not broadly re-stamped or counted as newly assessed. Whole-topic refresh remains queued.
 
-The [Solid payment/provenance audit](archive/2026-11/2026-11-01-solid-payment-delivery.md) adds independent runtime evidence: private provenance metadata bypass, historical sidecar mismatch, repeated anchor charging, incomplete receipt publication and canonical-state read fallback. These findings complement EST-08's receipt-contract comparison. They remain open product work, with precise acceptance criteria in that report. VisionClaw's VCS-10 is a different caller and is not closed by either the Solid tests or this Agentbox fix.
+The [Solid payment/provenance audit](2026-11-01-solid-payment-delivery.md) adds independent runtime evidence: private provenance metadata bypass, historical sidecar mismatch, repeated anchor charging, incomplete receipt publication and canonical-state read fallback. These findings complement EST-08's receipt-contract comparison. They remain open product work, with precise acceptance criteria in that report. VisionClaw's VCS-10 is a different caller and is not closed by either the Solid tests or this Agentbox fix.
 
 ## Next remediation obligations
 

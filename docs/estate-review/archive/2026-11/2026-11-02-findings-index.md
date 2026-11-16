@@ -1,3 +1,5 @@
+> **Frozen on 16 November 2026.** This index of the 1 to 3 November audit findings is a historical record. Every finding was imported into the register under its id here; five rows that had no id are there as `SP-OIDC-PRE-*`. Status is now kept in the [open-work register](../../../open-work/README.md); nothing on this page is updated.
+
 | ID | Repository | Severity | Status | Verified by | Summary | Queue |
 |---|---|---|---|---|---|---|
 | AW1-01 | solid-pod-rs | high | open | lead | The mirror is built with DefaultSsrfCheck, so it refuses the operator's loopback relay that ADR-2010 says it admits | `remediation/audit-wave1-2026-11-02.json` |

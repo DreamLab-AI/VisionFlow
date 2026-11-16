@@ -1,5 +1,7 @@
 # Gap Register v1.3 — Broker-Governance Forward-Chain Addendum
 
+> **Frozen on 16 November 2026.** This gap register is a historical record and stays at this path because diagram topics cite it. Its three open items (C4, GOV-5, GOV-6) are in the register. Status is now kept in the [open-work register](../open-work/README.md); nothing on this page is updated.
+
 **Version:** 1.3 (addendum; forward-chains from v1.2, does not edit it in place)
 **Status:** Published — broker-canon code-landing addendum, 2026-07-10
 **Date:** 2026-07-10
