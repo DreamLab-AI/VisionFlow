@@ -17,20 +17,21 @@ Items are filed by **seam**: the contract between components that would have to 
 
 | State | Items | Meaning |
 |---|---|---|
-| Live | 137 | Open, or fixed on a branch that is not merged, as established by a check on the date shown |
+| Live | 134 | Open, or fixed on a branch that is not merged, as established by a check on the date shown |
 | Unverified | 194 | Recorded as open in an older list and not re-checked since. Not known to be open |
 | Parked | 20 | Deliberately set aside with a re-open trigger |
-| Closed | 33 | Fixed, overtaken, or found not to be a defect. Kept so the id still resolves |
+| Closed | 36 | Fixed, overtaken, or found not to be a defect. Kept so the id still resolves |
 
-## Waiting on the owner (17)
+## Waiting on the owner (18)
 
-### Waiting on an owner decision (12)
+### Waiting on an owner decision (13)
 
 | Id | Item | Seam | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|---|
 | 11-08 #4 | Audit journal: torn records `events/2026-10-12.jsonl` lines 35, 64; refused-revoke not journalled (B4/B5) | none | visionclaw | owner-decision | open | 2026-11-15 |
 | cheap: nix-flake-update | Merge bot's `deps/nix-flake-update` | none | agentbox | owner-decision | open | 2026-11-15 |
-| ratify: VF 2015/2018 | VisionFlow ADR-2015 (proposed): accept, amend or reject. ADR-2018: correct its parity figure | none | visionflow | owner-decision | open | 2026-11-15 |
+| ratify: VC 2039/2108 | VisionClaw ADR-2108 (dev profile arms the bypass by default) contradicts the ruling on ADR-2039 (bypass off by default): supersede ADR-2108? | none | visionclaw | owner-decision | open | 2026-11-16 |
+| ratify: VF 2015/2018 | VisionFlow ADR-2015 (proposed): accept, amend or reject | none | visionflow | owner-decision | open | 2026-11-16 |
 | ratify: AB 2080/2162/2177 | agentbox ADR-2162: accept, amend or reject (ADR-2177 accepted and ADR-2080 item 3 deferred on 2026-11-16) | none | agentbox | owner-decision | open | 2026-11-15 |
 | G-7 | Backup policy per store | none | visionclaw | owner-decision | open | 2026-11-15 |
 | V-1 | Matching semantic bundle/server activation | ontology-pipeline | loom, visiongraph, visionclaw | owner-decision | open | 2026-11-15 |
@@ -68,7 +69,7 @@ Items are filed by **seam**: the contract between components that would have to 
 | [Shared memory](by-seam.md#memory) | agentbox, visionclaw | 0 | 4 |
 | [Versions and pins across repositories](by-seam.md#release-pins) | estate | 4 | 15 |
 | [The nightly cycle across repositories](by-seam.md#nightly-cycle) | dream-engine, agentbox, visionflow | 4 | 2 |
-| [Inside one component](by-seam.md#none) | one component | 81 | 103 |
+| [Inside one component](by-seam.md#none) | one component | 78 | 103 |
 
 ## By component
 
@@ -76,31 +77,31 @@ An item that touches two components is counted under both.
 
 | Component | Live, on a seam | Live, inside the component | Unverified |
 |---|---|---|---|
-| visionclaw | 20 | 28 | 75 |
+| visionclaw | 20 | 27 | 75 |
 | agentbox | 14 | 22 | 72 |
 | nostr-rust-forum | 6 | 2 | 28 |
 | dreamlab-ai-website | 0 | 0 | 8 |
 | solid-pod-rs | 19 | 11 | 31 |
 | sidestr-rs | 5 | 4 | 11 |
 | loom | 6 | 4 | 10 |
-| ontomark | 1 | 2 | 12 |
+| ontomark | 1 | 1 | 12 |
 | visiongraph | 2 | 2 | 10 |
 | knowledgegraph | 0 | 0 | 2 |
 | dream-engine | 4 | 0 | 6 |
 | codescape | 1 | 1 | 5 |
 | visiontouch-rs | 0 | 0 | 1 |
 | wasmvowl | 0 | 5 | 1 |
-| visionflow | 1 | 4 | 3 |
+| visionflow | 1 | 3 | 3 |
 | estate | 0 | 0 | 5 |
 
 ## Live work by what blocks it
 
 | Blocked by | Items |
 |---|---|
-| Waiting on an owner decision | 12 |
+| Waiting on an owner decision | 13 |
 | Waiting on an owner act | 5 |
-| Ordinary engineering: can start now | 27 |
-| Needs a live deployment | 8 |
+| Ordinary engineering: can start now | 22 |
+| Needs a live deployment | 9 |
 | Needs a device | 4 |
 | Waiting on an external party | 6 |
 | Not yet triaged | 75 |

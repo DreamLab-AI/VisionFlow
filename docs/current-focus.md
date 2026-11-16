@@ -43,9 +43,9 @@ Every record here is finished. None is updated.
 | [Estate review archive](estate-review/archive/README.md) | Dated audit records with no remaining reference |
 | [Estate review](estate-review/README.md) | Dated audit records that stay at their paths only because something still cites them there |
 
-## Documents that describe plans, not present state
+## Documents that are no longer plans
 
-[Roadmap](roadmap.md) and the [18-month business roadmap](business/roadmap-2026-11-to-2028-04.md) with its decision record (ADR-2021, proposed) were written before the reference deployment they assume was deferred. Read them as proposals.
+The [18-month business roadmap](business/roadmap-2026-11-to-2028-04.md) and its decision record, ADR-2021, were rejected by the owner on 16 November 2026 and are kept as history. The [roadmap](roadmap.md) predates that ruling; read it as a proposal.
 
 ## Keeping this page true
 

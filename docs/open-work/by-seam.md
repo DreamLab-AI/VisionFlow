@@ -203,7 +203,7 @@ Between: solid-pod-rs, visionclaw, agentbox, nostr-rust-forum, dreamlab-ai-websi
 | SP-PAR-289 | Relative `acl:agent` WebIDs resolved against the ACL | solid-pod-rs | untriaged | open | 2026-11-15 |
 | SP-PAR-290 | Container ACL at `<container>/.acl` | solid-pod-rs | untriaged | open | 2026-11-15 |
 | SP-PAR-292 | Forge/mirror need a shutdown hook | solid-pod-rs | untriaged | open | 2026-11-15 |
-| POD-PARITY | Resume the solid-pod-rs parity push against the reference Solid server; the live checklist stands at 300 rows and at most 89.6% strict | solid-pod-rs | engineering | open | 2026-11-15 |
+| POD-PARITY | Resume the solid-pod-rs parity push: 251/280 = 89.6% strict over 300 rows, below the checker's 95% threshold (15 missing, 14 partial) | solid-pod-rs | engineering | open | 2026-11-16 |
 
 ### Recorded as open, not re-checked
 
@@ -407,21 +407,20 @@ Between: dream-engine, agentbox, visionflow.
 
 The item concerns one component's own behaviour and no contract with another. Fixing it changes nothing a neighbour depends on.
 
-81 live, 103 unverified, 24 closed.
+78 live, 103 unverified, 27 closed.
 
 ### visionclaw
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
 | 11-08 #4 | Audit journal: torn records `events/2026-10-12.jsonl` lines 35, 64; refused-revoke not journalled (B4/B5) | visionclaw | owner-decision | open | 2026-11-15 |
-| 11-08 #6 | `VISIONCLAW_JEV_ALLOW_CLOUD` defaults to 1 | visionclaw | engineering | open | 2026-11-15 |
+| 11-08 #6 | Cloud-judge defaults (`*_JEV_ALLOW_CLOUD`) are 0 in source; not yet running | visionclaw | deployment | open | 2026-11-16 |
 | 11-08 #7 | Dependabot backlog untriaged; no `dependabot.yml` | visionclaw, agentbox | engineering | open | 2026-11-15 |
 | W3-02 | Saved API keys never read back | visionclaw | engineering | open | 2026-11-15 |
 | 11-08 #9 | Production-image receipt; VisionClaw ADR-2037/2038/2012/2119 (parked) | visionclaw | external | open | 2026-11-15 |
 | 11-15 new | RUSTSEC-2026-0459: `libsqlite3-sys 0.28` via direct `rusqlite 0.31` | visionclaw | engineering | open | 2026-11-15 |
 | cheap: Gemini key | Gemini audit key 401; ADR-2131 audit leg never ran | visionclaw | owner-act | open | 2026-11-15 |
-| ratify: VC 2134/2138 | VisionClaw ADR-2134, ADR-2138 'reserve acceptance' | visionclaw | engineering | open | 2026-11-15 |
-| ratify: VC 2039/2108 | VisionClaw ADR-2039, ADR-2108 empty `verified_commit` | visionclaw | engineering | open | 2026-11-15 |
+| ratify: VC 2039/2108 | VisionClaw ADR-2108 (dev profile arms the bypass by default) contradicts the ruling on ADR-2039 (bypass off by default): supersede ADR-2108? | visionclaw | owner-decision | open | 2026-11-16 |
 | X-2 | Actor bypass audit (direct store reads, `execute_in_thread`) | visionclaw | engineering | open | 2026-11-15 |
 | X-4 | Upgrade rehearsal built, never run | visionclaw, agentbox | owner-act | open | 2026-11-15 |
 | G-7 | Backup policy per store | visionclaw | owner-decision | open | 2026-11-15 |
@@ -637,7 +636,6 @@ Recorded as open, not re-checked:
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| cheap: ADR-OM-003 | ontomark ADR-OM-003: status text disagrees with front matter | ontomark | engineering | open | 2026-11-15 |
 | ER-18 | ontomark NGG2 relation codes/resolvers | ontomark | engineering | open | 2026-11-15 |
 
 Recorded as open, not re-checked:
@@ -705,8 +703,7 @@ Recorded as open, not re-checked:
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| ratify: VF 2015/2018 | VisionFlow ADR-2015 (proposed): accept, amend or reject. ADR-2018: correct its parity figure | visionflow | owner-decision | open | 2026-11-15 |
-| ratify: VF 2021 | VisionFlow ADR-2021 business roadmap: accept, amend or reject | visionflow | engineering | open | 2026-11-15 |
+| ratify: VF 2015/2018 | VisionFlow ADR-2015 (proposed): accept, amend or reject | visionflow | owner-decision | open | 2026-11-16 |
 | G-23 | `ESTATE_READ_TOKEN` read on visionGraph, or mark it exempt | visionflow, visiongraph | owner-act | open | 2026-11-15 |
 | CY-A3 | Three green scheduled nights of the estate check | visionflow | engineering | open | 2026-11-15 |
 

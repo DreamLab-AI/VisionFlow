@@ -2,7 +2,7 @@
 id: ADR-2021
 title: DreamLab runs closed-loop agent fleets on VisionFlow, first on its own estate and then as an operated service on client hardware, with hard human gates for every regulated action
 date: 2026-10-30
-decision_status: proposed
+decision_status: rejected
 implementation_status: none
 activation_status: inactive
 supersedes: []
@@ -15,6 +15,8 @@ repo: visionflow
 domain: BASELINE-visionflow.md
 lineage: "Builds on VisionFlow ADR-2006 (canon owns the cross-repo view, not the implementation), ADR-2008 (estate health collected by CI, read by the dream cycle) and ADR-2011 (task properties set the human-agent boundary, not agent self-tiering); agentbox ADR-2153 (session plane), ADR-2115 (dream decisions on the forum governance panel), ADR-2139 (System One judge as a vendor slot) and ADR-2085 (colloquy units). Does not revive the precedent store retired in agentbox 70d017a3b."
 ---
+
+> **Owner ruling (2026-11-16).** Rejected. VisionFlow does not seek customers or users: it is open-source research into a collaborative platform, a marketing umbrella and a foil for training. The operated service on client hardware, its assurance ladder and the business roadmap built on them are therefore not adopted. The part of this record that concerns running closed-loop agent work on the estate itself was not ruled on; it may be proposed as a separate record if it is wanted as teaching material. The text below is kept unchanged as the record of what was proposed.
 
 # ADR-2021 — DreamLab runs closed-loop agent fleets on VisionFlow, first on its own estate and then as an operated service on client hardware
 
