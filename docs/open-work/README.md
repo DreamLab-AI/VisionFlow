@@ -17,20 +17,28 @@ Items are filed by **seam**: the contract between components that would have to 
 
 | State | Items | Meaning |
 |---|---|---|
-| Live | 131 | Open, or fixed on a branch that is not merged, as established by a check on the date shown |
+| Live | 132 | Open, or fixed on a branch that is not merged, as established by a check on the date shown |
 | Unverified | 194 | Recorded as open in an older list and not re-checked since. Not known to be open |
 | Parked | 23 | Deliberately set aside with a re-open trigger |
 | Closed | 38 | Fixed, overtaken, or found not to be a defect. Kept so the id still resolves |
 
-## Waiting on the owner (4)
+## Waiting on the owner (7)
 
-### Waiting on an owner act (4)
+### Waiting on an owner decision (1)
+
+| Id | Item | Seam | Components | Blocked by | State | Checked |
+|---|---|---|---|---|---|---|
+| ER-7 | VisionClaw proposals now conform to the forum contract on a branch. Open: which risk tier and task properties each builder declares (concept elevation, decision elevation, voice command) | governance-events | visionclaw | owner-decision | fixed on an unmerged branch: visionclaw fix/governance-builders-to-contract (11134cc41) | 2026-11-16 |
+
+### Waiting on an owner act (6)
 
 | Id | Item | Seam | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|---|
 | cheap: nix-flake-update | Merge bot's `deps/nix-flake-update` | none | agentbox | owner-act | open | 2026-11-15 |
 | X-4 | Upgrade rehearsal built, never run | none | visionclaw, agentbox | owner-act | open | 2026-11-15 |
+| G-7 | Backups: tool and in-server Oxigraph checkpoint built on a branch. Still to do: merge, rebuild, set ONTOLOGY_CHECKPOINT_DIR, mount /mnt/dell on the host, enable the timer, one timed restore of the real stores | none | visionclaw | owner-act | fixed on an unmerged branch: visionclaw feat/store-backup-and-restore | 2026-11-16 |
 | G-23 | `ESTATE_READ_TOKEN` read on visionGraph, or mark it exempt | none | visionflow, visiongraph | owner-act | open | 2026-11-15 |
+| V-1 | Loom promotion, nightly, start-up fallback and publish-matching build flags built on a branch. Still to do: merge, then deploy on the Loom host | ontology-pipeline | loom, visiongraph, visionclaw | owner-act | fixed on an unmerged branch: loom feat/nightly-promotion | 2026-11-16 |
 | FORUM-PHASE-0-1 (also feat/upgrade-phase-0-1) | Forum Phase 0 to 4 branch integrated on integrate/phase-0-1: review, choose the core crate version, merge, then apply the D1 migrations | forum-zones | nostr-rust-forum | owner-act | fixed on an unmerged branch: nostr-rust-forum integrate/phase-0-1 (a80c572) | 2026-11-16 |
 
 ## By seam
@@ -38,7 +46,7 @@ Items are filed by **seam**: the contract between components that would have to 
 | Seam | Between | Live | Unverified |
 |---|---|---|---|
 | [Who decided](by-seam.md#decision-attribution) | nostr-rust-forum, agentbox, visionclaw | 3 | 0 |
-| [Governance events](by-seam.md#governance-events) | nostr-rust-forum, agentbox, visionclaw | 1 | 3 |
+| [Governance events](by-seam.md#governance-events) | nostr-rust-forum, agentbox, visionclaw | 2 | 3 |
 | [Agent control and activity](by-seam.md#agent-control-api) | agentbox, visionclaw | 4 | 11 |
 | [Identity checks](by-seam.md#identity) | nostr-rust-forum, solid-pod-rs, agentbox, visionclaw, dreamlab-ai-website | 6 | 12 |
 | [Keys and secrets](by-seam.md#key-custody) | agentbox, nostr-rust-forum, dreamlab-ai-website, visionclaw | 5 | 8 |
@@ -60,7 +68,7 @@ An item that touches two components is counted under both.
 |---|---|---|---|
 | visionclaw | 19 | 26 | 75 |
 | agentbox | 15 | 22 | 72 |
-| nostr-rust-forum | 5 | 2 | 28 |
+| nostr-rust-forum | 6 | 2 | 28 |
 | dreamlab-ai-website | 0 | 0 | 8 |
 | solid-pod-rs | 19 | 11 | 31 |
 | sidestr-rs | 5 | 4 | 11 |
@@ -79,8 +87,9 @@ An item that touches two components is counted under both.
 
 | Blocked by | Items |
 |---|---|
-| Waiting on an owner act | 4 |
-| Ordinary engineering: can start now | 33 |
+| Waiting on an owner decision | 1 |
+| Waiting on an owner act | 6 |
+| Ordinary engineering: can start now | 31 |
 | Needs a live deployment | 9 |
 | Needs a device | 4 |
 | Waiting on an external party | 6 |

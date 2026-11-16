@@ -30,13 +30,14 @@ The shape of governance events (kinds 31400 to 31405): panel definitions, propos
 
 Between: nostr-rust-forum, agentbox, visionclaw.
 
-1 live, 3 unverified, 0 closed.
+2 live, 3 unverified, 0 closed.
 
 ### Live
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| ER-7 | VisionClaw's own 31402 builders declare task properties | visionclaw | engineering | open | 2026-11-15 |
+| ER-7 | VisionClaw proposals now conform to the forum contract on a branch. Open: which risk tier and task properties each builder declares (concept elevation, decision elevation, voice command) | visionclaw | owner-decision | fixed on an unmerged branch: visionclaw fix/governance-builders-to-contract (11134cc41) | 2026-11-16 |
+| FORUM-PRIORITY-TAG | The forum relay parses the proposal priority tag as a number, so every label becomes 50, while the forum client and core crate use labels | nostr-rust-forum | engineering | open | 2026-11-16 |
 
 ### Recorded as open, not re-checked
 
@@ -264,7 +265,7 @@ Between: visiongraph, ontomark, loom, visionclaw, agentbox.
 | AW1-09 | `/ontology/derived` gated `power_user` only (Loom ADR-135 D7) | visionclaw, loom | engineering | open | 2026-11-15 |
 | EA-05 | Matching bundle/server generations (loom/visionGraph) | loom, visiongraph | deployment | open | 2026-11-15 |
 | D-1 | Seven-day observation window with daily recall receipts | visionclaw, loom | external | open | 2026-11-15 |
-| V-1 | Loom promotion and nightly built on a branch. Still to do: start-up fallback to the previous generation, build flags matching the visionGraph publish workflow, then merge and deploy on the Loom host | loom, visiongraph, visionclaw | engineering | fixed on an unmerged branch: loom feat/nightly-promotion | 2026-11-16 |
+| V-1 | Loom promotion, nightly, start-up fallback and publish-matching build flags built on a branch. Still to do: merge, then deploy on the Loom host | loom, visiongraph, visionclaw | owner-act | fixed on an unmerged branch: loom feat/nightly-promotion | 2026-11-16 |
 | AW1-11 | The Rust reload port carries a bundle's declared content digest but never compares it, contrary to ADR-141 decision 6 | loom, visionclaw | untriaged | open | 2026-11-15 |
 | CONTRACTS-F12 | Loom reads ontology scaffold bundles with ontomark-compile 0.1.1 while the corpus is built by ontomark 0.7.0 | loom, ontomark | untriaged | open | 2026-11-15 |
 
@@ -422,7 +423,7 @@ The item concerns one component's own behaviour and no contract with another. Fi
 | ratify: VC 2039/2108 | When VisionClaw branch fix/estate-review-2026-11-15 merges: mark ADR-2039 accepted with its verified commit, and supersede ADR-2108 | visionclaw | engineering | open | 2026-11-16 |
 | X-2 | Actor bypass audit (direct store reads, `execute_in_thread`) | visionclaw | engineering | open | 2026-11-15 |
 | X-4 | Upgrade rehearsal built, never run | visionclaw, agentbox | owner-act | open | 2026-11-15 |
-| G-7 | Backups: tool built on a branch. Still to do: in-server periodic Oxigraph checkpoint, destination /mnt/dell, schedule, one timed restore of the real stores | visionclaw | engineering | fixed on an unmerged branch: visionclaw feat/store-backup-and-restore | 2026-11-16 |
+| G-7 | Backups: tool and in-server Oxigraph checkpoint built on a branch. Still to do: merge, rebuild, set ONTOLOGY_CHECKPOINT_DIR, mount /mnt/dell on the host, enable the timer, one timed restore of the real stores | visionclaw | owner-act | fixed on an unmerged branch: visionclaw feat/store-backup-and-restore | 2026-11-16 |
 | L-3 | Clamp-fire receipt | visionclaw | engineering | open | 2026-11-15 |
 | L-4 | Failure-path telemetry liveness | visionclaw | deployment | open | 2026-11-15 |
 | L-6 | Amethyst/Amber mobile session | visionclaw | device | open | 2026-11-15 |
