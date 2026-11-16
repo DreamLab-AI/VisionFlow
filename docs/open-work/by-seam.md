@@ -406,7 +406,7 @@ Between: dream-engine, agentbox, visionflow.
 
 The item concerns one component's own behaviour and no contract with another. Fixing it changes nothing a neighbour depends on.
 
-77 live, 103 unverified, 27 closed.
+75 live, 103 unverified, 29 closed.
 
 ### visionclaw
 
@@ -487,7 +487,6 @@ Recorded as open, not re-checked:
 | 11-08 #1b | Xvnc runs `-SecurityTypes None` | agentbox | engineering | open | 2026-11-15 |
 | W3-01 (also 11-08 #1d) | Relay consumer admits every signed author when allowlist unset | agentbox | engineering | fixed on an unmerged branch: yes: agentbox `fix/estate-review-contracts` 2c1f85706 | 2026-11-15 |
 | cheap: nix-flake-update | Merge bot's `deps/nix-flake-update` | agentbox | owner-act | open | 2026-11-15 |
-| ratify: AB 2080/2162/2177 | agentbox ADR-2162: accept, amend or reject (ADR-2177 accepted and ADR-2080 item 3 deferred on 2026-11-16) | agentbox | owner-decision | open | 2026-11-15 |
 | M-4 | Multi-peer delivery accepted/rejected | agentbox | deployment | open | 2026-11-15 |
 | L-2 | Second-model-family traffic canary | agentbox | deployment | open | 2026-11-15 |
 | ER-17 | SONA 384-dim | agentbox | external | open | 2026-11-15 |
@@ -701,7 +700,6 @@ Recorded as open, not re-checked:
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| ratify: VF 2015/2018 | VisionFlow ADR-2015 (proposed): accept, amend or reject | visionflow | owner-decision | open | 2026-11-16 |
 | G-23 | `ESTATE_READ_TOKEN` read on visionGraph, or mark it exempt | visionflow, visiongraph | owner-act | open | 2026-11-15 |
 | CY-A3 | Three green scheduled nights of the estate check | visionflow | engineering | open | 2026-11-15 |
 

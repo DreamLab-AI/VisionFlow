@@ -2,7 +2,7 @@
 id: ADR-2015
 title: Separate ontology meaning from documents and presentation
 date: 2026-10-11
-decision_status: proposed
+decision_status: accepted
 implementation_status: none
 activation_status: inactive
 supersedes: []
@@ -49,3 +49,5 @@ Bulk migration is supported; uncontrolled reinterpretation is not. Reclassifying
 The typed model costs more design work than copying the current pairwise graph, but prevents information loss across consumers. Existing IRIs should normally remain stable even if the header schema and internal APIs change. The current EL implementation remains the first candidate; neither a wholesale reasoner replacement nor a wider OWL profile is justified by age alone.
 
 Standards anchors: [OWL profiles](https://www.w3.org/TR/owl2-profiles/), [SKOS relationships](https://www.w3.org/TR/skos-reference/), and [SHACL](https://www.w3.org/TR/shacl/). SKOS broader links and OWL subclass assertions are not interchangeable. The [evidence and gates](../../../visionGraph/planning/ontology-workspace/README.md) distinguish static findings from executed checks. No corpus migration has been run under this proposal.
+
+**Owner ruling (2026-11-16).** Accepted. The decision stands as written. Implementation is recorded here as `none` because this record names no verified paths; a typed model citing this record exists in ontomark (commit 22f7a29) and on VisionClaw's unmerged `feat/tri-separation` branch, and neither has been checked against this text. No corpus migration has been run.
