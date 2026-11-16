@@ -36,7 +36,7 @@ Between: nostr-rust-forum, agentbox, visionclaw.
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| ER-7 | VisionClaw's own 31402 builders declare task properties | visionclaw | owner-decision | open | 2026-11-15 |
+| ER-7 | VisionClaw's own 31402 builders declare task properties | visionclaw | engineering | open | 2026-11-15 |
 
 ### Recorded as open, not re-checked
 
@@ -159,15 +159,14 @@ Zone membership, encryption of zone and inbox messages, key grants and their led
 
 Between: nostr-rust-forum, dreamlab-ai-website, agentbox.
 
-3 live, 4 unverified, 0 closed.
+2 live, 4 unverified, 0 closed.
 
 ### Live
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| FORUM-PHASE-0-1 (also feat/upgrade-phase-0-1) | Forum branch: inbox-key attestation fix and Phases 2-4: merge or retire | nostr-rust-forum | owner-decision | open | 2026-11-15 |
+| FORUM-PHASE-0-1 (also feat/upgrade-phase-0-1) | Merge forum branch feat/upgrade-phase-0-1 (inbox-key attestation fix and Phases 2 to 4), with tests | nostr-rust-forum | engineering | open | 2026-11-15 |
 | W2-02 | forum ADR-2027 describes an inbox-key relay change that is not on main | nostr-rust-forum | untriaged | open | 2026-11-15 |
-| PARK-nostr-rust-forum-ADR-2014 | ADR-2014: Phases 2-5 absent: no relay members table or membership.rs; phase 1 partial at 1a26e51. Owner priority P2, next cycle. | nostr-rust-forum | owner-decision | open | 2026-11-15 |
 
 ### Recorded as open, not re-checked
 
@@ -228,8 +227,8 @@ Between: sidestr-rs, solid-pod-rs, nostr-rust-forum, visionclaw, agentbox.
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| N-3 | Host ADR-2111: delete FsPaymentStore | visionclaw | owner-decision | open | 2026-11-15 |
-| N-10 | Estate adoption of sidestr capabilities | sidestr-rs, agentbox | owner-decision | open | 2026-11-15 |
+| N-3 | Delete FsPaymentStore and accept VisionClaw ADR-2111 | visionclaw | engineering | open | 2026-11-15 |
+| N-10 | Correct the ecosystem map: sidestr is running with development paused; adoption of its capabilities is parked | sidestr-rs, agentbox | engineering | open | 2026-11-15 |
 | SP-ACL-REVIEW-02 | [HIGH_BUG] Web-Ledger fee debited before the request is validated or served | solid-pod-rs | untriaged | open | 2026-11-15 |
 | SIDESTR-F1 | No remediation had landed for any of the 25 open sidestr rows since the audit pin 814b9e54 | sidestr-rs | untriaged | open | 2026-11-15 |
 | SIDESTR-F3 | Snapshot module doc says "checked in full on restore"; witnesses are not checked (H1/H3) | sidestr-rs | untriaged | open | 2026-11-15 |
@@ -265,7 +264,7 @@ Between: visiongraph, ontomark, loom, visionclaw, agentbox.
 | AW1-09 | `/ontology/derived` gated `power_user` only (Loom ADR-135 D7) | visionclaw, loom | engineering | open | 2026-11-15 |
 | EA-05 | Matching bundle/server generations (loom/visionGraph) | loom, visiongraph | deployment | open | 2026-11-15 |
 | D-1 | Seven-day observation window with daily recall receipts | visionclaw, loom | external | open | 2026-11-15 |
-| V-1 | Matching semantic bundle/server activation | loom, visiongraph, visionclaw | owner-decision | open | 2026-11-15 |
+| V-1 | Activate the Loom semantic bundle with nightly promotion and a recorded promotion stamp | loom, visiongraph, visionclaw | engineering | open | 2026-11-15 |
 | AW1-11 | The Rust reload port carries a bundle's declared content digest but never compares it, contrary to ADR-141 decision 6 | loom, visionclaw | untriaged | open | 2026-11-15 |
 | CONTRACTS-F12 | Loom reads ontology scaffold bundles with ontomark-compile 0.1.1 while the corpus is built by ontomark 0.7.0 | loom, ontomark | untriaged | open | 2026-11-15 |
 
@@ -407,27 +406,26 @@ Between: dream-engine, agentbox, visionflow.
 
 The item concerns one component's own behaviour and no contract with another. Fixing it changes nothing a neighbour depends on.
 
-78 live, 103 unverified, 27 closed.
+77 live, 103 unverified, 27 closed.
 
 ### visionclaw
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| 11-08 #4 | Audit journal: torn records `events/2026-10-12.jsonl` lines 35, 64; refused-revoke not journalled (B4/B5) | visionclaw | owner-decision | open | 2026-11-15 |
+| 11-08 #4 | Audit journal: write a boundary note for the two torn records of 2026-10-12; journal refused revokes. Signing and anchoring deferred until stable | visionclaw | engineering | open | 2026-11-15 |
 | 11-08 #6 | Cloud-judge defaults (`*_JEV_ALLOW_CLOUD`) are 0 in source; not yet running | visionclaw | deployment | open | 2026-11-16 |
 | 11-08 #7 | Dependabot backlog untriaged; no `dependabot.yml` | visionclaw, agentbox | engineering | open | 2026-11-15 |
 | W3-02 | Saved API keys never read back | visionclaw | engineering | open | 2026-11-15 |
 | 11-08 #9 | Production-image receipt; VisionClaw ADR-2037/2038/2012/2119 (parked) | visionclaw | external | open | 2026-11-15 |
 | 11-15 new | RUSTSEC-2026-0459: `libsqlite3-sys 0.28` via direct `rusqlite 0.31` | visionclaw | engineering | open | 2026-11-15 |
-| cheap: Gemini key | Gemini audit key 401; ADR-2131 audit leg never ran | visionclaw | owner-act | open | 2026-11-15 |
+| cheap: Gemini key | Retire the Gemini audit leg (agentbox ADR-2131) and name Codex as the cross-vendor reviewer | visionclaw | engineering | open | 2026-11-15 |
 | ratify: VC 2039/2108 | When VisionClaw branch fix/estate-review-2026-11-15 merges: mark ADR-2039 accepted with its verified commit, and supersede ADR-2108 | visionclaw | engineering | open | 2026-11-16 |
 | X-2 | Actor bypass audit (direct store reads, `execute_in_thread`) | visionclaw | engineering | open | 2026-11-15 |
 | X-4 | Upgrade rehearsal built, never run | visionclaw, agentbox | owner-act | open | 2026-11-15 |
-| G-7 | Backup policy per store | visionclaw | owner-decision | open | 2026-11-15 |
+| G-7 | Backups: nightly dump of Oxigraph and the SQLite stores to the NAS, and one recorded restore test | visionclaw | engineering | open | 2026-11-15 |
 | L-3 | Clamp-fire receipt | visionclaw | engineering | open | 2026-11-15 |
 | L-4 | Failure-path telemetry liveness | visionclaw | deployment | open | 2026-11-15 |
 | L-6 | Amethyst/Amber mobile session | visionclaw | device | open | 2026-11-15 |
-| CY-B7 (also CY-B8) | Augmentation-conditions activation; ADR-2095 measurement run | visionclaw | owner-decision | open | 2026-11-15 |
 | CY-C | Bring-up runbook for a clean machine (was: fresh-host runbook and Trust letter) | visionclaw | engineering | open | 2026-11-15 |
 | CD-F1 | AppState EventBus has handlers but no publisher; coordinator has no caller | visionclaw | untriaged | open | 2026-11-15 |
 | CD-F2 | File-backed EventStore constructed, never appended | visionclaw | untriaged | open | 2026-11-15 |
@@ -488,7 +486,7 @@ Recorded as open, not re-checked:
 | 11-08 #1a | Browsercontainer publishes VNC 5903, MCP 8931, CDP 9222 on 0.0.0.0 | agentbox | engineering | fixed on an unmerged branch: yes: agentbox `fix/estate-review-hardening` 721836d53 (compose files only: browsercontainer, gui-tools, xr-runtime; no `flake.nix` change) | 2026-11-15 |
 | 11-08 #1b | Xvnc runs `-SecurityTypes None` | agentbox | engineering | open | 2026-11-15 |
 | W3-01 (also 11-08 #1d) | Relay consumer admits every signed author when allowlist unset | agentbox | engineering | fixed on an unmerged branch: yes: agentbox `fix/estate-review-contracts` 2c1f85706 | 2026-11-15 |
-| cheap: nix-flake-update | Merge bot's `deps/nix-flake-update` | agentbox | owner-decision | open | 2026-11-15 |
+| cheap: nix-flake-update | Merge bot's `deps/nix-flake-update` | agentbox | owner-act | open | 2026-11-15 |
 | ratify: AB 2080/2162/2177 | agentbox ADR-2162: accept, amend or reject (ADR-2177 accepted and ADR-2080 item 3 deferred on 2026-11-16) | agentbox | owner-decision | open | 2026-11-15 |
 | M-4 | Multi-peer delivery accepted/rejected | agentbox | deployment | open | 2026-11-15 |
 | L-2 | Second-model-family traffic canary | agentbox | deployment | open | 2026-11-15 |
@@ -538,7 +536,7 @@ Recorded as open, not re-checked:
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
 | cheap: forum-tweaks | Delete remote `fix/forum-tweaks-2026-10-22` | nostr-rust-forum | engineering | open | 2026-11-15 |
-| AC-FORUM-1 | Three blank `audited_by`; deepsec gate store reset; nothing deployed | nostr-rust-forum | owner-act | open | 2026-11-15 |
+| AC-FORUM-1 | Forum: delete the three blank `audited_by` fields | nostr-rust-forum | engineering | open | 2026-11-15 |
 
 Recorded as open, not re-checked:
 
@@ -651,7 +649,7 @@ Recorded as open, not re-checked:
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| 11-08 #5 | visionGraph third-party attribution (SLSO, SWEET, SAC-CG): NOTICE and `/third-party-notices/` | visiongraph | owner-act | fixed on an unmerged branch: partly: visionGraph `fix/estate-review-2026-11-15` a5b754af4 (NOTICE only; page not covered) | 2026-11-15 |
+| 11-08 #5 | visionGraph: write the /third-party-notices/ page (NOTICE attribution pushed 2026-11-16) | visiongraph | engineering | fixed on an unmerged branch: partly: visionGraph `fix/estate-review-2026-11-15` a5b754af4 (NOTICE only; page not covered) | 2026-11-16 |
 
 Recorded as open, not re-checked:
 

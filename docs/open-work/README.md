@@ -17,39 +17,27 @@ Items are filed by **seam**: the contract between components that would have to 
 
 | State | Items | Meaning |
 |---|---|---|
-| Live | 134 | Open, or fixed on a branch that is not merged, as established by a check on the date shown |
+| Live | 132 | Open, or fixed on a branch that is not merged, as established by a check on the date shown |
 | Unverified | 194 | Recorded as open in an older list and not re-checked since. Not known to be open |
-| Parked | 20 | Deliberately set aside with a re-open trigger |
+| Parked | 22 | Deliberately set aside with a re-open trigger |
 | Closed | 36 | Fixed, overtaken, or found not to be a defect. Kept so the id still resolves |
 
-## Waiting on the owner (17)
+## Waiting on the owner (5)
 
-### Waiting on an owner decision (12)
+### Waiting on an owner decision (2)
 
 | Id | Item | Seam | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|---|
-| 11-08 #4 | Audit journal: torn records `events/2026-10-12.jsonl` lines 35, 64; refused-revoke not journalled (B4/B5) | none | visionclaw | owner-decision | open | 2026-11-15 |
-| cheap: nix-flake-update | Merge bot's `deps/nix-flake-update` | none | agentbox | owner-decision | open | 2026-11-15 |
 | ratify: VF 2015/2018 | VisionFlow ADR-2015 (proposed): accept, amend or reject | none | visionflow | owner-decision | open | 2026-11-16 |
 | ratify: AB 2080/2162/2177 | agentbox ADR-2162: accept, amend or reject (ADR-2177 accepted and ADR-2080 item 3 deferred on 2026-11-16) | none | agentbox | owner-decision | open | 2026-11-15 |
-| G-7 | Backup policy per store | none | visionclaw | owner-decision | open | 2026-11-15 |
-| V-1 | Matching semantic bundle/server activation | ontology-pipeline | loom, visiongraph, visionclaw | owner-decision | open | 2026-11-15 |
-| N-3 | Host ADR-2111: delete FsPaymentStore | payments | visionclaw | owner-decision | open | 2026-11-15 |
-| N-10 | Estate adoption of sidestr capabilities | payments | sidestr-rs, agentbox | owner-decision | open | 2026-11-15 |
-| CY-B7 (also CY-B8) | Augmentation-conditions activation; ADR-2095 measurement run | none | visionclaw | owner-decision | open | 2026-11-15 |
-| ER-7 | VisionClaw's own 31402 builders declare task properties | governance-events | visionclaw | owner-decision | open | 2026-11-15 |
-| FORUM-PHASE-0-1 (also feat/upgrade-phase-0-1) | Forum branch: inbox-key attestation fix and Phases 2-4: merge or retire | forum-zones | nostr-rust-forum | owner-decision | open | 2026-11-15 |
-| PARK-nostr-rust-forum-ADR-2014 | ADR-2014: Phases 2-5 absent: no relay members table or membership.rs; phase 1 partial at 1a26e51. Owner priority P2, next cycle. | forum-zones | nostr-rust-forum | owner-decision | open | 2026-11-15 |
 
-### Waiting on an owner act (5)
+### Waiting on an owner act (3)
 
 | Id | Item | Seam | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|---|
-| 11-08 #5 | visionGraph third-party attribution (SLSO, SWEET, SAC-CG): NOTICE and `/third-party-notices/` | none | visiongraph | owner-act | fixed on an unmerged branch: partly: visionGraph `fix/estate-review-2026-11-15` a5b754af4 (NOTICE only; page not covered) | 2026-11-15 |
-| cheap: Gemini key | Gemini audit key 401; ADR-2131 audit leg never ran | none | visionclaw | owner-act | open | 2026-11-15 |
+| cheap: nix-flake-update | Merge bot's `deps/nix-flake-update` | none | agentbox | owner-act | open | 2026-11-15 |
 | X-4 | Upgrade rehearsal built, never run | none | visionclaw, agentbox | owner-act | open | 2026-11-15 |
 | G-23 | `ESTATE_READ_TOKEN` read on visionGraph, or mark it exempt | none | visionflow, visiongraph | owner-act | open | 2026-11-15 |
-| AC-FORUM-1 | Three blank `audited_by`; deepsec gate store reset; nothing deployed | none | nostr-rust-forum | owner-act | open | 2026-11-15 |
 
 ## By seam
 
@@ -60,7 +48,7 @@ Items are filed by **seam**: the contract between components that would have to 
 | [Agent control and activity](by-seam.md#agent-control-api) | agentbox, visionclaw | 4 | 11 |
 | [Identity checks](by-seam.md#identity) | nostr-rust-forum, solid-pod-rs, agentbox, visionclaw, dreamlab-ai-website | 6 | 12 |
 | [Keys and secrets](by-seam.md#key-custody) | agentbox, nostr-rust-forum, dreamlab-ai-website, visionclaw | 4 | 8 |
-| [Forum zones and message keys](by-seam.md#forum-zones) | nostr-rust-forum, dreamlab-ai-website, agentbox | 3 | 4 |
+| [Forum zones and message keys](by-seam.md#forum-zones) | nostr-rust-forum, dreamlab-ai-website, agentbox | 2 | 4 |
 | [Pod storage](by-seam.md#pod-api) | solid-pod-rs, visionclaw, agentbox, nostr-rust-forum, dreamlab-ai-website | 12 | 4 |
 | [Value transfer](by-seam.md#payments) | sidestr-rs, solid-pod-rs, nostr-rust-forum, visionclaw, agentbox | 6 | 8 |
 | [Ontology from corpus to consumers](by-seam.md#ontology-pipeline) | visiongraph, ontomark, loom, visionclaw, agentbox | 6 | 15 |
@@ -68,7 +56,7 @@ Items are filed by **seam**: the contract between components that would have to 
 | [Shared memory](by-seam.md#memory) | agentbox, visionclaw | 0 | 4 |
 | [Versions and pins across repositories](by-seam.md#release-pins) | estate | 4 | 15 |
 | [The nightly cycle across repositories](by-seam.md#nightly-cycle) | dream-engine, agentbox, visionflow | 4 | 2 |
-| [Inside one component](by-seam.md#none) | one component | 78 | 103 |
+| [Inside one component](by-seam.md#none) | one component | 77 | 103 |
 
 ## By component
 
@@ -76,9 +64,9 @@ An item that touches two components is counted under both.
 
 | Component | Live, on a seam | Live, inside the component | Unverified |
 |---|---|---|---|
-| visionclaw | 20 | 27 | 75 |
+| visionclaw | 20 | 26 | 75 |
 | agentbox | 14 | 22 | 72 |
-| nostr-rust-forum | 6 | 2 | 28 |
+| nostr-rust-forum | 5 | 2 | 28 |
 | dreamlab-ai-website | 0 | 0 | 8 |
 | solid-pod-rs | 19 | 11 | 31 |
 | sidestr-rs | 5 | 4 | 11 |
@@ -97,9 +85,9 @@ An item that touches two components is counted under both.
 
 | Blocked by | Items |
 |---|---|
-| Waiting on an owner decision | 12 |
-| Waiting on an owner act | 5 |
-| Ordinary engineering: can start now | 23 |
+| Waiting on an owner decision | 2 |
+| Waiting on an owner act | 3 |
+| Ordinary engineering: can start now | 33 |
 | Needs a live deployment | 9 |
 | Needs a device | 4 |
 | Waiting on an external party | 6 |
@@ -113,6 +101,7 @@ An item that touches two components is counted under both.
 | G-4 | Public-recipient set for mandatory recipient enumeration | agentbox | 2026-11-15 |
 | G-5 | Replacement publisher identity, recovery custody (key ceremony) | visionclaw, agentbox | 2026-11-15 |
 | EA-06 | Per-store erasure mappings and backend adapters | visionclaw | 2026-11-15 |
+| CY-B7 (also CY-B8) | Augmentation-conditions activation; ADR-2095 measurement run | visionclaw | 2026-11-15 |
 | ER-6 | agent_governance key ceremony, ACL grant, forum allowlist, dream-engine onto port | nostr-rust-forum, dream-engine, agentbox | 2026-11-15 |
 | ER-11 | Memory-cloud tombstones | visionclaw, agentbox | 2026-11-15 |
 | ER-23 | Website 5-site admin-key rotation | dreamlab-ai-website | 2026-11-15 |
@@ -129,3 +118,4 @@ An item that touches two components is counted under both.
 | PARK-visiontouch-rs | 1 decision records parked on 30 October 2026, each with a re-open trigger; see the park register section "visiontouch-rs (1)" | visiontouch-rs | 2026-10-30 |
 | PARK-visionclaw-ADR-2037 | ADR-2037: Owner disposition 2026-10-02: ready to accept once one CY-C receipt binds production image digest, feature closure and the two exit-2 forbidden-variable probes. Source half holds (Dockerfile.production release lines, ci.yml dev-auth-release-gate). | visionclaw | 2026-11-15 |
 | PARK-visionclaw-ADR-2119 | ADR-2119: No Trust host has run the prod profile | visionclaw | 2026-11-15 |
+| PARK-nostr-rust-forum-ADR-2014 | ADR-2014: Phases 2-5 absent: no relay members table or membership.rs; phase 1 partial at 1a26e51. Owner priority P2, next cycle. | nostr-rust-forum | 2026-11-15 |
