@@ -1,20 +1,20 @@
 {
   "schema": "visionflow.estate-health/1",
-  "generated_at": "2026-11-15T09:39:20.576Z",
+  "generated_at": "2026-11-16T09:57:28.085Z",
   "generator": {
-    "revision": "2787cf0c78bc6b0bc4c23cc69bb915d05d4b5454",
-    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43700249504",
+    "revision": "fdeab5dc36a859b3b881d7d587af067c88795217",
+    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43844380148",
     "collector": "scripts/estate-health.mjs"
   },
   "summary": {
     "repos": 21,
-    "green": 17,
-    "red": 0,
+    "green": 16,
+    "red": 2,
     "amber": 0,
-    "none": 1,
+    "none": 0,
     "exempt": 1,
     "unreadable": 2,
-    "open_prs": 2,
+    "open_prs": 4,
     "surfaces_ok": 6,
     "surfaces_total": 6
   },
@@ -30,28 +30,35 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "2787cf0c78bc6b0bc4c23cc69bb915d05d4b5454",
-        "short": "2787cf0",
-        "date": "2026-11-15T00:30:47Z",
-        "message": "chore(estate-health): nightly snapshot 2026-11-15 — 17/21 green",
-        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/2787cf0c78bc6b0bc4c23cc69bb915d05d4b5454"
+        "sha": "fdeab5dc36a859b3b881d7d587af067c88795217",
+        "short": "fdeab5d",
+        "date": "2026-11-15T14:13:31Z",
+        "message": "docs(adr): close provenance release with CI and live publication evidence",
+        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/fdeab5dc36a859b3b881d7d587af067c88795217"
       },
       "ci": {
         "state": "green",
         "runs": [
           {
+            "workflow": "ADR frontmatter gate",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43723187169",
+            "updated_at": "2026-11-15T14:13:56Z"
+          },
+          {
             "workflow": "Copyright Source Guard",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43658428127",
-            "updated_at": "2026-11-15T00:29:47Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43723187198",
+            "updated_at": "2026-11-15T14:13:46Z"
           },
           {
             "workflow": "Deploy to GitHub Pages",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43658539936",
-            "updated_at": "2026-11-15T00:31:31Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43723187219",
+            "updated_at": "2026-11-15T14:14:15Z"
           },
           {
             "workflow": "Diagrams-as-code index gate",
@@ -64,8 +71,8 @@
             "workflow": "Nightly estate health",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43658496678",
-            "updated_at": "2026-11-15T00:30:53Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/43700249504",
+            "updated_at": "2026-11-15T09:39:27Z"
           }
         ]
       },
@@ -92,14 +99,14 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "2e7ecc2e731ed475982176d522877d9c89e3ff51",
-        "short": "2e7ecc2",
-        "date": "2026-11-14T22:44:28Z",
-        "message": "Merge pull request #42 from DreamLab-AI/docs/estate-h1-result-20261114",
-        "url": "https://github.com/DreamLab-AI/VisionClaw/commit/2e7ecc2e731ed475982176d522877d9c89e3ff51"
+        "sha": "d2780e26f870ce21fa92bccb29fa47f001015b16",
+        "short": "d2780e2",
+        "date": "2026-11-15T20:30:43Z",
+        "message": "Merge pull request #44 from DreamLab-AI/ci/minimal-mission-critical",
+        "url": "https://github.com/DreamLab-AI/VisionClaw/commit/d2780e26f870ce21fa92bccb29fa47f001015b16"
       },
       "ci": {
-        "state": "none",
+        "state": "red",
         "runs": [
           {
             "workflow": "CI",
@@ -119,8 +126,8 @@
             "workflow": "Ontology Federation CI/CD",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/42483264994",
-            "updated_at": "2026-11-08T13:09:55Z"
+            "url": "https://github.com/DreamLab-AI/VisionClaw/actions/runs/43758484464",
+            "updated_at": "2026-11-15T20:35:37Z"
           },
           {
             "workflow": "XR Godot CI",
@@ -139,9 +146,7 @@
         "status": null,
         "build_type": "workflow"
       },
-      "notes": [
-        "no qualifying run on HEAD 2e7ecc2; the latest runs are on older commits (7d80fe6, 8537435) and were red, reported none"
-      ]
+      "notes": []
     },
     {
       "name": "agentbox",
@@ -154,28 +159,21 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "e458b308c9fdc6d15e557c9ba3c09898ba04dd3a",
-        "short": "e458b30",
-        "date": "2026-11-14T22:17:31Z",
-        "message": "Merge pull request #48 from DreamLab-AI/fix/estate-green-20261114",
-        "url": "https://github.com/DreamLab-AI/agentbox/commit/e458b308c9fdc6d15e557c9ba3c09898ba04dd3a"
+        "sha": "3a2c59764028e1fd8475abfda61bb3bcefab46d5",
+        "short": "3a2c597",
+        "date": "2026-11-15T15:40:36Z",
+        "message": "docs(adr): verify delivery evidence and retain cache policy",
+        "url": "https://github.com/DreamLab-AI/agentbox/commit/3a2c59764028e1fd8475abfda61bb3bcefab46d5"
       },
       "ci": {
         "state": "green",
         "runs": [
           {
-            "workflow": "Browsercontainer",
-            "conclusion": "success",
-            "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/43258516455",
-            "updated_at": "2026-11-12T16:25:58Z"
-          },
-          {
             "workflow": "CI",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/43647308656",
-            "updated_at": "2026-11-14T22:18:32Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/43731207710",
+            "updated_at": "2026-11-15T15:41:37Z"
           },
           {
             "workflow": "Contract tests",
@@ -195,15 +193,15 @@
             "workflow": "Secret Scan",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/43647308706",
-            "updated_at": "2026-11-14T22:18:11Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/43731207683",
+            "updated_at": "2026-11-15T15:41:15Z"
           },
           {
             "workflow": "Security Invariants",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/43647308680",
-            "updated_at": "2026-11-14T22:19:00Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/43731207801",
+            "updated_at": "2026-11-15T15:42:05Z"
           },
           {
             "workflow": "Security VEX contracts",
@@ -216,8 +214,8 @@
             "workflow": "ShellCheck",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/43647308665",
-            "updated_at": "2026-11-14T22:18:11Z"
+            "url": "https://github.com/DreamLab-AI/agentbox/actions/runs/43726764848",
+            "updated_at": "2026-11-15T14:53:34Z"
           },
           {
             "workflow": "TUI helper tests",
@@ -381,8 +379,8 @@
             "workflow": "Documentation Auto-Update",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/42545971493",
-            "updated_at": "2026-11-09T01:31:22Z"
+            "url": "https://github.com/DreamLab-AI/dreamlab-ai-website/actions/runs/43787782834",
+            "updated_at": "2026-11-16T01:42:29Z"
           },
           {
             "workflow": "kit-pin-guard",
@@ -421,11 +419,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "741c5dffd3253038bbe4fadea7fada7c46474a25",
-        "short": "741c5df",
-        "date": "2026-11-04T08:52:07Z",
-        "message": "feat(bench): per-question direction report beside the paired mean",
-        "url": "https://github.com/DreamLab-AI/loom/commit/741c5dffd3253038bbe4fadea7fada7c46474a25"
+        "sha": "c016dab5ae8afa0bf41519ff0b2685647dc717f3",
+        "short": "c016dab",
+        "date": "2026-11-15T13:19:00Z",
+        "message": "build: align publishing CLI with shared provenance contract",
+        "url": "https://github.com/DreamLab-AI/loom/commit/c016dab5ae8afa0bf41519ff0b2685647dc717f3"
       },
       "ci": {
         "state": "green",
@@ -434,8 +432,8 @@
             "workflow": "Rust contracts",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/loom/actions/runs/41803891890",
-            "updated_at": "2026-11-04T09:09:49Z"
+            "url": "https://github.com/DreamLab-AI/loom/actions/runs/43718403385",
+            "updated_at": "2026-11-15T13:26:35Z"
           }
         ]
       },
@@ -532,11 +530,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "6d6352847be6bd37602ac6b6885e88c6c0df208e",
-        "short": "6d63528",
-        "date": "2026-11-14T16:13:32Z",
-        "message": "test(cli): discard the planning step's exit code explicitly",
-        "url": "https://github.com/DreamLab-AI/ontomark/commit/6d6352847be6bd37602ac6b6885e88c6c0df208e"
+        "sha": "fbe30244c6842879297883b571965f5bc1ce0441",
+        "short": "fbe3024",
+        "date": "2026-11-15T13:19:43Z",
+        "message": "ci: pin provenance-aware plugin and preserve host exclusion fixtures",
+        "url": "https://github.com/DreamLab-AI/ontomark/commit/fbe30244c6842879297883b571965f5bc1ce0441"
       },
       "ci": {
         "state": "green",
@@ -545,17 +543,17 @@
             "workflow": "ci",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/ontomark/actions/runs/43614500102",
-            "updated_at": "2026-11-14T16:17:43Z"
+            "url": "https://github.com/DreamLab-AI/ontomark/actions/runs/43718419344",
+            "updated_at": "2026-11-15T13:23:30Z"
           }
         ]
       },
       "open_prs": 0,
       "open_issues": 0,
       "release": {
-        "tag": "v0.8.1",
-        "date": "2026-11-05T10:40:39Z",
-        "url": "https://github.com/DreamLab-AI/ontomark/releases/tag/v0.8.1"
+        "tag": "v0.9.0",
+        "date": "2026-11-15T13:08:56Z",
+        "url": "https://github.com/DreamLab-AI/ontomark/releases/tag/v0.9.0"
       },
       "pages": null,
       "notes": []
@@ -571,11 +569,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "4b1016d1b531679a8a59992b71cbee552dac6394",
-        "short": "4b1016d",
-        "date": "2026-11-14T16:07:20Z",
-        "message": "Arrange the ontology graph with the shared force layout",
-        "url": "https://github.com/DreamLab-AI/ontomark-obsidian/commit/4b1016d1b531679a8a59992b71cbee552dac6394"
+        "sha": "64bdc5bf6309fca94bf0437b52c1484618470ed0",
+        "short": "64bdc5b",
+        "date": "2026-11-15T13:19:26Z",
+        "message": "feat(engine): adopt content-bound review engine 0.9.0",
+        "url": "https://github.com/DreamLab-AI/ontomark-obsidian/commit/64bdc5bf6309fca94bf0437b52c1484618470ed0"
       },
       "ci": {
         "state": "green",
@@ -584,8 +582,8 @@
             "workflow": "Plugin checks",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/ontomark-obsidian/actions/runs/43613861285",
-            "updated_at": "2026-11-14T16:07:51Z"
+            "url": "https://github.com/DreamLab-AI/ontomark-obsidian/actions/runs/43718397137",
+            "updated_at": "2026-11-15T13:19:58Z"
           }
         ]
       },
@@ -719,7 +717,7 @@
           }
         ]
       },
-      "open_prs": 1,
+      "open_prs": 2,
       "open_issues": 0,
       "release": {
         "tag": "v0.1.6",
@@ -779,21 +777,21 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "413f1bbd2927251fcd3a919f64b824837d80d1f5",
-        "short": "413f1bb",
-        "date": "2026-11-14T17:25:38Z",
-        "message": "build(deps): bump Swatinem/rust-cache from 2.9.2 to 2.9.3 (#11)",
-        "url": "https://github.com/DreamLab-AI/dream-engine/commit/413f1bbd2927251fcd3a919f64b824837d80d1f5"
+        "sha": "fe3a8251446df87364bb97c97a0f177b52d17e0c",
+        "short": "fe3a825",
+        "date": "2026-11-15T10:54:06Z",
+        "message": "fix(dream): preserve quote-free evaluator commands across remote execution",
+        "url": "https://github.com/DreamLab-AI/dream-engine/commit/fe3a8251446df87364bb97c97a0f177b52d17e0c"
       },
       "ci": {
-        "state": "green",
+        "state": "red",
         "runs": [
           {
             "workflow": "ci",
-            "conclusion": "success",
+            "conclusion": "failure",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/dream-engine/actions/runs/43621047403",
-            "updated_at": "2026-11-14T17:26:17Z"
+            "url": "https://github.com/DreamLab-AI/dream-engine/actions/runs/43706301577",
+            "updated_at": "2026-11-15T10:54:44Z"
           }
         ]
       },
@@ -929,7 +927,7 @@
           }
         ]
       },
-      "open_prs": 1,
+      "open_prs": 2,
       "open_issues": 0,
       "release": {
         "tag": "v0.2.0",
@@ -947,7 +945,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 283,
+      "latency_ms": 164,
       "note": null
     },
     {
@@ -956,7 +954,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 186,
+      "latency_ms": 128,
       "note": null
     },
     {
@@ -965,7 +963,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/ld+json",
-      "latency_ms": 178,
+      "latency_ms": 125,
       "note": null
     },
     {
@@ -974,7 +972,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/json; charset=utf-8",
-      "latency_ms": 194,
+      "latency_ms": 122,
       "note": "classes=9595 pages=9593 nodes=9595"
     },
     {
@@ -983,7 +981,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 513,
+      "latency_ms": 229,
       "note": null
     },
     {
@@ -992,7 +990,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/octet-stream",
-      "latency_ms": 353,
+      "latency_ms": 161,
       "note": null
     }
   ],
@@ -1048,8 +1046,8 @@
     {
       "registry": "crates.io",
       "name": "ontomark-parse",
-      "version": "0.1.3",
-      "published_at": "2026-10-31T10:07:01.956408Z",
+      "version": "0.1.4",
+      "published_at": "2026-11-15T13:00:36.352176Z",
       "url": "https://crates.io/crates/ontomark-parse",
       "note": null
     },
@@ -1072,16 +1070,16 @@
     {
       "registry": "crates.io",
       "name": "ontomark-compile",
-      "version": "0.8.0",
-      "published_at": "2026-11-07T12:35:47.678595Z",
+      "version": "0.9.0",
+      "published_at": "2026-11-15T13:02:14.576334Z",
       "url": "https://crates.io/crates/ontomark-compile",
       "note": null
     },
     {
       "registry": "crates.io",
       "name": "ontomark-ingest",
-      "version": "0.2.1",
-      "published_at": "2026-11-04T08:59:42.546944Z",
+      "version": "0.2.2",
+      "published_at": "2026-11-15T13:01:51.053540Z",
       "url": "https://crates.io/crates/ontomark-ingest",
       "note": null
     },
