@@ -22,15 +22,14 @@ Items are filed by **seam**: the contract between components that would have to 
 | Parked | 20 | Deliberately set aside with a re-open trigger |
 | Closed | 36 | Fixed, overtaken, or found not to be a defect. Kept so the id still resolves |
 
-## Waiting on the owner (18)
+## Waiting on the owner (17)
 
-### Waiting on an owner decision (13)
+### Waiting on an owner decision (12)
 
 | Id | Item | Seam | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|---|
 | 11-08 #4 | Audit journal: torn records `events/2026-10-12.jsonl` lines 35, 64; refused-revoke not journalled (B4/B5) | none | visionclaw | owner-decision | open | 2026-11-15 |
 | cheap: nix-flake-update | Merge bot's `deps/nix-flake-update` | none | agentbox | owner-decision | open | 2026-11-15 |
-| ratify: VC 2039/2108 | VisionClaw ADR-2108 (dev profile arms the bypass by default) contradicts the ruling on ADR-2039 (bypass off by default): supersede ADR-2108? | none | visionclaw | owner-decision | open | 2026-11-16 |
 | ratify: VF 2015/2018 | VisionFlow ADR-2015 (proposed): accept, amend or reject | none | visionflow | owner-decision | open | 2026-11-16 |
 | ratify: AB 2080/2162/2177 | agentbox ADR-2162: accept, amend or reject (ADR-2177 accepted and ADR-2080 item 3 deferred on 2026-11-16) | none | agentbox | owner-decision | open | 2026-11-15 |
 | G-7 | Backup policy per store | none | visionclaw | owner-decision | open | 2026-11-15 |
@@ -98,9 +97,9 @@ An item that touches two components is counted under both.
 
 | Blocked by | Items |
 |---|---|
-| Waiting on an owner decision | 13 |
+| Waiting on an owner decision | 12 |
 | Waiting on an owner act | 5 |
-| Ordinary engineering: can start now | 22 |
+| Ordinary engineering: can start now | 23 |
 | Needs a live deployment | 9 |
 | Needs a device | 4 |
 | Waiting on an external party | 6 |

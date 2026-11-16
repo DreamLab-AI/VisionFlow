@@ -420,7 +420,7 @@ The item concerns one component's own behaviour and no contract with another. Fi
 | 11-08 #9 | Production-image receipt; VisionClaw ADR-2037/2038/2012/2119 (parked) | visionclaw | external | open | 2026-11-15 |
 | 11-15 new | RUSTSEC-2026-0459: `libsqlite3-sys 0.28` via direct `rusqlite 0.31` | visionclaw | engineering | open | 2026-11-15 |
 | cheap: Gemini key | Gemini audit key 401; ADR-2131 audit leg never ran | visionclaw | owner-act | open | 2026-11-15 |
-| ratify: VC 2039/2108 | VisionClaw ADR-2108 (dev profile arms the bypass by default) contradicts the ruling on ADR-2039 (bypass off by default): supersede ADR-2108? | visionclaw | owner-decision | open | 2026-11-16 |
+| ratify: VC 2039/2108 | When VisionClaw branch fix/estate-review-2026-11-15 merges: mark ADR-2039 accepted with its verified commit, and supersede ADR-2108 | visionclaw | engineering | open | 2026-11-16 |
 | X-2 | Actor bypass audit (direct store reads, `execute_in_thread`) | visionclaw | engineering | open | 2026-11-15 |
 | X-4 | Upgrade rehearsal built, never run | visionclaw, agentbox | owner-act | open | 2026-11-15 |
 | G-7 | Backup policy per store | visionclaw | owner-decision | open | 2026-11-15 |
