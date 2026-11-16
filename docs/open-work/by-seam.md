@@ -165,7 +165,7 @@ Between: nostr-rust-forum, dreamlab-ai-website, agentbox.
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| FORUM-PHASE-0-1 (also feat/upgrade-phase-0-1) | Merge forum branch feat/upgrade-phase-0-1 (inbox-key attestation fix and Phases 2 to 4), with tests | nostr-rust-forum | engineering | open | 2026-11-15 |
+| FORUM-PHASE-0-1 (also feat/upgrade-phase-0-1) | Forum Phase 0 to 4 branch integrated on integrate/phase-0-1: review, choose the core crate version, merge, then apply the D1 migrations | nostr-rust-forum | owner-act | fixed on an unmerged branch: nostr-rust-forum integrate/phase-0-1 (a80c572) | 2026-11-16 |
 | W2-02 | forum ADR-2027 describes an inbox-key relay change that is not on main | nostr-rust-forum | untriaged | open | 2026-11-15 |
 
 ### Recorded as open, not re-checked
@@ -221,13 +221,12 @@ Anything that moves or records value: pay routes, the teller and credit ledger, 
 
 Between: sidestr-rs, solid-pod-rs, nostr-rust-forum, visionclaw, agentbox.
 
-6 live, 8 unverified, 0 closed.
+5 live, 8 unverified, 0 closed.
 
 ### Live
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| N-3 | Delete FsPaymentStore and accept VisionClaw ADR-2111 | visionclaw | engineering | open | 2026-11-15 |
 | N-10 | Correct the ecosystem map: sidestr is running with development paused; adoption of its capabilities is parked | sidestr-rs, agentbox | engineering | open | 2026-11-15 |
 | SP-ACL-REVIEW-02 | [HIGH_BUG] Web-Ledger fee debited before the request is validated or served | solid-pod-rs | untriaged | open | 2026-11-15 |
 | SIDESTR-F1 | No remediation had landed for any of the 25 open sidestr rows since the audit pin 814b9e54 | sidestr-rs | untriaged | open | 2026-11-15 |
@@ -422,7 +421,7 @@ The item concerns one component's own behaviour and no contract with another. Fi
 | ratify: VC 2039/2108 | When VisionClaw branch fix/estate-review-2026-11-15 merges: mark ADR-2039 accepted with its verified commit, and supersede ADR-2108 | visionclaw | engineering | open | 2026-11-16 |
 | X-2 | Actor bypass audit (direct store reads, `execute_in_thread`) | visionclaw | engineering | open | 2026-11-15 |
 | X-4 | Upgrade rehearsal built, never run | visionclaw, agentbox | owner-act | open | 2026-11-15 |
-| G-7 | Backups: nightly dump of Oxigraph and the SQLite stores to the NAS, and one recorded restore test | visionclaw | engineering | open | 2026-11-15 |
+| G-7 | Backups: tool built on a branch. Still to do: in-server periodic Oxigraph checkpoint, destination /mnt/dell, schedule, one timed restore of the real stores | visionclaw | engineering | fixed on an unmerged branch: visionclaw feat/store-backup-and-restore | 2026-11-16 |
 | L-3 | Clamp-fire receipt | visionclaw | engineering | open | 2026-11-15 |
 | L-4 | Failure-path telemetry liveness | visionclaw | deployment | open | 2026-11-15 |
 | L-6 | Amethyst/Amber mobile session | visionclaw | device | open | 2026-11-15 |
@@ -535,7 +534,7 @@ Recorded as open, not re-checked:
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
 | cheap: forum-tweaks | Delete remote `fix/forum-tweaks-2026-10-22` | nostr-rust-forum | engineering | open | 2026-11-15 |
-| AC-FORUM-1 | Forum: delete the three blank `audited_by` fields | nostr-rust-forum | engineering | open | 2026-11-15 |
+| AC-FORUM-1 | Forum: delete the three blank `audited_by` fields | nostr-rust-forum | engineering | fixed on an unmerged branch: nostr-rust-forum integrate/phase-0-1 (2316ebe) | 2026-11-16 |
 
 Recorded as open, not re-checked:
 
