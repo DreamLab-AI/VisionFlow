@@ -127,18 +127,14 @@ Where private keys and credentials live, who can read or use them, how they are 
 
 Between: agentbox, nostr-rust-forum, dreamlab-ai-website, visionclaw.
 
-8 live, 8 unverified, 0 closed.
+4 live, 8 unverified, 0 closed.
 
 ### Live
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
 | X-1 | Same-UID boundary; per-role accounts and `/run/secrets` | agentbox | engineering | open | 2026-11-15 |
-| G-5 | Replacement publisher identity, recovery custody (key ceremony) | visionclaw, agentbox | owner-act | open | 2026-11-15 |
 | N-6 | Key-custody surfaces on shared UID | agentbox, sidestr-rs | engineering | open | 2026-11-15 |
-| ER-6 | agent_governance key ceremony, ACL grant, forum allowlist, dream-engine onto port | nostr-rust-forum, dream-engine, agentbox | owner-act | open | 2026-11-15 |
-| ER-23 | Website 5-site admin-key rotation | dreamlab-ai-website | owner-act | open | 2026-11-15 |
-| ER-36 | Trail-key hygiene (agentbox image half done) | agentbox, solid-pod-rs | owner-act | open | 2026-11-15 |
 | W3-06 | Boot now creates a devuser-owned /run/secrets/ruvector-pg/ inside the role-only secrets mount in both modes, outside the role plan; ADR-2122 records that the activation rehearsal was not re-run with it present. | agentbox | untriaged | open | 2026-11-15 |
 | CD-F9 | Committed plaintext ruvector-postgres credentials | visionclaw | untriaged | open | 2026-11-15 |
 
@@ -196,7 +192,6 @@ Between: solid-pod-rs, visionclaw, agentbox, nostr-rust-forum, dreamlab-ai-websi
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| cheap: FORGE_MIRROR_FOLLOW | Owner-chosen follow list (VisionFlow ADR-2019, solid-pod-rs ADR-2009/2010) | agentbox, solid-pod-rs | owner-decision | open | 2026-11-15 |
 | AW1-01 | The mirror is built with DefaultSsrfCheck, so it refuses the operator's loopback relay that ADR-2010 says it admits | solid-pod-rs | untriaged | open | 2026-11-15 |
 | SP-ACL-REVIEW-01 | [HIGH] Git clone exposes private child resources with only pod-root Read | solid-pod-rs | untriaged | open | 2026-11-15 |
 | SP-ACL-REVIEW-03 | [MEDIUM] Proxy forwards X-Upstream-Authorization across cross-origin and HTTPS->HTTP redirects | solid-pod-rs | untriaged | open | 2026-11-15 |
@@ -208,6 +203,7 @@ Between: solid-pod-rs, visionclaw, agentbox, nostr-rust-forum, dreamlab-ai-websi
 | SP-PAR-289 | Relative `acl:agent` WebIDs resolved against the ACL | solid-pod-rs | untriaged | open | 2026-11-15 |
 | SP-PAR-290 | Container ACL at `<container>/.acl` | solid-pod-rs | untriaged | open | 2026-11-15 |
 | SP-PAR-292 | Forge/mirror need a shutdown hook | solid-pod-rs | untriaged | open | 2026-11-15 |
+| POD-PARITY | Resume the solid-pod-rs parity push against the reference Solid server; the live checklist stands at 300 rows and at most 89.6% strict | solid-pod-rs | engineering | open | 2026-11-15 |
 
 ### Recorded as open, not re-checked
 
@@ -329,13 +325,7 @@ The memory store agents and services share: its interface, embedding pipeline, n
 
 Between: agentbox, visionclaw.
 
-1 live, 4 unverified, 0 closed.
-
-### Live
-
-| Id | Item | Components | Blocked by | State | Checked |
-|---|---|---|---|---|---|
-| ER-11 | Memory-cloud tombstones | visionclaw, agentbox | owner-decision | open | 2026-11-15 |
+0 live, 4 unverified, 0 closed.
 
 ### Recorded as open, not re-checked
 
@@ -417,30 +407,29 @@ Between: dream-engine, agentbox, visionflow.
 
 The item concerns one component's own behaviour and no contract with another. Fixing it changes nothing a neighbour depends on.
 
-86 live, 103 unverified, 23 closed.
+81 live, 103 unverified, 24 closed.
 
 ### visionclaw
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
 | 11-08 #4 | Audit journal: torn records `events/2026-10-12.jsonl` lines 35, 64; refused-revoke not journalled (B4/B5) | visionclaw | owner-decision | open | 2026-11-15 |
-| 11-08 #6 | `VISIONCLAW_JEV_ALLOW_CLOUD` defaults to 1 | visionclaw | owner-decision | open | 2026-11-15 |
+| 11-08 #6 | `VISIONCLAW_JEV_ALLOW_CLOUD` defaults to 1 | visionclaw | engineering | open | 2026-11-15 |
 | 11-08 #7 | Dependabot backlog untriaged; no `dependabot.yml` | visionclaw, agentbox | engineering | open | 2026-11-15 |
 | W3-02 | Saved API keys never read back | visionclaw | engineering | open | 2026-11-15 |
 | 11-08 #9 | Production-image receipt; VisionClaw ADR-2037/2038/2012/2119 (parked) | visionclaw | external | open | 2026-11-15 |
 | 11-15 new | RUSTSEC-2026-0459: `libsqlite3-sys 0.28` via direct `rusqlite 0.31` | visionclaw | engineering | open | 2026-11-15 |
 | cheap: Gemini key | Gemini audit key 401; ADR-2131 audit leg never ran | visionclaw | owner-act | open | 2026-11-15 |
-| ratify: VC 2134/2138 | VisionClaw ADR-2134, ADR-2138 'reserve acceptance' | visionclaw | owner-decision | open | 2026-11-15 |
-| ratify: VC 2039/2108 | VisionClaw ADR-2039, ADR-2108 empty `verified_commit` | visionclaw | owner-decision | open | 2026-11-15 |
+| ratify: VC 2134/2138 | VisionClaw ADR-2134, ADR-2138 'reserve acceptance' | visionclaw | engineering | open | 2026-11-15 |
+| ratify: VC 2039/2108 | VisionClaw ADR-2039, ADR-2108 empty `verified_commit` | visionclaw | engineering | open | 2026-11-15 |
 | X-2 | Actor bypass audit (direct store reads, `execute_in_thread`) | visionclaw | engineering | open | 2026-11-15 |
 | X-4 | Upgrade rehearsal built, never run | visionclaw, agentbox | owner-act | open | 2026-11-15 |
 | G-7 | Backup policy per store | visionclaw | owner-decision | open | 2026-11-15 |
-| EA-06 | Per-store erasure mappings and backend adapters | visionclaw | owner-decision | open | 2026-11-15 |
 | L-3 | Clamp-fire receipt | visionclaw | engineering | open | 2026-11-15 |
 | L-4 | Failure-path telemetry liveness | visionclaw | deployment | open | 2026-11-15 |
 | L-6 | Amethyst/Amber mobile session | visionclaw | device | open | 2026-11-15 |
 | CY-B7 (also CY-B8) | Augmentation-conditions activation; ADR-2095 measurement run | visionclaw | owner-decision | open | 2026-11-15 |
-| CY-C | Fresh-host runbook / Trust letter MVP | visionclaw | owner-decision | open | 2026-11-15 |
+| CY-C | Bring-up runbook for a clean machine (was: fresh-host runbook and Trust letter) | visionclaw | engineering | open | 2026-11-15 |
 | CD-F1 | AppState EventBus has handlers but no publisher; coordinator has no caller | visionclaw | untriaged | open | 2026-11-15 |
 | CD-F2 | File-backed EventStore constructed, never appended | visionclaw | untriaged | open | 2026-11-15 |
 | CD-F3 | Isaac runner `POST /v1/jobs` unauthenticated | visionclaw | untriaged | open | 2026-11-15 |
@@ -452,8 +441,6 @@ The item concerns one component's own behaviour and no contract with another. Fi
 | CD-F10 | `SemanticService::new` takes one argument but tests pass two; CI skips root tests | visionclaw | untriaged | open | 2026-11-15 |
 | CD-F11 | Orphan `voice_tag_integration_test.rs` included by no module | visionclaw | untriaged | open | 2026-11-15 |
 | CD-F12 | VEX bundle self-digests unsigned; no workflow signs it | visionclaw | untriaged | open | 2026-11-15 |
-| PARK-visionclaw-ADR-2037 | ADR-2037: Owner disposition 2026-10-02: ready to accept once one CY-C receipt binds production image digest, feature closure and the two exit-2 forbidden-variable probes. Source half holds (Dockerfile.production release lines, ci.yml dev-auth-release-gate). | visionclaw | owner-decision | open | 2026-11-15 |
-| PARK-visionclaw-ADR-2119 | ADR-2119: No Trust host has run the prod profile | visionclaw | owner-decision | open | 2026-11-15 |
 
 Recorded as open, not re-checked:
 
@@ -501,11 +488,9 @@ Recorded as open, not re-checked:
 |---|---|---|---|---|---|
 | 11-08 #1a | Browsercontainer publishes VNC 5903, MCP 8931, CDP 9222 on 0.0.0.0 | agentbox | engineering | fixed on an unmerged branch: yes: agentbox `fix/estate-review-hardening` 721836d53 (compose files only: browsercontainer, gui-tools, xr-runtime; no `flake.nix` change) | 2026-11-15 |
 | 11-08 #1b | Xvnc runs `-SecurityTypes None` | agentbox | engineering | open | 2026-11-15 |
-| 11-08 #1c | Supersplat listens 0.0.0.0:8795 unauthenticated (ADR-2177) | agentbox | owner-decision | open | 2026-11-15 |
 | W3-01 (also 11-08 #1d) | Relay consumer admits every signed author when allowlist unset | agentbox | engineering | fixed on an unmerged branch: yes: agentbox `fix/estate-review-contracts` 2c1f85706 | 2026-11-15 |
 | cheap: nix-flake-update | Merge bot's `deps/nix-flake-update` | agentbox | owner-decision | open | 2026-11-15 |
-| ratify: AB 2080/2162/2177 | agentbox ADR-2080 item 3 (router.sh:79), ADR-2162, ADR-2177 supersplat listener | agentbox | owner-decision | open | 2026-11-15 |
-| G-4 | Public-recipient set for mandatory recipient enumeration | agentbox | owner-decision | open | 2026-11-15 |
+| ratify: AB 2080/2162/2177 | agentbox ADR-2162: accept, amend or reject (ADR-2177 accepted and ADR-2080 item 3 deferred on 2026-11-16) | agentbox | owner-decision | open | 2026-11-15 |
 | M-4 | Multi-peer delivery accepted/rejected | agentbox | deployment | open | 2026-11-15 |
 | L-2 | Second-model-family traffic canary | agentbox | deployment | open | 2026-11-15 |
 | ER-17 | SONA 384-dim | agentbox | external | open | 2026-11-15 |
@@ -652,7 +637,7 @@ Recorded as open, not re-checked:
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| cheap: ADR-OM-003 | ontomark ADR-OM-003: status text disagrees with front matter | ontomark | owner-decision | open | 2026-11-15 |
+| cheap: ADR-OM-003 | ontomark ADR-OM-003: status text disagrees with front matter | ontomark | engineering | open | 2026-11-15 |
 | ER-18 | ontomark NGG2 relation codes/resolvers | ontomark | engineering | open | 2026-11-15 |
 
 Recorded as open, not re-checked:
@@ -720,9 +705,9 @@ Recorded as open, not re-checked:
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| ratify: VF 2015/2018 | VisionFlow ADR-2015 (proposed) and ADR-2018 ruling | visionflow | owner-decision | open | 2026-11-15 |
-| ratify: VF 2021 | VisionFlow ADR-2021 business roadmap: accept, amend or reject | visionflow | owner-decision | open | 2026-11-15 |
-| G-23 | `ESTATE_READ_TOKEN` read on visionGraph, or mark it exempt | visionflow, visiongraph | owner-decision | open | 2026-11-15 |
+| ratify: VF 2015/2018 | VisionFlow ADR-2015 (proposed): accept, amend or reject. ADR-2018: correct its parity figure | visionflow | owner-decision | open | 2026-11-15 |
+| ratify: VF 2021 | VisionFlow ADR-2021 business roadmap: accept, amend or reject | visionflow | engineering | open | 2026-11-15 |
+| G-23 | `ESTATE_READ_TOKEN` read on visionGraph, or mark it exempt | visionflow, visiongraph | owner-act | open | 2026-11-15 |
 | CY-A3 | Three green scheduled nights of the estate check | visionflow | engineering | open | 2026-11-15 |
 
 Recorded as open, not re-checked:
