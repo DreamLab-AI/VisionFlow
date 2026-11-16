@@ -61,7 +61,7 @@ sources:
   - ../project/agentbox/docs/adr/ADR-2091-live-skill-router.md
   - ../project/agentbox/docs/adr/ADR-2092-govern-the-agent-and-command-registries.md
   - ../project/agentbox/docs/adr/ADR-2150-video-production-skill.md
-verified_commit: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a
+verified_commit: 3a2c59764028e1fd8475abfda61bb3bcefab46d5
 ---
 
 ## AB-22.1 Skill discovery and JIT load at a turn
@@ -75,7 +75,7 @@ sequenceDiagram
     participant SK as SKILL.md frontmatter<br/>agentbox/skills/tree-search-coder/SKILL.md:1-3
     participant REF as references/*<br/>agentbox/skills/tree-search-coder/references/algorithm.md
 
-    Note over H,FS: INVARIANT: skills self-trigger from description frontmatter (ADR-2021) — bake root is<br/>/opt/agentbox/skills, NEVER ~/.claude/skills. 124 skills at this revision (agentbox/AGENTS.md:32)
+    Note over H,FS: INVARIANT: skills self-trigger from description frontmatter (ADR-2021) — bake root is<br/>/opt/agentbox/skills, NEVER ~/.claude/skills. 125 skills at this revision (agentbox/AGENTS.md:32)
     Note over H,FS: INVARIANT ADR-2083 authoring contract — name equals the directory and description is<br/>at most DESC_MAX 1024 chars with what/when/when-not (agentbox/skills/lint-skills.mjs:72)<br/>Registration is by manifest: skills/registered-skills.txt:1 always-loaded for Claude Code,<br/>skills/codex-registered-skills.txt:1 for Codex — everything else is reached through the router
     H->>FS: registered descriptions are always loaded, other skills can be discovered by the router
     alt explicit frontmatter gate is off, absent or unreadable
@@ -205,16 +205,16 @@ sequenceDiagram
 
     Note over AUTHOR,DIR: SKILL-DIRECTORY.md is hand-maintained prose (categorised inventory, decision tree, MCP<br/>table) — no generator script found under agentbox/scripts for its body text
     CNT->>DISK: countSkills() — one SKILL.md per top-level skills/ dir<br/>(agentbox/scripts/skill-count-check.js:59-74)
-    DISK-->>CNT: count = 124 (agentbox/scripts/skill-count-check.js output, this tree)
+    DISK-->>CNT: count = 125 (agentbox/scripts/skill-count-check.js output, this tree)
     CNT->>DIR: scanDoc() for "N active skills" / "N+ skills" / "for N skills" claims against<br/>README.md, SKILL-DIRECTORY.md, AGENTS.md — CLAUDE.md only imports AGENTS.md (ADR-2111)<br/>(agentbox/scripts/skill-count-check.js:41,84-106)
     alt claim matches truth count
-        CNT-->>AUTHOR: ok=true (SKILL-DIRECTORY.md:3,35,41,306 all state 124 — matches)
+        CNT-->>AUTHOR: ok=true (SKILL-DIRECTORY.md:3,35,41,307 all state 125 — matches)
     else claim diverges from truth count
         CNT-->>AUTHOR: E-SKILL1 skill-count drift, exit 1 (agentbox/scripts/skill-count-check.js:161-168)
     end
     Note over AUTHOR,DISK: INVARIANT ADR-2056 — skill-count-check.js is the single count authority and it is<br/>wired into CI (agentbox/.github/workflows/invariants.yml:219), so a hand-written count claim<br/>in SKILL-DIRECTORY.md cannot drift silently
-    Note over AUTHOR,DISK: RESOLVED — agentbox/AGENTS.md:32 now says "the image bakes /opt/agentbox/skills (124<br/>skills)", matching skill-count-check.js and SKILL-DIRECTORY.md:3
-    Note over AUTHOR,DISK: RESOLVED CENSUS — 124 skill directories and 124 active table rows, zero deprecated<br/>redirects (routing-table.md:12). Status and gate filtering still make the routable set smaller<br/>(lib/skill-route.cjs:235-258), so this count is not a live candidate count.
+    Note over AUTHOR,DISK: RESOLVED — agentbox/AGENTS.md:32 now says "the image bakes /opt/agentbox/skills (125<br/>skills)", matching skill-count-check.js and SKILL-DIRECTORY.md:3
+    Note over AUTHOR,DISK: RESOLVED CENSUS — 125 skill directories and 125 active table rows, zero deprecated<br/>redirects (routing-table.md:12). Status and gate filtering still make the routable set smaller<br/>(lib/skill-route.cjs:235-258), so this count is not a live candidate count.
 ```
 
 ## AB-22.5 harness-bridge MCP — list/inspect/validate
@@ -470,7 +470,7 @@ sequenceDiagram
     TSC->>TSC: score by assertion-pass count, select highest, tie-break shortest code<br/>(algorithm.md:16-18)
     TSC-->>U: chosen candidate + audit trajectory JSONL for ExpeL distillation (algorithm.md:27-28)
     Note over TSC,LED: INVARIANT (ADR-2020): no default-unlimited mode — an absent spend_cap_usd falls back to<br/>the documented 0.50 USD default, never to infinity (algorithm.md:24,<br/>agentbox.toml:1117-1119)
-    Note over TSC,U: POLICY / IMPLEMENTATION GAP — the directory requires explicit opt-in (SKILL-DIRECTORY.md:65,630).<br/>The generated table still includes tree-search (routing-table.md:67). Its manifest_gate field<br/>(skills/tree-search-coder/SKILL.md:15) is not the literal gate field read by loadCandidates<br/>(lib/skill-route.cjs:245-258), so recommendation eligibility is not an execution permission.<br/>The hook advises only, and the spend-cap CLI still refuses disabled reservations (algorithm.md:89-90).
+    Note over TSC,U: POLICY / IMPLEMENTATION GAP — the directory requires explicit opt-in (SKILL-DIRECTORY.md:65,631).<br/>The generated table still includes tree-search (routing-table.md:68). Its manifest_gate field<br/>(skills/tree-search-coder/SKILL.md:15) is not the literal gate field read by loadCandidates<br/>(lib/skill-route.cjs:245-258), so recommendation eligibility is not an execution permission.<br/>The hook advises only, and the spend-cap CLI still refuses disabled reservations (algorithm.md:89-90).
 ```
 
 ## AB-22.13 [skills.*] manifest gate table, plus [claude_code] (ADR-2020/ADR-2116, catalogue parity closed)
@@ -536,8 +536,8 @@ flowchart TB
 ```
 
 
-**What it shows.** The table is generated from skill descriptions and the section map; CI fails when it is stale. This stamp has 124 skill directories and 124 active table rows, with no deprecated redirects (`../project/agentbox/skills/skill-router/references/routing-table.md:12`).
+**What it shows.** The table is generated from skill descriptions and the section map; CI fails when it is stale. This stamp has 125 skill directories and 125 active table rows, with no deprecated redirects (`../project/agentbox/skills/skill-router/references/routing-table.md:12`).
 
-**Why it is this way.** Every skill needs a section-map entry. The new CAD group, motion-designer and paper-orchestra are mapped explicitly (`../project/agentbox/skills/skill-router/references/section-map.json:46-52,77,107`). Inventory counts and routing eligibility are separate checks.
+**Why it is this way.** Every skill needs a section-map entry. The new CAD group, motion-designer and paper-orchestra are mapped explicitly (`../project/agentbox/skills/skill-router/references/section-map.json:46-52,78,108`). Inventory counts and routing eligibility are separate checks.
 
 **Boundary:** ADR-2150 remains proposed/partial/staged (`../project/agentbox/docs/adr/ADR-2150-video-production-skill.md:5-7`). The router reads skill frontmatter status and gates, not ADR status (`../project/agentbox/config/hooks/lib/skill-route.cjs:235-258,311-316`); a table entry does not establish runtime acceptance.

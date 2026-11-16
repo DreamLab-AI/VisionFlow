@@ -48,14 +48,14 @@ sources:
   - ../project/src/app_state.rs
   - ../project/src/actors/graph_state_actor.rs
   - ../project/src/services/ontology_mutation_service.rs
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
+verified_commit: {visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16, agentbox: 3a2c59764028e1fd8475abfda61bb3bcefab46d5}
 ---
 
 ## For developers
 
 This topic records which store is the write master for each data class: four SQLite databases, Oxigraph named graphs, the Solid pod and RuVector. It also covers how provenance is appended, how erasure reaches each store, and how a caller's view of the graph is cut. At ec785afa9 two mechanisms were added: the visible subgraph now scrubs hidden page names out of visible metadata (VC-22.12), and full syncs append public corpus history to the provenance graph (VC-22.13). At 809a859aa graph shares became a fifth durable SQLite store, `data/shares.sqlite3`, backed up as a required member but not reached by per-user erasure (VC-22.14), and the corpus-history writer now takes its public test from `NodeVisibility::of_node`.
 
-## For the business
+## For the business The governing document also now separates source review from compiler provenance (2026-11-15): a human review stamp is assessed against the exact source through Ontomark and goes stale when a bound value changes, and a compiler identity can neither certify content nor grant governance admission (`docs/DATA-authority-erasure.md:270-285`).
 
 Every piece of data has one authoritative home, so a correction or a deletion has a known place to land. Private pages must not leak through the names other pages mention, and the history kept for audit contains only what was already public, because that history cannot yet be deleted.
 

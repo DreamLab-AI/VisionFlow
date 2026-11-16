@@ -32,7 +32,7 @@ sources:
   - docs/adr/ADR-2007-estate-closeout-evidence-roadmap.md
   - docs/BASELINE-visionflow.md
   - ./README.md
-verified_commit: {visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c, visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a, nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
+verified_commit: {visionflow: fdeab5dc36a859b3b881d7d587af067c88795217, visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16, agentbox: 3a2c59764028e1fd8475abfda61bb3bcefab46d5, nostr-rust-forum: 7e1f036ebd9ebd6c922db6f9acea041775730071}
 ---
 
 Source reconciliation: 2026-09-07. These panels follow the current sections of the compatibility matrix and status reconciliation, plus the source audits named in frontmatter. Historical metrics and register cuts remain historical. This review did not certify a live federation, image, hardware session or replica-wide authentication contract.
@@ -53,7 +53,7 @@ flowchart TB
     LOOM["Loom: ontology facade, HTTP only"] -->|configured retrieval| AB
     RV["RuVector: selected core or image"] --> LOOM
     RV -->|MCP and Postgres boundary| AB
-    CLI["Ontomark corpus operations, pin 0.8.0<br/>lib/ontomark.nix:46<br/>ontology-apply.js:157"] --> AB
+    CLI["Ontomark corpus operations, pin 0.9.0<br/>lib/ontomark.nix:48<br/>ontology-apply.js:157"] --> AB
     VAULT["vault governance transport: propose and panel<br/>ontology-apply.js:153"] --> AB
     GATE["Both packages share vaultCliActive<br/>flake.nix:1039 and flake.nix:1057"] --> CLI
     GATE --> VAULT

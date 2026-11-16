@@ -30,7 +30,7 @@ sources:
   - ../project/agentbox/docs/adr/ADR-2080-metaharness-router-console-under-aoe.md
   - ../project/agentbox/docs/adr/ADR-2084-one-published-loom-client-for-every-facade-caller.md
   - ../project/agentbox/lib/explainer-tools.nix
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a, loom: 741c5dffd3253038bbe4fadea7fada7c46474a25}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: 3a2c59764028e1fd8475abfda61bb3bcefab46d5, loom: 741c5dffd3253038bbe4fadea7fada7c46474a25}
 ---
 ## ES-06.1 Topology — the gateway holds a façade, never a model port
 ```mermaid
@@ -385,7 +385,7 @@ flowchart TB
     ENV --> DEG
 ```
 
-**Resolved:** ADR-2153 is live, so the router console of plane 2 is an ordinary `[[interaction_plane.session_seeds]]` entry (`slug = "router"`, `../project/agentbox/agentbox.toml:2261`) on the owned session plane, not an Agent of Empires session; ADR-2080 (`../project/agentbox/docs/adr/ADR-2080-metaharness-router-console-under-aoe.md`) keeps its scope rules and its AoE-era title (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`, `../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:167`).
+**Resolved:** ADR-2153 is live, so the router console of plane 2 is an ordinary `[[interaction_plane.session_seeds]]` entry (`slug = "router"`, `../project/agentbox/agentbox.toml:2261`) on the owned session plane, not an Agent of Empires session; ADR-2080 (`../project/agentbox/docs/adr/ADR-2080-metaharness-router-console-under-aoe.md`) keeps its scope rules and its AoE-era title (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`, `../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:176`).
 
 **Tension (ADR-2080 acceptance item 3, recorded 2026-10-30):** the public-only invariant above holds for the console, which exits on any other tier, but the router wrapper pins the tier to `public` before it starts the console, so setting `AGENTBOX_MODEL_ROUTER_PRIVACY_TIER=private` cannot make the wrapper exit non-zero as the acceptance text asks (`../project/agentbox/docs/adr/ADR-2080-metaharness-router-console-under-aoe.md:129-132`). The record's `review_trigger` says items 1, 2 and 4 passed on the running image on 2026-10-30 and leaves item 3 to an owner ruling, so ADR-2080 stays `accepted` / `partial` / `staged` (`../project/agentbox/docs/adr/ADR-2080-metaharness-router-console-under-aoe.md:5-7,13`).
 

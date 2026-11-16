@@ -35,12 +35,12 @@ sources:
   - ../project/src/services/corpus_history.rs
   - ../project/docker-compose.unified.yml
   - ../project/docs/PROTOCOL-registry.md
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
+verified_commit: {visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16}
 ---
 
 ## For developers
 
-Corpus sync reads pages through the `CorpusSource` port (local vault or GitHub), applies one frontmatter inclusion gate and builds nodes and edges in Oxigraph. Each sync also reads real commit history for the pages it rebuilds and stamps `last_modified`, `last_commit` and `change_count` (VC-21.13). Since 809a859aa every path that sets those keys, the sync and the `metadata.json` loader alike, goes through one writer, `TemporalKeys::write`, with one rule: a present value writes its key, an absent one removes it (VC-21.14). Every source also prunes its listing with one exclusion rule, `is_excluded_from_ingest`, so `_misc/` is now ingested locally as it already was from GitHub (ADR-2114 amendment 2026-11-06).
+Corpus sync reads pages through the `CorpusSource` port (local vault or GitHub), applies one frontmatter inclusion gate and builds nodes and edges in Oxigraph. Each sync also reads real commit history for the pages it rebuilds and stamps `last_modified`, `last_commit` and `change_count` (VC-21.13). Since 809a859aa every path that sets those keys, the sync and the `metadata.json` loader alike, goes through one writer, `TemporalKeys::write`, with one rule: a present value writes its key, an absent one removes it (VC-21.14). Every source also prunes its listing with one exclusion rule, `is_excluded_from_ingest`, so `_misc/` is now ingested locally as it already was from GitHub (ADR-2114 amendment 2026-11-06). Outside the sync path, `vault_core::Page` now keeps its exact parsed source (`crates/vault-core/src/page.rs:168-169`) so that `review_assessment` and `review_summary` (`crates/vault-core/src/page.rs:206-222`) can ask Ontomark whether a human review stamp is current, stale or unbound against that source; the only non-test callers are in the legacy vault builder, not in corpus sync.
 
 ## For the business
 

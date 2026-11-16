@@ -4,15 +4,17 @@ title: Retained explorer — scope limits, worker transfers and publication boun
 area: knowledgegraph
 governing:
   - ../knowledgeGraph/docs/adr/ADR-2001-corpus-consolidation.md
-adrs: [ADR-2001]
+adrs: [ADR-2001, ADR-2002]
 sources:
   - ../knowledgeGraph/docs/adr/ADR-2001-corpus-consolidation.md
+  - ../knowledgeGraph/docs/adr/ADR-2002-corpus-is-the-ontology.md
   - ../knowledgeGraph/explorer/modern/package.json
   - ../knowledgeGraph/explorer/modern/src/router.tsx
   - ../knowledgeGraph/explorer/modern/src/types/scope.ts
   - ../knowledgeGraph/explorer/modern/src/stores/scopeStore.ts
   - ../knowledgeGraph/explorer/modern/src/workers/protocol.ts
   - ../knowledgeGraph/explorer/modern/src/workers/positionTransport.ts
+  - ../knowledgeGraph/explorer/modern/src/workers/__tests__/positionTransport.test.ts
   - ../knowledgeGraph/explorer/modern/src/workers/physics.worker.ts
   - ../knowledgeGraph/explorer/modern/src/hooks/useSimulation.ts
   - ../knowledgeGraph/explorer/modern/src/api/pageService.ts
@@ -24,10 +26,10 @@ sources:
   - ../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/positionTransport.ts
   - ../visionGraph/.github/workflows/publish.yml
   - ../knowledgeGraph/archive/github-workflows/build.yml
-verified_commit: {knowledgegraph: 5294e88b6602a63b5afe96c79f2779d00274a05e, visiongraph: d8277151a1404b456b5c7206187f7e4b50f25be1}
+verified_commit: {knowledgegraph: 7815bbcb9f8ab04c2e76f5f8c5c32c69a9dbc56c, visiongraph: 1df8eb49051b6e55f35ea493b3c42e79ffd77bb8}
 ---
 
-**Repair note — 2026-11-03:** selected counterexamples below have a [scoped successor verification](08-transfer-pool-repair.md). This historical topic retains its declared source revision; the successor states the repaired contracts and acceptance boundaries.
+**Repair note — 2026-11-14:** the retained viewer's buffer pool was repaired on main (knowledgeGraph PR 5) and KG-04.2 states the repaired contract. The [scoped successor verification](08-transfer-pool-repair.md) records its acceptance boundary.
 
 ## For developers
 
@@ -35,7 +37,7 @@ This topic distinguishes the retained knowledgeGraph viewer from visionGraph's c
 
 ## For the business
 
-A successful viewer build does not establish a working browsing journey. The retained viewer can stop receiving positions and can describe an unavailable page as an unfinished concept; the configured publishing copy has a different buffer pool, so those results cannot be generalised to the public site.
+A successful viewer build does not establish a working browsing journey. The retained viewer used to stop receiving positions after two frames; that is repaired, with a regression test, but the repair verifies the retained copy only. It can still describe an unavailable page as an unfinished concept, and the configured publishing copy is a different source tree, so neither result can be generalised to the public site.
 
 ## KG-04.1 Retained viewer topology and legacy routing
 
@@ -73,13 +75,13 @@ sequenceDiagram
     H->>H: copy into stable positions view<br/>useSimulation.ts:145-155
     H->>W: transfer returned buffer<br/>useSimulation.ts:159-160
     W->>P: same generation: release<br/>physics.worker.ts:287-289
-    Note over W,P: DEBT: release requires original object identity<br/>explorer/modern/src/workers/positionTransport.ts:76-82<br/>A real transferred return is a new object, two sends exhaust pool
+    Note over W,P: INVARIANT: a return needs an outstanding transfer<br/>explorer/modern/src/workers/positionTransport.ts:84<br/>Count, not object identity: a transferred return is a new object
     Note over S,W: Shared transport is disabled by default<br/>protocol.ts:153-155, overview has no simulation<br/>Rendered canvas uses demand frames: GraphCanvas.tsx:298
 ```
 
-**What it shows:** Worker positions cross a transfer boundary; the retained pool rejects the returned objects. A Node MessageChannel probe reproduces exhaustion, while the visionGraph counterpart reclaims four successive transfers.
+**What it shows:** Worker positions cross a transfer boundary and come back as new objects. The pool counts outstanding transfers (`explorer/modern/src/workers/positionTransport.ts:55,74,84-86`), the worker admits a return only for the current generation (`explorer/modern/src/workers/physics.worker.ts:289`), and a regression runs twenty rounds of two-way structured-clone transfers with both slots occupied (`explorer/modern/src/workers/__tests__/positionTransport.test.ts:46-62`).
 
-**Why it is this way:** The worker uses two reusable buffers to bound allocation; its object-identity ownership check conflicts with actual transfer semantics. This is a source and transport finding, not a deployed-browser measurement.
+**Why it is this way:** The worker uses two reusable buffers to bound allocation. The earlier identity check (`owned.includes`) rejected every real transferred return and starved the pool after two sends; knowledgeGraph ADR-2002 records the repair on 3 and 14 November 2026 (`docs/adr/ADR-2002-corpus-is-the-ontology.md:22,26`). It verifies the retained copy only: no renderer upgrade, website build or deployment is claimed there or here.
 
 ## KG-04.3 Scope contract — count ceilings after selection
 
@@ -137,16 +139,16 @@ flowchart TB
     KG["Retained knowledgeGraph viewer<br/>vowl-wasm v0.1.1<br/>explorer/modern/package.json:20<br/>Six domains: explorer/modern/src/types/scope.ts:73-80"]
     ARCH["Historical workflow is under archive<br/>archive/github-workflows/build.yml:1"]
     VG["visionGraph publication copy<br/>vowl-wasm v0.2.3 and ontomark-graph v0.2.0<br/>WasmVOWL/modern/package.json:24-25<br/>Nine domains: WasmVOWL/modern/src/types/scope.ts:76-86"]
-    BUILD["Configured workflow builds visionGraph copy<br/>publish.yml:430-449"]
-    SITE["Configured destination: knowledgeGraph gh-pages<br/>narrativegoldmine.com<br/>publish.yml:537-542"]
-    POOL["Different pool reclaims transferred objects<br/>WasmVOWL/modern/src/workers/positionTransport.ts:49-94"]
+    BUILD["Configured workflow builds visionGraph copy<br/>publish.yml:441-458"]
+    SITE["Configured destination: knowledgeGraph gh-pages<br/>narrativegoldmine.com<br/>publish.yml:546-551"]
+    POOL["Own pool also counts transfers<br/>WasmVOWL/modern/src/workers/positionTransport.ts:59,74,84-85"]
     KG -.-> ARCH
     VG --> BUILD --> SITE
     VG --> POOL
-    NOTE["INVARIANT: implementation findings belong to a source revision<br/>OPEN: workflow configuration does not prove a live deployment<br/>publish.yml:537-542"]
+    NOTE["INVARIANT: implementation findings belong to a source revision<br/>OPEN: workflow configuration does not prove a live deployment<br/>publish.yml:546-551"]
     SITE -.-> NOTE
 ```
 
-**What it shows:** The inspected publisher chooses the visionGraph tree, whose dependencies, domains and pool differ from this retained viewer. The diagram establishes configured provenance, not the currently served site revision.
+**What it shows:** The inspected publisher chooses the visionGraph tree, whose dependencies and domains differ from this retained viewer (its pool now counts transfers in the same way). The diagram establishes configured provenance, not the currently served site revision.
 
 **Why it is this way:** knowledgeGraph ADR-2001 requires an identified consumer build. Repository names and a shared public destination do not make the two source trees interchangeable.

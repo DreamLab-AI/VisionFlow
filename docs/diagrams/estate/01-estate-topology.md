@@ -58,7 +58,7 @@ sources:
   - ../project/agentbox/scripts/ci/check-ports-loopback.mjs
   - ../project/agentbox/config/entrypoint-unified.sh
   - scripts/estate-health/roster.json
-verified_commit: {visionclaw: 2e7ecc2e731ed475982176d522877d9c89e3ff51, agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c}
+verified_commit: {visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16, agentbox: 3a2c59764028e1fd8475abfda61bb3bcefab46d5, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c}
 ---
 ## ES-01.1 Substrate map — the VisionClaw checkout's neighbourhood, not the whole estate
 ```mermaid
@@ -70,16 +70,16 @@ flowchart TB
     end
     VC -->|"embeds as submodule<br/>path=agentbox, .gitmodules:1-3<br/>no branch key — the pin is a bare gitlink"| AB
     VC -->|"second submodule, own repository and own Cargo workspace<br/>path=codescape, .gitmodules:4-6"| CS
-    AB -.->|"VisionClaw gitlink at the stamp: ca5b4152a, an ancestor of the agentbox stamp e458b308<br/>123 commits behind it, 669 files differ, code as well as docs<br/>(config, management-api, schema, scripts, services, setup, skills, tests)<br/>git ls-tree at the stamp; codescape gitlink: e3b76f63e"| ABPIN["submodule pin"]
+    AB -.->|"VisionClaw gitlink at the stamp: ca5b4152a, an ancestor of the agentbox stamp 3a2c5976<br/>133 commits behind it, 681 files differ, code as well as docs<br/>(config, docs, lib, management-api, mcp, schema, scripts, services, setup, skills, tests, voice)<br/>git ls-tree at the stamp; codescape gitlink: e3b76f63e"| ABPIN["submodule pin"]
 
     subgraph CRATE["Embedded as a Cargo dependency, not a checkout"]
-        SPR["solid-pod-rs 0.5.0-alpha.21<br/>crates.io version, Cargo.toml:240<br/>feature solid-pod-embed (ADR-032 M3)"]
+        SPR["solid-pod-rs 0.5.0-alpha.22<br/>crates.io version, Cargo.toml:240<br/>feature solid-pod-embed (ADR-032 M3)"]
         SPRN["solid-pod-rs 0.5.0-alpha.22 workspace<br/>agentbox Nix pin, solid-pod-rs.nix:66<br/>rev bc6d9d83, external-review follow-up, existing Jev gate kept<br/>solid-pod-rs.nix:68-69"]
     end
     VC -->|"Cargo dep: fs-backend, nip98-schnorr,<br/>did-nostr, quota, rate-limit"| SPR
     AB -->|"lib/solid-pod-rs.nix pin<br/>supervised solid-pod program on port 8484<br/>native-pod-mesh.md:3"| SPRN
 
-    DIVSP["CONSUMER PIN DIFFERENCE — VisionClaw still compiles crates.io alpha.21<br/>(Cargo.toml:240), while Agentbox builds the alpha.22 workspace at bc6d9d83<br/>(solid-pod-rs.nix:66-69) for its supervised pod.<br/>These are separate consumers; a source release does not prove activation.<br/>native-pod-mesh.md:3-4 still names alpha.15 and alpha.9,<br/>and its figure says alpha.17 (native-pod-mesh.md:30). See ES-08.1."]
+    DIVSP["CONSUMER PIN, SAME VERSION — VisionClaw now compiles crates.io alpha.22<br/>(Cargo.toml:240-243), the version Agentbox builds from the workspace at bc6d9d83<br/>(solid-pod-rs.nix:66-69) for its supervised pod.<br/>Two delivery routes (registry crate, Nix git rev) still make two separate consumers;<br/>a source release does not prove activation.<br/>native-pod-mesh.md:3-4 still names alpha.15 and alpha.9,<br/>and its figure says alpha.17 (native-pod-mesh.md:30). See ES-08.1."]
     SPRN --> DIVSP
     SPR --> DIVSP
 
@@ -204,7 +204,7 @@ flowchart TB
         W2["solid-data / sovereign-identities / agentbox-secrets<br/>agentbox/docker-compose.yml:179,181,183"]
         W3["code-harness-data / agentbox-events / consultations-data<br/>agentbox/docker-compose.yml:185,187,189"]
         W4["hf-cache / codeserver-config / telemetry-data<br/>agentbox/docker-compose.yml:193,203,191"]
-        W5["nostr-relay-data / tailscale-state / opencode-store / local-home<br/>agentbox/docker-compose.yml:205,207,197,195<br/>AoE profile mount removed after archival (docs/adr/ADR-2153-session-plane-replaces-aoe.md:39-43),<br/>host-volume deletion is a post-rebuild operator step"]
+        W5["nostr-relay-data / tailscale-state / opencode-store / local-home<br/>agentbox/docker-compose.yml:205,207,197,195<br/>AoE profile mount removed after archival (docs/adr/ADR-2153-session-plane-replaces-aoe.md:48-52),<br/>host-volume deletion is a post-rebuild operator step"]
         W6["codex-home (the whole ~/.codex, replacing a 512M tmpfs) and codex-packages<br/>mounted at agentbox/docker-compose.yml:146-147, declared docker-compose.yml:199-202"]
     end
     subgraph shared["Cross-container shared volumes"]

@@ -77,7 +77,7 @@ sources:
   - ../project/src/services/corpus_history.rs
   - ../project/src/handlers/splat_handler.rs
   - ../project/crates/visionclaw-splat/src/licence.rs
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
+verified_commit: {visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16}
 ---
 
 ## For developers

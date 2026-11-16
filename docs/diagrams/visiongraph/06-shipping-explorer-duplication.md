@@ -26,12 +26,12 @@ sources:
   - ../knowledgeGraph/explorer/modern/package.json
   - ../knowledgeGraph/explorer/modern/src/site/mesh.ts
   - ../knowledgeGraph/explorer/modern/src/types/scope.ts
-verified_commit: {visiongraph: d8277151a1404b456b5c7206187f7e4b50f25be1, knowledgegraph: 5294e88b6602a63b5afe96c79f2779d00274a05e}
+verified_commit: {visiongraph: 1df8eb49051b6e55f35ea493b3c42e79ffd77bb8, knowledgegraph: 5294e88b6602a63b5afe96c79f2779d00274a05e}
 ---
 
 ## For developers
 
-The configured publisher builds this host, whose renderer and codec come from pinned releases. Read the adapters and content path separately from the retained knowledgeGraph copy; their dependency, domain and transport contracts differ.
+The configured publisher builds this host, whose renderer and codec come from pinned releases. Read the adapters and content path separately from the retained knowledgeGraph copy; their dependency and domain contracts differ (both position pools now count transfers).
 
 ## For the business
 
@@ -41,11 +41,11 @@ Readers can explore relationships and open corpus prose, but a successful graph 
 
 ```mermaid
 flowchart TB
-    %% Source: ../visionGraph/.github/workflows/publish.yml:430
+    %% Source: ../visionGraph/.github/workflows/publish.yml:441
     A["visionGraph publisher builds<br/>publishing-tools/WasmVOWL/modern"]
-    %% Source: ../visionGraph/.github/workflows/publish.yml:450
+    %% Source: ../visionGraph/.github/workflows/publish.yml:460
     A --> B["Copy built shell/assets into www<br/>preserve authoritative machine trees"]
-    %% Source: ../visionGraph/.github/workflows/publish.yml:535
+    %% Source: ../visionGraph/.github/workflows/publish.yml:544
     B --> C["Deploy assembled site to<br/>knowledgeGraph gh-pages"]
     %% Source: ../knowledgeGraph/explorer/modern/package.json:20
     D["Retained knowledgeGraph/explorer<br/>vowl-wasm 0.1.1 and React Three Fiber"]
@@ -55,10 +55,14 @@ flowchart TB
     %% Source: ../visionGraph/publishing-tools/WasmVOWL/Dockerfile:6
     %% Source: ../visionGraph/publishing-tools/WasmVOWL/Dockerfile:13
     F["Legacy Dockerfile downloads WebVOWL WAR<br/>Tomcat path is separate from this publisher"]
+    %% Source: ../visionGraph/.github/workflows/publish.yml:57
+    %% Source: ../visionGraph/.github/workflows/publish.yml:335
+    H["Publisher runner pinned to Ubuntu 24.04<br/>explorer dependencies and Chromium installed<br/>before the long Quartz render"]
+    A --> H
 ```
 
 **What it shows:** The workflow selects a concrete source tree and distribution repository. It does not identify the revision currently served by the public site.
-**Why it is this way:** ADR-VG-007 keeps the site host and deployment here while extracting reusable graph software. The retained sibling is assessed separately in KG-04.
+**Why it is this way:** ADR-VG-007 keeps the site host and deployment here while extracting reusable graph software. The retained sibling is assessed separately in KG-04. The runner pin and early browser install follow a failed run recorded in ADR-VG-007 (`docs/adr/ADR-VG-007-shared-ontology-workspace-and-profile.md:173-180`).
 
 ## VG-06.2 Shared renderer and codec, with host-owned interaction
 
@@ -97,8 +101,8 @@ flowchart TB
     %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/components/Canvas/GraphCanvas.tsx:44
     B -.-> C["DRIFT: current host simulates<br/>domain and focus scopes"]
     %% Source: ../visionGraph/.github/workflows/publish.yml:48
-    %% Source: ../visionGraph/.github/workflows/publish.yml:174
-    D["Current publisher uses ontomark v0.8.0<br/>all-vault public build"]
+    %% Source: ../visionGraph/.github/workflows/publish.yml:175
+    D["Current publisher uses ontomark v0.9.0<br/>all-vault public build"]
     %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/package.json:8
     %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/package.json:24
     D --> E["npm installs released graph and WASM<br/>local Rust builds runtime-notices tool"]

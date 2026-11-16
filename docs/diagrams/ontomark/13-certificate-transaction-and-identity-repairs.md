@@ -8,7 +8,7 @@ sources:
   - ../ontomark/crates/ontomark-compile/src/build/mod.rs
   - ../ontomark/crates/ontomark-compile/src/write/apply.rs
   - ../ontomark/crates/rdfs-certificate/src/lib.rs
-verified_commit: 6159bb6089753105ef839fd4aac46c1598a64bd2
+verified_commit: fbe30244c6842879297883b571965f5bc1ce0441
 ---
 
 ## For developers
@@ -26,7 +26,7 @@ flowchart TB
     DEST["certificate destination below output<br/>reject traversal and symlinks<br/>build/mod.rs:437"]
     STAGE["one Staged bundle<br/>build/mod.rs:786"]
     CERT["certificate files enter bundle<br/>build/mod.rs:823<br/>build/mod.rs:828"]
-    PROMOTE["promote complete generation<br/>build/mod.rs:1136"]
+    PROMOTE["promote complete generation<br/>build/mod.rs:1154"]
     DEST --> STAGE --> CERT --> PROMOTE
 ```
 

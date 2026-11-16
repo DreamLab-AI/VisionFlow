@@ -29,7 +29,7 @@ sources:
   - ./README.md
   - package.json
   - ../project/agentbox/management-api/lib/dream-ledger.js
-verified_commit: {visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
+verified_commit: {visionflow: fdeab5dc36a859b3b881d7d587af067c88795217, agentbox: 3a2c59764028e1fd8475abfda61bb3bcefab46d5}
 ---
 
 ## VF-04.1 dream.config.json — the whole contract this repo offers the engine

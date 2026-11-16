@@ -49,7 +49,7 @@ sources:
   - ../project/agentbox/services/agentbox-manifest/src/system_one.rs
   - ../project/agentbox/docs/GOVERNANCE-capabilities.md
   - ../loom/.gitignore
-verified_commit: {agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a, visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, loom: 741c5dffd3253038bbe4fadea7fada7c46474a25}
+verified_commit: {agentbox: 3a2c59764028e1fd8475abfda61bb3bcefab46d5, visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, loom: c016dab5ae8afa0bf41519ff0b2685647dc717f3}
 ---
 
 ## AB-24.1 Two deployments of one facade contract — topology
@@ -468,10 +468,10 @@ flowchart TB
         VAULT["vault build over visionGraph<br/>emits C3 marker: id, commit, content_digest,<br/>class_count, page_count, vocabulary_version, stale_after"]
     end
     subgraph loom["loom-facade::mirror"]
-        MIR["reads C3 marker as GenerationSource::VaultBuild<br/>loom-domain/src/model.rs:509-513<br/>still reads legacy mirror marker too - ONE /loom/generation shape either way"]
+        MIR["reads C3 marker as GenerationSource::VaultBuild<br/>loom-domain/src/model.rs:512-516<br/>still reads legacy mirror marker too - ONE /loom/generation shape either way"]
     end
     subgraph health["GET /health"]
-        STALE["generation.stale_after echoed, generation.stale judged<br/>against this node's clock via Generation::is_stale<br/>loom-domain/src/model.rs:460-462, model.rs:480-487, routes/health.rs:139-148"]
+        STALE["generation.stale_after echoed, generation.stale judged<br/>against this node's clock via Generation::is_stale<br/>loom-domain/src/model.rs:463-465, model.rs:483-490, routes/health.rs:139-148"]
     end
     subgraph ledger["POST /loom/attest - contract C5"]
         ATT["attest#40;State, Json#60;AttestRequest#62;#41;<br/>loom-facade/src/routes/attest.rs:113<br/>outcome: Promote #124; Demote #124; Reject #124; Expired<br/>attest.rs:44-55"]
@@ -483,7 +483,7 @@ flowchart TB
     ATT --> VER
     subgraph notes["Invariants and drift"]
         direction TB
-        N1["INVARIANT ADR-141 D2: a generation past stale_after is STILL SERVED, honestly<br/>labelled - staleness is carried, never enforced (loom-domain/src/model.rs:459-462)"]
+        N1["INVARIANT ADR-141 D2: a generation past stale_after is STILL SERVED, honestly<br/>labelled - staleness is carried, never enforced (loom-domain/src/model.rs:462-465)"]
         N2["INVARIANT attest.rs:24-28: passed=true means this decision ADMITTED content -<br/>true only for Promote, false for Demote/Reject/Expired; a demotion is a change,<br/>not an admission"]
         N3["RESOLVED ADR-141 D5: loom-mcp-stdio deleted - inside the estate agents use the<br/>vault CLI and loom-client; #47;mcp stays HTTP-only, for hosts outside the estate"]
         N4["Status: Proposed, 2026-09-22. Not yet reflected in this topic's governing doc<br/>(GOVERNANCE-capabilities.md) or in ADR-2084 - see AB-24.10 for the crate this<br/>generation identity change does not yet touch"]
@@ -491,7 +491,7 @@ flowchart TB
     end
 ```
 
-**What it shows:** the corpus stops being GitHub-published; `loom-facade::mirror` now recognises a `vault build` marker (`GenerationSource::VaultBuild`) naming the generation `visionGraph@<sha>`, and `/health` reports a `stale_after` promise plus this node's own staleness judgement without ever refusing to serve. A `POST /loom/attest` route gives the corpus's human promotion/demotion decisions a chain-hashed, restart-surviving ledger. **Why it is this way:** ADR-141 fixes the gap ADR-140 §1.3 measured — a Loom bundle stale by a month against the vault it should mirror — and, per ADR-136 D5, moves `AttestationLedger` from a build/CI-time port to a serving-path writer so `passed` on an entry answers "is this in the corpus because someone said so", the one question the audit trail exists for.
+**What it shows:** the corpus stops being GitHub-published; `loom-facade::mirror` now recognises a `vault build` marker (`GenerationSource::VaultBuild`) naming the generation `visionGraph@<sha>`, and `/health` reports a `stale_after` promise plus this node's own staleness judgement without ever refusing to serve. A `POST /loom/attest` route gives the corpus's human promotion/demotion decisions a chain-hashed, restart-surviving ledger. **Why it is this way:** ADR-141 fixes the gap ADR-140 §1.3 measured — a Loom bundle stale by a month against the vault it should mirror — and, per ADR-136 D5, moves `AttestationLedger` from a build/CI-time port to a serving-path writer so `passed` on an entry answers "is this in the corpus because someone said so", the one question the audit trail exists for. The generation descriptor also now carries an optional `built_by`, the recorded bundle compiler, which stays absent for a legacy bundle that recorded none and which `/health` reports with the rest of the generation (`../loom/crates/loom-domain/src/model.rs:429-431`, `../loom/crates/loom-facade/src/routes/health.rs:139-140`).
 
 **Debt (corpus door behind the vault, 2026-10-02):** the next generation `visionGraph@015ca2c1f` is built, promoted and verified, but the door still serves `visionGraph@ae913f93…`, and the `vault` 0.1.0 baked into the agentbox image predates the portable-records file, so it cannot produce a promotable bundle (`../loom/docs/design/ADR-141-loom-consumes-the-vault-build.md:141-150`). The pin is fixed in source, since `vaultSrc` now names VisionClaw `f3bbb430ea` (`../project/agentbox/flake.nix:31-32`), but that reaches a running `vault` only at the next image rebuild. ADR-141 also records that the corpus build is now `ontomark build` and `vault` survives only as the governance adapter, with the served identity unchanged (`../loom/docs/design/ADR-141-loom-consumes-the-vault-build.md:9`); AB-24.15 draws who publishes the generation now.
 

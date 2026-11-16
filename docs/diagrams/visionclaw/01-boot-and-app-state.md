@@ -73,7 +73,7 @@ sources:
   - ../project/src/services/ontology_pull.rs
   - ../project/Cargo.toml
   - ../project/src/adapters/mod.rs
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
+verified_commit: {visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16}
 ---
 
 ## For developers

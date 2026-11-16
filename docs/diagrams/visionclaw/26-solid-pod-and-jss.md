@@ -35,7 +35,7 @@ sources:
   - ../project/client/src/features/solid/components/PodSettings.tsx
   - ../project/client/src/features/solid/components/ResourceEditor.tsx
   - ../project/src/handlers/image_gen_handler.rs
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
+verified_commit: {visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16}
 ---
 
 ## For developers
@@ -87,7 +87,7 @@ flowchart TB
     Note3["RESOLVED ADR-2098 (2026-09-05): SOLID_POD_URL's default in ontology-publish.yml and env.example<br/>was http://jss:3030 / http://visionclaw-jss:3030 - both DNS-dead JSS-sidecar names, a leftover<br/>from before ADR-032 M3 embedded solid-pod-rs. Both now default to http://localhost:4000/solid,<br/>the SYSTEM_NETWORK_PORT (default 4000, main.rs:873) this diagram's own INIT/APPDATA/CFG path<br/>actually serves. The /.notifications POST the workflow still sends is a documented no-op there -<br/>the embedded pod's /.notifications is a GET WebSocket upgrade (see VC-26.9), not a POST trigger."]
     ON -.-> Note3
 
-    Note4["PROPOSED, not live (ADR-2111, decision_status proposed, implementation_status none,<br/>still at HEAD): this repo already depends on the PUBLISHED solid-pod-rs crate -<br/>now resolved from the caret range 0.5.0-alpha.21 (no longer an exact = pin - ER-35 owner decision 2026-10-18,<br/>Cargo.toml:139-141) for all four solid-pod-rs crates, Cargo.toml:240-243, which adds the mrc20 feature whose blocktrails walker<br/>src/web_contract verifies trails with. ADR-2111's own review trigger - the<br/>solid-pod-rs post-port version landing - has now FIRED; what remains proposed is<br/>deleting the extraction/solid-pod-rs mirror and the payment-store rework. The<br/>embedded-pod path shown above is unchanged.<br/>docs/adr/ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:5-7"]
+    Note4["PROPOSED, not live (ADR-2111, decision_status proposed, implementation_status none,<br/>still at HEAD): this repo already depends on the PUBLISHED solid-pod-rs crate -<br/>now resolved from the caret range 0.5.0-alpha.22 (no longer an exact = pin - ER-35 owner decision 2026-10-18,<br/>Cargo.toml:139-141) for all four solid-pod-rs crates, Cargo.toml:240-243, which adds the mrc20 feature whose blocktrails walker<br/>src/web_contract verifies trails with. ADR-2111's own review trigger - the<br/>solid-pod-rs post-port version landing - has now FIRED; what remains proposed is<br/>deleting the extraction/solid-pod-rs mirror and the payment-store rework. The<br/>embedded-pod path shown above is unchanged.<br/>docs/adr/ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:5-7"]
     FEAT -.-> Note4
 ```
 

@@ -20,7 +20,7 @@ sources:
   - ../project/agentbox/management-api/lib/ontology-apply.js
   - ../ontomark/crates/rdfs-certificate/src/lib.rs
   - ../ontomark/crates/ontomark-compile/src/write/apply.rs
-verified_commit: {visionclaw: 2e7ecc2e731ed475982176d522877d9c89e3ff51, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, ontomark: 6159bb6089753105ef839fd4aac46c1598a64bd2}
+verified_commit: {visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16, agentbox: 3a2c59764028e1fd8475abfda61bb3bcefab46d5, ontomark: fbe30244c6842879297883b571965f5bc1ce0441}
 ---
 
 ## For developers

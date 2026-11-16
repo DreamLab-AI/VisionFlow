@@ -6,12 +6,12 @@ governing: []
 adrs: [ADR-VG-002]
 sources:
   - ../visionGraph/.github/workflows/publish.yml
-verified_commit: d8277151a1404b456b5c7206187f7e4b50f25be1
+verified_commit: 1df8eb49051b6e55f35ea493b3c42e79ffd77bb8
 ---
 
 ## For developers
 
-This scoped successor covers the certificate destination in VG-03.5. The workflow pins Ontomark 0.7.3 with its released binary checksum and uses an output-child certificate path compatible with the transactional compiler. It also consumes the official VOWL 0.2.3 GitHub bundle. No workflow deployment is inferred here.
+This scoped successor covers the certificate destination in VG-03.5. The workflow pins Ontomark 0.9.0 with its released binary checksum and uses an output-child certificate path compatible with the transactional compiler. It also consumes the official VOWL 0.2.3 GitHub bundle. No workflow deployment is inferred here.
 
 ## For the business
 
@@ -21,10 +21,10 @@ The verifier, review artefact and published site all take the certificate from t
 
 ```mermaid
 flowchart TB
-    BUILD["certificate below site-data output<br/>publish.yml:179"] --> VERIFY["Lean checker reads promoted files<br/>publish.yml:229"]
-    VERIFY --> REPORT["checker report beside certificate<br/>publish.yml:230"]
-    REPORT --> REVIEW["retain complete review artefact<br/>publish.yml:237"]
-    REPORT --> SITE["copy whole generation to site<br/>publish.yml:344"]
+    BUILD["certificate below site-data output<br/>publish.yml:180"] --> VERIFY["Lean checker reads promoted files<br/>publish.yml:230"]
+    VERIFY --> REPORT["checker report beside certificate<br/>publish.yml:231"]
+    REPORT --> REVIEW["retain complete review artefact<br/>publish.yml:238"]
+    REPORT --> SITE["copy whole generation to site<br/>publish.yml:355"]
 ```
 
-**What it shows:** the checker and downstream copies use one certificate location within the compiler output. **Why it is this way:** the new compiler refuses external certificate directories so its generation and warrant share one promotion point. Formal checking establishes the declared proof fragment, not the factual truth of every authored statement. **Invariant:** verification reads the certificate under the same `site-data` tree that is published (`publish.yml:229`).
+**What it shows:** the checker and downstream copies use one certificate location within the compiler output. **Why it is this way:** the new compiler refuses external certificate directories so its generation and warrant share one promotion point. Formal checking establishes the declared proof fragment, not the factual truth of every authored statement. **Invariant:** verification reads the certificate under the same `site-data` tree that is published (`publish.yml:230`).

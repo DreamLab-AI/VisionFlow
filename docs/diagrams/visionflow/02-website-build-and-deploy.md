@@ -42,7 +42,7 @@ sources:
   - docs/adr/ADR-2003-pages-artifact-deploy.md
   - docs/architecture/compatibility-matrix.md
   - ./README.md
-verified_commit: c47f2fa1786815abd17afb245700940265bfb120
+verified_commit: fdeab5dc36a859b3b881d7d587af067c88795217
 ---
 
 ## VF-02.1 The copy-only build — every step of website/build.sh

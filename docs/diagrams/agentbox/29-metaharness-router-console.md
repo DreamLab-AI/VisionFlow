@@ -25,7 +25,7 @@ sources:
   - ../project/agentbox/services/agentbox-manifest/src/tui_sections.rs
   - ../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md
   - ../project/agentbox/docs/adr/ADR-2079-aoe-is-the-dispatch-plane-of-a-fleet-model-router.md
-verified_commit: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a
+verified_commit: 3a2c59764028e1fd8475abfda61bb3bcefab46d5
 ---
 
 ## AB-29.1 Composition — what is baked, and why the npm tarball lacks it
@@ -126,7 +126,7 @@ sequenceDiagram
 
 **Residual comment drift:** the deleted AoE seeder is still named by the flake comment (`../project/agentbox/flake.nix:2421`) and the `agentbox.toml` seed comment "resolved by the seeder's WRAPPER_SLUGS" (`../project/agentbox/agentbox.toml:2262`). The wrapper and manifest catalogue now name the native session seed correctly (`../project/agentbox/config/harness-wrappers/router.sh:5-8`, `../project/agentbox/management-api/lib/system-manifest.js:118-120`).
 
-**Tension (ADR-2079 vs ADR-2153):** ADR-2079, the AoE dispatch-plane record, is `superseded` by ADR-2153 (`../project/agentbox/docs/adr/ADR-2079-aoe-is-the-dispatch-plane-of-a-fleet-model-router.md:5-9`), which is now `accepted`, `implementation_status: partial`, `activation_status: live` and makes the router an ordinary seed (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`, `../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:167`), but its acceptance round trip excludes `router`, so only the clean launch above is evidenced, not a routed task (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:157`, `../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:188`).
+**Tension (ADR-2079 vs ADR-2153):** ADR-2079, the AoE dispatch-plane record, is `superseded` by ADR-2153 (`../project/agentbox/docs/adr/ADR-2079-aoe-is-the-dispatch-plane-of-a-fleet-model-router.md:5-9`), which is now `accepted`, `implementation_status: partial`, `activation_status: live` and makes the router an ordinary seed (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`, `../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:176`), but its acceptance round trip excludes `router`, so only the clean launch above is evidenced, not a routed task (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:166`, `../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:197`).
 
 ## AB-29.4 Routing decision flow — embed, KRR predict, availability preflight, execute
 

@@ -54,7 +54,7 @@ sources:
   - ../project/agentbox/config/registered-commands.txt
   - ../project/agentbox/docs/adr/ADR-2104-direct-control-over-mcp.md
   - ../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md
-verified_commit: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a
+verified_commit: 3a2c59764028e1fd8475abfda61bb3bcefab46d5
 ---
 ## AB-02.1 boot phases 1-3 — vault resolution, directories, sovereign identity
 ```mermaid
@@ -489,11 +489,11 @@ flowchart TB
     W2["window 2 Services<br/>tmux-autostart.sh:324<br/>supervisorctl status (tmux-autostart.sh:325)"]
     W3["window 3 Build<br/>tmux-autostart.sh:330"]
     W4["window 4 Logs<br/>tmux-autostart.sh:338<br/>supervisorctl tail -f management-api (tmux-autostart.sh:339), split pane"]
-    W5["window 5 System<br/>tmux-autostart.sh:345<br/>systemscape restart loop (tmux-autostart.sh:349), split with btm/htop"]
-    W6["window 6 VNC<br/>tmux-autostart.sh:362<br/>host shell, X display one, port 5901 status"]
-    W7["window 7 Git<br/>tmux-autostart.sh:375<br/>git status in PROJECT dir"]
-    W8["window 8 Sessions<br/>tmux-autostart.sh:383<br/>agentbox-sessions pick (tmux-autostart.sh:384-385) or a disabled notice (tmux-autostart.sh:387),<br/>attach lands here when the binary exists (tmux-autostart.sh:440-441)"]
-    W9["window 9 Notes<br/>tmux-autostart.sh:102 _notes_window, called tmux-autostart.sh:396<br/>ADR-2029 Rune markdown TUI over vault"]
+    W5["window 5 System<br/>tmux-autostart.sh:345<br/>systemscape restart loop (tmux-autostart.sh:351), split with btm/htop"]
+    W6["window 6 VNC<br/>tmux-autostart.sh:364<br/>host shell, X display one, port 5901 status"]
+    W7["window 7 Git<br/>tmux-autostart.sh:377<br/>git status in PROJECT dir"]
+    W8["window 8 Sessions<br/>tmux-autostart.sh:385<br/>agentbox-sessions pick (tmux-autostart.sh:386-387) or a disabled notice (tmux-autostart.sh:389),<br/>attach lands here when the binary exists (tmux-autostart.sh:442-443)"]
+    W9["window 9 Notes<br/>tmux-autostart.sh:102 _notes_window, called tmux-autostart.sh:398<br/>ADR-2029 Rune markdown TUI over vault"]
 
     START --> W0 --> W1 --> W2 --> W3 --> W4 --> W5 --> W6 --> W7 --> W8 --> W9
 
@@ -720,7 +720,7 @@ sequenceDiagram
 
 **Invariant:** ownership is a marker, not a name: only sessions carrying `@agentbox-sessions=1` are ever recreated, so `agentbox:0` (tab0), a leftover `aoe_*` session and operator sessions are never touched, and a worktree seed holding work in progress is held rather than recreated (`../project/agentbox/services/agentbox-sessions/src/tmux.rs:21`, `../project/agentbox/services/agentbox-sessions/src/reconcile.rs:67-69`, `../project/agentbox/services/agentbox-sessions/src/reconcile.rs:82-86`).
 **Invariant:** trust seeding moved into the daemon: `trust::seed` writes the root store, every wrapper-profile store that already exists and the Codex config (`../project/agentbox/services/agentbox-sessions/src/trust.rs:34-39`, `../project/agentbox/services/agentbox-sessions/src/trust.rs:102`), while `trust-seed.cjs` still writes only the root store and an existing profile store (`config/hooks/trust-seed.cjs:78-86`, `config/hooks/trust-seed.cjs:91-95`).
-**Acceptance boundary:** ADR-2153 remains accepted, partial and live (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`). Its 14 November source check records worktree adoption and passing offline tests, without a new live provider round trip (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:19-21`). The old profile records were archived and the mount removed from source; deleting the host volume remains an operator step after the rebuild (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:39-43`).
+**Acceptance boundary:** ADR-2153 remains accepted, partial and live (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`). Its 14 November source check records worktree adoption and passing offline tests, without a new live provider round trip (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:28-30`); its 15 November check finds only a SystemScape comment changed in `tmux-autostart.sh`, with the session-plane commands and tmux ownership unchanged and the live round trip again not rerun (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:19-26`). The old profile records were archived and the mount removed from source; deleting the host volume remains an operator step after the rebuild (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:48-52`).
 
 ## AB-02.19 session-provision.mjs run-as-script guard — realpath fix carried over from the AoE seeder
 ```mermaid

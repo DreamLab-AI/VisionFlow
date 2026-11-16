@@ -16,12 +16,12 @@ sources:
   - ../project/codescape/crates/codescape-server/src/xr_presence.rs
   - ../project/xr-client/rust/src/presence.rs
   - ../project/xr-client/scripts/graph_scene.gd
-verified_commit: {codescape: e3b76f63e801c6a8460110b93e88a0b420e9b0b4, visionclaw: 2e7ecc2e731ed475982176d522877d9c89e3ff51}
+verified_commit: {codescape: e3b76f63e801c6a8460110b93e88a0b420e9b0b4, visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16}
 ---
 
 ## For developers
 
-Consumer scope checked on 14 November 2026: VisionClaw main `a6d05ed1a8d090e290944ebb8a9c122c7f59ef8c` still pins Codescape gitlink `e3b76f63e801c6a8460110b93e88a0b420e9b0b4`. This topic retains that producer revision; the standalone Codescape area describes newer source. No deployment was requalified by this pin check.
+Consumer scope checked on 16 November 2026: VisionClaw main `d2780e26f870ce21fa92bccb29fa47f001015b16` still pins Codescape gitlink `e3b76f63e801c6a8460110b93e88a0b420e9b0b4`. This topic retains that producer revision; the standalone Codescape area describes newer source. No deployment was requalified by this pin check.
 
 The Codescape hub relays poses and roster events. The [production-library probes](../../estate-review/2026-10-31-codescape-presence-and-xr.md) expose stale membership and queue-loss boundaries; they do not measure a live socket race.
 

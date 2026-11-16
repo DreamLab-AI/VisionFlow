@@ -32,7 +32,7 @@ sources:
   - ../project/crates/visionclaw-gpu/build.rs
   - ../project/build.rs
   - ../project/docker-compose.unified.yml
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
+verified_commit: {visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16}
 ---
 
 ## For developers
@@ -142,7 +142,7 @@ sequenceDiagram
     Note over LH: FRESHNESS_WINDOW_MS = 30 * 24 * 60 * 60 * 1000 (:41) — a 30-day staleness horizon
     Note over LH: current_sha() (:278) stamps each observation, from VISIONCLAW_GIT_SHA (:279)
     Note over API: VISIONCLAW_AGENT_KEY is read by the handler at src/handlers/liveness_harness_handler.rs:41 and checked by<br/>crate::utils::agent_key::check_agent_key (handler :46, src/utils/agent_key.rs:13) — fail closed, subtle::ConstantTimeEq (ADR-2093).<br/>The handler's former local constant_time_eq fold is gone. Env register see VC-09.10
-    Note over API: OPT-IN — when the Jev health-triage item is on (VISIONCLAW_JEV_HEALTH_TRIAGE, crates/visionclaw-jev/src/config.rs:134) and the state<br/>is degraded and Jev answers confidently, status_body (:211) adds a jev_triage field beside the unchanged probe fields.<br/>It is labelled a hypothesis for an operator, never a verdict (jev_health in liveness_harness_handler.rs:175, off in the library, on under Compose via docker-compose.unified.yml:21 and routed through the shared agentbox proxy (:7-11), ADR-2148)
+    Note over API: OPT-IN — when the Jev health-triage item is on (VISIONCLAW_JEV_HEALTH_TRIAGE, crates/visionclaw-jev/src/config.rs:134) and the state<br/>is degraded and Jev answers confidently, status_body (src/handlers/liveness_harness_handler.rs:213) adds a jev_triage field beside the unchanged probe fields.<br/>It is labelled a hypothesis for an operator, never a verdict (jev_health in liveness_harness_handler.rs:175, off in the library, on under Compose via docker-compose.unified.yml:21 and routed through the shared agentbox proxy (docker-compose.unified.yml:7-11), ADR-2148)
     Note over B: sibling boot-time singleton — AgentTelemetryLogger (src/telemetry/agent_telemetry.rs:20) lives<br/>in a OnceCell (:303), init_telemetry_logger(log_dir, 100) called once from main.rs:282 (returns early without creating<br/>a sink when TELEMETRY_ENABLED is set to anything but 1 or true, src/telemetry/agent_telemetry.rs:309-311, telemetry_enabled :326), and every<br/>caller reaches it via src/telemetry/agent_telemetry.rs:335-336 get_telemetry_logger() Option —<br/>client_coordinator_actor.rs, gpu/gpu_manager_actor.rs, gpu/force_compute_actor.rs,<br/>services/mcp_relay_manager.rs and handlers/client_log_handler.rs all silently no-op if it is never initialised or telemetry is disabled
     Note over API: GET /api/metrics (handlers/metrics_handler.rs:34) composes uptime + collect_event_bus_metrics<br/>(:63, walks the event-bus middleware list for a registered MetricsMiddleware — empty maps if none is)<br/>plus a circuit_breakers field that is HARDCODED EMPTY (:47-49) — no global breaker registry is wired<br/>into AppState yet, so that part of the response can never be non-empty today
 ```
