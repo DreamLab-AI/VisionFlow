@@ -152,6 +152,7 @@ The canonical maturity vocabulary is explained in the [status reconciliation](do
 | [Diagrams as code](docs/diagrams/README.md) | Detailed sequences, dependencies, source references and revision stamps |
 | [Release manifests](docs/releases/README.md) | Identified component revisions for coordinated releases |
 | [Estate review](docs/estate-review/README.md) | Dated audits and their evidence limits |
+| [Current focus](docs/current-focus.md) | What is open now, and where every list of open work lives |
 | [Roadmap](docs/roadmap.md) | Work still needed to earn stronger integration claims |
 
 To improve the canon, change the relevant source document, follow its implementation links and update assertions that the current code no longer supports. Keep historical evidence dated. For website changes, run the build and appropriate publication checks before proposing the change.

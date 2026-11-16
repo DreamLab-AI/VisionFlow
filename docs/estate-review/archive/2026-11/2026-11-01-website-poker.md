@@ -13,7 +13,7 @@ The website has two configured house seats, and both service processes were runn
 | Diagrams | New DW-10.1–6; corrected DREAM-only labels in DW-01.1–2. All 12 DW-01 declared source entries are byte-identical between its retained `a67cb2a` stamp and current website HEAD. Other DW-01 mechanisms were not given a fresh semantic assessment. |
 | Runtime | At `2026-11-01T05:50:45Z`, supervisor reported DREAM house PID 981, BLAKES7 house PID 992 and coach PID 999 running. Process existence proves neither deployed source provenance, current balances nor a working hand. |
 
-Evidence is in [the retained batch directory](evidence/2026-11-01/dw-poker/). The source manifest records 62 exported files and their hashes; full source exports remain under `/tmp/vf-dw-poker-artifacts/sources`. Tests used an archive of the consumed kit and copied, unmodified website entry points. One unrelated absolute fixture symlink in the kit archive was omitted and recorded. No live hand, provisioning, invitation, payment or key inspection was performed.
+Evidence is in [the retained batch directory](../../evidence/2026-11-01/dw-poker). The source manifest records 62 exported files and their hashes; full source exports remain under `/tmp/vf-dw-poker-artifacts/sources`. Tests used an archive of the consumed kit and copied, unmodified website entry points. One unrelated absolute fixture symlink in the kit archive was omitted and recorded. No live hand, provisioning, invitation, payment or key inspection was performed.
 
 ## ADR-2009, section by section
 

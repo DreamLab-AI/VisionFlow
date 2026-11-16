@@ -17,7 +17,7 @@ The source audit is `crates/solid-pod-rs/docs/reference/jss-parity-audit-2026-11
 in Solid Pod. It compares JSS `7c9b0de` (0.0.224) and plugins `63a16cb` with
 Solid Pod `e1d16ad`. Those comparator claims are imported here, not a fresh
 upstream or deployment test. Its committed checklist rows 265–299 and three
-additional PATCH defects are retained in the [intake queue](remediation/solid-parity-intake-2026-11-01.json).
+additional PATCH defects are retained in the [intake queue](../../remediation/solid-parity-intake-2026-11-01.json).
 Thirty-five parity rows are not thirty-five defects: the set includes present
 behaviour, deliberate differences and deferred capabilities. Do not add these
 records mechanically to the parallel audit's 134 distinct issues.
@@ -28,7 +28,7 @@ The imported verifier probe ran unchanged in an isolated checkout at `fe4f2ec`,
 using the server's `dev-bearer` feature, serial execution and in-memory storage.
 All six test functions completed. They print observations rather than assert
 desired security behaviour, so the result is evidence to inspect, not six
-passing acceptance regressions. [Raw output and source hashes](evidence/2026-11-01/solid-parity-intake/manifest.json)
+passing acceptance regressions. [Raw output and source hashes](../../evidence/2026-11-01/solid-parity-intake/manifest.json)
 retain the controls and exact version.
 
 | Contract | Observed result | Scope and next acceptance |
@@ -38,7 +38,7 @@ retain the controls and exact version.
 | Provisioning produces an owner-usable pod (row 287) | Open registration returns 201 and a WebID, but owner GET and PUT both receive 403; anonymous profile GET is 401. Storage lists the new container and metadata without an owner ACL. | Provision the authenticated/established owner policy, intended public profile and private defaults at the resolver's actual locations, then test the complete registration journey. No claim that the development bearer is a production login mechanism. |
 | ACL IRI targets resolve consistently (row 288) | Root-relative `/me/public/doc.ttl` grants access; absolute and document-relative forms refuse it. An absolute-target ACL PUT returns 201 and prevents the owner's repair. Library provisioning's public type index also refuses anonymous and owner reads. | Resolve ACL targets against a trusted, explicit document base and preserve origin boundaries. Check library consumers separately from server registration. |
 
-Rows 266 and 288 extend the earlier [D2 effective-Control finding](2026-11-01-solid-http-delivery.md)
+Rows 266 and 288 extend the earlier [D2 effective-Control finding](../../2026-11-01-solid-http-delivery.md)
 with additional inputs and causes. Keep their acceptance conditions linked;
 counting every manifestation as an independent root cause would inflate the audit.
 No production repair is claimed by this intake.

@@ -27,7 +27,7 @@ Deployment is outstanding. A source merge does not update a running image. The w
 
 [AB-40.1](../diagrams/agentbox/40-relay-signature-rejection.md) records the repaired check at the exact Agentbox commit. AB-13.7 now explicitly shows that its older declared revision's exception path accepted string-shaped signatures; it links the current repair rather than presenting the old invariant as enforced. AB-13's other sources have changed since its declared revision, so the topic is not broadly re-stamped or counted as newly assessed. Whole-topic refresh remains queued.
 
-The [Solid payment/provenance audit](2026-11-01-solid-payment-delivery.md) adds independent runtime evidence: private provenance metadata bypass, historical sidecar mismatch, repeated anchor charging, incomplete receipt publication and canonical-state read fallback. These findings complement EST-08's receipt-contract comparison. They remain open product work, with precise acceptance criteria in that report. VisionClaw's VCS-10 is a different caller and is not closed by either the Solid tests or this Agentbox fix.
+The [Solid payment/provenance audit](archive/2026-11/2026-11-01-solid-payment-delivery.md) adds independent runtime evidence: private provenance metadata bypass, historical sidecar mismatch, repeated anchor charging, incomplete receipt publication and canonical-state read fallback. These findings complement EST-08's receipt-contract comparison. They remain open product work, with precise acceptance criteria in that report. VisionClaw's VCS-10 is a different caller and is not closed by either the Solid tests or this Agentbox fix.
 
 ## Next remediation obligations
 

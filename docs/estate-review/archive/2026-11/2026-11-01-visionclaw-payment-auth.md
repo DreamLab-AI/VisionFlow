@@ -11,7 +11,7 @@ VisionClaw `5fa0e1325a2f903c175cfe67bbc6d644fcf38267` repairs payment authentica
 
 At the reviewed baseline `531df5ef7`, `extract_caller_pubkey` called the stateless Solid verifier with `req.uri()` and no body. Payment handlers therefore bypassed the existing replay cache and body-binding policy. The repair also removes a response-header panic that occurred after a resource debit: mixed-case header names now use fallible parsing instead of `HeaderName::from_static`.
 
-This assessment follows VCS-10 / XR-01 in the [parallel implementation audit](2026-11-01-parallel-implementations.md). It covers the payment route authentication boundary and ADR-2002's adoption claim. The combined issue also includes Solid-proxy URL reconstruction and shared fixture adoption. Those obligations remain separate from the payment repair.
+This assessment follows VCS-10 / XR-01 in the [parallel implementation audit](../../2026-11-01-parallel-implementations.md). It covers the payment route authentication boundary and ADR-2002's adoption claim. The combined issue also includes Solid-proxy URL reconstruction and shared fixture adoption. Those obligations remain separate from the payment repair.
 
 ## Contract and user effect
 
@@ -67,7 +67,7 @@ For users, the next useful milestone is a recoverable path from funding through 
 
 ## Verification and remaining acceptance
 
-The [evidence bundle](evidence/2026-11-01/pay-nip98/manifest.json) retains commands, raw failures, final tests, build inputs, review dispositions and source hashes. Tests use disposable state and synthetic balances. No live funds, network settlement or GPU workload were exercised.
+The [evidence bundle](../../evidence/2026-11-01/pay-nip98/manifest.json) retains commands, raw failures, final tests, build inputs, review dispositions and source hashes. Tests use disposable state and synthetic balances. No live funds, network settlement or GPU workload were exercised.
 
 | Check | Result and scope |
 | --- | --- |
@@ -80,6 +80,6 @@ The [evidence bundle](evidence/2026-11-01/pay-nip98/manifest.json) retains comma
 | Build prerequisites | Initial missing-schema, feature-off binary and missing-PTX failures retained. The supported default-feature build passed with pinned schema and existing PTX inputs whose origins and hashes are recorded. |
 | Diagram gates | VC-55: one rendered panel and 19 revision-resolved citations. VC-04: 23 rendered panels and 207 revision-resolved citations. Both have zero citation warnings or working-tree fallback. Only VC-04.27 and VC-55.1 receive assessment credit and visual inspection. |
 
-[VC-55](../diagrams/visionclaw/55-payment-authentication.md) describes the repair at its merged revision. [VC-04.27](../diagrams/visionclaw/04-handlers-graph-and-state.md) retains its historical stamp and now identifies the old verifier and post-debit response failure. Rendering siblings does not assess them.
+[VC-55](../../../diagrams/visionclaw/55-payment-authentication.md) describes the repair at its merged revision. [VC-04.27](../../../diagrams/visionclaw/04-handlers-graph-and-state.md) retains its historical stamp and now identifies the old verifier and post-debit response failure. Rendering siblings does not assess them.
 
 VCS-10 / XR-01 remains **partially remediated**. Solid-proxy forwarded-URI compatibility, shared token-fixture execution with an explicit clock, deployment, restart/replica behaviour and durable operation idempotency remain open. The user's springs work was untouched. General lessons from this repair are incorporated in the [review-method update](2026-11-01-review-method-lessons.md).

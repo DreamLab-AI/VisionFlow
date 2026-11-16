@@ -9,19 +9,19 @@ scope: eight dream-engine diagram topics, 24 panels, fingerprint and streak cont
 
 All eight topics and 24 panels in dream-engine's own diagram corpus now have source assessments at `815f963b1cbd6999e78144ce5475005ae1dd1d8e`. The corrections include the formatter stage, gate control flow, automerge refusal, partial replay capture, best-effort reset rollback and caller obligations. Seven new probes reproduce fingerprint and streak limitations. Production code and ADR statuses remain unchanged; these are open findings, not fixes.
 
-This closes the queued source review of this nested corpus. It does not establish complete engine module coverage, deployed-night acceptance or completion of the estate goal. The [AB-23 coverage table](2026-11-01-dream-execution-and-triage.md#panel-coverage-and-user-utility) and the nine local ADR assessments below remain separate evidence. Documentation changes are in dream-engine commit `bfe8c8885a58cc576a18ecb55d4e05e6f3bd37c7`.
+This closes the queued source review of this nested corpus. It does not establish complete engine module coverage, deployed-night acceptance or completion of the estate goal. The [AB-23 coverage table](../../2026-11-01-dream-execution-and-triage.md#panel-coverage-and-user-utility) and the nine local ADR assessments below remain separate evidence. Documentation changes are in dream-engine commit `bfe8c8885a58cc576a18ecb55d4e05e6f3bd37c7`.
 
 ## Evidence and limits
 
 | Item | Result |
 |---|---|
-| Source identity | [Per-topic source manifest](evidence/2026-11-01/dream-corpus-source-manifest.json) records current source hashes and changes from the previous `0f6a669` pin. Selection sources were unchanged but still contained unsupported diagram claims. |
-| Baseline gate | [Eight topics, 24 renders, zero citation warnings](evidence/2026-11-01/dream-nested-baseline.log) before correction. This demonstrates why a passing citation/grammar gate cannot replace semantic review. |
-| New probes | [Seven pass](evidence/2026-11-01/dream-nested-probes.log); [Rust source](evidence/2026-11-01/dream-nested-probes.rs). They assert observed behaviour, including defects. Only disposable local files and harmless strings were used. |
-| Existing selection tests | [64 pass](evidence/2026-11-01/dream-nested-selection-tests.log), including documentation tests for failure-fingerprint and pairwise-gate. The earlier 555-test engine run remains in the candidate assessment; it was not repeated for documentation changes. |
-| Final nested gate | [24/24 rendered, zero strict citation warnings](evidence/2026-11-01/dream-nested-final.log), with [machine report](evidence/2026-11-01/dream-nested-final.json). A separate [working-tree citation check](evidence/2026-11-01/dream-nested-worktree.log) also passes. README, coverage and the 51-marker register were regenerated. |
+| Source identity | [Per-topic source manifest](../../evidence/2026-11-01/dream-corpus-source-manifest.json) records current source hashes and changes from the previous `0f6a669` pin. Selection sources were unchanged but still contained unsupported diagram claims. |
+| Baseline gate | [Eight topics, 24 renders, zero citation warnings](../../evidence/2026-11-01/dream-nested-baseline.log) before correction. This demonstrates why a passing citation/grammar gate cannot replace semantic review. |
+| New probes | [Seven pass](../../evidence/2026-11-01/dream-nested-probes.log); [Rust source](../../evidence/2026-11-01/dream-nested-probes.rs). They assert observed behaviour, including defects. Only disposable local files and harmless strings were used. |
+| Existing selection tests | [64 pass](../../evidence/2026-11-01/dream-nested-selection-tests.log), including documentation tests for failure-fingerprint and pairwise-gate. The earlier 555-test engine run remains in the candidate assessment; it was not repeated for documentation changes. |
+| Final nested gate | [24/24 rendered, zero strict citation warnings](../../evidence/2026-11-01/dream-nested-final.log), with [machine report](../../evidence/2026-11-01/dream-nested-final.json). A separate [working-tree citation check](../../evidence/2026-11-01/dream-nested-worktree.log) also passes. README, coverage and the 51-marker register were regenerated. |
 | Visual inspection | All 24 SVGs were inspected using six contact sheets; long labels and the fingerprint lifecycle layout were corrected and re-inspected. SVGs, previews and scripts are in the retained artefact directory named by the receipt below. |
-| Estate gate | [Regeneration](evidence/2026-11-01/dream-nested-estate-regeneration.log) and [verification](evidence/2026-11-01/dream-nested-estate-verification.log) cover the unchanged 180-topic, 1,598-panel root corpus, including its declared source revisions. This is structural verification, not completion of its semantic queue. |
+| Estate gate | [Regeneration](../../evidence/2026-11-01/dream-nested-estate-regeneration.log) and [verification](../../evidence/2026-11-01/dream-nested-estate-verification.log) cover the unchanged 180-topic, 1,598-panel root corpus, including its declared source revisions. This is structural verification, not completion of its semantic queue. |
 
 The first compilation attempt used a target directory on the noexec `/tmp` mount and could not execute build scripts. Moving the target and fixture temporary directory under the owned VisionFlow worktree resolved this environment failure. The successful logs above are the subsequent runs. No live model, forge, notification, daemon or publication was exercised.
 
@@ -40,7 +40,7 @@ Paths refer to dream-engine at the source revision above. The probe source is re
 
 The C1 fixture exercises the general public API. The gate usually fixes the stage to one evaluator name, and streak detection uses the constant `harness` stage; those caller restrictions narrow practical collision paths. Their own name validation and cross-evaluator use must be checked before claiming an operational bypass. C2 similarly demonstrates persistence of a harmless shape, not a production secret incident.
 
-Previously verified findings are now reflected in the owner corpus: [candidate confinement, duplicate identities, receipt collisions and caller-trusted evidence](2026-11-01-dream-candidate-and-evidence.md); [process recovery and source supply](2026-11-01-dream-recovery-and-source-supply.md); [notification/forge contracts and draft-to-ready partial failure](2026-11-01-dream-forge-and-seam-contracts.md); and [dependency/provenance limits](2026-11-01-dream-migration-and-provenance.md). The highest-priority formatter and repair-egress findings remain open despite clearer diagrams.
+Previously verified findings are now reflected in the owner corpus: [candidate confinement, duplicate identities, receipt collisions and caller-trusted evidence](../../2026-11-01-dream-candidate-and-evidence.md); [process recovery and source supply](../../2026-11-01-dream-recovery-and-source-supply.md); [notification/forge contracts and draft-to-ready partial failure](../../2026-11-01-dream-forge-and-seam-contracts.md); and [dependency/provenance limits](../../2026-11-01-dream-migration-and-provenance.md). The highest-priority formatter and repair-egress findings remain open despite clearer diagrams.
 
 ## Panel dispositions
 
@@ -77,10 +77,10 @@ Each row is a source assessment, including panels whose mechanism remained corre
 
 | Local decisions | Existing section assessments |
 |---|---|
-| ADR-DE-001, ADR-DE-002 | [Migration and provenance](2026-11-01-dream-migration-and-provenance.md#adr-de-001-section-dispositions). |
-| ADR-DE-003, ADR-DE-004, ADR-DE-009 | [Candidate/evidence assessment](2026-11-01-dream-candidate-and-evidence.md#adr-section-dispositions). |
-| ADR-DE-005, ADR-DE-006 | [Forge and seam contracts](2026-11-01-dream-forge-and-seam-contracts.md#adr-de-005-section-dispositions). |
-| ADR-DE-007, ADR-DE-008 | [Recovery and source supply](2026-11-01-dream-recovery-and-source-supply.md#adr-de-007-section-dispositions). |
+| ADR-DE-001, ADR-DE-002 | [Migration and provenance](../../2026-11-01-dream-migration-and-provenance.md#adr-de-001-section-dispositions). |
+| ADR-DE-003, ADR-DE-004, ADR-DE-009 | [Candidate/evidence assessment](../../2026-11-01-dream-candidate-and-evidence.md#adr-section-dispositions). |
+| ADR-DE-005, ADR-DE-006 | [Forge and seam contracts](../../2026-11-01-dream-forge-and-seam-contracts.md#adr-de-005-section-dispositions). |
+| ADR-DE-007, ADR-DE-008 | [Recovery and source supply](../../2026-11-01-dream-recovery-and-source-supply.md#adr-de-007-section-dispositions). |
 
 All nine have dated section dispositions; that does not mean their proposed guarantees are implemented or accepted. ADR-DE-004 was reread in full for this supplement:
 
@@ -100,4 +100,4 @@ Sentry is an adjacent failure-triage reference, not a patch-selection benchmark.
 
 A useful next demonstration would run a labelled set of recurring, genuinely novel and intentionally similar failures through versioned grouping. Report false merges, false splits, duplicate-night alerts, reviewer time and canary persistence separately. Preserve structured error categories and show why each cause grouped with its predecessor. In a nightly maintainer product, those explanations would make rejection and stall notices more useful than an unexplained short hash. This is a proposed utility evaluation, not measured user benefit or a market ranking.
 
-The [retention receipt](evidence/2026-11-01/dream-nested-retention.json) inventories local artefacts and hashes. The wider estate audit remains active.
+The [retention receipt](../../evidence/2026-11-01/dream-nested-retention.json) inventories local artefacts and hashes. The wider estate audit remains active.

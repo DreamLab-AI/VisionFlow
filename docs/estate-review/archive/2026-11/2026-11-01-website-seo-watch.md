@@ -8,7 +8,7 @@ date: 2026-11-01
 
 The nightly SEO audit is running and retains useful site receipts. Its normal proposal publisher, however, commits the proposed files and then compares the now-empty staging area with those files, so it refuses before push. Local fixtures also reproduce incomplete crawler-rule handling, misleading coverage counts, unaccounted model retry usage and an error path that writes a synthetic secret to the ledger and log.
 
-This pass adds the previously omitted service as six [DW-08 panels](../diagrams/dreamlab-ai-website/08-nightly-seo-watch.md) and assesses every section and distinct obligation of ADR-2010. No website code, decision status, scheduler, live state or remote PR was changed. DW-01–07 and other website decisions retain their previous assessment boundaries; this report does not close the whole website review.
+This pass adds the previously omitted service as six [DW-08 panels](../../../diagrams/dreamlab-ai-website/08-nightly-seo-watch.md) and assesses every section and distinct obligation of ADR-2010. No website code, decision status, scheduler, live state or remote PR was changed. DW-01–07 and other website decisions retain their previous assessment boundaries; this report does not close the whole website review.
 
 ## Evidence boundary
 
@@ -22,7 +22,7 @@ This pass adds the previously omitted service as six [DW-08 panels](../diagrams/
 | Runtime observation | At **2026-11-01 05:26:58 UTC**, `seo-watch-cron` is RUNNING, PID 919. The ledger has 18 valid rows from 13–31 October. Its latest row reports 30 pages, zero high/medium, 23 low findings, planned parity across four pages/eight agents and no proposal. This is before the 1 November 05:40 slot, so absence of that date is expected. |
 | Publication boundary | The publisher counterexample starts after a hypothetical successful verification stage. It demonstrates the defective publication ordering, not that an arbitrary patch passes the full website build. No GitHub request, paid API call, branch push or real proposal was made. |
 
-The [source manifest](evidence/2026-11-01/dw-seo/sources.json), [existing test log](evidence/2026-11-01/dw-seo/existing-tests.log), [boundary results](evidence/2026-11-01/dw-seo/probes.json), [entrypoint results](evidence/2026-11-01/dw-seo/entrypoint-probes.json), [runtime receipt](evidence/2026-11-01/dw-seo/runtime-redacted.json) and [reproduction notes](evidence/2026-11-01/dw-seo/README.md) separate source, fixture and live observations. Full exports and local render artefacts are retained under `/tmp/vf-dw-seo-artifacts`. The live ledger was read only; its content hash is recorded without copying raw provider errors or model prose into the report.
+The [source manifest](../../evidence/2026-11-01/dw-seo/sources.json), [existing test log](../../evidence/2026-11-01/dw-seo/existing-tests.log), [boundary results](../../evidence/2026-11-01/dw-seo/probes.json), [entrypoint results](../../evidence/2026-11-01/dw-seo/entrypoint-probes.json), [runtime receipt](../../evidence/2026-11-01/dw-seo/runtime-redacted.json) and [reproduction notes](../../evidence/2026-11-01/dw-seo/README.md) separate source, fixture and live observations. Full exports and local render artefacts are retained under `/tmp/vf-dw-seo-artifacts`. The live ledger was read only; its content hash is recorded without copying raw provider errors or model prose into the report.
 
 ## Findings and acceptance
 

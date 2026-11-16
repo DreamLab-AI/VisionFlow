@@ -7,7 +7,7 @@ type: explanation
 
 # Estate audit synthesis
 
-This is the closing synthesis of the VisionFlow estate audit. It answers one question: **what this estate does for the people who use it, and where it fails them.** It draws on four waves of review against pinned revisions, and on the component, contract, comparison and SideStr passes recorded under the completion obligations. The per-wave reports hold the detail; the findings index ([`2026-11-02-findings-index.md`](2026-11-02-findings-index.md)) holds every finding with its evidence class.
+This is the closing synthesis of the VisionFlow estate audit. It answers one question: **what this estate does for the people who use it, and where it fails them.** It draws on four waves of review against pinned revisions, and on the component, contract, comparison and SideStr passes recorded under the completion obligations. The per-wave reports hold the detail; the findings index ([`2026-11-02-findings-index.md`](../../2026-11-02-findings-index.md)) holds every finding with its evidence class.
 
 ## What the audit covered
 

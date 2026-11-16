@@ -7,7 +7,7 @@ type: explanation
 
 # Solid Pod failure modes and invariants
 
-All 12 panels of [SP-10](../diagrams/solid-pod-rs/10-failure-modes-and-invariants.md) were assessed against solid-pod-rs `9b6143ce55b2`. All 12 are **corrected**: none was accurate as written, none is left inaccurate. The topic is restamped from `09ec90f` to the pinned revision, and every citation was re-resolved by symbol. Most corrections are line rebinding: server `lib.rs` shifted by up to 200 lines, and the CHANGELOG grew by 352 lines at its head. Seven corrections change what the topic claims:
+All 12 panels of [SP-10](../../../diagrams/solid-pod-rs/10-failure-modes-and-invariants.md) were assessed against solid-pod-rs `9b6143ce55b2`. All 12 are **corrected**: none was accurate as written, none is left inaccurate. The topic is restamped from `09ec90f` to the pinned revision, and every citation was re-resolved by symbol. Most corrections are line rebinding: server `lib.rs` shifted by up to 200 lines, and the CHANGELOG grew by 352 lines at its head. Seven corrections change what the topic claims:
 
 - The baseline has eight invariants, not seven.
 - Ten citations named code they did not hold, even at the old stamp.

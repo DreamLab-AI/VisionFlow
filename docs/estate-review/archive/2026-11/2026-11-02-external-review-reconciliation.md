@@ -25,7 +25,7 @@ The operator supplied an external architectural summary, strengths/weaknesses li
 
 ## Disposition of every remediation group
 
-Detailed source coordinates, qualifications and acceptance conditions are retained in the owner-local review notes and the copied [lane reports](evidence/2026-11-02/external-review/). These include the architectural strengths as well as the defect allegations.
+Detailed source coordinates, qualifications and acceptance conditions are retained in the owner-local review notes and the copied [lane reports](../../evidence/2026-11-02/external-review). These include the architectural strengths as well as the defect allegations.
 
 | Supplied priority group | Reconciliation |
 | --- | --- |
@@ -46,7 +46,7 @@ Detailed source coordinates, qualifications and acceptance conditions are retain
 
 ## Changes and evidence
 
-The [change receipt](evidence/2026-11-02/external-review/adr-changes.json) records repository source baselines, merged documentation heads, exact changed files and hashes. Source reports from each lane and owning reconciliation notes are copied alongside it. Existing whole-record verified_commit fields were not swept forward. Documentation-only checks do not reproduce the external exploit or performance claims; prior execution receipts retain their original boundaries.
+The [change receipt](../../evidence/2026-11-02/external-review/adr-changes.json) records repository source baselines, merged documentation heads, exact changed files and hashes. Source reports from each lane and owning reconciliation notes are copied alongside it. Existing whole-record verified_commit fields were not swept forward. Documentation-only checks do not reproduce the external exploit or performance claims; prior execution receipts retain their original boundaries.
 
 This update changes ADR bytes. Old completion hashes are deliberately not silently rebound: the earlier 448/448 assessment remains a historical result at its pinned documents. The fresh collector observation records 47 stale claim records and all 1,750 panel assessments still matched. New sections have scoped coverage here, not another whole-ADR assessment. The historical completion ledger and November 1 handoff should not be used as current deployment inventories.
 

@@ -9,7 +9,7 @@ scope: vowl-wasm and its declared visionGraph package consumer
 
 Remaining vowl-wasm diagrams overstated JSON compatibility, semantic preservation and release delivery. Native probes reproduce lost ontology fields, incorrect hierarchy classification and order-dependent statistics. Public release evidence shows that 0.2.2 reached GitHub but failed at npm publication; the registry still exposes only 0.1.2. visionGraph uses the GitHub tarball directly.
 
-This pass assesses all 17 panels in VW-01, VW-02 and VW-05, and corrects the package route in VW-04.6. Together with the [layout and API assessment](2026-11-01-vowl-layout-and-api-boundaries.md), all five vowl-wasm topics and all sections of its sole local ADR have a semantic disposition. Implementation fixes, installed-plugin acceptance and the wider estate review remain open. Production source, release settings and ADR status were not changed.
+This pass assesses all 17 panels in VW-01, VW-02 and VW-05, and corrects the package route in VW-04.6. Together with the [layout and API assessment](archive/2026-11/2026-11-01-vowl-layout-and-api-boundaries.md), all five vowl-wasm topics and all sections of its sole local ADR have a semantic disposition. Implementation fixes, installed-plugin acceptance and the wider estate review remain open. Production source, release settings and ADR status were not changed.
 
 ## Evidence and limits
 

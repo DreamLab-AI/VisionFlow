@@ -7,9 +7,11 @@ type: explanation
 
 # VisionFlow estate review
 
+> **Where to start (16 November 2026).** This folder is the dated audit record, not a to-do list. What is open now is on the [current focus](../current-focus.md) page. Every dated record here is historical. Those with no remaining reference have moved to the [archive](archive/README.md); the rest stay at these paths only because something still cites them there.
+
 Latest checkpoint: [Solid candidate ACL and discovery repair](2026-11-01-solid-acl-control-repair.md) — merged shared-evaluator guard and truthful ACL links, with nine route regressions, 311 development-feature tests and 512 core/header tests passing. Two panels are assessed. Raw security gates remain BLOCK for existing findings; policy migration, package adoption and deployment remain open.
 
-Previous checkpoint: [Solid Pod JSS parity intake](2026-11-01-solid-parity-intake.md) incorporates concurrent `fe4f2ec` and new ADR-2011. Six local observation groups reproduce container ACL location mismatch, malformed-policy lockout, unusable self-service pods and IRI-target failures. The imported queue preserves deferred and deliberate differences; no extra ADR or panel assessment credit is claimed.
+Previous checkpoint: [Solid Pod JSS parity intake](archive/2026-11/2026-11-01-solid-parity-intake.md) incorporates concurrent `fe4f2ec` and new ADR-2011. Six local observation groups reproduce container ACL location mismatch, malformed-policy lockout, unusable self-service pods and IRI-target failures. The imported queue preserves deferred and deliberate differences; no extra ADR or panel assessment credit is claimed.
 
 Previous checkpoint: [Solid Pod OIDC admission and fetching](2026-11-01-solid-oidc-boundaries.md) assesses ADR-2003 and five panels. The redirect-policy repair is merged locally as `fcc624a`; 102 native tests and five bounded observation tests pass. The main resource route still lacks OIDC/DPoP admission, and verifier/cache/profile findings remain open. Publication, consumer adoption and deployment are separate outstanding steps.
 
@@ -17,9 +19,9 @@ Previous checkpoint: [Solid Pod empty-body repair](2026-11-01-solid-empty-body-r
 
 Previous checkpoint: [Solid Pod signed-request boundaries](2026-11-01-solid-identity-boundaries.md) assesses ADR-2006 and five identity panels. A private PUT probe reproduces empty-body substitution; short replay retention and Git string-prefix scope also need repair. Thirty-one native auth tests and five observation probes pass. These findings remain open; no deployment was changed.
 
-Previous checkpoint: [VisionClaw payment authentication](2026-11-01-visionclaw-payment-auth.md) is repaired and merged locally, with six route regressions and 46 shared-verifier tests passing. VCS-10 / XR-01 remains partial pending proxy/fixture work and deployment. [Review-method lessons](2026-11-01-review-method-lessons.md) are incorporated into three existing Agentbox skills, with JEV discovery checked. Springs work is untouched.
+Previous checkpoint: [VisionClaw payment authentication](archive/2026-11/2026-11-01-visionclaw-payment-auth.md) is repaired and merged locally, with six route regressions and 46 shared-verifier tests passing. VCS-10 / XR-01 remains partial pending proxy/fixture work and deployment. [Review-method lessons](archive/2026-11/2026-11-01-review-method-lessons.md) are incorporated into three existing Agentbox skills, with JEV discovery checked. Springs work is untouched.
 
-Previous checkpoint: [Solid payment and provenance delivery](2026-11-01-solid-payment-delivery.md) — 99 native tests and four local probe groups assess ADR-2008 and five panels. Canonical-state fallback, private provenance disclosure, historical sidecar mismatch and duplicate anchor charges remain open. The [parallel audit intake](2026-11-01-parallel-remediation.md) retains all 134 distinct issues; Agentbox's relay signature-rejection fix is merged with 19 passing tests. Consumer consolidation and deployment remain open.
+Previous checkpoint: [Solid payment and provenance delivery](archive/2026-11/2026-11-01-solid-payment-delivery.md) — 99 native tests and four local probe groups assess ADR-2008 and five panels. Canonical-state fallback, private provenance disclosure, historical sidecar mismatch and duplicate anchor charges remain open. The [parallel audit intake](2026-11-01-parallel-remediation.md) retains all 134 distinct issues; Agentbox's relay signature-rejection fix is merged with 19 passing tests. Consumer consolidation and deployment remain open.
 
 **Scope correction, 1 November 2026:** RuView, Logseq history, RuVector, consumed Codescape and consumed Unmute are excluded at the owner's direction. Standalone Codescape remains in scope. The twenty active checkout targets and exclusion reasons are recorded in the [scope manifest](completion/scope.json). Earlier reports remain historical evidence; no repositories were deleted.
 
@@ -65,13 +67,13 @@ Forum Web Push continuation: [ADR-2023 section review, six NF-18 panels and 85 s
 
 Forum relay-cache continuation: [full ADR-2018 section review, six new NF-17 panels and twenty native tests](2026-11-01-forum-read-cache-and-activity.md). Live kind-41 metadata skips the zone gate; lookup failure shares the public fallback; cost, activity persistence and duplicate-count claims need correction. NF-03 receives four narrow panel updates. Wider forum and estate review remains open.
 
-Website poker continuation: [ADR-2009 and kit ADR-2020 section assessments, six new DW-10 panels and ten targeted scenarios](2026-11-01-website-poker.md). Renewable payment claims, unreserved concurrent exposure, incomplete restart recovery and misleading receipts remain product gaps. Both configured house services are running, which does not establish a successful game.
+Website poker continuation: [ADR-2009 and kit ADR-2020 section assessments, six new DW-10 panels and ten targeted scenarios](archive/2026-11/2026-11-01-website-poker.md). Renewable payment claims, unreserved concurrent exposure, incomplete restart recovery and misleading receipts remain product gaps. Both configured house services are running, which does not establish a successful game.
 
 Website information/inbox continuation: [ADR-2011 section assessment, five new DW-09 panels, three corrected panels, 47 existing tests and nine counterexamples](2026-11-01-website-information-and-inbox.md). Public disclosure masks registry loss, nightly admission checks miss monitor privilege, and capped digests retire undisplayed messages. Other website topics still need current review; ADR-2009 is assessed in the poker continuation above.
 
-Website SEO continuation: [six new DW-08 panels, full ADR-2010 assessment, 33 existing tests and fifteen boundary scenarios](2026-11-01-website-seo-watch.md). The scheduler is live, but proposal publishing rejects after commit; secret-error sinks, cost accounting and receipt coverage have reproduced gaps. Other website topics and decisions remain open.
+Website SEO continuation: [six new DW-08 panels, full ADR-2010 assessment, 33 existing tests and fifteen boundary scenarios](archive/2026-11/2026-11-01-website-seo-watch.md). The scheduler is live, but proposal publishing rejects after commit; secret-error sinks, cost accounting and receipt coverage have reproduced gaps. Other website topics and decisions remain open.
 
-VisionGraph explorer/profile continuation: [six VG-06 panels, ADR-VG-007 section review, 111 existing tests and sixteen boundary scenarios](2026-11-01-visiongraph-explorer-and-profile.md). All six current visionGraph topics and eight operative ADRs now have source/section assessments; implementation findings, intake programmes and runtime acceptance remain open.
+VisionGraph explorer/profile continuation: [six VG-06 panels, ADR-VG-007 section review, 111 existing tests and sixteen boundary scenarios](archive/2026-11/2026-11-01-visiongraph-explorer-and-profile.md). All six current visionGraph topics and eight operative ADRs now have source/section assessments; implementation findings, intake programmes and runtime acceptance remain open.
 
 VisionGraph publication continuation: [ten corrected panels, ADR-VG-001/002 section assessments and eight pull/storage tests](2026-11-01-visiongraph-publication-and-identity.md). A corpus-only refresh can be skipped when the consumer build SHA is unchanged. ADR-VG-007, VG-06 and full runtime acceptance remain open.
 
@@ -85,7 +87,7 @@ Consumer and archive continuation: [current distribution routes, licence-path dr
 
 This review examines the VisionFlow estate as an organisational proposition, a set of software implementations, and a system whose promises depend on connections between repositories. It asks where the vision is supported by source and execution evidence, where the implementation has moved beyond the written account, and what still prevents the intended experience.
 
-**Latest pass: the 2026-10-30 estate landing**: [park register](../registers/park-2026-10-30.md) and the [master TODO § Landing 2026-10-30](../../../project/docs/TODO-unified.md#landing-2026-10-30). **Previous review: [2026-09-07 source audit and reconciliation](2026-09-07-estate-audit.md).** It provides current ADR/source dispositions, diagram corrections, a workspace census, validation receipts and a dependency-ordered [closeout sprint](closeout/2026-09-07-sprint.md). Local source/testing, historical evidence and deployed acceptance are explicitly separated. The older chapters below preserve the investigation history; later dated findings supersede conflicting current-state claims.
+**Latest pass: the 2026-10-30 estate landing**: [park register](../registers/park-2026-10-30.md) and the [master TODO § Landing 2026-10-30](../../../project/docs/archive/TODO-unified-2026-09-07-to-2026-11-15.md#landing-2026-10-30). **Previous review: [2026-09-07 source audit and reconciliation](2026-09-07-estate-audit.md).** It provides current ADR/source dispositions, diagram corrections, a workspace census, validation receipts and a dependency-ordered [closeout sprint](closeout/2026-09-07-sprint.md). Local source/testing, historical evidence and deployed acceptance are explicitly separated. The older chapters below preserve the investigation history; later dated findings supersede conflicting current-state claims.
 
 The source audit does not declare all optional features, upstream research or six end-to-end system journeys complete. Those implementation and acceptance obligations remain on the [master TODO](../../../project/docs/TODO-unified.md).
 
@@ -93,7 +95,7 @@ Publication gates: [compression, final checks and historical invariant successio
 
 Retained graph explorer: [five-panel review, transfer and content probes, and knowledgeGraph ADR-2001 supplement](2026-11-01-knowledgegraph-explorer-contracts.md). The configured publisher has a different, working transfer pool; retained-viewer findings and browser acceptance remain open.
 
-Nested engine corpus: [24-panel source assessment and fingerprint/streak probes](2026-11-01-dream-diagram-corpus.md). All eight owner topics are updated; all nine local ADRs have linked section assessments. Findings and runtime acceptance remain open.
+Nested engine corpus: [24-panel source assessment and fingerprint/streak probes](archive/2026-11/2026-11-01-dream-diagram-corpus.md). All eight owner topics are updated; all nine local ADRs have linked section assessments. Findings and runtime acceptance remain open.
 
 Execution boundaries: [candidate repair egress, triage evidence and annexe retention](2026-11-01-dream-execution-and-triage.md). This completes source assessment of AB-23’s original panels; its findings and the wider audit remain open.
 
@@ -101,13 +103,13 @@ Forum decisions: [dream governance, signing, withdrawal and digest audit](2026-1
 
 Journal delivery: [ADR-2071, local counters, API-down recovery and acceptance evidence](2026-11-01-dream-journal-and-api-down.md).
 
-Current continuation: [31 October market comparison and audit evidence gaps](2026-10-31-market-and-audit-gaps.md) records sourced alternatives, proposed user acceptance tests and limits found in the diagram verification machinery. It does not supersede the full historical review.
+Current continuation: [31 October market comparison and audit evidence gaps](archive/2026-10/2026-10-31-market-and-audit-gaps.md) records sourced alternatives, proposed user acceptance tests and limits found in the diagram verification machinery. It does not supersede the full historical review.
 
-Current coverage: [31 October checkout, ADR and diagram census](2026-10-31-scope-and-coverage.md), including [Obsidian exclusion and write-recovery findings](2026-10-31-obsidian-boundaries.md).
+Current coverage: [31 October checkout, ADR and diagram census](archive/2026-10/2026-10-31-scope-and-coverage.md), including [Obsidian exclusion and write-recovery findings](2026-10-31-obsidian-boundaries.md).
 
-The [plugin decision and lifecycle audit](2026-10-31-obsidian-decisions.md) completes the five-file plugin ADR reading pass, with explicit runtime limits and reproduced lifecycle defects.
+The [plugin decision and lifecycle audit](archive/2026-10/2026-10-31-obsidian-decisions.md) completes the five-file plugin ADR reading pass, with explicit runtime limits and reproduced lifecycle defects.
 
-Whole-corpus continuation: [input drift and estate-health counterexamples](2026-10-31-diagram-drift-and-health.md), with the [158-topic review queue](2026-10-31-diagram-review-queue.md).
+Whole-corpus continuation: [input drift and estate-health counterexamples](2026-10-31-diagram-drift-and-health.md), with the [158-topic review queue](archive/2026-10/2026-10-31-diagram-review-queue.md).
 
 Release boundary: [canonical fixture identity, consumer parity and release-status audit](2026-10-31-release-evidence.md).
 
@@ -121,7 +123,7 @@ External-source ingest: [proposal bundles, completion signals, evidence and repl
 
 Proposal construction: [declared levels, consequence identity and grouped-consumer limits](2026-10-31-proposal-construction.md).
 
-Product comparison: [governed knowledge alternatives and a user evaluation protocol](2026-10-31-governed-knowledge-comparison.md), covering Graphiti, Cognee, TrustGraph and TopQuadrant with ten prospective acceptance cases.
+Product comparison: [governed knowledge alternatives and a user evaluation protocol](archive/2026-10/2026-10-31-governed-knowledge-comparison.md), covering Graphiti, Cognee, TrustGraph and TopQuadrant with ten prospective acceptance cases.
 
 Codescape continuation: [extraction, command policy and retained runtime artefacts](2026-10-31-codescape-boundaries.md), including the local decision pack, consumed revision comparison and executable boundary probes.
 
@@ -253,7 +255,7 @@ The [1 November media audit](2026-11-01-media-measurements-and-cancellation.md) 
 
 The [1 November XR budget and engine audit](2026-11-01-xr-budget-and-engine-qualification.md) reviews ADR-2167 and ADR-2165, tests sparse GPU readings and frame-cost limits, and separates live demand accounting from benchmark and stereo evidence.
 
-The [1 November vowl layout and API audit](2026-11-01-vowl-layout-and-api-boundaries.md) reviews local ADR-001 and all 16 VW-03/VW-04 panels. Fresh builds pass 199 native and five JS tests; thirteen audit probes reproduce layout, scope-generation and input-boundary issues. Browser/plugin acceptance stays open; the [subsequent ingest/release pass](2026-11-01-vowl-ingest-and-release.md) assesses the remaining vowl topics.
+The [1 November vowl layout and API audit](archive/2026-11/2026-11-01-vowl-layout-and-api-boundaries.md) reviews local ADR-001 and all 16 VW-03/VW-04 panels. Fresh builds pass 199 native and five JS tests; thirteen audit probes reproduce layout, scope-generation and input-boundary issues. Browser/plugin acceptance stays open; the [subsequent ingest/release pass](2026-11-01-vowl-ingest-and-release.md) assesses the remaining vowl topics.
 
 The [1 November sealed-history audit](2026-11-01-forum-sealed-history.md) reviews ADR-2017 in full, corrects NF-12.11 and adds NF-26. It reproduces incomplete discovery, purge-result and cross-reader contract gaps; source and synthetic checks do not establish current deployment or global plaintext erasure.
 

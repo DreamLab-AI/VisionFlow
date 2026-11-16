@@ -9,7 +9,7 @@ type: explanation
 
 With Git enabled, the native server records a real commit and returns useful receipts for ordinary writes, Git failures and sidecar failures. Two anchoring paths still hide unmet policy: an absent trail silently reduces an inline request to a local mark, and epoch accumulation failures remain log-only. DELETE removes the resource without a provenance receipt or a new commit, leaving its previous sidecar behind.
 
-Scope: every section of [ADR-2004](../../../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2004-provenance-off-by-default.md), the baseline provenance clauses and invariant 5, and SP-07.1 through SP-07.5. Solid source is `e1d16adbfc096527f82ff16a6bce87ffd6d909f8`; the Agentbox consumer profile is read at `9dfc27b16e82e9786535a55e790710493dd51fdf`. The [source manifest](evidence/2026-11-01/solid-provenance/sources.json), [HTTP probe](evidence/2026-11-01/solid-provenance/http-probe.rs) and [runner](evidence/2026-11-01/solid-provenance/run-probe.cjs) identify the evidence. No product code changed.
+Scope: every section of [ADR-2004](../../../../../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2004-provenance-off-by-default.md), the baseline provenance clauses and invariant 5, and SP-07.1 through SP-07.5. Solid source is `e1d16adbfc096527f82ff16a6bce87ffd6d909f8`; the Agentbox consumer profile is read at `9dfc27b16e82e9786535a55e790710493dd51fdf`. The [source manifest](../../evidence/2026-11-01/solid-provenance/sources.json), [HTTP probe](../../evidence/2026-11-01/solid-provenance/http-probe.rs) and [runner](../../evidence/2026-11-01/solid-provenance/run-probe.cjs) identify the evidence. No product code changed.
 
 ## P1 — requested inline anchoring can disappear from the receipt
 
@@ -33,7 +33,7 @@ Policy resolution scans every authorisation's conditions for the first provenanc
 
 ## P3 — feature and failure controls establish the narrower working contract
 
-The [default result](evidence/2026-11-01/solid-provenance/default-probe.json) and [Git-enabled results](evidence/2026-11-01/solid-provenance/git-probe.json) come from separate locked builds of the actual server library. The probe uses `build_app`, disposable filesystem storage and Git 2.56.0. Synthetic ACLs explicitly permit the tested operations. No test replaces the production marker with a stub.
+The [default result](../../evidence/2026-11-01/solid-provenance/default-probe.json) and [Git-enabled results](../../evidence/2026-11-01/solid-provenance/git-probe.json) come from separate locked builds of the actual server library. The probe uses `build_app`, disposable filesystem storage and Git 2.56.0. Synthetic ACLs explicitly permit the tested operations. No test replaces the production marker with a stub.
 
 | Case | HTTP status | Receipt / effect |
 | --- | ---: | --- |
@@ -75,7 +75,7 @@ The ADR context's “every LDP write” wording is broader than this implementat
 | Acceptance progress: tests and receipts | Fourteen stub composition tests and four existing server tests pass, plus one default and ten Git probe scenarios. The historical 1,801-test workspace and all-feature Clippy claims were not rerun. |
 | Acceptance progress: remaining and governed paths | Crash between storage and marking can prevent any response receipt from reaching the caller. A receipt does not close or reliably expose that crash window. Live pod, actual chain, interrupted anchoring and recovery remain unverified. No source ADR, baseline or product code changed. |
 
-This is not a whole-baseline, whole-provenance or whole-payment audit. SP-07.6 onwards remains outside this new panel claim. The selected policy panel retains the source-search finding that no non-test server call initiates `GitmarkAnchorer::genesis`; the [search receipt](evidence/2026-11-01/solid-provenance/genesis-search.txt) is bounded to the native server source, not all possible external provisioning tools.
+This is not a whole-baseline, whole-provenance or whole-payment audit. SP-07.6 onwards remains outside this new panel claim. The selected policy panel retains the source-search finding that no non-test server call initiates `GitmarkAnchorer::genesis`; the [search receipt](../../evidence/2026-11-01/solid-provenance/genesis-search.txt) is bounded to the native server source, not all possible external provisioning tools.
 
 ## Comparison and user utility
 
@@ -85,4 +85,4 @@ For an industrial inspection record, show the achieved evidence explicitly: byte
 
 ## Verification boundary
 
-Retained [library receipt logs](evidence/2026-11-01/solid-provenance/receipts-tests.txt) and [server Git log](evidence/2026-11-01/solid-provenance/git-tests.txt) record eighteen passing native tests. The standalone probe compiles with warnings denied and links the locked production libraries. Its eleven scenarios use synthetic, explicitly authorised local fixtures. No external chain request, live pod, persistent restart, Nix build or deployment was performed. Product fixes remain outstanding. RuView remains excluded and VisionClaw springs are untouched.
+Retained [library receipt logs](../../evidence/2026-11-01/solid-provenance/receipts-tests.txt) and [server Git log](../../evidence/2026-11-01/solid-provenance/git-tests.txt) record eighteen passing native tests. The standalone probe compiles with warnings denied and links the locked production libraries. Its eleven scenarios use synthetic, explicitly authorised local fixtures. No external chain request, live pod, persistent restart, Nix build or deployment was performed. Product fixes remain outstanding. RuView remains excluded and VisionClaw springs are untouched.

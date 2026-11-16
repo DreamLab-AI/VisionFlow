@@ -74,7 +74,7 @@ The claimed bytes match VisionClaw `a1f48020c`. The only change is one bullet in
 | Section | Disposition |
 | --- | --- |
 | D8: budget, endpoint bullet (changed) | **Implements, with one limit.** Rust `pack_links` and `drawn_position_of`, and `link_layer.gd` keeping only the records and the upload, are true at the pin (ST-4). "Every frame" means every 90 Hz physics tick. The timing figures cannot be checked from source. The earlier report's marker-budget breach still holds, with new anchors (ST-4). |
-| All other sections (unchanged text) | **Carried** from [2026-10-31-xr-volumes-and-code-links](2026-10-31-xr-volumes-and-code-links.md), which assessed them at `75b72416b`. ADR-2164 has no `verified_paths`, so I used the files that report cited as the governed set. From `75b72416b` to the pin: `link_index.rs`, `xr_prefs.gd` and the `codescape` gitlink (`e3b76f63e`) are unchanged. `binary_protocol.rs` (+251), `graph_scene.gd` (+521), `link_layer.gd` (+260) and `spatial_volume.gd` (+24) changed. D5 still holds: the join still writes an empty `repo` and `revision: None` (`link_index.rs:281-284`). D6 and D7 rest on `_needs_purge` and `_refresh`'s disabled branch, both present (`link_layer.gd:460-482`). D4's `binary_protocol.rs:1298-1299` anchor was not re-located at the pin. That report's link-layer anchors (`link_layer.gd:317,430-448`) are stale, because packing moved to Rust, but the D8 conclusion they support still holds. |
+| All other sections (unchanged text) | **Carried** from [2026-10-31-xr-volumes-and-code-links](../../2026-10-31-xr-volumes-and-code-links.md), which assessed them at `75b72416b`. ADR-2164 has no `verified_paths`, so I used the files that report cited as the governed set. From `75b72416b` to the pin: `link_index.rs`, `xr_prefs.gd` and the `codescape` gitlink (`e3b76f63e`) are unchanged. `binary_protocol.rs` (+251), `graph_scene.gd` (+521), `link_layer.gd` (+260) and `spatial_volume.gd` (+24) changed. D5 still holds: the join still writes an empty `repo` and `revision: None` (`link_index.rs:281-284`). D6 and D7 rest on `_needs_purge` and `_refresh`'s disabled branch, both present (`link_layer.gd:460-482`). D4's `binary_protocol.rs:1298-1299` anchor was not re-located at the pin. That report's link-layer anchors (`link_layer.gd:317,430-448`) are stale, because packing moved to Rust, but the D8 conclusion they support still holds. |
 
 ## ADR-2143 section assessment
 
@@ -84,7 +84,7 @@ The claimed bytes match `34735e852`. The diff changes `verified_commit` (`f1fa18
 | --- | --- |
 | Frontmatter `verified_commit` (changed) | **Accurate.** The governed diff from `ff849f2ba` to the pin is empty. |
 | "Re-verification — 2026-10-31 (`ff849f2ba`)" (new) | **Conclusion true; description and date inaccurate (ST-1).** The governed delta is the one-line hold rule in `PROTOCOL-registry.md`, which does not concern Codescape. The record's claims are unaffected. |
-| All other sections (unchanged text) | **Carried** from [2026-11-01-codescape-runtime-boundary](2026-11-01-codescape-runtime-boundary.md) at `531df5ef7`. From `531df5ef7` to the pin, the governed delta is that same registry line. |
+| All other sections (unchanged text) | **Carried** from [2026-11-01-codescape-runtime-boundary](../../2026-11-01-codescape-runtime-boundary.md) at `531df5ef7`. From `531df5ef7` to the pin, the governed delta is that same registry line. |
 
 ## ADR-2166 section assessment
 
@@ -100,7 +100,7 @@ The claimed bytes match `34735e852`. The diff changes `verified_commit` (→ `69
 | `633423357` annex: inscribed sphere | **Accurate on code** (`spatial_volume.gd:120-126`). Its date and scope are wrong (ST-2). |
 | `abcf36db1` annex | **Accurate.** The only governed changes are doc comments. The test counts are receipts. |
 | `69b16867d` annex: `slots` argument | **Accurate** (`graph_scene.gd:740-743`). |
-| All other sections (unchanged text) | **Carried** from [2026-10-31-portals-and-federation](2026-10-31-portals-and-federation.md) and its 2026-11-01 grab-amendment refresh at `531df5ef7`. From `531df5ef7` to the pin, the governed delta is `graph_scene.gd` (+29/−6) and `spatial_volume.gd` (+24/−1). `space_portals.gd`, `volume_arrangement.gd`, `emulated_volume.gd`, `hud.gd`, `xr_prefs.gd` and the membrane shader are byte-identical. The carried findings on portal hysteresis, the eight-membrane limit and the bounds-before-dim order therefore still rest on unchanged code. |
+| All other sections (unchanged text) | **Carried** from [2026-10-31-portals-and-federation](../../2026-10-31-portals-and-federation.md) and its 2026-11-01 grab-amendment refresh at `531df5ef7`. From `531df5ef7` to the pin, the governed delta is `graph_scene.gd` (+29/−6) and `spatial_volume.gd` (+24/−1). `space_portals.gd`, `volume_arrangement.gd`, `emulated_volume.gd`, `hud.gd`, `xr_prefs.gd` and the membrane shader are byte-identical. The carried findings on portal hysteresis, the eight-membrane limit and the bounds-before-dim order therefore still rest on unchanged code. |
 
 ## ADR-2071 section assessment
 
@@ -110,7 +110,7 @@ The claimed bytes match agentbox `97b4e672f`. The diff changes `verified_commit`
 | --- | --- |
 | Frontmatter `verified_commit` (changed) | **Accurate.** The governed diff to the pin is empty. |
 | "Re-verification — 2026-11-01 (`cc949bb79`)" (new) | **Accurate (ST-8).** Across all five governed paths, including `exec-record.js` and its test, the only change is the test literal at `services/dream-engine/src/engine.rs:2134`. `RuVectorConfig.pg` now carries the address and the password-file path (`ruvector.rs:22-32`). |
-| All other sections (unchanged text) | **Carried** from [2026-11-01-dream-journal-and-api-down](2026-11-01-dream-journal-and-api-down.md) at `9dfc27b16`. From `9dfc27b16` to the pin, the governed delta is that one test line. |
+| All other sections (unchanged text) | **Carried** from [2026-11-01-dream-journal-and-api-down](../../2026-11-01-dream-journal-and-api-down.md) at `9dfc27b16`. From `9dfc27b16` to the pin, the governed delta is that one test line. |
 
 ## ADR-2081 section assessment
 
@@ -120,7 +120,7 @@ The claimed bytes match agentbox `21a2b49dc`. The diff changes `verified_commit`
 | --- | --- |
 | Frontmatter `verified_commit` (changed) | **Accurate.** The governed diff to the pin is empty. |
 | "Re-verification — 2026-11-01 (`cc949bb79`)" (new) | **Accurate (ST-8).** `runner.rs`, `dispatch.rs` and `candidate_flow.rs` are unchanged. The one change is the `engine.rs:2134` test literal. |
-| All other sections (unchanged text) | **Carried** from [2026-11-01-dream-annexe-and-receipts](2026-11-01-dream-annexe-and-receipts.md) at `9dfc27b16`. From `9dfc27b16` to the pin, the governed delta is that one test line. |
+| All other sections (unchanged text) | **Carried** from [2026-11-01-dream-annexe-and-receipts](../../2026-11-01-dream-annexe-and-receipts.md) at `9dfc27b16`. From `9dfc27b16` to the pin, the governed delta is that one test line. |
 
 ## ADR-2114 section assessment
 
@@ -130,7 +130,7 @@ The claimed bytes match agentbox `75c349744`. The diff changes `verified_commit`
 | --- | --- |
 | Frontmatter `verified_commit` (changed) | **Accurate.** The governed diff to the pin is empty. |
 | "Re-verification — 2026-11-01 (`cc949bb79`)" (new) | **Accurate (ST-8).** `candidate_flow.rs`, `prompt.rs` and `nightly.tmpl` are unchanged. The one change is the `engine.rs:2134` test literal. |
-| All other sections (unchanged text) | **Carried** from [2026-11-01-dream-execution-and-triage](2026-11-01-dream-execution-and-triage.md) at `9dfc27b16`. From `9dfc27b16` to the pin, the governed delta is that one test line. |
+| All other sections (unchanged text) | **Carried** from [2026-11-01-dream-execution-and-triage](../../2026-11-01-dream-execution-and-triage.md) at `9dfc27b16`. From `9dfc27b16` to the pin, the governed delta is that one test line. |
 
 ## ADR-2115 section assessment
 
@@ -140,7 +140,7 @@ The claimed bytes match agentbox `97b4e672f`. The diff changes `verified_commit`
 | --- | --- |
 | Frontmatter `verified_commit` (changed) | **Accurate.** The governed diff to the pin is empty. |
 | "Re-verification — 2026-11-01 (`cc949bb79`)" (new) | **Accurate (ST-8).** `governance.rs`, `digest.rs`, `relay.rs`, `inbox.rs` and `config/hooks/dream-inbox-surface.cjs` are unchanged. The one change is the `engine.rs:2134` test literal. |
-| All other sections (unchanged text) | **Carried** from [2026-11-01-dream-governance-and-delivery](2026-11-01-dream-governance-and-delivery.md) at `9dfc27b16`. From `9dfc27b16` to the pin, the governed delta is that one test line. |
+| All other sections (unchanged text) | **Carried** from [2026-11-01-dream-governance-and-delivery](../../2026-11-01-dream-governance-and-delivery.md) at `9dfc27b16`. From `9dfc27b16` to the pin, the governed delta is that one test line. |
 
 ## ADR-2153 section assessment
 
@@ -152,7 +152,7 @@ The claimed bytes match `c970ca8b0`. The diff changes `verified_commit` (`2f15c5
 | "Re-verification — 2026-11-01 (ADR-2164 amendment)" | **Accurate.** `2f15c531b..e1893e236` changes only `entrypoint-unified.sh` (+10/−13), inside the trajectory-hook registration block. The `TRAJ_CONNINFO` input and the gate prefix are removed. |
 | "Re-verification — 2026-11-01 (`cc949bb79`)", including the `09067b095` re-stamp | **Accurate.** `e1893e236..cc949bb79` changes `agentbox.toml`, `entrypoint-unified.sh` and `flake.nix` as listed: the password-free conninfo URLs, and the removed `claudeFlowConfigJson` template and baked `RUVECTOR_PG_CONNINFO`. `cc949bb79..09067b095` changes only the entrypoint's scrub block. |
 | "Re-verification — 2026-11-01 (`4f3bd5325`)" | **Accurate.** `09067b095..4f3bd5325` changes only `entrypoint-unified.sh` (+112/−32), in the scrub block. No ADR-2153 section concerns RuVector credentials. A grep of the ADR for `ruvector`, `conninfo` and `credential` finds hits only in these annexes and in an unrelated OpenRouter key note. |
-| All other sections (unchanged text) | **Carried** from [2026-11-01-agentbox-session-lifecycle](2026-11-01-agentbox-session-lifecycle.md) at `9dfc27b16`. From `9dfc27b16` to the pin, the governed delta is the three files above (+264/−84). I found no session-plane, tmux, socket-ACL or `tab0` line in that diff. |
+| All other sections (unchanged text) | **Carried** from [2026-11-01-agentbox-session-lifecycle](../../2026-11-01-agentbox-session-lifecycle.md) at `9dfc27b16`. From `9dfc27b16` to the pin, the governed delta is the three files above (+264/−84). I found no session-plane, tmux, socket-ACL or `tab0` line in that diff. |
 
 ## ADR-2169 section assessment
 
@@ -170,7 +170,7 @@ The claimed bytes match `d6c091f0f`. The earlier report assessed this text at `5
 | `d5c46cdd8`, `8f796ad86`, `1ec762f39` and `e2afd65d6` stamps | **Accurate on the claims I checked.** `HOLD_GLOBAL_SPEED = 2.0` and `max` are at `force_compute_actor.rs:4532,4581`. `RELEASE_SETTLE_DAMPING` is absent. `g_edge_rest_snapshot` replaces the kernel parameter. The arity is 30/29. The text about the gain's effect on separation and boundary forces matches the `.cu`. The test counts and bit-identity runs are receipts. |
 | `3f25181a2` stamp | **Accurate.** `position_updates.rs` lost only the swarm-telemetry handler. `may_hold`, `release_holds` (`:152`) and `parse_position` (`:104`) remain. |
 | `ff849f2ba` stamp | **Conclusion true; description and date inaccurate (ST-1).** |
-| Items 1–7 and the remaining Consequences (unchanged text) | **Carried** from [2026-11-01-drag-holds-and-acceptance](2026-11-01-drag-holds-and-acceptance.md), with D5 and D6 qualified by ST-5. From `531df5ef7` to the pin, the governed delta touches five files. `hold_registry.rs`, the orchestrator, `types.rs`, `layout_handler.rs` and the acceptance script are byte-identical, so DH1, DH2 and DH3's orchestrator half stand unchanged. I rechecked the anchors in changed files: `release_holds` still notifies `Released` before the GPU (`position_updates.rs:152-175`). `parse_position` still defaults missing axes to 0 (`:104-119`). Hold expiry still runs only after the `ComputeForces` early returns (`force_compute_actor.rs:1812-1868` precede `:1922`). |
+| Items 1–7 and the remaining Consequences (unchanged text) | **Carried** from [2026-11-01-drag-holds-and-acceptance](../../2026-11-01-drag-holds-and-acceptance.md), with D5 and D6 qualified by ST-5. From `531df5ef7` to the pin, the governed delta touches five files. `hold_registry.rs`, the orchestrator, `types.rs`, `layout_handler.rs` and the acceptance script are byte-identical, so DH1, DH2 and DH3's orchestrator half stand unchanged. I rechecked the anchors in changed files: `release_holds` still notifies `Released` before the GPU (`position_updates.rs:152-175`). `parse_position` still defaults missing axes to 0 (`:104-119`). Hold expiry still runs only after the `ComputeForces` early returns (`force_compute_actor.rs:1812-1868` precede `:1922`). |
 
 ## ADR-2172 section assessment
 
@@ -185,7 +185,7 @@ The claimed bytes match `34735e852`. The diff changes `verified_commit` (→ `69
 | `15acb9219` annex | **Accurate.** The `binary_protocol.rs` and `render_store.rs` changes are the `0x23` state-frame ingest (`render_store.rs`, `apply_agent_state_frame`) and agent records. I read the whole `binary_protocol.rs` delta from `531df5ef7` to the pin (7 hunks). It covers agent-action decoding and its tests, the beam-anchor doc, a `render_store()` accessor for the link pack, and the doc comment on `node_position`. None of it is drag, grab, hold or `render_aabb_ids` logic. |
 | `ef021a41d` annex | **Accurate.** The `graph_scene.gd` change is the agent-edge helpers only, with no grab code. |
 | `abcf36db1` and `69b16867d` annexes | **Accurate.** `is_drawn` and `is_drawn_in_slot` (`render_store.rs:2281-2296`) exist, the beam-source fallback is removed, and `_tick_links` gets its `slots` argument. `position_of` resolves through `drawn_position_of`. |
-| All other sections (unchanged text) | **Carried** from [2026-11-01-xr-grab-boundaries](2026-11-01-xr-grab-boundaries.md) at `531df5ef7`. Its XG1–XG6 findings rest on `graph_scene.gd` grab functions, `backend_connection.gd` and `connection_volume_source.gd`. The latter two are byte-identical at the pin, and the 29-line `graph_scene.gd` delta contains no grab, hold, double-click or box-grip code. The report's `graph_scene.gd` line numbers belong to its own revision. |
+| All other sections (unchanged text) | **Carried** from [2026-11-01-xr-grab-boundaries](../../2026-11-01-xr-grab-boundaries.md) at `531df5ef7`. Its XG1–XG6 findings rest on `graph_scene.gd` grab functions, `backend_connection.gd` and `connection_volume_source.gd`. The latter two are byte-identical at the pin, and the 29-line `graph_scene.gd` delta contains no grab, hold, double-click or box-grip code. The report's `graph_scene.gd` line numbers belong to its own revision. |
 
 ## ADR-2002 section assessment
 

@@ -7,7 +7,7 @@ type: explanation
 
 # Whole-corpus input drift and estate-health review
 
-At VisionFlow `64ef3af`, all 158 topics were compared with their declared input revisions, including **governing** files as well as sources. The [input-level receipt](evidence/2026-10-31/diagram-input-drift.json) records the owning repository, declared commit, Git blob identities and comparison result for each declaration. The [topic queue](2026-10-31-diagram-review-queue.md) makes every topic visible without equating unchanged input bytes with a correct diagram.
+At VisionFlow `64ef3af`, all 158 topics were compared with their declared input revisions, including **governing** files as well as sources. The [input-level receipt](evidence/2026-10-31/diagram-input-drift.json) records the owning repository, declared commit, Git blob identities and comparison result for each declaration. The [topic queue](archive/2026-10/2026-10-31-diagram-review-queue.md) makes every topic visible without equating unchanged input bytes with a correct diagram.
 
 There are **109 topics with changed input bytes** and 49 without detected byte changes. Across 4,371 topic/input relationships, 543 changed, 3,822 matched, two were directories, two lacked an owning-repository revision, and two could not resolve a declared object. Repeated files in different topics count separately. Forty-five topics include changed files declared only as governing inputs. A source-only scan would miss those relationships.
 

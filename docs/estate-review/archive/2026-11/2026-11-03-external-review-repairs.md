@@ -34,7 +34,7 @@ diagram and ADR verification stamps have not been swept forward.
 ## Evidence and review limits
 
 Executed command logs and review receipts are retained under
-[evidence/2026-11-03/external-fixes](evidence/2026-11-03/external-fixes/).
+[evidence/2026-11-03/external-fixes](../../evidence/2026-11-03/external-fixes).
 Counts are snapshots of specific test runs, not measures of estate completeness.
 
 The final diagram gate checks 223 topics and 1,780 Mermaid panels: 28,337
@@ -165,7 +165,7 @@ reproduced and repaired in `5cb6589bf`; literal backslash/control bytes are now
 refused before allowlist parsing. Delivery inventory checks independently caught
 a missing governance-key projection, and Dream ledger tests reproduced escaped
 pipe and configured-path inconsistencies. Their final integration receipts and
-[per-finding dispositions](evidence/2026-11-03/external-fixes/custody-w3b-review/dispositions.md) are retained; the initial BLOCK is not
+[per-finding dispositions](../../evidence/2026-11-03/external-fixes/custody-w3b-review/dispositions.md) are retained; the initial BLOCK is not
 rewritten as a clean scan.
 
 Final W3b revalidation run `20261103071614-2b9e97988bce9c77` returned all eleven

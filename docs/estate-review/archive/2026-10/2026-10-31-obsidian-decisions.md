@@ -7,7 +7,7 @@ type: explanation
 
 # Obsidian plugin decision and lifecycle audit
 
-This pass covers the remaining four plugin ADRs at `272259edcda1fbc2fc5856ffa633f1a9a01a670b`, alongside the [ADR-OBS-005 and write-boundary review](2026-10-31-obsidian-boundaries.md). The five local decision files have now been read and assessed at the depth stated below. This does not certify engine semantics, distribution artefacts or installed-desktop acceptance. The source files inspected have no local diff; ADR-OBS-003 has a pre-existing uncommitted October 21 clarification, which is working-tree evidence rather than part of that commit. No plugin source was modified. [Probe receipt and source hashes](evidence/2026-10-31/obsidian-lifecycle-probes.json) record the bounded results.
+This pass covers the remaining four plugin ADRs at `272259edcda1fbc2fc5856ffa633f1a9a01a670b`, alongside the [ADR-OBS-005 and write-boundary review](../../2026-10-31-obsidian-boundaries.md). The five local decision files have now been read and assessed at the depth stated below. This does not certify engine semantics, distribution artefacts or installed-desktop acceptance. The source files inspected have no local diff; ADR-OBS-003 has a pre-existing uncommitted October 21 clarification, which is working-tree evidence rather than part of that commit. No plugin source was modified. [Probe receipt and source hashes](../../evidence/2026-10-31/obsidian-lifecycle-probes.json) record the bounded results.
 
 ## ADR-OBS-001: shared graph and distribution
 

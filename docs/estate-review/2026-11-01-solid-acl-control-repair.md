@@ -84,7 +84,7 @@ and the candidate write. Existing request admission still happens first; this
 repair does not make payment collection transactional.
 
 This repair addresses the target/condition part of [HTTP D2](2026-11-01-solid-http-delivery.md)
-and the malformed-write portion of [parity row 266](2026-11-01-solid-parity-intake.md).
+and the malformed-write portion of [parity row 266](archive/2026-11/2026-11-01-solid-parity-intake.md).
 It does not repair policy information already lost by the historical Turtle
 reader, full JSON-LD expansion, absolute target matching, self-service owner
 provisioning, all MCP policy writers, or durable cross-process races. Older
