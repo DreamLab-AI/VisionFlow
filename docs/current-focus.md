@@ -19,7 +19,8 @@ The register replaced five separate lists on 16 November 2026. They are frozen a
 |---|---|
 | [Front page](open-work/README.md) | Counts, the owner's decision queue, totals by seam, by component and by blocker |
 | [By seam](open-work/by-seam.md) | Every item under its seam, live items first, then items recorded as open that nobody has re-checked |
-| [Rebuild notes, 16 November](open-work/rebuild-notes-2026-11-16.md) | The seventeen unmerged branches: landing order, and what each needs rebuilt, set or run |
+| [Rebuild notes, 16 November](open-work/rebuild-notes-2026-11-16.md) | The review branches, now merged: what each needs rebuilt, set or run to take effect |
+| [Branch and worktree ledger, 17 November](open-work/branches-2026-11-17.md) | What is merged, the two held commits, older unmerged branches, stashes and worktrees |
 | [VisionClaw and agentbox board](https://github.com/DreamLab-AI/VisionClaw/blob/main/docs/TODO-unified.md) | The register's live items for those two components, generated into the VisionClaw repository at the path people already use |
 | [Diagram index](diagrams/README.md) and [VisionClaw diagram register](diagrams/REGISTER-visionclaw.md) | Tensions, debt and drift recorded while cataloguing the code. These describe the code as read; an item becomes work only when it is added to the open-work register |
 
