@@ -17,6 +17,10 @@ Three branches have since been merged and deployed by the owner: VisionClaw `fea
 
 Still true on the running VisionClaw: `VISIONCLAW_DEV_MODE=1` and `ALLOW_INSECURE_DEFAULTS=1`, with ports 3001 and 4000 published on every interface, because `fix/estate-review-2026-11-15` is not merged.
 
+## Update, 17 November 2026 (later)
+
+All remaining branches are merged into `main` in their repositories, without the two held commits (VisionClaw `86c6227f2`, agentbox `52358a1a7`), which stay on their branches. Tests on merged main: forum 3,387 pass; solid-pod-rs 528 and 110; dream-engine 254; VisionClaw 198 targeted (the other 1,870 library tests not run); agentbox 75 and 14, port gate and config valid; loom not run (needs the ruvector sibling). The rebuild, settings and release steps in the tables below still apply; only the merge step is done. VisionClaw ADR-2039 is accepted and ADR-2108 superseded.
+
 ## Order
 
 Merge within a repository in the order listed. Across repositories, the forum's contract branch goes first, because agentbox vendors its files.

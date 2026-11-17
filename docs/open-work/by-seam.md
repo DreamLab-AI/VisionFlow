@@ -30,14 +30,15 @@ The shape of governance events (kinds 31400 to 31405): panel definitions, propos
 
 Between: nostr-rust-forum, agentbox, visionclaw.
 
-2 live, 3 unverified, 0 closed.
+3 live, 3 unverified, 0 closed.
 
 ### Live
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| ER-7 | VisionClaw proposals now conform to the forum contract on a branch. Open: which risk tier and task properties each builder declares (concept elevation, decision elevation, voice command) | visionclaw | owner-decision | fixed on an unmerged branch: visionclaw fix/governance-builders-to-contract (11134cc41) | 2026-11-16 |
+| ER-7 | VisionClaw proposals now conform to the forum contract on a branch. Open: which risk tier and task properties each builder declares (concept elevation, decision elevation, voice command) | visionclaw | owner-decision | fixed on an unmerged branch: merged to main 2026-11-17, awaiting rebuild | 2026-11-17 |
 | FORUM-PRIORITY-TAG | The forum relay parses the proposal priority tag as a number, so every label becomes 50, while the forum client and core crate use labels | nostr-rust-forum | engineering | open | 2026-11-16 |
+| GOV-CONTENT-KEY-ORDER | Governance event content built from free-form JSON (for example a proposal's `fields`) is serialised in a key order that depends on whether serde_json's preserve_order feature is unified into the build, so the same event can get a different id in different builds | nostr-rust-forum, visionclaw, agentbox | engineering | open | 2026-11-17 |
 
 ### Recorded as open, not re-checked
 
@@ -61,7 +62,7 @@ Between: agentbox, visionclaw.
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| W2-01 (also CONTRACTS-F1, CONTRACTS-F2) | Agent events sent bare; VisionClaw drops them as Malformed | agentbox, visionclaw | engineering | fixed on an unmerged branch: yes: agentbox `fix/estate-review-contracts` 9040efc6f; project `fix/estate-review-2026-11-15` eafa7d3e4 (test only) | 2026-11-15 |
+| W2-01 (also CONTRACTS-F1, CONTRACTS-F2) | Agent events sent bare; VisionClaw drops them as Malformed | agentbox, visionclaw | engineering | fixed on an unmerged branch: merged to main 2026-11-17, awaiting rebuild | 2026-11-17 |
 | L-1 | Signed model/mobile session canaries | agentbox, visionclaw | device | open | 2026-11-15 |
 | CONTRACTS-F3 | GET /v1/tasks strips three fields VisionClaw requires, so list_tasks always fails | agentbox, visionclaw | untriaged | open | 2026-11-15 |
 | CONTRACTS-F4 | GET /v1/tasks/:taskId strips taskDir and logFile, which TaskStatus requires | agentbox, visionclaw | untriaged | open | 2026-11-15 |
@@ -167,7 +168,7 @@ Between: nostr-rust-forum, dreamlab-ai-website, agentbox.
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| FORUM-PHASE-0-1 (also feat/upgrade-phase-0-1) | Forum Phase 0 to 4 branch integrated on integrate/phase-0-1: review, choose the core crate version, merge, then apply the D1 migrations | nostr-rust-forum | owner-act | fixed on an unmerged branch: nostr-rust-forum integrate/phase-0-1 (a80c572) | 2026-11-16 |
+| FORUM-PHASE-0-1 (also feat/upgrade-phase-0-1) | Forum Phase 0 to 4 branch integrated on integrate/phase-0-1: review, choose the core crate version, merge, then apply the D1 migrations | nostr-rust-forum | owner-act | fixed on an unmerged branch: merged to main 2026-11-17, awaiting rebuild | 2026-11-17 |
 | W2-02 | forum ADR-2027 describes an inbox-key relay change that is not on main | nostr-rust-forum | untriaged | open | 2026-11-15 |
 
 ### Recorded as open, not re-checked
@@ -479,9 +480,9 @@ Recorded as open, not re-checked:
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| 11-08 #1a | Browsercontainer publishes VNC 5903, MCP 8931, CDP 9222 on 0.0.0.0 | agentbox | engineering | fixed on an unmerged branch: yes: agentbox `fix/estate-review-hardening` 721836d53 (compose files only: browsercontainer, gui-tools, xr-runtime; no `flake.nix` change) | 2026-11-15 |
+| 11-08 #1a | Browsercontainer publishes VNC 5903, MCP 8931, CDP 9222 on 0.0.0.0 | agentbox | engineering | fixed on an unmerged branch: merged to main 2026-11-17, awaiting rebuild | 2026-11-17 |
 | 11-08 #1b | Xvnc runs `-SecurityTypes None` | agentbox | engineering | open | 2026-11-15 |
-| W3-01 (also 11-08 #1d) | Relay consumer admits every signed author when allowlist unset | agentbox | engineering | fixed on an unmerged branch: yes: agentbox `fix/estate-review-contracts` 2c1f85706 | 2026-11-15 |
+| W3-01 (also 11-08 #1d) | Relay consumer admits every signed author when allowlist unset | agentbox | engineering | fixed on an unmerged branch: merged to main 2026-11-17, awaiting rebuild | 2026-11-17 |
 | cheap: nix-flake-update | Merge bot's `deps/nix-flake-update` | agentbox | owner-act | open | 2026-11-15 |
 | M-4 | Multi-peer delivery accepted/rejected | agentbox | deployment | open | 2026-11-15 |
 | L-2 | Second-model-family traffic canary | agentbox | deployment | open | 2026-11-15 |
@@ -532,7 +533,7 @@ Recorded as open, not re-checked:
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
 | cheap: forum-tweaks | Delete remote `fix/forum-tweaks-2026-10-22` | nostr-rust-forum | engineering | open | 2026-11-15 |
-| AC-FORUM-1 | Forum: delete the three blank `audited_by` fields | nostr-rust-forum | engineering | fixed on an unmerged branch: nostr-rust-forum integrate/phase-0-1 (2316ebe) | 2026-11-16 |
+| AC-FORUM-1 | Forum: delete the three blank `audited_by` fields | nostr-rust-forum | engineering | fixed on an unmerged branch: merged to main 2026-11-17, awaiting rebuild | 2026-11-17 |
 
 Recorded as open, not re-checked:
 
@@ -645,7 +646,7 @@ Recorded as open, not re-checked:
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| 11-08 #5 | visionGraph: write the /third-party-notices/ page (NOTICE attribution pushed 2026-11-16) | visiongraph | engineering | fixed on an unmerged branch: partly: visionGraph `fix/estate-review-2026-11-15` a5b754af4 (NOTICE only; page not covered) | 2026-11-16 |
+| 11-08 #5 | visionGraph: write the /third-party-notices/ page (NOTICE attribution pushed 2026-11-16) | visiongraph | engineering | fixed on an unmerged branch: merged to main 2026-11-17, awaiting rebuild | 2026-11-17 |
 
 Recorded as open, not re-checked:
 

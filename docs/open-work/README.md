@@ -17,7 +17,7 @@ Items are filed by **seam**: the contract between components that would have to 
 
 | State | Items | Meaning |
 |---|---|---|
-| Live | 127 | Open, or fixed on a branch that is not merged, as established by a check on the date shown |
+| Live | 128 | Open, or fixed on a branch that is not merged, as established by a check on the date shown |
 | Unverified | 194 | Recorded as open in an older list and not re-checked since. Not known to be open |
 | Parked | 23 | Deliberately set aside with a re-open trigger |
 | Closed | 43 | Fixed, overtaken, or found not to be a defect. Kept so the id still resolves |
@@ -28,7 +28,7 @@ Items are filed by **seam**: the contract between components that would have to 
 
 | Id | Item | Seam | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|---|
-| ER-7 | VisionClaw proposals now conform to the forum contract on a branch. Open: which risk tier and task properties each builder declares (concept elevation, decision elevation, voice command) | governance-events | visionclaw | owner-decision | fixed on an unmerged branch: visionclaw fix/governance-builders-to-contract (11134cc41) | 2026-11-16 |
+| ER-7 | VisionClaw proposals now conform to the forum contract on a branch. Open: which risk tier and task properties each builder declares (concept elevation, decision elevation, voice command) | governance-events | visionclaw | owner-decision | fixed on an unmerged branch: merged to main 2026-11-17, awaiting rebuild | 2026-11-17 |
 
 ### Waiting on an owner act (4)
 
@@ -37,14 +37,14 @@ Items are filed by **seam**: the contract between components that would have to 
 | cheap: nix-flake-update | Merge bot's `deps/nix-flake-update` | none | agentbox | owner-act | open | 2026-11-15 |
 | X-4 | Upgrade rehearsal built, never run | none | visionclaw, agentbox | owner-act | open | 2026-11-15 |
 | G-23 | `ESTATE_READ_TOKEN` read on visionGraph, or mark it exempt | none | visionflow, visiongraph | owner-act | open | 2026-11-15 |
-| FORUM-PHASE-0-1 (also feat/upgrade-phase-0-1) | Forum Phase 0 to 4 branch integrated on integrate/phase-0-1: review, choose the core crate version, merge, then apply the D1 migrations | forum-zones | nostr-rust-forum | owner-act | fixed on an unmerged branch: nostr-rust-forum integrate/phase-0-1 (a80c572) | 2026-11-16 |
+| FORUM-PHASE-0-1 (also feat/upgrade-phase-0-1) | Forum Phase 0 to 4 branch integrated on integrate/phase-0-1: review, choose the core crate version, merge, then apply the D1 migrations | forum-zones | nostr-rust-forum | owner-act | fixed on an unmerged branch: merged to main 2026-11-17, awaiting rebuild | 2026-11-17 |
 
 ## By seam
 
 | Seam | Between | Live | Unverified |
 |---|---|---|---|
 | [Who decided](by-seam.md#decision-attribution) | nostr-rust-forum, agentbox, visionclaw | 3 | 0 |
-| [Governance events](by-seam.md#governance-events) | nostr-rust-forum, agentbox, visionclaw | 2 | 3 |
+| [Governance events](by-seam.md#governance-events) | nostr-rust-forum, agentbox, visionclaw | 3 | 3 |
 | [Agent control and activity](by-seam.md#agent-control-api) | agentbox, visionclaw | 4 | 11 |
 | [Identity checks](by-seam.md#identity) | nostr-rust-forum, solid-pod-rs, agentbox, visionclaw, dreamlab-ai-website | 6 | 12 |
 | [Keys and secrets](by-seam.md#key-custody) | agentbox, nostr-rust-forum, dreamlab-ai-website, visionclaw | 5 | 8 |
@@ -64,9 +64,9 @@ An item that touches two components is counted under both.
 
 | Component | Live, on a seam | Live, inside the component | Unverified |
 |---|---|---|---|
-| visionclaw | 18 | 22 | 75 |
-| agentbox | 15 | 22 | 72 |
-| nostr-rust-forum | 6 | 2 | 28 |
+| visionclaw | 19 | 22 | 75 |
+| agentbox | 16 | 22 | 72 |
+| nostr-rust-forum | 7 | 2 | 28 |
 | dreamlab-ai-website | 0 | 0 | 8 |
 | solid-pod-rs | 19 | 11 | 31 |
 | sidestr-rs | 5 | 4 | 11 |
@@ -87,7 +87,7 @@ An item that touches two components is counted under both.
 |---|---|
 | Waiting on an owner decision | 1 |
 | Waiting on an owner act | 4 |
-| Ordinary engineering: can start now | 29 |
+| Ordinary engineering: can start now | 30 |
 | Needs a live deployment | 8 |
 | Needs a device | 4 |
 | Waiting on an external party | 6 |
