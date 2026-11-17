@@ -56,7 +56,7 @@
       ]
     },
     "estate-health": {
-      "cmd": "node scripts/estate-health.mjs check",
+      "cmd": "git fetch --quiet origin || echo 'WARN git fetch failed: reading the snapshot as last fetched, it may be stale'; git merge --ff-only --quiet @{upstream} 2>/dev/null || echo 'INFO checkout not fast-forwarded (local commits or a dirty tree); the stale-cause line below says how far behind it is'; node scripts/estate-health.mjs check",
       "required": false,
       "deeps": [
         "estate-health"

@@ -5,7 +5,7 @@
 // still read red, so the fix cannot hide a real failure.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { ciStateAtHead, ciStateFrom, dropRetiredWorkflows, isDocsOnlyChange, latestRunPerWorkflow, runsOnBranch } from '../../scripts/estate-health.mjs';
+import { staleCause, ciStateAtHead, ciStateFrom, dropRetiredWorkflows, isDocsOnlyChange, latestRunPerWorkflow, runsOnBranch } from '../../scripts/estate-health.mjs';
 
 const OLD = '721d8074c0000000000000000000000000000000';
 const HEAD = '4ed9ac1590000000000000000000000000000000';
@@ -70,3 +70,20 @@ assert.equal(bare.status, 2, bare.stderr);
 assert.match(bare.stderr, /usage: estate-health\.mjs collect/);
 
 console.log('ESTATE-HEALTH-CI-TEST-OK');
+
+// 9. a stale snapshot names its cause (2026-11-15: a checkout 64 commits behind
+// was read as "collector idle" for ten days). Pure function, three cases.
+{
+  const now = Date.parse('2026-11-15T20:00:00Z');
+  const base = { upstream: 'origin/main', now, maxAgeHours: 36 };
+  const behindFresh = staleCause({ ...base, behind: 64, upstreamGeneratedAt: '2026-11-15T02:46:00Z' });
+  assert.match(behindFresh, /^CAUSE checkout is 64 commits behind origin\/main/);
+  assert.match(behindFresh, /the collector is running; sync this checkout$/);
+  const behindStale = staleCause({ ...base, behind: 3, upstreamGeneratedAt: '2026-11-05T02:46:00Z' });
+  assert.match(behindStale, /fetch and sync before concluding the collector stopped$/);
+  const behindUnknown = staleCause({ ...base, behind: 3, upstreamGeneratedAt: null });
+  assert.match(behindUnknown, /whose snapshot is unreadable/);
+  const level = staleCause({ ...base, behind: 0, upstreamGeneratedAt: '2026-11-05T02:46:00Z' });
+  assert.match(level, /level with origin\/main as last fetched: the collector has not committed/);
+  assert.equal(staleCause({ ...base, upstream: null, behind: null, upstreamGeneratedAt: null }), null, 'no upstream: say nothing');
+}
