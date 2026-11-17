@@ -11,6 +11,12 @@ Seventeen branches hold finished work that is committed locally and not merged, 
 
 Test results are as each engineer reported them. No suite was re-run by the coordinator, and no branch has had a line-by-line review.
 
+## Update, 17 November 2026
+
+Three branches have since been merged and deployed by the owner: VisionClaw `feat/store-backup-and-restore`, agentbox `fix/journal-boundary-and-review-leg` and loom `feat/nightly-promotion`. Observed running: the Loom serves the corpus head with a promotion stamp; VisionClaw writes checkpoints and two backup runs are on the NAS; the audit journal verifies with two declared boundaries; the cloud-judge flags are 0. Fourteen branches remain unmerged. The rows for the three merged branches below are kept as the record of what was needed.
+
+Still true on the running VisionClaw: `VISIONCLAW_DEV_MODE=1` and `ALLOW_INSECURE_DEFAULTS=1`, with ports 3001 and 4000 published on every interface, because `fix/estate-review-2026-11-15` is not merged.
+
 ## Order
 
 Merge within a repository in the order listed. Across repositories, the forum's contract branch goes first, because agentbox vendors its files.

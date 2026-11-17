@@ -256,7 +256,7 @@ How the ontology travels: authored pages, the build that turns them into publish
 
 Between: visiongraph, ontomark, loom, visionclaw, agentbox.
 
-6 live, 15 unverified, 0 closed.
+5 live, 15 unverified, 1 closed.
 
 ### Live
 
@@ -265,7 +265,6 @@ Between: visiongraph, ontomark, loom, visionclaw, agentbox.
 | AW1-09 | `/ontology/derived` gated `power_user` only (Loom ADR-135 D7) | visionclaw, loom | engineering | open | 2026-11-15 |
 | EA-05 | Matching bundle/server generations (loom/visionGraph) | loom, visiongraph | deployment | open | 2026-11-15 |
 | D-1 | Seven-day observation window with daily recall receipts | visionclaw, loom | external | open | 2026-11-15 |
-| V-1 | Loom promotion, nightly, start-up fallback and publish-matching build flags built on a branch. Still to do: merge, then deploy on the Loom host | loom, visiongraph, visionclaw | owner-act | fixed on an unmerged branch: loom feat/nightly-promotion | 2026-11-16 |
 | AW1-11 | The Rust reload port carries a bundle's declared content digest but never compares it, contrary to ADR-141 decision 6 | loom, visionclaw | untriaged | open | 2026-11-15 |
 | CONTRACTS-F12 | Loom reads ontology scaffold bundles with ontomark-compile 0.1.1 while the corpus is built by ontomark 0.7.0 | loom, ontomark | untriaged | open | 2026-11-15 |
 
@@ -407,23 +406,19 @@ Between: dream-engine, agentbox, visionflow.
 
 The item concerns one component's own behaviour and no contract with another. Fixing it changes nothing a neighbour depends on.
 
-76 live, 103 unverified, 29 closed.
+72 live, 103 unverified, 33 closed.
 
 ### visionclaw
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| 11-08 #4 | Audit journal: boundaries and atomic writer built on a branch. Still to do: merge, rebuild, install boundaries.json in the live journal directory. Signing deferred until stable | visionclaw | engineering | fixed on an unmerged branch: agentbox fix/journal-boundary-and-review-leg | 2026-11-16 |
-| 11-08 #6 | Cloud-judge defaults (`*_JEV_ALLOW_CLOUD`) are 0 in source; not yet running | visionclaw | deployment | open | 2026-11-16 |
 | 11-08 #7 | Dependabot backlog untriaged; no `dependabot.yml` | visionclaw, agentbox | engineering | open | 2026-11-15 |
 | W3-02 | Saved API keys never read back | visionclaw | engineering | open | 2026-11-15 |
 | 11-08 #9 | Production-image receipt; VisionClaw ADR-2037/2038/2012/2119 (parked) | visionclaw | external | open | 2026-11-15 |
 | 11-15 new | RUSTSEC-2026-0459: `libsqlite3-sys 0.28` via direct `rusqlite 0.31` | visionclaw | engineering | open | 2026-11-15 |
-| cheap: Gemini key | Gemini audit leg replaced by Codex on a branch. Before switching on: confine what `codex exec` can read and cap its turns; then merge and rebuild | visionclaw | engineering | fixed on an unmerged branch: agentbox fix/journal-boundary-and-review-leg | 2026-11-16 |
 | ratify: VC 2039/2108 | When VisionClaw branch fix/estate-review-2026-11-15 merges: mark ADR-2039 accepted with its verified commit, and supersede ADR-2108 | visionclaw | engineering | open | 2026-11-16 |
 | X-2 | Actor bypass audit (direct store reads, `execute_in_thread`) | visionclaw | engineering | open | 2026-11-15 |
 | X-4 | Upgrade rehearsal built, never run | visionclaw, agentbox | owner-act | open | 2026-11-15 |
-| G-7 | Backups: tool and in-server Oxigraph checkpoint built on a branch. Still to do: merge, rebuild, set ONTOLOGY_CHECKPOINT_DIR, mount /mnt/dell on the host, enable the timer, one timed restore of the real stores | visionclaw | owner-act | fixed on an unmerged branch: visionclaw feat/store-backup-and-restore | 2026-11-16 |
 | L-3 | Clamp-fire receipt | visionclaw | engineering | open | 2026-11-15 |
 | L-4 | Failure-path telemetry liveness | visionclaw | deployment | open | 2026-11-15 |
 | L-6 | Amethyst/Amber mobile session | visionclaw | device | open | 2026-11-15 |

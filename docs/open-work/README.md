@@ -17,12 +17,12 @@ Items are filed by **seam**: the contract between components that would have to 
 
 | State | Items | Meaning |
 |---|---|---|
-| Live | 132 | Open, or fixed on a branch that is not merged, as established by a check on the date shown |
+| Live | 127 | Open, or fixed on a branch that is not merged, as established by a check on the date shown |
 | Unverified | 194 | Recorded as open in an older list and not re-checked since. Not known to be open |
 | Parked | 23 | Deliberately set aside with a re-open trigger |
-| Closed | 38 | Fixed, overtaken, or found not to be a defect. Kept so the id still resolves |
+| Closed | 43 | Fixed, overtaken, or found not to be a defect. Kept so the id still resolves |
 
-## Waiting on the owner (7)
+## Waiting on the owner (5)
 
 ### Waiting on an owner decision (1)
 
@@ -30,15 +30,13 @@ Items are filed by **seam**: the contract between components that would have to 
 |---|---|---|---|---|---|---|
 | ER-7 | VisionClaw proposals now conform to the forum contract on a branch. Open: which risk tier and task properties each builder declares (concept elevation, decision elevation, voice command) | governance-events | visionclaw | owner-decision | fixed on an unmerged branch: visionclaw fix/governance-builders-to-contract (11134cc41) | 2026-11-16 |
 
-### Waiting on an owner act (6)
+### Waiting on an owner act (4)
 
 | Id | Item | Seam | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|---|
 | cheap: nix-flake-update | Merge bot's `deps/nix-flake-update` | none | agentbox | owner-act | open | 2026-11-15 |
 | X-4 | Upgrade rehearsal built, never run | none | visionclaw, agentbox | owner-act | open | 2026-11-15 |
-| G-7 | Backups: tool and in-server Oxigraph checkpoint built on a branch. Still to do: merge, rebuild, set ONTOLOGY_CHECKPOINT_DIR, mount /mnt/dell on the host, enable the timer, one timed restore of the real stores | none | visionclaw | owner-act | fixed on an unmerged branch: visionclaw feat/store-backup-and-restore | 2026-11-16 |
 | G-23 | `ESTATE_READ_TOKEN` read on visionGraph, or mark it exempt | none | visionflow, visiongraph | owner-act | open | 2026-11-15 |
-| V-1 | Loom promotion, nightly, start-up fallback and publish-matching build flags built on a branch. Still to do: merge, then deploy on the Loom host | ontology-pipeline | loom, visiongraph, visionclaw | owner-act | fixed on an unmerged branch: loom feat/nightly-promotion | 2026-11-16 |
 | FORUM-PHASE-0-1 (also feat/upgrade-phase-0-1) | Forum Phase 0 to 4 branch integrated on integrate/phase-0-1: review, choose the core crate version, merge, then apply the D1 migrations | forum-zones | nostr-rust-forum | owner-act | fixed on an unmerged branch: nostr-rust-forum integrate/phase-0-1 (a80c572) | 2026-11-16 |
 
 ## By seam
@@ -53,12 +51,12 @@ Items are filed by **seam**: the contract between components that would have to 
 | [Forum zones and message keys](by-seam.md#forum-zones) | nostr-rust-forum, dreamlab-ai-website, agentbox | 2 | 4 |
 | [Pod storage](by-seam.md#pod-api) | solid-pod-rs, visionclaw, agentbox, nostr-rust-forum, dreamlab-ai-website | 12 | 4 |
 | [Value transfer](by-seam.md#payments) | sidestr-rs, solid-pod-rs, nostr-rust-forum, visionclaw, agentbox | 5 | 8 |
-| [Ontology from corpus to consumers](by-seam.md#ontology-pipeline) | visiongraph, ontomark, loom, visionclaw, agentbox | 6 | 15 |
+| [Ontology from corpus to consumers](by-seam.md#ontology-pipeline) | visiongraph, ontomark, loom, visionclaw, agentbox | 5 | 15 |
 | [XR, presence and the code view](by-seam.md#xr-presence) | visionclaw, codescape, agentbox | 3 | 5 |
 | [Shared memory](by-seam.md#memory) | agentbox, visionclaw | 0 | 4 |
 | [Versions and pins across repositories](by-seam.md#release-pins) | estate | 4 | 15 |
 | [The nightly cycle across repositories](by-seam.md#nightly-cycle) | dream-engine, agentbox, visionflow | 4 | 2 |
-| [Inside one component](by-seam.md#none) | one component | 76 | 103 |
+| [Inside one component](by-seam.md#none) | one component | 72 | 103 |
 
 ## By component
 
@@ -66,15 +64,15 @@ An item that touches two components is counted under both.
 
 | Component | Live, on a seam | Live, inside the component | Unverified |
 |---|---|---|---|
-| visionclaw | 19 | 26 | 75 |
+| visionclaw | 18 | 22 | 75 |
 | agentbox | 15 | 22 | 72 |
 | nostr-rust-forum | 6 | 2 | 28 |
 | dreamlab-ai-website | 0 | 0 | 8 |
 | solid-pod-rs | 19 | 11 | 31 |
 | sidestr-rs | 5 | 4 | 11 |
-| loom | 6 | 4 | 10 |
+| loom | 5 | 4 | 10 |
 | ontomark | 1 | 1 | 12 |
-| visiongraph | 2 | 2 | 10 |
+| visiongraph | 1 | 2 | 10 |
 | knowledgegraph | 0 | 0 | 2 |
 | dream-engine | 4 | 0 | 6 |
 | codescape | 1 | 1 | 5 |
@@ -88,9 +86,9 @@ An item that touches two components is counted under both.
 | Blocked by | Items |
 |---|---|
 | Waiting on an owner decision | 1 |
-| Waiting on an owner act | 6 |
-| Ordinary engineering: can start now | 31 |
-| Needs a live deployment | 9 |
+| Waiting on an owner act | 4 |
+| Ordinary engineering: can start now | 29 |
+| Needs a live deployment | 8 |
 | Needs a device | 4 |
 | Waiting on an external party | 6 |
 | Not yet triaged | 75 |
