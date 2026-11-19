@@ -1,0 +1,41 @@
+name: Rust tool lint
+
+# The two Rust tools in scripts/ (the open-work register validator and the
+# estate-review ledger) were built and run by the gates but never linted.
+# Formatting and clippy run here with warnings as errors. The Cargo.toml files
+# under docs/estate-review/evidence/ are archived snapshots, not built code,
+# and are deliberately left out.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/open-work/**'
+      - 'scripts/estate-review-ledger/**'
+      - '.github/workflows/rust-lint.yml'
+  pull_request:
+    paths:
+      - 'scripts/open-work/**'
+      - 'scripts/estate-review-ledger/**'
+      - '.github/workflows/rust-lint.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  rust-lint:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        crate: [scripts/open-work, scripts/estate-review-ledger]
+    defaults:
+      run:
+        working-directory: ${{ matrix.crate }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Format
+        run: cargo fmt --check
+      - name: Clippy
+        run: cargo clippy --all-targets --locked -- -D warnings
