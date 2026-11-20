@@ -51,7 +51,10 @@ sed -i '1s/"date": *"[0-9-]*"/"date": ""/' "$TMP/case/register.jsonl"
 expect_red "a state with no date is refused" "$TMP/case" "is not YYYY-MM-DD"
 
 fresh
-sed -i '1s/"title": *"/"title": "changed /' "$TMP/case/register.jsonl"
+# A closed item's title appears in no view, so change the first item that is
+# still open: line 1 stops being one as soon as its item is fixed.
+live_line="$(grep -n -m1 '"status": *"open"' "$TMP/case/register.jsonl" | cut -d: -f1)"
+sed -i "${live_line}s/\"title\": *\"/\"title\": \"changed /" "$TMP/case/register.jsonl"
 expect_red "a view that no longer matches the register is refused" "$TMP/case" "is stale"
 
 echo "open-work gate: $pass passed, $fail failed"
