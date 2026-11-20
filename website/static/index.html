@@ -715,60 +715,60 @@
 
       <div class="sc-carousel" role="region" aria-roledescription="carousel" aria-label="Sidechain ideas">
         <div class="sc-track" tabindex="0">
-          <article class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="1 of 9: Workshop demonstrator">
+          <div class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="1 of 9: Workshop demonstrator">
             <span class="sc-badge sc-live">Live on testnet</span>
             <h3>Workshop demonstrator</h3>
             <p>Everyone in the room gets an agent with a testnet wallet. Agents pay each other live on the chain while you watch. This is the loop the estate ran on 23 September: peg-in, three trades between two agents, peg-out paid back on Bitcoin testnet4.</p>
             <p class="sc-basis">Builds on: sidestr-rs &middot; sidestr:dreamlab</p>
-          </article>
-          <article class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="2 of 9: Allowances with hard ceilings">
+          </div>
+          <div class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="2 of 9: Allowances with hard ceilings">
             <span class="sc-badge sc-near">Parts built</span>
             <h3>Allowances with hard ceilings</h3>
             <p>An operator pegs a budget into an agent’s <code>did:nostr</code> key. The agent can spend what that key holds and no more. A spend policy checks each payment first, and whatever is left comes back with a peg-out.</p>
             <p class="sc-basis">Builds on: sidestr-wallet spend policy &middot; sidestr-agent</p>
-          </article>
-          <article class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="3 of 9: Pay-per-call between agents">
+          </div>
+          <div class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="3 of 9: Pay-per-call between agents">
             <span class="sc-badge sc-decided">Decided, not built</span>
             <h3>Pay-per-call between agents</h3>
             <p>An agent pays another agent for a Loom query, a consultant call, or a GPU render. The estate’s HTTP 402 gate gains a sidechain payment scheme. The payment is the receipt.</p>
             <p class="sc-basis">Building on agentbox ADR-2099</p>
-          </article>
-          <article class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="4 of 9: Tamper-evident audit anchors">
+          </div>
+          <div class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="4 of 9: Tamper-evident audit anchors">
             <span class="sc-badge sc-near">Parts built</span>
             <h3>Tamper-evident audit anchors</h3>
             <p>The estate&rsquo;s hash-chained event log and its knowledge records are checkpointed into the sidechain, and from there into Bitcoin. Anyone can then check that the history was not rewritten.</p>
             <p class="sc-basis">Builds on: checkpoint markers in the protocol</p>
-          </article>
-          <article class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="5 of 9: One ledger instead of three">
+          </div>
+          <div class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="5 of 9: One ledger instead of three">
             <span class="sc-badge sc-decided">Decided, not built</span>
             <h3>One ledger instead of three</h3>
             <p>Today’s three payment ledgers keep separate books. With the chain as the ledger of record, each is just a view over the same history.</p>
             <p class="sc-basis">Builds on: agentbox ADR-2099</p>
-          </article>
-          <article class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="6 of 9: Bounties and escrow">
+          </div>
+          <div class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="6 of 9: Bounties and escrow">
             <span class="sc-badge sc-idea">Idea</span>
             <h3>Bounties and escrow</h3>
             <p>Tasks in the forum or dream-machine can carry a bounty. The agent that completes a task can claim it when k of n reviewers co-sign its result.</p>
             <p class="sc-basis">Builds on: sidestr-round co-signing</p>
-          </article>
-          <article class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="7 of 9: Refundable stakes on proposals">
+          </div>
+          <div class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="7 of 9: Refundable stakes on proposals">
             <span class="sc-badge sc-idea">Idea</span>
             <h3>Refundable stakes on proposals</h3>
             <p>Ontology enrichments and shared-learning proposals carry a small stake: refunded when accepted, forfeited when flagged as spam. Confidence already counts people, not accounts. A stake puts a price on spamming.</p>
             <p class="sc-basis">Builds on: colloquy &middot; forum governance</p>
-          </article>
-          <article class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="8 of 9: Per-session child chains">
+          </div>
+          <div class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="8 of 9: Per-session child chains">
             <span class="sc-badge sc-decided">Decided, far off</span>
             <h3>Per-session child chains</h3>
             <p>Each swarm or session gets a short-lived chain for its many small internal payments, then settles one net total to the root chain when it closes.</p>
             <p class="sc-basis">Builds on: PRD-024 owner decision D2</p>
-          </article>
-          <article class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="9 of 9: Settlement across operators">
+          </div>
+          <div class="glass-card sc-slide" role="group" aria-roledescription="slide" aria-label="9 of 9: Settlement across operators">
             <span class="sc-badge sc-deferred">Deferred</span>
             <h3>Settlement across operators</h3>
             <p>Another operator’s agents, or other sidestr chains, trade with this estate, with assets bridged in. This waits for the federation work.</p>
             <p class="sc-basis">Builds on: federation project</p>
-          </article>
+          </div>
         </div>
         <div class="sc-controls" hidden>
           <button type="button" class="sc-prev" aria-label="Previous idea">&larr;</button>
